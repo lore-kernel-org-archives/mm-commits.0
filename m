@@ -1,97 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] proc-use-is_err_or_null.patch removed from -mm tree
-Date: Thu, 31 May 2012 13:13:30 -0700
-Message-ID: <20120531201330.D2088A03CD@akpm.mtv.corp.google.com>
+Subject: + tmpfs-implement-numa-node-interleaving-fix.patch added to -mm tree
+Date: Thu, 31 May 2012 13:25:54 -0700
+Message-ID: <20120531202554.A24B2A03DB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:40261 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933260Ab2EaUNb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 16:13:31 -0400
-Received: by qcsp5 with SMTP id p5so143030qcs.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 13:13:31 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:52244 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758403Ab2EaUZ4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 16:25:56 -0400
+Received: by wgbdt11 with SMTP id dt11so78647wgb.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 13:25:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiyou.wangcong@gmail.com, adobriyan@gmail.com, hughd@google.com, oleg@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, cl@linux.com, hughd@google.com, lee.schermerhorn@hp.com, npiggin@gmail.com, nzimmer@sgi.com, riel@redhat.com
 
 
 The patch titled
-     Subject: proc: use IS_ERR_OR_NULL()
-has been removed from the -mm tree.  Its filename was
-     proc-use-is_err_or_null.patch
+     Subject: tmpfs-implement-numa-node-interleaving-fix
+has been added to the -mm tree.  Its filename is
+     tmpfs-implement-numa-node-interleaving-fix.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Cong Wang <xiyou.wangcong@gmail.com>
-Subject: proc: use IS_ERR_OR_NULL()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: tmpfs-implement-numa-node-interleaving-fix
 
-Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+add comment
+
+Cc: Christoph Lameter <cl@linux.com>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Nathan T Zimmer <nzimmer@sgi.com>
+Cc: Nathan Zimmer <nzimmer@sgi.com>
+Cc: Nick Piggin <npiggin@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c       |    2 +-
- fs/proc/task_mmu.c   |    4 ++--
- fs/proc/task_nommu.c |    2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ mm/shmem.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/base.c~proc-use-is_err_or_null fs/proc/base.c
---- a/fs/proc/base.c~proc-use-is_err_or_null
-+++ a/fs/proc/base.c
-@@ -239,7 +239,7 @@ static int proc_pid_auxv(struct task_str
- {
- 	struct mm_struct *mm = mm_access(task, PTRACE_MODE_READ);
- 	int res = PTR_ERR(mm);
--	if (mm && !IS_ERR(mm)) {
-+	if (!IS_ERR_OR_NULL(mm)) {
- 		unsigned int nwords = 0;
- 		do {
- 			nwords += 2;
-diff -puN fs/proc/task_mmu.c~proc-use-is_err_or_null fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~proc-use-is_err_or_null
-+++ a/fs/proc/task_mmu.c
-@@ -126,7 +126,7 @@ static void *m_start(struct seq_file *m,
- 		return ERR_PTR(-ESRCH);
+diff -puN include/linux/shmem_fs.h~tmpfs-implement-numa-node-interleaving-fix include/linux/shmem_fs.h
+diff -puN mm/shmem.c~tmpfs-implement-numa-node-interleaving-fix mm/shmem.c
+--- a/mm/shmem.c~tmpfs-implement-numa-node-interleaving-fix
++++ a/mm/shmem.c
+@@ -927,9 +927,12 @@ static struct page *shmem_alloc_page(gfp
+ 	pvma.vm_policy = mpol_shared_policy_lookup(&info->policy, index);
  
- 	mm = mm_access(priv->task, PTRACE_MODE_READ);
--	if (!mm || IS_ERR(mm))
-+	if (IS_ERR_OR_NULL(mm))
- 		return mm;
- 	down_read(&mm->mmap_sem);
- 
-@@ -957,7 +957,7 @@ static ssize_t pagemap_read(struct file 
- 
- 	mm = mm_access(task, PTRACE_MODE_READ);
- 	ret = PTR_ERR(mm);
--	if (!mm || IS_ERR(mm))
-+	if (IS_ERR_OR_NULL(mm))
- 		goto out_free;
- 
- 	pagemap_walk.pmd_entry = pagemap_pte_range;
-diff -puN fs/proc/task_nommu.c~proc-use-is_err_or_null fs/proc/task_nommu.c
---- a/fs/proc/task_nommu.c~proc-use-is_err_or_null
-+++ a/fs/proc/task_nommu.c
-@@ -224,7 +224,7 @@ static void *m_start(struct seq_file *m,
- 		return ERR_PTR(-ESRCH);
- 
- 	mm = mm_access(priv->task, PTRACE_MODE_READ);
--	if (!mm || IS_ERR(mm)) {
-+	if (IS_ERR_OR_NULL(mm)) {
- 		put_task_struct(priv->task);
- 		priv->task = NULL;
- 		return mm;
+ 	/*
+-	 * alloc_page_vma() will drop the shared policy reference
++	 * alloc_page_vma() will drop the shared policy reference.
++	 *
++	 * To avoid allocating all tmpfs pages on node 0, we fake up a virtual
++	 * address based on this file's predetermined preferred node.
+ 	 */
+-	return alloc_page_vma(gfp, &pvma, info->node_offset << PAGE_SHIFT );
++	return alloc_page_vma(gfp, &pvma, info->node_offset << PAGE_SHIFT);
+ }
+ #else /* !CONFIG_NUMA */
+ #ifdef CONFIG_TMPFS
 _
+Subject: Subject: tmpfs-implement-numa-node-interleaving-fix
 
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-proc-clean-up-proc-pid-environ-handling.patch
+security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
+isdn-add-missing-kern_cont-fix.patch
+kernel-irq-managec-use-the-pr_foo-infrastructure-to-prefix-printks.patch
+vsprintf-correctly-handle-width-when-flag-used-in-%p-format-checkpatch-fixes.patch
+vsprintf-further-optimize-decimal-conversion-checkpatch-fixes.patch
 proc-clean-up-proc-pid-environ-handling-checkpatch-fixes.patch
-proc-remove-mm_for_maps.patch
-proc-use-mm_access-instead-of-ptrace_may_access.patch
+kernel-cpuc-document-clear_tasks_mm_cpumask.patch
+kernel-cpuc-document-clear_tasks_mm_cpumask-fix.patch
+ipc-mqueue-improve-performance-of-send-recv-fix.patch
+ipc-mqueue-correct-mq_attr_ok-test-fix.patch
+ipc-mqueue-strengthen-checks-on-mqueue-creation-fix.patch
+tools-selftests-add-mq_perf_tests-checkpatch-fixes.patch
+ipc-mqueue-add-rbtree-node-caching-support-checkpatch-fixes.patch
+pidns-make-killed-children-autoreap-checkpatch-fixes.patch
+fs-nls-add-apple-nls-fix.patch
+eventfd-change-int-to-__u64-in-eventfd_signal-fix.patch
 
