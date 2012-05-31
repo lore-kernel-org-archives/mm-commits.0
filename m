@@ -1,142 +1,224 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tools-vm-page-typesc-cleanups.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:14:54 -0700
-Message-ID: <20120531191454.61C67A0203@akpm.mtv.corp.google.com>
+Subject: [merged] x86-print-e820-physical-addresses-consistently-with-other-parts-of-kernel.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:14:44 -0700
+Message-ID: <20120531191444.6D5E9A0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:46604 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932864Ab2EaTOz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:14:55 -0400
-Received: by yenl3 with SMTP id l3so137882yen.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:14:54 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:58058 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932808Ab2EaTOq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:14:46 -0400
+Received: by mail-ee0-f74.google.com with SMTP id t10so76254eei.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:14:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: drepper@akkadia.org, drepper@gmail.com, fengguang.wu@intel.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: bhelgaas@google.com, hpa@zytor.com, konrad.wilk@oracle.com, mingo@elte.hu, tglx@linutronix.de, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools/vm/page-types.c: cleanups
+     Subject: x86: print e820 physical addresses consistently with other parts of kernel
 has been removed from the -mm tree.  Its filename was
-     tools-vm-page-typesc-cleanups.patch
+     x86-print-e820-physical-addresses-consistently-with-other-parts-of-kernel.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Ulrich Drepper <drepper@akkadia.org>
-Subject: tools/vm/page-types.c: cleanups
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: x86: print e820 physical addresses consistently with other parts of kernel
 
-Compiling page-type.c with a recent compiler produces many warnings,
-mostly related to signed/unsigned comparisons.  This patch cleans up most
-of them.
+Print physical address info in a style consistent with the %pR style used
+elsewhere in the kernel.  For example:
 
-One remaining warning is about an unused parameter.  The <compiler.h> file
-doesn't define a __unused macro (or the like) yet.  This can be addressed
-later.
+    -BIOS-provided physical RAM map:
+    +e820: BIOS-provided physical RAM map:
+    - BIOS-e820: 0000000000000100 - 000000000009e000 (usable)
+    +BIOS-e820: [mem 0x0000000000000100-0x000000000009dfff] usable
+    -Allocating PCI resources starting at 90000000 (gap: 90000000:6ed1c000)
+    +e820: [mem 0x90000000-0xfed1bfff] available for PCI devices
+    -reserve RAM buffer: 000000000009e000 - 000000000009ffff
+    +e820: reserve RAM buffer [mem 0x0009e000-0x0009ffff]
 
-Signed-off-by: Ulrich Drepper <drepper@gmail.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Fengguang Wu <fengguang.wu@intel.com>
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/vm/page-types.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ arch/x86/kernel/e820.c |   53 +++++++++++++++++++--------------------
+ 1 file changed, 27 insertions(+), 26 deletions(-)
 
-diff -puN tools/vm/page-types.c~tools-vm-page-typesc-cleanups tools/vm/page-types.c
---- a/tools/vm/page-types.c~tools-vm-page-typesc-cleanups
-+++ a/tools/vm/page-types.c
-@@ -300,7 +300,7 @@ static char *page_flag_name(uint64_t fla
- {
- 	static char buf[65];
- 	int present;
--	int i, j;
-+	size_t i, j;
+diff -puN arch/x86/kernel/e820.c~x86-print-e820-physical-addresses-consistently-with-other-parts-of-kernel arch/x86/kernel/e820.c
+--- a/arch/x86/kernel/e820.c~x86-print-e820-physical-addresses-consistently-with-other-parts-of-kernel
++++ a/arch/x86/kernel/e820.c
+@@ -113,7 +113,9 @@ static void __init __e820_add_region(str
+ 	int x = e820x->nr_map;
  
- 	for (i = 0, j = 0; i < ARRAY_SIZE(page_flag_names); i++) {
- 		present = (flags >> i) & 1;
-@@ -318,7 +318,7 @@ static char *page_flag_name(uint64_t fla
- static char *page_flag_longname(uint64_t flags)
- {
- 	static char buf[1024];
--	int i, n;
-+	size_t i, n;
+ 	if (x >= ARRAY_SIZE(e820x->map)) {
+-		printk(KERN_ERR "Ooops! Too many entries in the memory map!\n");
++		printk(KERN_ERR "e820: too many entries; ignoring [mem %#010llx-%#010llx]\n",
++		       (unsigned long long) start,
++		       (unsigned long long) (start + size - 1));
+ 		return;
+ 	}
  
- 	for (i = 0, n = 0; i < ARRAY_SIZE(page_flag_names); i++) {
- 		if (!page_flag_names[i])
-@@ -376,7 +376,7 @@ static void show_page(unsigned long voff
+@@ -133,19 +135,19 @@ static void __init e820_print_type(u32 t
+ 	switch (type) {
+ 	case E820_RAM:
+ 	case E820_RESERVED_KERN:
+-		printk(KERN_CONT "(usable)");
++		printk(KERN_CONT "usable");
+ 		break;
+ 	case E820_RESERVED:
+-		printk(KERN_CONT "(reserved)");
++		printk(KERN_CONT "reserved");
+ 		break;
+ 	case E820_ACPI:
+-		printk(KERN_CONT "(ACPI data)");
++		printk(KERN_CONT "ACPI data");
+ 		break;
+ 	case E820_NVS:
+-		printk(KERN_CONT "(ACPI NVS)");
++		printk(KERN_CONT "ACPI NVS");
+ 		break;
+ 	case E820_UNUSABLE:
+-		printk(KERN_CONT "(unusable)");
++		printk(KERN_CONT "unusable");
+ 		break;
+ 	default:
+ 		printk(KERN_CONT "type %u", type);
+@@ -158,10 +160,10 @@ void __init e820_print_map(char *who)
+ 	int i;
  
- static void show_summary(void)
- {
--	int i;
-+	size_t i;
+ 	for (i = 0; i < e820.nr_map; i++) {
+-		printk(KERN_INFO " %s: %016Lx - %016Lx ", who,
++		printk(KERN_INFO "%s: [mem %#018Lx-%#018Lx] ", who,
+ 		       (unsigned long long) e820.map[i].addr,
+ 		       (unsigned long long)
+-		       (e820.map[i].addr + e820.map[i].size));
++		       (e820.map[i].addr + e820.map[i].size - 1));
+ 		e820_print_type(e820.map[i].type);
+ 		printk(KERN_CONT "\n");
+ 	}
+@@ -428,9 +430,8 @@ static u64 __init __e820_update_range(st
+ 		size = ULLONG_MAX - start;
  
- 	printf("             flags\tpage-count       MB"
- 		"  symbolic-flags\t\t\tlong-symbolic-flags\n");
-@@ -474,7 +474,7 @@ static int debugfs_valid_mountpoint(cons
- /* find the path to the mounted debugfs */
- static const char *debugfs_find_mountpoint(void)
- {
--	const char **ptr;
-+	const char *const *ptr;
- 	char type[100];
- 	FILE *fp;
+ 	end = start + size;
+-	printk(KERN_DEBUG "e820 update range: %016Lx - %016Lx ",
+-		       (unsigned long long) start,
+-		       (unsigned long long) end);
++	printk(KERN_DEBUG "e820: update [mem %#010Lx-%#010Lx] ",
++	       (unsigned long long) start, (unsigned long long) (end - 1));
+ 	e820_print_type(old_type);
+ 	printk(KERN_CONT " ==> ");
+ 	e820_print_type(new_type);
+@@ -509,9 +510,8 @@ u64 __init e820_remove_range(u64 start, 
+ 		size = ULLONG_MAX - start;
  
-@@ -511,7 +511,7 @@ static const char *debugfs_find_mountpoi
+ 	end = start + size;
+-	printk(KERN_DEBUG "e820 remove range: %016Lx - %016Lx ",
+-		       (unsigned long long) start,
+-		       (unsigned long long) end);
++	printk(KERN_DEBUG "e820: remove [mem %#010Lx-%#010Lx] ",
++	       (unsigned long long) start, (unsigned long long) (end - 1));
+ 	if (checktype)
+ 		e820_print_type(old_type);
+ 	printk(KERN_CONT "\n");
+@@ -567,7 +567,7 @@ void __init update_e820(void)
+ 	if (sanitize_e820_map(e820.map, ARRAY_SIZE(e820.map), &nr_map))
+ 		return;
+ 	e820.nr_map = nr_map;
+-	printk(KERN_INFO "modified physical RAM map:\n");
++	printk(KERN_INFO "e820: modified physical RAM map:\n");
+ 	e820_print_map("modified");
+ }
+ static void __init update_e820_saved(void)
+@@ -637,8 +637,8 @@ __init void e820_setup_gap(void)
+ 	if (!found) {
+ 		gapstart = (max_pfn << PAGE_SHIFT) + 1024*1024;
+ 		printk(KERN_ERR
+-	"PCI: Warning: Cannot find a gap in the 32bit address range\n"
+-	"PCI: Unassigned devices with 32bit resource registers may break!\n");
++	"e820: cannot find a gap in the 32bit address range\n"
++	"e820: PCI devices with unassigned 32bit BARs may break!\n");
+ 	}
+ #endif
  
- static void debugfs_mount(void)
- {
--	const char **ptr;
-+	const char *const *ptr;
+@@ -648,8 +648,8 @@ __init void e820_setup_gap(void)
+ 	pci_mem_start = gapstart;
  
- 	/* see if it's already mounted */
- 	if (debugfs_find_mountpoint())
-@@ -588,10 +588,10 @@ static int unpoison_page(unsigned long o
-  * page frame walker
-  */
+ 	printk(KERN_INFO
+-	       "Allocating PCI resources starting at %lx (gap: %lx:%lx)\n",
+-	       pci_mem_start, gapstart, gapsize);
++	       "e820: [mem %#010lx-%#010lx] available for PCI devices\n",
++	       gapstart, gapstart + gapsize - 1);
+ }
  
--static int hash_slot(uint64_t flags)
-+static size_t hash_slot(uint64_t flags)
- {
--	int k = HASH_KEY(flags);
--	int i;
-+	size_t k = HASH_KEY(flags);
-+	size_t i;
+ /**
+@@ -667,7 +667,7 @@ void __init parse_e820_ext(struct setup_
+ 	extmap = (struct e820entry *)(sdata->data);
+ 	__append_e820_map(extmap, entries);
+ 	sanitize_e820_map(e820.map, ARRAY_SIZE(e820.map), &e820.nr_map);
+-	printk(KERN_INFO "extended physical RAM map:\n");
++	printk(KERN_INFO "e820: extended physical RAM map:\n");
+ 	e820_print_map("extended");
+ }
  
- 	/* Explicitly reserve slot 0 for flags 0: the following logic
- 	 * cannot distinguish an unoccupied slot from slot (flags==0).
-@@ -644,7 +644,7 @@ static void walk_pfn(unsigned long voffs
- {
- 	uint64_t buf[KPAGEFLAGS_BATCH];
- 	unsigned long batch;
--	long pages;
-+	unsigned long pages;
- 	unsigned long i;
+@@ -734,7 +734,7 @@ u64 __init early_reserve_e820(u64 size, 
+ 	addr = __memblock_alloc_base(size, align, MEMBLOCK_ALLOC_ACCESSIBLE);
+ 	if (addr) {
+ 		e820_update_range_saved(addr, size, E820_RAM, E820_RESERVED);
+-		printk(KERN_INFO "update e820_saved for early_reserve_e820\n");
++		printk(KERN_INFO "e820: update e820_saved for early_reserve_e820\n");
+ 		update_e820_saved();
+ 	}
  
- 	while (count) {
-@@ -753,7 +753,7 @@ static const char *page_flag_type(uint64
+@@ -784,7 +784,7 @@ static unsigned long __init e820_end_pfn
+ 	if (last_pfn > max_arch_pfn)
+ 		last_pfn = max_arch_pfn;
  
- static void usage(void)
- {
--	int i, j;
-+	size_t i, j;
+-	printk(KERN_INFO "last_pfn = %#lx max_arch_pfn = %#lx\n",
++	printk(KERN_INFO "e820: last_pfn = %#lx max_arch_pfn = %#lx\n",
+ 			 last_pfn, max_arch_pfn);
+ 	return last_pfn;
+ }
+@@ -888,7 +888,7 @@ void __init finish_e820_parsing(void)
+ 			early_panic("Invalid user supplied memory map");
+ 		e820.nr_map = nr;
  
- 	printf(
- "page-types [options]\n"
-@@ -912,7 +912,7 @@ static void add_bits_filter(uint64_t mas
+-		printk(KERN_INFO "user-defined physical RAM map:\n");
++		printk(KERN_INFO "e820: user-defined physical RAM map:\n");
+ 		e820_print_map("user");
+ 	}
+ }
+@@ -996,8 +996,9 @@ void __init e820_reserve_resources_late(
+ 			end = MAX_RESOURCE_SIZE;
+ 		if (start >= end)
+ 			continue;
+-		printk(KERN_DEBUG "reserve RAM buffer: %016llx - %016llx ",
+-			       start, end);
++		printk(KERN_DEBUG
++		       "e820: reserve RAM buffer [mem %#010llx-%#010llx]\n",
++		       start, end);
+ 		reserve_region_with_split(&iomem_resource, start, end,
+ 					  "RAM buffer");
+ 	}
+@@ -1047,7 +1048,7 @@ void __init setup_memory_map(void)
  
- static uint64_t parse_flag_name(const char *str, int len)
- {
--	int i;
-+	size_t i;
+ 	who = x86_init.resources.memory_setup();
+ 	memcpy(&e820_saved, &e820, sizeof(struct e820map));
+-	printk(KERN_INFO "BIOS-provided physical RAM map:\n");
++	printk(KERN_INFO "e820: BIOS-provided physical RAM map:\n");
+ 	e820_print_map(who);
+ }
  
- 	if (!*str || !len)
- 		return 0;
 _
 
-Patches currently in -mm which might be from drepper@akkadia.org are
+Patches currently in -mm which might be from bhelgaas@google.com are
 
 origin.patch
 
