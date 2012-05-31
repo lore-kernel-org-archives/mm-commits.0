@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memcg-convert-numa-stat-to-read_seq_string-interface.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:17:55 -0700
-Message-ID: <20120531191755.6AD91A0203@akpm.mtv.corp.google.com>
+Subject: [merged] mm-memcg-print-statistics-directly-to-seq_file.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:17:58 -0700
+Message-ID: <20120531191758.64260A0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:32900 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933002Ab2EaTR4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:17:56 -0400
-Received: by qabg24 with SMTP id g24so154442qab.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:17:56 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:57717 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933002Ab2EaTSA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:18:00 -0400
+Received: by wgbdt11 with SMTP id dt11so76172wgb.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:17:59 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, tj@kernel.org, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcg: convert numa stat to read_seq_string interface
+     Subject: mm: memcg: print statistics directly to seq_file
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-convert-numa-stat-to-read_seq_string-interface.patch
+     mm-memcg-print-statistics-directly-to-seq_file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,11 +26,11 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcg: convert numa stat to read_seq_string interface
+Subject: mm: memcg: print statistics directly to seq_file
 
-Instead of using the raw seq_file file interface, switch over to the
-read_seq_string cftype callback and let cgroup core code set up the
-seq_file.
+Being able to use seq_printf() allows being smarter about statistics name
+strings, which are currently listed twice, with the only difference being
+a "total_" prefix on the hierarchical version.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Michal Hocko <mhocko@suse.cz>
@@ -40,60 +40,118 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   23 +++--------------------
- 1 file changed, 3 insertions(+), 20 deletions(-)
+ mm/memcontrol.c |   55 ++++++++++++++++++++++------------------------
+ 1 file changed, 27 insertions(+), 28 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcg-convert-numa-stat-to-read_seq_string-interface mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-convert-numa-stat-to-read_seq_string-interface
+diff -puN mm/memcontrol.c~mm-memcg-print-statistics-directly-to-seq_file mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-print-statistics-directly-to-seq_file
 +++ a/mm/memcontrol.c
-@@ -4128,12 +4128,12 @@ mem_cgroup_get_total_stat(struct mem_cgr
- }
+@@ -4060,26 +4060,22 @@ struct mcs_total_stat {
+ 	s64 stat[NR_MCS_STAT];
+ };
  
- #ifdef CONFIG_NUMA
--static int mem_control_numa_stat_show(struct seq_file *m, void *arg)
-+static int mem_control_numa_stat_show(struct cgroup *cont, struct cftype *cft,
-+				      struct seq_file *m)
+-static struct {
+-	char *local_name;
+-	char *total_name;
+-} memcg_stat_strings[NR_MCS_STAT] = {
+-	{"cache", "total_cache"},
+-	{"rss", "total_rss"},
+-	{"mapped_file", "total_mapped_file"},
+-	{"pgpgin", "total_pgpgin"},
+-	{"pgpgout", "total_pgpgout"},
+-	{"swap", "total_swap"},
+-	{"pgfault", "total_pgfault"},
+-	{"pgmajfault", "total_pgmajfault"},
+-	{"inactive_anon", "total_inactive_anon"},
+-	{"active_anon", "total_active_anon"},
+-	{"inactive_file", "total_inactive_file"},
+-	{"active_file", "total_active_file"},
+-	{"unevictable", "total_unevictable"}
++static const char *memcg_stat_strings[NR_MCS_STAT] = {
++	"cache",
++	"rss",
++	"mapped_file",
++	"pgpgin",
++	"pgpgout",
++	"swap",
++	"pgfault",
++	"pgmajfault",
++	"inactive_anon",
++	"active_anon",
++	"inactive_file",
++	"active_file",
++	"unevictable",
+ };
+ 
+-
+ static void
+ mem_cgroup_get_local_stat(struct mem_cgroup *memcg, struct mcs_total_stat *s)
  {
- 	int nid;
- 	unsigned long total_nr, file_nr, anon_nr, unevictable_nr;
- 	unsigned long node_nr;
--	struct cgroup *cont = m->private;
+@@ -4175,7 +4171,7 @@ static int mem_control_numa_stat_show(st
+ #endif /* CONFIG_NUMA */
+ 
+ static int mem_control_stat_show(struct cgroup *cont, struct cftype *cft,
+-				 struct cgroup_map_cb *cb)
++				 struct seq_file *m)
+ {
  	struct mem_cgroup *memcg = mem_cgroup_from_cont(cont);
+ 	struct mcs_total_stat mystat;
+@@ -4188,16 +4184,18 @@ static int mem_control_stat_show(struct 
+ 	for (i = 0; i < NR_MCS_STAT; i++) {
+ 		if (i == MCS_SWAP && !do_swap_account)
+ 			continue;
+-		cb->fill(cb, memcg_stat_strings[i].local_name, mystat.stat[i]);
++		seq_printf(m, "%s %llu\n", memcg_stat_strings[i],
++			   (unsigned long long)mystat.stat[i]);
+ 	}
  
- 	total_nr = mem_cgroup_nr_lru_pages(memcg, LRU_ALL);
-@@ -4608,22 +4608,6 @@ static int mem_cgroup_oom_control_write(
- 	return 0;
- }
- 
--#ifdef CONFIG_NUMA
--static const struct file_operations mem_control_numa_stat_file_operations = {
--	.read = seq_read,
--	.llseek = seq_lseek,
--	.release = single_release,
--};
--
--static int mem_control_numa_stat_open(struct inode *unused, struct file *file)
--{
--	struct cgroup *cont = file->f_dentry->d_parent->d_fsdata;
--
--	file->f_op = &mem_control_numa_stat_file_operations;
--	return single_open(file, mem_control_numa_stat_show, cont);
--}
--#endif /* CONFIG_NUMA */
--
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR_KMEM
- static int memcg_init_kmem(struct mem_cgroup *memcg, struct cgroup_subsys *ss)
- {
-@@ -4711,8 +4695,7 @@ static struct cftype mem_cgroup_files[] 
- #ifdef CONFIG_NUMA
+ 	/* Hierarchical information */
  	{
- 		.name = "numa_stat",
--		.open = mem_control_numa_stat_open,
--		.mode = S_IRUGO,
-+		.read_seq_string = mem_control_numa_stat_show,
- 	},
+ 		unsigned long long limit, memsw_limit;
+ 		memcg_get_hierarchical_limit(memcg, &limit, &memsw_limit);
+-		cb->fill(cb, "hierarchical_memory_limit", limit);
++		seq_printf(m, "hierarchical_memory_limit %llu\n", limit);
+ 		if (do_swap_account)
+-			cb->fill(cb, "hierarchical_memsw_limit", memsw_limit);
++			seq_printf(m, "hierarchical_memsw_limit %llu\n",
++				   memsw_limit);
+ 	}
+ 
+ 	memset(&mystat, 0, sizeof(mystat));
+@@ -4205,7 +4203,8 @@ static int mem_control_stat_show(struct 
+ 	for (i = 0; i < NR_MCS_STAT; i++) {
+ 		if (i == MCS_SWAP && !do_swap_account)
+ 			continue;
+-		cb->fill(cb, memcg_stat_strings[i].total_name, mystat.stat[i]);
++		seq_printf(m, "total_%s %llu\n", memcg_stat_strings[i],
++			   (unsigned long long)mystat.stat[i]);
+ 	}
+ 
+ #ifdef CONFIG_DEBUG_VM
+@@ -4226,10 +4225,10 @@ static int mem_control_stat_show(struct 
+ 				recent_scanned[0] += rstat->recent_scanned[0];
+ 				recent_scanned[1] += rstat->recent_scanned[1];
+ 			}
+-		cb->fill(cb, "recent_rotated_anon", recent_rotated[0]);
+-		cb->fill(cb, "recent_rotated_file", recent_rotated[1]);
+-		cb->fill(cb, "recent_scanned_anon", recent_scanned[0]);
+-		cb->fill(cb, "recent_scanned_file", recent_scanned[1]);
++		seq_printf(m, "recent_rotated_anon %lu\n", recent_rotated[0]);
++		seq_printf(m, "recent_rotated_file %lu\n", recent_rotated[1]);
++		seq_printf(m, "recent_scanned_anon %lu\n", recent_scanned[0]);
++		seq_printf(m, "recent_scanned_file %lu\n", recent_scanned[1]);
+ 	}
  #endif
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR_SWAP
+ 
+@@ -4663,7 +4662,7 @@ static struct cftype mem_cgroup_files[] 
+ 	},
+ 	{
+ 		.name = "stat",
+-		.read_map = mem_control_stat_show,
++		.read_seq_string = mem_control_stat_show,
+ 	},
+ 	{
+ 		.name = "force_empty",
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
