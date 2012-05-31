@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmscan-push-zone-pointer-into-shrink_page_list.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:17:22 -0700
-Message-ID: <20120531191722.61EFCA0203@akpm.mtv.corp.google.com>
+Subject: [merged] mm-vmscan-remove-update_isolated_counts.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:17:25 -0700
+Message-ID: <20120531191725.609F2A0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:39570 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932980Ab2EaTRX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:17:23 -0400
-Received: by qcsp5 with SMTP id p5so136381qcs.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:17:23 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:35579 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932980Ab2EaTR0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:17:26 -0400
+Received: by mail-gg0-f202.google.com with SMTP id h3so135653gge.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:17:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: khlebnikov@openvz.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan: push zone pointer into shrink_page_list()
+     Subject: mm/vmscan: remove update_isolated_counts()
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-push-zone-pointer-into-shrink_page_list.patch
+     mm-vmscan-remove-update_isolated_counts.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,12 +26,10 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: mm/vmscan: push zone pointer into shrink_page_list()
+Subject: mm/vmscan: remove update_isolated_counts()
 
-It doesn't need a pointer to the cgroup - pointer to the zone is enough. 
-This patch also kills the "mz" argument of page_check_references() - it is
-unused after "mm: memcg: count pte references from every member of the
-reclaimed hierarch"
+update_isolated_counts() is no longer required, because lumpy-reclaim was
+removed.  Insanity is over, now there is only one kind of inactive page.
 
 Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
 Cc: Mel Gorman <mel@csn.ul.ie>
@@ -40,65 +38,112 @@ Acked-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ mm/vmscan.c |   60 +++++---------------------------------------------
+ 1 file changed, 6 insertions(+), 54 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-push-zone-pointer-into-shrink_page_list mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-push-zone-pointer-into-shrink_page_list
+diff -puN mm/vmscan.c~mm-vmscan-remove-update_isolated_counts mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-remove-update_isolated_counts
 +++ a/mm/vmscan.c
-@@ -629,7 +629,6 @@ enum page_references {
- };
+@@ -1205,52 +1205,6 @@ putback_inactive_pages(struct mem_cgroup
+ 	list_splice(&pages_to_free, page_list);
+ }
  
- static enum page_references page_check_references(struct page *page,
--						  struct mem_cgroup_zone *mz,
- 						  struct scan_control *sc)
- {
- 	int referenced_ptes, referenced_page;
-@@ -688,7 +687,7 @@ static enum page_references page_check_r
-  * shrink_page_list() returns the number of reclaimed pages
-  */
- static unsigned long shrink_page_list(struct list_head *page_list,
--				      struct mem_cgroup_zone *mz,
-+				      struct zone *zone,
- 				      struct scan_control *sc,
- 				      unsigned long *ret_nr_dirty,
- 				      unsigned long *ret_nr_writeback)
-@@ -718,7 +717,7 @@ static unsigned long shrink_page_list(st
- 			goto keep;
+-static noinline_for_stack void
+-update_isolated_counts(struct mem_cgroup_zone *mz,
+-		       struct list_head *page_list,
+-		       unsigned long *nr_anon,
+-		       unsigned long *nr_file)
+-{
+-	struct zone *zone = mz->zone;
+-	unsigned int count[NR_LRU_LISTS] = { 0, };
+-	unsigned long nr_active = 0;
+-	struct page *page;
+-	int lru;
+-
+-	/*
+-	 * Count pages and clear active flags
+-	 */
+-	list_for_each_entry(page, page_list, lru) {
+-		int numpages = hpage_nr_pages(page);
+-		lru = page_lru_base_type(page);
+-		if (PageActive(page)) {
+-			lru += LRU_ACTIVE;
+-			ClearPageActive(page);
+-			nr_active += numpages;
+-		}
+-		count[lru] += numpages;
+-	}
+-
+-	preempt_disable();
+-	__count_vm_events(PGDEACTIVATE, nr_active);
+-
+-	__mod_zone_page_state(zone, NR_ACTIVE_FILE,
+-			      -count[LRU_ACTIVE_FILE]);
+-	__mod_zone_page_state(zone, NR_INACTIVE_FILE,
+-			      -count[LRU_INACTIVE_FILE]);
+-	__mod_zone_page_state(zone, NR_ACTIVE_ANON,
+-			      -count[LRU_ACTIVE_ANON]);
+-	__mod_zone_page_state(zone, NR_INACTIVE_ANON,
+-			      -count[LRU_INACTIVE_ANON]);
+-
+-	*nr_anon = count[LRU_ACTIVE_ANON] + count[LRU_INACTIVE_ANON];
+-	*nr_file = count[LRU_ACTIVE_FILE] + count[LRU_INACTIVE_FILE];
+-
+-	__mod_zone_page_state(zone, NR_ISOLATED_ANON, *nr_anon);
+-	__mod_zone_page_state(zone, NR_ISOLATED_FILE, *nr_file);
+-	preempt_enable();
+-}
+-
+ /*
+  * shrink_inactive_list() is a helper for shrink_zone().  It returns the number
+  * of reclaimed pages
+@@ -1263,8 +1217,6 @@ shrink_inactive_list(unsigned long nr_to
+ 	unsigned long nr_scanned;
+ 	unsigned long nr_reclaimed = 0;
+ 	unsigned long nr_taken;
+-	unsigned long nr_anon;
+-	unsigned long nr_file;
+ 	unsigned long nr_dirty = 0;
+ 	unsigned long nr_writeback = 0;
+ 	isolate_mode_t isolate_mode = 0;
+@@ -1292,6 +1244,10 @@ shrink_inactive_list(unsigned long nr_to
  
- 		VM_BUG_ON(PageActive(page));
--		VM_BUG_ON(page_zone(page) != mz->zone);
-+		VM_BUG_ON(page_zone(page) != zone);
+ 	nr_taken = isolate_lru_pages(nr_to_scan, lruvec, &page_list,
+ 				     &nr_scanned, sc, isolate_mode, lru);
++
++	__mod_zone_page_state(zone, NR_LRU_BASE + lru, -nr_taken);
++	__mod_zone_page_state(zone, NR_ISOLATED_ANON + file, nr_taken);
++
+ 	if (global_reclaim(sc)) {
+ 		zone->pages_scanned += nr_scanned;
+ 		if (current_is_kswapd())
+@@ -1306,15 +1262,12 @@ shrink_inactive_list(unsigned long nr_to
+ 	if (nr_taken == 0)
+ 		return 0;
  
- 		sc->nr_scanned++;
- 
-@@ -741,7 +740,7 @@ static unsigned long shrink_page_list(st
- 			goto keep;
- 		}
- 
--		references = page_check_references(page, mz, sc);
-+		references = page_check_references(page, sc);
- 		switch (references) {
- 		case PAGEREF_ACTIVATE:
- 			goto activate_locked;
-@@ -931,7 +930,7 @@ keep:
- 	 * will encounter the same problem
- 	 */
- 	if (nr_dirty && nr_dirty == nr_congested && global_reclaim(sc))
--		zone_set_flag(mz->zone, ZONE_CONGESTED);
-+		zone_set_flag(zone, ZONE_CONGESTED);
- 
- 	free_hot_cold_page_list(&free_pages, 1);
- 
-@@ -1309,7 +1308,7 @@ shrink_inactive_list(unsigned long nr_to
- 
- 	update_isolated_counts(mz, &page_list, &nr_anon, &nr_file);
- 
--	nr_reclaimed = shrink_page_list(&page_list, mz, sc,
-+	nr_reclaimed = shrink_page_list(&page_list, zone, sc,
+-	update_isolated_counts(mz, &page_list, &nr_anon, &nr_file);
+-
+ 	nr_reclaimed = shrink_page_list(&page_list, zone, sc,
  						&nr_dirty, &nr_writeback);
  
  	spin_lock_irq(&zone->lru_lock);
+ 
+-	reclaim_stat->recent_scanned[0] += nr_anon;
+-	reclaim_stat->recent_scanned[1] += nr_file;
++	reclaim_stat->recent_scanned[file] += nr_taken;
+ 
+ 	if (global_reclaim(sc)) {
+ 		if (current_is_kswapd())
+@@ -1327,8 +1280,7 @@ shrink_inactive_list(unsigned long nr_to
+ 
+ 	putback_inactive_pages(mz, &page_list);
+ 
+-	__mod_zone_page_state(zone, NR_ISOLATED_ANON, -nr_anon);
+-	__mod_zone_page_state(zone, NR_ISOLATED_FILE, -nr_file);
++	__mod_zone_page_state(zone, NR_ISOLATED_ANON + file, -nr_taken);
+ 
+ 	spin_unlock_irq(&zone->lru_lock);
+ 
 _
 
 Patches currently in -mm which might be from khlebnikov@openvz.org are
