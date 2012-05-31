@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kbuild-install-kernel-page-flagsh.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:14:52 -0700
-Message-ID: <20120531191452.595FBA0203@akpm.mtv.corp.google.com>
+Subject: [merged] tools-vm-page-typesc-cleanups.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:14:54 -0700
+Message-ID: <20120531191454.61C67A0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:60314 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932901Ab2EaTOx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:14:53 -0400
-Received: by mail-qc0-f202.google.com with SMTP id p5so136095qcs.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:14:52 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:46604 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932864Ab2EaTOz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:14:55 -0400
+Received: by yenl3 with SMTP id l3so137882yen.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:14:54 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: drepper@akkadia.org, drepper@gmail.com, fengguang.wu@intel.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kbuild: install kernel-page-flags.h
+     Subject: tools/vm/page-types.c: cleanups
 has been removed from the -mm tree.  Its filename was
-     kbuild-install-kernel-page-flagsh.patch
+     tools-vm-page-typesc-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,15 +26,15 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Ulrich Drepper <drepper@akkadia.org>
-Subject: kbuild: install kernel-page-flags.h
+Subject: tools/vm/page-types.c: cleanups
 
-Programs using /proc/kpageflags need to know about the various flags.  The
-<linux/kernel-page-flags.h> provides them and the comments in the file
-indicate that it is supposed to be used by user-level code.  But the file
-is not installed.
+Compiling page-type.c with a recent compiler produces many warnings,
+mostly related to signed/unsigned comparisons.  This patch cleans up most
+of them.
 
-Install the headers and mark the unstable flags as out-of-bounds.  The
-page-type tool is also adjusted to not duplicate the definitions
+One remaining warning is about an unused parameter.  The <compiler.h> file
+doesn't define a __unused macro (or the like) yet.  This can be addressed
+later.
 
 Signed-off-by: Ulrich Drepper <drepper@gmail.com>
 Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
@@ -42,79 +42,101 @@ Acked-by: Fengguang Wu <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/Kbuild              |    1 +
- include/linux/kernel-page-flags.h |    4 ++++
- tools/vm/page-types.c             |   28 +---------------------------
- 3 files changed, 6 insertions(+), 27 deletions(-)
+ tools/vm/page-types.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/Kbuild~kbuild-install-kernel-page-flagsh include/linux/Kbuild
---- a/include/linux/Kbuild~kbuild-install-kernel-page-flagsh
-+++ a/include/linux/Kbuild
-@@ -225,6 +225,7 @@ header-y += kd.h
- header-y += kdev_t.h
- header-y += kernel.h
- header-y += kernelcapi.h
-+header-y += kernel-page-flags.h
- header-y += keyboard.h
- header-y += keyctl.h
- header-y += l2tp.h
-diff -puN include/linux/kernel-page-flags.h~kbuild-install-kernel-page-flagsh include/linux/kernel-page-flags.h
---- a/include/linux/kernel-page-flags.h~kbuild-install-kernel-page-flagsh
-+++ a/include/linux/kernel-page-flags.h
-@@ -32,6 +32,8 @@
- #define KPF_KSM			21
- #define KPF_THP			22
- 
-+#ifdef __KERNEL__
-+
- /* kernel hacking assistances
-  * WARNING: subject to change, never rely on them!
-  */
-@@ -44,4 +46,6 @@
- #define KPF_ARCH		38
- #define KPF_UNCACHED		39
- 
-+#endif /* __KERNEL__ */
-+
- #endif /* LINUX_KERNEL_PAGE_FLAGS_H */
-diff -puN tools/vm/page-types.c~kbuild-install-kernel-page-flagsh tools/vm/page-types.c
---- a/tools/vm/page-types.c~kbuild-install-kernel-page-flagsh
+diff -puN tools/vm/page-types.c~tools-vm-page-typesc-cleanups tools/vm/page-types.c
+--- a/tools/vm/page-types.c~tools-vm-page-typesc-cleanups
 +++ a/tools/vm/page-types.c
-@@ -35,6 +35,7 @@
- #include <sys/mount.h>
- #include <sys/statfs.h>
- #include "../../include/linux/magic.h"
-+#include "../../include/linux/kernel-page-flags.h"
+@@ -300,7 +300,7 @@ static char *page_flag_name(uint64_t fla
+ {
+ 	static char buf[65];
+ 	int present;
+-	int i, j;
++	size_t i, j;
  
+ 	for (i = 0, j = 0; i < ARRAY_SIZE(page_flag_names); i++) {
+ 		present = (flags >> i) & 1;
+@@ -318,7 +318,7 @@ static char *page_flag_name(uint64_t fla
+ static char *page_flag_longname(uint64_t flags)
+ {
+ 	static char buf[1024];
+-	int i, n;
++	size_t i, n;
  
- #ifndef MAX_PATH
-@@ -73,33 +74,6 @@
- #define KPF_BYTES		8
- #define PROC_KPAGEFLAGS		"/proc/kpageflags"
+ 	for (i = 0, n = 0; i < ARRAY_SIZE(page_flag_names); i++) {
+ 		if (!page_flag_names[i])
+@@ -376,7 +376,7 @@ static void show_page(unsigned long voff
  
--/* copied from kpageflags_read() */
--#define KPF_LOCKED		0
--#define KPF_ERROR		1
--#define KPF_REFERENCED		2
--#define KPF_UPTODATE		3
--#define KPF_DIRTY		4
--#define KPF_LRU			5
--#define KPF_ACTIVE		6
--#define KPF_SLAB		7
--#define KPF_WRITEBACK		8
--#define KPF_RECLAIM		9
--#define KPF_BUDDY		10
--
--/* [11-20] new additions in 2.6.31 */
--#define KPF_MMAP		11
--#define KPF_ANON		12
--#define KPF_SWAPCACHE		13
--#define KPF_SWAPBACKED		14
--#define KPF_COMPOUND_HEAD	15
--#define KPF_COMPOUND_TAIL	16
--#define KPF_HUGE		17
--#define KPF_UNEVICTABLE		18
--#define KPF_HWPOISON		19
--#define KPF_NOPAGE		20
--#define KPF_KSM			21
--#define KPF_THP			22
+ static void show_summary(void)
+ {
+-	int i;
++	size_t i;
+ 
+ 	printf("             flags\tpage-count       MB"
+ 		"  symbolic-flags\t\t\tlong-symbolic-flags\n");
+@@ -474,7 +474,7 @@ static int debugfs_valid_mountpoint(cons
+ /* find the path to the mounted debugfs */
+ static const char *debugfs_find_mountpoint(void)
+ {
+-	const char **ptr;
++	const char *const *ptr;
+ 	char type[100];
+ 	FILE *fp;
+ 
+@@ -511,7 +511,7 @@ static const char *debugfs_find_mountpoi
+ 
+ static void debugfs_mount(void)
+ {
+-	const char **ptr;
++	const char *const *ptr;
+ 
+ 	/* see if it's already mounted */
+ 	if (debugfs_find_mountpoint())
+@@ -588,10 +588,10 @@ static int unpoison_page(unsigned long o
+  * page frame walker
+  */
+ 
+-static int hash_slot(uint64_t flags)
++static size_t hash_slot(uint64_t flags)
+ {
+-	int k = HASH_KEY(flags);
+-	int i;
++	size_t k = HASH_KEY(flags);
++	size_t i;
+ 
+ 	/* Explicitly reserve slot 0 for flags 0: the following logic
+ 	 * cannot distinguish an unoccupied slot from slot (flags==0).
+@@ -644,7 +644,7 @@ static void walk_pfn(unsigned long voffs
+ {
+ 	uint64_t buf[KPAGEFLAGS_BATCH];
+ 	unsigned long batch;
+-	long pages;
++	unsigned long pages;
+ 	unsigned long i;
+ 
+ 	while (count) {
+@@ -753,7 +753,7 @@ static const char *page_flag_type(uint64
+ 
+ static void usage(void)
+ {
+-	int i, j;
++	size_t i, j;
+ 
+ 	printf(
+ "page-types [options]\n"
+@@ -912,7 +912,7 @@ static void add_bits_filter(uint64_t mas
+ 
+ static uint64_t parse_flag_name(const char *str, int len)
+ {
+-	int i;
++	size_t i;
+ 
+ 	if (!*str || !len)
+ 		return 0;
+_
+
+Patches currently in -mm which might be from drepper@akkadia.org are
+
+origin.patch
+
