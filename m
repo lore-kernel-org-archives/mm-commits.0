@@ -1,146 +1,268 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-fix-slab-page-flags-corruption.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:16:33 -0700
-Message-ID: <20120531191633.6ACC1A0203@akpm.mtv.corp.google.com>
+Subject: [merged] mm-pmd_read_atomic-fix-32bit-pae-pmd-walk-vs-pmd_populate-smp-race-condition.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:16:28 -0700
+Message-ID: <20120531191628.4327CA0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:37109 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932955Ab2EaTQf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:16:35 -0400
-Received: by mail-wi0-f202.google.com with SMTP id hn6so76973wib.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:16:34 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:63870 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932955Ab2EaTQa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:16:30 -0400
+Received: by mail-fa0-f74.google.com with SMTP id a25so75263faa.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:16:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pshelar@nicira.com, aarcange@redhat.com, abhide@nicira.com, cl@linux.com, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, hughd@google.com, lwoodman@redhat.com, mgorman@suse.de, pmatouse@redhat.com, riel@redhat.com, stable@vger.kernel.org, uobergfe@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix slab->page flags corruption
+     Subject: mm: pmd_read_atomic: fix 32bit PAE pmd walk vs pmd_populate SMP race condition
 has been removed from the -mm tree.  Its filename was
-     mm-fix-slab-page-flags-corruption.patch
+     mm-pmd_read_atomic-fix-32bit-pae-pmd-walk-vs-pmd_populate-smp-race-condition.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Pravin B Shelar <pshelar@nicira.com>
-Subject: mm: fix slab->page flags corruption
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: mm: pmd_read_atomic: fix 32bit PAE pmd walk vs pmd_populate SMP race condition
 
-Transparent huge pages can change page->flags (PG_compound_lock) without
-taking Slab lock.  Since THP can not break slab pages we can safely access
-compound page without taking compound lock.
+When holding the mmap_sem for reading, pmd_offset_map_lock should only
+run on a pmd_t that has been read atomically from the pmdp
+pointer, otherwise we may read only half of it leading to this crash.
 
-Specifically this patch fixes a race between compound_unlock() and slab
-functions which perform page-flags updates.  This can occur when
-get_page()/put_page() is called on a page from slab.
+PID: 11679  TASK: f06e8000  CPU: 3   COMMAND: "do_race_2_panic"
+ #0 [f06a9dd8] crash_kexec at c049b5ec
+ #1 [f06a9e2c] oops_end at c083d1c2
+ #2 [f06a9e40] no_context at c0433ded
+ #3 [f06a9e64] bad_area_nosemaphore at c043401a
+ #4 [f06a9e6c] __do_page_fault at c0434493
+ #5 [f06a9eec] do_page_fault at c083eb45
+ #6 [f06a9f04] error_code (via page_fault) at c083c5d5
+    EAX: 01fb470c EBX: fff35000 ECX: 00000003 EDX: 00000100 EBP:
+    00000000
+    DS:  007b     ESI: 9e201000 ES:  007b     EDI: 01fb4700 GS:  00e0
+    CS:  0060     EIP: c083bc14 ERR: ffffffff EFLAGS: 00010246
+ #7 [f06a9f38] _spin_lock at c083bc14
+ #8 [f06a9f44] sys_mincore at c0507b7d
+ #9 [f06a9fb0] system_call at c083becd
+                         start           len
+    EAX: ffffffda  EBX: 9e200000  ECX: 00001000  EDX: 6228537f
+    DS:  007b      ESI: 00000000  ES:  007b      EDI: 003d0f00
+    SS:  007b      ESP: 62285354  EBP: 62285388  GS:  0033
+    CS:  0073      EIP: 00291416  ERR: 000000da  EFLAGS: 00000286
 
-[akpm@linux-foundation.org: tweak comment text, fix comment layout, fix label indenting]
-Reported-by: Amey Bhide <abhide@nicira.com>
-Signed-off-by: Pravin B Shelar <pshelar@nicira.com>
-Reviewed-by: Christoph Lameter <cl@linux.com>
-Acked-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+This should be a longstanding bug affecting x86 32bit PAE without
+THP. Only archs with 64bit large pmd_t and 32bit unsigned long should
+be affected.
+
+With THP enabled the barrier() in
+pmd_none_or_trans_huge_or_clear_bad() would partly hide the bug when
+the pmd transition from none to stable, by forcing a re-read of the
+*pmd in pmd_offset_map_lock, but when THP is enabled a new set of
+problem arises by the fact could then transition freely in any of the
+none, pmd_trans_huge or pmd_trans_stable states. So making the barrier
+in pmd_none_or_trans_huge_or_clear_bad() unconditional isn't good idea
+and it would be a flakey solution.
+
+This should be fully fixed by introducing a pmd_read_atomic that reads
+the pmd in order with THP disabled, or by reading the pmd atomically
+with cmpxchg8b with THP enabled.
+
+Luckily this new race condition only triggers in the places that must
+already be covered by pmd_none_or_trans_huge_or_clear_bad() so the fix
+is localized there but this bug is not related to THP.
+
+NOTE: this can trigger on x86 32bit systems with PAE enabled with more
+than 4G of ram, otherwise the high part of the pmd will never risk to
+be truncated because it would be zero at all times, in turn so hiding
+the SMP race.
+
+This bug was discovered and fully debugged by Ulrich, quote:
+
+----
+[..]
+pmd_none_or_trans_huge_or_clear_bad() loads the content of edx and
+eax.
+
+    496 static inline int pmd_none_or_trans_huge_or_clear_bad(pmd_t
+    *pmd)
+    497 {
+    498         /* depend on compiler for an atomic pmd read */
+    499         pmd_t pmdval = *pmd;
+
+                                // edi = pmd pointer
+0xc0507a74 <sys_mincore+548>:   mov    0x8(%esp),%edi
+...
+                                // edx = PTE page table high address
+0xc0507a84 <sys_mincore+564>:   mov    0x4(%edi),%edx
+...
+                                // eax = PTE page table low address
+0xc0507a8e <sys_mincore+574>:   mov    (%edi),%eax
+
+[..]
+
+Please note that the PMD is not read atomically. These are two "mov"
+instructions where the high order bits of the PMD entry are fetched
+first. Hence, the above machine code is prone to the following race.
+
+-  The PMD entry {high|low} is 0x0000000000000000.
+   The "mov" at 0xc0507a84 loads 0x00000000 into edx.
+
+-  A page fault (on another CPU) sneaks in between the two "mov"
+   instructions and instantiates the PMD.
+
+-  The PMD entry {high|low} is now 0x00000003fda38067.
+   The "mov" at 0xc0507a8e loads 0xfda38067 into eax.
+----
+
+Reported-by: Ulrich Obergfell <uobergfe@redhat.com>
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Larry Woodman <lwoodman@redhat.com>
+Cc: Petr Matousek <pmatouse@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 ++
- mm/swap.c          |   37 +++++++++++++++++++++++++++++++++++--
- 2 files changed, 37 insertions(+), 2 deletions(-)
+ arch/x86/include/asm/pgtable-3level.h |   50 ++++++++++++++++++++++++
+ include/asm-generic/pgtable.h         |   22 +++++++++-
+ 2 files changed, 70 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mm.h~mm-fix-slab-page-flags-corruption include/linux/mm.h
---- a/include/linux/mm.h~mm-fix-slab-page-flags-corruption
-+++ a/include/linux/mm.h
-@@ -321,6 +321,7 @@ static inline int is_vmalloc_or_module_a
- static inline void compound_lock(struct page *page)
- {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	VM_BUG_ON(PageSlab(page));
- 	bit_spin_lock(PG_compound_lock, &page->flags);
- #endif
+diff -puN arch/x86/include/asm/pgtable-3level.h~mm-pmd_read_atomic-fix-32bit-pae-pmd-walk-vs-pmd_populate-smp-race-condition arch/x86/include/asm/pgtable-3level.h
+--- a/arch/x86/include/asm/pgtable-3level.h~mm-pmd_read_atomic-fix-32bit-pae-pmd-walk-vs-pmd_populate-smp-race-condition
++++ a/arch/x86/include/asm/pgtable-3level.h
+@@ -31,6 +31,56 @@ static inline void native_set_pte(pte_t 
+ 	ptep->pte_low = pte.pte_low;
  }
-@@ -328,6 +329,7 @@ static inline void compound_lock(struct 
- static inline void compound_unlock(struct page *page)
- {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	VM_BUG_ON(PageSlab(page));
- 	bit_spin_unlock(PG_compound_lock, &page->flags);
- #endif
- }
-diff -puN mm/swap.c~mm-fix-slab-page-flags-corruption mm/swap.c
---- a/mm/swap.c~mm-fix-slab-page-flags-corruption
-+++ a/mm/swap.c
-@@ -82,6 +82,25 @@ static void put_compound_page(struct pag
- 		if (likely(page != page_head &&
- 			   get_page_unless_zero(page_head))) {
- 			unsigned long flags;
-+
-+			/*
-+			 * THP can not break up slab pages so avoid taking
-+			 * compound_lock().  Slab performs non-atomic bit ops
-+			 * on page->flags for better performance.  In particular
-+			 * slab_unlock() in slub used to be a hot path.  It is
-+			 * still hot on arches that do not support
-+			 * this_cpu_cmpxchg_double().
-+			 */
-+			if (PageSlab(page_head)) {
-+				if (PageTail(page)) {
-+					if (put_page_testzero(page_head))
-+						VM_BUG_ON(1);
-+
-+					atomic_dec(&page->_mapcount);
-+					goto skip_lock_tail;
-+				} else
-+					goto skip_lock;
-+			}
- 			/*
- 			 * page_head wasn't a dangling pointer but it
- 			 * may not be a head page anymore by the time
-@@ -92,10 +111,10 @@ static void put_compound_page(struct pag
- 			if (unlikely(!PageTail(page))) {
- 				/* __split_huge_page_refcount run before us */
- 				compound_unlock_irqrestore(page_head, flags);
--				VM_BUG_ON(PageHead(page_head));
-+skip_lock:
- 				if (put_page_testzero(page_head))
- 					__put_single_page(page_head);
--			out_put_single:
-+out_put_single:
- 				if (put_page_testzero(page))
- 					__put_single_page(page);
- 				return;
-@@ -115,6 +134,8 @@ static void put_compound_page(struct pag
- 			VM_BUG_ON(atomic_read(&page_head->_count) <= 0);
- 			VM_BUG_ON(atomic_read(&page->_count) != 0);
- 			compound_unlock_irqrestore(page_head, flags);
-+
-+skip_lock_tail:
- 			if (put_page_testzero(page_head)) {
- 				if (PageHead(page_head))
- 					__put_compound_page(page_head);
-@@ -162,6 +183,18 @@ bool __get_page_tail(struct page *page)
- 	struct page *page_head = compound_trans_head(page);
  
- 	if (likely(page != page_head && get_page_unless_zero(page_head))) {
++#define pmd_read_atomic pmd_read_atomic
++/*
++ * pte_offset_map_lock on 32bit PAE kernels was reading the pmd_t with
++ * a "*pmdp" dereference done by gcc. Problem is, in certain places
++ * where pte_offset_map_lock is called, concurrent page faults are
++ * allowed, if the mmap_sem is hold for reading. An example is mincore
++ * vs page faults vs MADV_DONTNEED. On the page fault side
++ * pmd_populate rightfully does a set_64bit, but if we're reading the
++ * pmd_t with a "*pmdp" on the mincore side, a SMP race can happen
++ * because gcc will not read the 64bit of the pmd atomically. To fix
++ * this all places running pmd_offset_map_lock() while holding the
++ * mmap_sem in read mode, shall read the pmdp pointer using this
++ * function to know if the pmd is null nor not, and in turn to know if
++ * they can run pmd_offset_map_lock or pmd_trans_huge or other pmd
++ * operations.
++ *
++ * Without THP if the mmap_sem is hold for reading, the
++ * pmd can only transition from null to not null while pmd_read_atomic runs.
++ * So there's no need of literally reading it atomically.
++ *
++ * With THP if the mmap_sem is hold for reading, the pmd can become
++ * THP or null or point to a pte (and in turn become "stable") at any
++ * time under pmd_read_atomic, so it's mandatory to read it atomically
++ * with cmpxchg8b.
++ */
++#ifndef CONFIG_TRANSPARENT_HUGEPAGE
++static inline pmd_t pmd_read_atomic(pmd_t *pmdp)
++{
++	pmdval_t ret;
++	u32 *tmp = (u32 *)pmdp;
 +
-+		/* Ref to put_compound_page() comment. */
-+		if (PageSlab(page_head)) {
-+			if (likely(PageTail(page))) {
-+				__get_page_tail_foll(page, false);
-+				return true;
-+			} else {
-+				put_page(page_head);
-+				return false;
-+			}
-+		}
++	ret = (pmdval_t) (*tmp);
++	if (ret) {
++		/*
++		 * If the low part is null, we must not read the high part
++		 * or we can end up with a partial pmd.
++		 */
++		smp_rmb();
++		ret |= ((pmdval_t)*(tmp + 1)) << 32;
++	}
 +
- 		/*
- 		 * page_head wasn't a dangling pointer but it
- 		 * may not be a head page anymore by the time
++	return (pmd_t) { ret };
++}
++#else /* CONFIG_TRANSPARENT_HUGEPAGE */
++static inline pmd_t pmd_read_atomic(pmd_t *pmdp)
++{
++	return (pmd_t) { atomic64_read((atomic64_t *)pmdp) };
++}
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
++
+ static inline void native_set_pte_atomic(pte_t *ptep, pte_t pte)
+ {
+ 	set_64bit((unsigned long long *)(ptep), native_pte_val(pte));
+diff -puN include/asm-generic/pgtable.h~mm-pmd_read_atomic-fix-32bit-pae-pmd-walk-vs-pmd_populate-smp-race-condition include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-pmd_read_atomic-fix-32bit-pae-pmd-walk-vs-pmd_populate-smp-race-condition
++++ a/include/asm-generic/pgtable.h
+@@ -445,6 +445,18 @@ static inline int pmd_write(pmd_t pmd)
+ #endif /* __HAVE_ARCH_PMD_WRITE */
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
++#ifndef pmd_read_atomic
++static inline pmd_t pmd_read_atomic(pmd_t *pmdp)
++{
++	/*
++	 * Depend on compiler for an atomic pmd read. NOTE: this is
++	 * only going to work, if the pmdval_t isn't larger than
++	 * an unsigned long.
++	 */
++	return *pmdp;
++}
++#endif
++
+ /*
+  * This function is meant to be used by sites walking pagetables with
+  * the mmap_sem hold in read mode to protect against MADV_DONTNEED and
+@@ -458,11 +470,17 @@ static inline int pmd_write(pmd_t pmd)
+  * undefined so behaving like if the pmd was none is safe (because it
+  * can return none anyway). The compiler level barrier() is critically
+  * important to compute the two checks atomically on the same pmdval.
++ *
++ * For 32bit kernels with a 64bit large pmd_t this automatically takes
++ * care of reading the pmd atomically to avoid SMP race conditions
++ * against pmd_populate() when the mmap_sem is hold for reading by the
++ * caller (a special atomic read not done by "gcc" as in the generic
++ * version above, is also needed when THP is disabled because the page
++ * fault can populate the pmd from under us).
+  */
+ static inline int pmd_none_or_trans_huge_or_clear_bad(pmd_t *pmd)
+ {
+-	/* depend on compiler for an atomic pmd read */
+-	pmd_t pmdval = *pmd;
++	pmd_t pmdval = pmd_read_atomic(pmd);
+ 	/*
+ 	 * The barrier will stabilize the pmdval in a register or on
+ 	 * the stack so that it will stop changing under the code.
 _
 
-Patches currently in -mm which might be from pshelar@nicira.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
 origin.patch
+linux-next.patch
+hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
+hugetlbfs-dont-use-err_ptr-with-vm_fault-values.patch
+hugetlbfs-add-an-inline-helper-for-finding-hstate-index.patch
+hugetlbfs-add-an-inline-helper-for-finding-hstate-index-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
+hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
+hugetlb-simplify-migrate_huge_page.patch
+hugetlb-simplify-migrate_huge_page-fix.patch
+memcg-add-hugetlb-extension.patch
+memcg-add-hugetlb-extension-fix.patch
+memcg-add-hugetlb-extension-fix-fix.patch
+hugetlb-add-charge-uncharge-calls-for-hugetlb-alloc-free.patch
+memcg-track-resource-index-in-cftype-private.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
+hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration.patch
+memcg-add-memory-controller-documentation-for-hugetlb-management.patch
+stack-usage-add-pid-to-warning-printk-in-check_stack_usage.patch
 
