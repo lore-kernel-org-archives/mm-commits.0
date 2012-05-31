@@ -1,97 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-vsprintfc-%o0-becomes-0-instead-of-00.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:20:14 -0700
-Message-ID: <20120531192014.75070A0203@akpm.mtv.corp.google.com>
+Subject: [merged] radix-tree-fix-preload-vector-size.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:20:12 -0700
+Message-ID: <20120531192012.51A97A0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:46086 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757596Ab2EaTUP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:20:15 -0400
-Received: by mail-wg0-f74.google.com with SMTP id dt11so76227wgb.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:20:15 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:52141 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757321Ab2EaTUN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:20:13 -0400
+Received: by qcsp5 with SMTP id p5so137051qcs.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:20:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pierre@spotify.com, joe@perches.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: npiggin@kernel.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/vsprintf.c: "%#o",0 becomes '0' instead of '00'
+     Subject: radix-tree: fix preload vector size
 has been removed from the -mm tree.  Its filename was
-     lib-vsprintfc-%o0-becomes-0-instead-of-00.patch
+     radix-tree-fix-preload-vector-size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Pierre Carrier <pierre@spotify.com>
-Subject: lib/vsprintf.c: "%#o",0 becomes '0' instead of '00'
+From: Nick Piggin <npiggin@kernel.dk>
+Subject: radix-tree: fix preload vector size
 
-number()'s behaviour is slighly changed: 0 becomes "0" instead of "00"
-when using the flag SPECIAL and base 8.
+We are not preallocating a sufficient number of nodes.
 
-Before:
-Number\Format  %o    %#o  %x    %#x
-            0     0   00    0   0x0
-            1     1   01    1   0x1
-           16    20  020   10  0x10
-
-After:
-Number\Format  %o    %#o  %x    %#x
-            0     0    0    0   0x0
-            1     1   01    1   0x1
-           16    20  020   10  0x10
-
-Signed-off-by: Pierre Carrier <pierre@spotify.com>
-Acked-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Joe Perches <joe@perches.com>
+Signed-off-by: Nick Piggin <npiggin@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ lib/radix-tree.c |   15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
-diff -puN lib/vsprintf.c~lib-vsprintfc-%o0-becomes-0-instead-of-00 lib/vsprintf.c
---- a/lib/vsprintf.c~lib-vsprintfc-%o0-becomes-0-instead-of-00
-+++ a/lib/vsprintf.c
-@@ -284,6 +284,7 @@ char *number(char *buf, char *end, unsig
- 	char locase;
- 	int need_pfx = ((spec.flags & SPECIAL) && spec.base != 10);
- 	int i;
-+	bool is_zero = num == 0LL;
+diff -puN lib/radix-tree.c~radix-tree-fix-preload-vector-size lib/radix-tree.c
+--- a/lib/radix-tree.c~radix-tree-fix-preload-vector-size
++++ a/lib/radix-tree.c
+@@ -73,11 +73,24 @@ static unsigned long height_to_maxindex[
+ static struct kmem_cache *radix_tree_node_cachep;
  
- 	/* locase = 0 or 0x20. ORing digits or letters with 'locase'
- 	 * produces same digits or (maybe lowercased) letters */
-@@ -305,8 +306,9 @@ char *number(char *buf, char *end, unsig
- 		}
- 	}
- 	if (need_pfx) {
--		spec.field_width--;
- 		if (spec.base == 16)
-+			spec.field_width -= 2;
-+		else if (!is_zero)
- 			spec.field_width--;
- 	}
+ /*
++ * The radix tree is variable-height, so an insert operation not only has
++ * to build the branch to its corresponding item, it also has to build the
++ * branch to existing items if the size has to be increased (by
++ * radix_tree_extend).
++ *
++ * The worst case is a zero height tree with just a single item at index 0,
++ * and then inserting an item at index ULONG_MAX. This requires 2 new branches
++ * of RADIX_TREE_MAX_PATH size to be created, with only the root node shared.
++ * Hence:
++ */
++#define RADIX_TREE_PRELOAD_SIZE (RADIX_TREE_MAX_PATH * 2 - 1)
++
++/*
+  * Per-cpu pool of preloaded nodes
+  */
+ struct radix_tree_preload {
+ 	int nr;
+-	struct radix_tree_node *nodes[RADIX_TREE_MAX_PATH];
++	struct radix_tree_node *nodes[RADIX_TREE_PRELOAD_SIZE];
+ };
+ static DEFINE_PER_CPU(struct radix_tree_preload, radix_tree_preloads) = { 0, };
  
-@@ -353,9 +355,11 @@ char *number(char *buf, char *end, unsig
- 	}
- 	/* "0x" / "0" prefix */
- 	if (need_pfx) {
--		if (buf < end)
--			*buf = '0';
--		++buf;
-+		if (spec.base == 16 || !is_zero) {
-+			if (buf < end)
-+				*buf = '0';
-+			++buf;
-+		}
- 		if (spec.base == 16) {
- 			if (buf < end)
- 				*buf = ('X' | locase);
 _
 
-Patches currently in -mm which might be from pierre@spotify.com are
+Patches currently in -mm which might be from npiggin@kernel.dk are
 
 origin.patch
+linux-next.patch
 
