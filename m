@@ -1,503 +1,687 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-remove-swap-token-code.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:13:48 -0700
-Message-ID: <20120531191348.8D723A0203@akpm.mtv.corp.google.com>
+Subject: [merged] mm-vmscan-remove-lumpy-reclaim.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:13:52 -0700
+Message-ID: <20120531191352.41F16A0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:65415 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932663Ab2EaTNv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 31 May 2012 15:13:51 -0400
-Received: by lagr15 with SMTP id r15so75614lag.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:13:49 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:64880 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932712Ab2EaTNy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:13:54 -0400
+Received: by mail-bk0-f74.google.com with SMTP id y5so75304bkt.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:13:53 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: riel@redhat.com, bpicco@meloft.net, hannes@cmpxchg.org, hughd@google.com, khlebnikov@openvz.org, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: mgorman@suse.de, apw@shadowen.org, hughd@google.com, khlebnikov@openvz.org, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove swap token code
+     Subject: mm: vmscan: remove lumpy reclaim
 has been removed from the -mm tree.  Its filename was
-     mm-remove-swap-token-code.patch
+     mm-vmscan-remove-lumpy-reclaim.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Rik van Riel <riel@redhat.com>
-Subject: mm: remove swap token code
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: vmscan: remove lumpy reclaim
 
-The swap token code no longer fits in with the current VM model.  It does
-not play well with cgroups or the better NUMA placement code in
-development, since we have only one swap token globally.
+This series removes lumpy reclaim and some stalling logic that was
+unintentionally being used by memory compaction.  The end result is that
+stalling on dirty pages during page reclaim now depends on
+wait_iff_congested().
 
-It also has the potential to mess with scalability of the system, by
-increasing the number of non-reclaimable pages on the active and inactive
-anon LRU lists.
+Four kernels were compared
 
-Last but not least, the swap token code has been broken for a year without
-complaints, as reported by Konstantin Khlebnikov.  This suggests we no
-longer have much use for it.
+3.3.0     vanilla
+3.4.0-rc2 vanilla
+3.4.0-rc2 lumpyremove-v2 is patch one from this series
+3.4.0-rc2 nosync-v2r3 is the full series
 
-The days of sub-1G memory systems with heavy use of swap are over.  If we
-ever need thrashing reducing code in the future, we will have to implement
-something that does scale.
+Removing lumpy reclaim saves almost 900 bytes of text whereas the full
+series removes 1200 bytes.
 
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Hugh Dickins <hughd@google.com>
-Acked-by: Bob Picco <bpicco@meloft.net>
+   text	   data	    bss	    dec	    hex	filename
+6740375	1927944	2260992	10929311	 a6c49f	vmlinux-3.4.0-rc2-vanilla
+6739479	1927944	2260992	10928415	 a6c11f	vmlinux-3.4.0-rc2-lumpyremove-v2
+6739159	1927944	2260992	10928095	 a6bfdf	vmlinux-3.4.0-rc2-nosync-v2
+
+There are behaviour changes in the series and so tests were run with
+monitoring of ftrace events.  This disrupts results so the performance
+results are distorted but the new behaviour should be clearer.
+
+fs-mark running in a threaded configuration showed little of interest as
+it did not push reclaim aggressively
+
+FS-Mark Multi Threaded
+                        3.3.0-vanilla       rc2-vanilla       lumpyremove-v2r3       nosync-v2r3
+Files/s  min           3.20 ( 0.00%)        3.20 ( 0.00%)        3.20 ( 0.00%)        3.20 ( 0.00%)
+Files/s  mean          3.20 ( 0.00%)        3.20 ( 0.00%)        3.20 ( 0.00%)        3.20 ( 0.00%)
+Files/s  stddev        0.00 ( 0.00%)        0.00 ( 0.00%)        0.00 ( 0.00%)        0.00 ( 0.00%)
+Files/s  max           3.20 ( 0.00%)        3.20 ( 0.00%)        3.20 ( 0.00%)        3.20 ( 0.00%)
+Overhead min      508667.00 ( 0.00%)   521350.00 (-2.49%)   544292.00 (-7.00%)   547168.00 (-7.57%)
+Overhead mean     551185.00 ( 0.00%)   652690.73 (-18.42%)   991208.40 (-79.83%)   570130.53 (-3.44%)
+Overhead stddev    18200.69 ( 0.00%)   331958.29 (-1723.88%)  1579579.43 (-8578.68%)     9576.81 (47.38%)
+Overhead max      576775.00 ( 0.00%)  1846634.00 (-220.17%)  6901055.00 (-1096.49%)   585675.00 (-1.54%)
+MMTests Statistics: duration
+Sys Time Running Test (seconds)             309.90    300.95    307.33    298.95
+User+Sys Time Running Test (seconds)        319.32    309.67    315.69    307.51
+Total Elapsed Time (seconds)               1187.85   1193.09   1191.98   1193.73
+
+MMTests Statistics: vmstat
+Page Ins                                       80532       82212       81420       79480
+Page Outs                                  111434984   111456240   111437376   111582628
+Swap Ins                                           0           0           0           0
+Swap Outs                                          0           0           0           0
+Direct pages scanned                           44881       27889       27453       34843
+Kswapd pages scanned                        25841428    25860774    25861233    25843212
+Kswapd pages reclaimed                      25841393    25860741    25861199    25843179
+Direct pages reclaimed                         44881       27889       27453       34843
+Kswapd efficiency                                99%         99%         99%         99%
+Kswapd velocity                            21754.791   21675.460   21696.029   21649.127
+Direct efficiency                               100%        100%        100%        100%
+Direct velocity                               37.783      23.375      23.031      29.188
+Percentage direct scans                           0%          0%          0%          0%
+
+ftrace showed that there was no stalling on writeback or pages submitted
+for IO from reclaim context.
+
+
+postmark was similar and while it was more interesting, it also did not
+push reclaim heavily.
+
+POSTMARK
+                                     3.3.0-vanilla       rc2-vanilla  lumpyremove-v2r3       nosync-v2r3
+Transactions per second:               16.00 ( 0.00%)    20.00 (25.00%)    18.00 (12.50%)    17.00 ( 6.25%)
+Data megabytes read per second:        18.80 ( 0.00%)    24.27 (29.10%)    22.26 (18.40%)    20.54 ( 9.26%)
+Data megabytes written per second:     35.83 ( 0.00%)    46.25 (29.08%)    42.42 (18.39%)    39.14 ( 9.24%)
+Files created alone per second:        28.00 ( 0.00%)    38.00 (35.71%)    34.00 (21.43%)    30.00 ( 7.14%)
+Files create/transact per second:       8.00 ( 0.00%)    10.00 (25.00%)     9.00 (12.50%)     8.00 ( 0.00%)
+Files deleted alone per second:       556.00 ( 0.00%)  1224.00 (120.14%)  3062.00 (450.72%)  6124.00 (1001.44%)
+Files delete/transact per second:       8.00 ( 0.00%)    10.00 (25.00%)     9.00 (12.50%)     8.00 ( 0.00%)
+
+MMTests Statistics: duration
+Sys Time Running Test (seconds)             113.34    107.99    109.73    108.72
+User+Sys Time Running Test (seconds)        145.51    139.81    143.32    143.55
+Total Elapsed Time (seconds)               1159.16    899.23    980.17   1062.27
+
+MMTests Statistics: vmstat
+Page Ins                                    13710192    13729032    13727944    13760136
+Page Outs                                   43071140    42987228    42733684    42931624
+Swap Ins                                           0           0           0           0
+Swap Outs                                          0           0           0           0
+Direct pages scanned                               0           0           0           0
+Kswapd pages scanned                         9941613     9937443     9939085     9929154
+Kswapd pages reclaimed                       9940926     9936751     9938397     9928465
+Direct pages reclaimed                             0           0           0           0
+Kswapd efficiency                                99%         99%         99%         99%
+Kswapd velocity                             8576.567   11051.058   10140.164    9347.109
+Direct efficiency                               100%        100%        100%        100%
+Direct velocity                                0.000       0.000       0.000       0.000
+
+It looks like here that the full series regresses performance but as
+ftrace showed no usage of wait_iff_congested() or sync reclaim I am
+assuming it's a disruption due to monitoring.  Other data such as memory
+usage, page IO, swap IO all looked similar.
+
+Running a benchmark with a plain DD showed nothing very interesting.  The
+full series stalled in wait_iff_congested() slightly less but stall times
+on vanilla kernels were marginal.
+
+Running a benchmark that hammered on file-backed mappings showed stalls
+due to congestion but not in sync writebacks
+
+MICRO
+                                     3.3.0-vanilla       rc2-vanilla  lumpyremove-v2r3       nosync-v2r3
+MMTests Statistics: duration
+Sys Time Running Test (seconds)             308.13    294.50    298.75    299.53
+User+Sys Time Running Test (seconds)        330.45    316.28    318.93    320.79
+Total Elapsed Time (seconds)               1814.90   1833.88   1821.14   1832.91
+
+MMTests Statistics: vmstat
+Page Ins                                      108712      120708       97224      110344
+Page Outs                                  155514576   156017404   155813676   156193256
+Swap Ins                                           0           0           0           0
+Swap Outs                                          0           0           0           0
+Direct pages scanned                         2599253     1550480     2512822     2414760
+Kswapd pages scanned                        69742364    71150694    68839041    69692533
+Kswapd pages reclaimed                      34824488    34773341    34796602    34799396
+Direct pages reclaimed                         53693       94750       61792       75205
+Kswapd efficiency                                49%         48%         50%         49%
+Kswapd velocity                            38427.662   38797.901   37799.972   38022.889
+Direct efficiency                                 2%          6%          2%          3%
+Direct velocity                             1432.174     845.464    1379.807    1317.446
+Percentage direct scans                           3%          2%          3%          3%
+Page writes by reclaim                             0           0           0           0
+Page writes file                                   0           0           0           0
+Page writes anon                                   0           0           0           0
+Page reclaim immediate                             0           0           0        1218
+Page rescued immediate                             0           0           0           0
+Slabs scanned                                  15360       16384       13312       16384
+Direct inode steals                                0           0           0           0
+Kswapd inode steals                             4340        4327        1630        4323
+
+FTrace Reclaim Statistics: congestion_wait
+Direct number congest     waited                 0          0          0          0 
+Direct time   congest     waited               0ms        0ms        0ms        0ms 
+Direct full   congest     waited                 0          0          0          0 
+Direct number conditional waited               900        870        754        789 
+Direct time   conditional waited               0ms        0ms        0ms       20ms 
+Direct full   conditional waited                 0          0          0          0 
+KSwapd number congest     waited              2106       2308       2116       1915 
+KSwapd time   congest     waited          139924ms   157832ms   125652ms   132516ms 
+KSwapd full   congest     waited              1346       1530       1202       1278 
+KSwapd number conditional waited             12922      16320      10943      14670 
+KSwapd time   conditional waited               0ms        0ms        0ms        0ms 
+KSwapd full   conditional waited                 0          0          0          0 
+
+
+Reclaim statistics are not radically changed.  The stall times in kswapd
+are massive but it is clear that it is due to calls to congestion_wait()
+and that is almost certainly the call in balance_pgdat().  Otherwise
+stalls due to dirty pages are non-existant.
+
+I ran a benchmark that stressed high-order allocation.  This is very
+artifical load but was used in the past to evaluate lumpy reclaim and
+compaction.  Generally I look at allocation success rates and latency
+figures.
+
+STRESS-HIGHALLOC
+                 3.3.0-vanilla       rc2-vanilla  lumpyremove-v2r3       nosync-v2r3
+Pass 1          81.00 ( 0.00%)    28.00 (-53.00%)    24.00 (-57.00%)    28.00 (-53.00%)
+Pass 2          82.00 ( 0.00%)    39.00 (-43.00%)    38.00 (-44.00%)    43.00 (-39.00%)
+while Rested    88.00 ( 0.00%)    87.00 (-1.00%)    88.00 ( 0.00%)    88.00 ( 0.00%)
+
+MMTests Statistics: duration
+Sys Time Running Test (seconds)             740.93    681.42    685.14    684.87
+User+Sys Time Running Test (seconds)       2922.65   3269.52   3281.35   3279.44
+Total Elapsed Time (seconds)               1161.73   1152.49   1159.55   1161.44
+
+MMTests Statistics: vmstat
+Page Ins                                     4486020     2807256     2855944     2876244
+Page Outs                                    7261600     7973688     7975320     7986120
+Swap Ins                                       31694           0           0           0
+Swap Outs                                      98179           0           0           0
+Direct pages scanned                           53494       57731       34406      113015
+Kswapd pages scanned                         6271173     1287481     1278174     1219095
+Kswapd pages reclaimed                       2029240     1281025     1260708     1201583
+Direct pages reclaimed                          1468       14564       16649       92456
+Kswapd efficiency                                32%         99%         98%         98%
+Kswapd velocity                             5398.133    1117.130    1102.302    1049.641
+Direct efficiency                                 2%         25%         48%         81%
+Direct velocity                               46.047      50.092      29.672      97.306
+Percentage direct scans                           0%          4%          2%          8%
+Page writes by reclaim                       1616049           0           0           0
+Page writes file                             1517870           0           0           0
+Page writes anon                               98179           0           0           0
+Page reclaim immediate                        103778       27339        9796       17831
+Page rescued immediate                             0           0           0           0
+Slabs scanned                                1096704      986112      980992      998400
+Direct inode steals                              223      215040      216736      247881
+Kswapd inode steals                           175331       61548       68444       63066
+Kswapd skipped wait                            21991           0           1           0
+THP fault alloc                                    1         135         125         134
+THP collapse alloc                               393         311         228         236
+THP splits                                        25          13           7           8
+THP fault fallback                                 0           0           0           0
+THP collapse fail                                  3           5           7           7
+Compaction stalls                                865        1270        1422        1518
+Compaction success                               370         401         353         383
+Compaction failures                              495         869        1069        1135
+Compaction pages moved                        870155     3828868     4036106     4423626
+Compaction move failure                        26429       23865       29742       27514
+
+Success rates are completely hosed for 3.4-rc2 which is almost certainly
+due to [fe2c2a10: vmscan: reclaim at order 0 when compaction is enabled]. 
+I expected this would happen for kswapd and impair allocation success
+rates (https://lkml.org/lkml/2012/1/25/166) but I did not anticipate this
+much a difference: 80% less scanning, 37% less reclaim by kswapd
+
+In comparison, reclaim/compaction is not aggressive and gives up easily
+which is the intended behaviour.  hugetlbfs uses __GFP_REPEAT and would be
+much more aggressive about reclaim/compaction than THP allocations are. 
+The stress test above is allocating like neither THP or hugetlbfs but is
+much closer to THP.
+
+Mainline is now impaired in terms of high order allocation under heavy
+load although I do not know to what degree as I did not test with
+__GFP_REPEAT.  Keep this in mind for bugs related to hugepage pool
+resizing, THP allocation and high order atomic allocation failures from
+network devices.
+
+In terms of congestion throttling, I see the following for this test
+
+FTrace Reclaim Statistics: congestion_wait
+Direct number congest     waited                 3          0          0          0 
+Direct time   congest     waited               0ms        0ms        0ms        0ms 
+Direct full   congest     waited                 0          0          0          0 
+Direct number conditional waited               957        512       1081       1075 
+Direct time   conditional waited               0ms        0ms        0ms        0ms 
+Direct full   conditional waited                 0          0          0          0 
+KSwapd number congest     waited                36          4          3          5 
+KSwapd time   congest     waited            3148ms      400ms      300ms      500ms 
+KSwapd full   congest     waited                30          4          3          5 
+KSwapd number conditional waited             88514        197        332        542 
+KSwapd time   conditional waited            4980ms        0ms        0ms        0ms 
+KSwapd full   conditional waited                49          0          0          0 
+
+The "conditional waited" times are the most interesting as this is
+directly impacted by the number of dirty pages encountered during scan. 
+As lumpy reclaim is no longer scanning contiguous ranges, it is finding
+fewer dirty pages.  This brings wait times from about 5 seconds to 0. 
+kswapd itself is still calling congestion_wait() so it'll still stall but
+it's a lot less.
+
+In terms of the type of IO we were doing, I see this
+
+FTrace Reclaim Statistics: mm_vmscan_writepage
+Direct writes anon  sync                         0          0          0          0 
+Direct writes anon  async                        0          0          0          0 
+Direct writes file  sync                         0          0          0          0 
+Direct writes file  async                        0          0          0          0 
+Direct writes mixed sync                         0          0          0          0 
+Direct writes mixed async                        0          0          0          0 
+KSwapd writes anon  sync                         0          0          0          0 
+KSwapd writes anon  async                    91682          0          0          0 
+KSwapd writes file  sync                         0          0          0          0 
+KSwapd writes file  async                   822629          0          0          0 
+KSwapd writes mixed sync                         0          0          0          0 
+KSwapd writes mixed async                        0          0          0          0 
+
+In 3.2, kswapd was doing a bunch of async writes of pages but
+reclaim/compaction was never reaching a point where it was doing sync IO. 
+This does not guarantee that reclaim/compaction was not calling
+wait_on_page_writeback() but I would consider it unlikely.  It indicates
+that merging patches 2 and 3 to stop reclaim/compaction calling
+wait_on_page_writeback() should be safe.
+
+
+
+This patch:
+
+Lumpy reclaim had a purpose but in the mind of some, it was to kick the
+system so hard it trashed.  For others the purpose was to complicate
+vmscan.c.  Over time it was giving softer shoes and a nicer attitude but
+memory compaction needs to step up and replace it so this patch sends
+lumpy reclaim to the farm.
+
+The tracepoint format changes for isolating LRU pages with this patch
+applied.  Furthermore reclaim/compaction can no longer queue dirty pages
+in pageout() if the underlying BDI is congested.  Lumpy reclaim used this
+logic and reclaim/compaction was using it in error.
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Rik van Riel <riel@redhat.com>
 Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ying Han <yinghan@google.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h      |   11 --
- include/linux/swap.h          |   35 -------
- include/trace/events/vmscan.h |   82 ----------------
- kernel/fork.c                 |    9 -
- mm/Makefile                   |    2 
- mm/memcontrol.c               |    1 
- mm/memory.c                   |    2 
- mm/rmap.c                     |    6 -
- mm/thrash.c                   |  155 --------------------------------
- mm/vmscan.c                   |    6 -
- 10 files changed, 2 insertions(+), 307 deletions(-)
+ include/trace/events/vmscan.h |   26 -----
+ mm/vmscan.c                   |  144 +++-----------------------------
+ 2 files changed, 19 insertions(+), 151 deletions(-)
 
-diff -puN include/linux/mm_types.h~mm-remove-swap-token-code include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-remove-swap-token-code
-+++ a/include/linux/mm_types.h
-@@ -345,17 +345,6 @@ struct mm_struct {
- 	/* Architecture-specific MM context */
- 	mm_context_t context;
- 
--	/* Swap token stuff */
--	/*
--	 * Last value of global fault stamp as seen by this process.
--	 * In other words, this value gives an indication of how long
--	 * it has been since this task got the token.
--	 * Look at mm/thrash.c
--	 */
--	unsigned int faultstamp;
--	unsigned int token_priority;
--	unsigned int last_interval;
--
- 	unsigned long flags; /* Must use atomic bitops to access the bits */
- 
- 	struct core_state *core_state; /* coredumping support */
-diff -puN include/linux/swap.h~mm-remove-swap-token-code include/linux/swap.h
---- a/include/linux/swap.h~mm-remove-swap-token-code
-+++ a/include/linux/swap.h
-@@ -355,23 +355,6 @@ extern int reuse_swap_page(struct page *
- extern int try_to_free_swap(struct page *);
- struct backing_dev_info;
- 
--/* linux/mm/thrash.c */
--extern struct mm_struct *swap_token_mm;
--extern void grab_swap_token(struct mm_struct *);
--extern void __put_swap_token(struct mm_struct *);
--extern void disable_swap_token(struct mem_cgroup *memcg);
--
--static inline int has_swap_token(struct mm_struct *mm)
--{
--	return (mm == swap_token_mm);
--}
--
--static inline void put_swap_token(struct mm_struct *mm)
--{
--	if (has_swap_token(mm))
--		__put_swap_token(mm);
--}
--
- #ifdef CONFIG_CGROUP_MEM_RES_CTLR
- extern void
- mem_cgroup_uncharge_swapcache(struct page *page, swp_entry_t ent, bool swapout);
-@@ -476,24 +459,6 @@ static inline swp_entry_t get_swap_page(
- 	return entry;
- }
- 
--/* linux/mm/thrash.c */
--static inline void put_swap_token(struct mm_struct *mm)
--{
--}
--
--static inline void grab_swap_token(struct mm_struct *mm)
--{
--}
--
--static inline int has_swap_token(struct mm_struct *mm)
--{
--	return 0;
--}
--
--static inline void disable_swap_token(struct mem_cgroup *memcg)
--{
--}
--
- static inline void
- mem_cgroup_uncharge_swapcache(struct page *page, swp_entry_t ent)
- {
-diff -puN include/trace/events/vmscan.h~mm-remove-swap-token-code include/trace/events/vmscan.h
---- a/include/trace/events/vmscan.h~mm-remove-swap-token-code
+diff -puN include/trace/events/vmscan.h~mm-vmscan-remove-lumpy-reclaim include/trace/events/vmscan.h
+--- a/include/trace/events/vmscan.h~mm-vmscan-remove-lumpy-reclaim
 +++ a/include/trace/events/vmscan.h
-@@ -395,88 +395,6 @@ TRACE_EVENT(mm_vmscan_lru_shrink_inactiv
- 		show_reclaim_flags(__entry->reclaim_flags))
+@@ -263,22 +263,16 @@ DECLARE_EVENT_CLASS(mm_vmscan_lru_isolat
+ 		unsigned long nr_requested,
+ 		unsigned long nr_scanned,
+ 		unsigned long nr_taken,
+-		unsigned long nr_lumpy_taken,
+-		unsigned long nr_lumpy_dirty,
+-		unsigned long nr_lumpy_failed,
+ 		isolate_mode_t isolate_mode,
+ 		int file),
+ 
+-	TP_ARGS(order, nr_requested, nr_scanned, nr_taken, nr_lumpy_taken, nr_lumpy_dirty, nr_lumpy_failed, isolate_mode, file),
++	TP_ARGS(order, nr_requested, nr_scanned, nr_taken, isolate_mode, file),
+ 
+ 	TP_STRUCT__entry(
+ 		__field(int, order)
+ 		__field(unsigned long, nr_requested)
+ 		__field(unsigned long, nr_scanned)
+ 		__field(unsigned long, nr_taken)
+-		__field(unsigned long, nr_lumpy_taken)
+-		__field(unsigned long, nr_lumpy_dirty)
+-		__field(unsigned long, nr_lumpy_failed)
+ 		__field(isolate_mode_t, isolate_mode)
+ 		__field(int, file)
+ 	),
+@@ -288,22 +282,16 @@ DECLARE_EVENT_CLASS(mm_vmscan_lru_isolat
+ 		__entry->nr_requested = nr_requested;
+ 		__entry->nr_scanned = nr_scanned;
+ 		__entry->nr_taken = nr_taken;
+-		__entry->nr_lumpy_taken = nr_lumpy_taken;
+-		__entry->nr_lumpy_dirty = nr_lumpy_dirty;
+-		__entry->nr_lumpy_failed = nr_lumpy_failed;
+ 		__entry->isolate_mode = isolate_mode;
+ 		__entry->file = file;
+ 	),
+ 
+-	TP_printk("isolate_mode=%d order=%d nr_requested=%lu nr_scanned=%lu nr_taken=%lu contig_taken=%lu contig_dirty=%lu contig_failed=%lu file=%d",
++	TP_printk("isolate_mode=%d order=%d nr_requested=%lu nr_scanned=%lu nr_taken=%lu file=%d",
+ 		__entry->isolate_mode,
+ 		__entry->order,
+ 		__entry->nr_requested,
+ 		__entry->nr_scanned,
+ 		__entry->nr_taken,
+-		__entry->nr_lumpy_taken,
+-		__entry->nr_lumpy_dirty,
+-		__entry->nr_lumpy_failed,
+ 		__entry->file)
  );
  
--TRACE_EVENT(replace_swap_token,
--	TP_PROTO(struct mm_struct *old_mm,
--		 struct mm_struct *new_mm),
--
--	TP_ARGS(old_mm, new_mm),
--
--	TP_STRUCT__entry(
--		__field(struct mm_struct*,	old_mm)
--		__field(unsigned int,		old_prio)
--		__field(struct mm_struct*,	new_mm)
--		__field(unsigned int,		new_prio)
--	),
--
--	TP_fast_assign(
--		__entry->old_mm   = old_mm;
--		__entry->old_prio = old_mm ? old_mm->token_priority : 0;
--		__entry->new_mm   = new_mm;
--		__entry->new_prio = new_mm->token_priority;
--	),
--
--	TP_printk("old_token_mm=%p old_prio=%u new_token_mm=%p new_prio=%u",
--		  __entry->old_mm, __entry->old_prio,
--		  __entry->new_mm, __entry->new_prio)
--);
--
--DECLARE_EVENT_CLASS(put_swap_token_template,
--	TP_PROTO(struct mm_struct *swap_token_mm),
--
--	TP_ARGS(swap_token_mm),
--
--	TP_STRUCT__entry(
--		__field(struct mm_struct*, swap_token_mm)
--	),
--
--	TP_fast_assign(
--		__entry->swap_token_mm = swap_token_mm;
--	),
--
--	TP_printk("token_mm=%p", __entry->swap_token_mm)
--);
--
--DEFINE_EVENT(put_swap_token_template, put_swap_token,
--	TP_PROTO(struct mm_struct *swap_token_mm),
--	TP_ARGS(swap_token_mm)
--);
--
--DEFINE_EVENT_CONDITION(put_swap_token_template, disable_swap_token,
--	TP_PROTO(struct mm_struct *swap_token_mm),
--	TP_ARGS(swap_token_mm),
--	TP_CONDITION(swap_token_mm != NULL)
--);
--
--TRACE_EVENT_CONDITION(update_swap_token_priority,
--	TP_PROTO(struct mm_struct *mm,
--		 unsigned int old_prio,
--		 struct mm_struct *swap_token_mm),
--
--	TP_ARGS(mm, old_prio, swap_token_mm),
--
--	TP_CONDITION(mm->token_priority != old_prio),
--
--	TP_STRUCT__entry(
--		__field(struct mm_struct*, mm)
--		__field(unsigned int, old_prio)
--		__field(unsigned int, new_prio)
--		__field(struct mm_struct*, swap_token_mm)
--		__field(unsigned int, swap_token_prio)
--	),
--
--	TP_fast_assign(
--		__entry->mm		= mm;
--		__entry->old_prio	= old_prio;
--		__entry->new_prio	= mm->token_priority;
--		__entry->swap_token_mm	= swap_token_mm;
--		__entry->swap_token_prio = swap_token_mm ? swap_token_mm->token_priority : 0;
--	),
--
--	TP_printk("mm=%p old_prio=%u new_prio=%u swap_token_mm=%p token_prio=%u",
--		  __entry->mm, __entry->old_prio, __entry->new_prio,
--		  __entry->swap_token_mm, __entry->swap_token_prio)
--);
--
- #endif /* _TRACE_VMSCAN_H */
+@@ -313,13 +301,10 @@ DEFINE_EVENT(mm_vmscan_lru_isolate_templ
+ 		unsigned long nr_requested,
+ 		unsigned long nr_scanned,
+ 		unsigned long nr_taken,
+-		unsigned long nr_lumpy_taken,
+-		unsigned long nr_lumpy_dirty,
+-		unsigned long nr_lumpy_failed,
+ 		isolate_mode_t isolate_mode,
+ 		int file),
  
- /* This part must be outside protection */
-diff -puN kernel/fork.c~mm-remove-swap-token-code kernel/fork.c
---- a/kernel/fork.c~mm-remove-swap-token-code
-+++ a/kernel/fork.c
-@@ -614,7 +614,6 @@ void mmput(struct mm_struct *mm)
- 			list_del(&mm->mmlist);
- 			spin_unlock(&mmlist_lock);
- 		}
--		put_swap_token(mm);
- 		if (mm->binfmt)
- 			module_put(mm->binfmt->module);
- 		mmdrop(mm);
-@@ -831,10 +830,6 @@ struct mm_struct *dup_mm(struct task_str
- 	memcpy(mm, oldmm, sizeof(*mm));
- 	mm_init_cpumask(mm);
+-	TP_ARGS(order, nr_requested, nr_scanned, nr_taken, nr_lumpy_taken, nr_lumpy_dirty, nr_lumpy_failed, isolate_mode, file)
++	TP_ARGS(order, nr_requested, nr_scanned, nr_taken, isolate_mode, file)
  
--	/* Initializing for Swap token stuff */
--	mm->token_priority = 0;
--	mm->last_interval = 0;
--
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	mm->pmd_huge_pte = NULL;
- #endif
-@@ -913,10 +908,6 @@ static int copy_mm(unsigned long clone_f
- 		goto fail_nomem;
+ );
  
- good_mm:
--	/* Initializing for Swap token stuff */
--	mm->token_priority = 0;
--	mm->last_interval = 0;
--
- 	tsk->mm = mm;
- 	tsk->active_mm = mm;
- 	return 0;
-diff -puN mm/Makefile~mm-remove-swap-token-code mm/Makefile
---- a/mm/Makefile~mm-remove-swap-token-code
-+++ a/mm/Makefile
-@@ -25,7 +25,7 @@ endif
- obj-$(CONFIG_HAVE_MEMBLOCK) += memblock.o
+@@ -329,13 +314,10 @@ DEFINE_EVENT(mm_vmscan_lru_isolate_templ
+ 		unsigned long nr_requested,
+ 		unsigned long nr_scanned,
+ 		unsigned long nr_taken,
+-		unsigned long nr_lumpy_taken,
+-		unsigned long nr_lumpy_dirty,
+-		unsigned long nr_lumpy_failed,
+ 		isolate_mode_t isolate_mode,
+ 		int file),
  
- obj-$(CONFIG_BOUNCE)	+= bounce.o
--obj-$(CONFIG_SWAP)	+= page_io.o swap_state.o swapfile.o thrash.o
-+obj-$(CONFIG_SWAP)	+= page_io.o swap_state.o swapfile.o
- obj-$(CONFIG_HAS_DMA)	+= dmapool.o
- obj-$(CONFIG_HUGETLBFS)	+= hugetlb.o
- obj-$(CONFIG_NUMA) 	+= mempolicy.o
-diff -puN mm/memcontrol.c~mm-remove-swap-token-code mm/memcontrol.c
---- a/mm/memcontrol.c~mm-remove-swap-token-code
-+++ a/mm/memcontrol.c
-@@ -5598,7 +5598,6 @@ static void mem_cgroup_move_task(struct 
- 	if (mm) {
- 		if (mc.to)
- 			mem_cgroup_move_charge(mm);
--		put_swap_token(mm);
- 		mmput(mm);
- 	}
- 	if (mc.to)
-diff -puN mm/memory.c~mm-remove-swap-token-code mm/memory.c
---- a/mm/memory.c~mm-remove-swap-token-code
-+++ a/mm/memory.c
-@@ -2908,7 +2908,6 @@ static int do_swap_page(struct mm_struct
- 	delayacct_set_flag(DELAYACCT_PF_SWAPIN);
- 	page = lookup_swap_cache(entry);
- 	if (!page) {
--		grab_swap_token(mm); /* Contend for token _before_ read-in */
- 		page = swapin_readahead(entry,
- 					GFP_HIGHUSER_MOVABLE, vma, address);
- 		if (!page) {
-@@ -2938,6 +2937,7 @@ static int do_swap_page(struct mm_struct
- 	}
+-	TP_ARGS(order, nr_requested, nr_scanned, nr_taken, nr_lumpy_taken, nr_lumpy_dirty, nr_lumpy_failed, isolate_mode, file)
++	TP_ARGS(order, nr_requested, nr_scanned, nr_taken, isolate_mode, file)
  
- 	locked = lock_page_or_retry(page, mm, flags);
-+
- 	delayacct_clear_flag(DELAYACCT_PF_SWAPIN);
- 	if (!locked) {
- 		ret |= VM_FAULT_RETRY;
-diff -puN mm/rmap.c~mm-remove-swap-token-code mm/rmap.c
---- a/mm/rmap.c~mm-remove-swap-token-code
-+++ a/mm/rmap.c
-@@ -755,12 +755,6 @@ int page_referenced_one(struct page *pag
- 		pte_unmap_unlock(pte, ptl);
- 	}
+ );
  
--	/* Pretend the page is referenced if the task has the
--	   swap token and is in the middle of a page fault. */
--	if (mm != current->mm && has_swap_token(mm) &&
--			rwsem_is_locked(&mm->mmap_sem))
--		referenced++;
--
- 	(*mapcount)--;
+diff -puN mm/vmscan.c~mm-vmscan-remove-lumpy-reclaim mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-remove-lumpy-reclaim
++++ a/mm/vmscan.c
+@@ -58,9 +58,6 @@
+  * RECLAIM_MODE_SINGLE: Reclaim only order-0 pages
+  * RECLAIM_MODE_ASYNC:  Do not block
+  * RECLAIM_MODE_SYNC:   Allow blocking e.g. call wait_on_page_writeback
+- * RECLAIM_MODE_LUMPYRECLAIM: For high-order allocations, take a reference
+- *			page from the LRU and reclaim all pages within a
+- *			naturally aligned range
+  * RECLAIM_MODE_COMPACTION: For high-order allocations, reclaim a number of
+  *			order-0 pages and then compact the zone
+  */
+@@ -68,7 +65,6 @@ typedef unsigned __bitwise__ reclaim_mod
+ #define RECLAIM_MODE_SINGLE		((__force reclaim_mode_t)0x01u)
+ #define RECLAIM_MODE_ASYNC		((__force reclaim_mode_t)0x02u)
+ #define RECLAIM_MODE_SYNC		((__force reclaim_mode_t)0x04u)
+-#define RECLAIM_MODE_LUMPYRECLAIM	((__force reclaim_mode_t)0x08u)
+ #define RECLAIM_MODE_COMPACTION		((__force reclaim_mode_t)0x10u)
  
- 	if (referenced)
-diff -puN mm/thrash.c~mm-remove-swap-token-code /dev/null
---- a/mm/thrash.c
-+++ /dev/null
-@@ -1,155 +0,0 @@
--/*
-- * mm/thrash.c
-- *
-- * Copyright (C) 2004, Red Hat, Inc.
-- * Copyright (C) 2004, Rik van Riel <riel@redhat.com>
-- * Released under the GPL, see the file COPYING for details.
-- *
-- * Simple token based thrashing protection, using the algorithm
-- * described in: http://www.cse.ohio-state.edu/hpcs/WWW/HTML/publications/abs05-1.html
-- *
-- * Sep 2006, Ashwin Chaugule <ashwin.chaugule@celunite.com>
-- * Improved algorithm to pass token:
-- * Each task has a priority which is incremented if it contended
-- * for the token in an interval less than its previous attempt.
-- * If the token is acquired, that task's priority is boosted to prevent
-- * the token from bouncing around too often and to let the task make
-- * some progress in its execution.
-- */
--
--#include <linux/jiffies.h>
--#include <linux/mm.h>
--#include <linux/sched.h>
--#include <linux/swap.h>
--#include <linux/memcontrol.h>
--
--#include <trace/events/vmscan.h>
--
--#define TOKEN_AGING_INTERVAL	(0xFF)
--
--static DEFINE_SPINLOCK(swap_token_lock);
--struct mm_struct *swap_token_mm;
--static struct mem_cgroup *swap_token_memcg;
--
--#ifdef CONFIG_CGROUP_MEM_RES_CTLR
--static struct mem_cgroup *swap_token_memcg_from_mm(struct mm_struct *mm)
--{
--	struct mem_cgroup *memcg;
--
--	memcg = try_get_mem_cgroup_from_mm(mm);
--	if (memcg)
--		css_put(mem_cgroup_css(memcg));
--
--	return memcg;
--}
--#else
--static struct mem_cgroup *swap_token_memcg_from_mm(struct mm_struct *mm)
--{
--	return NULL;
--}
--#endif
--
--void grab_swap_token(struct mm_struct *mm)
--{
--	int current_interval;
--	unsigned int old_prio = mm->token_priority;
--	static unsigned int global_faults;
--	static unsigned int last_aging;
--
--	global_faults++;
--
--	current_interval = global_faults - mm->faultstamp;
--
--	if (!spin_trylock(&swap_token_lock))
--		return;
--
--	/* First come first served */
--	if (!swap_token_mm)
--		goto replace_token;
+ struct scan_control {
+@@ -367,27 +363,17 @@ out:
+ static void set_reclaim_mode(int priority, struct scan_control *sc,
+ 				   bool sync)
+ {
++	/* Sync reclaim used only for compaction */
+ 	reclaim_mode_t syncmode = sync ? RECLAIM_MODE_SYNC : RECLAIM_MODE_ASYNC;
+ 
+ 	/*
+-	 * Initially assume we are entering either lumpy reclaim or
+-	 * reclaim/compaction.Depending on the order, we will either set the
+-	 * sync mode or just reclaim order-0 pages later.
+-	 */
+-	if (COMPACTION_BUILD)
+-		sc->reclaim_mode = RECLAIM_MODE_COMPACTION;
+-	else
+-		sc->reclaim_mode = RECLAIM_MODE_LUMPYRECLAIM;
 -
 -	/*
--	 * Usually, we don't need priority aging because long interval faults
--	 * makes priority decrease quickly. But there is one exception. If the
--	 * token owner task is sleeping, it never make long interval faults.
--	 * Thus, we need a priority aging mechanism instead. The requirements
--	 * of priority aging are
--	 *  1) An aging interval is reasonable enough long. Too short aging
--	 *     interval makes quick swap token lost and decrease performance.
--	 *  2) The swap token owner task have to get priority aging even if
--	 *     it's under sleep.
+-	 * Avoid using lumpy reclaim or reclaim/compaction if possible by
+-	 * restricting when its set to either costly allocations or when
++	 * Restrict reclaim/compaction to costly allocations or when
+ 	 * under memory pressure
+ 	 */
+-	if (sc->order > PAGE_ALLOC_COSTLY_ORDER)
+-		sc->reclaim_mode |= syncmode;
+-	else if (sc->order && priority < DEF_PRIORITY - 2)
+-		sc->reclaim_mode |= syncmode;
++	if (COMPACTION_BUILD && sc->order &&
++			(sc->order > PAGE_ALLOC_COSTLY_ORDER ||
++			 priority < DEF_PRIORITY - 2))
++		sc->reclaim_mode = RECLAIM_MODE_COMPACTION | syncmode;
+ 	else
+ 		sc->reclaim_mode = RECLAIM_MODE_SINGLE | RECLAIM_MODE_ASYNC;
+ }
+@@ -416,10 +402,6 @@ static int may_write_to_queue(struct bac
+ 		return 1;
+ 	if (bdi == current->backing_dev_info)
+ 		return 1;
+-
+-	/* lumpy reclaim for hugepage often need a lot of write */
+-	if (sc->order > PAGE_ALLOC_COSTLY_ORDER)
+-		return 1;
+ 	return 0;
+ }
+ 
+@@ -710,10 +692,6 @@ static enum page_references page_check_r
+ 	referenced_ptes = page_referenced(page, 1, mz->mem_cgroup, &vm_flags);
+ 	referenced_page = TestClearPageReferenced(page);
+ 
+-	/* Lumpy reclaim - ignore references */
+-	if (sc->reclaim_mode & RECLAIM_MODE_LUMPYRECLAIM)
+-		return PAGEREF_RECLAIM;
+-
+ 	/*
+ 	 * Mlock lost the isolation race with us.  Let try_to_unmap()
+ 	 * move the page to the unevictable list.
+@@ -824,7 +802,7 @@ static unsigned long shrink_page_list(st
+ 				wait_on_page_writeback(page);
+ 			else {
+ 				unlock_page(page);
+-				goto keep_lumpy;
++				goto keep_reclaim_mode;
+ 			}
+ 		}
+ 
+@@ -908,7 +886,7 @@ static unsigned long shrink_page_list(st
+ 				goto activate_locked;
+ 			case PAGE_SUCCESS:
+ 				if (PageWriteback(page))
+-					goto keep_lumpy;
++					goto keep_reclaim_mode;
+ 				if (PageDirty(page))
+ 					goto keep;
+ 
+@@ -1008,7 +986,7 @@ keep_locked:
+ 		unlock_page(page);
+ keep:
+ 		reset_reclaim_mode(sc);
+-keep_lumpy:
++keep_reclaim_mode:
+ 		list_add(&page->lru, &ret_pages);
+ 		VM_BUG_ON(PageLRU(page) || PageUnevictable(page));
+ 	}
+@@ -1064,11 +1042,7 @@ int __isolate_lru_page(struct page *page
+ 	if (!all_lru_mode && !!page_is_file_cache(page) != file)
+ 		return ret;
+ 
+-	/*
+-	 * When this function is being called for lumpy reclaim, we
+-	 * initially look into all LRU pages, active, inactive and
+-	 * unevictable; only give shrink_page_list evictable pages.
 -	 */
--	if ((global_faults - last_aging) > TOKEN_AGING_INTERVAL) {
--		swap_token_mm->token_priority /= 2;
--		last_aging = global_faults;
--	}
++	/* Do not give back unevictable pages for compaction */
+ 	if (PageUnevictable(page))
+ 		return ret;
+ 
+@@ -1153,9 +1127,6 @@ static unsigned long isolate_lru_pages(u
+ 	struct lruvec *lruvec;
+ 	struct list_head *src;
+ 	unsigned long nr_taken = 0;
+-	unsigned long nr_lumpy_taken = 0;
+-	unsigned long nr_lumpy_dirty = 0;
+-	unsigned long nr_lumpy_failed = 0;
+ 	unsigned long scan;
+ 	int lru = LRU_BASE;
+ 
+@@ -1168,10 +1139,6 @@ static unsigned long isolate_lru_pages(u
+ 
+ 	for (scan = 0; scan < nr_to_scan && !list_empty(src); scan++) {
+ 		struct page *page;
+-		unsigned long pfn;
+-		unsigned long end_pfn;
+-		unsigned long page_pfn;
+-		int zone_id;
+ 
+ 		page = lru_to_page(src);
+ 		prefetchw_prev_lru_page(page, src, flags);
+@@ -1193,84 +1160,6 @@ static unsigned long isolate_lru_pages(u
+ 		default:
+ 			BUG();
+ 		}
 -
--	if (mm == swap_token_mm) {
--		mm->token_priority += 2;
--		goto update_priority;
--	}
+-		if (!sc->order || !(sc->reclaim_mode & RECLAIM_MODE_LUMPYRECLAIM))
+-			continue;
 -
--	if (current_interval < mm->last_interval)
--		mm->token_priority++;
--	else {
--		if (likely(mm->token_priority > 0))
--			mm->token_priority--;
--	}
+-		/*
+-		 * Attempt to take all pages in the order aligned region
+-		 * surrounding the tag page.  Only take those pages of
+-		 * the same active state as that tag page.  We may safely
+-		 * round the target page pfn down to the requested order
+-		 * as the mem_map is guaranteed valid out to MAX_ORDER,
+-		 * where that page is in a different zone we will detect
+-		 * it from its zone id and abort this block scan.
+-		 */
+-		zone_id = page_zone_id(page);
+-		page_pfn = page_to_pfn(page);
+-		pfn = page_pfn & ~((1 << sc->order) - 1);
+-		end_pfn = pfn + (1 << sc->order);
+-		for (; pfn < end_pfn; pfn++) {
+-			struct page *cursor_page;
 -
--	/* Check if we deserve the token */
--	if (mm->token_priority > swap_token_mm->token_priority)
--		goto replace_token;
+-			/* The target page is in the block, ignore it. */
+-			if (unlikely(pfn == page_pfn))
+-				continue;
 -
--update_priority:
--	trace_update_swap_token_priority(mm, old_prio, swap_token_mm);
+-			/* Avoid holes within the zone. */
+-			if (unlikely(!pfn_valid_within(pfn)))
+-				break;
 -
--out:
--	mm->faultstamp = global_faults;
--	mm->last_interval = current_interval;
--	spin_unlock(&swap_token_lock);
--	return;
+-			cursor_page = pfn_to_page(pfn);
 -
--replace_token:
--	mm->token_priority += 2;
--	trace_replace_swap_token(swap_token_mm, mm);
--	swap_token_mm = mm;
--	swap_token_memcg = swap_token_memcg_from_mm(mm);
--	last_aging = global_faults;
--	goto out;
--}
+-			/* Check that we have not crossed a zone boundary. */
+-			if (unlikely(page_zone_id(cursor_page) != zone_id))
+-				break;
 -
--/* Called on process exit. */
--void __put_swap_token(struct mm_struct *mm)
--{
--	spin_lock(&swap_token_lock);
--	if (likely(mm == swap_token_mm)) {
--		trace_put_swap_token(swap_token_mm);
--		swap_token_mm = NULL;
--		swap_token_memcg = NULL;
--	}
--	spin_unlock(&swap_token_lock);
--}
+-			/*
+-			 * If we don't have enough swap space, reclaiming of
+-			 * anon page which don't already have a swap slot is
+-			 * pointless.
+-			 */
+-			if (nr_swap_pages <= 0 && PageSwapBacked(cursor_page) &&
+-			    !PageSwapCache(cursor_page))
+-				break;
 -
--static bool match_memcg(struct mem_cgroup *a, struct mem_cgroup *b)
--{
--	if (!a)
--		return true;
--	if (!b)
--		return true;
--	if (a == b)
--		return true;
--	return false;
--}
+-			if (__isolate_lru_page(cursor_page, mode, file) == 0) {
+-				unsigned int isolated_pages;
 -
--void disable_swap_token(struct mem_cgroup *memcg)
--{
--	/* memcg reclaim don't disable unrelated mm token. */
--	if (match_memcg(memcg, swap_token_memcg)) {
--		spin_lock(&swap_token_lock);
--		if (match_memcg(memcg, swap_token_memcg)) {
--			trace_disable_swap_token(swap_token_mm);
--			swap_token_mm = NULL;
--			swap_token_memcg = NULL;
+-				mem_cgroup_lru_del(cursor_page);
+-				list_move(&cursor_page->lru, dst);
+-				isolated_pages = hpage_nr_pages(cursor_page);
+-				nr_taken += isolated_pages;
+-				nr_lumpy_taken += isolated_pages;
+-				if (PageDirty(cursor_page))
+-					nr_lumpy_dirty += isolated_pages;
+-				scan++;
+-				pfn += isolated_pages - 1;
+-			} else {
+-				/*
+-				 * Check if the page is freed already.
+-				 *
+-				 * We can't use page_count() as that
+-				 * requires compound_head and we don't
+-				 * have a pin on the page here. If a
+-				 * page is tail, we may or may not
+-				 * have isolated the head, so assume
+-				 * it's not free, it'd be tricky to
+-				 * track the head status without a
+-				 * page pin.
+-				 */
+-				if (!PageTail(cursor_page) &&
+-				    !atomic_read(&cursor_page->_count))
+-					continue;
+-				break;
+-			}
 -		}
--		spin_unlock(&swap_token_lock);
--	}
--}
-diff -puN mm/vmscan.c~mm-remove-swap-token-code mm/vmscan.c
---- a/mm/vmscan.c~mm-remove-swap-token-code
-+++ a/mm/vmscan.c
-@@ -2352,8 +2352,6 @@ static unsigned long do_try_to_free_page
+-
+-		/* If we break out of the loop above, lumpy reclaim failed */
+-		if (pfn < end_pfn)
+-			nr_lumpy_failed++;
+ 	}
  
- 	for (priority = DEF_PRIORITY; priority >= 0; priority--) {
- 		sc->nr_scanned = 0;
--		if (!priority)
--			disable_swap_token(sc->target_mem_cgroup);
- 		aborted_reclaim = shrink_zones(priority, zonelist, sc);
+ 	*nr_scanned = scan;
+@@ -1278,7 +1167,6 @@ static unsigned long isolate_lru_pages(u
+ 	trace_mm_vmscan_lru_isolate(sc->order,
+ 			nr_to_scan, scan,
+ 			nr_taken,
+-			nr_lumpy_taken, nr_lumpy_dirty, nr_lumpy_failed,
+ 			mode, file);
+ 	return nr_taken;
+ }
+@@ -1466,13 +1354,13 @@ static inline bool should_reclaim_stall(
+ 					int priority,
+ 					struct scan_control *sc)
+ {
+-	int lumpy_stall_priority;
++	int stall_priority;
  
- 		/*
-@@ -2704,10 +2702,6 @@ loop_again:
- 		unsigned long lru_pages = 0;
- 		int has_under_min_watermark_zone = 0;
+ 	/* kswapd should not stall on sync IO */
+ 	if (current_is_kswapd())
+ 		return false;
  
--		/* The swap token gets in the way of swapout... */
--		if (!priority)
--			disable_swap_token(NULL);
+-	/* Only stall on lumpy reclaim */
++	/* Only stall for memory compaction */
+ 	if (sc->reclaim_mode & RECLAIM_MODE_SINGLE)
+ 		return false;
+ 
+@@ -1487,11 +1375,11 @@ static inline bool should_reclaim_stall(
+ 	 * priority to be much higher before stalling.
+ 	 */
+ 	if (sc->order > PAGE_ALLOC_COSTLY_ORDER)
+-		lumpy_stall_priority = DEF_PRIORITY;
++		stall_priority = DEF_PRIORITY;
+ 	else
+-		lumpy_stall_priority = DEF_PRIORITY / 3;
++		stall_priority = DEF_PRIORITY / 3;
+ 
+-	return priority <= lumpy_stall_priority;
++	return priority <= stall_priority;
+ }
+ 
+ /*
+@@ -1523,8 +1411,6 @@ shrink_inactive_list(unsigned long nr_to
+ 	}
+ 
+ 	set_reclaim_mode(priority, sc, false);
+-	if (sc->reclaim_mode & RECLAIM_MODE_LUMPYRECLAIM)
+-		isolate_mode |= ISOLATE_ACTIVE;
+ 
+ 	lru_add_drain();
+ 
+_
+
+Patches currently in -mm which might be from mgorman@suse.de are
+
+origin.patch
+linux-next.patch
+
