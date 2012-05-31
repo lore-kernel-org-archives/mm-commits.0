@@ -1,122 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-spear-add-device-tree-probing-capability.patch removed from -mm tree
-Date: Thu, 31 May 2012 12:20:17 -0700
-Message-ID: <20120531192017.898D9A0203@akpm.mtv.corp.google.com>
+Subject: [merged] drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature.patch removed from -mm tree
+Date: Thu, 31 May 2012 12:20:25 -0700
+Message-ID: <20120531192025.79F23A0203@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:41454 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933094Ab2EaTUS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:20:18 -0400
-Received: by mail-qa0-f74.google.com with SMTP id g24so154855qab.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:20:18 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:60590 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933081Ab2EaTU2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 15:20:28 -0400
+Received: by lbbgp10 with SMTP id gp10so86026lbb.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 12:20:26 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: viresh.kumar@st.com, a.zummo@towertech.it, arnd@arndb.de, rajeev-dlh.kumar@st.com, robherring2@gmail.com, sr@denx.de, mm-commits@vger.kernel.org
+To: alexander.stein@systec-electronic.com, a.zummo@towertech.it, jesper.nilsson@axis.com, starvik@axis.com, wfg@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc/spear: add Device Tree probing capability
+     Subject: drivers/rtc/rtc-pcf8563.c: add RTC_VL_READ/RTC_VL_CLR ioctl feature
 has been removed from the -mm tree.  Its filename was
-     rtc-spear-add-device-tree-probing-capability.patch
+     drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Viresh Kumar <viresh.kumar@st.com>
-Subject: rtc/spear: add Device Tree probing capability
+From: Alexander Stein <alexander.stein@systec-electronic.com>
+Subject: drivers/rtc/rtc-pcf8563.c: add RTC_VL_READ/RTC_VL_CLR ioctl feature
 
-SPEAr platforms now support DT and so must convert all drivers support DT.
- This patch adds DT probing support for rtc and updates its documentation
-too.
+Changes are based on arch/cris/arch-v10/drivers/pcf8563.c
 
-Signed-off-by: Viresh Kumar <viresh.kumar@st.com>
-Cc: Stefan Roese <sr@denx.de>
-Cc: Arnd Bergmann <arnd@arndb.de>
+[akpm@linux-foundation.org: fix sparse warning]
+Signed-off-by: Alexander Stein <alexander.stein@systec-electronic.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Rajeev Kumar <rajeev-dlh.kumar@st.com>
-Cc: Rob Herring <robherring2@gmail.com>
+Cc: Mikael Starvik <starvik@axis.com>
+Acked-by: Jesper Nilsson <jesper.nilsson@axis.com>
+Cc: Wu Fengguang <wfg@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/devicetree/bindings/rtc/spear-rtc.txt |   18 ++++++++++
- drivers/rtc/rtc-spear.c                             |   10 +++++
- 2 files changed, 28 insertions(+)
+ drivers/rtc/rtc-pcf8563.c |   44 +++++++++++++++++++++++++++++++++++-
+ 1 file changed, 43 insertions(+), 1 deletion(-)
 
-diff -puN /dev/null Documentation/devicetree/bindings/rtc/spear-rtc.txt
---- /dev/null
-+++ a/Documentation/devicetree/bindings/rtc/spear-rtc.txt
-@@ -0,0 +1,18 @@
-+* SPEAr RTC
-+
-+Required properties:
-+- compatible : "st,spear600-rtc"
-+- reg : Address range of the rtc registers
-+- interrupt-parent: Should be the phandle for the interrupt controller
-+  that services interrupts for this device
-+- interrupt: Should contain the rtc interrupt number
-+
-+Example:
-+
-+	rtc@fc000000 {
-+		compatible = "st,spear600-rtc";
-+		reg = <0xfc000000 0x1000>;
-+		interrupt-parent = <&vic1>;
-+		interrupts = <12>;
-+	};
-+
-diff -puN drivers/rtc/rtc-spear.c~rtc-spear-add-device-tree-probing-capability drivers/rtc/rtc-spear.c
---- a/drivers/rtc/rtc-spear.c~rtc-spear-add-device-tree-probing-capability
-+++ a/drivers/rtc/rtc-spear.c
-@@ -16,6 +16,7 @@
- #include <linux/io.h>
- #include <linux/irq.h>
- #include <linux/module.h>
-+#include <linux/of.h>
- #include <linux/platform_device.h>
- #include <linux/rtc.h>
- #include <linux/slab.h>
-@@ -519,6 +520,14 @@ static void spear_rtc_shutdown(struct pl
- 	clk_disable(config->clk);
- }
- 
-+#ifdef CONFIG_OF
-+static const struct of_device_id spear_rtc_id_table[] = {
-+	{ .compatible = "st,spear600-rtc" },
-+	{}
-+};
-+MODULE_DEVICE_TABLE(of, spear_rtc_id_table);
-+#endif
-+
- static struct platform_driver spear_rtc_driver = {
- 	.probe = spear_rtc_probe,
- 	.remove = __devexit_p(spear_rtc_remove),
-@@ -527,6 +536,7 @@ static struct platform_driver spear_rtc_
- 	.shutdown = spear_rtc_shutdown,
- 	.driver = {
- 		.name = "rtc-spear",
-+		.of_match_table = of_match_ptr(spear_rtc_id_table),
- 	},
+diff -puN drivers/rtc/rtc-pcf8563.c~drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature drivers/rtc/rtc-pcf8563.c
+--- a/drivers/rtc/rtc-pcf8563.c~drivers-rtc-rtc-pcf8563c-add-rtc_vl_read-rtc_vl_clr-ioctl-feature
++++ a/drivers/rtc/rtc-pcf8563.c
+@@ -64,6 +64,7 @@ struct pcf8563 {
+ 	 * 1970...2069.
+ 	 */
+ 	int c_polarity;	/* 0: MO_C=1 means 19xx, otherwise MO_C=1 means 20xx */
++	int voltage_low; /* incicates if a low_voltage was detected */
  };
  
+ /*
+@@ -86,9 +87,11 @@ static int pcf8563_get_datetime(struct i
+ 		return -EIO;
+ 	}
+ 
+-	if (buf[PCF8563_REG_SC] & PCF8563_SC_LV)
++	if (buf[PCF8563_REG_SC] & PCF8563_SC_LV) {
++		pcf8563->voltage_low = 1;
+ 		dev_info(&client->dev,
+ 			"low voltage detected, date/time is not reliable.\n");
++	}
+ 
+ 	dev_dbg(&client->dev,
+ 		"%s: raw data is st1=%02x, st2=%02x, sec=%02x, min=%02x, hr=%02x, "
+@@ -173,6 +176,44 @@ static int pcf8563_set_datetime(struct i
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_RTC_INTF_DEV
++static int pcf8563_rtc_ioctl(struct device *dev, unsigned int cmd, unsigned long arg)
++{
++	struct pcf8563 *pcf8563 = i2c_get_clientdata(to_i2c_client(dev));
++	struct rtc_time tm;
++
++	switch (cmd) {
++	case RTC_VL_READ:
++		if (pcf8563->voltage_low)
++			dev_info(dev, "low voltage detected, date/time is not reliable.\n");
++
++		if (copy_to_user((void __user *)arg, &pcf8563->voltage_low,
++					sizeof(int)))
++			return -EFAULT;
++		return 0;
++	case RTC_VL_CLR:
++		/*
++		 * Clear the VL bit in the seconds register in case
++		 * the time has not been set already (which would
++		 * have cleared it). This does not really matter
++		 * because of the cached voltage_low value but do it
++		 * anyway for consistency.
++		 */
++		if (pcf8563_get_datetime(to_i2c_client(dev), &tm))
++			pcf8563_set_datetime(to_i2c_client(dev), &tm);
++
++		/* Clear the cached value. */
++		pcf8563->voltage_low = 0;
++
++		return 0;
++	default:
++		return -ENOIOCTLCMD;
++	}
++}
++#else
++#define pcf8563_rtc_ioctl NULL
++#endif
++
+ static int pcf8563_rtc_read_time(struct device *dev, struct rtc_time *tm)
+ {
+ 	return pcf8563_get_datetime(to_i2c_client(dev), tm);
+@@ -184,6 +225,7 @@ static int pcf8563_rtc_set_time(struct d
+ }
+ 
+ static const struct rtc_class_ops pcf8563_rtc_ops = {
++	.ioctl		= pcf8563_rtc_ioctl,
+ 	.read_time	= pcf8563_rtc_read_time,
+ 	.set_time	= pcf8563_rtc_set_time,
+ };
 _
 
-Patches currently in -mm which might be from viresh.kumar@st.com are
+Patches currently in -mm which might be from alexander.stein@systec-electronic.com are
 
 origin.patch
 linux-next.patch
-drivers-thermal-spear_thermalc-add-device-tree-probing-capability.patch
-clk-add-non-config_have_clk-routines.patch
-clk-remove-redundant-depends-on-from-drivers-kconfig.patch
-i2c-i2c-pxa-remove-conditional-compilation-of-clk-code.patch
-usb-marvell-remove-conditional-compilation-of-clk-code.patch
-usb-musb-remove-conditional-compilation-of-clk-code.patch
-ata-pata_arasan-remove-conditional-compilation-of-clk-code.patch
-net-c_can-remove-conditional-compilation-of-clk-code.patch
-net-stmmac-remove-conditional-compilation-of-clk-code.patch
-gadget-m66592-remove-conditional-compilation-of-clk-code.patch
-gadget-r8a66597-remove-conditional-compilation-of-clk-code.patch
-usb-host-r8a66597-remove-conditional-compilation-of-clk-code.patch
 
