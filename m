@@ -1,103 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fat-introduce-mark_fsinfo_dirty-helper.patch removed from -mm tree
-Date: Fri, 01 Jun 2012 12:33:24 -0700
-Message-ID: <20120601193324.588B0A013D@akpm.mtv.corp.google.com>
+Subject: [merged] kmod-unexport-call_usermodehelper_freeinfo.patch removed from -mm tree
+Date: Fri, 01 Jun 2012 12:33:35 -0700
+Message-ID: <20120601193335.4C031A013D@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:44792 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932069Ab2FATdZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:33:25 -0400
-Received: by mail-gh0-f202.google.com with SMTP id z15so245076ghb.1
-        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:33:24 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:36653 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932615Ab2FATdg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:33:36 -0400
+Received: by mail-ee0-f74.google.com with SMTP id t10so140668eei.1
+        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:33:36 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: artem.bityutskiy@linux.intel.com, hirofumi@mail.parknet.co.jp, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: bharrosh@panasas.com, a.p.zijlstra@chello.nl, mingo@elte.hu, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fat: introduce mark_fsinfo_dirty helper
+     Subject: kmod: unexport call_usermodehelper_freeinfo()
 has been removed from the -mm tree.  Its filename was
-     fat-introduce-mark_fsinfo_dirty-helper.patch
+     kmod-unexport-call_usermodehelper_freeinfo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-Subject: fat: introduce mark_fsinfo_dirty helper
+From: Boaz Harrosh <bharrosh@panasas.com>
+Subject: kmod: unexport call_usermodehelper_freeinfo()
 
-A preparation patch which introduces a 'mark_fsinfo_dirty()' helper
-function which just sets the 's_dirt' flag to 1 so far.  I'll add more
-code to this helper later, so I do not mark it as 'inline'.
+call_usermodehelper_freeinfo() is not used outside of kmod.c.  So unexport
+it, and make it static to kmod.c
 
-Signed-off-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Boaz Harrosh <bharrosh@panasas.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/fatent.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ include/linux/kmod.h |    4 ----
+ kernel/kmod.c        |    3 +--
+ 2 files changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN fs/fat/fatent.c~fat-introduce-mark_fsinfo_dirty-helper fs/fat/fatent.c
---- a/fs/fat/fatent.c~fat-introduce-mark_fsinfo_dirty-helper
-+++ a/fs/fat/fatent.c
-@@ -308,6 +308,11 @@ void fat_ent_access_init(struct super_bl
- 	}
+diff -puN include/linux/kmod.h~kmod-unexport-call_usermodehelper_freeinfo include/linux/kmod.h
+--- a/include/linux/kmod.h~kmod-unexport-call_usermodehelper_freeinfo
++++ a/include/linux/kmod.h
+@@ -79,10 +79,6 @@ void call_usermodehelper_setfns(struct s
+ /* Actually execute the sub-process */
+ int call_usermodehelper_exec(struct subprocess_info *info, int wait);
+ 
+-/* Free the subprocess_info. This is only needed if you're not going
+-   to call call_usermodehelper_exec */
+-void call_usermodehelper_freeinfo(struct subprocess_info *info);
+-
+ static inline int
+ call_usermodehelper_fns(char *path, char **argv, char **envp, int wait,
+ 			int (*init)(struct subprocess_info *info, struct cred *new),
+diff -puN kernel/kmod.c~kmod-unexport-call_usermodehelper_freeinfo kernel/kmod.c
+--- a/kernel/kmod.c~kmod-unexport-call_usermodehelper_freeinfo
++++ a/kernel/kmod.c
+@@ -221,13 +221,12 @@ fail:
+ 	return 0;
  }
  
-+static void mark_fsinfo_dirty(struct super_block *sb)
-+{
-+	sb->s_dirt = 1;
-+}
-+
- static inline int fat_ent_update_ptr(struct super_block *sb,
- 				     struct fat_entry *fatent,
- 				     int offset, sector_t blocknr)
-@@ -498,7 +503,7 @@ int fat_alloc_clusters(struct inode *ino
- 				sbi->prev_free = entry;
- 				if (sbi->free_clusters != -1)
- 					sbi->free_clusters--;
--				sb->s_dirt = 1;
-+				mark_fsinfo_dirty(sb);
+-void call_usermodehelper_freeinfo(struct subprocess_info *info)
++static void call_usermodehelper_freeinfo(struct subprocess_info *info)
+ {
+ 	if (info->cleanup)
+ 		(*info->cleanup)(info);
+ 	kfree(info);
+ }
+-EXPORT_SYMBOL(call_usermodehelper_freeinfo);
  
- 				cluster[idx_clus] = entry;
- 				idx_clus++;
-@@ -520,7 +525,7 @@ int fat_alloc_clusters(struct inode *ino
- 	/* Couldn't allocate the free entries */
- 	sbi->free_clusters = 0;
- 	sbi->free_clus_valid = 1;
--	sb->s_dirt = 1;
-+	mark_fsinfo_dirty(sb);
- 	err = -ENOSPC;
- 
- out:
-@@ -587,7 +592,7 @@ int fat_free_clusters(struct inode *inod
- 		ops->ent_put(&fatent, FAT_ENT_FREE);
- 		if (sbi->free_clusters != -1) {
- 			sbi->free_clusters++;
--			sb->s_dirt = 1;
-+			mark_fsinfo_dirty(sb);
- 		}
- 
- 		if (nr_bhs + fatent.nr_bhs > MAX_BUF_PER_PAGE) {
-@@ -677,7 +682,7 @@ int fat_count_free_clusters(struct super
- 	}
- 	sbi->free_clusters = free;
- 	sbi->free_clus_valid = 1;
--	sb->s_dirt = 1;
-+	mark_fsinfo_dirty(sb);
- 	fatent_brelse(&fatent);
- out:
- 	unlock_fat(sbi);
+ static void umh_complete(struct subprocess_info *sub_info)
+ {
 _
 
-Patches currently in -mm which might be from artem.bityutskiy@linux.intel.com are
+Patches currently in -mm which might be from bharrosh@panasas.com are
 
 origin.patch
-linux-next.patch
-fat-mark-superblock-as-dirty-less-often.patch
-fat-switch-to-fsinfo_inode.patch
+kmod-convert-two-call-sites-to-call_usermodehelper_fns.patch
+kmod-move-call_usermodehelper_fns-to-c-file-and-unexport-all-its-helpers.patch
 
