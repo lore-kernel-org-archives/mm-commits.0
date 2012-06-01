@@ -1,94 +1,188 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fsnotify-remove-unused-parameter-from-send_to_group.patch removed from -mm tree
-Date: Fri, 01 Jun 2012 12:41:47 -0700
-Message-ID: <20120601194147.36098A026A@akpm.mtv.corp.google.com>
+Subject: [merged] fs-move-file_remove_suid-to-fs-inodec.patch removed from -mm tree
+Date: Fri, 01 Jun 2012 12:41:51 -0700
+Message-ID: <20120601194151.55396A026A@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:41093 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751211Ab2FATls (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:41:48 -0400
-Received: by qcsp5 with SMTP id p5so247357qcs.1
-        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:41:47 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:34946 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759228Ab2FATlw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:41:52 -0400
+Received: by vbnl22 with SMTP id l22so244913vbn.1
+        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:41:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: xiyou.wangcong@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fsnotify: remove unused parameter from send_to_group()
+     Subject: fs: move file_remove_suid() to fs/inode.c
 has been removed from the -mm tree.  Its filename was
-     fsnotify-remove-unused-parameter-from-send_to_group.patch
+     fs-move-file_remove_suid-to-fs-inodec.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: fsnotify: remove unused parameter from send_to_group()
+From: Cong Wang <xiyou.wangcong@gmail.com>
+Subject: fs: move file_remove_suid() to fs/inode.c
 
-We don't use "mnt" anymore in send_to_group() after 1968f5eed5 ("fanotify:
-use both marks when possible") was applied.
+file_remove_suid() is a generic function operates on struct file, it
+almost has no relations with file mapping, so move it to fs/inode.c.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/fsnotify.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ fs/inode.c   |   65 +++++++++++++++++++++++++++++++++++++++++++++++++
+ mm/filemap.c |   65 -------------------------------------------------
+ 2 files changed, 65 insertions(+), 65 deletions(-)
 
-diff -puN fs/notify/fsnotify.c~fsnotify-remove-unused-parameter-from-send_to_group fs/notify/fsnotify.c
---- a/fs/notify/fsnotify.c~fsnotify-remove-unused-parameter-from-send_to_group
-+++ a/fs/notify/fsnotify.c
-@@ -123,7 +123,7 @@ int __fsnotify_parent(struct path *path,
+diff -puN fs/inode.c~fs-move-file_remove_suid-to-fs-inodec fs/inode.c
+--- a/fs/inode.c~fs-move-file_remove_suid-to-fs-inodec
++++ a/fs/inode.c
+@@ -1530,6 +1530,71 @@ void touch_atime(struct path *path)
  }
- EXPORT_SYMBOL_GPL(__fsnotify_parent);
+ EXPORT_SYMBOL(touch_atime);
  
--static int send_to_group(struct inode *to_tell, struct vfsmount *mnt,
-+static int send_to_group(struct inode *to_tell,
- 			 struct fsnotify_mark *inode_mark,
- 			 struct fsnotify_mark *vfsmount_mark,
- 			 __u32 mask, void *data,
-@@ -168,10 +168,10 @@ static int send_to_group(struct inode *t
- 			vfsmount_test_mask &= ~inode_mark->ignored_mask;
- 	}
++/*
++ * The logic we want is
++ *
++ *	if suid or (sgid and xgrp)
++ *		remove privs
++ */
++int should_remove_suid(struct dentry *dentry)
++{
++	umode_t mode = dentry->d_inode->i_mode;
++	int kill = 0;
++
++	/* suid always must be killed */
++	if (unlikely(mode & S_ISUID))
++		kill = ATTR_KILL_SUID;
++
++	/*
++	 * sgid without any exec bits is just a mandatory locking mark; leave
++	 * it alone.  If some exec bits are set, it's a real sgid; kill it.
++	 */
++	if (unlikely((mode & S_ISGID) && (mode & S_IXGRP)))
++		kill |= ATTR_KILL_SGID;
++
++	if (unlikely(kill && !capable(CAP_FSETID) && S_ISREG(mode)))
++		return kill;
++
++	return 0;
++}
++EXPORT_SYMBOL(should_remove_suid);
++
++static int __remove_suid(struct dentry *dentry, int kill)
++{
++	struct iattr newattrs;
++
++	newattrs.ia_valid = ATTR_FORCE | kill;
++	return notify_change(dentry, &newattrs);
++}
++
++int file_remove_suid(struct file *file)
++{
++	struct dentry *dentry = file->f_path.dentry;
++	struct inode *inode = dentry->d_inode;
++	int killsuid;
++	int killpriv;
++	int error = 0;
++
++	/* Fast path for nothing security related */
++	if (IS_NOSEC(inode))
++		return 0;
++
++	killsuid = should_remove_suid(dentry);
++	killpriv = security_inode_need_killpriv(dentry);
++
++	if (killpriv < 0)
++		return killpriv;
++	if (killpriv)
++		error = security_inode_killpriv(dentry);
++	if (!error && killsuid)
++		error = __remove_suid(dentry, killsuid);
++	if (!error && (inode->i_sb->s_flags & MS_NOSEC))
++		inode->i_flags |= S_NOSEC;
++
++	return error;
++}
++EXPORT_SYMBOL(file_remove_suid);
++
+ /**
+  *	file_update_time	-	update mtime and ctime time
+  *	@file: file accessed
+diff -puN mm/filemap.c~fs-move-file_remove_suid-to-fs-inodec mm/filemap.c
+--- a/mm/filemap.c~fs-move-file_remove_suid-to-fs-inodec
++++ a/mm/filemap.c
+@@ -1938,71 +1938,6 @@ struct page *read_cache_page(struct addr
+ }
+ EXPORT_SYMBOL(read_cache_page);
  
--	pr_debug("%s: group=%p to_tell=%p mnt=%p mask=%x inode_mark=%p"
-+	pr_debug("%s: group=%p to_tell=%p mask=%x inode_mark=%p"
- 		 " inode_test_mask=%x vfsmount_mark=%p vfsmount_test_mask=%x"
- 		 " data=%p data_is=%d cookie=%d event=%p\n",
--		 __func__, group, to_tell, mnt, mask, inode_mark,
-+		 __func__, group, to_tell, mask, inode_mark,
- 		 inode_test_mask, vfsmount_mark, vfsmount_test_mask, data,
- 		 data_is, cookie, *event);
- 
-@@ -258,16 +258,16 @@ int fsnotify(struct inode *to_tell, __u3
- 
- 		if (inode_group > vfsmount_group) {
- 			/* handle inode */
--			ret = send_to_group(to_tell, NULL, inode_mark, NULL, mask, data,
-+			ret = send_to_group(to_tell, inode_mark, NULL, mask, data,
- 					    data_is, cookie, file_name, &event);
- 			/* we didn't use the vfsmount_mark */
- 			vfsmount_group = NULL;
- 		} else if (vfsmount_group > inode_group) {
--			ret = send_to_group(to_tell, &mnt->mnt, NULL, vfsmount_mark, mask, data,
-+			ret = send_to_group(to_tell, NULL, vfsmount_mark, mask, data,
- 					    data_is, cookie, file_name, &event);
- 			inode_group = NULL;
- 		} else {
--			ret = send_to_group(to_tell, &mnt->mnt, inode_mark, vfsmount_mark,
-+			ret = send_to_group(to_tell, inode_mark, vfsmount_mark,
- 					    mask, data, data_is, cookie, file_name,
- 					    &event);
- 		}
-_
-
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
-
-origin.patch
-linux-next.patch
-drivers-thermal-spear_thermalc-add-device-tree-probing-capability.patch
-
+-/*
+- * The logic we want is
+- *
+- *	if suid or (sgid and xgrp)
+- *		remove privs
+- */
+-int should_remove_suid(struct dentry *dentry)
+-{
+-	umode_t mode = dentry->d_inode->i_mode;
+-	int kill = 0;
+-
+-	/* suid always must be killed */
+-	if (unlikely(mode & S_ISUID))
+-		kill = ATTR_KILL_SUID;
+-
+-	/*
+-	 * sgid without any exec bits is just a mandatory locking mark; leave
+-	 * it alone.  If some exec bits are set, it's a real sgid; kill it.
+-	 */
+-	if (unlikely((mode & S_ISGID) && (mode & S_IXGRP)))
+-		kill |= ATTR_KILL_SGID;
+-
+-	if (unlikely(kill && !capable(CAP_FSETID) && S_ISREG(mode)))
+-		return kill;
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL(should_remove_suid);
+-
+-static int __remove_suid(struct dentry *dentry, int kill)
+-{
+-	struct iattr newattrs;
+-
+-	newattrs.ia_valid = ATTR_FORCE | kill;
+-	return notify_change(dentry, &newattrs);
+-}
+-
+-int file_remove_suid(struct file *file)
+-{
+-	struct dentry *dentry = file->f_path.dentry;
+-	struct inode *inode = dentry->d_inode;
+-	int killsuid;
+-	int killpriv;
+-	int error = 0;
+-
+-	/* Fast path for nothing security related */
+-	if (IS_NOSEC(inode))
+-		return 0;
+-
+-	killsuid = should_remove_suid(dentry);
+-	killpriv = security_inode_need_killpriv(dentry);
+-
+-	if (killpriv < 0)
+-		return killpriv;
+-	if (killpriv)
+-		error = security_inode_killpriv(dentry);
+-	if (!error && killsuid)
+-		error = __remove_suid(dentry, killsuid);
+-	if (!error && (inode->i_sb->s_flags & MS_NOSEC))
+-		inode->i_flags |= S_NOSEC;
+-
+-	return error;
+-}
+-EXPORT_SYMBOL(file_remove_suid);
