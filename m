@@ -1,88 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mqueue-revert-bump-up-dflt_max.patch removed from -mm tree
-Date: Fri, 01 Jun 2012 12:34:43 -0700
-Message-ID: <20120601193443.ECB81A013D@akpm.mtv.corp.google.com>
+Subject: [merged] blackfin-a-couple-of-task-mm-handling-fixes.patch removed from -mm tree
+Date: Fri, 01 Jun 2012 12:34:19 -0700
+Message-ID: <20120601193419.636A3A013D@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:41153 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932804Ab2FATep (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:34:45 -0400
-Received: by mail-ee0-f74.google.com with SMTP id t10so140727eei.1
-        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:34:44 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:46196 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759178Ab2FATeU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:34:20 -0400
+Received: by mail-vc0-f202.google.com with SMTP id fl13so245502vcb.1
+        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:34:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kosaki.motohiro@jp.fujitsu.com, amwang@redhat.com, dledford@redhat.com, haveblue@us.ibm.com, joe.korty@ccur.com, jslaby@suse.cz, manfred@colorfullife.com, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: anton.vorontsov@linaro.org, oleg@redhat.com, vapier@gentoo.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mqueue: revert bump up DFLT_*MAX
+     Subject: blackfin: a couple of task->mm handling fixes
 has been removed from the -mm tree.  Its filename was
-     mqueue-revert-bump-up-dflt_max.patch
+     blackfin-a-couple-of-task-mm-handling-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Subject: mqueue: revert bump up DFLT_*MAX
+From: Anton Vorontsov <anton.vorontsov@linaro.org>
+Subject: blackfin: a couple of task->mm handling fixes
 
-Mqueue limitation is slightly naieve parameter likes other ipcs because
-unprivileged user can consume kernel memory by using ipcs.
+The patch fixes two problems:
 
-Thus, too aggressive raise bring us security issue.  Example, current
-setting allow evil unprivileged user use 256GB (= 256 * 1024 * 1024*1024)
-and it's enough large to system will belome unresponsive.  Don't do that.
+1. Working with task->mm w/o getting mm or grabing the task lock is
+   dangerous as ->mm might disappear (exit_mm() assigns NULL under
+   task_lock(), so tasklist lock is not enough).
 
-Instead, every admin should adjust the knobs for their own systems.
+   We can't use get_task_mm()/mmput() pair as mmput() might sleep,
+   so we have to take the task lock while handle its mm.
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Doug Ledford <dledford@redhat.com>
-Acked-by: Joe Korty <joe.korty@ccur.com>
-Cc: Amerigo Wang <amwang@redhat.com>
-Acked-by: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Jiri Slaby <jslaby@suse.cz>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
+2. Checking for process->mm is not enough because process' main
+   thread may exit or detach its mm via use_mm(), but other threads
+   may still have a valid mm.
+
+   To catch this we use find_lock_task_mm(), which walks up all
+   threads and returns an appropriate task (with task lock held).
+
+Suggested-by: Oleg Nesterov <oleg@redhat.com>
+Signed-off-by: Anton Vorontsov <anton.vorontsov@linaro.org>
+Cc: Mike Frysinger <vapier@gentoo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ipc_namespace.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/blackfin/kernel/trace.c |   26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN include/linux/ipc_namespace.h~mqueue-revert-bump-up-dflt_max include/linux/ipc_namespace.h
---- a/include/linux/ipc_namespace.h~mqueue-revert-bump-up-dflt_max
-+++ a/include/linux/ipc_namespace.h
-@@ -118,12 +118,12 @@ extern int mq_init_ns(struct ipc_namespa
- #define DFLT_QUEUESMAX		      256
- #define HARD_QUEUESMAX		     1024
- #define MIN_MSGMAX			1
--#define DFLT_MSG		       64U
--#define DFLT_MSGMAX		     1024
-+#define DFLT_MSG		       10U
-+#define DFLT_MSGMAX		       10
- #define HARD_MSGMAX		    65536
- #define MIN_MSGSIZEMAX		      128
- #define DFLT_MSGSIZE		     8192U
--#define DFLT_MSGSIZEMAX	       (1024*1024)
-+#define DFLT_MSGSIZEMAX		     8192
- #define HARD_MSGSIZEMAX	    (16*1024*1024)
- #else
- static inline int mq_init_ns(struct ipc_namespace *ns) { return 0; }
+diff -puN arch/blackfin/kernel/trace.c~blackfin-a-couple-of-task-mm-handling-fixes arch/blackfin/kernel/trace.c
+--- a/arch/blackfin/kernel/trace.c~blackfin-a-couple-of-task-mm-handling-fixes
++++ a/arch/blackfin/kernel/trace.c
+@@ -10,6 +10,8 @@
+ #include <linux/hardirq.h>
+ #include <linux/thread_info.h>
+ #include <linux/mm.h>
++#include <linux/oom.h>
++#include <linux/sched.h>
+ #include <linux/uaccess.h>
+ #include <linux/module.h>
+ #include <linux/kallsyms.h>
+@@ -28,7 +30,6 @@ void decode_address(char *buf, unsigned 
+ 	struct task_struct *p;
+ 	struct mm_struct *mm;
+ 	unsigned long flags, offset;
+-	unsigned char in_atomic = (bfin_read_IPEND() & 0x10) || in_atomic();
+ 	struct rb_node *n;
+ 
+ #ifdef CONFIG_KALLSYMS
+@@ -114,15 +115,15 @@ void decode_address(char *buf, unsigned 
+ 	 */
+ 	write_lock_irqsave(&tasklist_lock, flags);
+ 	for_each_process(p) {
+-		mm = (in_atomic ? p->mm : get_task_mm(p));
+-		if (!mm)
+-			continue;
++		struct task_struct *t;
+ 
+-		if (!down_read_trylock(&mm->mmap_sem)) {
+-			if (!in_atomic)
+-				mmput(mm);
++		t = find_lock_task_mm(p);
++		if (!t)
+ 			continue;
+-		}
++
++		mm = t->mm;
++		if (!down_read_trylock(&mm->mmap_sem))
++			goto __continue;
+ 
+ 		for (n = rb_first(&mm->mm_rb); n; n = rb_next(n)) {
+ 			struct vm_area_struct *vma;
+@@ -131,7 +132,7 @@ void decode_address(char *buf, unsigned 
+ 
+ 			if (address >= vma->vm_start && address < vma->vm_end) {
+ 				char _tmpbuf[256];
+-				char *name = p->comm;
++				char *name = t->comm;
+ 				struct file *file = vma->vm_file;
+ 
+ 				if (file) {
+@@ -164,8 +165,7 @@ void decode_address(char *buf, unsigned 
+ 						name, vma->vm_start, vma->vm_end);
+ 
+ 				up_read(&mm->mmap_sem);
+-				if (!in_atomic)
+-					mmput(mm);
++				task_unlock(t);
+ 
+ 				if (buf[0] == '\0')
+ 					sprintf(buf, "[ %s ] dynamic memory", name);
+@@ -175,8 +175,8 @@ void decode_address(char *buf, unsigned 
+ 		}
+ 
+ 		up_read(&mm->mmap_sem);
+-		if (!in_atomic)
+-			mmput(mm);
++__continue:
++		task_unlock(t);
+ 	}
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from anton.vorontsov@linaro.org are
 
 origin.patch
-mqueue-dont-use-kmalloc-with-kmalloc_max_size.patch
-mqueue-separate-mqueue-default-value-from-maximum-value-v2.patch
-selftests-add-mq_open_tests.patch
-ipc-mqueue-improve-performance-of-send-recv.patch
-ipc-mqueue-correct-mq_attr_ok-test.patch
-ipc-mqueue-strengthen-checks-on-mqueue-creation.patch
-tools-selftests-add-mq_perf_tests.patch
-ipc-mqueue-add-rbtree-node-caching-support.patch
-c-r-prctl-add-ability-to-set-new-mm_struct-exe_file.patch
-c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-update-after-mm-num_exe_file_vmas-removal.patch
+blackfin-fix-possible-deadlock-in-decode_address.patch
+um-should-hold-tasklist_lock-while-traversing-processes.patch
+um-fix-possible-race-on-task-mm.patch
+um-properly-check-all-process-threads-for-a-live-mm.patch
+kernel-cpuc-document-clear_tasks_mm_cpumask.patch
 
