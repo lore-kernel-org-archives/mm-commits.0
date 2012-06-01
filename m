@@ -1,66 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hpfs-remove-printk-macro.patch removed from -mm tree
-Date: Fri, 01 Jun 2012 12:33:20 -0700
-Message-ID: <20120601193320.51CF5A013D@akpm.mtv.corp.google.com>
+Subject: [merged] nilfs2-flush-disk-caches-in-syncing.patch removed from -mm tree
+Date: Fri, 01 Jun 2012 12:33:18 -0700
+Message-ID: <20120601193318.5993AA013D@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:42352 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759042Ab2FATdV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:33:21 -0400
-Received: by yhgm50 with SMTP id m50so287975yhg.1
-        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:33:20 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:56227 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759034Ab2FATdT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:33:19 -0400
+Received: by mail-qc0-f202.google.com with SMTP id p5so246756qcs.1
+        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:33:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, mm-commits@vger.kernel.org
+To: konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: HPFS: remove PRINTK() macro
+     Subject: nilfs2: flush disk caches in syncing
 has been removed from the -mm tree.  Its filename was
-     hpfs-remove-printk-macro.patch
+     nilfs2-flush-disk-caches-in-syncing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: HPFS: remove PRINTK() macro
+From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Subject: nilfs2: flush disk caches in syncing
 
-The PRINTK() macro isn't really used.  Let's just remove it because it
-is ugly and out of date.
+There are two cases that the cache flush is needed to avoid data loss
+against unexpected hang or power failure.  One is sync file function (i.e.
+ nilfs_sync_file) and another is checkpointing ioctl.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
+This issues a cache flush request to device for such cases if barrier
+mount option is enabled, and makes sure data really is on persistent
+storage on their completion.
+
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hpfs/buffer.c  |    1 -
- fs/hpfs/hpfs_fn.h |    7 -------
- 2 files changed, 8 deletions(-)
+ fs/nilfs2/file.c  |   24 ++++++++++++++----------
+ fs/nilfs2/ioctl.c |    8 +++++++-
+ 2 files changed, 21 insertions(+), 11 deletions(-)
 
-diff -puN fs/hpfs/buffer.c~hpfs-remove-printk-macro fs/hpfs/buffer.c
---- a/fs/hpfs/buffer.c~hpfs-remove-printk-macro
-+++ a/fs/hpfs/buffer.c
-@@ -156,7 +156,6 @@ void hpfs_brelse4(struct quad_buffer_hea
+diff -puN fs/nilfs2/file.c~nilfs2-flush-disk-caches-in-syncing fs/nilfs2/file.c
+--- a/fs/nilfs2/file.c~nilfs2-flush-disk-caches-in-syncing
++++ a/fs/nilfs2/file.c
+@@ -37,6 +37,7 @@ int nilfs_sync_file(struct file *file, l
+ 	 * This function should be implemented when the writeback function
+ 	 * will be implemented.
+ 	 */
++	struct the_nilfs *nilfs;
+ 	struct inode *inode = file->f_mapping->host;
+ 	int err;
  
- void hpfs_mark_4buffers_dirty(struct quad_buffer_head *qbh)
- {
--	PRINTK(("hpfs_mark_4buffers_dirty\n"));
- 	memcpy(qbh->bh[0]->b_data, qbh->data, 512);
- 	memcpy(qbh->bh[1]->b_data, qbh->data + 512, 512);
- 	memcpy(qbh->bh[2]->b_data, qbh->data + 2 * 512, 512);
-diff -puN fs/hpfs/hpfs_fn.h~hpfs-remove-printk-macro fs/hpfs/hpfs_fn.h
---- a/fs/hpfs/hpfs_fn.h~hpfs-remove-printk-macro
-+++ a/fs/hpfs/hpfs_fn.h
-@@ -35,13 +35,6 @@
+@@ -45,18 +46,21 @@ int nilfs_sync_file(struct file *file, l
+ 		return err;
+ 	mutex_lock(&inode->i_mutex);
  
- #define CHKCOND(x,y) if (!(x)) printk y
+-	if (!nilfs_inode_dirty(inode)) {
+-		mutex_unlock(&inode->i_mutex);
+-		return 0;
++	if (nilfs_inode_dirty(inode)) {
++		if (datasync)
++			err = nilfs_construct_dsync_segment(inode->i_sb, inode,
++							    0, LLONG_MAX);
++		else
++			err = nilfs_construct_segment(inode->i_sb);
+ 	}
+-
+-	if (datasync)
+-		err = nilfs_construct_dsync_segment(inode->i_sb, inode, 0,
+-						    LLONG_MAX);
+-	else
+-		err = nilfs_construct_segment(inode->i_sb);
+-
+ 	mutex_unlock(&inode->i_mutex);
++
++	nilfs = inode->i_sb->s_fs_info;
++	if (!err && nilfs_test_opt(nilfs, BARRIER)) {
++		err = blkdev_issue_flush(inode->i_sb->s_bdev, GFP_KERNEL, NULL);
++		if (err != -EIO)
++			err = 0;
++	}
+ 	return err;
+ }
  
--#ifdef DBG
--#define PRINTK(x) printk x
--#else
--#undef PRINTK
--#define PRINTK(x)
--#endif
+diff -puN fs/nilfs2/ioctl.c~nilfs2-flush-disk-caches-in-syncing fs/nilfs2/ioctl.c
+--- a/fs/nilfs2/ioctl.c~nilfs2-flush-disk-caches-in-syncing
++++ a/fs/nilfs2/ioctl.c
+@@ -692,8 +692,14 @@ static int nilfs_ioctl_sync(struct inode
+ 	if (ret < 0)
+ 		return ret;
+ 
++	nilfs = inode->i_sb->s_fs_info;
++	if (nilfs_test_opt(nilfs, BARRIER)) {
++		ret = blkdev_issue_flush(inode->i_sb->s_bdev, GFP_KERNEL, NULL);
++		if (ret == -EIO)
++			return ret;
++	}
++
+ 	if (argp != NULL) {
+-		nilfs = inode->i_sb->s_fs_info;
+ 		down_read(&nilfs->ns_segctor_sem);
+ 		cno = nilfs->ns_cno - 1;
+ 		up_read(&nilfs->ns_segctor_sem);
+_
+
+Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
+
+origin.patch
+
