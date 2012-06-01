@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + fs-nls-makefile-remove-bogus-config_-assignemnts.patch added to -mm tree
-Date: Fri, 01 Jun 2012 14:56:56 -0700
-Message-ID: <20120601215656.94691A0186@akpm.mtv.corp.google.com>
+Subject: + fs-nls-makefile-remove-bogus-config_-assignments.patch added to -mm tree
+Date: Fri, 01 Jun 2012 14:58:00 -0700
+Message-ID: <20120601215800.51A3DA0186@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:52506 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759438Ab2FAV47 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 17:56:59 -0400
-Received: by eaao13 with SMTP id o13so116142eaa.1
-        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 14:56:57 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:43931 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933280Ab2FAV6G (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 17:58:06 -0400
+Received: by lagr15 with SMTP id r15so143508lag.1
+        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 14:58:01 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akpm@linux-foundation.org, phcoder@gmail.com, yinghai@kernel.org
 
 
 The patch titled
-     Subject: fs/nls/Makefile: remove bogus CONFIG_ assignemnts
+     Subject: fs/nls/Makefile: remove bogus CONFIG_ assignments
 has been added to the -mm tree.  Its filename is
-     fs-nls-makefile-remove-bogus-config_-assignemnts.patch
+     fs-nls-makefile-remove-bogus-config_-assignments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs/nls/Makefile: remove bogus CONFIG_ assignemnts
+Subject: fs/nls/Makefile: remove bogus CONFIG_ assignments
 
 I assume these were debug things whcih snuck through.
 
@@ -46,8 +46,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  fs/nls/Makefile |   12 ------------
  1 file changed, 12 deletions(-)
 
-diff -puN fs/nls/Makefile~fs-nls-makefile-remove-bogus-config_-assignemnts fs/nls/Makefile
---- a/fs/nls/Makefile~fs-nls-makefile-remove-bogus-config_-assignemnts
+diff -puN fs/nls/Makefile~fs-nls-makefile-remove-bogus-config_-assignments fs/nls/Makefile
+--- a/fs/nls/Makefile~fs-nls-makefile-remove-bogus-config_-assignments
 +++ a/fs/nls/Makefile
 @@ -2,18 +2,6 @@
  # Makefile for native language support
@@ -69,7 +69,7 @@ diff -puN fs/nls/Makefile~fs-nls-makefile-remove-bogus-config_-assignemnts fs/nl
  
  obj-$(CONFIG_NLS_CODEPAGE_437)	+= nls_cp437.o
 _
-Subject: Subject: fs/nls/Makefile: remove bogus CONFIG_ assignemnts
+Subject: Subject: fs/nls/Makefile: remove bogus CONFIG_ assignments
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -81,6 +81,7 @@ arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-block-nvmec-stop-breaking-my-i386-build.patch
 drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
 tmpfs-implement-numa-node-interleaving-fix.patch
+fs-nls-makefile-remove-bogus-config_-assignments.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 thermal-add-generic-cpufreq-cooling-implementation.patch
 thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
@@ -106,5 +107,4 @@ journal_add_journal_head-debug.patch
 mutex-subsystem-synchro-test-module-fix.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
-fs-nls-makefile-remove-bogus-config_-assignemnts.patch
 
