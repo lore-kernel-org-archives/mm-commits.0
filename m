@@ -1,96 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fsnotify-handle-subfiles-perm-events.patch removed from -mm tree
-Date: Fri, 01 Jun 2012 12:41:49 -0700
-Message-ID: <20120601194149.774ECA026A@akpm.mtv.corp.google.com>
+Subject: [merged] kconfig-update-compression-algorithm-info.patch removed from -mm tree
+Date: Fri, 01 Jun 2012 12:35:34 -0700
+Message-ID: <20120601193534.865E2A013D@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:32939 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751211Ab2FATlv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:41:51 -0400
-Received: by bkty5 with SMTP id y5so138900bkt.1
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:60023 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759226Ab2FATlw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:41:52 -0400
+Received: by lagr15 with SMTP id r15so139510lag.1
         for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:41:50 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: naota@elisp.net, eparis@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: rdunlap@xenotime.net, alain@knaff.lu, albin.tonnerre@free-electrons.com, hpa@zytor.com, lasse.collin@tukaani.org, markus@trippelsdorf.de, qasdfgtyuiop@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fsnotify: handle subfiles' perm events
+     Subject: kconfig: update compression algorithm info
 has been removed from the -mm tree.  Its filename was
-     fsnotify-handle-subfiles-perm-events.patch
+     kconfig-update-compression-algorithm-info.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Naohiro Aota <naota@elisp.net>
-Subject: fsnotify: handle subfiles' perm events
+From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: kconfig: update compression algorithm info
 
-Recently I'm working on fanotify and found the following strange
-behaviors.
+There have been new compression algorithms added without updating nearby
+relevant descriptive text that refers to (a) the number of compression
+algorithms and (b) the most recent one.  Fix these inconsistencies.
 
-I wrote a program to set fanotify_mark on "/tmp/block" and FAN_DENY
-all events notified.
-
-fanotify_mask = FAN_ALL_EVENTS | FAN_ALL_PERM_EVENTS | FAN_EVENT_ON_CHILD:
-$ cd /tmp/block; cat foo
-cat: foo: Operation not permitted
-
-Operation on the file is blocked as expected.
-
-But,
-
-fanotify_mask = FAN_ALL_PERM_EVENTS | FAN_EVENT_ON_CHILD:
-$ cd /tmp/block; cat foo
-aaa
-
-It's not blocked anymore.  This is confusing behavior.  Also reading
-commit "fsnotify: call fsnotify_parent in perm events", it seems like
-fsnotify should handle subfiles' perm events as well as the other notify
-events.
-
-With this patch, regardless of FAN_ALL_EVENTS set or not:
-$ cd /tmp/block; cat foo
-cat: foo: Operation not permitted
-
-Operation on the file is now blocked properly.
-
-
-FS_OPEN_PERM and FS_ACCESS_PERM are not listed on FS_EVENTS_POSS_ON_CHILD.
- Due to fsnotify_inode_watches_children() check, if you only specify only
-these events as fsnotify_mask, you don't get subfiles' perm events
-notified.
-
-This patch add the events to FS_EVENTS_POSS_ON_CHILD to get them notified
-even if only these events are specified to fsnotify_mask.
-
-Signed-off-by: Naohiro Aota <naota@elisp.net>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+Reported-by: <qasdfgtyuiop@gmail.com>
+Cc: Lasse Collin <lasse.collin@tukaani.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Markus Trippelsdorf <markus@trippelsdorf.de>
+Cc: Alain Knaff <alain@knaff.lu>
+Cc: Albin Tonnerre <albin.tonnerre@free-electrons.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fsnotify_backend.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ init/Kconfig |   11 +++++------
+ usr/Kconfig  |   10 +++++-----
+ 2 files changed, 10 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/fsnotify_backend.h~fsnotify-handle-subfiles-perm-events include/linux/fsnotify_backend.h
---- a/include/linux/fsnotify_backend.h~fsnotify-handle-subfiles-perm-events
-+++ a/include/linux/fsnotify_backend.h
-@@ -60,7 +60,7 @@
- #define FS_EVENTS_POSS_ON_CHILD   (FS_ACCESS | FS_MODIFY | FS_ATTRIB |\
- 				   FS_CLOSE_WRITE | FS_CLOSE_NOWRITE | FS_OPEN |\
- 				   FS_MOVED_FROM | FS_MOVED_TO | FS_CREATE |\
--				   FS_DELETE)
-+				   FS_DELETE | FS_OPEN_PERM | FS_ACCESS_PERM)
+diff -puN init/Kconfig~kconfig-update-compression-algorithm-info init/Kconfig
+--- a/init/Kconfig~kconfig-update-compression-algorithm-info
++++ a/init/Kconfig
+@@ -167,7 +167,7 @@ config KERNEL_BZIP2
+ 	depends on HAVE_KERNEL_BZIP2
+ 	help
+ 	  Its compression ratio and speed is intermediate.
+-	  Decompression speed is slowest among the three.  The kernel
++	  Decompression speed is slowest among the choices.  The kernel
+ 	  size is about 10% smaller with bzip2, in comparison to gzip.
+ 	  Bzip2 uses a large amount of memory. For modern kernels you
+ 	  will need at least 8MB RAM or more for booting.
+@@ -176,10 +176,9 @@ config KERNEL_LZMA
+ 	bool "LZMA"
+ 	depends on HAVE_KERNEL_LZMA
+ 	help
+-	  The most recent compression algorithm.
+-	  Its ratio is best, decompression speed is between the other
+-	  two. Compression is slowest.	The kernel size is about 33%
+-	  smaller with LZMA in comparison to gzip.
++	  This compression algorithm's ratio is best.  Decompression speed
++	  is between gzip and bzip2.  Compression is slowest.
++	  The kernel size is about 33% smaller with LZMA in comparison to gzip.
  
- #define FS_MOVE			(FS_MOVED_FROM | FS_MOVED_TO)
+ config KERNEL_XZ
+ 	bool "XZ"
+@@ -200,7 +199,7 @@ config KERNEL_LZO
+ 	bool "LZO"
+ 	depends on HAVE_KERNEL_LZO
+ 	help
+-	  Its compression ratio is the poorest among the 4. The kernel
++	  Its compression ratio is the poorest among the choices. The kernel
+ 	  size is about 10% bigger than gzip; however its speed
+ 	  (both compression and decompression) is the fastest.
+ 
+diff -puN usr/Kconfig~kconfig-update-compression-algorithm-info usr/Kconfig
+--- a/usr/Kconfig~kconfig-update-compression-algorithm-info
++++ a/usr/Kconfig
+@@ -134,7 +134,7 @@ config INITRAMFS_COMPRESSION_BZIP2
+ 	depends on RD_BZIP2
+ 	help
+ 	  Its compression ratio and speed is intermediate.
+-	  Decompression speed is slowest among the four.  The initramfs
++	  Decompression speed is slowest among the choices.  The initramfs
+ 	  size is about 10% smaller with bzip2, in comparison to gzip.
+ 	  Bzip2 uses a large amount of memory. For modern kernels you
+ 	  will need at least 8MB RAM or more for booting.
+@@ -143,9 +143,9 @@ config INITRAMFS_COMPRESSION_LZMA
+ 	bool "LZMA"
+ 	depends on RD_LZMA
+ 	help
+-	  The most recent compression algorithm.
+-	  Its ratio is best, decompression speed is between the other
+-	  three. Compression is slowest. The initramfs size is about 33%
++	  This algorithm's compression ratio is best.
++	  Decompression speed is between the other choices.
++	  Compression is slowest. The initramfs size is about 33%
+ 	  smaller with LZMA in comparison to gzip.
+ 
+ config INITRAMFS_COMPRESSION_XZ
+@@ -161,7 +161,7 @@ config INITRAMFS_COMPRESSION_LZO
+ 	bool "LZO"
+ 	depends on RD_LZO
+ 	help
+-	  Its compression ratio is the poorest among the four. The kernel
++	  Its compression ratio is the poorest among the choices. The kernel
+ 	  size is about 10% bigger than gzip; however its speed
+ 	  (both compression and decompression) is the fastest.
  
 _
 
-Patches currently in -mm which might be from naota@elisp.net are
+Patches currently in -mm which might be from rdunlap@xenotime.net are
 
 origin.patch
 linux-next.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-fix.patch
 
