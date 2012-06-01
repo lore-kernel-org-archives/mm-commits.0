@@ -1,188 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-move-file_remove_suid-to-fs-inodec.patch removed from -mm tree
-Date: Fri, 01 Jun 2012 12:41:51 -0700
-Message-ID: <20120601194151.55396A026A@akpm.mtv.corp.google.com>
+Subject: [merged] fsnotify-handle-subfiles-perm-events.patch removed from -mm tree
+Date: Fri, 01 Jun 2012 12:41:49 -0700
+Message-ID: <20120601194149.774ECA026A@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:34946 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759228Ab2FATlw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:41:52 -0400
-Received: by vbnl22 with SMTP id l22so244913vbn.1
-        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:41:51 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:32939 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751211Ab2FATlv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:41:51 -0400
+Received: by bkty5 with SMTP id y5so138900bkt.1
+        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:41:50 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiyou.wangcong@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: naota@elisp.net, eparis@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: move file_remove_suid() to fs/inode.c
+     Subject: fsnotify: handle subfiles' perm events
 has been removed from the -mm tree.  Its filename was
-     fs-move-file_remove_suid-to-fs-inodec.patch
+     fsnotify-handle-subfiles-perm-events.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Cong Wang <xiyou.wangcong@gmail.com>
-Subject: fs: move file_remove_suid() to fs/inode.c
+From: Naohiro Aota <naota@elisp.net>
+Subject: fsnotify: handle subfiles' perm events
 
-file_remove_suid() is a generic function operates on struct file, it
-almost has no relations with file mapping, so move it to fs/inode.c.
+Recently I'm working on fanotify and found the following strange
+behaviors.
 
-Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+I wrote a program to set fanotify_mark on "/tmp/block" and FAN_DENY
+all events notified.
+
+fanotify_mask = FAN_ALL_EVENTS | FAN_ALL_PERM_EVENTS | FAN_EVENT_ON_CHILD:
+$ cd /tmp/block; cat foo
+cat: foo: Operation not permitted
+
+Operation on the file is blocked as expected.
+
+But,
+
+fanotify_mask = FAN_ALL_PERM_EVENTS | FAN_EVENT_ON_CHILD:
+$ cd /tmp/block; cat foo
+aaa
+
+It's not blocked anymore.  This is confusing behavior.  Also reading
+commit "fsnotify: call fsnotify_parent in perm events", it seems like
+fsnotify should handle subfiles' perm events as well as the other notify
+events.
+
+With this patch, regardless of FAN_ALL_EVENTS set or not:
+$ cd /tmp/block; cat foo
+cat: foo: Operation not permitted
+
+Operation on the file is now blocked properly.
+
+
+FS_OPEN_PERM and FS_ACCESS_PERM are not listed on FS_EVENTS_POSS_ON_CHILD.
+ Due to fsnotify_inode_watches_children() check, if you only specify only
+these events as fsnotify_mask, you don't get subfiles' perm events
+notified.
+
+This patch add the events to FS_EVENTS_POSS_ON_CHILD to get them notified
+even if only these events are specified to fsnotify_mask.
+
+Signed-off-by: Naohiro Aota <naota@elisp.net>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c   |   65 +++++++++++++++++++++++++++++++++++++++++++++++++
- mm/filemap.c |   65 -------------------------------------------------
- 2 files changed, 65 insertions(+), 65 deletions(-)
+ include/linux/fsnotify_backend.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/inode.c~fs-move-file_remove_suid-to-fs-inodec fs/inode.c
---- a/fs/inode.c~fs-move-file_remove_suid-to-fs-inodec
-+++ a/fs/inode.c
-@@ -1530,6 +1530,71 @@ void touch_atime(struct path *path)
- }
- EXPORT_SYMBOL(touch_atime);
+diff -puN include/linux/fsnotify_backend.h~fsnotify-handle-subfiles-perm-events include/linux/fsnotify_backend.h
+--- a/include/linux/fsnotify_backend.h~fsnotify-handle-subfiles-perm-events
++++ a/include/linux/fsnotify_backend.h
+@@ -60,7 +60,7 @@
+ #define FS_EVENTS_POSS_ON_CHILD   (FS_ACCESS | FS_MODIFY | FS_ATTRIB |\
+ 				   FS_CLOSE_WRITE | FS_CLOSE_NOWRITE | FS_OPEN |\
+ 				   FS_MOVED_FROM | FS_MOVED_TO | FS_CREATE |\
+-				   FS_DELETE)
++				   FS_DELETE | FS_OPEN_PERM | FS_ACCESS_PERM)
  
-+/*
-+ * The logic we want is
-+ *
-+ *	if suid or (sgid and xgrp)
-+ *		remove privs
-+ */
-+int should_remove_suid(struct dentry *dentry)
-+{
-+	umode_t mode = dentry->d_inode->i_mode;
-+	int kill = 0;
-+
-+	/* suid always must be killed */
-+	if (unlikely(mode & S_ISUID))
-+		kill = ATTR_KILL_SUID;
-+
-+	/*
-+	 * sgid without any exec bits is just a mandatory locking mark; leave
-+	 * it alone.  If some exec bits are set, it's a real sgid; kill it.
-+	 */
-+	if (unlikely((mode & S_ISGID) && (mode & S_IXGRP)))
-+		kill |= ATTR_KILL_SGID;
-+
-+	if (unlikely(kill && !capable(CAP_FSETID) && S_ISREG(mode)))
-+		return kill;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(should_remove_suid);
-+
-+static int __remove_suid(struct dentry *dentry, int kill)
-+{
-+	struct iattr newattrs;
-+
-+	newattrs.ia_valid = ATTR_FORCE | kill;
-+	return notify_change(dentry, &newattrs);
-+}
-+
-+int file_remove_suid(struct file *file)
-+{
-+	struct dentry *dentry = file->f_path.dentry;
-+	struct inode *inode = dentry->d_inode;
-+	int killsuid;
-+	int killpriv;
-+	int error = 0;
-+
-+	/* Fast path for nothing security related */
-+	if (IS_NOSEC(inode))
-+		return 0;
-+
-+	killsuid = should_remove_suid(dentry);
-+	killpriv = security_inode_need_killpriv(dentry);
-+
-+	if (killpriv < 0)
-+		return killpriv;
-+	if (killpriv)
-+		error = security_inode_killpriv(dentry);
-+	if (!error && killsuid)
-+		error = __remove_suid(dentry, killsuid);
-+	if (!error && (inode->i_sb->s_flags & MS_NOSEC))
-+		inode->i_flags |= S_NOSEC;
-+
-+	return error;
-+}
-+EXPORT_SYMBOL(file_remove_suid);
-+
- /**
-  *	file_update_time	-	update mtime and ctime time
-  *	@file: file accessed
-diff -puN mm/filemap.c~fs-move-file_remove_suid-to-fs-inodec mm/filemap.c
---- a/mm/filemap.c~fs-move-file_remove_suid-to-fs-inodec
-+++ a/mm/filemap.c
-@@ -1938,71 +1938,6 @@ struct page *read_cache_page(struct addr
- }
- EXPORT_SYMBOL(read_cache_page);
+ #define FS_MOVE			(FS_MOVED_FROM | FS_MOVED_TO)
  
--/*
-- * The logic we want is
-- *
-- *	if suid or (sgid and xgrp)
-- *		remove privs
-- */
--int should_remove_suid(struct dentry *dentry)
--{
--	umode_t mode = dentry->d_inode->i_mode;
--	int kill = 0;
--
--	/* suid always must be killed */
--	if (unlikely(mode & S_ISUID))
--		kill = ATTR_KILL_SUID;
--
--	/*
--	 * sgid without any exec bits is just a mandatory locking mark; leave
--	 * it alone.  If some exec bits are set, it's a real sgid; kill it.
--	 */
--	if (unlikely((mode & S_ISGID) && (mode & S_IXGRP)))
--		kill |= ATTR_KILL_SGID;
--
--	if (unlikely(kill && !capable(CAP_FSETID) && S_ISREG(mode)))
--		return kill;
--
--	return 0;
--}
--EXPORT_SYMBOL(should_remove_suid);
--
--static int __remove_suid(struct dentry *dentry, int kill)
--{
--	struct iattr newattrs;
--
--	newattrs.ia_valid = ATTR_FORCE | kill;
--	return notify_change(dentry, &newattrs);
--}
--
--int file_remove_suid(struct file *file)
--{
--	struct dentry *dentry = file->f_path.dentry;
--	struct inode *inode = dentry->d_inode;
--	int killsuid;
--	int killpriv;
--	int error = 0;
--
--	/* Fast path for nothing security related */
--	if (IS_NOSEC(inode))
--		return 0;
--
--	killsuid = should_remove_suid(dentry);
--	killpriv = security_inode_need_killpriv(dentry);
--
--	if (killpriv < 0)
--		return killpriv;
--	if (killpriv)
--		error = security_inode_killpriv(dentry);
--	if (!error && killsuid)
--		error = __remove_suid(dentry, killsuid);
--	if (!error && (inode->i_sb->s_flags & MS_NOSEC))
--		inode->i_flags |= S_NOSEC;
--
--	return error;
--}
--EXPORT_SYMBOL(file_remove_suid);
+_
+
+Patches currently in -mm which might be from naota@elisp.net are
+
+origin.patch
+linux-next.patch
+
