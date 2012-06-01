@@ -1,165 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-clean-up-proc-pid-environ-handling.patch removed from -mm tree
-Date: Fri, 01 Jun 2012 12:33:48 -0700
-Message-ID: <20120601193348.5E731A013D@akpm.mtv.corp.google.com>
+Subject: [merged] cred-remove-task_is_dead-from-__task_cred-validation.patch removed from -mm tree
+Date: Fri, 01 Jun 2012 12:33:44 -0700
+Message-ID: <20120601193344.7F2B0A013D@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:52311 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932615Ab2FATdt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:33:49 -0400
-Received: by mail-vb0-f74.google.com with SMTP id l22so244305vbn.1
-        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:33:49 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:52540 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932615Ab2FATdq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:33:46 -0400
+Received: by mail-ey0-f202.google.com with SMTP id o13so111891eaa.1
+        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:33:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiyou.wangcong@gmail.com, adobriyan@gmail.com, hughd@google.com, oleg@redhat.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, dhowells@redhat.com, ebiederm@xmission.com, jmorris@namei.org, jolsa@redhat.com, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: clean up /proc/<pid>/environ handling
+     Subject: cred: remove task_is_dead() from __task_cred() validation
 has been removed from the -mm tree.  Its filename was
-     proc-clean-up-proc-pid-environ-handling.patch
+     cred-remove-task_is_dead-from-__task_cred-validation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Cong Wang <xiyou.wangcong@gmail.com>
-Subject: proc: clean up /proc/<pid>/environ handling
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: cred: remove task_is_dead() from __task_cred() validation
 
-Similar to e268337dfe2 ("proc: clean up and fix /proc/<pid>/mem
-handling"), move the check of permission to open(), this will simplify
-read() code.
+commit 8f92054e ("CRED: Fix __task_cred()'s lockdep check and banner
+comment"):
 
-[akpm@linux-foundation.org: checkpatch fixes]
-Signed-off-by: Cong Wang <xiyou.wangcong@gmail.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
+    add the following validation condition:
+
+        task->exit_state >= 0
+
+    to permit the access if the target task is dead and therefore
+    unable to change its own credentials.
+
+OK, but afaics currently this can only help wait_task_zombie() which calls
+__task_cred() without rcu lock.
+
+Remove this validation and change wait_task_zombie() to use task_uid()
+instead.  This means we do rcu_read_lock() only to shut up the lockdep,
+but we already do the same in, say, wait_task_stopped().
+
+task_is_dead() should die, task->exit_state != 0 means that this task has
+passed exit_notify(), only do_wait-like code paths should use this.
+
+Unfortunately, we can't kill task_is_dead() right now, it has already
+acquired buggy users in drivers/staging.  The fix already exists.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Reviewed-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Acked-by: David Howells <dhowells@redhat.com>
+Cc: Jiri Olsa <jolsa@redhat.com>
+Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   45 ++++++++++++++++++++++++---------------------
- 1 file changed, 24 insertions(+), 21 deletions(-)
+ include/linux/cred.h |   10 +++-------
+ kernel/exit.c        |    2 +-
+ 2 files changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN fs/proc/base.c~proc-clean-up-proc-pid-environ-handling fs/proc/base.c
---- a/fs/proc/base.c~proc-clean-up-proc-pid-environ-handling
-+++ a/fs/proc/base.c
-@@ -679,7 +679,7 @@ static const struct file_operations proc
- 	.release	= single_release,
- };
+diff -puN include/linux/cred.h~cred-remove-task_is_dead-from-__task_cred-validation include/linux/cred.h
+--- a/include/linux/cred.h~cred-remove-task_is_dead-from-__task_cred-validation
++++ a/include/linux/cred.h
+@@ -277,17 +277,13 @@ static inline void put_cred(const struct
+  * @task: The task to query
+  *
+  * Access the objective credentials of a task.  The caller must hold the RCU
+- * readlock or the task must be dead and unable to change its own credentials.
++ * readlock.
+  *
+  * The result of this function should not be passed directly to get_cred();
+  * rather get_task_cred() should be used instead.
+  */
+-#define __task_cred(task)						\
+-	({								\
+-		const struct task_struct *__t = (task);			\
+-		rcu_dereference_check(__t->real_cred,			\
+-				      task_is_dead(__t));		\
+-	})
++#define __task_cred(task)	\
++	rcu_dereference((task)->real_cred)
  
--static int mem_open(struct inode* inode, struct file* file)
-+static int __mem_open(struct inode *inode, struct file *file, unsigned int mode)
- {
- 	struct task_struct *task = get_proc_task(file->f_path.dentry->d_inode);
- 	struct mm_struct *mm;
-@@ -687,7 +687,7 @@ static int mem_open(struct inode* inode,
- 	if (!task)
- 		return -ESRCH;
+ /**
+  * get_current_cred - Get the current task's subjective credentials
+diff -puN kernel/exit.c~cred-remove-task_is_dead-from-__task_cred-validation kernel/exit.c
+--- a/kernel/exit.c~cred-remove-task_is_dead-from-__task_cred-validation
++++ a/kernel/exit.c
+@@ -1214,7 +1214,7 @@ static int wait_task_zombie(struct wait_
+ 	unsigned long state;
+ 	int retval, status, traced;
+ 	pid_t pid = task_pid_vnr(p);
+-	uid_t uid = from_kuid_munged(current_user_ns(), __task_cred(p)->uid);
++	uid_t uid = from_kuid_munged(current_user_ns(), task_uid(p));
+ 	struct siginfo __user *infop;
  
--	mm = mm_access(task, PTRACE_MODE_ATTACH);
-+	mm = mm_access(task, mode);
- 	put_task_struct(task);
- 
- 	if (IS_ERR(mm))
-@@ -707,6 +707,11 @@ static int mem_open(struct inode* inode,
- 	return 0;
- }
- 
-+static int mem_open(struct inode *inode, struct file *file)
-+{
-+	return __mem_open(inode, file, PTRACE_MODE_ATTACH);
-+}
-+
- static ssize_t mem_rw(struct file *file, char __user *buf,
- 			size_t count, loff_t *ppos, int write)
- {
-@@ -803,30 +808,29 @@ static const struct file_operations proc
- 	.release	= mem_release,
- };
- 
-+static int environ_open(struct inode *inode, struct file *file)
-+{
-+	return __mem_open(inode, file, PTRACE_MODE_READ);
-+}
-+
- static ssize_t environ_read(struct file *file, char __user *buf,
- 			size_t count, loff_t *ppos)
- {
--	struct task_struct *task = get_proc_task(file->f_dentry->d_inode);
- 	char *page;
- 	unsigned long src = *ppos;
--	int ret = -ESRCH;
--	struct mm_struct *mm;
-+	int ret = 0;
-+	struct mm_struct *mm = file->private_data;
- 
--	if (!task)
--		goto out_no_task;
-+	if (!mm)
-+		return 0;
- 
--	ret = -ENOMEM;
- 	page = (char *)__get_free_page(GFP_TEMPORARY);
- 	if (!page)
--		goto out;
--
--
--	mm = mm_for_maps(task);
--	ret = PTR_ERR(mm);
--	if (!mm || IS_ERR(mm))
--		goto out_free;
-+		return -ENOMEM;
- 
- 	ret = 0;
-+	if (!atomic_inc_not_zero(&mm->mm_users))
-+		goto free;
- 	while (count > 0) {
- 		int this_len, retval, max_len;
- 
-@@ -838,7 +842,7 @@ static ssize_t environ_read(struct file 
- 		max_len = (count > PAGE_SIZE) ? PAGE_SIZE : count;
- 		this_len = (this_len > max_len) ? max_len : this_len;
- 
--		retval = access_process_vm(task, (mm->env_start + src),
-+		retval = access_remote_vm(mm, (mm->env_start + src),
- 			page, this_len, 0);
- 
- 		if (retval <= 0) {
-@@ -857,19 +861,18 @@ static ssize_t environ_read(struct file 
- 		count -= retval;
- 	}
- 	*ppos = src;
--
- 	mmput(mm);
--out_free:
-+
-+free:
- 	free_page((unsigned long) page);
--out:
--	put_task_struct(task);
--out_no_task:
- 	return ret;
- }
- 
- static const struct file_operations proc_environ_operations = {
-+	.open		= environ_open,
- 	.read		= environ_read,
- 	.llseek		= generic_file_llseek,
-+	.release	= mem_release,
- };
- 
- static ssize_t oom_adjust_read(struct file *file, char __user *buf,
+ 	if (!likely(wo->wo_flags & WEXITED))
 _
 
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
 linux-next.patch
-shmem-replace_page-must-flush_dcache-and-others.patch
-fs-move-file_remove_suid-to-fs-inodec.patch
+mm-correctly-synchronize-rss-counters-at-exit-exec.patch
+stack-usage-add-pid-to-warning-printk-in-check_stack_usage.patch
+proc-clean-up-proc-pid-environ-handling.patch
 proc-remove-mm_for_maps.patch
 proc-use-mm_access-instead-of-ptrace_may_access.patch
+fork-call-complete_vfork_done-after-clearing-child_tid-and-flushing-rss-counters.patch
+cpu-introduce-clear_tasks_mm_cpumask-helper.patch
+arm-use-clear_tasks_mm_cpumask.patch
+powerpc-use-clear_tasks_mm_cpumask.patch
+sh-use-clear_tasks_mm_cpumask.patch
+blackfin-a-couple-of-task-mm-handling-fixes.patch
+blackfin-fix-possible-deadlock-in-decode_address.patch
+um-should-hold-tasklist_lock-while-traversing-processes.patch
+um-fix-possible-race-on-task-mm.patch
+um-properly-check-all-process-threads-for-a-live-mm.patch
+pidns-use-task_active_pid_ns-in-do_notify_parent.patch
+pidns-make-killed-children-autoreap.patch
+aio-vfs-cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector.patch
+sysctl-make-kernelns_last_pid-control-being-checkpoint_restore-dependent.patch
+fs-proc-introduce-proc-pid-task-tid-children-entry-v9.patch
+c-r-prctl-add-ability-to-set-new-mm_struct-exe_file.patch
+c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-update-after-mm-num_exe_file_vmas-removal.patch
+c-r-prctl-add-ability-to-get-clear_tid_address.patch
+c-r-prctl-drop-vma-flags-test-on-pr_set_mm_-stack-data-assignment.patch
 
