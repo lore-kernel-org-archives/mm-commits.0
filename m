@@ -1,93 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vsprintf-correctly-handle-width-when-flag-used-in-%p-format.patch removed from -mm tree
-Date: Fri, 01 Jun 2012 12:33:05 -0700
-Message-ID: <20120601193305.62ADEA013D@akpm.mtv.corp.google.com>
+Subject: [merged] checkpatch-check-for-whitespace-before-semicolon-at-eol.patch removed from -mm tree
+Date: Fri, 01 Jun 2012 12:33:10 -0700
+Message-ID: <20120601193310.66C89A013D@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:36653 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758406Ab2FATdG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:33:06 -0400
-Received: by mail-ee0-f74.google.com with SMTP id t10so140668eei.1
-        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:33:06 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:54439 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757539Ab2FATdM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:33:12 -0400
+Received: by mail-wg0-f74.google.com with SMTP id dt11so140369wgb.1
+        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:33:11 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: grant.likely@secretlab.ca, mm-commits@vger.kernel.org
+To: eric.nelson@boundarydevices.com, apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vsprintf: correctly handle width when '#' flag used in %#p format
+     Subject: checkpatch: check for whitespace before semicolon at EOL
 has been removed from the -mm tree.  Its filename was
-     vsprintf-correctly-handle-width-when-flag-used-in-%p-format.patch
+     checkpatch-check-for-whitespace-before-semicolon-at-eol.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: vsprintf: correctly handle width when '#' flag used in %#p format
+From: Eric Nelson <eric.nelson@boundarydevices.com>
+Subject: checkpatch: check for whitespace before semicolon at EOL
 
-The '%p' output of the kernel's vsprintf() uses spec.field_width to
-determine how many digits to output based on 2 * sizeof(void*) so that all
-digits of a pointer are shown.  ie.  a pointer will be output as
-"001A2B3C" instead of "1A2B3C".  However, if the '#' flag is used in the
-format (%#p), then the code doesn't take into account the width of the
-'0x' prefix and will end up outputing "0x1A2B3C" instead of "0x001A2B3C".
+Requires --strict option during invocation:
+	~/linux$ scripts/checkpatch --strict foo.patch
 
-This patch reworks the "pointer()" format hook to include 2 characters for
-the '0x' prefix if the '#' flag is included.
+This tests for a bad habits of mine like this:
 
-[akpm@linux-foundation.org: checkpatch fixes]
-Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
+	return 0 ;
+
+Note that it does allow a special case of a bare semicolon
+for empty loops:
+
+	while (foo())
+		;
+
+Signed-off-by: Eric Nelson <eric.nelson@boundarydevices.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ scripts/checkpatch.pl |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN lib/vsprintf.c~vsprintf-correctly-handle-width-when-flag-used-in-%p-format lib/vsprintf.c
---- a/lib/vsprintf.c~vsprintf-correctly-handle-width-when-flag-used-in-%p-format
-+++ a/lib/vsprintf.c
-@@ -870,13 +870,15 @@ static noinline_for_stack
- char *pointer(const char *fmt, char *buf, char *end, void *ptr,
- 	      struct printf_spec spec)
- {
-+	int default_width = 2 * sizeof(void *) + (spec.flags & SPECIAL ? 2 : 0);
-+
- 	if (!ptr && *fmt != 'K') {
- 		/*
- 		 * Print (null) with the same width as a pointer so it makes
- 		 * tabular output look nice.
- 		 */
- 		if (spec.field_width == -1)
--			spec.field_width = 2 * sizeof(void *);
-+			spec.field_width = default_width;
- 		return string(buf, end, "(null)", spec);
- 	}
- 
-@@ -931,7 +933,7 @@ char *pointer(const char *fmt, char *buf
- 		 */
- 		if (in_irq() || in_serving_softirq() || in_nmi()) {
- 			if (spec.field_width == -1)
--				spec.field_width = 2 * sizeof(void *);
-+				spec.field_width = default_width;
- 			return string(buf, end, "pK-error", spec);
+diff -puN scripts/checkpatch.pl~checkpatch-check-for-whitespace-before-semicolon-at-eol scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-check-for-whitespace-before-semicolon-at-eol
++++ a/scripts/checkpatch.pl
+@@ -2448,6 +2448,13 @@ sub process {
+ 				     "space prohibited between function name and open parenthesis '('\n" . $herecurr);
+ 			}
  		}
- 		if (!((kptr_restrict == 0) ||
-@@ -948,7 +950,7 @@ char *pointer(const char *fmt, char *buf
- 	}
- 	spec.flags |= SMALL;
- 	if (spec.field_width == -1) {
--		spec.field_width = 2 * sizeof(void *);
-+		spec.field_width = default_width;
- 		spec.flags |= ZEROPAD;
- 	}
- 	spec.base = 16;
++
++# check for whitespace before a non-naked semicolon
++		if ($line =~ /^\+.*\S\s+;/) {
++			CHK("SPACING",
++			    "space prohibited before semicolon\n" . $herecurr);
++		}
++
+ # Check operator spacing.
+ 		if (!($line=~/\#\s*include/)) {
+ 			my $ops = qr{
 _
 
-Patches currently in -mm which might be from grant.likely@secretlab.ca are
+Patches currently in -mm which might be from eric.nelson@boundarydevices.com are
 
 origin.patch
-linux-next.patch
 
