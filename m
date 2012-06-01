@@ -1,139 +1,200 @@
 From: akpm@linux-foundation.org
-Subject: [merged] blackfin-a-couple-of-task-mm-handling-fixes.patch removed from -mm tree
-Date: Fri, 01 Jun 2012 12:34:19 -0700
-Message-ID: <20120601193419.636A3A013D@akpm.mtv.corp.google.com>
+Subject: [merged] ipc-mqueue-cleanup-definition-names-and-locations.patch removed from -mm tree
+Date: Fri, 01 Jun 2012 12:34:34 -0700
+Message-ID: <20120601193434.C093EA013D@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:46196 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759178Ab2FATeU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:34:20 -0400
-Received: by mail-vc0-f202.google.com with SMTP id fl13so245502vcb.1
-        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:34:20 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:53839 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932804Ab2FATeg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:34:36 -0400
+Received: by mail-lpp01m010-f74.google.com with SMTP id r15so139280lag.1
+        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:34:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anton.vorontsov@linaro.org, oleg@redhat.com, vapier@gentoo.org, mm-commits@vger.kernel.org
+To: dledford@redhat.com, amwang@redhat.com, joe.korty@ccur.com, jslaby@suse.cz, kosaki.motohiro@jp.fujitsu.com, manfred@colorfullife.com, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: blackfin: a couple of task->mm handling fixes
+     Subject: ipc/mqueue: cleanup definition names and locations
 has been removed from the -mm tree.  Its filename was
-     blackfin-a-couple-of-task-mm-handling-fixes.patch
+     ipc-mqueue-cleanup-definition-names-and-locations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Anton Vorontsov <anton.vorontsov@linaro.org>
-Subject: blackfin: a couple of task->mm handling fixes
+From: Doug Ledford <dledford@redhat.com>
+Subject: ipc/mqueue: cleanup definition names and locations
 
-The patch fixes two problems:
+Since commit b231cca4381 ("message queues: increase range limits") on Oct
+18, 2008, calls to mq_open() that did not pass in an attribute struct and
+expected to get default values for the size of the queue and the max
+message size now get the system wide maximums instead of hardwired
+defaults like they used to get.
 
-1. Working with task->mm w/o getting mm or grabing the task lock is
-   dangerous as ->mm might disappear (exit_mm() assigns NULL under
-   task_lock(), so tasklist lock is not enough).
+This was uncovered when one of the earlier patches in this patch set
+increased the default system wide maximums at the same time it increased
+the hard ceiling on the system wide maximums (a customer specifically
+needed the hard ceiling brought back up, the new ceiling that commit
+b231cca4381 introduced was too low for their production systems).  By
+increasing the default maximums and not realising they were tied to any
+attempt to create a message queue without an attribute struct, I had
+inadvertently made it such that all message queue creation attempts
+without an attribute struct were failing because the new default maximums
+would create a queue that exceeded the default rlimit for message queue
+bytes.
 
-   We can't use get_task_mm()/mmput() pair as mmput() might sleep,
-   so we have to take the task lock while handle its mm.
+As a result, the system wide defaults were brought back down to their
+previous levels, and the system wide ceilings on the maximums were raised
+to meet the customer's needs.  However, the fact that the no attribute
+struct behavior of mq_open() could be broken by changing the system wide
+maximums for message queues was seen as fundamentally broken itself.  So
+we hardwired the no attribute case back like it used to be.  But, then we
+realized that on the very off chance that some piece of software in the
+wild depended on that behavior, we could work around that issue by adding
+two new knobs to /proc that allowed setting the defaults for message
+queues created without an attr struct separately from the system wide
+maximums.
 
-2. Checking for process->mm is not enough because process' main
-   thread may exit or detach its mm via use_mm(), but other threads
-   may still have a valid mm.
+What is not an option IMO is to leave the current behavior in place.  No
+piece of software should ever rely on setting the system wide maximums in
+order to get a desired message queue.  Such a reliance would be so
+fundamentally multitasking OS unfriendly as to not really be tolerable. 
+Fortunately, we don't know of any software in the wild that uses this
+except for a regression test program that caught the issue in the first
+place.  If there is though, we have made accommodations with the two new
+/proc knobs (and that's all the accommodations such fundamentally broken
+software can be allowed)..
 
-   To catch this we use find_lock_task_mm(), which walks up all
-   threads and returns an appropriate task (with task lock held).
 
-Suggested-by: Oleg Nesterov <oleg@redhat.com>
-Signed-off-by: Anton Vorontsov <anton.vorontsov@linaro.org>
-Cc: Mike Frysinger <vapier@gentoo.org>
+
+This patch:
+
+The various defines for minimums and maximums of the sysctl controllable
+mqueue values are scattered amongst different files and named
+inconsistently.  Move them all into ipc_namespace.h and make them have
+consistent names.  Additionally, make the number of queues per namespace
+also have a minimum and maximum and use the same sysctl function as the
+other two settable variables.
+
+Signed-off-by: Doug Ledford <dledford@redhat.com>
+Acked-by: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Amerigo Wang <amwang@redhat.com>
+Cc: Joe Korty <joe.korty@ccur.com>
+Cc: Jiri Slaby <jslaby@suse.cz>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/kernel/trace.c |   26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ include/linux/ipc_namespace.h |    5 +++++
+ ipc/mq_sysctl.c               |   31 ++++++++-----------------------
+ 2 files changed, 13 insertions(+), 23 deletions(-)
 
-diff -puN arch/blackfin/kernel/trace.c~blackfin-a-couple-of-task-mm-handling-fixes arch/blackfin/kernel/trace.c
---- a/arch/blackfin/kernel/trace.c~blackfin-a-couple-of-task-mm-handling-fixes
-+++ a/arch/blackfin/kernel/trace.c
-@@ -10,6 +10,8 @@
- #include <linux/hardirq.h>
- #include <linux/thread_info.h>
- #include <linux/mm.h>
-+#include <linux/oom.h>
-+#include <linux/sched.h>
- #include <linux/uaccess.h>
- #include <linux/module.h>
- #include <linux/kallsyms.h>
-@@ -28,7 +30,6 @@ void decode_address(char *buf, unsigned 
- 	struct task_struct *p;
- 	struct mm_struct *mm;
- 	unsigned long flags, offset;
--	unsigned char in_atomic = (bfin_read_IPEND() & 0x10) || in_atomic();
- 	struct rb_node *n;
+diff -puN include/linux/ipc_namespace.h~ipc-mqueue-cleanup-definition-names-and-locations include/linux/ipc_namespace.h
+--- a/include/linux/ipc_namespace.h~ipc-mqueue-cleanup-definition-names-and-locations
++++ a/include/linux/ipc_namespace.h
+@@ -91,10 +91,15 @@ static inline void shm_destroy_orphaned(
+ #ifdef CONFIG_POSIX_MQUEUE
+ extern int mq_init_ns(struct ipc_namespace *ns);
+ /* default values */
++#define MIN_QUEUESMAX  1
+ #define DFLT_QUEUESMAX 256     /* max number of message queues */
++#define HARD_QUEUESMAX 1024
++#define MIN_MSGMAX     1
+ #define DFLT_MSGMAX    10      /* max number of messages in each queue */
+ #define HARD_MSGMAX    (32768*sizeof(void *)/4)
++#define MIN_MSGSIZEMAX  128
+ #define DFLT_MSGSIZEMAX 8192   /* max message size */
++#define HARD_MSGSIZEMAX (8192*128)
+ #else
+ static inline int mq_init_ns(struct ipc_namespace *ns) { return 0; }
+ #endif
+diff -puN ipc/mq_sysctl.c~ipc-mqueue-cleanup-definition-names-and-locations ipc/mq_sysctl.c
+--- a/ipc/mq_sysctl.c~ipc-mqueue-cleanup-definition-names-and-locations
++++ a/ipc/mq_sysctl.c
+@@ -13,15 +13,6 @@
+ #include <linux/ipc_namespace.h>
+ #include <linux/sysctl.h>
  
- #ifdef CONFIG_KALLSYMS
-@@ -114,15 +115,15 @@ void decode_address(char *buf, unsigned 
- 	 */
- 	write_lock_irqsave(&tasklist_lock, flags);
- 	for_each_process(p) {
--		mm = (in_atomic ? p->mm : get_task_mm(p));
--		if (!mm)
--			continue;
-+		struct task_struct *t;
+-/*
+- * Define the ranges various user-specified maximum values can
+- * be set to.
+- */
+-#define MIN_MSGMAX	1		/* min value for msg_max */
+-#define MAX_MSGMAX	HARD_MSGMAX	/* max value for msg_max */
+-#define MIN_MSGSIZEMAX	128		/* min value for msgsize_max */
+-#define MAX_MSGSIZEMAX	(8192*128)	/* max value for msgsize_max */
+-
+ #ifdef CONFIG_PROC_SYSCTL
+ static void *get_mq(ctl_table *table)
+ {
+@@ -31,16 +22,6 @@ static void *get_mq(ctl_table *table)
+ 	return which;
+ }
  
--		if (!down_read_trylock(&mm->mmap_sem)) {
--			if (!in_atomic)
--				mmput(mm);
-+		t = find_lock_task_mm(p);
-+		if (!t)
- 			continue;
--		}
+-static int proc_mq_dointvec(ctl_table *table, int write,
+-	void __user *buffer, size_t *lenp, loff_t *ppos)
+-{
+-	struct ctl_table mq_table;
+-	memcpy(&mq_table, table, sizeof(mq_table));
+-	mq_table.data = get_mq(table);
+-
+-	return proc_dointvec(&mq_table, write, buffer, lenp, ppos);
+-}
+-
+ static int proc_mq_dointvec_minmax(ctl_table *table, int write,
+ 	void __user *buffer, size_t *lenp, loff_t *ppos)
+ {
+@@ -52,15 +33,17 @@ static int proc_mq_dointvec_minmax(ctl_t
+ 					lenp, ppos);
+ }
+ #else
+-#define proc_mq_dointvec NULL
+ #define proc_mq_dointvec_minmax NULL
+ #endif
+ 
++static int msg_queues_limit_min = MIN_QUEUESMAX;
++static int msg_queues_limit_max = HARD_QUEUESMAX;
 +
-+		mm = t->mm;
-+		if (!down_read_trylock(&mm->mmap_sem))
-+			goto __continue;
+ static int msg_max_limit_min = MIN_MSGMAX;
+-static int msg_max_limit_max = MAX_MSGMAX;
++static int msg_max_limit_max = HARD_MSGMAX;
  
- 		for (n = rb_first(&mm->mm_rb); n; n = rb_next(n)) {
- 			struct vm_area_struct *vma;
-@@ -131,7 +132,7 @@ void decode_address(char *buf, unsigned 
+ static int msg_maxsize_limit_min = MIN_MSGSIZEMAX;
+-static int msg_maxsize_limit_max = MAX_MSGSIZEMAX;
++static int msg_maxsize_limit_max = HARD_MSGSIZEMAX;
  
- 			if (address >= vma->vm_start && address < vma->vm_end) {
- 				char _tmpbuf[256];
--				char *name = p->comm;
-+				char *name = t->comm;
- 				struct file *file = vma->vm_file;
- 
- 				if (file) {
-@@ -164,8 +165,7 @@ void decode_address(char *buf, unsigned 
- 						name, vma->vm_start, vma->vm_end);
- 
- 				up_read(&mm->mmap_sem);
--				if (!in_atomic)
--					mmput(mm);
-+				task_unlock(t);
- 
- 				if (buf[0] == '\0')
- 					sprintf(buf, "[ %s ] dynamic memory", name);
-@@ -175,8 +175,8 @@ void decode_address(char *buf, unsigned 
- 		}
- 
- 		up_read(&mm->mmap_sem);
--		if (!in_atomic)
--			mmput(mm);
-+__continue:
-+		task_unlock(t);
- 	}
- 
- 	/*
+ static ctl_table mq_sysctls[] = {
+ 	{
+@@ -68,7 +51,9 @@ static ctl_table mq_sysctls[] = {
+ 		.data		= &init_ipc_ns.mq_queues_max,
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+-		.proc_handler	= proc_mq_dointvec,
++		.proc_handler	= proc_mq_dointvec_minmax,
++		.extra1		= &msg_queues_limit_min,
++		.extra2		= &msg_queues_limit_max,
+ 	},
+ 	{
+ 		.procname	= "msg_max",
 _
 
-Patches currently in -mm which might be from anton.vorontsov@linaro.org are
+Patches currently in -mm which might be from dledford@redhat.com are
 
 origin.patch
-blackfin-fix-possible-deadlock-in-decode_address.patch
-um-should-hold-tasklist_lock-while-traversing-processes.patch
-um-fix-possible-race-on-task-mm.patch
-um-properly-check-all-process-threads-for-a-live-mm.patch
-kernel-cpuc-document-clear_tasks_mm_cpumask.patch
+ipc-mqueue-switch-back-to-using-non-max-values-on-create.patch
+ipc-mqueue-enforce-hard-limits.patch
+ipc-mqueue-update-maximums-for-the-mqueue-subsystem.patch
+mqueue-revert-bump-up-dflt_max.patch
+mqueue-dont-use-kmalloc-with-kmalloc_max_size.patch
+mqueue-separate-mqueue-default-value-from-maximum-value-v2.patch
+selftests-add-mq_open_tests.patch
+ipc-mqueue-improve-performance-of-send-recv.patch
+ipc-mqueue-correct-mq_attr_ok-test.patch
+ipc-mqueue-strengthen-checks-on-mqueue-creation.patch
+tools-selftests-add-mq_perf_tests.patch
+ipc-mqueue-add-rbtree-node-caching-support.patch
 
