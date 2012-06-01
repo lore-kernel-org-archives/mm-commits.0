@@ -1,389 +1,252 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipc-mqueue-improve-performance-of-send-recv.patch removed from -mm tree
-Date: Fri, 01 Jun 2012 12:34:53 -0700
-Message-ID: <20120601193453.971EBA013D@akpm.mtv.corp.google.com>
+Subject: [merged] aio-vfs-cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector.patch removed from -mm tree
+Date: Fri, 01 Jun 2012 12:35:17 -0700
+Message-ID: <20120601193517.5E476A04F2@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:61152 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932804Ab2FATey (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:34:54 -0400
-Received: by yenl3 with SMTP id l3so248324yen.1
-        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:34:54 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:51315 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933336Ab2FATfT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:35:19 -0400
+Received: by mail-wi0-f202.google.com with SMTP id hn6so59969wib.1
+        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:35:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dledford@redhat.com, kosaki.motohiro@jp.fujitsu.com, levinsasha928@gmail.com, manfred@colorfullife.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: cyeoh@au1.ibm.com, oleg@redhat.com, yeohc@au1.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc/mqueue: improve performance of send/recv
+     Subject: aio/vfs: cleanup of rw_copy_check_uvector() and compat_rw_copy_check_uvector()
 has been removed from the -mm tree.  Its filename was
-     ipc-mqueue-improve-performance-of-send-recv.patch
+     aio-vfs-cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Doug Ledford <dledford@redhat.com>
-Subject: ipc/mqueue: improve performance of send/recv
+From: Christopher Yeoh <cyeoh@au1.ibm.com>
+Subject: aio/vfs: cleanup of rw_copy_check_uvector() and compat_rw_copy_check_uvector()
 
-The existing implementation of the POSIX message queue send and recv
-functions is, well, abysmal.  Even worse than abysmal.  I submitted a
-patch to increase the maximum POSIX message queue limit to 65536 due to
-customer needs, however, upon looking over the send/recv implementation, I
-realized that my customer needs help with that too even if they don't know
-it.  The basic problem is that, given the fairly typical use case scenario
-for a large queue of queueing lots of messages all at the same priority (I
-verified with my customer that this is indeed what their app does), the
-msg_insert routine is basically a frikkin' bubble sort.  I mean, whoa,
-that's *so* middle school.
+A cleanup of rw_copy_check_uvector and compat_rw_copy_check_uvector after
+changes made to support CMA in an earlier patch.
 
-OK, OK, to not slam the original author too much, I'm sure they didn't
-envision a queue depth of 50,000+ messages.  No one would think that
-moving elements in an array, one at a time, and dereferencing each pointer
-in that array to check priority of the message being pointed too, again
-one at a time, for 50,000+ times would be good.  So let's assume that, as
-is typical, the users have found a way to break our code simply by using
-it in a way we didn't envision.  Fair enough.
+Rather than having an additional check_access parameter to these
+functions, the first paramater type is overloaded to allow the caller to
+specify CHECK_IOVEC_ONLY which means check that the contents of the iovec
+are valid, but do not check the memory that they point to.  This is used
+by process_vm_readv/writev where we need to validate that a iovec passed
+to the syscall is valid but do not want to check the memory that it points
+to at this point because it refers to an address space in another process.
 
-"So, just how broken is it?", you ask.  I wondered the same thing, so I
-wrote an app to let me know.  It's my next patch.  It gave me some
-interesting results.  Here's what it tested:
-
-Interference with other apps - In continuous mode, the app just sits there
-and hits a message queue forever, while you go do something productive on
-another terminal using other CPUs.  You then measure how long it takes you
-to do that something productive.  Then you restart the app in fake
-continuous mode, and it sits in a tight loop on a CPU while you repeat
-your tests.  The whole point of this is to keep one CPU tied up (so it
-can't be used in your other work) but in one case tied up hitting the
-mqueue code so we can see the effect of walking that 65,528 element array
-one pointer at a time on the global CPU cache.  If it's bad, then it will
-slow down your app on the other CPUs just by polluting cache mercilessly. 
-In the fake case, it will be in a tight loop, but not polluting cache. 
-Testing the mqueue subsystem directly - Here we just run a number of tests
-to see how the mqueue subsystem performs under different conditions.  A
-couple conditions are known to be worst case for the old system, and some
-routines, so this tests all of them.
-
-So, on to the results already:
-
-Subsystem/Test                  Old                         New
-
-Time to compile linux
-kernel (make -j12 on a
-6 core CPU)
-  Running mqueue test     user 49m10.744s             user 45m26.294s
-			   sys  5m51.924s              sys  4m59.894s
-			 total 55m02.668s            total 50m26.188s
-
-  Running fake test       user 45m32.686s             user 45m18.552s
-                           sys  5m12.465s              sys  4m56.468s
-                         total 50m45.151s            total 50m15.020s
-
-  % slowdown from mqueue
-    cache thrashing            ~8%                         ~.5%
-
-Avg time to send/recv (in nanoseconds per message)
-  when queue empty            305/288                    349/318
-  when queue full (65528 messages)
-    constant priority      526589/823                    362/314
-    increasing priority    403105/916                    495/445
-    decreasing priority     73420/594                    482/409
-    random priority        280147/920                    546/436
-
-Time to fill/drain queue (65528 messages, in seconds)
-  constant priority         17.37/.12                    .13/.12
-  increasing priority        4.14/.14                    .21/.18
-  decreasing priority       12.93/.13                    .21/.18
-  random priority            8.88/.16                    .22/.17
-
-So, I think the results speak for themselves.  It's possible this
-implementation could be improved by cacheing at least one priority level
-in the node tree (that would bring the queue empty performance more in
-line with the old implementation), but this works and is *so* much better
-than what we had, especially for the common case of a single priority in
-use, that further refinements can be in follow on patches.
-
-[akpm@linux-foundation.org: fix typo in comment, remove stray semicolon]
-[levinsasha928@gmail.com: use correct gfp flags in msg_insert]
-Signed-off-by: Doug Ledford <dledford@redhat.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Signed-off-by: Sasha Levin <levinsasha928@gmail.com>
+Signed-off-by: Chris Yeoh <yeohc@au1.ibm.com>
+Reviewed-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |  173 ++++++++++++++++++++++++++++++++++++-------------
- 1 file changed, 130 insertions(+), 43 deletions(-)
+ fs/aio.c               |    4 ++--
+ fs/compat.c            |    6 +++---
+ fs/read_write.c        |    7 +++----
+ include/linux/compat.h |    3 +--
+ include/linux/fs.h     |   12 ++++++++++--
+ mm/process_vm_access.c |   16 ++++++++--------
+ security/keys/compat.c |    2 +-
+ security/keys/keyctl.c |    2 +-
+ 8 files changed, 29 insertions(+), 23 deletions(-)
 
-diff -puN ipc/mqueue.c~ipc-mqueue-improve-performance-of-send-recv ipc/mqueue.c
---- a/ipc/mqueue.c~ipc-mqueue-improve-performance-of-send-recv
-+++ a/ipc/mqueue.c
-@@ -50,6 +50,12 @@
- #define STATE_PENDING	1
- #define STATE_READY	2
+diff -puN fs/aio.c~aio-vfs-cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector fs/aio.c
+--- a/fs/aio.c~aio-vfs-cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector
++++ a/fs/aio.c
+@@ -1446,13 +1446,13 @@ static ssize_t aio_setup_vectored_rw(int
+ 		ret = compat_rw_copy_check_uvector(type,
+ 				(struct compat_iovec __user *)kiocb->ki_buf,
+ 				kiocb->ki_nbytes, 1, &kiocb->ki_inline_vec,
+-				&kiocb->ki_iovec, 1);
++				&kiocb->ki_iovec);
+ 	else
+ #endif
+ 		ret = rw_copy_check_uvector(type,
+ 				(struct iovec __user *)kiocb->ki_buf,
+ 				kiocb->ki_nbytes, 1, &kiocb->ki_inline_vec,
+-				&kiocb->ki_iovec, 1);
++				&kiocb->ki_iovec);
+ 	if (ret < 0)
+ 		goto out;
  
-+struct posix_msg_tree_node {
-+	struct rb_node		rb_node;
-+	struct list_head	msg_list;
-+	int			priority;
-+};
-+
- struct ext_wait_queue {		/* queue of sleeping tasks */
- 	struct task_struct *task;
- 	struct list_head list;
-@@ -62,7 +68,7 @@ struct mqueue_inode_info {
- 	struct inode vfs_inode;
- 	wait_queue_head_t wait_q;
- 
--	struct msg_msg **messages;
-+	struct rb_root msg_tree;
- 	struct mq_attr attr;
- 
- 	struct sigevent notify;
-@@ -110,6 +116,90 @@ static struct ipc_namespace *get_ns_from
- 	return ns;
- }
- 
-+/* Auxiliary functions to manipulate messages' list */
-+static int msg_insert(struct msg_msg *msg, struct mqueue_inode_info *info)
-+{
-+	struct rb_node **p, *parent = NULL;
-+	struct posix_msg_tree_node *leaf;
-+
-+	p = &info->msg_tree.rb_node;
-+	while (*p) {
-+		parent = *p;
-+		leaf = rb_entry(parent, struct posix_msg_tree_node, rb_node);
-+
-+		if (likely(leaf->priority == msg->m_type))
-+			goto insert_msg;
-+		else if (msg->m_type < leaf->priority)
-+			p = &(*p)->rb_left;
-+		else
-+			p = &(*p)->rb_right;
-+	}
-+	leaf = kzalloc(sizeof(*leaf), GFP_ATOMIC);
-+	if (!leaf)
-+		return -ENOMEM;
-+	rb_init_node(&leaf->rb_node);
-+	INIT_LIST_HEAD(&leaf->msg_list);
-+	leaf->priority = msg->m_type;
-+	rb_link_node(&leaf->rb_node, parent, p);
-+	rb_insert_color(&leaf->rb_node, &info->msg_tree);
-+	info->qsize += sizeof(struct posix_msg_tree_node);
-+insert_msg:
-+	info->attr.mq_curmsgs++;
-+	info->qsize += msg->m_ts;
-+	list_add_tail(&msg->m_list, &leaf->msg_list);
-+	return 0;
-+}
-+
-+static inline struct msg_msg *msg_get(struct mqueue_inode_info *info)
-+{
-+	struct rb_node **p, *parent = NULL;
-+	struct posix_msg_tree_node *leaf;
-+	struct msg_msg *msg;
-+
-+try_again:
-+	p = &info->msg_tree.rb_node;
-+	while (*p) {
-+		parent = *p;
-+		/*
-+		 * During insert, low priorities go to the left and high to the
-+		 * right.  On receive, we want the highest priorities first, so
-+		 * walk all the way to the right.
-+		 */
-+		p = &(*p)->rb_right;
-+	}
-+	if (!parent) {
-+		if (info->attr.mq_curmsgs) {
-+			pr_warn_once("Inconsistency in POSIX message queue, "
-+				     "no tree element, but supposedly messages "
-+				     "should exist!\n");
-+			info->attr.mq_curmsgs = 0;
-+		}
-+		return NULL;
-+	}
-+	leaf = rb_entry(parent, struct posix_msg_tree_node, rb_node);
-+	if (list_empty(&leaf->msg_list)) {
-+		pr_warn_once("Inconsistency in POSIX message queue, "
-+			     "empty leaf node but we haven't implemented "
-+			     "lazy leaf delete!\n");
-+		rb_erase(&leaf->rb_node, &info->msg_tree);
-+		info->qsize -= sizeof(struct posix_msg_tree_node);
-+		kfree(leaf);
-+		goto try_again;
-+	} else {
-+		msg = list_first_entry(&leaf->msg_list,
-+				       struct msg_msg, m_list);
-+		list_del(&msg->m_list);
-+		if (list_empty(&leaf->msg_list)) {
-+			rb_erase(&leaf->rb_node, &info->msg_tree);
-+			info->qsize -= sizeof(struct posix_msg_tree_node);
-+			kfree(leaf);
-+		}
-+	}
-+	info->attr.mq_curmsgs--;
-+	info->qsize -= msg->m_ts;
-+	return msg;
-+}
-+
- static struct inode *mqueue_get_inode(struct super_block *sb,
- 		struct ipc_namespace *ipc_ns, umode_t mode,
- 		struct mq_attr *attr)
-@@ -130,7 +220,7 @@ static struct inode *mqueue_get_inode(st
- 
- 	if (S_ISREG(mode)) {
- 		struct mqueue_inode_info *info;
--		unsigned long mq_bytes, mq_msg_tblsz;
-+		unsigned long mq_bytes, mq_treesize;
- 
- 		inode->i_fop = &mqueue_file_operations;
- 		inode->i_size = FILENT_SIZE;
-@@ -144,6 +234,7 @@ static struct inode *mqueue_get_inode(st
- 		info->notify_user_ns = NULL;
- 		info->qsize = 0;
- 		info->user = NULL;	/* set when all is ok */
-+		info->msg_tree = RB_ROOT;
- 		memset(&info->attr, 0, sizeof(info->attr));
- 		info->attr.mq_maxmsg = min(ipc_ns->mq_msg_max,
- 					   ipc_ns->mq_msg_default);
-@@ -153,16 +244,25 @@ static struct inode *mqueue_get_inode(st
- 			info->attr.mq_maxmsg = attr->mq_maxmsg;
- 			info->attr.mq_msgsize = attr->mq_msgsize;
+diff -puN fs/compat.c~aio-vfs-cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector fs/compat.c
+--- a/fs/compat.c~aio-vfs-cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector
++++ a/fs/compat.c
+@@ -532,7 +532,7 @@ out:
+ ssize_t compat_rw_copy_check_uvector(int type,
+ 		const struct compat_iovec __user *uvector, unsigned long nr_segs,
+ 		unsigned long fast_segs, struct iovec *fast_pointer,
+-		struct iovec **ret_pointer, int check_access)
++		struct iovec **ret_pointer)
+ {
+ 	compat_ssize_t tot_len;
+ 	struct iovec *iov = *ret_pointer = fast_pointer;
+@@ -579,7 +579,7 @@ ssize_t compat_rw_copy_check_uvector(int
  		}
--		mq_msg_tblsz = info->attr.mq_maxmsg * sizeof(struct msg_msg *);
--		if (mq_msg_tblsz > PAGE_SIZE)
--			info->messages = vmalloc(mq_msg_tblsz);
--		else
--			info->messages = kmalloc(mq_msg_tblsz, GFP_KERNEL);
--		if (!info->messages)
--			goto out_inode;
-+		/*
-+		 * We used to allocate a static array of pointers and account
-+		 * the size of that array as well as one msg_msg struct per
-+		 * possible message into the queue size. That's no longer
-+		 * accurate as the queue is now an rbtree and will grow and
-+		 * shrink depending on usage patterns.  We can, however, still
-+		 * account one msg_msg struct per message, but the nodes are
-+		 * allocated depending on priority usage, and most programs
-+		 * only use one, or a handful, of priorities.  However, since
-+		 * this is pinned memory, we need to assume worst case, so
-+		 * that means the min(mq_maxmsg, max_priorities) * struct
-+		 * posix_msg_tree_node.
-+		 */
-+		mq_treesize = info->attr.mq_maxmsg * sizeof(struct msg_msg) +
-+			min_t(unsigned int, info->attr.mq_maxmsg, MQ_PRIO_MAX) *
-+			sizeof(struct posix_msg_tree_node);
+ 		if (len < 0)	/* size_t not fitting in compat_ssize_t .. */
+ 			goto out;
+-		if (check_access &&
++		if (type >= 0 &&
+ 		    !access_ok(vrfy_dir(type), compat_ptr(buf), len)) {
+ 			ret = -EFAULT;
+ 			goto out;
+@@ -1094,7 +1094,7 @@ static ssize_t compat_do_readv_writev(in
+ 		goto out;
  
--		mq_bytes = (mq_msg_tblsz +
--			(info->attr.mq_maxmsg * info->attr.mq_msgsize));
-+		mq_bytes = mq_treesize + (info->attr.mq_maxmsg *
-+					  info->attr.mq_msgsize);
- 
- 		spin_lock(&mq_lock);
- 		if (u->mq_bytes + mq_bytes < u->mq_bytes ||
-@@ -253,9 +353,9 @@ static void mqueue_evict_inode(struct in
+ 	tot_len = compat_rw_copy_check_uvector(type, uvector, nr_segs,
+-					       UIO_FASTIOV, iovstack, &iov, 1);
++					       UIO_FASTIOV, iovstack, &iov);
+ 	if (tot_len == 0) {
+ 		ret = 0;
+ 		goto out;
+diff -puN fs/read_write.c~aio-vfs-cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector fs/read_write.c
+--- a/fs/read_write.c~aio-vfs-cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector
++++ a/fs/read_write.c
+@@ -633,8 +633,7 @@ ssize_t do_loop_readv_writev(struct file
+ ssize_t rw_copy_check_uvector(int type, const struct iovec __user * uvector,
+ 			      unsigned long nr_segs, unsigned long fast_segs,
+ 			      struct iovec *fast_pointer,
+-			      struct iovec **ret_pointer,
+-			      int check_access)
++			      struct iovec **ret_pointer)
  {
- 	struct mqueue_inode_info *info;
- 	struct user_struct *user;
--	unsigned long mq_bytes;
--	int i;
-+	unsigned long mq_bytes, mq_treesize;
- 	struct ipc_namespace *ipc_ns;
-+	struct msg_msg *msg;
- 
- 	clear_inode(inode);
- 
-@@ -265,17 +365,18 @@ static void mqueue_evict_inode(struct in
- 	ipc_ns = get_ns_from_inode(inode);
- 	info = MQUEUE_I(inode);
- 	spin_lock(&info->lock);
--	for (i = 0; i < info->attr.mq_curmsgs; i++)
--		free_msg(info->messages[i]);
--	if (is_vmalloc_addr(info->messages))
--		vfree(info->messages);
--	else
--		kfree(info->messages);
-+	while ((msg = msg_get(info)) != NULL)
-+		free_msg(msg);
- 	spin_unlock(&info->lock);
- 
- 	/* Total amount of bytes accounted for the mqueue */
--	mq_bytes = info->attr.mq_maxmsg * (sizeof(struct msg_msg *)
--	    + info->attr.mq_msgsize);
-+	mq_treesize = info->attr.mq_maxmsg * sizeof(struct msg_msg) +
-+		min_t(unsigned int, info->attr.mq_maxmsg, MQ_PRIO_MAX) *
-+		sizeof(struct posix_msg_tree_node);
-+
-+	mq_bytes = mq_treesize + (info->attr.mq_maxmsg *
-+				  info->attr.mq_msgsize);
-+
- 	user = info->user;
- 	if (user) {
- 		spin_lock(&mq_lock);
-@@ -495,26 +596,6 @@ static struct ext_wait_queue *wq_get_fir
- 	return list_entry(ptr, struct ext_wait_queue, list);
- }
- 
--/* Auxiliary functions to manipulate messages' list */
--static void msg_insert(struct msg_msg *ptr, struct mqueue_inode_info *info)
--{
--	int k;
--
--	k = info->attr.mq_curmsgs - 1;
--	while (k >= 0 && info->messages[k]->m_type >= ptr->m_type) {
--		info->messages[k + 1] = info->messages[k];
--		k--;
--	}
--	info->attr.mq_curmsgs++;
--	info->qsize += ptr->m_ts;
--	info->messages[k + 1] = ptr;
--}
--
--static inline struct msg_msg *msg_get(struct mqueue_inode_info *info)
--{
--	info->qsize -= info->messages[--info->attr.mq_curmsgs]->m_ts;
--	return info->messages[info->attr.mq_curmsgs];
--}
- 
- static inline void set_cookie(struct sk_buff *skb, char code)
- {
-@@ -848,7 +929,8 @@ static inline void pipelined_receive(str
- 		wake_up_interruptible(&info->wait_q);
- 		return;
+ 	unsigned long seg;
+ 	ssize_t ret;
+@@ -690,7 +689,7 @@ ssize_t rw_copy_check_uvector(int type, 
+ 			ret = -EINVAL;
+ 			goto out;
+ 		}
+-		if (check_access
++		if (type >= 0
+ 		    && unlikely(!access_ok(vrfy_dir(type), buf, len))) {
+ 			ret = -EFAULT;
+ 			goto out;
+@@ -723,7 +722,7 @@ static ssize_t do_readv_writev(int type,
  	}
--	msg_insert(sender->msg, info);
-+	if (msg_insert(sender->msg, info))
-+		return;
- 	list_del(&sender->list);
- 	sender->state = STATE_PENDING;
- 	wake_up_process(sender->task);
-@@ -936,7 +1018,12 @@ SYSCALL_DEFINE5(mq_timedsend, mqd_t, mqd
- 			pipelined_send(info, msg_ptr, receiver);
- 		} else {
- 			/* adds message to the queue */
--			msg_insert(msg_ptr, info);
-+			if (msg_insert(msg_ptr, info)) {
-+				free_msg(msg_ptr);
-+				ret = -ENOMEM;
-+				spin_unlock(&info->lock);
-+				goto out_fput;
-+			}
- 			__do_notify(info);
- 		}
- 		inode->i_atime = inode->i_mtime = inode->i_ctime =
+ 
+ 	ret = rw_copy_check_uvector(type, uvector, nr_segs,
+-				    ARRAY_SIZE(iovstack), iovstack, &iov, 1);
++				    ARRAY_SIZE(iovstack), iovstack, &iov);
+ 	if (ret <= 0)
+ 		goto out;
+ 
+diff -puN include/linux/compat.h~aio-vfs-cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector include/linux/compat.h
+--- a/include/linux/compat.h~aio-vfs-cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector
++++ a/include/linux/compat.h
+@@ -577,8 +577,7 @@ extern ssize_t compat_rw_copy_check_uvec
+ 		const struct compat_iovec __user *uvector,
+ 		unsigned long nr_segs,
+ 		unsigned long fast_segs, struct iovec *fast_pointer,
+-		struct iovec **ret_pointer,
+-		int check_access);
++		struct iovec **ret_pointer);
+ 
+ extern void __user *compat_alloc_user_space(unsigned long len);
+ 
+diff -puN include/linux/fs.h~aio-vfs-cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector include/linux/fs.h
+--- a/include/linux/fs.h~aio-vfs-cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector
++++ a/include/linux/fs.h
+@@ -173,6 +173,15 @@ struct inodes_stat_t {
+ #define WRITE_FUA		(WRITE | REQ_SYNC | REQ_NOIDLE | REQ_FUA)
+ #define WRITE_FLUSH_FUA		(WRITE | REQ_SYNC | REQ_NOIDLE | REQ_FLUSH | REQ_FUA)
+ 
++
++/*
++ * Flag for rw_copy_check_uvector and compat_rw_copy_check_uvector
++ * that indicates that they should check the contents of the iovec are
++ * valid, but not check the memory that the iovec elements
++ * points too.
++ */
++#define CHECK_IOVEC_ONLY -1
++
+ #define SEL_IN		1
+ #define SEL_OUT		2
+ #define SEL_EX		4
+@@ -1690,8 +1699,7 @@ struct seq_file;
+ ssize_t rw_copy_check_uvector(int type, const struct iovec __user * uvector,
+ 			      unsigned long nr_segs, unsigned long fast_segs,
+ 			      struct iovec *fast_pointer,
+-			      struct iovec **ret_pointer,
+-			      int check_access);
++			      struct iovec **ret_pointer);
+ 
+ extern ssize_t vfs_read(struct file *, char __user *, size_t, loff_t *);
+ extern ssize_t vfs_write(struct file *, const char __user *, size_t, loff_t *);
+diff -puN mm/process_vm_access.c~aio-vfs-cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector mm/process_vm_access.c
+--- a/mm/process_vm_access.c~aio-vfs-cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector
++++ a/mm/process_vm_access.c
+@@ -371,15 +371,15 @@ static ssize_t process_vm_rw(pid_t pid,
+ 	/* Check iovecs */
+ 	if (vm_write)
+ 		rc = rw_copy_check_uvector(WRITE, lvec, liovcnt, UIO_FASTIOV,
+-					   iovstack_l, &iov_l, 1);
++					   iovstack_l, &iov_l);
+ 	else
+ 		rc = rw_copy_check_uvector(READ, lvec, liovcnt, UIO_FASTIOV,
+-					   iovstack_l, &iov_l, 1);
++					   iovstack_l, &iov_l);
+ 	if (rc <= 0)
+ 		goto free_iovecs;
+ 
+-	rc = rw_copy_check_uvector(READ, rvec, riovcnt, UIO_FASTIOV,
+-				   iovstack_r, &iov_r, 0);
++	rc = rw_copy_check_uvector(CHECK_IOVEC_ONLY, rvec, riovcnt, UIO_FASTIOV,
++				   iovstack_r, &iov_r);
+ 	if (rc <= 0)
+ 		goto free_iovecs;
+ 
+@@ -438,16 +438,16 @@ compat_process_vm_rw(compat_pid_t pid,
+ 	if (vm_write)
+ 		rc = compat_rw_copy_check_uvector(WRITE, lvec, liovcnt,
+ 						  UIO_FASTIOV, iovstack_l,
+-						  &iov_l, 1);
++						  &iov_l);
+ 	else
+ 		rc = compat_rw_copy_check_uvector(READ, lvec, liovcnt,
+ 						  UIO_FASTIOV, iovstack_l,
+-						  &iov_l, 1);
++						  &iov_l);
+ 	if (rc <= 0)
+ 		goto free_iovecs;
+-	rc = compat_rw_copy_check_uvector(READ, rvec, riovcnt,
++	rc = compat_rw_copy_check_uvector(CHECK_IOVEC_ONLY, rvec, riovcnt,
+ 					  UIO_FASTIOV, iovstack_r,
+-					  &iov_r, 0);
++					  &iov_r);
+ 	if (rc <= 0)
+ 		goto free_iovecs;
+ 
+diff -puN security/keys/compat.c~aio-vfs-cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector security/keys/compat.c
+--- a/security/keys/compat.c~aio-vfs-cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector
++++ a/security/keys/compat.c
+@@ -38,7 +38,7 @@ long compat_keyctl_instantiate_key_iov(
+ 
+ 	ret = compat_rw_copy_check_uvector(WRITE, _payload_iov, ioc,
+ 					   ARRAY_SIZE(iovstack),
+-					   iovstack, &iov, 1);
++					   iovstack, &iov);
+ 	if (ret < 0)
+ 		return ret;
+ 	if (ret == 0)
+diff -puN security/keys/keyctl.c~aio-vfs-cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector security/keys/keyctl.c
+--- a/security/keys/keyctl.c~aio-vfs-cleanup-of-rw_copy_check_uvector-and-compat_rw_copy_check_uvector
++++ a/security/keys/keyctl.c
+@@ -1110,7 +1110,7 @@ long keyctl_instantiate_key_iov(key_seri
+ 		goto no_payload;
+ 
+ 	ret = rw_copy_check_uvector(WRITE, _payload_iov, ioc,
+-				    ARRAY_SIZE(iovstack), iovstack, &iov, 1);
++				    ARRAY_SIZE(iovstack), iovstack, &iov);
+ 	if (ret < 0)
+ 		return ret;
+ 	if (ret == 0)
 _
 
-Patches currently in -mm which might be from dledford@redhat.com are
+Patches currently in -mm which might be from cyeoh@au1.ibm.com are
 
 origin.patch
-ipc-mqueue-correct-mq_attr_ok-test.patch
-ipc-mqueue-strengthen-checks-on-mqueue-creation.patch
-tools-selftests-add-mq_perf_tests.patch
-ipc-mqueue-add-rbtree-node-caching-support.patch
 
