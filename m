@@ -1,157 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-irq-managec-use-the-pr_foo-infrastructure-to-prefix-printks.patch removed from -mm tree
-Date: Fri, 01 Jun 2012 12:33:01 -0700
-Message-ID: <20120601193301.5E5FFA013D@akpm.mtv.corp.google.com>
+Subject: [merged] drivers-message-fusion-use-pci_dev-revision.patch removed from -mm tree
+Date: Fri, 01 Jun 2012 12:32:55 -0700
+Message-ID: <20120601193255.6268FA013D@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:58299 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758406Ab2FATdC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:33:02 -0400
-Received: by ggeh3 with SMTP id h3so246003gge.1
-        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:33:01 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:52540 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757729Ab2FATc5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:32:57 -0400
+Received: by eaao13 with SMTP id o13so111891eaa.1
+        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:32:56 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: sshtylyov@ru.mvista.com, Nagalakshmi.Nandigama@lsi.com, auke-jan.h.kok@intel.com, eric.moore@lsi.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/irq/manage.c: use the pr_foo() infrastructure to prefix printks
+     Subject: drivers/message/fusion: use pci_dev->revision
 has been removed from the -mm tree.  Its filename was
-     kernel-irq-managec-use-the-pr_foo-infrastructure-to-prefix-printks.patch
+     drivers-message-fusion-use-pci_dev-revision.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel/irq/manage.c: use the pr_foo() infrastructure to prefix printks
+From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Subject: drivers/message/fusion: use pci_dev->revision
 
-Use the module-wide pr_fmt() mechanism rather than open-coding "genirq: "
-everywhere.
+This driver uses PCI_CLASS_REVISION instead of PCI_REVISION_ID, so it
+wasn't converted by 44c10138fd4bbc ("PCI: Change all drivers to use
+pci_device->revision").
 
-Cc: Thomas Gleixner <tglx@linutronix.de>
+In one case, it even reads PCI revision ID without using it -- that code
+is now removed...
+
+Signed-off-by: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Acked-by: "Nandigama, Nagalakshmi" <Nagalakshmi.Nandigama@lsi.com>
+Cc: Eric Moore <eric.moore@lsi.com>
+Acked-by: Auke Kok <auke-jan.h.kok@intel.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/manage.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ drivers/message/fusion/mptbase.c |   12 ++++--------
+ drivers/message/fusion/mptctl.c  |    4 +---
+ 2 files changed, 5 insertions(+), 11 deletions(-)
 
-diff -puN kernel/irq/manage.c~kernel-irq-managec-use-the-pr_foo-infrastructure-to-prefix-printks kernel/irq/manage.c
---- a/kernel/irq/manage.c~kernel-irq-managec-use-the-pr_foo-infrastructure-to-prefix-printks
-+++ a/kernel/irq/manage.c
-@@ -7,6 +7,8 @@
-  * This file contains driver APIs to the irq subsystem.
-  */
+diff -puN drivers/message/fusion/mptbase.c~drivers-message-fusion-use-pci_dev-revision drivers/message/fusion/mptbase.c
+--- a/drivers/message/fusion/mptbase.c~drivers-message-fusion-use-pci_dev-revision
++++ a/drivers/message/fusion/mptbase.c
+@@ -1653,7 +1653,6 @@ mpt_mapresources(MPT_ADAPTER *ioc)
+ 	unsigned long	 port;
+ 	u32		 msize;
+ 	u32		 psize;
+-	u8		 revision;
+ 	int		 r = -ENODEV;
+ 	struct pci_dev *pdev;
  
-+#define pr_fmt(fmt) "genirq: " fmt
-+
- #include <linux/irq.h>
- #include <linux/kthread.h>
- #include <linux/module.h>
-@@ -565,7 +567,7 @@ int __irq_set_trigger(struct irq_desc *d
- 		 * IRQF_TRIGGER_* but the PIC does not support multiple
- 		 * flow-types?
- 		 */
--		pr_debug("genirq: No set_type function for IRQ %d (%s)\n", irq,
-+		pr_debug("No set_type function for IRQ %d (%s)\n", irq,
- 			 chip ? (chip->name ? : "unknown") : "unknown");
- 		return 0;
+@@ -1670,8 +1669,6 @@ mpt_mapresources(MPT_ADAPTER *ioc)
+ 		return r;
  	}
-@@ -600,7 +602,7 @@ int __irq_set_trigger(struct irq_desc *d
- 		ret = 0;
+ 
+-	pci_read_config_byte(pdev, PCI_CLASS_REVISION, &revision);
+-
+ 	if (sizeof(dma_addr_t) > 4) {
+ 		const uint64_t required_mask = dma_get_required_mask
+ 		    (&pdev->dev);
+@@ -1779,7 +1776,6 @@ mpt_attach(struct pci_dev *pdev, const s
+ 	MPT_ADAPTER	*ioc;
+ 	u8		 cb_idx;
+ 	int		 r = -ENODEV;
+-	u8		 revision;
+ 	u8		 pcixcmd;
+ 	static int	 mpt_ids = 0;
+ #ifdef CONFIG_PROC_FS
+@@ -1887,8 +1883,8 @@ mpt_attach(struct pci_dev *pdev, const s
+ 	dinitprintk(ioc, printk(MYIOC_s_INFO_FMT "facts @ %p, pfacts[0] @ %p\n",
+ 	    ioc->name, &ioc->facts, &ioc->pfacts[0]));
+ 
+-	pci_read_config_byte(pdev, PCI_CLASS_REVISION, &revision);
+-	mpt_get_product_name(pdev->vendor, pdev->device, revision, ioc->prod_name);
++	mpt_get_product_name(pdev->vendor, pdev->device, pdev->revision,
++			     ioc->prod_name);
+ 
+ 	switch (pdev->device)
+ 	{
+@@ -1903,7 +1899,7 @@ mpt_attach(struct pci_dev *pdev, const s
  		break;
- 	default:
--		pr_err("genirq: Setting trigger mode %lu for irq %u failed (%pF)\n",
-+		pr_err("Setting trigger mode %lu for irq %u failed (%pF)\n",
- 		       flags, irq, chip->irq_set_type);
- 	}
- 	if (unmask)
-@@ -837,7 +839,7 @@ void exit_irq_thread(void)
  
- 	action = kthread_data(tsk);
- 
--	pr_err("genirq: exiting task \"%s\" (%d) is an active IRQ thread (irq %d)\n",
-+	pr_err("exiting task \"%s\" (%d) is an active IRQ thread (irq %d)\n",
- 	       tsk->comm ? tsk->comm : "", tsk->pid, action->irq);
- 
- 	desc = irq_to_desc(action->irq);
-@@ -1044,7 +1046,7 @@ __setup_irq(unsigned int irq, struct irq
- 		 * has. The type flags are unreliable as the
- 		 * underlying chip implementation can override them.
+ 	case MPI_MANUFACTPAGE_DEVICEID_FC929X:
+-		if (revision < XL_929) {
++		if (pdev->revision < XL_929) {
+ 			/* 929X Chip Fix. Set Split transactions level
+ 		 	* for PCIX. Set MOST bits to zero.
+ 		 	*/
+@@ -1934,7 +1930,7 @@ mpt_attach(struct pci_dev *pdev, const s
+ 		/* 1030 Chip Fix. Disable Split transactions
+ 		 * for PCIX. Set MOST bits to zero if Rev < C0( = 8).
  		 */
--		pr_err("genirq: Threaded irq requested with handler=NULL and !ONESHOT for irq %d\n",
-+		pr_err("Threaded irq requested with handler=NULL and !ONESHOT for irq %d\n",
- 		       irq);
- 		ret = -EINVAL;
- 		goto out_mask;
-@@ -1095,7 +1097,7 @@ __setup_irq(unsigned int irq, struct irq
+-		if (revision < C0_1030) {
++		if (pdev->revision < C0_1030) {
+ 			pci_read_config_byte(pdev, 0x6a, &pcixcmd);
+ 			pcixcmd &= 0x8F;
+ 			pci_write_config_byte(pdev, 0x6a, pcixcmd);
+diff -puN drivers/message/fusion/mptctl.c~drivers-message-fusion-use-pci_dev-revision drivers/message/fusion/mptctl.c
+--- a/drivers/message/fusion/mptctl.c~drivers-message-fusion-use-pci_dev-revision
++++ a/drivers/message/fusion/mptctl.c
+@@ -1250,7 +1250,6 @@ mptctl_getiocinfo (unsigned long arg, un
+ 	int			iocnum;
+ 	unsigned int		port;
+ 	int			cim_rev;
+-	u8			revision;
+ 	struct scsi_device 	*sdev;
+ 	VirtDevice		*vdevice;
  
- 		if (nmsk != omsk)
- 			/* hope the handler works with current  trigger mode */
--			pr_warning("genirq: irq %d uses trigger mode %u; requested %u\n",
-+			pr_warning("irq %d uses trigger mode %u; requested %u\n",
- 				   irq, nmsk, omsk);
- 	}
+@@ -1324,8 +1323,7 @@ mptctl_getiocinfo (unsigned long arg, un
+ 	pdev = (struct pci_dev *) ioc->pcidev;
  
-@@ -1133,7 +1135,7 @@ __setup_irq(unsigned int irq, struct irq
+ 	karg->pciId = pdev->device;
+-	pci_read_config_byte(pdev, PCI_CLASS_REVISION, &revision);
+-	karg->hwRev = revision;
++	karg->hwRev = pdev->revision;
+ 	karg->subSystemDevice = pdev->subsystem_device;
+ 	karg->subSystemVendor = pdev->subsystem_vendor;
  
- mismatch:
- 	if (!(new->flags & IRQF_PROBE_SHARED)) {
--		pr_err("genirq: Flags mismatch irq %d. %08x (%s) vs. %08x (%s)\n",
-+		pr_err("Flags mismatch irq %d. %08x (%s) vs. %08x (%s)\n",
- 		       irq, new->flags, new->name, old->flags, old->name);
- #ifdef CONFIG_DEBUG_SHIRQ
- 		dump_stack();
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sshtylyov@ru.mvista.com are
 
 origin.patch
-linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
-tmpfs-implement-numa-node-interleaving-fix.patch
-tmpfs-implement-numa-node-interleaving-checkpatch-fixes.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-thermal-add-generic-cpufreq-cooling-implementation.patch
-thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
-thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions.patch
-mm.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
-memcg-add-hugetlb-extension-fix-fix.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
-hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
-memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes.patch
-mm-correctly-synchronize-rss-counters-at-exit-exec.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix.patch
-vsprintf-correctly-handle-width-when-flag-used-in-%p-format.patch
-vsprintf-further-optimize-decimal-conversion.patch
-proc-clean-up-proc-pid-environ-handling.patch
-kernel-cpuc-document-clear_tasks_mm_cpumask.patch
-ipc-mqueue-improve-performance-of-send-recv.patch
-ipc-mqueue-correct-mq_attr_ok-test.patch
-ipc-mqueue-strengthen-checks-on-mqueue-creation.patch
-tools-selftests-add-mq_perf_tests.patch
-ipc-mqueue-add-rbtree-node-caching-support.patch
-pidns-make-killed-children-autoreap.patch
-fs-nls-add-apple-nls.patch
-eventfd-change-int-to-__u64-in-eventfd_signal.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
-c-r-prctl-add-ability-to-get-clear_tid_address.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+clk-add-non-config_have_clk-routines.patch
+clk-remove-redundant-depends-on-from-drivers-kconfig.patch
+i2c-i2c-pxa-remove-conditional-compilation-of-clk-code.patch
+usb-marvell-remove-conditional-compilation-of-clk-code.patch
+usb-musb-remove-conditional-compilation-of-clk-code.patch
+ata-pata_arasan-remove-conditional-compilation-of-clk-code.patch
+net-c_can-remove-conditional-compilation-of-clk-code.patch
+net-stmmac-remove-conditional-compilation-of-clk-code.patch
+gadget-m66592-remove-conditional-compilation-of-clk-code.patch
+gadget-r8a66597-remove-conditional-compilation-of-clk-code.patch
+usb-host-r8a66597-remove-conditional-compilation-of-clk-code.patch
 
