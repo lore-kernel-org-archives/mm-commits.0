@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] blackfin-fix-possible-deadlock-in-decode_address.patch removed from -mm tree
-Date: Fri, 01 Jun 2012 12:34:21 -0700
-Message-ID: <20120601193421.58EB7A013D@akpm.mtv.corp.google.com>
+Subject: [merged] um-fix-possible-race-on-task-mm.patch removed from -mm tree
+Date: Fri, 01 Jun 2012 12:34:26 -0700
+Message-ID: <20120601193426.62D07A013D@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:53411 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759178Ab2FATeW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:34:22 -0400
-Received: by qcsp5 with SMTP id p5so246834qcs.1
-        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:34:21 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:41153 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932804Ab2FATe2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:34:28 -0400
+Received: by eeit10 with SMTP id t10so140727eei.1
+        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:34:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anton.vorontsov@linaro.org, oleg@redhat.com, vapier@gentoo.org, mm-commits@vger.kernel.org
+To: anton.vorontsov@linaro.org, oleg@redhat.com, richard@nod.at, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: blackfin: fix possible deadlock in decode_address()
+     Subject: um: fix possible race on task->mm
 has been removed from the -mm tree.  Its filename was
-     blackfin-fix-possible-deadlock-in-decode_address.patch
+     um-fix-possible-race-on-task-mm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,63 +26,35 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Anton Vorontsov <anton.vorontsov@linaro.org>
-Subject: blackfin: fix possible deadlock in decode_address()
+Subject: um: fix possible race on task->mm
 
-Oleg Nesterov found an interesting deadlock possibility:
+Checking for task->mm is dangerous as ->mm might disappear (exit_mm()
+assigns NULL under task_lock(), so tasklist lock is not enough).
 
-> sysrq_showregs_othercpus() does smp_call_function(showacpu)
-> and showacpu() show_stack()->decode_address(). Now suppose that IPI
-> interrupts the task holding read_lock(tasklist).
+We can't use get_task_mm()/mmput() pair as mmput() might sleep, so let's
+take the task lock while we care about its mm.
 
-To fix this, blackfin should not grab the write_ variant of the
-tasklist lock, read_ one is enough.
+Note that we should also use find_lock_task_mm() to check all process'
+threads for a valid mm, but for uml we'll do it in a separate patch.
 
-Suggested-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Anton Vorontsov <anton.vorontsov@linaro.org>
-Cc: Mike Frysinger <vapier@gentoo.org>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/kernel/trace.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/um/kernel/reboot.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN arch/blackfin/kernel/trace.c~blackfin-fix-possible-deadlock-in-decode_address arch/blackfin/kernel/trace.c
---- a/arch/blackfin/kernel/trace.c~blackfin-fix-possible-deadlock-in-decode_address
-+++ a/arch/blackfin/kernel/trace.c
-@@ -29,7 +29,7 @@ void decode_address(char *buf, unsigned 
- {
- 	struct task_struct *p;
- 	struct mm_struct *mm;
--	unsigned long flags, offset;
-+	unsigned long offset;
- 	struct rb_node *n;
+diff -puN arch/um/kernel/reboot.c~um-fix-possible-race-on-task-mm arch/um/kernel/reboot.c
+--- a/arch/um/kernel/reboot.c~um-fix-possible-race-on-task-mm
++++ a/arch/um/kernel/reboot.c
+@@ -25,10 +25,13 @@ static void kill_off_processes(void)
  
- #ifdef CONFIG_KALLSYMS
-@@ -113,7 +113,7 @@ void decode_address(char *buf, unsigned 
- 	 * mappings of all our processes and see if we can't be a whee
- 	 * bit more specific
- 	 */
--	write_lock_irqsave(&tasklist_lock, flags);
-+	read_lock(&tasklist_lock);
- 	for_each_process(p) {
- 		struct task_struct *t;
- 
-@@ -186,7 +186,7 @@ __continue:
- 	sprintf(buf, "/* kernel dynamic memory */");
- 
- done:
--	write_unlock_irqrestore(&tasklist_lock, flags);
-+	read_unlock(&tasklist_lock);
- }
- 
- #define EXPAND_LEN ((1 << CONFIG_DEBUG_BFIN_HWTRACE_EXPAND_LEN) * 256 - 1)
-_
-
-Patches currently in -mm which might be from anton.vorontsov@linaro.org are
-
-origin.patch
-um-should-hold-tasklist_lock-while-traversing-processes.patch
-um-fix-possible-race-on-task-mm.patch
-um-properly-check-all-process-threads-for-a-live-mm.patch
-kernel-cpuc-document-clear_tasks_mm_cpumask.patch
-
+ 		read_lock(&tasklist_lock);
+ 		for_each_process(p) {
+-			if (p->mm == NULL)
++			task_lock(p);
++			if (!p->mm) {
++				task_unlock(p);
+ 				continue;
