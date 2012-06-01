@@ -1,75 +1,220 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-check-for-whitespace-before-semicolon-at-eol.patch removed from -mm tree
-Date: Fri, 01 Jun 2012 12:33:10 -0700
-Message-ID: <20120601193310.66C89A013D@akpm.mtv.corp.google.com>
+Subject: [merged] init-disable-sparse-checking-of-the-mounto-source-files.patch removed from -mm tree
+Date: Fri, 01 Jun 2012 12:33:14 -0700
+Message-ID: <20120601193314.6A93BA013D@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:54439 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757539Ab2FATdM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:33:12 -0400
-Received: by mail-wg0-f74.google.com with SMTP id dt11so140369wgb.1
-        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:33:11 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:44792 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759018Ab2FATdP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:33:15 -0400
+Received: by ghbz15 with SMTP id z15so245076ghb.1
+        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:33:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eric.nelson@boundarydevices.com, apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
+To: hartleys@visionengravers.com, hsweeten@visionengravers.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: check for whitespace before semicolon at EOL
+     Subject: init: disable sparse checking of the mount.o source files
 has been removed from the -mm tree.  Its filename was
-     checkpatch-check-for-whitespace-before-semicolon-at-eol.patch
+     init-disable-sparse-checking-of-the-mounto-source-files.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Eric Nelson <eric.nelson@boundarydevices.com>
-Subject: checkpatch: check for whitespace before semicolon at EOL
+From: H Hartley Sweeten <hartleys@visionengravers.com>
+Subject: init: disable sparse checking of the mount.o source files
 
-Requires --strict option during invocation:
-	~/linux$ scripts/checkpatch --strict foo.patch
+The init/mount.o source files produce a number of sparse warnings of the
+type:
 
-This tests for a bad habits of mine like this:
+warning: incorrect type in argument 1 (different address spaces)
+   expected char [noderef] <asn:1>*dev_name
+   got char *name 
 
-	return 0 ;
+This is due to the syscalls expecting some of the arguments to be user
+pointers but they are being passed as kernel pointers.  This is harmless
+but adds a lot of noise to a sparse build.
 
-Note that it does allow a special case of a bare semicolon
-for empty loops:
+To limit the noise just disable the sparse checking in the relevant source
+files, but still display a warning so that the user knows this has been
+done.
 
-	while (foo())
-		;
+Since the sparse checking has been disabled we can also remove the __user
+__force casts that are scattered thru the source.
 
-Signed-off-by: Eric Nelson <eric.nelson@boundarydevices.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Joe Perches <joe@perches.com>
+Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    7 +++++++
- 1 file changed, 7 insertions(+)
+ init/do_mounts.c        |   14 ++++++++++++--
+ init/do_mounts_initrd.c |   10 ++++++++++
+ init/do_mounts_md.c     |   12 +++++++++++-
+ init/do_mounts_rd.c     |   13 +++++++++++--
+ init/initramfs.c        |   16 +++++++++++++---
+ 5 files changed, 57 insertions(+), 8 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-check-for-whitespace-before-semicolon-at-eol scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-check-for-whitespace-before-semicolon-at-eol
-+++ a/scripts/checkpatch.pl
-@@ -2448,6 +2448,13 @@ sub process {
- 				     "space prohibited between function name and open parenthesis '('\n" . $herecurr);
- 			}
+diff -puN init/do_mounts.c~init-disable-sparse-checking-of-the-mounto-source-files init/do_mounts.c
+--- a/init/do_mounts.c~init-disable-sparse-checking-of-the-mounto-source-files
++++ a/init/do_mounts.c
+@@ -1,3 +1,13 @@
++/*
++ * Many of the syscalls used in this file expect some of the arguments
++ * to be __user pointers not __kernel pointers.  To limit the sparse
++ * noise, turn off sparse checking for this file.
++ */
++#ifdef __CHECKER__
++#undef __CHECKER__
++#warning "Sparse checking disabled for this file"
++#endif
++
+ #include <linux/module.h>
+ #include <linux/sched.h>
+ #include <linux/ctype.h>
+@@ -330,7 +340,7 @@ static int __init do_mount_root(char *na
+ 	if (err)
+ 		return err;
+ 
+-	sys_chdir((const char __user __force *)"/root");
++	sys_chdir("/root");
+ 	s = current->fs->pwd.dentry->d_sb;
+ 	ROOT_DEV = s->s_dev;
+ 	printk(KERN_INFO
+@@ -556,5 +566,5 @@ void __init prepare_namespace(void)
+ out:
+ 	devtmpfs_mount("dev");
+ 	sys_mount(".", "/", NULL, MS_MOVE, NULL);
+-	sys_chroot((const char __user __force *)".");
++	sys_chroot(".");
+ }
+diff -puN init/do_mounts_initrd.c~init-disable-sparse-checking-of-the-mounto-source-files init/do_mounts_initrd.c
+--- a/init/do_mounts_initrd.c~init-disable-sparse-checking-of-the-mounto-source-files
++++ a/init/do_mounts_initrd.c
+@@ -1,3 +1,13 @@
++/*
++ * Many of the syscalls used in this file expect some of the arguments
++ * to be __user pointers not __kernel pointers.  To limit the sparse
++ * noise, turn off sparse checking for this file.
++ */
++#ifdef __CHECKER__
++#undef __CHECKER__
++#warning "Sparse checking disabled for this file"
++#endif
++
+ #include <linux/unistd.h>
+ #include <linux/kernel.h>
+ #include <linux/fs.h>
+diff -puN init/do_mounts_md.c~init-disable-sparse-checking-of-the-mounto-source-files init/do_mounts_md.c
+--- a/init/do_mounts_md.c~init-disable-sparse-checking-of-the-mounto-source-files
++++ a/init/do_mounts_md.c
+@@ -1,3 +1,13 @@
++/*
++ * Many of the syscalls used in this file expect some of the arguments
++ * to be __user pointers not __kernel pointers.  To limit the sparse
++ * noise, turn off sparse checking for this file.
++ */
++#ifdef __CHECKER__
++#undef __CHECKER__
++#warning "Sparse checking disabled for this file"
++#endif
++
+ #include <linux/delay.h>
+ #include <linux/raid/md_u.h>
+ #include <linux/raid/md_p.h>
+@@ -283,7 +293,7 @@ static void __init autodetect_raid(void)
+ 
+ 	wait_for_device_probe();
+ 
+-	fd = sys_open((const char __user __force *) "/dev/md0", 0, 0);
++	fd = sys_open("/dev/md0", 0, 0);
+ 	if (fd >= 0) {
+ 		sys_ioctl(fd, RAID_AUTORUN, raid_autopart);
+ 		sys_close(fd);
+diff -puN init/do_mounts_rd.c~init-disable-sparse-checking-of-the-mounto-source-files init/do_mounts_rd.c
+--- a/init/do_mounts_rd.c~init-disable-sparse-checking-of-the-mounto-source-files
++++ a/init/do_mounts_rd.c
+@@ -1,3 +1,12 @@
++/*
++ * Many of the syscalls used in this file expect some of the arguments
++ * to be __user pointers not __kernel pointers.  To limit the sparse
++ * noise, turn off sparse checking for this file.
++ */
++#ifdef __CHECKER__
++#undef __CHECKER__
++#warning "Sparse checking disabled for this file"
++#endif
+ 
+ #include <linux/kernel.h>
+ #include <linux/fs.h>
+@@ -181,7 +190,7 @@ int __init rd_load_image(char *from)
+ 	char rotator[4] = { '|' , '/' , '-' , '\\' };
+ #endif
+ 
+-	out_fd = sys_open((const char __user __force *) "/dev/ram", O_RDWR, 0);
++	out_fd = sys_open("/dev/ram", O_RDWR, 0);
+ 	if (out_fd < 0)
+ 		goto out;
+ 
+@@ -280,7 +289,7 @@ noclose_input:
+ 	sys_close(out_fd);
+ out:
+ 	kfree(buf);
+-	sys_unlink((const char __user __force *) "/dev/ram");
++	sys_unlink("/dev/ram");
+ 	return res;
+ }
+ 
+diff -puN init/initramfs.c~init-disable-sparse-checking-of-the-mounto-source-files init/initramfs.c
+--- a/init/initramfs.c~init-disable-sparse-checking-of-the-mounto-source-files
++++ a/init/initramfs.c
+@@ -1,3 +1,13 @@
++/*
++ * Many of the syscalls used in this file expect some of the arguments
++ * to be __user pointers not __kernel pointers.  To limit the sparse
++ * noise, turn off sparse checking for this file.
++ */
++#ifdef __CHECKER__
++#undef __CHECKER__
++#warning "Sparse checking disabled for this file"
++#endif
++
+ #include <linux/init.h>
+ #include <linux/fs.h>
+ #include <linux/slab.h>
+@@ -74,7 +84,7 @@ static void __init free_hash(void)
+ 	}
+ }
+ 
+-static long __init do_utime(char __user *filename, time_t mtime)
++static long __init do_utime(char *filename, time_t mtime)
+ {
+ 	struct timespec t[2];
+ 
+@@ -529,7 +539,7 @@ static void __init clean_rootfs(void)
+ 	struct linux_dirent64 *dirp;
+ 	int num;
+ 
+-	fd = sys_open((const char __user __force *) "/", O_RDONLY, 0);
++	fd = sys_open("/", O_RDONLY, 0);
+ 	WARN_ON(fd < 0);
+ 	if (fd < 0)
+ 		return;
+@@ -589,7 +599,7 @@ static int __init populate_rootfs(void)
  		}
-+
-+# check for whitespace before a non-naked semicolon
-+		if ($line =~ /^\+.*\S\s+;/) {
-+			CHK("SPACING",
-+			    "space prohibited before semicolon\n" . $herecurr);
-+		}
-+
- # Check operator spacing.
- 		if (!($line=~/\#\s*include/)) {
- 			my $ops = qr{
+ 		printk(KERN_INFO "rootfs image is not initramfs (%s)"
+ 				"; looks like an initrd\n", err);
+-		fd = sys_open((const char __user __force *) "/initrd.image",
++		fd = sys_open("/initrd.image",
+ 			      O_WRONLY|O_CREAT, 0700);
+ 		if (fd >= 0) {
+ 			sys_write(fd, (char *)initrd_start,
 _
 
-Patches currently in -mm which might be from eric.nelson@boundarydevices.com are
+Patches currently in -mm which might be from hartleys@visionengravers.com are
 
 origin.patch
+linux-next.patch
 
