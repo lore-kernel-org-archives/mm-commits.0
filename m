@@ -1,118 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-cpu_pmc-fix-various-typos.patch removed from -mm tree
-Date: Fri, 01 Jun 2012 12:33:03 -0700
-Message-ID: <20120601193303.5AB57A013D@akpm.mtv.corp.google.com>
+Subject: [merged] hpfs-remove-printk-macro.patch removed from -mm tree
+Date: Fri, 01 Jun 2012 12:33:20 -0700
+Message-ID: <20120601193320.51CF5A013D@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:54439 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758406Ab2FATdF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:33:05 -0400
-Received: by mail-wg0-f74.google.com with SMTP id dt11so140369wgb.1
-        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:33:04 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:42352 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759042Ab2FATdV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:33:21 -0400
+Received: by yhgm50 with SMTP id m50so287975yhg.1
+        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:33:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nico@fluxnic.net, ccross@android.com, nico@linaro.org, santosh.shilimkar@ti.com, mm-commits@vger.kernel.org
+To: dan.carpenter@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/cpu_pm.c: fix various typos
+     Subject: HPFS: remove PRINTK() macro
 has been removed from the -mm tree.  Its filename was
-     kernel-cpu_pmc-fix-various-typos.patch
+     hpfs-remove-printk-macro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Nicolas Pitre <nico@fluxnic.net>
-Subject: kernel/cpu_pm.c: fix various typos
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: HPFS: remove PRINTK() macro
 
-Signed-off-by: Nicolas Pitre <nico@linaro.org>
-Acked-by: Colin Cross <ccross@android.com>
-Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+The PRINTK() macro isn't really used.  Let's just remove it because it
+is ugly and out of date.
+
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpu_pm.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ fs/hpfs/buffer.c  |    1 -
+ fs/hpfs/hpfs_fn.h |    7 -------
+ 2 files changed, 8 deletions(-)
 
-diff -puN kernel/cpu_pm.c~kernel-cpu_pmc-fix-various-typos kernel/cpu_pm.c
---- a/kernel/cpu_pm.c~kernel-cpu_pmc-fix-various-typos
-+++ a/kernel/cpu_pm.c
-@@ -81,7 +81,7 @@ int cpu_pm_unregister_notifier(struct no
- EXPORT_SYMBOL_GPL(cpu_pm_unregister_notifier);
+diff -puN fs/hpfs/buffer.c~hpfs-remove-printk-macro fs/hpfs/buffer.c
+--- a/fs/hpfs/buffer.c~hpfs-remove-printk-macro
++++ a/fs/hpfs/buffer.c
+@@ -156,7 +156,6 @@ void hpfs_brelse4(struct quad_buffer_hea
  
- /**
-- * cpm_pm_enter - CPU low power entry notifier
-+ * cpu_pm_enter - CPU low power entry notifier
-  *
-  * Notifies listeners that a single CPU is entering a low power state that may
-  * cause some blocks in the same power domain as the cpu to reset.
-@@ -89,7 +89,7 @@ EXPORT_SYMBOL_GPL(cpu_pm_unregister_noti
-  * Must be called on the affected CPU with interrupts disabled.  Platform is
-  * responsible for ensuring that cpu_pm_enter is not called twice on the same
-  * CPU before cpu_pm_exit is called. Notified drivers can include VFP
-- * co-processor, interrupt controller and it's PM extensions, local CPU
-+ * co-processor, interrupt controller and its PM extensions, local CPU
-  * timers context save/restore which shouldn't be interrupted. Hence it
-  * must be called with interrupts disabled.
-  *
-@@ -115,13 +115,13 @@ int cpu_pm_enter(void)
- EXPORT_SYMBOL_GPL(cpu_pm_enter);
+ void hpfs_mark_4buffers_dirty(struct quad_buffer_head *qbh)
+ {
+-	PRINTK(("hpfs_mark_4buffers_dirty\n"));
+ 	memcpy(qbh->bh[0]->b_data, qbh->data, 512);
+ 	memcpy(qbh->bh[1]->b_data, qbh->data + 512, 512);
+ 	memcpy(qbh->bh[2]->b_data, qbh->data + 2 * 512, 512);
+diff -puN fs/hpfs/hpfs_fn.h~hpfs-remove-printk-macro fs/hpfs/hpfs_fn.h
+--- a/fs/hpfs/hpfs_fn.h~hpfs-remove-printk-macro
++++ a/fs/hpfs/hpfs_fn.h
+@@ -35,13 +35,6 @@
  
- /**
-- * cpm_pm_exit - CPU low power exit notifier
-+ * cpu_pm_exit - CPU low power exit notifier
-  *
-  * Notifies listeners that a single CPU is exiting a low power state that may
-  * have caused some blocks in the same power domain as the cpu to reset.
-  *
-  * Notified drivers can include VFP co-processor, interrupt controller
-- * and it's PM extensions, local CPU timers context save/restore which
-+ * and its PM extensions, local CPU timers context save/restore which
-  * shouldn't be interrupted. Hence it must be called with interrupts disabled.
-  *
-  * Return conditions are same as __raw_notifier_call_chain.
-@@ -139,7 +139,7 @@ int cpu_pm_exit(void)
- EXPORT_SYMBOL_GPL(cpu_pm_exit);
+ #define CHKCOND(x,y) if (!(x)) printk y
  
- /**
-- * cpm_cluster_pm_enter - CPU cluster low power entry notifier
-+ * cpu_cluster_pm_enter - CPU cluster low power entry notifier
-  *
-  * Notifies listeners that all cpus in a power domain are entering a low power
-  * state that may cause some blocks in the same power domain to reset.
-@@ -147,7 +147,7 @@ EXPORT_SYMBOL_GPL(cpu_pm_exit);
-  * Must be called after cpu_pm_enter has been called on all cpus in the power
-  * domain, and before cpu_pm_exit has been called on any cpu in the power
-  * domain. Notified drivers can include VFP co-processor, interrupt controller
-- * and it's PM extensions, local CPU timers context save/restore which
-+ * and its PM extensions, local CPU timers context save/restore which
-  * shouldn't be interrupted. Hence it must be called with interrupts disabled.
-  *
-  * Must be called with interrupts disabled.
-@@ -174,7 +174,7 @@ int cpu_cluster_pm_enter(void)
- EXPORT_SYMBOL_GPL(cpu_cluster_pm_enter);
- 
- /**
-- * cpm_cluster_pm_exit - CPU cluster low power exit notifier
-+ * cpu_cluster_pm_exit - CPU cluster low power exit notifier
-  *
-  * Notifies listeners that all cpus in a power domain are exiting form a
-  * low power state that may have caused some blocks in the same power domain
-@@ -183,7 +183,7 @@ EXPORT_SYMBOL_GPL(cpu_cluster_pm_enter);
-  * Must be called after cpu_pm_exit has been called on all cpus in the power
-  * domain, and before cpu_pm_exit has been called on any cpu in the power
-  * domain. Notified drivers can include VFP co-processor, interrupt controller
-- * and it's PM extensions, local CPU timers context save/restore which
-+ * and its PM extensions, local CPU timers context save/restore which
-  * shouldn't be interrupted. Hence it must be called with interrupts disabled.
-  *
-  * Return conditions are same as __raw_notifier_call_chain.
-_
-
-Patches currently in -mm which might be from nico@fluxnic.net are
-
-origin.patch
-
+-#ifdef DBG
+-#define PRINTK(x) printk x
+-#else
+-#undef PRINTK
+-#define PRINTK(x)
+-#endif
