@@ -1,250 +1,291 @@
 From: akpm@linux-foundation.org
-Subject: [merged] c-r-prctl-extend-pr_set_mm-to-set-up-more-mm_struct-entries-v2.patch removed from -mm tree
-Date: Fri, 01 Jun 2012 12:35:29 -0700
-Message-ID: <20120601193529.AA348A013D@akpm.mtv.corp.google.com>
+Subject: [merged] rapidio-add-dma-engine-support-for-rio-data-transfers.patch removed from -mm tree
+Date: Fri, 01 Jun 2012 12:35:03 -0700
+Message-ID: <20120601193503.D3340A013D@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:35737 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933395Ab2FATfc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:35:32 -0400
-Received: by lagr15 with SMTP id r15so139325lag.1
-        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:35:30 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:42188 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933336Ab2FATfF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:35:05 -0400
+Received: by vcbfl13 with SMTP id fl13so245573vcb.1
+        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:35:04 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gorcunov@openvz.org, avagin@openvz.org, kamezawa.hiroyu@jp.fujitsu.com, keescook@chromium.org, mtk.manpages@gmail.com, segoon@openwall.com, serge.hallyn@canonical.com, tj@kernel.org, xemul@parallels.com, mm-commits@vger.kernel.org
+To: alexandre.bounine@idt.com, dan.j.williams@intel.com, leoli@freescale.com, mporter@kernel.crashing.org, paul.gortmaker@windriver.com, vinod.koul@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: c/r: prctl: extend PR_SET_MM to set up more mm_struct entries
+     Subject: rapidio: add DMA engine support for RIO data transfers
 has been removed from the -mm tree.  Its filename was
-     c-r-prctl-extend-pr_set_mm-to-set-up-more-mm_struct-entries-v2.patch
+     rapidio-add-dma-engine-support-for-rio-data-transfers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Cyrill Gorcunov <gorcunov@openvz.org>
-Subject: c/r: prctl: extend PR_SET_MM to set up more mm_struct entries
+From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: rapidio: add DMA engine support for RIO data transfers
 
-During checkpoint we dump whole process memory to a file and the dump
-includes process stack memory.  But among stack data itself, the stack
-carries additional parameters such as command line arguments, environment
-data and auxiliary vector.
+Adds DMA Engine framework support into RapidIO subsystem.
 
-So when we do restore procedure and once we've restored stack data itself
-we need to setup mm_struct::arg_start/end, env_start/end, so restored
-process would be able to find command line arguments and environment data
-it had at checkpoint time.  The same applies to auxiliary vector.
+Uses DMA Engine DMA_SLAVE interface to generate data transfers to/from
+remote RapidIO target devices.
 
-For this reason additional PR_SET_MM_(ARG_START | ARG_END | ENV_START |
-ENV_END | AUXV) codes are introduced.
+Introduces RapidIO-specific wrapper for prep_slave_sg() interface with an
+extra parameter to pass target specific information.
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Andrew Vagin <avagin@openvz.org>
-Cc: Serge Hallyn <serge.hallyn@canonical.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Vasiliy Kulikov <segoon@openwall.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Uses scatterlist to describe local data buffer.  Address flat data buffer
+on a remote side.
+
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Acked-by: Vinod Koul <vinod.koul@linux.intel.com>
+Cc: Li Yang <leoli@freescale.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/prctl.h |    5 +
- kernel/sys.c          |  134 ++++++++++++++++++++++++----------------
- 2 files changed, 88 insertions(+), 51 deletions(-)
+ drivers/rapidio/Kconfig   |   14 ++++++
+ drivers/rapidio/rio.c     |   81 ++++++++++++++++++++++++++++++++++++
+ include/linux/dmaengine.h |   12 +++++
+ include/linux/rio.h       |   47 ++++++++++++++++++++
+ include/linux/rio_drv.h   |    9 ++++
+ 5 files changed, 163 insertions(+)
 
-diff -puN include/linux/prctl.h~c-r-prctl-extend-pr_set_mm-to-set-up-more-mm_struct-entries-v2 include/linux/prctl.h
---- a/include/linux/prctl.h~c-r-prctl-extend-pr_set_mm-to-set-up-more-mm_struct-entries-v2
-+++ a/include/linux/prctl.h
-@@ -113,6 +113,11 @@
- # define PR_SET_MM_START_STACK		5
- # define PR_SET_MM_START_BRK		6
- # define PR_SET_MM_BRK			7
-+# define PR_SET_MM_ARG_START		8
-+# define PR_SET_MM_ARG_END		9
-+# define PR_SET_MM_ENV_START		10
-+# define PR_SET_MM_ENV_END		11
-+# define PR_SET_MM_AUXV			12
+diff -puN drivers/rapidio/Kconfig~rapidio-add-dma-engine-support-for-rio-data-transfers drivers/rapidio/Kconfig
+--- a/drivers/rapidio/Kconfig~rapidio-add-dma-engine-support-for-rio-data-transfers
++++ a/drivers/rapidio/Kconfig
+@@ -22,6 +22,20 @@ config RAPIDIO_ENABLE_RX_TX_PORTS
+ 	  ports for Input/Output direction to allow other traffic
+ 	  than Maintenance transfers.
  
- /*
-  * Set specific pid that is allowed to ptrace the current task.
-diff -puN kernel/sys.c~c-r-prctl-extend-pr_set_mm-to-set-up-more-mm_struct-entries-v2 kernel/sys.c
---- a/kernel/sys.c~c-r-prctl-extend-pr_set_mm-to-set-up-more-mm_struct-entries-v2
-+++ a/kernel/sys.c
-@@ -1784,17 +1784,23 @@ SYSCALL_DEFINE1(umask, int, mask)
++config RAPIDIO_DMA_ENGINE
++	bool "DMA Engine support for RapidIO"
++	depends on RAPIDIO
++	select DMADEVICES
++	select DMA_ENGINE
++	help
++	  Say Y here if you want to use DMA Engine frameork for RapidIO data
++	  transfers to/from target RIO devices. RapidIO uses NREAD and
++	  NWRITE (NWRITE_R, SWRITE) requests to transfer data between local
++	  memory and memory on remote target device. You need a DMA controller
++	  capable to perform data transfers to/from RapidIO.
++
++	  If you are unsure about this, say Y here.
++
+ config RAPIDIO_DEBUG
+ 	bool "RapidIO subsystem debug messages"
+ 	depends on RAPIDIO
+diff -puN drivers/rapidio/rio.c~rapidio-add-dma-engine-support-for-rio-data-transfers drivers/rapidio/rio.c
+--- a/drivers/rapidio/rio.c~rapidio-add-dma-engine-support-for-rio-data-transfers
++++ a/drivers/rapidio/rio.c
+@@ -1121,6 +1121,87 @@ int rio_std_route_clr_table(struct rio_m
+ 	return 0;
  }
  
- #ifdef CONFIG_CHECKPOINT_RESTORE
-+static bool vma_flags_mismatch(struct vm_area_struct *vma,
-+			       unsigned long required,
-+			       unsigned long banned)
++#ifdef CONFIG_RAPIDIO_DMA_ENGINE
++
++static bool rio_chan_filter(struct dma_chan *chan, void *arg)
 +{
-+	return (vma->vm_flags & required) != required ||
-+		(vma->vm_flags & banned);
++	struct rio_dev *rdev = arg;
++
++	/* Check that DMA device belongs to the right MPORT */
++	return (rdev->net->hport ==
++		container_of(chan->device, struct rio_mport, dma));
 +}
 +
- static int prctl_set_mm(int opt, unsigned long addr,
- 			unsigned long arg4, unsigned long arg5)
- {
- 	unsigned long rlim = rlimit(RLIMIT_DATA);
--	unsigned long vm_req_flags;
--	unsigned long vm_bad_flags;
--	struct vm_area_struct *vma;
--	int error = 0;
- 	struct mm_struct *mm = current->mm;
-+	struct vm_area_struct *vma;
-+	int error;
- 
--	if (arg4 | arg5)
-+	if (arg5 || (arg4 && opt != PR_SET_MM_AUXV))
- 		return -EINVAL;
- 
- 	if (!capable(CAP_SYS_RESOURCE))
-@@ -1803,58 +1809,23 @@ static int prctl_set_mm(int opt, unsigne
- 	if (addr >= TASK_SIZE)
- 		return -EINVAL;
- 
-+	error = -EINVAL;
++/**
++ * rio_request_dma - request RapidIO capable DMA channel that supports
++ *   specified target RapidIO device.
++ * @rdev: RIO device control structure
++ *
++ * Returns pointer to allocated DMA channel or NULL if failed.
++ */
++struct dma_chan *rio_request_dma(struct rio_dev *rdev)
++{
++	dma_cap_mask_t mask;
++	struct dma_chan *dchan;
 +
- 	down_read(&mm->mmap_sem);
- 	vma = find_vma(mm, addr);
- 
--	if (opt != PR_SET_MM_START_BRK && opt != PR_SET_MM_BRK) {
--		/* It must be existing VMA */
--		if (!vma || vma->vm_start > addr)
--			goto out;
--	}
--
--	error = -EINVAL;
- 	switch (opt) {
- 	case PR_SET_MM_START_CODE:
-+		mm->start_code = addr;
-+		break;
- 	case PR_SET_MM_END_CODE:
--		vm_req_flags = VM_READ | VM_EXEC;
--		vm_bad_flags = VM_WRITE | VM_MAYSHARE;
--
--		if ((vma->vm_flags & vm_req_flags) != vm_req_flags ||
--		    (vma->vm_flags & vm_bad_flags))
--			goto out;
--
--		if (opt == PR_SET_MM_START_CODE)
--			mm->start_code = addr;
--		else
--			mm->end_code = addr;
-+		mm->end_code = addr;
- 		break;
--
- 	case PR_SET_MM_START_DATA:
--	case PR_SET_MM_END_DATA:
--		vm_req_flags = VM_READ | VM_WRITE;
--		vm_bad_flags = VM_EXEC | VM_MAYSHARE;
--
--		if ((vma->vm_flags & vm_req_flags) != vm_req_flags ||
--		    (vma->vm_flags & vm_bad_flags))
--			goto out;
--
--		if (opt == PR_SET_MM_START_DATA)
--			mm->start_data = addr;
--		else
--			mm->end_data = addr;
-+		mm->start_data = addr;
- 		break;
--
--	case PR_SET_MM_START_STACK:
--
--#ifdef CONFIG_STACK_GROWSUP
--		vm_req_flags = VM_READ | VM_WRITE | VM_GROWSUP;
--#else
--		vm_req_flags = VM_READ | VM_WRITE | VM_GROWSDOWN;
--#endif
--		if ((vma->vm_flags & vm_req_flags) != vm_req_flags)
--			goto out;
--
--		mm->start_stack = addr;
-+	case PR_SET_MM_END_DATA:
-+		mm->end_data = addr;
- 		break;
- 
- 	case PR_SET_MM_START_BRK:
-@@ -1881,16 +1852,77 @@ static int prctl_set_mm(int opt, unsigne
- 		mm->brk = addr;
- 		break;
- 
-+	/*
-+	 * If command line arguments and environment
-+	 * are placed somewhere else on stack, we can
-+	 * set them up here, ARG_START/END to setup
-+	 * command line argumets and ENV_START/END
-+	 * for environment.
-+	 */
-+	case PR_SET_MM_START_STACK:
-+	case PR_SET_MM_ARG_START:
-+	case PR_SET_MM_ARG_END:
-+	case PR_SET_MM_ENV_START:
-+	case PR_SET_MM_ENV_END:
-+		if (!vma) {
-+			error = -EFAULT;
-+			goto out;
-+		}
-+#ifdef CONFIG_STACK_GROWSUP
-+		if (vma_flags_mismatch(vma, VM_READ | VM_WRITE | VM_GROWSUP, 0))
-+#else
-+		if (vma_flags_mismatch(vma, VM_READ | VM_WRITE | VM_GROWSDOWN, 0))
-+#endif
-+			goto out;
-+		if (opt == PR_SET_MM_START_STACK)
-+			mm->start_stack = addr;
-+		else if (opt == PR_SET_MM_ARG_START)
-+			mm->arg_start = addr;
-+		else if (opt == PR_SET_MM_ARG_END)
-+			mm->arg_end = addr;
-+		else if (opt == PR_SET_MM_ENV_START)
-+			mm->env_start = addr;
-+		else if (opt == PR_SET_MM_ENV_END)
-+			mm->env_end = addr;
-+		break;
++	dma_cap_zero(mask);
++	dma_cap_set(DMA_SLAVE, mask);
++	dchan = dma_request_channel(mask, rio_chan_filter, rdev);
 +
-+	/*
-+	 * This doesn't move auxiliary vector itself
-+	 * since it's pinned to mm_struct, but allow
-+	 * to fill vector with new values. It's up
-+	 * to a caller to provide sane values here
-+	 * otherwise user space tools which use this
-+	 * vector might be unhappy.
-+	 */
-+	case PR_SET_MM_AUXV: {
-+		unsigned long user_auxv[AT_VECTOR_SIZE];
++	return dchan;
++}
++EXPORT_SYMBOL_GPL(rio_request_dma);
 +
-+		if (arg4 > sizeof(user_auxv))
-+			goto out;
-+		up_read(&mm->mmap_sem);
++/**
++ * rio_release_dma - release specified DMA channel
++ * @dchan: DMA channel to release
++ */
++void rio_release_dma(struct dma_chan *dchan)
++{
++	dma_release_channel(dchan);
++}
++EXPORT_SYMBOL_GPL(rio_release_dma);
 +
-+		if (copy_from_user(user_auxv, (const void __user *)addr, arg4))
-+			return -EFAULT;
++/**
++ * rio_dma_prep_slave_sg - RapidIO specific wrapper
++ *   for device_prep_slave_sg callback defined by DMAENGINE.
++ * @rdev: RIO device control structure
++ * @dchan: DMA channel to configure
++ * @data: RIO specific data descriptor
++ * @direction: DMA data transfer direction (TO or FROM the device)
++ * @flags: dmaengine defined flags
++ *
++ * Initializes RapidIO capable DMA channel for the specified data transfer.
++ * Uses DMA channel private extension to pass information related to remote
++ * target RIO device.
++ * Returns pointer to DMA transaction descriptor or NULL if failed.
++ */
++struct dma_async_tx_descriptor *rio_dma_prep_slave_sg(struct rio_dev *rdev,
++	struct dma_chan *dchan, struct rio_dma_data *data,
++	enum dma_transfer_direction direction, unsigned long flags)
++{
++	struct dma_async_tx_descriptor *txd = NULL;
++	struct rio_dma_ext rio_ext;
 +
-+		/* Make sure the last entry is always AT_NULL */
-+		user_auxv[AT_VECTOR_SIZE - 2] = 0;
-+		user_auxv[AT_VECTOR_SIZE - 1] = 0;
-+
-+		BUILD_BUG_ON(sizeof(user_auxv) != sizeof(mm->saved_auxv));
-+
-+		task_lock(current);
-+		memcpy(mm->saved_auxv, user_auxv, arg4);
-+		task_unlock(current);
-+
-+		return 0;
++	if (dchan->device->device_prep_slave_sg == NULL) {
++		pr_err("%s: prep_rio_sg == NULL\n", __func__);
++		return NULL;
 +	}
- 	default:
--		error = -EINVAL;
- 		goto out;
- 	}
++
++	rio_ext.destid = rdev->destid;
++	rio_ext.rio_addr_u = data->rio_addr_u;
++	rio_ext.rio_addr = data->rio_addr;
++	rio_ext.wr_type = data->wr_type;
++
++	txd = dmaengine_prep_rio_sg(dchan, data->sg, data->sg_len,
++					direction, flags, &rio_ext);
++
++	return txd;
++}
++EXPORT_SYMBOL_GPL(rio_dma_prep_slave_sg);
++
++#endif /* CONFIG_RAPIDIO_DMA_ENGINE */
++
+ static void rio_fixup_device(struct rio_dev *dev)
+ {
+ }
+diff -puN include/linux/dmaengine.h~rapidio-add-dma-engine-support-for-rio-data-transfers include/linux/dmaengine.h
+--- a/include/linux/dmaengine.h~rapidio-add-dma-engine-support-for-rio-data-transfers
++++ a/include/linux/dmaengine.h
+@@ -635,6 +635,18 @@ static inline struct dma_async_tx_descri
+ 						  dir, flags, NULL);
+ }
  
- 	error = 0;
--
- out:
- 	up_read(&mm->mmap_sem);
++#ifdef CONFIG_RAPIDIO_DMA_ENGINE
++struct rio_dma_ext;
++static inline struct dma_async_tx_descriptor *dmaengine_prep_rio_sg(
++	struct dma_chan *chan, struct scatterlist *sgl,	unsigned int sg_len,
++	enum dma_transfer_direction dir, unsigned long flags,
++	struct rio_dma_ext *rio_ext)
++{
++	return chan->device->device_prep_slave_sg(chan, sgl, sg_len,
++						  dir, flags, rio_ext);
++}
++#endif
++
+ static inline struct dma_async_tx_descriptor *dmaengine_prep_dma_cyclic(
+ 		struct dma_chan *chan, dma_addr_t buf_addr, size_t buf_len,
+ 		size_t period_len, enum dma_transfer_direction dir)
+diff -puN include/linux/rio.h~rapidio-add-dma-engine-support-for-rio-data-transfers include/linux/rio.h
+--- a/include/linux/rio.h~rapidio-add-dma-engine-support-for-rio-data-transfers
++++ a/include/linux/rio.h
+@@ -20,6 +20,9 @@
+ #include <linux/errno.h>
+ #include <linux/device.h>
+ #include <linux/rio_regs.h>
++#ifdef CONFIG_RAPIDIO_DMA_ENGINE
++#include <linux/dmaengine.h>
++#endif
+ 
+ #define RIO_NO_HOPCOUNT		-1
+ #define RIO_INVALID_DESTID	0xffff
+@@ -254,6 +257,9 @@ struct rio_mport {
+ 	u32 phys_efptr;
+ 	unsigned char name[40];
+ 	void *priv;		/* Master port private data */
++#ifdef CONFIG_RAPIDIO_DMA_ENGINE
++	struct dma_device	dma;
++#endif
+ };
+ 
+ /**
+@@ -395,6 +401,47 @@ union rio_pw_msg {
+ 	u32 raw[RIO_PW_MSG_SIZE/sizeof(u32)];
+ };
+ 
++#ifdef CONFIG_RAPIDIO_DMA_ENGINE
++
++/**
++ * enum rio_write_type - RIO write transaction types used in DMA transfers
++ *
++ * Note: RapidIO specification defines write (NWRITE) and
++ * write-with-response (NWRITE_R) data transfer operations.
++ * Existing DMA controllers that service RapidIO may use one of these operations
++ * for entire data transfer or their combination with only the last data packet
++ * requires response.
++ */
++enum rio_write_type {
++	RDW_DEFAULT,		/* default method used by DMA driver */
++	RDW_ALL_NWRITE,		/* all packets use NWRITE */
++	RDW_ALL_NWRITE_R,	/* all packets use NWRITE_R */
++	RDW_LAST_NWRITE_R,	/* last packet uses NWRITE_R, others - NWRITE */
++};
++
++struct rio_dma_ext {
++	u16 destid;
++	u64 rio_addr;	/* low 64-bits of 66-bit RapidIO address */
++	u8  rio_addr_u;  /* upper 2-bits of 66-bit RapidIO address */
++	enum rio_write_type wr_type; /* preferred RIO write operation type */
++};
++
++struct rio_dma_data {
++	/* Local data (as scatterlist) */
++	struct scatterlist	*sg;	/* I/O scatter list */
++	unsigned int		sg_len;	/* size of scatter list */
++	/* Remote device address (flat buffer) */
++	u64 rio_addr;	/* low 64-bits of 66-bit RapidIO address */
++	u8  rio_addr_u;  /* upper 2-bits of 66-bit RapidIO address */
++	enum rio_write_type wr_type; /* preferred RIO write operation type */
++};
++
++static inline struct rio_mport *dma_to_mport(struct dma_device *ddev)
++{
++	return container_of(ddev, struct rio_mport, dma);
++}
++#endif /* CONFIG_RAPIDIO_DMA_ENGINE */
++
+ /* Architecture and hardware-specific functions */
+ extern int rio_register_mport(struct rio_mport *);
+ extern int rio_open_inb_mbox(struct rio_mport *, void *, int, int);
+diff -puN include/linux/rio_drv.h~rapidio-add-dma-engine-support-for-rio-data-transfers include/linux/rio_drv.h
+--- a/include/linux/rio_drv.h~rapidio-add-dma-engine-support-for-rio-data-transfers
++++ a/include/linux/rio_drv.h
+@@ -377,6 +377,15 @@ void rio_unregister_driver(struct rio_dr
+ struct rio_dev *rio_dev_get(struct rio_dev *);
+ void rio_dev_put(struct rio_dev *);
+ 
++#ifdef CONFIG_RAPIDIO_DMA_ENGINE
++extern struct dma_chan *rio_request_dma(struct rio_dev *rdev);
++extern void rio_release_dma(struct dma_chan *dchan);
++extern struct dma_async_tx_descriptor *rio_dma_prep_slave_sg(
++		struct rio_dev *rdev, struct dma_chan *dchan,
++		struct rio_dma_data *data,
++		enum dma_transfer_direction direction, unsigned long flags);
++#endif
++
+ /**
+  * rio_name - Get the unique RIO device identifier
+  * @rdev: RIO device
+_
+
+Patches currently in -mm which might be from alexandre.bounine@idt.com are
+
+origin.patch
+rapidio-tsi721-add-dma-engine-support.patch
+
