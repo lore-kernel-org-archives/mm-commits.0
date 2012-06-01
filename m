@@ -1,114 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nilfs2-flush-disk-caches-in-syncing.patch removed from -mm tree
-Date: Fri, 01 Jun 2012 12:33:18 -0700
-Message-ID: <20120601193318.5993AA013D@akpm.mtv.corp.google.com>
+Subject: [merged] pipe-return-enoioctlcmd-instead-of-einval-on-unknown-ioctl-command.patch removed from -mm tree
+Date: Fri, 01 Jun 2012 12:33:16 -0700
+Message-ID: <20120601193316.59608A013D@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:56227 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759034Ab2FATdT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:33:19 -0400
-Received: by mail-qc0-f202.google.com with SMTP id p5so246756qcs.1
-        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:33:18 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:52540 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759028Ab2FATdR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:33:17 -0400
+Received: by mail-ey0-f202.google.com with SMTP id o13so111891eaa.1
+        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:33:17 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
+To: will.deacon@arm.com, alan@linux.intel.com, axboe@kernel.dk, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: flush disk caches in syncing
+     Subject: pipe: return -ENOIOCTLCMD instead of -EINVAL on unknown ioctl command
 has been removed from the -mm tree.  Its filename was
-     nilfs2-flush-disk-caches-in-syncing.patch
+     pipe-return-enoioctlcmd-instead-of-einval-on-unknown-ioctl-command.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2: flush disk caches in syncing
+From: Will Deacon <will.deacon@arm.com>
+Subject: pipe: return -ENOIOCTLCMD instead of -EINVAL on unknown ioctl command
 
-There are two cases that the cache flush is needed to avoid data loss
-against unexpected hang or power failure.  One is sync file function (i.e.
- nilfs_sync_file) and another is checkpointing ioctl.
+As described in commit 07d106d0a ("vfs: fix up ENOIOCTLCMD error
+handling"), drivers should return -ENOIOCTLCMD if they receive an ioctl
+command which they don't understand.  Doing so will result in -ENOTTY
+being returned to userspace, which matches the behaviour of the compat
+layer if it fails to translate an ioctl command.
 
-This issues a cache flush request to device for such cases if barrier
-mount option is enabled, and makes sure data really is on persistent
-storage on their completion.
+This patch fixes the pipe ioctl to return -ENOIOCTLCMD instead of -EINVAL
+when passed an unknown ioctl command.
 
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Signed-off-by: Will Deacon <will.deacon@arm.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Acked-by: Alan Cox <alan@linux.intel.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/file.c  |   24 ++++++++++++++----------
- fs/nilfs2/ioctl.c |    8 +++++++-
- 2 files changed, 21 insertions(+), 11 deletions(-)
+ fs/pipe.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/nilfs2/file.c~nilfs2-flush-disk-caches-in-syncing fs/nilfs2/file.c
---- a/fs/nilfs2/file.c~nilfs2-flush-disk-caches-in-syncing
-+++ a/fs/nilfs2/file.c
-@@ -37,6 +37,7 @@ int nilfs_sync_file(struct file *file, l
- 	 * This function should be implemented when the writeback function
- 	 * will be implemented.
- 	 */
-+	struct the_nilfs *nilfs;
- 	struct inode *inode = file->f_mapping->host;
- 	int err;
+diff -puN fs/pipe.c~pipe-return-enoioctlcmd-instead-of-einval-on-unknown-ioctl-command fs/pipe.c
+--- a/fs/pipe.c~pipe-return-enoioctlcmd-instead-of-einval-on-unknown-ioctl-command
++++ a/fs/pipe.c
+@@ -693,7 +693,7 @@ static long pipe_ioctl(struct file *filp
  
-@@ -45,18 +46,21 @@ int nilfs_sync_file(struct file *file, l
- 		return err;
- 	mutex_lock(&inode->i_mutex);
- 
--	if (!nilfs_inode_dirty(inode)) {
--		mutex_unlock(&inode->i_mutex);
--		return 0;
-+	if (nilfs_inode_dirty(inode)) {
-+		if (datasync)
-+			err = nilfs_construct_dsync_segment(inode->i_sb, inode,
-+							    0, LLONG_MAX);
-+		else
-+			err = nilfs_construct_segment(inode->i_sb);
+ 			return put_user(count, (int __user *)arg);
+ 		default:
+-			return -EINVAL;
++			return -ENOIOCTLCMD;
  	}
--
--	if (datasync)
--		err = nilfs_construct_dsync_segment(inode->i_sb, inode, 0,
--						    LLONG_MAX);
--	else
--		err = nilfs_construct_segment(inode->i_sb);
--
- 	mutex_unlock(&inode->i_mutex);
-+
-+	nilfs = inode->i_sb->s_fs_info;
-+	if (!err && nilfs_test_opt(nilfs, BARRIER)) {
-+		err = blkdev_issue_flush(inode->i_sb->s_bdev, GFP_KERNEL, NULL);
-+		if (err != -EIO)
-+			err = 0;
-+	}
- 	return err;
  }
  
-diff -puN fs/nilfs2/ioctl.c~nilfs2-flush-disk-caches-in-syncing fs/nilfs2/ioctl.c
---- a/fs/nilfs2/ioctl.c~nilfs2-flush-disk-caches-in-syncing
-+++ a/fs/nilfs2/ioctl.c
-@@ -692,8 +692,14 @@ static int nilfs_ioctl_sync(struct inode
- 	if (ret < 0)
- 		return ret;
- 
-+	nilfs = inode->i_sb->s_fs_info;
-+	if (nilfs_test_opt(nilfs, BARRIER)) {
-+		ret = blkdev_issue_flush(inode->i_sb->s_bdev, GFP_KERNEL, NULL);
-+		if (ret == -EIO)
-+			return ret;
-+	}
-+
- 	if (argp != NULL) {
--		nilfs = inode->i_sb->s_fs_info;
- 		down_read(&nilfs->ns_segctor_sem);
- 		cno = nilfs->ns_cno - 1;
- 		up_read(&nilfs->ns_segctor_sem);
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
+Patches currently in -mm which might be from will.deacon@arm.com are
 
 origin.patch
+linux-next.patch
 
