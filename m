@@ -1,98 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [folded] syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch removed from -mm tree
-Date: Thu, 31 May 2012 16:20:27 -0700
-Message-ID: <20120531232027.9747FA009B@akpm.mtv.corp.google.com>
+Subject: [merged] um-kernel-trapc-port-oom-changes-to-handle_page_fault.patch removed from -mm tree
+Date: Fri, 01 Jun 2012 12:32:45 -0700
+Message-ID: <20120601193245.79204A013D@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:33366 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758622Ab2EaXU3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 May 2012 19:20:29 -0400
-Received: by wibhn6 with SMTP id hn6so2961wib.1
-        for <mm-commits@vger.kernel.org>; Thu, 31 May 2012 16:20:28 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:37055 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757764Ab2FATcq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 15:32:46 -0400
+Received: by qabg24 with SMTP id g24so93176qab.1
+        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 12:32:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, gorcunov@openvz.org, hpa@zytor.com, mm-commits@vger.kernel.org
+To: consul.kautuk@gmail.com, jdike@addtoit.com, richard@nod.at, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix
+     Subject: um/kernel/trap.c: port OOM changes to handle_page_fault()
 has been removed from the -mm tree.  Its filename was
-     syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix.patch
+     um-kernel-trapc-port-oom-changes-to-handle_page_fault.patch
 
-This patch was dropped because it was folded into syscalls-x86-add-__nr_kcmp-syscall-v8.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix
+From: Kautuk Consul <consul.kautuk@gmail.com>
+Subject: um/kernel/trap.c: port OOM changes to handle_page_fault()
 
-tweak comment text
+Commit d065bd810b6deb6 ("mm: retry page fault when blocking on disk
+transfer") and commit 37b23e0525 ("x86,mm: make pagefault killable")
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+The above commits introduced changes into the x86 pagefault handler
+for making the page fault handler retryable as well as killable.
+
+These changes reduce the mmap_sem hold time, which is crucial
+during OOM killer invocation.
+
+Port these changes to um.
+
+Signed-off-by: Kautuk Consul <consul.kautuk@gmail.com>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Richard Weinberger <richard@nod.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kcmp.c |   24 +++++++++++-------------
- 1 file changed, 11 insertions(+), 13 deletions(-)
+ arch/um/kernel/trap.c |   24 +++++++++++++++++++-----
+ 1 file changed, 19 insertions(+), 5 deletions(-)
 
-diff -puN kernel/kcmp.c~syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix kernel/kcmp.c
---- a/kernel/kcmp.c~syscalls-x86-add-__nr_kcmp-syscall-v8-comment-update-fix
-+++ a/kernel/kcmp.c
-@@ -14,21 +14,19 @@
- #include <asm/unistd.h>
+diff -puN arch/um/kernel/trap.c~um-kernel-trapc-port-oom-changes-to-handle_page_fault arch/um/kernel/trap.c
+--- a/arch/um/kernel/trap.c~um-kernel-trapc-port-oom-changes-to-handle_page_fault
++++ a/arch/um/kernel/trap.c
+@@ -30,6 +30,8 @@ int handle_page_fault(unsigned long addr
+ 	pmd_t *pmd;
+ 	pte_t *pte;
+ 	int err = -EFAULT;
++	unsigned int flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE |
++				 (is_write ? FAULT_FLAG_WRITE : 0);
  
- /*
-- * We don't expose real in-memory order of objects for security
-- * reasons, still the comparison results should be suitable for
-- * sorting. Thus, we obfuscate kernel pointers values and compare
-- * the production instead.
-+ * We don't expose the real in-memory order of objects for security reasons.
-+ * But still the comparison results should be suitable for sorting. So we
-+ * obfuscate kernel pointers values and compare the production instead.
-  *
-- * The obfuscation is done in two steps. First -- we use xor on
-- * kernel pointer with random value, which puts pointer into
-- * a new position in reordered space. Second -- we multiply
-- * the xor production with big odd random number to permute
-- * bits even more (the odd multiplier guarantees that the product
-- * is unique ever after the high bits are truncated, since any odd
-- * number is relative prime to 2^n).
-+ * The obfuscation is done in two steps. First we xor the kernel pointer with
-+ * a random value, which puts pointer into a new position in a reordered space.
-+ * Secondly we multiply the xor production with a large odd random number to
-+ * permute its bits even more (the odd multiplier guarantees that the product
-+ * is unique ever after the high bits are truncated, since any odd number is
-+ * relative prime to 2^n).
-  *
-- * Note also the obfuscation itself is invisible to user-space
-- * and if needed it can be changed to any suitable scheme.
-+ * Note also that the obfuscation itself is invisible to userspace and if needed
-+ * it can be changed to an alternate scheme.
-  */
- static unsigned long cookies[KCMP_TYPES][2] __read_mostly;
+ 	*code_out = SEGV_MAPERR;
  
+@@ -40,6 +42,7 @@ int handle_page_fault(unsigned long addr
+ 	if (in_atomic())
+ 		goto out_nosemaphore;
+ 
++retry:
+ 	down_read(&mm->mmap_sem);
+ 	vma = find_vma(mm, address);
+ 	if (!vma)
+@@ -65,7 +68,11 @@ good_area:
+ 	do {
+ 		int fault;
+ 
+-		fault = handle_mm_fault(mm, vma, address, is_write ? FAULT_FLAG_WRITE : 0);
++		fault = handle_mm_fault(mm, vma, address, flags);
++
++		if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
++			goto out_nosemaphore;
++
+ 		if (unlikely(fault & VM_FAULT_ERROR)) {
+ 			if (fault & VM_FAULT_OOM) {
+ 				goto out_of_memory;
+@@ -75,10 +82,17 @@ good_area:
+ 			}
+ 			BUG();
+ 		}
+-		if (fault & VM_FAULT_MAJOR)
+-			current->maj_flt++;
+-		else
+-			current->min_flt++;
++		if (flags & FAULT_FLAG_ALLOW_RETRY) {
++			if (fault & VM_FAULT_MAJOR)
++				current->maj_flt++;
++			else
++				current->min_flt++;
++			if (fault & VM_FAULT_RETRY) {
++				flags &= ~FAULT_FLAG_ALLOW_RETRY;
++
++				goto retry;
++			}
++		}
+ 
+ 		pgd = pgd_offset(mm, address);
+ 		pud = pud_offset(pgd, address);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from consul.kautuk@gmail.com are
 
 origin.patch
-security-keys-keyctlc-suppress-memory-allocation-failure-warning.patch
-isdn-add-missing-kern_cont.patch
-kernel-irq-managec-use-the-pr_foo-infrastructure-to-prefix-printks.patch
-vsprintf-correctly-handle-width-when-flag-used-in-%p-format.patch
-vsprintf-further-optimize-decimal-conversion.patch
-proc-clean-up-proc-pid-environ-handling.patch
-kernel-cpuc-document-clear_tasks_mm_cpumask.patch
-ipc-mqueue-improve-performance-of-send-recv.patch
-ipc-mqueue-correct-mq_attr_ok-test.patch
-ipc-mqueue-strengthen-checks-on-mqueue-creation.patch
-tools-selftests-add-mq_perf_tests.patch
-ipc-mqueue-add-rbtree-node-caching-support.patch
-pidns-make-killed-children-autoreap.patch
-fs-nls-add-apple-nls.patch
-eventfd-change-int-to-__u64-in-eventfd_signal.patch
-syscalls-x86-add-__nr_kcmp-syscall-v8.patch
 
