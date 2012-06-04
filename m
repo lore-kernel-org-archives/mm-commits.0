@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fs-nls-makefile-remove-bogus-config_-assignments.patch added to -mm tree
-Date: Fri, 01 Jun 2012 14:58:00 -0700
-Message-ID: <20120601215800.51A3DA0186@akpm.mtv.corp.google.com>
+Subject: + revert-selinux-check-open-on-truncate-calls.patch added to -mm tree
+Date: Mon, 04 Jun 2012 15:32:03 -0700
+Message-ID: <20120604223205.5C210A00E2@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:43931 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933280Ab2FAV6G (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Jun 2012 17:58:06 -0400
-Received: by lagr15 with SMTP id r15so143508lag.1
-        for <mm-commits@vger.kernel.org>; Fri, 01 Jun 2012 14:58:01 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:55403 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756083Ab2FDWcI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jun 2012 18:32:08 -0400
+Received: by fat25 with SMTP id 25so40285fat.1
+        for <mm-commits@vger.kernel.org>; Mon, 04 Jun 2012 15:32:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, phcoder@gmail.com, yinghai@kernel.org
+Cc: akpm@linux-foundation.org, eparis@parisplace.org, james.l.morris@oracle.com, sds@tycho.nsa.gov
 
 
 The patch titled
-     Subject: fs/nls/Makefile: remove bogus CONFIG_ assignments
+     Subject: revert "SELinux: check OPEN on truncate calls"
 has been added to the -mm tree.  Its filename is
-     fs-nls-makefile-remove-bogus-config_-assignments.patch
+     revert-selinux-check-open-on-truncate-calls.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,50 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs/nls/Makefile: remove bogus CONFIG_ assignments
+Subject: revert "SELinux: check OPEN on truncate calls"
 
-I assume these were debug things whcih snuck through.
+This makes FC6 sshd refuse connections - "X11 forwarding request failed on
+channel 0".  I can't log in on the console either.
 
-Reported-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Vladimir Serbinenko <phcoder@gmail.com>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: James Morris <james.l.morris@oracle.com>
+Cc: Eric Paris <eparis@parisplace.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nls/Makefile |   12 ------------
- 1 file changed, 12 deletions(-)
+ security/selinux/hooks.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN fs/nls/Makefile~fs-nls-makefile-remove-bogus-config_-assignments fs/nls/Makefile
---- a/fs/nls/Makefile~fs-nls-makefile-remove-bogus-config_-assignments
-+++ a/fs/nls/Makefile
-@@ -2,18 +2,6 @@
- # Makefile for native language support
- #
+diff -puN security/selinux/hooks.c~revert-selinux-check-open-on-truncate-calls security/selinux/hooks.c
+--- a/security/selinux/hooks.c~revert-selinux-check-open-on-truncate-calls
++++ a/security/selinux/hooks.c
+@@ -2703,7 +2703,6 @@ static int selinux_inode_setattr(struct 
+ {
+ 	const struct cred *cred = current_cred();
+ 	unsigned int ia_valid = iattr->ia_valid;
+-	__u32 av = FILE__WRITE;
  
--CONFIG_NLS_MACCELTIC=m
--CONFIG_NLS_MACCENTEURO=m
--CONFIG_NLS_MACCROATIAN=m
--CONFIG_NLS_MACCYRILLIC=m
--CONFIG_NLS_MACGAELIC=m
--CONFIG_NLS_MACGREEK=m
--CONFIG_NLS_MACICELAND=m
--CONFIG_NLS_MACINUIT=m
--CONFIG_NLS_MACROMANIAN=m
--CONFIG_NLS_MACROMAN=m
--CONFIG_NLS_MACTURKISH=m
+ 	/* ATTR_FORCE is just used for ATTR_KILL_S[UG]ID. */
+ 	if (ia_valid & ATTR_FORCE) {
+@@ -2717,10 +2716,7 @@ static int selinux_inode_setattr(struct 
+ 			ATTR_ATIME_SET | ATTR_MTIME_SET | ATTR_TIMES_SET))
+ 		return dentry_has_perm(cred, dentry, FILE__SETATTR);
+ 
+-	if (ia_valid & ATTR_SIZE)
+-		av |= FILE__OPEN;
 -
- obj-$(CONFIG_NLS)		+= nls_base.o
+-	return dentry_has_perm(cred, dentry, av);
++	return dentry_has_perm(cred, dentry, FILE__WRITE);
+ }
  
- obj-$(CONFIG_NLS_CODEPAGE_437)	+= nls_cp437.o
+ static int selinux_inode_getattr(struct vfsmount *mnt, struct dentry *dentry)
 _
-Subject: Subject: fs/nls/Makefile: remove bogus CONFIG_ assignments
+Subject: Subject: revert "SELinux: check OPEN on truncate calls"
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+revert-selinux-check-open-on-truncate-calls.patch
 linux-next.patch
 linux-next-git-rejects.patch
 i-need-old-gcc.patch
