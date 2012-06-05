@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + umem-fix-up-unplugging.patch added to -mm tree
-Date: Tue, 05 Jun 2012 16:23:23 -0700
-Message-ID: <20120605232324.069B3A0297@akpm.mtv.corp.google.com>
+Subject: + documentation-update-how-page-cluster-affects-swap-i-o.patch added to -mm tree
+Date: Tue, 05 Jun 2012 16:46:20 -0700
+Message-ID: <20120605234620.E6683A018B@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:44838 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751888Ab2FEXXY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2012 19:23:24 -0400
-Received: by yenl3 with SMTP id l3so655622yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 05 Jun 2012 16:23:24 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:59051 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751951Ab2FEXqX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2012 19:46:23 -0400
+Received: by wgbdt11 with SMTP id dt11so363731wgb.1
+        for <mm-commits@vger.kernel.org>; Tue, 05 Jun 2012 16:46:21 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: glorioustao@gmail.com, Tao.Guo@emc.com, axboe@kernel.dk, neilb@suse.de, stable@vger.kernel.org
+Cc: ehrhardt@linux.vnet.ibm.com, axboe@kernel.dk, hughd@google.com, minchan@kernel.org
 
 
 The patch titled
-     Subject: umem: fix up unplugging
+     Subject: documentation: update how page-cluster affects swap I/O
 has been added to the -mm tree.  Its filename is
-     umem-fix-up-unplugging.patch
+     documentation-update-how-page-cluster-affects-swap-i-o.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,59 +33,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tao Guo <glorioustao@gmail.com>
-Subject: umem: fix up unplugging
+From: Christian Ehrhardt <ehrhardt@linux.vnet.ibm.com>
+Subject: documentation: update how page-cluster affects swap I/O
 
-In 7eaceaccab5f40bbf ("block: remove per-queue plugging"), Jens removed
-the whole mm_unplug_device() function, which used to be the trigger to
-make umem start to work.
+Fix of the documentation of /proc/sys/vm/page-cluster to match the
+behavior of the code and add some comments about what the tunable will
+change in that behavior.
 
-We need to implement unplugging to make umem start to work, or I/O will
-never be triggered.
-
-Signed-off-by: Tao Guo <Tao.Guo@emc.com>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Christian Ehrhardt <ehrhardt@linux.vnet.ibm.com>
+Acked-by: Jens Axboe <axboe@kernel.dk>
+Reviewed-by: Minchan Kim <minchan@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/umem.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ Documentation/sysctl/vm.txt |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN drivers/block/umem.c~umem-fix-up-unplugging drivers/block/umem.c
---- a/drivers/block/umem.c~umem-fix-up-unplugging
-+++ a/drivers/block/umem.c
-@@ -513,6 +513,15 @@ static void process_page(unsigned long d
- 	}
- }
+diff -puN Documentation/sysctl/vm.txt~documentation-update-how-page-cluster-affects-swap-i-o Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~documentation-update-how-page-cluster-affects-swap-i-o
++++ a/Documentation/sysctl/vm.txt
+@@ -574,16 +574,24 @@ of physical RAM.  See above.
  
-+static void mm_unplug(struct blk_plug_cb *cb)
-+{
-+	struct cardinfo *card = cb->q->queuedata;
-+
-+	spin_lock_irq(&card->lock);
-+	activate(card);
-+	spin_unlock_irq(&card->lock);
-+}
-+
- static void mm_make_request(struct request_queue *q, struct bio *bio)
- {
- 	struct cardinfo *card = q->queuedata;
-@@ -523,6 +532,8 @@ static void mm_make_request(struct reque
- 	*card->biotail = bio;
- 	bio->bi_next = NULL;
- 	card->biotail = &bio->bi_next;
-+	if (bio->bi_rw & REQ_SYNC || !blk_check_plugged(q, mm_unplug))
-+		activate(card);
- 	spin_unlock_irq(&card->lock);
+ page-cluster
  
- 	return;
+-page-cluster controls the number of pages which are written to swap in
+-a single attempt.  The swap I/O size.
++page-cluster controls the number of pages up to which consecutive pages
++are read in from swap in a single attempt. This is the swap counterpart
++to page cache readahead.
++The mentioned consecutivity is not in terms of virtual/physical addresses,
++but consecutive on swap space - that means they were swapped out together.
+ 
+ It is a logarithmic value - setting it to zero means "1 page", setting
+ it to 1 means "2 pages", setting it to 2 means "4 pages", etc.
++Zero disables swap readahead completely.
+ 
+ The default value is three (eight pages at a time).  There may be some
+ small benefits in tuning this to a different value if your workload is
+ swap-intensive.
+ 
++Lower values mean lower latencies for initial faults, but at the same time
++extra faults and I/O delays for following faults if they would have been part of
++that consecutive pages readahead would have brought in.
++
+ =============================================================
+ 
+ panic_on_oom
 _
-Subject: Subject: umem: fix up unplugging
+Subject: Subject: documentation: update how page-cluster affects swap I/O
 
-Patches currently in -mm which might be from glorioustao@gmail.com are
+Patches currently in -mm which might be from ehrhardt@linux.vnet.ibm.com are
 
-block-move-general-unplug-callback-function-from-md-raid-to-blk-core.patch
-umem-fix-up-unplugging.patch
+swap-allow-swap-readahead-to-be-merged.patch
+documentation-update-how-page-cluster-affects-swap-i-o.patch
 
