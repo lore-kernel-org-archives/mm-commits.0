@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + radix-tree-fix-contiguous-iterator.patch added to -mm tree
-Date: Tue, 05 Jun 2012 13:48:55 -0700
-Message-ID: <20120605204855.AF74FA02AE@akpm.mtv.corp.google.com>
+Subject: + vmalloc-walk-vmap_areas-by-sorted-list-instead-of-rb_next.patch added to -mm tree
+Date: Tue, 05 Jun 2012 15:36:37 -0700
+Message-ID: <20120605223639.87D68A0274@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:57248 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752698Ab2FEUs5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2012 16:48:57 -0400
-Received: by bkty5 with SMTP id y5so353542bkt.1
-        for <mm-commits@vger.kernel.org>; Tue, 05 Jun 2012 13:48:56 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:55603 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751163Ab2FEWgm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2012 18:36:42 -0400
+Received: by lagr15 with SMTP id r15so358261lag.1
+        for <mm-commits@vger.kernel.org>; Tue, 05 Jun 2012 15:36:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khlebnikov@openvz.org, jmdebruin@xmsnet.nl, linux@rainbow-software.org, stable@vger.kernel.org, toralf.foerster@gmx.de
+Cc: honkiko@gmail.com, hannes@cmpxchg.org, npiggin@kernel.dk
 
 
 The patch titled
-     From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+     Subject: vmalloc: walk vmap_areas by sorted list instead of rb_next()
 has been added to the -mm tree.  Its filename is
-     radix-tree-fix-contiguous-iterator.patch
+     vmalloc-walk-vmap_areas-by-sorted-list-instead-of-rb_next.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,66 +33,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: radix-tree: fix contiguous iterator
+From: Hong zhi guo <honkiko@gmail.com>
+Subject: vmalloc: walk vmap_areas by sorted list instead of rb_next()
 
-Fix a bug in the macro radix_tree_for_each_contig().
+There's a walk by repeating rb_next to find a suitable hole.  Could be
+simply replaced by walk on the sorted vmap_area_list.  More simpler and
+efficient.
 
-If radix_tree_next_slot() sees NULL in next slot it returns NULL, but
-following radix_tree_next_chunk() switches iterating into next chunk.  As
-result iterating becomes non-contiguous and breaks vfs "splice" and all
-its users.
+Mutation of the list and tree only happens in pair within
+__insert_vmap_area and __free_vmap_area, under protection of
+vmap_area_lock.  The patch code is also under vmap_area_lock, so the list
+walk is safe, and consistent with the tree walk.
 
-More details at https://lkml.org/lkml/2012/6/5/64
+Tested on SMP by repeating batch of vmalloc anf vfree for random sizes and
+rounds for hours.
 
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Reported-by: Hans de Bruin <jmdebruin@xmsnet.nl>
-Reported-by: Ondrej Zary <linux@rainbow-software.org>
-Reported-by: Toralf Foerster <toralf.foerster@gmx.de>
-Cc: <stable@vger.kernel.org>	[3.4.x]
+Signed-off-by: Hong Zhiguo <honkiko@gmail.com>
+Cc: Nick Piggin <npiggin@kernel.dk>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/radix-tree.h |    5 ++++-
- lib/radix-tree.c           |    3 +++
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ mm/vmalloc.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/radix-tree.h~radix-tree-fix-contiguous-iterator include/linux/radix-tree.h
---- a/include/linux/radix-tree.h~radix-tree-fix-contiguous-iterator
-+++ a/include/linux/radix-tree.h
-@@ -368,8 +368,11 @@ radix_tree_next_slot(void **slot, struct
- 			iter->index++;
- 			if (likely(*slot))
- 				return slot;
--			if (flags & RADIX_TREE_ITER_CONTIG)
-+			if (flags & RADIX_TREE_ITER_CONTIG) {
-+				/* forbid switching to the next chunk */
-+				iter->next_index = 0;
- 				break;
-+			}
- 		}
+diff -puN mm/vmalloc.c~vmalloc-walk-vmap_areas-by-sorted-list-instead-of-rb_next mm/vmalloc.c
+--- a/mm/vmalloc.c~vmalloc-walk-vmap_areas-by-sorted-list-instead-of-rb_next
++++ a/mm/vmalloc.c
+@@ -413,11 +413,11 @@ nocache:
+ 		if (addr + size - 1 < addr)
+ 			goto overflow;
+ 
+-		n = rb_next(&first->rb_node);
+-		if (n)
+-			first = rb_entry(n, struct vmap_area, rb_node);
+-		else
++		if (list_is_last(&first->list, &vmap_area_list))
+ 			goto found;
++
++		first = list_entry(first->list.next,
++				struct vmap_area, list);
  	}
- 	return NULL;
-diff -puN lib/radix-tree.c~radix-tree-fix-contiguous-iterator lib/radix-tree.c
---- a/lib/radix-tree.c~radix-tree-fix-contiguous-iterator
-+++ a/lib/radix-tree.c
-@@ -686,6 +686,9 @@ void **radix_tree_next_chunk(struct radi
- 	 * during iterating; it can be zero only at the beginning.
- 	 * And we cannot overflow iter->next_index in a single step,
- 	 * because RADIX_TREE_MAP_SHIFT < BITS_PER_LONG.
-+	 *
-+	 * This condition also used by radix_tree_next_slot() to stop
-+	 * contiguous iterating, and forbid swithing to the next chunk.
- 	 */
- 	index = iter->next_index;
- 	if (!index && iter->index)
+ 
+ found:
 _
-Subject: From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Subject: Subject: vmalloc: walk vmap_areas by sorted list instead of rb_next()
 
-Patches currently in -mm which might be from khlebnikov@openvz.org are
+Patches currently in -mm which might be from honkiko@gmail.com are
 
-linux-next.patch
-radix-tree-fix-contiguous-iterator.patch
-mm-correctly-synchronize-rss-counters-at-exit-exec.patch
-c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-update-after-mm-num_exe_file_vmas-removal.patch
+vmalloc-walk-vmap_areas-by-sorted-list-instead-of-rb_next.patch
 
