@@ -1,181 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-thermal-spear_thermalc-add-device-tree-probing-capability.patch removed from -mm tree
-Date: Tue, 05 Jun 2012 12:56:15 -0700
-Message-ID: <20120605195615.61444A028F@akpm.mtv.corp.google.com>
+Subject: [merged] cpuidle-remove-unused-hrtimer_peek_ahead_timers-call.patch removed from -mm tree
+Date: Tue, 05 Jun 2012 12:56:10 -0700
+Message-ID: <20120605195610.8E11BA028F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-wg0-f74.google.com ([74.125.82.74]:59523 "EHLO
 	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752099Ab2FET4R (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2012 15:56:17 -0400
-Received: by mail-wg0-f74.google.com with SMTP id dt11so356202wgb.1
-        for <mm-commits@vger.kernel.org>; Tue, 05 Jun 2012 12:56:16 -0700 (PDT)
+	with ESMTP id S1752054Ab2FET4M (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2012 15:56:12 -0400
+Received: by wgbdt11 with SMTP id dt11so356202wgb.1
+        for <mm-commits@vger.kernel.org>; Tue, 05 Jun 2012 12:56:11 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: viresh.linux@gmail.com, dan.carpenter@oracle.com, lenb@kernel.org, vincenzo.frascino@st.com, viresh.kumar@st.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, arjan@infradead.org, arjan@linux.intel.com, deepthi@linux.vnet.ibm.com, g.trinabh@gmail.com, khilman@ti.com, len.brown@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/thermal/spear_thermal.c: add Device Tree probing capability
+     Subject: cpuidle: remove unused hrtimer_peek_ahead_timers() call
 has been removed from the -mm tree.  Its filename was
-     drivers-thermal-spear_thermalc-add-device-tree-probing-capability.patch
+     cpuidle-remove-unused-hrtimer_peek_ahead_timers-call.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Viresh Kumar <viresh.linux@gmail.com>
-Subject: drivers/thermal/spear_thermal.c: add Device Tree probing capability
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: cpuidle: remove unused hrtimer_peek_ahead_timers() call
 
-SPEAr platforms now support DT and so must convert all drivers to support
-DT.  This patch adds DT probing support for SPEAr thermal sensor driver
-and updates its documentation too.
+ cpuidle: remove unused hrtimer_peek_ahead_timers() call
 
-Also, as SPEAr is the only user of this driver and is only available with
-DT, make this an only DT driver.  So, platform_data is completely removed
-and passed via DT now.
+  commit 9a6558371bcd01c2973b7638181db4ccc34eab4f
+  Author: Arjan van de Ven <arjan@linux.intel.com>
+  Date:   Sun Nov 9 12:45:10 2008 -0800
 
-Signed-off-by: Viresh Kumar <viresh.kumar@st.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Reviewed-by: Vincenzo Frascino <vincenzo.frascino@st.com>
+     regression: disable timer peek-ahead for 2.6.28
+
+     It's showing up as regressions; disabling it very likely just papers
+     over an underlying issue, but time is running out for 2.6.28, lets get
+     back to this for 2.6.29
+
+ Many years has passed since 2008, so it seems ok to remove whole `#if 0' block.
+
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Kevin Hilman <khilman@ti.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Trinabh Gupta <g.trinabh@gmail.com>
+Cc: Deepthi Dharwar <deepthi@linux.vnet.ibm.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/devicetree/bindings/thermal/spear-thermal.txt |   14 +++++
- drivers/thermal/Kconfig                                     |    1 
- drivers/thermal/spear_thermal.c                             |   26 ++++++----
- include/linux/platform_data/spear_thermal.h                 |   26 ----------
- 4 files changed, 31 insertions(+), 36 deletions(-)
+ drivers/cpuidle/cpuidle.c |    9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff -puN /dev/null Documentation/devicetree/bindings/thermal/spear-thermal.txt
---- /dev/null
-+++ a/Documentation/devicetree/bindings/thermal/spear-thermal.txt
-@@ -0,0 +1,14 @@
-+* SPEAr Thermal
-+
-+Required properties:
-+- compatible : "st,thermal-spear1340"
-+- reg : Address range of the thermal registers
-+- st,thermal-flags: flags used to enable thermal sensor
-+
-+Example:
-+
-+	thermal@fc000000 {
-+		compatible = "st,thermal-spear1340";
-+		reg = <0xfc000000 0x1000>;
-+		st,thermal-flags = <0x7000>;
-+	};
-diff -puN drivers/thermal/Kconfig~drivers-thermal-spear_thermalc-add-device-tree-probing-capability drivers/thermal/Kconfig
---- a/drivers/thermal/Kconfig~drivers-thermal-spear_thermalc-add-device-tree-probing-capability
-+++ a/drivers/thermal/Kconfig
-@@ -23,6 +23,7 @@ config SPEAR_THERMAL
- 	bool "SPEAr thermal sensor driver"
- 	depends on THERMAL
- 	depends on PLAT_SPEAR
-+	depends on OF
- 	help
- 	  Enable this to plug the SPEAr thermal sensor driver into the Linux
- 	  thermal framework
-diff -puN drivers/thermal/spear_thermal.c~drivers-thermal-spear_thermalc-add-device-tree-probing-capability drivers/thermal/spear_thermal.c
---- a/drivers/thermal/spear_thermal.c~drivers-thermal-spear_thermalc-add-device-tree-probing-capability
-+++ a/drivers/thermal/spear_thermal.c
-@@ -20,9 +20,9 @@
- #include <linux/err.h>
- #include <linux/io.h>
- #include <linux/kernel.h>
-+#include <linux/of.h>
- #include <linux/module.h>
- #include <linux/platform_device.h>
--#include <linux/platform_data/spear_thermal.h>
- #include <linux/thermal.h>
+diff -puN drivers/cpuidle/cpuidle.c~cpuidle-remove-unused-hrtimer_peek_ahead_timers-call drivers/cpuidle/cpuidle.c
+--- a/drivers/cpuidle/cpuidle.c~cpuidle-remove-unused-hrtimer_peek_ahead_timers-call
++++ a/drivers/cpuidle/cpuidle.c
+@@ -141,15 +141,6 @@ int cpuidle_idle_call(void)
+ 	if (!dev || !dev->enabled)
+ 		return -EBUSY;
  
- #define MD_FACTOR	1000
-@@ -103,21 +103,20 @@ static int spear_thermal_probe(struct pl
- {
- 	struct thermal_zone_device *spear_thermal = NULL;
- 	struct spear_thermal_dev *stdev;
--	struct spear_thermal_pdata *pdata;
--	int ret = 0;
-+	struct device_node *np = pdev->dev.of_node;
- 	struct resource *stres = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	int ret = 0, val;
-+
-+	if (!np || !of_property_read_u32(np, "st,thermal-flags", &val)) {
-+		dev_err(&pdev->dev, "Failed: DT Pdata not passed\n");
-+		return -EINVAL;
-+	}
- 
- 	if (!stres) {
- 		dev_err(&pdev->dev, "memory resource missing\n");
- 		return -ENODEV;
- 	}
- 
--	pdata = dev_get_platdata(&pdev->dev);
--	if (!pdata) {
--		dev_err(&pdev->dev, "platform data is NULL\n");
--		return -EINVAL;
--	}
--
- 	stdev = devm_kzalloc(&pdev->dev, sizeof(*stdev), GFP_KERNEL);
- 	if (!stdev) {
- 		dev_err(&pdev->dev, "kzalloc fail\n");
-@@ -144,7 +143,7 @@ static int spear_thermal_probe(struct pl
- 		goto put_clk;
- 	}
- 
--	stdev->flags = pdata->thermal_flags;
-+	stdev->flags = val;
- 	writel_relaxed(stdev->flags, stdev->thermal_base);
- 
- 	spear_thermal = thermal_zone_device_register("spear_thermal", 0, 0,
-@@ -189,6 +188,12 @@ static int spear_thermal_exit(struct pla
- 	return 0;
- }
- 
-+static const struct of_device_id spear_thermal_id_table[] = {
-+	{ .compatible = "st,thermal-spear1340" },
-+	{}
-+};
-+MODULE_DEVICE_TABLE(of, spear_thermal_id_table);
-+
- static struct platform_driver spear_thermal_driver = {
- 	.probe = spear_thermal_probe,
- 	.remove = spear_thermal_exit,
-@@ -196,6 +201,7 @@ static struct platform_driver spear_ther
- 		.name = "spear_thermal",
- 		.owner = THIS_MODULE,
- 		.pm = &spear_thermal_pm_ops,
-+		.of_match_table = of_match_ptr(spear_thermal_id_table),
- 	},
- };
- 
-diff -puN include/linux/platform_data/spear_thermal.h~drivers-thermal-spear_thermalc-add-device-tree-probing-capability /dev/null
---- a/include/linux/platform_data/spear_thermal.h
-+++ /dev/null
-@@ -1,26 +0,0 @@
--/*
-- * SPEAr thermal driver platform data.
-- *
-- * Copyright (C) 2011-2012 ST Microelectronics
-- * Author: Vincenzo Frascino <vincenzo.frascino@st.com>
-- *
-- * This software is licensed under the terms of the GNU General Public
-- * License version 2, as published by the Free Software Foundation, and
-- * may be copied, distributed, and modified under those terms.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- */
--#ifndef SPEAR_THERMAL_H
--#define SPEAR_THERMAL_H
--
--/* SPEAr Thermal Sensor Platform Data */
--struct spear_thermal_pdata {
--	/* flags used to enable thermal sensor */
--	unsigned int thermal_flags;
--};
+-#if 0
+-	/* shows regressions, re-enable for 2.6.29 */
+-	/*
+-	 * run any timers that can be run now, at this point
+-	 * before calculating the idle duration etc.
+-	 */
+-	hrtimer_peek_ahead_timers();
+-#endif
