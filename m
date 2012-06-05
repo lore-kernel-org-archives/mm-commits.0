@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-rename-mem_cgroup_stat_swapout-as-mem_cgroup_stat_swap.patch added to -mm tree
-Date: Tue, 05 Jun 2012 15:50:13 -0700
-Message-ID: <20120605225014.2AEA5A0297@akpm.mtv.corp.google.com>
+Subject: + memcg-remove-mem_cgroup_charge_type_force.patch added to -mm tree
+Date: Tue, 05 Jun 2012 15:50:17 -0700
+Message-ID: <20120605225017.D3878A0297@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:56081 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751545Ab2FEWuQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2012 18:50:16 -0400
-Received: by vbnl22 with SMTP id l22so649212vbn.1
-        for <mm-commits@vger.kernel.org>; Tue, 05 Jun 2012 15:50:15 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:41632 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752136Ab2FEWuT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2012 18:50:19 -0400
+Received: by ggeh3 with SMTP id h3so650692gge.1
+        for <mm-commits@vger.kernel.org>; Tue, 05 Jun 2012 15:50:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, hughd@google.com, mhocko@suse.cz
+Cc: kamezawa.hiroyu@jp.fujitsu.com, hughd@google.com
 
 
 The patch titled
-     Subject: memcg: rename MEM_CGROUP_STAT_SWAPOUT as MEM_CGROUP_STAT_SWAP
+     Subject: memcg: remove MEM_CGROUP_CHARGE_TYPE_FORCE
 has been added to the -mm tree.  Its filename is
-     memcg-rename-mem_cgroup_stat_swapout-as-mem_cgroup_stat_swap.patch
+     memcg-remove-mem_cgroup_charge_type_force.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: memcg: rename MEM_CGROUP_STAT_SWAPOUT as MEM_CGROUP_STAT_SWAP
+Subject: memcg: remove MEM_CGROUP_CHARGE_TYPE_FORCE
 
-MEM_CGROUP_STAT_SWAPOUT represents the usage of swap rather than
-the number of swap-out events. Rename it to be MEM_CGROUP_STAT_SWAP.
+There are no users since commit b24028572fb69 "memcg: remove PCG_CACHE"
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
 Acked-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-rename-mem_cgroup_stat_swapout-as-mem_cgroup_stat_swap mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-rename-mem_cgroup_stat_swapout-as-mem_cgroup_stat_swap
+diff -puN mm/memcontrol.c~memcg-remove-mem_cgroup_charge_type_force mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-remove-mem_cgroup_charge_type_force
 +++ a/mm/memcontrol.c
-@@ -87,7 +87,7 @@ enum mem_cgroup_stat_index {
- 	MEM_CGROUP_STAT_CACHE, 	   /* # of pages charged as cache */
- 	MEM_CGROUP_STAT_RSS,	   /* # of pages charged as anon rss */
- 	MEM_CGROUP_STAT_FILE_MAPPED,  /* # of pages charged as file rss */
--	MEM_CGROUP_STAT_SWAPOUT, /* # of pages, swapped out */
-+	MEM_CGROUP_STAT_SWAP, /* # of pages, swapped out */
- 	MEM_CGROUP_STAT_NSTATS,
- };
- 
-@@ -703,7 +703,7 @@ static void mem_cgroup_swap_statistics(s
- 					 bool charge)
- {
- 	int val = (charge) ? 1 : -1;
--	this_cpu_add(memcg->stat->count[MEM_CGROUP_STAT_SWAPOUT], val);
-+	this_cpu_add(memcg->stat->count[MEM_CGROUP_STAT_SWAP], val);
- }
- 
- static unsigned long mem_cgroup_read_events(struct mem_cgroup *memcg,
-@@ -3831,7 +3831,7 @@ static inline u64 mem_cgroup_usage(struc
- 	val += mem_cgroup_recursive_stat(memcg, MEM_CGROUP_STAT_RSS);
- 
- 	if (swap)
--		val += mem_cgroup_recursive_stat(memcg, MEM_CGROUP_STAT_SWAPOUT);
-+		val += mem_cgroup_recursive_stat(memcg, MEM_CGROUP_STAT_SWAP);
- 
- 	return val << PAGE_SHIFT;
- }
-@@ -4082,7 +4082,7 @@ static int mem_control_stat_show(struct 
- 	unsigned int i;
- 
- 	for (i = 0; i < MEM_CGROUP_STAT_NSTATS; i++) {
--		if (i == MEM_CGROUP_STAT_SWAPOUT && !do_swap_account)
-+		if (i == MEM_CGROUP_STAT_SWAP && !do_swap_account)
- 			continue;
- 		seq_printf(m, "%s %ld\n", mem_cgroup_stat_names[i],
- 			   mem_cgroup_read_stat(memcg, i) * PAGE_SIZE);
-@@ -4109,7 +4109,7 @@ static int mem_control_stat_show(struct 
- 	for (i = 0; i < MEM_CGROUP_STAT_NSTATS; i++) {
- 		long long val = 0;
- 
--		if (i == MEM_CGROUP_STAT_SWAPOUT && !do_swap_account)
-+		if (i == MEM_CGROUP_STAT_SWAP && !do_swap_account)
- 			continue;
- 		for_each_mem_cgroup_tree(mi, memcg)
- 			val += mem_cgroup_read_stat(mi, i) * PAGE_SIZE;
+@@ -380,7 +380,6 @@ enum charge_type {
+ 	MEM_CGROUP_CHARGE_TYPE_CACHE = 0,
+ 	MEM_CGROUP_CHARGE_TYPE_ANON,
+ 	MEM_CGROUP_CHARGE_TYPE_SHMEM,	/* used by page migration of shmem */
+-	MEM_CGROUP_CHARGE_TYPE_FORCE,	/* used by force_empty */
+ 	MEM_CGROUP_CHARGE_TYPE_SWAPOUT,	/* for accounting swapcache */
+ 	MEM_CGROUP_CHARGE_TYPE_DROP,	/* a page was unused swap cache */
+ 	NR_CHARGE_TYPE,
 _
-Subject: Subject: memcg: rename MEM_CGROUP_STAT_SWAPOUT as MEM_CGROUP_STAT_SWAP
+Subject: Subject: memcg: remove MEM_CGROUP_CHARGE_TYPE_FORCE
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
