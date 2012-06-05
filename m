@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + printk-fix-devkmsg_writev-efault-handling.patch added to -mm tree
-Date: Tue, 05 Jun 2012 16:10:41 -0700
-Message-ID: <20120605231041.A0AA4A0137@akpm.mtv.corp.google.com>
+Subject: + block-move-general-unplug-callback-function-from-md-raid-to-blk-core.patch added to -mm tree
+Date: Tue, 05 Jun 2012 16:23:21 -0700
+Message-ID: <20120605232321.70490A0297@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:33583 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753514Ab2FEXKm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2012 19:10:42 -0400
-Received: by yenl3 with SMTP id l3so654626yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 05 Jun 2012 16:10:42 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:42890 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751888Ab2FEXXW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2012 19:23:22 -0400
+Received: by qabg24 with SMTP id g24so499529qab.1
+        for <mm-commits@vger.kernel.org>; Tue, 05 Jun 2012 16:23:22 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kay@vrfy.org
+Cc: glorioustao@gmail.com, Tao.Guo@emc.com, axboe@kernel.dk, neilb@suse.de, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: printk: fix devkmsg_writev() EFAULT handling
+     Subject: block: move general unplug callback function from md/raid to blk-core
 has been added to the -mm tree.  Its filename is
-     printk-fix-devkmsg_writev-efault-handling.patch
+     block-move-general-unplug-callback-function-from-md-raid-to-blk-core.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,87 +33,261 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: printk: fix devkmsg_writev() EFAULT handling
+From: Tao Guo <glorioustao@gmail.com>
+Subject: block: move general unplug callback function from md/raid to blk-core
 
-On a fault, correctly return the partial-write info, or -EFAULT.
+Other components may also require an unplug callback, so move this
+function from md/raid to block generic layer.
 
-Cc: Kay Sievers <kay@vrfy.org>
+Signed-off-by: Tao Guo <Tao.Guo@emc.com>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ block/blk-core.c       |   36 ++++++++++++++++++++++++++-
+ block/blk-settings.c   |    1 
+ block/blk.h            |    1 
+ drivers/md/md.c        |   51 +++------------------------------------
+ drivers/md/md.h        |    3 --
+ drivers/md/raid1.c     |    2 -
+ drivers/md/raid5.c     |    4 +--
+ include/linux/blkdev.h |    8 +++++-
+ 8 files changed, 51 insertions(+), 55 deletions(-)
 
-diff -puN kernel/printk.c~printk-fix-devkmsg_writev-efault-handling kernel/printk.c
---- a/kernel/printk.c~printk-fix-devkmsg_writev-efault-handling
-+++ a/kernel/printk.c
-@@ -355,7 +355,7 @@ static ssize_t devkmsg_writev(struct kio
- 	int level = default_message_loglevel;
- 	int facility = 1;	/* LOG_USER */
- 	size_t len = iov_length(iv, count);
--	ssize_t ret = len;
-+	ssize_t ret;
+diff -puN block/blk-core.c~block-move-general-unplug-callback-function-from-md-raid-to-blk-core block/blk-core.c
+--- a/block/blk-core.c~block-move-general-unplug-callback-function-from-md-raid-to-blk-core
++++ a/block/blk-core.c
+@@ -2840,6 +2840,39 @@ void blk_start_plug(struct blk_plug *plu
+ }
+ EXPORT_SYMBOL(blk_start_plug);
  
- 	if (len > LOG_LINE_MAX)
- 		return -EINVAL;
-@@ -365,8 +365,12 @@ static ssize_t devkmsg_writev(struct kio
- 
- 	line = buf;
- 	for (i = 0; i < count; i++) {
--		if (copy_from_user(line, iv[i].iov_base, iv[i].iov_len))
-+		if (copy_from_user(line, iv[i].iov_base, iv[i].iov_len)) {
-+			ret = line - buf;
-+			if (!ret)
-+				ret = -EFAULT;
- 			goto out;
++/* Check that an unplug wakeup will come shortly.
++ */
++bool blk_check_plugged(struct request_queue *q, plug_cb_fn cb_fn)
++{
++	struct blk_plug *plug = current->plug;
++	struct blk_plug_cb *cb;
++
++	if (!plug)
++		return false;
++
++	list_for_each_entry(cb, &plug->cb_list, list) {
++		if (cb->cb_fn == cb_fn && cb->q == q) {
++			/* Already on the list, move to top */
++			if (cb != list_first_entry(&plug->cb_list,
++						    struct blk_plug_cb,
++						    list))
++				list_move(&cb->list, &plug->cb_list);
++			return true;
 +		}
- 		line += iv[i].iov_len;
++	}
++	/* Not currently on the callback list */
++	cb = kmalloc(sizeof(*cb), GFP_ATOMIC);
++	if (!cb)
++		return false;
++
++	cb->q = q;
++	cb->cb_fn = cb_fn;
++	atomic_inc(&q->plug_cnt);
++	list_add(&cb->list, &plug->cb_list);
++	return true;
++}
++EXPORT_SYMBOL(blk_check_plugged);
++
+ static int plug_rq_cmp(void *priv, struct list_head *a, struct list_head *b)
+ {
+ 	struct request *rqa = container_of(a, struct request, queuelist);
+@@ -2897,7 +2930,8 @@ static void flush_plug_callbacks(struct 
+ 							  struct blk_plug_cb,
+ 							  list);
+ 		list_del(&cb->list);
+-		cb->callback(cb);
++		cb->cb_fn(cb);
++		kfree(cb);
  	}
+ }
  
-@@ -396,6 +400,7 @@ static ssize_t devkmsg_writev(struct kio
- 	line[len] = '\0';
+diff -puN block/blk-settings.c~block-move-general-unplug-callback-function-from-md-raid-to-blk-core block/blk-settings.c
+--- a/block/blk-settings.c~block-move-general-unplug-callback-function-from-md-raid-to-blk-core
++++ a/block/blk-settings.c
+@@ -181,6 +181,7 @@ void blk_queue_make_request(struct reque
+ 	blk_queue_dma_alignment(q, 511);
+ 	blk_queue_congestion_threshold(q);
+ 	q->nr_batching = BLK_BATCH_REQ;
++	atomic_set(&q->plug_cnt, 0);
  
- 	printk_emit(facility, level, NULL, 0, "%s", line);
-+	ret = 0;
- out:
- 	kfree(buf);
- 	return ret;
+ 	blk_set_default_limits(&q->limits);
+ 
+diff -puN block/blk.h~block-move-general-unplug-callback-function-from-md-raid-to-blk-core block/blk.h
+--- a/block/blk.h~block-move-general-unplug-callback-function-from-md-raid-to-blk-core
++++ a/block/blk.h
+@@ -33,7 +33,6 @@ bool __blk_end_bidi_request(struct reque
+ void blk_rq_timed_out_timer(unsigned long data);
+ void blk_delete_timer(struct request *);
+ void blk_add_timer(struct request *);
+-void __generic_unplug_device(struct request_queue *);
+ 
+ /*
+  * Internal atomic flags for request handling
+diff -puN drivers/md/md.c~block-move-general-unplug-callback-function-from-md-raid-to-blk-core drivers/md/md.c
+--- a/drivers/md/md.c~block-move-general-unplug-callback-function-from-md-raid-to-blk-core
++++ a/drivers/md/md.c
+@@ -498,25 +498,11 @@ void md_flush_request(struct mddev *mdde
+ }
+ EXPORT_SYMBOL(md_flush_request);
+ 
+-/* Support for plugging.
+- * This mirrors the plugging support in request_queue, but does not
+- * require having a whole queue or request structures.
+- * We allocate an md_plug_cb for each md device and each thread it gets
+- * plugged on.  This links tot the private plug_handle structure in the
+- * personality data where we keep a count of the number of outstanding
+- * plugs so other code can see if a plug is active.
+- */
+-struct md_plug_cb {
+-	struct blk_plug_cb cb;
+-	struct mddev *mddev;
+-};
+-
+-static void plugger_unplug(struct blk_plug_cb *cb)
++static void mddev_unplug(struct blk_plug_cb *cb)
+ {
+-	struct md_plug_cb *mdcb = container_of(cb, struct md_plug_cb, cb);
+-	if (atomic_dec_and_test(&mdcb->mddev->plug_cnt))
+-		md_wakeup_thread(mdcb->mddev->thread);
+-	kfree(mdcb);
++	struct mddev *mddev = cb->q->queuedata;
++	if (atomic_dec_and_test(&cb->q->plug_cnt))
++		md_wakeup_thread(mddev->thread);
+ }
+ 
+ /* Check that an unplug wakeup will come shortly.
+@@ -524,33 +510,7 @@ static void plugger_unplug(struct blk_pl
+  */
+ int mddev_check_plugged(struct mddev *mddev)
+ {
+-	struct blk_plug *plug = current->plug;
+-	struct md_plug_cb *mdcb;
+-
+-	if (!plug)
+-		return 0;
+-
+-	list_for_each_entry(mdcb, &plug->cb_list, cb.list) {
+-		if (mdcb->cb.callback == plugger_unplug &&
+-		    mdcb->mddev == mddev) {
+-			/* Already on the list, move to top */
+-			if (mdcb != list_first_entry(&plug->cb_list,
+-						    struct md_plug_cb,
+-						    cb.list))
+-				list_move(&mdcb->cb.list, &plug->cb_list);
+-			return 1;
+-		}
+-	}
+-	/* Not currently on the callback list */
+-	mdcb = kmalloc(sizeof(*mdcb), GFP_ATOMIC);
+-	if (!mdcb)
+-		return 0;
+-
+-	mdcb->mddev = mddev;
+-	mdcb->cb.callback = plugger_unplug;
+-	atomic_inc(&mddev->plug_cnt);
+-	list_add(&mdcb->cb.list, &plug->cb_list);
+-	return 1;
++	return blk_check_plugged(mddev->queue, mddev_unplug);
+ }
+ EXPORT_SYMBOL_GPL(mddev_check_plugged);
+ 
+@@ -602,7 +562,6 @@ void mddev_init(struct mddev *mddev)
+ 	atomic_set(&mddev->active, 1);
+ 	atomic_set(&mddev->openers, 0);
+ 	atomic_set(&mddev->active_io, 0);
+-	atomic_set(&mddev->plug_cnt, 0);
+ 	spin_lock_init(&mddev->write_lock);
+ 	atomic_set(&mddev->flush_pending, 0);
+ 	init_waitqueue_head(&mddev->sb_wait);
+diff -puN drivers/md/md.h~block-move-general-unplug-callback-function-from-md-raid-to-blk-core drivers/md/md.h
+--- a/drivers/md/md.h~block-move-general-unplug-callback-function-from-md-raid-to-blk-core
++++ a/drivers/md/md.h
+@@ -266,9 +266,6 @@ struct mddev {
+ 	int				new_chunk_sectors;
+ 	int				reshape_backwards;
+ 
+-	atomic_t			plug_cnt;	/* If device is expecting
+-							 * more bios soon.
+-							 */
+ 	struct md_thread		*thread;	/* management thread */
+ 	struct md_thread		*sync_thread;	/* doing resync or reconstruct */
+ 	sector_t			curr_resync;	/* last block scheduled */
+diff -puN drivers/md/raid1.c~block-move-general-unplug-callback-function-from-md-raid-to-blk-core drivers/md/raid1.c
+--- a/drivers/md/raid1.c~block-move-general-unplug-callback-function-from-md-raid-to-blk-core
++++ a/drivers/md/raid1.c
+@@ -2170,7 +2170,7 @@ static void raid1d(struct mddev *mddev)
+ 	blk_start_plug(&plug);
+ 	for (;;) {
+ 
+-		if (atomic_read(&mddev->plug_cnt) == 0)
++		if (atomic_read(&mddev->queue->plug_cnt) == 0)
+ 			flush_pending_writes(conf);
+ 
+ 		spin_lock_irqsave(&conf->device_lock, flags);
+diff -puN drivers/md/raid5.c~block-move-general-unplug-callback-function-from-md-raid-to-blk-core drivers/md/raid5.c
+--- a/drivers/md/raid5.c~block-move-general-unplug-callback-function-from-md-raid-to-blk-core
++++ a/drivers/md/raid5.c
+@@ -4521,7 +4521,7 @@ static void raid5d(struct mddev *mddev)
+ 	while (1) {
+ 		struct bio *bio;
+ 
+-		if (atomic_read(&mddev->plug_cnt) == 0 &&
++		if (atomic_read(&mddev->queue->plug_cnt) == 0 &&
+ 		    !list_empty(&conf->bitmap_list)) {
+ 			/* Now is a good time to flush some bitmap updates */
+ 			conf->seq_flush++;
+@@ -4531,7 +4531,7 @@ static void raid5d(struct mddev *mddev)
+ 			conf->seq_write = conf->seq_flush;
+ 			activate_bit_delay(conf);
+ 		}
+-		if (atomic_read(&mddev->plug_cnt) == 0)
++		if (atomic_read(&mddev->queue->plug_cnt) == 0)
+ 			raid5_activate_delayed(conf);
+ 
+ 		while ((bio = remove_bio_from_retry(conf))) {
+diff -puN include/linux/blkdev.h~block-move-general-unplug-callback-function-from-md-raid-to-blk-core include/linux/blkdev.h
+--- a/include/linux/blkdev.h~block-move-general-unplug-callback-function-from-md-raid-to-blk-core
++++ a/include/linux/blkdev.h
+@@ -316,6 +316,9 @@ struct request_queue {
+ 	 * ll_rw_blk doesn't touch it.
+ 	 */
+ 	void			*queuedata;
++	atomic_t		plug_cnt;	/* If device is expecting
++						 * more bios soon.
++						 */
+ 
+ 	/*
+ 	 * various queue flags, see QUEUE_* below
+@@ -914,12 +917,15 @@ struct blk_plug {
+ 
+ struct blk_plug_cb {
+ 	struct list_head list;
+-	void (*callback)(struct blk_plug_cb *);
++	struct request_queue *q;
++	void (*cb_fn)(struct blk_plug_cb *);
+ };
++typedef void (plug_cb_fn) (struct blk_plug_cb *cb);
+ 
+ extern void blk_start_plug(struct blk_plug *);
+ extern void blk_finish_plug(struct blk_plug *);
+ extern void blk_flush_plug_list(struct blk_plug *, bool);
++extern bool blk_check_plugged(struct request_queue *q, plug_cb_fn cb_fn);
+ 
+ static inline void blk_flush_plug(struct task_struct *tsk)
+ {
 _
-Subject: Subject: printk: fix devkmsg_writev() EFAULT handling
+Subject: Subject: block: move general unplug callback function from md/raid to blk-core
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from glorioustao@gmail.com are
 
-origin.patch
-linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
-tmpfs-implement-numa-node-interleaving-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions.patch
-mm.patch
-mm-make-vb_alloc-more-foolproof-fix.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
-memcg-add-hugetlb-extension-fix-fix.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
-hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
-memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes.patch
-mm-correctly-synchronize-rss-counters-at-exit-exec.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix.patch
-printk-fix-devkmsg_writev-efault-handling.patch
-c-r-prctl-add-ability-to-get-clear_tid_address.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+block-move-general-unplug-callback-function-from-md-raid-to-blk-core.patch
+umem-fix-up-unplugging.patch
 
