@@ -1,92 +1,181 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cpuidle-add-checks-to-avoid-null-pointer-dereference.patch removed from -mm tree
-Date: Tue, 05 Jun 2012 12:56:13 -0700
-Message-ID: <20120605195613.5CA72A028F@akpm.mtv.corp.google.com>
+Subject: [merged] drivers-thermal-spear_thermalc-add-device-tree-probing-capability.patch removed from -mm tree
+Date: Tue, 05 Jun 2012 12:56:15 -0700
+Message-ID: <20120605195615.61444A028F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:54432 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751951Ab2FET4O (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2012 15:56:14 -0400
-Received: by vbnl22 with SMTP id l22so629067vbn.1
-        for <mm-commits@vger.kernel.org>; Tue, 05 Jun 2012 12:56:13 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:59523 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752099Ab2FET4R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2012 15:56:17 -0400
+Received: by mail-wg0-f74.google.com with SMTP id dt11so356202wgb.1
+        for <mm-commits@vger.kernel.org>; Tue, 05 Jun 2012 12:56:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: srivatsa.bhat@linux.vnet.ibm.com, daniel.lezcano@linaro.org, len.brown@intel.com, lenb@kernel.org, mm-commits@vger.kernel.org
+To: viresh.linux@gmail.com, dan.carpenter@oracle.com, lenb@kernel.org, vincenzo.frascino@st.com, viresh.kumar@st.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cpuidle: add checks to avoid NULL pointer dereference
+     Subject: drivers/thermal/spear_thermal.c: add Device Tree probing capability
 has been removed from the -mm tree.  Its filename was
-     cpuidle-add-checks-to-avoid-null-pointer-dereference.patch
+     drivers-thermal-spear_thermalc-add-device-tree-probing-capability.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
-Subject: cpuidle: add checks to avoid NULL pointer dereference
+From: Viresh Kumar <viresh.linux@gmail.com>
+Subject: drivers/thermal/spear_thermal.c: add Device Tree probing capability
 
-The existing check for dev == NULL in __cpuidle_register_device() is
-rendered useless because dev is dereferenced before the check itself. 
-Moreover, correctly speaking, it is the job of the callers of this
-function, i.e., cpuidle_register_device() & cpuidle_enable_device() (which
-also happen to be exported functions) to ensure that
-__cpuidle_register_device() is called with a non-NULL dev.
+SPEAr platforms now support DT and so must convert all drivers to support
+DT.  This patch adds DT probing support for SPEAr thermal sensor driver
+and updates its documentation too.
 
-So add the necessary dev == NULL checks in the two callers and remove the
-(useless) check from __cpuidle_register_device().
+Also, as SPEAr is the only user of this driver and is only available with
+DT, make this an only DT driver.  So, platform_data is completely removed
+and passed via DT now.
 
-Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
-Acked-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+Signed-off-by: Viresh Kumar <viresh.kumar@st.com>
 Cc: Len Brown <lenb@kernel.org>
-Cc: "Brown, Len" <len.brown@intel.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Reviewed-by: Vincenzo Frascino <vincenzo.frascino@st.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpuidle/cpuidle.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ Documentation/devicetree/bindings/thermal/spear-thermal.txt |   14 +++++
+ drivers/thermal/Kconfig                                     |    1 
+ drivers/thermal/spear_thermal.c                             |   26 ++++++----
+ include/linux/platform_data/spear_thermal.h                 |   26 ----------
+ 4 files changed, 31 insertions(+), 36 deletions(-)
 
-diff -puN drivers/cpuidle/cpuidle.c~cpuidle-add-checks-to-avoid-null-pointer-dereference drivers/cpuidle/cpuidle.c
---- a/drivers/cpuidle/cpuidle.c~cpuidle-add-checks-to-avoid-null-pointer-dereference
-+++ a/drivers/cpuidle/cpuidle.c
-@@ -294,6 +294,9 @@ int cpuidle_enable_device(struct cpuidle
- 	int ret, i;
- 	struct cpuidle_driver *drv = cpuidle_get_driver();
- 
-+	if (!dev)
-+		return -EINVAL;
+diff -puN /dev/null Documentation/devicetree/bindings/thermal/spear-thermal.txt
+--- /dev/null
++++ a/Documentation/devicetree/bindings/thermal/spear-thermal.txt
+@@ -0,0 +1,14 @@
++* SPEAr Thermal
 +
- 	if (dev->enabled)
- 		return 0;
- 	if (!drv || !cpuidle_curr_governor)
-@@ -378,8 +381,6 @@ static int __cpuidle_register_device(str
- 	struct device *cpu_dev = get_cpu_device((unsigned long)dev->cpu);
- 	struct cpuidle_driver *cpuidle_driver = cpuidle_get_driver();
++Required properties:
++- compatible : "st,thermal-spear1340"
++- reg : Address range of the thermal registers
++- st,thermal-flags: flags used to enable thermal sensor
++
++Example:
++
++	thermal@fc000000 {
++		compatible = "st,thermal-spear1340";
++		reg = <0xfc000000 0x1000>;
++		st,thermal-flags = <0x7000>;
++	};
+diff -puN drivers/thermal/Kconfig~drivers-thermal-spear_thermalc-add-device-tree-probing-capability drivers/thermal/Kconfig
+--- a/drivers/thermal/Kconfig~drivers-thermal-spear_thermalc-add-device-tree-probing-capability
++++ a/drivers/thermal/Kconfig
+@@ -23,6 +23,7 @@ config SPEAR_THERMAL
+ 	bool "SPEAr thermal sensor driver"
+ 	depends on THERMAL
+ 	depends on PLAT_SPEAR
++	depends on OF
+ 	help
+ 	  Enable this to plug the SPEAr thermal sensor driver into the Linux
+ 	  thermal framework
+diff -puN drivers/thermal/spear_thermal.c~drivers-thermal-spear_thermalc-add-device-tree-probing-capability drivers/thermal/spear_thermal.c
+--- a/drivers/thermal/spear_thermal.c~drivers-thermal-spear_thermalc-add-device-tree-probing-capability
++++ a/drivers/thermal/spear_thermal.c
+@@ -20,9 +20,9 @@
+ #include <linux/err.h>
+ #include <linux/io.h>
+ #include <linux/kernel.h>
++#include <linux/of.h>
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+-#include <linux/platform_data/spear_thermal.h>
+ #include <linux/thermal.h>
  
--	if (!dev)
--		return -EINVAL;
- 	if (!try_module_get(cpuidle_driver->owner))
- 		return -EINVAL;
- 
-@@ -416,6 +417,9 @@ int cpuidle_register_device(struct cpuid
+ #define MD_FACTOR	1000
+@@ -103,21 +103,20 @@ static int spear_thermal_probe(struct pl
  {
- 	int ret;
- 
-+	if (!dev)
-+		return -EINVAL;
+ 	struct thermal_zone_device *spear_thermal = NULL;
+ 	struct spear_thermal_dev *stdev;
+-	struct spear_thermal_pdata *pdata;
+-	int ret = 0;
++	struct device_node *np = pdev->dev.of_node;
+ 	struct resource *stres = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	int ret = 0, val;
 +
- 	mutex_lock(&cpuidle_lock);
++	if (!np || !of_property_read_u32(np, "st,thermal-flags", &val)) {
++		dev_err(&pdev->dev, "Failed: DT Pdata not passed\n");
++		return -EINVAL;
++	}
  
- 	if ((ret = __cpuidle_register_device(dev))) {
-_
-
-Patches currently in -mm which might be from srivatsa.bhat@linux.vnet.ibm.com are
-
-origin.patch
-linux-next.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix.patch
-
+ 	if (!stres) {
+ 		dev_err(&pdev->dev, "memory resource missing\n");
+ 		return -ENODEV;
+ 	}
+ 
+-	pdata = dev_get_platdata(&pdev->dev);
+-	if (!pdata) {
+-		dev_err(&pdev->dev, "platform data is NULL\n");
+-		return -EINVAL;
+-	}
+-
+ 	stdev = devm_kzalloc(&pdev->dev, sizeof(*stdev), GFP_KERNEL);
+ 	if (!stdev) {
+ 		dev_err(&pdev->dev, "kzalloc fail\n");
+@@ -144,7 +143,7 @@ static int spear_thermal_probe(struct pl
+ 		goto put_clk;
+ 	}
+ 
+-	stdev->flags = pdata->thermal_flags;
++	stdev->flags = val;
+ 	writel_relaxed(stdev->flags, stdev->thermal_base);
+ 
+ 	spear_thermal = thermal_zone_device_register("spear_thermal", 0, 0,
+@@ -189,6 +188,12 @@ static int spear_thermal_exit(struct pla
+ 	return 0;
+ }
+ 
++static const struct of_device_id spear_thermal_id_table[] = {
++	{ .compatible = "st,thermal-spear1340" },
++	{}
++};
++MODULE_DEVICE_TABLE(of, spear_thermal_id_table);
++
+ static struct platform_driver spear_thermal_driver = {
+ 	.probe = spear_thermal_probe,
+ 	.remove = spear_thermal_exit,
+@@ -196,6 +201,7 @@ static struct platform_driver spear_ther
+ 		.name = "spear_thermal",
+ 		.owner = THIS_MODULE,
+ 		.pm = &spear_thermal_pm_ops,
++		.of_match_table = of_match_ptr(spear_thermal_id_table),
+ 	},
+ };
+ 
+diff -puN include/linux/platform_data/spear_thermal.h~drivers-thermal-spear_thermalc-add-device-tree-probing-capability /dev/null
+--- a/include/linux/platform_data/spear_thermal.h
++++ /dev/null
+@@ -1,26 +0,0 @@
+-/*
+- * SPEAr thermal driver platform data.
+- *
+- * Copyright (C) 2011-2012 ST Microelectronics
+- * Author: Vincenzo Frascino <vincenzo.frascino@st.com>
+- *
+- * This software is licensed under the terms of the GNU General Public
+- * License version 2, as published by the Free Software Foundation, and
+- * may be copied, distributed, and modified under those terms.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- */
+-#ifndef SPEAR_THERMAL_H
+-#define SPEAR_THERMAL_H
+-
+-/* SPEAr Thermal Sensor Platform Data */
+-struct spear_thermal_pdata {
+-	/* flags used to enable thermal sensor */
+-	unsigned int thermal_flags;
+-};
