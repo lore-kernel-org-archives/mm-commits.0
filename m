@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + staging-wlags49_h2-remove-direct-declarations-of-kern_level-prefixes.patch added to -mm tree
-Date: Wed, 06 Jun 2012 14:46:44 -0700
-Message-ID: <20120606214644.EF850A0274@akpm.mtv.corp.google.com>
+Subject: + printk-convert-the-format-for-kern_level-to-a-2-byte-pattern.patch added to -mm tree
+Date: Wed, 06 Jun 2012 14:47:04 -0700
+Message-ID: <20120606214704.C68DEA0274@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:34850 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756307Ab2FFVqq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2012 17:46:46 -0400
-Received: by ghbz15 with SMTP id z15so758886ghb.1
-        for <mm-commits@vger.kernel.org>; Wed, 06 Jun 2012 14:46:45 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:33305 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756307Ab2FFVrG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2012 17:47:06 -0400
+Received: by qcsp5 with SMTP id p5so764031qcs.1
+        for <mm-commits@vger.kernel.org>; Wed, 06 Jun 2012 14:47:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, greg@kroah.com, kay.sievers@vrfy.org, pe1dnn@amsat.org
+Cc: joe@perches.com, kay.sievers@vrfy.org
 
 
 The patch titled
-     Subject: staging: wlags49_h2: remove direct declarations of KERN_<LEVEL> prefixes
+     Subject: printk: convert the format for KERN_<LEVEL> to a 2 byte pattern
 has been added to the -mm tree.  Its filename is
-     staging-wlags49_h2-remove-direct-declarations-of-kern_level-prefixes.patch
+     printk-convert-the-format-for-kern_level-to-a-2-byte-pattern.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,79 +34,103 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: staging: wlags49_h2: remove direct declarations of KERN_<LEVEL> prefixes
+Subject: printk: convert the format for KERN_<LEVEL> to a 2 byte pattern
 
-Use the standard KERN_<LEVEL> #defines instead of "<.>"
+Instead of "<.>", use an ASCII SOH for the KERN_<LEVEL> prefix initiator.
+
+This saves 1 byte per printk, thousands of bytes in a normal kernel.
+
+No output changes are produced as vprintk_emit converts these uses to
+"<.>".
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Henk de Groot <pe1dnn@amsat.org>
-Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/wlags49_h2/hcf.c     |    8 ++++----
- drivers/staging/wlags49_h2/wl_main.c |    4 ++--
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ include/linux/kern_levels.h |   25 ++++++++++++++-----------
+ include/linux/printk.h      |    4 ++--
+ kernel/printk.c             |    3 ++-
+ 3 files changed, 18 insertions(+), 14 deletions(-)
 
-diff -puN drivers/staging/wlags49_h2/hcf.c~staging-wlags49_h2-remove-direct-declarations-of-kern_level-prefixes drivers/staging/wlags49_h2/hcf.c
---- a/drivers/staging/wlags49_h2/hcf.c~staging-wlags49_h2-remove-direct-declarations-of-kern_level-prefixes
-+++ a/drivers/staging/wlags49_h2/hcf.c
-@@ -705,7 +705,7 @@ hcf_action( IFBP ifbp, hcf_16 action )
- 			// 800 us latency before FW switches to high power
- 			MSF_WAIT(800);                              // MSF-defined function to wait n microseconds.
- //OOR			if ( ifbp->IFB_DSLinkStat & CFG_LINK_STAT_DS_OOR ) { // OutOfRange
--//				printk( "<5>ACT_INT_OFF: Deepsleep phase terminated, enable and go to AwaitConnection\n" );     //;?remove me 1 day
-+//				printk(KERN_NOTICE "ACT_INT_OFF: Deepsleep phase terminated, enable and go to AwaitConnection\n" );     //;?remove me 1 day
- //				hcf_cntl( ifbp, HCF_CNTL_ENABLE );
- //			}
- //			ifbp->IFB_DSLinkStat &= ~( CFG_LINK_STAT_DS_IR | CFG_LINK_STAT_DS_OOR); //clear IR/OOR state
-@@ -2979,7 +2979,7 @@ hcf_service_nic( IFBP ifbp, wci_bufp buf
- 			ltv.typ = CFG_DDS_TICK_TIME;
- 			ltv.tick_time = ( ( ifbp->IFB_DSLinkStat & CFG_LINK_STAT_TIMER ) + 0x10 ) *64; //78 is more right
- 			hcf_put_info( ifbp, (LTVP)&ltv );
--			printk( "<5>Preparing for sleep, link_status: %04X, timer : %d\n",
-+			printk(KERN_NOTICE "Preparing for sleep, link_status: %04X, timer : %d\n",
- 				ifbp->IFB_DSLinkStat, ltv.tick_time );//;?remove me 1 day
- 			ifbp->IFB_TickCnt++; //;?just to make sure we do not keep on printing above message
- 			if ( ltv.tick_time < 300 * 125 ) ifbp->IFB_DSLinkStat += 0x0010;
-@@ -4221,11 +4221,11 @@ isr_info( IFBP ifbp )
- // /*4*/    if ( info[1] == CFG_LINK_STAT ) {
- //          ifbp->IFB_DSLinkStat = IPW( HREG_DATA_1 ) | CFG_LINK_STAT_CHANGE;   //corrupts BAP !! ;?
- //          ifbp->IFB_LinkStat = ifbp->IFB_DSLinkStat & CFG_LINK_STAT_FW; //;? to be obsoleted
--//          printk( "<4>linkstatus: %04x\n", ifbp->IFB_DSLinkStat );        //;?remove me 1 day
-+//          printk(KERN_ERR "linkstatus: %04x\n", ifbp->IFB_DSLinkStat );        //;?remove me 1 day
- // #if (HCF_SLEEP) & HCF_DDS
- //          if ( ( ifbp->IFB_DSLinkStat & CFG_LINK_STAT_CONNECTED ) == 0 ) {    //even values are disconnected etc.
- //              ifbp->IFB_TickCnt = 0;              //start 2 second period (with 1 tick uncertanty)
--//              printk( "<5>isr_info: AwaitConnection phase started, IFB_TickCnt = 0\n" );      //;?remove me 1 day
-+//              printk(KERN_NOTICE "isr_info: AwaitConnection phase started, IFB_TickCnt = 0\n" );      //;?remove me 1 day
- //          }
- // #endif // HCF_DDS
- //      }
-diff -puN drivers/staging/wlags49_h2/wl_main.c~staging-wlags49_h2-remove-direct-declarations-of-kern_level-prefixes drivers/staging/wlags49_h2/wl_main.c
---- a/drivers/staging/wlags49_h2/wl_main.c~staging-wlags49_h2-remove-direct-declarations-of-kern_level-prefixes
-+++ a/drivers/staging/wlags49_h2/wl_main.c
-@@ -3822,7 +3822,7 @@ static int write_int(struct file *file, 
- 		lp->timer_oor.data = (unsigned long)lp;
- 		lp->timer_oor.expires = RUN_AT( 3 * HZ );
- 		add_timer( &lp->timer_oor );
--		printk( "<5>wl_enable: %ld\n", jiffies );		//;?remove me 1 day
-+		printk(KERN_NOTICE "wl_enable: %ld\n", jiffies );		//;?remove me 1 day
- #endif //DN554
- #ifdef DN554
- /*******************************************************************************
-@@ -3852,7 +3852,7 @@ void timer_oor( u_long arg )
-     DBG_ENTER( DbgInfo );
-     DBG_PARAM( DbgInfo, "arg", "0x%08lx", arg );
+diff -puN include/linux/kern_levels.h~printk-convert-the-format-for-kern_level-to-a-2-byte-pattern include/linux/kern_levels.h
+--- a/include/linux/kern_levels.h~printk-convert-the-format-for-kern_level-to-a-2-byte-pattern
++++ a/include/linux/kern_levels.h
+@@ -1,22 +1,25 @@
+ #ifndef __KERN_LEVELS_H__
+ #define __KERN_LEVELS_H__
  
--	printk( "<5>timer_oor: %ld 0x%04X\n", jiffies, lp->timer_oor_cnt );		//;?remove me 1 day
-+	printk(KERN_NOTICE "timer_oor: %ld 0x%04X\n", jiffies, lp->timer_oor_cnt );		//;?remove me 1 day
- 	lp->timer_oor_cnt += 10;
-     if ( (lp->timer_oor_cnt & ~DS_OOR) > 300 ) {
- 		lp->timer_oor_cnt = 300;
+-#define KERN_EMERG	"<0>"	/* system is unusable			*/
+-#define KERN_ALERT	"<1>"	/* action must be taken immediately	*/
+-#define KERN_CRIT	"<2>"	/* critical conditions			*/
+-#define KERN_ERR	"<3>"	/* error conditions			*/
+-#define KERN_WARNING	"<4>"	/* warning conditions			*/
+-#define KERN_NOTICE	"<5>"	/* normal but significant condition	*/
+-#define KERN_INFO	"<6>"	/* informational			*/
+-#define KERN_DEBUG	"<7>"	/* debug-level messages			*/
++#define KERN_SOH	"\001"		/* ASCII Start Of Header */
++#define KERN_SOH_ASCII	'\001'
++
++#define KERN_EMERG	KERN_SOH "0"	/* system is unusable */
++#define KERN_ALERT	KERN_SOH "1"	/* action must be taken immediately */
++#define KERN_CRIT	KERN_SOH "2"	/* critical conditions */
++#define KERN_ERR	KERN_SOH "3"	/* error conditions */
++#define KERN_WARNING	KERN_SOH "4"	/* warning conditions */
++#define KERN_NOTICE	KERN_SOH "5"	/* normal but significant condition */
++#define KERN_INFO	KERN_SOH "6"	/* informational */
++#define KERN_DEBUG	KERN_SOH "7"	/* debug-level messages */
++
++#define KERN_DEFAULT	KERN_SOH "d"	/* the default kernel loglevel */
+ 
+-/* Use the default kernel loglevel */
+-#define KERN_DEFAULT	"<d>"
+ /*
+  * Annotation for a "continued" line of log printout (only done after a
+  * line that had no enclosing \n). Only to be used by core/arch code
+  * during early bootup (a continued line is not SMP-safe otherwise).
+  */
+-#define KERN_CONT	"<c>"
++#define KERN_CONT	KERN_SOH "c"
+ 
+ #endif
+diff -puN include/linux/printk.h~printk-convert-the-format-for-kern_level-to-a-2-byte-pattern include/linux/printk.h
+--- a/include/linux/printk.h~printk-convert-the-format-for-kern_level-to-a-2-byte-pattern
++++ a/include/linux/printk.h
+@@ -9,7 +9,7 @@ extern const char linux_proc_banner[];
+ 
+ static inline int printk_get_level(const char *buffer)
+ {
+-	if (buffer[0] == '<' && buffer[1] && buffer[2] == '>') {
++	if (buffer[0] == KERN_SOH_ASCII && buffer[1]) {
+ 		switch (buffer[1]) {
+ 		case '0' ... '7':
+ 		case 'd':	/* KERN_DEFAULT */
+@@ -27,7 +27,7 @@ static inline const char *printk_skip_le
+ 		case '0' ... '7':
+ 		case 'd':	/* KERN_DEFAULT */
+ 		case 'c':	/* KERN_CONT */
+-			return buffer + 3;
++			return buffer + 2;
+ 		}
+ 	}
+ 	return buffer;
+diff -puN kernel/printk.c~printk-convert-the-format-for-kern_level-to-a-2-byte-pattern kernel/printk.c
+--- a/kernel/printk.c~printk-convert-the-format-for-kern_level-to-a-2-byte-pattern
++++ a/kernel/printk.c
+@@ -1342,9 +1342,10 @@ asmlinkage int vprintk_emit(int facility
+ 		case 'd':	/* KERN_DEFAULT */
+ 			prefix = true;
+ 		case 'c':	/* KERN_CONT */
++			break;
+ 		}
+ 		text_len -=  end_of_header - text;
+-		text = end_of_header;
++		text = (char *)end_of_header;
+ 	}
+ 
+ 	if (level == -1)
 _
-Subject: Subject: staging: wlags49_h2: remove direct declarations of KERN_<LEVEL> prefixes
+Subject: Subject: printk: convert the format for KERN_<LEVEL> to a 2 byte pattern
 
 Patches currently in -mm which might be from joe@perches.com are
 
