@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
 Subject: + kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch added to -mm tree
-Date: Tue, 05 Jun 2012 17:00:22 -0700
-Message-ID: <20120606000022.95488A0137@akpm.mtv.corp.google.com>
+Date: Tue, 05 Jun 2012 17:00:44 -0700
+Message-ID: <20120606000044.B9A6BA0137@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:45054 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753731Ab2FFAAX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2012 20:00:23 -0400
-Received: by qabg24 with SMTP id g24so502807qab.1
-        for <mm-commits@vger.kernel.org>; Tue, 05 Jun 2012 17:00:23 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:34727 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753731Ab2FFAAq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jun 2012 20:00:46 -0400
+Received: by eaao13 with SMTP id o13so333894eaa.1
+        for <mm-commits@vger.kernel.org>; Tue, 05 Jun 2012 17:00:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -37,7 +37,7 @@ From: Kay Sievers <kay@vrfy.org>
 Subject: kmsg: /dev/kmsg - properly return possible copy_from_user() failure
 
 Reported-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Kay Sievers <kay@vrfy.org
+Signed-off-by: Kay Sievers <kay@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
