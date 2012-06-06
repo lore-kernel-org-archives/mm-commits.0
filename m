@@ -1,89 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: [merged] radix-tree-fix-contiguous-iterator.patch removed from -mm tree
-Date: Wed, 06 Jun 2012 12:31:32 -0700
-Message-ID: <20120606193132.6C195A03B2@akpm.mtv.corp.google.com>
+Subject: + printk-add-generic-functions-to-find-kern_level-headers.patch added to -mm tree
+Date: Wed, 06 Jun 2012 14:45:09 -0700
+Message-ID: <20120606214510.5F08BA02AE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:45147 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756626Ab2FFTbe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2012 15:31:34 -0400
-Received: by eeit10 with SMTP id t10so425862eei.1
-        for <mm-commits@vger.kernel.org>; Wed, 06 Jun 2012 12:31:33 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:53788 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755620Ab2FFVpM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2012 17:45:12 -0400
+Received: by vcbfl13 with SMTP id fl13so761727vcb.1
+        for <mm-commits@vger.kernel.org>; Wed, 06 Jun 2012 14:45:11 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khlebnikov@openvz.org, jmdebruin@xmsnet.nl, linux@rainbow-software.org, stable@vger.kernel.org, toralf.foerster@gmx.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: joe@perches.com, kay.sievers@vrfy.org
 
 
 The patch titled
-     From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-has been removed from the -mm tree.  Its filename was
-     radix-tree-fix-contiguous-iterator.patch
+     Subject: printk: add generic functions to find KERN_<LEVEL> headers
+has been added to the -mm tree.  Its filename is
+     printk-add-generic-functions-to-find-kern_level-headers.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-Subject: radix-tree: fix contiguous iterator
-From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+From: Joe Perches <joe@perches.com>
+Subject: printk: add generic functions to find KERN_<LEVEL> headers
 
-Fix a bug in the macro radix_tree_for_each_contig().
+The current form of a KERN_<LEVEL> is "<.>".
 
-If radix_tree_next_slot() sees NULL in next slot it returns NULL, but
-following radix_tree_next_chunk() switches iterating into next chunk.  As
-result iterating becomes non-contiguous and breaks vfs "splice" and all
-its users.
+Add printk_get_level and printk_skip_level functions to handle these
+formats.
 
-More details at https://lkml.org/lkml/2012/6/5/64
+These functions centralize tests of KERN_<LEVEL> so a future modification
+can change the KERN_<LEVEL> style and shorten the number of bytes consumed
+by these headers.
 
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Reported-by: Hans de Bruin <jmdebruin@xmsnet.nl>
-Reported-by: Ondrej Zary <linux@rainbow-software.org>
-Reported-by: Toralf Foerster <toralf.foerster@gmx.de>
-Cc: <stable@vger.kernel.org>	[3.4.x]
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/radix-tree.h |    5 ++++-
- lib/radix-tree.c           |    3 +++
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ include/linux/printk.h |   26 ++++++++++++++++++++++++++
+ kernel/printk.c        |   13 ++++++++-----
+ 2 files changed, 34 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/radix-tree.h~radix-tree-fix-contiguous-iterator include/linux/radix-tree.h
---- a/include/linux/radix-tree.h~radix-tree-fix-contiguous-iterator
-+++ a/include/linux/radix-tree.h
-@@ -368,8 +368,11 @@ radix_tree_next_slot(void **slot, struct
- 			iter->index++;
- 			if (likely(*slot))
- 				return slot;
--			if (flags & RADIX_TREE_ITER_CONTIG)
-+			if (flags & RADIX_TREE_ITER_CONTIG) {
-+				/* forbid switching to the next chunk */
-+				iter->next_index = 0;
- 				break;
-+			}
- 		}
+diff -puN include/linux/printk.h~printk-add-generic-functions-to-find-kern_level-headers include/linux/printk.h
+--- a/include/linux/printk.h~printk-add-generic-functions-to-find-kern_level-headers
++++ a/include/linux/printk.h
+@@ -24,6 +24,32 @@ extern const char linux_proc_banner[];
+  */
+ #define KERN_CONT	"<c>"
+ 
++static inline int printk_get_level(const char *buffer)
++{
++	if (buffer[0] == '<' && buffer[1] && buffer[2] == '>') {
++		switch (buffer[1]) {
++		case '0' ... '7':
++		case 'd':	/* KERN_DEFAULT */
++		case 'c':	/* KERN_CONT */
++			return buffer[1];
++		}
++	}
++	return 0;
++}
++
++static inline const char *printk_skip_level(const char *buffer)
++{
++	if (printk_get_level(buffer)) {
++		switch (buffer[1]) {
++		case '0' ... '7':
++		case 'd':	/* KERN_DEFAULT */
++		case 'c':	/* KERN_CONT */
++			return buffer + 3;
++		}
++	}
++	return buffer;
++}
++
+ extern int console_printk[];
+ 
+ #define console_loglevel (console_printk[0])
+diff -puN kernel/printk.c~printk-add-generic-functions-to-find-kern_level-headers kernel/printk.c
+--- a/kernel/printk.c~printk-add-generic-functions-to-find-kern_level-headers
++++ a/kernel/printk.c
+@@ -1269,6 +1269,7 @@ asmlinkage int vprintk_emit(int facility
+ 	static char cont_buf[LOG_LINE_MAX];
+ 	static size_t cont_len;
+ 	static int cont_level;
++	int kern_level;
+ 	static struct task_struct *cont_task;
+ 	static char textbuf[LOG_LINE_MAX];
+ 	char *text = textbuf;
+@@ -1331,17 +1332,19 @@ asmlinkage int vprintk_emit(int facility
  	}
- 	return NULL;
-diff -puN lib/radix-tree.c~radix-tree-fix-contiguous-iterator lib/radix-tree.c
---- a/lib/radix-tree.c~radix-tree-fix-contiguous-iterator
-+++ a/lib/radix-tree.c
-@@ -686,6 +686,9 @@ void **radix_tree_next_chunk(struct radi
- 	 * during iterating; it can be zero only at the beginning.
- 	 * And we cannot overflow iter->next_index in a single step,
- 	 * because RADIX_TREE_MAP_SHIFT < BITS_PER_LONG.
-+	 *
-+	 * This condition also used by radix_tree_next_slot() to stop
-+	 * contiguous iterating, and forbid swithing to the next chunk.
- 	 */
- 	index = iter->next_index;
- 	if (!index && iter->index)
+ 
+ 	/* strip syslog prefix and extract log level or control flags */
+-	if (text[0] == '<' && text[1] && text[2] == '>') {
+-		switch (text[1]) {
++	kern_level = printk_get_level(text);
++	if (kern_level) {
++		const char *end_of_header = printk_skip_level(text);
++		switch (kern_level) {
+ 		case '0' ... '7':
+ 			if (level == -1)
+-				level = text[1] - '0';
++				level = kern_level - '0';
+ 		case 'd':	/* KERN_DEFAULT */
+ 			prefix = true;
+ 		case 'c':	/* KERN_CONT */
+-			text += 3;
+-			text_len -= 3;
+ 		}
++		text_len -=  end_of_header - text;
++		text = end_of_header;
+ 	}
+ 
+ 	if (level == -1)
 _
+Subject: Subject: printk: add generic functions to find KERN_<LEVEL> headers
 
-Patches currently in -mm which might be from khlebnikov@openvz.org are
+Patches currently in -mm which might be from joe@perches.com are
 
-origin.patch
 linux-next.patch
-mm-correctly-synchronize-rss-counters-at-exit-exec.patch
-c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-update-after-mm-num_exe_file_vmas-removal.patch
+maintainers-whitespace-fixes.patch
+printk-add-generic-functions-to-find-kern_level-headers.patch
+printk-add-kern_levelsh-to-make-kern_level-available-for-asm-use.patch
+arch-remove-direct-definitions-of-kern_level-uses.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout.patch
+sound-use-printk_get_level-and-printk_skip_level.patch
+staging-wlags49_h2-remove-direct-declarations-of-kern_level-prefixes.patch
+printk-convert-the-format-for-kern_level-to-a-2-byte-pattern.patch
+printk-only-look-for-prefix-levels-in-kernel-messages.patch
+printk-remove-the-now-unnecessary-c-annotation-for-kern_cont.patch
 
