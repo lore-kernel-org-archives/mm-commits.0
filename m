@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-shm-restore-madv_remove-functionality-on-shared-memory-segments.patch added to -mm tree
-Date: Wed, 06 Jun 2012 16:04:45 -0700
-Message-ID: <20120606230445.8FD42A02BF@akpm.mtv.corp.google.com>
+Subject: + btree-fix-tree-corruption-in-btree_get_prev.patch added to -mm tree
+Date: Wed, 06 Jun 2012 16:22:49 -0700
+Message-ID: <20120606232250.1F5D0A02AE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:33227 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756990Ab2FFXEq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2012 19:04:46 -0400
-Received: by ghbz15 with SMTP id z15so767120ghb.1
-        for <mm-commits@vger.kernel.org>; Wed, 06 Jun 2012 16:04:46 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:36061 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757448Ab2FFXWw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2012 19:22:52 -0400
+Received: by wgbdt11 with SMTP id dt11so250wgb.1
+        for <mm-commits@vger.kernel.org>; Wed, 06 Jun 2012 16:22:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: will.deacon@arm.com, hughd@google.com
+Cc: roland@purestorage.com, joern@logfs.org, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc: shm: restore MADV_REMOVE functionality on shared memory segments
+     Subject: btree: fix tree corruption in btree_get_prev()
 has been added to the -mm tree.  Its filename is
-     ipc-shm-restore-madv_remove-functionality-on-shared-memory-segments.patch
+     btree-fix-tree-corruption-in-btree_get_prev.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,71 +33,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Will Deacon <will.deacon@arm.com>
-Subject: ipc: shm: restore MADV_REMOVE functionality on shared memory segments
+From: Roland Dreier <roland@purestorage.com>
+Subject: btree: fix tree corruption in btree_get_prev()
 
-Commit 17cf28af ("mm/fs: remove truncate_range") removed the
-truncate_range inode operation in favour of the fallocate file operation.
+The memory the parameter __key points to is used as an iterator in
+btree_get_prev(), so if we save off a bkey() pointer in retry_key and then
+assign that to __key, we'll end up corrupting the btree internals when we
+do eg
 
-When using SYSV IPC shared memory segments, calling madvise with the
-MADV_REMOVE advice on an area of shared memory will attempt to invoke the
-.fallocate function for the shm_file_operations, which is NULL and
-therefore returns -EOPNOTSUPP to userspace.  The previous behaviour would
-inherit the inode_operations from the underlying tmpfs file and invoke
-truncate_range there.
+	longcpy(__key, bkey(geo, node, i), geo->keylen);
 
-This patch restores the previous behaviour by wrapping the underlying
-fallocate function in shm_fallocate, as we do for fsync.
+to return the key value.  What we should do instead is use longcpy() to
+copy the key value that retry_key points to __key.
 
-Signed-off-by: Will Deacon <will.deacon@arm.com>
-Cc: Hugh Dickins <hughd@google.com>
+This can cause a btree to get corrupted by seemingly read-only operations
+such as btree_for_each_safe.
+
+Signed-off-by: Roland Dreier <roland@purestorage.com>
+Acked-by: Joern Engel <joern@logfs.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ lib/btree.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN ipc/shm.c~ipc-shm-restore-madv_remove-functionality-on-shared-memory-segments ipc/shm.c
---- a/ipc/shm.c~ipc-shm-restore-madv_remove-functionality-on-shared-memory-segments
-+++ a/ipc/shm.c
-@@ -393,6 +393,16 @@ static int shm_fsync(struct file *file, 
- 	return sfd->file->f_op->fsync(sfd->file, start, end, datasync);
- }
- 
-+static long shm_fallocate(struct file *file, int mode, loff_t offset,
-+			  loff_t len)
-+{
-+	struct shm_file_data *sfd = shm_file_data(file);
-+
-+	if (!sfd->file->f_op->fallocate)
-+		return -EINVAL;
-+	return sfd->file->f_op->fallocate(file, mode, offset, len);
-+}
-+
- static unsigned long shm_get_unmapped_area(struct file *file,
- 	unsigned long addr, unsigned long len, unsigned long pgoff,
- 	unsigned long flags)
-@@ -410,6 +420,7 @@ static const struct file_operations shm_
- 	.get_unmapped_area	= shm_get_unmapped_area,
- #endif
- 	.llseek		= noop_llseek,
-+	.fallocate	= shm_fallocate,
- };
- 
- static const struct file_operations shm_file_operations_huge = {
-@@ -418,6 +429,7 @@ static const struct file_operations shm_
- 	.release	= shm_release,
- 	.get_unmapped_area	= shm_get_unmapped_area,
- 	.llseek		= noop_llseek,
-+	.fallocate	= shm_fallocate,
- };
- 
- int is_file_shm_hugepages(struct file *file)
+diff -puN lib/btree.c~btree-fix-tree-corruption-in-btree_get_prev lib/btree.c
+--- a/lib/btree.c~btree-fix-tree-corruption-in-btree_get_prev
++++ a/lib/btree.c
+@@ -351,7 +351,7 @@ retry:
+ 	}
+ miss:
+ 	if (retry_key) {
+-		__key = retry_key;
++		longcpy(__key, retry_key, geo->keylen);
+ 		retry_key = NULL;
+ 		goto retry;
+ 	}
 _
-Subject: Subject: ipc: shm: restore MADV_REMOVE functionality on shared memory segments
+Subject: Subject: btree: fix tree corruption in btree_get_prev()
 
-Patches currently in -mm which might be from will.deacon@arm.com are
+Patches currently in -mm which might be from roland@purestorage.com are
 
+origin.patch
 linux-next.patch
-ipc-shm-restore-madv_remove-functionality-on-shared-memory-segments.patch
+btree-fix-tree-corruption-in-btree_get_prev.patch
+btree-fix-tree-corruption-in-btree_get_prev-fix.patch
+btree-catch-null-value-before-it-does-harm.patch
 
