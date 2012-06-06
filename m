@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + btree-catch-null-value-before-it-does-harm.patch added to -mm tree
-Date: Wed, 06 Jun 2012 16:22:53 -0700
-Message-ID: <20120606232253.E950BA02AE@akpm.mtv.corp.google.com>
+Subject: + btree-fix-tree-corruption-in-btree_get_prev-fix.patch added to -mm tree
+Date: Wed, 06 Jun 2012 16:22:51 -0700
+Message-ID: <20120606232251.BB80BA02AE@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:34034 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759251Ab2FFXWz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2012 19:22:55 -0400
-Received: by vbnl22 with SMTP id l22so769514vbn.1
-        for <mm-commits@vger.kernel.org>; Wed, 06 Jun 2012 16:22:54 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:52074 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759233Ab2FFXWy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2012 19:22:54 -0400
+Received: by eeit10 with SMTP id t10so309eei.1
+        for <mm-commits@vger.kernel.org>; Wed, 06 Jun 2012 16:22:52 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joern@logfs.org, roland@purestorage.com
+Cc: akpm@linux-foundation.org, joern@logfs.org, roland@purestorage.com
 
 
 The patch titled
-     Subject: btree: catch NULL value before it does harm
+     Subject: btree-fix-tree-corruption-in-btree_get_prev-fix
 has been added to the -mm tree.  Its filename is
-     btree-catch-null-value-before-it-does-harm.patch
+     btree-fix-tree-corruption-in-btree_get_prev-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,38 +33,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joern Engel <joern@logfs.org>
-Subject: btree: catch NULL value before it does harm
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: btree-fix-tree-corruption-in-btree_get_prev-fix
 
-Storing NULL values in the btree is illegal and can lead to memory
-corruption and possible other fun as well.  Catch it on insert, instead of
-waiting for the inevitable.
+avoid the double longcpy()
 
-Signed-off-by: Joern Engel <joern@logfs.org>
-Signed-off-by: Roland Dreier <roland@purestorage.com>
+Cc: Joern Engel <joern@logfs.org>
+Cc: Roland Dreier <roland@purestorage.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/btree.c |    1 +
- 1 file changed, 1 insertion(+)
+ lib/btree.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN lib/btree.c~btree-catch-null-value-before-it-does-harm lib/btree.c
---- a/lib/btree.c~btree-catch-null-value-before-it-does-harm
+diff -puN lib/btree.c~btree-fix-tree-corruption-in-btree_get_prev-fix lib/btree.c
+--- a/lib/btree.c~btree-fix-tree-corruption-in-btree_get_prev-fix
 +++ a/lib/btree.c
-@@ -509,6 +509,7 @@ retry:
- int btree_insert(struct btree_head *head, struct btree_geo *geo,
- 		unsigned long *key, void *val, gfp_t gfp)
- {
-+	BUG_ON(!val);
- 	return btree_insert_level(head, geo, key, val, 1, gfp);
- }
- EXPORT_SYMBOL_GPL(btree_insert);
+@@ -319,8 +319,8 @@ void *btree_get_prev(struct btree_head *
+ 
+ 	if (head->height == 0)
+ 		return NULL;
+-retry:
+ 	longcpy(key, __key, geo->keylen);
++retry:
+ 	dec_key(geo, key);
+ 
+ 	node = head->node;
+@@ -351,7 +351,7 @@ retry:
+ 	}
+ miss:
+ 	if (retry_key) {
+-		longcpy(__key, retry_key, geo->keylen);
++		longcpy(key, retry_key, geo->keylen);
+ 		retry_key = NULL;
+ 		goto retry;
+ 	}
 _
-Subject: Subject: btree: catch NULL value before it does harm
+Subject: Subject: btree-fix-tree-corruption-in-btree_get_prev-fix
 
-Patches currently in -mm which might be from joern@logfs.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-btree-fix-tree-corruption-in-btree_get_prev.patch
+origin.patch
+linux-next.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+c-r-prctl-add-ability-to-get-clear_tid_address.patch
 btree-fix-tree-corruption-in-btree_get_prev-fix.patch
-btree-catch-null-value-before-it-does-harm.patch
+tmpfs-implement-numa-node-interleaving-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+mm.patch
+mm-make-vb_alloc-more-foolproof-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
+memcg-add-hugetlb-extension-fix-fix.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
+memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes.patch
+mm-correctly-synchronize-rss-counters-at-exit-exec.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix.patch
+kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
