@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + acerhdf-correct-boris-mail-address.patch added to -mm tree
-Date: Wed, 06 Jun 2012 15:34:16 -0700
-Message-ID: <20120606223416.918A4A02F8@akpm.mtv.corp.google.com>
+Subject: + hfsplus-use-enomem-when-kzalloc-fails.patch added to -mm tree
+Date: Wed, 06 Jun 2012 15:36:40 -0700
+Message-ID: <20120606223640.8F26BA02F8@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:38737 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750994Ab2FFWeR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2012 18:34:17 -0400
-Received: by vcbfl13 with SMTP id fl13so767254vcb.1
-        for <mm-commits@vger.kernel.org>; Wed, 06 Jun 2012 15:34:17 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:36550 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750994Ab2FFWgm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2012 18:36:42 -0400
+Received: by fat25 with SMTP id 25so178498fat.1
+        for <mm-commits@vger.kernel.org>; Wed, 06 Jun 2012 15:36:41 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bp@alien8.de, peter@piie.net
+Cc: linkinjeon@gmail.com
 
 
 The patch titled
-     Subject: drivers/platform/x86/acerhdf.c: correct Boris' mail address
+     Subject: hfsplus: use -ENOMEM when kzalloc() fails
 has been added to the -mm tree.  Its filename is
-     acerhdf-correct-boris-mail-address.patch
+     hfsplus-use-enomem-when-kzalloc-fails.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,35 +33,36 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Borislav Petkov <bp@alien8.de>
-Subject: drivers/platform/x86/acerhdf.c: correct Boris' mail address
+From: Namjae Jeon <linkinjeon@gmail.com>
+Subject: hfsplus: use -ENOMEM when kzalloc() fails
 
-Correct mail address reference to a mail account which I actually read.
+Use -ENOMEM return value instead of -EINVAL when kzalloc() fails.
 
-Signed-off-by: Borislav Petkov <bp@alien8.de>
-Cc: Peter Feuerer <peter@piie.net>
+Signed-off-by: Namjae Jeon <linkinjeon@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/platform/x86/acerhdf.c |    2 +-
+ fs/hfsplus/super.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/platform/x86/acerhdf.c~acerhdf-correct-boris-mail-address drivers/platform/x86/acerhdf.c
---- a/drivers/platform/x86/acerhdf.c~acerhdf-correct-boris-mail-address
-+++ a/drivers/platform/x86/acerhdf.c
-@@ -5,7 +5,7 @@
-  *
-  * (C) 2009 - Peter Feuerer     peter (a) piie.net
-  *                              http://piie.net
-- *     2009 Borislav Petkov <petkovbb@gmail.com>
-+ *     2009 Borislav Petkov	bp (a) alien8.de
-  *
-  * Inspired by and many thanks to:
-  *  o acerfand   - Rachel Greenham
+diff -puN fs/hfsplus/super.c~hfsplus-use-enomem-when-kzalloc-failed fs/hfsplus/super.c
+--- a/fs/hfsplus/super.c~hfsplus-use-enomem-when-kzalloc-failed
++++ a/fs/hfsplus/super.c
+@@ -347,7 +347,7 @@ static int hfsplus_fill_super(struct sup
+ 	u64 last_fs_block, last_fs_page;
+ 	int err;
+ 
+-	err = -EINVAL;
++	err = -ENOMEM;
+ 	sbi = kzalloc(sizeof(*sbi), GFP_KERNEL);
+ 	if (!sbi)
+ 		goto out;
 _
-Subject: Subject: drivers/platform/x86/acerhdf.c: correct Boris' mail address
+Subject: Subject: hfsplus: use -ENOMEM when kzalloc() fails
 
-Patches currently in -mm which might be from bp@alien8.de are
+Patches currently in -mm which might be from linkinjeon@gmail.com are
 
-acerhdf-correct-boris-mail-address.patch
+drivers-scsi-ufs-reverse-the-ufshcd_is_device_present-logic.patch
+ufs-fix-incorrect-return-value-about-success-and-failed.patch
+hfsplus-use-enomem-when-kzalloc-fails.patch
 
