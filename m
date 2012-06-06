@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + printk-only-look-for-prefix-levels-in-kernel-messages.patch added to -mm tree
-Date: Wed, 06 Jun 2012 14:47:13 -0700
-Message-ID: <20120606214713.DB723A0274@akpm.mtv.corp.google.com>
+Subject: + printk-remove-the-now-unnecessary-c-annotation-for-kern_cont.patch added to -mm tree
+Date: Wed, 06 Jun 2012 14:47:17 -0700
+Message-ID: <20120606214717.E3FE9A0274@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:38845 "EHLO
 	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756307Ab2FFVrQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2012 17:47:16 -0400
-Received: by lagr15 with SMTP id r15so424671lag.1
-        for <mm-commits@vger.kernel.org>; Wed, 06 Jun 2012 14:47:15 -0700 (PDT)
+	by vger.kernel.org with ESMTP id S1756307Ab2FFVrT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 Jun 2012 17:47:19 -0400
+Received: by mail-lpp01m010-f74.google.com with SMTP id r15so424671lag.1
+        for <mm-commits@vger.kernel.org>; Wed, 06 Jun 2012 14:47:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, kay@vrfy.org
+Cc: joe@perches.com, kay.sievers@vrfy.org
 
 
 The patch titled
-     Subject: printk: only look for prefix levels in kernel messages
+     Subject: printk: remove the now unnecessary "C" annotation for KERN_CONT
 has been added to the -mm tree.  Its filename is
-     printk-only-look-for-prefix-levels-in-kernel-messages.patch
+     printk-remove-the-now-unnecessary-c-annotation-for-kern_cont.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,71 +34,55 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: printk: only look for prefix levels in kernel messages
+Subject: printk: remove the now unnecessary "C" annotation for KERN_CONT
 
-vprintk_emit() prefix parsing should only be done for internal kernel
-messages.  This allows existing behavior to be kept in all cases.
+Now that all KERN_<LEVEL> uses are prefixed with ASCII SOH, there is no
+need for a KERN_CONT.  Keep it backward compatible by adding #define
+KERN_CONT ""
+
+Reduces kernel image size a thousand bytes.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Kay Sievers <kay@vrfy.org>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |   32 +++++++++++++++++---------------
- 1 file changed, 17 insertions(+), 15 deletions(-)
+ include/linux/kern_levels.h |    2 +-
+ include/linux/printk.h      |    2 --
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN kernel/printk.c~printk-only-look-for-prefix-levels-in-kernel-messages kernel/printk.c
---- a/kernel/printk.c~printk-only-look-for-prefix-levels-in-kernel-messages
-+++ a/kernel/printk.c
-@@ -1269,7 +1269,6 @@ asmlinkage int vprintk_emit(int facility
- 	static char cont_buf[LOG_LINE_MAX];
- 	static size_t cont_len;
- 	static int cont_level;
--	int kern_level;
- 	static struct task_struct *cont_task;
- 	static char textbuf[LOG_LINE_MAX];
- 	char *text = textbuf;
-@@ -1331,21 +1330,24 @@ asmlinkage int vprintk_emit(int facility
- 		newline = true;
- 	}
+diff -puN include/linux/kern_levels.h~printk-remove-the-now-unnecessary-c-annotation-for-kern_cont include/linux/kern_levels.h
+--- a/include/linux/kern_levels.h~printk-remove-the-now-unnecessary-c-annotation-for-kern_cont
++++ a/include/linux/kern_levels.h
+@@ -20,6 +20,6 @@
+  * line that had no enclosing \n). Only to be used by core/arch code
+  * during early bootup (a continued line is not SMP-safe otherwise).
+  */
+-#define KERN_CONT	KERN_SOH "c"
++#define KERN_CONT	""
  
--	/* strip syslog prefix and extract log level or control flags */
--	kern_level = printk_get_level(text);
--	if (kern_level) {
--		const char *end_of_header = printk_skip_level(text);
--		switch (kern_level) {
--		case '0' ... '7':
--			if (level == -1)
--				level = kern_level - '0';
--		case 'd':	/* KERN_DEFAULT */
--			prefix = true;
+ #endif
+diff -puN include/linux/printk.h~printk-remove-the-now-unnecessary-c-annotation-for-kern_cont include/linux/printk.h
+--- a/include/linux/printk.h~printk-remove-the-now-unnecessary-c-annotation-for-kern_cont
++++ a/include/linux/printk.h
+@@ -13,7 +13,6 @@ static inline int printk_get_level(const
+ 		switch (buffer[1]) {
+ 		case '0' ... '7':
+ 		case 'd':	/* KERN_DEFAULT */
 -		case 'c':	/* KERN_CONT */
--			break;
-+	/* strip kernel syslog prefix and extract log level or control flags */
-+	if (facility == 0) {
-+		int kern_level = printk_get_level(text);
-+
-+		if (kern_level) {
-+			const char *end_of_header = printk_skip_level(text);
-+			switch (kern_level) {
-+			case '0' ... '7':
-+				if (level == -1)
-+					level = kern_level - '0';
-+			case 'd':	/* KERN_DEFAULT */
-+				prefix = true;
-+			case 'c':	/* KERN_CONT */
-+				break;
-+			}
-+			text_len -= end_of_header - text;
-+			text = (char *)end_of_header;
+ 			return buffer[1];
  		}
--		text_len -=  end_of_header - text;
--		text = (char *)end_of_header;
  	}
- 
- 	if (level == -1)
+@@ -26,7 +25,6 @@ static inline const char *printk_skip_le
+ 		switch (buffer[1]) {
+ 		case '0' ... '7':
+ 		case 'd':	/* KERN_DEFAULT */
+-		case 'c':	/* KERN_CONT */
+ 			return buffer + 2;
+ 		}
+ 	}
 _
-Subject: Subject: printk: only look for prefix levels in kernel messages
+Subject: Subject: printk: remove the now unnecessary "C" annotation for KERN_CONT
 
 Patches currently in -mm which might be from joe@perches.com are
 
