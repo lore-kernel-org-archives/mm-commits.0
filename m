@@ -1,101 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [folded] btree-fix-tree-corruption-in-btree_get_prev-fix.patch removed from -mm tree
-Date: Thu, 07 Jun 2012 14:18:11 -0700
-Message-ID: <20120607211811.9D129A02F8@akpm.mtv.corp.google.com>
+Subject: [nacked] cma-do-no-enable-it-by-default.patch removed from -mm tree
+Date: Thu, 07 Jun 2012 14:54:42 -0700
+Message-ID: <20120607215442.C1D41A02F8@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:33706 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757195Ab2FGVSO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jun 2012 17:18:14 -0400
-Received: by lagr15 with SMTP id r15so65377lag.1
-        for <mm-commits@vger.kernel.org>; Thu, 07 Jun 2012 14:18:12 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:45452 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932991Ab2FGVyo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jun 2012 17:54:44 -0400
+Received: by qcsp5 with SMTP id p5so113133qcs.1
+        for <mm-commits@vger.kernel.org>; Thu, 07 Jun 2012 14:54:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, joern@logfs.org, roland@purestorage.com, mm-commits@vger.kernel.org
+To: borislav.petkov@amd.com, cyeoh@au1.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: btree-fix-tree-corruption-in-btree_get_prev-fix
+     Subject: CMA: mo no enable it by default
 has been removed from the -mm tree.  Its filename was
-     btree-fix-tree-corruption-in-btree_get_prev-fix.patch
+     cma-do-no-enable-it-by-default.patch
 
-This patch was dropped because it was folded into btree-fix-tree-corruption-in-btree_get_prev.patch
+This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: btree-fix-tree-corruption-in-btree_get_prev-fix
+From: Borislav Petkov <borislav.petkov@amd.com>
+Subject: CMA: mo no enable it by default
 
-avoid the double longcpy()
+CROSS_MEMORY_ATTACH is a MPI feature which shouldn't be enabled by default
+on every linux system simply because the majority of users do not need it.
 
-Cc: Joern Engel <joern@logfs.org>
-Cc: Roland Dreier <roland@purestorage.com>
+In the config option it says "...  which allow a process with the correct
+privileges to directly read from or write to to another process's address
+space." but this is the normal ptrace case where if one process has the
+required privileges, it can access another process' address space.
+
+So disable it - people who really need that normally know what they're
+doing and also know how to enable it.
+
+Signed-off-by: Borislav Petkov <borislav.petkov@amd.com>
+Cc: Christopher Yeoh <cyeoh@au1.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/btree.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/btree.c~btree-fix-tree-corruption-in-btree_get_prev-fix lib/btree.c
---- a/lib/btree.c~btree-fix-tree-corruption-in-btree_get_prev-fix
-+++ a/lib/btree.c
-@@ -319,8 +319,8 @@ void *btree_get_prev(struct btree_head *
- 
- 	if (head->height == 0)
- 		return NULL;
--retry:
- 	longcpy(key, __key, geo->keylen);
-+retry:
- 	dec_key(geo, key);
- 
- 	node = head->node;
-@@ -351,7 +351,7 @@ retry:
- 	}
- miss:
- 	if (retry_key) {
--		longcpy(__key, retry_key, geo->keylen);
-+		longcpy(key, retry_key, geo->keylen);
- 		retry_key = NULL;
- 		goto retry;
- 	}
+diff -puN mm/Kconfig~cma-do-no-enable-it-by-default mm/Kconfig
+--- a/mm/Kconfig~cma-do-no-enable-it-by-default
++++ a/mm/Kconfig
+@@ -352,7 +352,7 @@ endchoice
+ config CROSS_MEMORY_ATTACH
+ 	bool "Cross Memory Support"
+ 	depends on MMU
+-	default y
++	default n
+ 	help
+ 	  Enabling this option adds the system calls process_vm_readv and
+ 	  process_vm_writev which allow a process with the correct privileges
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from borislav.petkov@amd.com are
 
-origin.patch
-c-r-prctl-add-ability-to-get-clear_tid_address.patch
-btree-fix-tree-corruption-in-btree_get_prev.patch
-mm-correctly-synchronize-rss-counters-at-exit-exec.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
-tmpfs-implement-numa-node-interleaving-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions.patch
-mm.patch
-mm-make-vb_alloc-more-foolproof-fix.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
-memcg-add-hugetlb-extension-fix-fix.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
-hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
-memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix.patch
-kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
