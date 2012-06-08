@@ -1,59 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] btree-catch-null-value-before-it-does-harm.patch removed from -mm tree
-Date: Fri, 08 Jun 2012 12:41:39 -0700
-Message-ID: <20120608194139.56701A022F@akpm.mtv.corp.google.com>
+Subject: [merged] c-r-prctl-drop-vma-flags-test-on-pr_set_mm_-stack-data-assignment.patch removed from -mm tree
+Date: Fri, 08 Jun 2012 12:41:30 -0700
+Message-ID: <20120608194130.87278A022F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:59737 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933226Ab2FHTlm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2012 15:41:42 -0400
-Received: by lbbgp10 with SMTP id gp10so131732lbb.1
-        for <mm-commits@vger.kernel.org>; Fri, 08 Jun 2012 12:41:40 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:63827 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933146Ab2FHTlb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2012 15:41:31 -0400
+Received: by yhgm50 with SMTP id m50so249847yhg.1
+        for <mm-commits@vger.kernel.org>; Fri, 08 Jun 2012 12:41:31 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joern@logfs.org, roland@purestorage.com, mm-commits@vger.kernel.org
+To: gorcunov@gmail.com, gorcunov@openvz.org, kamezawa.hiroyu@jp.fujitsu.com, keescook@chromium.org, oleg@redhat.com, serge.hallyn@canonical.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: btree: catch NULL value before it does harm
+     Subject: c/r: prctl: drop VMA flags test on PR_SET_MM_ stack data assignment
 has been removed from the -mm tree.  Its filename was
-     btree-catch-null-value-before-it-does-harm.patch
+     c-r-prctl-drop-vma-flags-test-on-pr_set_mm_-stack-data-assignment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Joern Engel <joern@logfs.org>
-Subject: btree: catch NULL value before it does harm
+From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: c/r: prctl: drop VMA flags test on PR_SET_MM_ stack data assignment
 
-Storing NULL values in the btree is illegal and can lead to memory
-corruption and possible other fun as well.  Catch it on insert, instead of
-waiting for the inevitable.
+In b76437579d134 ("procfs: mark thread stack correctly in
+proc/<pid>/maps") the stack allocated via clone() is marked in
+/proc/<pid>/maps as [stack:%d] thus it might be out of the former
+mm->start_stack/end_stack values (and even has some custom VMA flags set).
+ So to be able to restore mm->start_stack/end_stack drop vma flags test,
+but still require the underlying VMA to exist.
 
-Signed-off-by: Joern Engel <joern@logfs.org>
-Signed-off-by: Roland Dreier <roland@purestorage.com>
+As always note this feature is under CONFIG_CHECKPOINT_RESTORE and
+requires CAP_SYS_RESOURCE to be granted.
+
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/btree.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/sys.c |   14 --------------
+ 1 file changed, 14 deletions(-)
 
-diff -puN lib/btree.c~btree-catch-null-value-before-it-does-harm lib/btree.c
---- a/lib/btree.c~btree-catch-null-value-before-it-does-harm
-+++ a/lib/btree.c
-@@ -509,6 +509,7 @@ retry:
- int btree_insert(struct btree_head *head, struct btree_geo *geo,
- 		unsigned long *key, void *val, gfp_t gfp)
- {
-+	BUG_ON(!val);
- 	return btree_insert_level(head, geo, key, val, 1, gfp);
+diff -puN kernel/sys.c~c-r-prctl-drop-vma-flags-test-on-pr_set_mm_-stack-data-assignment kernel/sys.c
+--- a/kernel/sys.c~c-r-prctl-drop-vma-flags-test-on-pr_set_mm_-stack-data-assignment
++++ a/kernel/sys.c
+@@ -1786,14 +1786,6 @@ SYSCALL_DEFINE1(umask, int, mask)
  }
- EXPORT_SYMBOL_GPL(btree_insert);
-_
-
-Patches currently in -mm which might be from joern@logfs.org are
-
-origin.patch
-
+ 
+ #ifdef CONFIG_CHECKPOINT_RESTORE
+-static bool vma_flags_mismatch(struct vm_area_struct *vma,
+-			       unsigned long required,
+-			       unsigned long banned)
+-{
+-	return (vma->vm_flags & required) != required ||
+-		(vma->vm_flags & banned);
+-}
