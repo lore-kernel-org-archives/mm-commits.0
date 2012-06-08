@@ -1,119 +1,183 @@
 From: akpm@linux-foundation.org
-Subject: [folded] nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix.patch removed from -mm tree
-Date: Fri, 08 Jun 2012 14:38:29 -0700
-Message-ID: <20120608213829.4877DA02BF@akpm.mtv.corp.google.com>
+Subject: + thp-avoid-atomic64_read-in-pmd_read_atomic-for-32bit-pae.patch added to -mm tree
+Date: Fri, 08 Jun 2012 15:08:18 -0700
+Message-ID: <20120608220818.D5FACA0329@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:50653 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934508Ab2FHVic (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2012 17:38:32 -0400
-Received: by lbbgp10 with SMTP id gp10so134867lbb.1
-        for <mm-commits@vger.kernel.org>; Fri, 08 Jun 2012 14:38:30 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:43637 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964876Ab2FHWIV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2012 18:08:21 -0400
+Received: by fat25 with SMTP id 25so129373fat.1
+        for <mm-commits@vger.kernel.org>; Fri, 08 Jun 2012 15:08:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, dzickus@redhat.com, mingo@elte.hu, msb@chromium.org, rjw@sisk.pl, snanda@chromium.org, srivatsa.bhat@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: aarcange@redhat.com, hughd@google.com, jbeulich@suse.com, jrnieder@gmail.com, kosaki.motohiro@gmail.com, lwoodman@redhat.com, mgorman@suse.de, pmatouse@redhat.com, riel@redhat.com, stable@vger.kernel.org, uobergfe@redhat.com
 
 
 The patch titled
-     Subject: nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix
-has been removed from the -mm tree.  Its filename was
-     nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix.patch
+     Subject: thp: avoid atomic64_read in pmd_read_atomic for 32bit PAE
+has been added to the -mm tree.  Its filename is
+     thp-avoid-atomic64_read-in-pmd_read_atomic-for-32bit-pae.patch
 
-This patch was dropped because it was folded into nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: thp: avoid atomic64_read in pmd_read_atomic for 32bit PAE
 
-fix section errors
+In the x86 32bit PAE CONFIG_TRANSPARENT_HUGEPAGE=y case while holding the
+mmap_sem for reading, cmpxchg8b cannot be used to read pmd contents under
+Xen.
 
-WARNING: vmlinux.o(.text+0x13b6eb): Section mismatch in reference from the function lockup_detector_bootcpu_resume() to the function .cpuinit.text:cpu_callback()
-The function lockup_detector_bootcpu_resume() references
-the function __cpuinit cpu_callback().
-This is often because lockup_detector_bootcpu_resume lacks a __cpuinit 
-annotation or the annotation of cpu_callback is wrong.
+So instead of dealing only with "consistent" pmdvals in
+pmd_none_or_trans_huge_or_clear_bad() (which would be conceptually
+simpler) we let pmd_none_or_trans_huge_or_clear_bad() deal with pmdvals
+where the low 32bit and high 32bit could be inconsistent (to avoid having
+to use cmpxchg8b).
 
+The only guarantee we get from pmd_read_atomic is that if the low part of
+the pmd was found null, the high part will be null too (so the pmd will be
+considered unstable).  And if the low part of the pmd is found "stable"
+later, then it means the whole pmd was read atomically (because after a
+pmd is stable, neither MADV_DONTNEED nor page faults can alter it anymore,
+and we read the high part after the low part).
 
-WARNING: vmlinux.o(.text+0x13b6f5): Section mismatch in reference from the function lockup_detector_bootcpu_resume() to the variable .cpuinit.data:cpu_nfb
-The function lockup_detector_bootcpu_resume() references
-the variable __cpuinitdata cpu_nfb.
-This is often because lockup_detector_bootcpu_resume lacks a __cpuinitdata 
-annotation or the annotation of cpu_nfb is wrong.
+In the 32bit PAE x86 case, it is enough to read the low part of the pmdval
+atomically to declare the pmd as "stable" and that's true for THP and no
+THP, furthermore in the THP case we also have a barrier() that will
+prevent any inconsistent pmdvals to be cached by a later re-read of the
+*pmd.
 
-
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Don Zickus <dzickus@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Mandeep Singh Baines <msb@chromium.org>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Sameer Nanda <snanda@chromium.org>
-Cc: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Jonathan Nieder <jrnieder@gmail.com>
+Cc: Ulrich Obergfell <uobergfe@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Larry Woodman <lwoodman@redhat.com>
+Cc: Petr Matousek <pmatouse@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Jan Beulich <jbeulich@suse.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/include/asm/pgtable-3level.h |   30 +++++++++++++-----------
+ include/asm-generic/pgtable.h         |   10 ++++++++
+ 2 files changed, 27 insertions(+), 13 deletions(-)
 
-diff -puN kernel/watchdog.c~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix kernel/watchdog.c
---- a/kernel/watchdog.c~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix
-+++ a/kernel/watchdog.c
-@@ -558,7 +558,7 @@ out:
- /*
-  * Create/destroy watchdog threads as CPUs come and go:
+diff -puN arch/x86/include/asm/pgtable-3level.h~thp-avoid-atomic64_read-in-pmd_read_atomic-for-32bit-pae arch/x86/include/asm/pgtable-3level.h
+--- a/arch/x86/include/asm/pgtable-3level.h~thp-avoid-atomic64_read-in-pmd_read_atomic-for-32bit-pae
++++ a/arch/x86/include/asm/pgtable-3level.h
+@@ -47,16 +47,26 @@ static inline void native_set_pte(pte_t 
+  * they can run pmd_offset_map_lock or pmd_trans_huge or other pmd
+  * operations.
+  *
+- * Without THP if the mmap_sem is hold for reading, the
+- * pmd can only transition from null to not null while pmd_read_atomic runs.
+- * So there's no need of literally reading it atomically.
++ * Without THP if the mmap_sem is hold for reading, the pmd can only
++ * transition from null to not null while pmd_read_atomic runs. So
++ * we can always return atomic pmd values with this function.
+  *
+  * With THP if the mmap_sem is hold for reading, the pmd can become
+- * THP or null or point to a pte (and in turn become "stable") at any
+- * time under pmd_read_atomic, so it's mandatory to read it atomically
+- * with cmpxchg8b.
++ * trans_huge or none or point to a pte (and in turn become "stable")
++ * at any time under pmd_read_atomic. We could read it really
++ * atomically here with a atomic64_read for the THP enabled case (and
++ * it would be a whole lot simpler), but to avoid using cmpxchg8b we
++ * only return an atomic pmdval if the low part of the pmdval is later
++ * found stable (i.e. pointing to a pte). And we're returning a none
++ * pmdval if the low part of the pmd is none. In some cases the high
++ * and low part of the pmdval returned may not be consistent if THP is
++ * enabled (the low part may point to previously mapped hugepage,
++ * while the high part may point to a more recently mapped hugepage),
++ * but pmd_none_or_trans_huge_or_clear_bad() only needs the low part
++ * of the pmd to be read atomically to decide if the pmd is unstable
++ * or not, with the only exception of when the low part of the pmd is
++ * zero in which case we return a none pmd.
   */
--static int __cpuinit
-+static int
- cpu_callback(struct notifier_block *nfb, unsigned long action, void *hcpu)
+-#ifndef CONFIG_TRANSPARENT_HUGEPAGE
+ static inline pmd_t pmd_read_atomic(pmd_t *pmdp)
  {
- 	int hotcpu = (unsigned long)hcpu;
-@@ -593,7 +593,7 @@ cpu_callback(struct notifier_block *nfb,
- 	return NOTIFY_OK;
+ 	pmdval_t ret;
+@@ -74,12 +84,6 @@ static inline pmd_t pmd_read_atomic(pmd_
+ 
+ 	return (pmd_t) { ret };
  }
+-#else /* CONFIG_TRANSPARENT_HUGEPAGE */
+-static inline pmd_t pmd_read_atomic(pmd_t *pmdp)
+-{
+-	return (pmd_t) { atomic64_read((atomic64_t *)pmdp) };
+-}
+-#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
--static struct notifier_block __cpuinitdata cpu_nfb = {
-+static struct notifier_block cpu_nfb = {
- 	.notifier_call = cpu_callback
- };
- 
+ static inline void native_set_pte_atomic(pte_t *ptep, pte_t pte)
+ {
+diff -puN include/asm-generic/pgtable.h~thp-avoid-atomic64_read-in-pmd_read_atomic-for-32bit-pae include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~thp-avoid-atomic64_read-in-pmd_read_atomic-for-32bit-pae
++++ a/include/asm-generic/pgtable.h
+@@ -484,6 +484,16 @@ static inline int pmd_none_or_trans_huge
+ 	/*
+ 	 * The barrier will stabilize the pmdval in a register or on
+ 	 * the stack so that it will stop changing under the code.
++	 *
++	 * When CONFIG_TRANSPARENT_HUGEPAGE=y on x86 32bit PAE,
++	 * pmd_read_atomic is allowed to return a not atomic pmdval
++	 * (for example pointing to an hugepage that has never been
++	 * mapped in the pmd). The below checks will only care about
++	 * the low part of the pmd with 32bit PAE x86 anyway, with the
++	 * exception of pmd_none(). So the important thing is that if
++	 * the low part of the pmd is found null, the high part will
++	 * be also null or the pmd_none() check below would be
++	 * confused.
+ 	 */
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	barrier();
 _
+Subject: Subject: thp: avoid atomic64_read in pmd_read_atomic for 32bit PAE
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
-mm-fix-slab-page-_count-corruption-when-using-slub-fix.patch
-tmpfs-implement-numa-node-interleaving-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions.patch
-mm.patch
-mm-make-vb_alloc-more-foolproof-fix.patch
-mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-fix.patch
+mm-fix-slab-page-_count-corruption-when-using-slub.patch
+thp-avoid-atomic64_read-in-pmd_read_atomic-for-32bit-pae.patch
+hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
+hugetlbfs-dont-use-err_ptr-with-vm_fault-values.patch
+hugetlbfs-add-an-inline-helper-for-finding-hstate-index.patch
+hugetlbfs-add-an-inline-helper-for-finding-hstate-index-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
 hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
 hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
+hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
+hugetlb-simplify-migrate_huge_page.patch
+hugetlb-simplify-migrate_huge_page-fix.patch
+memcg-add-hugetlb-extension.patch
+memcg-add-hugetlb-extension-fix.patch
 memcg-add-hugetlb-extension-fix-fix.patch
+hugetlb-add-charge-uncharge-calls-for-hugetlb-alloc-free.patch
+memcg-track-resource-index-in-cftype-private.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf.patch
 hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
+hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal.patch
 memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
 memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
-hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
-memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes.patch
-nmi-watchdog-quiet-down-the-boot-messages-checkpatch-fixes.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
-kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
-kmod-avoid-deadlock-from-recursive-kmod-call.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration.patch
+memcg-add-memory-controller-documentation-for-hugetlb-management.patch
 
