@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-account-the-total_vm-in-the-vm_stat_account.patch added to -mm tree
-Date: Fri, 08 Jun 2012 13:48:45 -0700
-Message-ID: <20120608204845.93629A022F@akpm.mtv.corp.google.com>
+Subject: + kmod-avoid-deadlock-from-recursive-kmod-call.patch added to -mm tree
+Date: Fri, 08 Jun 2012 13:58:50 -0700
+Message-ID: <20120608205850.C2BFDA02F8@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:59551 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754525Ab2FHUss (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2012 16:48:48 -0400
-Received: by bkty5 with SMTP id y5so126584bkt.1
-        for <mm-commits@vger.kernel.org>; Fri, 08 Jun 2012 13:48:46 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:48647 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754601Ab2FHU6w (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2012 16:58:52 -0400
+Received: by vcbfl13 with SMTP id fl13so211634vcb.1
+        for <mm-commits@vger.kernel.org>; Fri, 08 Jun 2012 13:58:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shijie8@gmail.com
+Cc: penguin-kernel@i-love.sakura.ne.jp, arjan@linux.intel.com, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rusty@rustcorp.com.au, tj@kernel.org
 
 
 The patch titled
-     Subject: mm: account the total_vm in the vm_stat_account()
+     Subject: kmod: avoid deadlock from recursive kmod call
 has been added to the -mm tree.  Its filename is
-     mm-account-the-total_vm-in-the-vm_stat_account.patch
+     kmod-avoid-deadlock-from-recursive-kmod-call.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,123 +33,121 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Huang Shijie <shijie8@gmail.com>
-Subject: mm: account the total_vm in the vm_stat_account()
+From: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Subject: kmod: avoid deadlock from recursive kmod call
 
-vm_stat_account() accounts the shared_vm, stack_vm and reserved_vm now. 
-But we can also account for total_vm in the vm_stat_account() which makes
-the code tidy.
+The system deadlocks (at least since 2.6.10) when
+call_usermodehelper(UMH_WAIT_EXEC) request triggered
+call_usermodehelper(UMH_WAIT_PROC) request.
 
-Even for mprotect_fixup(), we can get the right result in the end.
+This is because "khelper thread is waiting for the worker thread at
+wait_for_completion() in do_fork() since the worker thread was created
+with CLONE_VFORK flag" and "the worker thread cannot call complete()
+because do_execve() is blocked at UMH_WAIT_PROC request" and "the khelper
+thread cannot start processing UMH_WAIT_PROC request because the khelper
+thread is waiting for the worker thread at wait_for_completion() in
+do_fork()".
 
-Signed-off-by: Huang Shijie <shijie8@gmail.com>
+The easiest example to observe this deadlock is to use a corrupted
+/sbin/hotplug binary (like shown below).
+
+  # : > /tmp/dummy
+  # chmod 755 /tmp/dummy
+  # echo /tmp/dummy > /proc/sys/kernel/hotplug
+  # modprobe whatever
+
+call_usermodehelper("/tmp/dummy", UMH_WAIT_EXEC) is called from
+kobject_uevent_env() in lib/kobject_uevent.c upon loading/unloading a
+module.  do_execve("/tmp/dummy") triggers a call to
+request_module("binfmt-0000") from search_binary_handler() which in turn
+calls call_usermodehelper(UMH_WAIT_PROC).
+
+In order to avoid deadlock, as a for-now and easy-to-backport solution, do
+not try to call wait_for_completion() in call_usermodehelper_exec() if the
+worker thread was created by khelper thread with CLONE_VFORK flag.  Future
+and fundamental solution might be replacing singleton khelper thread with
+some workqueue so that recursive calls up to max_active dependency loop
+can be handled without deadlock.
+
+[akpm@linux-foundation.org: add comment to kmod_thread_locker]
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/perfmon.c |    1 -
- include/linux/mm.h         |    1 +
- kernel/fork.c              |    4 +---
- mm/mmap.c                  |    5 ++---
- mm/mremap.c                |    2 --
- 5 files changed, 4 insertions(+), 9 deletions(-)
+ kernel/kmod.c |   31 +++++++++++++++++++++++++++++--
+ 1 file changed, 29 insertions(+), 2 deletions(-)
 
-diff -puN arch/ia64/kernel/perfmon.c~mm-account-the-total_vm-in-the-vm_stat_account arch/ia64/kernel/perfmon.c
---- a/arch/ia64/kernel/perfmon.c~mm-account-the-total_vm-in-the-vm_stat_account
-+++ a/arch/ia64/kernel/perfmon.c
-@@ -2353,7 +2353,6 @@ pfm_smpl_buffer_alloc(struct task_struct
- 	 */
- 	insert_vm_struct(mm, vma);
+diff -puN kernel/kmod.c~kmod-avoid-deadlock-from-recursive-kmod-call kernel/kmod.c
+--- a/kernel/kmod.c~kmod-avoid-deadlock-from-recursive-kmod-call
++++ a/kernel/kmod.c
+@@ -45,6 +45,13 @@ extern int max_threads;
  
--	mm->total_vm  += size >> PAGE_SHIFT;
- 	vm_stat_account(vma->vm_mm, vma->vm_flags, vma->vm_file,
- 							vma_pages(vma));
- 	up_write(&task->mm->mmap_sem);
-diff -puN include/linux/mm.h~mm-account-the-total_vm-in-the-vm_stat_account include/linux/mm.h
---- a/include/linux/mm.h~mm-account-the-total_vm-in-the-vm_stat_account
-+++ a/include/linux/mm.h
-@@ -1553,6 +1553,7 @@ void vm_stat_account(struct mm_struct *,
- static inline void vm_stat_account(struct mm_struct *mm,
- 			unsigned long flags, struct file *file, long pages)
- {
-+	mm->total_vm += pages;
- }
- #endif /* CONFIG_PROC_FS */
+ static struct workqueue_struct *khelper_wq;
  
-diff -puN kernel/fork.c~mm-account-the-total_vm-in-the-vm_stat_account kernel/fork.c
---- a/kernel/fork.c~mm-account-the-total_vm-in-the-vm_stat_account
-+++ a/kernel/fork.c
-@@ -377,10 +377,8 @@ static int dup_mmap(struct mm_struct *mm
- 		struct file *file;
- 
- 		if (mpnt->vm_flags & VM_DONTCOPY) {
--			long pages = vma_pages(mpnt);
--			mm->total_vm -= pages;
- 			vm_stat_account(mm, mpnt->vm_flags, mpnt->vm_file,
--								-pages);
-+							-vma_pages(mpnt));
- 			continue;
- 		}
- 		charge = 0;
-diff -puN mm/mmap.c~mm-account-the-total_vm-in-the-vm_stat_account mm/mmap.c
---- a/mm/mmap.c~mm-account-the-total_vm-in-the-vm_stat_account
-+++ a/mm/mmap.c
-@@ -943,6 +943,8 @@ void vm_stat_account(struct mm_struct *m
- 	const unsigned long stack_flags
- 		= VM_STACK_FLAGS & (VM_GROWSUP|VM_GROWSDOWN);
- 
-+	mm->total_vm += pages;
++/*
++ * kmod_thread_locker is used for deadlock avoidance.  There is no explicit
++ * locking to protect this global - it is private to the singleton khelper
++ * thread and should only ever be modified by that thread.
++ */
++static const struct task_struct *kmod_thread_locker;
 +
- 	if (file) {
- 		mm->shared_vm += pages;
- 		if ((flags & (VM_EXEC|VM_WRITE)) == VM_EXEC)
-@@ -1347,7 +1349,6 @@ munmap_back:
- out:
- 	perf_event_mmap(vma);
+ #define CAP_BSET	(void *)1
+ #define CAP_PI		(void *)2
  
--	mm->total_vm += len >> PAGE_SHIFT;
- 	vm_stat_account(mm, vm_flags, file, len >> PAGE_SHIFT);
- 	if (vm_flags & VM_LOCKED) {
- 		if (!mlock_vma_pages_range(vma, addr, addr + len))
-@@ -1707,7 +1708,6 @@ static int acct_stack_growth(struct vm_a
- 		return -ENOMEM;
+@@ -221,6 +228,13 @@ fail:
+ 	return 0;
+ }
  
- 	/* Ok, everything looks good - let it rip */
--	mm->total_vm += grow;
- 	if (vma->vm_flags & VM_LOCKED)
- 		mm->locked_vm += grow;
- 	vm_stat_account(mm, vma->vm_flags, vma->vm_file, grow);
-@@ -1889,7 +1889,6 @@ static void remove_vma_list(struct mm_st
++static int call_helper(void *data)
++{
++	/* Worker thread started blocking khelper thread. */
++	kmod_thread_locker = current;
++	return ____call_usermodehelper(data);
++}
++
+ static void call_usermodehelper_freeinfo(struct subprocess_info *info)
+ {
+ 	if (info->cleanup)
+@@ -295,9 +309,12 @@ static void __call_usermodehelper(struct
+ 	if (wait == UMH_WAIT_PROC)
+ 		pid = kernel_thread(wait_for_helper, sub_info,
+ 				    CLONE_FS | CLONE_FILES | SIGCHLD);
+-	else
+-		pid = kernel_thread(____call_usermodehelper, sub_info,
++	else {
++		pid = kernel_thread(call_helper, sub_info,
+ 				    CLONE_VFORK | SIGCHLD);
++		/* Worker thread stopped blocking khelper thread. */
++		kmod_thread_locker = NULL;
++	}
  
- 		if (vma->vm_flags & VM_ACCOUNT)
- 			nr_accounted += nrpages;
--		mm->total_vm -= nrpages;
- 		vm_stat_account(mm, vma->vm_flags, vma->vm_file, -nrpages);
- 		vma = remove_vma(vma);
- 	} while (vma);
-diff -puN mm/mremap.c~mm-account-the-total_vm-in-the-vm_stat_account mm/mremap.c
---- a/mm/mremap.c~mm-account-the-total_vm-in-the-vm_stat_account
-+++ a/mm/mremap.c
-@@ -260,7 +260,6 @@ static unsigned long move_vma(struct vm_
- 	 * If this were a serious issue, we'd add a flag to do_munmap().
- 	 */
- 	hiwater_vm = mm->hiwater_vm;
--	mm->total_vm += new_len >> PAGE_SHIFT;
- 	vm_stat_account(mm, vma->vm_flags, vma->vm_file, new_len>>PAGE_SHIFT);
+ 	switch (wait) {
+ 	case UMH_NO_WAIT:
+@@ -548,6 +565,16 @@ int call_usermodehelper_exec(struct subp
+ 		retval = -EBUSY;
+ 		goto out;
+ 	}
++	/*
++	 * Worker thread must not wait for khelper thread at below
++	 * wait_for_completion() if the thread was created with CLONE_VFORK
++	 * flag, for khelper thread is already waiting for the thread at
++	 * wait_for_completion() in do_fork().
++	 */
++	if (wait != UMH_NO_WAIT && current == kmod_thread_locker) {
++		retval = -EBUSY;
++		goto out;
++	}
  
- 	if (do_munmap(mm, old_addr, old_len) < 0) {
-@@ -497,7 +496,6 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
- 				goto out;
- 			}
- 
--			mm->total_vm += pages;
- 			vm_stat_account(mm, vma->vm_flags, vma->vm_file, pages);
- 			if (vma->vm_flags & VM_LOCKED) {
- 				mm->locked_vm += pages;
+ 	sub_info->complete = &done;
+ 	sub_info->wait = wait;
 _
-Subject: Subject: mm: account the total_vm in the vm_stat_account()
+Subject: Subject: kmod: avoid deadlock from recursive kmod call
 
-Patches currently in -mm which might be from shijie8@gmail.com are
+Patches currently in -mm which might be from penguin-kernel@i-love.sakura.ne.jp are
 
-linux-next.patch
-mm-account-the-total_vm-in-the-vm_stat_account.patch
+kmod-avoid-deadlock-from-recursive-kmod-call.patch
 
