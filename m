@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-ipmi-ipmi_watchdogc-remove-local-ioctl-defines-replaced-by-generic-ones.patch added to -mm tree
-Date: Fri, 08 Jun 2012 13:13:22 -0700
-Message-ID: <20120608201322.5C795A02F8@akpm.mtv.corp.google.com>
+Subject: + mm-oom-fix-badness-score-underflow.patch added to -mm tree
+Date: Fri, 08 Jun 2012 13:34:09 -0700
+Message-ID: <20120608203409.A039FA0295@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:46026 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755983Ab2FHUNX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2012 16:13:23 -0400
-Received: by ggeh3 with SMTP id h3so206203gge.1
-        for <mm-commits@vger.kernel.org>; Fri, 08 Jun 2012 13:13:22 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:52060 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754102Ab2FHUeK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2012 16:34:10 -0400
+Received: by qcsp5 with SMTP id p5so209413qcs.1
+        for <mm-commits@vger.kernel.org>; Fri, 08 Jun 2012 13:34:10 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oskar@scara.com, minyard@acm.org, wim@iguana.be
+Cc: rientjes@google.com, davej@redhat.com, oleg@redhat.com
 
 
 The patch titled
-     Subject: drivers/char/ipmi/ipmi_watchdog.c: remove local ioctl defines replaced by generic ones
+     Subject: mm, oom: fix badness score underflow
 has been added to the -mm tree.  Its filename is
-     drivers-char-ipmi-ipmi_watchdogc-remove-local-ioctl-defines-replaced-by-generic-ones.patch
+     mm-oom-fix-badness-score-underflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,67 +33,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Oskar Schirmer" <oskar@scara.com>
-Subject: drivers/char/ipmi/ipmi_watchdog.c: remove local ioctl defines replaced by generic ones
+From: David Rientjes <rientjes@google.com>
+Subject: mm, oom: fix badness score underflow
 
-This watchdog driver had ioctl defines introduced locally for pre timeout
-handling, marked to be removed as soon as a generic replacement would
-become available.
+If the privileges given to root threads (3% of allowable memory) or a
+negative value of /proc/pid/oom_score_adj happen to exceed the amount of
+rss of a thread, its badness score overflows as a result of a7f638f999ff
+("mm, oom: normalize oom scores to oom_score_adj scale only for
+userspace").
 
-The latter has actually occurred in 2006, at e05b59fe.
+Fix this by making the type signed and return 1, meaning the thread is
+still eligible for kill, if the value is negative.
 
-Remove the local duplicates for pre timeout handling.
-
-Signed-off-by: Oskar Schirmer <oskar@scara.com>
-Cc: Corey Minyard <minyard@acm.org>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Reported-by: Dave Jones <davej@redhat.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_watchdog.c |   13 -------------
- 1 file changed, 13 deletions(-)
+ mm/oom_kill.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/ipmi/ipmi_watchdog.c~drivers-char-ipmi-ipmi_watchdogc-remove-local-ioctl-defines-replaced-by-generic-ones drivers/char/ipmi/ipmi_watchdog.c
---- a/drivers/char/ipmi/ipmi_watchdog.c~drivers-char-ipmi-ipmi_watchdogc-remove-local-ioctl-defines-replaced-by-generic-ones
-+++ a/drivers/char/ipmi/ipmi_watchdog.c
-@@ -141,17 +141,6 @@
+diff -puN mm/oom_kill.c~mm-oom-fix-badness-score-underflow mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-fix-badness-score-underflow
++++ a/mm/oom_kill.c
+@@ -183,7 +183,7 @@ static bool oom_unkillable_task(struct t
+ unsigned long oom_badness(struct task_struct *p, struct mem_cgroup *memcg,
+ 			  const nodemask_t *nodemask, unsigned long totalpages)
+ {
+-	unsigned long points;
++	long points;
  
- #define IPMI_WDOG_TIMER_NOT_INIT_RESP	0x80
- 
--/* These are here until the real ones get into the watchdog.h interface. */
--#ifndef WDIOC_GETTIMEOUT
--#define	WDIOC_GETTIMEOUT        _IOW(WATCHDOG_IOCTL_BASE, 20, int)
--#endif
--#ifndef WDIOC_SET_PRETIMEOUT
--#define	WDIOC_SET_PRETIMEOUT     _IOW(WATCHDOG_IOCTL_BASE, 21, int)
--#endif
--#ifndef WDIOC_GET_PRETIMEOUT
--#define	WDIOC_GET_PRETIMEOUT     _IOW(WATCHDOG_IOCTL_BASE, 22, int)
--#endif
--
- static DEFINE_MUTEX(ipmi_watchdog_mutex);
- static bool nowayout = WATCHDOG_NOWAYOUT;
- 
-@@ -732,7 +721,6 @@ static int ipmi_ioctl(struct file *file,
- 			return -EFAULT;
+ 	if (oom_unkillable_task(p, memcg, nodemask))
  		return 0;
+@@ -223,7 +223,7 @@ unsigned long oom_badness(struct task_st
+ 	 * Never return 0 for an eligible task regardless of the root bonus and
+ 	 * oom_score_adj (oom_score_adj can't be OOM_SCORE_ADJ_MIN here).
+ 	 */
+-	return points ? points : 1;
++	return points > 0 ? points : 1;
+ }
  
--	case WDIOC_SET_PRETIMEOUT:
- 	case WDIOC_SETPRETIMEOUT:
- 		i = copy_from_user(&val, argp, sizeof(int));
- 		if (i)
-@@ -740,7 +728,6 @@ static int ipmi_ioctl(struct file *file,
- 		pretimeout = val;
- 		return ipmi_set_timeout(IPMI_SET_TIMEOUT_HB_IF_NECESSARY);
- 
--	case WDIOC_GET_PRETIMEOUT:
- 	case WDIOC_GETPRETIMEOUT:
- 		i = copy_to_user(argp, &pretimeout, sizeof(pretimeout));
- 		if (i)
+ /*
 _
-Subject: Subject: drivers/char/ipmi/ipmi_watchdog.c: remove local ioctl defines replaced by generic ones
+Subject: Subject: mm, oom: fix badness score underflow
 
-Patches currently in -mm which might be from oskar@scara.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
-drivers-char-ipmi-ipmi_watchdogc-remove-local-ioctl-defines-replaced-by-generic-ones.patch
+origin.patch
+linux-next.patch
+mm-oom-fix-badness-score-underflow.patch
+slab-move-full-state-transition-to-an-initcall.patch
+hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
+hugetlbfs-add-an-inline-helper-for-finding-hstate-index-fix.patch
+hugetlb-simplify-migrate_huge_page.patch
+hugetlb-simplify-migrate_huge_page-fix.patch
+memcg-add-hugetlb-extension-fix.patch
+memcg-add-hugetlb-extension-fix-fix.patch
 
