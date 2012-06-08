@@ -1,152 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: + nmi-watchdog-quiet-down-the-boot-messages.patch added to -mm tree
-Date: Fri, 08 Jun 2012 14:37:09 -0700
-Message-ID: <20120608213709.B320BA022F@akpm.mtv.corp.google.com>
+Subject: [folded] nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch removed from -mm tree
+Date: Fri, 08 Jun 2012 14:38:15 -0700
+Message-ID: <20120608213815.F33BDA02BF@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:44711 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750780Ab2FHVhL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2012 17:37:11 -0400
-Received: by yenl3 with SMTP id l3so212863yen.1
-        for <mm-commits@vger.kernel.org>; Fri, 08 Jun 2012 14:37:10 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:51281 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761093Ab2FHViS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2012 17:38:18 -0400
+Received: by wibhn6 with SMTP id hn6so105201wib.1
+        for <mm-commits@vger.kernel.org>; Fri, 08 Jun 2012 14:38:17 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: dzickus@redhat.com, joe@perches.com, mingo@elte.hu, nzimmer@sgi.com
+To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, dzickus@redhat.com, mingo@elte.hu, msb@chromium.org, rjw@sisk.pl, snanda@chromium.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nmi watchdog: quiet down the boot messages
-has been added to the -mm tree.  Its filename is
-     nmi-watchdog-quiet-down-the-boot-messages.patch
+     Subject: nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix
+has been removed from the -mm tree.  Its filename was
+     nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was folded into nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Don Zickus <dzickus@redhat.com>
-Subject: nmi watchdog: quiet down the boot messages
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix
 
-A bunch of bugzillas have complained how noisy the nmi_watchdog is during
-boot-up especially with its expected failure cases (like virt and bios
-resource contention).
+fiddle with code comment
 
-This is my attempt to quiet them down and keep it less confusing for the
-end user.  What I did is print the message for cpu0 and save it for future
-comparisons.  If future cpus have an identical message as cpu0, then don't
-print the redundant info.  However, if a future cpu has a different
-message, happily print that loudly.
-
-Before the change, you would see something like:
-
-    ..TIMER: vector=0x30 apic1=0 pin1=2 apic2=-1 pin2=-1
-    CPU0: Intel(R) Core(TM)2 Quad CPU    Q9550  @ 2.83GHz stepping 0a
-    Performance Events: PEBS fmt0+, Core2 events, Intel PMU driver.
-    ... version:                2
-    ... bit width:              40
-    ... generic registers:      2
-    ... value mask:             000000ffffffffff
-    ... max period:             000000007fffffff
-    ... fixed-purpose events:   3
-    ... event mask:             0000000700000003
-    NMI watchdog enabled, takes one hw-pmu counter.
-    Booting Node   0, Processors  #1
-    NMI watchdog enabled, takes one hw-pmu counter.
-     #2
-    NMI watchdog enabled, takes one hw-pmu counter.
-     #3 Ok.
-    NMI watchdog enabled, takes one hw-pmu counter.
-    Brought up 4 CPUs
-    Total of 4 processors activated (22607.24 BogoMIPS).
-
-After the change, it is simplified to:
-
-    ..TIMER: vector=0x30 apic1=0 pin1=2 apic2=-1 pin2=-1
-    CPU0: Intel(R) Core(TM)2 Quad CPU    Q9550  @ 2.83GHz stepping 0a
-    Performance Events: PEBS fmt0+, Core2 events, Intel PMU driver.
-    ... version:                2
-    ... bit width:              40
-    ... generic registers:      2
-    ... value mask:             000000ffffffffff
-    ... max period:             000000007fffffff
-    ... fixed-purpose events:   3
-    ... event mask:             0000000700000003
-    NMI watchdog enabled, takes one hw-pmu counter.
-    Booting Node   0, Processors  #1 #2 #3 Ok.
-    Brought up 4 CPUs
-
-Signed-off-by: Don Zickus <dzickus@redhat.com>
-Reported-by: Nathan Zimmer <nzimmer@sgi.com>
-Tested-by: Nathan Zimmer <nzimmer@sgi.com>
-Cc: Joe Perches <joe@perches.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Don Zickus <dzickus@redhat.com>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Mandeep Singh Baines <msb@chromium.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Sameer Nanda <snanda@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   19 ++++++++++++++++++-
- 1 file changed, 18 insertions(+), 1 deletion(-)
+ kernel/watchdog.c |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
-diff -puN kernel/watchdog.c~nmi-watchdog-quiet-down-the-boot-messages kernel/watchdog.c
---- a/kernel/watchdog.c~nmi-watchdog-quiet-down-the-boot-messages
+diff -puN kernel/watchdog.c~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix kernel/watchdog.c
+--- a/kernel/watchdog.c~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix
 +++ a/kernel/watchdog.c
-@@ -377,6 +377,13 @@ static int watchdog_nmi_enable(int cpu)
- 	struct perf_event_attr *wd_attr;
- 	struct perf_event *event = per_cpu(watchdog_ev, cpu);
+@@ -597,20 +597,17 @@ static struct notifier_block __cpuinitda
+ 	.notifier_call = cpu_callback
+ };
  
-+	/*
-+	 * People like the simple clean cpu node info on boot.
-+	 * Reduce the watchdog noise by only printing messages
-+	 * that are different from what cpu0 displayed.
-+	 */
-+	static unsigned long cpu0_err;
-+
- 	/* is it already setup and enabled? */
- 	if (event && event->state > PERF_EVENT_STATE_OFF)
- 		goto out;
-@@ -390,11 +397,21 @@ static int watchdog_nmi_enable(int cpu)
++/*
++ * On entry to suspend we force an offline->online transition on the boot CPU so
++ * that PMU state is available to that CPU when it comes back online after
++ * resume.  This information is required for restarting the NMI watchdog.
++ */
+ void lockup_detector_bootcpu_resume(void)
+ {
+ 	void *cpu = (void *)(long)smp_processor_id();
  
- 	/* Try to register using hardware perf events */
- 	event = perf_event_create_kernel_counter(wd_attr, cpu, NULL, watchdog_overflow_callback, NULL);
-+
-+	/* save cpu0 error for future comparision */
-+	if (cpu == 0 && IS_ERR(event))
-+		cpu0_err = PTR_ERR(event);
-+
- 	if (!IS_ERR(event)) {
--		pr_info("enabled, takes one hw-pmu counter.\n");
-+		/* only print for cpu0 or different than cpu0 */
-+		if (cpu ==0 || cpu0_err)
-+			pr_info("enabled, takes one hw-pmu counter.\n");
- 		goto out_save;
- 	}
+-	/*
+-	 * On the suspend/resume path the boot CPU does not go though the
+-	 * offline->online transition. This breaks the NMI detector post
+-	 * resume. Force an offline->online transition for the boot CPU on
+-	 * resume.
+-	 */
+ 	cpu_callback(&cpu_nfb, CPU_DEAD, cpu);
+ 	cpu_callback(&cpu_nfb, CPU_ONLINE, cpu);
+-
+-	return;
+ }
  
-+	/* skip displaying the same error again */
-+	if (cpu > 0 && (PTR_ERR(event) == cpu0_err))
-+		return PTR_ERR(event);
- 
- 	/* vary the KERN level based on the returned errno */
- 	if (PTR_ERR(event) == -EOPNOTSUPP)
+ void __init lockup_detector_init(void)
 _
-Subject: Subject: nmi watchdog: quiet down the boot messages
 
-Patches currently in -mm which might be from dzickus@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-nmi-watchdog-quiet-down-the-boot-messages.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+mm-fix-slab-page-_count-corruption-when-using-slub-fix.patch
+tmpfs-implement-numa-node-interleaving-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+mm.patch
+mm-make-vb_alloc-more-foolproof-fix.patch
+mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
+memcg-add-hugetlb-extension-fix-fix.patch
+hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
+memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
+memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes.patch
+nmi-watchdog-quiet-down-the-boot-messages-checkpatch-fixes.patch
 nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix-fix.patch
 nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2.patch
 nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix.patch
+kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
+kmod-avoid-deadlock-from-recursive-kmod-call.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
