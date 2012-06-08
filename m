@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-slab-page-_count-corruption-when-using-slub-fix.patch added to -mm tree
-Date: Fri, 08 Jun 2012 13:12:43 -0700
-Message-ID: <20120608201243.4E57EA02F8@akpm.mtv.corp.google.com>
+Subject: + drivers-char-ipmi-ipmi_watchdogc-remove-local-ioctl-defines-replaced-by-generic-ones.patch added to -mm tree
+Date: Fri, 08 Jun 2012 13:13:22 -0700
+Message-ID: <20120608201322.5C795A02F8@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:40834 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755983Ab2FHUMo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2012 16:12:44 -0400
-Received: by ghbz15 with SMTP id z15so203756ghb.1
-        for <mm-commits@vger.kernel.org>; Fri, 08 Jun 2012 13:12:43 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:46026 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755983Ab2FHUNX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2012 16:13:23 -0400
+Received: by ggeh3 with SMTP id h3so206203gge.1
+        for <mm-commits@vger.kernel.org>; Fri, 08 Jun 2012 13:13:22 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, penberg@cs.helsinki.fi, pshelar@nicira.com
+Cc: oskar@scara.com, minyard@acm.org, wim@iguana.be
 
 
 The patch titled
-     Subject: mm-fix-slab-page-_count-corruption-when-using-slub-fix
+     Subject: drivers/char/ipmi/ipmi_watchdog.c: remove local ioctl defines replaced by generic ones
 has been added to the -mm tree.  Its filename is
-     mm-fix-slab-page-_count-corruption-when-using-slub-fix.patch
+     drivers-char-ipmi-ipmi_watchdogc-remove-local-ioctl-defines-replaced-by-generic-ones.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,78 +33,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-fix-slab-page-_count-corruption-when-using-slub-fix
+From: "Oskar Schirmer" <oskar@scara.com>
+Subject: drivers/char/ipmi/ipmi_watchdog.c: remove local ioctl defines replaced by generic ones
 
-use standard comment layout, tweak comment text
+This watchdog driver had ioctl defines introduced locally for pre timeout
+handling, marked to be removed as soon as a generic replacement would
+become available.
 
-Cc: Pravin B Shelar <pshelar@nicira.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+The latter has actually occurred in 2006, at e05b59fe.
+
+Remove the local duplicates for pre timeout handling.
+
+Signed-off-by: Oskar Schirmer <oskar@scara.com>
+Cc: Corey Minyard <minyard@acm.org>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/char/ipmi/ipmi_watchdog.c |   13 -------------
+ 1 file changed, 13 deletions(-)
 
-diff -puN include/linux/mm_types.h~mm-fix-slab-page-_count-corruption-when-using-slub-fix include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-fix-slab-page-_count-corruption-when-using-slub-fix
-+++ a/include/linux/mm_types.h
-@@ -58,13 +58,15 @@ struct page {
+diff -puN drivers/char/ipmi/ipmi_watchdog.c~drivers-char-ipmi-ipmi_watchdogc-remove-local-ioctl-defines-replaced-by-generic-ones drivers/char/ipmi/ipmi_watchdog.c
+--- a/drivers/char/ipmi/ipmi_watchdog.c~drivers-char-ipmi-ipmi_watchdogc-remove-local-ioctl-defines-replaced-by-generic-ones
++++ a/drivers/char/ipmi/ipmi_watchdog.c
+@@ -141,17 +141,6 @@
  
- 		union {
- #if defined(CONFIG_HAVE_CMPXCHG_DOUBLE) && \
--    defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
-+	defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
- 			/* Used for cmpxchg_double in slub */
- 			unsigned long counters;
- #else
--			/* Keep _count separate from slub cmpxchg_double data,
--			 * As rest of double word is protected by slab_lock
--			 * but _count is not. */
-+			/*
-+			 * Keep _count separate from slub cmpxchg_double data.
-+			 * As the rest of the double word is protected by
-+			 * slab_lock but _count is not.
-+			 */
- 			unsigned counters;
- #endif
+ #define IPMI_WDOG_TIMER_NOT_INIT_RESP	0x80
  
+-/* These are here until the real ones get into the watchdog.h interface. */
+-#ifndef WDIOC_GETTIMEOUT
+-#define	WDIOC_GETTIMEOUT        _IOW(WATCHDOG_IOCTL_BASE, 20, int)
+-#endif
+-#ifndef WDIOC_SET_PRETIMEOUT
+-#define	WDIOC_SET_PRETIMEOUT     _IOW(WATCHDOG_IOCTL_BASE, 21, int)
+-#endif
+-#ifndef WDIOC_GET_PRETIMEOUT
+-#define	WDIOC_GET_PRETIMEOUT     _IOW(WATCHDOG_IOCTL_BASE, 22, int)
+-#endif
+-
+ static DEFINE_MUTEX(ipmi_watchdog_mutex);
+ static bool nowayout = WATCHDOG_NOWAYOUT;
+ 
+@@ -732,7 +721,6 @@ static int ipmi_ioctl(struct file *file,
+ 			return -EFAULT;
+ 		return 0;
+ 
+-	case WDIOC_SET_PRETIMEOUT:
+ 	case WDIOC_SETPRETIMEOUT:
+ 		i = copy_from_user(&val, argp, sizeof(int));
+ 		if (i)
+@@ -740,7 +728,6 @@ static int ipmi_ioctl(struct file *file,
+ 		pretimeout = val;
+ 		return ipmi_set_timeout(IPMI_SET_TIMEOUT_HB_IF_NECESSARY);
+ 
+-	case WDIOC_GET_PRETIMEOUT:
+ 	case WDIOC_GETPRETIMEOUT:
+ 		i = copy_to_user(argp, &pretimeout, sizeof(pretimeout));
+ 		if (i)
 _
-Subject: Subject: mm-fix-slab-page-_count-corruption-when-using-slub-fix
+Subject: Subject: drivers/char/ipmi/ipmi_watchdog.c: remove local ioctl defines replaced by generic ones
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from oskar@scara.com are
 
-origin.patch
-linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
-mm-fix-slab-page-_count-corruption-when-using-slub-fix.patch
-tmpfs-implement-numa-node-interleaving-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions.patch
-mm.patch
-mm-make-vb_alloc-more-foolproof-fix.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
-memcg-add-hugetlb-extension-fix-fix.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
-hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
-memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-fix-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume-v2-fix.patch
-kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+drivers-char-ipmi-ipmi_watchdogc-remove-local-ioctl-defines-replaced-by-generic-ones.patch
 
