@@ -1,109 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-whitespace-fixes.patch removed from -mm tree
-Date: Fri, 08 Jun 2012 12:41:15 -0700
-Message-ID: <20120608194115.4E4FCA022F@akpm.mtv.corp.google.com>
+Subject: [merged] c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-update-after-mm-num_exe_file_vmas-removal.patch removed from -mm tree
+Date: Fri, 08 Jun 2012 12:41:19 -0700
+Message-ID: <20120608194119.8F715A022F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:44261 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932233Ab2FHTlR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2012 15:41:17 -0400
-Received: by lagr15 with SMTP id r15so125162lag.1
-        for <mm-commits@vger.kernel.org>; Fri, 08 Jun 2012 12:41:16 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:58779 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932233Ab2FHTlW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2012 15:41:22 -0400
+Received: by eeit10 with SMTP id t10so129452eei.1
+        for <mm-commits@vger.kernel.org>; Fri, 08 Jun 2012 12:41:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: khlebnikov@openvz.org, gorcunov@openvz.org, keescook@chromium.org, kosaki.motohiro@jp.fujitsu.com, matthltc@us.ibm.com, oleg@redhat.com, tj@kernel.org, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: whitespace fixes
+     Subject: c/r: prctl: update prctl_set_mm_exe_file() after mm->num_exe_file_vmas removal
 has been removed from the -mm tree.  Its filename was
-     maintainers-whitespace-fixes.patch
+     c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-update-after-mm-num_exe_file_vmas-removal.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: whitespace fixes
+From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Subject: c/r: prctl: update prctl_set_mm_exe_file() after mm->num_exe_file_vmas removal
 
-Remove trailing spaces at EOL.
-Always use a tab after the type :
+A fix for b32dfe377102ce66877 ("c/r: prctl: add ability to set new
+mm_struct::exe_file").
 
-Signed-off-by: Joe Perches <joe@perches.com>
+After removing mm->num_exe_file_vmas kernel keeps mm->exe_file until final
+mmput(), it never becomes NULL while task is alive.
+
+We can check for other mapped files in mm instead of checking
+mm->num_exe_file_vmas, and mark mm with flag MMF_EXE_FILE_CHANGED in order
+to forbid second changing of mm->exe_file.
+
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Reviewed-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Matt Helsley <matthltc@us.ibm.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ include/linux/sched.h |    1 +
+ kernel/sys.c          |   31 +++++++++++++++++++------------
+ 2 files changed, 20 insertions(+), 12 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-whitespace-fixes MAINTAINERS
---- a/MAINTAINERS~maintainers-whitespace-fixes
-+++ a/MAINTAINERS
-@@ -1077,7 +1077,7 @@ F:	drivers/media/video/s5p-fimc/
- ARM/SAMSUNG S5P SERIES Multi Format Codec (MFC) SUPPORT
- M:	Kyungmin Park <kyungmin.park@samsung.com>
- M:	Kamil Debski <k.debski@samsung.com>
--M:     Jeongtae Park <jtp.park@samsung.com>
-+M:	Jeongtae Park <jtp.park@samsung.com>
- L:	linux-arm-kernel@lists.infradead.org
- L:	linux-media@vger.kernel.org
- S:	Maintained
-@@ -1743,10 +1743,10 @@ F:	include/linux/can/platform/
- CAPABILITIES
- M:	Serge Hallyn <serge.hallyn@canonical.com>
- L:	linux-security-module@vger.kernel.org
--S:	Supported	
-+S:	Supported
- F:	include/linux/capability.h
- F:	security/capability.c
--F:	security/commoncap.c 
-+F:	security/commoncap.c
- F:	kernel/capability.c
+diff -puN include/linux/sched.h~c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-update-after-mm-num_exe_file_vmas-removal include/linux/sched.h
+--- a/include/linux/sched.h~c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-update-after-mm-num_exe_file_vmas-removal
++++ a/include/linux/sched.h
+@@ -439,6 +439,7 @@ extern int get_dumpable(struct mm_struct
+ 					/* leave room for more dump flags */
+ #define MMF_VM_MERGEABLE	16	/* KSM may merge identical pages */
+ #define MMF_VM_HUGEPAGE		17	/* set when VM_HUGEPAGE is set on vma */
++#define MMF_EXE_FILE_CHANGED	18	/* see prctl_set_mm_exe_file() */
  
- CELL BROADBAND ENGINE ARCHITECTURE
-@@ -2146,11 +2146,11 @@ S:	Orphan
- F:	drivers/net/wan/pc300*
+ #define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK)
  
- CYTTSP TOUCHSCREEN DRIVER
--M:      Javier Martinez Canillas <javier@dowhile0.org>
--L:      linux-input@vger.kernel.org
--S:      Maintained
--F:      drivers/input/touchscreen/cyttsp*
--F:      include/linux/input/cyttsp.h
-+M:	Javier Martinez Canillas <javier@dowhile0.org>
-+L:	linux-input@vger.kernel.org
-+S:	Maintained
-+F:	drivers/input/touchscreen/cyttsp*
-+F:	include/linux/input/cyttsp.h
+diff -puN kernel/sys.c~c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-update-after-mm-num_exe_file_vmas-removal kernel/sys.c
+--- a/kernel/sys.c~c-r-prctl-add-ability-to-set-new-mm_struct-exe_file-update-after-mm-num_exe_file_vmas-removal
++++ a/kernel/sys.c
+@@ -1796,17 +1796,11 @@ static bool vma_flags_mismatch(struct vm
  
- DAMA SLAVE for AX.25
- M:	Joerg Reuter <jreuter@yaina.de>
-@@ -5185,7 +5185,7 @@ S:	Maintained
- F:	drivers/firmware/pcdp.*
+ static int prctl_set_mm_exe_file(struct mm_struct *mm, unsigned int fd)
+ {
++	struct vm_area_struct *vma;
+ 	struct file *exe_file;
+ 	struct dentry *dentry;
+ 	int err;
  
- PCI ERROR RECOVERY
--M:     Linas Vepstas <linasvepstas@gmail.com>
-+M:	Linas Vepstas <linasvepstas@gmail.com>
- L:	linux-pci@vger.kernel.org
- S:	Supported
- F:	Documentation/PCI/pci-error-recovery.txt
+-	/*
+-	 * Setting new mm::exe_file is only allowed when no VM_EXECUTABLE vma's
+-	 * remain. So perform a quick test first.
+-	 */
+-	if (mm->num_exe_file_vmas)
+-		return -EBUSY;
+-
+ 	exe_file = fget(fd);
+ 	if (!exe_file)
+ 		return -EBADF;
+@@ -1827,17 +1821,30 @@ static int prctl_set_mm_exe_file(struct 
+ 	if (err)
+ 		goto exit;
+ 
++	down_write(&mm->mmap_sem);
++
++	/*
++	 * Forbid mm->exe_file change if there are mapped other files.
++	 */
++	err = -EBUSY;
++	for (vma = mm->mmap; vma; vma = vma->vm_next) {
++		if (vma->vm_file && !path_equal(&vma->vm_file->f_path,
++						&exe_file->f_path))
++			goto exit_unlock;
++	}
++
+ 	/*
+ 	 * The symlink can be changed only once, just to disallow arbitrary
+ 	 * transitions malicious software might bring in. This means one
+ 	 * could make a snapshot over all processes running and monitor
+ 	 * /proc/pid/exe changes to notice unusual activity if needed.
+ 	 */
+-	down_write(&mm->mmap_sem);
+-	if (likely(!mm->exe_file))
+-		set_mm_exe_file(mm, exe_file);
+-	else
+-		err = -EBUSY;
++	err = -EPERM;
++	if (test_and_set_bit(MMF_EXE_FILE_CHANGED, &mm->flags))
++		goto exit_unlock;
++
++	set_mm_exe_file(mm, exe_file);
++exit_unlock:
+ 	up_write(&mm->mmap_sem);
+ 
+ exit:
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from khlebnikov@openvz.org are
 
 origin.patch
 linux-next.patch
-printk-add-generic-functions-to-find-kern_level-headers.patch
-printk-add-kern_levelsh-to-make-kern_level-available-for-asm-use.patch
-arch-remove-direct-definitions-of-kern_level-uses.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
-sound-use-printk_get_level-and-printk_skip_level.patch
-staging-wlags49_h2-remove-direct-declarations-of-kern_level-prefixes.patch
-printk-convert-the-format-for-kern_level-to-a-2-byte-pattern.patch
-printk-only-look-for-prefix-levels-in-kernel-messages.patch
-printk-remove-the-now-unnecessary-c-annotation-for-kern_cont.patch
 
