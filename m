@@ -1,66 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] c-r-prctl-drop-vma-flags-test-on-pr_set_mm_-stack-data-assignment.patch removed from -mm tree
-Date: Fri, 08 Jun 2012 12:41:30 -0700
-Message-ID: <20120608194130.87278A022F@akpm.mtv.corp.google.com>
+Subject: [merged] btree-fix-tree-corruption-in-btree_get_prev.patch removed from -mm tree
+Date: Fri, 08 Jun 2012 12:41:37 -0700
+Message-ID: <20120608194137.60DB8A022F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:63827 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933146Ab2FHTlb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2012 15:41:31 -0400
-Received: by yhgm50 with SMTP id m50so249847yhg.1
-        for <mm-commits@vger.kernel.org>; Fri, 08 Jun 2012 12:41:31 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:48722 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933226Ab2FHTli (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jun 2012 15:41:38 -0400
+Received: by vcbfl13 with SMTP id fl13so203777vcb.1
+        for <mm-commits@vger.kernel.org>; Fri, 08 Jun 2012 12:41:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gorcunov@gmail.com, gorcunov@openvz.org, kamezawa.hiroyu@jp.fujitsu.com, keescook@chromium.org, oleg@redhat.com, serge.hallyn@canonical.com, xemul@parallels.com, mm-commits@vger.kernel.org
+To: roland@purestorage.com, joern@logfs.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: c/r: prctl: drop VMA flags test on PR_SET_MM_ stack data assignment
+     Subject: btree: fix tree corruption in btree_get_prev()
 has been removed from the -mm tree.  Its filename was
-     c-r-prctl-drop-vma-flags-test-on-pr_set_mm_-stack-data-assignment.patch
+     btree-fix-tree-corruption-in-btree_get_prev.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Cyrill Gorcunov <gorcunov@gmail.com>
-Subject: c/r: prctl: drop VMA flags test on PR_SET_MM_ stack data assignment
+From: Roland Dreier <roland@purestorage.com>
+Subject: btree: fix tree corruption in btree_get_prev()
 
-In b76437579d134 ("procfs: mark thread stack correctly in
-proc/<pid>/maps") the stack allocated via clone() is marked in
-/proc/<pid>/maps as [stack:%d] thus it might be out of the former
-mm->start_stack/end_stack values (and even has some custom VMA flags set).
- So to be able to restore mm->start_stack/end_stack drop vma flags test,
-but still require the underlying VMA to exist.
+The memory the parameter __key points to is used as an iterator in
+btree_get_prev(), so if we save off a bkey() pointer in retry_key and then
+assign that to __key, we'll end up corrupting the btree internals when we
+do eg
 
-As always note this feature is under CONFIG_CHECKPOINT_RESTORE and
-requires CAP_SYS_RESOURCE to be granted.
+	longcpy(__key, bkey(geo, node, i), geo->keylen);
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Serge Hallyn <serge.hallyn@canonical.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+to return the key value.  What we should do instead is use longcpy() to
+copy the key value that retry_key points to __key.
+
+This can cause a btree to get corrupted by seemingly read-only operations
+such as btree_for_each_safe.
+
+[akpm@linux-foundation.org: avoid the double longcpy()]
+Signed-off-by: Roland Dreier <roland@purestorage.com>
+Acked-by: Joern Engel <joern@logfs.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |   14 --------------
- 1 file changed, 14 deletions(-)
+ lib/btree.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/sys.c~c-r-prctl-drop-vma-flags-test-on-pr_set_mm_-stack-data-assignment kernel/sys.c
---- a/kernel/sys.c~c-r-prctl-drop-vma-flags-test-on-pr_set_mm_-stack-data-assignment
-+++ a/kernel/sys.c
-@@ -1786,14 +1786,6 @@ SYSCALL_DEFINE1(umask, int, mask)
- }
+diff -puN lib/btree.c~btree-fix-tree-corruption-in-btree_get_prev lib/btree.c
+--- a/lib/btree.c~btree-fix-tree-corruption-in-btree_get_prev
++++ a/lib/btree.c
+@@ -319,8 +319,8 @@ void *btree_get_prev(struct btree_head *
  
- #ifdef CONFIG_CHECKPOINT_RESTORE
--static bool vma_flags_mismatch(struct vm_area_struct *vma,
--			       unsigned long required,
--			       unsigned long banned)
--{
--	return (vma->vm_flags & required) != required ||
--		(vma->vm_flags & banned);
--}
+ 	if (head->height == 0)
+ 		return NULL;
+-retry:
+ 	longcpy(key, __key, geo->keylen);
++retry:
+ 	dec_key(geo, key);
+ 
+ 	node = head->node;
+@@ -351,7 +351,7 @@ retry:
+ 	}
+ miss:
+ 	if (retry_key) {
+-		__key = retry_key;
++		longcpy(key, retry_key, geo->keylen);
+ 		retry_key = NULL;
+ 		goto retry;
+ 	}
+_
+
+Patches currently in -mm which might be from roland@purestorage.com are
+
+origin.patch
+
