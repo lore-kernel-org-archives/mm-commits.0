@@ -1,39 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] memcg-track-resource-index-in-cftype-private.patch removed from -mm tree
-Date: Mon, 11 Jun 2012 14:09:54 -0700
-Message-ID: <20120611210954.895BBA0295@akpm.mtv.corp.google.com>
+Subject: [to-be-updated] memcg-add-hugetlb-extension-fix.patch removed from -mm tree
+Date: Mon, 11 Jun 2012 14:09:48 -0700
+Message-ID: <20120611210948.62BE3A0295@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:58378 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750985Ab2FKVJ6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jun 2012 17:09:58 -0400
-Received: by bkty5 with SMTP id y5so250067bkt.1
-        for <mm-commits@vger.kernel.org>; Mon, 11 Jun 2012 14:09:57 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:54380 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752194Ab2FKVJt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jun 2012 17:09:49 -0400
+Received: by mail-qa0-f74.google.com with SMTP id g24so382695qab.1
+        for <mm-commits@vger.kernel.org>; Mon, 11 Jun 2012 14:09:48 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, dhillf@gmail.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: rientjes@google.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, dhillf@gmail.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: track resource index in cftype private
+     Subject: memcg-add-hugetlb-extension-fix
 has been removed from the -mm tree.  Its filename was
-     memcg-track-resource-index-in-cftype-private.patch
+     memcg-add-hugetlb-extension-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: memcg: track resource index in cftype private
+From: David Rientjes <rientjes@google.com>
+Subject: memcg-add-hugetlb-extension-fix
 
-This patch adds a new charge type _MEMHUGETLB for tracking hugetlb
-resources.  We also use cftype to encode the hugetlb resource index.  This
-helps in using same memcg callbacks for hugetlb control files.
+Fix UML build:
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+mm/memcontrol.c:256:30: error: 'HUGE_MAX_HSTATE' undeclared here (not in a function)
+
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Hillf Danton <dhillf@gmail.com>
 Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -41,94 +41,73 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   27 +++++++++++++++++++++------
- 1 file changed, 21 insertions(+), 6 deletions(-)
+ arch/powerpc/include/asm/page.h   |    2 +-
+ arch/tile/include/asm/page.h      |    3 +--
+ arch/x86/include/asm/page_types.h |    2 ++
+ include/linux/hugetlb.h           |    1 +
+ 4 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-track-resource-index-in-cftype-private mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-track-resource-index-in-cftype-private
-+++ a/mm/memcontrol.c
-@@ -403,9 +403,14 @@ enum charge_type {
- #define _MEM			(0)
- #define _MEMSWAP		(1)
- #define _OOM_TYPE		(2)
--#define MEMFILE_PRIVATE(x, val)	((x) << 16 | (val))
--#define MEMFILE_TYPE(val)	((val) >> 16 & 0xffff)
--#define MEMFILE_ATTR(val)	((val) & 0xffff)
-+#define _MEMHUGETLB		(3)
-+
-+/*  0 ... val ...16.... x...24...idx...32*/
-+#define __MEMFILE_PRIVATE(idx, x, val)	((idx) << 24 | ((x) << 16) | (val))
-+#define MEMFILE_PRIVATE(x, val)		__MEMFILE_PRIVATE(0, x, val)
-+#define MEMFILE_TYPE(val)		((val) >> 16 & 0xff)
-+#define MEMFILE_IDX(val)		((val) >> 24 & 0xff)
-+#define MEMFILE_ATTR(val)		((val) & 0xffff)
- /* Used for OOM nofiier */
- #define OOM_CONTROL		(0)
+diff -puN arch/powerpc/include/asm/page.h~memcg-add-hugetlb-extension-fix arch/powerpc/include/asm/page.h
+--- a/arch/powerpc/include/asm/page.h~memcg-add-hugetlb-extension-fix
++++ a/arch/powerpc/include/asm/page.h
+@@ -39,13 +39,13 @@
+ #ifndef __ASSEMBLY__
+ #ifdef CONFIG_HUGETLB_PAGE
+ extern unsigned int HPAGE_SHIFT;
++#define HUGE_MAX_HSTATE		(MMU_PAGE_COUNT-1)
+ #else
+ #define HPAGE_SHIFT PAGE_SHIFT
+ #endif
+ #define HPAGE_SIZE		((1UL) << HPAGE_SHIFT)
+ #define HPAGE_MASK		(~(HPAGE_SIZE - 1))
+ #define HUGETLB_PAGE_ORDER	(HPAGE_SHIFT - PAGE_SHIFT)
+-#define HUGE_MAX_HSTATE		(MMU_PAGE_COUNT-1)
+ #endif
  
-@@ -3969,7 +3974,7 @@ static ssize_t mem_cgroup_read(struct cg
- 	struct mem_cgroup *memcg = mem_cgroup_from_cont(cont);
- 	char str[64];
- 	u64 val;
--	int type, name, len;
-+	int type, name, len, idx;
+ /* We do define AT_SYSINFO_EHDR but don't use the gate mechanism */
+diff -puN arch/tile/include/asm/page.h~memcg-add-hugetlb-extension-fix arch/tile/include/asm/page.h
+--- a/arch/tile/include/asm/page.h~memcg-add-hugetlb-extension-fix
++++ a/arch/tile/include/asm/page.h
+@@ -136,9 +136,8 @@ static inline __attribute_const__ int ge
  
- 	type = MEMFILE_TYPE(cft->private);
- 	name = MEMFILE_ATTR(cft->private);
-@@ -3990,6 +3995,10 @@ static ssize_t mem_cgroup_read(struct cg
- 		else
- 			val = res_counter_read_u64(&memcg->memsw, name);
- 		break;
-+	case _MEMHUGETLB:
-+		idx = MEMFILE_IDX(cft->private);
-+		val = res_counter_read_u64(&memcg->hugepage[idx], name);
-+		break;
- 	default:
- 		BUG();
- 	}
-@@ -4027,7 +4036,10 @@ static int mem_cgroup_write(struct cgrou
- 			break;
- 		if (type == _MEM)
- 			ret = mem_cgroup_resize_limit(memcg, val);
--		else
-+		else if (type == _MEMHUGETLB) {
-+			int idx = MEMFILE_IDX(cft->private);
-+			ret = res_counter_set_limit(&memcg->hugepage[idx], val);
-+		} else
- 			ret = mem_cgroup_resize_memsw_limit(memcg, val);
- 		break;
- 	case RES_SOFT_LIMIT:
-@@ -4093,7 +4105,10 @@ static int mem_cgroup_reset(struct cgrou
- 	case RES_MAX_USAGE:
- 		if (type == _MEM)
- 			res_counter_reset_max(&memcg->res);
--		else
-+		else if (type == _MEMHUGETLB) {
-+			int idx = MEMFILE_IDX(event);
-+			res_counter_reset_max(&memcg->hugepage[idx]);
-+		} else
- 			res_counter_reset_max(&memcg->memsw);
- 		break;
- 	case RES_FAILCNT:
+ #define HUGETLB_PAGE_ORDER	(HPAGE_SHIFT - PAGE_SHIFT)
+ 
+-#define HUGE_MAX_HSTATE		6
+-
+ #ifdef CONFIG_HUGETLB_PAGE
++#define HUGE_MAX_HSTATE		6
+ #define HAVE_ARCH_HUGETLB_UNMAPPED_AREA
+ #endif
+ 
+diff -puN arch/x86/include/asm/page_types.h~memcg-add-hugetlb-extension-fix arch/x86/include/asm/page_types.h
+--- a/arch/x86/include/asm/page_types.h~memcg-add-hugetlb-extension-fix
++++ a/arch/x86/include/asm/page_types.h
+@@ -25,7 +25,9 @@
+ #define HPAGE_MASK		(~(HPAGE_SIZE - 1))
+ #define HUGETLB_PAGE_ORDER	(HPAGE_SHIFT - PAGE_SHIFT)
+ 
++#ifdef CONFIG_HUGETLB_PAGE
+ #define HUGE_MAX_HSTATE 2
++#endif
+ 
+ #define PAGE_OFFSET		((unsigned long)__PAGE_OFFSET)
+ 
+diff -puN include/linux/hugetlb.h~memcg-add-hugetlb-extension-fix include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~memcg-add-hugetlb-extension-fix
++++ a/include/linux/hugetlb.h
+@@ -322,6 +322,7 @@ static inline int hstate_index(struct hs
+ 
+ #else
+ struct hstate {};
++#define HUGE_MAX_HSTATE 0
+ #define alloc_huge_page_node(h, nid) NULL
+ #define alloc_bootmem_huge_page(h) NULL
+ #define hstate_file(f) NULL
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 linux-next.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
-hugetlbfs-add-memcg-control-files-for-hugetlbfs-add-failcnt-support-for-hugetlb-extension.patch
-hugetlbfs-add-a-list-for-tracking-in-use-hugetlb-pages.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
-memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
-hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration.patch
-hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
-hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix-2.patch
-memcg-add-memory-controller-documentation-for-hugetlb-management.patch
-memcg-fix-error-code-in-hugetlb_force_memcg_empty.patch
-memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2.patch
-memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes.patch
-memcg-use-res_counter_uncharge_until-in-mem_cgroup_move_hugetlb_parent.patch
-memcg-move-charges-to-root-cgroup-if-use_hierarchy=0-in-mem_cgroup_move_hugetlb_parent.patch
+slab-move-full-state-transition-to-an-initcall.patch
+memcg-add-hugetlb-extension-fix-fix.patch
 
