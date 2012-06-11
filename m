@@ -1,102 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] memcg-use-res_counter_uncharge_until-in-mem_cgroup_move_hugetlb_parent.patch removed from -mm tree
-Date: Mon, 11 Jun 2012 14:10:29 -0700
-Message-ID: <20120611211029.70BD8A0295@akpm.mtv.corp.google.com>
+Subject: [to-be-updated] memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 11 Jun 2012 14:10:27 -0700
+Message-ID: <20120611211027.7C09DA0295@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:46917 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751801Ab2FKVKa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jun 2012 17:10:30 -0400
-Received: by mail-vb0-f74.google.com with SMTP id l22so412460vbn.1
-        for <mm-commits@vger.kernel.org>; Mon, 11 Jun 2012 14:10:30 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:46490 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752116Ab2FKVK3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jun 2012 17:10:29 -0400
+Received: by were53 with SMTP id e53so251356wer.1
+        for <mm-commits@vger.kernel.org>; Mon, 11 Jun 2012 14:10:28 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, aneesh.kumar@linux.vnet.ibm.com, fweisbec@gmail.com, glommer@parallels.com, hannes@cmpxchg.org, mhocko@suse.cz, tj@kernel.org, yinghan@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: use res_counter_uncharge_until() in mem_cgroup_move_hugetlb_parent()
+     Subject: memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     memcg-use-res_counter_uncharge_until-in-mem_cgroup_move_hugetlb_parent.patch
+     memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: memcg: use res_counter_uncharge_until() in mem_cgroup_move_hugetlb_parent()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes
 
-By using res_counter_uncharge_until(), we can avoid race and unnecessary
-charging.
+ERROR: space required before the open brace '{'
+#25: FILE: mm/hugetlb.c:1926:
++		    !list_empty(&cgroup->children)){
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+total: 1 errors, 0 warnings, 10 lines checked
+
+./patches/memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Ying Han <yinghan@google.com>
-Cc: Glauber Costa <glommer@parallels.com>
-Reviewed-by: Tejun Heo <tj@kernel.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   21 ++++++---------------
- 1 file changed, 6 insertions(+), 15 deletions(-)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-use-res_counter_uncharge_until-in-mem_cgroup_move_hugetlb_parent mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-use-res_counter_uncharge_until-in-mem_cgroup_move_hugetlb_parent
-+++ a/mm/memcontrol.c
-@@ -3298,6 +3298,7 @@ int mem_cgroup_move_hugetlb_parent(int i
- 	struct cgroup *pcgrp = cgroup->parent;
- 	struct mem_cgroup *parent = mem_cgroup_from_cont(pcgrp);
- 	struct mem_cgroup *memcg  = mem_cgroup_from_cont(cgroup);
-+	struct res_counter *counter;
+diff -puN mm/hugetlb.c~memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes mm/hugetlb.c
+--- a/mm/hugetlb.c~memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes
++++ a/mm/hugetlb.c
+@@ -1923,7 +1923,7 @@ int hugetlb_force_memcg_empty(struct cgr
  
- 	if (!get_page_unless_zero(page))
- 		goto out;
-@@ -3308,28 +3309,18 @@ int mem_cgroup_move_hugetlb_parent(int i
- 		goto err_out;
- 
- 	csize = PAGE_SIZE << compound_order(page);
--	/*
--	 * If we have use_hierarchy set we can never fail here. So instead of
--	 * using res_counter_uncharge use the open-coded variant which just
--	 * uncharge the child res_counter. The parent will retain the charge.
--	 */
--	if (parent->use_hierarchy) {
--		unsigned long flags;
--		struct res_counter *counter;
--
--		counter = &memcg->hugepage[idx];
--		spin_lock_irqsave(&counter->lock, flags);
--		res_counter_uncharge_locked(counter, csize);
--		spin_unlock_irqrestore(&counter->lock, flags);
--	} else {
-+	/* If parent->use_hierarchy == 0, we need to charge parent */
-+	if (!parent->use_hierarchy) {
- 		ret = res_counter_charge(&parent->hugepage[idx],
- 					 csize, &fail_res);
- 		if (ret) {
+ 	do {
+ 		if (cgroup_task_count(cgroup) ||
+-		    !list_empty(&cgroup->children)){
++		    !list_empty(&cgroup->children)) {
  			ret = -EBUSY;
- 			goto err_out;
+ 			goto out;
  		}
--		res_counter_uncharge(&memcg->hugepage[idx], csize);
- 	}
-+	counter = &memcg->hugepage[idx];
-+	res_counter_uncharge_until(counter, counter->parent, csize);
-+
- 	pc->mem_cgroup = parent;
- err_out:
- 	unlock_page_cgroup(pc);
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-memcg-rename-mem_cgroup_stat_swapout-as-mem_cgroup_stat_swap.patch
-memcg-rename-mem_cgroup_charge_type_mapped-as-mem_cgroup_charge_type_anon.patch
-memcg-remove-mem_cgroup_charge_type_force.patch
-memcg-move-charges-to-root-cgroup-if-use_hierarchy=0-in-mem_cgroup_move_hugetlb_parent.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
+mm-fix-slab-page-_count-corruption-when-using-slub-fix.patch
+tmpfs-implement-numa-node-interleaving-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+mm.patch
+mm-make-vb_alloc-more-foolproof-fix.patch
+mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
+kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
+kmod-avoid-deadlock-from-recursive-kmod-call.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
