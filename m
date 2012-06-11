@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-backlight-lm3533_blc-use-devm_-functions.patch added to -mm tree
-Date: Mon, 11 Jun 2012 15:01:21 -0700
-Message-ID: <20120611220121.C3E16A0295@akpm.mtv.corp.google.com>
+Subject: + memcg-fix-use_hierarchy-css_is_ancestor-oops-regression.patch added to -mm tree
+Date: Mon, 11 Jun 2012 15:11:50 -0700
+Message-ID: <20120611221151.043EEA013D@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:59269 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752509Ab2FKWBX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jun 2012 18:01:23 -0400
-Received: by yhgm50 with SMTP id m50so523908yhg.1
-        for <mm-commits@vger.kernel.org>; Mon, 11 Jun 2012 15:01:22 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:34773 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752591Ab2FKWLw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jun 2012 18:11:52 -0400
+Received: by qcsp5 with SMTP id p5so132266qcs.1
+        for <mm-commits@vger.kernel.org>; Mon, 11 Jun 2012 15:11:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com, jhovold@gmail.com, rpurdie@rpsys.net
+Cc: hughd@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, khlebnikov@openvz.org, mhocko@suse.cz
 
 
 The patch titled
-     Subject: drivers/video/backlight/lm3533_bl.c: use devm_ functions
+     Subject: memcg: fix use_hierarchy css_is_ancestor oops regression
 has been added to the -mm tree.  Its filename is
-     drivers-video-backlight-lm3533_blc-use-devm_-functions.patch
+     memcg-fix-use_hierarchy-css_is_ancestor-oops-regression.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,66 +33,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/video/backlight/lm3533_bl.c: use devm_ functions
+From: Hugh Dickins <hughd@google.com>
+Subject: memcg: fix use_hierarchy css_is_ancestor oops regression
 
-The devm_ functions allocate memory that is released when a driver
-detaches.  This patch uses devm_kzalloc of these functions.
+If use_hierarchy is set, reclaim testing soon oopses in css_is_ancestor()
+called from __mem_cgroup_same_or_subtree() called from page_referenced():
+when processes are exiting, it's easy for mm_match_cgroup() to pass along
+a NULL memcg coming from a NULL mm->owner.
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Acked-by: Johan Hovold <jhovold@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Check for that in __mem_cgroup_same_or_subtree().  Return true or false? 
+False because we cannot know if it was in the hierarchy, but also false
+because it's better not to count a reference from an exiting process.
+
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/lm3533_bl.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/lm3533_bl.c~drivers-video-backlight-lm3533_blc-use-devm_-functions drivers/video/backlight/lm3533_bl.c
---- a/drivers/video/backlight/lm3533_bl.c~drivers-video-backlight-lm3533_blc-use-devm_-functions
-+++ a/drivers/video/backlight/lm3533_bl.c
-@@ -295,7 +295,7 @@ static int __devinit lm3533_bl_probe(str
- 		return -EINVAL;
- 	}
- 
--	bl = kzalloc(sizeof(*bl), GFP_KERNEL);
-+	bl = devm_kzalloc(&pdev->dev, sizeof(*bl), GFP_KERNEL);
- 	if (!bl) {
- 		dev_err(&pdev->dev,
- 				"failed to allocate memory for backlight\n");
-@@ -317,8 +317,7 @@ static int __devinit lm3533_bl_probe(str
- 						&lm3533_bl_ops, &props);
- 	if (IS_ERR(bd)) {
- 		dev_err(&pdev->dev, "failed to register backlight device\n");
--		ret = PTR_ERR(bd);
--		goto err_free;
-+		return PTR_ERR(bd);
- 	}
- 
- 	bl->bd = bd;
-@@ -348,8 +347,6 @@ err_sysfs_remove:
- 	sysfs_remove_group(&bd->dev.kobj, &lm3533_bl_attribute_group);
- err_unregister:
- 	backlight_device_unregister(bd);
--err_free:
--	kfree(bl);
- 
- 	return ret;
- }
-@@ -367,7 +364,6 @@ static int __devexit lm3533_bl_remove(st
- 	lm3533_ctrlbank_disable(&bl->cb);
- 	sysfs_remove_group(&bd->dev.kobj, &lm3533_bl_attribute_group);
- 	backlight_device_unregister(bd);
--	kfree(bl);
- 
- 	return 0;
+diff -puN mm/memcontrol.c~memcg-fix-use_hierarchy-css_is_ancestor-oops-regression mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-use_hierarchy-css_is_ancestor-oops-regression
++++ a/mm/memcontrol.c
+@@ -1148,7 +1148,7 @@ bool __mem_cgroup_same_or_subtree(const 
+ {
+ 	if (root_memcg == memcg)
+ 		return true;
+-	if (!root_memcg->use_hierarchy)
++	if (!root_memcg->use_hierarchy || !memcg)
+ 		return false;
+ 	return css_is_ancestor(&memcg->css, &root_memcg->css);
  }
 _
-Subject: Subject: drivers/video/backlight/lm3533_bl.c: use devm_ functions
+Subject: Subject: memcg: fix use_hierarchy css_is_ancestor oops regression
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-drivers-video-backlight-atmel-pwm-blc-use-devm_-functions.patch
-drivers-video-backlight-ot200_blc-use-devm_-functions.patch
-drivers-video-backlight-lm3533_blc-use-devm_-functions.patch
+linux-next.patch
+thp-avoid-atomic64_read-in-pmd_read_atomic-for-32bit-pae.patch
+memcg-fix-use_hierarchy-css_is_ancestor-oops-regression.patch
+tmpfs-implement-numa-node-interleaving.patch
+tmpfs-implement-numa-node-interleaving-fix.patch
+memcg-rename-mem_cgroup_stat_swapout-as-mem_cgroup_stat_swap.patch
+memcg-remove-mem_cgroup_charge_type_force.patch
+documentation-update-how-page-cluster-affects-swap-i-o.patch
+mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks.patch
+mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-fix-2.patch
+prio_tree-debugging-patch.patch
 
