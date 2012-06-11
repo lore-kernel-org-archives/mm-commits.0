@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] hugetlbfs-add-an-inline-helper-for-finding-hstate-index.patch removed from -mm tree
-Date: Mon, 11 Jun 2012 14:09:27 -0700
-Message-ID: <20120611210927.6EB1DA0295@akpm.mtv.corp.google.com>
+Subject: [to-be-updated] hugetlbfs-dont-use-err_ptr-with-vm_fault-values.patch removed from -mm tree
+Date: Mon, 11 Jun 2012 14:09:25 -0700
+Message-ID: <20120611210925.7954BA0295@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:49946 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751258Ab2FKVJ2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jun 2012 17:09:28 -0400
-Received: by qcsp5 with SMTP id p5so124916qcs.1
-        for <mm-commits@vger.kernel.org>; Mon, 11 Jun 2012 14:09:28 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:54380 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751458Ab2FKVJ0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jun 2012 17:09:26 -0400
+Received: by qabg24 with SMTP id g24so382695qab.1
+        for <mm-commits@vger.kernel.org>; Mon, 11 Jun 2012 14:09:26 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, dhillf@gmail.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlbfs: add an inline helper for finding hstate index
+     Subject: hugetlbfs: don't use ERR_PTR with VM_FAULT* values
 has been removed from the -mm tree.  Its filename was
-     hugetlbfs-add-an-inline-helper-for-finding-hstate-index.patch
+     hugetlbfs-dont-use-err_ptr-with-vm_fault-values.patch
 
 This patch was dropped because an updated version will be merged
 
@@ -26,108 +26,88 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: hugetlbfs: add an inline helper for finding hstate index
+Subject: hugetlbfs: don't use ERR_PTR with VM_FAULT* values
 
-Add an inline helper and use it in the code.
+The current use of VM_FAULT_* codes with ERR_PTR requires us to ensure
+VM_FAULT_* values will not exceed MAX_ERRNO value.  Decouple the
+VM_FAULT_* values from MAX_ERRNO.
 
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
 Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Hillf Danton <dhillf@gmail.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    6 ++++++
- mm/hugetlb.c            |   18 ++++++++++--------
- 2 files changed, 16 insertions(+), 8 deletions(-)
+ mm/hugetlb.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/hugetlb.h~hugetlbfs-add-an-inline-helper-for-finding-hstate-index include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlbfs-add-an-inline-helper-for-finding-hstate-index
-+++ a/include/linux/hugetlb.h
-@@ -302,6 +302,11 @@ static inline unsigned hstate_index_to_s
- 	return hstates[index].order + PAGE_SHIFT;
- }
- 
-+static inline int hstate_index(struct hstate *h)
-+{
-+	return h - hstates;
-+}
-+
- #else
- struct hstate {};
- #define alloc_huge_page_node(h, nid) NULL
-@@ -320,6 +325,7 @@ static inline unsigned int pages_per_hug
- 	return 1;
- }
- #define hstate_index_to_shift(index) 0
-+#define hstate_index(h) 0
- #endif
- 
- #endif /* _LINUX_HUGETLB_H */
-diff -puN mm/hugetlb.c~hugetlbfs-add-an-inline-helper-for-finding-hstate-index mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlbfs-add-an-inline-helper-for-finding-hstate-index
+diff -puN mm/hugetlb.c~hugetlbfs-dont-use-err_ptr-with-vm_fault-values mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlbfs-dont-use-err_ptr-with-vm_fault-values
 +++ a/mm/hugetlb.c
-@@ -1646,7 +1646,7 @@ static int hugetlb_sysfs_add_hstate(stru
- 				    struct attribute_group *hstate_attr_group)
- {
- 	int retval;
--	int hi = h - hstates;
-+	int hi = hstate_index(h);
+@@ -1123,10 +1123,10 @@ static struct page *alloc_huge_page(stru
+ 	 */
+ 	chg = vma_needs_reservation(h, vma, addr);
+ 	if (chg < 0)
+-		return ERR_PTR(-VM_FAULT_OOM);
++		return ERR_PTR(-ENOMEM);
+ 	if (chg)
+ 		if (hugepage_subpool_get_pages(spool, chg))
+-			return ERR_PTR(-VM_FAULT_SIGBUS);
++			return ERR_PTR(-ENOSPC);
  
- 	hstate_kobjs[hi] = kobject_create_and_add(h->name, parent);
- 	if (!hstate_kobjs[hi])
-@@ -1741,11 +1741,13 @@ void hugetlb_unregister_node(struct node
- 	if (!nhs->hugepages_kobj)
- 		return;		/* no hstate attributes */
- 
--	for_each_hstate(h)
--		if (nhs->hstate_kobjs[h - hstates]) {
--			kobject_put(nhs->hstate_kobjs[h - hstates]);
--			nhs->hstate_kobjs[h - hstates] = NULL;
-+	for_each_hstate(h) {
-+		int idx = hstate_index(h);
-+		if (nhs->hstate_kobjs[idx]) {
-+			kobject_put(nhs->hstate_kobjs[idx]);
-+			nhs->hstate_kobjs[idx] = NULL;
- 		}
-+	}
- 
- 	kobject_put(nhs->hugepages_kobj);
- 	nhs->hugepages_kobj = NULL;
-@@ -1848,7 +1850,7 @@ static void __exit hugetlb_exit(void)
- 	hugetlb_unregister_all_nodes();
- 
- 	for_each_hstate(h) {
--		kobject_put(hstate_kobjs[h - hstates]);
-+		kobject_put(hstate_kobjs[hstate_index(h)]);
- 	}
- 
- 	kobject_put(hugepages_kobj);
-@@ -2687,7 +2689,7 @@ retry:
- 		 */
- 		if (unlikely(PageHWPoison(page))) {
- 			ret = VM_FAULT_HWPOISON |
--			      VM_FAULT_SET_HINDEX(h - hstates);
-+				VM_FAULT_SET_HINDEX(hstate_index(h));
- 			goto backout_unlocked;
+ 	spin_lock(&hugetlb_lock);
+ 	page = dequeue_huge_page_vma(h, vma, addr, avoid_reserve);
+@@ -1136,7 +1136,7 @@ static struct page *alloc_huge_page(stru
+ 		page = alloc_buddy_huge_page(h, NUMA_NO_NODE);
+ 		if (!page) {
+ 			hugepage_subpool_put_pages(spool, chg);
+-			return ERR_PTR(-VM_FAULT_SIGBUS);
++			return ERR_PTR(-ENOSPC);
  		}
  	}
-@@ -2760,7 +2762,7 @@ int hugetlb_fault(struct mm_struct *mm, 
- 			return 0;
- 		} else if (unlikely(is_hugetlb_entry_hwpoisoned(entry)))
- 			return VM_FAULT_HWPOISON_LARGE |
--			       VM_FAULT_SET_HINDEX(h - hstates);
-+				VM_FAULT_SET_HINDEX(hstate_index(h));
+ 
+@@ -2496,6 +2496,7 @@ retry_avoidcopy:
+ 	new_page = alloc_huge_page(vma, address, outside_reserve);
+ 
+ 	if (IS_ERR(new_page)) {
++		int err = PTR_ERR(new_page);
+ 		page_cache_release(old_page);
+ 
+ 		/*
+@@ -2524,7 +2525,10 @@ retry_avoidcopy:
+ 
+ 		/* Caller expects lock to be held */
+ 		spin_lock(&mm->page_table_lock);
+-		return -PTR_ERR(new_page);
++		if (err == -ENOMEM)
++			return VM_FAULT_OOM;
++		else
++			return VM_FAULT_SIGBUS;
  	}
  
- 	ptep = huge_pte_alloc(mm, address, huge_page_size(h));
+ 	/*
+@@ -2642,7 +2646,11 @@ retry:
+ 			goto out;
+ 		page = alloc_huge_page(vma, address, 0);
+ 		if (IS_ERR(page)) {
+-			ret = -PTR_ERR(page);
++			ret = PTR_ERR(page);
++			if (ret == -ENOMEM)
++				ret = VM_FAULT_OOM;
++			else
++				ret = VM_FAULT_SIGBUS;
+ 			goto out;
+ 		}
+ 		clear_huge_page(page, address, pages_per_huge_page(h));
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
 linux-next.patch
+hugetlbfs-add-an-inline-helper-for-finding-hstate-index.patch
 hugetlbfs-add-an-inline-helper-for-finding-hstate-index-fix.patch
 hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
 hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
