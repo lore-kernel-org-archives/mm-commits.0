@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ext2-use-memweight.patch added to -mm tree
-Date: Mon, 11 Jun 2012 16:17:50 -0700
-Message-ID: <20120611231751.1D03DA0137@akpm.mtv.corp.google.com>
+Subject: + qnx4fs-use-memweight.patch added to -mm tree
+Date: Mon, 11 Jun 2012 16:17:39 -0700
+Message-ID: <20120611231739.D73D1A0137@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:35653 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752503Ab2FKXRy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jun 2012 19:17:54 -0400
-Received: by yenl3 with SMTP id l3so426240yen.1
-        for <mm-commits@vger.kernel.org>; Mon, 11 Jun 2012 16:17:51 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:52325 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751881Ab2FKXRm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jun 2012 19:17:42 -0400
+Received: by eaao13 with SMTP id o13so254130eaa.1
+        for <mm-commits@vger.kernel.org>; Mon, 11 Jun 2012 16:17:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, jack@suse.cz
+Cc: akinobu.mita@gmail.com, al@alarsen.net
 
 
 The patch titled
-     Subject: ext2: use memweight()
+     Subject: qnx4fs: use memweight()
 has been added to the -mm tree.  Its filename is
-     ext2-use-memweight.patch
+     qnx4fs-use-memweight.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: ext2: use memweight()
+Subject: qnx4fs: use memweight()
 
-Convert ext2_count_free() to use memweight() instead of table lookup based
-counting clear bits implementation.  This change only affects the code
-segments enabled by EXT2FS_DEBUG.
+Use memweight() to count the total number of bits clear in memory area.
 
 Note that this memweight() call can't be replaced with a single
 bitmap_weight() call, although the pointer to the memory area is aligned
@@ -46,60 +44,62 @@ to long-word boundary.  Because the size of the memory area may not be a
 multiple of BITS_PER_LONG, then it returns wrong value on big-endian
 architecture.
 
-This also includes the following changes.
-
-- Remove unnecessary map == NULL check in ext2_count_free() which
-  always takes non-null pointer as the memory area.
-
-- Fix printk format warning that only reveals with EXT2FS_DEBUG.
-
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Jan Kara <jack@suse.cz>
+Acked-by: Anders Larsen <al@alarsen.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/balloc.c |   14 ++------------
- fs/ext2/ialloc.c |    1 +
- 2 files changed, 3 insertions(+), 12 deletions(-)
+ fs/qnx4/bitmap.c |   24 +++++-------------------
+ 1 file changed, 5 insertions(+), 19 deletions(-)
 
-diff -puN fs/ext2/balloc.c~ext2-use-memweight fs/ext2/balloc.c
---- a/fs/ext2/balloc.c~ext2-use-memweight
-+++ a/fs/ext2/balloc.c
-@@ -1444,19 +1444,9 @@ ext2_fsblk_t ext2_new_block(struct inode
+diff -puN fs/qnx4/bitmap.c~qnx4fs-use-memweight fs/qnx4/bitmap.c
+--- a/fs/qnx4/bitmap.c~qnx4fs-use-memweight
++++ a/fs/qnx4/bitmap.c
+@@ -17,23 +17,6 @@
+ #include <linux/bitops.h>
+ #include "qnx4.h"
  
- #ifdef EXT2FS_DEBUG
- 
--static const int nibblemap[] = {4, 3, 3, 2, 3, 2, 2, 1, 3, 2, 2, 1, 2, 1, 1, 0};
+-static void count_bits(register const char *bmPart, register int size,
+-		       int *const tf)
+-{
+-	char b;
+-	int tot = *tf;
 -
--unsigned long ext2_count_free (struct buffer_head * map, unsigned int numchars)
-+unsigned long ext2_count_free(struct buffer_head *map, unsigned int numchars)
+-	if (size > QNX4_BLOCK_SIZE) {
+-		size = QNX4_BLOCK_SIZE;
+-	}
+-	do {
+-		b = *bmPart++;
+-		tot += 8 - hweight8(b);
+-		size--;
+-	} while (size != 0);
+-	*tf = tot;
+-}
+-
+ unsigned long qnx4_count_free_blocks(struct super_block *sb)
  {
--	unsigned int i;
--	unsigned long sum = 0;
--
--	if (!map)
--		return (0);
--	for (i = 0; i < numchars; i++)
--		sum += nibblemap[map->b_data[i] & 0xf] +
--			nibblemap[(map->b_data[i] >> 4) & 0xf];
--	return (sum);
-+	return numchars * BITS_PER_BYTE - memweight(map->b_data, numchars);
- }
+ 	int start = le32_to_cpu(qnx4_sb(sb)->BitMap->di_first_xtnt.xtnt_blk) - 1;
+@@ -44,13 +27,16 @@ unsigned long qnx4_count_free_blocks(str
+ 	struct buffer_head *bh;
  
- #endif  /*  EXT2FS_DEBUG  */
-diff -puN fs/ext2/ialloc.c~ext2-use-memweight fs/ext2/ialloc.c
---- a/fs/ext2/ialloc.c~ext2-use-memweight
-+++ a/fs/ext2/ialloc.c
-@@ -644,6 +644,7 @@ unsigned long ext2_count_free_inodes (st
+ 	while (total < size) {
++		int bytes = min(size - total, QNX4_BLOCK_SIZE);
++
+ 		if ((bh = sb_bread(sb, start + offset)) == NULL) {
+ 			printk(KERN_ERR "qnx4: I/O error in counting free blocks\n");
+ 			break;
+ 		}
+-		count_bits(bh->b_data, size - total, &total_free);
++		total_free += bytes * BITS_PER_BYTE -
++				memweight(bh->b_data, bytes);
+ 		brelse(bh);
+-		total += QNX4_BLOCK_SIZE;
++		total += bytes;
+ 		offset++;
  	}
- 	brelse(bitmap_bh);
- 	printk("ext2_count_free_inodes: stored = %lu, computed = %lu, %lu\n",
-+		(unsigned long)
- 		percpu_counter_read(&EXT2_SB(sb)->s_freeinodes_counter),
- 		desc_count, bitmap_count);
- 	return desc_count;
+ 
 _
-Subject: Subject: ext2: use memweight()
+Subject: Subject: qnx4fs: use memweight()
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
