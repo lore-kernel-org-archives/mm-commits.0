@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch removed from -mm tree
-Date: Mon, 11 Jun 2012 14:09:35 -0700
-Message-ID: <20120611210935.91211A0295@akpm.mtv.corp.google.com>
+Subject: [to-be-updated] hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch removed from -mm tree
+Date: Mon, 11 Jun 2012 14:09:33 -0700
+Message-ID: <20120611210933.7BF55A0295@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:64960 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751862Ab2FKVJh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jun 2012 17:09:37 -0400
-Received: by mail-lb0-f202.google.com with SMTP id gp10so256203lbb.1
-        for <mm-commits@vger.kernel.org>; Mon, 11 Jun 2012 14:09:36 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:54104 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751688Ab2FKVJg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jun 2012 17:09:36 -0400
+Received: by wgbdt11 with SMTP id dt11so257990wgb.1
+        for <mm-commits@vger.kernel.org>; Mon, 11 Jun 2012 14:09:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, dhillf@gmail.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix
+     Subject: hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix
 has been removed from the -mm tree.  Its filename was
-     hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
+     hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix.patch
 
 This patch was dropped because an updated version will be merged
 
@@ -26,13 +26,12 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix
+Subject: hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix
 
-In file included from fs/proc/meminfo.c:2:
-include/linux/hugetlb.h:126: warning: 'struct mmu_gather' declared inside parameter list
-include/linux/hugetlb.h:126: warning: its scope is only this definition or declaration, which is probably not what you want
+fix CONFIG_HUGETLB_PAGE=n build
 
-what a mess :(
+mm/memory.c: In function 'unmap_single_vma':
+mm/memory.c:1334: error: implicit declaration of function '__unmap_hugepage_range'
 
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -44,20 +43,37 @@ Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/hugetlb.h |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/hugetlb.h~hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix
+diff -puN include/linux/hugetlb.h~hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix
 +++ a/include/linux/hugetlb.h
-@@ -7,6 +7,7 @@
+@@ -41,8 +41,9 @@ int follow_hugetlb_page(struct mm_struct
+ 			unsigned long *, int *, int, unsigned int flags);
+ void unmap_hugepage_range(struct vm_area_struct *,
+ 			  unsigned long, unsigned long, struct page *);
+-void __unmap_hugepage_range(struct mmu_gather *tlb, struct vm_area_struct *,
+-			    unsigned long, unsigned long, struct page *);
++void __unmap_hugepage_range(struct mmu_gather *tlb, struct vm_area_struct *vms,
++				unsigned long start, unsigned long end,
++				struct page *ref_page);
+ int hugetlb_prefault(struct address_space *, struct vm_area_struct *);
+ void hugetlb_report_meminfo(struct seq_file *);
+ int hugetlb_report_node_meminfo(int, char *);
+@@ -119,6 +120,12 @@ static inline void copy_huge_page(struct
  
- struct ctl_table;
- struct user_struct;
-+struct mmu_gather;
+ #define hugetlb_change_protection(vma, address, end, newprot)
  
- #ifdef CONFIG_HUGETLB_PAGE
++static inline void __unmap_hugepage_range(struct mmu_gather *tlb,
++			struct vm_area_struct *vma, unsigned long start,
++			unsigned long end, struct page *ref_page)
++{
++}
++
+ #endif /* !CONFIG_HUGETLB_PAGE */
  
+ #define HUGETLB_ANON_FILE "anon_hugepage"
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -76,6 +92,7 @@ fs-hardlink-creation-restrictions.patch
 mm.patch
 mm-make-vb_alloc-more-foolproof-fix.patch
 mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-fix.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-fix.patch
 memcg-add-hugetlb-extension-fix-fix.patch
 hugetlbfs-add-memcg-control-files-for-hugetlbfs-use-scnprintf-instead-of-sprintf-fix.patch
 memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix.patch
