@@ -1,83 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-oom-fix-badness-score-underflow.patch removed from -mm tree
-Date: Mon, 11 Jun 2012 12:47:57 -0700
-Message-ID: <20120611194758.D7862A030B@akpm.mtv.corp.google.com>
+Subject: + nmi-watchdog-quiet-down-the-boot-messages-v3.patch added to -mm tree
+Date: Mon, 11 Jun 2012 13:57:33 -0700
+Message-ID: <20120611205734.EDC6EA026A@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:58147 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751323Ab2FKTsA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jun 2012 15:48:00 -0400
-Received: by qabg24 with SMTP id g24so371738qab.1
-        for <mm-commits@vger.kernel.org>; Mon, 11 Jun 2012 12:47:59 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:35460 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752647Ab2FKU5g (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jun 2012 16:57:36 -0400
+Received: by ggeh3 with SMTP id h3so411249gge.1
+        for <mm-commits@vger.kernel.org>; Mon, 11 Jun 2012 13:57:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, davej@redhat.com, oleg@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: dzickus@redhat.com, mingo@elte.hu, nzimmer@sgi.com
 
 
 The patch titled
-     Subject: mm, oom: fix badness score underflow
-has been removed from the -mm tree.  Its filename was
-     mm-oom-fix-badness-score-underflow.patch
+     Subject: nmi-watchdog-quiet-down-the-boot-messages-v3
+has been added to the -mm tree.  Its filename is
+     nmi-watchdog-quiet-down-the-boot-messages-v3.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, oom: fix badness score underflow
+From: Don Zickus <dzickus@redhat.com>
+Subject: nmi-watchdog-quiet-down-the-boot-messages-v3
 
-If the privileges given to root threads (3% of allowable memory) or a
-negative value of /proc/pid/oom_score_adj happen to exceed the amount of
-rss of a thread, its badness score overflows as a result of a7f638f999ff
-("mm, oom: normalize oom scores to oom_score_adj scale only for
-userspace").
+V3: printk cleanup based on Ingo's feedback; checkpatch fix
 
-Fix this by making the type signed and return 1, meaning the thread is
-still eligible for kill, if the value is negative.
-
-Reported-by: Dave Jones <davej@redhat.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Nathan Zimmer <nzimmer@sgi.com>
+Signed-off-by: Don Zickus <dzickus@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/watchdog.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/oom_kill.c~mm-oom-fix-badness-score-underflow mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-fix-badness-score-underflow
-+++ a/mm/oom_kill.c
-@@ -183,7 +183,7 @@ static bool oom_unkillable_task(struct t
- unsigned long oom_badness(struct task_struct *p, struct mem_cgroup *memcg,
- 			  const nodemask_t *nodemask, unsigned long totalpages)
- {
--	unsigned long points;
-+	long points;
+diff -puN kernel/watchdog.c~nmi-watchdog-quiet-down-the-boot-messages-v3 kernel/watchdog.c
+--- a/kernel/watchdog.c~nmi-watchdog-quiet-down-the-boot-messages-v3
++++ a/kernel/watchdog.c
+@@ -404,8 +404,10 @@ static int watchdog_nmi_enable(int cpu)
  
- 	if (oom_unkillable_task(p, memcg, nodemask))
- 		return 0;
-@@ -223,7 +223,7 @@ unsigned long oom_badness(struct task_st
- 	 * Never return 0 for an eligible task regardless of the root bonus and
- 	 * oom_score_adj (oom_score_adj can't be OOM_SCORE_ADJ_MIN here).
- 	 */
--	return points ? points : 1;
-+	return points > 0 ? points : 1;
- }
+ 	if (!IS_ERR(event)) {
+ 		/* only print for cpu0 or different than cpu0 */
+-		if (cpu ==0 || cpu0_err)
+-			pr_info("enabled, takes one hw-pmu counter.\n");
++		if (cpu == 0 || cpu0_err) {
++			pr_info("enabled on all CPUs, permanently consumes ");
++			pr_cont("one hw-PMU counter.\n");
++		}
+ 		goto out_save;
+ 	}
  
- /*
 _
+Subject: Subject: nmi-watchdog-quiet-down-the-boot-messages-v3
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from dzickus@redhat.com are
 
-origin.patch
 linux-next.patch
-slab-move-full-state-transition-to-an-initcall.patch
-hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
-hugetlbfs-add-an-inline-helper-for-finding-hstate-index-fix.patch
-hugetlb-simplify-migrate_huge_page.patch
-hugetlb-simplify-migrate_huge_page-fix.patch
-memcg-add-hugetlb-extension-fix.patch
-memcg-add-hugetlb-extension-fix-fix.patch
+nmi-watchdog-quiet-down-the-boot-messages.patch
+nmi-watchdog-quiet-down-the-boot-messages-v3.patch
+nmi-watchdog-quiet-down-the-boot-messages-checkpatch-fixes.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
 
