@@ -1,26 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + xtensa-use-test-e-instead-of-bashism-test-a.patch added to -mm tree
-Date: Mon, 11 Jun 2012 15:16:14 -0700
-Message-ID: <20120611221615.17CB3A026F@akpm.mtv.corp.google.com>
+Subject: + xtensa-replace-xtensa-specific-_fdatatext-by-_sdatatext.patch added to -mm tree
+Date: Mon, 11 Jun 2012 15:16:11 -0700
+Message-ID: <20120611221612.5C3A6A026F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:60561 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750854Ab2FKWQR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 11 Jun 2012 18:16:17 -0400
-Received: by lagr15 with SMTP id r15so251378lag.1
-        for <mm-commits@vger.kernel.org>; Mon, 11 Jun 2012 15:16:16 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:54690 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750854Ab2FKWQO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jun 2012 18:16:14 -0400
+Received: by bkty5 with SMTP id y5so251770bkt.1
+        for <mm-commits@vger.kernel.org>; Mon, 11 Jun 2012 15:16:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: geert@linux-m68k.org, chris@zankel.net
+Cc: geert@linux-m68k.org, chris@zankel.net, rostedt@goodmis.org
 
 
 The patch titled
-     Subject: xtensa: use "test -e" instead of bashism "test -a"
+     Subject: xtensa: replace xtensa-specific _f{data,text} by _s{data,text}
 has been added to the -mm tree.  Its filename is
-     xtensa-use-test-e-instead-of-bashism-test-a.patch
+     xtensa-replace-xtensa-specific-_fdatatext-by-_sdatatext.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,44 +34,71 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: xtensa: use "test -e" instead of bashism "test -a"
+Subject: xtensa: replace xtensa-specific _f{data,text} by _s{data,text}
 
-On Ubuntu, /bin/sh is a symlink to dash, which does not support "test -a".
-This causes messages like
+commit a2d063ac216c161 ("extable, core_kernel_data(): Make sure all archs
+define _sdata") missed xtensa.  Xtensa does have a start of data marker,
+but calls it _fdata, causing
 
-    test: 1: -a: unexpected operator
-    test: 1: -a: unexpected operator
+    kernel/built-in.o:(.text+0x964): undefined reference to `_sdata'
 
-and link failures like
-
-    (.init.text+0x132): undefined reference to `platform_init'
-
-due to the appropriate platform code not being compiled.
+_stext was already defined, but it was duplicated by _fdata.
 
 Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Chris Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/Makefile |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/xtensa/kernel/vmlinux.lds.S |    3 +--
+ arch/xtensa/mm/init.c            |    6 +++---
+ 2 files changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN arch/xtensa/Makefile~xtensa-use-test-e-instead-of-bashism-test-a arch/xtensa/Makefile
---- a/arch/xtensa/Makefile~xtensa-use-test-e-instead-of-bashism-test-a
-+++ a/arch/xtensa/Makefile
-@@ -68,8 +68,8 @@ endif
+diff -puN arch/xtensa/kernel/vmlinux.lds.S~xtensa-replace-xtensa-specific-_fdatatext-by-_sdatatext arch/xtensa/kernel/vmlinux.lds.S
+--- a/arch/xtensa/kernel/vmlinux.lds.S~xtensa-replace-xtensa-specific-_fdatatext-by-_sdatatext
++++ a/arch/xtensa/kernel/vmlinux.lds.S
+@@ -83,7 +83,6 @@ SECTIONS
  
- # Only build variant and/or platform if it includes a Makefile
+   _text = .;
+   _stext = .;
+-  _ftext = .;
  
--buildvar := $(shell test -a $(srctree)/arch/xtensa/variants/$(VARIANT)/Makefile && echo arch/xtensa/variants/$(VARIANT)/)
--buildplf := $(shell test -a $(srctree)/arch/xtensa/platforms/$(PLATFORM)/Makefile && echo arch/xtensa/platforms/$(PLATFORM)/)
-+buildvar := $(shell test -e $(srctree)/arch/xtensa/variants/$(VARIANT)/Makefile && echo arch/xtensa/variants/$(VARIANT)/)
-+buildplf := $(shell test -e $(srctree)/arch/xtensa/platforms/$(PLATFORM)/Makefile && echo arch/xtensa/platforms/$(PLATFORM)/)
+   .text :
+   {
+@@ -112,7 +111,7 @@ SECTIONS
+   EXCEPTION_TABLE(16)
+   /* Data section */
  
- # Find libgcc.a
+-  _fdata = .;
++  _sdata = .;
+   RW_DATA_SECTION(XCHAL_ICACHE_LINESIZE, PAGE_SIZE, THREAD_SIZE)
+   _edata = .;
  
+diff -puN arch/xtensa/mm/init.c~xtensa-replace-xtensa-specific-_fdatatext-by-_sdatatext arch/xtensa/mm/init.c
+--- a/arch/xtensa/mm/init.c~xtensa-replace-xtensa-specific-_fdatatext-by-_sdatatext
++++ a/arch/xtensa/mm/init.c
+@@ -29,7 +29,7 @@
+ 
+ /* References to section boundaries */
+ 
+-extern char _ftext, _etext, _fdata, _edata, _rodata_end;
++extern char _stext, _etext, _sdata, _edata, _rodata_end;
+ extern char __init_begin, __init_end;
+ 
+ /*
+@@ -197,8 +197,8 @@ void __init mem_init(void)
+ 			reservedpages++;
+ 	}
+ 
+-	codesize =  (unsigned long) &_etext - (unsigned long) &_ftext;
+-	datasize =  (unsigned long) &_edata - (unsigned long) &_fdata;
++	codesize =  (unsigned long) &_etext - (unsigned long) &_stext;
++	datasize =  (unsigned long) &_edata - (unsigned long) &_sdata;
+ 	initsize =  (unsigned long) &__init_end - (unsigned long) &__init_begin;
+ 
+ 	printk("Memory: %luk/%luk available (%ldk kernel code, %ldk reserved, "
 _
-Subject: Subject: xtensa: use "test -e" instead of bashism "test -a"
+Subject: Subject: xtensa: replace xtensa-specific _f{data,text} by _s{data,text}
 
 Patches currently in -mm which might be from geert@linux-m68k.org are
 
