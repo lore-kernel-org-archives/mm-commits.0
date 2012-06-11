@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-oom-fix-and-cleanup-oom-score-calculations.patch added to -mm tree
-Date: Mon, 11 Jun 2012 14:19:14 -0700
-Message-ID: <20120611211914.A834BA0295@akpm.mtv.corp.google.com>
+Subject: + fs-cachefiles-add-support-for-large-files-in-filesystem-caching.patch added to -mm tree
+Date: Mon, 11 Jun 2012 14:23:40 -0700
+Message-ID: <20120611212341.1F485A011A@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:56626 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751247Ab2FKVTR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jun 2012 17:19:17 -0400
-Received: by bkty5 with SMTP id y5so250300bkt.1
-        for <mm-commits@vger.kernel.org>; Mon, 11 Jun 2012 14:19:15 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:34311 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751710Ab2FKVXm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jun 2012 17:23:42 -0400
+Received: by qcsp5 with SMTP id p5so126438qcs.1
+        for <mm-commits@vger.kernel.org>; Mon, 11 Jun 2012 14:23:41 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, davej@redhat.com, kosaki.motohiro@gmail.com
+Cc: jlec@gentoo.org, dhowells@redhat.com, sjayaraman@suse.com
 
 
 The patch titled
-     Subject: mm, oom: fix and cleanup oom score calculations
+     Subject: fs: cachefiles: add support for large files in filesystem caching
 has been added to the -mm tree.  Its filename is
-     mm-oom-fix-and-cleanup-oom-score-calculations.patch
+     fs-cachefiles-add-support-for-large-files-in-filesystem-caching.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,70 +33,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, oom: fix and cleanup oom score calculations
+From: Justin Lecher <jlec@gentoo.org>
+Subject: fs: cachefiles: add support for large files in filesystem caching
 
-The divide in p->signal->oom_score_adj * totalpages / 1000 within
-oom_badness() was causing an overflow of the signed long data type.
+Support the caching of large files.
 
-This adds both the root bias and p->signal->oom_score_adj before doing the
-normalization which fixes the issue and also cleans up the calculation.
+Addresses https://bugzilla.kernel.org/show_bug.cgi?id=31182
 
-Tested-by: Dave Jones <davej@redhat.com>
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Signed-off-by: Justin Lecher <jlec@gentoo.org>
+Signed-off-by: Suresh Jayaraman <sjayaraman@suse.com>
+Tested-by: Suresh Jayaraman <sjayaraman@suse.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ fs/cachefiles/rdwr.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/oom_kill.c~mm-oom-fix-and-cleanup-oom-score-calculations mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-fix-and-cleanup-oom-score-calculations
-+++ a/mm/oom_kill.c
-@@ -184,6 +184,7 @@ unsigned long oom_badness(struct task_st
- 			  const nodemask_t *nodemask, unsigned long totalpages)
- {
- 	long points;
-+	long adj;
- 
- 	if (oom_unkillable_task(p, memcg, nodemask))
- 		return 0;
-@@ -192,7 +193,8 @@ unsigned long oom_badness(struct task_st
- 	if (!p)
- 		return 0;
- 
--	if (p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN) {
-+	adj = p->signal->oom_score_adj;
-+	if (adj == OOM_SCORE_ADJ_MIN) {
- 		task_unlock(p);
- 		return 0;
- 	}
-@@ -210,14 +212,11 @@ unsigned long oom_badness(struct task_st
- 	 * implementation used by LSMs.
- 	 */
- 	if (has_capability_noaudit(p, CAP_SYS_ADMIN))
--		points -= 30 * totalpages / 1000;
-+		adj -= 30;
- 
--	/*
--	 * /proc/pid/oom_score_adj ranges from -1000 to +1000 such that it may
--	 * either completely disable oom killing or always prefer a certain
--	 * task.
--	 */
--	points += p->signal->oom_score_adj * totalpages / 1000;
-+	/* Normalize to oom_score_adj units */
-+	adj *= totalpages / 1000;
-+	points += adj;
- 
- 	/*
- 	 * Never return 0 for an eligible task regardless of the root bonus and
+diff -puN fs/cachefiles/rdwr.c~fs-cachefiles-add-support-for-large-files-in-filesystem-caching fs/cachefiles/rdwr.c
+--- a/fs/cachefiles/rdwr.c~fs-cachefiles-add-support-for-large-files-in-filesystem-caching
++++ a/fs/cachefiles/rdwr.c
+@@ -919,7 +919,7 @@ int cachefiles_write_page(struct fscache
+ 	dget(object->backer);
+ 	mntget(cache->mnt);
+ 	file = dentry_open(object->backer, cache->mnt, O_RDWR,
+-			   cache->cache_cred);
++			   (O_RDWR | O_LARGEFILE), cache->cache_cred);
+ 	if (IS_ERR(file)) {
+ 		ret = PTR_ERR(file);
+ 	} else {
 _
-Subject: Subject: mm, oom: fix and cleanup oom score calculations
+Subject: Subject: fs: cachefiles: add support for large files in filesystem caching
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from jlec@gentoo.org are
 
-linux-next.patch
-mm-oom-fix-and-cleanup-oom-score-calculations.patch
-slab-move-full-state-transition-to-an-initcall.patch
+fs-cachefiles-add-support-for-large-files-in-filesystem-caching.patch
 
