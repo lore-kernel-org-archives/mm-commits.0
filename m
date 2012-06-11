@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-2.patch removed from -mm tree
-Date: Mon, 11 Jun 2012 14:09:37 -0700
-Message-ID: <20120611210937.57A2EA0295@akpm.mtv.corp.google.com>
+Subject: [to-be-updated] hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch removed from -mm tree
+Date: Mon, 11 Jun 2012 14:09:39 -0700
+Message-ID: <20120611210939.B2AB7A0295@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:50329 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751862Ab2FKVJj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jun 2012 17:09:39 -0400
-Received: by were53 with SMTP id e53so251327wer.1
-        for <mm-commits@vger.kernel.org>; Mon, 11 Jun 2012 14:09:38 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:61233 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751862Ab2FKVJl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jun 2012 17:09:41 -0400
+Received: by vbnl22 with SMTP id l22so412396vbn.1
+        for <mm-commits@vger.kernel.org>; Mon, 11 Jun 2012 14:09:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, dhillf@gmail.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-2
+     Subject: hugetlb: avoid taking i_mmap_mutex in unmap_single_vma() for hugetlb
 has been removed from the -mm tree.  Its filename was
-     hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-2.patch
+     hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
 
 This patch was dropped because an updated version will be merged
 
@@ -26,55 +26,58 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-2
+Subject: hugetlb: avoid taking i_mmap_mutex in unmap_single_vma() for hugetlb
 
-Further cleanup of the above patch
+i_mmap_mutex lock was added in unmap_single_vma by 502717f4e ("hugetlb:
+fix linked list corruption in unmap_hugepage_range()") but we don't use
+page->lru in unmap_hugepage_range any more.  Also the lock was taken
+higher up in the stack in some code path.  That would result in deadlock.
+
+unmap_mapping_range (i_mmap_mutex)
+ -> unmap_mapping_range_tree
+    -> unmap_mapping_range_vma
+       -> zap_page_range_single
+         -> unmap_single_vma
+	      -> unmap_hugepage_range (i_mmap_mutex)
+
+For shared pagetable support for huge pages, since pagetable pages are ref
+counted we don't need any lock during huge_pmd_unshare.  We do take
+i_mmap_mutex in huge_pmd_share while walking the vma_prio_tree in mapping.
+(39dde65c9940c97f ("shared page table for hugetlb page")).
 
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hillf Danton <dhillf@gmail.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ mm/memory.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN include/linux/hugetlb.h~hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-2 include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages-fix-2
-+++ a/include/linux/hugetlb.h
-@@ -100,7 +100,6 @@ static inline unsigned long hugetlb_tota
- #define follow_huge_addr(mm, addr, write)	ERR_PTR(-EINVAL)
- #define copy_hugetlb_page_range(src, dst, vma)	({ BUG(); 0; })
- #define hugetlb_prefault(mapping, vma)		({ BUG(); 0; })
--#define unmap_hugepage_range(vma, start, end, page)	BUG()
- static inline void hugetlb_report_meminfo(struct seq_file *m)
- {
- }
-@@ -114,7 +113,11 @@ static inline void hugetlb_report_meminf
- #define hugetlb_free_pgd_range(tlb, addr, end, floor, ceiling) ({BUG(); 0; })
- #define hugetlb_fault(mm, vma, addr, flags)	({ BUG(); 0; })
- #define huge_pte_offset(mm, address)	0
--#define dequeue_hwpoisoned_huge_page(page)	0
-+static inline int dequeue_hwpoisoned_huge_page(struct page *page)
-+{
-+	return 0;
-+}
-+
- static inline void copy_huge_page(struct page *dst, struct page *src)
- {
- }
-@@ -125,6 +128,7 @@ static inline void __unmap_hugepage_rang
- 			struct vm_area_struct *vma, unsigned long start,
- 			unsigned long end, struct page *ref_page)
- {
-+	BUG();
- }
- 
- #endif /* !CONFIG_HUGETLB_PAGE */
+diff -puN mm/memory.c~hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb mm/memory.c
+--- a/mm/memory.c~hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb
++++ a/mm/memory.c
+@@ -1328,11 +1328,8 @@ static void unmap_single_vma(struct mmu_
+ 			 * Since no pte has actually been setup, it is
+ 			 * safe to do nothing in this case.
+ 			 */
+-			if (vma->vm_file) {
+-				mutex_lock(&vma->vm_file->f_mapping->i_mmap_mutex);
++			if (vma->vm_file)
+ 				__unmap_hugepage_range(tlb, vma, start, end, NULL);
+-				mutex_unlock(&vma->vm_file->f_mapping->i_mmap_mutex);
+-			}
+ 		} else
+ 			unmap_page_range(tlb, vma, start, end, details);
+ 	}
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
 linux-next.patch
-hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
 hugetlb-simplify-migrate_huge_page.patch
 hugetlb-simplify-migrate_huge_page-fix.patch
 memcg-add-hugetlb-extension.patch
