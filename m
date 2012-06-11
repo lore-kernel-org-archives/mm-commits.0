@@ -1,92 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch removed from -mm tree
-Date: Mon, 11 Jun 2012 14:10:13 -0700
-Message-ID: <20120611211013.5336AA0295@akpm.mtv.corp.google.com>
+Subject: [to-be-updated] hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration.patch removed from -mm tree
+Date: Mon, 11 Jun 2012 14:10:15 -0700
+Message-ID: <20120611211015.73B3FA0295@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:58378 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751688Ab2FKVKR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jun 2012 17:10:17 -0400
-Received: by mail-bk0-f74.google.com with SMTP id y5so250067bkt.1
-        for <mm-commits@vger.kernel.org>; Mon, 11 Jun 2012 14:10:16 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:50760 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752182Ab2FKVKS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jun 2012 17:10:18 -0400
+Received: by wgbdt11 with SMTP id dt11so258011wgb.1
+        for <mm-commits@vger.kernel.org>; Mon, 11 Jun 2012 14:10:17 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, dhillf@gmail.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, dhillf@gmail.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix
+     Subject: hugetlb: migrate memcg info from oldpage to new page during migration
 has been removed from the -mm tree.  Its filename was
-     memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix.patch
+     hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: hugetlb: migrate memcg info from oldpage to new page during migration
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+With HugeTLB pages, memcg is uncharged in compound page destructor.  Since
+we are holding a hugepage reference, we can be sure that old page won't
+get uncharged till the last put_page().  On successful migrate, we can
+move the memcg information to new page's page_cgroup and mark the old
+page's page_cgroup unused.
+
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hillf Danton <dhillf@gmail.com>
 Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    7 +++++++
- 1 file changed, 7 insertions(+)
+ include/linux/memcontrol.h |    8 ++++++++
+ mm/memcontrol.c            |   28 ++++++++++++++++++++++++++++
+ mm/migrate.c               |    4 ++++
+ 3 files changed, 40 insertions(+)
 
-diff -puN include/linux/hugetlb.h~memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~memcg-move-hugetlb-resource-count-to-parent-cgroup-on-memcg-removal-fix-fix
-+++ a/include/linux/hugetlb.h
-@@ -348,8 +348,15 @@ static inline unsigned int pages_per_hug
- #define hstate_index(h) 0
- #endif
+diff -puN include/linux/memcontrol.h~hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration
++++ a/include/linux/memcontrol.h
+@@ -433,6 +433,8 @@ extern int mem_cgroup_move_hugetlb_paren
+ 					  struct page *page);
+ extern bool mem_cgroup_have_hugetlb_usage(struct cgroup *cgroup);
  
-+#ifdef CONFIG_CGROUP_MEM_RES_CTLR
- #ifdef CONFIG_MEM_RES_CTLR_HUGETLB
- extern int hugetlb_force_memcg_empty(struct cgroup *cgroup);
-+#else
-+static inline int hugetlb_force_memcg_empty(struct cgroup *cgroup)
++extern void  mem_cgroup_hugetlb_migrate(struct page *oldhpage,
++					struct page *newhpage);
+ #else
+ static inline int
+ mem_cgroup_hugetlb_charge_page(int idx, unsigned long nr_pages,
+@@ -468,6 +470,12 @@ static inline int mem_cgroup_hugetlb_fil
+ 	return 0;
+ }
+ 
++static inline  void  mem_cgroup_hugetlb_migrate(struct page *oldhpage,
++						struct page *newhpage)
 +{
-+	return 0;
++	return;
 +}
-+#endif
- #endif
++
+ #endif  /* CONFIG_MEM_RES_CTLR_HUGETLB */
+ #endif /* _LINUX_MEMCONTROL_H */
  
- #endif /* _LINUX_HUGETLB_H */
+diff -puN mm/memcontrol.c~hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration mm/memcontrol.c
+--- a/mm/memcontrol.c~hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration
++++ a/mm/memcontrol.c
+@@ -3337,6 +3337,34 @@ err_out:
+ out:
+ 	return ret;
+ }
++
++void  mem_cgroup_hugetlb_migrate(struct page *oldhpage, struct page *newhpage)
++{
++	struct mem_cgroup *memcg;
++	struct page_cgroup *pc;
++
++	VM_BUG_ON(!PageHuge(oldhpage));
++
++	if (mem_cgroup_disabled())
++		return;
++
++	pc = lookup_page_cgroup(oldhpage);
++	lock_page_cgroup(pc);
++	memcg = pc->mem_cgroup;
++	pc->mem_cgroup = root_mem_cgroup;
++	ClearPageCgroupUsed(pc);
++	cgroup_exclude_rmdir(&memcg->css);
++	unlock_page_cgroup(pc);
++
++	/* move the mem_cg details to new cgroup */
++	pc = lookup_page_cgroup(newhpage);
++	lock_page_cgroup(pc);
++	pc->mem_cgroup = memcg;
++	SetPageCgroupUsed(pc);
++	unlock_page_cgroup(pc);
++	cgroup_release_and_wakeup_rmdir(&memcg->css);
++	return;
++}
+ #endif /* CONFIG_MEM_RES_CTLR_HUGETLB */
+ 
+ /*
+diff -puN mm/migrate.c~hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration mm/migrate.c
+--- a/mm/migrate.c~hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration
++++ a/mm/migrate.c
+@@ -935,6 +935,10 @@ static int unmap_and_move_huge_page(new_
+ 
+ 	if (anon_vma)
+ 		put_anon_vma(anon_vma);
++
++	if (!rc)
++		mem_cgroup_hugetlb_migrate(hpage, new_hpage);
++
+ 	unlock_page(hpage);
+ out:
+ 	put_page(new_hpage);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
 linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
-mm-fix-slab-page-_count-corruption-when-using-slub-fix.patch
-tmpfs-implement-numa-node-interleaving-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-fs-symlink-restrictions-on-sticky-directories.patch
-fs-hardlink-creation-restrictions.patch
-mm.patch
-mm-make-vb_alloc-more-foolproof-fix.patch
-mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-fix.patch
 hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix.patch
+hugetlb-migrate-memcg-info-from-oldpage-to-new-page-during-migration-fix-2.patch
+memcg-add-memory-controller-documentation-for-hugetlb-management.patch
+memcg-fix-error-code-in-hugetlb_force_memcg_empty.patch
+memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2.patch
 memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
-kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
-kmod-avoid-deadlock-from-recursive-kmod-call.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+memcg-use-res_counter_uncharge_until-in-mem_cgroup_move_hugetlb_parent.patch
+memcg-move-charges-to-root-cgroup-if-use_hierarchy=0-in-mem_cgroup_move_hugetlb_parent.patch
 
