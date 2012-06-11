@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fs-cachefiles-add-support-for-large-files-in-filesystem-caching.patch added to -mm tree
-Date: Mon, 11 Jun 2012 14:23:40 -0700
-Message-ID: <20120611212341.1F485A011A@akpm.mtv.corp.google.com>
+Subject: + mm-buddy-cleanup-on-should_fail_alloc_page.patch added to -mm tree
+Date: Mon, 11 Jun 2012 14:35:03 -0700
+Message-ID: <20120611213503.AACC4A011A@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:34311 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751710Ab2FKVXm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jun 2012 17:23:42 -0400
-Received: by qcsp5 with SMTP id p5so126438qcs.1
-        for <mm-commits@vger.kernel.org>; Mon, 11 Jun 2012 14:23:41 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:45098 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751391Ab2FKVfF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jun 2012 17:35:05 -0400
+Received: by wibhn6 with SMTP id hn6so235723wib.1
+        for <mm-commits@vger.kernel.org>; Mon, 11 Jun 2012 14:35:04 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jlec@gentoo.org, dhowells@redhat.com, sjayaraman@suse.com
+Cc: shangw@linux.vnet.ibm.com, rientjes@google.com
 
 
 The patch titled
-     Subject: fs: cachefiles: add support for large files in filesystem caching
+     Subject: mm/buddy: cleanup on should_fail_alloc_page
 has been added to the -mm tree.  Its filename is
-     fs-cachefiles-add-support-for-large-files-in-filesystem-caching.patch
+     mm-buddy-cleanup-on-should_fail_alloc_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +33,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Justin Lecher <jlec@gentoo.org>
-Subject: fs: cachefiles: add support for large files in filesystem caching
+From: Gavin Shan <shangw@linux.vnet.ibm.com>
+Subject: mm/buddy: cleanup on should_fail_alloc_page
 
-Support the caching of large files.
+Currently, function should_fail() has "bool" for its return value, so it's
+reasonable to change the return value of function should_fail_alloc_page()
+into "bool" as well.
 
-Addresses https://bugzilla.kernel.org/show_bug.cgi?id=31182
+The patch does cleanup on function should_fail_alloc_page() to have "bool"
+for its return value.
 
-Signed-off-by: Justin Lecher <jlec@gentoo.org>
-Signed-off-by: Suresh Jayaraman <sjayaraman@suse.com>
-Tested-by: Suresh Jayaraman <sjayaraman@suse.com>
-Cc: David Howells <dhowells@redhat.com>
+Signed-off-by: Gavin Shan <shangw@linux.vnet.ibm.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cachefiles/rdwr.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN fs/cachefiles/rdwr.c~fs-cachefiles-add-support-for-large-files-in-filesystem-caching fs/cachefiles/rdwr.c
---- a/fs/cachefiles/rdwr.c~fs-cachefiles-add-support-for-large-files-in-filesystem-caching
-+++ a/fs/cachefiles/rdwr.c
-@@ -919,7 +919,7 @@ int cachefiles_write_page(struct fscache
- 	dget(object->backer);
- 	mntget(cache->mnt);
- 	file = dentry_open(object->backer, cache->mnt, O_RDWR,
--			   cache->cache_cred);
-+			   (O_RDWR | O_LARGEFILE), cache->cache_cred);
- 	if (IS_ERR(file)) {
- 		ret = PTR_ERR(file);
- 	} else {
+diff -puN mm/page_alloc.c~mm-buddy-cleanup-on-should_fail_alloc_page mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-buddy-cleanup-on-should_fail_alloc_page
++++ a/mm/page_alloc.c
+@@ -1527,16 +1527,16 @@ static int __init setup_fail_page_alloc(
+ }
+ __setup("fail_page_alloc=", setup_fail_page_alloc);
+ 
+-static int should_fail_alloc_page(gfp_t gfp_mask, unsigned int order)
++static bool should_fail_alloc_page(gfp_t gfp_mask, unsigned int order)
+ {
+ 	if (order < fail_page_alloc.min_order)
+-		return 0;
++		return false;
+ 	if (gfp_mask & __GFP_NOFAIL)
+-		return 0;
++		return false;
+ 	if (fail_page_alloc.ignore_gfp_highmem && (gfp_mask & __GFP_HIGHMEM))
+-		return 0;
++		return false;
+ 	if (fail_page_alloc.ignore_gfp_wait && (gfp_mask & __GFP_WAIT))
+-		return 0;
++		return false;
+ 
+ 	return should_fail(&fail_page_alloc.attr, 1 << order);
+ }
+@@ -1576,9 +1576,9 @@ late_initcall(fail_page_alloc_debugfs);
+ 
+ #else /* CONFIG_FAIL_PAGE_ALLOC */
+ 
+-static inline int should_fail_alloc_page(gfp_t gfp_mask, unsigned int order)
++static inline bool should_fail_alloc_page(gfp_t gfp_mask, unsigned int order)
+ {
+-	return 0;
++	return false;
+ }
+ 
+ #endif /* CONFIG_FAIL_PAGE_ALLOC */
 _
-Subject: Subject: fs: cachefiles: add support for large files in filesystem caching
+Subject: Subject: mm/buddy: cleanup on should_fail_alloc_page
 
-Patches currently in -mm which might be from jlec@gentoo.org are
+Patches currently in -mm which might be from shangw@linux.vnet.ibm.com are
 
-fs-cachefiles-add-support-for-large-files-in-filesystem-caching.patch
+mm-slab-remove-duplicate-check.patch
+mm-buddy-cleanup-on-should_fail_alloc_page.patch
 
