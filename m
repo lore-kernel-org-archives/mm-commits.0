@@ -1,82 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] memcg-fix-error-code-in-hugetlb_force_memcg_empty.patch removed from -mm tree
-Date: Mon, 11 Jun 2012 14:10:23 -0700
-Message-ID: <20120611211023.85EE4A0295@akpm.mtv.corp.google.com>
+Subject: + mm-oom-fix-and-cleanup-oom-score-calculations.patch added to -mm tree
+Date: Mon, 11 Jun 2012 14:19:14 -0700
+Message-ID: <20120611211914.A834BA0295@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:54380 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751258Ab2FKVKY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jun 2012 17:10:24 -0400
-Received: by mail-qa0-f74.google.com with SMTP id g24so382695qab.1
-        for <mm-commits@vger.kernel.org>; Mon, 11 Jun 2012 14:10:24 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:56626 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751247Ab2FKVTR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jun 2012 17:19:17 -0400
+Received: by bkty5 with SMTP id y5so250300bkt.1
+        for <mm-commits@vger.kernel.org>; Mon, 11 Jun 2012 14:19:15 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, aneesh.kumar@linux.vnet.ibm.com, fweisbec@gmail.com, glommer@parallels.com, hannes@cmpxchg.org, mhocko@suse.cz, tj@kernel.org, yinghan@google.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rientjes@google.com, davej@redhat.com, kosaki.motohiro@gmail.com
 
 
 The patch titled
-     Subject: memcg: fix error code in hugetlb_force_memcg_empty()
-has been removed from the -mm tree.  Its filename was
-     memcg-fix-error-code-in-hugetlb_force_memcg_empty.patch
+     Subject: mm, oom: fix and cleanup oom score calculations
+has been added to the -mm tree.  Its filename is
+     mm-oom-fix-and-cleanup-oom-score-calculations.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: memcg: fix error code in hugetlb_force_memcg_empty()
+From: David Rientjes <rientjes@google.com>
+Subject: mm, oom: fix and cleanup oom score calculations
 
-The force_empty interface allows us to make the memcg empty only when the
-cgroup doesn't include any tasks.
+The divide in p->signal->oom_score_adj * totalpages / 1000 within
+oom_badness() was causing an overflow of the signed long data type.
 
-	# echo 0 > /cgroup/xxxx/memory.force_empty
+This adds both the root bias and p->signal->oom_score_adj before doing the
+normalization which fixes the issue and also cleans up the calculation.
 
-If the cgroup isn't empty, force_empty does nothing and returns -EBUSY. 
-But the hugetlb implementation has an inconsitency with this and returns 0
-and do nothing.  Fix it to return -EBUSY.
-
-Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Ying Han <yinghan@google.com>
-Cc: Glauber Costa <glommer@parallels.com>
-Reviewed-by: Tejun Heo <tj@kernel.org>
+Tested-by: Dave Jones <davej@redhat.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/oom_kill.c |   15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN mm/hugetlb.c~memcg-fix-error-code-in-hugetlb_force_memcg_empty mm/hugetlb.c
---- a/mm/hugetlb.c~memcg-fix-error-code-in-hugetlb_force_memcg_empty
-+++ a/mm/hugetlb.c
-@@ -1922,8 +1922,11 @@ int hugetlb_force_memcg_empty(struct cgr
- 	int ret = 0, idx = 0;
+diff -puN mm/oom_kill.c~mm-oom-fix-and-cleanup-oom-score-calculations mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-fix-and-cleanup-oom-score-calculations
++++ a/mm/oom_kill.c
+@@ -184,6 +184,7 @@ unsigned long oom_badness(struct task_st
+ 			  const nodemask_t *nodemask, unsigned long totalpages)
+ {
+ 	long points;
++	long adj;
  
- 	do {
--		if (cgroup_task_count(cgroup) || !list_empty(&cgroup->children))
-+		if (cgroup_task_count(cgroup)
-+			|| !list_empty(&cgroup->children)) {
-+			ret = -EBUSY;
- 			goto out;
-+		}
- 		/*
- 		 * If the task doing the cgroup_rmdir got a signal
- 		 * we don't really need to loop till the hugetlb resource
+ 	if (oom_unkillable_task(p, memcg, nodemask))
+ 		return 0;
+@@ -192,7 +193,8 @@ unsigned long oom_badness(struct task_st
+ 	if (!p)
+ 		return 0;
+ 
+-	if (p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN) {
++	adj = p->signal->oom_score_adj;
++	if (adj == OOM_SCORE_ADJ_MIN) {
+ 		task_unlock(p);
+ 		return 0;
+ 	}
+@@ -210,14 +212,11 @@ unsigned long oom_badness(struct task_st
+ 	 * implementation used by LSMs.
+ 	 */
+ 	if (has_capability_noaudit(p, CAP_SYS_ADMIN))
+-		points -= 30 * totalpages / 1000;
++		adj -= 30;
+ 
+-	/*
+-	 * /proc/pid/oom_score_adj ranges from -1000 to +1000 such that it may
+-	 * either completely disable oom killing or always prefer a certain
+-	 * task.
+-	 */
+-	points += p->signal->oom_score_adj * totalpages / 1000;
++	/* Normalize to oom_score_adj units */
++	adj *= totalpages / 1000;
++	points += adj;
+ 
+ 	/*
+ 	 * Never return 0 for an eligible task regardless of the root bonus and
 _
+Subject: Subject: mm, oom: fix and cleanup oom score calculations
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 linux-next.patch
-memcg-rename-mem_cgroup_stat_swapout-as-mem_cgroup_stat_swap.patch
-memcg-rename-mem_cgroup_charge_type_mapped-as-mem_cgroup_charge_type_anon.patch
-memcg-remove-mem_cgroup_charge_type_force.patch
-memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2.patch
-memcg-fix-error-code-in-hugetlb_force_memcg_empty-v2-checkpatch-fixes.patch
-memcg-use-res_counter_uncharge_until-in-mem_cgroup_move_hugetlb_parent.patch
-memcg-move-charges-to-root-cgroup-if-use_hierarchy=0-in-mem_cgroup_move_hugetlb_parent.patch
+mm-oom-fix-and-cleanup-oom-score-calculations.patch
+slab-move-full-state-transition-to-an-initcall.patch
 
