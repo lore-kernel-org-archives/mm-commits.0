@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch added to -mm tree
-Date: Wed, 13 Jun 2012 13:45:57 -0700
-Message-ID: <20120613204558.2BE1DA013D@akpm.mtv.corp.google.com>
+Subject: + hugetlb-add-an-inline-helper-for-finding-hstate-index.patch added to -mm tree
+Date: Wed, 13 Jun 2012 13:46:02 -0700
+Message-ID: <20120613204602.3AE6FA013D@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:40113 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752849Ab2FMUp7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jun 2012 16:45:59 -0400
-Received: by yenl3 with SMTP id l3so104039yen.1
-        for <mm-commits@vger.kernel.org>; Wed, 13 Jun 2012 13:45:58 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:62198 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754426Ab2FMUqD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jun 2012 16:46:03 -0400
+Received: by qcsp5 with SMTP id p5so90356qcs.1
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jun 2012 13:46:02 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: aneesh.kumar@linux.vnet.ibm.com, dhillf@gmail.com, kamezawa.hiroyu@jp.fujits
 
 
 The patch titled
-     Subject: hugetlb: rename max_hstate to hugetlb_max_hstate
+     Subject: hugetlb: add an inline helper for finding hstate index
 has been added to the -mm tree.  Its filename is
-     hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
+     hugetlb-add-an-inline-helper-for-finding-hstate-index.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,100 +34,114 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: hugetlb: rename max_hstate to hugetlb_max_hstate
+Subject: hugetlb: add an inline helper for finding hstate index
 
-This patchset implements a cgroup resource controller for HugeTLB pages. 
-The controller allows to limit the HugeTLB usage per control group and
-enforces the controller limit during page fault.  Since HugeTLB doesn't
-support page reclaim, enforcing the limit at page fault time implies that,
-the application will get SIGBUS signal if it tries to access HugeTLB pages
-beyond its limit.  This requires the application to know beforehand how
-much HugeTLB pages it would require for its use.
-
-The goal is to control how many HugeTLB pages a group of task can
-allocate.  It can be looked at as an extension of the existing quota
-interface which limits the number of HugeTLB pages per hugetlbfs
-superblock.  HPC job scheduler requires jobs to specify their resource
-requirements in the job file.  Once their requirements can be met, job
-schedulers like (SLURM) will schedule the job.  We need to make sure that
-the jobs won't consume more resources than requested.  If they do we
-should either error out or kill the application.
-
-
-This patch:
-
-Rename max_hstate to hugetlb_max_hstate.  We will be using this from other
-subsystems like hugetlb controller in later patches.
+Add an inline helper and use it in the code.
 
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Acked-by: David Rientjes <rientjes@google.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Hillf Danton <dhillf@gmail.com>
 Acked-by: Michal Hocko <mhocko@suse.cz>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hillf Danton <dhillf@gmail.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ include/linux/hugetlb.h |    6 ++++++
+ mm/hugetlb.c            |   20 +++++++++++---------
+ 2 files changed, 17 insertions(+), 9 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-rename-max_hstate-to-hugetlb_max_hstate mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-rename-max_hstate-to-hugetlb_max_hstate
+diff -puN include/linux/hugetlb.h~hugetlb-add-an-inline-helper-for-finding-hstate-index include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-add-an-inline-helper-for-finding-hstate-index
++++ a/include/linux/hugetlb.h
+@@ -302,6 +302,11 @@ static inline unsigned hstate_index_to_s
+ 	return hstates[index].order + PAGE_SHIFT;
+ }
+ 
++static inline int hstate_index(struct hstate *h)
++{
++	return h - hstates;
++}
++
+ #else
+ struct hstate {};
+ #define alloc_huge_page_node(h, nid) NULL
+@@ -320,6 +325,7 @@ static inline unsigned int pages_per_hug
+ 	return 1;
+ }
+ #define hstate_index_to_shift(index) 0
++#define hstate_index(h) 0
+ #endif
+ 
+ #endif /* _LINUX_HUGETLB_H */
+diff -puN mm/hugetlb.c~hugetlb-add-an-inline-helper-for-finding-hstate-index mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-add-an-inline-helper-for-finding-hstate-index
 +++ a/mm/hugetlb.c
-@@ -34,7 +34,7 @@ const unsigned long hugetlb_zero = 0, hu
- static gfp_t htlb_alloc_mask = GFP_HIGHUSER;
- unsigned long hugepages_treat_as_movable;
+@@ -1646,7 +1646,7 @@ static int hugetlb_sysfs_add_hstate(stru
+ 				    struct attribute_group *hstate_attr_group)
+ {
+ 	int retval;
+-	int hi = h - hstates;
++	int hi = hstate_index(h);
  
--static int max_hstate;
-+static int hugetlb_max_hstate;
- unsigned int default_hstate_idx;
- struct hstate hstates[HUGE_MAX_HSTATE];
+ 	hstate_kobjs[hi] = kobject_create_and_add(h->name, parent);
+ 	if (!hstate_kobjs[hi])
+@@ -1741,11 +1741,13 @@ void hugetlb_unregister_node(struct node
+ 	if (!nhs->hugepages_kobj)
+ 		return;		/* no hstate attributes */
  
-@@ -46,7 +46,7 @@ static unsigned long __initdata default_
- static unsigned long __initdata default_hstate_size;
+-	for_each_hstate(h)
+-		if (nhs->hstate_kobjs[h - hstates]) {
+-			kobject_put(nhs->hstate_kobjs[h - hstates]);
+-			nhs->hstate_kobjs[h - hstates] = NULL;
++	for_each_hstate(h) {
++		int idx = hstate_index(h);
++		if (nhs->hstate_kobjs[idx]) {
++			kobject_put(nhs->hstate_kobjs[idx]);
++			nhs->hstate_kobjs[idx] = NULL;
+ 		}
++	}
  
- #define for_each_hstate(h) \
--	for ((h) = hstates; (h) < &hstates[max_hstate]; (h)++)
-+	for ((h) = hstates; (h) < &hstates[hugetlb_max_hstate]; (h)++)
+ 	kobject_put(nhs->hugepages_kobj);
+ 	nhs->hugepages_kobj = NULL;
+@@ -1848,7 +1850,7 @@ static void __exit hugetlb_exit(void)
+ 	hugetlb_unregister_all_nodes();
  
- /*
-  * Protects updates to hugepage_freelists, nr_huge_pages, and free_huge_pages
-@@ -1897,9 +1897,9 @@ void __init hugetlb_add_hstate(unsigned 
- 		printk(KERN_WARNING "hugepagesz= specified twice, ignoring\n");
- 		return;
+ 	for_each_hstate(h) {
+-		kobject_put(hstate_kobjs[h - hstates]);
++		kobject_put(hstate_kobjs[hstate_index(h)]);
  	}
--	BUG_ON(max_hstate >= HUGE_MAX_HSTATE);
-+	BUG_ON(hugetlb_max_hstate >= HUGE_MAX_HSTATE);
- 	BUG_ON(order == 0);
--	h = &hstates[max_hstate++];
-+	h = &hstates[hugetlb_max_hstate++];
- 	h->order = order;
- 	h->mask = ~((1ULL << (order + PAGE_SHIFT)) - 1);
- 	h->nr_huge_pages = 0;
-@@ -1920,10 +1920,10 @@ static int __init hugetlb_nrpages_setup(
- 	static unsigned long *last_mhp;
  
- 	/*
--	 * !max_hstate means we haven't parsed a hugepagesz= parameter yet,
-+	 * !hugetlb_max_hstate means we haven't parsed a hugepagesz= parameter yet,
- 	 * so this hugepages= parameter goes to the "default hstate".
- 	 */
--	if (!max_hstate)
-+	if (!hugetlb_max_hstate)
- 		mhp = &default_hstate_max_huge_pages;
- 	else
- 		mhp = &parsed_hstate->max_huge_pages;
-@@ -1942,7 +1942,7 @@ static int __init hugetlb_nrpages_setup(
- 	 * But we need to allocate >= MAX_ORDER hstates here early to still
- 	 * use the bootmem allocator.
- 	 */
--	if (max_hstate && parsed_hstate->order >= MAX_ORDER)
-+	if (hugetlb_max_hstate && parsed_hstate->order >= MAX_ORDER)
- 		hugetlb_hstate_alloc_pages(parsed_hstate);
+ 	kobject_put(hugepages_kobj);
+@@ -1869,7 +1871,7 @@ static int __init hugetlb_init(void)
+ 		if (!size_to_hstate(default_hstate_size))
+ 			hugetlb_add_hstate(HUGETLB_PAGE_ORDER);
+ 	}
+-	default_hstate_idx = size_to_hstate(default_hstate_size) - hstates;
++	default_hstate_idx = hstate_index(size_to_hstate(default_hstate_size));
+ 	if (default_hstate_max_huge_pages)
+ 		default_hstate.max_huge_pages = default_hstate_max_huge_pages;
  
- 	last_mhp = mhp;
+@@ -2687,7 +2689,7 @@ retry:
+ 		 */
+ 		if (unlikely(PageHWPoison(page))) {
+ 			ret = VM_FAULT_HWPOISON |
+-			      VM_FAULT_SET_HINDEX(h - hstates);
++				VM_FAULT_SET_HINDEX(hstate_index(h));
+ 			goto backout_unlocked;
+ 		}
+ 	}
+@@ -2760,7 +2762,7 @@ int hugetlb_fault(struct mm_struct *mm, 
+ 			return 0;
+ 		} else if (unlikely(is_hugetlb_entry_hwpoisoned(entry)))
+ 			return VM_FAULT_HWPOISON_LARGE |
+-			       VM_FAULT_SET_HINDEX(h - hstates);
++				VM_FAULT_SET_HINDEX(hstate_index(h));
+ 	}
+ 
+ 	ptep = huge_pte_alloc(mm, address, huge_page_size(h));
 _
-Subject: Subject: hugetlb: rename max_hstate to hugetlb_max_hstate
+Subject: Subject: hugetlb: add an inline helper for finding hstate index
 
 Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
