@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-coh901331c-use-devm-allocation.patch added to -mm tree
-Date: Wed, 13 Jun 2012 14:08:16 -0700
-Message-ID: <20120613210816.D43A7A037F@akpm.mtv.corp.google.com>
+Subject: + fault-inject-avoid-call-to-random32-if-fault-injection-is-disabled.patch added to -mm tree
+Date: Wed, 13 Jun 2012 14:40:02 -0700
+Message-ID: <20120613214003.3C700A02A9@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:59394 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751709Ab2FMVIS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jun 2012 17:08:18 -0400
-Received: by vbnl22 with SMTP id l22so109773vbn.1
-        for <mm-commits@vger.kernel.org>; Wed, 13 Jun 2012 14:08:17 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:51538 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754420Ab2FMVkE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jun 2012 17:40:04 -0400
+Received: by yenl3 with SMTP id l3so110717yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jun 2012 14:40:03 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linus.walleij@linaro.org, a.zummo@towertech.it
+Cc: anton@samba.org, akinobu.mita@gmail.com
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-coh901331.c: use devm allocation
+     Subject: fault-inject: avoid call to random32() if fault injection is disabled
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-coh901331c-use-devm-allocation.patch
+     fault-inject-avoid-call-to-random32-if-fault-injection-is-disabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,119 +33,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: drivers/rtc/rtc-coh901331.c: use devm allocation
+From: Anton Blanchard <anton@samba.org>
+Subject: fault-inject: avoid call to random32() if fault injection is disabled
 
-Allocate memory, region, remap and irq for device state using devm_*
-helpers to simplify memory accounting.
+After enabling CONFIG_FAILSLAB I noticed random32 in profiles even if slub
+fault injection wasn't enabled at runtime.
 
-Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+should_fail forces a comparison against random32() even if probability is
+0:
+
+        if (attr->probability <= random32() % 100)
+                return false;
+
+Add a check up front for probability == 0 and avoid all of the more
+complicated checks.
+
+Signed-off-by: Anton Blanchard <anton@samba.org>
+Acked-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-coh901331.c |   50 ++++++++++------------------------
- 1 file changed, 15 insertions(+), 35 deletions(-)
+ lib/fault-inject.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/rtc/rtc-coh901331.c~drivers-rtc-rtc-coh901331c-use-devm-allocation drivers/rtc/rtc-coh901331.c
---- a/drivers/rtc/rtc-coh901331.c~drivers-rtc-rtc-coh901331c-use-devm-allocation
-+++ a/drivers/rtc/rtc-coh901331.c
-@@ -155,14 +155,10 @@ static int __exit coh901331_remove(struc
- 	struct coh901331_port *rtap = dev_get_drvdata(&pdev->dev);
+diff -puN lib/fault-inject.c~fault-inject-avoid-call-to-random32-if-fault-injection-is-disabled lib/fault-inject.c
+--- a/lib/fault-inject.c~fault-inject-avoid-call-to-random32-if-fault-injection-is-disabled
++++ a/lib/fault-inject.c
+@@ -101,6 +101,10 @@ static inline bool fail_stacktrace(struc
  
- 	if (rtap) {
--		free_irq(rtap->irq, rtap);
- 		rtc_device_unregister(rtap->rtc);
- 		clk_unprepare(rtap->clk);
- 		clk_put(rtap->clk);
--		iounmap(rtap->virtbase);
--		release_mem_region(rtap->phybase, rtap->physize);
- 		platform_set_drvdata(pdev, NULL);
--		kfree(rtap);
- 	}
- 
- 	return 0;
-@@ -175,42 +171,36 @@ static int __init coh901331_probe(struct
- 	struct coh901331_port *rtap;
- 	struct resource *res;
- 
--	rtap = kzalloc(sizeof(struct coh901331_port), GFP_KERNEL);
-+	rtap = devm_kzalloc(&pdev->dev,
-+			    sizeof(struct coh901331_port), GFP_KERNEL);
- 	if (!rtap)
- 		return -ENOMEM;
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!res) {
--		ret = -ENOENT;
--		goto out_no_resource;
--	}
-+	if (!res)
-+		return -ENOENT;
+ bool should_fail(struct fault_attr *attr, ssize_t size)
+ {
++	/* No need to check any other properties if the probability is 0 */
++	if (attr->probability == 0)
++		return false;
 +
- 	rtap->phybase = res->start;
- 	rtap->physize = resource_size(res);
- 
--	if (request_mem_region(rtap->phybase, rtap->physize,
--			       "rtc-coh901331") == NULL) {
--		ret = -EBUSY;
--		goto out_no_memregion;
--	}
-+	if (devm_request_mem_region(&pdev->dev, rtap->phybase, rtap->physize,
-+				    "rtc-coh901331") == NULL)
-+		return -EBUSY;
- 
--	rtap->virtbase = ioremap(rtap->phybase, rtap->physize);
--	if (!rtap->virtbase) {
--		ret = -ENOMEM;
--		goto out_no_remap;
--	}
-+	rtap->virtbase = devm_ioremap(&pdev->dev, rtap->phybase, rtap->physize);
-+	if (!rtap->virtbase)
-+		return -ENOMEM;
- 
- 	rtap->irq = platform_get_irq(pdev, 0);
--	if (request_irq(rtap->irq, coh901331_interrupt, 0,
--			"RTC COH 901 331 Alarm", rtap)) {
--		ret = -EIO;
--		goto out_no_irq;
--	}
-+	if (devm_request_irq(&pdev->dev, rtap->irq, coh901331_interrupt, 0,
-+			     "RTC COH 901 331 Alarm", rtap))
-+		return -EIO;
- 
- 	rtap->clk = clk_get(&pdev->dev, NULL);
- 	if (IS_ERR(rtap->clk)) {
- 		ret = PTR_ERR(rtap->clk);
- 		dev_err(&pdev->dev, "could not get clock\n");
--		goto out_no_clk;
-+		return ret;
- 	}
- 
- 	/* We enable/disable the clock only to assure it works */
-@@ -236,16 +226,6 @@ static int __init coh901331_probe(struct
- 	clk_unprepare(rtap->clk);
-  out_no_clk_prepenable:
- 	clk_put(rtap->clk);
-- out_no_clk:
--	free_irq(rtap->irq, rtap);
-- out_no_irq:
--	iounmap(rtap->virtbase);
-- out_no_remap:
--	platform_set_drvdata(pdev, NULL);
-- out_no_memregion:
--	release_mem_region(rtap->phybase, SZ_4K);
-- out_no_resource:
--	kfree(rtap);
- 	return ret;
- }
+ 	if (attr->task_filter && !fail_task(attr, current))
+ 		return false;
  
 _
-Subject: Subject: drivers/rtc/rtc-coh901331.c: use devm allocation
+Subject: Subject: fault-inject: avoid call to random32() if fault injection is disabled
 
-Patches currently in -mm which might be from linus.walleij@linaro.org are
+Patches currently in -mm which might be from anton@samba.org are
 
-linux-next.patch
-drivers-rtc-rtc-coh901331c-use-clk_prepare-unprepare.patch
-drivers-rtc-rtc-coh901331c-use-devm-allocation.patch
+fault-inject-avoid-call-to-random32-if-fault-injection-is-disabled.patch
 
