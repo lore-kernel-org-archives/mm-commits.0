@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-tosa_bl-use-devm_gpio_request.patch added to -mm tree
-Date: Wed, 13 Jun 2012 13:35:14 -0700
-Message-ID: <20120613203514.D525CA001B@akpm.mtv.corp.google.com>
+Subject: + backlight-corgi_lcd-use-devm_gpio_request.patch added to -mm tree
+Date: Wed, 13 Jun 2012 13:35:18 -0700
+Message-ID: <20120613203518.D54B0A001B@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:32918 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754706Ab2FMUfP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jun 2012 16:35:15 -0400
-Received: by ggeh3 with SMTP id h3so88086gge.1
-        for <mm-commits@vger.kernel.org>; Wed, 13 Jun 2012 13:35:15 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:64352 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754706Ab2FMUfU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jun 2012 16:35:20 -0400
+Received: by yhgm50 with SMTP id m50so137930yhg.1
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jun 2012 13:35:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com, dbaryshkov@gmail.com, rpurdie@rpsys.net
+Cc: jg1.han@samsung.com, eric.y.miao@gmail.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: backlight: tosa_bl: use devm_gpio_request()
+     Subject: backlight: corgi_lcd: use devm_gpio_request()
 has been added to the -mm tree.  Its filename is
-     backlight-tosa_bl-use-devm_gpio_request.patch
+     backlight-corgi_lcd-use-devm_gpio_request.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,66 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: tosa_bl: use devm_gpio_request()
+Subject: backlight: corgi_lcd: use devm_gpio_request()
 
 The devm_ functions allocate memory that is released when a driver
 detaches.  This patch uses devm_gpio_request() for these functions.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Cc: Dmitry Baryshkov <dbaryshkov@gmail.com>
+Cc: Eric Miao <eric.y.miao@gmail.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/tosa_bl.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ drivers/video/backlight/corgi_lcd.c |   19 +++++--------------
+ 1 file changed, 5 insertions(+), 14 deletions(-)
 
-diff -puN drivers/video/backlight/tosa_bl.c~backlight-tosa_bl-use-devm_gpio_request drivers/video/backlight/tosa_bl.c
---- a/drivers/video/backlight/tosa_bl.c~backlight-tosa_bl-use-devm_gpio_request
-+++ a/drivers/video/backlight/tosa_bl.c
-@@ -92,14 +92,14 @@ static int __devinit tosa_bl_probe(struc
+diff -puN drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-use-devm_gpio_request drivers/video/backlight/corgi_lcd.c
+--- a/drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-use-devm_gpio_request
++++ a/drivers/video/backlight/corgi_lcd.c
+@@ -492,7 +492,8 @@ static int setup_gpio_backlight(struct c
+ 	lcd->gpio_backlight_cont = -1;
  
- 	data->comadj = sharpsl_param.comadj == -1 ? COMADJ_DEFAULT : sharpsl_param.comadj;
- 
--	ret = gpio_request(TOSA_GPIO_BL_C20MA, "backlight");
-+	ret = devm_gpio_request(&client->dev, TOSA_GPIO_BL_C20MA, "backlight");
- 	if (ret) {
- 		dev_dbg(&data->bl->dev, "Unable to request gpio!\n");
- 		return ret;
+ 	if (gpio_is_valid(pdata->gpio_backlight_on)) {
+-		err = gpio_request(pdata->gpio_backlight_on, "BL_ON");
++		err = devm_gpio_request(&spi->dev, pdata->gpio_backlight_on,
++					"BL_ON");
+ 		if (err) {
+ 			dev_err(&spi->dev, "failed to request GPIO%d for "
+ 				"backlight_on\n", pdata->gpio_backlight_on);
+@@ -504,11 +505,12 @@ static int setup_gpio_backlight(struct c
  	}
- 	ret = gpio_direction_output(TOSA_GPIO_BL_C20MA, 0);
- 	if (ret)
--		goto err_gpio_dir;
-+		return ret;
  
- 	i2c_set_clientdata(client, data);
- 	data->i2c = client;
-@@ -123,8 +123,6 @@ static int __devinit tosa_bl_probe(struc
+ 	if (gpio_is_valid(pdata->gpio_backlight_cont)) {
+-		err = gpio_request(pdata->gpio_backlight_cont, "BL_CONT");
++		err = devm_gpio_request(&spi->dev, pdata->gpio_backlight_cont,
++					"BL_CONT");
+ 		if (err) {
+ 			dev_err(&spi->dev, "failed to request GPIO%d for "
+ 				"backlight_cont\n", pdata->gpio_backlight_cont);
+-			goto err_free_backlight_on;
++			return err;
+ 		}
  
- err_reg:
- 	data->bl = NULL;
--err_gpio_dir:
--	gpio_free(TOSA_GPIO_BL_C20MA);
- 	return ret;
+ 		lcd->gpio_backlight_cont = pdata->gpio_backlight_cont;
+@@ -525,11 +527,6 @@ static int setup_gpio_backlight(struct c
+ 		}
+ 	}
+ 	return 0;
+-
+-err_free_backlight_on:
+-	if (gpio_is_valid(lcd->gpio_backlight_on))
+-		gpio_free(lcd->gpio_backlight_on);
+-	return err;
  }
  
-@@ -135,8 +133,6 @@ static int __devexit tosa_bl_remove(stru
- 	backlight_device_unregister(data->bl);
- 	data->bl = NULL;
+ static int __devinit corgi_lcd_probe(struct spi_device *spi)
+@@ -602,12 +599,6 @@ static int __devexit corgi_lcd_remove(st
+ 	backlight_update_status(lcd->bl_dev);
+ 	backlight_device_unregister(lcd->bl_dev);
  
--	gpio_free(TOSA_GPIO_BL_C20MA);
+-	if (gpio_is_valid(lcd->gpio_backlight_on))
+-		gpio_free(lcd->gpio_backlight_on);
+-
+-	if (gpio_is_valid(lcd->gpio_backlight_cont))
+-		gpio_free(lcd->gpio_backlight_cont);
