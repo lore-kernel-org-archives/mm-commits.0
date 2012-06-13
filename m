@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + pidns-find_new_reaper-can-no-longer-switch-to-init_pid_nschild_reaper.patch added to -mm tree
-Date: Wed, 13 Jun 2012 14:53:55 -0700
-Message-ID: <20120613215355.EE369A037F@akpm.mtv.corp.google.com>
+Subject: + pidns-guarantee-that-the-pidns-init-will-be-the-last-pidns-process-reaped.patch added to -mm tree
+Date: Wed, 13 Jun 2012 14:53:53 -0700
+Message-ID: <20120613215354.62EE4A037F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:46605 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754794Ab2FMVx5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jun 2012 17:53:57 -0400
-Received: by yenl3 with SMTP id l3so112752yen.1
-        for <mm-commits@vger.kernel.org>; Wed, 13 Jun 2012 14:53:56 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:39086 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752231Ab2FMVxz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jun 2012 17:53:55 -0400
+Received: by vcbfl13 with SMTP id fl13so99111vcb.1
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jun 2012 14:53:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, ebiederm@xmission.com, efault@gmx.de, louis.rilling@kerlabs.com, xemul@parallels.com
+Cc: ebiederm@xmission.com, efault@gmx.de, louis.rilling@kerlabs.com, oleg@redhat.com, xemul@parallels.com
 
 
 The patch titled
-     Subject: pidns: find_new_reaper() can no longer switch to init_pid_ns.child_reaper
+     Subject: pidns: guarantee that the pidns init will be the last pidns process reaped
 has been added to the -mm tree.  Its filename is
-     pidns-find_new_reaper-can-no-longer-switch-to-init_pid_nschild_reaper.patch
+     pidns-guarantee-that-the-pidns-init-will-be-the-last-pidns-process-reaped.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,84 +33,116 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: pidns: find_new_reaper() can no longer switch to init_pid_ns.child_reaper
+From: Eric W. Biederman <ebiederm@xmission.com>
+Subject: pidns: guarantee that the pidns init will be the last pidns process reaped
 
-find_new_reaper() changes pid_ns->child_reaper, see add0d4df ("pid_ns:
-zap_pid_ns_processes: fix the ->child_reaper changing").
+Today we have a twofold bug.  Sometimes release_task on pid == 1 in a pid
+namespace can run before other processes in a pid namespace have had
+release task called.  With the result that pid_ns_release_proc can be
+called before the last proc_flus_task() is done using upid->ns->proc_mnt,
+resulting in the use of a stale pointer.  This same set of circumstances
+can lead to waitpid(...) returning for a processes started with
+clone(CLONE_NEWPID) before the every process in the pid namespace has
+actually exited.
 
-The original reason has gone away after the previous patch, ->children
-list must be empty after zap_pid_ns_processes().
+To fix this modify zap_pid_ns_processess wait until all other processes in
+the pid namespace have exited, even EXIT_DEAD zombies.
 
-However now we can not switch to init_pid_ns.child_reaper. 
-__unhash_process() relies on the "->child_reaper == parent" check, but
-this check does not work if the last exiting task is also the child
-reaper.
+The delay_group_leader and related tests ensure that the thread gruop
+leader will be the last thread of a process group to be reaped, or to
+become EXIT_DEAD and self reap.  With the change to zap_pid_ns_processes
+we get the guarantee that pid == 1 in a pid namespace will be the last
+task that release_task is called on.
 
-As Eric sugested, we can change __unhash_process() to use the parent's
-pid_ns and remove this code.
+With pid == 1 being the last task to pass through release_task
+pid_ns_release_proc can no longer be called too early nor can wait return
+before all of the EXIT_DEAD tasks in a pid namespace have exited.
 
-Also, with this change we can move detach_pid(PIDTYPE_PID) back, where it
-was before the previous fix.
-
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Louis Rilling <louis.rilling@kerlabs.com>
 Cc: Mike Galbraith <efault@gmx.de>
 Acked-by: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ kernel/exit.c          |   14 +++++++++++++-
+ kernel/pid_namespace.c |   20 ++++++++++++++++++++
+ 2 files changed, 33 insertions(+), 1 deletion(-)
 
-diff -puN kernel/exit.c~pidns-find_new_reaper-can-no-longer-switch-to-init_pid_nschild_reaper kernel/exit.c
---- a/kernel/exit.c~pidns-find_new_reaper-can-no-longer-switch-to-init_pid_nschild_reaper
+diff -puN kernel/exit.c~pidns-guarantee-that-the-pidns-init-will-be-the-last-pidns-process-reaped kernel/exit.c
+--- a/kernel/exit.c~pidns-guarantee-that-the-pidns-init-will-be-the-last-pidns-process-reaped
 +++ a/kernel/exit.c
-@@ -64,6 +64,7 @@ static void exit_mm(struct task_struct *
+@@ -64,7 +64,6 @@ static void exit_mm(struct task_struct *
  static void __unhash_process(struct task_struct *p, bool group_dead)
  {
  	nr_threads--;
-+	detach_pid(p, PIDTYPE_PID);
+-	detach_pid(p, PIDTYPE_PID);
  	if (group_dead) {
  		detach_pid(p, PIDTYPE_PGID);
  		detach_pid(p, PIDTYPE_SID);
-@@ -78,13 +79,12 @@ static void __unhash_process(struct task
- 		if (IS_ENABLED(CONFIG_PID_NS)) {
- 			struct task_struct *parent = p->real_parent;
- 
--			if ((task_active_pid_ns(p)->child_reaper == parent) &&
-+			if ((task_active_pid_ns(parent)->child_reaper == parent) &&
- 			    list_empty(&parent->children) &&
- 			    (parent->flags & PF_EXITING))
- 				wake_up_process(parent);
- 		}
+@@ -72,7 +71,20 @@ static void __unhash_process(struct task
+ 		list_del_rcu(&p->tasks);
+ 		list_del_init(&p->sibling);
+ 		__this_cpu_dec(process_counts);
++		/*
++		 * If we are the last child process in a pid namespace to be
++		 * reaped, notify the reaper sleeping zap_pid_ns_processes().
++		 */
++		if (IS_ENABLED(CONFIG_PID_NS)) {
++			struct task_struct *parent = p->real_parent;
++
++			if ((task_active_pid_ns(p)->child_reaper == parent) &&
++			    list_empty(&parent->children) &&
++			    (parent->flags & PF_EXITING))
++				wake_up_process(parent);
++		}
  	}
--	detach_pid(p, PIDTYPE_PID);
++	detach_pid(p, PIDTYPE_PID);
  	list_del_rcu(&p->thread_group);
  }
  
-@@ -732,12 +732,6 @@ static struct task_struct *find_new_reap
+diff -puN kernel/pid_namespace.c~pidns-guarantee-that-the-pidns-init-will-be-the-last-pidns-process-reaped kernel/pid_namespace.c
+--- a/kernel/pid_namespace.c~pidns-guarantee-that-the-pidns-init-will-be-the-last-pidns-process-reaped
++++ a/kernel/pid_namespace.c
+@@ -184,11 +184,31 @@ void zap_pid_ns_processes(struct pid_nam
+ 	}
+ 	read_unlock(&tasklist_lock);
  
- 		zap_pid_ns_processes(pid_ns);
- 		write_lock_irq(&tasklist_lock);
--		/*
--		 * We can not clear ->child_reaper or leave it alone.
--		 * There may by stealth EXIT_DEAD tasks on ->children,
--		 * forget_original_parent() must move them somewhere.
--		 */
--		pid_ns->child_reaper = init_pid_ns.child_reaper;
- 	} else if (father->signal->has_child_subreaper) {
- 		struct task_struct *reaper;
++	/* Firstly reap the EXIT_ZOMBIE children we may have. */
+ 	do {
+ 		clear_thread_flag(TIF_SIGPENDING);
+ 		rc = sys_wait4(-1, NULL, __WALL, NULL);
+ 	} while (rc != -ECHILD);
+ 
++	/*
++	 * sys_wait4() above can't reap the TASK_DEAD children.
++	 * Make sure they all go away, see __unhash_process().
++	 */
++	for (;;) {
++		bool need_wait = false;
++
++		read_lock(&tasklist_lock);
++		if (!list_empty(&current->children)) {
++			__set_current_state(TASK_UNINTERRUPTIBLE);
++			need_wait = true;
++		}
++		read_unlock(&tasklist_lock);
++
++		if (!need_wait)
++			break;
++		schedule();
++	}
++
+ 	if (pid_ns->reboot)
+ 		current->signal->group_exit_code = pid_ns->reboot;
  
 _
-Subject: Subject: pidns: find_new_reaper() can no longer switch to init_pid_ns.child_reaper
+Subject: Subject: pidns: guarantee that the pidns init will be the last pidns process reaped
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from ebiederm@xmission.com are
 
 linux-next.patch
-mm-correctly-synchronize-rss-counters-at-exit-exec.patch
-kmod-avoid-deadlock-from-recursive-kmod-call.patch
 pidns-guarantee-that-the-pidns-init-will-be-the-last-pidns-process-reaped.patch
 pidns-find_new_reaper-can-no-longer-switch-to-init_pid_nschild_reaper.patch
 c-r-fcntl-add-f_getowner_uids-option.patch
