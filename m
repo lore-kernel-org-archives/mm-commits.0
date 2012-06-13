@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + hfs-simplify-a-bit-checking-for-r-o.patch added to -mm tree
-Date: Wed, 13 Jun 2012 15:36:07 -0700
-Message-ID: <20120613223607.EBE2FA0137@akpm.mtv.corp.google.com>
+Subject: + hfs-introduce-vfs-superblock-object-back-reference.patch added to -mm tree
+Date: Wed, 13 Jun 2012 15:36:09 -0700
+Message-ID: <20120613223609.ECC7AA0137@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:60854 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754706Ab2FMWgI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jun 2012 18:36:08 -0400
-Received: by ghbz15 with SMTP id z15so100492ghb.1
-        for <mm-commits@vger.kernel.org>; Wed, 13 Jun 2012 15:36:08 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:52268 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754706Ab2FMWgL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jun 2012 18:36:11 -0400
+Received: by eeit10 with SMTP id t10so57747eei.1
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jun 2012 15:36:10 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: artem.bityutskiy@linux.intel.com, hch@lst.de, jack@suse.cz, viro@zeniv.linux
 
 
 The patch titled
-     Subject: hfs: simplify a bit checking for R/O
+     Subject: hfs: introduce VFS superblock object back-reference
 has been added to the -mm tree.  Its filename is
-     hfs-simplify-a-bit-checking-for-r-o.patch
+     hfs-introduce-vfs-superblock-object-back-reference.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-Subject: hfs: simplify a bit checking for R/O
+Subject: hfs: introduce VFS superblock object back-reference
 
-We have the following pattern in 2 places in HFS
+Add an 'sb' VFS superblock back-reference to the 'struct hfs_sb_info' data
+structure - we will need to find the VFS superblock from a 'struct
+hfs_sb_info' object in the next patch, so this change is jut a
+preparation.
 
-if (!RDONLY)
-	hfs_mdb_commit();
-
-This patch pushes the RDONLY check down to 'hfs_mdb_commit()'. This will
-make the following patches a bit simpler.
+Remove few useless newlines while on it.
 
 Signed-off-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -51,52 +50,44 @@ Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfs/inode.c |    3 +--
- fs/hfs/mdb.c   |    3 +++
- fs/hfs/super.c |    3 +--
- 3 files changed, 5 insertions(+), 4 deletions(-)
+ fs/hfs/hfs_fs.h |    6 +-----
+ fs/hfs/super.c  |    1 +
+ 2 files changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN fs/hfs/inode.c~hfs-simplify-a-bit-checking-for-r-o fs/hfs/inode.c
---- a/fs/hfs/inode.c~hfs-simplify-a-bit-checking-for-r-o
-+++ a/fs/hfs/inode.c
-@@ -646,8 +646,7 @@ static int hfs_file_fsync(struct file *f
- 	sb = inode->i_sb;
- 	if (sb->s_dirt) {
- 		sb->s_dirt = 0;
--		if (!(sb->s_flags & MS_RDONLY))
--			hfs_mdb_commit(sb);
-+		hfs_mdb_commit(sb);
- 	}
- 	/* .. finally sync the buffers to disk */
- 	err = sync_blockdev(sb->s_bdev);
-diff -puN fs/hfs/mdb.c~hfs-simplify-a-bit-checking-for-r-o fs/hfs/mdb.c
---- a/fs/hfs/mdb.c~hfs-simplify-a-bit-checking-for-r-o
-+++ a/fs/hfs/mdb.c
-@@ -260,6 +260,9 @@ void hfs_mdb_commit(struct super_block *
- {
- 	struct hfs_mdb *mdb = HFS_SB(sb)->mdb;
+diff -puN fs/hfs/hfs_fs.h~hfs-introduce-vfs-superblock-object-back-reference fs/hfs/hfs_fs.h
+--- a/fs/hfs/hfs_fs.h~hfs-introduce-vfs-superblock-object-back-reference
++++ a/fs/hfs/hfs_fs.h
+@@ -137,16 +137,12 @@ struct hfs_sb_info {
+ 	gid_t s_gid;				/* The gid of all files */
  
-+	if (sb->s_flags & MS_RDONLY)
-+		return;
-+
- 	lock_buffer(HFS_SB(sb)->mdb_bh);
- 	if (test_and_clear_bit(HFS_FLG_MDB_DIRTY, &HFS_SB(sb)->flags)) {
- 		/* These parameters may have been modified, so write them back */
-diff -puN fs/hfs/super.c~hfs-simplify-a-bit-checking-for-r-o fs/hfs/super.c
---- a/fs/hfs/super.c~hfs-simplify-a-bit-checking-for-r-o
+ 	int session, part;
+-
+ 	struct nls_table *nls_io, *nls_disk;
+-
+ 	struct mutex bitmap_lock;
+-
+ 	unsigned long flags;
+-
+ 	u16 blockoffset;
+-
+ 	int fs_div;
++	struct super_block *sb;
+ };
+ 
+ #define HFS_FLG_BITMAP_DIRTY	0
+diff -puN fs/hfs/super.c~hfs-introduce-vfs-superblock-object-back-reference fs/hfs/super.c
+--- a/fs/hfs/super.c~hfs-introduce-vfs-superblock-object-back-reference
 +++ a/fs/hfs/super.c
-@@ -53,8 +53,7 @@ static void hfs_write_super(struct super
- 	sb->s_dirt = 0;
+@@ -380,6 +380,7 @@ static int hfs_fill_super(struct super_b
+ 	if (!sbi)
+ 		return -ENOMEM;
  
- 	/* sync everything to the buffers */
--	if (!(sb->s_flags & MS_RDONLY))
--		hfs_mdb_commit(sb);
-+	hfs_mdb_commit(sb);
- }
++	sbi->sb = sb;
+ 	sb->s_fs_info = sbi;
  
- static int hfs_sync_fs(struct super_block *sb, int wait)
+ 	res = -EINVAL;
 _
-Subject: Subject: hfs: simplify a bit checking for R/O
+Subject: Subject: hfs: introduce VFS superblock object back-reference
 
 Patches currently in -mm which might be from artem.bityutskiy@linux.intel.com are
 
