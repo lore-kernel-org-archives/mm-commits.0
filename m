@@ -1,93 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: + hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 13 Jun 2012 15:45:37 -0700
-Message-ID: <20120613224538.28180A030B@akpm.mtv.corp.google.com>
+Subject: [folded] mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-fix.patch removed from -mm tree
+Date: Wed, 13 Jun 2012 16:16:24 -0700
+Message-ID: <20120613231625.10CBBA00B0@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:58886 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753229Ab2FMWpj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jun 2012 18:45:39 -0400
-Received: by ggeh3 with SMTP id h3so102995gge.1
-        for <mm-commits@vger.kernel.org>; Wed, 13 Jun 2012 15:45:38 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:64083 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752499Ab2FMXQ2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Wed, 13 Jun 2012 19:16:28 -0400
+Received: by lagr15 with SMTP id r15so57826lag.1
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jun 2012 16:16:26 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, artem.bityutskiy@linux.intel.com, hch@lst.de, jack@suse.cz, viro@zeniv.linux.org.uk
+To: akpm@linux-foundation.org, b.zolnierkie@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hfs-get-rid-of-hfs_sync_super-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
+     Subject: mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-fix
+has been removed from the -mm tree.  Its filename was
+     mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was folded into mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hfs-get-rid-of-hfs_sync_super-checkpatch-fixes
+Subject: mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-fix
 
-WARNING: suspect code indent for conditional statements (8, 15)
-#212: FILE: fs/hfs/super.c:73:
-+	if (sb->s_flags & MS_RDONLY)
-+	       return;
+make __count_immobile_pages() return bool, fix some comments
 
-WARNING: suspect code indent for conditional statements (8, 15)
-#216: FILE: fs/hfs/super.c:77:
-+	if (!sbi->work_queued) {
-+	       delay = msecs_to_jiffies(dirty_writeback_interval * 10);
-
-total: 0 errors, 2 warnings, 181 lines checked
-
-./patches/hfs-get-rid-of-hfs_sync_super.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jan Kara <jack@suse.cz>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfs/super.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/compaction.c |   14 +++++++-------
+ mm/internal.h   |    2 +-
+ mm/page_alloc.c |    3 +--
+ 3 files changed, 9 insertions(+), 10 deletions(-)
 
-diff -puN fs/hfs/super.c~hfs-get-rid-of-hfs_sync_super-checkpatch-fixes fs/hfs/super.c
---- a/fs/hfs/super.c~hfs-get-rid-of-hfs_sync_super-checkpatch-fixes
-+++ a/fs/hfs/super.c
-@@ -71,13 +71,13 @@ void hfs_mark_mdb_dirty(struct super_blo
- 	unsigned long delay;
- 
- 	if (sb->s_flags & MS_RDONLY)
--	       return;
-+		return;
- 
- 	spin_lock(&sbi->work_lock);
- 	if (!sbi->work_queued) {
--	       delay = msecs_to_jiffies(dirty_writeback_interval * 10);
--	       queue_delayed_work(system_long_wq, &sbi->mdb_work, delay);
--	       sbi->work_queued = 1;
-+		delay = msecs_to_jiffies(dirty_writeback_interval * 10);
-+		queue_delayed_work(system_long_wq, &sbi->mdb_work, delay);
-+		sbi->work_queued = 1;
- 	}
- 	spin_unlock(&sbi->work_lock);
+diff -puN mm/compaction.c~mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-fix mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-fix
++++ a/mm/compaction.c
+@@ -394,10 +394,10 @@ static void rescue_unmovable_pageblock(s
  }
+ 
+ /*
+- * MIGRATE_TARGET : good for migration target
+- * RESCUE_UNMOVABLE_TARTET : good only if we can rescue the unmovable pageblock.
+- * UNMOVABLE_TARGET : can't migrate because it's a page in unmovable pageblock.
+- * SKIP_TARGET : can't migrate by another reasons.
++ * MIGRATE_TARGET: good for migration target
++ * RESCUE_UNMOVABLE_TARGET: good only if we can rescue the unmovable pageblock.
++ * UNMOVABLE_TARGET: can't migrate because it's a page in unmovable pageblock.
++ * SKIP_TARGET: can't migrate by another reasons.
+  */
+ enum smt_result {
+ 	MIGRATE_TARGET,
+@@ -407,9 +407,9 @@ enum smt_result {
+ };
+ 
+ /*
+- * Returns MIGRATE_TARGET if the page is within a block
+- * suitable for migration to, UNMOVABLE_TARGET if the page
+- * is within a MIGRATE_UNMOVABLE block, SKIP_TARGET otherwise.
++ * Returns MIGRATE_TARGET if the page is within a block suitable for migration
++ * to, UNMOVABLE_TARGET if the page is within a MIGRATE_UNMOVABLE block,
++ * SKIP_TARGET otherwise.
+  */
+ static enum smt_result suitable_migration_target(struct page *page,
+ 			      struct compact_control *cc)
+diff -puN mm/internal.h~mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-fix mm/internal.h
+--- a/mm/internal.h~mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-fix
++++ a/mm/internal.h
+@@ -97,7 +97,7 @@ extern void putback_lru_page(struct page
+ extern void set_pageblock_migratetype(struct page *page, int migratetype);
+ extern int move_freepages_block(struct zone *zone, struct page *page,
+ 				int migratetype);
+-extern int __count_immobile_pages(struct zone *zone, struct page *page,
++extern bool __count_immobile_pages(struct zone *zone, struct page *page,
+ 				  int count);
+ extern void __free_pages_bootmem(struct page *page, unsigned int order);
+ extern void prep_compound_page(struct page *page, unsigned long order);
+diff -puN mm/page_alloc.c~mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-fix
++++ a/mm/page_alloc.c
+@@ -221,7 +221,6 @@ int page_group_by_mobility_disabled __re
+ 
+ void set_pageblock_migratetype(struct page *page, int migratetype)
+ {
+-
+ 	if (unlikely(page_group_by_mobility_disabled))
+ 		migratetype = MIGRATE_UNMOVABLE;
+ 
+@@ -5472,7 +5471,7 @@ void set_pageblock_flags_group(struct pa
+  * page allocater never alloc memory from ISOLATE block.
+  */
+ 
+-int __count_immobile_pages(struct zone *zone, struct page *page, int count)
++bool __count_immobile_pages(struct zone *zone, struct page *page, int count)
+ {
+ 	unsigned long pfn, iter, found;
+ 	int mt;
 _
-Subject: Subject: hfs-get-rid-of-hfs_sync_super-checkpatch-fixes
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -103,7 +119,7 @@ fs-hardlink-creation-restrictions.patch
 hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
 mm.patch
 mm-make-vb_alloc-more-foolproof-fix.patch
-mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-fix.patch
+mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks.patch
 avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
 nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
 kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
