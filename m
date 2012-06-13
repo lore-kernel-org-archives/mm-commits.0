@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-cgroup-add-hugetlb-controller-documentation.patch added to -mm tree
-Date: Wed, 13 Jun 2012 13:46:25 -0700
-Message-ID: <20120613204625.E6A3EA013D@akpm.mtv.corp.google.com>
+Subject: + avr32-mm-faultc-port-oom-changes-to-do_page_fault.patch added to -mm tree
+Date: Wed, 13 Jun 2012 14:00:37 -0700
+Message-ID: <20120613210038.57F38A01BD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:44222 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754709Ab2FMUq1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jun 2012 16:46:27 -0400
-Received: by vbnl22 with SMTP id l22so106076vbn.1
-        for <mm-commits@vger.kernel.org>; Wed, 13 Jun 2012 13:46:26 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:45837 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754162Ab2FMVAk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jun 2012 17:00:40 -0400
+Received: by vcbfl13 with SMTP id fl13so93311vcb.1
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jun 2012 14:00:39 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aneesh.kumar@linux.vnet.ibm.com, dhillf@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, rientjes@google.com
+Cc: consul.kautuk@gmail.com, egtvedt@samfundet.no, hskinnemoen@gmail.com, mohdfarisq2010@gmail.com
 
 
 The patch titled
-     Subject: hugetlb/cgroup: add HugeTLB controller documentation
+     Subject: avr32/mm/fault.c: port OOM changes to do_page_fault
 has been added to the -mm tree.  Its filename is
-     hugetlb-cgroup-add-hugetlb-controller-documentation.patch
+     avr32-mm-faultc-port-oom-changes-to-do_page_fault.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,89 +33,115 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: hugetlb/cgroup: add HugeTLB controller documentation
+From: Kautuk Consul <consul.kautuk@gmail.com>
+Subject: avr32/mm/fault.c: port OOM changes to do_page_fault
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Commits d065bd810b6de ("mm: retry page fault when blocking on disk
+transfer") and 37b23e0525d3 ("x86,mm: make pagefault killable") introduced
+changes into the x86 pagefault handler for making the page fault handler
+retryable as well as killable.
+
+These changes reduce the mmap_sem hold time, which is crucial during OOM
+killer invocation.
+
+Port these changes to AVR32.
+
+Signed-off-by: Mohd. Faris <mohdfarisq2010@gmail.com>
+Signed-off-by: Kautuk Consul <consul.kautuk@gmail.com>
+Acked-by: Havard Skinnemoen <hskinnemoen@gmail.com>
+Cc: Hans-Christian Egtvedt <egtvedt@samfundet.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/hugetlb.txt |   45 ++++++++++++++++++++++++++++
- 1 file changed, 45 insertions(+)
+ arch/avr32/mm/fault.c |   33 +++++++++++++++++++++++++--------
+ 1 file changed, 25 insertions(+), 8 deletions(-)
 
-diff -puN /dev/null Documentation/cgroups/hugetlb.txt
---- /dev/null
-+++ a/Documentation/cgroups/hugetlb.txt
-@@ -0,0 +1,45 @@
-+HugeTLB Controller
-+-------------------
+diff -puN arch/avr32/mm/fault.c~avr32-mm-faultc-port-oom-changes-to-do_page_fault arch/avr32/mm/fault.c
+--- a/arch/avr32/mm/fault.c~avr32-mm-faultc-port-oom-changes-to-do_page_fault
++++ a/arch/avr32/mm/fault.c
+@@ -61,10 +61,10 @@ asmlinkage void do_page_fault(unsigned l
+ 	const struct exception_table_entry *fixup;
+ 	unsigned long address;
+ 	unsigned long page;
+-	int writeaccess;
+ 	long signr;
+ 	int code;
+ 	int fault;
++	unsigned int flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE;
+ 
+ 	if (notify_page_fault(regs, ecr))
+ 		return;
+@@ -86,6 +86,7 @@ asmlinkage void do_page_fault(unsigned l
+ 
+ 	local_irq_enable();
+ 
++retry:
+ 	down_read(&mm->mmap_sem);
+ 
+ 	vma = find_vma(mm, address);
+@@ -104,7 +105,6 @@ asmlinkage void do_page_fault(unsigned l
+ 	 */
+ good_area:
+ 	code = SEGV_ACCERR;
+-	writeaccess = 0;
+ 
+ 	switch (ecr) {
+ 	case ECR_PROTECTION_X:
+@@ -121,7 +121,7 @@ good_area:
+ 	case ECR_TLB_MISS_W:
+ 		if (!(vma->vm_flags & VM_WRITE))
+ 			goto bad_area;
+-		writeaccess = 1;
++		flags |= FAULT_FLAG_WRITE;
+ 		break;
+ 	default:
+ 		panic("Unhandled case %lu in do_page_fault!", ecr);
+@@ -132,7 +132,11 @@ good_area:
+ 	 * sure we exit gracefully rather than endlessly redo the
+ 	 * fault.
+ 	 */
+-	fault = handle_mm_fault(mm, vma, address, writeaccess ? FAULT_FLAG_WRITE : 0);
++	fault = handle_mm_fault(mm, vma, address, flags);
 +
-+The HugeTLB controller allows to limit the HugeTLB usage per control group and
-+enforces the controller limit during page fault. Since HugeTLB doesn't
-+support page reclaim, enforcing the limit at page fault time implies that,
-+the application will get SIGBUS signal if it tries to access HugeTLB pages
-+beyond its limit. This requires the application to know beforehand how much
-+HugeTLB pages it would require for its use.
++	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
++		return;
 +
-+HugeTLB controller can be created by first mounting the cgroup filesystem.
+ 	if (unlikely(fault & VM_FAULT_ERROR)) {
+ 		if (fault & VM_FAULT_OOM)
+ 			goto out_of_memory;
+@@ -140,10 +144,23 @@ good_area:
+ 			goto do_sigbus;
+ 		BUG();
+ 	}
+-	if (fault & VM_FAULT_MAJOR)
+-		tsk->maj_flt++;
+-	else
+-		tsk->min_flt++;
 +
-+# mount -t cgroup -o hugetlb none /sys/fs/cgroup
++	if (flags & FAULT_FLAG_ALLOW_RETRY) {
++		if (fault & VM_FAULT_MAJOR)
++			tsk->maj_flt++;
++		else
++			tsk->min_flt++;
++		if (fault & VM_FAULT_RETRY) {
++			flags &= ~FAULT_FLAG_ALLOW_RETRY;
 +
-+With the above step, the initial or the parent HugeTLB group becomes
-+visible at /sys/fs/cgroup. At bootup, this group includes all the tasks in
-+the system. /sys/fs/cgroup/tasks lists the tasks in this cgroup.
++			 /* No need to up_read(&mm->mmap_sem) as we would
++			 * have already released it in __lock_page_or_retry
++			 * in mm/filemap.c.
++			 */
 +
-+New groups can be created under the parent group /sys/fs/cgroup.
-+
-+# cd /sys/fs/cgroup
-+# mkdir g1
-+# echo $$ > g1/tasks
-+
-+The above steps create a new group g1 and move the current shell
-+process (bash) into it.
-+
-+Brief summary of control files
-+
-+ hugetlb.<hugepagesize>.limit_in_bytes     # set/show limit of "hugepagesize" hugetlb usage
-+ hugetlb.<hugepagesize>.max_usage_in_bytes # show max "hugepagesize" hugetlb  usage recorded
-+ hugetlb.<hugepagesize>.usage_in_bytes     # show current res_counter usage for "hugepagesize" hugetlb
-+ hugetlb.<hugepagesize>.failcnt		   # show the number of allocation failure due to HugeTLB limit
-+
-+For a system supporting two hugepage size (16M and 16G) the control
-+files include:
-+
-+hugetlb.16GB.limit_in_bytes
-+hugetlb.16GB.max_usage_in_bytes
-+hugetlb.16GB.usage_in_bytes
-+hugetlb.16GB.failcnt
-+hugetlb.16MB.limit_in_bytes
-+hugetlb.16MB.max_usage_in_bytes
-+hugetlb.16MB.usage_in_bytes
-+hugetlb.16MB.failcnt
++			goto retry;
++		}
++	}
+ 
+ 	up_read(&mm->mmap_sem);
+ 	return;
 _
-Subject: Subject: hugetlb/cgroup: add HugeTLB controller documentation
+Subject: Subject: avr32/mm/fault.c: port OOM changes to do_page_fault
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from consul.kautuk@gmail.com are
 
-linux-next.patch
-hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
-hugetlb-dont-use-err_ptr-with-vm_fault-values.patch
-hugetlb-add-an-inline-helper-for-finding-hstate-index.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
-hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
-hugetlb-simplify-migrate_huge_page.patch
-hugetlb-add-a-list-for-tracking-in-use-hugetlb-pages.patch
-hugetlb-make-some-static-variables-global.patch
-mm-hugetlb-add-new-hugetlb-cgroup.patch
-10-15-hugetlb-cgroup-add-the-cgroup-pointer-to-page-lru.patch
-hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup.patch
-hugetlb-cgroup-add-support-for-cgroup-removal.patch
-hugetlb-cgroup-add-hugetlb-cgroup-control-files.patch
-hugetlb-cgroup-migrate-hugetlb-cgroup-info-from-oldpage-to-new-page-during-migration.patch
-hugetlb-cgroup-add-hugetlb-controller-documentation.patch
+avr32-mm-faultc-port-oom-changes-to-do_page_fault.patch
+avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
 
