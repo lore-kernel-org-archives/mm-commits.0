@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-add-new-hugetlb-cgroup.patch added to -mm tree
-Date: Wed, 13 Jun 2012 13:46:13 -0700
-Message-ID: <20120613204613.EEEDAA013D@akpm.mtv.corp.google.com>
+Subject: + hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup.patch added to -mm tree
+Date: Wed, 13 Jun 2012 13:46:17 -0700
+Message-ID: <20120613204618.1CC12A013D@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:51860 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754162Ab2FMUqQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jun 2012 16:46:16 -0400
-Received: by eaao13 with SMTP id o13so55041eaa.1
-        for <mm-commits@vger.kernel.org>; Wed, 13 Jun 2012 13:46:15 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:36795 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754218Ab2FMUqU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jun 2012 16:46:20 -0400
+Received: by wgbdt11 with SMTP id dt11so60137wgb.1
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jun 2012 13:46:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: aneesh.kumar@linux.vnet.ibm.com, dhillf@gmail.com, kamezawa.hiroyu@jp.fujits
 
 
 The patch titled
-     Subject: mm/hugetlb: add new HugeTLB cgroup
+     Subject: hugetlb/cgroup: add charge/uncharge routines for hugetlb cgroup
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-add-new-hugetlb-cgroup.patch
+     hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,253 +34,227 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm/hugetlb: add new HugeTLB cgroup
+Subject: hugetlb/cgroup: add charge/uncharge routines for hugetlb cgroup
 
-Implement a new controller that allows us to control HugeTLB allocations. 
-The extension allows to limit the HugeTLB usage per control group and
-enforces the controller limit during page fault.  Since HugeTLB doesn't
-support page reclaim, enforcing the limit at page fault time implies that,
-the application will get SIGBUS signal if it tries to access HugeTLB pages
-beyond its limit.  This requires the application to know beforehand how
-much HugeTLB pages it would require for its use.
+Add the charge and uncharge routines for hugetlb cgroup.  We do cgroup
+charging in page alloc and uncharge in compound page destructor. 
+Assigning page's hugetlb cgroup is protected by hugetlb_lock.
 
-The charge/uncharge calls will be added to HugeTLB code in later patch. 
-Support for cgroup removal will be added in later patches.
-
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Cc: David Rientjes <rientjes@google.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Hillf Danton <dhillf@gmail.com>
 Cc: Michal Hocko <mhocko@suse.cz>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup_subsys.h  |    6 +
- include/linux/hugetlb_cgroup.h |   37 +++++++++
- init/Kconfig                   |   15 +++
- mm/Makefile                    |    1 
- mm/hugetlb_cgroup.c            |  122 +++++++++++++++++++++++++++++++
- 5 files changed, 181 insertions(+)
+ include/linux/hugetlb_cgroup.h |   38 ++++++++++++++
+ mm/hugetlb.c                   |   16 +++++-
+ mm/hugetlb_cgroup.c            |   80 +++++++++++++++++++++++++++++++
+ 3 files changed, 133 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/cgroup_subsys.h~mm-hugetlb-add-new-hugetlb-cgroup include/linux/cgroup_subsys.h
---- a/include/linux/cgroup_subsys.h~mm-hugetlb-add-new-hugetlb-cgroup
-+++ a/include/linux/cgroup_subsys.h
-@@ -72,3 +72,9 @@ SUBSYS(net_prio)
- #endif
- 
- /* */
-+
-+#ifdef CONFIG_CGROUP_HUGETLB_RES_CTLR
-+SUBSYS(hugetlb)
-+#endif
-+
-+/* */
-diff -puN /dev/null include/linux/hugetlb_cgroup.h
---- /dev/null
+diff -puN include/linux/hugetlb_cgroup.h~hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup include/linux/hugetlb_cgroup.h
+--- a/include/linux/hugetlb_cgroup.h~hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup
 +++ a/include/linux/hugetlb_cgroup.h
-@@ -0,0 +1,37 @@
-+/*
-+ * Copyright IBM Corporation, 2012
-+ * Author Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of version 2.1 of the GNU Lesser General Public License
-+ * as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it would be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-+ *
-+ */
-+
-+#ifndef _LINUX_HUGETLB_CGROUP_H
-+#define _LINUX_HUGETLB_CGROUP_H
-+
-+#include <linux/res_counter.h>
-+
-+struct hugetlb_cgroup;
-+
-+#ifdef CONFIG_CGROUP_HUGETLB_RES_CTLR
-+static inline bool hugetlb_cgroup_disabled(void)
-+{
-+	if (hugetlb_subsys.disabled)
-+		return true;
-+	return false;
-+}
-+
-+#else
-+static inline bool hugetlb_cgroup_disabled(void)
-+{
-+	return true;
-+}
-+
-+#endif  /* CONFIG_MEM_RES_CTLR_HUGETLB */
-+#endif
-diff -puN init/Kconfig~mm-hugetlb-add-new-hugetlb-cgroup init/Kconfig
---- a/init/Kconfig~mm-hugetlb-add-new-hugetlb-cgroup
-+++ a/init/Kconfig
-@@ -751,6 +751,21 @@ config CGROUP_MEM_RES_CTLR_KMEM
- 	  the kmem extension can use it to guarantee that no group of processes
- 	  will ever exhaust kernel resources alone.
+@@ -53,6 +53,16 @@ static inline bool hugetlb_cgroup_disabl
+ 	return false;
+ }
  
-+config CGROUP_HUGETLB_RES_CTLR
-+	bool "HugeTLB Resource Controller for Control Groups"
-+	depends on RESOURCE_COUNTERS && HUGETLB_PAGE && EXPERIMENTAL
-+	default n
-+	help
-+	  Provides a cgroup Resource Controller for HugeTLB pages.
-+	  When you enable this, you can put a per cgroup limit on HugeTLB usage.
-+	  The limit is enforced during page fault. Since HugeTLB doesn't
-+	  support page reclaim, enforcing the limit at page fault time implies
-+	  that, the application will get SIGBUS signal if it tries to access
-+	  HugeTLB pages beyond its limit. This requires the application to know
-+	  beforehand how much HugeTLB pages it would require for its use. The
-+	  control group is tracked in the third page lru pointer. This means
-+	  that we cannot use the controller with huge page less than 3 pages.
++extern int hugetlb_cgroup_charge_cgroup(int idx, unsigned long nr_pages,
++					struct hugetlb_cgroup **ptr);
++extern void hugetlb_cgroup_commit_charge(int idx, unsigned long nr_pages,
++					 struct hugetlb_cgroup *h_cg,
++					 struct page *page);
++extern void hugetlb_cgroup_uncharge_page(int idx, unsigned long nr_pages,
++					 struct page *page);
++extern void hugetlb_cgroup_uncharge_cgroup(int idx, unsigned long nr_pages,
++					   struct hugetlb_cgroup *h_cg);
 +
- config CGROUP_PERF
- 	bool "Enable perf_event per-cpu per-container group (cgroup) monitoring"
- 	depends on PERF_EVENTS && CGROUPS
-diff -puN mm/Makefile~mm-hugetlb-add-new-hugetlb-cgroup mm/Makefile
---- a/mm/Makefile~mm-hugetlb-add-new-hugetlb-cgroup
-+++ a/mm/Makefile
-@@ -49,6 +49,7 @@ obj-$(CONFIG_MIGRATION) += migrate.o
- obj-$(CONFIG_QUICKLIST) += quicklist.o
- obj-$(CONFIG_TRANSPARENT_HUGEPAGE) += huge_memory.o
- obj-$(CONFIG_CGROUP_MEM_RES_CTLR) += memcontrol.o page_cgroup.o
-+obj-$(CONFIG_CGROUP_HUGETLB_RES_CTLR) += hugetlb_cgroup.o
- obj-$(CONFIG_MEMORY_FAILURE) += memory-failure.o
- obj-$(CONFIG_HWPOISON_INJECT) += hwpoison-inject.o
- obj-$(CONFIG_DEBUG_KMEMLEAK) += kmemleak.o
-diff -puN /dev/null mm/hugetlb_cgroup.c
---- /dev/null
+ #else
+ static inline struct hugetlb_cgroup *hugetlb_cgroup_from_page(struct page *page)
+ {
+@@ -70,5 +80,33 @@ static inline bool hugetlb_cgroup_disabl
+ 	return true;
+ }
+ 
++static inline int
++hugetlb_cgroup_charge_cgroup(int idx, unsigned long nr_pages,
++			     struct hugetlb_cgroup **ptr)
++{
++	return 0;
++}
++
++static inline void
++hugetlb_cgroup_commit_charge(int idx, unsigned long nr_pages,
++			     struct hugetlb_cgroup *h_cg,
++			     struct page *page)
++{
++	return;
++}
++
++static inline void
++hugetlb_cgroup_uncharge_page(int idx, unsigned long nr_pages, struct page *page)
++{
++	return;
++}
++
++static inline void
++hugetlb_cgroup_uncharge_cgroup(int idx, unsigned long nr_pages,
++			       struct hugetlb_cgroup *h_cg)
++{
++	return;
++}
++
+ #endif  /* CONFIG_MEM_RES_CTLR_HUGETLB */
+ #endif
+diff -puN mm/hugetlb.c~hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup
++++ a/mm/hugetlb.c
+@@ -627,6 +627,8 @@ static void free_huge_page(struct page *
+ 	BUG_ON(page_mapcount(page));
+ 
+ 	spin_lock(&hugetlb_lock);
++	hugetlb_cgroup_uncharge_page(hstate_index(h),
++				     pages_per_huge_page(h), page);
+ 	if (h->surplus_huge_pages_node[nid] && huge_page_order(h) < MAX_ORDER) {
+ 		/* remove the page from active list */
+ 		list_del(&page->lru);
+@@ -1115,7 +1117,10 @@ static struct page *alloc_huge_page(stru
+ 	struct hstate *h = hstate_vma(vma);
+ 	struct page *page;
+ 	long chg;
++	int ret, idx;
++	struct hugetlb_cgroup *h_cg;
+ 
++	idx = hstate_index(h);
+ 	/*
+ 	 * Processes that did not create the mapping will have no
+ 	 * reserves and will not have accounted against subpool
+@@ -1131,6 +1136,11 @@ static struct page *alloc_huge_page(stru
+ 		if (hugepage_subpool_get_pages(spool, chg))
+ 			return ERR_PTR(-ENOSPC);
+ 
++	ret = hugetlb_cgroup_charge_cgroup(idx, pages_per_huge_page(h), &h_cg);
++	if (ret) {
++		hugepage_subpool_put_pages(spool, chg);
++		return ERR_PTR(-ENOSPC);
++	}
+ 	spin_lock(&hugetlb_lock);
+ 	page = dequeue_huge_page_vma(h, vma, addr, avoid_reserve);
+ 	spin_unlock(&hugetlb_lock);
+@@ -1138,6 +1148,9 @@ static struct page *alloc_huge_page(stru
+ 	if (!page) {
+ 		page = alloc_buddy_huge_page(h, NUMA_NO_NODE);
+ 		if (!page) {
++			hugetlb_cgroup_uncharge_cgroup(idx,
++						       pages_per_huge_page(h),
++						       h_cg);
+ 			hugepage_subpool_put_pages(spool, chg);
+ 			return ERR_PTR(-ENOSPC);
+ 		}
+@@ -1146,7 +1159,8 @@ static struct page *alloc_huge_page(stru
+ 	set_page_private(page, (unsigned long)spool);
+ 
+ 	vma_commit_reservation(h, vma, addr);
+-
++	/* update page cgroup details */
++	hugetlb_cgroup_commit_charge(idx, pages_per_huge_page(h), h_cg, page);
+ 	return page;
+ }
+ 
+diff -puN mm/hugetlb_cgroup.c~hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup mm/hugetlb_cgroup.c
+--- a/mm/hugetlb_cgroup.c~hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup
 +++ a/mm/hugetlb_cgroup.c
-@@ -0,0 +1,122 @@
-+/*
-+ *
-+ * Copyright IBM Corporation, 2012
-+ * Author Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of version 2.1 of the GNU Lesser General Public License
-+ * as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it would be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-+ *
-+ */
+@@ -113,6 +113,86 @@ static int hugetlb_cgroup_pre_destroy(st
+ 	   return -EBUSY;
+ }
+ 
++int hugetlb_cgroup_charge_cgroup(int idx, unsigned long nr_pages,
++				 struct hugetlb_cgroup **ptr)
++{
++	int ret = 0;
++	struct res_counter *fail_res;
++	struct hugetlb_cgroup *h_cg = NULL;
++	unsigned long csize = nr_pages * PAGE_SIZE;
 +
-+#include <linux/cgroup.h>
-+#include <linux/slab.h>
-+#include <linux/hugetlb.h>
-+#include <linux/hugetlb_cgroup.h>
-+
-+struct hugetlb_cgroup {
-+	struct cgroup_subsys_state css;
++	if (hugetlb_cgroup_disabled())
++		goto done;
 +	/*
-+	 * the counter to account for hugepages from hugetlb.
++	 * We don't charge any cgroup if the compound page have less
++	 * than 3 pages.
 +	 */
-+	struct res_counter hugepage[HUGE_MAX_HSTATE];
-+};
++	if (huge_page_order(&hstates[idx]) < HUGETLB_CGROUP_MIN_ORDER)
++		goto done;
++again:
++	rcu_read_lock();
++	h_cg = hugetlb_cgroup_from_task(current);
++	if (!h_cg)
++		h_cg = root_h_cgroup;
 +
-+struct cgroup_subsys hugetlb_subsys __read_mostly;
-+struct hugetlb_cgroup *root_h_cgroup __read_mostly;
-+
-+static inline
-+struct hugetlb_cgroup *hugetlb_cgroup_from_css(struct cgroup_subsys_state *s)
-+{
-+	if (s)
-+		return container_of(s, struct hugetlb_cgroup, css);
-+	return NULL;
-+}
-+
-+static inline
-+struct hugetlb_cgroup *hugetlb_cgroup_from_cgroup(struct cgroup *cgroup)
-+{
-+	return hugetlb_cgroup_from_css(cgroup_subsys_state(cgroup,
-+							   hugetlb_subsys_id));
-+}
-+
-+static inline
-+struct hugetlb_cgroup *hugetlb_cgroup_from_task(struct task_struct *task)
-+{
-+	return hugetlb_cgroup_from_css(task_subsys_state(task,
-+							 hugetlb_subsys_id));
-+}
-+
-+static inline bool hugetlb_cgroup_is_root(struct hugetlb_cgroup *h_cg)
-+{
-+	return (h_cg == root_h_cgroup);
-+}
-+
-+static inline struct hugetlb_cgroup *parent_hugetlb_cgroup(struct cgroup *cg)
-+{
-+	if (!cg->parent)
-+		return NULL;
-+	return hugetlb_cgroup_from_cgroup(cg->parent);
-+}
-+
-+static inline bool hugetlb_cgroup_have_usage(struct cgroup *cg)
-+{
-+	int idx;
-+	struct hugetlb_cgroup *h_cg = hugetlb_cgroup_from_cgroup(cg);
-+
-+	for (idx = 0; idx < hugetlb_max_hstate; idx++) {
-+		if ((res_counter_read_u64(&h_cg->hugepage[idx], RES_USAGE)) > 0)
-+			return true;
++	if (!css_tryget(&h_cg->css)) {
++		rcu_read_unlock();
++		goto again;
 +	}
-+	return false;
++	rcu_read_unlock();
++
++	ret = res_counter_charge(&h_cg->hugepage[idx], csize, &fail_res);
++	css_put(&h_cg->css);
++done:
++	*ptr = h_cg;
++	return ret;
 +}
 +
-+static struct cgroup_subsys_state *hugetlb_cgroup_create(struct cgroup *cgroup)
++void hugetlb_cgroup_commit_charge(int idx, unsigned long nr_pages,
++				  struct hugetlb_cgroup *h_cg,
++				  struct page *page)
 +{
-+	int idx;
-+	struct cgroup *parent_cgroup;
-+	struct hugetlb_cgroup *h_cgroup, *parent_h_cgroup;
++	if (hugetlb_cgroup_disabled() || !h_cg)
++		return;
 +
-+	h_cgroup = kzalloc(sizeof(*h_cgroup), GFP_KERNEL);
-+	if (!h_cgroup)
-+		return ERR_PTR(-ENOMEM);
-+
-+	parent_cgroup = cgroup->parent;
-+	if (parent_cgroup) {
-+		parent_h_cgroup = hugetlb_cgroup_from_cgroup(parent_cgroup);
-+		for (idx = 0; idx < HUGE_MAX_HSTATE; idx++)
-+			res_counter_init(&h_cgroup->hugepage[idx],
-+					 &parent_h_cgroup->hugepage[idx]);
-+	} else {
-+		root_h_cgroup = h_cgroup;
-+		for (idx = 0; idx < HUGE_MAX_HSTATE; idx++)
-+			res_counter_init(&h_cgroup->hugepage[idx], NULL);
-+	}
-+	return &h_cgroup->css;
++	spin_lock(&hugetlb_lock);
++	set_hugetlb_cgroup(page, h_cg);
++	spin_unlock(&hugetlb_lock);
++	return;
 +}
 +
-+static void hugetlb_cgroup_destroy(struct cgroup *cgroup)
++/*
++ * Should be called with hugetlb_lock held
++ */
++void hugetlb_cgroup_uncharge_page(int idx, unsigned long nr_pages,
++				  struct page *page)
 +{
-+	struct hugetlb_cgroup *h_cgroup;
++	struct hugetlb_cgroup *h_cg;
++	unsigned long csize = nr_pages * PAGE_SIZE;
 +
-+	h_cgroup = hugetlb_cgroup_from_cgroup(cgroup);
-+	kfree(h_cgroup);
++	if (hugetlb_cgroup_disabled())
++		return;
++	VM_BUG_ON(!spin_is_locked(&hugetlb_lock));
++	h_cg = hugetlb_cgroup_from_page(page);
++	if (unlikely(!h_cg))
++		return;
++	set_hugetlb_cgroup(page, NULL);
++	res_counter_uncharge(&h_cg->hugepage[idx], csize);
++	return;
 +}
 +
-+static int hugetlb_cgroup_pre_destroy(struct cgroup *cgroup)
++void hugetlb_cgroup_uncharge_cgroup(int idx, unsigned long nr_pages,
++				    struct hugetlb_cgroup *h_cg)
 +{
-+	/* We will add the cgroup removal support in later patches */
-+	   return -EBUSY;
++	unsigned long csize = nr_pages * PAGE_SIZE;
++
++	if (hugetlb_cgroup_disabled() || !h_cg)
++		return;
++
++	res_counter_uncharge(&h_cg->hugepage[idx], csize);
++	return;
 +}
 +
-+struct cgroup_subsys hugetlb_subsys = {
-+	.name = "hugetlb",
-+	.create     = hugetlb_cgroup_create,
-+	.pre_destroy = hugetlb_cgroup_pre_destroy,
-+	.destroy    = hugetlb_cgroup_destroy,
-+	.subsys_id  = hugetlb_subsys_id,
-+};
+ struct cgroup_subsys hugetlb_subsys = {
+ 	.name = "hugetlb",
+ 	.create     = hugetlb_cgroup_create,
 _
-Subject: Subject: mm/hugetlb: add new HugeTLB cgroup
+Subject: Subject: hugetlb/cgroup: add charge/uncharge routines for hugetlb cgroup
 
 Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
