@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-coh901331c-use-clk_prepare-unprepare.patch added to -mm tree
-Date: Wed, 13 Jun 2012 14:08:14 -0700
-Message-ID: <20120613210815.0BFABA037F@akpm.mtv.corp.google.com>
+Subject: + drivers-rtc-rtc-coh901331c-use-devm-allocation.patch added to -mm tree
+Date: Wed, 13 Jun 2012 14:08:16 -0700
+Message-ID: <20120613210816.D43A7A037F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:32829 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751649Ab2FMVIQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jun 2012 17:08:16 -0400
-Received: by qabg24 with SMTP id g24so201616qab.1
-        for <mm-commits@vger.kernel.org>; Wed, 13 Jun 2012 14:08:15 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:59394 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751709Ab2FMVIS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jun 2012 17:08:18 -0400
+Received: by vbnl22 with SMTP id l22so109773vbn.1
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jun 2012 14:08:17 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: linus.walleij@linaro.org, a.zummo@towertech.it
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-coh901331.c: use clk_prepare/unprepare
+     Subject: drivers/rtc/rtc-coh901331.c: use devm allocation
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-coh901331c-use-clk_prepare-unprepare.patch
+     drivers-rtc-rtc-coh901331c-use-devm-allocation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,79 +34,114 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Linus Walleij <linus.walleij@linaro.org>
-Subject: drivers/rtc/rtc-coh901331.c: use clk_prepare/unprepare
+Subject: drivers/rtc/rtc-coh901331.c: use devm allocation
 
-Make sure we prepare/unprepare the clock for the COH901331 RTC driver as
-is required by the clk API especially if you use common clock.
+Allocate memory, region, remap and irq for device state using devm_*
+helpers to simplify memory accounting.
 
 Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-coh901331.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-coh901331.c |   50 ++++++++++------------------------
+ 1 file changed, 15 insertions(+), 35 deletions(-)
 
-diff -puN drivers/rtc/rtc-coh901331.c~drivers-rtc-rtc-coh901331c-use-clk_prepare-unprepare drivers/rtc/rtc-coh901331.c
---- a/drivers/rtc/rtc-coh901331.c~drivers-rtc-rtc-coh901331c-use-clk_prepare-unprepare
+diff -puN drivers/rtc/rtc-coh901331.c~drivers-rtc-rtc-coh901331c-use-devm-allocation drivers/rtc/rtc-coh901331.c
+--- a/drivers/rtc/rtc-coh901331.c~drivers-rtc-rtc-coh901331c-use-devm-allocation
 +++ a/drivers/rtc/rtc-coh901331.c
-@@ -157,6 +157,7 @@ static int __exit coh901331_remove(struc
+@@ -155,14 +155,10 @@ static int __exit coh901331_remove(struc
+ 	struct coh901331_port *rtap = dev_get_drvdata(&pdev->dev);
+ 
  	if (rtap) {
- 		free_irq(rtap->irq, rtap);
+-		free_irq(rtap->irq, rtap);
  		rtc_device_unregister(rtap->rtc);
-+		clk_unprepare(rtap->clk);
+ 		clk_unprepare(rtap->clk);
  		clk_put(rtap->clk);
- 		iounmap(rtap->virtbase);
- 		release_mem_region(rtap->phybase, rtap->physize);
-@@ -213,10 +214,10 @@ static int __init coh901331_probe(struct
+-		iounmap(rtap->virtbase);
+-		release_mem_region(rtap->phybase, rtap->physize);
+ 		platform_set_drvdata(pdev, NULL);
+-		kfree(rtap);
+ 	}
+ 
+ 	return 0;
+@@ -175,42 +171,36 @@ static int __init coh901331_probe(struct
+ 	struct coh901331_port *rtap;
+ 	struct resource *res;
+ 
+-	rtap = kzalloc(sizeof(struct coh901331_port), GFP_KERNEL);
++	rtap = devm_kzalloc(&pdev->dev,
++			    sizeof(struct coh901331_port), GFP_KERNEL);
+ 	if (!rtap)
+ 		return -ENOMEM;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!res) {
+-		ret = -ENOENT;
+-		goto out_no_resource;
+-	}
++	if (!res)
++		return -ENOENT;
++
+ 	rtap->phybase = res->start;
+ 	rtap->physize = resource_size(res);
+ 
+-	if (request_mem_region(rtap->phybase, rtap->physize,
+-			       "rtc-coh901331") == NULL) {
+-		ret = -EBUSY;
+-		goto out_no_memregion;
+-	}
++	if (devm_request_mem_region(&pdev->dev, rtap->phybase, rtap->physize,
++				    "rtc-coh901331") == NULL)
++		return -EBUSY;
+ 
+-	rtap->virtbase = ioremap(rtap->phybase, rtap->physize);
+-	if (!rtap->virtbase) {
+-		ret = -ENOMEM;
+-		goto out_no_remap;
+-	}
++	rtap->virtbase = devm_ioremap(&pdev->dev, rtap->phybase, rtap->physize);
++	if (!rtap->virtbase)
++		return -ENOMEM;
+ 
+ 	rtap->irq = platform_get_irq(pdev, 0);
+-	if (request_irq(rtap->irq, coh901331_interrupt, 0,
+-			"RTC COH 901 331 Alarm", rtap)) {
+-		ret = -EIO;
+-		goto out_no_irq;
+-	}
++	if (devm_request_irq(&pdev->dev, rtap->irq, coh901331_interrupt, 0,
++			     "RTC COH 901 331 Alarm", rtap))
++		return -EIO;
+ 
+ 	rtap->clk = clk_get(&pdev->dev, NULL);
+ 	if (IS_ERR(rtap->clk)) {
+ 		ret = PTR_ERR(rtap->clk);
+ 		dev_err(&pdev->dev, "could not get clock\n");
+-		goto out_no_clk;
++		return ret;
  	}
  
  	/* We enable/disable the clock only to assure it works */
--	ret = clk_enable(rtap->clk);
-+	ret = clk_prepare_enable(rtap->clk);
- 	if (ret) {
- 		dev_err(&pdev->dev, "could not enable clock\n");
--		goto out_no_clk_enable;
-+		goto out_no_clk_prepenable;
- 	}
- 	clk_disable(rtap->clk);
- 
-@@ -232,7 +233,8 @@ static int __init coh901331_probe(struct
- 
-  out_no_rtc:
- 	platform_set_drvdata(pdev, NULL);
-- out_no_clk_enable:
-+	clk_unprepare(rtap->clk);
-+ out_no_clk_prepenable:
+@@ -236,16 +226,6 @@ static int __init coh901331_probe(struct
+ 	clk_unprepare(rtap->clk);
+  out_no_clk_prepenable:
  	clk_put(rtap->clk);
-  out_no_clk:
- 	free_irq(rtap->irq, rtap);
-@@ -265,6 +267,7 @@ static int coh901331_suspend(struct plat
- 		writel(0, rtap->virtbase + COH901331_IRQ_MASK);
- 		clk_disable(rtap->clk);
- 	}
-+	clk_unprepare(rtap->clk);
- 	return 0;
+- out_no_clk:
+-	free_irq(rtap->irq, rtap);
+- out_no_irq:
+-	iounmap(rtap->virtbase);
+- out_no_remap:
+-	platform_set_drvdata(pdev, NULL);
+- out_no_memregion:
+-	release_mem_region(rtap->phybase, SZ_4K);
+- out_no_resource:
+-	kfree(rtap);
+ 	return ret;
  }
  
-@@ -272,6 +275,7 @@ static int coh901331_resume(struct platf
- {
- 	struct coh901331_port *rtap = dev_get_drvdata(&pdev->dev);
- 
-+	clk_prepare(rtap->clk);
- 	if (device_may_wakeup(&pdev->dev)) {
- 		disable_irq_wake(rtap->irq);
- 	} else {
-@@ -293,6 +297,7 @@ static void coh901331_shutdown(struct pl
- 	clk_enable(rtap->clk);
- 	writel(0, rtap->virtbase + COH901331_IRQ_MASK);
- 	clk_disable(rtap->clk);
-+	clk_unprepare(rtap->clk);
- }
- 
- static struct platform_driver coh901331_driver = {
 _
-Subject: Subject: drivers/rtc/rtc-coh901331.c: use clk_prepare/unprepare
+Subject: Subject: drivers/rtc/rtc-coh901331.c: use devm allocation
 
 Patches currently in -mm which might be from linus.walleij@linaro.org are
 
