@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch added to -mm tree
-Date: Wed, 13 Jun 2012 13:46:05 -0700
-Message-ID: <20120613204605.EB5FAA013D@akpm.mtv.corp.google.com>
+Subject: + hugetlb-simplify-migrate_huge_page.patch added to -mm tree
+Date: Wed, 13 Jun 2012 13:46:07 -0700
+Message-ID: <20120613204607.D718BA013D@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-gg0-f202.google.com ([209.85.161.202]:35262 "EHLO
 	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754457Ab2FMUqH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jun 2012 16:46:07 -0400
-Received: by ggeh3 with SMTP id h3so89256gge.1
-        for <mm-commits@vger.kernel.org>; Wed, 13 Jun 2012 13:46:06 -0700 (PDT)
+	with ESMTP id S1754497Ab2FMUqI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jun 2012 16:46:08 -0400
+Received: by mail-gg0-f202.google.com with SMTP id h3so89256gge.1
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jun 2012 13:46:08 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: aneesh.kumar@linux.vnet.ibm.com, dhillf@gmail.com, kamezawa.hiroyu@jp.fujits
 
 
 The patch titled
-     Subject: hugetlb: avoid taking i_mmap_mutex in unmap_single_vma() for hugetlb
+     Subject: hugetlb: simplify migrate_huge_page()
 has been added to the -mm tree.  Its filename is
-     hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
+     hugetlb-simplify-migrate_huge_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,172 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: hugetlb: avoid taking i_mmap_mutex in unmap_single_vma() for hugetlb
+Subject: hugetlb: simplify migrate_huge_page()
 
-i_mmap_mutex lock was added in unmap_single_vma by 502717f4e ("hugetlb:
-fix linked list corruption in unmap_hugepage_range()") but we don't use
-page->lru in unmap_hugepage_range any more.  Also the lock was taken
-higher up in the stack in some code path.  That would result in deadlock.
-
-unmap_mapping_range (i_mmap_mutex)
- -> unmap_mapping_range_tree
-    -> unmap_mapping_range_vma
-       -> zap_page_range_single
-         -> unmap_single_vma
-	      -> unmap_hugepage_range (i_mmap_mutex)
-
-For shared pagetable support for huge pages, since pagetable pages are ref
-counted we don't need any lock during huge_pmd_unshare.  We do take
-i_mmap_mutex in huge_pmd_share while walking the vma_prio_tree in mapping.
-(39dde65c9940c97f ("shared page table for hugetlb page")).
+Since we migrate only one hugepage, don't use linked list for passing the
+page around.  Directly pass the page that need to be migrated as argument.
+This also removes the usage of page->lru in the migrate path.
 
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Hillf Danton <dhillf@gmail.com>
 Cc: Michal Hocko <mhocko@suse.cz>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ include/linux/migrate.h |    4 +-
+ mm/memory-failure.c     |   13 +------
+ mm/migrate.c            |   67 ++++++++++++--------------------------
+ 3 files changed, 26 insertions(+), 58 deletions(-)
 
-diff -puN mm/memory.c~hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb mm/memory.c
---- a/mm/memory.c~hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb
-+++ a/mm/memory.c
-@@ -1336,11 +1336,8 @@ static void unmap_single_vma(struct mmu_
- 			 * Since no pte has actually been setup, it is
- 			 * safe to do nothing in this case.
- 			 */
--			if (vma->vm_file) {
--				mutex_lock(&vma->vm_file->f_mapping->i_mmap_mutex);
-+			if (vma->vm_file)
- 				__unmap_hugepage_range(tlb, vma, start, end, NULL);
--				mutex_unlock(&vma->vm_file->f_mapping->i_mmap_mutex);
--			}
- 		} else
- 			unmap_page_range(tlb, vma, start, end, details);
+diff -puN include/linux/migrate.h~hugetlb-simplify-migrate_huge_page include/linux/migrate.h
+--- a/include/linux/migrate.h~hugetlb-simplify-migrate_huge_page
++++ a/include/linux/migrate.h
+@@ -15,7 +15,7 @@ extern int migrate_page(struct address_s
+ extern int migrate_pages(struct list_head *l, new_page_t x,
+ 			unsigned long private, bool offlining,
+ 			enum migrate_mode mode);
+-extern int migrate_huge_pages(struct list_head *l, new_page_t x,
++extern int migrate_huge_page(struct page *, new_page_t x,
+ 			unsigned long private, bool offlining,
+ 			enum migrate_mode mode);
+ 
+@@ -40,7 +40,7 @@ static inline void putback_lru_pages(str
+ static inline int migrate_pages(struct list_head *l, new_page_t x,
+ 		unsigned long private, bool offlining,
+ 		enum migrate_mode mode) { return -ENOSYS; }
+-static inline int migrate_huge_pages(struct list_head *l, new_page_t x,
++static inline int migrate_huge_page(struct page *page, new_page_t x,
+ 		unsigned long private, bool offlining,
+ 		enum migrate_mode mode) { return -ENOSYS; }
+ 
+diff -puN mm/memory-failure.c~hugetlb-simplify-migrate_huge_page mm/memory-failure.c
+--- a/mm/memory-failure.c~hugetlb-simplify-migrate_huge_page
++++ a/mm/memory-failure.c
+@@ -1414,7 +1414,6 @@ static int soft_offline_huge_page(struct
+ 	int ret;
+ 	unsigned long pfn = page_to_pfn(page);
+ 	struct page *hpage = compound_head(page);
+-	LIST_HEAD(pagelist);
+ 
+ 	ret = get_any_page(page, pfn, flags);
+ 	if (ret < 0)
+@@ -1429,19 +1428,11 @@ static int soft_offline_huge_page(struct
  	}
+ 
+ 	/* Keep page count to indicate a given hugepage is isolated. */
+-
+-	list_add(&hpage->lru, &pagelist);
+-	ret = migrate_huge_pages(&pagelist, new_page, MPOL_MF_MOVE_ALL, 0,
+-				true);
++	ret = migrate_huge_page(hpage, new_page, MPOL_MF_MOVE_ALL, 0, true);
++	put_page(hpage);
+ 	if (ret) {
+-		struct page *page1, *page2;
+-		list_for_each_entry_safe(page1, page2, &pagelist, lru)
+-			put_page(page1);
+-
+ 		pr_info("soft offline: %#lx: migration failed %d, type %lx\n",
+ 			pfn, ret, page->flags);
+-		if (ret > 0)
+-			ret = -EIO;
+ 		return ret;
+ 	}
+ done:
+diff -puN mm/migrate.c~hugetlb-simplify-migrate_huge_page mm/migrate.c
+--- a/mm/migrate.c~hugetlb-simplify-migrate_huge_page
++++ a/mm/migrate.c
+@@ -936,15 +936,8 @@ static int unmap_and_move_huge_page(new_
+ 	if (anon_vma)
+ 		put_anon_vma(anon_vma);
+ 	unlock_page(hpage);
+-
+ out:
+-	if (rc != -EAGAIN) {
+-		list_del(&hpage->lru);
+-		put_page(hpage);
+-	}
+-
+ 	put_page(new_hpage);
+-
+ 	if (result) {
+ 		if (rc)
+ 			*result = rc;
+@@ -1112,48 +1105,32 @@ out:
+ 	return nr_failed + retry;
+ }
+ 
+-int migrate_huge_pages(struct list_head *from,
+-		new_page_t get_new_page, unsigned long private, bool offlining,
+-		enum migrate_mode mode)
+-{
+-	int retry = 1;
+-	int nr_failed = 0;
+-	int pass = 0;
+-	struct page *page;
+-	struct page *page2;
+-	int rc;
+-
+-	for (pass = 0; pass < 10 && retry; pass++) {
+-		retry = 0;
+-
+-		list_for_each_entry_safe(page, page2, from, lru) {
++int migrate_huge_page(struct page *hpage, new_page_t get_new_page,
++		      unsigned long private, bool offlining,
++		      enum migrate_mode mode)
++{
++	int pass, rc;
++
++	for (pass = 0; pass < 10; pass++) {
++		rc = unmap_and_move_huge_page(get_new_page,
++					      private, hpage, pass > 2, offlining,
++					      mode);
++		switch (rc) {
++		case -ENOMEM:
++			goto out;
++		case -EAGAIN:
++			/* try again */
+ 			cond_resched();
+-
+-			rc = unmap_and_move_huge_page(get_new_page,
+-					private, page, pass > 2, offlining,
+-					mode);
+-
+-			switch(rc) {
+-			case -ENOMEM:
+-				goto out;
+-			case -EAGAIN:
+-				retry++;
+-				break;
+-			case 0:
+-				break;
+-			default:
+-				/* Permanent failure */
+-				nr_failed++;
+-				break;
+-			}
++			break;
++		case 0:
++			goto out;
++		default:
++			rc = -EIO;
++			goto out;
+ 		}
+ 	}
+-	rc = 0;
+ out:
+-	if (rc)
+-		return rc;
+-
+-	return nr_failed + retry;
++	return rc;
+ }
+ 
+ #ifdef CONFIG_NUMA
 _
-Subject: Subject: hugetlb: avoid taking i_mmap_mutex in unmap_single_vma() for hugetlb
+Subject: Subject: hugetlb: simplify migrate_huge_page()
 
 Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
