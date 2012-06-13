@@ -1,62 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-direct-ioc-adjust-suspicious-bit-operation.patch removed from -mm tree
-Date: Wed, 13 Jun 2012 12:15:00 -0700
-Message-ID: <20120613191500.5DC36A017E@akpm.mtv.corp.google.com>
+Subject: + checkpatch-update-alignment-check.patch added to -mm tree
+Date: Wed, 13 Jun 2012 12:22:57 -0700
+Message-ID: <20120613192257.BDE01A0295@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:62547 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751698Ab2FMTPB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jun 2012 15:15:01 -0400
-Received: by qcsp5 with SMTP id p5so80147qcs.1
-        for <mm-commits@vger.kernel.org>; Wed, 13 Jun 2012 12:15:00 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:51423 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754341Ab2FMTW7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jun 2012 15:22:59 -0400
+Received: by yhgm50 with SMTP id m50so127869yhg.1
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jun 2012 12:22:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Julia.Lawall@lip6.fr, jmoyer@redhat.com, julia@diku.dk, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: joe@perches.com, apw@canonical.com
 
 
 The patch titled
-     Subject: fs/direct-io.c: adjust suspicious bit operation
-has been removed from the -mm tree.  Its filename was
-     fs-direct-ioc-adjust-suspicious-bit-operation.patch
+     Subject: checkpatch: Update alignment check
+has been added to the -mm tree.  Its filename is
+     checkpatch-update-alignment-check.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: fs/direct-io.c: adjust suspicious bit operation
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: Update alignment check
 
-READ is 0, so the result of the bit-and operation is 0.  Rewrite with == as
-done elsewhere in the same file.
+Parenthesis alignment doesn't correctly check an existing line after an
+inserted or modified line with an open parenthesis.
 
-This problem was found using Coccinelle (http://coccinelle.lip6.fr/).
+Fix it.
 
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/direct-io.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/direct-io.c~fs-direct-ioc-adjust-suspicious-bit-operation fs/direct-io.c
---- a/fs/direct-io.c~fs-direct-ioc-adjust-suspicious-bit-operation
-+++ a/fs/direct-io.c
-@@ -1258,7 +1258,7 @@ do_blockdev_direct_IO(int rw, struct kio
- 	 */
- 	BUG_ON(retval == -EIOCBQUEUED);
- 	if (dio->is_async && retval == 0 && dio->result &&
--	    ((rw & READ) || (dio->result == sdio.size)))
-+	    ((rw == READ) || (dio->result == sdio.size)))
- 		retval = -EIOCBQUEUED;
+diff -puN scripts/checkpatch.pl~checkpatch-update-alignment-check scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-update-alignment-check
++++ a/scripts/checkpatch.pl
+@@ -1848,8 +1848,8 @@ sub process {
  
- 	if (retval != -EIOCBQUEUED)
+ 			my $pos = pos_last_openparen($rest);
+ 			if ($pos >= 0) {
+-				$line =~ /^\+([ \t]*)/;
+-				my $newindent = $1;
++				$line =~ /^(\+| )([ \t]*)/;
++				my $newindent = $2;
+ 
+ 				my $goodtabindent = $oldindent .
+ 					"\t" x ($pos / 8) .
 _
+Subject: Subject: checkpatch: Update alignment check
 
-Patches currently in -mm which might be from Julia.Lawall@lip6.fr are
+Patches currently in -mm which might be from joe@perches.com are
 
 linux-next.patch
+printk-add-generic-functions-to-find-kern_level-headers.patch
+printk-add-kern_levelsh-to-make-kern_level-available-for-asm-use.patch
+arch-remove-direct-definitions-of-kern_level-uses.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
+sound-use-printk_get_level-and-printk_skip_level.patch
+printk-convert-the-format-for-kern_level-to-a-2-byte-pattern.patch
+printk-only-look-for-prefix-levels-in-kernel-messages.patch
+printk-remove-the-now-unnecessary-c-annotation-for-kern_cont.patch
+vsprintf-add-%pmr-for-bluetooth-mac-address.patch
+checkpatch-update-alignment-check.patch
 
