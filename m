@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-update-alignment-check.patch added to -mm tree
-Date: Wed, 13 Jun 2012 12:22:57 -0700
-Message-ID: <20120613192257.BDE01A0295@akpm.mtv.corp.google.com>
+Subject: + get_maintainer-fix-help-warning.patch added to -mm tree
+Date: Wed, 13 Jun 2012 12:23:33 -0700
+Message-ID: <20120613192333.5D027A0295@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:51423 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754341Ab2FMTW7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jun 2012 15:22:59 -0400
-Received: by yhgm50 with SMTP id m50so127869yhg.1
-        for <mm-commits@vger.kernel.org>; Wed, 13 Jun 2012 12:22:58 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:60493 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754341Ab2FMTXg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jun 2012 15:23:36 -0400
+Received: by lbbgp10 with SMTP id gp10so110888lbb.1
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jun 2012 12:23:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, apw@canonical.com
+Cc: joe@perches.com, pebolle@tiscali.nl
 
 
 The patch titled
-     Subject: checkpatch: Update alignment check
+     Subject: get_maintainer: Fix --help warning
 has been added to the -mm tree.  Its filename is
-     checkpatch-update-alignment-check.patch
+     get_maintainer-fix-help-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: Update alignment check
+Subject: get_maintainer: Fix --help warning
 
-Parenthesis alignment doesn't correctly check an existing line after an
-inserted or modified line with an open parenthesis.
+Using --help emits a concatenation error.  Fix it.
 
-Fix it.
-
+Reported-by: Paul Bolle <pebolle@tiscali.nl>
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/get_maintainer.pl |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-update-alignment-check scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-update-alignment-check
-+++ a/scripts/checkpatch.pl
-@@ -1848,8 +1848,8 @@ sub process {
+diff -puN scripts/get_maintainer.pl~get_maintainer-fix-help-warning scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~get_maintainer-fix-help-warning
++++ a/scripts/get_maintainer.pl
+@@ -83,6 +83,8 @@ push(@signature_tags, "Signed-off-by:");
+ push(@signature_tags, "Reviewed-by:");
+ push(@signature_tags, "Acked-by:");
  
- 			my $pos = pos_last_openparen($rest);
- 			if ($pos >= 0) {
--				$line =~ /^\+([ \t]*)/;
--				my $newindent = $1;
-+				$line =~ /^(\+| )([ \t]*)/;
-+				my $newindent = $2;
++my $signature_pattern = "\(" . join("|", @signature_tags) . "\)";
++
+ # rfc822 email address - preloaded methods go here.
+ my $rfc822_lwsp = "(?:(?:\\r\\n)?[ \\t])";
+ my $rfc822_char = '[\\000-\\377]';
+@@ -473,7 +475,6 @@ my @subsystem = ();
+ my @status = ();
+ my %deduplicate_name_hash = ();
+ my %deduplicate_address_hash = ();
+-my $signature_pattern;
  
- 				my $goodtabindent = $oldindent .
- 					"\t" x ($pos / 8) .
+ my @maintainers = get_maintainers();
+ 
 _
-Subject: Subject: checkpatch: Update alignment check
+Subject: Subject: get_maintainer: Fix --help warning
 
 Patches currently in -mm which might be from joe@perches.com are
 
 linux-next.patch
+get_maintainer-fix-help-warning.patch
 printk-add-generic-functions-to-find-kern_level-headers.patch
 printk-add-kern_levelsh-to-make-kern_level-available-for-asm-use.patch
 arch-remove-direct-definitions-of-kern_level-uses.patch
