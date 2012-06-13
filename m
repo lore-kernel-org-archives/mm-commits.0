@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-ot200_bl-use-devm_gpio_request.patch added to -mm tree
-Date: Wed, 13 Jun 2012 13:35:10 -0700
-Message-ID: <20120613203510.E03AEA001B@akpm.mtv.corp.google.com>
+Subject: + backlight-atmel-pwm-bl-use-devm_gpio_request.patch added to -mm tree
+Date: Wed, 13 Jun 2012 13:35:08 -0700
+Message-ID: <20120613203509.22C4EA001B@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:34605 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754690Ab2FMUfM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jun 2012 16:35:12 -0400
-Received: by qcsp5 with SMTP id p5so89183qcs.1
-        for <mm-commits@vger.kernel.org>; Wed, 13 Jun 2012 13:35:11 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:58772 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754497Ab2FMUfL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jun 2012 16:35:11 -0400
+Received: by eeit10 with SMTP id t10so54738eei.1
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jun 2012 13:35:10 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com, christian.gmeiner@gmail.com, rpurdie@rpsys.net
+Cc: jg1.han@samsung.com, egtvedt@samfundet.no, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: backlight: ot200_bl: use devm_gpio_request()
+     Subject: backlight: atmel-pwm-bl: use devm_gpio_request()
 has been added to the -mm tree.  Its filename is
-     backlight-ot200_bl-use-devm_gpio_request.patch
+     backlight-atmel-pwm-bl-use-devm_gpio_request.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,75 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: ot200_bl: use devm_gpio_request()
+Subject: backlight: atmel-pwm-bl: use devm_gpio_request()
 
 The devm_ functions allocate memory that is released when a driver
 detaches.  This patch uses devm_gpio_request() for these functions.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Acked-by: Christian Gmeiner <christian.gmeiner@gmail.com>
+Cc: Hans-Christian Egtvedt <egtvedt@samfundet.no>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/ot200_bl.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ drivers/video/backlight/atmel-pwm-bl.c |   14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-diff -puN drivers/video/backlight/ot200_bl.c~backlight-ot200_bl-use-devm_gpio_request drivers/video/backlight/ot200_bl.c
---- a/drivers/video/backlight/ot200_bl.c~backlight-ot200_bl-use-devm_gpio_request
-+++ a/drivers/video/backlight/ot200_bl.c
-@@ -84,7 +84,8 @@ static int ot200_backlight_probe(struct 
- 	int retval = 0;
+diff -puN drivers/video/backlight/atmel-pwm-bl.c~backlight-atmel-pwm-bl-use-devm_gpio_request drivers/video/backlight/atmel-pwm-bl.c
+--- a/drivers/video/backlight/atmel-pwm-bl.c~backlight-atmel-pwm-bl-use-devm_gpio_request
++++ a/drivers/video/backlight/atmel-pwm-bl.c
+@@ -155,7 +155,8 @@ static int atmel_pwm_bl_probe(struct pla
+ 		goto err_free_mem;
  
- 	/* request gpio */
--	if (gpio_request(GPIO_DIMM, "ot200 backlight dimmer") < 0) {
-+	if (devm_gpio_request(&pdev->dev, GPIO_DIMM,
-+				"ot200 backlight dimmer") < 0) {
- 		dev_err(&pdev->dev, "failed to request GPIO %d\n", GPIO_DIMM);
- 		return -ENODEV;
+ 	if (pwmbl->gpio_on != -1) {
+-		retval = gpio_request(pwmbl->gpio_on, "gpio_atmel_pwm_bl");
++		retval = devm_gpio_request(&pdev->dev, pwmbl->gpio_on,
++					"gpio_atmel_pwm_bl");
+ 		if (retval) {
+ 			pwmbl->gpio_on = -1;
+ 			goto err_free_pwm;
+@@ -165,7 +166,7 @@ static int atmel_pwm_bl_probe(struct pla
+ 		retval = gpio_direction_output(pwmbl->gpio_on,
+ 				0 ^ pdata->on_active_low);
+ 		if (retval)
+-			goto err_free_gpio;
++			goto err_free_pwm;
  	}
-@@ -93,8 +94,7 @@ static int ot200_backlight_probe(struct 
- 	pwm_timer = cs5535_mfgpt_alloc_timer(7, MFGPT_DOMAIN_ANY);
- 	if (!pwm_timer) {
- 		dev_err(&pdev->dev, "MFGPT 7 not available\n");
--		retval = -ENODEV;
--		goto error_mfgpt_alloc;
-+		return -ENODEV;
+ 
+ 	memset(&props, 0, sizeof(struct backlight_properties));
+@@ -175,7 +176,7 @@ static int atmel_pwm_bl_probe(struct pla
+ 					  &atmel_pwm_bl_ops, &props);
+ 	if (IS_ERR(bldev)) {
+ 		retval = PTR_ERR(bldev);
+-		goto err_free_gpio;
++		goto err_free_pwm;
  	}
  
- 	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
-@@ -131,8 +131,6 @@ static int ot200_backlight_probe(struct 
+ 	pwmbl->bldev = bldev;
+@@ -197,9 +198,6 @@ static int atmel_pwm_bl_probe(struct pla
+ err_free_bl_dev:
+ 	platform_set_drvdata(pdev, NULL);
+ 	backlight_device_unregister(bldev);
+-err_free_gpio:
+-	if (pwmbl->gpio_on != -1)
+-		gpio_free(pwmbl->gpio_on);
+ err_free_pwm:
+ 	pwm_channel_free(&pwmbl->pwmc);
+ err_free_mem:
+@@ -210,10 +208,8 @@ static int __exit atmel_pwm_bl_remove(st
+ {
+ 	struct atmel_pwm_bl *pwmbl = platform_get_drvdata(pdev);
  
- error_devm_kzalloc:
- 	cs5535_mfgpt_free_timer(pwm_timer);
--error_mfgpt_alloc:
--	gpio_free(GPIO_DIMM);
- 	return retval;
- }
- 
-@@ -149,7 +147,6 @@ static int ot200_backlight_remove(struct
- 		MAX_COMP2 - dim_table[100]);
- 
- 	cs5535_mfgpt_free_timer(pwm_timer);
--	gpio_free(GPIO_DIMM);
- 
- 	return 0;
- }
+-	if (pwmbl->gpio_on != -1) {
++	if (pwmbl->gpio_on != -1)
+ 		gpio_set_value(pwmbl->gpio_on, 0);
+-		gpio_free(pwmbl->gpio_on);
+-	}
+ 	pwm_channel_disable(&pwmbl->pwmc);
+ 	pwm_channel_free(&pwmbl->pwmc);
+ 	backlight_device_unregister(pwmbl->bldev);
 _
-Subject: Subject: backlight: ot200_bl: use devm_gpio_request()
+Subject: Subject: backlight: atmel-pwm-bl: use devm_gpio_request()
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
 
