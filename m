@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Wed, 13 Jun 2012 12:04:53 -0700
-Message-ID: <20120613190454.D704CA0341@akpm.mtv.corp.google.com>
+Subject: [obsolete] drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch removed from -mm tree
+Date: Wed, 13 Jun 2012 12:10:47 -0700
+Message-ID: <20120613191047.F191CA017E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:47075 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754392Ab2FMTE5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jun 2012 15:04:57 -0400
-Received: by fat25 with SMTP id 25so51441fat.1
-        for <mm-commits@vger.kernel.org>; Wed, 13 Jun 2012 12:04:56 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:58337 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752603Ab2FMTKv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jun 2012 15:10:51 -0400
+Received: by wgbdt11 with SMTP id dt11so57219wgb.1
+        for <mm-commits@vger.kernel.org>; Wed, 13 Jun 2012 12:10:49 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, ngupta@vflare.org, sjenning@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: drivers/staging/zsmalloc/zsmalloc-main.c: unbork
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
 
 This patch was dropped because it is obsolete
 
@@ -26,28 +26,44 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: drivers/staging/zsmalloc/zsmalloc-main.c: unbork
 
+complete pita :(
+
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Seth Jennings <sjenning@linux.vnet.ibm.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/perf_event.h |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/staging/zsmalloc/zsmalloc-main.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/perf_event.h~linux-next-git-rejects arch/x86/kernel/cpu/perf_event.h
---- a/arch/x86/kernel/cpu/perf_event.h~linux-next-git-rejects
-+++ a/arch/x86/kernel/cpu/perf_event.h
-@@ -378,10 +378,7 @@ struct x86_pmu {
- 	void		(*drain_pebs)(struct pt_regs *regs);
- 	struct event_constraint *pebs_constraints;
- 	void		(*pebs_aliases)(struct perf_event *event);
--<<<<<<< HEAD
--=======
- 	int 		max_pebs_events;
-->>>>>>> linux-next/akpm-base
+diff -puN drivers/staging/zsmalloc/zsmalloc-main.c~drivers-staging-zsmalloc-zsmalloc-mainc-unbork drivers/staging/zsmalloc/zsmalloc-main.c
+--- a/drivers/staging/zsmalloc/zsmalloc-main.c~drivers-staging-zsmalloc-zsmalloc-mainc-unbork
++++ a/drivers/staging/zsmalloc/zsmalloc-main.c
+@@ -240,8 +240,8 @@ static void *obj_location_to_handle(stru
+ 		return NULL;
+ 	}
  
- 	/*
- 	 * Intel LBR
+-	handle = page_to_pfn(page) << OBJ_INDEX_BITS;
+-	handle |= (obj_idx & OBJ_INDEX_MASK);
++//	handle = page_to_pfn(page) << OBJ_INDEX_BITS;
++//	handle |= (obj_idx & OBJ_INDEX_MASK);
+ 
+ 	return (void *)handle;
+ }
+@@ -252,8 +252,8 @@ static void obj_handle_to_location(void 
+ {
+ 	unsigned long hval = (unsigned long)handle;
+ 
+-	*page = pfn_to_page(hval >> OBJ_INDEX_BITS);
+-	*obj_idx = hval & OBJ_INDEX_MASK;
++//	*page = pfn_to_page(hval >> OBJ_INDEX_BITS);
++//	*obj_idx = hval & OBJ_INDEX_MASK;
+ }
+ 
+ static unsigned long obj_idx_to_offset(struct page *page,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -56,7 +72,6 @@ linux-next.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-staging-zsmalloc-zsmalloc-mainc-unbork.patch
 mm-fix-slab-page-_count-corruption-when-using-slub-fix.patch
 tmpfs-implement-numa-node-interleaving-fix.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
