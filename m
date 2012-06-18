@@ -1,104 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-cgroup-remove-exclude-and-wakeup-rmdir-calls-from-migrate.patch added to -mm tree
-Date: Mon, 18 Jun 2012 14:25:36 -0700
-Message-ID: <20120618212536.E6FD0A01BD@akpm.mtv.corp.google.com>
+Subject: [merged] watchdog-quiet-down-the-boot-messages.patch removed from -mm tree
+Date: Mon, 18 Jun 2012 14:32:11 -0700
+Message-ID: <20120618213211.772AAA01BD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:56094 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753534Ab2FRVZi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Jun 2012 17:25:38 -0400
-Received: by vbnl22 with SMTP id l22so503118vbn.1
-        for <mm-commits@vger.kernel.org>; Mon, 18 Jun 2012 14:25:37 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:34669 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753576Ab2FRVcN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Jun 2012 17:32:13 -0400
+Received: by wibhn6 with SMTP id hn6so123724wib.1
+        for <mm-commits@vger.kernel.org>; Mon, 18 Jun 2012 14:32:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: aneesh.kumar@linux.vnet.ibm.com, mhocko@suse.cz
+To: dzickus@redhat.com, joe@perches.com, mingo@elte.hu, nzimmer@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb/cgroup: remove exclude and wakeup rmdir calls from migrate
-has been added to the -mm tree.  Its filename is
-     hugetlb-cgroup-remove-exclude-and-wakeup-rmdir-calls-from-migrate.patch
+     Subject: nmi watchdog: quiet down the boot messages
+has been removed from the -mm tree.  Its filename was
+     watchdog-quiet-down-the-boot-messages.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: hugetlb/cgroup: remove exclude and wakeup rmdir calls from migrate
+From: Don Zickus <dzickus@redhat.com>
+Subject: nmi watchdog: quiet down the boot messages
 
-We already hold the hugetlb_lock.  That should prevent a parallel cgroup
-rmdir from touching page's hugetlb cgroup.  So remove the exclude and
-wakeup calls.
+A bunch of bugzillas have complained how noisy the nmi_watchdog is during
+boot-up especially with its expected failure cases (like virt and bios
+resource contention).
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
+This is my attempt to quiet them down and keep it less confusing for the
+end user.  What I did is print the message for cpu0 and save it for future
+comparisons.  If future cpus have an identical message as cpu0, then don't
+print the redundant info.  However, if a future cpu has a different
+message, happily print that loudly.
+
+Before the change, you would see something like:
+
+    ..TIMER: vector=0x30 apic1=0 pin1=2 apic2=-1 pin2=-1
+    CPU0: Intel(R) Core(TM)2 Quad CPU    Q9550  @ 2.83GHz stepping 0a
+    Performance Events: PEBS fmt0+, Core2 events, Intel PMU driver.
+    ... version:                2
+    ... bit width:              40
+    ... generic registers:      2
+    ... value mask:             000000ffffffffff
+    ... max period:             000000007fffffff
+    ... fixed-purpose events:   3
+    ... event mask:             0000000700000003
+    NMI watchdog enabled, takes one hw-pmu counter.
+    Booting Node   0, Processors  #1
+    NMI watchdog enabled, takes one hw-pmu counter.
+     #2
+    NMI watchdog enabled, takes one hw-pmu counter.
+     #3 Ok.
+    NMI watchdog enabled, takes one hw-pmu counter.
+    Brought up 4 CPUs
+    Total of 4 processors activated (22607.24 BogoMIPS).
+
+After the change, it is simplified to:
+
+    ..TIMER: vector=0x30 apic1=0 pin1=2 apic2=-1 pin2=-1
+    CPU0: Intel(R) Core(TM)2 Quad CPU    Q9550  @ 2.83GHz stepping 0a
+    Performance Events: PEBS fmt0+, Core2 events, Intel PMU driver.
+    ... version:                2
+    ... bit width:              40
+    ... generic registers:      2
+    ... value mask:             000000ffffffffff
+    ... max period:             000000007fffffff
+    ... fixed-purpose events:   3
+    ... event mask:             0000000700000003
+    NMI watchdog: enabled on all CPUs, permanently consumes one hw-PMU counter.
+    Booting Node   0, Processors  #1 #2 #3 Ok.
+    Brought up 4 CPUs
+
+Reported-and-tested-by: Nathan Zimmer <nzimmer@sgi.com>
+Signed-off-by: Don Zickus <dzickus@redhat.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_cgroup.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ kernel/watchdog.c |   19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
 
-diff -puN mm/hugetlb_cgroup.c~hugetlb-cgroup-remove-exclude-and-wakeup-rmdir-calls-from-migrate mm/hugetlb_cgroup.c
---- a/mm/hugetlb_cgroup.c~hugetlb-cgroup-remove-exclude-and-wakeup-rmdir-calls-from-migrate
-+++ a/mm/hugetlb_cgroup.c
-@@ -387,6 +387,10 @@ int __init hugetlb_cgroup_file_init(int 
- 	return 0;
- }
+diff -puN kernel/watchdog.c~watchdog-quiet-down-the-boot-messages kernel/watchdog.c
+--- a/kernel/watchdog.c~watchdog-quiet-down-the-boot-messages
++++ a/kernel/watchdog.c
+@@ -372,6 +372,13 @@ static int watchdog(void *unused)
  
+ 
+ #ifdef CONFIG_HARDLOCKUP_DETECTOR
 +/*
-+ * hugetlb_lock will make sure a parallel cgroup rmdir won't happen
-+ * when we migrate hugepages
++ * People like the simple clean cpu node info on boot.
++ * Reduce the watchdog noise by only printing messages
++ * that are different from what cpu0 displayed.
 + */
- void hugetlb_cgroup_migrate(struct page *oldhpage, struct page *newhpage)
++static unsigned long cpu0_err;
++
+ static int watchdog_nmi_enable(int cpu)
  {
- 	struct hugetlb_cgroup *h_cg;
-@@ -399,13 +403,11 @@ void hugetlb_cgroup_migrate(struct page 
- 	spin_lock(&hugetlb_lock);
- 	h_cg = hugetlb_cgroup_from_page(oldhpage);
- 	set_hugetlb_cgroup(oldhpage, NULL);
--	cgroup_exclude_rmdir(&h_cg->css);
+ 	struct perf_event_attr *wd_attr;
+@@ -390,11 +397,21 @@ static int watchdog_nmi_enable(int cpu)
  
- 	/* move the h_cg details to new cgroup */
- 	set_hugetlb_cgroup(newhpage, h_cg);
- 	list_move(&newhpage->lru, &h->hugepage_activelist);
- 	spin_unlock(&hugetlb_lock);
--	cgroup_release_and_wakeup_rmdir(&h_cg->css);
- 	return;
- }
+ 	/* Try to register using hardware perf events */
+ 	event = perf_event_create_kernel_counter(wd_attr, cpu, NULL, watchdog_overflow_callback, NULL);
++
++	/* save cpu0 error for future comparision */
++	if (cpu == 0 && IS_ERR(event))
++		cpu0_err = PTR_ERR(event);
++
+ 	if (!IS_ERR(event)) {
+-		pr_info("enabled, takes one hw-pmu counter.\n");
++		/* only print for cpu0 or different than cpu0 */
++		if (cpu == 0 || cpu0_err)
++			pr_info("enabled on all CPUs, permanently consumes one hw-PMU counter.\n");
+ 		goto out_save;
+ 	}
  
++	/* skip displaying the same error again */
++	if (cpu > 0 && (PTR_ERR(event) == cpu0_err))
++		return PTR_ERR(event);
+ 
+ 	/* vary the KERN level based on the returned errno */
+ 	if (PTR_ERR(event) == -EOPNOTSUPP)
 _
-Subject: Subject: hugetlb/cgroup: remove exclude and wakeup rmdir calls from migrate
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from dzickus@redhat.com are
 
-linux-next.patch
-hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
-hugetlb-dont-use-err_ptr-with-vm_fault-values.patch
-hugetlb-add-an-inline-helper-for-finding-hstate-index.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
-hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
-hugetlb-simplify-migrate_huge_page.patch
-hugetlb-add-a-list-for-tracking-in-use-hugetlb-pages.patch
-hugetlb-make-some-static-variables-global.patch
-hugetlb-make-some-static-variables-global-mark-hugelb_max_hstate-__read_mostly.patch
-mm-hugetlb-add-new-hugetlb-cgroup.patch
-10-15-hugetlb-cgroup-add-the-cgroup-pointer-to-page-lru.patch
-hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup.patch
-hugetlb-cgroup-add-support-for-cgroup-removal.patch
-hugetlb-cgroup-add-hugetlb-cgroup-control-files.patch
-hugetlb-cgroup-migrate-hugetlb-cgroup-info-from-oldpage-to-new-page-during-migration.patch
-hugetlb-cgroup-add-hugetlb-controller-documentation.patch
-hugetlb-move-all-the-in-use-pages-to-active-list.patch
-hugetlb-cgroup-assign-the-page-hugetlb-cgroup-when-we-move-the-page-to-active-list.patch
-hugetlb-cgroup-remove-exclude-and-wakeup-rmdir-calls-from-migrate.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
 
