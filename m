@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-remove-check-for-signal_pending-during-rmdir.patch added to -mm tree
-Date: Tue, 19 Jun 2012 16:52:20 -0700
-Message-ID: <20120619235221.4F16DA026A@akpm.mtv.corp.google.com>
+Subject: + memcg-clean-up-force_empty_list-return-value-check.patch added to -mm tree
+Date: Tue, 19 Jun 2012 16:58:26 -0700
+Message-ID: <20120619235827.1AB46A024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:36961 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755337Ab2FSXwX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jun 2012 19:52:23 -0400
-Received: by bkty5 with SMTP id y5so375203bkt.1
-        for <mm-commits@vger.kernel.org>; Tue, 19 Jun 2012 16:52:22 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:63566 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750800Ab2FSX63 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jun 2012 19:58:29 -0400
+Received: by eeit10 with SMTP id t10so376406eei.1
+        for <mm-commits@vger.kernel.org>; Tue, 19 Jun 2012 16:58:28 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, mhocko@suse.cz
 
 
 The patch titled
-     Subject: memcg: remove check for signal_pending() during rmdir()
+     Subject: memcg: clean up force_empty_list() return value check
 has been added to the -mm tree.  Its filename is
-     memcg-remove-check-for-signal_pending-during-rmdir.patch
+     memcg-clean-up-force_empty_list-return-value-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,46 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: memcg: remove check for signal_pending() during rmdir()
+Subject: memcg: clean up force_empty_list() return value check
 
 After bf544fdc241da8 "memcg: move charges to root cgroup if
-use_hierarchy=0 in mem_cgroup_move_hugetlb_parent()", no memory reclaim
-will occur when removing a memory cgroup.  If -EINTR is returned here,
-cgroup will show a warning.
-
-We don't need to handle any user interruption signal.  Remove this.
+use_hierarchy=0 in mem_cgroup_move_hugetlb_parent()"
+mem_cgroup_move_parent() returns only -EBUSY or -EINVAL.  So we can remove
+the -ENOMEM and -EINTR checks.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/memcontrol.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-remove-check-for-signal_pending-during-rmdir mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-remove-check-for-signal_pending-during-rmdir
+diff -puN mm/memcontrol.c~memcg-clean-up-force_empty_list-return-value-check mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-clean-up-force_empty_list-return-value-check
 +++ a/mm/memcontrol.c
-@@ -3691,9 +3691,6 @@ move_account:
- 		ret = -EBUSY;
- 		if (cgroup_task_count(cgrp) || !list_empty(&cgrp->children))
- 			goto out;
--		ret = -EINTR;
--		if (signal_pending(current))
--			goto out;
- 		/* This is for making all *used* pages to be on LRU. */
- 		lru_add_drain_all();
- 		drain_all_stock_sync(memcg);
+@@ -3653,8 +3653,6 @@ static int mem_cgroup_force_empty_list(s
+ 		pc = lookup_page_cgroup(page);
+ 
+ 		ret = mem_cgroup_move_parent(page, pc, memcg, GFP_KERNEL);
+-		if (ret == -ENOMEM || ret == -EINTR)
+-			break;
+ 
+ 		if (ret == -EBUSY || ret == -EINVAL) {
+ 			/* found lock contention or "pc" is obsolete. */
+@@ -3711,9 +3709,6 @@ move_account:
+ 		}
+ 		mem_cgroup_end_move(memcg);
+ 		memcg_oom_recover(memcg);
+-		/* it seems parent cgroup doesn't have enough mem */
+-		if (ret == -ENOMEM)
+-			goto try_to_free;
+ 		cond_resched();
+ 	/* "ret" should also be checked to ensure all lists are empty. */
+ 	} while (res_counter_read_u64(&memcg->res, RES_USAGE) > 0 || ret);
 _
-Subject: Subject: memcg: remove check for signal_pending() during rmdir()
+Subject: Subject: memcg: clean up force_empty_list() return value check
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
@@ -93,4 +100,5 @@ hugetlb-cgroup-migrate-hugetlb-cgroup-info-from-oldpage-to-new-page-during-migra
 hugetlb-cgroup-add-hugetlb-controller-documentation.patch
 mm-oom-do-not-schedule-if-current-has-been-killed.patch
 memcg-remove-check-for-signal_pending-during-rmdir.patch
+memcg-clean-up-force_empty_list-return-value-check.patch
 
