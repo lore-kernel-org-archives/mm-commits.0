@@ -1,94 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [merged] block-remove-unused-blk_abort_queue.patch removed from -mm tree
-Date: Mon, 18 Jun 2012 14:32:08 -0700
-Message-ID: <20120618213208.B10B9A01BD@akpm.mtv.corp.google.com>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Tue, 19 Jun 2012 11:24:48 -0700
+Message-ID: <20120619182449.F311DA024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:50820 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753542Ab2FRVcL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 Jun 2012 17:32:11 -0400
-Received: by fat25 with SMTP id 25so295849fat.1
-        for <mm-commits@vger.kernel.org>; Mon, 18 Jun 2012 14:32:09 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:49881 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752473Ab2FSSYv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jun 2012 14:24:51 -0400
+Received: by yenl3 with SMTP id l3so587681yen.1
+        for <mm-commits@vger.kernel.org>; Tue, 19 Jun 2012 11:24:50 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: asias@redhat.com, axboe@kernel.dk, chris.mason@oracle.com, dave@jikos.cz, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: block: remove unused blk_abort_queue()
-has been removed from the -mm tree.  Its filename was
-     block-remove-unused-blk_abort_queue.patch
+     Subject: linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Asias He <asias@redhat.com>
-Subject: block: remove unused blk_abort_queue()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-This function was only used by btrfs code in btrfs_abort_devices()
-(seems in a wrong way).
-
-That call was removed in d07eb9117050 ("btrfs: Drop unused function
-btrfs_abort_devices()"), so let's remove the dead code to avoid any
-confusion.
-already.
-
-Signed-off-by: Asias He <asias@redhat.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: David Sterba <dave@jikos.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-timeout.c    |   41 ---------------------------------------
- include/linux/blkdev.h |    1 
- 2 files changed, 42 deletions(-)
+ drivers/edac/sb_edac.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN block/blk-timeout.c~block-remove-unused-blk_abort_queue block/blk-timeout.c
---- a/block/blk-timeout.c~block-remove-unused-blk_abort_queue
-+++ a/block/blk-timeout.c
-@@ -197,44 +197,3 @@ void blk_add_timer(struct request *req)
- 		mod_timer(&q->timeout, expiry);
- }
+diff -puN drivers/edac/sb_edac.c~linux-next-git-rejects drivers/edac/sb_edac.c
+--- a/drivers/edac/sb_edac.c~linux-next-git-rejects
++++ a/drivers/edac/sb_edac.c
+@@ -1596,13 +1596,8 @@ static void sbridge_unregister_mci(struc
  
--/**
-- * blk_abort_queue -- Abort all request on given queue
-- * @queue:	pointer to queue
-- *
-- */
--void blk_abort_queue(struct request_queue *q)
--{
--	unsigned long flags;
--	struct request *rq, *tmp;
--	LIST_HEAD(list);
--
--	/*
--	 * Not a request based block device, nothing to abort
--	 */
--	if (!q->request_fn)
--		return;
--
--	spin_lock_irqsave(q->queue_lock, flags);
--
--	elv_abort_queue(q);
--
--	/*
--	 * Splice entries to local list, to avoid deadlocking if entries
--	 * get readded to the timeout list by error handling
--	 */
--	list_splice_init(&q->timeout_list, &list);
--
--	list_for_each_entry_safe(rq, tmp, &list, timeout_list)
--		blk_abort_request(rq);
--
--	/*
--	 * Occasionally, blk_abort_request() will return without
--	 * deleting the element from the list. Make sure we add those back
--	 * instead of leaving them on the local stack list.
--	 */
--	list_splice(&list, &q->timeout_list);
--
--	spin_unlock_irqrestore(q->queue_lock, flags);
+ 	pvt = mci->pvt_info;
+ 
+-<<<<<<< HEAD
+-	debugf0("MC: " __FILE__ ": %s(): mci = %p, dev = %p\n",
+-		__func__, mci, &sbridge_dev->pdev[0]->dev);
+-=======
+ 	edac_dbg(0, "MC: mci = %p, dev = %p\n",
+ 		 mci, &sbridge_dev->pdev[0]->dev);
+->>>>>>> linux-next/akpm-base
+ 
+ 	/* Remove MC sysfs nodes */
+ 	edac_mc_del_mc(mci->pdev);
+_
+Subject: Subject: linux-next-git-rejects
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+linux-next.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+mm-fix-slab-page-_count-corruption-when-using-slub-fix.patch
+tmpfs-implement-numa-node-interleaving-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
+mm.patch
+mm-make-vb_alloc-more-foolproof-fix.patch
+mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks.patch
+avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
+kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
+backlight-l4f00242t03-use-devm_gpio_request_one-fix.patch
+string-introduce-memweight-fix.patch
+kmod-avoid-deadlock-from-recursive-kmod-call.patch
+fork-use-vma_pages-to-simplify-the-code-fix.patch
+fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+
