@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memblock-fix-overlapping-allocation-when-doubling-reserved-array.patch added to -mm tree
-Date: Tue, 19 Jun 2012 15:14:41 -0700
-Message-ID: <20120619221441.C2633A021F@akpm.mtv.corp.google.com>
+Subject: + mm-memblockc-memblock_double_array-cosmetic-cleanups.patch added to -mm tree
+Date: Tue, 19 Jun 2012 15:18:19 -0700
+Message-ID: <20120619221819.A72DEA021F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:59824 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753461Ab2FSWOn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jun 2012 18:14:43 -0400
-Received: by qcsp5 with SMTP id p5so603630qcs.1
-        for <mm-commits@vger.kernel.org>; Tue, 19 Jun 2012 15:14:42 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:39080 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753925Ab2FSWSV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jun 2012 18:18:21 -0400
+Received: by qabg24 with SMTP id g24so292633qab.1
+        for <mm-commits@vger.kernel.org>; Tue, 19 Jun 2012 15:18:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: greg.pearson@hp.com, benh@kernel.crashing.org, tj@kernel.org, yinghai@kernel.org
+Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, greg.pearson@hp.com, tj@kernel.org, yinghai@kernel.org
 
 
 The patch titled
-     Subject: mm/memblock: fix overlapping allocation when doubling reserved array
+     Subject: mm/memblock.c:memblock_double_array(): cosmetic cleanups
 has been added to the -mm tree.  Its filename is
-     mm-memblock-fix-overlapping-allocation-when-doubling-reserved-array.patch
+     mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,105 +33,133 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Greg Pearson <greg.pearson@hp.com>
-Subject: mm/memblock: fix overlapping allocation when doubling reserved array
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm/memblock.c:memblock_double_array(): cosmetic cleanups
 
-__alloc_memory_core_early() asks memblock for a range of memory then try
-to reserve it.  If the reserved region array lacks space for the new
-range, memblock_double_array() is called to allocate more space for the
-array.  If memblock is used to allocate memory for the new array it can
-end up using a range that overlaps with the range originally allocated in
-__alloc_memory_core_early(), leading to possible data corruption.
+This function is an 80-column eyesore, quite unnecessarily.  Clean that
+up, and use standard comment layout style.
 
-With this patch memblock_double_array() now calls memblock_find_in_range()
-with a narrowed candidate range (in cases where the reserved.regions array
-is being doubled) so any memory allocated will not overlap with the
-original range that was being reserved.  The range is narrowed by passing
-in the starting address and size of the previously allocated range.  Then
-the range above the ending address is searched and if a candidate is not
-found, the range below the starting address is searched.
-
-Signed-off-by: Greg Pearson <greg.pearson@hp.com>
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Acked-by: Tejun Heo <tj@kernel.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Greg Pearson <greg.pearson@hp.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |   36 ++++++++++++++++++++++++++++++++----
- 1 file changed, 32 insertions(+), 4 deletions(-)
+ mm/memblock.c |   35 ++++++++++++++++++-----------------
+ 1 file changed, 18 insertions(+), 17 deletions(-)
 
-diff -puN mm/memblock.c~mm-memblock-fix-overlapping-allocation-when-doubling-reserved-array mm/memblock.c
---- a/mm/memblock.c~mm-memblock-fix-overlapping-allocation-when-doubling-reserved-array
+diff -puN mm/memblock.c~mm-memblockc-memblock_double_array-cosmetic-cleanups mm/memblock.c
+--- a/mm/memblock.c~mm-memblockc-memblock_double_array-cosmetic-cleanups
 +++ a/mm/memblock.c
-@@ -184,7 +184,24 @@ static void __init_memblock memblock_rem
- 	}
- }
- 
--static int __init_memblock memblock_double_array(struct memblock_type *type)
-+/**
-+ * memblock_double_array - double the size of the memblock regions array
-+ * @type: memblock type of the regions array being doubled
-+ * @new_area_start: starting address of memory range to avoid overlap with
-+ * @new_area_size: size of memory range to avoid overlap with
-+ *
-+ * Double the size of the @type regions array. If memblock is being used to
-+ * allocate memory for a new reserved regions array and there is a previously
-+ * allocated memory range [@new_area_start,@new_area_start+@new_area_size]
-+ * waiting to be reserved, ensure the memory used by the new array does
-+ * not overlap.
-+ *
-+ * RETURNS:
-+ * 0 on success, -1 on failure.
-+ */
-+static int __init_memblock memblock_double_array(struct memblock_type *type,
-+						phys_addr_t new_area_start,
-+						phys_addr_t new_area_size)
- {
- 	struct memblock_region *new_array, *old_array;
- 	phys_addr_t old_size, new_size, addr;
-@@ -222,7 +239,18 @@ static int __init_memblock memblock_doub
+@@ -227,13 +227,13 @@ static int __init_memblock memblock_doub
+ 	/* Try to find some space for it.
+ 	 *
+ 	 * WARNING: We assume that either slab_is_available() and we use it or
+-	 * we use MEMBLOCK for allocations. That means that this is unsafe to use
+-	 * when bootmem is currently active (unless bootmem itself is implemented
+-	 * on top of MEMBLOCK which isn't the case yet)
++	 * we use MEMBLOCK for allocations. That means that this is unsafe to
++	 * use when bootmem is currently active (unless bootmem itself is
++	 * implemented on top of MEMBLOCK which isn't the case yet)
+ 	 *
+ 	 * This should however not be an issue for now, as we currently only
+-	 * call into MEMBLOCK while it's still active, or much later when slab is
+-	 * active for memory hotplug operations
++	 * call into MEMBLOCK while it's still active, or much later when slab
++	 * is active for memory hotplug operations
+ 	 */
+ 	if (use_slab) {
  		new_array = kmalloc(new_size, GFP_KERNEL);
- 		addr = new_array ? __pa(new_array) : 0;
- 	} else {
--		addr = memblock_find_in_range(0, MEMBLOCK_ALLOC_ACCESSIBLE, new_size, sizeof(phys_addr_t));
-+		/* only exclude range when trying to double reserved.regions */
-+		if (type != &memblock.reserved)
-+			new_area_start = new_area_size = 0;
-+
-+		addr = memblock_find_in_range(new_area_start + new_area_size,
-+						memblock.current_limit,
-+						new_size, sizeof(phys_addr_t));
-+		if (!addr && new_area_size)
-+			addr = memblock_find_in_range(0,
-+					min(new_area_start, memblock.current_limit),
-+					new_size, sizeof(phys_addr_t));
-+
+@@ -248,8 +248,8 @@ static int __init_memblock memblock_doub
+ 						new_size, sizeof(phys_addr_t));
+ 		if (!addr && new_area_size)
+ 			addr = memblock_find_in_range(0,
+-					min(new_area_start, memblock.current_limit),
+-					new_size, sizeof(phys_addr_t));
++				    min(new_area_start, memblock.current_limit),
++				    new_size, sizeof(phys_addr_t));
+ 
  		new_array = addr ? __va(addr) : 0;
  	}
- 	if (!addr) {
-@@ -399,7 +427,7 @@ repeat:
+@@ -259,12 +259,14 @@ static int __init_memblock memblock_doub
+ 		return -1;
+ 	}
+ 
+-	memblock_dbg("memblock: %s array is doubled to %ld at [%#010llx-%#010llx]",
+-		 memblock_type_name(type), type->max * 2, (u64)addr, (u64)addr + new_size - 1);
++	memblock_dbg("memblock: %s is doubled to %ld at [%#010llx-%#010llx]",
++			memblock_type_name(type), type->max * 2, (u64)addr,
++			(u64)addr + new_size - 1);
+ 
+-	/* Found space, we now need to move the array over before
+-	 * we add the reserved region since it may be our reserved
+-	 * array itself that is full.
++	/*
++	 * Found space, we now need to move the array over before we add the
++	 * reserved region since it may be our reserved array itself that is
++	 * full.
  	 */
- 	if (!insert) {
- 		while (type->cnt + nr_new > type->max)
--			if (memblock_double_array(type) < 0)
-+			if (memblock_double_array(type, obase, size) < 0)
- 				return -ENOMEM;
- 		insert = true;
- 		goto repeat;
-@@ -450,7 +478,7 @@ static int __init_memblock memblock_isol
+ 	memcpy(new_array, type->regions, old_size);
+ 	memset(new_array + type->max, 0, old_size);
+@@ -272,17 +274,16 @@ static int __init_memblock memblock_doub
+ 	type->regions = new_array;
+ 	type->max <<= 1;
  
- 	/* we'll create at most two more regions */
- 	while (type->cnt + 2 > type->max)
--		if (memblock_double_array(type) < 0)
-+		if (memblock_double_array(type, base, size) < 0)
- 			return -ENOMEM;
+-	/* Free old array. We needn't free it if the array is the
+-	 * static one
+-	 */
++	/* Free old array. We needn't free it if the array is the static one */
+ 	if (*in_slab)
+ 		kfree(old_array);
+ 	else if (old_array != memblock_memory_init_regions &&
+ 		 old_array != memblock_reserved_init_regions)
+ 		memblock_free(__pa(old_array), old_size);
  
- 	for (i = 0; i < type->cnt; i++) {
+-	/* Reserve the new array if that comes from the memblock.
+-	 * Otherwise, we needn't do it
++	/*
++	 * Reserve the new array if that comes from the memblock.  Otherwise, we
++	 * needn't do it
+ 	 */
+ 	if (!use_slab)
+ 		BUG_ON(memblock_reserve(addr, new_size));
 _
-Subject: Subject: mm/memblock: fix overlapping allocation when doubling reserved array
+Subject: Subject: mm/memblock.c:memblock_double_array(): cosmetic cleanups
 
-Patches currently in -mm which might be from greg.pearson@hp.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-memblock-fix-overlapping-allocation-when-doubling-reserved-array.patch
+linux-next.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-power-power_supply_corec-partially-fix.patch
+mm-fix-slab-page-_count-corruption-when-using-slub-fix.patch
+tmpfs-implement-numa-node-interleaving-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
+mm.patch
+mm-make-vb_alloc-more-foolproof-fix.patch
+mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks.patch
+mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-fix.patch
+memcg-prevent-from-oom-with-too-many-dirty-pages-fix.patch
+mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
+avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
+kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
+backlight-l4f00242t03-use-devm_gpio_request_one-fix.patch
+string-introduce-memweight-fix.patch
+kmod-avoid-deadlock-from-recursive-kmod-call.patch
+fork-use-vma_pages-to-simplify-the-code-fix.patch
+fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
