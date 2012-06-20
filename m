@@ -1,32 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] memcg-prevent-from-oom-with-too-many-dirty-pages.patch removed from -mm tree
-Date: Wed, 20 Jun 2012 14:10:22 -0700
-Message-ID: <20120620211023.26F42A0123@akpm.mtv.corp.google.com>
+Subject: + memcg-prevent-oom-with-too-many-dirty-pages.patch added to -mm tree
+Date: Wed, 20 Jun 2012 14:12:00 -0700
+Message-ID: <20120620211200.C6A64A0123@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:60780 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754751Ab2FTVKY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jun 2012 17:10:24 -0400
-Received: by vbnl22 with SMTP id l22so777103vbn.1
-        for <mm-commits@vger.kernel.org>; Wed, 20 Jun 2012 14:10:23 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:46615 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754562Ab2FTVMD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jun 2012 17:12:03 -0400
+Received: by wibhn6 with SMTP id hn6so269918wib.1
+        for <mm-commits@vger.kernel.org>; Wed, 20 Jun 2012 14:12:01 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, fengguang.wu@intel.com, gthelen@google.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujtisu.com, mgorman@suse.de, minchan@kernel.org, riel@redhat.com, yinghan@google.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mhocko@suse.cz, fengguang.wu@intel.com, gthelen@google.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujtisu.com, mgorman@suse.de, minchan@kernel.org, riel@redhat.com, yinghan@google.com
 
 
 The patch titled
      Subject: memcg: prevent OOM with too many dirty pages
-has been removed from the -mm tree.  Its filename was
-     memcg-prevent-from-oom-with-too-many-dirty-pages.patch
+has been added to the -mm tree.  Its filename is
+     memcg-prevent-oom-with-too-many-dirty-pages.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg: prevent from OOM with too many dirty pages
+Subject: memcg: prevent OOM with too many dirty pages
 
 The current implementation of dirty pages throttling is not memcg aware
 which makes it easy to have memcg LRUs full of dirty pages.  Without
@@ -37,11 +45,12 @@ This patch fixes the problem by throttling the allocating process
 (possibly a writer) during the hard limit reclaim by waiting on
 PageReclaim pages.  We are waiting only for PageReclaim pages because
 those are the pages that made one full round over LRU and that means that
-the writeback is much slower than scanning.  The solution is far from
-being ideal - long term solution is memcg aware dirty throttling - but it
-is meant to be a band aid until we have a real fix.  We are seeing this
-happening during nightly backups which are placed into containers to
-prevent from eviction of the real working set.
+the writeback is much slower than scanning.
+
+The solution is far from being ideal - long term solution is memcg aware
+dirty throttling - but it is meant to be a band aid until we have a real
+fix.  We are seeing this happening during nightly backups which are placed
+into containers to prevent from eviction of the real working set.
 
 The change affects only memcg reclaim and only when we encounter
 PageReclaim pages which is a signal that the reclaim doesn't catch up on
@@ -148,27 +157,27 @@ using Limit 2G for group
 1000+0 records out
 1048576000 bytes (1.0 GB) copied, 2.85201 s, 368 MB/s
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
+[akpm@linux-foundation.org: tweak changelog, reordered the test to optimize for CONFIG_CGROUP_MEM_RES_CTLR=n]
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujtisu.com>
-Cc: Mel Gorman <mgorman@suse.de>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Ying Han <yinghan@google.com>
 Cc: Greg Thelen <gthelen@google.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Mel Gorman <mgorman@suse.de>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Reviewed-by: Fengguang Wu <fengguang.wu@intel.com>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ mm/vmscan.c |   16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
 diff -puN mm/vmscan.c~memcg-prevent-from-oom-with-too-many-dirty-pages mm/vmscan.c
 --- a/mm/vmscan.c~memcg-prevent-from-oom-with-too-many-dirty-pages
 +++ a/mm/vmscan.c
-@@ -720,9 +720,20 @@ static unsigned long shrink_page_list(st
+@@ -720,9 +720,19 @@ static unsigned long shrink_page_list(st
  			(PageSwapCache(page) && (sc->gfp_mask & __GFP_IO));
  
  		if (PageWriteback(page)) {
@@ -181,8 +190,7 @@ diff -puN mm/vmscan.c~memcg-prevent-from-oom-with-too-many-dirty-pages mm/vmscan
 +			 * writeback from reclaim and there is nothing else to
 +			 * reclaim.
 +			 */
-+			if (PageReclaim(page)
-+					&& may_enter_fs && !global_reclaim(sc))
++			if (!global_reclaim(sc) && PageReclaim(page))
 +				wait_on_page_writeback(page);
 +			else {
 +				nr_writeback++;
@@ -193,6 +201,7 @@ diff -puN mm/vmscan.c~memcg-prevent-from-oom-with-too-many-dirty-pages mm/vmscan
  
  		references = page_check_references(page, sc);
 _
+Subject: Subject: memcg: prevent OOM with too many dirty pages
 
 Patches currently in -mm which might be from mhocko@suse.cz are
 
@@ -218,7 +227,7 @@ hugetlb-cgroup-add-hugetlb-controller-documentation.patch
 hugetlb-move-all-the-in-use-pages-to-active-list.patch
 hugetlb-cgroup-assign-the-page-hugetlb-cgroup-when-we-move-the-page-to-active-list.patch
 hugetlb-cgroup-remove-exclude-and-wakeup-rmdir-calls-from-migrate.patch
-memcg-prevent-from-oom-with-too-many-dirty-pages-fix.patch
 memcg-remove-check-for-signal_pending-during-rmdir.patch
 memcg-clean-up-force_empty_list-return-value-check.patch
+memcg-prevent-oom-with-too-many-dirty-pages.patch
 
