@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-fix-null-pointer-dereferrence-in-__ocfs2_change_file_space.patch added to -mm tree
-Date: Wed, 20 Jun 2012 15:43:02 -0700
-Message-ID: <20120620224302.B31D1A026A@akpm.mtv.corp.google.com>
+Subject: + checkpatch-test-for-non-standard-signatures.patch added to -mm tree
+Date: Wed, 20 Jun 2012 15:45:24 -0700
+Message-ID: <20120620224524.971EBA026A@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:36918 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757806Ab2FTWnF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jun 2012 18:43:05 -0400
-Received: by wibhn6 with SMTP id hn6so272500wib.1
-        for <mm-commits@vger.kernel.org>; Wed, 20 Jun 2012 15:43:03 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:34946 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752394Ab2FTWp0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jun 2012 18:45:26 -0400
+Received: by bkty5 with SMTP id y5so444162bkt.1
+        for <mm-commits@vger.kernel.org>; Wed, 20 Jun 2012 15:45:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: luis.henriques@canonical.com, jlbec@evilplan.org, magnade@gmail.com, mfasheh@suse.com, stable@vger.kernel.org, sunil.mushran@oracle.com
+Cc: joe@perches.com
 
 
 The patch titled
-     Subject: ocfs2: fix NULL pointer dereferrence in __ocfs2_change_file_space()
+     Subject: checkpatch: test for non-standard signatures
 has been added to the -mm tree.  Its filename is
-     ocfs2-fix-null-pointer-dereferrence-in-__ocfs2_change_file_space.patch
+     checkpatch-test-for-non-standard-signatures.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +33,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Luis Henriques <luis.henriques@canonical.com>
-Subject: ocfs2: fix NULL pointer dereferrence in __ocfs2_change_file_space()
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: test for non-standard signatures
 
-As ocfs2_fallocate() will invoke __ocfs2_change_file_space() with a NULL
-as the first parameter (file), it may trigger a NULL pointer dereferrence
-due to a missing check.
+Warn on non-standard signature styles.
 
-Addresses http://bugs.launchpad.net/bugs/1006012
-
-Signed-off-by: Luis Henriques <luis.henriques@canonical.com>
-Reported-by: Bret Towe <magnade@gmail.com>
-Cc: Sunil Mushran <sunil.mushran@oracle.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/file.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/file.c~ocfs2-fix-null-pointer-dereferrence-in-__ocfs2_change_file_space fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~ocfs2-fix-null-pointer-dereferrence-in-__ocfs2_change_file_space
-+++ a/fs/ocfs2/file.c
-@@ -1950,7 +1950,7 @@ static int __ocfs2_change_file_space(str
- 	if (ret < 0)
- 		mlog_errno(ret);
+diff -puN scripts/checkpatch.pl~checkpatch-test-for-non-standard-signatures scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-test-for-non-standard-signatures
++++ a/scripts/checkpatch.pl
+@@ -1600,13 +1600,17 @@ sub process {
  
--	if (file->f_flags & O_SYNC)
-+	if (file && (file->f_flags & O_SYNC))
- 		handle->h_sync = 1;
+ # Check signature styles
+ 		if (!$in_header_lines &&
+-		    $line =~ /^(\s*)($signature_tags)(\s*)(.*)/) {
++		    $line =~ /^(\s*)([a-z0-9_-]+by:|$signature_tags)(\s*)(.*)/i) {
+ 			my $space_before = $1;
+ 			my $sign_off = $2;
+ 			my $space_after = $3;
+ 			my $email = $4;
+ 			my $ucfirst_sign_off = ucfirst(lc($sign_off));
  
- 	ocfs2_commit_trans(osb, handle);
++			if ($sign_off !~ /$signature_tags/) {
++				WARN("BAD_SIGN_OFF",
++				     "Non-standard signature: $sign_off\n" . $herecurr);
++			}
+ 			if (defined $space_before && $space_before ne "") {
+ 				WARN("BAD_SIGN_OFF",
+ 				     "Do not use whitespace before $ucfirst_sign_off\n" . $herecurr);
 _
-Subject: Subject: ocfs2: fix NULL pointer dereferrence in __ocfs2_change_file_space()
+Subject: Subject: checkpatch: test for non-standard signatures
 
-Patches currently in -mm which might be from luis.henriques@canonical.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-ocfs2-fix-null-pointer-dereferrence-in-__ocfs2_change_file_space.patch
+linux-next.patch
+get_maintainer-fix-help-warning.patch
+printk-add-generic-functions-to-find-kern_level-headers.patch
+printk-add-kern_levelsh-to-make-kern_level-available-for-asm-use.patch
+arch-remove-direct-definitions-of-kern_level-uses.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
+sound-use-printk_get_level-and-printk_skip_level.patch
+printk-convert-the-format-for-kern_level-to-a-2-byte-pattern.patch
+printk-only-look-for-prefix-levels-in-kernel-messages.patch
+printk-remove-the-now-unnecessary-c-annotation-for-kern_cont.patch
+vsprintf-add-%pmr-for-bluetooth-mac-address.patch
+vsprintf-add-%pmr-for-bluetooth-mac-address-fix.patch
+checkpatch-update-alignment-check.patch
+checkpatch-test-for-non-standard-signatures.patch
 
