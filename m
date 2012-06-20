@@ -1,90 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: + thermal-constify-type-argument-for-the-registration-routine.patch added to -mm tree
-Date: Tue, 19 Jun 2012 17:11:32 -0700
-Message-ID: <20120620001132.A4589A0353@akpm.mtv.corp.google.com>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Wed, 20 Jun 2012 12:25:42 -0700
+Message-ID: <20120620192543.E14D3A016C@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:37226 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751829Ab2FTALe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jun 2012 20:11:34 -0400
-Received: by vbnl22 with SMTP id l22so624143vbn.1
-        for <mm-commits@vger.kernel.org>; Tue, 19 Jun 2012 17:11:33 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:56208 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757295Ab2FTTZp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jun 2012 15:25:45 -0400
+Received: by yenl3 with SMTP id l3so764214yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 20 Jun 2012 12:25:44 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: anton.vorontsov@linaro.org, cbouatmailru@gmail.com, khali@linux-fr.org, len.brown@intel.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thermal: constify 'type' argument for the registration routine
-has been added to the -mm tree.  Its filename is
-     thermal-constify-type-argument-for-the-registration-routine.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it is obsolete
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Anton Vorontsov <anton.vorontsov@linaro.org>
-Subject: thermal: constify 'type' argument for the registration routine
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-thermal_zone_device_register() does not modify 'type' argument, so it is
-safe to declare it as const.  Otherwise, if we pass a const string, we are
-getting the ugly warning:
-
-  CC      drivers/power/power_supply_core.o
-drivers/power/power_supply_core.c: In function 'psy_register_thermal':
-drivers/power/power_supply_core.c:204:6: warning: passing argument 1 of `thermal_zone_device_register' discards 'const' qualifier from pointer target type [enabled by default]
-include/linux/thermal.h:140:29: note: expected 'char *' but argument is of type 'const char *'
-
-Signed-off-by: Anton Vorontsov <cbouatmailru@gmail.com>
-Cc: Len Brown <len.brown@intel.com>
-Acked-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/thermal/thermal_sys.c |    2 +-
- include/linux/thermal.h       |    3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/edac/sb_edac.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN drivers/thermal/thermal_sys.c~thermal-constify-type-argument-for-the-registration-routine drivers/thermal/thermal_sys.c
---- a/drivers/thermal/thermal_sys.c~thermal-constify-type-argument-for-the-registration-routine
-+++ a/drivers/thermal/thermal_sys.c
-@@ -1215,7 +1215,7 @@ static int create_trip_hyst_attr(struct 
-  * longer needed. The passive cooling formula uses tc1 and tc2 as described in
-  * section 11.1.5.1 of the ACPI specification 3.0.
-  */
--struct thermal_zone_device *thermal_zone_device_register(char *type,
-+struct thermal_zone_device *thermal_zone_device_register(const char *type,
- 	int trips, int flag, void *devdata,
- 	const struct thermal_zone_device_ops *ops,
- 	int tc1, int tc2, int passive_delay, int polling_delay)
-diff -puN include/linux/thermal.h~thermal-constify-type-argument-for-the-registration-routine include/linux/thermal.h
---- a/include/linux/thermal.h~thermal-constify-type-argument-for-the-registration-routine
-+++ a/include/linux/thermal.h
-@@ -146,7 +146,8 @@ enum {
- };
- #define THERMAL_GENL_CMD_MAX (__THERMAL_GENL_CMD_MAX - 1)
+diff -puN drivers/edac/sb_edac.c~linux-next-git-rejects drivers/edac/sb_edac.c
+--- a/drivers/edac/sb_edac.c~linux-next-git-rejects
++++ a/drivers/edac/sb_edac.c
+@@ -1596,13 +1596,8 @@ static void sbridge_unregister_mci(struc
  
--struct thermal_zone_device *thermal_zone_device_register(char *, int, int,
-+struct thermal_zone_device *
-+thermal_zone_device_register(const char *, int, int,
- 		void *, const struct thermal_zone_device_ops *, int tc1,
- 		int tc2, int passive_freq, int polling_freq);
- void thermal_zone_device_unregister(struct thermal_zone_device *);
+ 	pvt = mci->pvt_info;
+ 
+-<<<<<<< HEAD
+-	debugf0("MC: " __FILE__ ": %s(): mci = %p, dev = %p\n",
+-		__func__, mci, &sbridge_dev->pdev[0]->dev);
+-=======
+ 	edac_dbg(0, "MC: mci = %p, dev = %p\n",
+ 		 mci, &sbridge_dev->pdev[0]->dev);
+->>>>>>> linux-next/akpm-base
+ 
+ 	/* Remove MC sysfs nodes */
+ 	edac_mc_del_mc(mci->pdev);
 _
-Subject: Subject: thermal: constify 'type' argument for the registration routine
 
-Patches currently in -mm which might be from anton.vorontsov@linaro.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-thermal-constify-type-argument-for-the-registration-routine.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+drivers-power-power_supply_corec-partially-fix.patch
+mm-fix-slab-page-_count-corruption-when-using-slub-fix.patch
+tmpfs-implement-numa-node-interleaving-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+fs-symlink-restrictions-on-sticky-directories.patch
+fs-hardlink-creation-restrictions.patch
+hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
+mm.patch
+mm-make-vb_alloc-more-foolproof-fix.patch
+mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks.patch
+mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-fix.patch
+memcg-prevent-from-oom-with-too-many-dirty-pages-fix.patch
+mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
+avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
+kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
+backlight-l4f00242t03-use-devm_gpio_request_one-fix.patch
+string-introduce-memweight-fix.patch
+kmod-avoid-deadlock-from-recursive-kmod-call.patch
+fork-use-vma_pages-to-simplify-the-code-fix.patch
+fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
