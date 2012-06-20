@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-pl031-fix-up-irq-flags.patch added to -mm tree
-Date: Tue, 19 Jun 2012 17:03:43 -0700
-Message-ID: <20120620000343.B3C1BA024E@akpm.mtv.corp.google.com>
+Subject: + thermal-constify-type-argument-for-the-registration-routine.patch added to -mm tree
+Date: Tue, 19 Jun 2012 17:11:32 -0700
+Message-ID: <20120620001132.A4589A0353@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:46910 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752584Ab2FTADo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jun 2012 20:03:44 -0400
-Received: by mail-gh0-f202.google.com with SMTP id z15so603629ghb.1
-        for <mm-commits@vger.kernel.org>; Tue, 19 Jun 2012 17:03:44 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:37226 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751829Ab2FTALe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jun 2012 20:11:34 -0400
+Received: by vbnl22 with SMTP id l22so624143vbn.1
+        for <mm-commits@vger.kernel.org>; Tue, 19 Jun 2012 17:11:33 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mattias.wallin@stericsson.com, a.zummo@towertech.it, jonas.aberg@stericsson.com, linus.walleij@linaro.org, rickard.andersson@stericsson.com
+Cc: anton.vorontsov@linaro.org, cbouatmailru@gmail.com, khali@linux-fr.org, len.brown@intel.com
 
 
 The patch titled
-     Subject: rtc: pl031: fix up IRQ flags
+     Subject: thermal: constify 'type' argument for the registration routine
 has been added to the -mm tree.  Its filename is
-     rtc-pl031-fix-up-irq-flags.patch
+     thermal-constify-type-argument-for-the-registration-routine.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,86 +33,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mattias Wallin <mattias.wallin@stericsson.com>
-Subject: rtc: pl031: fix up IRQ flags
+From: Anton Vorontsov <anton.vorontsov@linaro.org>
+Subject: thermal: constify 'type' argument for the registration routine
 
-The pl031 interrupt is shared between the timer part and the clockwatch
-part of the same HW block on the ux500, so mark it IRQF_SHARED on this
-variant.
+thermal_zone_device_register() does not modify 'type' argument, so it is
+safe to declare it as const.  Otherwise, if we pass a const string, we are
+getting the ugly warning:
 
-This patch also adds the IRQF_NO_SUSPEND flag to the rtc irq on all
-variants as we don't want this pretty important IRQ to be disabled in
-suspend.
+  CC      drivers/power/power_supply_core.o
+drivers/power/power_supply_core.c: In function 'psy_register_thermal':
+drivers/power/power_supply_core.c:204:6: warning: passing argument 1 of `thermal_zone_device_register' discards 'const' qualifier from pointer target type [enabled by default]
+include/linux/thermal.h:140:29: note: expected 'char *' but argument is of type 'const char *'
 
-Signed-off-by: Mattias Wallin <mattias.wallin@stericsson.com>
-Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
-Reviewed-by: Rickard Andersson <rickard.andersson@stericsson.com>
-Reviewed-by: Jonas Aberg <jonas.aberg@stericsson.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Anton Vorontsov <cbouatmailru@gmail.com>
+Cc: Len Brown <len.brown@intel.com>
+Acked-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pl031.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ drivers/thermal/thermal_sys.c |    2 +-
+ include/linux/thermal.h       |    3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-pl031.c~rtc-pl031-fix-up-irq-flags drivers/rtc/rtc-pl031.c
---- a/drivers/rtc/rtc-pl031.c~rtc-pl031-fix-up-irq-flags
-+++ a/drivers/rtc/rtc-pl031.c
-@@ -75,11 +75,13 @@
-  *	clockwatch function
-  * @st_weekday: if this is an ST Microelectronics silicon version that need
-  *	the weekday fix
-+ * @irqflags: special IRQ flags per variant
+diff -puN drivers/thermal/thermal_sys.c~thermal-constify-type-argument-for-the-registration-routine drivers/thermal/thermal_sys.c
+--- a/drivers/thermal/thermal_sys.c~thermal-constify-type-argument-for-the-registration-routine
++++ a/drivers/thermal/thermal_sys.c
+@@ -1215,7 +1215,7 @@ static int create_trip_hyst_attr(struct 
+  * longer needed. The passive cooling formula uses tc1 and tc2 as described in
+  * section 11.1.5.1 of the ACPI specification 3.0.
   */
- struct pl031_vendor_data {
- 	struct rtc_class_ops ops;
- 	bool clockwatch;
- 	bool st_weekday;
-+	unsigned long irqflags;
+-struct thermal_zone_device *thermal_zone_device_register(char *type,
++struct thermal_zone_device *thermal_zone_device_register(const char *type,
+ 	int trips, int flag, void *devdata,
+ 	const struct thermal_zone_device_ops *ops,
+ 	int tc1, int tc2, int passive_delay, int polling_delay)
+diff -puN include/linux/thermal.h~thermal-constify-type-argument-for-the-registration-routine include/linux/thermal.h
+--- a/include/linux/thermal.h~thermal-constify-type-argument-for-the-registration-routine
++++ a/include/linux/thermal.h
+@@ -146,7 +146,8 @@ enum {
  };
+ #define THERMAL_GENL_CMD_MAX (__THERMAL_GENL_CMD_MAX - 1)
  
- struct pl031_local {
-@@ -373,7 +375,7 @@ static int pl031_probe(struct amba_devic
- 	}
- 
- 	if (request_irq(adev->irq[0], pl031_interrupt,
--			0, "rtc-pl031", ldata)) {
-+			vendor->irqflags, "rtc-pl031", ldata)) {
- 		ret = -EIO;
- 		goto out_no_irq;
- 	}
-@@ -403,6 +405,7 @@ static struct pl031_vendor_data arm_pl03
- 		.set_alarm = pl031_set_alarm,
- 		.alarm_irq_enable = pl031_alarm_irq_enable,
- 	},
-+	.irqflags = IRQF_NO_SUSPEND,
- };
- 
- /* The First ST derivative */
-@@ -416,6 +419,7 @@ static struct pl031_vendor_data stv1_pl0
- 	},
- 	.clockwatch = true,
- 	.st_weekday = true,
-+	.irqflags = IRQF_NO_SUSPEND,
- };
- 
- /* And the second ST derivative */
-@@ -429,6 +433,11 @@ static struct pl031_vendor_data stv2_pl0
- 	},
- 	.clockwatch = true,
- 	.st_weekday = true,
-+	/*
-+	 * This variant shares the IRQ with another block and must not
-+	 * suspend that IRQ line.
-+	 */
-+	.irqflags = IRQF_SHARED | IRQF_NO_SUSPEND,
- };
- 
- static struct amba_id pl031_ids[] = {
+-struct thermal_zone_device *thermal_zone_device_register(char *, int, int,
++struct thermal_zone_device *
++thermal_zone_device_register(const char *, int, int,
+ 		void *, const struct thermal_zone_device_ops *, int tc1,
+ 		int tc2, int passive_freq, int polling_freq);
+ void thermal_zone_device_unregister(struct thermal_zone_device *);
 _
-Subject: Subject: rtc: pl031: fix up IRQ flags
+Subject: Subject: thermal: constify 'type' argument for the registration routine
 
-Patches currently in -mm which might be from mattias.wallin@stericsson.com are
+Patches currently in -mm which might be from anton.vorontsov@linaro.org are
 
-rtc-pl031-fix-up-irq-flags.patch
+linux-next.patch
+thermal-constify-type-argument-for-the-registration-routine.patch
 
