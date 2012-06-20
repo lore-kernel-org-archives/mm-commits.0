@@ -1,103 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] fs-symlink-restrictions-on-sticky-directories.patch removed from -mm tree
-Date: Wed, 20 Jun 2012 13:50:48 -0700
-Message-ID: <20120620205048.76A5FA00B0@akpm.mtv.corp.google.com>
+Subject: [to-be-updated] fs-hardlink-creation-restrictions.patch removed from -mm tree
+Date: Wed, 20 Jun 2012 13:50:50 -0700
+Message-ID: <20120620205050.A1869A00B0@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:50512 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752951Ab2FTUuv (ORCPT
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:52576 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752792Ab2FTUuv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jun 2012 16:50:51 -0400
-Received: by fat25 with SMTP id 25so440502fat.1
-        for <mm-commits@vger.kernel.org>; Wed, 20 Jun 2012 13:50:49 -0700 (PDT)
+Received: by ggeh3 with SMTP id h3so755801gge.1
+        for <mm-commits@vger.kernel.org>; Wed, 20 Jun 2012 13:50:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: keescook@chromium.org, a.p.zijlstra@chello.nl, drosenberg@vsecurity.com, eparis@redhat.com, federica.teodori@googlemail.com, lucian.grijincu@gmail.com, matthew@wil.cx, mingo@elte.hu, rdunlap@xenotime.net, riel@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: symlink restrictions on sticky directories
+     Subject: fs: hardlink creation restrictions
 has been removed from the -mm tree.  Its filename was
-     fs-symlink-restrictions-on-sticky-directories.patch
+     fs-hardlink-creation-restrictions.patch
 
 This patch was dropped because an updated version will be merged
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-=46rom: Kees Cook <keescook@chromium.org>
-Subject: fs: symlink restrictions on sticky directories
+From: Kees Cook <keescook@chromium.org>
+Subject: fs: hardlink creation restrictions
 
-A longstanding class of security issues is the symlink-based
-time-of-check-time-of-use race, most commonly seen in world-writable
-directories like /tmp.  The common method of exploitation of this flaw =
-is
-to cross privilege boundaries when following a given symlink (i.e.  a r=
-oot
-process follows a symlink belonging to another user).  For a likely
-incomplete list of hundreds of examples across the years, please see:
-http://cve.mitre.org/cgi-bin/cvekey.cgi?keyword=3D/tmp
+On systems that have user-writable directories on the same partition as
+system files, a long-standing class of security issues is the
+hardlink-based time-of-check-time-of-use race, most commonly seen in
+world-writable directories like /tmp.  The common method of exploitation
+of this flaw is to cross privilege boundaries when following a given
+hardlink (i.e.  a root process follows a hardlink created by another
+user).  Additionally, an issue exists where users can "pin" a potentially
+vulnerable setuid/setgid file so that an administrator will not actually
+upgrade a system fully.
 
-The solution is to permit symlinks to only be followed when outside a
-sticky world-writable directory, or when the uid of the symlink and
-follower match, or when the directory owner matches the symlink's owner=
-=2E
+The solution is to permit hardlinks to only be created when the user is
+already the existing file's owner, or if they already have read/write
+access to the existing file.
 
-Some pointers to the history of earlier discussion that I could find:
+Many Linux users are surprised when they learn they can link to files they
+have no access to, so this change appears to follow the doctrine of "least
+surprise".  Additionally, this change does not violate POSIX, which states
+"the implementation may require that the calling process has permission to
+access the existing file"[1].
 
- 1996 Aug, Zygo Blaxell
-  http://marc.info/?l=3Dbugtraq&m=3D87602167419830&w=3D2
- 1996 Oct, Andrew Tridgell
-  http://lkml.indiana.edu/hypermail/linux/kernel/9610.2/0086.html
- 1997 Dec, Albert D Cahalan
-  http://lkml.org/lkml/1997/12/16/4
- 2005 Feb, Lorenzo Hern=E1ndez Garc=EDa-Hierro
-  http://lkml.indiana.edu/hypermail/linux/kernel/0502.0/1896.html
- 2010 May, Kees Cook
-  https://lkml.org/lkml/2010/5/30/144
+This change is known to break some implementations of the "at" daemon,
+though the version used by Fedora and Ubuntu has been fixed[2] for a
+while.  Otherwise, the change has been undisruptive while in use in Ubuntu
+for the last 1.5 years.
 
-Past objections and rebuttals could be summarized as:
+This patch is based on the patch in Openwall and grsecurity.  I have added
+a sysctl to enable the protected behavior, documentation, and an audit
+notification.
 
- - Violates POSIX.
-   - POSIX didn't consider this situation and it's not useful to follow
-     a broken specification at the cost of security.
- - Might break unknown applications that use this feature.
-   - Applications that break because of the change are easy to spot and
-     fix. Applications that are vulnerable to symlink ToCToU by not hav=
-ing
-     the change aren't. Additionally, no applications have yet been fou=
-nd
-     that rely on this behavior.
- - Applications should just use mkstemp() or O_CREATE|O_EXCL.
-   - True, but applications are not perfect, and new software is writte=
-n
-     all the time that makes these mistakes; blocking this flaw at the
-     kernel is a single solution to the entire class of vulnerability.
- - This should live in the core VFS.
-   - This should live in an LSM. (https://lkml.org/lkml/2010/5/31/135)
- - This should live in an LSM.
-   - This should live in the core VFS. (https://lkml.org/lkml/2010/8/2/=
-188)
+[1] http://pubs.opengroup.org/onlinepubs/9699919799/functions/linkat.html
+[2] http://anonscm.debian.org/gitweb/?p=collab-maint/at.git;a=commitdiff;h=f4114656c3a6c6f6070e315ffdf940a49eda3279
 
-This patch is based on the patch in Openwall and grsecurity, along with
-suggestions from Al Viro.  I have added a sysctl to enable the protecte=
-d
-behavior, documentation, and an audit notification.
-
-[akpm@linux-foundation.org: move sysctl_protected_sticky_symlinks decla=
-ration into .h]
+[akpm@linux-foundation.org: uninline may_linkat() and audit_log_link_denied()]
 Signed-off-by: Kees Cook <keescook@chromium.org>
-Reviewed-by: Ingo Molnar <mingo@elte.hu>
+Acked-by: Ingo Molnar <mingo@elte.hu>
 Cc: Matthew Wilcox <matthew@wil.cx>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Federica Teodori <federica.teodori@googlemail.com>
 Cc: Lucian Adrian Grijincu <lucian.grijincu@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Eric Paris <eparis@redhat.com>
 Cc: Randy Dunlap <rdunlap@xenotime.net>
@@ -105,283 +75,367 @@ Cc: Dan Rosenberg <drosenberg@vsecurity.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/fs.txt |   21 +++++++
- fs/Kconfig                  |   34 ++++++++++++
- fs/namei.c                  |   91 +++++++++++++++++++++++++++++++---
- include/linux/fs.h          |    1=20
- kernel/sysctl.c             |   11 ++++
- 5 files changed, 152 insertions(+), 6 deletions(-)
+ Documentation/sysctl/fs.txt |   21 +++++
+ fs/Kconfig                  |   56 ++++++++++----
+ fs/namei.c                  |  132 +++++++++++++++++++++++++++-------
+ include/linux/fs.h          |    1 
+ kernel/sysctl.c             |   11 ++
+ 5 files changed, 178 insertions(+), 43 deletions(-)
 
-diff -puN Documentation/sysctl/fs.txt~fs-symlink-restrictions-on-sticky=
--directories Documentation/sysctl/fs.txt
---- a/Documentation/sysctl/fs.txt~fs-symlink-restrictions-on-sticky-dir=
-ectories
+diff -puN Documentation/sysctl/fs.txt~fs-hardlink-creation-restrictions Documentation/sysctl/fs.txt
+--- a/Documentation/sysctl/fs.txt~fs-hardlink-creation-restrictions
 +++ a/Documentation/sysctl/fs.txt
 @@ -32,6 +32,7 @@ Currently, these files are in /proc/sys/
  - nr_open
  - overflowuid
  - overflowgid
-+- protected_symlinks
++- protected_hardlinks
+ - protected_symlinks
  - suid_dumpable
  - super-max
- - super-nr
-@@ -157,6 +158,26 @@ The default is 65534.
-=20
- =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-=20
-+protected_symlinks:
+@@ -158,6 +159,26 @@ The default is 65534.
+ 
+ ==============================================================
+ 
++protected_hardlinks:
 +
-+A long-standing class of security issues is the symlink-based
++A long-standing class of security issues is the hardlink-based
 +time-of-check-time-of-use race, most commonly seen in world-writable
 +directories like /tmp. The common method of exploitation of this flaw
-+is to cross privilege boundaries when following a given symlink (i.e. =
-a
-+root process follows a symlink belonging to another user). For a likel=
-y
-+incomplete list of hundreds of examples across the years, please see:
-+http://cve.mitre.org/cgi-bin/cvekey.cgi?keyword=3D/tmp
++is to cross privilege boundaries when following a given hardlink (i.e. a
++root process follows a hardlink created by another user). Additionally,
++on systems without separated partitions, this stops unauthorized users
++from "pinning" vulnerable setuid/setgid files against being upgraded by
++the administrator, or linking to special files.
 +
-+When set to "0", symlink following behavior is unrestricted.
++When set to "0", hardlink creation behavior is unrestricted.
 +
-+When set to "1" symlinks are permitted to be followed only when outsid=
-e
-+a sticky world-writable directory, or when the uid of the symlink and
-+follower match, or when the directory owner matches the symlink's owne=
-r.
++When set to "1" hardlinks cannot be created by users if they do not
++already own the source file, or do not have read/write access to it.
 +
-+This protection is based on the restrictions in Openwall and grsecurit=
-y.
++This protection is based on the restrictions in Openwall and grsecurity.
 +
-+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
++==============================================================
 +
- suid_dumpable:
-=20
- This value can be used to query and set the core dump mode for setuid
-diff -puN fs/Kconfig~fs-symlink-restrictions-on-sticky-directories fs/K=
-config
---- a/fs/Kconfig~fs-symlink-restrictions-on-sticky-directories
+ protected_symlinks:
+ 
+ A long-standing class of security issues is the symlink-based
+diff -puN fs/Kconfig~fs-hardlink-creation-restrictions fs/Kconfig
+--- a/fs/Kconfig~fs-hardlink-creation-restrictions
 +++ a/fs/Kconfig
-@@ -276,4 +276,38 @@ endif # NETWORK_FILESYSTEMS
+@@ -276,27 +276,29 @@ endif # NETWORK_FILESYSTEMS
  source "fs/nls/Kconfig"
  source "fs/dlm/Kconfig"
-=20
+ 
+-config PROTECTED_SYMLINKS
+-	bool "Evaluate vulnerable symlink conditions"
++config PROTECTED_LINKS
++	bool "Evaluate vulnerable link conditions"
+ 	default y
+ 	help
+-	  A long-standing class of security issues is the symlink-based
++	  A long-standing class of security issues is the link-based
+ 	  time-of-check-time-of-use race, most commonly seen in
+ 	  world-writable directories like /tmp. The common method of
+ 	  exploitation of this flaw is to cross privilege boundaries
+-	  when following a given symlink (i.e. a root process follows
+-	  a malicious symlink belonging to another user).
+-
+-	  Enabling this adds the logic to examine these dangerous symlink
+-	  conditions. Whether or not the dangerous symlink situations are
+-	  allowed is controlled by PROTECTED_SYMLINKS_ENABLED.
++	  when following a given link (i.e. a root process follows
++	  a malicious symlink belonging to another user, or a hardlink
++	  created to a root-owned file).
++
++	  Enabling this adds the logic to examine these dangerous link
++	  conditions. Whether or not the dangerous link situations are
++	  allowed is controlled by PROTECTED_HARDLINKS_ENABLED and
++	  PROTECTED_SYMLINKS_ENABLED.
+ 
+-config PROTECTED_SYMLINKS_ENABLED
+-	depends on PROTECTED_SYMLINKS
 +config PROTECTED_SYMLINKS
-+	bool "Evaluate vulnerable symlink conditions"
-+	default y
-+	help
-+	  A long-standing class of security issues is the symlink-based
-+	  time-of-check-time-of-use race, most commonly seen in
-+	  world-writable directories like /tmp. The common method of
-+	  exploitation of this flaw is to cross privilege boundaries
-+	  when following a given symlink (i.e. a root process follows
-+	  a malicious symlink belonging to another user).
++	depends on PROTECTED_LINKS
+ 	bool "Disallow symlink following in sticky world-writable dirs"
+ 	default y
+ 	help
+-	  Solve ToCToU symlink race vulnerablities by permitting symlinks
++	  Solve ToCToU symlink race vulnerabilities by permitting symlinks
+ 	  to be followed only when outside a sticky world-writable directory,
+ 	  or when the uid of the symlink and follower match, or when the
+ 	  directory and symlink owners match.
+@@ -304,10 +306,34 @@ config PROTECTED_SYMLINKS_ENABLED
+ 	  When PROC_SYSCTL is enabled, this setting can also be controlled
+ 	  via /proc/sys/kernel/protected_symlinks.
+ 
+-config PROTECTED_SYMLINKS_ENABLED_SYSCTL
+-	depends on PROTECTED_SYMLINKS
++	  See Documentation/sysctl/fs.txt for details.
 +
-+	  Enabling this adds the logic to examine these dangerous symlink
-+	  conditions. Whether or not the dangerous symlink situations are
-+	  allowed is controlled by PROTECTED_SYMLINKS_ENABLED.
-+
-+config PROTECTED_SYMLINKS_ENABLED
-+	depends on PROTECTED_SYMLINKS
-+	bool "Disallow symlink following in sticky world-writable dirs"
-+	default y
-+	help
-+	  Solve ToCToU symlink race vulnerablities by permitting symlinks
-+	  to be followed only when outside a sticky world-writable directory,
-+	  or when the uid of the symlink and follower match, or when the
-+	  directory and symlink owners match.
-+
-+	  When PROC_SYSCTL is enabled, this setting can also be controlled
-+	  via /proc/sys/kernel/protected_symlinks.
-+
-+config PROTECTED_SYMLINKS_ENABLED_SYSCTL
-+	depends on PROTECTED_SYMLINKS
++config PROTECTED_SYMLINKS_SYSCTL
++	depends on PROTECTED_LINKS
 +	int
-+	default "1" if PROTECTED_SYMLINKS_ENABLED
++	default "1" if PROTECTED_SYMLINKS
 +	default "0"
 +
++config PROTECTED_HARDLINKS
++	depends on PROTECTED_LINKS
++	bool "Disallow hardlink creation to non-accessible files"
++	default y
++	help
++	  Solve ToCToU hardlink race vulnerabilities by permitting hardlinks
++	  to be created only when to a regular file that is owned by the user,
++	  or is readable and writable by the user. Also blocks users from
++	  "pinning" vulnerable setuid/setgid programs from being upgraded by
++	  the administrator.
++
++	  When PROC_SYSCTL is enabled, this setting can also be controlled
++	  via /proc/sys/kernel/protected_hardlinks.
++
++	  See Documentation/sysctl/fs.txt for details.
++
++config PROTECTED_HARDLINKS_SYSCTL
++	depends on PROTECTED_LINKS
+ 	int
+-	default "1" if PROTECTED_SYMLINKS_ENABLED
++	default "1" if PROTECTED_HARDLINKS
+ 	default "0"
+ 
  endmenu
-diff -puN fs/namei.c~fs-symlink-restrictions-on-sticky-directories fs/n=
-amei.c
---- a/fs/namei.c~fs-symlink-restrictions-on-sticky-directories
+diff -puN fs/namei.c~fs-hardlink-creation-restrictions fs/namei.c
+--- a/fs/namei.c~fs-hardlink-creation-restrictions
 +++ a/fs/namei.c
-@@ -610,10 +610,84 @@ static inline void put_link(struct namei
+@@ -610,16 +610,32 @@ static inline void put_link(struct namei
  	path_put(link);
  }
-=20
-+#ifdef CONFIG_PROTECTED_SYMLINKS
-+int sysctl_protected_symlinks __read_mostly =3D
-+	CONFIG_PROTECTED_SYMLINKS_ENABLED_SYSCTL;
+ 
+-#ifdef CONFIG_PROTECTED_SYMLINKS
++#ifdef CONFIG_PROTECTED_LINKS
+ int sysctl_protected_symlinks __read_mostly =
+-	CONFIG_PROTECTED_SYMLINKS_ENABLED_SYSCTL;
++	CONFIG_PROTECTED_SYMLINKS_SYSCTL;
++int sysctl_protected_hardlinks __read_mostly =
++	CONFIG_PROTECTED_HARDLINKS_SYSCTL;
++
++static void audit_log_link_denied(const char *operation, struct path *link)
++{
++	struct audit_buffer *ab;
++
++	ab = audit_log_start(current->audit_context, GFP_KERNEL, AUDIT_AVC);
++	audit_log_format(ab, "op=%s action=denied", operation);
++	audit_log_format(ab, " pid=%d comm=", current->pid);
++	audit_log_untrustedstring(ab, current->comm);
++	audit_log_d_path(ab, " path=", link);
++	audit_log_format(ab, " dev=");
++	audit_log_untrustedstring(ab, link->dentry->d_inode->i_sb->s_id);
++	audit_log_format(ab, " ino=%lu", link->dentry->d_inode->i_ino);
++	audit_log_end(ab);
++}
+ 
+ /**
+  * may_follow_link - Check symlink following for unsafe situations
+- * @dentry: The inode/dentry of the symlink
+- * @nameidata: The path data of the symlink
++ * @link: The path of the symlink
+  *
+- * In the case of the protected_symlinks sysctl being enabled,
++ * In the case of the sysctl_protected_symlinks sysctl being enabled,
+  * CAP_DAC_OVERRIDE needs to be specifically ignored if the symlink is
+  * in a sticky world-writable directory. This is to protect privileged
+  * processes from failing races against path names that may change out
+@@ -630,19 +646,20 @@ int sysctl_protected_symlinks __read_mos
+  *
+  * Returns 0 if following the symlink is allowed, -ve on error.
+  */
+-static inline int
+-may_follow_link(struct dentry *dentry, struct nameidata *nameidata)
++static inline int may_follow_link(struct path *link)
+ {
+ 	int error = 0;
+ 	const struct inode *parent;
+ 	const struct inode *inode;
+ 	const struct cred *cred;
++	struct dentry *dentry;
+ 
+ 	if (!sysctl_protected_symlinks)
+ 		return 0;
+ 
+ 	/* Allowed if owner and follower match. */
+ 	cred = current_cred();
++	dentry = link->dentry;
+ 	inode = dentry->d_inode;
+ 	if (cred->fsuid == inode->i_uid)
+ 		return 0;
+@@ -656,29 +673,87 @@ may_follow_link(struct dentry *dentry, s
+ 	}
+ 	spin_unlock(&dentry->d_lock);
+ 
+-#ifdef CONFIG_AUDIT
+-	if (error) {
+-		struct audit_buffer *ab;
++	if (error)
++		audit_log_link_denied("follow_link", link);
+ 
+-		ab = audit_log_start(current->audit_context,
+-				     GFP_KERNEL, AUDIT_AVC);
+-		audit_log_format(ab, "op=follow_link action=denied");
+-		audit_log_format(ab, " pid=%d comm=", current->pid);
+-		audit_log_untrustedstring(ab, current->comm);
+-		audit_log_d_path(ab, " path=", &nameidata->path);
+-		audit_log_format(ab, " name=");
+-		audit_log_untrustedstring(ab, dentry->d_name.name);
+-		audit_log_format(ab, " dev=");
+-		audit_log_untrustedstring(ab, inode->i_sb->s_id);
+-		audit_log_format(ab, " ino=%lu", inode->i_ino);
+-		audit_log_end(ab);
+-	}
+-#endif
+ 	return error;
+ }
 +
 +/**
-+ * may_follow_link - Check symlink following for unsafe situations
-+ * @dentry: The inode/dentry of the symlink
-+ * @nameidata: The path data of the symlink
++ * safe_hardlink_source - Check for safe hardlink conditions
++ * @inode: the source inode to hardlink from
 + *
-+ * In the case of the protected_symlinks sysctl being enabled,
-+ * CAP_DAC_OVERRIDE needs to be specifically ignored if the symlink is
-+ * in a sticky world-writable directory. This is to protect privileged
-+ * processes from failing races against path names that may change out
-+ * from under them by way of other users creating malicious symlinks.
-+ * It will permit symlinks to be followed only when outside a sticky
-+ * world-writable directory, or when the uid of the symlink and follow=
-er
-+ * match, or when the directory owner matches the symlink's owner.
++ * Return false if at least one of the following conditions:
++ *    - inode is not a regular file
++ *    - inode is setuid
++ *    - inode is setgid and group-exec
++ *    - access failure for read and write
 + *
-+ * Returns 0 if following the symlink is allowed, -ve on error.
++ * Otherwise returns true.
 + */
-+static inline int
-+may_follow_link(struct dentry *dentry, struct nameidata *nameidata)
++static bool safe_hardlink_source(struct inode *inode)
 +{
-+	int error =3D 0;
-+	const struct inode *parent;
-+	const struct inode *inode;
-+	const struct cred *cred;
++	mode_t mode = inode->i_mode;
 +
-+	if (!sysctl_protected_symlinks)
-+		return 0;
++	/* Special files should not get pinned to the filesystem. */
++	if (!S_ISREG(mode))
++		return false;
 +
-+	/* Allowed if owner and follower match. */
-+	cred =3D current_cred();
-+	inode =3D dentry->d_inode;
-+	if (cred->fsuid =3D=3D inode->i_uid)
-+		return 0;
++	/* Setuid files should not get pinned to the filesystem. */
++	if (mode & S_ISUID)
++		return false;
 +
-+	/* Check parent directory mode and owner. */
-+	spin_lock(&dentry->d_lock);
-+	parent =3D dentry->d_parent->d_inode;
-+	if ((parent->i_mode & (S_ISVTX|S_IWOTH)) =3D=3D (S_ISVTX|S_IWOTH) &&
-+	    parent->i_uid !=3D inode->i_uid) {
-+		error =3D -EACCES;
-+	}
-+	spin_unlock(&dentry->d_lock);
++	/* Executable setgid files should not get pinned to the filesystem. */
++	if ((mode & (S_ISGID | S_IXGRP)) == (S_ISGID | S_IXGRP))
++		return false;
 +
-+#ifdef CONFIG_AUDIT
-+	if (error) {
-+		struct audit_buffer *ab;
++	/* Hardlinking to unreadable or unwritable sources is dangerous. */
++	if (inode_permission(inode, MAY_READ | MAY_WRITE))
++		return false;
 +
-+		ab =3D audit_log_start(current->audit_context,
-+				     GFP_KERNEL, AUDIT_AVC);
-+		audit_log_format(ab, "op=3Dfollow_link action=3Ddenied");
-+		audit_log_format(ab, " pid=3D%d comm=3D", current->pid);
-+		audit_log_untrustedstring(ab, current->comm);
-+		audit_log_d_path(ab, " path=3D", &nameidata->path);
-+		audit_log_format(ab, " name=3D");
-+		audit_log_untrustedstring(ab, dentry->d_name.name);
-+		audit_log_format(ab, " dev=3D");
-+		audit_log_untrustedstring(ab, inode->i_sb->s_id);
-+		audit_log_format(ab, " ino=3D%lu", inode->i_ino);
-+		audit_log_end(ab);
-+	}
-+#endif
-+	return error;
++	return true;
 +}
-+#else
-+static inline int
-+may_follow_link(struct dentry *dentry, struct nameidata *nameidata)
++
++/**
++ * may_linkat - Check permissions for creating a hardlink
++ * @link: the source to hardlink from
++ *
++ * Block hardlink when all of:
++ *  - sysctl_protected_hardlinks enabled
++ *  - fsuid does not match inode
++ *  - hardlink source is unsafe (see safe_hardlink_source() above)
++ *  - not CAP_FOWNER
++ *
++ * Returns 0 if successful, -ve on error.
++ */
++static int may_linkat(struct path *link)
++{
++	const struct cred *cred;
++	struct inode *inode;
++
++	if (!sysctl_protected_hardlinks)
++		return 0;
++
++	cred = current_cred();
++	inode = link->dentry->d_inode;
++
++	/* Source inode owner (or CAP_FOWNER) can hardlink all they like,
++	 * otherwise, it must be a safe source.
++	 */
++	if (cred->fsuid == inode->i_uid || safe_hardlink_source(inode) ||
++	    capable(CAP_FOWNER))
++		return 0;
++
++	audit_log_link_denied("linkat", link);
++	return -EPERM;
++}
+ #else
+-static inline int
+-may_follow_link(struct dentry *dentry, struct nameidata *nameidata)
++static inline int may_follow_link(struct path *link)
 +{
 +	return 0;
 +}
-+#endif
 +
- static __always_inline int
--follow_link(struct path *link, struct nameidata *nd, void **p)
-+follow_link(struct path *link, struct nameidata *nd, void **p, bool se=
-nsitive)
++static inline int may_linkat(struct path *link)
  {
--	int error;
-+	int error =3D 0;
- 	struct dentry *dentry =3D link->dentry;
-=20
- 	BUG_ON(nd->flags & LOOKUP_RCU);
-@@ -632,7 +706,10 @@ follow_link(struct path *link, struct na
- 	touch_atime(link);
+ 	return 0;
+ }
+@@ -707,7 +782,7 @@ follow_link(struct path *link, struct na
  	nd_set_link(nd, NULL);
-=20
--	error =3D security_inode_follow_link(link->dentry, nd);
-+	if (sensitive)
-+		error =3D may_follow_link(link->dentry, nd);
-+	if (!error)
-+		error =3D security_inode_follow_link(link->dentry, nd);
+ 
+ 	if (sensitive)
+-		error = may_follow_link(link->dentry, nd);
++		error = may_follow_link(link);
+ 	if (!error)
+ 		error = security_inode_follow_link(link->dentry, nd);
  	if (error) {
- 		*p =3D ERR_PTR(error); /* no ->put_link(), please */
- 		path_put(&nd->path);
-@@ -1382,7 +1459,7 @@ static inline int nested_symlink(struct=20
- 		struct path link =3D *path;
- 		void *cookie;
-=20
--		res =3D follow_link(&link, nd, &cookie);
-+		res =3D follow_link(&link, nd, &cookie, false);
- 		if (!res)
- 			res =3D walk_component(nd, path, &nd->last,
- 					     nd->last_type, LOOKUP_FOLLOW);
-@@ -1776,7 +1853,8 @@ static int path_lookupat(int dfd, const=20
- 			void *cookie;
- 			struct path link =3D path;
- 			nd->flags |=3D LOOKUP_PARENT;
--			err =3D follow_link(&link, nd, &cookie);
-+
-+			err =3D follow_link(&link, nd, &cookie, true);
- 			if (!err)
- 				err =3D lookup_last(nd, &path);
- 			put_link(nd, &link, cookie);
-@@ -2473,7 +2551,8 @@ static struct file *path_openat(int dfd,
- 		}
- 		nd->flags |=3D LOOKUP_PARENT;
- 		nd->flags &=3D ~(LOOKUP_OPEN|LOOKUP_CREATE|LOOKUP_EXCL);
--		error =3D follow_link(&link, nd, &cookie);
-+
-+		error =3D follow_link(&link, nd, &cookie, true);
- 		if (unlikely(error))
- 			filp =3D ERR_PTR(error);
- 		else
-diff -puN include/linux/fs.h~fs-symlink-restrictions-on-sticky-director=
-ies include/linux/fs.h
---- a/include/linux/fs.h~fs-symlink-restrictions-on-sticky-directories
+@@ -3209,6 +3284,9 @@ SYSCALL_DEFINE5(linkat, int, olddfd, con
+ 	error = -EXDEV;
+ 	if (old_path.mnt != new_path.mnt)
+ 		goto out_dput;
++	error = may_linkat(&old_path);
++	if (error)
++		goto out_dput;
+ 	error = mnt_want_write(new_path.mnt);
+ 	if (error)
+ 		goto out_dput;
+diff -puN include/linux/fs.h~fs-hardlink-creation-restrictions include/linux/fs.h
+--- a/include/linux/fs.h~fs-hardlink-creation-restrictions
 +++ a/include/linux/fs.h
-@@ -437,6 +437,7 @@ extern unsigned long get_max_files(void)
- extern int sysctl_nr_open;
+@@ -438,6 +438,7 @@ extern int sysctl_nr_open;
  extern struct inodes_stat_t inodes_stat;
  extern int leases_enable, lease_break_time;
-+extern int sysctl_protected_symlinks;
-=20
+ extern int sysctl_protected_symlinks;
++extern int sysctl_protected_hardlinks;
+ 
  struct buffer_head;
  typedef int (get_block_t)(struct inode *inode, sector_t iblock,
-diff -puN kernel/sysctl.c~fs-symlink-restrictions-on-sticky-directories=
- kernel/sysctl.c
---- a/kernel/sysctl.c~fs-symlink-restrictions-on-sticky-directories
+diff -puN kernel/sysctl.c~fs-hardlink-creation-restrictions kernel/sysctl.c
+--- a/kernel/sysctl.c~fs-hardlink-creation-restrictions
 +++ a/kernel/sysctl.c
-@@ -1493,6 +1493,17 @@ static struct ctl_table fs_table[] =3D {
+@@ -1493,7 +1493,7 @@ static struct ctl_table fs_table[] = {
  	},
  #endif
  #endif
-+#ifdef CONFIG_PROTECTED_SYMLINKS
-+	{
-+		.procname	=3D "protected_symlinks",
-+		.data		=3D &sysctl_protected_symlinks,
-+		.maxlen		=3D sizeof(int),
-+		.mode		=3D 0600,
-+		.proc_handler	=3D proc_dointvec_minmax,
-+		.extra1		=3D &zero,
-+		.extra2		=3D &one,
-+	},
-+#endif
+-#ifdef CONFIG_PROTECTED_SYMLINKS
++#ifdef CONFIG_PROTECTED_LINKS
  	{
- 		.procname	=3D "suid_dumpable",
- 		.data		=3D &suid_dumpable,
+ 		.procname	= "protected_symlinks",
+ 		.data		= &sysctl_protected_symlinks,
+@@ -1503,6 +1503,15 @@ static struct ctl_table fs_table[] = {
+ 		.extra1		= &zero,
+ 		.extra2		= &one,
+ 	},
++	{
++		.procname	= "protected_hardlinks",
++		.data		= &sysctl_protected_hardlinks,
++		.maxlen		= sizeof(int),
++		.mode		= 0600,
++		.proc_handler	= proc_dointvec_minmax,
++		.extra1		= &zero,
++		.extra2		= &one,
++	},
+ #endif
+ 	{
+ 		.procname	= "suid_dumpable",
 _
 
 Patches currently in -mm which might be from keescook@chromium.org are
 
 linux-next.patch
 c-r-prctl-move-pr_get_tid_address-to-a-proper-place.patch
-fs-hardlink-creation-restrictions.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
