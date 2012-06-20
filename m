@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-test-for-non-standard-signatures.patch added to -mm tree
-Date: Wed, 20 Jun 2012 15:45:24 -0700
-Message-ID: <20120620224524.971EBA026A@akpm.mtv.corp.google.com>
+Subject: + drivers-rtc-rtc-ab8500c-use-uie-emulation.patch added to -mm tree
+Date: Wed, 20 Jun 2012 15:52:35 -0700
+Message-ID: <20120620225236.2A38CA01BD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:34946 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752394Ab2FTWp0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jun 2012 18:45:26 -0400
-Received: by bkty5 with SMTP id y5so444162bkt.1
-        for <mm-commits@vger.kernel.org>; Wed, 20 Jun 2012 15:45:25 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:35945 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758095Ab2FTWwi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jun 2012 18:52:38 -0400
+Received: by weyu7 with SMTP id u7so173wey.1
+        for <mm-commits@vger.kernel.org>; Wed, 20 Jun 2012 15:52:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com
+Cc: ramesh.chandrasekaran@stericsson.com, a.zummo@towertech.it, linus.walleij@linaro.org
 
 
 The patch titled
-     Subject: checkpatch: test for non-standard signatures
+     Subject: drivers/rtc/rtc-ab8500.c: use UIE emulation
 has been added to the -mm tree.  Its filename is
-     checkpatch-test-for-non-standard-signatures.patch
+     drivers-rtc-rtc-ab8500c-use-uie-emulation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,59 +33,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: test for non-standard signatures
+From: Ramesh Chandrasekaran <ramesh.chandrasekaran@stericsson.com>
+Subject: drivers/rtc/rtc-ab8500.c: use UIE emulation
 
-Warn on non-standard signature styles.
+RTC: Fix to correct improper implementation of clock update irq
+(RTC_UIE) and enable UIE Emulation.
 
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Ramesh Chandrasekaran <ramesh.chandrasekaran@stericsson.com>
+Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/rtc/Kconfig      |    1 +
+ drivers/rtc/rtc-ab8500.c |   15 ++++++++++++++-
+ 2 files changed, 15 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-test-for-non-standard-signatures scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-test-for-non-standard-signatures
-+++ a/scripts/checkpatch.pl
-@@ -1600,13 +1600,17 @@ sub process {
+diff -puN drivers/rtc/Kconfig~drivers-rtc-rtc-ab8500c-use-uie-emulation drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~drivers-rtc-rtc-ab8500c-use-uie-emulation
++++ a/drivers/rtc/Kconfig
+@@ -694,6 +694,7 @@ config RTC_DRV_AB3100
+ config RTC_DRV_AB8500
+ 	tristate "ST-Ericsson AB8500 RTC"
+ 	depends on AB8500_CORE
++	select RTC_INTF_DEV_UIE_EMUL
+ 	help
+ 	  Select this to enable the ST-Ericsson AB8500 power management IC RTC
+ 	  support. This chip contains a battery- and capacitor-backed RTC.
+diff -puN drivers/rtc/rtc-ab8500.c~drivers-rtc-rtc-ab8500c-use-uie-emulation drivers/rtc/rtc-ab8500.c
+--- a/drivers/rtc/rtc-ab8500.c~drivers-rtc-rtc-ab8500c-use-uie-emulation
++++ a/drivers/rtc/rtc-ab8500.c
+@@ -224,7 +224,8 @@ static int ab8500_rtc_set_alarm(struct d
+ {
+ 	int retval, i;
+ 	unsigned char buf[ARRAY_SIZE(ab8500_rtc_alarm_regs)];
+-	unsigned long mins, secs = 0;
++	unsigned long mins, secs = 0, cursec=0;
++	struct rtc_time curtm;
  
- # Check signature styles
- 		if (!$in_header_lines &&
--		    $line =~ /^(\s*)($signature_tags)(\s*)(.*)/) {
-+		    $line =~ /^(\s*)([a-z0-9_-]+by:|$signature_tags)(\s*)(.*)/i) {
- 			my $space_before = $1;
- 			my $sign_off = $2;
- 			my $space_after = $3;
- 			my $email = $4;
- 			my $ucfirst_sign_off = ucfirst(lc($sign_off));
+ 	if (alarm->time.tm_year < (AB8500_RTC_EPOCH - 1900)) {
+ 		dev_dbg(dev, "year should be equal to or greater than %d\n",
+@@ -236,6 +237,18 @@ static int ab8500_rtc_set_alarm(struct d
+ 	rtc_tm_to_time(&alarm->time, &secs);
  
-+			if ($sign_off !~ /$signature_tags/) {
-+				WARN("BAD_SIGN_OFF",
-+				     "Non-standard signature: $sign_off\n" . $herecurr);
-+			}
- 			if (defined $space_before && $space_before ne "") {
- 				WARN("BAD_SIGN_OFF",
- 				     "Do not use whitespace before $ucfirst_sign_off\n" . $herecurr);
+ 	/*
++	 * Check whether alarm is set less than 1min.
++	 * Since our RTC doesn't support alarm resolution less than 1min,
++	 * return -EINVAL, so UIE EMUL can take it up, incase of UIE_ON
++	 */
++	ab8500_rtc_read_time(dev, &curtm); /* Read current time */
++	rtc_tm_to_time(&curtm, &cursec);
++	if ((secs - cursec) < 59 ){
++		dev_dbg(dev, "Alarm less than 1 minute not supported\r\n");
++		return -EINVAL;
++	}
++
++	/*
+ 	 * Convert it to the number of seconds since 01-01-2000 00:00:00, since
+ 	 * we only have a small counter in the RTC.
+ 	 */
 _
-Subject: Subject: checkpatch: test for non-standard signatures
+Subject: Subject: drivers/rtc/rtc-ab8500.c: use UIE emulation
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from ramesh.chandrasekaran@stericsson.com are
 
-linux-next.patch
-get_maintainer-fix-help-warning.patch
-printk-add-generic-functions-to-find-kern_level-headers.patch
-printk-add-kern_levelsh-to-make-kern_level-available-for-asm-use.patch
-arch-remove-direct-definitions-of-kern_level-uses.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
-sound-use-printk_get_level-and-printk_skip_level.patch
-printk-convert-the-format-for-kern_level-to-a-2-byte-pattern.patch
-printk-only-look-for-prefix-levels-in-kernel-messages.patch
-printk-remove-the-now-unnecessary-c-annotation-for-kern_cont.patch
-vsprintf-add-%pmr-for-bluetooth-mac-address.patch
-vsprintf-add-%pmr-for-bluetooth-mac-address-fix.patch
-checkpatch-update-alignment-check.patch
-checkpatch-test-for-non-standard-signatures.patch
+drivers-rtc-rtc-ab8500c-use-uie-emulation.patch
 
