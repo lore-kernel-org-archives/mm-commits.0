@@ -1,127 +1,224 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer.patch added to -mm tree
-Date: Wed, 20 Jun 2012 14:07:55 -0700
-Message-ID: <20120620210756.27F62A0123@akpm.mtv.corp.google.com>
+Subject: [to-be-updated] memcg-prevent-from-oom-with-too-many-dirty-pages.patch removed from -mm tree
+Date: Wed, 20 Jun 2012 14:10:22 -0700
+Message-ID: <20120620211023.26F42A0123@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:49399 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755083Ab2FTVH7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jun 2012 17:07:59 -0400
-Received: by eaao13 with SMTP id o13so441137eaa.1
-        for <mm-commits@vger.kernel.org>; Wed, 20 Jun 2012 14:07:57 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:60780 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754751Ab2FTVKY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jun 2012 17:10:24 -0400
+Received: by vbnl22 with SMTP id l22so777103vbn.1
+        for <mm-commits@vger.kernel.org>; Wed, 20 Jun 2012 14:10:23 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jiang.liu@huawei.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, qiuxishi@huawei.com, rientjes@google.com, stable@vger.kernel.org
+To: mhocko@suse.cz, fengguang.wu@intel.com, gthelen@google.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujtisu.com, mgorman@suse.de, minchan@kernel.org, riel@redhat.com, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory hotplug: fix invalid memory access caused by stale kswapd pointer
-has been added to the -mm tree.  Its filename is
-     memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer.patch
+     Subject: memcg: prevent OOM with too many dirty pages
+has been removed from the -mm tree.  Its filename was
+     memcg-prevent-from-oom-with-too-many-dirty-pages.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because an updated version will be merged
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Jiang Liu <jiang.liu@huawei.com>
-Subject: memory hotplug: fix invalid memory access caused by stale kswapd pointer
+From: Michal Hocko <mhocko@suse.cz>
+Subject: memcg: prevent from OOM with too many dirty pages
 
-kswapd_stop() is called to destroy the kswapd work thread when all memory
-of a NUMA node has been offlined.  But kswapd_stop() only terminates the
-work thread without resetting NODE_DATA(nid)->kswapd to NULL.  The stale
-pointer will prevent kswapd_run() from creating a new work thread when
-adding memory to the memory-less NUMA node again.  Eventually the stale
-pointer may cause invalid memory access.
+The current implementation of dirty pages throttling is not memcg aware
+which makes it easy to have memcg LRUs full of dirty pages.  Without
+throttling, these LRUs can be scanned faster than the rate of writeback,
+leading to memcg OOM conditions when the hard limit is small.
 
-An example stack dump as below. It's reproduced with 2.6.32, but latest
-kernel has the same issue.
+This patch fixes the problem by throttling the allocating process
+(possibly a writer) during the hard limit reclaim by waiting on
+PageReclaim pages.  We are waiting only for PageReclaim pages because
+those are the pages that made one full round over LRU and that means that
+the writeback is much slower than scanning.  The solution is far from
+being ideal - long term solution is memcg aware dirty throttling - but it
+is meant to be a band aid until we have a real fix.  We are seeing this
+happening during nightly backups which are placed into containers to
+prevent from eviction of the real working set.
 
-BUG: unable to handle kernel NULL pointer dereference at (null)
-IP: [<ffffffff81051a94>] exit_creds+0x12/0x78
-PGD 0
-Oops: 0000 [#1] SMP
-last sysfs file: /sys/devices/system/memory/memory391/state
-CPU 11
-Modules linked in: cpufreq_conservative cpufreq_userspace cpufreq_powersave acpi_cpufreq microcode fuse loop dm_mod tpm_tis rtc_cmos i2c_i801 rtc_core tpm serio_raw pcspkr sg tpm_bios igb i2c_core iTCO_wdt rtc_lib mptctl iTCO_vendor_support button dca bnx2 usbhid hid uhci_hcd ehci_hcd usbcore sd_mod crc_t10dif edd ext3 mbcache jbd fan ide_pci_generic ide_core ata_generic ata_piix libata thermal processor thermal_sys hwmon mptsas mptscsih mptbase scsi_transport_sas scsi_mod
-Pid: 7949, comm: sh Not tainted 2.6.32.12-qiuxishi-5-default #92 Tecal RH2285
-RIP: 0010:[<ffffffff81051a94>]  [<ffffffff81051a94>] exit_creds+0x12/0x78
-RSP: 0018:ffff8806044f1d78  EFLAGS: 00010202
-RAX: 0000000000000000 RBX: ffff880604f22140 RCX: 0000000000019502
-RDX: 0000000000000000 RSI: 0000000000000202 RDI: 0000000000000000
-RBP: ffff880604f22150 R08: 0000000000000000 R09: ffffffff81a4dc10
-R10: 00000000000032a0 R11: ffff880006202500 R12: 0000000000000000
-R13: 0000000000c40000 R14: 0000000000008000 R15: 0000000000000001
-FS:  00007fbc03d066f0(0000) GS:ffff8800282e0000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-CR2: 0000000000000000 CR3: 000000060f029000 CR4: 00000000000006e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-Process sh (pid: 7949, threadinfo ffff8806044f0000, task ffff880603d7c600)
-Stack:
- ffff880604f22140 ffffffff8103aac5 ffff880604f22140 ffffffff8104d21e
-<0> ffff880006202500 0000000000008000 0000000000c38000 ffffffff810bd5b1
-<0> 0000000000000000 ffff880603d7c600 00000000ffffdd29 0000000000000003
-Call Trace:
- [<ffffffff8103aac5>] __put_task_struct+0x5d/0x97
- [<ffffffff8104d21e>] kthread_stop+0x50/0x58
- [<ffffffff810bd5b1>] offline_pages+0x324/0x3da
- [<ffffffff8121111f>] memory_block_change_state+0x179/0x1db
- [<ffffffff8121121f>] store_mem_state+0x9e/0xbb
- [<ffffffff8111a1f1>] sysfs_write_file+0xd0/0x107
- [<ffffffff810c7fe0>] vfs_write+0xad/0x169
- [<ffffffff810c8158>] sys_write+0x45/0x6e
- [<ffffffff8100296b>] system_call_fastpath+0x16/0x1b
- [<00007fbc0344df60>] 0x7fbc0344df60
-Code: ff 4d 00 0f 94 c0 84 c0 74 08 48 89 ef e8 1f fd ff ff 5b 5d 31 c0 41 5c c3 53 48 8b 87 20 06 00 00 48 89 fb 48 8b bf 18 06 00 00 <8b> 00 48 c7 83 18 06 00 00 00 00 00 00 f0 ff 0f 0f 94 c0 84 c0
-RIP  [<ffffffff81051a94>] exit_creds+0x12/0x78
- RSP <ffff8806044f1d78>
-CR2: 0000000000000000
+The change affects only memcg reclaim and only when we encounter
+PageReclaim pages which is a signal that the reclaim doesn't catch up on
+with the writers so somebody should be throttled.  This could be
+potentially unfair because it could be somebody else from the group who
+gets throttled on behalf of the writer but as writers need to allocate as
+well and they allocate in higher rate the probability that only innocent
+processes would be penalized is not that high.
 
-Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
-Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Acked-by: David Rientjes <rientjes@google.com>
-Reviewed-by: Minchan Kim <minchan@kernel.org>
-Cc: <stable@vger.kernel.org>
+I have tested this change by a simple dd copying /dev/zero to tmpfs or
+ext3 running under small memcg (1G copy under 5M, 60M, 300M and 2G
+containers) and dd got killed by OOM killer every time.  With the patch I
+could run the dd with the same size under 5M controller without any OOM. 
+The issue is more visible with slower devices for output.
+
+* With the patch
+================
+* tmpfs size=2G
+---------------
+$ vim cgroup_cache_oom_test.sh
+$ ./cgroup_cache_oom_test.sh 5M
+using Limit 5M for group
+1000+0 records in
+1000+0 records out
+1048576000 bytes (1.0 GB) copied, 30.4049 s, 34.5 MB/s
+$ ./cgroup_cache_oom_test.sh 60M
+using Limit 60M for group
+1000+0 records in
+1000+0 records out
+1048576000 bytes (1.0 GB) copied, 31.4561 s, 33.3 MB/s
+$ ./cgroup_cache_oom_test.sh 300M
+using Limit 300M for group
+1000+0 records in
+1000+0 records out
+1048576000 bytes (1.0 GB) copied, 20.4618 s, 51.2 MB/s
+$ ./cgroup_cache_oom_test.sh 2G
+using Limit 2G for group
+1000+0 records in
+1000+0 records out
+1048576000 bytes (1.0 GB) copied, 1.42172 s, 738 MB/s
+
+* ext3
+------
+$ ./cgroup_cache_oom_test.sh 5M
+using Limit 5M for group
+1000+0 records in
+1000+0 records out
+1048576000 bytes (1.0 GB) copied, 27.9547 s, 37.5 MB/s
+$ ./cgroup_cache_oom_test.sh 60M
+using Limit 60M for group
+1000+0 records in
+1000+0 records out
+1048576000 bytes (1.0 GB) copied, 30.3221 s, 34.6 MB/s
+$ ./cgroup_cache_oom_test.sh 300M
+using Limit 300M for group
+1000+0 records in
+1000+0 records out
+1048576000 bytes (1.0 GB) copied, 24.5764 s, 42.7 MB/s
+$ ./cgroup_cache_oom_test.sh 2G
+using Limit 2G for group
+1000+0 records in
+1000+0 records out
+1048576000 bytes (1.0 GB) copied, 3.35828 s, 312 MB/s
+
+* Without the patch
+===================
+* tmpfs size=2G
+---------------
+$ ./cgroup_cache_oom_test.sh 5M
+using Limit 5M for group
+./cgroup_cache_oom_test.sh: line 46:  4668 Killed                  dd if=/dev/zero of=$OUT/zero bs=1M count=$count
+$ ./cgroup_cache_oom_test.sh 60M
+using Limit 60M for group
+1000+0 records in
+1000+0 records out
+1048576000 bytes (1.0 GB) copied, 25.4989 s, 41.1 MB/s
+$ ./cgroup_cache_oom_test.sh 300M
+using Limit 300M for group
+1000+0 records in
+1000+0 records out
+1048576000 bytes (1.0 GB) copied, 24.3928 s, 43.0 MB/s
+$ ./cgroup_cache_oom_test.sh 2G
+using Limit 2G for group
+1000+0 records in
+1000+0 records out
+1048576000 bytes (1.0 GB) copied, 1.49797 s, 700 MB/s
+
+* ext3
+------
+$ ./cgroup_cache_oom_test.sh 5M
+using Limit 5M for group
+./cgroup_cache_oom_test.sh: line 46:  4689 Killed                  dd if=/dev/zero of=$OUT/zero bs=1M count=$count
+$ ./cgroup_cache_oom_test.sh 60M
+using Limit 60M for group
+./cgroup_cache_oom_test.sh: line 46:  4692 Killed                  dd if=/dev/zero of=$OUT/zero bs=1M count=$count
+$ ./cgroup_cache_oom_test.sh 300M
+using Limit 300M for group
+1000+0 records in
+1000+0 records out
+1048576000 bytes (1.0 GB) copied, 20.248 s, 51.8 MB/s
+$ ./cgroup_cache_oom_test.sh 2G
+using Limit 2G for group
+1000+0 records in
+1000+0 records out
+1048576000 bytes (1.0 GB) copied, 2.85201 s, 368 MB/s
+
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujtisu.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Ying Han <yinghan@google.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Fengguang Wu <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/vmscan.c |   17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
 
-diff -puN mm/vmscan.c~memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer mm/vmscan.c
---- a/mm/vmscan.c~memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer
+diff -puN mm/vmscan.c~memcg-prevent-from-oom-with-too-many-dirty-pages mm/vmscan.c
+--- a/mm/vmscan.c~memcg-prevent-from-oom-with-too-many-dirty-pages
 +++ a/mm/vmscan.c
-@@ -2961,8 +2961,10 @@ void kswapd_stop(int nid)
- {
- 	struct task_struct *kswapd = NODE_DATA(nid)->kswapd;
+@@ -720,9 +720,20 @@ static unsigned long shrink_page_list(st
+ 			(PageSwapCache(page) && (sc->gfp_mask & __GFP_IO));
  
--	if (kswapd)
-+	if (kswapd) {
- 		kthread_stop(kswapd);
-+		NODE_DATA(nid)->kswapd = NULL;
-+	}
- }
+ 		if (PageWriteback(page)) {
+-			nr_writeback++;
+-			unlock_page(page);
+-			goto keep;
++			/*
++			 * memcg doesn't have any dirty pages throttling so we
++			 * could easily OOM just because too many pages are in
++			 * writeback from reclaim and there is nothing else to
++			 * reclaim.
++			 */
++			if (PageReclaim(page)
++					&& may_enter_fs && !global_reclaim(sc))
++				wait_on_page_writeback(page);
++			else {
++				nr_writeback++;
++				unlock_page(page);
++				goto keep;
++			}
+ 		}
  
- static int __init kswapd_init(void)
+ 		references = page_check_references(page, sc);
 _
-Subject: Subject: memory hotplug: fix invalid memory access caused by stale kswapd pointer
 
-Patches currently in -mm which might be from jiang.liu@huawei.com are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
-linux-next.patch
-memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer.patch
-memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix.patch
+memcg-fix-use_hierarchy-css_is_ancestor-oops-regression.patch
+memcg-rename-mem_cgroup_stat_swapout-as-mem_cgroup_stat_swap.patch
+memcg-rename-mem_cgroup_charge_type_mapped-as-mem_cgroup_charge_type_anon.patch
+hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
+hugetlb-dont-use-err_ptr-with-vm_fault-values.patch
+hugetlb-add-an-inline-helper-for-finding-hstate-index.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
+hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
+hugetlb-simplify-migrate_huge_page.patch
+hugetlb-add-a-list-for-tracking-in-use-hugetlb-pages.patch
+hugetlb-make-some-static-variables-global.patch
+hugetlb-make-some-static-variables-global-mark-hugelb_max_hstate-__read_mostly.patch
+mm-hugetlb-add-new-hugetlb-cgroup.patch
+hugetlb-cgroup-add-the-cgroup-pointer-to-page-lru.patch
+hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup.patch
+hugetlb-cgroup-add-support-for-cgroup-removal.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files.patch
+hugetlb-cgroup-migrate-hugetlb-cgroup-info-from-oldpage-to-new-page-during-migration.patch
+hugetlb-cgroup-add-hugetlb-controller-documentation.patch
+hugetlb-move-all-the-in-use-pages-to-active-list.patch
+hugetlb-cgroup-assign-the-page-hugetlb-cgroup-when-we-move-the-page-to-active-list.patch
+hugetlb-cgroup-remove-exclude-and-wakeup-rmdir-calls-from-migrate.patch
+memcg-prevent-from-oom-with-too-many-dirty-pages-fix.patch
+memcg-remove-check-for-signal_pending-during-rmdir.patch
+memcg-clean-up-force_empty_list-return-value-check.patch
 
