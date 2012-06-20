@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-buddy-get-the-allownodes-for-dump-at-once.patch added to -mm tree
-Date: Wed, 20 Jun 2012 13:55:11 -0700
-Message-ID: <20120620205511.5BD22A0308@akpm.mtv.corp.google.com>
+Subject: + memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix.patch added to -mm tree
+Date: Wed, 20 Jun 2012 14:07:57 -0700
+Message-ID: <20120620210758.0FC40A0123@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:35809 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753570Ab2FTUzO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jun 2012 16:55:14 -0400
-Received: by qabg24 with SMTP id g24so135383qab.1
-        for <mm-commits@vger.kernel.org>; Wed, 20 Jun 2012 13:55:13 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:64587 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758047Ab2FTVH7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jun 2012 17:07:59 -0400
+Received: by yenl3 with SMTP id l3so776359yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 20 Jun 2012 14:07:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shangw@linux.vnet.ibm.com, hannes@cmpxchg.org, minchan.kim@gmail.com, rientjes@google.com
+Cc: akpm@linux-foundation.org, jiang.liu@huawei.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, qiuxishi@huawei.com, rientjes@google.com
 
 
 The patch titled
-     Subject: mm/buddy: get the allownodes for dump at once
+     Subject: memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix
 has been added to the -mm tree.  Its filename is
-     mm-buddy-get-the-allownodes-for-dump-at-once.patch
+     memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,75 +33,83 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Gavin Shan <shangw@linux.vnet.ibm.com>
-Subject: mm/buddy: get the allownodes for dump at once
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix
 
-When dumping the statistics for zones in the allowed nodes in the function
-show_free_areas(), skip_free_areas_node() got called for multiple times to
-figure out the same information: the allowed nodes for dump.  It's
-reasonable to get the allowed nodes at once.  That will also help to get
-consistent dump information.
+add pglist_data.kswapd locking comments
 
-Signed-off-by: Gavin Shan <shangw@linux.vnet.ibm.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Jiang Liu <jiang.liu@huawei.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ include/linux/mmzone.h |    2 +-
+ mm/vmscan.c            |    3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-buddy-get-the-allownodes-for-dump-at-once mm/page_alloc.c
---- a/mm/page_alloc.c~mm-buddy-get-the-allownodes-for-dump-at-once
-+++ a/mm/page_alloc.c
-@@ -2763,11 +2763,19 @@ out:
+diff -puN include/linux/mmzone.h~memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix include/linux/mmzone.h
+--- a/include/linux/mmzone.h~memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix
++++ a/include/linux/mmzone.h
+@@ -693,7 +693,7 @@ typedef struct pglist_data {
+ 					     range, including holes */
+ 	int node_id;
+ 	wait_queue_head_t kswapd_wait;
+-	struct task_struct *kswapd;
++	struct task_struct *kswapd;	/* Protected by lock_memory_hotplug() */
+ 	int kswapd_max_order;
+ 	enum zone_type classzone_idx;
+ } pg_data_t;
+diff -puN mm/vmscan.c~memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix mm/vmscan.c
+--- a/mm/vmscan.c~memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix
++++ a/mm/vmscan.c
+@@ -2955,7 +2955,8 @@ int kswapd_run(int nid)
+ }
+ 
+ /*
+- * Called by memory hotplug when all memory in a node is offlined.
++ * Called by memory hotplug when all memory in a node is offlined.  Caller must
++ * hold lock_memory_hotplug().
   */
- void show_free_areas(unsigned int filter)
+ void kswapd_stop(int nid)
  {
--	int cpu;
-+	int nid, cpu;
-+	nodemask_t allownodes;
- 	struct zone *zone;
- 
-+	/* Figure out the allowed nodes for dump */
-+	nodes_clear(allownodes);
-+	for_each_online_node(nid) {
-+		if (!skip_free_areas_node(filter, nid))
-+			node_set(nid, allownodes);
-+	}
-+
- 	for_each_populated_zone(zone) {
--		if (skip_free_areas_node(filter, zone_to_nid(zone)))
-+		if (!node_isset(zone_to_nid(zone), allownodes))
- 			continue;
- 		show_node(zone);
- 		printk("%s per-cpu:\n", zone->name);
-@@ -2810,7 +2818,7 @@ void show_free_areas(unsigned int filter
- 	for_each_populated_zone(zone) {
- 		int i;
- 
--		if (skip_free_areas_node(filter, zone_to_nid(zone)))
-+		if (!node_isset(zone_to_nid(zone), allownodes))
- 			continue;
- 		show_node(zone);
- 		printk("%s"
-@@ -2879,7 +2887,7 @@ void show_free_areas(unsigned int filter
- 	for_each_populated_zone(zone) {
-  		unsigned long nr[MAX_ORDER], flags, order, total = 0;
- 
--		if (skip_free_areas_node(filter, zone_to_nid(zone)))
-+		if (!node_isset(zone_to_nid(zone), allownodes))
- 			continue;
- 		show_node(zone);
- 		printk("%s: ", zone->name);
 _
-Subject: Subject: mm/buddy: get the allownodes for dump at once
+Subject: Subject: memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix
 
-Patches currently in -mm which might be from shangw@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-slab-remove-duplicate-check.patch
-mm-buddy-cleanup-on-should_fail_alloc_page.patch
-mm-compaction-cleanup-on-compaction_deferred.patch
-mm-buddy-get-the-allownodes-for-dump-at-once.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+mm-fix-slab-page-_count-corruption-when-using-slub.patch
+memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix.patch
+tmpfs-implement-numa-node-interleaving-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
+mm.patch
+mm-make-vb_alloc-more-foolproof-fix.patch
+mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks.patch
+mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-fix.patch
+memcg-prevent-from-oom-with-too-many-dirty-pages-fix.patch
+mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
+avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
+kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
+backlight-l4f00242t03-use-devm_gpio_request_one-fix.patch
+string-introduce-memweight-fix.patch
+kmod-avoid-deadlock-from-recursive-kmod-call.patch
+fork-use-vma_pages-to-simplify-the-code-fix.patch
+fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
