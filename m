@@ -1,56 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Wed, 20 Jun 2012 12:25:42 -0700
-Message-ID: <20120620192543.E14D3A016C@akpm.mtv.corp.google.com>
+Subject: [merged] drivers-power-power_supply_corec-partially-fix.patch removed from -mm tree
+Date: Wed, 20 Jun 2012 12:26:50 -0700
+Message-ID: <20120620192650.6C676A016C@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:56208 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757295Ab2FTTZp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jun 2012 15:25:45 -0400
-Received: by yenl3 with SMTP id l3so764214yen.1
-        for <mm-commits@vger.kernel.org>; Wed, 20 Jun 2012 12:25:44 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:38359 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757295Ab2FTT0x (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jun 2012 15:26:53 -0400
+Received: by wgbdt11 with SMTP id dt11so449601wgb.1
+        for <mm-commits@vger.kernel.org>; Wed, 20 Jun 2012 12:26:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cbouatmailru@gmail.com, jenny.tc@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: drivers/power/power_supply_core.c: partially fix
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     drivers-power-power_supply_corec-partially-fix.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: drivers/power/power_supply_core.c: partially fix
 
+drivers/power/power_supply_core.c: In function 'psy_register_thermal':
+drivers/power/power_supply_core.c:204: warning: passing argument 1 of 'thermal_zone_device_register' discards qualifiers from pointer target type
+include/linux/thermal.h:149: note: expected 'char *' but argument is of type 'const char *'
+drivers/power/power_supply_core.c:204: warning: passing argument 3 of 'thermal_zone_device_register' makes integer from pointer without a cast
+include/linux/thermal.h:149: note: expected 'int' but argument is of type 'struct power_supply *'
+drivers/power/power_supply_core.c:204: error: too few arguments to function 'thermal_zone_device_register'
+
+make the error go away.  The warnings remain unfixed.
+
+Cc: Jenny TC <jenny.tc@intel.com>
+Cc: Anton Vorontsov <cbouatmailru@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/sb_edac.c |    5 -----
- 1 file changed, 5 deletions(-)
+ drivers/power/power_supply_core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/edac/sb_edac.c~linux-next-git-rejects drivers/edac/sb_edac.c
---- a/drivers/edac/sb_edac.c~linux-next-git-rejects
-+++ a/drivers/edac/sb_edac.c
-@@ -1596,13 +1596,8 @@ static void sbridge_unregister_mci(struc
- 
- 	pvt = mci->pvt_info;
- 
--<<<<<<< HEAD
--	debugf0("MC: " __FILE__ ": %s(): mci = %p, dev = %p\n",
--		__func__, mci, &sbridge_dev->pdev[0]->dev);
--=======
- 	edac_dbg(0, "MC: mci = %p, dev = %p\n",
- 		 mci, &sbridge_dev->pdev[0]->dev);
-->>>>>>> linux-next/akpm-base
- 
- 	/* Remove MC sysfs nodes */
- 	edac_mc_del_mc(mci->pdev);
+diff -puN drivers/power/power_supply_core.c~drivers-power-power_supply_corec-partially-fix drivers/power/power_supply_core.c
+--- a/drivers/power/power_supply_core.c~drivers-power-power_supply_corec-partially-fix
++++ a/drivers/power/power_supply_core.c
+@@ -201,7 +201,7 @@ static int psy_register_thermal(struct p
+ 	for (i = 0; i < psy->num_properties; i++) {
+ 		if (psy->properties[i] == POWER_SUPPLY_PROP_TEMP) {
+ 			psy->tzd = thermal_zone_device_register(psy->name, 0,
+-					psy, &psy_tzd_ops, 0, 0, 0, 0);
++					0, psy, &psy_tzd_ops, 0, 0, 0, 0);
+ 			if (IS_ERR(psy->tzd))
+ 				return PTR_ERR(psy->tzd);
+ 			break;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -59,7 +65,6 @@ linux-next.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-block-nvmec-stop-breaking-my-i386-build.patch
-drivers-power-power_supply_corec-partially-fix.patch
 mm-fix-slab-page-_count-corruption-when-using-slub-fix.patch
 tmpfs-implement-numa-node-interleaving-fix.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
