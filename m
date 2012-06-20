@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch added to -mm tree
-Date: Wed, 20 Jun 2012 14:20:06 -0700
-Message-ID: <20120620212006.C9B8BA0123@akpm.mtv.corp.google.com>
+Subject: + vsprintf-add-%pmr-for-bluetooth-mac-address-fix.patch added to -mm tree
+Date: Wed, 20 Jun 2012 14:20:04 -0700
+Message-ID: <20120620212005.28A69A0123@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:48309 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758136Ab2FTVUI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jun 2012 17:20:08 -0400
-Received: by qcsp5 with SMTP id p5so767167qcs.1
-        for <mm-commits@vger.kernel.org>; Wed, 20 Jun 2012 14:20:07 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:51845 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758101Ab2FTVUG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jun 2012 17:20:06 -0400
+Received: by vbnl22 with SMTP id l22so778032vbn.1
+        for <mm-commits@vger.kernel.org>; Wed, 20 Jun 2012 14:20:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, rdunlap@xenotime.net
+Cc: andrei.emeltchenko@intel.com, joe@perches.com, marcel@holtmann.org
 
 
 The patch titled
-     Subject: lib/vsprintf.c: remind people to update Documentation/printk-formats.txt when adding printk formats
+     Subject: Documentation/printk-formats.txt: add description for %pMR
 has been added to the -mm tree.  Its filename is
-     lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch
+     vsprintf-add-%pmr-for-bluetooth-mac-address-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,62 +33,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib/vsprintf.c: remind people to update Documentation/printk-formats.txt when adding printk formats
+From: Andrei Emeltchenko <andrei.emeltchenko@intel.com>
+Subject: Documentation/printk-formats.txt: add description for %pMR
 
-Cc: Randy Dunlap <rdunlap@xenotime.net>
+Add information about new specifier %pMR for Bluetooth addresses.
+
+Signed-off-by: Andrei Emeltchenko <andrei.emeltchenko@intel.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Marcel Holtmann <marcel@holtmann.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |    2 ++
- 1 file changed, 2 insertions(+)
+ Documentation/printk-formats.txt |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN lib/vsprintf.c~lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats lib/vsprintf.c
---- a/lib/vsprintf.c~lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats
-+++ a/lib/vsprintf.c
-@@ -1297,6 +1297,8 @@ qualifier:
-  *   case.
-  * %n is ignored
-  *
-+ * ** Please update Documentation/printk-formats.txt when making changes **
-+ *
-  * The return value is the number of characters which would
-  * be generated for the given input, excluding the trailing
-  * '\0', as per ISO C99. If you want to have the exact
+diff -puN Documentation/printk-formats.txt~vsprintf-add-%pmr-for-bluetooth-mac-address-fix Documentation/printk-formats.txt
+--- a/Documentation/printk-formats.txt~vsprintf-add-%pmr-for-bluetooth-mac-address-fix
++++ a/Documentation/printk-formats.txt
+@@ -56,6 +56,7 @@ Struct Resources:
+ MAC/FDDI addresses:
+ 
+ 	%pM	00:01:02:03:04:05
++	%pMR	05:04:03:02:01:00
+ 	%pMF	00-01-02-03-04-05
+ 	%pm	000102030405
+ 
+@@ -67,6 +68,10 @@ MAC/FDDI addresses:
+ 	the 'M' specifier to use dash ('-') separators instead of the default
+ 	separator.
+ 
++	For Bluetooth addresses the 'R' specifier shall be used after the 'M'
++	specifier to use reversed byte order suitable for visual interpretation
++	of Bluetooth addresses which are in the little endian order.
++
+ IPv4 addresses:
+ 
+ 	%pI4	1.2.3.4
 _
-Subject: Subject: lib/vsprintf.c: remind people to update Documentation/printk-formats.txt when adding printk formats
+Subject: Subject: Documentation/printk-formats.txt: add description for %pMR
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from andrei.emeltchenko@intel.com are
 
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-mm-fix-slab-page-_count-corruption-when-using-slub.patch
-memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix.patch
-tmpfs-implement-numa-node-interleaving-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
-mm.patch
-mm-make-vb_alloc-more-foolproof-fix.patch
-mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks.patch
-mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-fix.patch
-mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
-memcg-prevent-oom-with-too-many-dirty-pages.patch
-avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
-kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
-lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch
-backlight-l4f00242t03-use-devm_gpio_request_one-fix.patch
-string-introduce-memweight-fix.patch
-kmod-avoid-deadlock-from-recursive-kmod-call.patch
-fork-use-vma_pages-to-simplify-the-code-fix.patch
-fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+vsprintf-add-%pmr-for-bluetooth-mac-address.patch
+vsprintf-add-%pmr-for-bluetooth-mac-address-fix.patch
 
