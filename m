@@ -1,96 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: [merged] xtensa-use-the-declarations-provided-by-asm-sectionsh.patch removed from -mm tree
-Date: Thu, 21 Jun 2012 12:25:23 -0700
-Message-ID: <20120621192523.543FFA00B0@akpm.mtv.corp.google.com>
+Subject: [merged] mm-fix-kernel-doc-warnings.patch removed from -mm tree
+Date: Thu, 21 Jun 2012 12:25:32 -0700
+Message-ID: <20120621192532.97429A00B0@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:63056 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759937Ab2FUTZZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jun 2012 15:25:25 -0400
-Received: by wgbdt11 with SMTP id dt11so63590wgb.1
-        for <mm-commits@vger.kernel.org>; Thu, 21 Jun 2012 12:25:24 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:43415 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760108Ab2FUTZd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jun 2012 15:25:33 -0400
+Received: by mail-vb0-f74.google.com with SMTP id l22so95172vbn.1
+        for <mm-commits@vger.kernel.org>; Thu, 21 Jun 2012 12:25:33 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, chris@zankel.net, mm-commits@vger.kernel.org
+To: liwp@linux.vnet.ibm.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: xtensa: use the declarations provided by <asm/sections.h>
+     Subject: mm: fix kernel-doc warnings
 has been removed from the -mm tree.  Its filename was
-     xtensa-use-the-declarations-provided-by-asm-sectionsh.patch
+     mm-fix-kernel-doc-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: xtensa: use the declarations provided by <asm/sections.h>
+From: Wanpeng Li <liwp@linux.vnet.ibm.com>
+Subject: mm: fix kernel-doc warnings
 
-  - Include <asm/sections.h>,
-  - Remove the (different) extern declarations,
-  - Remove the no longer needed address-of ('&') operators,
-  - Use %p to format pointer differences.
+fix kernel-doc warnings such as
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Chris Zankel <chris@zankel.net>
+Warning(../mm/page_cgroup.c:432): No description found for parameter 'id'
+Warning(../mm/page_cgroup.c:432): Excess function parameter 'mem' description in 'swap_cgroup_record'
+
+Signed-off-by: Wanpeng Li <liwp@linux.vnet.ibm.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/mm/init.c |   18 +++++++-----------
- 1 file changed, 7 insertions(+), 11 deletions(-)
+ mm/memblock.c    |   12 ++++++------
+ mm/memcontrol.c  |    4 ++--
+ mm/oom_kill.c    |    2 +-
+ mm/page_cgroup.c |    4 ++--
+ mm/pagewalk.c    |    1 -
+ mm/percpu-vm.c   |    1 -
+ 6 files changed, 11 insertions(+), 13 deletions(-)
 
-diff -puN arch/xtensa/mm/init.c~xtensa-use-the-declarations-provided-by-asm-sectionsh arch/xtensa/mm/init.c
---- a/arch/xtensa/mm/init.c~xtensa-use-the-declarations-provided-by-asm-sectionsh
-+++ a/arch/xtensa/mm/init.c
-@@ -26,11 +26,7 @@
+diff -puN mm/memblock.c~mm-fix-kernel-doc-warnings mm/memblock.c
+--- a/mm/memblock.c~mm-fix-kernel-doc-warnings
++++ a/mm/memblock.c
+@@ -540,9 +540,9 @@ int __init_memblock memblock_reserve(phy
+  * __next_free_mem_range - next function for for_each_free_mem_range()
+  * @idx: pointer to u64 loop variable
+  * @nid: nid: node selector, %MAX_NUMNODES for all nodes
+- * @p_start: ptr to phys_addr_t for start address of the range, can be %NULL
+- * @p_end: ptr to phys_addr_t for end address of the range, can be %NULL
+- * @p_nid: ptr to int for nid of the range, can be %NULL
++ * @out_start: ptr to phys_addr_t for start address of the range, can be %NULL
++ * @out_end: ptr to phys_addr_t for end address of the range, can be %NULL
++ * @out_nid: ptr to int for nid of the range, can be %NULL
+  *
+  * Find the first free area from *@idx which matches @nid, fill the out
+  * parameters, and update *@idx for the next iteration.  The lower 32bit of
+@@ -616,9 +616,9 @@ void __init_memblock __next_free_mem_ran
+  * __next_free_mem_range_rev - next function for for_each_free_mem_range_reverse()
+  * @idx: pointer to u64 loop variable
+  * @nid: nid: node selector, %MAX_NUMNODES for all nodes
+- * @p_start: ptr to phys_addr_t for start address of the range, can be %NULL
+- * @p_end: ptr to phys_addr_t for end address of the range, can be %NULL
+- * @p_nid: ptr to int for nid of the range, can be %NULL
++ * @out_start: ptr to phys_addr_t for start address of the range, can be %NULL
++ * @out_end: ptr to phys_addr_t for end address of the range, can be %NULL
++ * @out_nid: ptr to int for nid of the range, can be %NULL
+  *
+  * Reverse of __next_free_mem_range().
+  */
+diff -puN mm/memcontrol.c~mm-fix-kernel-doc-warnings mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-fix-kernel-doc-warnings
++++ a/mm/memcontrol.c
+@@ -1234,7 +1234,7 @@ int mem_cgroup_inactive_file_is_low(stru
  
- #include <asm/bootparam.h>
- #include <asm/page.h>
--
--/* References to section boundaries */
--
--extern char _stext, _etext, _sdata, _edata, _rodata_end;
--extern char __init_begin, __init_end;
-+#include <asm/sections.h>
+ /**
+  * mem_cgroup_margin - calculate chargeable space of a memory cgroup
+- * @mem: the memory cgroup
++ * @memcg: the memory cgroup
+  *
+  * Returns the maximum amount of memory @mem can be charged with, in
+  * pages.
+@@ -1508,7 +1508,7 @@ static unsigned long mem_cgroup_reclaim(
  
- /*
-  * mem_reserve(start, end, must_exist)
-@@ -197,9 +193,9 @@ void __init mem_init(void)
- 			reservedpages++;
- 	}
+ /**
+  * test_mem_cgroup_node_reclaimable
+- * @mem: the target memcg
++ * @memcg: the target memcg
+  * @nid: the node ID to be checked.
+  * @noswap : specify true here if the user wants flle only information.
+  *
+diff -puN mm/oom_kill.c~mm-fix-kernel-doc-warnings mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-fix-kernel-doc-warnings
++++ a/mm/oom_kill.c
+@@ -365,7 +365,7 @@ static struct task_struct *select_bad_pr
  
--	codesize =  (unsigned long) &_etext - (unsigned long) &_stext;
--	datasize =  (unsigned long) &_edata - (unsigned long) &_sdata;
--	initsize =  (unsigned long) &__init_end - (unsigned long) &__init_begin;
-+	codesize =  (unsigned long) _etext - (unsigned long) _stext;
-+	datasize =  (unsigned long) _edata - (unsigned long) _sdata;
-+	initsize =  (unsigned long) __init_end - (unsigned long) __init_begin;
+ /**
+  * dump_tasks - dump current memory state of all system tasks
+- * @mem: current's memory controller, if constrained
++ * @memcg: current's memory controller, if constrained
+  * @nodemask: nodemask passed to page allocator for mempolicy ooms
+  *
+  * Dumps the current memory state of all eligible tasks.  Tasks not in the same
+diff -puN mm/page_cgroup.c~mm-fix-kernel-doc-warnings mm/page_cgroup.c
+--- a/mm/page_cgroup.c~mm-fix-kernel-doc-warnings
++++ a/mm/page_cgroup.c
+@@ -392,7 +392,7 @@ static struct swap_cgroup *lookup_swap_c
  
- 	printk("Memory: %luk/%luk available (%ldk kernel code, %ldk reserved, "
- 	       "%ldk data, %ldk init %ldk highmem)\n",
-@@ -237,7 +233,7 @@ void free_initrd_mem(unsigned long start
+ /**
+  * swap_cgroup_cmpxchg - cmpxchg mem_cgroup's id for this swp_entry.
+- * @end: swap entry to be cmpxchged
++ * @ent: swap entry to be cmpxchged
+  * @old: old id
+  * @new: new id
+  *
+@@ -422,7 +422,7 @@ unsigned short swap_cgroup_cmpxchg(swp_e
+ /**
+  * swap_cgroup_record - record mem_cgroup for this swp_entry.
+  * @ent: swap entry to be recorded into
+- * @mem: mem_cgroup to be recorded
++ * @id: mem_cgroup to be recorded
+  *
+  * Returns old value at success, 0 at failure.
+  * (Of course, old value can be 0.)
+diff -puN mm/pagewalk.c~mm-fix-kernel-doc-warnings mm/pagewalk.c
+--- a/mm/pagewalk.c~mm-fix-kernel-doc-warnings
++++ a/mm/pagewalk.c
+@@ -162,7 +162,6 @@ static int walk_hugetlb_range(struct vm_
  
- void free_initmem(void)
- {
--	free_reserved_mem(&__init_begin, &__init_end);
--	printk("Freeing unused kernel memory: %dk freed\n",
--	       (&__init_end - &__init_begin) >> 10);
-+	free_reserved_mem(__init_begin, __init_end);
-+	printk("Freeing unused kernel memory: %zuk freed\n",
-+	       (__init_end - __init_begin) >> 10);
- }
+ /**
+  * walk_page_range - walk a memory map's page tables with a callback
+- * @mm: memory map to walk
+  * @addr: starting address
+  * @end: ending address
+  * @walk: set of callbacks to invoke for each level of the tree
+diff -puN mm/percpu-vm.c~mm-fix-kernel-doc-warnings mm/percpu-vm.c
+--- a/mm/percpu-vm.c~mm-fix-kernel-doc-warnings
++++ a/mm/percpu-vm.c
+@@ -360,7 +360,6 @@ err_free:
+  * @chunk: chunk to depopulate
+  * @off: offset to the area to depopulate
+  * @size: size of the area to depopulate in bytes
+- * @flush: whether to flush cache and tlb or not
+  *
+  * For each cpu, depopulate and unmap pages [@page_start,@page_end)
+  * from @chunk.  If @flush is true, vcache is flushed before unmapping
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from liwp@linux.vnet.ibm.com are
 
 origin.patch
 linux-next.patch
-mn10300-move-setup_jiffies_interrupt-to-cevt-mn10300c.patch
-mn10300-remove-duplicate-definition-of-ptrace_o_tracesysgood.patch
-mn10300-kernel-internalh-needs-linux-irqreturnh.patch
-mn10300-kernel-trapsc-needs-linux-exporth.patch
-mn10300-mm-dma-allocc-needs-linux-exporth.patch
-mn10300-use-elif-definedconfig_-instead-of-elif-config_.patch
+mm-prepare-for-removal-of-obsolete-proc-sys-vm-nr_pdflush_threads.patch
 
