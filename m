@@ -1,149 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-avoid-atomic64_read-in-pmd_read_atomic-for-32bit-pae.patch removed from -mm tree
-Date: Thu, 21 Jun 2012 12:25:10 -0700
-Message-ID: <20120621192510.B20A4A00B0@akpm.mtv.corp.google.com>
+Subject: [merged] mm-fix-slab-page-_count-corruption-when-using-slub.patch removed from -mm tree
+Date: Thu, 21 Jun 2012 12:25:06 -0700
+Message-ID: <20120621192507.DB1F5A00B0@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:38655 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759939Ab2FUTZM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jun 2012 15:25:12 -0400
-Received: by yhgm50 with SMTP id m50so50048yhg.1
-        for <mm-commits@vger.kernel.org>; Thu, 21 Jun 2012 12:25:11 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:32812 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759939Ab2FUTZJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jun 2012 15:25:09 -0400
+Received: by ghbz15 with SMTP id z15so96393ghb.1
+        for <mm-commits@vger.kernel.org>; Thu, 21 Jun 2012 12:25:08 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, drjones@redhat.com, hughd@google.com, jbeulich@suse.com, jrnieder@gmail.com, kosaki.motohiro@gmail.com, lwoodman@redhat.com, mgorman@suse.de, pmatouse@redhat.com, riel@redhat.com, stable@vger.kernel.org, uobergfe@redhat.com, mm-commits@vger.kernel.org
+To: pshelar@nicira.com, aarcange@redhat.com, abhide@nicira.com, cl@linux.com, penberg@cs.helsinki.fi, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: avoid atomic64_read in pmd_read_atomic for 32bit PAE
+     Subject: mm: fix slab->page _count corruption when using slub
 has been removed from the -mm tree.  Its filename was
-     thp-avoid-atomic64_read-in-pmd_read_atomic-for-32bit-pae.patch
+     mm-fix-slab-page-_count-corruption-when-using-slub.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: thp: avoid atomic64_read in pmd_read_atomic for 32bit PAE
+From: Pravin B Shelar <pshelar@nicira.com>
+Subject: mm: fix slab->page _count corruption when using slub
 
-In the x86 32bit PAE CONFIG_TRANSPARENT_HUGEPAGE=y case while holding the
-mmap_sem for reading, cmpxchg8b cannot be used to read pmd contents under
-Xen.
+On arches that do not support this_cpu_cmpxchg_double() slab_lock is used
+to do atomic cmpxchg() on double word which contains page->_count.  The
+page count can be changed from get_page() or put_page() without taking
+slab_lock.  That corrupts page counter.
 
-So instead of dealing only with "consistent" pmdvals in
-pmd_none_or_trans_huge_or_clear_bad() (which would be conceptually
-simpler) we let pmd_none_or_trans_huge_or_clear_bad() deal with pmdvals
-where the low 32bit and high 32bit could be inconsistent (to avoid having
-to use cmpxchg8b).
+Fix it by moving page->_count out of cmpxchg_double data.  So that slub
+does no change it while updating slub meta-data in struct page.
 
-The only guarantee we get from pmd_read_atomic is that if the low part of
-the pmd was found null, the high part will be null too (so the pmd will be
-considered unstable).  And if the low part of the pmd is found "stable"
-later, then it means the whole pmd was read atomically (because after a
-pmd is stable, neither MADV_DONTNEED nor page faults can alter it anymore,
-and we read the high part after the low part).
-
-In the 32bit PAE x86 case, it is enough to read the low part of the pmdval
-atomically to declare the pmd as "stable" and that's true for THP and no
-THP, furthermore in the THP case we also have a barrier() that will
-prevent any inconsistent pmdvals to be cached by a later re-read of the
-*pmd.
-
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Jonathan Nieder <jrnieder@gmail.com>
-Cc: Ulrich Obergfell <uobergfe@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Larry Woodman <lwoodman@redhat.com>
-Cc: Petr Matousek <pmatouse@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Jan Beulich <jbeulich@suse.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
-Tested-by: Andrew Jones <drjones@redhat.com>
+[akpm@linux-foundation.org: use standard comment layout, tweak comment text]
+Reported-by: Amey Bhide <abhide@nicira.com>
+Signed-off-by: Pravin B Shelar <pshelar@nicira.com>
+Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable-3level.h |   30 +++++++++++++-----------
- include/asm-generic/pgtable.h         |   10 ++++++++
- 2 files changed, 27 insertions(+), 13 deletions(-)
+ include/linux/mm_types.h |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN arch/x86/include/asm/pgtable-3level.h~thp-avoid-atomic64_read-in-pmd_read_atomic-for-32bit-pae arch/x86/include/asm/pgtable-3level.h
---- a/arch/x86/include/asm/pgtable-3level.h~thp-avoid-atomic64_read-in-pmd_read_atomic-for-32bit-pae
-+++ a/arch/x86/include/asm/pgtable-3level.h
-@@ -47,16 +47,26 @@ static inline void native_set_pte(pte_t 
-  * they can run pmd_offset_map_lock or pmd_trans_huge or other pmd
-  * operations.
-  *
-- * Without THP if the mmap_sem is hold for reading, the
-- * pmd can only transition from null to not null while pmd_read_atomic runs.
-- * So there's no need of literally reading it atomically.
-+ * Without THP if the mmap_sem is hold for reading, the pmd can only
-+ * transition from null to not null while pmd_read_atomic runs. So
-+ * we can always return atomic pmd values with this function.
-  *
-  * With THP if the mmap_sem is hold for reading, the pmd can become
-- * THP or null or point to a pte (and in turn become "stable") at any
-- * time under pmd_read_atomic, so it's mandatory to read it atomically
-- * with cmpxchg8b.
-+ * trans_huge or none or point to a pte (and in turn become "stable")
-+ * at any time under pmd_read_atomic. We could read it really
-+ * atomically here with a atomic64_read for the THP enabled case (and
-+ * it would be a whole lot simpler), but to avoid using cmpxchg8b we
-+ * only return an atomic pmdval if the low part of the pmdval is later
-+ * found stable (i.e. pointing to a pte). And we're returning a none
-+ * pmdval if the low part of the pmd is none. In some cases the high
-+ * and low part of the pmdval returned may not be consistent if THP is
-+ * enabled (the low part may point to previously mapped hugepage,
-+ * while the high part may point to a more recently mapped hugepage),
-+ * but pmd_none_or_trans_huge_or_clear_bad() only needs the low part
-+ * of the pmd to be read atomically to decide if the pmd is unstable
-+ * or not, with the only exception of when the low part of the pmd is
-+ * zero in which case we return a none pmd.
-  */
--#ifndef CONFIG_TRANSPARENT_HUGEPAGE
- static inline pmd_t pmd_read_atomic(pmd_t *pmdp)
- {
- 	pmdval_t ret;
-@@ -74,12 +84,6 @@ static inline pmd_t pmd_read_atomic(pmd_
+diff -puN include/linux/mm_types.h~mm-fix-slab-page-_count-corruption-when-using-slub include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-fix-slab-page-_count-corruption-when-using-slub
++++ a/include/linux/mm_types.h
+@@ -57,8 +57,18 @@ struct page {
+ 		};
  
- 	return (pmd_t) { ret };
- }
--#else /* CONFIG_TRANSPARENT_HUGEPAGE */
--static inline pmd_t pmd_read_atomic(pmd_t *pmdp)
--{
--	return (pmd_t) { atomic64_read((atomic64_t *)pmdp) };
--}
--#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 		union {
++#if defined(CONFIG_HAVE_CMPXCHG_DOUBLE) && \
++	defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
+ 			/* Used for cmpxchg_double in slub */
+ 			unsigned long counters;
++#else
++			/*
++			 * Keep _count separate from slub cmpxchg_double data.
++			 * As the rest of the double word is protected by
++			 * slab_lock but _count is not.
++			 */
++			unsigned counters;
++#endif
  
- static inline void native_set_pte_atomic(pte_t *ptep, pte_t pte)
- {
-diff -puN include/asm-generic/pgtable.h~thp-avoid-atomic64_read-in-pmd_read_atomic-for-32bit-pae include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~thp-avoid-atomic64_read-in-pmd_read_atomic-for-32bit-pae
-+++ a/include/asm-generic/pgtable.h
-@@ -484,6 +484,16 @@ static inline int pmd_none_or_trans_huge
- 	/*
- 	 * The barrier will stabilize the pmdval in a register or on
- 	 * the stack so that it will stop changing under the code.
-+	 *
-+	 * When CONFIG_TRANSPARENT_HUGEPAGE=y on x86 32bit PAE,
-+	 * pmd_read_atomic is allowed to return a not atomic pmdval
-+	 * (for example pointing to an hugepage that has never been
-+	 * mapped in the pmd). The below checks will only care about
-+	 * the low part of the pmd with 32bit PAE x86 anyway, with the
-+	 * exception of pmd_none(). So the important thing is that if
-+	 * the low part of the pmd is found null, the high part will
-+	 * be also null or the pmd_none() check below would be
-+	 * confused.
- 	 */
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	barrier();
+ 			struct {
+ 
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from pshelar@nicira.com are
 
 origin.patch
-linux-next.patch
 
