@@ -1,129 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memblock-fix-overlapping-allocation-when-doubling-reserved-array.patch removed from -mm tree
-Date: Thu, 21 Jun 2012 12:25:48 -0700
-Message-ID: <20120621192548.71F37A00B0@akpm.mtv.corp.google.com>
+Subject: + checkpatch-check-usleep_range-arguments.patch added to -mm tree
+Date: Thu, 21 Jun 2012 12:28:27 -0700
+Message-ID: <20120621192827.894E3A00B0@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:42214 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760007Ab2FUTZv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jun 2012 15:25:51 -0400
-Received: by lbbgp10 with SMTP id gp10so125602lbb.1
-        for <mm-commits@vger.kernel.org>; Thu, 21 Jun 2012 12:25:49 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:57491 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760129Ab2FUT22 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jun 2012 15:28:28 -0400
+Received: by vbnl22 with SMTP id l22so95580vbn.1
+        for <mm-commits@vger.kernel.org>; Thu, 21 Jun 2012 12:28:28 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: greg.pearson@hp.com, benh@kernel.crashing.org, stable@vger.kernel.org, tj@kernel.org, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: joe@perches.com, apw@shadowen.org, yuvalmin@broadcom.com
 
 
 The patch titled
-     Subject: mm/memblock: fix overlapping allocation when doubling reserved array
-has been removed from the -mm tree.  Its filename was
-     mm-memblock-fix-overlapping-allocation-when-doubling-reserved-array.patch
+     Subject: checkpatch: check usleep_range() arguments
+has been added to the -mm tree.  Its filename is
+     checkpatch-check-usleep_range-arguments.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Greg Pearson <greg.pearson@hp.com>
-Subject: mm/memblock: fix overlapping allocation when doubling reserved array
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: check usleep_range() arguments
 
-__alloc_memory_core_early() asks memblock for a range of memory then try
-to reserve it.  If the reserved region array lacks space for the new
-range, memblock_double_array() is called to allocate more space for the
-array.  If memblock is used to allocate memory for the new array it can
-end up using a range that overlaps with the range originally allocated in
-__alloc_memory_core_early(), leading to possible data corruption.
+usleep_range() shouldn't use the same args for min and max.
 
-With this patch memblock_double_array() now calls memblock_find_in_range()
-with a narrowed candidate range (in cases where the reserved.regions array
-is being doubled) so any memory allocated will not overlap with the
-original range that was being reserved.  The range is narrowed by passing
-in the starting address and size of the previously allocated range.  Then
-the range above the ending address is searched and if a candidate is not
-found, the range below the starting address is searched.
+Report it when it happens and when both args are decimal and min > max.
 
-Signed-off-by: Greg Pearson <greg.pearson@hp.com>
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Yuval Mintz <yuvalmin@broadcom.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |   36 ++++++++++++++++++++++++++++++++----
- 1 file changed, 32 insertions(+), 4 deletions(-)
+ scripts/checkpatch.pl |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff -puN mm/memblock.c~mm-memblock-fix-overlapping-allocation-when-doubling-reserved-array mm/memblock.c
---- a/mm/memblock.c~mm-memblock-fix-overlapping-allocation-when-doubling-reserved-array
-+++ a/mm/memblock.c
-@@ -184,7 +184,24 @@ static void __init_memblock memblock_rem
- 	}
- }
+diff -puN scripts/checkpatch.pl~checkpatch-check-usleep_range-arguments scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-check-usleep_range-arguments
++++ a/scripts/checkpatch.pl
+@@ -3313,6 +3313,22 @@ sub process {
+ 			}
+ 		}
  
--static int __init_memblock memblock_double_array(struct memblock_type *type)
-+/**
-+ * memblock_double_array - double the size of the memblock regions array
-+ * @type: memblock type of the regions array being doubled
-+ * @new_area_start: starting address of memory range to avoid overlap with
-+ * @new_area_size: size of memory range to avoid overlap with
-+ *
-+ * Double the size of the @type regions array. If memblock is being used to
-+ * allocate memory for a new reserved regions array and there is a previously
-+ * allocated memory range [@new_area_start,@new_area_start+@new_area_size]
-+ * waiting to be reserved, ensure the memory used by the new array does
-+ * not overlap.
-+ *
-+ * RETURNS:
-+ * 0 on success, -1 on failure.
-+ */
-+static int __init_memblock memblock_double_array(struct memblock_type *type,
-+						phys_addr_t new_area_start,
-+						phys_addr_t new_area_size)
- {
- 	struct memblock_region *new_array, *old_array;
- 	phys_addr_t old_size, new_size, addr;
-@@ -222,7 +239,18 @@ static int __init_memblock memblock_doub
- 		new_array = kmalloc(new_size, GFP_KERNEL);
- 		addr = new_array ? __pa(new_array) : 0;
- 	} else {
--		addr = memblock_find_in_range(0, MEMBLOCK_ALLOC_ACCESSIBLE, new_size, sizeof(phys_addr_t));
-+		/* only exclude range when trying to double reserved.regions */
-+		if (type != &memblock.reserved)
-+			new_area_start = new_area_size = 0;
++# check usleep_range arguments
++		if ($^V && $^V ge 5.10.0 &&
++		    defined $stat &&
++		    $stat =~ /^\+(?:.*?)\busleep_range\s*\(\s*($FuncArg)\s*,\s*($FuncArg)\s*\)/) {
++		 	my $min = $1;
++			my $max = $7;
++			if ($min eq $max) {
++				WARN("USLEEP_RANGE",
++				     "usleep_range should not use min == max args; see Documentation/timers/timers-howto.txt\n" . "$here\n$stat\n");
++			} elsif ($min =~ /^\d+$/ && $max =~ /^\d+$/ &&
++				 $min > $max) {
++				WARN("USLEEP_RANGE",
++				     "usleep_range args reversed, use min then max; see Documentation/timers/timers-howto.txt\n" . "$here\n$stat\n");
++			}
++		}
 +
-+		addr = memblock_find_in_range(new_area_start + new_area_size,
-+						memblock.current_limit,
-+						new_size, sizeof(phys_addr_t));
-+		if (!addr && new_area_size)
-+			addr = memblock_find_in_range(0,
-+					min(new_area_start, memblock.current_limit),
-+					new_size, sizeof(phys_addr_t));
-+
- 		new_array = addr ? __va(addr) : 0;
- 	}
- 	if (!addr) {
-@@ -399,7 +427,7 @@ repeat:
- 	 */
- 	if (!insert) {
- 		while (type->cnt + nr_new > type->max)
--			if (memblock_double_array(type) < 0)
-+			if (memblock_double_array(type, obase, size) < 0)
- 				return -ENOMEM;
- 		insert = true;
- 		goto repeat;
-@@ -450,7 +478,7 @@ static int __init_memblock memblock_isol
- 
- 	/* we'll create at most two more regions */
- 	while (type->cnt + 2 > type->max)
--		if (memblock_double_array(type) < 0)
-+		if (memblock_double_array(type, base, size) < 0)
- 			return -ENOMEM;
- 
- 	for (i = 0; i < type->cnt; i++) {
+ # check for new externs in .c files.
+ 		if ($realfile =~ /\.c$/ && defined $stat &&
+ 		    $stat =~ /^.\s*(?:extern\s+)?$Type\s+($Ident)(\s*)\(/s)
 _
+Subject: Subject: checkpatch: check usleep_range() arguments
 
-Patches currently in -mm which might be from greg.pearson@hp.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
+linux-next.patch
+printk-add-generic-functions-to-find-kern_level-headers.patch
+printk-add-kern_levelsh-to-make-kern_level-available-for-asm-use.patch
+arch-remove-direct-definitions-of-kern_level-uses.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
+sound-use-printk_get_level-and-printk_skip_level.patch
+printk-convert-the-format-for-kern_level-to-a-2-byte-pattern.patch
+printk-only-look-for-prefix-levels-in-kernel-messages.patch
+printk-remove-the-now-unnecessary-c-annotation-for-kern_cont.patch
+vsprintf-add-%pmr-for-bluetooth-mac-address.patch
+vsprintf-add-%pmr-for-bluetooth-mac-address-fix.patch
+checkpatch-update-alignment-check.patch
+checkpatch-test-for-non-standard-signatures.patch
+checkpatch-check-usleep_range-arguments.patch
 
