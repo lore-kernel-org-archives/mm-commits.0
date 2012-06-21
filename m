@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 20 Jun 2012 15:53:40 -0700
-Message-ID: <20120620225341.1B34CA01BD@akpm.mtv.corp.google.com>
+Subject: + c-r-prctl-less-paranoid-prctl_set_mm_exe_file.patch added to -mm tree
+Date: Wed, 20 Jun 2012 17:05:32 -0700
+Message-ID: <20120621000532.C8AD6A01AB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:61959 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752241Ab2FTWxm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jun 2012 18:53:42 -0400
-Received: by vbnl22 with SMTP id l22so336vbn.1
-        for <mm-commits@vger.kernel.org>; Wed, 20 Jun 2012 15:53:41 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:59875 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758627Ab2FUAFe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jun 2012 20:05:34 -0400
+Received: by yenl3 with SMTP id l3so8674yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 20 Jun 2012 17:05:33 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.zummo@towertech.it, linus.walleij@linaro.org, ramesh.chandrasekaran@stericsson.com
+Cc: khlebnikov@openvz.org, gorcunov@openvz.org, keescook@chromium.org, kosaki.motohiro@jp.fujitsu.com, matthltc@us.ibm.com, oleg@redhat.com, tj@kernel.org, xemul@parallels.com
 
 
 The patch titled
-     Subject: drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes
+     From: Konstantin Khlebnikov <khlebnikov@openvz.org>
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes.patch
+     c-r-prctl-less-paranoid-prctl_set_mm_exe_file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,96 +33,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes
+From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Subject: c/r: prctl: less paranoid prctl_set_mm_exe_file()
 
-ERROR: spaces required around that '=' (ctx:VxV)
-#36: FILE: drivers/rtc/rtc-ab8500.c:227:
-+	unsigned long mins, secs = 0, cursec=0;
- 	                                    ^
+"no other files mapped" requirement from my previous patch (c/r: prctl:
+update prctl_set_mm_exe_file() after mm->num_exe_file_vmas removal) is too
+paranoid, it forbids operation even if there mapped one shared-anon vma.
 
-ERROR: space required before the open brace '{'
-#51: FILE: drivers/rtc/rtc-ab8500.c:246:
-+	if ((secs - cursec) < 59 ){
+Let's check that current mm->exe_file already unmapped, in this case
+exe_file symlink already outdated and its changing is reasonable.
 
-ERROR: space prohibited before that close parenthesis ')'
-#51: FILE: drivers/rtc/rtc-ab8500.c:246:
-+	if ((secs - cursec) < 59 ){
+Plus, this patch fixes exit code in case operation success.
 
-total: 3 errors, 0 warnings, 34 lines checked
-
-./patches/drivers-rtc-rtc-ab8500c-use-uie-emulation.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Cc: Ramesh Chandrasekaran <ramesh.chandrasekaran@stericsson.com>
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Reported-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Tested-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Matt Helsley <matthltc@us.ibm.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ab8500.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/sys.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-ab8500.c~drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes drivers/rtc/rtc-ab8500.c
---- a/drivers/rtc/rtc-ab8500.c~drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes
-+++ a/drivers/rtc/rtc-ab8500.c
-@@ -224,7 +224,7 @@ static int ab8500_rtc_set_alarm(struct d
+diff -puN kernel/sys.c~c-r-prctl-less-paranoid-prctl_set_mm_exe_file kernel/sys.c
+--- a/kernel/sys.c~c-r-prctl-less-paranoid-prctl_set_mm_exe_file
++++ a/kernel/sys.c
+@@ -1788,7 +1788,6 @@ SYSCALL_DEFINE1(umask, int, mask)
+ #ifdef CONFIG_CHECKPOINT_RESTORE
+ static int prctl_set_mm_exe_file(struct mm_struct *mm, unsigned int fd)
  {
- 	int retval, i;
- 	unsigned char buf[ARRAY_SIZE(ab8500_rtc_alarm_regs)];
--	unsigned long mins, secs = 0, cursec=0;
-+	unsigned long mins, secs = 0, cursec = 0;
- 	struct rtc_time curtm;
+-	struct vm_area_struct *vma;
+ 	struct file *exe_file;
+ 	struct dentry *dentry;
+ 	int err;
+@@ -1816,13 +1815,17 @@ static int prctl_set_mm_exe_file(struct 
+ 	down_write(&mm->mmap_sem);
  
- 	if (alarm->time.tm_year < (AB8500_RTC_EPOCH - 1900)) {
-@@ -243,7 +243,7 @@ static int ab8500_rtc_set_alarm(struct d
+ 	/*
+-	 * Forbid mm->exe_file change if there are mapped other files.
++	 * Forbid mm->exe_file change if old file still mapped.
  	 */
- 	ab8500_rtc_read_time(dev, &curtm); /* Read current time */
- 	rtc_tm_to_time(&curtm, &cursec);
--	if ((secs - cursec) < 59 ){
-+	if ((secs - cursec) < 59) {
- 		dev_dbg(dev, "Alarm less than 1 minute not supported\r\n");
- 		return -EINVAL;
+ 	err = -EBUSY;
+-	for (vma = mm->mmap; vma; vma = vma->vm_next) {
+-		if (vma->vm_file && !path_equal(&vma->vm_file->f_path,
+-						&exe_file->f_path))
+-			goto exit_unlock;
++	if (mm->exe_file) {
++		struct vm_area_struct *vma;
++
++		for (vma = mm->mmap; vma; vma = vma->vm_next)
++			if (vma->vm_file &&
++			    path_equal(&vma->vm_file->f_path,
++				       &mm->exe_file->f_path))
++				goto exit_unlock;
  	}
+ 
+ 	/*
+@@ -1835,6 +1838,7 @@ static int prctl_set_mm_exe_file(struct 
+ 	if (test_and_set_bit(MMF_EXE_FILE_CHANGED, &mm->flags))
+ 		goto exit_unlock;
+ 
++	err = 0;
+ 	set_mm_exe_file(mm, exe_file);
+ exit_unlock:
+ 	up_write(&mm->mmap_sem);
 _
-Subject: Subject: drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes
+Subject: From: Konstantin Khlebnikov <khlebnikov@openvz.org>
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from khlebnikov@openvz.org are
 
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-mm-fix-slab-page-_count-corruption-when-using-slub.patch
-memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix.patch
-tmpfs-implement-numa-node-interleaving-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
-mm.patch
-mm-make-vb_alloc-more-foolproof-fix.patch
-mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks.patch
-mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-fix.patch
-mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
-memcg-prevent-oom-with-too-many-dirty-pages.patch
-avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
-kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
-lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch
-backlight-l4f00242t03-use-devm_gpio_request_one-fix.patch
-string-introduce-memweight-fix.patch
-drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes.patch
-kmod-avoid-deadlock-from-recursive-kmod-call.patch
-fork-use-vma_pages-to-simplify-the-code-fix.patch
-fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+memcg-fix-use_hierarchy-css_is_ancestor-oops-regression.patch
+mm-correctly-synchronize-rss-counters-at-exit-exec.patch
+c-r-prctl-less-paranoid-prctl_set_mm_exe_file.patch
 
