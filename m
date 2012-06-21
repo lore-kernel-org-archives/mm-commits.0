@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fs-jbd2-commitc-use-new-kmap_atomic-api.patch added to -mm tree
-Date: Thu, 21 Jun 2012 14:08:47 -0700
-Message-ID: <20120621215453.1ED65100047@wpzn3.hot.corp.google.com>
+Subject: + arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch added to -mm tree
+Date: Thu, 21 Jun 2012 14:59:07 -0700
+Message-ID: <20120621224513.3B8311E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:36441 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760417Ab2FUVyy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jun 2012 17:54:54 -0400
-Received: by qcsp5 with SMTP id p5so128161qcs.1
-        for <mm-commits@vger.kernel.org>; Thu, 21 Jun 2012 14:54:53 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:65119 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759742Ab2FUWpP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jun 2012 18:45:15 -0400
+Received: by vbnl22 with SMTP id l22so133180vbn.1
+        for <mm-commits@vger.kernel.org>; Thu, 21 Jun 2012 15:45:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, tytso@mit.edu
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, hpa@zytor.com, tglx@linutronix.de, zheng.z.yan@intel.com
 
 
 The patch titled
-     Subject: fs/jbd2/commit.c: use new kmap_atomic() API
+     Subject: arch/x86/kernel/cpu/perf_event_intel_uncore.h: make UNCORE_PMU_HRTIMER_INTERVAL 64-bit
 has been added to the -mm tree.  Its filename is
-     fs-jbd2-commitc-use-new-kmap_atomic-api.patch
+     arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs/jbd2/commit.c: use new kmap_atomic() API
+Subject: arch/x86/kernel/cpu/perf_event_intel_uncore.h: make UNCORE_PMU_HRTIMER_INTERVAL 64-bit
 
-fs/jbd2/commit.c:352: warning: 'kmap_atomic_deprecated' is deprecated (declared at include/linux/highmem.h:125)
-fs/jbd2/commit.c:357: warning: '__kunmap_atomic_deprecated' is deprecated (declared at include/linux/highmem.h:135)
+i386 allmodconfig:
 
-Cc: Theodore Ts'o <tytso@mit.edu>
+arch/x86/kernel/cpu/perf_event_intel_uncore.c: In function 'uncore_pmu_hrtimer':
+arch/x86/kernel/cpu/perf_event_intel_uncore.c:728: warning: integer overflow in expression
+arch/x86/kernel/cpu/perf_event_intel_uncore.c: In function 'uncore_pmu_start_hrtimer':
+arch/x86/kernel/cpu/perf_event_intel_uncore.c:735: warning: integer overflow in expression
+
+Cc: Zheng Yan <zheng.z.yan@intel.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd2/commit.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/kernel/cpu/perf_event_intel_uncore.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/jbd2/commit.c~fs-jbd2-commitc-use-new-kmap_atomic-api fs/jbd2/commit.c
---- a/fs/jbd2/commit.c~fs-jbd2-commitc-use-new-kmap_atomic-api
-+++ a/fs/jbd2/commit.c
-@@ -349,12 +349,12 @@ static void jbd2_block_tag_csum_set(jour
- 		return;
+diff -puN arch/x86/kernel/cpu/perf_event_intel_uncore.h~arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit arch/x86/kernel/cpu/perf_event_intel_uncore.h
+--- a/arch/x86/kernel/cpu/perf_event_intel_uncore.h~arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit
++++ a/arch/x86/kernel/cpu/perf_event_intel_uncore.h
+@@ -7,7 +7,7 @@
+ #define UNCORE_PMU_NAME_LEN		32
+ #define UNCORE_BOX_HASH_SIZE		8
  
- 	sequence = cpu_to_be32(sequence);
--	addr = kmap_atomic(page, KM_USER0);
-+	addr = kmap_atomic(page);
- 	csum = jbd2_chksum(j, j->j_csum_seed, (__u8 *)&sequence,
- 			  sizeof(sequence));
- 	csum = jbd2_chksum(j, csum, addr + offset_in_page(bh->b_data),
- 			  bh->b_size);
--	kunmap_atomic(addr, KM_USER0);
-+	kunmap_atomic(addr);
+-#define UNCORE_PMU_HRTIMER_INTERVAL	(60 * NSEC_PER_SEC)
++#define UNCORE_PMU_HRTIMER_INTERVAL	(60LL * NSEC_PER_SEC)
  
- 	tag->t_checksum = cpu_to_be32(csum);
- }
+ #define UNCORE_FIXED_EVENT		0xffff
+ #define UNCORE_PMC_IDX_MAX_GENERIC	8
 _
-Subject: Subject: fs/jbd2/commit.c: use new kmap_atomic() API
+Subject: Subject: arch/x86/kernel/cpu/perf_event_intel_uncore.h: make UNCORE_PMU_HRTIMER_INTERVAL 64-bit
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -76,6 +77,7 @@ arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-block-nvmec-stop-breaking-my-i386-build.patch
 memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix.patch
 drivers-gpio-devresc-export-devm_gpio_request_one-to-modules.patch
+fs-jbd2-commitc-use-new-kmap_atomic-api.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
 mm.patch
@@ -105,5 +107,5 @@ journal_add_journal_head-debug.patch
 mutex-subsystem-synchro-test-module-fix.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
-fs-jbd2-commitc-use-new-kmap_atomic-api.patch
+arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
 
