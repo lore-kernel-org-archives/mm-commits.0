@@ -1,65 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] include-linux-bitopsh-fix-warning.patch removed from -mm tree
-Date: Thu, 21 Jun 2012 14:31:15 -0700
-Message-ID: <20120621213115.A473EA0329@akpm.mtv.corp.google.com>
+Subject: + drivers-media-video-pmsc-needs-linux-slabh.patch added to -mm tree
+Date: Thu, 21 Jun 2012 14:32:23 -0700
+Message-ID: <20120621213223.57CDCA0329@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:36149 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753727Ab2FUVbQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jun 2012 17:31:16 -0400
-Received: by ggeh3 with SMTP id h3so121304gge.1
-        for <mm-commits@vger.kernel.org>; Thu, 21 Jun 2012 14:31:16 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:63177 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932742Ab2FUVcY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jun 2012 17:32:24 -0400
+Received: by qcsp5 with SMTP id p5so123475qcs.1
+        for <mm-commits@vger.kernel.org>; Thu, 21 Jun 2012 14:32:23 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linkinjeon@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rdunlap@xenotime.net, hans.verkuil@cisco.com, hverkuil@xs4all.nl, mchehab@infradead.org
 
 
 The patch titled
-     Subject: include/linux/bitops.h: fix warning
-has been removed from the -mm tree.  Its filename was
-     include-linux-bitopsh-fix-warning.patch
+     Subject: drivers/media/video/pms.c needs linux/slab.h
+has been added to the -mm tree.  Its filename is
+     drivers-media-video-pmsc-needs-linux-slabh.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Namjae Jeon <linkinjeon@gmail.com>
-Subject: include/linux/bitops.h: fix warning
+From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: drivers/media/video/pms.c needs linux/slab.h
 
-include/linux/bitops.h: In function 'hweight_long':
-include/linux/bitops.h:49: warning: signed and unsigned type in conditional expression
+drivers/media/video/pms.c uses kzalloc() and kfree() so it should
+include <linux/slab.h> to fix build errors and a warning.
 
-The compile warning is caused by __const_hweight8 when using hweight_long
-with -Wsign-compare option.  The reason is that the default return value
-of this macro is signed.  So need type casting to remove warning.
+drivers/media/video/pms.c:1047:2: error: implicit declaration of function 'kzalloc'
+drivers/media/video/pms.c:1047:6: warning: assignment makes pointer from integer without a cast
+drivers/media/video/pms.c:1116:2: error: implicit declaration of function 'kfree'
 
-Signed-off-by: Namjae Jeon <linkinjeon@gmail.com>
+Found in mmotm but applies to mainline.
+
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/bitops/const_hweight.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/video/pms.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/asm-generic/bitops/const_hweight.h~include-linux-bitopsh-fix-warning include/asm-generic/bitops/const_hweight.h
---- a/include/asm-generic/bitops/const_hweight.h~include-linux-bitopsh-fix-warning
-+++ a/include/asm-generic/bitops/const_hweight.h
-@@ -4,7 +4,7 @@
- /*
-  * Compile time versions of __arch_hweightN()
-  */
--#define __const_hweight8(w)		\
-+#define __const_hweight8(w)	(unsigned long)	\
-       (	(!!((w) & (1ULL << 0))) +	\
- 	(!!((w) & (1ULL << 1))) +	\
- 	(!!((w) & (1ULL << 2))) +	\
+diff -puN drivers/media/video/pms.c~drivers-media-video-pmsc-needs-linux-slabh drivers/media/video/pms.c
+--- a/drivers/media/video/pms.c~drivers-media-video-pmsc-needs-linux-slabh
++++ a/drivers/media/video/pms.c
+@@ -29,6 +29,7 @@
+ #include <linux/ioport.h>
+ #include <linux/init.h>
+ #include <linux/mutex.h>
++#include <linux/slab.h>
+ #include <linux/uaccess.h>
+ #include <linux/isa.h>
+ #include <asm/io.h>
 _
+Subject: Subject: drivers/media/video/pms.c needs linux/slab.h
 
-Patches currently in -mm which might be from linkinjeon@gmail.com are
+Patches currently in -mm which might be from rdunlap@xenotime.net are
 
+origin.patch
 linux-next.patch
-drivers-scsi-ufs-reverse-the-ufshcd_is_device_present-logic.patch
-ufs-fix-incorrect-return-value-about-success-and-failed.patch
-hfsplus-use-enomem-when-kzalloc-fails.patch
+drivers-media-video-pmsc-needs-linux-slabh.patch
+lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch
+mutex-subsystem-synchro-test-module.patch
+mutex-subsystem-synchro-test-module-fix.patch
 
