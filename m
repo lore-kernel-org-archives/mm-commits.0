@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + string-introduce-memweight-fix-build-error-caused-by-memweight-introduction.patch added to -mm tree
-Date: Thu, 21 Jun 2012 12:45:09 -0700
-Message-ID: <20120621194509.67C41A0329@akpm.mtv.corp.google.com>
+Subject: + mm-hugetlb-add-new-hugetlb-cgroup-mark-root_h_cgroup-static.patch added to -mm tree
+Date: Thu, 21 Jun 2012 12:47:17 -0700
+Message-ID: <20120621194717.A886AA024E@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:63276 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756257Ab2FUTpL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jun 2012 15:45:11 -0400
-Received: by bkty5 with SMTP id y5so64010bkt.1
-        for <mm-commits@vger.kernel.org>; Thu, 21 Jun 2012 12:45:10 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:40737 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754732Ab2FUTrS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jun 2012 15:47:18 -0400
+Received: by yenl3 with SMTP id l3so99803yen.1
+        for <mm-commits@vger.kernel.org>; Thu, 21 Jun 2012 12:47:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, tony.luck@gmail.com
+Cc: aneesh.kumar@linux.vnet.ibm.com, wfg@linux.intel.com
 
 
 The patch titled
-     Subject: string: fix build error caused by memweight() introduction
+     Subject: hugetlb/cgroup: Mark root_h_cgroup static
 has been added to the -mm tree.  Its filename is
-     string-introduce-memweight-fix-build-error-caused-by-memweight-introduction.patch
+     mm-hugetlb-add-new-hugetlb-cgroup-mark-root_h_cgroup-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,133 +33,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: string: fix build error caused by memweight() introduction
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: hugetlb/cgroup: Mark root_h_cgroup static
 
-Tony Luck reports a build error on the ia64 sim_defconfig:
+Fixes sparse warning reported by Fengguang Wu
 
- LD      arch/ia64/hp/sim/boot/bootloader
-lib/lib.a(string.o): In function `bitmap_weight':
-.../linux-next/include/linux/bitmap.h:280: undefined reference to `__bitmap_weight'
-
-It fails because it pulls in lib/lib.a(string.o) to get some
-innocuous function like strcpy() ... but it also gets
-given memweight() which relies on __bitmap_weight()
-which it doesn't have, because it doesn't include lib/built-in.o
-(which is where bitmap.o, the definer of __bitmap_weight(), has
-been linked).
-
-This build error is introduced by the patch string-introduce-memweight.patch
-in -mm tree.  Fix it by creating own file lib/memweight.c.
-
-Reported-by: Tony Luck <tony.luck@gmail.com>
-Suggested-by: Tony Luck <tony.luck@gmail.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Reported-by: Fengguang Wu <wfg@linux.intel.com>
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Makefile    |    2 +-
- lib/memweight.c |   38 ++++++++++++++++++++++++++++++++++++++
- lib/string.c    |   36 ------------------------------------
- 3 files changed, 39 insertions(+), 37 deletions(-)
+ mm/hugetlb_cgroup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/Makefile~string-introduce-memweight-fix-build-error-caused-by-memweight-introduction lib/Makefile
---- a/lib/Makefile~string-introduce-memweight-fix-build-error-caused-by-memweight-introduction
-+++ a/lib/Makefile
-@@ -22,7 +22,7 @@ lib-y	+= kobject.o klist.o
- obj-y += bcd.o div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
- 	 bust_spinlocks.o hexdump.o kasprintf.o bitmap.o scatterlist.o \
- 	 string_helpers.o gcd.o lcm.o list_sort.o uuid.o flex_array.o \
--	 bsearch.o find_last_bit.o find_next_bit.o llist.o
-+	 bsearch.o find_last_bit.o find_next_bit.o llist.o memweight.o
- obj-y += kstrtox.o
- obj-$(CONFIG_TEST_KSTRTOX) += test-kstrtox.o
+diff -puN mm/hugetlb_cgroup.c~mm-hugetlb-add-new-hugetlb-cgroup-mark-root_h_cgroup-static mm/hugetlb_cgroup.c
+--- a/mm/hugetlb_cgroup.c~mm-hugetlb-add-new-hugetlb-cgroup-mark-root_h_cgroup-static
++++ a/mm/hugetlb_cgroup.c
+@@ -27,7 +27,7 @@ struct hugetlb_cgroup {
+ };
  
-diff -puN /dev/null lib/memweight.c
---- /dev/null
-+++ a/lib/memweight.c
-@@ -0,0 +1,38 @@
-+#include <linux/export.h>
-+#include <linux/bug.h>
-+#include <linux/bitmap.h>
-+
-+/**
-+ * memweight - count the total number of bits set in memory area
-+ * @ptr: pointer to the start of the area
-+ * @bytes: the size of the area
-+ */
-+size_t memweight(const void *ptr, size_t bytes)
-+{
-+	size_t ret = 0;
-+	size_t longs;
-+	const unsigned char *bitmap = ptr;
-+
-+	for (; bytes > 0 && ((unsigned long)bitmap) % sizeof(long);
-+			bytes--, bitmap++)
-+		ret += hweight8(*bitmap);
-+
-+	longs = bytes / sizeof(long);
-+	if (longs) {
-+		BUG_ON(longs >= INT_MAX / BITS_PER_LONG);
-+		ret += bitmap_weight((unsigned long *)bitmap,
-+				longs * BITS_PER_LONG);
-+		bytes -= longs * sizeof(long);
-+		bitmap += longs * sizeof(long);
-+	}
-+	/*
-+	 * The reason that this last loop is distinct from the preceding
-+	 * bitmap_weight() call is to compute 1-bits in the last region smaller
-+	 * than sizeof(long) properly on big-endian systems.
-+	 */
-+	for (; bytes > 0; bytes--, bitmap++)
-+		ret += hweight8(*bitmap);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(memweight);
-diff -puN lib/string.c~string-introduce-memweight-fix-build-error-caused-by-memweight-introduction lib/string.c
---- a/lib/string.c~string-introduce-memweight-fix-build-error-caused-by-memweight-introduction
-+++ a/lib/string.c
-@@ -26,7 +26,6 @@
- #include <linux/export.h>
- #include <linux/bug.h>
- #include <linux/errno.h>
--#include <linux/bitmap.h>
+ struct cgroup_subsys hugetlb_subsys __read_mostly;
+-struct hugetlb_cgroup *root_h_cgroup __read_mostly;
++static struct hugetlb_cgroup *root_h_cgroup __read_mostly;
  
- #ifndef __HAVE_ARCH_STRNICMP
- /**
-@@ -825,38 +824,3 @@ void *memchr_inv(const void *start, int 
- 	return check_bytes8(start, value, bytes % 8);
- }
- EXPORT_SYMBOL(memchr_inv);
--
--/**
-- * memweight - count the total number of bits set in memory area
-- * @ptr: pointer to the start of the area
-- * @bytes: the size of the area
-- */
--size_t memweight(const void *ptr, size_t bytes)
--{
--	size_t ret = 0;
--	size_t longs;
--	const unsigned char *bitmap = ptr;
--
--	for (; bytes > 0 && ((unsigned long)bitmap) % sizeof(long);
--			bytes--, bitmap++)
--		ret += hweight8(*bitmap);
--
--	longs = bytes / sizeof(long);
--	if (longs) {
--		BUG_ON(longs >= INT_MAX / BITS_PER_LONG);
--		ret += bitmap_weight((unsigned long *)bitmap,
--				longs * BITS_PER_LONG);
--		bytes -= longs * sizeof(long);
--		bitmap += longs * sizeof(long);
--	}
--	/*
--	 * The reason that this last loop is distinct from the preceding
--	 * bitmap_weight() call is to compute 1-bits in the last region smaller
--	 * than sizeof(long) properly on big-endian systems.
--	 */
--	for (; bytes > 0; bytes--, bitmap++)
--		ret += hweight8(*bitmap);
+ static inline
+ struct hugetlb_cgroup *hugetlb_cgroup_from_css(struct cgroup_subsys_state *s)
+_
+Subject: Subject: hugetlb/cgroup: Mark root_h_cgroup static
+
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+
+linux-next.patch
+hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
+hugetlb-dont-use-err_ptr-with-vm_fault-values.patch
+hugetlb-add-an-inline-helper-for-finding-hstate-index.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
+hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
+hugetlb-simplify-migrate_huge_page.patch
+hugetlb-add-a-list-for-tracking-in-use-hugetlb-pages.patch
+hugetlb-make-some-static-variables-global.patch
+hugetlb-make-some-static-variables-global-mark-hugelb_max_hstate-__read_mostly.patch
+mm-hugetlb-add-new-hugetlb-cgroup.patch
+mm-hugetlb-add-new-hugetlb-cgroup-mark-root_h_cgroup-static.patch
+hugetlb-cgroup-add-the-cgroup-pointer-to-page-lru.patch
+hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup.patch
+hugetlb-cgroup-add-support-for-cgroup-removal.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files.patch
+hugetlb-cgroup-migrate-hugetlb-cgroup-info-from-oldpage-to-new-page-during-migration.patch
+hugetlb-cgroup-add-hugetlb-controller-documentation.patch
+hugetlb-move-all-the-in-use-pages-to-active-list.patch
+hugetlb-cgroup-assign-the-page-hugetlb-cgroup-when-we-move-the-page-to-active-list.patch
+hugetlb-cgroup-remove-exclude-and-wakeup-rmdir-calls-from-migrate.patch
+
