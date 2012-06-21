@@ -1,114 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: + c-r-prctl-less-paranoid-prctl_set_mm_exe_file.patch added to -mm tree
-Date: Wed, 20 Jun 2012 17:05:32 -0700
-Message-ID: <20120621000532.C8AD6A01AB@akpm.mtv.corp.google.com>
+Subject: [merged] thp-avoid-atomic64_read-in-pmd_read_atomic-for-32bit-pae.patch removed from -mm tree
+Date: Thu, 21 Jun 2012 12:25:10 -0700
+Message-ID: <20120621192510.B20A4A00B0@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:59875 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758627Ab2FUAFe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jun 2012 20:05:34 -0400
-Received: by yenl3 with SMTP id l3so8674yen.1
-        for <mm-commits@vger.kernel.org>; Wed, 20 Jun 2012 17:05:33 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:38655 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759939Ab2FUTZM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jun 2012 15:25:12 -0400
+Received: by yhgm50 with SMTP id m50so50048yhg.1
+        for <mm-commits@vger.kernel.org>; Thu, 21 Jun 2012 12:25:11 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: khlebnikov@openvz.org, gorcunov@openvz.org, keescook@chromium.org, kosaki.motohiro@jp.fujitsu.com, matthltc@us.ibm.com, oleg@redhat.com, tj@kernel.org, xemul@parallels.com
+To: aarcange@redhat.com, drjones@redhat.com, hughd@google.com, jbeulich@suse.com, jrnieder@gmail.com, kosaki.motohiro@gmail.com, lwoodman@redhat.com, mgorman@suse.de, pmatouse@redhat.com, riel@redhat.com, stable@vger.kernel.org, uobergfe@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-has been added to the -mm tree.  Its filename is
-     c-r-prctl-less-paranoid-prctl_set_mm_exe_file.patch
+     Subject: thp: avoid atomic64_read in pmd_read_atomic for 32bit PAE
+has been removed from the -mm tree.  Its filename was
+     thp-avoid-atomic64_read-in-pmd_read_atomic-for-32bit-pae.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: c/r: prctl: less paranoid prctl_set_mm_exe_file()
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: thp: avoid atomic64_read in pmd_read_atomic for 32bit PAE
 
-"no other files mapped" requirement from my previous patch (c/r: prctl:
-update prctl_set_mm_exe_file() after mm->num_exe_file_vmas removal) is too
-paranoid, it forbids operation even if there mapped one shared-anon vma.
+In the x86 32bit PAE CONFIG_TRANSPARENT_HUGEPAGE=y case while holding the
+mmap_sem for reading, cmpxchg8b cannot be used to read pmd contents under
+Xen.
 
-Let's check that current mm->exe_file already unmapped, in this case
-exe_file symlink already outdated and its changing is reasonable.
+So instead of dealing only with "consistent" pmdvals in
+pmd_none_or_trans_huge_or_clear_bad() (which would be conceptually
+simpler) we let pmd_none_or_trans_huge_or_clear_bad() deal with pmdvals
+where the low 32bit and high 32bit could be inconsistent (to avoid having
+to use cmpxchg8b).
 
-Plus, this patch fixes exit code in case operation success.
+The only guarantee we get from pmd_read_atomic is that if the low part of
+the pmd was found null, the high part will be null too (so the pmd will be
+considered unstable).  And if the low part of the pmd is found "stable"
+later, then it means the whole pmd was read atomically (because after a
+pmd is stable, neither MADV_DONTNEED nor page faults can alter it anymore,
+and we read the high part after the low part).
 
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Reported-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Tested-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Matt Helsley <matthltc@us.ibm.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Pavel Emelyanov <xemul@parallels.com>
+In the 32bit PAE x86 case, it is enough to read the low part of the pmdval
+atomically to declare the pmd as "stable" and that's true for THP and no
+THP, furthermore in the THP case we also have a barrier() that will
+prevent any inconsistent pmdvals to be cached by a later re-read of the
+*pmd.
+
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Jonathan Nieder <jrnieder@gmail.com>
+Cc: Ulrich Obergfell <uobergfe@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Larry Woodman <lwoodman@redhat.com>
+Cc: Petr Matousek <pmatouse@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Jan Beulich <jbeulich@suse.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Tested-by: Andrew Jones <drjones@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ arch/x86/include/asm/pgtable-3level.h |   30 +++++++++++++-----------
+ include/asm-generic/pgtable.h         |   10 ++++++++
+ 2 files changed, 27 insertions(+), 13 deletions(-)
 
-diff -puN kernel/sys.c~c-r-prctl-less-paranoid-prctl_set_mm_exe_file kernel/sys.c
---- a/kernel/sys.c~c-r-prctl-less-paranoid-prctl_set_mm_exe_file
-+++ a/kernel/sys.c
-@@ -1788,7 +1788,6 @@ SYSCALL_DEFINE1(umask, int, mask)
- #ifdef CONFIG_CHECKPOINT_RESTORE
- static int prctl_set_mm_exe_file(struct mm_struct *mm, unsigned int fd)
+diff -puN arch/x86/include/asm/pgtable-3level.h~thp-avoid-atomic64_read-in-pmd_read_atomic-for-32bit-pae arch/x86/include/asm/pgtable-3level.h
+--- a/arch/x86/include/asm/pgtable-3level.h~thp-avoid-atomic64_read-in-pmd_read_atomic-for-32bit-pae
++++ a/arch/x86/include/asm/pgtable-3level.h
+@@ -47,16 +47,26 @@ static inline void native_set_pte(pte_t 
+  * they can run pmd_offset_map_lock or pmd_trans_huge or other pmd
+  * operations.
+  *
+- * Without THP if the mmap_sem is hold for reading, the
+- * pmd can only transition from null to not null while pmd_read_atomic runs.
+- * So there's no need of literally reading it atomically.
++ * Without THP if the mmap_sem is hold for reading, the pmd can only
++ * transition from null to not null while pmd_read_atomic runs. So
++ * we can always return atomic pmd values with this function.
+  *
+  * With THP if the mmap_sem is hold for reading, the pmd can become
+- * THP or null or point to a pte (and in turn become "stable") at any
+- * time under pmd_read_atomic, so it's mandatory to read it atomically
+- * with cmpxchg8b.
++ * trans_huge or none or point to a pte (and in turn become "stable")
++ * at any time under pmd_read_atomic. We could read it really
++ * atomically here with a atomic64_read for the THP enabled case (and
++ * it would be a whole lot simpler), but to avoid using cmpxchg8b we
++ * only return an atomic pmdval if the low part of the pmdval is later
++ * found stable (i.e. pointing to a pte). And we're returning a none
++ * pmdval if the low part of the pmd is none. In some cases the high
++ * and low part of the pmdval returned may not be consistent if THP is
++ * enabled (the low part may point to previously mapped hugepage,
++ * while the high part may point to a more recently mapped hugepage),
++ * but pmd_none_or_trans_huge_or_clear_bad() only needs the low part
++ * of the pmd to be read atomically to decide if the pmd is unstable
++ * or not, with the only exception of when the low part of the pmd is
++ * zero in which case we return a none pmd.
+  */
+-#ifndef CONFIG_TRANSPARENT_HUGEPAGE
+ static inline pmd_t pmd_read_atomic(pmd_t *pmdp)
  {
--	struct vm_area_struct *vma;
- 	struct file *exe_file;
- 	struct dentry *dentry;
- 	int err;
-@@ -1816,13 +1815,17 @@ static int prctl_set_mm_exe_file(struct 
- 	down_write(&mm->mmap_sem);
+ 	pmdval_t ret;
+@@ -74,12 +84,6 @@ static inline pmd_t pmd_read_atomic(pmd_
  
+ 	return (pmd_t) { ret };
+ }
+-#else /* CONFIG_TRANSPARENT_HUGEPAGE */
+-static inline pmd_t pmd_read_atomic(pmd_t *pmdp)
+-{
+-	return (pmd_t) { atomic64_read((atomic64_t *)pmdp) };
+-}
+-#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+ static inline void native_set_pte_atomic(pte_t *ptep, pte_t pte)
+ {
+diff -puN include/asm-generic/pgtable.h~thp-avoid-atomic64_read-in-pmd_read_atomic-for-32bit-pae include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~thp-avoid-atomic64_read-in-pmd_read_atomic-for-32bit-pae
++++ a/include/asm-generic/pgtable.h
+@@ -484,6 +484,16 @@ static inline int pmd_none_or_trans_huge
  	/*
--	 * Forbid mm->exe_file change if there are mapped other files.
-+	 * Forbid mm->exe_file change if old file still mapped.
+ 	 * The barrier will stabilize the pmdval in a register or on
+ 	 * the stack so that it will stop changing under the code.
++	 *
++	 * When CONFIG_TRANSPARENT_HUGEPAGE=y on x86 32bit PAE,
++	 * pmd_read_atomic is allowed to return a not atomic pmdval
++	 * (for example pointing to an hugepage that has never been
++	 * mapped in the pmd). The below checks will only care about
++	 * the low part of the pmd with 32bit PAE x86 anyway, with the
++	 * exception of pmd_none(). So the important thing is that if
++	 * the low part of the pmd is found null, the high part will
++	 * be also null or the pmd_none() check below would be
++	 * confused.
  	 */
- 	err = -EBUSY;
--	for (vma = mm->mmap; vma; vma = vma->vm_next) {
--		if (vma->vm_file && !path_equal(&vma->vm_file->f_path,
--						&exe_file->f_path))
--			goto exit_unlock;
-+	if (mm->exe_file) {
-+		struct vm_area_struct *vma;
-+
-+		for (vma = mm->mmap; vma; vma = vma->vm_next)
-+			if (vma->vm_file &&
-+			    path_equal(&vma->vm_file->f_path,
-+				       &mm->exe_file->f_path))
-+				goto exit_unlock;
- 	}
- 
- 	/*
-@@ -1835,6 +1838,7 @@ static int prctl_set_mm_exe_file(struct 
- 	if (test_and_set_bit(MMF_EXE_FILE_CHANGED, &mm->flags))
- 		goto exit_unlock;
- 
-+	err = 0;
- 	set_mm_exe_file(mm, exe_file);
- exit_unlock:
- 	up_write(&mm->mmap_sem);
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	barrier();
 _
-Subject: From: Konstantin Khlebnikov <khlebnikov@openvz.org>
 
-Patches currently in -mm which might be from khlebnikov@openvz.org are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
+origin.patch
 linux-next.patch
-memcg-fix-use_hierarchy-css_is_ancestor-oops-regression.patch
-mm-correctly-synchronize-rss-counters-at-exit-exec.patch
-c-r-prctl-less-paranoid-prctl_set_mm_exe_file.patch
 
