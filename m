@@ -1,95 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nilfs2-ensure-proper-cache-clearing-for-gc-inodes.patch removed from -mm tree
-Date: Thu, 21 Jun 2012 12:25:13 -0700
-Message-ID: <20120621192513.8B441A00B0@akpm.mtv.corp.google.com>
+Subject: [merged] mm-oom-fix-and-cleanup-oom-score-calculations.patch removed from -mm tree
+Date: Thu, 21 Jun 2012 12:25:15 -0700
+Message-ID: <20120621192515.740CDA00B0@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:46556 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759939Ab2FUTZP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jun 2012 15:25:15 -0400
-Received: by weyu7 with SMTP id u7so63402wey.1
-        for <mm-commits@vger.kernel.org>; Thu, 21 Jun 2012 12:25:14 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:59484 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759961Ab2FUTZS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jun 2012 15:25:18 -0400
+Received: by bkty5 with SMTP id y5so63386bkt.1
+        for <mm-commits@vger.kernel.org>; Thu, 21 Jun 2012 12:25:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: konishi.ryusuke@lab.ntt.co.jp, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: rientjes@google.com, davej@redhat.com, kosaki.motohiro@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: ensure proper cache clearing for gc-inodes
+     Subject: mm, oom: fix and cleanup oom score calculations
 has been removed from the -mm tree.  Its filename was
-     nilfs2-ensure-proper-cache-clearing-for-gc-inodes.patch
+     mm-oom-fix-and-cleanup-oom-score-calculations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2: ensure proper cache clearing for gc-inodes
+From: David Rientjes <rientjes@google.com>
+Subject: mm, oom: fix and cleanup oom score calculations
 
-A gc-inode is a pseudo inode used to buffer the blocks to be moved by
-garbage collection.
+The divide in p->signal->oom_score_adj * totalpages / 1000 within
+oom_badness() was causing an overflow of the signed long data type.
 
-Block caches of gc-inodes must be cleared every time a garbage collection
-function (nilfs_clean_segments) completes.  Otherwise, stale blocks
-buffered in the caches may be wrongly reused in successive calls of the GC
-function.
+This adds both the root bias and p->signal->oom_score_adj before doing the
+normalization which fixes the issue and also cleans up the calculation.
 
-For user files, this is not a problem because their gc-inodes are
-distinguished by a checkpoint number as well as an inode number.  They
-never buffer different blocks if either an inode number, a checkpoint
-number, or a block offset differs.
-
-However, gc-inodes of sufile, cpfile and DAT file can store different data
-for the same block offset.  Thus, the nilfs_clean_segments function can
-move incorrect block for these meta-data files if an old block is cached. 
-I found this is really causing meta-data corruption in nilfs.
-
-This fixes the issue by ensuring cache clear of gc-inodes and resolves
-reported GC problems including checkpoint file corruption, b-tree
-corruption, and the following warning during GC.
-
-  nilfs_palloc_freev: entry number 307234 already freed.
-  ...
-
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Tested-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Cc: <stable@vger.kernel.org>	[2.6.37+]
+Tested-by: Dave Jones <davej@redhat.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/gcinode.c |    2 ++
- fs/nilfs2/segment.c |    2 ++
- 2 files changed, 4 insertions(+)
+ mm/oom_kill.c |   15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN fs/nilfs2/gcinode.c~nilfs2-ensure-proper-cache-clearing-for-gc-inodes fs/nilfs2/gcinode.c
---- a/fs/nilfs2/gcinode.c~nilfs2-ensure-proper-cache-clearing-for-gc-inodes
-+++ a/fs/nilfs2/gcinode.c
-@@ -191,6 +191,8 @@ void nilfs_remove_all_gcinodes(struct th
- 	while (!list_empty(head)) {
- 		ii = list_first_entry(head, struct nilfs_inode_info, i_dirty);
- 		list_del_init(&ii->i_dirty);
-+		truncate_inode_pages(&ii->vfs_inode.i_data, 0);
-+		nilfs_btnode_cache_clear(&ii->i_btnode_cache);
- 		iput(&ii->vfs_inode);
+diff -puN mm/oom_kill.c~mm-oom-fix-and-cleanup-oom-score-calculations mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-fix-and-cleanup-oom-score-calculations
++++ a/mm/oom_kill.c
+@@ -184,6 +184,7 @@ unsigned long oom_badness(struct task_st
+ 			  const nodemask_t *nodemask, unsigned long totalpages)
+ {
+ 	long points;
++	long adj;
+ 
+ 	if (oom_unkillable_task(p, memcg, nodemask))
+ 		return 0;
+@@ -192,7 +193,8 @@ unsigned long oom_badness(struct task_st
+ 	if (!p)
+ 		return 0;
+ 
+-	if (p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN) {
++	adj = p->signal->oom_score_adj;
++	if (adj == OOM_SCORE_ADJ_MIN) {
+ 		task_unlock(p);
+ 		return 0;
  	}
- }
-diff -puN fs/nilfs2/segment.c~nilfs2-ensure-proper-cache-clearing-for-gc-inodes fs/nilfs2/segment.c
---- a/fs/nilfs2/segment.c~nilfs2-ensure-proper-cache-clearing-for-gc-inodes
-+++ a/fs/nilfs2/segment.c
-@@ -2309,6 +2309,8 @@ nilfs_remove_written_gcinodes(struct the
- 		if (!test_bit(NILFS_I_UPDATED, &ii->i_state))
- 			continue;
- 		list_del_init(&ii->i_dirty);
-+		truncate_inode_pages(&ii->vfs_inode.i_data, 0);
-+		nilfs_btnode_cache_clear(&ii->i_btnode_cache);
- 		iput(&ii->vfs_inode);
- 	}
- }
+@@ -210,14 +212,11 @@ unsigned long oom_badness(struct task_st
+ 	 * implementation used by LSMs.
+ 	 */
+ 	if (has_capability_noaudit(p, CAP_SYS_ADMIN))
+-		points -= 30 * totalpages / 1000;
++		adj -= 30;
+ 
+-	/*
+-	 * /proc/pid/oom_score_adj ranges from -1000 to +1000 such that it may
+-	 * either completely disable oom killing or always prefer a certain
+-	 * task.
+-	 */
+-	points += p->signal->oom_score_adj * totalpages / 1000;
++	/* Normalize to oom_score_adj units */
++	adj *= totalpages / 1000;
++	points += adj;
+ 
+ 	/*
+ 	 * Never return 0 for an eligible task regardless of the root bonus and
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
+linux-next.patch
+memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer.patch
+memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix.patch
+slab-move-full-state-transition-to-an-initcall.patch
+mm-buddy-cleanup-on-should_fail_alloc_page.patch
+hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
+hugetlb-dont-use-err_ptr-with-vm_fault-values.patch
+hugetlb-add-an-inline-helper-for-finding-hstate-index.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
+hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
+hugetlb-simplify-migrate_huge_page.patch
+hugetlb-add-a-list-for-tracking-in-use-hugetlb-pages.patch
+hugetlb-make-some-static-variables-global.patch
+mm-hugetlb-add-new-hugetlb-cgroup.patch
+hugetlb-cgroup-add-the-cgroup-pointer-to-page-lru.patch
+hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup.patch
+hugetlb-cgroup-add-support-for-cgroup-removal.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files.patch
+hugetlb-cgroup-migrate-hugetlb-cgroup-info-from-oldpage-to-new-page-during-migration.patch
+hugetlb-cgroup-add-hugetlb-controller-documentation.patch
+mm-oom-do-not-schedule-if-current-has-been-killed.patch
+mm-buddy-get-the-allownodes-for-dump-at-once.patch
 
