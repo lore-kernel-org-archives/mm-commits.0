@@ -1,98 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] mm-buddy-get-the-allownodes-for-dump-at-once.patch removed from -mm tree
-Date: Thu, 21 Jun 2012 14:01:12 -0700
-Message-ID: <20120621210112.9300BA04A3@akpm.mtv.corp.google.com>
+Subject: + printk-add-generic-functions-to-find-kern_level-headers-fix.patch added to -mm tree
+Date: Thu, 21 Jun 2012 14:17:31 -0700
+Message-ID: <20120621211731.A81FEA02DB@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:52474 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760270Ab2FUVBO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jun 2012 17:01:14 -0400
-Received: by qcsp5 with SMTP id p5so118318qcs.1
-        for <mm-commits@vger.kernel.org>; Thu, 21 Jun 2012 14:01:13 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:58337 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760311Ab2FUVRd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jun 2012 17:17:33 -0400
+Received: by vcbfl13 with SMTP id fl13so119732vcb.1
+        for <mm-commits@vger.kernel.org>; Thu, 21 Jun 2012 14:17:32 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shangw@linux.vnet.ibm.com, hannes@cmpxchg.org, minchan.kim@gmail.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, joe@perches.com, kay.sievers@vrfy.org, wfg@linux.intel.com
 
 
 The patch titled
-     Subject: mm/buddy: get the allownodes for dump at once
-has been removed from the -mm tree.  Its filename was
-     mm-buddy-get-the-allownodes-for-dump-at-once.patch
+     Subject: printk-add-generic-functions-to-find-kern_level-headers-fix
+has been added to the -mm tree.  Its filename is
+     printk-add-generic-functions-to-find-kern_level-headers-fix.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Gavin Shan <shangw@linux.vnet.ibm.com>
-Subject: mm/buddy: get the allownodes for dump at once
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: printk-add-generic-functions-to-find-kern_level-headers-fix
 
-When dumping the statistics for zones in the allowed nodes in the function
-show_free_areas(), skip_free_areas_node() got called for multiple times to
-figure out the same information: the allowed nodes for dump.  It's
-reasonable to get the allowed nodes at once.  That will also help to get
-consistent dump information.
+fix build error and warning
 
-Signed-off-by: Gavin Shan <shangw@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+kernel/printk.c:1357: error: label at end of compound statement
+kernel/printk.c:1360: warning: assignment discards qualifiers from pointer target type
+
+Cc: Joe Perches <joe@perches.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Wu Fengguang <wfg@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ kernel/printk.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-buddy-get-the-allownodes-for-dump-at-once mm/page_alloc.c
---- a/mm/page_alloc.c~mm-buddy-get-the-allownodes-for-dump-at-once
-+++ a/mm/page_alloc.c
-@@ -2763,11 +2763,19 @@ out:
-  */
- void show_free_areas(unsigned int filter)
- {
--	int cpu;
-+	int nid, cpu;
-+	nodemask_t allownodes;
- 	struct zone *zone;
+diff -puN include/linux/printk.h~printk-add-generic-functions-to-find-kern_level-headers-fix include/linux/printk.h
+diff -puN kernel/printk.c~printk-add-generic-functions-to-find-kern_level-headers-fix kernel/printk.c
+--- a/kernel/printk.c~printk-add-generic-functions-to-find-kern_level-headers-fix
++++ a/kernel/printk.c
+@@ -1355,9 +1355,10 @@ asmlinkage int vprintk_emit(int facility
+ 		case 'd':	/* KERN_DEFAULT */
+ 			prefix = true;
+ 		case 'c':	/* KERN_CONT */
++			break;
+ 		}
+-		text_len -=  end_of_header - text;
+-		text = end_of_header;
++		text_len -= end_of_header - text;
++		text = (char *)end_of_header;
+ 	}
  
-+	/* Figure out the allowed nodes for dump */
-+	nodes_clear(allownodes);
-+	for_each_online_node(nid) {
-+		if (!skip_free_areas_node(filter, nid))
-+			node_set(nid, allownodes);
-+	}
-+
- 	for_each_populated_zone(zone) {
--		if (skip_free_areas_node(filter, zone_to_nid(zone)))
-+		if (!node_isset(zone_to_nid(zone), allownodes))
- 			continue;
- 		show_node(zone);
- 		printk("%s per-cpu:\n", zone->name);
-@@ -2810,7 +2818,7 @@ void show_free_areas(unsigned int filter
- 	for_each_populated_zone(zone) {
- 		int i;
- 
--		if (skip_free_areas_node(filter, zone_to_nid(zone)))
-+		if (!node_isset(zone_to_nid(zone), allownodes))
- 			continue;
- 		show_node(zone);
- 		printk("%s"
-@@ -2879,7 +2887,7 @@ void show_free_areas(unsigned int filter
- 	for_each_populated_zone(zone) {
-  		unsigned long nr[MAX_ORDER], flags, order, total = 0;
- 
--		if (skip_free_areas_node(filter, zone_to_nid(zone)))
-+		if (!node_isset(zone_to_nid(zone), allownodes))
- 			continue;
- 		show_node(zone);
- 		printk("%s: ", zone->name);
+ 	if (level == -1)
 _
+Subject: Subject: printk-add-generic-functions-to-find-kern_level-headers-fix
 
-Patches currently in -mm which might be from shangw@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-mm-slab-remove-duplicate-check.patch
-mm-buddy-cleanup-on-should_fail_alloc_page.patch
-mm-compaction-cleanup-on-compaction_deferred.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix.patch
+drivers-gpio-devresc-export-devm_gpio_request_one-to-modules.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
+mm.patch
+mm-make-vb_alloc-more-foolproof-fix.patch
+mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks.patch
+mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-fix.patch
+mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
+memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
+memcg-prevent-oom-with-too-many-dirty-pages.patch
+tmpfs-implement-numa-node-interleaving-fix.patch
+avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
+kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
+printk-add-generic-functions-to-find-kern_level-headers-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
+lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch
+string-introduce-memweight-fix.patch
+drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes.patch
+drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded.patch
+hfsplus-get-rid-of-write_super-checkpatch-fixes.patch
+kmod-avoid-deadlock-from-recursive-kmod-call.patch
+fork-use-vma_pages-to-simplify-the-code-fix.patch
+fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
+notify_change-check-that-i_mutex-is-held.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
