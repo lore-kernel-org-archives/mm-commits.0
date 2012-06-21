@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded.patch added to -mm tree
-Date: Thu, 21 Jun 2012 13:51:47 -0700
-Message-ID: <20120621205147.CE969A0329@akpm.mtv.corp.google.com>
+Subject: + mm-thp-abort-compaction-if-migration-page-cannot-be-charged-to-memcg.patch added to -mm tree
+Date: Thu, 21 Jun 2012 13:58:20 -0700
+Message-ID: <20120621205821.0369DA04A3@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:39000 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760272Ab2FUUvu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jun 2012 16:51:50 -0400
-Received: by lbbgp10 with SMTP id gp10so128454lbb.1
-        for <mm-commits@vger.kernel.org>; Thu, 21 Jun 2012 13:51:49 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:40001 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760272Ab2FUU6W (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jun 2012 16:58:22 -0400
+Received: by qabg24 with SMTP id g24so262982qab.1
+        for <mm-commits@vger.kernel.org>; Thu, 21 Jun 2012 13:58:21 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.zummo@towertech.it, agust@denx.de, andreas.dumberger@tqs.de, devendra.aaru@gmail.com
+Cc: rientjes@google.com, aarcange@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, riel@redhat.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-r9701.c: check that r9701_set_datetime() succeeded
+     Subject: mm, thp: abort compaction if migration page cannot be charged to memcg
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded.patch
+     mm-thp-abort-compaction-if-migration-page-cannot-be-charged-to-memcg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,75 +33,77 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/rtc/rtc-r9701.c: check that r9701_set_datetime() succeeded
+From: David Rientjes <rientjes@google.com>
+Subject: mm, thp: abort compaction if migration page cannot be charged to memcg
 
-When the driver detects that the clock time is invalid, it attempts to
-write a sane time into the hardware.  We curently assume that everything
-is OK is those writes succeeded.  But it is better to re-read the time
-from the hardware to ensure that the new settings got there OK.
+If page migration cannot charge the temporary page to the memcg,
+migrate_pages() will return -ENOMEM.  This isn't considered in memory
+compaction however, and the loop continues to iterate over all pageblocks
+trying to isolate and migrate pages.  If a small number of very large
+memcgs happen to be oom, however, these attempts will mostly be futile
+leading to an enormous amout of cpu consumption due to the page migration
+failures.  
 
-Cc: Devendra Naga <devendra.aaru@gmail.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Anatolij Gustschin <agust@denx.de>
-Cc: Andreas Dumberger <andreas.dumberger@tqs.de>
+This patch will short circuit and fail memory compaction if
+migrate_pages() returns -ENOMEM.  COMPACT_PARTIAL is returned in case some
+migrations were successful so that the page allocator will retry.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-r9701.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/compaction.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-r9701.c~drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded drivers/rtc/rtc-r9701.c
---- a/drivers/rtc/rtc-r9701.c~drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded
-+++ a/drivers/rtc/rtc-r9701.c
-@@ -147,7 +147,8 @@ static int __devinit r9701_probe(struct 
- 		dt.tm_mon  = 0;
- 		dt.tm_year = 100;
- 
--		if (r9701_set_datetime(&spi->dev, &dt)) {
-+		if (r9701_set_datetime(&spi->dev, &dt) ||
-+				r9701_get_datetime(&spi->dev, &dt)) {
- 			dev_err(&spi->dev, "cannot repair RTC register\n");
- 			return -ENODEV;
+diff -puN mm/compaction.c~mm-thp-abort-compaction-if-migration-page-cannot-be-charged-to-memcg mm/compaction.c
+--- a/mm/compaction.c~mm-thp-abort-compaction-if-migration-page-cannot-be-charged-to-memcg
++++ a/mm/compaction.c
+@@ -701,8 +701,11 @@ static int compact_zone(struct zone *zon
+ 		if (err) {
+ 			putback_lru_pages(&cc->migratepages);
+ 			cc->nr_migratepages = 0;
++			if (err == -ENOMEM) {
++				ret = COMPACT_PARTIAL;
++				goto out;
++			}
  		}
+-
+ 	}
+ 
+ out:
 _
-Subject: Subject: drivers/rtc/rtc-r9701.c: check that r9701_set_datetime() succeeded
+Subject: Subject: mm, thp: abort compaction if migration page cannot be charged to memcg
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
+memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer.patch
 memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix.patch
-drivers-gpio-devresc-export-devm_gpio_request_one-to-modules.patch
-tmpfs-implement-numa-node-interleaving-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
-mm.patch
-mm-make-vb_alloc-more-foolproof-fix.patch
-mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks.patch
-mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-fix.patch
-mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
-memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
-memcg-prevent-oom-with-too-many-dirty-pages.patch
-avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
-kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
-lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch
-string-introduce-memweight-fix.patch
-drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes.patch
-drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded.patch
-hfsplus-get-rid-of-write_super-checkpatch-fixes.patch
-kmod-avoid-deadlock-from-recursive-kmod-call.patch
-fork-use-vma_pages-to-simplify-the-code-fix.patch
-fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mm-thp-abort-compaction-if-migration-page-cannot-be-charged-to-memcg.patch
+slab-move-full-state-transition-to-an-initcall.patch
+mm-buddy-cleanup-on-should_fail_alloc_page.patch
+hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
+hugetlb-dont-use-err_ptr-with-vm_fault-values.patch
+hugetlb-add-an-inline-helper-for-finding-hstate-index.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
+hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
+hugetlb-simplify-migrate_huge_page.patch
+hugetlb-add-a-list-for-tracking-in-use-hugetlb-pages.patch
+hugetlb-make-some-static-variables-global.patch
+mm-hugetlb-add-new-hugetlb-cgroup.patch
+hugetlb-cgroup-add-the-cgroup-pointer-to-page-lru.patch
+hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup.patch
+hugetlb-cgroup-add-support-for-cgroup-removal.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files.patch
+hugetlb-cgroup-migrate-hugetlb-cgroup-info-from-oldpage-to-new-page-during-migration.patch
+hugetlb-cgroup-add-hugetlb-controller-documentation.patch
+mm-oom-do-not-schedule-if-current-has-been-killed.patch
+mm-buddy-get-the-allownodes-for-dump-at-once.patch
 
