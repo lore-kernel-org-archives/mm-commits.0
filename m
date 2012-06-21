@@ -1,161 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-fix-kernel-doc-warnings.patch removed from -mm tree
-Date: Thu, 21 Jun 2012 12:25:32 -0700
-Message-ID: <20120621192532.97429A00B0@akpm.mtv.corp.google.com>
+Subject: [merged] get_maintainer-fix-help-warning.patch removed from -mm tree
+Date: Thu, 21 Jun 2012 12:25:36 -0700
+Message-ID: <20120621192536.5830AA00B0@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:43415 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760108Ab2FUTZd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jun 2012 15:25:33 -0400
-Received: by mail-vb0-f74.google.com with SMTP id l22so95172vbn.1
-        for <mm-commits@vger.kernel.org>; Thu, 21 Jun 2012 12:25:33 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:33530 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760108Ab2FUTZi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jun 2012 15:25:38 -0400
+Received: by eaao13 with SMTP id o13so62854eaa.1
+        for <mm-commits@vger.kernel.org>; Thu, 21 Jun 2012 12:25:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: liwp@linux.vnet.ibm.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: joe@perches.com, pebolle@tiscali.nl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix kernel-doc warnings
+     Subject: get_maintainer: Fix --help warning
 has been removed from the -mm tree.  Its filename was
-     mm-fix-kernel-doc-warnings.patch
+     get_maintainer-fix-help-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Wanpeng Li <liwp@linux.vnet.ibm.com>
-Subject: mm: fix kernel-doc warnings
+From: Joe Perches <joe@perches.com>
+Subject: get_maintainer: Fix --help warning
 
-fix kernel-doc warnings such as
+Using --help emits a concatenation error.  Fix it.
 
-Warning(../mm/page_cgroup.c:432): No description found for parameter 'id'
-Warning(../mm/page_cgroup.c:432): Excess function parameter 'mem' description in 'swap_cgroup_record'
-
-Signed-off-by: Wanpeng Li <liwp@linux.vnet.ibm.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Reported-by: Paul Bolle <pebolle@tiscali.nl>
+Tested-by: Paul Bolle <pebolle@tiscali.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c    |   12 ++++++------
- mm/memcontrol.c  |    4 ++--
- mm/oom_kill.c    |    2 +-
- mm/page_cgroup.c |    4 ++--
- mm/pagewalk.c    |    1 -
- mm/percpu-vm.c   |    1 -
- 6 files changed, 11 insertions(+), 13 deletions(-)
+ scripts/get_maintainer.pl |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/memblock.c~mm-fix-kernel-doc-warnings mm/memblock.c
---- a/mm/memblock.c~mm-fix-kernel-doc-warnings
-+++ a/mm/memblock.c
-@@ -540,9 +540,9 @@ int __init_memblock memblock_reserve(phy
-  * __next_free_mem_range - next function for for_each_free_mem_range()
-  * @idx: pointer to u64 loop variable
-  * @nid: nid: node selector, %MAX_NUMNODES for all nodes
-- * @p_start: ptr to phys_addr_t for start address of the range, can be %NULL
-- * @p_end: ptr to phys_addr_t for end address of the range, can be %NULL
-- * @p_nid: ptr to int for nid of the range, can be %NULL
-+ * @out_start: ptr to phys_addr_t for start address of the range, can be %NULL
-+ * @out_end: ptr to phys_addr_t for end address of the range, can be %NULL
-+ * @out_nid: ptr to int for nid of the range, can be %NULL
-  *
-  * Find the first free area from *@idx which matches @nid, fill the out
-  * parameters, and update *@idx for the next iteration.  The lower 32bit of
-@@ -616,9 +616,9 @@ void __init_memblock __next_free_mem_ran
-  * __next_free_mem_range_rev - next function for for_each_free_mem_range_reverse()
-  * @idx: pointer to u64 loop variable
-  * @nid: nid: node selector, %MAX_NUMNODES for all nodes
-- * @p_start: ptr to phys_addr_t for start address of the range, can be %NULL
-- * @p_end: ptr to phys_addr_t for end address of the range, can be %NULL
-- * @p_nid: ptr to int for nid of the range, can be %NULL
-+ * @out_start: ptr to phys_addr_t for start address of the range, can be %NULL
-+ * @out_end: ptr to phys_addr_t for end address of the range, can be %NULL
-+ * @out_nid: ptr to int for nid of the range, can be %NULL
-  *
-  * Reverse of __next_free_mem_range().
-  */
-diff -puN mm/memcontrol.c~mm-fix-kernel-doc-warnings mm/memcontrol.c
---- a/mm/memcontrol.c~mm-fix-kernel-doc-warnings
-+++ a/mm/memcontrol.c
-@@ -1234,7 +1234,7 @@ int mem_cgroup_inactive_file_is_low(stru
+diff -puN scripts/get_maintainer.pl~get_maintainer-fix-help-warning scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~get_maintainer-fix-help-warning
++++ a/scripts/get_maintainer.pl
+@@ -83,6 +83,8 @@ push(@signature_tags, "Signed-off-by:");
+ push(@signature_tags, "Reviewed-by:");
+ push(@signature_tags, "Acked-by:");
  
- /**
-  * mem_cgroup_margin - calculate chargeable space of a memory cgroup
-- * @mem: the memory cgroup
-+ * @memcg: the memory cgroup
-  *
-  * Returns the maximum amount of memory @mem can be charged with, in
-  * pages.
-@@ -1508,7 +1508,7 @@ static unsigned long mem_cgroup_reclaim(
++my $signature_pattern = "\(" . join("|", @signature_tags) . "\)";
++
+ # rfc822 email address - preloaded methods go here.
+ my $rfc822_lwsp = "(?:(?:\\r\\n)?[ \\t])";
+ my $rfc822_char = '[\\000-\\377]';
+@@ -473,7 +475,6 @@ my @subsystem = ();
+ my @status = ();
+ my %deduplicate_name_hash = ();
+ my %deduplicate_address_hash = ();
+-my $signature_pattern;
  
- /**
-  * test_mem_cgroup_node_reclaimable
-- * @mem: the target memcg
-+ * @memcg: the target memcg
-  * @nid: the node ID to be checked.
-  * @noswap : specify true here if the user wants flle only information.
-  *
-diff -puN mm/oom_kill.c~mm-fix-kernel-doc-warnings mm/oom_kill.c
---- a/mm/oom_kill.c~mm-fix-kernel-doc-warnings
-+++ a/mm/oom_kill.c
-@@ -365,7 +365,7 @@ static struct task_struct *select_bad_pr
+ my @maintainers = get_maintainers();
  
- /**
-  * dump_tasks - dump current memory state of all system tasks
-- * @mem: current's memory controller, if constrained
-+ * @memcg: current's memory controller, if constrained
-  * @nodemask: nodemask passed to page allocator for mempolicy ooms
-  *
-  * Dumps the current memory state of all eligible tasks.  Tasks not in the same
-diff -puN mm/page_cgroup.c~mm-fix-kernel-doc-warnings mm/page_cgroup.c
---- a/mm/page_cgroup.c~mm-fix-kernel-doc-warnings
-+++ a/mm/page_cgroup.c
-@@ -392,7 +392,7 @@ static struct swap_cgroup *lookup_swap_c
- 
- /**
-  * swap_cgroup_cmpxchg - cmpxchg mem_cgroup's id for this swp_entry.
-- * @end: swap entry to be cmpxchged
-+ * @ent: swap entry to be cmpxchged
-  * @old: old id
-  * @new: new id
-  *
-@@ -422,7 +422,7 @@ unsigned short swap_cgroup_cmpxchg(swp_e
- /**
-  * swap_cgroup_record - record mem_cgroup for this swp_entry.
-  * @ent: swap entry to be recorded into
-- * @mem: mem_cgroup to be recorded
-+ * @id: mem_cgroup to be recorded
-  *
-  * Returns old value at success, 0 at failure.
-  * (Of course, old value can be 0.)
-diff -puN mm/pagewalk.c~mm-fix-kernel-doc-warnings mm/pagewalk.c
---- a/mm/pagewalk.c~mm-fix-kernel-doc-warnings
-+++ a/mm/pagewalk.c
-@@ -162,7 +162,6 @@ static int walk_hugetlb_range(struct vm_
- 
- /**
-  * walk_page_range - walk a memory map's page tables with a callback
-- * @mm: memory map to walk
-  * @addr: starting address
-  * @end: ending address
-  * @walk: set of callbacks to invoke for each level of the tree
-diff -puN mm/percpu-vm.c~mm-fix-kernel-doc-warnings mm/percpu-vm.c
---- a/mm/percpu-vm.c~mm-fix-kernel-doc-warnings
-+++ a/mm/percpu-vm.c
-@@ -360,7 +360,6 @@ err_free:
-  * @chunk: chunk to depopulate
-  * @off: offset to the area to depopulate
-  * @size: size of the area to depopulate in bytes
-- * @flush: whether to flush cache and tlb or not
-  *
-  * For each cpu, depopulate and unmap pages [@page_start,@page_end)
-  * from @chunk.  If @flush is true, vcache is flushed before unmapping
 _
 
-Patches currently in -mm which might be from liwp@linux.vnet.ibm.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
 linux-next.patch
-mm-prepare-for-removal-of-obsolete-proc-sys-vm-nr_pdflush_threads.patch
+printk-add-generic-functions-to-find-kern_level-headers.patch
+printk-add-kern_levelsh-to-make-kern_level-available-for-asm-use.patch
+arch-remove-direct-definitions-of-kern_level-uses.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
+sound-use-printk_get_level-and-printk_skip_level.patch
+printk-convert-the-format-for-kern_level-to-a-2-byte-pattern.patch
+printk-only-look-for-prefix-levels-in-kernel-messages.patch
+printk-remove-the-now-unnecessary-c-annotation-for-kern_cont.patch
+vsprintf-add-%pmr-for-bluetooth-mac-address.patch
+vsprintf-add-%pmr-for-bluetooth-mac-address-fix.patch
+checkpatch-update-alignment-check.patch
+checkpatch-test-for-non-standard-signatures.patch
 
