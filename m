@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + hfsplus-get-rid-of-write_super-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 21 Jun 2012 12:43:51 -0700
-Message-ID: <20120621194351.CFDA4A0329@akpm.mtv.corp.google.com>
+Subject: + string-introduce-memweight-fix-build-error-caused-by-memweight-introduction.patch added to -mm tree
+Date: Thu, 21 Jun 2012 12:45:09 -0700
+Message-ID: <20120621194509.67C41A0329@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:38989 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756457Ab2FUTny (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jun 2012 15:43:54 -0400
-Received: by fat25 with SMTP id 25so63630fat.1
-        for <mm-commits@vger.kernel.org>; Thu, 21 Jun 2012 12:43:53 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:63276 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756257Ab2FUTpL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jun 2012 15:45:11 -0400
+Received: by bkty5 with SMTP id y5so64010bkt.1
+        for <mm-commits@vger.kernel.org>; Thu, 21 Jun 2012 12:45:10 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, artem.bityutskiy@linux.intel.com, viro@zeniv.linux.org.uk
+Cc: akinobu.mita@gmail.com, tony.luck@gmail.com
 
 
 The patch titled
-     Subject: hfsplus-get-rid-of-write_super-checkpatch-fixes
+     Subject: string: fix build error caused by memweight() introduction
 has been added to the -mm tree.  Its filename is
-     hfsplus-get-rid-of-write_super-checkpatch-fixes.patch
+     string-introduce-memweight-fix-build-error-caused-by-memweight-introduction.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,93 +33,133 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hfsplus-get-rid-of-write_super-checkpatch-fixes
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: string: fix build error caused by memweight() introduction
 
-WARNING: suspect code indent for conditional statements (8, 15)
-#168: FILE: fs/hfsplus/super.c:247:
-+	if (sb->s_flags & MS_RDONLY)
-+	       return;
+Tony Luck reports a build error on the ia64 sim_defconfig:
 
-WARNING: suspect code indent for conditional statements (8, 15)
-#172: FILE: fs/hfsplus/super.c:251:
-+	if (!sbi->work_queued) {
-+	       delay = msecs_to_jiffies(dirty_writeback_interval * 10);
+ LD      arch/ia64/hp/sim/boot/bootloader
+lib/lib.a(string.o): In function `bitmap_weight':
+.../linux-next/include/linux/bitmap.h:280: undefined reference to `__bitmap_weight'
 
-total: 0 errors, 2 warnings, 145 lines checked
+It fails because it pulls in lib/lib.a(string.o) to get some
+innocuous function like strcpy() ... but it also gets
+given memweight() which relies on __bitmap_weight()
+which it doesn't have, because it doesn't include lib/built-in.o
+(which is where bitmap.o, the definer of __bitmap_weight(), has
+been linked).
 
-./patches/hfsplus-get-rid-of-write_super.patch has style problems, please review.
+This build error is introduced by the patch string-introduce-memweight.patch
+in -mm tree.  Fix it by creating own file lib/memweight.c.
 
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+Reported-by: Tony Luck <tony.luck@gmail.com>
+Suggested-by: Tony Luck <tony.luck@gmail.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/super.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ lib/Makefile    |    2 +-
+ lib/memweight.c |   38 ++++++++++++++++++++++++++++++++++++++
+ lib/string.c    |   36 ------------------------------------
+ 3 files changed, 39 insertions(+), 37 deletions(-)
 
-diff -puN fs/hfsplus/super.c~hfsplus-get-rid-of-write_super-checkpatch-fixes fs/hfsplus/super.c
---- a/fs/hfsplus/super.c~hfsplus-get-rid-of-write_super-checkpatch-fixes
-+++ a/fs/hfsplus/super.c
-@@ -245,13 +245,13 @@ void hfsplus_mark_mdb_dirty(struct super
- 	unsigned long delay;
+diff -puN lib/Makefile~string-introduce-memweight-fix-build-error-caused-by-memweight-introduction lib/Makefile
+--- a/lib/Makefile~string-introduce-memweight-fix-build-error-caused-by-memweight-introduction
++++ a/lib/Makefile
+@@ -22,7 +22,7 @@ lib-y	+= kobject.o klist.o
+ obj-y += bcd.o div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
+ 	 bust_spinlocks.o hexdump.o kasprintf.o bitmap.o scatterlist.o \
+ 	 string_helpers.o gcd.o lcm.o list_sort.o uuid.o flex_array.o \
+-	 bsearch.o find_last_bit.o find_next_bit.o llist.o
++	 bsearch.o find_last_bit.o find_next_bit.o llist.o memweight.o
+ obj-y += kstrtox.o
+ obj-$(CONFIG_TEST_KSTRTOX) += test-kstrtox.o
  
- 	if (sb->s_flags & MS_RDONLY)
--	       return;
-+		return;
+diff -puN /dev/null lib/memweight.c
+--- /dev/null
++++ a/lib/memweight.c
+@@ -0,0 +1,38 @@
++#include <linux/export.h>
++#include <linux/bug.h>
++#include <linux/bitmap.h>
++
++/**
++ * memweight - count the total number of bits set in memory area
++ * @ptr: pointer to the start of the area
++ * @bytes: the size of the area
++ */
++size_t memweight(const void *ptr, size_t bytes)
++{
++	size_t ret = 0;
++	size_t longs;
++	const unsigned char *bitmap = ptr;
++
++	for (; bytes > 0 && ((unsigned long)bitmap) % sizeof(long);
++			bytes--, bitmap++)
++		ret += hweight8(*bitmap);
++
++	longs = bytes / sizeof(long);
++	if (longs) {
++		BUG_ON(longs >= INT_MAX / BITS_PER_LONG);
++		ret += bitmap_weight((unsigned long *)bitmap,
++				longs * BITS_PER_LONG);
++		bytes -= longs * sizeof(long);
++		bitmap += longs * sizeof(long);
++	}
++	/*
++	 * The reason that this last loop is distinct from the preceding
++	 * bitmap_weight() call is to compute 1-bits in the last region smaller
++	 * than sizeof(long) properly on big-endian systems.
++	 */
++	for (; bytes > 0; bytes--, bitmap++)
++		ret += hweight8(*bitmap);
++
++	return ret;
++}
++EXPORT_SYMBOL(memweight);
+diff -puN lib/string.c~string-introduce-memweight-fix-build-error-caused-by-memweight-introduction lib/string.c
+--- a/lib/string.c~string-introduce-memweight-fix-build-error-caused-by-memweight-introduction
++++ a/lib/string.c
+@@ -26,7 +26,6 @@
+ #include <linux/export.h>
+ #include <linux/bug.h>
+ #include <linux/errno.h>
+-#include <linux/bitmap.h>
  
- 	spin_lock(&sbi->work_lock);
- 	if (!sbi->work_queued) {
--	       delay = msecs_to_jiffies(dirty_writeback_interval * 10);
--	       queue_delayed_work(system_long_wq, &sbi->sync_work, delay);
--	       sbi->work_queued = 1;
-+		delay = msecs_to_jiffies(dirty_writeback_interval * 10);
-+		queue_delayed_work(system_long_wq, &sbi->sync_work, delay);
-+		sbi->work_queued = 1;
- 	}
- 	spin_unlock(&sbi->work_lock);
+ #ifndef __HAVE_ARCH_STRNICMP
+ /**
+@@ -825,38 +824,3 @@ void *memchr_inv(const void *start, int 
+ 	return check_bytes8(start, value, bytes % 8);
  }
-_
-Subject: Subject: hfsplus-get-rid-of-write_super-checkpatch-fixes
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix.patch
-drivers-gpio-devresc-export-devm_gpio_request_one-to-modules.patch
-tmpfs-implement-numa-node-interleaving-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
-mm.patch
-mm-make-vb_alloc-more-foolproof-fix.patch
-mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks.patch
-mm-compaction-handle-incorrect-migrate_unmovable-type-pageblocks-fix.patch
-mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
-memcg-prevent-oom-with-too-many-dirty-pages.patch
-avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
-kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
-lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch
-string-introduce-memweight-fix.patch
-drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes.patch
-hfsplus-get-rid-of-write_super-checkpatch-fixes.patch
-kmod-avoid-deadlock-from-recursive-kmod-call.patch
-fork-use-vma_pages-to-simplify-the-code-fix.patch
-fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-
+ EXPORT_SYMBOL(memchr_inv);
+-
+-/**
+- * memweight - count the total number of bits set in memory area
+- * @ptr: pointer to the start of the area
+- * @bytes: the size of the area
+- */
+-size_t memweight(const void *ptr, size_t bytes)
+-{
+-	size_t ret = 0;
+-	size_t longs;
+-	const unsigned char *bitmap = ptr;
+-
+-	for (; bytes > 0 && ((unsigned long)bitmap) % sizeof(long);
+-			bytes--, bitmap++)
+-		ret += hweight8(*bitmap);
+-
+-	longs = bytes / sizeof(long);
+-	if (longs) {
+-		BUG_ON(longs >= INT_MAX / BITS_PER_LONG);
+-		ret += bitmap_weight((unsigned long *)bitmap,
+-				longs * BITS_PER_LONG);
+-		bytes -= longs * sizeof(long);
+-		bitmap += longs * sizeof(long);
+-	}
+-	/*
+-	 * The reason that this last loop is distinct from the preceding
+-	 * bitmap_weight() call is to compute 1-bits in the last region smaller
+-	 * than sizeof(long) properly on big-endian systems.
+-	 */
+-	for (; bytes > 0; bytes--, bitmap++)
+-		ret += hweight8(*bitmap);
