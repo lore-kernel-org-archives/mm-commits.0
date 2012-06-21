@@ -1,109 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pidns-find_new_reaper-can-no-longer-switch-to-init_pid_nschild_reaper.patch removed from -mm tree
-Date: Thu, 21 Jun 2012 12:25:43 -0700
-Message-ID: <20120621192543.C0064A00B0@akpm.mtv.corp.google.com>
+Subject: [merged] mm-memblock-fix-overlapping-allocation-when-doubling-reserved-array.patch removed from -mm tree
+Date: Thu, 21 Jun 2012 12:25:48 -0700
+Message-ID: <20120621192548.71F37A00B0@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:46556 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760120Ab2FUTZp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jun 2012 15:25:45 -0400
-Received: by mail-we0-f202.google.com with SMTP id u7so63402wey.1
-        for <mm-commits@vger.kernel.org>; Thu, 21 Jun 2012 12:25:44 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:42214 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760007Ab2FUTZv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jun 2012 15:25:51 -0400
+Received: by lbbgp10 with SMTP id gp10so125602lbb.1
+        for <mm-commits@vger.kernel.org>; Thu, 21 Jun 2012 12:25:49 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, avagin@gmail.com, ebiederm@xmission.com, efault@gmx.de, louis.rilling@kerlabs.com, xemul@parallels.com, mm-commits@vger.kernel.org
+To: greg.pearson@hp.com, benh@kernel.crashing.org, stable@vger.kernel.org, tj@kernel.org, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pidns: find_new_reaper() can no longer switch to init_pid_ns.child_reaper
+     Subject: mm/memblock: fix overlapping allocation when doubling reserved array
 has been removed from the -mm tree.  Its filename was
-     pidns-find_new_reaper-can-no-longer-switch-to-init_pid_nschild_reaper.patch
+     mm-memblock-fix-overlapping-allocation-when-doubling-reserved-array.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: pidns: find_new_reaper() can no longer switch to init_pid_ns.child_reaper
+From: Greg Pearson <greg.pearson@hp.com>
+Subject: mm/memblock: fix overlapping allocation when doubling reserved array
 
-find_new_reaper() changes pid_ns->child_reaper, see add0d4df ("pid_ns:
-zap_pid_ns_processes: fix the ->child_reaper changing").
+__alloc_memory_core_early() asks memblock for a range of memory then try
+to reserve it.  If the reserved region array lacks space for the new
+range, memblock_double_array() is called to allocate more space for the
+array.  If memblock is used to allocate memory for the new array it can
+end up using a range that overlaps with the range originally allocated in
+__alloc_memory_core_early(), leading to possible data corruption.
 
-The original reason has gone away after the previous patch, ->children
-list must be empty after zap_pid_ns_processes().
+With this patch memblock_double_array() now calls memblock_find_in_range()
+with a narrowed candidate range (in cases where the reserved.regions array
+is being doubled) so any memory allocated will not overlap with the
+original range that was being reserved.  The range is narrowed by passing
+in the starting address and size of the previously allocated range.  Then
+the range above the ending address is searched and if a candidate is not
+found, the range below the starting address is searched.
 
-However now we can not switch to init_pid_ns.child_reaper. 
-__unhash_process() relies on the "->child_reaper == parent" check, but
-this check does not work if the last exiting task is also the child
-reaper.
-
-As Eric sugested, we can change __unhash_process() to use the parent's
-pid_ns and remove this code.
-
-Also, with this change we can move detach_pid(PIDTYPE_PID) back, where it
-was before the previous fix.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Louis Rilling <louis.rilling@kerlabs.com>
-Cc: Mike Galbraith <efault@gmx.de>
-Acked-by: Pavel Emelyanov <xemul@parallels.com>
-Tested-by: Andrew Wagin <avagin@gmail.com>
+Signed-off-by: Greg Pearson <greg.pearson@hp.com>
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ mm/memblock.c |   36 ++++++++++++++++++++++++++++++++----
+ 1 file changed, 32 insertions(+), 4 deletions(-)
 
-diff -puN kernel/exit.c~pidns-find_new_reaper-can-no-longer-switch-to-init_pid_nschild_reaper kernel/exit.c
---- a/kernel/exit.c~pidns-find_new_reaper-can-no-longer-switch-to-init_pid_nschild_reaper
-+++ a/kernel/exit.c
-@@ -64,6 +64,7 @@ static void exit_mm(struct task_struct *
- static void __unhash_process(struct task_struct *p, bool group_dead)
- {
- 	nr_threads--;
-+	detach_pid(p, PIDTYPE_PID);
- 	if (group_dead) {
- 		detach_pid(p, PIDTYPE_PGID);
- 		detach_pid(p, PIDTYPE_SID);
-@@ -78,13 +79,12 @@ static void __unhash_process(struct task
- 		if (IS_ENABLED(CONFIG_PID_NS)) {
- 			struct task_struct *parent = p->real_parent;
- 
--			if ((task_active_pid_ns(p)->child_reaper == parent) &&
-+			if ((task_active_pid_ns(parent)->child_reaper == parent) &&
- 			    list_empty(&parent->children) &&
- 			    (parent->flags & PF_EXITING))
- 				wake_up_process(parent);
- 		}
+diff -puN mm/memblock.c~mm-memblock-fix-overlapping-allocation-when-doubling-reserved-array mm/memblock.c
+--- a/mm/memblock.c~mm-memblock-fix-overlapping-allocation-when-doubling-reserved-array
++++ a/mm/memblock.c
+@@ -184,7 +184,24 @@ static void __init_memblock memblock_rem
  	}
--	detach_pid(p, PIDTYPE_PID);
- 	list_del_rcu(&p->thread_group);
  }
  
-@@ -732,12 +732,6 @@ static struct task_struct *find_new_reap
+-static int __init_memblock memblock_double_array(struct memblock_type *type)
++/**
++ * memblock_double_array - double the size of the memblock regions array
++ * @type: memblock type of the regions array being doubled
++ * @new_area_start: starting address of memory range to avoid overlap with
++ * @new_area_size: size of memory range to avoid overlap with
++ *
++ * Double the size of the @type regions array. If memblock is being used to
++ * allocate memory for a new reserved regions array and there is a previously
++ * allocated memory range [@new_area_start,@new_area_start+@new_area_size]
++ * waiting to be reserved, ensure the memory used by the new array does
++ * not overlap.
++ *
++ * RETURNS:
++ * 0 on success, -1 on failure.
++ */
++static int __init_memblock memblock_double_array(struct memblock_type *type,
++						phys_addr_t new_area_start,
++						phys_addr_t new_area_size)
+ {
+ 	struct memblock_region *new_array, *old_array;
+ 	phys_addr_t old_size, new_size, addr;
+@@ -222,7 +239,18 @@ static int __init_memblock memblock_doub
+ 		new_array = kmalloc(new_size, GFP_KERNEL);
+ 		addr = new_array ? __pa(new_array) : 0;
+ 	} else {
+-		addr = memblock_find_in_range(0, MEMBLOCK_ALLOC_ACCESSIBLE, new_size, sizeof(phys_addr_t));
++		/* only exclude range when trying to double reserved.regions */
++		if (type != &memblock.reserved)
++			new_area_start = new_area_size = 0;
++
++		addr = memblock_find_in_range(new_area_start + new_area_size,
++						memblock.current_limit,
++						new_size, sizeof(phys_addr_t));
++		if (!addr && new_area_size)
++			addr = memblock_find_in_range(0,
++					min(new_area_start, memblock.current_limit),
++					new_size, sizeof(phys_addr_t));
++
+ 		new_array = addr ? __va(addr) : 0;
+ 	}
+ 	if (!addr) {
+@@ -399,7 +427,7 @@ repeat:
+ 	 */
+ 	if (!insert) {
+ 		while (type->cnt + nr_new > type->max)
+-			if (memblock_double_array(type) < 0)
++			if (memblock_double_array(type, obase, size) < 0)
+ 				return -ENOMEM;
+ 		insert = true;
+ 		goto repeat;
+@@ -450,7 +478,7 @@ static int __init_memblock memblock_isol
  
- 		zap_pid_ns_processes(pid_ns);
- 		write_lock_irq(&tasklist_lock);
--		/*
--		 * We can not clear ->child_reaper or leave it alone.
--		 * There may by stealth EXIT_DEAD tasks on ->children,
--		 * forget_original_parent() must move them somewhere.
--		 */
--		pid_ns->child_reaper = init_pid_ns.child_reaper;
- 	} else if (father->signal->has_child_subreaper) {
- 		struct task_struct *reaper;
+ 	/* we'll create at most two more regions */
+ 	while (type->cnt + 2 > type->max)
+-		if (memblock_double_array(type) < 0)
++		if (memblock_double_array(type, base, size) < 0)
+ 			return -ENOMEM;
  
+ 	for (i = 0; i < type->cnt; i++) {
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from greg.pearson@hp.com are
 
 origin.patch
-linux-next.patch
-c-r-prctl-less-paranoid-prctl_set_mm_exe_file.patch
-mm-oom-do-not-schedule-if-current-has-been-killed.patch
-kmod-avoid-deadlock-from-recursive-kmod-call.patch
-c-r-fcntl-add-f_getowner_uids-option.patch
+mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
 
