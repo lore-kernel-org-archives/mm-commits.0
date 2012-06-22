@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-clear-pages_scanned-only-if-draining-a-pcp-adds-pages-to-the-buddy-allocator-again.patch added to -mm tree
-Date: Fri, 22 Jun 2012 13:20:21 -0700
-Message-ID: <20120622202021.C1598A0210@akpm.mtv.corp.google.com>
+Subject: + reboot-disable-nonboot-cpus.patch added to -mm tree
+Date: Fri, 22 Jun 2012 13:57:09 -0700
+Message-ID: <20120622205709.CCA90A0210@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:50543 "EHLO
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:34178 "EHLO
 	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753531Ab2FVUUX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jun 2012 16:20:23 -0400
-Received: by qcha6 with SMTP id a6so261578qch.2
-        for <mm-commits@vger.kernel.org>; Fri, 22 Jun 2012 13:20:22 -0700 (PDT)
+	with ESMTP id S933111Ab2FVU5L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jun 2012 16:57:11 -0400
+Received: by qcha6 with SMTP id a6so269162qch.2
+        for <mm-commits@vger.kernel.org>; Fri, 22 Jun 2012 13:57:10 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, fengguang.wu@intel.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, minchan@kernel.org, riel@redhat.com, rientjes@google.com
+Cc: per.forlin@stericsson.com, gorcunov@openvz.org, hpa@zytor.com, keescook@chromium.org, linus.walleij@linaro.org, mingo@kernel.org, serue@us.ibm.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: mm: clear pages_scanned only if draining a pcp adds pages to the buddy allocator again
+     Subject: reboot: disable nonboot CPUs
 has been added to the -mm tree.  Its filename is
-     mm-clear-pages_scanned-only-if-draining-a-pcp-adds-pages-to-the-buddy-allocator-again.patch
+     reboot-disable-nonboot-cpus.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,81 +33,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Subject: mm: clear pages_scanned only if draining a pcp adds pages to the buddy allocator again
+From: Per Forlin <per.forlin@stericsson.com>
+Subject: reboot: disable nonboot CPUs
 
-commit 2ff754fa8f ("mm: clear pages_scanned only if draining a pcp adds
-pages to the buddy allocator again") fixed one free_pcppages_bulk()
-misuse.  But two another miuse still exist.
+I have run into an issue on an ARM platform that prevents reboot unless
+the nonboot CPUs are brought down safetly.  
 
-This patch fixes it.
+Disable the nonboot CPUs to safely migrate tasks and interrupts to the
+boot CPU.  This will prevent the nonboot CPUs to interfer or block the
+boot CPU from being able to reboot the system successfully.
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Minchan Kim <minchan@kernel.org>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Rik van Riel <riel@redhat.com>
+Is there a reason for disabling nonboot CPUs for power_off but not reboot?
+
+I could make this patch ARM specific but I thought that other ARCHs may
+benefit from this patch too.
+
+Signed-off-by: Per Forlin <per.forlin@stericsson.com>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ kernel/sys.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/page_alloc.c~mm-clear-pages_scanned-only-if-draining-a-pcp-adds-pages-to-the-buddy-allocator-again mm/page_alloc.c
---- a/mm/page_alloc.c~mm-clear-pages_scanned-only-if-draining-a-pcp-adds-pages-to-the-buddy-allocator-again
-+++ a/mm/page_alloc.c
-@@ -1157,8 +1157,10 @@ void drain_zone_pages(struct zone *zone,
- 		to_drain = pcp->batch;
- 	else
- 		to_drain = pcp->count;
--	free_pcppages_bulk(zone, to_drain, pcp);
--	pcp->count -= to_drain;
-+	if (to_drain > 0) {
-+		free_pcppages_bulk(zone, to_drain, pcp);
-+		pcp->count -= to_drain;
-+	}
- 	local_irq_restore(flags);
+diff -puN kernel/sys.c~reboot-disable-nonboot-cpus kernel/sys.c
+--- a/kernel/sys.c~reboot-disable-nonboot-cpus
++++ a/kernel/sys.c
+@@ -323,6 +323,7 @@ void kernel_restart_prepare(char *cmd)
+ 	system_state = SYSTEM_RESTART;
+ 	usermodehelper_disable();
+ 	device_shutdown();
++	disable_nonboot_cpus();
+ 	syscore_shutdown();
  }
- #endif
-@@ -3914,7 +3916,8 @@ static int __zone_pcp_update(void *data)
- 		pcp = &pset->pcp;
  
- 		local_irq_save(flags);
--		free_pcppages_bulk(zone, pcp->count, pcp);
-+		if (pcp->count > 0)
-+			free_pcppages_bulk(zone, pcp->count, pcp);
- 		setup_pageset(pset, batch);
- 		local_irq_restore(flags);
- 	}
 _
-Subject: Subject: mm: clear pages_scanned only if draining a pcp adds pages to the buddy allocator again
+Subject: Subject: reboot: disable nonboot CPUs
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from per.forlin@stericsson.com are
 
-linux-next.patch
-memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer.patch
-memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix.patch
-c-r-prctl-less-paranoid-prctl_set_mm_exe_file.patch
-hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
-hugetlb-dont-use-err_ptr-with-vm_fault-values.patch
-hugetlb-add-an-inline-helper-for-finding-hstate-index.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
-hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
-hugetlb-simplify-migrate_huge_page.patch
-hugetlb-add-a-list-for-tracking-in-use-hugetlb-pages.patch
-hugetlb-make-some-static-variables-global.patch
-mm-hugetlb-add-new-hugetlb-cgroup.patch
-hugetlb-cgroup-add-the-cgroup-pointer-to-page-lru.patch
-hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup.patch
-hugetlb-cgroup-add-support-for-cgroup-removal.patch
-hugetlb-cgroup-add-hugetlb-cgroup-control-files.patch
-hugetlb-cgroup-migrate-hugetlb-cgroup-info-from-oldpage-to-new-page-during-migration.patch
-hugetlb-cgroup-add-hugetlb-controller-documentation.patch
-mm-oom-do-not-schedule-if-current-has-been-killed.patch
-mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise.patch
-mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
-mm-clear-pages_scanned-only-if-draining-a-pcp-adds-pages-to-the-buddy-allocator-again.patch
+reboot-disable-nonboot-cpus.patch
 
