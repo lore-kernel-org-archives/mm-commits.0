@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-oom-replace-some-information-in-tasklist-dump.patch added to -mm tree
-Date: Fri, 22 Jun 2012 14:50:28 -0700
-Message-ID: <20120622215028.68334A0123@akpm.mtv.corp.google.com>
+Subject: + cpuidle-move-field-disable-from-per-driver-to-per-cpu.patch added to -mm tree
+Date: Fri, 22 Jun 2012 16:10:35 -0700
+Message-ID: <20120622231035.EFC76A026A@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:35460 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751386Ab2FVVub (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jun 2012 17:50:31 -0400
-Received: by wgbdt11 with SMTP id dt11so130138wgb.1
-        for <mm-commits@vger.kernel.org>; Fri, 22 Jun 2012 14:50:29 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:63974 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751595Ab2FVXKi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jun 2012 19:10:38 -0400
+Received: by weyu7 with SMTP id u7so132289wey.1
+        for <mm-commits@vger.kernel.org>; Fri, 22 Jun 2012 16:10:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com
+Cc: shuox.liu@intel.com, aschorr@telemetry-investments.com, len.brown@intel.com, lenb@kernel.org, yanmin_zhang@intel.com
 
 
 The patch titled
-     Subject: mm, oom: replace some information in tasklist dump
+     Subject: cpuidle: move field disable from per-driver to per-cpu
 has been added to the -mm tree.  Its filename is
-     mm-oom-replace-some-information-in-tasklist-dump.patch
+     cpuidle-move-field-disable-from-per-driver-to-per-cpu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,116 +33,153 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, oom: replace some information in tasklist dump
+From: ShuoX Liu <shuox.liu@intel.com>
+Subject: cpuidle: move field disable from per-driver to per-cpu
 
-The number of ptes and swap entries are used in the oom killer's badness
-heuristic, so they should be shown in the tasklist dump.
+Andrew J.Schorr raises a question.  When he changes the disable setting on
+a single CPU, it affects all the other CPUs.  Basically, currently, the
+disable field is per-driver instead of per-cpu.  All the C states of the
+same driver are shared by all CPU in the same machine.
 
-This patch adds those fields and replaces cpu and oom_adj values that are
-currently emitted.  Cpu isn't interesting and oom_adj is deprecated and
-will be removed later this year, the same information is already displayed
-as oom_score_adj which is used internally.
+The patch changes the `disable' field to per-cpu, so we could set this
+separately for each cpu.
 
-At the same time, make the documentation a little more clear to state this
-information is helpful to determine why the oom killer chose the task it
-did to kill.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: ShuoX Liu <shuox.liu@intel.com>
+Reported-by: Andrew J.Schorr <aschorr@telemetry-investments.com>
+Reviewed-by: Yanmin Zhang <yanmin_zhang@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: "Brown, Len" <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt |    7 ++++---
- mm/oom_kill.c               |   11 ++++++-----
- 2 files changed, 10 insertions(+), 8 deletions(-)
+ drivers/cpuidle/cpuidle.c        |    1 -
+ drivers/cpuidle/governors/menu.c |    5 +++--
+ drivers/cpuidle/sysfs.c          |   21 ++++++++++++---------
+ include/linux/cpuidle.h          |    2 +-
+ 4 files changed, 16 insertions(+), 13 deletions(-)
 
-diff -puN Documentation/sysctl/vm.txt~mm-oom-replace-some-information-in-tasklist-dump Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~mm-oom-replace-some-information-in-tasklist-dump
-+++ a/Documentation/sysctl/vm.txt
-@@ -491,9 +491,10 @@ oom_dump_tasks
+diff -puN drivers/cpuidle/cpuidle.c~cpuidle-move-field-disable-from-per-driver-to-per-cpu drivers/cpuidle/cpuidle.c
+--- a/drivers/cpuidle/cpuidle.c~cpuidle-move-field-disable-from-per-driver-to-per-cpu
++++ a/drivers/cpuidle/cpuidle.c
+@@ -276,7 +276,6 @@ static void poll_idle_init(struct cpuidl
+ 	state->power_usage = -1;
+ 	state->flags = 0;
+ 	state->enter = poll_idle;
+-	state->disable = 0;
+ }
+ #else
+ static void poll_idle_init(struct cpuidle_driver *drv) {}
+diff -puN drivers/cpuidle/governors/menu.c~cpuidle-move-field-disable-from-per-driver-to-per-cpu drivers/cpuidle/governors/menu.c
+--- a/drivers/cpuidle/governors/menu.c~cpuidle-move-field-disable-from-per-driver-to-per-cpu
++++ a/drivers/cpuidle/governors/menu.c
+@@ -281,7 +281,7 @@ static int menu_select(struct cpuidle_dr
+ 	 * unless the timer is happening really really soon.
+ 	 */
+ 	if (data->expected_us > 5 &&
+-		drv->states[CPUIDLE_DRIVER_STATE_START].disable == 0)
++		dev->states_usage[CPUIDLE_DRIVER_STATE_START].disable == 0)
+ 		data->last_state_idx = CPUIDLE_DRIVER_STATE_START;
  
- Enables a system-wide task dump (excluding kernel threads) to be
- produced when the kernel performs an OOM-killing and includes such
--information as pid, uid, tgid, vm size, rss, cpu, oom_adj score, and
--name.  This is helpful to determine why the OOM killer was invoked
--and to identify the rogue task that caused it.
-+information as pid, uid, tgid, vm size, rss, nr_ptes, swapents,
-+oom_score_adj score, and name.  This is helpful to determine why the
-+OOM killer was invoked, to identify the rogue task that caused it,
-+and to determine why the OOM killer chose the task it did to kill.
+ 	/*
+@@ -290,8 +290,9 @@ static int menu_select(struct cpuidle_dr
+ 	 */
+ 	for (i = CPUIDLE_DRIVER_STATE_START; i < drv->state_count; i++) {
+ 		struct cpuidle_state *s = &drv->states[i];
++		struct cpuidle_state_usage *su = &dev->states_usage[i];
  
- If this is set to zero, this information is suppressed.  On very
- large systems with thousands of tasks it may not be feasible to dump
-diff -puN mm/oom_kill.c~mm-oom-replace-some-information-in-tasklist-dump mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-replace-some-information-in-tasklist-dump
-+++ a/mm/oom_kill.c
-@@ -371,8 +371,8 @@ static struct task_struct *select_bad_pr
-  * Dumps the current memory state of all eligible tasks.  Tasks not in the same
-  * memcg, not in the same cpuset, or bound to a disjoint set of mempolicy nodes
-  * are not shown.
-- * State information includes task's pid, uid, tgid, vm size, rss, cpu, oom_adj
-- * value, oom_score_adj value, and name.
-+ * State information includes task's pid, uid, tgid, vm size, rss, nr_ptes,
-+ * swapents, oom_score_adj value, and name.
-  *
-  * Call with tasklist_lock read-locked.
-  */
-@@ -381,7 +381,7 @@ static void dump_tasks(const struct mem_
- 	struct task_struct *p;
- 	struct task_struct *task;
- 
--	pr_info("[ pid ]   uid  tgid total_vm      rss cpu oom_adj oom_score_adj name\n");
-+	pr_info("[ pid ]   uid  tgid total_vm      rss nr_ptes swapents oom_score_adj name\n");
- 	for_each_process(p) {
- 		if (oom_unkillable_task(p, memcg, nodemask))
+-		if (s->disable)
++		if (su->disable)
  			continue;
-@@ -396,10 +396,11 @@ static void dump_tasks(const struct mem_
+ 		if (s->target_residency > data->predicted_us)
  			continue;
- 		}
+diff -puN drivers/cpuidle/sysfs.c~cpuidle-move-field-disable-from-per-driver-to-per-cpu drivers/cpuidle/sysfs.c
+--- a/drivers/cpuidle/sysfs.c~cpuidle-move-field-disable-from-per-driver-to-per-cpu
++++ a/drivers/cpuidle/sysfs.c
+@@ -217,7 +217,8 @@ struct cpuidle_state_attr {
+ 	struct attribute attr;
+ 	ssize_t (*show)(struct cpuidle_state *, \
+ 					struct cpuidle_state_usage *, char *);
+-	ssize_t (*store)(struct cpuidle_state *, const char *, size_t);
++	ssize_t (*store)(struct cpuidle_state *, \
++			struct cpuidle_state_usage *, const char *, size_t);
+ };
  
--		pr_info("[%5d] %5d %5d %8lu %8lu %3u     %3d         %5d %s\n",
-+		pr_info("[%5d] %5d %5d %8lu %8lu %7lu %8lu         %5d %s\n",
- 			task->pid, from_kuid(&init_user_ns, task_uid(task)),
- 			task->tgid, task->mm->total_vm, get_mm_rss(task->mm),
--			task_cpu(task), task->signal->oom_adj,
-+			task->mm->nr_ptes,
-+			get_mm_counter(task->mm, MM_SWAPENTS),
- 			task->signal->oom_score_adj, task->comm);
- 		task_unlock(task);
- 	}
+ #define define_one_state_ro(_name, show) \
+@@ -233,21 +234,22 @@ static ssize_t show_state_##_name(struct
+ 	return sprintf(buf, "%u\n", state->_name);\
+ }
+ 
+-#define define_store_state_function(_name) \
++#define define_store_state_ull_function(_name) \
+ static ssize_t store_state_##_name(struct cpuidle_state *state, \
++		struct cpuidle_state_usage *state_usage, \
+ 		const char *buf, size_t size) \
+ { \
+-	long value; \
++	unsigned long long value; \
+ 	int err; \
+ 	if (!capable(CAP_SYS_ADMIN)) \
+ 		return -EPERM; \
+-	err = kstrtol(buf, 0, &value); \
++	err = kstrtoull(buf, 0, &value); \
+ 	if (err) \
+ 		return err; \
+ 	if (value) \
+-		state->disable = 1; \
++		state_usage->_name = 1; \
+ 	else \
+-		state->disable = 0; \
++		state_usage->_name = 0; \
+ 	return size; \
+ }
+ 
+@@ -273,8 +275,8 @@ define_show_state_ull_function(usage)
+ define_show_state_ull_function(time)
+ define_show_state_str_function(name)
+ define_show_state_str_function(desc)
+-define_show_state_function(disable)
+-define_store_state_function(disable)
++define_show_state_ull_function(disable)
++define_store_state_ull_function(disable)
+ 
+ define_one_state_ro(name, show_state_name);
+ define_one_state_ro(desc, show_state_desc);
+@@ -318,10 +320,11 @@ static ssize_t cpuidle_state_store(struc
+ {
+ 	int ret = -EIO;
+ 	struct cpuidle_state *state = kobj_to_state(kobj);
++	struct cpuidle_state_usage *state_usage = kobj_to_state_usage(kobj);
+ 	struct cpuidle_state_attr *cattr = attr_to_stateattr(attr);
+ 
+ 	if (cattr->store)
+-		ret = cattr->store(state, buf, size);
++		ret = cattr->store(state, state_usage, buf, size);
+ 
+ 	return ret;
+ }
+diff -puN include/linux/cpuidle.h~cpuidle-move-field-disable-from-per-driver-to-per-cpu include/linux/cpuidle.h
+--- a/include/linux/cpuidle.h~cpuidle-move-field-disable-from-per-driver-to-per-cpu
++++ a/include/linux/cpuidle.h
+@@ -34,6 +34,7 @@ struct cpuidle_driver;
+ struct cpuidle_state_usage {
+ 	void		*driver_data;
+ 
++	unsigned long long	disable;
+ 	unsigned long long	usage;
+ 	unsigned long long	time; /* in US */
+ };
+@@ -46,7 +47,6 @@ struct cpuidle_state {
+ 	unsigned int	exit_latency; /* in US */
+ 	int		power_usage; /* in mW */
+ 	unsigned int	target_residency; /* in US */
+-	unsigned int    disable;
+ 
+ 	int (*enter)	(struct cpuidle_device *dev,
+ 			struct cpuidle_driver *drv,
 _
-Subject: Subject: mm, oom: replace some information in tasklist dump
+Subject: Subject: cpuidle: move field disable from per-driver to per-cpu
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from shuox.liu@intel.com are
 
-origin.patch
-linux-next.patch
-memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer.patch
-memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix.patch
-mm-thp-abort-compaction-if-migration-page-cannot-be-charged-to-memcg.patch
-slab-move-full-state-transition-to-an-initcall.patch
-slab-do-not-call-compound_head-in-page_get_cache.patch
-mm-buddy-cleanup-on-should_fail_alloc_page.patch
-hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
-hugetlb-dont-use-err_ptr-with-vm_fault-values.patch
-hugetlb-add-an-inline-helper-for-finding-hstate-index.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
-hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
-hugetlb-simplify-migrate_huge_page.patch
-hugetlb-add-a-list-for-tracking-in-use-hugetlb-pages.patch
-hugetlb-make-some-static-variables-global.patch
-mm-hugetlb-add-new-hugetlb-cgroup.patch
-hugetlb-cgroup-add-the-cgroup-pointer-to-page-lru.patch
-hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup.patch
-hugetlb-cgroup-add-support-for-cgroup-removal.patch
-hugetlb-cgroup-add-hugetlb-cgroup-control-files.patch
-hugetlb-cgroup-migrate-hugetlb-cgroup-info-from-oldpage-to-new-page-during-migration.patch
-hugetlb-cgroup-add-hugetlb-controller-documentation.patch
-mm-oom-do-not-schedule-if-current-has-been-killed.patch
-mm-compaction-cleanup-on-compaction_deferred.patch
-mm-clear-pages_scanned-only-if-draining-a-pcp-adds-pages-to-the-buddy-allocator-again.patch
-mm-oom-fix-potential-killing-of-thread-that-is-disabled-from-oom-killing.patch
-mm-oom-replace-some-information-in-tasklist-dump.patch
+cpuidle-move-field-disable-from-per-driver-to-per-cpu.patch
 
