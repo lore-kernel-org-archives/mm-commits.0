@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 22 Jun 2012 16:29:48 -0700
-Message-ID: <20120622232949.14FC0A016C@akpm.mtv.corp.google.com>
+Subject: + x86-mce-use-new-printk-recursion-disabling-interface.patch added to -mm tree
+Date: Fri, 22 Jun 2012 16:41:58 -0700
+Message-ID: <20120622234158.CD33AA01BD@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:63027 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756473Ab2FVX3v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jun 2012 19:29:51 -0400
-Received: by qabg24 with SMTP id g24so47608qab.1
-        for <mm-commits@vger.kernel.org>; Fri, 22 Jun 2012 16:29:49 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:47062 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756463Ab2FVXmA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jun 2012 19:42:00 -0400
+Received: by vcbfl13 with SMTP id fl13so266959vcb.1
+        for <mm-commits@vger.kernel.org>; Fri, 22 Jun 2012 16:41:59 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, lee.jones@linaro.org
+Cc: shuox.liu@intel.com, hpa@zytor.com, mingo@elte.hu, tglx@tglx.de, tony.luck@intel.com, yanmin_zhang@linux.intel.com
 
 
 The patch titled
-     Subject: rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled-checkpatch-fixes
+     Subject: x86 mce: use new printk recursion disabling interface
 has been added to the -mm tree.  Its filename is
-     rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled-checkpatch-fixes.patch
+     x86-mce-use-new-printk-recursion-disabling-interface.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,101 +33,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled-checkpatch-fixes
+From: ShuoX Liu <shuox.liu@intel.com>
+Subject: x86 mce: use new printk recursion disabling interface
 
-ERROR: code indent should use tabs where possible
-#41: FILE: drivers/rtc/rtc-ab8500.c:458:
-+        { .compatible = "stericsson,ab8500-rtc", },$
+Disable printk recursion to make sure the MCE logs are printed out.  We
+hit it when running a MTBF testing on a Android atom mobile.
 
-WARNING: please, no spaces at the start of a line
-#41: FILE: drivers/rtc/rtc-ab8500.c:458:
-+        { .compatible = "stericsson,ab8500-rtc", },$
-
-ERROR: code indent should use tabs where possible
-#42: FILE: drivers/rtc/rtc-ab8500.c:459:
-+        {}$
-
-WARNING: please, no spaces at the start of a line
-#42: FILE: drivers/rtc/rtc-ab8500.c:459:
-+        {}$
-
-total: 2 errors, 2 warnings, 30 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Lee Jones <lee.jones@linaro.org>
+Signed-off-by: Yanmin Zhang <yanmin_zhang@linux.intel.com>
+Signed-off-by: ShuoX Liu <shuox.liu@intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@tglx.de>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ab8500.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/kernel/cpu/mcheck/mce.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/rtc/rtc-ab8500.c~rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled-checkpatch-fixes drivers/rtc/rtc-ab8500.c
---- a/drivers/rtc/rtc-ab8500.c~rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled-checkpatch-fixes
-+++ a/drivers/rtc/rtc-ab8500.c
-@@ -455,8 +455,8 @@ static int __devexit ab8500_rtc_remove(s
+diff -puN arch/x86/kernel/cpu/mcheck/mce.c~x86-mce-use-new-printk-recursion-disabling-interface arch/x86/kernel/cpu/mcheck/mce.c
+--- a/arch/x86/kernel/cpu/mcheck/mce.c~x86-mce-use-new-printk-recursion-disabling-interface
++++ a/arch/x86/kernel/cpu/mcheck/mce.c
+@@ -307,6 +307,7 @@ static void mce_panic(char *msg, struct 
+ {
+ 	int i, apei_err = 0;
+ 
++	printk_recursion_check_disable();
+ 	if (!fake_panic) {
+ 		/*
+ 		 * Make sure only one CPU runs in machine check panic
+@@ -361,6 +362,7 @@ static void mce_panic(char *msg, struct 
+ 		panic(msg);
+ 	} else
+ 		pr_emerg(HW_ERR "Fake kernel panic: %s\n", msg);
++	printk_recursion_check_enable();
  }
  
- static const struct of_device_id ab8500_rtc_match[] = {
--        { .compatible = "stericsson,ab8500-rtc", },
--        {}
-+	{ .compatible = "stericsson,ab8500-rtc", },
-+	{}
- };
- 
- static struct platform_driver ab8500_rtc_driver = {
+ /* Support code for software error injection */
 _
-Subject: Subject: rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled-checkpatch-fixes
+Subject: Subject: x86 mce: use new printk recursion disabling interface
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from shuox.liu@intel.com are
 
-origin.patch
-linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix.patch
-drivers-gpio-devresc-export-devm_gpio_request_one-to-modules.patch
-fs-jbd2-commitc-use-new-kmap_atomic-api.patch
-rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled-checkpatch-fixes.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
-include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures.patch
-hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
-mm.patch
-mm-make-vb_alloc-more-foolproof-fix.patch
-mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
-memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
-memcg-prevent-oom-with-too-many-dirty-pages.patch
-mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
-tmpfs-implement-numa-node-interleaving-fix.patch
-avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
-kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
-printk-add-generic-functions-to-find-kern_level-headers-fix.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
-lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch
-string-introduce-memweight-fix.patch
-drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes.patch
-drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded.patch
-fs-introduce-pipe-only-dump-mode-suid_dumpable=3-fix.patch
-hfsplus-get-rid-of-write_super-checkpatch-fixes.patch
-kmod-avoid-deadlock-from-recursive-kmod-call.patch
-fork-use-vma_pages-to-simplify-the-code-fix.patch
-fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
-notify_change-check-that-i_mutex-is-held.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+cpuidle-move-field-disable-from-per-driver-to-per-cpu.patch
+printk-add-interface-for-disabling-recursion-check.patch
+x86-mce-use-new-printk-recursion-disabling-interface.patch
+x86-mce-use-new-printk-recursion-disabling-interface-fix.patch
 
