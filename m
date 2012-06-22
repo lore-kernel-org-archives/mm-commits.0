@@ -1,78 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-page-reclaim-comment-error.patch added to -mm tree
-Date: Fri, 22 Jun 2012 13:59:07 -0700
-Message-ID: <20120622205907.65F64A0210@akpm.mtv.corp.google.com>
+Subject: [nacked] reboot-disable-nonboot-cpus.patch removed from -mm tree
+Date: Fri, 22 Jun 2012 14:39:41 -0700
+Message-ID: <20120622213941.93AF1A016C@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:34683 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932113Ab2FVU7I (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jun 2012 16:59:08 -0400
-Received: by yhgm50 with SMTP id m50so193294yhg.1
-        for <mm-commits@vger.kernel.org>; Fri, 22 Jun 2012 13:59:07 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:41377 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754060Ab2FVVjm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jun 2012 17:39:42 -0400
+Received: by ggeh3 with SMTP id h3so244553gge.1
+        for <mm-commits@vger.kernel.org>; Fri, 22 Jun 2012 14:39:42 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: liwp@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, liwp.linux@gmail.com, minchan@kernel.org, riel@redhat.com
+To: per.forlin@stericsson.com, gorcunov@openvz.org, hpa@zytor.com, keescook@chromium.org, linus.walleij@linaro.org, mingo@kernel.org, serue@us.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix page reclaim comment error
-has been added to the -mm tree.  Its filename is
-     mm-fix-page-reclaim-comment-error.patch
+     Subject: reboot: disable nonboot CPUs
+has been removed from the -mm tree.  Its filename was
+     reboot-disable-nonboot-cpus.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was nacked
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Wanpeng Li <liwp@linux.vnet.ibm.com>
-Subject: mm: fix page reclaim comment error
+From: Per Forlin <per.forlin@stericsson.com>
+Subject: reboot: disable nonboot CPUs
 
-Since there are five lists in LRU cache, the array nr in get_scan_count
-should be:
+I have run into an issue on an ARM platform that prevents reboot unless
+the nonboot CPUs are brought down safetly.  
 
-nr[0] = anon inactive pages to scan; nr[1] = anon active pages to scan
-nr[2] = file inactive pages to scan; nr[3] = file active pages to scan
+Disable the nonboot CPUs to safely migrate tasks and interrupts to the
+boot CPU.  This will prevent the nonboot CPUs to interfer or block the
+boot CPU from being able to reboot the system successfully.
 
-Signed-off-by: Wanpeng Li <liwp.linux@gmail.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Rik van Riel <riel@redhat.com>
+Is there a reason for disabling nonboot CPUs for power_off but not reboot?
+
+I could make this patch ARM specific but I thought that other ARCHs may
+benefit from this patch too.
+
+Signed-off-by: Per Forlin <per.forlin@stericsson.com>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/sys.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/vmscan.c~mm-fix-page-reclaim-comment-error mm/vmscan.c
---- a/mm/vmscan.c~mm-fix-page-reclaim-comment-error
-+++ a/mm/vmscan.c
-@@ -1577,7 +1577,8 @@ static int vmscan_swappiness(struct scan
-  * by looking at the fraction of the pages scanned we did rotate back
-  * onto the active list instead of evict.
-  *
-- * nr[0] = anon pages to scan; nr[1] = file pages to scan
-+ * nr[0] = anon inactive pages to scan; nr[1] = anon active pages to scan
-+ * nr[2] = file inactive pages to scan; nr[3] = file active pages to scan
-  */
- static void get_scan_count(struct lruvec *lruvec, struct scan_control *sc,
- 			   unsigned long *nr)
+diff -puN kernel/sys.c~reboot-disable-nonboot-cpus kernel/sys.c
+--- a/kernel/sys.c~reboot-disable-nonboot-cpus
++++ a/kernel/sys.c
+@@ -323,6 +323,7 @@ void kernel_restart_prepare(char *cmd)
+ 	system_state = SYSTEM_RESTART;
+ 	usermodehelper_disable();
+ 	device_shutdown();
++	disable_nonboot_cpus();
+ 	syscore_shutdown();
+ }
+ 
 _
-Subject: Subject: mm: fix page reclaim comment error
 
-Patches currently in -mm which might be from liwp@linux.vnet.ibm.com are
+Patches currently in -mm which might be from per.forlin@stericsson.com are
 
-origin.patch
-linux-next.patch
-mm-prepare-for-removal-of-obsolete-proc-sys-vm-nr_pdflush_threads.patch
-mm-cleanup-on-the-comments-of-zone_reclaim_stat.patch
-mm-fix-page-reclaim-comment-error.patch
 
