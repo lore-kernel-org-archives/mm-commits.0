@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-do-not-use-page_count-without-a-page-pin.patch added to -mm tree
-Date: Fri, 22 Jun 2012 16:27:53 -0700
-Message-ID: <20120622232754.6F4C3A016C@akpm.mtv.corp.google.com>
+Subject: + mm-clean-up-__count_immobile_pages.patch added to -mm tree
+Date: Fri, 22 Jun 2012 16:27:58 -0700
+Message-ID: <20120622232758.F1566A016C@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:61464 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756451Ab2FVX14 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jun 2012 19:27:56 -0400
-Received: by eeit10 with SMTP id t10so132235eei.1
-        for <mm-commits@vger.kernel.org>; Fri, 22 Jun 2012 16:27:55 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:57696 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756473Ab2FVX2B (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jun 2012 19:28:01 -0400
+Received: by lbbgp10 with SMTP id gp10so194110lbb.1
+        for <mm-commits@vger.kernel.org>; Fri, 22 Jun 2012 16:28:00 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minchan@kernel.org, aarcange@redhat.com, b.zolnierkie@samsung.com, kamezawa.hiroyu@jp.fujitsu.com, liwp.linux@gmail.com, mgorman@suse.de, mhocko@suse.cz
+Cc: minchan@kernel.org, aarcange@redhat.com, b.zolnierkie@samsung.com, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, mhocko@suse.cz
 
 
 The patch titled
-     Subject: mm: do not use page_count() without a page pin
+     Subject: mm: clean up __count_immobile_pages()
 has been added to the -mm tree.  Its filename is
-     mm-do-not-use-page_count-without-a-page-pin.patch
+     mm-clean-up-__count_immobile_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,104 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: mm: do not use page_count() without a page pin
+Subject: mm: clean up __count_immobile_pages()
 
-d179e84ba ("mm: vmscan: do not use page_count without a page pin") fixed
-this problem in vmscan.c but same problem is in __count_immobile_pages().
-
-I copy and paste d179e84ba's contents for description.
-
-"It is unsafe to run page_count during the physical pfn scan because
-compound_head could trip on a dangling pointer when reading
-page->first_page if the compound page is being freed by another CPU."
+The __count_immobile_pages() naming is rather awkward.  Choose a more
+clear name and add a comment.
 
 Signed-off-by: Minchan Kim <minchan@kernel.org>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Michal Hocko <mhocko@suse.cz>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Wanpeng Li <liwp.linux@gmail.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |   34 ++++++++++++++++++----------------
+ 1 file changed, 18 insertions(+), 16 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-do-not-use-page_count-without-a-page-pin mm/page_alloc.c
---- a/mm/page_alloc.c~mm-do-not-use-page_count-without-a-page-pin
+diff -puN mm/page_alloc.c~mm-clean-up-__count_immobile_pages mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-clean-up-__count_immobile_pages
 +++ a/mm/page_alloc.c
-@@ -5499,11 +5499,18 @@ __count_immobile_pages(struct zone *zone
- 			continue;
+@@ -5470,26 +5470,28 @@ void set_pageblock_flags_group(struct pa
+ }
  
- 		page = pfn_to_page(check);
--		if (!page_count(page)) {
-+		/*
-+		 * We can't use page_count without pin a page
-+		 * because another CPU can free compound page.
-+		 * This check already skips compound tails of THP
-+		 * because their page->_count is zero at all time.
-+		 */
-+		if (!atomic_read(&page->_count)) {
- 			if (PageBuddy(page))
- 				iter += (1 << page_order(page)) - 1;
- 			continue;
- 		}
-+
- 		if (!PageLRU(page))
- 			found++;
- 		/*
+ /*
+- * This is designed as sub function...plz see page_isolation.c also.
+- * set/clear page block's type to be ISOLATE.
+- * page allocater never alloc memory from ISOLATE block.
++ * This function checks whether pageblock includes unmovable pages or not.
++ * If @count is not zero, it is okay to include less @count unmovable pages
++ *
++ * PageLRU check wihtout isolation or lru_lock could race so that
++ * MIGRATE_MOVABLE block might include unmovable pages. It means you can't
++ * expect this function should be exact.
+  */
+-
+-static int
+-__count_immobile_pages(struct zone *zone, struct page *page, int count)
++static bool
++__has_unmovable_pages(struct zone *zone, struct page *page, int count)
+ {
+ 	unsigned long pfn, iter, found;
+ 	int mt;
+ 
+ 	/*
+ 	 * For avoiding noise data, lru_add_drain_all() should be called
+-	 * If ZONE_MOVABLE, the zone never contains immobile pages
++	 * If ZONE_MOVABLE, the zone never contains unmovable pages
+ 	 */
+ 	if (zone_idx(zone) == ZONE_MOVABLE)
+-		return true;
++		return false;
+ 	mt = get_pageblock_migratetype(page);
+ 	if (mt == MIGRATE_MOVABLE || is_migrate_cma(mt))
+-		return true;
++		return false;
+ 
+ 	pfn = page_to_pfn(page);
+ 	for (found = 0, iter = 0; iter < pageblock_nr_pages; iter++) {
+@@ -5527,9 +5529,9 @@ __count_immobile_pages(struct zone *zone
+ 		 * page at boot.
+ 		 */
+ 		if (found > count)
+-			return false;
++			return true;
+ 	}
+-	return true;
++	return false;
+ }
+ 
+ bool is_pageblock_removable_nolock(struct page *page)
+@@ -5553,7 +5555,7 @@ bool is_pageblock_removable_nolock(struc
+ 			zone->zone_start_pfn + zone->spanned_pages <= pfn)
+ 		return false;
+ 
+-	return __count_immobile_pages(zone, page, 0);
++	return !__has_unmovable_pages(zone, page, 0);
+ }
+ 
+ int set_migratetype_isolate(struct page *page)
+@@ -5592,12 +5594,12 @@ int set_migratetype_isolate(struct page 
+ 	 * FIXME: Now, memory hotplug doesn't call shrink_slab() by itself.
+ 	 * We just check MOVABLE pages.
+ 	 */
+-	if (__count_immobile_pages(zone, page, arg.pages_found))
++	if (!__has_unmovable_pages(zone, page, arg.pages_found))
+ 		ret = 0;
+-
+ 	/*
+-	 * immobile means "not-on-lru" paes. If immobile is larger than
+-	 * removable-by-driver pages reported by notifier, we'll fail.
++	 * Unmovable means "not-on-lru" pages. If Unmovable pages are
++	 * larger than removable-by-driver pages reported by notifier,
++	 * we'll fail.
+ 	 */
+ 
+ out:
 _
-Subject: Subject: mm: do not use page_count() without a page pin
+Subject: Subject: mm: clean up __count_immobile_pages()
 
 Patches currently in -mm which might be from minchan@kernel.org are
 
