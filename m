@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + arch-arm-mach-netx-fbc-reuse-dummy-clk-routines-for-config_have_clk=n.patch added to -mm tree
-Date: Fri, 22 Jun 2012 13:06:37 -0700
-Message-ID: <20120622200637.BAAFFA035C@akpm.mtv.corp.google.com>
+Subject: + mm-clear-pages_scanned-only-if-draining-a-pcp-adds-pages-to-the-buddy-allocator-again.patch added to -mm tree
+Date: Fri, 22 Jun 2012 13:20:21 -0700
+Message-ID: <20120622202021.C1598A0210@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:60305 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932456Ab2FVUOs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jun 2012 16:14:48 -0400
-Received: by vbnl22 with SMTP id l22so229341vbn.1
-        for <mm-commits@vger.kernel.org>; Fri, 22 Jun 2012 13:14:48 -0700 (PDT)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:50543 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753531Ab2FVUUX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jun 2012 16:20:23 -0400
+Received: by qcha6 with SMTP id a6so261578qch.2
+        for <mm-commits@vger.kernel.org>; Fri, 22 Jun 2012 13:20:22 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: viresh.kumar2@arm.com, paul.gortmaker@gmail.com, s.hauer@pengutronix.de
+Cc: kosaki.motohiro@jp.fujitsu.com, fengguang.wu@intel.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, minchan@kernel.org, riel@redhat.com, rientjes@google.com
 
 
 The patch titled
-     Subject: arch/arm/mach-netx/fb.c: reuse dummy clk routines for CONFIG_HAVE_CLK=n
+     Subject: mm: clear pages_scanned only if draining a pcp adds pages to the buddy allocator again
 has been added to the -mm tree.  Its filename is
-     arch-arm-mach-netx-fbc-reuse-dummy-clk-routines-for-config_have_clk=n.patch
+     mm-clear-pages_scanned-only-if-draining-a-pcp-adds-pages-to-the-buddy-allocator-again.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,57 +33,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Viresh Kumar <viresh.kumar2@arm.com>
-Subject: arch/arm/mach-netx/fb.c: reuse dummy clk routines for CONFIG_HAVE_CLK=n
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: mm: clear pages_scanned only if draining a pcp adds pages to the buddy allocator again
 
-mach-netx had its own implementation of clk routines like, clk_get{put},
-clk_enable{disable}, etc.  And with introduction of following patchset:
+commit 2ff754fa8f ("mm: clear pages_scanned only if draining a pcp adds
+pages to the buddy allocator again") fixed one free_pcppages_bulk()
+misuse.  But two another miuse still exist.
 
-https://lkml.org/lkml/2012/4/24/154
+This patch fixes it.
 
-we get compilation error for multiple definition of these routines.
-
-Sascha had following suggestion to deal with it:
-
-http://www.spinics.net/lists/arm-kernel/msg179369.html
-
-So, remove this code completely.
-
-Signed-off-by: Viresh Kumar <viresh.kumar2@arm.com>
-Reported-by: Paul Gortmaker <paul.gortmaker@gmail.com>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Minchan Kim <minchan@kernel.org>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-netx/fb.c |   23 -----------------------
- 1 file changed, 23 deletions(-)
+ mm/page_alloc.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN arch/arm/mach-netx/fb.c~arch-arm-mach-netx-fbc-reuse-dummy-clk-routines-for-config_have_clk=n arch/arm/mach-netx/fb.c
---- a/arch/arm/mach-netx/fb.c~arch-arm-mach-netx-fbc-reuse-dummy-clk-routines-for-config_have_clk=n
-+++ a/arch/arm/mach-netx/fb.c
-@@ -69,29 +69,6 @@ void netx_clcd_remove(struct clcd_fb *fb
- 			      fb->fb.screen_base, fb->fb.fix.smem_start);
+diff -puN mm/page_alloc.c~mm-clear-pages_scanned-only-if-draining-a-pcp-adds-pages-to-the-buddy-allocator-again mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-clear-pages_scanned-only-if-draining-a-pcp-adds-pages-to-the-buddy-allocator-again
++++ a/mm/page_alloc.c
+@@ -1157,8 +1157,10 @@ void drain_zone_pages(struct zone *zone,
+ 		to_drain = pcp->batch;
+ 	else
+ 		to_drain = pcp->count;
+-	free_pcppages_bulk(zone, to_drain, pcp);
+-	pcp->count -= to_drain;
++	if (to_drain > 0) {
++		free_pcppages_bulk(zone, to_drain, pcp);
++		pcp->count -= to_drain;
++	}
+ 	local_irq_restore(flags);
  }
+ #endif
+@@ -3914,7 +3916,8 @@ static int __zone_pcp_update(void *data)
+ 		pcp = &pset->pcp;
  
--void clk_disable(struct clk *clk)
--{
--}
--
--int clk_set_rate(struct clk *clk, unsigned long rate)
--{
--	return 0;
--}
--
--int clk_enable(struct clk *clk)
--{
--	return 0;
--}
--
--struct clk *clk_get(struct device *dev, const char *id)
--{
--	return dev && strcmp(dev_name(dev), "fb") == 0 ? NULL : ERR_PTR(-ENOENT);
--}
--
--void clk_put(struct clk *clk)
--{
--}
+ 		local_irq_save(flags);
+-		free_pcppages_bulk(zone, pcp->count, pcp);
++		if (pcp->count > 0)
++			free_pcppages_bulk(zone, pcp->count, pcp);
+ 		setup_pageset(pset, batch);
+ 		local_irq_restore(flags);
+ 	}
+_
+Subject: Subject: mm: clear pages_scanned only if draining a pcp adds pages to the buddy allocator again
+
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+
+linux-next.patch
+memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer.patch
+memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix.patch
+c-r-prctl-less-paranoid-prctl_set_mm_exe_file.patch
+hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
+hugetlb-dont-use-err_ptr-with-vm_fault-values.patch
+hugetlb-add-an-inline-helper-for-finding-hstate-index.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
+hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
+hugetlb-simplify-migrate_huge_page.patch
+hugetlb-add-a-list-for-tracking-in-use-hugetlb-pages.patch
+hugetlb-make-some-static-variables-global.patch
+mm-hugetlb-add-new-hugetlb-cgroup.patch
+hugetlb-cgroup-add-the-cgroup-pointer-to-page-lru.patch
+hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup.patch
+hugetlb-cgroup-add-support-for-cgroup-removal.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files.patch
+hugetlb-cgroup-migrate-hugetlb-cgroup-info-from-oldpage-to-new-page-during-migration.patch
+hugetlb-cgroup-add-hugetlb-controller-documentation.patch
+mm-oom-do-not-schedule-if-current-has-been-killed.patch
+mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise.patch
+mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
+mm-clear-pages_scanned-only-if-draining-a-pcp-adds-pages-to-the-buddy-allocator-again.patch
+
