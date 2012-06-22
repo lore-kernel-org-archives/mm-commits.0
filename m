@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + cpuidle-move-field-disable-from-per-driver-to-per-cpu.patch added to -mm tree
-Date: Fri, 22 Jun 2012 16:10:35 -0700
-Message-ID: <20120622231035.EFC76A026A@akpm.mtv.corp.google.com>
+Subject: + mm-do-not-use-page_count-without-a-page-pin.patch added to -mm tree
+Date: Fri, 22 Jun 2012 16:27:53 -0700
+Message-ID: <20120622232754.6F4C3A016C@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:63974 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751595Ab2FVXKi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jun 2012 19:10:38 -0400
-Received: by weyu7 with SMTP id u7so132289wey.1
-        for <mm-commits@vger.kernel.org>; Fri, 22 Jun 2012 16:10:37 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:61464 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756451Ab2FVX14 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jun 2012 19:27:56 -0400
+Received: by eeit10 with SMTP id t10so132235eei.1
+        for <mm-commits@vger.kernel.org>; Fri, 22 Jun 2012 16:27:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shuox.liu@intel.com, aschorr@telemetry-investments.com, len.brown@intel.com, lenb@kernel.org, yanmin_zhang@intel.com
+Cc: minchan@kernel.org, aarcange@redhat.com, b.zolnierkie@samsung.com, kamezawa.hiroyu@jp.fujitsu.com, liwp.linux@gmail.com, mgorman@suse.de, mhocko@suse.cz
 
 
 The patch titled
-     Subject: cpuidle: move field disable from per-driver to per-cpu
+     Subject: mm: do not use page_count() without a page pin
 has been added to the -mm tree.  Its filename is
-     cpuidle-move-field-disable-from-per-driver-to-per-cpu.patch
+     mm-do-not-use-page_count-without-a-page-pin.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,153 +33,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: ShuoX Liu <shuox.liu@intel.com>
-Subject: cpuidle: move field disable from per-driver to per-cpu
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: do not use page_count() without a page pin
 
-Andrew J.Schorr raises a question.  When he changes the disable setting on
-a single CPU, it affects all the other CPUs.  Basically, currently, the
-disable field is per-driver instead of per-cpu.  All the C states of the
-same driver are shared by all CPU in the same machine.
+d179e84ba ("mm: vmscan: do not use page_count without a page pin") fixed
+this problem in vmscan.c but same problem is in __count_immobile_pages().
 
-The patch changes the `disable' field to per-cpu, so we could set this
-separately for each cpu.
+I copy and paste d179e84ba's contents for description.
 
-Signed-off-by: ShuoX Liu <shuox.liu@intel.com>
-Reported-by: Andrew J.Schorr <aschorr@telemetry-investments.com>
-Reviewed-by: Yanmin Zhang <yanmin_zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Brown, Len" <len.brown@intel.com>
+"It is unsafe to run page_count during the physical pfn scan because
+compound_head could trip on a dangling pointer when reading
+page->first_page if the compound page is being freed by another CPU."
+
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.cz>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Wanpeng Li <liwp.linux@gmail.com>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpuidle/cpuidle.c        |    1 -
- drivers/cpuidle/governors/menu.c |    5 +++--
- drivers/cpuidle/sysfs.c          |   21 ++++++++++++---------
- include/linux/cpuidle.h          |    2 +-
- 4 files changed, 16 insertions(+), 13 deletions(-)
+ mm/page_alloc.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN drivers/cpuidle/cpuidle.c~cpuidle-move-field-disable-from-per-driver-to-per-cpu drivers/cpuidle/cpuidle.c
---- a/drivers/cpuidle/cpuidle.c~cpuidle-move-field-disable-from-per-driver-to-per-cpu
-+++ a/drivers/cpuidle/cpuidle.c
-@@ -276,7 +276,6 @@ static void poll_idle_init(struct cpuidl
- 	state->power_usage = -1;
- 	state->flags = 0;
- 	state->enter = poll_idle;
--	state->disable = 0;
- }
- #else
- static void poll_idle_init(struct cpuidle_driver *drv) {}
-diff -puN drivers/cpuidle/governors/menu.c~cpuidle-move-field-disable-from-per-driver-to-per-cpu drivers/cpuidle/governors/menu.c
---- a/drivers/cpuidle/governors/menu.c~cpuidle-move-field-disable-from-per-driver-to-per-cpu
-+++ a/drivers/cpuidle/governors/menu.c
-@@ -281,7 +281,7 @@ static int menu_select(struct cpuidle_dr
- 	 * unless the timer is happening really really soon.
- 	 */
- 	if (data->expected_us > 5 &&
--		drv->states[CPUIDLE_DRIVER_STATE_START].disable == 0)
-+		dev->states_usage[CPUIDLE_DRIVER_STATE_START].disable == 0)
- 		data->last_state_idx = CPUIDLE_DRIVER_STATE_START;
- 
- 	/*
-@@ -290,8 +290,9 @@ static int menu_select(struct cpuidle_dr
- 	 */
- 	for (i = CPUIDLE_DRIVER_STATE_START; i < drv->state_count; i++) {
- 		struct cpuidle_state *s = &drv->states[i];
-+		struct cpuidle_state_usage *su = &dev->states_usage[i];
- 
--		if (s->disable)
-+		if (su->disable)
+diff -puN mm/page_alloc.c~mm-do-not-use-page_count-without-a-page-pin mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-do-not-use-page_count-without-a-page-pin
++++ a/mm/page_alloc.c
+@@ -5499,11 +5499,18 @@ __count_immobile_pages(struct zone *zone
  			continue;
- 		if (s->target_residency > data->predicted_us)
+ 
+ 		page = pfn_to_page(check);
+-		if (!page_count(page)) {
++		/*
++		 * We can't use page_count without pin a page
++		 * because another CPU can free compound page.
++		 * This check already skips compound tails of THP
++		 * because their page->_count is zero at all time.
++		 */
++		if (!atomic_read(&page->_count)) {
+ 			if (PageBuddy(page))
+ 				iter += (1 << page_order(page)) - 1;
  			continue;
-diff -puN drivers/cpuidle/sysfs.c~cpuidle-move-field-disable-from-per-driver-to-per-cpu drivers/cpuidle/sysfs.c
---- a/drivers/cpuidle/sysfs.c~cpuidle-move-field-disable-from-per-driver-to-per-cpu
-+++ a/drivers/cpuidle/sysfs.c
-@@ -217,7 +217,8 @@ struct cpuidle_state_attr {
- 	struct attribute attr;
- 	ssize_t (*show)(struct cpuidle_state *, \
- 					struct cpuidle_state_usage *, char *);
--	ssize_t (*store)(struct cpuidle_state *, const char *, size_t);
-+	ssize_t (*store)(struct cpuidle_state *, \
-+			struct cpuidle_state_usage *, const char *, size_t);
- };
- 
- #define define_one_state_ro(_name, show) \
-@@ -233,21 +234,22 @@ static ssize_t show_state_##_name(struct
- 	return sprintf(buf, "%u\n", state->_name);\
- }
- 
--#define define_store_state_function(_name) \
-+#define define_store_state_ull_function(_name) \
- static ssize_t store_state_##_name(struct cpuidle_state *state, \
-+		struct cpuidle_state_usage *state_usage, \
- 		const char *buf, size_t size) \
- { \
--	long value; \
-+	unsigned long long value; \
- 	int err; \
- 	if (!capable(CAP_SYS_ADMIN)) \
- 		return -EPERM; \
--	err = kstrtol(buf, 0, &value); \
-+	err = kstrtoull(buf, 0, &value); \
- 	if (err) \
- 		return err; \
- 	if (value) \
--		state->disable = 1; \
-+		state_usage->_name = 1; \
- 	else \
--		state->disable = 0; \
-+		state_usage->_name = 0; \
- 	return size; \
- }
- 
-@@ -273,8 +275,8 @@ define_show_state_ull_function(usage)
- define_show_state_ull_function(time)
- define_show_state_str_function(name)
- define_show_state_str_function(desc)
--define_show_state_function(disable)
--define_store_state_function(disable)
-+define_show_state_ull_function(disable)
-+define_store_state_ull_function(disable)
- 
- define_one_state_ro(name, show_state_name);
- define_one_state_ro(desc, show_state_desc);
-@@ -318,10 +320,11 @@ static ssize_t cpuidle_state_store(struc
- {
- 	int ret = -EIO;
- 	struct cpuidle_state *state = kobj_to_state(kobj);
-+	struct cpuidle_state_usage *state_usage = kobj_to_state_usage(kobj);
- 	struct cpuidle_state_attr *cattr = attr_to_stateattr(attr);
- 
- 	if (cattr->store)
--		ret = cattr->store(state, buf, size);
-+		ret = cattr->store(state, state_usage, buf, size);
- 
- 	return ret;
- }
-diff -puN include/linux/cpuidle.h~cpuidle-move-field-disable-from-per-driver-to-per-cpu include/linux/cpuidle.h
---- a/include/linux/cpuidle.h~cpuidle-move-field-disable-from-per-driver-to-per-cpu
-+++ a/include/linux/cpuidle.h
-@@ -34,6 +34,7 @@ struct cpuidle_driver;
- struct cpuidle_state_usage {
- 	void		*driver_data;
- 
-+	unsigned long long	disable;
- 	unsigned long long	usage;
- 	unsigned long long	time; /* in US */
- };
-@@ -46,7 +47,6 @@ struct cpuidle_state {
- 	unsigned int	exit_latency; /* in US */
- 	int		power_usage; /* in mW */
- 	unsigned int	target_residency; /* in US */
--	unsigned int    disable;
- 
- 	int (*enter)	(struct cpuidle_device *dev,
- 			struct cpuidle_driver *drv,
+ 		}
++
+ 		if (!PageLRU(page))
+ 			found++;
+ 		/*
 _
-Subject: Subject: cpuidle: move field disable from per-driver to per-cpu
+Subject: Subject: mm: do not use page_count() without a page pin
 
-Patches currently in -mm which might be from shuox.liu@intel.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-cpuidle-move-field-disable-from-per-driver-to-per-cpu.patch
+linux-next.patch
+memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer.patch
+memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix.patch
+mm-thp-abort-compaction-if-migration-page-cannot-be-charged-to-memcg.patch
+swap-allow-swap-readahead-to-be-merged.patch
+documentation-update-how-page-cluster-affects-swap-i-o.patch
+mm-compaction-cleanup-on-compaction_deferred.patch
+memcg-prevent-oom-with-too-many-dirty-pages.patch
+mm-clear-pages_scanned-only-if-draining-a-pcp-adds-pages-to-the-buddy-allocator-again.patch
+mm-fix-page-reclaim-comment-error.patch
+mm-do-not-use-page_count-without-a-page-pin.patch
+mm-clean-up-__count_immobile_pages.patch
 
