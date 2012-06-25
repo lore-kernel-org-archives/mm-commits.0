@@ -1,38 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] fs-introduce-pipe-only-dump-mode-suid_dumpable=3.patch removed from -mm tree
-Date: Mon, 25 Jun 2012 15:09:08 -0700
-Message-ID: <20120625220908.36068A0280@akpm.mtv.corp.google.com>
+Subject: + fs-make-dumpable=2-require-fully-qualified-path.patch added to -mm tree
+Date: Mon, 25 Jun 2012 15:14:17 -0700
+Message-ID: <20120625221418.069D4A00B0@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:41967 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754082Ab2FYWJL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jun 2012 18:09:11 -0400
-Received: by lbbgp10 with SMTP id gp10so331685lbb.1
-        for <mm-commits@vger.kernel.org>; Mon, 25 Jun 2012 15:09:09 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:39605 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757638Ab2FYWOV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jun 2012 18:14:21 -0400
+Received: by wibhr14 with SMTP id hr14so98071wib.1
+        for <mm-commits@vger.kernel.org>; Mon, 25 Jun 2012 15:14:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, akpm@linux-foundation.org, alan@linux.intel.com, axboe@kernel.dk, ebiederm@xmission.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: keescook@chromium.org, alan@linux.intel.com, dledford@redhat.com, ebiederm@xmission.com, james.l.morris@oracle.com, serge.hallyn@canonical.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: fs: introduce pipe-only dump mode suid_dumpable=3
-has been removed from the -mm tree.  Its filename was
-     fs-introduce-pipe-only-dump-mode-suid_dumpable=3.patch
+     Subject: fs: make dumpable=2 require fully qualified path
+has been added to the -mm tree.  Its filename is
+     fs-make-dumpable=2-require-fully-qualified-path.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Kees Cook <keescook@chromium.org>
-Subject: fs: introduce pipe-only dump mode suid_dumpable=3
+Subject: fs: make dumpable=2 require fully qualified path
 
 When the suid_dumpable sysctl is set to "2", and there is no core dump
 pipe defined in the core_pattern sysctl, a local user can cause core files
 to be written to root-writable directories, potentially with
 user-controlled content.  This means an admin can unknowningly reintroduce
-a variation of CVE-2006-2451.
+a variation of CVE-2006-2451, allowing local users to gain root
+privileges.
 
 $ cat /proc/sys/fs/suid_dumpable
 2
@@ -57,275 +66,109 @@ While cron has been fixed to abort reading a file when there is any parse
 error, there are still other sensitive directories that will read any file
 present and skip unparsable lines.
 
-This patch introduces suid_dumpable=3 to allow privilege-changed processes
-to be dumped only to a pipe handler (and not directly to disk).  The value
-of suid_dumpable=2 is now historic, and attempting to set this sysctl
-value returns -EINVAL.
+Instead of introducing a suid_dumpable=3 mode and breaking all users of
+mode 2, this only disables the unsafe portion of mode 2 (writing to disk
+via relative path).  Most users of mode 2 (e.g.  Chrome OS) already use a
+core dump pipe handler, so this change will not break them.  For the
+situations where a pipe handler is not defined but mode 2 is still active,
+crash dumps will only be written to fully qualified paths.  If a relative
+path is defined (e.g.  the default "core" pattern), dump attempts will
+trigger a printk yelling about the lack of a fully qualified path.
 
 Signed-off-by: Kees Cook <keescook@chromium.org>
-Acked-by: Alan Cox <alan@linux.intel.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Jens Axboe <axboe@kernel.dk>
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs-introduce-pipe-only-dump-mode-suid_dumpable=3-fix
-
-remove unneeeded casts
-
-Cc: Kees Cook <keescook@chromium.org>
+Cc: Alan Cox <alan@linux.intel.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: James Morris <james.l.morris@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/fs.txt |   12 ++++----
- fs/exec.c                   |   49 +++++++++++++---------------------
- include/linux/sched.h       |    7 ++++
- kernel/sysctl.c             |   42 +++++++++++++++++++++++++----
- 4 files changed, 68 insertions(+), 42 deletions(-)
+ Documentation/sysctl/fs.txt |   18 ++++++++++++------
+ fs/exec.c                   |   17 ++++++++++++++---
+ 2 files changed, 26 insertions(+), 9 deletions(-)
 
-diff -puN Documentation/sysctl/fs.txt~fs-introduce-pipe-only-dump-mode-suid_dumpable=3 Documentation/sysctl/fs.txt
---- a/Documentation/sysctl/fs.txt~fs-introduce-pipe-only-dump-mode-suid_dumpable=3
+diff -puN Documentation/sysctl/fs.txt~fs-make-dumpable=2-require-fully-qualified-path Documentation/sysctl/fs.txt
+--- a/Documentation/sysctl/fs.txt~fs-make-dumpable=2-require-fully-qualified-path
 +++ a/Documentation/sysctl/fs.txt
-@@ -209,12 +209,12 @@ or otherwise protected/tainted binaries.
+@@ -205,16 +205,22 @@ This value can be used to query and set 
+ or otherwise protected/tainted binaries. The modes are
+ 
+ 0 - (default) - traditional behaviour. Any process which has changed
+-	privilege levels or is execute only will not be dumped
++	privilege levels or is execute only will not be dumped.
  1 - (debug) - all processes dump core when possible. The core dump is
  	owned by the current user and no security is applied. This is
  	intended for system debugging situations only. Ptrace is unchecked.
--2 - (suidsafe) - any binary which normally would not be dumped is dumped
++	This is insecure as it allows regular users to examine the memory
++	contents of privileged processes.
+ 2 - (suidsafe) - any binary which normally would not be dumped is dumped
 -	readable by root only. This allows the end user to remove
 -	such a dump but not access it directly. For security reasons
 -	core dumps in this mode will not overwrite one another or
 -	other files. This mode is appropriate when administrators are
 -	attempting to debug problems in a normal environment.
-+2 - (suidsafe) - no longer allowed (returns -EINVAL).
-+3 - (pipeforced) - any binary which normally would not be dumped is dumped
-+	anyway, but only if a core dump pipe handler is defined (see the
-+	"core_pattern" kernel sysctl). This mode is appropriate when
-+	administrators are attempting to debug problems in a normal
-+	environment.
++	anyway, but only if the "core_pattern" kernel sysctl is set to
++	either a pipe handler or a fully qualified path. (For more details
++	on this limitation, see CVE-2006-2451.) This mode is appropriate
++	when administrators are attempting to debug problems in a normal
++	environment, and either have a core dump pipe handler that knows
++	to treat privileged core dumps with care, or specific directory
++	defined for catching core dumps. If a core dump happens without
++	a pipe handler or fully qualifid path, a message will be emitted
++	to syslog warning about the lack of a correct setting.
  
  ==============================================================
  
-diff -puN fs/exec.c~fs-introduce-pipe-only-dump-mode-suid_dumpable=3 fs/exec.c
---- a/fs/exec.c~fs-introduce-pipe-only-dump-mode-suid_dumpable=3
+diff -puN fs/exec.c~fs-make-dumpable=2-require-fully-qualified-path fs/exec.c
+--- a/fs/exec.c~fs-make-dumpable=2-require-fully-qualified-path
 +++ a/fs/exec.c
-@@ -1136,7 +1136,7 @@ void setup_new_exec(struct linux_binprm 
- 	current->sas_ss_sp = current->sas_ss_size = 0;
- 
- 	if (uid_eq(current_euid(), current_uid()) && gid_eq(current_egid(), current_gid()))
--		set_dumpable(current->mm, 1);
-+		set_dumpable(current->mm, SUID_DUMPABLE_ENABLED);
- 	else
- 		set_dumpable(current->mm, suid_dumpable);
- 
-@@ -1991,28 +1991,28 @@ static void coredump_finish(struct mm_st
-  * old  new | initial interim  final
-  * ---------+-----------------------
-  *  0    1  |   00      01      01
-- *  0    2  |   00      10(*)   11
-+ *  0    3  |   00      10(*)   11
-  *  1    0  |   01      00      00
-- *  1    2  |   01      11      11
-- *  2    0  |   11      10(*)   00
-- *  2    1  |   11      11      01
-+ *  1    3  |   01      11      11
-+ *  3    0  |   11      10(*)   00
-+ *  3    1  |   11      11      01
-  *
-  * (*) get_dumpable regards interim value of 10 as 11.
-  */
- void set_dumpable(struct mm_struct *mm, int value)
- {
- 	switch (value) {
--	case 0:
-+	case SUID_DUMPABLE_DISABLED:
- 		clear_bit(MMF_DUMPABLE, &mm->flags);
- 		smp_wmb();
- 		clear_bit(MMF_DUMP_SECURELY, &mm->flags);
- 		break;
--	case 1:
-+	case SUID_DUMPABLE_ENABLED:
- 		set_bit(MMF_DUMPABLE, &mm->flags);
- 		smp_wmb();
- 		clear_bit(MMF_DUMP_SECURELY, &mm->flags);
- 		break;
--	case 2:
-+	case SUID_DUMPABLE_PIPE_ONLY:
- 		set_bit(MMF_DUMP_SECURELY, &mm->flags);
- 		smp_wmb();
- 		set_bit(MMF_DUMPABLE, &mm->flags);
-@@ -2025,7 +2025,7 @@ static int __get_dumpable(unsigned long 
- 	int ret;
- 
- 	ret = mm_flags & MMF_DUMPABLE_MASK;
--	return (ret >= 2) ? 2 : ret;
-+	return (ret > SUID_DUMPABLE_ENABLED) ? SUID_DUMPABLE_PIPE_ONLY : ret;
- }
- 
- int get_dumpable(struct mm_struct *mm)
-@@ -2106,10 +2106,8 @@ void do_coredump(long signr, int exit_co
- 	struct core_name cn;
- 	struct mm_struct *mm = current->mm;
- 	struct linux_binfmt * binfmt;
--	const struct cred *old_cred;
--	struct cred *cred;
-+	bool pipeonly = false;
+@@ -2111,6 +2111,7 @@ void do_coredump(long signr, int exit_co
  	int retval = 0;
--	int flag = 0;
+ 	int flag = 0;
  	int ispipe;
++	bool need_nonrelative = false;
  	static atomic_t core_dump_count = ATOMIC_INIT(0);
  	struct coredump_params cprm = {
-@@ -2132,25 +2130,16 @@ void do_coredump(long signr, int exit_co
- 	if (!__get_dumpable(cprm.mm_flags))
+ 		.signr = signr,
+@@ -2136,14 +2137,16 @@ void do_coredump(long signr, int exit_co
+ 	if (!cred)
  		goto fail;
- 
--	cred = prepare_creds();
--	if (!cred)
--		goto fail;
  	/*
 -	 *	We cannot trust fsuid as being the "true" uid of the
 -	 *	process nor do we know its entire history. We only know it
 -	 *	was tainted so we dump it as root in mode 2.
-+	 * We cannot trust the environment dumping a process that has
-+	 * changed privileges, so only write the dump to a pipe.
++	 * We cannot trust fsuid as being the "true" uid of the process
++	 * nor do we know its entire history. We only know it was tainted
++	 * so we dump it as root in mode 2, and only into a controlled
++	 * environment (pipe handler or fully qualified path).
  	 */
--	if (__get_dumpable(cprm.mm_flags) == 2) {
--		/* Setuid core dump mode */
--		flag = O_EXCL;		/* Stop rewrite attacks */
--		cred->fsuid = GLOBAL_ROOT_UID;	/* Dump root private */
--	}
-+	if (__get_dumpable(cprm.mm_flags) == SUID_DUMPABLE_PIPE_ONLY)
-+		pipeonly = true;
+ 	if (__get_dumpable(cprm.mm_flags) == 2) {
+ 		/* Setuid core dump mode */
+ 		flag = O_EXCL;		/* Stop rewrite attacks */
+ 		cred->fsuid = GLOBAL_ROOT_UID;	/* Dump root private */
++		need_nonrelative = true;
+ 	}
  
  	retval = coredump_wait(exit_code, &core_state);
- 	if (retval < 0)
--		goto fail_creds;
--
--	old_cred = override_creds(cred);
-+		goto fail;
- 
- 	/*
- 	 * Clear any false indication of pending signals that might
-@@ -2220,11 +2209,14 @@ void do_coredump(long signr, int exit_co
- 	} else {
- 		struct inode *inode;
- 
-+		if (pipeonly)
-+			goto fail_unlock;
-+
+@@ -2223,6 +2226,14 @@ void do_coredump(long signr, int exit_co
  		if (cprm.limit < binfmt->min_coredump)
  			goto fail_unlock;
  
- 		cprm.file = filp_open(cn.corename,
--				 O_CREAT | 2 | O_NOFOLLOW | O_LARGEFILE | flag,
-+				 O_CREAT | 2 | O_NOFOLLOW | O_LARGEFILE,
- 				 0600);
- 		if (IS_ERR(cprm.file))
- 			goto fail_unlock;
-@@ -2268,9 +2260,6 @@ fail_unlock:
- 	kfree(cn.corename);
- fail_corename:
- 	coredump_finish(mm);
--	revert_creds(old_cred);
--fail_creds:
--	put_cred(cred);
- fail:
- 	return;
- }
-diff -puN include/linux/sched.h~fs-introduce-pipe-only-dump-mode-suid_dumpable=3 include/linux/sched.h
---- a/include/linux/sched.h~fs-introduce-pipe-only-dump-mode-suid_dumpable=3
-+++ a/include/linux/sched.h
-@@ -414,10 +414,15 @@ static inline void arch_pick_mmap_layout
- extern void set_dumpable(struct mm_struct *mm, int value);
- extern int get_dumpable(struct mm_struct *mm);
- 
-+/* get/set_dumpable() values */
-+#define SUID_DUMPABLE_DISABLED      0
-+#define SUID_DUMPABLE_ENABLED       1
-+#define SUID_DUMPABLE_PIPE_ONLY     3
-+
- /* mm flags */
- /* dumpable bits */
- #define MMF_DUMPABLE      0  /* core dump is permitted */
--#define MMF_DUMP_SECURELY 1  /* core file is readable only by root */
-+#define MMF_DUMP_SECURELY 1  /* core is readable only by pipe */
- 
- #define MMF_DUMPABLE_BITS 2
- #define MMF_DUMPABLE_MASK ((1 << MMF_DUMPABLE_BITS) - 1)
-diff -puN kernel/sysctl.c~fs-introduce-pipe-only-dump-mode-suid_dumpable=3 kernel/sysctl.c
---- a/kernel/sysctl.c~fs-introduce-pipe-only-dump-mode-suid_dumpable=3
-+++ a/kernel/sysctl.c
-@@ -174,6 +174,9 @@ static int proc_dointvec_minmax_sysadmin
- 				void __user *buffer, size_t *lenp, loff_t *ppos);
- #endif
- 
-+static int proc_dointvec_suid_dumpable(struct ctl_table *table, int write,
-+		void __user *buffer, size_t *lenp, loff_t *ppos);
-+
- #ifdef CONFIG_MAGIC_SYSRQ
- /* Note: sysrq code uses it's own private copy */
- static int __sysrq_enabled = SYSRQ_DEFAULT_ENABLE;
-@@ -1516,9 +1519,7 @@ static struct ctl_table fs_table[] = {
- 		.data		= &suid_dumpable,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec_minmax,
--		.extra1		= &zero,
--		.extra2		= &two,
-+		.proc_handler	= proc_dointvec_suid_dumpable,
- 	},
- #if defined(CONFIG_BINFMT_MISC) || defined(CONFIG_BINFMT_MISC_MODULE)
- 	{
-@@ -1991,10 +1992,10 @@ static int do_proc_dointvec_minmax_conv(
- 		int val = *valp;
- 		if (val < 0) {
- 			*negp = true;
--			*lvalp = (unsigned long)-val;
-+			*lvalp = -val;
- 		} else {
- 			*negp = false;
--			*lvalp = (unsigned long)val;
-+			*lvalp = val;
- 		}
- 	}
- 	return 0;
-@@ -2027,6 +2028,37 @@ int proc_dointvec_minmax(struct ctl_tabl
- 				do_proc_dointvec_minmax_conv, &param);
- }
- 
-+/* Allow only the valid suid_dumpable values. */
-+static int do_proc_dointvec_suid_dumpable_conv(bool *negp,
-+		unsigned long *lvalp, int *valp, int write, void *data)
-+{
-+	if (write) {
-+		int val = *negp ? -*lvalp : *lvalp;
-+		if (val != SUID_DUMPABLE_DISABLED &&
-+		    val != SUID_DUMPABLE_ENABLED &&
-+		    val != SUID_DUMPABLE_PIPE_ONLY)
-+			return -EINVAL;
-+		*valp = val;
-+	} else {
-+		int val = *valp;
-+		if (val < 0) {
-+			*negp = true;
-+			*lvalp = (unsigned long)-val;
-+		} else {
-+			*negp = false;
-+			*lvalp = (unsigned long)val;
++		if (need_nonrelative && cn.corename[0] != '/') {
++			printk(KERN_WARNING "Pid %d(%s) can only dump core "\
++				"to fully qualified path!\n",
++				task_tgid_vnr(current), current->comm);
++			printk(KERN_WARNING "Skipping core dump\n");
++			goto fail_unlock;
 +		}
-+	}
-+	return 0;
-+}
 +
-+static int proc_dointvec_suid_dumpable(struct ctl_table *table, int write,
-+		void __user *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	return do_proc_dointvec(table, write, buffer, lenp, ppos,
-+				do_proc_dointvec_suid_dumpable_conv, NULL);
-+}
-+
- static int __do_proc_doulongvec_minmax(void *data, struct ctl_table *table, int write,
- 				     void __user *buffer,
- 				     size_t *lenp, loff_t *ppos,
+ 		cprm.file = filp_open(cn.corename,
+ 				 O_CREAT | 2 | O_NOFOLLOW | O_LARGEFILE | flag,
+ 				 0600);
 _
+Subject: Subject: fs: make dumpable=2 require fully qualified path
 
 Patches currently in -mm which might be from keescook@chromium.org are
 
@@ -333,4 +176,5 @@ linux-next.patch
 c-r-prctl-less-paranoid-prctl_set_mm_exe_file.patch
 fs-add-link-restrictions.patch
 fs-add-link-restriction-audit-reporting.patch
+fs-make-dumpable=2-require-fully-qualified-path.patch
 
