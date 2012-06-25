@@ -1,102 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: + x86-mce-use-new-printk-recursion-disabling-interface-fix.patch added to -mm tree
-Date: Fri, 22 Jun 2012 16:42:00 -0700
-Message-ID: <20120622234200.E690DA01BD@akpm.mtv.corp.google.com>
+Subject: [merged] fs-jbd2-commitc-use-new-kmap_atomic-api.patch removed from -mm tree
+Date: Mon, 25 Jun 2012 14:06:11 -0700
+Message-ID: <20120625210611.56132A02C5@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:39999 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756463Ab2FVXmC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jun 2012 19:42:02 -0400
-Received: by ghbz15 with SMTP id z15so265948ghb.1
-        for <mm-commits@vger.kernel.org>; Fri, 22 Jun 2012 16:42:01 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:53816 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757438Ab2FYVGO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jun 2012 17:06:14 -0400
+Received: by lbbgp10 with SMTP id gp10so329840lbb.1
+        for <mm-commits@vger.kernel.org>; Mon, 25 Jun 2012 14:06:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hpa@zytor.com, mingo@elte.hu, shuox.liu@intel.com, tglx@tglx.de, tony.luck@intel.com, yanmin_zhang@linux.intel.com
+To: akpm@linux-foundation.org, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86-mce-use-new-printk-recursion-disabling-interface-fix
-has been added to the -mm tree.  Its filename is
-     x86-mce-use-new-printk-recursion-disabling-interface-fix.patch
+     Subject: fs/jbd2/commit.c: use new kmap_atomic() API
+has been removed from the -mm tree.  Its filename was
+     fs-jbd2-commitc-use-new-kmap_atomic-api.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: x86-mce-use-new-printk-recursion-disabling-interface-fix
+Subject: fs/jbd2/commit.c: use new kmap_atomic() API
 
-fix recursion_check_disabled leak, add comment
+fs/jbd2/commit.c:352: warning: 'kmap_atomic_deprecated' is deprecated (declared at include/linux/highmem.h:125)
+fs/jbd2/commit.c:357: warning: '__kunmap_atomic_deprecated' is deprecated (declared at include/linux/highmem.h:135)
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: ShuoX Liu <shuox.liu@intel.com>
-Cc: Thomas Gleixner <tglx@tglx.de>
-Cc: Yanmin Zhang <yanmin_zhang@linux.intel.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/mcheck/mce.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ fs/jbd2/commit.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/mcheck/mce.c~x86-mce-use-new-printk-recursion-disabling-interface-fix arch/x86/kernel/cpu/mcheck/mce.c
---- a/arch/x86/kernel/cpu/mcheck/mce.c~x86-mce-use-new-printk-recursion-disabling-interface-fix
-+++ a/arch/x86/kernel/cpu/mcheck/mce.c
-@@ -303,11 +303,10 @@ static void wait_for_panic(void)
- 	panic("Panicing machine check CPU died");
+diff -puN fs/jbd2/commit.c~fs-jbd2-commitc-use-new-kmap_atomic-api fs/jbd2/commit.c
+--- a/fs/jbd2/commit.c~fs-jbd2-commitc-use-new-kmap_atomic-api
++++ a/fs/jbd2/commit.c
+@@ -349,12 +349,12 @@ static void jbd2_block_tag_csum_set(jour
+ 		return;
+ 
+ 	sequence = cpu_to_be32(sequence);
+-	addr = kmap_atomic(page, KM_USER0);
++	addr = kmap_atomic(page);
+ 	csum = jbd2_chksum(j, j->j_csum_seed, (__u8 *)&sequence,
+ 			  sizeof(sequence));
+ 	csum = jbd2_chksum(j, csum, addr + offset_in_page(bh->b_data),
+ 			  bh->b_size);
+-	kunmap_atomic(addr, KM_USER0);
++	kunmap_atomic(addr);
+ 
+ 	tag->t_checksum = cpu_to_be32(csum);
  }
- 
--static void mce_panic(char *msg, struct mce *final, char *exp)
-+static void __mce_panic(char *msg, struct mce *final, char *exp)
- {
- 	int i, apei_err = 0;
- 
--	printk_recursion_check_disable();
- 	if (!fake_panic) {
- 		/*
- 		 * Make sure only one CPU runs in machine check panic
-@@ -362,6 +361,17 @@ static void mce_panic(char *msg, struct 
- 		panic(msg);
- 	} else
- 		pr_emerg(HW_ERR "Fake kernel panic: %s\n", msg);
-+}
-+
-+/*
-+ * If an MCE happens to occur during the execution of a printk(), we want the
-+ * MCE information to be displayed.  But printk()'s recursion checking prevents
-+ * that.  So temporarily disable it.
-+ */
-+static void mce_panic(char *msg, struct mce *final, char *exp)
-+{
-+	printk_recursion_check_disable();
-+	__mce_panic(msg, final, exp);
- 	printk_recursion_check_enable();
- }
- 
 _
-Subject: Subject: x86-mce-use-new-printk-recursion-disabling-interface-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
 linux-next.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-block-nvmec-stop-breaking-my-i386-build.patch
 memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix.patch
 drivers-gpio-devresc-export-devm_gpio_request_one-to-modules.patch
-fs-jbd2-commitc-use-new-kmap_atomic-api.patch
 rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled-checkpatch-fixes.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
@@ -125,7 +94,6 @@ hfsplus-get-rid-of-write_super-checkpatch-fixes.patch
 kmod-avoid-deadlock-from-recursive-kmod-call.patch
 fork-use-vma_pages-to-simplify-the-code-fix.patch
 fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
-notify_change-check-that-i_mutex-is-held.patch
 journal_add_journal_head-debug.patch
 mutex-subsystem-synchro-test-module-fix.patch
 slab-leaks3-default-y.patch
