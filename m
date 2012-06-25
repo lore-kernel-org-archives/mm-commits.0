@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-jbd2-commitc-use-new-kmap_atomic-api.patch removed from -mm tree
-Date: Mon, 25 Jun 2012 14:06:11 -0700
-Message-ID: <20120625210611.56132A02C5@akpm.mtv.corp.google.com>
+Subject: [merged] notify_change-check-that-i_mutex-is-held.patch removed from -mm tree
+Date: Mon, 25 Jun 2012 14:06:13 -0700
+Message-ID: <20120625210613.4EC76A02C5@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:53816 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757438Ab2FYVGO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jun 2012 17:06:14 -0400
-Received: by lbbgp10 with SMTP id gp10so329840lbb.1
-        for <mm-commits@vger.kernel.org>; Mon, 25 Jun 2012 14:06:12 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:55360 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755516Ab2FYVGP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jun 2012 17:06:15 -0400
+Received: by wibhr14 with SMTP id hr14so96049wib.1
+        for <mm-commits@vger.kernel.org>; Mon, 25 Jun 2012 14:06:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, tytso@mit.edu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, tixxdz@opendz.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/jbd2/commit.c: use new kmap_atomic() API
+     Subject: notify_change(): check that i_mutex is held
 has been removed from the -mm tree.  Its filename was
-     fs-jbd2-commitc-use-new-kmap_atomic-api.patch
+     notify_change-check-that-i_mutex-is-held.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
@@ -26,36 +26,34 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs/jbd2/commit.c: use new kmap_atomic() API
+Subject: notify_change(): check that i_mutex is held
 
-fs/jbd2/commit.c:352: warning: 'kmap_atomic_deprecated' is deprecated (declared at include/linux/highmem.h:125)
-fs/jbd2/commit.c:357: warning: '__kunmap_atomic_deprecated' is deprecated (declared at include/linux/highmem.h:135)
-
-Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Djalal Harouni <tixxdz@opendz.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd2/commit.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/attr.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/jbd2/commit.c~fs-jbd2-commitc-use-new-kmap_atomic-api fs/jbd2/commit.c
---- a/fs/jbd2/commit.c~fs-jbd2-commitc-use-new-kmap_atomic-api
-+++ a/fs/jbd2/commit.c
-@@ -349,12 +349,12 @@ static void jbd2_block_tag_csum_set(jour
- 		return;
+diff -puN fs/attr.c~notify_change-check-that-i_mutex-is-held fs/attr.c
+--- a/fs/attr.c~notify_change-check-that-i_mutex-is-held
++++ a/fs/attr.c
+@@ -171,6 +171,8 @@ int notify_change(struct dentry * dentry
+ 	struct timespec now;
+ 	unsigned int ia_valid = attr->ia_valid;
  
- 	sequence = cpu_to_be32(sequence);
--	addr = kmap_atomic(page, KM_USER0);
-+	addr = kmap_atomic(page);
- 	csum = jbd2_chksum(j, j->j_csum_seed, (__u8 *)&sequence,
- 			  sizeof(sequence));
- 	csum = jbd2_chksum(j, csum, addr + offset_in_page(bh->b_data),
- 			  bh->b_size);
--	kunmap_atomic(addr, KM_USER0);
-+	kunmap_atomic(addr);
++	WARN_ON_ONCE(!mutex_is_locked(&inode->i_mutex));
++
+ 	if (ia_valid & (ATTR_MODE | ATTR_UID | ATTR_GID | ATTR_TIMES_SET)) {
+ 		if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
+ 			return -EPERM;
+@@ -255,5 +257,4 @@ int notify_change(struct dentry * dentry
  
- 	tag->t_checksum = cpu_to_be32(csum);
+ 	return error;
  }
+-
+ EXPORT_SYMBOL(notify_change);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
