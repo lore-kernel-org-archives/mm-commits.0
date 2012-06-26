@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch added to -mm tree
-Date: Tue, 26 Jun 2012 15:35:37 -0700
-Message-ID: <20120626223538.20989A026F@akpm.mtv.corp.google.com>
+Subject: + mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch added to -mm tree
+Date: Tue, 26 Jun 2012 15:37:14 -0700
+Message-ID: <20120626223714.C9DFCA026F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:47366 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754382Ab2FZWfk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jun 2012 18:35:40 -0400
-Received: by wibhr14 with SMTP id hr14so21614wib.1
-        for <mm-commits@vger.kernel.org>; Tue, 26 Jun 2012 15:35:39 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:61553 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750811Ab2FZWhQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jun 2012 18:37:16 -0400
+Received: by qcsu6 with SMTP id u6so48937qcs.1
+        for <mm-commits@vger.kernel.org>; Tue, 26 Jun 2012 15:37:15 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, dhillf@gmail.com
 
 
 The patch titled
-     Subject: hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix
+     Subject: mm-hugetlb-add-new-hugetlb-cgroup-fix-fix
 has been added to the -mm tree.  Its filename is
-     hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
+     mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,9 +34,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix
+Subject: mm-hugetlb-add-new-hugetlb-cgroup-fix-fix
 
-s/CONFIG_MEMCG_HUGETLB/CONFIG_CGROUP_HUGETLB/
+s/CONFIG_MEMCG_HUGETLB/CONFIG_CGROUP_HUGETLB/g
 
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
@@ -48,23 +48,62 @@ Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/cgroup_subsys.h  |    2 +-
+ include/linux/hugetlb_cgroup.h |    2 +-
+ init/Kconfig                   |    2 +-
+ mm/Makefile                    |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/hugetlb.h~hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix
-+++ a/include/linux/hugetlb.h
-@@ -222,7 +222,7 @@ struct hstate {
- 	unsigned int nr_huge_pages_node[MAX_NUMNODES];
- 	unsigned int free_huge_pages_node[MAX_NUMNODES];
- 	unsigned int surplus_huge_pages_node[MAX_NUMNODES];
+diff -puN include/linux/cgroup_subsys.h~mm-hugetlb-add-new-hugetlb-cgroup-fix-fix include/linux/cgroup_subsys.h
+--- a/include/linux/cgroup_subsys.h~mm-hugetlb-add-new-hugetlb-cgroup-fix-fix
++++ a/include/linux/cgroup_subsys.h
+@@ -73,7 +73,7 @@ SUBSYS(net_prio)
+ 
+ /* */
+ 
 -#ifdef CONFIG_MEMCG_HUGETLB
 +#ifdef CONFIG_CGROUP_HUGETLB
- 	/* cgroup control files */
- 	struct cftype cgroup_files[5];
+ SUBSYS(hugetlb)
  #endif
+ 
+diff -puN include/linux/hugetlb_cgroup.h~mm-hugetlb-add-new-hugetlb-cgroup-fix-fix include/linux/hugetlb_cgroup.h
+--- a/include/linux/hugetlb_cgroup.h~mm-hugetlb-add-new-hugetlb-cgroup-fix-fix
++++ a/include/linux/hugetlb_cgroup.h
+@@ -19,7 +19,7 @@
+ 
+ struct hugetlb_cgroup;
+ 
+-#ifdef CONFIG_MEMCG_HUGETLB
++#ifdef CONFIG_CGROUP_HUGETLB
+ static inline bool hugetlb_cgroup_disabled(void)
+ {
+ 	if (hugetlb_subsys.disabled)
+diff -puN init/Kconfig~mm-hugetlb-add-new-hugetlb-cgroup-fix-fix init/Kconfig
+--- a/init/Kconfig~mm-hugetlb-add-new-hugetlb-cgroup-fix-fix
++++ a/init/Kconfig
+@@ -751,7 +751,7 @@ config CGROUP_MEM_RES_CTLR_KMEM
+ 	  the kmem extension can use it to guarantee that no group of processes
+ 	  will ever exhaust kernel resources alone.
+ 
+-config MEMCG_HUGETLB
++config CGROUP_HUGETLB
+ 	bool "HugeTLB Resource Controller for Control Groups"
+ 	depends on RESOURCE_COUNTERS && HUGETLB_PAGE && EXPERIMENTAL
+ 	default n
+diff -puN mm/Makefile~mm-hugetlb-add-new-hugetlb-cgroup-fix-fix mm/Makefile
+--- a/mm/Makefile~mm-hugetlb-add-new-hugetlb-cgroup-fix-fix
++++ a/mm/Makefile
+@@ -49,7 +49,7 @@ obj-$(CONFIG_MIGRATION) += migrate.o
+ obj-$(CONFIG_QUICKLIST) += quicklist.o
+ obj-$(CONFIG_TRANSPARENT_HUGEPAGE) += huge_memory.o
+ obj-$(CONFIG_CGROUP_MEM_RES_CTLR) += memcontrol.o page_cgroup.o
+-obj-$(CONFIG_MEMCG_HUGETLB) += hugetlb_cgroup.o
++obj-$(CONFIG_CGROUP_HUGETLB) += hugetlb_cgroup.o
+ obj-$(CONFIG_MEMORY_FAILURE) += memory-failure.o
+ obj-$(CONFIG_HWPOISON_INJECT) += hwpoison-inject.o
+ obj-$(CONFIG_DEBUG_KMEMLEAK) += kmemleak.o
 _
-Subject: Subject: hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix
+Subject: Subject: mm-hugetlb-add-new-hugetlb-cgroup-fix-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -83,6 +122,7 @@ coredump-warn-about-unsafe-suid_dumpable-core_pattern-combo.patch
 mm.patch
 mm-make-vb_alloc-more-foolproof-fix.patch
 mm-hugetlb-add-new-hugetlb-cgroup-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch
 hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
 hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
 mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
