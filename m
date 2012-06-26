@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + xtensa-mm-faultc-port-oom-changes-to-do_page_fault.patch added to -mm tree
-Date: Tue, 26 Jun 2012 15:10:46 -0700
-Message-ID: <20120626221046.A3857A0397@akpm.mtv.corp.google.com>
+Subject: + memcg-fix-bad-behavior-in-use_hierarchy-file.patch added to -mm tree
+Date: Tue, 26 Jun 2012 15:25:33 -0700
+Message-ID: <20120626222533.B5B1CA026F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:49676 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753820Ab2FZWKs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jun 2012 18:10:48 -0400
-Received: by qabg24 with SMTP id g24so62994qab.1
-        for <mm-commits@vger.kernel.org>; Tue, 26 Jun 2012 15:10:47 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:37641 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751841Ab2FZWZf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jun 2012 18:25:35 -0400
+Received: by vbnl22 with SMTP id l22so47824vbn.1
+        for <mm-commits@vger.kernel.org>; Tue, 26 Jun 2012 15:25:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: consul.kautuk@gmail.com, chris@zankel.net
+Cc: glommer@parallels.com, dhaval.giani@gmail.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
 
 
 The patch titled
-     Subject: xtensa/mm/fault.c: port OOM changes to do_page_fault
+     Subject: memcg: fix bad behavior in use_hierarchy file
 has been added to the -mm tree.  Its filename is
-     xtensa-mm-faultc-port-oom-changes-to-do_page_fault.patch
+     memcg-fix-bad-behavior-in-use_hierarchy-file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,102 +33,75 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kautuk Consul <consul.kautuk@gmail.com>
-Subject: xtensa/mm/fault.c: port OOM changes to do_page_fault
+From: Glauber Costa <glommer@parallels.com>
+Subject: memcg: fix bad behavior in use_hierarchy file
 
-d065bd810b6de ("mm: retry page fault when blocking on disk transfer") and
-37b23e0525d393d ("x86,mm: make pagefault killable")
+I have an application that does the following:
 
-The above commits introduced changes into the x86 pagefault handler for
-making the page fault handler retryable as well as killable.
+* copy the state of all controllers attached to a hierarchy
+* replicate it as a child of the current level.
 
-These changes reduce the mmap_sem hold time, which is crucial during OOM
-killer invocation.
+I would expect writes to the files to mostly succeed, since they are
+inheriting sane values from parents.
 
-Port these changes to xtensa.
+But that is not the case for use_hierarchy.  If it is set to 0, we succeed
+ok.  If we're set to 1, the value of the file is automatically set to 1 in
+the children, but if userspace tries to write the very same 1, it will
+fail.  That same situation happens if we set use_hierarchy, create a
+child, and then try to write 1 again.
 
-Signed-off-by: Kautuk Consul <consul.kautuk@gmail.com>
-Acked-by: Chris Zankel <chris@zankel.net>
+Now, there is no reason whatsoever for failing to write a value that is
+already there.  It doesn't even match the comments, that states:
+
+ /* If parent's use_hierarchy is set, we can't make any modifications
+  * in the child subtrees...
+
+since we are not changing anything.
+
+So test the new value against the one we're storing, and automatically
+return 0 if we're not proposing a change.
+
+Signed-off-by: Glauber Costa <glommer@parallels.com>
+Cc: Dhaval Giani <dhaval.giani@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/mm/fault.c |   29 ++++++++++++++++++++++++-----
- 1 file changed, 24 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN arch/xtensa/mm/fault.c~xtensa-mm-faultc-port-oom-changes-to-do_page_fault arch/xtensa/mm/fault.c
---- a/arch/xtensa/mm/fault.c~xtensa-mm-faultc-port-oom-changes-to-do_page_fault
-+++ a/arch/xtensa/mm/fault.c
-@@ -44,6 +44,7 @@ void do_page_fault(struct pt_regs *regs)
+diff -puN mm/memcontrol.c~fix-bad-behavior-in-use_hierarchy-file mm/memcontrol.c
+--- a/mm/memcontrol.c~fix-bad-behavior-in-use_hierarchy-file
++++ a/mm/memcontrol.c
+@@ -3764,6 +3764,10 @@ static int mem_cgroup_hierarchy_write(st
+ 		parent_memcg = mem_cgroup_from_cont(parent);
  
- 	int is_write, is_exec;
- 	int fault;
-+	unsigned int flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE;
- 
- 	info.si_code = SEGV_MAPERR;
- 
-@@ -71,6 +72,7 @@ void do_page_fault(struct pt_regs *regs)
- 	       address, exccause, regs->pc, is_write? "w":"", is_exec? "x":"");
- #endif
- 
-+retry:
- 	down_read(&mm->mmap_sem);
- 	vma = find_vma(mm, address);
- 
-@@ -93,6 +95,7 @@ good_area:
- 	if (is_write) {
- 		if (!(vma->vm_flags & VM_WRITE))
- 			goto bad_area;
-+		flags |= FAULT_FLAG_WRITE;
- 	} else if (is_exec) {
- 		if (!(vma->vm_flags & VM_EXEC))
- 			goto bad_area;
-@@ -104,7 +107,11 @@ good_area:
- 	 * make sure we exit gracefully rather than endlessly redo
- 	 * the fault.
- 	 */
--	fault = handle_mm_fault(mm, vma, address, is_write ? FAULT_FLAG_WRITE : 0);
-+	fault = handle_mm_fault(mm, vma, address, flags);
+ 	cgroup_lock();
 +
-+	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
-+		return;
++	if (memcg->use_hierarchy == val)
++		goto out;
 +
- 	if (unlikely(fault & VM_FAULT_ERROR)) {
- 		if (fault & VM_FAULT_OOM)
- 			goto out_of_memory;
-@@ -112,10 +119,22 @@ good_area:
- 			goto do_sigbus;
- 		BUG();
- 	}
--	if (fault & VM_FAULT_MAJOR)
--		current->maj_flt++;
--	else
--		current->min_flt++;
-+	if (flags & FAULT_FLAG_ALLOW_RETRY) {
-+		if (fault & VM_FAULT_MAJOR)
-+			current->maj_flt++;
-+		else
-+			current->min_flt++;
-+		if (fault & VM_FAULT_RETRY) {
-+			flags &= ~FAULT_FLAG_ALLOW_RETRY;
+ 	/*
+ 	 * If parent's use_hierarchy is set, we can't make any modifications
+ 	 * in the child subtrees. If it is unset, then the change can
+@@ -3780,6 +3784,8 @@ static int mem_cgroup_hierarchy_write(st
+ 			retval = -EBUSY;
+ 	} else
+ 		retval = -EINVAL;
 +
-+			 /* No need to up_read(&mm->mmap_sem) as we would
-+			 * have already released it in __lock_page_or_retry
-+			 * in mm/filemap.c.
-+			 */
-+
-+			goto retry;
-+		}
-+	}
++out:
+ 	cgroup_unlock();
  
- 	up_read(&mm->mmap_sem);
- 	return;
+ 	return retval;
 _
-Subject: Subject: xtensa/mm/fault.c: port OOM changes to do_page_fault
+Subject: Subject: memcg: fix bad behavior in use_hierarchy file
 
-Patches currently in -mm which might be from consul.kautuk@gmail.com are
+Patches currently in -mm which might be from glommer@parallels.com are
 
 linux-next.patch
-xtensa-mm-faultc-port-oom-changes-to-do_page_fault.patch
-avr32-mm-faultc-port-oom-changes-to-do_page_fault.patch
-avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
+slab-move-full-state-transition-to-an-initcall.patch
+memcg-rename-config-variables.patch
+memcg-fix-bad-behavior-in-use_hierarchy-file.patch
 
