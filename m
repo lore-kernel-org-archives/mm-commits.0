@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-bad-behavior-in-use_hierarchy-file.patch added to -mm tree
-Date: Tue, 26 Jun 2012 15:25:33 -0700
-Message-ID: <20120626222533.B5B1CA026F@akpm.mtv.corp.google.com>
+Subject: + hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch added to -mm tree
+Date: Tue, 26 Jun 2012 15:35:37 -0700
+Message-ID: <20120626223538.20989A026F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:37641 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751841Ab2FZWZf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jun 2012 18:25:35 -0400
-Received: by vbnl22 with SMTP id l22so47824vbn.1
-        for <mm-commits@vger.kernel.org>; Tue, 26 Jun 2012 15:25:34 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:47366 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754382Ab2FZWfk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jun 2012 18:35:40 -0400
+Received: by wibhr14 with SMTP id hr14so21614wib.1
+        for <mm-commits@vger.kernel.org>; Tue, 26 Jun 2012 15:35:39 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: glommer@parallels.com, dhaval.giani@gmail.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
+Cc: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, dhillf@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, rientjes@google.com
 
 
 The patch titled
-     Subject: memcg: fix bad behavior in use_hierarchy file
+     Subject: hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix
 has been added to the -mm tree.  Its filename is
-     memcg-fix-bad-behavior-in-use_hierarchy-file.patch
+     hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,75 +33,80 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Glauber Costa <glommer@parallels.com>
-Subject: memcg: fix bad behavior in use_hierarchy file
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix
 
-I have an application that does the following:
+s/CONFIG_MEMCG_HUGETLB/CONFIG_CGROUP_HUGETLB/
 
-* copy the state of all controllers attached to a hierarchy
-* replicate it as a child of the current level.
-
-I would expect writes to the files to mostly succeed, since they are
-inheriting sane values from parents.
-
-But that is not the case for use_hierarchy.  If it is set to 0, we succeed
-ok.  If we're set to 1, the value of the file is automatically set to 1 in
-the children, but if userspace tries to write the very same 1, it will
-fail.  That same situation happens if we set use_hierarchy, create a
-child, and then try to write 1 again.
-
-Now, there is no reason whatsoever for failing to write a value that is
-already there.  It doesn't even match the comments, that states:
-
- /* If parent's use_hierarchy is set, we can't make any modifications
-  * in the child subtrees...
-
-since we are not changing anything.
-
-So test the new value against the one we're storing, and automatically
-return 0 if we're not proposing a change.
-
-Signed-off-by: Glauber Costa <glommer@parallels.com>
-Cc: Dhaval Giani <dhaval.giani@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Hillf Danton <dhillf@gmail.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/hugetlb.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~fix-bad-behavior-in-use_hierarchy-file mm/memcontrol.c
---- a/mm/memcontrol.c~fix-bad-behavior-in-use_hierarchy-file
-+++ a/mm/memcontrol.c
-@@ -3764,6 +3764,10 @@ static int mem_cgroup_hierarchy_write(st
- 		parent_memcg = mem_cgroup_from_cont(parent);
- 
- 	cgroup_lock();
-+
-+	if (memcg->use_hierarchy == val)
-+		goto out;
-+
- 	/*
- 	 * If parent's use_hierarchy is set, we can't make any modifications
- 	 * in the child subtrees. If it is unset, then the change can
-@@ -3780,6 +3784,8 @@ static int mem_cgroup_hierarchy_write(st
- 			retval = -EBUSY;
- 	} else
- 		retval = -EINVAL;
-+
-+out:
- 	cgroup_unlock();
- 
- 	return retval;
+diff -puN include/linux/hugetlb.h~hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix
++++ a/include/linux/hugetlb.h
+@@ -222,7 +222,7 @@ struct hstate {
+ 	unsigned int nr_huge_pages_node[MAX_NUMNODES];
+ 	unsigned int free_huge_pages_node[MAX_NUMNODES];
+ 	unsigned int surplus_huge_pages_node[MAX_NUMNODES];
+-#ifdef CONFIG_MEMCG_HUGETLB
++#ifdef CONFIG_CGROUP_HUGETLB
+ 	/* cgroup control files */
+ 	struct cftype cgroup_files[5];
+ #endif
 _
-Subject: Subject: memcg: fix bad behavior in use_hierarchy file
+Subject: Subject: hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix
 
-Patches currently in -mm which might be from glommer@parallels.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-slab-move-full-state-transition-to-an-initcall.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix.patch
+drivers-gpio-devresc-export-devm_gpio_request_one-to-modules.patch
+rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled-checkpatch-fixes.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
+include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures.patch
+hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
+coredump-warn-about-unsafe-suid_dumpable-core_pattern-combo.patch
+mm.patch
+mm-make-vb_alloc-more-foolproof-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
+mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
+memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
+memcg-prevent-oom-with-too-many-dirty-pages.patch
+mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
 memcg-rename-config-variables.patch
-memcg-fix-bad-behavior-in-use_hierarchy-file.patch
+tmpfs-implement-numa-node-interleaving-fix.patch
+avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
+kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
+printk-add-generic-functions-to-find-kern_level-headers-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
+lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch
+string-introduce-memweight-fix.patch
+drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes.patch
+drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded.patch
+hfsplus-get-rid-of-write_super-checkpatch-fixes.patch
+kmod-avoid-deadlock-from-recursive-kmod-call.patch
+fork-use-vma_pages-to-simplify-the-code-fix.patch
+fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
