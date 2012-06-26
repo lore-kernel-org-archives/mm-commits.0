@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + h8300-signal-fix-typo-statis.patch added to -mm tree
-Date: Tue, 26 Jun 2012 16:50:26 -0700
-Message-ID: <20120626235026.AFB42A0341@akpm.mtv.corp.google.com>
+Subject: + h8300-time-add-missing-include-asm-irq_regsh.patch added to -mm tree
+Date: Tue, 26 Jun 2012 16:50:28 -0700
+Message-ID: <20120626235028.EC324A0341@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:50011 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754241Ab2FZXu1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jun 2012 19:50:27 -0400
-Received: by ggeh3 with SMTP id h3so54174gge.1
-        for <mm-commits@vger.kernel.org>; Tue, 26 Jun 2012 16:50:27 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:54530 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754241Ab2FZXua (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jun 2012 19:50:30 -0400
+Received: by wgbdt11 with SMTP id dt11so23055wgb.1
+        for <mm-commits@vger.kernel.org>; Tue, 26 Jun 2012 16:50:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: geert@linux-m68k.org, tony@bakeyournoodle.com, viro@zeniv.linux.org.uk, ysato@users.sourceforge.jp
+Cc: geert@linux-m68k.org, tony@bakeyournoodle.com, ysato@users.sourceforge.jp
 
 
 The patch titled
-     Subject: h8300/signal: fix typo "statis"
+     Subject: h8300/time: add missing #include <asm/irq_regs.h>
 has been added to the -mm tree.  Its filename is
-     h8300-signal-fix-typo-statis.patch
+     h8300-time-add-missing-include-asm-irq_regsh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: h8300/signal: fix typo "statis"
+Subject: h8300/time: add missing #include <asm/irq_regs.h>
 
-The keyword is "static", not "statis":
-
-arch/h8300/kernel/signal.c:455:8: error: expected '=', ',', ';', 'asm' or '__attribute__' before 'void'
-arch/h8300/kernel/signal.c: In function 'do_notify_resume':
-arch/h8300/kernel/signal.c:511:3: error: implicit declaration of function 'do_signal' [-Werror=implicit-function-declaration]
-arch/h8300/kernel/signal.c: At top level:
-arch/h8300/kernel/signal.c:414:1: warning: 'handle_signal' defined but not used [-Wunused-function]
-
-Introduced in commit 7ae4e32a65148353db3458e3eb87117f25620ac5 ("h8300: switch
-to saved_sigmask-based sigsuspend/rt_sigsuspend")
+arch/h8300/kernel/time.c: In function 'h8300_timer_tick':
+arch/h8300/kernel/time.c:39:2: error: implicit declaration of function 'get_irq_regs' [-Werror=implicit-function-declaration]
+arch/h8300/kernel/time.c:39:42: error: invalid type argument of '->' (have 'int')
 
 Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Cc: Tony Breeds <tony@bakeyournoodle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/kernel/signal.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/h8300/kernel/time.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/h8300/kernel/signal.c~h8300-signal-fix-typo-statis arch/h8300/kernel/signal.c
---- a/arch/h8300/kernel/signal.c~h8300-signal-fix-typo-statis
-+++ a/arch/h8300/kernel/signal.c
-@@ -446,7 +446,7 @@ handle_signal(unsigned long sig, siginfo
-  * want to handle. Thus you cannot kill init even with a SIGKILL even by
-  * mistake.
-  */
--statis void do_signal(struct pt_regs *regs)
-+static void do_signal(struct pt_regs *regs)
- {
- 	siginfo_t info;
- 	int signr;
+diff -puN arch/h8300/kernel/time.c~h8300-time-add-missing-include-asm-irq_regsh arch/h8300/kernel/time.c
+--- a/arch/h8300/kernel/time.c~h8300-time-add-missing-include-asm-irq_regsh
++++ a/arch/h8300/kernel/time.c
+@@ -27,6 +27,7 @@
+ #include <linux/profile.h>
+ 
+ #include <asm/io.h>
++#include <asm/irq_regs.h>
+ #include <asm/timer.h>
+ 
+ #define	TICK_SIZE (tick_nsec / 1000)
 _
-Subject: Subject: h8300/signal: fix typo "statis"
+Subject: Subject: h8300/time: add missing #include <asm/irq_regs.h>
 
 Patches currently in -mm which might be from geert@linux-m68k.org are
 
