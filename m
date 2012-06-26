@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-add-new-hugetlb-cgroup-fix-3.patch added to -mm tree
-Date: Tue, 26 Jun 2012 16:19:06 -0700
-Message-ID: <20120626231906.C43D7A026A@akpm.mtv.corp.google.com>
+Subject: + hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup-fix.patch added to -mm tree
+Date: Tue, 26 Jun 2012 16:19:41 -0700
+Message-ID: <20120626231941.E4A5AA026A@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:50463 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754321Ab2FZXTI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jun 2012 19:19:08 -0400
-Received: by vcbfl13 with SMTP id fl13so52770vcb.1
-        for <mm-commits@vger.kernel.org>; Tue, 26 Jun 2012 16:19:07 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:37025 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754321Ab2FZXTo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jun 2012 19:19:44 -0400
+Received: by weyu7 with SMTP id u7so21468wey.1
+        for <mm-commits@vger.kernel.org>; Tue, 26 Jun 2012 16:19:42 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: aneesh.kumar@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: hugetlb/cgroup: remove unnecessary NULL checks
+     Subject: hugetlb/cgroup: Remove unnecessary NULL checks
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-add-new-hugetlb-cgroup-fix-3.patch
+     hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: hugetlb/cgroup: remove unnecessary NULL checks
+Subject: hugetlb/cgroup: Remove unnecessary NULL checks
 
 cgroup_subsys_state can never be NULL, so don't check for that in
 hugetlb_cgroup_from_css.  Also current task will always be part of some
@@ -44,25 +44,24 @@ Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_cgroup.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/hugetlb_cgroup.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN mm/hugetlb_cgroup.c~mm-hugetlb-add-new-hugetlb-cgroup-fix-3 mm/hugetlb_cgroup.c
---- a/mm/hugetlb_cgroup.c~mm-hugetlb-add-new-hugetlb-cgroup-fix-3
+diff -puN mm/hugetlb_cgroup.c~hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup-fix mm/hugetlb_cgroup.c
+--- a/mm/hugetlb_cgroup.c~hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup-fix
 +++ a/mm/hugetlb_cgroup.c
-@@ -32,9 +32,7 @@ struct hugetlb_cgroup *root_h_cgroup __r
- static inline
- struct hugetlb_cgroup *hugetlb_cgroup_from_css(struct cgroup_subsys_state *s)
- {
--	if (s)
--		return container_of(s, struct hugetlb_cgroup, css);
--	return NULL;
-+	return container_of(s, struct hugetlb_cgroup, css);
- }
- 
- static inline
+@@ -130,9 +130,6 @@ int hugetlb_cgroup_charge_cgroup(int idx
+ again:
+ 	rcu_read_lock();
+ 	h_cg = hugetlb_cgroup_from_task(current);
+-	if (!h_cg)
+-		h_cg = root_h_cgroup;
+-
+ 	if (!css_tryget(&h_cg->css)) {
+ 		rcu_read_unlock();
+ 		goto again;
 _
-Subject: Subject: hugetlb/cgroup: remove unnecessary NULL checks
+Subject: Subject: hugetlb/cgroup: Remove unnecessary NULL checks
 
 Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
@@ -83,7 +82,7 @@ mm-hugetlb-add-new-hugetlb-cgroup-fix-3.patch
 mm-hugetlb-add-new-hugetlb-cgroup-mark-root_h_cgroup-static.patch
 hugetlb-cgroup-add-the-cgroup-pointer-to-page-lru.patch
 hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup.patch
-hugetlb-cgroup-remove-unnecessary-null-checks.patch
+hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup-fix.patch
 hugetlb-cgroup-add-support-for-cgroup-removal.patch
 hugetlb-cgroup-add-hugetlb-cgroup-control-files.patch
 hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
