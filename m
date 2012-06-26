@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch added to -mm tree
-Date: Tue, 26 Jun 2012 15:37:14 -0700
-Message-ID: <20120626223714.C9DFCA026F@akpm.mtv.corp.google.com>
+Subject: + mm-hugetlb-add-new-hugetlb-cgroup-fix-3.patch added to -mm tree
+Date: Tue, 26 Jun 2012 16:19:06 -0700
+Message-ID: <20120626231906.C43D7A026A@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:61553 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750811Ab2FZWhQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jun 2012 18:37:16 -0400
-Received: by qcsu6 with SMTP id u6so48937qcs.1
-        for <mm-commits@vger.kernel.org>; Tue, 26 Jun 2012 15:37:15 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:50463 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754321Ab2FZXTI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jun 2012 19:19:08 -0400
+Received: by vcbfl13 with SMTP id fl13so52770vcb.1
+        for <mm-commits@vger.kernel.org>; Tue, 26 Jun 2012 16:19:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, dhillf@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, rientjes@google.com
+Cc: aneesh.kumar@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: mm-hugetlb-add-new-hugetlb-cgroup-fix-fix
+     Subject: hugetlb/cgroup: remove unnecessary NULL checks
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch
+     mm-hugetlb-add-new-hugetlb-cgroup-fix-3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,120 +33,65 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hugetlb-add-new-hugetlb-cgroup-fix-fix
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: hugetlb/cgroup: remove unnecessary NULL checks
 
-s/CONFIG_MEMCG_HUGETLB/CONFIG_CGROUP_HUGETLB/g
+cgroup_subsys_state can never be NULL, so don't check for that in
+hugetlb_cgroup_from_css.  Also current task will always be part of some
+cgroup.  So hugetlb_cgrop_from_task cannot return NULL.
 
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup_subsys.h  |    2 +-
- include/linux/hugetlb_cgroup.h |    2 +-
- init/Kconfig                   |    2 +-
- mm/Makefile                    |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ mm/hugetlb_cgroup.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN include/linux/cgroup_subsys.h~mm-hugetlb-add-new-hugetlb-cgroup-fix-fix include/linux/cgroup_subsys.h
---- a/include/linux/cgroup_subsys.h~mm-hugetlb-add-new-hugetlb-cgroup-fix-fix
-+++ a/include/linux/cgroup_subsys.h
-@@ -73,7 +73,7 @@ SUBSYS(net_prio)
- 
- /* */
- 
--#ifdef CONFIG_MEMCG_HUGETLB
-+#ifdef CONFIG_CGROUP_HUGETLB
- SUBSYS(hugetlb)
- #endif
- 
-diff -puN include/linux/hugetlb_cgroup.h~mm-hugetlb-add-new-hugetlb-cgroup-fix-fix include/linux/hugetlb_cgroup.h
---- a/include/linux/hugetlb_cgroup.h~mm-hugetlb-add-new-hugetlb-cgroup-fix-fix
-+++ a/include/linux/hugetlb_cgroup.h
-@@ -19,7 +19,7 @@
- 
- struct hugetlb_cgroup;
- 
--#ifdef CONFIG_MEMCG_HUGETLB
-+#ifdef CONFIG_CGROUP_HUGETLB
- static inline bool hugetlb_cgroup_disabled(void)
+diff -puN mm/hugetlb_cgroup.c~mm-hugetlb-add-new-hugetlb-cgroup-fix-3 mm/hugetlb_cgroup.c
+--- a/mm/hugetlb_cgroup.c~mm-hugetlb-add-new-hugetlb-cgroup-fix-3
++++ a/mm/hugetlb_cgroup.c
+@@ -32,9 +32,7 @@ struct hugetlb_cgroup *root_h_cgroup __r
+ static inline
+ struct hugetlb_cgroup *hugetlb_cgroup_from_css(struct cgroup_subsys_state *s)
  {
- 	if (hugetlb_subsys.disabled)
-diff -puN init/Kconfig~mm-hugetlb-add-new-hugetlb-cgroup-fix-fix init/Kconfig
---- a/init/Kconfig~mm-hugetlb-add-new-hugetlb-cgroup-fix-fix
-+++ a/init/Kconfig
-@@ -751,7 +751,7 @@ config CGROUP_MEM_RES_CTLR_KMEM
- 	  the kmem extension can use it to guarantee that no group of processes
- 	  will ever exhaust kernel resources alone.
+-	if (s)
+-		return container_of(s, struct hugetlb_cgroup, css);
+-	return NULL;
++	return container_of(s, struct hugetlb_cgroup, css);
+ }
  
--config MEMCG_HUGETLB
-+config CGROUP_HUGETLB
- 	bool "HugeTLB Resource Controller for Control Groups"
- 	depends on RESOURCE_COUNTERS && HUGETLB_PAGE && EXPERIMENTAL
- 	default n
-diff -puN mm/Makefile~mm-hugetlb-add-new-hugetlb-cgroup-fix-fix mm/Makefile
---- a/mm/Makefile~mm-hugetlb-add-new-hugetlb-cgroup-fix-fix
-+++ a/mm/Makefile
-@@ -49,7 +49,7 @@ obj-$(CONFIG_MIGRATION) += migrate.o
- obj-$(CONFIG_QUICKLIST) += quicklist.o
- obj-$(CONFIG_TRANSPARENT_HUGEPAGE) += huge_memory.o
- obj-$(CONFIG_CGROUP_MEM_RES_CTLR) += memcontrol.o page_cgroup.o
--obj-$(CONFIG_MEMCG_HUGETLB) += hugetlb_cgroup.o
-+obj-$(CONFIG_CGROUP_HUGETLB) += hugetlb_cgroup.o
- obj-$(CONFIG_MEMORY_FAILURE) += memory-failure.o
- obj-$(CONFIG_HWPOISON_INJECT) += hwpoison-inject.o
- obj-$(CONFIG_DEBUG_KMEMLEAK) += kmemleak.o
+ static inline
 _
-Subject: Subject: mm-hugetlb-add-new-hugetlb-cgroup-fix-fix
+Subject: Subject: hugetlb/cgroup: remove unnecessary NULL checks
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix.patch
-drivers-gpio-devresc-export-devm_gpio_request_one-to-modules.patch
-rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled-checkpatch-fixes.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
-include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures.patch
-hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
-coredump-warn-about-unsafe-suid_dumpable-core_pattern-combo.patch
-mm.patch
-mm-make-vb_alloc-more-foolproof-fix.patch
+hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
+hugetlb-dont-use-err_ptr-with-vm_fault-values.patch
+hugetlb-add-an-inline-helper-for-finding-hstate-index.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
+hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
+hugetlb-simplify-migrate_huge_page.patch
+hugetlb-add-a-list-for-tracking-in-use-hugetlb-pages.patch
+hugetlb-make-some-static-variables-global.patch
+hugetlb-make-some-static-variables-global-mark-hugelb_max_hstate-__read_mostly.patch
+mm-hugetlb-add-new-hugetlb-cgroup.patch
 mm-hugetlb-add-new-hugetlb-cgroup-fix.patch
 mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix-3.patch
+mm-hugetlb-add-new-hugetlb-cgroup-mark-root_h_cgroup-static.patch
+hugetlb-cgroup-add-the-cgroup-pointer-to-page-lru.patch
+hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup.patch
+hugetlb-cgroup-remove-unnecessary-null-checks.patch
+hugetlb-cgroup-add-support-for-cgroup-removal.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files.patch
 hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
 hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
-mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
-memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
-memcg-prevent-oom-with-too-many-dirty-pages.patch
-mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
+hugetlb-cgroup-migrate-hugetlb-cgroup-info-from-oldpage-to-new-page-during-migration.patch
+hugetlb-cgroup-add-hugetlb-controller-documentation.patch
+hugetlb-move-all-the-in-use-pages-to-active-list.patch
+hugetlb-cgroup-assign-the-page-hugetlb-cgroup-when-we-move-the-page-to-active-list.patch
+hugetlb-cgroup-remove-exclude-and-wakeup-rmdir-calls-from-migrate.patch
 memcg-rename-config-variables.patch
-tmpfs-implement-numa-node-interleaving-fix.patch
-avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
-kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
-printk-add-generic-functions-to-find-kern_level-headers-fix.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
-lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch
-string-introduce-memweight-fix.patch
-drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes.patch
-drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded.patch
-hfsplus-get-rid-of-write_super-checkpatch-fixes.patch
-kmod-avoid-deadlock-from-recursive-kmod-call.patch
-fork-use-vma_pages-to-simplify-the-code-fix.patch
-fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
