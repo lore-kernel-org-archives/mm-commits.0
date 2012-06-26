@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-goal-calculating-with-usemap.patch added to -mm tree
-Date: Tue, 26 Jun 2012 16:46:30 -0700
-Message-ID: <20120626234630.A54C9A0341@akpm.mtv.corp.google.com>
+Subject: + h8300-pgtable-add-missing-include-asm-generic-pgtableh.patch added to -mm tree
+Date: Tue, 26 Jun 2012 16:50:24 -0700
+Message-ID: <20120626235025.3A278A0341@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:60362 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754368Ab2FZXqd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jun 2012 19:46:33 -0400
-Received: by bkty5 with SMTP id y5so20999bkt.1
-        for <mm-commits@vger.kernel.org>; Tue, 26 Jun 2012 16:46:32 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:37493 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754241Ab2FZXu0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jun 2012 19:50:26 -0400
+Received: by vcbfl13 with SMTP id fl13so55018vcb.1
+        for <mm-commits@vger.kernel.org>; Tue, 26 Jun 2012 16:50:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yinghai@kernel.org, hannes@cmpxchg.org, tj@kernel.org
+Cc: geert@linux-m68k.org, tony@bakeyournoodle.com, ysato@users.sourceforge.jp
 
 
 The patch titled
-     Subject: mm: fix goal calculating with usemap
+     Subject: h8300/pgtable: add missing #include <asm-generic/pgtable.h>
 has been added to the -mm tree.  Its filename is
-     mm-fix-goal-calculating-with-usemap.patch
+     h8300-pgtable-add-missing-include-asm-generic-pgtableh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,110 +33,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: mm: fix goal calculating with usemap
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: h8300/pgtable: add missing #include <asm-generic/pgtable.h>
 
-PAGE_SECTION_MASK should be used with pfn instead of pa.
+kernel/sched/core.c: In function 'context_switch':
+kernel/sched/core.c:2061:2: error: implicit declaration of function 'arch_start_context_switch' [-Werror=implicit-function-declaration]
 
-Also restore the old behavoir: limit the allocating to same section at
-first.  need to expose __alloc_bootmem_node_nopanic with limit.  
-
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Tony Breeds <tony@bakeyournoodle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bootmem.h |    5 +++++
- mm/bootmem.c            |    2 +-
- mm/nobootmem.c          |    2 +-
- mm/sparse.c             |   22 ++++++++++++++++------
- 4 files changed, 23 insertions(+), 8 deletions(-)
+ arch/h8300/include/asm/pgtable.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN include/linux/bootmem.h~mm-fix-goal-calculating-with-usemap include/linux/bootmem.h
---- a/include/linux/bootmem.h~mm-fix-goal-calculating-with-usemap
-+++ a/include/linux/bootmem.h
-@@ -91,6 +91,11 @@ extern void *__alloc_bootmem_node_nopani
- 				  unsigned long size,
- 				  unsigned long align,
- 				  unsigned long goal);
-+void *___alloc_bootmem_node_nopanic(pg_data_t *pgdat,
-+				  unsigned long size,
-+				  unsigned long align,
-+				  unsigned long goal,
-+				  unsigned long limit);
- extern void *__alloc_bootmem_low(unsigned long size,
- 				 unsigned long align,
- 				 unsigned long goal);
-diff -puN mm/bootmem.c~mm-fix-goal-calculating-with-usemap mm/bootmem.c
---- a/mm/bootmem.c~mm-fix-goal-calculating-with-usemap
-+++ a/mm/bootmem.c
-@@ -698,7 +698,7 @@ void * __init __alloc_bootmem(unsigned l
- 	return ___alloc_bootmem(size, align, goal, limit);
- }
+diff -puN arch/h8300/include/asm/pgtable.h~h8300-pgtable-add-missing-include-asm-generic-pgtableh arch/h8300/include/asm/pgtable.h
+--- a/arch/h8300/include/asm/pgtable.h~h8300-pgtable-add-missing-include-asm-generic-pgtableh
++++ a/arch/h8300/include/asm/pgtable.h
+@@ -70,4 +70,7 @@ extern int is_in_rom(unsigned long);
+ #define	VMALLOC_END	0xffffffff
  
--static void * __init ___alloc_bootmem_node_nopanic(pg_data_t *pgdat,
-+void * __init ___alloc_bootmem_node_nopanic(pg_data_t *pgdat,
- 				unsigned long size, unsigned long align,
- 				unsigned long goal, unsigned long limit)
- {
-diff -puN mm/nobootmem.c~mm-fix-goal-calculating-with-usemap mm/nobootmem.c
---- a/mm/nobootmem.c~mm-fix-goal-calculating-with-usemap
-+++ a/mm/nobootmem.c
-@@ -274,7 +274,7 @@ void * __init __alloc_bootmem(unsigned l
- 	return ___alloc_bootmem(size, align, goal, limit);
- }
- 
--static void * __init ___alloc_bootmem_node_nopanic(pg_data_t *pgdat,
-+void * __init ___alloc_bootmem_node_nopanic(pg_data_t *pgdat,
- 						   unsigned long size,
- 						   unsigned long align,
- 						   unsigned long goal,
-diff -puN mm/sparse.c~mm-fix-goal-calculating-with-usemap mm/sparse.c
---- a/mm/sparse.c~mm-fix-goal-calculating-with-usemap
-+++ a/mm/sparse.c
-@@ -275,8 +275,9 @@ static unsigned long * __init
- sparse_early_usemaps_alloc_pgdat_section(struct pglist_data *pgdat,
- 					 unsigned long size)
- {
--	pg_data_t *host_pgdat;
--	unsigned long goal;
-+	unsigned long goal, limit;
-+	unsigned long *p;
-+	int nid;
- 	/*
- 	 * A page may contain usemaps for other sections preventing the
- 	 * page being freed and making a section unremovable while
-@@ -287,10 +288,19 @@ sparse_early_usemaps_alloc_pgdat_section
- 	 * from the same section as the pgdat where possible to avoid
- 	 * this problem.
- 	 */
--	goal = __pa(pgdat) & PAGE_SECTION_MASK;
--	host_pgdat = NODE_DATA(early_pfn_to_nid(goal >> PAGE_SHIFT));
--	return __alloc_bootmem_node_nopanic(host_pgdat, size,
--					    SMP_CACHE_BYTES, goal);
-+	goal = __pa(pgdat) & (PAGE_SECTION_MASK << PAGE_SHIFT);
-+	limit = goal + (1UL << PA_SECTION_SHIFT);
-+	nid = early_pfn_to_nid(goal >> PAGE_SHIFT);
+ #define arch_enter_lazy_cpu_mode()    do {} while (0)
 +
-+again:
-+	p = ___alloc_bootmem_node_nopanic(NODE_DATA(nid), size,
-+					  SMP_CACHE_BYTES, goal, limit);
-+	if (!p && limit) {
-+		limit = 0;
-+		goto again;
-+	}
++#include <asm-generic/pgtable.h>
 +
-+	return p;
- }
- 
- static void __init check_usemap_section_nr(int nid, unsigned long *usemap)
+ #endif /* _H8300_PGTABLE_H */
 _
-Subject: Subject: mm: fix goal calculating with usemap
+Subject: Subject: h8300/pgtable: add missing #include <asm-generic/pgtable.h>
 
-Patches currently in -mm which might be from yinghai@kernel.org are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
 linux-next.patch
-mm-fix-goal-calculating-with-usemap.patch
-mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
+mn10300-move-setup_jiffies_interrupt-to-cevt-mn10300c.patch
+mn10300-remove-duplicate-definition-of-ptrace_o_tracesysgood.patch
+mn10300-kernel-internalh-needs-linux-irqreturnh.patch
+mn10300-kernel-trapsc-needs-linux-exporth.patch
+mn10300-mm-dma-allocc-needs-linux-exporth.patch
+mn10300-use-elif-definedconfig_-instead-of-elif-config_.patch
+h8300-pgtable-add-missing-include-asm-generic-pgtableh.patch
+h8300-signal-fix-typo-statis.patch
+h8300-time-add-missing-include-asm-irq_regsh.patch
+h8300-uaccess-remove-assignment-to-__gu_val-in-unhandled-case-of-get_user.patch
+h8300-uaccess-add-mising-__clear_user.patch
 
