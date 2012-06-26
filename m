@@ -1,71 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] x86-mce-use-new-printk-recursion-disabling-interface.patch removed from -mm tree
-Date: Tue, 26 Jun 2012 13:54:47 -0700
-Message-ID: <20120626205447.54A57A02C5@akpm.mtv.corp.google.com>
+Subject: [to-be-updated] x86-mce-use-new-printk-recursion-disabling-interface-fix.patch removed from -mm tree
+Date: Tue, 26 Jun 2012 13:54:49 -0700
+Message-ID: <20120626205449.67189A02C5@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:45069 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753531Ab2FZUyt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jun 2012 16:54:49 -0400
-Received: by eaao13 with SMTP id o13so17252eaa.1
-        for <mm-commits@vger.kernel.org>; Tue, 26 Jun 2012 13:54:48 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:52272 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753616Ab2FZUyw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jun 2012 16:54:52 -0400
+Received: by vcbfl13 with SMTP id fl13so40653vcb.1
+        for <mm-commits@vger.kernel.org>; Tue, 26 Jun 2012 13:54:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shuox.liu@intel.com, hpa@zytor.com, mingo@elte.hu, tglx@tglx.de, tony.luck@intel.com, yanmin_zhang@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hpa@zytor.com, mingo@elte.hu, shuox.liu@intel.com, tglx@tglx.de, tony.luck@intel.com, yanmin_zhang@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86 mce: use new printk recursion disabling interface
+     Subject: x86-mce-use-new-printk-recursion-disabling-interface-fix
 has been removed from the -mm tree.  Its filename was
-     x86-mce-use-new-printk-recursion-disabling-interface.patch
+     x86-mce-use-new-printk-recursion-disabling-interface-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: ShuoX Liu <shuox.liu@intel.com>
-Subject: x86 mce: use new printk recursion disabling interface
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: x86-mce-use-new-printk-recursion-disabling-interface-fix
 
-Disable printk recursion to make sure the MCE logs are printed out.  We
-hit it when running a MTBF testing on a Android atom mobile.
+fix recursion_check_disabled leak, add comment
 
-Signed-off-by: Yanmin Zhang <yanmin_zhang@linux.intel.com>
-Signed-off-by: ShuoX Liu <shuox.liu@intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@tglx.de>
 Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: ShuoX Liu <shuox.liu@intel.com>
+Cc: Thomas Gleixner <tglx@tglx.de>
+Cc: Yanmin Zhang <yanmin_zhang@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/mcheck/mce.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/x86/kernel/cpu/mcheck/mce.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/mcheck/mce.c~x86-mce-use-new-printk-recursion-disabling-interface arch/x86/kernel/cpu/mcheck/mce.c
---- a/arch/x86/kernel/cpu/mcheck/mce.c~x86-mce-use-new-printk-recursion-disabling-interface
+diff -puN arch/x86/kernel/cpu/mcheck/mce.c~x86-mce-use-new-printk-recursion-disabling-interface-fix arch/x86/kernel/cpu/mcheck/mce.c
+--- a/arch/x86/kernel/cpu/mcheck/mce.c~x86-mce-use-new-printk-recursion-disabling-interface-fix
 +++ a/arch/x86/kernel/cpu/mcheck/mce.c
-@@ -307,6 +307,7 @@ static void mce_panic(char *msg, struct 
+@@ -303,11 +303,10 @@ static void wait_for_panic(void)
+ 	panic("Panicing machine check CPU died");
+ }
+ 
+-static void mce_panic(char *msg, struct mce *final, char *exp)
++static void __mce_panic(char *msg, struct mce *final, char *exp)
  {
  	int i, apei_err = 0;
  
-+	printk_recursion_check_disable();
+-	printk_recursion_check_disable();
  	if (!fake_panic) {
  		/*
  		 * Make sure only one CPU runs in machine check panic
-@@ -361,6 +362,7 @@ static void mce_panic(char *msg, struct 
+@@ -362,6 +361,17 @@ static void mce_panic(char *msg, struct 
  		panic(msg);
  	} else
  		pr_emerg(HW_ERR "Fake kernel panic: %s\n", msg);
-+	printk_recursion_check_enable();
++}
++
++/*
++ * If an MCE happens to occur during the execution of a printk(), we want the
++ * MCE information to be displayed.  But printk()'s recursion checking prevents
++ * that.  So temporarily disable it.
++ */
++static void mce_panic(char *msg, struct mce *final, char *exp)
++{
++	printk_recursion_check_disable();
++	__mce_panic(msg, final, exp);
+ 	printk_recursion_check_enable();
  }
  
- /* Support code for software error injection */
 _
 
-Patches currently in -mm which might be from shuox.liu@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-cpuidle-move-field-disable-from-per-driver-to-per-cpu.patch
-x86-mce-use-new-printk-recursion-disabling-interface-fix.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix.patch
+drivers-gpio-devresc-export-devm_gpio_request_one-to-modules.patch
+rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled-checkpatch-fixes.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
+include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures.patch
+hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
+coredump-warn-about-unsafe-suid_dumpable-core_pattern-combo.patch
+mm.patch
+mm-make-vb_alloc-more-foolproof-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
+mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
+memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
+memcg-prevent-oom-with-too-many-dirty-pages.patch
+mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
+memcg-rename-config-variables.patch
+tmpfs-implement-numa-node-interleaving-fix.patch
+avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
+kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
+printk-add-generic-functions-to-find-kern_level-headers-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
+lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch
+string-introduce-memweight-fix.patch
+drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes.patch
+drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded.patch
+hfsplus-get-rid-of-write_super-checkpatch-fixes.patch
+kmod-avoid-deadlock-from-recursive-kmod-call.patch
+fork-use-vma_pages-to-simplify-the-code-fix.patch
+fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
