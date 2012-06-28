@@ -1,25 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 28 Jun 2012 14:00:17 -0700
-Message-ID: <20120628210017.EFF7FA0329@akpm.mtv.corp.google.com>
+Subject: + drivers-rtc-rtc-mxcc-fix-irq-enabled-interrupts-warning.patch added to -mm tree
+Date: Thu, 28 Jun 2012 14:09:00 -0700
+Message-ID: <20120628210900.CB7CEA0210@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:34738 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750769Ab2F1VAU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jun 2012 17:00:20 -0400
-Received: by eeit10 with SMTP id t10so148344eei.1
-        for <mm-commits@vger.kernel.org>; Thu, 28 Jun 2012 14:00:19 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:52145 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751293Ab2F1VJD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jun 2012 17:09:03 -0400
+Received: by vcbfl13 with SMTP id fl13so258490vcb.1
+        for <mm-commits@vger.kernel.org>; Thu, 28 Jun 2012 14:09:01 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, riel@redhat.com
+Cc: benoit.thebaudeau@advansee.com, a.zummo@towertech.it, kernel@pengutronix.de, stable@vger.kernel.org, u.kleine-koenig@pengutronix.de
 
 
 The patch titled
-     Subject: mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes
+     Subject: drivers/rtc/rtc-mxc.c: fix irq enabled interrupts warning
 has been added to the -mm tree.  Its filename is
-     mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes.patch
+     drivers-rtc-rtc-mxcc-fix-irq-enabled-interrupts-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -27,97 +30,118 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes
+=46rom: Beno=EEt Th=E9baudeau <benoit.thebaudeau@advansee.com>
+Subject: drivers/rtc/rtc-mxc.c: fix irq enabled interrupts warning
 
-ERROR: trailing whitespace
-#94: FILE: mm/compaction.c:583:
-+^I * end of a zone; it completes when the migrate and free scanner meet. $
+[   29.669224] WARNING: at /linux/kernel/irq/handle.c:146 handle_irq_ev=
+ent_=3D
+percpu+0x19c/0x1b8()
+[   29.669269] irq 25 handler mxc_rtc_interrupt+0x0/0xac enabled interr=
+upts
+[   29.669284] Modules linked in:
+[   29.669324] [<c0012218>] (unwind_backtrace+0x0/0xf0) from [<c001c1dc=
+>] (=3D
+warn_slowpath_common+0x4c/0x64)
+[   29.669361] [<c001c1dc>] (warn_slowpath_common+0x4c/0x64) from [<c00=
+1c28=3D
+8>] (warn_slowpath_fmt+0x30/0x40)
+[   29.669399] [<c001c288>] (warn_slowpath_fmt+0x30/0x40) from [<c004c4=
+6c>]=3D
+ (handle_irq_event_percpu+0x19c/0x1b8)
+[   29.669439] [<c004c46c>] (handle_irq_event_percpu+0x19c/0x1b8) from =
+[<c0=3D
+04c4b0>] (handle_irq_event+0x28/0x38)
+[   29.669479] [<c004c4b0>] (handle_irq_event+0x28/0x38) from [<c004e4b=
+0>] =3D
+(handle_level_irq+0x80/0xc4)
+[   29.669517] [<c004e4b0>] (handle_level_irq+0x80/0xc4) from [<c004bcd=
+0>] =3D
+(generic_handle_irq+0x24/0x38)
+[   29.669563] [<c004bcd0>] (generic_handle_irq+0x24/0x38) from [<c000e=
+6cc>=3D
+] (handle_IRQ+0x30/0x84)
+[   29.669599] [<c000e6cc>] (handle_IRQ+0x30/0x84) from [<c0008508>] (a=
+vic_=3D
+handle_irq+0x2c/0x4c)
+[   29.669633] [<c0008508>] (avic_handle_irq+0x2c/0x4c) from [<c000db40=
+>] (=3D
+__irq_svc+0x40/0x60)
+[   29.669655] Exception stack(0xc050bf60 to 0xc050bfa8)
+[   29.669685] bf60: 00000001 00000000 003c4208 c0018e20 c050a000 c050a=
+000 =3D
+c054a4c8 c050a000
+[   29.669717] bf80: c05157a8 4117b363 80503bb4 00000000 01000000 c050b=
+fa8 =3D
+c0018e2c c000e808
+[   29.669739] bfa0: 60000013 ffffffff
+[   29.669769] [<c000db40>] (__irq_svc+0x40/0x60) from [<c000e808>] (de=
+faul=3D
+t_idle+0x1c/0x30)
+[   29.669805] [<c000e808>] (default_idle+0x1c/0x30) from [<c000e9bc>] =
+(cpu=3D
+_idle+0x68/0xa8)
+[   29.669846] [<c000e9bc>] (cpu_idle+0x68/0xa8) from [<c04e76dc>] (sta=
+rt_k=3D
+ernel+0x22c/0x26c)
+[   29.669868] ---[ end trace 2f7406c4b6216986 ]---
 
-total: 1 errors, 0 warnings, 103 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/mm-have-order-0-compaction-start-off-where-it-left.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Beno=EEt Th=E9baudeau <benoit.thebaudeau@advansee.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Sascha Hauer <kernel@pengutronix.de>
+Cc: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-mxc.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/compaction.c~mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes mm/compaction.c
---- a/mm/compaction.c~mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes
-+++ a/mm/compaction.c
-@@ -580,7 +580,7 @@ static int compact_finished(struct zone 
- 
- 	/*
- 	 * A full (order == -1) compaction run starts at the beginning and
--	 * end of a zone; it completes when the migrate and free scanner meet. 
-+	 * end of a zone; it completes when the migrate and free scanner meet.
- 	 * A partial (order > 0) compaction can start with the free scanner
- 	 * at a random point in the zone, and may have to restart.
- 	 */
+diff -puN drivers/rtc/rtc-mxc.c~drivers-rtc-rtc-mxcc-fix-irq-enabled-in=
+terrupts-warning drivers/rtc/rtc-mxc.c
+--- a/drivers/rtc/rtc-mxc.c~drivers-rtc-rtc-mxcc-fix-irq-enabled-interr=
+upts-warning
++++ a/drivers/rtc/rtc-mxc.c
+@@ -202,10 +202,11 @@ static irqreturn_t mxc_rtc_interrupt(int
+ 	struct platform_device *pdev =3D dev_id;
+ 	struct rtc_plat_data *pdata =3D platform_get_drvdata(pdev);
+ 	void __iomem *ioaddr =3D pdata->ioaddr;
++	unsigned long flags;
+ 	u32 status;
+ 	u32 events =3D 0;
+=20
+-	spin_lock_irq(&pdata->rtc->irq_lock);
++	spin_lock_irqsave(&pdata->rtc->irq_lock, flags);
+ 	status =3D readw(ioaddr + RTC_RTCISR) & readw(ioaddr + RTC_RTCIENR);
+ 	/* clear interrupt sources */
+ 	writew(status, ioaddr + RTC_RTCISR);
+@@ -224,7 +225,7 @@ static irqreturn_t mxc_rtc_interrupt(int
+ 		events |=3D (RTC_PF | RTC_IRQF);
+=20
+ 	rtc_update_irq(pdata->rtc, 1, events);
+-	spin_unlock_irq(&pdata->rtc->irq_lock);
++	spin_unlock_irqrestore(&pdata->rtc->irq_lock, flags);
+=20
+ 	return IRQ_HANDLED;
+ }
 _
-Subject: Subject: mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes
+Subject: Subject: drivers/rtc/rtc-mxc.c: fix irq enabled interrupts war=
+ning
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from benoit.thebaudeau@advansee=
+=2Ecom are
 
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-block-nvmec-stop-breaking-my-i386-build.patch
-memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix.patch
-drivers-gpio-devresc-export-devm_gpio_request_one-to-modules.patch
-rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled-checkpatch-fixes.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
-include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures.patch
-hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
-coredump-warn-about-unsafe-suid_dumpable-core_pattern-combo.patch
-mm.patch
-mm-make-vb_alloc-more-foolproof-fix.patch
-mm-hugetlb-add-new-hugetlb-cgroup-fix.patch
-mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch
-hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
-hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
-mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
-memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
-memcg-prevent-oom-with-too-many-dirty-pages.patch
-mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
-memcg-rename-config-variables.patch
-memcg-rename-config-variables-fix-fix.patch
-mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes.patch
-tmpfs-implement-numa-node-interleaving-fix.patch
-avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
-kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
-printk-add-generic-functions-to-find-kern_level-headers-fix.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
-lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch
-string-introduce-memweight-fix.patch
-drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes.patch
-drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded.patch
-hfsplus-get-rid-of-write_super-checkpatch-fixes.patch
-kmod-avoid-deadlock-from-recursive-kmod-call.patch
-fork-use-vma_pages-to-simplify-the-code-fix.patch
-fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+drivers-rtc-rtc-mxcc-fix-irq-enabled-interrupts-warning.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
