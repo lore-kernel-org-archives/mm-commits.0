@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fs-ramfs-file-nommu-add-setpageuptodate.patch added to -mm tree
-Date: Thu, 28 Jun 2012 14:59:51 -0700
-Message-ID: <20120628215951.B8FAAA0210@akpm.mtv.corp.google.com>
+Subject: + sgi-xp-nested-calls-to-spin_lock_irqsave.patch added to -mm tree
+Date: Thu, 28 Jun 2012 15:03:52 -0700
+Message-ID: <20120628220352.BE073A0210@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:52874 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751292Ab2F1V7x (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jun 2012 17:59:53 -0400
-Received: by vbnl22 with SMTP id l22so261409vbn.1
-        for <mm-commits@vger.kernel.org>; Thu, 28 Jun 2012 14:59:52 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:36251 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753877Ab2F1WDy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jun 2012 18:03:54 -0400
+Received: by ggeh3 with SMTP id h3so262756gge.1
+        for <mm-commits@vger.kernel.org>; Thu, 28 Jun 2012 15:03:53 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lliubbo@gmail.com, dhowells@redhat.com, geert@linux-m68k.org, gerg@uclinux.org, hughd@google.com, stable@vger.kernel.org
+Cc: holt@sgi.com, dan.carpenter@oracle.com, steiner@sgi.com
 
 
 The patch titled
-     Subject: fs: ramfs: file-nommu: add SetPageUptodate()
+     Subject: sgi-xp: nested calls to spin_lock_irqsave()
 has been added to the -mm tree.  Its filename is
-     fs-ramfs-file-nommu-add-setpageuptodate.patch
+     sgi-xp-nested-calls-to-spin_lock_irqsave.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,49 +33,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Bob Liu <lliubbo@gmail.com>
-Subject: fs: ramfs: file-nommu: add SetPageUptodate()
+From: Robin Holt <holt@sgi.com>
+Subject: sgi-xp: nested calls to spin_lock_irqsave()
 
-There is a bug in the below scenario for !CONFIG_MMU:
+The code here has a nested spin_lock_irqsave().  It's not needed since
+IRQs are already disabled and it causes a problem because it means that
+IRQs won't be enabled again at the end.  The second call to
+spin_lock_irqsave() will overwrite the value of irq_flags and we can't
+restore the proper settings.
 
-1. create a new file
-2. mmap the file and write to it
-3. read the file can't get the correct value
-
-Because
-sys_read() > generic_file_aio_read() > simple_readpage() > clear_page()
-which make the page be zeroed.
-
-Add SetPageUptodate() to ramfs_nommu_expand_for_mapping() so that
-generic_file_aio_read() do not call simple_readpage().
-
-Signed-off-by: Bob Liu <lliubbo@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Greg Ungerer <gerg@uclinux.org>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Robin Holt <holt@sgi.com>
+Cc: Jack Steiner <steiner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ramfs/file-nommu.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/misc/sgi-xp/xpc_uv.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ramfs/file-nommu.c~fs-ramfs-file-nommu-add-setpageuptodate fs/ramfs/file-nommu.c
---- a/fs/ramfs/file-nommu.c~fs-ramfs-file-nommu-add-setpageuptodate
-+++ a/fs/ramfs/file-nommu.c
-@@ -110,6 +110,7 @@ int ramfs_nommu_expand_for_mapping(struc
+diff -puN drivers/misc/sgi-xp/xpc_uv.c~sgi-xp-nested-calls-to-spin_lock_irqsave drivers/misc/sgi-xp/xpc_uv.c
+--- a/drivers/misc/sgi-xp/xpc_uv.c~sgi-xp-nested-calls-to-spin_lock_irqsave
++++ a/drivers/misc/sgi-xp/xpc_uv.c
+@@ -452,9 +452,9 @@ xpc_handle_activate_mq_msg_uv(struct xpc
  
- 		/* prevent the page from being discarded on memory pressure */
- 		SetPageDirty(page);
-+		SetPageUptodate(page);
- 
- 		unlock_page(page);
- 		put_page(page);
+ 		if (msg->activate_gru_mq_desc_gpa !=
+ 		    part_uv->activate_gru_mq_desc_gpa) {
+-			spin_lock_irqsave(&part_uv->flags_lock, irq_flags);
++			spin_lock(&part_uv->flags_lock);
+ 			part_uv->flags &= ~XPC_P_CACHED_ACTIVATE_GRU_MQ_DESC_UV;
+-			spin_unlock_irqrestore(&part_uv->flags_lock, irq_flags);
++			spin_unlock(&part_uv->flags_lock);
+ 			part_uv->activate_gru_mq_desc_gpa =
+ 			    msg->activate_gru_mq_desc_gpa;
+ 		}
 _
-Subject: Subject: fs: ramfs: file-nommu: add SetPageUptodate()
+Subject: Subject: sgi-xp: nested calls to spin_lock_irqsave()
 
-Patches currently in -mm which might be from lliubbo@gmail.com are
+Patches currently in -mm which might be from holt@sgi.com are
 
-fs-ramfs-file-nommu-add-setpageuptodate.patch
+sgi-xp-nested-calls-to-spin_lock_irqsave.patch
 
