@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + frv-kill-used-but-uninitialized-variable.patch added to -mm tree
-Date: Thu, 28 Jun 2012 15:49:33 -0700
-Message-ID: <20120628224933.4CB87A01CE@akpm.mtv.corp.google.com>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Fri, 29 Jun 2012 13:17:13 -0700
+Message-ID: <20120629201714.C8F88A0244@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:52290 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753245Ab2F1Wtf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 Jun 2012 18:49:35 -0400
-Received: by fat25 with SMTP id 25so149602fat.1
-        for <mm-commits@vger.kernel.org>; Thu, 28 Jun 2012 15:49:34 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:54602 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756375Ab2F2URR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jun 2012 16:17:17 -0400
+Received: by ghbz15 with SMTP id z15so411380ghb.1
+        for <mm-commits@vger.kernel.org>; Fri, 29 Jun 2012 13:17:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: geert@linux-m68k.org, dhowells@redhat.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: frv: kill used but uninitialized variable
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     frv-kill-used-but-uninitialized-variable.patch
+     linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,79 +33,80 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: frv: kill used but uninitialized variable
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-Commit 6afe1a1fe8ff83f6a ("PM: Remove legacy PM") removed the
-initialization of retval, causing:
-
-arch/frv/kernel/pm.c: In function 'sysctl_pm_do_suspend':
-arch/frv/kernel/pm.c:165:5: warning: 'retval' may be used uninitialized in this function [-Wuninitialized]
-
-Remove the variable completely to fix this, and convert to a proper
-switch (...) { ... } construct to improve readability.
-
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/pm.c |   19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+ drivers/hwmon/coretemp.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN arch/frv/kernel/pm.c~frv-kill-used-but-uninitialized-variable arch/frv/kernel/pm.c
---- a/arch/frv/kernel/pm.c~frv-kill-used-but-uninitialized-variable
-+++ a/arch/frv/kernel/pm.c
-@@ -153,23 +153,22 @@ static int user_atoi(char __user *ubuf, 
- static int sysctl_pm_do_suspend(ctl_table *ctl, int write,
- 				void __user *buffer, size_t *lenp, loff_t *fpos)
- {
--	int retval, mode;
-+	int mode;
+diff -puN drivers/hwmon/coretemp.c~linux-next-git-rejects drivers/hwmon/coretemp.c
+--- a/drivers/hwmon/coretemp.c~linux-next-git-rejects
++++ a/drivers/hwmon/coretemp.c
+@@ -793,11 +793,7 @@ static struct notifier_block coretemp_cp
+ 	.notifier_call = coretemp_cpu_callback,
+ };
  
- 	if (*lenp <= 0)
- 		return -EIO;
- 
- 	mode = user_atoi(buffer, *lenp);
--	if ((mode != 1) && (mode != 5))
--		return -EINVAL;
-+	switch (mode) {
-+	case 1:
-+	    return pm_do_suspend();
- 
--	if (retval == 0) {
--		if (mode == 5)
--		    retval = pm_do_bus_sleep();
--		else
--		    retval = pm_do_suspend();
--	}
-+	case 5:
-+	    return pm_do_bus_sleep();
- 
--	return retval;
-+	default:
-+	    return -EINVAL;
-+	}
- }
- 
- static int try_set_cmode(int new_cmode)
+-<<<<<<< HEAD
+-static const struct x86_cpu_id coretemp_ids[] = {
+-=======
+ static const struct x86_cpu_id __initconst coretemp_ids[] = {
+->>>>>>> linux-next/akpm-base
+ 	{ X86_VENDOR_INTEL, X86_FAMILY_ANY, X86_MODEL_ANY, X86_FEATURE_DTHERM },
+ 	{}
+ };
 _
-Subject: Subject: frv: kill used but uninitialized variable
+Subject: Subject: linux-next-git-rejects
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-mn10300-move-setup_jiffies_interrupt-to-cevt-mn10300c.patch
-mn10300-remove-duplicate-definition-of-ptrace_o_tracesysgood.patch
-mn10300-kernel-internalh-needs-linux-irqreturnh.patch
-mn10300-kernel-trapsc-needs-linux-exporth.patch
-mn10300-mm-dma-allocc-needs-linux-exporth.patch
-mn10300-use-elif-definedconfig_-instead-of-elif-config_.patch
-h8300-pgtable-add-missing-include-asm-generic-pgtableh.patch
-h8300-signal-fix-typo-statis.patch
-h8300-time-add-missing-include-asm-irq_regsh.patch
-h8300-uaccess-remove-assignment-to-__gu_val-in-unhandled-case-of-get_user.patch
-h8300-uaccess-add-mising-__clear_user.patch
-fs-ramfs-file-nommu-add-setpageuptodate.patch
-frv-kill-used-but-uninitialized-variable.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-block-nvmec-stop-breaking-my-i386-build.patch
+memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix.patch
+drivers-gpio-devresc-export-devm_gpio_request_one-to-modules.patch
+rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled-checkpatch-fixes.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
+include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures.patch
+hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
+coredump-warn-about-unsafe-suid_dumpable-core_pattern-combo.patch
+mm.patch
+mm-make-vb_alloc-more-foolproof-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
+mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
+memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
+memcg-prevent-oom-with-too-many-dirty-pages.patch
+mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
+memcg-rename-config-variables.patch
+memcg-rename-config-variables-fix-fix.patch
+mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes.patch
+tmpfs-implement-numa-node-interleaving-fix.patch
+isolate_freepages-check-that-high_pfn-is-aligned-as-expected.patch
+avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
+kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
+printk-add-generic-functions-to-find-kern_level-headers-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
+lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch
+string-introduce-memweight-fix.patch
+drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes.patch
+drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded.patch
+hfsplus-get-rid-of-write_super-checkpatch-fixes.patch
+kmod-avoid-deadlock-from-recursive-kmod-call.patch
+fork-use-vma_pages-to-simplify-the-code-fix.patch
+fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
+include-linux-aioh-cpp-c-conversions.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
