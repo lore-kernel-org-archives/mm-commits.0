@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix.patch added to -mm tree
-Date: Fri, 29 Jun 2012 14:27:52 -0700
-Message-ID: <20120629221410.27F89100048@wpzn3.hot.corp.google.com>
+Subject: + include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix.patch added to -mm tree
+Date: Fri, 29 Jun 2012 15:19:12 -0700
+Message-ID: <20120629230530.000431E0049@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:62323 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751170Ab2F2WOL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jun 2012 18:14:11 -0400
-Received: by qcsu6 with SMTP id u6so430501qcs.1
-        for <mm-commits@vger.kernel.org>; Fri, 29 Jun 2012 15:14:10 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:39524 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751789Ab2F2XFb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jun 2012 19:05:31 -0400
+Received: by ggeh3 with SMTP id h3so435248gge.1
+        for <mm-commits@vger.kernel.org>; Fri, 29 Jun 2012 16:05:30 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix
+     Subject: include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix
 has been added to the -mm tree.  Its filename is
-     include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix.patch
+     include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix
-
+Subject: include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix
 
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/uptime.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/events/core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/uptime.c~include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix fs/proc/uptime.c
---- a/fs/proc/uptime.c~include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix
-+++ a/fs/proc/uptime.c
-@@ -27,9 +27,9 @@ static int uptime_proc_show(struct seq_f
- 	idle.tv_nsec = rem;
- 	seq_printf(m, "%lu.%02lu %lu.%02lu\n",
- 			(unsigned long) uptime.tv_sec,
--			(uptime.tv_nsec / (NSEC_PER_SEC / 100)),
-+			(uptime.tv_nsec / ((long)NSEC_PER_SEC / 100)),
- 			(unsigned long) idle.tv_sec,
--			(idle.tv_nsec / (NSEC_PER_SEC / 100)));
-+			(idle.tv_nsec / ((long)NSEC_PER_SEC / 100)));
- 	return 0;
- }
+diff -puN kernel/events/core.c~include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix kernel/events/core.c
+--- a/kernel/events/core.c~include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix
++++ a/kernel/events/core.c
+@@ -5415,7 +5415,7 @@ static void perf_swevent_init_hrtimer(st
+ 	if (event->attr.freq) {
+ 		long freq = event->attr.sample_freq;
  
+-		event->attr.sample_period = NSEC_PER_SEC / freq;
++		event->attr.sample_period = (long)NSEC_PER_SEC / freq;
+ 		hwc->sample_period = event->attr.sample_period;
+ 		local64_set(&hwc->period_left, hwc->sample_period);
+ 		event->attr.freq = 0;
 _
-Subject: Subject: include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix
+Subject: Subject: include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -76,6 +72,7 @@ arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.pa
 arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
 include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures.patch
 include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix.patch
+include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix.patch
 hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
 coredump-warn-about-unsafe-suid_dumpable-core_pattern-combo.patch
 mm.patch
