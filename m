@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + panic-fix-a-possible-deadlock-in-panic.patch added to -mm tree
-Date: Fri, 29 Jun 2012 13:29:39 -0700
-Message-ID: <20120629202939.A355EA0203@akpm.mtv.corp.google.com>
+Subject: + vmscan-remove-obsolete-shrink_control-comment.patch added to -mm tree
+Date: Fri, 29 Jun 2012 13:50:09 -0700
+Message-ID: <20120629205009.CA79FA024B@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:61469 "EHLO
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:55849 "EHLO
 	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932796Ab2F2U3l (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jun 2012 16:29:41 -0400
-Received: by ggeh3 with SMTP id h3so412055gge.1
-        for <mm-commits@vger.kernel.org>; Fri, 29 Jun 2012 13:29:40 -0700 (PDT)
+	with ESMTP id S932713Ab2F2UuM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jun 2012 16:50:12 -0400
+Received: by ggeh3 with SMTP id h3so416131gge.1
+        for <mm-commits@vger.kernel.org>; Fri, 29 Jun 2012 13:50:11 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: markivx@codeaurora.org, holzheu@linux.vnet.ibm.com, sboyd@codeaurora.org
+Cc: minchan@kernel.org, khlebnikov@openvz.org, mpatocka@redhat.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: panic: fix a possible deadlock in panic()
+     Subject: vmscan: remove obsolete shrink_control comment
 has been added to the -mm tree.  Its filename is
-     panic-fix-a-possible-deadlock-in-panic.patch
+     vmscan-remove-obsolete-shrink_control-comment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,61 +33,65 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vikram Mulukutla <markivx@codeaurora.org>
-Subject: panic: fix a possible deadlock in panic()
+From: Minchan Kim <minchan@kernel.org>
+Subject: vmscan: remove obsolete shrink_control comment
 
-panic_lock is meant to ensure that panic processing takes place only on
-one cpu; if any of the other cpus encounter a panic, they will spin
-waiting to be shut down.
+09f363c7 ("vmscan: fix shrinker callback bug in fs/super.c") fixed a
+shrinker callback which was returning -1 when nr_to_scan is zero, which
+caused excessive slab scanning.  But 635697c6 ("vmscan: fix initial
+shrinker size handling") fixed the problem, again so we can freely return
+-1 although nr_to_scan is zero.  So let's revert 09f363c7 because the
+comment added in 09f363c7 made an unnecessary rule.
 
-However, this causes a regression in this scenario:
-
-1. Cpu 0 encounters a panic and acquires the panic_lock
-   and proceeds with the panic processing.
-2. There is an interrupt on cpu 0 that also encounters
-   an error condition and invokes panic.
-3. This second invocation fails to acquire the panic_lock
-   and enters the infinite while loop in panic_smp_self_stop.
-
-Thus all panic processing is stopped, and the cpu is stuck for eternity in
-the while(1) inside panic_smp_self_stop.
-
-To address this, disable local interrupts with local_irq_disable before
-acquiring the panic_lock.  This will prevent interrupt handlers from
-executing during the panic processing, thus avoiding this particular
-problem.
-
-Signed-off-by: Vikram Mulukutla <markivx@codeaurora.org>
-Reviewed-by: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Mikulas Patocka <mpatocka@redhat.com>
+Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ fs/super.c               |    2 +-
+ include/linux/shrinker.h |    1 -
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/panic.c~panic-fix-a-possible-deadlock-in-panic kernel/panic.c
---- a/kernel/panic.c~panic-fix-a-possible-deadlock-in-panic
-+++ a/kernel/panic.c
-@@ -75,6 +75,14 @@ void panic(const char *fmt, ...)
- 	int state = 0;
+diff -puN fs/super.c~vmscan-remove-obsolete-shrink_control-comment fs/super.c
+--- a/fs/super.c~vmscan-remove-obsolete-shrink_control-comment
++++ a/fs/super.c
+@@ -62,7 +62,7 @@ static int prune_super(struct shrinker *
+ 		return -1;
  
- 	/*
-+	 * Disable local interrupts. This will prevent panic_smp_self_stop
-+	 * from deadlocking the first cpu that invokes the panic, since
-+	 * there is nothing to prevent an interrupt handler (that runs
-+	 * after the panic_lock is acquired) from invoking panic again.
-+	 */
-+	local_irq_disable();
-+
-+	/*
- 	 * It's possible to come here directly from a panic-assertion and
- 	 * not have preempt disabled. Some functions called from here want
- 	 * preempt to be disabled. No point enabling it later though...
+ 	if (!grab_super_passive(sb))
+-		return !sc->nr_to_scan ? 0 : -1;
++		return -1;
+ 
+ 	if (sb->s_op && sb->s_op->nr_cached_objects)
+ 		fs_objects = sb->s_op->nr_cached_objects(sb);
+diff -puN include/linux/shrinker.h~vmscan-remove-obsolete-shrink_control-comment include/linux/shrinker.h
+--- a/include/linux/shrinker.h~vmscan-remove-obsolete-shrink_control-comment
++++ a/include/linux/shrinker.h
+@@ -20,7 +20,6 @@ struct shrink_control {
+  * 'nr_to_scan' entries and attempt to free them up.  It should return
+  * the number of objects which remain in the cache.  If it returns -1, it means
+  * it cannot do any scanning at this time (eg. there is a risk of deadlock).
+- * The callback must not return -1 if nr_to_scan is zero.
+  *
+  * The 'gfpmask' refers to the allocation we are currently trying to
+  * fulfil.
 _
-Subject: Subject: panic: fix a possible deadlock in panic()
+Subject: Subject: vmscan: remove obsolete shrink_control comment
 
-Patches currently in -mm which might be from markivx@codeaurora.org are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-panic-fix-a-possible-deadlock-in-panic.patch
+linux-next.patch
+memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer.patch
+memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix.patch
+mm-thp-abort-compaction-if-migration-page-cannot-be-charged-to-memcg.patch
+swap-allow-swap-readahead-to-be-merged.patch
+documentation-update-how-page-cluster-affects-swap-i-o.patch
+mm-compaction-cleanup-on-compaction_deferred.patch
+memcg-prevent-oom-with-too-many-dirty-pages.patch
+mm-clear-pages_scanned-only-if-draining-a-pcp-adds-pages-to-the-buddy-allocator-again.patch
+mm-do-not-use-page_count-without-a-page-pin.patch
+mm-clean-up-__count_immobile_pages.patch
+vmscan-remove-obsolete-shrink_control-comment.patch
 
