@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memoryc-print_vma_addr-call-up_readmm-mmap_sem-directly.patch added to -mm tree
-Date: Fri, 29 Jun 2012 13:53:14 -0700
-Message-ID: <20120629205314.926B5A0244@akpm.mtv.corp.google.com>
+Subject: + maintainers-add-omap-cpufreq-driver-to-omap-power-management-section.patch added to -mm tree
+Date: Fri, 29 Jun 2012 14:18:55 -0700
+Message-ID: <20120629211855.AA178A0210@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:57158 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932735Ab2F2UxQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jun 2012 16:53:16 -0400
-Received: by vcbfl13 with SMTP id fl13so418902vcb.1
-        for <mm-commits@vger.kernel.org>; Fri, 29 Jun 2012 13:53:15 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:35083 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750977Ab2F2VS4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jun 2012 17:18:56 -0400
+Received: by ghbz15 with SMTP id z15so423050ghb.1
+        for <mm-commits@vger.kernel.org>; Fri, 29 Jun 2012 14:18:56 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeff.liu@oracle.com
+Cc: khilman@ti.com, arnd@arndb.de, rjw@sisk.pl
 
 
 The patch titled
-     Subject: mm/memory.c:print_vma_addr(): call up_read(&mm->mmap_sem) directly
+     Subject: MAINTAINERS: add OMAP CPUfreq driver to OMAP Power Management section
 has been added to the -mm tree.  Its filename is
-     mm-memoryc-print_vma_addr-call-up_readmm-mmap_sem-directly.patch
+     maintainers-add-omap-cpufreq-driver-to-omap-power-management-section.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,36 +33,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jeff Liu <jeff.liu@oracle.com>
-Subject: mm/memory.c:print_vma_addr(): call up_read(&mm->mmap_sem) directly
+From: Kevin Hilman <khilman@ti.com>
+Subject: MAINTAINERS: add OMAP CPUfreq driver to OMAP Power Management section
 
-Call up_read(&mm->mmap_sem) directly since we have already got mm via
-current->mm at the beginning of print_vma_addr().
+Add the OMAP CPUFreq driver to the list of files in the OMAP Power
+Management section.
 
-Signed-off-by: Jie Liu <jeff.liu@oracle.com>
+I've already been maintaining this driver, this just makes it official.
+
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/memory.c~mm-memoryc-print_vma_addr-call-up_readmm-mmap_sem-directly mm/memory.c
---- a/mm/memory.c~mm-memoryc-print_vma_addr-call-up_readmm-mmap_sem-directly
-+++ a/mm/memory.c
-@@ -3946,7 +3946,7 @@ void print_vma_addr(char *prefix, unsign
- 			free_page((unsigned long)buf);
- 		}
- 	}
--	up_read(&current->mm->mmap_sem);
-+	up_read(&mm->mmap_sem);
- }
+diff -puN MAINTAINERS~maintainers-add-omap-cpufreq-driver-to-omap-power-management-section MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-omap-cpufreq-driver-to-omap-power-management-section
++++ a/MAINTAINERS
+@@ -4866,6 +4866,7 @@ M:	Kevin Hilman <khilman@ti.com>
+ L:	linux-omap@vger.kernel.org
+ S:	Maintained
+ F:	arch/arm/*omap*/*pm*
++F:	drivers/cpufreq/omap-cpufreq.c
  
- #ifdef CONFIG_PROVE_LOCKING
+ OMAP POWERDOMAIN/CLOCKDOMAIN SOC ADAPTATION LAYER SUPPORT
+ M:	Rajendra Nayak <rnayak@ti.com>
 _
-Subject: Subject: mm/memory.c:print_vma_addr(): call up_read(&mm->mmap_sem) directly
+Subject: Subject: MAINTAINERS: add OMAP CPUfreq driver to OMAP Power Management section
 
-Patches currently in -mm which might be from jeff.liu@oracle.com are
+Patches currently in -mm which might be from khilman@ti.com are
 
 linux-next.patch
-mm-memoryc-print_vma_addr-call-up_readmm-mmap_sem-directly.patch
+maintainers-add-omap-cpufreq-driver-to-omap-power-management-section.patch
 
