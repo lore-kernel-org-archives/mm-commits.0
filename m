@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix.patch added to -mm tree
-Date: Fri, 29 Jun 2012 15:42:47 -0700
-Message-ID: <20120629232904.CE13B5C0050@hpza9.eem.corp.google.com>
+Subject: + include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix-fix.patch added to -mm tree
+Date: Fri, 29 Jun 2012 16:10:16 -0700
+Message-ID: <20120629235633.E7AC35C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:34970 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752748Ab2F2X3I (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jun 2012 19:29:08 -0400
-Received: by eaao13 with SMTP id o13so216342eaa.1
-        for <mm-commits@vger.kernel.org>; Fri, 29 Jun 2012 16:29:05 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:37763 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751971Ab2F2X4g (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 Jun 2012 19:56:36 -0400
+Received: by bkty5 with SMTP id y5so217232bkt.1
+        for <mm-commits@vger.kernel.org>; Fri, 29 Jun 2012 16:56:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix
+     Subject: include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix-fix
 has been added to the -mm tree.  Its filename is
-     include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix.patch
+     include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix
+Subject: include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix-fix
 
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/interface.c |    4 ++--
- fs/select.c             |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ kernel/time/clocksource.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/interface.c~include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix drivers/rtc/interface.c
---- a/drivers/rtc/interface.c~include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix
-+++ a/drivers/rtc/interface.c
-@@ -564,7 +564,7 @@ enum hrtimer_restart rtc_pie_update_irq(
- 	int count;
- 	rtc = container_of(timer, struct rtc_device, pie_timer);
+diff -puN kernel/time/clocksource.c~include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix-fix kernel/time/clocksource.c
+--- a/kernel/time/clocksource.c~include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix-fix
++++ a/kernel/time/clocksource.c
+@@ -678,7 +678,7 @@ void __clocksource_updatefreq_scale(stru
+ 		sec = 600;
  
--	period = ktime_set(0, NSEC_PER_SEC/rtc->irq_freq);
-+	period = ktime_set(0, (long)NSEC_PER_SEC / rtc->irq_freq);
- 	count = hrtimer_forward_now(timer, period);
+ 	clocks_calc_mult_shift(&cs->mult, &cs->shift, freq,
+-			       NSEC_PER_SEC / scale, sec * scale);
++			       (long)NSEC_PER_SEC / scale, sec * scale);
  
- 	rtc_handle_legacy_irq(rtc, count, RTC_PF);
-@@ -671,7 +671,7 @@ static int rtc_update_hrtimer(struct rtc
- 		return -1;
- 
- 	if (enabled) {
--		ktime_t period = ktime_set(0, NSEC_PER_SEC / rtc->irq_freq);
-+		ktime_t period = ktime_set(0, (long)NSEC_PER_SEC/rtc->irq_freq);
- 
- 		hrtimer_start(&rtc->pie_timer, period, HRTIMER_MODE_REL);
- 	}
-diff -puN fs/select.c~include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix fs/select.c
---- a/fs/select.c~include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix
-+++ a/fs/select.c
-@@ -55,11 +55,11 @@ static long __estimate_accuracy(struct t
- 	if (task_nice(current) > 0)
- 		divfactor = divfactor / 5;
- 
--	if (tv->tv_sec > MAX_SLACK / (NSEC_PER_SEC/divfactor))
-+	if (tv->tv_sec > MAX_SLACK / ((long)NSEC_PER_SEC / divfactor))
- 		return MAX_SLACK;
- 
- 	slack = tv->tv_nsec / divfactor;
--	slack += tv->tv_sec * (NSEC_PER_SEC/divfactor);
-+	slack += tv->tv_sec * ((long)NSEC_PER_SEC / divfactor);
- 
- 	if (slack > MAX_SLACK)
- 		return MAX_SLACK;
+ 	/*
+ 	 * for clocksources that have large mults, to avoid overflow.
 _
-Subject: Subject: include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix
+Subject: Subject: include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -101,6 +74,7 @@ include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures.patch
 include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix.patch
 include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix.patch
 include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix.patch
+include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix-fix.patch
 hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
 coredump-warn-about-unsafe-suid_dumpable-core_pattern-combo.patch
 mm.patch
