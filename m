@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fault-injection-add-selftests-for-cpu-and-memory-hotplug.patch added to -mm tree
-Date: Tue, 03 Jul 2012 13:42:59 -0700
-Message-ID: <20120703204259.F19F2A0148@akpm.mtv.corp.google.com>
+Subject: + fault-injection-add-tool-to-run-command-with-failslab-or-fail_page_alloc.patch added to -mm tree
+Date: Tue, 03 Jul 2012 13:43:43 -0700
+Message-ID: <20120703204343.6F10FA0148@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:54725 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757197Ab2GCUnB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2012 16:43:01 -0400
-Received: by vbnl22 with SMTP id l22so753620vbn.1
-        for <mm-commits@vger.kernel.org>; Tue, 03 Jul 2012 13:43:00 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:44488 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753277Ab2GCUnq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2012 16:43:46 -0400
+Received: by fat25 with SMTP id 25so273845fat.1
+        for <mm-commits@vger.kernel.org>; Tue, 03 Jul 2012 13:43:44 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, akpm@linux-foundation.org, benh@kernel.crashing.org, davej@redhat.com, greg@kroah.com, michael@ellerman.id.au, paulus@samba.org, pavel@ucw.cz, rjw@sisk.pl
+Cc: akinobu.mita@gmail.com
 
 
 The patch titled
-     Subject: fault-injection: add selftests for cpu and memory hotplug
+     Subject: fault-injection: add tool to run command with failslab or fail_page_alloc
 has been added to the -mm tree.  Its filename is
-     fault-injection-add-selftests-for-cpu-and-memory-hotplug.patch
+     fault-injection-add-tool-to-run-command-with-failslab-or-fail_page_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,543 +34,264 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: fault-injection: add selftests for cpu and memory hotplug
+Subject: fault-injection: add tool to run command with failslab or fail_page_alloc
 
-This adds two selftests
+This adds tools/testing/fault-injection/failcmd.sh to run a command while
+injecting slab/page allocation failures via fault injection.
 
-* tools/testing/selftests/cpu-hotplug/on-off-test.sh is testing script
-for CPU hotplug
+Example:
 
-1. Online all hot-pluggable CPUs
-2. Offline all hot-pluggable CPUs
-3. Online all hot-pluggable CPUs again
-4. Exit if cpu-notifier-error-inject.ko is not available
-5. Offline all hot-pluggable CPUs in preparation for testing
-6. Test CPU hot-add error handling by injecting notifier errors
-7. Online all hot-pluggable CPUs in preparation for testing
-8. Test CPU hot-remove error handling by injecting notifier errors
+Run a command "make -C tools/testing/selftests/ run_tests" with
+injecting slab allocation failure.
 
-* tools/testing/selftests/memory-hotplug/on-off-test.sh is doing the
-similar thing for memory hotplug.
+	# ./tools/testing/fault-injection/failcmd.sh \
+		-- make -C tools/testing/selftests/ run_tests
 
-1. Online all hot-pluggable memory
-2. Offline 10% of hot-pluggable memory
-3. Online all hot-pluggable memory again
-4. Exit if memory-notifier-error-inject.ko is not available
-5. Offline 10% of hot-pluggable memory in preparation for testing
-6. Test memory hot-add error handling by injecting notifier errors
-7. Online all hot-pluggable memory in preparation for testing
-8. Test memory hot-remove error handling by injecting notifier errors
+Same as above except to specify 100 times failures at most instead of
+one time at most by default.
+
+	# ./tools/testing/fault-injection/failcmd.sh --times=100 \
+		-- make -C tools/testing/selftests/ run_tests
+
+Same as above except to inject page allocation failure instead of slab
+allocation failure.
+
+	# env FAILCMD_TYPE=fail_page_alloc \
+		./tools/testing/fault-injection/failcmd.sh --times=100 \
+		-- make -C tools/testing/selftests/ run_tests
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Greg KH <greg@kroah.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <michael@ellerman.id.au>
-Cc: Dave Jones <davej@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/Makefile                      |    2 
- tools/testing/selftests/cpu-hotplug/Makefile          |    6 
- tools/testing/selftests/cpu-hotplug/on-off-test.sh    |  221 +++++++++
- tools/testing/selftests/memory-hotplug/Makefile       |    6 
- tools/testing/selftests/memory-hotplug/on-off-test.sh |  230 ++++++++++
- 5 files changed, 464 insertions(+), 1 deletion(-)
+ tools/testing/fault-injection/failcmd.sh |  219 +++++++++++++++++++++
+ 1 file changed, 219 insertions(+)
 
-diff -puN tools/testing/selftests/Makefile~fault-injection-add-selftests-for-cpu-and-memory-hotplug tools/testing/selftests/Makefile
---- a/tools/testing/selftests/Makefile~fault-injection-add-selftests-for-cpu-and-memory-hotplug
-+++ a/tools/testing/selftests/Makefile
-@@ -1,4 +1,4 @@
--TARGETS = breakpoints kcmp mqueue vm
-+TARGETS = breakpoints kcmp mqueue vm cpu-hotplug memory-hotplug
- 
- all:
- 	for TARGET in $(TARGETS); do \
-diff -puN /dev/null tools/testing/selftests/cpu-hotplug/Makefile
+diff -puN /dev/null tools/testing/fault-injection/failcmd.sh
 --- /dev/null
-+++ a/tools/testing/selftests/cpu-hotplug/Makefile
-@@ -0,0 +1,6 @@
-+all:
-+
-+run_tests:
-+	./on-off-test.sh
-+
-+clean:
-diff -puN /dev/null tools/testing/selftests/cpu-hotplug/on-off-test.sh
---- /dev/null
-+++ a/tools/testing/selftests/cpu-hotplug/on-off-test.sh
-@@ -0,0 +1,221 @@
++++ a/tools/testing/fault-injection/failcmd.sh
+@@ -0,0 +1,219 @@
 +#!/bin/bash
++#
++# NAME
++#	failcmd.sh - run a command with injecting slab/page allocation failures
++#
++# SYNOPSIS
++#	failcmd.sh --help
++#	failcmd.sh [<options>] command [arguments]
++#
++# DESCRIPTION
++#	Run command with injecting slab/page allocation failures by fault
++#	injection.
++#
++#	NOTE: you need to run this script as root.
++#
 +
-+SYSFS=
-+
-+prerequisite()
++usage()
 +{
-+	msg="skip all tests:"
++	cat >&2 <<EOF
++Usage: $0 [options] command [arguments]
 +
-+	if [ $UID != 0 ]; then
-+		echo $msg must be run as root >&2
-+		exit 0
-+	fi
++OPTIONS
++	-p percent
++	--probability=percent
++		likelihood of failure injection, in percent.
++		Default value is 1
 +
-+	SYSFS=`mount -t sysfs | head -1 | awk '{ print $3 }'`
++	-t value
++	--times=value
++		specifies how many times failures may happen at most.
++		Default value is 1
 +
-+	if [ ! -d "$SYSFS" ]; then
-+		echo $msg sysfs is not mounted >&2
-+		exit 0
-+	fi
++	--oom-kill-allocating-task=value
++		set /proc/sys/vm/oom_kill_allocating_task to specified value
++		before running the command.
++		Default value is 1
 +
-+	if ! ls $SYSFS/devices/system/cpu/cpu* > /dev/null 2>&1; then
-+		echo $msg cpu hotplug is not supported >&2
-+		exit 0
-+	fi
++	-h, --help
++		Display a usage message and exit
++
++	--interval=value, --space=value, --verbose=value, --task-filter=value,
++	--stacktrace-depth=value, --require-start=value, --require-end=value,
++	--reject-start=value, --reject-end=value, --ignore-gfp-wait=value
++		See Documentation/fault-injection/fault-injection.txt for more
++		information
++
++	failslab options:
++	--cache-filter=value
++
++	fail_page_alloc options:
++	--ignore-gfp-highmem=value, --min-order=value
++
++ENVIRONMENT
++	FAILCMD_TYPE
++		The following values for FAILCMD_TYPE are recognized:
++
++		failslab
++			inject slab allocation failures
++		fail_page_alloc
++			inject page allocation failures
++
++		If FAILCMD_TYPE is not defined, then failslab is used.
++EOF
++}
++
++if [ $UID != 0 ]; then
++	echo must be run as root >&2
++	exit 1
++fi
++
++DEBUGFS=`mount -t debugfs | head -1 | awk '{ print $3}'`
++
++if [ ! -d "$DEBUGFS" ]; then
++	echo debugfs is not mounted >&2
++	exit 1
++fi
++
++FAILCMD_TYPE=${FAILCMD_TYPE:-failslab}
++FAULTATTR=$DEBUGFS/$FAILCMD_TYPE
++
++if [ ! -d $FAULTATTR ]; then
++	echo $FAILCMD_TYPE is not available >&2
++	exit 1
++fi
++
++LONGOPTS=probability:,interval:,times:,space:,verbose:,task-filter:
++LONGOPTS=$LONGOPTS,stacktrace-depth:,require-start:,require-end:
++LONGOPTS=$LONGOPTS,reject-start:,reject-end:,oom-kill-allocating-task:,help
++
++if [ $FAILCMD_TYPE = failslab ]; then
++	LONGOPTS=$LONGOPTS,ignore-gfp-wait:,cache-filter:
++elif [ $FAILCMD_TYPE = fail_page_alloc ]; then
++	LONGOPTS=$LONGOPTS,ignore-gfp-wait:,ignore-gfp-highmem:,min-order:
++fi
++
++TEMP=`getopt -o p:i:t:s:v:h --long $LONGOPTS -n 'failcmd.sh' -- "$@"`
++
++if [ $? != 0 ]; then
++	usage
++	exit 1
++fi
++
++eval set -- "$TEMP"
++
++fault_attr_default()
++{
++	echo N > $FAULTATTR/task-filter
++	echo 0 > $FAULTATTR/probability
++	echo 1 > $FAULTATTR/times
++}
++
++fault_attr_default
++
++oom_kill_allocating_task_saved=`cat /proc/sys/vm/oom_kill_allocating_task`
++
++restore_values()
++{
++	fault_attr_default
++	echo $oom_kill_allocating_task_saved \
++		> /proc/sys/vm/oom_kill_allocating_task
 +}
 +
 +#
-+# list all hot-pluggable CPUs
++# Default options
 +#
-+hotpluggable_cpus()
-+{
-+	local state=${1:-.\*}
++declare -i oom_kill_allocating_task=1
++declare task_filter=Y
++declare -i probability=1
++declare -i times=1
 +
-+	for cpu in $SYSFS/devices/system/cpu/cpu*; do
-+		if [ -f $cpu/online ] && grep -q $state $cpu/online; then
-+			echo ${cpu##/*/cpu}
-+		fi
-+	done
-+}
-+
-+hotplaggable_offline_cpus()
-+{
-+	hotpluggable_cpus 0
-+}
-+
-+hotpluggable_online_cpus()
-+{
-+	hotpluggable_cpus 1
-+}
-+
-+cpu_is_online()
-+{
-+	grep -q 1 $SYSFS/devices/system/cpu/cpu$1/online
-+}
-+
-+cpu_is_offline()
-+{
-+	grep -q 0 $SYSFS/devices/system/cpu/cpu$1/online
-+}
-+
-+online_cpu()
-+{
-+	echo 1 > $SYSFS/devices/system/cpu/cpu$1/online
-+}
-+
-+offline_cpu()
-+{
-+	echo 0 > $SYSFS/devices/system/cpu/cpu$1/online
-+}
-+
-+online_cpu_expect_success()
-+{
-+	local cpu=$1
-+
-+	if ! online_cpu $cpu; then
-+		echo $FUNCNAME $cpu: unexpected fail >&2
-+	elif ! cpu_is_online $cpu; then
-+		echo $FUNCNAME $cpu: unexpected offline >&2
-+	fi
-+}
-+
-+online_cpu_expect_fail()
-+{
-+	local cpu=$1
-+
-+	if online_cpu $cpu 2> /dev/null; then
-+		echo $FUNCNAME $cpu: unexpected success >&2
-+	elif ! cpu_is_offline $cpu; then
-+		echo $FUNCNAME $cpu: unexpected online >&2
-+	fi
-+}
-+
-+offline_cpu_expect_success()
-+{
-+	local cpu=$1
-+
-+	if ! offline_cpu $cpu; then
-+		echo $FUNCNAME $cpu: unexpected fail >&2
-+	elif ! cpu_is_offline $cpu; then
-+		echo $FUNCNAME $cpu: unexpected offline >&2
-+	fi
-+}
-+
-+offline_cpu_expect_fail()
-+{
-+	local cpu=$1
-+
-+	if offline_cpu $cpu 2> /dev/null; then
-+		echo $FUNCNAME $cpu: unexpected success >&2
-+	elif ! cpu_is_online $cpu; then
-+		echo $FUNCNAME $cpu: unexpected offline >&2
-+	fi
-+}
-+
-+error=-12
-+priority=0
-+
-+while getopts e:hp: opt; do
-+	case $opt in
-+	e)
-+		error=$OPTARG
++while true; do
++	case "$1" in
++	-p|--probability)
++		probability=$2
++		shift 2
 +		;;
-+	h)
-+		echo "Usage $0 [ -e errno ] [ -p notifier-priority ]"
-+		exit
++	-i|--interval)
++		echo $2 > $FAULTATTR/interval
++		shift 2
 +		;;
-+	p)
-+		priority=$OPTARG
++	-t|--times)
++		times=$2
++		shift 2
++		;;
++	-s|--space)
++		echo $2 > $FAULTATTR/space
++		shift 2
++		;;
++	-v|--verbose)
++		echo $2 > $FAULTATTR/verbose
++		shift 2
++		;;
++	--task-filter)
++		task_filter=$2
++		shift 2
++		;;
++	--stacktrace-depth)
++		echo $2 > $FAULTATTR/stacktrace-depth
++		shift 2
++		;;
++	--require-start)
++		echo $2 > $FAULTATTR/require-start
++		shift 2
++		;;
++	--require-end)
++		echo $2 > $FAULTATTR/require-end
++		shift 2
++		;;
++	--reject-start)
++		echo $2 > $FAULTATTR/reject-start
++		shift 2
++		;;
++	--reject-end)
++		echo $2 > $FAULTATTR/reject-end
++		shift 2
++		;;
++	--oom-kill-allocating-task)
++		oom_kill_allocating_task=$2
++		shift 2
++		;;
++	--ignore-gfp-wait)
++		echo $2 > $FAULTATTR/ignore-gfp-wait
++		shift 2
++		;;
++	--cache-filter)
++		echo $2 > $FAULTATTR/cache_filter
++		shift 2
++		;;
++	--ignore-gfp-highmem)
++		echo $2 > $FAULTATTR/ignore-gfp-highmem
++		shift 2
++		;;
++	--min-order)
++		echo $2 > $FAULTATTR/min-order
++		shift 2
++		;;
++	-h|--help)
++		usage
++		exit 0
++		shift
++		;;
++	--)
++		shift
++		break
 +		;;
 +	esac
 +done
 +
-+if ! [ "$error" -ge -4095 -a "$error" -lt 0 ]; then
-+	echo "error code must be -4095 <= errno < 0" >&2
-+	exit 1
-+fi
++[ -z "$@" ] && exit 0
 +
-+prerequisite
++echo $oom_kill_allocating_task > /proc/sys/vm/oom_kill_allocating_task
++echo $task_filter > $FAULTATTR/task-filter
++echo $probability > $FAULTATTR/probability
++echo $times > $FAULTATTR/times
 +
-+#
-+# Online all hot-pluggable CPUs
-+#
-+for cpu in `hotplaggable_offline_cpus`; do
-+	online_cpu_expect_success $cpu
-+done
++trap "restore_values" SIGINT SIGTERM EXIT
 +
-+#
-+# Offline all hot-pluggable CPUs
-+#
-+for cpu in `hotpluggable_online_cpus`; do
-+	offline_cpu_expect_success $cpu
-+done
-+
-+#
-+# Online all hot-pluggable CPUs again
-+#
-+for cpu in `hotplaggable_offline_cpus`; do
-+	online_cpu_expect_success $cpu
-+done
-+
-+#
-+# Test with cpu notifier error injection
-+#
-+
-+DEBUGFS=`mount -t debugfs | head -1 | awk '{ print $3 }'`
-+NOTIFIER_ERR_INJECT_DIR=$DEBUGFS/notifier-error-inject/cpu
-+
-+prerequisite_extra()
-+{
-+	msg="skip extra tests:"
-+
-+	/sbin/modprobe -q -r cpu-notifier-error-inject
-+	/sbin/modprobe -q cpu-notifier-error-inject priority=$priority
-+
-+	if [ ! -d "$DEBUGFS" ]; then
-+		echo $msg debugfs is not mounted >&2
-+		exit 0
-+	fi
-+
-+	if [ ! -d $NOTIFIER_ERR_INJECT_DIR ]; then
-+		echo $msg cpu-notifier-error-inject module is not available >&2
-+		exit 0
-+	fi
-+}
-+
-+prerequisite_extra
-+
-+#
-+# Offline all hot-pluggable CPUs
-+#
-+echo 0 > $NOTIFIER_ERR_INJECT_DIR/actions/CPU_DOWN_PREPARE/error
-+for cpu in `hotpluggable_online_cpus`; do
-+	offline_cpu_expect_success $cpu
-+done
-+
-+#
-+# Test CPU hot-add error handling (offline => online)
-+#
-+echo $error > $NOTIFIER_ERR_INJECT_DIR/actions/CPU_UP_PREPARE/error
-+for cpu in `hotplaggable_offline_cpus`; do
-+	online_cpu_expect_fail $cpu
-+done
-+
-+#
-+# Online all hot-pluggable CPUs
-+#
-+echo 0 > $NOTIFIER_ERR_INJECT_DIR/actions/CPU_UP_PREPARE/error
-+for cpu in `hotplaggable_offline_cpus`; do
-+	online_cpu_expect_success $cpu
-+done
-+
-+#
-+# Test CPU hot-remove error handling (online => offline)
-+#
-+echo $error > $NOTIFIER_ERR_INJECT_DIR/actions/CPU_DOWN_PREPARE/error
-+for cpu in `hotpluggable_online_cpus`; do
-+	offline_cpu_expect_fail $cpu
-+done
-+
-+echo 0 > $NOTIFIER_ERR_INJECT_DIR/actions/CPU_DOWN_PREPARE/error
-+/sbin/modprobe -q -r cpu-notifier-error-inject
-diff -puN /dev/null tools/testing/selftests/memory-hotplug/Makefile
---- /dev/null
-+++ a/tools/testing/selftests/memory-hotplug/Makefile
-@@ -0,0 +1,6 @@
-+all:
-+
-+run_tests:
-+	./on-off-test.sh
-+
-+clean:
-diff -puN /dev/null tools/testing/selftests/memory-hotplug/on-off-test.sh
---- /dev/null
-+++ a/tools/testing/selftests/memory-hotplug/on-off-test.sh
-@@ -0,0 +1,230 @@
-+#!/bin/bash
-+
-+SYSFS=
-+
-+prerequisite()
-+{
-+	msg="skip all tests:"
-+
-+	if [ $UID != 0 ]; then
-+		echo $msg must be run as root >&2
-+		exit 0
-+	fi
-+
-+	SYSFS=`mount -t sysfs | head -1 | awk '{ print $3 }'`
-+
-+	if [ ! -d "$SYSFS" ]; then
-+		echo $msg sysfs is not mounted >&2
-+		exit 0
-+	fi
-+
-+	if ! ls $SYSFS/devices/system/memory/memory* > /dev/null 2>&1; then
-+		echo $msg memory hotplug is not supported >&2
-+		exit 0
-+	fi
-+}
-+
-+#
-+# list all hot-pluggable memory
-+#
-+hotpluggable_memory()
-+{
-+	local state=${1:-.\*}
-+
-+	for memory in $SYSFS/devices/system/memory/memory*; do
-+		if grep -q 1 $memory/removable &&
-+		   grep -q $state $memory/state; then
-+			echo ${memory##/*/memory}
-+		fi
-+	done
-+}
-+
-+hotplaggable_offline_memory()
-+{
-+	hotpluggable_memory offline
-+}
-+
-+hotpluggable_online_memory()
-+{
-+	hotpluggable_memory online
-+}
-+
-+memory_is_online()
-+{
-+	grep -q online $SYSFS/devices/system/memory/memory$1/state
-+}
-+
-+memory_is_offline()
-+{
-+	grep -q offline $SYSFS/devices/system/memory/memory$1/state
-+}
-+
-+online_memory()
-+{
-+	echo online > $SYSFS/devices/system/memory/memory$1/state
-+}
-+
-+offline_memory()
-+{
-+	echo offline > $SYSFS/devices/system/memory/memory$1/state
-+}
-+
-+online_memory_expect_success()
-+{
-+	local memory=$1
-+
-+	if ! online_memory $memory; then
-+		echo $FUNCNAME $memory: unexpected fail >&2
-+	elif ! memory_is_online $memory; then
-+		echo $FUNCNAME $memory: unexpected offline >&2
-+	fi
-+}
-+
-+online_memory_expect_fail()
-+{
-+	local memory=$1
-+
-+	if online_memory $memory 2> /dev/null; then
-+		echo $FUNCNAME $memory: unexpected success >&2
-+	elif ! memory_is_offline $memory; then
-+		echo $FUNCNAME $memory: unexpected online >&2
-+	fi
-+}
-+
-+offline_memory_expect_success()
-+{
-+	local memory=$1
-+
-+	if ! offline_memory $memory; then
-+		echo $FUNCNAME $memory: unexpected fail >&2
-+	elif ! memory_is_offline $memory; then
-+		echo $FUNCNAME $memory: unexpected offline >&2
-+	fi
-+}
-+
-+offline_memory_expect_fail()
-+{
-+	local memory=$1
-+
-+	if offline_memory $memory 2> /dev/null; then
-+		echo $FUNCNAME $memory: unexpected success >&2
-+	elif ! memory_is_online $memory; then
-+		echo $FUNCNAME $memory: unexpected offline >&2
-+	fi
-+}
-+
-+error=-12
-+priority=0
-+ratio=10
-+
-+while getopts e:hp:r: opt; do
-+	case $opt in
-+	e)
-+		error=$OPTARG
-+		;;
-+	h)
-+		echo "Usage $0 [ -e errno ] [ -p notifier-priority ] [ -r percent-of-memory-to-offline ]"
-+		exit
-+		;;
-+	p)
-+		priority=$OPTARG
-+		;;
-+	r)
-+		ratio=$OPTARG
-+		;;
-+	esac
-+done
-+
-+if ! [ "$error" -ge -4095 -a "$error" -lt 0 ]; then
-+	echo "error code must be -4095 <= errno < 0" >&2
-+	exit 1
-+fi
-+
-+prerequisite
-+
-+#
-+# Online all hot-pluggable memory
-+#
-+for memory in `hotplaggable_offline_memory`; do
-+	online_memory_expect_success $memory
-+done
-+
-+#
-+# Offline $ratio percent of hot-pluggable memory
-+#
-+for memory in `hotpluggable_online_memory`; do
-+	if [ $((RANDOM % 100)) -lt $ratio ]; then
-+		offline_memory_expect_success $memory
-+	fi
-+done
-+
-+#
-+# Online all hot-pluggable memory again
-+#
-+for memory in `hotplaggable_offline_memory`; do
-+	online_memory_expect_success $memory
-+done
-+
-+#
-+# Test with memory notifier error injection
-+#
-+
-+DEBUGFS=`mount -t debugfs | head -1 | awk '{ print $3 }'`
-+NOTIFIER_ERR_INJECT_DIR=$DEBUGFS/notifier-error-inject/memory
-+
-+prerequisite_extra()
-+{
-+	msg="skip extra tests:"
-+
-+	/sbin/modprobe -q -r memory-notifier-error-inject
-+	/sbin/modprobe -q memory-notifier-error-inject priority=$priority
-+
-+	if [ ! -d "$DEBUGFS" ]; then
-+		echo $msg debugfs is not mounted >&2
-+		exit 0
-+	fi
-+
-+	if [ ! -d $NOTIFIER_ERR_INJECT_DIR ]; then
-+		echo $msg memory-notifier-error-inject module is not available >&2
-+		exit 0
-+	fi
-+}
-+
-+prerequisite_extra
-+
-+#
-+# Offline $ratio percent of hot-pluggable memory
-+#
-+echo 0 > $NOTIFIER_ERR_INJECT_DIR/actions/MEM_GOING_OFFLINE/error
-+for memory in `hotpluggable_online_memory`; do
-+	if [ $((RANDOM % 100)) -lt $ratio ]; then
-+		offline_memory_expect_success $memory
-+	fi
-+done
-+
-+#
-+# Test memory hot-add error handling (offline => online)
-+#
-+echo $error > $NOTIFIER_ERR_INJECT_DIR/actions/MEM_GOING_ONLINE/error
-+for memory in `hotplaggable_offline_memory`; do
-+	online_memory_expect_fail $memory
-+done
-+
-+#
-+# Online all hot-pluggable memory
-+#
-+echo 0 > $NOTIFIER_ERR_INJECT_DIR/actions/MEM_GOING_ONLINE/error
-+for memory in `hotplaggable_offline_memory`; do
-+	online_memory_expect_success $memory
-+done
-+
-+#
-+# Test memory hot-remove error handling (online => offline)
-+#
-+echo $error > $NOTIFIER_ERR_INJECT_DIR/actions/MEM_GOING_OFFLINE/error
-+for memory in `hotpluggable_online_memory`; do
-+	offline_memory_expect_fail $memory
-+done
-+
-+echo 0 > $NOTIFIER_ERR_INJECT_DIR/actions/MEM_GOING_OFFLINE/error
-+/sbin/modprobe -q -r memory-notifier-error-inject
++cmd="echo 1 > /proc/self/make-it-fail && exec $@"
++bash -c "$cmd"
 _
-Subject: Subject: fault-injection: add selftests for cpu and memory hotplug
+Subject: Subject: fault-injection: add tool to run command with failslab or fail_page_alloc
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
@@ -594,4 +315,5 @@ pm-pm-notifier-error-injection-module.patch
 memory-memory-notifier-error-injection-module.patch
 powerpc-pseries-reconfig-notifier-error-injection-module.patch
 fault-injection-add-selftests-for-cpu-and-memory-hotplug.patch
+fault-injection-add-tool-to-run-command-with-failslab-or-fail_page_alloc.patch
 
