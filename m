@@ -1,102 +1,289 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] drivers-block-nvmec-stop-breaking-my-i386-build.patch removed from -mm tree
-Date: Tue, 03 Jul 2012 12:59:41 -0700
-Message-ID: <20120703195944.593B7A021F@akpm.mtv.corp.google.com>
+Subject: + fault-injection-notifier-error-injection.patch added to -mm tree
+Date: Tue, 03 Jul 2012 13:42:49 -0700
+Message-ID: <20120703204249.C8459A0148@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:34275 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752642Ab2GCT7q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2012 15:59:46 -0400
-Received: by vcbfl13 with SMTP id fl13so753516vcb.1
-        for <mm-commits@vger.kernel.org>; Tue, 03 Jul 2012 12:59:45 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:36231 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753035Ab2GCUmv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2012 16:42:51 -0400
+Received: by ggeh3 with SMTP id h3so754304gge.1
+        for <mm-commits@vger.kernel.org>; Tue, 03 Jul 2012 13:42:50 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, matthew.r.wilcox@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akinobu.mita@gmail.com, benh@kernel.crashing.org, davej@redhat.com, greg@kroah.com, michael@ellerman.id.au, paulus@samba.org, pavel@ucw.cz, rjw@sisk.pl
 
 
 The patch titled
-     Subject: drivers/block/nvme.c: stop breaking my i386 build
-has been removed from the -mm tree.  Its filename was
-     drivers-block-nvmec-stop-breaking-my-i386-build.patch
+     Subject: fault-injection: notifier error injection
+has been added to the -mm tree.  Its filename is
+     fault-injection-notifier-error-injection.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/block/nvme.c: stop breaking my i386 build
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: fault-injection: notifier error injection
 
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
+This patchset provides kernel modules that can be used to test the error
+handling of notifier call chain failures by injecting artifical errors to
+the following notifier chain callbacks.
+
+ * CPU notifier
+ * PM notifier
+ * memory hotplug notifier
+ * powerpc pSeries reconfig notifier
+
+Example: Inject CPU offline error (-1 == -EPERM)
+
+# cd /sys/kernel/debug/notifier-error-inject/cpu
+# echo -1 > actions/CPU_DOWN_PREPARE/error
+# echo 0 > /sys/devices/system/cpu/cpu1/online
+bash: echo: write error: Operation not permitted
+
+The patchset also adds cpu and memory hotplug tests to
+tools/testing/selftests These tests first do simple online and offline
+test and then do fault injection tests if notifier error injection module
+is available.  
+
+
+This patch:
+
+The notifier error injection provides the ability to inject artifical
+errors to specified notifier chain callbacks.  It is useful to test the
+error handling of notifier call chain failures.
+
+This adds common basic functions to define which type of events can be
+fail and to initialize the debugfs interface to control what error code
+should be returned and which event should be failed.
+
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Greg KH <greg@kroah.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <michael@ellerman.id.au>
+Cc: Dave Jones <davej@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ lib/Kconfig.debug           |   11 +++
+ lib/Makefile                |    1 
+ lib/notifier-error-inject.c |  112 ++++++++++++++++++++++++++++++++++
+ lib/notifier-error-inject.h |   24 +++++++
+ 4 files changed, 148 insertions(+)
 
-diff -puN drivers/block/Kconfig~drivers-block-nvmec-stop-breaking-my-i386-build drivers/block/Kconfig
---- a/drivers/block/Kconfig~drivers-block-nvmec-stop-breaking-my-i386-build
-+++ a/drivers/block/Kconfig
-@@ -320,6 +320,7 @@ config BLK_DEV_NBD
- config BLK_DEV_NVME
- 	tristate "NVM Express block device"
- 	depends on PCI
-+	depends on X86_64
- 	---help---
- 	  The NVM Express driver is for solid state drives directly
- 	  connected to the PCI or PCI Express bus.  If you know you
+diff -puN lib/Kconfig.debug~fault-injection-notifier-error-injection lib/Kconfig.debug
+--- a/lib/Kconfig.debug~fault-injection-notifier-error-injection
++++ a/lib/Kconfig.debug
+@@ -1084,6 +1084,17 @@ config LKDTM
+ 	Documentation on how to use the module can be found in
+ 	Documentation/fault-injection/provoke-crashes.txt
+ 
++config NOTIFIER_ERROR_INJECTION
++	tristate "Notifier error injection"
++	depends on DEBUG_KERNEL
++	select DEBUG_FS
++	help
++	  This option provides the ability to inject artifical errors to
++	  specified notifier chain callbacks. It is useful to test the error
++	  handling of notifier call chain failures.
++
++	  Say N if unsure.
++
+ config CPU_NOTIFIER_ERROR_INJECT
+ 	tristate "CPU notifier error injection module"
+ 	depends on HOTPLUG_CPU && DEBUG_KERNEL
+diff -puN lib/Makefile~fault-injection-notifier-error-injection lib/Makefile
+--- a/lib/Makefile~fault-injection-notifier-error-injection
++++ a/lib/Makefile
+@@ -90,6 +90,7 @@ obj-$(CONFIG_AUDIT_GENERIC) += audit.o
+ obj-$(CONFIG_SWIOTLB) += swiotlb.o
+ obj-$(CONFIG_IOMMU_HELPER) += iommu-helper.o
+ obj-$(CONFIG_FAULT_INJECTION) += fault-inject.o
++obj-$(CONFIG_NOTIFIER_ERROR_INJECTION) += notifier-error-inject.o
+ obj-$(CONFIG_CPU_NOTIFIER_ERROR_INJECT) += cpu-notifier-error-inject.o
+ 
+ lib-$(CONFIG_GENERIC_BUG) += bug.o
+diff -puN /dev/null lib/notifier-error-inject.c
+--- /dev/null
++++ a/lib/notifier-error-inject.c
+@@ -0,0 +1,112 @@
++#include <linux/module.h>
++
++#include "notifier-error-inject.h"
++
++static int debugfs_errno_set(void *data, u64 val)
++{
++	*(int *)data = clamp_t(int, val, -MAX_ERRNO, 0);
++	return 0;
++}
++
++static int debugfs_errno_get(void *data, u64 *val)
++{
++	*val = *(int *)data;
++	return 0;
++}
++
++DEFINE_SIMPLE_ATTRIBUTE(fops_errno, debugfs_errno_get, debugfs_errno_set,
++			"%lld\n");
++
++static struct dentry *debugfs_create_errno(const char *name, mode_t mode,
++				struct dentry *parent, int *value)
++{
++	return debugfs_create_file(name, mode, parent, value, &fops_errno);
++}
++
++static int notifier_err_inject_callback(struct notifier_block *nb,
++				unsigned long val, void *p)
++{
++	int err = 0;
++	struct notifier_err_inject *err_inject =
++		container_of(nb, struct notifier_err_inject, nb);
++	struct notifier_err_inject_action *action;
++
++	for (action = err_inject->actions; action->name; action++) {
++		if (action->val == val) {
++			err = action->error;
++			break;
++		}
++	}
++	if (err)
++		pr_info("Injecting error (%d) to %s\n", err, action->name);
++
++	return notifier_from_errno(err);
++}
++
++struct dentry *notifier_err_inject_dir;
++EXPORT_SYMBOL_GPL(notifier_err_inject_dir);
++
++struct dentry *notifier_err_inject_init(const char *name, struct dentry *parent,
++			struct notifier_err_inject *err_inject, int priority)
++{
++	struct notifier_err_inject_action *action;
++	mode_t mode = S_IFREG | S_IRUSR | S_IWUSR;
++	struct dentry *dir;
++	struct dentry *actions_dir;
++
++	err_inject->nb.notifier_call = notifier_err_inject_callback;
++	err_inject->nb.priority = priority;
++
++	dir = debugfs_create_dir(name, parent);
++	if (!dir)
++		return ERR_PTR(-ENOMEM);
++
++	actions_dir = debugfs_create_dir("actions", dir);
++	if (!actions_dir)
++		goto fail;
++
++	for (action = err_inject->actions; action->name; action++) {
++		struct dentry *action_dir;
++
++		action_dir = debugfs_create_dir(action->name, actions_dir);
++		if (!action_dir)
++			goto fail;
++
++		/*
++		 * Create debugfs r/w file containing action->error. If
++		 * notifier call chain is called with action->val, it will
++		 * fail with the error code
++		 */
++		if (!debugfs_create_errno("error", mode, action_dir,
++					&action->error))
++			goto fail;
++	}
++	return dir;
++fail:
++	debugfs_remove_recursive(dir);
++	return ERR_PTR(-ENOMEM);
++}
++EXPORT_SYMBOL_GPL(notifier_err_inject_init);
++
++static int __init err_inject_init(void)
++{
++	notifier_err_inject_dir =
++		debugfs_create_dir("notifier-error-inject", NULL);
++
++	if (!notifier_err_inject_dir)
++		return -ENOMEM;
++
++	return 0;
++}
++
++static void __exit err_inject_exit(void)
++{
++	debugfs_remove_recursive(notifier_err_inject_dir);
++}
++
++module_init(err_inject_init);
++module_exit(err_inject_exit);
++
++MODULE_DESCRIPTION("Notifier error injection module");
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Akinobu Mita <akinobu.mita@gmail.com>");
+diff -puN /dev/null lib/notifier-error-inject.h
+--- /dev/null
++++ a/lib/notifier-error-inject.h
+@@ -0,0 +1,24 @@
++#include <linux/atomic.h>
++#include <linux/debugfs.h>
++#include <linux/notifier.h>
++
++struct notifier_err_inject_action {
++	unsigned long val;
++	int error;
++	const char *name;
++};
++
++#define NOTIFIER_ERR_INJECT_ACTION(action)	\
++	.name = #action, .val = (action),
++
++struct notifier_err_inject {
++	struct notifier_block nb;
++	struct notifier_err_inject_action actions[];
++	/* The last slot must be terminated with zero sentinel */
++};
++
++extern struct dentry *notifier_err_inject_dir;
++
++extern struct dentry *notifier_err_inject_init(const char *name,
++		struct dentry *parent, struct notifier_err_inject *err_inject,
++		int priority);
 _
+Subject: Subject: fault-injection: notifier error injection
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix.patch
-drivers-gpio-devresc-export-devm_gpio_request_one-to-modules.patch
-rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled-checkpatch-fixes.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
-include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures.patch
-include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix.patch
-include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix.patch
-include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix.patch
-include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix-fix.patch
-hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
-coredump-warn-about-unsafe-suid_dumpable-core_pattern-combo.patch
-mm.patch
-mm-make-vb_alloc-more-foolproof-fix.patch
-mm-hugetlb-add-new-hugetlb-cgroup-fix.patch
-mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch
-hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
-hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
-mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
-memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
-memcg-prevent-oom-with-too-many-dirty-pages.patch
-mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
-memcg-rename-config-variables.patch
-memcg-rename-config-variables-fix-fix.patch
-mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes.patch
-tmpfs-implement-numa-node-interleaving-fix.patch
-isolate_freepages-check-that-high_pfn-is-aligned-as-expected.patch
-avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
-kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
-printk-add-generic-functions-to-find-kern_level-headers-fix.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
-lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch
+ocfs2-use-find_last_bit.patch
+ocfs2-use-bitmap_weight.patch
+string-introduce-memweight.patch
 string-introduce-memweight-fix.patch
-drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes.patch
-drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded.patch
-hfsplus-get-rid-of-write_super-checkpatch-fixes.patch
-kmod-avoid-deadlock-from-recursive-kmod-call.patch
-fork-use-vma_pages-to-simplify-the-code-fix.patch
-fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
-include-linux-aioh-cpp-c-conversions.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+string-introduce-memweight-fix-build-error-caused-by-memweight-introduction.patch
+qnx4fs-use-memweight.patch
+dm-use-memweight.patch
+affs-use-memweight.patch
+video-uvc-use-memweight.patch
+ocfs2-use-memweight.patch
+ext2-use-memweight.patch
+ext3-use-memweight.patch
+ext4-use-memweight.patch
+fault-injection-notifier-error-injection.patch
+cpu-rewrite-cpu-notifier-error-inject-module.patch
+pm-pm-notifier-error-injection-module.patch
+memory-memory-notifier-error-injection-module.patch
+powerpc-pseries-reconfig-notifier-error-injection-module.patch
+fault-injection-add-selftests-for-cpu-and-memory-hotplug.patch
 
