@@ -1,176 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] cpuidle-move-field-disable-from-per-driver-to-per-cpu.patch removed from -mm tree
-Date: Mon, 02 Jul 2012 14:34:52 -0700
-Message-ID: <20120702213453.0AAA5A021F@akpm.mtv.corp.google.com>
+Subject: [obsolete] drivers-block-nvmec-stop-breaking-my-i386-build.patch removed from -mm tree
+Date: Tue, 03 Jul 2012 12:59:41 -0700
+Message-ID: <20120703195944.593B7A021F@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:43785 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755058Ab2GBVey (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Jul 2012 17:34:54 -0400
-Received: by yenl3 with SMTP id l3so638916yen.1
-        for <mm-commits@vger.kernel.org>; Mon, 02 Jul 2012 14:34:53 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:34275 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752642Ab2GCT7q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2012 15:59:46 -0400
+Received: by vcbfl13 with SMTP id fl13so753516vcb.1
+        for <mm-commits@vger.kernel.org>; Tue, 03 Jul 2012 12:59:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shuox.liu@intel.com, aschorr@telemetry-investments.com, len.brown@intel.com, lenb@kernel.org, rjw@sisk.pl, yanmin_zhang@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, matthew.r.wilcox@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cpuidle: move field disable from per-driver to per-cpu
+     Subject: drivers/block/nvme.c: stop breaking my i386 build
 has been removed from the -mm tree.  Its filename was
-     cpuidle-move-field-disable-from-per-driver-to-per-cpu.patch
+     drivers-block-nvmec-stop-breaking-my-i386-build.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: ShuoX Liu <shuox.liu@intel.com>
-Subject: cpuidle: move field disable from per-driver to per-cpu
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/block/nvme.c: stop breaking my i386 build
 
-Andrew J.Schorr raises a question.  When he changes the disable setting on
-a single CPU, it affects all the other CPUs.  Basically, currently, the
-disable field is per-driver instead of per-cpu.  All the C states of the
-same driver are shared by all CPU in the same machine.
-
-The patch changes the `disable' field to per-cpu, so we could set this
-separately for each cpu.
-
-Signed-off-by: ShuoX Liu <shuox.liu@intel.com>
-Reported-by: Andrew J.Schorr <aschorr@telemetry-investments.com>
-Reviewed-by: Yanmin Zhang <yanmin_zhang@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Brown, Len" <len.brown@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpuidle/cpuidle.c        |    1 -
- drivers/cpuidle/governors/menu.c |    5 +++--
- drivers/cpuidle/sysfs.c          |   21 ++++++++++++---------
- include/linux/cpuidle.h          |    2 +-
- 4 files changed, 16 insertions(+), 13 deletions(-)
+ drivers/block/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/cpuidle/cpuidle.c~cpuidle-move-field-disable-from-per-driver-to-per-cpu drivers/cpuidle/cpuidle.c
---- a/drivers/cpuidle/cpuidle.c~cpuidle-move-field-disable-from-per-driver-to-per-cpu
-+++ a/drivers/cpuidle/cpuidle.c
-@@ -276,7 +276,6 @@ static void poll_idle_init(struct cpuidl
- 	state->power_usage = -1;
- 	state->flags = 0;
- 	state->enter = poll_idle;
--	state->disable = 0;
- }
- #else
- static void poll_idle_init(struct cpuidle_driver *drv) {}
-diff -puN drivers/cpuidle/governors/menu.c~cpuidle-move-field-disable-from-per-driver-to-per-cpu drivers/cpuidle/governors/menu.c
---- a/drivers/cpuidle/governors/menu.c~cpuidle-move-field-disable-from-per-driver-to-per-cpu
-+++ a/drivers/cpuidle/governors/menu.c
-@@ -281,7 +281,7 @@ static int menu_select(struct cpuidle_dr
- 	 * unless the timer is happening really really soon.
- 	 */
- 	if (data->expected_us > 5 &&
--		drv->states[CPUIDLE_DRIVER_STATE_START].disable == 0)
-+		dev->states_usage[CPUIDLE_DRIVER_STATE_START].disable == 0)
- 		data->last_state_idx = CPUIDLE_DRIVER_STATE_START;
- 
- 	/*
-@@ -290,8 +290,9 @@ static int menu_select(struct cpuidle_dr
- 	 */
- 	for (i = CPUIDLE_DRIVER_STATE_START; i < drv->state_count; i++) {
- 		struct cpuidle_state *s = &drv->states[i];
-+		struct cpuidle_state_usage *su = &dev->states_usage[i];
- 
--		if (s->disable)
-+		if (su->disable)
- 			continue;
- 		if (s->target_residency > data->predicted_us)
- 			continue;
-diff -puN drivers/cpuidle/sysfs.c~cpuidle-move-field-disable-from-per-driver-to-per-cpu drivers/cpuidle/sysfs.c
---- a/drivers/cpuidle/sysfs.c~cpuidle-move-field-disable-from-per-driver-to-per-cpu
-+++ a/drivers/cpuidle/sysfs.c
-@@ -217,7 +217,8 @@ struct cpuidle_state_attr {
- 	struct attribute attr;
- 	ssize_t (*show)(struct cpuidle_state *, \
- 					struct cpuidle_state_usage *, char *);
--	ssize_t (*store)(struct cpuidle_state *, const char *, size_t);
-+	ssize_t (*store)(struct cpuidle_state *, \
-+			struct cpuidle_state_usage *, const char *, size_t);
- };
- 
- #define define_one_state_ro(_name, show) \
-@@ -233,21 +234,22 @@ static ssize_t show_state_##_name(struct
- 	return sprintf(buf, "%u\n", state->_name);\
- }
- 
--#define define_store_state_function(_name) \
-+#define define_store_state_ull_function(_name) \
- static ssize_t store_state_##_name(struct cpuidle_state *state, \
-+		struct cpuidle_state_usage *state_usage, \
- 		const char *buf, size_t size) \
- { \
--	long value; \
-+	unsigned long long value; \
- 	int err; \
- 	if (!capable(CAP_SYS_ADMIN)) \
- 		return -EPERM; \
--	err = kstrtol(buf, 0, &value); \
-+	err = kstrtoull(buf, 0, &value); \
- 	if (err) \
- 		return err; \
- 	if (value) \
--		state->disable = 1; \
-+		state_usage->_name = 1; \
- 	else \
--		state->disable = 0; \
-+		state_usage->_name = 0; \
- 	return size; \
- }
- 
-@@ -273,8 +275,8 @@ define_show_state_ull_function(usage)
- define_show_state_ull_function(time)
- define_show_state_str_function(name)
- define_show_state_str_function(desc)
--define_show_state_function(disable)
--define_store_state_function(disable)
-+define_show_state_ull_function(disable)
-+define_store_state_ull_function(disable)
- 
- define_one_state_ro(name, show_state_name);
- define_one_state_ro(desc, show_state_desc);
-@@ -318,10 +320,11 @@ static ssize_t cpuidle_state_store(struc
- {
- 	int ret = -EIO;
- 	struct cpuidle_state *state = kobj_to_state(kobj);
-+	struct cpuidle_state_usage *state_usage = kobj_to_state_usage(kobj);
- 	struct cpuidle_state_attr *cattr = attr_to_stateattr(attr);
- 
- 	if (cattr->store)
--		ret = cattr->store(state, buf, size);
-+		ret = cattr->store(state, state_usage, buf, size);
- 
- 	return ret;
- }
-diff -puN include/linux/cpuidle.h~cpuidle-move-field-disable-from-per-driver-to-per-cpu include/linux/cpuidle.h
---- a/include/linux/cpuidle.h~cpuidle-move-field-disable-from-per-driver-to-per-cpu
-+++ a/include/linux/cpuidle.h
-@@ -34,6 +34,7 @@ struct cpuidle_driver;
- struct cpuidle_state_usage {
- 	void		*driver_data;
- 
-+	unsigned long long	disable;
- 	unsigned long long	usage;
- 	unsigned long long	time; /* in US */
- };
-@@ -46,7 +47,6 @@ struct cpuidle_state {
- 	unsigned int	exit_latency; /* in US */
- 	int		power_usage; /* in mW */
- 	unsigned int	target_residency; /* in US */
--	unsigned int    disable;
- 
- 	int (*enter)	(struct cpuidle_device *dev,
- 			struct cpuidle_driver *drv,
+diff -puN drivers/block/Kconfig~drivers-block-nvmec-stop-breaking-my-i386-build drivers/block/Kconfig
+--- a/drivers/block/Kconfig~drivers-block-nvmec-stop-breaking-my-i386-build
++++ a/drivers/block/Kconfig
+@@ -320,6 +320,7 @@ config BLK_DEV_NBD
+ config BLK_DEV_NVME
+ 	tristate "NVM Express block device"
+ 	depends on PCI
++	depends on X86_64
+ 	---help---
+ 	  The NVM Express driver is for solid state drives directly
+ 	  connected to the PCI or PCI Express bus.  If you know you
 _
 
-Patches currently in -mm which might be from shuox.liu@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix.patch
+drivers-gpio-devresc-export-devm_gpio_request_one-to-modules.patch
+rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled-checkpatch-fixes.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
+include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures.patch
+include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix.patch
+include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix.patch
+include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix.patch
+include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix-fix.patch
+hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
+coredump-warn-about-unsafe-suid_dumpable-core_pattern-combo.patch
+mm.patch
+mm-make-vb_alloc-more-foolproof-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
+mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
+memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
+memcg-prevent-oom-with-too-many-dirty-pages.patch
+mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
+memcg-rename-config-variables.patch
+memcg-rename-config-variables-fix-fix.patch
+mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes.patch
+tmpfs-implement-numa-node-interleaving-fix.patch
+isolate_freepages-check-that-high_pfn-is-aligned-as-expected.patch
+avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
+kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
+printk-add-generic-functions-to-find-kern_level-headers-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
+lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch
+string-introduce-memweight-fix.patch
+drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes.patch
+drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded.patch
+hfsplus-get-rid-of-write_super-checkpatch-fixes.patch
+kmod-avoid-deadlock-from-recursive-kmod-call.patch
+fork-use-vma_pages-to-simplify-the-code-fix.patch
+fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
+include-linux-aioh-cpp-c-conversions.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
