@@ -1,133 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: + mm-setup-pageblock_order-before-its-used-by-sparsemem.patch added to -mm tree
-Date: Tue, 03 Jul 2012 14:07:23 -0700
-Message-ID: <20120703210723.CFFB4A0158@akpm.mtv.corp.google.com>
+Subject: [to-be-updated] fs-add-link-restriction-audit-reporting.patch removed from -mm tree
+Date: Tue, 03 Jul 2012 14:08:56 -0700
+Message-ID: <20120703210856.C5F56A0244@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:65391 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752520Ab2GCVH0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2012 17:07:26 -0400
-Received: by eaao13 with SMTP id o13so419327eaa.1
-        for <mm-commits@vger.kernel.org>; Tue, 03 Jul 2012 14:07:25 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:38106 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757266Ab2GCVI6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Jul 2012 17:08:58 -0400
+Received: by ghbz15 with SMTP id z15so760329ghb.1
+        for <mm-commits@vger.kernel.org>; Tue, 03 Jul 2012 14:08:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: qiuxishi@huawei.com, benh@kernel.crashing.org, chenkeping@huawei.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, liuj97@gmail.com, rientjes@google.com, stable@vger.kernel.org, tony.luck@intel.com, yinghai@kernel.org
+To: keescook@chromium.org, eparis@redhat.com, mingo@elte.hu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: setup pageblock_order before it's used by sparsemem
-has been added to the -mm tree.  Its filename is
-     mm-setup-pageblock_order-before-its-used-by-sparsemem.patch
+     Subject: fs: add link restriction audit reporting
+has been removed from the -mm tree.  Its filename was
+     fs-add-link-restriction-audit-reporting.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because an updated version will be merged
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Xishi Qiu <qiuxishi@huawei.com>
-Subject: mm: setup pageblock_order before it's used by sparsemem
+From: Kees Cook <keescook@chromium.org>
+Subject: fs: add link restriction audit reporting
 
-On architectures with CONFIG_HUGETLB_PAGE_SIZE_VARIABLE set, such as
-Itanium, pageblock_order is a variable with default value of 0.  It's set
-to the right value by set_pageblock_order() in function
-free_area_init_core().
+Add audit messages for unexpected link restriction violations so that
+system owners will have some sort of potentially actionable information
+about misbehaving processes.
 
-But pageblock_order may be used by sparse_init() before free_area_init_core()
-is called along path:
-sparse_init()
-    ->sparse_early_usemaps_alloc_node()
-	->usemap_size()
-	    ->SECTION_BLOCKFLAGS_BITS
-		->((1UL << (PFN_SECTION_SHIFT - pageblock_order)) *
-NR_PAGEBLOCK_BITS)
-
-The uninitialized pageblock_size will cause memory wasting because
-usemap_size() returns a much bigger value then it's really needed.
-
-For example, on an Itanium platform,
-sparse_init() pageblock_order=0 usemap_size=24576
-free_area_init_core() before pageblock_order=0, usemap_size=24576
-free_area_init_core() after pageblock_order=12, usemap_size=8
-
-That means 24K memory has been wasted for each section, so fix it by calling
-set_pageblock_order() from sparse_init().
-
-Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
-Signed-off-by: Jiang Liu <liuj97@gmail.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Keping Chen <chenkeping@huawei.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Eric Paris <eparis@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h   |    2 ++
- mm/page_alloc.c |    4 ++--
- mm/sparse.c     |    3 +++
- 3 files changed, 7 insertions(+), 2 deletions(-)
+ fs/namei.c            |    3 +++
+ include/linux/audit.h |    4 ++++
+ kernel/audit.c        |   21 +++++++++++++++++++++
+ 3 files changed, 28 insertions(+)
 
-diff -puN mm/internal.h~mm-setup-pageblock_order-before-its-used-by-sparsemem mm/internal.h
---- a/mm/internal.h~mm-setup-pageblock_order-before-its-used-by-sparsemem
-+++ a/mm/internal.h
-@@ -349,3 +349,5 @@ extern u32 hwpoison_filter_enable;
- extern unsigned long vm_mmap_pgoff(struct file *, unsigned long,
-         unsigned long, unsigned long,
-         unsigned long, unsigned long);
-+
-+extern void set_pageblock_order(void);
-diff -puN mm/page_alloc.c~mm-setup-pageblock_order-before-its-used-by-sparsemem mm/page_alloc.c
---- a/mm/page_alloc.c~mm-setup-pageblock_order-before-its-used-by-sparsemem
-+++ a/mm/page_alloc.c
-@@ -4303,7 +4303,7 @@ static inline void setup_usemap(struct p
- #ifdef CONFIG_HUGETLB_PAGE_SIZE_VARIABLE
+diff -puN fs/namei.c~fs-add-link-restriction-audit-reporting fs/namei.c
+--- a/fs/namei.c~fs-add-link-restriction-audit-reporting
++++ a/fs/namei.c
+@@ -657,6 +657,8 @@ static inline int may_follow_link(struct
+ 	}
+ 	spin_unlock(&dentry->d_lock);
  
- /* Initialise the number of pages represented by NR_PAGEBLOCK_BITS */
--static inline void __init set_pageblock_order(void)
-+void __init set_pageblock_order(void)
- {
- 	unsigned int order;
- 
-@@ -4331,7 +4331,7 @@ static inline void __init set_pageblock_
-  * include/linux/pageblock-flags.h for the values of pageblock_order based on
-  * the kernel config
-  */
--static inline void set_pageblock_order(void)
-+void __init set_pageblock_order(void)
- {
++	if (error)
++		audit_log_link_denied("follow_link", link);
+ 	return error;
  }
  
-diff -puN mm/sparse.c~mm-setup-pageblock_order-before-its-used-by-sparsemem mm/sparse.c
---- a/mm/sparse.c~mm-setup-pageblock_order-before-its-used-by-sparsemem
-+++ a/mm/sparse.c
-@@ -495,6 +495,9 @@ void __init sparse_init(void)
- 	struct page **map_map;
- #endif
+@@ -725,6 +727,7 @@ static int may_linkat(struct path *link)
+ 	    capable(CAP_FOWNER))
+ 		return 0;
  
-+	/* Setup pageblock_order for HUGETLB_PAGE_SIZE_VARIABLE */
-+	set_pageblock_order();
++	audit_log_link_denied("linkat", link);
+ 	return -EPERM;
+ }
+ #else
+diff -puN include/linux/audit.h~fs-add-link-restriction-audit-reporting include/linux/audit.h
+--- a/include/linux/audit.h~fs-add-link-restriction-audit-reporting
++++ a/include/linux/audit.h
+@@ -130,6 +130,7 @@
+ #define AUDIT_LAST_KERN_ANOM_MSG    1799
+ #define AUDIT_ANOM_PROMISCUOUS      1700 /* Device changed promiscuous mode */
+ #define AUDIT_ANOM_ABEND            1701 /* Process ended abnormally */
++#define AUDIT_ANOM_LINK		    1702 /* Suspicious use of file links */
+ #define AUDIT_INTEGRITY_DATA	    1800 /* Data integrity verification */
+ #define AUDIT_INTEGRITY_METADATA    1801 /* Metadata integrity verification */
+ #define AUDIT_INTEGRITY_STATUS	    1802 /* Integrity enable status */
+@@ -687,6 +688,8 @@ extern void		    audit_log_d_path(struct
+ 					     const struct path *path);
+ extern void		    audit_log_key(struct audit_buffer *ab,
+ 					  char *key);
++extern void		    audit_log_link_denied(const char *operation,
++						  struct path *link);
+ extern void		    audit_log_lost(const char *message);
+ #ifdef CONFIG_SECURITY
+ extern void 		    audit_log_secctx(struct audit_buffer *ab, u32 secid);
+@@ -716,6 +719,7 @@ extern int audit_enabled;
+ #define audit_log_untrustedstring(a,s) do { ; } while (0)
+ #define audit_log_d_path(b, p, d) do { ; } while (0)
+ #define audit_log_key(b, k) do { ; } while (0)
++#define audit_log_link_denied(o, l) do { ; } while (0)
+ #define audit_log_secctx(b,s) do { ; } while (0)
+ #define audit_enabled 0
+ #endif
+diff -puN kernel/audit.c~fs-add-link-restriction-audit-reporting kernel/audit.c
+--- a/kernel/audit.c~fs-add-link-restriction-audit-reporting
++++ a/kernel/audit.c
+@@ -1453,6 +1453,27 @@ void audit_log_key(struct audit_buffer *
+ }
+ 
+ /**
++ * audit_log_link_denied - report a link restriction denial
++ * @operation: specific link opreation
++ * @link: the path that triggered the restriction
++ */
++void audit_log_link_denied(const char *operation, struct path *link)
++{
++	struct audit_buffer *ab;
 +
- 	/*
- 	 * map is using big page (aka 2M in x86 64 bit)
- 	 * usemap is less one page (aka 24 bytes)
++	ab = audit_log_start(current->audit_context, GFP_KERNEL,
++			     AUDIT_ANOM_LINK);
++	audit_log_format(ab, "op=%s action=denied", operation);
++	audit_log_format(ab, " pid=%d comm=", current->pid);
++	audit_log_untrustedstring(ab, current->comm);
++	audit_log_d_path(ab, " path=", link);
++	audit_log_format(ab, " dev=");
++	audit_log_untrustedstring(ab, link->dentry->d_inode->i_sb->s_id);
++	audit_log_format(ab, " ino=%lu", link->dentry->d_inode->i_ino);
++	audit_log_end(ab);
++}
++
++/**
+  * audit_log_end - end one audit record
+  * @ab: the audit_buffer
+  *
 _
-Subject: Subject: mm: setup pageblock_order before it's used by sparsemem
 
-Patches currently in -mm which might be from qiuxishi@huawei.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer.patch
-memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix.patch
-mm-setup-pageblock_order-before-its-used-by-sparsemem.patch
+origin.patch
+linux-next.patch
+c-r-prctl-less-paranoid-prctl_set_mm_exe_file.patch
+prctl-remove-redunant-assignment-of-error-to-zero.patch
+fs-make-dumpable=2-require-fully-qualified-path.patch
+coredump-warn-about-unsafe-suid_dumpable-core_pattern-combo.patch
 
