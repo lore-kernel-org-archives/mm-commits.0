@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + tmpfs-revert-seek_data-and-seek_hole.patch added to -mm tree
-Date: Mon, 09 Jul 2012 16:37:32 -0700
-Message-ID: <20120709233733.BDBDF20004E@hpza10.eem.corp.google.com>
+Subject: + shmem-cleanup-shmem_add_to_page_cache.patch added to -mm tree
+Date: Mon, 09 Jul 2012 16:37:40 -0700
+Message-ID: <20120709233741.920755C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:45004 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752051Ab2GIXhh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2012 19:37:37 -0400
-Received: by weyr1 with SMTP id r1so35603wey.1
-        for <mm-commits@vger.kernel.org>; Mon, 09 Jul 2012 16:37:35 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:42848 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754644Ab2GIXhn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2012 19:37:43 -0400
+Received: by eeit10 with SMTP id t10so725899eei.1
+        for <mm-commits@vger.kernel.org>; Mon, 09 Jul 2012 16:37:42 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, adilger@dilger.ca, andi@firstfloor.org, chris.mason@fusionio.com, david@fromorbit.com, hch@infradead.org, jeff.liu@oracle.com, josef@redhat.com, marco.stornelli@gmail.com
+Cc: hughd@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
 
 
 The patch titled
-     Subject: tmpfs: revert SEEK_DATA and SEEK_HOLE
+     Subject: shmem: cleanup shmem_add_to_page_cache
 has been added to the -mm tree.  Its filename is
-     tmpfs-revert-seek_data-and-seek_hole.patch
+     shmem-cleanup-shmem_add_to_page_cache.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,148 +34,112 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: tmpfs: revert SEEK_DATA and SEEK_HOLE
+Subject: shmem: cleanup shmem_add_to_page_cache
 
-Revert 4fb5ef089b28 ("tmpfs: support SEEK_DATA and SEEK_HOLE").  I believe
-it's correct, and it's been nice to have from rc1 to rc6; but as the
-original commit said:
-
-I don't know who actually uses SEEK_DATA or SEEK_HOLE, and whether it
-would be of any use to them on tmpfs.  This code adds 92 lines and 752
-bytes on x86_64 - is that bloat or worthwhile?
-
-Nobody asked for it, so I conclude that it's bloat: let's revert tmpfs to
-the dumb generic support for v3.5.  We can always reinstate it later if
-useful, and anyone needing it in a hurry can just get it out of git.
+shmem_add_to_page_cache() has three callsites, but only one of them wants
+the radix_tree_preload() (an exceptional entry guarantees that the radix
+tree node is present in the other cases), and only that site can achieve
+mem_cgroup_uncharge_cache_page() (PageSwapCache makes it a no-op in the
+other cases).  We did it this way originally to reflect
+add_to_page_cache_locked(); but it's confusing now, so move the radix_tree
+preloading and mem_cgroup uncharging to that one caller.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Josef Bacik <josef@redhat.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Andreas Dilger <adilger@dilger.ca>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Marco Stornelli <marco.stornelli@gmail.com>
-Cc: Jeff liu <jeff.liu@oracle.com>
-Cc: Chris Mason <chris.mason@fusionio.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   94 ---------------------------------------------------
- 1 file changed, 1 insertion(+), 93 deletions(-)
+ mm/shmem.c |   58 ++++++++++++++++++++++++---------------------------
+ 1 file changed, 28 insertions(+), 30 deletions(-)
 
-diff -puN mm/shmem.c~tmpfs-revert-seek_data-and-seek_hole mm/shmem.c
---- a/mm/shmem.c~tmpfs-revert-seek_data-and-seek_hole
+diff -puN mm/shmem.c~shmem-cleanup-shmem_add_to_page_cache mm/shmem.c
+--- a/mm/shmem.c~shmem-cleanup-shmem_add_to_page_cache
 +++ a/mm/shmem.c
-@@ -1692,98 +1692,6 @@ static ssize_t shmem_file_splice_read(st
+@@ -288,40 +288,31 @@ static int shmem_add_to_page_cache(struc
+ 				   struct address_space *mapping,
+ 				   pgoff_t index, gfp_t gfp, void *expected)
+ {
+-	int error = 0;
++	int error;
+ 
+ 	VM_BUG_ON(!PageLocked(page));
+ 	VM_BUG_ON(!PageSwapBacked(page));
+ 
++	page_cache_get(page);
++	page->mapping = mapping;
++	page->index = index;
++
++	spin_lock_irq(&mapping->tree_lock);
+ 	if (!expected)
+-		error = radix_tree_preload(gfp & GFP_RECLAIM_MASK);
++		error = radix_tree_insert(&mapping->page_tree, index, page);
++	else
++		error = shmem_radix_tree_replace(mapping, index, expected,
++								 page);
+ 	if (!error) {
+-		page_cache_get(page);
+-		page->mapping = mapping;
+-		page->index = index;
+-
+-		spin_lock_irq(&mapping->tree_lock);
+-		if (!expected)
+-			error = radix_tree_insert(&mapping->page_tree,
+-							index, page);
+-		else
+-			error = shmem_radix_tree_replace(mapping, index,
+-							expected, page);
+-		if (!error) {
+-			mapping->nrpages++;
+-			__inc_zone_page_state(page, NR_FILE_PAGES);
+-			__inc_zone_page_state(page, NR_SHMEM);
+-			spin_unlock_irq(&mapping->tree_lock);
+-		} else {
+-			page->mapping = NULL;
+-			spin_unlock_irq(&mapping->tree_lock);
+-			page_cache_release(page);
+-		}
+-		if (!expected)
+-			radix_tree_preload_end();
++		mapping->nrpages++;
++		__inc_zone_page_state(page, NR_FILE_PAGES);
++		__inc_zone_page_state(page, NR_SHMEM);
++		spin_unlock_irq(&mapping->tree_lock);
++	} else {
++		page->mapping = NULL;
++		spin_unlock_irq(&mapping->tree_lock);
++		page_cache_release(page);
+ 	}
+-	if (error)
+-		mem_cgroup_uncharge_cache_page(page);
  	return error;
  }
  
--/*
-- * llseek SEEK_DATA or SEEK_HOLE through the radix_tree.
-- */
--static pgoff_t shmem_seek_hole_data(struct address_space *mapping,
--				    pgoff_t index, pgoff_t end, int origin)
--{
--	struct page *page;
--	struct pagevec pvec;
--	pgoff_t indices[PAGEVEC_SIZE];
--	bool done = false;
--	int i;
--
--	pagevec_init(&pvec, 0);
--	pvec.nr = 1;		/* start small: we may be there already */
--	while (!done) {
--		pvec.nr = shmem_find_get_pages_and_swap(mapping, index,
--					pvec.nr, pvec.pages, indices);
--		if (!pvec.nr) {
--			if (origin == SEEK_DATA)
--				index = end;
--			break;
--		}
--		for (i = 0; i < pvec.nr; i++, index++) {
--			if (index < indices[i]) {
--				if (origin == SEEK_HOLE) {
--					done = true;
--					break;
--				}
--				index = indices[i];
--			}
--			page = pvec.pages[i];
--			if (page && !radix_tree_exceptional_entry(page)) {
--				if (!PageUptodate(page))
--					page = NULL;
--			}
--			if (index >= end ||
--			    (page && origin == SEEK_DATA) ||
--			    (!page && origin == SEEK_HOLE)) {
--				done = true;
--				break;
--			}
--		}
--		shmem_deswap_pagevec(&pvec);
--		pagevec_release(&pvec);
--		pvec.nr = PAGEVEC_SIZE;
--		cond_resched();
--	}
--	return index;
--}
--
--static loff_t shmem_file_llseek(struct file *file, loff_t offset, int origin)
--{
--	struct address_space *mapping;
--	struct inode *inode;
--	pgoff_t start, end;
--	loff_t new_offset;
--
--	if (origin != SEEK_DATA && origin != SEEK_HOLE)
--		return generic_file_llseek_size(file, offset, origin,
--							MAX_LFS_FILESIZE);
--	mapping = file->f_mapping;
--	inode = mapping->host;
--	mutex_lock(&inode->i_mutex);
--	/* We're holding i_mutex so we can access i_size directly */
--
--	if (offset < 0)
--		offset = -EINVAL;
--	else if (offset >= inode->i_size)
--		offset = -ENXIO;
--	else {
--		start = offset >> PAGE_CACHE_SHIFT;
--		end = (inode->i_size + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
--		new_offset = shmem_seek_hole_data(mapping, start, end, origin);
--		new_offset <<= PAGE_CACHE_SHIFT;
--		if (new_offset > offset) {
--			if (new_offset < inode->i_size)
--				offset = new_offset;
--			else if (origin == SEEK_DATA)
--				offset = -ENXIO;
--			else
--				offset = inode->i_size;
--		}
--	}
--
--	if (offset >= 0 && offset != file->f_pos) {
--		file->f_pos = offset;
--		file->f_version = 0;
--	}
--	mutex_unlock(&inode->i_mutex);
--	return offset;
--}
--
- static long shmem_fallocate(struct file *file, int mode, loff_t offset,
- 							 loff_t len)
- {
-@@ -2787,7 +2695,7 @@ static const struct address_space_operat
- static const struct file_operations shmem_file_operations = {
- 	.mmap		= shmem_mmap,
- #ifdef CONFIG_TMPFS
--	.llseek		= shmem_file_llseek,
-+	.llseek		= generic_file_llseek,
- 	.read		= do_sync_read,
- 	.write		= do_sync_write,
- 	.aio_read	= shmem_file_aio_read,
+@@ -1202,11 +1193,18 @@ repeat:
+ 		__set_page_locked(page);
+ 		error = mem_cgroup_cache_charge(page, current->mm,
+ 						gfp & GFP_RECLAIM_MASK);
+-		if (!error)
+-			error = shmem_add_to_page_cache(page, mapping, index,
+-						gfp, NULL);
+ 		if (error)
+ 			goto decused;
++		error = radix_tree_preload(gfp & GFP_RECLAIM_MASK);
++		if (!error) {
++			error = shmem_add_to_page_cache(page, mapping, index,
++							gfp, NULL);
++			radix_tree_preload_end();
++		}
++		if (error) {
++			mem_cgroup_uncharge_cache_page(page);
++			goto decused;
++		}
+ 		lru_cache_add_anon(page);
+ 
+ 		spin_lock(&info->lock);
 _
-Subject: Subject: tmpfs: revert SEEK_DATA and SEEK_HOLE
+Subject: Subject: shmem: cleanup shmem_add_to_page_cache
 
 Patches currently in -mm which might be from hughd@google.com are
 
