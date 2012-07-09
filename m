@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-add-check-for-use-of-sizeof-without-parenthesis.patch added to -mm tree
-Date: Mon, 09 Jul 2012 14:52:56 -0700
-Message-ID: <20120709215256.9A4F71E0043@wpzn4.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-twlc-fix-threaded-irq-to-use-irqf_oneshot.patch added to -mm tree
+Date: Mon, 09 Jul 2012 15:16:44 -0700
+Message-ID: <20120709221645.252A620004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:39825 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752472Ab2GIVw5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2012 17:52:57 -0400
-Received: by ggeh3 with SMTP id h3so1246192gge.1
-        for <mm-commits@vger.kernel.org>; Mon, 09 Jul 2012 14:52:57 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:50573 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752444Ab2GIWQt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2012 18:16:49 -0400
+Received: by lbbgp10 with SMTP id gp10so733817lbb.1
+        for <mm-commits@vger.kernel.org>; Mon, 09 Jul 2012 15:16:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, apw@canonical.com
+Cc: khilman@ti.com, a.zummo@towertech.it, tglx@linutronix.de
 
 
 The patch titled
-     Subject: checkpatch: Add acheck for use of sizeof without parenthesis
+     Subject: drivers/rtc/rtc-twl.c: fix threaded IRQ to use IRQF_ONESHOT
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-check-for-use-of-sizeof-without-parenthesis.patch
+     drivers-rtc-rtc-twlc-fix-threaded-irq-to-use-irqf_oneshot.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,56 +33,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: Add acheck for use of sizeof without parenthesis
+From: Kevin Hilman <khilman@ti.com>
+Subject: drivers/rtc/rtc-twl.c: fix threaded IRQ to use IRQF_ONESHOT
 
-Kernel style uses parenthesis around sizeof.
+Requesting a threaded interrupt without a primary handler and without
+IRQF_ONESHOT is dangerous, and after commit 1c6c6952 ("genirq: Reject
+bogus threaded irq requests"), these requests are rejected.  This causes
+->probe() to fail, and the RTC driver not to be availble.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@canonical.com>
+To fix, add IRQF_ONESHOT to the IRQ flags.
+
+Tested on OMAP3730/OveroSTORM and OMAP4430/Panda board using rtcwake to
+wake from system suspend multiple times.
+
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/rtc/rtc-twl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-check-for-use-of-sizeof-without-parenthesis scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-check-for-use-of-sizeof-without-parenthesis
-+++ a/scripts/checkpatch.pl
-@@ -3265,6 +3265,12 @@ sub process {
- 			     "sizeof(& should be avoided\n" . $herecurr);
- 		}
+diff -puN drivers/rtc/rtc-twl.c~drivers-rtc-rtc-twlc-fix-threaded-irq-to-use-irqf_oneshot drivers/rtc/rtc-twl.c
+--- a/drivers/rtc/rtc-twl.c~drivers-rtc-rtc-twlc-fix-threaded-irq-to-use-irqf_oneshot
++++ a/drivers/rtc/rtc-twl.c
+@@ -510,7 +510,7 @@ static int __devinit twl_rtc_probe(struc
+ 	}
  
-+# check for sizeof without parenthesis
-+		if ($line =~ /\bsizeof\s+($Lval)/) {
-+			WARN("SIZEOF_PARENTHESIS",
-+			     "sizeof $1 should be sizeof($1)\n" . $herecurr);
-+		}
-+
- # check for line continuations in quoted strings with odd counts of "
- 		if ($rawline =~ /\\$/ && $rawline =~ tr/"/"/ % 2) {
- 			WARN("LINE_CONTINUATIONS",
+ 	ret = request_threaded_irq(irq, NULL, twl_rtc_interrupt,
+-				   IRQF_TRIGGER_RISING,
++				   IRQF_TRIGGER_RISING | IRQF_ONESHOT,
+ 				   dev_name(&rtc->dev), rtc);
+ 	if (ret < 0) {
+ 		dev_err(&pdev->dev, "IRQ is not free.\n");
 _
-Subject: Subject: checkpatch: Add acheck for use of sizeof without parenthesis
+Subject: Subject: drivers/rtc/rtc-twl.c: fix threaded IRQ to use IRQF_ONESHOT
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from khilman@ti.com are
 
 linux-next.patch
-printk-add-generic-functions-to-find-kern_level-headers.patch
-printk-add-generic-functions-to-find-kern_level-headers-fix.patch
-printk-add-kern_levelsh-to-make-kern_level-available-for-asm-use.patch
-arch-remove-direct-definitions-of-kern_level-uses.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
-sound-use-printk_get_level-and-printk_skip_level.patch
-printk-convert-the-format-for-kern_level-to-a-2-byte-pattern.patch
-printk-only-look-for-prefix-levels-in-kernel-messages.patch
-printk-remove-the-now-unnecessary-c-annotation-for-kern_cont.patch
-vsprintf-add-%pmr-for-bluetooth-mac-address.patch
-vsprintf-add-%pmr-for-bluetooth-mac-address-fix.patch
-checkpatch-update-alignment-check.patch
-checkpatch-test-for-non-standard-signatures.patch
-checkpatch-check-usleep_range-arguments.patch
-checkpatch-add-check-for-use-of-sizeof-without-parenthesis.patch
+maintainers-add-omap-cpufreq-driver-to-omap-power-management-section.patch
+drivers-rtc-rtc-twlc-fix-threaded-irq-to-use-irqf_oneshot.patch
 
