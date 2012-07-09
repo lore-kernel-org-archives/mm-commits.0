@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcg-mem_cgroup_relize_xxx_limit-can-guarantee-memcg-reslimit-=-memcg-memswlimit.patch added to -mm tree
-Date: Mon, 09 Jul 2012 16:24:36 -0700
-Message-ID: <20120709232437.012A75C0050@hpza9.eem.corp.google.com>
+Subject: + fcoe-remove-redundant-less-than-zero-check.patch added to -mm tree
+Date: Mon, 09 Jul 2012 16:30:11 -0700
+Message-ID: <20120709233011.9A86B1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:52253 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751560Ab2GIXYj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2012 19:24:39 -0400
-Received: by eeit10 with SMTP id t10so725464eei.1
-        for <mm-commits@vger.kernel.org>; Mon, 09 Jul 2012 16:24:38 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:39171 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751643Ab2GIXaM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2012 19:30:12 -0400
+Received: by vbnl22 with SMTP id l22so1254092vbn.1
+        for <mm-commits@vger.kernel.org>; Mon, 09 Jul 2012 16:30:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: liwp@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, liwp.linux@gmail.com
+Cc: robert.w.love@intel.com
 
 
 The patch titled
-     Subject: mm/memcg: mem_cgroup_relize_xxx_limit can guarantee memcg->res.limit <= memcg->memsw.limit
+     Subject: fcoe: Remove redundant 'less than zero' check
 has been added to the -mm tree.  Its filename is
-     mm-memcg-mem_cgroup_relize_xxx_limit-can-guarantee-memcg-reslimit-=-memcg-memswlimit.patch
+     fcoe-remove-redundant-less-than-zero-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,47 +33,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wanpeng Li <liwp@linux.vnet.ibm.com>
-Subject: mm/memcg: mem_cgroup_relize_xxx_limit can guarantee memcg->res.limit <= memcg->memsw.limit
+From: Robert Love <robert.w.love@intel.com>
+Subject: fcoe: Remove redundant 'less than zero' check
 
-Signed-off-by: Wanpeng Li <liwp.linux@gmail.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+strtoul returns an 'unsigned long' so there is no reason to check if the
+value is less than zero.
+
+strtoul already checks for the '-' character deep in its bowels.  It will
+return an error if the user has provided a negative value and
+fcoe_str_to_dev_loss will return that error to its caller.
+
+This patch fixes the following Coverity reported warning:
+
+CID 703581 -  NO_EFFECT Unsigned compared against 0 - This
+less-than-zero comparison of an unsigned value is never true. "*val < 0UL".
+drivers/scsi/fcoe/fcoe_sysfs.c:105
+
+Signed-off-by: Robert Love <robert.w.love@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/scsi/fcoe/fcoe_sysfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~mm-memcg-mem_cgroup_relize_xxx_limit-can-guarantee-memcg-reslimit-=-memcg-memswlimit mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-mem_cgroup_relize_xxx_limit-can-guarantee-memcg-reslimit-=-memcg-memswlimit
-+++ a/mm/memcontrol.c
-@@ -3416,7 +3416,7 @@ static int mem_cgroup_resize_limit(struc
- 		/*
- 		 * Rather than hide all in some function, I do this in
- 		 * open coded manner. You see what this really does.
--		 * We have to guarantee memcg->res.limit < memcg->memsw.limit.
-+		 * We have to guarantee memcg->res.limit <= memcg->memsw.limit.
- 		 */
- 		mutex_lock(&set_limit_mutex);
- 		memswlimit = res_counter_read_u64(&memcg->memsw, RES_LIMIT);
-@@ -3477,7 +3477,7 @@ static int mem_cgroup_resize_memsw_limit
- 		/*
- 		 * Rather than hide all in some function, I do this in
- 		 * open coded manner. You see what this really does.
--		 * We have to guarantee memcg->res.limit < memcg->memsw.limit.
-+		 * We have to guarantee memcg->res.limit <= memcg->memsw.limit.
- 		 */
- 		mutex_lock(&set_limit_mutex);
- 		memlimit = res_counter_read_u64(&memcg->res, RES_LIMIT);
+diff -puN drivers/scsi/fcoe/fcoe_sysfs.c~fcoe-remove-redundant-less-than-zero-check drivers/scsi/fcoe/fcoe_sysfs.c
+--- a/drivers/scsi/fcoe/fcoe_sysfs.c~fcoe-remove-redundant-less-than-zero-check
++++ a/drivers/scsi/fcoe/fcoe_sysfs.c
+@@ -102,7 +102,7 @@ static int fcoe_str_to_dev_loss(const ch
+ 	int ret;
+ 
+ 	ret = kstrtoul(buf, 0, val);
+-	if (ret || *val < 0)
++	if (ret)
+ 		return -EINVAL;
+ 	/*
+ 	 * Check for overflow; dev_loss_tmo is u32
 _
-Subject: Subject: mm/memcg: mem_cgroup_relize_xxx_limit can guarantee memcg->res.limit <= memcg->memsw.limit
+Subject: Subject: fcoe: Remove redundant 'less than zero' check
 
-Patches currently in -mm which might be from liwp@linux.vnet.ibm.com are
+Patches currently in -mm which might be from robert.w.love@intel.com are
 
 linux-next.patch
-mm-prepare-for-removal-of-obsolete-proc-sys-vm-nr_pdflush_threads.patch
-mm-remove-unused-lru_all_evictable.patch
-memcg-rename-mem_control_xxx-to-memcg_xxx.patch
-mm-memcg-complete-documentation-for-tcp-memcg-files.patch
-mm-memcg-mem_cgroup_relize_xxx_limit-can-guarantee-memcg-reslimit-=-memcg-memswlimit.patch
+fcoe-remove-redundant-less-than-zero-check.patch
 
