@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memory-memory-notifier-error-injection-module-fix.patch added to -mm tree
-Date: Mon, 09 Jul 2012 13:56:47 -0700
-Message-ID: <20120709205647.A03A41E0049@wpzn4.hot.corp.google.com>
+Subject: + fault-injection-notifier-error-injection-doc.patch added to -mm tree
+Date: Mon, 09 Jul 2012 13:58:01 -0700
+Message-ID: <20120709205801.BE754100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:48318 "EHLO
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:41109 "EHLO
 	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753876Ab2GIU4s (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2012 16:56:48 -0400
-Received: by ggeh3 with SMTP id h3so1239614gge.1
-        for <mm-commits@vger.kernel.org>; Mon, 09 Jul 2012 13:56:48 -0700 (PDT)
+	with ESMTP id S1751405Ab2GIU6D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2012 16:58:03 -0400
+Received: by ggeh3 with SMTP id h3so1239800gge.1
+        for <mm-commits@vger.kernel.org>; Mon, 09 Jul 2012 13:58:02 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, benh@kernel.crashing.org, paulus@samba.org
+Cc: akinobu.mita@gmail.com, benh@kernel.crashing.org, davej@redhat.com, greg@kroah.com, michael@ellerman.id.au, paulus@samba.org, pavel@ucw.cz, rjw@sisk.pl
 
 
 The patch titled
-     Subject: notifier error injection: fix copy-and-paste error in Kconfig help
+     Subject: notifier error injection documentation
 has been added to the -mm tree.  Its filename is
-     memory-memory-notifier-error-injection-module-fix.patch
+     fault-injection-notifier-error-injection-doc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,133 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: notifier error injection: fix copy-and-paste error in Kconfig help
+Subject: notifier error injection documentation
 
-powerpc-pseries-reconfig-notifier-error-injection-module.patch
-in -mm tree has a copy-and-paste error in Kconfig help.
+fault-injection-notifier-error-injection.patch in -mm tree adds
+notifier error injection.
 
-The module name should be pSeries-reconfig-notifier-error-inject.
+This adds Documentation/fault-injection/notifier-error-inject.txt
+which describes its feature and usage examples.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Acked-by: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Greg KH <greg@kroah.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <michael@ellerman.id.au>
+Cc: Dave Jones <davej@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/fault-injection/notifier-error-inject.txt |   99 ++++++++++
+ 1 file changed, 99 insertions(+)
 
-diff -puN lib/Kconfig.debug~memory-memory-notifier-error-injection-module-fix lib/Kconfig.debug
---- a/lib/Kconfig.debug~memory-memory-notifier-error-injection-module-fix
-+++ a/lib/Kconfig.debug
-@@ -1162,7 +1162,7 @@ config MEMORY_NOTIFIER_ERROR_INJECT
- 	  bash: echo: write error: Cannot allocate memory
- 
- 	  To compile this code as a module, choose M here: the module will
--	  be called memory-notifier-error-inject.
-+	  be called pSeries-reconfig-notifier-error-inject.
- 
- 	  If unsure, say N.
- 
+diff -puN /dev/null Documentation/fault-injection/notifier-error-inject.txt
+--- /dev/null
++++ a/Documentation/fault-injection/notifier-error-inject.txt
+@@ -0,0 +1,99 @@
++Notifier error injection
++========================
++
++Notifier error injection provides the ability to inject artifical errors to
++specified notifier chain callbacks. It is useful to test the error handling of
++notifier call chain failures which is rarely executed.  There are kernel
++modules that can be used to test the following notifiers.
++
++ * CPU notifier
++ * PM notifier
++ * Memory hotplug notifier
++ * powerpc pSeries reconfig notifier
++
++CPU notifier error injection module
++-----------------------------------
++This feature can be used to test the error handling of the CPU notifiers by
++injecting artifical errors to CPU notifier chain callbacks.
++
++If the notifier call chain should be failed with some events notified, write
++the error code to debugfs interface
++/sys/kernel/debug/notifier-error-inject/cpu/actions/<notifier event>/error
++
++Possible CPU notifier events to be failed are:
++
++ * CPU_UP_PREPARE
++ * CPU_UP_PREPARE_FROZEN
++ * CPU_DOWN_PREPARE
++ * CPU_DOWN_PREPARE_FROZEN
++
++Example1: Inject CPU offline error (-1 == -EPERM)
++
++	# cd /sys/kernel/debug/notifier-error-inject/cpu
++	# echo -1 > actions/CPU_DOWN_PREPARE/error
++	# echo 0 > /sys/devices/system/cpu/cpu1/online
++	bash: echo: write error: Operation not permitted
++
++Example2: inject CPU online error (-2 == -ENOENT)
++
++	# echo -2 > actions/CPU_UP_PREPARE/error
++	# echo 1 > /sys/devices/system/cpu/cpu1/online
++	bash: echo: write error: No such file or directory
++
++PM notifier error injection module
++----------------------------------
++This feature is controlled through debugfs interface
++/sys/kernel/debug/notifier-error-inject/pm/actions/<notifier event>/error
++
++Possible PM notifier events to be failed are:
++
++ * PM_HIBERNATION_PREPARE
++ * PM_SUSPEND_PREPARE
++ * PM_RESTORE_PREPARE
++
++Example: Inject PM suspend error (-12 = -ENOMEM)
++
++	# cd /sys/kernel/debug/notifier-error-inject/pm/
++	# echo -12 > actions/PM_SUSPEND_PREPARE/error
++	# echo mem > /sys/power/state
++	bash: echo: write error: Cannot allocate memory
++
++Memory hotplug notifier error injection module
++----------------------------------------------
++This feature is controlled through debugfs interface
++/sys/kernel/debug/notifier-error-inject/memory/actions/<notifier event>/error
++
++Possible memory notifier events to be failed are:
++
++ * MEM_GOING_ONLINE
++ * MEM_GOING_OFFLINE
++
++Example: Inject memory hotplug offline error (-12 == -ENOMEM)
++
++	# cd /sys/kernel/debug/notifier-error-inject/memory
++	# echo -12 > actions/MEM_GOING_OFFLINE/error
++	# echo offline > /sys/devices/system/memory/memoryXXX/state
++	bash: echo: write error: Cannot allocate memory
++
++powerpc pSeries reconfig notifier error injection module
++--------------------------------------------------------
++This feature is controlled through debugfs interface
++/sys/kernel/debug/notifier-error-inject/pSeries-reconfig/actions/<notifier event>/error
++
++Possible pSeries reconfig notifier events to be failed are:
++
++ * PSERIES_RECONFIG_ADD
++ * PSERIES_RECONFIG_REMOVE
++ * PSERIES_DRCONF_MEM_ADD
++ * PSERIES_DRCONF_MEM_REMOVE
++
++For more usage examples
++-----------------------
++There are tools/testing/selftests using the notifier error injection features
++for CPU and memory notifiers.
++
++ * tools/testing/selftests/cpu-hotplug/on-off-test.sh
++ * tools/testing/selftests/memory-hotplug/on-off-test.sh
++
++These scripts first do simple online and offline tests and then do fault
++injection tests if notifier error injection module is available.
 _
-Subject: Subject: notifier error injection: fix copy-and-paste error in Kconfig help
+Subject: Subject: notifier error injection documentation
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
@@ -82,6 +179,7 @@ ext2-use-memweight.patch
 ext3-use-memweight.patch
 ext4-use-memweight.patch
 fault-injection-notifier-error-injection.patch
+fault-injection-notifier-error-injection-doc.patch
 cpu-rewrite-cpu-notifier-error-inject-module.patch
 pm-pm-notifier-error-injection-module.patch
 memory-memory-notifier-error-injection-module.patch
