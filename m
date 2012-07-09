@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fcoe-remove-redundant-less-than-zero-check.patch added to -mm tree
-Date: Mon, 09 Jul 2012 16:30:11 -0700
-Message-ID: <20120709233011.9A86B1E0043@wpzn4.hot.corp.google.com>
+Subject: + rtc-rtc-s3c-replace-include-header-files-from-asm-to-linux.patch added to -mm tree
+Date: Mon, 09 Jul 2012 16:31:12 -0700
+Message-ID: <20120709233113.279415C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:39171 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751643Ab2GIXaM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2012 19:30:12 -0400
-Received: by vbnl22 with SMTP id l22so1254092vbn.1
-        for <mm-commits@vger.kernel.org>; Mon, 09 Jul 2012 16:30:12 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:44168 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751643Ab2GIXbP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Jul 2012 19:31:15 -0400
+Received: by wibhr14 with SMTP id hr14so182619wib.1
+        for <mm-commits@vger.kernel.org>; Mon, 09 Jul 2012 16:31:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: robert.w.love@intel.com
+Cc: sachin.kamat@linaro.org
 
 
 The patch titled
-     Subject: fcoe: Remove redundant 'less than zero' check
+     Subject: drivers/rtc/rtc-s3c.c: replace #include header files from asm/* to linux/*
 has been added to the -mm tree.  Its filename is
-     fcoe-remove-redundant-less-than-zero-check.patch
+     rtc-rtc-s3c-replace-include-header-files-from-asm-to-linux.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,46 +33,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Robert Love <robert.w.love@intel.com>
-Subject: fcoe: Remove redundant 'less than zero' check
+From: Sachin Kamat <sachin.kamat@linaro.org>
+Subject: drivers/rtc/rtc-s3c.c: replace #include header files from asm/* to linux/*
 
-strtoul returns an 'unsigned long' so there is no reason to check if the
-value is less than zero.
+Fixes the following checkpatch warnings:
+WARNING: Use #include <linux/uaccess.h> instead of <asm/uaccess.h>
+WARNING: Use #include <linux/io.h> instead of <asm/io.h>
 
-strtoul already checks for the '-' character deep in its bowels.  It will
-return an error if the user has provided a negative value and
-fcoe_str_to_dev_loss will return that error to its caller.
-
-This patch fixes the following Coverity reported warning:
-
-CID 703581 -  NO_EFFECT Unsigned compared against 0 - This
-less-than-zero comparison of an unsigned value is never true. "*val < 0UL".
-drivers/scsi/fcoe/fcoe_sysfs.c:105
-
-Signed-off-by: Robert Love <robert.w.love@intel.com>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/fcoe/fcoe_sysfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-s3c.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/fcoe/fcoe_sysfs.c~fcoe-remove-redundant-less-than-zero-check drivers/scsi/fcoe/fcoe_sysfs.c
---- a/drivers/scsi/fcoe/fcoe_sysfs.c~fcoe-remove-redundant-less-than-zero-check
-+++ a/drivers/scsi/fcoe/fcoe_sysfs.c
-@@ -102,7 +102,7 @@ static int fcoe_str_to_dev_loss(const ch
- 	int ret;
+diff -puN drivers/rtc/rtc-s3c.c~rtc-rtc-s3c-replace-include-header-files-from-asm-to-linux drivers/rtc/rtc-s3c.c
+--- a/drivers/rtc/rtc-s3c.c~rtc-rtc-s3c-replace-include-header-files-from-asm-to-linux
++++ a/drivers/rtc/rtc-s3c.c
+@@ -26,10 +26,10 @@
+ #include <linux/log2.h>
+ #include <linux/slab.h>
+ #include <linux/of.h>
++#include <linux/uaccess.h>
++#include <linux/io.h>
  
- 	ret = kstrtoul(buf, 0, val);
--	if (ret || *val < 0)
-+	if (ret)
- 		return -EINVAL;
- 	/*
- 	 * Check for overflow; dev_loss_tmo is u32
+ #include <mach/hardware.h>
+-#include <asm/uaccess.h>
+-#include <asm/io.h>
+ #include <asm/irq.h>
+ #include <plat/regs-rtc.h>
+ 
 _
-Subject: Subject: fcoe: Remove redundant 'less than zero' check
+Subject: Subject: drivers/rtc/rtc-s3c.c: replace #include header files from asm/* to linux/*
 
-Patches currently in -mm which might be from robert.w.love@intel.com are
+Patches currently in -mm which might be from sachin.kamat@linaro.org are
 
 linux-next.patch
-fcoe-remove-redundant-less-than-zero-check.patch
+rtc-rtc-s3c-replace-include-header-files-from-asm-to-linux.patch
 
