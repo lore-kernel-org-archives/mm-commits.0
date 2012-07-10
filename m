@@ -1,156 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: + mm-sparse-fix-usemap-allocation-above-node-descriptor-section.patch added to -mm tree
-Date: Tue, 10 Jul 2012 15:32:48 -0700
-Message-ID: <20120710223249.1C6FA5C0060@hpza9.eem.corp.google.com>
+Subject: [folded] include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix.patch removed from -mm tree
+Date: Tue, 10 Jul 2012 16:11:25 -0700
+Message-ID: <20120710235758.2A7E020004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:33180 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753625Ab2GJWcv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jul 2012 18:32:51 -0400
-Received: by fat25 with SMTP id 25so21630fat.1
-        for <mm-commits@vger.kernel.org>; Tue, 10 Jul 2012 15:32:50 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:49695 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755864Ab2GJX6A (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jul 2012 19:58:00 -0400
+Received: by eeil10 with SMTP id l10so7144eei.1
+        for <mm-commits@vger.kernel.org>; Tue, 10 Jul 2012 16:57:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: yinghai@kernel.org, hannes@cmpxchg.org, stable@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: sparse: fix usemap allocation above node descriptor section
-has been added to the -mm tree.  Its filename is
-     mm-sparse-fix-usemap-allocation-above-node-descriptor-section.patch
+     Subject: include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix
+has been removed from the -mm tree.  Its filename was
+     include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+This patch was dropped because it was folded into include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures.patch
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: mm: sparse: fix usemap allocation above node descriptor section
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix
 
-After f5bf18f ("bootmem/sparsemem: remove limit constraint in
-alloc_bootmem_section"), usemap allocations may easily be placed outside
-the optimal section that holds the node descriptor, even if there is space
-available in that section.  This results in unnecessary hotplug
-dependencies that need to have the node unplugged before the section
-holding the usemap.
 
-The reason is that the bootmem allocator doesn't guarantee a linear search
-starting from the passed allocation goal but may start out at a much
-higher address absent an upper limit.
 
-Fix this by trying the allocation with the limit at the section end, then
-retry without if that fails.  This keeps the fix from f5bf18f of not
-panicking if the allocation does not fit in the section, but still makes
-sure to try to stay within the section at first.
-
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@vger.kernel.org>	[3.3.x, 3.4.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bootmem.h |    5 +++++
- mm/bootmem.c            |    2 +-
- mm/nobootmem.c          |    2 +-
- mm/sparse.c             |   18 +++++++++++++-----
- 4 files changed, 20 insertions(+), 7 deletions(-)
+ fs/proc/uptime.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/bootmem.h~mm-sparse-fix-usemap-allocation-above-node-descriptor-section include/linux/bootmem.h
---- a/include/linux/bootmem.h~mm-sparse-fix-usemap-allocation-above-node-descriptor-section
-+++ a/include/linux/bootmem.h
-@@ -91,6 +91,11 @@ extern void *__alloc_bootmem_node_nopani
- 				  unsigned long size,
- 				  unsigned long align,
- 				  unsigned long goal);
-+void *___alloc_bootmem_node_nopanic(pg_data_t *pgdat,
-+				  unsigned long size,
-+				  unsigned long align,
-+				  unsigned long goal,
-+				  unsigned long limit);
- extern void *__alloc_bootmem_low(unsigned long size,
- 				 unsigned long align,
- 				 unsigned long goal);
-diff -puN mm/bootmem.c~mm-sparse-fix-usemap-allocation-above-node-descriptor-section mm/bootmem.c
---- a/mm/bootmem.c~mm-sparse-fix-usemap-allocation-above-node-descriptor-section
-+++ a/mm/bootmem.c
-@@ -698,7 +698,7 @@ void * __init __alloc_bootmem(unsigned l
- 	return ___alloc_bootmem(size, align, goal, limit);
+diff -puN fs/proc/uptime.c~include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix fs/proc/uptime.c
+--- a/fs/proc/uptime.c~include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix
++++ a/fs/proc/uptime.c
+@@ -27,9 +27,9 @@ static int uptime_proc_show(struct seq_f
+ 	idle.tv_nsec = rem;
+ 	seq_printf(m, "%lu.%02lu %lu.%02lu\n",
+ 			(unsigned long) uptime.tv_sec,
+-			(uptime.tv_nsec / (NSEC_PER_SEC / 100)),
++			(uptime.tv_nsec / ((long)NSEC_PER_SEC / 100)),
+ 			(unsigned long) idle.tv_sec,
+-			(idle.tv_nsec / (NSEC_PER_SEC / 100)));
++			(idle.tv_nsec / ((long)NSEC_PER_SEC / 100)));
+ 	return 0;
  }
  
--static void * __init ___alloc_bootmem_node_nopanic(pg_data_t *pgdat,
-+void * __init ___alloc_bootmem_node_nopanic(pg_data_t *pgdat,
- 				unsigned long size, unsigned long align,
- 				unsigned long goal, unsigned long limit)
- {
-diff -puN mm/nobootmem.c~mm-sparse-fix-usemap-allocation-above-node-descriptor-section mm/nobootmem.c
---- a/mm/nobootmem.c~mm-sparse-fix-usemap-allocation-above-node-descriptor-section
-+++ a/mm/nobootmem.c
-@@ -274,7 +274,7 @@ void * __init __alloc_bootmem(unsigned l
- 	return ___alloc_bootmem(size, align, goal, limit);
- }
- 
--static void * __init ___alloc_bootmem_node_nopanic(pg_data_t *pgdat,
-+void * __init ___alloc_bootmem_node_nopanic(pg_data_t *pgdat,
- 						   unsigned long size,
- 						   unsigned long align,
- 						   unsigned long goal,
-diff -puN mm/sparse.c~mm-sparse-fix-usemap-allocation-above-node-descriptor-section mm/sparse.c
---- a/mm/sparse.c~mm-sparse-fix-usemap-allocation-above-node-descriptor-section
-+++ a/mm/sparse.c
-@@ -275,8 +275,9 @@ static unsigned long * __init
- sparse_early_usemaps_alloc_pgdat_section(struct pglist_data *pgdat,
- 					 unsigned long size)
- {
--	pg_data_t *host_pgdat;
--	unsigned long goal;
-+	unsigned long goal, limit;
-+	unsigned long *p;
-+	int nid;
- 	/*
- 	 * A page may contain usemaps for other sections preventing the
- 	 * page being freed and making a section unremovable while
-@@ -288,9 +289,16 @@ sparse_early_usemaps_alloc_pgdat_section
- 	 * this problem.
- 	 */
- 	goal = __pa(pgdat) & (PAGE_SECTION_MASK << PAGE_SHIFT);
--	host_pgdat = NODE_DATA(early_pfn_to_nid(goal >> PAGE_SHIFT));
--	return __alloc_bootmem_node_nopanic(host_pgdat, size,
--					    SMP_CACHE_BYTES, goal);
-+	limit = goal + (1UL << PA_SECTION_SHIFT);
-+	nid = early_pfn_to_nid(goal >> PAGE_SHIFT);
-+again:
-+	p = ___alloc_bootmem_node_nopanic(NODE_DATA(nid), size,
-+					  SMP_CACHE_BYTES, goal, limit);
-+	if (!p && limit) {
-+		limit = 0;
-+		goto again;
-+	}
-+	return p;
- }
- 
- static void __init check_usemap_section_nr(int nid, unsigned long *usemap)
 _
-Subject: Subject: mm: sparse: fix usemap allocation above node descriptor section
 
-Patches currently in -mm which might be from yinghai@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-mm-sparse-fix-section-usemap-placement-calculation.patch
-mm-sparse-fix-usemap-allocation-above-node-descriptor-section.patch
-memblock-free-allocated-memblock_reserved_regions-later.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix.patch
+rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled-checkpatch-fixes.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
+sysfs-fail-dentry-revalidation-after-namespace-change-fix.patch
+include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures.patch
+include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix.patch
+include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix.patch
+include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix-fix.patch
+hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
+coredump-warn-about-unsafe-suid_dumpable-core_pattern-combo.patch
+mm.patch
+mm-make-vb_alloc-more-foolproof-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
 mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
-mm-setup-pageblock_order-before-its-used-by-sparsemem.patch
-mm-hotplug-correctly-setup-fallback-zonelists-when-creating-new-pgdat.patch
-mm-hotplug-correctly-add-new-zone-to-all-other-nodes-zone-lists.patch
-mm-hotplug-free-zone-pageset-when-a-zone-becomes-empty.patch
-mm-hotplug-mark-memory-hotplug-code-in-page_allocc-as-__meminit.patch
+memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
+memcg-prevent-oom-with-too-many-dirty-pages.patch
+mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
+memcg-rename-config-variables.patch
+memcg-rename-config-variables-fix-fix.patch
+mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes.patch
+tmpfs-implement-numa-node-interleaving-fix.patch
+avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
+kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
+printk-add-generic-functions-to-find-kern_level-headers-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
+lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch
+string-introduce-memweight-fix.patch
+drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes.patch
+drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded.patch
+drivers-gpio-gpio-tps65910c-fix-config_of_gpio=n-build.patch
+hfsplus-get-rid-of-write_super-checkpatch-fixes.patch
+kmod-avoid-deadlock-from-recursive-kmod-call.patch
+fork-use-vma_pages-to-simplify-the-code-fix.patch
+fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
+include-linux-aioh-cpp-c-conversions.patch
+resource-make-sure-requested-range-intersects-root-range-fix.patch
+fault-injection-add-selftests-for-cpu-and-memory-hotplug.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
