@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + resource-make-sure-requested-range-intersects-root-range.patch added to -mm tree
-Date: Tue, 10 Jul 2012 14:34:09 -0700
-Message-ID: <20120710213410.6861E1E0043@wpzn4.hot.corp.google.com>
+Subject: + resource-make-sure-requested-range-intersects-root-range-fix.patch added to -mm tree
+Date: Tue, 10 Jul 2012 14:34:12 -0700
+Message-ID: <20120710213413.6EB8220004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:43632 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753966Ab2GJVeL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jul 2012 17:34:11 -0400
-Received: by yenl3 with SMTP id l3so54429yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 10 Jul 2012 14:34:10 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:50925 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753387Ab2GJVeP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jul 2012 17:34:15 -0400
+Received: by eaao13 with SMTP id o13so21090eaa.1
+        for <mm-commits@vger.kernel.org>; Tue, 10 Jul 2012 14:34:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: octavian.purdila@intel.com, jbarnes@virtuousgeek.org, linuxram@us.ibm.com
+Cc: akpm@linux-foundation.org, jbarnes@virtuousgeek.org, linuxram@us.ibm.com, octavian.purdila@intel.com
 
 
 The patch titled
-     Subject: resource: make sure requested range intersects root range
+     Subject: resource-make-sure-requested-range-intersects-root-range-fix
 has been added to the -mm tree.  Its filename is
-     resource-make-sure-requested-range-intersects-root-range.patch
+     resource-make-sure-requested-range-intersects-root-range-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,92 +33,94 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Octavian Purdila <octavian.purdila@intel.com>
-Subject: resource: make sure requested range intersects root range
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: resource-make-sure-requested-range-intersects-root-range-fix
 
-When the requested and root ranges do not intersect the logic in
-__reserve_region_with_split will cause an infinite recursion which will
-overflow the stack as seen in the warning bellow.
+add a dump_stack()
 
-This particular stack overflow was caused by requesting the
-(100000000-107ffffff) range while the root range was (0-ffffffff).  In
-this case __request_resource would return the whole root range as conflict
-range (i.e.  0-ffffffff).  Then, the logic in __reserve_region_with_split
-would continue the recursion requesting the new range as (conflict->end+1,
-end) which incidentally in this case equals the originally requested
-range.
-
-This patch aborts looking for a usable range when the requested one is
-completely outside the root range to avoid the infinite recursion, and
-since this indicates a problem in the layers above, it also prints an
-error message indicating the requested and root range in order to make the
-problem more easily traceable.
-
-[    5.968374] WARNING: at kernel/sched.c:4129 sub_preempt_count+0x63/0x89()
-[    5.975150] Modules linked in:
-[    5.978184] Pid: 1, comm: swapper Not tainted 3.0.22-mid27-00004-gb72c817 #46
-[    5.985324] Call Trace:
-[    5.987759]  [<c1039dfc>] ? console_unlock+0x17b/0x18d
-[    5.992891]  [<c1039620>] warn_slowpath_common+0x48/0x5d
-[    5.998194]  [<c1031758>] ? sub_preempt_count+0x63/0x89
-[    6.003412]  [<c1039644>] warn_slowpath_null+0xf/0x13
-[    6.008453]  [<c1031758>] sub_preempt_count+0x63/0x89
-[    6.013499]  [<c14d60c4>] _raw_spin_unlock+0x27/0x3f
-[    6.018453]  [<c10c6349>] add_partial+0x36/0x3b
-[    6.022973]  [<c10c7c0a>] deactivate_slab+0x96/0xb4
-[    6.027842]  [<c14cf9d9>] __slab_alloc.isra.54.constprop.63+0x204/0x241
-[    6.034456]  [<c103f78f>] ? kzalloc.constprop.5+0x29/0x38
-[    6.039842]  [<c103f78f>] ? kzalloc.constprop.5+0x29/0x38
-[    6.045232]  [<c10c7dc9>] kmem_cache_alloc_trace+0x51/0xb0
-[    6.050710]  [<c103f78f>] ? kzalloc.constprop.5+0x29/0x38
-[    6.056100]  [<c103f78f>] kzalloc.constprop.5+0x29/0x38
-[    6.061320]  [<c17b45e9>] __reserve_region_with_split+0x1c/0xd1
-[    6.067230]  [<c17b4693>] __reserve_region_with_split+0xc6/0xd1
-...
-[    7.179057]  [<c17b4693>] __reserve_region_with_split+0xc6/0xd1
-[    7.184970]  [<c17b4779>] reserve_region_with_split+0x30/0x42
-[    7.190709]  [<c17a8ebf>] e820_reserve_resources_late+0xd1/0xe9
-[    7.196623]  [<c17c9526>] pcibios_resource_survey+0x23/0x2a
-[    7.202184]  [<c17cad8a>] pcibios_init+0x23/0x35
-[    7.206789]  [<c17ca574>] pci_subsys_init+0x3f/0x44
-[    7.211659]  [<c1002088>] do_one_initcall+0x72/0x122
-[    7.216615]  [<c17ca535>] ? pci_legacy_init+0x3d/0x3d
-[    7.221659]  [<c17a27ff>] kernel_init+0xa6/0x118
-[    7.226265]  [<c17a2759>] ? start_kernel+0x334/0x334
-[    7.231223]  [<c14d7482>] kernel_thread_helper+0x6/0x10
-
-Signed-off-by: Octavian Purdila <octavian.purdila@intel.com>
-Cc: Ram Pai <linuxram@us.ibm.com>
 Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Octavian Purdila <octavian.purdila@intel.com>
+Cc: Ram Pai <linuxram@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/resource.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ kernel/resource.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN kernel/resource.c~resource-make-sure-requested-range-intersects-root-range kernel/resource.c
---- a/kernel/resource.c~resource-make-sure-requested-range-intersects-root-range
+diff -puN kernel/resource.c~resource-make-sure-requested-range-intersects-root-range-fix kernel/resource.c
+--- a/kernel/resource.c~resource-make-sure-requested-range-intersects-root-range-fix
 +++ a/kernel/resource.c
-@@ -792,7 +792,13 @@ void __init reserve_region_with_split(st
+@@ -792,13 +792,15 @@ void __init reserve_region_with_split(st
  		const char *name)
  {
  	write_lock(&resource_lock);
--	__reserve_region_with_split(root, start, end, name);
-+	if (start > root->end || end < root->start)
-+		pr_err("Requested range (0x%llx-0x%llx) not in root range (0x%llx-0x%llx)\n",
-+		       (unsigned long long)start, (unsigned long long)end,
-+		       (unsigned long long)root->start,
-+		       (unsigned long long)root->end);
-+	else
-+		__reserve_region_with_split(root, start, end, name);
+-	if (start > root->end || end < root->start)
++	if (start > root->end || end < root->start) {
+ 		pr_err("Requested range (0x%llx-0x%llx) not in root range (0x%llx-0x%llx)\n",
+ 		       (unsigned long long)start, (unsigned long long)end,
+ 		       (unsigned long long)root->start,
+ 		       (unsigned long long)root->end);
+-	else
++		dump_stack();
++	} else {
+ 		__reserve_region_with_split(root, start, end, name);
++	}
  	write_unlock(&resource_lock);
  }
  
 _
-Subject: Subject: resource: make sure requested range intersects root range
+Subject: Subject: resource-make-sure-requested-range-intersects-root-range-fix
 
-Patches currently in -mm which might be from octavian.purdila@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-resource-make-sure-requested-range-intersects-root-range.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix.patch
+rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled-checkpatch-fixes.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
+sysfs-fail-dentry-revalidation-after-namespace-change-fix.patch
+include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures.patch
+include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix.patch
+include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix.patch
+include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix.patch
+include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix-fix.patch
+hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
+coredump-warn-about-unsafe-suid_dumpable-core_pattern-combo.patch
+mm.patch
+mm-make-vb_alloc-more-foolproof-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
+mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
+memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
+memcg-prevent-oom-with-too-many-dirty-pages.patch
+mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
+memcg-rename-config-variables.patch
+memcg-rename-config-variables-fix-fix.patch
+mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes.patch
+tmpfs-implement-numa-node-interleaving-fix.patch
+avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
+kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
+printk-add-generic-functions-to-find-kern_level-headers-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
+lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch
+string-introduce-memweight-fix.patch
+drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes.patch
+drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded.patch
+hfsplus-get-rid-of-write_super-checkpatch-fixes.patch
+kmod-avoid-deadlock-from-recursive-kmod-call.patch
+fork-use-vma_pages-to-simplify-the-code-fix.patch
+fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
+include-linux-aioh-cpp-c-conversions.patch
 resource-make-sure-requested-range-intersects-root-range-fix.patch
+fault-injection-add-selftests-for-cpu-and-memory-hotplug.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
