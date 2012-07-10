@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [folded] include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix.patch removed from -mm tree
-Date: Tue, 10 Jul 2012 16:11:25 -0700
-Message-ID: <20120710235758.2A7E020004E@hpza10.eem.corp.google.com>
+Subject: [folded] include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix.patch removed from -mm tree
+Date: Tue, 10 Jul 2012 16:11:33 -0700
+Message-ID: <20120710235805.DADC65C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:49695 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755864Ab2GJX6A (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jul 2012 19:58:00 -0400
-Received: by eeil10 with SMTP id l10so7144eei.1
-        for <mm-commits@vger.kernel.org>; Tue, 10 Jul 2012 16:57:58 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:55739 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755864Ab2GJX6H (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jul 2012 19:58:07 -0400
+Received: by mail-ey0-f202.google.com with SMTP id o13so24359eaa.1
+        for <mm-commits@vger.kernel.org>; Tue, 10 Jul 2012 16:58:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix
+     Subject: include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix
 has been removed from the -mm tree.  Its filename was
-     include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix.patch
+     include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix.patch
 
 This patch was dropped because it was folded into include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures.patch
 
@@ -26,31 +26,54 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix
-
+Subject: include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix
 
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/uptime.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/interface.c |    4 ++--
+ fs/select.c             |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/uptime.c~include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix fs/proc/uptime.c
---- a/fs/proc/uptime.c~include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix
-+++ a/fs/proc/uptime.c
-@@ -27,9 +27,9 @@ static int uptime_proc_show(struct seq_f
- 	idle.tv_nsec = rem;
- 	seq_printf(m, "%lu.%02lu %lu.%02lu\n",
- 			(unsigned long) uptime.tv_sec,
--			(uptime.tv_nsec / (NSEC_PER_SEC / 100)),
-+			(uptime.tv_nsec / ((long)NSEC_PER_SEC / 100)),
- 			(unsigned long) idle.tv_sec,
--			(idle.tv_nsec / (NSEC_PER_SEC / 100)));
-+			(idle.tv_nsec / ((long)NSEC_PER_SEC / 100)));
- 	return 0;
- }
+diff -puN drivers/rtc/interface.c~include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix drivers/rtc/interface.c
+--- a/drivers/rtc/interface.c~include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix
++++ a/drivers/rtc/interface.c
+@@ -564,7 +564,7 @@ enum hrtimer_restart rtc_pie_update_irq(
+ 	int count;
+ 	rtc = container_of(timer, struct rtc_device, pie_timer);
  
+-	period = ktime_set(0, NSEC_PER_SEC/rtc->irq_freq);
++	period = ktime_set(0, (long)NSEC_PER_SEC / rtc->irq_freq);
+ 	count = hrtimer_forward_now(timer, period);
+ 
+ 	rtc_handle_legacy_irq(rtc, count, RTC_PF);
+@@ -671,7 +671,7 @@ static int rtc_update_hrtimer(struct rtc
+ 		return -1;
+ 
+ 	if (enabled) {
+-		ktime_t period = ktime_set(0, NSEC_PER_SEC / rtc->irq_freq);
++		ktime_t period = ktime_set(0, (long)NSEC_PER_SEC/rtc->irq_freq);
+ 
+ 		hrtimer_start(&rtc->pie_timer, period, HRTIMER_MODE_REL);
+ 	}
+diff -puN fs/select.c~include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix fs/select.c
+--- a/fs/select.c~include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix
++++ a/fs/select.c
+@@ -55,11 +55,11 @@ static long __estimate_accuracy(struct t
+ 	if (task_nice(current) > 0)
+ 		divfactor = divfactor / 5;
+ 
+-	if (tv->tv_sec > MAX_SLACK / (NSEC_PER_SEC/divfactor))
++	if (tv->tv_sec > MAX_SLACK / ((long)NSEC_PER_SEC / divfactor))
+ 		return MAX_SLACK;
+ 
+ 	slack = tv->tv_nsec / divfactor;
+-	slack += tv->tv_sec * (NSEC_PER_SEC/divfactor);
++	slack += tv->tv_sec * ((long)NSEC_PER_SEC / divfactor);
+ 
+ 	if (slack > MAX_SLACK)
+ 		return MAX_SLACK;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -64,8 +87,6 @@ arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.pa
 arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
 sysfs-fail-dentry-revalidation-after-namespace-change-fix.patch
 include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures.patch
-include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix.patch
-include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix.patch
 include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix-fix.patch
 hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
 coredump-warn-about-unsafe-suid_dumpable-core_pattern-combo.patch
