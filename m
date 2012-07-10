@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: [folded] include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix.patch removed from -mm tree
-Date: Tue, 10 Jul 2012 16:11:29 -0700
-Message-ID: <20120710235801.D1092200057@hpza10.eem.corp.google.com>
+Subject: [folded] include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix-fix.patch removed from -mm tree
+Date: Tue, 10 Jul 2012 16:11:37 -0700
+Message-ID: <20120710235809.6C60D100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:55739 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756001Ab2GJX6E (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jul 2012 19:58:04 -0400
-Received: by eaao13 with SMTP id o13so24359eaa.1
-        for <mm-commits@vger.kernel.org>; Tue, 10 Jul 2012 16:58:02 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:39131 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755384Ab2GJX6K (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jul 2012 19:58:10 -0400
+Received: by ggeh3 with SMTP id h3so67813gge.1
+        for <mm-commits@vger.kernel.org>; Tue, 10 Jul 2012 16:58:09 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix
+     Subject: include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix-fix
 has been removed from the -mm tree.  Its filename was
-     include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix.patch
+     include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix-fix.patch
 
 This patch was dropped because it was folded into include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures.patch
 
@@ -26,27 +26,27 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix
+Subject: include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix-fix
 
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/events/core.c |    2 +-
+ kernel/time/clocksource.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/events/core.c~include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix kernel/events/core.c
---- a/kernel/events/core.c~include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix
-+++ a/kernel/events/core.c
-@@ -5415,7 +5415,7 @@ static void perf_swevent_init_hrtimer(st
- 	if (event->attr.freq) {
- 		long freq = event->attr.sample_freq;
+diff -puN kernel/time/clocksource.c~include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix-fix kernel/time/clocksource.c
+--- a/kernel/time/clocksource.c~include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix-fix
++++ a/kernel/time/clocksource.c
+@@ -678,7 +678,7 @@ void __clocksource_updatefreq_scale(stru
+ 		sec = 600;
  
--		event->attr.sample_period = NSEC_PER_SEC / freq;
-+		event->attr.sample_period = (long)NSEC_PER_SEC / freq;
- 		hwc->sample_period = event->attr.sample_period;
- 		local64_set(&hwc->period_left, hwc->sample_period);
- 		event->attr.freq = 0;
+ 	clocks_calc_mult_shift(&cs->mult, &cs->shift, freq,
+-			       NSEC_PER_SEC / scale, sec * scale);
++			       (long)NSEC_PER_SEC / scale, sec * scale);
+ 
+ 	/*
+ 	 * for clocksources that have large mults, to avoid overflow.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -60,8 +60,6 @@ arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.pa
 arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
 sysfs-fail-dentry-revalidation-after-namespace-change-fix.patch
 include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures.patch
-include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix.patch
-include-linux-timeh-make-nsec_per_sec-64-bit-on-32-bit-architectures-fix-fix-fix-fix.patch
 hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
 coredump-warn-about-unsafe-suid_dumpable-core_pattern-combo.patch
 mm.patch
