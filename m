@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-oom-introduce-helper-function-to-process-threads-during-scan.patch added to -mm tree
-Date: Tue, 10 Jul 2012 14:17:55 -0700
-Message-ID: <20120710211756.827495C0060@hpza9.eem.corp.google.com>
+Subject: + mm-memcg-move-all-oom-handling-to-memcontrolc.patch added to -mm tree
+Date: Tue, 10 Jul 2012 14:18:07 -0700
+Message-ID: <20120710211808.4CC8C100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:63197 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752141Ab2GJVR7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jul 2012 17:17:59 -0400
-Received: by eaao13 with SMTP id o13so20672eaa.1
-        for <mm-commits@vger.kernel.org>; Tue, 10 Jul 2012 14:17:57 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:52688 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753387Ab2GJVSJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Jul 2012 17:18:09 -0400
+Received: by yenl3 with SMTP id l3so52793yen.1
+        for <mm-commits@vger.kernel.org>; Tue, 10 Jul 2012 14:18:08 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fuji
 
 
 The patch titled
-     Subject: mm, oom: introduce helper function to process threads during scan
+     Subject: mm, memcg: move all oom handling to memcontrol.c
 has been added to the -mm tree.  Its filename is
-     mm-oom-introduce-helper-function-to-process-threads-during-scan.patch
+     mm-memcg-move-all-oom-handling-to-memcontrolc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,167 +34,125 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Rientjes <rientjes@google.com>
-Subject: mm, oom: introduce helper function to process threads during scan
+Subject: mm, memcg: move all oom handling to memcontrol.c
 
-This patch introduces a helper function to process each thread during the
-iteration over the tasklist.  A new return type, enum oom_scan_t, is
-defined to determine the future behavior of the iteration:
+By globally defining check_panic_on_oom(), the memcg oom handler can be
+moved entirely to mm/memcontrol.c.  This removes the ugly #ifdef in the
+oom killer and cleans up the code.
 
- - OOM_SCAN_OK: continue scanning the thread and find its badness,
-
- - OOM_SCAN_CONTINUE: do not consider this thread for oom kill, it's
-   ineligible,
-
- - OOM_SCAN_ABORT: abort the iteration and return, or
-
- - OOM_SCAN_SELECT: always select this thread with the highest badness
-   possible.
-
-There is no functional change with this patch.  This new helper function
-will be used in the next patch in the memory controller.
-
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |  111 ++++++++++++++++++++++++++++--------------------
- 1 file changed, 65 insertions(+), 46 deletions(-)
+ include/linux/memcontrol.h |    2 --
+ include/linux/oom.h        |    3 +++
+ mm/memcontrol.c            |   15 +++++++++++++--
+ mm/oom_kill.c              |   23 ++---------------------
+ 4 files changed, 18 insertions(+), 25 deletions(-)
 
-diff -puN mm/oom_kill.c~mm-oom-introduce-helper-function-to-process-threads-during-scan mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-introduce-helper-function-to-process-threads-during-scan
-+++ a/mm/oom_kill.c
-@@ -288,6 +288,59 @@ static enum oom_constraint constrained_a
+diff -puN include/linux/memcontrol.h~mm-memcg-move-all-oom-handling-to-memcontrolc include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-memcg-move-all-oom-handling-to-memcontrolc
++++ a/include/linux/memcontrol.h
+@@ -180,8 +180,6 @@ static inline void mem_cgroup_dec_page_s
+ unsigned long mem_cgroup_soft_limit_reclaim(struct zone *zone, int order,
+ 						gfp_t gfp_mask,
+ 						unsigned long *total_scanned);
+-extern void __mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask,
+-				       int order);
+ 
+ void mem_cgroup_count_vm_event(struct mm_struct *mm, enum vm_event_item idx);
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+diff -puN include/linux/oom.h~mm-memcg-move-all-oom-handling-to-memcontrolc include/linux/oom.h
+--- a/include/linux/oom.h~mm-memcg-move-all-oom-handling-to-memcontrolc
++++ a/include/linux/oom.h
+@@ -61,6 +61,9 @@ extern void oom_kill_process(struct task
+ extern int try_set_zonelist_oom(struct zonelist *zonelist, gfp_t gfp_flags);
+ extern void clear_zonelist_oom(struct zonelist *zonelist, gfp_t gfp_flags);
+ 
++extern void check_panic_on_oom(enum oom_constraint constraint, gfp_t gfp_mask,
++			       int order, const nodemask_t *nodemask);
++
+ extern enum oom_scan_t oom_scan_process_thread(struct task_struct *task,
+ 		unsigned long totalpages, const nodemask_t *nodemask,
+ 		bool force_kill);
+diff -puN mm/memcontrol.c~mm-memcg-move-all-oom-handling-to-memcontrolc mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-move-all-oom-handling-to-memcontrolc
++++ a/mm/memcontrol.c
+@@ -1469,8 +1469,8 @@ static u64 mem_cgroup_get_limit(struct m
+ 	return min(limit, memsw);
  }
- #endif
  
-+enum oom_scan_t {
-+	OOM_SCAN_OK,		/* scan thread and find its badness */
-+	OOM_SCAN_CONTINUE,	/* do not consider thread for oom kill */
-+	OOM_SCAN_ABORT,		/* abort the iteration and return */
-+	OOM_SCAN_SELECT,	/* always select this thread first */
-+};
-+
-+static enum oom_scan_t oom_scan_process_thread(struct task_struct *task,
-+		struct mem_cgroup *memcg, unsigned long totalpages,
-+		const nodemask_t *nodemask, bool force_kill)
-+{
-+	if (task->exit_state)
-+		return OOM_SCAN_CONTINUE;
-+	if (oom_unkillable_task(task, memcg, nodemask))
-+		return OOM_SCAN_CONTINUE;
-+
+-void __mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask,
+-				int order)
++void mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask,
++			      int order)
+ {
+ 	struct mem_cgroup *iter;
+ 	unsigned long chosen_points = 0;
+@@ -1478,6 +1478,17 @@ void __mem_cgroup_out_of_memory(struct m
+ 	unsigned int points = 0;
+ 	struct task_struct *chosen = NULL;
+ 
 +	/*
-+	 * This task already has access to memory reserves and is being killed.
-+	 * Don't allow any other task to have access to the reserves.
++	 * If current has a pending SIGKILL, then automatically select it.  The
++	 * goal is to allow it to allocate so that it may quickly exit and free
++	 * its memory.
 +	 */
-+	if (test_tsk_thread_flag(task, TIF_MEMDIE)) {
-+		if (unlikely(frozen(task)))
-+			__thaw_task(task);
-+		if (!force_kill)
-+			return OOM_SCAN_ABORT;
++	if (fatal_signal_pending(current)) {
++		set_thread_flag(TIF_MEMDIE);
++		return;
 +	}
-+	if (!task->mm)
-+		return OOM_SCAN_CONTINUE;
 +
-+	if (task->flags & PF_EXITING) {
-+		/*
-+		 * If task is current and is in the process of releasing memory,
-+		 * allow the "kill" to set TIF_MEMDIE, which will allow it to
-+		 * access memory reserves.  Otherwise, it may stall forever.
-+		 *
-+		 * The iteration isn't broken here, however, in case other
-+		 * threads are found to have already been oom killed.
-+		 */
-+		if (task == current)
-+			return OOM_SCAN_SELECT;
-+		else if (!force_kill) {
-+			/*
-+			 * If this task is not being ptraced on exit, then wait
-+			 * for it to finish before killing some other task
-+			 * unnecessarily.
-+			 */
-+			if (!(task->group_leader->ptrace & PT_TRACE_EXIT))
-+				return OOM_SCAN_ABORT;
-+		}
-+	}
-+	return OOM_SCAN_OK;
-+}
-+
++	check_panic_on_oom(CONSTRAINT_MEMCG, gfp_mask, order, NULL);
+ 	totalpages = mem_cgroup_get_limit(memcg) >> PAGE_SHIFT ? : 1;
+ 	for_each_mem_cgroup_tree(iter, memcg) {
+ 		struct cgroup *cgroup = iter->css.cgroup;
+diff -puN mm/oom_kill.c~mm-memcg-move-all-oom-handling-to-memcontrolc mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-memcg-move-all-oom-handling-to-memcontrolc
++++ a/mm/oom_kill.c
+@@ -555,8 +555,8 @@ void oom_kill_process(struct task_struct
  /*
-  * Simple selection loop. We chose the process with the highest
-  * number of 'points'. We expect the caller will lock the tasklist.
-@@ -305,53 +358,19 @@ static struct task_struct *select_bad_pr
- 	do_each_thread(g, p) {
- 		unsigned int points;
+  * Determines whether the kernel must panic because of the panic_on_oom sysctl.
+  */
+-static void check_panic_on_oom(enum oom_constraint constraint, gfp_t gfp_mask,
+-				int order, const nodemask_t *nodemask)
++void check_panic_on_oom(enum oom_constraint constraint, gfp_t gfp_mask,
++			int order, const nodemask_t *nodemask)
+ {
+ 	if (likely(!sysctl_panic_on_oom))
+ 		return;
+@@ -574,25 +574,6 @@ static void check_panic_on_oom(enum oom_
+ 		sysctl_panic_on_oom == 2 ? "compulsory" : "system-wide");
+ }
  
--		if (p->exit_state)
--			continue;
--		if (oom_unkillable_task(p, memcg, nodemask))
--			continue;
+-#ifdef CONFIG_MEMCG
+-void mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask,
+-			      int order)
+-{
+-	/*
+-	 * If current has a pending SIGKILL, then automatically select it.  The
+-	 * goal is to allow it to allocate so that it may quickly exit and free
+-	 * its memory.
+-	 */
+-	if (fatal_signal_pending(current)) {
+-		set_thread_flag(TIF_MEMDIE);
+-		return;
+-	}
 -
--		/*
--		 * This task already has access to memory reserves and is
--		 * being killed. Don't allow any other task access to the
--		 * memory reserve.
--		 *
--		 * Note: this may have a chance of deadlock if it gets
--		 * blocked waiting for another task which itself is waiting
--		 * for memory. Is there a better alternative?
--		 */
--		if (test_tsk_thread_flag(p, TIF_MEMDIE)) {
--			if (unlikely(frozen(p)))
--				__thaw_task(p);
--			if (!force_kill)
--				return ERR_PTR(-1UL);
--		}
--		if (!p->mm)
-+		switch (oom_scan_process_thread(p, memcg, totalpages, nodemask,
-+						force_kill)) {
-+		case OOM_SCAN_SELECT:
-+			chosen = p;
-+			chosen_points = ULONG_MAX;
-+			/* fall through */
-+		case OOM_SCAN_CONTINUE:
- 			continue;
+-	check_panic_on_oom(CONSTRAINT_MEMCG, gfp_mask, order, NULL);
+-	__mem_cgroup_out_of_memory(memcg, gfp_mask, order);
+-}
+-#endif
 -
--		if (p->flags & PF_EXITING) {
--			/*
--			 * If p is the current task and is in the process of
--			 * releasing memory, we allow the "kill" to set
--			 * TIF_MEMDIE, which will allow it to gain access to
--			 * memory reserves.  Otherwise, it may stall forever.
--			 *
--			 * The loop isn't broken here, however, in case other
--			 * threads are found to have already been oom killed.
--			 */
--			if (p == current) {
--				chosen = p;
--				chosen_points = ULONG_MAX;
--			} else if (!force_kill) {
--				/*
--				 * If this task is not being ptraced on exit,
--				 * then wait for it to finish before killing
--				 * some other task unnecessarily.
--				 */
--				if (!(p->group_leader->ptrace & PT_TRACE_EXIT))
--					return ERR_PTR(-1UL);
--			}
--		}
--
-+		case OOM_SCAN_ABORT:
-+			return ERR_PTR(-1UL);
-+		case OOM_SCAN_OK:
-+			break;
-+		};
- 		points = oom_badness(p, memcg, nodemask, totalpages);
- 		if (points > chosen_points) {
- 			chosen = p;
+ static BLOCKING_NOTIFIER_HEAD(oom_notify_list);
+ 
+ int register_oom_notifier(struct notifier_block *nb)
 _
-Subject: Subject: mm, oom: introduce helper function to process threads during scan
+Subject: Subject: mm, memcg: move all oom handling to memcontrol.c
 
 Patches currently in -mm which might be from rientjes@google.com are
 
