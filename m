@@ -1,50 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [folded] tmpfs-implement-numa-node-interleaving-fix.patch removed from -mm tree
-Date: Wed, 11 Jul 2012 15:33:07 -0700
-Message-ID: <20120711223308.494785C0050@hpza9.eem.corp.google.com>
+Subject: [to-be-updated] tmpfs-implement-numa-node-interleaving.patch removed from -mm tree
+Date: Wed, 11 Jul 2012 15:33:33 -0700
+Message-ID: <20120711223333.CDFFA1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:39681 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933468Ab2GKWdL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jul 2012 18:33:11 -0400
-Received: by wibhr14 with SMTP id hr14so86913wib.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jul 2012 15:33:10 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:47870 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758406Ab2GKWdi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jul 2012 18:33:38 -0400
+Received: by qcqs25 with SMTP id s25so178090qcq.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jul 2012 15:33:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cl@linux.com, hughd@google.com, lee.schermerhorn@hp.com, npiggin@gmail.com, nzimmer@sgi.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: nzimmer@sgi.com, cl@linux.com, hughd@google.com, lee.schermerhorn@hp.com, npiggin@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tmpfs-implement-numa-node-interleaving-fix
+     Subject: tmpfs: implement NUMA node interleaving
 has been removed from the -mm tree.  Its filename was
-     tmpfs-implement-numa-node-interleaving-fix.patch
+     tmpfs-implement-numa-node-interleaving.patch
 
-This patch was dropped because it was folded into tmpfs-implement-numa-node-interleaving.patch
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: tmpfs-implement-numa-node-interleaving-fix
+From: Nathan Zimmer <nzimmer@sgi.com>
+Subject: tmpfs: implement NUMA node interleaving
 
-add comment
+When tmpfs has the memory policy interleaved it always starts allocating
+at each file at node 0.  When there are many small files the lower nodes
+fill up disproportionately.
 
+This patch attempts to spread out node usage by starting files at nodes
+other then 0.  I disturbed the addr parameter since alloc_pages_vma will
+only use it when the policy is MPOL_INTERLEAVE.  Random was picked over
+using another variable which would require some sort of contention
+management.
+
+[akpm@linux-foundation.org: add comment]
+Signed-off-by: Nathan T Zimmer <nzimmer@sgi.com>
 Cc: Christoph Lameter <cl@linux.com>
+Cc: Nick Piggin <npiggin@gmail.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Nathan T Zimmer <nzimmer@sgi.com>
-Cc: Nathan Zimmer <nzimmer@sgi.com>
-Cc: Nick Piggin <npiggin@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ include/linux/shmem_fs.h |    1 +
+ mm/shmem.c               |    8 ++++++--
+ 2 files changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN mm/shmem.c~tmpfs-implement-numa-node-interleaving-fix mm/shmem.c
---- a/mm/shmem.c~tmpfs-implement-numa-node-interleaving-fix
+diff -puN include/linux/shmem_fs.h~tmpfs-implement-numa-node-interleaving include/linux/shmem_fs.h
+--- a/include/linux/shmem_fs.h~tmpfs-implement-numa-node-interleaving
++++ a/include/linux/shmem_fs.h
+@@ -17,6 +17,7 @@ struct shmem_inode_info {
+ 		char		*symlink;	/* unswappable short symlink */
+ 	};
+ 	struct shared_policy	policy;		/* NUMA memory alloc policy */
++	unsigned long           node_offset;	/* bias for interleaved nodes */
+ 	struct list_head	swaplist;	/* chain of maybes on swap */
+ 	struct list_head	xattr_list;	/* list of shmem_xattr */
+ 	struct inode		vfs_inode;
+diff -puN mm/shmem.c~tmpfs-implement-numa-node-interleaving mm/shmem.c
+--- a/mm/shmem.c~tmpfs-implement-numa-node-interleaving
 +++ a/mm/shmem.c
-@@ -938,9 +938,12 @@ static struct page *shmem_alloc_page(gfp
+@@ -947,9 +947,12 @@ static struct page *shmem_alloc_page(gfp
  	pvma.vm_policy = mpol_shared_policy_lookup(&info->policy, index);
  
  	/*
@@ -54,60 +74,21 @@ diff -puN mm/shmem.c~tmpfs-implement-numa-node-interleaving-fix mm/shmem.c
 +	 * To avoid allocating all tmpfs pages on node 0, we fake up a virtual
 +	 * address based on this file's predetermined preferred node.
  	 */
--	return alloc_page_vma(gfp, &pvma, info->node_offset << PAGE_SHIFT );
+-	return alloc_page_vma(gfp, &pvma, 0);
 +	return alloc_page_vma(gfp, &pvma, info->node_offset << PAGE_SHIFT);
  }
  #else /* !CONFIG_NUMA */
  #ifdef CONFIG_TMPFS
+@@ -1389,6 +1392,7 @@ static struct inode *shmem_get_inode(str
+ 			inode->i_fop = &shmem_file_operations;
+ 			mpol_shared_policy_init(&info->policy,
+ 						 shmem_get_sbmpol(sbinfo));
++			info->node_offset = node_random(&node_online_map);
+ 			break;
+ 		case S_IFDIR:
+ 			inc_nlink(inode);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from nzimmer@sgi.com are
 
-memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer.patch
-rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled.patch
-drivers-gpio-gpio-tps65910c-fix-config_of_gpio=n-build.patch
-linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
-sysfs-fail-dentry-revalidation-after-namespace-change-fix.patch
-hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
-coredump-warn-about-unsafe-suid_dumpable-core_pattern-combo.patch
-mm.patch
-mm-make-vb_alloc-more-foolproof-fix.patch
-mm-hugetlb-add-new-hugetlb-cgroup-fix.patch
-mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch
-hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
-hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
-mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
-memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
-memcg-prevent-oom-with-too-many-dirty-pages.patch
-mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
-memcg-rename-config-variables.patch
-memcg-rename-config-variables-fix-fix.patch
-mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes.patch
-mm-have-order-0-compaction-start-off-where-it-left-v3-typo.patch
-tmpfs-implement-numa-node-interleaving.patch
-avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
-kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
-printk-add-generic-functions-to-find-kern_level-headers-fix.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
-lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch
-string-introduce-memweight-fix.patch
-drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes.patch
-drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded.patch
-hfsplus-get-rid-of-write_super-checkpatch-fixes.patch
-kmod-avoid-deadlock-from-recursive-kmod-call.patch
-fork-use-vma_pages-to-simplify-the-code-fix.patch
-fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
-include-linux-aioh-cpp-c-conversions.patch
-resource-make-sure-requested-range-intersects-root-range-fix.patch
-fault-injection-add-selftests-for-cpu-and-memory-hotplug.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
