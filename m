@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-allow-compat-ipc-version-field-parsing-if-arch_want_old_compat_ipc.patch added to -mm tree
-Date: Wed, 11 Jul 2012 14:40:14 -0700
-Message-ID: <20120711214015.AFABD5C0050@hpza9.eem.corp.google.com>
+Subject: + acpi_memhotplugc-free-memory-device-if-acpi_memory_enable_device-failed.patch added to -mm tree
+Date: Wed, 11 Jul 2012 14:55:21 -0700
+Message-ID: <20120711215522.A49F2200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:39040 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758120Ab2GKVkR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jul 2012 17:40:17 -0400
-Received: by mail-fa0-f74.google.com with SMTP id 25so83817fat.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jul 2012 14:40:17 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:63768 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758360Ab2GKVzZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jul 2012 17:55:25 -0400
+Received: by lbbgp10 with SMTP id gp10so103025lbb.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jul 2012 14:55:24 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: will.deacon@arm.com, arnd@arndb.de, catalin.marinas@arm.com, cmetcalf@tilera.com
+Cc: wency@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, konrad.wilk@oracle.com, len.brown@intel.com, lenb@kernel.org, rientjes@google.com
 
 
 The patch titled
-     Subject: ipc: allow compat IPC version field parsing if !ARCH_WANT_OLD_COMPAT_IPC
+     Subject: acpi_memhotplug.c: free memory device if acpi_memory_enable_device() failed
 has been added to the -mm tree.  Its filename is
-     ipc-allow-compat-ipc-version-field-parsing-if-arch_want_old_compat_ipc.patch
+     acpi_memhotplugc-free-memory-device-if-acpi_memory_enable_device-failed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,66 +33,52 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Will Deacon <will.deacon@arm.com>
-Subject: ipc: allow compat IPC version field parsing if !ARCH_WANT_OLD_COMPAT_IPC
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: acpi_memhotplug.c: free memory device if acpi_memory_enable_device() failed
 
-Commit 48b25c43 ("ipc: provide generic compat versions of IPC syscalls")
-added a new ARCH_WANT_OLD_COMPAT_IPC config option for architectures to
-select if their compat target requires the old IPC syscall interface.
+If acpi_memory_enable_device() fails, acpi_memory_enable_device() will
+return a non-zero value, which means we fail to bind the memory device to
+this driver.  So we should free memory device before
+acpi_memory_device_add() returns.
 
-For architectures (such as AArch64) that do not require the internal
-calling conventions provided by this option, but have a compat target
-where the C library passes the IPC_64 flag explicitly,
-compat_ipc_parse_version no longer strips out the flag before calling the
-native system call implementation, resulting in unknown SHM/IPC commands
-and -EINVAL being returned to userspace.
-
-This patch separates the selection of the internal calling conventions for
-the IPC syscalls from the version parsing, allowing architectures to
-select __ARCH_WANT_COMPAT_IPC_PARSE_VERSION if they want to use version
-parsing whilst retaining the newer syscall calling conventions.
-
-Acked-by: Chris Metcalf <cmetcalf@tilera.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Signed-off-by: Will Deacon <will.deacon@arm.com>
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: "Brown, Len" <len.brown@intel.com>
+Cc: Yasuaki ISIMATU <isimatu.yasuaki@jp.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compat.h |    1 +
- ipc/compat.c           |    2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ drivers/acpi/acpi_memhotplug.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/compat.h~ipc-allow-compat-ipc-version-field-parsing-if-arch_want_old_compat_ipc include/linux/compat.h
---- a/include/linux/compat.h~ipc-allow-compat-ipc-version-field-parsing-if-arch_want_old_compat_ipc
-+++ a/include/linux/compat.h
-@@ -256,6 +256,7 @@ compat_sys_get_robust_list(int pid, comp
- 			   compat_size_t __user *len_ptr);
- 
- #ifdef CONFIG_ARCH_WANT_OLD_COMPAT_IPC
-+#define __ARCH_WANT_COMPAT_IPC_PARSE_VERSION
- long compat_sys_semctl(int first, int second, int third, void __user *uptr);
- long compat_sys_msgsnd(int first, int second, int third, void __user *uptr);
- long compat_sys_msgrcv(int first, int second, int msgtyp, int third,
-diff -puN ipc/compat.c~ipc-allow-compat-ipc-version-field-parsing-if-arch_want_old_compat_ipc ipc/compat.c
---- a/ipc/compat.c~ipc-allow-compat-ipc-version-field-parsing-if-arch_want_old_compat_ipc
-+++ a/ipc/compat.c
-@@ -118,7 +118,7 @@ extern int sem_ctls[];
- 
- static inline int compat_ipc_parse_version(int *cmd)
- {
--#ifdef CONFIG_ARCH_WANT_OLD_COMPAT_IPC
-+#ifdef	__ARCH_WANT_COMPAT_IPC_PARSE_VERSION
- 	int version = *cmd & IPC_64;
- 
- 	/* this is tricky: architectures that have support for the old
+diff -puN drivers/acpi/acpi_memhotplug.c~acpi_memhotplugc-free-memory-device-if-acpi_memory_enable_device-failed drivers/acpi/acpi_memhotplug.c
+--- a/drivers/acpi/acpi_memhotplug.c~acpi_memhotplugc-free-memory-device-if-acpi_memory_enable_device-failed
++++ a/drivers/acpi/acpi_memhotplug.c
+@@ -478,9 +478,11 @@ static int acpi_memory_device_add(struct
+ 	if (!acpi_memory_check_device(mem_device)) {
+ 		/* call add_memory func */
+ 		result = acpi_memory_enable_device(mem_device);
+-		if (result)
++		if (result) {
+ 			printk(KERN_ERR PREFIX
+ 				"Error in acpi_memory_enable_device\n");
++			acpi_memory_device_free(mem_device);
++		}
+ 	}
+ 	return result;
+ }
 _
-Subject: Subject: ipc: allow compat IPC version field parsing if !ARCH_WANT_OLD_COMPAT_IPC
+Subject: Subject: acpi_memhotplug.c: free memory device if acpi_memory_enable_device() failed
 
-Patches currently in -mm which might be from will.deacon@arm.com are
+Patches currently in -mm which might be from wency@cn.fujitsu.com are
 
-linux-next.patch
-ipc-add-compat_shmlba-support.patch
-ipc-allow-compat-ipc-version-field-parsing-if-arch_want_old_compat_ipc.patch
-ipc-compat-use-signed-size_t-types-for-msgsnd-and-msgrcv.patch
+mm-memory_hotplugc-release-memory-resources-if-hotadd_new_pgdat-fails.patch
+acpi_memhotplugc-fix-memory-leak-when-memory-device-is-unbound-from-the-module-acpi_memhotplug.patch
+acpi_memhotplugc-free-memory-device-if-acpi_memory_enable_device-failed.patch
+acpi_memhotplugc-remove-memory-info-from-list-before-freeing-it.patch
+acpi_memhotplugc-dont-allow-to-eject-the-memory-device-if-it-is-being-used.patch
+acpi_memhotplugc-bind-the-memory-device-when-the-driver-is-being-loaded.patch
+acpi_memhotplugc-auto-bind-the-memory-device-which-is-hotplugged-before-the-driver-is-loaded.patch
 
