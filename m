@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-sysc-avoid-argv_freenull.patch added to -mm tree
-Date: Wed, 11 Jul 2012 16:31:45 -0700
-Message-ID: <20120711233145.AB4EA100047@wpzn3.hot.corp.google.com>
+Subject: + kernel-kmodc-document-call_usermodehelper_fns-a-bit.patch added to -mm tree
+Date: Wed, 11 Jul 2012 16:32:14 -0700
+Message-ID: <20120711233215.33D7720004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:60263 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933494Ab2GKXbs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jul 2012 19:31:48 -0400
-Received: by vbnl22 with SMTP id l22so181172vbn.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jul 2012 16:31:47 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:53074 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933422Ab2GKXcS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jul 2012 19:32:18 -0400
+Received: by eaao13 with SMTP id o13so87396eaa.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jul 2012 16:32:17 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@linux.intel.com, ebiederm@xmission.com, gorcunov@openvz.org, keescook@chromium.org, rientjes@google.com, serge.hallyn@canonical.com, xiyou.wangcong@gmail.com
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, ebiederm@xmission.com, gorcunov@openvz.org, keescook@chromium.org, oleg@redhat.com, rusty@rustcorp.com.au, serge.hallyn@canonical.com, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     Subject: kernel/sys.c: avoid argv_free(NULL)
+     Subject: kernel/kmod.c: document call_usermodehelper_fns() a bit
 has been added to the -mm tree.  Its filename is
-     kernel-sysc-avoid-argv_freenull.patch
+     kernel-kmodc-document-call_usermodehelper_fns-a-bit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel/sys.c: avoid argv_free(NULL)
+Subject: kernel/kmod.c: document call_usermodehelper_fns() a bit
 
-If argv_split() failed, the code will end up calling argv_free(NULL).  Fix
-it up and clean things up a bit.
+This function's interface is, uh, subtle.  Attempt to apologise for it.
 
-Addresses Coverity report 703573.
-
+Cc: WANG Cong <xiyou.wangcong@gmail.com>
 Cc: Cyrill Gorcunov <gorcunov@openvz.org>
 Cc: Kees Cook <keescook@chromium.org>
 Cc: Serge Hallyn <serge.hallyn@canonical.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: WANG Cong <xiyou.wangcong@gmail.com>
-Cc: Alan Cox <alan@linux.intel.com>
-Cc: David Rientjes <rientjes@google.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ kernel/kmod.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN kernel/sys.c~kernel-sysc-avoid-argv_freenull kernel/sys.c
---- a/kernel/sys.c~kernel-sysc-avoid-argv_freenull
-+++ a/kernel/sys.c
-@@ -2196,25 +2196,25 @@ static void argv_cleanup(struct subproce
- int orderly_poweroff(bool force)
- {
- 	int argc;
--	char **argv = argv_split(GFP_ATOMIC, poweroff_cmd, &argc);
-+	char **argv;
- 	static char *envp[] = {
- 		"HOME=/",
- 		"PATH=/sbin:/bin:/usr/sbin:/usr/bin",
- 		NULL
- 	};
--	int ret = -ENOMEM;
-+	int ret;
+diff -puN kernel/kmod.c~kernel-kmodc-document-call_usermodehelper_fns-a-bit kernel/kmod.c
+--- a/kernel/kmod.c~kernel-kmodc-document-call_usermodehelper_fns-a-bit
++++ a/kernel/kmod.c
+@@ -577,6 +577,12 @@ unlock:
+ 	return retval;
+ }
  
-+	argv = argv_split(GFP_ATOMIC, poweroff_cmd, &argc);
- 	if (argv == NULL) {
- 		printk(KERN_WARNING "%s failed to allocate memory for \"%s\"\n",
- 		       __func__, poweroff_cmd);
--		goto out;
-+		return -ENOMEM;
- 	}
- 
- 	ret = call_usermodehelper_fns(argv[0], argv, envp, UMH_NO_WAIT,
- 				      NULL, argv_cleanup, NULL);
--out:
- 	if (likely(!ret))
--		return 0;
-+		return 0;		/* success */
- 
- 	if (ret == -ENOMEM)
- 		argv_free(argv);
++/*
++ * call_usermodehelper_fns() will not run the caller-provided cleanup function
++ * if a memory allocation failure is experienced.  So the caller might need to
++ * check the call_usermodehelper_fns() return value: if it is -ENOMEM, perform
++ * the necessaary cleanup within the caller.
++ */
+ int call_usermodehelper_fns(
+ 	char *path, char **argv, char **envp, int wait,
+ 	int (*init)(struct subprocess_info *info, struct cred *new),
 _
-Subject: Subject: kernel/sys.c: avoid argv_free(NULL)
+Subject: Subject: kernel/kmod.c: document call_usermodehelper_fns() a bit
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
