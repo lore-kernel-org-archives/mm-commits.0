@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup-add-huge_page_order-check-to-avoid-incorrectly-uncharge.patch added to -mm tree
-Date: Wed, 11 Jul 2012 14:58:05 -0700
-Message-ID: <20120711215806.3150A5C0050@hpza9.eem.corp.google.com>
+Subject: + fat-refactor-shortname-parsing.patch added to -mm tree
+Date: Wed, 11 Jul 2012 15:08:51 -0700
+Message-ID: <20120711220852.232F51E0048@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:48609 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933303Ab2GKV6J (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jul 2012 17:58:09 -0400
-Received: by eaao13 with SMTP id o13so85284eaa.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jul 2012 14:58:08 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:36725 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030280Ab2GKWIx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jul 2012 18:08:53 -0400
+Received: by ggeh3 with SMTP id h3so174880gge.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jul 2012 15:08:52 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: liwp@linux.vnet.ibm.com, aneesh.kumar@linux.vnet.ibm.com, dhillf@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, liwp.linux@gmail.com, mhocko@suse.cz, rientjes@google.com
+Cc: steve@digidescorp.com, hirofumi@mail.parknet.co.jp
 
 
 The patch titled
-     Subject: mm/hugetlb_cgroup: Add huge_page_order check to avoid incorrectly uncharge
+     Subject: fat: Refactor shortname parsing
 has been added to the -mm tree.  Its filename is
-     hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup-add-huge_page_order-check-to-avoid-incorrectly-uncharge.patch
+     fat-refactor-shortname-parsing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,54 +33,356 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wanpeng Li <liwp@linux.vnet.ibm.com>
-Subject: mm/hugetlb_cgroup: Add huge_page_order check to avoid incorrectly uncharge
+From: "Steven J. Magnani" <steve@digidescorp.com>
+Subject: fat: Refactor shortname parsing
 
-alloc_huge_page() will call hugetlb_cgroup_charge_cgroup() to charge
-pages, the compound page have less than 3 pages will not charge to hugetlb
-cgroup.  When alloc_huge_page fails it will call
-hugetlb_cgroup_uncharge_cgroup to uncharge pages, however,
-hugetlb_cgroup_uncharge_cgroup doesn't have huge_page_order check.  That
-means it will uncharge pages even if the compound page have less than 3
-pages.  Add huge_page_order check to avoid this incorrectly uncharge.
+Nearly identical shortname parsing is performed in fat_search_long() and
+__fat_readdir().  Extract this code into a function that may be called by
+both.
 
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
-Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Signed-off-by: Wanpeng Li <liwp.linux@gmail.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Steven J. Magnani <steve@digidescorp.com>
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_cgroup.c |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/fat/dir.c |  255 ++++++++++++++++++++++++++-----------------------
+ 1 file changed, 137 insertions(+), 118 deletions(-)
 
-diff -puN mm/hugetlb_cgroup.c~hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup-add-huge_page_order-check-to-avoid-incorrectly-uncharge mm/hugetlb_cgroup.c
---- a/mm/hugetlb_cgroup.c~hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup-add-huge_page_order-check-to-avoid-incorrectly-uncharge
-+++ a/mm/hugetlb_cgroup.c
-@@ -184,6 +184,9 @@ void hugetlb_cgroup_uncharge_cgroup(int 
- 	if (hugetlb_cgroup_disabled() || !h_cg)
- 		return;
+diff -puN fs/fat/dir.c~fat-refactor-shortname-parsing fs/fat/dir.c
+--- a/fs/fat/dir.c~fat-refactor-shortname-parsing
++++ a/fs/fat/dir.c
+@@ -35,6 +35,11 @@
+ #define FAT_MAX_UNI_CHARS	((MSDOS_SLOTS - 1) * 13 + 1)
+ #define FAT_MAX_UNI_SIZE	(FAT_MAX_UNI_CHARS * sizeof(wchar_t))
  
-+	if (huge_page_order(&hstates[idx]) < HUGETLB_CGROUP_MIN_ORDER)
-+		return;
++static inline unsigned char fat_tolower(unsigned char c)
++{
++	return ((c >= 'A') && (c <= 'Z')) ? c+32 : c;
++}
 +
- 	res_counter_uncharge(&h_cg->hugepage[idx], csize);
- 	return;
+ static inline loff_t fat_make_i_pos(struct super_block *sb,
+ 				    struct buffer_head *bh,
+ 				    struct msdos_dir_entry *de)
+@@ -333,6 +338,124 @@ parse_long:
+ 	return 0;
  }
+ 
++/**
++ * fat_parse_short - Parse MS-DOS (short) directory entry.
++ * @sb:		superblock
++ * @de:		directory entry to parse
++ * @name:	FAT_MAX_SHORT_SIZE array in which to place extracted name
++ * @dot_hidden:	Nonzero == prepend '.' to names with ATTR_HIDDEN
++ *
++ * Returns the number of characters extracted into 'name'.
++ */
++static int fat_parse_short(struct super_block *sb,
++			   const struct msdos_dir_entry *de,
++			   unsigned char *name, int dot_hidden)
++{
++	const struct msdos_sb_info *sbi = MSDOS_SB(sb);
++	int isvfat = sbi->options.isvfat;
++	int nocase = sbi->options.nocase;
++	unsigned short opt_shortname = sbi->options.shortname;
++	struct nls_table *nls_disk = sbi->nls_disk;
++	wchar_t uni_name[14];
++	unsigned char c, work[MSDOS_NAME];
++	unsigned char *ptname = name;
++	int chi, chl, i, j, k;
++	int dotoffset = 0;
++	int name_len = 0, uni_len = 0;
++
++	if (!isvfat && dot_hidden && (de->attr & ATTR_HIDDEN)) {
++		*ptname++ = '.';
++		dotoffset = 1;
++	}
++
++	memcpy(work, de->name, sizeof(work));
++	/* see namei.c, msdos_format_name */
++	if (work[0] == 0x05)
++		work[0] = 0xE5;
++
++	/* Filename */
++	for (i = 0, j = 0; i < 8;) {
++		c = work[i];
++		if (!c)
++			break;
++		chl = fat_shortname2uni(nls_disk, &work[i], 8 - i,
++					&uni_name[j++], opt_shortname,
++					de->lcase & CASE_LOWER_BASE);
++		if (chl <= 1) {
++			if (!isvfat)
++				ptname[i] = nocase ? c : fat_tolower(c);
++			i++;
++			if (c != ' ') {
++				name_len = i;
++				uni_len  = j;
++			}
++		} else {
++			uni_len = j;
++			if (isvfat)
++				i += min(chl, 8-i);
++			else {
++				for (chi = 0; chi < chl && i < 8; chi++, i++)
++					ptname[i] = work[i];
++			}
++			if (chl)
++				name_len = i;
++		}
++	}
++
++	i = name_len;
++	j = uni_len;
++	fat_short2uni(nls_disk, ".", 1, &uni_name[j++]);
++	if (!isvfat)
++		ptname[i] = '.';
++	i++;
++
++	/* Extension */
++	for (k = 8; k < MSDOS_NAME;) {
++		c = work[k];
++		if (!c)
++			break;
++		chl = fat_shortname2uni(nls_disk, &work[k], MSDOS_NAME - k,
++					&uni_name[j++], opt_shortname,
++					de->lcase & CASE_LOWER_EXT);
++		if (chl <= 1) {
++			k++;
++			if (!isvfat)
++				ptname[i] = nocase ? c : fat_tolower(c);
++			i++;
++			if (c != ' ') {
++				name_len = i;
++				uni_len  = j;
++			}
++		} else {
++			uni_len = j;
++			if (isvfat) {
++				int offset = min(chl, MSDOS_NAME-k);
++				k += offset;
++				i += offset;
++			} else {
++				for (chi = 0; chi < chl && k < MSDOS_NAME;
++				     chi++, i++, k++) {
++						ptname[i] = work[k];
++				}
++			}
++			if (chl)
++				name_len = i;
++		}
++	}
++
++	if (name_len > 0) {
++		name_len += dotoffset;
++
++		if (sbi->options.isvfat) {
++			uni_name[uni_len] = 0x0000;
++			name_len = fat_uni_to_x8(sb, uni_name, name,
++						 FAT_MAX_SHORT_SIZE);
++		}
++	}
++
++	return name_len;
++}
++
+ /*
+  * Return values: negative -> error, 0 -> not found, positive -> found,
+  * value is the total amount of slots, including the shortname entry.
+@@ -344,15 +467,11 @@ int fat_search_long(struct inode *inode,
+ 	struct msdos_sb_info *sbi = MSDOS_SB(sb);
+ 	struct buffer_head *bh = NULL;
+ 	struct msdos_dir_entry *de;
+-	struct nls_table *nls_disk = sbi->nls_disk;
+ 	unsigned char nr_slots;
+-	wchar_t bufuname[14];
+ 	wchar_t *unicode = NULL;
+-	unsigned char work[MSDOS_NAME];
+ 	unsigned char bufname[FAT_MAX_SHORT_SIZE];
+-	unsigned short opt_shortname = sbi->options.shortname;
+ 	loff_t cpos = 0;
+-	int chl, i, j, last_u, err, len;
++	int err, len;
+ 
+ 	err = -ENOENT;
+ 	while (1) {
+@@ -380,47 +499,16 @@ parse_record:
+ 				goto end_of_dir;
+ 		}
+ 
+-		memcpy(work, de->name, sizeof(de->name));
+-		/* see namei.c, msdos_format_name */
+-		if (work[0] == 0x05)
+-			work[0] = 0xE5;
+-		for (i = 0, j = 0, last_u = 0; i < 8;) {
+-			if (!work[i])
+-				break;
+-			chl = fat_shortname2uni(nls_disk, &work[i], 8 - i,
+-						&bufuname[j++], opt_shortname,
+-						de->lcase & CASE_LOWER_BASE);
+-			if (chl <= 1) {
+-				if (work[i] != ' ')
+-					last_u = j;
+-			} else {
+-				last_u = j;
+-			}
+-			i += chl;
+-		}
+-		j = last_u;
+-		fat_short2uni(nls_disk, ".", 1, &bufuname[j++]);
+-		for (i = 8; i < MSDOS_NAME;) {
+-			if (!work[i])
+-				break;
+-			chl = fat_shortname2uni(nls_disk, &work[i],
+-						MSDOS_NAME - i,
+-						&bufuname[j++], opt_shortname,
+-						de->lcase & CASE_LOWER_EXT);
+-			if (chl <= 1) {
+-				if (work[i] != ' ')
+-					last_u = j;
+-			} else {
+-				last_u = j;
+-			}
+-			i += chl;
+-		}
+-		if (!last_u)
++		/* Never prepend '.' to hidden files here.
++		 * That is done only for msdos mounts (and only when
++		 * 'dotsOK=yes'); if we are executing here, it is in the
++		 * context of a vfat mount.
++		 */
++		len = fat_parse_short(sb, de, bufname, 0);
++		if (len == 0)
+ 			continue;
+ 
+ 		/* Compare shortname */
+-		bufuname[last_u] = 0x0000;
+-		len = fat_uni_to_x8(sb, bufuname, bufname, sizeof(bufname));
+ 		if (fat_name_match(sbi, name, name_len, bufname, len))
+ 			goto found;
+ 
+@@ -469,20 +557,15 @@ static int __fat_readdir(struct inode *i
+ 	struct msdos_sb_info *sbi = MSDOS_SB(sb);
+ 	struct buffer_head *bh;
+ 	struct msdos_dir_entry *de;
+-	struct nls_table *nls_disk = sbi->nls_disk;
+ 	unsigned char nr_slots;
+-	wchar_t bufuname[14];
+ 	wchar_t *unicode = NULL;
+-	unsigned char c, work[MSDOS_NAME];
+-	unsigned char bufname[FAT_MAX_SHORT_SIZE], *ptname = bufname;
+-	unsigned short opt_shortname = sbi->options.shortname;
++	unsigned char bufname[FAT_MAX_SHORT_SIZE];
+ 	int isvfat = sbi->options.isvfat;
+-	int nocase = sbi->options.nocase;
+ 	const char *fill_name = NULL;
+ 	unsigned long inum;
+ 	unsigned long lpos, dummy, *furrfu = &lpos;
+ 	loff_t cpos;
+-	int chi, chl, i, i2, j, last, last_u, dotoffset = 0, fill_len = 0;
++	int short_len = 0, fill_len = 0;
+ 	int ret = 0;
+ 
+ 	lock_super(sb);
+@@ -556,74 +639,10 @@ parse_record:
+ 		}
+ 	}
+ 
+-	if (sbi->options.dotsOK) {
+-		ptname = bufname;
+-		dotoffset = 0;
+-		if (de->attr & ATTR_HIDDEN) {
+-			*ptname++ = '.';
+-			dotoffset = 1;
+-		}
+-	}
+-
+-	memcpy(work, de->name, sizeof(de->name));
+-	/* see namei.c, msdos_format_name */
+-	if (work[0] == 0x05)
+-		work[0] = 0xE5;
+-	for (i = 0, j = 0, last = 0, last_u = 0; i < 8;) {
+-		if (!(c = work[i]))
+-			break;
+-		chl = fat_shortname2uni(nls_disk, &work[i], 8 - i,
+-					&bufuname[j++], opt_shortname,
+-					de->lcase & CASE_LOWER_BASE);
+-		if (chl <= 1) {
+-			ptname[i++] = (!nocase && c>='A' && c<='Z') ? c+32 : c;
+-			if (c != ' ') {
+-				last = i;
+-				last_u = j;
+-			}
+-		} else {
+-			last_u = j;
+-			for (chi = 0; chi < chl && i < 8; chi++) {
+-				ptname[i] = work[i];
+-				i++; last = i;
+-			}
+-		}
+-	}
+-	i = last;
+-	j = last_u;
+-	fat_short2uni(nls_disk, ".", 1, &bufuname[j++]);
+-	ptname[i++] = '.';
+-	for (i2 = 8; i2 < MSDOS_NAME;) {
+-		if (!(c = work[i2]))
+-			break;
+-		chl = fat_shortname2uni(nls_disk, &work[i2], MSDOS_NAME - i2,
+-					&bufuname[j++], opt_shortname,
+-					de->lcase & CASE_LOWER_EXT);
+-		if (chl <= 1) {
+-			i2++;
+-			ptname[i++] = (!nocase && c>='A' && c<='Z') ? c+32 : c;
+-			if (c != ' ') {
+-				last = i;
+-				last_u = j;
+-			}
+-		} else {
+-			last_u = j;
+-			for (chi = 0; chi < chl && i2 < MSDOS_NAME; chi++) {
+-				ptname[i++] = work[i2++];
+-				last = i;
+-			}
+-		}
+-	}
+-	if (!last)
++	short_len = fat_parse_short(sb, de, bufname, sbi->options.dotsOK);
++	if (short_len == 0)
+ 		goto record_end;
+ 
+-	i = last + dotoffset;
+-	j = last_u;
+-
+-	if (isvfat) {
+-		bufuname[j] = 0x0000;
+-		i = fat_uni_to_x8(sb, bufuname, bufname, sizeof(bufname));
+-	}
+ 	if (nr_slots) {
+ 		/* hack for fat_ioctl_filldir() */
+ 		struct fat_ioctl_filldir_callback *p = dirent;
+@@ -631,12 +650,12 @@ parse_record:
+ 		p->longname = fill_name;
+ 		p->long_len = fill_len;
+ 		p->shortname = bufname;
+-		p->short_len = i;
++		p->short_len = short_len;
+ 		fill_name = NULL;
+ 		fill_len = 0;
+ 	} else {
+ 		fill_name = bufname;
+-		fill_len = i;
++		fill_len = short_len;
+ 	}
+ 
+ start_filldir:
 _
-Subject: Subject: mm/hugetlb_cgroup: Add huge_page_order check to avoid incorrectly uncharge
+Subject: Subject: fat: Refactor shortname parsing
 
-Patches currently in -mm which might be from liwp@linux.vnet.ibm.com are
+Patches currently in -mm which might be from steve@digidescorp.com are
 
-linux-next.patch
-mm-prepare-for-removal-of-obsolete-proc-sys-vm-nr_pdflush_threads.patch
-hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup-add-huge_page_order-check-to-avoid-incorrectly-uncharge.patch
-mm-remove-unused-lru_all_evictable.patch
-memcg-rename-mem_control_xxx-to-memcg_xxx.patch
-mm-memcg-complete-documentation-for-tcp-memcg-files.patch
-mm-memcg-mem_cgroup_relize_xxx_limit-can-guarantee-memcg-reslimit-=-memcg-memswlimit.patch
-mm-memcg-replace-inexistence-move_lock_page_cgroup-by-move_lock_mem_cgroup-in-comment.patch
+fat-fix-non-atomic-nfs-i_pos-read.patch
+fat-accessors-for-msdos_dir_entry-start-fields.patch
+fat-refactor-shortname-parsing.patch
+fat-exportfs-move-nfs-support-code.patch
+fat-exportfs-fix-dentry-reconnection.patch
 
