@@ -1,78 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix.patch removed from -mm tree
-Date: Wed, 11 Jul 2012 13:57:49 -0700
-Message-ID: <20120711205751.8AC0420004E@hpza10.eem.corp.google.com>
+Subject: [folded] rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 11 Jul 2012 13:58:33 -0700
+Message-ID: <20120711205833.D6BE420004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:52243 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030192Ab2GKU5y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jul 2012 16:57:54 -0400
-Received: by bkcjc3 with SMTP id jc3so84148bkc.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jul 2012 13:57:53 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:41912 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030245Ab2GKU6g (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jul 2012 16:58:36 -0400
+Received: by eekd4 with SMTP id d4so26799eek.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jul 2012 13:58:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jiang.liu@huawei.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, qiuxishi@huawei.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, lee.jones@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix
+     Subject: rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix.patch
+     rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer.patch
+This patch was dropped because it was folded into rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix
+Subject: rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled-checkpatch-fixes
 
-add pglist_data.kswapd locking comments
+ERROR: code indent should use tabs where possible
+#41: FILE: drivers/rtc/rtc-ab8500.c:458:
++        { .compatible = "stericsson,ab8500-rtc", },$
 
-Cc: David Rientjes <rientjes@google.com>
-Cc: Jiang Liu <jiang.liu@huawei.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
+WARNING: please, no spaces at the start of a line
+#41: FILE: drivers/rtc/rtc-ab8500.c:458:
++        { .compatible = "stericsson,ab8500-rtc", },$
+
+ERROR: code indent should use tabs where possible
+#42: FILE: drivers/rtc/rtc-ab8500.c:459:
++        {}$
+
+WARNING: please, no spaces at the start of a line
+#42: FILE: drivers/rtc/rtc-ab8500.c:459:
++        {}$
+
+total: 2 errors, 2 warnings, 30 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Lee Jones <lee.jones@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 +-
- mm/vmscan.c            |    3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-ab8500.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mmzone.h~memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix include/linux/mmzone.h
---- a/include/linux/mmzone.h~memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix
-+++ a/include/linux/mmzone.h
-@@ -693,7 +693,7 @@ typedef struct pglist_data {
- 					     range, including holes */
- 	int node_id;
- 	wait_queue_head_t kswapd_wait;
--	struct task_struct *kswapd;
-+	struct task_struct *kswapd;	/* Protected by lock_memory_hotplug() */
- 	int kswapd_max_order;
- 	enum zone_type classzone_idx;
- } pg_data_t;
-diff -puN mm/vmscan.c~memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix mm/vmscan.c
---- a/mm/vmscan.c~memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer-fix
-+++ a/mm/vmscan.c
-@@ -2956,7 +2956,8 @@ int kswapd_run(int nid)
+diff -puN drivers/rtc/rtc-ab8500.c~rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled-checkpatch-fixes drivers/rtc/rtc-ab8500.c
+--- a/drivers/rtc/rtc-ab8500.c~rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled-checkpatch-fixes
++++ a/drivers/rtc/rtc-ab8500.c
+@@ -455,8 +455,8 @@ static int __devexit ab8500_rtc_remove(s
  }
  
- /*
-- * Called by memory hotplug when all memory in a node is offlined.
-+ * Called by memory hotplug when all memory in a node is offlined.  Caller must
-+ * hold lock_memory_hotplug().
-  */
- void kswapd_stop(int nid)
- {
+ static const struct of_device_id ab8500_rtc_match[] = {
+-        { .compatible = "stericsson,ab8500-rtc", },
+-        {}
++	{ .compatible = "stericsson,ab8500-rtc", },
++	{}
+ };
+ 
+ static struct platform_driver ab8500_rtc_driver = {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer.patch
-rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled-checkpatch-fixes.patch
+rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled.patch
 drivers-gpio-gpio-tps65910c-fix-config_of_gpio=n-build.patch
 linux-next.patch
 i-need-old-gcc.patch
