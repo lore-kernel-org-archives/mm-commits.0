@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-have-order-0-compaction-start-off-where-it-left-v3-typo.patch added to -mm tree
-Date: Wed, 11 Jul 2012 14:22:20 -0700
-Message-ID: <20120711212221.734A520004E@hpza10.eem.corp.google.com>
+Subject: + ipc-add-compat_shmlba-support.patch added to -mm tree
+Date: Wed, 11 Jul 2012 14:40:11 -0700
+Message-ID: <20120711214011.CF49E200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:42981 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753880Ab2GKVWX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jul 2012 17:22:23 -0400
-Received: by wibhr14 with SMTP id hr14so85184wib.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jul 2012 14:22:22 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:39040 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758097Ab2GKVkP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jul 2012 17:40:15 -0400
+Received: by fat25 with SMTP id 25so83817fat.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jul 2012 14:40:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, riel@redhat.com
+Cc: will.deacon@arm.com, arnd@arndb.de, catalin.marinas@arm.com, chris@zankel.net, davem@davemloft.net
 
 
 The patch titled
-     Subject: mm-have-order-0-compaction-start-off-where-it-left-v3-typo
+     Subject: ipc: add COMPAT_SHMLBA support
 has been added to the -mm tree.  Its filename is
-     mm-have-order-0-compaction-start-off-where-it-left-v3-typo.patch
+     ipc-add-compat_shmlba-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,87 +33,162 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-have-order-0-compaction-start-off-where-it-left-v3-typo
+From: Will Deacon <will.deacon@arm.com>
+Subject: ipc: add COMPAT_SHMLBA support
 
-s/laste/last/, use 80 cols
+If the SHMLBA definition for a native task differs from the definition for
+a compat task, the do_shmat() function would need to handle both.
 
-Cc: Rik van Riel <riel@redhat.com>
+This patch introduces COMPAT_SHMLBA, which is used by the compat shmat
+syscall when calling the ipc code and allows architectures such as AArch64
+(where the native SHMLBA is 64k but the compat (AArch32) definition is
+16k) to provide the correct semantics for compat IPC system calls.
+
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Signed-off-by: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ arch/sparc/kernel/sys_sparc_64.c |    2 +-
+ arch/xtensa/kernel/syscall.c     |    2 +-
+ include/linux/shm.h              |    6 ++++--
+ ipc/compat.c                     |    8 ++++++--
+ ipc/shm.c                        |    9 +++++----
+ ipc/syscall.c                    |    2 +-
+ 6 files changed, 18 insertions(+), 11 deletions(-)
 
-diff -puN mm/compaction.c~mm-have-order-0-compaction-start-off-where-it-left-v3-typo mm/compaction.c
---- a/mm/compaction.c~mm-have-order-0-compaction-start-off-where-it-left-v3-typo
-+++ a/mm/compaction.c
-@@ -571,11 +571,10 @@ static isolate_migrate_t isolate_migrate
+diff -puN arch/sparc/kernel/sys_sparc_64.c~ipc-add-compat_shmlba-support arch/sparc/kernel/sys_sparc_64.c
+--- a/arch/sparc/kernel/sys_sparc_64.c~ipc-add-compat_shmlba-support
++++ a/arch/sparc/kernel/sys_sparc_64.c
+@@ -470,7 +470,7 @@ SYSCALL_DEFINE6(sparc_ipc, unsigned int,
+ 		switch (call) {
+ 		case SHMAT: {
+ 			ulong raddr;
+-			err = do_shmat(first, ptr, (int)second, &raddr);
++			err = do_shmat(first, ptr, (int)second, &raddr, SHMLBA);
+ 			if (!err) {
+ 				if (put_user(raddr,
+ 					     (ulong __user *) third))
+diff -puN arch/xtensa/kernel/syscall.c~ipc-add-compat_shmlba-support arch/xtensa/kernel/syscall.c
+--- a/arch/xtensa/kernel/syscall.c~ipc-add-compat_shmlba-support
++++ a/arch/xtensa/kernel/syscall.c
+@@ -44,7 +44,7 @@ asmlinkage long xtensa_shmat(int shmid, 
+ 	unsigned long ret;
+ 	long err;
+ 
+-	err = do_shmat(shmid, shmaddr, shmflg, &ret);
++	err = do_shmat(shmid, shmaddr, shmflg, &ret, SHMLBA);
+ 	if (err)
+ 		return err;
+ 	return (long)ret;
+diff -puN include/linux/shm.h~ipc-add-compat_shmlba-support include/linux/shm.h
+--- a/include/linux/shm.h~ipc-add-compat_shmlba-support
++++ a/include/linux/shm.h
+@@ -107,12 +107,14 @@ struct shmid_kernel /* private to the ke
+ #define SHM_NORESERVE   010000  /* don't check for reservations */
+ 
+ #ifdef CONFIG_SYSVIPC
+-long do_shmat(int shmid, char __user *shmaddr, int shmflg, unsigned long *addr);
++long do_shmat(int shmid, char __user *shmaddr, int shmflg, unsigned long *addr,
++	      unsigned long shmlba);
+ extern int is_file_shm_hugepages(struct file *file);
+ extern void exit_shm(struct task_struct *task);
+ #else
+ static inline long do_shmat(int shmid, char __user *shmaddr,
+-				int shmflg, unsigned long *addr)
++			    int shmflg, unsigned long *addr,
++			    unsigned long shmlba)
+ {
+ 	return -ENOSYS;
+ }
+diff -puN ipc/compat.c~ipc-add-compat_shmlba-support ipc/compat.c
+--- a/ipc/compat.c~ipc-add-compat_shmlba-support
++++ a/ipc/compat.c
+@@ -514,6 +514,10 @@ long compat_sys_msgctl(int first, int se
+ 	return err;
  }
  
- /*
-- * Returns the start pfn of the laste page block in a zone.
-- * This is the starting point for full compaction of a zone.
-- * Compaction searches for free pages from the end of each zone,
-- * while isolate_freepages_block scans forward inside each page
-- * block.
-+ * Returns the start pfn of the last page block in a zone.  This is the starting
-+ * point for full compaction of a zone.  Compaction searches for free pages from
-+ * the end of each zone, while isolate_freepages_block scans forward inside each
-+ * page block.
++#ifndef COMPAT_SHMLBA
++#define COMPAT_SHMLBA	SHMLBA
++#endif
++
+ #ifdef CONFIG_ARCH_WANT_OLD_COMPAT_IPC
+ long compat_sys_shmat(int first, int second, compat_uptr_t third, int version,
+ 			void __user *uptr)
+@@ -524,7 +528,7 @@ long compat_sys_shmat(int first, int sec
+ 
+ 	if (version == 1)
+ 		return -EINVAL;
+-	err = do_shmat(first, uptr, second, &raddr);
++	err = do_shmat(first, uptr, second, &raddr, COMPAT_SHMLBA);
+ 	if (err < 0)
+ 		return err;
+ 	uaddr = compat_ptr(third);
+@@ -536,7 +540,7 @@ long compat_sys_shmat(int shmid, compat_
+ 	unsigned long ret;
+ 	long err;
+ 
+-	err = do_shmat(shmid, compat_ptr(shmaddr), shmflg, &ret);
++	err = do_shmat(shmid, compat_ptr(shmaddr), shmflg, &ret, COMPAT_SHMLBA);
+ 	if (err)
+ 		return err;
+ 	force_successful_syscall_return();
+diff -puN ipc/shm.c~ipc-add-compat_shmlba-support ipc/shm.c
+--- a/ipc/shm.c~ipc-add-compat_shmlba-support
++++ a/ipc/shm.c
+@@ -953,7 +953,8 @@ out:
+  * "raddr" thing points to kernel space, and there has to be a wrapper around
+  * this.
   */
- static unsigned long start_free_pfn(struct zone *zone)
+-long do_shmat(int shmid, char __user *shmaddr, int shmflg, ulong *raddr)
++long do_shmat(int shmid, char __user *shmaddr, int shmflg, ulong *raddr,
++	      unsigned long shmlba)
  {
+ 	struct shmid_kernel *shp;
+ 	unsigned long addr;
+@@ -973,9 +974,9 @@ long do_shmat(int shmid, char __user *sh
+ 	if (shmid < 0)
+ 		goto out;
+ 	else if ((addr = (ulong)shmaddr)) {
+-		if (addr & (SHMLBA-1)) {
++		if (addr & (shmlba - 1)) {
+ 			if (shmflg & SHM_RND)
+-				addr &= ~(SHMLBA-1);	   /* round down */
++				addr &= ~(shmlba - 1);	   /* round down */
+ 			else
+ #ifndef __ARCH_FORCE_SHMLBA
+ 				if (addr & ~PAGE_MASK)
+@@ -1107,7 +1108,7 @@ SYSCALL_DEFINE3(shmat, int, shmid, char 
+ 	unsigned long ret;
+ 	long err;
+ 
+-	err = do_shmat(shmid, shmaddr, shmflg, &ret);
++	err = do_shmat(shmid, shmaddr, shmflg, &ret, SHMLBA);
+ 	if (err)
+ 		return err;
+ 	force_successful_syscall_return();
+diff -puN ipc/syscall.c~ipc-add-compat_shmlba-support ipc/syscall.c
+--- a/ipc/syscall.c~ipc-add-compat_shmlba-support
++++ a/ipc/syscall.c
+@@ -73,7 +73,7 @@ SYSCALL_DEFINE6(ipc, unsigned int, call,
+ 		default: {
+ 			unsigned long raddr;
+ 			ret = do_shmat(first, (char __user *)ptr,
+-				       second, &raddr);
++				       second, &raddr, SHMLBA);
+ 			if (ret)
+ 				return ret;
+ 			return put_user(raddr, (unsigned long __user *) third);
 _
-Subject: Subject: mm-have-order-0-compaction-start-off-where-it-left-v3-typo
+Subject: Subject: ipc: add COMPAT_SHMLBA support
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from will.deacon@arm.com are
 
-memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer.patch
-rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled.patch
-drivers-gpio-gpio-tps65910c-fix-config_of_gpio=n-build.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
-sysfs-fail-dentry-revalidation-after-namespace-change-fix.patch
-hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
-coredump-warn-about-unsafe-suid_dumpable-core_pattern-combo.patch
-mm.patch
-mm-make-vb_alloc-more-foolproof-fix.patch
-mm-hugetlb-add-new-hugetlb-cgroup-fix.patch
-mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch
-hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
-hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
-mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
-memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
-memcg-prevent-oom-with-too-many-dirty-pages.patch
-mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
-memcg-rename-config-variables.patch
-memcg-rename-config-variables-fix-fix.patch
-mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes.patch
-mm-have-order-0-compaction-start-off-where-it-left-v3-typo.patch
-tmpfs-implement-numa-node-interleaving-fix.patch
-avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
-kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
-printk-add-generic-functions-to-find-kern_level-headers-fix.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
-lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch
-string-introduce-memweight-fix.patch
-drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes.patch
-drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded.patch
-hfsplus-get-rid-of-write_super-checkpatch-fixes.patch
-kmod-avoid-deadlock-from-recursive-kmod-call.patch
-fork-use-vma_pages-to-simplify-the-code-fix.patch
-fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
-include-linux-aioh-cpp-c-conversions.patch
-resource-make-sure-requested-range-intersects-root-range-fix.patch
-fault-injection-add-selftests-for-cpu-and-memory-hotplug.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+ipc-add-compat_shmlba-support.patch
+ipc-allow-compat-ipc-version-field-parsing-if-arch_want_old_compat_ipc.patch
+ipc-compat-use-signed-size_t-types-for-msgsnd-and-msgrcv.patch
 
