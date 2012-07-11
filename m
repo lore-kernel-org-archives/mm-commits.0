@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + acpi_memhotplugc-fix-memory-leak-when-memory-device-is-unbound-from-the-module-acpi_memhotplug.patch added to -mm tree
-Date: Wed, 11 Jul 2012 14:55:18 -0700
-Message-ID: <20120711215519.2B50E10004A@wpzn3.hot.corp.google.com>
+Subject: + hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup-add-huge_page_order-check-to-avoid-incorrectly-uncharge.patch added to -mm tree
+Date: Wed, 11 Jul 2012 14:58:05 -0700
+Message-ID: <20120711215806.3150A5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:33555 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756048Ab2GKVzU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jul 2012 17:55:20 -0400
-Received: by vbnl22 with SMTP id l22so173362vbn.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jul 2012 14:55:19 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:48609 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933303Ab2GKV6J (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jul 2012 17:58:09 -0400
+Received: by eaao13 with SMTP id o13so85284eaa.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jul 2012 14:58:08 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wency@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, konrad.wilk@oracle.com, len.brown@intel.com, lenb@kernel.org, rientjes@google.com
+Cc: liwp@linux.vnet.ibm.com, aneesh.kumar@linux.vnet.ibm.com, dhillf@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, liwp.linux@gmail.com, mhocko@suse.cz, rientjes@google.com
 
 
 The patch titled
-     Subject: acpi_memhotplug.c: fix memory leak when memory device is unbound from the module acpi_memhotplug
+     Subject: mm/hugetlb_cgroup: Add huge_page_order check to avoid incorrectly uncharge
 has been added to the -mm tree.  Its filename is
-     acpi_memhotplugc-fix-memory-leak-when-memory-device-is-unbound-from-the-module-acpi_memhotplug.patch
+     hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup-add-huge_page_order-check-to-avoid-incorrectly-uncharge.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,80 +33,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: acpi_memhotplug.c: fix memory leak when memory device is unbound from the module acpi_memhotplug
+From: Wanpeng Li <liwp@linux.vnet.ibm.com>
+Subject: mm/hugetlb_cgroup: Add huge_page_order check to avoid incorrectly uncharge
 
-We allocate memory to store acpi_memory_info, so we should free it before
-freeing mem_device.
+alloc_huge_page() will call hugetlb_cgroup_charge_cgroup() to charge
+pages, the compound page have less than 3 pages will not charge to hugetlb
+cgroup.  When alloc_huge_page fails it will call
+hugetlb_cgroup_uncharge_cgroup to uncharge pages, however,
+hugetlb_cgroup_uncharge_cgroup doesn't have huge_page_order check.  That
+means it will uncharge pages even if the compound page have less than 3
+pages.  Add huge_page_order check to avoid this incorrectly uncharge.
 
-Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Brown, Len" <len.brown@intel.com>
-Cc: Yasuaki ISIMATU <isimatu.yasuaki@jp.fujitsu.com>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Signed-off-by: Wanpeng Li <liwp.linux@gmail.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hillf Danton <dhillf@gmail.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/acpi_memhotplug.c |   31 +++++++++++++++++++++----------
- 1 file changed, 21 insertions(+), 10 deletions(-)
+ mm/hugetlb_cgroup.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/acpi/acpi_memhotplug.c~acpi_memhotplugc-fix-memory-leak-when-memory-device-is-unbound-from-the-module-acpi_memhotplug drivers/acpi/acpi_memhotplug.c
---- a/drivers/acpi/acpi_memhotplug.c~acpi_memhotplugc-fix-memory-leak-when-memory-device-is-unbound-from-the-module-acpi_memhotplug
-+++ a/drivers/acpi/acpi_memhotplug.c
-@@ -125,12 +125,20 @@ acpi_memory_get_resource(struct acpi_res
- 	return AE_OK;
- }
+diff -puN mm/hugetlb_cgroup.c~hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup-add-huge_page_order-check-to-avoid-incorrectly-uncharge mm/hugetlb_cgroup.c
+--- a/mm/hugetlb_cgroup.c~hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup-add-huge_page_order-check-to-avoid-incorrectly-uncharge
++++ a/mm/hugetlb_cgroup.c
+@@ -184,6 +184,9 @@ void hugetlb_cgroup_uncharge_cgroup(int 
+ 	if (hugetlb_cgroup_disabled() || !h_cg)
+ 		return;
  
-+static void
-+acpi_memory_free_device_resources(struct acpi_memory_device *mem_device)
-+{
-+	struct acpi_memory_info *info, *n;
-+
-+	list_for_each_entry_safe(info, n, &mem_device->res_list, list)
-+		kfree(info);
-+	INIT_LIST_HEAD(&mem_device->res_list);
-+}
-+
- static int
- acpi_memory_get_device_resources(struct acpi_memory_device *mem_device)
- {
- 	acpi_status status;
--	struct acpi_memory_info *info, *n;
--
- 
- 	if (!list_empty(&mem_device->res_list))
- 		return 0;
-@@ -138,9 +146,7 @@ acpi_memory_get_device_resources(struct 
- 	status = acpi_walk_resources(mem_device->device->handle, METHOD_NAME__CRS,
- 				     acpi_memory_get_resource, mem_device);
- 	if (ACPI_FAILURE(status)) {
--		list_for_each_entry_safe(info, n, &mem_device->res_list, list)
--			kfree(info);
--		INIT_LIST_HEAD(&mem_device->res_list);
-+		acpi_memory_free_device_resources(mem_device);
- 		return -EINVAL;
- 	}
- 
-@@ -420,6 +426,15 @@ static void acpi_memory_device_notify(ac
- 	return;
- }
- 
-+static void acpi_memory_device_free(struct acpi_memory_device *mem_device)
-+{
-+	if (!mem_device)
++	if (huge_page_order(&hstates[idx]) < HUGETLB_CGROUP_MIN_ORDER)
 +		return;
 +
-+	acpi_memory_free_device_resources(mem_device);
-+	kfree(mem_device);
-+}
-+
- static int acpi_memory_device_add(struct acpi_device *device)
- {
- 	int result;
-@@ -472,14 +487,10 @@ static int acpi_memory_device_add(struct
- 
- static int acpi_memory_device_remove(struct acpi_device *device, int type)
- {
--	struct acpi_memory_device *mem_device = NULL;
--
+ 	res_counter_uncharge(&h_cg->hugepage[idx], csize);
+ 	return;
+ }
+_
+Subject: Subject: mm/hugetlb_cgroup: Add huge_page_order check to avoid incorrectly uncharge
+
+Patches currently in -mm which might be from liwp@linux.vnet.ibm.com are
+
+linux-next.patch
+mm-prepare-for-removal-of-obsolete-proc-sys-vm-nr_pdflush_threads.patch
+hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup-add-huge_page_order-check-to-avoid-incorrectly-uncharge.patch
+mm-remove-unused-lru_all_evictable.patch
+memcg-rename-mem_control_xxx-to-memcg_xxx.patch
+mm-memcg-complete-documentation-for-tcp-memcg-files.patch
+mm-memcg-mem_cgroup_relize_xxx_limit-can-guarantee-memcg-reslimit-=-memcg-memswlimit.patch
+mm-memcg-replace-inexistence-move_lock_page_cgroup-by-move_lock_mem_cgroup-in-comment.patch
+
