@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + fat-refactor-shortname-parsing.patch added to -mm tree
-Date: Wed, 11 Jul 2012 15:08:51 -0700
-Message-ID: <20120711220852.232F51E0048@wpzn4.hot.corp.google.com>
+Subject: + fat-exportfs-move-nfs-support-code.patch added to -mm tree
+Date: Wed, 11 Jul 2012 15:08:54 -0700
+Message-ID: <20120711220855.578571E0048@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:36725 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030280Ab2GKWIx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jul 2012 18:08:53 -0400
-Received: by ggeh3 with SMTP id h3so174880gge.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jul 2012 15:08:52 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:65084 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030280Ab2GKWI4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jul 2012 18:08:56 -0400
+Received: by vcbfl13 with SMTP id fl13so174534vcb.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jul 2012 15:08:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: steve@digidescorp.com, hirofumi@mail.parknet.co.jp
 
 
 The patch titled
-     Subject: fat: Refactor shortname parsing
+     Subject: fat (exportfs): move NFS support code
 has been added to the -mm tree.  Its filename is
-     fat-refactor-shortname-parsing.patch
+     fat-exportfs-move-nfs-support-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,349 +34,413 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Steven J. Magnani" <steve@digidescorp.com>
-Subject: fat: Refactor shortname parsing
+Subject: fat (exportfs): move NFS support code
 
-Nearly identical shortname parsing is performed in fat_search_long() and
-__fat_readdir().  Extract this code into a function that may be called by
-both.
+Under memory pressure, the system may evict dentries from cache.  When the
+FAT driver receives a NFS request involving an evicted dentry, it is
+unable to reconnect it to the filesystem root.  This causes the request to
+fail, often with ENOENT.
+
+This is partially due to ineffectiveness of the current FAT NFS
+implementation, and partially due to an unimplemented fh_to_parent method.
+ The latter can cause file accesses to fail on shares exported with
+subtree_check.
+
+This patch set provides the FAT driver with the ability to
+reconnect dentries.  NFS file handle generation and lookups are simplified
+and made congruent with ext2.
+
+Testing has involved a memory-starved virtual machine running 3.5-rc5 that
+exports a ~2 GB vfat filesystem containing a kernel tree (~770 MB, ~40000
+files, 9 levels).  Both 'cp -r' and 'ls -lR' operations were performed
+from a client, some overlapping, some consecutive.  Exports with
+'subtree_check' and 'no_subtree_check' have been tested.
+
+Note that while this patch set improves FAT's NFS support, it does not
+eliminate ESTALE errors completely.
+
+The following should be considered for NFS clients who are sensitive to ESTALE:
+
+* Mounting with lookupcache=none
+  Unfortunately this can degrade performance severely, particularly for deep
+  filesystems.
+
+* Incorporating VFS patches to retry ESTALE failures on the client-side, 
+  such as https://lkml.org/lkml/2012/6/29/381
+
+* Handling ESTALE errors in client application code
+
+
+
+This patch:
+
+Move NFS-related code into its own C file.  No functional changes.
 
 Signed-off-by: Steven J. Magnani <steve@digidescorp.com>
-Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/dir.c |  255 ++++++++++++++++++++++++++-----------------------
- 1 file changed, 137 insertions(+), 118 deletions(-)
+ fs/fat/Makefile |    2 
+ fs/fat/fat.h    |   22 ++++++
+ fs/fat/inode.c  |  130 ---------------------------------------
+ fs/fat/nfs.c    |  151 ++++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 174 insertions(+), 131 deletions(-)
 
-diff -puN fs/fat/dir.c~fat-refactor-shortname-parsing fs/fat/dir.c
---- a/fs/fat/dir.c~fat-refactor-shortname-parsing
-+++ a/fs/fat/dir.c
-@@ -35,6 +35,11 @@
- #define FAT_MAX_UNI_CHARS	((MSDOS_SLOTS - 1) * 13 + 1)
- #define FAT_MAX_UNI_SIZE	(FAT_MAX_UNI_CHARS * sizeof(wchar_t))
+diff -puN fs/fat/Makefile~fat-exportfs-move-nfs-support-code fs/fat/Makefile
+--- a/fs/fat/Makefile~fat-exportfs-move-nfs-support-code
++++ a/fs/fat/Makefile
+@@ -6,6 +6,6 @@ obj-$(CONFIG_FAT_FS) += fat.o
+ obj-$(CONFIG_VFAT_FS) += vfat.o
+ obj-$(CONFIG_MSDOS_FS) += msdos.o
  
-+static inline unsigned char fat_tolower(unsigned char c)
+-fat-y := cache.o dir.o fatent.o file.o inode.o misc.o
++fat-y := cache.o dir.o fatent.o file.o inode.o misc.o nfs.o
+ vfat-y := namei_vfat.o
+ msdos-y := namei_msdos.o
+diff -puN fs/fat/fat.h~fat-exportfs-move-nfs-support-code fs/fat/fat.h
+--- a/fs/fat/fat.h~fat-exportfs-move-nfs-support-code
++++ a/fs/fat/fat.h
+@@ -341,6 +341,20 @@ extern int fat_fill_super(struct super_b
+ 
+ extern int fat_flush_inodes(struct super_block *sb, struct inode *i1,
+ 		            struct inode *i2);
++static inline loff_t fat_i_pos_read(struct msdos_sb_info *sbi,
++				    struct inode *inode)
 +{
-+	return ((c >= 'A') && (c <= 'Z')) ? c+32 : c;
++	loff_t i_pos;
++#if BITS_PER_LONG == 32
++	spin_lock(&sbi->inode_hash_lock);
++#endif
++	i_pos = MSDOS_I(inode)->i_pos;
++#if BITS_PER_LONG == 32
++	spin_unlock(&sbi->inode_hash_lock);
++#endif
++	return i_pos;
 +}
 +
- static inline loff_t fat_make_i_pos(struct super_block *sb,
- 				    struct buffer_head *bh,
- 				    struct msdos_dir_entry *de)
-@@ -333,6 +338,124 @@ parse_long:
+ /* fat/misc.c */
+ extern __printf(3, 4) __cold
+ void __fat_fs_error(struct super_block *sb, int report, const char *fmt, ...);
+@@ -366,6 +380,14 @@ extern int fat_sync_bhs(struct buffer_he
+ int fat_cache_init(void);
+ void fat_cache_destroy(void);
+ 
++/* fat/nfs.c */
++struct fid;
++extern int fat_encode_fh(struct inode *inode, __u32 *fh, int *lenp,
++			 struct inode *parent);
++extern struct dentry *fat_fh_to_dentry(struct super_block *sb, struct fid *fid,
++				       int fh_len, int fh_type);
++extern struct dentry *fat_get_parent(struct dentry *child_dir);
++
+ /* helper for printk */
+ typedef unsigned long long	llu;
+ 
+diff -puN fs/fat/inode.c~fat-exportfs-move-nfs-support-code fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-exportfs-move-nfs-support-code
++++ a/fs/fat/inode.c
+@@ -562,20 +562,6 @@ static int fat_statfs(struct dentry *den
  	return 0;
  }
  
-+/**
-+ * fat_parse_short - Parse MS-DOS (short) directory entry.
-+ * @sb:		superblock
-+ * @de:		directory entry to parse
-+ * @name:	FAT_MAX_SHORT_SIZE array in which to place extracted name
-+ * @dot_hidden:	Nonzero == prepend '.' to names with ATTR_HIDDEN
+-static inline loff_t fat_i_pos_read(struct msdos_sb_info *sbi,
+-				    struct inode *inode)
+-{
+-	loff_t i_pos;
+-#if BITS_PER_LONG == 32
+-	spin_lock(&sbi->inode_hash_lock);
+-#endif
+-	i_pos = MSDOS_I(inode)->i_pos;
+-#if BITS_PER_LONG == 32
+-	spin_unlock(&sbi->inode_hash_lock);
+-#endif
+-	return i_pos;
+-}
+-
+ static int __fat_write_inode(struct inode *inode, int wait)
+ {
+ 	struct super_block *sb = inode->i_sb;
+@@ -668,122 +654,6 @@ static const struct super_operations fat
+ 	.show_options	= fat_show_options,
+ };
+ 
+-/*
+- * a FAT file handle with fhtype 3 is
+- *  0/  i_ino - for fast, reliable lookup if still in the cache
+- *  1/  i_generation - to see if i_ino is still valid
+- *          bit 0 == 0 iff directory
+- *  2/  i_pos(8-39) - if ino has changed, but still in cache
+- *  3/  i_pos(4-7)|i_logstart - to semi-verify inode found at i_pos
+- *  4/  i_pos(0-3)|parent->i_logstart - maybe used to hunt for the file on disc
+- *
+- * Hack for NFSv2: Maximum FAT entry number is 28bits and maximum
+- * i_pos is 40bits (blocknr(32) + dir offset(8)), so two 4bits
+- * of i_logstart is used to store the directory entry offset.
+- */
+-
+-static struct dentry *fat_fh_to_dentry(struct super_block *sb,
+-		struct fid *fid, int fh_len, int fh_type)
+-{
+-	struct inode *inode = NULL;
+-	u32 *fh = fid->raw;
+-
+-	if (fh_len < 5 || fh_type != 3)
+-		return NULL;
+-
+-	inode = ilookup(sb, fh[0]);
+-	if (!inode || inode->i_generation != fh[1]) {
+-		if (inode)
+-			iput(inode);
+-		inode = NULL;
+-	}
+-	if (!inode) {
+-		loff_t i_pos;
+-		int i_logstart = fh[3] & 0x0fffffff;
+-
+-		i_pos = (loff_t)fh[2] << 8;
+-		i_pos |= ((fh[3] >> 24) & 0xf0) | (fh[4] >> 28);
+-
+-		/* try 2 - see if i_pos is in F-d-c
+-		 * require i_logstart to be the same
+-		 * Will fail if you truncate and then re-write
+-		 */
+-
+-		inode = fat_iget(sb, i_pos);
+-		if (inode && MSDOS_I(inode)->i_logstart != i_logstart) {
+-			iput(inode);
+-			inode = NULL;
+-		}
+-	}
+-
+-	/*
+-	 * For now, do nothing if the inode is not found.
+-	 *
+-	 * What we could do is:
+-	 *
+-	 *	- follow the file starting at fh[4], and record the ".." entry,
+-	 *	  and the name of the fh[2] entry.
+-	 *	- then follow the ".." file finding the next step up.
+-	 *
+-	 * This way we build a path to the root of the tree. If this works, we
+-	 * lookup the path and so get this inode into the cache.  Finally try
+-	 * the fat_iget lookup again.  If that fails, then we are totally out
+-	 * of luck.  But all that is for another day
+-	 */
+-	return d_obtain_alias(inode);
+-}
+-
+-static int
+-fat_encode_fh(struct inode *inode, __u32 *fh, int *lenp, struct inode *parent)
+-{
+-	int len = *lenp;
+-	struct msdos_sb_info *sbi = MSDOS_SB(inode->i_sb);
+-	loff_t i_pos;
+-
+-	if (len < 5) {
+-		*lenp = 5;
+-		return 255; /* no room */
+-	}
+-
+-	i_pos = fat_i_pos_read(sbi, inode);
+-	*lenp = 5;
+-	fh[0] = inode->i_ino;
+-	fh[1] = inode->i_generation;
+-	fh[2] = i_pos >> 8;
+-	fh[3] = ((i_pos & 0xf0) << 24) | MSDOS_I(inode)->i_logstart;
+-	fh[4] = (i_pos & 0x0f) << 28;
+-	if (parent)
+-		fh[4] |= MSDOS_I(parent)->i_logstart;
+-	return 3;
+-}
+-
+-static struct dentry *fat_get_parent(struct dentry *child)
+-{
+-	struct super_block *sb = child->d_sb;
+-	struct buffer_head *bh;
+-	struct msdos_dir_entry *de;
+-	loff_t i_pos;
+-	struct dentry *parent;
+-	struct inode *inode;
+-	int err;
+-
+-	lock_super(sb);
+-
+-	err = fat_get_dotdot_entry(child->d_inode, &bh, &de, &i_pos);
+-	if (err) {
+-		parent = ERR_PTR(err);
+-		goto out;
+-	}
+-	inode = fat_build_inode(sb, de, i_pos);
+-	brelse(bh);
+-
+-	parent = d_obtain_alias(inode);
+-out:
+-	unlock_super(sb);
+-
+-	return parent;
+-}
+-
+ static const struct export_operations fat_export_ops = {
+ 	.encode_fh	= fat_encode_fh,
+ 	.fh_to_dentry	= fat_fh_to_dentry,
+diff -puN /dev/null fs/fat/nfs.c
+--- /dev/null
++++ a/fs/fat/nfs.c
+@@ -0,0 +1,151 @@
++/* fs/fat/nfs.c
 + *
-+ * Returns the number of characters extracted into 'name'.
++ * This software is licensed under the terms of the GNU General Public
++ * License version 2, as published by the Free Software Foundation, and
++ * may be copied, distributed, and modified under those terms.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
 + */
-+static int fat_parse_short(struct super_block *sb,
-+			   const struct msdos_dir_entry *de,
-+			   unsigned char *name, int dot_hidden)
++
++#include <linux/exportfs.h>
++#include "fat.h"
++
++/*
++ * a FAT file handle with fhtype 3 is
++ *  0/  i_ino - for fast, reliable lookup if still in the cache
++ *  1/  i_generation - to see if i_ino is still valid
++ *          bit 0 == 0 iff directory
++ *  2/  i_pos(8-39) - if ino has changed, but still in cache
++ *  3/  i_pos(4-7)|i_logstart - to semi-verify inode found at i_pos
++ *  4/  i_pos(0-3)|parent->i_logstart - maybe used to hunt for the file on disc
++ *
++ * Hack for NFSv2: Maximum FAT entry number is 28bits and maximum
++ * i_pos is 40bits (blocknr(32) + dir offset(8)), so two 4bits
++ * of i_logstart is used to store the directory entry offset.
++ */
++
++int
++fat_encode_fh(struct inode *inode, __u32 *fh, int *lenp, struct inode *parent)
 +{
-+	const struct msdos_sb_info *sbi = MSDOS_SB(sb);
-+	int isvfat = sbi->options.isvfat;
-+	int nocase = sbi->options.nocase;
-+	unsigned short opt_shortname = sbi->options.shortname;
-+	struct nls_table *nls_disk = sbi->nls_disk;
-+	wchar_t uni_name[14];
-+	unsigned char c, work[MSDOS_NAME];
-+	unsigned char *ptname = name;
-+	int chi, chl, i, j, k;
-+	int dotoffset = 0;
-+	int name_len = 0, uni_len = 0;
++	int len = *lenp;
++	struct msdos_sb_info *sbi = MSDOS_SB(inode->i_sb);
++	loff_t i_pos;
 +
-+	if (!isvfat && dot_hidden && (de->attr & ATTR_HIDDEN)) {
-+		*ptname++ = '.';
-+		dotoffset = 1;
++	if (len < 5) {
++		*lenp = 5;
++		return 255; /* no room */
 +	}
 +
-+	memcpy(work, de->name, sizeof(work));
-+	/* see namei.c, msdos_format_name */
-+	if (work[0] == 0x05)
-+		work[0] = 0xE5;
-+
-+	/* Filename */
-+	for (i = 0, j = 0; i < 8;) {
-+		c = work[i];
-+		if (!c)
-+			break;
-+		chl = fat_shortname2uni(nls_disk, &work[i], 8 - i,
-+					&uni_name[j++], opt_shortname,
-+					de->lcase & CASE_LOWER_BASE);
-+		if (chl <= 1) {
-+			if (!isvfat)
-+				ptname[i] = nocase ? c : fat_tolower(c);
-+			i++;
-+			if (c != ' ') {
-+				name_len = i;
-+				uni_len  = j;
-+			}
-+		} else {
-+			uni_len = j;
-+			if (isvfat)
-+				i += min(chl, 8-i);
-+			else {
-+				for (chi = 0; chi < chl && i < 8; chi++, i++)
-+					ptname[i] = work[i];
-+			}
-+			if (chl)
-+				name_len = i;
-+		}
-+	}
-+
-+	i = name_len;
-+	j = uni_len;
-+	fat_short2uni(nls_disk, ".", 1, &uni_name[j++]);
-+	if (!isvfat)
-+		ptname[i] = '.';
-+	i++;
-+
-+	/* Extension */
-+	for (k = 8; k < MSDOS_NAME;) {
-+		c = work[k];
-+		if (!c)
-+			break;
-+		chl = fat_shortname2uni(nls_disk, &work[k], MSDOS_NAME - k,
-+					&uni_name[j++], opt_shortname,
-+					de->lcase & CASE_LOWER_EXT);
-+		if (chl <= 1) {
-+			k++;
-+			if (!isvfat)
-+				ptname[i] = nocase ? c : fat_tolower(c);
-+			i++;
-+			if (c != ' ') {
-+				name_len = i;
-+				uni_len  = j;
-+			}
-+		} else {
-+			uni_len = j;
-+			if (isvfat) {
-+				int offset = min(chl, MSDOS_NAME-k);
-+				k += offset;
-+				i += offset;
-+			} else {
-+				for (chi = 0; chi < chl && k < MSDOS_NAME;
-+				     chi++, i++, k++) {
-+						ptname[i] = work[k];
-+				}
-+			}
-+			if (chl)
-+				name_len = i;
-+		}
-+	}
-+
-+	if (name_len > 0) {
-+		name_len += dotoffset;
-+
-+		if (sbi->options.isvfat) {
-+			uni_name[uni_len] = 0x0000;
-+			name_len = fat_uni_to_x8(sb, uni_name, name,
-+						 FAT_MAX_SHORT_SIZE);
-+		}
-+	}
-+
-+	return name_len;
++	i_pos = fat_i_pos_read(sbi, inode);
++	*lenp = 5;
++	fh[0] = inode->i_ino;
++	fh[1] = inode->i_generation;
++	fh[2] = i_pos >> 8;
++	fh[3] = ((i_pos & 0xf0) << 24) | MSDOS_I(inode)->i_logstart;
++	fh[4] = (i_pos & 0x0f) << 28;
++	if (parent)
++		fh[4] |= MSDOS_I(parent)->i_logstart;
++	return 3;
 +}
 +
- /*
-  * Return values: negative -> error, 0 -> not found, positive -> found,
-  * value is the total amount of slots, including the shortname entry.
-@@ -344,15 +467,11 @@ int fat_search_long(struct inode *inode,
- 	struct msdos_sb_info *sbi = MSDOS_SB(sb);
- 	struct buffer_head *bh = NULL;
- 	struct msdos_dir_entry *de;
--	struct nls_table *nls_disk = sbi->nls_disk;
- 	unsigned char nr_slots;
--	wchar_t bufuname[14];
- 	wchar_t *unicode = NULL;
--	unsigned char work[MSDOS_NAME];
- 	unsigned char bufname[FAT_MAX_SHORT_SIZE];
--	unsigned short opt_shortname = sbi->options.shortname;
- 	loff_t cpos = 0;
--	int chl, i, j, last_u, err, len;
-+	int err, len;
- 
- 	err = -ENOENT;
- 	while (1) {
-@@ -380,47 +499,16 @@ parse_record:
- 				goto end_of_dir;
- 		}
- 
--		memcpy(work, de->name, sizeof(de->name));
--		/* see namei.c, msdos_format_name */
--		if (work[0] == 0x05)
--			work[0] = 0xE5;
--		for (i = 0, j = 0, last_u = 0; i < 8;) {
--			if (!work[i])
--				break;
--			chl = fat_shortname2uni(nls_disk, &work[i], 8 - i,
--						&bufuname[j++], opt_shortname,
--						de->lcase & CASE_LOWER_BASE);
--			if (chl <= 1) {
--				if (work[i] != ' ')
--					last_u = j;
--			} else {
--				last_u = j;
--			}
--			i += chl;
--		}
--		j = last_u;
--		fat_short2uni(nls_disk, ".", 1, &bufuname[j++]);
--		for (i = 8; i < MSDOS_NAME;) {
--			if (!work[i])
--				break;
--			chl = fat_shortname2uni(nls_disk, &work[i],
--						MSDOS_NAME - i,
--						&bufuname[j++], opt_shortname,
--						de->lcase & CASE_LOWER_EXT);
--			if (chl <= 1) {
--				if (work[i] != ' ')
--					last_u = j;
--			} else {
--				last_u = j;
--			}
--			i += chl;
--		}
--		if (!last_u)
-+		/* Never prepend '.' to hidden files here.
-+		 * That is done only for msdos mounts (and only when
-+		 * 'dotsOK=yes'); if we are executing here, it is in the
-+		 * context of a vfat mount.
++static int fat_is_valid_fh(int fh_len, int fh_type)
++{
++	return ((fh_len >= 5) && (fh_type == 3));
++}
++
++/**
++ * Map a NFS file handle to a corresponding dentry.
++ * The dentry may or may not be connected to the filesystem root.
++ */
++struct dentry *fat_fh_to_dentry(struct super_block *sb, struct fid *fid,
++				int fh_len, int fh_type)
++{
++	struct inode *inode = NULL;
++	u32 *fh = fid->raw;
++	loff_t i_pos;
++	unsigned long i_ino;
++	__u32 i_generation;
++	int i_logstart;
++
++	if (!fat_is_valid_fh(fh_len, fh_type))
++		return NULL;
++
++	i_ino = fh[0];
++	i_generation = fh[1];
++	i_logstart = fh[3] & 0x0fffffff;
++
++	/* Try i_ino lookup first - fastest and most reliable */
++	inode = ilookup(sb, i_ino);
++	if (inode && (inode->i_generation != i_generation)) {
++		iput(inode);
++		inode = NULL;
++	}
++	if (!inode) {
++		i_pos = (loff_t)fh[2] << 8;
++		i_pos |= ((fh[3] >> 24) & 0xf0) | (fh[4] >> 28);
++
++		/* try 2 - see if i_pos is in F-d-c
++		 * require i_logstart to be the same
++		 * Will fail if you truncate and then re-write
 +		 */
-+		len = fat_parse_short(sb, de, bufname, 0);
-+		if (len == 0)
- 			continue;
- 
- 		/* Compare shortname */
--		bufuname[last_u] = 0x0000;
--		len = fat_uni_to_x8(sb, bufuname, bufname, sizeof(bufname));
- 		if (fat_name_match(sbi, name, name_len, bufname, len))
- 			goto found;
- 
-@@ -469,20 +557,15 @@ static int __fat_readdir(struct inode *i
- 	struct msdos_sb_info *sbi = MSDOS_SB(sb);
- 	struct buffer_head *bh;
- 	struct msdos_dir_entry *de;
--	struct nls_table *nls_disk = sbi->nls_disk;
- 	unsigned char nr_slots;
--	wchar_t bufuname[14];
- 	wchar_t *unicode = NULL;
--	unsigned char c, work[MSDOS_NAME];
--	unsigned char bufname[FAT_MAX_SHORT_SIZE], *ptname = bufname;
--	unsigned short opt_shortname = sbi->options.shortname;
-+	unsigned char bufname[FAT_MAX_SHORT_SIZE];
- 	int isvfat = sbi->options.isvfat;
--	int nocase = sbi->options.nocase;
- 	const char *fill_name = NULL;
- 	unsigned long inum;
- 	unsigned long lpos, dummy, *furrfu = &lpos;
- 	loff_t cpos;
--	int chi, chl, i, i2, j, last, last_u, dotoffset = 0, fill_len = 0;
-+	int short_len = 0, fill_len = 0;
- 	int ret = 0;
- 
- 	lock_super(sb);
-@@ -556,74 +639,10 @@ parse_record:
- 		}
- 	}
- 
--	if (sbi->options.dotsOK) {
--		ptname = bufname;
--		dotoffset = 0;
--		if (de->attr & ATTR_HIDDEN) {
--			*ptname++ = '.';
--			dotoffset = 1;
--		}
--	}
--
--	memcpy(work, de->name, sizeof(de->name));
--	/* see namei.c, msdos_format_name */
--	if (work[0] == 0x05)
--		work[0] = 0xE5;
--	for (i = 0, j = 0, last = 0, last_u = 0; i < 8;) {
--		if (!(c = work[i]))
--			break;
--		chl = fat_shortname2uni(nls_disk, &work[i], 8 - i,
--					&bufuname[j++], opt_shortname,
--					de->lcase & CASE_LOWER_BASE);
--		if (chl <= 1) {
--			ptname[i++] = (!nocase && c>='A' && c<='Z') ? c+32 : c;
--			if (c != ' ') {
--				last = i;
--				last_u = j;
--			}
--		} else {
--			last_u = j;
--			for (chi = 0; chi < chl && i < 8; chi++) {
--				ptname[i] = work[i];
--				i++; last = i;
--			}
--		}
--	}
--	i = last;
--	j = last_u;
--	fat_short2uni(nls_disk, ".", 1, &bufuname[j++]);
--	ptname[i++] = '.';
--	for (i2 = 8; i2 < MSDOS_NAME;) {
--		if (!(c = work[i2]))
--			break;
--		chl = fat_shortname2uni(nls_disk, &work[i2], MSDOS_NAME - i2,
--					&bufuname[j++], opt_shortname,
--					de->lcase & CASE_LOWER_EXT);
--		if (chl <= 1) {
--			i2++;
--			ptname[i++] = (!nocase && c>='A' && c<='Z') ? c+32 : c;
--			if (c != ' ') {
--				last = i;
--				last_u = j;
--			}
--		} else {
--			last_u = j;
--			for (chi = 0; chi < chl && i2 < MSDOS_NAME; chi++) {
--				ptname[i++] = work[i2++];
--				last = i;
--			}
--		}
--	}
--	if (!last)
-+	short_len = fat_parse_short(sb, de, bufname, sbi->options.dotsOK);
-+	if (short_len == 0)
- 		goto record_end;
- 
--	i = last + dotoffset;
--	j = last_u;
--
--	if (isvfat) {
--		bufuname[j] = 0x0000;
--		i = fat_uni_to_x8(sb, bufuname, bufname, sizeof(bufname));
--	}
- 	if (nr_slots) {
- 		/* hack for fat_ioctl_filldir() */
- 		struct fat_ioctl_filldir_callback *p = dirent;
-@@ -631,12 +650,12 @@ parse_record:
- 		p->longname = fill_name;
- 		p->long_len = fill_len;
- 		p->shortname = bufname;
--		p->short_len = i;
-+		p->short_len = short_len;
- 		fill_name = NULL;
- 		fill_len = 0;
- 	} else {
- 		fill_name = bufname;
--		fill_len = i;
-+		fill_len = short_len;
- 	}
- 
- start_filldir:
++
++		inode = fat_iget(sb, i_pos);
++		if (inode && MSDOS_I(inode)->i_logstart != i_logstart) {
++			iput(inode);
++			inode = NULL;
++		}
++	}
++
++	/*
++	 * For now, do nothing if the inode is not found.
++	 *
++	 * What we could do is:
++	 *
++	 *	- follow the file starting at fh[4], and record the ".." entry,
++	 *	  and the name of the fh[2] entry.
++	 *	- then follow the ".." file finding the next step up.
++	 *
++	 * This way we build a path to the root of the tree. If this works, we
++	 * lookup the path and so get this inode into the cache.  Finally try
++	 * the fat_iget lookup again.  If that fails, then we are totally out
++	 * of luck.  But all that is for another day
++	 */
++	return d_obtain_alias(inode);
++}
++
++/*
++ * Find the parent for a directory that is not currently connected to
++ * the filesystem root.
++ *
++ * On entry, the caller holds child_dir->d_inode->i_mutex.
++ */
++struct dentry *fat_get_parent(struct dentry *child_dir)
++{
++	struct super_block *sb = child_dir->d_sb;
++	struct buffer_head *bh = NULL;
++	struct msdos_dir_entry *de;
++	loff_t i_pos;
++	struct dentry *parent;
++	struct inode *inode;
++	int err;
++
++	lock_super(sb);
++
++	err = fat_get_dotdot_entry(child_dir->d_inode, &bh, &de, &i_pos);
++	if (err) {
++		parent = ERR_PTR(err);
++		goto out;
++	}
++	inode = fat_build_inode(sb, de, i_pos);
++
++	parent = d_obtain_alias(inode);
++out:
++	brelse(bh);
++	unlock_super(sb);
++
++	return parent;
++}
 _
-Subject: Subject: fat: Refactor shortname parsing
+Subject: Subject: fat (exportfs): move NFS support code
 
 Patches currently in -mm which might be from steve@digidescorp.com are
 
