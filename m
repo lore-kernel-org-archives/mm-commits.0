@@ -1,94 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] tmpfs-implement-numa-node-interleaving.patch removed from -mm tree
-Date: Wed, 11 Jul 2012 15:33:33 -0700
-Message-ID: <20120711223333.CDFFA1E0043@wpzn4.hot.corp.google.com>
+Subject: + shmem-provide-vm_ops-when-also-providing-a-mem-policy.patch added to -mm tree
+Date: Wed, 11 Jul 2012 15:35:58 -0700
+Message-ID: <20120711223559.BBB015C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:47870 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758406Ab2GKWdi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jul 2012 18:33:38 -0400
-Received: by qcqs25 with SMTP id s25so178090qcq.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jul 2012 15:33:37 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:48136 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030464Ab2GKWgC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jul 2012 18:36:02 -0400
+Received: by fat25 with SMTP id 25so85170fat.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jul 2012 15:36:01 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nzimmer@sgi.com, cl@linux.com, hughd@google.com, lee.schermerhorn@hp.com, npiggin@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: nzimmer@sgi.com, cl@linux.com, hughd@google.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, npiggin@gmail.com, riel@redhat.com
 
 
 The patch titled
-     Subject: tmpfs: implement NUMA node interleaving
-has been removed from the -mm tree.  Its filename was
-     tmpfs-implement-numa-node-interleaving.patch
+     Subject: shmem: provide vm_ops when also providing a mem policy
+has been added to the -mm tree.  Its filename is
+     shmem-provide-vm_ops-when-also-providing-a-mem-policy.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Nathan Zimmer <nzimmer@sgi.com>
-Subject: tmpfs: implement NUMA node interleaving
+Subject: shmem: provide vm_ops when also providing a mem policy
 
 When tmpfs has the memory policy interleaved it always starts allocating
-at each file at node 0.  When there are many small files the lower nodes
+for each file at node 0.  When there are many small files the lower nodes
 fill up disproportionately.
 
-This patch attempts to spread out node usage by starting files at nodes
-other then 0.  I disturbed the addr parameter since alloc_pages_vma will
-only use it when the policy is MPOL_INTERLEAVE.  Random was picked over
-using another variable which would require some sort of contention
-management.
+This patchset spreads out node usage by starting files at nodes other then
+0.  The tmpfs superblock grants an offset for each inode as they are
+created.  Each then uses that offset to proved a prefered first node for
+its interleave in the shmem_interleave.
 
-[akpm@linux-foundation.org: add comment]
-Signed-off-by: Nathan T Zimmer <nzimmer@sgi.com>
+
+This patch:
+
+Update shmem_get_policy() to use the vma_policy if provided.  This is to
+allows us to safely provide shmem_vm_ops to the vma when the vm_file has
+not been setup which is the case on the pseudo vmas.
+
+Signed-off-by: Nathan Zimmer <nzimmer@sgi.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Nick Piggin <npiggin@gmail.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Acked-by: Rik van Riel <riel@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/shmem_fs.h |    1 +
- mm/shmem.c               |    8 ++++++--
- 2 files changed, 7 insertions(+), 2 deletions(-)
+ mm/shmem.c |   18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/shmem_fs.h~tmpfs-implement-numa-node-interleaving include/linux/shmem_fs.h
---- a/include/linux/shmem_fs.h~tmpfs-implement-numa-node-interleaving
-+++ a/include/linux/shmem_fs.h
-@@ -17,6 +17,7 @@ struct shmem_inode_info {
- 		char		*symlink;	/* unswappable short symlink */
- 	};
- 	struct shared_policy	policy;		/* NUMA memory alloc policy */
-+	unsigned long           node_offset;	/* bias for interleaved nodes */
- 	struct list_head	swaplist;	/* chain of maybes on swap */
- 	struct list_head	xattr_list;	/* list of shmem_xattr */
- 	struct inode		vfs_inode;
-diff -puN mm/shmem.c~tmpfs-implement-numa-node-interleaving mm/shmem.c
---- a/mm/shmem.c~tmpfs-implement-numa-node-interleaving
+diff -puN mm/shmem.c~shmem-provide-vm_ops-when-also-providing-a-mem-policy mm/shmem.c
+--- a/mm/shmem.c~shmem-provide-vm_ops-when-also-providing-a-mem-policy
 +++ a/mm/shmem.c
-@@ -947,9 +947,12 @@ static struct page *shmem_alloc_page(gfp
+@@ -930,8 +930,11 @@ static struct page *shmem_swapin(swp_ent
+ 	/* Create a pseudo vma that just contains the policy */
+ 	pvma.vm_start = 0;
+ 	pvma.vm_pgoff = index;
+-	pvma.vm_ops = NULL;
+ 	pvma.vm_policy = spol;
++	if (pvma.vm_policy)
++		pvma.vm_ops = &shmem_vm_ops;
++	else
++		pvma.vm_ops = NULL;
+ 	return swapin_readahead(swap, gfp, &pvma, 0);
+ }
+ 
+@@ -943,8 +946,11 @@ static struct page *shmem_alloc_page(gfp
+ 	/* Create a pseudo vma that just contains the policy */
+ 	pvma.vm_start = 0;
+ 	pvma.vm_pgoff = index;
+-	pvma.vm_ops = NULL;
  	pvma.vm_policy = mpol_shared_policy_lookup(&info->policy, index);
++	if (pvma.vm_policy)
++		pvma.vm_ops = &shmem_vm_ops;
++	else
++		pvma.vm_ops = NULL;
  
  	/*
--	 * alloc_page_vma() will drop the shared policy reference
-+	 * alloc_page_vma() will drop the shared policy reference.
-+	 *
-+	 * To avoid allocating all tmpfs pages on node 0, we fake up a virtual
-+	 * address based on this file's predetermined preferred node.
- 	 */
--	return alloc_page_vma(gfp, &pvma, 0);
-+	return alloc_page_vma(gfp, &pvma, info->node_offset << PAGE_SHIFT);
- }
- #else /* !CONFIG_NUMA */
- #ifdef CONFIG_TMPFS
-@@ -1389,6 +1392,7 @@ static struct inode *shmem_get_inode(str
- 			inode->i_fop = &shmem_file_operations;
- 			mpol_shared_policy_init(&info->policy,
- 						 shmem_get_sbmpol(sbinfo));
-+			info->node_offset = node_random(&node_online_map);
- 			break;
- 		case S_IFDIR:
- 			inc_nlink(inode);
+ 	 * alloc_page_vma() will drop the shared policy reference
+@@ -1311,8 +1317,14 @@ static int shmem_set_policy(struct vm_ar
+ static struct mempolicy *shmem_get_policy(struct vm_area_struct *vma,
+ 					  unsigned long addr)
+ {
+-	struct inode *inode = vma->vm_file->f_path.dentry->d_inode;
+ 	pgoff_t index;
++	struct inode *inode;
++
++	/* If the vma knows what policy it wants use that one. */
++	if (vma->vm_policy)
++		return vma->vm_policy;
++
++	inode = vma->vm_file->f_path.dentry->d_inode;
+ 
+ 	index = ((addr - vma->vm_start) >> PAGE_SHIFT) + vma->vm_pgoff;
+ 	return mpol_shared_policy_lookup(&SHMEM_I(inode)->policy, index);
 _
+Subject: Subject: shmem: provide vm_ops when also providing a mem policy
 
 Patches currently in -mm which might be from nzimmer@sgi.com are
 
+shmem-provide-vm_ops-when-also-providing-a-mem-policy.patch
+tmpfs-interleave-the-starting-node-of-dev-shmem.patch
 
