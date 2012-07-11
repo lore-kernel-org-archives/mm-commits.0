@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-have-order-0-compaction-start-off-where-it-left-v3.patch added to -mm tree
-Date: Wed, 11 Jul 2012 14:20:45 -0700
-Message-ID: <20120711212046.2AD1120004E@hpza10.eem.corp.google.com>
+Subject: + mm-have-order-0-compaction-start-off-where-it-left-v3-typo.patch added to -mm tree
+Date: Wed, 11 Jul 2012 14:22:20 -0700
+Message-ID: <20120711212221.734A520004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:55083 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932387Ab2GKVUt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jul 2012 17:20:49 -0400
-Received: by lbbgp10 with SMTP id gp10so102193lbb.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jul 2012 14:20:47 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:42981 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753880Ab2GKVWX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jul 2012 17:22:23 -0400
+Received: by wibhr14 with SMTP id hr14so85184wib.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jul 2012 14:22:22 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: riel@redhat.com, jaschut@sandia.gov, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com
+Cc: akpm@linux-foundation.org, riel@redhat.com
 
 
 The patch titled
-     Subject: mm: have order > 0 compaction start off where it left
+     Subject: mm-have-order-0-compaction-start-off-where-it-left-v3-typo
 has been added to the -mm tree.  Its filename is
-     mm-have-order-0-compaction-start-off-where-it-left-v3.patch
+     mm-have-order-0-compaction-start-off-where-it-left-v3-typo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,141 +33,87 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rik van Riel <riel@redhat.com>
-Subject: mm: have order > 0 compaction start off where it left
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-have-order-0-compaction-start-off-where-it-left-v3-typo
 
-This patch makes the comment for cc->wrapped longer, explaining what is
-really going on.  It also incorporates the comment fix pointed out by
-Minchan.
+s/laste/last/, use 80 cols
 
-Additionally, Minchan found that, when no pages get isolated, high_pte
-could be a value that is much lower than desired, which might potentially
-cause compaction to skip a range of pages.
-
-Only assign zone->compact_cache_free_pfn if we actually isolated free
-pages for compaction.
-
-Split out the calculation to get the start of the last page block in a
-zone into its own, commented function.
-
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Cc: Jim Schutt <jaschut@sandia.gov>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 +-
- mm/compaction.c        |   30 ++++++++++++++++++++++--------
- mm/internal.h          |    6 +++++-
- 3 files changed, 28 insertions(+), 10 deletions(-)
+ mm/compaction.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-have-order-0-compaction-start-off-where-it-left-v3 include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-have-order-0-compaction-start-off-where-it-left-v3
-+++ a/include/linux/mmzone.h
-@@ -368,7 +368,7 @@ struct zone {
- 	spinlock_t		lock;
- 	int                     all_unreclaimable; /* All pages pinned */
- #if defined CONFIG_COMPACTION || defined CONFIG_CMA
--	/* pfn where the last order > 0 compaction isolated free pages */
-+	/* pfn where the last incremental compaction isolated free pages */
- 	unsigned long		compact_cached_free_pfn;
- #endif
- #ifdef CONFIG_MEMORY_HOTPLUG
-diff -puN mm/compaction.c~mm-have-order-0-compaction-start-off-where-it-left-v3 mm/compaction.c
---- a/mm/compaction.c~mm-have-order-0-compaction-start-off-where-it-left-v3
+diff -puN mm/compaction.c~mm-have-order-0-compaction-start-off-where-it-left-v3-typo mm/compaction.c
+--- a/mm/compaction.c~mm-have-order-0-compaction-start-off-where-it-left-v3-typo
 +++ a/mm/compaction.c
-@@ -472,10 +472,11 @@ static void isolate_freepages(struct zon
- 		 * looking for free pages, the search will restart here as
- 		 * page migration may have returned some pages to the allocator
- 		 */
--		if (isolated)
-+		if (isolated) {
- 			high_pfn = max(high_pfn, pfn);
--		if (cc->order > 0)
--			zone->compact_cached_free_pfn = high_pfn;
-+			if (cc->order > 0)
-+				zone->compact_cached_free_pfn = high_pfn;
-+		}
- 	}
- 
- 	/* split_free_page does not map the pages */
-@@ -569,6 +570,21 @@ static isolate_migrate_t isolate_migrate
- 	return ISOLATE_SUCCESS;
+@@ -571,11 +571,10 @@ static isolate_migrate_t isolate_migrate
  }
  
-+/*
-+ * Returns the start pfn of the laste page block in a zone.
-+ * This is the starting point for full compaction of a zone.
-+ * Compaction searches for free pages from the end of each zone,
-+ * while isolate_freepages_block scans forward inside each page
-+ * block.
-+ */
-+static unsigned long start_free_pfn(struct zone *zone)
-+{
-+	unsigned long free_pfn;
-+	free_pfn = zone->zone_start_pfn + zone->spanned_pages;
-+	free_pfn &= ~(pageblock_nr_pages-1);
-+	return free_pfn;
-+}
-+
- static int compact_finished(struct zone *zone,
- 			    struct compact_control *cc)
+ /*
+- * Returns the start pfn of the laste page block in a zone.
+- * This is the starting point for full compaction of a zone.
+- * Compaction searches for free pages from the end of each zone,
+- * while isolate_freepages_block scans forward inside each page
+- * block.
++ * Returns the start pfn of the last page block in a zone.  This is the starting
++ * point for full compaction of a zone.  Compaction searches for free pages from
++ * the end of each zone, while isolate_freepages_block scans forward inside each
++ * page block.
+  */
+ static unsigned long start_free_pfn(struct zone *zone)
  {
-@@ -587,10 +603,9 @@ static int compact_finished(struct zone 
- 	if (cc->free_pfn <= cc->migrate_pfn) {
- 		if (cc->order > 0 && !cc->wrapped) {
- 			/* We started partway through; restart at the end. */
--			unsigned long free_pfn;
--			free_pfn = zone->zone_start_pfn + zone->spanned_pages;
--			free_pfn &= ~(pageblock_nr_pages-1);
-+			unsigned long free_pfn = start_free_pfn(zone);
- 			zone->compact_cached_free_pfn = free_pfn;
-+			cc->free_pfn = free_pfn;
- 			cc->wrapped = 1;
- 			return COMPACT_CONTINUE;
- 		}
-@@ -703,8 +718,7 @@ static int compact_zone(struct zone *zon
- 		cc->start_free_pfn = cc->free_pfn;
- 	} else {
- 		/* Order == -1 starts at the end of the zone. */
--		cc->free_pfn = cc->migrate_pfn + zone->spanned_pages;
--		cc->free_pfn &= ~(pageblock_nr_pages-1);
-+		cc->free_pfn = start_free_pfn(zone);
- 	}
- 
- 	migrate_prep_local();
-diff -puN mm/internal.h~mm-have-order-0-compaction-start-off-where-it-left-v3 mm/internal.h
---- a/mm/internal.h~mm-have-order-0-compaction-start-off-where-it-left-v3
-+++ a/mm/internal.h
-@@ -121,7 +121,11 @@ struct compact_control {
- 	unsigned long start_free_pfn;	/* where we started the search */
- 	unsigned long migrate_pfn;	/* isolate_migratepages search base */
- 	bool sync;			/* Synchronous migration */
--	bool wrapped;			/* Last round for order>0 compaction */
-+	bool wrapped;			/* Order > 0 compactions are
-+					   incremental, once free_pfn
-+					   and migrate_pfn meet, we restart
-+					   from the top of the zone;
-+					   remember we wrapped around. */
- 
- 	int order;			/* order a direct compactor needs */
- 	int migratetype;		/* MOVABLE, RECLAIMABLE etc */
 _
-Subject: Subject: mm: have order > 0 compaction start off where it left
+Subject: Subject: mm-have-order-0-compaction-start-off-where-it-left-v3-typo
 
-Patches currently in -mm which might be from riel@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-thp-abort-compaction-if-migration-page-cannot-be-charged-to-memcg.patch
+memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer.patch
+rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled.patch
+drivers-gpio-gpio-tps65910c-fix-config_of_gpio=n-build.patch
 linux-next.patch
-swap-allow-swap-readahead-to-be-merged.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
+sysfs-fail-dentry-revalidation-after-namespace-change-fix.patch
+hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
+coredump-warn-about-unsafe-suid_dumpable-core_pattern-combo.patch
+mm.patch
+mm-make-vb_alloc-more-foolproof-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
+mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
+memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
 memcg-prevent-oom-with-too-many-dirty-pages.patch
-mm-clear-pages_scanned-only-if-draining-a-pcp-adds-pages-to-the-buddy-allocator-again.patch
-mm-remove-unused-lru_all_evictable.patch
-mm-have-order-0-compaction-start-off-where-it-left.patch
+mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
+memcg-rename-config-variables.patch
+memcg-rename-config-variables-fix-fix.patch
 mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes.patch
-mm-have-order-0-compaction-start-off-where-it-left-v3.patch
-tmpfs-implement-numa-node-interleaving.patch
+mm-have-order-0-compaction-start-off-where-it-left-v3-typo.patch
 tmpfs-implement-numa-node-interleaving-fix.patch
+avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
+kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
+printk-add-generic-functions-to-find-kern_level-headers-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
+lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch
+string-introduce-memweight-fix.patch
+drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes.patch
+drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded.patch
+hfsplus-get-rid-of-write_super-checkpatch-fixes.patch
+kmod-avoid-deadlock-from-recursive-kmod-call.patch
+fork-use-vma_pages-to-simplify-the-code-fix.patch
+fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
+include-linux-aioh-cpp-c-conversions.patch
+resource-make-sure-requested-range-intersects-root-range-fix.patch
+fault-injection-add-selftests-for-cpu-and-memory-hotplug.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
