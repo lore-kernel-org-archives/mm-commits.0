@@ -1,134 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-mxcc-fix-irq-enabled-interrupts-warning.patch removed from -mm tree
-Date: Thu, 12 Jul 2012 12:37:08 -0700
-Message-ID: <20120712193708.C2DAF100049@wpzn3.hot.corp.google.com>
+Subject: [merged] fs-ramfs-file-nommu-add-setpageuptodate.patch removed from -mm tree
+Date: Thu, 12 Jul 2012 12:37:11 -0700
+Message-ID: <20120712193711.C2DD910004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:48671 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030738Ab2GLThK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 15:37:10 -0400
-Received: by qabg24 with SMTP id g24so287300qab.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 12:37:09 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:43159 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030748Ab2GLThM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 15:37:12 -0400
+Received: by mail-vb0-f74.google.com with SMTP id l22so265538vbn.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 12:37:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benoit.thebaudeau@advansee.com, a.zummo@towertech.it, kernel@pengutronix.de, stable@vger.kernel.org, u.kleine-koenig@pengutronix.de, mm-commits@vger.kernel.org
+To: lliubbo@gmail.com, dhowells@redhat.com, geert@linux-m68k.org, gerg@uclinux.org, hughd@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-mxc.c: fix irq enabled interrupts warning
+     Subject: fs: ramfs: file-nommu: add SetPageUptodate()
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-mxcc-fix-irq-enabled-interrupts-warning.patch
+     fs-ramfs-file-nommu-add-setpageuptodate.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: Beno=EEt Th=E9baudeau <benoit.thebaudeau@advansee.com>
-Subject: drivers/rtc/rtc-mxc.c: fix irq enabled interrupts warning
+From: Bob Liu <lliubbo@gmail.com>
+Subject: fs: ramfs: file-nommu: add SetPageUptodate()
 
-[   29.669224] WARNING: at irq/handle.c:146 handle_irq_event_=3D
-percpu+0x19c/0x1b8()
-[   29.669269] irq 25 handler mxc_rtc_interrupt+0x0/0xac enabled interr=
-upts
-[   29.669284] Modules linked in:
-[   29.669324] [<c0012218>] (unwind_backtrace+0x0/0xf0) from [<c001c1dc=
->] (=3D
-warn_slowpath_common+0x4c/0x64)
-[   29.669361] [<c001c1dc>] (warn_slowpath_common+0x4c/0x64) from [<c00=
-1c28=3D
-8>] (warn_slowpath_fmt+0x30/0x40)
-[   29.669399] [<c001c288>] (warn_slowpath_fmt+0x30/0x40) from [<c004c4=
-6c>]=3D
- (handle_irq_event_percpu+0x19c/0x1b8)
-[   29.669439] [<c004c46c>] (handle_irq_event_percpu+0x19c/0x1b8) from =
-[<c0=3D
-04c4b0>] (handle_irq_event+0x28/0x38)
-[   29.669479] [<c004c4b0>] (handle_irq_event+0x28/0x38) from [<c004e4b=
-0>] =3D
-(handle_level_irq+0x80/0xc4)
-[   29.669517] [<c004e4b0>] (handle_level_irq+0x80/0xc4) from [<c004bcd=
-0>] =3D
-(generic_handle_irq+0x24/0x38)
-[   29.669563] [<c004bcd0>] (generic_handle_irq+0x24/0x38) from [<c000e=
-6cc>=3D
-] (handle_IRQ+0x30/0x84)
-[   29.669599] [<c000e6cc>] (handle_IRQ+0x30/0x84) from [<c0008508>] (a=
-vic_=3D
-handle_irq+0x2c/0x4c)
-[   29.669633] [<c0008508>] (avic_handle_irq+0x2c/0x4c) from [<c000db40=
->] (=3D
-__irq_svc+0x40/0x60)
-[   29.669655] Exception stack(0xc050bf60 to 0xc050bfa8)
-[   29.669685] bf60: 00000001 00000000 003c4208 c0018e20 c050a000 c050a=
-000 =3D
-c054a4c8 c050a000
-[   29.669717] bf80: c05157a8 4117b363 80503bb4 00000000 01000000 c050b=
-fa8 =3D
-c0018e2c c000e808
-[   29.669739] bfa0: 60000013 ffffffff
-[   29.669769] [<c000db40>] (__irq_svc+0x40/0x60) from [<c000e808>] (de=
-faul=3D
-t_idle+0x1c/0x30)
-[   29.669805] [<c000e808>] (default_idle+0x1c/0x30) from [<c000e9bc>] =
-(cpu=3D
-_idle+0x68/0xa8)
-[   29.669846] [<c000e9bc>] (cpu_idle+0x68/0xa8) from [<c04e76dc>] (sta=
-rt_k=3D
-ernel+0x22c/0x26c)
-[   29.669868] ---[ end trace 2f7406c4b6216986 ]---
+There is a bug in the below scenario for !CONFIG_MMU:
 
-Signed-off-by: Beno=EEt Th=E9baudeau <benoit.thebaudeau@advansee.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Sascha Hauer <kernel@pengutronix.de>
-Acked-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+1. create a new file
+2. mmap the file and write to it
+3. read the file can't get the correct value
+
+Because
+sys_read() > generic_file_aio_read() > simple_readpage() > clear_page()
+which make the page be zeroed.
+
+Add SetPageUptodate() to ramfs_nommu_expand_for_mapping() so that
+generic_file_aio_read() do not call simple_readpage().
+
+Signed-off-by: Bob Liu <lliubbo@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Greg Ungerer <gerg@uclinux.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-mxc.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/ramfs/file-nommu.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/rtc/rtc-mxc.c~drivers-rtc-rtc-mxcc-fix-irq-enabled-in=
-terrupts-warning drivers/rtc/rtc-mxc.c
---- a/drivers/rtc/rtc-mxc.c~drivers-rtc-rtc-mxcc-fix-irq-enabled-interr=
-upts-warning
-+++ a/drivers/rtc/rtc-mxc.c
-@@ -202,10 +202,11 @@ static irqreturn_t mxc_rtc_interrupt(int
- 	struct platform_device *pdev =3D dev_id;
- 	struct rtc_plat_data *pdata =3D platform_get_drvdata(pdev);
- 	void __iomem *ioaddr =3D pdata->ioaddr;
-+	unsigned long flags;
- 	u32 status;
- 	u32 events =3D 0;
-=20
--	spin_lock_irq(&pdata->rtc->irq_lock);
-+	spin_lock_irqsave(&pdata->rtc->irq_lock, flags);
- 	status =3D readw(ioaddr + RTC_RTCISR) & readw(ioaddr + RTC_RTCIENR);
- 	/* clear interrupt sources */
- 	writew(status, ioaddr + RTC_RTCISR);
-@@ -224,7 +225,7 @@ static irqreturn_t mxc_rtc_interrupt(int
- 		events |=3D (RTC_PF | RTC_IRQF);
-=20
- 	rtc_update_irq(pdata->rtc, 1, events);
--	spin_unlock_irq(&pdata->rtc->irq_lock);
-+	spin_unlock_irqrestore(&pdata->rtc->irq_lock, flags);
-=20
- 	return IRQ_HANDLED;
- }
+diff -puN fs/ramfs/file-nommu.c~fs-ramfs-file-nommu-add-setpageuptodate fs/ramfs/file-nommu.c
+--- a/fs/ramfs/file-nommu.c~fs-ramfs-file-nommu-add-setpageuptodate
++++ a/fs/ramfs/file-nommu.c
+@@ -110,6 +110,7 @@ int ramfs_nommu_expand_for_mapping(struc
+ 
+ 		/* prevent the page from being discarded on memory pressure */
+ 		SetPageDirty(page);
++		SetPageUptodate(page);
+ 
+ 		unlock_page(page);
+ 		put_page(page);
 _
 
-Patches currently in -mm which might be from benoit.thebaudeau@advansee=
-=2Ecom are
+Patches currently in -mm which might be from lliubbo@gmail.com are
 
 origin.patch
-linux-next.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
