@@ -1,60 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mn10300-kernel-internalh-needs-linux-irqreturnh.patch removed from -mm tree
-Date: Thu, 12 Jul 2012 12:36:19 -0700
-Message-ID: <20120712193619.A31951E0043@wpzn4.hot.corp.google.com>
+Subject: [merged] ocfs2-fix-null-pointer-dereferrence-in-__ocfs2_change_file_space.patch removed from -mm tree
+Date: Thu, 12 Jul 2012 12:36:32 -0700
+Message-ID: <20120712193632.BF66E100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:61889 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932852Ab2GLTgU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 15:36:20 -0400
-Received: by qabg24 with SMTP id g24so287219qab.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 12:36:20 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:61302 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932899Ab2GLTgd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 15:36:33 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z15so266112ghb.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 12:36:33 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, dhowells@redhat.com, yasutake.koichi@jp.panasonic.com, mm-commits@vger.kernel.org
+To: luis.henriques@canonical.com, jlbec@evilplan.org, magnade@gmail.com, mfasheh@suse.com, stable@vger.kernel.org, sunil.mushran@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mn10300: kernel/internal.h needs <linux/irqreturn.h>
+     Subject: ocfs2: fix NULL pointer dereference in __ocfs2_change_file_space()
 has been removed from the -mm tree.  Its filename was
-     mn10300-kernel-internalh-needs-linux-irqreturnh.patch
+     ocfs2-fix-null-pointer-dereferrence-in-__ocfs2_change_file_space.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: mn10300: kernel/internal.h needs <linux/irqreturn.h>
+From: Luis Henriques <luis.henriques@canonical.com>
+Subject: ocfs2: fix NULL pointer dereference in __ocfs2_change_file_space()
 
-In file included from arch/mn10300/kernel/csrc-mn10300.c:14:0:
-arch/mn10300/kernel/internal.h:42:1: error: unknown type name 'irqreturn_t'
+As ocfs2_fallocate() will invoke __ocfs2_change_file_space() with a NULL
+as the first parameter (file), it may trigger a NULL pointer dereferrence
+due to a missing check.
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
+Addresses http://bugs.launchpad.net/bugs/1006012
+
+Signed-off-by: Luis Henriques <luis.henriques@canonical.com>
+Reported-by: Bret Towe <magnade@gmail.com>
+Tested-by: Bret Towe <magnade@gmail.com>
+Cc: Sunil Mushran <sunil.mushran@oracle.com>
+Acked-by: Joel Becker <jlbec@evilplan.org>
+Acked-by: Mark Fasheh <mfasheh@suse.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mn10300/kernel/internal.h |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/ocfs2/file.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/mn10300/kernel/internal.h~mn10300-kernel-internalh-needs-linux-irqreturnh arch/mn10300/kernel/internal.h
---- a/arch/mn10300/kernel/internal.h~mn10300-kernel-internalh-needs-linux-irqreturnh
-+++ a/arch/mn10300/kernel/internal.h
-@@ -9,6 +9,8 @@
-  * 2 of the Licence, or (at your option) any later version.
-  */
+diff -puN fs/ocfs2/file.c~ocfs2-fix-null-pointer-dereferrence-in-__ocfs2_change_file_space fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-fix-null-pointer-dereferrence-in-__ocfs2_change_file_space
++++ a/fs/ocfs2/file.c
+@@ -1950,7 +1950,7 @@ static int __ocfs2_change_file_space(str
+ 	if (ret < 0)
+ 		mlog_errno(ret);
  
-+#include <linux/irqreturn.h>
-+
- struct clocksource;
- struct clock_event_device;
+-	if (file->f_flags & O_SYNC)
++	if (file && (file->f_flags & O_SYNC))
+ 		handle->h_sync = 1;
  
+ 	ocfs2_commit_trans(osb, handle);
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from luis.henriques@canonical.com are
 
 origin.patch
 linux-next.patch
-frv-kill-used-but-uninitialized-variable.patch
 
