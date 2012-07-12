@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-introduce-__gfp_memalloc-to-allow-access-to-emergency-reserves.patch added to -mm tree
-Date: Thu, 12 Jul 2012 14:27:27 -0700
-Message-ID: <20120712212727.CB2155C0050@hpza9.eem.corp.google.com>
+Subject: + mm-allow-pf_memalloc-from-softirq-context.patch added to -mm tree
+Date: Thu, 12 Jul 2012 14:27:32 -0700
+Message-ID: <20120712212732.641AF100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:35370 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932971Ab2GLV1b (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 17:27:31 -0400
-Received: by fat25 with SMTP id 25so147123fat.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 14:27:29 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:51016 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932971Ab2GLV1d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 17:27:33 -0400
+Received: by vbnl22 with SMTP id l22so279362vbn.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 14:27:33 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: mgorman@suse.de, a.p.zijlstra@chello.nl, cl@linux.com, davem@davemloft.net, 
 
 
 The patch titled
-     Subject: mm: introduce __GFP_MEMALLOC to allow access to emergency reserves
+     Subject: mm: allow PF_MEMALLOC from softirq context
 has been added to the -mm tree.  Its filename is
-     mm-introduce-__gfp_memalloc-to-allow-access-to-emergency-reserves.patch
+     mm-allow-pf_memalloc-from-softirq-context.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: introduce __GFP_MEMALLOC to allow access to emergency reserves
+Subject: mm: allow PF_MEMALLOC from softirq context
 
-__GFP_MEMALLOC will allow the allocation to disregard the watermarks, much
-like PF_MEMALLOC.  It allows one to pass along the memalloc state in
-object related allocation flags as opposed to task related flags, such as
-sk->sk_allocation.  This removes the need for ALLOC_PFMEMALLOC as callers
-using __GFP_MEMALLOC can get the ALLOC_NO_WATERMARK flag which is now
-enough to identify allocations related to page reclaim.
+This is needed to allow network softirq packet processing to make use of
+PF_MEMALLOC.
 
+Currently softirq context cannot use PF_MEMALLOC due to it not being
+associated with a task, and therefore not having task flags to fiddle with
+- thus the gfp to alloc flag mapping ignores the task flags when in
+interrupts (hard or soft) context.
+
+Allowing softirqs to make use of PF_MEMALLOC therefore requires some
+trickery.  This patch borrows the task flags from whatever process happens
+to be preempted by the softirq.  It then modifies the gfp to alloc flags
+mapping to not exclude task flags in softirq context, and modify the
+softirq code to save, clear and restore the PF_MEMALLOC flag.
+
+The save and clear, ensures the preempted task's PF_MEMALLOC flag doesn't
+leak into the softirq.  The restore ensures a softirq's PF_MEMALLOC flag
+cannot leak back into the preempted process.  This should be safe due to
+the following reasons
+
+Softirqs can run on multiple CPUs sure but the same task should not be
+	executing the same softirq code. Neither should the softirq
+	handler be preempted by any other softirq handler so the flags
+	should not leak to an unrelated softirq.
+
+Softirqs re-enable hardware interrupts in __do_softirq() so can be
+	preempted by hardware interrupts so PF_MEMALLOC is inherited
+	by the hard IRQ. However, this is similar to a process in
+	reclaim being preempted by a hardirq. While PF_MEMALLOC is
+	set, gfp_to_alloc_flags() distinguishes between hard and
+	soft irqs and avoids giving a hardirq the ALLOC_NO_WATERMARKS
+	flag.
+
+If the softirq is deferred to ksoftirq then its flags may be used
+        instead of a normal tasks but as the softirq cannot be preempted,
+        the PF_MEMALLOC flag does not leak to other code by accident.
+
+[davem@davemloft.net: Document why PF_MEMALLOC is safe]
 Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Cc: David Miller <davem@davemloft.net>
@@ -56,140 +86,72 @@ Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h             |   10 ++++++++--
- include/linux/mm_types.h        |    2 +-
- include/trace/events/gfpflags.h |    1 +
- mm/page_alloc.c                 |   22 ++++++++++------------
- mm/slab.c                       |    2 +-
- 5 files changed, 21 insertions(+), 16 deletions(-)
+ include/linux/sched.h |    7 +++++++
+ kernel/softirq.c      |    9 +++++++++
+ mm/page_alloc.c       |    6 +++++-
+ 3 files changed, 21 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/gfp.h~mm-introduce-__gfp_memalloc-to-allow-access-to-emergency-reserves include/linux/gfp.h
---- a/include/linux/gfp.h~mm-introduce-__gfp_memalloc-to-allow-access-to-emergency-reserves
-+++ a/include/linux/gfp.h
-@@ -23,6 +23,7 @@ struct vm_area_struct;
- #define ___GFP_REPEAT		0x400u
- #define ___GFP_NOFAIL		0x800u
- #define ___GFP_NORETRY		0x1000u
-+#define ___GFP_MEMALLOC		0x2000u
- #define ___GFP_COMP		0x4000u
- #define ___GFP_ZERO		0x8000u
- #define ___GFP_NOMEMALLOC	0x10000u
-@@ -76,9 +77,14 @@ struct vm_area_struct;
- #define __GFP_REPEAT	((__force gfp_t)___GFP_REPEAT)	/* See above */
- #define __GFP_NOFAIL	((__force gfp_t)___GFP_NOFAIL)	/* See above */
- #define __GFP_NORETRY	((__force gfp_t)___GFP_NORETRY) /* See above */
-+#define __GFP_MEMALLOC	((__force gfp_t)___GFP_MEMALLOC)/* Allow access to emergency reserves */
- #define __GFP_COMP	((__force gfp_t)___GFP_COMP)	/* Add compound page metadata */
- #define __GFP_ZERO	((__force gfp_t)___GFP_ZERO)	/* Return zeroed page on success */
--#define __GFP_NOMEMALLOC ((__force gfp_t)___GFP_NOMEMALLOC) /* Don't use emergency reserves */
-+#define __GFP_NOMEMALLOC ((__force gfp_t)___GFP_NOMEMALLOC) /* Don't use emergency reserves.
-+							 * This takes precedence over the
-+							 * __GFP_MEMALLOC flag if both are
-+							 * set
-+							 */
- #define __GFP_HARDWALL   ((__force gfp_t)___GFP_HARDWALL) /* Enforce hardwall cpuset memory allocs */
- #define __GFP_THISNODE	((__force gfp_t)___GFP_THISNODE)/* No fallback, no policies */
- #define __GFP_RECLAIMABLE ((__force gfp_t)___GFP_RECLAIMABLE) /* Page is reclaimable */
-@@ -129,7 +135,7 @@ struct vm_area_struct;
- /* Control page allocator reclaim behavior */
- #define GFP_RECLAIM_MASK (__GFP_WAIT|__GFP_HIGH|__GFP_IO|__GFP_FS|\
- 			__GFP_NOWARN|__GFP_REPEAT|__GFP_NOFAIL|\
--			__GFP_NORETRY|__GFP_NOMEMALLOC)
-+			__GFP_NORETRY|__GFP_MEMALLOC|__GFP_NOMEMALLOC)
+diff -puN include/linux/sched.h~mm-allow-pf_memalloc-from-softirq-context include/linux/sched.h
+--- a/include/linux/sched.h~mm-allow-pf_memalloc-from-softirq-context
++++ a/include/linux/sched.h
+@@ -1902,6 +1902,13 @@ static inline void rcu_copy_process(stru
  
- /* Control slab gfp mask during early boot */
- #define GFP_BOOT_MASK (__GFP_BITS_MASK & ~(__GFP_WAIT|__GFP_IO|__GFP_FS))
-diff -puN include/linux/mm_types.h~mm-introduce-__gfp_memalloc-to-allow-access-to-emergency-reserves include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-introduce-__gfp_memalloc-to-allow-access-to-emergency-reserves
-+++ a/include/linux/mm_types.h
-@@ -55,7 +55,7 @@ struct page {
- 			pgoff_t index;		/* Our offset within mapping. */
- 			void *freelist;		/* slub/slob first free object */
- 			bool pfmemalloc;	/* If set by the page allocator,
--						 * ALLOC_PFMEMALLOC was set
-+						 * ALLOC_NO_WATERMARKS was set
- 						 * and the low watermark was not
- 						 * met implying that the system
- 						 * is under some pressure. The
-diff -puN include/trace/events/gfpflags.h~mm-introduce-__gfp_memalloc-to-allow-access-to-emergency-reserves include/trace/events/gfpflags.h
---- a/include/trace/events/gfpflags.h~mm-introduce-__gfp_memalloc-to-allow-access-to-emergency-reserves
-+++ a/include/trace/events/gfpflags.h
-@@ -30,6 +30,7 @@
- 	{(unsigned long)__GFP_COMP,		"GFP_COMP"},		\
- 	{(unsigned long)__GFP_ZERO,		"GFP_ZERO"},		\
- 	{(unsigned long)__GFP_NOMEMALLOC,	"GFP_NOMEMALLOC"},	\
-+	{(unsigned long)__GFP_MEMALLOC,		"GFP_MEMALLOC"},	\
- 	{(unsigned long)__GFP_HARDWALL,		"GFP_HARDWALL"},	\
- 	{(unsigned long)__GFP_THISNODE,		"GFP_THISNODE"},	\
- 	{(unsigned long)__GFP_RECLAIMABLE,	"GFP_RECLAIMABLE"},	\
-diff -puN mm/page_alloc.c~mm-introduce-__gfp_memalloc-to-allow-access-to-emergency-reserves mm/page_alloc.c
---- a/mm/page_alloc.c~mm-introduce-__gfp_memalloc-to-allow-access-to-emergency-reserves
+ #endif
+ 
++static inline void tsk_restore_flags(struct task_struct *task,
++				unsigned long orig_flags, unsigned long flags)
++{
++	task->flags &= ~flags;
++	task->flags |= orig_flags & flags;
++}
++
+ #ifdef CONFIG_SMP
+ extern void do_set_cpus_allowed(struct task_struct *p,
+ 			       const struct cpumask *new_mask);
+diff -puN kernel/softirq.c~mm-allow-pf_memalloc-from-softirq-context kernel/softirq.c
+--- a/kernel/softirq.c~mm-allow-pf_memalloc-from-softirq-context
++++ a/kernel/softirq.c
+@@ -210,6 +210,14 @@ asmlinkage void __do_softirq(void)
+ 	__u32 pending;
+ 	int max_restart = MAX_SOFTIRQ_RESTART;
+ 	int cpu;
++	unsigned long old_flags = current->flags;
++
++	/*
++	 * Mask out PF_MEMALLOC s current task context is borrowed for the
++	 * softirq. A softirq handled such as network RX might set PF_MEMALLOC
++	 * again if the socket is related to swap
++	 */
++	current->flags &= ~PF_MEMALLOC;
+ 
+ 	pending = local_softirq_pending();
+ 	account_system_vtime(current);
+@@ -265,6 +273,7 @@ restart:
+ 
+ 	account_system_vtime(current);
+ 	__local_bh_enable(SOFTIRQ_OFFSET);
++	tsk_restore_flags(current, old_flags, PF_MEMALLOC);
+ }
+ 
+ #ifndef __ARCH_HAS_DO_SOFTIRQ
+diff -puN mm/page_alloc.c~mm-allow-pf_memalloc-from-softirq-context mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-allow-pf_memalloc-from-softirq-context
 +++ a/mm/page_alloc.c
-@@ -1512,7 +1512,6 @@ failed:
- #define ALLOC_HARDER		0x10 /* try to alloc harder */
- #define ALLOC_HIGH		0x20 /* __GFP_HIGH set */
- #define ALLOC_CPUSET		0x40 /* check for correct cpuset */
--#define ALLOC_PFMEMALLOC	0x80 /* Caller has PF_MEMALLOC set */
- 
- #ifdef CONFIG_FAIL_PAGE_ALLOC
- 
-@@ -2293,11 +2292,10 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
- 	} else if (unlikely(rt_task(current)) && !in_interrupt())
- 		alloc_flags |= ALLOC_HARDER;
- 
--	if ((current->flags & PF_MEMALLOC) ||
--			unlikely(test_thread_flag(TIF_MEMDIE))) {
--		alloc_flags |= ALLOC_PFMEMALLOC;
--
--		if (likely(!(gfp_mask & __GFP_NOMEMALLOC)) && !in_interrupt())
-+	if (likely(!(gfp_mask & __GFP_NOMEMALLOC))) {
-+		if (gfp_mask & __GFP_MEMALLOC)
+@@ -2295,7 +2295,11 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
+ 	if (likely(!(gfp_mask & __GFP_NOMEMALLOC))) {
+ 		if (gfp_mask & __GFP_MEMALLOC)
+ 			alloc_flags |= ALLOC_NO_WATERMARKS;
+-		else if (likely(!(gfp_mask & __GFP_NOMEMALLOC)) && !in_interrupt())
++		else if (in_serving_softirq() && (current->flags & PF_MEMALLOC))
 +			alloc_flags |= ALLOC_NO_WATERMARKS;
-+		else if (likely(!(gfp_mask & __GFP_NOMEMALLOC)) && !in_interrupt())
++		else if (!in_interrupt() &&
++				((current->flags & PF_MEMALLOC) ||
++				 unlikely(test_thread_flag(TIF_MEMDIE))))
  			alloc_flags |= ALLOC_NO_WATERMARKS;
  	}
  
-@@ -2306,7 +2304,7 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
- 
- bool gfp_pfmemalloc_allowed(gfp_t gfp_mask)
- {
--	return !!(gfp_to_alloc_flags(gfp_mask) & ALLOC_PFMEMALLOC);
-+	return !!(gfp_to_alloc_flags(gfp_mask) & ALLOC_NO_WATERMARKS);
- }
- 
- static inline struct page *
-@@ -2497,12 +2495,12 @@ nopage:
- 	return page;
- got_pg:
- 	/*
--	 * page->pfmemalloc is set when the caller had PFMEMALLOC set or is
--	 * been OOM killed. The expectation is that the caller is taking
--	 * steps that will free more memory. The caller should avoid the
--	 * page being used for !PFMEMALLOC purposes.
-+	 * page->pfmemalloc is set when the caller had PFMEMALLOC set, is
-+	 * been OOM killed or specified __GFP_MEMALLOC. The expectation is
-+	 * that the caller is taking steps that will free more memory. The
-+	 * caller should avoid the page being used for !PFMEMALLOC purposes.
- 	 */
--	page->pfmemalloc = !!(alloc_flags & ALLOC_PFMEMALLOC);
-+	page->pfmemalloc = !!(alloc_flags & ALLOC_NO_WATERMARKS);
- 
- 	if (kmemcheck_enabled)
- 		kmemcheck_pagealloc_alloc(page, order, gfp_mask);
-diff -puN mm/slab.c~mm-introduce-__gfp_memalloc-to-allow-access-to-emergency-reserves mm/slab.c
---- a/mm/slab.c~mm-introduce-__gfp_memalloc-to-allow-access-to-emergency-reserves
-+++ a/mm/slab.c
-@@ -1883,7 +1883,7 @@ static void *kmem_getpages(struct kmem_c
- 		return NULL;
- 	}
- 
--	/* Record if ALLOC_PFMEMALLOC was set when allocating the slab */
-+	/* Record if ALLOC_NO_WATERMARKS was set when allocating the slab */
- 	if (unlikely(page->pfmemalloc))
- 		pfmemalloc_active = true;
- 
 _
-Subject: Subject: mm: introduce __GFP_MEMALLOC to allow access to emergency reserves
+Subject: Subject: mm: allow PF_MEMALLOC from softirq context
 
 Patches currently in -mm which might be from mgorman@suse.de are
 
