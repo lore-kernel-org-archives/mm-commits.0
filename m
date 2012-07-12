@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
 Subject: + kernel-sysc-avoid-argv_freenull.patch added to -mm tree
-Date: Wed, 11 Jul 2012 17:10:49 -0700
-Message-ID: <20120712001049.97755100047@wpzn3.hot.corp.google.com>
+Date: Wed, 11 Jul 2012 17:14:02 -0700
+Message-ID: <20120712001403.4874B20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:44789 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753604Ab2GLAKv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jul 2012 20:10:51 -0400
-Received: by qabg24 with SMTP id g24so205700qab.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jul 2012 17:10:50 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:56137 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933471Ab2GLAOI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jul 2012 20:14:08 -0400
+Received: by wgbdt11 with SMTP id dt11so87997wgb.1
+        for <mm-commits@vger.kernel.org>; Wed, 11 Jul 2012 17:14:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -51,13 +51,13 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |   43 ++++++++++++++++++++++++++-----------------
- 1 file changed, 26 insertions(+), 17 deletions(-)
+ kernel/sys.c |   44 +++++++++++++++++++++++++-------------------
+ 1 file changed, 25 insertions(+), 19 deletions(-)
 
 diff -puN kernel/sys.c~kernel-sysc-avoid-argv_freenull kernel/sys.c
 --- a/kernel/sys.c~kernel-sysc-avoid-argv_freenull
 +++ a/kernel/sys.c
-@@ -2186,46 +2186,55 @@ static void argv_cleanup(struct subproce
+@@ -2186,46 +2186,52 @@ static void argv_cleanup(struct subproce
  	argv_free(info->argv);
  }
  
@@ -87,16 +87,15 @@ diff -puN kernel/sys.c~kernel-sysc-avoid-argv_freenull kernel/sys.c
  		printk(KERN_WARNING "%s failed to allocate memory for \"%s\"\n",
  		       __func__, poweroff_cmd);
 -		goto out;
-+		return = -ENOMEM;
++		return -ENOMEM;
  	}
  
  	ret = call_usermodehelper_fns(argv[0], argv, envp, UMH_NO_WAIT,
  				      NULL, argv_cleanup, NULL);
 -out:
- 	if (likely(!ret))
+-	if (likely(!ret))
 -		return 0;
-+		return 0;		/* success */
- 
+-
  	if (ret == -ENOMEM)
  		argv_free(argv);
  
