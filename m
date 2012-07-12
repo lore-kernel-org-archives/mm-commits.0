@@ -1,29 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-mc13xxx-use-module_device_table-instead-of-module_alias.patch added to -mm tree
-Date: Thu, 12 Jul 2012 14:50:06 -0700
-Message-ID: <20120712215007.183411E004A@wpzn4.hot.corp.google.com>
+Subject: + revert-sched-fix-fork-error-path-to-not-crash.patch added to -mm tree
+Date: Thu, 12 Jul 2012 15:10:23 -0700
+Message-ID: <20120712221024.9A2AA20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:41725 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934288Ab2GLVuK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 17:50:10 -0400
-Received: by yenl3 with SMTP id l3so281971yen.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 14:50:09 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:44751 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751955Ab2GLWK1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 18:10:27 -0400
+Received: by wgbdt11 with SMTP id dt11so149034wgb.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 15:10:26 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: u.kleine-koenig@pengutronix.de, a.zummo@towertech.it
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, akinobu.mita@gmail.com, mingo@elte.hu, sqazi@google.com
 
 
 The patch titled
-     Subject: rtc/mc13xxx: use MODULE_DEVICE_TABLE instead of MODULE_AL=
-IAS
+     Subject: revert "sched: Fix fork() error path to not crash"
 has been added to the -mm tree.  Its filename is
-     rtc-mc13xxx-use-module_device_table-instead-of-module_alias.patch
+     revert-sched-fix-fork-error-path-to-not-crash.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -31,61 +27,104 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
-Subject: rtc/mc13xxx: use MODULE_DEVICE_TABLE instead of MODULE_ALIAS
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: revert "sched: Fix fork() error path to not crash"
 
-This allows automatic driver loading for all supported device types.
+To make way for "fork: fix error handling in dup_task()", which fixes the
+errors more completely.
 
-Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Salman Qazi <sqazi@google.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-mc13xxx.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/fork.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN drivers/rtc/rtc-mc13xxx.c~rtc-mc13xxx-use-module_device_table=
--instead-of-module_alias drivers/rtc/rtc-mc13xxx.c
---- a/drivers/rtc/rtc-mc13xxx.c~rtc-mc13xxx-use-module_device_table-ins=
-tead-of-module_alias
-+++ a/drivers/rtc/rtc-mc13xxx.c
-@@ -405,8 +405,9 @@ static const struct platform_device_id m
- 	}, {
- 		.name =3D "mc13892-rtc",
- 	},
--	{ }
-+	{ /* sentinel */ }
- };
-+MODULE_DEVICE_TABLE(platform, mc13xxx_rtc_idtable);
-=20
- static struct platform_driver mc13xxx_rtc_driver =3D {
- 	.id_table =3D mc13xxx_rtc_idtable,
-@@ -432,4 +433,3 @@ module_exit(mc13xxx_rtc_exit);
- MODULE_AUTHOR("Sascha Hauer <s.hauer@pengutronix.de>");
- MODULE_DESCRIPTION("RTC driver for Freescale MC13XXX PMIC");
- MODULE_LICENSE("GPL v2");
--MODULE_ALIAS("platform:" DRIVER_NAME);
+diff -puN kernel/fork.c~revert-sched-fix-fork-error-path-to-not-crash kernel/fork.c
+--- a/kernel/fork.c~revert-sched-fix-fork-error-path-to-not-crash
++++ a/kernel/fork.c
+@@ -304,17 +304,12 @@ static struct task_struct *dup_task_stru
+ 	}
+ 
+ 	err = arch_dup_task_struct(tsk, orig);
+-
+-	/*
+-	 * We defer looking at err, because we will need this setup
+-	 * for the clean up path to work correctly.
+-	 */
+-	tsk->stack = ti;
+-	setup_thread_stack(tsk, orig);
+-
+ 	if (err)
+ 		goto out;
+ 
++	tsk->stack = ti;
++
++	setup_thread_stack(tsk, orig);
+ 	clear_user_return_notifier(tsk);
+ 	clear_tsk_need_resched(tsk);
+ 	stackend = end_of_stack(tsk);
 _
-Subject: Subject: rtc/mc13xxx: use MODULE_DEVICE_TABLE instead of MODUL=
-E_ALIAS
+Subject: Subject: revert "sched: Fix fork() error path to not crash"
 
-Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
-x.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-rtc-mc13xxx-use-module_device_table-instead-of-module_alias.patch
-rtc-mc13xxx-add-support-for-the-rtc-in-the-mc34708-pmic.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
+sysfs-fail-dentry-revalidation-after-namespace-change-fix.patch
+hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
+coredump-warn-about-unsafe-suid_dumpable-core_pattern-combo.patch
+mm.patch
+mm-make-vb_alloc-more-foolproof-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
+mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
+memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
+memcg-prevent-oom-with-too-many-dirty-pages.patch
+mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
+memcg-rename-config-variables.patch
+memcg-rename-config-variables-fix-fix.patch
+mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes.patch
+mm-have-order-0-compaction-start-off-where-it-left-v3-typo.patch
+memory-hotplug-fix-kswapd-looping-forever-problem-fix.patch
+avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
+kernel-sysc-avoid-argv_freenull.patch
+kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
+printk-add-generic-functions-to-find-kern_level-headers-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
+lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch
+string-introduce-memweight-fix.patch
+drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes.patch
+drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded.patch
+hfsplus-get-rid-of-write_super-checkpatch-fixes.patch
+kernel-kmodc-document-call_usermodehelper_fns-a-bit.patch
+kmod-avoid-deadlock-from-recursive-kmod-call.patch
+fork-use-vma_pages-to-simplify-the-code-fix.patch
+revert-sched-fix-fork-error-path-to-not-crash.patch
+fork-fix-error-handling-in-dup_task-fix.patch
+fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
+include-linux-aioh-cpp-c-conversions.patch
+resource-make-sure-requested-range-intersects-root-range-fix.patch
+fault-injection-add-selftests-for-cpu-and-memory-hotplug.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
