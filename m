@@ -1,148 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] shmem-cleanup-shmem_add_to_page_cache.patch removed from -mm tree
-Date: Thu, 12 Jul 2012 12:37:36 -0700
-Message-ID: <20120712193737.335825C0060@hpza9.eem.corp.google.com>
+Subject: [merged] mm-sparse-fix-section-usemap-placement-calculation.patch removed from -mm tree
+Date: Thu, 12 Jul 2012 12:37:43 -0700
+Message-ID: <20120712193743.A8FAE100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:44293 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934236Ab2GLThj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 15:37:39 -0400
-Received: by mail-wi0-f202.google.com with SMTP id hr14so146132wib.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 12:37:38 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:63937 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934236Ab2GLTho (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 15:37:44 -0400
+Received: by yenl3 with SMTP id l3so265970yen.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 12:37:44 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: yinghai@kernel.org, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: cleanup shmem_add_to_page_cache
+     Subject: mm: sparse: fix section usemap placement calculation
 has been removed from the -mm tree.  Its filename was
-     shmem-cleanup-shmem_add_to_page_cache.patch
+     mm-sparse-fix-section-usemap-placement-calculation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: shmem: cleanup shmem_add_to_page_cache
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: mm: sparse: fix section usemap placement calculation
 
-shmem_add_to_page_cache() has three callsites, but only one of them wants
-the radix_tree_preload() (an exceptional entry guarantees that the radix
-tree node is present in the other cases), and only that site can achieve
-mem_cgroup_uncharge_cache_page() (PageSwapCache makes it a no-op in the
-other cases).  We did it this way originally to reflect
-add_to_page_cache_locked(); but it's confusing now, so move the radix_tree
-preloading and mem_cgroup uncharging to that one caller.
+238305b ("mm: remove sparsemem allocation details from the bootmem
+allocator") introduced a bug in the allocation goal calculation that put
+section usemaps not in the same section as the node descriptors, creating
+unnecessary hotplug dependencies between them:
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+[    0.000000] node 0 must be removed before remove section 16399
+[    0.000000] node 1 must be removed before remove section 16399
+[    0.000000] node 2 must be removed before remove section 16399
+[    0.000000] node 3 must be removed before remove section 16399
+[    0.000000] node 4 must be removed before remove section 16399
+[    0.000000] node 5 must be removed before remove section 16399
+[    0.000000] node 6 must be removed before remove section 16399
+
+The reason is that it applies PAGE_SECTION_MASK to the physical address of
+the node descriptor when finding a suitable place to put the usemap, when
+this mask is actually intended to be used with PFNs.  Because the PFN mask
+is wider, the target address will point beyond the wanted section holding
+the node descriptor and the node must be offlined before the section
+holding the usemap can go.
+
+Fix this by extending the mask to address width before use.
+
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   58 ++++++++++++++++++++++++---------------------------
- 1 file changed, 28 insertions(+), 30 deletions(-)
+ mm/sparse.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/shmem.c~shmem-cleanup-shmem_add_to_page_cache mm/shmem.c
---- a/mm/shmem.c~shmem-cleanup-shmem_add_to_page_cache
-+++ a/mm/shmem.c
-@@ -288,40 +288,31 @@ static int shmem_add_to_page_cache(struc
- 				   struct address_space *mapping,
- 				   pgoff_t index, gfp_t gfp, void *expected)
- {
--	int error = 0;
-+	int error;
- 
- 	VM_BUG_ON(!PageLocked(page));
- 	VM_BUG_ON(!PageSwapBacked(page));
- 
-+	page_cache_get(page);
-+	page->mapping = mapping;
-+	page->index = index;
-+
-+	spin_lock_irq(&mapping->tree_lock);
- 	if (!expected)
--		error = radix_tree_preload(gfp & GFP_RECLAIM_MASK);
-+		error = radix_tree_insert(&mapping->page_tree, index, page);
-+	else
-+		error = shmem_radix_tree_replace(mapping, index, expected,
-+								 page);
- 	if (!error) {
--		page_cache_get(page);
--		page->mapping = mapping;
--		page->index = index;
--
--		spin_lock_irq(&mapping->tree_lock);
--		if (!expected)
--			error = radix_tree_insert(&mapping->page_tree,
--							index, page);
--		else
--			error = shmem_radix_tree_replace(mapping, index,
--							expected, page);
--		if (!error) {
--			mapping->nrpages++;
--			__inc_zone_page_state(page, NR_FILE_PAGES);
--			__inc_zone_page_state(page, NR_SHMEM);
--			spin_unlock_irq(&mapping->tree_lock);
--		} else {
--			page->mapping = NULL;
--			spin_unlock_irq(&mapping->tree_lock);
--			page_cache_release(page);
--		}
--		if (!expected)
--			radix_tree_preload_end();
-+		mapping->nrpages++;
-+		__inc_zone_page_state(page, NR_FILE_PAGES);
-+		__inc_zone_page_state(page, NR_SHMEM);
-+		spin_unlock_irq(&mapping->tree_lock);
-+	} else {
-+		page->mapping = NULL;
-+		spin_unlock_irq(&mapping->tree_lock);
-+		page_cache_release(page);
- 	}
--	if (error)
--		mem_cgroup_uncharge_cache_page(page);
- 	return error;
- }
- 
-@@ -1202,11 +1193,18 @@ repeat:
- 		__set_page_locked(page);
- 		error = mem_cgroup_cache_charge(page, current->mm,
- 						gfp & GFP_RECLAIM_MASK);
--		if (!error)
--			error = shmem_add_to_page_cache(page, mapping, index,
--						gfp, NULL);
- 		if (error)
- 			goto decused;
-+		error = radix_tree_preload(gfp & GFP_RECLAIM_MASK);
-+		if (!error) {
-+			error = shmem_add_to_page_cache(page, mapping, index,
-+							gfp, NULL);
-+			radix_tree_preload_end();
-+		}
-+		if (error) {
-+			mem_cgroup_uncharge_cache_page(page);
-+			goto decused;
-+		}
- 		lru_cache_add_anon(page);
- 
- 		spin_lock(&info->lock);
+diff -puN mm/sparse.c~mm-sparse-fix-section-usemap-placement-calculation mm/sparse.c
+--- a/mm/sparse.c~mm-sparse-fix-section-usemap-placement-calculation
++++ a/mm/sparse.c
+@@ -287,7 +287,7 @@ sparse_early_usemaps_alloc_pgdat_section
+ 	 * from the same section as the pgdat where possible to avoid
+ 	 * this problem.
+ 	 */
+-	goal = __pa(pgdat) & PAGE_SECTION_MASK;
++	goal = __pa(pgdat) & (PAGE_SECTION_MASK << PAGE_SHIFT);
+ 	host_pgdat = NODE_DATA(early_pfn_to_nid(goal >> PAGE_SHIFT));
+ 	return __alloc_bootmem_node_nopanic(host_pgdat, size,
+ 					    SMP_CACHE_BYTES, goal);
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from yinghai@kernel.org are
 
 origin.patch
-memcg-rename-mem_cgroup_stat_swapout-as-mem_cgroup_stat_swap.patch
-memcg-remove-mem_cgroup_charge_type_force.patch
-swap-allow-swap-readahead-to-be-merged.patch
-documentation-update-how-page-cluster-affects-swap-i-o.patch
-memcg-prevent-oom-with-too-many-dirty-pages.patch
-mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise.patch
-memcg-rename-config-variables.patch
-memcg-rename-config-variables-fix.patch
-memcg-rename-config-variables-fix-fix.patch
-shmem-provide-vm_ops-when-also-providing-a-mem-policy.patch
-tmpfs-interleave-the-starting-node-of-dev-shmem.patch
-prio_tree-debugging-patch.patch
+linux-next.patch
+mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
+mm-setup-pageblock_order-before-its-used-by-sparsemem.patch
+mm-hotplug-correctly-setup-fallback-zonelists-when-creating-new-pgdat.patch
+mm-hotplug-correctly-add-new-zone-to-all-other-nodes-zone-lists.patch
+mm-hotplug-free-zone-pageset-when-a-zone-becomes-empty.patch
+mm-hotplug-mark-memory-hotplug-code-in-page_allocc-as-__meminit.patch
 
