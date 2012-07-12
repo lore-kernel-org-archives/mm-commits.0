@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-only-set-page-pfmemalloc-when-alloc_no_watermarks-was-used.patch added to -mm tree
-Date: Thu, 12 Jul 2012 14:27:34 -0700
-Message-ID: <20120712212735.697FB100047@wpzn3.hot.corp.google.com>
+Subject: + mm-ignore-mempolicies-when-using-alloc_no_watermark.patch added to -mm tree
+Date: Thu, 12 Jul 2012 14:27:37 -0700
+Message-ID: <20120712212738.B30EF20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:51016 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932971Ab2GLV1g (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 17:27:36 -0400
-Received: by mail-vb0-f74.google.com with SMTP id l22so279362vbn.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 14:27:36 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:51930 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932971Ab2GLV1m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 17:27:42 -0400
+Received: by eekd4 with SMTP id d4so91819eek.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 14:27:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: mgorman@suse.de, a.p.zijlstra@chello.nl, cl@linux.com, davem@davemloft.net, 
 
 
 The patch titled
-     Subject: mm: only set page->pfmemalloc when ALLOC_NO_WATERMARKS was used
+     Subject: mm: ignore mempolicies when using ALLOC_NO_WATERMARK
 has been added to the -mm tree.  Its filename is
-     mm-only-set-page-pfmemalloc-when-alloc_no_watermarks-was-used.patch
+     mm-ignore-mempolicies-when-using-alloc_no_watermark.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,22 +34,25 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: only set page->pfmemalloc when ALLOC_NO_WATERMARKS was used
+Subject: mm: ignore mempolicies when using ALLOC_NO_WATERMARK
 
-__alloc_pages_slowpath() is called when the number of free pages is below
-the low watermark.  If the caller is entitled to use ALLOC_NO_WATERMARKS
-then the page will be marked page->pfmemalloc.  This protects more pages
-than are strictly necessary as we only need to protect pages allocated
-below the min watermark (the pfmemalloc reserves).
+The reserve is proportionally distributed over all !highmem zones in the
+system.  So we need to allow an emergency allocation access to all zones. 
+In order to do that we need to break out of any mempolicy boundaries we
+might have.
 
-This patch only sets page->pfmemalloc when ALLOC_NO_WATERMARKS was
-required to allocate the page.
+In my opinion that does not break mempolicies as those are user oriented
+and not system oriented.  That is, system allocations are not guaranteed
+to be within mempolicy boundaries.  For instance IRQs do not even have a
+mempolicy.
 
-[rientjes@google.com: David noticed the problem during review]
+So breaking out of mempolicy boundaries for 'rare' emergency allocations,
+which are always system allocations (as opposed to user) is ok.
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Cc: David Miller <davem@davemloft.net>
 Cc: Neil Brown <neilb@suse.de>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Mike Christie <michaelc@cs.wisc.edu>
 Cc: Eric B Munson <emunson@mgebm.net>
 Cc: Eric Dumazet <eric.dumazet@gmail.com>
@@ -59,70 +62,28 @@ Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   27 ++++++++++++++-------------
- 1 file changed, 14 insertions(+), 13 deletions(-)
+ mm/page_alloc.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-only-set-page-pfmemalloc-when-alloc_no_watermarks-was-used mm/page_alloc.c
---- a/mm/page_alloc.c~mm-only-set-page-pfmemalloc-when-alloc_no_watermarks-was-used
+diff -puN mm/page_alloc.c~mm-ignore-mempolicies-when-using-alloc_no_watermark mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-ignore-mempolicies-when-using-alloc_no_watermark
 +++ a/mm/page_alloc.c
-@@ -2115,8 +2115,8 @@ __alloc_pages_direct_compact(gfp_t gfp_m
+@@ -2377,6 +2377,13 @@ rebalance:
  
- 		page = get_page_from_freelist(gfp_mask, nodemask,
- 				order, zonelist, high_zoneidx,
--				alloc_flags, preferred_zone,
--				migratetype);
-+				alloc_flags & ~ALLOC_NO_WATERMARKS,
-+				preferred_zone, migratetype);
- 		if (page) {
- 			preferred_zone->compact_considered = 0;
- 			preferred_zone->compact_defer_shift = 0;
-@@ -2208,8 +2208,8 @@ __alloc_pages_direct_reclaim(gfp_t gfp_m
- retry:
- 	page = get_page_from_freelist(gfp_mask, nodemask, order,
- 					zonelist, high_zoneidx,
--					alloc_flags, preferred_zone,
--					migratetype);
-+					alloc_flags & ~ALLOC_NO_WATERMARKS,
-+					preferred_zone, migratetype);
- 
- 	/*
- 	 * If an allocation failed after direct reclaim, it could be because
-@@ -2380,8 +2380,17 @@ rebalance:
+ 	/* Allocate without watermarks if the context allows */
+ 	if (alloc_flags & ALLOC_NO_WATERMARKS) {
++		/*
++		 * Ignore mempolicies if ALLOC_NO_WATERMARKS on the grounds
++		 * the allocation is high priority and these type of
++		 * allocations are system rather than user orientated
++		 */
++		zonelist = node_zonelist(numa_node_id(), gfp_mask);
++
  		page = __alloc_pages_high_priority(gfp_mask, order,
  				zonelist, high_zoneidx, nodemask,
  				preferred_zone, migratetype);
--		if (page)
-+		if (page) {
-+			/*
-+			 * page->pfmemalloc is set when ALLOC_NO_WATERMARKS was
-+			 * necessary to allocate the page. The expectation is
-+			 * that the caller is taking steps that will free more
-+			 * memory. The caller should avoid the page being used
-+			 * for !PFMEMALLOC purposes.
-+			 */
-+			page->pfmemalloc = true;
- 			goto got_pg;
-+		}
- 	}
- 
- 	/* Atomic allocations - we can't balance anything */
-@@ -2498,14 +2507,6 @@ nopage:
- 	warn_alloc_failed(gfp_mask, order, NULL);
- 	return page;
- got_pg:
--	/*
--	 * page->pfmemalloc is set when the caller had PFMEMALLOC set, is
--	 * been OOM killed or specified __GFP_MEMALLOC. The expectation is
--	 * that the caller is taking steps that will free more memory. The
--	 * caller should avoid the page being used for !PFMEMALLOC purposes.
--	 */
--	page->pfmemalloc = !!(alloc_flags & ALLOC_NO_WATERMARKS);
--
- 	if (kmemcheck_enabled)
- 		kmemcheck_pagealloc_alloc(page, order, gfp_mask);
- 
 _
-Subject: Subject: mm: only set page->pfmemalloc when ALLOC_NO_WATERMARKS was used
+Subject: Subject: mm: ignore mempolicies when using ALLOC_NO_WATERMARK
 
 Patches currently in -mm which might be from mgorman@suse.de are
 
