@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + netvm-set-pf_memalloc-as-appropriate-during-skb-processing.patch added to -mm tree
-Date: Thu, 12 Jul 2012 14:28:03 -0700
-Message-ID: <20120712212804.BEAC820004E@hpza10.eem.corp.google.com>
+Subject: + netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb.patch added to -mm tree
+Date: Thu, 12 Jul 2012 14:27:59 -0700
+Message-ID: <20120712212800.0D04E20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:44655 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161093Ab2GLV2I (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 17:28:08 -0400
-Received: by wibhr14 with SMTP id hr14so149251wib.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 14:28:06 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:50163 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161112Ab2GLV2D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 17:28:03 -0400
+Received: by fat25 with SMTP id 25so147134fat.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 14:28:02 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: mgorman@suse.de, a.p.zijlstra@chello.nl, cl@linux.com, davem@davemloft.net, 
 
 
 The patch titled
-     Subject: netvm: set PF_MEMALLOC as appropriate during SKB processing
+     Subject: netvm: propagate page->pfmemalloc from skb_alloc_page to skb
 has been added to the -mm tree.  Its filename is
-     netvm-set-pf_memalloc-as-appropriate-during-skb-processing.patch
+     netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,26 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: netvm: set PF_MEMALLOC as appropriate during SKB processing
+Subject: netvm: propagate page->pfmemalloc from skb_alloc_page to skb
 
-In order to make sure pfmemalloc packets receive all memory needed to
-proceed, ensure processing of pfmemalloc SKBs happens under PF_MEMALLOC. 
-This is limited to a subset of protocols that are expected to be used for
-writing to swap.  Taps are not allowed to use PF_MEMALLOC as these are
-expected to communicate with userspace processes which could be paged out.
+The skb->pfmemalloc flag gets set to true iff during the slab allocation
+of data in __alloc_skb that the the PFMEMALLOC reserves were used.  If
+page splitting is used, it is possible that pages will be allocated from
+the PFMEMALLOC reserve without propagating this information to the skb. 
+This patch propagates page->pfmemalloc from pages allocated for fragments
+to the skb.
 
-[a.p.zijlstra@chello.nl: Ideas taken from various patches]
-[jslaby@suse.cz: Lock imbalance fix]
+It works by reintroducing and expanding the skb_alloc_page() API to take
+an skb.  If the page was allocated from pfmemalloc reserves, it is
+automatically copied.  If the driver allocates the page before the skb, it
+should call skb_propagate_pfmemalloc() after the skb is allocated to
+ensure the flag is copied properly.
+
+Failure to do so is not critical.  The resulting driver may perform slower
+if it is used for swap-over-NBD or swap-over-NFS but it should not result
+in failure.
+
+[davem@davemloft.net: API rename and consistency]
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Acked-by: David S. Miller <davem@davemloft.net>
 Cc: Neil Brown <neilb@suse.de>
@@ -57,189 +67,177 @@ Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/net/sock.h |    5 ++++
- net/core/dev.c     |   53 ++++++++++++++++++++++++++++++++++++++-----
- net/core/sock.c    |   16 ++++++++++++
- 3 files changed, 68 insertions(+), 6 deletions(-)
+ drivers/net/ethernet/chelsio/cxgb4/sge.c          |    2 
+ drivers/net/ethernet/chelsio/cxgb4vf/sge.c        |    2 
+ drivers/net/ethernet/intel/igb/igb_main.c         |    2 
+ drivers/net/ethernet/intel/ixgbe/ixgbe_main.c     |    4 
+ drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c |    3 
+ drivers/net/usb/cdc-phonet.c                      |    2 
+ drivers/usb/gadget/f_phonet.c                     |    2 
+ include/linux/skbuff.h                            |   55 ++++++++++++
+ 8 files changed, 64 insertions(+), 8 deletions(-)
 
-diff -puN include/net/sock.h~netvm-set-pf_memalloc-as-appropriate-during-skb-processing include/net/sock.h
---- a/include/net/sock.h~netvm-set-pf_memalloc-as-appropriate-during-skb-processing
-+++ a/include/net/sock.h
-@@ -754,8 +754,13 @@ static inline __must_check int sk_add_ba
- 	return 0;
- }
+diff -puN drivers/net/ethernet/chelsio/cxgb4/sge.c~netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb drivers/net/ethernet/chelsio/cxgb4/sge.c
+--- a/drivers/net/ethernet/chelsio/cxgb4/sge.c~netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb
++++ a/drivers/net/ethernet/chelsio/cxgb4/sge.c
+@@ -528,7 +528,7 @@ static unsigned int refill_fl(struct ada
+ #endif
  
-+extern int __sk_backlog_rcv(struct sock *sk, struct sk_buff *skb);
-+
- static inline int sk_backlog_rcv(struct sock *sk, struct sk_buff *skb)
- {
-+	if (sk_memalloc_socks() && skb_pfmemalloc(skb))
-+		return __sk_backlog_rcv(sk, skb);
-+
- 	return sk->sk_backlog_rcv(sk, skb);
- }
+ 	while (n--) {
+-		pg = alloc_page(gfp);
++		pg = __skb_alloc_page(gfp, NULL);
+ 		if (unlikely(!pg)) {
+ 			q->alloc_failed++;
+ 			break;
+diff -puN drivers/net/ethernet/chelsio/cxgb4vf/sge.c~netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb drivers/net/ethernet/chelsio/cxgb4vf/sge.c
+--- a/drivers/net/ethernet/chelsio/cxgb4vf/sge.c~netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb
++++ a/drivers/net/ethernet/chelsio/cxgb4vf/sge.c
+@@ -653,7 +653,7 @@ static unsigned int refill_fl(struct ada
  
-diff -puN net/core/dev.c~netvm-set-pf_memalloc-as-appropriate-during-skb-processing net/core/dev.c
---- a/net/core/dev.c~netvm-set-pf_memalloc-as-appropriate-during-skb-processing
-+++ a/net/core/dev.c
-@@ -3156,6 +3156,23 @@ void netdev_rx_handler_unregister(struct
+ alloc_small_pages:
+ 	while (n--) {
+-		page = alloc_page(gfp | __GFP_NOWARN | __GFP_COLD);
++		page = __skb_alloc_page(gfp | __GFP_NOWARN, NULL);
+ 		if (unlikely(!page)) {
+ 			fl->alloc_failed++;
+ 			break;
+diff -puN drivers/net/ethernet/intel/igb/igb_main.c~netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb drivers/net/ethernet/intel/igb/igb_main.c
+--- a/drivers/net/ethernet/intel/igb/igb_main.c~netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb
++++ a/drivers/net/ethernet/intel/igb/igb_main.c
+@@ -6234,7 +6234,7 @@ static bool igb_alloc_mapped_page(struct
+ 		return true;
+ 
+ 	if (!page) {
+-		page = alloc_page(GFP_ATOMIC | __GFP_COLD);
++		page = __skb_alloc_page(GFP_ATOMIC, bi->skb);
+ 		bi->page = page;
+ 		if (unlikely(!page)) {
+ 			rx_ring->rx_stats.alloc_failed++;
+diff -puN drivers/net/ethernet/intel/ixgbe/ixgbe_main.c~netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c~netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb
++++ a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+@@ -1146,8 +1146,8 @@ static bool ixgbe_alloc_mapped_page(stru
+ 
+ 	/* alloc new page for storage */
+ 	if (likely(!page)) {
+-		page = alloc_pages(GFP_ATOMIC | __GFP_COLD | __GFP_COMP,
+-				   ixgbe_rx_pg_order(rx_ring));
++		page = __skb_alloc_pages(GFP_ATOMIC | __GFP_COLD | __GFP_COMP,
++				 	 bi->skb, ixgbe_rx_pg_order(rx_ring));
+ 		if (unlikely(!page)) {
+ 			rx_ring->rx_stats.alloc_rx_page_failed++;
+ 			return false;
+diff -puN drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c~netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c
+--- a/drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c~netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb
++++ a/drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c
+@@ -369,7 +369,7 @@ static void ixgbevf_alloc_rx_buffers(str
+ 		if (!bi->page_dma &&
+ 		    (adapter->flags & IXGBE_FLAG_RX_PS_ENABLED)) {
+ 			if (!bi->page) {
+-				bi->page = alloc_page(GFP_ATOMIC | __GFP_COLD);
++				bi->page = __skb_alloc_page(GFP_ATOMIC, NULL);
+ 				if (!bi->page) {
+ 					adapter->alloc_rx_page_failed++;
+ 					goto no_buffers;
+@@ -403,6 +403,7 @@ static void ixgbevf_alloc_rx_buffers(str
+ 			 */
+ 			skb_reserve(skb, NET_IP_ALIGN);
+ 
++			skb_propagate_pfmemalloc(bi->page, skb);
+ 			bi->skb = skb;
+ 		}
+ 		if (!bi->dma) {
+diff -puN drivers/net/usb/cdc-phonet.c~netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb drivers/net/usb/cdc-phonet.c
+--- a/drivers/net/usb/cdc-phonet.c~netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb
++++ a/drivers/net/usb/cdc-phonet.c
+@@ -130,7 +130,7 @@ static int rx_submit(struct usbpn_dev *p
+ 	struct page *page;
+ 	int err;
+ 
+-	page = alloc_page(gfp_flags);
++	page = __skb_alloc_page(gfp_flags | __GFP_NOMEMALLOC, NULL);
+ 	if (!page)
+ 		return -ENOMEM;
+ 
+diff -puN drivers/usb/gadget/f_phonet.c~netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb drivers/usb/gadget/f_phonet.c
+--- a/drivers/usb/gadget/f_phonet.c~netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb
++++ a/drivers/usb/gadget/f_phonet.c
+@@ -301,7 +301,7 @@ pn_rx_submit(struct f_phonet *fp, struct
+ 	struct page *page;
+ 	int err;
+ 
+-	page = alloc_page(gfp_flags);
++	page = __skb_alloc_page(gfp_flags | __GFP_NOMEMALLOC, NULL);
+ 	if (!page)
+ 		return -ENOMEM;
+ 
+diff -puN include/linux/skbuff.h~netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb include/linux/skbuff.h
+--- a/include/linux/skbuff.h~netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb
++++ a/include/linux/skbuff.h
+@@ -1774,6 +1774,61 @@ static inline struct sk_buff *netdev_all
+ 	return __netdev_alloc_skb_ip_align(dev, length, GFP_ATOMIC);
  }
- EXPORT_SYMBOL_GPL(netdev_rx_handler_unregister);
  
 +/*
-+ * Limit the use of PFMEMALLOC reserves to those protocols that implement
-+ * the special handling of PFMEMALLOC skbs.
++ *	__skb_alloc_page - allocate pages for ps-rx on a skb and preserve pfmemalloc data
++ *	@gfp_mask: alloc_pages_node mask. Set __GFP_NOMEMALLOC if not for network packet RX
++ *	@skb: skb to set pfmemalloc on if __GFP_MEMALLOC is used
++ *	@order: size of the allocation
++ *
++ * 	Allocate a new page.
++ *
++ * 	%NULL is returned if there is no free memory.
++*/
++static inline struct page *__skb_alloc_pages(gfp_t gfp_mask,
++					      struct sk_buff *skb,
++					      unsigned int order)
++{
++	struct page *page;
++
++	gfp_mask |= __GFP_COLD;
++
++	if (!(gfp_mask & __GFP_NOMEMALLOC))
++		gfp_mask |= __GFP_MEMALLOC;
++
++	page = alloc_pages_node(NUMA_NO_NODE, gfp_mask, order);
++	if (skb && page && page->pfmemalloc)
++		skb->pfmemalloc = true;
++
++	return page;
++}
++
++/**
++ *	__skb_alloc_page - allocate a page for ps-rx for a given skb and preserve pfmemalloc data
++ *	@gfp_mask: alloc_pages_node mask. Set __GFP_NOMEMALLOC if not for network packet RX
++ *	@skb: skb to set pfmemalloc on if __GFP_MEMALLOC is used
++ *
++ * 	Allocate a new page.
++ *
++ * 	%NULL is returned if there is no free memory.
 + */
-+static bool skb_pfmemalloc_protocol(struct sk_buff *skb)
++static inline struct page *__skb_alloc_page(gfp_t gfp_mask,
++					     struct sk_buff *skb)
 +{
-+	switch (skb->protocol) {
-+	case __constant_htons(ETH_P_ARP):
-+	case __constant_htons(ETH_P_IP):
-+	case __constant_htons(ETH_P_IPV6):
-+	case __constant_htons(ETH_P_8021Q):
-+		return true;
-+	default:
-+		return false;
-+	}
++	return __skb_alloc_pages(gfp_mask, skb, 0);
 +}
 +
- static int __netif_receive_skb(struct sk_buff *skb)
- {
- 	struct packet_type *ptype, *pt_prev;
-@@ -3165,14 +3182,27 @@ static int __netif_receive_skb(struct sk
- 	bool deliver_exact = false;
- 	int ret = NET_RX_DROP;
- 	__be16 type;
-+	unsigned long pflags = current->flags;
- 
- 	net_timestamp_check(!netdev_tstamp_prequeue, skb);
- 
- 	trace_netif_receive_skb(skb);
- 
-+	/*
-+	 * PFMEMALLOC skbs are special, they should
-+	 * - be delivered to SOCK_MEMALLOC sockets only
-+	 * - stay away from userspace
-+	 * - have bounded memory usage
-+	 *
-+	 * Use PF_MEMALLOC as this saves us from propagating the allocation
-+	 * context down to all allocation sites.
-+	 */
-+	if (sk_memalloc_socks() && skb_pfmemalloc(skb))
-+		current->flags |= PF_MEMALLOC;
-+
- 	/* if we've gotten here through NAPI, check netpoll */
- 	if (netpoll_receive_skb(skb))
--		return NET_RX_DROP;
-+		goto out;
- 
- 	if (!skb->skb_iif)
- 		skb->skb_iif = skb->dev->ifindex;
-@@ -3193,7 +3223,7 @@ another_round:
- 	if (skb->protocol == cpu_to_be16(ETH_P_8021Q)) {
- 		skb = vlan_untag(skb);
- 		if (unlikely(!skb))
--			goto out;
-+			goto unlock;
- 	}
- 
- #ifdef CONFIG_NET_CLS_ACT
-@@ -3203,6 +3233,9 @@ another_round:
- 	}
- #endif
- 
-+	if (sk_memalloc_socks() && skb_pfmemalloc(skb))
-+		goto skip_taps;
-+
- 	list_for_each_entry_rcu(ptype, &ptype_all, list) {
- 		if (!ptype->dev || ptype->dev == skb->dev) {
- 			if (pt_prev)
-@@ -3211,13 +3244,18 @@ another_round:
- 		}
- 	}
- 
-+skip_taps:
- #ifdef CONFIG_NET_CLS_ACT
- 	skb = handle_ing(skb, &pt_prev, &ret, orig_dev);
- 	if (!skb)
--		goto out;
-+		goto unlock;
- ncls:
- #endif
- 
-+	if (sk_memalloc_socks() && skb_pfmemalloc(skb)
-+				&& !skb_pfmemalloc_protocol(skb))
-+		goto drop;
-+
- 	rx_handler = rcu_dereference(skb->dev->rx_handler);
- 	if (vlan_tx_tag_present(skb)) {
- 		if (pt_prev) {
-@@ -3227,7 +3265,7 @@ ncls:
- 		if (vlan_do_receive(&skb, !rx_handler))
- 			goto another_round;
- 		else if (unlikely(!skb))
--			goto out;
-+			goto unlock;
- 	}
- 
- 	if (rx_handler) {
-@@ -3237,7 +3275,7 @@ ncls:
- 		}
- 		switch (rx_handler(&skb)) {
- 		case RX_HANDLER_CONSUMED:
--			goto out;
-+			goto unlock;
- 		case RX_HANDLER_ANOTHER:
- 			goto another_round;
- 		case RX_HANDLER_EXACT:
-@@ -3267,6 +3305,7 @@ ncls:
- 	if (pt_prev) {
- 		ret = pt_prev->func(skb, skb->dev, pt_prev, orig_dev);
- 	} else {
-+drop:
- 		atomic_long_inc(&skb->dev->rx_dropped);
- 		kfree_skb(skb);
- 		/* Jamal, now you will not able to escape explaining
-@@ -3275,8 +3314,10 @@ ncls:
- 		ret = NET_RX_DROP;
- 	}
- 
--out:
-+unlock:
- 	rcu_read_unlock();
-+out:
-+	tsk_restore_flags(current, pflags, PF_MEMALLOC);
- 	return ret;
- }
- 
-diff -puN net/core/sock.c~netvm-set-pf_memalloc-as-appropriate-during-skb-processing net/core/sock.c
---- a/net/core/sock.c~netvm-set-pf_memalloc-as-appropriate-during-skb-processing
-+++ a/net/core/sock.c
-@@ -298,6 +298,22 @@ void sk_clear_memalloc(struct sock *sk)
- }
- EXPORT_SYMBOL_GPL(sk_clear_memalloc);
- 
-+int __sk_backlog_rcv(struct sock *sk, struct sk_buff *skb)
++/**
++ *	skb_propagate_pfmemalloc - Propagate pfmemalloc if skb is allocated after RX page
++ *	@page: The page that was allocated from skb_alloc_page
++ *	@skb: The skb that may need pfmemalloc set
++ */
++static inline void skb_propagate_pfmemalloc(struct page *page,
++					     struct sk_buff *skb)
 +{
-+	int ret;
-+	unsigned long pflags = current->flags;
-+
-+	/* these should have been dropped before queueing */
-+	BUG_ON(!sock_flag(sk, SOCK_MEMALLOC));
-+
-+	current->flags |= PF_MEMALLOC;
-+	ret = sk->sk_backlog_rcv(sk, skb);
-+	tsk_restore_flags(current, pflags, PF_MEMALLOC);
-+
-+	return ret;
++	if (page && page->pfmemalloc)
++		skb->pfmemalloc = true;
 +}
-+EXPORT_SYMBOL(__sk_backlog_rcv);
 +
- #if defined(CONFIG_CGROUPS)
- #if !defined(CONFIG_NET_CLS_CGROUP)
- int net_cls_subsys_id = -1;
+ /**
+  * skb_frag_page - retrieve the page refered to by a paged fragment
+  * @frag: the paged fragment
 _
-Subject: Subject: netvm: set PF_MEMALLOC as appropriate during SKB processing
+Subject: Subject: netvm: propagate page->pfmemalloc from skb_alloc_page to skb
 
 Patches currently in -mm which might be from mgorman@suse.de are
 
