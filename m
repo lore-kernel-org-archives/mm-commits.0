@@ -1,143 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-sparse-fix-usemap-allocation-above-node-descriptor-section.patch removed from -mm tree
-Date: Thu, 12 Jul 2012 12:37:46 -0700
-Message-ID: <20120712193746.D07EC1E0043@wpzn4.hot.corp.google.com>
+Subject: [merged] drivers-gpio-gpio-tps65910c-fix-config_of_gpio=n-build.patch removed from -mm tree
+Date: Thu, 12 Jul 2012 12:37:53 -0700
+Message-ID: <20120712193753.B05E8100049@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:57595 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934241Ab2GLThr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 15:37:47 -0400
-Received: by mail-qc0-f202.google.com with SMTP id s25so267943qcq.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 12:37:47 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:38891 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934241Ab2GLThy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 15:37:54 -0400
+Received: by ggeh3 with SMTP id h3so266670gge.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 12:37:54 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yinghai@kernel.org, hannes@cmpxchg.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, grant.likely@secretlab.ca, linus.walleij@stericsson.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: sparse: fix usemap allocation above node descriptor section
+     Subject: drivers/gpio/gpio-tps65910.c: fix CONFIG_OF_GPIO=n build
 has been removed from the -mm tree.  Its filename was
-     mm-sparse-fix-usemap-allocation-above-node-descriptor-section.patch
+     drivers-gpio-gpio-tps65910c-fix-config_of_gpio=n-build.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: mm: sparse: fix usemap allocation above node descriptor section
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/gpio/gpio-tps65910.c: fix CONFIG_OF_GPIO=n build
 
-After f5bf18f ("bootmem/sparsemem: remove limit constraint in
-alloc_bootmem_section"), usemap allocations may easily be placed outside
-the optimal section that holds the node descriptor, even if there is space
-available in that section.  This results in unnecessary hotplug
-dependencies that need to have the node unplugged before the section
-holding the usemap.
+drivers/gpio/gpio-tps65910.c: In function 'tps65910_gpio_probe':
+drivers/gpio/gpio-tps65910.c:152: error: 'struct gpio_chip' has no member named 'of_node'
 
-The reason is that the bootmem allocator doesn't guarantee a linear search
-starting from the passed allocation goal but may start out at a much
-higher address absent an upper limit.
-
-Fix this by trying the allocation with the limit at the section end, then
-retry without if that fails.  This keeps the fix from f5bf18f of not
-panicking if the allocation does not fit in the section, but still makes
-sure to try to stay within the section at first.
-
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@vger.kernel.org>	[3.3.x, 3.4.x]
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Linus Walleij <linus.walleij@stericsson.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bootmem.h |    5 +++++
- mm/bootmem.c            |    2 +-
- mm/nobootmem.c          |    2 +-
- mm/sparse.c             |   18 +++++++++++++-----
- 4 files changed, 20 insertions(+), 7 deletions(-)
+ drivers/gpio/gpio-tps65910.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/bootmem.h~mm-sparse-fix-usemap-allocation-above-node-descriptor-section include/linux/bootmem.h
---- a/include/linux/bootmem.h~mm-sparse-fix-usemap-allocation-above-node-descriptor-section
-+++ a/include/linux/bootmem.h
-@@ -91,6 +91,11 @@ extern void *__alloc_bootmem_node_nopani
- 				  unsigned long size,
- 				  unsigned long align,
- 				  unsigned long goal);
-+void *___alloc_bootmem_node_nopanic(pg_data_t *pgdat,
-+				  unsigned long size,
-+				  unsigned long align,
-+				  unsigned long goal,
-+				  unsigned long limit);
- extern void *__alloc_bootmem_low(unsigned long size,
- 				 unsigned long align,
- 				 unsigned long goal);
-diff -puN mm/bootmem.c~mm-sparse-fix-usemap-allocation-above-node-descriptor-section mm/bootmem.c
---- a/mm/bootmem.c~mm-sparse-fix-usemap-allocation-above-node-descriptor-section
-+++ a/mm/bootmem.c
-@@ -698,7 +698,7 @@ void * __init __alloc_bootmem(unsigned l
- 	return ___alloc_bootmem(size, align, goal, limit);
- }
- 
--static void * __init ___alloc_bootmem_node_nopanic(pg_data_t *pgdat,
-+void * __init ___alloc_bootmem_node_nopanic(pg_data_t *pgdat,
- 				unsigned long size, unsigned long align,
- 				unsigned long goal, unsigned long limit)
- {
-diff -puN mm/nobootmem.c~mm-sparse-fix-usemap-allocation-above-node-descriptor-section mm/nobootmem.c
---- a/mm/nobootmem.c~mm-sparse-fix-usemap-allocation-above-node-descriptor-section
-+++ a/mm/nobootmem.c
-@@ -274,7 +274,7 @@ void * __init __alloc_bootmem(unsigned l
- 	return ___alloc_bootmem(size, align, goal, limit);
- }
- 
--static void * __init ___alloc_bootmem_node_nopanic(pg_data_t *pgdat,
-+void * __init ___alloc_bootmem_node_nopanic(pg_data_t *pgdat,
- 						   unsigned long size,
- 						   unsigned long align,
- 						   unsigned long goal,
-diff -puN mm/sparse.c~mm-sparse-fix-usemap-allocation-above-node-descriptor-section mm/sparse.c
---- a/mm/sparse.c~mm-sparse-fix-usemap-allocation-above-node-descriptor-section
-+++ a/mm/sparse.c
-@@ -275,8 +275,9 @@ static unsigned long * __init
- sparse_early_usemaps_alloc_pgdat_section(struct pglist_data *pgdat,
- 					 unsigned long size)
- {
--	pg_data_t *host_pgdat;
--	unsigned long goal;
-+	unsigned long goal, limit;
-+	unsigned long *p;
-+	int nid;
- 	/*
- 	 * A page may contain usemaps for other sections preventing the
- 	 * page being freed and making a section unremovable while
-@@ -288,9 +289,16 @@ sparse_early_usemaps_alloc_pgdat_section
- 	 * this problem.
- 	 */
- 	goal = __pa(pgdat) & (PAGE_SECTION_MASK << PAGE_SHIFT);
--	host_pgdat = NODE_DATA(early_pfn_to_nid(goal >> PAGE_SHIFT));
--	return __alloc_bootmem_node_nopanic(host_pgdat, size,
--					    SMP_CACHE_BYTES, goal);
-+	limit = goal + (1UL << PA_SECTION_SHIFT);
-+	nid = early_pfn_to_nid(goal >> PAGE_SHIFT);
-+again:
-+	p = ___alloc_bootmem_node_nopanic(NODE_DATA(nid), size,
-+					  SMP_CACHE_BYTES, goal, limit);
-+	if (!p && limit) {
-+		limit = 0;
-+		goto again;
-+	}
-+	return p;
- }
- 
- static void __init check_usemap_section_nr(int nid, unsigned long *usemap)
+diff -puN drivers/gpio/gpio-tps65910.c~drivers-gpio-gpio-tps65910c-fix-config_of_gpio=n-build drivers/gpio/gpio-tps65910.c
+--- a/drivers/gpio/gpio-tps65910.c~drivers-gpio-gpio-tps65910c-fix-config_of_gpio=n-build
++++ a/drivers/gpio/gpio-tps65910.c
+@@ -149,7 +149,9 @@ static int __devinit tps65910_gpio_probe
+ 	tps65910_gpio->gpio_chip.set	= tps65910_gpio_set;
+ 	tps65910_gpio->gpio_chip.get	= tps65910_gpio_get;
+ 	tps65910_gpio->gpio_chip.dev = &pdev->dev;
++#ifdef CONFIG_OF_GPIO
+ 	tps65910_gpio->gpio_chip.of_node = tps65910->dev->of_node;
++#endif
+ 	if (pdata && pdata->gpio_base)
+ 		tps65910_gpio->gpio_chip.base = pdata->gpio_base;
+ 	else
 _
 
-Patches currently in -mm which might be from yinghai@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
+sysfs-fail-dentry-revalidation-after-namespace-change-fix.patch
+hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
+coredump-warn-about-unsafe-suid_dumpable-core_pattern-combo.patch
+mm.patch
+mm-make-vb_alloc-more-foolproof-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
 mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
-mm-setup-pageblock_order-before-its-used-by-sparsemem.patch
-mm-hotplug-correctly-setup-fallback-zonelists-when-creating-new-pgdat.patch
-mm-hotplug-correctly-add-new-zone-to-all-other-nodes-zone-lists.patch
-mm-hotplug-free-zone-pageset-when-a-zone-becomes-empty.patch
-mm-hotplug-mark-memory-hotplug-code-in-page_allocc-as-__meminit.patch
+memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
+memcg-prevent-oom-with-too-many-dirty-pages.patch
+mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
+memcg-rename-config-variables.patch
+memcg-rename-config-variables-fix-fix.patch
+mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes.patch
+mm-have-order-0-compaction-start-off-where-it-left-v3-typo.patch
+avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
+kernel-sysc-avoid-argv_freenull.patch
+kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
+printk-add-generic-functions-to-find-kern_level-headers-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
+lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch
+string-introduce-memweight-fix.patch
+drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes.patch
+drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded.patch
+hfsplus-get-rid-of-write_super-checkpatch-fixes.patch
+kernel-kmodc-document-call_usermodehelper_fns-a-bit.patch
+kmod-avoid-deadlock-from-recursive-kmod-call.patch
+fork-use-vma_pages-to-simplify-the-code-fix.patch
+fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
+include-linux-aioh-cpp-c-conversions.patch
+resource-make-sure-requested-range-intersects-root-range-fix.patch
+fault-injection-add-selftests-for-cpu-and-memory-hotplug.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
