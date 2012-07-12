@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-prevent-oom-with-too-many-dirty-pages-fix.patch added to -mm tree
-Date: Thu, 12 Jul 2012 14:11:45 -0700
-Message-ID: <20120712211146.A8C0820004E@hpza10.eem.corp.google.com>
+Subject: + checkpatch-add-check-for-use-of-sizeof-without-parenthesis-v2.patch added to -mm tree
+Date: Thu, 12 Jul 2012 14:15:49 -0700
+Message-ID: <20120712211550.074B15C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:58537 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932911Ab2GLVLt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 17:11:49 -0400
-Received: by wibhr14 with SMTP id hr14so148873wib.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 14:11:48 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:36549 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932911Ab2GLVPw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 17:15:52 -0400
+Received: by fat25 with SMTP id 25so146821fat.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 14:15:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, fengguang.wu@intel.com, gthelen@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujtisu.com, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, riel@redhat.com, yinghan@google.com
+Cc: joe@perches.com, apw@canonical.com
 
 
 The patch titled
-     Subject: mm/vmscan.c: fix deadlock with lopp driver
+     Subject: checkpatch-add-check-for-use-of-sizeof-without-parenthesis-v2
 has been added to the -mm tree.  Its filename is
-     memcg-prevent-oom-with-too-many-dirty-pages-fix.patch
+     checkpatch-add-check-for-use-of-sizeof-without-parenthesis-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,64 +33,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm/vmscan.c: fix deadlock with lopp driver
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch-add-check-for-use-of-sizeof-without-parenthesis-v2
 
-Part of my load builds kernels on extN over loop over tmpfs: loop does
-mapping_set_gfp_mask(mapping, lo->old_gfp_mask & ~(__GFP_IO|__GFP_FS))
-because it knows it will deadlock, if the loop thread enters reclaim, and
-reclaim tries to write back a dirty page, one which needs the loop thread
-to perform the write.
+Add check that works for sizeof *foo as well as sizeof foo
 
-With the may_enter_fs check restored, all is well.
-
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujtisu.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Ying Han <yinghan@google.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~memcg-prevent-oom-with-too-many-dirty-pages-fix mm/vmscan.c
---- a/mm/vmscan.c~memcg-prevent-oom-with-too-many-dirty-pages-fix
-+++ a/mm/vmscan.c
-@@ -726,7 +726,8 @@ static unsigned long shrink_page_list(st
- 			 * writeback from reclaim and there is nothing else to
- 			 * reclaim.
- 			 */
--			if (!global_reclaim(sc) && PageReclaim(page))
-+			if (!global_reclaim(sc) && PageReclaim(page) &&
-+					may_enter_fs)
- 				wait_on_page_writeback(page);
- 			else {
- 				nr_writeback++;
+diff -puN scripts/checkpatch.pl~checkpatch-add-check-for-use-of-sizeof-without-parenthesis-v2 scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-check-for-use-of-sizeof-without-parenthesis-v2
++++ a/scripts/checkpatch.pl
+@@ -3266,7 +3266,7 @@ sub process {
+ 		}
+ 
+ # check for sizeof without parenthesis
+-		if ($line =~ /\bsizeof\s+($Lval)/) {
++		if ($line =~ /\bsizeof\s+((?:\*\s*|)$Lval|$Type(?:\s+$Lval|))/) {
+ 			WARN("SIZEOF_PARENTHESIS",
+ 			     "sizeof $1 should be sizeof($1)\n" . $herecurr);
+ 		}
 _
-Subject: Subject: mm/vmscan.c: fix deadlock with lopp driver
+Subject: Subject: checkpatch-add-check-for-use-of-sizeof-without-parenthesis-v2
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-origin.patch
-memcg-rename-mem_cgroup_stat_swapout-as-mem_cgroup_stat_swap.patch
-memcg-remove-mem_cgroup_charge_type_force.patch
-swap-allow-swap-readahead-to-be-merged.patch
-documentation-update-how-page-cluster-affects-swap-i-o.patch
-memcg-prevent-oom-with-too-many-dirty-pages.patch
-memcg-prevent-oom-with-too-many-dirty-pages-fix.patch
-memcg-prevent-oom-with-too-many-dirty-pages-fix-fix.patch
-mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise.patch
-memcg-rename-config-variables.patch
-memcg-rename-config-variables-fix.patch
-memcg-rename-config-variables-fix-fix.patch
-shmem-provide-vm_ops-when-also-providing-a-mem-policy.patch
-tmpfs-interleave-the-starting-node-of-dev-shmem.patch
-prio_tree-debugging-patch.patch
+linux-next.patch
+printk-add-generic-functions-to-find-kern_level-headers.patch
+printk-add-generic-functions-to-find-kern_level-headers-fix.patch
+printk-add-kern_levelsh-to-make-kern_level-available-for-asm-use.patch
+arch-remove-direct-definitions-of-kern_level-uses.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
+sound-use-printk_get_level-and-printk_skip_level.patch
+printk-convert-the-format-for-kern_level-to-a-2-byte-pattern.patch
+printk-only-look-for-prefix-levels-in-kernel-messages.patch
+printk-remove-the-now-unnecessary-c-annotation-for-kern_cont.patch
+vsprintf-add-%pmr-for-bluetooth-mac-address.patch
+vsprintf-add-%pmr-for-bluetooth-mac-address-fix.patch
+checkpatch-update-alignment-check.patch
+checkpatch-test-for-non-standard-signatures.patch
+checkpatch-check-usleep_range-arguments.patch
+checkpatch-add-check-for-use-of-sizeof-without-parenthesis.patch
+checkpatch-add-check-for-use-of-sizeof-without-parenthesis-v2.patch
 
