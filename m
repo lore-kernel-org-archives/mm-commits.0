@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-micro-optimise-slab-to-avoid-a-function-call.patch added to -mm tree
-Date: Thu, 12 Jul 2012 14:28:08 -0700
-Message-ID: <20120712212809.D2ACC200057@hpza10.eem.corp.google.com>
+Subject: + nbd-set-sock_memalloc-for-access-to-pfmemalloc-reserves.patch added to -mm tree
+Date: Thu, 12 Jul 2012 14:28:13 -0700
+Message-ID: <20120712212814.6AAE1100048@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:55989 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161093Ab2GLV2N (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 17:28:13 -0400
-Received: by weyr1 with SMTP id r1so148640wey.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 14:28:11 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:55659 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161093Ab2GLV2Q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 17:28:16 -0400
+Received: by qabg24 with SMTP id g24so301088qab.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 14:28:15 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: mgorman@suse.de, a.p.zijlstra@chello.nl, cl@linux.com, davem@davemloft.net, 
 
 
 The patch titled
-     Subject: mm: micro-optimise slab to avoid a function call
+     Subject: nbd: set SOCK_MEMALLOC for access to PFMEMALLOC reserves
 has been added to the -mm tree.  Its filename is
-     mm-micro-optimise-slab-to-avoid-a-function-call.patch
+     nbd-set-sock_memalloc-for-access-to-pfmemalloc-reserves.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: micro-optimise slab to avoid a function call
+Subject: nbd: set SOCK_MEMALLOC for access to PFMEMALLOC reserves
 
-Getting and putting objects in SLAB currently requires a function call but
-the bulk of the work is related to PFMEMALLOC reserves which are only
-consumed when network-backed storage is critical.  Use an inline function
-to determine if the function call is required.
+Set SOCK_MEMALLOC on the NBD socket to allow access to PFMEMALLOC reserves
+so pages backed by NBD, particularly if swap related, can be cleaned to
+prevent the machine being deadlocked.  It is still possible that the
+PFMEMALLOC reserves get depleted resulting in deadlock but this can be
+resolved by the administrator by increasing min_free_kbytes.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Cc: David Miller <davem@davemloft.net>
@@ -54,70 +55,49 @@ Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   28 ++++++++++++++++++++++++++--
- 1 file changed, 26 insertions(+), 2 deletions(-)
+ drivers/block/nbd.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN mm/slab.c~mm-micro-optimise-slab-to-avoid-a-function-call mm/slab.c
---- a/mm/slab.c~mm-micro-optimise-slab-to-avoid-a-function-call
-+++ a/mm/slab.c
-@@ -118,6 +118,8 @@
- #include	<linux/memory.h>
- #include	<linux/prefetch.h>
+diff -puN drivers/block/nbd.c~nbd-set-sock_memalloc-for-access-to-pfmemalloc-reserves drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbd-set-sock_memalloc-for-access-to-pfmemalloc-reserves
++++ a/drivers/block/nbd.c
+@@ -154,6 +154,7 @@ static int sock_xmit(struct nbd_device *
+ 	struct msghdr msg;
+ 	struct kvec iov;
+ 	sigset_t blocked, oldset;
++	unsigned long pflags = current->flags;
  
-+#include	<net/sock.h>
-+
- #include	<asm/cacheflush.h>
- #include	<asm/tlbflush.h>
- #include	<asm/page.h>
-@@ -964,7 +966,7 @@ out:
- 	spin_unlock_irqrestore(&l3->list_lock, flags);
+ 	if (unlikely(!sock)) {
+ 		dev_err(disk_to_dev(nbd->disk),
+@@ -167,8 +168,9 @@ static int sock_xmit(struct nbd_device *
+ 	siginitsetinv(&blocked, sigmask(SIGKILL));
+ 	sigprocmask(SIG_SETMASK, &blocked, &oldset);
+ 
++	current->flags |= PF_MEMALLOC;
+ 	do {
+-		sock->sk->sk_allocation = GFP_NOIO;
++		sock->sk->sk_allocation = GFP_NOIO | __GFP_MEMALLOC;
+ 		iov.iov_base = buf;
+ 		iov.iov_len = size;
+ 		msg.msg_name = NULL;
+@@ -214,6 +216,7 @@ static int sock_xmit(struct nbd_device *
+ 	} while (size > 0);
+ 
+ 	sigprocmask(SIG_SETMASK, &oldset, NULL);
++	tsk_restore_flags(current, pflags, PF_MEMALLOC);
+ 
+ 	return result;
  }
+@@ -405,6 +408,7 @@ static int nbd_do_it(struct nbd_device *
  
--static void *ac_get_obj(struct kmem_cache *cachep, struct array_cache *ac,
-+static void *__ac_get_obj(struct kmem_cache *cachep, struct array_cache *ac,
- 						gfp_t flags, bool force_refill)
- {
- 	int i;
-@@ -1011,7 +1013,20 @@ static void *ac_get_obj(struct kmem_cach
- 	return objp;
- }
+ 	BUG_ON(nbd->magic != NBD_MAGIC);
  
--static void ac_put_obj(struct kmem_cache *cachep, struct array_cache *ac,
-+static inline void *ac_get_obj(struct kmem_cache *cachep,
-+			struct array_cache *ac, gfp_t flags, bool force_refill)
-+{
-+	void *objp;
-+
-+	if (unlikely(sk_memalloc_socks()))
-+		objp = __ac_get_obj(cachep, ac, flags, force_refill);
-+	else
-+		objp = ac->entry[--ac->avail];
-+
-+	return objp;
-+}
-+
-+static void *__ac_put_obj(struct kmem_cache *cachep, struct array_cache *ac,
- 								void *objp)
- {
- 	if (unlikely(pfmemalloc_active)) {
-@@ -1021,6 +1036,15 @@ static void ac_put_obj(struct kmem_cache
- 			set_obj_pfmemalloc(&objp);
- 	}
- 
-+	return objp;
-+}
-+
-+static inline void ac_put_obj(struct kmem_cache *cachep, struct array_cache *ac,
-+								void *objp)
-+{
-+	if (unlikely(sk_memalloc_socks()))
-+		objp = __ac_put_obj(cachep, ac, objp);
-+
- 	ac->entry[ac->avail++] = objp;
- }
- 
++	sk_set_memalloc(nbd->sock->sk);
+ 	nbd->pid = task_pid_nr(current);
+ 	ret = device_create_file(disk_to_dev(nbd->disk), &pid_attr);
+ 	if (ret) {
 _
-Subject: Subject: mm: micro-optimise slab to avoid a function call
+Subject: Subject: nbd: set SOCK_MEMALLOC for access to PFMEMALLOC reserves
 
 Patches currently in -mm which might be from mgorman@suse.de are
 
