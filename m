@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + nfs-disable-data-cache-revalidation-for-swapfiles.patch added to -mm tree
-Date: Thu, 12 Jul 2012 14:48:08 -0700
-Message-ID: <20120712214808.809E31E0048@wpzn4.hot.corp.google.com>
+Subject: + nfs-prevent-page-allocator-recursions-with-swap-over-nfs.patch added to -mm tree
+Date: Thu, 12 Jul 2012 14:48:18 -0700
+Message-ID: <20120712214818.F1AD320004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:47822 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933058Ab2GLVsK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 17:48:10 -0400
-Received: by qcqs25 with SMTP id s25so283579qcq.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 14:48:09 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:46822 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933071Ab2GLVsX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 17:48:23 -0400
+Received: by weyr1 with SMTP id r1so149138wey.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 14:48:21 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: mgorman@suse.de, Trond.Myklebust@netapp.com, a.p.zijlstra@chello.nl, davem@d
 
 
 The patch titled
-     Subject: nfs: disable data cache revalidation for swapfiles
+     Subject: nfs: prevent page allocator recursions with swap over NFS.
 has been added to the -mm tree.  Its filename is
-     nfs-disable-data-cache-revalidation-for-swapfiles.patch
+     nfs-prevent-page-allocator-recursions-with-swap-over-nfs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,18 +34,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: nfs: disable data cache revalidation for swapfiles
+Subject: nfs: prevent page allocator recursions with swap over NFS.
 
-The VM does not like PG_private set on PG_swapcache pages.  As suggested
-by Trond in http://lkml.org/lkml/2006/8/25/348, this patch disables NFS
-data cache revalidation on swap files.  as it does not make sense to have
-other clients change the file while it is being used as swap.  This avoids
-setting PG_private on swap pages, since there ought to be no further races
-with invalidate_inode_pages2() to deal with.
+GFP_NOFS is _more_ permissive than GFP_NOIO in that it will initiate IO,
+just not of any filesystem data.
 
-Since we cannot set PG_private we cannot use page->private which is
-already used by PG_swapcache pages to store the nfs_page.  Thus augment
-the new nfs_page_find_request logic.
+The problem is that previously NOFS was correct because that avoids
+recursion into the NFS code.  With swap-over-NFS, it is no longer correct
+as swap IO can lead to this recursion.
 
 Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Mel Gorman <mgorman@suse.de>
@@ -64,132 +60,45 @@ Cc: Xiaotian Feng <dfeng@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/inode.c |    4 +++
- fs/nfs/write.c |   49 +++++++++++++++++++++++++++++++++--------------
- 2 files changed, 39 insertions(+), 14 deletions(-)
+ fs/nfs/pagelist.c |    2 +-
+ fs/nfs/write.c    |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/nfs/inode.c~nfs-disable-data-cache-revalidation-for-swapfiles fs/nfs/inode.c
---- a/fs/nfs/inode.c~nfs-disable-data-cache-revalidation-for-swapfiles
-+++ a/fs/nfs/inode.c
-@@ -883,6 +883,10 @@ int nfs_revalidate_mapping(struct inode 
- 	struct nfs_inode *nfsi = NFS_I(inode);
- 	int ret = 0;
- 
-+	/* swapfiles are not supposed to be shared. */
-+	if (IS_SWAPFILE(inode))
-+		goto out;
-+
- 	if (nfs_mapping_need_revalidate_inode(inode)) {
- 		ret = __nfs_revalidate_inode(NFS_SERVER(inode), inode);
- 		if (ret < 0)
-diff -puN fs/nfs/write.c~nfs-disable-data-cache-revalidation-for-swapfiles fs/nfs/write.c
---- a/fs/nfs/write.c~nfs-disable-data-cache-revalidation-for-swapfiles
+diff -puN fs/nfs/pagelist.c~nfs-prevent-page-allocator-recursions-with-swap-over-nfs fs/nfs/pagelist.c
+--- a/fs/nfs/pagelist.c~nfs-prevent-page-allocator-recursions-with-swap-over-nfs
++++ a/fs/nfs/pagelist.c
+@@ -70,7 +70,7 @@ void nfs_set_pgio_error(struct nfs_pgio_
+ static inline struct nfs_page *
+ nfs_page_alloc(void)
+ {
+-	struct nfs_page	*p = kmem_cache_zalloc(nfs_page_cachep, GFP_KERNEL);
++	struct nfs_page	*p = kmem_cache_zalloc(nfs_page_cachep, GFP_NOIO);
+ 	if (p)
+ 		INIT_LIST_HEAD(&p->wb_list);
+ 	return p;
+diff -puN fs/nfs/write.c~nfs-prevent-page-allocator-recursions-with-swap-over-nfs fs/nfs/write.c
+--- a/fs/nfs/write.c~nfs-prevent-page-allocator-recursions-with-swap-over-nfs
 +++ a/fs/nfs/write.c
-@@ -139,15 +139,28 @@ static void nfs_context_set_write_error(
- 	set_bit(NFS_CONTEXT_ERROR_WRITE, &ctx->flags);
- }
+@@ -52,7 +52,7 @@ static mempool_t *nfs_commit_mempool;
  
--static struct nfs_page *nfs_page_find_request_locked(struct page *page)
-+static struct nfs_page *
-+nfs_page_find_request_locked(struct nfs_inode *nfsi, struct page *page)
+ struct nfs_commit_data *nfs_commitdata_alloc(void)
  {
- 	struct nfs_page *req = NULL;
+-	struct nfs_commit_data *p = mempool_alloc(nfs_commit_mempool, GFP_NOFS);
++	struct nfs_commit_data *p = mempool_alloc(nfs_commit_mempool, GFP_NOIO);
  
--	if (PagePrivate(page)) {
-+	if (PagePrivate(page))
- 		req = (struct nfs_page *)page_private(page);
--		if (req != NULL)
--			kref_get(&req->wb_kref);
-+	else if (unlikely(PageSwapCache(page))) {
-+		struct nfs_page *freq, *t;
-+
-+		/* Linearly search the commit list for the correct req */
-+		list_for_each_entry_safe(freq, t, &nfsi->commit_info.list, wb_list) {
-+			if (freq->wb_page == page) {
-+				req = freq;
-+				break;
-+			}
-+		}
- 	}
-+
-+	if (req)
-+		kref_get(&req->wb_kref);
-+
- 	return req;
- }
+ 	if (p) {
+ 		memset(p, 0, sizeof(*p));
+@@ -70,7 +70,7 @@ EXPORT_SYMBOL_GPL(nfs_commit_free);
  
-@@ -157,7 +170,7 @@ static struct nfs_page *nfs_page_find_re
- 	struct nfs_page *req = NULL;
- 
- 	spin_lock(&inode->i_lock);
--	req = nfs_page_find_request_locked(page);
-+	req = nfs_page_find_request_locked(NFS_I(inode), page);
- 	spin_unlock(&inode->i_lock);
- 	return req;
- }
-@@ -258,7 +271,7 @@ static struct nfs_page *nfs_find_and_loc
- 
- 	spin_lock(&inode->i_lock);
- 	for (;;) {
--		req = nfs_page_find_request_locked(page);
-+		req = nfs_page_find_request_locked(NFS_I(inode), page);
- 		if (req == NULL)
- 			break;
- 		if (nfs_lock_request(req))
-@@ -413,9 +426,15 @@ static void nfs_inode_add_request(struct
- 	spin_lock(&inode->i_lock);
- 	if (!nfsi->npages && NFS_PROTO(inode)->have_delegation(inode, FMODE_WRITE))
- 		inode->i_version++;
--	set_bit(PG_MAPPED, &req->wb_flags);
--	SetPagePrivate(req->wb_page);
--	set_page_private(req->wb_page, (unsigned long)req);
-+	/*
-+	 * Swap-space should not get truncated. Hence no need to plug the race
-+	 * with invalidate/truncate.
-+	 */
-+	if (likely(!PageSwapCache(req->wb_page))) {
-+		set_bit(PG_MAPPED, &req->wb_flags);
-+		SetPagePrivate(req->wb_page);
-+		set_page_private(req->wb_page, (unsigned long)req);
-+	}
- 	nfsi->npages++;
- 	kref_get(&req->wb_kref);
- 	spin_unlock(&inode->i_lock);
-@@ -432,9 +451,11 @@ static void nfs_inode_remove_request(str
- 	BUG_ON (!NFS_WBACK_BUSY(req));
- 
- 	spin_lock(&inode->i_lock);
--	set_page_private(req->wb_page, 0);
--	ClearPagePrivate(req->wb_page);
--	clear_bit(PG_MAPPED, &req->wb_flags);
-+	if (likely(!PageSwapCache(req->wb_page))) {
-+		set_page_private(req->wb_page, 0);
-+		ClearPagePrivate(req->wb_page);
-+		clear_bit(PG_MAPPED, &req->wb_flags);
-+	}
- 	nfsi->npages--;
- 	spin_unlock(&inode->i_lock);
- 	nfs_release_request(req);
-@@ -730,7 +751,7 @@ static struct nfs_page *nfs_try_to_updat
- 	spin_lock(&inode->i_lock);
- 
- 	for (;;) {
--		req = nfs_page_find_request_locked(page);
-+		req = nfs_page_find_request_locked(NFS_I(inode), page);
- 		if (req == NULL)
- 			goto out_unlock;
- 
-@@ -1744,7 +1765,7 @@ int nfs_wb_page_cancel(struct inode *ino
-  */
- int nfs_wb_page(struct inode *inode, struct page *page)
+ struct nfs_write_header *nfs_writehdr_alloc(void)
  {
--	loff_t range_start = page_offset(page);
-+	loff_t range_start = page_file_offset(page);
- 	loff_t range_end = range_start + (loff_t)(PAGE_CACHE_SIZE - 1);
- 	struct writeback_control wbc = {
- 		.sync_mode = WB_SYNC_ALL,
+-	struct nfs_write_header *p = mempool_alloc(nfs_wdata_mempool, GFP_NOFS);
++	struct nfs_write_header *p = mempool_alloc(nfs_wdata_mempool, GFP_NOIO);
+ 
+ 	if (p) {
+ 		struct nfs_pgio_header *hdr = &p->header;
 _
-Subject: Subject: nfs: disable data cache revalidation for swapfiles
+Subject: Subject: nfs: prevent page allocator recursions with swap over NFS.
 
 Patches currently in -mm which might be from mgorman@suse.de are
 
