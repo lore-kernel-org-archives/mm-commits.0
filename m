@@ -1,185 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-sysc-avoid-argv_freenull.patch added to -mm tree
-Date: Wed, 11 Jul 2012 17:14:02 -0700
-Message-ID: <20120712001403.4874B20004E@hpza10.eem.corp.google.com>
+Subject: [merged] memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer.patch removed from -mm tree
+Date: Thu, 12 Jul 2012 12:36:03 -0700
+Message-ID: <20120712193605.1BAC51E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:56137 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933471Ab2GLAOI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Jul 2012 20:14:08 -0400
-Received: by wgbdt11 with SMTP id dt11so87997wgb.1
-        for <mm-commits@vger.kernel.org>; Wed, 11 Jul 2012 17:14:05 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:37916 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755751Ab2GLTgG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 15:36:06 -0400
+Received: by vbnl22 with SMTP id l22so265499vbn.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 12:36:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@linux.intel.com, ebiederm@xmission.com, gorcunov@openvz.org, keescook@chromium.org, rientjes@google.com, serge.hallyn@canonical.com, xiyou.wangcong@gmail.com
+To: jiang.liu@huawei.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, qiuxishi@huawei.com, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/sys.c: avoid argv_free(NULL)
-has been added to the -mm tree.  Its filename is
-     kernel-sysc-avoid-argv_freenull.patch
+     Subject: memory hotplug: fix invalid memory access caused by stale kswapd pointer
+has been removed from the -mm tree.  Its filename was
+     memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel/sys.c: avoid argv_free(NULL)
+From: Jiang Liu <jiang.liu@huawei.com>
+Subject: memory hotplug: fix invalid memory access caused by stale kswapd pointer
 
-If argv_split() failed, the code will end up calling argv_free(NULL).  Fix
-it up and clean things up a bit.
+kswapd_stop() is called to destroy the kswapd work thread when all memory
+of a NUMA node has been offlined.  But kswapd_stop() only terminates the
+work thread without resetting NODE_DATA(nid)->kswapd to NULL.  The stale
+pointer will prevent kswapd_run() from creating a new work thread when
+adding memory to the memory-less NUMA node again.  Eventually the stale
+pointer may cause invalid memory access.
 
-Addresses Coverity report 703573.
+An example stack dump as below. It's reproduced with 2.6.32, but latest
+kernel has the same issue.
 
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Serge Hallyn <serge.hallyn@canonical.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: WANG Cong <xiyou.wangcong@gmail.com>
-Cc: Alan Cox <alan@linux.intel.com>
-Cc: David Rientjes <rientjes@google.com>
+BUG: unable to handle kernel NULL pointer dereference at (null)
+IP: [<ffffffff81051a94>] exit_creds+0x12/0x78
+PGD 0
+Oops: 0000 [#1] SMP
+last sysfs file: /sys/devices/system/memory/memory391/state
+CPU 11
+Modules linked in: cpufreq_conservative cpufreq_userspace cpufreq_powersave acpi_cpufreq microcode fuse loop dm_mod tpm_tis rtc_cmos i2c_i801 rtc_core tpm serio_raw pcspkr sg tpm_bios igb i2c_core iTCO_wdt rtc_lib mptctl iTCO_vendor_support button dca bnx2 usbhid hid uhci_hcd ehci_hcd usbcore sd_mod crc_t10dif edd ext3 mbcache jbd fan ide_pci_generic ide_core ata_generic ata_piix libata thermal processor thermal_sys hwmon mptsas mptscsih mptbase scsi_transport_sas scsi_mod
+Pid: 7949, comm: sh Not tainted 2.6.32.12-qiuxishi-5-default #92 Tecal RH2285
+RIP: 0010:[<ffffffff81051a94>]  [<ffffffff81051a94>] exit_creds+0x12/0x78
+RSP: 0018:ffff8806044f1d78  EFLAGS: 00010202
+RAX: 0000000000000000 RBX: ffff880604f22140 RCX: 0000000000019502
+RDX: 0000000000000000 RSI: 0000000000000202 RDI: 0000000000000000
+RBP: ffff880604f22150 R08: 0000000000000000 R09: ffffffff81a4dc10
+R10: 00000000000032a0 R11: ffff880006202500 R12: 0000000000000000
+R13: 0000000000c40000 R14: 0000000000008000 R15: 0000000000000001
+FS:  00007fbc03d066f0(0000) GS:ffff8800282e0000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+CR2: 0000000000000000 CR3: 000000060f029000 CR4: 00000000000006e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Process sh (pid: 7949, threadinfo ffff8806044f0000, task ffff880603d7c600)
+Stack:
+ ffff880604f22140 ffffffff8103aac5 ffff880604f22140 ffffffff8104d21e
+<0> ffff880006202500 0000000000008000 0000000000c38000 ffffffff810bd5b1
+<0> 0000000000000000 ffff880603d7c600 00000000ffffdd29 0000000000000003
+Call Trace:
+ [<ffffffff8103aac5>] __put_task_struct+0x5d/0x97
+ [<ffffffff8104d21e>] kthread_stop+0x50/0x58
+ [<ffffffff810bd5b1>] offline_pages+0x324/0x3da
+ [<ffffffff8121111f>] memory_block_change_state+0x179/0x1db
+ [<ffffffff8121121f>] store_mem_state+0x9e/0xbb
+ [<ffffffff8111a1f1>] sysfs_write_file+0xd0/0x107
+ [<ffffffff810c7fe0>] vfs_write+0xad/0x169
+ [<ffffffff810c8158>] sys_write+0x45/0x6e
+ [<ffffffff8100296b>] system_call_fastpath+0x16/0x1b
+ [<00007fbc0344df60>] 0x7fbc0344df60
+Code: ff 4d 00 0f 94 c0 84 c0 74 08 48 89 ef e8 1f fd ff ff 5b 5d 31 c0 41 5c c3 53 48 8b 87 20 06 00 00 48 89 fb 48 8b bf 18 06 00 00 <8b> 00 48 c7 83 18 06 00 00 00 00 00 00 f0 ff 0f 0f 94 c0 84 c0
+RIP  [<ffffffff81051a94>] exit_creds+0x12/0x78
+ RSP <ffff8806044f1d78>
+CR2: 0000000000000000
+
+[akpm@linux-foundation.org: add pglist_data.kswapd locking comments]
+Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Acked-by: David Rientjes <rientjes@google.com>
+Reviewed-by: Minchan Kim <minchan@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |   44 +++++++++++++++++++++++++-------------------
- 1 file changed, 25 insertions(+), 19 deletions(-)
+ include/linux/mmzone.h |    2 +-
+ mm/vmscan.c            |    7 +++++--
+ 2 files changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN kernel/sys.c~kernel-sysc-avoid-argv_freenull kernel/sys.c
---- a/kernel/sys.c~kernel-sysc-avoid-argv_freenull
-+++ a/kernel/sys.c
-@@ -2186,46 +2186,52 @@ static void argv_cleanup(struct subproce
- 	argv_free(info->argv);
+diff -puN include/linux/mmzone.h~memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer include/linux/mmzone.h
+--- a/include/linux/mmzone.h~memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer
++++ a/include/linux/mmzone.h
+@@ -694,7 +694,7 @@ typedef struct pglist_data {
+ 					     range, including holes */
+ 	int node_id;
+ 	wait_queue_head_t kswapd_wait;
+-	struct task_struct *kswapd;
++	struct task_struct *kswapd;	/* Protected by lock_memory_hotplug() */
+ 	int kswapd_max_order;
+ 	enum zone_type classzone_idx;
+ } pg_data_t;
+diff -puN mm/vmscan.c~memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer mm/vmscan.c
+--- a/mm/vmscan.c~memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer
++++ a/mm/vmscan.c
+@@ -2955,14 +2955,17 @@ int kswapd_run(int nid)
  }
  
--/**
-- * orderly_poweroff - Trigger an orderly system poweroff
-- * @force: force poweroff if command execution fails
-- *
-- * This may be called from any context to trigger a system shutdown.
-- * If the orderly shutdown fails, it will force an immediate shutdown.
-- */
--int orderly_poweroff(bool force)
-+static int __orderly_poweroff(void)
+ /*
+- * Called by memory hotplug when all memory in a node is offlined.
++ * Called by memory hotplug when all memory in a node is offlined.  Caller must
++ * hold lock_memory_hotplug().
+  */
+ void kswapd_stop(int nid)
  {
- 	int argc;
--	char **argv = argv_split(GFP_ATOMIC, poweroff_cmd, &argc);
-+	char **argv;
- 	static char *envp[] = {
- 		"HOME=/",
- 		"PATH=/sbin:/bin:/usr/sbin:/usr/bin",
- 		NULL
- 	};
--	int ret = -ENOMEM;
-+	int ret;
+ 	struct task_struct *kswapd = NODE_DATA(nid)->kswapd;
  
-+	argv = argv_split(GFP_ATOMIC, poweroff_cmd, &argc);
- 	if (argv == NULL) {
- 		printk(KERN_WARNING "%s failed to allocate memory for \"%s\"\n",
- 		       __func__, poweroff_cmd);
--		goto out;
-+		return -ENOMEM;
- 	}
+-	if (kswapd)
++	if (kswapd) {
+ 		kthread_stop(kswapd);
++		NODE_DATA(nid)->kswapd = NULL;
++	}
+ }
  
- 	ret = call_usermodehelper_fns(argv[0], argv, envp, UMH_NO_WAIT,
- 				      NULL, argv_cleanup, NULL);
--out:
--	if (likely(!ret))
--		return 0;
--
- 	if (ret == -ENOMEM)
- 		argv_free(argv);
- 
--	if (force) {
-+	return ret;
-+}
-+
-+/**
-+ * orderly_poweroff - Trigger an orderly system poweroff
-+ * @force: force poweroff if command execution fails
-+ *
-+ * This may be called from any context to trigger a system shutdown.
-+ * If the orderly shutdown fails, it will force an immediate shutdown.
-+ */
-+int orderly_poweroff(bool force)
-+{
-+	int ret = __orderly_poweroff();
-+
-+	if (ret && force) {
- 		printk(KERN_WARNING "Failed to start orderly shutdown: "
- 		       "forcing the issue\n");
- 
--		/* I guess this should try to kick off some daemon to
--		   sync and poweroff asap.  Or not even bother syncing
--		   if we're doing an emergency shutdown? */
-+		/*
-+		 * I guess this should try to kick off some daemon to sync and
-+		 * poweroff asap.  Or not even bother syncing if we're doing an
-+		 * emergency shutdown?
-+		 */
- 		emergency_sync();
- 		kernel_power_off();
- 	}
+ static int __init kswapd_init(void)
 _
-Subject: Subject: kernel/sys.c: avoid argv_free(NULL)
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jiang.liu@huawei.com are
 
-memory-hotplug-fix-invalid-memory-access-caused-by-stale-kswapd-pointer.patch
-rtc-ensure-correct-probing-of-the-ab8500-rtc-when-device-tree-is-enabled.patch
-drivers-gpio-gpio-tps65910c-fix-config_of_gpio=n-build.patch
+origin.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
-sysfs-fail-dentry-revalidation-after-namespace-change-fix.patch
-hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
-coredump-warn-about-unsafe-suid_dumpable-core_pattern-combo.patch
-mm.patch
-mm-make-vb_alloc-more-foolproof-fix.patch
-mm-hugetlb-add-new-hugetlb-cgroup-fix.patch
-mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch
-hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
-hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
-mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
-memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
-memcg-prevent-oom-with-too-many-dirty-pages.patch
-mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
-memcg-rename-config-variables.patch
-memcg-rename-config-variables-fix-fix.patch
-mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes.patch
-mm-have-order-0-compaction-start-off-where-it-left-v3-typo.patch
-avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
-kernel-sysc-avoid-argv_freenull.patch
-kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
-printk-add-generic-functions-to-find-kern_level-headers-fix.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
-lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch
-string-introduce-memweight-fix.patch
-drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes.patch
-drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded.patch
-hfsplus-get-rid-of-write_super-checkpatch-fixes.patch
-kernel-kmodc-document-call_usermodehelper_fns-a-bit.patch
-kmod-avoid-deadlock-from-recursive-kmod-call.patch
-fork-use-vma_pages-to-simplify-the-code-fix.patch
-fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
-include-linux-aioh-cpp-c-conversions.patch
-resource-make-sure-requested-range-intersects-root-range-fix.patch
-fault-injection-add-selftests-for-cpu-and-memory-hotplug.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mm-hotplug-correctly-setup-fallback-zonelists-when-creating-new-pgdat.patch
+mm-hotplug-correctly-add-new-zone-to-all-other-nodes-zone-lists.patch
+mm-hotplug-free-zone-pageset-when-a-zone-becomes-empty.patch
+mm-hotplug-mark-memory-hotplug-code-in-page_allocc-as-__meminit.patch
 
