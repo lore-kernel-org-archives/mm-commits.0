@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-get_kernel_page-for-pinning-of-kernel-addresses-for-i-o.patch added to -mm tree
-Date: Thu, 12 Jul 2012 14:47:53 -0700
-Message-ID: <20120712214754.076FC5C0050@hpza9.eem.corp.google.com>
+Subject: + mm-methods-for-teaching-filesystems-about-pg_swapcache-pages.patch added to -mm tree
+Date: Thu, 12 Jul 2012 14:47:39 -0700
+Message-ID: <20120712214739.B3C21100056@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:38613 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751673Ab2GLVr5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 17:47:57 -0400
-Received: by eekd4 with SMTP id d4so92313eek.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 14:47:56 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:63948 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756325Ab2GLVr6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 17:47:58 -0400
+Received: by yhl10 with SMTP id 10so283989yhl.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 14:47:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: mgorman@suse.de, Trond.Myklebust@netapp.com, a.p.zijlstra@chello.nl, davem@d
 
 
 The patch titled
-     Subject: mm: add get_kernel_page[s] for pinning of kernel addresses for I/O
+     Subject: mm: methods for teaching filesystems about PG_swapcache pages
 has been added to the -mm tree.  Its filename is
-     mm-add-get_kernel_page-for-pinning-of-kernel-addresses-for-i-o.patch
+     mm-methods-for-teaching-filesystems-about-pg_swapcache-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,26 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: add get_kernel_page[s] for pinning of kernel addresses for I/O
+Subject: mm: methods for teaching filesystems about PG_swapcache pages
 
-This patch adds two new APIs get_kernel_pages() and get_kernel_page() that
-may be used to pin a vector of kernel addresses for IO.  The initial user
-is expected to be NFS for allowing pages to be written to swap using
-aops->direct_IO().  Strictly speaking, swap-over-NFS only needs to pin one
-page for IO but it makes sense to express the API in terms of a vector and
-add a helper for pinning single pages.
+In order to teach filesystems to handle swap cache pages, three new page
+functions are introduced:
 
+  pgoff_t page_file_index(struct page *);
+  loff_t page_file_offset(struct page *);
+  struct address_space *page_file_mapping(struct page *);
+
+page_file_index() - gives the offset of this page in the file in
+PAGE_CACHE_SIZE blocks.  Like page->index is for mapped pages, this
+function also gives the correct index for PG_swapcache pages.
+
+page_file_offset() - uses page_file_index(), so that it will give the
+expected result, even for PG_swapcache pages.
+
+page_file_mapping() - gives the mapping backing the actual page; that is
+for swap cache pages it will give swap_file->f_mapping.
+
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Reviewed-by: Rik van Riel <riel@redhat.com>
 Cc: Christoph Hellwig <hch@infradead.org>
@@ -53,128 +64,112 @@ Cc: James Morris <jmorris@namei.org>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Mike Christie <michaelc@cs.wisc.edu>
 Cc: Neil Brown <neilb@suse.de>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
 Cc: Xiaotian Feng <dfeng@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/blk_types.h |    2 +
- include/linux/fs.h        |    2 +
- include/linux/mm.h        |    4 ++
- mm/memory.c               |   53 ++++++++++++++++++++++++++++++++++++
- 4 files changed, 61 insertions(+)
+ include/linux/mm.h      |   25 +++++++++++++++++++++++++
+ include/linux/pagemap.h |    5 +++++
+ mm/swapfile.c           |   19 +++++++++++++++++++
+ 3 files changed, 49 insertions(+)
 
-diff -puN include/linux/blk_types.h~mm-add-get_kernel_page-for-pinning-of-kernel-addresses-for-i-o include/linux/blk_types.h
---- a/include/linux/blk_types.h~mm-add-get_kernel_page-for-pinning-of-kernel-addresses-for-i-o
-+++ a/include/linux/blk_types.h
-@@ -160,6 +160,7 @@ enum rq_flag_bits {
- 	__REQ_FLUSH_SEQ,	/* request for flush sequence */
- 	__REQ_IO_STAT,		/* account I/O stat */
- 	__REQ_MIXED_MERGE,	/* merge of different types, fail separately */
-+	__REQ_KERNEL, 		/* direct IO to kernel pages */
- 	__REQ_NR_BITS,		/* stops here */
- };
- 
-@@ -201,5 +202,6 @@ enum rq_flag_bits {
- #define REQ_IO_STAT		(1 << __REQ_IO_STAT)
- #define REQ_MIXED_MERGE		(1 << __REQ_MIXED_MERGE)
- #define REQ_SECURE		(1 << __REQ_SECURE)
-+#define REQ_KERNEL		(1 << __REQ_KERNEL)
- 
- #endif /* __LINUX_BLK_TYPES_H */
-diff -puN include/linux/fs.h~mm-add-get_kernel_page-for-pinning-of-kernel-addresses-for-i-o include/linux/fs.h
---- a/include/linux/fs.h~mm-add-get_kernel_page-for-pinning-of-kernel-addresses-for-i-o
-+++ a/include/linux/fs.h
-@@ -165,6 +165,8 @@ struct inodes_stat_t {
- #define READ			0
- #define WRITE			RW_MASK
- #define READA			RWA_MASK
-+#define KERNEL_READ		(READ|REQ_KERNEL)
-+#define KERNEL_WRITE		(WRITE|REQ_KERNEL)
- 
- #define READ_SYNC		(READ | REQ_SYNC)
- #define WRITE_SYNC		(WRITE | REQ_SYNC | REQ_NOIDLE)
-diff -puN include/linux/mm.h~mm-add-get_kernel_page-for-pinning-of-kernel-addresses-for-i-o include/linux/mm.h
---- a/include/linux/mm.h~mm-add-get_kernel_page-for-pinning-of-kernel-addresses-for-i-o
+diff -puN include/linux/mm.h~mm-methods-for-teaching-filesystems-about-pg_swapcache-pages include/linux/mm.h
+--- a/include/linux/mm.h~mm-methods-for-teaching-filesystems-about-pg_swapcache-pages
 +++ a/include/linux/mm.h
-@@ -1019,6 +1019,10 @@ int get_user_pages(struct task_struct *t
- 			struct page **pages, struct vm_area_struct **vmas);
- int get_user_pages_fast(unsigned long start, int nr_pages, int write,
- 			struct page **pages);
-+struct kvec;
-+int get_kernel_pages(const struct kvec *iov, int nr_pages, int write,
-+			struct page **pages);
-+int get_kernel_page(unsigned long start, int write, struct page **pages);
- struct page *get_dump_page(unsigned long addr);
+@@ -805,6 +805,17 @@ static inline void *page_rmapping(struct
+ 	return (void *)((unsigned long)page->mapping & ~PAGE_MAPPING_FLAGS);
+ }
  
- extern int try_to_release_page(struct page * page, gfp_t gfp_mask);
-diff -puN mm/memory.c~mm-add-get_kernel_page-for-pinning-of-kernel-addresses-for-i-o mm/memory.c
---- a/mm/memory.c~mm-add-get_kernel_page-for-pinning-of-kernel-addresses-for-i-o
-+++ a/mm/memory.c
-@@ -1843,6 +1843,59 @@ next_page:
- EXPORT_SYMBOL(__get_user_pages);
++extern struct address_space *__page_file_mapping(struct page *);
++
++static inline
++struct address_space *page_file_mapping(struct page *page)
++{
++	if (unlikely(PageSwapCache(page)))
++		return __page_file_mapping(page);
++
++	return page->mapping;
++}
++
+ static inline int PageAnon(struct page *page)
+ {
+ 	return ((unsigned long)page->mapping & PAGE_MAPPING_ANON) != 0;
+@@ -821,6 +832,20 @@ static inline pgoff_t page_index(struct 
+ 	return page->index;
+ }
+ 
++extern pgoff_t __page_file_index(struct page *page);
++
++/*
++ * Return the file index of the page. Regular pagecache pages use ->index
++ * whereas swapcache pages use swp_offset(->private)
++ */
++static inline pgoff_t page_file_index(struct page *page)
++{
++	if (unlikely(PageSwapCache(page)))
++		return __page_file_index(page);
++
++	return page->index;
++}
++
+ /*
+  * Return true if this page is mapped into pagetables.
+  */
+diff -puN include/linux/pagemap.h~mm-methods-for-teaching-filesystems-about-pg_swapcache-pages include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-methods-for-teaching-filesystems-about-pg_swapcache-pages
++++ a/include/linux/pagemap.h
+@@ -286,6 +286,11 @@ static inline loff_t page_offset(struct 
+ 	return ((loff_t)page->index) << PAGE_CACHE_SHIFT;
+ }
+ 
++static inline loff_t page_file_offset(struct page *page)
++{
++	return ((loff_t)page_file_index(page)) << PAGE_CACHE_SHIFT;
++}
++
+ extern pgoff_t linear_hugepage_index(struct vm_area_struct *vma,
+ 				     unsigned long address);
+ 
+diff -puN mm/swapfile.c~mm-methods-for-teaching-filesystems-about-pg_swapcache-pages mm/swapfile.c
+--- a/mm/swapfile.c~mm-methods-for-teaching-filesystems-about-pg_swapcache-pages
++++ a/mm/swapfile.c
+@@ -33,6 +33,7 @@
+ #include <linux/oom.h>
+ #include <linux/frontswap.h>
+ #include <linux/swapfile.h>
++#include <linux/export.h>
+ 
+ #include <asm/pgtable.h>
+ #include <asm/tlbflush.h>
+@@ -2299,6 +2300,24 @@ int swapcache_prepare(swp_entry_t entry)
+ }
  
  /*
-+ * get_kernel_pages() - pin kernel pages in memory
-+ * @kiov:	An array of struct kvec structures
-+ * @nr_segs:	number of segments to pin
-+ * @write:	pinning for read/write, currently ignored
-+ * @pages:	array that receives pointers to the pages pinned.
-+ *		Should be at least nr_segs long.
-+ *
-+ * Returns number of pages pinned. This may be fewer than the number
-+ * requested. If nr_pages is 0 or negative, returns 0. If no pages
-+ * were pinned, returns -errno. Each page returned must be released
-+ * with a put_page() call when it is finished with.
++ * out-of-line __page_file_ methods to avoid include hell.
 + */
-+int get_kernel_pages(const struct kvec *kiov, int nr_segs, int write,
-+		struct page **pages)
++struct address_space *__page_file_mapping(struct page *page)
 +{
-+	int seg;
-+
-+	for (seg = 0; seg < nr_segs; seg++) {
-+		if (WARN_ON(kiov[seg].iov_len != PAGE_SIZE))
-+			return seg;
-+
-+		/* virt_to_page sanity checks the PFN */
-+		pages[seg] = virt_to_page(kiov[seg].iov_base);
-+		page_cache_get(pages[seg]);
-+	}
-+
-+	return seg;
++	VM_BUG_ON(!PageSwapCache(page));
++	return page_swap_info(page)->swap_file->f_mapping;
 +}
-+EXPORT_SYMBOL_GPL(get_kernel_pages);
++EXPORT_SYMBOL_GPL(__page_file_mapping);
++
++pgoff_t __page_file_index(struct page *page)
++{
++	swp_entry_t swap = { .val = page_private(page) };
++	VM_BUG_ON(!PageSwapCache(page));
++	return swp_offset(swap);
++}
++EXPORT_SYMBOL_GPL(__page_file_index);
 +
 +/*
-+ * get_kernel_page() - pin a kernel page in memory
-+ * @start:	starting kernel address
-+ * @write:	pinning for read/write, currently ignored
-+ * @pages:	array that receives pointer to the page pinned.
-+ *		Must be at least nr_segs long.
-+ *
-+ * Returns 1 if page is pinned. If the page was not pinned, returns
-+ * -errno. The page returned must be released with a put_page() call
-+ * when it is finished with.
-+ */
-+int get_kernel_page(unsigned long start, int write, struct page **pages)
-+{
-+	const struct kvec kiov = {
-+		.iov_base = (void *)start,
-+		.iov_len = PAGE_SIZE
-+	};
-+
-+	return get_kernel_pages(&kiov, 1, write, pages);
-+}
-+EXPORT_SYMBOL_GPL(get_kernel_page);
-+
-+/*
-  * fixup_user_fault() - manually resolve a user page fault
-  * @tsk:	the task_struct to use for page fault accounting, or
-  *		NULL if faults are not to be recorded.
+  * add_swap_count_continuation - called when a swap count is duplicated
+  * beyond SWAP_MAP_MAX, it allocates a new page and links that to the entry's
+  * page of the original vmalloc'ed swap_map, to hold the continuation count
 _
-Subject: Subject: mm: add get_kernel_page[s] for pinning of kernel addresses for I/O
+Subject: Subject: mm: methods for teaching filesystems about PG_swapcache pages
 
 Patches currently in -mm which might be from mgorman@suse.de are
 
