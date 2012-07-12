@@ -1,25 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-exynos-dp-driver-f-patterns.patch added to -mm tree
-Date: Thu, 12 Jul 2012 14:48:57 -0700
-Message-ID: <20120712214857.90CC510005D@wpzn3.hot.corp.google.com>
+Subject: + rtc-mc13xxx-add-support-for-the-rtc-in-the-mc34708-pmic.patch added to -mm tree
+Date: Thu, 12 Jul 2012 14:50:08 -0700
+Message-ID: <20120712215009.3B005100062@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:34747 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933045Ab2GLVs6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 17:48:58 -0400
-Received: by yhl10 with SMTP id 10so284088yhl.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 14:48:57 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:41038 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932171Ab2GLVuK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 17:50:10 -0400
+Received: by ghbz15 with SMTP id z15so282162ghb.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 14:50:09 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com
+Cc: u.kleine-koenig@pengutronix.de, a.zummo@towertech.it
 
 
 The patch titled
-     Subject: MAINTAINERS: update EXYNOS DP DRIVER F: patterns
+     Subject: rtc/mc13xxx: add support for the rtc in the mc34708 pmic
 has been added to the -mm tree.  Its filename is
-     maintainers-update-exynos-dp-driver-f-patterns.patch
+     rtc-mc13xxx-add-support-for-the-rtc-in-the-mc34708-pmic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -27,50 +30,52 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: MAINTAINERS: update EXYNOS DP DRIVER F: patterns
+=46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Subject: rtc/mc13xxx: add support for the rtc in the mc34708 pmic
 
-Add patterns for Exynos DP header to MAINTAINERS file.
-
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/rtc/rtc-mc13xxx.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN MAINTAINERS~maintainers-update-exynos-dp-driver-f-patterns MAINTAINERS
---- a/MAINTAINERS~maintainers-update-exynos-dp-driver-f-patterns
-+++ a/MAINTAINERS
-@@ -2724,6 +2724,7 @@ M:	Jingoo Han <jg1.han@samsung.com>
- L:	linux-fbdev@vger.kernel.org
- S:	Maintained
- F:	drivers/video/exynos/exynos_dp*
-+F:	include/video/exynos_dp*
- 
- EXYNOS MIPI DISPLAY DRIVERS
- M:	Inki Dae <inki.dae@samsung.com>
+diff -puN drivers/rtc/rtc-mc13xxx.c~rtc-mc13xxx-add-support-for-the-rtc=
+-in-the-mc34708-pmic drivers/rtc/rtc-mc13xxx.c
+--- a/drivers/rtc/rtc-mc13xxx.c~rtc-mc13xxx-add-support-for-the-rtc-in-=
+the-mc34708-pmic
++++ a/drivers/rtc/rtc-mc13xxx.c
+@@ -404,6 +404,8 @@ static const struct platform_device_id m
+ 		.name =3D "mc13783-rtc",
+ 	}, {
+ 		.name =3D "mc13892-rtc",
++	}, {
++		.name =3D "mc34708-rtc",
+ 	},
+ 	{ /* sentinel */ }
+ };
 _
-Subject: Subject: MAINTAINERS: update EXYNOS DP DRIVER F: patterns
+Subject: Subject: rtc/mc13xxx: add support for the rtc in the mc34708 p=
+mic
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
+x.de are
 
+origin.patch
 linux-next.patch
-maintainers-update-exynos-dp-driver-f-patterns.patch
-drivers-video-backlight-atmel-pwm-blc-use-devm_-functions.patch
-drivers-video-backlight-ot200_blc-use-devm_-functions.patch
-drivers-video-backlight-lm3533_blc-use-devm_-functions.patch
-backlight-atmel-pwm-bl-use-devm_gpio_request.patch
-backlight-ot200_bl-use-devm_gpio_request.patch
-backlight-tosa_lcd-use-devm_gpio_request.patch
-backlight-tosa_bl-use-devm_gpio_request.patch
-backlight-lms283gf05-use-devm_gpio_request.patch
-backlight-corgi_lcd-use-devm_gpio_request.patch
-backlight-l4f00242t03-use-devm_gpio_request_one.patch
+rtc-mc13xxx-use-module_device_table-instead-of-module_alias.patch
+rtc-mc13xxx-add-support-for-the-rtc-in-the-mc34708-pmic.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
