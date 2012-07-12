@@ -1,73 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-sparse-fix-section-usemap-placement-calculation.patch removed from -mm tree
-Date: Thu, 12 Jul 2012 12:37:43 -0700
-Message-ID: <20120712193743.A8FAE100047@wpzn3.hot.corp.google.com>
+Subject: [merged] mm-sparse-fix-usemap-allocation-above-node-descriptor-section.patch removed from -mm tree
+Date: Thu, 12 Jul 2012 12:37:46 -0700
+Message-ID: <20120712193746.D07EC1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:63937 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934236Ab2GLTho (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 15:37:44 -0400
-Received: by yenl3 with SMTP id l3so265970yen.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 12:37:44 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:57595 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934241Ab2GLThr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 15:37:47 -0400
+Received: by mail-qc0-f202.google.com with SMTP id s25so267943qcq.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 12:37:47 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yinghai@kernel.org, hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: yinghai@kernel.org, hannes@cmpxchg.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: sparse: fix section usemap placement calculation
+     Subject: mm: sparse: fix usemap allocation above node descriptor section
 has been removed from the -mm tree.  Its filename was
-     mm-sparse-fix-section-usemap-placement-calculation.patch
+     mm-sparse-fix-usemap-allocation-above-node-descriptor-section.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Yinghai Lu <yinghai@kernel.org>
-Subject: mm: sparse: fix section usemap placement calculation
+Subject: mm: sparse: fix usemap allocation above node descriptor section
 
-238305b ("mm: remove sparsemem allocation details from the bootmem
-allocator") introduced a bug in the allocation goal calculation that put
-section usemaps not in the same section as the node descriptors, creating
-unnecessary hotplug dependencies between them:
+After f5bf18f ("bootmem/sparsemem: remove limit constraint in
+alloc_bootmem_section"), usemap allocations may easily be placed outside
+the optimal section that holds the node descriptor, even if there is space
+available in that section.  This results in unnecessary hotplug
+dependencies that need to have the node unplugged before the section
+holding the usemap.
 
-[    0.000000] node 0 must be removed before remove section 16399
-[    0.000000] node 1 must be removed before remove section 16399
-[    0.000000] node 2 must be removed before remove section 16399
-[    0.000000] node 3 must be removed before remove section 16399
-[    0.000000] node 4 must be removed before remove section 16399
-[    0.000000] node 5 must be removed before remove section 16399
-[    0.000000] node 6 must be removed before remove section 16399
+The reason is that the bootmem allocator doesn't guarantee a linear search
+starting from the passed allocation goal but may start out at a much
+higher address absent an upper limit.
 
-The reason is that it applies PAGE_SECTION_MASK to the physical address of
-the node descriptor when finding a suitable place to put the usemap, when
-this mask is actually intended to be used with PFNs.  Because the PFN mask
-is wider, the target address will point beyond the wanted section holding
-the node descriptor and the node must be offlined before the section
-holding the usemap can go.
-
-Fix this by extending the mask to address width before use.
+Fix this by trying the allocation with the limit at the section end, then
+retry without if that fails.  This keeps the fix from f5bf18f of not
+panicking if the allocation does not fit in the section, but still makes
+sure to try to stay within the section at first.
 
 Signed-off-by: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: <stable@vger.kernel.org>	[3.3.x, 3.4.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/bootmem.h |    5 +++++
+ mm/bootmem.c            |    2 +-
+ mm/nobootmem.c          |    2 +-
+ mm/sparse.c             |   18 +++++++++++++-----
+ 4 files changed, 20 insertions(+), 7 deletions(-)
 
-diff -puN mm/sparse.c~mm-sparse-fix-section-usemap-placement-calculation mm/sparse.c
---- a/mm/sparse.c~mm-sparse-fix-section-usemap-placement-calculation
+diff -puN include/linux/bootmem.h~mm-sparse-fix-usemap-allocation-above-node-descriptor-section include/linux/bootmem.h
+--- a/include/linux/bootmem.h~mm-sparse-fix-usemap-allocation-above-node-descriptor-section
++++ a/include/linux/bootmem.h
+@@ -91,6 +91,11 @@ extern void *__alloc_bootmem_node_nopani
+ 				  unsigned long size,
+ 				  unsigned long align,
+ 				  unsigned long goal);
++void *___alloc_bootmem_node_nopanic(pg_data_t *pgdat,
++				  unsigned long size,
++				  unsigned long align,
++				  unsigned long goal,
++				  unsigned long limit);
+ extern void *__alloc_bootmem_low(unsigned long size,
+ 				 unsigned long align,
+ 				 unsigned long goal);
+diff -puN mm/bootmem.c~mm-sparse-fix-usemap-allocation-above-node-descriptor-section mm/bootmem.c
+--- a/mm/bootmem.c~mm-sparse-fix-usemap-allocation-above-node-descriptor-section
++++ a/mm/bootmem.c
+@@ -698,7 +698,7 @@ void * __init __alloc_bootmem(unsigned l
+ 	return ___alloc_bootmem(size, align, goal, limit);
+ }
+ 
+-static void * __init ___alloc_bootmem_node_nopanic(pg_data_t *pgdat,
++void * __init ___alloc_bootmem_node_nopanic(pg_data_t *pgdat,
+ 				unsigned long size, unsigned long align,
+ 				unsigned long goal, unsigned long limit)
+ {
+diff -puN mm/nobootmem.c~mm-sparse-fix-usemap-allocation-above-node-descriptor-section mm/nobootmem.c
+--- a/mm/nobootmem.c~mm-sparse-fix-usemap-allocation-above-node-descriptor-section
++++ a/mm/nobootmem.c
+@@ -274,7 +274,7 @@ void * __init __alloc_bootmem(unsigned l
+ 	return ___alloc_bootmem(size, align, goal, limit);
+ }
+ 
+-static void * __init ___alloc_bootmem_node_nopanic(pg_data_t *pgdat,
++void * __init ___alloc_bootmem_node_nopanic(pg_data_t *pgdat,
+ 						   unsigned long size,
+ 						   unsigned long align,
+ 						   unsigned long goal,
+diff -puN mm/sparse.c~mm-sparse-fix-usemap-allocation-above-node-descriptor-section mm/sparse.c
+--- a/mm/sparse.c~mm-sparse-fix-usemap-allocation-above-node-descriptor-section
 +++ a/mm/sparse.c
-@@ -287,7 +287,7 @@ sparse_early_usemaps_alloc_pgdat_section
- 	 * from the same section as the pgdat where possible to avoid
+@@ -275,8 +275,9 @@ static unsigned long * __init
+ sparse_early_usemaps_alloc_pgdat_section(struct pglist_data *pgdat,
+ 					 unsigned long size)
+ {
+-	pg_data_t *host_pgdat;
+-	unsigned long goal;
++	unsigned long goal, limit;
++	unsigned long *p;
++	int nid;
+ 	/*
+ 	 * A page may contain usemaps for other sections preventing the
+ 	 * page being freed and making a section unremovable while
+@@ -288,9 +289,16 @@ sparse_early_usemaps_alloc_pgdat_section
  	 * this problem.
  	 */
--	goal = __pa(pgdat) & PAGE_SECTION_MASK;
-+	goal = __pa(pgdat) & (PAGE_SECTION_MASK << PAGE_SHIFT);
- 	host_pgdat = NODE_DATA(early_pfn_to_nid(goal >> PAGE_SHIFT));
- 	return __alloc_bootmem_node_nopanic(host_pgdat, size,
- 					    SMP_CACHE_BYTES, goal);
+ 	goal = __pa(pgdat) & (PAGE_SECTION_MASK << PAGE_SHIFT);
+-	host_pgdat = NODE_DATA(early_pfn_to_nid(goal >> PAGE_SHIFT));
+-	return __alloc_bootmem_node_nopanic(host_pgdat, size,
+-					    SMP_CACHE_BYTES, goal);
++	limit = goal + (1UL << PA_SECTION_SHIFT);
++	nid = early_pfn_to_nid(goal >> PAGE_SHIFT);
++again:
++	p = ___alloc_bootmem_node_nopanic(NODE_DATA(nid), size,
++					  SMP_CACHE_BYTES, goal, limit);
++	if (!p && limit) {
++		limit = 0;
++		goto again;
++	}
++	return p;
+ }
+ 
+ static void __init check_usemap_section_nr(int nid, unsigned long *usemap)
 _
 
 Patches currently in -mm which might be from yinghai@kernel.org are
