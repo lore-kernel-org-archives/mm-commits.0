@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + swapfile-avoid-dereferencing-bd_disk-during-swap_entry_free-for-network-storage.patch added to -mm tree
-Date: Thu, 12 Jul 2012 14:48:24 -0700
-Message-ID: <20120712214824.E31BF5C0050@hpza9.eem.corp.google.com>
+Subject: + maintainers-update-exynos-dp-driver-f-patterns.patch added to -mm tree
+Date: Thu, 12 Jul 2012 14:48:57 -0700
+Message-ID: <20120712214857.90CC510005D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:54320 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964784Ab2GLVs3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 17:48:29 -0400
-Received: by lbbgp10 with SMTP id gp10so166437lbb.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 14:48:27 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:34747 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933045Ab2GLVs6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 17:48:58 -0400
+Received: by yhl10 with SMTP id 10so284088yhl.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 14:48:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mgorman@suse.de, Trond.Myklebust@netapp.com, a.p.zijlstra@chello.nl, davem@davemloft.net, dfeng@redhat.com, emunson@mgebm.net, eparis@redhat.com, hch@infradead.org, jmorris@namei.org, michaelc@cs.wisc.edu, neilb@suse.de, riel@redhat.com, sebastian@breakpoint.cc
+Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: swapfile: avoid dereferencing bd_disk during swap_entry_free for network storage
+     Subject: MAINTAINERS: update EXYNOS DP DRIVER F: patterns
 has been added to the -mm tree.  Its filename is
-     swapfile-avoid-dereferencing-bd_disk-during-swap_entry_free-for-network-storage.patch
+     maintainers-update-exynos-dp-driver-f-patterns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,111 +33,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: swapfile: avoid dereferencing bd_disk during swap_entry_free for network storage
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: MAINTAINERS: update EXYNOS DP DRIVER F: patterns
 
-Commit b3a27d ("swap: Add swap slot free callback to
-block_device_operations") dereferences p->bdev->bd_disk but this is a NULL
-dereference if using swap-over-NFS.  This patch checks SWP_BLKDEV on the
-swap_info_struct before dereferencing.
+Add patterns for Exynos DP header to MAINTAINERS file.
 
-With reference to this callback, Christoph Hellwig stated "Please just
-remove the callback entirely.  It has no user outside the staging tree and
-was added clearly against the rules for that staging tree".  This would
-also be my preference but there was not an obvious way of keeping zram in
-staging/ happy.
-
-Signed-off-by: Xiaotian Feng <dfeng@redhat.com>
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Eric B Munson <emunson@mgebm.net>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Mike Christie <michaelc@cs.wisc.edu>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
-Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/swapfile.c~swapfile-avoid-dereferencing-bd_disk-during-swap_entry_free-for-network-storage mm/swapfile.c
---- a/mm/swapfile.c~swapfile-avoid-dereferencing-bd_disk-during-swap_entry_free-for-network-storage
-+++ a/mm/swapfile.c
-@@ -549,7 +549,6 @@ static unsigned char swap_entry_free(str
+diff -puN MAINTAINERS~maintainers-update-exynos-dp-driver-f-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-exynos-dp-driver-f-patterns
++++ a/MAINTAINERS
+@@ -2724,6 +2724,7 @@ M:	Jingoo Han <jg1.han@samsung.com>
+ L:	linux-fbdev@vger.kernel.org
+ S:	Maintained
+ F:	drivers/video/exynos/exynos_dp*
++F:	include/video/exynos_dp*
  
- 	/* free if no reference */
- 	if (!usage) {
--		struct gendisk *disk = p->bdev->bd_disk;
- 		if (offset < p->lowest_bit)
- 			p->lowest_bit = offset;
- 		if (offset > p->highest_bit)
-@@ -560,9 +559,11 @@ static unsigned char swap_entry_free(str
- 		nr_swap_pages++;
- 		p->inuse_pages--;
- 		frontswap_invalidate_page(p->type, offset);
--		if ((p->flags & SWP_BLKDEV) &&
--				disk->fops->swap_slot_free_notify)
--			disk->fops->swap_slot_free_notify(p->bdev, offset);
-+		if (p->flags & SWP_BLKDEV) {
-+			struct gendisk *disk = p->bdev->bd_disk;
-+			if (disk->fops->swap_slot_free_notify)
-+				disk->fops->swap_slot_free_notify(p->bdev, offset);
-+		}
- 	}
- 
- 	return usage;
+ EXYNOS MIPI DISPLAY DRIVERS
+ M:	Inki Dae <inki.dae@samsung.com>
 _
-Subject: Subject: swapfile: avoid dereferencing bd_disk during swap_entry_free for network storage
+Subject: Subject: MAINTAINERS: update EXYNOS DP DRIVER F: patterns
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
-origin.patch
 linux-next.patch
-memcg-prevent-oom-with-too-many-dirty-pages.patch
-memcg-prevent-oom-with-too-many-dirty-pages-fix.patch
-mm-do-not-use-page_count-without-a-page-pin.patch
-mm-clean-up-__count_immobile_pages.patch
-mm-hotplug-correctly-setup-fallback-zonelists-when-creating-new-pgdat.patch
-mm-hotplug-correctly-add-new-zone-to-all-other-nodes-zone-lists.patch
-mm-hotplug-free-zone-pageset-when-a-zone-becomes-empty.patch
-mm-hotplug-mark-memory-hotplug-code-in-page_allocc-as-__meminit.patch
-mm-factor-out-memory-isolate-functions.patch
-mm-bug-fix-free-page-check-in-zone_watermark_ok.patch
-memory-hotplug-fix-kswapd-looping-forever-problem.patch
-memory-hotplug-fix-kswapd-looping-forever-problem-fix.patch
-mm-slb-add-knowledge-of-pfmemalloc-reserve-pages.patch
-mm-slub-optimise-the-slub-fast-path-to-avoid-pfmemalloc-checks.patch
-mm-introduce-__gfp_memalloc-to-allow-access-to-emergency-reserves.patch
-mm-allow-pf_memalloc-from-softirq-context.patch
-mm-only-set-page-pfmemalloc-when-alloc_no_watermarks-was-used.patch
-mm-ignore-mempolicies-when-using-alloc_no_watermark.patch
-net-introduce-sk_gfp_atomic-to-allow-addition-of-gfp-flags-depending-on-the-individual-socket.patch
-netvm-allow-the-use-of-__gfp_memalloc-by-specific-sockets.patch
-netvm-allow-skb-allocation-to-use-pfmemalloc-reserves.patch
-netvm-propagate-page-pfmemalloc-to-skb.patch
-netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb.patch
-netvm-set-pf_memalloc-as-appropriate-during-skb-processing.patch
-mm-micro-optimise-slab-to-avoid-a-function-call.patch
-nbd-set-sock_memalloc-for-access-to-pfmemalloc-reserves.patch
-mm-throttle-direct-reclaimers-if-pf_memalloc-reserves-are-low-and-swap-is-backed-by-network-storage.patch
-mm-account-for-the-number-of-times-direct-reclaimers-get-throttled.patch
-netvm-prevent-a-stream-specific-deadlock.patch
-selinux-tag-avc-cache-alloc-as-non-critical.patch
-mm-methods-for-teaching-filesystems-about-pg_swapcache-pages.patch
-mm-add-support-for-a-filesystem-to-activate-swap-files-and-use-direct_io-for-writing-swap-pages.patch
-mm-swap-implement-generic-handler-for-swap_activate.patch
-mm-add-get_kernel_page-for-pinning-of-kernel-addresses-for-i-o.patch
-mm-add-support-for-direct_io-to-highmem-pages.patch
-nfs-teach-the-nfs-client-how-to-treat-pg_swapcache-pages.patch
-nfs-disable-data-cache-revalidation-for-swapfiles.patch
-nfs-enable-swap-on-nfs.patch
-nfs-prevent-page-allocator-recursions-with-swap-over-nfs.patch
-swapfile-avoid-dereferencing-bd_disk-during-swap_entry_free-for-network-storage.patch
+maintainers-update-exynos-dp-driver-f-patterns.patch
+drivers-video-backlight-atmel-pwm-blc-use-devm_-functions.patch
+drivers-video-backlight-ot200_blc-use-devm_-functions.patch
+drivers-video-backlight-lm3533_blc-use-devm_-functions.patch
+backlight-atmel-pwm-bl-use-devm_gpio_request.patch
+backlight-ot200_bl-use-devm_gpio_request.patch
+backlight-tosa_lcd-use-devm_gpio_request.patch
+backlight-tosa_bl-use-devm_gpio_request.patch
+backlight-lms283gf05-use-devm_gpio_request.patch
+backlight-corgi_lcd-use-devm_gpio_request.patch
+backlight-l4f00242t03-use-devm_gpio_request_one.patch
 
