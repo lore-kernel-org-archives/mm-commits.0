@@ -1,186 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-message-i2o-i2o_procc-the-pointer-returned-from-chtostr-points-to-an-array-which-is-no-longer-valid.patch added to -mm tree
-Date: Thu, 12 Jul 2012 16:28:26 -0700
-Message-ID: <20120712232826.96C0210004A@wpzn3.hot.corp.google.com>
+Subject: [folded] resource-make-sure-requested-range-intersects-root-range-fix.patch removed from -mm tree
+Date: Thu, 12 Jul 2012 16:36:53 -0700
+Message-ID: <20120712233653.EAD6310004A@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:39852 "EHLO
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:50512 "EHLO
 	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932221Ab2GLX22 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 19:28:28 -0400
-Received: by ggeh3 with SMTP id h3so290696gge.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 16:28:27 -0700 (PDT)
+	with ESMTP id S1161721Ab2GLXgz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 19:36:55 -0400
+Received: by ggeh3 with SMTP id h3so291251gge.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 16:36:54 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: alan@linux.intel.com, kdudka@redhat.com
+To: akpm@linux-foundation.org, jbarnes@virtuousgeek.org, linuxram@us.ibm.com, octavian.purdila@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/message/i2o/i2o_proc.c: the pointer returned from chtostr() points to an array which is no longer valid
-has been added to the -mm tree.  Its filename is
-     drivers-message-i2o-i2o_procc-the-pointer-returned-from-chtostr-points-to-an-array-which-is-no-longer-valid.patch
+     Subject: resource-make-sure-requested-range-intersects-root-range-fix
+has been removed from the -mm tree.  Its filename was
+     resource-make-sure-requested-range-intersects-root-range-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into resource-make-sure-requested-range-intersects-root-range.patch
 
 ------------------------------------------------------
-From: Alan Cox <alan@linux.intel.com>
-Subject: drivers/message/i2o/i2o_proc.c: the pointer returned from chtostr() points to an array which is no longer valid
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: resource-make-sure-requested-range-intersects-root-range-fix
 
-...  when being used in the calling function.  Although it may work, the
-behavior is undefined.  Detected by cppcheck.
+add a dump_stack()
 
-Signed-off-by: Kamil Dudka <kdudka@redhat.com>
-Signed-off-by: Alan Cox <alan@linux.intel.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Octavian Purdila <octavian.purdila@intel.com>
+Cc: Ram Pai <linuxram@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/i2o/i2o_proc.c |   37 ++++++++++++++++++-------------
- 1 file changed, 22 insertions(+), 15 deletions(-)
+ kernel/resource.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/message/i2o/i2o_proc.c~drivers-message-i2o-i2o_procc-the-pointer-returned-from-chtostr-points-to-an-array-which-is-no-longer-valid drivers/message/i2o/i2o_proc.c
---- a/drivers/message/i2o/i2o_proc.c~drivers-message-i2o-i2o_procc-the-pointer-returned-from-chtostr-points-to-an-array-which-is-no-longer-valid
-+++ a/drivers/message/i2o/i2o_proc.c
-@@ -255,9 +255,8 @@ static char *scsi_devices[] = {
- 	"Array Controller Device"
- };
- 
--static char *chtostr(u8 * chars, int n)
-+static char *chtostr(char *tmp, u8 *chars, int n)
+diff -puN kernel/resource.c~resource-make-sure-requested-range-intersects-root-range-fix kernel/resource.c
+--- a/kernel/resource.c~resource-make-sure-requested-range-intersects-root-range-fix
++++ a/kernel/resource.c
+@@ -792,13 +792,15 @@ void __init reserve_region_with_split(st
+ 		const char *name)
  {
--	char tmp[256];
- 	tmp[0] = 0;
- 	return strncat(tmp, (char *)chars, n);
+ 	write_lock(&resource_lock);
+-	if (start > root->end || end < root->start)
++	if (start > root->end || end < root->start) {
+ 		pr_err("Requested range (0x%llx-0x%llx) not in root range (0x%llx-0x%llx)\n",
+ 		       (unsigned long long)start, (unsigned long long)end,
+ 		       (unsigned long long)root->start,
+ 		       (unsigned long long)root->end);
+-	else
++		dump_stack();
++	} else {
+ 		__reserve_region_with_split(root, start, end, name);
++	}
+ 	write_unlock(&resource_lock);
  }
-@@ -791,6 +790,7 @@ static int i2o_seq_show_ddm_table(struct
- 	} *result;
  
- 	i2o_exec_execute_ddm_table ddm_table;
-+	char tmp[28 + 1];
- 
- 	result = kmalloc(sizeof(*result), GFP_KERNEL);
- 	if (!result)
-@@ -826,7 +826,7 @@ static int i2o_seq_show_ddm_table(struct
- 		seq_printf(seq, "%-#7x", ddm_table.i2o_vendor_id);
- 		seq_printf(seq, "%-#8x", ddm_table.module_id);
- 		seq_printf(seq, "%-29s",
--			   chtostr(ddm_table.module_name_version, 28));
-+			   chtostr(tmp, ddm_table.module_name_version, 28));
- 		seq_printf(seq, "%9d  ", ddm_table.data_size);
- 		seq_printf(seq, "%8d", ddm_table.code_size);
- 
-@@ -893,6 +893,7 @@ static int i2o_seq_show_drivers_stored(s
- 
- 	i2o_driver_result_table *result;
- 	i2o_driver_store_table *dst;
-+	char tmp[28 + 1];
- 
- 	result = kmalloc(sizeof(i2o_driver_result_table), GFP_KERNEL);
- 	if (result == NULL)
-@@ -927,8 +928,9 @@ static int i2o_seq_show_drivers_stored(s
- 
- 		seq_printf(seq, "%-#7x", dst->i2o_vendor_id);
- 		seq_printf(seq, "%-#8x", dst->module_id);
--		seq_printf(seq, "%-29s", chtostr(dst->module_name_version, 28));
--		seq_printf(seq, "%-9s", chtostr(dst->date, 8));
-+		seq_printf(seq, "%-29s",
-+			   chtostr(tmp, dst->module_name_version, 28));
-+		seq_printf(seq, "%-9s", chtostr(tmp, dst->date, 8));
- 		seq_printf(seq, "%8d ", dst->module_size);
- 		seq_printf(seq, "%8d ", dst->mpb_size);
- 		seq_printf(seq, "0x%04x", dst->module_flags);
-@@ -1248,6 +1250,7 @@ static int i2o_seq_show_dev_identity(str
- 	// == (allow) 512d bytes (max)
- 	static u16 *work16 = (u16 *) work32;
- 	int token;
-+	char tmp[16 + 1];
- 
- 	token = i2o_parm_field_get(d, 0xF100, -1, &work32, sizeof(work32));
- 
-@@ -1260,13 +1263,13 @@ static int i2o_seq_show_dev_identity(str
- 	seq_printf(seq, "Owner TID     : %0#5x\n", work16[2]);
- 	seq_printf(seq, "Parent TID    : %0#5x\n", work16[3]);
- 	seq_printf(seq, "Vendor info   : %s\n",
--		   chtostr((u8 *) (work32 + 2), 16));
-+		   chtostr(tmp, (u8 *) (work32 + 2), 16));
- 	seq_printf(seq, "Product info  : %s\n",
--		   chtostr((u8 *) (work32 + 6), 16));
-+		   chtostr(tmp, (u8 *) (work32 + 6), 16));
- 	seq_printf(seq, "Description   : %s\n",
--		   chtostr((u8 *) (work32 + 10), 16));
-+		   chtostr(tmp, (u8 *) (work32 + 10), 16));
- 	seq_printf(seq, "Product rev.  : %s\n",
--		   chtostr((u8 *) (work32 + 14), 8));
-+		   chtostr(tmp, (u8 *) (work32 + 14), 8));
- 
- 	seq_printf(seq, "Serial number : ");
- 	print_serial_number(seq, (u8 *) (work32 + 16),
-@@ -1303,6 +1306,8 @@ static int i2o_seq_show_ddm_identity(str
- 		u8 pad[256];	// allow up to 256 byte (max) serial number
- 	} result;
- 
-+	char tmp[24 + 1];
-+
- 	token = i2o_parm_field_get(d, 0xF101, -1, &result, sizeof(result));
- 
- 	if (token < 0) {
-@@ -1312,9 +1317,9 @@ static int i2o_seq_show_ddm_identity(str
- 
- 	seq_printf(seq, "Registering DDM TID : 0x%03x\n", result.ddm_tid);
- 	seq_printf(seq, "Module name         : %s\n",
--		   chtostr(result.module_name, 24));
-+		   chtostr(tmp, result.module_name, 24));
- 	seq_printf(seq, "Module revision     : %s\n",
--		   chtostr(result.module_rev, 8));
-+		   chtostr(tmp, result.module_rev, 8));
- 
- 	seq_printf(seq, "Serial number       : ");
- 	print_serial_number(seq, result.serial_number, sizeof(result) - 36);
-@@ -1338,6 +1343,8 @@ static int i2o_seq_show_uinfo(struct seq
- 		u8 instance_number[4];
- 	} result;
- 
-+	char tmp[64 + 1];
-+
- 	token = i2o_parm_field_get(d, 0xF102, -1, &result, sizeof(result));
- 
- 	if (token < 0) {
-@@ -1346,13 +1353,13 @@ static int i2o_seq_show_uinfo(struct seq
- 	}
- 
- 	seq_printf(seq, "Device name     : %s\n",
--		   chtostr(result.device_name, 64));
-+		   chtostr(tmp, result.device_name, 64));
- 	seq_printf(seq, "Service name    : %s\n",
--		   chtostr(result.service_name, 64));
-+		   chtostr(tmp, result.service_name, 64));
- 	seq_printf(seq, "Physical name   : %s\n",
--		   chtostr(result.physical_location, 64));
-+		   chtostr(tmp, result.physical_location, 64));
- 	seq_printf(seq, "Instance number : %s\n",
--		   chtostr(result.instance_number, 4));
-+		   chtostr(tmp, result.instance_number, 4));
- 
- 	return 0;
- }
 _
-Subject: Subject: drivers/message/i2o/i2o_proc.c: the pointer returned from chtostr() points to an array which is no longer valid
 
-Patches currently in -mm which might be from alan@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-fs-make-dumpable=2-require-fully-qualified-path.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
+sysfs-fail-dentry-revalidation-after-namespace-change-fix.patch
+hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
 coredump-warn-about-unsafe-suid_dumpable-core_pattern-combo.patch
+mm.patch
+mm-make-vb_alloc-more-foolproof-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
+mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
+memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
+memcg-prevent-oom-with-too-many-dirty-pages.patch
+mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
+memcg-rename-config-variables.patch
+memcg-rename-config-variables-fix-fix.patch
+mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes.patch
+mm-have-order-0-compaction-start-off-where-it-left-v3-typo.patch
+memory-hotplug-fix-kswapd-looping-forever-problem-fix.patch
+avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
 kernel-sysc-avoid-argv_freenull.patch
-drivers-message-i2o-i2o_procc-the-pointer-returned-from-chtostr-points-to-an-array-which-is-no-longer-valid.patch
+kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
+printk-add-generic-functions-to-find-kern_level-headers-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
+lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch
+string-introduce-memweight-fix.patch
+drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes.patch
+drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded.patch
+hfsplus-get-rid-of-write_super-checkpatch-fixes.patch
+fs-ufs-re-arrange-the-code-a-bit-checkpatch-fixes.patch
+kernel-kmodc-document-call_usermodehelper_fns-a-bit.patch
+kmod-avoid-deadlock-from-recursive-kmod-call.patch
+fork-use-vma_pages-to-simplify-the-code-fix.patch
+revert-sched-fix-fork-error-path-to-not-crash.patch
+fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
+include-linux-aioh-cpp-c-conversions.patch
+resource-make-sure-requested-range-intersects-root-range.patch
+fault-injection-add-selftests-for-cpu-and-memory-hotplug.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
