@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-bug-fix-free-page-check-in-zone_watermark_ok.patch added to -mm tree
-Date: Thu, 12 Jul 2012 14:02:09 -0700
-Message-ID: <20120712210210.A1C9A5C0060@hpza9.eem.corp.google.com>
+Subject: + memory-hotplug-fix-kswapd-looping-forever-problem.patch added to -mm tree
+Date: Thu, 12 Jul 2012 14:02:13 -0700
+Message-ID: <20120712210214.717671E004D@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:38991 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932897Ab2GLVCN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 17:02:13 -0400
-Received: by lbbgp10 with SMTP id gp10so165276lbb.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 14:02:12 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:58572 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933478Ab2GLVCQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 17:02:16 -0400
+Received: by vbnl22 with SMTP id l22so276757vbn.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 14:02:15 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minchan@kernel.org, aaditya.kumar@ap.sony.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, mhocko@suse.cz
+Cc: minchan@kernel.org, aaditya.kumar.30@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, mhocko@suse.cz
 
 
 The patch titled
-     Subject: mm: fix free page check in zone_watermark_ok()
+     Subject: memory-hotplug: fix kswapd looping forever problem
 has been added to the -mm tree.  Its filename is
-     mm-bug-fix-free-page-check-in-zone_watermark_ok.patch
+     memory-hotplug-fix-kswapd-looping-forever-problem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,207 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: mm: fix free page check in zone_watermark_ok()
+Subject: memory-hotplug: fix kswapd looping forever problem
 
-In __zone_watermark_ok(), free and min are signed long type while
-z->lowmem_reserve[classzone_idx] is unsigned long type.  So comparision of
-them could be wrong due to type conversion to unsigned although free_pages
-is minus value.
+When hotplug offlining happens on zone A, it starts to mark freed page as
+MIGRATE_ISOLATE type in buddy for preventing further allocation. 
+(MIGRATE_ISOLATE is very irony type because it's apparently on buddy but
+we can't allocate them).
 
-It could return true instead of false in case of order-0 check so that
-kswapd could sleep forever.  It means livelock because direct reclaimer
-loops forever until kswapd set zone->all_unreclaimable.
+When the memory shortage happens during hotplug offlining, current task
+starts to reclaim, then wake up kswapd.  Kswapd checks watermark, then go
+sleep because current zone_watermark_ok_safe doesn't consider
+MIGRATE_ISOLATE freed page count.  Current task continue to reclaim in
+direct reclaim path without kswapd's helping.  The problem is that
+zone->all_unreclaimable is set by only kswapd so that current task would
+be looping forever like below.
 
-Aaditya reported this problem when he test my hotplug patch.
+__alloc_pages_slowpath
+restart:
+	wake_all_kswapd
+rebalance:
+	__alloc_pages_direct_reclaim
+		do_try_to_free_pages
+			if global_reclaim && !all_unreclaimable
+				return 1; /* It means we did did_some_progress */
+	skip __alloc_pages_may_oom
+	should_alloc_retry
+		goto rebalance;
 
-Reported-off-by: Aaditya Kumar <aaditya.kumar@ap.sony.com>
-Tested-by: Aaditya Kumar <aaditya.kumar@ap.sony.com>
-Signed-off-by: Aaditya Kumar <aaditya.kumar@ap.sony.com>
+If we apply KOSAKI's patch[1] which doesn't depends on kswapd about
+setting zone->all_unreclaimable, we can solve this problem by killing some
+task in direct reclaim path.  But it doesn't wake up kswapd, still.  It
+could be a problem still if other subsystem needs GFP_ATOMIC request.  So
+kswapd should consider MIGRATE_ISOLATE when it calculate free pages BEFORE
+going sleep.
+
+This patch counts the number of MIGRATE_ISOLATE page block and
+zone_watermark_ok_safe will consider it if the system has such blocks
+(fortunately, it's very rare so no problem in POV overhead and kswapd is
+never hotpath).
+
+Copy/modify from Mel's quote
+"
+Ideal solution would be "allocating" the pageblock.
+It would keep the free space accounting as it is but historically,
+memory hotplug didn't allocate pages because it would be difficult to
+detect if a pageblock was isolated or if part of some balloon.
+Allocating just full pageblocks would work around this, However,
+it would play very badly with CMA.
+"
+
+[1] http://lkml.org/lkml/2012/6/14/74
+
 Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Suggested-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Tested-by: Aaditya Kumar <aaditya.kumar.30@gmail.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Mel Gorman <mgorman@suse.de>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/mmzone.h |    8 ++++++++
+ mm/page_alloc.c        |   31 +++++++++++++++++++++++++++++++
+ mm/page_isolation.c    |   29 +++++++++++++++++++++++++++--
+ 3 files changed, 66 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-bug-fix-free-page-check-in-zone_watermark_ok mm/page_alloc.c
---- a/mm/page_alloc.c~mm-bug-fix-free-page-check-in-zone_watermark_ok
+diff -puN include/linux/mmzone.h~memory-hotplug-fix-kswapd-looping-forever-problem include/linux/mmzone.h
+--- a/include/linux/mmzone.h~memory-hotplug-fix-kswapd-looping-forever-problem
++++ a/include/linux/mmzone.h
+@@ -477,6 +477,14 @@ struct zone {
+ 	 * rarely used fields:
+ 	 */
+ 	const char		*name;
++#ifdef CONFIG_MEMORY_ISOLATION
++	/*
++	 * the number of MIGRATE_ISOLATE *pageblock*.
++	 * We need this for free page counting. Look at zone_watermark_ok_safe.
++	 * It's protected by zone->lock
++	 */
++	int		nr_pageblock_isolate;
++#endif
+ } ____cacheline_internodealigned_in_smp;
+ 
+ typedef enum {
+diff -puN mm/page_alloc.c~memory-hotplug-fix-kswapd-looping-forever-problem mm/page_alloc.c
+--- a/mm/page_alloc.c~memory-hotplug-fix-kswapd-looping-forever-problem
 +++ a/mm/page_alloc.c
-@@ -1594,6 +1594,7 @@ static bool __zone_watermark_ok(struct z
+@@ -218,6 +218,11 @@ EXPORT_SYMBOL(nr_online_nodes);
+ 
+ int page_group_by_mobility_disabled __read_mostly;
+ 
++/*
++ * NOTE:
++ * Don't use set_pageblock_migratetype(page, MIGRATE_ISOLATE) directly.
++ * Instead, use {un}set_pageblock_isolate.
++ */
+ void set_pageblock_migratetype(struct page *page, int migratetype)
  {
- 	/* free_pages my go negative - that's OK */
- 	long min = mark;
-+	long lowmem_reserve = z->lowmem_reserve[classzone_idx];
- 	int o;
  
- 	free_pages -= (1 << order) - 1;
-@@ -1602,7 +1603,7 @@ static bool __zone_watermark_ok(struct z
- 	if (alloc_flags & ALLOC_HARDER)
- 		min -= min / 4;
+@@ -1618,6 +1623,23 @@ static bool __zone_watermark_ok(struct z
+ 	return true;
+ }
  
--	if (free_pages <= min + z->lowmem_reserve[classzone_idx])
-+	if (free_pages <= min + lowmem_reserve)
- 		return false;
- 	for (o = 0; o < order; o++) {
- 		/* At the next order, this order's pages become unavailable */
++#ifdef CONFIG_MEMORY_ISOLATION
++static inline unsigned long nr_zone_isolate_freepages(struct zone *zone)
++{
++	unsigned long nr_pages = 0;
++
++	if (unlikely(zone->nr_pageblock_isolate)) {
++		nr_pages = zone->nr_pageblock_isolate * pageblock_nr_pages;
++	}
++	return nr_pages;
++}
++#else
++static inline unsigned long nr_zone_isolate_freepages(struct zone *zone)
++{
++	return 0;
++}
++#endif
++
+ bool zone_watermark_ok(struct zone *z, int order, unsigned long mark,
+ 		      int classzone_idx, int alloc_flags)
+ {
+@@ -1633,6 +1655,14 @@ bool zone_watermark_ok_safe(struct zone 
+ 	if (z->percpu_drift_mark && free_pages < z->percpu_drift_mark)
+ 		free_pages = zone_page_state_snapshot(z, NR_FREE_PAGES);
+ 
++	/*
++	 * If the zone has MIGRATE_ISOLATE type free page,
++	 * we should consider it. nr_zone_isolate_freepages is never
++	 * accurate so kswapd might not sleep although she can.
++	 * But it's more desirable for memory hotplug rather than
++	 * forever sleep which cause livelock in direct reclaim path.
++	 */
++	free_pages -= nr_zone_isolate_freepages(z);
+ 	return __zone_watermark_ok(z, order, mark, classzone_idx, alloc_flags,
+ 								free_pages);
+ }
+@@ -4397,6 +4427,7 @@ static void __paginginit free_area_init_
+ 		lruvec_init(&zone->lruvec, zone);
+ 		zap_zone_vm_stats(zone);
+ 		zone->flags = 0;
++		zone->nr_pageblock_isolate = 0;
+ 		if (!size)
+ 			continue;
+ 
+diff -puN mm/page_isolation.c~memory-hotplug-fix-kswapd-looping-forever-problem mm/page_isolation.c
+--- a/mm/page_isolation.c~memory-hotplug-fix-kswapd-looping-forever-problem
++++ a/mm/page_isolation.c
+@@ -8,6 +8,31 @@
+ #include <linux/memory.h>
+ #include "internal.h"
+ 
++/* called by holding zone->lock */
++static void set_pageblock_isolate(struct zone *zone, struct page *page)
++{
++	BUG_ON(page_zone(page) != zone);
++
++	if (get_pageblock_migratetype(page) == MIGRATE_ISOLATE)
++		return;
++
++	set_pageblock_migratetype(page, MIGRATE_ISOLATE);
++	zone->nr_pageblock_isolate++;
++}
++
++/* called by holding zone->lock */
++static void restore_pageblock_isolate(struct zone *zone, struct page *page,
++		int migratetype)
++{
++	BUG_ON(page_zone(page) != zone);
++	if (WARN_ON(get_pageblock_migratetype(page) != MIGRATE_ISOLATE))
++		return;
++
++	BUG_ON(zone->nr_pageblock_isolate <= 0);
++	set_pageblock_migratetype(page, migratetype);
++	zone->nr_pageblock_isolate--;
++}
++
+ int set_migratetype_isolate(struct page *page)
+ {
+ 	struct zone *zone;
+@@ -54,7 +79,7 @@ int set_migratetype_isolate(struct page 
+ 
+ out:
+ 	if (!ret) {
+-		set_pageblock_migratetype(page, MIGRATE_ISOLATE);
++		set_pageblock_isolate(zone, page);
+ 		move_freepages_block(zone, page, MIGRATE_ISOLATE);
+ 	}
+ 
+@@ -72,8 +97,8 @@ void unset_migratetype_isolate(struct pa
+ 	spin_lock_irqsave(&zone->lock, flags);
+ 	if (get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
+ 		goto out;
+-	set_pageblock_migratetype(page, migratetype);
+ 	move_freepages_block(zone, page, migratetype);
++	restore_pageblock_isolate(zone, page, migratetype);
+ out:
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+ }
 _
-Subject: Subject: mm: fix free page check in zone_watermark_ok()
+Subject: Subject: memory-hotplug: fix kswapd looping forever problem
 
 Patches currently in -mm which might be from minchan@kernel.org are
 
