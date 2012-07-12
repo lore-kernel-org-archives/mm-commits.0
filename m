@@ -1,66 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-fix-null-pointer-dereferrence-in-__ocfs2_change_file_space.patch removed from -mm tree
-Date: Thu, 12 Jul 2012 12:36:32 -0700
-Message-ID: <20120712193632.BF66E100047@wpzn3.hot.corp.google.com>
+Subject: [merged] mn10300-use-elif-definedconfig_-instead-of-elif-config_.patch removed from -mm tree
+Date: Thu, 12 Jul 2012 12:36:28 -0700
+Message-ID: <20120712193629.082D320004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:61302 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932899Ab2GLTgd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 15:36:33 -0400
-Received: by mail-gh0-f202.google.com with SMTP id z15so266112ghb.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 12:36:33 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:62141 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932852Ab2GLTgb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 15:36:31 -0400
+Received: by bkcjc3 with SMTP id jc3so145577bkc.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 12:36:30 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: luis.henriques@canonical.com, jlbec@evilplan.org, magnade@gmail.com, mfasheh@suse.com, stable@vger.kernel.org, sunil.mushran@oracle.com, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, dhowells@redhat.com, yasutake.koichi@jp.panasonic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix NULL pointer dereference in __ocfs2_change_file_space()
+     Subject: mn10300: use "#elif defined(CONFIG_*)" instead of "#elif CONFIG_*"
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-null-pointer-dereferrence-in-__ocfs2_change_file_space.patch
+     mn10300-use-elif-definedconfig_-instead-of-elif-config_.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Luis Henriques <luis.henriques@canonical.com>
-Subject: ocfs2: fix NULL pointer dereference in __ocfs2_change_file_space()
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: mn10300: use "#elif defined(CONFIG_*)" instead of "#elif CONFIG_*"
 
-As ocfs2_fallocate() will invoke __ocfs2_change_file_space() with a NULL
-as the first parameter (file), it may trigger a NULL pointer dereferrence
-due to a missing check.
+arch/mn10300/kernel/irq.c:173:7: warning: "CONFIG_MN10300_TTYSM1_TIMER9" is not defined [-Wundef]
+arch/mn10300/kernel/irq.c:175:7: warning: "CONFIG_MN10300_TTYSM1_TIMER3" is not defined [-Wundef]
 
-Addresses http://bugs.launchpad.net/bugs/1006012
-
-Signed-off-by: Luis Henriques <luis.henriques@canonical.com>
-Reported-by: Bret Towe <magnade@gmail.com>
-Tested-by: Bret Towe <magnade@gmail.com>
-Cc: Sunil Mushran <sunil.mushran@oracle.com>
-Acked-by: Joel Becker <jlbec@evilplan.org>
-Acked-by: Mark Fasheh <mfasheh@suse.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/file.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/mn10300/kernel/irq.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/file.c~ocfs2-fix-null-pointer-dereferrence-in-__ocfs2_change_file_space fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~ocfs2-fix-null-pointer-dereferrence-in-__ocfs2_change_file_space
-+++ a/fs/ocfs2/file.c
-@@ -1950,7 +1950,7 @@ static int __ocfs2_change_file_space(str
- 	if (ret < 0)
- 		mlog_errno(ret);
- 
--	if (file->f_flags & O_SYNC)
-+	if (file && (file->f_flags & O_SYNC))
- 		handle->h_sync = 1;
- 
- 	ocfs2_commit_trans(osb, handle);
+diff -puN arch/mn10300/kernel/irq.c~mn10300-use-elif-definedconfig_-instead-of-elif-config_ arch/mn10300/kernel/irq.c
+--- a/arch/mn10300/kernel/irq.c~mn10300-use-elif-definedconfig_-instead-of-elif-config_
++++ a/arch/mn10300/kernel/irq.c
+@@ -170,9 +170,9 @@ mn10300_cpupic_setaffinity(struct irq_da
+ 	case SC1TXIRQ:
+ #ifdef CONFIG_MN10300_TTYSM1_TIMER12
+ 	case TM12IRQ:
+-#elif CONFIG_MN10300_TTYSM1_TIMER9
++#elif defined(CONFIG_MN10300_TTYSM1_TIMER9)
+ 	case TM9IRQ:
+-#elif CONFIG_MN10300_TTYSM1_TIMER3
++#elif defined(CONFIG_MN10300_TTYSM1_TIMER3)
+ 	case TM3IRQ:
+ #endif /* CONFIG_MN10300_TTYSM1_TIMER12 */
+ #endif /* CONFIG_MN10300_TTYSM1 */
 _
 
-Patches currently in -mm which might be from luis.henriques@canonical.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
 origin.patch
 linux-next.patch
+frv-kill-used-but-uninitialized-variable.patch
 
