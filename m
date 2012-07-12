@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-account-for-the-number-of-times-direct-reclaimers-get-throttled.patch added to -mm tree
-Date: Thu, 12 Jul 2012 14:28:22 -0700
-Message-ID: <20120712212823.07DF2200057@hpza10.eem.corp.google.com>
+Subject: + netvm-prevent-a-stream-specific-deadlock.patch added to -mm tree
+Date: Thu, 12 Jul 2012 14:47:31 -0700
+Message-ID: <20120712214731.6BEBA100056@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:46345 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161575Ab2GLV2Z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 17:28:25 -0400
-Received: by mail-lb0-f202.google.com with SMTP id gp10so165960lbb.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 14:28:25 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:41744 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750970Ab2GLVrd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 17:47:33 -0400
+Received: by vcqp1 with SMTP id p1so32177vcq.1
+        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 14:47:32 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mgorman@suse.de, a.p.zijlstra@chello.nl, cl@linux.com, davem@davemloft.net, emunson@mgebm.net, eric.dumazet@gmail.com, michaelc@cs.wisc.edu, neilb@suse.de, sebastian@breakpoint.cc
+Cc: mgorman@suse.de, Trond.Myklebust@netapp.com, a.p.zijlstra@chello.nl, davem@davemloft.net, emunson@mgebm.net, hch@infradead.org, michaelc@cs.wisc.edu, neilb@suse.de, riel@redhat.com, sebastian@breakpoint.cc
 
 
 The patch titled
-     Subject: mm: account for the number of times direct reclaimers get throttled
+     Subject: netvm: prevent a stream-specific deadlock
 has been added to the -mm tree.  Its filename is
-     mm-account-for-the-number-of-times-direct-reclaimers-get-throttled.patch
+     netvm-prevent-a-stream-specific-deadlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,259 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: account for the number of times direct reclaimers get throttled
+Subject: netvm: prevent a stream-specific deadlock
 
-Under significant pressure when writing back to network-backed storage,
-direct reclaimers may get throttled.  This is expected to be a short-lived
-event and the processes get woken up again but processes do get stalled. 
-This patch counts how many times such stalling occurs.  It's up to the
-administrator whether to reduce these stalls by increasing
-min_free_kbytes.
+This patch series is based on top of "Swap-over-NBD without deadlocking
+v15" as it depends on the same reservation of PF_MEMALLOC reserves logic.
 
+When a user or administrator requires swap for their application, they
+create a swap partition and file, format it with mkswap and activate it
+with swapon.  In diskless systems this is not an option so if swap if
+required then swapping over the network is considered.  The two likely
+scenarios are when blade servers are used as part of a cluster where the
+form factor or maintenance costs do not allow the use of disks and thin
+clients.
+
+The Linux Terminal Server Project recommends the use of the Network Block
+Device (NBD) for swap but this is not always an option.  There is no
+guarantee that the network attached storage (NAS) device is running Linux
+or supports NBD.  However, it is likely that it supports NFS so there are
+users that want support for swapping over NFS despite any performance
+concern.  Some distributions currently carry patches that support swapping
+over NFS but it would be preferable to support it in the mainline kernel.
+
+Patch 1 avoids a stream-specific deadlock that potentially affects TCP.
+
+Patch 2 is a small modification to SELinux to avoid using PFMEMALLOC
+	reserves.
+
+Patch 3 adds three helpers for filesystems to handle swap cache pages.
+	For example, page_file_mapping() returns page->mapping for
+	file-backed pages and the address_space of the underlying
+	swap file for swap cache pages.
+
+Patch 4 adds two address_space_operations to allow a filesystem
+	to pin all metadata relevant to a swapfile in memory. Upon
+	successful activation, the swapfile is marked SWP_FILE and
+	the address space operation ->direct_IO is used for writing
+	and ->readpage for reading in swap pages.
+
+Patch 5 notes that patch 3 is bolting
+	filesystem-specific-swapfile-support onto the side and that
+	the default handlers have different information to what
+	is available to the filesystem. This patch refactors the
+	code so that there are generic handlers for each of the new
+	address_space operations.
+
+Patch 6 adds an API to allow a vector of kernel addresses to be
+	translated to struct pages and pinned for IO.
+
+Patch 7 adds support for using highmem pages for swap by kmapping
+	the pages before calling the direct_IO handler.
+
+Patch 8 updates NFS to use the helpers from patch 3 where necessary.
+
+Patch 9 avoids setting PF_private on PG_swapcache pages within NFS.
+
+Patch 10 implements the new swapfile-related address_space operations
+	for NFS and teaches the direct IO handler how to manage
+	kernel addresses.
+
+Patch 11 prevents page allocator recursions in NFS by using GFP_NOIO
+	where appropriate.
+
+Patch 12 fixes a NULL pointer dereference that occurs when using
+	swap-over-NFS.
+
+With the patches applied, it is possible to mount a swapfile that is on an
+NFS filesystem.  Swap performance is not great with a swap stress test
+taking roughly twice as long to complete than if the swap device was
+backed by NBD.
+
+
+
+This patch: netvm: prevent a stream-specific deadlock
+
+It could happen that all !SOCK_MEMALLOC sockets have buffered so much data
+that we're over the global rmem limit.  This will prevent SOCK_MEMALLOC
+buffers from receiving data, which will prevent userspace from running,
+which is needed to reduce the buffered data.
+
+Fix this by exempting the SOCK_MEMALLOC sockets from the rmem limit.  Once
+this change it applied, it is important that sockets that set
+SOCK_MEMALLOC do not clear the flag until the socket is being torn down. 
+If this happens, a warning is generated and the tokens reclaimed to avoid
+accounting errors until the bug is fixed.
+
+[davem@davemloft.net: Warning about clearing SOCK_MEMALLOC]
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: David Miller <davem@davemloft.net>
+Acked-by: David S. Miller <davem@davemloft.net>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
 Cc: Neil Brown <neilb@suse.de>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Mike Christie <michaelc@cs.wisc.edu>
 Cc: Eric B Munson <emunson@mgebm.net>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
 Cc: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
 Cc: Mel Gorman <mgorman@suse.de>
-Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vm_event_item.h |    1 +
- mm/vmscan.c                   |    3 +++
- mm/vmstat.c                   |    1 +
- 3 files changed, 5 insertions(+)
+ include/net/sock.h     |    8 +++++---
+ net/caif/caif_socket.c |    2 +-
+ net/core/sock.c        |   14 +++++++++++++-
+ net/ipv4/tcp_input.c   |   21 +++++++++++----------
+ net/sctp/ulpevent.c    |    3 ++-
+ 5 files changed, 32 insertions(+), 16 deletions(-)
 
-diff -puN include/linux/vm_event_item.h~mm-account-for-the-number-of-times-direct-reclaimers-get-throttled include/linux/vm_event_item.h
---- a/include/linux/vm_event_item.h~mm-account-for-the-number-of-times-direct-reclaimers-get-throttled
-+++ a/include/linux/vm_event_item.h
-@@ -30,6 +30,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		FOR_ALL_ZONES(PGSTEAL_DIRECT),
- 		FOR_ALL_ZONES(PGSCAN_KSWAPD),
- 		FOR_ALL_ZONES(PGSCAN_DIRECT),
-+		PGSCAN_DIRECT_THROTTLE,
- #ifdef CONFIG_NUMA
- 		PGSCAN_ZONE_RECLAIM_FAILED,
- #endif
-diff -puN mm/vmscan.c~mm-account-for-the-number-of-times-direct-reclaimers-get-throttled mm/vmscan.c
---- a/mm/vmscan.c~mm-account-for-the-number-of-times-direct-reclaimers-get-throttled
-+++ a/mm/vmscan.c
-@@ -2184,6 +2184,9 @@ static void throttle_direct_reclaim(gfp_
- 	if (pfmemalloc_watermark_ok(pgdat))
- 		return;
+diff -puN include/net/sock.h~netvm-prevent-a-stream-specific-deadlock include/net/sock.h
+--- a/include/net/sock.h~netvm-prevent-a-stream-specific-deadlock
++++ a/include/net/sock.h
+@@ -1326,12 +1326,14 @@ static inline bool sk_wmem_schedule(stru
+ 		__sk_mem_schedule(sk, size, SK_MEM_SEND);
+ }
  
-+	/* Account for the throttling */
-+	count_vm_event(PGSCAN_DIRECT_THROTTLE);
+-static inline bool sk_rmem_schedule(struct sock *sk, int size)
++static inline bool
++sk_rmem_schedule(struct sock *sk, struct sk_buff *skb, unsigned int size)
+ {
+ 	if (!sk_has_account(sk))
+ 		return true;
+-	return size <= sk->sk_forward_alloc ||
+-		__sk_mem_schedule(sk, size, SK_MEM_RECV);
++	return size<= sk->sk_forward_alloc ||
++		__sk_mem_schedule(sk, size, SK_MEM_RECV) ||
++		skb_pfmemalloc(skb);
+ }
+ 
+ static inline void sk_mem_reclaim(struct sock *sk)
+diff -puN net/caif/caif_socket.c~netvm-prevent-a-stream-specific-deadlock net/caif/caif_socket.c
+--- a/net/caif/caif_socket.c~netvm-prevent-a-stream-specific-deadlock
++++ a/net/caif/caif_socket.c
+@@ -141,7 +141,7 @@ static int caif_queue_rcv_skb(struct soc
+ 	err = sk_filter(sk, skb);
+ 	if (err)
+ 		return err;
+-	if (!sk_rmem_schedule(sk, skb->truesize) && rx_flow_is_on(cf_sk)) {
++	if (!sk_rmem_schedule(sk, skb, skb->truesize) && rx_flow_is_on(cf_sk)) {
+ 		set_rx_flow_off(cf_sk);
+ 		net_dbg_ratelimited("sending flow OFF due to rmem_schedule\n");
+ 		caif_flow_ctrl(sk, CAIF_MODEMCMD_FLOW_OFF_REQ);
+diff -puN net/core/sock.c~netvm-prevent-a-stream-specific-deadlock net/core/sock.c
+--- a/net/core/sock.c~netvm-prevent-a-stream-specific-deadlock
++++ a/net/core/sock.c
+@@ -295,6 +295,18 @@ void sk_clear_memalloc(struct sock *sk)
+ 	sock_reset_flag(sk, SOCK_MEMALLOC);
+ 	sk->sk_allocation &= ~__GFP_MEMALLOC;
+ 	static_key_slow_dec(&memalloc_socks);
 +
- 	/*
- 	 * If the caller cannot enter the filesystem, it's possible that it
- 	 * is due to the caller holding an FS lock or performing a journal
-diff -puN mm/vmstat.c~mm-account-for-the-number-of-times-direct-reclaimers-get-throttled mm/vmstat.c
---- a/mm/vmstat.c~mm-account-for-the-number-of-times-direct-reclaimers-get-throttled
-+++ a/mm/vmstat.c
-@@ -744,6 +744,7 @@ const char * const vmstat_text[] = {
- 	TEXTS_FOR_ZONES("pgsteal_direct")
- 	TEXTS_FOR_ZONES("pgscan_kswapd")
- 	TEXTS_FOR_ZONES("pgscan_direct")
-+	"pgscan_direct_throttle",
++	/*
++	 * SOCK_MEMALLOC is allowed to ignore rmem limits to ensure forward
++	 * progress of swapping. However, if SOCK_MEMALLOC is cleared while
++	 * it has rmem allocations there is a risk that the user of the
++	 * socket cannot make forward progress due to exceeding the rmem
++	 * limits. By rights, sk_clear_memalloc() should only be called
++	 * on sockets being torn down but warn and reset the accounting if
++	 * that assumption breaks.
++	 */
++	if (WARN_ON(sk->sk_forward_alloc))
++		sk_mem_reclaim(sk);
+ }
+ EXPORT_SYMBOL_GPL(sk_clear_memalloc);
  
- #ifdef CONFIG_NUMA
- 	"zone_reclaim_failed",
+@@ -396,7 +408,7 @@ int sock_queue_rcv_skb(struct sock *sk, 
+ 	if (err)
+ 		return err;
+ 
+-	if (!sk_rmem_schedule(sk, skb->truesize)) {
++	if (!sk_rmem_schedule(sk, skb, skb->truesize)) {
+ 		atomic_inc(&sk->sk_drops);
+ 		return -ENOBUFS;
+ 	}
+diff -puN net/ipv4/tcp_input.c~netvm-prevent-a-stream-specific-deadlock net/ipv4/tcp_input.c
+--- a/net/ipv4/tcp_input.c~netvm-prevent-a-stream-specific-deadlock
++++ a/net/ipv4/tcp_input.c
+@@ -4330,19 +4330,20 @@ static void tcp_ofo_queue(struct sock *s
+ static bool tcp_prune_ofo_queue(struct sock *sk);
+ static int tcp_prune_queue(struct sock *sk);
+ 
+-static int tcp_try_rmem_schedule(struct sock *sk, unsigned int size)
++static int tcp_try_rmem_schedule(struct sock *sk, struct sk_buff *skb,
++				 unsigned int size)
+ {
+ 	if (atomic_read(&sk->sk_rmem_alloc) > sk->sk_rcvbuf ||
+-	    !sk_rmem_schedule(sk, size)) {
++	    !sk_rmem_schedule(sk, skb, size)) {
+ 
+ 		if (tcp_prune_queue(sk) < 0)
+ 			return -1;
+ 
+-		if (!sk_rmem_schedule(sk, size)) {
++		if (!sk_rmem_schedule(sk, skb, size)) {
+ 			if (!tcp_prune_ofo_queue(sk))
+ 				return -1;
+ 
+-			if (!sk_rmem_schedule(sk, size))
++			if (!sk_rmem_schedule(sk, skb, size))
+ 				return -1;
+ 		}
+ 	}
+@@ -4397,7 +4398,7 @@ static void tcp_data_queue_ofo(struct so
+ 
+ 	TCP_ECN_check_ce(tp, skb);
+ 
+-	if (tcp_try_rmem_schedule(sk, skb->truesize)) {
++	if (tcp_try_rmem_schedule(sk, skb, skb->truesize)) {
+ 		/* TODO: should increment a counter */
+ 		__kfree_skb(skb);
+ 		return;
+@@ -4528,17 +4529,17 @@ static int __must_check tcp_queue_rcv(st
+ 
+ int tcp_send_rcvq(struct sock *sk, struct msghdr *msg, size_t size)
+ {
+-	struct sk_buff *skb;
++	struct sk_buff *skb = NULL;
+ 	struct tcphdr *th;
+ 	bool fragstolen;
+ 
+-	if (tcp_try_rmem_schedule(sk, size + sizeof(*th)))
+-		goto err;
+-
+ 	skb = alloc_skb(size + sizeof(*th), sk->sk_allocation);
+ 	if (!skb)
+ 		goto err;
+ 
++	if (tcp_try_rmem_schedule(sk, skb, size + sizeof(*th)))
++		goto err_free;
++
+ 	th = (struct tcphdr *)skb_put(skb, sizeof(*th));
+ 	skb_reset_transport_header(skb);
+ 	memset(th, 0, sizeof(*th));
+@@ -4609,7 +4610,7 @@ static void tcp_data_queue(struct sock *
+ 		if (eaten <= 0) {
+ queue_and_out:
+ 			if (eaten < 0 &&
+-			    tcp_try_rmem_schedule(sk, skb->truesize))
++			    tcp_try_rmem_schedule(sk, skb, skb->truesize))
+ 				goto drop;
+ 
+ 			eaten = tcp_queue_rcv(sk, skb, 0, &fragstolen);
+diff -puN net/sctp/ulpevent.c~netvm-prevent-a-stream-specific-deadlock net/sctp/ulpevent.c
+--- a/net/sctp/ulpevent.c~netvm-prevent-a-stream-specific-deadlock
++++ a/net/sctp/ulpevent.c
+@@ -702,7 +702,8 @@ struct sctp_ulpevent *sctp_ulpevent_make
+ 	if (rx_count >= asoc->base.sk->sk_rcvbuf) {
+ 
+ 		if ((asoc->base.sk->sk_userlocks & SOCK_RCVBUF_LOCK) ||
+-		    (!sk_rmem_schedule(asoc->base.sk, chunk->skb->truesize)))
++		    (!sk_rmem_schedule(asoc->base.sk, chunk->skb,
++				       chunk->skb->truesize)))
+ 			goto fail;
+ 	}
+ 
 _
-Subject: Subject: mm: account for the number of times direct reclaimers get throttled
+Subject: Subject: netvm: prevent a stream-specific deadlock
 
 Patches currently in -mm which might be from mgorman@suse.de are
 
@@ -131,4 +320,16 @@ mm-micro-optimise-slab-to-avoid-a-function-call.patch
 nbd-set-sock_memalloc-for-access-to-pfmemalloc-reserves.patch
 mm-throttle-direct-reclaimers-if-pf_memalloc-reserves-are-low-and-swap-is-backed-by-network-storage.patch
 mm-account-for-the-number-of-times-direct-reclaimers-get-throttled.patch
+netvm-prevent-a-stream-specific-deadlock.patch
+selinux-tag-avc-cache-alloc-as-non-critical.patch
+mm-methods-for-teaching-filesystems-about-pg_swapcache-pages.patch
+mm-add-support-for-a-filesystem-to-activate-swap-files-and-use-direct_io-for-writing-swap-pages.patch
+mm-swap-implement-generic-handler-for-swap_activate.patch
+mm-add-get_kernel_page-for-pinning-of-kernel-addresses-for-i-o.patch
+mm-add-support-for-direct_io-to-highmem-pages.patch
+nfs-teach-the-nfs-client-how-to-treat-pg_swapcache-pages.patch
+nfs-disable-data-cache-revalidation-for-swapfiles.patch
+nfs-enable-swap-on-nfs.patch
+nfs-prevent-page-allocator-recursions-with-swap-over-nfs.patch
+swapfile-avoid-dereferencing-bd_disk-during-swap_entry_free-for-network-storage.patch
 
