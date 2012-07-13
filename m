@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + m32r-consistently-use-suffix.patch added to -mm tree
-Date: Fri, 13 Jul 2012 14:35:53 -0700
-Message-ID: <20120713213554.9E10F5C0050@hpza9.eem.corp.google.com>
+Subject: + m32r-add-memcpy-for-config_kernel_gzip=y.patch added to -mm tree
+Date: Fri, 13 Jul 2012 14:35:57 -0700
+Message-ID: <20120713213558.3136B100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:41006 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754663Ab2GMVf4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jul 2012 17:35:56 -0400
-Received: by eaao13 with SMTP id o13so204837eaa.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2012 14:35:55 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:36021 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754663Ab2GMVf7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jul 2012 17:35:59 -0400
+Received: by qabg24 with SMTP id g24so101917qab.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2012 14:35:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: geert@linux-m68k.org, takata@linux-m32r.org
 
 
 The patch titled
-     Subject: m32r: consistently use "suffix-$(...)"
+     Subject: m32r: add memcpy() for CONFIG_KERNEL_GZIP=y
 has been added to the -mm tree.  Its filename is
-     m32r-consistently-use-suffix.patch
+     m32r-add-memcpy-for-config_kernel_gzip=y.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,53 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: m32r: consistently use "suffix-$(...)"
+Subject: m32r: add memcpy() for CONFIG_KERNEL_GZIP=y
 
-a556bec9955c ("m32r: fix arch/m32r/boot/compressed/Makefile") changed
-"$(suffix_y)" to "$(suffix-y)", but didn't update any location where
-"suffix_y" is set, causing:
+  LD      arch/m32r/boot/compressed/vmlinux
+arch/m32r/boot/compressed/misc.o: In function `zlib_updatewindow':
+misc.c:(.text+0x190): undefined reference to `memcpy'
+misc.c:(.text+0x190): relocation truncated to fit: R_M32R_26_PLTREL against undefined symbol `memcpy'
+misc.c:(.text+0x1e0): undefined reference to `memcpy'
+misc.c:(.text+0x1e0): relocation truncated to fit: R_M32R_26_PLTREL against undefined symbol `memcpy'
+misc.c:(.text+0x218): undefined reference to `memcpy'
+misc.c:(.text+0x218): relocation truncated to fit: R_M32R_26_PLTREL against undefined symbol `memcpy'
+arch/m32r/boot/compressed/misc.o: In function `zlib_inflate':
+misc.c:(.text+0x171c): undefined reference to `memcpy'
+misc.c:(.text+0x171c): relocation truncated to fit: R_M32R_26_PLTREL against undefined symbol `memcpy'
+make[5]: *** [arch/m32r/boot/compressed/vmlinux] Error 1
 
-make[5]: *** No rule to make target `arch/m32r/boot/compressed/vmlinux.bin.', needed by `arch/m32r/boot/compressed/piggy.o'.  Stop.
-make[4]: *** [arch/m32r/boot/compressed/vmlinux] Error 2
-make[3]: *** [zImage] Error 2
-
-Correct the other locations to fix this.
+Add our own implementation of memcpy() to fix this.
 
 Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/boot/compressed/Makefile |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/m32r/boot/compressed/misc.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN arch/m32r/boot/compressed/Makefile~m32r-consistently-use-suffix arch/m32r/boot/compressed/Makefile
---- a/arch/m32r/boot/compressed/Makefile~m32r-consistently-use-suffix
-+++ a/arch/m32r/boot/compressed/Makefile
-@@ -43,9 +43,9 @@ endif
+diff -puN arch/m32r/boot/compressed/misc.c~m32r-add-memcpy-for-config_kernel_gzip=y arch/m32r/boot/compressed/misc.c
+--- a/arch/m32r/boot/compressed/misc.c~m32r-add-memcpy-for-config_kernel_gzip=y
++++ a/arch/m32r/boot/compressed/misc.c
+@@ -39,6 +39,16 @@ static void *memset(void *s, int c, size
+ #endif
  
- OBJCOPYFLAGS += -R .empty_zero_page
- 
--suffix_$(CONFIG_KERNEL_GZIP)	= gz
--suffix_$(CONFIG_KERNEL_BZIP2)	= bz2
--suffix_$(CONFIG_KERNEL_LZMA)	= lzma
-+suffix-$(CONFIG_KERNEL_GZIP)	= gz
-+suffix-$(CONFIG_KERNEL_BZIP2)	= bz2
-+suffix-$(CONFIG_KERNEL_LZMA)	= lzma
- 
- $(obj)/piggy.o: $(obj)/vmlinux.scr $(obj)/vmlinux.bin.$(suffix-y) FORCE
- 	$(call if_changed,ld)
+ #ifdef CONFIG_KERNEL_GZIP
++void *memcpy(void *dest, const void *src, size_t n)
++{
++	char *d = dest;
++	const char *s = src;
++	while (n--)
++		*d++ = *s++;
++
++	return dest;
++}
++
+ #define BOOT_HEAP_SIZE             0x10000
+ #include "../../../../lib/decompress_inflate.c"
+ #endif
 _
-Subject: Subject: m32r: consistently use "suffix-$(...)"
+Subject: Subject: m32r: add memcpy() for CONFIG_KERNEL_GZIP=y
 
 Patches currently in -mm which might be from geert@linux-m68k.org are
 
