@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + m32r-add-memcpy-for-config_kernel_gzip=y.patch added to -mm tree
-Date: Fri, 13 Jul 2012 14:35:57 -0700
-Message-ID: <20120713213558.3136B100047@wpzn3.hot.corp.google.com>
+Subject: + m32r-make-memset-global-for-config_kernel_bzip2=y.patch added to -mm tree
+Date: Fri, 13 Jul 2012 14:36:00 -0700
+Message-ID: <20120713213601.9DC105C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:36021 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754663Ab2GMVf7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jul 2012 17:35:59 -0400
-Received: by qabg24 with SMTP id g24so101917qab.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2012 14:35:58 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:51140 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754663Ab2GMVgD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jul 2012 17:36:03 -0400
+Received: by wibhr14 with SMTP id hr14so55698wib.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2012 14:36:02 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: geert@linux-m68k.org, takata@linux-m32r.org
 
 
 The patch titled
-     Subject: m32r: add memcpy() for CONFIG_KERNEL_GZIP=y
+     Subject: m32r: make memset() global for CONFIG_KERNEL_BZIP2=y
 has been added to the -mm tree.  Its filename is
-     m32r-add-memcpy-for-config_kernel_gzip=y.patch
+     m32r-make-memset-global-for-config_kernel_bzip2=y.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: m32r: add memcpy() for CONFIG_KERNEL_GZIP=y
+Subject: m32r: make memset() global for CONFIG_KERNEL_BZIP2=y
 
-  LD      arch/m32r/boot/compressed/vmlinux
-arch/m32r/boot/compressed/misc.o: In function `zlib_updatewindow':
-misc.c:(.text+0x190): undefined reference to `memcpy'
-misc.c:(.text+0x190): relocation truncated to fit: R_M32R_26_PLTREL against undefined symbol `memcpy'
-misc.c:(.text+0x1e0): undefined reference to `memcpy'
-misc.c:(.text+0x1e0): relocation truncated to fit: R_M32R_26_PLTREL against undefined symbol `memcpy'
-misc.c:(.text+0x218): undefined reference to `memcpy'
-misc.c:(.text+0x218): relocation truncated to fit: R_M32R_26_PLTREL against undefined symbol `memcpy'
-arch/m32r/boot/compressed/misc.o: In function `zlib_inflate':
-misc.c:(.text+0x171c): undefined reference to `memcpy'
-misc.c:(.text+0x171c): relocation truncated to fit: R_M32R_26_PLTREL against undefined symbol `memcpy'
-make[5]: *** [arch/m32r/boot/compressed/vmlinux] Error 1
+arch/m32r/boot/compressed/misc.c:31:14: error: static declaration of 'memset' follows non-static declaration
+make[5]: *** [arch/m32r/boot/compressed/misc.o] Error 1
+make[4]: *** [arch/m32r/boot/compressed/vmlinux] Error 2
 
-Add our own implementation of memcpy() to fix this.
+Remove the static keyword to fix this.
 
 Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/boot/compressed/misc.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ arch/m32r/boot/compressed/misc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/m32r/boot/compressed/misc.c~m32r-add-memcpy-for-config_kernel_gzip=y arch/m32r/boot/compressed/misc.c
---- a/arch/m32r/boot/compressed/misc.c~m32r-add-memcpy-for-config_kernel_gzip=y
+diff -puN arch/m32r/boot/compressed/misc.c~m32r-make-memset-global-for-config_kernel_bzip2=y arch/m32r/boot/compressed/misc.c
+--- a/arch/m32r/boot/compressed/misc.c~m32r-make-memset-global-for-config_kernel_bzip2=y
 +++ a/arch/m32r/boot/compressed/misc.c
-@@ -39,6 +39,16 @@ static void *memset(void *s, int c, size
- #endif
+@@ -28,7 +28,7 @@ static unsigned long free_mem_ptr;
+ static unsigned long free_mem_end_ptr;
  
- #ifdef CONFIG_KERNEL_GZIP
-+void *memcpy(void *dest, const void *src, size_t n)
-+{
-+	char *d = dest;
-+	const char *s = src;
-+	while (n--)
-+		*d++ = *s++;
-+
-+	return dest;
-+}
-+
- #define BOOT_HEAP_SIZE             0x10000
- #include "../../../../lib/decompress_inflate.c"
- #endif
+ #ifdef CONFIG_KERNEL_BZIP2
+-static void *memset(void *s, int c, size_t n)
++void *memset(void *s, int c, size_t n)
+ {
+ 	char *ss = s;
+ 
 _
-Subject: Subject: m32r: add memcpy() for CONFIG_KERNEL_GZIP=y
+Subject: Subject: m32r: make memset() global for CONFIG_KERNEL_BZIP2=y
 
 Patches currently in -mm which might be from geert@linux-m68k.org are
 
