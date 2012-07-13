@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rbtree-performance-and-correctness-test.patch added to -mm tree
-Date: Fri, 13 Jul 2012 13:30:50 -0700
-Message-ID: <20120713203050.6E4BC100047@wpzn3.hot.corp.google.com>
+Subject: + rbtree-break-out-of-rb_insert_color-loop-after-tree-rotation.patch added to -mm tree
+Date: Fri, 13 Jul 2012 13:30:52 -0700
+Message-ID: <20120713203053.66D331E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:33059 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754205Ab2GMUaw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jul 2012 16:30:52 -0400
-Received: by vcqp1 with SMTP id p1so130967vcq.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2012 13:30:51 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:52405 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754205Ab2GMUay (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jul 2012 16:30:54 -0400
+Received: by ggeh3 with SMTP id h3so380626gge.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2012 13:30:54 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: walken@google.com, a.p.zijlstra@chello.nl, aarcange@redhat.com, axboe@kernel
 
 
 The patch titled
-     Subject: rbtree: performance and correctness test
+     Subject: rbtree: break out of rb_insert_color loop after tree rotation
 has been added to the -mm tree.  Its filename is
-     rbtree-performance-and-correctness-test.patch
+     rbtree-break-out-of-rb_insert_color-loop-after-tree-rotation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,17 +34,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michel Lespinasse <walken@google.com>
-Subject: rbtree: performance and correctness test
+Subject: rbtree: break out of rb_insert_color loop after tree rotation
 
-This small module helps measure the performance of rbtree insert and
-erase.
+It is a well known property of rbtrees that insertion never requires more
+than two tree rotations.  In our implementation, after one loop iteration
+identified one or two necessary tree rotations, we would iterate and look
+for more.  However at that point the node's parent would always be black,
+which would cause us to exit the loop.
 
-Additionally, we run a few correctness tests to check that the rbtrees have
-all desired properties:
-- contains the right number of nodes in the order desired,
-- never two consecutive red nodes on any path,
-- all paths to leaf nodes have the same number of black nodes,
-- root node is black
+We can make the code flow more obvious by just adding a break statement
+after the tree rotations, where we know we are done.  Additionally, in the
+cases where two tree rotations are necessary, we don't have to update the
+'node' pointer as it wouldn't be used until the next loop iteration, which
+we now avoid due to this break statement.
 
 Signed-off-by: Michel Lespinasse <walken@google.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -57,204 +59,56 @@ Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile            |    2 
- lib/Kconfig.debug   |    1 
- tests/Kconfig       |   18 +++++
- tests/Makefile      |    1 
- tests/rbtree_test.c |  135 ++++++++++++++++++++++++++++++++++++++++++
- 5 files changed, 156 insertions(+), 1 deletion(-)
+ lib/rbtree.c |   14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
-diff -puN Makefile~rbtree-performance-and-correctness-test Makefile
---- a/Makefile~rbtree-performance-and-correctness-test
-+++ a/Makefile
-@@ -715,7 +715,7 @@ export mod_strip_cmd
+diff -puN lib/rbtree.c~rbtree-break-out-of-rb_insert_color-loop-after-tree-rotation lib/rbtree.c
+--- a/lib/rbtree.c~rbtree-break-out-of-rb_insert_color-loop-after-tree-rotation
++++ a/lib/rbtree.c
+@@ -109,18 +109,15 @@ void rb_insert_color(struct rb_node *nod
+ 				}
+ 			}
  
+-			if (parent->rb_right == node)
+-			{
+-				register struct rb_node *tmp;
++			if (parent->rb_right == node) {
+ 				__rb_rotate_left(parent, root);
+-				tmp = parent;
+ 				parent = node;
+-				node = tmp;
+ 			}
  
- ifeq ($(KBUILD_EXTMOD),)
--core-y		+= kernel/ mm/ fs/ ipc/ security/ crypto/ block/
-+core-y		+= kernel/ mm/ fs/ ipc/ security/ crypto/ block/ tests/
+ 			rb_set_black(parent);
+ 			rb_set_red(gparent);
+ 			__rb_rotate_right(gparent, root);
++			break;
+ 		} else {
+ 			{
+ 				register struct rb_node *uncle = gparent->rb_left;
+@@ -134,18 +131,15 @@ void rb_insert_color(struct rb_node *nod
+ 				}
+ 			}
  
- vmlinux-dirs	:= $(patsubst %/,%,$(filter %/, $(init-y) $(init-m) \
- 		     $(core-y) $(core-m) $(drivers-y) $(drivers-m) \
-diff -puN lib/Kconfig.debug~rbtree-performance-and-correctness-test lib/Kconfig.debug
---- a/lib/Kconfig.debug~rbtree-performance-and-correctness-test
-+++ a/lib/Kconfig.debug
-@@ -1177,6 +1177,7 @@ config LATENCYTOP
+-			if (parent->rb_left == node)
+-			{
+-				register struct rb_node *tmp;
++			if (parent->rb_left == node) {
+ 				__rb_rotate_right(parent, root);
+-				tmp = parent;
+ 				parent = node;
+-				node = tmp;
+ 			}
  
- source mm/Kconfig.debug
- source kernel/trace/Kconfig
-+source tests/Kconfig
+ 			rb_set_black(parent);
+ 			rb_set_red(gparent);
+ 			__rb_rotate_left(gparent, root);
++			break;
+ 		}
+ 	}
  
- config PROVIDE_OHCI1394_DMA_INIT
- 	bool "Remote debugging over FireWire early on boot"
-diff -puN /dev/null tests/Kconfig
---- /dev/null
-+++ a/tests/Kconfig
-@@ -0,0 +1,18 @@
-+menuconfig BENCHMARKS
-+	bool "In kernel benchmarks"
-+	def_bool n
-+	help
-+	  Includes in kernel benchmark modules in the build. These modules can
-+	  be loaded later to trigger benchmarking kernel subsystems.
-+	  Output will be generated in the system log.
-+
-+if BENCHMARKS
-+
-+config BENCHMARK_RBTREE
-+	tristate "Red Black Tree Benchmark"
-+	depends on m
-+	default m
-+	help
-+	  A benchmark measuring the performance of the rbtree library.
-+
-+endif # BENCHMARKS
-diff -puN /dev/null tests/Makefile
---- /dev/null
-+++ a/tests/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_BENCHMARK_RBTREE) += rbtree_test.o
-diff -puN /dev/null tests/rbtree_test.c
---- /dev/null
-+++ a/tests/rbtree_test.c
-@@ -0,0 +1,135 @@
-+#include <linux/module.h>
-+#include <linux/rbtree.h>
-+#include <linux/random.h>
-+#include <asm/timex.h>
-+
-+#define NODES       100
-+#define PERF_LOOPS  100000
-+#define CHECK_LOOPS 100
-+
-+struct test_node {
-+	struct rb_node rb;
-+	u32 key;
-+};
-+
-+static struct rb_root root = RB_ROOT;
-+static struct test_node nodes[NODES];
-+
-+static struct rnd_state rnd;
-+
-+static void insert(struct test_node *node, struct rb_root *root)
-+{
-+	struct rb_node **new = &root->rb_node, *parent = NULL;
-+
-+	while (*new) {
-+		parent = *new;
-+		if (node->key < rb_entry(parent, struct test_node, rb)->key)
-+			new = &parent->rb_left;
-+		else
-+			new = &parent->rb_right;
-+	}
-+
-+	rb_link_node(&node->rb, parent, new);
-+	rb_insert_color(&node->rb, root);
-+}
-+
-+static inline void erase(struct test_node *node, struct rb_root *root)
-+{
-+	rb_erase(&node->rb, root);
-+}
-+
-+static void init(void)
-+{
-+	int i;
-+	for (i = 0; i < NODES; i++)
-+		nodes[i].key = prandom32(&rnd);
-+}
-+
-+static bool is_red(struct rb_node *rb)
-+{
-+	return !(rb->__rb_parent_color & 1);
-+}
-+
-+static int black_path_count(struct rb_node *rb)
-+{
-+	int count;
-+	for (count = 0; rb; rb = rb_parent(rb))
-+		count += !is_red(rb);
-+	return count;
-+}
-+
-+static void check(int nr_nodes)
-+{
-+	struct rb_node *rb;
-+	int count = 0;
-+	int blacks;
-+	u32 prev_key = 0;
-+
-+	for (rb = rb_first(&root); rb; rb = rb_next(rb)) {
-+		struct test_node *node = rb_entry(rb, struct test_node, rb);
-+		WARN_ON_ONCE(node->key < prev_key);
-+		WARN_ON_ONCE(is_red(rb) &&
-+			     (!rb_parent(rb) || is_red(rb_parent(rb))));
-+		if (!count)
-+			blacks = black_path_count(rb);
-+		else
-+			WARN_ON_ONCE((!rb->rb_left || !rb->rb_right) &&
-+				     blacks != black_path_count(rb));
-+		prev_key = node->key;
-+		count++;
-+	}
-+	WARN_ON_ONCE(count != nr_nodes);
-+}
-+
-+static int rbtree_test_init(void)
-+{
-+	int i, j;
-+	cycles_t time1, time2, time;
-+
-+	printk(KERN_ALERT "rbtree testing");
-+
-+	prandom32_seed(&rnd, 3141592653589793238);
-+	init();
-+
-+	time1 = get_cycles();
-+
-+	for (i = 0; i < PERF_LOOPS; i++) {
-+		for (j = 0; j < NODES; j++)
-+			insert(nodes + j, &root);
-+		for (j = 0; j < NODES; j++)
-+			erase(nodes + j, &root);
-+	}
-+
-+	time2 = get_cycles();
-+	time = time2 - time1;
-+
-+	time = div_u64(time, PERF_LOOPS);
-+	printk(" -> %llu cycles\n", time);
-+
-+	for (i = 0; i < CHECK_LOOPS; i++) {
-+		init();
-+		for (j = 0; j < NODES; j++) {
-+			check(j);
-+			insert(nodes + j, &root);
-+		}
-+		for (j = 0; j < NODES; j++) {
-+			check(NODES - j);
-+			erase(nodes + j, &root);
-+		}
-+		check(0);
-+	}
-+
-+	return -EAGAIN; /* Fail will directly unload the module */
-+}
-+
-+static void rbtree_test_exit(void)
-+{
-+	printk(KERN_ALERT "test exit\n");
-+}
-+
-+module_init(rbtree_test_init)
-+module_exit(rbtree_test_exit)
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Michel Lespinasse");
-+MODULE_DESCRIPTION("Red Black Tree test");
 _
-Subject: Subject: rbtree: performance and correctness test
+Subject: Subject: rbtree: break out of rb_insert_color loop after tree rotation
 
 Patches currently in -mm which might be from walken@google.com are
 
