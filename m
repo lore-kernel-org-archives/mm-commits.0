@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-swapfile-clean-up-unuse_pte-race-handling.patch added to -mm tree
-Date: Fri, 13 Jul 2012 14:29:27 -0700
-Message-ID: <20120713212928.3B756100047@wpzn3.hot.corp.google.com>
+Subject: + mm-memcg-remove-unneeded-shmem-charge-type.patch added to -mm tree
+Date: Fri, 13 Jul 2012 14:29:48 -0700
+Message-ID: <20120713212949.CB58F20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:56447 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757899Ab2GMV33 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jul 2012 17:29:29 -0400
-Received: by yhl10 with SMTP id 10so389548yhl.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2012 14:29:28 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:55434 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758107Ab2GMV3w (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jul 2012 17:29:52 -0400
+Received: by wgbdt11 with SMTP id dt11so205133wgb.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2012 14:29:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, liwp.linux@gmail.com, mel@csn.ul.ie, mhocko@suse.cz
+Cc: hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, liwp.linux@gmail.com, mel@csn.ul.ie, mhocko@suse.cz, rientjes@google.com
 
 
 The patch titled
-     Subject: mm: swapfile: clean up unuse_pte race handling
+     Subject: mm: memcg: remove unneeded shmem charge type
 has been added to the -mm tree.  Its filename is
-     mm-swapfile-clean-up-unuse_pte-race-handling.patch
+     mm-memcg-remove-unneeded-shmem-charge-type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,70 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: swapfile: clean up unuse_pte race handling
+Subject: mm: memcg: remove unneeded shmem charge type
 
-The conditional mem_cgroup_cancel_charge_swapin() is a leftover from when
-the function would continue to reestablish the page even after
-mem_cgroup_try_charge_swapin() failed.  After 85d9fc8 "memcg: fix refcnt
-handling at swapoff", the condition is always true when this code is
-reached.
+shmem page charges have not needed a separate charge type to tell them
+from regular file pages since 08e552c ("memcg: synchronized LRU").
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Wanpeng Li <liwp.linux@gmail.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/memcontrol.c |   11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
 
-diff -puN mm/swapfile.c~mm-swapfile-clean-up-unuse_pte-race-handling mm/swapfile.c
---- a/mm/swapfile.c~mm-swapfile-clean-up-unuse_pte-race-handling
-+++ a/mm/swapfile.c
-@@ -847,8 +847,7 @@ static int unuse_pte(struct vm_area_stru
+diff -puN mm/memcontrol.c~mm-memcg-remove-unneeded-shmem-charge-type mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-remove-unneeded-shmem-charge-type
++++ a/mm/memcontrol.c
+@@ -379,7 +379,6 @@ static bool move_file(void)
+ enum charge_type {
+ 	MEM_CGROUP_CHARGE_TYPE_CACHE = 0,
+ 	MEM_CGROUP_CHARGE_TYPE_ANON,
+-	MEM_CGROUP_CHARGE_TYPE_SHMEM,	/* used by page migration of shmem */
+ 	MEM_CGROUP_CHARGE_TYPE_SWAPOUT,	/* for accounting swapcache */
+ 	MEM_CGROUP_CHARGE_TYPE_DROP,	/* a page was unused swap cache */
+ 	NR_CHARGE_TYPE,
+@@ -2903,8 +2902,6 @@ int mem_cgroup_cache_charge(struct page 
  
- 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
- 	if (unlikely(!pte_same(*pte, swp_entry_to_pte(entry)))) {
--		if (ret > 0)
--			mem_cgroup_cancel_charge_swapin(memcg);
-+		mem_cgroup_cancel_charge_swapin(memcg);
- 		ret = 0;
- 		goto out;
- 	}
+ 	if (unlikely(!mm))
+ 		mm = &init_mm;
+-	if (!page_is_file_cache(page))
+-		type = MEM_CGROUP_CHARGE_TYPE_SHMEM;
+ 
+ 	if (!PageSwapCache(page))
+ 		ret = mem_cgroup_charge_common(page, mm, gfp_mask, type);
+@@ -3311,10 +3308,8 @@ void mem_cgroup_prepare_migration(struct
+ 	 */
+ 	if (PageAnon(page))
+ 		ctype = MEM_CGROUP_CHARGE_TYPE_ANON;
+-	else if (page_is_file_cache(page))
+-		ctype = MEM_CGROUP_CHARGE_TYPE_CACHE;
+ 	else
+-		ctype = MEM_CGROUP_CHARGE_TYPE_SHMEM;
++		ctype = MEM_CGROUP_CHARGE_TYPE_CACHE;
+ 	/*
+ 	 * The page is committed to the memcg, but it's not actually
+ 	 * charged to the res_counter since we plan on replacing the
+@@ -3408,10 +3403,6 @@ void mem_cgroup_replace_page_cache(struc
+ 	 */
+ 	if (!memcg)
+ 		return;
+-
+-	if (PageSwapBacked(oldpage))
+-		type = MEM_CGROUP_CHARGE_TYPE_SHMEM;
+-
+ 	/*
+ 	 * Even if newpage->mapping was NULL before starting replacement,
+ 	 * the newpage may be on LRU(or pagevec for LRU) already. We lock
 _
-Subject: Subject: mm: swapfile: clean up unuse_pte race handling
+Subject: Subject: mm: memcg: remove unneeded shmem charge type
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
 
