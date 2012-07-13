@@ -1,114 +1,225 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] resource-make-sure-requested-range-intersects-root-range.patch removed from -mm tree
-Date: Thu, 12 Jul 2012 16:37:15 -0700
-Message-ID: <20120712233716.90B5D5C0050@hpza9.eem.corp.google.com>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Fri, 13 Jul 2012 12:48:18 -0700
+Message-ID: <20120713194819.58FC41E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:59521 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161686Ab2GLXhT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Jul 2012 19:37:19 -0400
-Received: by eekd4 with SMTP id d4so94910eek.1
-        for <mm-commits@vger.kernel.org>; Thu, 12 Jul 2012 16:37:17 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:57553 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754788Ab2GMTsV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jul 2012 15:48:21 -0400
+Received: by qcqs25 with SMTP id s25so377751qcq.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2012 12:48:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: octavian.purdila@intel.com, jbarnes@virtuousgeek.org, linuxram@us.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: resource: make sure requested range intersects root range
-has been removed from the -mm tree.  Its filename was
-     resource-make-sure-requested-range-intersects-root-range.patch
+     Subject: linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Octavian Purdila <octavian.purdila@intel.com>
-Subject: resource: make sure requested range intersects root range
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-When the requested and root ranges do not intersect the logic in
-__reserve_region_with_split will cause an infinite recursion which will
-overflow the stack as seen in the warning bellow.
-
-This particular stack overflow was caused by requesting the
-(100000000-107ffffff) range while the root range was (0-ffffffff).  In
-this case __request_resource would return the whole root range as conflict
-range (i.e.  0-ffffffff).  Then, the logic in __reserve_region_with_split
-would continue the recursion requesting the new range as (conflict->end+1,
-end) which incidentally in this case equals the originally requested
-range.
-
-This patch aborts looking for a usable range when the requested one is
-completely outside the root range to avoid the infinite recursion, and
-since this indicates a problem in the layers above, it also prints an
-error message indicating the requested and root range in order to make the
-problem more easily traceable.
-
-[    5.968374] WARNING: at kernel/sched.c:4129 sub_preempt_count+0x63/0x89()
-[    5.975150] Modules linked in:
-[    5.978184] Pid: 1, comm: swapper Not tainted 3.0.22-mid27-00004-gb72c817 #46
-[    5.985324] Call Trace:
-[    5.987759]  [<c1039dfc>] ? console_unlock+0x17b/0x18d
-[    5.992891]  [<c1039620>] warn_slowpath_common+0x48/0x5d
-[    5.998194]  [<c1031758>] ? sub_preempt_count+0x63/0x89
-[    6.003412]  [<c1039644>] warn_slowpath_null+0xf/0x13
-[    6.008453]  [<c1031758>] sub_preempt_count+0x63/0x89
-[    6.013499]  [<c14d60c4>] _raw_spin_unlock+0x27/0x3f
-[    6.018453]  [<c10c6349>] add_partial+0x36/0x3b
-[    6.022973]  [<c10c7c0a>] deactivate_slab+0x96/0xb4
-[    6.027842]  [<c14cf9d9>] __slab_alloc.isra.54.constprop.63+0x204/0x241
-[    6.034456]  [<c103f78f>] ? kzalloc.constprop.5+0x29/0x38
-[    6.039842]  [<c103f78f>] ? kzalloc.constprop.5+0x29/0x38
-[    6.045232]  [<c10c7dc9>] kmem_cache_alloc_trace+0x51/0xb0
-[    6.050710]  [<c103f78f>] ? kzalloc.constprop.5+0x29/0x38
-[    6.056100]  [<c103f78f>] kzalloc.constprop.5+0x29/0x38
-[    6.061320]  [<c17b45e9>] __reserve_region_with_split+0x1c/0xd1
-[    6.067230]  [<c17b4693>] __reserve_region_with_split+0xc6/0xd1
-...
-[    7.179057]  [<c17b4693>] __reserve_region_with_split+0xc6/0xd1
-[    7.184970]  [<c17b4779>] reserve_region_with_split+0x30/0x42
-[    7.190709]  [<c17a8ebf>] e820_reserve_resources_late+0xd1/0xe9
-[    7.196623]  [<c17c9526>] pcibios_resource_survey+0x23/0x2a
-[    7.202184]  [<c17cad8a>] pcibios_init+0x23/0x35
-[    7.206789]  [<c17ca574>] pci_subsys_init+0x3f/0x44
-[    7.211659]  [<c1002088>] do_one_initcall+0x72/0x122
-[    7.216615]  [<c17ca535>] ? pci_legacy_init+0x3d/0x3d
-[    7.221659]  [<c17a27ff>] kernel_init+0xa6/0x118
-[    7.226265]  [<c17a2759>] ? start_kernel+0x334/0x334
-[    7.231223]  [<c14d7482>] kernel_thread_helper+0x6/0x10
-
-[akpm@linux-foundation.org: add a dump_stack()]
-Signed-off-by: Octavian Purdila <octavian.purdila@intel.com>
-Cc: Ram Pai <linuxram@us.ibm.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/resource.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ drivers/media/video/s5p-fimc/fimc-capture.c |    7 --
+ drivers/mfd/mc13xxx-spi.c                   |    6 -
+ drivers/usb/host/ehci-omap.c                |   61 ------------------
+ 3 files changed, 74 deletions(-)
 
-diff -puN kernel/resource.c~resource-make-sure-requested-range-intersects-root-range kernel/resource.c
---- a/kernel/resource.c~resource-make-sure-requested-range-intersects-root-range
-+++ a/kernel/resource.c
-@@ -792,7 +792,15 @@ void __init reserve_region_with_split(st
- 		const char *name)
- {
- 	write_lock(&resource_lock);
--	__reserve_region_with_split(root, start, end, name);
-+	if (start > root->end || end < root->start) {
-+		pr_err("Requested range (0x%llx-0x%llx) not in root range (0x%llx-0x%llx)\n",
-+		       (unsigned long long)start, (unsigned long long)end,
-+		       (unsigned long long)root->start,
-+		       (unsigned long long)root->end);
-+		dump_stack();
-+	} else {
-+		__reserve_region_with_split(root, start, end, name);
-+	}
- 	write_unlock(&resource_lock);
- }
+diff -puN drivers/media/video/s5p-fimc/fimc-capture.c~linux-next-git-rejects drivers/media/video/s5p-fimc/fimc-capture.c
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c~linux-next-git-rejects
++++ a/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -495,17 +495,10 @@ static int fimc_capture_open(struct file
+ 	ret = v4l2_fh_open(file);
+ 	if (ret)
+ 		return ret;
+-<<<<<<< HEAD
  
+ 	if (++fimc->vid_cap.refcnt != 1)
+ 		return 0;
+ 
+-=======
+-
+-	if (++fimc->vid_cap.refcnt != 1)
+-		return 0;
+-
+->>>>>>> linux-next/akpm-base
+ 	ret = fimc_pipeline_initialize(&fimc->pipeline,
+ 				       &fimc->vid_cap.vfd->entity, true);
+ 	if (ret < 0) {
+diff -puN drivers/mfd/mc13xxx-spi.c~linux-next-git-rejects drivers/mfd/mc13xxx-spi.c
+--- a/drivers/mfd/mc13xxx-spi.c~linux-next-git-rejects
++++ a/drivers/mfd/mc13xxx-spi.c
+@@ -139,15 +139,9 @@ static int mc13xxx_spi_probe(struct spi_
+ 	mc13xxx->dev = &spi->dev;
+ 	mutex_init(&mc13xxx->lock);
+ 
+-<<<<<<< HEAD
+-	mc13xxx->regmap = regmap_init(&spi->dev, &regmap_mc13xxx_bus, &spi->dev,
+-					&mc13xxx_regmap_spi_config);
+-
+-=======
+ 	mc13xxx->regmap = devm_regmap_init(&spi->dev, &regmap_mc13xxx_bus,
+ 					   &spi->dev,
+ 					   &mc13xxx_regmap_spi_config);
+->>>>>>> linux-next/akpm-base
+ 	if (IS_ERR(mc13xxx->regmap)) {
+ 		ret = PTR_ERR(mc13xxx->regmap);
+ 		dev_err(mc13xxx->dev, "Failed to initialize register map: %d\n",
+diff -puN drivers/usb/host/ehci-omap.c~linux-next-git-rejects drivers/usb/host/ehci-omap.c
+--- a/drivers/usb/host/ehci-omap.c~linux-next-git-rejects
++++ a/drivers/usb/host/ehci-omap.c
+@@ -330,21 +330,6 @@ static int ehci_hcd_omap_probe(struct pl
+ 		}
+ 	}
+ 
+-<<<<<<< HEAD
+-	/* Hold PHYs in reset while initializing EHCI controller */
+-	if (pdata->phy_reset) {
+-		if (gpio_is_valid(pdata->reset_gpio_port[0]))
+-			gpio_set_value_cansleep(pdata->reset_gpio_port[0], 0);
+-
+-		if (gpio_is_valid(pdata->reset_gpio_port[1]))
+-			gpio_set_value_cansleep(pdata->reset_gpio_port[1], 0);
+-
+-		/* Hold the PHY in RESET for enough time till DIR is high */
+-		udelay(10);
+-	}
+-
+-=======
+->>>>>>> linux-next/akpm-base
+ 	pm_runtime_enable(dev);
+ 	pm_runtime_get_sync(dev);
+ 
+@@ -360,58 +345,12 @@ static int ehci_hcd_omap_probe(struct pl
+ 	ehci_write(regs, EHCI_INSNREG04,
+ 				EHCI_INSNREG04_DISABLE_UNSUSPEND);
+ 
+-<<<<<<< HEAD
+-	/* Soft reset the PHY using PHY reset command over ULPI */
+-	if (pdata->port_mode[0] == OMAP_EHCI_PORT_MODE_PHY)
+-		omap_ehci_soft_phy_reset(pdev, 0);
+-	if (pdata->port_mode[1] == OMAP_EHCI_PORT_MODE_PHY)
+-		omap_ehci_soft_phy_reset(pdev, 1);
+-
+-	omap_ehci = hcd_to_ehci(hcd);
+-	omap_ehci->sbrn = 0x20;
+-
+-	/* we know this is the memory we want, no need to ioremap again */
+-	omap_ehci->caps = hcd->regs;
+-	omap_ehci->regs = hcd->regs
+-		+ HC_LENGTH(ehci, readl(&omap_ehci->caps->hc_capbase));
+-
+-	dbg_hcs_params(omap_ehci, "reset");
+-	dbg_hcc_params(omap_ehci, "reset");
+-
+-	/* cache this readonly data; minimize chip reads */
+-	omap_ehci->hcs_params = readl(&omap_ehci->caps->hcs_params);
+-
+-	ehci_reset(omap_ehci);
+-	ret = usb_add_hcd(hcd, irq, IRQF_SHARED);
+-	if (ret) {
+-		dev_err(dev, "failed to add hcd with err %d\n", ret);
+-		goto err_add_hcd;
+-	}
+-
+-	if (pdata->phy_reset) {
+-		/* Hold the PHY in RESET for enough time till
+-		 * PHY is settled and ready
+-		 */
+-		udelay(10);
+-
+-		if (gpio_is_valid(pdata->reset_gpio_port[0]))
+-			gpio_set_value_cansleep(pdata->reset_gpio_port[0], 1);
+-
+-		if (gpio_is_valid(pdata->reset_gpio_port[1]))
+-			gpio_set_value_cansleep(pdata->reset_gpio_port[1], 1);
+-	}
+-
+-	/* root ports should always stay powered */
+-	ehci_port_power(omap_ehci, 1);
+-
+-=======
+ 	ret = usb_add_hcd(hcd, irq, IRQF_SHARED);
+ 	if (ret) {
+ 		dev_err(dev, "failed to add hcd with err %d\n", ret);
+ 		goto err_pm_runtime;
+ 	}
+ 
+->>>>>>> linux-next/akpm-base
+ 	/* get clocks */
+ 	utmi_p1_fck = clk_get(dev, "utmi_p1_gfclk");
+ 	if (IS_ERR(utmi_p1_fck)) {
 _
+Subject: Subject: linux-next-git-rejects
 
-Patches currently in -mm which might be from octavian.purdila@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+linux-next.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
+sysfs-fail-dentry-revalidation-after-namespace-change-fix.patch
+hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
+coredump-warn-about-unsafe-suid_dumpable-core_pattern-combo.patch
+mm.patch
+mm-make-vb_alloc-more-foolproof-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
+mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
+memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
+memcg-prevent-oom-with-too-many-dirty-pages.patch
+mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
+memcg-rename-config-variables.patch
+memcg-rename-config-variables-fix-fix.patch
+mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes.patch
+mm-have-order-0-compaction-start-off-where-it-left-v3-typo.patch
+memory-hotplug-fix-kswapd-looping-forever-problem-fix.patch
+avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
+kernel-sysc-avoid-argv_freenull.patch
+kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
+printk-add-generic-functions-to-find-kern_level-headers-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
+lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch
+string-introduce-memweight-fix.patch
+drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes.patch
+drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded.patch
+hfsplus-get-rid-of-write_super-checkpatch-fixes.patch
+fs-ufs-re-arrange-the-code-a-bit-checkpatch-fixes.patch
+kernel-kmodc-document-call_usermodehelper_fns-a-bit.patch
+kmod-avoid-deadlock-from-recursive-kmod-call.patch
+fork-use-vma_pages-to-simplify-the-code-fix.patch
+revert-sched-fix-fork-error-path-to-not-crash.patch
+fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
+include-linux-aioh-cpp-c-conversions.patch
+fault-injection-add-selftests-for-cpu-and-memory-hotplug.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
