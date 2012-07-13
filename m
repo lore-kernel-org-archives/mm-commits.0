@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + fs-sysv-remove-another-useless-write_super-call.patch added to -mm tree
-Date: Fri, 13 Jul 2012 14:45:39 -0700
-Message-ID: <20120713214540.790CB5C0063@hpza9.eem.corp.google.com>
+Subject: + fs-sysv-stop-using-write_super-and-s_dirt.patch added to -mm tree
+Date: Fri, 13 Jul 2012 14:45:43 -0700
+Message-ID: <20120713214544.AA6F420004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:35709 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752096Ab2GMVpn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jul 2012 17:45:43 -0400
-Received: by lbbgp10 with SMTP id gp10so222818lbb.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2012 14:45:41 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:53253 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751575Ab2GMVpr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jul 2012 17:45:47 -0400
+Received: by eaao13 with SMTP id o13so205013eaa.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2012 14:45:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: artem.bityutskiy@linux.intel.com, alan@lxorguk.ukuu.org.uk, hch@lst.de, viro
 
 
 The patch titled
-     Subject: fs/sysv: remove another useless write_super call
+     Subject: fs/sysv: stop using write_super and s_dirt
 has been added to the -mm tree.  Its filename is
-     fs-sysv-remove-another-useless-write_super-call.patch
+     fs-sysv-stop-using-write_super-and-s_dirt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,21 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-Subject: fs/sysv: remove another useless write_super call
+Subject: fs/sysv: stop using write_super and s_dirt
 
-We do not need to call 'sysv_write_super()' from 'sysv_remount()', because
-VFS has called 'sysv_sync_fs()' before calling '->remount()'.  So remove
-it.  Remove also '(un)lock_super()' which obvioulsy is becoming useless in
-this function.
+It does not look like sysv FS needs 'write_super()' at all, because all it
+does is a timestamp update.  I cannot test this patch, because this
+file-system is so old and probably has not been used by anyone for years,
+so there are no tools to create it in Linux.  But from the code I see that
+marking the superblock as dirty is basically marking the superblock
+buffers as drity and then setting the s_dirt flag.  And when
+'write_super()' is executed to handle the s_dirt flag, we just update the
+timestamp and again mark the superblock buffer as dirty.  Seems pointless.
+
+It looks like we can update the timestamp more opprtunistically - on
+unmount or remount of sync, and nothing should change.
+
+Thus, this patch removes 'sysv_write_super()' and 's_dirt'.
 
 Signed-off-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 Cc: Al Viro <viro@ZenIV.linux.org.uk>
@@ -48,28 +57,57 @@ Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysv/inode.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ fs/sysv/inode.c |   10 ----------
+ fs/sysv/sysv.h  |    1 -
+ 2 files changed, 11 deletions(-)
 
-diff -puN fs/sysv/inode.c~fs-sysv-remove-another-useless-write_super-call fs/sysv/inode.c
---- a/fs/sysv/inode.c~fs-sysv-remove-another-useless-write_super-call
+diff -puN fs/sysv/inode.c~fs-sysv-stop-using-write_super-and-s_dirt fs/sysv/inode.c
+--- a/fs/sysv/inode.c~fs-sysv-stop-using-write_super-and-s_dirt
 +++ a/fs/sysv/inode.c
-@@ -68,12 +68,9 @@ static void sysv_write_super(struct supe
- static int sysv_remount(struct super_block *sb, int *flags, char *data)
- {
- 	struct sysv_sb_info *sbi = SYSV_SB(sb);
--	lock_super(sb);
-+
- 	if (sbi->s_forced_ro)
- 		*flags |= MS_RDONLY;
--	if (*flags & MS_RDONLY)
--		sysv_write_super(sb);
--	unlock_super(sb);
+@@ -43,7 +43,6 @@ static int sysv_sync_fs(struct super_blo
+ 	 * then attach current time stamp.
+ 	 * But if the filesystem was marked clean, keep it clean.
+ 	 */
+-	sb->s_dirt = 0;
+ 	old_time = fs32_to_cpu(sbi, *sbi->s_sb_time);
+ 	if (sbi->s_type == FSTYPE_SYSV4) {
+ 		if (*sbi->s_sb_state == cpu_to_fs32(sbi, 0x7c269d38 - old_time))
+@@ -57,14 +56,6 @@ static int sysv_sync_fs(struct super_blo
  	return 0;
  }
  
+-static void sysv_write_super(struct super_block *sb)
+-{
+-	if (!(sb->s_flags & MS_RDONLY))
+-		sysv_sync_fs(sb, 1);
+-	else
+-		sb->s_dirt = 0;
+-}
+-
+ static int sysv_remount(struct super_block *sb, int *flags, char *data)
+ {
+ 	struct sysv_sb_info *sbi = SYSV_SB(sb);
+@@ -351,7 +342,6 @@ const struct super_operations sysv_sops 
+ 	.write_inode	= sysv_write_inode,
+ 	.evict_inode	= sysv_evict_inode,
+ 	.put_super	= sysv_put_super,
+-	.write_super	= sysv_write_super,
+ 	.sync_fs	= sysv_sync_fs,
+ 	.remount_fs	= sysv_remount,
+ 	.statfs		= sysv_statfs,
+diff -puN fs/sysv/sysv.h~fs-sysv-stop-using-write_super-and-s_dirt fs/sysv/sysv.h
+--- a/fs/sysv/sysv.h~fs-sysv-stop-using-write_super-and-s_dirt
++++ a/fs/sysv/sysv.h
+@@ -117,7 +117,6 @@ static inline void dirty_sb(struct super
+ 	mark_buffer_dirty(sbi->s_bh1);
+ 	if (sbi->s_bh1 != sbi->s_bh2)
+ 		mark_buffer_dirty(sbi->s_bh2);
+-	sb->s_dirt = 1;
+ }
+ 
+ 
 _
-Subject: Subject: fs/sysv: remove another useless write_super call
+Subject: Subject: fs/sysv: stop using write_super and s_dirt
 
 Patches currently in -mm which might be from artem.bityutskiy@linux.intel.com are
 
