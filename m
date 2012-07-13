@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcg-remove-needless-mm-fixup-to-init_mm-when-charging.patch added to -mm tree
-Date: Fri, 13 Jul 2012 14:29:52 -0700
-Message-ID: <20120713212953.6586C1E0043@wpzn4.hot.corp.google.com>
+Subject: + mm-memcg-only-check-swap-cache-pages-for-repeated-charging.patch added to -mm tree
+Date: Fri, 13 Jul 2012 14:29:58 -0700
+Message-ID: <20120713212959.5CB7F1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:56447 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932589Ab2GMV3y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jul 2012 17:29:54 -0400
-Received: by mail-yw0-f74.google.com with SMTP id 10so389548yhl.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2012 14:29:54 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:43466 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932696Ab2GMVaB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jul 2012 17:30:01 -0400
+Received: by qabg24 with SMTP id g24so101531qab.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2012 14:30:00 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, liwp.l
 
 
 The patch titled
-     Subject: mm: memcg: remove needless !mm fixup to init_mm when charging
+     Subject: mm: memcg: only check swap cache pages for repeated charging
 has been added to the -mm tree.  Its filename is
-     mm-memcg-remove-needless-mm-fixup-to-init_mm-when-charging.patch
+     mm-memcg-only-check-swap-cache-pages-for-repeated-charging.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcg: remove needless !mm fixup to init_mm when charging
+Subject: mm: memcg: only check swap cache pages for repeated charging
 
-It does not matter to __mem_cgroup_try_charge() if the passed mm is NULL
-or init_mm, it will charge the root memcg in either case.
+Only anon and shmem pages in the swap cache are attempted to be charged
+multiple times, from every swap pte fault or from shmem_unuse().  No other
+pages require checking PageCgroupUsed().
 
-Also fix up the comment in __mem_cgroup_try_charge() that claimed the
-init_mm would be charged when no mm was passed.  It's not really
-incorrect, but confusing.  Clarify that the root memcg is charged in this
-case.
+Charging pages in the swap cache is also serialized by the page lock, and
+since both the try_charge and commit_charge are called under the same page
+lock section, the PageCgroupUsed() check might as well happen before the
+counter charging, let alone reclaim.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -55,42 +56,47 @@ Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ mm/memcontrol.c |   17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcg-remove-needless-mm-fixup-to-init_mm-when-charging mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-remove-needless-mm-fixup-to-init_mm-when-charging
+diff -puN mm/memcontrol.c~mm-memcg-only-check-swap-cache-pages-for-repeated-charging mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-only-check-swap-cache-pages-for-repeated-charging
 +++ a/mm/memcontrol.c
-@@ -2334,7 +2334,7 @@ static int __mem_cgroup_try_charge(struc
- 	 * We always charge the cgroup the mm_struct belongs to.
- 	 * The mm_struct's mem_cgroup changes on task migration if the
- 	 * thread group leader migrates. It's possible that mm is not
--	 * set, if so charge the init_mm (happens for pagecache usage).
-+	 * set, if so charge the root memcg (happens for pagecache usage).
- 	 */
- 	if (!*ptr && !mm)
- 		*ptr = root_mem_cgroup;
-@@ -2834,8 +2834,6 @@ int mem_cgroup_try_charge_swapin(struct 
- 		ret = 0;
- 	return ret;
- charge_cur_mm:
--	if (unlikely(!mm))
--		mm = &init_mm;
- 	ret = __mem_cgroup_try_charge(mm, mask, 1, memcgp, true);
- 	if (ret == -EINTR)
- 		ret = 0;
-@@ -2900,9 +2898,6 @@ int mem_cgroup_cache_charge(struct page 
- 	if (PageCompound(page))
- 		return 0;
+@@ -2539,11 +2539,7 @@ static void __mem_cgroup_commit_charge(s
+ 	bool anon;
  
--	if (unlikely(!mm))
--		mm = &init_mm;
--
- 	if (!PageSwapCache(page))
- 		ret = mem_cgroup_charge_common(page, mm, gfp_mask, type);
- 	else { /* page is swapcache/shmem */
+ 	lock_page_cgroup(pc);
+-	if (unlikely(PageCgroupUsed(pc))) {
+-		unlock_page_cgroup(pc);
+-		__mem_cgroup_cancel_charge(memcg, nr_pages);
+-		return;
+-	}
++	VM_BUG_ON(PageCgroupUsed(pc));
+ 	/*
+ 	 * we don't need page_cgroup_lock about tail pages, becase they are not
+ 	 * accessed by any other context at this point.
+@@ -2808,8 +2804,19 @@ static int __mem_cgroup_try_charge_swapi
+ 					  struct mem_cgroup **memcgp)
+ {
+ 	struct mem_cgroup *memcg;
++	struct page_cgroup *pc;
+ 	int ret;
+ 
++	pc = lookup_page_cgroup(page);
++	/*
++	 * Every swap fault against a single page tries to charge the
++	 * page, bail as early as possible.  shmem_unuse() encounters
++	 * already charged pages, too.  The USED bit is protected by
++	 * the page lock, which serializes swap cache removal, which
++	 * in turn serializes uncharging.
++	 */
++	if (PageCgroupUsed(pc))
++		return 0;
+ 	if (!do_swap_account)
+ 		goto charge_cur_mm;
+ 	/*
 _
-Subject: Subject: mm: memcg: remove needless !mm fixup to init_mm when charging
+Subject: Subject: mm: memcg: only check swap cache pages for repeated charging
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
 
