@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-lost-kswapd-wakeup-in-kswapd_stop.patch added to -mm tree
-Date: Fri, 13 Jul 2012 15:26:46 -0700
-Message-ID: <20120713222646.D695A1E0043@wpzn4.hot.corp.google.com>
+Subject: + sysctl-suppress-kmemleak-messages.patch added to -mm tree
+Date: Fri, 13 Jul 2012 15:54:33 -0700
+Message-ID: <20120713225433.AE9661E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:43350 "EHLO
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:50395 "EHLO
 	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753628Ab2GMW0s (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jul 2012 18:26:48 -0400
-Received: by qcqs25 with SMTP id s25so393375qcq.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2012 15:26:47 -0700 (PDT)
+	with ESMTP id S1754877Ab2GMWye (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jul 2012 18:54:34 -0400
+Received: by qcqs25 with SMTP id s25so395296qcq.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2012 15:54:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aaditya.kumar.30@gmail.com, aaditya.kumar@ap.sony.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan@kernel.org, stable@vger.kernel.org
+Cc: rostedt@goodmis.org, catalin.marinas@arm.com
 
 
 The patch titled
-     Subject: mm: fix lost kswapd wakeup in kswapd_stop()
+     Subject: sysctl: suppress kmemleak messages
 has been added to the -mm tree.  Its filename is
-     mm-fix-lost-kswapd-wakeup-in-kswapd_stop.patch
+     sysctl-suppress-kmemleak-messages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,89 +33,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Aaditya Kumar <aaditya.kumar.30@gmail.com>
-Subject: mm: fix lost kswapd wakeup in kswapd_stop()
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: sysctl: suppress kmemleak messages
 
-Offlining memory may block forever, waiting for kswapd() to wake up
-because kswapd() does not check the event kthread->should_stop before
-sleeping.
+register_sysctl_table() is a strange function, as it makes internal
+allocations (a header) to register a sysctl_table.  This header is a
+handle to the table that is created, and can be used to unregister the
+table.  But if the table is permanent and never unregistered, the header
+acts the same as a static variable.
 
-The proper pattern, from Documentation/memory-barriers.txt, is:
+Unfortunately, this allocation of memory that is never expected to be
+freed fools kmemleak in thinking that we have leaked memory.  For those
+sysctl tables that are never unregistered, and have no pointer referencing
+them, kmemleak will think that these are memory leaks:
 
-   ---  waker  ---
-   event_indicated = 1;
-   wake_up_process(event_daemon);
+unreferenced object 0xffff880079fb9d40 (size 192):
+  comm "swapper/0", pid 0, jiffies 4294667316 (age 12614.152s)
+  hex dump (first 32 bytes):
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff8146b590>] kmemleak_alloc+0x73/0x98
+    [<ffffffff8110a935>] kmemleak_alloc_recursive.constprop.42+0x16/0x18
+    [<ffffffff8110b852>] __kmalloc+0x107/0x153
+    [<ffffffff8116fa72>] kzalloc.constprop.8+0xe/0x10
+    [<ffffffff811703c9>] __register_sysctl_paths+0xe1/0x160
+    [<ffffffff81170463>] register_sysctl_paths+0x1b/0x1d
+    [<ffffffff8117047d>] register_sysctl_table+0x18/0x1a
+    [<ffffffff81afb0a1>] sysctl_init+0x10/0x14
+    [<ffffffff81b05a6f>] proc_sys_init+0x2f/0x31
+    [<ffffffff81b0584c>] proc_root_init+0xa5/0xa7
+    [<ffffffff81ae5b7e>] start_kernel+0x3d0/0x40a
+    [<ffffffff81ae52a7>] x86_64_start_reservations+0xae/0xb2
+    [<ffffffff81ae53ad>] x86_64_start_kernel+0x102/0x111
+    [<ffffffffffffffff>] 0xffffffffffffffff
 
-   ---  sleeper  ---
-   for (;;) {
-      set_current_state(TASK_UNINTERRUPTIBLE);
-      if (event_indicated)
-         break;
-      schedule();
-   }
+The sysctl_base_table used by sysctl itself is one such instance that
+registers the table to never be unregistered.
 
-   set_current_state() may be wrapped by:
-      prepare_to_wait();
+Use kmemleak_not_leak() to suppress the kmemleak false positive.
 
-In the kswapd() case, event_indicated is kthread->should_stop.
-
-=== offlining memory (waker) ===
-   kswapd_stop()
-      kthread_stop()
-         kthread->should_stop = 1
-         wake_up_process()
-         wait_for_completion()
-
-
-===  kswapd_try_to_sleep (sleeper) ===
-   kswapd_try_to_sleep()
-      prepare_to_wait()
-           .
-           .
-      schedule()
-           .
-           .
-      finish_wait()
-
-The schedule() needs to be protected by a test of kthread->should_stop,
-which is wrapped by kthread_should_stop().
-
-Reproducer:
-   Do heavy file I/O in background.
-   Do a memory offline/online in a tight loop
-
-Signed-off-by: Aaditya Kumar <aaditya.kumar@ap.sony.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ kernel/sysctl.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-fix-lost-kswapd-wakeup-in-kswapd_stop mm/vmscan.c
---- a/mm/vmscan.c~mm-fix-lost-kswapd-wakeup-in-kswapd_stop
-+++ a/mm/vmscan.c
-@@ -2706,7 +2706,10 @@ static void kswapd_try_to_sleep(pg_data_
- 		 * them before going back to sleep.
- 		 */
- 		set_pgdat_percpu_threshold(pgdat, calculate_normal_threshold);
--		schedule();
+diff -puN kernel/sysctl.c~sysctl-suppress-kmemleak-messages kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-suppress-kmemleak-messages
++++ a/kernel/sysctl.c
+@@ -30,6 +30,7 @@
+ #include <linux/security.h>
+ #include <linux/ctype.h>
+ #include <linux/kmemcheck.h>
++#include <linux/kmemleak.h>
+ #include <linux/fs.h>
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+@@ -1554,7 +1555,10 @@ static struct ctl_table dev_table[] = {
+ 
+ int __init sysctl_init(void)
+ {
+-	register_sysctl_table(sysctl_base_table);
++	struct ctl_table_header *hdr;
 +
-+		if (!kthread_should_stop())
-+			schedule();
-+
- 		set_pgdat_percpu_threshold(pgdat, calculate_pressure_threshold);
- 	} else {
- 		if (remaining)
++	hdr = register_sysctl_table(sysctl_base_table);
++	kmemleak_not_leak(hdr);
+ 	return 0;
+ }
+ 
 _
-Subject: Subject: mm: fix lost kswapd wakeup in kswapd_stop()
+Subject: Subject: sysctl: suppress kmemleak messages
 
-Patches currently in -mm which might be from aaditya.kumar.30@gmail.com are
+Patches currently in -mm which might be from rostedt@goodmis.org are
 
-mm-fix-lost-kswapd-wakeup-in-kswapd_stop.patch
-memory-hotplug-fix-kswapd-looping-forever-problem.patch
-memory-hotplug-fix-kswapd-looping-forever-problem-fix.patch
+linux-next.patch
+sysctl-suppress-kmemleak-messages.patch
 
