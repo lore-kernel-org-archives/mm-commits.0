@@ -1,26 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] rbtree-performance-and-correctness-test.patch removed from -mm tree
-Date: Fri, 13 Jul 2012 16:17:50 -0700
-Message-ID: <20120713231751.99BB1200057@hpza10.eem.corp.google.com>
+Subject: + rbtree-performance-and-correctness-test.patch added to -mm tree
+Date: Fri, 13 Jul 2012 16:18:35 -0700
+Message-ID: <20120713231836.2FC18200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:51462 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755165Ab2GMXRy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jul 2012 19:17:54 -0400
-Received: by wgbdt11 with SMTP id dt11so207310wgb.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2012 16:17:53 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:42885 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755655Ab2GMXSk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jul 2012 19:18:40 -0400
+Received: by eaao13 with SMTP id o13so206881eaa.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2012 16:18:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: walken@google.com, a.p.zijlstra@chello.nl, aarcange@redhat.com, axboe@kernel.dk, daniel.santos@pobox.com, dwmw2@infradead.org, ebiederm@xmission.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: walken@google.com, a.p.zijlstra@chello.nl, aarcange@redhat.com, axboe@kernel.dk, daniel.santos@pobox.com, dwmw2@infradead.org, ebiederm@xmission.com, riel@redhat.com
 
 
 The patch titled
      Subject: rbtree: performance and correctness test
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      rbtree-performance-and-correctness-test.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Michel Lespinasse <walken@google.com>
@@ -29,8 +39,9 @@ Subject: rbtree: performance and correctness test
 This small module helps measure the performance of rbtree insert and
 erase.
 
-Additionally, we run a few correctness tests to check that the rbtrees have
-all desired properties:
+Additionally, we run a few correctness tests to check that the rbtrees
+have all desired properties:
+
 - contains the right number of nodes in the order desired,
 - never two consecutive red nodes on any path,
 - all paths to leaf nodes have the same number of black nodes,
@@ -47,66 +58,43 @@ Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile            |    2 
- lib/Kconfig.debug   |    1 
- tests/Kconfig       |   18 +++++
- tests/Makefile      |    1 
- tests/rbtree_test.c |  135 ++++++++++++++++++++++++++++++++++++++++++
- 5 files changed, 156 insertions(+), 1 deletion(-)
+ lib/Kconfig.debug |    7 ++
+ lib/Makefile      |    2 
+ lib/rbtree_test.c |  135 ++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 144 insertions(+)
 
-diff -puN Makefile~rbtree-performance-and-correctness-test Makefile
---- a/Makefile~rbtree-performance-and-correctness-test
-+++ a/Makefile
-@@ -715,7 +715,7 @@ export mod_strip_cmd
- 
- 
- ifeq ($(KBUILD_EXTMOD),)
--core-y		+= kernel/ mm/ fs/ ipc/ security/ crypto/ block/
-+core-y		+= kernel/ mm/ fs/ ipc/ security/ crypto/ block/ tests/
- 
- vmlinux-dirs	:= $(patsubst %/,%,$(filter %/, $(init-y) $(init-m) \
- 		     $(core-y) $(core-m) $(drivers-y) $(drivers-m) \
 diff -puN lib/Kconfig.debug~rbtree-performance-and-correctness-test lib/Kconfig.debug
 --- a/lib/Kconfig.debug~rbtree-performance-and-correctness-test
 +++ a/lib/Kconfig.debug
-@@ -1177,6 +1177,7 @@ config LATENCYTOP
- 
+@@ -1178,6 +1178,13 @@ config LATENCYTOP
  source mm/Kconfig.debug
  source kernel/trace/Kconfig
-+source tests/Kconfig
  
- config PROVIDE_OHCI1394_DMA_INIT
- 	bool "Remote debugging over FireWire early on boot"
-diff -puN /dev/null tests/Kconfig
---- /dev/null
-+++ a/tests/Kconfig
-@@ -0,0 +1,18 @@
-+menuconfig BENCHMARKS
-+	bool "In kernel benchmarks"
-+	def_bool n
-+	help
-+	  Includes in kernel benchmark modules in the build. These modules can
-+	  be loaded later to trigger benchmarking kernel subsystems.
-+	  Output will be generated in the system log.
-+
-+if BENCHMARKS
-+
-+config BENCHMARK_RBTREE
-+	tristate "Red Black Tree Benchmark"
-+	depends on m
-+	default m
++config RBTREE_TEST
++	tristate "Red-Black tree test"
++	depends on m && DEBUG_KERNEL
 +	help
 +	  A benchmark measuring the performance of the rbtree library.
++	  Also includes rbtree invariant checks.
 +
-+endif # BENCHMARKS
-diff -puN /dev/null tests/Makefile
+ config PROVIDE_OHCI1394_DMA_INIT
+ 	bool "Remote debugging over FireWire early on boot"
+ 	depends on PCI && X86
+diff -puN lib/Makefile~rbtree-performance-and-correctness-test lib/Makefile
+--- a/lib/Makefile~rbtree-performance-and-correctness-test
++++ a/lib/Makefile
+@@ -135,6 +135,8 @@ $(foreach file, $(libfdt_files), \
+ 	$(eval CFLAGS_$(file) = -I$(src)/../scripts/dtc/libfdt))
+ lib-$(CONFIG_LIBFDT) += $(libfdt_files)
+ 
++obj-$(CONFIG_RBTREE_TEST) += rbtree_test.o
++
+ hostprogs-y	:= gen_crc32table
+ clean-files	:= crc32table.h
+ 
+diff -puN /dev/null lib/rbtree_test.c
 --- /dev/null
-+++ a/tests/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_BENCHMARK_RBTREE) += rbtree_test.o
-diff -puN /dev/null tests/rbtree_test.c
---- /dev/null
-+++ a/tests/rbtree_test.c
++++ a/lib/rbtree_test.c
 @@ -0,0 +1,135 @@
 +#include <linux/module.h>
 +#include <linux/rbtree.h>
@@ -244,6 +232,7 @@ diff -puN /dev/null tests/rbtree_test.c
 +MODULE_AUTHOR("Michel Lespinasse");
 +MODULE_DESCRIPTION("Red Black Tree test");
 _
+Subject: Subject: rbtree: performance and correctness test
 
 Patches currently in -mm which might be from walken@google.com are
 
@@ -252,6 +241,7 @@ rbtree-reference-documentation-rbtreetxt-for-usage-instructions.patch
 rbtree-empty-nodes-have-no-color.patch
 rbtree-fix-incorrect-rbtree-node-insertion-in-fs-proc-proc_sysctlc.patch
 rbtree-move-some-implementation-details-from-rbtreeh-to-rbtreec.patch
+rbtree-performance-and-correctness-test.patch
 rbtree-break-out-of-rb_insert_color-loop-after-tree-rotation.patch
 rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary.patch
 rbtree-low-level-optimizations-in-rb_insert_color.patch
