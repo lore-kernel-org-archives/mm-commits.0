@@ -1,68 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-prevent-oom-with-too-many-dirty-pages-fix.patch removed from -mm tree
-Date: Fri, 13 Jul 2012 13:51:57 -0700
-Message-ID: <20120713205157.C9A171E0043@wpzn4.hot.corp.google.com>
+Subject: [folded] memcg-prevent-oom-with-too-many-dirty-pages-fix-fix.patch removed from -mm tree
+Date: Fri, 13 Jul 2012 13:52:01 -0700
+Message-ID: <20120713205201.679AA1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:42693 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755751Ab2GMUv7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jul 2012 16:51:59 -0400
-Received: by ghbz15 with SMTP id z15so383292ghb.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2012 13:51:58 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:49524 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755751Ab2GMUwC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jul 2012 16:52:02 -0400
+Received: by yhl10 with SMTP id 10so386131yhl.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2012 13:52:01 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, fengguang.wu@intel.com, gthelen@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujtisu.com, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, riel@redhat.com, yinghan@google.com, mm-commits@vger.kernel.org
+To: hughd@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan.c: fix deadlock with lopp driver
+     Subject: Re: memcg: prevent from OOM with too many dirty pages
 has been removed from the -mm tree.  Its filename was
-     memcg-prevent-oom-with-too-many-dirty-pages-fix.patch
+     memcg-prevent-oom-with-too-many-dirty-pages-fix-fix.patch
 
 This patch was dropped because it was folded into memcg-prevent-oom-with-too-many-dirty-pages.patch
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/vmscan.c: fix deadlock with lopp driver
+Subject: Re: memcg: prevent from OOM with too many dirty pages
 
-Part of my load builds kernels on extN over loop over tmpfs: loop does
-mapping_set_gfp_mask(mapping, lo->old_gfp_mask & ~(__GFP_IO|__GFP_FS))
-because it knows it will deadlock, if the loop thread enters reclaim, and
-reclaim tries to write back a dirty page, one which needs the loop thread
-to perform the write.
+On Wed, 11 Jul 2012, Andrew Morton wrote:
+> On Wed, 11 Jul 2012 18:57:43 -0700 (PDT) Hugh Dickins <hughd@google.com> wrote:
+>
+> > --- 3.5-rc6-mm1/mm/vmscan.c	2012-07-11 14:42:13.668335884 -0700
+> > +++ linux/mm/vmscan.c	2012-07-11 16:01:20.712814127 -0700
+> > @@ -726,7 +726,8 @@ static unsigned long shrink_page_list(st
+> >  			 * writeback from reclaim and there is nothing else to
+> >  			 * reclaim.
+> >  			 */
+> > -			if (!global_reclaim(sc) && PageReclaim(page))
+> > +			if (!global_reclaim(sc) && PageReclaim(page) &&
+> > +					may_enter_fs)
+> >  				wait_on_page_writeback(page);
+> >  			else {
+> >  				nr_writeback++;
+>
+> um, that may_enter_fs test got removed because nobody knew why it was
+> there.  Nobody knew why it was there because it was undocumented.  Do
+> you see where I'm going with this?
 
-With the may_enter_fs check restored, all is well.
+I was hoping you might do that bit ;)  Here's my display of ignorance:
 
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujtisu.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Ying Han <yinghan@google.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/vmscan.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN mm/vmscan.c~memcg-prevent-oom-with-too-many-dirty-pages-fix mm/vmscan.c
---- a/mm/vmscan.c~memcg-prevent-oom-with-too-many-dirty-pages-fix
+diff -puN mm/vmscan.c~memcg-prevent-oom-with-too-many-dirty-pages-fix-fix mm/vmscan.c
+--- a/mm/vmscan.c~memcg-prevent-oom-with-too-many-dirty-pages-fix-fix
 +++ a/mm/vmscan.c
-@@ -726,7 +726,8 @@ static unsigned long shrink_page_list(st
+@@ -725,6 +725,12 @@ static unsigned long shrink_page_list(st
+ 			 * could easily OOM just because too many pages are in
  			 * writeback from reclaim and there is nothing else to
  			 * reclaim.
++			 *
++			 * Check may_enter_fs, certainly because a loop driver
++			 * thread might enter reclaim, and deadlock if it waits
++			 * on a page for which it is needed to do the write
++			 * (loop masks off __GFP_IO|__GFP_FS for this reason);
++			 * but more thought would probably show more reasons.
  			 */
--			if (!global_reclaim(sc) && PageReclaim(page))
-+			if (!global_reclaim(sc) && PageReclaim(page) &&
-+					may_enter_fs)
- 				wait_on_page_writeback(page);
- 			else {
- 				nr_writeback++;
+ 			if (!global_reclaim(sc) && PageReclaim(page) &&
+ 					may_enter_fs)
 _
 
 Patches currently in -mm which might be from hughd@google.com are
@@ -73,7 +81,6 @@ memcg-remove-mem_cgroup_charge_type_force.patch
 swap-allow-swap-readahead-to-be-merged.patch
 documentation-update-how-page-cluster-affects-swap-i-o.patch
 memcg-prevent-oom-with-too-many-dirty-pages.patch
-memcg-prevent-oom-with-too-many-dirty-pages-fix-fix.patch
 mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise.patch
 memcg-rename-config-variables.patch
 memcg-rename-config-variables-fix.patch
