@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcg-only-check-for-pageswapcache-when-uncharging-anon.patch added to -mm tree
-Date: Fri, 13 Jul 2012 14:29:41 -0700
-Message-ID: <20120713212942.5DD2A1E0043@wpzn4.hot.corp.google.com>
+Subject: + mm-memcg-split-swapin-charge-function-into-private-and-public-part.patch added to -mm tree
+Date: Fri, 13 Jul 2012 14:29:55 -0700
+Message-ID: <20120713212956.5C3B91E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:60987 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756608Ab2GMV3n (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jul 2012 17:29:43 -0400
-Received: by ghbz15 with SMTP id z15so386750ghb.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2012 14:29:43 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:57210 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932620Ab2GMV36 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jul 2012 17:29:58 -0400
+Received: by vcqp1 with SMTP id p1so137224vcq.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2012 14:29:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, liwp.l
 
 
 The patch titled
-     Subject: mm: memcg: only check for PageSwapCache when uncharging anon
+     Subject: mm: memcg: split swapin charge function into private and public part
 has been added to the -mm tree.  Its filename is
-     mm-memcg-only-check-for-pageswapcache-when-uncharging-anon.patch
+     mm-memcg-split-swapin-charge-function-into-private-and-public-part.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcg: only check for PageSwapCache when uncharging anon
+Subject: mm: memcg: split swapin charge function into private and public part
 
-Only anon pages that are uncharged at the time of the last page table
-mapping vanishing may be in swapcache.
+When shmem is charged upon swapin, it does not need to check twice whether
+the memory controller is enabled.
 
-When shmem pages, file pages, swap-freed anon pages, or just migrated
-pages are uncharged, they are known for sure to be not in swapcache.
+Also, shmem pages do not have to be checked for everything that regular
+anon pages have to be checked for, so let shmem use the internal version
+directly and allow future patches to move around checks that are only
+required when swapping in anon pages.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -53,48 +55,63 @@ Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   13 ++++---------
- 1 file changed, 4 insertions(+), 9 deletions(-)
+ mm/memcontrol.c |   24 +++++++++++++++---------
+ 1 file changed, 15 insertions(+), 9 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcg-only-check-for-pageswapcache-when-uncharging-anon mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-only-check-for-pageswapcache-when-uncharging-anon
+diff -puN mm/memcontrol.c~mm-memcg-split-swapin-charge-function-into-private-and-public-part mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-split-swapin-charge-function-into-private-and-public-part
 +++ a/mm/memcontrol.c
-@@ -3094,8 +3094,6 @@ void mem_cgroup_uncharge_cache_page(stru
+@@ -2802,18 +2802,14 @@ int mem_cgroup_newpage_charge(struct pag
+  * struct page_cgroup is acquired. This refcnt will be consumed by
+  * "commit()" or removed by "cancel()"
+  */
+-int mem_cgroup_try_charge_swapin(struct mm_struct *mm,
+-				 struct page *page,
+-				 gfp_t mask, struct mem_cgroup **memcgp)
++static int __mem_cgroup_try_charge_swapin(struct mm_struct *mm,
++					  struct page *page,
++					  gfp_t mask,
++					  struct mem_cgroup **memcgp)
  {
- 	VM_BUG_ON(page_mapped(page));
- 	VM_BUG_ON(page->mapping);
--	if (PageSwapCache(page))
--		return;
- 	__mem_cgroup_uncharge_common(page, MEM_CGROUP_CHARGE_TYPE_CACHE, false);
+ 	struct mem_cgroup *memcg;
+ 	int ret;
+ 
+-	*memcgp = NULL;
+-
+-	if (mem_cgroup_disabled())
+-		return 0;
+-
+ 	if (!do_swap_account)
+ 		goto charge_cur_mm;
+ 	/*
+@@ -2840,6 +2836,15 @@ charge_cur_mm:
+ 	return ret;
  }
  
-@@ -3160,8 +3158,6 @@ mem_cgroup_uncharge_swapcache(struct pag
- 	if (!swapout) /* this was a swap cache but the swap is unused ! */
- 		ctype = MEM_CGROUP_CHARGE_TYPE_DROP;
- 
--	if (PageSwapCache(page))
--		return;
- 	memcg = __mem_cgroup_uncharge_common(page, ctype, false);
- 
- 	/*
-@@ -3351,11 +3347,10 @@ void mem_cgroup_end_migration(struct mem
- 		unused = oldpage;
++int mem_cgroup_try_charge_swapin(struct mm_struct *mm, struct page *page,
++				 gfp_t gfp_mask, struct mem_cgroup **memcgp)
++{
++	*memcgp = NULL;
++	if (mem_cgroup_disabled())
++		return 0;
++	return __mem_cgroup_try_charge_swapin(mm, page, gfp_mask, memcgp);
++}
++
+ void mem_cgroup_cancel_charge_swapin(struct mem_cgroup *memcg)
+ {
+ 	if (mem_cgroup_disabled())
+@@ -2901,7 +2906,8 @@ int mem_cgroup_cache_charge(struct page 
+ 	if (!PageSwapCache(page))
+ 		ret = mem_cgroup_charge_common(page, mm, gfp_mask, type);
+ 	else { /* page is swapcache/shmem */
+-		ret = mem_cgroup_try_charge_swapin(mm, page, gfp_mask, &memcg);
++		ret = __mem_cgroup_try_charge_swapin(mm, page,
++						     gfp_mask, &memcg);
+ 		if (!ret)
+ 			__mem_cgroup_commit_charge_swapin(page, memcg, type);
  	}
- 	anon = PageAnon(used);
--	if (!PageSwapCache(unused))
--		__mem_cgroup_uncharge_common(unused,
--					     anon ? MEM_CGROUP_CHARGE_TYPE_ANON
--					     : MEM_CGROUP_CHARGE_TYPE_CACHE,
--					     true);
-+	__mem_cgroup_uncharge_common(unused,
-+				     anon ? MEM_CGROUP_CHARGE_TYPE_ANON
-+				     : MEM_CGROUP_CHARGE_TYPE_CACHE,
-+				     true);
- 	css_put(&memcg->css);
- 	/*
- 	 * We disallowed uncharge of pages under migration because mapcount
 _
-Subject: Subject: mm: memcg: only check for PageSwapCache when uncharging anon
+Subject: Subject: mm: memcg: split swapin charge function into private and public part
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
 
