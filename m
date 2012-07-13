@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rbtree-move-some-implementation-details-from-rbtreeh-to-rbtreec.patch added to -mm tree
-Date: Fri, 13 Jul 2012 13:30:46 -0700
-Message-ID: <20120713203047.56A371E0048@wpzn4.hot.corp.google.com>
+Subject: + rbtree-performance-and-correctness-test.patch added to -mm tree
+Date: Fri, 13 Jul 2012 13:30:50 -0700
+Message-ID: <20120713203050.6E4BC100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:49845 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753765Ab2GMUas (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jul 2012 16:30:48 -0400
-Received: by ghbz15 with SMTP id z15so380560ghb.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2012 13:30:48 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:33059 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754205Ab2GMUaw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jul 2012 16:30:52 -0400
+Received: by vcqp1 with SMTP id p1so130967vcq.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2012 13:30:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: walken@google.com, a.p.zijlstra@chello.nl, aarcange@redhat.com, axboe@kernel
 
 
 The patch titled
-     Subject: rbtree: move some implementation details from rbtree.h to rbtree.c
+     Subject: rbtree: performance and correctness test
 has been added to the -mm tree.  Its filename is
-     rbtree-move-some-implementation-details-from-rbtreeh-to-rbtreec.patch
+     rbtree-performance-and-correctness-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michel Lespinasse <walken@google.com>
-Subject: rbtree: move some implementation details from rbtree.h to rbtree.c
+Subject: rbtree: performance and correctness test
 
-rbtree users must use the documented APIs to manipulate the tree
-structure.  Low-level helpers to manipulate node colors and parenthood are
-not part of that API, so move them to lib/rbtree.c
+This small module helps measure the performance of rbtree insert and
+erase.
+
+Additionally, we run a few correctness tests to check that the rbtrees have
+all desired properties:
+- contains the right number of nodes in the order desired,
+- never two consecutive red nodes on any path,
+- all paths to leaf nodes have the same number of black nodes,
+- root node is black
 
 Signed-off-by: Michel Lespinasse <walken@google.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -51,116 +57,204 @@ Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rbtree.h |   34 +++++++++-------------------------
- lib/rbtree.c           |   20 +++++++++++++++++++-
- 2 files changed, 28 insertions(+), 26 deletions(-)
+ Makefile            |    2 
+ lib/Kconfig.debug   |    1 
+ tests/Kconfig       |   18 +++++
+ tests/Makefile      |    1 
+ tests/rbtree_test.c |  135 ++++++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 156 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/rbtree.h~rbtree-move-some-implementation-details-from-rbtreeh-to-rbtreec include/linux/rbtree.h
---- a/include/linux/rbtree.h~rbtree-move-some-implementation-details-from-rbtreeh-to-rbtreec
-+++ a/include/linux/rbtree.h
-@@ -32,37 +32,19 @@
- #include <linux/kernel.h>
- #include <linux/stddef.h>
- 
--struct rb_node
--{
--	unsigned long  rb_parent_color;
--#define	RB_RED		0
--#define	RB_BLACK	1
-+struct rb_node {
-+	unsigned long  __rb_parent_color;
- 	struct rb_node *rb_right;
- 	struct rb_node *rb_left;
- } __attribute__((aligned(sizeof(long))));
-     /* The alignment might seem pointless, but allegedly CRIS needs it */
- 
--struct rb_root
--{
-+struct rb_root {
- 	struct rb_node *rb_node;
- };
+diff -puN Makefile~rbtree-performance-and-correctness-test Makefile
+--- a/Makefile~rbtree-performance-and-correctness-test
++++ a/Makefile
+@@ -715,7 +715,7 @@ export mod_strip_cmd
  
  
--#define rb_parent(r)   ((struct rb_node *)((r)->rb_parent_color & ~3))
--#define rb_color(r)   ((r)->rb_parent_color & 1)
--#define rb_is_red(r)   (!rb_color(r))
--#define rb_is_black(r) rb_color(r)
--#define rb_set_red(r)  do { (r)->rb_parent_color &= ~1; } while (0)
--#define rb_set_black(r)  do { (r)->rb_parent_color |= 1; } while (0)
--
--static inline void rb_set_parent(struct rb_node *rb, struct rb_node *p)
--{
--	rb->rb_parent_color = (rb->rb_parent_color & 3) | (unsigned long)p;
--}
--static inline void rb_set_color(struct rb_node *rb, int color)
--{
--	rb->rb_parent_color = (rb->rb_parent_color & ~1) | color;
--}
-+#define rb_parent(r)   ((struct rb_node *)((r)->__rb_parent_color & ~3))
+ ifeq ($(KBUILD_EXTMOD),)
+-core-y		+= kernel/ mm/ fs/ ipc/ security/ crypto/ block/
++core-y		+= kernel/ mm/ fs/ ipc/ security/ crypto/ block/ tests/
  
- #define RB_ROOT	(struct rb_root) { NULL, }
- #define	rb_entry(ptr, type, member) container_of(ptr, type, member)
-@@ -70,8 +52,10 @@ static inline void rb_set_color(struct r
- #define RB_EMPTY_ROOT(root)  ((root)->rb_node == NULL)
+ vmlinux-dirs	:= $(patsubst %/,%,$(filter %/, $(init-y) $(init-m) \
+ 		     $(core-y) $(core-m) $(drivers-y) $(drivers-m) \
+diff -puN lib/Kconfig.debug~rbtree-performance-and-correctness-test lib/Kconfig.debug
+--- a/lib/Kconfig.debug~rbtree-performance-and-correctness-test
++++ a/lib/Kconfig.debug
+@@ -1177,6 +1177,7 @@ config LATENCYTOP
  
- /* 'empty' nodes are nodes that are known not to be inserted in an rbree */
--#define RB_EMPTY_NODE(node)  ((node)->rb_parent_color == (unsigned long)(node))
--#define RB_CLEAR_NODE(node)  ((node)->rb_parent_color = (unsigned long)(node))
-+#define RB_EMPTY_NODE(node)  \
-+	((node)->__rb_parent_color == (unsigned long)(node))
-+#define RB_CLEAR_NODE(node)  \
-+	((node)->__rb_parent_color = (unsigned long)(node))
+ source mm/Kconfig.debug
+ source kernel/trace/Kconfig
++source tests/Kconfig
  
- 
- extern void rb_insert_color(struct rb_node *, struct rb_root *);
-@@ -98,7 +82,7 @@ extern void rb_replace_node(struct rb_no
- static inline void rb_link_node(struct rb_node * node, struct rb_node * parent,
- 				struct rb_node ** rb_link)
- {
--	node->rb_parent_color = (unsigned long )parent;
-+	node->__rb_parent_color = (unsigned long)parent;
- 	node->rb_left = node->rb_right = NULL;
- 
- 	*rb_link = node;
-diff -puN lib/rbtree.c~rbtree-move-some-implementation-details-from-rbtreeh-to-rbtreec lib/rbtree.c
---- a/lib/rbtree.c~rbtree-move-some-implementation-details-from-rbtreeh-to-rbtreec
-+++ a/lib/rbtree.c
-@@ -23,6 +23,24 @@
- #include <linux/rbtree.h>
- #include <linux/export.h>
- 
-+#define	RB_RED		0
-+#define	RB_BLACK	1
+ config PROVIDE_OHCI1394_DMA_INIT
+ 	bool "Remote debugging over FireWire early on boot"
+diff -puN /dev/null tests/Kconfig
+--- /dev/null
++++ a/tests/Kconfig
+@@ -0,0 +1,18 @@
++menuconfig BENCHMARKS
++	bool "In kernel benchmarks"
++	def_bool n
++	help
++	  Includes in kernel benchmark modules in the build. These modules can
++	  be loaded later to trigger benchmarking kernel subsystems.
++	  Output will be generated in the system log.
 +
-+#define rb_color(r)   ((r)->__rb_parent_color & 1)
-+#define rb_is_red(r)   (!rb_color(r))
-+#define rb_is_black(r) rb_color(r)
-+#define rb_set_red(r)  do { (r)->__rb_parent_color &= ~1; } while (0)
-+#define rb_set_black(r)  do { (r)->__rb_parent_color |= 1; } while (0)
++if BENCHMARKS
 +
-+static inline void rb_set_parent(struct rb_node *rb, struct rb_node *p)
++config BENCHMARK_RBTREE
++	tristate "Red Black Tree Benchmark"
++	depends on m
++	default m
++	help
++	  A benchmark measuring the performance of the rbtree library.
++
++endif # BENCHMARKS
+diff -puN /dev/null tests/Makefile
+--- /dev/null
++++ a/tests/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_BENCHMARK_RBTREE) += rbtree_test.o
+diff -puN /dev/null tests/rbtree_test.c
+--- /dev/null
++++ a/tests/rbtree_test.c
+@@ -0,0 +1,135 @@
++#include <linux/module.h>
++#include <linux/rbtree.h>
++#include <linux/random.h>
++#include <asm/timex.h>
++
++#define NODES       100
++#define PERF_LOOPS  100000
++#define CHECK_LOOPS 100
++
++struct test_node {
++	struct rb_node rb;
++	u32 key;
++};
++
++static struct rb_root root = RB_ROOT;
++static struct test_node nodes[NODES];
++
++static struct rnd_state rnd;
++
++static void insert(struct test_node *node, struct rb_root *root)
 +{
-+	rb->__rb_parent_color = rb_color(rb) | (unsigned long)p;
-+}
-+static inline void rb_set_color(struct rb_node *rb, int color)
-+{
-+	rb->__rb_parent_color = (rb->__rb_parent_color & ~1) | color;
++	struct rb_node **new = &root->rb_node, *parent = NULL;
++
++	while (*new) {
++		parent = *new;
++		if (node->key < rb_entry(parent, struct test_node, rb)->key)
++			new = &parent->rb_left;
++		else
++			new = &parent->rb_right;
++	}
++
++	rb_link_node(&node->rb, parent, new);
++	rb_insert_color(&node->rb, root);
 +}
 +
- static void __rb_rotate_left(struct rb_node *node, struct rb_root *root)
- {
- 	struct rb_node *right = node->rb_right;
-@@ -255,7 +273,7 @@ void rb_erase(struct rb_node *node, stru
- 			rb_set_parent(old->rb_right, node);
- 		}
- 
--		node->rb_parent_color = old->rb_parent_color;
-+		node->__rb_parent_color = old->__rb_parent_color;
- 		node->rb_left = old->rb_left;
- 		rb_set_parent(old->rb_left, node);
- 
++static inline void erase(struct test_node *node, struct rb_root *root)
++{
++	rb_erase(&node->rb, root);
++}
++
++static void init(void)
++{
++	int i;
++	for (i = 0; i < NODES; i++)
++		nodes[i].key = prandom32(&rnd);
++}
++
++static bool is_red(struct rb_node *rb)
++{
++	return !(rb->__rb_parent_color & 1);
++}
++
++static int black_path_count(struct rb_node *rb)
++{
++	int count;
++	for (count = 0; rb; rb = rb_parent(rb))
++		count += !is_red(rb);
++	return count;
++}
++
++static void check(int nr_nodes)
++{
++	struct rb_node *rb;
++	int count = 0;
++	int blacks;
++	u32 prev_key = 0;
++
++	for (rb = rb_first(&root); rb; rb = rb_next(rb)) {
++		struct test_node *node = rb_entry(rb, struct test_node, rb);
++		WARN_ON_ONCE(node->key < prev_key);
++		WARN_ON_ONCE(is_red(rb) &&
++			     (!rb_parent(rb) || is_red(rb_parent(rb))));
++		if (!count)
++			blacks = black_path_count(rb);
++		else
++			WARN_ON_ONCE((!rb->rb_left || !rb->rb_right) &&
++				     blacks != black_path_count(rb));
++		prev_key = node->key;
++		count++;
++	}
++	WARN_ON_ONCE(count != nr_nodes);
++}
++
++static int rbtree_test_init(void)
++{
++	int i, j;
++	cycles_t time1, time2, time;
++
++	printk(KERN_ALERT "rbtree testing");
++
++	prandom32_seed(&rnd, 3141592653589793238);
++	init();
++
++	time1 = get_cycles();
++
++	for (i = 0; i < PERF_LOOPS; i++) {
++		for (j = 0; j < NODES; j++)
++			insert(nodes + j, &root);
++		for (j = 0; j < NODES; j++)
++			erase(nodes + j, &root);
++	}
++
++	time2 = get_cycles();
++	time = time2 - time1;
++
++	time = div_u64(time, PERF_LOOPS);
++	printk(" -> %llu cycles\n", time);
++
++	for (i = 0; i < CHECK_LOOPS; i++) {
++		init();
++		for (j = 0; j < NODES; j++) {
++			check(j);
++			insert(nodes + j, &root);
++		}
++		for (j = 0; j < NODES; j++) {
++			check(NODES - j);
++			erase(nodes + j, &root);
++		}
++		check(0);
++	}
++
++	return -EAGAIN; /* Fail will directly unload the module */
++}
++
++static void rbtree_test_exit(void)
++{
++	printk(KERN_ALERT "test exit\n");
++}
++
++module_init(rbtree_test_init)
++module_exit(rbtree_test_exit)
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Michel Lespinasse");
++MODULE_DESCRIPTION("Red Black Tree test");
 _
-Subject: Subject: rbtree: move some implementation details from rbtree.h to rbtree.c
+Subject: Subject: rbtree: performance and correctness test
 
 Patches currently in -mm which might be from walken@google.com are
 
