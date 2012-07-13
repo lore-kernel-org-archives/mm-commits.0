@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + m32r-fix-fix-breakage-from-m32r-use-generic-ptrace_resume-code-fallout.patch added to -mm tree
-Date: Fri, 13 Jul 2012 14:35:50 -0700
-Message-ID: <20120713213551.42738100047@wpzn3.hot.corp.google.com>
+Subject: + m32r-consistently-use-suffix.patch added to -mm tree
+Date: Fri, 13 Jul 2012 14:35:53 -0700
+Message-ID: <20120713213554.9E10F5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:58162 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753595Ab2GMVfw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jul 2012 17:35:52 -0400
-Received: by yenl3 with SMTP id l3so386770yen.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2012 14:35:51 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:41006 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754663Ab2GMVf4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jul 2012 17:35:56 -0400
+Received: by eaao13 with SMTP id o13so204837eaa.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2012 14:35:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: geert@linux-m68k.org, hch@lst.de, takata@linux-m32r.org, viro@zeniv.linux.org.uk
+Cc: geert@linux-m68k.org, takata@linux-m32r.org
 
 
 The patch titled
-     Subject: m32r: fix 'fix breakage from "m32r: use generic ptrace_resume code"' fallout
+     Subject: m32r: consistently use "suffix-$(...)"
 has been added to the -mm tree.  Its filename is
-     m32r-fix-fix-breakage-from-m32r-use-generic-ptrace_resume-code-fallout.patch
+     m32r-consistently-use-suffix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,44 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: m32r: fix 'fix breakage from "m32r: use generic ptrace_resume code"' fallout
+Subject: m32r: consistently use "suffix-$(...)"
 
-acdc0d5ef9dd ('m32r: fix breakage from "m32r: use generic ptrace_resume
-code"') tried to fix e34112e3966fc ("m32r: use generic ptrace_resume
-code") by returning values in a function returning void, causing:
+a556bec9955c ("m32r: fix arch/m32r/boot/compressed/Makefile") changed
+"$(suffix_y)" to "$(suffix-y)", but didn't update any location where
+"suffix_y" is set, causing:
 
-arch/m32r/kernel/ptrace.c: In function 'user_enable_single_step':
-arch/m32r/kernel/ptrace.c:594:3: warning: 'return' with a value, in function returning void [enabled by default]
-arch/m32r/kernel/ptrace.c:598:3: warning: 'return' with a value, in function returning void [enabled by default]
-arch/m32r/kernel/ptrace.c:601:3: warning: 'return' with a value, in function returning void [enabled by default]
-arch/m32r/kernel/ptrace.c:604:2: warning: 'return' with a value, in function returning void [enabled by default]
+make[5]: *** No rule to make target `arch/m32r/boot/compressed/vmlinux.bin.', needed by `arch/m32r/boot/compressed/piggy.o'.  Stop.
+make[4]: *** [arch/m32r/boot/compressed/vmlinux] Error 2
+make[3]: *** [zImage] Error 2
 
-Remove the unneeded return values.
+Correct the other locations to fix this.
 
 Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
 Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/kernel/ptrace.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ arch/m32r/boot/compressed/Makefile |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/m32r/kernel/ptrace.c~m32r-fix-fix-breakage-from-m32r-use-generic-ptrace_resume-code-fallout arch/m32r/kernel/ptrace.c
---- a/arch/m32r/kernel/ptrace.c~m32r-fix-fix-breakage-from-m32r-use-generic-ptrace_resume-code-fallout
-+++ a/arch/m32r/kernel/ptrace.c
-@@ -591,17 +591,16 @@ void user_enable_single_step(struct task
+diff -puN arch/m32r/boot/compressed/Makefile~m32r-consistently-use-suffix arch/m32r/boot/compressed/Makefile
+--- a/arch/m32r/boot/compressed/Makefile~m32r-consistently-use-suffix
++++ a/arch/m32r/boot/compressed/Makefile
+@@ -43,9 +43,9 @@ endif
  
- 	if (access_process_vm(child, pc&~3, &insn, sizeof(insn), 0)
- 	    != sizeof(insn))
--		return -EIO;
-+		return;
+ OBJCOPYFLAGS += -R .empty_zero_page
  
- 	compute_next_pc(insn, pc, &next_pc, child);
- 	if (next_pc & 0x80000000)
--		return -EIO;
-+		return;
+-suffix_$(CONFIG_KERNEL_GZIP)	= gz
+-suffix_$(CONFIG_KERNEL_BZIP2)	= bz2
+-suffix_$(CONFIG_KERNEL_LZMA)	= lzma
++suffix-$(CONFIG_KERNEL_GZIP)	= gz
++suffix-$(CONFIG_KERNEL_BZIP2)	= bz2
++suffix-$(CONFIG_KERNEL_LZMA)	= lzma
  
- 	if (embed_debug_trap(child, next_pc))
--		return -EIO;
-+		return;
- 
- 	invalidate_cache();
--	return 0;
- }
- 
- void user_disable_single_step(struct task_struct *child)
+ $(obj)/piggy.o: $(obj)/vmlinux.scr $(obj)/vmlinux.bin.$(suffix-y) FORCE
+ 	$(call if_changed,ld)
 _
-Subject: Subject: m32r: fix 'fix breakage from "m32r: use generic ptrace_resume code"' fallout
+Subject: Subject: m32r: consistently use "suffix-$(...)"
 
 Patches currently in -mm which might be from geert@linux-m68k.org are
 
