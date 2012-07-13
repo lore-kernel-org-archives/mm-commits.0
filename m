@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcg-only-check-swap-cache-pages-for-repeated-charging.patch added to -mm tree
-Date: Fri, 13 Jul 2012 14:29:58 -0700
-Message-ID: <20120713212959.5CB7F1E0043@wpzn4.hot.corp.google.com>
+Subject: + mm-memcg-only-check-anon-swapin-page-charges-for-swap-cache.patch added to -mm tree
+Date: Fri, 13 Jul 2012 14:30:02 -0700
+Message-ID: <20120713213003.0E9B25C006A@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:43466 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932696Ab2GMVaB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jul 2012 17:30:01 -0400
-Received: by qabg24 with SMTP id g24so101531qab.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2012 14:30:00 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:55434 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932738Ab2GMVaF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jul 2012 17:30:05 -0400
+Received: by mail-wg0-f74.google.com with SMTP id dt11so205133wgb.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2012 14:30:04 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, liwp.l
 
 
 The patch titled
-     Subject: mm: memcg: only check swap cache pages for repeated charging
+     Subject: mm: memcg: only check anon swapin page charges for swap cache
 has been added to the -mm tree.  Its filename is
-     mm-memcg-only-check-swap-cache-pages-for-repeated-charging.patch
+     mm-memcg-only-check-anon-swapin-page-charges-for-swap-cache.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcg: only check swap cache pages for repeated charging
+Subject: mm: memcg: only check anon swapin page charges for swap cache
 
-Only anon and shmem pages in the swap cache are attempted to be charged
-multiple times, from every swap pte fault or from shmem_unuse().  No other
-pages require checking PageCgroupUsed().
+shmem knows for sure that the page is in swap cache when attempting to
+charge a page, because the cache charge entry function has a check for it.
+Only anon pages may be removed from swap cache already when trying to
+charge their swapin.
 
-Charging pages in the swap cache is also serialized by the page lock, and
-since both the try_charge and commit_charge are called under the same page
-lock section, the PageCgroupUsed() check might as well happen before the
-counter charging, let alone reclaim.
+Adjust the comment, though: '4969c11 mm: fix swapin race condition' added
+a stable PageSwapCache check under the page lock in the do_swap_page()
+before calling the memory controller, so it's unuse_pte()'s pte_same()
+that may fail.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -56,47 +57,50 @@ Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |   22 ++++++++++++++--------
+ 1 file changed, 14 insertions(+), 8 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcg-only-check-swap-cache-pages-for-repeated-charging mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-only-check-swap-cache-pages-for-repeated-charging
+diff -puN mm/memcontrol.c~mm-memcg-only-check-anon-swapin-page-charges-for-swap-cache mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-only-check-anon-swapin-page-charges-for-swap-cache
 +++ a/mm/memcontrol.c
-@@ -2539,11 +2539,7 @@ static void __mem_cgroup_commit_charge(s
- 	bool anon;
- 
- 	lock_page_cgroup(pc);
--	if (unlikely(PageCgroupUsed(pc))) {
--		unlock_page_cgroup(pc);
--		__mem_cgroup_cancel_charge(memcg, nr_pages);
--		return;
--	}
-+	VM_BUG_ON(PageCgroupUsed(pc));
- 	/*
- 	 * we don't need page_cgroup_lock about tail pages, becase they are not
- 	 * accessed by any other context at this point.
-@@ -2808,8 +2804,19 @@ static int __mem_cgroup_try_charge_swapi
- 					  struct mem_cgroup **memcgp)
- {
- 	struct mem_cgroup *memcg;
-+	struct page_cgroup *pc;
- 	int ret;
- 
-+	pc = lookup_page_cgroup(page);
-+	/*
-+	 * Every swap fault against a single page tries to charge the
-+	 * page, bail as early as possible.  shmem_unuse() encounters
-+	 * already charged pages, too.  The USED bit is protected by
-+	 * the page lock, which serializes swap cache removal, which
-+	 * in turn serializes uncharging.
-+	 */
-+	if (PageCgroupUsed(pc))
-+		return 0;
+@@ -2819,14 +2819,6 @@ static int __mem_cgroup_try_charge_swapi
+ 		return 0;
  	if (!do_swap_account)
  		goto charge_cur_mm;
- 	/*
+-	/*
+-	 * A racing thread's fault, or swapoff, may have already updated
+-	 * the pte, and even removed page from swap cache: in those cases
+-	 * do_swap_page()'s pte_same() test will fail; but there's also a
+-	 * KSM case which does need to charge the page.
+-	 */
+-	if (!PageSwapCache(page))
+-		goto charge_cur_mm;
+ 	memcg = try_get_mem_cgroup_from_page(page);
+ 	if (!memcg)
+ 		goto charge_cur_mm;
+@@ -2849,6 +2841,20 @@ int mem_cgroup_try_charge_swapin(struct 
+ 	*memcgp = NULL;
+ 	if (mem_cgroup_disabled())
+ 		return 0;
++	/*
++	 * A racing thread's fault, or swapoff, may have already
++	 * updated the pte, and even removed page from swap cache: in
++	 * those cases unuse_pte()'s pte_same() test will fail; but
++	 * there's also a KSM case which does need to charge the page.
++	 */
++	if (!PageSwapCache(page)) {
++		int ret;
++
++		ret = __mem_cgroup_try_charge(mm, gfp_mask, 1, memcgp, true);
++		if (ret == -EINTR)
++			ret = 0;
++		return ret;
++	}
+ 	return __mem_cgroup_try_charge_swapin(mm, page, gfp_mask, memcgp);
+ }
+ 
 _
-Subject: Subject: mm: memcg: only check swap cache pages for repeated charging
+Subject: Subject: mm: memcg: only check anon swapin page charges for swap cache
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
 
