@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + arm-exynos-add-thermal-sensor-driver-platform-data-support.patch added to -mm tree
-Date: Fri, 13 Jul 2012 14:02:51 -0700
-Message-ID: <20120713210252.48148100047@wpzn3.hot.corp.google.com>
+Subject: + nsproxy-move-free_nsproxy-out-of-do_exit-path.patch added to -mm tree
+Date: Fri, 13 Jul 2012 14:08:27 -0700
+Message-ID: <20120713210827.947CA100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:46671 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752417Ab2GMVCx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jul 2012 17:02:53 -0400
-Received: by qabg24 with SMTP id g24so99223qab.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2012 14:02:53 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:47070 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755412Ab2GMVI3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jul 2012 17:08:29 -0400
+Received: by qcqs25 with SMTP id s25so387150qcq.1
+        for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2012 14:08:28 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: amit.kachhap@linaro.org, dg77.kim@samsung.com, durgadoss.r@intel.com, guenter.roeck@ericsson.com, khali@linux-fr.org, lenb@kernel.org, sw.ju@samsung.com
+Cc: kirill.shutemov@linux.intel.com, dledford@redhat.com, ebiederm@xmission.com, kirill@shutemov.name, kosaki.motohiro@jp.fujitsu.com, ldv@altlinux.org, serge.hallyn@ubuntu.com, viro@zeniv.linux.org.uk, xemul@openvz.org
 
 
 The patch titled
-     Subject: ARM: exynos: add thermal sensor driver platform data support
+     Subject: nsproxy: move free_nsproxy() out of do_exit() path
 has been added to the -mm tree.  Its filename is
-     arm-exynos-add-thermal-sensor-driver-platform-data-support.patch
+     nsproxy-move-free_nsproxy-out-of-do_exit-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,172 +33,150 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Amit Daniel Kachhap <amit.kachhap@linaro.org>
-Subject: ARM: exynos: add thermal sensor driver platform data support
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: nsproxy: move free_nsproxy() out of do_exit() path
 
-Add necessary default platform data support needed for TMU driver.  This
-dt/non-dt values are tested for origen exynos4210 and smdk exynos5250
-platforms.
+free_nsproxy() is too heavy to be on the exit path.  Let's free namespaces
+asynchronously to not block exit_group() syscall.
 
-Signed-off-by: Amit Daniel Kachhap <amit.kachhap@linaro.org>
-Cc: Donggeun Kim <dg77.kim@samsung.com>
-Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: SangWook Ju <sw.ju@samsung.com>
-Cc: Durgadoss <durgadoss.r@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Jean Delvare <khali@linux-fr.org>
+Microbenchmark:
+
+: #define _GNU_SOURCE
+: #include <unistd.h>
+: #include <sched.h>
+: #include <stdlib.h>
+: #include <sys/wait.h>
+:
+: int
+: main(void)
+: {
+:       int i;
+:       for (i = 0; i < 1024; i++) {
+:               if (fork()) {
+:                       wait(NULL);
+:                       continue;
+:               }
+:               unshare(CLONE_NEWIPC);
+:               exit(0);
+:       }
+:       return 0;
+: }
+
+Before the patch:
+
+real    0m8.335s
+user    0m0.000s
+sys     0m0.265s
+
+After:
+
+real    0m0.569s
+user    0m0.001s
+sys     0m0.154s
+
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Serge E. Hallyn <serge.hallyn@ubuntu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: "Dmitry V. Levin" <ldv@altlinux.org>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/thermal/exynos_thermal.c |  111 ++++++++++++++++++++++++++++-
- 1 file changed, 110 insertions(+), 1 deletion(-)
+ include/linux/nsproxy.h |    1 +
+ kernel/nsproxy.c        |   34 +++++++++++++++++++++++-----------
+ 2 files changed, 24 insertions(+), 11 deletions(-)
 
-diff -puN drivers/thermal/exynos_thermal.c~arm-exynos-add-thermal-sensor-driver-platform-data-support drivers/thermal/exynos_thermal.c
---- a/drivers/thermal/exynos_thermal.c~arm-exynos-add-thermal-sensor-driver-platform-data-support
-+++ a/drivers/thermal/exynos_thermal.c
-@@ -662,14 +662,121 @@ static irqreturn_t exynos_tmu_irq(int ir
- static struct thermal_sensor_conf exynos_sensor_conf = {
- 	.name			= "exynos-therm",
- 	.read_temperature	= (int (*)(void *))exynos_tmu_read,
-+};
-+
-+#if defined(CONFIG_CPU_EXYNOS4210)
-+static struct exynos_tmu_platform_data const exynos4_default_tmu_data = {
-+	.threshold = 80,
-+	.trigger_levels[0] = 5,
-+	.trigger_levels[1] = 20,
-+	.trigger_levels[2] = 30,
-+	.trigger_level0_en = 1,
-+	.trigger_level1_en = 1,
-+	.trigger_level2_en = 1,
-+	.trigger_level3_en = 0,
-+	.gain = 15,
-+	.reference_voltage = 7,
-+	.cal_type = TYPE_ONE_POINT_TRIMMING,
-+	.freq_tab[0] = {
-+		.freq_clip_max = 800 * 1000,
-+		.temp_level = 85,
-+	},
-+	.freq_tab[1] = {
-+		.freq_clip_max = 200 * 1000,
-+		.temp_level = 100,
-+	},
-+	.freq_tab_count = 2,
-+	.type = SOC_ARCH_EXYNOS4,
-+};
-+#define EXYNOS4_TMU_DRV_DATA (&exynos4_default_tmu_data)
-+#else
-+#define EXYNOS4_TMU_DRV_DATA (NULL)
-+#endif
-+
-+#if defined(CONFIG_SOC_EXYNOS5250)
-+static struct exynos_tmu_platform_data const exynos5_default_tmu_data = {
-+	.trigger_levels[0] = 85,
-+	.trigger_levels[1] = 103,
-+	.trigger_levels[2] = 110,
-+	.trigger_level0_en = 1,
-+	.trigger_level1_en = 1,
-+	.trigger_level2_en = 1,
-+	.trigger_level3_en = 0,
-+	.gain = 8,
-+	.reference_voltage = 16,
-+	.noise_cancel_mode = 4,
-+	.cal_type = TYPE_ONE_POINT_TRIMMING,
-+	.efuse_value = 55,
-+	.freq_tab[0] = {
-+		.freq_clip_max = 800 * 1000,
-+		.temp_level = 85,
-+	},
-+	.freq_tab[1] = {
-+		.freq_clip_max = 200 * 1000,
-+		.temp_level = 103,
-+	},
-+	.freq_tab_count = 2,
-+	.type = SOC_ARCH_EXYNOS5,
-+};
-+#define EXYNOS5_TMU_DRV_DATA (&exynos5_default_tmu_data)
-+#else
-+#define EXYNOS5_TMU_DRV_DATA (NULL)
-+#endif
-+
-+#ifdef CONFIG_OF
-+static const struct of_device_id exynos_tmu_match[] = {
-+	{
-+		.compatible = "samsung,exynos4-tmu",
-+		.data = (void *)EXYNOS4_TMU_DRV_DATA,
-+	},
-+	{
-+		.compatible = "samsung,exynos5-tmu",
-+		.data = (void *)EXYNOS5_TMU_DRV_DATA,
-+	},
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, exynos_tmu_match);
-+#else
-+#define  exynos_tmu_match NULL
-+#endif
-+
-+static struct platform_device_id exynos_tmu_driver_ids[] = {
-+	{
-+		.name		= "exynos4-tmu",
-+		.driver_data    = (kernel_ulong_t)EXYNOS4_TMU_DRV_DATA,
-+	},
-+	{
-+		.name		= "exynos5-tmu",
-+		.driver_data    = (kernel_ulong_t)EXYNOS5_TMU_DRV_DATA,
-+	},
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(platform, exynos4_tmu_driver_ids);
-+
-+static inline struct  exynos_tmu_platform_data *exynos_get_driver_data(
-+			struct platform_device *pdev)
-+{
-+#ifdef CONFIG_OF
-+	if (pdev->dev.of_node) {
-+		const struct of_device_id *match;
-+		match = of_match_node(exynos_tmu_match, pdev->dev.of_node);
-+		if (!match)
-+			return NULL;
-+		return (struct exynos_tmu_platform_data *) match->data;
-+	}
-+#endif
-+	return (struct exynos_tmu_platform_data *)
-+			platform_get_device_id(pdev)->driver_data;
- }
--;
- static int __devinit exynos_tmu_probe(struct platform_device *pdev)
- {
- 	struct exynos_tmu_data *data;
- 	struct exynos_tmu_platform_data *pdata = pdev->dev.platform_data;
- 	int ret, i;
- 
-+	if (!pdata)
-+		pdata = exynos_get_driver_data(pdev);
-+
- 	if (!pdata) {
- 		dev_err(&pdev->dev, "No platform init data supplied.\n");
- 		return -ENODEV;
-@@ -838,9 +945,11 @@ static struct platform_driver exynos_tmu
- 		.name   = "exynos-tmu",
- 		.owner  = THIS_MODULE,
- 		.pm     = EXYNOS_TMU_PM,
-+		.of_match_table = exynos_tmu_match,
- 	},
- 	.probe = exynos_tmu_probe,
- 	.remove	= __devexit_p(exynos_tmu_remove),
-+	.id_table = exynos_tmu_driver_ids,
+diff -puN include/linux/nsproxy.h~nsproxy-move-free_nsproxy-out-of-do_exit-path include/linux/nsproxy.h
+--- a/include/linux/nsproxy.h~nsproxy-move-free_nsproxy-out-of-do_exit-path
++++ a/include/linux/nsproxy.h
+@@ -24,6 +24,7 @@ struct fs_struct;
+  */
+ struct nsproxy {
+ 	atomic_t count;
++	struct work_struct free_nsproxy_work;
+ 	struct uts_namespace *uts_ns;
+ 	struct ipc_namespace *ipc_ns;
+ 	struct mnt_namespace *mnt_ns;
+diff -puN kernel/nsproxy.c~nsproxy-move-free_nsproxy-out-of-do_exit-path kernel/nsproxy.c
+--- a/kernel/nsproxy.c~nsproxy-move-free_nsproxy-out-of-do_exit-path
++++ a/kernel/nsproxy.c
+@@ -41,13 +41,17 @@ struct nsproxy init_nsproxy = {
+ #endif
  };
  
- module_platform_driver(exynos_tmu_driver);
++static void free_nsproxy_work(struct work_struct *work);
++
+ static inline struct nsproxy *create_nsproxy(void)
+ {
+ 	struct nsproxy *nsproxy;
+ 
+ 	nsproxy = kmem_cache_alloc(nsproxy_cachep, GFP_KERNEL);
+-	if (nsproxy)
++	if (nsproxy) {
+ 		atomic_set(&nsproxy->count, 1);
++		INIT_WORK(&nsproxy->free_nsproxy_work, free_nsproxy_work);
++	}
+ 	return nsproxy;
+ }
+ 
+@@ -166,6 +170,14 @@ out:
+ 
+ void free_nsproxy(struct nsproxy *ns)
+ {
++	/*
++	 * wait for others to get what they want from this nsproxy.
++	 *
++	 * cannot release this nsproxy via the call_rcu() since
++	 * put_mnt_ns() will want to sleep
++	 */
++	synchronize_rcu();
++
+ 	if (ns->mnt_ns)
+ 		put_mnt_ns(ns->mnt_ns);
+ 	if (ns->uts_ns)
+@@ -178,6 +190,14 @@ void free_nsproxy(struct nsproxy *ns)
+ 	kmem_cache_free(nsproxy_cachep, ns);
+ }
+ 
++static void free_nsproxy_work(struct work_struct *work)
++{
++	struct nsproxy *ns = container_of(work, struct nsproxy,
++			free_nsproxy_work);
++
++	free_nsproxy(ns);
++}
++
+ /*
+  * Called from unshare. Unshare all the namespaces part of nsproxy.
+  * On success, returns the new nsproxy.
+@@ -215,16 +235,8 @@ void switch_task_namespaces(struct task_
+ 
+ 	rcu_assign_pointer(p->nsproxy, new);
+ 
+-	if (ns && atomic_dec_and_test(&ns->count)) {
+-		/*
+-		 * wait for others to get what they want from this nsproxy.
+-		 *
+-		 * cannot release this nsproxy via the call_rcu() since
+-		 * put_mnt_ns() will want to sleep
+-		 */
+-		synchronize_rcu();
+-		free_nsproxy(ns);
+-	}
++	if (ns && atomic_dec_and_test(&ns->count))
++		schedule_work(&ns->free_nsproxy_work);
+ }
+ 
+ void exit_task_namespaces(struct task_struct *p)
 _
-Subject: Subject: ARM: exynos: add thermal sensor driver platform data support
+Subject: Subject: nsproxy: move free_nsproxy() out of do_exit() path
 
-Patches currently in -mm which might be from amit.kachhap@linaro.org are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-thermal-add-generic-cpufreq-cooling-implementation.patch
-hwmon-exynos4-move-thermal-sensor-driver-to-driver-thermal-directory.patch
-thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
-thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
-arm-exynos-add-thermal-sensor-driver-platform-data-support.patch
+fs-push-rcu_barrier-from-deactivate_locked_super-to-filesystems.patch
+nsproxy-move-free_nsproxy-out-of-do_exit-path.patch
 
