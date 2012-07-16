@@ -1,252 +1,217 @@
 From: akpm@linux-foundation.org
-Subject: + rbtree-performance-and-correctness-test.patch added to -mm tree
-Date: Fri, 13 Jul 2012 16:18:35 -0700
-Message-ID: <20120713231836.2FC18200057@hpza10.eem.corp.google.com>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Mon, 16 Jul 2012 12:34:54 -0700
+Message-ID: <20120716193456.BE2BA20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:42885 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755655Ab2GMXSk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Jul 2012 19:18:40 -0400
-Received: by eaao13 with SMTP id o13so206881eaa.1
-        for <mm-commits@vger.kernel.org>; Fri, 13 Jul 2012 16:18:37 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:51931 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751262Ab2GPTe7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jul 2012 15:34:59 -0400
+Received: by wibhr14 with SMTP id hr14so176051wib.1
+        for <mm-commits@vger.kernel.org>; Mon, 16 Jul 2012 12:34:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: walken@google.com, a.p.zijlstra@chello.nl, aarcange@redhat.com, axboe@kernel.dk, daniel.santos@pobox.com, dwmw2@infradead.org, ebiederm@xmission.com, riel@redhat.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rbtree: performance and correctness test
-has been added to the -mm tree.  Its filename is
-     rbtree-performance-and-correctness-test.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Michel Lespinasse <walken@google.com>
-Subject: rbtree: performance and correctness test
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-This small module helps measure the performance of rbtree insert and
-erase.
-
-Additionally, we run a few correctness tests to check that the rbtrees
-have all desired properties:
-
-- contains the right number of nodes in the order desired,
-- never two consecutive red nodes on any path,
-- all paths to leaf nodes have the same number of black nodes,
-- root node is black
-
-Signed-off-by: Michel Lespinasse <walken@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Daniel Santos <daniel.santos@pobox.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    7 ++
- lib/Makefile      |    2 
- lib/rbtree_test.c |  135 ++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 144 insertions(+)
+ drivers/media/video/s5p-fimc/fimc-capture.c |    7 --
+ drivers/mfd/mc13xxx-spi.c                   |    6 -
+ drivers/usb/host/ehci-omap.c                |   61 ------------------
+ 3 files changed, 74 deletions(-)
 
-diff -puN lib/Kconfig.debug~rbtree-performance-and-correctness-test lib/Kconfig.debug
---- a/lib/Kconfig.debug~rbtree-performance-and-correctness-test
-+++ a/lib/Kconfig.debug
-@@ -1178,6 +1178,13 @@ config LATENCYTOP
- source mm/Kconfig.debug
- source kernel/trace/Kconfig
+diff -puN drivers/media/video/s5p-fimc/fimc-capture.c~linux-next-git-rejects drivers/media/video/s5p-fimc/fimc-capture.c
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c~linux-next-git-rejects
++++ a/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -495,17 +495,10 @@ static int fimc_capture_open(struct file
+ 	ret = v4l2_fh_open(file);
+ 	if (ret)
+ 		return ret;
+-<<<<<<< HEAD
  
-+config RBTREE_TEST
-+	tristate "Red-Black tree test"
-+	depends on m && DEBUG_KERNEL
-+	help
-+	  A benchmark measuring the performance of the rbtree library.
-+	  Also includes rbtree invariant checks.
-+
- config PROVIDE_OHCI1394_DMA_INIT
- 	bool "Remote debugging over FireWire early on boot"
- 	depends on PCI && X86
-diff -puN lib/Makefile~rbtree-performance-and-correctness-test lib/Makefile
---- a/lib/Makefile~rbtree-performance-and-correctness-test
-+++ a/lib/Makefile
-@@ -135,6 +135,8 @@ $(foreach file, $(libfdt_files), \
- 	$(eval CFLAGS_$(file) = -I$(src)/../scripts/dtc/libfdt))
- lib-$(CONFIG_LIBFDT) += $(libfdt_files)
+ 	if (++fimc->vid_cap.refcnt != 1)
+ 		return 0;
  
-+obj-$(CONFIG_RBTREE_TEST) += rbtree_test.o
-+
- hostprogs-y	:= gen_crc32table
- clean-files	:= crc32table.h
+-=======
+-
+-	if (++fimc->vid_cap.refcnt != 1)
+-		return 0;
+-
+->>>>>>> linux-next/akpm-base
+ 	ret = fimc_pipeline_initialize(&fimc->pipeline,
+ 				       &fimc->vid_cap.vfd->entity, true);
+ 	if (ret < 0) {
+diff -puN drivers/mfd/mc13xxx-spi.c~linux-next-git-rejects drivers/mfd/mc13xxx-spi.c
+--- a/drivers/mfd/mc13xxx-spi.c~linux-next-git-rejects
++++ a/drivers/mfd/mc13xxx-spi.c
+@@ -139,15 +139,9 @@ static int mc13xxx_spi_probe(struct spi_
+ 	mc13xxx->dev = &spi->dev;
+ 	mutex_init(&mc13xxx->lock);
  
-diff -puN /dev/null lib/rbtree_test.c
---- /dev/null
-+++ a/lib/rbtree_test.c
-@@ -0,0 +1,135 @@
-+#include <linux/module.h>
-+#include <linux/rbtree.h>
-+#include <linux/random.h>
-+#include <asm/timex.h>
-+
-+#define NODES       100
-+#define PERF_LOOPS  100000
-+#define CHECK_LOOPS 100
-+
-+struct test_node {
-+	struct rb_node rb;
-+	u32 key;
-+};
-+
-+static struct rb_root root = RB_ROOT;
-+static struct test_node nodes[NODES];
-+
-+static struct rnd_state rnd;
-+
-+static void insert(struct test_node *node, struct rb_root *root)
-+{
-+	struct rb_node **new = &root->rb_node, *parent = NULL;
-+
-+	while (*new) {
-+		parent = *new;
-+		if (node->key < rb_entry(parent, struct test_node, rb)->key)
-+			new = &parent->rb_left;
-+		else
-+			new = &parent->rb_right;
-+	}
-+
-+	rb_link_node(&node->rb, parent, new);
-+	rb_insert_color(&node->rb, root);
-+}
-+
-+static inline void erase(struct test_node *node, struct rb_root *root)
-+{
-+	rb_erase(&node->rb, root);
-+}
-+
-+static void init(void)
-+{
-+	int i;
-+	for (i = 0; i < NODES; i++)
-+		nodes[i].key = prandom32(&rnd);
-+}
-+
-+static bool is_red(struct rb_node *rb)
-+{
-+	return !(rb->__rb_parent_color & 1);
-+}
-+
-+static int black_path_count(struct rb_node *rb)
-+{
-+	int count;
-+	for (count = 0; rb; rb = rb_parent(rb))
-+		count += !is_red(rb);
-+	return count;
-+}
-+
-+static void check(int nr_nodes)
-+{
-+	struct rb_node *rb;
-+	int count = 0;
-+	int blacks;
-+	u32 prev_key = 0;
-+
-+	for (rb = rb_first(&root); rb; rb = rb_next(rb)) {
-+		struct test_node *node = rb_entry(rb, struct test_node, rb);
-+		WARN_ON_ONCE(node->key < prev_key);
-+		WARN_ON_ONCE(is_red(rb) &&
-+			     (!rb_parent(rb) || is_red(rb_parent(rb))));
-+		if (!count)
-+			blacks = black_path_count(rb);
-+		else
-+			WARN_ON_ONCE((!rb->rb_left || !rb->rb_right) &&
-+				     blacks != black_path_count(rb));
-+		prev_key = node->key;
-+		count++;
-+	}
-+	WARN_ON_ONCE(count != nr_nodes);
-+}
-+
-+static int rbtree_test_init(void)
-+{
-+	int i, j;
-+	cycles_t time1, time2, time;
-+
-+	printk(KERN_ALERT "rbtree testing");
-+
-+	prandom32_seed(&rnd, 3141592653589793238);
-+	init();
-+
-+	time1 = get_cycles();
-+
-+	for (i = 0; i < PERF_LOOPS; i++) {
-+		for (j = 0; j < NODES; j++)
-+			insert(nodes + j, &root);
-+		for (j = 0; j < NODES; j++)
-+			erase(nodes + j, &root);
-+	}
-+
-+	time2 = get_cycles();
-+	time = time2 - time1;
-+
-+	time = div_u64(time, PERF_LOOPS);
-+	printk(" -> %llu cycles\n", time);
-+
-+	for (i = 0; i < CHECK_LOOPS; i++) {
-+		init();
-+		for (j = 0; j < NODES; j++) {
-+			check(j);
-+			insert(nodes + j, &root);
-+		}
-+		for (j = 0; j < NODES; j++) {
-+			check(NODES - j);
-+			erase(nodes + j, &root);
-+		}
-+		check(0);
-+	}
-+
-+	return -EAGAIN; /* Fail will directly unload the module */
-+}
-+
-+static void rbtree_test_exit(void)
-+{
-+	printk(KERN_ALERT "test exit\n");
-+}
-+
-+module_init(rbtree_test_init)
-+module_exit(rbtree_test_exit)
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Michel Lespinasse");
-+MODULE_DESCRIPTION("Red Black Tree test");
+-<<<<<<< HEAD
+-	mc13xxx->regmap = regmap_init(&spi->dev, &regmap_mc13xxx_bus, &spi->dev,
+-					&mc13xxx_regmap_spi_config);
+-
+-=======
+ 	mc13xxx->regmap = devm_regmap_init(&spi->dev, &regmap_mc13xxx_bus,
+ 					   &spi->dev,
+ 					   &mc13xxx_regmap_spi_config);
+->>>>>>> linux-next/akpm-base
+ 	if (IS_ERR(mc13xxx->regmap)) {
+ 		ret = PTR_ERR(mc13xxx->regmap);
+ 		dev_err(mc13xxx->dev, "Failed to initialize register map: %d\n",
+diff -puN drivers/usb/host/ehci-omap.c~linux-next-git-rejects drivers/usb/host/ehci-omap.c
+--- a/drivers/usb/host/ehci-omap.c~linux-next-git-rejects
++++ a/drivers/usb/host/ehci-omap.c
+@@ -330,21 +330,6 @@ static int ehci_hcd_omap_probe(struct pl
+ 		}
+ 	}
+ 
+-<<<<<<< HEAD
+-	/* Hold PHYs in reset while initializing EHCI controller */
+-	if (pdata->phy_reset) {
+-		if (gpio_is_valid(pdata->reset_gpio_port[0]))
+-			gpio_set_value_cansleep(pdata->reset_gpio_port[0], 0);
+-
+-		if (gpio_is_valid(pdata->reset_gpio_port[1]))
+-			gpio_set_value_cansleep(pdata->reset_gpio_port[1], 0);
+-
+-		/* Hold the PHY in RESET for enough time till DIR is high */
+-		udelay(10);
+-	}
+-
+-=======
+->>>>>>> linux-next/akpm-base
+ 	pm_runtime_enable(dev);
+ 	pm_runtime_get_sync(dev);
+ 
+@@ -360,58 +345,12 @@ static int ehci_hcd_omap_probe(struct pl
+ 	ehci_write(regs, EHCI_INSNREG04,
+ 				EHCI_INSNREG04_DISABLE_UNSUSPEND);
+ 
+-<<<<<<< HEAD
+-	/* Soft reset the PHY using PHY reset command over ULPI */
+-	if (pdata->port_mode[0] == OMAP_EHCI_PORT_MODE_PHY)
+-		omap_ehci_soft_phy_reset(pdev, 0);
+-	if (pdata->port_mode[1] == OMAP_EHCI_PORT_MODE_PHY)
+-		omap_ehci_soft_phy_reset(pdev, 1);
+-
+-	omap_ehci = hcd_to_ehci(hcd);
+-	omap_ehci->sbrn = 0x20;
+-
+-	/* we know this is the memory we want, no need to ioremap again */
+-	omap_ehci->caps = hcd->regs;
+-	omap_ehci->regs = hcd->regs
+-		+ HC_LENGTH(ehci, readl(&omap_ehci->caps->hc_capbase));
+-
+-	dbg_hcs_params(omap_ehci, "reset");
+-	dbg_hcc_params(omap_ehci, "reset");
+-
+-	/* cache this readonly data; minimize chip reads */
+-	omap_ehci->hcs_params = readl(&omap_ehci->caps->hcs_params);
+-
+-	ehci_reset(omap_ehci);
+-	ret = usb_add_hcd(hcd, irq, IRQF_SHARED);
+-	if (ret) {
+-		dev_err(dev, "failed to add hcd with err %d\n", ret);
+-		goto err_add_hcd;
+-	}
+-
+-	if (pdata->phy_reset) {
+-		/* Hold the PHY in RESET for enough time till
+-		 * PHY is settled and ready
+-		 */
+-		udelay(10);
+-
+-		if (gpio_is_valid(pdata->reset_gpio_port[0]))
+-			gpio_set_value_cansleep(pdata->reset_gpio_port[0], 1);
+-
+-		if (gpio_is_valid(pdata->reset_gpio_port[1]))
+-			gpio_set_value_cansleep(pdata->reset_gpio_port[1], 1);
+-	}
+-
+-	/* root ports should always stay powered */
+-	ehci_port_power(omap_ehci, 1);
+-
+-=======
+ 	ret = usb_add_hcd(hcd, irq, IRQF_SHARED);
+ 	if (ret) {
+ 		dev_err(dev, "failed to add hcd with err %d\n", ret);
+ 		goto err_pm_runtime;
+ 	}
+ 
+->>>>>>> linux-next/akpm-base
+ 	/* get clocks */
+ 	utmi_p1_fck = clk_get(dev, "utmi_p1_gfclk");
+ 	if (IS_ERR(utmi_p1_fck)) {
 _
-Subject: Subject: rbtree: performance and correctness test
 
-Patches currently in -mm which might be from walken@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-slab-do-not-call-compound_head-in-page_get_cache.patch
-rbtree-reference-documentation-rbtreetxt-for-usage-instructions.patch
-rbtree-empty-nodes-have-no-color.patch
-rbtree-fix-incorrect-rbtree-node-insertion-in-fs-proc-proc_sysctlc.patch
-rbtree-move-some-implementation-details-from-rbtreeh-to-rbtreec.patch
-rbtree-performance-and-correctness-test.patch
-rbtree-break-out-of-rb_insert_color-loop-after-tree-rotation.patch
-rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary.patch
-rbtree-low-level-optimizations-in-rb_insert_color.patch
-rbtree-adjust-node-color-in-__rb_erase_color-only-when-necessary.patch
-rbtree-optimize-case-selection-logic-in-__rb_erase_color.patch
-rbtree-low-level-optimizations-in-__rb_erase_color.patch
-rbtree-coding-style-adjustments.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+memcg-prevent-oom-with-too-many-dirty-pages.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
+sysfs-fail-dentry-revalidation-after-namespace-change-fix.patch
+thermal-add-generic-cpufreq-cooling-implementation.patch
+thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
+thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
+hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
+coredump-warn-about-unsafe-suid_dumpable-core_pattern-combo.patch
+mm.patch
+mm-make-vb_alloc-more-foolproof-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
+mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
+memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
+mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
+memcg-rename-config-variables.patch
+memcg-rename-config-variables-fix-fix.patch
+mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes.patch
+mm-have-order-0-compaction-start-off-where-it-left-v3-typo.patch
+memory-hotplug-fix-kswapd-looping-forever-problem-fix.patch
+mm-memcg-fix-compaction-migration-failing-due-to-memcg-limits-checkpatch-fixes.patch
+avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
+kernel-sysc-avoid-argv_freenull.patch
+kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
+printk-add-generic-functions-to-find-kern_level-headers-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
+lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch
+string-introduce-memweight-fix.patch
+drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes.patch
+drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded.patch
+hfsplus-get-rid-of-write_super-checkpatch-fixes.patch
+fs-ufs-re-arrange-the-code-a-bit-checkpatch-fixes.patch
+kernel-kmodc-document-call_usermodehelper_fns-a-bit.patch
+kmod-avoid-deadlock-from-recursive-kmod-call.patch
+fork-use-vma_pages-to-simplify-the-code-fix.patch
+revert-sched-fix-fork-error-path-to-not-crash.patch
+ipc-use-kconfig-options-for-__arch_want_ipc_parse_version.patch
+fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
+include-linux-aioh-cpp-c-conversions.patch
+fault-injection-add-selftests-for-cpu-and-memory-hotplug.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
