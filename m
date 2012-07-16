@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-further-prevent-oom-with-too-many-dirty-pages.patch added to -mm tree
-Date: Mon, 16 Jul 2012 14:06:35 -0700
-Message-ID: <20120716210636.813BC5C0050@hpza9.eem.corp.google.com>
+Subject: + mm-oom-reduce-dependency-on-tasklist_lock-fix.patch added to -mm tree
+Date: Mon, 16 Jul 2012 14:21:53 -0700
+Message-ID: <20120716212154.28D2620004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:50402 "EHLO
+Received: from mail-we0-f202.google.com ([74.125.82.202]:39173 "EHLO
 	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752291Ab2GPVGk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jul 2012 17:06:40 -0400
-Received: by weyr1 with SMTP id r1so328636wey.1
-        for <mm-commits@vger.kernel.org>; Mon, 16 Jul 2012 14:06:39 -0700 (PDT)
+	with ESMTP id S1751337Ab2GPVV5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jul 2012 17:21:57 -0400
+Received: by weyr1 with SMTP id r1so329084wey.1
+        for <mm-commits@vger.kernel.org>; Mon, 16 Jul 2012 14:21:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, david@fromorbit.com, fengguang.wu@intel.com, gthelen@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujtisu.com, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, riel@redhat.com, stable@vger.kernel.org, tytso@mit.edu, yinghan@google.com
+Cc: hughd@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, oleg@redhat.com, rientjes@google.com
 
 
 The patch titled
-     Subject: memcg: further prevent OOM with too many dirty pages
+     Subject: mm, oom: reduce dependency on tasklist_lock: fix
 has been added to the -mm tree.  Its filename is
-     memcg-further-prevent-oom-with-too-many-dirty-pages.patch
+     mm-oom-reduce-dependency-on-tasklist_lock-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,123 +34,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: memcg: further prevent OOM with too many dirty pages
+Subject: mm, oom: reduce dependency on tasklist_lock: fix
 
-The may_enter_fs test turns out to be too restrictive: though I saw no
-problem with it when testing on 3.5-rc6, it very soon OOMed when I tested
-on 3.5-rc6-mm1.  I don't know what the difference there is, perhaps I just
-slightly changed the way I started off the testing: dd if=/dev/zero
-of=/mnt/temp bs=1M count=1024; rm -f /mnt/temp; sync repeatedly, in 20M
-memory.limit_in_bytes cgroup to ext4 on USB stick.
+Slab poisoning gave me a General Protection Fault on the
+	atomic_dec(&__task_cred(p)->user->processes);
+line of release_task() called from wait_task_zombie(),
+every time my dd to USB testing generated a memcg OOM.
 
-ext4 (and gfs2 and xfs) turn out to allocate new pages for writing with
-AOP_FLAG_NOFS: that seems a little worrying, and it's unclear to me why
-the transaction needs to be started even before allocating pagecache
-memory.  But it may not be worth worrying about these days: if direct
-reclaim avoids FS writeback, does __GFP_FS now mean anything?
-
-Anyway, we insisted on the may_enter_fs test to avoid hangs with the loop
-device; but since that also masks off __GFP_IO, we can test for __GFP_IO
-directly, ignoring may_enter_fs and __GFP_FS.
-
-But even so, the test still OOMs sometimes: when originally testing on
-3.5-rc6, it OOMed about one time in five or ten; when testing just now on
-3.5-rc6-mm1, it OOMed on the first iteration.
-
-This residual problem comes from an accumulation of pages under ordinary
-writeback, not marked PageReclaim, so rightly not causing the memcg check
-to wait on their writeback: these too can prevent shrink_page_list() from
-freeing any pages, so many times that memcg reclaim fails and OOMs.
-
-Deal with these in the same way as direct reclaim now deals with dirty FS
-pages: mark them PageReclaim.  It is appropriate to rotate these to tail
-of list when writepage completes, but more importantly, the PageReclaim
-flag makes memcg reclaim wait on them if encountered again.  Increment
-NR_VMSCAN_IMMEDIATE?  That's arguable: I chose not.
-
-Setting PageReclaim here may occasionally race with end_page_writeback()
-clearing it: lru_deactivate_fn() already faced the same race, and
-correctly concluded that the window is small and the issue non-critical.
-
-With these changes, the test runs indefinitely without OOMing on ext4,
-ext3 and ext2: I'll move on to test with other filesystems later.
-
-Trivia: invert conditions for a clearer block without an else, and goto
-keep_locked to do the unlock_page.
+oom_kill_process() now does the put_task_struct(),
+mem_cgroup_out_of_memory() should not repeat it.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujtisu.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Ying Han <yinghan@google.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Fengguang Wu <fengguang.wu@intel.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: <stable@vger.kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   33 ++++++++++++++++++++++++---------
- 1 file changed, 24 insertions(+), 9 deletions(-)
+ mm/memcontrol.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/vmscan.c~memcg-further-prevent-oom-with-too-many-dirty-pages mm/vmscan.c
---- a/mm/vmscan.c~memcg-further-prevent-oom-with-too-many-dirty-pages
-+++ a/mm/vmscan.c
-@@ -723,23 +723,38 @@ static unsigned long shrink_page_list(st
- 			/*
- 			 * memcg doesn't have any dirty pages throttling so we
- 			 * could easily OOM just because too many pages are in
--			 * writeback from reclaim and there is nothing else to
--			 * reclaim.
-+			 * writeback and there is nothing else to reclaim.
- 			 *
--			 * Check may_enter_fs, certainly because a loop driver
-+			 * Check __GFP_IO, certainly because a loop driver
- 			 * thread might enter reclaim, and deadlock if it waits
- 			 * on a page for which it is needed to do the write
- 			 * (loop masks off __GFP_IO|__GFP_FS for this reason);
- 			 * but more thought would probably show more reasons.
-+			 *
-+			 * Don't require __GFP_FS, since we're not going into
-+			 * the FS, just waiting on its writeback completion.
-+			 * Worryingly, ext4 gfs2 and xfs allocate pages with
-+			 * grab_cache_page_write_begin(,,AOP_FLAG_NOFS), so
-+			 * testing may_enter_fs here is liable to OOM on them.
- 			 */
--			if (!global_reclaim(sc) && PageReclaim(page) &&
--					may_enter_fs)
--				wait_on_page_writeback(page);
--			else {
-+			if (global_reclaim(sc) ||
-+			    !PageReclaim(page) || !(sc->gfp_mask & __GFP_IO)) {
-+				/*
-+				 * This is slightly racy - end_page_writeback()
-+				 * might have just cleared PageReclaim, then
-+				 * setting PageReclaim here end up interpreted
-+				 * as PageReadahead - but that does not matter
-+				 * enough to care.  What we do want is for this
-+				 * page to have PageReclaim set next time memcg
-+				 * reclaim reaches the tests above, so it will
-+				 * then wait_on_page_writeback() to avoid OOM;
-+				 * and it's also appropriate in global reclaim.
-+				 */
-+				SetPageReclaim(page);
- 				nr_writeback++;
--				unlock_page(page);
--				goto keep;
-+				goto keep_locked;
- 			}
-+			wait_on_page_writeback(page);
- 		}
+diff -puN mm/memcontrol.c~mm-oom-reduce-dependency-on-tasklist_lock-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-oom-reduce-dependency-on-tasklist_lock-fix
++++ a/mm/memcontrol.c
+@@ -1523,7 +1523,6 @@ void __mem_cgroup_out_of_memory(struct m
+ 	points = chosen_points * 1000 / totalpages;
+ 	oom_kill_process(chosen, gfp_mask, order, points, totalpages, memcg,
+ 			 NULL, "Memory cgroup out of memory");
+-	put_task_struct(chosen);
+ }
  
- 		references = page_check_references(page, sc);
+ static unsigned long mem_cgroup_reclaim(struct mem_cgroup *memcg,
 _
-Subject: Subject: memcg: further prevent OOM with too many dirty pages
+Subject: Subject: mm, oom: reduce dependency on tasklist_lock: fix
 
 Patches currently in -mm which might be from hughd@google.com are
 
@@ -162,6 +81,7 @@ mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise.patch
 memcg-rename-config-variables.patch
 memcg-rename-config-variables-fix.patch
 memcg-rename-config-variables-fix-fix.patch
+mm-oom-reduce-dependency-on-tasklist_lock-fix.patch
 mm-memcg-fix-compaction-migration-failing-due-to-memcg-limits.patch
 mm-swapfile-clean-up-unuse_pte-race-handling.patch
 mm-memcg-push-down-pageswapcache-check-into-uncharge-entry-functions.patch
