@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + pps-return-ptr_err-on-error-in-device_create.patch added to -mm tree
-Date: Mon, 16 Jul 2012 14:32:41 -0700
-Message-ID: <20120716213242.81DF45C0050@hpza9.eem.corp.google.com>
+Subject: + lib-vsprintfc-kptr_restrict-fix-pk-error-in-sysrq-show-all-timersq.patch added to -mm tree
+Date: Mon, 16 Jul 2012 14:46:15 -0700
+Message-ID: <20120716214616.14C475C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:50735 "EHLO
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:45091 "EHLO
 	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754012Ab2GPVcp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jul 2012 17:32:45 -0400
-Received: by bkcjc3 with SMTP id jc3so328777bkc.1
-        for <mm-commits@vger.kernel.org>; Mon, 16 Jul 2012 14:32:43 -0700 (PDT)
+	with ESMTP id S1753346Ab2GPVqS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jul 2012 17:46:18 -0400
+Received: by bkcjc3 with SMTP id jc3so329041bkc.1
+        for <mm-commits@vger.kernel.org>; Mon, 16 Jul 2012 14:46:17 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: emilgoode@gmail.com, devendra.aaru@gmail.com, giometti@enneenne.com, lasaine@lvk.cs.msu.su
+Cc: drosenberg@vsecurity.com, dan.j.rosenberg@gmail.com, stable@vger.kernel.org, stevie.trujillo@gmail.com
 
 
 The patch titled
-     Subject: pps: return PTR_ERR on error in device_create
+     Subject: lib/vsprintf.c: kptr_restrict: fix pK-error in SysRq show-all-timers(Q)
 has been added to the -mm tree.  Its filename is
-     pps-return-ptr_err-on-error-in-device_create.patch
+     lib-vsprintfc-kptr_restrict-fix-pk-error-in-sysrq-show-all-timersq.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +33,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Emil Goode <emilgoode@gmail.com>
-Subject: pps: return PTR_ERR on error in device_create
+From: Dan Rosenberg <drosenberg@vsecurity.com>
+Subject: lib/vsprintf.c: kptr_restrict: fix pK-error in SysRq show-all-timers(Q)
 
-We should return PTR_ERR if the call to the device_create function fails. 
-Without this patch we instead return the value from a successful call to
-cdev_add if the call to device_create fails.
+When using ALT+SysRq+Q all the pointers are replaced with "pK-error" like
+this:
 
-Signed-off-by: Emil Goode <emilgoode@gmail.com>
-Acked-By: Devendra Naga <devendra.aaru@gmail.com>
-Cc: Alexander Gordeev <lasaine@lvk.cs.msu.su>
-Cc: Rodolfo Giometti <giometti@enneenne.com>
+	[23153.208033]   .base:               pK-error
+
+with echo h > /proc/sysrq-trigger it works:
+
+	[23107.776363]   .base:       ffff88023e60d540
+
+The intent behind this behavior was to return "pK-error" in cases where
+the %pK format specifier was used in interrupt context, because the
+CAP_SYSLOG check wouldn't be meaningful.  Clearly this should only apply
+when kptr_restrict is actually enabled though.
+
+Reported-by: Stevie Trujillo <stevie.trujillo@gmail.com>
+Signed-off-by: Dan Rosenberg <dan.j.rosenberg@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/pps.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ lib/vsprintf.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/pps/pps.c~pps-return-ptr_err-on-error-in-device_create drivers/pps/pps.c
---- a/drivers/pps/pps.c~pps-return-ptr_err-on-error-in-device_create
-+++ a/drivers/pps/pps.c
-@@ -327,8 +327,10 @@ int pps_register_cdev(struct pps_device 
- 	}
- 	pps->dev = device_create(pps_class, pps->info.dev, devt, pps,
- 							"pps%d", pps->id);
--	if (IS_ERR(pps->dev))
-+	if (IS_ERR(pps->dev)) {
-+		err = PTR_ERR(pps->dev);
- 		goto del_cdev;
-+	}
- 
- 	pps->dev->release = pps_device_destruct;
- 
+diff -puN lib/vsprintf.c~lib-vsprintfc-kptr_restrict-fix-pk-error-in-sysrq-show-all-timersq lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-vsprintfc-kptr_restrict-fix-pk-error-in-sysrq-show-all-timersq
++++ a/lib/vsprintf.c
+@@ -1045,7 +1045,8 @@ char *pointer(const char *fmt, char *buf
+ 		 * %pK cannot be used in IRQ context because its test
+ 		 * for CAP_SYSLOG would be meaningless.
+ 		 */
+-		if (in_irq() || in_serving_softirq() || in_nmi()) {
++		if (kptr_restrict && (in_irq() || in_serving_softirq() ||
++				      in_nmi())) {
+ 			if (spec.field_width == -1)
+ 				spec.field_width = default_width;
+ 			return string(buf, end, "pK-error", spec);
 _
-Subject: Subject: pps: return PTR_ERR on error in device_create
+Subject: Subject: lib/vsprintf.c: kptr_restrict: fix pK-error in SysRq show-all-timers(Q)
 
-Patches currently in -mm which might be from emilgoode@gmail.com are
+Patches currently in -mm which might be from drosenberg@vsecurity.com are
 
-linux-next.patch
-pps-return-ptr_err-on-error-in-device_create.patch
+lib-vsprintfc-kptr_restrict-fix-pk-error-in-sysrq-show-all-timersq.patch
 
