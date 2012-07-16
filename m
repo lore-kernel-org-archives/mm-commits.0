@@ -1,61 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-correct-return-value-of-migrate_pages.patch removed from -mm tree
-Date: Mon, 16 Jul 2012 13:14:00 -0700
-Message-ID: <20120716201400.74912100047@wpzn3.hot.corp.google.com>
+Subject: + memcg-further-prevent-oom-with-too-many-dirty-pages.patch added to -mm tree
+Date: Mon, 16 Jul 2012 14:06:35 -0700
+Message-ID: <20120716210636.813BC5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:64013 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752453Ab2GPUOB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jul 2012 16:14:01 -0400
-Received: by ghbz15 with SMTP id z15so594028ghb.1
-        for <mm-commits@vger.kernel.org>; Mon, 16 Jul 2012 13:14:00 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:50402 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752291Ab2GPVGk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Jul 2012 17:06:40 -0400
+Received: by weyr1 with SMTP id r1so328636wey.1
+        for <mm-commits@vger.kernel.org>; Mon, 16 Jul 2012 14:06:39 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: js1304@gmail.com, cl@linux.com, mel@csn.ul.ie, mina86@mina86.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: hughd@google.com, david@fromorbit.com, fengguang.wu@intel.com, gthelen@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujtisu.com, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, riel@redhat.com, stable@vger.kernel.org, tytso@mit.edu, yinghan@google.com
 
 
 The patch titled
-     Subject: mm: correct return value of migrate_pages()
-has been removed from the -mm tree.  Its filename was
-     mm-correct-return-value-of-migrate_pages.patch
+     Subject: memcg: further prevent OOM with too many dirty pages
+has been added to the -mm tree.  Its filename is
+     memcg-further-prevent-oom-with-too-many-dirty-pages.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <js1304@gmail.com>
-Subject: mm: correct return value of migrate_pages()
+From: Hugh Dickins <hughd@google.com>
+Subject: memcg: further prevent OOM with too many dirty pages
 
-migrate_pages() should return number of pages not migrated or error code.
-When unmap_and_move return -EAGAIN, outer loop is re-execution without
-initialising nr_failed. This makes nr_failed over-counted.
+The may_enter_fs test turns out to be too restrictive: though I saw no
+problem with it when testing on 3.5-rc6, it very soon OOMed when I tested
+on 3.5-rc6-mm1.  I don't know what the difference there is, perhaps I just
+slightly changed the way I started off the testing: dd if=/dev/zero
+of=/mnt/temp bs=1M count=1024; rm -f /mnt/temp; sync repeatedly, in 20M
+memory.limit_in_bytes cgroup to ext4 on USB stick.
 
-So this patch correct it by initialising nr_failed in outer loop.
+ext4 (and gfs2 and xfs) turn out to allocate new pages for writing with
+AOP_FLAG_NOFS: that seems a little worrying, and it's unclear to me why
+the transaction needs to be started even before allocating pagecache
+memory.  But it may not be worth worrying about these days: if direct
+reclaim avoids FS writeback, does __GFP_FS now mean anything?
 
-Signed-off-by: Joonsoo Kim <js1304@gmail.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Michal Nazarewicz <mina86@mina86.com>
+Anyway, we insisted on the may_enter_fs test to avoid hangs with the loop
+device; but since that also masks off __GFP_IO, we can test for __GFP_IO
+directly, ignoring may_enter_fs and __GFP_FS.
+
+But even so, the test still OOMs sometimes: when originally testing on
+3.5-rc6, it OOMed about one time in five or ten; when testing just now on
+3.5-rc6-mm1, it OOMed on the first iteration.
+
+This residual problem comes from an accumulation of pages under ordinary
+writeback, not marked PageReclaim, so rightly not causing the memcg check
+to wait on their writeback: these too can prevent shrink_page_list() from
+freeing any pages, so many times that memcg reclaim fails and OOMs.
+
+Deal with these in the same way as direct reclaim now deals with dirty FS
+pages: mark them PageReclaim.  It is appropriate to rotate these to tail
+of list when writepage completes, but more importantly, the PageReclaim
+flag makes memcg reclaim wait on them if encountered again.  Increment
+NR_VMSCAN_IMMEDIATE?  That's arguable: I chose not.
+
+Setting PageReclaim here may occasionally race with end_page_writeback()
+clearing it: lru_deactivate_fn() already faced the same race, and
+correctly concluded that the window is small and the issue non-critical.
+
+With these changes, the test runs indefinitely without OOMing on ext4,
+ext3 and ext2: I'll move on to test with other filesystems later.
+
+Trivia: invert conditions for a clearer block without an else, and goto
+keep_locked to do the unlock_page.
+
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujtisu.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Ying Han <yinghan@google.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Fengguang Wu <fengguang.wu@intel.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/vmscan.c |   33 ++++++++++++++++++++++++---------
+ 1 file changed, 24 insertions(+), 9 deletions(-)
 
-diff -puN mm/migrate.c~mm-correct-return-value-of-migrate_pages mm/migrate.c
---- a/mm/migrate.c~mm-correct-return-value-of-migrate_pages
-+++ a/mm/migrate.c
-@@ -1069,6 +1069,7 @@ int migrate_pages(struct list_head *from
+diff -puN mm/vmscan.c~memcg-further-prevent-oom-with-too-many-dirty-pages mm/vmscan.c
+--- a/mm/vmscan.c~memcg-further-prevent-oom-with-too-many-dirty-pages
++++ a/mm/vmscan.c
+@@ -723,23 +723,38 @@ static unsigned long shrink_page_list(st
+ 			/*
+ 			 * memcg doesn't have any dirty pages throttling so we
+ 			 * could easily OOM just because too many pages are in
+-			 * writeback from reclaim and there is nothing else to
+-			 * reclaim.
++			 * writeback and there is nothing else to reclaim.
+ 			 *
+-			 * Check may_enter_fs, certainly because a loop driver
++			 * Check __GFP_IO, certainly because a loop driver
+ 			 * thread might enter reclaim, and deadlock if it waits
+ 			 * on a page for which it is needed to do the write
+ 			 * (loop masks off __GFP_IO|__GFP_FS for this reason);
+ 			 * but more thought would probably show more reasons.
++			 *
++			 * Don't require __GFP_FS, since we're not going into
++			 * the FS, just waiting on its writeback completion.
++			 * Worryingly, ext4 gfs2 and xfs allocate pages with
++			 * grab_cache_page_write_begin(,,AOP_FLAG_NOFS), so
++			 * testing may_enter_fs here is liable to OOM on them.
+ 			 */
+-			if (!global_reclaim(sc) && PageReclaim(page) &&
+-					may_enter_fs)
+-				wait_on_page_writeback(page);
+-			else {
++			if (global_reclaim(sc) ||
++			    !PageReclaim(page) || !(sc->gfp_mask & __GFP_IO)) {
++				/*
++				 * This is slightly racy - end_page_writeback()
++				 * might have just cleared PageReclaim, then
++				 * setting PageReclaim here end up interpreted
++				 * as PageReadahead - but that does not matter
++				 * enough to care.  What we do want is for this
++				 * page to have PageReclaim set next time memcg
++				 * reclaim reaches the tests above, so it will
++				 * then wait_on_page_writeback() to avoid OOM;
++				 * and it's also appropriate in global reclaim.
++				 */
++				SetPageReclaim(page);
+ 				nr_writeback++;
+-				unlock_page(page);
+-				goto keep;
++				goto keep_locked;
+ 			}
++			wait_on_page_writeback(page);
+ 		}
  
- 	for(pass = 0; pass < 10 && retry; pass++) {
- 		retry = 0;
-+		nr_failed = 0;
- 
- 		list_for_each_entry_safe(page, page2, from, lru) {
- 			cond_resched();
+ 		references = page_check_references(page, sc);
 _
+Subject: Subject: memcg: further prevent OOM with too many dirty pages
 
-Patches currently in -mm which might be from js1304@gmail.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-linux-next.patch
+memcg-rename-mem_cgroup_stat_swapout-as-mem_cgroup_stat_swap.patch
+memcg-remove-mem_cgroup_charge_type_force.patch
+swap-allow-swap-readahead-to-be-merged.patch
+documentation-update-how-page-cluster-affects-swap-i-o.patch
+mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise.patch
+memcg-rename-config-variables.patch
+memcg-rename-config-variables-fix.patch
+memcg-rename-config-variables-fix-fix.patch
+mm-memcg-fix-compaction-migration-failing-due-to-memcg-limits.patch
+mm-swapfile-clean-up-unuse_pte-race-handling.patch
+mm-memcg-push-down-pageswapcache-check-into-uncharge-entry-functions.patch
+mm-memcg-only-check-for-pageswapcache-when-uncharging-anon.patch
+mm-memcg-move-swapin-charge-functions-above-callsites.patch
+mm-memcg-remove-unneeded-shmem-charge-type.patch
+mm-memcg-remove-needless-mm-fixup-to-init_mm-when-charging.patch
+mm-memcg-split-swapin-charge-function-into-private-and-public-part.patch
+mm-memcg-only-check-swap-cache-pages-for-repeated-charging.patch
+mm-memcg-only-check-anon-swapin-page-charges-for-swap-cache.patch
+memcg-prevent-oom-with-too-many-dirty-pages.patch
+memcg-further-prevent-oom-with-too-many-dirty-pages.patch
+shmem-provide-vm_ops-when-also-providing-a-mem-policy.patch
+tmpfs-interleave-the-starting-node-of-dev-shmem.patch
+prio_tree-debugging-patch.patch
 
