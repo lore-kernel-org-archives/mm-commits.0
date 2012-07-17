@@ -1,72 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-scsi-ufs-reverse-the-ufshcd_is_device_present-logic.patch removed from -mm tree
-Date: Tue, 17 Jul 2012 13:04:12 -0700
-Message-ID: <20120717200412.AC7601E0043@wpzn4.hot.corp.google.com>
+Subject: [merged] ufs-fix-incorrect-return-value-about-success-and-failed.patch removed from -mm tree
+Date: Tue, 17 Jul 2012 13:04:15 -0700
+Message-ID: <20120717200416.2F1435C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:37106 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755145Ab2GQUEN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jul 2012 16:04:13 -0400
-Received: by ggeh3 with SMTP id h3so82259gge.1
-        for <mm-commits@vger.kernel.org>; Tue, 17 Jul 2012 13:04:13 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:57501 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756542Ab2GQUES (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jul 2012 16:04:18 -0400
+Received: by eekb47 with SMTP id b47so48473eek.1
+        for <mm-commits@vger.kernel.org>; Tue, 17 Jul 2012 13:04:17 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: svenkatr@ti.com, James.Bottomley@HansenPartnership.com, linkinjeon@gmail.com, santoshsy@gmail.com, mm-commits@vger.kernel.org
+To: linkinjeon@gmail.com, James.Bottomley@HansenPartnership.com, santoshsy@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/scsi/ufs: reverse the ufshcd_is_device_present logic
+     Subject: drivers/scsi/ufs: fix incorrect return value about SUCCESS and FAILED
 has been removed from the -mm tree.  Its filename was
-     drivers-scsi-ufs-reverse-the-ufshcd_is_device_present-logic.patch
+     ufs-fix-incorrect-return-value-about-success-and-failed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Venkatraman S <svenkatr@ti.com>
-Subject: drivers/scsi/ufs: reverse the ufshcd_is_device_present logic
+From: Namjae Jeon <linkinjeon@gmail.com>
+Subject: drivers/scsi/ufs: fix incorrect return value about SUCCESS and FAILED
 
-Otherwise it counter intuitively returns 0 if device is present.
+Currently the UFS host driver has returned incorrect values for SUCCESS
+and FAILED.  Fix it to return the correct value to the upper layer.
 
-Signed-off-by: Venkatraman S <svenkatr@ti.com>
-Reviewed-by: Namjae Jeon <linkinjeon@gmail.com>
+Signed-off-by: Namjae Jeon <linkinjeon@gmail.com>
 Acked-by: Santosh Y <santoshsy@gmail.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ufs/ufshcd.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/scsi/ufs/ufshcd.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/scsi/ufs/ufshcd.c~drivers-scsi-ufs-reverse-the-ufshcd_is_device_present-logic drivers/scsi/ufs/ufshcd.c
---- a/drivers/scsi/ufs/ufshcd.c~drivers-scsi-ufs-reverse-the-ufshcd_is_device_present-logic
+diff -puN drivers/scsi/ufs/ufshcd.c~ufs-fix-incorrect-return-value-about-success-and-failed drivers/scsi/ufs/ufshcd.c
+--- a/drivers/scsi/ufs/ufshcd.c~ufs-fix-incorrect-return-value-about-success-and-failed
 +++ a/drivers/scsi/ufs/ufshcd.c
-@@ -232,11 +232,11 @@ static inline u32 ufshcd_get_ufs_version
-  *			      the host controller
-  * @reg_hcs - host controller status register value
-  *
-- * Returns 0 if device present, non-zero if no device detected
-+ * Returns 1 if device present, 0 if no device detected
-  */
- static inline int ufshcd_is_device_present(u32 reg_hcs)
- {
--	return (DEVICE_PRESENT & reg_hcs) ? 0 : -1;
-+	return (DEVICE_PRESENT & reg_hcs) ? 1 : 0;
+@@ -1163,6 +1163,8 @@ static int ufshcd_task_req_compl(struct 
+ 		if (task_result != UPIU_TASK_MANAGEMENT_FUNC_COMPL &&
+ 		    task_result != UPIU_TASK_MANAGEMENT_FUNC_SUCCEEDED)
+ 			task_result = FAILED;
++		else
++			task_result = SUCCESS;
+ 	} else {
+ 		task_result = FAILED;
+ 		dev_err(&hba->pdev->dev,
+@@ -1556,7 +1558,7 @@ ufshcd_issue_tm_cmd(struct ufs_hba *hba,
+ 		goto out;
+ 	}
+ 	clear_bit(free_slot, &hba->tm_condition);
+-	return ufshcd_task_req_compl(hba, free_slot);
++	err = ufshcd_task_req_compl(hba, free_slot);
+ out:
+ 	return err;
+ }
+@@ -1580,7 +1582,7 @@ static int ufshcd_device_reset(struct sc
+ 	tag = cmd->request->tag;
+ 
+ 	err = ufshcd_issue_tm_cmd(hba, &hba->lrb[tag], UFS_LOGICAL_RESET);
+-	if (err)
++	if (err == FAILED)
+ 		goto out;
+ 
+ 	for (pos = 0; pos < hba->nutrs; pos++) {
+@@ -1620,7 +1622,7 @@ static int ufshcd_host_reset(struct scsi
+ 	if (hba->ufshcd_state == UFSHCD_STATE_RESET)
+ 		return SUCCESS;
+ 
+-	return (ufshcd_do_reset(hba) == SUCCESS) ? SUCCESS : FAILED;
++	return ufshcd_do_reset(hba);
  }
  
  /**
-@@ -911,7 +911,7 @@ static int ufshcd_make_hba_operational(s
+@@ -1652,7 +1654,7 @@ static int ufshcd_abort(struct scsi_cmnd
+ 	spin_unlock_irqrestore(host->host_lock, flags);
  
- 	/* check if device present */
- 	reg = readl((hba->mmio_base + REG_CONTROLLER_STATUS));
--	if (ufshcd_is_device_present(reg)) {
-+	if (!ufshcd_is_device_present(reg)) {
- 		dev_err(&hba->pdev->dev, "cc: Device not present\n");
- 		err = -ENXIO;
+ 	err = ufshcd_issue_tm_cmd(hba, &hba->lrb[tag], UFS_ABORT_TASK);
+-	if (err)
++	if (err == FAILED)
  		goto out;
+ 
+ 	scsi_dma_unmap(cmd);
 _
 
-Patches currently in -mm which might be from svenkatr@ti.com are
+Patches currently in -mm which might be from linkinjeon@gmail.com are
 
 linux-next.patch
+hfsplus-use-enomem-when-kzalloc-fails.patch
 
