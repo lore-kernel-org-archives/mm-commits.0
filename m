@@ -1,44 +1,44 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 17 Jul 2012 13:04:38 -0700
-Message-ID: <20120717200438.D6B891E0043@wpzn4.hot.corp.google.com>
+Subject: [merged] hfsplus-get-rid-of-write_super-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 17 Jul 2012 13:04:57 -0700
+Message-ID: <20120717200458.394465C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:40804 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756552Ab2GQUEk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jul 2012 16:04:40 -0400
-Received: by vcqp1 with SMTP id p1so82006vcq.1
-        for <mm-commits@vger.kernel.org>; Tue, 17 Jul 2012 13:04:39 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:57501 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756551Ab2GQUE7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Jul 2012 16:04:59 -0400
+Received: by mail-ee0-f74.google.com with SMTP id b47so48473eek.1
+        for <mm-commits@vger.kernel.org>; Tue, 17 Jul 2012 13:04:59 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, artem.bityutskiy@linux.intel.com, hch@lst.de, jack@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, artem.bityutskiy@linux.intel.com, hch@lst.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hfs-get-rid-of-hfs_sync_super-checkpatch-fixes
+     Subject: hfsplus-get-rid-of-write_super-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     hfs-get-rid-of-hfs_sync_super-checkpatch-fixes.patch
+     hfsplus-get-rid-of-write_super-checkpatch-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hfs-get-rid-of-hfs_sync_super-checkpatch-fixes
+Subject: hfsplus-get-rid-of-write_super-checkpatch-fixes
 
 WARNING: suspect code indent for conditional statements (8, 15)
-#212: FILE: fs/hfs/super.c:73:
+#168: FILE: fs/hfsplus/super.c:247:
 +	if (sb->s_flags & MS_RDONLY)
 +	       return;
 
 WARNING: suspect code indent for conditional statements (8, 15)
-#216: FILE: fs/hfs/super.c:77:
+#172: FILE: fs/hfsplus/super.c:251:
 +	if (!sbi->work_queued) {
 +	       delay = msecs_to_jiffies(dirty_writeback_interval * 10);
 
-total: 0 errors, 2 warnings, 181 lines checked
+total: 0 errors, 2 warnings, 145 lines checked
 
-./patches/hfs-get-rid-of-hfs_sync_super.patch has style problems, please review.
+./patches/hfsplus-get-rid-of-write_super.patch has style problems, please review.
 
 If any of these errors are false positives, please report
 them to the maintainer, see CHECKPATCH in MAINTAINERS.
@@ -48,17 +48,16 @@ Please run checkpatch prior to sending patches
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfs/super.c |    8 ++++----
+ fs/hfsplus/super.c |    8 ++++----
  1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/hfs/super.c~hfs-get-rid-of-hfs_sync_super-checkpatch-fixes fs/hfs/super.c
---- a/fs/hfs/super.c~hfs-get-rid-of-hfs_sync_super-checkpatch-fixes
-+++ a/fs/hfs/super.c
-@@ -71,13 +71,13 @@ void hfs_mark_mdb_dirty(struct super_blo
+diff -puN fs/hfsplus/super.c~hfsplus-get-rid-of-write_super-checkpatch-fixes fs/hfsplus/super.c
+--- a/fs/hfsplus/super.c~hfsplus-get-rid-of-write_super-checkpatch-fixes
++++ a/fs/hfsplus/super.c
+@@ -245,13 +245,13 @@ void hfsplus_mark_mdb_dirty(struct super
  	unsigned long delay;
  
  	if (sb->s_flags & MS_RDONLY)
@@ -68,10 +67,10 @@ diff -puN fs/hfs/super.c~hfs-get-rid-of-hfs_sync_super-checkpatch-fixes fs/hfs/s
  	spin_lock(&sbi->work_lock);
  	if (!sbi->work_queued) {
 -	       delay = msecs_to_jiffies(dirty_writeback_interval * 10);
--	       queue_delayed_work(system_long_wq, &sbi->mdb_work, delay);
+-	       queue_delayed_work(system_long_wq, &sbi->sync_work, delay);
 -	       sbi->work_queued = 1;
 +		delay = msecs_to_jiffies(dirty_writeback_interval * 10);
-+		queue_delayed_work(system_long_wq, &sbi->mdb_work, delay);
++		queue_delayed_work(system_long_wq, &sbi->sync_work, delay);
 +		sbi->work_queued = 1;
  	}
  	spin_unlock(&sbi->work_lock);
