@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-88pm80x-assign-ret-only-when-rtc_register_driver-fails.patch added to -mm tree
-Date: Wed, 18 Jul 2012 13:57:14 -0700
-Message-ID: <20120718205715.8F5DA5C0060@hpza9.eem.corp.google.com>
+Subject: + rtc-rtc-88pm80x-remove-unneed-devm_kfree.patch added to -mm tree
+Date: Wed, 18 Jul 2012 13:57:18 -0700
+Message-ID: <20120718205719.BEA1A20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:57955 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750764Ab2GRU5S (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jul 2012 16:57:18 -0400
-Received: by weyr1 with SMTP id r1so106998wey.1
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jul 2012 13:57:16 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:42990 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750764Ab2GRU5W (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jul 2012 16:57:22 -0400
+Received: by eaao13 with SMTP id o13so107364eaa.1
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jul 2012 13:57:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: devendra.aaru@gmail.com, a.zummo@towertech.it, ashish.jangam@kpitcummins.com
 
 
 The patch titled
-     Subject: rtc/rtc-88pm80x: assign ret only when rtc_register_driver fails
+     Subject: rtc/rtc-88pm80x: remove unneed devm_kfree
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-88pm80x-assign-ret-only-when-rtc_register_driver-fails.patch
+     rtc-rtc-88pm80x-remove-unneed-devm_kfree.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Devendra Naga <devendra.aaru@gmail.com>
-Subject: rtc/rtc-88pm80x: assign ret only when rtc_register_driver fails
+Subject: rtc/rtc-88pm80x: remove unneed devm_kfree
 
-At the probe we are assigning ret to return value of PTR_ERR right after
-the rtc_register_drive()r, as we would have done it in the if
-(IS_ERR(ptr)) check, since the function fails and goes inside that case
+devm_kzalloc() doesn't need a matching devm_kfree(), the freeing mechanism
+will trigger when driver unloads.
 
 Signed-off-by: Devendra Naga <devendra.aaru@gmail.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
@@ -47,24 +46,30 @@ Cc: David Dajun Chen <dchen@diasemi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-88pm80x.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-88pm80x.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-88pm80x.c~rtc-rtc-88pm80x-assign-ret-only-when-rtc_register_driver-fails drivers/rtc/rtc-88pm80x.c
---- a/drivers/rtc/rtc-88pm80x.c~rtc-rtc-88pm80x-assign-ret-only-when-rtc_register_driver-fails
+diff -puN drivers/rtc/rtc-88pm80x.c~rtc-rtc-88pm80x-remove-unneed-devm_kfree drivers/rtc/rtc-88pm80x.c
+--- a/drivers/rtc/rtc-88pm80x.c~rtc-rtc-88pm80x-remove-unneed-devm_kfree
 +++ a/drivers/rtc/rtc-88pm80x.c
-@@ -314,8 +314,8 @@ static int __devinit pm80x_rtc_probe(str
+@@ -339,7 +339,6 @@ static int __devinit pm80x_rtc_probe(str
+ out_rtc:
+ 	pm80x_free_irq(chip, info->irq, info);
+ out:
+-	devm_kfree(&pdev->dev, info);
+ 	return ret;
+ }
  
- 	info->rtc_dev = rtc_device_register("88pm80x-rtc", &pdev->dev,
- 					    &pm80x_rtc_ops, THIS_MODULE);
--	ret = PTR_ERR(info->rtc_dev);
- 	if (IS_ERR(info->rtc_dev)) {
-+		ret = PTR_ERR(info->rtc_dev);
- 		dev_err(&pdev->dev, "Failed to register RTC device: %d\n", ret);
- 		goto out_rtc;
- 	}
+@@ -349,7 +348,6 @@ static int __devexit pm80x_rtc_remove(st
+ 	platform_set_drvdata(pdev, NULL);
+ 	rtc_device_unregister(info->rtc_dev);
+ 	pm80x_free_irq(info->chip, info->irq, info);
+-	devm_kfree(&pdev->dev, info);
+ 	return 0;
+ }
+ 
 _
-Subject: Subject: rtc/rtc-88pm80x: assign ret only when rtc_register_driver fails
+Subject: Subject: rtc/rtc-88pm80x: remove unneed devm_kfree
 
 Patches currently in -mm which might be from devendra.aaru@gmail.com are
 
