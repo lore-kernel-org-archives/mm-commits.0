@@ -1,22 +1,22 @@
 From: akpm@linux-foundation.org
 Subject: + rbtree-move-some-implementation-details-from-rbtreeh-to-rbtreec-fix.patch added to -mm tree
-Date: Wed, 18 Jul 2012 14:03:08 -0700
-Message-ID: <20120718210308.989E11E0048@wpzn4.hot.corp.google.com>
+Date: Wed, 18 Jul 2012 14:03:24 -0700
+Message-ID: <20120718210325.B287D20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:55840 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752226Ab2GRVDK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jul 2012 17:03:10 -0400
-Received: by ggeh3 with SMTP id h3so217822gge.1
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jul 2012 14:03:09 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:55136 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752247Ab2GRVD1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jul 2012 17:03:27 -0400
+Received: by wibhr14 with SMTP id hr14so108537wib.1
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jul 2012 14:03:26 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dwmw2@infradead.org, David.Woodhouse@intel.com
+Cc: dwmw2@infradead.org, David.Woodhouse@intel.com, walken@google.com
 
 
 The patch titled
