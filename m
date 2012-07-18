@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-cgroup-simplify-pre_destroy-callback-fix.patch added to -mm tree
-Date: Wed, 18 Jul 2012 14:27:34 -0700
-Message-ID: <20120718212734.92753100047@wpzn3.hot.corp.google.com>
+Subject: + memcg-add-mem_cgroup_from_css-helper.patch added to -mm tree
+Date: Wed, 18 Jul 2012 14:36:18 -0700
+Message-ID: <20120718213619.21ABA5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:46040 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750966Ab2GRV1f (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jul 2012 17:27:35 -0400
-Received: by qabg24 with SMTP id g24so226010qab.1
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jul 2012 14:27:35 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:54640 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753488Ab2GRVgW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jul 2012 17:36:22 -0400
+Received: by wgbdt11 with SMTP id dt11so98800wgb.1
+        for <mm-commits@vger.kernel.org>; Wed, 18 Jul 2012 14:36:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com
+Cc: liwanp@linux.vnet.ibm.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, shangw@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: hugetlb-cgroup-simplify-pre_destroy-callback-fix
+     Subject: memcg: add mem_cgroup_from_css() helper
 has been added to the -mm tree.  Its filename is
-     hugetlb-cgroup-simplify-pre_destroy-callback-fix.patch
+     memcg-add-mem_cgroup_from_css-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,88 +33,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hugetlb-cgroup-simplify-pre_destroy-callback-fix
+From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Subject: memcg: add mem_cgroup_from_css() helper
 
-remove a couple of unneeded newlines
+Add a mem_cgroup_from_css() helper to replace open-coded invokations of
+container_of().  To clarify the code and to add a little more type safety.
 
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Gavin Shan <shangw@linux.vnet.ibm.com>
+Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_cgroup.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/memcontrol.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN mm/hugetlb_cgroup.c~hugetlb-cgroup-simplify-pre_destroy-callback-fix mm/hugetlb_cgroup.c
---- a/mm/hugetlb_cgroup.c~hugetlb-cgroup-simplify-pre_destroy-callback-fix
-+++ a/mm/hugetlb_cgroup.c
-@@ -150,9 +150,7 @@ static int hugetlb_cgroup_pre_destroy(st
- 	int ret = 0, idx;
- 	struct hugetlb_cgroup *h_cg = hugetlb_cgroup_from_cgroup(cgroup);
+diff -puN mm/memcontrol.c~memcg-add-mem_cgroup_from_css-helper mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-mem_cgroup_from_css-helper
++++ a/mm/memcontrol.c
+@@ -410,6 +410,12 @@ static void mem_cgroup_put(struct mem_cg
+ #include <net/sock.h>
+ #include <net/ip.h>
  
--
--	if (cgroup_task_count(cgroup) ||
--	    !list_empty(&cgroup->children)) {
-+	if (cgroup_task_count(cgroup) || !list_empty(&cgroup->children)) {
- 		ret = -EBUSY;
- 		goto out;
- 	}
++static inline
++struct mem_cgroup *mem_cgroup_from_css(struct cgroup_subsys_state *s)
++{
++	return container_of(s, struct mem_cgroup, css);
++}
++
+ static bool mem_cgroup_is_root(struct mem_cgroup *memcg);
+ void sock_update_memcg(struct sock *sk)
+ {
+@@ -862,7 +868,7 @@ static void memcg_check_events(struct me
+ 
+ struct mem_cgroup *mem_cgroup_from_cont(struct cgroup *cont)
+ {
+-	return container_of(cgroup_subsys_state(cont,
++	return mem_cgroup_from_css(cgroup_subsys_state(cont,
+ 				mem_cgroup_subsys_id), struct mem_cgroup,
+ 				css);
+ }
+@@ -877,7 +883,7 @@ struct mem_cgroup *mem_cgroup_from_task(
+ 	if (unlikely(!p))
+ 		return NULL;
+ 
+-	return container_of(task_subsys_state(p, mem_cgroup_subsys_id),
++	return mem_cgroup_from_css(task_subsys_state(p, mem_cgroup_subsys_id),
+ 				struct mem_cgroup, css);
+ }
+ 
+@@ -964,7 +970,7 @@ struct mem_cgroup *mem_cgroup_iter(struc
+ 		css = css_get_next(&mem_cgroup_subsys, id + 1, &root->css, &id);
+ 		if (css) {
+ 			if (css == &root->css || css_tryget(css))
+-				memcg = container_of(css,
++				memcg = mem_cgroup_from_css(css,
+ 						     struct mem_cgroup, css);
+ 		} else
+ 			id = 0;
+@@ -2494,7 +2500,7 @@ static struct mem_cgroup *mem_cgroup_loo
+ 	css = css_lookup(&mem_cgroup_subsys, id);
+ 	if (!css)
+ 		return NULL;
+-	return container_of(css, struct mem_cgroup, css);
++	return mem_cgroup_from_css(css, struct mem_cgroup, css);
+ }
+ 
+ struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page)
 _
-Subject: Subject: hugetlb-cgroup-simplify-pre_destroy-callback-fix
+Subject: Subject: memcg: add mem_cgroup_from_css() helper
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
 
-origin.patch
-linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
-sysfs-fail-dentry-revalidation-after-namespace-change-fix.patch
-thermal-add-generic-cpufreq-cooling-implementation.patch
-thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
-thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
-coredump-warn-about-unsafe-suid_dumpable-core_pattern-combo.patch
-mm.patch
-mm-make-vb_alloc-more-foolproof-fix.patch
-mm-hugetlb-add-new-hugetlb-cgroup-fix.patch
-mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch
-hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
-hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
-hugetlb-cgroup-simplify-pre_destroy-callback-fix.patch
-mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
-memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
-mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
-memcg-rename-config-variables.patch
-memcg-rename-config-variables-fix-fix.patch
-mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes.patch
-mm-have-order-0-compaction-start-off-where-it-left-v3-typo.patch
-memory-hotplug-fix-kswapd-looping-forever-problem-fix.patch
-memory-hotplug-fix-kswapd-looping-forever-problem-fix-fix.patch
-mm-memcg-fix-compaction-migration-failing-due-to-memcg-limits-checkpatch-fixes.patch
-memcg-prevent-oom-with-too-many-dirty-pages.patch
-avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
-kernel-sysc-avoid-argv_freenull.patch
-kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
-printk-add-generic-functions-to-find-kern_level-headers-fix.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
-lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch
-string-introduce-memweight-fix.patch
-drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes.patch
-drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded.patch
-kernel-kmodc-document-call_usermodehelper_fns-a-bit.patch
-kmod-avoid-deadlock-from-recursive-kmod-call.patch
-fork-use-vma_pages-to-simplify-the-code-fix.patch
-revert-sched-fix-fork-error-path-to-not-crash.patch
-ipc-use-kconfig-options-for-__arch_want_ipc_parse_version.patch
-fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
-include-linux-aioh-cpp-c-conversions.patch
-fault-injection-add-selftests-for-cpu-and-memory-hotplug.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+hugetlb-cgroup-simplify-pre_destroy-callback.patch
+memcg-add-mem_cgroup_from_css-helper.patch
 
