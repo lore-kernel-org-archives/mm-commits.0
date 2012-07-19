@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-wrong-argument-of-migrate_huge_pages-in-soft_offline_huge_page.patch added to -mm tree
-Date: Wed, 18 Jul 2012 15:15:00 -0700
-Message-ID: <20120718221501.1B4B320004E@hpza10.eem.corp.google.com>
+Subject: + nilfs2-add-omitted-comments-for-structures-in-nilfs2_fsh.patch added to -mm tree
+Date: Thu, 19 Jul 2012 14:14:50 -0700
+Message-ID: <20120719211451.F0CA31E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:33401 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752043Ab2GRWPE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Jul 2012 18:15:04 -0400
-Received: by lbbgp10 with SMTP id gp10so114070lbb.1
-        for <mm-commits@vger.kernel.org>; Wed, 18 Jul 2012 15:15:02 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:60487 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751966Ab2GSVOy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Jul 2012 17:14:54 -0400
+Received: by yhl10 with SMTP id 10so365640yhl.1
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jul 2012 14:14:53 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: js1304@gmail.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, mgorman@suse.de, rientjes@google.com
+Cc: slava@dubeyko.com, konishi.ryusuke@lab.ntt.co.jp
 
 
 The patch titled
-     Subject: mm: fix wrong argument of migrate_huge_pages() in soft_offline_huge_page()
+     Subject: nilfs2: add omitted comments for structures in nilfs2_fs.h
 has been added to the -mm tree.  Its filename is
-     mm-fix-wrong-argument-of-migrate_huge_pages-in-soft_offline_huge_page.patch
+     nilfs2-add-omitted-comments-for-structures-in-nilfs2_fsh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,57 +33,168 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <js1304@gmail.com>
-Subject: mm: fix wrong argument of migrate_huge_pages() in soft_offline_huge_page()
+From: Vyacheslav Dubeyko <slava@dubeyko.com>
+Subject: nilfs2: add omitted comments for structures in nilfs2_fs.h
 
-a6bc32b899223 ("mm: compaction: introduce sync-light migration for use by
-compaction") changed the declaration of migrate_pages() and
-migrate_huge_pages().  But it missed changing the argument of
-migrate_huge_pages() in soft_offline_huge_page().  In this case, we should
-call migrate_huge_pages() with MIGRATE_SYNC.
+Add omitted comments for structures in nilfs2_fs.h.
 
-Additionally, there is a mismatch between type the of argument and the
-function declaration for migrate_pages().
-
-Signed-off-by: Joonsoo Kim <js1304@gmail.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/nilfs2_fs.h |   63 ++++++++++++++++++++++--------------
+ 1 file changed, 39 insertions(+), 24 deletions(-)
 
-diff -puN mm/memory-failure.c~mm-fix-wrong-argument-of-migrate_huge_pages-in-soft_offline_huge_page mm/memory-failure.c
---- a/mm/memory-failure.c~mm-fix-wrong-argument-of-migrate_huge_pages-in-soft_offline_huge_page
-+++ a/mm/memory-failure.c
-@@ -1433,8 +1433,8 @@ static int soft_offline_huge_page(struct
- 	/* Keep page count to indicate a given hugepage is isolated. */
+diff -puN include/linux/nilfs2_fs.h~nilfs2-add-omitted-comments-for-structures-in-nilfs2_fsh include/linux/nilfs2_fs.h
+--- a/include/linux/nilfs2_fs.h~nilfs2-add-omitted-comments-for-structures-in-nilfs2_fsh
++++ a/include/linux/nilfs2_fs.h
+@@ -293,7 +293,7 @@ struct nilfs_dir_entry {
+ 	__le64	inode;			/* Inode number */
+ 	__le16	rec_len;		/* Directory entry length */
+ 	__u8	name_len;		/* Name length */
+-	__u8	file_type;
++	__u8	file_type;		/* Dir entry type (file, dir, etc) */
+ 	char	name[NILFS_NAME_LEN];	/* File name */
+ 	char    pad;
+ };
+@@ -395,7 +395,7 @@ union nilfs_binfo {
+ };
  
- 	list_add(&hpage->lru, &pagelist);
--	ret = migrate_huge_pages(&pagelist, new_page, MPOL_MF_MOVE_ALL, 0,
--				true);
-+	ret = migrate_huge_pages(&pagelist, new_page, MPOL_MF_MOVE_ALL, false,
-+				MIGRATE_SYNC);
- 	if (ret) {
- 		struct page *page1, *page2;
- 		list_for_each_entry_safe(page1, page2, &pagelist, lru)
-@@ -1563,7 +1563,7 @@ int soft_offline_page(struct page *page,
- 					    page_is_file_cache(page));
- 		list_add(&page->lru, &pagelist);
- 		ret = migrate_pages(&pagelist, new_page, MPOL_MF_MOVE_ALL,
--							0, MIGRATE_SYNC);
-+							false, MIGRATE_SYNC);
- 		if (ret) {
- 			putback_lru_pages(&pagelist);
- 			pr_info("soft offline: %#lx: migration failed %d, type %lx\n",
+ /**
+- * struct nilfs_segment_summary - segment summary
++ * struct nilfs_segment_summary - segment summary header
+  * @ss_datasum: checksum of data
+  * @ss_sumsum: checksum of segment summary
+  * @ss_magic: magic number
+@@ -683,9 +683,9 @@ struct nilfs_sufile_header {
+ 
+ /**
+  * nilfs_suinfo - segment usage information
+- * @sui_lastmod:
+- * @sui_nblocks:
+- * @sui_flags:
++ * @sui_lastmod: timestamp of last modification
++ * @sui_nblocks: number of written blocks in segment
++ * @sui_flags: segment usage flags
+  */
+ struct nilfs_suinfo {
+ 	__u64 sui_lastmod;
+@@ -716,9 +716,10 @@ enum {
+ };
+ 
+ /**
+- * struct nilfs_cpmode -
+- * @cc_cno:
+- * @cc_mode:
++ * struct nilfs_cpmode - change checkpoint mode structure
++ * @cm_cno: checkpoint number
++ * @cm_mode: mode of checkpoint
++ * @cm_pad: padding
+  */
+ struct nilfs_cpmode {
+ 	__u64 cm_cno;
+@@ -728,11 +729,11 @@ struct nilfs_cpmode {
+ 
+ /**
+  * struct nilfs_argv - argument vector
+- * @v_base:
+- * @v_nmembs:
+- * @v_size:
+- * @v_flags:
+- * @v_index:
++ * @v_base: pointer on data array from userspace
++ * @v_nmembs: number of members in data array
++ * @v_size: size of data array in bytes
++ * @v_flags: flags
++ * @v_index: start number of target data items
+  */
+ struct nilfs_argv {
+ 	__u64 v_base;
+@@ -743,9 +744,9 @@ struct nilfs_argv {
+ };
+ 
+ /**
+- * struct nilfs_period -
+- * @p_start:
+- * @p_end:
++ * struct nilfs_period - period of checkpoint numbers
++ * @p_start: start checkpoint number (inclusive)
++ * @p_end: end checkpoint number (exclusive)
+  */
+ struct nilfs_period {
+ 	__u64 p_start;
+@@ -753,7 +754,7 @@ struct nilfs_period {
+ };
+ 
+ /**
+- * struct nilfs_cpstat -
++ * struct nilfs_cpstat - checkpoint statistics
+  * @cs_cno: checkpoint number
+  * @cs_ncps: number of checkpoints
+  * @cs_nsss: number of snapshots
+@@ -765,7 +766,7 @@ struct nilfs_cpstat {
+ };
+ 
+ /**
+- * struct nilfs_sustat -
++ * struct nilfs_sustat - segment usage statistics
+  * @ss_nsegs: number of segments
+  * @ss_ncleansegs: number of clean segments
+  * @ss_ndirtysegs: number of dirty segments
+@@ -784,10 +785,10 @@ struct nilfs_sustat {
+ 
+ /**
+  * struct nilfs_vinfo - virtual block number information
+- * @vi_vblocknr:
+- * @vi_start:
+- * @vi_end:
+- * @vi_blocknr:
++ * @vi_vblocknr: virtual block number
++ * @vi_start: start checkpoint number (inclusive)
++ * @vi_end: end checkpoint number (exclusive)
++ * @vi_blocknr: disk block number
+  */
+ struct nilfs_vinfo {
+ 	__u64 vi_vblocknr;
+@@ -797,7 +798,15 @@ struct nilfs_vinfo {
+ };
+ 
+ /**
+- * struct nilfs_vdesc -
++ * struct nilfs_vdesc - descriptor of virtual block number
++ * @vd_ino: inode number
++ * @vd_cno: checkpoint number
++ * @vd_vblocknr: virtual block number
++ * @vd_period: period of checkpoint numbers
++ * @vd_blocknr: disk block number
++ * @vd_offset: logical block offset inside a file
++ * @vd_flags: flags (data or node block)
++ * @vd_pad: padding
+  */
+ struct nilfs_vdesc {
+ 	__u64 vd_ino;
+@@ -811,7 +820,13 @@ struct nilfs_vdesc {
+ };
+ 
+ /**
+- * struct nilfs_bdesc -
++ * struct nilfs_bdesc - descriptor of disk block number
++ * @bd_ino: inode number
++ * @bd_oblocknr: disk block address (for skipping dead blocks)
++ * @bd_blocknr: disk block address
++ * @bd_offset: logical block offset inside a file
++ * @bd_level: level in the b-tree organization
++ * @bd_pad: padding
+  */
+ struct nilfs_bdesc {
+ 	__u64 bd_ino;
 _
-Subject: Subject: mm: fix wrong argument of migrate_huge_pages() in soft_offline_huge_page()
+Subject: Subject: nilfs2: add omitted comments for structures in nilfs2_fs.h
 
-Patches currently in -mm which might be from js1304@gmail.com are
+Patches currently in -mm which might be from slava@dubeyko.com are
 
-linux-next.patch
-mm-fix-wrong-argument-of-migrate_huge_pages-in-soft_offline_huge_page.patch
+nilfs2-add-omitted-comment-for-ns_mount_state-field-of-the_nilfs-structure.patch
+nilfs2-add-omitted-comments-for-structures-in-nilfs2_fsh.patch
+nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation.patch
 
