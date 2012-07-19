@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix.patch added to -mm tree
-Date: Thu, 19 Jul 2012 15:11:46 -0700
-Message-ID: <20120719225844.221465C00A7@hpza9.eem.corp.google.com>
+Subject: + drivers-base-ddc-debork.patch added to -mm tree
+Date: Thu, 19 Jul 2012 15:40:16 -0700
+Message-ID: <20120719232701.972F01E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:54185 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751956Ab2GSW65 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Jul 2012 18:58:57 -0400
-Received: by weyr1 with SMTP id r1so165683wey.1
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jul 2012 15:58:55 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:59746 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751652Ab2GSX1D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Jul 2012 19:27:03 -0400
+Received: by vcqp1 with SMTP id p1so387157vcq.1
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jul 2012 16:27:02 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mgorman@suse.de
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix
+     Subject: drivers/base/dd.c: debork
 has been added to the -mm tree.  Its filename is
-     netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix.patch
+     drivers-base-ddc-debork.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix
+Subject: drivers/base/dd.c: debork
 
-help!
 
-Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c |    2 --
+ drivers/base/dd.c |    2 --
  1 file changed, 2 deletions(-)
 
-diff -puN drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c~netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c
---- a/drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c~netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix
-+++ a/drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c
-@@ -359,8 +359,6 @@ static void ixgbevf_alloc_rx_buffers(str
- 			 * the 14 byte MAC header is removed
- 			 */
- 			skb_reserve(skb, NET_IP_ALIGN);
--
--			skb_propagate_pfmemalloc(bi->page, skb);
- 			bi->skb = skb;
- 		}
- 		if (!bi->dma) {
+diff -puN drivers/base/dd.c~drivers-base-ddc-debork drivers/base/dd.c
+--- a/drivers/base/dd.c~drivers-base-ddc-debork
++++ a/drivers/base/dd.c
+@@ -24,7 +24,6 @@
+ #include <linux/wait.h>
+ #include <linux/async.h>
+ #include <linux/pm_runtime.h>
+-#include <scsi/scsi_scan.h>
+ 
+ #include "base.h"
+ #include "power/power.h"
+@@ -346,7 +345,6 @@ void wait_for_device_probe(void)
+ 	/* wait for the known devices to complete their probing */
+ 	wait_event(probe_waitqueue, atomic_read(&probe_count) == 0);
+ 	async_synchronize_full();
+-	scsi_complete_async_scans();
+ }
+ EXPORT_SYMBOL_GPL(wait_for_device_probe);
+ 
 _
-Subject: Subject: netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix
+Subject: Subject: drivers/base/dd.c: debork
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
