@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-add-omitted-comments-for-structures-in-nilfs2_fsh.patch added to -mm tree
-Date: Thu, 19 Jul 2012 14:14:50 -0700
-Message-ID: <20120719211451.F0CA31E0043@wpzn4.hot.corp.google.com>
+Subject: + nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation.patch added to -mm tree
+Date: Thu, 19 Jul 2012 14:15:15 -0700
+Message-ID: <20120719211516.2112F5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:60487 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751966Ab2GSVOy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Jul 2012 17:14:54 -0400
-Received: by yhl10 with SMTP id 10so365640yhl.1
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jul 2012 14:14:53 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:60595 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752157Ab2GSVPS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Jul 2012 17:15:18 -0400
+Received: by weyr1 with SMTP id r1so163808wey.1
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jul 2012 14:15:17 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: slava@dubeyko.com, konishi.ryusuke@lab.ntt.co.jp
 
 
 The patch titled
-     Subject: nilfs2: add omitted comments for structures in nilfs2_fs.h
+     Subject: nilfs2: add omitted comments for different structures in driver implementation
 has been added to the -mm tree.  Its filename is
-     nilfs2-add-omitted-comments-for-structures-in-nilfs2_fsh.patch
+     nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,163 +34,238 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vyacheslav Dubeyko <slava@dubeyko.com>
-Subject: nilfs2: add omitted comments for structures in nilfs2_fs.h
+Subject: nilfs2: add omitted comments for different structures in driver implementation
 
-Add omitted comments for structures in nilfs2_fs.h.
+Add omitted comments for different structures in driver implementation.
 
 Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nilfs2_fs.h |   63 ++++++++++++++++++++++--------------
- 1 file changed, 39 insertions(+), 24 deletions(-)
+ fs/nilfs2/alloc.h     |   14 +++++++++++---
+ fs/nilfs2/bmap.h      |    7 +++++++
+ fs/nilfs2/btnode.h    |    8 +++++++-
+ fs/nilfs2/dat.c       |    6 ++++++
+ fs/nilfs2/export.h    |    8 ++++++++
+ fs/nilfs2/ifile.c     |    6 +++++-
+ fs/nilfs2/inode.c     |    7 +++++++
+ fs/nilfs2/mdt.h       |    7 +++++++
+ fs/nilfs2/nilfs.h     |   17 +++++++++++++++--
+ fs/nilfs2/sufile.c    |    8 +++++++-
+ fs/nilfs2/the_nilfs.h |    3 +--
+ 11 files changed, 81 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/nilfs2_fs.h~nilfs2-add-omitted-comments-for-structures-in-nilfs2_fsh include/linux/nilfs2_fs.h
---- a/include/linux/nilfs2_fs.h~nilfs2-add-omitted-comments-for-structures-in-nilfs2_fsh
-+++ a/include/linux/nilfs2_fs.h
-@@ -293,7 +293,7 @@ struct nilfs_dir_entry {
- 	__le64	inode;			/* Inode number */
- 	__le16	rec_len;		/* Directory entry length */
- 	__u8	name_len;		/* Name length */
--	__u8	file_type;
-+	__u8	file_type;		/* Dir entry type (file, dir, etc) */
- 	char	name[NILFS_NAME_LEN];	/* File name */
- 	char    pad;
- };
-@@ -395,7 +395,7 @@ union nilfs_binfo {
- };
+diff -puN fs/nilfs2/alloc.h~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation fs/nilfs2/alloc.h
+--- a/fs/nilfs2/alloc.h~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation
++++ a/fs/nilfs2/alloc.h
+@@ -76,15 +76,23 @@ int nilfs_palloc_freev(struct inode *, _
+ #define nilfs_clear_bit_atomic		ext2_clear_bit_atomic
+ #define nilfs_find_next_zero_bit	find_next_zero_bit_le
  
- /**
-- * struct nilfs_segment_summary - segment summary
-+ * struct nilfs_segment_summary - segment summary header
-  * @ss_datasum: checksum of data
-  * @ss_sumsum: checksum of segment summary
-  * @ss_magic: magic number
-@@ -683,9 +683,9 @@ struct nilfs_sufile_header {
- 
- /**
-  * nilfs_suinfo - segment usage information
-- * @sui_lastmod:
-- * @sui_nblocks:
-- * @sui_flags:
-+ * @sui_lastmod: timestamp of last modification
-+ * @sui_nblocks: number of written blocks in segment
-+ * @sui_flags: segment usage flags
+-/*
+- * persistent object allocator cache
++/**
++ * struct nilfs_bh_assoc - block offset and buffer head association
++ * @blkoff: block offset
++ * @bh: buffer head
   */
- struct nilfs_suinfo {
- 	__u64 sui_lastmod;
-@@ -716,9 +716,10 @@ enum {
+-
+ struct nilfs_bh_assoc {
+ 	unsigned long blkoff;
+ 	struct buffer_head *bh;
  };
  
- /**
-- * struct nilfs_cpmode -
-- * @cc_cno:
-- * @cc_mode:
-+ * struct nilfs_cpmode - change checkpoint mode structure
-+ * @cm_cno: checkpoint number
-+ * @cm_mode: mode of checkpoint
-+ * @cm_pad: padding
++/**
++ * struct nilfs_palloc_cache - persistent object allocator cache
++ * @lock: cache protecting lock
++ * @prev_desc: blockgroup descriptors cache
++ * @prev_bitmap: blockgroup bitmap cache
++ * @prev_entry: translation entries cache
++ */
+ struct nilfs_palloc_cache {
+ 	spinlock_t lock;
+ 	struct nilfs_bh_assoc prev_desc;
+diff -puN fs/nilfs2/bmap.h~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation fs/nilfs2/bmap.h
+--- a/fs/nilfs2/bmap.h~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation
++++ a/fs/nilfs2/bmap.h
+@@ -135,6 +135,13 @@ struct nilfs_bmap {
+ /* state */
+ #define NILFS_BMAP_DIRTY	0x00000001
+ 
++/**
++ * struct nilfs_bmap_store - shadow copy of bmap state
++ * @data: cached raw block mapping of on-disk inode
++ * @last_allocated_key: cached value of last allocated key for data block
++ * @last_allocated_ptr: cached value of last allocated ptr for data block
++ * @state: cached value of state field of bmap structure
++ */
+ struct nilfs_bmap_store {
+ 	__le64 data[NILFS_BMAP_SIZE / sizeof(__le64)];
+ 	__u64 last_allocated_key;
+diff -puN fs/nilfs2/btnode.h~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation fs/nilfs2/btnode.h
+--- a/fs/nilfs2/btnode.h~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation
++++ a/fs/nilfs2/btnode.h
+@@ -29,7 +29,13 @@
+ #include <linux/fs.h>
+ #include <linux/backing-dev.h>
+ 
+-
++/**
++ * struct nilfs_btnode_chkey_ctxt - change key context
++ * @oldkey: old key of block's moving content
++ * @newkey: new key for block's content
++ * @bh: buffer head of old buffer
++ * @newbh: buffer head of new buffer
++ */
+ struct nilfs_btnode_chkey_ctxt {
+ 	__u64 oldkey;
+ 	__u64 newkey;
+diff -puN fs/nilfs2/dat.c~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation fs/nilfs2/dat.c
+--- a/fs/nilfs2/dat.c~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation
++++ a/fs/nilfs2/dat.c
+@@ -33,6 +33,12 @@
+ #define NILFS_CNO_MIN	((__u64)1)
+ #define NILFS_CNO_MAX	(~(__u64)0)
+ 
++/**
++ * struct nilfs_dat_info - on-memory private data of DAT file
++ * @mi: on-memory private data of metadata file
++ * @palloc_cache: persistent object allocator cache of DAT file
++ * @shadow: shadow map of DAT file
++ */
+ struct nilfs_dat_info {
+ 	struct nilfs_mdt_info mi;
+ 	struct nilfs_palloc_cache palloc_cache;
+diff -puN fs/nilfs2/export.h~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation fs/nilfs2/export.h
+--- a/fs/nilfs2/export.h~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation
++++ a/fs/nilfs2/export.h
+@@ -5,6 +5,14 @@
+ 
+ extern const struct export_operations nilfs_export_ops;
+ 
++/**
++ * struct nilfs_fid - NILFS file id type
++ * @cno: checkpoint number
++ * @ino: inode number
++ * @gen: file generation (version) for NFS
++ * @parent_gen: parent generation (version) for NFS
++ * @parent_ino: parent inode number
++ */
+ struct nilfs_fid {
+ 	u64 cno;
+ 	u64 ino;
+diff -puN fs/nilfs2/ifile.c~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation fs/nilfs2/ifile.c
+--- a/fs/nilfs2/ifile.c~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation
++++ a/fs/nilfs2/ifile.c
+@@ -29,7 +29,11 @@
+ #include "alloc.h"
+ #include "ifile.h"
+ 
+-
++/**
++ * struct nilfs_ifile_info - on-memory private data of ifile
++ * @mi: on-memory private data of metadata file
++ * @palloc_cache: persistent object allocator cache of ifile
++ */
+ struct nilfs_ifile_info {
+ 	struct nilfs_mdt_info mi;
+ 	struct nilfs_palloc_cache palloc_cache;
+diff -puN fs/nilfs2/inode.c~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation fs/nilfs2/inode.c
+--- a/fs/nilfs2/inode.c~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation
++++ a/fs/nilfs2/inode.c
+@@ -34,6 +34,13 @@
+ #include "cpfile.h"
+ #include "ifile.h"
+ 
++/**
++ * struct nilfs_iget_args - arguments used during comparison between inodes
++ * @ino: inode number
++ * @cno: checkpoint number
++ * @root: pointer on NILFS root object (mounted checkpoint)
++ * @for_gc: inode for GC flag
++ */
+ struct nilfs_iget_args {
+ 	u64 ino;
+ 	__u64 cno;
+diff -puN fs/nilfs2/mdt.h~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation fs/nilfs2/mdt.h
+--- a/fs/nilfs2/mdt.h~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation
++++ a/fs/nilfs2/mdt.h
+@@ -28,6 +28,13 @@
+ #include "nilfs.h"
+ #include "page.h"
+ 
++/**
++ * struct nilfs_shadow_map - shadow mapping of meta data file
++ * @bmap_store: shadow copy of bmap state
++ * @frozen_data: shadowed dirty data pages
++ * @frozen_btnodes: shadowed dirty b-tree nodes' pages
++ * @frozen_buffers: list of frozen buffers
++ */
+ struct nilfs_shadow_map {
+ 	struct nilfs_bmap_store bmap_store;
+ 	struct address_space frozen_data;
+diff -puN fs/nilfs2/nilfs.h~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation fs/nilfs2/nilfs.h
+--- a/fs/nilfs2/nilfs.h~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation
++++ a/fs/nilfs2/nilfs.h
+@@ -32,8 +32,21 @@
+ #include "the_nilfs.h"
+ #include "bmap.h"
+ 
+-/*
+- * nilfs inode data in memory
++/**
++ * struct nilfs_inode_info - nilfs inode data in memory
++ * @i_flags: inode flags
++ * @i_state: dynamic state flags
++ * @i_bmap: pointer on i_bmap_data
++ * @i_bmap_data: raw block mapping
++ * @i_xattr: <TODO>
++ * @i_dir_start_lookup: page index of last successful search
++ * @i_cno: checkpoint number for GC inode
++ * @i_btnode_cache: cached pages of b-tree nodes
++ * @i_dirty: list for connecting dirty files
++ * @xattr_sem: semaphore for extended attributes processing
++ * @i_bh: buffer contains disk inode
++ * @i_root: root object of the current filesystem tree
++ * @vfs_inode: VFS inode object
   */
- struct nilfs_cpmode {
- 	__u64 cm_cno;
-@@ -728,11 +729,11 @@ struct nilfs_cpmode {
+ struct nilfs_inode_info {
+ 	__u32 i_flags;
+diff -puN fs/nilfs2/sufile.c~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation fs/nilfs2/sufile.c
+--- a/fs/nilfs2/sufile.c~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation
++++ a/fs/nilfs2/sufile.c
+@@ -30,7 +30,13 @@
+ #include "mdt.h"
+ #include "sufile.h"
  
- /**
-  * struct nilfs_argv - argument vector
-- * @v_base:
-- * @v_nmembs:
-- * @v_size:
-- * @v_flags:
-- * @v_index:
-+ * @v_base: pointer on data array from userspace
-+ * @v_nmembs: number of members in data array
-+ * @v_size: size of data array in bytes
-+ * @v_flags: flags
-+ * @v_index: start number of target data items
+-
++/**
++ * struct nilfs_sufile_info - on-memory private data of sufile
++ * @mi: on-memory private data of metadata file
++ * @ncleansegs: number of clean segments
++ * @allocmin: lower limit of allocatable segment range
++ * @allocmax: upper limit of allocatable segment range
++ */
+ struct nilfs_sufile_info {
+ 	struct nilfs_mdt_info mi;
+ 	unsigned long ncleansegs;/* number of clean segments */
+diff -puN fs/nilfs2/the_nilfs.h~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation fs/nilfs2/the_nilfs.h
+--- a/fs/nilfs2/the_nilfs.h~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation
++++ a/fs/nilfs2/the_nilfs.h
+@@ -232,9 +232,8 @@ THE_NILFS_FNS(SB_DIRTY, sb_dirty)
+  * @count: refcount of this structure
+  * @nilfs: nilfs object
+  * @ifile: inode file
+- * @root: root inode
+  * @inodes_count: number of inodes
+- * @blocks_count: number of blocks (Reserved)
++ * @blocks_count: number of blocks
   */
- struct nilfs_argv {
- 	__u64 v_base;
-@@ -743,9 +744,9 @@ struct nilfs_argv {
- };
- 
- /**
-- * struct nilfs_period -
-- * @p_start:
-- * @p_end:
-+ * struct nilfs_period - period of checkpoint numbers
-+ * @p_start: start checkpoint number (inclusive)
-+ * @p_end: end checkpoint number (exclusive)
-  */
- struct nilfs_period {
- 	__u64 p_start;
-@@ -753,7 +754,7 @@ struct nilfs_period {
- };
- 
- /**
-- * struct nilfs_cpstat -
-+ * struct nilfs_cpstat - checkpoint statistics
-  * @cs_cno: checkpoint number
-  * @cs_ncps: number of checkpoints
-  * @cs_nsss: number of snapshots
-@@ -765,7 +766,7 @@ struct nilfs_cpstat {
- };
- 
- /**
-- * struct nilfs_sustat -
-+ * struct nilfs_sustat - segment usage statistics
-  * @ss_nsegs: number of segments
-  * @ss_ncleansegs: number of clean segments
-  * @ss_ndirtysegs: number of dirty segments
-@@ -784,10 +785,10 @@ struct nilfs_sustat {
- 
- /**
-  * struct nilfs_vinfo - virtual block number information
-- * @vi_vblocknr:
-- * @vi_start:
-- * @vi_end:
-- * @vi_blocknr:
-+ * @vi_vblocknr: virtual block number
-+ * @vi_start: start checkpoint number (inclusive)
-+ * @vi_end: end checkpoint number (exclusive)
-+ * @vi_blocknr: disk block number
-  */
- struct nilfs_vinfo {
- 	__u64 vi_vblocknr;
-@@ -797,7 +798,15 @@ struct nilfs_vinfo {
- };
- 
- /**
-- * struct nilfs_vdesc -
-+ * struct nilfs_vdesc - descriptor of virtual block number
-+ * @vd_ino: inode number
-+ * @vd_cno: checkpoint number
-+ * @vd_vblocknr: virtual block number
-+ * @vd_period: period of checkpoint numbers
-+ * @vd_blocknr: disk block number
-+ * @vd_offset: logical block offset inside a file
-+ * @vd_flags: flags (data or node block)
-+ * @vd_pad: padding
-  */
- struct nilfs_vdesc {
- 	__u64 vd_ino;
-@@ -811,7 +820,13 @@ struct nilfs_vdesc {
- };
- 
- /**
-- * struct nilfs_bdesc -
-+ * struct nilfs_bdesc - descriptor of disk block number
-+ * @bd_ino: inode number
-+ * @bd_oblocknr: disk block address (for skipping dead blocks)
-+ * @bd_blocknr: disk block address
-+ * @bd_offset: logical block offset inside a file
-+ * @bd_level: level in the b-tree organization
-+ * @bd_pad: padding
-  */
- struct nilfs_bdesc {
- 	__u64 bd_ino;
+ struct nilfs_root {
+ 	__u64 cno;
 _
-Subject: Subject: nilfs2: add omitted comments for structures in nilfs2_fs.h
+Subject: Subject: nilfs2: add omitted comments for different structures in driver implementation
 
 Patches currently in -mm which might be from slava@dubeyko.com are
 
