@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-add-mem_cgroup_from_css-helper-fix.patch added to -mm tree
-Date: Thu, 19 Jul 2012 14:40:55 -0700
-Message-ID: <20120719222743.3532E20008A@hpza10.eem.corp.google.com>
+Subject: + netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix.patch added to -mm tree
+Date: Thu, 19 Jul 2012 15:11:46 -0700
+Message-ID: <20120719225844.221465C00A7@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:45432 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751036Ab2GSW1q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Jul 2012 18:27:46 -0400
-Received: by eaao13 with SMTP id o13so165239eaa.1
-        for <mm-commits@vger.kernel.org>; Thu, 19 Jul 2012 15:27:44 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:54185 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751956Ab2GSW65 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Jul 2012 18:58:57 -0400
+Received: by weyr1 with SMTP id r1so165683wey.1
+        for <mm-commits@vger.kernel.org>; Thu, 19 Jul 2012 15:58:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, liwanp@linux.vnet.ibm.com, mhocko@suse.cz, shangw@linux.vnet.ibm.com
+Cc: akpm@linux-foundation.org, mgorman@suse.de
 
 
 The patch titled
-     Subject: memcg-add-mem_cgroup_from_css-helper-fix
+     Subject: netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix
 has been added to the -mm tree.  Its filename is
-     memcg-add-mem_cgroup_from_css-helper-fix.patch
+     netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,67 +34,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memcg-add-mem_cgroup_from_css-helper-fix
+Subject: netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix
 
-that patch was very broken
+help!
 
-Cc: Gavin Shan <shangw@linux.vnet.ibm.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-add-mem_cgroup_from_css-helper-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-mem_cgroup_from_css-helper-fix
-+++ a/mm/memcontrol.c
-@@ -868,9 +868,8 @@ static void memcg_check_events(struct me
- 
- struct mem_cgroup *mem_cgroup_from_cont(struct cgroup *cont)
- {
--	return mem_cgroup_from_css(cgroup_subsys_state(cont,
--				mem_cgroup_subsys_id), struct mem_cgroup,
--				css);
-+	return mem_cgroup_from_css(
-+		cgroup_subsys_state(cont, mem_cgroup_subsys_id));
- }
- 
- struct mem_cgroup *mem_cgroup_from_task(struct task_struct *p)
-@@ -883,8 +882,7 @@ struct mem_cgroup *mem_cgroup_from_task(
- 	if (unlikely(!p))
- 		return NULL;
- 
--	return mem_cgroup_from_css(task_subsys_state(p, mem_cgroup_subsys_id),
--				struct mem_cgroup, css);
-+	return mem_cgroup_from_css(task_subsys_state(p, mem_cgroup_subsys_id));
- }
- 
- struct mem_cgroup *try_get_mem_cgroup_from_mm(struct mm_struct *mm)
-@@ -970,8 +968,7 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 		css = css_get_next(&mem_cgroup_subsys, id + 1, &root->css, &id);
- 		if (css) {
- 			if (css == &root->css || css_tryget(css))
--				memcg = mem_cgroup_from_css(css,
--						     struct mem_cgroup, css);
-+				memcg = mem_cgroup_from_css(css);
- 		} else
- 			id = 0;
- 		rcu_read_unlock();
-@@ -2500,7 +2497,7 @@ static struct mem_cgroup *mem_cgroup_loo
- 	css = css_lookup(&mem_cgroup_subsys, id);
- 	if (!css)
- 		return NULL;
--	return mem_cgroup_from_css(css, struct mem_cgroup, css);
-+	return mem_cgroup_from_css(css);
- }
- 
- struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page)
+diff -puN drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c~netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c
+--- a/drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c~netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix
++++ a/drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c
+@@ -359,8 +359,6 @@ static void ixgbevf_alloc_rx_buffers(str
+ 			 * the 14 byte MAC header is removed
+ 			 */
+ 			skb_reserve(skb, NET_IP_ALIGN);
+-
+-			skb_propagate_pfmemalloc(bi->page, skb);
+ 			bi->skb = skb;
+ 		}
+ 		if (!bi->dma) {
 _
-Subject: Subject: memcg-add-mem_cgroup_from_css-helper-fix
+Subject: Subject: netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -126,6 +90,7 @@ mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes.patch
 mm-have-order-0-compaction-start-off-where-it-left-v3-typo.patch
 memory-hotplug-fix-kswapd-looping-forever-problem-fix.patch
 memory-hotplug-fix-kswapd-looping-forever-problem-fix-fix.patch
+netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix.patch
 mm-memcg-fix-compaction-migration-failing-due-to-memcg-limits-checkpatch-fixes.patch
 memcg-prevent-oom-with-too-many-dirty-pages.patch
 memcg-add-mem_cgroup_from_css-helper-fix.patch
