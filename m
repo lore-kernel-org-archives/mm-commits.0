@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-suppress-kmemleak-messages.patch added to -mm tree
-Date: Fri, 20 Jul 2012 13:37:35 -0700
-Message-ID: <20120720203735.A44701E0043@wpzn4.hot.corp.google.com>
+Subject: + pcdp-use-early_ioremap-early_iounmap-to-access-pcdp-table.patch added to -mm tree
+Date: Fri, 20 Jul 2012 13:37:48 -0700
+Message-ID: <20120720203749.0DE50100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:36093 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751145Ab2GTUhg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jul 2012 16:37:36 -0400
-Received: by ggeh3 with SMTP id h3so492562gge.1
-        for <mm-commits@vger.kernel.org>; Fri, 20 Jul 2012 13:37:36 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:55703 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752571Ab2GTUhu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jul 2012 16:37:50 -0400
+Received: by qcqs25 with SMTP id s25so492932qcq.1
+        for <mm-commits@vger.kernel.org>; Fri, 20 Jul 2012 13:37:49 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rostedt@goodmis.org, catalin.marinas@arm.com
+Cc: greg.pearson@hp.com, khalid.aziz@hp.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: sysctl: suppress kmemleak messages
+     Subject: pcdp: use early_ioremap/early_iounmap to access pcdp table
 has been added to the -mm tree.  Its filename is
-     sysctl-suppress-kmemleak-messages.patch
+     pcdp-use-early_ioremap-early_iounmap-to-access-pcdp-table.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,82 +33,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: sysctl: suppress kmemleak messages
+From: Greg Pearson <greg.pearson@hp.com>
+Subject: pcdp: use early_ioremap/early_iounmap to access pcdp table
 
-register_sysctl_table() is a strange function, as it makes internal
-allocations (a header) to register a sysctl_table.  This header is a
-handle to the table that is created, and can be used to unregister the
-table.  But if the table is permanent and never unregistered, the header
-acts the same as a static variable.
+efi_setup_pcdp_console() is called during boot to parse the HCDP/PCDP EFI
+system table and setup an early console for printk output.  The routine
+uses ioremap/iounmap to setup access to the HCDP/PCDP table information. 
+The call to ioremap is happening early in the boot process which leads to
+a panic on x86_64 systems:
 
-Unfortunately, this allocation of memory that is never expected to be
-freed fools kmemleak in thinking that we have leaked memory.  For those
-sysctl tables that are never unregistered, and have no pointer referencing
-them, kmemleak will think that these are memory leaks:
+    0xffffffff815ffbd4 panic+0x01ca
+    0xffffffff810535ec do_exit+0x043c
+    0xffffffff81603847 oops_end+0x00a7
+    0xffffffff81042859 no_context+0x0119
+    0xffffffff81042a68 __bad_area_nosemaphore+0x0138
+    0xffffffff81042b5e bad_area_nosemaphore+0x000e
+    0xffffffff81606411 do_page_fault+0x0321
+    0xffffffff81602cb0 page_fault+0x0020
+    0xffffffff81045fc1 reserve_memtype+0x02a1
+    0xffffffff810430a3 __ioremap_caller+0x0123
+    0xffffffff81043402 ioremap_nocache+0x0012
+    0xffffffff81d53e70 efi_setup_pcdp_console+0x002b
+    0xffffffff81d1fcc5 setup_arch+0x03a9
+    0xffffffff81d19b44 start_kernel+0x00d4
+    0xffffffff81d19341 x86_64_start_reservations+0x012c
+    0xffffffff81d19449 x86_64_start_kernel+0x00fe
 
-unreferenced object 0xffff880079fb9d40 (size 192):
-  comm "swapper/0", pid 0, jiffies 4294667316 (age 12614.152s)
-  hex dump (first 32 bytes):
-    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  backtrace:
-    [<ffffffff8146b590>] kmemleak_alloc+0x73/0x98
-    [<ffffffff8110a935>] kmemleak_alloc_recursive.constprop.42+0x16/0x18
-    [<ffffffff8110b852>] __kmalloc+0x107/0x153
-    [<ffffffff8116fa72>] kzalloc.constprop.8+0xe/0x10
-    [<ffffffff811703c9>] __register_sysctl_paths+0xe1/0x160
-    [<ffffffff81170463>] register_sysctl_paths+0x1b/0x1d
-    [<ffffffff8117047d>] register_sysctl_table+0x18/0x1a
-    [<ffffffff81afb0a1>] sysctl_init+0x10/0x14
-    [<ffffffff81b05a6f>] proc_sys_init+0x2f/0x31
-    [<ffffffff81b0584c>] proc_root_init+0xa5/0xa7
-    [<ffffffff81ae5b7e>] start_kernel+0x3d0/0x40a
-    [<ffffffff81ae52a7>] x86_64_start_reservations+0xae/0xb2
-    [<ffffffff81ae53ad>] x86_64_start_kernel+0x102/0x111
-    [<ffffffffffffffff>] 0xffffffffffffffff
+This patch replaces the calls to ioremap/iounmap in
+efi_setup_pcdp_console() with calls to early_ioremap/early_iounmap which
+can be called during early boot.
 
-The sysctl_base_table used by sysctl itself is one such instance that
-registers the table to never be unregistered.
+This patch was tested on an x86_64 prototype system which uses the
+HCDP/PCDP table for early console setup.
 
-Use kmemleak_not_leak() to suppress the kmemleak false positive.
-
-Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Signed-off-by: Greg Pearson <greg.pearson@hp.com>
+Acked-by: Khalid Aziz <khalid.aziz@hp.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/firmware/pcdp.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/sysctl.c~sysctl-suppress-kmemleak-messages kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-suppress-kmemleak-messages
-+++ a/kernel/sysctl.c
-@@ -30,6 +30,7 @@
- #include <linux/security.h>
- #include <linux/ctype.h>
- #include <linux/kmemcheck.h>
-+#include <linux/kmemleak.h>
- #include <linux/fs.h>
- #include <linux/init.h>
- #include <linux/kernel.h>
-@@ -1554,7 +1555,10 @@ static struct ctl_table dev_table[] = {
+diff -puN drivers/firmware/pcdp.c~pcdp-use-early_ioremap-early_iounmap-to-access-pcdp-table drivers/firmware/pcdp.c
+--- a/drivers/firmware/pcdp.c~pcdp-use-early_ioremap-early_iounmap-to-access-pcdp-table
++++ a/drivers/firmware/pcdp.c
+@@ -95,7 +95,7 @@ efi_setup_pcdp_console(char *cmdline)
+ 	if (efi.hcdp == EFI_INVALID_TABLE_ADDR)
+ 		return -ENODEV;
  
- int __init sysctl_init(void)
- {
--	register_sysctl_table(sysctl_base_table);
-+	struct ctl_table_header *hdr;
-+
-+	hdr = register_sysctl_table(sysctl_base_table);
-+	kmemleak_not_leak(hdr);
- 	return 0;
+-	pcdp = ioremap(efi.hcdp, 4096);
++	pcdp = early_ioremap(efi.hcdp, 4096);
+ 	printk(KERN_INFO "PCDP: v%d at 0x%lx\n", pcdp->rev, efi.hcdp);
+ 
+ 	if (strstr(cmdline, "console=hcdp")) {
+@@ -131,6 +131,6 @@ efi_setup_pcdp_console(char *cmdline)
+ 	}
+ 
+ out:
+-	iounmap(pcdp);
++	early_iounmap(pcdp, 4096);
+ 	return rc;
  }
- 
 _
-Subject: Subject: sysctl: suppress kmemleak messages
+Subject: Subject: pcdp: use early_ioremap/early_iounmap to access pcdp table
 
-Patches currently in -mm which might be from rostedt@goodmis.org are
+Patches currently in -mm which might be from greg.pearson@hp.com are
 
-linux-next.patch
-sysctl-suppress-kmemleak-messages.patch
+pcdp-use-early_ioremap-early_iounmap-to-access-pcdp-table.patch
+mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
 
