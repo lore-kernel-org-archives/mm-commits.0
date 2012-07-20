@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + pcdp-use-early_ioremap-early_iounmap-to-access-pcdp-table.patch added to -mm tree
-Date: Fri, 20 Jul 2012 13:37:48 -0700
-Message-ID: <20120720203749.0DE50100047@wpzn3.hot.corp.google.com>
+Subject: + fs-gfs2-filec-fix-32-bit-build.patch added to -mm tree
+Date: Fri, 20 Jul 2012 15:09:55 -0700
+Message-ID: <20120720225642.635BA1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:55703 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752571Ab2GTUhu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jul 2012 16:37:50 -0400
-Received: by qcqs25 with SMTP id s25so492932qcq.1
-        for <mm-commits@vger.kernel.org>; Fri, 20 Jul 2012 13:37:49 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:61760 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751768Ab2GTW4o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Jul 2012 18:56:44 -0400
+Received: by ggeh3 with SMTP id h3so505376gge.1
+        for <mm-commits@vger.kernel.org>; Fri, 20 Jul 2012 15:56:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: greg.pearson@hp.com, khalid.aziz@hp.com, stable@vger.kernel.org
+Cc: akpm@linux-foundation.org, swhiteho@redhat.com
 
 
 The patch titled
-     Subject: pcdp: use early_ioremap/early_iounmap to access pcdp table
+     Subject: fs/gfs2/file.c: fix 32-bit build
 has been added to the -mm tree.  Its filename is
-     pcdp-use-early_ioremap-early_iounmap-to-access-pcdp-table.patch
+     fs-gfs2-filec-fix-32-bit-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,73 +33,99 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Greg Pearson <greg.pearson@hp.com>
-Subject: pcdp: use early_ioremap/early_iounmap to access pcdp table
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs/gfs2/file.c: fix 32-bit build
 
-efi_setup_pcdp_console() is called during boot to parse the HCDP/PCDP EFI
-system table and setup an early console for printk output.  The routine
-uses ioremap/iounmap to setup access to the HCDP/PCDP table information. 
-The call to ioremap is happening early in the boot process which leads to
-a panic on x86_64 systems:
+Avoid emitting a reference to the non-existent __divdi3()
 
-    0xffffffff815ffbd4 panic+0x01ca
-    0xffffffff810535ec do_exit+0x043c
-    0xffffffff81603847 oops_end+0x00a7
-    0xffffffff81042859 no_context+0x0119
-    0xffffffff81042a68 __bad_area_nosemaphore+0x0138
-    0xffffffff81042b5e bad_area_nosemaphore+0x000e
-    0xffffffff81606411 do_page_fault+0x0321
-    0xffffffff81602cb0 page_fault+0x0020
-    0xffffffff81045fc1 reserve_memtype+0x02a1
-    0xffffffff810430a3 __ioremap_caller+0x0123
-    0xffffffff81043402 ioremap_nocache+0x0012
-    0xffffffff81d53e70 efi_setup_pcdp_console+0x002b
-    0xffffffff81d1fcc5 setup_arch+0x03a9
-    0xffffffff81d19b44 start_kernel+0x00d4
-    0xffffffff81d19341 x86_64_start_reservations+0x012c
-    0xffffffff81d19449 x86_64_start_kernel+0x00fe
-
-This patch replaces the calls to ioremap/iounmap in
-efi_setup_pcdp_console() with calls to early_ioremap/early_iounmap which
-can be called during early boot.
-
-This patch was tested on an x86_64 prototype system which uses the
-HCDP/PCDP table for early console setup.
-
-Signed-off-by: Greg Pearson <greg.pearson@hp.com>
-Acked-by: Khalid Aziz <khalid.aziz@hp.com>
-Cc: <stable@vger.kernel.org>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/pcdp.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/gfs2/file.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/firmware/pcdp.c~pcdp-use-early_ioremap-early_iounmap-to-access-pcdp-table drivers/firmware/pcdp.c
---- a/drivers/firmware/pcdp.c~pcdp-use-early_ioremap-early_iounmap-to-access-pcdp-table
-+++ a/drivers/firmware/pcdp.c
-@@ -95,7 +95,7 @@ efi_setup_pcdp_console(char *cmdline)
- 	if (efi.hcdp == EFI_INVALID_TABLE_ADDR)
- 		return -ENODEV;
+diff -puN fs/gfs2/file.c~fs-gfs2-filec-fix-32-bit-build fs/gfs2/file.c
+--- a/fs/gfs2/file.c~fs-gfs2-filec-fix-32-bit-build
++++ a/fs/gfs2/file.c
+@@ -770,6 +770,8 @@ static long gfs2_fallocate(struct file *
+ 	loff_t bsize_mask = ~((loff_t)sdp->sd_sb.sb_bsize - 1);
+ 	loff_t next = (offset + len - 1) >> sdp->sd_sb.sb_bsize_shift;
+ 	loff_t max_chunk_size = UINT_MAX & bsize_mask;
++	u32 rs_sizehint;
++
+ 	next = (next + 1) << sdp->sd_sb.sb_bsize_shift;
  
--	pcdp = ioremap(efi.hcdp, 4096);
-+	pcdp = early_ioremap(efi.hcdp, 4096);
- 	printk(KERN_INFO "PCDP: v%d at 0x%lx\n", pcdp->rev, efi.hcdp);
+ 	/* We only support the FALLOC_FL_KEEP_SIZE mode */
+@@ -795,7 +797,9 @@ static long gfs2_fallocate(struct file *
+ 	if (unlikely(error))
+ 		goto out_uninit;
  
- 	if (strstr(cmdline, "console=hcdp")) {
-@@ -131,6 +131,6 @@ efi_setup_pcdp_console(char *cmdline)
- 	}
+-	atomic_set(&ip->i_res->rs_sizehint, len / sdp->sd_sb.sb_bsize);
++	rs_sizehint = len;
++	do_div(rs_sizehint, sdp->sd_sb.sb_bsize);
++	atomic_set(&ip->i_res->rs_sizehint, rs_sizehint);
  
- out:
--	iounmap(pcdp);
-+	early_iounmap(pcdp, 4096);
- 	return rc;
- }
+ 	while (len > 0) {
+ 		if (len < bytes)
 _
-Subject: Subject: pcdp: use early_ioremap/early_iounmap to access pcdp table
+Subject: Subject: fs/gfs2/file.c: fix 32-bit build
 
-Patches currently in -mm which might be from greg.pearson@hp.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-pcdp-use-early_ioremap-early_iounmap-to-access-pcdp-table.patch
+origin.patch
+linux-next.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-base-ddc-debork.patch
+fs-gfs2-filec-fix-32-bit-build.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
+thermal-add-generic-cpufreq-cooling-implementation.patch
+thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
+thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
+coredump-warn-about-unsafe-suid_dumpable-core_pattern-combo.patch
+mm.patch
+mm-make-vb_alloc-more-foolproof-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
 mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
+memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
+mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
+memcg-rename-config-variables.patch
+memcg-rename-config-variables-fix-fix.patch
+mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes.patch
+mm-have-order-0-compaction-start-off-where-it-left-v3-typo.patch
+memory-hotplug-fix-kswapd-looping-forever-problem-fix.patch
+memory-hotplug-fix-kswapd-looping-forever-problem-fix-fix.patch
+netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix.patch
+mm-memcg-fix-compaction-migration-failing-due-to-memcg-limits-checkpatch-fixes.patch
+memcg-prevent-oom-with-too-many-dirty-pages.patch
+memcg-add-mem_cgroup_from_css-helper-fix.patch
+avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
+kernel-sysc-avoid-argv_freenull.patch
+kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
+printk-add-generic-functions-to-find-kern_level-headers-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
+lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch
+string-introduce-memweight-fix.patch
+drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes.patch
+drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded.patch
+kernel-kmodc-document-call_usermodehelper_fns-a-bit.patch
+kmod-avoid-deadlock-from-recursive-kmod-call.patch
+fork-use-vma_pages-to-simplify-the-code-fix.patch
+revert-sched-fix-fork-error-path-to-not-crash.patch
+ipc-use-kconfig-options-for-__arch_want_ipc_parse_version.patch
+fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
+include-linux-aioh-cpp-c-conversions.patch
+fault-injection-add-selftests-for-cpu-and-memory-hotplug.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
