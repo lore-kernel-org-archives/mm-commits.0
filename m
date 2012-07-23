@@ -1,79 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [merged] m32r-add-memcpy-for-config_kernel_gzip=y.patch removed from -mm tree
-Date: Mon, 23 Jul 2012 14:31:01 -0700
-Message-ID: <20120723213101.8B8FC1E0043@wpzn4.hot.corp.google.com>
+Subject: [merged] kexec-update-url-of-kexec-homepage.patch removed from -mm tree
+Date: Mon, 23 Jul 2012 14:31:12 -0700
+Message-ID: <20120723213112.97AD0100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:44753 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755097Ab2GWVbC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jul 2012 17:31:02 -0400
-Received: by mail-vb0-f74.google.com with SMTP id l22so783980vbn.1
-        for <mm-commits@vger.kernel.org>; Mon, 23 Jul 2012 14:31:02 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:49094 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755126Ab2GWVbN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jul 2012 17:31:13 -0400
+Received: by vcqp1 with SMTP id p1so782569vcq.1
+        for <mm-commits@vger.kernel.org>; Mon, 23 Jul 2012 14:31:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, takata@linux-m32r.org, mm-commits@vger.kernel.org
+To: olaf@aepfle.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: m32r: add memcpy() for CONFIG_KERNEL_GZIP=y
+     Subject: kexec: update URL of kexec homepage
 has been removed from the -mm tree.  Its filename was
-     m32r-add-memcpy-for-config_kernel_gzip=y.patch
+     kexec-update-url-of-kexec-homepage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: m32r: add memcpy() for CONFIG_KERNEL_GZIP=y
+From: Olaf Hering <olaf@aepfle.de>
+Subject: kexec: update URL of kexec homepage
 
-  LD      arch/m32r/boot/compressed/vmlinux
-arch/m32r/boot/compressed/misc.o: In function `zlib_updatewindow':
-misc.c:(.text+0x190): undefined reference to `memcpy'
-misc.c:(.text+0x190): relocation truncated to fit: R_M32R_26_PLTREL against undefined symbol `memcpy'
-misc.c:(.text+0x1e0): undefined reference to `memcpy'
-misc.c:(.text+0x1e0): relocation truncated to fit: R_M32R_26_PLTREL against undefined symbol `memcpy'
-misc.c:(.text+0x218): undefined reference to `memcpy'
-misc.c:(.text+0x218): relocation truncated to fit: R_M32R_26_PLTREL against undefined symbol `memcpy'
-arch/m32r/boot/compressed/misc.o: In function `zlib_inflate':
-misc.c:(.text+0x171c): undefined reference to `memcpy'
-misc.c:(.text+0x171c): relocation truncated to fit: R_M32R_26_PLTREL against undefined symbol `memcpy'
-make[5]: *** [arch/m32r/boot/compressed/vmlinux] Error 1
+The referenced html file does not exist anymore. Replace the URL with
+the current project homepage.
 
-Add our own implementation of memcpy() to fix this.
-
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Hirokazu Takata <takata@linux-m32r.org>
+Signed-off-by: Olaf Hering <olaf@aepfle.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/boot/compressed/misc.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ Documentation/kdump/kdump.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/m32r/boot/compressed/misc.c~m32r-add-memcpy-for-config_kernel_gzip=y arch/m32r/boot/compressed/misc.c
---- a/arch/m32r/boot/compressed/misc.c~m32r-add-memcpy-for-config_kernel_gzip=y
-+++ a/arch/m32r/boot/compressed/misc.c
-@@ -39,6 +39,16 @@ static void *memset(void *s, int c, size
- #endif
+diff -puN Documentation/kdump/kdump.txt~kexec-update-url-of-kexec-homepage Documentation/kdump/kdump.txt
+--- a/Documentation/kdump/kdump.txt~kexec-update-url-of-kexec-homepage
++++ a/Documentation/kdump/kdump.txt
+@@ -86,7 +86,7 @@ There is also a gitweb interface availab
+ http://www.kernel.org/git/?p=utils/kernel/kexec/kexec-tools.git
  
- #ifdef CONFIG_KERNEL_GZIP
-+void *memcpy(void *dest, const void *src, size_t n)
-+{
-+	char *d = dest;
-+	const char *s = src;
-+	while (n--)
-+		*d++ = *s++;
-+
-+	return dest;
-+}
-+
- #define BOOT_HEAP_SIZE             0x10000
- #include "../../../../lib/decompress_inflate.c"
- #endif
+ More information about kexec-tools can be found at
+-http://www.kernel.org/pub/linux/utils/kernel/kexec/README.html
++http://horms.net/projects/kexec/
+ 
+ 3) Unpack the tarball with the tar command, as follows:
+ 
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from olaf@aepfle.de are
 
 linux-next.patch
-mn10300-only-add-mmem-funcs-to-kbuild_cflags-if-gcc-supports-it.patch
-frv-kill-used-but-uninitialized-variable.patch
 
