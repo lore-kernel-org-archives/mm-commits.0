@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-add-mem_cgroup_from_css-helper-fix-2.patch added to -mm tree
-Date: Mon, 23 Jul 2012 15:22:31 -0700
-Message-ID: <20120723222231.D50A410004A@wpzn3.hot.corp.google.com>
+Subject: + mm-sparse-optimize-sparse_index_alloc.patch added to -mm tree
+Date: Mon, 23 Jul 2012 15:26:40 -0700
+Message-ID: <20120723222641.21B431E005A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:44138 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754717Ab2GWWWd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jul 2012 18:22:33 -0400
-Received: by yhl10 with SMTP id 10so792561yhl.1
-        for <mm-commits@vger.kernel.org>; Mon, 23 Jul 2012 15:22:32 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:45420 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754736Ab2GWW0m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jul 2012 18:26:42 -0400
+Received: by qabg24 with SMTP id g24so390299qab.1
+        for <mm-commits@vger.kernel.org>; Mon, 23 Jul 2012 15:26:41 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: liwanp@linux.vnet.ibm.com, fengguang.wu@intel.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, shangw@linux.vnet.ibm.com, sjenning@linux.vnet.ibm.com
+Cc: shangw@linux.vnet.ibm.com, mhocko@suse.cz, rientjes@google.com
 
 
 The patch titled
-     Subject: memcg: fix mm/memcontrol.c build error against linux-next
+     Subject: mm/sparse: optimize sparse_index_alloc
 has been added to the -mm tree.  Its filename is
-     memcg-add-mem_cgroup_from_css-helper-fix-2.patch
+     mm-sparse-optimize-sparse_index_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,41 +33,35 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: memcg: fix mm/memcontrol.c build error against linux-next
+From: Gavin Shan <shangw@linux.vnet.ibm.com>
+Subject: mm/sparse: optimize sparse_index_alloc
 
-As Fengguang Wu reported, linux-next failed to build with
+With CONFIG_SPARSEMEM_EXTREME, the two levels of memory section
+descriptors are allocated from slab or bootmem.  When allocating from
+slab, let slab/bootmem allocator clear the memory chunk.  We needn't clear
+it explicitly.
 
-tree:   git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git akpm
-head:   37e2ad4953983527f7bdb6831bf478eedcc84082
-commit: 442d53f161093de78f0aafcd3ec2a6345de42890 [164/309] memcg: add mem_cgroup_from_css() helper
-
-mem_cgroup_from_css() is defined inside CONFIG_MEMCG_KMEM and used
-outside of it, move mem_cgroup_from_css() out of the #ifdef
-CONFIG_MEMCG_KMEM can address this issue.
-
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-Reported-by: Seth Jennings <sjenning@linux.vnet.ibm.com>
-Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Gavin Shan <shangw@linux.vnet.ibm.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Signed-off-by: Gavin Shan <shangw@linux.vnet.ibm.com>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/sparse.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-add-mem_cgroup_from_css-helper-fix-2 mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-mem_cgroup_from_css-helper-fix-2
-+++ a/mm/memcontrol.c
-@@ -405,17 +405,17 @@ enum charge_type {
- static void mem_cgroup_get(struct mem_cgroup *memcg);
- static void mem_cgroup_put(struct mem_cgroup *memcg);
+diff -puN mm/sparse.c~mm-sparse-optimize-sparse_index_alloc mm/sparse.c
+--- a/mm/sparse.c~mm-sparse-optimize-sparse_index_alloc
++++ a/mm/sparse.c
+@@ -65,14 +65,12 @@ static struct mem_section noinline __ini
  
--/* Writing them here to avoid exposing memcg's inner layout */
--#ifdef CONFIG_MEMCG_KMEM
--#include <net/sock.h>
--#include <net/ip.h>
+ 	if (slab_is_available()) {
+ 		if (node_state(nid, N_HIGH_MEMORY))
+-			section = kmalloc_node(array_size, GFP_KERNEL, nid);
++			section = kzalloc_node(array_size, GFP_KERNEL, nid);
+ 		else
+-			section = kmalloc(array_size, GFP_KERNEL);
+-	} else
++			section = kzalloc(array_size, GFP_KERNEL);
++	} else {
+ 		section = alloc_bootmem_node(NODE_DATA(nid), array_size);
