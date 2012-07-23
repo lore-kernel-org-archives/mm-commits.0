@@ -1,50 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] m32r-remove-duplicate-definition-of-ptrace_o_tracesysgood.patch removed from -mm tree
-Date: Mon, 23 Jul 2012 14:30:47 -0700
-Message-ID: <20120723213047.A18921E0043@wpzn4.hot.corp.google.com>
+Subject: [merged] m32r-fix-pull-clearing-restore_sigmask-into-block_sigmask-fallout.patch removed from -mm tree
+Date: Mon, 23 Jul 2012 14:30:50 -0700
+Message-ID: <20120723213050.B8CA2100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:53995 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755082Ab2GWVas (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jul 2012 17:30:48 -0400
-Received: by ggeh3 with SMTP id h3so783864gge.1
-        for <mm-commits@vger.kernel.org>; Mon, 23 Jul 2012 14:30:48 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:44753 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755132Ab2GWVav (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jul 2012 17:30:51 -0400
+Received: by mail-vb0-f74.google.com with SMTP id l22so783980vbn.1
+        for <mm-commits@vger.kernel.org>; Mon, 23 Jul 2012 14:30:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, takata@linux-m32r.org, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, takata@linux-m32r.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: m32r: remove duplicate definition of PTRACE_O_TRACESYSGOOD
+     Subject: m32r: fix pull clearing RESTORE_SIGMASK into block_sigmask() fallout
 has been removed from the -mm tree.  Its filename was
-     m32r-remove-duplicate-definition-of-ptrace_o_tracesysgood.patch
+     m32r-fix-pull-clearing-restore_sigmask-into-block_sigmask-fallout.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: m32r: remove duplicate definition of PTRACE_O_TRACESYSGOOD
+Subject: m32r: fix pull clearing RESTORE_SIGMASK into block_sigmask() fallout
 
-include/linux/ptrace.h:66:0: warning: "PTRACE_O_TRACESYSGOOD" redefined [enabled by default]
-arch/m32r/include/asm/ptrace.h:117:0: note: this is the location of the previous definition
+a610d6e672d ("pull clearing RESTORE_SIGMASK into block_sigmask()") caused:
 
-We already have it in <linux/ptrace.h>, so remove it from <asm/ptrace.h>
+arch/m32r/kernel/signal.c: In function 'handle_signal':
+arch/m32r/kernel/signal.c:289:6: warning: 'return' with a value, in function returning void [enabled by default]
+
+Remove the return value it forgot to remove.
 
 Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/include/asm/ptrace.h |    3 ---
- 1 file changed, 3 deletions(-)
+ arch/m32r/kernel/signal.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/m32r/include/asm/ptrace.h~m32r-remove-duplicate-definition-of-ptrace_o_tracesysgood arch/m32r/include/asm/ptrace.h
---- a/arch/m32r/include/asm/ptrace.h~m32r-remove-duplicate-definition-of-ptrace_o_tracesysgood
-+++ a/arch/m32r/include/asm/ptrace.h
-@@ -113,9 +113,6 @@ struct pt_regs {
+diff -puN arch/m32r/kernel/signal.c~m32r-fix-pull-clearing-restore_sigmask-into-block_sigmask-fallout arch/m32r/kernel/signal.c
+--- a/arch/m32r/kernel/signal.c~m32r-fix-pull-clearing-restore_sigmask-into-block_sigmask-fallout
++++ a/arch/m32r/kernel/signal.c
+@@ -286,7 +286,7 @@ handle_signal(unsigned long sig, struct 
+ 			case -ERESTARTNOINTR:
+ 				regs->r0 = regs->orig_r0;
+ 				if (prev_insn(regs) < 0)
+-					return -EFAULT;
++					return;
+ 		}
+ 	}
  
- #define PTRACE_OLDSETOPTIONS	21
- 
--/* options set using PTRACE_SETOPTIONS */
--#define PTRACE_O_TRACESYSGOOD	0x00000001
+_
+
+Patches currently in -mm which might be from geert@linux-m68k.org are
+
+linux-next.patch
+mn10300-only-add-mmem-funcs-to-kbuild_cflags-if-gcc-supports-it.patch
+frv-kill-used-but-uninitialized-variable.patch
+
