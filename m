@@ -1,67 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mn10300-fix-pull-clearing-restore_sigmask-into-block_sigmask-fallout.patch removed from -mm tree
-Date: Mon, 23 Jul 2012 14:30:43 -0700
-Message-ID: <20120723213044.185515C0063@hpza9.eem.corp.google.com>
+Subject: [merged] m32r-consistently-use-suffix.patch removed from -mm tree
+Date: Mon, 23 Jul 2012 14:30:58 -0700
+Message-ID: <20120723213058.900C71E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:45229 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754864Ab2GWVa4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jul 2012 17:30:56 -0400
-Received: by lbbgp10 with SMTP id gp10so354478lbb.1
-        for <mm-commits@vger.kernel.org>; Mon, 23 Jul 2012 14:30:54 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:55585 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755097Ab2GWVa7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jul 2012 17:30:59 -0400
+Received: by yenl3 with SMTP id l3so784054yen.1
+        for <mm-commits@vger.kernel.org>; Mon, 23 Jul 2012 14:30:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, dhowells@redhat.com, viro@zeniv.linux.org.uk, yasutake.koichi@jp.panasonic.com, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, takata@linux-m32r.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mn10300: fix "pull clearing RESTORE_SIGMASK into block_sigmask()" fallout
+     Subject: m32r: consistently use "suffix-$(...)"
 has been removed from the -mm tree.  Its filename was
-     mn10300-fix-pull-clearing-restore_sigmask-into-block_sigmask-fallout.patch
+     m32r-consistently-use-suffix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: mn10300: fix "pull clearing RESTORE_SIGMASK into block_sigmask()" fallout
+Subject: m32r: consistently use "suffix-$(...)"
 
-a610d6e672d6d3723e ("pull clearing RESTORE_SIGMASK into block_sigmask()")
-caused:
+a556bec9955c ("m32r: fix arch/m32r/boot/compressed/Makefile") changed
+"$(suffix_y)" to "$(suffix-y)", but didn't update any location where
+"suffix_y" is set, causing:
 
-arch/mn10300/kernel/signal.c: In function 'handle_signal':
-arch/mn10300/kernel/signal.c:462:3: warning: 'return' with no value, in function returning non-void [-Wreturn-type]
+make[5]: *** No rule to make target `arch/m32r/boot/compressed/vmlinux.bin.', needed by `arch/m32r/boot/compressed/piggy.o'.  Stop.
+make[4]: *** [arch/m32r/boot/compressed/vmlinux] Error 2
+make[3]: *** [zImage] Error 2
 
-Add the missing return values, and restore the indentation while we're at
-it.
+Correct the other locations to fix this.
 
 Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
+Cc: Hirokazu Takata <takata@linux-m32r.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mn10300/kernel/signal.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/m32r/boot/compressed/Makefile |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/mn10300/kernel/signal.c~mn10300-fix-pull-clearing-restore_sigmask-into-block_sigmask-fallout arch/mn10300/kernel/signal.c
---- a/arch/mn10300/kernel/signal.c~mn10300-fix-pull-clearing-restore_sigmask-into-block_sigmask-fallout
-+++ a/arch/mn10300/kernel/signal.c
-@@ -459,10 +459,11 @@ static int handle_signal(int sig,
- 	else
- 		ret = setup_frame(sig, ka, oldset, regs);
- 	if (ret)
--		return;
-+		return ret;
+diff -puN arch/m32r/boot/compressed/Makefile~m32r-consistently-use-suffix arch/m32r/boot/compressed/Makefile
+--- a/arch/m32r/boot/compressed/Makefile~m32r-consistently-use-suffix
++++ a/arch/m32r/boot/compressed/Makefile
+@@ -43,9 +43,9 @@ endif
  
- 	signal_delivered(sig, info, ka, regs,
--				 test_thread_flag(TIF_SINGLESTEP));
-+			 test_thread_flag(TIF_SINGLESTEP));
-+	return 0;
- }
+ OBJCOPYFLAGS += -R .empty_zero_page
  
- /*
+-suffix_$(CONFIG_KERNEL_GZIP)	= gz
+-suffix_$(CONFIG_KERNEL_BZIP2)	= bz2
+-suffix_$(CONFIG_KERNEL_LZMA)	= lzma
++suffix-$(CONFIG_KERNEL_GZIP)	= gz
++suffix-$(CONFIG_KERNEL_BZIP2)	= bz2
++suffix-$(CONFIG_KERNEL_LZMA)	= lzma
+ 
+ $(obj)/piggy.o: $(obj)/vmlinux.scr $(obj)/vmlinux.bin.$(suffix-y) FORCE
+ 	$(call if_changed,ld)
 _
 
 Patches currently in -mm which might be from geert@linux-m68k.org are
