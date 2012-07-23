@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + parisc-redefine-atomic_init-and-atomic64_init-like-other-architectures.patch added to -mm tree
-Date: Mon, 23 Jul 2012 15:01:21 -0700
-Message-ID: <20120723220121.BC8DA100047@wpzn3.hot.corp.google.com>
+Subject: + vsprintf-add-support-of-%ph.patch added to -mm tree
+Date: Mon, 23 Jul 2012 15:08:00 -0700
+Message-ID: <20120723220801.0FB4F5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:60749 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752723Ab2GWWBX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jul 2012 18:01:23 -0400
-Received: by vcqp1 with SMTP id p1so786557vcq.1
-        for <mm-commits@vger.kernel.org>; Mon, 23 Jul 2012 15:01:22 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:56186 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754686Ab2GWWIE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jul 2012 18:08:04 -0400
+Received: by fat25 with SMTP id 25so344915fat.1
+        for <mm-commits@vger.kernel.org>; Mon, 23 Jul 2012 15:08:02 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mgorman@suse.de, James.Bottomley@hansenpartnership.com, dave.anglin@bell.net, fengguang.wu@intel.com
+Cc: andriy.shevchenko@linux.intel.com, joe@perches.com
 
 
 The patch titled
-     Subject: parisc: redefine ATOMIC_INIT and ATOMIC64_INIT like other architectures
+     Subject: vsprintf: add support of '%*ph[CDN]'
 has been added to the -mm tree.  Its filename is
-     parisc-redefine-atomic_init-and-atomic64_init-like-other-architectures.patch
+     vsprintf-add-support-of-%ph.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,106 +33,141 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: parisc: redefine ATOMIC_INIT and ATOMIC64_INIT like other architectures
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: vsprintf: add support of '%*ph[CDN]'
 
-The following build error occured during a parisc build with
-swap-over-NFS patches applied.
+There are many places in the kernel where the drivers print small buffers
+as a hex string.  This patch adds a support of the variable width buffer
+to print it as a hex string with a delimiter.  The idea came from Pavel
+Roskin here: http://www.digipedia.pl/usenet/thread/18835/17449/
 
-net/core/sock.c:274:36: error: initializer element is not constant
-net/core/sock.c:274:36: error: (near initialization for 'memalloc_socks')
-net/core/sock.c:274:36: error: initializer element is not constant
+Sample output of
+	pr_info("buf[%d:%d] %*phC\n", from, len, len, &buf[from]);
+could be look like this:
+	[ 0.726130] buf[51:8] e8:16:b6:ef:e3:74:45:6e
+	[ 0.750736] buf[59:15] 31:81:b8:3f:35:49:06:ae:df:32:06:05:4a:af:55
+	[ 0.757602] buf[17:5] ac:16:d5:2c:ef
 
-It's not obvious but this is due to how ATOMIC_INIT is defined on parisc. 
-It should affect any user of STATIC_KEY_INIT_FALSE on that platform.
-
-This patch makes the definition of ATOMIC_INIT on parisc to look like
-other arches definition.
-
-Apparently due to gcc creating a temporary.  John said "Parisc is a callee
-copies architecture.  Thus, a structure passed as an argument may be
-copied to a temporary.  This has been a source of numerous bugs as the
-majority of architectures do it the other way round."
-
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: James Bottomley <James.Bottomley@hansenpartnership.com>
-Cc: John David Anglin <dave.anglin@bell.net>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/include/asm/atomic.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/printk-formats.txt |   10 +++++
+ lib/vsprintf.c                   |   55 +++++++++++++++++++++++++++++
+ 2 files changed, 65 insertions(+)
 
-diff -puN arch/parisc/include/asm/atomic.h~parisc-redefine-atomic_init-and-atomic64_init-like-other-architectures arch/parisc/include/asm/atomic.h
---- a/arch/parisc/include/asm/atomic.h~parisc-redefine-atomic_init-and-atomic64_init-like-other-architectures
-+++ a/arch/parisc/include/asm/atomic.h
-@@ -141,7 +141,7 @@ static __inline__ int __atomic_add_unles
+diff -puN Documentation/printk-formats.txt~vsprintf-add-support-of-%ph Documentation/printk-formats.txt
+--- a/Documentation/printk-formats.txt~vsprintf-add-support-of-%ph
++++ a/Documentation/printk-formats.txt
+@@ -53,6 +53,16 @@ Struct Resources:
+ 	For printing struct resources. The 'R' and 'r' specifiers result in a
+ 	printed resource with ('R') or without ('r') a decoded flags member.
  
- #define atomic_sub_and_test(i,v)	(atomic_sub_return((i),(v)) == 0)
++Raw buffer as a hex string:
++	%*ph	00 01 02  ...  3f
++	%*phC	00:01:02: ... :3f
++	%*phD	00-01-02- ... -3f
++	%*phN	000102 ... 3f
++
++	For printing a small buffers (up to 64 bytes long) as a hex string with
++	certain separator. For the larger buffers consider to use
++	print_hex_dump().
++
+ MAC/FDDI addresses:
  
--#define ATOMIC_INIT(i)	((atomic_t) { (i) })
-+#define ATOMIC_INIT(i)	{ (i) }
+ 	%pM	00:01:02:03:04:05
+diff -puN lib/vsprintf.c~vsprintf-add-support-of-%ph lib/vsprintf.c
+--- a/lib/vsprintf.c~vsprintf-add-support-of-%ph
++++ a/lib/vsprintf.c
+@@ -655,6 +655,50 @@ char *resource_string(char *buf, char *e
+ }
  
- #define smp_mb__before_atomic_dec()	smp_mb()
- #define smp_mb__after_atomic_dec()	smp_mb()
-@@ -150,7 +150,7 @@ static __inline__ int __atomic_add_unles
- 
- #ifdef CONFIG_64BIT
- 
--#define ATOMIC64_INIT(i) ((atomic64_t) { (i) })
-+#define ATOMIC64_INIT(i) { (i) }
- 
- static __inline__ s64
- __atomic64_add_return(s64 i, atomic64_t *v)
+ static noinline_for_stack
++char *hex_string(char *buf, char *end, u8 *addr, struct printf_spec spec,
++		 const char *fmt)
++{
++	int i, len = 1;		/* if we pass '%ph[CDN]', field witdh remains
++				   negative value, fallback to the default */
++	char separator;
++
++	if (spec.field_width == 0)
++		/* nothing to print */
++		return buf;
++
++	if (ZERO_OR_NULL_PTR(addr))
++		/* NULL pointer */
++		return string(buf, end, NULL, spec);
++
++	switch (fmt[1]) {
++	case 'C':
++		separator = ':';
++		break;
++	case 'D':
++		separator = '-';
++		break;
++	case 'N':
++		separator = 0;
++		break;
++	default:
++		separator = ' ';
++		break;
++	}
++
++	if (spec.field_width > 0)
++		len = min_t(int, spec.field_width, 64);
++
++	for (i = 0; i < len && buf < end - 1; i++) {
++		buf = hex_byte_pack(buf, addr[i]);
++
++		if (buf < end && separator && i != len - 1)
++			*buf++ = separator;
++	}
++
++	return buf;
++}
++
++static noinline_for_stack
+ char *mac_address_string(char *buf, char *end, u8 *addr,
+ 			 struct printf_spec spec, const char *fmt)
+ {
+@@ -974,6 +1018,13 @@ int kptr_restrict __read_mostly;
+  *       correctness of the format string and va_list arguments.
+  * - 'K' For a kernel pointer that should be hidden from unprivileged users
+  * - 'NF' For a netdev_features_t
++ * - 'h[CDN]' For a variable-length buffer, it prints it as a hex string with
++ *            a certain separator (' ' by default):
++ *              C colon
++ *              D dash
++ *              N no separator
++ *            The maximum supported length is 64 bytes of the input. Consider
++ *            to use print_hex_dump() for the larger input.
+  *
+  * Note: The difference between 'S' and 'F' is that on ia64 and ppc64
+  * function pointers are really function descriptors, which contain a
+@@ -1007,6 +1058,8 @@ char *pointer(const char *fmt, char *buf
+ 	case 'R':
+ 	case 'r':
+ 		return resource_string(buf, end, ptr, spec, fmt);
++	case 'h':
++		return hex_string(buf, end, ptr, spec, fmt);
+ 	case 'M':			/* Colon separated: 00:01:02:03:04:05 */
+ 	case 'm':			/* Contiguous: 000102030405 */
+ 					/* [mM]F (FDDI) */
+@@ -1296,6 +1349,8 @@ qualifier:
+  * %pI6c print an IPv6 address as specified by RFC 5952
+  * %pU[bBlL] print a UUID/GUID in big or little endian using lower or upper
+  *   case.
++ * %*ph[CDN] a variable-length hex string with a separator (supports up to 64
++ *           bytes of the input)
+  * %n is ignored
+  *
+  * ** Please update Documentation/printk-formats.txt when making changes **
 _
-Subject: Subject: parisc: redefine ATOMIC_INIT and ATOMIC64_INIT like other architectures
+Subject: Subject: vsprintf: add support of '%*ph[CDN]'
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
 linux-next.patch
-mm-fix-wrong-argument-of-migrate_huge_pages-in-soft_offline_huge_page.patch
-mm-do-not-use-page_count-without-a-page-pin.patch
-mm-clean-up-__count_immobile_pages.patch
-mm-hotplug-correctly-setup-fallback-zonelists-when-creating-new-pgdat.patch
-mm-hotplug-correctly-add-new-zone-to-all-other-nodes-zone-lists.patch
-mm-hotplug-free-zone-pageset-when-a-zone-becomes-empty.patch
-mm-hotplug-mark-memory-hotplug-code-in-page_allocc-as-__meminit.patch
-mm-factor-out-memory-isolate-functions.patch
-mm-bug-fix-free-page-check-in-zone_watermark_ok.patch
-memory-hotplug-fix-kswapd-looping-forever-problem.patch
-memory-hotplug-fix-kswapd-looping-forever-problem-fix.patch
-memory-hotplug-fix-kswapd-looping-forever-problem-fix-fix.patch
-parisc-redefine-atomic_init-and-atomic64_init-like-other-architectures.patch
-mm-slb-add-knowledge-of-pfmemalloc-reserve-pages.patch
-mm-slub-optimise-the-slub-fast-path-to-avoid-pfmemalloc-checks.patch
-mm-introduce-__gfp_memalloc-to-allow-access-to-emergency-reserves.patch
-mm-allow-pf_memalloc-from-softirq-context.patch
-mm-only-set-page-pfmemalloc-when-alloc_no_watermarks-was-used.patch
-mm-ignore-mempolicies-when-using-alloc_no_watermark.patch
-net-introduce-sk_gfp_atomic-to-allow-addition-of-gfp-flags-depending-on-the-individual-socket.patch
-netvm-allow-the-use-of-__gfp_memalloc-by-specific-sockets.patch
-netvm-allow-skb-allocation-to-use-pfmemalloc-reserves.patch
-netvm-propagate-page-pfmemalloc-to-skb.patch
-netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb.patch
-netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix.patch
-netvm-set-pf_memalloc-as-appropriate-during-skb-processing.patch
-mm-micro-optimise-slab-to-avoid-a-function-call.patch
-nbd-set-sock_memalloc-for-access-to-pfmemalloc-reserves.patch
-mm-throttle-direct-reclaimers-if-pf_memalloc-reserves-are-low-and-swap-is-backed-by-network-storage.patch
-mm-account-for-the-number-of-times-direct-reclaimers-get-throttled.patch
-netvm-prevent-a-stream-specific-deadlock.patch
-selinux-tag-avc-cache-alloc-as-non-critical.patch
-mm-methods-for-teaching-filesystems-about-pg_swapcache-pages.patch
-mm-add-support-for-a-filesystem-to-activate-swap-files-and-use-direct_io-for-writing-swap-pages.patch
-mm-swap-implement-generic-handler-for-swap_activate.patch
-mm-add-get_kernel_page-for-pinning-of-kernel-addresses-for-i-o.patch
-mm-add-support-for-direct_io-to-highmem-pages.patch
-nfs-teach-the-nfs-client-how-to-treat-pg_swapcache-pages.patch
-nfs-disable-data-cache-revalidation-for-swapfiles.patch
-nfs-enable-swap-on-nfs.patch
-nfs-prevent-page-allocator-recursions-with-swap-over-nfs.patch
-swapfile-avoid-dereferencing-bd_disk-during-swap_entry_free-for-network-storage.patch
-memcg-prevent-oom-with-too-many-dirty-pages.patch
-memcg-further-prevent-oom-with-too-many-dirty-pages.patch
+vsprintf-add-support-of-%ph.patch
 
