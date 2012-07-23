@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + tmpfs-interleave-the-starting-node-of-dev-shmem-fix.patch added to -mm tree
-Date: Mon, 23 Jul 2012 14:55:16 -0700
-Message-ID: <20120723215517.0C9185C0050@hpza9.eem.corp.google.com>
+Subject: + parisc-redefine-atomic_init-and-atomic64_init-like-other-architectures.patch added to -mm tree
+Date: Mon, 23 Jul 2012 15:01:21 -0700
+Message-ID: <20120723220121.BC8DA100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:48217 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751693Ab2GWVzT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jul 2012 17:55:19 -0400
-Received: by wgbdt11 with SMTP id dt11so336661wgb.1
-        for <mm-commits@vger.kernel.org>; Mon, 23 Jul 2012 14:55:17 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:60749 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752723Ab2GWWBX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jul 2012 18:01:23 -0400
+Received: by vcqp1 with SMTP id p1so786557vcq.1
+        for <mm-commits@vger.kernel.org>; Mon, 23 Jul 2012 15:01:22 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nzimmer@sgi.com
+Cc: mgorman@suse.de, James.Bottomley@hansenpartnership.com, dave.anglin@bell.net, fengguang.wu@intel.com
 
 
 The patch titled
-     Subject: shmem: correct build warning in shmem interleave
+     Subject: parisc: redefine ATOMIC_INIT and ATOMIC64_INIT like other architectures
 has been added to the -mm tree.  Its filename is
-     tmpfs-interleave-the-starting-node-of-dev-shmem-fix.patch
+     parisc-redefine-atomic_init-and-atomic64_init-like-other-architectures.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,36 +33,106 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nathan Zimmer <nzimmer@sgi.com>
-Subject: shmem: correct build warning in shmem interleave
+From: Mel Gorman <mgorman@suse.de>
+Subject: parisc: redefine ATOMIC_INIT and ATOMIC64_INIT like other architectures
 
-Correcting a build warning in shmem_interleave
+The following build error occured during a parisc build with
+swap-over-NFS patches applied.
 
-Signed-off-by: Nathan Zimmer <nzimmer@sgi.com>
+net/core/sock.c:274:36: error: initializer element is not constant
+net/core/sock.c:274:36: error: (near initialization for 'memalloc_socks')
+net/core/sock.c:274:36: error: initializer element is not constant
+
+It's not obvious but this is due to how ATOMIC_INIT is defined on parisc. 
+It should affect any user of STATIC_KEY_INIT_FALSE on that platform.
+
+This patch makes the definition of ATOMIC_INIT on parisc to look like
+other arches definition.
+
+Apparently due to gcc creating a temporary.  John said "Parisc is a callee
+copies architecture.  Thus, a structure passed as an argument may be
+copied to a temporary.  This has been a source of numerous bugs as the
+majority of architectures do it the other way round."
+
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Cc: James Bottomley <James.Bottomley@hansenpartnership.com>
+Cc: John David Anglin <dave.anglin@bell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/parisc/include/asm/atomic.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/shmem.c~tmpfs-interleave-the-starting-node-of-dev-shmem-fix mm/shmem.c
---- a/mm/shmem.c~tmpfs-interleave-the-starting-node-of-dev-shmem-fix
-+++ a/mm/shmem.c
-@@ -1338,7 +1338,7 @@ static unsigned long shmem_interleave(st
- 	unsigned long offset;
+diff -puN arch/parisc/include/asm/atomic.h~parisc-redefine-atomic_init-and-atomic64_init-like-other-architectures arch/parisc/include/asm/atomic.h
+--- a/arch/parisc/include/asm/atomic.h~parisc-redefine-atomic_init-and-atomic64_init-like-other-architectures
++++ a/arch/parisc/include/asm/atomic.h
+@@ -141,7 +141,7 @@ static __inline__ int __atomic_add_unles
  
- 	/* Use the vm_files prefered node as the initial offset. */
--	offset = (unsigned long *) vma->vm_private_data;
-+	offset = (unsigned long)vma->vm_private_data;
+ #define atomic_sub_and_test(i,v)	(atomic_sub_return((i),(v)) == 0)
  
- 	offset += ((addr - vma->vm_start) >> PAGE_SHIFT) + vma->vm_pgoff;
+-#define ATOMIC_INIT(i)	((atomic_t) { (i) })
++#define ATOMIC_INIT(i)	{ (i) }
  
+ #define smp_mb__before_atomic_dec()	smp_mb()
+ #define smp_mb__after_atomic_dec()	smp_mb()
+@@ -150,7 +150,7 @@ static __inline__ int __atomic_add_unles
+ 
+ #ifdef CONFIG_64BIT
+ 
+-#define ATOMIC64_INIT(i) ((atomic64_t) { (i) })
++#define ATOMIC64_INIT(i) { (i) }
+ 
+ static __inline__ s64
+ __atomic64_add_return(s64 i, atomic64_t *v)
 _
-Subject: Subject: shmem: correct build warning in shmem interleave
+Subject: Subject: parisc: redefine ATOMIC_INIT and ATOMIC64_INIT like other architectures
 
-Patches currently in -mm which might be from nzimmer@sgi.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
-shmem-provide-vm_ops-when-also-providing-a-mem-policy.patch
-tmpfs-interleave-the-starting-node-of-dev-shmem.patch
-tmpfs-interleave-the-starting-node-of-dev-shmem-fix.patch
+linux-next.patch
+mm-fix-wrong-argument-of-migrate_huge_pages-in-soft_offline_huge_page.patch
+mm-do-not-use-page_count-without-a-page-pin.patch
+mm-clean-up-__count_immobile_pages.patch
+mm-hotplug-correctly-setup-fallback-zonelists-when-creating-new-pgdat.patch
+mm-hotplug-correctly-add-new-zone-to-all-other-nodes-zone-lists.patch
+mm-hotplug-free-zone-pageset-when-a-zone-becomes-empty.patch
+mm-hotplug-mark-memory-hotplug-code-in-page_allocc-as-__meminit.patch
+mm-factor-out-memory-isolate-functions.patch
+mm-bug-fix-free-page-check-in-zone_watermark_ok.patch
+memory-hotplug-fix-kswapd-looping-forever-problem.patch
+memory-hotplug-fix-kswapd-looping-forever-problem-fix.patch
+memory-hotplug-fix-kswapd-looping-forever-problem-fix-fix.patch
+parisc-redefine-atomic_init-and-atomic64_init-like-other-architectures.patch
+mm-slb-add-knowledge-of-pfmemalloc-reserve-pages.patch
+mm-slub-optimise-the-slub-fast-path-to-avoid-pfmemalloc-checks.patch
+mm-introduce-__gfp_memalloc-to-allow-access-to-emergency-reserves.patch
+mm-allow-pf_memalloc-from-softirq-context.patch
+mm-only-set-page-pfmemalloc-when-alloc_no_watermarks-was-used.patch
+mm-ignore-mempolicies-when-using-alloc_no_watermark.patch
+net-introduce-sk_gfp_atomic-to-allow-addition-of-gfp-flags-depending-on-the-individual-socket.patch
+netvm-allow-the-use-of-__gfp_memalloc-by-specific-sockets.patch
+netvm-allow-skb-allocation-to-use-pfmemalloc-reserves.patch
+netvm-propagate-page-pfmemalloc-to-skb.patch
+netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb.patch
+netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix.patch
+netvm-set-pf_memalloc-as-appropriate-during-skb-processing.patch
+mm-micro-optimise-slab-to-avoid-a-function-call.patch
+nbd-set-sock_memalloc-for-access-to-pfmemalloc-reserves.patch
+mm-throttle-direct-reclaimers-if-pf_memalloc-reserves-are-low-and-swap-is-backed-by-network-storage.patch
+mm-account-for-the-number-of-times-direct-reclaimers-get-throttled.patch
+netvm-prevent-a-stream-specific-deadlock.patch
+selinux-tag-avc-cache-alloc-as-non-critical.patch
+mm-methods-for-teaching-filesystems-about-pg_swapcache-pages.patch
+mm-add-support-for-a-filesystem-to-activate-swap-files-and-use-direct_io-for-writing-swap-pages.patch
+mm-swap-implement-generic-handler-for-swap_activate.patch
+mm-add-get_kernel_page-for-pinning-of-kernel-addresses-for-i-o.patch
+mm-add-support-for-direct_io-to-highmem-pages.patch
+nfs-teach-the-nfs-client-how-to-treat-pg_swapcache-pages.patch
+nfs-disable-data-cache-revalidation-for-swapfiles.patch
+nfs-enable-swap-on-nfs.patch
+nfs-prevent-page-allocator-recursions-with-swap-over-nfs.patch
+swapfile-avoid-dereferencing-bd_disk-during-swap_entry_free-for-network-storage.patch
+memcg-prevent-oom-with-too-many-dirty-pages.patch
+memcg-further-prevent-oom-with-too-many-dirty-pages.patch
 
