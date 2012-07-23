@@ -1,118 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] fs-gfs2-filec-fix-32-bit-build.patch removed from -mm tree
-Date: Mon, 23 Jul 2012 14:27:33 -0700
-Message-ID: <20120723212735.5CA07100047@wpzn3.hot.corp.google.com>
+Subject: [merged] bootmem-make-___alloc_bootmem_node_nopanic-to-be-real-nopanic.patch removed from -mm tree
+Date: Mon, 23 Jul 2012 14:30:40 -0700
+Message-ID: <20120723213040.7DFC81E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:45469 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754967Ab2GWV1h (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jul 2012 17:27:37 -0400
-Received: by qabg24 with SMTP id g24so383055qab.1
-        for <mm-commits@vger.kernel.org>; Mon, 23 Jul 2012 14:27:36 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:50305 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755120Ab2GWVal (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jul 2012 17:30:41 -0400
+Received: by yhl10 with SMTP id 10so786111yhl.1
+        for <mm-commits@vger.kernel.org>; Mon, 23 Jul 2012 14:30:41 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, swhiteho@redhat.com, mm-commits@vger.kernel.org
+To: yinghai@kernel.org, hannes@cmpxchg.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/gfs2/file.c: fix 32-bit build
+     Subject: bootmem: make ___alloc_bootmem_node_nopanic() really nopanic
 has been removed from the -mm tree.  Its filename was
-     fs-gfs2-filec-fix-32-bit-build.patch
+     bootmem-make-___alloc_bootmem_node_nopanic-to-be-real-nopanic.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs/gfs2/file.c: fix 32-bit build
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: bootmem: make ___alloc_bootmem_node_nopanic() really nopanic
 
-Avoid emitting a reference to the non-existent __divdi3()
+after
+| From 99ab7b19440a72ebdf225f99b20f8ef40decee86 Mon Sep 17 00:00:00 2001
+| Date: Wed, 11 Jul 2012 14:02:53 -0700
+| Subject: [PATCH] mm: sparse: fix usemap allocation above node descriptor
+ section
 
-Cc: Steven Whitehouse <swhiteho@redhat.com>
+Johannes said:
+| while backporting the below patch, I realised that your fix busted
+| f5bf18fa22f8 again.  The problem was not a panicking version on
+| allocation failure but when the usemap size was too large such that
+| goal + size > limit triggers the BUG_ON in the bootmem allocator.  So
+| we need a version that passes limit ONLY if the usemap is smaller than
+| the section.
+
+after checking the code, the name of ___alloc_bootmem_node_nopanic() does
+not reflect the fact.
+
+Make bootmem really not panic.
+
+Hope will kill bootmem sooner.
+
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: <stable@vger.kernel.org>    [3.3.x, 3.4.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/file.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/bootmem.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN fs/gfs2/file.c~fs-gfs2-filec-fix-32-bit-build fs/gfs2/file.c
---- a/fs/gfs2/file.c~fs-gfs2-filec-fix-32-bit-build
-+++ a/fs/gfs2/file.c
-@@ -770,6 +770,8 @@ static long gfs2_fallocate(struct file *
- 	loff_t bsize_mask = ~((loff_t)sdp->sd_sb.sb_bsize - 1);
- 	loff_t next = (offset + len - 1) >> sdp->sd_sb.sb_bsize_shift;
- 	loff_t max_chunk_size = UINT_MAX & bsize_mask;
-+	u32 rs_sizehint;
+diff -puN mm/bootmem.c~bootmem-make-___alloc_bootmem_node_nopanic-to-be-real-nopanic mm/bootmem.c
+--- a/mm/bootmem.c~bootmem-make-___alloc_bootmem_node_nopanic-to-be-real-nopanic
++++ a/mm/bootmem.c
+@@ -710,6 +710,10 @@ again:
+ 	if (ptr)
+ 		return ptr;
+ 
++	/* do not panic in alloc_bootmem_bdata() */
++	if (limit && goal + size > limit)
++		limit = 0;
 +
- 	next = (next + 1) << sdp->sd_sb.sb_bsize_shift;
- 
- 	/* We only support the FALLOC_FL_KEEP_SIZE mode */
-@@ -795,7 +797,9 @@ static long gfs2_fallocate(struct file *
- 	if (unlikely(error))
- 		goto out_uninit;
- 
--	atomic_set(&ip->i_res->rs_sizehint, len / sdp->sd_sb.sb_bsize);
-+	rs_sizehint = len;
-+	do_div(rs_sizehint, sdp->sd_sb.sb_bsize);
-+	atomic_set(&ip->i_res->rs_sizehint, rs_sizehint);
- 
- 	while (len > 0) {
- 		if (len < bytes)
+ 	ptr = alloc_bootmem_bdata(pgdat->bdata, size, align, goal, limit);
+ 	if (ptr)
+ 		return ptr;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from yinghai@kernel.org are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
-thermal-add-generic-cpufreq-cooling-implementation.patch
-thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
-thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
-coredump-warn-about-unsafe-suid_dumpable-core_pattern-combo.patch
-mm.patch
-mm-make-vb_alloc-more-foolproof-fix.patch
-mm-hugetlb-add-new-hugetlb-cgroup-fix.patch
-mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch
-hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
-hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
 mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
-memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
-mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
-memcg-rename-config-variables.patch
-memcg-rename-config-variables-fix-fix.patch
-mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes.patch
-mm-have-order-0-compaction-start-off-where-it-left-v3-typo.patch
-memory-hotplug-fix-kswapd-looping-forever-problem-fix.patch
-memory-hotplug-fix-kswapd-looping-forever-problem-fix-fix.patch
-netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix.patch
-mm-memcg-fix-compaction-migration-failing-due-to-memcg-limits-checkpatch-fixes.patch
-memcg-prevent-oom-with-too-many-dirty-pages.patch
-memcg-add-mem_cgroup_from_css-helper-fix.patch
-avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
-nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
-kernel-sysc-avoid-argv_freenull.patch
-kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
-printk-add-generic-functions-to-find-kern_level-headers-fix.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
-lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch
-string-introduce-memweight-fix.patch
-drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes.patch
-drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded.patch
-kernel-kmodc-document-call_usermodehelper_fns-a-bit.patch
-kmod-avoid-deadlock-from-recursive-kmod-call.patch
-fork-use-vma_pages-to-simplify-the-code-fix.patch
-revert-sched-fix-fork-error-path-to-not-crash.patch
-ipc-use-kconfig-options-for-__arch_want_ipc_parse_version.patch
-fs-cachefiles-add-support-for-large-files-in-filesystem-caching-fix.patch
-include-linux-aioh-cpp-c-conversions.patch
-fault-injection-add-selftests-for-cpu-and-memory-hotplug.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mm-setup-pageblock_order-before-its-used-by-sparsemem.patch
+mm-hotplug-correctly-setup-fallback-zonelists-when-creating-new-pgdat.patch
+mm-hotplug-correctly-add-new-zone-to-all-other-nodes-zone-lists.patch
+mm-hotplug-free-zone-pageset-when-a-zone-becomes-empty.patch
+mm-hotplug-mark-memory-hotplug-code-in-page_allocc-as-__meminit.patch
 
