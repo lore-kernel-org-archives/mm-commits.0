@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-sparse-remove-index_init_lock.patch added to -mm tree
-Date: Mon, 23 Jul 2012 15:26:46 -0700
-Message-ID: <20120723222647.A5F9C5C0050@hpza9.eem.corp.google.com>
+Subject: + mm-slb-add-knowledge-of-pfmemalloc-reserve-pages-fix.patch added to -mm tree
+Date: Mon, 23 Jul 2012 15:46:36 -0700
+Message-ID: <20120723224637.1FE951E0078@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:64581 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754785Ab2GWW0t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jul 2012 18:26:49 -0400
-Received: by mail-fa0-f74.google.com with SMTP id 25so345309fat.1
-        for <mm-commits@vger.kernel.org>; Mon, 23 Jul 2012 15:26:48 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:49882 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751792Ab2GWWqj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jul 2012 18:46:39 -0400
+Received: by qabg24 with SMTP id g24so391938qab.1
+        for <mm-commits@vger.kernel.org>; Mon, 23 Jul 2012 15:46:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shangw@linux.vnet.ibm.com, mhocko@suse.cz
+Cc: mgorman@suse.de, fengguang.wu@intel.com
 
 
 The patch titled
-     Subject: mm/sparse: remove index_init_lock
+     Subject: buildfix: mm: sl[au]b: add knowledge of PFMEMALLOC reserve pages
 has been added to the -mm tree.  Its filename is
-     mm-sparse-remove-index_init_lock.patch
+     mm-slb-add-knowledge-of-pfmemalloc-reserve-pages-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,86 +33,92 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Gavin Shan <shangw@linux.vnet.ibm.com>
-Subject: mm/sparse: remove index_init_lock
+From: Mel Gorman <mgorman@suse.de>
+Subject: buildfix: mm: sl[au]b: add knowledge of PFMEMALLOC reserve pages
 
-sparse_index_init() uses the index_init_lock spinlock to protect root
-mem_section assignment.  The lock is not necessary anymore because the
-function is called only during boot (during paging init which is executed
-only from a single CPU) and from the hotplug code (by add_memory() via
-arch_add_memory()) which uses mem_hotplug_mutex.
+Fix build error for bisection reasons.
 
-The lock was introduced by 28ae55c9 ("sparsemem extreme: hotplug
-preparation") and sparse_index_init() was used only during boot at that
-time.
-
-Later when the hotplug code (and add_memory()) was introduced there was no
-synchronization so it was possible to online more sections from the same
-root probably (though I am not 100% sure about that).  The first
-synchronization has been added by 6ad696d2 ("mm: allow memory hotplug and
-hibernation in the same kernel") which was later replaced by the
-mem_hotplug_mutex - 20d6c96b ("mem-hotplug: introduce
-{un}lock_memory_hotplug()").
-
-Let's remove the lock as it is not needed and it makes the code more
-confusing.
-
-[mhocko@suse.cz: changelog]
-Signed-off-by: Gavin Shan <shangw@linux.vnet.ibm.com>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
-Cc: Michal Hocko <mhocko@suse.cz>
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |   14 +-------------
- 1 file changed, 1 insertion(+), 13 deletions(-)
+ include/linux/page-flags.h |    1 +
+ mm/slub.c                  |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/sparse.c~mm-sparse-remove-index_init_lock mm/sparse.c
---- a/mm/sparse.c~mm-sparse-remove-index_init_lock
-+++ a/mm/sparse.c
-@@ -77,7 +77,6 @@ static struct mem_section noinline __ini
+diff -puN include/linux/page-flags.h~mm-slb-add-knowledge-of-pfmemalloc-reserve-pages-fix include/linux/page-flags.h
+--- a/include/linux/page-flags.h~mm-slb-add-knowledge-of-pfmemalloc-reserve-pages-fix
++++ a/include/linux/page-flags.h
+@@ -7,6 +7,7 @@
  
- static int __meminit sparse_index_init(unsigned long section_nr, int nid)
- {
--	static DEFINE_SPINLOCK(index_init_lock);
- 	unsigned long root = SECTION_NR_TO_ROOT(section_nr);
- 	struct mem_section *section;
- 	int ret = 0;
-@@ -88,20 +87,9 @@ static int __meminit sparse_index_init(u
- 	section = sparse_index_alloc(nid);
- 	if (!section)
- 		return -ENOMEM;
--	/*
--	 * This lock keeps two different sections from
--	 * reallocating for the same index
--	 */
--	spin_lock(&index_init_lock);
--
--	if (mem_section[root]) {
--		ret = -EEXIST;
--		goto out;
--	}
+ #include <linux/types.h>
+ #include <linux/bug.h>
++#include <linux/mmdebug.h>
+ #ifndef __GENERATING_BOUNDS_H
+ #include <linux/mm_types.h>
+ #include <generated/bounds.h>
+diff -puN mm/slub.c~mm-slb-add-knowledge-of-pfmemalloc-reserve-pages-fix mm/slub.c
+--- a/mm/slub.c~mm-slb-add-knowledge-of-pfmemalloc-reserve-pages-fix
++++ a/mm/slub.c
+@@ -2327,7 +2327,7 @@ redo:
  
- 	mem_section[root] = section;
--out:
--	spin_unlock(&index_init_lock);
-+
- 	return ret;
- }
- #else /* !SPARSEMEM_EXTREME */
+ 	object = c->freelist;
+ 	page = c->page;
+-	if (unlikely(!object || !node_match(page, node)
++	if (unlikely(!object || !node_match(page, node) ||
+ 					!pfmemalloc_match(page, gfpflags)))
+ 		object = __slab_alloc(s, gfpflags, node, addr, c);
+ 
 _
-Subject: Subject: mm/sparse: remove index_init_lock
+Subject: Subject: buildfix: mm: sl[au]b: add knowledge of PFMEMALLOC reserve pages
 
-Patches currently in -mm which might be from shangw@linux.vnet.ibm.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
 linux-next.patch
-mm-slab-remove-duplicate-check.patch
-mm-buddy-cleanup-on-should_fail_alloc_page.patch
-mm-compaction-cleanup-on-compaction_deferred.patch
-memcg-add-mem_cgroup_from_css-helper.patch
-memcg-add-mem_cgroup_from_css-helper-fix.patch
-memcg-add-mem_cgroup_from_css-helper-fix-2.patch
-mm-sparse-optimize-sparse_index_alloc.patch
-mm-sparse-more-check-on-mem_section-number.patch
-mm-sparse-remove-index_init_lock.patch
+mm-fix-wrong-argument-of-migrate_huge_pages-in-soft_offline_huge_page.patch
+mm-do-not-use-page_count-without-a-page-pin.patch
+mm-clean-up-__count_immobile_pages.patch
+mm-hotplug-correctly-setup-fallback-zonelists-when-creating-new-pgdat.patch
+mm-hotplug-correctly-add-new-zone-to-all-other-nodes-zone-lists.patch
+mm-hotplug-free-zone-pageset-when-a-zone-becomes-empty.patch
+mm-hotplug-mark-memory-hotplug-code-in-page_allocc-as-__meminit.patch
+mm-factor-out-memory-isolate-functions.patch
+mm-bug-fix-free-page-check-in-zone_watermark_ok.patch
+memory-hotplug-fix-kswapd-looping-forever-problem.patch
+memory-hotplug-fix-kswapd-looping-forever-problem-fix.patch
+memory-hotplug-fix-kswapd-looping-forever-problem-fix-fix.patch
+parisc-redefine-atomic_init-and-atomic64_init-like-other-architectures.patch
+mm-slb-add-knowledge-of-pfmemalloc-reserve-pages.patch
+mm-slb-add-knowledge-of-pfmemalloc-reserve-pages-fix.patch
+mm-slub-optimise-the-slub-fast-path-to-avoid-pfmemalloc-checks.patch
+mm-introduce-__gfp_memalloc-to-allow-access-to-emergency-reserves.patch
+mm-allow-pf_memalloc-from-softirq-context.patch
+mm-only-set-page-pfmemalloc-when-alloc_no_watermarks-was-used.patch
+mm-ignore-mempolicies-when-using-alloc_no_watermark.patch
+net-introduce-sk_gfp_atomic-to-allow-addition-of-gfp-flags-depending-on-the-individual-socket.patch
+netvm-allow-the-use-of-__gfp_memalloc-by-specific-sockets.patch
+netvm-allow-skb-allocation-to-use-pfmemalloc-reserves.patch
+netvm-propagate-page-pfmemalloc-to-skb.patch
+netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb.patch
+netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix.patch
+netvm-set-pf_memalloc-as-appropriate-during-skb-processing.patch
+mm-micro-optimise-slab-to-avoid-a-function-call.patch
+nbd-set-sock_memalloc-for-access-to-pfmemalloc-reserves.patch
+mm-throttle-direct-reclaimers-if-pf_memalloc-reserves-are-low-and-swap-is-backed-by-network-storage.patch
+mm-account-for-the-number-of-times-direct-reclaimers-get-throttled.patch
+netvm-prevent-a-stream-specific-deadlock.patch
+selinux-tag-avc-cache-alloc-as-non-critical.patch
+mm-methods-for-teaching-filesystems-about-pg_swapcache-pages.patch
+mm-add-get_kernel_page-for-pinning-of-kernel-addresses-for-i-o.patch
+mm-add-support-for-a-filesystem-to-activate-swap-files-and-use-direct_io-for-writing-swap-pages.patch
+mm-swap-implement-generic-handler-for-swap_activate.patch
+mm-add-support-for-direct_io-to-highmem-pages.patch
+nfs-teach-the-nfs-client-how-to-treat-pg_swapcache-pages.patch
+nfs-disable-data-cache-revalidation-for-swapfiles.patch
+nfs-enable-swap-on-nfs.patch
+nfs-prevent-page-allocator-recursions-with-swap-over-nfs.patch
+swapfile-avoid-dereferencing-bd_disk-during-swap_entry_free-for-network-storage.patch
+memcg-prevent-oom-with-too-many-dirty-pages.patch
+memcg-further-prevent-oom-with-too-many-dirty-pages.patch
 
