@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slb-add-knowledge-of-pfmemalloc-reserve-pages-fix.patch added to -mm tree
-Date: Mon, 23 Jul 2012 15:46:36 -0700
-Message-ID: <20120723224637.1FE951E0078@wpzn4.hot.corp.google.com>
+Subject: + mm-oom-reduce-dependency-on-tasklist_lock-fix-fix.patch added to -mm tree
+Date: Mon, 23 Jul 2012 16:08:48 -0700
+Message-ID: <20120723230849.07A211E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:49882 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751792Ab2GWWqj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jul 2012 18:46:39 -0400
-Received: by qabg24 with SMTP id g24so391938qab.1
-        for <mm-commits@vger.kernel.org>; Mon, 23 Jul 2012 15:46:38 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:48467 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752055Ab2GWXIu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jul 2012 19:08:50 -0400
+Received: by qcqs25 with SMTP id s25so795450qcq.1
+        for <mm-commits@vger.kernel.org>; Mon, 23 Jul 2012 16:08:49 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mgorman@suse.de, fengguang.wu@intel.com
+Cc: rientjes@google.com, mhocko@suse.cz
 
 
 The patch titled
-     Subject: buildfix: mm: sl[au]b: add knowledge of PFMEMALLOC reserve pages
+     Subject: mm-oom-reduce-dependency-on-tasklist_lock-fix-fix
 has been added to the -mm tree.  Its filename is
-     mm-slb-add-knowledge-of-pfmemalloc-reserve-pages-fix.patch
+     mm-oom-reduce-dependency-on-tasklist_lock-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,92 +33,97 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: buildfix: mm: sl[au]b: add knowledge of PFMEMALLOC reserve pages
+From: David Rientjes <rientjes@google.com>
+Subject: mm-oom-reduce-dependency-on-tasklist_lock-fix-fix
 
-Fix build error for bisection reasons.
+Need to drop rcu lock before returning from select_bad_process() for
+OOM_SCAN_ABORT.
 
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-Signed-off-by: Mel Gorman <mgorman@suse.de>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    1 +
- mm/slub.c                  |    2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ mm/oom_kill.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/page-flags.h~mm-slb-add-knowledge-of-pfmemalloc-reserve-pages-fix include/linux/page-flags.h
---- a/include/linux/page-flags.h~mm-slb-add-knowledge-of-pfmemalloc-reserve-pages-fix
-+++ a/include/linux/page-flags.h
-@@ -7,6 +7,7 @@
- 
- #include <linux/types.h>
- #include <linux/bug.h>
-+#include <linux/mmdebug.h>
- #ifndef __GENERATING_BOUNDS_H
- #include <linux/mm_types.h>
- #include <generated/bounds.h>
-diff -puN mm/slub.c~mm-slb-add-knowledge-of-pfmemalloc-reserve-pages-fix mm/slub.c
---- a/mm/slub.c~mm-slb-add-knowledge-of-pfmemalloc-reserve-pages-fix
-+++ a/mm/slub.c
-@@ -2327,7 +2327,7 @@ redo:
- 
- 	object = c->freelist;
- 	page = c->page;
--	if (unlikely(!object || !node_match(page, node)
-+	if (unlikely(!object || !node_match(page, node) ||
- 					!pfmemalloc_match(page, gfpflags)))
- 		object = __slab_alloc(s, gfpflags, node, addr, c);
- 
+diff -puN mm/oom_kill.c~mm-oom-reduce-dependency-on-tasklist_lock-fix-fix mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-reduce-dependency-on-tasklist_lock-fix-fix
++++ a/mm/oom_kill.c
+@@ -361,6 +361,7 @@ static struct task_struct *select_bad_pr
+ 		case OOM_SCAN_CONTINUE:
+ 			continue;
+ 		case OOM_SCAN_ABORT:
++			rcu_read_unlock();
+ 			return ERR_PTR(-1UL);
+ 		case OOM_SCAN_OK:
+ 			break;
 _
-Subject: Subject: buildfix: mm: sl[au]b: add knowledge of PFMEMALLOC reserve pages
+Subject: Subject: mm-oom-reduce-dependency-on-tasklist_lock-fix-fix
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from rientjes@google.com are
 
 linux-next.patch
 mm-fix-wrong-argument-of-migrate_huge_pages-in-soft_offline_huge_page.patch
-mm-do-not-use-page_count-without-a-page-pin.patch
-mm-clean-up-__count_immobile_pages.patch
+acpi_memhotplugc-fix-memory-leak-when-memory-device-is-unbound-from-the-module-acpi_memhotplug.patch
+acpi_memhotplugc-free-memory-device-if-acpi_memory_enable_device-failed.patch
+acpi_memhotplugc-remove-memory-info-from-list-before-freeing-it.patch
+acpi_memhotplugc-dont-allow-to-eject-the-memory-device-if-it-is-being-used.patch
+acpi_memhotplugc-bind-the-memory-device-when-the-driver-is-being-loaded.patch
+acpi_memhotplugc-auto-bind-the-memory-device-which-is-hotplugged-before-the-driver-is-loaded.patch
+slab-do-not-call-compound_head-in-page_get_cache.patch
+mm-buddy-cleanup-on-should_fail_alloc_page.patch
+hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
+hugetlb-dont-use-err_ptr-with-vm_fault-values.patch
+hugetlb-add-an-inline-helper-for-finding-hstate-index.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
+hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb.patch
+hugetlb-simplify-migrate_huge_page.patch
+hugetlb-add-a-list-for-tracking-in-use-hugetlb-pages.patch
+hugetlb-make-some-static-variables-global.patch
+mm-hugetlb-add-new-hugetlb-cgroup.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch
+hugetlb-cgroup-add-the-cgroup-pointer-to-page-lru.patch
+hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup.patch
+hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup-add-huge_page_order-check-to-avoid-incorrectly-uncharge.patch
+hugetlb-cgroup-add-support-for-cgroup-removal.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
+hugetlb-cgroup-migrate-hugetlb-cgroup-info-from-oldpage-to-new-page-during-migration.patch
+hugetlb-cgroup-add-hugetlb-controller-documentation.patch
+mm-oom-do-not-schedule-if-current-has-been-killed.patch
+mm-compaction-cleanup-on-compaction_deferred.patch
+mm-clear-pages_scanned-only-if-draining-a-pcp-adds-pages-to-the-buddy-allocator-again.patch
+mm-oom-fix-potential-killing-of-thread-that-is-disabled-from-oom-killing.patch
+mm-oom-replace-some-information-in-tasklist-dump.patch
+memcg-rename-config-variables.patch
+memcg-rename-config-variables-fix.patch
+memcg-rename-config-variables-fix-fix.patch
+mm-setup-pageblock_order-before-its-used-by-sparsemem.patch
 mm-hotplug-correctly-setup-fallback-zonelists-when-creating-new-pgdat.patch
 mm-hotplug-correctly-add-new-zone-to-all-other-nodes-zone-lists.patch
 mm-hotplug-free-zone-pageset-when-a-zone-becomes-empty.patch
 mm-hotplug-mark-memory-hotplug-code-in-page_allocc-as-__meminit.patch
-mm-factor-out-memory-isolate-functions.patch
-mm-bug-fix-free-page-check-in-zone_watermark_ok.patch
-memory-hotplug-fix-kswapd-looping-forever-problem.patch
-memory-hotplug-fix-kswapd-looping-forever-problem-fix.patch
-memory-hotplug-fix-kswapd-looping-forever-problem-fix-fix.patch
-parisc-redefine-atomic_init-and-atomic64_init-like-other-architectures.patch
-mm-slb-add-knowledge-of-pfmemalloc-reserve-pages.patch
-mm-slb-add-knowledge-of-pfmemalloc-reserve-pages-fix.patch
-mm-slub-optimise-the-slub-fast-path-to-avoid-pfmemalloc-checks.patch
-mm-introduce-__gfp_memalloc-to-allow-access-to-emergency-reserves.patch
-mm-allow-pf_memalloc-from-softirq-context.patch
+mm-oom-move-declaration-for-mem_cgroup_out_of_memory-to-oomh.patch
+mm-oom-introduce-helper-function-to-process-threads-during-scan.patch
+mm-memcg-introduce-own-oom-handler-to-iterate-only-over-its-own-threads.patch
+mm-oom-reduce-dependency-on-tasklist_lock.patch
+mm-oom-reduce-dependency-on-tasklist_lock-fix.patch
+mm-oom-reduce-dependency-on-tasklist_lock-fix-fix.patch
+mm-memcg-move-all-oom-handling-to-memcontrolc.patch
 mm-only-set-page-pfmemalloc-when-alloc_no_watermarks-was-used.patch
-mm-ignore-mempolicies-when-using-alloc_no_watermark.patch
-net-introduce-sk_gfp_atomic-to-allow-addition-of-gfp-flags-depending-on-the-individual-socket.patch
-netvm-allow-the-use-of-__gfp_memalloc-by-specific-sockets.patch
-netvm-allow-skb-allocation-to-use-pfmemalloc-reserves.patch
-netvm-propagate-page-pfmemalloc-to-skb.patch
-netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb.patch
-netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix.patch
-netvm-set-pf_memalloc-as-appropriate-during-skb-processing.patch
-mm-micro-optimise-slab-to-avoid-a-function-call.patch
-nbd-set-sock_memalloc-for-access-to-pfmemalloc-reserves.patch
-mm-throttle-direct-reclaimers-if-pf_memalloc-reserves-are-low-and-swap-is-backed-by-network-storage.patch
-mm-account-for-the-number-of-times-direct-reclaimers-get-throttled.patch
-netvm-prevent-a-stream-specific-deadlock.patch
-selinux-tag-avc-cache-alloc-as-non-critical.patch
-mm-methods-for-teaching-filesystems-about-pg_swapcache-pages.patch
-mm-add-get_kernel_page-for-pinning-of-kernel-addresses-for-i-o.patch
-mm-add-support-for-a-filesystem-to-activate-swap-files-and-use-direct_io-for-writing-swap-pages.patch
-mm-swap-implement-generic-handler-for-swap_activate.patch
-mm-add-support-for-direct_io-to-highmem-pages.patch
-nfs-teach-the-nfs-client-how-to-treat-pg_swapcache-pages.patch
-nfs-disable-data-cache-revalidation-for-swapfiles.patch
-nfs-enable-swap-on-nfs.patch
-nfs-prevent-page-allocator-recursions-with-swap-over-nfs.patch
-swapfile-avoid-dereferencing-bd_disk-during-swap_entry_free-for-network-storage.patch
-memcg-prevent-oom-with-too-many-dirty-pages.patch
-memcg-further-prevent-oom-with-too-many-dirty-pages.patch
+mm-memcg-fix-compaction-migration-failing-due-to-memcg-limits.patch
+mm-memcg-push-down-pageswapcache-check-into-uncharge-entry-functions.patch
+mm-memcg-only-check-for-pageswapcache-when-uncharging-anon.patch
+mm-memcg-move-swapin-charge-functions-above-callsites.patch
+mm-memcg-remove-unneeded-shmem-charge-type.patch
+mm-memcg-remove-needless-mm-fixup-to-init_mm-when-charging.patch
+mm-memcg-split-swapin-charge-function-into-private-and-public-part.patch
+mm-memcg-only-check-swap-cache-pages-for-repeated-charging.patch
+mm-memcg-only-check-anon-swapin-page-charges-for-swap-cache.patch
+mm-sparse-optimize-sparse_index_alloc.patch
+mm-sparse-more-check-on-mem_section-number.patch
+kernel-sysc-avoid-argv_freenull.patch
 
