@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + firmware_map-make-firmware_map_add_early-argument-consistent-with-firmware_map_add_hotplug.patch added to -mm tree
-Date: Tue, 24 Jul 2012 15:06:57 -0700
-Message-ID: <20120724220658.5BB3D1E0043@wpzn4.hot.corp.google.com>
+Subject: + firmware_map-make-firmware_map_add_early-argument-consistent-with-firmware_map_add_hotplug-fix.patch added to -mm tree
+Date: Tue, 24 Jul 2012 15:07:00 -0700
+Message-ID: <20120724220701.9B7D5200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:62238 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754490Ab2GXWG7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jul 2012 18:06:59 -0400
-Received: by vcqp1 with SMTP id p1so9251vcq.1
-        for <mm-commits@vger.kernel.org>; Tue, 24 Jul 2012 15:06:59 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:33586 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754712Ab2GXWHF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jul 2012 18:07:05 -0400
+Received: by weyr1 with SMTP id r1so1976wey.1
+        for <mm-commits@vger.kernel.org>; Tue, 24 Jul 2012 15:07:03 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: isimatu.yasuaki@jp.fujitsu.com, dave@linux.vnet.ibm.com, hpa@zytor.com, mingo@kernel.org, tglx@linutronix.de, tj@kernel.org
+Cc: akpm@linux-foundation.org, dave@linux.vnet.ibm.com, hpa@zytor.com, isimatu.yasuaki@jp.fujitsu.com, mingo@kernel.org, tglx@linutronix.de, tj@kernel.org
 
 
 The patch titled
-     Subject: firmware_map: make firmware_map_add_early() argument consistent with firmware_map_add_hotplug()
+     Subject: firmware_map-make-firmware_map_add_early-argument-consistent-with-firmware_map_add_hotplug-fix
 has been added to the -mm tree.  Its filename is
-     firmware_map-make-firmware_map_add_early-argument-consistent-with-firmware_map_add_hotplug.patch
+     firmware_map-make-firmware_map_add_early-argument-consistent-with-firmware_map_add_hotplug-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,100 +33,103 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: firmware_map: make firmware_map_add_early() argument consistent with firmware_map_add_hotplug()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: firmware_map-make-firmware_map_add_early-argument-consistent-with-firmware_map_add_hotplug-fix
 
-There are two ways to create /sys/firmware/memmap/X sysfs:
+clarify comments
 
-  - firmware_map_add_early
-    When the system starts, it is calledd from e820_reserve_resources()
-  - firmware_map_add_hotplug
-    When the memory is hot plugged, it is called from add_memory()
-
-But these functions are called without unifying value of end argument as
-below:
-
-  - end argument of firmware_map_add_early()   : start + size - 1
-  - end argument of firmware_map_add_hogplug() : start + size
-
-The patch unifies them to "start + size".  Even if applying the patch,
-/sys/firmware/memmap/X/end file content does not change.
-
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Reviewed-by: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Tejun Heo <tj@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/e820.c    |    2 +-
- drivers/firmware/memmap.c |    8 ++++----
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/firmware/memmap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/e820.c~firmware_map-make-firmware_map_add_early-argument-consistent-with-firmware_map_add_hotplug arch/x86/kernel/e820.c
---- a/arch/x86/kernel/e820.c~firmware_map-make-firmware_map_add_early-argument-consistent-with-firmware_map_add_hotplug
-+++ a/arch/x86/kernel/e820.c
-@@ -944,7 +944,7 @@ void __init e820_reserve_resources(void)
- 	for (i = 0; i < e820_saved.nr_map; i++) {
- 		struct e820entry *entry = &e820_saved.map[i];
- 		firmware_map_add_early(entry->addr,
--			entry->addr + entry->size - 1,
-+			entry->addr + entry->size,
- 			e820_type_to_string(entry->type));
- 	}
- }
-diff -puN drivers/firmware/memmap.c~firmware_map-make-firmware_map_add_early-argument-consistent-with-firmware_map_add_hotplug drivers/firmware/memmap.c
---- a/drivers/firmware/memmap.c~firmware_map-make-firmware_map_add_early-argument-consistent-with-firmware_map_add_hotplug
+diff -puN drivers/firmware/memmap.c~firmware_map-make-firmware_map_add_early-argument-consistent-with-firmware_map_add_hotplug-fix drivers/firmware/memmap.c
+--- a/drivers/firmware/memmap.c~firmware_map-make-firmware_map_add_early-argument-consistent-with-firmware_map_add_hotplug-fix
 +++ a/drivers/firmware/memmap.c
 @@ -98,7 +98,7 @@ static LIST_HEAD(map_entries);
  /**
   * firmware_map_add_entry() - Does the real work to add a firmware memmap entry.
   * @start: Start of the memory range.
-- * @end:   End of the memory range (inclusive).
-+ * @end:   End of the memory range.
+- * @end:   End of the memory range.
++ * @end:   End of the memory range (exclusive).
   * @type:  Type of the memory range.
   * @entry: Pre-allocated (either kmalloc() or bootmem allocator), uninitialised
   *         entry.
-@@ -113,7 +113,7 @@ static int firmware_map_add_entry(u64 st
- 	BUG_ON(start > end);
- 
- 	entry->start = start;
--	entry->end = end;
-+	entry->end = end - 1;
- 	entry->type = type;
- 	INIT_LIST_HEAD(&entry->list);
- 	kobject_init(&entry->kobj, &memmap_ktype);
 @@ -148,7 +148,7 @@ static int add_sysfs_fw_map_entry(struct
   * firmware_map_add_hotplug() - Adds a firmware mapping entry when we do
   * memory hotplug.
   * @start: Start of the memory range.
-- * @end:   End of the memory range (inclusive).
-+ * @end:   End of the memory range.
+- * @end:   End of the memory range.
++ * @end:   End of the memory range (exclusive)
   * @type:  Type of the memory range.
   *
   * Adds a firmware mapping entry. This function is for memory hotplug, it is
-@@ -175,7 +175,7 @@ int __meminit firmware_map_add_hotplug(u
- /**
-  * firmware_map_add_early() - Adds a firmware mapping entry.
-  * @start: Start of the memory range.
-- * @end:   End of the memory range (inclusive).
-+ * @end:   End of the memory range.
-  * @type:  Type of the memory range.
-  *
-  * Adds a firmware mapping entry. This function uses the bootmem allocator
 _
-Subject: Subject: firmware_map: make firmware_map_add_early() argument consistent with firmware_map_add_hotplug()
+Subject: Subject: firmware_map-make-firmware_map_add_early-argument-consistent-with-firmware_map_add_hotplug-fix
 
-Patches currently in -mm which might be from isimatu.yasuaki@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-acpi_memhotplugc-fix-memory-leak-when-memory-device-is-unbound-from-the-module-acpi_memhotplug.patch
-acpi_memhotplugc-free-memory-device-if-acpi_memory_enable_device-failed.patch
-acpi_memhotplugc-remove-memory-info-from-list-before-freeing-it.patch
-acpi_memhotplugc-dont-allow-to-eject-the-memory-device-if-it-is-being-used.patch
-acpi_memhotplugc-bind-the-memory-device-when-the-driver-is-being-loaded.patch
-acpi_memhotplugc-auto-bind-the-memory-device-which-is-hotplugged-before-the-driver-is-loaded.patch
-firmware_map-make-firmware_map_add_early-argument-consistent-with-firmware_map_add_hotplug.patch
+origin.patch
+linux-next.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
+thermal-add-generic-cpufreq-cooling-implementation.patch
+thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
+thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
+coredump-warn-about-unsafe-suid_dumpable-core_pattern-combo.patch
+mm.patch
+mm-make-vb_alloc-more-foolproof-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
+mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
+memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
+mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
+memcg-rename-config-variables.patch
+memcg-rename-config-variables-fix-fix.patch
+mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes.patch
+mm-have-order-0-compaction-start-off-where-it-left-v3-typo.patch
+memory-hotplug-fix-kswapd-looping-forever-problem-fix.patch
+memory-hotplug-fix-kswapd-looping-forever-problem-fix-fix.patch
+netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix.patch
+mm-memcg-fix-compaction-migration-failing-due-to-memcg-limits-checkpatch-fixes.patch
+memcg-prevent-oom-with-too-many-dirty-pages.patch
+memcg-add-mem_cgroup_from_css-helper-fix.patch
+memcg-oom-provide-more-info-while-memcg-oom-happening-checkpatch-fixes.patch
+memcg-oom-clarify-some-oom-dump-messages-checkpatch-fixes.patch
+avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
+nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
+kernel-sysc-avoid-argv_freenull.patch
+kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
+printk-add-generic-functions-to-find-kern_level-headers-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
+lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch
+string-introduce-memweight-fix.patch
+rbtree-performance-and-correctness-test-fix.patch
 firmware_map-make-firmware_map_add_early-argument-consistent-with-firmware_map_add_hotplug-fix.patch
+drivers-rtc-rtc-ab8500c-use-uie-emulation-checkpatch-fixes.patch
+drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded.patch
+kernel-kmodc-document-call_usermodehelper_fns-a-bit.patch
+kmod-avoid-deadlock-from-recursive-kmod-call.patch
+fork-use-vma_pages-to-simplify-the-code-fix.patch
+revert-sched-fix-fork-error-path-to-not-crash.patch
+ipc-use-kconfig-options-for-__arch_want_ipc_parse_version.patch
+include-linux-aioh-cpp-c-conversions.patch
+fault-injection-add-selftests-for-cpu-and-memory-hotplug.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
