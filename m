@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-media-video-ov9640c-fix-missing-break.patch added to -mm tree
-Date: Tue, 24 Jul 2012 14:11:47 -0700
-Message-ID: <20120724211148.079F7200057@hpza10.eem.corp.google.com>
+Subject: + proc-environ_read-make-sure-offset-points-to-environment-address-range.patch added to -mm tree
+Date: Tue, 24 Jul 2012 14:18:05 -0700
+Message-ID: <20120724211806.4887B1E0048@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:57341 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932067Ab2GXVLu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jul 2012 17:11:50 -0400
-Received: by bkcjc3 with SMTP id jc3so576bkc.1
-        for <mm-commits@vger.kernel.org>; Tue, 24 Jul 2012 14:11:49 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:54917 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753129Ab2GXVSH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jul 2012 17:18:07 -0400
+Received: by qcqs25 with SMTP id s25so5011qcq.1
+        for <mm-commits@vger.kernel.org>; Tue, 24 Jul 2012 14:18:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@linux.intel.com, dcb314@hotmail.com, g.liakhovetski@gmx.de, hans.verkuil@cisco.com, mchehab@infradead.org, t.stanislaws@samsung.com
+Cc: tixxdz@opendz.org, keescook@chromium.org, oleg@redhat.com, rientjes@google.com, spender@grsecurity.net
 
 
 The patch titled
-     Subject: drivers/media/video/ov9640.c: fix missing break
+     Subject: proc: environ_read() make sure offset points to environment address range
 has been added to the -mm tree.  Its filename is
-     drivers-media-video-ov9640c-fix-missing-break.patch
+     proc-environ_read-make-sure-offset-points-to-environment-address-range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,49 +33,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alan Cox <alan@linux.intel.com>
-Subject: drivers/media/video/ov9640.c: fix missing break
+From: Djalal Harouni <tixxdz@opendz.org>
+Subject: proc: environ_read() make sure offset points to environment address range
 
-Without this rev2 ends up behaving as rev3
+Currently the following offset and environment address range check in
+environ_read() of /proc/<pid>/environ is buggy:
 
-Addresses https://bugzilla.kernel.org/show_bug.cgi?id=44081
+int this_len = mm->env_end - (mm->env_start + src);
+if (this_len <= 0)
+	break;
 
-Reported-by: David Binderman <dcb314@hotmail.com>
-Signed-off-by: Alan Cox <alan@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Large or negative offsets on /proc/<pid>/environ converted to 'unsigned
+long' may pass this check since '(mm->env_start + src)' can overflow and
+'this_len' will be positive.
+
+This can turn /proc/<pid>/environ to act like /proc/<pid>/mem since
+(mm->env_start + src) will point and read from another VMA.
+
+There are two fixes here plus some code cleaning:
+
+1) Fix the overflow by checking if the offset that was converted to
+   unsigned long will always point to the [mm->env_start, mm->env_end]
+   address range.
+
+2) Remove the truncation that was made to the result of the check,
+   storing the result in 'int this_len' will alter its value and we can
+   not depend on it.
+
+For kernels that have commit b409e578d ("proc: clean up
+/proc/<pid>/environ handling") which adds the appropriate ptrace check and
+saves the 'mm' at ->open() time, this is not a security issue.
+
+This patch is taken from the grsecurity patch since it was just made
+available.
+
+Signed-off-by: Djalal Harouni <tixxdz@opendz.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Brad Spengler <spender@grsecurity.net>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/ov9640.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/proc/base.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN drivers/media/video/ov9640.c~drivers-media-video-ov9640c-fix-missing-break drivers/media/video/ov9640.c
---- a/drivers/media/video/ov9640.c~drivers-media-video-ov9640c-fix-missing-break
-+++ a/drivers/media/video/ov9640.c
-@@ -605,6 +605,7 @@ static int ov9640_video_probe(struct i2c
- 		devname		= "ov9640";
- 		priv->model	= V4L2_IDENT_OV9640;
- 		priv->revision	= 2;
-+		break;
- 	case OV9640_V3:
- 		devname		= "ov9640";
- 		priv->model	= V4L2_IDENT_OV9640;
-_
-Subject: Subject: drivers/media/video/ov9640.c: fix missing break
-
-Patches currently in -mm which might be from alan@linux.intel.com are
-
-origin.patch
-linux-next.patch
-ppc-e500_tlb-memset-clears-nothing.patch
-drivers-media-dvb-dvb-usb-az6007c-fix-incorrect-memcpy.patch
-drivers-media-video-cx25821-cx25821-medusa-videoc-incorrect-check-on-decoder-type.patch
-drivers-media-video-ov9640c-fix-missing-break.patch
-fs-make-dumpable=2-require-fully-qualified-path.patch
-coredump-warn-about-unsafe-suid_dumpable-core_pattern-combo.patch
-kernel-sysc-avoid-argv_freenull.patch
-drivers-message-i2o-i2o_procc-the-pointer-returned-from-chtostr-points-to-an-array-which-is-no-longer-valid.patch
-
+diff -puN fs/proc/base.c~proc-environ_read-make-sure-offset-points-to-environment-address-range fs/proc/base.c
+--- a/fs/proc/base.c~proc-environ_read-make-sure-offset-points-to-environment-address-range
++++ a/fs/proc/base.c
+@@ -827,15 +827,16 @@ static ssize_t environ_read(struct file 
+ 	if (!atomic_inc_not_zero(&mm->mm_users))
+ 		goto free;
+ 	while (count > 0) {
+-		int this_len, retval, max_len;
++		size_t this_len, max_len;
++		int retval;
+ 
+-		this_len = mm->env_end - (mm->env_start + src);
