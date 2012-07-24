@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ppc-e500_tlb-memset-clears-nothing.patch added to -mm tree
-Date: Tue, 24 Jul 2012 14:00:53 -0700
-Message-ID: <20120724210054.4164420004E@hpza10.eem.corp.google.com>
+Subject: + drivers-media-dvb-dvb-usb-az6007c-fix-incorrect-memcpy.patch added to -mm tree
+Date: Tue, 24 Jul 2012 14:09:13 -0700
+Message-ID: <20120724210913.AAF18100048@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:65132 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755173Ab2GXVA5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jul 2012 17:00:57 -0400
-Received: by bkcjc3 with SMTP id jc3so295bkc.1
-        for <mm-commits@vger.kernel.org>; Tue, 24 Jul 2012 14:00:56 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:43502 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932106Ab2GXVJO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jul 2012 17:09:14 -0400
+Received: by ghbz15 with SMTP id z15so4960ghb.1
+        for <mm-commits@vger.kernel.org>; Tue, 24 Jul 2012 14:09:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@linux.intel.com, agraf@suse.de, avi@redhat.com, benh@kernel.crashing.org, dcb314@hotmail.com, mtosatti@redhat.com, paulus@samba.org
+Cc: alan@linux.intel.com, dcb314@hotmail.com, jareguero@telefonica.net, mchehab@infradead.org
 
 
 The patch titled
-     Subject: ppc: e500_tlb memset clears nothing
+     Subject: drivers/media/dvb/dvb-usb/az6007.c: fix incorrect memcpy
 has been added to the -mm tree.  Its filename is
-     ppc-e500_tlb-memset-clears-nothing.patch
+     drivers-media-dvb-dvb-usb-az6007c-fix-incorrect-memcpy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alan Cox <alan@linux.intel.com>
-Subject: ppc: e500_tlb memset clears nothing
+Subject: drivers/media/dvb/dvb-usb/az6007.c: fix incorrect memcpy
 
-Put the parameters the right way around
+Some parts of the C language are subtle and evil. This is one example.
 
-Addresses https://bugzilla.kernel.org/show_bug.cgi?id=44031
+(akpm: sizeof returns sizeof(u8*) here).
+
+Addresses https://bugzilla.kernel.org/show_bug.cgi?id=44041
 
 Reported-by: David Binderman <dcb314@hotmail.com>
 Signed-off-by: Alan Cox <alan@linux.intel.com>
-Cc: Avi Kivity <avi@redhat.com>
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
-Cc: Alexander Graf <agraf@suse.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Jose Alberto Reguero <jareguero@telefonica.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kvm/e500_tlb.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/media/dvb/dvb-usb/az6007.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/powerpc/kvm/e500_tlb.c~ppc-e500_tlb-memset-clears-nothing arch/powerpc/kvm/e500_tlb.c
---- a/arch/powerpc/kvm/e500_tlb.c~ppc-e500_tlb-memset-clears-nothing
-+++ a/arch/powerpc/kvm/e500_tlb.c
-@@ -322,11 +322,11 @@ static inline void kvmppc_e500_ref_relea
- static void clear_tlb1_bitmap(struct kvmppc_vcpu_e500 *vcpu_e500)
- {
- 	if (vcpu_e500->g2h_tlb1_map)
--		memset(vcpu_e500->g2h_tlb1_map,
--		       sizeof(u64) * vcpu_e500->gtlb_params[1].entries, 0);
-+		memset(vcpu_e500->g2h_tlb1_map, 0,
-+		       sizeof(u64) * vcpu_e500->gtlb_params[1].entries);
- 	if (vcpu_e500->h2g_tlb1_rmap)
--		memset(vcpu_e500->h2g_tlb1_rmap,
--		       sizeof(unsigned int) * host_tlb_params[1].entries, 0);
-+		memset(vcpu_e500->h2g_tlb1_rmap, 0,
-+		       sizeof(unsigned int) * host_tlb_params[1].entries);
- }
+diff -puN drivers/media/dvb/dvb-usb/az6007.c~drivers-media-dvb-dvb-usb-az6007c-fix-incorrect-memcpy drivers/media/dvb/dvb-usb/az6007.c
+--- a/drivers/media/dvb/dvb-usb/az6007.c~drivers-media-dvb-dvb-usb-az6007c-fix-incorrect-memcpy
++++ a/drivers/media/dvb/dvb-usb/az6007.c
+@@ -590,7 +590,7 @@ static int az6007_read_mac_addr(struct d
+ 	int ret;
  
- static void clear_tlb_privs(struct kvmppc_vcpu_e500 *vcpu_e500)
+ 	ret = az6007_read(d, AZ6007_READ_DATA, 6, 0, st->data, 6);
+-	memcpy(mac, st->data, sizeof(mac));
++	memcpy(mac, st->data, 6);
+ 
+ 	if (ret > 0)
+ 		deb_info("%s: mac is %pM\n", __func__, mac);
 _
-Subject: Subject: ppc: e500_tlb memset clears nothing
+Subject: Subject: drivers/media/dvb/dvb-usb/az6007.c: fix incorrect memcpy
 
 Patches currently in -mm which might be from alan@linux.intel.com are
 
 origin.patch
 linux-next.patch
 ppc-e500_tlb-memset-clears-nothing.patch
+drivers-media-dvb-dvb-usb-az6007c-fix-incorrect-memcpy.patch
 fs-make-dumpable=2-require-fully-qualified-path.patch
 coredump-warn-about-unsafe-suid_dumpable-core_pattern-combo.patch
 kernel-sysc-avoid-argv_freenull.patch
