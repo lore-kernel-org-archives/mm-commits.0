@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mips-zero-out-pg_data_t-when-its-allocated.patch added to -mm tree
-Date: Tue, 24 Jul 2012 14:52:29 -0700
-Message-ID: <20120724215230.52B0D1E0043@wpzn4.hot.corp.google.com>
+Subject: + mm-warn-if-pg_data_t-isnt-initialized-with-zero.patch added to -mm tree
+Date: Tue, 24 Jul 2012 14:52:33 -0700
+Message-ID: <20120724215233.7D86F1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:58213 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753382Ab2GXVwb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jul 2012 17:52:31 -0400
-Received: by ghbz15 with SMTP id z15so10002ghb.1
-        for <mm-commits@vger.kernel.org>; Tue, 24 Jul 2012 14:52:30 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:64405 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753382Ab2GXVwe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jul 2012 17:52:34 -0400
+Received: by yenl3 with SMTP id l3so9711yen.1
+        for <mm-commits@vger.kernel.org>; Tue, 24 Jul 2012 14:52:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: minchan@kernel.org, ralf@linux-mips.org, tj@kernel.org
 
 
 The patch titled
-     Subject: mips: zero out pg_data_t when it's allocated
+     Subject: mm: warn if pg_data_t isn't initialized with zero
 has been added to the -mm tree.  Its filename is
-     mips-zero-out-pg_data_t-when-its-allocated.patch
+     mm-warn-if-pg_data_t-isnt-initialized-with-zero.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: mips: zero out pg_data_t when it's allocated
+Subject: mm: warn if pg_data_t isn't initialized with zero
 
-This patch is preparation for the next patch which removes the zeroing of
-the pg_data_t in core MM.  All archs except MIPS already do this.
+Warn if memory-hotplug/boot code doesn't initialize pg_data_t with zero
+when it is allocated.  Arch code and memory hotplug already initiailize
+pg_data_t.  So this warning should never happen.  I select fields randomly
+near the beginning, middle and end of pg_data_t for checking.
+
+This patch isn't for performance but for removing initialization code
+which is necessary to add whenever we adds new field to pg_data_t or zone.
+
+Firstly, Andrew suggested clearing out of pg_data_t in MM core part but
+Tejun doesn't like it because in the future, some archs can initialize
+some fields in arch code and pass them into general MM part so blindly
+clearing it out in mm core part would be very annoying.
 
 Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
 Cc: Tejun Heo <tj@kernel.org>
-
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/sgi-ip27/ip27-memory.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/page_alloc.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN arch/mips/sgi-ip27/ip27-memory.c~mips-zero-out-pg_data_t-when-its-allocated arch/mips/sgi-ip27/ip27-memory.c
---- a/arch/mips/sgi-ip27/ip27-memory.c~mips-zero-out-pg_data_t-when-its-allocated
-+++ a/arch/mips/sgi-ip27/ip27-memory.c
-@@ -401,6 +401,7 @@ static void __init node_mem_init(cnodeid
- 	 * Allocate the node data structures on the node first.
- 	 */
- 	__node_data[node] = __va(slot_freepfn << PAGE_SHIFT);
-+	memset(__node_data[node], 0, PAGE_SIZE);
+diff -puN mm/page_alloc.c~mm-warn-if-pg_data_t-isnt-initialized-with-zero mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-warn-if-pg_data_t-isnt-initialized-with-zero
++++ a/mm/page_alloc.c
+@@ -4514,6 +4514,9 @@ void __paginginit free_area_init_node(in
+ {
+ 	pg_data_t *pgdat = NODE_DATA(nid);
  
- 	NODE_DATA(node)->bdata = &bootmem_node_data[node];
- 	NODE_DATA(node)->node_start_pfn = start_pfn;
++	/* pg_data_t should be reset to zero when it's allocated */
++	WARN_ON(pgdat->nr_zones || pgdat->node_start_pfn || pgdat->classzone_idx);
++
+ 	pgdat->node_id = nid;
+ 	pgdat->node_start_pfn = node_start_pfn;
+ 	calculate_node_totalpages(pgdat, zones_size, zholes_size);
 _
-Subject: Subject: mips: zero out pg_data_t when it's allocated
+Subject: Subject: mm: warn if pg_data_t isn't initialized with zero
 
 Patches currently in -mm which might be from minchan@kernel.org are
 
