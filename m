@@ -1,171 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] nsproxy-move-free_nsproxy-out-of-do_exit-path.patch removed from -mm tree
-Date: Tue, 24 Jul 2012 14:53:05 -0700
-Message-ID: <20120724215306.0DAF420004E@hpza10.eem.corp.google.com>
+Subject: + firmware_map-make-firmware_map_add_early-argument-consistent-with-firmware_map_add_hotplug.patch added to -mm tree
+Date: Tue, 24 Jul 2012 15:06:57 -0700
+Message-ID: <20120724220658.5BB3D1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:38211 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754047Ab2GXVxJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jul 2012 17:53:09 -0400
-Received: by eekd4 with SMTP id d4so1589eek.1
-        for <mm-commits@vger.kernel.org>; Tue, 24 Jul 2012 14:53:08 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:62238 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754490Ab2GXWG7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jul 2012 18:06:59 -0400
+Received: by vcqp1 with SMTP id p1so9251vcq.1
+        for <mm-commits@vger.kernel.org>; Tue, 24 Jul 2012 15:06:59 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, dledford@redhat.com, ebiederm@xmission.com, kirill@shutemov.name, kosaki.motohiro@jp.fujitsu.com, ldv@altlinux.org, serge.hallyn@ubuntu.com, viro@zeniv.linux.org.uk, xemul@openvz.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: isimatu.yasuaki@jp.fujitsu.com, dave@linux.vnet.ibm.com, hpa@zytor.com, mingo@kernel.org, tglx@linutronix.de, tj@kernel.org
 
 
 The patch titled
-     Subject: nsproxy: move free_nsproxy() out of do_exit() path
-has been removed from the -mm tree.  Its filename was
-     nsproxy-move-free_nsproxy-out-of-do_exit-path.patch
+     Subject: firmware_map: make firmware_map_add_early() argument consistent with firmware_map_add_hotplug()
+has been added to the -mm tree.  Its filename is
+     firmware_map-make-firmware_map_add_early-argument-consistent-with-firmware_map_add_hotplug.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: nsproxy: move free_nsproxy() out of do_exit() path
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: firmware_map: make firmware_map_add_early() argument consistent with firmware_map_add_hotplug()
 
-free_nsproxy() is too heavy to be on the exit path.  Let's free namespaces
-asynchronously to not block exit_group() syscall.
+There are two ways to create /sys/firmware/memmap/X sysfs:
 
-Microbenchmark:
+  - firmware_map_add_early
+    When the system starts, it is calledd from e820_reserve_resources()
+  - firmware_map_add_hotplug
+    When the memory is hot plugged, it is called from add_memory()
 
-: #define _GNU_SOURCE
-: #include <unistd.h>
-: #include <sched.h>
-: #include <stdlib.h>
-: #include <sys/wait.h>
-:
-: int
-: main(void)
-: {
-:       int i;
-:       for (i = 0; i < 1024; i++) {
-:               if (fork()) {
-:                       wait(NULL);
-:                       continue;
-:               }
-:               unshare(CLONE_NEWIPC);
-:               exit(0);
-:       }
-:       return 0;
-: }
+But these functions are called without unifying value of end argument as
+below:
 
-Before the patch:
+  - end argument of firmware_map_add_early()   : start + size - 1
+  - end argument of firmware_map_add_hogplug() : start + size
 
-real    0m8.335s
-user    0m0.000s
-sys     0m0.265s
+The patch unifies them to "start + size".  Even if applying the patch,
+/sys/firmware/memmap/X/end file content does not change.
 
-After:
-
-real    0m0.569s
-user    0m0.001s
-sys     0m0.154s
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Serge E. Hallyn <serge.hallyn@ubuntu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: "Dmitry V. Levin" <ldv@altlinux.org>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Reviewed-by: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nsproxy.h |    1 +
- kernel/nsproxy.c        |   34 +++++++++++++++++++++++-----------
- 2 files changed, 24 insertions(+), 11 deletions(-)
+ arch/x86/kernel/e820.c    |    2 +-
+ drivers/firmware/memmap.c |    8 ++++----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/nsproxy.h~nsproxy-move-free_nsproxy-out-of-do_exit-path include/linux/nsproxy.h
---- a/include/linux/nsproxy.h~nsproxy-move-free_nsproxy-out-of-do_exit-path
-+++ a/include/linux/nsproxy.h
-@@ -24,6 +24,7 @@ struct fs_struct;
-  */
- struct nsproxy {
- 	atomic_t count;
-+	struct work_struct free_nsproxy_work;
- 	struct uts_namespace *uts_ns;
- 	struct ipc_namespace *ipc_ns;
- 	struct mnt_namespace *mnt_ns;
-diff -puN kernel/nsproxy.c~nsproxy-move-free_nsproxy-out-of-do_exit-path kernel/nsproxy.c
---- a/kernel/nsproxy.c~nsproxy-move-free_nsproxy-out-of-do_exit-path
-+++ a/kernel/nsproxy.c
-@@ -41,13 +41,17 @@ struct nsproxy init_nsproxy = {
- #endif
- };
- 
-+static void free_nsproxy_work(struct work_struct *work);
-+
- static inline struct nsproxy *create_nsproxy(void)
- {
- 	struct nsproxy *nsproxy;
- 
- 	nsproxy = kmem_cache_alloc(nsproxy_cachep, GFP_KERNEL);
--	if (nsproxy)
-+	if (nsproxy) {
- 		atomic_set(&nsproxy->count, 1);
-+		INIT_WORK(&nsproxy->free_nsproxy_work, free_nsproxy_work);
-+	}
- 	return nsproxy;
+diff -puN arch/x86/kernel/e820.c~firmware_map-make-firmware_map_add_early-argument-consistent-with-firmware_map_add_hotplug arch/x86/kernel/e820.c
+--- a/arch/x86/kernel/e820.c~firmware_map-make-firmware_map_add_early-argument-consistent-with-firmware_map_add_hotplug
++++ a/arch/x86/kernel/e820.c
+@@ -944,7 +944,7 @@ void __init e820_reserve_resources(void)
+ 	for (i = 0; i < e820_saved.nr_map; i++) {
+ 		struct e820entry *entry = &e820_saved.map[i];
+ 		firmware_map_add_early(entry->addr,
+-			entry->addr + entry->size - 1,
++			entry->addr + entry->size,
+ 			e820_type_to_string(entry->type));
+ 	}
  }
+diff -puN drivers/firmware/memmap.c~firmware_map-make-firmware_map_add_early-argument-consistent-with-firmware_map_add_hotplug drivers/firmware/memmap.c
+--- a/drivers/firmware/memmap.c~firmware_map-make-firmware_map_add_early-argument-consistent-with-firmware_map_add_hotplug
++++ a/drivers/firmware/memmap.c
+@@ -98,7 +98,7 @@ static LIST_HEAD(map_entries);
+ /**
+  * firmware_map_add_entry() - Does the real work to add a firmware memmap entry.
+  * @start: Start of the memory range.
+- * @end:   End of the memory range (inclusive).
++ * @end:   End of the memory range.
+  * @type:  Type of the memory range.
+  * @entry: Pre-allocated (either kmalloc() or bootmem allocator), uninitialised
+  *         entry.
+@@ -113,7 +113,7 @@ static int firmware_map_add_entry(u64 st
+ 	BUG_ON(start > end);
  
-@@ -166,6 +170,14 @@ out:
- 
- void free_nsproxy(struct nsproxy *ns)
- {
-+	/*
-+	 * wait for others to get what they want from this nsproxy.
-+	 *
-+	 * cannot release this nsproxy via the call_rcu() since
-+	 * put_mnt_ns() will want to sleep
-+	 */
-+	synchronize_rcu();
-+
- 	if (ns->mnt_ns)
- 		put_mnt_ns(ns->mnt_ns);
- 	if (ns->uts_ns)
-@@ -178,6 +190,14 @@ void free_nsproxy(struct nsproxy *ns)
- 	kmem_cache_free(nsproxy_cachep, ns);
- }
- 
-+static void free_nsproxy_work(struct work_struct *work)
-+{
-+	struct nsproxy *ns = container_of(work, struct nsproxy,
-+			free_nsproxy_work);
-+
-+	free_nsproxy(ns);
-+}
-+
- /*
-  * Called from unshare. Unshare all the namespaces part of nsproxy.
-  * On success, returns the new nsproxy.
-@@ -215,16 +235,8 @@ void switch_task_namespaces(struct task_
- 
- 	rcu_assign_pointer(p->nsproxy, new);
- 
--	if (ns && atomic_dec_and_test(&ns->count)) {
--		/*
--		 * wait for others to get what they want from this nsproxy.
--		 *
--		 * cannot release this nsproxy via the call_rcu() since
--		 * put_mnt_ns() will want to sleep
--		 */
--		synchronize_rcu();
--		free_nsproxy(ns);
--	}
-+	if (ns && atomic_dec_and_test(&ns->count))
-+		schedule_work(&ns->free_nsproxy_work);
- }
- 
- void exit_task_namespaces(struct task_struct *p)
+ 	entry->start = start;
+-	entry->end = end;
++	entry->end = end - 1;
+ 	entry->type = type;
+ 	INIT_LIST_HEAD(&entry->list);
+ 	kobject_init(&entry->kobj, &memmap_ktype);
+@@ -148,7 +148,7 @@ static int add_sysfs_fw_map_entry(struct
+  * firmware_map_add_hotplug() - Adds a firmware mapping entry when we do
+  * memory hotplug.
+  * @start: Start of the memory range.
+- * @end:   End of the memory range (inclusive).
++ * @end:   End of the memory range.
+  * @type:  Type of the memory range.
+  *
+  * Adds a firmware mapping entry. This function is for memory hotplug, it is
+@@ -175,7 +175,7 @@ int __meminit firmware_map_add_hotplug(u
+ /**
+  * firmware_map_add_early() - Adds a firmware mapping entry.
+  * @start: Start of the memory range.
+- * @end:   End of the memory range (inclusive).
++ * @end:   End of the memory range.
+  * @type:  Type of the memory range.
+  *
+  * Adds a firmware mapping entry. This function uses the bootmem allocator
 _
+Subject: Subject: firmware_map: make firmware_map_add_early() argument consistent with firmware_map_add_hotplug()
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from isimatu.yasuaki@jp.fujitsu.com are
 
-fs-push-rcu_barrier-from-deactivate_locked_super-to-filesystems.patch
-cgroup-fix-memory-accounting-scalability-in-shrink_page_list.patch
+acpi_memhotplugc-fix-memory-leak-when-memory-device-is-unbound-from-the-module-acpi_memhotplug.patch
+acpi_memhotplugc-free-memory-device-if-acpi_memory_enable_device-failed.patch
+acpi_memhotplugc-remove-memory-info-from-list-before-freeing-it.patch
+acpi_memhotplugc-dont-allow-to-eject-the-memory-device-if-it-is-being-used.patch
+acpi_memhotplugc-bind-the-memory-device-when-the-driver-is-being-loaded.patch
+acpi_memhotplugc-auto-bind-the-memory-device-which-is-hotplugged-before-the-driver-is-loaded.patch
+firmware_map-make-firmware_map_add_early-argument-consistent-with-firmware_map_add_hotplug.patch
+firmware_map-make-firmware_map_add_early-argument-consistent-with-firmware_map_add_hotplug-fix.patch
 
