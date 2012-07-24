@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ntfs-remove-references-to-long-gone-super-operations-and-unimplemented-methods.patch added to -mm tree
-Date: Mon, 23 Jul 2012 17:02:49 -0700
-Message-ID: <20120724000250.1BDD520004E@hpza10.eem.corp.google.com>
+Subject: + memcg-oom-provide-more-info-while-memcg-oom-happening.patch added to -mm tree
+Date: Tue, 24 Jul 2012 13:33:03 -0700
+Message-ID: <20120724203305.66D831E0049@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:38831 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754602Ab2GXACw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Jul 2012 20:02:52 -0400
-Received: by fat25 with SMTP id 25so347090fat.1
-        for <mm-commits@vger.kernel.org>; Mon, 23 Jul 2012 17:02:51 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:49967 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755941Ab2GXUdI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jul 2012 16:33:08 -0400
+Received: by ghbz15 with SMTP id z15so918740ghb.1
+        for <mm-commits@vger.kernel.org>; Tue, 24 Jul 2012 13:33:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fernando@oss.ntt.co.jp, anton@tuxera.com
+Cc: handai.szj@taobao.com, gthelen@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, rientjes@google.com
 
 
 The patch titled
-     Subject: ntfs: remove references to long gone super operations and unimplemented methods
+     Subject: memcg, oom: provide more info while memcg oom happening
 has been added to the -mm tree.  Its filename is
-     ntfs-remove-references-to-long-gone-super-operations-and-unimplemented-methods.patch
+     memcg-oom-provide-more-info-while-memcg-oom-happening.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,65 +33,120 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
-Subject: ntfs: remove references to long gone super operations and unimplemented methods
+From: Sha Zhengju <handai.szj@taobao.com>
+Subject: memcg, oom: provide more info while memcg oom happening
 
-->delete_inode(), ->write_super_lockfs(), ->unlockfs() are gone so remove
-refereces to them in the NTFS code.  Remove unnecessary comments about
-unimplemented methods while at it (suggested by Christoph Hellwig).
+When an memcg oom is happening the current memcg related dump information
+is limited for debugging.  Provide more detailed memcg page statistics
+together with the total one while hierarchy is enabled.
 
-Noticed while cleaning up the fsfreeze mess.
-
-Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
-Cc: Anton Altaparmakov <anton@tuxera.com>
+Signed-off-by: Sha Zhengju <handai.szj@taobao.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ntfs/super.c |   17 -----------------
- 1 file changed, 17 deletions(-)
+ mm/memcontrol.c |   71 ++++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 63 insertions(+), 8 deletions(-)
 
-diff -puN fs/ntfs/super.c~ntfs-remove-references-to-long-gone-super-operations-and-unimplemented-methods fs/ntfs/super.c
---- a/fs/ntfs/super.c~ntfs-remove-references-to-long-gone-super-operations-and-unimplemented-methods
-+++ a/fs/ntfs/super.c
-@@ -2660,31 +2660,14 @@ static const struct super_operations ntf
- 	.alloc_inode	= ntfs_alloc_big_inode,	  /* VFS: Allocate new inode. */
- 	.destroy_inode	= ntfs_destroy_big_inode, /* VFS: Deallocate inode. */
- #ifdef NTFS_RW
--	//.dirty_inode	= NULL,			/* VFS: Called from
--	//					   __mark_inode_dirty(). */
- 	.write_inode	= ntfs_write_inode,	/* VFS: Write dirty inode to
- 						   disk. */
--	//.drop_inode	= NULL,			/* VFS: Called just after the
--	//					   inode reference count has
--	//					   been decreased to zero.
--	//					   NOTE: The inode lock is
--	//					   held. See fs/inode.c::
--	//					   generic_drop_inode(). */
--	//.delete_inode	= NULL,			/* VFS: Delete inode from disk.
--	//					   Called when i_count becomes
--	//					   0 and i_nlink is also 0. */
--	//.write_super	= NULL,			/* Flush dirty super block to
--	//					   disk. */
--	//.sync_fs	= NULL,			/* ? */
--	//.write_super_lockfs	= NULL,		/* ? */
--	//.unlockfs	= NULL,			/* ? */
- #endif /* NTFS_RW */
- 	.put_super	= ntfs_put_super,	/* Syscall: umount. */
- 	.statfs		= ntfs_statfs,		/* Syscall: statfs */
- 	.remount_fs	= ntfs_remount,		/* Syscall: mount -o remount. */
- 	.evict_inode	= ntfs_evict_big_inode,	/* VFS: Called when an inode is
- 						   removed from memory. */
--	//.umount_begin	= NULL,			/* Forced umount. */
- 	.show_options	= ntfs_show_options,	/* Show mount options in
- 						   proc. */
+diff -puN mm/memcontrol.c~memcg-oom-provide-more-info-while-memcg-oom-happening mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-oom-provide-more-info-while-memcg-oom-happening
++++ a/mm/memcontrol.c
+@@ -113,6 +113,14 @@ static const char * const mem_cgroup_eve
+ 	"pgmajfault",
  };
-_
-Subject: Subject: ntfs: remove references to long gone super operations and unimplemented methods
-
-Patches currently in -mm which might be from fernando@oss.ntt.co.jp are
-
-ntfs-remove-references-to-long-gone-super-operations-and-unimplemented-methods.patch
-nilfs2-remove-references-to-long-gone-super-operations.patch
-nilfs2-fix-timing-issue-between-rmcp-and-chcp-ioctls.patch
-nilfs2-fix-deadlock-issue-between-chcp-and-thaw-ioctls.patch
-
+ 
++static const char * const mem_cgroup_lru_names[] = {
++	"inactive_anon",
++	"active_anon",
++	"inactive_file",
++	"active_file",
++	"unevictable",
++};
++
+ /*
+  * Per memcg event counter is incremented at every pagein/pageout. With THP,
+  * it will be incremated by the number of pages. This counter is used for
+@@ -1372,6 +1380,59 @@ static void move_unlock_mem_cgroup(struc
+ 	spin_unlock_irqrestore(&memcg->move_lock, *flags);
+ }
+ 
++#define K(x) ((x) << (PAGE_SHIFT-10))
++static void mem_cgroup_print_oom_stat(struct mem_cgroup *memcg)
++{
++	int i;
++	struct mem_cgroup *mi;
++
++	printk(KERN_INFO "Memory cgroup stat:\n");
++	for (i = 0; i < MEM_CGROUP_STAT_NSTATS; i++) {
++		if (i == MEM_CGROUP_STAT_SWAP && !do_swap_account)
++			continue;
++		printk(KERN_CONT "%s:%ldKB ", mem_cgroup_stat_names[i],
++			   K(mem_cgroup_read_stat(memcg, i)));
++	}
++
++	for (i = 0; i < MEM_CGROUP_EVENTS_NSTATS; i++)
++		printk(KERN_CONT "%s:%lu ", mem_cgroup_events_names[i],
++			   mem_cgroup_read_events(memcg, i));
++
++	for (i = 0; i < NR_LRU_LISTS; i++)
++		printk(KERN_CONT "%s:%luKB ", mem_cgroup_lru_names[i],
++			   K(mem_cgroup_nr_lru_pages(memcg, BIT(i))));
++
++	/* Dump the total statistics if hierarchy is enabled. */
++	for (i = 0; i < MEM_CGROUP_STAT_NSTATS; i++) {
++		long long val = 0;
++
++		if (i == MEM_CGROUP_STAT_SWAP && !do_swap_account)
++			continue;
++		for_each_mem_cgroup_tree(mi, memcg)
++			val += mem_cgroup_read_stat(mi, i);
++		printk(KERN_CONT "total_%s:%lldKB ", mem_cgroup_stat_names[i], K(val));
++	}
++
++	for (i = 0; i < MEM_CGROUP_EVENTS_NSTATS; i++) {
++		unsigned long long val = 0;
++
++		for_each_mem_cgroup_tree(mi, memcg)
++			val += mem_cgroup_read_events(mi, i);
++		printk(KERN_CONT "total_%s:%llu ", mem_cgroup_events_names[i], val);
++	}
++
++	for (i = 0; i < NR_LRU_LISTS; i++) {
++		unsigned long long val = 0;
++
++		for_each_mem_cgroup_tree(mi, memcg)
++			val += mem_cgroup_nr_lru_pages(mi, BIT(i));
++		printk(KERN_CONT "total_%s:%lluKB ", mem_cgroup_lru_names[i], K(val));
++	}
++
++	printk(KERN_CONT "\n");
++
++}
++
+ /**
+  * mem_cgroup_print_oom_info: Called from OOM with tasklist_lock held in read mode.
+  * @memcg: The memory cgroup that went over limit
+@@ -1436,6 +1497,8 @@ done:
+ 		res_counter_read_u64(&memcg->memsw, RES_USAGE) >> 10,
+ 		res_counter_read_u64(&memcg->memsw, RES_LIMIT) >> 10,
+ 		res_counter_read_u64(&memcg->memsw, RES_FAILCNT));
++
++	mem_cgroup_print_oom_stat(memcg);
+ }
+ 
+ /*
+@@ -4129,14 +4192,6 @@ static int memcg_numa_stat_show(struct c
+ }
+ #endif /* CONFIG_NUMA */
+ 
+-static const char * const mem_cgroup_lru_names[] = {
+-	"inactive_anon",
+-	"active_anon",
+-	"inactive_file",
+-	"active_file",
+-	"unevictable",
+-};
