@@ -1,56 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: [folded] tmpfs-interleave-the-starting-node-of-dev-shmem-fix.patch removed from -mm tree
-Date: Wed, 25 Jul 2012 11:54:00 -0700
-Message-ID: <20120725185401.08A7D200059@hpza10.eem.corp.google.com>
+Subject: [alternative-merged] tmpfs-interleave-the-starting-node-of-dev-shmem.patch removed from -mm tree
+Date: Wed, 25 Jul 2012 11:54:21 -0700
+Message-ID: <20120725185422.034BA20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:36855 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750903Ab2GYSyD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jul 2012 14:54:03 -0400
-Received: by wibhr14 with SMTP id hr14so53428wib.1
-        for <mm-commits@vger.kernel.org>; Wed, 25 Jul 2012 11:54:01 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:55654 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750960Ab2GYSyZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jul 2012 14:54:25 -0400
+Received: by wgbdt11 with SMTP id dt11so53093wgb.1
+        for <mm-commits@vger.kernel.org>; Wed, 25 Jul 2012 11:54:23 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nzimmer@sgi.com, mm-commits@vger.kernel.org
+To: nzimmer@sgi.com, cl@linux.com, hughd@google.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, npiggin@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: correct build warning in shmem interleave
+     Subject: tmpfs: interleave the starting node of /dev/shmem
 has been removed from the -mm tree.  Its filename was
-     tmpfs-interleave-the-starting-node-of-dev-shmem-fix.patch
+     tmpfs-interleave-the-starting-node-of-dev-shmem.patch
 
-This patch was dropped because it was folded into tmpfs-interleave-the-starting-node-of-dev-shmem.patch
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
 From: Nathan Zimmer <nzimmer@sgi.com>
-Subject: shmem: correct build warning in shmem interleave
+Subject: tmpfs: interleave the starting node of /dev/shmem
 
-Correcting a build warning in shmem_interleave
+The tmpfs superblock grants an offset for each inode as they are created. 
+Each inode then uses that offset to provide a preferred first node for its
+interleave in the newly provided shmem_interleave.
 
 Signed-off-by: Nathan Zimmer <nzimmer@sgi.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Nick Piggin <npiggin@gmail.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mm.h       |    7 +++++++
+ include/linux/shmem_fs.h |    3 +++
+ mm/mempolicy.c           |    4 ++++
+ mm/shmem.c               |   17 +++++++++++++++++
+ 4 files changed, 31 insertions(+)
 
-diff -puN mm/shmem.c~tmpfs-interleave-the-starting-node-of-dev-shmem-fix mm/shmem.c
---- a/mm/shmem.c~tmpfs-interleave-the-starting-node-of-dev-shmem-fix
+diff -puN include/linux/mm.h~tmpfs-interleave-the-starting-node-of-dev-shmem include/linux/mm.h
+--- a/include/linux/mm.h~tmpfs-interleave-the-starting-node-of-dev-shmem
++++ a/include/linux/mm.h
+@@ -238,6 +238,13 @@ struct vm_operations_struct {
+ 	 */
+ 	struct mempolicy *(*get_policy)(struct vm_area_struct *vma,
+ 					unsigned long addr);
++
++	/*
++	 * If the policy is interleave allow the vma to suggest a node.
++	 */
++	unsigned long (*interleave)(struct vm_area_struct *vma,
++					unsigned long addr);
++
+ 	int (*migrate)(struct vm_area_struct *vma, const nodemask_t *from,
+ 		const nodemask_t *to, unsigned long flags);
+ #endif
+diff -puN include/linux/shmem_fs.h~tmpfs-interleave-the-starting-node-of-dev-shmem include/linux/shmem_fs.h
+--- a/include/linux/shmem_fs.h~tmpfs-interleave-the-starting-node-of-dev-shmem
++++ a/include/linux/shmem_fs.h
+@@ -17,6 +17,7 @@ struct shmem_inode_info {
+ 		char		*symlink;	/* unswappable short symlink */
+ 	};
+ 	struct shared_policy	policy;		/* NUMA memory alloc policy */
++	unsigned long           node_offset;	/* bias for interleaved nodes */
+ 	struct list_head	swaplist;	/* chain of maybes on swap */
+ 	struct list_head	xattr_list;	/* list of shmem_xattr */
+ 	struct inode		vfs_inode;
+@@ -32,6 +33,8 @@ struct shmem_sb_info {
+ 	kgid_t gid;		    /* Mount gid for root directory */
+ 	umode_t mode;		    /* Mount mode for root directory */
+ 	struct mempolicy *mpol;     /* default memory policy for mappings */
++	unsigned long next_pref_node;
++			 /* next interleave bias to suggest for inodes */
+ };
+ 
+ static inline struct shmem_inode_info *SHMEM_I(struct inode *inode)
+diff -puN mm/mempolicy.c~tmpfs-interleave-the-starting-node-of-dev-shmem mm/mempolicy.c
+--- a/mm/mempolicy.c~tmpfs-interleave-the-starting-node-of-dev-shmem
++++ a/mm/mempolicy.c
+@@ -1669,6 +1669,10 @@ static inline unsigned interleave_nid(st
+ {
+ 	if (vma) {
+ 		unsigned long off;
++		if (vma->vm_ops && vma->vm_ops->interleave) {
++			off = vma->vm_ops->interleave(vma, addr);
++			return offset_il_node(pol, vma, off);
++		}
+ 
+ 		/*
+ 		 * for small pages, there is no difference between
+diff -puN mm/shmem.c~tmpfs-interleave-the-starting-node-of-dev-shmem mm/shmem.c
+--- a/mm/shmem.c~tmpfs-interleave-the-starting-node-of-dev-shmem
 +++ a/mm/shmem.c
-@@ -1338,7 +1338,7 @@ static unsigned long shmem_interleave(st
- 	unsigned long offset;
- 
- 	/* Use the vm_files prefered node as the initial offset. */
--	offset = (unsigned long *) vma->vm_private_data;
+@@ -931,6 +931,7 @@ static struct page *shmem_swapin(swp_ent
+ 	pvma.vm_start = 0;
+ 	pvma.vm_pgoff = index;
+ 	pvma.vm_policy = spol;
++	pvma.vm_private_data = (void *) info->node_offset;
+ 	if (pvma.vm_policy)
+ 		pvma.vm_ops = &shmem_vm_ops;
+ 	else
+@@ -947,6 +948,7 @@ static struct page *shmem_alloc_page(gfp
+ 	pvma.vm_start = 0;
+ 	pvma.vm_pgoff = index;
+ 	pvma.vm_policy = mpol_shared_policy_lookup(&info->policy, index);
++	pvma.vm_private_data = (void *) info->node_offset;
+ 	if (pvma.vm_policy)
+ 		pvma.vm_ops = &shmem_vm_ops;
+ 	else
+@@ -1329,6 +1331,19 @@ static struct mempolicy *shmem_get_polic
+ 	index = ((addr - vma->vm_start) >> PAGE_SHIFT) + vma->vm_pgoff;
+ 	return mpol_shared_policy_lookup(&SHMEM_I(inode)->policy, index);
+ }
++
++static unsigned long shmem_interleave(struct vm_area_struct *vma,
++					unsigned long addr)
++{
++	unsigned long offset;
++
++	/* Use the vm_files prefered node as the initial offset. */
 +	offset = (unsigned long)vma->vm_private_data;
++
++	offset += ((addr - vma->vm_start) >> PAGE_SHIFT) + vma->vm_pgoff;
++
++	return offset;
++}
+ #endif
  
- 	offset += ((addr - vma->vm_start) >> PAGE_SHIFT) + vma->vm_pgoff;
- 
+ int shmem_lock(struct file *file, int lock, struct user_struct *user)
+@@ -1401,6 +1416,7 @@ static struct inode *shmem_get_inode(str
+ 			inode->i_fop = &shmem_file_operations;
+ 			mpol_shared_policy_init(&info->policy,
+ 						 shmem_get_sbmpol(sbinfo));
++			info->node_offset = ++(sbinfo->next_pref_node);
+ 			break;
+ 		case S_IFDIR:
+ 			inc_nlink(inode);
+@@ -2795,6 +2811,7 @@ static const struct super_operations shm
+ static const struct vm_operations_struct shmem_vm_ops = {
+ 	.fault		= shmem_fault,
+ #ifdef CONFIG_NUMA
++	.interleave	= shmem_interleave,
+ 	.set_policy     = shmem_set_policy,
+ 	.get_policy     = shmem_get_policy,
+ #endif
 _
 
 Patches currently in -mm which might be from nzimmer@sgi.com are
 
 shmem-provide-vm_ops-when-also-providing-a-mem-policy.patch
-tmpfs-interleave-the-starting-node-of-dev-shmem.patch
 
