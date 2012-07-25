@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + avr32-fix-build-error-in-atstk1002-code.patch added to -mm tree
-Date: Wed, 25 Jul 2012 12:22:33 -0700
-Message-ID: <20120725192234.18A705C0050@hpza9.eem.corp.google.com>
+Subject: + drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid.patch added to -mm tree
+Date: Wed, 25 Jul 2012 12:51:01 -0700
+Message-ID: <20120725195102.981935C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:44511 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751362Ab2GYTWg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jul 2012 15:22:36 -0400
-Received: by lbbgp10 with SMTP id gp10so56643lbb.1
-        for <mm-commits@vger.kernel.org>; Wed, 25 Jul 2012 12:22:35 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:63395 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752003Ab2GYTvF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jul 2012 15:51:05 -0400
+Received: by bkcjc3 with SMTP id jc3so54129bkc.1
+        for <mm-commits@vger.kernel.org>; Wed, 25 Jul 2012 12:51:03 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, dbaryshkov@gmail.com
+Cc: zhenzhong.duan@oracle.com, joe.jin@oracle.com, khali@linux-fr.org
 
 
 The patch titled
-     Subject: avr32: fix build error in ATSTK1002 code
+     Subject: drivers/firmware/dmi_scan.c: check dmi version when get system uuid
 has been added to the -mm tree.  Its filename is
-     avr32-fix-build-error-in-atstk1002-code.patch
+     drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,49 +33,80 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: avr32: fix build error in ATSTK1002 code
+From: Zhenzhong Duan <zhenzhong.duan@oracle.com>
+Subject: drivers/firmware/dmi_scan.c: check dmi version when get system uuid
 
-arch/avr32/boards/atstk1000/atstk1002.c:100: error: 'num_partitions' undeclared here (not in a function)
+As of version 2.6 of the SMBIOS specification, the first 3
+fields of the UUID are supposed to be little-endian encoded.
 
-which is introduced by commit 1754aab9bb86 ("mtd: ATMEL, AVR32: inline
-nand partition table access ").
+Also a minor fix to match variable meaning and mute checkpatch.pl
 
-Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
+Signed-off-by: Zhenzhong Duan <zhenzhong.duan@oracle.com>
+Cc: Feng Jin <joe.jin@oracle.com>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/avr32/boards/atstk1000/atstk1002.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/firmware/dmi_scan.c |   19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
 
-diff -puN arch/avr32/boards/atstk1000/atstk1002.c~avr32-fix-build-error-in-atstk1002-code arch/avr32/boards/atstk1000/atstk1002.c
---- a/arch/avr32/boards/atstk1000/atstk1002.c~avr32-fix-build-error-in-atstk1002-code
-+++ a/arch/avr32/boards/atstk1000/atstk1002.c
-@@ -97,7 +97,7 @@ static struct atmel_nand_data atstk1006_
- 	.enable_pin	= GPIO_PIN_PB(29),
- 	.ecc_mode	= NAND_ECC_SOFT,
- 	.parts		= nand_partitions,
--	.num_parts	= ARRAY_SIZE(num_partitions),
-+	.num_parts	= ARRAY_SIZE(nand_partitions),
- };
- #endif
+diff -puN drivers/firmware/dmi_scan.c~drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid drivers/firmware/dmi_scan.c
+--- a/drivers/firmware/dmi_scan.c~drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid
++++ a/drivers/firmware/dmi_scan.c
+@@ -16,6 +16,7 @@
+  */
+ static char dmi_empty_string[] = "        ";
  
++static u16  __initdata dmi_ver;
+ /*
+  * Catch too early calls to dmi_check_system():
+  */
+@@ -161,8 +162,10 @@ static void __init dmi_save_uuid(const s
+ 		return;
+ 
+ 	for (i = 0; i < 16 && (is_ff || is_00); i++) {
+-		if(d[i] != 0x00) is_ff = 0;
+-		if(d[i] != 0xFF) is_00 = 0;
++		if (d[i] != 0x00)
++			is_00 = 0;
++		if (d[i] != 0xFF)
++			is_ff = 0;
+ 	}
+ 
+ 	if (is_ff || is_00)
+@@ -172,7 +175,16 @@ static void __init dmi_save_uuid(const s
+ 	if (!s)
+ 		return;
+ 
+-	sprintf(s, "%pUB", d);
++	/*
++	 * As of version 2.6 of the SMBIOS specification, the first 3
++	 * fields of the UUID are supposed to be encoded on little-endian.
++	 * The specification says that this is the defacto standard,
++	 * update kernel code to match dmidecode data.
++	*/
++	if (dmi_ver >= 0x0206)
++		sprintf(s, "%pUL", d);
++	else
++		sprintf(s, "%pUB", d);
+ 
+         dmi_ident[slot] = s;
+ }
+@@ -414,6 +426,7 @@ static int __init dmi_present(const char
+ 		 * DMI version 0.0 means that the real version is taken from
+ 		 * the SMBIOS version, which we don't know at this point.
+ 		 */
++		dmi_ver = (buf[14] & 0xf0) << 4 | (buf[14] & 0x0f);
+ 		if (buf[14] != 0)
+ 			printk(KERN_INFO "DMI %d.%d present.\n",
+ 			       buf[14] >> 4, buf[14] & 0xF);
 _
-Subject: Subject: avr32: fix build error in ATSTK1002 code
+Subject: Subject: drivers/firmware/dmi_scan.c: check dmi version when get system uuid
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from zhenzhong.duan@oracle.com are
 
 origin.patch
 linux-next.patch
-mm-prepare-for-removal-of-obsolete-proc-sys-vm-nr_pdflush_threads.patch
-mm-clear-pages_scanned-only-if-draining-a-pcp-adds-pages-to-the-buddy-allocator-again.patch
-parisc-redefine-atomic_init-and-atomic64_init-like-other-architectures.patch
-mm-slb-add-knowledge-of-pfmemalloc-reserve-pages-fix.patch
-memcg-prevent-oom-with-too-many-dirty-pages.patch
-memcg-further-prevent-oom-with-too-many-dirty-pages.patch
-memcg-add-mem_cgroup_from_css-helper-fix-2.patch
-clk-validate-pointer-in-__clk_disable.patch
-avr32-fix-build-error-in-atstk1002-code.patch
-rbtree-performance-and-correctness-test-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
 
