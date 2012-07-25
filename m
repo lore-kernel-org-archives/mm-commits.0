@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + lib-crc32c-fix-unused-variables-warnings.patch added to -mm tree
-Date: Wed, 25 Jul 2012 14:07:17 -0700
-Message-ID: <20120725210717.9F2A61E0043@wpzn4.hot.corp.google.com>
+Subject: + minixfs-fix-block-limit-check.patch added to -mm tree
+Date: Wed, 25 Jul 2012 14:14:17 -0700
+Message-ID: <20120725211418.74EFF20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:41844 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751394Ab2GYVHT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jul 2012 17:07:19 -0400
-Received: by vbnl22 with SMTP id l22so137579vbn.1
-        for <mm-commits@vger.kernel.org>; Wed, 25 Jul 2012 14:07:18 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:59623 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750774Ab2GYVOU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jul 2012 17:14:20 -0400
+Received: by eekd4 with SMTP id d4so52768eek.1
+        for <mm-commits@vger.kernel.org>; Wed, 25 Jul 2012 14:14:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: trbecker@trbecker.org, djwong@us.ibm.com, rpearson@systemfabricworks.com
+Cc: phcoder@gmail.com
 
 
 The patch titled
-     Subject: lib/crc32.c: fix unused variables warnings
+     Subject: minixfs: fix block limit check
 has been added to the -mm tree.  Its filename is
-     lib-crc32c-fix-unused-variables-warnings.patch
+     minixfs-fix-block-limit-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Thiago Rafael Becker <trbecker@trbecker.org>
-Subject: lib/crc32.c: fix unused variables warnings
+From: Vladimir Serbinenko <phcoder@gmail.com>
+Subject: minixfs: fix block limit check
 
-Variables t4, t5, t6 and t7 are only used when CRC_LE_BITS != 32.  Fix the
-following compilation warnings:
+On minix2 and minix3 usually max_size is 7fffffff and the check in
+question prohibits creation of last block spanning right before 7fffffff,
+due to downward rounding during the division.  Fix it by using
+multiplication instead.
 
-lib/crc32.c: In function 'crc32_body':
-lib/crc32.c:77:55: warning: unused variable 't7'
-lib/crc32.c:77:41: warning: unused variable 't6'
-lib/crc32.c:77:27: warning: unused variable 't5'
-lib/crc32.c:77:13: warning: unused variable 't4'
-
-Signed-off-by: Thiago Rafael Becker <trbecker@trbecker.org>
-Cc: "Darrick J. Wong" <djwong@us.ibm.com>
-Cc: Bob Pearson <rpearson@systemfabricworks.com>
+Signed-off-by: Vladimir Serbinenko  <phcoder@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/crc32.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/minix/itree_v2.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN lib/crc32.c~lib-crc32c-fix-unused-variables-warnings lib/crc32.c
---- a/lib/crc32.c~lib-crc32c-fix-unused-variables-warnings
-+++ a/lib/crc32.c
-@@ -74,7 +74,9 @@ crc32_body(u32 crc, unsigned char const 
- 	size_t i;
- # endif
- 	const u32 *t0=tab[0], *t1=tab[1], *t2=tab[2], *t3=tab[3];
-+# if CRC_LE_BITS != 32
- 	const u32 *t4 = tab[4], *t5 = tab[5], *t6 = tab[6], *t7 = tab[7];
-+# endif
- 	u32 q;
- 
- 	/* Align it */
+diff -puN fs/minix/itree_v2.c~minixfs-fix-block-limit-check fs/minix/itree_v2.c
+--- a/fs/minix/itree_v2.c~minixfs-fix-block-limit-check
++++ a/fs/minix/itree_v2.c
+@@ -32,7 +32,8 @@ static int block_to_path(struct inode * 
+ 	if (block < 0) {
+ 		printk("MINIX-fs: block_to_path: block %ld < 0 on dev %s\n",
+ 			block, bdevname(sb->s_bdev, b));
+-	} else if (block >= (minix_sb(inode->i_sb)->s_max_size/sb->s_blocksize)) {
++    } else if ((u64) block * (u64) sb->s_blocksize
++           >= minix_sb(inode->i_sb)->s_max_size) {
+ 		if (printk_ratelimit())
+ 			printk("MINIX-fs: block_to_path: "
+ 			       "block %ld too big on dev %s\n",
 _
-Subject: Subject: lib/crc32.c: fix unused variables warnings
+Subject: Subject: minixfs: fix block limit check
 
-Patches currently in -mm which might be from trbecker@trbecker.org are
+Patches currently in -mm which might be from phcoder@gmail.com are
 
-lib-crc32c-fix-unused-variables-warnings.patch
+minixfs-fix-block-limit-check.patch
+minixfs-fix-block-limit-check-fix.patch
 
