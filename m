@@ -1,78 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: + firmware_map-make-firmware_map_add_early-argument-consistent-with-firmware_map_add_hotplug-fix.patch added to -mm tree
-Date: Tue, 24 Jul 2012 15:07:00 -0700
-Message-ID: <20120724220701.9B7D5200057@hpza10.eem.corp.google.com>
+Subject: [obsolete] mm-memcg-fix-compaction-migration-failing-due-to-memcg-limits-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 25 Jul 2012 11:53:43 -0700
+Message-ID: <20120725185344.7C4CA1E0048@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:33586 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754712Ab2GXWHF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Jul 2012 18:07:05 -0400
-Received: by weyr1 with SMTP id r1so1976wey.1
-        for <mm-commits@vger.kernel.org>; Tue, 24 Jul 2012 15:07:03 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:59664 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751363Ab2GYSxr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jul 2012 14:53:47 -0400
+Received: by yhl10 with SMTP id 10so122045yhl.1
+        for <mm-commits@vger.kernel.org>; Wed, 25 Jul 2012 11:53:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dave@linux.vnet.ibm.com, hpa@zytor.com, isimatu.yasuaki@jp.fujitsu.com, mingo@kernel.org, tglx@linutronix.de, tj@kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: firmware_map-make-firmware_map_add_early-argument-consistent-with-firmware_map_add_hotplug-fix
-has been added to the -mm tree.  Its filename is
-     firmware_map-make-firmware_map_add_early-argument-consistent-with-firmware_map_add_hotplug-fix.patch
+     Subject: mm-memcg-fix-compaction-migration-failing-due-to-memcg-limits-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     mm-memcg-fix-compaction-migration-failing-due-to-memcg-limits-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: firmware_map-make-firmware_map_add_early-argument-consistent-with-firmware_map_add_hotplug-fix
+Subject: mm-memcg-fix-compaction-migration-failing-due-to-memcg-limits-checkpatch-fixes
 
-clarify comments
+WARNING: suspect code indent for conditional statements (8, 15)
+#296: FILE: mm/migrate.c:1573:
++	if (oldpage != page)
+                put_page(oldpage);
 
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+total: 0 errors, 1 warnings, 236 lines checked
+
+./patches/mm-memcg-fix-compaction-migration-failing-due-to-memcg-limits.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/memmap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/migrate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/firmware/memmap.c~firmware_map-make-firmware_map_add_early-argument-consistent-with-firmware_map_add_hotplug-fix drivers/firmware/memmap.c
---- a/drivers/firmware/memmap.c~firmware_map-make-firmware_map_add_early-argument-consistent-with-firmware_map_add_hotplug-fix
-+++ a/drivers/firmware/memmap.c
-@@ -98,7 +98,7 @@ static LIST_HEAD(map_entries);
- /**
-  * firmware_map_add_entry() - Does the real work to add a firmware memmap entry.
-  * @start: Start of the memory range.
-- * @end:   End of the memory range.
-+ * @end:   End of the memory range (exclusive).
-  * @type:  Type of the memory range.
-  * @entry: Pre-allocated (either kmalloc() or bootmem allocator), uninitialised
-  *         entry.
-@@ -148,7 +148,7 @@ static int add_sysfs_fw_map_entry(struct
-  * firmware_map_add_hotplug() - Adds a firmware mapping entry when we do
-  * memory hotplug.
-  * @start: Start of the memory range.
-- * @end:   End of the memory range.
-+ * @end:   End of the memory range (exclusive)
-  * @type:  Type of the memory range.
-  *
-  * Adds a firmware mapping entry. This function is for memory hotplug, it is
+diff -puN mm/migrate.c~mm-memcg-fix-compaction-migration-failing-due-to-memcg-limits-checkpatch-fixes mm/migrate.c
+--- a/mm/migrate.c~mm-memcg-fix-compaction-migration-failing-due-to-memcg-limits-checkpatch-fixes
++++ a/mm/migrate.c
+@@ -1571,7 +1571,7 @@ migrate_misplaced_page(struct page *page
+ 	mem_cgroup_end_migration(memcg, oldpage, newpage, !rc);
+ out:
+ 	if (oldpage != page)
+-               put_page(oldpage);
++		put_page(oldpage);
+ 
+ 	if (rc) {
+ 		unlock_page(newpage);
 _
-Subject: Subject: firmware_map-make-firmware_map_add_early-argument-consistent-with-firmware_map_add_hotplug-fix
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -103,7 +90,6 @@ mm-have-order-0-compaction-start-off-where-it-left-v3-typo.patch
 memory-hotplug-fix-kswapd-looping-forever-problem-fix.patch
 memory-hotplug-fix-kswapd-looping-forever-problem-fix-fix.patch
 netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix.patch
-mm-memcg-fix-compaction-migration-failing-due-to-memcg-limits-checkpatch-fixes.patch
 memcg-prevent-oom-with-too-many-dirty-pages.patch
 memcg-add-mem_cgroup_from_css-helper-fix.patch
 memcg-oom-provide-more-info-while-memcg-oom-happening-checkpatch-fixes.patch
