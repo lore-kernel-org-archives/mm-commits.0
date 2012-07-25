@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + minixfs-fix-block-limit-check-fix.patch added to -mm tree
-Date: Wed, 25 Jul 2012 14:14:20 -0700
-Message-ID: <20120725211421.8197B5C0060@hpza9.eem.corp.google.com>
+Subject: + mm-slab_commonc-fix-warning.patch added to -mm tree
+Date: Wed, 25 Jul 2012 15:06:53 -0700
+Message-ID: <20120725225348.D5D551E0048@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:59623 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750774Ab2GYVOW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jul 2012 17:14:22 -0400
-Received: by mail-ee0-f74.google.com with SMTP id d4so52768eek.1
-        for <mm-commits@vger.kernel.org>; Wed, 25 Jul 2012 14:14:22 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:36301 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751551Ab2GYWxy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jul 2012 18:53:54 -0400
+Received: by qcqs25 with SMTP id s25so146667qcq.1
+        for <mm-commits@vger.kernel.org>; Wed, 25 Jul 2012 15:53:53 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, phcoder@gmail.com
+Cc: akpm@linux-foundation.org, penberg@cs.helsinki.fi
 
 
 The patch titled
-     Subject: minixfs-fix-block-limit-check-fix
+     Subject: mm/slab_common.c: fix warning
 has been added to the -mm tree.  Its filename is
-     minixfs-fix-block-limit-check-fix.patch
+     mm-slab_commonc-fix-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,67 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: minixfs-fix-block-limit-check-fix
+Subject: mm/slab_common.c: fix warning
 
-fix up code layout, use local `sb'
+mm/slab_common.c: In function 'kmem_cache_create':
+mm/slab_common.c:101: warning: label 'oops' defined but not used
 
-Cc: Vladimir Serbinenko  <phcoder@gmail.com>
+Fix that and eliminate an ifdef and a label by moving all the CONFIG_DEBUG_VM
+checking inside the locked region.
+
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/minix/itree_v2.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/slab_common.c |   17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
 
-diff -puN fs/minix/itree_v2.c~minixfs-fix-block-limit-check-fix fs/minix/itree_v2.c
---- a/fs/minix/itree_v2.c~minixfs-fix-block-limit-check-fix
-+++ a/fs/minix/itree_v2.c
-@@ -32,8 +32,8 @@ static int block_to_path(struct inode * 
- 	if (block < 0) {
- 		printk("MINIX-fs: block_to_path: block %ld < 0 on dev %s\n",
- 			block, bdevname(sb->s_bdev, b));
--    } else if ((u64) block * (u64) sb->s_blocksize
--           >= minix_sb(inode->i_sb)->s_max_size) {
-+	} else if ((u64)block * (u64)sb->s_blocksize >=
-+			minix_sb(sb)->s_max_size) {
- 		if (printk_ratelimit())
- 			printk("MINIX-fs: block_to_path: "
- 			       "block %ld too big on dev %s\n",
+diff -puN mm/slab_common.c~mm-slab_commonc-fix-warning mm/slab_common.c
+--- a/mm/slab_common.c~mm-slab_commonc-fix-warning
++++ a/mm/slab_common.c
+@@ -53,19 +53,17 @@ struct kmem_cache *kmem_cache_create(con
+ {
+ 	struct kmem_cache *s = NULL;
+ 
++	get_online_cpus();
++	mutex_lock(&slab_mutex);
++
+ #ifdef CONFIG_DEBUG_VM
+ 	if (!name || in_interrupt() || size < sizeof(void *) ||
+ 		size > KMALLOC_MAX_SIZE) {
+ 		printk(KERN_ERR "kmem_cache_create(%s) integrity check"
+-			" failed\n", name);
+-		goto out;
++				" failed\n", name);
++		goto oops;
+ 	}
+-#endif
+-
+-	get_online_cpus();
+-	mutex_lock(&slab_mutex);
+ 
+-#ifdef CONFIG_DEBUG_VM
+ 	list_for_each_entry(s, &slab_caches, list) {
+ 		char tmp;
+ 		int res;
+@@ -98,13 +96,12 @@ struct kmem_cache *kmem_cache_create(con
+ 
+ 	s = __kmem_cache_create(name, size, align, flags, ctor);
+ 
++#ifdef CONFIG_DEBUG_VM
+ oops:
++#endif
+ 	mutex_unlock(&slab_mutex);
+ 	put_online_cpus();
+ 
+-#ifdef CONFIG_DEBUG_VM
+-out:
+-#endif
+ 	if (!s && (flags & SLAB_PANIC))
+ 		panic("kmem_cache_create: Failed to create slab '%s'\n", name);
+ 
 _
-Subject: Subject: minixfs-fix-block-limit-check-fix
+Subject: Subject: mm/slab_common.c: fix warning
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
@@ -123,4 +157,5 @@ journal_add_journal_head-debug.patch
 mutex-subsystem-synchro-test-module-fix.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
+mm-slab_commonc-fix-warning.patch
 
