@@ -1,26 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + remove-__gfp_no_kswapd-fixes.patch added to -mm tree
-Date: Wed, 25 Jul 2012 11:58:26 -0700
-Message-ID: <20120725185827.97F1720004E@hpza10.eem.corp.google.com>
+Subject: + x86-whitespace-cleanup-in-makefiles.patch added to -mm tree
+Date: Wed, 25 Jul 2012 12:11:33 -0700
+Message-ID: <20120725191133.A7264100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:33871 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750903Ab2GYS6b (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 25 Jul 2012 14:58:31 -0400
-Received: by lagr15 with SMTP id r15so53106lag.1
-        for <mm-commits@vger.kernel.org>; Wed, 25 Jul 2012 11:58:29 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:49762 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750803Ab2GYTLf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Jul 2012 15:11:35 -0400
+Received: by qabg24 with SMTP id g24so142053qab.1
+        for <mm-commits@vger.kernel.org>; Wed, 25 Jul 2012 12:11:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: riel@redhat.com, David.Woodhouse@intel.com, aarcange@redhat.com, artem.bityutskiy@linux.intel.com, mel@csn.ul.ie, minchan.kim@gmail.com
+Cc: kirill@shutemov.name, mingo@kernel.org
 
 
 The patch titled
-     Subject: mm: remove __GFP_NO_KSWAPD fixes
+     Subject: x86: whitespace cleanup in makefiles
 has been added to the -mm tree.  Its filename is
-     remove-__gfp_no_kswapd-fixes.patch
+     x86-whitespace-cleanup-in-makefiles.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,98 +33,722 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rik van Riel <riel@redhat.com>
-Subject: mm: remove __GFP_NO_KSWAPD fixes
+From: "Kirill A. Shutemov" <kirill@shutemov.name>
+Subject: x86: whitespace cleanup in makefiles
 
-Turns out I missed two spots where __GFP_NO_KSWAPD is used.
+Buildtested: defconfig, allnoconfig, allmodconfig, allyesconfig for both
+32- and 64-bit.
 
-The removal from the trace code is obvious, since the flag
-got removed there is no need to print it.
-
-For mtdcore.c, now that memory compaction has been fixed, we should no
-longer see large swap storms from an attempt to allocate a large buffer,
-removing the need to specify __GFP_NO_KSWAPD.
-
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-Cc: David Woodhouse <David.Woodhouse@intel.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
+Signed-off-by: Kirill A. Shutemov <kirill@shutemov.name>
+Acked-by: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/mtdcore.c           |    3 +--
- include/trace/events/gfpflags.h |    1 -
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ arch/x86/Makefile                   |  138 +++++++++++++-------------
+ arch/x86/Makefile.um                |    2 
+ arch/x86/Makefile_32.cpu            |    2 
+ arch/x86/boot/Makefile              |   20 +--
+ arch/x86/crypto/Makefile            |   80 +++++++--------
+ arch/x86/ia32/Makefile              |   10 -
+ arch/x86/kernel/Makefile            |   14 +-
+ arch/x86/kernel/cpu/mcheck/Makefile |    2 
+ arch/x86/lib/Makefile               |   26 ++--
+ arch/x86/math-emu/Makefile          |    2 
+ arch/x86/oprofile/Makefile          |    2 
+ arch/x86/pci/Makefile               |    4 
+ arch/x86/platform/efi/Makefile      |    2 
+ arch/x86/platform/olpc/Makefile     |    2 
+ arch/x86/realmode/Makefile          |    6 -
+ arch/x86/realmode/rm/Makefile       |    2 
+ arch/x86/tools/Makefile             |    8 -
+ arch/x86/um/os-Linux/Makefile       |    4 
+ arch/x86/um/vdso/Makefile           |   16 +--
+ arch/x86/vdso/Makefile              |   12 +-
+ arch/x86/video/Makefile             |    2 
+ arch/x86/xen/Makefile               |    2 
+ 22 files changed, 179 insertions(+), 179 deletions(-)
 
-diff -puN drivers/mtd/mtdcore.c~remove-__gfp_no_kswapd-fixes drivers/mtd/mtdcore.c
---- a/drivers/mtd/mtdcore.c~remove-__gfp_no_kswapd-fixes
-+++ a/drivers/mtd/mtdcore.c
-@@ -1080,8 +1080,7 @@ EXPORT_SYMBOL_GPL(mtd_writev);
-  */
- void *mtd_kmalloc_up_to(const struct mtd_info *mtd, size_t *size)
- {
--	gfp_t flags = __GFP_NOWARN | __GFP_WAIT |
--		       __GFP_NORETRY | __GFP_NO_KSWAPD;
-+	gfp_t flags = __GFP_NOWARN | __GFP_WAIT | __GFP_NORETRY;
- 	size_t min_alloc = max_t(size_t, mtd->writesize, PAGE_SIZE);
- 	void *kbuf;
+diff -puN arch/x86/Makefile~x86-whitespace-cleanup-in-makefiles arch/x86/Makefile
+--- a/arch/x86/Makefile~x86-whitespace-cleanup-in-makefiles
++++ a/arch/x86/Makefile
+@@ -2,9 +2,9 @@
  
-diff -puN include/trace/events/gfpflags.h~remove-__gfp_no_kswapd-fixes include/trace/events/gfpflags.h
---- a/include/trace/events/gfpflags.h~remove-__gfp_no_kswapd-fixes
-+++ a/include/trace/events/gfpflags.h
-@@ -36,7 +36,6 @@
- 	{(unsigned long)__GFP_RECLAIMABLE,	"GFP_RECLAIMABLE"},	\
- 	{(unsigned long)__GFP_MOVABLE,		"GFP_MOVABLE"},		\
- 	{(unsigned long)__GFP_NOTRACK,		"GFP_NOTRACK"},		\
--	{(unsigned long)__GFP_NO_KSWAPD,	"GFP_NO_KSWAPD"},	\
- 	{(unsigned long)__GFP_OTHER_NODE,	"GFP_OTHER_NODE"}	\
- 	) : "GFP_NOWAIT"
+ # select defconfig based on actual architecture
+ ifeq ($(ARCH),x86)
+-        KBUILD_DEFCONFIG := i386_defconfig
++	KBUILD_DEFCONFIG := i386_defconfig
+ else
+-        KBUILD_DEFCONFIG := $(ARCH)_defconfig
++	KBUILD_DEFCONFIG := $(ARCH)_defconfig
+ endif
  
+ # BITS is used as extension for files which are available in a 32 bit
+@@ -13,76 +13,76 @@ endif
+ export BITS
+ 
+ ifeq ($(CONFIG_X86_32),y)
+-        BITS := 32
+-        UTS_MACHINE := i386
+-        CHECKFLAGS += -D__i386__
+-
+-        biarch := $(call cc-option,-m32)
+-        KBUILD_AFLAGS += $(biarch)
+-        KBUILD_CFLAGS += $(biarch)
+-
+-        ifdef CONFIG_RELOCATABLE
+-                LDFLAGS_vmlinux := --emit-relocs
+-        endif
+-
+-        KBUILD_CFLAGS += -msoft-float -mregparm=3 -freg-struct-return
+-
+-        # prevent gcc from keeping the stack 16 byte aligned
+-        KBUILD_CFLAGS += $(call cc-option,-mpreferred-stack-boundary=2)
+-
+-        # Disable unit-at-a-time mode on pre-gcc-4.0 compilers, it makes gcc use
+-        # a lot more stack due to the lack of sharing of stacklots:
+-        KBUILD_CFLAGS += $(call cc-ifversion, -lt, 0400, \
++	BITS := 32
++	UTS_MACHINE := i386
++	CHECKFLAGS += -D__i386__
++
++	biarch := $(call cc-option,-m32)
++	KBUILD_AFLAGS += $(biarch)
++	KBUILD_CFLAGS += $(biarch)
++
++	ifdef CONFIG_RELOCATABLE
++		LDFLAGS_vmlinux := --emit-relocs
++	endif
++
++	KBUILD_CFLAGS += -msoft-float -mregparm=3 -freg-struct-return
++
++	# prevent gcc from keeping the stack 16 byte aligned
++	KBUILD_CFLAGS += $(call cc-option,-mpreferred-stack-boundary=2)
++
++	# Disable unit-at-a-time mode on pre-gcc-4.0 compilers, it makes gcc use
++	# a lot more stack due to the lack of sharing of stacklots:
++	KBUILD_CFLAGS += $(call cc-ifversion, -lt, 0400, \
+ 				$(call cc-option,-fno-unit-at-a-time))
+ 
+-        # CPU-specific tuning. Anything which can be shared with UML should go here.
+-        include $(srctree)/arch/x86/Makefile_32.cpu
+-        KBUILD_CFLAGS += $(cflags-y)
++	# CPU-specific tuning. Anything which can be shared with UML should go here.
++	include $(srctree)/arch/x86/Makefile_32.cpu
++	KBUILD_CFLAGS += $(cflags-y)
+ 
+-        # temporary until string.h is fixed
+-        KBUILD_CFLAGS += -ffreestanding
++	# temporary until string.h is fixed
++	KBUILD_CFLAGS += -ffreestanding
+ else
+-        BITS := 64
+-        UTS_MACHINE := x86_64
+-        CHECKFLAGS += -D__x86_64__ -m64
++	BITS := 64
++	UTS_MACHINE := x86_64
++	CHECKFLAGS += -D__x86_64__ -m64
+ 
+-        KBUILD_AFLAGS += -m64
+-        KBUILD_CFLAGS += -m64
++	KBUILD_AFLAGS += -m64
++	KBUILD_CFLAGS += -m64
+ 
+ 	# Use -mpreferred-stack-boundary=3 if supported.
+ 	KBUILD_CFLAGS += $(call cc-option,-mno-sse -mpreferred-stack-boundary=3)
+ 
+-        # FIXME - should be integrated in Makefile.cpu (Makefile_32.cpu)
+-        cflags-$(CONFIG_MK8) += $(call cc-option,-march=k8)
+-        cflags-$(CONFIG_MPSC) += $(call cc-option,-march=nocona)
+-
+-        cflags-$(CONFIG_MCORE2) += \
+-                $(call cc-option,-march=core2,$(call cc-option,-mtune=generic))
+-	cflags-$(CONFIG_MATOM) += $(call cc-option,-march=atom) \
++	# FIXME - should be integrated in Makefile.cpu (Makefile_32.cpu)
++	cflags-$(CONFIG_MK8)	+= $(call cc-option,-march=k8)
++	cflags-$(CONFIG_MPSC)	+= $(call cc-option,-march=nocona)
++
++	cflags-$(CONFIG_MCORE2)	+= \
++		$(call cc-option,-march=core2,$(call cc-option,-mtune=generic))
++	cflags-$(CONFIG_MATOM)	+= $(call cc-option,-march=atom) \
+ 		$(call cc-option,-mtune=atom,$(call cc-option,-mtune=generic))
+-        cflags-$(CONFIG_GENERIC_CPU) += $(call cc-option,-mtune=generic)
+-        KBUILD_CFLAGS += $(cflags-y)
++	cflags-$(CONFIG_GENERIC_CPU)	+= $(call cc-option,-mtune=generic)
++	KBUILD_CFLAGS += $(cflags-y)
+ 
+-        KBUILD_CFLAGS += -mno-red-zone
+-        KBUILD_CFLAGS += -mcmodel=kernel
++	KBUILD_CFLAGS += -mno-red-zone
++	KBUILD_CFLAGS += -mcmodel=kernel
+ 
+-        # -funit-at-a-time shrinks the kernel .text considerably
+-        # unfortunately it makes reading oopses harder.
+-        KBUILD_CFLAGS += $(call cc-option,-funit-at-a-time)
+-
+-        # this works around some issues with generating unwind tables in older gccs
+-        # newer gccs do it by default
+-        KBUILD_CFLAGS += -maccumulate-outgoing-args
++	# -funit-at-a-time shrinks the kernel .text considerably
++	# unfortunately it makes reading oopses harder.
++	KBUILD_CFLAGS += $(call cc-option,-funit-at-a-time)
++
++	# this works around some issues with generating unwind tables in older gccs
++	# newer gccs do it by default
++	KBUILD_CFLAGS += -maccumulate-outgoing-args
+ endif
+ 
+ ifdef CONFIG_CC_STACKPROTECTOR
+ 	cc_has_sp := $(srctree)/scripts/gcc-x86_$(BITS)-has-stack-protector.sh
+-        ifeq ($(shell $(CONFIG_SHELL) $(cc_has_sp) $(CC) $(KBUILD_CPPFLAGS) $(biarch)),y)
+-                stackp-y := -fstack-protector
+-                KBUILD_CFLAGS += $(stackp-y)
+-        else
+-                $(warning stack protector enabled but no compiler support)
+-        endif
++	ifeq ($(shell $(CONFIG_SHELL) $(cc_has_sp) $(CC) $(KBUILD_CPPFLAGS) $(biarch)),y)
++		stackp-y := -fstack-protector
++		KBUILD_CFLAGS += $(stackp-y)
++	else
++		$(warning stack protector enabled but no compiler support)
++	endif
+ endif
+ 
+ ifdef CONFIG_X86_X32
+@@ -91,13 +91,13 @@ ifdef CONFIG_X86_X32
+ 			$(CC) $(KBUILD_AFLAGS) -c -xassembler -o "$$TMP" - && \
+ 			$(OBJCOPY) -O elf32-x86-64 "$$TMP" "$$TMPO" && \
+ 			$(LD) -m elf32_x86_64 "$$TMPO" -o "$$TMP",y,n)
+-        ifeq ($(x32_ld_ok),y)
+-                CONFIG_X86_X32_ABI := y
+-                KBUILD_AFLAGS += -DCONFIG_X86_X32_ABI
+-                KBUILD_CFLAGS += -DCONFIG_X86_X32_ABI
+-        else
+-                $(warning CONFIG_X86_X32 enabled but no binutils support)
+-        endif
++	ifeq ($(x32_ld_ok),y)
++		CONFIG_X86_X32_ABI := y
++		KBUILD_AFLAGS += -DCONFIG_X86_X32_ABI
++		KBUILD_CFLAGS += -DCONFIG_X86_X32_ABI
++	else
++		$(warning CONFIG_X86_X32 enabled but no binutils support)
++	endif
+ endif
+ export CONFIG_X86_X32_ABI
+ 
+@@ -154,22 +154,22 @@ head-y := arch/x86/kernel/head_$(BITS).o
+ head-y += arch/x86/kernel/head$(BITS).o
+ head-y += arch/x86/kernel/head.o
+ 
+-libs-y  += arch/x86/lib/
++libs-y += arch/x86/lib/
+ 
+ # See arch/x86/Kbuild for content of core part of the kernel
+ core-y += arch/x86/
+ 
+ # drivers-y are linked after core-y
+-drivers-$(CONFIG_MATH_EMULATION) += arch/x86/math-emu/
+-drivers-$(CONFIG_PCI)            += arch/x86/pci/
++drivers-$(CONFIG_MATH_EMULATION)	+= arch/x86/math-emu/
++drivers-$(CONFIG_PCI)			+= arch/x86/pci/
+ 
+ # must be linked after kernel/
+-drivers-$(CONFIG_OPROFILE) += arch/x86/oprofile/
++drivers-$(CONFIG_OPROFILE)	+= arch/x86/oprofile/
+ 
+ # suspend and hibernation support
+-drivers-$(CONFIG_PM) += arch/x86/power/
++drivers-$(CONFIG_PM)	+= arch/x86/power/
+ 
+-drivers-$(CONFIG_FB) += arch/x86/video/
++drivers-$(CONFIG_FB)	+= arch/x86/video/
+ 
+ ####
+ # boot loader support. Several targets are kept for legacy purposes
+diff -puN arch/x86/Makefile.um~x86-whitespace-cleanup-in-makefiles arch/x86/Makefile.um
+--- a/arch/x86/Makefile.um~x86-whitespace-cleanup-in-makefiles
++++ a/arch/x86/Makefile.um
+@@ -5,7 +5,7 @@ START := 0x8048000
+ 
+ LDFLAGS			+= -m elf_i386
+ ELF_ARCH		:= i386
+-ELF_FORMAT 		:= elf32-i386
++ELF_FORMAT		:= elf32-i386
+ CHECKFLAGS	+= -D__i386__
+ 
+ KBUILD_CFLAGS		+= $(call cc-option,-m32)
+diff -puN arch/x86/Makefile_32.cpu~x86-whitespace-cleanup-in-makefiles arch/x86/Makefile_32.cpu
+--- a/arch/x86/Makefile_32.cpu~x86-whitespace-cleanup-in-makefiles
++++ a/arch/x86/Makefile_32.cpu
+@@ -44,7 +44,7 @@ cflags-$(CONFIG_MGEODEGX1)	+= -march=pen
+ cflags-$(CONFIG_MGEODE_LX)	+= $(call cc-option,-march=geode,-march=pentium-mmx)
+ # add at the end to overwrite eventual tuning options from earlier
+ # cpu entries
+-cflags-$(CONFIG_X86_GENERIC) 	+= $(call tune,generic,$(call tune,i686))
++cflags-$(CONFIG_X86_GENERIC)	+= $(call tune,generic,$(call tune,i686))
+ 
+ # Work around the pentium-mmx code generator madness of gcc4.4.x which
+ # does stack alignment by generating horrible code _before_ the mcount
+diff -puN arch/x86/boot/Makefile~x86-whitespace-cleanup-in-makefiles arch/x86/boot/Makefile
+--- a/arch/x86/boot/Makefile~x86-whitespace-cleanup-in-makefiles
++++ a/arch/x86/boot/Makefile
+@@ -38,7 +38,7 @@ targets		+= $(setup-y)
+ hostprogs-y	:= mkcpustr tools/build
+ 
+ HOST_EXTRACFLAGS += -I$(srctree)/tools/include $(LINUXINCLUDE) \
+-	            -D__EXPORTED_HEADERS__
++			-D__EXPORTED_HEADERS__
+ 
+ $(obj)/cpu.o: $(obj)/cpustr.h
+ 
+@@ -53,16 +53,16 @@ $(obj)/cpustr.h: $(obj)/mkcpustr FORCE
+ # How to compile the 16-bit code.  Note we always compile for -march=i386,
+ # that way we can complain to the user if the CPU is insufficient.
+ KBUILD_CFLAGS	:= $(LINUXINCLUDE) -g -Os -D_SETUP -D__KERNEL__ \
+-		   -DDISABLE_BRANCH_PROFILING \
+-		   -Wall -Wstrict-prototypes \
+-		   -march=i386 -mregparm=3 \
+-		   -include $(srctree)/$(src)/code16gcc.h \
+-		   -fno-strict-aliasing -fomit-frame-pointer \
+-		   $(call cc-option, -ffreestanding) \
+-		   $(call cc-option, -fno-toplevel-reorder,\
++			-DDISABLE_BRANCH_PROFILING \
++			-Wall -Wstrict-prototypes \
++			-march=i386 -mregparm=3 \
++			-include $(srctree)/$(src)/code16gcc.h \
++			-fno-strict-aliasing -fomit-frame-pointer \
++			$(call cc-option, -ffreestanding) \
++			$(call cc-option, -fno-toplevel-reorder,\
+ 			$(call cc-option, -fno-unit-at-a-time)) \
+-		   $(call cc-option, -fno-stack-protector) \
+-		   $(call cc-option, -mpreferred-stack-boundary=2)
++			$(call cc-option, -fno-stack-protector) \
++			$(call cc-option, -mpreferred-stack-boundary=2)
+ KBUILD_CFLAGS	+= $(call cc-option, -m32)
+ KBUILD_AFLAGS	:= $(KBUILD_CFLAGS) -D__ASSEMBLY__
+ GCOV_PROFILE := n
+diff -puN arch/x86/crypto/Makefile~x86-whitespace-cleanup-in-makefiles arch/x86/crypto/Makefile
+--- a/arch/x86/crypto/Makefile~x86-whitespace-cleanup-in-makefiles
++++ a/arch/x86/crypto/Makefile
+@@ -2,44 +2,44 @@
+ # Arch-specific CryptoAPI modules.
+ #
+ 
+-obj-$(CONFIG_CRYPTO_ABLK_HELPER_X86) += ablk_helper.o
+-obj-$(CONFIG_CRYPTO_GLUE_HELPER_X86) += glue_helper.o
++obj-$(CONFIG_CRYPTO_ABLK_HELPER_X86)	+= ablk_helper.o
++obj-$(CONFIG_CRYPTO_GLUE_HELPER_X86)	+= glue_helper.o
+ 
+-obj-$(CONFIG_CRYPTO_AES_586) += aes-i586.o
+-obj-$(CONFIG_CRYPTO_TWOFISH_586) += twofish-i586.o
+-obj-$(CONFIG_CRYPTO_SALSA20_586) += salsa20-i586.o
+-obj-$(CONFIG_CRYPTO_SERPENT_SSE2_586) += serpent-sse2-i586.o
+-
+-obj-$(CONFIG_CRYPTO_AES_X86_64) += aes-x86_64.o
+-obj-$(CONFIG_CRYPTO_CAMELLIA_X86_64) += camellia-x86_64.o
+-obj-$(CONFIG_CRYPTO_BLOWFISH_X86_64) += blowfish-x86_64.o
+-obj-$(CONFIG_CRYPTO_TWOFISH_X86_64) += twofish-x86_64.o
+-obj-$(CONFIG_CRYPTO_TWOFISH_X86_64_3WAY) += twofish-x86_64-3way.o
+-obj-$(CONFIG_CRYPTO_TWOFISH_AVX_X86_64) += twofish-avx-x86_64.o
+-obj-$(CONFIG_CRYPTO_SALSA20_X86_64) += salsa20-x86_64.o
+-obj-$(CONFIG_CRYPTO_SERPENT_SSE2_X86_64) += serpent-sse2-x86_64.o
+-obj-$(CONFIG_CRYPTO_SERPENT_AVX_X86_64) += serpent-avx-x86_64.o
+-obj-$(CONFIG_CRYPTO_AES_NI_INTEL) += aesni-intel.o
+-obj-$(CONFIG_CRYPTO_GHASH_CLMUL_NI_INTEL) += ghash-clmulni-intel.o
+-
+-obj-$(CONFIG_CRYPTO_CRC32C_INTEL) += crc32c-intel.o
+-obj-$(CONFIG_CRYPTO_SHA1_SSSE3) += sha1-ssse3.o
+-
+-aes-i586-y := aes-i586-asm_32.o aes_glue.o
+-twofish-i586-y := twofish-i586-asm_32.o twofish_glue.o
+-salsa20-i586-y := salsa20-i586-asm_32.o salsa20_glue.o
+-serpent-sse2-i586-y := serpent-sse2-i586-asm_32.o serpent_sse2_glue.o
+-
+-aes-x86_64-y := aes-x86_64-asm_64.o aes_glue.o
+-camellia-x86_64-y := camellia-x86_64-asm_64.o camellia_glue.o
+-blowfish-x86_64-y := blowfish-x86_64-asm_64.o blowfish_glue.o
+-twofish-x86_64-y := twofish-x86_64-asm_64.o twofish_glue.o
+-twofish-x86_64-3way-y := twofish-x86_64-asm_64-3way.o twofish_glue_3way.o
+-twofish-avx-x86_64-y := twofish-avx-x86_64-asm_64.o twofish_avx_glue.o
+-salsa20-x86_64-y := salsa20-x86_64-asm_64.o salsa20_glue.o
+-serpent-sse2-x86_64-y := serpent-sse2-x86_64-asm_64.o serpent_sse2_glue.o
+-serpent-avx-x86_64-y := serpent-avx-x86_64-asm_64.o serpent_avx_glue.o
+-
+-aesni-intel-y := aesni-intel_asm.o aesni-intel_glue.o fpu.o
+-ghash-clmulni-intel-y := ghash-clmulni-intel_asm.o ghash-clmulni-intel_glue.o
+-sha1-ssse3-y := sha1_ssse3_asm.o sha1_ssse3_glue.o
++obj-$(CONFIG_CRYPTO_AES_586)		+= aes-i586.o
++obj-$(CONFIG_CRYPTO_TWOFISH_586)	+= twofish-i586.o
++obj-$(CONFIG_CRYPTO_SALSA20_586)	+= salsa20-i586.o
++obj-$(CONFIG_CRYPTO_SERPENT_SSE2_586)	+= serpent-sse2-i586.o
++
++obj-$(CONFIG_CRYPTO_AES_X86_64)			+= aes-x86_64.o
++obj-$(CONFIG_CRYPTO_CAMELLIA_X86_64)		+= camellia-x86_64.o
++obj-$(CONFIG_CRYPTO_BLOWFISH_X86_64)		+= blowfish-x86_64.o
++obj-$(CONFIG_CRYPTO_TWOFISH_X86_64)		+= twofish-x86_64.o
++obj-$(CONFIG_CRYPTO_TWOFISH_X86_64_3WAY)	+= twofish-x86_64-3way.o
++obj-$(CONFIG_CRYPTO_TWOFISH_AVX_X86_64)		+= twofish-avx-x86_64.o
++obj-$(CONFIG_CRYPTO_SALSA20_X86_64)		+= salsa20-x86_64.o
++obj-$(CONFIG_CRYPTO_SERPENT_SSE2_X86_64)	+= serpent-sse2-x86_64.o
++obj-$(CONFIG_CRYPTO_SERPENT_AVX_X86_64)		+= serpent-avx-x86_64.o
++obj-$(CONFIG_CRYPTO_AES_NI_INTEL)		+= aesni-intel.o
++obj-$(CONFIG_CRYPTO_GHASH_CLMUL_NI_INTEL)	+= ghash-clmulni-intel.o
++
++obj-$(CONFIG_CRYPTO_CRC32C_INTEL)	+= crc32c-intel.o
++obj-$(CONFIG_CRYPTO_SHA1_SSSE3)		+= sha1-ssse3.o
++
++aes-i586-y		:= aes-i586-asm_32.o aes_glue.o
++twofish-i586-y		:= twofish-i586-asm_32.o twofish_glue.o
++salsa20-i586-y		:= salsa20-i586-asm_32.o salsa20_glue.o
++serpent-sse2-i586-y	:= serpent-sse2-i586-asm_32.o serpent_sse2_glue.o
++
++aes-x86_64-y		:= aes-x86_64-asm_64.o aes_glue.o
++camellia-x86_64-y	:= camellia-x86_64-asm_64.o camellia_glue.o
++blowfish-x86_64-y	:= blowfish-x86_64-asm_64.o blowfish_glue.o
++twofish-x86_64-y	:= twofish-x86_64-asm_64.o twofish_glue.o
++twofish-x86_64-3way-y	:= twofish-x86_64-asm_64-3way.o twofish_glue_3way.o
++twofish-avx-x86_64-y	:= twofish-avx-x86_64-asm_64.o twofish_avx_glue.o
++salsa20-x86_64-y	:= salsa20-x86_64-asm_64.o salsa20_glue.o
++serpent-sse2-x86_64-y	:= serpent-sse2-x86_64-asm_64.o serpent_sse2_glue.o
++serpent-avx-x86_64-y	:= serpent-avx-x86_64-asm_64.o serpent_avx_glue.o
++
++aesni-intel-y		:= aesni-intel_asm.o aesni-intel_glue.o fpu.o
++ghash-clmulni-intel-y	:= ghash-clmulni-intel_asm.o ghash-clmulni-intel_glue.o
++sha1-ssse3-y		:= sha1_ssse3_asm.o sha1_ssse3_glue.o
+diff -puN arch/x86/ia32/Makefile~x86-whitespace-cleanup-in-makefiles arch/x86/ia32/Makefile
+--- a/arch/x86/ia32/Makefile~x86-whitespace-cleanup-in-makefiles
++++ a/arch/x86/ia32/Makefile
+@@ -5,10 +5,10 @@
+ obj-$(CONFIG_IA32_EMULATION) := ia32entry.o sys_ia32.o ia32_signal.o
+ obj-$(CONFIG_IA32_EMULATION) += nosyscall.o syscall_ia32.o
+ 
+-sysv-$(CONFIG_SYSVIPC) := ipc32.o
+-obj-$(CONFIG_IA32_EMULATION) += $(sysv-y)
++sysv-$(CONFIG_SYSVIPC)		:= ipc32.o
++obj-$(CONFIG_IA32_EMULATION)	+= $(sysv-y)
+ 
+-obj-$(CONFIG_IA32_AOUT) += ia32_aout.o
++obj-$(CONFIG_IA32_AOUT)		+= ia32_aout.o
+ 
+-audit-class-$(CONFIG_AUDIT) := audit.o
+-obj-$(CONFIG_IA32_EMULATION) += $(audit-class-y)
++audit-class-$(CONFIG_AUDIT)	:= audit.o
++obj-$(CONFIG_IA32_EMULATION)	+= $(audit-class-y)
+diff -puN arch/x86/kernel/Makefile~x86-whitespace-cleanup-in-makefiles arch/x86/kernel/Makefile
+--- a/arch/x86/kernel/Makefile~x86-whitespace-cleanup-in-makefiles
++++ a/arch/x86/kernel/Makefile
+@@ -2,7 +2,7 @@
+ # Makefile for the linux kernel.
+ #
+ 
+-extra-y                := head_$(BITS).o head$(BITS).o head.o vmlinux.lds
++extra-y := head_$(BITS).o head$(BITS).o head.o vmlinux.lds
+ 
+ CPPFLAGS_vmlinux.lds += -U$(UTS_MACHINE)
+ 
+@@ -21,7 +21,7 @@ obj-y			:= process_$(BITS).o signal.o en
+ obj-y			+= traps.o irq.o irq_$(BITS).o dumpstack_$(BITS).o
+ obj-y			+= time.o ioport.o ldt.o dumpstack.o nmi.o
+ obj-y			+= setup.o x86_init.o i8259.o irqinit.o jump_label.o
+-obj-$(CONFIG_IRQ_WORK)  += irq_work.o
++obj-$(CONFIG_IRQ_WORK)	+= irq_work.o
+ obj-y			+= probe_roms.o
+ obj-$(CONFIG_X86_32)	+= sys_i386_32.o i386_ksyms_32.o
+ obj-$(CONFIG_X86_64)	+= sys_x86_64.o x8664_ksyms_64.o
+@@ -76,10 +76,10 @@ obj-$(CONFIG_EARLY_PRINTK)	+= early_prin
+ obj-$(CONFIG_HPET_TIMER) 	+= hpet.o
+ obj-$(CONFIG_APB_TIMER)		+= apb_timer.o
+ 
+-obj-$(CONFIG_AMD_NB)		+= amd_nb.o
+-obj-$(CONFIG_DEBUG_RODATA_TEST)	+= test_rodata.o
+-obj-$(CONFIG_DEBUG_NX_TEST)	+= test_nx.o
+-obj-$(CONFIG_DEBUG_NMI_SELFTEST) += nmi_selftest.o
++obj-$(CONFIG_AMD_NB)			+= amd_nb.o
++obj-$(CONFIG_DEBUG_RODATA_TEST)		+= test_rodata.o
++obj-$(CONFIG_DEBUG_NX_TEST)		+= test_nx.o
++obj-$(CONFIG_DEBUG_NMI_SELFTEST)	+= nmi_selftest.o
+ 
+ obj-$(CONFIG_KVM_GUEST)		+= kvm.o
+ obj-$(CONFIG_KVM_CLOCK)		+= kvmclock.o
+@@ -94,7 +94,7 @@ microcode-$(CONFIG_MICROCODE_INTEL)	+= m
+ microcode-$(CONFIG_MICROCODE_AMD)	+= microcode_amd.o
+ obj-$(CONFIG_MICROCODE)			+= microcode.o
+ 
+-obj-$(CONFIG_X86_CHECK_BIOS_CORRUPTION) += check.o
++obj-$(CONFIG_X86_CHECK_BIOS_CORRUPTION)	+= check.o
+ 
+ obj-$(CONFIG_SWIOTLB)			+= pci-swiotlb.o
+ obj-$(CONFIG_OF)			+= devicetree.o
+diff -puN arch/x86/kernel/cpu/mcheck/Makefile~x86-whitespace-cleanup-in-makefiles arch/x86/kernel/cpu/mcheck/Makefile
+--- a/arch/x86/kernel/cpu/mcheck/Makefile~x86-whitespace-cleanup-in-makefiles
++++ a/arch/x86/kernel/cpu/mcheck/Makefile
+@@ -3,7 +3,7 @@ obj-y				=  mce.o mce-severity.o
+ obj-$(CONFIG_X86_ANCIENT_MCE)	+= winchip.o p5.o
+ obj-$(CONFIG_X86_MCE_INTEL)	+= mce_intel.o
+ obj-$(CONFIG_X86_MCE_AMD)	+= mce_amd.o
+-obj-$(CONFIG_X86_MCE_THRESHOLD) += threshold.o
++obj-$(CONFIG_X86_MCE_THRESHOLD)	+= threshold.o
+ obj-$(CONFIG_X86_MCE_INJECT)	+= mce-inject.o
+ 
+ obj-$(CONFIG_X86_THERMAL_VECTOR) += therm_throt.o
+diff -puN arch/x86/lib/Makefile~x86-whitespace-cleanup-in-makefiles arch/x86/lib/Makefile
+--- a/arch/x86/lib/Makefile~x86-whitespace-cleanup-in-makefiles
++++ a/arch/x86/lib/Makefile
+@@ -27,21 +27,21 @@ lib-$(CONFIG_INSTRUCTION_DECODER) += ins
+ obj-y += msr.o msr-reg.o msr-reg-export.o
+ 
+ ifeq ($(CONFIG_X86_32),y)
+-        obj-y += atomic64_32.o
+-        lib-y += atomic64_cx8_32.o
+-        lib-y += checksum_32.o
+-        lib-y += strstr_32.o
+-        lib-y += string_32.o
+-        lib-y += cmpxchg.o
++	obj-y += atomic64_32.o
++	lib-y += atomic64_cx8_32.o
++	lib-y += checksum_32.o
++	lib-y += strstr_32.o
++	lib-y += string_32.o
++	lib-y += cmpxchg.o
+ ifneq ($(CONFIG_X86_CMPXCHG64),y)
+-        lib-y += cmpxchg8b_emu.o atomic64_386_32.o
++	lib-y += cmpxchg8b_emu.o atomic64_386_32.o
+ endif
+-        lib-$(CONFIG_X86_USE_3DNOW) += mmx_32.o
++	lib-$(CONFIG_X86_USE_3DNOW) += mmx_32.o
+ else
+-        obj-y += iomap_copy_64.o
+-        lib-y += csum-partial_64.o csum-copy_64.o csum-wrappers_64.o
+-        lib-y += thunk_64.o clear_page_64.o copy_page_64.o
+-        lib-y += memmove_64.o memset_64.o
+-        lib-y += copy_user_64.o copy_user_nocache_64.o
++	obj-y += iomap_copy_64.o
++	lib-y += csum-partial_64.o csum-copy_64.o csum-wrappers_64.o
++	lib-y += thunk_64.o clear_page_64.o copy_page_64.o
++	lib-y += memmove_64.o memset_64.o
++	lib-y += copy_user_64.o copy_user_nocache_64.o
+ 	lib-y += cmpxchg16b_emu.o
+ endif
+diff -puN arch/x86/math-emu/Makefile~x86-whitespace-cleanup-in-makefiles arch/x86/math-emu/Makefile
+--- a/arch/x86/math-emu/Makefile~x86-whitespace-cleanup-in-makefiles
++++ a/arch/x86/math-emu/Makefile
+@@ -1,5 +1,5 @@
+ #
+-#               Makefile for wm-FPU-emu
++#		Makefile for wm-FPU-emu
+ #
+ 
+ #DEBUG	= -DDEBUGGING
+diff -puN arch/x86/oprofile/Makefile~x86-whitespace-cleanup-in-makefiles arch/x86/oprofile/Makefile
+--- a/arch/x86/oprofile/Makefile~x86-whitespace-cleanup-in-makefiles
++++ a/arch/x86/oprofile/Makefile
+@@ -7,5 +7,5 @@ DRIVER_OBJS = $(addprefix ../../../drive
+ 		timer_int.o nmi_timer_int.o )
+ 
+ oprofile-y				:= $(DRIVER_OBJS) init.o backtrace.o
+-oprofile-$(CONFIG_X86_LOCAL_APIC) 	+= nmi_int.o op_model_amd.o \
++oprofile-$(CONFIG_X86_LOCAL_APIC)	+= nmi_int.o op_model_amd.o \
+ 					   op_model_ppro.o op_model_p4.o
+diff -puN arch/x86/pci/Makefile~x86-whitespace-cleanup-in-makefiles arch/x86/pci/Makefile
+--- a/arch/x86/pci/Makefile~x86-whitespace-cleanup-in-makefiles
++++ a/arch/x86/pci/Makefile
+@@ -7,11 +7,11 @@ obj-$(CONFIG_PCI_OLPC)		+= olpc.o
+ obj-$(CONFIG_PCI_XEN)		+= xen.o
+ 
+ obj-y				+= fixup.o
+-obj-$(CONFIG_X86_INTEL_CE)      += ce4100.o
++obj-$(CONFIG_X86_INTEL_CE)	+= ce4100.o
+ obj-$(CONFIG_ACPI)		+= acpi.o
+ obj-y				+= legacy.o irq.o
+ 
+-obj-$(CONFIG_STA2X11)           += sta2x11-fixup.o
++obj-$(CONFIG_STA2X11)		+= sta2x11-fixup.o
+ 
+ obj-$(CONFIG_X86_VISWS)		+= visws.o
+ 
+diff -puN arch/x86/platform/efi/Makefile~x86-whitespace-cleanup-in-makefiles arch/x86/platform/efi/Makefile
+--- a/arch/x86/platform/efi/Makefile~x86-whitespace-cleanup-in-makefiles
++++ a/arch/x86/platform/efi/Makefile
+@@ -1 +1 @@
+-obj-$(CONFIG_EFI) 		+= efi.o efi_$(BITS).o efi_stub_$(BITS).o
++obj-$(CONFIG_EFI)		+= efi.o efi_$(BITS).o efi_stub_$(BITS).o
+diff -puN arch/x86/platform/olpc/Makefile~x86-whitespace-cleanup-in-makefiles arch/x86/platform/olpc/Makefile
+--- a/arch/x86/platform/olpc/Makefile~x86-whitespace-cleanup-in-makefiles
++++ a/arch/x86/platform/olpc/Makefile
+@@ -1,5 +1,5 @@
+ obj-$(CONFIG_OLPC)		+= olpc.o olpc_ofw.o olpc_dt.o
+-obj-$(CONFIG_OLPC_XO1_PM)		+= olpc-xo1-pm.o xo1-wakeup.o
++obj-$(CONFIG_OLPC_XO1_PM)	+= olpc-xo1-pm.o xo1-wakeup.o
+ obj-$(CONFIG_OLPC_XO1_RTC)	+= olpc-xo1-rtc.o
+ obj-$(CONFIG_OLPC_XO1_SCI)	+= olpc-xo1-sci.o
+ obj-$(CONFIG_OLPC_XO15_SCI)	+= olpc-xo15-sci.o
+diff -puN arch/x86/realmode/Makefile~x86-whitespace-cleanup-in-makefiles arch/x86/realmode/Makefile
+--- a/arch/x86/realmode/Makefile~x86-whitespace-cleanup-in-makefiles
++++ a/arch/x86/realmode/Makefile
+@@ -7,10 +7,10 @@
+ #
+ #
+ 
+-subdir- := rm
++subdir-	:= rm
+ 
+-obj-y += init.o
+-obj-y += rmpiggy.o
++obj-y	+= init.o
++obj-y	+= rmpiggy.o
+ 
+ $(obj)/rmpiggy.o: $(obj)/rm/realmode.bin
+ 
+diff -puN arch/x86/realmode/rm/Makefile~x86-whitespace-cleanup-in-makefiles arch/x86/realmode/rm/Makefile
+--- a/arch/x86/realmode/rm/Makefile~x86-whitespace-cleanup-in-makefiles
++++ a/arch/x86/realmode/rm/Makefile
+@@ -79,4 +79,4 @@ KBUILD_CFLAGS	:= $(LINUXINCLUDE) -m32 -g
+ 		   $(call cc-option, -fno-stack-protector) \
+ 		   $(call cc-option, -mpreferred-stack-boundary=2)
+ KBUILD_AFLAGS	:= $(KBUILD_CFLAGS) -D__ASSEMBLY__
+-GCOV_PROFILE := n
++GCOV_PROFILE	:= n
+diff -puN arch/x86/tools/Makefile~x86-whitespace-cleanup-in-makefiles arch/x86/tools/Makefile
+--- a/arch/x86/tools/Makefile~x86-whitespace-cleanup-in-makefiles
++++ a/arch/x86/tools/Makefile
+@@ -1,15 +1,15 @@
+ PHONY += posttest
+ 
+ ifeq ($(KBUILD_VERBOSE),1)
+-  posttest_verbose = -v
++	posttest_verbose = -v
+ else
+-  posttest_verbose =
++	posttest_verbose =
+ endif
+ 
+ ifeq ($(CONFIG_64BIT),y)
+-  posttest_64bit = -y
++	posttest_64bit = -y
+ else
+-  posttest_64bit = -n
++	posttest_64bit = -n
+ endif
+ 
+ distill_awk = $(srctree)/arch/x86/tools/distill.awk
+diff -puN arch/x86/um/os-Linux/Makefile~x86-whitespace-cleanup-in-makefiles arch/x86/um/os-Linux/Makefile
+--- a/arch/x86/um/os-Linux/Makefile~x86-whitespace-cleanup-in-makefiles
++++ a/arch/x86/um/os-Linux/Makefile
+@@ -5,8 +5,8 @@
+ 
+ obj-y = registers.o task_size.o mcontext.o
+ 
+-obj-$(CONFIG_X86_32) += tls.o
+-obj-$(CONFIG_64BIT) += prctl.o
++obj-$(CONFIG_X86_32)	+= tls.o
++obj-$(CONFIG_64BIT)	+= prctl.o
+ 
+ USER_OBJS := $(obj-y)
+ 
+diff -puN arch/x86/um/vdso/Makefile~x86-whitespace-cleanup-in-makefiles arch/x86/um/vdso/Makefile
+--- a/arch/x86/um/vdso/Makefile~x86-whitespace-cleanup-in-makefiles
++++ a/arch/x86/um/vdso/Makefile
+@@ -22,7 +22,7 @@ targets += vdso.so vdso.so.dbg vdso.lds 
+ export CPPFLAGS_vdso.lds += -P -C
+ 
+ VDSO_LDFLAGS_vdso.lds = -m64 -Wl,-soname=linux-vdso.so.1 \
+-       -Wl,-z,max-page-size=4096 -Wl,-z,common-page-size=4096
++	-Wl,-z,max-page-size=4096 -Wl,-z,common-page-size=4096
+ 
+ $(obj)/vdso.o: $(src)/vdso.S $(obj)/vdso.so
+ 
+@@ -38,8 +38,8 @@ $(obj)/%.so: $(obj)/%.so.dbg FORCE
+ # optimize sibling calls.
+ #
+ CFL := $(PROFILING) -mcmodel=small -fPIC -O2 -fasynchronous-unwind-tables -m64 \
+-       $(filter -g%,$(KBUILD_CFLAGS)) $(call cc-option, -fno-stack-protector) \
+-       -fno-omit-frame-pointer -foptimize-sibling-calls
++	$(filter -g%,$(KBUILD_CFLAGS)) $(call cc-option, -fno-stack-protector) \
++	-fno-omit-frame-pointer -foptimize-sibling-calls
+ 
+ $(vobjs): KBUILD_CFLAGS += $(CFL)
+ 
+@@ -49,8 +49,8 @@ $(vobjs): KBUILD_CFLAGS += $(CFL)
+ CFLAGS_REMOVE_vdso-note.o = -pg -fprofile-arcs -ftest-coverage
+ CFLAGS_REMOVE_um_vdso.o = -pg -fprofile-arcs -ftest-coverage
+ 
+-targets += vdso-syms.lds
+-obj-$(VDSO64-y)			+= vdso-syms.lds
++targets		+= vdso-syms.lds
++obj-$(VDSO64-y)	+= vdso-syms.lds
+ 
+ #
+ # Match symbols in the DSO that look like VDSO*; produce a file of constants.
+@@ -70,9 +70,9 @@ $(obj)/%-syms.lds: $(obj)/%.so.dbg FORCE
+ #
+ quiet_cmd_vdso = VDSO    $@
+       cmd_vdso = $(CC) -nostdlib -o $@ \
+-		       $(VDSO_LDFLAGS) $(VDSO_LDFLAGS_$(filter %.lds,$(^F))) \
+-		       -Wl,-T,$(filter %.lds,$^) $(filter %.o,$^) && \
+-		 sh $(srctree)/$(src)/checkundef.sh '$(NM)' '$@'
++		$(VDSO_LDFLAGS) $(VDSO_LDFLAGS_$(filter %.lds,$(^F))) \
++		-Wl,-T,$(filter %.lds,$^) $(filter %.o,$^) && \
++		sh $(srctree)/$(src)/checkundef.sh '$(NM)' '$@'
+ 
+ VDSO_LDFLAGS = -fPIC -shared $(call cc-ldoption, -Wl$(comma)--hash-style=sysv)
+ GCOV_PROFILE := n
+diff -puN arch/x86/vdso/Makefile~x86-whitespace-cleanup-in-makefiles arch/x86/vdso/Makefile
+--- a/arch/x86/vdso/Makefile~x86-whitespace-cleanup-in-makefiles
++++ a/arch/x86/vdso/Makefile
+@@ -35,7 +35,7 @@ export CPPFLAGS_vdso.lds += -P -C
+ 
+ VDSO_LDFLAGS_vdso.lds = -m64 -Wl,-soname=linux-vdso.so.1 \
+ 			-Wl,--no-undefined \
+-		      	-Wl,-z,max-page-size=4096 -Wl,-z,common-page-size=4096
++			-Wl,-z,max-page-size=4096 -Wl,-z,common-page-size=4096
+ 
+ $(obj)/vdso.o: $(src)/vdso.S $(obj)/vdso.so
+ 
+@@ -51,8 +51,8 @@ $(obj)/%.so: $(obj)/%.so.dbg FORCE
+ # optimize sibling calls.
+ #
+ CFL := $(PROFILING) -mcmodel=small -fPIC -O2 -fasynchronous-unwind-tables -m64 \
+-       $(filter -g%,$(KBUILD_CFLAGS)) $(call cc-option, -fno-stack-protector) \
+-       -fno-omit-frame-pointer -foptimize-sibling-calls
++	$(filter -g%,$(KBUILD_CFLAGS)) $(call cc-option, -fno-stack-protector) \
++	-fno-omit-frame-pointer -foptimize-sibling-calls
+ 
+ $(vobjs): KBUILD_CFLAGS += $(CFL)
+ 
+@@ -133,9 +133,9 @@ VDSO_LDFLAGS_vdso32.lds = -m32 -Wl,-sona
+ # is not a kbuild sub-make subdirectory.
+ override obj-dirs = $(dir $(obj)) $(obj)/vdso32/
+ 
+-targets += vdso32/vdso32.lds
+-targets += $(vdso32-images) $(vdso32-images:=.dbg)
+-targets += vdso32/note.o $(vdso32.so-y:%=vdso32/%.o)
++targets	+= vdso32/vdso32.lds
++targets	+= $(vdso32-images) $(vdso32-images:=.dbg)
++targets	+= vdso32/note.o $(vdso32.so-y:%=vdso32/%.o)
+ 
+ extra-y	+= $(vdso32-images)
+ 
+diff -puN arch/x86/video/Makefile~x86-whitespace-cleanup-in-makefiles arch/x86/video/Makefile
+--- a/arch/x86/video/Makefile~x86-whitespace-cleanup-in-makefiles
++++ a/arch/x86/video/Makefile
+@@ -1 +1 @@
+-obj-$(CONFIG_FB)               += fbdev.o
++obj-$(CONFIG_FB)	+= fbdev.o
+diff -puN arch/x86/xen/Makefile~x86-whitespace-cleanup-in-makefiles arch/x86/xen/Makefile
+--- a/arch/x86/xen/Makefile~x86-whitespace-cleanup-in-makefiles
++++ a/arch/x86/xen/Makefile
+@@ -15,7 +15,7 @@ obj-y		:= enlighten.o setup.o multicalls
+ 			grant-table.o suspend.o platform-pci-unplug.o \
+ 			p2m.o
+ 
+-obj-$(CONFIG_EVENT_TRACING) += trace.o
++obj-$(CONFIG_EVENT_TRACING)	+= trace.o
+ 
+ obj-$(CONFIG_SMP)		+= smp.o
+ obj-$(CONFIG_PARAVIRT_SPINLOCKS)+= spinlock.o
 _
-Subject: Subject: mm: remove __GFP_NO_KSWAPD fixes
+Subject: Subject: x86: whitespace cleanup in makefiles
 
-Patches currently in -mm which might be from riel@redhat.com are
+Patches currently in -mm which might be from kirill@shutemov.name are
 
-origin.patch
-swap-allow-swap-readahead-to-be-merged.patch
-mm-clear-pages_scanned-only-if-draining-a-pcp-adds-pages-to-the-buddy-allocator-again.patch
-mm-remove-unused-lru_all_evictable.patch
-mm-have-order-0-compaction-start-off-where-it-left.patch
-mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes.patch
-mm-have-order-0-compaction-start-off-where-it-left-v3.patch
-mm-have-order-0-compaction-start-off-where-it-left-v3-typo.patch
-netvm-prevent-a-stream-specific-deadlock.patch
-selinux-tag-avc-cache-alloc-as-non-critical.patch
-mm-methods-for-teaching-filesystems-about-pg_swapcache-pages.patch
-mm-add-get_kernel_page-for-pinning-of-kernel-addresses-for-i-o.patch
-mm-add-support-for-a-filesystem-to-activate-swap-files-and-use-direct_io-for-writing-swap-pages.patch
-mm-swap-implement-generic-handler-for-swap_activate.patch
-mm-add-support-for-direct_io-to-highmem-pages.patch
-nfs-teach-the-nfs-client-how-to-treat-pg_swapcache-pages.patch
-nfs-disable-data-cache-revalidation-for-swapfiles.patch
-nfs-enable-swap-on-nfs.patch
-nfs-prevent-page-allocator-recursions-with-swap-over-nfs.patch
-swapfile-avoid-dereferencing-bd_disk-during-swap_entry_free-for-network-storage.patch
-memcg-prevent-oom-with-too-many-dirty-pages.patch
-memcg-further-prevent-oom-with-too-many-dirty-pages.patch
-tmpfs-distribute-interleave-better-across-nodes.patch
-mm-remove-__gfp_no_kswapd.patch
-remove-__gfp_no_kswapd-fixes.patch
-shmem-provide-vm_ops-when-also-providing-a-mem-policy.patch
-rbtree-reference-documentation-rbtreetxt-for-usage-instructions.patch
-rbtree-empty-nodes-have-no-color.patch
-rbtree-fix-incorrect-rbtree-node-insertion-in-fs-proc-proc_sysctlc.patch
-rbtree-move-some-implementation-details-from-rbtreeh-to-rbtreec.patch
-rbtree-performance-and-correctness-test.patch
-rbtree-break-out-of-rb_insert_color-loop-after-tree-rotation.patch
-rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary.patch
-rbtree-low-level-optimizations-in-rb_insert_color.patch
-rbtree-adjust-node-color-in-__rb_erase_color-only-when-necessary.patch
-rbtree-optimize-case-selection-logic-in-__rb_erase_color.patch
-rbtree-low-level-optimizations-in-__rb_erase_color.patch
-rbtree-coding-style-adjustments.patch
-rbtree-rb_erase-updates-and-comments.patch
-rbtree-optimize-fetching-of-sibling-node.patch
+x86-whitespace-cleanup-in-makefiles.patch
 
