@@ -1,55 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [folded] minixfs-fix-block-limit-check-fix.patch removed from -mm tree
-Date: Mon, 30 Jul 2012 14:26:04 -0700
-Message-ID: <20120730212605.1B39C5C0060@hpza9.eem.corp.google.com>
+Subject: [folded] fork-use-vma_pages-to-simplify-the-code-fix.patch removed from -mm tree
+Date: Mon, 30 Jul 2012 14:26:38 -0700
+Message-ID: <20120730212639.9211F20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:43638 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752524Ab2G3V0H (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 30 Jul 2012 17:26:07 -0400
-Received: by lagr15 with SMTP id r15so245269lag.1
-        for <mm-commits@vger.kernel.org>; Mon, 30 Jul 2012 14:26:06 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:64943 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752524Ab2G3V0l (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jul 2012 17:26:41 -0400
+Received: by eekd4 with SMTP id d4so247837eek.1
+        for <mm-commits@vger.kernel.org>; Mon, 30 Jul 2012 14:26:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, phcoder@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, shijie8@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: minixfs-fix-block-limit-check-fix
+     Subject: fork-use-vma_pages-to-simplify-the-code-fix
 has been removed from the -mm tree.  Its filename was
-     minixfs-fix-block-limit-check-fix.patch
+     fork-use-vma_pages-to-simplify-the-code-fix.patch
 
-This patch was dropped because it was folded into minixfs-fix-block-limit-check.patch
+This patch was dropped because it was folded into fork-use-vma_pages-to-simplify-the-code.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: minixfs-fix-block-limit-check-fix
+Subject: fork-use-vma_pages-to-simplify-the-code-fix
 
-fix up code layout, use local `sb'
+initialise `len' at its definition site
 
-Cc: Vladimir Serbinenko <phcoder@gmail.com>
+Cc: Huang Shijie <shijie8@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/minix/itree_v2.c |    4 ++--
+ kernel/fork.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/minix/itree_v2.c~minixfs-fix-block-limit-check-fix fs/minix/itree_v2.c
---- a/fs/minix/itree_v2.c~minixfs-fix-block-limit-check-fix
-+++ a/fs/minix/itree_v2.c
-@@ -32,8 +32,8 @@ static int block_to_path(struct inode * 
- 	if (block < 0) {
- 		printk("MINIX-fs: block_to_path: block %ld < 0 on dev %s\n",
- 			block, bdevname(sb->s_bdev, b));
--    } else if ((u64) block * (u64) sb->s_blocksize
--           >= minix_sb(inode->i_sb)->s_max_size) {
-+	} else if ((u64)block * (u64)sb->s_blocksize >=
-+			minix_sb(sb)->s_max_size) {
- 		if (printk_ratelimit())
- 			printk("MINIX-fs: block_to_path: "
- 			       "block %ld too big on dev %s\n",
+diff -puN kernel/fork.c~fork-use-vma_pages-to-simplify-the-code-fix kernel/fork.c
+--- a/kernel/fork.c~fork-use-vma_pages-to-simplify-the-code-fix
++++ a/kernel/fork.c
+@@ -388,8 +388,8 @@ static int dup_mmap(struct mm_struct *mm
+ 		}
+ 		charge = 0;
+ 		if (mpnt->vm_flags & VM_ACCOUNT) {
+-			unsigned long len;
+-			len = vma_pages(mpnt);
++			unsigned long len = vma_pages(mpnt);
++
+ 			if (security_vm_enough_memory_mm(oldmm, len)) /* sic */
+ 				goto fail_nomem;
+ 			charge = len;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,7 +69,7 @@ drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded.patch
 minixfs-fix-block-limit-check.patch
 kernel-kmodc-document-call_usermodehelper_fns-a-bit.patch
 kmod-avoid-deadlock-from-recursive-kmod-call.patch
-fork-use-vma_pages-to-simplify-the-code-fix.patch
+fork-use-vma_pages-to-simplify-the-code.patch
 revert-sched-fix-fork-error-path-to-not-crash.patch
 ipc-use-kconfig-options-for-__arch_want_ipc_parse_version.patch
 include-linux-aioh-cpp-c-conversions.patch
