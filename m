@@ -1,186 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [folded] string-introduce-memweight-fix-build-error-caused-by-memweight-introduction.patch removed from -mm tree
-Date: Mon, 30 Jul 2012 14:24:29 -0700
-Message-ID: <20120730212430.25465100047@wpzn3.hot.corp.google.com>
+Subject: [folded] checkpatch-add-check-for-use-of-sizeof-without-parenthesis-v2.patch removed from -mm tree
+Date: Mon, 30 Jul 2012 14:25:12 -0700
+Message-ID: <20120730212513.A5F455C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:43258 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752524Ab2G3VYb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jul 2012 17:24:31 -0400
-Received: by mail-ob0-f202.google.com with SMTP id wc20so4008747obb.1
-        for <mm-commits@vger.kernel.org>; Mon, 30 Jul 2012 14:24:30 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:44221 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752524Ab2G3VZP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jul 2012 17:25:15 -0400
+Received: by fat25 with SMTP id 25so243395fat.1
+        for <mm-commits@vger.kernel.org>; Mon, 30 Jul 2012 14:25:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, tony.luck@gmail.com, mm-commits@vger.kernel.org
+To: joe@perches.com, apw@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: string: fix build error caused by memweight() introduction
+     Subject: checkpatch-add-check-for-use-of-sizeof-without-parenthesis-v2
 has been removed from the -mm tree.  Its filename was
-     string-introduce-memweight-fix-build-error-caused-by-memweight-introduction.patch
+     checkpatch-add-check-for-use-of-sizeof-without-parenthesis-v2.patch
 
-This patch was dropped because it was folded into string-introduce-memweight.patch
+This patch was dropped because it was folded into checkpatch-add-check-for-use-of-sizeof-without-parenthesis.patch
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: string: fix build error caused by memweight() introduction
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch-add-check-for-use-of-sizeof-without-parenthesis-v2
 
-Tony Luck reports a build error on the ia64 sim_defconfig:
+Add check that works for sizeof *foo as well as sizeof foo
 
- LD      arch/ia64/hp/sim/boot/bootloader
-lib/lib.a(string.o): In function `bitmap_weight':
-.../linux-next/include/linux/bitmap.h:280: undefined reference to `__bitmap_weight'
-
-It fails because it pulls in lib/lib.a(string.o) to get some
-innocuous function like strcpy() ... but it also gets
-given memweight() which relies on __bitmap_weight()
-which it doesn't have, because it doesn't include lib/built-in.o
-(which is where bitmap.o, the definer of __bitmap_weight(), has
-been linked).
-
-This build error is introduced by the patch string-introduce-memweight.patch
-in -mm tree.  Fix it by creating own file lib/memweight.c.
-
-Reported-by: Tony Luck <tony.luck@gmail.com>
-Suggested-by: Tony Luck <tony.luck@gmail.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Makefile    |    2 +-
- lib/memweight.c |   38 ++++++++++++++++++++++++++++++++++++++
- lib/string.c    |   36 ------------------------------------
- 3 files changed, 39 insertions(+), 37 deletions(-)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/Makefile~string-introduce-memweight-fix-build-error-caused-by-memweight-introduction lib/Makefile
---- a/lib/Makefile~string-introduce-memweight-fix-build-error-caused-by-memweight-introduction
-+++ a/lib/Makefile
-@@ -22,7 +22,7 @@ lib-y	+= kobject.o klist.o
- obj-y += bcd.o div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
- 	 bust_spinlocks.o hexdump.o kasprintf.o bitmap.o scatterlist.o \
- 	 string_helpers.o gcd.o lcm.o list_sort.o uuid.o flex_array.o \
--	 bsearch.o find_last_bit.o find_next_bit.o llist.o
-+	 bsearch.o find_last_bit.o find_next_bit.o llist.o memweight.o
- obj-y += kstrtox.o
- obj-$(CONFIG_TEST_KSTRTOX) += test-kstrtox.o
+diff -puN scripts/checkpatch.pl~checkpatch-add-check-for-use-of-sizeof-without-parenthesis-v2 scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-check-for-use-of-sizeof-without-parenthesis-v2
++++ a/scripts/checkpatch.pl
+@@ -3266,7 +3266,7 @@ sub process {
+ 		}
  
-diff -puN /dev/null lib/memweight.c
---- /dev/null
-+++ a/lib/memweight.c
-@@ -0,0 +1,38 @@
-+#include <linux/export.h>
-+#include <linux/bug.h>
-+#include <linux/bitmap.h>
-+
-+/**
-+ * memweight - count the total number of bits set in memory area
-+ * @ptr: pointer to the start of the area
-+ * @bytes: the size of the area
-+ */
-+size_t memweight(const void *ptr, size_t bytes)
-+{
-+	size_t ret = 0;
-+	size_t longs;
-+	const unsigned char *bitmap = ptr;
-+
-+	for (; bytes > 0 && ((unsigned long)bitmap) % sizeof(long);
-+			bytes--, bitmap++)
-+		ret += hweight8(*bitmap);
-+
-+	longs = bytes / sizeof(long);
-+	if (longs) {
-+		BUG_ON(longs >= INT_MAX / BITS_PER_LONG);
-+		ret += bitmap_weight((unsigned long *)bitmap,
-+				longs * BITS_PER_LONG);
-+		bytes -= longs * sizeof(long);
-+		bitmap += longs * sizeof(long);
-+	}
-+	/*
-+	 * The reason that this last loop is distinct from the preceding
-+	 * bitmap_weight() call is to compute 1-bits in the last region smaller
-+	 * than sizeof(long) properly on big-endian systems.
-+	 */
-+	for (; bytes > 0; bytes--, bitmap++)
-+		ret += hweight8(*bitmap);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(memweight);
-diff -puN lib/string.c~string-introduce-memweight-fix-build-error-caused-by-memweight-introduction lib/string.c
---- a/lib/string.c~string-introduce-memweight-fix-build-error-caused-by-memweight-introduction
-+++ a/lib/string.c
-@@ -26,7 +26,6 @@
- #include <linux/export.h>
- #include <linux/bug.h>
- #include <linux/errno.h>
--#include <linux/bitmap.h>
- 
- #ifndef __HAVE_ARCH_STRNICMP
- /**
-@@ -825,38 +824,3 @@ void *memchr_inv(const void *start, int 
- 	return check_bytes8(start, value, bytes % 8);
- }
- EXPORT_SYMBOL(memchr_inv);
--
--/**
-- * memweight - count the total number of bits set in memory area
-- * @ptr: pointer to the start of the area
-- * @bytes: the size of the area
-- */
--size_t memweight(const void *ptr, size_t bytes)
--{
--	size_t ret = 0;
--	size_t longs;
--	const unsigned char *bitmap = ptr;
--
--	for (; bytes > 0 && ((unsigned long)bitmap) % sizeof(long);
--			bytes--, bitmap++)
--		ret += hweight8(*bitmap);
--
--	longs = bytes / sizeof(long);
--	if (longs) {
--		BUG_ON(longs >= INT_MAX / BITS_PER_LONG);
--		ret += bitmap_weight((unsigned long *)bitmap,
--				longs * BITS_PER_LONG);
--		bytes -= longs * sizeof(long);
--		bitmap += longs * sizeof(long);
--	}
--	/*
--	 * The reason that this last loop is distinct from the preceding
--	 * bitmap_weight() call is to compute 1-bits in the last region smaller
--	 * than sizeof(long) properly on big-endian systems.
--	 */
--	for (; bytes > 0; bytes--, bitmap++)
--		ret += hweight8(*bitmap);
--
--	return ret;
--}
--EXPORT_SYMBOL(memweight);
+ # check for sizeof without parenthesis
+-		if ($line =~ /\bsizeof\s+($Lval)/) {
++		if ($line =~ /\bsizeof\s+((?:\*\s*|)$Lval|$Type(?:\s+$Lval|))/) {
+ 			WARN("SIZEOF_PARENTHESIS",
+ 			     "sizeof $1 should be sizeof($1)\n" . $herecurr);
+ 		}
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-string-introduce-memweight.patch
-qnx4fs-use-memweight.patch
-dm-use-memweight.patch
-affs-use-memweight.patch
-video-uvc-use-memweight.patch
-ocfs2-use-memweight.patch
-ext2-use-memweight.patch
-ext3-use-memweight.patch
-ext4-use-memweight.patch
-revert-sched-fix-fork-error-path-to-not-crash.patch
-fork-fix-error-handling-in-dup_task.patch
-fault-injection-notifier-error-injection.patch
-fault-injection-notifier-error-injection-doc.patch
-cpu-rewrite-cpu-notifier-error-inject-module.patch
-pm-pm-notifier-error-injection-module.patch
-memory-memory-notifier-error-injection-module.patch
-memory-memory-notifier-error-injection-module-fix.patch
-powerpc-pseries-reconfig-notifier-error-injection-module.patch
-fault-injection-add-selftests-for-cpu-and-memory-hotplug.patch
-fault-injection-add-tool-to-run-command-with-failslab-or-fail_page_alloc.patch
-fault-injection-add-tool-to-run-command-with-failslab-or-fail_page_alloc-doc.patch
+printk-add-generic-functions-to-find-kern_level-headers.patch
+printk-add-kern_levelsh-to-make-kern_level-available-for-asm-use.patch
+arch-remove-direct-definitions-of-kern_level-uses.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout.patch
+sound-use-printk_get_level-and-printk_skip_level.patch
+printk-convert-the-format-for-kern_level-to-a-2-byte-pattern.patch
+printk-only-look-for-prefix-levels-in-kernel-messages.patch
+printk-remove-the-now-unnecessary-c-annotation-for-kern_cont.patch
+vsprintf-add-%pmr-for-bluetooth-mac-address.patch
+vsprintf-add-support-of-%ph.patch
+checkpatch-update-alignment-check.patch
+checkpatch-test-for-non-standard-signatures.patch
+checkpatch-check-usleep_range-arguments.patch
+checkpatch-add-check-for-use-of-sizeof-without-parenthesis.patch
+checkpatch-add-checks-for-do-while-0-macro-misuses.patch
 
