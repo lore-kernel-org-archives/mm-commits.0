@@ -1,79 +1,156 @@
 From: akpm@linux-foundation.org
-Subject: [merged] posix_typesh-cleanup-stale-__nfdbits-and-related-definitions-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 30 Jul 2012 11:05:12 -0700
-Message-ID: <20120730180513.1D115100047@wpzn3.hot.corp.google.com>
+Subject: [folded] memcg-oom-provide-more-info-while-memcg-oom-happening-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 30 Jul 2012 11:06:20 -0700
+Message-ID: <20120730180621.9BC3720004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:46959 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751732Ab2G3SFP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jul 2012 14:05:15 -0400
-Received: by obbwc20 with SMTP id wc20so3885848obb.1
-        for <mm-commits@vger.kernel.org>; Mon, 30 Jul 2012 11:05:14 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:35130 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751793Ab2G3SGY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jul 2012 14:06:24 -0400
+Received: by fat25 with SMTP id 25so238431fat.1
+        for <mm-commits@vger.kernel.org>; Mon, 30 Jul 2012 11:06:23 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jwboyer@redhat.com, law@redhat.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, gthelen@google.com, handai.szj@taobao.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: posix_typesh-cleanup-stale-__nfdbits-and-related-definitions-checkpatch-fixes
+     Subject: memcg-oom-provide-more-info-while-memcg-oom-happening-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     posix_typesh-cleanup-stale-__nfdbits-and-related-definitions-checkpatch-fixes.patch
+     memcg-oom-provide-more-info-while-memcg-oom-happening-checkpatch-fixes.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into memcg-oom-provide-more-info-while-memcg-oom-happening.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: posix_typesh-cleanup-stale-__nfdbits-and-related-definitions-checkpatch-fixes
+Subject: memcg-oom-provide-more-info-while-memcg-oom-happening-checkpatch-fixes
 
-ERROR: trailing whitespace
-#107: FILE: include/linux/posix_types.h:19:
-+ * use the one here. $
+WARNING: Prefer pr_info(... to printk(KERN_INFO, ...
+#48: FILE: mm/memcontrol.c:1389:
++	printk(KERN_INFO "Memory cgroup stat:\n");
 
-ERROR: space prohibited before open square bracket '['
-#126: FILE: include/linux/posix_types.h:25:
-+	unsigned long fds_bits [__FD_SETSIZE / (8 * sizeof(long))];
+WARNING: Prefer pr_cont(... to printk(KERN_CONT, ...
+#52: FILE: mm/memcontrol.c:1393:
++		printk(KERN_CONT "%s:%ldKB ", mem_cgroup_stat_names[i],
 
-total: 2 errors, 0 warnings, 106 lines checked
+WARNING: Prefer pr_cont(... to printk(KERN_CONT, ...
+#57: FILE: mm/memcontrol.c:1398:
++		printk(KERN_CONT "%s:%lu ", mem_cgroup_events_names[i],
 
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
+WARNING: Prefer pr_cont(... to printk(KERN_CONT, ...
+#61: FILE: mm/memcontrol.c:1402:
++		printk(KERN_CONT "%s:%luKB ", mem_cgroup_lru_names[i],
 
-./patches/posix_typesh-cleanup-stale-__nfdbits-and-related-definitions.patch has style problems, please review.
+WARNING: line over 80 characters
+#72: FILE: mm/memcontrol.c:1413:
++		printk(KERN_CONT "total_%s:%lldKB ", mem_cgroup_stat_names[i], K(val));
+
+WARNING: Prefer pr_cont(... to printk(KERN_CONT, ...
+#72: FILE: mm/memcontrol.c:1413:
++		printk(KERN_CONT "total_%s:%lldKB ", mem_cgroup_stat_names[i], K(val));
+
+WARNING: line over 80 characters
+#80: FILE: mm/memcontrol.c:1421:
++		printk(KERN_CONT "total_%s:%llu ", mem_cgroup_events_names[i], val);
+
+WARNING: Prefer pr_cont(... to printk(KERN_CONT, ...
+#80: FILE: mm/memcontrol.c:1421:
++		printk(KERN_CONT "total_%s:%llu ", mem_cgroup_events_names[i], val);
+
+WARNING: line over 80 characters
+#88: FILE: mm/memcontrol.c:1429:
++		printk(KERN_CONT "total_%s:%lluKB ", mem_cgroup_lru_names[i], K(val));
+
+WARNING: Prefer pr_cont(... to printk(KERN_CONT, ...
+#88: FILE: mm/memcontrol.c:1429:
++		printk(KERN_CONT "total_%s:%lluKB ", mem_cgroup_lru_names[i], K(val));
+
+WARNING: Prefer pr_cont(... to printk(KERN_CONT, ...
+#91: FILE: mm/memcontrol.c:1432:
++	printk(KERN_CONT "\n");
+
+total: 0 errors, 11 warnings, 95 lines checked
+
+./patches/memcg-oom-provide-more-info-while-memcg-oom-happening.patch has style problems, please review.
 
 If any of these errors are false positives, please report
 them to the maintainer, see CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Jeff Law <law@redhat.com>
-Cc: Josh Boyer <jwboyer@redhat.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Sha Zhengju <handai.szj@taobao.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/posix_types.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/posix_types.h~posix_typesh-cleanup-stale-__nfdbits-and-related-definitions-checkpatch-fixes include/linux/posix_types.h
---- a/include/linux/posix_types.h~posix_typesh-cleanup-stale-__nfdbits-and-related-definitions-checkpatch-fixes
-+++ a/include/linux/posix_types.h
-@@ -16,13 +16,13 @@
+diff -puN mm/memcontrol.c~memcg-oom-provide-more-info-while-memcg-oom-happening-checkpatch-fixes mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-oom-provide-more-info-while-memcg-oom-happening-checkpatch-fixes
++++ a/mm/memcontrol.c
+@@ -1386,20 +1386,20 @@ static void mem_cgroup_print_oom_stat(st
+ 	int i;
+ 	struct mem_cgroup *mi;
  
- /*
-  * This macro may have been defined in <gnu/types.h>. But we always
-- * use the one here. 
-+ * use the one here.
-  */
- #undef __FD_SETSIZE
- #define __FD_SETSIZE	1024
+-	printk(KERN_INFO "Memory cgroup stat:\n");
++	pr_info("Memory cgroup stat:\n");
+ 	for (i = 0; i < MEM_CGROUP_STAT_NSTATS; i++) {
+ 		if (i == MEM_CGROUP_STAT_SWAP && !do_swap_account)
+ 			continue;
+-		printk(KERN_CONT "%s:%ldKB ", mem_cgroup_stat_names[i],
++		pr_cont("%s:%ldKB ", mem_cgroup_stat_names[i],
+ 			   K(mem_cgroup_read_stat(memcg, i)));
+ 	}
  
- typedef struct {
--	unsigned long fds_bits [__FD_SETSIZE / (8 * sizeof(long))];
-+	unsigned long fds_bits[__FD_SETSIZE / (8 * sizeof(long))];
- } __kernel_fd_set;
+ 	for (i = 0; i < MEM_CGROUP_EVENTS_NSTATS; i++)
+-		printk(KERN_CONT "%s:%lu ", mem_cgroup_events_names[i],
++		pr_cont("%s:%lu ", mem_cgroup_events_names[i],
+ 			   mem_cgroup_read_events(memcg, i));
  
- /* Type of a signal handler.  */
+ 	for (i = 0; i < NR_LRU_LISTS; i++)
+-		printk(KERN_CONT "%s:%luKB ", mem_cgroup_lru_names[i],
++		pr_cont("%s:%luKB ", mem_cgroup_lru_names[i],
+ 			   K(mem_cgroup_nr_lru_pages(memcg, BIT(i))));
+ 
+ 	/* Dump the total statistics if hierarchy is enabled. */
+@@ -1410,7 +1410,7 @@ static void mem_cgroup_print_oom_stat(st
+ 			continue;
+ 		for_each_mem_cgroup_tree(mi, memcg)
+ 			val += mem_cgroup_read_stat(mi, i);
+-		printk(KERN_CONT "total_%s:%lldKB ", mem_cgroup_stat_names[i], K(val));
++		pr_cont("total_%s:%lldKB ", mem_cgroup_stat_names[i], K(val));
+ 	}
+ 
+ 	for (i = 0; i < MEM_CGROUP_EVENTS_NSTATS; i++) {
+@@ -1418,7 +1418,7 @@ static void mem_cgroup_print_oom_stat(st
+ 
+ 		for_each_mem_cgroup_tree(mi, memcg)
+ 			val += mem_cgroup_read_events(mi, i);
+-		printk(KERN_CONT "total_%s:%llu ", mem_cgroup_events_names[i], val);
++		pr_cont("total_%s:%llu ", mem_cgroup_events_names[i], val);
+ 	}
+ 
+ 	for (i = 0; i < NR_LRU_LISTS; i++) {
+@@ -1426,11 +1426,10 @@ static void mem_cgroup_print_oom_stat(st
+ 
+ 		for_each_mem_cgroup_tree(mi, memcg)
+ 			val += mem_cgroup_nr_lru_pages(mi, BIT(i));
+-		printk(KERN_CONT "total_%s:%lluKB ", mem_cgroup_lru_names[i], K(val));
++		pr_cont("total_%s:%lluKB ", mem_cgroup_lru_names[i], K(val));
+ 	}
+ 
+-	printk(KERN_CONT "\n");
+-
++	pr_cont("\n");
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,7 +183,7 @@ memory-hotplug-fix-kswapd-looping-forever-problem-fix-fix.patch
 netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix.patch
 memcg-prevent-oom-with-too-many-dirty-pages.patch
 memcg-add-mem_cgroup_from_css-helper-fix.patch
-memcg-oom-provide-more-info-while-memcg-oom-happening-checkpatch-fixes.patch
+memcg-oom-provide-more-info-while-memcg-oom-happening.patch
 memcg-oom-clarify-some-oom-dump-messages-checkpatch-fixes.patch
 mm-slab_commonc-fix-warning.patch
 avr32-mm-faultc-port-oom-changes-to-do_page_fault-fix.patch
