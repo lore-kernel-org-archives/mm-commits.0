@@ -1,57 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memory-memory-notifier-error-injection-module-fix.patch removed from -mm tree
-Date: Mon, 30 Jul 2012 14:27:44 -0700
-Message-ID: <20120730212745.0E9DB1E0043@wpzn4.hot.corp.google.com>
+Subject: [folded] fault-injection-add-tool-to-run-command-with-failslab-or-fail_page_alloc-doc.patch removed from -mm tree
+Date: Mon, 30 Jul 2012 14:28:06 -0700
+Message-ID: <20120730212806.F0F965C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:47809 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752524Ab2G3V1q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jul 2012 17:27:46 -0400
-Received: by mail-ob0-f202.google.com with SMTP id wc20so4010568obb.1
-        for <mm-commits@vger.kernel.org>; Mon, 30 Jul 2012 14:27:45 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:58162 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752524Ab2G3V2I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jul 2012 17:28:08 -0400
+Received: by eaao12 with SMTP id o12so194655eaa.1
+        for <mm-commits@vger.kernel.org>; Mon, 30 Jul 2012 14:28:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: notifier error injection: fix copy-and-paste error in Kconfig help
+     Subject: fault-injection: mention failcmd.sh tool in document
 has been removed from the -mm tree.  Its filename was
-     memory-memory-notifier-error-injection-module-fix.patch
+     fault-injection-add-tool-to-run-command-with-failslab-or-fail_page_alloc-doc.patch
 
-This patch was dropped because it was folded into memory-memory-notifier-error-injection-module.patch
+This patch was dropped because it was folded into fault-injection-add-tool-to-run-command-with-failslab-or-fail_page_alloc.patch
 
 ------------------------------------------------------
 From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: notifier error injection: fix copy-and-paste error in Kconfig help
+Subject: fault-injection: mention failcmd.sh tool in document
 
-powerpc-pseries-reconfig-notifier-error-injection-module.patch
-in -mm tree has a copy-and-paste error in Kconfig help.
+fault-injection-add-tool-to-run-command-with-failslab-or-fail_page_alloc.patch
+in -mm tree adds tools/testing/fault-injection/failcmd.sh to make it
+easier to inject slab/page allocation failures by fault injection.
 
-The module name should be pSeries-reconfig-notifier-error-inject.
+This adds the introduction to
+Documentation/fault-injection/fault-injection.txt.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/fault-injection/fault-injection.txt |   27 ++++++++++++
+ 1 file changed, 27 insertions(+)
 
-diff -puN lib/Kconfig.debug~memory-memory-notifier-error-injection-module-fix lib/Kconfig.debug
---- a/lib/Kconfig.debug~memory-memory-notifier-error-injection-module-fix
-+++ a/lib/Kconfig.debug
-@@ -1162,7 +1162,7 @@ config MEMORY_NOTIFIER_ERROR_INJECT
- 	  bash: echo: write error: Cannot allocate memory
+diff -puN Documentation/fault-injection/fault-injection.txt~fault-injection-add-tool-to-run-command-with-failslab-or-fail_page_alloc-doc Documentation/fault-injection/fault-injection.txt
+--- a/Documentation/fault-injection/fault-injection.txt~fault-injection-add-tool-to-run-command-with-failslab-or-fail_page_alloc-doc
++++ a/Documentation/fault-injection/fault-injection.txt
+@@ -240,3 +240,30 @@ trap "echo 0 > /sys/kernel/debug/$FAILTY
+ echo "Injecting errors into the module $module... (interrupt to stop)"
+ sleep 1000000
  
- 	  To compile this code as a module, choose M here: the module will
--	  be called memory-notifier-error-inject.
-+	  be called pSeries-reconfig-notifier-error-inject.
- 
- 	  If unsure, say N.
- 
++Tool to run command with failslab or fail_page_alloc
++----------------------------------------------------
++In order to make it easier to accomplish the tasks mentioned above, we can use
++tools/testing/fault-injection/failcmd.sh.  Please run a command
++"./tools/testing/fault-injection/failcmd.sh --help" for more information and
++see the following examples.
++
++Examples:
++
++Run a command "make -C tools/testing/selftests/ run_tests" with injecting slab
++allocation failure.
++
++	# ./tools/testing/fault-injection/failcmd.sh \
++		-- make -C tools/testing/selftests/ run_tests
++
++Same as above except to specify 100 times failures at most instead of one time
++at most by default.
++
++	# ./tools/testing/fault-injection/failcmd.sh --times=100 \
++		-- make -C tools/testing/selftests/ run_tests
++
++Same as above except to inject page allocation failure instead of slab
++allocation failure.
++
++	# env FAILCMD_TYPE=fail_page_alloc \
++		./tools/testing/fault-injection/failcmd.sh --times=100 \
++                -- make -C tools/testing/selftests/ run_tests
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
@@ -75,5 +97,4 @@ memory-memory-notifier-error-injection-module.patch
 powerpc-pseries-reconfig-notifier-error-injection-module.patch
 fault-injection-add-selftests-for-cpu-and-memory-hotplug.patch
 fault-injection-add-tool-to-run-command-with-failslab-or-fail_page_alloc.patch
-fault-injection-add-tool-to-run-command-with-failslab-or-fail_page_alloc-doc.patch
 
