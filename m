@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fault-injection-fix-failcmdsh-warning.patch added to -mm tree
-Date: Mon, 30 Jul 2012 15:22:35 -0700
-Message-ID: <20120730222235.F2F955C0050@hpza9.eem.corp.google.com>
+Subject: + xtensa-select-generic-atomic64_t-support.patch added to -mm tree
+Date: Mon, 30 Jul 2012 15:23:02 -0700
+Message-ID: <20120730222302.9EB50100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:63242 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755020Ab2G3WWi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jul 2012 18:22:38 -0400
-Received: by lbbgp10 with SMTP id gp10so249408lbb.1
-        for <mm-commits@vger.kernel.org>; Mon, 30 Jul 2012 15:22:36 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:44629 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755020Ab2G3WXE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jul 2012 18:23:04 -0400
+Received: by obbwc20 with SMTP id wc20so4043993obb.1
+        for <mm-commits@vger.kernel.org>; Mon, 30 Jul 2012 15:23:03 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com
+Cc: fengguang.wu@intel.com, chris@zankel.net
 
 
 The patch titled
-     Subject: fault-injection: fix failcmd.sh warning
+     Subject: xtensa: select generic atomic64_t support
 has been added to the -mm tree.  Its filename is
-     fault-injection-fix-failcmdsh-warning.patch
+     xtensa-select-generic-atomic64_t-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,69 +33,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: fault-injection: fix failcmd.sh warning
+From: Fengguang Wu <fengguang.wu@intel.com>
+Subject: xtensa: select generic atomic64_t support
 
-"fault-injection: add tool to run command with failslab or
-fail_page_alloc" added tools/testing/fault-injection/failcmd.sh to make it
-easier to inject slab/page allocation failures by fault injection.
+This will fix build errors:
 
-failcmd.sh prints the following warning when running with arguments
-for command.
+block/blk-cgroup.c:609:2: error: unknown type name 'atomic64_t'
+block/blk-cgroup.c:609:2: error: implicit declaration of function 'ATOMIC64_INIT' [-Werror=implicit-function-declaration]
 
-	# ./failcmd.sh echo aaa
-	failcmd.sh: line 209: [: echo: binary operator expected
-	aaa
-
-This warning is caused by an improper check whether at least one
-parameter is left after parsing command options.
-
-Fix it by testing the length of $1 instead of $@
-
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Chris Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/fault-injection/failcmd.sh |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/xtensa/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN tools/testing/fault-injection/failcmd.sh~fault-injection-fix-failcmdsh-warning tools/testing/fault-injection/failcmd.sh
---- a/tools/testing/fault-injection/failcmd.sh~fault-injection-fix-failcmdsh-warning
-+++ a/tools/testing/fault-injection/failcmd.sh
-@@ -206,7 +206,7 @@ while true; do
- 	esac
- done
- 
--[ -z "$@" ] && exit 0
-+[ -z "$1" ] && exit 0
- 
- echo $oom_kill_allocating_task > /proc/sys/vm/oom_kill_allocating_task
- echo $task_filter > $FAULTATTR/task-filter
+diff -puN arch/xtensa/Kconfig~xtensa-select-generic-atomic64_t-support arch/xtensa/Kconfig
+--- a/arch/xtensa/Kconfig~xtensa-select-generic-atomic64_t-support
++++ a/arch/xtensa/Kconfig
+@@ -11,6 +11,7 @@ config XTENSA
+ 	select GENERIC_IRQ_SHOW
+ 	select GENERIC_CPU_DEVICES
+ 	select MODULES_USE_ELF_RELA
++	select GENERIC_ATOMIC64
+ 	help
+ 	  Xtensa processors are 32-bit RISC machines designed by Tensilica
+ 	  primarily for embedded systems.  These processors are both
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
 origin.patch
-string-introduce-memweight.patch
-qnx4fs-use-memweight.patch
-dm-use-memweight.patch
-affs-use-memweight.patch
-video-uvc-use-memweight.patch
-ocfs2-use-memweight.patch
-ext2-use-memweight.patch
-ext3-use-memweight.patch
-ext4-use-memweight.patch
-revert-sched-fix-fork-error-path-to-not-crash.patch
-fork-fix-error-handling-in-dup_task.patch
-fault-injection-notifier-error-injection.patch
-cpu-rewrite-cpu-notifier-error-inject-module.patch
-pm-pm-notifier-error-injection-module.patch
-memory-memory-notifier-error-injection-module.patch
-powerpc-pseries-reconfig-notifier-error-injection-module.patch
-fault-injection-add-selftests-for-cpu-and-memory-hotplug.patch
-fault-injection-add-tool-to-run-command-with-failslab-or-fail_page_alloc.patch
-fault-injection-fix-failcmdsh-warning.patch
+clk-validate-pointer-in-__clk_disable.patch
+avr32-fix-build-error-in-atstk1002-code.patch
+xtensa-select-generic-atomic64_t-support.patch
 linux-next.patch
-ocfs2-use-find_last_bit.patch
-ocfs2-use-bitmap_weight.patch
+mm-prepare-for-removal-of-obsolete-proc-sys-vm-nr_pdflush_threads.patch
+mm-clear-pages_scanned-only-if-draining-a-pcp-adds-pages-to-the-buddy-allocator-again.patch
+mm-slb-add-knowledge-of-pfmemalloc-reserve-pages-fix.patch
+memcg-prevent-oom-with-too-many-dirty-pages.patch
+memcg-further-prevent-oom-with-too-many-dirty-pages.patch
+memcg-add-mem_cgroup_from_css-helper-fix-2.patch
+rbtree-performance-and-correctness-test-fix.patch
 
