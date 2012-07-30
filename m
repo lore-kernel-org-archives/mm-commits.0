@@ -1,57 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [folded] printk-add-generic-functions-to-find-kern_level-headers-fix.patch removed from -mm tree
-Date: Mon, 30 Jul 2012 14:22:49 -0700
-Message-ID: <20120730212249.D03A81E0058@wpzn4.hot.corp.google.com>
+Subject: [folded] btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch removed from -mm tree
+Date: Mon, 30 Jul 2012 14:23:18 -0700
+Message-ID: <20120730212318.EA0A51E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-ob0-f202.google.com ([209.85.214.202]:64700 "EHLO
 	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752524Ab2G3VWv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jul 2012 17:22:51 -0400
-Received: by obbwc20 with SMTP id wc20so4007822obb.1
-        for <mm-commits@vger.kernel.org>; Mon, 30 Jul 2012 14:22:50 -0700 (PDT)
+	with ESMTP id S1752524Ab2G3VXT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jul 2012 17:23:19 -0400
+Received: by mail-ob0-f202.google.com with SMTP id wc20so4007822obb.1
+        for <mm-commits@vger.kernel.org>; Mon, 30 Jul 2012 14:23:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, joe@perches.com, kay.sievers@vrfy.org, wfg@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk-add-generic-functions-to-find-kern_level-headers-fix
+     Subject: btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix
 has been removed from the -mm tree.  Its filename was
-     printk-add-generic-functions-to-find-kern_level-headers-fix.patch
+     btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
 
-This patch was dropped because it was folded into printk-add-generic-functions-to-find-kern_level-headers.patch
+This patch was dropped because it was folded into btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: printk-add-generic-functions-to-find-kern_level-headers-fix
+Subject: btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix
 
-fix build error and warning
-
-kernel/printk.c:1357: error: label at end of compound statement
-kernel/printk.c:1360: warning: assignment discards qualifiers from pointer target type
+whitespace tweak.  checkpatch bug ;)
 
 Cc: Joe Perches <joe@perches.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Wu Fengguang <wfg@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |    2 +-
+ fs/btrfs/super.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/printk.c~printk-add-generic-functions-to-find-kern_level-headers-fix kernel/printk.c
---- a/kernel/printk.c~printk-add-generic-functions-to-find-kern_level-headers-fix
-+++ a/kernel/printk.c
-@@ -1563,7 +1563,7 @@ asmlinkage int vprintk_emit(int facility
- 			break;
- 		}
- 		text_len -= end_of_header - text;
--		text = end_of_header;
-+		text = (char *)end_of_header;
- 	}
+diff -puN fs/btrfs/super.c~btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix fs/btrfs/super.c
+--- a/fs/btrfs/super.c~btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix
++++ a/fs/btrfs/super.c
+@@ -192,7 +192,7 @@ void btrfs_printk(struct btrfs_fs_info *
  
- 	if (level == -1)
+ 	kern_level = printk_get_level(fmt);
+ 	if (kern_level) {
+-		size_t size = printk_skip_level(fmt)  - fmt;
++		size_t size = printk_skip_level(fmt) - fmt;
+ 		memcpy(lvl, fmt,  size);
+ 		lvl[size] = '\0';
+ 		fmt += size;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -63,7 +58,7 @@ nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
 kernel-sysc-avoid-argv_freenull.patch
 kmsg-dev-kmsg-properly-return-possible-copy_from_user-failure.patch
 printk-add-generic-functions-to-find-kern_level-headers.patch
-btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-fix.patch
+btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout.patch
 btrfs-use-printk_get_level-and-printk_skip_level-add-__printf-fix-fallout-checkpatch-fixes.patch
 lib-vsprintfc-remind-people-to-update-documentation-printk-formatstxt-when-adding-printk-formats.patch
 string-introduce-memweight-fix.patch
