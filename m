@@ -1,83 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ntfs-remove-references-to-long-gone-super-operations-and-unimplemented-methods.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:47:46 -0700
-Message-ID: <20120731184746.C46BB10007A@wpzn3.hot.corp.google.com>
+Subject: [merged] xtensa-mm-faultc-port-oom-changes-to-do_page_fault.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:48:02 -0700
+Message-ID: <20120731184803.128F220004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:33060 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756197Ab2GaSrr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:47:47 -0400
-Received: by mail-ob0-f202.google.com with SMTP id wc20so4676512obb.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:47:47 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:40889 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756179Ab2GaSsF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:48:05 -0400
+Received: by eekd4 with SMTP id d4so295381eek.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:48:03 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fernando@oss.ntt.co.jp, anton@tuxera.com, mm-commits@vger.kernel.org
+To: consul.kautuk@gmail.com, chris@zankel.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ntfs: remove references to long gone super operations and unimplemented methods
+     Subject: xtensa/mm/fault.c: port OOM changes to do_page_fault
 has been removed from the -mm tree.  Its filename was
-     ntfs-remove-references-to-long-gone-super-operations-and-unimplemented-methods.patch
+     xtensa-mm-faultc-port-oom-changes-to-do_page_fault.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
-Subject: ntfs: remove references to long gone super operations and unimplemented methods
+From: Kautuk Consul <consul.kautuk@gmail.com>
+Subject: xtensa/mm/fault.c: port OOM changes to do_page_fault
 
-->delete_inode(), ->write_super_lockfs(), ->unlockfs() are gone so remove
-refereces to them in the NTFS code.  Remove unnecessary comments about
-unimplemented methods while at it (suggested by Christoph Hellwig).
+d065bd810b6de ("mm: retry page fault when blocking on disk transfer") and
+37b23e0525d393d ("x86,mm: make pagefault killable")
 
-Noticed while cleaning up the fsfreeze mess.
+The above commits introduced changes into the x86 pagefault handler for
+making the page fault handler retryable as well as killable.
 
-Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
-Cc: Anton Altaparmakov <anton@tuxera.com>
+These changes reduce the mmap_sem hold time, which is crucial during OOM
+killer invocation.
+
+Port these changes to xtensa.
+
+Signed-off-by: Kautuk Consul <consul.kautuk@gmail.com>
+Acked-by: Chris Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ntfs/super.c |   17 -----------------
- 1 file changed, 17 deletions(-)
+ arch/xtensa/mm/fault.c |   29 ++++++++++++++++++++++++-----
+ 1 file changed, 24 insertions(+), 5 deletions(-)
 
-diff -puN fs/ntfs/super.c~ntfs-remove-references-to-long-gone-super-operations-and-unimplemented-methods fs/ntfs/super.c
---- a/fs/ntfs/super.c~ntfs-remove-references-to-long-gone-super-operations-and-unimplemented-methods
-+++ a/fs/ntfs/super.c
-@@ -2660,31 +2660,14 @@ static const struct super_operations ntf
- 	.alloc_inode	= ntfs_alloc_big_inode,	  /* VFS: Allocate new inode. */
- 	.destroy_inode	= ntfs_destroy_big_inode, /* VFS: Deallocate inode. */
- #ifdef NTFS_RW
--	//.dirty_inode	= NULL,			/* VFS: Called from
--	//					   __mark_inode_dirty(). */
- 	.write_inode	= ntfs_write_inode,	/* VFS: Write dirty inode to
- 						   disk. */
--	//.drop_inode	= NULL,			/* VFS: Called just after the
--	//					   inode reference count has
--	//					   been decreased to zero.
--	//					   NOTE: The inode lock is
--	//					   held. See fs/inode.c::
--	//					   generic_drop_inode(). */
--	//.delete_inode	= NULL,			/* VFS: Delete inode from disk.
--	//					   Called when i_count becomes
--	//					   0 and i_nlink is also 0. */
--	//.write_super	= NULL,			/* Flush dirty super block to
--	//					   disk. */
--	//.sync_fs	= NULL,			/* ? */
--	//.write_super_lockfs	= NULL,		/* ? */
--	//.unlockfs	= NULL,			/* ? */
- #endif /* NTFS_RW */
- 	.put_super	= ntfs_put_super,	/* Syscall: umount. */
- 	.statfs		= ntfs_statfs,		/* Syscall: statfs */
- 	.remount_fs	= ntfs_remount,		/* Syscall: mount -o remount. */
- 	.evict_inode	= ntfs_evict_big_inode,	/* VFS: Called when an inode is
- 						   removed from memory. */
--	//.umount_begin	= NULL,			/* Forced umount. */
- 	.show_options	= ntfs_show_options,	/* Show mount options in
- 						   proc. */
- };
+diff -puN arch/xtensa/mm/fault.c~xtensa-mm-faultc-port-oom-changes-to-do_page_fault arch/xtensa/mm/fault.c
+--- a/arch/xtensa/mm/fault.c~xtensa-mm-faultc-port-oom-changes-to-do_page_fault
++++ a/arch/xtensa/mm/fault.c
+@@ -44,6 +44,7 @@ void do_page_fault(struct pt_regs *regs)
+ 
+ 	int is_write, is_exec;
+ 	int fault;
++	unsigned int flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE;
+ 
+ 	info.si_code = SEGV_MAPERR;
+ 
+@@ -71,6 +72,7 @@ void do_page_fault(struct pt_regs *regs)
+ 	       address, exccause, regs->pc, is_write? "w":"", is_exec? "x":"");
+ #endif
+ 
++retry:
+ 	down_read(&mm->mmap_sem);
+ 	vma = find_vma(mm, address);
+ 
+@@ -93,6 +95,7 @@ good_area:
+ 	if (is_write) {
+ 		if (!(vma->vm_flags & VM_WRITE))
+ 			goto bad_area;
++		flags |= FAULT_FLAG_WRITE;
+ 	} else if (is_exec) {
+ 		if (!(vma->vm_flags & VM_EXEC))
+ 			goto bad_area;
+@@ -104,7 +107,11 @@ good_area:
+ 	 * make sure we exit gracefully rather than endlessly redo
+ 	 * the fault.
+ 	 */
+-	fault = handle_mm_fault(mm, vma, address, is_write ? FAULT_FLAG_WRITE : 0);
++	fault = handle_mm_fault(mm, vma, address, flags);
++
++	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
++		return;
++
+ 	if (unlikely(fault & VM_FAULT_ERROR)) {
+ 		if (fault & VM_FAULT_OOM)
+ 			goto out_of_memory;
+@@ -112,10 +119,22 @@ good_area:
+ 			goto do_sigbus;
+ 		BUG();
+ 	}
+-	if (fault & VM_FAULT_MAJOR)
+-		current->maj_flt++;
+-	else
+-		current->min_flt++;
++	if (flags & FAULT_FLAG_ALLOW_RETRY) {
++		if (fault & VM_FAULT_MAJOR)
++			current->maj_flt++;
++		else
++			current->min_flt++;
++		if (fault & VM_FAULT_RETRY) {
++			flags &= ~FAULT_FLAG_ALLOW_RETRY;
++
++			 /* No need to up_read(&mm->mmap_sem) as we would
++			 * have already released it in __lock_page_or_retry
++			 * in mm/filemap.c.
++			 */
++
++			goto retry;
++		}
++	}
+ 
+ 	up_read(&mm->mmap_sem);
+ 	return;
 _
 
-Patches currently in -mm which might be from fernando@oss.ntt.co.jp are
+Patches currently in -mm which might be from consul.kautuk@gmail.com are
 
 origin.patch
+linux-next.patch
 
