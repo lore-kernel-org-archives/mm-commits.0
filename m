@@ -1,66 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: + rbtree-empty-nodes-have-no-color-fix.patch added to -mm tree
-Date: Tue, 31 Jul 2012 12:32:03 -0700
-Message-ID: <20120731193203.A9B55100081@wpzn3.hot.corp.google.com>
+Subject: [folded] dynamic_debug-restore-dev_dbg-netdev_dbg-functionality-reduce-stack-use-v2.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 14:08:41 -0700
+Message-ID: <20120731215547.0CDCC100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:35342 "EHLO
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:58708 "EHLO
 	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751156Ab2GaTcF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 15:32:05 -0400
-Received: by obbwc20 with SMTP id wc20so4701744obb.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 12:32:04 -0700 (PDT)
+	with ESMTP id S1755666Ab2GaVzt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 17:55:49 -0400
+Received: by obbwc20 with SMTP id wc20so4777546obb.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 14:55:48 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: sfr@canb.auug.org.au, sage@inktank.com, walken@google.com
+To: joe@perches.com, davem@davemloft.net, gregkh@linuxfoundation.org, jbaron@redhat.com, jim.cromie@gmail.com, kay@vrfy.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: libceph: remove rb_node initialisation
-has been added to the -mm tree.  Its filename is
-     rbtree-empty-nodes-have-no-color-fix.patch
+     Subject: dynamic_debug-restore-dev_dbg-netdev_dbg-functionality-reduce-stack-use-v2
+has been removed from the -mm tree.  Its filename was
+     dynamic_debug-restore-dev_dbg-netdev_dbg-functionality-reduce-stack-use-v2.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into dynamic_debug-restore-dev_dbg-netdev_dbg-functionality-reduce-stack-use.patch
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: libceph: remove rb_node initialisation
+From: Joe Perches <joe@perches.com>
+Subject: dynamic_debug-restore-dev_dbg-netdev_dbg-functionality-reduce-stack-use-v2
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Sage Weil <sage@inktank.com>
-Reviewed-by: Michel Lespinasse <walken@google.com>
+Changes in v2:
+
+o Fix dynamic_emit_prefix to always initialize output
+o Call create_syslog_header and emit_printk from__netdev_printk and
+  eliminate call to dev_printk to remove another recursion via %pV
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jason Baron <jbaron@redhat.com>
+Cc: Kay Sievers <kay@vrfy.org>
+Cc: Jim Cromie <jim.cromie@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ceph/osd_client.c |    1 -
- 1 file changed, 1 deletion(-)
+ lib/dynamic_debug.c |    8 +++++---
+ net/core/dev.c      |   19 ++++++++++++++-----
+ 2 files changed, 19 insertions(+), 8 deletions(-)
 
-diff -puN net/ceph/osd_client.c~rbtree-empty-nodes-have-no-color-fix net/ceph/osd_client.c
---- a/net/ceph/osd_client.c~rbtree-empty-nodes-have-no-color-fix
-+++ a/net/ceph/osd_client.c
-@@ -213,7 +213,6 @@ struct ceph_osd_request *ceph_osdc_alloc
- 	kref_init(&req->r_kref);
- 	init_completion(&req->r_completion);
- 	init_completion(&req->r_safe_completion);
--	rb_init_node(&req->r_node);
- 	INIT_LIST_HEAD(&req->r_unsafe_item);
- 	INIT_LIST_HEAD(&req->r_linger_item);
- 	INIT_LIST_HEAD(&req->r_linger_osd);
+diff -puN lib/dynamic_debug.c~dynamic_debug-restore-dev_dbg-netdev_dbg-functionality-reduce-stack-use-v2 lib/dynamic_debug.c
+--- a/lib/dynamic_debug.c~dynamic_debug-restore-dev_dbg-netdev_dbg-functionality-reduce-stack-use-v2
++++ a/lib/dynamic_debug.c
+@@ -521,6 +521,8 @@ static char *dynamic_emit_prefix(const s
+ 	int pos_after_tid;
+ 	int pos = 0;
+ 
++	*buf = '\0';
++
+ 	if (desc->flags & _DPRINTK_FLAGS_INCL_TID) {
+ 		if (in_interrupt())
+ 			pos += snprintf(buf + pos, remaining(pos), "<intr> ");
+@@ -576,7 +578,6 @@ int __dynamic_dev_dbg(struct _ddebug *de
+ 	struct va_format vaf;
+ 	va_list args;
+ 	int res;
+-	char buf[PREFIX_SIZE];
+ 
+ 	BUG_ON(!descriptor);
+ 	BUG_ON(!fmt);
+@@ -589,6 +590,7 @@ int __dynamic_dev_dbg(struct _ddebug *de
+ 	if (!dev) {
+ 		res = printk(KERN_DEBUG "(NULL device *): %pV", &vaf);
+ 	} else {
++		char buf[PREFIX_SIZE];
+ 		char dict[128];
+ 		size_t dictlen;
+ 
+@@ -632,11 +634,11 @@ int __dynamic_netdev_dbg(struct _ddebug 
+ 					       dict, sizeof(dict));
+ 
+ 		res = printk_emit(0, 7, dictlen ? dict : NULL, dictlen,
+-				  "%s%s %s: %pV",
++				  "%s%s %s %s: %pV",
+ 				  dynamic_emit_prefix(descriptor, buf),
+ 				  dev_driver_string(dev->dev.parent),
++				  dev_name(dev->dev.parent),
+ 				  netdev_name(dev), &vaf);
+-
+ 	} else if (dev) {
+ 		res = printk(KERN_DEBUG "%s: %pV", netdev_name(dev), &vaf);
+ 	} else {
+diff -puN net/core/dev.c~dynamic_debug-restore-dev_dbg-netdev_dbg-functionality-reduce-stack-use-v2 net/core/dev.c
+--- a/net/core/dev.c~dynamic_debug-restore-dev_dbg-netdev_dbg-functionality-reduce-stack-use-v2
++++ a/net/core/dev.c
+@@ -6407,13 +6407,22 @@ static int __netdev_printk(const char *l
+ {
+ 	int r;
+ 
+-	if (dev && dev->dev.parent)
+-		r = dev_printk(level, dev->dev.parent, "%s: %pV",
+-			       netdev_name(dev), vaf);
+-	else if (dev)
++	if (dev && dev->dev.parent) {
++		char dict[128];
++		size_t dictlen = create_syslog_header(dev->dev.parent,
++						      dict, sizeof(dict));
++
++		r = printk_emit(0, level[1] - '0',
++				dictlen ? dict : NULL, dictlen,
++				"%s %s %s: %pV",
++				dev_driver_string(dev->dev.parent),
++				dev_name(dev->dev.parent),
++				netdev_name(dev), &vaf);
++	} else if (dev) {
+ 		r = printk("%s%s: %pV", level, netdev_name(dev), vaf);
+-	else
++	} else {
+ 		r = printk("%s(NULL net_device): %pV", level, vaf);
++	}
+ 
+ 	return r;
+ }
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
+dynamic_debug-restore-dev_dbg-netdev_dbg-functionality-reduce-stack-use.patch
 linux-next.patch
-rbtree-empty-nodes-have-no-color-fix.patch
+thermal-add-renesas-r-car-thermal-sensor-support.patch
 
