@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: [folded] hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 16:28:08 -0700
-Message-ID: <20120731232808.C9992A028B@akpm.mtv.corp.google.com>
+Subject: [folded] hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 16:28:11 -0700
+Message-ID: <20120731232811.A1022A028B@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:53867 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755420Ab2GaX2L (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 19:28:11 -0400
-Received: by lbbgp10 with SMTP id gp10so1739lbb.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 16:28:09 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:40685 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755420Ab2GaX2M (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 19:28:12 -0400
+Received: by obbwc20 with SMTP id wc20so4817549obb.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 16:28:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, dhillf@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix
+     Subject: hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix
 has been removed from the -mm tree.  Its filename was
-     hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
+     hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
 
 This patch was dropped because it was folded into hugetlb-cgroup-add-hugetlb-cgroup-control-files.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix
+Subject: hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix
 
-s/CONFIG_CGROUP_HUGETLB_RES_CTLR/CONFIG_MEMCG_HUGETLB/g
+s/CONFIG_MEMCG_HUGETLB/CONFIG_CGROUP_HUGETLB/
 
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
@@ -41,15 +41,15 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  include/linux/hugetlb.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/hugetlb.h~hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix
+diff -puN include/linux/hugetlb.h~hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix
 +++ a/include/linux/hugetlb.h
 @@ -222,7 +222,7 @@ struct hstate {
  	unsigned int nr_huge_pages_node[MAX_NUMNODES];
  	unsigned int free_huge_pages_node[MAX_NUMNODES];
  	unsigned int surplus_huge_pages_node[MAX_NUMNODES];
--#ifdef CONFIG_CGROUP_HUGETLB_RES_CTLR
-+#ifdef CONFIG_MEMCG_HUGETLB
+-#ifdef CONFIG_MEMCG_HUGETLB
++#ifdef CONFIG_CGROUP_HUGETLB
  	/* cgroup control files */
  	struct cftype cgroup_files[5];
  #endif
@@ -62,7 +62,6 @@ drivers-media-video-v4l2-ioctlc-fix-build.patch
 mm-make-vb_alloc-more-foolproof.patch
 mm-hugetlb-add-new-hugetlb-cgroup.patch
 hugetlb-cgroup-add-hugetlb-cgroup-control-files.patch
-hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
 mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
 memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
 mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
