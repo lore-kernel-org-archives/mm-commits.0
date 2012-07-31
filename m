@@ -1,61 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] taskstats-check-nla_reserve-return.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:54:21 -0700
-Message-ID: <20120731185422.0B86F5C0050@hpza9.eem.corp.google.com>
+Subject: [merged] pps-return-ptr_err-on-error-in-device_create.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:54:25 -0700
+Message-ID: <20120731185425.C4BDC100048@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:53898 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752123Ab2GaSyX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:54:23 -0400
-Received: by mail-lb0-f202.google.com with SMTP id gp10so295563lbb.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:54:23 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:47711 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752435Ab2GaSy3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:54:29 -0400
+Received: by qabg24 with SMTP id g24so389214qab.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:54:26 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@linux.intel.com, rucsoftsec@gmail.com, mm-commits@vger.kernel.org
+To: emilgoode@gmail.com, devendra.aaru@gmail.com, giometti@enneenne.com, lasaine@lvk.cs.msu.su, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: taskstats: check nla_reserve() return
+     Subject: pps: return PTR_ERR on error in device_create
 has been removed from the -mm tree.  Its filename was
-     taskstats-check-nla_reserve-return.patch
+     pps-return-ptr_err-on-error-in-device_create.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alan Cox <alan@linux.intel.com>
-Subject: taskstats: check nla_reserve() return
+From: Emil Goode <emilgoode@gmail.com>
+Subject: pps: return PTR_ERR on error in device_create
 
-Addresses https://bugzilla.kernel.org/show_bug.cgi?id=44621
+We should return PTR_ERR if the call to the device_create function fails. 
+Without this patch we instead return the value from a successful call to
+cdev_add if the call to device_create fails.
 
-Reported-by: <rucsoftsec@gmail.com>
-Signed-off-by: Alan Cox <alan@linux.intel.com>
+Signed-off-by: Emil Goode <emilgoode@gmail.com>
+Acked-by: Devendra Naga <devendra.aaru@gmail.com>
+Cc: Alexander Gordeev <lasaine@lvk.cs.msu.su>
+Cc: Rodolfo Giometti <giometti@enneenne.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/taskstats.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/pps/pps.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN kernel/taskstats.c~taskstats-check-nla_reserve-return kernel/taskstats.c
---- a/kernel/taskstats.c~taskstats-check-nla_reserve-return
-+++ a/kernel/taskstats.c
-@@ -436,6 +436,11 @@ static int cgroupstats_user_cmd(struct s
- 
- 	na = nla_reserve(rep_skb, CGROUPSTATS_TYPE_CGROUP_STATS,
- 				sizeof(struct cgroupstats));
-+	if (na == NULL) {
-+		rc = -EMSGSIZE;
-+		goto err;
+diff -puN drivers/pps/pps.c~pps-return-ptr_err-on-error-in-device_create drivers/pps/pps.c
+--- a/drivers/pps/pps.c~pps-return-ptr_err-on-error-in-device_create
++++ a/drivers/pps/pps.c
+@@ -327,8 +327,10 @@ int pps_register_cdev(struct pps_device 
+ 	}
+ 	pps->dev = device_create(pps_class, pps->info.dev, devt, pps,
+ 							"pps%d", pps->id);
+-	if (IS_ERR(pps->dev))
++	if (IS_ERR(pps->dev)) {
++		err = PTR_ERR(pps->dev);
+ 		goto del_cdev;
 +	}
-+
- 	stats = nla_data(na);
- 	memset(stats, 0, sizeof(*stats));
+ 
+ 	pps->dev->release = pps_device_destruct;
  
 _
 
-Patches currently in -mm which might be from alan@linux.intel.com are
+Patches currently in -mm which might be from emilgoode@gmail.com are
 
 origin.patch
 linux-next.patch
-ppc-e500_tlb-memset-clears-nothing.patch
 
