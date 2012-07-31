@@ -1,58 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [folded] hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 16:28:11 -0700
-Message-ID: <20120731232811.A1022A028B@akpm.mtv.corp.google.com>
+Subject: [folded] memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 16:28:56 -0700
+Message-ID: <20120731232856.7DB46A028B@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:40685 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755420Ab2GaX2M (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 19:28:12 -0400
-Received: by obbwc20 with SMTP id wc20so4817549obb.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 16:28:12 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:44960 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754811Ab2GaX26 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 19:28:58 -0400
+Received: by wibhr14 with SMTP id hr14so153323wib.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 16:28:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, dhillf@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix
+     Subject: memcg-make-mem_cgroup_force_empty_list-return-bool-fix
 has been removed from the -mm tree.  Its filename was
-     hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
+     memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
 
-This patch was dropped because it was folded into hugetlb-cgroup-add-hugetlb-cgroup-control-files.patch
+This patch was dropped because it was folded into memcg-make-mem_cgroup_force_empty_list-return-bool.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix
+Subject: memcg-make-mem_cgroup_force_empty_list-return-bool-fix
 
-s/CONFIG_MEMCG_HUGETLB/CONFIG_CGROUP_HUGETLB/
+rework mem_cgroup_force_empty_list()'s comment
 
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hillf Danton <dhillf@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memcontrol.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/hugetlb.h~hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix
-+++ a/include/linux/hugetlb.h
-@@ -222,7 +222,7 @@ struct hstate {
- 	unsigned int nr_huge_pages_node[MAX_NUMNODES];
- 	unsigned int free_huge_pages_node[MAX_NUMNODES];
- 	unsigned int surplus_huge_pages_node[MAX_NUMNODES];
--#ifdef CONFIG_MEMCG_HUGETLB
-+#ifdef CONFIG_CGROUP_HUGETLB
- 	/* cgroup control files */
- 	struct cftype cgroup_files[5];
- #endif
+diff -puN mm/memcontrol.c~memcg-make-mem_cgroup_force_empty_list-return-bool-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-make-mem_cgroup_force_empty_list-return-bool-fix
++++ a/mm/memcontrol.c
+@@ -3609,8 +3609,10 @@ unsigned long mem_cgroup_soft_limit_recl
+ }
+ 
+ /*
+- * This routine traverse page_cgroup in given list and drop them all.
+- * *And* this routine doesn't reclaim page itself, just removes page_cgroup.
++ * Traverse a specified page_cgroup list and try to drop them all.  This doesn't
++ * reclaim the pages page themselves - it just removes the page_cgroups.
++ * Returns true if some page_cgroups were not freed, indicating that the caller
++ * must retry this operation.
+  */
+ static bool mem_cgroup_force_empty_list(struct mem_cgroup *memcg,
+ 				int node, int zid, enum lru_list lru)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -63,7 +63,7 @@ mm-make-vb_alloc-more-foolproof.patch
 mm-hugetlb-add-new-hugetlb-cgroup.patch
 hugetlb-cgroup-add-hugetlb-cgroup-control-files.patch
 mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
-memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
+memcg-make-mem_cgroup_force_empty_list-return-bool.patch
 mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
 memcg-rename-config-variables.patch
 memcg-rename-config-variables-fix-fix.patch
