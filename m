@@ -1,79 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-rtc-da9052-remove-unneed-devm_kfree-call.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:52:45 -0700
-Message-ID: <20120731185246.21E595C0050@hpza9.eem.corp.google.com>
+Subject: [merged] drivers-rtc-rtc-pcf8563c-add-device-tree-support.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:52:52 -0700
+Message-ID: <20120731185253.0D6065C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:64859 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756322Ab2GaSws (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:52:48 -0400
-Received: by bkcjc3 with SMTP id jc3so293484bkc.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:52:47 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:39268 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756355Ab2GaSwz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:52:55 -0400
+Received: by lbbgp10 with SMTP id gp10so295545lbb.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:52:54 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: devendra.aaru@gmail.com, a.zummo@towertech.it, ashish.jangam@kpitcummins.com, dchen@diasemi.com, mm-commits@vger.kernel.org
+To: nbowler@elliptictech.com, a.zummo@towertech.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc/rtc-da9052: remove unneed devm_kfree call
+     Subject: drivers/rtc/rtc-pcf8563.c: add device tree support
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-da9052-remove-unneed-devm_kfree-call.patch
+     drivers-rtc-rtc-pcf8563c-add-device-tree-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Devendra Naga <devendra.aaru@gmail.com>
-Subject: rtc/rtc-da9052: remove unneed devm_kfree call
+From: Nick Bowler <nbowler@elliptictech.com>
+Subject: drivers/rtc/rtc-pcf8563.c: add device tree support
 
-Freeing will trigger when driver unloads, so using devm_kfree() is not
-needed.
+Set the of_match_table for this driver so that devices can be described
+in the device tree.
 
-Signed-off-by: Devendra Naga <devendra.aaru@gmail.com>
+Signed-off-by: Nick Bowler <nbowler@elliptictech.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Ashish Jangam <ashish.jangam@kpitcummins.com>
-Cc: David Dajun Chen <dchen@diasemi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-da9052.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/rtc/rtc-pcf8563.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN drivers/rtc/rtc-da9052.c~rtc-rtc-da9052-remove-unneed-devm_kfree-call drivers/rtc/rtc-da9052.c
---- a/drivers/rtc/rtc-da9052.c~rtc-rtc-da9052-remove-unneed-devm_kfree-call
-+++ a/drivers/rtc/rtc-da9052.c
-@@ -245,7 +245,7 @@ static int __devinit da9052_rtc_probe(st
- 				   "ALM", rtc);
- 	if (ret != 0) {
- 		rtc_err(rtc->da9052, "irq registration failed: %d\n", ret);
--		goto err_mem;
-+		return ret;
- 	}
+diff -puN drivers/rtc/rtc-pcf8563.c~drivers-rtc-rtc-pcf8563c-add-device-tree-support drivers/rtc/rtc-pcf8563.c
+--- a/drivers/rtc/rtc-pcf8563.c~drivers-rtc-rtc-pcf8563c-add-device-tree-support
++++ a/drivers/rtc/rtc-pcf8563.c
+@@ -19,6 +19,7 @@
+ #include <linux/rtc.h>
+ #include <linux/slab.h>
+ #include <linux/module.h>
++#include <linux/of.h>
  
- 	rtc->rtc = rtc_device_register(pdev->name, &pdev->dev,
-@@ -259,8 +259,6 @@ static int __devinit da9052_rtc_probe(st
+ #define DRV_VERSION "0.4.3"
  
- err_free_irq:
- 	free_irq(rtc->irq, rtc);
--err_mem:
--	devm_kfree(&pdev->dev, rtc);
- 	return ret;
- }
+@@ -285,10 +286,19 @@ static const struct i2c_device_id pcf856
+ };
+ MODULE_DEVICE_TABLE(i2c, pcf8563_id);
  
-@@ -271,7 +269,6 @@ static int __devexit da9052_rtc_remove(s
- 	rtc_device_unregister(rtc->rtc);
- 	free_irq(rtc->irq, rtc);
- 	platform_set_drvdata(pdev, NULL);
--	devm_kfree(&pdev->dev, rtc);
- 
- 	return 0;
- }
++#ifdef CONFIG_OF
++static const struct of_device_id pcf8563_of_match[] __devinitconst = {
++	{ .compatible = "nxp,pcf8563" },
++	{}
++};
++MODULE_DEVICE_TABLE(of, pcf8563_of_match);
++#endif
++
+ static struct i2c_driver pcf8563_driver = {
+ 	.driver		= {
+ 		.name	= "rtc-pcf8563",
+ 		.owner	= THIS_MODULE,
++		.of_match_table = of_match_ptr(pcf8563_of_match),
+ 	},
+ 	.probe		= pcf8563_probe,
+ 	.remove		= pcf8563_remove,
 _
 
-Patches currently in -mm which might be from devendra.aaru@gmail.com are
+Patches currently in -mm which might be from nbowler@elliptictech.com are
 
 origin.patch
-rtc-rtc-88pm80x-assign-ret-only-when-rtc_register_driver-fails.patch
-rtc-rtc-88pm80x-remove-unneed-devm_kfree.patch
-linux-next.patch
 
