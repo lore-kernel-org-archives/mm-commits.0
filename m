@@ -1,78 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-fix-wrong-argument-of-migrate_huge_pages-in-soft_offline_huge_page.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:47:35 -0700
-Message-ID: <20120731184735.E19E020004E@hpza10.eem.corp.google.com>
+Subject: [merged] prctl-remove-redunant-assignment-of-error-to-zero.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:47:43 -0700
+Message-ID: <20120731184743.E1A7210007A@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:56364 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756205Ab2GaSri (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:47:38 -0400
-Received: by wgbdt11 with SMTP id dt11so290965wgb.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:47:37 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:33060 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756223Ab2GaSrp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:47:45 -0400
+Received: by obbwc20 with SMTP id wc20so4676512obb.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:47:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: js1304@gmail.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, mgorman@suse.de, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: sasikanth.v19@gmail.com, gorcunov@openvz.org, keescook@chromium.org, serge@hallyn.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix wrong argument of migrate_huge_pages() in soft_offline_huge_page()
+     Subject: prctl: remove redunant assignment of "error" to zero
 has been removed from the -mm tree.  Its filename was
-     mm-fix-wrong-argument-of-migrate_huge_pages-in-soft_offline_huge_page.patch
+     prctl-remove-redunant-assignment-of-error-to-zero.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joonsoo Kim <js1304@gmail.com>
-Subject: mm: fix wrong argument of migrate_huge_pages() in soft_offline_huge_page()
+From: Sasikantha babu <sasikanth.v19@gmail.com>
+Subject: prctl: remove redunant assignment of "error" to zero
 
-a6bc32b899223 ("mm: compaction: introduce sync-light migration for use by
-compaction") changed the declaration of migrate_pages() and
-migrate_huge_pages().  But it missed changing the argument of
-migrate_huge_pages() in soft_offline_huge_page().  In this case, we should
-call migrate_huge_pages() with MIGRATE_SYNC.
+Just setting the "error" to error number is enough on failure and It
+doesn't require to set "error" variable to zero in each switch case, since
+it was already initialized with zero.  And also removed return 0 in switch
+case with break statement
 
-Additionally, there is a mismatch between type the of argument and the
-function declaration for migrate_pages().
-
-Signed-off-by: Joonsoo Kim <js1304@gmail.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Sasikantha babu <sasikanth.v19@gmail.com>
+Acked-by: Kees Cook <keescook@chromium.org>
+Acked-by: Serge E. Hallyn <serge@hallyn.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ kernel/sys.c |   13 ++-----------
+ 1 file changed, 2 insertions(+), 11 deletions(-)
 
-diff -puN mm/memory-failure.c~mm-fix-wrong-argument-of-migrate_huge_pages-in-soft_offline_huge_page mm/memory-failure.c
---- a/mm/memory-failure.c~mm-fix-wrong-argument-of-migrate_huge_pages-in-soft_offline_huge_page
-+++ a/mm/memory-failure.c
-@@ -1433,8 +1433,8 @@ static int soft_offline_huge_page(struct
- 	/* Keep page count to indicate a given hugepage is isolated. */
+diff -puN kernel/sys.c~prctl-remove-redunant-assignment-of-error-to-zero kernel/sys.c
+--- a/kernel/sys.c~prctl-remove-redunant-assignment-of-error-to-zero
++++ a/kernel/sys.c
+@@ -2015,7 +2015,6 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
+ 				break;
+ 			}
+ 			me->pdeath_signal = arg2;
+-			error = 0;
+ 			break;
+ 		case PR_GET_PDEATHSIG:
+ 			error = put_user(me->pdeath_signal, (int __user *)arg2);
+@@ -2029,7 +2028,6 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
+ 				break;
+ 			}
+ 			set_dumpable(me->mm, arg2);
+-			error = 0;
+ 			break;
  
- 	list_add(&hpage->lru, &pagelist);
--	ret = migrate_huge_pages(&pagelist, new_page, MPOL_MF_MOVE_ALL, 0,
--				true);
-+	ret = migrate_huge_pages(&pagelist, new_page, MPOL_MF_MOVE_ALL, false,
-+				MIGRATE_SYNC);
- 	if (ret) {
- 		struct page *page1, *page2;
- 		list_for_each_entry_safe(page1, page2, &pagelist, lru)
-@@ -1563,7 +1563,7 @@ int soft_offline_page(struct page *page,
- 					    page_is_file_cache(page));
- 		list_add(&page->lru, &pagelist);
- 		ret = migrate_pages(&pagelist, new_page, MPOL_MF_MOVE_ALL,
--							0, MIGRATE_SYNC);
-+							false, MIGRATE_SYNC);
- 		if (ret) {
- 			putback_lru_pages(&pagelist);
- 			pr_info("soft offline: %#lx: migration failed %d, type %lx\n",
+ 		case PR_SET_UNALIGN:
+@@ -2056,10 +2054,7 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
+ 		case PR_SET_TIMING:
+ 			if (arg2 != PR_TIMING_STATISTICAL)
+ 				error = -EINVAL;
+-			else
+-				error = 0;
+ 			break;
+-
+ 		case PR_SET_NAME:
+ 			comm[sizeof(me->comm)-1] = 0;
+ 			if (strncpy_from_user(comm, (char __user *)arg2,
+@@ -2067,20 +2062,19 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
+ 				return -EFAULT;
+ 			set_task_comm(me, comm);
+ 			proc_comm_connector(me);
+-			return 0;
++			break;
+ 		case PR_GET_NAME:
+ 			get_task_comm(comm, me);
+ 			if (copy_to_user((char __user *)arg2, comm,
+ 					 sizeof(comm)))
+ 				return -EFAULT;
+-			return 0;
++			break;
+ 		case PR_GET_ENDIAN:
+ 			error = GET_ENDIAN(me, arg2);
+ 			break;
+ 		case PR_SET_ENDIAN:
+ 			error = SET_ENDIAN(me, arg2);
+ 			break;
+-
+ 		case PR_GET_SECCOMP:
+ 			error = prctl_get_seccomp();
+ 			break;
+@@ -2108,7 +2102,6 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
+ 					current->default_timer_slack_ns;
+ 			else
+ 				current->timer_slack_ns = arg2;
+-			error = 0;
+ 			break;
+ 		case PR_MCE_KILL:
+ 			if (arg4 | arg5)
+@@ -2134,7 +2127,6 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
+ 			default:
+ 				return -EINVAL;
+ 			}
+-			error = 0;
+ 			break;
+ 		case PR_MCE_KILL_GET:
+ 			if (arg2 | arg3 | arg4 | arg5)
+@@ -2153,7 +2145,6 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
+ 			break;
+ 		case PR_SET_CHILD_SUBREAPER:
+ 			me->signal->is_child_subreaper = !!arg2;
+-			error = 0;
+ 			break;
+ 		case PR_GET_CHILD_SUBREAPER:
+ 			error = put_user(me->signal->is_child_subreaper,
 _
 
-Patches currently in -mm which might be from js1304@gmail.com are
+Patches currently in -mm which might be from sasikanth.v19@gmail.com are
 
 origin.patch
 
