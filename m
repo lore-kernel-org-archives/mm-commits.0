@@ -1,63 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pps-return-ptr_err-on-error-in-device_create.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:54:25 -0700
-Message-ID: <20120731185425.C4BDC100048@wpzn3.hot.corp.google.com>
+Subject: [merged] sysctl-suppress-kmemleak-messages.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:54:18 -0700
+Message-ID: <20120731185418.D93431E006E@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:47711 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752435Ab2GaSy3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:54:29 -0400
-Received: by qabg24 with SMTP id g24so389214qab.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:54:26 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:38451 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751913Ab2GaSyX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:54:23 -0400
+Received: by yenl3 with SMTP id l3so761390yen.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:54:22 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: emilgoode@gmail.com, devendra.aaru@gmail.com, giometti@enneenne.com, lasaine@lvk.cs.msu.su, mm-commits@vger.kernel.org
+To: rostedt@goodmis.org, catalin.marinas@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pps: return PTR_ERR on error in device_create
+     Subject: sysctl: suppress kmemleak messages
 has been removed from the -mm tree.  Its filename was
-     pps-return-ptr_err-on-error-in-device_create.patch
+     sysctl-suppress-kmemleak-messages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Emil Goode <emilgoode@gmail.com>
-Subject: pps: return PTR_ERR on error in device_create
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: sysctl: suppress kmemleak messages
 
-We should return PTR_ERR if the call to the device_create function fails. 
-Without this patch we instead return the value from a successful call to
-cdev_add if the call to device_create fails.
+register_sysctl_table() is a strange function, as it makes internal
+allocations (a header) to register a sysctl_table.  This header is a
+handle to the table that is created, and can be used to unregister the
+table.  But if the table is permanent and never unregistered, the header
+acts the same as a static variable.
 
-Signed-off-by: Emil Goode <emilgoode@gmail.com>
-Acked-by: Devendra Naga <devendra.aaru@gmail.com>
-Cc: Alexander Gordeev <lasaine@lvk.cs.msu.su>
-Cc: Rodolfo Giometti <giometti@enneenne.com>
+Unfortunately, this allocation of memory that is never expected to be
+freed fools kmemleak in thinking that we have leaked memory.  For those
+sysctl tables that are never unregistered, and have no pointer referencing
+them, kmemleak will think that these are memory leaks:
+
+unreferenced object 0xffff880079fb9d40 (size 192):
+  comm "swapper/0", pid 0, jiffies 4294667316 (age 12614.152s)
+  hex dump (first 32 bytes):
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff8146b590>] kmemleak_alloc+0x73/0x98
+    [<ffffffff8110a935>] kmemleak_alloc_recursive.constprop.42+0x16/0x18
+    [<ffffffff8110b852>] __kmalloc+0x107/0x153
+    [<ffffffff8116fa72>] kzalloc.constprop.8+0xe/0x10
+    [<ffffffff811703c9>] __register_sysctl_paths+0xe1/0x160
+    [<ffffffff81170463>] register_sysctl_paths+0x1b/0x1d
+    [<ffffffff8117047d>] register_sysctl_table+0x18/0x1a
+    [<ffffffff81afb0a1>] sysctl_init+0x10/0x14
+    [<ffffffff81b05a6f>] proc_sys_init+0x2f/0x31
+    [<ffffffff81b0584c>] proc_root_init+0xa5/0xa7
+    [<ffffffff81ae5b7e>] start_kernel+0x3d0/0x40a
+    [<ffffffff81ae52a7>] x86_64_start_reservations+0xae/0xb2
+    [<ffffffff81ae53ad>] x86_64_start_kernel+0x102/0x111
+    [<ffffffffffffffff>] 0xffffffffffffffff
+
+The sysctl_base_table used by sysctl itself is one such instance that
+registers the table to never be unregistered.
+
+Use kmemleak_not_leak() to suppress the kmemleak false positive.
+
+Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/pps.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ kernel/sysctl.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN drivers/pps/pps.c~pps-return-ptr_err-on-error-in-device_create drivers/pps/pps.c
---- a/drivers/pps/pps.c~pps-return-ptr_err-on-error-in-device_create
-+++ a/drivers/pps/pps.c
-@@ -327,8 +327,10 @@ int pps_register_cdev(struct pps_device 
- 	}
- 	pps->dev = device_create(pps_class, pps->info.dev, devt, pps,
- 							"pps%d", pps->id);
--	if (IS_ERR(pps->dev))
-+	if (IS_ERR(pps->dev)) {
-+		err = PTR_ERR(pps->dev);
- 		goto del_cdev;
-+	}
+diff -puN kernel/sysctl.c~sysctl-suppress-kmemleak-messages kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-suppress-kmemleak-messages
++++ a/kernel/sysctl.c
+@@ -30,6 +30,7 @@
+ #include <linux/security.h>
+ #include <linux/ctype.h>
+ #include <linux/kmemcheck.h>
++#include <linux/kmemleak.h>
+ #include <linux/fs.h>
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+@@ -1556,7 +1557,10 @@ static struct ctl_table dev_table[] = {
  
- 	pps->dev->release = pps_device_destruct;
+ int __init sysctl_init(void)
+ {
+-	register_sysctl_table(sysctl_base_table);
++	struct ctl_table_header *hdr;
++
++	hdr = register_sysctl_table(sysctl_base_table);
++	kmemleak_not_leak(hdr);
+ 	return 0;
+ }
  
 _
 
-Patches currently in -mm which might be from emilgoode@gmail.com are
+Patches currently in -mm which might be from rostedt@goodmis.org are
 
 origin.patch
 linux-next.patch
