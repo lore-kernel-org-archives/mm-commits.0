@@ -1,82 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] panic-fix-a-possible-deadlock-in-panic.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:49:02 -0700
-Message-ID: <20120731184902.B6ACB100080@wpzn3.hot.corp.google.com>
+Subject: [merged] clk-validate-pointer-in-__clk_disable.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:49:05 -0700
+Message-ID: <20120731184906.1D3B35C0063@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:33060 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756241Ab2GaStD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:49:03 -0400
-Received: by mail-ob0-f202.google.com with SMTP id wc20so4676512obb.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:49:03 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:51872 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756179Ab2GaStJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Tue, 31 Jul 2012 14:49:09 -0400
+Received: by lagr15 with SMTP id r15so292127lag.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:49:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: markivx@codeaurora.org, holzheu@linux.vnet.ibm.com, sboyd@codeaurora.org, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, paul.gortmaker@windriver.com, rmk@arm.linux.org.uk, viresh.kumar@st.com, viresh.linux@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: panic: fix a possible deadlock in panic()
+     Subject: clk: validate pointer in __clk_disable()
 has been removed from the -mm tree.  Its filename was
-     panic-fix-a-possible-deadlock-in-panic.patch
+     clk-validate-pointer-in-__clk_disable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vikram Mulukutla <markivx@codeaurora.org>
-Subject: panic: fix a possible deadlock in panic()
+From: Fengguang Wu <fengguang.wu@intel.com>
+Subject: clk: validate pointer in __clk_disable()
 
-panic_lock is meant to ensure that panic processing takes place only on
-one cpu; if any of the other cpus encounter a panic, they will spin
-waiting to be shut down.
+clk_get() returns -ENOENT on error and some careless caller might
+dereference it without error checking:
 
-However, this causes a regression in this scenario:
+In mxc_rnga_remove():
 
-1. Cpu 0 encounters a panic and acquires the panic_lock
-   and proceeds with the panic processing.
-2. There is an interrupt on cpu 0 that also encounters
-   an error condition and invokes panic.
-3. This second invocation fails to acquire the panic_lock
-   and enters the infinite while loop in panic_smp_self_stop.
+        struct clk *clk = clk_get(&pdev->dev, "rng");
 
-Thus all panic processing is stopped, and the cpu is stuck for eternity in
-the while(1) inside panic_smp_self_stop.
+	// ...
 
-To address this, disable local interrupts with local_irq_disable before
-acquiring the panic_lock.  This will prevent interrupt handlers from
-executing during the panic processing, thus avoiding this particular
-problem.
+        clk_disable(clk);
 
-Signed-off-by: Vikram Mulukutla <markivx@codeaurora.org>
-Reviewed-by: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Since it's insane to audit the lots of existing and future clk users,
+let's add a check in the callee to avoid kernel panic and warn about
+any buggy user.
+
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Viresh Kumar <viresh.kumar@st.com>
+Cc: viresh kumar <viresh.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/clk/clk.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN kernel/panic.c~panic-fix-a-possible-deadlock-in-panic kernel/panic.c
---- a/kernel/panic.c~panic-fix-a-possible-deadlock-in-panic
-+++ a/kernel/panic.c
-@@ -75,6 +75,14 @@ void panic(const char *fmt, ...)
- 	int state = 0;
+diff -puN drivers/clk/clk.c~clk-validate-pointer-in-__clk_disable drivers/clk/clk.c
+--- a/drivers/clk/clk.c~clk-validate-pointer-in-__clk_disable
++++ a/drivers/clk/clk.c
+@@ -465,6 +465,9 @@ static void __clk_disable(struct clk *cl
+ 	if (!clk)
+ 		return;
  
- 	/*
-+	 * Disable local interrupts. This will prevent panic_smp_self_stop
-+	 * from deadlocking the first cpu that invokes the panic, since
-+	 * there is nothing to prevent an interrupt handler (that runs
-+	 * after the panic_lock is acquired) from invoking panic again.
-+	 */
-+	local_irq_disable();
++	if (WARN_ON(IS_ERR(clk)))
++		return;
 +
-+	/*
- 	 * It's possible to come here directly from a panic-assertion and
- 	 * not have preempt disabled. Some functions called from here want
- 	 * preempt to be disabled. No point enabling it later though...
+ 	if (WARN_ON(clk->enable_count == 0))
+ 		return;
+ 
 _
 
-Patches currently in -mm which might be from markivx@codeaurora.org are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
 origin.patch
+xtensa-select-generic-atomic64_t-support.patch
+mm-prepare-for-removal-of-obsolete-proc-sys-vm-nr_pdflush_threads.patch
+mm-clear-pages_scanned-only-if-draining-a-pcp-adds-pages-to-the-buddy-allocator-again.patch
+mm-slb-add-knowledge-of-pfmemalloc-reserve-pages-fix.patch
+nfs-enable-swap-on-nfs-fix.patch
+memcg-prevent-oom-with-too-many-dirty-pages.patch
+memcg-further-prevent-oom-with-too-many-dirty-pages.patch
+memcg-add-mem_cgroup_from_css-helper-fix-2.patch
+linux-next.patch
+rbtree-performance-and-correctness-test-fix.patch
 
