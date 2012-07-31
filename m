@@ -1,78 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-do-not-allow-negative-offsets-on-proc-pid-environ.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:53:49 -0700
-Message-ID: <20120731185349.CA3E21E007A@wpzn4.hot.corp.google.com>
+Subject: [merged] revert-sched-fix-fork-error-path-to-not-crash.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:53:55 -0700
+Message-ID: <20120731185356.1D1445C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:33060 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756322Ab2GaSxv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:53:51 -0400
-Received: by mail-ob0-f202.google.com with SMTP id wc20so4676512obb.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:53:51 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:53898 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756322Ab2GaSx6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:53:58 -0400
+Received: by lbbgp10 with SMTP id gp10so295563lbb.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:53:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tixxdz@opendz.org, keescook@chromium.org, oleg@redhat.com, rientjes@google.com, spender@grsecurity.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, akinobu.mita@gmail.com, mingo@elte.hu, sqazi@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: do not allow negative offsets on /proc/<pid>/environ
+     Subject: revert "sched: Fix fork() error path to not crash"
 has been removed from the -mm tree.  Its filename was
-     proc-do-not-allow-negative-offsets-on-proc-pid-environ.patch
+     revert-sched-fix-fork-error-path-to-not-crash.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Djalal Harouni <tixxdz@opendz.org>
-Subject: proc: do not allow negative offsets on /proc/<pid>/environ
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: revert "sched: Fix fork() error path to not crash"
 
-__mem_open() which is called by both /proc/<pid>/environ and
-/proc/<pid>/mem ->open() handlers will allow the use of negative offsets.
-/proc/<pid>/mem has negative offsets but not /proc/<pid>/environ.
+To make way for "fork: fix error handling in dup_task()", which fixes the
+errors more completely.
 
-Clean this by moving the 'force FMODE_UNSIGNED_OFFSET flag' to mem_open()
-to allow negative offsets only on /proc/<pid>/mem.
-
-Signed-off-by: Djalal Harouni <tixxdz@opendz.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Brad Spengler <spender@grsecurity.net>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: David Rientjes <rientjes@google.com>
+Cc: Salman Qazi <sqazi@google.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ kernel/fork.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN fs/proc/base.c~proc-do-not-allow-negative-offsets-on-proc-pid-environ fs/proc/base.c
---- a/fs/proc/base.c~proc-do-not-allow-negative-offsets-on-proc-pid-environ
-+++ a/fs/proc/base.c
-@@ -695,8 +695,6 @@ static int __mem_open(struct inode *inod
- 		mmput(mm);
+diff -puN kernel/fork.c~revert-sched-fix-fork-error-path-to-not-crash kernel/fork.c
+--- a/kernel/fork.c~revert-sched-fix-fork-error-path-to-not-crash
++++ a/kernel/fork.c
+@@ -304,17 +304,12 @@ static struct task_struct *dup_task_stru
  	}
  
--	/* OK to pass negative loff_t, we can catch out-of-range */
--	file->f_mode |= FMODE_UNSIGNED_OFFSET;
- 	file->private_data = mm;
+ 	err = arch_dup_task_struct(tsk, orig);
+-
+-	/*
+-	 * We defer looking at err, because we will need this setup
+-	 * for the clean up path to work correctly.
+-	 */
+-	tsk->stack = ti;
+-	setup_thread_stack(tsk, orig);
+-
+ 	if (err)
+ 		goto out;
  
- 	return 0;
-@@ -704,7 +702,12 @@ static int __mem_open(struct inode *inod
- 
- static int mem_open(struct inode *inode, struct file *file)
- {
--	return __mem_open(inode, file, PTRACE_MODE_ATTACH);
-+	int ret = __mem_open(inode, file, PTRACE_MODE_ATTACH);
++	tsk->stack = ti;
 +
-+	/* OK to pass negative loff_t, we can catch out-of-range */
-+	file->f_mode |= FMODE_UNSIGNED_OFFSET;
-+
-+	return ret;
- }
- 
- static ssize_t mem_rw(struct file *file, char __user *buf,
++	setup_thread_stack(tsk, orig);
+ 	clear_user_return_notifier(tsk);
+ 	clear_tsk_need_resched(tsk);
+ 	stackend = end_of_stack(tsk);
 _
 
-Patches currently in -mm which might be from tixxdz@opendz.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+mm-make-vb_alloc-more-foolproof-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
+mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
+memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
+mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
+memcg-rename-config-variables.patch
+memcg-rename-config-variables-fix-fix.patch
+mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes.patch
+mm-have-order-0-compaction-start-off-where-it-left-v3-typo.patch
+memory-hotplug-fix-kswapd-looping-forever-problem-fix.patch
+memory-hotplug-fix-kswapd-looping-forever-problem-fix-fix.patch
+netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix.patch
+memcg-prevent-oom-with-too-many-dirty-pages.patch
+memcg-add-mem_cgroup_from_css-helper-fix.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
+thermal-add-generic-cpufreq-cooling-implementation.patch
+thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
+thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
+mm-slab_commonc-fix-warning.patch
+mm.patch
+rbtree-performance-and-correctness-test-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
