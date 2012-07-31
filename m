@@ -1,80 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-ab8500c-remove-fix-for-ab8500-ed-version.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:52:23 -0700
-Message-ID: <20120731185223.B5CEB1E0078@wpzn4.hot.corp.google.com>
+Subject: [merged] rtc-pl031-encapsulate-per-vendor-ops.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:52:08 -0700
+Message-ID: <20120731185209.889DA100087@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:42024 "EHLO
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:33060 "EHLO
 	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756344Ab2GaSwY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:52:24 -0400
-Received: by mail-ob0-f202.google.com with SMTP id wc20so4679387obb.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:52:24 -0700 (PDT)
+	with ESMTP id S1756348Ab2GaSwb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:52:31 -0400
+Received: by mail-ob0-f202.google.com with SMTP id wc20so4676512obb.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:52:31 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bengt.g.jonsson@stericsson.com, a.zummo@towertech.it, linus.walleij@linaro.org, mm-commits@vger.kernel.org
+To: linus.walleij@linaro.org, a.zummo@towertech.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-ab8500.c: remove fix for AB8500 ED version
+     Subject: rtc: pl031: encapsulate per-vendor ops
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-ab8500c-remove-fix-for-ab8500-ed-version.patch
+     rtc-pl031-encapsulate-per-vendor-ops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Bengt Jonsson <bengt.g.jonsson@stericsson.com>
-Subject: drivers/rtc/rtc-ab8500.c: remove fix for AB8500 ED version
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: rtc: pl031: encapsulate per-vendor ops
 
-AB8500 ED (Early Drop) is no longer supported by the kernel.
+Move the per-vendor operations for this RTC into a encapsulating struct so
+we can have more per-vendor variables than just the ops.
 
-Signed-off-by: Bengt Jonsson <bengt.g.jonsson@stericsson.com>
 Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ab8500.c |   23 +++++++++--------------
- 1 file changed, 9 insertions(+), 14 deletions(-)
+ drivers/rtc/rtc-pl031.c |   61 ++++++++++++++++++++++++--------------
+ 1 file changed, 39 insertions(+), 22 deletions(-)
 
-diff -puN drivers/rtc/rtc-ab8500.c~drivers-rtc-rtc-ab8500c-remove-fix-for-ab8500-ed-version drivers/rtc/rtc-ab8500.c
---- a/drivers/rtc/rtc-ab8500.c~drivers-rtc-rtc-ab8500c-remove-fix-for-ab8500-ed-version
-+++ a/drivers/rtc/rtc-ab8500.c
-@@ -89,22 +89,17 @@ static int ab8500_rtc_read_time(struct d
- 	if (retval < 0)
- 		return retval;
+diff -puN drivers/rtc/rtc-pl031.c~rtc-pl031-encapsulate-per-vendor-ops drivers/rtc/rtc-pl031.c
+--- a/drivers/rtc/rtc-pl031.c~rtc-pl031-encapsulate-per-vendor-ops
++++ a/drivers/rtc/rtc-pl031.c
+@@ -68,7 +68,16 @@
  
--	/* Early AB8500 chips will not clear the rtc read request bit */
--	if (abx500_get_chip_id(dev) == 0) {
--		usleep_range(1000, 1000);
--	} else {
--		/* Wait for some cycles after enabling the rtc read in ab8500 */
--		while (time_before(jiffies, timeout)) {
--			retval = abx500_get_register_interruptible(dev,
--				AB8500_RTC, AB8500_RTC_READ_REQ_REG, &value);
--			if (retval < 0)
--				return retval;
-+	/* Wait for some cycles after enabling the rtc read in ab8500 */
-+	while (time_before(jiffies, timeout)) {
-+		retval = abx500_get_register_interruptible(dev,
-+			AB8500_RTC, AB8500_RTC_READ_REQ_REG, &value);
-+		if (retval < 0)
-+			return retval;
+ #define RTC_TIMER_FREQ 32768
  
--			if (!(value & RTC_READ_REQUEST))
--				break;
-+		if (!(value & RTC_READ_REQUEST))
-+			break;
++/**
++ * struct pl031_vendor_data - per-vendor variations
++ * @ops: the vendor-specific operations used on this silicon version
++ */
++struct pl031_vendor_data {
++	struct rtc_class_ops ops;
++};
++
+ struct pl031_local {
++	struct pl031_vendor_data *vendor;
+ 	struct rtc_device *rtc;
+ 	void __iomem *base;
+ 	u8 hw_designer;
+@@ -303,7 +312,8 @@ static int pl031_probe(struct amba_devic
+ {
+ 	int ret;
+ 	struct pl031_local *ldata;
+-	struct rtc_class_ops *ops = id->data;
++	struct pl031_vendor_data *vendor = id->data;
++	struct rtc_class_ops *ops = &vendor->ops;
+ 	unsigned long time;
  
--			usleep_range(1000, 5000);
--		}
-+		usleep_range(1000, 5000);
+ 	ret = amba_request_regions(adev, NULL);
+@@ -315,6 +325,7 @@ static int pl031_probe(struct amba_devic
+ 		ret = -ENOMEM;
+ 		goto out;
  	}
++	ldata->vendor = vendor;
  
- 	/* Read the Watchtime registers */
+ 	ldata->base = ioremap(adev->res.start, resource_size(&adev->res));
+ 
+@@ -383,48 +394,54 @@ err_req:
+ }
+ 
+ /* Operations for the original ARM version */
+-static struct rtc_class_ops arm_pl031_ops = {
+-	.read_time = pl031_read_time,
+-	.set_time = pl031_set_time,
+-	.read_alarm = pl031_read_alarm,
+-	.set_alarm = pl031_set_alarm,
+-	.alarm_irq_enable = pl031_alarm_irq_enable,
++static struct pl031_vendor_data arm_pl031 = {
++	.ops = {
++		.read_time = pl031_read_time,
++		.set_time = pl031_set_time,
++		.read_alarm = pl031_read_alarm,
++		.set_alarm = pl031_set_alarm,
++		.alarm_irq_enable = pl031_alarm_irq_enable,
++	},
+ };
+ 
+ /* The First ST derivative */
+-static struct rtc_class_ops stv1_pl031_ops = {
+-	.read_time = pl031_read_time,
+-	.set_time = pl031_set_time,
+-	.read_alarm = pl031_read_alarm,
+-	.set_alarm = pl031_set_alarm,
+-	.alarm_irq_enable = pl031_alarm_irq_enable,
++static struct pl031_vendor_data stv1_pl031 = {
++	.ops = {
++		.read_time = pl031_read_time,
++		.set_time = pl031_set_time,
++		.read_alarm = pl031_read_alarm,
++		.set_alarm = pl031_set_alarm,
++		.alarm_irq_enable = pl031_alarm_irq_enable,
++	},
+ };
+ 
+ /* And the second ST derivative */
+-static struct rtc_class_ops stv2_pl031_ops = {
+-	.read_time = pl031_stv2_read_time,
+-	.set_time = pl031_stv2_set_time,
+-	.read_alarm = pl031_stv2_read_alarm,
+-	.set_alarm = pl031_stv2_set_alarm,
+-	.alarm_irq_enable = pl031_alarm_irq_enable,
++static struct pl031_vendor_data stv2_pl031 = {
++	.ops = {
++		.read_time = pl031_stv2_read_time,
++		.set_time = pl031_stv2_set_time,
++		.read_alarm = pl031_stv2_read_alarm,
++		.set_alarm = pl031_stv2_set_alarm,
++		.alarm_irq_enable = pl031_alarm_irq_enable,
++	},
+ };
+ 
+ static struct amba_id pl031_ids[] = {
+ 	{
+ 		.id = 0x00041031,
+ 		.mask = 0x000fffff,
+-		.data = &arm_pl031_ops,
++		.data = &arm_pl031,
+ 	},
+ 	/* ST Micro variants */
+ 	{
+ 		.id = 0x00180031,
+ 		.mask = 0x00ffffff,
+-		.data = &stv1_pl031_ops,
++		.data = &stv1_pl031,
+ 	},
+ 	{
+ 		.id = 0x00280031,
+ 		.mask = 0x00ffffff,
+-		.data = &stv2_pl031_ops,
++		.data = &stv2_pl031,
+ 	},
+ 	{0, 0},
+ };
 _
 
-Patches currently in -mm which might be from bengt.g.jonsson@stericsson.com are
+Patches currently in -mm which might be from linus.walleij@linaro.org are
 
 origin.patch
+linux-next.patch
 
