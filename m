@@ -1,262 +1,181 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:53:18 -0700
-Message-ID: <20120731185318.C0F611E006E@wpzn4.hot.corp.google.com>
+Subject: [merged] fat-accessors-for-msdos_dir_entry-start-fields.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:53:24 -0700
+Message-ID: <20120731185325.13DFB5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:42024 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756359Ab2GaSxT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:53:19 -0400
-Received: by mail-ob0-f202.google.com with SMTP id wc20so4679387obb.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:53:19 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:43458 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756322Ab2GaSx1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:53:27 -0400
+Received: by eaao12 with SMTP id o12so241545eaa.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:53:26 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: slava@dubeyko.com, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
+To: steve@digidescorp.com, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: add omitted comments for different structures in driver implementation
+     Subject: fat: accessors for msdos_dir_entry 'start' fields
 has been removed from the -mm tree.  Its filename was
-     nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation.patch
+     fat-accessors-for-msdos_dir_entry-start-fields.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vyacheslav Dubeyko <slava@dubeyko.com>
-Subject: nilfs2: add omitted comments for different structures in driver implementation
+From: "Steven J. Magnani" <steve@digidescorp.com>
+Subject: fat: accessors for msdos_dir_entry 'start' fields
 
-Add omitted comments for different structures in driver implementation.
+Simplify code by providing accessor functions for the directory entry
+start cluster fields.
 
-Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Signed-off-by: Steven J. Magnani <steve@digidescorp.com>
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/alloc.h     |   14 +++++++++++---
- fs/nilfs2/bmap.h      |    7 +++++++
- fs/nilfs2/btnode.h    |    8 +++++++-
- fs/nilfs2/dat.c       |    6 ++++++
- fs/nilfs2/export.h    |    8 ++++++++
- fs/nilfs2/ifile.c     |    6 +++++-
- fs/nilfs2/inode.c     |    7 +++++++
- fs/nilfs2/mdt.h       |    7 +++++++
- fs/nilfs2/nilfs.h     |   17 +++++++++++++++--
- fs/nilfs2/sufile.c    |    8 +++++++-
- fs/nilfs2/the_nilfs.h |    3 +--
- 11 files changed, 81 insertions(+), 10 deletions(-)
+ fs/fat/fat.h         |   15 +++++++++++++++
+ fs/fat/inode.c       |   12 +++---------
+ fs/fat/namei_msdos.c |   11 +++--------
+ fs/fat/namei_vfat.c  |   11 +++--------
+ 4 files changed, 24 insertions(+), 25 deletions(-)
 
-diff -puN fs/nilfs2/alloc.h~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation fs/nilfs2/alloc.h
---- a/fs/nilfs2/alloc.h~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation
-+++ a/fs/nilfs2/alloc.h
-@@ -76,15 +76,23 @@ int nilfs_palloc_freev(struct inode *, _
- #define nilfs_clear_bit_atomic		ext2_clear_bit_atomic
- #define nilfs_find_next_zero_bit	find_next_zero_bit_le
+diff -puN fs/fat/fat.h~fat-accessors-for-msdos_dir_entry-start-fields fs/fat/fat.h
+--- a/fs/fat/fat.h~fat-accessors-for-msdos_dir_entry-start-fields
++++ a/fs/fat/fat.h
+@@ -217,6 +217,21 @@ static inline void fat16_towchar(wchar_t
+ #endif
+ }
  
--/*
-- * persistent object allocator cache
-+/**
-+ * struct nilfs_bh_assoc - block offset and buffer head association
-+ * @blkoff: block offset
-+ * @bh: buffer head
-  */
++static inline int fat_get_start(const struct msdos_sb_info *sbi,
++				const struct msdos_dir_entry *de)
++{
++	int cluster = le16_to_cpu(de->start);
++	if (sbi->fat_bits == 32)
++		cluster |= (le16_to_cpu(de->starthi) << 16);
++	return cluster;
++}
++
++static inline void fat_set_start(struct msdos_dir_entry *de, int cluster)
++{
++	de->start   = cpu_to_le16(cluster);
++	de->starthi = cpu_to_le16(cluster >> 16);
++}
++
+ static inline void fatwchar_to16(__u8 *dst, const wchar_t *src, size_t len)
+ {
+ #ifdef __BIG_ENDIAN
+diff -puN fs/fat/inode.c~fat-accessors-for-msdos_dir_entry-start-fields fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-accessors-for-msdos_dir_entry-start-fields
++++ a/fs/fat/inode.c
+@@ -369,10 +369,7 @@ static int fat_fill_inode(struct inode *
+ 		inode->i_op = sbi->dir_ops;
+ 		inode->i_fop = &fat_dir_operations;
+ 
+-		MSDOS_I(inode)->i_start = le16_to_cpu(de->start);
+-		if (sbi->fat_bits == 32)
+-			MSDOS_I(inode)->i_start |= (le16_to_cpu(de->starthi) << 16);
 -
- struct nilfs_bh_assoc {
- 	unsigned long blkoff;
- 	struct buffer_head *bh;
- };
++		MSDOS_I(inode)->i_start = fat_get_start(sbi, de);
+ 		MSDOS_I(inode)->i_logstart = MSDOS_I(inode)->i_start;
+ 		error = fat_calc_dir_size(inode);
+ 		if (error < 0)
+@@ -385,9 +382,7 @@ static int fat_fill_inode(struct inode *
+ 		inode->i_mode = fat_make_mode(sbi, de->attr,
+ 			((sbi->options.showexec && !is_exec(de->name + 8))
+ 			 ? S_IRUGO|S_IWUGO : S_IRWXUGO));
+-		MSDOS_I(inode)->i_start = le16_to_cpu(de->start);
+-		if (sbi->fat_bits == 32)
+-			MSDOS_I(inode)->i_start |= (le16_to_cpu(de->starthi) << 16);
++		MSDOS_I(inode)->i_start = fat_get_start(sbi, de);
  
-+/**
-+ * struct nilfs_palloc_cache - persistent object allocator cache
-+ * @lock: cache protecting lock
-+ * @prev_desc: blockgroup descriptors cache
-+ * @prev_bitmap: blockgroup bitmap cache
-+ * @prev_entry: translation entries cache
-+ */
- struct nilfs_palloc_cache {
- 	spinlock_t lock;
- 	struct nilfs_bh_assoc prev_desc;
-diff -puN fs/nilfs2/bmap.h~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation fs/nilfs2/bmap.h
---- a/fs/nilfs2/bmap.h~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation
-+++ a/fs/nilfs2/bmap.h
-@@ -135,6 +135,13 @@ struct nilfs_bmap {
- /* state */
- #define NILFS_BMAP_DIRTY	0x00000001
+ 		MSDOS_I(inode)->i_logstart = MSDOS_I(inode)->i_start;
+ 		inode->i_size = le32_to_cpu(de->size);
+@@ -613,8 +608,7 @@ retry:
+ 	else
+ 		raw_entry->size = cpu_to_le32(inode->i_size);
+ 	raw_entry->attr = fat_make_attrs(inode);
+-	raw_entry->start = cpu_to_le16(MSDOS_I(inode)->i_logstart);
+-	raw_entry->starthi = cpu_to_le16(MSDOS_I(inode)->i_logstart >> 16);
++	fat_set_start(raw_entry, MSDOS_I(inode)->i_logstart);
+ 	fat_time_unix2fat(sbi, &inode->i_mtime, &raw_entry->time,
+ 			  &raw_entry->date, NULL);
+ 	if (sbi->options.isvfat) {
+diff -puN fs/fat/namei_msdos.c~fat-accessors-for-msdos_dir_entry-start-fields fs/fat/namei_msdos.c
+--- a/fs/fat/namei_msdos.c~fat-accessors-for-msdos_dir_entry-start-fields
++++ a/fs/fat/namei_msdos.c
+@@ -246,8 +246,7 @@ static int msdos_add_entry(struct inode 
+ 	de.ctime_cs = 0;
+ 	de.time = time;
+ 	de.date = date;
+-	de.start = cpu_to_le16(cluster);
+-	de.starthi = cpu_to_le16(cluster >> 16);
++	fat_set_start(&de, cluster);
+ 	de.size = 0;
  
-+/**
-+ * struct nilfs_bmap_store - shadow copy of bmap state
-+ * @data: cached raw block mapping of on-disk inode
-+ * @last_allocated_key: cached value of last allocated key for data block
-+ * @last_allocated_ptr: cached value of last allocated ptr for data block
-+ * @state: cached value of state field of bmap structure
-+ */
- struct nilfs_bmap_store {
- 	__le64 data[NILFS_BMAP_SIZE / sizeof(__le64)];
- 	__u64 last_allocated_key;
-diff -puN fs/nilfs2/btnode.h~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation fs/nilfs2/btnode.h
---- a/fs/nilfs2/btnode.h~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation
-+++ a/fs/nilfs2/btnode.h
-@@ -29,7 +29,13 @@
- #include <linux/fs.h>
- #include <linux/backing-dev.h>
+ 	err = fat_add_entries(dir, &de, 1, sinfo);
+@@ -530,9 +529,7 @@ static int do_msdos_rename(struct inode 
+ 		mark_inode_dirty(old_inode);
  
--
-+/**
-+ * struct nilfs_btnode_chkey_ctxt - change key context
-+ * @oldkey: old key of block's moving content
-+ * @newkey: new key for block's content
-+ * @bh: buffer head of old buffer
-+ * @newbh: buffer head of new buffer
-+ */
- struct nilfs_btnode_chkey_ctxt {
- 	__u64 oldkey;
- 	__u64 newkey;
-diff -puN fs/nilfs2/dat.c~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation fs/nilfs2/dat.c
---- a/fs/nilfs2/dat.c~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation
-+++ a/fs/nilfs2/dat.c
-@@ -33,6 +33,12 @@
- #define NILFS_CNO_MIN	((__u64)1)
- #define NILFS_CNO_MAX	(~(__u64)0)
+ 	if (update_dotdot) {
+-		int start = MSDOS_I(new_dir)->i_logstart;
+-		dotdot_de->start = cpu_to_le16(start);
+-		dotdot_de->starthi = cpu_to_le16(start >> 16);
++		fat_set_start(dotdot_de, MSDOS_I(new_dir)->i_logstart);
+ 		mark_buffer_dirty_inode(dotdot_bh, old_inode);
+ 		if (IS_DIRSYNC(new_dir)) {
+ 			err = sync_dirty_buffer(dotdot_bh);
+@@ -572,9 +569,7 @@ error_dotdot:
+ 	corrupt = 1;
  
-+/**
-+ * struct nilfs_dat_info - on-memory private data of DAT file
-+ * @mi: on-memory private data of metadata file
-+ * @palloc_cache: persistent object allocator cache of DAT file
-+ * @shadow: shadow map of DAT file
-+ */
- struct nilfs_dat_info {
- 	struct nilfs_mdt_info mi;
- 	struct nilfs_palloc_cache palloc_cache;
-diff -puN fs/nilfs2/export.h~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation fs/nilfs2/export.h
---- a/fs/nilfs2/export.h~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation
-+++ a/fs/nilfs2/export.h
-@@ -5,6 +5,14 @@
+ 	if (update_dotdot) {
+-		int start = MSDOS_I(old_dir)->i_logstart;
+-		dotdot_de->start = cpu_to_le16(start);
+-		dotdot_de->starthi = cpu_to_le16(start >> 16);
++		fat_set_start(dotdot_de, MSDOS_I(old_dir)->i_logstart);
+ 		mark_buffer_dirty_inode(dotdot_bh, old_inode);
+ 		corrupt |= sync_dirty_buffer(dotdot_bh);
+ 	}
+diff -puN fs/fat/namei_vfat.c~fat-accessors-for-msdos_dir_entry-start-fields fs/fat/namei_vfat.c
+--- a/fs/fat/namei_vfat.c~fat-accessors-for-msdos_dir_entry-start-fields
++++ a/fs/fat/namei_vfat.c
+@@ -651,8 +651,7 @@ shortname:
+ 	de->time = de->ctime = time;
+ 	de->date = de->cdate = de->adate = date;
+ 	de->ctime_cs = time_cs;
+-	de->start = cpu_to_le16(cluster);
+-	de->starthi = cpu_to_le16(cluster >> 16);
++	fat_set_start(de, cluster);
+ 	de->size = 0;
+ out_free:
+ 	__putname(uname);
+@@ -965,9 +964,7 @@ static int vfat_rename(struct inode *old
+ 		mark_inode_dirty(old_inode);
  
- extern const struct export_operations nilfs_export_ops;
+ 	if (update_dotdot) {
+-		int start = MSDOS_I(new_dir)->i_logstart;
+-		dotdot_de->start = cpu_to_le16(start);
+-		dotdot_de->starthi = cpu_to_le16(start >> 16);
++		fat_set_start(dotdot_de, MSDOS_I(new_dir)->i_logstart);
+ 		mark_buffer_dirty_inode(dotdot_bh, old_inode);
+ 		if (IS_DIRSYNC(new_dir)) {
+ 			err = sync_dirty_buffer(dotdot_bh);
+@@ -1009,9 +1006,7 @@ error_dotdot:
+ 	corrupt = 1;
  
-+/**
-+ * struct nilfs_fid - NILFS file id type
-+ * @cno: checkpoint number
-+ * @ino: inode number
-+ * @gen: file generation (version) for NFS
-+ * @parent_gen: parent generation (version) for NFS
-+ * @parent_ino: parent inode number
-+ */
- struct nilfs_fid {
- 	u64 cno;
- 	u64 ino;
-diff -puN fs/nilfs2/ifile.c~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation fs/nilfs2/ifile.c
---- a/fs/nilfs2/ifile.c~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation
-+++ a/fs/nilfs2/ifile.c
-@@ -29,7 +29,11 @@
- #include "alloc.h"
- #include "ifile.h"
- 
--
-+/**
-+ * struct nilfs_ifile_info - on-memory private data of ifile
-+ * @mi: on-memory private data of metadata file
-+ * @palloc_cache: persistent object allocator cache of ifile
-+ */
- struct nilfs_ifile_info {
- 	struct nilfs_mdt_info mi;
- 	struct nilfs_palloc_cache palloc_cache;
-diff -puN fs/nilfs2/inode.c~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation fs/nilfs2/inode.c
---- a/fs/nilfs2/inode.c~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation
-+++ a/fs/nilfs2/inode.c
-@@ -34,6 +34,13 @@
- #include "cpfile.h"
- #include "ifile.h"
- 
-+/**
-+ * struct nilfs_iget_args - arguments used during comparison between inodes
-+ * @ino: inode number
-+ * @cno: checkpoint number
-+ * @root: pointer on NILFS root object (mounted checkpoint)
-+ * @for_gc: inode for GC flag
-+ */
- struct nilfs_iget_args {
- 	u64 ino;
- 	__u64 cno;
-diff -puN fs/nilfs2/mdt.h~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation fs/nilfs2/mdt.h
---- a/fs/nilfs2/mdt.h~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation
-+++ a/fs/nilfs2/mdt.h
-@@ -28,6 +28,13 @@
- #include "nilfs.h"
- #include "page.h"
- 
-+/**
-+ * struct nilfs_shadow_map - shadow mapping of meta data file
-+ * @bmap_store: shadow copy of bmap state
-+ * @frozen_data: shadowed dirty data pages
-+ * @frozen_btnodes: shadowed dirty b-tree nodes' pages
-+ * @frozen_buffers: list of frozen buffers
-+ */
- struct nilfs_shadow_map {
- 	struct nilfs_bmap_store bmap_store;
- 	struct address_space frozen_data;
-diff -puN fs/nilfs2/nilfs.h~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation fs/nilfs2/nilfs.h
---- a/fs/nilfs2/nilfs.h~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation
-+++ a/fs/nilfs2/nilfs.h
-@@ -32,8 +32,21 @@
- #include "the_nilfs.h"
- #include "bmap.h"
- 
--/*
-- * nilfs inode data in memory
-+/**
-+ * struct nilfs_inode_info - nilfs inode data in memory
-+ * @i_flags: inode flags
-+ * @i_state: dynamic state flags
-+ * @i_bmap: pointer on i_bmap_data
-+ * @i_bmap_data: raw block mapping
-+ * @i_xattr: <TODO>
-+ * @i_dir_start_lookup: page index of last successful search
-+ * @i_cno: checkpoint number for GC inode
-+ * @i_btnode_cache: cached pages of b-tree nodes
-+ * @i_dirty: list for connecting dirty files
-+ * @xattr_sem: semaphore for extended attributes processing
-+ * @i_bh: buffer contains disk inode
-+ * @i_root: root object of the current filesystem tree
-+ * @vfs_inode: VFS inode object
-  */
- struct nilfs_inode_info {
- 	__u32 i_flags;
-diff -puN fs/nilfs2/sufile.c~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation fs/nilfs2/sufile.c
---- a/fs/nilfs2/sufile.c~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation
-+++ a/fs/nilfs2/sufile.c
-@@ -30,7 +30,13 @@
- #include "mdt.h"
- #include "sufile.h"
- 
--
-+/**
-+ * struct nilfs_sufile_info - on-memory private data of sufile
-+ * @mi: on-memory private data of metadata file
-+ * @ncleansegs: number of clean segments
-+ * @allocmin: lower limit of allocatable segment range
-+ * @allocmax: upper limit of allocatable segment range
-+ */
- struct nilfs_sufile_info {
- 	struct nilfs_mdt_info mi;
- 	unsigned long ncleansegs;/* number of clean segments */
-diff -puN fs/nilfs2/the_nilfs.h~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation fs/nilfs2/the_nilfs.h
---- a/fs/nilfs2/the_nilfs.h~nilfs2-add-omitted-comments-for-different-structures-in-driver-implementation
-+++ a/fs/nilfs2/the_nilfs.h
-@@ -232,9 +232,8 @@ THE_NILFS_FNS(SB_DIRTY, sb_dirty)
-  * @count: refcount of this structure
-  * @nilfs: nilfs object
-  * @ifile: inode file
-- * @root: root inode
-  * @inodes_count: number of inodes
-- * @blocks_count: number of blocks (Reserved)
-+ * @blocks_count: number of blocks
-  */
- struct nilfs_root {
- 	__u64 cno;
+ 	if (update_dotdot) {
+-		int start = MSDOS_I(old_dir)->i_logstart;
+-		dotdot_de->start = cpu_to_le16(start);
+-		dotdot_de->starthi = cpu_to_le16(start >> 16);
++		fat_set_start(dotdot_de, MSDOS_I(old_dir)->i_logstart);
+ 		mark_buffer_dirty_inode(dotdot_bh, old_inode);
+ 		corrupt |= sync_dirty_buffer(dotdot_bh);
+ 	}
 _
 
-Patches currently in -mm which might be from slava@dubeyko.com are
+Patches currently in -mm which might be from steve@digidescorp.com are
 
 origin.patch
+fat-exportfs-move-nfs-support-code.patch
+fat-exportfs-fix-dentry-reconnection.patch
 
