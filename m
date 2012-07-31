@@ -1,144 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:49:09 -0700
-Message-ID: <20120731184909.E5A2E1E007E@wpzn4.hot.corp.google.com>
+Subject: [merged] kernel-sysc-avoid-argv_freenull.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:49:12 -0700
+Message-ID: <20120731184912.D13CA10007E@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-ob0-f202.google.com ([209.85.214.202]:33060 "EHLO
 	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756179Ab2GaStL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:49:11 -0400
+	with ESMTP id S1756250Ab2GaStO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:49:14 -0400
 Received: by mail-ob0-f202.google.com with SMTP id wc20so4676512obb.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:49:11 -0700 (PDT)
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:49:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: snanda@chromium.org, a.p.zijlstra@chello.nl, dzickus@redhat.com, khandual@linux.vnet.ibm.com, mingo@elte.hu, msb@chromium.org, rjw@sisk.pl, srivatsa.bhat@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@linux.intel.com, ebiederm@xmission.com, gorcunov@openvz.org, keescook@chromium.org, rientjes@google.com, serge.hallyn@canonical.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: NMI watchdog: fix for lockup detector breakage on resume
+     Subject: kernel/sys.c: avoid argv_free(NULL)
 has been removed from the -mm tree.  Its filename was
-     nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
+     kernel-sysc-avoid-argv_freenull.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sameer Nanda <snanda@chromium.org>
-Subject: NMI watchdog: fix for lockup detector breakage on resume
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel/sys.c: avoid argv_free(NULL)
 
-On the suspend/resume path the boot CPU does not go though an
-offline->online transition.  This breaks the NMI detector post-resume
-since it depends on PMU state that is lost when the system gets suspended.
+If argv_split() failed, the code will end up calling argv_free(NULL).  Fix
+it up and clean things up a bit.
 
-Fix this by forcing a CPU offline->online transition for the lockup
-detector on the boot CPU during resume.
+Addresses Coverity report 703573.
 
-To provide more context, we enable NMI watchdog on Chrome OS.  We have
-seen several reports of systems freezing up completely which indicated
-that the NMI watchdog was not firing for some reason.
-
-Debugging further, we found a simple way of repro'ing system freezes --
-issuing the command 'tasket 1 sh -c "echo nmilockup > /proc/breakme"'
-after the system has been suspended/resumed one or more times.
-
-With this patch in place, the system freeze result in panics, as expected.
- These panics provide a nice stack trace for us to debug the actual issue
-causing the freeze.
-
-[akpm@linux-foundation.org: fiddle with code comment]
-[akpm@linux-foundation.org: make lockup_detector_bootcpu_resume() conditional on CONFIG_SUSPEND]
-[akpm@linux-foundation.org: fix section errors]
-Signed-off-by: Sameer Nanda <snanda@chromium.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Don Zickus <dzickus@redhat.com>
-Cc: Mandeep Singh Baines <msb@chromium.org>
-Cc: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
-Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Alan Cox <alan@linux.intel.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h  |    8 ++++++++
- kernel/power/suspend.c |    3 +++
- kernel/watchdog.c      |   21 +++++++++++++++++++--
- 3 files changed, 30 insertions(+), 2 deletions(-)
+ kernel/sys.c |   44 +++++++++++++++++++++++++-------------------
+ 1 file changed, 25 insertions(+), 19 deletions(-)
 
-diff -puN include/linux/sched.h~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume include/linux/sched.h
---- a/include/linux/sched.h~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume
-+++ a/include/linux/sched.h
-@@ -334,6 +334,14 @@ static inline void lockup_detector_init(
+diff -puN kernel/sys.c~kernel-sysc-avoid-argv_freenull kernel/sys.c
+--- a/kernel/sys.c~kernel-sysc-avoid-argv_freenull
++++ a/kernel/sys.c
+@@ -2186,46 +2186,52 @@ static void argv_cleanup(struct subproce
+ 	argv_free(info->argv);
  }
- #endif
  
-+#if defined(CONFIG_LOCKUP_DETECTOR) && defined(CONFIG_SUSPEND)
-+void lockup_detector_bootcpu_resume(void);
-+#else
-+static inline void lockup_detector_bootcpu_resume(void)
-+{
-+}
-+#endif
-+
- #ifdef CONFIG_DETECT_HUNG_TASK
- extern unsigned int  sysctl_hung_task_panic;
- extern unsigned long sysctl_hung_task_check_count;
-diff -puN kernel/power/suspend.c~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume kernel/power/suspend.c
---- a/kernel/power/suspend.c~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume
-+++ a/kernel/power/suspend.c
-@@ -178,6 +178,9 @@ static int suspend_enter(suspend_state_t
- 	arch_suspend_enable_irqs();
- 	BUG_ON(irqs_disabled());
- 
-+	/* Kick the lockup detector */
-+	lockup_detector_bootcpu_resume();
-+
-  Enable_cpus:
- 	enable_nonboot_cpus();
- 
-diff -puN kernel/watchdog.c~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume kernel/watchdog.c
---- a/kernel/watchdog.c~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume
-+++ a/kernel/watchdog.c
-@@ -575,7 +575,7 @@ out:
- /*
-  * Create/destroy watchdog threads as CPUs come and go:
-  */
--static int __cpuinit
-+static int
- cpu_callback(struct notifier_block *nfb, unsigned long action, void *hcpu)
+-/**
+- * orderly_poweroff - Trigger an orderly system poweroff
+- * @force: force poweroff if command execution fails
+- *
+- * This may be called from any context to trigger a system shutdown.
+- * If the orderly shutdown fails, it will force an immediate shutdown.
+- */
+-int orderly_poweroff(bool force)
++static int __orderly_poweroff(void)
  {
- 	int hotcpu = (unsigned long)hcpu;
-@@ -610,10 +610,27 @@ cpu_callback(struct notifier_block *nfb,
- 	return NOTIFY_OK;
- }
+ 	int argc;
+-	char **argv = argv_split(GFP_ATOMIC, poweroff_cmd, &argc);
++	char **argv;
+ 	static char *envp[] = {
+ 		"HOME=/",
+ 		"PATH=/sbin:/bin:/usr/sbin:/usr/bin",
+ 		NULL
+ 	};
+-	int ret = -ENOMEM;
++	int ret;
  
--static struct notifier_block __cpuinitdata cpu_nfb = {
-+static struct notifier_block cpu_nfb = {
- 	.notifier_call = cpu_callback
- };
++	argv = argv_split(GFP_ATOMIC, poweroff_cmd, &argc);
+ 	if (argv == NULL) {
+ 		printk(KERN_WARNING "%s failed to allocate memory for \"%s\"\n",
+ 		       __func__, poweroff_cmd);
+-		goto out;
++		return -ENOMEM;
+ 	}
  
-+#ifdef CONFIG_SUSPEND
-+/*
-+ * On exit from suspend we force an offline->online transition on the boot CPU
-+ * so that the PMU state that was lost while in suspended state gets set up
-+ * properly for the boot CPU.  This information is required for restarting the
-+ * NMI watchdog.
+ 	ret = call_usermodehelper_fns(argv[0], argv, envp, UMH_NO_WAIT,
+ 				      NULL, argv_cleanup, NULL);
+-out:
+-	if (likely(!ret))
+-		return 0;
+-
+ 	if (ret == -ENOMEM)
+ 		argv_free(argv);
+ 
+-	if (force) {
++	return ret;
++}
++
++/**
++ * orderly_poweroff - Trigger an orderly system poweroff
++ * @force: force poweroff if command execution fails
++ *
++ * This may be called from any context to trigger a system shutdown.
++ * If the orderly shutdown fails, it will force an immediate shutdown.
 + */
-+void lockup_detector_bootcpu_resume(void)
++int orderly_poweroff(bool force)
 +{
-+	void *cpu = (void *)(long)smp_processor_id();
++	int ret = __orderly_poweroff();
 +
-+	cpu_callback(&cpu_nfb, CPU_DEAD_FROZEN, cpu);
-+	cpu_callback(&cpu_nfb, CPU_UP_PREPARE_FROZEN, cpu);
-+	cpu_callback(&cpu_nfb, CPU_ONLINE_FROZEN, cpu);
-+}
-+#endif
-+
- void __init lockup_detector_init(void)
- {
- 	void *cpu = (void *)(long)smp_processor_id();
++	if (ret && force) {
+ 		printk(KERN_WARNING "Failed to start orderly shutdown: "
+ 		       "forcing the issue\n");
+ 
+-		/* I guess this should try to kick off some daemon to
+-		   sync and poweroff asap.  Or not even bother syncing
+-		   if we're doing an emergency shutdown? */
++		/*
++		 * I guess this should try to kick off some daemon to sync and
++		 * poweroff asap.  Or not even bother syncing if we're doing an
++		 * emergency shutdown?
++		 */
+ 		emergency_sync();
+ 		kernel_power_off();
+ 	}
 _
 
-Patches currently in -mm which might be from snanda@chromium.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+mm-make-vb_alloc-more-foolproof-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
+mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
+memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
+mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
+memcg-rename-config-variables.patch
+memcg-rename-config-variables-fix-fix.patch
+mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes.patch
+mm-have-order-0-compaction-start-off-where-it-left-v3-typo.patch
+memory-hotplug-fix-kswapd-looping-forever-problem-fix.patch
+memory-hotplug-fix-kswapd-looping-forever-problem-fix-fix.patch
+netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix.patch
+memcg-prevent-oom-with-too-many-dirty-pages.patch
+memcg-add-mem_cgroup_from_css-helper-fix.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
+thermal-add-generic-cpufreq-cooling-implementation.patch
+thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
+thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
+mm-slab_commonc-fix-warning.patch
+mm.patch
+rbtree-performance-and-correctness-test-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
