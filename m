@@ -1,166 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-make-dumpable=2-require-fully-qualified-path.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:47:53 -0700
-Message-ID: <20120731184754.0AF5C1E0049@wpzn4.hot.corp.google.com>
+Subject: [merged] ntfs-remove-references-to-long-gone-super-operations-and-unimplemented-methods.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:47:46 -0700
+Message-ID: <20120731184746.C46BB10007A@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-ob0-f202.google.com ([209.85.214.202]:33060 "EHLO
 	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756179Ab2GaSrz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:47:55 -0400
+	with ESMTP id S1756197Ab2GaSrr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:47:47 -0400
 Received: by mail-ob0-f202.google.com with SMTP id wc20so4676512obb.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:47:55 -0700 (PDT)
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:47:47 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, alan@linux.intel.com, dledford@redhat.com, ebiederm@xmission.com, james.l.morris@oracle.com, serge.hallyn@canonical.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: fernando@oss.ntt.co.jp, anton@tuxera.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: make dumpable=2 require fully qualified path
+     Subject: ntfs: remove references to long gone super operations and unimplemented methods
 has been removed from the -mm tree.  Its filename was
-     fs-make-dumpable=2-require-fully-qualified-path.patch
+     ntfs-remove-references-to-long-gone-super-operations-and-unimplemented-methods.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: fs: make dumpable=2 require fully qualified path
+From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+Subject: ntfs: remove references to long gone super operations and unimplemented methods
 
-When the suid_dumpable sysctl is set to "2", and there is no core dump
-pipe defined in the core_pattern sysctl, a local user can cause core files
-to be written to root-writable directories, potentially with
-user-controlled content.  This means an admin can unknowningly reintroduce
-a variation of CVE-2006-2451, allowing local users to gain root
-privileges.
+->delete_inode(), ->write_super_lockfs(), ->unlockfs() are gone so remove
+refereces to them in the NTFS code.  Remove unnecessary comments about
+unimplemented methods while at it (suggested by Christoph Hellwig).
 
-$ cat /proc/sys/fs/suid_dumpable
-2
-$ cat /proc/sys/kernel/core_pattern
-core
-$ ulimit -c unlimited
-$ cd /
-$ ls -l core
-ls: cannot access core: No such file or directory
-$ touch core
-touch: cannot touch `core': Permission denied
-$ OHAI="evil-string-here" ping localhost >/dev/null 2>&1 &
-$ pid=$!
-$ sleep 1
-$ kill -SEGV $pid
-$ ls -l core
--rw------- 1 root kees 458752 Jun 21 11:35 core
-$ sudo strings core | grep evil
-OHAI=evil-string-here
+Noticed while cleaning up the fsfreeze mess.
 
-While cron has been fixed to abort reading a file when there is any parse
-error, there are still other sensitive directories that will read any file
-present and skip unparsable lines.
-
-Instead of introducing a suid_dumpable=3 mode and breaking all users of
-mode 2, this only disables the unsafe portion of mode 2 (writing to disk
-via relative path).  Most users of mode 2 (e.g.  Chrome OS) already use a
-core dump pipe handler, so this change will not break them.  For the
-situations where a pipe handler is not defined but mode 2 is still active,
-crash dumps will only be written to fully qualified paths.  If a relative
-path is defined (e.g.  the default "core" pattern), dump attempts will
-trigger a printk yelling about the lack of a fully qualified path.
-
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Alan Cox <alan@linux.intel.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: Serge Hallyn <serge.hallyn@canonical.com>
-Cc: James Morris <james.l.morris@oracle.com>
+Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+Cc: Anton Altaparmakov <anton@tuxera.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/fs.txt |   18 ++++++++++++------
- fs/exec.c                   |   17 ++++++++++++++---
- 2 files changed, 26 insertions(+), 9 deletions(-)
+ fs/ntfs/super.c |   17 -----------------
+ 1 file changed, 17 deletions(-)
 
-diff -puN Documentation/sysctl/fs.txt~fs-make-dumpable=2-require-fully-qualified-path Documentation/sysctl/fs.txt
---- a/Documentation/sysctl/fs.txt~fs-make-dumpable=2-require-fully-qualified-path
-+++ a/Documentation/sysctl/fs.txt
-@@ -163,16 +163,22 @@ This value can be used to query and set 
- or otherwise protected/tainted binaries. The modes are
- 
- 0 - (default) - traditional behaviour. Any process which has changed
--	privilege levels or is execute only will not be dumped
-+	privilege levels or is execute only will not be dumped.
- 1 - (debug) - all processes dump core when possible. The core dump is
- 	owned by the current user and no security is applied. This is
- 	intended for system debugging situations only. Ptrace is unchecked.
-+	This is insecure as it allows regular users to examine the memory
-+	contents of privileged processes.
- 2 - (suidsafe) - any binary which normally would not be dumped is dumped
--	readable by root only. This allows the end user to remove
--	such a dump but not access it directly. For security reasons
--	core dumps in this mode will not overwrite one another or
--	other files. This mode is appropriate when administrators are
--	attempting to debug problems in a normal environment.
-+	anyway, but only if the "core_pattern" kernel sysctl is set to
-+	either a pipe handler or a fully qualified path. (For more details
-+	on this limitation, see CVE-2006-2451.) This mode is appropriate
-+	when administrators are attempting to debug problems in a normal
-+	environment, and either have a core dump pipe handler that knows
-+	to treat privileged core dumps with care, or specific directory
-+	defined for catching core dumps. If a core dump happens without
-+	a pipe handler or fully qualifid path, a message will be emitted
-+	to syslog warning about the lack of a correct setting.
- 
- ==============================================================
- 
-diff -puN fs/exec.c~fs-make-dumpable=2-require-fully-qualified-path fs/exec.c
---- a/fs/exec.c~fs-make-dumpable=2-require-fully-qualified-path
-+++ a/fs/exec.c
-@@ -2111,6 +2111,7 @@ void do_coredump(long signr, int exit_co
- 	int retval = 0;
- 	int flag = 0;
- 	int ispipe;
-+	bool need_nonrelative = false;
- 	static atomic_t core_dump_count = ATOMIC_INIT(0);
- 	struct coredump_params cprm = {
- 		.signr = signr,
-@@ -2136,14 +2137,16 @@ void do_coredump(long signr, int exit_co
- 	if (!cred)
- 		goto fail;
- 	/*
--	 *	We cannot trust fsuid as being the "true" uid of the
--	 *	process nor do we know its entire history. We only know it
--	 *	was tainted so we dump it as root in mode 2.
-+	 * We cannot trust fsuid as being the "true" uid of the process
-+	 * nor do we know its entire history. We only know it was tainted
-+	 * so we dump it as root in mode 2, and only into a controlled
-+	 * environment (pipe handler or fully qualified path).
- 	 */
- 	if (__get_dumpable(cprm.mm_flags) == 2) {
- 		/* Setuid core dump mode */
- 		flag = O_EXCL;		/* Stop rewrite attacks */
- 		cred->fsuid = GLOBAL_ROOT_UID;	/* Dump root private */
-+		need_nonrelative = true;
- 	}
- 
- 	retval = coredump_wait(exit_code, &core_state);
-@@ -2223,6 +2226,14 @@ void do_coredump(long signr, int exit_co
- 		if (cprm.limit < binfmt->min_coredump)
- 			goto fail_unlock;
- 
-+		if (need_nonrelative && cn.corename[0] != '/') {
-+			printk(KERN_WARNING "Pid %d(%s) can only dump core "\
-+				"to fully qualified path!\n",
-+				task_tgid_vnr(current), current->comm);
-+			printk(KERN_WARNING "Skipping core dump\n");
-+			goto fail_unlock;
-+		}
-+
- 		cprm.file = filp_open(cn.corename,
- 				 O_CREAT | 2 | O_NOFOLLOW | O_LARGEFILE | flag,
- 				 0600);
+diff -puN fs/ntfs/super.c~ntfs-remove-references-to-long-gone-super-operations-and-unimplemented-methods fs/ntfs/super.c
+--- a/fs/ntfs/super.c~ntfs-remove-references-to-long-gone-super-operations-and-unimplemented-methods
++++ a/fs/ntfs/super.c
+@@ -2660,31 +2660,14 @@ static const struct super_operations ntf
+ 	.alloc_inode	= ntfs_alloc_big_inode,	  /* VFS: Allocate new inode. */
+ 	.destroy_inode	= ntfs_destroy_big_inode, /* VFS: Deallocate inode. */
+ #ifdef NTFS_RW
+-	//.dirty_inode	= NULL,			/* VFS: Called from
+-	//					   __mark_inode_dirty(). */
+ 	.write_inode	= ntfs_write_inode,	/* VFS: Write dirty inode to
+ 						   disk. */
+-	//.drop_inode	= NULL,			/* VFS: Called just after the
+-	//					   inode reference count has
+-	//					   been decreased to zero.
+-	//					   NOTE: The inode lock is
+-	//					   held. See fs/inode.c::
+-	//					   generic_drop_inode(). */
+-	//.delete_inode	= NULL,			/* VFS: Delete inode from disk.
+-	//					   Called when i_count becomes
+-	//					   0 and i_nlink is also 0. */
+-	//.write_super	= NULL,			/* Flush dirty super block to
+-	//					   disk. */
+-	//.sync_fs	= NULL,			/* ? */
+-	//.write_super_lockfs	= NULL,		/* ? */
+-	//.unlockfs	= NULL,			/* ? */
+ #endif /* NTFS_RW */
+ 	.put_super	= ntfs_put_super,	/* Syscall: umount. */
+ 	.statfs		= ntfs_statfs,		/* Syscall: statfs */
+ 	.remount_fs	= ntfs_remount,		/* Syscall: mount -o remount. */
+ 	.evict_inode	= ntfs_evict_big_inode,	/* VFS: Called when an inode is
+ 						   removed from memory. */
+-	//.umount_begin	= NULL,			/* Forced umount. */
+ 	.show_options	= ntfs_show_options,	/* Show mount options in
+ 						   proc. */
+ };
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from fernando@oss.ntt.co.jp are
 
 origin.patch
-linux-next.patch
 
