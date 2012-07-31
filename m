@@ -1,77 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-mc13xxx-use-module_device_table-instead-of-module_alias.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:52:38 -0700
-Message-ID: <20120731185239.21EC8100081@wpzn3.hot.corp.google.com>
+Subject: [merged] rtc-rtc-da9052-remove-unneed-devm_kfree-call.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:52:45 -0700
+Message-ID: <20120731185246.21E595C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:42024 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756349Ab2GaSwt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:52:49 -0400
-Received: by mail-ob0-f202.google.com with SMTP id wc20so4679387obb.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:52:49 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:64859 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756322Ab2GaSws (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:52:48 -0400
+Received: by bkcjc3 with SMTP id jc3so293484bkc.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:52:47 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: u.kleine-koenig@pengutronix.de, a.zummo@towertech.it, mm-commits@vger.kernel.org
+To: devendra.aaru@gmail.com, a.zummo@towertech.it, ashish.jangam@kpitcummins.com, dchen@diasemi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc/mc13xxx: use MODULE_DEVICE_TABLE instead of MODULE_AL=
-IAS
+     Subject: rtc/rtc-da9052: remove unneed devm_kfree call
 has been removed from the -mm tree.  Its filename was
-     rtc-mc13xxx-use-module_device_table-instead-of-module_alias.patch
+     rtc-rtc-da9052-remove-unneed-devm_kfree-call.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
-Subject: rtc/mc13xxx: use MODULE_DEVICE_TABLE instead of MODULE_ALIAS
+From: Devendra Naga <devendra.aaru@gmail.com>
+Subject: rtc/rtc-da9052: remove unneed devm_kfree call
 
-This allows automatic driver loading for all supported device types.
+Freeing will trigger when driver unloads, so using devm_kfree() is not
+needed.
 
-Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Signed-off-by: Devendra Naga <devendra.aaru@gmail.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Ashish Jangam <ashish.jangam@kpitcummins.com>
+Cc: David Dajun Chen <dchen@diasemi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-mc13xxx.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-da9052.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-mc13xxx.c~rtc-mc13xxx-use-module_device_table=
--instead-of-module_alias drivers/rtc/rtc-mc13xxx.c
---- a/drivers/rtc/rtc-mc13xxx.c~rtc-mc13xxx-use-module_device_table-ins=
-tead-of-module_alias
-+++ a/drivers/rtc/rtc-mc13xxx.c
-@@ -405,8 +405,9 @@ static const struct platform_device_id m
- 	}, {
- 		.name =3D "mc13892-rtc",
- 	},
--	{ }
-+	{ /* sentinel */ }
- };
-+MODULE_DEVICE_TABLE(platform, mc13xxx_rtc_idtable);
-=20
- static struct platform_driver mc13xxx_rtc_driver =3D {
- 	.id_table =3D mc13xxx_rtc_idtable,
-@@ -432,4 +433,3 @@ module_exit(mc13xxx_rtc_exit);
- MODULE_AUTHOR("Sascha Hauer <s.hauer@pengutronix.de>");
- MODULE_DESCRIPTION("RTC driver for Freescale MC13XXX PMIC");
- MODULE_LICENSE("GPL v2");
--MODULE_ALIAS("platform:" DRIVER_NAME);
+diff -puN drivers/rtc/rtc-da9052.c~rtc-rtc-da9052-remove-unneed-devm_kfree-call drivers/rtc/rtc-da9052.c
+--- a/drivers/rtc/rtc-da9052.c~rtc-rtc-da9052-remove-unneed-devm_kfree-call
++++ a/drivers/rtc/rtc-da9052.c
+@@ -245,7 +245,7 @@ static int __devinit da9052_rtc_probe(st
+ 				   "ALM", rtc);
+ 	if (ret != 0) {
+ 		rtc_err(rtc->da9052, "irq registration failed: %d\n", ret);
+-		goto err_mem;
++		return ret;
+ 	}
+ 
+ 	rtc->rtc = rtc_device_register(pdev->name, &pdev->dev,
+@@ -259,8 +259,6 @@ static int __devinit da9052_rtc_probe(st
+ 
+ err_free_irq:
+ 	free_irq(rtc->irq, rtc);
+-err_mem:
+-	devm_kfree(&pdev->dev, rtc);
+ 	return ret;
+ }
+ 
+@@ -271,7 +269,6 @@ static int __devexit da9052_rtc_remove(s
+ 	rtc_device_unregister(rtc->rtc);
+ 	free_irq(rtc->irq, rtc);
+ 	platform_set_drvdata(pdev, NULL);
+-	devm_kfree(&pdev->dev, rtc);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
-x.de are
+Patches currently in -mm which might be from devendra.aaru@gmail.com are
 
 origin.patch
+rtc-rtc-88pm80x-assign-ret-only-when-rtc_register_driver-fails.patch
+rtc-rtc-88pm80x-remove-unneed-devm_kfree.patch
 linux-next.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
