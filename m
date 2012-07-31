@@ -1,131 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb-revert.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 16:19:38 -0700
-Message-ID: <20120731231938.47B7DA0114@akpm.mtv.corp.google.com>
+Subject: [folded] hugetlb-make-some-static-variables-global-mark-hugelb_max_hstate-__read_mostly.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 16:21:23 -0700
+Message-ID: <20120731232124.376A0A0114@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:64484 "EHLO
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:63326 "EHLO
 	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754999Ab2GaXTl (ORCPT
+	by vger.kernel.org with ESMTP id S1752815Ab2GaXV1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2012 19:19:41 -0400
-Received: by lagr15 with SMTP id r15so298177lag.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 16:19:39 -0700 (PDT)
+	Tue, 31 Jul 2012 19:21:27 -0400
+Received: by lagr15 with SMTP id r15so298221lag.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 16:21:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, aneesh.kumar@linux.vnet.ibm.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: aneesh.kumar@linux.vnet.ibm.com, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb-revert
+     Subject: hugeltb: mark hugelb_max_hstate __read_mostly
 has been removed from the -mm tree.  Its filename was
-     hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb-revert.patch
+     hugetlb-make-some-static-variables-global-mark-hugelb_max_hstate-__read_mostly.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into hugetlb-make-some-static-variables-global.patch
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb-revert
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: hugeltb: mark hugelb_max_hstate __read_mostly
 
-This reverts the patch "hugetlb: avoid taking i_mmap_mutex in
-unmap_single_vma() for hugetlb" from mmotm.
+We set this value only during boot.
 
-This patch is possibly a mistake and blocks the merging of a hugetlb fix
-where page tables can get corrupted (https://lkml.org/lkml/2012/7/24/93).
-The motivation of the patch appears to be two-fold.
-
-First, it believes that the i_mmap_mutex is to protect against list
-corruption of the page->lru lock but that is not quite accurate. The
-i_mmap_mutex for shared page tables is meant to protect against races
-when sharing and unsharing the page tables. For example, an important
-use of i_mmap_mutex is to stabilise the page_count of the PMD page
-during huge_pmd_unshare.
-
-Second, it is protecting against a potential deadlock when
-unmap_unsingle_page is called from unmap_mapping_range(). However, hugetlbfs
-should never be in this path. It has its own setattr and truncate handlers
-where are the paths that use unmap_mapping_range().
-
-Unless Aneesh has another reason for the patch, it should be reverted
-to preserve hugetlb page sharing locking.
-
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ include/linux/hugetlb.h |    2 +-
+ mm/hugetlb.c            |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory.c~hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb-revert mm/memory.c
---- a/mm/memory.c~hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb-revert
-+++ a/mm/memory.c
-@@ -1343,8 +1343,11 @@ static void unmap_single_vma(struct mmu_
- 			 * Since no pte has actually been setup, it is
- 			 * safe to do nothing in this case.
- 			 */
--			if (vma->vm_file)
-+			if (vma->vm_file) {
-+				mutex_lock(&vma->vm_file->f_mapping->i_mmap_mutex);
- 				__unmap_hugepage_range(tlb, vma, start, end, NULL);
-+				mutex_unlock(&vma->vm_file->f_mapping->i_mmap_mutex);
-+			}
- 		} else
- 			unmap_page_range(tlb, vma, start, end, details);
- 	}
+diff -puN include/linux/hugetlb.h~hugetlb-make-some-static-variables-global-mark-hugelb_max_hstate-__read_mostly include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-make-some-static-variables-global-mark-hugelb_max_hstate-__read_mostly
++++ a/include/linux/hugetlb.h
+@@ -22,7 +22,7 @@ struct hugepage_subpool {
+ };
+ 
+ extern spinlock_t hugetlb_lock;
+-extern int hugetlb_max_hstate;
++extern int hugetlb_max_hstate __read_mostly;
+ #define for_each_hstate(h) \
+ 	for ((h) = hstates; (h) < &hstates[hugetlb_max_hstate]; (h)++)
+ 
+diff -puN mm/hugetlb.c~hugetlb-make-some-static-variables-global-mark-hugelb_max_hstate-__read_mostly mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-make-some-static-variables-global-mark-hugelb_max_hstate-__read_mostly
++++ a/mm/hugetlb.c
+@@ -35,7 +35,7 @@ const unsigned long hugetlb_zero = 0, hu
+ static gfp_t htlb_alloc_mask = GFP_HIGHUSER;
+ unsigned long hugepages_treat_as_movable;
+ 
+-int hugetlb_max_hstate;
++int hugetlb_max_hstate __read_mostly;
+ unsigned int default_hstate_idx;
+ struct hstate hstates[HUGE_MAX_HSTATE];
+ 
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
 origin.patch
-mm-do-not-use-page_count-without-a-page-pin.patch
-mm-clean-up-__count_immobile_pages.patch
-mm-hotplug-correctly-setup-fallback-zonelists-when-creating-new-pgdat.patch
-mm-hotplug-correctly-add-new-zone-to-all-other-nodes-zone-lists.patch
-mm-hotplug-free-zone-pageset-when-a-zone-becomes-empty.patch
-mm-hotplug-mark-memory-hotplug-code-in-page_allocc-as-__meminit.patch
-mm-factor-out-memory-isolate-functions.patch
-mm-bug-fix-free-page-check-in-zone_watermark_ok.patch
-memory-hotplug-fix-kswapd-looping-forever-problem.patch
-memory-hotplug-fix-kswapd-looping-forever-problem-fix.patch
-memory-hotplug-fix-kswapd-looping-forever-problem-fix-fix.patch
-mm-slb-add-knowledge-of-pfmemalloc-reserve-pages.patch
-mm-slb-add-knowledge-of-pfmemalloc-reserve-pages-fix.patch
-mm-slub-optimise-the-slub-fast-path-to-avoid-pfmemalloc-checks.patch
-mm-introduce-__gfp_memalloc-to-allow-access-to-emergency-reserves.patch
-mm-allow-pf_memalloc-from-softirq-context.patch
-mm-only-set-page-pfmemalloc-when-alloc_no_watermarks-was-used.patch
-mm-ignore-mempolicies-when-using-alloc_no_watermark.patch
-net-introduce-sk_gfp_atomic-to-allow-addition-of-gfp-flags-depending-on-the-individual-socket.patch
-netvm-allow-the-use-of-__gfp_memalloc-by-specific-sockets.patch
-netvm-allow-skb-allocation-to-use-pfmemalloc-reserves.patch
-netvm-propagate-page-pfmemalloc-to-skb.patch
-netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb.patch
-netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix.patch
-netvm-set-pf_memalloc-as-appropriate-during-skb-processing.patch
-mm-micro-optimise-slab-to-avoid-a-function-call.patch
-nbd-set-sock_memalloc-for-access-to-pfmemalloc-reserves.patch
-mm-throttle-direct-reclaimers-if-pf_memalloc-reserves-are-low-and-swap-is-backed-by-network-storage.patch
-mm-account-for-the-number-of-times-direct-reclaimers-get-throttled.patch
-netvm-prevent-a-stream-specific-deadlock.patch
-selinux-tag-avc-cache-alloc-as-non-critical.patch
-mm-methods-for-teaching-filesystems-about-pg_swapcache-pages.patch
-mm-add-get_kernel_page-for-pinning-of-kernel-addresses-for-i-o.patch
-mm-add-get_kernel_page-for-pinning-of-kernel-addresses-for-i-o-fix.patch
-mm-add-support-for-a-filesystem-to-activate-swap-files-and-use-direct_io-for-writing-swap-pages.patch
-mm-swap-implement-generic-handler-for-swap_activate.patch
-mm-add-support-for-direct_io-to-highmem-pages.patch
-nfs-teach-the-nfs-client-how-to-treat-pg_swapcache-pages.patch
-nfs-disable-data-cache-revalidation-for-swapfiles.patch
-nfs-enable-swap-on-nfs.patch
-nfs-enable-swap-on-nfs-fix.patch
-nfs-enable-swap-on-nfs-fix-fix.patch
-nfs-prevent-page-allocator-recursions-with-swap-over-nfs.patch
-swapfile-avoid-dereferencing-bd_disk-during-swap_entry_free-for-network-storage.patch
-memcg-prevent-oom-with-too-many-dirty-pages.patch
-memcg-further-prevent-oom-with-too-many-dirty-pages.patch
-mm-hugetlbfs-close-race-during-teardown-of-hugetlbfs-shared-page-tables.patch
-mm-hugetlbfs-close-race-during-teardown-of-hugetlbfs-shared-page-tables-fix.patch
+hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
+hugetlb-dont-use-err_ptr-with-vm_fault-values.patch
+hugetlb-add-an-inline-helper-for-finding-hstate-index.patch
+hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
+hugetlb-simplify-migrate_huge_page.patch
+hugetlb-add-a-list-for-tracking-in-use-hugetlb-pages.patch
+hugetlb-make-some-static-variables-global.patch
+mm-hugetlb-add-new-hugetlb-cgroup.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix-3.patch
+mm-hugetlb-add-new-hugetlb-cgroup-mark-root_h_cgroup-static.patch
+hugetlb-cgroup-add-the-cgroup-pointer-to-page-lru.patch
+hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup.patch
+hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup-fix.patch
+hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup-add-huge_page_order-check-to-avoid-incorrectly-uncharge.patch
+hugetlb-cgroup-add-support-for-cgroup-removal.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
+hugetlb-cgroup-migrate-hugetlb-cgroup-info-from-oldpage-to-new-page-during-migration.patch
+hugetlb-cgroup-add-hugetlb-controller-documentation.patch
+hugetlb-move-all-the-in-use-pages-to-active-list.patch
+hugetlb-cgroup-assign-the-page-hugetlb-cgroup-when-we-move-the-page-to-active-list.patch
+hugetlb-cgroup-remove-exclude-and-wakeup-rmdir-calls-from-migrate.patch
+memcg-rename-config-variables.patch
+memcg-rename-config-variables-fix.patch
+memcg-rename-config-variables-fix-fix.patch
 linux-next.patch
 
