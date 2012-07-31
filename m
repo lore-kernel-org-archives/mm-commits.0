@@ -1,138 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: [merged] resource-make-sure-requested-range-is-included-in-the-root-range.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:54:35 -0700
-Message-ID: <20120731185435.E3DB410004A@wpzn3.hot.corp.google.com>
+Subject: [merged] include-linux-aioh-cpp-c-conversions.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:54:31 -0700
+Message-ID: <20120731185432.2323C5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:33060 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756346Ab2GaSyg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:54:36 -0400
-Received: by mail-ob0-f202.google.com with SMTP id wc20so4676512obb.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:54:36 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:53898 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752547Ab2GaSye (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:54:34 -0400
+Received: by mail-lb0-f202.google.com with SMTP id gp10so295563lbb.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:54:33 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: octavian.purdila@intel.com, jbarnes@virtuousgeek.org, linuxram@us.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jlbec@evilplan.org, jmoyer@redhat.com, junxiao.bi@oracle.com, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: resource: make sure requested range is included in the root range
+     Subject: include/linux/aio.h: cpp->C conversions
 has been removed from the -mm tree.  Its filename was
-     resource-make-sure-requested-range-is-included-in-the-root-range.patch
+     include-linux-aioh-cpp-c-conversions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Octavian Purdila <octavian.purdila@intel.com>
-Subject: resource: make sure requested range is included in the root range
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: include/linux/aio.h: cpp->C conversions
 
-When the requested range is outside of the root range the logic in
-__reserve_region_with_split will cause an infinite recursion which will
-overflow the stack as seen in the warning bellow.
+Convert init_sync_kiocb() from a nasty macro into a nice C function.  The
+struct assignment trick takes care of zeroing all unmentioned fields. 
+Shrinks fs/read_write.o's .text from 9857 bytes to 9714.
 
-This particular stack overflow was caused by requesting the
-(100000000-107ffffff) range while the root range was (0-ffffffff).  In
-this case __request_resource would return the whole root range as conflict
-range (i.e.  0-ffffffff).  Then, the logic in __reserve_region_with_split
-would continue the recursion requesting the new range as (conflict->end+1,
-end) which incidentally in this case equals the originally requested
-range.
+Also demacroize is_sync_kiocb() and aio_ring_avail().  The latter fixes an
+arg-referenced-multiple-times hand grenade.
 
-This patch aborts looking for an usable range when the request does not
-intersect with the root range.  When the request partially overlaps with
-the root range, it ajust the request to fall in the root range and then
-continues with the new request.
-
-When the request is modified or aborted errors and a stack trace are
-logged to allow catching the errors in the upper layers.
-
-[    5.968374] WARNING: at kernel/sched.c:4129 sub_preempt_count+0x63/0x89()
-[    5.975150] Modules linked in:
-[    5.978184] Pid: 1, comm: swapper Not tainted 3.0.22-mid27-00004-gb72c817 #46
-[    5.985324] Call Trace:
-[    5.987759]  [<c1039dfc>] ? console_unlock+0x17b/0x18d
-[    5.992891]  [<c1039620>] warn_slowpath_common+0x48/0x5d
-[    5.998194]  [<c1031758>] ? sub_preempt_count+0x63/0x89
-[    6.003412]  [<c1039644>] warn_slowpath_null+0xf/0x13
-[    6.008453]  [<c1031758>] sub_preempt_count+0x63/0x89
-[    6.013499]  [<c14d60c4>] _raw_spin_unlock+0x27/0x3f
-[    6.018453]  [<c10c6349>] add_partial+0x36/0x3b
-[    6.022973]  [<c10c7c0a>] deactivate_slab+0x96/0xb4
-[    6.027842]  [<c14cf9d9>] __slab_alloc.isra.54.constprop.63+0x204/0x241
-[    6.034456]  [<c103f78f>] ? kzalloc.constprop.5+0x29/0x38
-[    6.039842]  [<c103f78f>] ? kzalloc.constprop.5+0x29/0x38
-[    6.045232]  [<c10c7dc9>] kmem_cache_alloc_trace+0x51/0xb0
-[    6.050710]  [<c103f78f>] ? kzalloc.constprop.5+0x29/0x38
-[    6.056100]  [<c103f78f>] kzalloc.constprop.5+0x29/0x38
-[    6.061320]  [<c17b45e9>] __reserve_region_with_split+0x1c/0xd1
-[    6.067230]  [<c17b4693>] __reserve_region_with_split+0xc6/0xd1
-...
-[    7.179057]  [<c17b4693>] __reserve_region_with_split+0xc6/0xd1
-[    7.184970]  [<c17b4779>] reserve_region_with_split+0x30/0x42
-[    7.190709]  [<c17a8ebf>] e820_reserve_resources_late+0xd1/0xe9
-[    7.196623]  [<c17c9526>] pcibios_resource_survey+0x23/0x2a
-[    7.202184]  [<c17cad8a>] pcibios_init+0x23/0x35
-[    7.206789]  [<c17ca574>] pci_subsys_init+0x3f/0x44
-[    7.211659]  [<c1002088>] do_one_initcall+0x72/0x122
-[    7.216615]  [<c17ca535>] ? pci_legacy_init+0x3d/0x3d
-[    7.221659]  [<c17a27ff>] kernel_init+0xa6/0x118
-[    7.226265]  [<c17a2759>] ? start_kernel+0x334/0x334
-[    7.231223]  [<c14d7482>] kernel_thread_helper+0x6/0x10
-
-Signed-off-by: Octavian Purdila <octavian.purdila@intel.com>
-Signed-off-by: Ram Pai <linuxram@us.ibm.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Acked-by: Jeff Moyer <jmoyer@redhat.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/resource.c |   24 +++++++++++++++++++++++-
- 1 file changed, 23 insertions(+), 1 deletion(-)
+ include/linux/aio.h |   38 ++++++++++++++++++++------------------
+ 1 file changed, 20 insertions(+), 18 deletions(-)
 
-diff -puN kernel/resource.c~resource-make-sure-requested-range-is-included-in-the-root-range kernel/resource.c
---- a/kernel/resource.c~resource-make-sure-requested-range-is-included-in-the-root-range
-+++ a/kernel/resource.c
-@@ -7,6 +7,8 @@
-  * Arbitrary resource management.
-  */
+diff -puN include/linux/aio.h~include-linux-aioh-cpp-c-conversions include/linux/aio.h
+--- a/include/linux/aio.h~include-linux-aioh-cpp-c-conversions
++++ a/include/linux/aio.h
+@@ -126,22 +126,20 @@ struct kiocb {
+ 	struct eventfd_ctx	*ki_eventfd;
+ };
  
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+-#define is_sync_kiocb(iocb)	((iocb)->ki_key == KIOCB_SYNC_KEY)
+-#define init_sync_kiocb(x, filp)			\
+-	do {						\
+-		struct task_struct *tsk = current;	\
+-		(x)->ki_flags = 0;			\
+-		(x)->ki_users = 1;			\
+-		(x)->ki_key = KIOCB_SYNC_KEY;		\
+-		(x)->ki_filp = (filp);			\
+-		(x)->ki_ctx = NULL;			\
+-		(x)->ki_cancel = NULL;			\
+-		(x)->ki_retry = NULL;			\
+-		(x)->ki_dtor = NULL;			\
+-		(x)->ki_obj.tsk = tsk;			\
+-		(x)->ki_user_data = 0;                  \
+-		(x)->private = NULL;			\
+-	} while (0)
++static inline bool is_sync_kiocb(struct kiocb *kiocb)
++{
++	return kiocb->ki_key == KIOCB_SYNC_KEY;
++}
 +
- #include <linux/export.h>
- #include <linux/errno.h>
- #include <linux/ioport.h>
-@@ -791,8 +793,28 @@ void __init reserve_region_with_split(st
- 		resource_size_t start, resource_size_t end,
- 		const char *name)
- {
-+	int abort = 0;
-+
- 	write_lock(&resource_lock);
--	__reserve_region_with_split(root, start, end, name);
-+	if (root->start > start || root->end < end) {
-+		pr_err("requested range [0x%llx-0x%llx] not in root %pr\n",
-+		       (unsigned long long)start, (unsigned long long)end,
-+		       root);
-+		if (start > root->end || end < root->start)
-+			abort = 1;
-+		else {
-+			if (end > root->end)
-+				end = root->end;
-+			if (start < root->start)
-+				start = root->start;
-+			pr_err("fixing request to [0x%llx-0x%llx]\n",
-+			       (unsigned long long)start,
-+			       (unsigned long long)end);
-+		}
-+		dump_stack();
-+	}
-+	if (!abort)
-+		__reserve_region_with_split(root, start, end, name);
- 	write_unlock(&resource_lock);
- }
++static inline void init_sync_kiocb(struct kiocb *kiocb, struct file *filp)
++{
++	*kiocb = (struct kiocb) {
++			.ki_users = 1,
++			.ki_key = KIOCB_SYNC_KEY,
++			.ki_filp = filp,
++			.ki_obj.tsk = current,
++		};
++}
  
+ #define AIO_RING_MAGIC			0xa10a10a1
+ #define AIO_RING_COMPAT_FEATURES	1
+@@ -161,8 +159,6 @@ struct aio_ring {
+ 	struct io_event		io_events[0];
+ }; /* 128 bytes + ring size */
+ 
+-#define aio_ring_avail(info, ring)	(((ring)->head + (info)->nr - 1 - (ring)->tail) % (info)->nr)
+-
+ #define AIO_RING_PAGES	8
+ struct aio_ring_info {
+ 	unsigned long		mmap_base;
+@@ -177,6 +173,12 @@ struct aio_ring_info {
+ 	struct page		*internal_pages[AIO_RING_PAGES];
+ };
+ 
++static inline unsigned aio_ring_avail(struct aio_ring_info *info,
++					struct aio_ring *ring)
++{
++	return (ring->head + info->nr - 1 - ring->tail) % info->nr;
++}
++
+ struct kioctx {
+ 	atomic_t		users;
+ 	int			dead;
 _
 
-Patches currently in -mm which might be from octavian.purdila@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+mm-make-vb_alloc-more-foolproof-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
+mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
+memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
+mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
+memcg-rename-config-variables.patch
+memcg-rename-config-variables-fix-fix.patch
+mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes.patch
+mm-have-order-0-compaction-start-off-where-it-left-v3-typo.patch
+memory-hotplug-fix-kswapd-looping-forever-problem-fix.patch
+memory-hotplug-fix-kswapd-looping-forever-problem-fix-fix.patch
+netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix.patch
+memcg-prevent-oom-with-too-many-dirty-pages.patch
+memcg-add-mem_cgroup_from_css-helper-fix.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
+thermal-add-generic-cpufreq-cooling-implementation.patch
+thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
+thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
+mm-slab_commonc-fix-warning.patch
+mm.patch
+rbtree-performance-and-correctness-test-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
