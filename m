@@ -1,40 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: [merged] usb-musb-remove-conditional-compilation-of-clk-code.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:48:27 -0700
-Message-ID: <20120731184828.24E92200059@hpza10.eem.corp.google.com>
+Subject: [merged] ata-pata_arasan-remove-conditional-compilation-of-clk-code.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:48:31 -0700
+Message-ID: <20120731184831.C4AA21E0072@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:36646 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756191Ab2GaSsb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:48:31 -0400
-Received: by lbbgp10 with SMTP id gp10so295343lbb.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:48:29 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:33060 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756191Ab2GaSsd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:48:33 -0400
+Received: by mail-ob0-f202.google.com with SMTP id wc20so4676512obb.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:48:32 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: viresh.linux@gmail.com, gregkh@linuxfoundation.org, mturquette@linaro.org, rmk@arm.linux.org.uk, sshtylyov@ru.mvista.com, viresh.kumar@st.com, mm-commits@vger.kernel.org
+To: viresh.kumar@st.com, jgarzik@redhat.com, mturquette@linaro.org, rmk@arm.linux.org.uk, sshtylyov@ru.mvista.com, viresh.linux@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: usb/musb: remove conditional compilation of clk code
+     Subject: ata/pata_arasan: remove conditional compilation of clk code
 has been removed from the -mm tree.  Its filename was
-     usb-musb-remove-conditional-compilation-of-clk-code.patch
+     ata-pata_arasan-remove-conditional-compilation-of-clk-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Viresh Kumar <viresh.linux@gmail.com>
-Subject: usb/musb: remove conditional compilation of clk code
+From: Viresh Kumar <viresh.kumar@st.com>
+Subject: ata/pata_arasan: remove conditional compilation of clk code
 
 With addition of dummy clk_*() calls for non CONFIG_HAVE_CLK cases in
 clk.h, there is no need to have clk code enclosed in #ifdef
 CONFIG_HAVE_CLK, #endif macros.
 
-musb also has these dummy macros defined locally.  Remove them as they
-aren't required anymore.
-
 Signed-off-by: Viresh Kumar <viresh.kumar@st.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jeff Garzik <jgarzik@redhat.com>
 Cc: Russell King <rmk@arm.linux.org.uk>
 Cc: Mike Turquette <mturquette@linaro.org>
 Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
@@ -42,20 +39,86 @@ Cc: viresh kumar <viresh.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/musb/musb_core.h |    8 --------
- 1 file changed, 8 deletions(-)
+ drivers/ata/pata_arasan_cf.c |   14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
 
-diff -puN drivers/usb/musb/musb_core.h~usb-musb-remove-conditional-compilation-of-clk-code drivers/usb/musb/musb_core.h
---- a/drivers/usb/musb/musb_core.h~usb-musb-remove-conditional-compilation-of-clk-code
-+++ a/drivers/usb/musb/musb_core.h
-@@ -81,14 +81,6 @@ struct musb_ep;
- #define is_peripheral_active(m)		(!(m)->is_host)
- #define is_host_active(m)		((m)->is_host)
- 
--#ifndef CONFIG_HAVE_CLK
--/* Dummy stub for clk framework */
--#define clk_get(dev, id)	NULL
--#define clk_put(clock)		do {} while (0)
--#define clk_enable(clock)	do {} while (0)
--#define clk_disable(clock)	do {} while (0)
+diff -puN drivers/ata/pata_arasan_cf.c~ata-pata_arasan-remove-conditional-compilation-of-clk-code drivers/ata/pata_arasan_cf.c
+--- a/drivers/ata/pata_arasan_cf.c~ata-pata_arasan-remove-conditional-compilation-of-clk-code
++++ a/drivers/ata/pata_arasan_cf.c
+@@ -184,10 +184,8 @@
+ struct arasan_cf_dev {
+ 	/* pointer to ata_host structure */
+ 	struct ata_host *host;
+-	/* clk structure, only if HAVE_CLK is defined */
+-#ifdef CONFIG_HAVE_CLK
++	/* clk structure */
+ 	struct clk *clk;
 -#endif
+ 
+ 	/* physical base address of controller */
+ 	dma_addr_t pbase;
+@@ -312,13 +310,11 @@ static int cf_init(struct arasan_cf_dev 
+ 	unsigned long flags;
+ 	int ret = 0;
+ 
+-#ifdef CONFIG_HAVE_CLK
+ 	ret = clk_enable(acdev->clk);
+ 	if (ret) {
+ 		dev_dbg(acdev->host->dev, "clock enable failed");
+ 		return ret;
+ 	}
+-#endif
+ 
+ 	spin_lock_irqsave(&acdev->host->lock, flags);
+ 	/* configure CF interface clock */
+@@ -344,9 +340,7 @@ static void cf_exit(struct arasan_cf_dev
+ 	writel(readl(acdev->vbase + OP_MODE) & ~CFHOST_ENB,
+ 			acdev->vbase + OP_MODE);
+ 	spin_unlock_irqrestore(&acdev->host->lock, flags);
+-#ifdef CONFIG_HAVE_CLK
+ 	clk_disable(acdev->clk);
+-#endif
+ }
+ 
+ static void dma_callback(void *dev)
+@@ -828,13 +822,11 @@ static int __devinit arasan_cf_probe(str
+ 		return -ENOMEM;
+ 	}
+ 
+-#ifdef CONFIG_HAVE_CLK
+ 	acdev->clk = clk_get(&pdev->dev, NULL);
+ 	if (IS_ERR(acdev->clk)) {
+ 		dev_warn(&pdev->dev, "Clock not found\n");
+ 		return PTR_ERR(acdev->clk);
+ 	}
+-#endif
+ 
+ 	/* allocate host */
+ 	host = ata_host_alloc(&pdev->dev, 1);
+@@ -899,9 +891,7 @@ static int __devinit arasan_cf_probe(str
+ 			&arasan_cf_sht);
+ 
+ free_clk:
+-#ifdef CONFIG_HAVE_CLK
+ 	clk_put(acdev->clk);
+-#endif
+ 	return ret;
+ }
+ 
+@@ -912,9 +902,7 @@ static int __devexit arasan_cf_remove(st
+ 
+ 	ata_host_detach(host);
+ 	cf_exit(acdev);
+-#ifdef CONFIG_HAVE_CLK
+ 	clk_put(acdev->clk);
+-#endif
+ 
+ 	return 0;
+ }
+_
+
+Patches currently in -mm which might be from viresh.kumar@st.com are
+
+origin.patch
+linux-next.patch
+
