@@ -1,70 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-check-usleep_range-arguments.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:51:45 -0700
-Message-ID: <20120731185145.B298F10007F@wpzn3.hot.corp.google.com>
+Subject: [merged] checkpatch-add-checks-for-do-while-0-macro-misuses.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:51:48 -0700
+Message-ID: <20120731185149.1481E5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:42024 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756338Ab2GaSvq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:51:46 -0400
-Received: by mail-ob0-f202.google.com with SMTP id wc20so4679387obb.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:51:46 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:48958 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756344Ab2GaSvu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:51:50 -0400
+Received: by mail-lb0-f202.google.com with SMTP id gp10so295516lbb.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:51:50 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, apw@shadowen.org, yuvalmin@broadcom.com, mm-commits@vger.kernel.org
+To: joe@perches.com, apw@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: check usleep_range() arguments
+     Subject: checkpatch: add checks for do {} while (0) macro misuses
 has been removed from the -mm tree.  Its filename was
-     checkpatch-check-usleep_range-arguments.patch
+     checkpatch-add-checks-for-do-while-0-macro-misuses.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: check usleep_range() arguments
+Subject: checkpatch: add checks for do {} while (0) macro misuses
 
-usleep_range() shouldn't use the same args for min and max.
+These types of macros should not be used for either a single statement nor
+should the macro end with a semi-colon.
 
-Report it when it happens and when both args are decimal and min > max.
+Add tests for these conditions.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Yuval Mintz <yuvalmin@broadcom.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ scripts/checkpatch.pl |   39 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-check-usleep_range-arguments scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-check-usleep_range-arguments
+diff -puN scripts/checkpatch.pl~checkpatch-add-checks-for-do-while-0-macro-misuses scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-checks-for-do-while-0-macro-misuses
 +++ a/scripts/checkpatch.pl
-@@ -3313,6 +3313,22 @@ sub process {
+@@ -2988,6 +2988,45 @@ sub process {
  			}
  		}
  
-+# check usleep_range arguments
++# do {} while (0) macro tests:
++# single-statement macros do not need to be enclosed in do while (0) loop,
++# macro should not end with a semicolon
 +		if ($^V && $^V ge 5.10.0 &&
-+		    defined $stat &&
-+		    $stat =~ /^\+(?:.*?)\busleep_range\s*\(\s*($FuncArg)\s*,\s*($FuncArg)\s*\)/) {
-+		 	my $min = $1;
-+			my $max = $7;
-+			if ($min eq $max) {
-+				WARN("USLEEP_RANGE",
-+				     "usleep_range should not use min == max args; see Documentation/timers/timers-howto.txt\n" . "$here\n$stat\n");
-+			} elsif ($min =~ /^\d+$/ && $max =~ /^\d+$/ &&
-+				 $min > $max) {
-+				WARN("USLEEP_RANGE",
-+				     "usleep_range args reversed, use min then max; see Documentation/timers/timers-howto.txt\n" . "$here\n$stat\n");
++		    $realfile !~ m@/vmlinux.lds.h$@ &&
++		    $line =~ /^.\s*\#\s*define\s+$Ident(\()?/) {
++			my $ln = $linenr;
++			my $cnt = $realcnt;
++			my ($off, $dstat, $dcond, $rest);
++			my $ctx = '';
++			($dstat, $dcond, $ln, $cnt, $off) =
++				ctx_statement_block($linenr, $realcnt, 0);
++			$ctx = $dstat;
++
++			$dstat =~ s/\\\n.//g;
++
++			if ($dstat =~ /^\+\s*#\s*define\s+$Ident\s*${balanced_parens}\s*do\s*{(.*)\s*}\s*while\s*\(\s*0\s*\)\s*([;\s]*)\s*$/) {
++				my $stmts = $2;
++				my $semis = $3;
++
++				$ctx =~ s/\n*$//;
++				my $cnt = statement_rawlines($ctx);
++				my $herectx = $here . "\n";
++
++				for (my $n = 0; $n < $cnt; $n++) {
++					$herectx .= raw_line($linenr, $n) . "\n";
++				}
++
++				if (($stmts =~ tr/;/;/) == 1) {
++					WARN("SINGLE_STATEMENT_DO_WHILE_MACRO",
++					     "Single statement macros should not use a do {} while (0) loop\n" . "$herectx");
++				}
++				if (defined $semis && $semis ne "") {
++					WARN("DO_WHILE_MACRO_WITH_TRAILING_SEMICOLON",
++					     "do {} while (0) macros should not be semicolon terminated\n" . "$herectx");
++				}
 +			}
 +		}
 +
- # check for new externs in .c files.
- 		if ($realfile =~ /\.c$/ && defined $stat &&
- 		    $stat =~ /^.\s*(?:extern\s+)?$Type\s+($Ident)(\s*)\(/s)
+ # make sure symbols are always wrapped with VMLINUX_SYMBOL() ...
+ # all assignments may have only one of the following with an assignment:
+ #	.
 _
 
 Patches currently in -mm which might be from joe@perches.com are
