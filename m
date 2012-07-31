@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlbfs-close-race-during-teardown-of-hugetlbfs-shared-page-tables-fix.patch added to -mm tree
-Date: Tue, 31 Jul 2012 14:20:18 -0700
-Message-ID: <20120731220722.896435C0050@hpza9.eem.corp.google.com>
+Subject: + drivers-media-video-v4l2-ioctlc-fix-build.patch added to -mm tree
+Date: Tue, 31 Jul 2012 14:51:40 -0700
+Message-ID: <20120731223843.BB84A1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:37989 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753640Ab2GaWHZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 18:07:25 -0400
-Received: by wgbdt11 with SMTP id dt11so296023wgb.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 15:07:23 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:34918 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754328Ab2GaWip (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 18:38:45 -0400
+Received: by obbwc20 with SMTP id wc20so4794537obb.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 15:38:44 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hughd@google.com, mgorman@suse.de, mhocko@suse.cz, stable@vger.kernel.org
+Cc: akpm@linux-foundation.org, mchehab@infradead.org
 
 
 The patch titled
-     Subject: mm-hugetlbfs-close-race-during-teardown-of-hugetlbfs-shared-page-tables-fix
+     Subject: drivers/media/video/v4l2-ioctl.c: fix build
 has been added to the -mm tree.  Its filename is
-     mm-hugetlbfs-close-race-during-teardown-of-hugetlbfs-shared-page-tables-fix.patch
+     drivers-media-video-v4l2-ioctlc-fix-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,49 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hugetlbfs-close-race-during-teardown-of-hugetlbfs-shared-page-tables-fix
+Subject: drivers/media/video/v4l2-ioctl.c: fix build
 
-name the args, lazy.  And fix CONFIG_HUGETLBFS=n build
+Fix zillions of these:
 
-Cc: <stable@vger.kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@suse.cz>
+drivers/media/video/v4l2-ioctl.c:1848: error: unknown field 'func' specified in initializer
+drivers/media/video/v4l2-ioctl.c:1848: warning: missing braces around initializer
+drivers/media/video/v4l2-ioctl.c:1848: warning: (near initialization for 'v4l2_ioctls[0].<anonymous>')
+drivers/media/video/v4l2-ioctl.c:1848: warning: initialization makes integer from pointer without a cast
+drivers/media/video/v4l2-ioctl.c:1848: error: initializer element is not computable at load time
+drivers/media/video/v4l2-ioctl.c:1848: error: (near initialization for 'v4l2_ioctls[0].<anonymous>.offset')
+
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ drivers/media/video/v4l2-ioctl.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/hugetlb.h~mm-hugetlbfs-close-race-during-teardown-of-hugetlbfs-shared-page-tables-fix include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~mm-hugetlbfs-close-race-during-teardown-of-hugetlbfs-shared-page-tables-fix
-+++ a/include/linux/hugetlb.h
-@@ -49,8 +49,9 @@ int follow_hugetlb_page(struct mm_struct
- void unmap_hugepage_range(struct vm_area_struct *,
- 			  unsigned long, unsigned long, struct page *);
- void __unmap_hugepage_range_final(struct mmu_gather *tlb,
--			  struct vm_area_struct *,
--			  unsigned long, unsigned long, struct page *);
-+			  struct vm_area_struct *vma,
-+			  unsigned long start, unsigned long end,
-+			  struct page *ref_page);
- void __unmap_hugepage_range(struct mmu_gather *tlb, struct vm_area_struct *vma,
- 				unsigned long start, unsigned long end,
- 				struct page *ref_page);
-@@ -133,6 +134,13 @@ static inline void copy_huge_page(struct
+diff -puN drivers/media/video/v4l2-ioctl.c~drivers-media-video-v4l2-ioctlc-fix-build drivers/media/video/v4l2-ioctl.c
+--- a/drivers/media/video/v4l2-ioctl.c~drivers-media-video-v4l2-ioctlc-fix-build
++++ a/drivers/media/video/v4l2-ioctl.c
+@@ -1831,7 +1831,9 @@ struct v4l2_ioctl_info {
+ 		.ioctl = _ioctl,					\
+ 		.flags = _flags | INFO_FL_STD,				\
+ 		.name = #_ioctl,					\
+-		.offset = offsetof(struct v4l2_ioctl_ops, _vidioc),	\
++		{							\
++			.offset = offsetof(struct v4l2_ioctl_ops, _vidioc),\
++		},							\
+ 		.debug = _debug,					\
+ 	}
  
- #define hugetlb_change_protection(vma, address, end, newprot)
+@@ -1840,7 +1842,9 @@ struct v4l2_ioctl_info {
+ 		.ioctl = _ioctl,					\
+ 		.flags = _flags | INFO_FL_FUNC,				\
+ 		.name = #_ioctl,					\
+-		.func = _func,						\
++		{							\
++			.func = _func,					\
++		},							\
+ 		.debug = _debug,					\
+ 	}
  
-+static inline void __unmap_hugepage_range_final(struct mmu_gather *tlb,
-+			struct vm_area_struct *vma, unsigned long start,
-+			unsigned long end, struct page *ref_page)
-+{
-+	BUG();
-+}
-+
- static inline void __unmap_hugepage_range(struct mmu_gather *tlb,
- 			struct vm_area_struct *vma, unsigned long start,
- 			unsigned long end, struct page *ref_page)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -117,4 +117,5 @@ journal_add_journal_head-debug.patch
 mutex-subsystem-synchro-test-module-fix.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
+drivers-media-video-v4l2-ioctlc-fix-build.patch
 
