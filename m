@@ -1,76 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-pcf8563c-add-device-tree-support.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:52:52 -0700
-Message-ID: <20120731185253.0D6065C0050@hpza9.eem.corp.google.com>
+Subject: [merged] minixfs-fix-block-limit-check.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:52:56 -0700
+Message-ID: <20120731185256.E907D5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:39268 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756355Ab2GaSwz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:52:55 -0400
-Received: by lbbgp10 with SMTP id gp10so295545lbb.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:52:54 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:63080 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756322Ab2GaSw6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:52:58 -0400
+Received: by wgbdt11 with SMTP id dt11so291205wgb.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:52:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nbowler@elliptictech.com, a.zummo@towertech.it, mm-commits@vger.kernel.org
+To: phcoder@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-pcf8563.c: add device tree support
+     Subject: minixfs: fix block limit check
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-pcf8563c-add-device-tree-support.patch
+     minixfs-fix-block-limit-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Nick Bowler <nbowler@elliptictech.com>
-Subject: drivers/rtc/rtc-pcf8563.c: add device tree support
+From: Vladimir Serbinenko  <phcoder@gmail.com>
+Subject: minixfs: fix block limit check
 
-Set the of_match_table for this driver so that devices can be described
-in the device tree.
+On minix2 and minix3 usually max_size is 7fffffff and the check in
+question prohibits creation of last block spanning right before 7fffffff,
+due to downward rounding during the division.  Fix it by using
+multiplication instead.
 
-Signed-off-by: Nick Bowler <nbowler@elliptictech.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+[akpm@linux-foundation.org: fix up code layout, use local `sb']
+Signed-off-by: Vladimir Serbinenko <phcoder@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf8563.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ fs/minix/itree_v2.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-pcf8563.c~drivers-rtc-rtc-pcf8563c-add-device-tree-support drivers/rtc/rtc-pcf8563.c
---- a/drivers/rtc/rtc-pcf8563.c~drivers-rtc-rtc-pcf8563c-add-device-tree-support
-+++ a/drivers/rtc/rtc-pcf8563.c
-@@ -19,6 +19,7 @@
- #include <linux/rtc.h>
- #include <linux/slab.h>
- #include <linux/module.h>
-+#include <linux/of.h>
- 
- #define DRV_VERSION "0.4.3"
- 
-@@ -285,10 +286,19 @@ static const struct i2c_device_id pcf856
- };
- MODULE_DEVICE_TABLE(i2c, pcf8563_id);
- 
-+#ifdef CONFIG_OF
-+static const struct of_device_id pcf8563_of_match[] __devinitconst = {
-+	{ .compatible = "nxp,pcf8563" },
-+	{}
-+};
-+MODULE_DEVICE_TABLE(of, pcf8563_of_match);
-+#endif
-+
- static struct i2c_driver pcf8563_driver = {
- 	.driver		= {
- 		.name	= "rtc-pcf8563",
- 		.owner	= THIS_MODULE,
-+		.of_match_table = of_match_ptr(pcf8563_of_match),
- 	},
- 	.probe		= pcf8563_probe,
- 	.remove		= pcf8563_remove,
+diff -puN fs/minix/itree_v2.c~minixfs-fix-block-limit-check fs/minix/itree_v2.c
+--- a/fs/minix/itree_v2.c~minixfs-fix-block-limit-check
++++ a/fs/minix/itree_v2.c
+@@ -32,7 +32,8 @@ static int block_to_path(struct inode * 
+ 	if (block < 0) {
+ 		printk("MINIX-fs: block_to_path: block %ld < 0 on dev %s\n",
+ 			block, bdevname(sb->s_bdev, b));
+-	} else if (block >= (minix_sb(inode->i_sb)->s_max_size/sb->s_blocksize)) {
++	} else if ((u64)block * (u64)sb->s_blocksize >=
++			minix_sb(sb)->s_max_size) {
+ 		if (printk_ratelimit())
+ 			printk("MINIX-fs: block_to_path: "
+ 			       "block %ld too big on dev %s\n",
 _
 
-Patches currently in -mm which might be from nbowler@elliptictech.com are
+Patches currently in -mm which might be from phcoder@gmail.com are
 
 origin.patch
 
