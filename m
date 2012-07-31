@@ -1,73 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: [merged] alpha-remove-mysterious-if-zero-ed-out-includes.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:48:06 -0700
-Message-ID: <20120731184806.CA8191E0074@wpzn4.hot.corp.google.com>
+Subject: [merged] avr32-mm-faultc-port-oom-changes-to-do_page_fault.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:48:09 -0700
+Message-ID: <20120731184810.28C3A5C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:33060 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756179Ab2GaSsH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:48:07 -0400
-Received: by mail-ob0-f202.google.com with SMTP id wc20so4676512obb.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:48:07 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:62683 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756175Ab2GaSsM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:48:12 -0400
+Received: by wgbdt11 with SMTP id dt11so290985wgb.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:48:11 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pebolle@tiscali.nl, ink@jurassic.park.msu.ru, mattst88@gmail.com, rth@twiddle.net, mm-commits@vger.kernel.org
+To: consul.kautuk@gmail.com, egtvedt@samfundet.no, hskinnemoen@gmail.com, mohdfarisq2010@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: alpha: remove mysterious if zero-ed out includes
+     Subject: avr32/mm/fault.c: port OOM changes to do_page_fault
 has been removed from the -mm tree.  Its filename was
-     alpha-remove-mysterious-if-zero-ed-out-includes.patch
+     avr32-mm-faultc-port-oom-changes-to-do_page_fault.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Paul Bolle <pebolle@tiscali.nl>
-Subject: alpha: remove mysterious if zero-ed out includes
+From: Kautuk Consul <consul.kautuk@gmail.com>
+Subject: avr32/mm/fault.c: port OOM changes to do_page_fault
 
-There's a small group of odd looking includes in smc37c669.c.  These
-includes appear to be if zero-ed out ever since they were added to the
-tree (in v2.1.89).  Their purpose is unclear to me.  Perhaps they were
-used in someones build system.  Whatever their purpose was, nothing else
-uses something comparable.  This entire if zero-ed out block might as well
-be removed.
+Commits d065bd810b6de ("mm: retry page fault when blocking on disk
+transfer") and 37b23e0525d3 ("x86,mm: make pagefault killable") introduced
+changes into the x86 pagefault handler for making the page fault handler
+retryable as well as killable.
 
-Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
+These changes reduce the mmap_sem hold time, which is crucial during OOM
+killer invocation.
+
+Port these changes to AVR32.
+
+[akpm@linux-foundation.org: fix comment layout]
+Signed-off-by: Mohd. Faris <mohdfarisq2010@gmail.com>
+Signed-off-by: Kautuk Consul <consul.kautuk@gmail.com>
+Acked-by: Havard Skinnemoen <hskinnemoen@gmail.com>
+Cc: Hans-Christian Egtvedt <egtvedt@samfundet.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/smc37c669.c |   12 ------------
- 1 file changed, 12 deletions(-)
+ arch/avr32/mm/fault.c |   33 +++++++++++++++++++++++++--------
+ 1 file changed, 25 insertions(+), 8 deletions(-)
 
-diff -puN arch/alpha/kernel/smc37c669.c~alpha-remove-mysterious-if-zero-ed-out-includes arch/alpha/kernel/smc37c669.c
---- a/arch/alpha/kernel/smc37c669.c~alpha-remove-mysterious-if-zero-ed-out-includes
-+++ a/arch/alpha/kernel/smc37c669.c
-@@ -933,18 +933,6 @@ void SMC37c669_display_device_info( 
-  *
-  *--
-  */
--#if 0
--/* $INCLUDE_OPTIONS$ */
--#include    "cp$inc:platform_io.h"
--/* $INCLUDE_OPTIONS_END$ */
--#include    "cp$src:common.h"
--#include    "cp$inc:prototypes.h"
--#include    "cp$src:kernel_def.h"
--#include    "cp$src:msg_def.h"
--#include    "cp$src:smcc669_def.h"
--/* Platform-specific includes */
--#include    "cp$src:platform.h"
--#endif
+diff -puN arch/avr32/mm/fault.c~avr32-mm-faultc-port-oom-changes-to-do_page_fault arch/avr32/mm/fault.c
+--- a/arch/avr32/mm/fault.c~avr32-mm-faultc-port-oom-changes-to-do_page_fault
++++ a/arch/avr32/mm/fault.c
+@@ -61,10 +61,10 @@ asmlinkage void do_page_fault(unsigned l
+ 	const struct exception_table_entry *fixup;
+ 	unsigned long address;
+ 	unsigned long page;
+-	int writeaccess;
+ 	long signr;
+ 	int code;
+ 	int fault;
++	unsigned int flags = FAULT_FLAG_ALLOW_RETRY | FAULT_FLAG_KILLABLE;
  
- #ifndef TRUE
- #define TRUE 1
+ 	if (notify_page_fault(regs, ecr))
+ 		return;
+@@ -86,6 +86,7 @@ asmlinkage void do_page_fault(unsigned l
+ 
+ 	local_irq_enable();
+ 
++retry:
+ 	down_read(&mm->mmap_sem);
+ 
+ 	vma = find_vma(mm, address);
+@@ -104,7 +105,6 @@ asmlinkage void do_page_fault(unsigned l
+ 	 */
+ good_area:
+ 	code = SEGV_ACCERR;
+-	writeaccess = 0;
+ 
+ 	switch (ecr) {
+ 	case ECR_PROTECTION_X:
+@@ -121,7 +121,7 @@ good_area:
+ 	case ECR_TLB_MISS_W:
+ 		if (!(vma->vm_flags & VM_WRITE))
+ 			goto bad_area;
+-		writeaccess = 1;
++		flags |= FAULT_FLAG_WRITE;
+ 		break;
+ 	default:
+ 		panic("Unhandled case %lu in do_page_fault!", ecr);
+@@ -132,7 +132,11 @@ good_area:
+ 	 * sure we exit gracefully rather than endlessly redo the
+ 	 * fault.
+ 	 */
+-	fault = handle_mm_fault(mm, vma, address, writeaccess ? FAULT_FLAG_WRITE : 0);
++	fault = handle_mm_fault(mm, vma, address, flags);
++
++	if ((fault & VM_FAULT_RETRY) && fatal_signal_pending(current))
++		return;
++
+ 	if (unlikely(fault & VM_FAULT_ERROR)) {
+ 		if (fault & VM_FAULT_OOM)
+ 			goto out_of_memory;
+@@ -140,10 +144,23 @@ good_area:
+ 			goto do_sigbus;
+ 		BUG();
+ 	}
+-	if (fault & VM_FAULT_MAJOR)
+-		tsk->maj_flt++;
+-	else
+-		tsk->min_flt++;
++
++	if (flags & FAULT_FLAG_ALLOW_RETRY) {
++		if (fault & VM_FAULT_MAJOR)
++			tsk->maj_flt++;
++		else
++			tsk->min_flt++;
++		if (fault & VM_FAULT_RETRY) {
++			flags &= ~FAULT_FLAG_ALLOW_RETRY;
++
++			/*
++			 * No need to up_read(&mm->mmap_sem) as we would have
++			 * already released it in __lock_page_or_retry() in
++			 * mm/filemap.c.
++			 */
++			goto retry;
++		}
++	}
+ 
+ 	up_read(&mm->mmap_sem);
+ 	return;
 _
 
-Patches currently in -mm which might be from pebolle@tiscali.nl are
+Patches currently in -mm which might be from consul.kautuk@gmail.com are
 
 origin.patch
 linux-next.patch
