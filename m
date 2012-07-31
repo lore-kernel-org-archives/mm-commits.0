@@ -1,194 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fork-fix-error-handling-in-dup_task.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:53:59 -0700
-Message-ID: <20120731185400.13B1A100047@wpzn3.hot.corp.google.com>
+Subject: [merged] ipc-compat-use-signed-size_t-types-for-msgsnd-and-msgrcv.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:54:12 -0700
+Message-ID: <20120731185412.CE504100048@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:33060 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756346Ab2GaSyB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:54:01 -0400
-Received: by mail-ob0-f202.google.com with SMTP id wc20so4676512obb.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:54:01 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:39624 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752537Ab2GaSyS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:54:18 -0400
+Received: by vbnl22 with SMTP id l22so758599vbn.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:54:17 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, a.p.zijlstra@chello.nl, cmetcalf@tilera.com, dhowells@redhat.com, hpa@zytor.com, lethal@linux-sh.org, mingo@elte.hu, mingo@redhat.com, sqazi@google.com, tglx@linutronix.de, yasutake.koichi@jp.panasonic.com, mm-commits@vger.kernel.org
+To: will.deacon@arm.com, arnd@arndb.de, catalin.marinas@arm.com, cmetcalf@tilera.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fork: fix error handling in dup_task()
+     Subject: ipc: compat: use signed size_t types for msgsnd and msgrcv
 has been removed from the -mm tree.  Its filename was
-     fork-fix-error-handling-in-dup_task.patch
+     ipc-compat-use-signed-size_t-types-for-msgsnd-and-msgrcv.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: fork: fix error handling in dup_task()
+From: Will Deacon <will.deacon@arm.com>
+Subject: ipc: compat: use signed size_t types for msgsnd and msgrcv
 
-The function dup_task() may fail at the following function calls in the
-following order.
+The msgsnd and msgrcv system calls use size_t to represent the size of the
+message being transferred.  POSIX states that values of msgsz greater than
+SSIZE_MAX cause the result to be implementation-defined.  On Linux, this
+equates to returning -EINVAL if (long) msgsz < 0.
 
-0) alloc_task_struct_node()
-1) alloc_thread_info_node()
-2) arch_dup_task_struct()
+For compat tasks where !CONFIG_ARCH_WANT_OLD_COMPAT_IPC and compat_size_t
+is smaller than size_t, negative size values passed from userspace will be
+interpreted as positive values by do_msg{rcv,snd} and will fail to exit
+early with -EINVAL.
 
-Error by 0) is not a matter, it can just return.  But error by 1) requires
-releasing task_struct allocated by 0) before it returns.  Likewise, error
-by 2) requires releasing task_struct and thread_info allocated by 0) and
-1).
+This patch changes the compat prototypes for msg{rcv,snd} so that the
+message size is represented as a compat_ssize_t, which we cast to the
+native ssize_t type for the core IPC code.
 
-The existing error handling calls free_task_struct() and
-free_thread_info() which do not only release task_struct and thread_info,
-but also call architecture specific arch_release_task_struct() and
-arch_release_thread_info().
-
-The problem is that task_struct and thread_info are not fully initialized
-yet at this point, but arch_release_task_struct() and
-arch_release_thread_info() are called with them.
-
-For example, x86 defines its own arch_release_task_struct() that releases
-a task_xstate.  If alloc_thread_info_node() fails in dup_task(),
-arch_release_task_struct() is called with task_struct which is just
-allocated and filled with garbage in this error handling.
-
-This actually happened with tools/testing/fault-injection/failcmd.sh
-
-	# env FAILCMD_TYPE=fail_page_alloc \
-		./tools/testing/fault-injection/failcmd.sh --times=100 \
-		--min-order=0 --ignore-gfp-wait=0 \
-		-- make -C tools/testing/selftests/ run_tests
-
-In order to fix this issue, make free_{task_struct,thread_info}() not to
-call arch_release_{task_struct,thread_info}() and call
-arch_release_{task_struct,thread_info}() implicitly where needed.
-
-Default arch_release_task_struct() and arch_release_thread_info() are
-defined as empty by default.  So this change only affects the
-architectures which implement their own arch_release_task_struct() or
-arch_release_thread_info() as listed below.
-
-arch_release_task_struct(): x86, sh
-arch_release_thread_info(): mn10300, tile
-
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Chris Metcalf <cmetcalf@tilera.com>
-Cc: Salman Qazi <sqazi@google.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Chris Metcalf <cmetcalf@tilera.com>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Signed-off-by: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |   27 +++++++++++++++------------
- 1 file changed, 15 insertions(+), 12 deletions(-)
+ include/linux/compat.h |    4 ++--
+ ipc/compat.c           |    8 ++++----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN kernel/fork.c~fork-fix-error-handling-in-dup_task kernel/fork.c
---- a/kernel/fork.c~fork-fix-error-handling-in-dup_task
-+++ a/kernel/fork.c
-@@ -114,6 +114,10 @@ int nr_processes(void)
- 	return total;
- }
- 
-+void __weak arch_release_task_struct(struct task_struct *tsk)
-+{
-+}
-+
- #ifndef CONFIG_ARCH_TASK_STRUCT_ALLOCATOR
- static struct kmem_cache *task_struct_cachep;
- 
-@@ -122,17 +126,17 @@ static inline struct task_struct *alloc_
- 	return kmem_cache_alloc_node(task_struct_cachep, GFP_KERNEL, node);
- }
- 
--void __weak arch_release_task_struct(struct task_struct *tsk) { }
--
- static inline void free_task_struct(struct task_struct *tsk)
- {
--	arch_release_task_struct(tsk);
- 	kmem_cache_free(task_struct_cachep, tsk);
- }
+diff -puN include/linux/compat.h~ipc-compat-use-signed-size_t-types-for-msgsnd-and-msgrcv include/linux/compat.h
+--- a/include/linux/compat.h~ipc-compat-use-signed-size_t-types-for-msgsnd-and-msgrcv
++++ a/include/linux/compat.h
+@@ -266,9 +266,9 @@ long compat_sys_shmat(int first, int sec
+ #else
+ long compat_sys_semctl(int semid, int semnum, int cmd, int arg);
+ long compat_sys_msgsnd(int msqid, struct compat_msgbuf __user *msgp,
+-		size_t msgsz, int msgflg);
++		compat_ssize_t msgsz, int msgflg);
+ long compat_sys_msgrcv(int msqid, struct compat_msgbuf __user *msgp,
+-		size_t msgsz, long msgtyp, int msgflg);
++		compat_ssize_t msgsz, long msgtyp, int msgflg);
+ long compat_sys_shmat(int shmid, compat_uptr_t shmaddr, int shmflg);
  #endif
+ long compat_sys_msgctl(int first, int second, void __user *uptr);
+diff -puN ipc/compat.c~ipc-compat-use-signed-size_t-types-for-msgsnd-and-msgrcv ipc/compat.c
+--- a/ipc/compat.c~ipc-compat-use-signed-size_t-types-for-msgsnd-and-msgrcv
++++ a/ipc/compat.c
+@@ -373,21 +373,21 @@ long compat_sys_semctl(int semid, int se
+ }
  
-+void __weak arch_release_thread_info(struct thread_info *ti)
-+{
-+}
-+
- #ifndef CONFIG_ARCH_THREAD_INFO_ALLOCATOR
--void __weak arch_release_thread_info(struct thread_info *ti) { }
- 
- /*
-  * Allocate pages if THREAD_SIZE is >= PAGE_SIZE, otherwise use a
-@@ -150,7 +154,6 @@ static struct thread_info *alloc_thread_
- 
- static inline void free_thread_info(struct thread_info *ti)
+ long compat_sys_msgsnd(int msqid, struct compat_msgbuf __user *msgp,
+-		       size_t msgsz, int msgflg)
++		       compat_ssize_t msgsz, int msgflg)
  {
--	arch_release_thread_info(ti);
- 	free_pages((unsigned long)ti, THREAD_SIZE_ORDER);
- }
- # else
-@@ -164,7 +167,6 @@ static struct thread_info *alloc_thread_
+ 	compat_long_t mtype;
  
- static void free_thread_info(struct thread_info *ti)
+ 	if (get_user(mtype, &msgp->mtype))
+ 		return -EFAULT;
+-	return do_msgsnd(msqid, mtype, msgp->mtext, msgsz, msgflg);
++	return do_msgsnd(msqid, mtype, msgp->mtext, (ssize_t)msgsz, msgflg);
+ }
+ 
+ long compat_sys_msgrcv(int msqid, struct compat_msgbuf __user *msgp,
+-		       size_t msgsz, long msgtyp, int msgflg)
++		       compat_ssize_t msgsz, long msgtyp, int msgflg)
  {
--	arch_release_thread_info(ti);
- 	kmem_cache_free(thread_info_cache, ti);
- }
+ 	long err, mtype;
  
-@@ -205,10 +207,12 @@ static void account_kernel_stack(struct 
- void free_task(struct task_struct *tsk)
- {
- 	account_kernel_stack(tsk->stack, -1);
-+	arch_release_thread_info(tsk->stack);
- 	free_thread_info(tsk->stack);
- 	rt_mutex_debug_task_free(tsk);
- 	ftrace_graph_exit_task(tsk);
- 	put_seccomp_filter(tsk);
-+	arch_release_task_struct(tsk);
- 	free_task_struct(tsk);
- }
- EXPORT_SYMBOL(free_task);
-@@ -298,14 +302,12 @@ static struct task_struct *dup_task_stru
- 		return NULL;
+-	err =  do_msgrcv(msqid, &mtype, msgp->mtext, msgsz, msgtyp, msgflg);
++	err =  do_msgrcv(msqid, &mtype, msgp->mtext, (ssize_t)msgsz, msgtyp, msgflg);
+ 	if (err < 0)
+ 		goto out;
  
- 	ti = alloc_thread_info_node(tsk, node);
--	if (!ti) {
--		free_task_struct(tsk);
--		return NULL;
--	}
-+	if (!ti)
-+		goto free_tsk;
- 
- 	err = arch_dup_task_struct(tsk, orig);
- 	if (err)
--		goto out;
-+		goto free_ti;
- 
- 	tsk->stack = ti;
- 
-@@ -333,8 +335,9 @@ static struct task_struct *dup_task_stru
- 
- 	return tsk;
- 
--out:
-+free_ti:
- 	free_thread_info(ti);
-+free_tsk:
- 	free_task_struct(tsk);
- 	return NULL;
- }
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from will.deacon@arm.com are
 
 origin.patch
-fault-injection-fix-failcmdsh-warning.patch
 linux-next.patch
-ocfs2-use-find_last_bit.patch
-ocfs2-use-bitmap_weight.patch
 
