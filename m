@@ -1,83 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: [merged] clk-validate-pointer-in-__clk_disable.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:49:05 -0700
-Message-ID: <20120731184906.1D3B35C0063@hpza9.eem.corp.google.com>
+Subject: [merged] nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:49:09 -0700
+Message-ID: <20120731184909.E5A2E1E007E@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:51872 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756179Ab2GaStJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 31 Jul 2012 14:49:09 -0400
-Received: by lagr15 with SMTP id r15so292127lag.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:49:07 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:33060 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756179Ab2GaStL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:49:11 -0400
+Received: by mail-ob0-f202.google.com with SMTP id wc20so4676512obb.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:49:11 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, paul.gortmaker@windriver.com, rmk@arm.linux.org.uk, viresh.kumar@st.com, viresh.linux@gmail.com, mm-commits@vger.kernel.org
+To: snanda@chromium.org, a.p.zijlstra@chello.nl, dzickus@redhat.com, khandual@linux.vnet.ibm.com, mingo@elte.hu, msb@chromium.org, rjw@sisk.pl, srivatsa.bhat@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: clk: validate pointer in __clk_disable()
+     Subject: NMI watchdog: fix for lockup detector breakage on resume
 has been removed from the -mm tree.  Its filename was
-     clk-validate-pointer-in-__clk_disable.patch
+     nmi-watchdog-fix-for-lockup-detector-breakage-on-resume.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: clk: validate pointer in __clk_disable()
+From: Sameer Nanda <snanda@chromium.org>
+Subject: NMI watchdog: fix for lockup detector breakage on resume
 
-clk_get() returns -ENOENT on error and some careless caller might
-dereference it without error checking:
+On the suspend/resume path the boot CPU does not go though an
+offline->online transition.  This breaks the NMI detector post-resume
+since it depends on PMU state that is lost when the system gets suspended.
 
-In mxc_rnga_remove():
+Fix this by forcing a CPU offline->online transition for the lockup
+detector on the boot CPU during resume.
 
-        struct clk *clk = clk_get(&pdev->dev, "rng");
+To provide more context, we enable NMI watchdog on Chrome OS.  We have
+seen several reports of systems freezing up completely which indicated
+that the NMI watchdog was not firing for some reason.
 
-	// ...
+Debugging further, we found a simple way of repro'ing system freezes --
+issuing the command 'tasket 1 sh -c "echo nmilockup > /proc/breakme"'
+after the system has been suspended/resumed one or more times.
 
-        clk_disable(clk);
+With this patch in place, the system freeze result in panics, as expected.
+ These panics provide a nice stack trace for us to debug the actual issue
+causing the freeze.
 
-Since it's insane to audit the lots of existing and future clk users,
-let's add a check in the callee to avoid kernel panic and warn about
-any buggy user.
-
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Viresh Kumar <viresh.kumar@st.com>
-Cc: viresh kumar <viresh.linux@gmail.com>
+[akpm@linux-foundation.org: fiddle with code comment]
+[akpm@linux-foundation.org: make lockup_detector_bootcpu_resume() conditional on CONFIG_SUSPEND]
+[akpm@linux-foundation.org: fix section errors]
+Signed-off-by: Sameer Nanda <snanda@chromium.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Don Zickus <dzickus@redhat.com>
+Cc: Mandeep Singh Baines <msb@chromium.org>
+Cc: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Cc: Anshuman Khandual <khandual@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/clk/clk.c |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/sched.h  |    8 ++++++++
+ kernel/power/suspend.c |    3 +++
+ kernel/watchdog.c      |   21 +++++++++++++++++++--
+ 3 files changed, 30 insertions(+), 2 deletions(-)
 
-diff -puN drivers/clk/clk.c~clk-validate-pointer-in-__clk_disable drivers/clk/clk.c
---- a/drivers/clk/clk.c~clk-validate-pointer-in-__clk_disable
-+++ a/drivers/clk/clk.c
-@@ -465,6 +465,9 @@ static void __clk_disable(struct clk *cl
- 	if (!clk)
- 		return;
+diff -puN include/linux/sched.h~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume include/linux/sched.h
+--- a/include/linux/sched.h~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume
++++ a/include/linux/sched.h
+@@ -334,6 +334,14 @@ static inline void lockup_detector_init(
+ }
+ #endif
  
-+	if (WARN_ON(IS_ERR(clk)))
-+		return;
++#if defined(CONFIG_LOCKUP_DETECTOR) && defined(CONFIG_SUSPEND)
++void lockup_detector_bootcpu_resume(void);
++#else
++static inline void lockup_detector_bootcpu_resume(void)
++{
++}
++#endif
 +
- 	if (WARN_ON(clk->enable_count == 0))
- 		return;
+ #ifdef CONFIG_DETECT_HUNG_TASK
+ extern unsigned int  sysctl_hung_task_panic;
+ extern unsigned long sysctl_hung_task_check_count;
+diff -puN kernel/power/suspend.c~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume kernel/power/suspend.c
+--- a/kernel/power/suspend.c~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume
++++ a/kernel/power/suspend.c
+@@ -178,6 +178,9 @@ static int suspend_enter(suspend_state_t
+ 	arch_suspend_enable_irqs();
+ 	BUG_ON(irqs_disabled());
  
++	/* Kick the lockup detector */
++	lockup_detector_bootcpu_resume();
++
+  Enable_cpus:
+ 	enable_nonboot_cpus();
+ 
+diff -puN kernel/watchdog.c~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume kernel/watchdog.c
+--- a/kernel/watchdog.c~nmi-watchdog-fix-for-lockup-detector-breakage-on-resume
++++ a/kernel/watchdog.c
+@@ -575,7 +575,7 @@ out:
+ /*
+  * Create/destroy watchdog threads as CPUs come and go:
+  */
+-static int __cpuinit
++static int
+ cpu_callback(struct notifier_block *nfb, unsigned long action, void *hcpu)
+ {
+ 	int hotcpu = (unsigned long)hcpu;
+@@ -610,10 +610,27 @@ cpu_callback(struct notifier_block *nfb,
+ 	return NOTIFY_OK;
+ }
+ 
+-static struct notifier_block __cpuinitdata cpu_nfb = {
++static struct notifier_block cpu_nfb = {
+ 	.notifier_call = cpu_callback
+ };
+ 
++#ifdef CONFIG_SUSPEND
++/*
++ * On exit from suspend we force an offline->online transition on the boot CPU
++ * so that the PMU state that was lost while in suspended state gets set up
++ * properly for the boot CPU.  This information is required for restarting the
++ * NMI watchdog.
++ */
++void lockup_detector_bootcpu_resume(void)
++{
++	void *cpu = (void *)(long)smp_processor_id();
++
++	cpu_callback(&cpu_nfb, CPU_DEAD_FROZEN, cpu);
++	cpu_callback(&cpu_nfb, CPU_UP_PREPARE_FROZEN, cpu);
++	cpu_callback(&cpu_nfb, CPU_ONLINE_FROZEN, cpu);
++}
++#endif
++
+ void __init lockup_detector_init(void)
+ {
+ 	void *cpu = (void *)(long)smp_processor_id();
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from snanda@chromium.org are
 
 origin.patch
-xtensa-select-generic-atomic64_t-support.patch
-mm-prepare-for-removal-of-obsolete-proc-sys-vm-nr_pdflush_threads.patch
-mm-clear-pages_scanned-only-if-draining-a-pcp-adds-pages-to-the-buddy-allocator-again.patch
-mm-slb-add-knowledge-of-pfmemalloc-reserve-pages-fix.patch
-nfs-enable-swap-on-nfs-fix.patch
-memcg-prevent-oom-with-too-many-dirty-pages.patch
-memcg-further-prevent-oom-with-too-many-dirty-pages.patch
-memcg-add-mem_cgroup_from_css-helper-fix-2.patch
-linux-next.patch
-rbtree-performance-and-correctness-test-fix.patch
 
