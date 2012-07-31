@@ -1,100 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipc-compat-use-signed-size_t-types-for-msgsnd-and-msgrcv.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:54:12 -0700
-Message-ID: <20120731185412.CE504100048@wpzn3.hot.corp.google.com>
+Subject: [merged] ipc-allow-compat-ipc-version-field-parsing-if-arch_want_old_compat_ipc.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:54:09 -0700
+Message-ID: <20120731185409.CAA8510004A@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:39624 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752537Ab2GaSyS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:54:18 -0400
-Received: by vbnl22 with SMTP id l22so758599vbn.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:54:17 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:42024 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752123Ab2GaSyK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:54:10 -0400
+Received: by mail-ob0-f202.google.com with SMTP id wc20so4679387obb.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:54:10 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: will.deacon@arm.com, arnd@arndb.de, catalin.marinas@arm.com, cmetcalf@tilera.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc: compat: use signed size_t types for msgsnd and msgrcv
+     Subject: ipc: allow compat IPC version field parsing if !ARCH_WANT_OLD_COMPAT_IPC
 has been removed from the -mm tree.  Its filename was
-     ipc-compat-use-signed-size_t-types-for-msgsnd-and-msgrcv.patch
+     ipc-allow-compat-ipc-version-field-parsing-if-arch_want_old_compat_ipc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Will Deacon <will.deacon@arm.com>
-Subject: ipc: compat: use signed size_t types for msgsnd and msgrcv
+Subject: ipc: allow compat IPC version field parsing if !ARCH_WANT_OLD_COMPAT_IPC
 
-The msgsnd and msgrcv system calls use size_t to represent the size of the
-message being transferred.  POSIX states that values of msgsz greater than
-SSIZE_MAX cause the result to be implementation-defined.  On Linux, this
-equates to returning -EINVAL if (long) msgsz < 0.
+Commit 48b25c43 ("ipc: provide generic compat versions of IPC syscalls")
+added a new ARCH_WANT_OLD_COMPAT_IPC config option for architectures to
+select if their compat target requires the old IPC syscall interface.
 
-For compat tasks where !CONFIG_ARCH_WANT_OLD_COMPAT_IPC and compat_size_t
-is smaller than size_t, negative size values passed from userspace will be
-interpreted as positive values by do_msg{rcv,snd} and will fail to exit
-early with -EINVAL.
+For architectures (such as AArch64) that do not require the internal
+calling conventions provided by this option, but have a compat target
+where the C library passes the IPC_64 flag explicitly,
+compat_ipc_parse_version no longer strips out the flag before calling the
+native system call implementation, resulting in unknown SHM/IPC commands
+and -EINVAL being returned to userspace.
 
-This patch changes the compat prototypes for msg{rcv,snd} so that the
-message size is represented as a compat_ssize_t, which we cast to the
-native ssize_t type for the core IPC code.
+This patch separates the selection of the internal calling conventions for
+the IPC syscalls from the version parsing, allowing architectures to
+select __ARCH_WANT_COMPAT_IPC_PARSE_VERSION if they want to use version
+parsing whilst retaining the newer syscall calling conventions.
 
-Cc: Arnd Bergmann <arnd@arndb.de>
 Acked-by: Chris Metcalf <cmetcalf@tilera.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compat.h |    4 ++--
- ipc/compat.c           |    8 ++++----
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ include/linux/compat.h |    1 +
+ ipc/compat.c           |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/compat.h~ipc-compat-use-signed-size_t-types-for-msgsnd-and-msgrcv include/linux/compat.h
---- a/include/linux/compat.h~ipc-compat-use-signed-size_t-types-for-msgsnd-and-msgrcv
+diff -puN include/linux/compat.h~ipc-allow-compat-ipc-version-field-parsing-if-arch_want_old_compat_ipc include/linux/compat.h
+--- a/include/linux/compat.h~ipc-allow-compat-ipc-version-field-parsing-if-arch_want_old_compat_ipc
 +++ a/include/linux/compat.h
-@@ -266,9 +266,9 @@ long compat_sys_shmat(int first, int sec
- #else
- long compat_sys_semctl(int semid, int semnum, int cmd, int arg);
- long compat_sys_msgsnd(int msqid, struct compat_msgbuf __user *msgp,
--		size_t msgsz, int msgflg);
-+		compat_ssize_t msgsz, int msgflg);
- long compat_sys_msgrcv(int msqid, struct compat_msgbuf __user *msgp,
--		size_t msgsz, long msgtyp, int msgflg);
-+		compat_ssize_t msgsz, long msgtyp, int msgflg);
- long compat_sys_shmat(int shmid, compat_uptr_t shmaddr, int shmflg);
- #endif
- long compat_sys_msgctl(int first, int second, void __user *uptr);
-diff -puN ipc/compat.c~ipc-compat-use-signed-size_t-types-for-msgsnd-and-msgrcv ipc/compat.c
---- a/ipc/compat.c~ipc-compat-use-signed-size_t-types-for-msgsnd-and-msgrcv
+@@ -256,6 +256,7 @@ compat_sys_get_robust_list(int pid, comp
+ 			   compat_size_t __user *len_ptr);
+ 
+ #ifdef CONFIG_ARCH_WANT_OLD_COMPAT_IPC
++#define __ARCH_WANT_COMPAT_IPC_PARSE_VERSION
+ long compat_sys_semctl(int first, int second, int third, void __user *uptr);
+ long compat_sys_msgsnd(int first, int second, int third, void __user *uptr);
+ long compat_sys_msgrcv(int first, int second, int msgtyp, int third,
+diff -puN ipc/compat.c~ipc-allow-compat-ipc-version-field-parsing-if-arch_want_old_compat_ipc ipc/compat.c
+--- a/ipc/compat.c~ipc-allow-compat-ipc-version-field-parsing-if-arch_want_old_compat_ipc
 +++ a/ipc/compat.c
-@@ -373,21 +373,21 @@ long compat_sys_semctl(int semid, int se
- }
+@@ -118,7 +118,7 @@ extern int sem_ctls[];
  
- long compat_sys_msgsnd(int msqid, struct compat_msgbuf __user *msgp,
--		       size_t msgsz, int msgflg)
-+		       compat_ssize_t msgsz, int msgflg)
+ static inline int compat_ipc_parse_version(int *cmd)
  {
- 	compat_long_t mtype;
+-#ifdef CONFIG_ARCH_WANT_OLD_COMPAT_IPC
++#ifdef	__ARCH_WANT_COMPAT_IPC_PARSE_VERSION
+ 	int version = *cmd & IPC_64;
  
- 	if (get_user(mtype, &msgp->mtype))
- 		return -EFAULT;
--	return do_msgsnd(msqid, mtype, msgp->mtext, msgsz, msgflg);
-+	return do_msgsnd(msqid, mtype, msgp->mtext, (ssize_t)msgsz, msgflg);
- }
- 
- long compat_sys_msgrcv(int msqid, struct compat_msgbuf __user *msgp,
--		       size_t msgsz, long msgtyp, int msgflg)
-+		       compat_ssize_t msgsz, long msgtyp, int msgflg)
- {
- 	long err, mtype;
- 
--	err =  do_msgrcv(msqid, &mtype, msgp->mtext, msgsz, msgtyp, msgflg);
-+	err =  do_msgrcv(msqid, &mtype, msgp->mtext, (ssize_t)msgsz, msgtyp, msgflg);
- 	if (err < 0)
- 		goto out;
- 
+ 	/* this is tricky: architectures that have support for the old
 _
 
 Patches currently in -mm which might be from will.deacon@arm.com are
