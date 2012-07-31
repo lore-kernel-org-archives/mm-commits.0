@@ -1,55 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nilfs2-add-omitted-comment-for-ns_mount_state-field-of-the_nilfs-structure.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:53:00 -0700
-Message-ID: <20120731185300.F1E8D5C0050@hpza9.eem.corp.google.com>
+Subject: [merged] nilfs2-remove-references-to-long-gone-super-operations.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:53:04 -0700
+Message-ID: <20120731185304.B65EC1E0080@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:37887 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756344Ab2GaSxC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:53:02 -0400
-Received: by mail-ee0-f74.google.com with SMTP id d4so295599eek.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:53:01 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:42024 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756349Ab2GaSxI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:53:08 -0400
+Received: by mail-ob0-f202.google.com with SMTP id wc20so4679387obb.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:53:08 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: slava@dubeyko.com, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
+To: fernando@oss.ntt.co.jp, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: add omitted comment for ns_mount_state field of the_nilfs structure
+     Subject: nilfs2: remove references to long gone super operations
 has been removed from the -mm tree.  Its filename was
-     nilfs2-add-omitted-comment-for-ns_mount_state-field-of-the_nilfs-structure.patch
+     nilfs2-remove-references-to-long-gone-super-operations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vyacheslav Dubeyko <slava@dubeyko.com>
-Subject: nilfs2: add omitted comment for ns_mount_state field of the_nilfs structure
+From: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
+Subject: nilfs2: remove references to long gone super operations
 
-Add omitted comment for ns_mount_state field of the_nilfs structure.
+->delete_inode(), ->write_super_lockfs(), ->unlockfs() are gone so remove
+references to them in the NTFS code.  Noticed while cleaning up the
+fsfreeze mess.
 
-Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
+Signed-off-by: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/the_nilfs.h |    1 +
- 1 file changed, 1 insertion(+)
+ fs/nilfs2/super.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN fs/nilfs2/the_nilfs.h~nilfs2-add-omitted-comment-for-ns_mount_state-field-of-the_nilfs-structure fs/nilfs2/the_nilfs.h
---- a/fs/nilfs2/the_nilfs.h~nilfs2-add-omitted-comment-for-ns_mount_state-field-of-the_nilfs-structure
-+++ a/fs/nilfs2/the_nilfs.h
-@@ -52,6 +52,7 @@ enum {
-  * @ns_sbwtime: previous write time of super block
-  * @ns_sbwcount: write count of super block
-  * @ns_sbsize: size of valid data in super block
-+ * @ns_mount_state: file system state
-  * @ns_seg_seq: segment sequence counter
-  * @ns_segnum: index number of the latest full segment.
-  * @ns_nextnum: index number of the full segment index to be used next
+diff -puN fs/nilfs2/super.c~nilfs2-remove-references-to-long-gone-super-operations fs/nilfs2/super.c
+--- a/fs/nilfs2/super.c~nilfs2-remove-references-to-long-gone-super-operations
++++ a/fs/nilfs2/super.c
+@@ -677,7 +677,6 @@ static const struct super_operations nil
+ 	.destroy_inode  = nilfs_destroy_inode,
+ 	.dirty_inode    = nilfs_dirty_inode,
+ 	/* .write_inode    = nilfs_write_inode, */
+-	/* .put_inode      = nilfs_put_inode, */
+ 	/* .drop_inode	  = nilfs_drop_inode, */
+ 	.evict_inode    = nilfs_evict_inode,
+ 	.put_super      = nilfs_put_super,
+@@ -685,8 +684,6 @@ static const struct super_operations nil
+ 	.sync_fs        = nilfs_sync_fs,
+ 	.freeze_fs	= nilfs_freeze,
+ 	.unfreeze_fs	= nilfs_unfreeze,
+-	/* .write_super_lockfs */
+-	/* .unlockfs */
+ 	.statfs         = nilfs_statfs,
+ 	.remount_fs     = nilfs_remount,
+ 	/* .umount_begin */
 _
 
-Patches currently in -mm which might be from slava@dubeyko.com are
+Patches currently in -mm which might be from fernando@oss.ntt.co.jp are
 
 origin.patch
 
