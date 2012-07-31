@@ -1,19 +1,19 @@
 From: akpm@linux-foundation.org
 Subject: + fs-direct-ioc-set-bi_rw-when-alloc-bio.patch added to -mm tree
-Date: Tue, 31 Jul 2012 15:55:21 -0700
-Message-ID: <20120731225522.12A065C0050@hpza9.eem.corp.google.com>
+Date: Tue, 31 Jul 2012 15:56:03 -0700
+Message-ID: <20120731225604.69E2A100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:47349 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752721Ab2GaWzY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 18:55:24 -0400
-Received: by wibhr14 with SMTP id hr14so152754wib.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 15:55:23 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:64210 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753579Ab2GaW4G (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 18:56:06 -0400
+Received: by obbwc20 with SMTP id wc20so4803288obb.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 15:56:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: majianpeng@gmail.com, jmoyer@redhat.com, neilb@suse.de, viro@zeniv.linux.org.uk
+Cc: majianpeng@gmail.com, jmoyer@redhat.com, neilb@suse.de, stable@vger.kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
@@ -45,10 +45,13 @@ The merge_bvec_fn of raid456 will use the bi_rw to judge the merge:
 	if ((bvm->bi_rw & 1) == WRITE)
 		return biovec->bv_len; /* always allow writes to be mergeable */
 
+This bug is causing raid5 performance issues.
+
 Signed-off-by: Jianpeng Ma <majianpeng@gmail.com>
 Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
 Cc: Neil Brown <neilb@suse.de>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
