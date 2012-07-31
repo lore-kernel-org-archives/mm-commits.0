@@ -1,83 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [merged] printk-remove-the-now-unnecessary-c-annotation-for-kern_cont.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:49:46 -0700
-Message-ID: <20120731184947.1550D20004E@hpza10.eem.corp.google.com>
+Subject: [merged] vsprintf-add-%pmr-for-bluetooth-mac-address.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:49:50 -0700
+Message-ID: <20120731184951.1AD265C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:57007 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756273Ab2GaStt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:49:49 -0400
-Received: by eekd4 with SMTP id d4so295430eek.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:49:48 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:57525 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756275Ab2GaStx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:49:53 -0400
+Received: by eaao12 with SMTP id o12so241388eaa.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:49:52 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
+To: andrei.emeltchenko@intel.com, joe@perches.com, marcel@holtmann.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk: remove the now unnecessary "C" annotation for KERN_CONT
+     Subject: vsprintf: add %pMR for Bluetooth MAC address
 has been removed from the -mm tree.  Its filename was
-     printk-remove-the-now-unnecessary-c-annotation-for-kern_cont.patch
+     vsprintf-add-%pmr-for-bluetooth-mac-address.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: printk: remove the now unnecessary "C" annotation for KERN_CONT
+From: Andrei Emeltchenko <andrei.emeltchenko@intel.com>
+Subject: vsprintf: add %pMR for Bluetooth MAC address
 
-Now that all KERN_<LEVEL> uses are prefixed with ASCII SOH, there is no
-need for a KERN_CONT.  Keep it backward compatible by adding #define
-KERN_CONT ""
+Bluetooth uses mostly LE byte order which is reversed for visual
+interpretation.  Currently in Bluetooth in use unsafe batostr function.
 
-Reduces kernel image size a thousand bytes.
+This is a slightly modified version of Joe's patch (sent Sat, Dec 4,
+2010).
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
+Signed-off-by: Andrei Emeltchenko <andrei.emeltchenko@intel.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Marcel Holtmann <marcel@holtmann.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kern_levels.h |    2 +-
- include/linux/printk.h      |    2 --
- 2 files changed, 1 insertion(+), 3 deletions(-)
+ Documentation/printk-formats.txt |    5 +++++
+ lib/vsprintf.c                   |   23 +++++++++++++++++++----
+ 2 files changed, 24 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/kern_levels.h~printk-remove-the-now-unnecessary-c-annotation-for-kern_cont include/linux/kern_levels.h
---- a/include/linux/kern_levels.h~printk-remove-the-now-unnecessary-c-annotation-for-kern_cont
-+++ a/include/linux/kern_levels.h
-@@ -20,6 +20,6 @@
-  * line that had no enclosing \n). Only to be used by core/arch code
-  * during early bootup (a continued line is not SMP-safe otherwise).
-  */
--#define KERN_CONT	KERN_SOH "c"
-+#define KERN_CONT	""
+diff -puN Documentation/printk-formats.txt~vsprintf-add-%pmr-for-bluetooth-mac-address Documentation/printk-formats.txt
+--- a/Documentation/printk-formats.txt~vsprintf-add-%pmr-for-bluetooth-mac-address
++++ a/Documentation/printk-formats.txt
+@@ -56,6 +56,7 @@ Struct Resources:
+ MAC/FDDI addresses:
  
- #endif
-diff -puN include/linux/printk.h~printk-remove-the-now-unnecessary-c-annotation-for-kern_cont include/linux/printk.h
---- a/include/linux/printk.h~printk-remove-the-now-unnecessary-c-annotation-for-kern_cont
-+++ a/include/linux/printk.h
-@@ -13,7 +13,6 @@ static inline int printk_get_level(const
- 		switch (buffer[1]) {
- 		case '0' ... '7':
- 		case 'd':	/* KERN_DEFAULT */
--		case 'c':	/* KERN_CONT */
- 			return buffer[1];
- 		}
+ 	%pM	00:01:02:03:04:05
++	%pMR	05:04:03:02:01:00
+ 	%pMF	00-01-02-03-04-05
+ 	%pm	000102030405
+ 
+@@ -67,6 +68,10 @@ MAC/FDDI addresses:
+ 	the 'M' specifier to use dash ('-') separators instead of the default
+ 	separator.
+ 
++	For Bluetooth addresses the 'R' specifier shall be used after the 'M'
++	specifier to use reversed byte order suitable for visual interpretation
++	of Bluetooth addresses which are in the little endian order.
++
+ IPv4 addresses:
+ 
+ 	%pI4	1.2.3.4
+diff -puN lib/vsprintf.c~vsprintf-add-%pmr-for-bluetooth-mac-address lib/vsprintf.c
+--- a/lib/vsprintf.c~vsprintf-add-%pmr-for-bluetooth-mac-address
++++ a/lib/vsprintf.c
+@@ -662,15 +662,28 @@ char *mac_address_string(char *buf, char
+ 	char *p = mac_addr;
+ 	int i;
+ 	char separator;
++	bool reversed = false;
+ 
+-	if (fmt[1] == 'F') {		/* FDDI canonical format */
++	switch (fmt[1]) {
++	case 'F':
+ 		separator = '-';
+-	} else {
++		break;
++
++	case 'R':
++		reversed = true;
++		/* fall through */
++
++	default:
+ 		separator = ':';
++		break;
  	}
-@@ -26,7 +25,6 @@ static inline const char *printk_skip_le
- 		switch (buffer[1]) {
- 		case '0' ... '7':
- 		case 'd':	/* KERN_DEFAULT */
--		case 'c':	/* KERN_CONT */
- 			return buffer + 2;
- 		}
+ 
+ 	for (i = 0; i < 6; i++) {
+-		p = hex_byte_pack(p, addr[i]);
++		if (reversed)
++			p = hex_byte_pack(p, addr[5 - i]);
++		else
++			p = hex_byte_pack(p, addr[i]);
++
+ 		if (fmt[0] == 'M' && i != 5)
+ 			*p++ = separator;
  	}
+@@ -933,6 +946,7 @@ int kptr_restrict __read_mostly;
+  * - 'm' For a 6-byte MAC address, it prints the hex address without colons
+  * - 'MF' For a 6-byte MAC FDDI address, it prints the address
+  *       with a dash-separated hex notation
++ * - '[mM]R For a 6-byte MAC address, Reverse order (Bluetooth)
+  * - 'I' [46] for IPv4/IPv6 addresses printed in the usual way
+  *       IPv4 uses dot-separated decimal without leading 0's (1.2.3.4)
+  *       IPv6 uses colon separated network-order 16 bit hex with leading 0's
+@@ -995,7 +1009,8 @@ char *pointer(const char *fmt, char *buf
+ 		return resource_string(buf, end, ptr, spec, fmt);
+ 	case 'M':			/* Colon separated: 00:01:02:03:04:05 */
+ 	case 'm':			/* Contiguous: 000102030405 */
+-					/* [mM]F (FDDI, bit reversed) */
++					/* [mM]F (FDDI) */
++					/* [mM]R (Reverse order; Bluetooth) */
+ 		return mac_address_string(buf, end, ptr, spec, fmt);
+ 	case 'I':			/* Formatted IP supported
+ 					 * 4:	1.2.3.4
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from andrei.emeltchenko@intel.com are
 
 origin.patch
-dynamic_debug-restore-dev_dbg-netdev_dbg-functionality-reduce-stack-use.patch
-dynamic_debug-restore-dev_dbg-netdev_dbg-functionality-reduce-stack-use-v2.patch
 linux-next.patch
-thermal-add-renesas-r-car-thermal-sensor-support.patch
 
