@@ -1,96 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:52:30 -0700
-Message-ID: <20120731185231.1E85B5C0050@hpza9.eem.corp.google.com>
+Subject: [merged] rtc-rtc-s3c-replace-include-header-files-from-asm-to-linux.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:52:34 -0700
+Message-ID: <20120731185235.159F05C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:59062 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756350Ab2GaSwd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:52:33 -0400
-Received: by mail-fa0-f74.google.com with SMTP id 25so290609fat.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:52:32 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:37887 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756322Ab2GaSwg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:52:36 -0400
+Received: by eekd4 with SMTP id d4so295599eek.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:52:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.zummo@towertech.it, agust@denx.de, andreas.dumberger@tqs.de, devendra.aaru@gmail.com, mm-commits@vger.kernel.org
+To: sachin.kamat@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-r9701.c: check that r9701_set_datetime() succeeded
+     Subject: drivers/rtc/rtc-s3c.c: replace #include header files from asm/* to linux/*
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded.patch
+     rtc-rtc-s3c-replace-include-header-files-from-asm-to-linux.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/rtc/rtc-r9701.c: check that r9701_set_datetime() succeeded
+From: Sachin Kamat <sachin.kamat@linaro.org>
+Subject: drivers/rtc/rtc-s3c.c: replace #include header files from asm/* to linux/*
 
-When the driver detects that the clock time is invalid, it attempts to
-write a sane time into the hardware.  We curently assume that everything
-is OK is those writes succeeded.  But it is better to re-read the time
-from the hardware to ensure that the new settings got there OK.
+Fixes the following checkpatch warnings:
+WARNING: Use #include <linux/uaccess.h> instead of <asm/uaccess.h>
+WARNING: Use #include <linux/io.h> instead of <asm/io.h>
 
-Cc: Devendra Naga <devendra.aaru@gmail.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Anatolij Gustschin <agust@denx.de>
-Cc: Andreas Dumberger <andreas.dumberger@tqs.de>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-r9701.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-s3c.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-r9701.c~drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded drivers/rtc/rtc-r9701.c
---- a/drivers/rtc/rtc-r9701.c~drivers-rtc-rtc-r9701c-check-that-r9701_set_datetime-succeeded
-+++ a/drivers/rtc/rtc-r9701.c
-@@ -147,7 +147,8 @@ static int __devinit r9701_probe(struct 
- 		dt.tm_mon  = 0;
- 		dt.tm_year = 100;
+diff -puN drivers/rtc/rtc-s3c.c~rtc-rtc-s3c-replace-include-header-files-from-asm-to-linux drivers/rtc/rtc-s3c.c
+--- a/drivers/rtc/rtc-s3c.c~rtc-rtc-s3c-replace-include-header-files-from-asm-to-linux
++++ a/drivers/rtc/rtc-s3c.c
+@@ -26,10 +26,10 @@
+ #include <linux/log2.h>
+ #include <linux/slab.h>
+ #include <linux/of.h>
++#include <linux/uaccess.h>
++#include <linux/io.h>
  
--		if (r9701_set_datetime(&spi->dev, &dt)) {
-+		if (r9701_set_datetime(&spi->dev, &dt) ||
-+				r9701_get_datetime(&spi->dev, &dt)) {
- 			dev_err(&spi->dev, "cannot repair RTC register\n");
- 			return -ENODEV;
- 		}
+ #include <mach/hardware.h>
+-#include <asm/uaccess.h>
+-#include <asm/io.h>
+ #include <asm/irq.h>
+ #include <plat/regs-rtc.h>
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sachin.kamat@linaro.org are
 
 origin.patch
-mm-make-vb_alloc-more-foolproof-fix.patch
-mm-hugetlb-add-new-hugetlb-cgroup-fix.patch
-mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch
-hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
-hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
-mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
-memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
-mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
-memcg-rename-config-variables.patch
-memcg-rename-config-variables-fix-fix.patch
-mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes.patch
-mm-have-order-0-compaction-start-off-where-it-left-v3-typo.patch
-memory-hotplug-fix-kswapd-looping-forever-problem-fix.patch
-memory-hotplug-fix-kswapd-looping-forever-problem-fix-fix.patch
-netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix.patch
-memcg-prevent-oom-with-too-many-dirty-pages.patch
-memcg-add-mem_cgroup_from_css-helper-fix.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
-thermal-add-generic-cpufreq-cooling-implementation.patch
-thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
-thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
-mm-slab_commonc-fix-warning.patch
-mm.patch
-rbtree-performance-and-correctness-test-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
