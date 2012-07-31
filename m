@@ -1,76 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [merged] coredump-fix-wrong-comments-on-core-limits-of-pipe-coredump-case.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:53:42 -0700
-Message-ID: <20120731185343.1F4AC5C0050@hpza9.eem.corp.google.com>
+Subject: [merged] kernel-kmodc-document-call_usermodehelper_fns-a-bit.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:53:32 -0700
+Message-ID: <20120731185333.3DAEC5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-bk0-f74.google.com ([209.85.214.74]:35472 "EHLO
 	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756346Ab2GaSxo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:53:44 -0400
-Received: by mail-bk0-f74.google.com with SMTP id jc3so293508bkc.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:53:44 -0700 (PDT)
+	with ESMTP id S1756340Ab2GaSxg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:53:36 -0400
+Received: by bkcjc3 with SMTP id jc3so293508bkc.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:53:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bookjovi@gmail.com, nhorman@tuxdriver.com, oleg@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, ebiederm@xmission.com, gorcunov@openvz.org, keescook@chromium.org, oleg@redhat.com, rusty@rustcorp.com.au, serge.hallyn@canonical.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: coredump: fix wrong comments on core limits of pipe coredump case
+     Subject: kernel/kmod.c: document call_usermodehelper_fns() a bit
 has been removed from the -mm tree.  Its filename was
-     coredump-fix-wrong-comments-on-core-limits-of-pipe-coredump-case.patch
+     kernel-kmodc-document-call_usermodehelper_fns-a-bit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jovi Zhang <bookjovi@gmail.com>
-Subject: coredump: fix wrong comments on core limits of pipe coredump case
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel/kmod.c: document call_usermodehelper_fns() a bit
 
-In commit 898b374a ("exec: replace call_usermodehelper_pipe with use of
-umh init function and resolve limit"), the core limits recursive check
-value was changed from 0 to 1, but the corresponding comments were not
-updated.
+This function's interface is, uh, subtle.  Attempt to apologise for it.
 
-Signed-off-by: Jovi Zhang <bookjovi@gmail.com>
+Cc: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Neil Horman <nhorman@tuxdriver.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ kernel/kmod.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN fs/exec.c~coredump-fix-wrong-comments-on-core-limits-of-pipe-coredump-case fs/exec.c
---- a/fs/exec.c~coredump-fix-wrong-comments-on-core-limits-of-pipe-coredump-case
-+++ a/fs/exec.c
-@@ -2174,15 +2174,16 @@ void do_coredump(long signr, int exit_co
- 		}
+diff -puN kernel/kmod.c~kernel-kmodc-document-call_usermodehelper_fns-a-bit kernel/kmod.c
+--- a/kernel/kmod.c~kernel-kmodc-document-call_usermodehelper_fns-a-bit
++++ a/kernel/kmod.c
+@@ -577,6 +577,12 @@ unlock:
+ 	return retval;
+ }
  
- 		if (cprm.limit == 1) {
--			/*
-+			/* See umh_pipe_setup() which sets RLIMIT_CORE = 1.
-+			 *
- 			 * Normally core limits are irrelevant to pipes, since
- 			 * we're not writing to the file system, but we use
--			 * cprm.limit of 1 here as a speacial value. Any
--			 * non-1 limit gets set to RLIM_INFINITY below, but
--			 * a limit of 0 skips the dump.  This is a consistent
--			 * way to catch recursive crashes.  We can still crash
--			 * if the core_pattern binary sets RLIM_CORE =  !1
--			 * but it runs as root, and can do lots of stupid things
-+			 * cprm.limit of 1 here as a speacial value, this is a
-+			 * consistent way to catch recursive crashes.
-+			 * We can still crash if the core_pattern binary sets
-+			 * RLIM_CORE = !1, but it runs as root, and can do
-+			 * lots of stupid things.
-+			 *
- 			 * Note that we use task_tgid_vnr here to grab the pid
- 			 * of the process group leader.  That way we get the
- 			 * right pid if a thread in a multi-threaded
++/*
++ * call_usermodehelper_fns() will not run the caller-provided cleanup function
++ * if a memory allocation failure is experienced.  So the caller might need to
++ * check the call_usermodehelper_fns() return value: if it is -ENOMEM, perform
++ * the necessaary cleanup within the caller.
++ */
+ int call_usermodehelper_fns(
+ 	char *path, char **argv, char **envp, int wait,
+ 	int (*init)(struct subprocess_info *info, struct cred *new),
 _
 
-Patches currently in -mm which might be from bookjovi@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+mm-make-vb_alloc-more-foolproof-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix.patch
+mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
+mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
+memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
+mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
+memcg-rename-config-variables.patch
+memcg-rename-config-variables-fix-fix.patch
+mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes.patch
+mm-have-order-0-compaction-start-off-where-it-left-v3-typo.patch
+memory-hotplug-fix-kswapd-looping-forever-problem-fix.patch
+memory-hotplug-fix-kswapd-looping-forever-problem-fix-fix.patch
+netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix.patch
+memcg-prevent-oom-with-too-many-dirty-pages.patch
+memcg-add-mem_cgroup_from_css-helper-fix.patch
 linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
+thermal-add-generic-cpufreq-cooling-implementation.patch
+thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
+thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
+mm-slab_commonc-fix-warning.patch
+mm.patch
+rbtree-performance-and-correctness-test-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
