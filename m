@@ -1,147 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: [merged] include-linux-aioh-cpp-c-conversions.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:54:31 -0700
-Message-ID: <20120731185432.2323C5C0050@hpza9.eem.corp.google.com>
+Subject: [merged] c-r-fcntl-add-f_getowner_uids-option.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:54:38 -0700
+Message-ID: <20120731185438.C915D1E006E@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:53898 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752547Ab2GaSye (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:54:34 -0400
-Received: by mail-lb0-f202.google.com with SMTP id gp10so295563lbb.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:54:33 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:42024 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756346Ab2GaSyk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:54:40 -0400
+Received: by mail-ob0-f202.google.com with SMTP id wc20so4679387obb.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:54:39 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jlbec@evilplan.org, jmoyer@redhat.com, junxiao.bi@oracle.com, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: gorcunov@openvz.org, ebiederm@xmission.com, oleg@redhat.com, serge@hallyn.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/aio.h: cpp->C conversions
+     Subject: c/r: fcntl: add F_GETOWNER_UIDS option
 has been removed from the -mm tree.  Its filename was
-     include-linux-aioh-cpp-c-conversions.patch
+     c-r-fcntl-add-f_getowner_uids-option.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include/linux/aio.h: cpp->C conversions
+From: Cyrill Gorcunov <gorcunov@openvz.org>
+Subject: c/r: fcntl: add F_GETOWNER_UIDS option
 
-Convert init_sync_kiocb() from a nasty macro into a nice C function.  The
-struct assignment trick takes care of zeroing all unmentioned fields. 
-Shrinks fs/read_write.o's .text from 9857 bytes to 9714.
+When we restore file descriptors we would like them to look exactly as
+they were at dumping time.
 
-Also demacroize is_sync_kiocb() and aio_ring_avail().  The latter fixes an
-arg-referenced-multiple-times hand grenade.
+With help of fcntl it's almost possible, the missing snippet is file
+owners UIDs.
 
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Acked-by: Jeff Moyer <jmoyer@redhat.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+To be able to read their values the F_GETOWNER_UIDS is introduced.
+
+This option is valid iif CONFIG_CHECKPOINT_RESTORE is turned on, otherwise
+returning -EINVAL.
+
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "Serge E. Hallyn" <serge@hallyn.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/aio.h |   38 ++++++++++++++++++++------------------
- 1 file changed, 20 insertions(+), 18 deletions(-)
+ fs/fcntl.c                  |   29 +++++++++++++++++++++++++++++
+ include/asm-generic/fcntl.h |    4 ++++
+ security/selinux/hooks.c    |    1 +
+ 3 files changed, 34 insertions(+)
 
-diff -puN include/linux/aio.h~include-linux-aioh-cpp-c-conversions include/linux/aio.h
---- a/include/linux/aio.h~include-linux-aioh-cpp-c-conversions
-+++ a/include/linux/aio.h
-@@ -126,22 +126,20 @@ struct kiocb {
- 	struct eventfd_ctx	*ki_eventfd;
- };
+diff -puN fs/fcntl.c~c-r-fcntl-add-f_getowner_uids-option fs/fcntl.c
+--- a/fs/fcntl.c~c-r-fcntl-add-f_getowner_uids-option
++++ a/fs/fcntl.c
+@@ -20,6 +20,7 @@
+ #include <linux/signal.h>
+ #include <linux/rcupdate.h>
+ #include <linux/pid_namespace.h>
++#include <linux/user_namespace.h>
  
--#define is_sync_kiocb(iocb)	((iocb)->ki_key == KIOCB_SYNC_KEY)
--#define init_sync_kiocb(x, filp)			\
--	do {						\
--		struct task_struct *tsk = current;	\
--		(x)->ki_flags = 0;			\
--		(x)->ki_users = 1;			\
--		(x)->ki_key = KIOCB_SYNC_KEY;		\
--		(x)->ki_filp = (filp);			\
--		(x)->ki_ctx = NULL;			\
--		(x)->ki_cancel = NULL;			\
--		(x)->ki_retry = NULL;			\
--		(x)->ki_dtor = NULL;			\
--		(x)->ki_obj.tsk = tsk;			\
--		(x)->ki_user_data = 0;                  \
--		(x)->private = NULL;			\
--	} while (0)
-+static inline bool is_sync_kiocb(struct kiocb *kiocb)
+ #include <asm/poll.h>
+ #include <asm/siginfo.h>
+@@ -340,6 +341,31 @@ static int f_getown_ex(struct file *filp
+ 	return ret;
+ }
+ 
++#ifdef CONFIG_CHECKPOINT_RESTORE
++static int f_getowner_uids(struct file *filp, unsigned long arg)
 +{
-+	return kiocb->ki_key == KIOCB_SYNC_KEY;
-+}
++	struct user_namespace *user_ns = current_user_ns();
++	uid_t * __user dst = (void * __user)arg;
++	uid_t src[2];
++	int err;
 +
-+static inline void init_sync_kiocb(struct kiocb *kiocb, struct file *filp)
-+{
-+	*kiocb = (struct kiocb) {
-+			.ki_users = 1,
-+			.ki_key = KIOCB_SYNC_KEY,
-+			.ki_filp = filp,
-+			.ki_obj.tsk = current,
-+		};
-+}
- 
- #define AIO_RING_MAGIC			0xa10a10a1
- #define AIO_RING_COMPAT_FEATURES	1
-@@ -161,8 +159,6 @@ struct aio_ring {
- 	struct io_event		io_events[0];
- }; /* 128 bytes + ring size */
- 
--#define aio_ring_avail(info, ring)	(((ring)->head + (info)->nr - 1 - (ring)->tail) % (info)->nr)
--
- #define AIO_RING_PAGES	8
- struct aio_ring_info {
- 	unsigned long		mmap_base;
-@@ -177,6 +173,12 @@ struct aio_ring_info {
- 	struct page		*internal_pages[AIO_RING_PAGES];
- };
- 
-+static inline unsigned aio_ring_avail(struct aio_ring_info *info,
-+					struct aio_ring *ring)
-+{
-+	return (ring->head + info->nr - 1 - ring->tail) % info->nr;
-+}
++	read_lock(&filp->f_owner.lock);
++	src[0] = from_kuid(user_ns, filp->f_owner.uid);
++	src[1] = from_kuid(user_ns, filp->f_owner.euid);
++	read_unlock(&filp->f_owner.lock);
 +
- struct kioctx {
- 	atomic_t		users;
- 	int			dead;
++	err  = put_user(src[0], &dst[0]);
++	err |= put_user(src[1], &dst[1]);
++
++	return err;
++}
++#else
++static int f_getowner_uids(struct file *filp, unsigned long arg)
++{
++	return -EINVAL;
++}
++#endif
++
+ static long do_fcntl(int fd, unsigned int cmd, unsigned long arg,
+ 		struct file *filp)
+ {
+@@ -396,6 +422,9 @@ static long do_fcntl(int fd, unsigned in
+ 	case F_SETOWN_EX:
+ 		err = f_setown_ex(filp, arg);
+ 		break;
++	case F_GETOWNER_UIDS:
++		err = f_getowner_uids(filp, arg);
++		break;
+ 	case F_GETSIG:
+ 		err = filp->f_owner.signum;
+ 		break;
+diff -puN include/asm-generic/fcntl.h~c-r-fcntl-add-f_getowner_uids-option include/asm-generic/fcntl.h
+--- a/include/asm-generic/fcntl.h~c-r-fcntl-add-f_getowner_uids-option
++++ a/include/asm-generic/fcntl.h
+@@ -120,6 +120,10 @@
+ #define F_GETOWN_EX	16
+ #endif
+ 
++#ifndef F_GETOWNER_UIDS
++#define F_GETOWNER_UIDS	17
++#endif
++
+ #define F_OWNER_TID	0
+ #define F_OWNER_PID	1
+ #define F_OWNER_PGRP	2
+diff -puN security/selinux/hooks.c~c-r-fcntl-add-f_getowner_uids-option security/selinux/hooks.c
+--- a/security/selinux/hooks.c~c-r-fcntl-add-f_getowner_uids-option
++++ a/security/selinux/hooks.c
+@@ -3180,6 +3180,7 @@ static int selinux_file_fcntl(struct fil
+ 	case F_GETFL:
+ 	case F_GETOWN:
+ 	case F_GETSIG:
++	case F_GETOWNER_UIDS:
+ 		/* Just check FD__USE permission */
+ 		err = file_has_perm(cred, file, 0);
+ 		break;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from gorcunov@openvz.org are
 
 origin.patch
-mm-make-vb_alloc-more-foolproof-fix.patch
-mm-hugetlb-add-new-hugetlb-cgroup-fix.patch
-mm-hugetlb-add-new-hugetlb-cgroup-fix-fix.patch
-hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
-hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
-mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
-memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
-mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
-memcg-rename-config-variables.patch
-memcg-rename-config-variables-fix-fix.patch
-mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes.patch
-mm-have-order-0-compaction-start-off-where-it-left-v3-typo.patch
-memory-hotplug-fix-kswapd-looping-forever-problem-fix.patch
-memory-hotplug-fix-kswapd-looping-forever-problem-fix-fix.patch
-netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix.patch
-memcg-prevent-oom-with-too-many-dirty-pages.patch
-memcg-add-mem_cgroup_from_css-helper-fix.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
-thermal-add-generic-cpufreq-cooling-implementation.patch
-thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
-thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
-mm-slab_commonc-fix-warning.patch
-mm.patch
-rbtree-performance-and-correctness-test-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
