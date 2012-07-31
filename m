@@ -1,75 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [folded] hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup-add-huge_page_order-check-to-avoid-incorrectly-uncharge.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 16:27:02 -0700
-Message-ID: <20120731232702.C6545A028B@akpm.mtv.corp.google.com>
+Subject: [folded] hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 16:28:08 -0700
+Message-ID: <20120731232808.C9992A028B@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:49944 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754721Ab2GaX1E (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 19:27:04 -0400
-Received: by wgbdt11 with SMTP id dt11so297297wgb.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 16:27:03 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:53867 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755420Ab2GaX2L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 19:28:11 -0400
+Received: by lbbgp10 with SMTP id gp10so1739lbb.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 16:28:09 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: liwp@linux.vnet.ibm.com, aneesh.kumar@linux.vnet.ibm.com, dhillf@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, liwp.linux@gmail.com, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, dhillf@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb_cgroup: Add huge_page_order check to avoid incorrectly uncharge
+     Subject: hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix
 has been removed from the -mm tree.  Its filename was
-     hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup-add-huge_page_order-check-to-avoid-incorrectly-uncharge.patch
+     hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix.patch
 
-This patch was dropped because it was folded into hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup.patch
+This patch was dropped because it was folded into hugetlb-cgroup-add-hugetlb-cgroup-control-files.patch
 
 ------------------------------------------------------
-From: Wanpeng Li <liwp@linux.vnet.ibm.com>
-Subject: mm/hugetlb_cgroup: Add huge_page_order check to avoid incorrectly uncharge
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix
 
-alloc_huge_page() will call hugetlb_cgroup_charge_cgroup() to charge
-pages, the compound page have less than 3 pages will not charge to hugetlb
-cgroup.  When alloc_huge_page fails it will call
-hugetlb_cgroup_uncharge_cgroup to uncharge pages, however,
-hugetlb_cgroup_uncharge_cgroup doesn't have huge_page_order check.  That
-means it will uncharge pages even if the compound page have less than 3
-pages.  Add huge_page_order check to avoid this incorrectly uncharge.
+s/CONFIG_CGROUP_HUGETLB_RES_CTLR/CONFIG_MEMCG_HUGETLB/g
 
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
-Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Signed-off-by: Wanpeng Li <liwp.linux@gmail.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Hillf Danton <dhillf@gmail.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_cgroup.c |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/hugetlb.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/hugetlb_cgroup.c~hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup-add-huge_page_order-check-to-avoid-incorrectly-uncharge mm/hugetlb_cgroup.c
---- a/mm/hugetlb_cgroup.c~hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup-add-huge_page_order-check-to-avoid-incorrectly-uncharge
-+++ a/mm/hugetlb_cgroup.c
-@@ -184,6 +184,9 @@ void hugetlb_cgroup_uncharge_cgroup(int 
- 	if (hugetlb_cgroup_disabled() || !h_cg)
- 		return;
- 
-+	if (huge_page_order(&hstates[idx]) < HUGETLB_CGROUP_MIN_ORDER)
-+		return;
-+
- 	res_counter_uncharge(&h_cg->hugepage[idx], csize);
- 	return;
- }
+diff -puN include/linux/hugetlb.h~hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix
++++ a/include/linux/hugetlb.h
+@@ -222,7 +222,7 @@ struct hstate {
+ 	unsigned int nr_huge_pages_node[MAX_NUMNODES];
+ 	unsigned int free_huge_pages_node[MAX_NUMNODES];
+ 	unsigned int surplus_huge_pages_node[MAX_NUMNODES];
+-#ifdef CONFIG_CGROUP_HUGETLB_RES_CTLR
++#ifdef CONFIG_MEMCG_HUGETLB
+ 	/* cgroup control files */
+ 	struct cftype cgroup_files[5];
+ #endif
 _
 
-Patches currently in -mm which might be from liwp@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-prepare-for-removal-of-obsolete-proc-sys-vm-nr_pdflush_threads.patch
-hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup.patch
-mm-remove-unused-lru_all_evictable.patch
-memcg-rename-mem_control_xxx-to-memcg_xxx.patch
-mm-memcg-complete-documentation-for-tcp-memcg-files.patch
-mm-memcg-mem_cgroup_relize_xxx_limit-can-guarantee-memcg-reslimit-=-memcg-memswlimit.patch
-mm-memcg-replace-inexistence-move_lock_page_cgroup-by-move_lock_mem_cgroup-in-comment.patch
+drivers-media-video-v4l2-ioctlc-fix-build.patch
+mm-make-vb_alloc-more-foolproof.patch
+mm-hugetlb-add-new-hugetlb-cgroup.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files.patch
+hugetlb-cgroup-add-hugetlb-cgroup-control-files-fix-fix.patch
+mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
+memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
+mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
+memcg-rename-config-variables.patch
+memcg-rename-config-variables-fix-fix.patch
+mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes.patch
+mm-have-order-0-compaction-start-off-where-it-left-v3-typo.patch
+memory-hotplug-fix-kswapd-looping-forever-problem-fix.patch
+memory-hotplug-fix-kswapd-looping-forever-problem-fix-fix.patch
+netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix.patch
+memcg-prevent-oom-with-too-many-dirty-pages.patch
+memcg-add-mem_cgroup_from_css-helper-fix.patch
+mm-hugetlbfs-close-race-during-teardown-of-hugetlbfs-shared-page-tables-fix.patch
 
