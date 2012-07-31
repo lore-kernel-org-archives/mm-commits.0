@@ -1,163 +1,187 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nilfs2-fix-deadlock-issue-between-chcp-and-thaw-ioctls.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:53:11 -0700
-Message-ID: <20120731185312.369C45C0050@hpza9.eem.corp.google.com>
+Subject: [merged] nilfs2-add-omitted-comments-for-structures-in-nilfs2_fsh.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:53:15 -0700
+Message-ID: <20120731185315.B52281E006E@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:39268 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756349Ab2GaSxO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:53:14 -0400
-Received: by mail-lb0-f202.google.com with SMTP id gp10so295545lbb.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:53:13 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:33060 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756358Ab2GaSxQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:53:16 -0400
+Received: by mail-ob0-f202.google.com with SMTP id wc20so4676512obb.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:53:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: konishi.ryusuke@lab.ntt.co.jp, fernando@oss.ntt.co.jp, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: slava@dubeyko.com, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: fix deadlock issue between chcp and thaw ioctls
+     Subject: nilfs2: add omitted comments for structures in nilfs2_fs.h
 has been removed from the -mm tree.  Its filename was
-     nilfs2-fix-deadlock-issue-between-chcp-and-thaw-ioctls.patch
+     nilfs2-add-omitted-comments-for-structures-in-nilfs2_fsh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2: fix deadlock issue between chcp and thaw ioctls
+From: Vyacheslav Dubeyko <slava@dubeyko.com>
+Subject: nilfs2: add omitted comments for structures in nilfs2_fs.h
 
-An fs-thaw ioctl causes deadlock with a chcp or mkcp -s command:
+Add omitted comments for structures in nilfs2_fs.h.
 
- chcp            D ffff88013870f3d0     0  1325   1324 0x00000004
- ...
- Call Trace:
-  [<ffffffffa06cd409>] ? nilfs_transaction_begin+0x11c/0x1a0 [nilfs2]
-  [<ffffffff81056011>] ? wake_up_bit+0x20/0x20
-  [<ffffffffa06d3e04>] ? copy_from_user+0x18/0x30 [nilfs2]
-  [<ffffffffa06d3e99>] ? nilfs_ioctl_change_cpmode+0x7d/0xcf [nilfs2]
-  [<ffffffffa06d4cf8>] ? nilfs_ioctl+0x252/0x61a [nilfs2]
-  [<ffffffff813b8966>] ? do_page_fault+0x311/0x34c
-  [<ffffffff810e1c2f>] ? get_unmapped_area+0x132/0x14e
-  [<ffffffff8110e95c>] ? do_vfs_ioctl+0x44b/0x490
-  [<ffffffff81049b7f>] ? __set_task_blocked+0x5a/0x61
-  [<ffffffff810d63c1>] ? vm_mmap_pgoff+0x76/0x87
-  [<ffffffff81049bb6>] ? __set_current_blocked+0x30/0x4a
-  [<ffffffff8110e9ec>] ? sys_ioctl+0x4b/0x6f
-  [<ffffffff813bbc79>] ? system_call_fastpath+0x16/0x1b
- thaw            D ffff88013870d890     0  1352   1351 0x00000004
- ...
- Call Trace:
-  [<ffffffff813b5551>] ? rwsem_down_failed_common+0xdb/0x10f
-  [<ffffffff812172c3>] ? call_rwsem_down_write_failed+0x13/0x20
-  [<ffffffff813b42f4>] ? down_write+0x25/0x27
-  [<ffffffff811032e7>] ? thaw_super+0x13/0x9e
-  [<ffffffff8110e706>] ? do_vfs_ioctl+0x1f5/0x490
-  [<ffffffff810d63c1>] ? vm_mmap_pgoff+0x76/0x87
-  [<ffffffff8110e9ec>] ? sys_ioctl+0x4b/0x6f
-  [<ffffffff810ff731>] ? filp_close+0x64/0x6c
-  [<ffffffff813bbc79>] ? system_call_fastpath+0x16/0x1b
-
-where the thaw ioctl deadlocked at thaw_super() when called while chcp was
-waiting at nilfs_transaction_begin() called from
-nilfs_ioctl_change_cpmode().  This deadlock is 100% reproducible.
-
-This is because nilfs_ioctl_change_cpmode() first locks sb->s_umount in
-read mode and then waits for unfreezing in nilfs_transaction_begin(),
-whereas thaw_super() locks sb->s_umount in write mode.  The locking of
-sb->s_umount here was intended to make snapshot mounts and the downgrade
-of snapshots to checkpoints exclusive.
-
-This fixes the deadlock issue by replacing the sb->s_umount usage in
-nilfs_ioctl_change_cpmode() with a dedicated mutex which protects snapshot
-mounts.
-
+Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Cc: Fernando Luis Vazquez Cao <fernando@oss.ntt.co.jp>
-Tested-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/ioctl.c     |    4 ++--
- fs/nilfs2/super.c     |    3 +++
- fs/nilfs2/the_nilfs.c |    1 +
- fs/nilfs2/the_nilfs.h |    2 ++
- 4 files changed, 8 insertions(+), 2 deletions(-)
+ include/linux/nilfs2_fs.h |   63 ++++++++++++++++++++++--------------
+ 1 file changed, 39 insertions(+), 24 deletions(-)
 
-diff -puN fs/nilfs2/ioctl.c~nilfs2-fix-deadlock-issue-between-chcp-and-thaw-ioctls fs/nilfs2/ioctl.c
---- a/fs/nilfs2/ioctl.c~nilfs2-fix-deadlock-issue-between-chcp-and-thaw-ioctls
-+++ a/fs/nilfs2/ioctl.c
-@@ -182,7 +182,7 @@ static int nilfs_ioctl_change_cpmode(str
- 	if (copy_from_user(&cpmode, argp, sizeof(cpmode)))
- 		goto out;
+diff -puN include/linux/nilfs2_fs.h~nilfs2-add-omitted-comments-for-structures-in-nilfs2_fsh include/linux/nilfs2_fs.h
+--- a/include/linux/nilfs2_fs.h~nilfs2-add-omitted-comments-for-structures-in-nilfs2_fsh
++++ a/include/linux/nilfs2_fs.h
+@@ -293,7 +293,7 @@ struct nilfs_dir_entry {
+ 	__le64	inode;			/* Inode number */
+ 	__le16	rec_len;		/* Directory entry length */
+ 	__u8	name_len;		/* Name length */
+-	__u8	file_type;
++	__u8	file_type;		/* Dir entry type (file, dir, etc) */
+ 	char	name[NILFS_NAME_LEN];	/* File name */
+ 	char    pad;
+ };
+@@ -395,7 +395,7 @@ union nilfs_binfo {
+ };
  
--	down_read(&inode->i_sb->s_umount);
-+	mutex_lock(&nilfs->ns_snapshot_mount_mutex);
+ /**
+- * struct nilfs_segment_summary - segment summary
++ * struct nilfs_segment_summary - segment summary header
+  * @ss_datasum: checksum of data
+  * @ss_sumsum: checksum of segment summary
+  * @ss_magic: magic number
+@@ -683,9 +683,9 @@ struct nilfs_sufile_header {
  
- 	nilfs_transaction_begin(inode->i_sb, &ti, 0);
- 	ret = nilfs_cpfile_change_cpmode(
-@@ -192,7 +192,7 @@ static int nilfs_ioctl_change_cpmode(str
- 	else
- 		nilfs_transaction_commit(inode->i_sb); /* never fails */
+ /**
+  * nilfs_suinfo - segment usage information
+- * @sui_lastmod:
+- * @sui_nblocks:
+- * @sui_flags:
++ * @sui_lastmod: timestamp of last modification
++ * @sui_nblocks: number of written blocks in segment
++ * @sui_flags: segment usage flags
+  */
+ struct nilfs_suinfo {
+ 	__u64 sui_lastmod;
+@@ -716,9 +716,10 @@ enum {
+ };
  
--	up_read(&inode->i_sb->s_umount);
-+	mutex_unlock(&nilfs->ns_snapshot_mount_mutex);
- out:
- 	mnt_drop_write_file(filp);
- 	return ret;
-diff -puN fs/nilfs2/super.c~nilfs2-fix-deadlock-issue-between-chcp-and-thaw-ioctls fs/nilfs2/super.c
---- a/fs/nilfs2/super.c~nilfs2-fix-deadlock-issue-between-chcp-and-thaw-ioctls
-+++ a/fs/nilfs2/super.c
-@@ -945,6 +945,8 @@ static int nilfs_attach_snapshot(struct 
- 	struct nilfs_root *root;
- 	int ret;
+ /**
+- * struct nilfs_cpmode -
+- * @cc_cno:
+- * @cc_mode:
++ * struct nilfs_cpmode - change checkpoint mode structure
++ * @cm_cno: checkpoint number
++ * @cm_mode: mode of checkpoint
++ * @cm_pad: padding
+  */
+ struct nilfs_cpmode {
+ 	__u64 cm_cno;
+@@ -728,11 +729,11 @@ struct nilfs_cpmode {
  
-+	mutex_lock(&nilfs->ns_snapshot_mount_mutex);
-+
- 	down_read(&nilfs->ns_segctor_sem);
- 	ret = nilfs_cpfile_is_snapshot(nilfs->ns_cpfile, cno);
- 	up_read(&nilfs->ns_segctor_sem);
-@@ -969,6 +971,7 @@ static int nilfs_attach_snapshot(struct 
- 	ret = nilfs_get_root_dentry(s, root, root_dentry);
- 	nilfs_put_root(root);
-  out:
-+	mutex_unlock(&nilfs->ns_snapshot_mount_mutex);
- 	return ret;
- }
+ /**
+  * struct nilfs_argv - argument vector
+- * @v_base:
+- * @v_nmembs:
+- * @v_size:
+- * @v_flags:
+- * @v_index:
++ * @v_base: pointer on data array from userspace
++ * @v_nmembs: number of members in data array
++ * @v_size: size of data array in bytes
++ * @v_flags: flags
++ * @v_index: start number of target data items
+  */
+ struct nilfs_argv {
+ 	__u64 v_base;
+@@ -743,9 +744,9 @@ struct nilfs_argv {
+ };
  
-diff -puN fs/nilfs2/the_nilfs.c~nilfs2-fix-deadlock-issue-between-chcp-and-thaw-ioctls fs/nilfs2/the_nilfs.c
---- a/fs/nilfs2/the_nilfs.c~nilfs2-fix-deadlock-issue-between-chcp-and-thaw-ioctls
-+++ a/fs/nilfs2/the_nilfs.c
-@@ -76,6 +76,7 @@ struct the_nilfs *alloc_nilfs(struct blo
- 	nilfs->ns_bdev = bdev;
- 	atomic_set(&nilfs->ns_ndirtyblks, 0);
- 	init_rwsem(&nilfs->ns_sem);
-+	mutex_init(&nilfs->ns_snapshot_mount_mutex);
- 	INIT_LIST_HEAD(&nilfs->ns_dirty_files);
- 	INIT_LIST_HEAD(&nilfs->ns_gc_inodes);
- 	spin_lock_init(&nilfs->ns_inode_lock);
-diff -puN fs/nilfs2/the_nilfs.h~nilfs2-fix-deadlock-issue-between-chcp-and-thaw-ioctls fs/nilfs2/the_nilfs.h
---- a/fs/nilfs2/the_nilfs.h~nilfs2-fix-deadlock-issue-between-chcp-and-thaw-ioctls
-+++ a/fs/nilfs2/the_nilfs.h
-@@ -47,6 +47,7 @@ enum {
-  * @ns_flags: flags
-  * @ns_bdev: block device
-  * @ns_sem: semaphore for shared states
-+ * @ns_snapshot_mount_mutex: mutex to protect snapshot mounts
-  * @ns_sbh: buffer heads of on-disk super blocks
-  * @ns_sbp: pointers to super block data
-  * @ns_sbwtime: previous write time of super block
-@@ -100,6 +101,7 @@ struct the_nilfs {
+ /**
+- * struct nilfs_period -
+- * @p_start:
+- * @p_end:
++ * struct nilfs_period - period of checkpoint numbers
++ * @p_start: start checkpoint number (inclusive)
++ * @p_end: end checkpoint number (exclusive)
+  */
+ struct nilfs_period {
+ 	__u64 p_start;
+@@ -753,7 +754,7 @@ struct nilfs_period {
+ };
  
- 	struct block_device    *ns_bdev;
- 	struct rw_semaphore	ns_sem;
-+	struct mutex		ns_snapshot_mount_mutex;
+ /**
+- * struct nilfs_cpstat -
++ * struct nilfs_cpstat - checkpoint statistics
+  * @cs_cno: checkpoint number
+  * @cs_ncps: number of checkpoints
+  * @cs_nsss: number of snapshots
+@@ -765,7 +766,7 @@ struct nilfs_cpstat {
+ };
  
- 	/*
- 	 * used for
+ /**
+- * struct nilfs_sustat -
++ * struct nilfs_sustat - segment usage statistics
+  * @ss_nsegs: number of segments
+  * @ss_ncleansegs: number of clean segments
+  * @ss_ndirtysegs: number of dirty segments
+@@ -784,10 +785,10 @@ struct nilfs_sustat {
+ 
+ /**
+  * struct nilfs_vinfo - virtual block number information
+- * @vi_vblocknr:
+- * @vi_start:
+- * @vi_end:
+- * @vi_blocknr:
++ * @vi_vblocknr: virtual block number
++ * @vi_start: start checkpoint number (inclusive)
++ * @vi_end: end checkpoint number (exclusive)
++ * @vi_blocknr: disk block number
+  */
+ struct nilfs_vinfo {
+ 	__u64 vi_vblocknr;
+@@ -797,7 +798,15 @@ struct nilfs_vinfo {
+ };
+ 
+ /**
+- * struct nilfs_vdesc -
++ * struct nilfs_vdesc - descriptor of virtual block number
++ * @vd_ino: inode number
++ * @vd_cno: checkpoint number
++ * @vd_vblocknr: virtual block number
++ * @vd_period: period of checkpoint numbers
++ * @vd_blocknr: disk block number
++ * @vd_offset: logical block offset inside a file
++ * @vd_flags: flags (data or node block)
++ * @vd_pad: padding
+  */
+ struct nilfs_vdesc {
+ 	__u64 vd_ino;
+@@ -811,7 +820,13 @@ struct nilfs_vdesc {
+ };
+ 
+ /**
+- * struct nilfs_bdesc -
++ * struct nilfs_bdesc - descriptor of disk block number
++ * @bd_ino: inode number
++ * @bd_oblocknr: disk block address (for skipping dead blocks)
++ * @bd_blocknr: disk block address
++ * @bd_offset: logical block offset inside a file
++ * @bd_level: level in the b-tree organization
++ * @bd_pad: padding
+  */
+ struct nilfs_bdesc {
+ 	__u64 bd_ino;
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
+Patches currently in -mm which might be from slava@dubeyko.com are
 
 origin.patch
 
