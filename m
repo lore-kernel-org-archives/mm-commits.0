@@ -1,69 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] avr32-fix-build-error-in-atstk1002-code.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:48:58 -0700
-Message-ID: <20120731184859.0CEC45C0060@hpza9.eem.corp.google.com>
+Subject: [merged] panic-fix-a-possible-deadlock-in-panic.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:49:02 -0700
+Message-ID: <20120731184902.B6ACB100080@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:49287 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756179Ab2GaStA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:49:00 -0400
-Received: by eaao12 with SMTP id o12so241331eaa.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:48:59 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:33060 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756241Ab2GaStD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:49:03 -0400
+Received: by mail-ob0-f202.google.com with SMTP id wc20so4676512obb.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:49:03 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, dbaryshkov@gmail.com, mm-commits@vger.kernel.org
+To: markivx@codeaurora.org, holzheu@linux.vnet.ibm.com, sboyd@codeaurora.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: avr32: fix build error in ATSTK1002 code
+     Subject: panic: fix a possible deadlock in panic()
 has been removed from the -mm tree.  Its filename was
-     avr32-fix-build-error-in-atstk1002-code.patch
+     panic-fix-a-possible-deadlock-in-panic.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: avr32: fix build error in ATSTK1002 code
+From: Vikram Mulukutla <markivx@codeaurora.org>
+Subject: panic: fix a possible deadlock in panic()
 
-arch/avr32/boards/atstk1000/atstk1002.c:100: error: 'num_partitions' undeclared here (not in a function)
+panic_lock is meant to ensure that panic processing takes place only on
+one cpu; if any of the other cpus encounter a panic, they will spin
+waiting to be shut down.
 
-which is introduced by commit 1754aab9bb86 ("mtd: ATMEL, AVR32: inline
-nand partition table access ").
+However, this causes a regression in this scenario:
 
-Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
+1. Cpu 0 encounters a panic and acquires the panic_lock
+   and proceeds with the panic processing.
+2. There is an interrupt on cpu 0 that also encounters
+   an error condition and invokes panic.
+3. This second invocation fails to acquire the panic_lock
+   and enters the infinite while loop in panic_smp_self_stop.
+
+Thus all panic processing is stopped, and the cpu is stuck for eternity in
+the while(1) inside panic_smp_self_stop.
+
+To address this, disable local interrupts with local_irq_disable before
+acquiring the panic_lock.  This will prevent interrupt handlers from
+executing during the panic processing, thus avoiding this particular
+problem.
+
+Signed-off-by: Vikram Mulukutla <markivx@codeaurora.org>
+Reviewed-by: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/avr32/boards/atstk1000/atstk1002.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/panic.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN arch/avr32/boards/atstk1000/atstk1002.c~avr32-fix-build-error-in-atstk1002-code arch/avr32/boards/atstk1000/atstk1002.c
---- a/arch/avr32/boards/atstk1000/atstk1002.c~avr32-fix-build-error-in-atstk1002-code
-+++ a/arch/avr32/boards/atstk1000/atstk1002.c
-@@ -97,7 +97,7 @@ static struct atmel_nand_data atstk1006_
- 	.enable_pin	= GPIO_PIN_PB(29),
- 	.ecc_mode	= NAND_ECC_SOFT,
- 	.parts		= nand_partitions,
--	.num_parts	= ARRAY_SIZE(num_partitions),
-+	.num_parts	= ARRAY_SIZE(nand_partitions),
- };
- #endif
+diff -puN kernel/panic.c~panic-fix-a-possible-deadlock-in-panic kernel/panic.c
+--- a/kernel/panic.c~panic-fix-a-possible-deadlock-in-panic
++++ a/kernel/panic.c
+@@ -75,6 +75,14 @@ void panic(const char *fmt, ...)
+ 	int state = 0;
  
+ 	/*
++	 * Disable local interrupts. This will prevent panic_smp_self_stop
++	 * from deadlocking the first cpu that invokes the panic, since
++	 * there is nothing to prevent an interrupt handler (that runs
++	 * after the panic_lock is acquired) from invoking panic again.
++	 */
++	local_irq_disable();
++
++	/*
+ 	 * It's possible to come here directly from a panic-assertion and
+ 	 * not have preempt disabled. Some functions called from here want
+ 	 * preempt to be disabled. No point enabling it later though...
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from markivx@codeaurora.org are
 
 origin.patch
-xtensa-select-generic-atomic64_t-support.patch
-mm-prepare-for-removal-of-obsolete-proc-sys-vm-nr_pdflush_threads.patch
-mm-clear-pages_scanned-only-if-draining-a-pcp-adds-pages-to-the-buddy-allocator-again.patch
-mm-slb-add-knowledge-of-pfmemalloc-reserve-pages-fix.patch
-nfs-enable-swap-on-nfs-fix.patch
-memcg-prevent-oom-with-too-many-dirty-pages.patch
-memcg-further-prevent-oom-with-too-many-dirty-pages.patch
-memcg-add-mem_cgroup_from_css-helper-fix-2.patch
-linux-next.patch
-rbtree-performance-and-correctness-test-fix.patch
 
