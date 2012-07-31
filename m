@@ -1,37 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ata-pata_arasan-remove-conditional-compilation-of-clk-code.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:48:31 -0700
-Message-ID: <20120731184831.C4AA21E0072@wpzn4.hot.corp.google.com>
+Subject: [merged] net-c_can-remove-conditional-compilation-of-clk-code.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:48:34 -0700
+Message-ID: <20120731184835.27CA0200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:33060 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756191Ab2GaSsd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:48:33 -0400
-Received: by mail-ob0-f202.google.com with SMTP id wc20so4676512obb.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:48:32 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:54607 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756234Ab2GaSsh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:48:37 -0400
+Received: by eekd4 with SMTP id d4so295391eek.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:48:36 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: viresh.kumar@st.com, jgarzik@redhat.com, mturquette@linaro.org, rmk@arm.linux.org.uk, sshtylyov@ru.mvista.com, viresh.linux@gmail.com, mm-commits@vger.kernel.org
+To: viresh.kumar@st.com, bhupesh.sharma@st.com, davem@davemloft.net, mturquette@linaro.org, rmk@arm.linux.org.uk, sshtylyov@ru.mvista.com, viresh.linux@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ata/pata_arasan: remove conditional compilation of clk code
+     Subject: net/c_can: remove conditional compilation of clk code
 has been removed from the -mm tree.  Its filename was
-     ata-pata_arasan-remove-conditional-compilation-of-clk-code.patch
+     net-c_can-remove-conditional-compilation-of-clk-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Viresh Kumar <viresh.kumar@st.com>
-Subject: ata/pata_arasan: remove conditional compilation of clk code
+Subject: net/c_can: remove conditional compilation of clk code
 
-With addition of dummy clk_*() calls for non CONFIG_HAVE_CLK cases in
-clk.h, there is no need to have clk code enclosed in #ifdef
-CONFIG_HAVE_CLK, #endif macros.
+With addition of dummy clk_*() calls for non CONFIG_HAVE_CLK cases in clk.h,
+there is no need to have clk code enclosed in #ifdef CONFIG_HAVE_CLK, #endif
+macros.
 
 Signed-off-by: Viresh Kumar <viresh.kumar@st.com>
-Cc: Jeff Garzik <jgarzik@redhat.com>
+Acked-by: David S. Miller <davem@davemloft.net>
+Cc: Bhupesh Sharma <bhupesh.sharma@st.com>
 Cc: Russell King <rmk@arm.linux.org.uk>
 Cc: Mike Turquette <mturquette@linaro.org>
 Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
@@ -39,78 +40,56 @@ Cc: viresh kumar <viresh.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_arasan_cf.c |   14 +-------------
- 1 file changed, 1 insertion(+), 13 deletions(-)
+ drivers/net/can/c_can/c_can_platform.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff -puN drivers/ata/pata_arasan_cf.c~ata-pata_arasan-remove-conditional-compilation-of-clk-code drivers/ata/pata_arasan_cf.c
---- a/drivers/ata/pata_arasan_cf.c~ata-pata_arasan-remove-conditional-compilation-of-clk-code
-+++ a/drivers/ata/pata_arasan_cf.c
-@@ -184,10 +184,8 @@
- struct arasan_cf_dev {
- 	/* pointer to ata_host structure */
- 	struct ata_host *host;
--	/* clk structure, only if HAVE_CLK is defined */
+diff -puN drivers/net/can/c_can/c_can_platform.c~net-c_can-remove-conditional-compilation-of-clk-code drivers/net/can/c_can/c_can_platform.c
+--- a/drivers/net/can/c_can/c_can_platform.c~net-c_can-remove-conditional-compilation-of-clk-code
++++ a/drivers/net/can/c_can/c_can_platform.c
+@@ -74,7 +74,6 @@ static int __devinit c_can_plat_probe(st
+ 	const struct platform_device_id *id;
+ 	struct resource *mem;
+ 	int irq;
 -#ifdef CONFIG_HAVE_CLK
-+	/* clk structure */
  	struct clk *clk;
--#endif
  
- 	/* physical base address of controller */
- 	dma_addr_t pbase;
-@@ -312,13 +310,11 @@ static int cf_init(struct arasan_cf_dev 
- 	unsigned long flags;
- 	int ret = 0;
- 
--#ifdef CONFIG_HAVE_CLK
- 	ret = clk_enable(acdev->clk);
- 	if (ret) {
- 		dev_dbg(acdev->host->dev, "clock enable failed");
- 		return ret;
+ 	/* get the appropriate clk */
+@@ -84,7 +83,6 @@ static int __devinit c_can_plat_probe(st
+ 		ret = -ENODEV;
+ 		goto exit;
  	}
 -#endif
  
- 	spin_lock_irqsave(&acdev->host->lock, flags);
- 	/* configure CF interface clock */
-@@ -344,9 +340,7 @@ static void cf_exit(struct arasan_cf_dev
- 	writel(readl(acdev->vbase + OP_MODE) & ~CFHOST_ENB,
- 			acdev->vbase + OP_MODE);
- 	spin_unlock_irqrestore(&acdev->host->lock, flags);
--#ifdef CONFIG_HAVE_CLK
- 	clk_disable(acdev->clk);
--#endif
- }
+ 	/* get the platform data */
+ 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+@@ -145,10 +143,8 @@ static int __devinit c_can_plat_probe(st
  
- static void dma_callback(void *dev)
-@@ -828,13 +822,11 @@ static int __devinit arasan_cf_probe(str
- 		return -ENOMEM;
- 	}
- 
+ 	dev->irq = irq;
+ 	priv->base = addr;
 -#ifdef CONFIG_HAVE_CLK
- 	acdev->clk = clk_get(&pdev->dev, NULL);
- 	if (IS_ERR(acdev->clk)) {
- 		dev_warn(&pdev->dev, "Clock not found\n");
- 		return PTR_ERR(acdev->clk);
- 	}
+ 	priv->can.clock.freq = clk_get_rate(clk);
+ 	priv->priv = clk;
 -#endif
  
- 	/* allocate host */
- 	host = ata_host_alloc(&pdev->dev, 1);
-@@ -899,9 +891,7 @@ static int __devinit arasan_cf_probe(str
- 			&arasan_cf_sht);
- 
- free_clk:
+ 	platform_set_drvdata(pdev, dev);
+ 	SET_NETDEV_DEV(dev, &pdev->dev);
+@@ -172,10 +168,8 @@ exit_iounmap:
+ exit_release_mem:
+ 	release_mem_region(mem->start, resource_size(mem));
+ exit_free_clk:
 -#ifdef CONFIG_HAVE_CLK
- 	clk_put(acdev->clk);
+ 	clk_put(clk);
+ exit:
 -#endif
+ 	dev_err(&pdev->dev, "probe failed\n");
+ 
  	return ret;
- }
+@@ -196,9 +190,7 @@ static int __devexit c_can_plat_remove(s
+ 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	release_mem_region(mem->start, resource_size(mem));
  
-@@ -912,9 +902,7 @@ static int __devexit arasan_cf_remove(st
- 
- 	ata_host_detach(host);
- 	cf_exit(acdev);
 -#ifdef CONFIG_HAVE_CLK
- 	clk_put(acdev->clk);
+ 	clk_put(priv->priv);
 -#endif
  
  	return 0;
