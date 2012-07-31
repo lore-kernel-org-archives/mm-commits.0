@@ -1,57 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-add-check-for-use-of-sizeof-without-parenthesis.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:51:41 -0700
-Message-ID: <20120731185142.0FD2A20004E@hpza10.eem.corp.google.com>
+Subject: [merged] checkpatch-check-usleep_range-arguments.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:51:45 -0700
+Message-ID: <20120731185145.B298F10007F@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:50337 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756333Ab2GaSvn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:51:43 -0400
-Received: by mail-ey0-f202.google.com with SMTP id o12so241482eaa.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:51:42 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:42024 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756338Ab2GaSvq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:51:46 -0400
+Received: by mail-ob0-f202.google.com with SMTP id wc20so4679387obb.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:51:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, apw@canonical.com, mm-commits@vger.kernel.org
+To: joe@perches.com, apw@shadowen.org, yuvalmin@broadcom.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: Add acheck for use of sizeof without parenthesis
+     Subject: checkpatch: check usleep_range() arguments
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-check-for-use-of-sizeof-without-parenthesis.patch
+     checkpatch-check-usleep_range-arguments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: Add acheck for use of sizeof without parenthesis
+Subject: checkpatch: check usleep_range() arguments
 
-Kernel style uses parenthesis around sizeof.
+usleep_range() shouldn't use the same args for min and max.
+
+Report it when it happens and when both args are decimal and min > max.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Yuval Mintz <yuvalmin@broadcom.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 ++++++
- 1 file changed, 6 insertions(+)
+ scripts/checkpatch.pl |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-check-for-use-of-sizeof-without-parenthesis scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-check-for-use-of-sizeof-without-parenthesis
+diff -puN scripts/checkpatch.pl~checkpatch-check-usleep_range-arguments scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-check-usleep_range-arguments
 +++ a/scripts/checkpatch.pl
-@@ -3265,6 +3265,12 @@ sub process {
- 			     "sizeof(& should be avoided\n" . $herecurr);
+@@ -3313,6 +3313,22 @@ sub process {
+ 			}
  		}
  
-+# check for sizeof without parenthesis
-+		if ($line =~ /\bsizeof\s+((?:\*\s*|)$Lval|$Type(?:\s+$Lval|))/) {
-+			WARN("SIZEOF_PARENTHESIS",
-+			     "sizeof $1 should be sizeof($1)\n" . $herecurr);
++# check usleep_range arguments
++		if ($^V && $^V ge 5.10.0 &&
++		    defined $stat &&
++		    $stat =~ /^\+(?:.*?)\busleep_range\s*\(\s*($FuncArg)\s*,\s*($FuncArg)\s*\)/) {
++		 	my $min = $1;
++			my $max = $7;
++			if ($min eq $max) {
++				WARN("USLEEP_RANGE",
++				     "usleep_range should not use min == max args; see Documentation/timers/timers-howto.txt\n" . "$here\n$stat\n");
++			} elsif ($min =~ /^\d+$/ && $max =~ /^\d+$/ &&
++				 $min > $max) {
++				WARN("USLEEP_RANGE",
++				     "usleep_range args reversed, use min then max; see Documentation/timers/timers-howto.txt\n" . "$here\n$stat\n");
++			}
 +		}
 +
- # check for line continuations in quoted strings with odd counts of "
- 		if ($rawline =~ /\\$/ && $rawline =~ tr/"/"/ % 2) {
- 			WARN("LINE_CONTINUATIONS",
+ # check for new externs in .c files.
+ 		if ($realfile =~ /\.c$/ && defined $stat &&
+ 		    $stat =~ /^.\s*(?:extern\s+)?$Type\s+($Ident)(\s*)\(/s)
 _
 
 Patches currently in -mm which might be from joe@perches.com are
