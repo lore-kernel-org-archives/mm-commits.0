@@ -1,100 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-add-checks-for-do-while-0-macro-misuses.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:51:48 -0700
-Message-ID: <20120731185149.1481E5C0050@hpza9.eem.corp.google.com>
+Subject: [merged] lib-crc32c-fix-unused-variables-warnings.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:51:52 -0700
+Message-ID: <20120731185152.B817810007F@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:48958 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756344Ab2GaSvu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:51:50 -0400
-Received: by mail-lb0-f202.google.com with SMTP id gp10so295516lbb.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:51:50 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:33060 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756254Ab2GaSvx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:51:53 -0400
+Received: by mail-ob0-f202.google.com with SMTP id wc20so4676512obb.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:51:53 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, apw@canonical.com, mm-commits@vger.kernel.org
+To: trbecker@trbecker.org, djwong@us.ibm.com, rpearson@systemfabricworks.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add checks for do {} while (0) macro misuses
+     Subject: lib/crc32.c: fix unused variables warnings
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-checks-for-do-while-0-macro-misuses.patch
+     lib-crc32c-fix-unused-variables-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add checks for do {} while (0) macro misuses
+From: Thiago Rafael Becker <trbecker@trbecker.org>
+Subject: lib/crc32.c: fix unused variables warnings
 
-These types of macros should not be used for either a single statement nor
-should the macro end with a semi-colon.
+Variables t4, t5, t6 and t7 are only used when CRC_LE_BITS != 32.  Fix the
+following compilation warnings:
 
-Add tests for these conditions.
+lib/crc32.c: In function 'crc32_body':
+lib/crc32.c:77:55: warning: unused variable 't7'
+lib/crc32.c:77:41: warning: unused variable 't6'
+lib/crc32.c:77:27: warning: unused variable 't5'
+lib/crc32.c:77:13: warning: unused variable 't4'
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@canonical.com>
+Signed-off-by: Thiago Rafael Becker <trbecker@trbecker.org>
+Cc: "Darrick J. Wong" <djwong@us.ibm.com>
+Cc: Bob Pearson <rpearson@systemfabricworks.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   39 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
+ lib/crc32.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-checks-for-do-while-0-macro-misuses scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-checks-for-do-while-0-macro-misuses
-+++ a/scripts/checkpatch.pl
-@@ -2988,6 +2988,45 @@ sub process {
- 			}
- 		}
+diff -puN lib/crc32.c~lib-crc32c-fix-unused-variables-warnings lib/crc32.c
+--- a/lib/crc32.c~lib-crc32c-fix-unused-variables-warnings
++++ a/lib/crc32.c
+@@ -74,7 +74,9 @@ crc32_body(u32 crc, unsigned char const 
+ 	size_t i;
+ # endif
+ 	const u32 *t0=tab[0], *t1=tab[1], *t2=tab[2], *t3=tab[3];
++# if CRC_LE_BITS != 32
+ 	const u32 *t4 = tab[4], *t5 = tab[5], *t6 = tab[6], *t7 = tab[7];
++# endif
+ 	u32 q;
  
-+# do {} while (0) macro tests:
-+# single-statement macros do not need to be enclosed in do while (0) loop,
-+# macro should not end with a semicolon
-+		if ($^V && $^V ge 5.10.0 &&
-+		    $realfile !~ m@/vmlinux.lds.h$@ &&
-+		    $line =~ /^.\s*\#\s*define\s+$Ident(\()?/) {
-+			my $ln = $linenr;
-+			my $cnt = $realcnt;
-+			my ($off, $dstat, $dcond, $rest);
-+			my $ctx = '';
-+			($dstat, $dcond, $ln, $cnt, $off) =
-+				ctx_statement_block($linenr, $realcnt, 0);
-+			$ctx = $dstat;
-+
-+			$dstat =~ s/\\\n.//g;
-+
-+			if ($dstat =~ /^\+\s*#\s*define\s+$Ident\s*${balanced_parens}\s*do\s*{(.*)\s*}\s*while\s*\(\s*0\s*\)\s*([;\s]*)\s*$/) {
-+				my $stmts = $2;
-+				my $semis = $3;
-+
-+				$ctx =~ s/\n*$//;
-+				my $cnt = statement_rawlines($ctx);
-+				my $herectx = $here . "\n";
-+
-+				for (my $n = 0; $n < $cnt; $n++) {
-+					$herectx .= raw_line($linenr, $n) . "\n";
-+				}
-+
-+				if (($stmts =~ tr/;/;/) == 1) {
-+					WARN("SINGLE_STATEMENT_DO_WHILE_MACRO",
-+					     "Single statement macros should not use a do {} while (0) loop\n" . "$herectx");
-+				}
-+				if (defined $semis && $semis ne "") {
-+					WARN("DO_WHILE_MACRO_WITH_TRAILING_SEMICOLON",
-+					     "do {} while (0) macros should not be semicolon terminated\n" . "$herectx");
-+				}
-+			}
-+		}
-+
- # make sure symbols are always wrapped with VMLINUX_SYMBOL() ...
- # all assignments may have only one of the following with an assignment:
- #	.
+ 	/* Align it */
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from trbecker@trbecker.org are
 
 origin.patch
-dynamic_debug-restore-dev_dbg-netdev_dbg-functionality-reduce-stack-use.patch
-dynamic_debug-restore-dev_dbg-netdev_dbg-functionality-reduce-stack-use-v2.patch
-linux-next.patch
-thermal-add-renesas-r-car-thermal-sensor-support.patch
 
