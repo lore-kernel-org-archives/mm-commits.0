@@ -1,319 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [merged] backlight-move-lp855x-header-into-platform_data-directory.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:50:46 -0700
-Message-ID: <20120731185047.1A25C5C0050@hpza9.eem.corp.google.com>
+Subject: [merged] string-introduce-memweight.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:50:50 -0700
+Message-ID: <20120731185051.4AF1020004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:50136 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756310Ab2GaSut (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:50:49 -0400
-Received: by bkcjc3 with SMTP id jc3so293431bkc.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:50:48 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:49070 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756310Ab2GaSuy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:50:54 -0400
+Received: by mail-ee0-f74.google.com with SMTP id d4so295553eek.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:50:53 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Milo.Kim@ti.com, bryan.wu@canonical.com, milo.kim@ti.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, adilger.kernel@dilger.ca, agk@redhat.com, al@alarsen.net, jack@suse.cz, jlbec@evilplan.org, laurent.pinchart@ideasonboard.com, matthew@wil.cx, mchehab@infradead.org, mfasheh@suse.com, tony.luck@gmail.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight: move lp855x header into platform_data directory
+     Subject: string: introduce memweight()
 has been removed from the -mm tree.  Its filename was
-     backlight-move-lp855x-header-into-platform_data-directory.patch
+     string-introduce-memweight.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kim, Milo" <Milo.Kim@ti.com>
-Subject: backlight: move lp855x header into platform_data directory
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: string: introduce memweight()
 
-The lp855x header is used only in the platform side, so it can be moved
-into platform_data directory
+memweight() is the function that counts the total number of bits set in
+memory area.  Unlike bitmap_weight(), memweight() takes pointer and size
+in bytes to specify a memory area which does not need to be aligned to
+long-word boundary.
 
-Signed-off-by: Milo(Woogyom) Kim <milo.kim@ti.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Bryan Wu <bryan.wu@canonical.com>
+[akpm@linux-foundation.org: rename `w' to `ret']
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Anders Larsen <al@alarsen.net>
+Cc: Alasdair Kergon <agk@redhat.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Tony Luck <tony.luck@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/lp855x_bl.c  |    2 
- include/linux/lp855x.h               |  125 -------------------------
- include/linux/platform_data/lp855x.h |  125 +++++++++++++++++++++++++
- 3 files changed, 126 insertions(+), 126 deletions(-)
+ include/linux/string.h |    3 +++
+ lib/Makefile           |    2 +-
+ lib/memweight.c        |   38 ++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 42 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/lp855x_bl.c~backlight-move-lp855x-header-into-platform_data-directory drivers/video/backlight/lp855x_bl.c
---- a/drivers/video/backlight/lp855x_bl.c~backlight-move-lp855x-header-into-platform_data-directory
-+++ a/drivers/video/backlight/lp855x_bl.c
-@@ -14,7 +14,7 @@
- #include <linux/i2c.h>
- #include <linux/backlight.h>
- #include <linux/err.h>
--#include <linux/lp855x.h>
-+#include <linux/platform_data/lp855x.h>
+diff -puN include/linux/string.h~string-introduce-memweight include/linux/string.h
+--- a/include/linux/string.h~string-introduce-memweight
++++ a/include/linux/string.h
+@@ -145,4 +145,7 @@ static inline bool strstarts(const char 
+ 	return strncmp(str, prefix, strlen(prefix)) == 0;
+ }
+ #endif
++
++extern size_t memweight(const void *ptr, size_t bytes);
++
+ #endif /* _LINUX_STRING_H_ */
+diff -puN lib/Makefile~string-introduce-memweight lib/Makefile
+--- a/lib/Makefile~string-introduce-memweight
++++ a/lib/Makefile
+@@ -22,7 +22,7 @@ lib-y	+= kobject.o klist.o
+ obj-y += bcd.o div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
+ 	 bust_spinlocks.o hexdump.o kasprintf.o bitmap.o scatterlist.o \
+ 	 string_helpers.o gcd.o lcm.o list_sort.o uuid.o flex_array.o \
+-	 bsearch.o find_last_bit.o find_next_bit.o llist.o
++	 bsearch.o find_last_bit.o find_next_bit.o llist.o memweight.o
+ obj-y += kstrtox.o
+ obj-$(CONFIG_TEST_KSTRTOX) += test-kstrtox.o
  
- /* Registers */
- #define BRIGHTNESS_CTRL		0x00
-diff -puN include/linux/lp855x.h~backlight-move-lp855x-header-into-platform_data-directory /dev/null
---- a/include/linux/lp855x.h
-+++ /dev/null
-@@ -1,125 +0,0 @@
--/*
-- * LP855x Backlight Driver
-- *
-- *			Copyright (C) 2011 Texas Instruments
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- *
-- */
--
--#ifndef _LP855X_H
--#define _LP855X_H
--
--#define BL_CTL_SHFT	(0)
--#define BRT_MODE_SHFT	(1)
--#define BRT_MODE_MASK	(0x06)
--
--/* Enable backlight. Only valid when BRT_MODE=10(I2C only) */
--#define ENABLE_BL	(1)
--#define DISABLE_BL	(0)
--
--#define I2C_CONFIG(id)	id ## _I2C_CONFIG
--#define PWM_CONFIG(id)	id ## _PWM_CONFIG
--
--/* DEVICE CONTROL register - LP8550 */
--#define LP8550_PWM_CONFIG	(LP8550_PWM_ONLY << BRT_MODE_SHFT)
--#define LP8550_I2C_CONFIG	((ENABLE_BL << BL_CTL_SHFT) | \
--				(LP8550_I2C_ONLY << BRT_MODE_SHFT))
--
--/* DEVICE CONTROL register - LP8551 */
--#define LP8551_PWM_CONFIG	LP8550_PWM_CONFIG
--#define LP8551_I2C_CONFIG	LP8550_I2C_CONFIG
--
--/* DEVICE CONTROL register - LP8552 */
--#define LP8552_PWM_CONFIG	LP8550_PWM_CONFIG
--#define LP8552_I2C_CONFIG	LP8550_I2C_CONFIG
--
--/* DEVICE CONTROL register - LP8553 */
--#define LP8553_PWM_CONFIG	LP8550_PWM_CONFIG
--#define LP8553_I2C_CONFIG	LP8550_I2C_CONFIG
--
--/* DEVICE CONTROL register - LP8556 */
--#define LP8556_PWM_CONFIG	(LP8556_PWM_ONLY << BRT_MODE_SHFT)
--#define LP8556_COMB1_CONFIG	(LP8556_COMBINED1 << BRT_MODE_SHFT)
--#define LP8556_I2C_CONFIG	((ENABLE_BL << BL_CTL_SHFT) | \
--				(LP8556_I2C_ONLY << BRT_MODE_SHFT))
--#define LP8556_COMB2_CONFIG	(LP8556_COMBINED2 << BRT_MODE_SHFT)
--
--enum lp855x_chip_id {
--	LP8550,
--	LP8551,
--	LP8552,
--	LP8553,
--	LP8556,
--};
--
--enum lp855x_brightness_ctrl_mode {
--	PWM_BASED = 1,
--	REGISTER_BASED,
--};
--
--enum lp8550_brighntess_source {
--	LP8550_PWM_ONLY,
--	LP8550_I2C_ONLY = 2,
--};
--
--enum lp8551_brighntess_source {
--	LP8551_PWM_ONLY = LP8550_PWM_ONLY,
--	LP8551_I2C_ONLY = LP8550_I2C_ONLY,
--};
--
--enum lp8552_brighntess_source {
--	LP8552_PWM_ONLY = LP8550_PWM_ONLY,
--	LP8552_I2C_ONLY = LP8550_I2C_ONLY,
--};
--
--enum lp8553_brighntess_source {
--	LP8553_PWM_ONLY = LP8550_PWM_ONLY,
--	LP8553_I2C_ONLY = LP8550_I2C_ONLY,
--};
--
--enum lp8556_brightness_source {
--	LP8556_PWM_ONLY,
--	LP8556_COMBINED1,	/* pwm + i2c before the shaper block */
--	LP8556_I2C_ONLY,
--	LP8556_COMBINED2,	/* pwm + i2c after the shaper block */
--};
--
--struct lp855x_pwm_data {
--	void (*pwm_set_intensity) (int brightness, int max_brightness);
--	int (*pwm_get_intensity) (int max_brightness);
--};
--
--struct lp855x_rom_data {
--	u8 addr;
--	u8 val;
--};
--
--/**
-- * struct lp855x_platform_data
-- * @name : Backlight driver name. If it is not defined, default name is set.
-- * @mode : brightness control by pwm or lp855x register
-- * @device_control : value of DEVICE CONTROL register
-- * @initial_brightness : initial value of backlight brightness
-- * @pwm_data : platform specific pwm generation functions.
--		Only valid when mode is PWM_BASED.
-- * @load_new_rom_data :
--	0 : use default configuration data
--	1 : update values of eeprom or eprom registers on loading driver
-- * @size_program : total size of lp855x_rom_data
-- * @rom_data : list of new eeprom/eprom registers
-- */
--struct lp855x_platform_data {
--	char *name;
--	enum lp855x_brightness_ctrl_mode mode;
--	u8 device_control;
--	int initial_brightness;
--	struct lp855x_pwm_data pwm_data;
--	u8 load_new_rom_data;
--	int size_program;
--	struct lp855x_rom_data *rom_data;
--};
--
--#endif
-diff -puN /dev/null include/linux/platform_data/lp855x.h
+diff -puN /dev/null lib/memweight.c
 --- /dev/null
-+++ a/include/linux/platform_data/lp855x.h
-@@ -0,0 +1,125 @@
-+/*
-+ * LP855x Backlight Driver
-+ *
-+ *			Copyright (C) 2011 Texas Instruments
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ */
-+
-+#ifndef _LP855X_H
-+#define _LP855X_H
-+
-+#define BL_CTL_SHFT	(0)
-+#define BRT_MODE_SHFT	(1)
-+#define BRT_MODE_MASK	(0x06)
-+
-+/* Enable backlight. Only valid when BRT_MODE=10(I2C only) */
-+#define ENABLE_BL	(1)
-+#define DISABLE_BL	(0)
-+
-+#define I2C_CONFIG(id)	id ## _I2C_CONFIG
-+#define PWM_CONFIG(id)	id ## _PWM_CONFIG
-+
-+/* DEVICE CONTROL register - LP8550 */
-+#define LP8550_PWM_CONFIG	(LP8550_PWM_ONLY << BRT_MODE_SHFT)
-+#define LP8550_I2C_CONFIG	((ENABLE_BL << BL_CTL_SHFT) | \
-+				(LP8550_I2C_ONLY << BRT_MODE_SHFT))
-+
-+/* DEVICE CONTROL register - LP8551 */
-+#define LP8551_PWM_CONFIG	LP8550_PWM_CONFIG
-+#define LP8551_I2C_CONFIG	LP8550_I2C_CONFIG
-+
-+/* DEVICE CONTROL register - LP8552 */
-+#define LP8552_PWM_CONFIG	LP8550_PWM_CONFIG
-+#define LP8552_I2C_CONFIG	LP8550_I2C_CONFIG
-+
-+/* DEVICE CONTROL register - LP8553 */
-+#define LP8553_PWM_CONFIG	LP8550_PWM_CONFIG
-+#define LP8553_I2C_CONFIG	LP8550_I2C_CONFIG
-+
-+/* DEVICE CONTROL register - LP8556 */
-+#define LP8556_PWM_CONFIG	(LP8556_PWM_ONLY << BRT_MODE_SHFT)
-+#define LP8556_COMB1_CONFIG	(LP8556_COMBINED1 << BRT_MODE_SHFT)
-+#define LP8556_I2C_CONFIG	((ENABLE_BL << BL_CTL_SHFT) | \
-+				(LP8556_I2C_ONLY << BRT_MODE_SHFT))
-+#define LP8556_COMB2_CONFIG	(LP8556_COMBINED2 << BRT_MODE_SHFT)
-+
-+enum lp855x_chip_id {
-+	LP8550,
-+	LP8551,
-+	LP8552,
-+	LP8553,
-+	LP8556,
-+};
-+
-+enum lp855x_brightness_ctrl_mode {
-+	PWM_BASED = 1,
-+	REGISTER_BASED,
-+};
-+
-+enum lp8550_brighntess_source {
-+	LP8550_PWM_ONLY,
-+	LP8550_I2C_ONLY = 2,
-+};
-+
-+enum lp8551_brighntess_source {
-+	LP8551_PWM_ONLY = LP8550_PWM_ONLY,
-+	LP8551_I2C_ONLY = LP8550_I2C_ONLY,
-+};
-+
-+enum lp8552_brighntess_source {
-+	LP8552_PWM_ONLY = LP8550_PWM_ONLY,
-+	LP8552_I2C_ONLY = LP8550_I2C_ONLY,
-+};
-+
-+enum lp8553_brighntess_source {
-+	LP8553_PWM_ONLY = LP8550_PWM_ONLY,
-+	LP8553_I2C_ONLY = LP8550_I2C_ONLY,
-+};
-+
-+enum lp8556_brightness_source {
-+	LP8556_PWM_ONLY,
-+	LP8556_COMBINED1,	/* pwm + i2c before the shaper block */
-+	LP8556_I2C_ONLY,
-+	LP8556_COMBINED2,	/* pwm + i2c after the shaper block */
-+};
-+
-+struct lp855x_pwm_data {
-+	void (*pwm_set_intensity) (int brightness, int max_brightness);
-+	int (*pwm_get_intensity) (int max_brightness);
-+};
-+
-+struct lp855x_rom_data {
-+	u8 addr;
-+	u8 val;
-+};
++++ a/lib/memweight.c
+@@ -0,0 +1,38 @@
++#include <linux/export.h>
++#include <linux/bug.h>
++#include <linux/bitmap.h>
 +
 +/**
-+ * struct lp855x_platform_data
-+ * @name : Backlight driver name. If it is not defined, default name is set.
-+ * @mode : brightness control by pwm or lp855x register
-+ * @device_control : value of DEVICE CONTROL register
-+ * @initial_brightness : initial value of backlight brightness
-+ * @pwm_data : platform specific pwm generation functions.
-+		Only valid when mode is PWM_BASED.
-+ * @load_new_rom_data :
-+	0 : use default configuration data
-+	1 : update values of eeprom or eprom registers on loading driver
-+ * @size_program : total size of lp855x_rom_data
-+ * @rom_data : list of new eeprom/eprom registers
++ * memweight - count the total number of bits set in memory area
++ * @ptr: pointer to the start of the area
++ * @bytes: the size of the area
 + */
-+struct lp855x_platform_data {
-+	char *name;
-+	enum lp855x_brightness_ctrl_mode mode;
-+	u8 device_control;
-+	int initial_brightness;
-+	struct lp855x_pwm_data pwm_data;
-+	u8 load_new_rom_data;
-+	int size_program;
-+	struct lp855x_rom_data *rom_data;
-+};
++size_t memweight(const void *ptr, size_t bytes)
++{
++	size_t ret = 0;
++	size_t longs;
++	const unsigned char *bitmap = ptr;
 +
-+#endif
++	for (; bytes > 0 && ((unsigned long)bitmap) % sizeof(long);
++			bytes--, bitmap++)
++		ret += hweight8(*bitmap);
++
++	longs = bytes / sizeof(long);
++	if (longs) {
++		BUG_ON(longs >= INT_MAX / BITS_PER_LONG);
++		ret += bitmap_weight((unsigned long *)bitmap,
++				longs * BITS_PER_LONG);
++		bytes -= longs * sizeof(long);
++		bitmap += longs * sizeof(long);
++	}
++	/*
++	 * The reason that this last loop is distinct from the preceding
++	 * bitmap_weight() call is to compute 1-bits in the last region smaller
++	 * than sizeof(long) properly on big-endian systems.
++	 */
++	for (; bytes > 0; bytes--, bitmap++)
++		ret += hweight8(*bitmap);
++
++	return ret;
++}
++EXPORT_SYMBOL(memweight);
 _
 
-Patches currently in -mm which might be from Milo.Kim@ti.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
+fault-injection-fix-failcmdsh-warning.patch
 linux-next.patch
+ocfs2-use-find_last_bit.patch
+ocfs2-use-bitmap_weight.patch
 
