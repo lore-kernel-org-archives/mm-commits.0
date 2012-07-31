@@ -1,64 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] video-uvc-use-memweight.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:51:06 -0700
-Message-ID: <20120731185107.0E21C200061@hpza10.eem.corp.google.com>
+Subject: [merged] ocfs2-use-memweight.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:51:10 -0700
+Message-ID: <20120731185111.1A365200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:61555 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756254Ab2GaSvJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:51:09 -0400
-Received: by wgbdt11 with SMTP id dt11so291159wgb.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:51:08 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:50337 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756254Ab2GaSvN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:51:13 -0400
+Received: by eaao12 with SMTP id o12so241482eaa.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:51:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, laurent.pinchart@ideasonboard.com, mchehab@redhat.com, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: video/uvc: use memweight()
+     Subject: ocfs2: use memweight()
 has been removed from the -mm tree.  Its filename was
-     video-uvc-use-memweight.patch
+     ocfs2-use-memweight.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: video/uvc: use memweight()
+Subject: ocfs2: use memweight()
 
-Use memweight() to count the total number of bits set in memory area.
+Use memweight to count the total number of bits set in memory area.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/uvc/uvc_ctrl.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ fs/ocfs2/localalloc.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN drivers/media/video/uvc/uvc_ctrl.c~video-uvc-use-memweight drivers/media/video/uvc/uvc_ctrl.c
---- a/drivers/media/video/uvc/uvc_ctrl.c~video-uvc-use-memweight
-+++ a/drivers/media/video/uvc/uvc_ctrl.c
-@@ -2083,7 +2083,7 @@ int uvc_ctrl_init_device(struct uvc_devi
- 	/* Walk the entities list and instantiate controls */
- 	list_for_each_entry(entity, &dev->entities, list) {
- 		struct uvc_control *ctrl;
--		unsigned int bControlSize = 0, ncontrols = 0;
-+		unsigned int bControlSize = 0, ncontrols;
- 		__u8 *bmControls = NULL;
+diff -puN fs/ocfs2/localalloc.c~ocfs2-use-memweight fs/ocfs2/localalloc.c
+--- a/fs/ocfs2/localalloc.c~ocfs2-use-memweight
++++ a/fs/ocfs2/localalloc.c
+@@ -784,14 +784,10 @@ bail:
  
- 		if (UVC_ENTITY_TYPE(entity) == UVC_VC_EXTENSION_UNIT) {
-@@ -2101,8 +2101,7 @@ int uvc_ctrl_init_device(struct uvc_devi
- 		uvc_ctrl_prune_entity(dev, entity);
+ static u32 ocfs2_local_alloc_count_bits(struct ocfs2_dinode *alloc)
+ {
+-	int i;
+-	u8 *buffer;
+-	u32 count = 0;
++	u32 count;
+ 	struct ocfs2_local_alloc *la = OCFS2_LOCAL_ALLOC(alloc);
  
- 		/* Count supported controls and allocate the controls array */
--		for (i = 0; i < bControlSize; ++i)
--			ncontrols += hweight8(bmControls[i]);
-+		ncontrols = memweight(bmControls, bControlSize);
- 		if (ncontrols == 0)
- 			continue;
+-	buffer = la->la_bitmap;
+-	for (i = 0; i < le16_to_cpu(la->la_size); i++)
+-		count += hweight8(buffer[i]);
++	count = memweight(la->la_bitmap, le16_to_cpu(la->la_size));
  
+ 	trace_ocfs2_local_alloc_count_bits(count);
+ 	return count;
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
