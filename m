@@ -1,181 +1,194 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipc-add-compat_shmlba-support.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:54:06 -0700
-Message-ID: <20120731185406.C6BDB100048@wpzn3.hot.corp.google.com>
+Subject: [merged] fork-fix-error-handling-in-dup_task.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:53:59 -0700
+Message-ID: <20120731185400.13B1A100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-ob0-f202.google.com ([209.85.214.202]:33060 "EHLO
 	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756367Ab2GaSyI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:54:08 -0400
+	with ESMTP id S1756346Ab2GaSyB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:54:01 -0400
 Received: by mail-ob0-f202.google.com with SMTP id wc20so4676512obb.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:54:07 -0700 (PDT)
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:54:01 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: will.deacon@arm.com, arnd@arndb.de, catalin.marinas@arm.com, chris@zankel.net, davem@davemloft.net, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, a.p.zijlstra@chello.nl, cmetcalf@tilera.com, dhowells@redhat.com, hpa@zytor.com, lethal@linux-sh.org, mingo@elte.hu, mingo@redhat.com, sqazi@google.com, tglx@linutronix.de, yasutake.koichi@jp.panasonic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc: add COMPAT_SHMLBA support
+     Subject: fork: fix error handling in dup_task()
 has been removed from the -mm tree.  Its filename was
-     ipc-add-compat_shmlba-support.patch
+     fork-fix-error-handling-in-dup_task.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Will Deacon <will.deacon@arm.com>
-Subject: ipc: add COMPAT_SHMLBA support
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: fork: fix error handling in dup_task()
 
-If the SHMLBA definition for a native task differs from the definition for
-a compat task, the do_shmat() function would need to handle both.
+The function dup_task() may fail at the following function calls in the
+following order.
 
-This patch introduces COMPAT_SHMLBA, which is used by the compat shmat
-syscall when calling the ipc code and allows architectures such as AArch64
-(where the native SHMLBA is 64k but the compat (AArch32) definition is
-16k) to provide the correct semantics for compat IPC system calls.
+0) alloc_task_struct_node()
+1) alloc_thread_info_node()
+2) arch_dup_task_struct()
 
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Signed-off-by: Will Deacon <will.deacon@arm.com>
+Error by 0) is not a matter, it can just return.  But error by 1) requires
+releasing task_struct allocated by 0) before it returns.  Likewise, error
+by 2) requires releasing task_struct and thread_info allocated by 0) and
+1).
+
+The existing error handling calls free_task_struct() and
+free_thread_info() which do not only release task_struct and thread_info,
+but also call architecture specific arch_release_task_struct() and
+arch_release_thread_info().
+
+The problem is that task_struct and thread_info are not fully initialized
+yet at this point, but arch_release_task_struct() and
+arch_release_thread_info() are called with them.
+
+For example, x86 defines its own arch_release_task_struct() that releases
+a task_xstate.  If alloc_thread_info_node() fails in dup_task(),
+arch_release_task_struct() is called with task_struct which is just
+allocated and filled with garbage in this error handling.
+
+This actually happened with tools/testing/fault-injection/failcmd.sh
+
+	# env FAILCMD_TYPE=fail_page_alloc \
+		./tools/testing/fault-injection/failcmd.sh --times=100 \
+		--min-order=0 --ignore-gfp-wait=0 \
+		-- make -C tools/testing/selftests/ run_tests
+
+In order to fix this issue, make free_{task_struct,thread_info}() not to
+call arch_release_{task_struct,thread_info}() and call
+arch_release_{task_struct,thread_info}() implicitly where needed.
+
+Default arch_release_task_struct() and arch_release_thread_info() are
+defined as empty by default.  So this change only affects the
+architectures which implement their own arch_release_task_struct() or
+arch_release_thread_info() as listed below.
+
+arch_release_task_struct(): x86, sh
+arch_release_thread_info(): mn10300, tile
+
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: Salman Qazi <sqazi@google.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/kernel/sys_sparc_64.c |    2 +-
- arch/xtensa/kernel/syscall.c     |    2 +-
- include/linux/shm.h              |    6 ++++--
- ipc/compat.c                     |    8 ++++++--
- ipc/shm.c                        |    9 +++++----
- ipc/syscall.c                    |    2 +-
- 6 files changed, 18 insertions(+), 11 deletions(-)
+ kernel/fork.c |   27 +++++++++++++++------------
+ 1 file changed, 15 insertions(+), 12 deletions(-)
 
-diff -puN arch/sparc/kernel/sys_sparc_64.c~ipc-add-compat_shmlba-support arch/sparc/kernel/sys_sparc_64.c
---- a/arch/sparc/kernel/sys_sparc_64.c~ipc-add-compat_shmlba-support
-+++ a/arch/sparc/kernel/sys_sparc_64.c
-@@ -470,7 +470,7 @@ SYSCALL_DEFINE6(sparc_ipc, unsigned int,
- 		switch (call) {
- 		case SHMAT: {
- 			ulong raddr;
--			err = do_shmat(first, ptr, (int)second, &raddr);
-+			err = do_shmat(first, ptr, (int)second, &raddr, SHMLBA);
- 			if (!err) {
- 				if (put_user(raddr,
- 					     (ulong __user *) third))
-diff -puN arch/xtensa/kernel/syscall.c~ipc-add-compat_shmlba-support arch/xtensa/kernel/syscall.c
---- a/arch/xtensa/kernel/syscall.c~ipc-add-compat_shmlba-support
-+++ a/arch/xtensa/kernel/syscall.c
-@@ -44,7 +44,7 @@ asmlinkage long xtensa_shmat(int shmid, 
- 	unsigned long ret;
- 	long err;
- 
--	err = do_shmat(shmid, shmaddr, shmflg, &ret);
-+	err = do_shmat(shmid, shmaddr, shmflg, &ret, SHMLBA);
- 	if (err)
- 		return err;
- 	return (long)ret;
-diff -puN include/linux/shm.h~ipc-add-compat_shmlba-support include/linux/shm.h
---- a/include/linux/shm.h~ipc-add-compat_shmlba-support
-+++ a/include/linux/shm.h
-@@ -107,12 +107,14 @@ struct shmid_kernel /* private to the ke
- #define SHM_NORESERVE   010000  /* don't check for reservations */
- 
- #ifdef CONFIG_SYSVIPC
--long do_shmat(int shmid, char __user *shmaddr, int shmflg, unsigned long *addr);
-+long do_shmat(int shmid, char __user *shmaddr, int shmflg, unsigned long *addr,
-+	      unsigned long shmlba);
- extern int is_file_shm_hugepages(struct file *file);
- extern void exit_shm(struct task_struct *task);
- #else
- static inline long do_shmat(int shmid, char __user *shmaddr,
--				int shmflg, unsigned long *addr)
-+			    int shmflg, unsigned long *addr,
-+			    unsigned long shmlba)
- {
- 	return -ENOSYS;
- }
-diff -puN ipc/compat.c~ipc-add-compat_shmlba-support ipc/compat.c
---- a/ipc/compat.c~ipc-add-compat_shmlba-support
-+++ a/ipc/compat.c
-@@ -514,6 +514,10 @@ long compat_sys_msgctl(int first, int se
- 	return err;
+diff -puN kernel/fork.c~fork-fix-error-handling-in-dup_task kernel/fork.c
+--- a/kernel/fork.c~fork-fix-error-handling-in-dup_task
++++ a/kernel/fork.c
+@@ -114,6 +114,10 @@ int nr_processes(void)
+ 	return total;
  }
  
-+#ifndef COMPAT_SHMLBA
-+#define COMPAT_SHMLBA	SHMLBA
-+#endif
++void __weak arch_release_task_struct(struct task_struct *tsk)
++{
++}
 +
- #ifdef CONFIG_ARCH_WANT_OLD_COMPAT_IPC
- long compat_sys_shmat(int first, int second, compat_uptr_t third, int version,
- 			void __user *uptr)
-@@ -524,7 +528,7 @@ long compat_sys_shmat(int first, int sec
+ #ifndef CONFIG_ARCH_TASK_STRUCT_ALLOCATOR
+ static struct kmem_cache *task_struct_cachep;
  
- 	if (version == 1)
- 		return -EINVAL;
--	err = do_shmat(first, uptr, second, &raddr);
-+	err = do_shmat(first, uptr, second, &raddr, COMPAT_SHMLBA);
- 	if (err < 0)
- 		return err;
- 	uaddr = compat_ptr(third);
-@@ -536,7 +540,7 @@ long compat_sys_shmat(int shmid, compat_
- 	unsigned long ret;
- 	long err;
+@@ -122,17 +126,17 @@ static inline struct task_struct *alloc_
+ 	return kmem_cache_alloc_node(task_struct_cachep, GFP_KERNEL, node);
+ }
  
--	err = do_shmat(shmid, compat_ptr(shmaddr), shmflg, &ret);
-+	err = do_shmat(shmid, compat_ptr(shmaddr), shmflg, &ret, COMPAT_SHMLBA);
- 	if (err)
- 		return err;
- 	force_successful_syscall_return();
-diff -puN ipc/shm.c~ipc-add-compat_shmlba-support ipc/shm.c
---- a/ipc/shm.c~ipc-add-compat_shmlba-support
-+++ a/ipc/shm.c
-@@ -953,7 +953,8 @@ out:
-  * "raddr" thing points to kernel space, and there has to be a wrapper around
-  * this.
-  */
--long do_shmat(int shmid, char __user *shmaddr, int shmflg, ulong *raddr)
-+long do_shmat(int shmid, char __user *shmaddr, int shmflg, ulong *raddr,
-+	      unsigned long shmlba)
+-void __weak arch_release_task_struct(struct task_struct *tsk) { }
+-
+ static inline void free_task_struct(struct task_struct *tsk)
  {
- 	struct shmid_kernel *shp;
- 	unsigned long addr;
-@@ -973,9 +974,9 @@ long do_shmat(int shmid, char __user *sh
- 	if (shmid < 0)
- 		goto out;
- 	else if ((addr = (ulong)shmaddr)) {
--		if (addr & (SHMLBA-1)) {
-+		if (addr & (shmlba - 1)) {
- 			if (shmflg & SHM_RND)
--				addr &= ~(SHMLBA-1);	   /* round down */
-+				addr &= ~(shmlba - 1);	   /* round down */
- 			else
- #ifndef __ARCH_FORCE_SHMLBA
- 				if (addr & ~PAGE_MASK)
-@@ -1107,7 +1108,7 @@ SYSCALL_DEFINE3(shmat, int, shmid, char 
- 	unsigned long ret;
- 	long err;
+-	arch_release_task_struct(tsk);
+ 	kmem_cache_free(task_struct_cachep, tsk);
+ }
+ #endif
  
--	err = do_shmat(shmid, shmaddr, shmflg, &ret);
-+	err = do_shmat(shmid, shmaddr, shmflg, &ret, SHMLBA);
++void __weak arch_release_thread_info(struct thread_info *ti)
++{
++}
++
+ #ifndef CONFIG_ARCH_THREAD_INFO_ALLOCATOR
+-void __weak arch_release_thread_info(struct thread_info *ti) { }
+ 
+ /*
+  * Allocate pages if THREAD_SIZE is >= PAGE_SIZE, otherwise use a
+@@ -150,7 +154,6 @@ static struct thread_info *alloc_thread_
+ 
+ static inline void free_thread_info(struct thread_info *ti)
+ {
+-	arch_release_thread_info(ti);
+ 	free_pages((unsigned long)ti, THREAD_SIZE_ORDER);
+ }
+ # else
+@@ -164,7 +167,6 @@ static struct thread_info *alloc_thread_
+ 
+ static void free_thread_info(struct thread_info *ti)
+ {
+-	arch_release_thread_info(ti);
+ 	kmem_cache_free(thread_info_cache, ti);
+ }
+ 
+@@ -205,10 +207,12 @@ static void account_kernel_stack(struct 
+ void free_task(struct task_struct *tsk)
+ {
+ 	account_kernel_stack(tsk->stack, -1);
++	arch_release_thread_info(tsk->stack);
+ 	free_thread_info(tsk->stack);
+ 	rt_mutex_debug_task_free(tsk);
+ 	ftrace_graph_exit_task(tsk);
+ 	put_seccomp_filter(tsk);
++	arch_release_task_struct(tsk);
+ 	free_task_struct(tsk);
+ }
+ EXPORT_SYMBOL(free_task);
+@@ -298,14 +302,12 @@ static struct task_struct *dup_task_stru
+ 		return NULL;
+ 
+ 	ti = alloc_thread_info_node(tsk, node);
+-	if (!ti) {
+-		free_task_struct(tsk);
+-		return NULL;
+-	}
++	if (!ti)
++		goto free_tsk;
+ 
+ 	err = arch_dup_task_struct(tsk, orig);
  	if (err)
- 		return err;
- 	force_successful_syscall_return();
-diff -puN ipc/syscall.c~ipc-add-compat_shmlba-support ipc/syscall.c
---- a/ipc/syscall.c~ipc-add-compat_shmlba-support
-+++ a/ipc/syscall.c
-@@ -73,7 +73,7 @@ SYSCALL_DEFINE6(ipc, unsigned int, call,
- 		default: {
- 			unsigned long raddr;
- 			ret = do_shmat(first, (char __user *)ptr,
--				       second, &raddr);
-+				       second, &raddr, SHMLBA);
- 			if (ret)
- 				return ret;
- 			return put_user(raddr, (unsigned long __user *) third);
+-		goto out;
++		goto free_ti;
+ 
+ 	tsk->stack = ti;
+ 
+@@ -333,8 +335,9 @@ static struct task_struct *dup_task_stru
+ 
+ 	return tsk;
+ 
+-out:
++free_ti:
+ 	free_thread_info(ti);
++free_tsk:
+ 	free_task_struct(tsk);
+ 	return NULL;
+ }
 _
 
-Patches currently in -mm which might be from will.deacon@arm.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
+fault-injection-fix-failcmdsh-warning.patch
 linux-next.patch
+ocfs2-use-find_last_bit.patch
+ocfs2-use-bitmap_weight.patch
 
