@@ -1,126 +1,166 @@
 From: akpm@linux-foundation.org
-Subject: [merged] prctl-remove-redunant-assignment-of-error-to-zero.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:47:43 -0700
-Message-ID: <20120731184743.E1A7210007A@wpzn3.hot.corp.google.com>
+Subject: [merged] fs-make-dumpable=2-require-fully-qualified-path.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:47:53 -0700
+Message-ID: <20120731184754.0AF5C1E0049@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-ob0-f202.google.com ([209.85.214.202]:33060 "EHLO
 	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756223Ab2GaSrp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:47:45 -0400
-Received: by obbwc20 with SMTP id wc20so4676512obb.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:47:45 -0700 (PDT)
+	with ESMTP id S1756179Ab2GaSrz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:47:55 -0400
+Received: by mail-ob0-f202.google.com with SMTP id wc20so4676512obb.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:47:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sasikanth.v19@gmail.com, gorcunov@openvz.org, keescook@chromium.org, serge@hallyn.com, mm-commits@vger.kernel.org
+To: keescook@chromium.org, alan@linux.intel.com, dledford@redhat.com, ebiederm@xmission.com, james.l.morris@oracle.com, serge.hallyn@canonical.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: prctl: remove redunant assignment of "error" to zero
+     Subject: fs: make dumpable=2 require fully qualified path
 has been removed from the -mm tree.  Its filename was
-     prctl-remove-redunant-assignment-of-error-to-zero.patch
+     fs-make-dumpable=2-require-fully-qualified-path.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sasikantha babu <sasikanth.v19@gmail.com>
-Subject: prctl: remove redunant assignment of "error" to zero
+From: Kees Cook <keescook@chromium.org>
+Subject: fs: make dumpable=2 require fully qualified path
 
-Just setting the "error" to error number is enough on failure and It
-doesn't require to set "error" variable to zero in each switch case, since
-it was already initialized with zero.  And also removed return 0 in switch
-case with break statement
+When the suid_dumpable sysctl is set to "2", and there is no core dump
+pipe defined in the core_pattern sysctl, a local user can cause core files
+to be written to root-writable directories, potentially with
+user-controlled content.  This means an admin can unknowningly reintroduce
+a variation of CVE-2006-2451, allowing local users to gain root
+privileges.
 
-Signed-off-by: Sasikantha babu <sasikanth.v19@gmail.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Acked-by: Serge E. Hallyn <serge@hallyn.com>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+$ cat /proc/sys/fs/suid_dumpable
+2
+$ cat /proc/sys/kernel/core_pattern
+core
+$ ulimit -c unlimited
+$ cd /
+$ ls -l core
+ls: cannot access core: No such file or directory
+$ touch core
+touch: cannot touch `core': Permission denied
+$ OHAI="evil-string-here" ping localhost >/dev/null 2>&1 &
+$ pid=$!
+$ sleep 1
+$ kill -SEGV $pid
+$ ls -l core
+-rw------- 1 root kees 458752 Jun 21 11:35 core
+$ sudo strings core | grep evil
+OHAI=evil-string-here
+
+While cron has been fixed to abort reading a file when there is any parse
+error, there are still other sensitive directories that will read any file
+present and skip unparsable lines.
+
+Instead of introducing a suid_dumpable=3 mode and breaking all users of
+mode 2, this only disables the unsafe portion of mode 2 (writing to disk
+via relative path).  Most users of mode 2 (e.g.  Chrome OS) already use a
+core dump pipe handler, so this change will not break them.  For the
+situations where a pipe handler is not defined but mode 2 is still active,
+crash dumps will only be written to fully qualified paths.  If a relative
+path is defined (e.g.  the default "core" pattern), dump attempts will
+trigger a printk yelling about the lack of a fully qualified path.
+
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Alan Cox <alan@linux.intel.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Doug Ledford <dledford@redhat.com>
+Cc: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: James Morris <james.l.morris@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |   13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
+ Documentation/sysctl/fs.txt |   18 ++++++++++++------
+ fs/exec.c                   |   17 ++++++++++++++---
+ 2 files changed, 26 insertions(+), 9 deletions(-)
 
-diff -puN kernel/sys.c~prctl-remove-redunant-assignment-of-error-to-zero kernel/sys.c
---- a/kernel/sys.c~prctl-remove-redunant-assignment-of-error-to-zero
-+++ a/kernel/sys.c
-@@ -2015,7 +2015,6 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
- 				break;
- 			}
- 			me->pdeath_signal = arg2;
--			error = 0;
- 			break;
- 		case PR_GET_PDEATHSIG:
- 			error = put_user(me->pdeath_signal, (int __user *)arg2);
-@@ -2029,7 +2028,6 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
- 				break;
- 			}
- 			set_dumpable(me->mm, arg2);
--			error = 0;
- 			break;
+diff -puN Documentation/sysctl/fs.txt~fs-make-dumpable=2-require-fully-qualified-path Documentation/sysctl/fs.txt
+--- a/Documentation/sysctl/fs.txt~fs-make-dumpable=2-require-fully-qualified-path
++++ a/Documentation/sysctl/fs.txt
+@@ -163,16 +163,22 @@ This value can be used to query and set 
+ or otherwise protected/tainted binaries. The modes are
  
- 		case PR_SET_UNALIGN:
-@@ -2056,10 +2054,7 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
- 		case PR_SET_TIMING:
- 			if (arg2 != PR_TIMING_STATISTICAL)
- 				error = -EINVAL;
--			else
--				error = 0;
- 			break;
--
- 		case PR_SET_NAME:
- 			comm[sizeof(me->comm)-1] = 0;
- 			if (strncpy_from_user(comm, (char __user *)arg2,
-@@ -2067,20 +2062,19 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
- 				return -EFAULT;
- 			set_task_comm(me, comm);
- 			proc_comm_connector(me);
--			return 0;
-+			break;
- 		case PR_GET_NAME:
- 			get_task_comm(comm, me);
- 			if (copy_to_user((char __user *)arg2, comm,
- 					 sizeof(comm)))
- 				return -EFAULT;
--			return 0;
-+			break;
- 		case PR_GET_ENDIAN:
- 			error = GET_ENDIAN(me, arg2);
- 			break;
- 		case PR_SET_ENDIAN:
- 			error = SET_ENDIAN(me, arg2);
- 			break;
--
- 		case PR_GET_SECCOMP:
- 			error = prctl_get_seccomp();
- 			break;
-@@ -2108,7 +2102,6 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
- 					current->default_timer_slack_ns;
- 			else
- 				current->timer_slack_ns = arg2;
--			error = 0;
- 			break;
- 		case PR_MCE_KILL:
- 			if (arg4 | arg5)
-@@ -2134,7 +2127,6 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
- 			default:
- 				return -EINVAL;
- 			}
--			error = 0;
- 			break;
- 		case PR_MCE_KILL_GET:
- 			if (arg2 | arg3 | arg4 | arg5)
-@@ -2153,7 +2145,6 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
- 			break;
- 		case PR_SET_CHILD_SUBREAPER:
- 			me->signal->is_child_subreaper = !!arg2;
--			error = 0;
- 			break;
- 		case PR_GET_CHILD_SUBREAPER:
- 			error = put_user(me->signal->is_child_subreaper,
+ 0 - (default) - traditional behaviour. Any process which has changed
+-	privilege levels or is execute only will not be dumped
++	privilege levels or is execute only will not be dumped.
+ 1 - (debug) - all processes dump core when possible. The core dump is
+ 	owned by the current user and no security is applied. This is
+ 	intended for system debugging situations only. Ptrace is unchecked.
++	This is insecure as it allows regular users to examine the memory
++	contents of privileged processes.
+ 2 - (suidsafe) - any binary which normally would not be dumped is dumped
+-	readable by root only. This allows the end user to remove
+-	such a dump but not access it directly. For security reasons
+-	core dumps in this mode will not overwrite one another or
+-	other files. This mode is appropriate when administrators are
+-	attempting to debug problems in a normal environment.
++	anyway, but only if the "core_pattern" kernel sysctl is set to
++	either a pipe handler or a fully qualified path. (For more details
++	on this limitation, see CVE-2006-2451.) This mode is appropriate
++	when administrators are attempting to debug problems in a normal
++	environment, and either have a core dump pipe handler that knows
++	to treat privileged core dumps with care, or specific directory
++	defined for catching core dumps. If a core dump happens without
++	a pipe handler or fully qualifid path, a message will be emitted
++	to syslog warning about the lack of a correct setting.
+ 
+ ==============================================================
+ 
+diff -puN fs/exec.c~fs-make-dumpable=2-require-fully-qualified-path fs/exec.c
+--- a/fs/exec.c~fs-make-dumpable=2-require-fully-qualified-path
++++ a/fs/exec.c
+@@ -2111,6 +2111,7 @@ void do_coredump(long signr, int exit_co
+ 	int retval = 0;
+ 	int flag = 0;
+ 	int ispipe;
++	bool need_nonrelative = false;
+ 	static atomic_t core_dump_count = ATOMIC_INIT(0);
+ 	struct coredump_params cprm = {
+ 		.signr = signr,
+@@ -2136,14 +2137,16 @@ void do_coredump(long signr, int exit_co
+ 	if (!cred)
+ 		goto fail;
+ 	/*
+-	 *	We cannot trust fsuid as being the "true" uid of the
+-	 *	process nor do we know its entire history. We only know it
+-	 *	was tainted so we dump it as root in mode 2.
++	 * We cannot trust fsuid as being the "true" uid of the process
++	 * nor do we know its entire history. We only know it was tainted
++	 * so we dump it as root in mode 2, and only into a controlled
++	 * environment (pipe handler or fully qualified path).
+ 	 */
+ 	if (__get_dumpable(cprm.mm_flags) == 2) {
+ 		/* Setuid core dump mode */
+ 		flag = O_EXCL;		/* Stop rewrite attacks */
+ 		cred->fsuid = GLOBAL_ROOT_UID;	/* Dump root private */
++		need_nonrelative = true;
+ 	}
+ 
+ 	retval = coredump_wait(exit_code, &core_state);
+@@ -2223,6 +2226,14 @@ void do_coredump(long signr, int exit_co
+ 		if (cprm.limit < binfmt->min_coredump)
+ 			goto fail_unlock;
+ 
++		if (need_nonrelative && cn.corename[0] != '/') {
++			printk(KERN_WARNING "Pid %d(%s) can only dump core "\
++				"to fully qualified path!\n",
++				task_tgid_vnr(current), current->comm);
++			printk(KERN_WARNING "Skipping core dump\n");
++			goto fail_unlock;
++		}
++
+ 		cprm.file = filp_open(cn.corename,
+ 				 O_CREAT | 2 | O_NOFOLLOW | O_LARGEFILE | flag,
+ 				 0600);
 _
 
-Patches currently in -mm which might be from sasikanth.v19@gmail.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
 origin.patch
+linux-next.patch
 
