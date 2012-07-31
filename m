@@ -1,58 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [folded] memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 16:28:56 -0700
-Message-ID: <20120731232856.7DB46A028B@akpm.mtv.corp.google.com>
+Subject: [folded] mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 16:29:21 -0700
+Message-ID: <20120731232921.5F3D1A028B@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:44960 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754811Ab2GaX26 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 19:28:58 -0400
-Received: by wibhr14 with SMTP id hr14so153323wib.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 16:28:57 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:46696 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754811Ab2GaX3X (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Tue, 31 Jul 2012 19:29:23 -0400
+Received: by lagr15 with SMTP id r15so298402lag.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 16:29:22 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg-make-mem_cgroup_force_empty_list-return-bool-fix
+     Subject: mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     memcg-make-mem_cgroup_force_empty_list-return-bool-fix.patch
+     mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into memcg-make-mem_cgroup_force_empty_list-return-bool.patch
+This patch was dropped because it was folded into mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memcg-make-mem_cgroup_force_empty_list-return-bool-fix
+Subject: mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes
 
-rework mem_cgroup_force_empty_list()'s comment
+ERROR: trailing whitespace
+#62: FILE: mm/fadvise.c:106:
++^I^I * Ignore return value because fadvise() shall return $
 
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+ERROR: trailing whitespace
+#64: FILE: mm/fadvise.c:108:
++^I^I */^I^I$
+
+total: 2 errors, 0 warnings, 30 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/fadvise.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-make-mem_cgroup_force_empty_list-return-bool-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-make-mem_cgroup_force_empty_list-return-bool-fix
-+++ a/mm/memcontrol.c
-@@ -3609,8 +3609,10 @@ unsigned long mem_cgroup_soft_limit_recl
- }
+diff -puN mm/fadvise.c~mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes mm/fadvise.c
+--- a/mm/fadvise.c~mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes
++++ a/mm/fadvise.c
+@@ -103,9 +103,9 @@ SYSCALL_DEFINE(fadvise64_64)(int fd, lof
+ 			nrpages = ~0UL;
  
- /*
-- * This routine traverse page_cgroup in given list and drop them all.
-- * *And* this routine doesn't reclaim page itself, just removes page_cgroup.
-+ * Traverse a specified page_cgroup list and try to drop them all.  This doesn't
-+ * reclaim the pages page themselves - it just removes the page_cgroups.
-+ * Returns true if some page_cgroups were not freed, indicating that the caller
-+ * must retry this operation.
-  */
- static bool mem_cgroup_force_empty_list(struct mem_cgroup *memcg,
- 				int node, int zid, enum lru_list lru)
+ 		/*
+-		 * Ignore return value because fadvise() shall return 
++		 * Ignore return value because fadvise() shall return
+ 		 * success even if filesystem can't retrieve a hint,
+-		 */		
++		 */
+ 		force_page_cache_readahead(mapping, file, start_index,
+ 					   nrpages);
+ 		break;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -64,7 +80,7 @@ mm-hugetlb-add-new-hugetlb-cgroup.patch
 hugetlb-cgroup-add-hugetlb-cgroup-control-files.patch
 mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
 memcg-make-mem_cgroup_force_empty_list-return-bool.patch
-mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise-checkpatch-fixes.patch
+mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise.patch
 memcg-rename-config-variables.patch
 memcg-rename-config-variables-fix-fix.patch
 mm-have-order-0-compaction-start-off-where-it-left-checkpatch-fixes.patch
