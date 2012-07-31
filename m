@@ -1,40 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: [merged] net-stmmac-remove-conditional-compilation-of-clk-code.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 11:48:39 -0700
-Message-ID: <20120731184839.C7B871E007B@wpzn4.hot.corp.google.com>
+Subject: [merged] gadget-m66592-remove-conditional-compilation-of-clk-code.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 11:48:42 -0700
+Message-ID: <20120731184843.341A120004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:33060 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756233Ab2GaSsl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:48:41 -0400
-Received: by mail-ob0-f202.google.com with SMTP id wc20so4676512obb.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:48:40 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:64669 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756208Ab2GaSsq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:48:46 -0400
+Received: by weyr1 with SMTP id r1so292208wey.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:48:44 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: viresh.kumar@st.com, davem@davemloft.net, mturquette@linaro.org, peppe.cavallaro@st.com, rmk@arm.linux.org.uk, sshtylyov@ru.mvista.com, viresh.linux@gmail.com, mm-commits@vger.kernel.org
+To: viresh.kumar@st.com, gregkh@linuxfoundation.org, mturquette@linaro.org, rmk@arm.linux.org.uk, sshtylyov@ru.mvista.com, viresh.linux@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: net/stmmac: remove conditional compilation of clk code
+     Subject: gadget/m66592: remove conditional compilation of clk code
 has been removed from the -mm tree.  Its filename was
-     net-stmmac-remove-conditional-compilation-of-clk-code.patch
+     gadget-m66592-remove-conditional-compilation-of-clk-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Viresh Kumar <viresh.kumar@st.com>
-Subject: net/stmmac: remove conditional compilation of clk code
+Subject: gadget/m66592: remove conditional compilation of clk code
 
 With addition of dummy clk_*() calls for non CONFIG_HAVE_CLK cases in
 clk.h, there is no need to have clk code enclosed in #ifdef
 CONFIG_HAVE_CLK, #endif macros.
 
-This also fixes error paths of probe(), as a goto is required in this patch.
-
 Signed-off-by: Viresh Kumar <viresh.kumar@st.com>
-Cc: Giuseppe Cavallaro <peppe.cavallaro@st.com>
-Acked-by: David S. Miller <davem@davemloft.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Russell King <rmk@arm.linux.org.uk>
 Cc: Mike Turquette <mturquette@linaro.org>
 Cc: Sergei Shtylyov <sshtylyov@ru.mvista.com>
@@ -42,190 +39,74 @@ Cc: viresh kumar <viresh.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/stmicro/stmmac/stmmac.h      |   42 ------------
- drivers/net/ethernet/stmicro/stmmac/stmmac_main.c |   33 ++++-----
- 2 files changed, 17 insertions(+), 58 deletions(-)
+ drivers/usb/gadget/m66592-udc.c |    9 +--------
+ drivers/usb/gadget/m66592-udc.h |    5 -----
+ 2 files changed, 1 insertion(+), 13 deletions(-)
 
-diff -puN drivers/net/ethernet/stmicro/stmmac/stmmac.h~net-stmmac-remove-conditional-compilation-of-clk-code drivers/net/ethernet/stmicro/stmmac/stmmac.h
---- a/drivers/net/ethernet/stmicro/stmmac/stmmac.h~net-stmmac-remove-conditional-compilation-of-clk-code
-+++ a/drivers/net/ethernet/stmicro/stmmac/stmmac.h
-@@ -82,9 +82,7 @@ struct stmmac_priv {
- 	struct stmmac_counters mmc;
- 	struct dma_features dma_cap;
- 	int hw_cap_support;
+diff -puN drivers/usb/gadget/m66592-udc.c~gadget-m66592-remove-conditional-compilation-of-clk-code drivers/usb/gadget/m66592-udc.c
+--- a/drivers/usb/gadget/m66592-udc.c~gadget-m66592-remove-conditional-compilation-of-clk-code
++++ a/drivers/usb/gadget/m66592-udc.c
+@@ -1583,12 +1583,10 @@ static int __exit m66592_remove(struct p
+ 	iounmap(m66592->reg);
+ 	free_irq(platform_get_irq(pdev, 0), m66592);
+ 	m66592_free_request(&m66592->ep[0].ep, m66592->ep0_req);
 -#ifdef CONFIG_HAVE_CLK
- 	struct clk *stmmac_clk;
+ 	if (m66592->pdata->on_chip) {
+ 		clk_disable(m66592->clk);
+ 		clk_put(m66592->clk);
+ 	}
 -#endif
- 	int clk_csr;
- 	int synopsys_id;
- 	struct timer_list eee_ctrl_timer;
-@@ -113,46 +111,6 @@ struct stmmac_priv *stmmac_dvr_probe(str
- void stmmac_disable_eee_mode(struct stmmac_priv *priv);
- bool stmmac_eee_init(struct stmmac_priv *priv);
- 
--#ifdef CONFIG_HAVE_CLK
--static inline int stmmac_clk_enable(struct stmmac_priv *priv)
--{
--	if (!IS_ERR(priv->stmmac_clk))
--		return clk_prepare_enable(priv->stmmac_clk);
--
--	return 0;
--}
--
--static inline void stmmac_clk_disable(struct stmmac_priv *priv)
--{
--	if (IS_ERR(priv->stmmac_clk))
--		return;
--
--	clk_disable_unprepare(priv->stmmac_clk);
--}
--static inline int stmmac_clk_get(struct stmmac_priv *priv)
--{
--	priv->stmmac_clk = clk_get(priv->device, NULL);
--
--	if (IS_ERR(priv->stmmac_clk))
--		return PTR_ERR(priv->stmmac_clk);
--
--	return 0;
--}
--#else
--static inline int stmmac_clk_enable(struct stmmac_priv *priv)
--{
--	return 0;
--}
--static inline void stmmac_clk_disable(struct stmmac_priv *priv)
--{
--}
--static inline int stmmac_clk_get(struct stmmac_priv *priv)
--{
--	return 0;
--}
--#endif /* CONFIG_HAVE_CLK */
--
--
- #ifdef CONFIG_STMMAC_PLATFORM
- extern struct platform_driver stmmac_pltfr_driver;
- static inline int stmmac_register_platform(void)
-diff -puN drivers/net/ethernet/stmicro/stmmac/stmmac_main.c~net-stmmac-remove-conditional-compilation-of-clk-code drivers/net/ethernet/stmicro/stmmac/stmmac_main.c
---- a/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c~net-stmmac-remove-conditional-compilation-of-clk-code
-+++ a/drivers/net/ethernet/stmicro/stmmac/stmmac_main.c
-@@ -28,6 +28,7 @@
- 	https://bugzilla.stlinux.com/
- *******************************************************************************/
- 
-+#include <linux/clk.h>
- #include <linux/kernel.h>
- #include <linux/interrupt.h>
- #include <linux/ip.h>
-@@ -173,12 +174,8 @@ static void stmmac_verify_args(void)
- 
- static void stmmac_clk_csr_set(struct stmmac_priv *priv)
- {
--#ifdef CONFIG_HAVE_CLK
- 	u32 clk_rate;
- 
--	if (IS_ERR(priv->stmmac_clk))
--		return;
--
- 	clk_rate = clk_get_rate(priv->stmmac_clk);
- 
- 	/* Platform provided default clk_csr would be assumed valid
-@@ -200,7 +197,6 @@ static void stmmac_clk_csr_set(struct st
- 	   * we can not estimate the proper divider as it is not known
- 	   * the frequency of clk_csr_i. So we do not change the default
- 	   * divider. */
--#endif
- }
- 
- #if defined(STMMAC_XMIT_DEBUG) || defined(STMMAC_RX_DEBUG)
-@@ -1070,7 +1066,7 @@ static int stmmac_open(struct net_device
- 	} else
- 		priv->tm->enable = 1;
- #endif
--	stmmac_clk_enable(priv);
-+	clk_enable(priv->stmmac_clk);
- 
- 	stmmac_check_ether_addr(priv);
- 
-@@ -1192,7 +1188,7 @@ open_error:
- 	if (priv->phydev)
- 		phy_disconnect(priv->phydev);
- 
--	stmmac_clk_disable(priv);
-+	clk_disable(priv->stmmac_clk);
- 
- 	return ret;
- }
-@@ -1250,7 +1246,7 @@ static int stmmac_release(struct net_dev
- #ifdef CONFIG_STMMAC_DEBUG_FS
- 	stmmac_exit_fs();
- #endif
--	stmmac_clk_disable(priv);
-+	clk_disable(priv->stmmac_clk);
- 
+ 	kfree(m66592);
  	return 0;
  }
-@@ -2078,11 +2074,14 @@ struct stmmac_priv *stmmac_dvr_probe(str
- 	ret = register_netdev(ndev);
- 	if (ret) {
- 		pr_err("%s: ERROR %i registering the device\n", __func__, ret);
--		goto error;
-+		goto error_netdev_register;
+@@ -1602,9 +1600,7 @@ static int __init m66592_probe(struct pl
+ 	struct resource *res, *ires;
+ 	void __iomem *reg = NULL;
+ 	struct m66592 *m66592 = NULL;
+-#ifdef CONFIG_HAVE_CLK
+ 	char clk_name[8];
+-#endif
+ 	int ret = 0;
+ 	int i;
+ 
+@@ -1671,7 +1667,6 @@ static int __init m66592_probe(struct pl
+ 		goto clean_up;
  	}
  
--	if (stmmac_clk_get(priv))
-+	priv->stmmac_clk = clk_get(priv->device, NULL);
-+	if (IS_ERR(priv->stmmac_clk)) {
- 		pr_warning("%s: warning: cannot get CSR clock\n", __func__);
-+		goto error_clk_get;
-+	}
- 
- 	/* If a specific clk_csr value is passed from the platform
- 	 * this means that the CSR Clock Range selection cannot be
-@@ -2100,15 +2099,17 @@ struct stmmac_priv *stmmac_dvr_probe(str
- 	if (ret < 0) {
- 		pr_debug("%s: MDIO bus (id: %d) registration failed",
- 			 __func__, priv->plat->bus_id);
--		goto error;
-+		goto error_mdio_register;
+-#ifdef CONFIG_HAVE_CLK
+ 	if (m66592->pdata->on_chip) {
+ 		snprintf(clk_name, sizeof(clk_name), "usbf%d", pdev->id);
+ 		m66592->clk = clk_get(&pdev->dev, clk_name);
+@@ -1683,7 +1678,7 @@ static int __init m66592_probe(struct pl
+ 		}
+ 		clk_enable(m66592->clk);
  	}
+-#endif
++
+ 	INIT_LIST_HEAD(&m66592->gadget.ep_list);
+ 	m66592->gadget.ep0 = &m66592->ep[0].ep;
+ 	INIT_LIST_HEAD(&m66592->gadget.ep0->ep_list);
+@@ -1731,13 +1726,11 @@ err_add_udc:
+ 	m66592_free_request(&m66592->ep[0].ep, m66592->ep0_req);
  
- 	return priv;
- 
--error:
--	netif_napi_del(&priv->napi);
--
-+error_mdio_register:
-+	clk_put(priv->stmmac_clk);
-+error_clk_get:
- 	unregister_netdev(ndev);
-+error_netdev_register:
-+	netif_napi_del(&priv->napi);
- 	free_netdev(ndev);
- 
- 	return NULL;
-@@ -2177,7 +2178,7 @@ int stmmac_suspend(struct net_device *nd
- 	else {
- 		stmmac_set_mac(priv->ioaddr, false);
- 		/* Disable clock in case of PWM is off */
--		stmmac_clk_disable(priv);
-+		clk_disable(priv->stmmac_clk);
+ clean_up3:
+-#ifdef CONFIG_HAVE_CLK
+ 	if (m66592->pdata->on_chip) {
+ 		clk_disable(m66592->clk);
+ 		clk_put(m66592->clk);
  	}
- 	spin_unlock_irqrestore(&priv->lock, flags);
- 	return 0;
-@@ -2202,7 +2203,7 @@ int stmmac_resume(struct net_device *nde
- 		priv->hw->mac->pmt(priv->ioaddr, 0);
- 	else
- 		/* enable the clk prevously disabled */
--		stmmac_clk_enable(priv);
-+		clk_enable(priv->stmmac_clk);
+ clean_up2:
+-#endif
+ 	free_irq(ires->start, m66592);
+ clean_up:
+ 	if (m66592) {
+diff -puN drivers/usb/gadget/m66592-udc.h~gadget-m66592-remove-conditional-compilation-of-clk-code drivers/usb/gadget/m66592-udc.h
+--- a/drivers/usb/gadget/m66592-udc.h~gadget-m66592-remove-conditional-compilation-of-clk-code
++++ a/drivers/usb/gadget/m66592-udc.h
+@@ -13,10 +13,7 @@
+ #ifndef __M66592_UDC_H__
+ #define __M66592_UDC_H__
  
- 	netif_device_attach(ndev);
- 
-_
-
-Patches currently in -mm which might be from viresh.kumar@st.com are
-
-origin.patch
-linux-next.patch
-
+-#ifdef CONFIG_HAVE_CLK
+ #include <linux/clk.h>
+-#endif
