@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb-revert.patch added to -mm tree
-Date: Mon, 30 Jul 2012 15:31:51 -0700
-Message-ID: <20120730223152.9758C5C0050@hpza9.eem.corp.google.com>
+Subject: + nfs-enable-swap-on-nfs-fix-fix.patch added to -mm tree
+Date: Tue, 31 Jul 2012 11:43:45 -0700
+Message-ID: <20120731184346.86A1B1E0061@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:48463 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755095Ab2G3Wbz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Jul 2012 18:31:55 -0400
-Received: by weyr1 with SMTP id r1so246742wey.1
-        for <mm-commits@vger.kernel.org>; Mon, 30 Jul 2012 15:31:53 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:47944 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752368Ab2GaSns (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 14:43:48 -0400
+Received: by obbwc20 with SMTP id wc20so4674702obb.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 11:43:47 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mgorman@suse.de, aneesh.kumar@linux.vnet.ibm.com, mhocko@suse.cz
+Cc: mgorman@suse.de, Trond.Myklebust@netapp.com
 
 
 The patch titled
-     Subject: hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb-revert
+     Subject: buildfix: nfs: enable swap on NFS
 has been added to the -mm tree.  Its filename is
-     hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb-revert.patch
+     nfs-enable-swap-on-nfs-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,90 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb-revert
+Subject: buildfix: nfs: enable swap on NFS
 
-This reverts the patch "hugetlb: avoid taking i_mmap_mutex in
-unmap_single_vma() for hugetlb" from mmotm.
+Stephen Rothwell reported a merge conflict between a MM patch "nfs: enable
+swap on NFS" and an NFS patch "nfs: skip commit in releasepage if we're
+freeing memory for fs-related reasons".
 
-This patch is possibly a mistake and blocks the merging of a hugetlb fix
-where page tables can get corrupted (https://lkml.org/lkml/2012/7/24/93).
-The motivation of the patch appears to be two-fold.
-
-First, it believes that the i_mmap_mutex is to protect against list
-corruption of the page->lru lock but that is not quite accurate. The
-i_mmap_mutex for shared page tables is meant to protect against races
-when sharing and unsharing the page tables. For example, an important
-use of i_mmap_mutex is to stabilise the page_count of the PMD page
-during huge_pmd_unshare.
-
-Second, it is protecting against a potential deadlock when
-unmap_unsingle_page is called from unmap_mapping_range(). However, hugetlbfs
-should never be in this path. It has its own setattr and truncate handlers
-where are the paths that use unmap_mapping_range().
-
-Unless Aneesh has another reason for the patch, it should be reverted
-to preserve hugetlb page sharing locking.
+Trond pointed out that at the points of the conflict the running context
+is rpciod and not a softirq context.  This patch stops PF_MEMALLOC being
+set but rpc_malloc still uses __GFP_MEMALLOC where necessary to allocate
+from the reserves.  When merged with the "nfs: enable swap on NFS", the
+conflict with the NFS tree should disappear.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ net/sunrpc/xprtsock.c |   11 -----------
+ 1 file changed, 11 deletions(-)
 
-diff -puN mm/memory.c~hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb-revert mm/memory.c
---- a/mm/memory.c~hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb-revert
-+++ a/mm/memory.c
-@@ -1343,8 +1343,11 @@ static void unmap_single_vma(struct mmu_
- 			 * Since no pte has actually been setup, it is
- 			 * safe to do nothing in this case.
- 			 */
--			if (vma->vm_file)
-+			if (vma->vm_file) {
-+				mutex_lock(&vma->vm_file->f_mapping->i_mmap_mutex);
- 				__unmap_hugepage_range(tlb, vma, start, end, NULL);
-+				mutex_unlock(&vma->vm_file->f_mapping->i_mmap_mutex);
-+			}
- 		} else
- 			unmap_page_range(tlb, vma, start, end, details);
- 	}
+diff -puN net/sunrpc/xprtsock.c~nfs-enable-swap-on-nfs-fix-fix net/sunrpc/xprtsock.c
+--- a/net/sunrpc/xprtsock.c~nfs-enable-swap-on-nfs-fix-fix
++++ a/net/sunrpc/xprtsock.c
+@@ -2003,15 +2003,11 @@ static void xs_udp_setup_socket(struct w
+ 		container_of(work, struct sock_xprt, connect_worker.work);
+ 	struct rpc_xprt *xprt = &transport->xprt;
+ 	struct socket *sock = transport->sock;
+-	unsigned long pflags = current->flags;
+ 	int status = -EIO;
+ 
+ 	if (xprt->shutdown)
+ 		goto out;
+ 
+-	if (xprt->swapper)
+-		current->flags |= PF_MEMALLOC;
+-
+ 	/* Start by resetting any existing state */
+ 	xs_reset_transport(transport);
+ 	sock = xs_create_sock(xprt, transport,
+@@ -2030,7 +2026,6 @@ static void xs_udp_setup_socket(struct w
+ out:
+ 	xprt_clear_connecting(xprt);
+ 	xprt_wake_pending_tasks(xprt, status);
+-	tsk_restore_flags(current, pflags, PF_MEMALLOC);
+ }
+ 
+ /*
+@@ -2153,15 +2148,11 @@ static void xs_tcp_setup_socket(struct w
+ 		container_of(work, struct sock_xprt, connect_worker.work);
+ 	struct socket *sock = transport->sock;
+ 	struct rpc_xprt *xprt = &transport->xprt;
+-	unsigned long pflags = current->flags;
+ 	int status = -EIO;
+ 
+ 	if (xprt->shutdown)
+ 		goto out;
+ 
+-	if (xprt->swapper)
+-		current->flags |= PF_MEMALLOC;
+-
+ 	if (!sock) {
+ 		clear_bit(XPRT_CONNECTION_ABORT, &xprt->state);
+ 		sock = xs_create_sock(xprt, transport,
+@@ -2211,7 +2202,6 @@ static void xs_tcp_setup_socket(struct w
+ 	case -EINPROGRESS:
+ 	case -EALREADY:
+ 		xprt_clear_connecting(xprt);
+-		tsk_restore_flags(current, pflags, PF_MEMALLOC);
+ 		return;
+ 	case -EINVAL:
+ 		/* Happens, for instance, if the user specified a link
+@@ -2224,7 +2214,6 @@ out_eagain:
+ out:
+ 	xprt_clear_connecting(xprt);
+ 	xprt_wake_pending_tasks(xprt, status);
+-	tsk_restore_flags(current, pflags, PF_MEMALLOC);
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
 
 origin.patch
-mm-fix-wrong-argument-of-migrate_huge_pages-in-soft_offline_huge_page.patch
-linux-next.patch
 hugetlb-avoid-taking-i_mmap_mutex-in-unmap_single_vma-for-hugetlb-revert.patch
 mm-do-not-use-page_count-without-a-page-pin.patch
 mm-clean-up-__count_immobile_pages.patch
@@ -132,9 +160,11 @@ nfs-teach-the-nfs-client-how-to-treat-pg_swapcache-pages.patch
 nfs-disable-data-cache-revalidation-for-swapfiles.patch
 nfs-enable-swap-on-nfs.patch
 nfs-enable-swap-on-nfs-fix.patch
+nfs-enable-swap-on-nfs-fix-fix.patch
 nfs-prevent-page-allocator-recursions-with-swap-over-nfs.patch
 swapfile-avoid-dereferencing-bd_disk-during-swap_entry_free-for-network-storage.patch
 memcg-prevent-oom-with-too-many-dirty-pages.patch
 memcg-further-prevent-oom-with-too-many-dirty-pages.patch
 mm-hugetlbfs-close-race-during-teardown-of-hugetlbfs-shared-page-tables.patch
+linux-next.patch
 
