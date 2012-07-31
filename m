@@ -1,99 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-oom-reduce-dependency-on-tasklist_lock-fix-fix.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 16:31:57 -0700
-Message-ID: <20120731233157.8E74AA028B@akpm.mtv.corp.google.com>
+Subject: [folded] memory-hotplug-fix-kswapd-looping-forever-problem-fix.patch removed from -mm tree
+Date: Tue, 31 Jul 2012 16:32:43 -0700
+Message-ID: <20120731233243.D2040A028B@akpm.mtv.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:57717 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755053Ab2GaXcA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 19:32:00 -0400
-Received: by fat25 with SMTP id 25so296721fat.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 16:31:58 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:34356 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754811Ab2GaXcp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 19:32:45 -0400
+Received: by obbwc20 with SMTP id wc20so4819432obb.1
+        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 16:32:44 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aaditya.kumar.30@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-oom-reduce-dependency-on-tasklist_lock-fix-fix
+     Subject: memory-hotplug-fix-kswapd-looping-forever-problem-fix
 has been removed from the -mm tree.  Its filename was
-     mm-oom-reduce-dependency-on-tasklist_lock-fix-fix.patch
+     memory-hotplug-fix-kswapd-looping-forever-problem-fix.patch
 
-This patch was dropped because it was folded into mm-oom-reduce-dependency-on-tasklist_lock.patch
+This patch was dropped because it was folded into memory-hotplug-fix-kswapd-looping-forever-problem.patch
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm-oom-reduce-dependency-on-tasklist_lock-fix-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memory-hotplug-fix-kswapd-looping-forever-problem-fix
 
-Need to drop rcu lock before returning from select_bad_process() for
-OOM_SCAN_ABORT.
+simplify nr_zone_isolate_freepages(), rework zone_watermark_ok_safe() comment, simplify set_pageblock_isolate() and restore_pageblock_isolate().
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Cc: Aaditya Kumar <aaditya.kumar.30@gmail.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/page_alloc.c     |   19 ++++++++-----------
+ mm/page_isolation.c |   19 ++++++++-----------
+ 2 files changed, 16 insertions(+), 22 deletions(-)
 
-diff -puN mm/oom_kill.c~mm-oom-reduce-dependency-on-tasklist_lock-fix-fix mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-reduce-dependency-on-tasklist_lock-fix-fix
-+++ a/mm/oom_kill.c
-@@ -361,6 +361,7 @@ static struct task_struct *select_bad_pr
- 		case OOM_SCAN_CONTINUE:
- 			continue;
- 		case OOM_SCAN_ABORT:
-+			rcu_read_unlock();
- 			return ERR_PTR(-1UL);
- 		case OOM_SCAN_OK:
- 			break;
+diff -puN mm/page_alloc.c~memory-hotplug-fix-kswapd-looping-forever-problem-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~memory-hotplug-fix-kswapd-looping-forever-problem-fix
++++ a/mm/page_alloc.c
+@@ -1626,12 +1626,9 @@ static bool __zone_watermark_ok(struct z
+ #ifdef CONFIG_MEMORY_ISOLATION
+ static inline unsigned long nr_zone_isolate_freepages(struct zone *zone)
+ {
+-	unsigned long nr_pages = 0;
+-
+-	if (unlikely(zone->nr_pageblock_isolate)) {
+-		nr_pages = zone->nr_pageblock_isolate * pageblock_nr_pages;
+-	}
+-	return nr_pages;
++	if (unlikely(zone->nr_pageblock_isolate))
++		return zone->nr_pageblock_isolate * pageblock_nr_pages;
++	return 0;
+ }
+ #else
+ static inline unsigned long nr_zone_isolate_freepages(struct zone *zone)
+@@ -1656,11 +1653,11 @@ bool zone_watermark_ok_safe(struct zone 
+ 		free_pages = zone_page_state_snapshot(z, NR_FREE_PAGES);
+ 
+ 	/*
+-	 * If the zone has MIGRATE_ISOLATE type free page,
+-	 * we should consider it. nr_zone_isolate_freepages is never
+-	 * accurate so kswapd might not sleep although she can.
+-	 * But it's more desirable for memory hotplug rather than
+-	 * forever sleep which cause livelock in direct reclaim path.
++	 * If the zone has MIGRATE_ISOLATE type free pages, we should consider
++	 * it.  nr_zone_isolate_freepages is never accurate so kswapd might not
++	 * sleep although it could do so.  But this is more desirable for memory
++	 * hotplug than sleeping which can cause a livelock in the direct
++	 * reclaim path.
+ 	 */
+ 	free_pages -= nr_zone_isolate_freepages(z);
+ 	return __zone_watermark_ok(z, order, mark, classzone_idx, alloc_flags,
+diff -puN mm/page_isolation.c~memory-hotplug-fix-kswapd-looping-forever-problem-fix mm/page_isolation.c
+--- a/mm/page_isolation.c~memory-hotplug-fix-kswapd-looping-forever-problem-fix
++++ a/mm/page_isolation.c
+@@ -8,23 +8,20 @@
+ #include <linux/memory.h>
+ #include "internal.h"
+ 
+-/* called by holding zone->lock */
+-static void set_pageblock_isolate(struct zone *zone, struct page *page)
++/* called while holding zone->lock */
++static void set_pageblock_isolate(struct page *page)
+ {
+-	BUG_ON(page_zone(page) != zone);
+-
+ 	if (get_pageblock_migratetype(page) == MIGRATE_ISOLATE)
+ 		return;
+ 
+ 	set_pageblock_migratetype(page, MIGRATE_ISOLATE);
+-	zone->nr_pageblock_isolate++;
++	page_zone(page)->nr_pageblock_isolate++;
+ }
+ 
+-/* called by holding zone->lock */
+-static void restore_pageblock_isolate(struct zone *zone, struct page *page,
+-		int migratetype)
++/* called while holding zone->lock */
++static void restore_pageblock_isolate(struct page *page, int migratetype)
+ {
+-	BUG_ON(page_zone(page) != zone);
++	struct zone *zone = page_zone(page);
+ 	if (WARN_ON(get_pageblock_migratetype(page) != MIGRATE_ISOLATE))
+ 		return;
+ 
+@@ -79,7 +76,7 @@ int set_migratetype_isolate(struct page 
+ 
+ out:
+ 	if (!ret) {
+-		set_pageblock_isolate(zone, page);
++		set_pageblock_isolate(page);
+ 		move_freepages_block(zone, page, MIGRATE_ISOLATE);
+ 	}
+ 
+@@ -98,7 +95,7 @@ void unset_migratetype_isolate(struct pa
+ 	if (get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
+ 		goto out;
+ 	move_freepages_block(zone, page, migratetype);
+-	restore_pageblock_isolate(zone, page, migratetype);
++	restore_pageblock_isolate(page, migratetype);
+ out:
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+ }
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-buddy-cleanup-on-should_fail_alloc_page.patch
-hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
-hugetlb-dont-use-err_ptr-with-vm_fault-values.patch
-hugetlb-add-an-inline-helper-for-finding-hstate-index.patch
-hugetlb-use-mmu_gather-instead-of-a-temporary-linked-list-for-accumulating-pages.patch
-hugetlb-simplify-migrate_huge_page.patch
-hugetlb-add-a-list-for-tracking-in-use-hugetlb-pages.patch
-hugetlb-make-some-static-variables-global.patch
+drivers-media-video-v4l2-ioctlc-fix-build.patch
+mm-make-vb_alloc-more-foolproof.patch
 mm-hugetlb-add-new-hugetlb-cgroup.patch
-hugetlb-cgroup-add-the-cgroup-pointer-to-page-lru.patch
-hugetlb-cgroup-add-charge-uncharge-routines-for-hugetlb-cgroup.patch
-hugetlb-cgroup-add-support-for-cgroup-removal.patch
 hugetlb-cgroup-add-hugetlb-cgroup-control-files.patch
-hugetlb-cgroup-migrate-hugetlb-cgroup-info-from-oldpage-to-new-page-during-migration.patch
-hugetlb-cgroup-add-hugetlb-controller-documentation.patch
-mm-oom-do-not-schedule-if-current-has-been-killed.patch
-mm-compaction-cleanup-on-compaction_deferred.patch
-mm-clear-pages_scanned-only-if-draining-a-pcp-adds-pages-to-the-buddy-allocator-again.patch
-mm-oom-fix-potential-killing-of-thread-that-is-disabled-from-oom-killing.patch
-mm-oom-replace-some-information-in-tasklist-dump.patch
+mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
+memcg-make-mem_cgroup_force_empty_list-return-bool.patch
+mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise.patch
 memcg-rename-config-variables.patch
-mm-setup-pageblock_order-before-its-used-by-sparsemem.patch
-mm-hotplug-correctly-setup-fallback-zonelists-when-creating-new-pgdat.patch
-mm-hotplug-correctly-add-new-zone-to-all-other-nodes-zone-lists.patch
-mm-hotplug-free-zone-pageset-when-a-zone-becomes-empty.patch
-mm-hotplug-mark-memory-hotplug-code-in-page_allocc-as-__meminit.patch
-mm-oom-move-declaration-for-mem_cgroup_out_of_memory-to-oomh.patch
-mm-oom-introduce-helper-function-to-process-threads-during-scan.patch
-mm-memcg-introduce-own-oom-handler-to-iterate-only-over-its-own-threads.patch
-mm-oom-reduce-dependency-on-tasklist_lock.patch
-mm-memcg-move-all-oom-handling-to-memcontrolc.patch
-mm-only-set-page-pfmemalloc-when-alloc_no_watermarks-was-used.patch
-mm-memcg-fix-compaction-migration-failing-due-to-memcg-limits.patch
-mm-memcg-push-down-pageswapcache-check-into-uncharge-entry-functions.patch
-mm-memcg-only-check-for-pageswapcache-when-uncharging-anon.patch
-mm-memcg-move-swapin-charge-functions-above-callsites.patch
-mm-memcg-remove-unneeded-shmem-charge-type.patch
-mm-memcg-remove-needless-mm-fixup-to-init_mm-when-charging.patch
-mm-memcg-split-swapin-charge-function-into-private-and-public-part.patch
-mm-memcg-only-check-swap-cache-pages-for-repeated-charging.patch
-mm-memcg-only-check-anon-swapin-page-charges-for-swap-cache.patch
-mm-sparse-optimize-sparse_index_alloc.patch
-mm-sparse-more-check-on-mem_section-number.patch
+mm-have-order-0-compaction-start-off-where-it-left.patch
+memory-hotplug-fix-kswapd-looping-forever-problem.patch
+memory-hotplug-fix-kswapd-looping-forever-problem-fix-fix.patch
+netvm-propagate-page-pfmemalloc-from-skb_alloc_page-to-skb-fix.patch
+memcg-prevent-oom-with-too-many-dirty-pages.patch
+memcg-add-mem_cgroup_from_css-helper-fix.patch
+mm-hugetlbfs-close-race-during-teardown-of-hugetlbfs-shared-page-tables-fix.patch
 
