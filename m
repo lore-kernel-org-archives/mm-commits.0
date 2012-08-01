@@ -1,40 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-throttle-direct-reclaimers-if-pf_memalloc-reserves-are-low-and-swap-is-backed-by-network-storage.patch removed from -mm tree
-Date: Wed, 01 Aug 2012 13:16:34 -0700
-Message-ID: <20120801201634.EBE0A1E0048@wpzn4.hot.corp.google.com>
+Subject: [merged] mm-account-for-the-number-of-times-direct-reclaimers-get-throttled.patch removed from -mm tree
+Date: Wed, 01 Aug 2012 13:16:38 -0700
+Message-ID: <20120801201638.E6EDE1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-ob0-f202.google.com ([209.85.214.202]:52099 "EHLO
 	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754237Ab2HAUQg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:16:36 -0400
+	with ESMTP id S1754237Ab2HAUQk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:16:40 -0400
 Received: by mail-ob0-f202.google.com with SMTP id wc20so5412588obb.1
-        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:16:36 -0700 (PDT)
+        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:16:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@suse.de, a.p.zijlstra@chello.nl, cl@linux.com, davem@davemloft.net, emunson@mgebm.net, eric.dumazet@gmail.com, michaelc@cs.wisc.edu, neilb@suse.de, sebastian@breakpoint.cc, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: throttle direct reclaimers if PF_MEMALLOC reserves are low and swap is backed by network storage
+     Subject: mm: account for the number of times direct reclaimers get throttled
 has been removed from the -mm tree.  Its filename was
-     mm-throttle-direct-reclaimers-if-pf_memalloc-reserves-are-low-and-swap-is-backed-by-network-storage.patch
+     mm-account-for-the-number-of-times-direct-reclaimers-get-throttled.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: throttle direct reclaimers if PF_MEMALLOC reserves are low and swap is backed by network storage
+Subject: mm: account for the number of times direct reclaimers get throttled
 
-If swap is backed by network storage such as NBD, there is a risk that a
-large number of reclaimers can hang the system by consuming all
-PF_MEMALLOC reserves.  To avoid these hangs, the administrator must tune
-min_free_kbytes in advance which is a bit fragile.
-
-This patch throttles direct reclaimers if half the PF_MEMALLOC reserves
-are in use.  If the system is routinely getting throttled the system
-administrator can increase min_free_kbytes so degradation is smoother but
-the system will keep running.
+Under significant pressure when writing back to network-backed storage,
+direct reclaimers may get throttled.  This is expected to be a short-lived
+event and the processes get woken up again but processes do get stalled. 
+This patch counts how many times such stalling occurs.  It's up to the
+administrator whether to reduce these stalls by increasing
+min_free_kbytes.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Cc: David Miller <davem@davemloft.net>
@@ -49,228 +46,46 @@ Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    1 
- mm/page_alloc.c        |    1 
- mm/vmscan.c            |  128 ++++++++++++++++++++++++++++++++++++---
- 3 files changed, 122 insertions(+), 8 deletions(-)
+ include/linux/vm_event_item.h |    1 +
+ mm/vmscan.c                   |    3 +++
+ mm/vmstat.c                   |    1 +
+ 3 files changed, 5 insertions(+)
 
-diff -puN include/linux/mmzone.h~mm-throttle-direct-reclaimers-if-pf_memalloc-reserves-are-low-and-swap-is-backed-by-network-storage include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-throttle-direct-reclaimers-if-pf_memalloc-reserves-are-low-and-swap-is-backed-by-network-storage
-+++ a/include/linux/mmzone.h
-@@ -705,6 +705,7 @@ typedef struct pglist_data {
- 					     range, including holes */
- 	int node_id;
- 	wait_queue_head_t kswapd_wait;
-+	wait_queue_head_t pfmemalloc_wait;
- 	struct task_struct *kswapd;	/* Protected by lock_memory_hotplug() */
- 	int kswapd_max_order;
- 	enum zone_type classzone_idx;
-diff -puN mm/page_alloc.c~mm-throttle-direct-reclaimers-if-pf_memalloc-reserves-are-low-and-swap-is-backed-by-network-storage mm/page_alloc.c
---- a/mm/page_alloc.c~mm-throttle-direct-reclaimers-if-pf_memalloc-reserves-are-low-and-swap-is-backed-by-network-storage
-+++ a/mm/page_alloc.c
-@@ -4389,6 +4389,7 @@ static void __paginginit free_area_init_
- 	pgdat_resize_init(pgdat);
- 	pgdat->nr_zones = 0;
- 	init_waitqueue_head(&pgdat->kswapd_wait);
-+	init_waitqueue_head(&pgdat->pfmemalloc_wait);
- 	pgdat->kswapd_max_order = 0;
- 	pgdat_page_cgroup_init(pgdat);
- 
-diff -puN mm/vmscan.c~mm-throttle-direct-reclaimers-if-pf_memalloc-reserves-are-low-and-swap-is-backed-by-network-storage mm/vmscan.c
---- a/mm/vmscan.c~mm-throttle-direct-reclaimers-if-pf_memalloc-reserves-are-low-and-swap-is-backed-by-network-storage
+diff -puN include/linux/vm_event_item.h~mm-account-for-the-number-of-times-direct-reclaimers-get-throttled include/linux/vm_event_item.h
+--- a/include/linux/vm_event_item.h~mm-account-for-the-number-of-times-direct-reclaimers-get-throttled
++++ a/include/linux/vm_event_item.h
+@@ -30,6 +30,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		FOR_ALL_ZONES(PGSTEAL_DIRECT),
+ 		FOR_ALL_ZONES(PGSCAN_KSWAPD),
+ 		FOR_ALL_ZONES(PGSCAN_DIRECT),
++		PGSCAN_DIRECT_THROTTLE,
+ #ifdef CONFIG_NUMA
+ 		PGSCAN_ZONE_RECLAIM_FAILED,
+ #endif
+diff -puN mm/vmscan.c~mm-account-for-the-number-of-times-direct-reclaimers-get-throttled mm/vmscan.c
+--- a/mm/vmscan.c~mm-account-for-the-number-of-times-direct-reclaimers-get-throttled
 +++ a/mm/vmscan.c
-@@ -2112,6 +2112,80 @@ out:
- 	return 0;
- }
+@@ -2167,6 +2167,9 @@ static void throttle_direct_reclaim(gfp_
+ 	if (pfmemalloc_watermark_ok(pgdat))
+ 		return;
  
-+static bool pfmemalloc_watermark_ok(pg_data_t *pgdat)
-+{
-+	struct zone *zone;
-+	unsigned long pfmemalloc_reserve = 0;
-+	unsigned long free_pages = 0;
-+	int i;
-+	bool wmark_ok;
++	/* Account for the throttling */
++	count_vm_event(PGSCAN_DIRECT_THROTTLE);
 +
-+	for (i = 0; i <= ZONE_NORMAL; i++) {
-+		zone = &pgdat->node_zones[i];
-+		pfmemalloc_reserve += min_wmark_pages(zone);
-+		free_pages += zone_page_state(zone, NR_FREE_PAGES);
-+	}
-+
-+	wmark_ok = free_pages > pfmemalloc_reserve / 2;
-+
-+	/* kswapd must be awake if processes are being throttled */
-+	if (!wmark_ok && waitqueue_active(&pgdat->kswapd_wait)) {
-+		pgdat->classzone_idx = min(pgdat->classzone_idx,
-+						(enum zone_type)ZONE_NORMAL);
-+		wake_up_interruptible(&pgdat->kswapd_wait);
-+	}
-+
-+	return wmark_ok;
-+}
-+
-+/*
-+ * Throttle direct reclaimers if backing storage is backed by the network
-+ * and the PFMEMALLOC reserve for the preferred node is getting dangerously
-+ * depleted. kswapd will continue to make progress and wake the processes
-+ * when the low watermark is reached
-+ */
-+static void throttle_direct_reclaim(gfp_t gfp_mask, struct zonelist *zonelist,
-+					nodemask_t *nodemask)
-+{
-+	struct zone *zone;
-+	int high_zoneidx = gfp_zone(gfp_mask);
-+	pg_data_t *pgdat;
-+
-+	/*
-+	 * Kernel threads should not be throttled as they may be indirectly
-+	 * responsible for cleaning pages necessary for reclaim to make forward
-+	 * progress. kjournald for example may enter direct reclaim while
-+	 * committing a transaction where throttling it could forcing other
-+	 * processes to block on log_wait_commit().
-+	 */
-+	if (current->flags & PF_KTHREAD)
-+		return;
-+
-+	/* Check if the pfmemalloc reserves are ok */
-+	first_zones_zonelist(zonelist, high_zoneidx, NULL, &zone);
-+	pgdat = zone->zone_pgdat;
-+	if (pfmemalloc_watermark_ok(pgdat))
-+		return;
-+
-+	/*
-+	 * If the caller cannot enter the filesystem, it's possible that it
-+	 * is due to the caller holding an FS lock or performing a journal
-+	 * transaction in the case of a filesystem like ext[3|4]. In this case,
-+	 * it is not safe to block on pfmemalloc_wait as kswapd could be
-+	 * blocked waiting on the same lock. Instead, throttle for up to a
-+	 * second before continuing.
-+	 */
-+	if (!(gfp_mask & __GFP_FS)) {
-+		wait_event_interruptible_timeout(pgdat->pfmemalloc_wait,
-+			pfmemalloc_watermark_ok(pgdat), HZ);
-+		return;
-+	}
-+
-+	/* Throttle until kswapd wakes the process */
-+	wait_event_killable(zone->zone_pgdat->pfmemalloc_wait,
-+		pfmemalloc_watermark_ok(pgdat));
-+}
-+
- unsigned long try_to_free_pages(struct zonelist *zonelist, int order,
- 				gfp_t gfp_mask, nodemask_t *nodemask)
- {
-@@ -2131,6 +2205,15 @@ unsigned long try_to_free_pages(struct z
- 		.gfp_mask = sc.gfp_mask,
- 	};
- 
-+	throttle_direct_reclaim(gfp_mask, zonelist, nodemask);
-+
-+	/*
-+	 * Do not enter reclaim if fatal signal is pending. 1 is returned so
-+	 * that the page allocator does not consider triggering OOM
-+	 */
-+	if (fatal_signal_pending(current))
-+		return 1;
-+
- 	trace_mm_vmscan_direct_reclaim_begin(order,
- 				sc.may_writepage,
- 				gfp_mask);
-@@ -2275,8 +2358,13 @@ static bool pgdat_balanced(pg_data_t *pg
- 	return balanced_pages >= (present_pages >> 2);
- }
- 
--/* is kswapd sleeping prematurely? */
--static bool sleeping_prematurely(pg_data_t *pgdat, int order, long remaining,
-+/*
-+ * Prepare kswapd for sleeping. This verifies that there are no processes
-+ * waiting in throttle_direct_reclaim() and that watermarks have been met.
-+ *
-+ * Returns true if kswapd is ready to sleep
-+ */
-+static bool prepare_kswapd_sleep(pg_data_t *pgdat, int order, long remaining,
- 					int classzone_idx)
- {
- 	int i;
-@@ -2285,7 +2373,21 @@ static bool sleeping_prematurely(pg_data
- 
- 	/* If a direct reclaimer woke kswapd within HZ/10, it's premature */
- 	if (remaining)
--		return true;
-+		return false;
-+
-+	/*
-+	 * There is a potential race between when kswapd checks its watermarks
-+	 * and a process gets throttled. There is also a potential race if
-+	 * processes get throttled, kswapd wakes, a large process exits therby
-+	 * balancing the zones that causes kswapd to miss a wakeup. If kswapd
-+	 * is going to sleep, no process should be sleeping on pfmemalloc_wait
-+	 * so wake them now if necessary. If necessary, processes will wake
-+	 * kswapd and get throttled again
-+	 */
-+	if (waitqueue_active(&pgdat->pfmemalloc_wait)) {
-+		wake_up(&pgdat->pfmemalloc_wait);
-+		return false;
-+	}
- 
- 	/* Check the watermark levels */
- 	for (i = 0; i <= classzone_idx; i++) {
-@@ -2318,9 +2420,9 @@ static bool sleeping_prematurely(pg_data
- 	 * must be balanced
- 	 */
- 	if (order)
--		return !pgdat_balanced(pgdat, balanced, classzone_idx);
-+		return pgdat_balanced(pgdat, balanced, classzone_idx);
- 	else
--		return !all_zones_ok;
-+		return all_zones_ok;
- }
- 
- /*
-@@ -2546,6 +2648,16 @@ loop_again:
- 			}
- 
- 		}
-+
-+		/*
-+		 * If the low watermark is met there is no need for processes
-+		 * to be throttled on pfmemalloc_wait as they should not be
-+		 * able to safely make forward progress. Wake them
-+		 */
-+		if (waitqueue_active(&pgdat->pfmemalloc_wait) &&
-+				pfmemalloc_watermark_ok(pgdat))
-+			wake_up(&pgdat->pfmemalloc_wait);
-+
- 		if (all_zones_ok || (order && pgdat_balanced(pgdat, balanced, *classzone_idx)))
- 			break;		/* kswapd: all done */
- 		/*
-@@ -2647,7 +2759,7 @@ out:
- 	}
- 
  	/*
--	 * Return the order we were reclaiming at so sleeping_prematurely()
-+	 * Return the order we were reclaiming at so prepare_kswapd_sleep()
- 	 * makes a decision on the order we were last reclaiming at. However,
- 	 * if another caller entered the allocator slow path while kswapd
- 	 * was awake, order will remain at the higher level
-@@ -2667,7 +2779,7 @@ static void kswapd_try_to_sleep(pg_data_
- 	prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
+ 	 * If the caller cannot enter the filesystem, it's possible that it
+ 	 * is due to the caller holding an FS lock or performing a journal
+diff -puN mm/vmstat.c~mm-account-for-the-number-of-times-direct-reclaimers-get-throttled mm/vmstat.c
+--- a/mm/vmstat.c~mm-account-for-the-number-of-times-direct-reclaimers-get-throttled
++++ a/mm/vmstat.c
+@@ -745,6 +745,7 @@ const char * const vmstat_text[] = {
+ 	TEXTS_FOR_ZONES("pgsteal_direct")
+ 	TEXTS_FOR_ZONES("pgscan_kswapd")
+ 	TEXTS_FOR_ZONES("pgscan_direct")
++	"pgscan_direct_throttle",
  
- 	/* Try to sleep for a short interval */
--	if (!sleeping_prematurely(pgdat, order, remaining, classzone_idx)) {
-+	if (prepare_kswapd_sleep(pgdat, order, remaining, classzone_idx)) {
- 		remaining = schedule_timeout(HZ/10);
- 		finish_wait(&pgdat->kswapd_wait, &wait);
- 		prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
-@@ -2677,7 +2789,7 @@ static void kswapd_try_to_sleep(pg_data_
- 	 * After a short sleep, check if it was a premature sleep. If not, then
- 	 * go fully to sleep until explicitly woken up.
- 	 */
--	if (!sleeping_prematurely(pgdat, order, remaining, classzone_idx)) {
-+	if (prepare_kswapd_sleep(pgdat, order, remaining, classzone_idx)) {
- 		trace_mm_vmscan_kswapd_sleep(pgdat->node_id);
- 
- 		/*
+ #ifdef CONFIG_NUMA
+ 	"zone_reclaim_failed",
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
