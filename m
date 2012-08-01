@@ -1,72 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fault-injection-fix-failcmdsh-warning.patch removed from -mm tree
-Date: Wed, 01 Aug 2012 13:11:12 -0700
-Message-ID: <20120801201114.5749F5C0050@hpza9.eem.corp.google.com>
+Subject: [merged] xtensa-select-generic-atomic64_t-support.patch removed from -mm tree
+Date: Wed, 01 Aug 2012 13:11:17 -0700
+Message-ID: <20120801201117.AB0B4100048@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:53805 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755572Ab2HAULQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:11:16 -0400
-Received: by lbbgp10 with SMTP id gp10so47289lbb.1
-        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:11:15 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:41190 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755572Ab2HAULT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:11:19 -0400
+Received: by obbwc20 with SMTP id wc20so5410915obb.1
+        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:11:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, chris@zankel.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fault-injection: fix failcmd.sh warning
+     Subject: xtensa: select generic atomic64_t support
 has been removed from the -mm tree.  Its filename was
-     fault-injection-fix-failcmdsh-warning.patch
+     xtensa-select-generic-atomic64_t-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: fault-injection: fix failcmd.sh warning
+From: Fengguang Wu <fengguang.wu@intel.com>
+Subject: xtensa: select generic atomic64_t support
 
-"fault-injection: add tool to run command with failslab or
-fail_page_alloc" added tools/testing/fault-injection/failcmd.sh to make it
-easier to inject slab/page allocation failures by fault injection.
+This will fix build errors:
 
-failcmd.sh prints the following warning when running with arguments
-for command.
+block/blk-cgroup.c:609:2: error: unknown type name 'atomic64_t'
+block/blk-cgroup.c:609:2: error: implicit declaration of function 'ATOMIC64_INIT' [-Werror=implicit-function-declaration]
 
-	# ./failcmd.sh echo aaa
-	failcmd.sh: line 209: [: echo: binary operator expected
-	aaa
-
-This warning is caused by an improper check whether at least one
-parameter is left after parsing command options.
-
-Fix it by testing the length of $1 instead of $@
-
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Chris Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/fault-injection/failcmd.sh |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/xtensa/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN tools/testing/fault-injection/failcmd.sh~fault-injection-fix-failcmdsh-warning tools/testing/fault-injection/failcmd.sh
---- a/tools/testing/fault-injection/failcmd.sh~fault-injection-fix-failcmdsh-warning
-+++ a/tools/testing/fault-injection/failcmd.sh
-@@ -206,7 +206,7 @@ while true; do
- 	esac
- done
- 
--[ -z "$@" ] && exit 0
-+[ -z "$1" ] && exit 0
- 
- echo $oom_kill_allocating_task > /proc/sys/vm/oom_kill_allocating_task
- echo $task_filter > $FAULTATTR/task-filter
+diff -puN arch/xtensa/Kconfig~xtensa-select-generic-atomic64_t-support arch/xtensa/Kconfig
+--- a/arch/xtensa/Kconfig~xtensa-select-generic-atomic64_t-support
++++ a/arch/xtensa/Kconfig
+@@ -7,6 +7,7 @@ config ZONE_DMA
+ config XTENSA
+ 	def_bool y
+ 	select HAVE_IDE
++	select GENERIC_ATOMIC64
+ 	select HAVE_GENERIC_HARDIRQS
+ 	select GENERIC_IRQ_SHOW
+ 	select GENERIC_CPU_DEVICES
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
 origin.patch
 linux-next.patch
-ocfs2-use-find_last_bit.patch
-ocfs2-use-bitmap_weight.patch
+rbtree-performance-and-correctness-test-fix.patch
 
