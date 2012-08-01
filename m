@@ -1,160 +1,207 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-mmu_notifier-fix-freed-page-still-mapped-in-secondary-mmu.patch removed from -mm tree
-Date: Wed, 01 Aug 2012 13:18:27 -0700
-Message-ID: <20120801201827.DD8D3100047@wpzn3.hot.corp.google.com>
+Subject: [merged] memcg-prevent-oom-with-too-many-dirty-pages.patch removed from -mm tree
+Date: Wed, 01 Aug 2012 13:18:30 -0700
+Message-ID: <20120801201831.B03DA5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:39454 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755867Ab2HAUS3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:18:29 -0400
-Received: by obbwc20 with SMTP id wc20so5414806obb.1
-        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:18:29 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:49185 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754963Ab2HAUSf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:18:35 -0400
+Received: by fat25 with SMTP id 25so342033fat.1
+        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:18:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiaoguangrong@linux.vnet.ibm.com, aarcange@redhat.com, avi@redhat.com, mtosatti@redhat.com, paul.gortmaker@windriver.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: mhocko@suse.cz, fengguang.wu@intel.com, gthelen@google.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujtisu.com, mgorman@suse.de, minchan@kernel.org, riel@redhat.com, stable@vger.kernel.org, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: mmu_notifier: fix freed page still mapped in secondary MMU
+     Subject: memcg: prevent OOM with too many dirty pages
 has been removed from the -mm tree.  Its filename was
-     mm-mmu_notifier-fix-freed-page-still-mapped-in-secondary-mmu.patch
+     memcg-prevent-oom-with-too-many-dirty-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
-Subject: mm: mmu_notifier: fix freed page still mapped in secondary MMU
+From: Michal Hocko <mhocko@suse.cz>
+Subject: memcg: prevent OOM with too many dirty pages
 
-mmu_notifier_release() is called when the process is exiting.  It will
-delete all the mmu notifiers.  But at this time the page belonging to the
-process is still present in page tables and is present on the LRU list, so
-this race will happen:
+The current implementation of dirty pages throttling is not memcg aware
+which makes it easy to have memcg LRUs full of dirty pages.  Without
+throttling, these LRUs can be scanned faster than the rate of writeback,
+leading to memcg OOM conditions when the hard limit is small.
 
-      CPU 0                 CPU 1
-mmu_notifier_release:    try_to_unmap:
-   hlist_del_init_rcu(&mn->hlist);
-                            ptep_clear_flush_notify:
-                                  mmu nofifler not found
-                            free page  !!!!!!
-                            /*
-                             * At the point, the page has been
-                             * freed, but it is still mapped in
-                             * the secondary MMU.
-                             */
+This patch fixes the problem by throttling the allocating process
+(possibly a writer) during the hard limit reclaim by waiting on
+PageReclaim pages.  We are waiting only for PageReclaim pages because
+those are the pages that made one full round over LRU and that means that
+the writeback is much slower than scanning.
 
-  mn->ops->release(mn, mm);
+The solution is far from being ideal - long term solution is memcg aware
+dirty throttling - but it is meant to be a band aid until we have a real
+fix.  We are seeing this happening during nightly backups which are placed
+into containers to prevent from eviction of the real working set.
 
-Then the box is not stable and sometimes we can get this bug:
+The change affects only memcg reclaim and only when we encounter
+PageReclaim pages which is a signal that the reclaim doesn't catch up on
+with the writers so somebody should be throttled.  This could be
+potentially unfair because it could be somebody else from the group who
+gets throttled on behalf of the writer but as writers need to allocate as
+well and they allocate in higher rate the probability that only innocent
+processes would be penalized is not that high.
 
-[  738.075923] BUG: Bad page state in process migrate-perf  pfn:03bec
-[  738.075931] page:ffffea00000efb00 count:0 mapcount:0 mapping:          (null) index:0x8076
-[  738.075936] page flags: 0x20000000000014(referenced|dirty)
+I have tested this change by a simple dd copying /dev/zero to tmpfs or
+ext3 running under small memcg (1G copy under 5M, 60M, 300M and 2G
+containers) and dd got killed by OOM killer every time.  With the patch I
+could run the dd with the same size under 5M controller without any OOM. 
+The issue is more visible with slower devices for output.
 
-The same issue is present in mmu_notifier_unregister().
+* With the patch
+================
+* tmpfs size=2G
+---------------
+$ vim cgroup_cache_oom_test.sh
+$ ./cgroup_cache_oom_test.sh 5M
+using Limit 5M for group
+1000+0 records in
+1000+0 records out
+1048576000 bytes (1.0 GB) copied, 30.4049 s, 34.5 MB/s
+$ ./cgroup_cache_oom_test.sh 60M
+using Limit 60M for group
+1000+0 records in
+1000+0 records out
+1048576000 bytes (1.0 GB) copied, 31.4561 s, 33.3 MB/s
+$ ./cgroup_cache_oom_test.sh 300M
+using Limit 300M for group
+1000+0 records in
+1000+0 records out
+1048576000 bytes (1.0 GB) copied, 20.4618 s, 51.2 MB/s
+$ ./cgroup_cache_oom_test.sh 2G
+using Limit 2G for group
+1000+0 records in
+1000+0 records out
+1048576000 bytes (1.0 GB) copied, 1.42172 s, 738 MB/s
 
-We can call ->release before deleting the notifier to ensure the page has
-been unmapped from the secondary MMU before it is freed.
+* ext3
+------
+$ ./cgroup_cache_oom_test.sh 5M
+using Limit 5M for group
+1000+0 records in
+1000+0 records out
+1048576000 bytes (1.0 GB) copied, 27.9547 s, 37.5 MB/s
+$ ./cgroup_cache_oom_test.sh 60M
+using Limit 60M for group
+1000+0 records in
+1000+0 records out
+1048576000 bytes (1.0 GB) copied, 30.3221 s, 34.6 MB/s
+$ ./cgroup_cache_oom_test.sh 300M
+using Limit 300M for group
+1000+0 records in
+1000+0 records out
+1048576000 bytes (1.0 GB) copied, 24.5764 s, 42.7 MB/s
+$ ./cgroup_cache_oom_test.sh 2G
+using Limit 2G for group
+1000+0 records in
+1000+0 records out
+1048576000 bytes (1.0 GB) copied, 3.35828 s, 312 MB/s
 
-Signed-off-by: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
-Cc: Avi Kivity <avi@redhat.com>
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+* Without the patch
+===================
+* tmpfs size=2G
+---------------
+$ ./cgroup_cache_oom_test.sh 5M
+using Limit 5M for group
+./cgroup_cache_oom_test.sh: line 46:  4668 Killed                  dd if=/dev/zero of=$OUT/zero bs=1M count=$count
+$ ./cgroup_cache_oom_test.sh 60M
+using Limit 60M for group
+1000+0 records in
+1000+0 records out
+1048576000 bytes (1.0 GB) copied, 25.4989 s, 41.1 MB/s
+$ ./cgroup_cache_oom_test.sh 300M
+using Limit 300M for group
+1000+0 records in
+1000+0 records out
+1048576000 bytes (1.0 GB) copied, 24.3928 s, 43.0 MB/s
+$ ./cgroup_cache_oom_test.sh 2G
+using Limit 2G for group
+1000+0 records in
+1000+0 records out
+1048576000 bytes (1.0 GB) copied, 1.49797 s, 700 MB/s
+
+* ext3
+------
+$ ./cgroup_cache_oom_test.sh 5M
+using Limit 5M for group
+./cgroup_cache_oom_test.sh: line 46:  4689 Killed                  dd if=/dev/zero of=$OUT/zero bs=1M count=$count
+$ ./cgroup_cache_oom_test.sh 60M
+using Limit 60M for group
+./cgroup_cache_oom_test.sh: line 46:  4692 Killed                  dd if=/dev/zero of=$OUT/zero bs=1M count=$count
+$ ./cgroup_cache_oom_test.sh 300M
+using Limit 300M for group
+1000+0 records in
+1000+0 records out
+1048576000 bytes (1.0 GB) copied, 20.248 s, 51.8 MB/s
+$ ./cgroup_cache_oom_test.sh 2G
+using Limit 2G for group
+1000+0 records in
+1000+0 records out
+1048576000 bytes (1.0 GB) copied, 2.85201 s, 368 MB/s
+
+[akpm@linux-foundation.org: tweak changelog, reordered the test to optimize for CONFIG_CGROUP_MEM_RES_CTLR=n]
+[hughd@google.com: fix deadlock with loop driver]
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujtisu.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Ying Han <yinghan@google.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Reviewed-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Fengguang Wu <fengguang.wu@intel.com>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmu_notifier.c |   45 ++++++++++++++++++++++----------------------
- 1 file changed, 23 insertions(+), 22 deletions(-)
+ mm/vmscan.c |   23 ++++++++++++++++++++---
+ 1 file changed, 20 insertions(+), 3 deletions(-)
 
-diff -puN mm/mmu_notifier.c~mm-mmu_notifier-fix-freed-page-still-mapped-in-secondary-mmu mm/mmu_notifier.c
---- a/mm/mmu_notifier.c~mm-mmu_notifier-fix-freed-page-still-mapped-in-secondary-mmu
-+++ a/mm/mmu_notifier.c
-@@ -33,6 +33,24 @@
- void __mmu_notifier_release(struct mm_struct *mm)
- {
- 	struct mmu_notifier *mn;
-+	struct hlist_node *n;
-+
-+	/*
-+	 * RCU here will block mmu_notifier_unregister until
-+	 * ->release returns.
-+	 */
-+	rcu_read_lock();
-+	hlist_for_each_entry_rcu(mn, n, &mm->mmu_notifier_mm->list, hlist)
-+		/*
-+		 * if ->release runs before mmu_notifier_unregister it
-+		 * must be handled as it's the only way for the driver
-+		 * to flush all existing sptes and stop the driver
-+		 * from establishing any more sptes before all the
-+		 * pages in the mm are freed.
-+		 */
-+		if (mn->ops->release)
-+			mn->ops->release(mn, mm);
-+	rcu_read_unlock();
+diff -puN mm/vmscan.c~memcg-prevent-oom-with-too-many-dirty-pages mm/vmscan.c
+--- a/mm/vmscan.c~memcg-prevent-oom-with-too-many-dirty-pages
++++ a/mm/vmscan.c
+@@ -720,9 +720,26 @@ static unsigned long shrink_page_list(st
+ 			(PageSwapCache(page) && (sc->gfp_mask & __GFP_IO));
  
- 	spin_lock(&mm->mmu_notifier_mm->lock);
- 	while (unlikely(!hlist_empty(&mm->mmu_notifier_mm->list))) {
-@@ -46,23 +64,6 @@ void __mmu_notifier_release(struct mm_st
- 		 * mmu_notifier_unregister to return.
- 		 */
- 		hlist_del_init_rcu(&mn->hlist);
--		/*
--		 * RCU here will block mmu_notifier_unregister until
--		 * ->release returns.
--		 */
--		rcu_read_lock();
--		spin_unlock(&mm->mmu_notifier_mm->lock);
--		/*
--		 * if ->release runs before mmu_notifier_unregister it
--		 * must be handled as it's the only way for the driver
--		 * to flush all existing sptes and stop the driver
--		 * from establishing any more sptes before all the
--		 * pages in the mm are freed.
--		 */
--		if (mn->ops->release)
--			mn->ops->release(mn, mm);
--		rcu_read_unlock();
--		spin_lock(&mm->mmu_notifier_mm->lock);
- 	}
- 	spin_unlock(&mm->mmu_notifier_mm->lock);
+ 		if (PageWriteback(page)) {
+-			nr_writeback++;
+-			unlock_page(page);
+-			goto keep;
++			/*
++			 * memcg doesn't have any dirty pages throttling so we
++			 * could easily OOM just because too many pages are in
++			 * writeback from reclaim and there is nothing else to
++			 * reclaim.
++			 *
++			 * Check may_enter_fs, certainly because a loop driver
++			 * thread might enter reclaim, and deadlock if it waits
++			 * on a page for which it is needed to do the write
++			 * (loop masks off __GFP_IO|__GFP_FS for this reason);
++			 * but more thought would probably show more reasons.
++			 */
++			if (!global_reclaim(sc) && PageReclaim(page) &&
++					may_enter_fs)
++				wait_on_page_writeback(page);
++			else {
++				nr_writeback++;
++				unlock_page(page);
++				goto keep;
++			}
+ 		}
  
-@@ -284,16 +285,13 @@ void mmu_notifier_unregister(struct mmu_
- {
- 	BUG_ON(atomic_read(&mm->mm_count) <= 0);
- 
--	spin_lock(&mm->mmu_notifier_mm->lock);
- 	if (!hlist_unhashed(&mn->hlist)) {
--		hlist_del_rcu(&mn->hlist);
--
- 		/*
- 		 * RCU here will force exit_mmap to wait ->release to finish
- 		 * before freeing the pages.
- 		 */
- 		rcu_read_lock();
--		spin_unlock(&mm->mmu_notifier_mm->lock);
-+
- 		/*
- 		 * exit_mmap will block in mmu_notifier_release to
- 		 * guarantee ->release is called before freeing the
-@@ -302,8 +300,11 @@ void mmu_notifier_unregister(struct mmu_
- 		if (mn->ops->release)
- 			mn->ops->release(mn, mm);
- 		rcu_read_unlock();
--	} else
-+
-+		spin_lock(&mm->mmu_notifier_mm->lock);
-+		hlist_del_rcu(&mn->hlist);
- 		spin_unlock(&mm->mmu_notifier_mm->lock);
-+	}
- 
- 	/*
- 	 * Wait any running method to finish, of course including
+ 		references = page_check_references(page, sc);
 _
 
-Patches currently in -mm which might be from xiaoguangrong@linux.vnet.ibm.com are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
 origin.patch
-linux-next.patch
 
