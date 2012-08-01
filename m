@@ -1,99 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-remove-redundant-initialization.patch removed from -mm tree
-Date: Wed, 01 Aug 2012 13:19:05 -0700
-Message-ID: <20120801201906.0E7CF5C0063@hpza9.eem.corp.google.com>
+Subject: [merged] tmpfs-distribute-interleave-better-across-nodes.patch removed from -mm tree
+Date: Wed, 01 Aug 2012 13:19:09 -0700
+Message-ID: <20120801201910.6B292200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:64068 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753672Ab2HAUTI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:19:08 -0400
-Received: by bkcjc3 with SMTP id jc3so345317bkc.1
-        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:19:07 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:63387 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754952Ab2HAUTN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:19:13 -0400
+Received: by mail-lpp01m010-f74.google.com with SMTP id r15so343932lag.1
+        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:19:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, ralf@linux-mips.org, tj@kernel.org, mm-commits@vger.kernel.org
+To: nzimmer@sgi.com, andi@firstfloor.org, cl@linux.com, hughd@google.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, npiggin@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove redundant initialization
+     Subject: tmpfs: distribute interleave better across nodes
 has been removed from the -mm tree.  Its filename was
-     mm-remove-redundant-initialization.patch
+     tmpfs-distribute-interleave-better-across-nodes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: remove redundant initialization
+From: Nathan Zimmer <nzimmer@sgi.com>
+Subject: tmpfs: distribute interleave better across nodes
 
-pg_data_t is zeroed before reaching free_area_init_core(), so remove the
-now unnecessary initializations.
+When tmpfs has the interleave memory policy, it always starts allocating
+for each file from node 0 at offset 0.  When there are many small files,
+the lower nodes fill up disproportionately.
 
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+This patch spreads out node usage by starting files at nodes other than 0,
+by using the inode number to bias the starting node for interleave.
+
+Signed-off-by: Nathan Zimmer <nzimmer@sgi.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Nick Piggin <npiggin@gmail.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    5 -----
- mm/page_alloc.c        |    9 ++-------
- 2 files changed, 2 insertions(+), 12 deletions(-)
+ mm/shmem.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/vmstat.h~mm-remove-redundant-initialization include/linux/vmstat.h
---- a/include/linux/vmstat.h~mm-remove-redundant-initialization
-+++ a/include/linux/vmstat.h
-@@ -179,11 +179,6 @@ extern void zone_statistics(struct zone 
- #define add_zone_page_state(__z, __i, __d) mod_zone_page_state(__z, __i, __d)
- #define sub_zone_page_state(__z, __i, __d) mod_zone_page_state(__z, __i, -(__d))
+diff -puN mm/shmem.c~tmpfs-distribute-interleave-better-across-nodes mm/shmem.c
+--- a/mm/shmem.c~tmpfs-distribute-interleave-better-across-nodes
++++ a/mm/shmem.c
+@@ -929,7 +929,8 @@ static struct page *shmem_swapin(swp_ent
  
--static inline void zap_zone_vm_stats(struct zone *zone)
--{
--	memset(zone->vm_stat, 0, sizeof(zone->vm_stat));
--}
--
- extern void inc_zone_state(struct zone *, enum zone_stat_item);
+ 	/* Create a pseudo vma that just contains the policy */
+ 	pvma.vm_start = 0;
+-	pvma.vm_pgoff = index;
++	/* Bias interleave by inode number to distribute better across nodes */
++	pvma.vm_pgoff = index + info->vfs_inode.i_ino;
+ 	pvma.vm_ops = NULL;
+ 	pvma.vm_policy = spol;
+ 	return swapin_readahead(swap, gfp, &pvma, 0);
+@@ -942,7 +943,8 @@ static struct page *shmem_alloc_page(gfp
  
- #ifdef CONFIG_SMP
-diff -puN mm/page_alloc.c~mm-remove-redundant-initialization mm/page_alloc.c
---- a/mm/page_alloc.c~mm-remove-redundant-initialization
-+++ a/mm/page_alloc.c
-@@ -4377,6 +4377,8 @@ void __init set_pageblock_order(void)
-  *   - mark all pages reserved
-  *   - mark all memory queues empty
-  *   - clear the memory bitmaps
-+ *
-+ * NOTE: pgdat should get zeroed by caller.
-  */
- static void __paginginit free_area_init_core(struct pglist_data *pgdat,
- 		unsigned long *zones_size, unsigned long *zholes_size)
-@@ -4387,10 +4389,8 @@ static void __paginginit free_area_init_
- 	int ret;
- 
- 	pgdat_resize_init(pgdat);
--	pgdat->nr_zones = 0;
- 	init_waitqueue_head(&pgdat->kswapd_wait);
- 	init_waitqueue_head(&pgdat->pfmemalloc_wait);
--	pgdat->kswapd_max_order = 0;
- 	pgdat_page_cgroup_init(pgdat);
- 
- 	for (j = 0; j < MAX_NR_ZONES; j++) {
-@@ -4451,11 +4451,6 @@ static void __paginginit free_area_init_
- 
- 		zone_pcp_init(zone);
- 		lruvec_init(&zone->lruvec, zone);
--		zap_zone_vm_stats(zone);
--		zone->flags = 0;
--#ifdef CONFIG_MEMORY_ISOLATION
--		zone->nr_pageblock_isolate = 0;
--#endif
- 		if (!size)
- 			continue;
+ 	/* Create a pseudo vma that just contains the policy */
+ 	pvma.vm_start = 0;
+-	pvma.vm_pgoff = index;
++	/* Bias interleave by inode number to distribute better across nodes */
++	pvma.vm_pgoff = index + info->vfs_inode.i_ino;
+ 	pvma.vm_ops = NULL;
+ 	pvma.vm_policy = mpol_shared_policy_lookup(&info->policy, index);
  
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from nzimmer@sgi.com are
 
 origin.patch
-mm-remove-__gfp_no_kswapd.patch
-remove-__gfp_no_kswapd-fixes-fix.patch
 
