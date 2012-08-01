@@ -1,65 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-mem_cgroup_move_parent-doesnt-need-gfp_mask.patch removed from -mm tree
-Date: Wed, 01 Aug 2012 13:13:20 -0700
-Message-ID: <20120801201321.18979200057@hpza10.eem.corp.google.com>
+Subject: [merged] mm-compaction-cleanup-on-compaction_deferred.patch removed from -mm tree
+Date: Wed, 01 Aug 2012 13:13:27 -0700
+Message-ID: <20120801201328.249135C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:46279 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755945Ab2HAUNX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:13:23 -0400
-Received: by weyr1 with SMTP id r1so344113wey.1
-        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:13:22 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:51698 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755945Ab2HAUN3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:13:29 -0400
+Received: by mail-ey0-f202.google.com with SMTP id o12so293205eaa.1
+        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:13:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: shangw@linux.vnet.ibm.com, hannes@cmpxchg.org, minchan@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: mem_cgroup_move_parent() doesn't need gfp_mask
+     Subject: mm/compaction: cleanup on compaction_deferred
 has been removed from the -mm tree.  Its filename was
-     memcg-mem_cgroup_move_parent-doesnt-need-gfp_mask.patch
+     mm-compaction-cleanup-on-compaction_deferred.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: memcg: mem_cgroup_move_parent() doesn't need gfp_mask
+From: Gavin Shan <shangw@linux.vnet.ibm.com>
+Subject: mm/compaction: cleanup on compaction_deferred
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+When CONFIG_COMPACTION is enabled, compaction_deferred() tries to
+recalculate the deferred limit again, which isn't necessary.
+
+When CONFIG_COMPACTION is disabled, compaction_deferred() should return
+"true" or "false" since it has "bool" for its return value.
+
+Signed-off-by: Gavin Shan <shangw@linux.vnet.ibm.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ include/linux/compaction.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-mem_cgroup_move_parent-doesnt-need-gfp_mask mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-mem_cgroup_move_parent-doesnt-need-gfp_mask
-+++ a/mm/memcontrol.c
-@@ -2643,8 +2643,7 @@ out:
+diff -puN include/linux/compaction.h~mm-compaction-cleanup-on-compaction_deferred include/linux/compaction.h
+--- a/include/linux/compaction.h~mm-compaction-cleanup-on-compaction_deferred
++++ a/include/linux/compaction.h
+@@ -58,7 +58,7 @@ static inline bool compaction_deferred(s
+ 	if (++zone->compact_considered > defer_limit)
+ 		zone->compact_considered = defer_limit;
  
- static int mem_cgroup_move_parent(struct page *page,
- 				  struct page_cgroup *pc,
--				  struct mem_cgroup *child,
--				  gfp_t gfp_mask)
-+				  struct mem_cgroup *child)
+-	return zone->compact_considered < (1UL << zone->compact_defer_shift);
++	return zone->compact_considered < defer_limit;
+ }
+ 
+ #else
+@@ -85,7 +85,7 @@ static inline void defer_compaction(stru
+ 
+ static inline bool compaction_deferred(struct zone *zone, int order)
  {
- 	struct mem_cgroup *parent;
- 	unsigned int nr_pages;
-@@ -3652,7 +3651,7 @@ static int mem_cgroup_force_empty_list(s
+-	return 1;
++	return true;
+ }
  
- 		pc = lookup_page_cgroup(page);
- 
--		ret = mem_cgroup_move_parent(page, pc, memcg, GFP_KERNEL);
-+		ret = mem_cgroup_move_parent(page, pc, memcg);
- 
- 		if (ret == -EBUSY || ret == -EINVAL) {
- 			/* found lock contention or "pc" is obsolete. */
+ #endif /* CONFIG_COMPACTION */
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from shangw@linux.vnet.ibm.com are
 
 origin.patch
+mm-slab-remove-duplicate-check.patch
 
