@@ -1,75 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hugetlb-cgroup-remove-exclude-and-wakeup-rmdir-calls-from-migrate.patch removed from -mm tree
-Date: Wed, 01 Aug 2012 13:13:02 -0700
-Message-ID: <20120801201302.ADBD8100047@wpzn3.hot.corp.google.com>
+Subject: [merged] mm-oom-do-not-schedule-if-current-has-been-killed.patch removed from -mm tree
+Date: Wed, 01 Aug 2012 13:13:05 -0700
+Message-ID: <20120801201306.439D35C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:41190 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755945Ab2HAUND (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:13:03 -0400
-Received: by mail-ob0-f202.google.com with SMTP id wc20so5410915obb.1
-        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:13:03 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:37744 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755945Ab2HAUNI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:13:08 -0400
+Received: by wgbdt11 with SMTP id dt11so342519wgb.1
+        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:13:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, oleg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb/cgroup: remove exclude and wakeup rmdir calls from migrate
+     Subject: mm, oom: do not schedule if current has been killed
 has been removed from the -mm tree.  Its filename was
-     hugetlb-cgroup-remove-exclude-and-wakeup-rmdir-calls-from-migrate.patch
+     mm-oom-do-not-schedule-if-current-has-been-killed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: hugetlb/cgroup: remove exclude and wakeup rmdir calls from migrate
+From: David Rientjes <rientjes@google.com>
+Subject: mm, oom: do not schedule if current has been killed
 
-We already hold the hugetlb_lock.  That should prevent a parallel cgroup
-rmdir from touching page's hugetlb cgroup.  So remove the exclude and
-wakeup calls.
+The oom killer currently schedules away from current in an uninterruptible
+sleep if it does not have access to memory reserves.  It's possible that
+current was killed because it shares memory with the oom killed thread or
+because it was killed by the user in the interim, however.
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
+This patch only schedules away from current if it does not have a pending
+kill, i.e.  if it does not share memory with the oom killed thread.  It's
+possible that it will immediately retry its memory allocation and fail,
+but it will immediately be given access to memory reserves if it calls the
+oom killer again.
+
+This prevents the delay of memory freeing when threads that share memory
+with the oom killed thread get unnecessarily scheduled.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_cgroup.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/oom_kill.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN mm/hugetlb_cgroup.c~hugetlb-cgroup-remove-exclude-and-wakeup-rmdir-calls-from-migrate mm/hugetlb_cgroup.c
---- a/mm/hugetlb_cgroup.c~hugetlb-cgroup-remove-exclude-and-wakeup-rmdir-calls-from-migrate
-+++ a/mm/hugetlb_cgroup.c
-@@ -385,6 +385,10 @@ int __init hugetlb_cgroup_file_init(int 
- 	return 0;
+diff -puN mm/oom_kill.c~mm-oom-do-not-schedule-if-current-has-been-killed mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-do-not-schedule-if-current-has-been-killed
++++ a/mm/oom_kill.c
+@@ -745,11 +745,11 @@ out:
+ 	read_unlock(&tasklist_lock);
+ 
+ 	/*
+-	 * Give "p" a good chance of killing itself before we
+-	 * retry to allocate memory unless "p" is current
++	 * Give the killed threads a good chance of exiting before trying to
++	 * allocate memory again.
+ 	 */
+-	if (killed && !test_thread_flag(TIF_MEMDIE))
+-		schedule_timeout_uninterruptible(1);
++	if (killed)
++		schedule_timeout_killable(1);
  }
  
-+/*
-+ * hugetlb_lock will make sure a parallel cgroup rmdir won't happen
-+ * when we migrate hugepages
-+ */
- void hugetlb_cgroup_migrate(struct page *oldhpage, struct page *newhpage)
- {
- 	struct hugetlb_cgroup *h_cg;
-@@ -397,13 +401,11 @@ void hugetlb_cgroup_migrate(struct page 
- 	spin_lock(&hugetlb_lock);
- 	h_cg = hugetlb_cgroup_from_page(oldhpage);
- 	set_hugetlb_cgroup(oldhpage, NULL);
--	cgroup_exclude_rmdir(&h_cg->css);
- 
- 	/* move the h_cg details to new cgroup */
- 	set_hugetlb_cgroup(newhpage, h_cg);
- 	list_move(&newhpage->lru, &h->hugepage_activelist);
- 	spin_unlock(&hugetlb_lock);
--	cgroup_release_and_wakeup_rmdir(&h_cg->css);
- 	return;
+ /*
+@@ -764,6 +764,5 @@ void pagefault_out_of_memory(void)
+ 		out_of_memory(NULL, 0, 0, NULL, false);
+ 		clear_system_oom();
+ 	}
+-	if (!test_thread_flag(TIF_MEMDIE))
+-		schedule_timeout_uninterruptible(1);
++	schedule_timeout_killable(1);
  }
- 
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-linux-next.patch
+acpi_memhotplugc-fix-memory-leak-when-memory-device-is-unbound-from-the-module-acpi_memhotplug.patch
+acpi_memhotplugc-free-memory-device-if-acpi_memory_enable_device-failed.patch
+acpi_memhotplugc-remove-memory-info-from-list-before-freeing-it.patch
+acpi_memhotplugc-dont-allow-to-eject-the-memory-device-if-it-is-being-used.patch
+acpi_memhotplugc-bind-the-memory-device-when-the-driver-is-being-loaded.patch
+acpi_memhotplugc-auto-bind-the-memory-device-which-is-hotplugged-before-the-driver-is-loaded.patch
+slab-do-not-call-compound_head-in-page_get_cache.patch
 
