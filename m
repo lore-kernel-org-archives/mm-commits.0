@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-update-mount-option-in-filesystem-vfattxt.patch added to -mm tree
-Date: Wed, 01 Aug 2012 14:46:01 -0700
-Message-ID: <20120801214602.1020D20004E@hpza10.eem.corp.google.com>
+Subject: + x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch added to -mm tree
+Date: Wed, 01 Aug 2012 15:28:30 -0700
+Message-ID: <20120801222831.3CCEB1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:41494 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751610Ab2HAVqF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 17:46:05 -0400
-Received: by lagr15 with SMTP id r15so345858lag.1
-        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 14:46:03 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:59553 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756161Ab2HAW2c (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 18:28:32 -0400
+Received: by mail-ob0-f202.google.com with SMTP id wc20so5494219obb.1
+        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 15:28:32 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linkinjeon@gmail.com, hirofumi@mail.parknet.co.jp
+Cc: akpm@linux-foundation.org, khlebnikov@openvz.org
 
 
 The patch titled
-     Subject: Documentation: update mount option in filesystem/vfat.txt
+     Subject: x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix
 has been added to the -mm tree.  Its filename is
-     documentation-update-mount-option-in-filesystem-vfattxt.patch
+     x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,45 +33,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Namjae Jeon <linkinjeon@gmail.com>
-Subject: Documentation: update mount option in filesystem/vfat.txt
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix
 
-Update two mount options(discard, nfs) in vfat.txt.
+tweak a few comments
 
-Signed-off-by: Namjae Jeon <linkinjeon@gmail.com>
-Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/vfat.txt |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ arch/x86/mm/pat.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN Documentation/filesystems/vfat.txt~documentation-update-mount-option-in-filesystem-vfattxt Documentation/filesystems/vfat.txt
---- a/Documentation/filesystems/vfat.txt~documentation-update-mount-option-in-filesystem-vfattxt
-+++ a/Documentation/filesystems/vfat.txt
-@@ -137,6 +137,17 @@ errors=panic|continue|remount-ro
- 		 without doing anything or remount the partition in
- 		 read-only mode (default behavior).
+diff -puN arch/x86/mm/pat.c~x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix arch/x86/mm/pat.c
+--- a/arch/x86/mm/pat.c~x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix
++++ a/arch/x86/mm/pat.c
+@@ -712,14 +712,12 @@ int track_pfn_remap(struct vm_area_struc
+ 		return 0;
  
-+discard       -- If set, issues discard/TRIM commands to the block
-+		 device when blocks are freed. This is useful for SSD devices
-+		 and sparse/thinly-provisoned LUNs.
-+
-+nfs           -- This option maintains an index (cache) of directory
-+		 inodes by i_logstart which is used by the nfs-related code to
-+		 improve look-ups.
-+
-+		 Enable this only if you want to export the FAT filesystem
-+		 over NFS
-+
- <bool>: 0,1,yes,no,true,false
+ 	/*
+-	 * for anything smaller than the vma size,
+-	 * we set prot based on the lookup.
++	 * For anything smaller than the vma size we set prot based on the
++	 * lookup.
+ 	 */
+ 	flags = lookup_memtype(paddr);
  
- TODO
+-	/*
+-	 * Check memtype for the rest pages
+-	 */
++	/* Check memtype for the remaining pages */
+ 	while (size > PAGE_SIZE) {
+ 		size -= PAGE_SIZE;
+ 		paddr += PAGE_SIZE;
+@@ -741,7 +739,7 @@ int track_pfn_insert(struct vm_area_stru
+ 	if (!pat_enabled)
+ 		return 0;
+ 
+-	/* we set prot based on lookup */
++	/* Set prot based on lookup */
+ 	flags = lookup_memtype((resource_size_t)pfn << PAGE_SHIFT);
+ 	*prot = __pgprot((pgprot_val(vma->vm_page_prot) & (~_PAGE_CACHE_MASK)) |
+ 			 flags);
 _
 
-Patches currently in -mm which might be from linkinjeon@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-documentation-update-mount-option-in-filesystem-vfattxt.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
+thermal-add-generic-cpufreq-cooling-implementation.patch
+thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
+thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
+mm-slab_commonc-fix-warning.patch
+mm.patch
+x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
+rbtree-performance-and-correctness-test-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
