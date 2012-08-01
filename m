@@ -1,207 +1,148 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-prevent-oom-with-too-many-dirty-pages.patch removed from -mm tree
-Date: Wed, 01 Aug 2012 13:18:30 -0700
-Message-ID: <20120801201831.B03DA5C0050@hpza9.eem.corp.google.com>
+Subject: [merged] memcg-further-prevent-oom-with-too-many-dirty-pages.patch removed from -mm tree
+Date: Wed, 01 Aug 2012 13:18:36 -0700
+Message-ID: <20120801201837.339A11E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:49185 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754963Ab2HAUSf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:18:35 -0400
-Received: by fat25 with SMTP id 25so342033fat.1
-        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:18:34 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:52099 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751774Ab2HAUSj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:18:39 -0400
+Received: by mail-ob0-f202.google.com with SMTP id wc20so5412588obb.1
+        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:18:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, fengguang.wu@intel.com, gthelen@google.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujtisu.com, mgorman@suse.de, minchan@kernel.org, riel@redhat.com, stable@vger.kernel.org, yinghan@google.com, mm-commits@vger.kernel.org
+To: hughd@google.com, david@fromorbit.com, fengguang.wu@intel.com, gthelen@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujtisu.com, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, riel@redhat.com, stable@vger.kernel.org, tytso@mit.edu, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: prevent OOM with too many dirty pages
+     Subject: memcg: further prevent OOM with too many dirty pages
 has been removed from the -mm tree.  Its filename was
-     memcg-prevent-oom-with-too-many-dirty-pages.patch
+     memcg-further-prevent-oom-with-too-many-dirty-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg: prevent OOM with too many dirty pages
+From: Hugh Dickins <hughd@google.com>
+Subject: memcg: further prevent OOM with too many dirty pages
 
-The current implementation of dirty pages throttling is not memcg aware
-which makes it easy to have memcg LRUs full of dirty pages.  Without
-throttling, these LRUs can be scanned faster than the rate of writeback,
-leading to memcg OOM conditions when the hard limit is small.
+The may_enter_fs test turns out to be too restrictive: though I saw no
+problem with it when testing on 3.5-rc6, it very soon OOMed when I tested
+on 3.5-rc6-mm1.  I don't know what the difference there is, perhaps I just
+slightly changed the way I started off the testing: dd if=/dev/zero
+of=/mnt/temp bs=1M count=1024; rm -f /mnt/temp; sync repeatedly, in 20M
+memory.limit_in_bytes cgroup to ext4 on USB stick.
 
-This patch fixes the problem by throttling the allocating process
-(possibly a writer) during the hard limit reclaim by waiting on
-PageReclaim pages.  We are waiting only for PageReclaim pages because
-those are the pages that made one full round over LRU and that means that
-the writeback is much slower than scanning.
+ext4 (and gfs2 and xfs) turn out to allocate new pages for writing with
+AOP_FLAG_NOFS: that seems a little worrying, and it's unclear to me why
+the transaction needs to be started even before allocating pagecache
+memory.  But it may not be worth worrying about these days: if direct
+reclaim avoids FS writeback, does __GFP_FS now mean anything?
 
-The solution is far from being ideal - long term solution is memcg aware
-dirty throttling - but it is meant to be a band aid until we have a real
-fix.  We are seeing this happening during nightly backups which are placed
-into containers to prevent from eviction of the real working set.
+Anyway, we insisted on the may_enter_fs test to avoid hangs with the loop
+device; but since that also masks off __GFP_IO, we can test for __GFP_IO
+directly, ignoring may_enter_fs and __GFP_FS.
 
-The change affects only memcg reclaim and only when we encounter
-PageReclaim pages which is a signal that the reclaim doesn't catch up on
-with the writers so somebody should be throttled.  This could be
-potentially unfair because it could be somebody else from the group who
-gets throttled on behalf of the writer but as writers need to allocate as
-well and they allocate in higher rate the probability that only innocent
-processes would be penalized is not that high.
+But even so, the test still OOMs sometimes: when originally testing on
+3.5-rc6, it OOMed about one time in five or ten; when testing just now on
+3.5-rc6-mm1, it OOMed on the first iteration.
 
-I have tested this change by a simple dd copying /dev/zero to tmpfs or
-ext3 running under small memcg (1G copy under 5M, 60M, 300M and 2G
-containers) and dd got killed by OOM killer every time.  With the patch I
-could run the dd with the same size under 5M controller without any OOM. 
-The issue is more visible with slower devices for output.
+This residual problem comes from an accumulation of pages under ordinary
+writeback, not marked PageReclaim, so rightly not causing the memcg check
+to wait on their writeback: these too can prevent shrink_page_list() from
+freeing any pages, so many times that memcg reclaim fails and OOMs.
 
-* With the patch
-================
-* tmpfs size=2G
----------------
-$ vim cgroup_cache_oom_test.sh
-$ ./cgroup_cache_oom_test.sh 5M
-using Limit 5M for group
-1000+0 records in
-1000+0 records out
-1048576000 bytes (1.0 GB) copied, 30.4049 s, 34.5 MB/s
-$ ./cgroup_cache_oom_test.sh 60M
-using Limit 60M for group
-1000+0 records in
-1000+0 records out
-1048576000 bytes (1.0 GB) copied, 31.4561 s, 33.3 MB/s
-$ ./cgroup_cache_oom_test.sh 300M
-using Limit 300M for group
-1000+0 records in
-1000+0 records out
-1048576000 bytes (1.0 GB) copied, 20.4618 s, 51.2 MB/s
-$ ./cgroup_cache_oom_test.sh 2G
-using Limit 2G for group
-1000+0 records in
-1000+0 records out
-1048576000 bytes (1.0 GB) copied, 1.42172 s, 738 MB/s
+Deal with these in the same way as direct reclaim now deals with dirty FS
+pages: mark them PageReclaim.  It is appropriate to rotate these to tail
+of list when writepage completes, but more importantly, the PageReclaim
+flag makes memcg reclaim wait on them if encountered again.  Increment
+NR_VMSCAN_IMMEDIATE?  That's arguable: I chose not.
 
-* ext3
-------
-$ ./cgroup_cache_oom_test.sh 5M
-using Limit 5M for group
-1000+0 records in
-1000+0 records out
-1048576000 bytes (1.0 GB) copied, 27.9547 s, 37.5 MB/s
-$ ./cgroup_cache_oom_test.sh 60M
-using Limit 60M for group
-1000+0 records in
-1000+0 records out
-1048576000 bytes (1.0 GB) copied, 30.3221 s, 34.6 MB/s
-$ ./cgroup_cache_oom_test.sh 300M
-using Limit 300M for group
-1000+0 records in
-1000+0 records out
-1048576000 bytes (1.0 GB) copied, 24.5764 s, 42.7 MB/s
-$ ./cgroup_cache_oom_test.sh 2G
-using Limit 2G for group
-1000+0 records in
-1000+0 records out
-1048576000 bytes (1.0 GB) copied, 3.35828 s, 312 MB/s
+Setting PageReclaim here may occasionally race with end_page_writeback()
+clearing it: lru_deactivate_fn() already faced the same race, and
+correctly concluded that the window is small and the issue non-critical.
 
-* Without the patch
-===================
-* tmpfs size=2G
----------------
-$ ./cgroup_cache_oom_test.sh 5M
-using Limit 5M for group
-./cgroup_cache_oom_test.sh: line 46:  4668 Killed                  dd if=/dev/zero of=$OUT/zero bs=1M count=$count
-$ ./cgroup_cache_oom_test.sh 60M
-using Limit 60M for group
-1000+0 records in
-1000+0 records out
-1048576000 bytes (1.0 GB) copied, 25.4989 s, 41.1 MB/s
-$ ./cgroup_cache_oom_test.sh 300M
-using Limit 300M for group
-1000+0 records in
-1000+0 records out
-1048576000 bytes (1.0 GB) copied, 24.3928 s, 43.0 MB/s
-$ ./cgroup_cache_oom_test.sh 2G
-using Limit 2G for group
-1000+0 records in
-1000+0 records out
-1048576000 bytes (1.0 GB) copied, 1.49797 s, 700 MB/s
+With these changes, the test runs indefinitely without OOMing on ext4,
+ext3 and ext2: I'll move on to test with other filesystems later.
 
-* ext3
-------
-$ ./cgroup_cache_oom_test.sh 5M
-using Limit 5M for group
-./cgroup_cache_oom_test.sh: line 46:  4689 Killed                  dd if=/dev/zero of=$OUT/zero bs=1M count=$count
-$ ./cgroup_cache_oom_test.sh 60M
-using Limit 60M for group
-./cgroup_cache_oom_test.sh: line 46:  4692 Killed                  dd if=/dev/zero of=$OUT/zero bs=1M count=$count
-$ ./cgroup_cache_oom_test.sh 300M
-using Limit 300M for group
-1000+0 records in
-1000+0 records out
-1048576000 bytes (1.0 GB) copied, 20.248 s, 51.8 MB/s
-$ ./cgroup_cache_oom_test.sh 2G
-using Limit 2G for group
-1000+0 records in
-1000+0 records out
-1048576000 bytes (1.0 GB) copied, 2.85201 s, 368 MB/s
+Trivia: invert conditions for a clearer block without an else, and goto
+keep_locked to do the unlock_page.
 
-[akpm@linux-foundation.org: tweak changelog, reordered the test to optimize for CONFIG_CGROUP_MEM_RES_CTLR=n]
-[hughd@google.com: fix deadlock with loop driver]
+Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujtisu.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Ying Han <yinghan@google.com>
 Cc: Greg Thelen <gthelen@google.com>
 Cc: Hugh Dickins <hughd@google.com>
-Reviewed-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Fengguang Wu <fengguang.wu@intel.com>
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Fengguang Wu <fengguang.wu@intel.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   23 ++++++++++++++++++++---
- 1 file changed, 20 insertions(+), 3 deletions(-)
+ mm/vmscan.c |   33 ++++++++++++++++++++++++---------
+ 1 file changed, 24 insertions(+), 9 deletions(-)
 
-diff -puN mm/vmscan.c~memcg-prevent-oom-with-too-many-dirty-pages mm/vmscan.c
---- a/mm/vmscan.c~memcg-prevent-oom-with-too-many-dirty-pages
+diff -puN mm/vmscan.c~memcg-further-prevent-oom-with-too-many-dirty-pages mm/vmscan.c
+--- a/mm/vmscan.c~memcg-further-prevent-oom-with-too-many-dirty-pages
 +++ a/mm/vmscan.c
-@@ -720,9 +720,26 @@ static unsigned long shrink_page_list(st
- 			(PageSwapCache(page) && (sc->gfp_mask & __GFP_IO));
- 
- 		if (PageWriteback(page)) {
--			nr_writeback++;
--			unlock_page(page);
--			goto keep;
-+			/*
-+			 * memcg doesn't have any dirty pages throttling so we
-+			 * could easily OOM just because too many pages are in
-+			 * writeback from reclaim and there is nothing else to
-+			 * reclaim.
+@@ -723,23 +723,38 @@ static unsigned long shrink_page_list(st
+ 			/*
+ 			 * memcg doesn't have any dirty pages throttling so we
+ 			 * could easily OOM just because too many pages are in
+-			 * writeback from reclaim and there is nothing else to
+-			 * reclaim.
++			 * writeback and there is nothing else to reclaim.
+ 			 *
+-			 * Check may_enter_fs, certainly because a loop driver
++			 * Check __GFP_IO, certainly because a loop driver
+ 			 * thread might enter reclaim, and deadlock if it waits
+ 			 * on a page for which it is needed to do the write
+ 			 * (loop masks off __GFP_IO|__GFP_FS for this reason);
+ 			 * but more thought would probably show more reasons.
 +			 *
-+			 * Check may_enter_fs, certainly because a loop driver
-+			 * thread might enter reclaim, and deadlock if it waits
-+			 * on a page for which it is needed to do the write
-+			 * (loop masks off __GFP_IO|__GFP_FS for this reason);
-+			 * but more thought would probably show more reasons.
-+			 */
-+			if (!global_reclaim(sc) && PageReclaim(page) &&
-+					may_enter_fs)
-+				wait_on_page_writeback(page);
-+			else {
-+				nr_writeback++;
-+				unlock_page(page);
-+				goto keep;
-+			}
++			 * Don't require __GFP_FS, since we're not going into
++			 * the FS, just waiting on its writeback completion.
++			 * Worryingly, ext4 gfs2 and xfs allocate pages with
++			 * grab_cache_page_write_begin(,,AOP_FLAG_NOFS), so
++			 * testing may_enter_fs here is liable to OOM on them.
+ 			 */
+-			if (!global_reclaim(sc) && PageReclaim(page) &&
+-					may_enter_fs)
+-				wait_on_page_writeback(page);
+-			else {
++			if (global_reclaim(sc) ||
++			    !PageReclaim(page) || !(sc->gfp_mask & __GFP_IO)) {
++				/*
++				 * This is slightly racy - end_page_writeback()
++				 * might have just cleared PageReclaim, then
++				 * setting PageReclaim here end up interpreted
++				 * as PageReadahead - but that does not matter
++				 * enough to care.  What we do want is for this
++				 * page to have PageReclaim set next time memcg
++				 * reclaim reaches the tests above, so it will
++				 * then wait_on_page_writeback() to avoid OOM;
++				 * and it's also appropriate in global reclaim.
++				 */
++				SetPageReclaim(page);
+ 				nr_writeback++;
+-				unlock_page(page);
+-				goto keep;
++				goto keep_locked;
+ 			}
++			wait_on_page_writeback(page);
  		}
  
  		references = page_check_references(page, sc);
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from hughd@google.com are
 
 origin.patch
+prio_tree-debugging-patch.patch
 
