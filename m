@@ -1,92 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-media-video-v4l2-ioctlc-fix-build.patch removed from -mm tree
-Date: Wed, 01 Aug 2012 13:11:20 -0700
-Message-ID: <20120801201120.AF4561E0043@wpzn4.hot.corp.google.com>
+Subject: [merged] vmalloc-walk-vmap_areas-by-sorted-list-instead-of-rb_next.patch removed from -mm tree
+Date: Wed, 01 Aug 2012 13:11:23 -0700
+Message-ID: <20120801201124.1EEC720004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:41190 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755572Ab2HAULV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:11:21 -0400
-Received: by mail-ob0-f202.google.com with SMTP id wc20so5410915obb.1
-        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:11:21 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:64772 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755572Ab2HAUL0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:11:26 -0400
+Received: by lagr15 with SMTP id r15so343775lag.1
+        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:11:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: honkiko@gmail.com, hannes@cmpxchg.org, npiggin@kernel.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/media/video/v4l2-ioctl.c: fix build
+     Subject: vmalloc: walk vmap_areas by sorted list instead of rb_next()
 has been removed from the -mm tree.  Its filename was
-     drivers-media-video-v4l2-ioctlc-fix-build.patch
+     vmalloc-walk-vmap_areas-by-sorted-list-instead-of-rb_next.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/media/video/v4l2-ioctl.c: fix build
+From: Hong zhi guo <honkiko@gmail.com>
+Subject: vmalloc: walk vmap_areas by sorted list instead of rb_next()
 
-Fix zillions of these:
+There's a walk by repeating rb_next to find a suitable hole.  Could be
+simply replaced by walk on the sorted vmap_area_list.  More simpler and
+efficient.
 
-drivers/media/video/v4l2-ioctl.c:1848: error: unknown field 'func' specified in initializer
-drivers/media/video/v4l2-ioctl.c:1848: warning: missing braces around initializer
-drivers/media/video/v4l2-ioctl.c:1848: warning: (near initialization for 'v4l2_ioctls[0].<anonymous>')
-drivers/media/video/v4l2-ioctl.c:1848: warning: initialization makes integer from pointer without a cast
-drivers/media/video/v4l2-ioctl.c:1848: error: initializer element is not computable at load time
-drivers/media/video/v4l2-ioctl.c:1848: error: (near initialization for 'v4l2_ioctls[0].<anonymous>.offset')
+Mutation of the list and tree only happens in pair within
+__insert_vmap_area and __free_vmap_area, under protection of
+vmap_area_lock.  The patch code is also under vmap_area_lock, so the list
+walk is safe, and consistent with the tree walk.
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Tested on SMP by repeating batch of vmalloc anf vfree for random sizes and
+rounds for hours.
+
+Signed-off-by: Hong Zhiguo <honkiko@gmail.com>
+Cc: Nick Piggin <npiggin@kernel.dk>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/v4l2-ioctl.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ mm/vmalloc.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/media/video/v4l2-ioctl.c~drivers-media-video-v4l2-ioctlc-fix-build drivers/media/video/v4l2-ioctl.c
---- a/drivers/media/video/v4l2-ioctl.c~drivers-media-video-v4l2-ioctlc-fix-build
-+++ a/drivers/media/video/v4l2-ioctl.c
-@@ -1831,7 +1831,9 @@ struct v4l2_ioctl_info {
- 		.ioctl = _ioctl,					\
- 		.flags = _flags | INFO_FL_STD,				\
- 		.name = #_ioctl,					\
--		.offset = offsetof(struct v4l2_ioctl_ops, _vidioc),	\
-+		{							\
-+			.offset = offsetof(struct v4l2_ioctl_ops, _vidioc),\
-+		},							\
- 		.debug = _debug,					\
+diff -puN mm/vmalloc.c~vmalloc-walk-vmap_areas-by-sorted-list-instead-of-rb_next mm/vmalloc.c
+--- a/mm/vmalloc.c~vmalloc-walk-vmap_areas-by-sorted-list-instead-of-rb_next
++++ a/mm/vmalloc.c
+@@ -413,11 +413,11 @@ nocache:
+ 		if (addr + size - 1 < addr)
+ 			goto overflow;
+ 
+-		n = rb_next(&first->rb_node);
+-		if (n)
+-			first = rb_entry(n, struct vmap_area, rb_node);
+-		else
++		if (list_is_last(&first->list, &vmap_area_list))
+ 			goto found;
++
++		first = list_entry(first->list.next,
++				struct vmap_area, list);
  	}
  
-@@ -1840,7 +1842,9 @@ struct v4l2_ioctl_info {
- 		.ioctl = _ioctl,					\
- 		.flags = _flags | INFO_FL_FUNC,				\
- 		.name = #_ioctl,					\
--		.func = _func,						\
-+		{							\
-+			.func = _func,					\
-+		},							\
- 		.debug = _debug,					\
- 	}
- 
+ found:
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from honkiko@gmail.com are
 
 origin.patch
-linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
-thermal-add-generic-cpufreq-cooling-implementation.patch
-thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
-thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
-mm.patch
-mm-slab_commonc-fix-warning.patch
-rbtree-performance-and-correctness-test-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
