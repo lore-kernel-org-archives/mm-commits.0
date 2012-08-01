@@ -1,148 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-further-prevent-oom-with-too-many-dirty-pages.patch removed from -mm tree
-Date: Wed, 01 Aug 2012 13:18:36 -0700
-Message-ID: <20120801201837.339A11E0043@wpzn4.hot.corp.google.com>
+Subject: [merged] memcg-add-mem_cgroup_from_css-helper.patch removed from -mm tree
+Date: Wed, 01 Aug 2012 13:18:40 -0700
+Message-ID: <20120801201841.36A165C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:52099 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751774Ab2HAUSj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:18:39 -0400
-Received: by mail-ob0-f202.google.com with SMTP id wc20so5412588obb.1
-        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:18:38 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:45834 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754878Ab2HAUSn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:18:43 -0400
+Received: by mail-ee0-f74.google.com with SMTP id d4so347915eek.1
+        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:18:42 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, david@fromorbit.com, fengguang.wu@intel.com, gthelen@google.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujtisu.com, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, riel@redhat.com, stable@vger.kernel.org, tytso@mit.edu, yinghan@google.com, mm-commits@vger.kernel.org
+To: liwanp@linux.vnet.ibm.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, shangw@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: further prevent OOM with too many dirty pages
+     Subject: memcg: add mem_cgroup_from_css() helper
 has been removed from the -mm tree.  Its filename was
-     memcg-further-prevent-oom-with-too-many-dirty-pages.patch
+     memcg-add-mem_cgroup_from_css-helper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: memcg: further prevent OOM with too many dirty pages
+From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Subject: memcg: add mem_cgroup_from_css() helper
 
-The may_enter_fs test turns out to be too restrictive: though I saw no
-problem with it when testing on 3.5-rc6, it very soon OOMed when I tested
-on 3.5-rc6-mm1.  I don't know what the difference there is, perhaps I just
-slightly changed the way I started off the testing: dd if=/dev/zero
-of=/mnt/temp bs=1M count=1024; rm -f /mnt/temp; sync repeatedly, in 20M
-memory.limit_in_bytes cgroup to ext4 on USB stick.
+Add a mem_cgroup_from_css() helper to replace open-coded invokations of
+container_of().  To clarify the code and to add a little more type safety.
 
-ext4 (and gfs2 and xfs) turn out to allocate new pages for writing with
-AOP_FLAG_NOFS: that seems a little worrying, and it's unclear to me why
-the transaction needs to be started even before allocating pagecache
-memory.  But it may not be worth worrying about these days: if direct
-reclaim avoids FS writeback, does __GFP_FS now mean anything?
-
-Anyway, we insisted on the may_enter_fs test to avoid hangs with the loop
-device; but since that also masks off __GFP_IO, we can test for __GFP_IO
-directly, ignoring may_enter_fs and __GFP_FS.
-
-But even so, the test still OOMs sometimes: when originally testing on
-3.5-rc6, it OOMed about one time in five or ten; when testing just now on
-3.5-rc6-mm1, it OOMed on the first iteration.
-
-This residual problem comes from an accumulation of pages under ordinary
-writeback, not marked PageReclaim, so rightly not causing the memcg check
-to wait on their writeback: these too can prevent shrink_page_list() from
-freeing any pages, so many times that memcg reclaim fails and OOMs.
-
-Deal with these in the same way as direct reclaim now deals with dirty FS
-pages: mark them PageReclaim.  It is appropriate to rotate these to tail
-of list when writepage completes, but more importantly, the PageReclaim
-flag makes memcg reclaim wait on them if encountered again.  Increment
-NR_VMSCAN_IMMEDIATE?  That's arguable: I chose not.
-
-Setting PageReclaim here may occasionally race with end_page_writeback()
-clearing it: lru_deactivate_fn() already faced the same race, and
-correctly concluded that the window is small and the issue non-critical.
-
-With these changes, the test runs indefinitely without OOMing on ext4,
-ext3 and ext2: I'll move on to test with other filesystems later.
-
-Trivia: invert conditions for a clearer block without an else, and goto
-keep_locked to do the unlock_page.
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujtisu.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Ying Han <yinghan@google.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Fengguang Wu <fengguang.wu@intel.com>
+[akpm@linux-foundation.org: fix extensive breakage]
+Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: <stable@vger.kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Gavin Shan <shangw@linux.vnet.ibm.com>
+Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Gavin Shan <shangw@linux.vnet.ibm.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   33 ++++++++++++++++++++++++---------
- 1 file changed, 24 insertions(+), 9 deletions(-)
+ mm/memcontrol.c |   19 +++++++++++--------
+ 1 file changed, 11 insertions(+), 8 deletions(-)
 
-diff -puN mm/vmscan.c~memcg-further-prevent-oom-with-too-many-dirty-pages mm/vmscan.c
---- a/mm/vmscan.c~memcg-further-prevent-oom-with-too-many-dirty-pages
-+++ a/mm/vmscan.c
-@@ -723,23 +723,38 @@ static unsigned long shrink_page_list(st
- 			/*
- 			 * memcg doesn't have any dirty pages throttling so we
- 			 * could easily OOM just because too many pages are in
--			 * writeback from reclaim and there is nothing else to
--			 * reclaim.
-+			 * writeback and there is nothing else to reclaim.
- 			 *
--			 * Check may_enter_fs, certainly because a loop driver
-+			 * Check __GFP_IO, certainly because a loop driver
- 			 * thread might enter reclaim, and deadlock if it waits
- 			 * on a page for which it is needed to do the write
- 			 * (loop masks off __GFP_IO|__GFP_FS for this reason);
- 			 * but more thought would probably show more reasons.
-+			 *
-+			 * Don't require __GFP_FS, since we're not going into
-+			 * the FS, just waiting on its writeback completion.
-+			 * Worryingly, ext4 gfs2 and xfs allocate pages with
-+			 * grab_cache_page_write_begin(,,AOP_FLAG_NOFS), so
-+			 * testing may_enter_fs here is liable to OOM on them.
- 			 */
--			if (!global_reclaim(sc) && PageReclaim(page) &&
--					may_enter_fs)
--				wait_on_page_writeback(page);
--			else {
-+			if (global_reclaim(sc) ||
-+			    !PageReclaim(page) || !(sc->gfp_mask & __GFP_IO)) {
-+				/*
-+				 * This is slightly racy - end_page_writeback()
-+				 * might have just cleared PageReclaim, then
-+				 * setting PageReclaim here end up interpreted
-+				 * as PageReadahead - but that does not matter
-+				 * enough to care.  What we do want is for this
-+				 * page to have PageReclaim set next time memcg
-+				 * reclaim reaches the tests above, so it will
-+				 * then wait_on_page_writeback() to avoid OOM;
-+				 * and it's also appropriate in global reclaim.
-+				 */
-+				SetPageReclaim(page);
- 				nr_writeback++;
--				unlock_page(page);
--				goto keep;
-+				goto keep_locked;
- 			}
-+			wait_on_page_writeback(page);
- 		}
+diff -puN mm/memcontrol.c~memcg-add-mem_cgroup_from_css-helper mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-mem_cgroup_from_css-helper
++++ a/mm/memcontrol.c
+@@ -405,6 +405,12 @@ enum charge_type {
+ static void mem_cgroup_get(struct mem_cgroup *memcg);
+ static void mem_cgroup_put(struct mem_cgroup *memcg);
  
- 		references = page_check_references(page, sc);
++static inline
++struct mem_cgroup *mem_cgroup_from_css(struct cgroup_subsys_state *s)
++{
++	return container_of(s, struct mem_cgroup, css);
++}
++
+ /* Writing them here to avoid exposing memcg's inner layout */
+ #ifdef CONFIG_MEMCG_KMEM
+ #include <net/sock.h>
+@@ -862,9 +868,8 @@ static void memcg_check_events(struct me
+ 
+ struct mem_cgroup *mem_cgroup_from_cont(struct cgroup *cont)
+ {
+-	return container_of(cgroup_subsys_state(cont,
+-				mem_cgroup_subsys_id), struct mem_cgroup,
+-				css);
++	return mem_cgroup_from_css(
++		cgroup_subsys_state(cont, mem_cgroup_subsys_id));
+ }
+ 
+ struct mem_cgroup *mem_cgroup_from_task(struct task_struct *p)
+@@ -877,8 +882,7 @@ struct mem_cgroup *mem_cgroup_from_task(
+ 	if (unlikely(!p))
+ 		return NULL;
+ 
+-	return container_of(task_subsys_state(p, mem_cgroup_subsys_id),
+-				struct mem_cgroup, css);
++	return mem_cgroup_from_css(task_subsys_state(p, mem_cgroup_subsys_id));
+ }
+ 
+ struct mem_cgroup *try_get_mem_cgroup_from_mm(struct mm_struct *mm)
+@@ -964,8 +968,7 @@ struct mem_cgroup *mem_cgroup_iter(struc
+ 		css = css_get_next(&mem_cgroup_subsys, id + 1, &root->css, &id);
+ 		if (css) {
+ 			if (css == &root->css || css_tryget(css))
+-				memcg = container_of(css,
+-						     struct mem_cgroup, css);
++				memcg = mem_cgroup_from_css(css);
+ 		} else
+ 			id = 0;
+ 		rcu_read_unlock();
+@@ -2494,7 +2497,7 @@ static struct mem_cgroup *mem_cgroup_loo
+ 	css = css_lookup(&mem_cgroup_subsys, id);
+ 	if (!css)
+ 		return NULL;
+-	return container_of(css, struct mem_cgroup, css);
++	return mem_cgroup_from_css(css);
+ }
+ 
+ struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page)
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
 
 origin.patch
-prio_tree-debugging-patch.patch
 
