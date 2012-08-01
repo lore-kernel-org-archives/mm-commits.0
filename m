@@ -1,121 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch removed from -mm tree
-Date: Wed, 01 Aug 2012 13:12:03 -0700
-Message-ID: <20120801201204.3C6C25C0065@hpza9.eem.corp.google.com>
+Subject: [merged] hugetlb-dont-use-err_ptr-with-vm_fault-values.patch removed from -mm tree
+Date: Wed, 01 Aug 2012 13:12:07 -0700
+Message-ID: <20120801201208.1BB861E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:59028 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755572Ab2HAUMH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:12:07 -0400
-Received: by lbbgp10 with SMTP id gp10so47298lbb.1
-        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:12:05 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:41190 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755572Ab2HAUMJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:12:09 -0400
+Received: by mail-ob0-f202.google.com with SMTP id wc20so5410915obb.1
+        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:12:09 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aneesh.kumar@linux.vnet.ibm.com, dhillf@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: rename max_hstate to hugetlb_max_hstate
+     Subject: hugetlb: don't use ERR_PTR with VM_FAULT* values
 has been removed from the -mm tree.  Its filename was
-     hugetlb-rename-max_hstate-to-hugetlb_max_hstate.patch
+     hugetlb-dont-use-err_ptr-with-vm_fault-values.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: hugetlb: rename max_hstate to hugetlb_max_hstate
+Subject: hugetlb: don't use ERR_PTR with VM_FAULT* values
 
-This patchset implements a cgroup resource controller for HugeTLB pages. 
-The controller allows to limit the HugeTLB usage per control group and
-enforces the controller limit during page fault.  Since HugeTLB doesn't
-support page reclaim, enforcing the limit at page fault time implies that,
-the application will get SIGBUS signal if it tries to access HugeTLB pages
-beyond its limit.  This requires the application to know beforehand how
-much HugeTLB pages it would require for its use.
-
-The goal is to control how many HugeTLB pages a group of task can
-allocate.  It can be looked at as an extension of the existing quota
-interface which limits the number of HugeTLB pages per hugetlbfs
-superblock.  HPC job scheduler requires jobs to specify their resource
-requirements in the job file.  Once their requirements can be met, job
-schedulers like (SLURM) will schedule the job.  We need to make sure that
-the jobs won't consume more resources than requested.  If they do we
-should either error out or kill the application.
-
-
-This patch:
-
-Rename max_hstate to hugetlb_max_hstate.  We will be using this from other
-subsystems like hugetlb controller in later patches.
+The current use of VM_FAULT_* codes with ERR_PTR requires us to ensure
+VM_FAULT_* values will not exceed MAX_ERRNO value.  Decouple the
+VM_FAULT_* values from MAX_ERRNO.
 
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Acked-by: Hillf Danton <dhillf@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ mm/hugetlb.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-rename-max_hstate-to-hugetlb_max_hstate mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-rename-max_hstate-to-hugetlb_max_hstate
+diff -puN mm/hugetlb.c~hugetlb-dont-use-err_ptr-with-vm_fault-values mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-dont-use-err_ptr-with-vm_fault-values
 +++ a/mm/hugetlb.c
-@@ -34,7 +34,7 @@ const unsigned long hugetlb_zero = 0, hu
- static gfp_t htlb_alloc_mask = GFP_HIGHUSER;
- unsigned long hugepages_treat_as_movable;
+@@ -1123,10 +1123,10 @@ static struct page *alloc_huge_page(stru
+ 	 */
+ 	chg = vma_needs_reservation(h, vma, addr);
+ 	if (chg < 0)
+-		return ERR_PTR(-VM_FAULT_OOM);
++		return ERR_PTR(-ENOMEM);
+ 	if (chg)
+ 		if (hugepage_subpool_get_pages(spool, chg))
+-			return ERR_PTR(-VM_FAULT_SIGBUS);
++			return ERR_PTR(-ENOSPC);
  
--static int max_hstate;
-+static int hugetlb_max_hstate;
- unsigned int default_hstate_idx;
- struct hstate hstates[HUGE_MAX_HSTATE];
- 
-@@ -46,7 +46,7 @@ static unsigned long __initdata default_
- static unsigned long __initdata default_hstate_size;
- 
- #define for_each_hstate(h) \
--	for ((h) = hstates; (h) < &hstates[max_hstate]; (h)++)
-+	for ((h) = hstates; (h) < &hstates[hugetlb_max_hstate]; (h)++)
- 
- /*
-  * Protects updates to hugepage_freelists, nr_huge_pages, and free_huge_pages
-@@ -1897,9 +1897,9 @@ void __init hugetlb_add_hstate(unsigned 
- 		printk(KERN_WARNING "hugepagesz= specified twice, ignoring\n");
- 		return;
+ 	spin_lock(&hugetlb_lock);
+ 	page = dequeue_huge_page_vma(h, vma, addr, avoid_reserve);
+@@ -1136,7 +1136,7 @@ static struct page *alloc_huge_page(stru
+ 		page = alloc_buddy_huge_page(h, NUMA_NO_NODE);
+ 		if (!page) {
+ 			hugepage_subpool_put_pages(spool, chg);
+-			return ERR_PTR(-VM_FAULT_SIGBUS);
++			return ERR_PTR(-ENOSPC);
+ 		}
  	}
--	BUG_ON(max_hstate >= HUGE_MAX_HSTATE);
-+	BUG_ON(hugetlb_max_hstate >= HUGE_MAX_HSTATE);
- 	BUG_ON(order == 0);
--	h = &hstates[max_hstate++];
-+	h = &hstates[hugetlb_max_hstate++];
- 	h->order = order;
- 	h->mask = ~((1ULL << (order + PAGE_SHIFT)) - 1);
- 	h->nr_huge_pages = 0;
-@@ -1920,10 +1920,10 @@ static int __init hugetlb_nrpages_setup(
- 	static unsigned long *last_mhp;
+ 
+@@ -2496,6 +2496,7 @@ retry_avoidcopy:
+ 	new_page = alloc_huge_page(vma, address, outside_reserve);
+ 
+ 	if (IS_ERR(new_page)) {
++		long err = PTR_ERR(new_page);
+ 		page_cache_release(old_page);
+ 
+ 		/*
+@@ -2524,7 +2525,10 @@ retry_avoidcopy:
+ 
+ 		/* Caller expects lock to be held */
+ 		spin_lock(&mm->page_table_lock);
+-		return -PTR_ERR(new_page);
++		if (err == -ENOMEM)
++			return VM_FAULT_OOM;
++		else
++			return VM_FAULT_SIGBUS;
+ 	}
  
  	/*
--	 * !max_hstate means we haven't parsed a hugepagesz= parameter yet,
-+	 * !hugetlb_max_hstate means we haven't parsed a hugepagesz= parameter yet,
- 	 * so this hugepages= parameter goes to the "default hstate".
- 	 */
--	if (!max_hstate)
-+	if (!hugetlb_max_hstate)
- 		mhp = &default_hstate_max_huge_pages;
- 	else
- 		mhp = &parsed_hstate->max_huge_pages;
-@@ -1942,7 +1942,7 @@ static int __init hugetlb_nrpages_setup(
- 	 * But we need to allocate >= MAX_ORDER hstates here early to still
- 	 * use the bootmem allocator.
- 	 */
--	if (max_hstate && parsed_hstate->order >= MAX_ORDER)
-+	if (hugetlb_max_hstate && parsed_hstate->order >= MAX_ORDER)
- 		hugetlb_hstate_alloc_pages(parsed_hstate);
- 
- 	last_mhp = mhp;
+@@ -2642,7 +2646,11 @@ retry:
+ 			goto out;
+ 		page = alloc_huge_page(vma, address, 0);
+ 		if (IS_ERR(page)) {
+-			ret = -PTR_ERR(page);
++			ret = PTR_ERR(page);
++			if (ret == -ENOMEM)
++				ret = VM_FAULT_OOM;
++			else
++				ret = VM_FAULT_SIGBUS;
+ 			goto out;
+ 		}
+ 		clear_huge_page(page, address, pages_per_huge_page(h));
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
