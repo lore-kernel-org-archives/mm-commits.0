@@ -1,34 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hugetlb-simplify-migrate_huge_page.patch removed from -mm tree
-Date: Wed, 01 Aug 2012 13:12:16 -0700
-Message-ID: <20120801201217.693A820004E@hpza10.eem.corp.google.com>
+Subject: [merged] hugetlb-add-a-list-for-tracking-in-use-hugetlb-pages.patch removed from -mm tree
+Date: Wed, 01 Aug 2012 13:12:20 -0700
+Message-ID: <20120801201221.248211E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:50652 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755572Ab2HAUMT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:12:19 -0400
-Received: by mail-we0-f202.google.com with SMTP id r1so344079wey.1
-        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:12:18 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:41190 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755572Ab2HAUMW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:12:22 -0400
+Received: by mail-ob0-f202.google.com with SMTP id wc20so5410915obb.1
+        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:12:22 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aneesh.kumar@linux.vnet.ibm.com, dhillf@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: simplify migrate_huge_page()
+     Subject: hugetlb: add a list for tracking in-use HugeTLB pages
 has been removed from the -mm tree.  Its filename was
-     hugetlb-simplify-migrate_huge_page.patch
+     hugetlb-add-a-list-for-tracking-in-use-hugetlb-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: hugetlb: simplify migrate_huge_page()
+Subject: hugetlb: add a list for tracking in-use HugeTLB pages
 
-Since we migrate only one hugepage, don't use linked list for passing the
-page around.  Directly pass the page that need to be migrated as argument.
-This also removes the usage of page->lru in the migrate path.
+hugepage_activelist will be used to track currently used HugeTLB pages.
+We need to find the in-use HugeTLB pages to support HugeTLB cgroup removal.
+On cgroup removal we update the page's HugeTLB cgroup to point to parent
+cgroup.
 
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -39,151 +40,99 @@ Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |    4 +-
- mm/memory-failure.c     |   15 ++-------
- mm/migrate.c            |   63 ++++++++++++--------------------------
- 3 files changed, 26 insertions(+), 56 deletions(-)
+ include/linux/hugetlb.h |    1 +
+ mm/hugetlb.c            |   12 +++++++-----
+ 2 files changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/migrate.h~hugetlb-simplify-migrate_huge_page include/linux/migrate.h
---- a/include/linux/migrate.h~hugetlb-simplify-migrate_huge_page
-+++ a/include/linux/migrate.h
-@@ -15,7 +15,7 @@ extern int migrate_page(struct address_s
- extern int migrate_pages(struct list_head *l, new_page_t x,
- 			unsigned long private, bool offlining,
- 			enum migrate_mode mode);
--extern int migrate_huge_pages(struct list_head *l, new_page_t x,
-+extern int migrate_huge_page(struct page *, new_page_t x,
- 			unsigned long private, bool offlining,
- 			enum migrate_mode mode);
- 
-@@ -36,7 +36,7 @@ static inline void putback_lru_pages(str
- static inline int migrate_pages(struct list_head *l, new_page_t x,
- 		unsigned long private, bool offlining,
- 		enum migrate_mode mode) { return -ENOSYS; }
--static inline int migrate_huge_pages(struct list_head *l, new_page_t x,
-+static inline int migrate_huge_page(struct page *page, new_page_t x,
- 		unsigned long private, bool offlining,
- 		enum migrate_mode mode) { return -ENOSYS; }
- 
-diff -puN mm/memory-failure.c~hugetlb-simplify-migrate_huge_page mm/memory-failure.c
---- a/mm/memory-failure.c~hugetlb-simplify-migrate_huge_page
-+++ a/mm/memory-failure.c
-@@ -1416,7 +1416,6 @@ static int soft_offline_huge_page(struct
- 	int ret;
- 	unsigned long pfn = page_to_pfn(page);
- 	struct page *hpage = compound_head(page);
--	LIST_HEAD(pagelist);
- 
- 	ret = get_any_page(page, pfn, flags);
- 	if (ret < 0)
-@@ -1431,24 +1430,18 @@ static int soft_offline_huge_page(struct
- 	}
- 
- 	/* Keep page count to indicate a given hugepage is isolated. */
--
--	list_add(&hpage->lru, &pagelist);
--	ret = migrate_huge_pages(&pagelist, new_page, MPOL_MF_MOVE_ALL, false,
-+	ret = migrate_huge_page(hpage, new_page, MPOL_MF_MOVE_ALL, false,
- 				MIGRATE_SYNC);
-+	put_page(hpage);
- 	if (ret) {
--		struct page *page1, *page2;
--		list_for_each_entry_safe(page1, page2, &pagelist, lru)
--			put_page(page1);
--
- 		pr_info("soft offline: %#lx: migration failed %d, type %lx\n",
- 			pfn, ret, page->flags);
--		if (ret > 0)
--			ret = -EIO;
- 		return ret;
- 	}
- done:
- 	if (!PageHWPoison(hpage))
--		atomic_long_add(1 << compound_trans_order(hpage), &mce_bad_pages);
-+		atomic_long_add(1 << compound_trans_order(hpage),
-+				&mce_bad_pages);
- 	set_page_hwpoison_huge_page(hpage);
- 	dequeue_hwpoisoned_huge_page(hpage);
- 	/* keep elevated page count for bad page */
-diff -puN mm/migrate.c~hugetlb-simplify-migrate_huge_page mm/migrate.c
---- a/mm/migrate.c~hugetlb-simplify-migrate_huge_page
-+++ a/mm/migrate.c
-@@ -932,15 +932,8 @@ static int unmap_and_move_huge_page(new_
- 	if (anon_vma)
- 		put_anon_vma(anon_vma);
- 	unlock_page(hpage);
--
- out:
--	if (rc != -EAGAIN) {
--		list_del(&hpage->lru);
--		put_page(hpage);
--	}
--
- 	put_page(new_hpage);
--
- 	if (result) {
- 		if (rc)
- 			*result = rc;
-@@ -1016,48 +1009,32 @@ out:
- 	return nr_failed + retry;
- }
- 
--int migrate_huge_pages(struct list_head *from,
--		new_page_t get_new_page, unsigned long private, bool offlining,
--		enum migrate_mode mode)
-+int migrate_huge_page(struct page *hpage, new_page_t get_new_page,
-+		      unsigned long private, bool offlining,
-+		      enum migrate_mode mode)
+diff -puN include/linux/hugetlb.h~hugetlb-add-a-list-for-tracking-in-use-hugetlb-pages include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-add-a-list-for-tracking-in-use-hugetlb-pages
++++ a/include/linux/hugetlb.h
+@@ -211,6 +211,7 @@ struct hstate {
+ 	unsigned long resv_huge_pages;
+ 	unsigned long surplus_huge_pages;
+ 	unsigned long nr_overcommit_huge_pages;
++	struct list_head hugepage_activelist;
+ 	struct list_head hugepage_freelists[MAX_NUMNODES];
+ 	unsigned int nr_huge_pages_node[MAX_NUMNODES];
+ 	unsigned int free_huge_pages_node[MAX_NUMNODES];
+diff -puN mm/hugetlb.c~hugetlb-add-a-list-for-tracking-in-use-hugetlb-pages mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-add-a-list-for-tracking-in-use-hugetlb-pages
++++ a/mm/hugetlb.c
+@@ -510,7 +510,7 @@ void copy_huge_page(struct page *dst, st
+ static void enqueue_huge_page(struct hstate *h, struct page *page)
  {
--	int retry = 1;
--	int nr_failed = 0;
--	int pass = 0;
--	struct page *page;
--	struct page *page2;
--	int rc;
-+	int pass, rc;
+ 	int nid = page_to_nid(page);
+-	list_add(&page->lru, &h->hugepage_freelists[nid]);
++	list_move(&page->lru, &h->hugepage_freelists[nid]);
+ 	h->free_huge_pages++;
+ 	h->free_huge_pages_node[nid]++;
+ }
+@@ -522,7 +522,7 @@ static struct page *dequeue_huge_page_no
+ 	if (list_empty(&h->hugepage_freelists[nid]))
+ 		return NULL;
+ 	page = list_entry(h->hugepage_freelists[nid].next, struct page, lru);
+-	list_del(&page->lru);
++	list_move(&page->lru, &h->hugepage_activelist);
+ 	set_page_refcounted(page);
+ 	h->free_huge_pages--;
+ 	h->free_huge_pages_node[nid]--;
+@@ -626,10 +626,11 @@ static void free_huge_page(struct page *
+ 	page->mapping = NULL;
+ 	BUG_ON(page_count(page));
+ 	BUG_ON(page_mapcount(page));
+-	INIT_LIST_HEAD(&page->lru);
  
--	for (pass = 0; pass < 10 && retry; pass++) {
--		retry = 0;
--
--		list_for_each_entry_safe(page, page2, from, lru) {
-+	for (pass = 0; pass < 10; pass++) {
-+		rc = unmap_and_move_huge_page(get_new_page,
-+					      private, hpage, pass > 2, offlining,
-+					      mode);
-+		switch (rc) {
-+		case -ENOMEM:
-+			goto out;
-+		case -EAGAIN:
-+			/* try again */
- 			cond_resched();
--
--			rc = unmap_and_move_huge_page(get_new_page,
--					private, page, pass > 2, offlining,
--					mode);
--
--			switch(rc) {
--			case -ENOMEM:
--				goto out;
--			case -EAGAIN:
--				retry++;
--				break;
--			case 0:
--				break;
--			default:
--				/* Permanent failure */
--				nr_failed++;
--				break;
--			}
-+			break;
-+		case 0:
-+			goto out;
-+		default:
-+			rc = -EIO;
-+			goto out;
+ 	spin_lock(&hugetlb_lock);
+ 	if (h->surplus_huge_pages_node[nid] && huge_page_order(h) < MAX_ORDER) {
++		/* remove the page from active list */
++		list_del(&page->lru);
+ 		update_and_free_page(h, page);
+ 		h->surplus_huge_pages--;
+ 		h->surplus_huge_pages_node[nid]--;
+@@ -642,6 +643,7 @@ static void free_huge_page(struct page *
+ 
+ static void prep_new_huge_page(struct hstate *h, struct page *page, int nid)
+ {
++	INIT_LIST_HEAD(&page->lru);
+ 	set_compound_page_dtor(page, free_huge_page);
+ 	spin_lock(&hugetlb_lock);
+ 	h->nr_huge_pages++;
+@@ -890,6 +892,7 @@ static struct page *alloc_buddy_huge_pag
+ 
+ 	spin_lock(&hugetlb_lock);
+ 	if (page) {
++		INIT_LIST_HEAD(&page->lru);
+ 		r_nid = page_to_nid(page);
+ 		set_compound_page_dtor(page, free_huge_page);
+ 		/*
+@@ -994,7 +997,6 @@ retry:
+ 	list_for_each_entry_safe(page, tmp, &surplus_list, lru) {
+ 		if ((--needed) < 0)
+ 			break;
+-		list_del(&page->lru);
+ 		/*
+ 		 * This page is now managed by the hugetlb allocator and has
+ 		 * no users -- drop the buddy allocator's reference.
+@@ -1009,7 +1011,6 @@ free:
+ 	/* Free unnecessary surplus pages to the buddy allocator */
+ 	if (!list_empty(&surplus_list)) {
+ 		list_for_each_entry_safe(page, tmp, &surplus_list, lru) {
+-			list_del(&page->lru);
+ 			put_page(page);
  		}
  	}
--	rc = 0;
- out:
--	if (rc)
--		return rc;
+@@ -1909,6 +1910,7 @@ void __init hugetlb_add_hstate(unsigned 
+ 	h->free_huge_pages = 0;
+ 	for (i = 0; i < MAX_NUMNODES; ++i)
+ 		INIT_LIST_HEAD(&h->hugepage_freelists[i]);
++	INIT_LIST_HEAD(&h->hugepage_activelist);
+ 	h->next_nid_to_alloc = first_node(node_states[N_HIGH_MEMORY]);
+ 	h->next_nid_to_free = first_node(node_states[N_HIGH_MEMORY]);
+ 	snprintf(h->name, HSTATE_NAME_LEN, "hugepages-%lukB",
+_
+
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+
+origin.patch
+linux-next.patch
+
