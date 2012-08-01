@@ -1,328 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-swap-implement-generic-handler-for-swap_activate.patch removed from -mm tree
-Date: Wed, 01 Aug 2012 13:17:09 -0700
-Message-ID: <20120801201710.70FDB5C0050@hpza9.eem.corp.google.com>
+Subject: [merged] mm-memcg-push-down-pageswapcache-check-into-uncharge-entry-functions.patch removed from -mm tree
+Date: Wed, 01 Aug 2012 13:17:55 -0700
+Message-ID: <20120801201755.D0E6F1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:39737 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754963Ab2HAURO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:17:14 -0400
-Received: by fat25 with SMTP id 25so342001fat.1
-        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:17:13 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:52099 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755983Ab2HAUR6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:17:58 -0400
+Received: by mail-ob0-f202.google.com with SMTP id wc20so5412588obb.1
+        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:17:56 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, Trond.Myklebust@netapp.com, a.p.zijlstra@chello.nl, davem@davemloft.net, dfeng@redhat.com, emunson@mgebm.net, eparis@redhat.com, hch@infradead.org, jmorris@namei.org, michaelc@cs.wisc.edu, neilb@suse.de, riel@redhat.com, sebastian@breakpoint.cc, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, liwp.linux@gmail.com, mel@csn.ul.ie, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: swap: implement generic handler for swap_activate
+     Subject: mm: memcg: push down PageSwapCache check into uncharge entry functions
 has been removed from the -mm tree.  Its filename was
-     mm-swap-implement-generic-handler-for-swap_activate.patch
+     mm-memcg-push-down-pageswapcache-check-into-uncharge-entry-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: swap: implement generic handler for swap_activate
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcg: push down PageSwapCache check into uncharge entry functions
 
-The version of swap_activate introduced is sufficient for swap-over-NFS
-but would not provide enough information to implement a generic handler. 
-This patch shuffles things slightly to ensure the same information is
-available for aops->swap_activate() as is available to the core.
+Not all uncharge paths need to check if the page is swapcache, some of
+them can know for sure.
 
-No functionality change.
+Push down the check into all callsites of uncharge_common() so that the
+patch that removes some of them is more obvious.
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Eric B Munson <emunson@mgebm.net>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Mike Christie <michaelc@cs.wisc.edu>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
-Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
-Cc: Xiaotian Feng <dfeng@redhat.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Wanpeng Li <liwp.linux@gmail.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h   |    6 +-
- include/linux/swap.h |    5 ++
- mm/page_io.c         |   92 +++++++++++++++++++++++++++++++++++++++++
- mm/swapfile.c        |   91 ++--------------------------------------
- 4 files changed, 106 insertions(+), 88 deletions(-)
+ mm/memcontrol.c |   18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/fs.h~mm-swap-implement-generic-handler-for-swap_activate include/linux/fs.h
---- a/include/linux/fs.h~mm-swap-implement-generic-handler-for-swap_activate
-+++ a/include/linux/fs.h
-@@ -429,6 +429,7 @@ struct kstatfs;
- struct vm_area_struct;
- struct vfsmount;
- struct cred;
-+struct swap_info_struct;
+diff -puN mm/memcontrol.c~mm-memcg-push-down-pageswapcache-check-into-uncharge-entry-functions mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-push-down-pageswapcache-check-into-uncharge-entry-functions
++++ a/mm/memcontrol.c
+@@ -2987,8 +2987,7 @@ __mem_cgroup_uncharge_common(struct page
+ 	if (mem_cgroup_disabled())
+ 		return NULL;
  
- extern void __init inode_init(void);
- extern void __init inode_init_early(void);
-@@ -640,8 +641,9 @@ struct address_space_operations {
- 	int (*error_remove_page)(struct address_space *, struct page *);
+-	if (PageSwapCache(page))
+-		return NULL;
++	VM_BUG_ON(PageSwapCache(page));
  
- 	/* swapfile support */
--	int (*swap_activate)(struct file *file);
--	int (*swap_deactivate)(struct file *file);
-+	int (*swap_activate)(struct swap_info_struct *sis, struct file *file,
-+				sector_t *span);
-+	void (*swap_deactivate)(struct file *file);
- };
- 
- extern const struct address_space_operations empty_aops;
-diff -puN include/linux/swap.h~mm-swap-implement-generic-handler-for-swap_activate include/linux/swap.h
---- a/include/linux/swap.h~mm-swap-implement-generic-handler-for-swap_activate
-+++ a/include/linux/swap.h
-@@ -324,6 +324,11 @@ extern int swap_writepage(struct page *p
- extern int swap_set_page_dirty(struct page *page);
- extern void end_swap_bio_read(struct bio *bio, int err);
- 
-+int add_swap_extent(struct swap_info_struct *sis, unsigned long start_page,
-+		unsigned long nr_pages, sector_t start_block);
-+int generic_swapfile_activate(struct swap_info_struct *, struct file *,
-+		sector_t *);
-+
- /* linux/mm/swap_state.c */
- extern struct address_space swapper_space;
- #define total_swapcache_pages  swapper_space.nrpages
-diff -puN mm/page_io.c~mm-swap-implement-generic-handler-for-swap_activate mm/page_io.c
---- a/mm/page_io.c~mm-swap-implement-generic-handler-for-swap_activate
-+++ a/mm/page_io.c
-@@ -87,6 +87,98 @@ void end_swap_bio_read(struct bio *bio, 
- 	bio_put(bio);
+ 	if (PageTransHuge(page)) {
+ 		nr_pages <<= compound_order(page);
+@@ -3085,6 +3084,8 @@ void mem_cgroup_uncharge_page(struct pag
+ 	if (page_mapped(page))
+ 		return;
+ 	VM_BUG_ON(page->mapping && !PageAnon(page));
++	if (PageSwapCache(page))
++		return;
+ 	__mem_cgroup_uncharge_common(page, MEM_CGROUP_CHARGE_TYPE_ANON, false);
  }
  
-+int generic_swapfile_activate(struct swap_info_struct *sis,
-+				struct file *swap_file,
-+				sector_t *span)
-+{
-+	struct address_space *mapping = swap_file->f_mapping;
-+	struct inode *inode = mapping->host;
-+	unsigned blocks_per_page;
-+	unsigned long page_no;
-+	unsigned blkbits;
-+	sector_t probe_block;
-+	sector_t last_block;
-+	sector_t lowest_block = -1;
-+	sector_t highest_block = 0;
-+	int nr_extents = 0;
-+	int ret;
-+
-+	blkbits = inode->i_blkbits;
-+	blocks_per_page = PAGE_SIZE >> blkbits;
-+
-+	/*
-+	 * Map all the blocks into the extent list.  This code doesn't try
-+	 * to be very smart.
-+	 */
-+	probe_block = 0;
-+	page_no = 0;
-+	last_block = i_size_read(inode) >> blkbits;
-+	while ((probe_block + blocks_per_page) <= last_block &&
-+			page_no < sis->max) {
-+		unsigned block_in_page;
-+		sector_t first_block;
-+
-+		first_block = bmap(inode, probe_block);
-+		if (first_block == 0)
-+			goto bad_bmap;
-+
-+		/*
-+		 * It must be PAGE_SIZE aligned on-disk
-+		 */
-+		if (first_block & (blocks_per_page - 1)) {
-+			probe_block++;
-+			goto reprobe;
-+		}
-+
-+		for (block_in_page = 1; block_in_page < blocks_per_page;
-+					block_in_page++) {
-+			sector_t block;
-+
-+			block = bmap(inode, probe_block + block_in_page);
-+			if (block == 0)
-+				goto bad_bmap;
-+			if (block != first_block + block_in_page) {
-+				/* Discontiguity */
-+				probe_block++;
-+				goto reprobe;
-+			}
-+		}
-+
-+		first_block >>= (PAGE_SHIFT - blkbits);
-+		if (page_no) {	/* exclude the header page */
-+			if (first_block < lowest_block)
-+				lowest_block = first_block;
-+			if (first_block > highest_block)
-+				highest_block = first_block;
-+		}
-+
-+		/*
-+		 * We found a PAGE_SIZE-length, PAGE_SIZE-aligned run of blocks
-+		 */
-+		ret = add_swap_extent(sis, page_no, 1, first_block);
-+		if (ret < 0)
-+			goto out;
-+		nr_extents += ret;
-+		page_no++;
-+		probe_block += blocks_per_page;
-+reprobe:
-+		continue;
-+	}
-+	ret = nr_extents;
-+	*span = 1 + highest_block - lowest_block;
-+	if (page_no == 0)
-+		page_no = 1;	/* force Empty message */
-+	sis->max = page_no;
-+	sis->pages = page_no - 1;
-+	sis->highest_bit = page_no - 1;
-+out:
-+	return ret;
-+bad_bmap:
-+	printk(KERN_ERR "swapon: swapfile has holes\n");
-+	ret = -EINVAL;
-+	goto out;
-+}
-+
- /*
-  * We may have stale swap cache pages in memory: notice
-  * them here and get rid of the unnecessary final write.
-diff -puN mm/swapfile.c~mm-swap-implement-generic-handler-for-swap_activate mm/swapfile.c
---- a/mm/swapfile.c~mm-swap-implement-generic-handler-for-swap_activate
-+++ a/mm/swapfile.c
-@@ -1345,7 +1345,7 @@ static void destroy_swap_extents(struct 
-  *
-  * This function rather assumes that it is called in ascending page order.
-  */
--static int
-+int
- add_swap_extent(struct swap_info_struct *sis, unsigned long start_page,
- 		unsigned long nr_pages, sector_t start_block)
+@@ -3092,6 +3093,8 @@ void mem_cgroup_uncharge_cache_page(stru
  {
-@@ -1421,106 +1421,25 @@ static int setup_swap_extents(struct swa
- 	struct file *swap_file = sis->swap_file;
- 	struct address_space *mapping = swap_file->f_mapping;
- 	struct inode *inode = mapping->host;
--	unsigned blocks_per_page;
--	unsigned long page_no;
--	unsigned blkbits;
--	sector_t probe_block;
--	sector_t last_block;
--	sector_t lowest_block = -1;
--	sector_t highest_block = 0;
--	int nr_extents = 0;
- 	int ret;
- 
- 	if (S_ISBLK(inode->i_mode)) {
- 		ret = add_swap_extent(sis, 0, sis->max, 0);
- 		*span = sis->pages;
--		goto out;
-+		return ret;
- 	}
- 
- 	if (mapping->a_ops->swap_activate) {
--		ret = mapping->a_ops->swap_activate(swap_file);
-+		ret = mapping->a_ops->swap_activate(sis, swap_file, span);
- 		if (!ret) {
- 			sis->flags |= SWP_FILE;
- 			ret = add_swap_extent(sis, 0, sis->max, 0);
- 			*span = sis->pages;
- 		}
--		goto out;
-+		return ret;
- 	}
- 
--	blkbits = inode->i_blkbits;
--	blocks_per_page = PAGE_SIZE >> blkbits;
--
--	/*
--	 * Map all the blocks into the extent list.  This code doesn't try
--	 * to be very smart.
--	 */
--	probe_block = 0;
--	page_no = 0;
--	last_block = i_size_read(inode) >> blkbits;
--	while ((probe_block + blocks_per_page) <= last_block &&
--			page_no < sis->max) {
--		unsigned block_in_page;
--		sector_t first_block;
--
--		first_block = bmap(inode, probe_block);
--		if (first_block == 0)
--			goto bad_bmap;
--
--		/*
--		 * It must be PAGE_SIZE aligned on-disk
--		 */
--		if (first_block & (blocks_per_page - 1)) {
--			probe_block++;
--			goto reprobe;
--		}
--
--		for (block_in_page = 1; block_in_page < blocks_per_page;
--					block_in_page++) {
--			sector_t block;
--
--			block = bmap(inode, probe_block + block_in_page);
--			if (block == 0)
--				goto bad_bmap;
--			if (block != first_block + block_in_page) {
--				/* Discontiguity */
--				probe_block++;
--				goto reprobe;
--			}
--		}
--
--		first_block >>= (PAGE_SHIFT - blkbits);
--		if (page_no) {	/* exclude the header page */
--			if (first_block < lowest_block)
--				lowest_block = first_block;
--			if (first_block > highest_block)
--				highest_block = first_block;
--		}
--
--		/*
--		 * We found a PAGE_SIZE-length, PAGE_SIZE-aligned run of blocks
--		 */
--		ret = add_swap_extent(sis, page_no, 1, first_block);
--		if (ret < 0)
--			goto out;
--		nr_extents += ret;
--		page_no++;
--		probe_block += blocks_per_page;
--reprobe:
--		continue;
--	}
--	ret = nr_extents;
--	*span = 1 + highest_block - lowest_block;
--	if (page_no == 0)
--		page_no = 1;	/* force Empty message */
--	sis->max = page_no;
--	sis->pages = page_no - 1;
--	sis->highest_bit = page_no - 1;
--out:
--	return ret;
--bad_bmap:
--	printk(KERN_ERR "swapon: swapfile has holes\n");
--	ret = -EINVAL;
--	goto out;
-+	return generic_swapfile_activate(sis, swap_file, span);
+ 	VM_BUG_ON(page_mapped(page));
+ 	VM_BUG_ON(page->mapping);
++	if (PageSwapCache(page))
++		return;
+ 	__mem_cgroup_uncharge_common(page, MEM_CGROUP_CHARGE_TYPE_CACHE, false);
  }
  
- static void enable_swap_info(struct swap_info_struct *p, int prio,
+@@ -3156,6 +3159,8 @@ mem_cgroup_uncharge_swapcache(struct pag
+ 	if (!swapout) /* this was a swap cache but the swap is unused ! */
+ 		ctype = MEM_CGROUP_CHARGE_TYPE_DROP;
+ 
++	if (PageSwapCache(page))
++		return;
+ 	memcg = __mem_cgroup_uncharge_common(page, ctype, false);
+ 
+ 	/*
+@@ -3345,10 +3350,11 @@ void mem_cgroup_end_migration(struct mem
+ 		unused = oldpage;
+ 	}
+ 	anon = PageAnon(used);
+-	__mem_cgroup_uncharge_common(unused,
+-		anon ? MEM_CGROUP_CHARGE_TYPE_ANON
+-		     : MEM_CGROUP_CHARGE_TYPE_CACHE,
+-		true);
++	if (!PageSwapCache(unused))
++		__mem_cgroup_uncharge_common(unused,
++					     anon ? MEM_CGROUP_CHARGE_TYPE_ANON
++					     : MEM_CGROUP_CHARGE_TYPE_CACHE,
++					     true);
+ 	css_put(&memcg->css);
+ 	/*
+ 	 * We disallowed uncharge of pages under migration because mapcount
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
-linux-next.patch
+mm-slab-remove-duplicate-check.patch
 
