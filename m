@@ -1,46 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [merged] netvm-allow-the-use-of-__gfp_memalloc-by-specific-sockets.patch removed from -mm tree
-Date: Wed, 01 Aug 2012 13:16:04 -0700
-Message-ID: <20120801201604.E62791E0043@wpzn4.hot.corp.google.com>
+Subject: [merged] net-introduce-sk_gfp_atomic-to-allow-addition-of-gfp-flags-depending-on-the-individual-socket.patch removed from -mm tree
+Date: Wed, 01 Aug 2012 13:16:00 -0700
+Message-ID: <20120801201601.01AB81E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-ob0-f202.google.com ([209.85.214.202]:52099 "EHLO
 	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754959Ab2HAUQG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:16:06 -0400
+	with ESMTP id S1754963Ab2HAUQC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:16:02 -0400
 Received: by mail-ob0-f202.google.com with SMTP id wc20so5412588obb.1
-        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:16:06 -0700 (PDT)
+        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:16:02 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@suse.de, a.p.zijlstra@chello.nl, cl@linux.com, davem@davemloft.net, emunson@mgebm.net, eric.dumazet@gmail.com, michaelc@cs.wisc.edu, neilb@suse.de, sebastian@breakpoint.cc, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: netvm: allow the use of __GFP_MEMALLOC by specific sockets
+     Subject: net: introduce sk_gfp_atomic() to allow addition of GFP flags depending on the individual socket
 has been removed from the -mm tree.  Its filename was
-     netvm-allow-the-use-of-__gfp_memalloc-by-specific-sockets.patch
+     net-introduce-sk_gfp_atomic-to-allow-addition-of-gfp-flags-depending-on-the-individual-socket.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: netvm: allow the use of __GFP_MEMALLOC by specific sockets
+Subject: net: introduce sk_gfp_atomic() to allow addition of GFP flags depending on the individual socket
 
-Allow specific sockets to be tagged SOCK_MEMALLOC and use __GFP_MEMALLOC
-for their allocations.  These sockets will be able to go below watermarks
-and allocate from the emergency reserve.  Such sockets are to be used to
-service the VM (iow.  to swap over).  They must be handled kernel side,
-exposing such a socket to user-space is a bug.
+Introduce sk_gfp_atomic(), this function allows to inject sock specific
+flags to each sock related allocation.  It is only used on allocation
+paths that may be required for writing pages back to network storage.
 
-There is a risk that the reserves be depleted so for now, the
-administrator is responsible for increasing min_free_kbytes as necessary
-to prevent deadlock for their workloads.
-
-[a.p.zijlstra@chello.nl: Original patches]
+[davem@davemloft.net: Use sk_gfp_atomic only when necessary]
+Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Acked-by: David S. Miller <davem@davemloft.net>
 Cc: Neil Brown <neilb@suse.de>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Mike Christie <michaelc@cs.wisc.edu>
 Cc: Eric B Munson <emunson@mgebm.net>
 Cc: Eric Dumazet <eric.dumazet@gmail.com>
@@ -50,71 +44,108 @@ Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/net/sock.h |    5 ++++-
- net/core/sock.c    |   22 ++++++++++++++++++++++
- 2 files changed, 26 insertions(+), 1 deletion(-)
+ include/net/sock.h    |    5 +++++
+ net/ipv4/tcp_output.c |   12 +++++++-----
+ net/ipv6/tcp_ipv6.c   |    8 +++++---
+ 3 files changed, 17 insertions(+), 8 deletions(-)
 
-diff -puN include/net/sock.h~netvm-allow-the-use-of-__gfp_memalloc-by-specific-sockets include/net/sock.h
---- a/include/net/sock.h~netvm-allow-the-use-of-__gfp_memalloc-by-specific-sockets
+diff -puN include/net/sock.h~net-introduce-sk_gfp_atomic-to-allow-addition-of-gfp-flags-depending-on-the-individual-socket include/net/sock.h
+--- a/include/net/sock.h~net-introduce-sk_gfp_atomic-to-allow-addition-of-gfp-flags-depending-on-the-individual-socket
 +++ a/include/net/sock.h
-@@ -621,6 +621,7 @@ enum sock_flags {
- 	SOCK_RCVTSTAMPNS, /* %SO_TIMESTAMPNS setting */
- 	SOCK_LOCALROUTE, /* route locally only, %SO_DONTROUTE setting */
- 	SOCK_QUEUE_SHRUNK, /* write queue has been shrunk recently */
-+	SOCK_MEMALLOC, /* VM depends on this socket for swapping */
- 	SOCK_TIMESTAMPING_TX_HARDWARE,  /* %SOF_TIMESTAMPING_TX_HARDWARE */
- 	SOCK_TIMESTAMPING_TX_SOFTWARE,  /* %SOF_TIMESTAMPING_TX_SOFTWARE */
- 	SOCK_TIMESTAMPING_RX_HARDWARE,  /* %SOF_TIMESTAMPING_RX_HARDWARE */
-@@ -660,7 +661,7 @@ static inline bool sock_flag(const struc
- 
- static inline gfp_t sk_gfp_atomic(struct sock *sk, gfp_t gfp_mask)
- {
--	return GFP_ATOMIC;
-+	return GFP_ATOMIC | (sk->sk_allocation & __GFP_MEMALLOC);
+@@ -658,6 +658,11 @@ static inline bool sock_flag(const struc
+ 	return test_bit(flag, &sk->sk_flags);
  }
  
++static inline gfp_t sk_gfp_atomic(struct sock *sk, gfp_t gfp_mask)
++{
++	return GFP_ATOMIC;
++}
++
  static inline void sk_acceptq_removed(struct sock *sk)
-@@ -803,6 +804,8 @@ extern int sk_stream_wait_memory(struct 
- extern void sk_stream_wait_close(struct sock *sk, long timeo_p);
- extern int sk_stream_error(struct sock *sk, int flags, int err);
- extern void sk_stream_kill_queues(struct sock *sk);
-+extern void sk_set_memalloc(struct sock *sk);
-+extern void sk_clear_memalloc(struct sock *sk);
+ {
+ 	sk->sk_ack_backlog--;
+diff -puN net/ipv4/tcp_output.c~net-introduce-sk_gfp_atomic-to-allow-addition-of-gfp-flags-depending-on-the-individual-socket net/ipv4/tcp_output.c
+--- a/net/ipv4/tcp_output.c~net-introduce-sk_gfp_atomic-to-allow-addition-of-gfp-flags-depending-on-the-individual-socket
++++ a/net/ipv4/tcp_output.c
+@@ -2045,7 +2045,8 @@ void __tcp_push_pending_frames(struct so
+ 	if (unlikely(sk->sk_state == TCP_CLOSE))
+ 		return;
  
- extern int sk_wait_data(struct sock *sk, long *timeo);
+-	if (tcp_write_xmit(sk, cur_mss, nonagle, 0, GFP_ATOMIC))
++	if (tcp_write_xmit(sk, cur_mss, nonagle, 0,
++			   sk_gfp_atomic(sk, GFP_ATOMIC)))
+ 		tcp_check_probe_timer(sk);
+ }
  
-diff -puN net/core/sock.c~netvm-allow-the-use-of-__gfp_memalloc-by-specific-sockets net/core/sock.c
---- a/net/core/sock.c~netvm-allow-the-use-of-__gfp_memalloc-by-specific-sockets
-+++ a/net/core/sock.c
-@@ -271,6 +271,28 @@ __u32 sysctl_rmem_default __read_mostly 
- int sysctl_optmem_max __read_mostly = sizeof(unsigned long)*(2*UIO_MAXIOV+512);
- EXPORT_SYMBOL(sysctl_optmem_max);
+@@ -2666,7 +2667,8 @@ struct sk_buff *tcp_make_synack(struct s
  
-+/**
-+ * sk_set_memalloc - sets %SOCK_MEMALLOC
-+ * @sk: socket to set it on
-+ *
-+ * Set %SOCK_MEMALLOC on a socket for access to emergency reserves.
-+ * It's the responsibility of the admin to adjust min_free_kbytes
-+ * to meet the requirements
-+ */
-+void sk_set_memalloc(struct sock *sk)
-+{
-+	sock_set_flag(sk, SOCK_MEMALLOC);
-+	sk->sk_allocation |= __GFP_MEMALLOC;
-+}
-+EXPORT_SYMBOL_GPL(sk_set_memalloc);
-+
-+void sk_clear_memalloc(struct sock *sk)
-+{
-+	sock_reset_flag(sk, SOCK_MEMALLOC);
-+	sk->sk_allocation &= ~__GFP_MEMALLOC;
-+}
-+EXPORT_SYMBOL_GPL(sk_clear_memalloc);
-+
- #if defined(CONFIG_CGROUPS)
- #if !defined(CONFIG_NET_CLS_CGROUP)
- int net_cls_subsys_id = -1;
+ 	if (cvp != NULL && cvp->s_data_constant && cvp->s_data_desired)
+ 		s_data_desired = cvp->s_data_desired;
+-	skb = alloc_skb(MAX_TCP_HEADER + 15 + s_data_desired, GFP_ATOMIC);
++	skb = alloc_skb(MAX_TCP_HEADER + 15 + s_data_desired,
++			sk_gfp_atomic(sk, GFP_ATOMIC));
+ 	if (unlikely(!skb)) {
+ 		dst_release(dst);
+ 		return NULL;
+@@ -3064,7 +3066,7 @@ void tcp_send_ack(struct sock *sk)
+ 	 * tcp_transmit_skb() will set the ownership to this
+ 	 * sock.
+ 	 */
+-	buff = alloc_skb(MAX_TCP_HEADER, GFP_ATOMIC);
++	buff = alloc_skb(MAX_TCP_HEADER, sk_gfp_atomic(sk, GFP_ATOMIC));
+ 	if (buff == NULL) {
+ 		inet_csk_schedule_ack(sk);
+ 		inet_csk(sk)->icsk_ack.ato = TCP_ATO_MIN;
+@@ -3079,7 +3081,7 @@ void tcp_send_ack(struct sock *sk)
+ 
+ 	/* Send it off, this clears delayed acks for us. */
+ 	TCP_SKB_CB(buff)->when = tcp_time_stamp;
+-	tcp_transmit_skb(sk, buff, 0, GFP_ATOMIC);
++	tcp_transmit_skb(sk, buff, 0, sk_gfp_atomic(sk, GFP_ATOMIC));
+ }
+ 
+ /* This routine sends a packet with an out of date sequence
+@@ -3099,7 +3101,7 @@ static int tcp_xmit_probe_skb(struct soc
+ 	struct sk_buff *skb;
+ 
+ 	/* We don't queue it, tcp_transmit_skb() sets ownership. */
+-	skb = alloc_skb(MAX_TCP_HEADER, GFP_ATOMIC);
++	skb = alloc_skb(MAX_TCP_HEADER, sk_gfp_atomic(sk, GFP_ATOMIC));
+ 	if (skb == NULL)
+ 		return -1;
+ 
+diff -puN net/ipv6/tcp_ipv6.c~net-introduce-sk_gfp_atomic-to-allow-addition-of-gfp-flags-depending-on-the-individual-socket net/ipv6/tcp_ipv6.c
+--- a/net/ipv6/tcp_ipv6.c~net-introduce-sk_gfp_atomic-to-allow-addition-of-gfp-flags-depending-on-the-individual-socket
++++ a/net/ipv6/tcp_ipv6.c
+@@ -1299,7 +1299,8 @@ static struct sock * tcp_v6_syn_recv_soc
+ 	/* Clone pktoptions received with SYN */
+ 	newnp->pktoptions = NULL;
+ 	if (treq->pktopts != NULL) {
+-		newnp->pktoptions = skb_clone(treq->pktopts, GFP_ATOMIC);
++		newnp->pktoptions = skb_clone(treq->pktopts,
++					      sk_gfp_atomic(sk, GFP_ATOMIC));
+ 		consume_skb(treq->pktopts);
+ 		treq->pktopts = NULL;
+ 		if (newnp->pktoptions)
+@@ -1349,7 +1350,8 @@ static struct sock * tcp_v6_syn_recv_soc
+ 		 * across. Shucks.
+ 		 */
+ 		tcp_md5_do_add(newsk, (union tcp_md5_addr *)&newnp->daddr,
+-			       AF_INET6, key->key, key->keylen, GFP_ATOMIC);
++			       AF_INET6, key->key, key->keylen,
++			       sk_gfp_atomic(sk, GFP_ATOMIC));
+ 	}
+ #endif
+ 
+@@ -1442,7 +1444,7 @@ static int tcp_v6_do_rcv(struct sock *sk
+ 					       --ANK (980728)
+ 	 */
+ 	if (np->rxopt.all)
+-		opt_skb = skb_clone(skb, GFP_ATOMIC);
++		opt_skb = skb_clone(skb, sk_gfp_atomic(sk, GFP_ATOMIC));
+ 
+ 	if (sk->sk_state == TCP_ESTABLISHED) { /* Fast path */
+ 		sock_rps_save_rxhash(sk, skb);
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
