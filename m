@@ -1,139 +1,360 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memcg-move-all-oom-handling-to-memcontrolc.patch removed from -mm tree
-Date: Wed, 01 Aug 2012 13:15:20 -0700
-Message-ID: <20120801201520.C3CB61E0043@wpzn4.hot.corp.google.com>
+Subject: [merged] mm-factor-out-memory-isolate-functions.patch removed from -mm tree
+Date: Wed, 01 Aug 2012 13:15:23 -0700
+Message-ID: <20120801201523.C0E8A1E0048@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-ob0-f202.google.com ([209.85.214.202]:52099 "EHLO
 	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755538Ab2HAUPW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:15:22 -0400
+	with ESMTP id S1755945Ab2HAUPZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:15:25 -0400
 Received: by mail-ob0-f202.google.com with SMTP id wc20so5412588obb.1
-        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:15:21 -0700 (PDT)
+        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:15:24 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, oleg@redhat.com, mm-commits@vger.kernel.org
+To: minchan@kernel.org, andi@firstfloor.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, m.szyprowski@samsung.com, mgorman@suse.de, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, memcg: move all oom handling to memcontrol.c
+     Subject: mm: factor out memory isolate functions
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-move-all-oom-handling-to-memcontrolc.patch
+     mm-factor-out-memory-isolate-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, memcg: move all oom handling to memcontrol.c
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: factor out memory isolate functions
 
-By globally defining check_panic_on_oom(), the memcg oom handler can be
-moved entirely to mm/memcontrol.c.  This removes the ugly #ifdef in the
-oom killer and cleans up the code.
+mm/page_alloc.c has some memory isolation functions but they are used only
+when we enable CONFIG_{CMA|MEMORY_HOTPLUG|MEMORY_FAILURE}.  So let's make
+it configurable by new CONFIG_MEMORY_ISOLATION so that it can reduce
+binary size and we can check it simple by CONFIG_MEMORY_ISOLATION, not if
+defined CONFIG_{CMA|MEMORY_HOTPLUG|MEMORY_FAILURE}.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 --
- include/linux/oom.h        |    3 +++
- mm/memcontrol.c            |   15 +++++++++++++--
- mm/oom_kill.c              |   23 ++---------------------
- 4 files changed, 18 insertions(+), 25 deletions(-)
+ drivers/base/Kconfig           |    1 
+ include/linux/page-isolation.h |   13 +++--
+ mm/Kconfig                     |    5 +
+ mm/Makefile                    |    5 +
+ mm/page_alloc.c                |   80 +------------------------------
+ mm/page_isolation.c            |   71 +++++++++++++++++++++++++++
+ 6 files changed, 93 insertions(+), 82 deletions(-)
 
-diff -puN include/linux/memcontrol.h~mm-memcg-move-all-oom-handling-to-memcontrolc include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-memcg-move-all-oom-handling-to-memcontrolc
-+++ a/include/linux/memcontrol.h
-@@ -180,8 +180,6 @@ static inline void mem_cgroup_dec_page_s
- unsigned long mem_cgroup_soft_limit_reclaim(struct zone *zone, int order,
- 						gfp_t gfp_mask,
- 						unsigned long *total_scanned);
--extern void __mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask,
--				       int order);
+diff -puN drivers/base/Kconfig~mm-factor-out-memory-isolate-functions drivers/base/Kconfig
+--- a/drivers/base/Kconfig~mm-factor-out-memory-isolate-functions
++++ a/drivers/base/Kconfig
+@@ -196,6 +196,7 @@ config CMA
+ 	bool "Contiguous Memory Allocator (EXPERIMENTAL)"
+ 	depends on HAVE_DMA_CONTIGUOUS && HAVE_MEMBLOCK && EXPERIMENTAL
+ 	select MIGRATION
++	select MEMORY_ISOLATION
+ 	help
+ 	  This enables the Contiguous Memory Allocator which allows drivers
+ 	  to allocate big physically-contiguous blocks of memory for use with
+diff -puN include/linux/page-isolation.h~mm-factor-out-memory-isolate-functions include/linux/page-isolation.h
+--- a/include/linux/page-isolation.h~mm-factor-out-memory-isolate-functions
++++ a/include/linux/page-isolation.h
+@@ -1,6 +1,11 @@
+ #ifndef __LINUX_PAGEISOLATION_H
+ #define __LINUX_PAGEISOLATION_H
  
- void mem_cgroup_count_vm_event(struct mm_struct *mm, enum vm_event_item idx);
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-diff -puN include/linux/oom.h~mm-memcg-move-all-oom-handling-to-memcontrolc include/linux/oom.h
---- a/include/linux/oom.h~mm-memcg-move-all-oom-handling-to-memcontrolc
-+++ a/include/linux/oom.h
-@@ -61,6 +61,9 @@ extern void oom_kill_process(struct task
- extern int try_set_zonelist_oom(struct zonelist *zonelist, gfp_t gfp_flags);
- extern void clear_zonelist_oom(struct zonelist *zonelist, gfp_t gfp_flags);
- 
-+extern void check_panic_on_oom(enum oom_constraint constraint, gfp_t gfp_mask,
-+			       int order, const nodemask_t *nodemask);
 +
- extern enum oom_scan_t oom_scan_process_thread(struct task_struct *task,
- 		unsigned long totalpages, const nodemask_t *nodemask,
- 		bool force_kill);
-diff -puN mm/memcontrol.c~mm-memcg-move-all-oom-handling-to-memcontrolc mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-move-all-oom-handling-to-memcontrolc
-+++ a/mm/memcontrol.c
-@@ -1469,8 +1469,8 @@ static u64 mem_cgroup_get_limit(struct m
- 	return min(limit, memsw);
- }
- 
--void __mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask,
--				int order)
-+void mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask,
-+			      int order)
- {
- 	struct mem_cgroup *iter;
- 	unsigned long chosen_points = 0;
-@@ -1478,6 +1478,17 @@ void __mem_cgroup_out_of_memory(struct m
- 	unsigned int points = 0;
- 	struct task_struct *chosen = NULL;
- 
-+	/*
-+	 * If current has a pending SIGKILL, then automatically select it.  The
-+	 * goal is to allow it to allocate so that it may quickly exit and free
-+	 * its memory.
-+	 */
-+	if (fatal_signal_pending(current)) {
-+		set_thread_flag(TIF_MEMDIE);
-+		return;
-+	}
-+
-+	check_panic_on_oom(CONSTRAINT_MEMCG, gfp_mask, order, NULL);
- 	totalpages = mem_cgroup_get_limit(memcg) >> PAGE_SHIFT ? : 1;
- 	for_each_mem_cgroup_tree(iter, memcg) {
- 		struct cgroup *cgroup = iter->css.cgroup;
-diff -puN mm/oom_kill.c~mm-memcg-move-all-oom-handling-to-memcontrolc mm/oom_kill.c
---- a/mm/oom_kill.c~mm-memcg-move-all-oom-handling-to-memcontrolc
-+++ a/mm/oom_kill.c
-@@ -556,8 +556,8 @@ void oom_kill_process(struct task_struct
++bool has_unmovable_pages(struct zone *zone, struct page *page, int count);
++void set_pageblock_migratetype(struct page *page, int migratetype);
++int move_freepages_block(struct zone *zone, struct page *page,
++				int migratetype);
  /*
-  * Determines whether the kernel must panic because of the panic_on_oom sysctl.
+  * Changes migrate type in [start_pfn, end_pfn) to be MIGRATE_ISOLATE.
+  * If specified range includes migrate types other than MOVABLE or CMA,
+@@ -10,7 +15,7 @@
+  * free all pages in the range. test_page_isolated() can be used for
+  * test it.
   */
--static void check_panic_on_oom(enum oom_constraint constraint, gfp_t gfp_mask,
--				int order, const nodemask_t *nodemask)
-+void check_panic_on_oom(enum oom_constraint constraint, gfp_t gfp_mask,
-+			int order, const nodemask_t *nodemask)
+-extern int
++int
+ start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
+ 			 unsigned migratetype);
+ 
+@@ -18,7 +23,7 @@ start_isolate_page_range(unsigned long s
+  * Changes MIGRATE_ISOLATE to MIGRATE_MOVABLE.
+  * target range is [start_pfn, end_pfn)
+  */
+-extern int
++int
+ undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
+ 			unsigned migratetype);
+ 
+@@ -30,8 +35,8 @@ int test_pages_isolated(unsigned long st
+ /*
+  * Internal functions. Changes pageblock's migrate type.
+  */
+-extern int set_migratetype_isolate(struct page *page);
+-extern void unset_migratetype_isolate(struct page *page, unsigned migratetype);
++int set_migratetype_isolate(struct page *page);
++void unset_migratetype_isolate(struct page *page, unsigned migratetype);
+ 
+ 
+ #endif
+diff -puN mm/Kconfig~mm-factor-out-memory-isolate-functions mm/Kconfig
+--- a/mm/Kconfig~mm-factor-out-memory-isolate-functions
++++ a/mm/Kconfig
+@@ -140,9 +140,13 @@ config ARCH_DISCARD_MEMBLOCK
+ config NO_BOOTMEM
+ 	boolean
+ 
++config MEMORY_ISOLATION
++	boolean
++
+ # eventually, we can have this option just 'select SPARSEMEM'
+ config MEMORY_HOTPLUG
+ 	bool "Allow for memory hot-add"
++	select MEMORY_ISOLATION
+ 	depends on SPARSEMEM || X86_64_ACPI_NUMA
+ 	depends on HOTPLUG && ARCH_ENABLE_MEMORY_HOTPLUG
+ 	depends on (IA64 || X86 || PPC_BOOK3S_64 || SUPERH || S390)
+@@ -272,6 +276,7 @@ config MEMORY_FAILURE
+ 	depends on MMU
+ 	depends on ARCH_SUPPORTS_MEMORY_FAILURE
+ 	bool "Enable recovery from hardware memory errors"
++	select MEMORY_ISOLATION
+ 	help
+ 	  Enables code to recover from some memory failures on systems
+ 	  with MCA recovery. This allows a system to continue running
+diff -puN mm/Makefile~mm-factor-out-memory-isolate-functions mm/Makefile
+--- a/mm/Makefile~mm-factor-out-memory-isolate-functions
++++ a/mm/Makefile
+@@ -15,8 +15,8 @@ obj-y			:= filemap.o mempool.o oom_kill.
+ 			   maccess.o page_alloc.o page-writeback.o \
+ 			   readahead.o swap.o truncate.o vmscan.o shmem.o \
+ 			   prio_tree.o util.o mmzone.o vmstat.o backing-dev.o \
+-			   page_isolation.o mm_init.o mmu_context.o percpu.o \
+-			   compaction.o slab_common.o $(mmu-y)
++			   mm_init.o mmu_context.o percpu.o slab_common.o \
++			   compaction.o $(mmu-y)
+ 
+ obj-y += init-mm.o
+ 
+@@ -56,3 +56,4 @@ obj-$(CONFIG_HWPOISON_INJECT) += hwpoiso
+ obj-$(CONFIG_DEBUG_KMEMLEAK) += kmemleak.o
+ obj-$(CONFIG_DEBUG_KMEMLEAK_TEST) += kmemleak-test.o
+ obj-$(CONFIG_CLEANCACHE) += cleancache.o
++obj-$(CONFIG_MEMORY_ISOLATION) += page_isolation.o
+diff -puN mm/page_alloc.c~mm-factor-out-memory-isolate-functions mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-factor-out-memory-isolate-functions
++++ a/mm/page_alloc.c
+@@ -51,7 +51,6 @@
+ #include <linux/page_cgroup.h>
+ #include <linux/debugobjects.h>
+ #include <linux/kmemleak.h>
+-#include <linux/memory.h>
+ #include <linux/compaction.h>
+ #include <trace/events/kmem.h>
+ #include <linux/ftrace_event.h>
+@@ -219,7 +218,7 @@ EXPORT_SYMBOL(nr_online_nodes);
+ 
+ int page_group_by_mobility_disabled __read_mostly;
+ 
+-static void set_pageblock_migratetype(struct page *page, int migratetype)
++void set_pageblock_migratetype(struct page *page, int migratetype)
  {
- 	if (likely(!sysctl_panic_on_oom))
- 		return;
-@@ -575,25 +575,6 @@ static void check_panic_on_oom(enum oom_
- 		sysctl_panic_on_oom == 2 ? "compulsory" : "system-wide");
+ 
+ 	if (unlikely(page_group_by_mobility_disabled))
+@@ -954,7 +953,7 @@ static int move_freepages(struct zone *z
+ 	return pages_moved;
  }
  
--#ifdef CONFIG_MEMCG
--void mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask,
--			      int order)
+-static int move_freepages_block(struct zone *zone, struct page *page,
++int move_freepages_block(struct zone *zone, struct page *page,
+ 				int migratetype)
+ {
+ 	unsigned long start_pfn, end_pfn;
+@@ -5463,8 +5462,7 @@ void set_pageblock_flags_group(struct pa
+  * MIGRATE_MOVABLE block might include unmovable pages. It means you can't
+  * expect this function should be exact.
+  */
+-static bool
+-__has_unmovable_pages(struct zone *zone, struct page *page, int count)
++bool has_unmovable_pages(struct zone *zone, struct page *page, int count)
+ {
+ 	unsigned long pfn, iter, found;
+ 	int mt;
+@@ -5541,77 +5539,7 @@ bool is_pageblock_removable_nolock(struc
+ 			zone->zone_start_pfn + zone->spanned_pages <= pfn)
+ 		return false;
+ 
+-	return !__has_unmovable_pages(zone, page, 0);
+-}
+-
+-int set_migratetype_isolate(struct page *page)
 -{
+-	struct zone *zone;
+-	unsigned long flags, pfn;
+-	struct memory_isolate_notify arg;
+-	int notifier_ret;
+-	int ret = -EBUSY;
+-
+-	zone = page_zone(page);
+-
+-	spin_lock_irqsave(&zone->lock, flags);
+-
+-	pfn = page_to_pfn(page);
+-	arg.start_pfn = pfn;
+-	arg.nr_pages = pageblock_nr_pages;
+-	arg.pages_found = 0;
+-
 -	/*
--	 * If current has a pending SIGKILL, then automatically select it.  The
--	 * goal is to allow it to allocate so that it may quickly exit and free
--	 * its memory.
+-	 * It may be possible to isolate a pageblock even if the
+-	 * migratetype is not MIGRATE_MOVABLE. The memory isolation
+-	 * notifier chain is used by balloon drivers to return the
+-	 * number of pages in a range that are held by the balloon
+-	 * driver to shrink memory. If all the pages are accounted for
+-	 * by balloons, are free, or on the LRU, isolation can continue.
+-	 * Later, for example, when memory hotplug notifier runs, these
+-	 * pages reported as "can be isolated" should be isolated(freed)
+-	 * by the balloon driver through the memory notifier chain.
 -	 */
--	if (fatal_signal_pending(current)) {
--		set_thread_flag(TIF_MEMDIE);
--		return;
+-	notifier_ret = memory_isolate_notify(MEM_ISOLATE_COUNT, &arg);
+-	notifier_ret = notifier_to_errno(notifier_ret);
+-	if (notifier_ret)
+-		goto out;
+-	/*
+-	 * FIXME: Now, memory hotplug doesn't call shrink_slab() by itself.
+-	 * We just check MOVABLE pages.
+-	 */
+-	if (!__has_unmovable_pages(zone, page, arg.pages_found))
+-		ret = 0;
+-	/*
+-	 * Unmovable means "not-on-lru" pages. If Unmovable pages are
+-	 * larger than removable-by-driver pages reported by notifier,
+-	 * we'll fail.
+-	 */
+-
+-out:
+-	if (!ret) {
+-		set_pageblock_migratetype(page, MIGRATE_ISOLATE);
+-		move_freepages_block(zone, page, MIGRATE_ISOLATE);
 -	}
 -
--	check_panic_on_oom(CONSTRAINT_MEMCG, gfp_mask, order, NULL);
--	__mem_cgroup_out_of_memory(memcg, gfp_mask, order);
+-	spin_unlock_irqrestore(&zone->lock, flags);
+-	if (!ret)
+-		drain_all_pages();
+-	return ret;
 -}
--#endif
+-
+-void unset_migratetype_isolate(struct page *page, unsigned migratetype)
+-{
+-	struct zone *zone;
+-	unsigned long flags;
+-	zone = page_zone(page);
+-	spin_lock_irqsave(&zone->lock, flags);
+-	if (get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
+-		goto out;
+-	set_pageblock_migratetype(page, migratetype);
+-	move_freepages_block(zone, page, migratetype);
+-out:
+-	spin_unlock_irqrestore(&zone->lock, flags);
++	return !has_unmovable_pages(zone, page, 0);
+ }
+ 
+ #ifdef CONFIG_CMA
+diff -puN mm/page_isolation.c~mm-factor-out-memory-isolate-functions mm/page_isolation.c
+--- a/mm/page_isolation.c~mm-factor-out-memory-isolate-functions
++++ a/mm/page_isolation.c
+@@ -5,8 +5,79 @@
+ #include <linux/mm.h>
+ #include <linux/page-isolation.h>
+ #include <linux/pageblock-flags.h>
++#include <linux/memory.h>
+ #include "internal.h"
+ 
++int set_migratetype_isolate(struct page *page)
++{
++	struct zone *zone;
++	unsigned long flags, pfn;
++	struct memory_isolate_notify arg;
++	int notifier_ret;
++	int ret = -EBUSY;
++
++	zone = page_zone(page);
++
++	spin_lock_irqsave(&zone->lock, flags);
++
++	pfn = page_to_pfn(page);
++	arg.start_pfn = pfn;
++	arg.nr_pages = pageblock_nr_pages;
++	arg.pages_found = 0;
++
++	/*
++	 * It may be possible to isolate a pageblock even if the
++	 * migratetype is not MIGRATE_MOVABLE. The memory isolation
++	 * notifier chain is used by balloon drivers to return the
++	 * number of pages in a range that are held by the balloon
++	 * driver to shrink memory. If all the pages are accounted for
++	 * by balloons, are free, or on the LRU, isolation can continue.
++	 * Later, for example, when memory hotplug notifier runs, these
++	 * pages reported as "can be isolated" should be isolated(freed)
++	 * by the balloon driver through the memory notifier chain.
++	 */
++	notifier_ret = memory_isolate_notify(MEM_ISOLATE_COUNT, &arg);
++	notifier_ret = notifier_to_errno(notifier_ret);
++	if (notifier_ret)
++		goto out;
++	/*
++	 * FIXME: Now, memory hotplug doesn't call shrink_slab() by itself.
++	 * We just check MOVABLE pages.
++	 */
++	if (!has_unmovable_pages(zone, page, arg.pages_found))
++		ret = 0;
++
++	/*
++	 * immobile means "not-on-lru" paes. If immobile is larger than
++	 * removable-by-driver pages reported by notifier, we'll fail.
++	 */
++
++out:
++	if (!ret) {
++		set_pageblock_migratetype(page, MIGRATE_ISOLATE);
++		move_freepages_block(zone, page, MIGRATE_ISOLATE);
++	}
++
++	spin_unlock_irqrestore(&zone->lock, flags);
++	if (!ret)
++		drain_all_pages();
++	return ret;
++}
++
++void unset_migratetype_isolate(struct page *page, unsigned migratetype)
++{
++	struct zone *zone;
++	unsigned long flags;
++	zone = page_zone(page);
++	spin_lock_irqsave(&zone->lock, flags);
++	if (get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
++		goto out;
++	set_pageblock_migratetype(page, migratetype);
++	move_freepages_block(zone, page, migratetype);
++out:
++	spin_unlock_irqrestore(&zone->lock, flags);
++}
++
+ static inline struct page *
+ __first_valid_page(unsigned long pfn, unsigned long nr_pages)
+ {
+_
+
+Patches currently in -mm which might be from minchan@kernel.org are
+
+origin.patch
+mm-remove-__gfp_no_kswapd.patch
+remove-__gfp_no_kswapd-fixes-fix.patch
+
