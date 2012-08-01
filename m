@@ -1,88 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-hugetlbfs-close-race-during-teardown-of-hugetlbfs-shared-page-tables-fix.patch removed from -mm tree
-Date: Tue, 31 Jul 2012 16:36:33 -0700
-Message-ID: <20120731233633.E9328A028B@akpm.mtv.corp.google.com>
+Subject: [merged] fault-injection-fix-failcmdsh-warning.patch removed from -mm tree
+Date: Wed, 01 Aug 2012 13:11:12 -0700
+Message-ID: <20120801201114.5749F5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:54150 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756290Ab2GaXgf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Jul 2012 19:36:35 -0400
-Received: by obbwc20 with SMTP id wc20so4820714obb.1
-        for <mm-commits@vger.kernel.org>; Tue, 31 Jul 2012 16:36:34 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:53805 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755572Ab2HAULQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:11:16 -0400
+Received: by lbbgp10 with SMTP id gp10so47289lbb.1
+        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:11:15 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hughd@google.com, mgorman@suse.de, mhocko@suse.cz, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hugetlbfs-close-race-during-teardown-of-hugetlbfs-shared-page-tables-fix
+     Subject: fault-injection: fix failcmd.sh warning
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlbfs-close-race-during-teardown-of-hugetlbfs-shared-page-tables-fix.patch
+     fault-injection-fix-failcmdsh-warning.patch
 
-This patch was dropped because it was folded into mm-hugetlbfs-close-race-during-teardown-of-hugetlbfs-shared-page-tables.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hugetlbfs-close-race-during-teardown-of-hugetlbfs-shared-page-tables-fix
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: fault-injection: fix failcmd.sh warning
 
-name the args, lazy.  And fix CONFIG_HUGETLBFS=n build
+"fault-injection: add tool to run command with failslab or
+fail_page_alloc" added tools/testing/fault-injection/failcmd.sh to make it
+easier to inject slab/page allocation failures by fault injection.
 
-Cc: <stable@vger.kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@suse.cz>
+failcmd.sh prints the following warning when running with arguments
+for command.
+
+	# ./failcmd.sh echo aaa
+	failcmd.sh: line 209: [: echo: binary operator expected
+	aaa
+
+This warning is caused by an improper check whether at least one
+parameter is left after parsing command options.
+
+Fix it by testing the length of $1 instead of $@
+
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ tools/testing/fault-injection/failcmd.sh |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/hugetlb.h~mm-hugetlbfs-close-race-during-teardown-of-hugetlbfs-shared-page-tables-fix include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~mm-hugetlbfs-close-race-during-teardown-of-hugetlbfs-shared-page-tables-fix
-+++ a/include/linux/hugetlb.h
-@@ -49,8 +49,9 @@ int follow_hugetlb_page(struct mm_struct
- void unmap_hugepage_range(struct vm_area_struct *,
- 			  unsigned long, unsigned long, struct page *);
- void __unmap_hugepage_range_final(struct mmu_gather *tlb,
--			  struct vm_area_struct *,
--			  unsigned long, unsigned long, struct page *);
-+			  struct vm_area_struct *vma,
-+			  unsigned long start, unsigned long end,
-+			  struct page *ref_page);
- void __unmap_hugepage_range(struct mmu_gather *tlb, struct vm_area_struct *vma,
- 				unsigned long start, unsigned long end,
- 				struct page *ref_page);
-@@ -133,6 +134,13 @@ static inline void copy_huge_page(struct
+diff -puN tools/testing/fault-injection/failcmd.sh~fault-injection-fix-failcmdsh-warning tools/testing/fault-injection/failcmd.sh
+--- a/tools/testing/fault-injection/failcmd.sh~fault-injection-fix-failcmdsh-warning
++++ a/tools/testing/fault-injection/failcmd.sh
+@@ -206,7 +206,7 @@ while true; do
+ 	esac
+ done
  
- #define hugetlb_change_protection(vma, address, end, newprot)
+-[ -z "$@" ] && exit 0
++[ -z "$1" ] && exit 0
  
-+static inline void __unmap_hugepage_range_final(struct mmu_gather *tlb,
-+			struct vm_area_struct *vma, unsigned long start,
-+			unsigned long end, struct page *ref_page)
-+{
-+	BUG();
-+}
-+
- static inline void __unmap_hugepage_range(struct mmu_gather *tlb,
- 			struct vm_area_struct *vma, unsigned long start,
- 			unsigned long end, struct page *ref_page)
+ echo $oom_kill_allocating_task > /proc/sys/vm/oom_kill_allocating_task
+ echo $task_filter > $FAULTATTR/task-filter
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
-drivers-media-video-v4l2-ioctlc-fix-build.patch
-mm-make-vb_alloc-more-foolproof.patch
-mm-hugetlb-add-new-hugetlb-cgroup.patch
-hugetlb-cgroup-add-hugetlb-cgroup-control-files.patch
-mm-memblockc-memblock_double_array-cosmetic-cleanups.patch
-memcg-make-mem_cgroup_force_empty_list-return-bool.patch
-mm-fadvise-dont-return-einval-when-filesystem-cannot-implement-fadvise.patch
-memcg-rename-config-variables.patch
-mm-have-order-0-compaction-start-off-where-it-left.patch
-memory-hotplug-fix-kswapd-looping-forever-problem.patch
-memcg-prevent-oom-with-too-many-dirty-pages.patch
-memcg-add-mem_cgroup_from_css-helper.patch
-mm-hugetlbfs-close-race-during-teardown-of-hugetlbfs-shared-page-tables.patch
+linux-next.patch
+ocfs2-use-find_last_bit.patch
+ocfs2-use-bitmap_weight.patch
 
