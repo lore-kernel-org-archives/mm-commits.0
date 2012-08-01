@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn.patch added to -mm tree
-Date: Wed, 01 Aug 2012 15:28:24 -0700
-Message-ID: <20120801222824.CB7885C0050@hpza9.eem.corp.google.com>
+Subject: + mm-x86-pat-rework-linear-pfn-mmap-tracking.patch added to -mm tree
+Date: Wed, 01 Aug 2012 15:28:34 -0700
+Message-ID: <20120801222834.E97F5100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:36700 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755946Ab2HAW2a (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 18:28:30 -0400
-Received: by eekd4 with SMTP id d4so350912eek.1
-        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 15:28:28 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:59553 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756161Ab2HAW2h (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 18:28:37 -0400
+Received: by mail-ob0-f202.google.com with SMTP id wc20so5494219obb.1
+        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 15:28:36 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: suresh.b.siddha@intel.com, a.p.zijlstra@chello.nl, cmetcalf@tilera.com, cotte@de.ibm.com, eparis@redhat.com, gorcunov@openvz.org, hpa@zytor.com, hughd@google.com, james.l.morris@oracle.com, jbaron@redhat.com, khlebnikov@openvz.org, matthltc@us.ibm.com, mingo@redhat.com, npiggin@kernel.dk, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, robert.richter@amd.com, takedakn@nttdata.co.jp, torvalds@linux-foundation.org, venki@google.com, viro@zeniv.linux.org.uk
+Cc: khlebnikov@openvz.org, a.p.zijlstra@chello.nl, cmetcalf@tilera.com, cotte@de.ibm.com, eparis@redhat.com, gorcunov@openvz.org, hpa@zytor.com, hughd@google.com, james.l.morris@oracle.com, jbaron@redhat.com, matthltc@us.ibm.com, mingo@redhat.com, npiggin@kernel.dk, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, robert.richter@amd.com, suresh.b.siddha@intel.com, takedakn@nttdata.co.jp, torvalds@linux-foundation.org, venki@google.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: x86, pat: separate the pfn attribute tracking for remap_pfn_range and vm_insert_pfn
+     Subject: mm, x86, pat: rework linear pfn-mmap tracking
 has been added to the -mm tree.  Its filename is
-     x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn.patch
+     mm-x86-pat-rework-linear-pfn-mmap-tracking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,30 +33,25 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Suresh Siddha <suresh.b.siddha@intel.com>
-Subject: x86, pat: separate the pfn attribute tracking for remap_pfn_range and vm_insert_pfn
+From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Subject: mm, x86, pat: rework linear pfn-mmap tracking
 
-With PAT enabled, vm_insert_pfn() looks up the existing pfn memory
-attribute and uses it.  Expectation is that the driver reserves the memory
-attributes for the pfn before calling vm_insert_pfn().
+Replace the generic vma-flag VM_PFN_AT_MMAP with x86-only VM_PAT.
 
-remap_pfn_range() (when called for the whole vma) will setup a new
-attribute (based on the prot argument) for the specified pfn range.  This
-addresses the legacy usage which typically calls remap_pfn_range() with a
-desired memory attribute.  For ranges smaller than the vma size (which is
-typically not the case), remap_pfn_range() will use the existing memory
-attribute for the pfn range.
+We can toss mapping address from remap_pfn_range() into
+track_pfn_vma_new(), and collect all PAT-related logic together in
+arch/x86/.
 
-Expose two different API's for these different behaviors. 
-track_pfn_insert() for tracking the pfn attribute set by vm_insert_pfn()
-and track_pfn_remap() for the remap_pfn_range().
+This patch also restores orignal frustration-free is_cow_mapping() check
+in remap_pfn_range(), as it was before commit v2.6.28-rc8-88-g3c8bb73
+("x86: PAT: store vm_pgoff for all linear_over_vma_region mappings - v3")
 
-This cleanup also prepares the ground for the track/untrack pfn vma routines
-to take over the ownership of setting PAT specific vm_flag in the 'vma'.
+is_linear_pfn_mapping() checks can be removed from mm/huge_memory.c,
+because it already handled by VM_PFNMAP in VM_NO_THP bit-mask.
 
-[khlebnikov@openvz.org: Clear checks in track_pfn_remap()]
-Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
+[suresh.b.siddha@intel.com: Reset the VM_PAT flag as part of untrack_pfn_vma()]
 Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
 Cc: Venkatesh Pallipadi <venki@google.com>
 Cc: H. Peter Anvin <hpa@zytor.com>
 Cc: Nick Piggin <npiggin@kernel.dk>
@@ -70,268 +65,228 @@ Cc: Hugh Dickins <hughd@google.com>
 Cc: James Morris <james.l.morris@oracle.com>
 Cc: Jason Baron <jbaron@redhat.com>
 Cc: Kentaro Takeda <takedakn@nttdata.co.jp>
-Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
 Cc: Matt Helsley <matthltc@us.ibm.com>
 Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Robert Richter <robert.richter@amd.com>
-Cc: Suresh Siddha <suresh.b.siddha@intel.com>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Venkatesh Pallipadi <venki@google.com>
 Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/pat.c             |   49 ++++++++++++++++++++++------
- include/asm-generic/pgtable.h |   55 ++++++++++++++++++--------------
- mm/memory.c                   |   13 ++-----
- 3 files changed, 75 insertions(+), 42 deletions(-)
+ arch/x86/mm/pat.c             |   17 ++++++++++++-----
+ include/asm-generic/pgtable.h |    6 ++++--
+ include/linux/mm.h            |   20 +-------------------
+ mm/huge_memory.c              |   19 +++----------------
+ mm/memory.c                   |   26 ++++++++++----------------
+ 5 files changed, 30 insertions(+), 58 deletions(-)
 
-diff -puN arch/x86/mm/pat.c~x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn arch/x86/mm/pat.c
---- a/arch/x86/mm/pat.c~x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn
+diff -puN arch/x86/mm/pat.c~mm-x86-pat-rework-linear-pfn-mmap-tracking arch/x86/mm/pat.c
+--- a/arch/x86/mm/pat.c~mm-x86-pat-rework-linear-pfn-mmap-tracking
 +++ a/arch/x86/mm/pat.c
-@@ -664,13 +664,13 @@ static void free_pfn_range(u64 paddr, un
- }
+@@ -677,7 +677,7 @@ int track_pfn_copy(struct vm_area_struct
+ 	unsigned long vma_size = vma->vm_end - vma->vm_start;
+ 	pgprot_t pgprot;
  
- /*
-- * track_pfn_vma_copy is called when vma that is covering the pfnmap gets
-+ * track_pfn_copy is called when vma that is covering the pfnmap gets
-  * copied through copy_page_range().
-  *
-  * If the vma has a linear pfn mapping for the entire range, we get the prot
-  * from pte and reserve the entire vma range with single reserve_pfn_range call.
-  */
--int track_pfn_vma_copy(struct vm_area_struct *vma)
-+int track_pfn_copy(struct vm_area_struct *vma)
- {
- 	resource_size_t paddr;
- 	unsigned long prot;
-@@ -694,15 +694,12 @@ int track_pfn_vma_copy(struct vm_area_st
- }
- 
- /*
-- * track_pfn_vma_new is called when a _new_ pfn mapping is being established
-- * for physical range indicated by pfn and size.
-- *
-  * prot is passed in as a parameter for the new mapping. If the vma has a
-  * linear pfn mapping for the entire range reserve the entire vma range with
+-	if (is_linear_pfn_mapping(vma)) {
++	if (vma->vm_flags & VM_PAT) {
+ 		/*
+ 		 * reserve the whole chunk covered by vma. We need the
+ 		 * starting address and protection from pte.
+@@ -699,14 +699,20 @@ int track_pfn_copy(struct vm_area_struct
   * single reserve_pfn_range call.
   */
--int track_pfn_vma_new(struct vm_area_struct *vma, pgprot_t *prot,
--			unsigned long pfn, unsigned long size)
-+int track_pfn_remap(struct vm_area_struct *vma, pgprot_t *prot,
-+		    unsigned long pfn, unsigned long size)
+ int track_pfn_remap(struct vm_area_struct *vma, pgprot_t *prot,
+-		    unsigned long pfn, unsigned long size)
++		    unsigned long pfn, unsigned long addr, unsigned long size)
  {
  	resource_size_t paddr = (resource_size_t)pfn << PAGE_SHIFT;
  	unsigned long flags;
-@@ -714,8 +711,38 @@ int track_pfn_vma_new(struct vm_area_str
+ 
+ 	/* reserve the whole chunk starting from paddr */
+-	if (is_linear_pfn_mapping(vma))
+-		return reserve_pfn_range(paddr, size, prot, 0);
++	if (addr == vma->vm_start && size == (vma->vm_end - vma->vm_start)) {
++		int ret;
++
++		ret = reserve_pfn_range(paddr, size, prot, 0);
++		if (!ret)
++			vma->vm_flags |= VM_PAT;
++		return ret;
++	}
+ 
  	if (!pat_enabled)
  		return 0;
- 
--	/* for vm_insert_pfn and friends, we set prot based on lookup */
-+	/*
-+	 * for anything smaller than the vma size,
-+	 * we set prot based on the lookup.
-+	 */
- 	flags = lookup_memtype(paddr);
-+
-+	/*
-+	 * Check memtype for the rest pages
-+	 */
-+	while (size > PAGE_SIZE) {
-+		size -= PAGE_SIZE;
-+		paddr += PAGE_SIZE;
-+		if (flags != lookup_memtype(paddr))
-+			return -EINVAL;
-+	}
-+
-+	*prot = __pgprot((pgprot_val(vma->vm_page_prot) & (~_PAGE_CACHE_MASK)) |
-+			 flags);
-+
-+	return 0;
-+}
-+
-+int track_pfn_insert(struct vm_area_struct *vma, pgprot_t *prot,
-+		     unsigned long pfn)
-+{
-+	unsigned long flags;
-+
-+	if (!pat_enabled)
-+		return 0;
-+
-+	/* we set prot based on lookup */
-+	flags = lookup_memtype((resource_size_t)pfn << PAGE_SHIFT);
- 	*prot = __pgprot((pgprot_val(vma->vm_page_prot) & (~_PAGE_CACHE_MASK)) |
- 			 flags);
- 
-@@ -723,12 +750,12 @@ int track_pfn_vma_new(struct vm_area_str
- }
- 
- /*
-- * untrack_pfn_vma is called while unmapping a pfnmap for a region.
-+ * untrack_pfn is called while unmapping a pfnmap for a region.
-  * untrack can be called for a specific region indicated by pfn and size or
-  * can be for the entire vma (in which case pfn, size are zero).
-  */
--void untrack_pfn_vma(struct vm_area_struct *vma, unsigned long pfn,
--			unsigned long size)
-+void untrack_pfn(struct vm_area_struct *vma, unsigned long pfn,
-+		 unsigned long size)
- {
+@@ -758,7 +764,7 @@ void untrack_pfn(struct vm_area_struct *
  	resource_size_t paddr;
  	unsigned long prot;
-diff -puN include/asm-generic/pgtable.h~x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn
+ 
+-	if (!is_linear_pfn_mapping(vma))
++	if (!(vma->vm_flags & VM_PAT))
+ 		return;
+ 
+ 	/* free the chunk starting from pfn or the whole chunk */
+@@ -772,6 +778,7 @@ void untrack_pfn(struct vm_area_struct *
+ 		size = vma->vm_end - vma->vm_start;
+ 	}
+ 	free_pfn_range(paddr, size);
++	vma->vm_flags &= ~VM_PAT;
+ }
+ 
+ pgprot_t pgprot_writecombine(pgprot_t prot)
+diff -puN include/asm-generic/pgtable.h~mm-x86-pat-rework-linear-pfn-mmap-tracking include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-x86-pat-rework-linear-pfn-mmap-tracking
 +++ a/include/asm-generic/pgtable.h
-@@ -381,48 +381,57 @@ static inline void ptep_modify_prot_comm
- 
- #ifndef __HAVE_PFNMAP_TRACKING
- /*
-- * Interface that can be used by architecture code to keep track of
-- * memory type of pfn mappings (remap_pfn_range, vm_insert_pfn)
-- *
-- * track_pfn_vma_new is called when a _new_ pfn mapping is being established
-- * for physical range indicated by pfn and size.
-+ * Interfaces that can be used by architecture code to keep track of
-+ * memory type of pfn mappings specified by the remap_pfn_range,
-+ * vm_insert_pfn.
-+ */
-+
-+/*
-+ * track_pfn_remap is called when a _new_ pfn mapping is being established
-+ * by remap_pfn_range() for physical range indicated by pfn and size.
+@@ -391,7 +391,8 @@ static inline void ptep_modify_prot_comm
+  * by remap_pfn_range() for physical range indicated by pfn and size.
   */
--static inline int track_pfn_vma_new(struct vm_area_struct *vma, pgprot_t *prot,
--					unsigned long pfn, unsigned long size)
-+static inline int track_pfn_remap(struct vm_area_struct *vma, pgprot_t *prot,
-+				  unsigned long pfn, unsigned long size)
+ static inline int track_pfn_remap(struct vm_area_struct *vma, pgprot_t *prot,
+-				  unsigned long pfn, unsigned long size)
++				  unsigned long pfn, unsigned long addr,
++				  unsigned long size)
  {
  	return 0;
  }
- 
- /*
-- * Interface that can be used by architecture code to keep track of
-- * memory type of pfn mappings (remap_pfn_range, vm_insert_pfn)
-- *
-- * track_pfn_vma_copy is called when vma that is covering the pfnmap gets
-+ * track_pfn_insert is called when a _new_ single pfn is established
-+ * by vm_insert_pfn().
-+ */
-+static inline int track_pfn_insert(struct vm_area_struct *vma, pgprot_t *prot,
-+				   unsigned long pfn)
-+{
-+	return 0;
-+}
-+
-+/*
-+ * track_pfn_copy is called when vma that is covering the pfnmap gets
-  * copied through copy_page_range().
-  */
--static inline int track_pfn_vma_copy(struct vm_area_struct *vma)
-+static inline int track_pfn_copy(struct vm_area_struct *vma)
- {
- 	return 0;
- }
- 
- /*
-- * Interface that can be used by architecture code to keep track of
-- * memory type of pfn mappings (remap_pfn_range, vm_insert_pfn)
-- *
-  * untrack_pfn_vma is called while unmapping a pfnmap for a region.
-  * untrack can be called for a specific region indicated by pfn and size or
-- * can be for the entire vma (in which case size can be zero).
-+ * can be for the entire vma (in which case pfn, size are zero).
-  */
--static inline void untrack_pfn_vma(struct vm_area_struct *vma,
--					unsigned long pfn, unsigned long size)
-+static inline void untrack_pfn(struct vm_area_struct *vma,
-+			       unsigned long pfn, unsigned long size)
- {
+@@ -426,7 +427,8 @@ static inline void untrack_pfn(struct vm
  }
  #else
--extern int track_pfn_vma_new(struct vm_area_struct *vma, pgprot_t *prot,
--				unsigned long pfn, unsigned long size);
--extern int track_pfn_vma_copy(struct vm_area_struct *vma);
--extern void untrack_pfn_vma(struct vm_area_struct *vma, unsigned long pfn,
--				unsigned long size);
-+extern int track_pfn_remap(struct vm_area_struct *vma, pgprot_t *prot,
-+			   unsigned long pfn, unsigned long size);
-+extern int track_pfn_insert(struct vm_area_struct *vma, pgprot_t *prot,
-+			    unsigned long pfn);
-+extern int track_pfn_copy(struct vm_area_struct *vma);
-+extern void untrack_pfn(struct vm_area_struct *vma, unsigned long pfn,
-+			unsigned long size);
- #endif
+ extern int track_pfn_remap(struct vm_area_struct *vma, pgprot_t *prot,
+-			   unsigned long pfn, unsigned long size);
++			   unsigned long pfn, unsigned long addr,
++			   unsigned long size);
+ extern int track_pfn_insert(struct vm_area_struct *vma, pgprot_t *prot,
+ 			    unsigned long pfn);
+ extern int track_pfn_copy(struct vm_area_struct *vma);
+diff -puN include/linux/mm.h~mm-x86-pat-rework-linear-pfn-mmap-tracking include/linux/mm.h
+--- a/include/linux/mm.h~mm-x86-pat-rework-linear-pfn-mmap-tracking
++++ a/include/linux/mm.h
+@@ -117,7 +117,7 @@ extern unsigned int kobjsize(const void 
+ #define VM_CAN_NONLINEAR 0x08000000	/* Has ->fault & does nonlinear pages */
+ #define VM_MIXEDMAP	0x10000000	/* Can contain "struct page" and pure PFN pages */
+ #define VM_SAO		0x20000000	/* Strong Access Ordering (powerpc) */
+-#define VM_PFN_AT_MMAP	0x40000000	/* PFNMAP vma that is fully mapped at mmap time */
++#define VM_PAT		0x40000000	/* PAT reserves whole VMA at once (x86) */
+ #define VM_MERGEABLE	0x80000000	/* KSM may merge identical pages */
  
- #ifdef CONFIG_MMU
-diff -puN mm/memory.c~x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn mm/memory.c
---- a/mm/memory.c~x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn
+ /* Bits set in the VMA until the stack is in its final location */
+@@ -159,24 +159,6 @@ extern pgprot_t protection_map[16];
+ #define FAULT_FLAG_KILLABLE	0x20	/* The fault task is in SIGKILL killable region */
+ 
+ /*
+- * This interface is used by x86 PAT code to identify a pfn mapping that is
+- * linear over entire vma. This is to optimize PAT code that deals with
+- * marking the physical region with a particular prot. This is not for generic
+- * mm use. Note also that this check will not work if the pfn mapping is
+- * linear for a vma starting at physical address 0. In which case PAT code
+- * falls back to slow path of reserving physical range page by page.
+- */
+-static inline int is_linear_pfn_mapping(struct vm_area_struct *vma)
+-{
+-	return !!(vma->vm_flags & VM_PFN_AT_MMAP);
+-}
+-
+-static inline int is_pfn_mapping(struct vm_area_struct *vma)
+-{
+-	return !!(vma->vm_flags & VM_PFNMAP);
+-}
+-
+-/*
+  * vm_fault is filled by the the pagefault handler and passed to the vma's
+  * ->fault function. The vma's ->fault is responsible for returning a bitmask
+  * of VM_FAULT_xxx flags that give details about how the fault was handled.
+diff -puN mm/huge_memory.c~mm-x86-pat-rework-linear-pfn-mmap-tracking mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-x86-pat-rework-linear-pfn-mmap-tracking
++++ a/mm/huge_memory.c
+@@ -1655,11 +1655,7 @@ int khugepaged_enter_vma_merge(struct vm
+ 	if (vma->vm_ops)
+ 		/* khugepaged not yet working on file or special mappings */
+ 		return 0;
+-	/*
+-	 * If is_pfn_mapping() is true is_learn_pfn_mapping() must be
+-	 * true too, verify it here.
+-	 */
+-	VM_BUG_ON(is_linear_pfn_mapping(vma) || vma->vm_flags & VM_NO_THP);
++	VM_BUG_ON(vma->vm_flags & VM_NO_THP);
+ 	hstart = (vma->vm_start + ~HPAGE_PMD_MASK) & HPAGE_PMD_MASK;
+ 	hend = vma->vm_end & HPAGE_PMD_MASK;
+ 	if (hstart < hend)
+@@ -1913,11 +1909,7 @@ static void collapse_huge_page(struct mm
+ 		goto out;
+ 	if (is_vma_temporary_stack(vma))
+ 		goto out;
+-	/*
+-	 * If is_pfn_mapping() is true is_learn_pfn_mapping() must be
+-	 * true too, verify it here.
+-	 */
+-	VM_BUG_ON(is_linear_pfn_mapping(vma) || vma->vm_flags & VM_NO_THP);
++	VM_BUG_ON(vma->vm_flags & VM_NO_THP);
+ 
+ 	pgd = pgd_offset(mm, address);
+ 	if (!pgd_present(*pgd))
+@@ -2155,12 +2147,7 @@ static unsigned int khugepaged_scan_mm_s
+ 			goto skip;
+ 		if (is_vma_temporary_stack(vma))
+ 			goto skip;
+-		/*
+-		 * If is_pfn_mapping() is true is_learn_pfn_mapping()
+-		 * must be true too, verify it here.
+-		 */
+-		VM_BUG_ON(is_linear_pfn_mapping(vma) ||
+-			  vma->vm_flags & VM_NO_THP);
++		VM_BUG_ON(vma->vm_flags & VM_NO_THP);
+ 
+ 		hstart = (vma->vm_start + ~HPAGE_PMD_MASK) & HPAGE_PMD_MASK;
+ 		hend = vma->vm_end & HPAGE_PMD_MASK;
+diff -puN mm/memory.c~mm-x86-pat-rework-linear-pfn-mmap-tracking mm/memory.c
+--- a/mm/memory.c~mm-x86-pat-rework-linear-pfn-mmap-tracking
 +++ a/mm/memory.c
-@@ -1060,7 +1060,7 @@ int copy_page_range(struct mm_struct *ds
+@@ -1055,7 +1055,7 @@ int copy_page_range(struct mm_struct *ds
+ 	if (is_vm_hugetlb_page(vma))
+ 		return copy_hugetlb_page_range(dst_mm, src_mm, vma);
+ 
+-	if (unlikely(is_pfn_mapping(vma))) {
++	if (unlikely(vma->vm_flags & VM_PFNMAP)) {
+ 		/*
  		 * We do not free on error cases below as remove_vma
  		 * gets called on error from higher level routine
- 		 */
--		ret = track_pfn_vma_copy(vma);
-+		ret = track_pfn_copy(vma);
- 		if (ret)
- 			return ret;
- 	}
-@@ -1328,7 +1328,7 @@ static void unmap_single_vma(struct mmu_
+@@ -1327,7 +1327,7 @@ static void unmap_single_vma(struct mmu_
+ 	if (vma->vm_file)
  		uprobe_munmap(vma, start, end);
  
- 	if (unlikely(is_pfn_mapping(vma)))
--		untrack_pfn_vma(vma, 0, 0);
-+		untrack_pfn(vma, 0, 0);
+-	if (unlikely(is_pfn_mapping(vma)))
++	if (unlikely(vma->vm_flags & VM_PFNMAP))
+ 		untrack_pfn(vma, 0, 0);
  
  	if (start != end) {
- 		if (unlikely(is_vm_hugetlb_page(vma))) {
-@@ -2162,14 +2162,11 @@ int vm_insert_pfn(struct vm_area_struct 
- 
- 	if (addr < vma->vm_start || addr >= vma->vm_end)
- 		return -EFAULT;
--	if (track_pfn_vma_new(vma, &pgprot, pfn, PAGE_SIZE))
-+	if (track_pfn_insert(vma, &pgprot, pfn))
+@@ -2299,26 +2299,20 @@ int remap_pfn_range(struct vm_area_struc
+ 	 * There's a horrible special case to handle copy-on-write
+ 	 * behaviour that some programs depend on. We mark the "original"
+ 	 * un-COW'ed pages by matching them up with "vma->vm_pgoff".
++	 * See vm_normal_page() for details.
+ 	 */
+-	if (addr == vma->vm_start && end == vma->vm_end) {
++	if (is_cow_mapping(vma->vm_flags)) {
++		if (addr != vma->vm_start || end != vma->vm_end)
++			return -EINVAL;
+ 		vma->vm_pgoff = pfn;
+-		vma->vm_flags |= VM_PFN_AT_MMAP;
+-	} else if (is_cow_mapping(vma->vm_flags))
++	}
++
++	err = track_pfn_remap(vma, &prot, pfn, addr, PAGE_ALIGN(size));
++	if (err)
  		return -EINVAL;
- 
- 	ret = insert_pfn(vma, addr, pfn, pgprot);
- 
--	if (ret)
--		untrack_pfn_vma(vma, pfn, PAGE_SIZE);
--
- 	return ret;
- }
- EXPORT_SYMBOL(vm_insert_pfn);
-@@ -2311,7 +2308,7 @@ int remap_pfn_range(struct vm_area_struc
  
  	vma->vm_flags |= VM_IO | VM_RESERVED | VM_PFNMAP;
  
--	err = track_pfn_vma_new(vma, &prot, pfn, PAGE_ALIGN(size));
-+	err = track_pfn_remap(vma, &prot, pfn, PAGE_ALIGN(size));
- 	if (err) {
- 		/*
- 		 * To indicate that track_pfn related cleanup is not
-@@ -2335,7 +2332,7 @@ int remap_pfn_range(struct vm_area_struc
- 	} while (pgd++, addr = next, addr != end);
- 
- 	if (err)
--		untrack_pfn_vma(vma, pfn, PAGE_ALIGN(size));
-+		untrack_pfn(vma, pfn, PAGE_ALIGN(size));
- 
- 	return err;
- }
-_
-
-Patches currently in -mm which might be from suresh.b.siddha@intel.com are
-
-origin.patch
-linux-next.patch
-x86-pat-remove-the-dependency-on-vm_pgoff-in-track-untrack-pfn-vma-routines.patch
-x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn.patch
-mm-x86-pat-rework-linear-pfn-mmap-tracking.patch
-mm-introduce-arch-specific-vma-flag-vm_arch_1.patch
-mm-kill-vma-flag-vm_insertpage.patch
-mm-kill-vma-flag-vm_can_nonlinear.patch
-mm-use-mm-exe_file-instead-of-first-vm_executable-vma-vm_file.patch
-mm-kill-vma-flag-vm_executable-and-mm-num_exe_file_vmas.patch
-mm-prepare-vm_dontdump-for-using-in-drivers.patch
-mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter.patch
-
+-	err = track_pfn_remap(vma, &prot, pfn, PAGE_ALIGN(size));
+-	if (err) {
+-		/*
+-		 * To indicate that track_pfn related cleanup is not
+-		 * needed from higher level routine calling unmap_vmas
+-		 */
+-		vma->vm_flags &= ~(VM_IO | VM_RESERVED | VM_PFNMAP);
+-		vma->vm_flags &= ~VM_PFN_AT_MMAP;
+-		return -EINVAL;
+-	}
