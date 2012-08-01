@@ -1,67 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-rtc-88pm80x-remove-unneed-devm_kfree.patch removed from -mm tree
-Date: Wed, 01 Aug 2012 13:19:21 -0700
-Message-ID: <20120801201922.124E320004E@hpza10.eem.corp.google.com>
+Subject: + cs5535-clockevt-typo-its-mfgpt-not-mfpgt.patch added to -mm tree
+Date: Wed, 01 Aug 2012 14:06:23 -0700
+Message-ID: <20120801210624.1048B5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:42197 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754963Ab2HAUTY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:19:24 -0400
-Received: by eekd4 with SMTP id d4so347939eek.1
-        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:19:23 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:41960 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754936Ab2HAVG0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 17:06:26 -0400
+Received: by lagr15 with SMTP id r15so345100lag.1
+        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 14:06:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: devendra.aaru@gmail.com, a.zummo@towertech.it, ashish.jangam@kpitcummins.com, dchen@diasemi.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: JRottmann@LiPPERTEmbedded.de, john.stultz@linaro.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: rtc/rtc-88pm80x: remove unneed devm_kfree
-has been removed from the -mm tree.  Its filename was
-     rtc-rtc-88pm80x-remove-unneed-devm_kfree.patch
+     Subject: cs5535-clockevt: typo, it's MFGPT, not MFPGT
+has been added to the -mm tree.  Its filename is
+     cs5535-clockevt-typo-its-mfgpt-not-mfpgt.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Devendra Naga <devendra.aaru@gmail.com>
-Subject: rtc/rtc-88pm80x: remove unneed devm_kfree
+From: Jens Rottmann <JRottmann@LiPPERTEmbedded.de>
+Subject: cs5535-clockevt: typo, it's MFGPT, not MFPGT
 
-devm_kzalloc() doesn't need a matching devm_kfree(), the freeing mechanism
-will trigger when driver unloads.
-
-Signed-off-by: Devendra Naga <devendra.aaru@gmail.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Ashish Jangam <ashish.jangam@kpitcummins.com>
-Cc: David Dajun Chen <dchen@diasemi.com>
+Signed-off-by: Jens Rottmann <JRottmann@LiPPERTEmbedded.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: John Stultz <john.stultz@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-88pm80x.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/clocksource/cs5535-clockevt.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-88pm80x.c~rtc-rtc-88pm80x-remove-unneed-devm_kfree drivers/rtc/rtc-88pm80x.c
---- a/drivers/rtc/rtc-88pm80x.c~rtc-rtc-88pm80x-remove-unneed-devm_kfree
-+++ a/drivers/rtc/rtc-88pm80x.c
-@@ -339,7 +339,6 @@ static int __devinit pm80x_rtc_probe(str
- out_rtc:
- 	pm80x_free_irq(chip, info->irq, info);
- out:
--	devm_kfree(&pdev->dev, info);
- 	return ret;
- }
+diff -puN drivers/clocksource/cs5535-clockevt.c~cs5535-clockevt-typo-its-mfgpt-not-mfpgt drivers/clocksource/cs5535-clockevt.c
+--- a/drivers/clocksource/cs5535-clockevt.c~cs5535-clockevt-typo-its-mfgpt-not-mfpgt
++++ a/drivers/clocksource/cs5535-clockevt.c
+@@ -53,7 +53,7 @@ static struct cs5535_mfgpt_timer *cs5535
+ #define MFGPT_PERIODIC (MFGPT_HZ / HZ)
  
-@@ -349,7 +348,6 @@ static int __devexit pm80x_rtc_remove(st
- 	platform_set_drvdata(pdev, NULL);
- 	rtc_device_unregister(info->rtc_dev);
- 	pm80x_free_irq(info->chip, info->irq, info);
--	devm_kfree(&pdev->dev, info);
- 	return 0;
- }
+ /*
+- * The MFPGT timers on the CS5536 provide us with suitable timers to use
++ * The MFGPT timers on the CS5536 provide us with suitable timers to use
+  * as clock event sources - not as good as a HPET or APIC, but certainly
+  * better than the PIT.  This isn't a general purpose MFGPT driver, but
+  * a simplified one designed specifically to act as a clock event source.
+@@ -144,7 +144,7 @@ static int __init cs5535_mfgpt_init(void
  
+ 	timer = cs5535_mfgpt_alloc_timer(MFGPT_TIMER_ANY, MFGPT_DOMAIN_WORKING);
+ 	if (!timer) {
+-		printk(KERN_ERR DRV_NAME ": Could not allocate MFPGT timer\n");
++		printk(KERN_ERR DRV_NAME ": Could not allocate MFGPT timer\n");
+ 		return -ENODEV;
+ 	}
+ 	cs5535_event_clock = timer;
 _
 
-Patches currently in -mm which might be from devendra.aaru@gmail.com are
+Patches currently in -mm which might be from JRottmann@LiPPERTEmbedded.de are
 
-origin.patch
-linux-next.patch
+cs5535-clockevt-typo-its-mfgpt-not-mfpgt.patch
 
