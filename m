@@ -1,74 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vmalloc-walk-vmap_areas-by-sorted-list-instead-of-rb_next.patch removed from -mm tree
-Date: Wed, 01 Aug 2012 13:11:23 -0700
-Message-ID: <20120801201124.1EEC720004E@hpza10.eem.corp.google.com>
+Subject: [merged] mm-make-vb_alloc-more-foolproof.patch removed from -mm tree
+Date: Wed, 01 Aug 2012 13:11:27 -0700
+Message-ID: <20120801201127.AA5AC1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:64772 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755572Ab2HAUL0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:11:26 -0400
-Received: by lagr15 with SMTP id r15so343775lag.1
-        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:11:25 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:41190 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755572Ab2HAUL2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Aug 2012 16:11:28 -0400
+Received: by mail-ob0-f202.google.com with SMTP id wc20so5410915obb.1
+        for <mm-commits@vger.kernel.org>; Wed, 01 Aug 2012 13:11:28 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: honkiko@gmail.com, hannes@cmpxchg.org, npiggin@kernel.dk, mm-commits@vger.kernel.org
+To: jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vmalloc: walk vmap_areas by sorted list instead of rb_next()
+     Subject: mm: make vb_alloc() more foolproof
 has been removed from the -mm tree.  Its filename was
-     vmalloc-walk-vmap_areas-by-sorted-list-instead-of-rb_next.patch
+     mm-make-vb_alloc-more-foolproof.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hong zhi guo <honkiko@gmail.com>
-Subject: vmalloc: walk vmap_areas by sorted list instead of rb_next()
+From: Jan Kara <jack@suse.cz>
+Subject: mm: make vb_alloc() more foolproof
 
-There's a walk by repeating rb_next to find a suitable hole.  Could be
-simply replaced by walk on the sorted vmap_area_list.  More simpler and
-efficient.
+If someone calls vb_alloc() (or vm_map_ram() for that matter) to allocate
+0 bytes (0 pages), get_order() returns BITS_PER_LONG - PAGE_CACHE_SHIFT
+and interesting stuff happens.  So make debugging such problems easier and
+warn about 0-size allocation.
 
-Mutation of the list and tree only happens in pair within
-__insert_vmap_area and __free_vmap_area, under protection of
-vmap_area_lock.  The patch code is also under vmap_area_lock, so the list
-walk is safe, and consistent with the tree walk.
-
-Tested on SMP by repeating batch of vmalloc anf vfree for random sizes and
-rounds for hours.
-
-Signed-off-by: Hong Zhiguo <honkiko@gmail.com>
-Cc: Nick Piggin <npiggin@kernel.dk>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+[akpm@linux-foundation.org: use WARN_ON-return-value feature]
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/vmalloc.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN mm/vmalloc.c~vmalloc-walk-vmap_areas-by-sorted-list-instead-of-rb_next mm/vmalloc.c
---- a/mm/vmalloc.c~vmalloc-walk-vmap_areas-by-sorted-list-instead-of-rb_next
+diff -puN mm/vmalloc.c~mm-make-vb_alloc-more-foolproof mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-make-vb_alloc-more-foolproof
 +++ a/mm/vmalloc.c
-@@ -413,11 +413,11 @@ nocache:
- 		if (addr + size - 1 < addr)
- 			goto overflow;
+@@ -904,6 +904,14 @@ static void *vb_alloc(unsigned long size
  
--		n = rb_next(&first->rb_node);
--		if (n)
--			first = rb_entry(n, struct vmap_area, rb_node);
--		else
-+		if (list_is_last(&first->list, &vmap_area_list))
- 			goto found;
-+
-+		first = list_entry(first->list.next,
-+				struct vmap_area, list);
- 	}
+ 	BUG_ON(size & ~PAGE_MASK);
+ 	BUG_ON(size > PAGE_SIZE*VMAP_MAX_ALLOC);
++	if (WARN_ON(size == 0)) {
++		/*
++		 * Allocating 0 bytes isn't what caller wants since
++		 * get_order(0) returns funny result. Just warn and terminate
++		 * early.
++		 */
++		return NULL;
++	}
+ 	order = get_order(size);
  
- found:
+ again:
 _
 
-Patches currently in -mm which might be from honkiko@gmail.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
+linux-next.patch
 
