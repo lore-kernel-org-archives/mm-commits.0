@@ -1,80 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch removed from -mm tree
-Date: Thu, 09 Aug 2012 14:05:39 -0700
-Message-ID: <20120809210542.0E468200057@hpza10.eem.corp.google.com>
+Subject: + rbtree-empty-nodes-have-no-color-fix.patch added to -mm tree
+Date: Mon, 13 Aug 2012 15:16:21 -0700
+Message-ID: <20120813221622.A28635C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:62031 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751276Ab2HIVFp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Aug 2012 17:05:45 -0400
-Received: by lbbge1 with SMTP id ge1so47910lbb.1
-        for <mm-commits@vger.kernel.org>; Thu, 09 Aug 2012 14:05:43 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:40450 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755311Ab2HMWQY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Aug 2012 18:16:24 -0400
+Received: by eaac1 with SMTP id c1so200706eaa.1
+        for <mm-commits@vger.kernel.org>; Mon, 13 Aug 2012 15:16:23 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, hpa@zytor.com, tglx@linutronix.de, zheng.z.yan@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: sfr@canb.auug.org.au, sage@inktank.com, walken@google.com
 
 
 The patch titled
-     Subject: arch/x86/kernel/cpu/perf_event_intel_uncore.h: make UNCORE_PMU_HRTIMER_INTERVAL 64-bit
-has been removed from the -mm tree.  Its filename was
-     arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit.patch
+     Subject: rbtree-empty-nodes-have-no-color-fix
+has been added to the -mm tree.  Its filename is
+     rbtree-empty-nodes-have-no-color-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arch/x86/kernel/cpu/perf_event_intel_uncore.h: make UNCORE_PMU_HRTIMER_INTERVAL 64-bit
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: rbtree-empty-nodes-have-no-color-fix
 
-i386 allmodconfig:
+After merging the akpm tree, today's linux-next build (x86_64
+allmodconfig) failed like this:
 
-arch/x86/kernel/cpu/perf_event_intel_uncore.c: In function 'uncore_pmu_hrtimer':
-arch/x86/kernel/cpu/perf_event_intel_uncore.c:728: warning: integer overflow in expression
-arch/x86/kernel/cpu/perf_event_intel_uncore.c: In function 'uncore_pmu_start_hrtimer':
-arch/x86/kernel/cpu/perf_event_intel_uncore.c:735: warning: integer overflow in expression
+net/ceph/osd_client.c: In function 'ceph_osdc_alloc_request':
+net/ceph/osd_client.c:216:2: error: implicit declaration of function 'rb_in=
+it_node' [-Werror=3Dimplicit-function-declaration]
 
-Cc: Zheng Yan <zheng.z.yan@intel.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Caused by commit 753b960e52b7 ("rbtree: empty nodes have no color") from
+the akpm tree interacting with commit cd43045c2de6 ("libceph: initialize
+rb, list nodes in ceph_osd_request") from the ceph tree.
+
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Sage Weil <sage@inktank.com>
+Reviewed-by: Michel Lespinasse <walken@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/perf_event_intel_uncore.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/ceph/osd_client.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/x86/kernel/cpu/perf_event_intel_uncore.h~arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit arch/x86/kernel/cpu/perf_event_intel_uncore.h
---- a/arch/x86/kernel/cpu/perf_event_intel_uncore.h~arch-x86-kernel-cpu-perf_event_intel_uncoreh-make-uncore_pmu_hrtimer_interval-64-bit
-+++ a/arch/x86/kernel/cpu/perf_event_intel_uncore.h
-@@ -5,7 +5,7 @@
- #include "perf_event.h"
- 
- #define UNCORE_PMU_NAME_LEN		32
--#define UNCORE_PMU_HRTIMER_INTERVAL	(60 * NSEC_PER_SEC)
-+#define UNCORE_PMU_HRTIMER_INTERVAL	(60LL * NSEC_PER_SEC)
- 
- #define UNCORE_FIXED_EVENT		0xff
- #define UNCORE_PMC_IDX_MAX_GENERIC	8
+diff -puN net/ceph/osd_client.c~rbtree-empty-nodes-have-no-color-fix net/ceph/osd_client.c
+--- a/net/ceph/osd_client.c~rbtree-empty-nodes-have-no-color-fix
++++ a/net/ceph/osd_client.c
+@@ -213,7 +213,6 @@ struct ceph_osd_request *ceph_osdc_alloc
+ 	kref_init(&req->r_kref);
+ 	init_completion(&req->r_completion);
+ 	init_completion(&req->r_safe_completion);
+-	rb_init_node(&req->r_node);
+ 	INIT_LIST_HEAD(&req->r_unsafe_item);
+ 	INIT_LIST_HEAD(&req->r_linger_item);
+ 	INIT_LIST_HEAD(&req->r_linger_osd);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
-origin.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-thermal-add-generic-cpufreq-cooling-implementation.patch
-thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
-thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
-mm-slab_commonc-fix-warning.patch
-mm.patch
-x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
-rbtree-performance-and-correctness-test-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+rbtree-empty-nodes-have-no-color-fix.patch
 
