@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + w1-omap-hdq-drop-arch-dependency.patch added to -mm tree
-Date: Tue, 14 Aug 2012 16:13:00 -0700
-Message-ID: <20120814231301.A5B2A5C0050@hpza9.eem.corp.google.com>
+Subject: + drivers-video-backlight-pwm_blc-add-device-tree-support-for-low-threshold-brightness.patch added to -mm tree
+Date: Tue, 14 Aug 2012 16:16:28 -0700
+Message-ID: <20120814231628.B29391E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:53473 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753627Ab2HNXND (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Aug 2012 19:13:03 -0400
-Received: by eaac1 with SMTP id c1so45592eaa.1
-        for <mm-commits@vger.kernel.org>; Tue, 14 Aug 2012 16:13:02 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:55152 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752389Ab2HNXQa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Aug 2012 19:16:30 -0400
+Received: by obbwc20 with SMTP id wc20so735307obb.1
+        for <mm-commits@vger.kernel.org>; Tue, 14 Aug 2012 16:16:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: balbi@ti.com, greg@kroah.com, zbr@ioremap.net
+Cc: avinashphilip@ti.com, FlorianSchandinat@gmx.de, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, rob.herring@calxeda.com
 
 
 The patch titled
-     Subject: drivers/w1/masters/omap_hdq.c: drop ARCH dependency
+     Subject: drivers/video/backlight/pwm_bl.c: add device tree support for Low Threshold Brightness
 has been added to the -mm tree.  Its filename is
-     w1-omap-hdq-drop-arch-dependency.patch
+     drivers-video-backlight-pwm_blc-add-device-tree-support-for-low-threshold-brightness.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,38 +33,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Felipe Balbi <balbi@ti.com>
-Subject: drivers/w1/masters/omap_hdq.c: drop ARCH dependency
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Subject: drivers/video/backlight/pwm_bl.c: add device tree support for Low Threshold Brightness
 
-Let the driver compile everywhere while also removing unnecessary headers.
+Low Threshold Brightness should be configured to have a linear relation in
+brightness scale.  This patch adds device tree support for low threshold
+brightness as optional one for pwm_backlight.
 
-Signed-off-by: Felipe Balbi <balbi@ti.com>
-Cc: Evgeniy Polyakov <zbr@ioremap.net>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: Rob Herring <rob.herring@calxeda.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/w1/masters/Kconfig    |    1 -
- drivers/w1/masters/omap_hdq.c |    3 ---
- 2 files changed, 4 deletions(-)
+ Documentation/devicetree/bindings/video/backlight/pwm-backlight.txt |   21 ++++++++++
+ drivers/video/backlight/pwm_bl.c                                    |    5 ++
+ 2 files changed, 26 insertions(+)
 
-diff -puN drivers/w1/masters/Kconfig~w1-omap-hdq-drop-arch-dependency drivers/w1/masters/Kconfig
---- a/drivers/w1/masters/Kconfig~w1-omap-hdq-drop-arch-dependency
-+++ a/drivers/w1/masters/Kconfig
-@@ -60,7 +60,6 @@ config W1_MASTER_GPIO
+diff -puN Documentation/devicetree/bindings/video/backlight/pwm-backlight.txt~drivers-video-backlight-pwm_blc-add-device-tree-support-for-low-threshold-brightness Documentation/devicetree/bindings/video/backlight/pwm-backlight.txt
+--- a/Documentation/devicetree/bindings/video/backlight/pwm-backlight.txt~drivers-video-backlight-pwm_blc-add-device-tree-support-for-low-threshold-brightness
++++ a/Documentation/devicetree/bindings/video/backlight/pwm-backlight.txt
+@@ -14,6 +14,8 @@ Required properties:
+ Optional properties:
+   - pwm-names: a list of names for the PWM devices specified in the
+                "pwms" property (see PWM binding[0])
++  - low_threshold_brightness: brightness threshold low level. (get linear
++		 scales in brightness in low end of brightness levels)
  
- config HDQ_MASTER_OMAP
- 	tristate "OMAP HDQ driver"
--	depends on ARCH_OMAP2PLUS
- 	help
- 	  Say Y here if you want support for the 1-wire or HDQ Interface
- 	  on an OMAP processor.
-diff -puN drivers/w1/masters/omap_hdq.c~w1-omap-hdq-drop-arch-dependency drivers/w1/masters/omap_hdq.c
---- a/drivers/w1/masters/omap_hdq.c~w1-omap-hdq-drop-arch-dependency
-+++ a/drivers/w1/masters/omap_hdq.c
-@@ -18,9 +18,6 @@
- #include <linux/sched.h>
- #include <linux/pm_runtime.h>
+ [0]: Documentation/devicetree/bindings/pwm/pwm.txt
  
--#include <asm/irq.h>
--#include <mach/hardware.h>
+@@ -26,3 +28,22 @@ Example:
+ 		brightness-levels = <0 4 8 16 32 64 128 255>;
+ 		default-brightness-level = <6>;
+ 	};
++
++Example for brightness_threshold_level:
++
++	backlight {
++		compatible	= "pwm-backlight";
++		pwms = <&pwm 0 50000>;
++
++		brightness-levels = <0 4 8 16 32 64 128 255>;
++		default-brightness-level = <6>;
++		low_threshold_brightness = <50>;
++	};
++};
++Note:
++Low threshold support is required to have linear brightness scale from
++0 to max. For some panels, backlight absent on low end of brightness
++scale. So support for Low Threshold been required. So that the scale of
++brightness changed from Low Threshold to Max in scales defined in
++brightness-levels. In this example 20% maximum brightness scale should
++be required to turn on panel backlight.
+diff -puN drivers/video/backlight/pwm_bl.c~drivers-video-backlight-pwm_blc-add-device-tree-support-for-low-threshold-brightness drivers/video/backlight/pwm_bl.c
+--- a/drivers/video/backlight/pwm_bl.c~drivers-video-backlight-pwm_blc-add-device-tree-support-for-low-threshold-brightness
++++ a/drivers/video/backlight/pwm_bl.c
+@@ -143,6 +143,11 @@ static int pwm_backlight_parse_dt(struct
+ 
+ 		data->dft_brightness = value;
+ 		data->max_brightness--;
++
++		ret = of_property_read_u32(node, "low_threshold_brightness",
++					   &value);
++		if (!ret)
++			data->lth_brightness = value;
+ 	}
+ 
+ 	/*
+_
+
+Patches currently in -mm which might be from avinashphilip@ti.com are
+
+linux-next.patch
+drivers-video-backlight-pwm_blc-add-device-tree-support-for-low-threshold-brightness.patch
+
