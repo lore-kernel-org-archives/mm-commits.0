@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + cciss-use-check_signature.patch added to -mm tree
-Date: Tue, 14 Aug 2012 15:49:57 -0700
-Message-ID: <20120814224958.0B1F620004E@hpza10.eem.corp.google.com>
+Subject: + rtc-proc-permit-the-proc-driver-rtc-device-to-use-other-devices.patch added to -mm tree
+Date: Tue, 14 Aug 2012 15:57:09 -0700
+Message-ID: <20120814225709.B12F91E0048@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:55963 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751863Ab2HNWuA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Aug 2012 18:50:00 -0400
-Received: by lbbge1 with SMTP id ge1so48974lbb.1
-        for <mm-commits@vger.kernel.org>; Tue, 14 Aug 2012 15:49:59 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:40103 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752414Ab2HNW5L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Aug 2012 18:57:11 -0400
+Received: by obbwc20 with SMTP id wc20so726377obb.1
+        for <mm-commits@vger.kernel.org>; Tue, 14 Aug 2012 15:57:10 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, axboe@kernel.dk, mike.miller@hp.com, scameron@beardog.cce.hp.com
+Cc: Milo.Kim@ti.com, a.zummo@towertech.it, milo.kim@ti.com
 
 
 The patch titled
-     Subject: cciss: use check_signature
+     Subject: rtc-proc: permit the /proc/driver/rtc device to use other devices
 has been added to the -mm tree.  Its filename is
-     cciss-use-check_signature.patch
+     rtc-proc-permit-the-proc-driver-rtc-device-to-use-other-devices.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,53 +33,112 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: cciss: use check_signature
+From: "Kim, Milo" <Milo.Kim@ti.com>
+Subject: rtc-proc: permit the /proc/driver/rtc device to use other devices
 
-Use check_signature() to find a signature in the mmio address.
+To get time information via /proc/driver/rtc, only the first device (rtc0)
+is used.  If the rtcN (eg.  rtc1 or rtc2) is used for the system clock,
+there is no way to get information of rtcN via /proc/driver/rtc.  With
+this patch, the time data can be retrieved from the system clock RTC.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Mike Miller <mike.miller@hp.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Stephen M. Cameron <scameron@beardog.cce.hp.com>
+If the RTC_HCTOSYS_DEVICE is not defined, then rtc0 is used by default.
+
+Signed-off-by: Milo(Woogyom) Kim <milo.kim@ti.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ Documentation/rtc.txt  |    5 +++--
+ drivers/rtc/Kconfig    |   10 ++++++----
+ drivers/rtc/rtc-proc.c |   24 ++++++++++++++++++++++--
+ 3 files changed, 31 insertions(+), 8 deletions(-)
 
-diff -puN drivers/block/cciss.c~cciss-use-check_signature drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-use-check_signature
-+++ a/drivers/block/cciss.c
-@@ -42,8 +42,8 @@
- #include <linux/compat.h>
- #include <linux/mutex.h>
- #include <linux/bitmap.h>
-+#include <linux/io.h>
- #include <asm/uaccess.h>
--#include <asm/io.h>
+diff -puN Documentation/rtc.txt~rtc-proc-permit-the-proc-driver-rtc-device-to-use-other-devices Documentation/rtc.txt
+--- a/Documentation/rtc.txt~rtc-proc-permit-the-proc-driver-rtc-device-to-use-other-devices
++++ a/Documentation/rtc.txt
+@@ -119,8 +119,9 @@ three different userspace interfaces:
+     *	/sys/class/rtc/rtcN ... sysfs attributes support readonly
+ 	access to some RTC attributes.
  
- #include <linux/dma-mapping.h>
- #include <linux/blkdev.h>
-@@ -4267,10 +4267,7 @@ static void __devinit cciss_find_board_p
+-    *	/proc/driver/rtc ... the first RTC (rtc0) may expose itself
+-	using a procfs interface.  More information is (currently) shown
++    *	/proc/driver/rtc ... the system clock RTC may expose itself
++	using a procfs interface. If there is no RTC for the system clock,
++	rtc0 is used by default. More information is (currently) shown
+ 	here than through sysfs.
  
- static inline bool CISS_signature_present(ctlr_info_t *h)
+ The RTC Class framework supports a wide variety of RTCs, ranging from those
+diff -puN drivers/rtc/Kconfig~rtc-proc-permit-the-proc-driver-rtc-device-to-use-other-devices drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-proc-permit-the-proc-driver-rtc-device-to-use-other-devices
++++ a/drivers/rtc/Kconfig
+@@ -69,13 +69,15 @@ config RTC_INTF_SYSFS
+ 	  If unsure, say Y.
+ 
+ config RTC_INTF_PROC
+-	boolean "/proc/driver/rtc (procfs for rtc0)"
++	boolean "/proc/driver/rtc (procfs for rtcN)"
+ 	depends on PROC_FS
+ 	default RTC_CLASS
+ 	help
+-	  Say yes here if you want to use your first RTC through the proc
+-	  interface, /proc/driver/rtc. Other RTCs will not be available
+-	  through that API.
++	  Say yes here if you want to use your system clock RTC through
++	  the proc interface, /proc/driver/rtc.
++	  Other RTCs will not be available through that API.
++	  If there is no RTC for the system clock, then the first RTC(rtc0)
++	  is used by default.
+ 
+ 	  If unsure, say Y.
+ 
+diff -puN drivers/rtc/rtc-proc.c~rtc-proc-permit-the-proc-driver-rtc-device-to-use-other-devices drivers/rtc/rtc-proc.c
+--- a/drivers/rtc/rtc-proc.c~rtc-proc-permit-the-proc-driver-rtc-device-to-use-other-devices
++++ a/drivers/rtc/rtc-proc.c
+@@ -18,6 +18,26 @@
+ 
+ #include "rtc-core.h"
+ 
++#define NAME_SIZE	10
++
++#if defined(CONFIG_RTC_HCTOSYS_DEVICE)
++static bool is_rtc_hctosys(struct rtc_device *rtc)
++{
++	int size;
++	char name[NAME_SIZE];
++
++	size = scnprintf(name, NAME_SIZE, "rtc%d", rtc->id);
++	if (size > NAME_SIZE)
++		return false;
++
++	return !strncmp(name, CONFIG_RTC_HCTOSYS_DEVICE, NAME_SIZE);
++}
++#else
++static bool is_rtc_hctosys(struct rtc_device *rtc)
++{
++	return (rtc->id == 0);
++}
++#endif
+ 
+ static int rtc_proc_show(struct seq_file *seq, void *offset)
  {
--	if ((readb(&h->cfgtable->Signature[0]) != 'C') ||
--	    (readb(&h->cfgtable->Signature[1]) != 'I') ||
--	    (readb(&h->cfgtable->Signature[2]) != 'S') ||
--	    (readb(&h->cfgtable->Signature[3]) != 'S')) {
-+	if (!check_signature(h->cfgtable->Signature, "CISS", 4)) {
- 		dev_warn(&h->pdev->dev, "not a valid CISS config table\n");
- 		return false;
- 	}
+@@ -117,12 +137,12 @@ static const struct file_operations rtc_
+ 
+ void rtc_proc_add_device(struct rtc_device *rtc)
+ {
+-	if (rtc->id == 0)
++	if (is_rtc_hctosys(rtc))
+ 		proc_create_data("driver/rtc", 0, NULL, &rtc_proc_fops, rtc);
+ }
+ 
+ void rtc_proc_del_device(struct rtc_device *rtc)
+ {
+-	if (rtc->id == 0)
++	if (is_rtc_hctosys(rtc))
+ 		remove_proc_entry("driver/rtc", NULL);
+ }
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from Milo.Kim@ti.com are
 
-linux-next.patch
-ocfs2-use-find_last_bit.patch
-ocfs2-use-bitmap_weight.patch
-cciss-cleanup-bitops-usage.patch
-cciss-use-check_signature.patch
+rtc-proc-permit-the-proc-driver-rtc-device-to-use-other-devices.patch
 
