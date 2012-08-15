@@ -1,19 +1,19 @@
 From: akpm@linux-foundation.org
 Subject: + mm-hugetlbfs-correctly-populate-shared-pmd.patch added to -mm tree
-Date: Wed, 15 Aug 2012 14:53:53 -0700
-Message-ID: <20120815215354.12FF41E0043@wpzn4.hot.corp.google.com>
+Date: Wed, 15 Aug 2012 14:56:42 -0700
+Message-ID: <20120815215642.AE14F1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:37157 "EHLO
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:46497 "EHLO
 	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751447Ab2HOVxz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Aug 2012 17:53:55 -0400
-Received: by obbwc20 with SMTP id wc20so1492509obb.1
-        for <mm-commits@vger.kernel.org>; Wed, 15 Aug 2012 14:53:55 -0700 (PDT)
+	with ESMTP id S1754210Ab2HOV4o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Aug 2012 17:56:44 -0400
+Received: by obbwc20 with SMTP id wc20so1494188obb.1
+        for <mm-commits@vger.kernel.org>; Wed, 15 Aug 2012 14:56:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhocko@suse.cz, david@gibson.dropbear.id.au, dhillf@gmail.com, kenchen@google.com, lwoodman@redhat.com, mgorman@suse.de, riel@redhat.com, xiyou.wangcong@gmail.com
+Cc: mhocko@suse.cz, david@gibson.dropbear.id.au, dhillf@gmail.com, kenchen@google.com, lwoodman@redhat.com, mgorman@suse.de, riel@redhat.com, stable@vger.kernel.org, xiyou.wangcong@gmail.com
 
 
 The patch titled
@@ -147,6 +147,7 @@ Cc: David Gibson <david@gibson.dropbear.id.au>
 Cc: Ken Chen <kenchen@google.com>
 Cc: Cong Wang <xiyou.wangcong@gmail.com>
 Cc: Hillf Danton <dhillf@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
@@ -214,4 +215,5 @@ _
 Patches currently in -mm which might be from mhocko@suse.cz are
 
 mm-hugetlbfs-correctly-populate-shared-pmd.patch
+mm-hugetlbfs-correctly-populate-shared-pmd-fix.patch
 
