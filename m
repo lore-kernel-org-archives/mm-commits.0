@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-recycle-id-when-unloading-a-rtc-driver.patch added to -mm tree
-Date: Wed, 15 Aug 2012 15:32:26 -0700
-Message-ID: <20120815223226.B2D99100047@wpzn3.hot.corp.google.com>
+Subject: + lib-vsprintf-optimize-division-by-10-for-small-integers.patch added to -mm tree
+Date: Wed, 15 Aug 2012 15:37:17 -0700
+Message-ID: <20120815223718.466091E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:56805 "EHLO
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:44296 "EHLO
 	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750923Ab2HOWc1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Aug 2012 18:32:27 -0400
-Received: by obbwc20 with SMTP id wc20so1511540obb.1
-        for <mm-commits@vger.kernel.org>; Wed, 15 Aug 2012 15:32:27 -0700 (PDT)
+	with ESMTP id S1750968Ab2HOWhT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Aug 2012 18:37:19 -0400
+Received: by obbwc20 with SMTP id wc20so1513489obb.1
+        for <mm-commits@vger.kernel.org>; Wed, 15 Aug 2012 15:37:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vpalatin@chromium.org, a.zummo@towertech.it
+Cc: linux@horizon.com, mina86@mina86.com, vda.linux@googlemail.com
 
 
 The patch titled
-     Subject: rtc: recycle id when unloading a rtc driver
+     Subject: lib: vsprintf: optimize division by 10 for small integers
 has been added to the -mm tree.  Its filename is
-     rtc-recycle-id-when-unloading-a-rtc-driver.patch
+     lib-vsprintf-optimize-division-by-10-for-small-integers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,37 +33,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vincent Palatin <vpalatin@chromium.org>
-Subject: rtc: recycle id when unloading a rtc driver
+From: George Spelvin <linux@horizon.com>
+Subject: lib: vsprintf: optimize division by 10 for small integers
 
-When calling rtc_device_unregister, we are not freeing the id used by the
-driver.  So when doing a unload/load cycle for a RTC driver (e.g.  rmmod
-rtc_cmos && modprobe rtc_cmos), its id is incremented by one.  As a
-consequence, we no longer have neither an rtc0 driver nor a
-/proc/driver/rtc (as it only exists for the first driver).
+Shrink the reciprocal approximations used in put_dec_full4() based on the
+comments in put_dec_full9().
 
-Signed-off-by: Vincent Palatin <vpalatin@chromium.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: George Spelvin <linux@horizon.com>
+Cc: Denys Vlasenko <vda.linux@googlemail.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/class.c |    1 +
- 1 file changed, 1 insertion(+)
+ lib/vsprintf.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/class.c~rtc-recycle-id-when-unloading-a-rtc-driver drivers/rtc/class.c
---- a/drivers/rtc/class.c~rtc-recycle-id-when-unloading-a-rtc-driver
-+++ a/drivers/rtc/class.c
-@@ -238,6 +238,7 @@ void rtc_device_unregister(struct rtc_de
- 		rtc_proc_del_device(rtc);
- 		device_unregister(&rtc->dev);
- 		rtc->ops = NULL;
-+		ida_simple_remove(&rtc_ida, rtc->id);
- 		mutex_unlock(&rtc->ops_lock);
- 		put_device(&rtc->dev);
- 	}
+diff -puN lib/vsprintf.c~lib-vsprintf-optimize-division-by-10-for-small-integers lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-vsprintf-optimize-division-by-10-for-small-integers
++++ a/lib/vsprintf.c
+@@ -243,13 +243,14 @@ char *put_dec(char *buf, unsigned long l
+ 
+ /* Second algorithm: valid only for 64-bit long longs */
+ 
++/* See comment in put_dec_full9 for choice of constants */
+ static noinline_for_stack
+ char *put_dec_full4(char *buf, unsigned q)
+ {
+ 	unsigned r;
+-	r      = (q * 0xcccd) >> 19;
++	r      = (q * 0xccd) >> 15;
+ 	*buf++ = (q - 10 * r) + '0';
+-	q      = (r * 0x199a) >> 16;
++	q      = (r * 0xcd) >> 11;
+ 	*buf++ = (r - 10 * q)  + '0';
+ 	r      = (q * 0xcd) >> 11;
+ 	*buf++ = (q - 10 * r)  + '0';
 _
 
-Patches currently in -mm which might be from vpalatin@chromium.org are
+Patches currently in -mm which might be from linux@horizon.com are
 
-rtc-recycle-id-when-unloading-a-rtc-driver.patch
+lib-vsprintf-optimize-division-by-10-for-small-integers.patch
+lib-vsprintf-optimize-division-by-10000.patch
+lib-vsprintf-optimize-put_dec_trunc8.patch
+lib-vsprintf-fix-broken-comments.patch
 
