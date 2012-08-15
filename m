@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix-perf-compilation.patch added to -mm tree
-Date: Wed, 15 Aug 2012 16:35:14 -0700
-Message-ID: <20120815233514.EADEB1E0043@wpzn4.hot.corp.google.com>
+Subject: + string-do-not-export-memweight-to-userspace.patch added to -mm tree
+Date: Wed, 15 Aug 2012 16:36:08 -0700
+Message-ID: <20120815233609.038C75C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:46091 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751918Ab2HOXfQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Aug 2012 19:35:16 -0400
-Received: by obbwc20 with SMTP id wc20so1541755obb.1
-        for <mm-commits@vger.kernel.org>; Wed, 15 Aug 2012 16:35:15 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:62570 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751918Ab2HOXgL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Aug 2012 19:36:11 -0400
+Received: by wibhr14 with SMTP id hr14so4835wib.1
+        for <mm-commits@vger.kernel.org>; Wed, 15 Aug 2012 16:36:09 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alexander.shishkin@linux.intel.com, walken@google.com
+Cc: xiyou.wangcong@gmail.com, akinobu.mita@gmail.com
 
 
 The patch titled
-     Subject: rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix-perf-compilation
+     Subject: string: do not export memweight() to userspace
 has been added to the -mm tree.  Its filename is
-     rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix-perf-compilation.patch
+     string-do-not-export-memweight-to-userspace.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,49 +33,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Subject: rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix-perf-compilation
+From: WANG Cong <xiyou.wangcong@gmail.com>
+Subject: string: do not export memweight() to userspace
 
-Commit 2cfaf9cc68190c24fdd05e4d104099b3f27c7a44 (rbtree: adjust root color
-in rb_insert_color() only when necessary) introduces bool type and constants
-to the rbtree.c, and breaks compilation of tools/perf:
+Fix the following warning:
 
-../../lib/rbtree.c: In function `rb_insert_color':
-../../lib/rbtree.c:95:9: error: `true' undeclared (first use in this function)
-../../lib/rbtree.c:95:9: note: each undeclared identifier is reported only once
-or each function it appears in
-../../lib/rbtree.c: In function `__rb_erase_color':
-../../lib/rbtree.c:216:9: error: `true' undeclared (first use in this function)
-../../lib/rbtree.c: In function `rb_erase':
-../../lib/rbtree.c:368:2: error: unknown type name `bool'
-make: *** [util/rbtree.o] Error 1
+usr/include/linux/string.h:8: userspace cannot reference function or variable defined in the kernel
 
-This patch is the easiest solution I can think of.
-
-Signed-off-by: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Acked-by: Michel Lespinasse <walken@google.com>
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+Acked-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/perf/Makefile |    2 +-
+ include/linux/string.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN tools/perf/Makefile~rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix-perf-compilation tools/perf/Makefile
---- a/tools/perf/Makefile~rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix-perf-compilation
-+++ a/tools/perf/Makefile
-@@ -806,7 +806,7 @@ $(OUTPUT)ui/browsers/map.o: ui/browsers/
- 	$(QUIET_CC)$(CC) -o $@ -c $(ALL_CFLAGS) -DENABLE_SLFUTURE_CONST $<
+diff -puN include/linux/string.h~string-do-not-export-memweight-to-userspace include/linux/string.h
+--- a/include/linux/string.h~string-do-not-export-memweight-to-userspace
++++ a/include/linux/string.h
+@@ -144,8 +144,8 @@ static inline bool strstarts(const char 
+ {
+ 	return strncmp(str, prefix, strlen(prefix)) == 0;
+ }
+-#endif
  
- $(OUTPUT)util/rbtree.o: ../../lib/rbtree.c $(OUTPUT)PERF-CFLAGS
--	$(QUIET_CC)$(CC) -o $@ -c $(ALL_CFLAGS) -DETC_PERFCONFIG='"$(ETC_PERFCONFIG_SQ)"' $<
-+	$(QUIET_CC)$(CC) -o $@ -c $(ALL_CFLAGS) -DETC_PERFCONFIG='"$(ETC_PERFCONFIG_SQ)"' -include stdbool.h $<
+ extern size_t memweight(const void *ptr, size_t bytes);
  
- $(OUTPUT)util/parse-events.o: util/parse-events.c $(OUTPUT)PERF-CFLAGS
- 	$(QUIET_CC)$(CC) -o $@ -c $(ALL_CFLAGS) -Wno-redundant-decls $<
++#endif /* __KERNEL__ */
+ #endif /* _LINUX_STRING_H_ */
 _
 
-Patches currently in -mm which might be from alexander.shishkin@linux.intel.com are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
-linux-next.patch
-rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix-perf-compilation.patch
+mm-hugetlbfs-correctly-populate-shared-pmd.patch
+mm-hugetlbfs-correctly-populate-shared-pmd-fix.patch
+string-do-not-export-memweight-to-userspace.patch
 
