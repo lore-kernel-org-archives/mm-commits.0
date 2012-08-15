@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-update-coredump-related-headers.patch added to -mm tree
-Date: Wed, 15 Aug 2012 16:18:22 -0700
-Message-ID: <20120815231823.7AEB7100047@wpzn3.hot.corp.google.com>
+Subject: + coredump-make-core-dump-functionality-optional.patch added to -mm tree
+Date: Wed, 15 Aug 2012 16:18:18 -0700
+Message-ID: <20120815231819.ADA995C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-iy0-f202.google.com ([209.85.210.202]:63837 "EHLO
-	mail-iy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753408Ab2HOXSZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Aug 2012 19:18:25 -0400
-Received: by ialo24 with SMTP id o24so166176ial.1
-        for <mm-commits@vger.kernel.org>; Wed, 15 Aug 2012 16:18:24 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:48017 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754078Ab2HOXSV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Aug 2012 19:18:21 -0400
+Received: by mail-ey0-f202.google.com with SMTP id c1so99469eaa.1
+        for <mm-commits@vger.kernel.org>; Wed, 15 Aug 2012 16:18:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: alex.page.kelly@gmail.com, josh@joshtriplett.org, keescook@chromium.org, ser
 
 
 The patch titled
-     Subject: coredump: update coredump-related headers
+     Subject: coredump: make core dump functionality optional
 has been added to the -mm tree.  Its filename is
-     coredump-update-coredump-related-headers.patch
+     coredump-make-core-dump-functionality-optional.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alex Kelly <alex.page.kelly@gmail.com>
-Subject: coredump: update coredump-related headers
+Subject: coredump: make core dump functionality optional
 
-Create a new header file, fs/coredump.h, which contains functions only
-used by the new coredump.c.  It also moves do_coredump to the
-include/linux/coredump.h header file, for consistency.
+Adds an expert Kconfig option, CONFIG_COREDUMP, which allows disabling of
+core dump.  This saves approximately 2.6k in the compiled kernel, and
+complements CONFIG_ELF_CORE, which now depends on it.
+
+CONFIG_COREDUMP also disables coredump-related sysctls, except for
+suid_dumpable and related functions, which are necessary for ptrace.
 
 Signed-off-by: Alex Kelly <alex.page.kelly@gmail.com>
 Reviewed-by: Josh Triplett <josh@joshtriplett.org>
@@ -47,106 +50,107 @@ Acked-by: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c            |    2 ++
- fs/coredump.h            |    6 ++++++
- fs/exec.c                |    1 +
- include/linux/binfmts.h  |    5 -----
- include/linux/coredump.h |    5 +++++
- include/linux/sched.h    |    1 -
- kernel/signal.c          |    1 +
- 7 files changed, 15 insertions(+), 6 deletions(-)
+ fs/Kconfig.binfmt       |    8 ++++++++
+ fs/Makefile             |    3 ++-
+ include/linux/binfmts.h |    4 ++++
+ init/Kconfig            |    1 +
+ kernel/sysctl.c         |    6 +++++-
+ 5 files changed, 20 insertions(+), 2 deletions(-)
 
-diff -puN fs/coredump.c~coredump-update-coredump-related-headers fs/coredump.c
---- a/fs/coredump.c~coredump-update-coredump-related-headers
-+++ a/fs/coredump.c
-@@ -14,6 +14,7 @@
- #include <linux/key.h>
- #include <linux/personality.h>
- #include <linux/binfmts.h>
-+#include <linux/coredump.h>
- #include <linux/utsname.h>
- #include <linux/pid_namespace.h>
- #include <linux/module.h>
-@@ -39,6 +40,7 @@
- 
- #include <trace/events/task.h>
- #include "internal.h"
-+#include "coredump.h"
- 
- #include <trace/events/sched.h>
- 
-diff -puN /dev/null fs/coredump.h
---- /dev/null
-+++ a/fs/coredump.h
-@@ -0,0 +1,6 @@
-+#ifndef _FS_COREDUMP_H
-+#define _FS_COREDUMP_H
+diff -puN fs/Kconfig.binfmt~coredump-make-core-dump-functionality-optional fs/Kconfig.binfmt
+--- a/fs/Kconfig.binfmt~coredump-make-core-dump-functionality-optional
++++ a/fs/Kconfig.binfmt
+@@ -164,3 +164,11 @@ config BINFMT_MISC
+ 	  You may say M here for module support and later load the module when
+ 	  you have use for it; the module is called binfmt_misc. If you
+ 	  don't know what to answer at this point, say Y.
 +
-+extern int __get_dumpable(unsigned long mm_flags);
-+
-+#endif
-diff -puN fs/exec.c~coredump-update-coredump-related-headers fs/exec.c
---- a/fs/exec.c~coredump-update-coredump-related-headers
-+++ a/fs/exec.c
-@@ -63,6 +63,7 @@
++config COREDUMP
++	bool "Enable core dump support" if EXPERT
++	default y
++	help
++	  This option enables support for performing core dumps. You almost
++	  certainly want to say Y here. Not necessary on systems that never
++	  need debugging or only ever run flawless code.
+diff -puN fs/Makefile~coredump-make-core-dump-functionality-optional fs/Makefile
+--- a/fs/Makefile~coredump-make-core-dump-functionality-optional
++++ a/fs/Makefile
+@@ -11,7 +11,7 @@ obj-y :=	open.o read_write.o file_table.
+ 		attr.o bad_inode.o file.o filesystems.o namespace.o \
+ 		seq_file.o xattr.o libfs.o fs-writeback.o \
+ 		pnode.o drop_caches.o splice.o sync.o utimes.o \
+-		stack.o fs_struct.o statfs.o coredump.o
++		stack.o fs_struct.o statfs.o
  
- #include <trace/events/task.h>
- #include "internal.h"
-+#include "coredump.h"
+ ifeq ($(CONFIG_BLOCK),y)
+ obj-y +=	buffer.o bio.o block_dev.o direct-io.o mpage.o ioprio.o
+@@ -48,6 +48,7 @@ obj-$(CONFIG_FS_MBCACHE)	+= mbcache.o
+ obj-$(CONFIG_FS_POSIX_ACL)	+= posix_acl.o xattr_acl.o
+ obj-$(CONFIG_NFS_COMMON)	+= nfs_common/
+ obj-$(CONFIG_GENERIC_ACL)	+= generic_acl.o
++obj-$(CONFIG_COREDUMP)		+= coredump.o
  
- #include <trace/events/sched.h>
+ obj-$(CONFIG_FHANDLE)		+= fhandle.o
  
-diff -puN include/linux/binfmts.h~coredump-update-coredump-related-headers include/linux/binfmts.h
---- a/include/linux/binfmts.h~coredump-update-coredump-related-headers
+diff -puN include/linux/binfmts.h~coredump-make-core-dump-functionality-optional include/linux/binfmts.h
+--- a/include/linux/binfmts.h~coredump-make-core-dump-functionality-optional
 +++ a/include/linux/binfmts.h
-@@ -132,11 +132,6 @@ extern int copy_strings_kernel(int argc,
+@@ -132,7 +132,11 @@ extern int copy_strings_kernel(int argc,
  			       struct linux_binprm *bprm);
  extern int prepare_bprm_creds(struct linux_binprm *bprm);
  extern void install_exec_creds(struct linux_binprm *bprm);
--#ifdef CONFIG_COREDUMP
--extern void do_coredump(long signr, int exit_code, struct pt_regs *regs);
--#else
--static inline void do_coredump(long signr, int exit_code, struct pt_regs *regs) {}
--#endif
- extern void set_binfmt(struct linux_binfmt *new);
- extern void free_bprm(struct linux_binprm *);
- 
-diff -puN include/linux/coredump.h~coredump-update-coredump-related-headers include/linux/coredump.h
---- a/include/linux/coredump.h~coredump-update-coredump-related-headers
-+++ a/include/linux/coredump.h
-@@ -11,5 +11,10 @@
-  */
- extern int dump_write(struct file *file, const void *addr, int nr);
- extern int dump_seek(struct file *file, loff_t off);
 +#ifdef CONFIG_COREDUMP
-+extern void do_coredump(long signr, int exit_code, struct pt_regs *regs);
+ extern void do_coredump(long signr, int exit_code, struct pt_regs *regs);
 +#else
 +static inline void do_coredump(long signr, int exit_code, struct pt_regs *regs) {}
 +#endif
+ extern void set_binfmt(struct linux_binfmt *new);
+ extern void free_bprm(struct linux_binprm *);
  
- #endif /* _LINUX_COREDUMP_H */
-diff -puN include/linux/sched.h~coredump-update-coredump-related-headers include/linux/sched.h
---- a/include/linux/sched.h~coredump-update-coredump-related-headers
-+++ a/include/linux/sched.h
-@@ -405,7 +405,6 @@ static inline void arch_pick_mmap_layout
+diff -puN init/Kconfig~coredump-make-core-dump-functionality-optional init/Kconfig
+--- a/init/Kconfig~coredump-make-core-dump-functionality-optional
++++ a/init/Kconfig
+@@ -1247,6 +1247,7 @@ config BUG
+           Just say Y.
  
- extern void set_dumpable(struct mm_struct *mm, int value);
- extern int get_dumpable(struct mm_struct *mm);
--extern int __get_dumpable(unsigned long mm_flags);
- 
- /* get/set_dumpable() values */
- #define SUID_DUMPABLE_DISABLED	0
-diff -puN kernel/signal.c~coredump-update-coredump-related-headers kernel/signal.c
---- a/kernel/signal.c~coredump-update-coredump-related-headers
-+++ a/kernel/signal.c
-@@ -17,6 +17,7 @@
- #include <linux/fs.h>
- #include <linux/tty.h>
- #include <linux/binfmts.h>
-+#include <linux/coredump.h>
- #include <linux/security.h>
- #include <linux/syscalls.h>
- #include <linux/ptrace.h>
+ config ELF_CORE
++	depends on COREDUMP
+ 	default y
+ 	bool "Enable ELF core dumps" if EXPERT
+ 	help
+diff -puN kernel/sysctl.c~coredump-make-core-dump-functionality-optional kernel/sysctl.c
+--- a/kernel/sysctl.c~coredump-make-core-dump-functionality-optional
++++ a/kernel/sysctl.c
+@@ -97,10 +97,12 @@
+ extern int sysctl_overcommit_memory;
+ extern int sysctl_overcommit_ratio;
+ extern int max_threads;
+-extern int core_uses_pid;
+ extern int suid_dumpable;
++#ifdef CONFIG_COREDUMP
++extern int core_uses_pid;
+ extern char core_pattern[];
+ extern unsigned int core_pipe_limit;
++#endif
+ extern int pid_max;
+ extern int min_free_kbytes;
+ extern int pid_max_min, pid_max_max;
+@@ -404,6 +406,7 @@ static struct ctl_table kern_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec,
+ 	},
++#ifdef CONFIG_COREDUMP
+ 	{
+ 		.procname	= "core_uses_pid",
+ 		.data		= &core_uses_pid,
+@@ -425,6 +428,7 @@ static struct ctl_table kern_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec,
+ 	},
++#endif
+ #ifdef CONFIG_PROC_SYSCTL
+ 	{
+ 		.procname	= "tainted",
 _
 
 Patches currently in -mm which might be from alex.page.kelly@gmail.com are
