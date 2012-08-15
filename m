@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-backlight-aat2870_blc-remove-goto-out.patch added to -mm tree
-Date: Wed, 15 Aug 2012 16:30:13 -0700
-Message-ID: <20120815233014.8D18120004E@hpza10.eem.corp.google.com>
+Subject: + rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix-perf-compilation.patch added to -mm tree
+Date: Wed, 15 Aug 2012 16:35:14 -0700
+Message-ID: <20120815233514.EADEB1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:49867 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751918Ab2HOXaQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Aug 2012 19:30:16 -0400
-Received: by weyr1 with SMTP id r1so99878wey.1
-        for <mm-commits@vger.kernel.org>; Wed, 15 Aug 2012 16:30:15 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:46091 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751918Ab2HOXfQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Aug 2012 19:35:16 -0400
+Received: by obbwc20 with SMTP id wc20so1541755obb.1
+        for <mm-commits@vger.kernel.org>; Wed, 15 Aug 2012 16:35:15 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com, jinyoungp@nvidia.com, rpurdie@rpsys.net
+Cc: alexander.shishkin@linux.intel.com, walken@google.com
 
 
 The patch titled
-     Subject: drivers/video/backlight/aat2870_bl.c: remove goto out
+     Subject: rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix-perf-compilation
 has been added to the -mm tree.  Its filename is
-     drivers-video-backlight-aat2870_blc-remove-goto-out.patch
+     rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix-perf-compilation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,76 +33,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/video/backlight/aat2870_bl.c: remove goto out
+From: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Subject: rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix-perf-compilation
 
-Remove goto out, which makes code a bit smaller.
+Commit 2cfaf9cc68190c24fdd05e4d104099b3f27c7a44 (rbtree: adjust root color
+in rb_insert_color() only when necessary) introduces bool type and constants
+to the rbtree.c, and breaks compilation of tools/perf:
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Acked-by: Jinyoung Park <jinyoungp@nvidia.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+../../lib/rbtree.c: In function `rb_insert_color':
+../../lib/rbtree.c:95:9: error: `true' undeclared (first use in this function)
+../../lib/rbtree.c:95:9: note: each undeclared identifier is reported only once
+or each function it appears in
+../../lib/rbtree.c: In function `__rb_erase_color':
+../../lib/rbtree.c:216:9: error: `true' undeclared (first use in this function)
+../../lib/rbtree.c: In function `rb_erase':
+../../lib/rbtree.c:368:2: error: unknown type name `bool'
+make: *** [util/rbtree.o] Error 1
+
+This patch is the easiest solution I can think of.
+
+Signed-off-by: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Acked-by: Michel Lespinasse <walken@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/aat2870_bl.c |   13 ++++---------
- 1 file changed, 4 insertions(+), 9 deletions(-)
+ tools/perf/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/aat2870_bl.c~drivers-video-backlight-aat2870_blc-remove-goto-out drivers/video/backlight/aat2870_bl.c
---- a/drivers/video/backlight/aat2870_bl.c~drivers-video-backlight-aat2870_blc-remove-goto-out
-+++ a/drivers/video/backlight/aat2870_bl.c
-@@ -135,14 +135,12 @@ static int aat2870_bl_probe(struct platf
+diff -puN tools/perf/Makefile~rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix-perf-compilation tools/perf/Makefile
+--- a/tools/perf/Makefile~rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix-perf-compilation
++++ a/tools/perf/Makefile
+@@ -806,7 +806,7 @@ $(OUTPUT)ui/browsers/map.o: ui/browsers/
+ 	$(QUIET_CC)$(CC) -o $@ -c $(ALL_CFLAGS) -DENABLE_SLFUTURE_CONST $<
  
- 	if (!pdata) {
- 		dev_err(&pdev->dev, "No platform data\n");
--		ret = -ENXIO;
--		goto out;
-+		return -ENXIO;
- 	}
+ $(OUTPUT)util/rbtree.o: ../../lib/rbtree.c $(OUTPUT)PERF-CFLAGS
+-	$(QUIET_CC)$(CC) -o $@ -c $(ALL_CFLAGS) -DETC_PERFCONFIG='"$(ETC_PERFCONFIG_SQ)"' $<
++	$(QUIET_CC)$(CC) -o $@ -c $(ALL_CFLAGS) -DETC_PERFCONFIG='"$(ETC_PERFCONFIG_SQ)"' -include stdbool.h $<
  
- 	if (pdev->id != AAT2870_ID_BL) {
- 		dev_err(&pdev->dev, "Invalid device ID, %d\n", pdev->id);
--		ret = -EINVAL;
--		goto out;
-+		return -EINVAL;
- 	}
- 
- 	aat2870_bl = devm_kzalloc(&pdev->dev,
-@@ -151,8 +149,7 @@ static int aat2870_bl_probe(struct platf
- 	if (!aat2870_bl) {
- 		dev_err(&pdev->dev,
- 			"Failed to allocate memory for aat2870 backlight\n");
--		ret = -ENOMEM;
--		goto out;
-+		return -ENOMEM;
- 	}
- 
- 	memset(&props, 0, sizeof(struct backlight_properties));
-@@ -163,8 +160,7 @@ static int aat2870_bl_probe(struct platf
- 	if (IS_ERR(bd)) {
- 		dev_err(&pdev->dev,
- 			"Failed allocate memory for backlight device\n");
--		ret = PTR_ERR(bd);
--		goto out;
-+		return PTR_ERR(bd);
- 	}
- 
- 	aat2870_bl->pdev = pdev;
-@@ -201,7 +197,6 @@ static int aat2870_bl_probe(struct platf
- 
- out_bl_dev_unregister:
- 	backlight_device_unregister(bd);
--out:
- 	return ret;
- }
- 
+ $(OUTPUT)util/parse-events.o: util/parse-events.c $(OUTPUT)PERF-CFLAGS
+ 	$(QUIET_CC)$(CC) -o $@ -c $(ALL_CFLAGS) -Wno-redundant-decls $<
 _
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from alexander.shishkin@linux.intel.com are
 
 linux-next.patch
-drivers-video-backlight-da9052_blc-use-usleep_range-instead-of-msleep-for-small-sleeps.patch
-drivers-video-backlight-ltv350qvc-use-usleep_range-instead-of-msleep-for-small-sleeps.patch
-drivers-video-backlight-kb3886_blc-use-usleep_range-instead-of-msleep-for-small-sleeps.patch
-backlight-atmel-pwm-bl-remove-goto-err_free_mem.patch
-drivers-video-backlight-aat2870_blc-remove-goto-out.patch
+rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix-perf-compilation.patch
 
