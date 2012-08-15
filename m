@@ -1,26 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-add-control-statement-test-to-single_statement_do_while_macro.patch added to -mm tree
-Date: Wed, 15 Aug 2012 15:06:24 -0700
-Message-ID: <20120815220625.41E9F5C0050@hpza9.eem.corp.google.com>
+Subject: + rtc-recycle-id-when-unloading-a-rtc-driver.patch added to -mm tree
+Date: Wed, 15 Aug 2012 15:32:26 -0700
+Message-ID: <20120815223226.B2D99100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:43134 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751287Ab2HOWG2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 15 Aug 2012 18:06:28 -0400
-Received: by lagw12 with SMTP id w12so97733lag.1
-        for <mm-commits@vger.kernel.org>; Wed, 15 Aug 2012 15:06:26 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:56805 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750923Ab2HOWc1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Aug 2012 18:32:27 -0400
+Received: by obbwc20 with SMTP id wc20so1511540obb.1
+        for <mm-commits@vger.kernel.org>; Wed, 15 Aug 2012 15:32:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, apw@canonical.com, franzschrober@yahoo.de, sfr@canb.auug.org.au
+Cc: vpalatin@chromium.org, a.zummo@towertech.it
 
 
 The patch titled
-     Subject: checkpatch: add control statement test to SINGLE_STATEMENT_DO_WHILE_MACRO
+     Subject: rtc: recycle id when unloading a rtc driver
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-control-statement-test-to-single_statement_do_while_macro.patch
+     rtc-recycle-id-when-unloading-a-rtc-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +33,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add control statement test to SINGLE_STATEMENT_DO_WHILE_MACRO
+From: Vincent Palatin <vpalatin@chromium.org>
+Subject: rtc: recycle id when unloading a rtc driver
 
-commit b13edf7ff2d ("checkpatch: add checks for do {} while (0) macro
-misuses") added a test that is overly simplistic for single statement
-macros.
+When calling rtc_device_unregister, we are not freeing the id used by the
+driver.  So when doing a unload/load cycle for a RTC driver (e.g.  rmmod
+rtc_cmos && modprobe rtc_cmos), its id is incremented by one.  As a
+consequence, we no longer have neither an rtc0 driver nor a
+/proc/driver/rtc (as it only exists for the first driver).
 
-Macros that start with control tests should be enclosed
-in a do {} while (0) loop.
-
-Add the necessary control tests to the check.
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Andy Whitcroft <apw@canonical.com>
-Tested-by: Franz Schrober <franzschrober@yahoo.de>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Vincent Palatin <vpalatin@chromium.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/rtc/class.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-control-statement-test-to-single_statement_do_while_macro scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-control-statement-test-to-single_statement_do_while_macro
-+++ a/scripts/checkpatch.pl
-@@ -3016,7 +3016,8 @@ sub process {
- 					$herectx .= raw_line($linenr, $n) . "\n";
- 				}
- 
--				if (($stmts =~ tr/;/;/) == 1) {
-+				if (($stmts =~ tr/;/;/) == 1 &&
-+				    $stmts !~ /^\s*(if|while|for|switch)\b/) {
- 					WARN("SINGLE_STATEMENT_DO_WHILE_MACRO",
- 					     "Single statement macros should not use a do {} while (0) loop\n" . "$herectx");
- 				}
+diff -puN drivers/rtc/class.c~rtc-recycle-id-when-unloading-a-rtc-driver drivers/rtc/class.c
+--- a/drivers/rtc/class.c~rtc-recycle-id-when-unloading-a-rtc-driver
++++ a/drivers/rtc/class.c
+@@ -238,6 +238,7 @@ void rtc_device_unregister(struct rtc_de
+ 		rtc_proc_del_device(rtc);
+ 		device_unregister(&rtc->dev);
+ 		rtc->ops = NULL;
++		ida_simple_remove(&rtc_ida, rtc->id);
+ 		mutex_unlock(&rtc->ops_lock);
+ 		put_device(&rtc->dev);
+ 	}
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from vpalatin@chromium.org are
 
-linux-next.patch
-checkpatch-add-control-statement-test-to-single_statement_do_while_macro.patch
+rtc-recycle-id-when-unloading-a-rtc-driver.patch
 
