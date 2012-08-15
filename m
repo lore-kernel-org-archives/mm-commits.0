@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slab_commonc-restructure-kmem_cache_create-to-move-debug-cache-integrity-checks-into-a-new-function.patch added to -mm tree
-Date: Wed, 15 Aug 2012 16:47:50 -0700
-Message-ID: <20120815234751.30BE1200057@hpza10.eem.corp.google.com>
+Subject: + mm-slab_commonc-restructure-kmem_cache_create-to-move-debug-cache-integrity-checks-into-a-new-function-fix.patch added to -mm tree
+Date: Wed, 15 Aug 2012 16:53:28 -0700
+Message-ID: <20120815235328.ECCC520004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:61916 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754320Ab2HOXrx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Aug 2012 19:47:53 -0400
-Received: by faem1 with SMTP id m1so10772fae.1
-        for <mm-commits@vger.kernel.org>; Wed, 15 Aug 2012 16:47:52 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:43631 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753008Ab2HOXxb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Aug 2012 19:53:31 -0400
+Received: by wibhr14 with SMTP id hr14so5284wib.1
+        for <mm-commits@vger.kernel.org>; Wed, 15 Aug 2012 16:53:30 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shuah.khan@hp.com, cl@linux.com, penberg@kernel.org
+Cc: akpm@linux-foundation.org, cl@linux.com, penberg@kernel.org, shuah.khan@hp.com
 
 
 The patch titled
-     Subject: mm/slab_common.c: restructure kmem_cache_create() to move debug cache integrity checks into a new function
+     Subject: mm-slab_commonc-restructure-kmem_cache_create-to-move-debug-cache-integrity-checks-into-a-new-function-fix
 has been added to the -mm tree.  Its filename is
-     mm-slab_commonc-restructure-kmem_cache_create-to-move-debug-cache-integrity-checks-into-a-new-function.patch
+     mm-slab_commonc-restructure-kmem_cache_create-to-move-debug-cache-integrity-checks-into-a-new-function-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,125 +33,65 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Shuah Khan <shuah.khan@hp.com>
-Subject: mm/slab_common.c: restructure kmem_cache_create() to move debug cache integrity checks into a new function
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-slab_commonc-restructure-kmem_cache_create-to-move-debug-cache-integrity-checks-into-a-new-function-fix
 
-kmem_cache_create() does cache integrity checks when CONFIG_DEBUG_VM is
-defined.  These checks interspersed with the regular code path has lead to
-compile time warnings when compiled without CONFIG_DEBUG_VM defined. 
-Restructuring the code to move the integrity checks in to a new function
-would eliminate the current compile warning problem and also will allow
-for future changes to the debug only code to evolve without introducing
-new warnings in the regular path.  This restructuring work is based on the
-discussion in the following thread:
-
-https://lkml.org/lkml/2012/7/13/424
-
-Signed-off-by: Shuah Khan <shuah.khan@hp.com>
-Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Shuah Khan <shuah.khan@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |   90 ++++++++++++++++++++++++---------------------
- 1 file changed, 48 insertions(+), 42 deletions(-)
+ mm/slab_common.c |   11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
 
-diff -puN mm/slab_common.c~mm-slab_commonc-restructure-kmem_cache_create-to-move-debug-cache-integrity-checks-into-a-new-function mm/slab_common.c
---- a/mm/slab_common.c~mm-slab_commonc-restructure-kmem_cache_create-to-move-debug-cache-integrity-checks-into-a-new-function
+diff -puN mm/slab_common.c~mm-slab_commonc-restructure-kmem_cache_create-to-move-debug-cache-integrity-checks-into-a-new-function-fix mm/slab_common.c
+--- a/mm/slab_common.c~mm-slab_commonc-restructure-kmem_cache_create-to-move-debug-cache-integrity-checks-into-a-new-function-fix
 +++ a/mm/slab_common.c
-@@ -23,6 +23,52 @@ enum slab_state slab_state;
- LIST_HEAD(slab_caches);
- DEFINE_MUTEX(slab_mutex);
+@@ -101,15 +101,8 @@ struct kmem_cache *kmem_cache_create(con
  
-+#ifdef CONFIG_DEBUG_VM
-+static int kmem_cache_sanity_check(const char *name, size_t size)
-+{
-+	struct kmem_cache *s = NULL;
-+
-+	if (!name || in_interrupt() || size < sizeof(void *) ||
-+		size > KMALLOC_MAX_SIZE) {
-+		pr_err("kmem_cache_create(%s) integrity check failed\n", name);
-+		return -EINVAL;
-+	}
-+
-+	list_for_each_entry(s, &slab_caches, list) {
-+		char tmp;
-+		int res;
-+
-+		/*
-+		 * This happens when the module gets unloaded and doesn't
-+		 * destroy its slab cache and no-one else reuses the vmalloc
-+		 * area of the module.  Print a warning.
-+		 */
-+		res = probe_kernel_address(s->name, tmp);
-+		if (res) {
-+			pr_err("Slab cache with size %d has lost its name\n",
-+			       s->object_size);
-+			continue;
-+		}
-+
-+		if (!strcmp(s->name, name)) {
-+			pr_err("%s (%s): Cache name already exists.\n",
-+			       __func__, name);
-+			dump_stack();
-+			s = NULL;
-+			return -EINVAL;
-+		}
-+	}
-+
-+	WARN_ON(strchr(name, ' '));	/* It confuses parsers */
-+	return 0;
-+}
-+#else
-+static inline int kmem_cache_sanity_check(const char *name, size_t size)
-+{
-+	return 0;
-+}
-+#endif
-+
- /*
-  * kmem_cache_create - Create a cache.
-  * @name: A string which is used in /proc/slabinfo to identify this cache.
-@@ -53,48 +99,11 @@ struct kmem_cache *kmem_cache_create(con
- {
- 	struct kmem_cache *s = NULL;
- 
--#ifdef CONFIG_DEBUG_VM
--	if (!name || in_interrupt() || size < sizeof(void *) ||
--		size > KMALLOC_MAX_SIZE) {
--		printk(KERN_ERR "kmem_cache_create(%s) integrity check"
--			" failed\n", name);
--		goto out;
--	}
--#endif
--
  	get_online_cpus();
  	mutex_lock(&slab_mutex);
- 
+-
+-	if (kmem_cache_sanity_check(name, size))
+-		goto oops;
+-
+-	s = __kmem_cache_create(name, size, align, flags, ctor);
+-
 -#ifdef CONFIG_DEBUG_VM
--	list_for_each_entry(s, &slab_caches, list) {
--		char tmp;
--		int res;
--
--		/*
--		 * This happens when the module gets unloaded and doesn't
--		 * destroy its slab cache and no-one else reuses the vmalloc
--		 * area of the module.  Print a warning.
--		 */
--		res = probe_kernel_address(s->name, tmp);
--		if (res) {
--			printk(KERN_ERR
--			       "Slab cache with size %d has lost its name\n",
--			       s->object_size);
--			continue;
--		}
--
--		if (!strcmp(s->name, name)) {
--			printk(KERN_ERR "kmem_cache_create(%s): Cache name"
--				" already exists.\n",
--				name);
--			dump_stack();
--			s = NULL;
--			goto oops;
--		}
--	}
+-oops:
+-#endif
++	if (kmem_cache_sanity_check(name, size) == 0)
++		s = __kmem_cache_create(name, size, align, flags, ctor);
+ 	mutex_unlock(&slab_mutex);
+ 	put_online_cpus();
+ 
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+linux-next.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-hugetlbfs-correctly-populate-shared-pmd-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+audith-replace-defines-with-c-stubs.patch
+thermal-add-generic-cpufreq-cooling-implementation.patch
+thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
+thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
+mm-slab_commonc-fix-warning.patch
+mm.patch
+x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
+mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
+rbtree-performance-and-correctness-test-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+rtc-add-dallas-ds2404-driver-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+mm-slab_commonc-restructure-kmem_cache_create-to-move-debug-cache-integrity-checks-into-a-new-function-fix.patch
+
