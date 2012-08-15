@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-snvs-add-freescale-rtc-snvs-driver.patch added to -mm tree
-Date: Tue, 14 Aug 2012 17:03:12 -0700
-Message-ID: <20120815000313.0AF0920004E@hpza10.eem.corp.google.com>
+Subject: + drivers-misc-lis3lv02d-add-generic-dt-matching-code.patch added to -mm tree
+Date: Tue, 14 Aug 2012 17:06:33 -0700
+Message-ID: <20120815000634.8E48520004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:42328 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755002Ab2HOADP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Aug 2012 20:03:15 -0400
-Received: by wibhr14 with SMTP id hr14so47566wib.1
-        for <mm-commits@vger.kernel.org>; Tue, 14 Aug 2012 17:03:14 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:64872 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754288Ab2HOAGh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Aug 2012 20:06:37 -0400
+Received: by eekd4 with SMTP id d4so47782eek.1
+        for <mm-commits@vger.kernel.org>; Tue, 14 Aug 2012 17:06:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shawn.guo@linaro.org, a.zummo@towertech.it, kim.phillips@freescale.com, s.hauer@pengutronix.de, sboyd@codeaurora.org
+Cc: zonque@gmail.com, eric.piel@tremplin-utc.net, grant.likely@secretlab.ca, rob.herring@calxeda.com
 
 
 The patch titled
-     Subject: rtc: snvs: add Freescale rtc-snvs driver
+     Subject: drivers/misc/lis3lv02d: add generic DT matching code
 has been added to the -mm tree.  Its filename is
-     rtc-snvs-add-freescale-rtc-snvs-driver.patch
+     drivers-misc-lis3lv02d-add-generic-dt-matching-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,510 +33,290 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Shawn Guo <shawn.guo@linaro.org>
-Subject: rtc: snvs: add Freescale rtc-snvs driver
+From: Daniel Mack <zonque@gmail.com>
+Subject: drivers/misc/lis3lv02d: add generic DT matching code
 
-Add an RTC driver for Freescale Secure Non-Volatile Storage (SNVS)
-Low Power (LP) RTC.
+Adds logic to parse lis3 properties from a device tree node and store them
+in a freshly allocated lis3lv02d_platform_data.
 
-Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
-Reviewed-by: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Kim Phillips <kim.phillips@freescale.com>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>
+Note that the actual match tables are left out here. This part should
+happen in the drivers that bind to the individual busses (SPI/I2C/PCI).
+
+Also adds some DT bindinds documentation.
+
+Signed-off-by: Daniel Mack <zonque@gmail.com>
+Cc: Eric Piel <eric.piel@tremplin-utc.net>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Rob Herring <rob.herring@calxeda.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/devicetree/bindings/crypto/fsl-sec4.txt |   51 +
- Documentation/devicetree/bindings/rtc/snvs-rtc.txt    |    1 
- drivers/rtc/Kconfig                                   |   11 
- drivers/rtc/Makefile                                  |    1 
- drivers/rtc/rtc-snvs.c                                |  350 ++++++++++
- 5 files changed, 414 insertions(+)
+ Documentation/devicetree/bindings/misc/lis302.txt |   74 ++++++
+ drivers/misc/lis3lv02d/lis3lv02d.c                |  137 ++++++++++++
+ drivers/misc/lis3lv02d/lis3lv02d.h                |    4 
+ 3 files changed, 215 insertions(+)
 
-diff -puN Documentation/devicetree/bindings/crypto/fsl-sec4.txt~rtc-snvs-add-freescale-rtc-snvs-driver Documentation/devicetree/bindings/crypto/fsl-sec4.txt
---- a/Documentation/devicetree/bindings/crypto/fsl-sec4.txt~rtc-snvs-add-freescale-rtc-snvs-driver
-+++ a/Documentation/devicetree/bindings/crypto/fsl-sec4.txt
-@@ -9,6 +9,7 @@ Copyright (C) 2008-2011 Freescale Semico
-    -Run Time Integrity Check (RTIC) Node
-    -Run Time Integrity Check (RTIC) Memory Node
-    -Secure Non-Volatile Storage (SNVS) Node
-+   -Secure Non-Volatile Storage (SNVS) Low Power (LP) RTC Node
-    -Full Example
- 
- NOTE: the SEC 4 is also known as Freescale's Cryptographic Accelerator
-@@ -294,6 +295,27 @@ Secure Non-Volatile Storage (SNVS) Node
-           address and length of the SEC4 configuration
-           registers.
- 
-+   - #address-cells
-+       Usage: required
-+       Value type: <u32>
-+       Definition: A standard property.  Defines the number of cells
-+           for representing physical addresses in child nodes.  Must
-+           have a value of 1.
+diff -puN /dev/null Documentation/devicetree/bindings/misc/lis302.txt
+--- /dev/null
++++ a/Documentation/devicetree/bindings/misc/lis302.txt
+@@ -0,0 +1,74 @@
++LIS302 accelerometer devicetree bindings
 +
-+   - #size-cells
-+       Usage: required
-+       Value type: <u32>
-+       Definition: A standard property.  Defines the number of cells
-+           for representing the size of physical addresses in
-+           child nodes.  Must have a value of 1.
++This device is matched via its bus drivers, and has a number of properties
++that apply in on the generic device (independent from the bus).
 +
-+   - ranges
-+       Usage: required
-+       Value type: <prop-encoded-array>
-+       Definition: A standard property.  Specifies the physical address
-+           range of the SNVS register space.  A triplet that includes
-+           the child address, parent address, & length.
 +
-    - interrupts
-       Usage: required
-       Value type: <prop_encoded-array>
-@@ -314,11 +336,34 @@ EXAMPLE
- 	sec_mon@314000 {
- 		compatible = "fsl,sec-v4.0-mon";
- 		reg = <0x314000 0x1000>;
-+		ranges = <0 0x314000 0x1000>;
- 		interrupt-parent = <&mpic>;
- 		interrupts = <93 2>;
- 	};
- 
- =====================================================================
-+Secure Non-Volatile Storage (SNVS) Low Power (LP) RTC Node
++Required properties for the SPI bindings:
++ - compatible: 		should be set to "st,lis3lv02d_spi"
++ - reg:			the chipselect index
++ - spi-max-frequency:	maximal bus speed, should be set to 1000000 unless
++			constrained by external circuitry
++ - interrupts:		the interrupt generated by the device
 +
-+  A SNVS child node that defines SNVS LP RTC.
 +
-+  - compatible
-+      Usage: required
-+      Value type: <string>
-+      Definition: Must include "fsl,sec-v4.0-mon-rtc-lp".
++Optional properties for all bus drivers:
 +
-+  - reg
-+      Usage: required
-+      Value type: <prop-encoded-array>
-+      Definition: A standard property.  Specifies the physical
-+          address and length of the SNVS LP configuration registers.
++ - st,click-single-{x,y,z}:	if present, tells the device to issue an
++				interrupt on single click events on the
++				x/y/z axis.
++ - st,click-double-{x,y,z}:	if present, tells the device to issue an
++				interrupt on double click events on the
++				x/y/z axis.
++ - st,click-thresh-{x,y,z}:	set the x/y/z axis threshold
++ - st,click-click-time-limit:	click time limit, from 0 to 127.5msec
++				with step of 0.5 msec
++ - st,click-latency:		click latency, from 0 to 255 msec with
++				step of 1 msec.
++ - st,click-window:		click window, from 0 to 255 msec with
++				step of 1 msec.
++ - st,irq{1,2}-disable:		disable IRQ 1/2
++ - st,irq{1,2}-ff-wu-1:		raise IRQ 1/2 on FF_WU_1 condition
++ - st,irq{1,2}-ff-wu-2:		raise IRQ 1/2 on FF_WU_2 condition
++ - st,irq{1,2}-data-ready:	raise IRQ 1/2 on data ready contition
++ - st,irq{1,2}-click:		raise IRQ 1/2 on click condition
++ - st,irq-open-drain:		consider IRQ lines open-drain
++ - st,irq-active-low:		make IRQ lines active low
++ - st,wu-duration-1:		duration register for Free-Fall/Wake-Up
++				interrupt 1
++ - st,wu-duration-2:		duration register for Free-Fall/Wake-Up
++				interrupt 2
++ - st,wakeup-{x,y,z}-{lo,hi}:	set wakeup condition on x/y/z axis for
++				upper/lower limit
++ - st,highpass-cutoff-hz=:	1, 2, 4 or 8 for 1Hz, 2Hz, 4Hz or 8Hz of
++				highpass cut-off frequency
++ - st,hipass{1,2}-disable:	disable highpass 1/2.
++ - st,default-rate=:		set the default rate
++ - st,axis-{x,y,z}=:		set the axis to map to the three coordinates
 +
-+EXAMPLE
-+	sec_mon_rtc_lp@314000 {
-+		compatible = "fsl,sec-v4.0-mon-rtc-lp";
-+		reg = <0x34 0x58>;
++
++Example for a SPI device node:
++
++	lis302@0 {
++		compatible = "st,lis302dl-spi";
++		reg = <0>;
++		spi-max-frequency = <1000000>;
++		interrupt-parent = <&gpio>;
++		interrupts = <104 0>;
++
++		st,click-single-x;
++		st,click-single-y;
++		st,click-single-z;
++		st,click-thresh-x = <10>;
++		st,click-thresh-y = <10>;
++		st,click-thresh-z = <10>;
++		st,irq1-click;
++		st,irq2-click;
++		st,wakeup-x-lo;
++		st,wakeup-x-hi;
++		st,wakeup-y-lo;
++		st,wakeup-y-hi;
++		st,wakeup-z-lo;
++		st,wakeup-z-hi;
 +	};
 +
-+=====================================================================
- FULL EXAMPLE
- 
- 	crypto: crypto@300000 {
-@@ -390,8 +435,14 @@ FULL EXAMPLE
- 	sec_mon: sec_mon@314000 {
- 		compatible = "fsl,sec-v4.0-mon";
- 		reg = <0x314000 0x1000>;
-+		ranges = <0 0x314000 0x1000>;
- 		interrupt-parent = <&mpic>;
- 		interrupts = <93 2>;
-+
-+		sec_mon_rtc_lp@34 {
-+			compatible = "fsl,sec-v4.0-mon-rtc-lp";
-+			reg = <0x34 0x58>;
-+		};
- 	};
- 
- =====================================================================
-diff -puN /dev/null Documentation/devicetree/bindings/rtc/snvs-rtc.txt
---- /dev/null
-+++ a/Documentation/devicetree/bindings/rtc/snvs-rtc.txt
-@@ -0,0 +1 @@
-+See Documentation/devicetree/bindings/crypto/fsl-sec4.txt for details.
-diff -puN drivers/rtc/Kconfig~rtc-snvs-add-freescale-rtc-snvs-driver drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-snvs-add-freescale-rtc-snvs-driver
-+++ a/drivers/rtc/Kconfig
-@@ -1109,4 +1109,15 @@ config RTC_DRV_MXC
- 	   This driver can also be built as a module, if so, the module
- 	   will be called "rtc-mxc".
- 
-+config RTC_DRV_SNVS
-+	tristate "Freescale SNVS RTC support"
-+	depends on HAS_IOMEM
-+	depends on OF
-+	help
-+	   If you say yes here you get support for the Freescale SNVS
-+	   Low Power (LP) RTC module.
-+
-+	   This driver can also be built as a module, if so, the module
-+	   will be called "rtc-snvs".
-+
- endif # RTC_CLASS
-diff -puN drivers/rtc/Makefile~rtc-snvs-add-freescale-rtc-snvs-driver drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-snvs-add-freescale-rtc-snvs-driver
-+++ a/drivers/rtc/Makefile
-@@ -97,6 +97,7 @@ obj-$(CONFIG_RTC_DRV_S35390A)	+= rtc-s35
- obj-$(CONFIG_RTC_DRV_S3C)	+= rtc-s3c.o
- obj-$(CONFIG_RTC_DRV_SA1100)	+= rtc-sa1100.o
- obj-$(CONFIG_RTC_DRV_SH)	+= rtc-sh.o
-+obj-$(CONFIG_RTC_DRV_SNVS)	+= rtc-snvs.o
- obj-$(CONFIG_RTC_DRV_SPEAR)	+= rtc-spear.o
- obj-$(CONFIG_RTC_DRV_STARFIRE)	+= rtc-starfire.o
- obj-$(CONFIG_RTC_DRV_STK17TA8)	+= rtc-stk17ta8.o
-diff -puN /dev/null drivers/rtc/rtc-snvs.c
---- /dev/null
-+++ a/drivers/rtc/rtc-snvs.c
-@@ -0,0 +1,350 @@
-+/*
-+ * Copyright (C) 2011-2012 Freescale Semiconductor, Inc.
-+ *
-+ * The code contained herein is licensed under the GNU General Public
-+ * License. You may obtain a copy of the GNU General Public License
-+ * Version 2 or later at the following locations:
-+ *
-+ * http://www.opensource.org/licenses/gpl-license.html
-+ * http://www.gnu.org/copyleft/gpl.html
-+ */
-+
-+#include <linux/init.h>
-+#include <linux/io.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
+diff -puN drivers/misc/lis3lv02d/lis3lv02d.c~drivers-misc-lis3lv02d-add-generic-dt-matching-code drivers/misc/lis3lv02d/lis3lv02d.c
+--- a/drivers/misc/lis3lv02d/lis3lv02d.c~drivers-misc-lis3lv02d-add-generic-dt-matching-code
++++ a/drivers/misc/lis3lv02d/lis3lv02d.c
+@@ -39,6 +39,7 @@
+ #include <linux/miscdevice.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/atomic.h>
 +#include <linux/of_device.h>
-+#include <linux/platform_device.h>
-+#include <linux/rtc.h>
-+
-+/* These register offsets are relative to LP (Low Power) range */
-+#define SNVS_LPCR		0x04
-+#define SNVS_LPSR		0x18
-+#define SNVS_LPSRTCMR		0x1c
-+#define SNVS_LPSRTCLR		0x20
-+#define SNVS_LPTAR		0x24
-+#define SNVS_LPPGDR		0x30
-+
-+#define SNVS_LPCR_SRTC_ENV	(1 << 0)
-+#define SNVS_LPCR_LPTA_EN	(1 << 1)
-+#define SNVS_LPCR_LPWUI_EN	(1 << 3)
-+#define SNVS_LPSR_LPTA		(1 << 0)
-+
-+#define SNVS_LPPGDR_INIT	0x41736166
-+#define CNTR_TO_SECS_SH		15
-+
-+struct snvs_rtc_data {
-+	struct rtc_device *rtc;
-+	void __iomem *ioaddr;
-+	int irq;
-+	spinlock_t lock;
-+};
-+
-+static u32 rtc_read_lp_counter(void __iomem *ioaddr)
+ #include "lis3lv02d.h"
+ 
+ #define DRIVER_NAME     "lis3lv02d"
+@@ -912,6 +913,138 @@ static void lis3lv02d_8b_configure(struc
+ 	}
+ }
+ 
++#ifdef CONFIG_OF
++static int lis3lv02d_init_dt(struct lis3lv02d *lis3)
 +{
-+	u64 read1, read2;
++	struct lis3lv02d_platform_data *pdata;
++	struct device_node *np = lis3->of_node;
++	u32 tmp;
 +
-+	do {
-+		read1 = readl(ioaddr + SNVS_LPSRTCMR);
-+		read1 <<= 32;
-+		read1 |= readl(ioaddr + SNVS_LPSRTCLR);
++	if (!lis3->of_node)
++		return 0;
 +
-+		read2 = readl(ioaddr + SNVS_LPSRTCMR);
-+		read2 <<= 32;
-+		read2 |= readl(ioaddr + SNVS_LPSRTCLR);
-+	} while (read1 != read2);
-+
-+	/* Convert 47-bit counter to 32-bit raw second count */
-+	return (u32) (read1 >> CNTR_TO_SECS_SH);
-+}
-+
-+static void rtc_write_sync_lp(void __iomem *ioaddr)
-+{
-+	u32 count1, count2, count3;
-+	int i;
-+
-+	/* Wait for 3 CKIL cycles */
-+	for (i = 0; i < 3; i++) {
-+		do {
-+			count1 = readl(ioaddr + SNVS_LPSRTCLR);
-+			count2 = readl(ioaddr + SNVS_LPSRTCLR);
-+		} while (count1 != count2);
-+
-+		/* Now wait until counter value changes */
-+		do {
-+			do {
-+				count2 = readl(ioaddr + SNVS_LPSRTCLR);
-+				count3 = readl(ioaddr + SNVS_LPSRTCLR);
-+			} while (count2 != count3);
-+		} while (count3 == count1);
-+	}
-+}
-+
-+static int snvs_rtc_enable(struct snvs_rtc_data *data, bool enable)
-+{
-+	unsigned long timeout = jiffies + msecs_to_jiffies(1);
-+	unsigned long flags;
-+	u32 lpcr;
-+
-+	spin_lock_irqsave(&data->lock, flags);
-+
-+	lpcr = readl(data->ioaddr + SNVS_LPCR);
-+	if (enable)
-+		lpcr |= SNVS_LPCR_SRTC_ENV;
-+	else
-+		lpcr &= ~SNVS_LPCR_SRTC_ENV;
-+	writel(lpcr, data->ioaddr + SNVS_LPCR);
-+
-+	spin_unlock_irqrestore(&data->lock, flags);
-+
-+	while (1) {
-+		lpcr = readl(data->ioaddr + SNVS_LPCR);
-+
-+		if (enable) {
-+			if (lpcr & SNVS_LPCR_SRTC_ENV)
-+				break;
-+		} else {
-+			if (!(lpcr & SNVS_LPCR_SRTC_ENV))
-+				break;
-+		}
-+
-+		if (time_after(jiffies, timeout))
-+			return -ETIMEDOUT;
-+	}
-+
-+	return 0;
-+}
-+
-+static int snvs_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct snvs_rtc_data *data = dev_get_drvdata(dev);
-+	unsigned long time = rtc_read_lp_counter(data->ioaddr);
-+
-+	rtc_time_to_tm(time, tm);
-+
-+	return 0;
-+}
-+
-+static int snvs_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct snvs_rtc_data *data = dev_get_drvdata(dev);
-+	unsigned long time;
-+
-+	rtc_tm_to_time(tm, &time);
-+
-+	/* Disable RTC first */
-+	snvs_rtc_enable(data, false);
-+
-+	/* Write 32-bit time to 47-bit timer, leaving 15 LSBs blank */
-+	writel(time << CNTR_TO_SECS_SH, data->ioaddr + SNVS_LPSRTCLR);
-+	writel(time >> (32 - CNTR_TO_SECS_SH), data->ioaddr + SNVS_LPSRTCMR);
-+
-+	/* Enable RTC again */
-+	snvs_rtc_enable(data, true);
-+
-+	return 0;
-+}
-+
-+static int snvs_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
-+{
-+	struct snvs_rtc_data *data = dev_get_drvdata(dev);
-+	u32 lptar, lpsr;
-+
-+	lptar = readl(data->ioaddr + SNVS_LPTAR);
-+	rtc_time_to_tm(lptar, &alrm->time);
-+
-+	lpsr = readl(data->ioaddr + SNVS_LPSR);
-+	alrm->pending = (lpsr & SNVS_LPSR_LPTA) ? 1 : 0;
-+
-+	return 0;
-+}
-+
-+static int snvs_rtc_alarm_irq_enable(struct device *dev, unsigned int enable)
-+{
-+	struct snvs_rtc_data *data = dev_get_drvdata(dev);
-+	u32 lpcr;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&data->lock, flags);
-+
-+	lpcr = readl(data->ioaddr + SNVS_LPCR);
-+	if (enable)
-+		lpcr |= (SNVS_LPCR_LPTA_EN | SNVS_LPCR_LPWUI_EN);
-+	else
-+		lpcr &= ~(SNVS_LPCR_LPTA_EN | SNVS_LPCR_LPWUI_EN);
-+	writel(lpcr, data->ioaddr + SNVS_LPCR);
-+
-+	spin_unlock_irqrestore(&data->lock, flags);
-+
-+	rtc_write_sync_lp(data->ioaddr);
-+
-+	return 0;
-+}
-+
-+static int snvs_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
-+{
-+	struct snvs_rtc_data *data = dev_get_drvdata(dev);
-+	struct rtc_time *alrm_tm = &alrm->time;
-+	unsigned long time;
-+	unsigned long flags;
-+	u32 lpcr;
-+
-+	rtc_tm_to_time(alrm_tm, &time);
-+
-+	spin_lock_irqsave(&data->lock, flags);
-+
-+	/* Have to clear LPTA_EN before programming new alarm time in LPTAR */
-+	lpcr = readl(data->ioaddr + SNVS_LPCR);
-+	lpcr &= ~SNVS_LPCR_LPTA_EN;
-+	writel(lpcr, data->ioaddr + SNVS_LPCR);
-+
-+	spin_unlock_irqrestore(&data->lock, flags);
-+
-+	writel(time, data->ioaddr + SNVS_LPTAR);
-+
-+	/* Clear alarm interrupt status bit */
-+	writel(SNVS_LPSR_LPTA, data->ioaddr + SNVS_LPSR);
-+
-+	return snvs_rtc_alarm_irq_enable(dev, alrm->enabled);
-+}
-+
-+static const struct rtc_class_ops snvs_rtc_ops = {
-+	.read_time = snvs_rtc_read_time,
-+	.set_time = snvs_rtc_set_time,
-+	.read_alarm = snvs_rtc_read_alarm,
-+	.set_alarm = snvs_rtc_set_alarm,
-+	.alarm_irq_enable = snvs_rtc_alarm_irq_enable,
-+};
-+
-+static irqreturn_t snvs_rtc_irq_handler(int irq, void *dev_id)
-+{
-+	struct device *dev = dev_id;
-+	struct snvs_rtc_data *data = dev_get_drvdata(dev);
-+	u32 lpsr;
-+	u32 events = 0;
-+
-+	lpsr = readl(data->ioaddr + SNVS_LPSR);
-+
-+	if (lpsr & SNVS_LPSR_LPTA) {
-+		events |= (RTC_AF | RTC_IRQF);
-+
-+		/* RTC alarm should be one-shot */
-+		snvs_rtc_alarm_irq_enable(dev, 0);
-+
-+		rtc_update_irq(data->rtc, 1, events);
-+	}
-+
-+	/* clear interrupt status */
-+	writel(lpsr, data->ioaddr + SNVS_LPSR);
-+
-+	return events ? IRQ_HANDLED : IRQ_NONE;
-+}
-+
-+static int __devinit snvs_rtc_probe(struct platform_device *pdev)
-+{
-+	struct snvs_rtc_data *data;
-+	struct resource *res;
-+	int ret;
-+
-+	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
-+	if (!data)
++	pdata = kzalloc(sizeof(*pdata), GFP_KERNEL);
++	if (!pdata)
 +		return -ENOMEM;
 +
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	data->ioaddr = devm_request_and_ioremap(&pdev->dev, res);
-+	if (!data->ioaddr)
-+		return -EADDRNOTAVAIL;
++	if (of_get_property(np, "st,click-single-x", NULL))
++		pdata->click_flags |= LIS3_CLICK_SINGLE_X;
++	if (of_get_property(np, "st,click-double-x", NULL))
++		pdata->click_flags |= LIS3_CLICK_DOUBLE_X;
 +
-+	data->irq = platform_get_irq(pdev, 0);
-+	if (data->irq < 0)
-+		return data->irq;
++	if (of_get_property(np, "st,click-single-y", NULL))
++		pdata->click_flags |= LIS3_CLICK_SINGLE_Y;
++	if (of_get_property(np, "st,click-double-y", NULL))
++		pdata->click_flags |= LIS3_CLICK_DOUBLE_Y;
 +
-+	platform_set_drvdata(pdev, data);
++	if (of_get_property(np, "st,click-single-z", NULL))
++		pdata->click_flags |= LIS3_CLICK_SINGLE_Z;
++	if (of_get_property(np, "st,click-double-z", NULL))
++		pdata->click_flags |= LIS3_CLICK_DOUBLE_Z;
 +
-+	spin_lock_init(&data->lock);
++	if (!of_property_read_u32(np, "st,click-threshold-x", &tmp))
++		pdata->click_thresh_x = tmp;
++	if (!of_property_read_u32(np, "st,click-threshold-y", &tmp))
++		pdata->click_thresh_y = tmp;
++	if (!of_property_read_u32(np, "st,click-threshold-z", &tmp))
++		pdata->click_thresh_z = tmp;
 +
-+	/* Initialize glitch detect */
-+	writel(SNVS_LPPGDR_INIT, data->ioaddr + SNVS_LPPGDR);
++	if (!of_property_read_u32(np, "st,click-time-limit", &tmp))
++		pdata->click_time_limit = tmp;
++	if (!of_property_read_u32(np, "st,click-latency", &tmp))
++		pdata->click_latency = tmp;
++	if (!of_property_read_u32(np, "st,click-window", &tmp))
++		pdata->click_window = tmp;
 +
-+	/* Clear interrupt status */
-+	writel(0xffffffff, data->ioaddr + SNVS_LPSR);
++	if (of_get_property(np, "st,irq1-disable", NULL))
++		pdata->irq_cfg |= LIS3_IRQ1_DISABLE;
++	if (of_get_property(np, "st,irq1-ff-wu-1", NULL))
++		pdata->irq_cfg |= LIS3_IRQ1_FF_WU_1;
++	if (of_get_property(np, "st,irq1-ff-wu-2", NULL))
++		pdata->irq_cfg |= LIS3_IRQ1_FF_WU_2;
++	if (of_get_property(np, "st,irq1-data-ready", NULL))
++		pdata->irq_cfg |= LIS3_IRQ1_DATA_READY;
++	if (of_get_property(np, "st,irq1-click", NULL))
++		pdata->irq_cfg |= LIS3_IRQ1_CLICK;
 +
-+	/* Enable RTC */
-+	snvs_rtc_enable(data, true);
++	if (of_get_property(np, "st,irq2-disable", NULL))
++		pdata->irq_cfg |= LIS3_IRQ2_DISABLE;
++	if (of_get_property(np, "st,irq2-ff-wu-1", NULL))
++		pdata->irq_cfg |= LIS3_IRQ2_FF_WU_1;
++	if (of_get_property(np, "st,irq2-ff-wu-2", NULL))
++		pdata->irq_cfg |= LIS3_IRQ2_FF_WU_2;
++	if (of_get_property(np, "st,irq2-data-ready", NULL))
++		pdata->irq_cfg |= LIS3_IRQ2_DATA_READY;
++	if (of_get_property(np, "st,irq2-click", NULL))
++		pdata->irq_cfg |= LIS3_IRQ2_CLICK;
 +
-+	device_init_wakeup(&pdev->dev, true);
++	if (of_get_property(np, "st,irq-open-drain", NULL))
++		pdata->irq_cfg |= LIS3_IRQ_OPEN_DRAIN;
++	if (of_get_property(np, "st,irq-active-low", NULL))
++		pdata->irq_cfg |= LIS3_IRQ_ACTIVE_LOW;
 +
-+	ret = devm_request_irq(&pdev->dev, data->irq, snvs_rtc_irq_handler,
-+			       IRQF_SHARED, "rtc alarm", &pdev->dev);
-+	if (ret) {
-+		dev_err(&pdev->dev, "failed to request irq %d: %d\n",
-+			data->irq, ret);
-+		return ret;
++	if (!of_property_read_u32(np, "st,wu-duration-1", &tmp))
++		pdata->duration1 = tmp;
++	if (!of_property_read_u32(np, "st,wu-duration-2", &tmp))
++		pdata->duration2 = tmp;
++
++	if (of_get_property(np, "st,wakeup-x-lo", NULL))
++		pdata->wakeup_flags |= LIS3_WAKEUP_X_LO;
++	if (of_get_property(np, "st,wakeup-x-hi", NULL))
++		pdata->wakeup_flags |= LIS3_WAKEUP_X_HI;
++	if (of_get_property(np, "st,wakeup-y-lo", NULL))
++		pdata->wakeup_flags |= LIS3_WAKEUP_Y_LO;
++	if (of_get_property(np, "st,wakeup-y-hi", NULL))
++		pdata->wakeup_flags |= LIS3_WAKEUP_Y_HI;
++	if (of_get_property(np, "st,wakeup-z-lo", NULL))
++		pdata->wakeup_flags |= LIS3_WAKEUP_Z_LO;
++	if (of_get_property(np, "st,wakeup-z-hi", NULL))
++		pdata->wakeup_flags |= LIS3_WAKEUP_Z_HI;
++
++	if (!of_property_read_u32(np, "st,highpass-cutoff-hz", &tmp)) {
++		switch (tmp) {
++		case 1:
++			pdata->hipass_ctrl = LIS3_HIPASS_CUTFF_1HZ;
++			break;
++		case 2:
++			pdata->hipass_ctrl = LIS3_HIPASS_CUTFF_2HZ;
++			break;
++		case 4:
++			pdata->hipass_ctrl = LIS3_HIPASS_CUTFF_4HZ;
++			break;
++		case 8:
++			pdata->hipass_ctrl = LIS3_HIPASS_CUTFF_8HZ;
++			break;
++		}
 +	}
 +
-+	data->rtc = rtc_device_register(pdev->name, &pdev->dev,
-+					&snvs_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(data->rtc)) {
-+		ret = PTR_ERR(data->rtc);
-+		dev_err(&pdev->dev, "failed to register rtc: %d\n", ret);
-+		return ret;
-+	}
++	if (of_get_property(np, "st,hipass1-disable", NULL))
++		pdata->hipass_ctrl |= LIS3_HIPASS1_DISABLE;
++	if (of_get_property(np, "st,hipass2-disable", NULL))
++		pdata->hipass_ctrl |= LIS3_HIPASS2_DISABLE;
++
++	if (of_get_property(np, "st,axis-x", NULL))
++		pdata->axis_x = tmp;
++	if (of_get_property(np, "st,axis-y", NULL))
++		pdata->axis_y = tmp;
++	if (of_get_property(np, "st,axis-z", NULL))
++		pdata->axis_z = tmp;
++
++	if (of_get_property(np, "st,default-rate", NULL))
++		pdata->default_rate = tmp;
++
++	lis3->pdata = pdata;
 +
 +	return 0;
 +}
 +
-+static int __devexit snvs_rtc_remove(struct platform_device *pdev)
++#else
++static int lis3lv02d_init_dt(struct lis3lv02d *lis3)
 +{
-+	struct snvs_rtc_data *data = platform_get_drvdata(pdev);
-+
-+	rtc_device_unregister(data->rtc);
-+
-+	return 0;
-+}
-+
-+#ifdef CONFIG_PM_SLEEP
-+static int snvs_rtc_suspend(struct device *dev)
-+{
-+	struct snvs_rtc_data *data = dev_get_drvdata(dev);
-+
-+	if (device_may_wakeup(dev))
-+		enable_irq_wake(data->irq);
-+
-+	return 0;
-+}
-+
-+static int snvs_rtc_resume(struct device *dev)
-+{
-+	struct snvs_rtc_data *data = dev_get_drvdata(dev);
-+
-+	if (device_may_wakeup(dev))
-+		disable_irq_wake(data->irq);
-+
 +	return 0;
 +}
 +#endif
 +
-+static SIMPLE_DEV_PM_OPS(snvs_rtc_pm_ops, snvs_rtc_suspend, snvs_rtc_resume);
+ /*
+  * Initialise the accelerometer and the various subsystems.
+  * Should be rather independent of the bus system.
+@@ -922,6 +1055,10 @@ int lis3lv02d_init_device(struct lis3lv0
+ 	irq_handler_t thread_fn;
+ 	int irq_flags = 0;
+ 
++	err = lis3lv02d_init_dt(lis3);
++	if (err < 0)
++		return err;
 +
-+static const struct of_device_id __devinitconst snvs_dt_ids[] = {
-+	{ .compatible = "fsl,sec-v4.0-mon-rtc-lp", },
-+	{ /* sentinel */ }
-+};
-+MODULE_DEVICE_TABLE(of, snvs_dt_ids);
+ 	lis3->whoami = lis3lv02d_read_8(lis3, WHO_AM_I);
+ 
+ 	switch (lis3->whoami) {
+diff -puN drivers/misc/lis3lv02d/lis3lv02d.h~drivers-misc-lis3lv02d-add-generic-dt-matching-code drivers/misc/lis3lv02d/lis3lv02d.h
+--- a/drivers/misc/lis3lv02d/lis3lv02d.h~drivers-misc-lis3lv02d-add-generic-dt-matching-code
++++ a/drivers/misc/lis3lv02d/lis3lv02d.h
+@@ -282,6 +282,10 @@ struct lis3lv02d {
+ 
+ 	struct lis3lv02d_platform_data *pdata;	/* for passing board config */
+ 	struct mutex		mutex;     /* Serialize poll and selftest */
 +
-+static struct platform_driver snvs_rtc_driver = {
-+	.driver = {
-+		.name	= "snvs_rtc",
-+		.owner	= THIS_MODULE,
-+		.pm	= &snvs_rtc_pm_ops,
-+		.of_match_table = snvs_dt_ids,
-+	},
-+	.probe		= snvs_rtc_probe,
-+	.remove		= __devexit_p(snvs_rtc_remove),
-+};
-+module_platform_driver(snvs_rtc_driver);
-+
-+MODULE_AUTHOR("Freescale Semiconductor, Inc.");
-+MODULE_DESCRIPTION("Freescale SNVS RTC Driver");
-+MODULE_LICENSE("GPL");
++#ifdef CONFIG_OF
++	struct device_node	*of_node;
++#endif
+ };
+ 
+ int lis3lv02d_init_device(struct lis3lv02d *lis3);
 _
 
-Patches currently in -mm which might be from shawn.guo@linaro.org are
+Patches currently in -mm which might be from zonque@gmail.com are
 
 origin.patch
 linux-next.patch
-rtc-snvs-add-freescale-rtc-snvs-driver.patch
+drivers-misc-lis3lv02d-add-generic-dt-matching-code.patch
+drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-code.patch
+drivers-w1-masters-w1-gpioc-add-ext_pullup_enable-pin-in-platform-data.patch
+drivers-w1-masters-w1-gpioc-add-dt-bindings.patch
 
