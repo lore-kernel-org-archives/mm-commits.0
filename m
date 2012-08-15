@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-code.patch added to -mm tree
-Date: Tue, 14 Aug 2012 17:06:37 -0700
-Message-ID: <20120815000638.461A0100047@wpzn3.hot.corp.google.com>
+Subject: + drivers-scsi-iprc-missing-unlock-before-a-return.patch added to -mm tree
+Date: Tue, 14 Aug 2012 17:08:19 -0700
+Message-ID: <20120815000819.B4C511E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:57452 "EHLO
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:34188 "EHLO
 	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754337Ab2HOAGj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Aug 2012 20:06:39 -0400
-Received: by obbwc20 with SMTP id wc20so763727obb.1
-        for <mm-commits@vger.kernel.org>; Tue, 14 Aug 2012 17:06:39 -0700 (PDT)
+	with ESMTP id S1754300Ab2HOAIV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Aug 2012 20:08:21 -0400
+Received: by obbwc20 with SMTP id wc20so764347obb.1
+        for <mm-commits@vger.kernel.org>; Tue, 14 Aug 2012 17:08:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zonque@gmail.com, eric.piel@tremplin-utc.net, grant.likely@secretlab.ca, rob.herring@calxeda.com
+Cc: dan.carpenter@oracle.com, James.Bottomley@HansenPartnership.com, brking@linux.vnet.ibm.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/misc/lis3lv02d/lis3lv02d_spi.c: add DT matching table passthru code
+     Subject: drivers/scsi/ipr.c: missing unlock before a return
 has been added to the -mm tree.  Its filename is
-     drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-code.patch
+     drivers-scsi-iprc-missing-unlock-before-a-return.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,77 +33,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Daniel Mack <zonque@gmail.com>
-Subject: drivers/misc/lis3lv02d/lis3lv02d_spi.c: add DT matching table passthru code
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: drivers/scsi/ipr.c: missing unlock before a return
 
-If probed from a device tree, this driver now passes the node information
-to the generic part, so the runtime information can be derived.
+We recently changed the locking in this function, but this return was
+missed.  It needs an unlock and the IRQs need to be restored.
 
-Successfully tested on a PXA3xx board.
-
-Signed-off-by: Daniel Mack <zonque@gmail.com>
-Cc: Eric Piel <eric.piel@tremplin-utc.net>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Rob Herring <rob.herring@calxeda.com>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Acked-by: Brian King <brking@linux.vnet.ibm.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/lis3lv02d/lis3lv02d_spi.c |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ drivers/scsi/ipr.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN drivers/misc/lis3lv02d/lis3lv02d_spi.c~drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-code drivers/misc/lis3lv02d/lis3lv02d_spi.c
---- a/drivers/misc/lis3lv02d/lis3lv02d_spi.c~drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-code
-+++ a/drivers/misc/lis3lv02d/lis3lv02d_spi.c
-@@ -17,6 +17,7 @@
- #include <linux/workqueue.h>
- #include <linux/spi/spi.h>
- #include <linux/pm.h>
-+#include <linux/of_platform.h>
+diff -puN drivers/scsi/ipr.c~drivers-scsi-iprc-missing-unlock-before-a-return drivers/scsi/ipr.c
+--- a/drivers/scsi/ipr.c~drivers-scsi-iprc-missing-unlock-before-a-return
++++ a/drivers/scsi/ipr.c
+@@ -5874,8 +5874,11 @@ static int ipr_queuecommand(struct Scsi_
+ 		goto err_nodev;
+ 	}
  
- #include "lis3lv02d.h"
+-	if (ipr_is_gata(res) && res->sata_port)
+-		return ata_sas_queuecmd(scsi_cmd, res->sata_port->ap);
++	if (ipr_is_gata(res) && res->sata_port) {
++		rc = ata_sas_queuecmd(scsi_cmd, res->sata_port->ap);
++		spin_unlock_irqrestore(shost->host_lock, lock_flags);
++		return rc;
++	}
  
-@@ -58,6 +59,12 @@ static int lis3_spi_init(struct lis3lv02
- static union axis_conversion lis3lv02d_axis_normal =
- 	{ .as_array = { 1, 2, 3 } };
- 
-+static struct of_device_id lis302dl_spi_dt_ids[] = {
-+	{ .compatible = "st,lis302dl-spi" },
-+	{}
-+};
-+MODULE_DEVICE_TABLE(of, lis302dl_spi_dt_ids);
-+
- static int __devinit lis302dl_spi_probe(struct spi_device *spi)
- {
- 	int ret;
-@@ -75,6 +82,12 @@ static int __devinit lis302dl_spi_probe(
- 	lis3_dev.irq		= spi->irq;
- 	lis3_dev.ac		= lis3lv02d_axis_normal;
- 	lis3_dev.pdata		= spi->dev.platform_data;
-+
-+#ifdef CONFIG_OF
-+	if (of_match_device(lis302dl_spi_dt_ids, &spi->dev))
-+		lis3_dev.of_node = spi->dev.of_node;
-+#endif
-+
- 	spi_set_drvdata(spi, &lis3_dev);
- 
- 	return lis3lv02d_init_device(&lis3_dev);
-@@ -121,6 +134,7 @@ static struct spi_driver lis302dl_spi_dr
- 		.name   = DRV_NAME,
- 		.owner  = THIS_MODULE,
- 		.pm	= &lis3lv02d_spi_pm,
-+		.of_match_table = of_match_ptr(lis302dl_spi_dt_ids),
- 	},
- 	.probe	= lis302dl_spi_probe,
- 	.remove	= __devexit_p(lis302dl_spi_remove),
+ 	ipr_cmd = __ipr_get_free_ipr_cmnd(ioa_cfg);
+ 	spin_unlock_irqrestore(shost->host_lock, lock_flags);
 _
 
-Patches currently in -mm which might be from zonque@gmail.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
 origin.patch
 linux-next.patch
-drivers-misc-lis3lv02d-add-generic-dt-matching-code.patch
-drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-code.patch
-drivers-w1-masters-w1-gpioc-add-ext_pullup_enable-pin-in-platform-data.patch
-drivers-w1-masters-w1-gpioc-add-dt-bindings.patch
+drivers-scsi-iprc-missing-unlock-before-a-return.patch
 
