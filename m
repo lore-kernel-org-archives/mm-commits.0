@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlbfs-correctly-populate-shared-pmd-fix.patch added to -mm tree
-Date: Wed, 15 Aug 2012 14:56:46 -0700
-Message-ID: <20120815215647.3E498100047@wpzn3.hot.corp.google.com>
+Subject: + alpha-redefine-atomic_init-and-atomic64_init-to-drop-the-casts.patch added to -mm tree
+Date: Wed, 15 Aug 2012 15:03:33 -0700
+Message-ID: <20120815220334.5A2E1100048@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-iy0-f202.google.com ([209.85.210.202]:63525 "EHLO
-	mail-iy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754210Ab2HOV4s (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Aug 2012 17:56:48 -0400
-Received: by ialo24 with SMTP id o24so160418ial.1
-        for <mm-commits@vger.kernel.org>; Wed, 15 Aug 2012 14:56:48 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:51352 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753945Ab2HOWDg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Aug 2012 18:03:36 -0400
+Received: by obbwc20 with SMTP id wc20so1498016obb.1
+        for <mm-commits@vger.kernel.org>; Wed, 15 Aug 2012 15:03:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, david@gibson.dropbear.id.au, dhillf@gmail.com, kenchen@google.com, lwoodman@redhat.com, mgorman@suse.de, mhocko@suse.cz, riel@redhat.com, xiyou.wangcong@gmail.com
+Cc: mgorman@suse.de, James.Bottomley@hansenpartnership.com, dave.anglin@bell.net, davem@davemloft.net, fengguang.wu@intel.com, ink@jurassic.park.msu.ru, kyle@parisc-linux.org, mattst88@gmail.com, rth@twiddle.net, tony.luck@gmail.com
 
 
 The patch titled
-     Subject: mm-hugetlbfs-correctly-populate-shared-pmd-fix
+     Subject: alpha: redefine ATOMIC_INIT and ATOMIC64_INIT to drop the casts
 has been added to the -mm tree.  Its filename is
-     mm-hugetlbfs-correctly-populate-shared-pmd-fix.patch
+     alpha-redefine-atomic_init-and-atomic64_init-to-drop-the-casts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,86 +33,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hugetlbfs-correctly-populate-shared-pmd-fix
+From: Mel Gorman <mgorman@suse.de>
+Subject: alpha: redefine ATOMIC_INIT and ATOMIC64_INIT to drop the casts
 
-attempt to make the huge_pmd_share() comment comprehensible, clean up coding style
+The following build error occurred during an alpha build:
 
-Cc: Cong Wang <xiyou.wangcong@gmail.com>
-Cc: David Gibson <david@gibson.dropbear.id.au>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: Ken Chen <kenchen@google.com>
-Cc: Larry Woodman <lwoodman@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Rik van Riel <riel@redhat.com>
+net/core/sock.c:274:36: error: initializer element is not constant
+
+Dave Anglin says:
+> Here is the line in sock.i:
+>
+> struct static_key memalloc_socks = ((struct static_key) { .enabled =
+> ((atomic_t) { (0) }) });
+
+The above line contains two compound literals.  It also uses a designated
+initializer to initialize the field enabled.  A compound literal is not a
+constant expression.
+
+The location of the above statement isn't fully clear, but if a compound
+literal occurs outside the body of a function, the initializer list must
+consist of constant expressions.
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Tony Luck <tony.luck@gmail.com>
+Cc: James Bottomley <James.Bottomley@hansenpartnership.com>
+Cc: John David Anglin <dave.anglin@bell.net>
+Cc: Kyle McMartin <kyle@parisc-linux.org>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/hugetlbpage.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ arch/alpha/include/asm/atomic.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/mm/hugetlbpage.c~mm-hugetlbfs-correctly-populate-shared-pmd-fix arch/x86/mm/hugetlbpage.c
---- a/arch/x86/mm/hugetlbpage.c~mm-hugetlbfs-correctly-populate-shared-pmd-fix
-+++ a/arch/x86/mm/hugetlbpage.c
-@@ -56,15 +56,15 @@ static int vma_shareable(struct vm_area_
- }
- 
- /*
-- * search for a shareable pmd page for hugetlb. In any case calls
-- * pmd_alloc and returns the corresponding pte. While this not necessary
-- * for the !shared pmd case because we can allocate the pmd later as
-- * well it makes the code much cleaner. pmd allocation is essential for
-- * the shared case though because pud has to be populated inside the
-- * same i_mmap_mutex section otherwise racing tasks could either miss
-- * the sharing (see huge_pte_offset) or selected a bad pmd for sharing.
-+ * Search for a shareable pmd page for hugetlb. In any case calls pmd_alloc()
-+ * and returns the corresponding pte. While this is not necessary for the
-+ * !shared pmd case because we can allocate the pmd later as well, it makes the
-+ * code much cleaner. pmd allocation is essential for the shared case because
-+ * pud has to be populated inside the same i_mmap_mutex section - otherwise
-+ * racing tasks could either miss the sharing (see huge_pte_offset) or select a
-+ * bad pmd for sharing.
+diff -puN arch/alpha/include/asm/atomic.h~alpha-redefine-atomic_init-and-atomic64_init-to-drop-the-casts arch/alpha/include/asm/atomic.h
+--- a/arch/alpha/include/asm/atomic.h~alpha-redefine-atomic_init-and-atomic64_init-to-drop-the-casts
++++ a/arch/alpha/include/asm/atomic.h
+@@ -14,8 +14,8 @@
   */
--static pte_t*
-+static pte_t *
- huge_pmd_share(struct mm_struct *mm, unsigned long addr, pud_t *pud)
- {
- 	struct vm_area_struct *vma = find_vma(mm, addr);
-@@ -154,7 +154,7 @@ pte_t *huge_pte_alloc(struct mm_struct *
- 			if (pud_none(*pud))
- 				pte = huge_pmd_share(mm, addr, pud);
- 			else
--				pte = (pte_t *) pmd_alloc(mm, pud, addr);
-+				pte = (pte_t *)pmd_alloc(mm, pud, addr);
- 		}
- 	}
- 	BUG_ON(pte && !pte_none(*pte) && !pte_huge(*pte));
+ 
+ 
+-#define ATOMIC_INIT(i)		( (atomic_t) { (i) } )
+-#define ATOMIC64_INIT(i)	( (atomic64_t) { (i) } )
++#define ATOMIC_INIT(i)		{ (i) }
++#define ATOMIC64_INIT(i)	{ (i) }
+ 
+ #define atomic_read(v)		(*(volatile int *)&(v)->counter)
+ #define atomic64_read(v)	(*(volatile long *)&(v)->counter)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mgorman@suse.de are
 
-origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-hugetlbfs-correctly-populate-shared-pmd.patch
 mm-hugetlbfs-correctly-populate-shared-pmd-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-audith-replace-defines-with-c-stubs.patch
-thermal-add-generic-cpufreq-cooling-implementation.patch
-thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
-thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
-mm-slab_commonc-fix-warning.patch
-mm.patch
-x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
-mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
-rbtree-performance-and-correctness-test-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-rtc-add-dallas-ds2404-driver-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+alpha-redefine-atomic_init-and-atomic64_init-to-drop-the-casts.patch
 
