@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch added to -mm tree
-Date: Thu, 16 Aug 2012 11:14:18 -0700
-Message-ID: <20120816181419.20E2D20004E@hpza10.eem.corp.google.com>
+Subject: + mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch added to -mm tree
+Date: Thu, 16 Aug 2012 11:16:50 -0700
+Message-ID: <20120816181651.91B04200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:48068 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754350Ab2HPSOV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Aug 2012 14:14:21 -0400
-Received: by weyr1 with SMTP id r1so147455wey.1
-        for <mm-commits@vger.kernel.org>; Thu, 16 Aug 2012 11:14:20 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:61621 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753614Ab2HPSQy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Aug 2012 14:16:54 -0400
+Received: by wgbdt11 with SMTP id dt11so147073wgb.1
+        for <mm-commits@vger.kernel.org>; Thu, 16 Aug 2012 11:16:53 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akpm@linux-foundation.org, fengguang.wu@intel.com, hannes@cmpxchg.org, kosak
 
 
 The patch titled
-     Subject: mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix
+     Subject: mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix
 has been added to the -mm tree.  Its filename is
-     mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
+     mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,9 +34,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix
+Subject: mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix
 
-tweak comment
+grab better comment from the v3 patch
 
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
@@ -46,21 +46,24 @@ Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/swap.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN mm/swap.c~mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix mm/swap.c
---- a/mm/swap.c~mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix
+diff -puN mm/swap.c~mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix mm/swap.c
+--- a/mm/swap.c~mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix
 +++ a/mm/swap.c
-@@ -447,9 +447,8 @@ void mark_page_accessed(struct page *pag
+@@ -447,8 +447,12 @@ void mark_page_accessed(struct page *pag
  EXPORT_SYMBOL(mark_page_accessed);
  
  /*
-- * Check pagevec space before adding new page into as
-- * it will prevent ununiform page status in
-- * mark_page_accessed() after __lru_cache_add()
-+ * Check the pagevec space before adding a new page into it, to prevent
-+ * nonuniform page status in mark_page_accessed() after __lru_cache_add().
+- * Check the pagevec space before adding a new page into it, to prevent
+- * nonuniform page status in mark_page_accessed() after __lru_cache_add().
++ * Order of operations is important: flush the pagevec when it's already
++ * full, not when adding the last page, to make sure that last page is
++ * not added to the LRU directly when passed to this function. Because
++ * mark_page_accessed() (called after this when writing) only activates
++ * pages that are on the LRU, linear writes in subpage chunks would see
++ * every PAGEVEC_SIZE page activated, which is unexpected.
   */
  void __lru_cache_add(struct page *page, enum lru_list lru)
  {
@@ -83,6 +86,7 @@ mm.patch
 x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
 mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
 mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
 rbtree-performance-and-correctness-test-fix.patch
 drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
 drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
