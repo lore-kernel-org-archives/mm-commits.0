@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-pcf2123c-initialize-dynamic-sysfs-attributes.patch added to -mm tree
-Date: Thu, 16 Aug 2012 11:51:20 -0700
-Message-ID: <20120816185120.AFD9C1E0043@wpzn4.hot.corp.google.com>
+Subject: + vfs-d_obtain_alias-needs-to-use-as-default-name.patch added to -mm tree
+Date: Thu, 16 Aug 2012 12:11:16 -0700
+Message-ID: <20120816191117.170DD200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:60881 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751388Ab2HPSvW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Aug 2012 14:51:22 -0400
-Received: by obbwc20 with SMTP id wc20so2153974obb.1
-        for <mm-commits@vger.kernel.org>; Thu, 16 Aug 2012 11:51:21 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:45571 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753209Ab2HPTLT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Aug 2012 15:11:19 -0400
+Received: by weyr1 with SMTP id r1so149066wey.1
+        for <mm-commits@vger.kernel.org>; Thu, 16 Aug 2012 12:11:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shchepetkov@ispras.ru, a.zummo@towertech.it, chripell@fsfe.org, chrisv@cyberswitching.com
+Cc: neilb@suse.de, Trond.Myklebust@netapp.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-pcf2123.c: initialize dynamic sysfs attributes
+     Subject: vfs: d_obtain_alias() needs to use "/" as default name.
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-pcf2123c-initialize-dynamic-sysfs-attributes.patch
+     vfs-d_obtain_alias-needs-to-use-as-default-name.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,47 +33,52 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ilya Shchepetkov <shchepetkov@ispras.ru>
-Subject: drivers/rtc/rtc-pcf2123.c: initialize dynamic sysfs attributes
+From: NeilBrown <neilb@suse.de>
+Subject: vfs: d_obtain_alias() needs to use "/" as default name.
 
-Dynamically allocated sysfs attributes must be initialized using
-sysfs_attr_init(), otherwise lockdep complains: BUG: key <address> not in
-.data!
+NFS appears to use d_obtain_alias() to create the root dentry rather than
+d_make_root.  This can cause 'prepend_path()' to complain that the root
+has a weird name if an NFS filesystem is lazily unmounted.  e.g.  if
+"/mnt" is an NFS mount then
 
-Found by Linux Driver Verification project (linuxtesting.org).
+ { cd /mnt; umount -l /mnt ; ls -l /proc/self/cwd; }
 
-Signed-off-by: Ilya Shchepetkov <shchepetkov@ispras.ru>
-Cc: Chris Verges <chrisv@cyberswitching.com>
-Cc: Christian Pellegrin <chripell@fsfe.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+will cause a WARN message like
+   WARNING: at /home/git/linux/fs/dcache.c:2624 prepend_path+0x1d7/0x1e0()
+   ...
+   Root dentry has weird name <>
+
+to appear in kernel logs.
+
+So change d_obtain_alias() to use "/" rather than "" as the anonymous
+name.
+
+Signed-off-by: NeilBrown <neilb@suse.de>
+Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf2123.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/dcache.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-pcf2123.c~drivers-rtc-rtc-pcf2123c-initialize-dynamic-sysfs-attributes drivers/rtc/rtc-pcf2123.c
---- a/drivers/rtc/rtc-pcf2123.c~drivers-rtc-rtc-pcf2123c-initialize-dynamic-sysfs-attributes
-+++ a/drivers/rtc/rtc-pcf2123.c
-@@ -43,6 +43,7 @@
- #include <linux/rtc.h>
- #include <linux/spi/spi.h>
- #include <linux/module.h>
-+#include <linux/sysfs.h>
+diff -puN fs/dcache.c~vfs-d_obtain_alias-needs-to-use-as-default-name fs/dcache.c
+--- a/fs/dcache.c~vfs-d_obtain_alias-needs-to-use-as-default-name
++++ a/fs/dcache.c
+@@ -1579,7 +1579,7 @@ EXPORT_SYMBOL(d_find_any_alias);
+  */
+ struct dentry *d_obtain_alias(struct inode *inode)
+ {
+-	static const struct qstr anonstring = { .name = "" };
++	static const struct qstr anonstring = QSTR_INIT("/", 1);
+ 	struct dentry *tmp;
+ 	struct dentry *res;
  
- #define DRV_VERSION "0.6"
- 
-@@ -292,6 +293,7 @@ static int __devinit pcf2123_probe(struc
- 	pdata->rtc = rtc;
- 
- 	for (i = 0; i < 16; i++) {
-+		sysfs_attr_init(&pdata->regs[i].attr.attr);
- 		sprintf(pdata->regs[i].name, "%1x", i);
- 		pdata->regs[i].attr.attr.mode = S_IRUGO | S_IWUSR;
- 		pdata->regs[i].attr.attr.name = pdata->regs[i].name;
 _
 
-Patches currently in -mm which might be from shchepetkov@ispras.ru are
+Patches currently in -mm which might be from neilb@suse.de are
 
-drivers-rtc-rtc-pcf2123c-initialize-dynamic-sysfs-attributes.patch
+origin.patch
+linux-next.patch
+vfs-d_obtain_alias-needs-to-use-as-default-name.patch
 
