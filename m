@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + lib-parserc-avoid-overflow-in-match_number-fix.patch added to -mm tree
-Date: Thu, 16 Aug 2012 13:20:45 -0700
-Message-ID: <20120816202045.EE95F5C0063@hpza9.eem.corp.google.com>
+Subject: + rtc-add-max8907-rtc-driver.patch added to -mm tree
+Date: Thu, 16 Aug 2012 13:30:10 -0700
+Message-ID: <20120816203011.1FC995C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:57134 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030362Ab2HPUUs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Aug 2012 16:20:48 -0400
-Received: by faem1 with SMTP id m1so60866fae.1
-        for <mm-commits@vger.kernel.org>; Thu, 16 Aug 2012 13:20:46 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:38239 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757291Ab2HPUaO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Aug 2012 16:30:14 -0400
+Received: by wibhr14 with SMTP id hr14so56036wib.1
+        for <mm-commits@vger.kernel.org>; Thu, 16 Aug 2012 13:30:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, elder@inktank.com
+Cc: swarren@nvidia.com, a.zummo@towertech.it, pgaikwad@nvidia.com, tcherry@nvidia.com, tyoon@nvidia.com
 
 
 The patch titled
-     Subject: lib-parserc-avoid-overflow-in-match_number-fix
+     Subject: rtc: add MAX8907 RTC driver
 has been added to the -mm tree.  Its filename is
-     lib-parserc-avoid-overflow-in-match_number-fix.patch
+     rtc-add-max8907-rtc-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,57 +33,322 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-parserc-avoid-overflow-in-match_number-fix
+From: Stephen Warren <swarren@nvidia.com>
+Subject: rtc: add MAX8907 RTC driver
 
-coding-style tweaks
+The MAX8907 is an I2C-based power-management IC containing voltage
+regulators, a reset controller, a real-time clock, and a touch-screen
+controller.
 
-Cc: Alex Elder <elder@inktank.com>
+The driver is based on an original by or fixed by:
+* Tom Cherry
+* Prashant Gaikwad
+* Joseph Yoon
+
+During upstreaming, I (swarren):
+* Converted to regmap.
+* Fixed handling of RTC_HOUR register containing 12.
+* Fixed handling of RTC_WEEKDAY register.
+* General cleanup.
+
+Signed-off-by: Stephen Warren <swarren@nvidia.com>
+Cc: Tom Cherry <tcherry@nvidia.com>
+Cc: Prashant Gaikwad <pgaikwad@nvidia.com>
+Cc: Joseph Yoon <tyoon@nvidia.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/parser.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/Kconfig       |   10 +
+ drivers/rtc/Makefile      |    1 
+ drivers/rtc/rtc-max8907.c |  245 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 256 insertions(+)
 
-diff -puN lib/parser.c~lib-parserc-avoid-overflow-in-match_number-fix lib/parser.c
---- a/lib/parser.c~lib-parserc-avoid-overflow-in-match_number-fix
-+++ a/lib/parser.c
-@@ -142,7 +142,7 @@ static int match_number(substring_t *s, 
- 	val = simple_strtol(buf, &endp, base);
- 	if (endp == buf)
- 		ret = -EINVAL;
--	else if (val < (long) INT_MIN || val > (long) INT_MAX)
-+	else if (val < (long)INT_MIN || val > (long)INT_MAX)
- 		ret = -ERANGE;
- 	else
- 		*result = (int) val;
+diff -puN drivers/rtc/Kconfig~rtc-add-max8907-rtc-driver drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-add-max8907-rtc-driver
++++ a/drivers/rtc/Kconfig
+@@ -205,6 +205,16 @@ config RTC_DRV_MAX6900
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-max6900.
+ 
++config RTC_DRV_MAX8907
++	tristate "Maxim MAX8907"
++	depends on MFD_MAX8907
++	help
++	  If you say yes here you will get support for the
++	  RTC of Maxim MAX8907 PMIC.
++
++	  This driver can also be built as a module. If so, the module
++	  will be called rtc-max8907.
++
+ config RTC_DRV_MAX8925
+ 	tristate "Maxim MAX8925"
+ 	depends on MFD_MAX8925
+diff -puN drivers/rtc/Makefile~rtc-add-max8907-rtc-driver drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-add-max8907-rtc-driver
++++ a/drivers/rtc/Makefile
+@@ -65,6 +65,7 @@ obj-$(CONFIG_RTC_DRV_M48T59)	+= rtc-m48t
+ obj-$(CONFIG_RTC_DRV_M48T86)	+= rtc-m48t86.o
+ obj-$(CONFIG_RTC_DRV_MXC)	+= rtc-mxc.o
+ obj-$(CONFIG_RTC_DRV_MAX6900)	+= rtc-max6900.o
++obj-$(CONFIG_RTC_DRV_MAX8907)	+= rtc-max8907.o
+ obj-$(CONFIG_RTC_DRV_MAX8925)	+= rtc-max8925.o
+ obj-$(CONFIG_RTC_DRV_MAX8998)	+= rtc-max8998.o
+ obj-$(CONFIG_RTC_DRV_MAX6902)	+= rtc-max6902.o
+diff -puN /dev/null drivers/rtc/rtc-max8907.c
+--- /dev/null
++++ a/drivers/rtc/rtc-max8907.c
+@@ -0,0 +1,245 @@
++/*
++ * RTC driver for Maxim MAX8907
++ *
++ * Copyright (c) 2011-2012, NVIDIA Corporation.
++ *
++ * Based on drivers/rtc/rtc-max8925.c,
++ * Copyright (C) 2009-2010 Marvell International Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/bcd.h>
++#include <linux/i2c.h>
++#include <linux/mfd/max8907.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/regmap.h>
++#include <linux/rtc.h>
++#include <linux/slab.h>
++
++enum {
++	RTC_SEC = 0,
++	RTC_MIN,
++	RTC_HOUR,
++	RTC_WEEKDAY,
++	RTC_DATE,
++	RTC_MONTH,
++	RTC_YEAR1,
++	RTC_YEAR2,
++};
++
++#define TIME_NUM			8
++#define ALARM_1SEC			(1 << 7)
++#define HOUR_12				(1 << 7)
++#define HOUR_AM_PM			(1 << 5)
++#define ALARM0_IRQ			(1 << 3)
++#define ALARM1_IRQ			(1 << 2)
++#define ALARM0_STATUS			(1 << 2)
++#define ALARM1_STATUS			(1 << 1)
++
++struct max8907_rtc {
++	struct max8907		*max8907;
++	struct regmap		*regmap;
++	struct rtc_device	*rtc_dev;
++	int			irq;
++};
++
++static irqreturn_t max8907_irq_handler(int irq, void *data)
++{
++	struct max8907_rtc *rtc = data;
++
++	regmap_update_bits(rtc->regmap, MAX8907_REG_ALARM0_CNTL, 0x7f, 0);
++
++	rtc_update_irq(rtc->rtc_dev, 1, RTC_IRQF | RTC_AF);
++
++	return IRQ_HANDLED;
++}
++
++static void regs_to_tm(u8 *regs, struct rtc_time *tm)
++{
++	tm->tm_year = bcd2bin(regs[RTC_YEAR2]) * 100 +
++		bcd2bin(regs[RTC_YEAR1]) - 1900;
++	tm->tm_mon = bcd2bin(regs[RTC_MONTH] & 0x1f) - 1;
++	tm->tm_mday = bcd2bin(regs[RTC_DATE] & 0x3f);
++	tm->tm_wday = (regs[RTC_WEEKDAY] & 0x07) - 1;
++	if (regs[RTC_HOUR] & HOUR_12) {
++		tm->tm_hour = bcd2bin(regs[RTC_HOUR] & 0x01f);
++		if (tm->tm_hour == 12)
++			tm->tm_hour = 0;
++		if (regs[RTC_HOUR] & HOUR_AM_PM)
++			tm->tm_hour += 12;
++	} else {
++		tm->tm_hour = bcd2bin(regs[RTC_HOUR] & 0x03f);
++	}
++	tm->tm_min = bcd2bin(regs[RTC_MIN] & 0x7f);
++	tm->tm_sec = bcd2bin(regs[RTC_SEC] & 0x7f);
++}
++
++static void tm_to_regs(struct rtc_time *tm, u8 *regs)
++{
++	u8 high, low;
++
++	high = (tm->tm_year + 1900) / 100;
++	low = tm->tm_year % 100;
++	regs[RTC_YEAR2] = bin2bcd(high);
++	regs[RTC_YEAR1] = bin2bcd(low);
++	regs[RTC_MONTH] = bin2bcd(tm->tm_mon + 1);
++	regs[RTC_DATE] = bin2bcd(tm->tm_mday);
++	regs[RTC_WEEKDAY] = tm->tm_wday + 1;
++	regs[RTC_HOUR] = bin2bcd(tm->tm_hour);
++	regs[RTC_MIN] = bin2bcd(tm->tm_min);
++	regs[RTC_SEC] = bin2bcd(tm->tm_sec);
++}
++
++static int max8907_rtc_read_time(struct device *dev, struct rtc_time *tm)
++{
++	struct max8907_rtc *rtc = dev_get_drvdata(dev);
++	u8 regs[TIME_NUM];
++	int ret;
++
++	ret = regmap_bulk_read(rtc->regmap, MAX8907_REG_RTC_SEC, regs,
++			       TIME_NUM);
++	if (ret < 0)
++		return ret;
++
++	regs_to_tm(regs, tm);
++
++	return 0;
++}
++
++static int max8907_rtc_set_time(struct device *dev, struct rtc_time *tm)
++{
++	struct max8907_rtc *rtc = dev_get_drvdata(dev);
++	u8 regs[TIME_NUM];
++
++	tm_to_regs(tm, regs);
++
++	return regmap_bulk_write(rtc->regmap, MAX8907_REG_RTC_SEC, regs,
++				 TIME_NUM);
++}
++
++static int max8907_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
++{
++	struct max8907_rtc *rtc = dev_get_drvdata(dev);
++	u8 regs[TIME_NUM];
++	unsigned int val;
++	int ret;
++
++	ret = regmap_bulk_read(rtc->regmap, MAX8907_REG_ALARM0_SEC, regs,
++			       TIME_NUM);
++	if (ret < 0)
++		return ret;
++
++	regs_to_tm(regs, &alrm->time);
++
++	ret = regmap_read(rtc->regmap, MAX8907_REG_ALARM0_CNTL, &val);
++	if (ret < 0)
++		return ret;
++
++	alrm->enabled = !!(val & 0x7f);
++
++	return 0;
++}
++
++static int max8907_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
++{
++	struct max8907_rtc *rtc = dev_get_drvdata(dev);
++	u8 regs[TIME_NUM];
++	int ret;
++
++	tm_to_regs(&alrm->time, regs);
++
++	/* Disable alarm while we update the target time */
++	ret = regmap_update_bits(rtc->regmap, MAX8907_REG_ALARM0_CNTL, 0x7f, 0);
++	if (ret < 0)
++		return ret;
++
++	ret = regmap_bulk_write(rtc->regmap, MAX8907_REG_ALARM0_SEC, regs,
++				TIME_NUM);
++	if (ret < 0)
++		return ret;
++
++	if (alrm->enabled)
++		ret = regmap_update_bits(rtc->regmap, MAX8907_REG_ALARM0_CNTL,
++					 0x7f, 0x7f);
++
++	return ret;
++}
++
++static const struct rtc_class_ops max8907_rtc_ops = {
++	.read_time	= max8907_rtc_read_time,
++	.set_time	= max8907_rtc_set_time,
++	.read_alarm	= max8907_rtc_read_alarm,
++	.set_alarm	= max8907_rtc_set_alarm,
++};
++
++static int __devinit max8907_rtc_probe(struct platform_device *pdev)
++{
++	struct max8907 *max8907 = dev_get_drvdata(pdev->dev.parent);
++	struct max8907_rtc *rtc;
++	int ret;
++
++	rtc = devm_kzalloc(&pdev->dev, sizeof(*rtc), GFP_KERNEL);
++	if (!rtc)
++		return -ENOMEM;
++	platform_set_drvdata(pdev, rtc);
++
++	rtc->max8907 = max8907;
++	rtc->regmap = max8907->regmap_rtc;
++
++	rtc->rtc_dev = rtc_device_register("max8907-rtc", &pdev->dev,
++					&max8907_rtc_ops, THIS_MODULE);
++	if (IS_ERR(rtc->rtc_dev)) {
++		ret = PTR_ERR(rtc->rtc_dev);
++		dev_err(&pdev->dev, "Failed to register RTC device: %d\n", ret);
++		return ret;
++	}
++
++	rtc->irq = regmap_irq_get_virq(max8907->irqc_rtc,
++				       MAX8907_IRQ_RTC_ALARM0);
++	if (rtc->irq < 0) {
++		ret = rtc->irq;
++		goto err_unregister;
++	}
++
++	ret = request_threaded_irq(rtc->irq, NULL, max8907_irq_handler,
++				   IRQF_ONESHOT, "max8907-alarm0", rtc);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "Failed to request IRQ%d: %d\n",
++			rtc->irq, ret);
++		goto err_unregister;
++	}
++
++	return 0;
++
++err_unregister:
++	rtc_device_unregister(rtc->rtc_dev);
++	return ret;
++}
++
++static int __devexit max8907_rtc_remove(struct platform_device *pdev)
++{
++	struct max8907_rtc *rtc = platform_get_drvdata(pdev);
++
++	free_irq(rtc->irq, rtc);
++	rtc_device_unregister(rtc->rtc_dev);
++
++	return 0;
++}
++
++static struct platform_driver max8907_rtc_driver = {
++	.driver = {
++		.name = "max8907-rtc",
++		.owner = THIS_MODULE,
++	},
++	.probe = max8907_rtc_probe,
++	.remove = __devexit_p(max8907_rtc_remove),
++};
++module_platform_driver(max8907_rtc_driver);
++
++MODULE_DESCRIPTION("Maxim MAX8907 RTC driver");
++MODULE_LICENSE("GPL v2");
++
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from swarren@nvidia.com are
 
 origin.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-hugetlbfs-correctly-populate-shared-pmd-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-audith-replace-defines-with-c-stubs.patch
-thermal-add-generic-cpufreq-cooling-implementation.patch
-thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
-thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
-mm-slab_commonc-restructure-kmem_cache_create-to-move-debug-cache-integrity-checks-into-a-new-function.patch
-mm.patch
-x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
-mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
-rbtree-performance-and-correctness-test-fix.patch
-lib-parserc-avoid-overflow-in-match_number-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-rtc-add-dallas-ds2404-driver-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+rtc-add-max8907-rtc-driver.patch
 
