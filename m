@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long.patch added to -mm tree
-Date: Mon, 20 Aug 2012 14:19:27 -0700
-Message-ID: <20120820211927.DF8F620004E@hpza10.eem.corp.google.com>
+Subject: + drivers-rtc-rtc-rs5c348c-fix-hour-decoding-in-12-hour-mode.patch added to -mm tree
+Date: Mon, 20 Aug 2012 14:20:29 -0700
+Message-ID: <20120820212029.A920E100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:63753 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754956Ab2HTVTa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Aug 2012 17:19:30 -0400
-Received: by lbbge1 with SMTP id ge1so316020lbb.1
-        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 14:19:29 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:55477 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754095Ab2HTVUb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Aug 2012 17:20:31 -0400
+Received: by obbwc20 with SMTP id wc20so4080123obb.1
+        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 14:20:30 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mgorman@suse.de, jaschut@sandia.gov, minchan@kernel.org, riel@redhat.com
+Cc: anemo@mba.ocn.ne.jp, newten82@gmail.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: compaction: abort async compaction if locks are contended or taking too long
+     Subject: drivers/rtc/rtc-rs5c348.c: fix hour decoding in 12-hour mode
 has been added to the -mm tree.  Its filename is
-     mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long.patch
+     drivers-rtc-rtc-rs5c348c-fix-hour-decoding-in-12-hour-mode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,420 +33,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: compaction: abort async compaction if locks are contended or taking too long
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: drivers/rtc/rtc-rs5c348.c: fix hour decoding in 12-hour mode
 
-Jim Schutt reported a problem that pointed at compaction contending
-heavily on locks. The workload is straight-forward and in his own words;
+Correct the offset by subtracting 20 from tm_hour before taking the modulo
+12.
 
-	The systems in question have 24 SAS drives spread across 3 HBAs,
-	running 24 Ceph OSD instances, one per drive.  FWIW these servers
-	are dual-socket Intel 5675 Xeons w/48 GB memory.  I've got ~160
-	Ceph Linux clients doing dd simultaneously to a Ceph file system
-	backed by 12 of these servers.
-
-Early in the test everything looks fine
-
-procs -------------------memory------------------ ---swap-- -----io---- --system-- -----cpu-------
- r  b       swpd       free       buff      cache   si   so    bi    bo   in   cs  us sy  id wa st
-31 15          0     287216        576   38606628    0    0     2  1158    2   14   1  3  95  0  0
-27 15          0     225288        576   38583384    0    0    18 2222016 203357 134876  11 56  17 15  0
-28 17          0     219256        576   38544736    0    0    11 2305932 203141 146296  11 49  23 17  0
- 6 18          0     215596        576   38552872    0    0     7 2363207 215264 166502  12 45  22 20  0
-22 18          0     226984        576   38596404    0    0     3 2445741 223114 179527  12 43  23 22  0
-
-and then it goes to pot
-
-procs -------------------memory------------------ ---swap-- -----io---- --system-- -----cpu-------
- r  b       swpd       free       buff      cache   si   so    bi    bo   in   cs  us sy  id wa st
-163  8          0     464308        576   36791368    0    0    11 22210  866  536   3 13  79  4  0
-207 14          0     917752        576   36181928    0    0   712 1345376 134598 47367   7 90   1  2  0
-123 12          0     685516        576   36296148    0    0   429 1386615 158494 60077   8 84   5  3  0
-123 12          0     598572        576   36333728    0    0  1107 1233281 147542 62351   7 84   5  4  0
-622  7          0     660768        576   36118264    0    0   557 1345548 151394 59353   7 85   4  3  0
-223 11          0     283960        576   36463868    0    0    46 1107160 121846 33006   6 93   1  1  0
-
-Note that system CPU usage is very high blocks being written out has
-dropped by 42%. He analysed this with perf and found
-
-  perf record -g -a sleep 10
-  perf report --sort symbol --call-graph fractal,5
-    34.63%  [k] _raw_spin_lock_irqsave
-            |
-            |--97.30%-- isolate_freepages
-            |          compaction_alloc
-            |          unmap_and_move
-            |          migrate_pages
-            |          compact_zone
-            |          compact_zone_order
-            |          try_to_compact_pages
-            |          __alloc_pages_direct_compact
-            |          __alloc_pages_slowpath
-            |          __alloc_pages_nodemask
-            |          alloc_pages_vma
-            |          do_huge_pmd_anonymous_page
-            |          handle_mm_fault
-            |          do_page_fault
-            |          page_fault
-            |          |
-            |          |--87.39%-- skb_copy_datagram_iovec
-            |          |          tcp_recvmsg
-            |          |          inet_recvmsg
-            |          |          sock_recvmsg
-            |          |          sys_recvfrom
-            |          |          system_call
-            |          |          __recv
-            |          |          |
-            |          |           --100.00%-- (nil)
-            |          |
-            |           --12.61%-- memcpy
-             --2.70%-- [...]
-
-There was other data but primarily it is all showing that compaction is
-contended heavily on the zone->lock and zone->lru_lock.
-
-b2eef8c0 ("mm: compaction: minimise the time IRQs are disabled while
-isolating pages for migration") noted that it was possible for migration
-to hold the lru_lock for an excessive amount of time.  Very broadly
-speaking this patch expands the concept.
-
-This patch introduces compact_checklock_irqsave() to check if a lock is
-contended or the process needs to be scheduled.  If either condition is
-true then async compaction is aborted and the caller is informed.  The
-page allocator will fail a THP allocation if compaction failed due to
-contention.  This patch also introduces compact_trylock_irqsave() which
-will acquire the lock only if it is not contended and the process does not
-need to schedule.
-
-Reported-by: Jim Schutt <jaschut@sandia.gov>
-Tested-by: Jim Schutt <jaschut@sandia.gov>
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Minchan Kim <minchan@kernel.org>
+Reported-by: James Nute <newten82@gmail.com>
+Tested-by: James Nute <newten82@gmail.com>
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h |    4 -
- mm/compaction.c            |  105 +++++++++++++++++++++++++++--------
- mm/internal.h              |    1 
- mm/page_alloc.c            |   17 +++--
- 4 files changed, 96 insertions(+), 31 deletions(-)
+ drivers/rtc/rtc-rs5c348.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/compaction.h~mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long include/linux/compaction.h
---- a/include/linux/compaction.h~mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long
-+++ a/include/linux/compaction.h
-@@ -22,7 +22,7 @@ extern int sysctl_extfrag_handler(struct
- extern int fragmentation_index(struct zone *zone, unsigned int order);
- extern unsigned long try_to_compact_pages(struct zonelist *zonelist,
- 			int order, gfp_t gfp_mask, nodemask_t *mask,
--			bool sync, struct page **page);
-+			bool sync, bool *contended, struct page **page);
- extern int compact_pgdat(pg_data_t *pgdat, int order);
- extern unsigned long compaction_suitable(struct zone *zone, int order);
- 
-@@ -64,7 +64,7 @@ static inline bool compaction_deferred(s
- #else
- static inline unsigned long try_to_compact_pages(struct zonelist *zonelist,
- 			int order, gfp_t gfp_mask, nodemask_t *nodemask,
--			bool sync, struct page **page)
-+			bool sync, bool *contended, struct page **page)
- {
- 	return COMPACT_CONTINUE;
- }
-diff -puN mm/compaction.c~mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long mm/compaction.c
---- a/mm/compaction.c~mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long
-+++ a/mm/compaction.c
-@@ -50,6 +50,47 @@ static inline bool migrate_async_suitabl
- 	return is_migrate_cma(migratetype) || migratetype == MIGRATE_MOVABLE;
- }
- 
-+/*
-+ * Compaction requires the taking of some coarse locks that are potentially
-+ * very heavily contended. Check if the process needs to be scheduled or
-+ * if the lock is contended. For async compaction, back out in the event
-+ * if contention is severe. For sync compaction, schedule.
-+ *
-+ * Returns true if the lock is held.
-+ * Returns false if the lock is released and compaction should abort
-+ */
-+static bool compact_checklock_irqsave(spinlock_t *lock, unsigned long *flags,
-+				      bool locked, struct compact_control *cc)
-+{
-+	if (need_resched() || spin_is_contended(lock)) {
-+		if (locked) {
-+			spin_unlock_irqrestore(lock, *flags);
-+			locked = false;
-+		}
-+
-+		/* async aborts if taking too long or contended */
-+		if (!cc->sync) {
-+			if (cc->contended)
-+				*cc->contended = true;
-+			return false;
-+		}
-+
-+		cond_resched();
-+		if (fatal_signal_pending(current))
-+			return false;
-+	}
-+
-+	if (!locked)
-+		spin_lock_irqsave(lock, *flags);
-+	return true;
-+}
-+
-+static inline bool compact_trylock_irqsave(spinlock_t *lock,
-+			unsigned long *flags, struct compact_control *cc)
-+{
-+	return compact_checklock_irqsave(lock, flags, false, cc);
-+}
-+
- static void compact_capture_page(struct compact_control *cc)
- {
- 	unsigned long flags;
-@@ -87,7 +128,8 @@ static void compact_capture_page(struct 
- 				continue;
- 
- 			/* Take the lock and attempt capture of the page */
--			spin_lock_irqsave(&cc->zone->lock, flags);
-+			if (!compact_trylock_irqsave(&cc->zone->lock, &flags, cc))
-+				return;
- 			if (!list_empty(&area->free_list[mtype])) {
- 				page = list_entry(area->free_list[mtype].next,
- 							struct page, lru);
-@@ -226,7 +268,7 @@ isolate_freepages_range(unsigned long st
- }
- 
- /* Update the number of anon and file isolated pages in the zone */
--static void acct_isolated(struct zone *zone, struct compact_control *cc)
-+static void acct_isolated(struct zone *zone, bool locked, struct compact_control *cc)
- {
- 	struct page *page;
- 	unsigned int count[2] = { 0, };
-@@ -234,8 +276,14 @@ static void acct_isolated(struct zone *z
- 	list_for_each_entry(page, &cc->migratepages, lru)
- 		count[!!page_is_file_cache(page)]++;
- 
--	__mod_zone_page_state(zone, NR_ISOLATED_ANON, count[0]);
--	__mod_zone_page_state(zone, NR_ISOLATED_FILE, count[1]);
-+	/* If locked we can use the interrupt unsafe versions */
-+	if (locked) {
-+		__mod_zone_page_state(zone, NR_ISOLATED_ANON, count[0]);
-+		__mod_zone_page_state(zone, NR_ISOLATED_FILE, count[1]);
-+	} else {
-+		mod_zone_page_state(zone, NR_ISOLATED_ANON, count[0]);
-+		mod_zone_page_state(zone, NR_ISOLATED_FILE, count[1]);
-+	}
- }
- 
- /* Similar to reclaim, but different enough that they don't share logic */
-@@ -281,6 +329,8 @@ isolate_migratepages_range(struct zone *
- 	struct list_head *migratelist = &cc->migratepages;
- 	isolate_mode_t mode = 0;
- 	struct lruvec *lruvec;
-+	unsigned long flags;
-+	bool locked;
- 
- 	/*
- 	 * Ensure that there are not too many pages isolated from the LRU
-@@ -300,25 +350,22 @@ isolate_migratepages_range(struct zone *
- 
- 	/* Time to isolate some pages for migration */
- 	cond_resched();
--	spin_lock_irq(&zone->lru_lock);
-+	spin_lock_irqsave(&zone->lru_lock, flags);
-+	locked = true;
- 	for (; low_pfn < end_pfn; low_pfn++) {
- 		struct page *page;
--		bool locked = true;
- 
- 		/* give a chance to irqs before checking need_resched() */
- 		if (!((low_pfn+1) % SWAP_CLUSTER_MAX)) {
--			spin_unlock_irq(&zone->lru_lock);
-+			spin_unlock_irqrestore(&zone->lru_lock, flags);
- 			locked = false;
- 		}
--		if (need_resched() || spin_is_contended(&zone->lru_lock)) {
--			if (locked)
--				spin_unlock_irq(&zone->lru_lock);
--			cond_resched();
--			spin_lock_irq(&zone->lru_lock);
--			if (fatal_signal_pending(current))
--				break;
--		} else if (!locked)
--			spin_lock_irq(&zone->lru_lock);
-+
-+		/* Check if it is ok to still hold the lock */
-+		locked = compact_checklock_irqsave(&zone->lru_lock, &flags,
-+								locked, cc);
-+		if (!locked)
-+			break;
- 
- 		/*
- 		 * migrate_pfn does not necessarily start aligned to a
-@@ -402,9 +449,10 @@ isolate_migratepages_range(struct zone *
- 		}
+diff -puN drivers/rtc/rtc-rs5c348.c~drivers-rtc-rtc-rs5c348c-fix-hour-decoding-in-12-hour-mode drivers/rtc/rtc-rs5c348.c
+--- a/drivers/rtc/rtc-rs5c348.c~drivers-rtc-rtc-rs5c348c-fix-hour-decoding-in-12-hour-mode
++++ a/drivers/rtc/rtc-rs5c348.c
+@@ -122,9 +122,12 @@ rs5c348_rtc_read_time(struct device *dev
+ 	tm->tm_min = bcd2bin(rxbuf[RS5C348_REG_MINS] & RS5C348_MINS_MASK);
+ 	tm->tm_hour = bcd2bin(rxbuf[RS5C348_REG_HOURS] & RS5C348_HOURS_MASK);
+ 	if (!pdata->rtc_24h) {
+-		tm->tm_hour %= 12;
+-		if (rxbuf[RS5C348_REG_HOURS] & RS5C348_BIT_PM)
++		if (rxbuf[RS5C348_REG_HOURS] & RS5C348_BIT_PM) {
++			tm->tm_hour -= 20;
++			tm->tm_hour %= 12;
+ 			tm->tm_hour += 12;
++		} else
++			tm->tm_hour %= 12;
  	}
- 
--	acct_isolated(zone, cc);
-+	acct_isolated(zone, locked, cc);
- 
--	spin_unlock_irq(&zone->lru_lock);
-+	if (locked)
-+		spin_unlock_irqrestore(&zone->lru_lock, flags);
- 
- 	trace_mm_compaction_isolate_migratepages(nr_scanned, nr_isolated);
- 
-@@ -514,7 +562,16 @@ static void isolate_freepages(struct zon
- 		 * are disabled
- 		 */
- 		isolated = 0;
--		spin_lock_irqsave(&zone->lock, flags);
-+
-+		/*
-+		 * The zone lock must be held to isolate freepages. This
-+		 * unfortunately this is a very coarse lock and can be
-+		 * heavily contended if there are parallel allocations
-+		 * or parallel compactions. For async compaction do not
-+		 * spin on the lock
-+		 */
-+		if (!compact_trylock_irqsave(&zone->lock, &flags, cc))
-+			break;
- 		if (suitable_migration_target(page)) {
- 			end_pfn = min(pfn + pageblock_nr_pages, zone_end_pfn);
- 			isolated = isolate_freepages_block(pfn, end_pfn,
-@@ -835,8 +892,8 @@ out:
- }
- 
- static unsigned long compact_zone_order(struct zone *zone,
--				 int order, gfp_t gfp_mask,
--				 bool sync, struct page **page)
-+				 int order, gfp_t gfp_mask, bool sync,
-+				 bool *contended, struct page **page)
- {
- 	struct compact_control cc = {
- 		.nr_freepages = 0,
-@@ -846,6 +903,7 @@ static unsigned long compact_zone_order(
- 		.zone = zone,
- 		.sync = sync,
- 		.page = page,
-+		.contended = contended,
- 	};
- 	INIT_LIST_HEAD(&cc.freepages);
- 	INIT_LIST_HEAD(&cc.migratepages);
-@@ -867,7 +925,7 @@ int sysctl_extfrag_threshold = 500;
-  */
- unsigned long try_to_compact_pages(struct zonelist *zonelist,
- 			int order, gfp_t gfp_mask, nodemask_t *nodemask,
--			bool sync, struct page **page)
-+			bool sync, bool *contended, struct page **page)
- {
- 	enum zone_type high_zoneidx = gfp_zone(gfp_mask);
- 	int may_enter_fs = gfp_mask & __GFP_FS;
-@@ -887,7 +945,8 @@ unsigned long try_to_compact_pages(struc
- 								nodemask) {
- 		int status;
- 
--		status = compact_zone_order(zone, order, gfp_mask, sync, page);
-+		status = compact_zone_order(zone, order, gfp_mask, sync,
-+						contended, page);
- 		rc = max(status, rc);
- 
- 		/* If a normal allocation would succeed, stop compacting */
-diff -puN mm/internal.h~mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long mm/internal.h
---- a/mm/internal.h~mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long
-+++ a/mm/internal.h
-@@ -130,6 +130,7 @@ struct compact_control {
- 	int order;			/* order a direct compactor needs */
- 	int migratetype;		/* MOVABLE, RECLAIMABLE etc */
- 	struct zone *zone;
-+	bool *contended;		/* True if a lock was contended */
- 	struct page **page;		/* Page captured of requested size */
- };
- 
-diff -puN mm/page_alloc.c~mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long
-+++ a/mm/page_alloc.c
-@@ -2125,7 +2125,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 	struct zonelist *zonelist, enum zone_type high_zoneidx,
- 	nodemask_t *nodemask, int alloc_flags, struct zone *preferred_zone,
- 	int migratetype, bool sync_migration,
--	bool *deferred_compaction,
-+	bool *contended_compaction, bool *deferred_compaction,
- 	unsigned long *did_some_progress)
- {
- 	struct page *page = NULL;
-@@ -2140,7 +2140,8 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 
- 	current->flags |= PF_MEMALLOC;
- 	*did_some_progress = try_to_compact_pages(zonelist, order, gfp_mask,
--					nodemask, sync_migration, &page);
-+					nodemask, sync_migration,
-+					contended_compaction, &page);
- 	current->flags &= ~PF_MEMALLOC;
- 
- 	/* If compaction captured a page, prep and use it */
-@@ -2193,7 +2194,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 	struct zonelist *zonelist, enum zone_type high_zoneidx,
- 	nodemask_t *nodemask, int alloc_flags, struct zone *preferred_zone,
- 	int migratetype, bool sync_migration,
--	bool *deferred_compaction,
-+	bool *contended_compaction, bool *deferred_compaction,
- 	unsigned long *did_some_progress)
- {
- 	return NULL;
-@@ -2366,6 +2367,7 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
- 	unsigned long did_some_progress;
- 	bool sync_migration = false;
- 	bool deferred_compaction = false;
-+	bool contended_compaction = false;
- 
- 	/*
- 	 * In the slowpath, we sanity check order to avoid ever trying to
-@@ -2454,6 +2456,7 @@ rebalance:
- 					nodemask,
- 					alloc_flags, preferred_zone,
- 					migratetype, sync_migration,
-+					&contended_compaction,
- 					&deferred_compaction,
- 					&did_some_progress);
- 	if (page)
-@@ -2463,10 +2466,11 @@ rebalance:
- 	/*
- 	 * If compaction is deferred for high-order allocations, it is because
- 	 * sync compaction recently failed. In this is the case and the caller
--	 * has requested the system not be heavily disrupted, fail the
--	 * allocation now instead of entering direct reclaim
-+	 * requested a movable allocation that does not heavily disrupt the
-+	 * system then fail the allocation instead of entering direct reclaim.
- 	 */
--	if (deferred_compaction)
-+	if (contended_compaction &&
-+	    (gfp_mask & (__GFP_MOVABLE|__GFP_REPEAT)) == __GFP_MOVABLE)
- 		goto nopage;
- 
- 	/* Try direct reclaim and then allocating */
-@@ -2537,6 +2541,7 @@ rebalance:
- 					nodemask,
- 					alloc_flags, preferred_zone,
- 					migratetype, sync_migration,
-+					&contended_compaction,
- 					&deferred_compaction,
- 					&did_some_progress);
- 		if (page)
+ 	tm->tm_wday = bcd2bin(rxbuf[RS5C348_REG_WDAY] & RS5C348_WDAY_MASK);
+ 	tm->tm_mday = bcd2bin(rxbuf[RS5C348_REG_DAY] & RS5C348_DAY_MASK);
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
-linux-next.patch
-mm-hugetlbfs-correctly-populate-shared-pmd.patch
-mm-hugetlbfs-correctly-populate-shared-pmd-fix.patch
-alpha-redefine-atomic_init-and-atomic64_init-to-drop-the-casts.patch
-netvm-check-for-page-==-null-when-propagating-the-skb-pfmemalloc-flag.patch
-mm-correct-page-pfmemalloc-to-fix-deactivate_slab-regression.patch
-mm-compaction-update-comment-in-try_to_compact_pages.patch
-mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures.patch
-mm-compaction-capture-a-suitable-high-order-page-immediately-when-it-is-made-available.patch
-mm-have-order-0-compaction-start-near-a-pageblock-with-free-pages.patch
-mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long.patch
+drivers-rtc-rtc-rs5c348c-fix-hour-decoding-in-12-hour-mode.patch
 
