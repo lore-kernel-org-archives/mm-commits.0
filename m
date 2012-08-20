@@ -1,33 +1,44 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long.patch removed from -mm tree
-Date: Mon, 20 Aug 2012 15:59:11 -0700
-Message-ID: <20120820225911.B41991E0043@wpzn4.hot.corp.google.com>
+Subject: + mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long-v2.patch added to -mm tree
+Date: Mon, 20 Aug 2012 16:00:40 -0700
+Message-ID: <20120820230041.67EC220004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-iy0-f202.google.com ([209.85.210.202]:51490 "EHLO
-	mail-iy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756102Ab2HTW7N (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Aug 2012 18:59:13 -0400
-Received: by ialo24 with SMTP id o24so951804ial.1
-        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 15:59:12 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:62411 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752167Ab2HTXAo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Mon, 20 Aug 2012 19:00:44 -0400
+Received: by lagw12 with SMTP id w12so314312lag.1
+        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 16:00:42 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, jaschut@sandia.gov, minchan@kernel.org, riel@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mgorman@suse.de, jaschut@sandia.gov
 
 
 The patch titled
-     Subject: mm: compaction: abort async compaction if locks are contended or taking too long
-has been removed from the -mm tree.  Its filename was
-     mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long.patch
+     Subject: mm: compaction: Abort async compaction if locks are contended or taking too long
+has been added to the -mm tree.  Its filename is
+     mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long-v2.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: compaction: abort async compaction if locks are contended or taking too long
+Subject: mm: compaction: Abort async compaction if locks are contended or taking too long
 
 Jim Schutt reported a problem that pointed at compaction contending
-heavily on locks. The workload is straight-forward and in his own words;
+heavily on locks.  The workload is straight-forward and in his own words;
 
 	The systems in question have 24 SAS drives spread across 3 HBAs,
 	running 24 Ceph OSD instances, one per drive.  FWIW these servers
@@ -95,42 +106,40 @@ dropped by 42%. He analysed this with perf and found
 There was other data but primarily it is all showing that compaction is
 contended heavily on the zone->lock and zone->lru_lock.
 
-b2eef8c0 ("mm: compaction: minimise the time IRQs are disabled while
-isolating pages for migration") noted that it was possible for migration
-to hold the lru_lock for an excessive amount of time.  Very broadly
-speaking this patch expands the concept.
+commit [b2eef8c0: mm: compaction: minimise the time IRQs are disabled
+while isolating pages for migration] noted that it was possible for
+migration to hold the lru_lock for an excessive amount of time. Very
+broadly speaking this patch expands the concept.
 
-This patch introduces compact_checklock_irqsave() to check if a lock is
-contended or the process needs to be scheduled.  If either condition is
-true then async compaction is aborted and the caller is informed.  The
-page allocator will fail a THP allocation if compaction failed due to
-contention.  This patch also introduces compact_trylock_irqsave() which
-will acquire the lock only if it is not contended and the process does not
-need to schedule.
+This patch introduces compact_checklock_irqsave() to check if a lock
+is contended or the process needs to be scheduled. If either condition
+is true then async compaction is aborted and the caller is informed.
+The page allocator will fail a THP allocation if compaction failed due
+to contention. This patch also introduces compact_trylock_irqsave()
+which will acquire the lock only if it is not contended and the process
+does not need to schedule.
 
 Reported-by: Jim Schutt <jaschut@sandia.gov>
 Tested-by: Jim Schutt <jaschut@sandia.gov>
 Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  include/linux/compaction.h |    4 -
- mm/compaction.c            |  105 +++++++++++++++++++++++++++--------
+ mm/compaction.c            |  100 +++++++++++++++++++++++++++--------
  mm/internal.h              |    1 
  mm/page_alloc.c            |   17 +++--
- 4 files changed, 96 insertions(+), 31 deletions(-)
+ 4 files changed, 93 insertions(+), 29 deletions(-)
 
-diff -puN include/linux/compaction.h~mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long include/linux/compaction.h
---- a/include/linux/compaction.h~mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long
+diff -puN include/linux/compaction.h~mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long-v2 include/linux/compaction.h
+--- a/include/linux/compaction.h~mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long-v2
 +++ a/include/linux/compaction.h
 @@ -22,7 +22,7 @@ extern int sysctl_extfrag_handler(struct
  extern int fragmentation_index(struct zone *zone, unsigned int order);
  extern unsigned long try_to_compact_pages(struct zonelist *zonelist,
  			int order, gfp_t gfp_mask, nodemask_t *mask,
--			bool sync, struct page **page);
-+			bool sync, bool *contended, struct page **page);
+-			bool sync);
++			bool sync, bool *contended);
  extern int compact_pgdat(pg_data_t *pgdat, int order);
  extern unsigned long compaction_suitable(struct zone *zone, int order);
  
@@ -138,19 +147,18 @@ diff -puN include/linux/compaction.h~mm-compaction-abort-async-compaction-if-loc
  #else
  static inline unsigned long try_to_compact_pages(struct zonelist *zonelist,
  			int order, gfp_t gfp_mask, nodemask_t *nodemask,
--			bool sync, struct page **page)
-+			bool sync, bool *contended, struct page **page)
+-			bool sync)
++			bool sync, bool *contended)
  {
  	return COMPACT_CONTINUE;
  }
-diff -puN mm/compaction.c~mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long mm/compaction.c
---- a/mm/compaction.c~mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long
+diff -puN mm/compaction.c~mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long-v2 mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long-v2
 +++ a/mm/compaction.c
-@@ -50,6 +50,47 @@ static inline bool migrate_async_suitabl
- 	return is_migrate_cma(migratetype) || migratetype == MIGRATE_MOVABLE;
+@@ -51,6 +51,47 @@ static inline bool migrate_async_suitabl
  }
  
-+/*
+ /*
 + * Compaction requires the taking of some coarse locks that are potentially
 + * very heavily contended. Check if the process needs to be scheduled or
 + * if the lock is contended. For async compaction, back out in the event
@@ -191,20 +199,11 @@ diff -puN mm/compaction.c~mm-compaction-abort-async-compaction-if-locks-are-cont
 +	return compact_checklock_irqsave(lock, flags, false, cc);
 +}
 +
- static void compact_capture_page(struct compact_control *cc)
- {
- 	unsigned long flags;
-@@ -87,7 +128,8 @@ static void compact_capture_page(struct 
- 				continue;
- 
- 			/* Take the lock and attempt capture of the page */
--			spin_lock_irqsave(&cc->zone->lock, flags);
-+			if (!compact_trylock_irqsave(&cc->zone->lock, &flags, cc))
-+				return;
- 			if (!list_empty(&area->free_list[mtype])) {
- 				page = list_entry(area->free_list[mtype].next,
- 							struct page, lru);
-@@ -226,7 +268,7 @@ isolate_freepages_range(unsigned long st
++/*
+  * Isolate free pages onto a private freelist. Caller must hold zone->lock.
+  * If @strict is true, will abort returning 0 on any invalid PFNs or non-free
+  * pages inside of the pageblock (even though it may still end up isolating
+@@ -173,7 +214,7 @@ isolate_freepages_range(unsigned long st
  }
  
  /* Update the number of anon and file isolated pages in the zone */
@@ -213,7 +212,7 @@ diff -puN mm/compaction.c~mm-compaction-abort-async-compaction-if-locks-are-cont
  {
  	struct page *page;
  	unsigned int count[2] = { 0, };
-@@ -234,8 +276,14 @@ static void acct_isolated(struct zone *z
+@@ -181,8 +222,14 @@ static void acct_isolated(struct zone *z
  	list_for_each_entry(page, &cc->migratepages, lru)
  		count[!!page_is_file_cache(page)]++;
  
@@ -230,7 +229,7 @@ diff -puN mm/compaction.c~mm-compaction-abort-async-compaction-if-locks-are-cont
  }
  
  /* Similar to reclaim, but different enough that they don't share logic */
-@@ -281,6 +329,8 @@ isolate_migratepages_range(struct zone *
+@@ -228,6 +275,8 @@ isolate_migratepages_range(struct zone *
  	struct list_head *migratelist = &cc->migratepages;
  	isolate_mode_t mode = 0;
  	struct lruvec *lruvec;
@@ -239,7 +238,7 @@ diff -puN mm/compaction.c~mm-compaction-abort-async-compaction-if-locks-are-cont
  
  	/*
  	 * Ensure that there are not too many pages isolated from the LRU
-@@ -300,25 +350,22 @@ isolate_migratepages_range(struct zone *
+@@ -247,25 +296,22 @@ isolate_migratepages_range(struct zone *
  
  	/* Time to isolate some pages for migration */
  	cond_resched();
@@ -274,7 +273,7 @@ diff -puN mm/compaction.c~mm-compaction-abort-async-compaction-if-locks-are-cont
  
  		/*
  		 * migrate_pfn does not necessarily start aligned to a
-@@ -402,9 +449,10 @@ isolate_migratepages_range(struct zone *
+@@ -349,9 +395,10 @@ isolate_migratepages_range(struct zone *
  		}
  	}
  
@@ -287,7 +286,7 @@ diff -puN mm/compaction.c~mm-compaction-abort-async-compaction-if-locks-are-cont
  
  	trace_mm_compaction_isolate_migratepages(nr_scanned, nr_isolated);
  
-@@ -514,7 +562,16 @@ static void isolate_freepages(struct zon
+@@ -461,7 +508,16 @@ static void isolate_freepages(struct zon
  		 * are disabled
  		 */
  		isolated = 0;
@@ -305,59 +304,57 @@ diff -puN mm/compaction.c~mm-compaction-abort-async-compaction-if-locks-are-cont
  		if (suitable_migration_target(page)) {
  			end_pfn = min(pfn + pageblock_nr_pages, zone_end_pfn);
  			isolated = isolate_freepages_block(pfn, end_pfn,
-@@ -835,8 +892,8 @@ out:
- }
+@@ -773,7 +829,7 @@ out:
  
  static unsigned long compact_zone_order(struct zone *zone,
--				 int order, gfp_t gfp_mask,
--				 bool sync, struct page **page)
-+				 int order, gfp_t gfp_mask, bool sync,
-+				 bool *contended, struct page **page)
+ 				 int order, gfp_t gfp_mask,
+-				 bool sync)
++				 bool sync, bool *contended)
  {
  	struct compact_control cc = {
  		.nr_freepages = 0,
-@@ -846,6 +903,7 @@ static unsigned long compact_zone_order(
+@@ -782,6 +838,7 @@ static unsigned long compact_zone_order(
+ 		.migratetype = allocflags_to_migratetype(gfp_mask),
  		.zone = zone,
  		.sync = sync,
- 		.page = page,
 +		.contended = contended,
  	};
  	INIT_LIST_HEAD(&cc.freepages);
  	INIT_LIST_HEAD(&cc.migratepages);
-@@ -867,7 +925,7 @@ int sysctl_extfrag_threshold = 500;
+@@ -803,7 +860,7 @@ int sysctl_extfrag_threshold = 500;
   */
  unsigned long try_to_compact_pages(struct zonelist *zonelist,
  			int order, gfp_t gfp_mask, nodemask_t *nodemask,
--			bool sync, struct page **page)
-+			bool sync, bool *contended, struct page **page)
+-			bool sync)
++			bool sync, bool *contended)
  {
  	enum zone_type high_zoneidx = gfp_zone(gfp_mask);
  	int may_enter_fs = gfp_mask & __GFP_FS;
-@@ -887,7 +945,8 @@ unsigned long try_to_compact_pages(struc
+@@ -827,7 +884,8 @@ unsigned long try_to_compact_pages(struc
  								nodemask) {
  		int status;
  
--		status = compact_zone_order(zone, order, gfp_mask, sync, page);
+-		status = compact_zone_order(zone, order, gfp_mask, sync);
 +		status = compact_zone_order(zone, order, gfp_mask, sync,
-+						contended, page);
++						contended);
  		rc = max(status, rc);
  
  		/* If a normal allocation would succeed, stop compacting */
-diff -puN mm/internal.h~mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long mm/internal.h
---- a/mm/internal.h~mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long
+diff -puN mm/internal.h~mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long-v2 mm/internal.h
+--- a/mm/internal.h~mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long-v2
 +++ a/mm/internal.h
 @@ -130,6 +130,7 @@ struct compact_control {
  	int order;			/* order a direct compactor needs */
  	int migratetype;		/* MOVABLE, RECLAIMABLE etc */
  	struct zone *zone;
 +	bool *contended;		/* True if a lock was contended */
- 	struct page **page;		/* Page captured of requested size */
  };
  
-diff -puN mm/page_alloc.c~mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long
+ unsigned long
+diff -puN mm/page_alloc.c~mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long-v2 mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long-v2
 +++ a/mm/page_alloc.c
-@@ -2125,7 +2125,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
+@@ -2102,7 +2102,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
  	struct zonelist *zonelist, enum zone_type high_zoneidx,
  	nodemask_t *nodemask, int alloc_flags, struct zone *preferred_zone,
  	int migratetype, bool sync_migration,
@@ -365,18 +362,18 @@ diff -puN mm/page_alloc.c~mm-compaction-abort-async-compaction-if-locks-are-cont
 +	bool *contended_compaction, bool *deferred_compaction,
  	unsigned long *did_some_progress)
  {
- 	struct page *page = NULL;
-@@ -2140,7 +2140,8 @@ __alloc_pages_direct_compact(gfp_t gfp_m
+ 	struct page *page;
+@@ -2117,7 +2117,8 @@ __alloc_pages_direct_compact(gfp_t gfp_m
  
  	current->flags |= PF_MEMALLOC;
  	*did_some_progress = try_to_compact_pages(zonelist, order, gfp_mask,
--					nodemask, sync_migration, &page);
-+					nodemask, sync_migration,
-+					contended_compaction, &page);
+-						nodemask, sync_migration);
++						nodemask, sync_migration,
++						contended_compaction);
  	current->flags &= ~PF_MEMALLOC;
+ 	if (*did_some_progress != COMPACT_SKIPPED) {
  
- 	/* If compaction captured a page, prep and use it */
-@@ -2193,7 +2194,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
+@@ -2163,7 +2164,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
  	struct zonelist *zonelist, enum zone_type high_zoneidx,
  	nodemask_t *nodemask, int alloc_flags, struct zone *preferred_zone,
  	int migratetype, bool sync_migration,
@@ -385,7 +382,7 @@ diff -puN mm/page_alloc.c~mm-compaction-abort-async-compaction-if-locks-are-cont
  	unsigned long *did_some_progress)
  {
  	return NULL;
-@@ -2366,6 +2367,7 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+@@ -2336,6 +2337,7 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
  	unsigned long did_some_progress;
  	bool sync_migration = false;
  	bool deferred_compaction = false;
@@ -393,7 +390,7 @@ diff -puN mm/page_alloc.c~mm-compaction-abort-async-compaction-if-locks-are-cont
  
  	/*
  	 * In the slowpath, we sanity check order to avoid ever trying to
-@@ -2454,6 +2456,7 @@ rebalance:
+@@ -2425,6 +2427,7 @@ rebalance:
  					nodemask,
  					alloc_flags, preferred_zone,
  					migratetype, sync_migration,
@@ -401,7 +398,7 @@ diff -puN mm/page_alloc.c~mm-compaction-abort-async-compaction-if-locks-are-cont
  					&deferred_compaction,
  					&did_some_progress);
  	if (page)
-@@ -2463,10 +2466,11 @@ rebalance:
+@@ -2434,10 +2437,11 @@ rebalance:
  	/*
  	 * If compaction is deferred for high-order allocations, it is because
  	 * sync compaction recently failed. In this is the case and the caller
@@ -410,13 +407,13 @@ diff -puN mm/page_alloc.c~mm-compaction-abort-async-compaction-if-locks-are-cont
 +	 * requested a movable allocation that does not heavily disrupt the
 +	 * system then fail the allocation instead of entering direct reclaim.
  	 */
--	if (deferred_compaction)
-+	if (contended_compaction &&
-+	    (gfp_mask & (__GFP_MOVABLE|__GFP_REPEAT)) == __GFP_MOVABLE)
+-	if (deferred_compaction && (gfp_mask & __GFP_NO_KSWAPD))
++	if ((deferred_compaction || contended_compaction) &&
++						(gfp_mask & __GFP_NO_KSWAPD))
  		goto nopage;
  
  	/* Try direct reclaim and then allocating */
-@@ -2537,6 +2541,7 @@ rebalance:
+@@ -2508,6 +2512,7 @@ rebalance:
  					nodemask,
  					alloc_flags, preferred_zone,
  					migratetype, sync_migration,
