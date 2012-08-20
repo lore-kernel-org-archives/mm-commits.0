@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rbtree-place-easiest-case-first-in-rb_erase.patch added to -mm tree
-Date: Mon, 20 Aug 2012 15:36:54 -0700
-Message-ID: <20120820223655.9834A20004E@hpza10.eem.corp.google.com>
+Subject: + rbtree-add-__rb_change_child-helper-function.patch added to -mm tree
+Date: Mon, 20 Aug 2012 15:36:50 -0700
+Message-ID: <20120820223651.9E84F5C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-bk0-f74.google.com ([209.85.214.74]:61406 "EHLO
 	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756583Ab2HTWg5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Aug 2012 18:36:57 -0400
-Received: by mail-bk0-f74.google.com with SMTP id jc3so315637bkc.1
-        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 15:36:56 -0700 (PDT)
+	with ESMTP id S1756583Ab2HTWgz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Aug 2012 18:36:55 -0400
+Received: by bkcjc3 with SMTP id jc3so315637bkc.1
+        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 15:36:53 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: walken@google.com, a.p.zijlstra@chello.nl, aarcange@redhat.com, dwmw2@infrad
 
 
 The patch titled
-     Subject: rbtree: place easiest case first in rb_erase()
+     Subject: rbtree: add __rb_change_child() helper function
 has been added to the -mm tree.  Its filename is
-     rbtree-place-easiest-case-first-in-rb_erase.patch
+     rbtree-add-__rb_change_child-helper-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michel Lespinasse <walken@google.com>
-Subject: rbtree: place easiest case first in rb_erase()
+Subject: rbtree: add __rb_change_child() helper function
 
-In rb_erase, move the easy case (node to erase has no more than
-1 child) first. I feel the code reads easier that way.
+Add __rb_change_child() as an inline helper function to replace code that
+would otherwise be duplicated 4 times in the source.
+
+No changes to binary size or speed.
 
 Signed-off-by: Michel Lespinasse <walken@google.com>
 Reviewed-by: Rik van Riel <riel@redhat.com>
@@ -47,67 +49,93 @@ Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/rbtree.c |   35 ++++++++++++++++++-----------------
- 1 file changed, 18 insertions(+), 17 deletions(-)
+ lib/rbtree.c |   46 +++++++++++++++++-----------------------------
+ 1 file changed, 17 insertions(+), 29 deletions(-)
 
-diff -puN lib/rbtree.c~rbtree-place-easiest-case-first-in-rb_erase lib/rbtree.c
---- a/lib/rbtree.c~rbtree-place-easiest-case-first-in-rb_erase
+diff -puN lib/rbtree.c~rbtree-add-__rb_change_child-helper-function lib/rbtree.c
+--- a/lib/rbtree.c~rbtree-add-__rb_change_child-helper-function
 +++ a/lib/rbtree.c
-@@ -368,17 +368,28 @@ static void __rb_erase_color(struct rb_n
+@@ -66,6 +66,19 @@ static inline struct rb_node *rb_red_par
+ 	return (struct rb_node *)red->__rb_parent_color;
+ }
  
- void rb_erase(struct rb_node *node, struct rb_root *root)
- {
--	struct rb_node *child, *parent;
-+	struct rb_node *child = node->rb_right, *tmp = node->rb_left;
-+	struct rb_node *parent;
- 	int color;
- 
--	if (!node->rb_left)
--		child = node->rb_right;
--	else if (!node->rb_right)
--		child = node->rb_left;
--	else {
-+	if (!tmp) {
-+	case1:
-+		/* Case 1: node to erase has no more than 1 child (easy!) */
++static inline void
++__rb_change_child(struct rb_node *old, struct rb_node *new,
++		  struct rb_node *parent, struct rb_root *root)
++{
++	if (parent) {
++		if (parent->rb_left == old)
++			parent->rb_left = new;
++		else
++			parent->rb_right = new;
++	} else
++		root->rb_node = new;
++}
 +
-+		parent = rb_parent(node);
-+		color = rb_color(node);
-+
-+		if (child)
-+			rb_set_parent(child, parent);
-+		__rb_change_child(node, child, parent, root);
-+	} else if (!child) {
-+		/* Still case 1, but this time the child is node->rb_left */
-+		child = tmp;
-+		goto case1;
-+	} else {
- 		struct rb_node *old = node, *left;
+ /*
+  * Helper function for rotations:
+  * - old's parent and color get assigned to new
+@@ -78,13 +91,7 @@ __rb_rotate_set_parents(struct rb_node *
+ 	struct rb_node *parent = rb_parent(old);
+ 	new->__rb_parent_color = old->__rb_parent_color;
+ 	rb_set_parent_color(old, new, color);
+-	if (parent) {
+-		if (parent->rb_left == old)
+-			parent->rb_left = new;
+-		else
+-			parent->rb_right = new;
+-	} else
+-		root->rb_node = new;
++	__rb_change_child(old, new, parent, root);
+ }
  
--		node = node->rb_right;
-+		node = child;
+ void rb_insert_color(struct rb_node *node, struct rb_root *root)
+@@ -375,13 +382,7 @@ void rb_erase(struct rb_node *node, stru
  		while ((left = node->rb_left) != NULL)
  			node = left;
  
-@@ -402,18 +413,8 @@ void rb_erase(struct rb_node *node, stru
- 		node->__rb_parent_color = old->__rb_parent_color;
- 		node->rb_left = old->rb_left;
- 		rb_set_parent(old->rb_left, node);
--
--		goto color;
- 	}
+-		if (rb_parent(old)) {
+-			if (rb_parent(old)->rb_left == old)
+-				rb_parent(old)->rb_left = node;
+-			else
+-				rb_parent(old)->rb_right = node;
+-		} else
+-			root->rb_node = node;
++		__rb_change_child(old, node, rb_parent(old), root);
  
--	parent = rb_parent(node);
--	color = rb_color(node);
--
--	if (child)
--		rb_set_parent(child, parent);
--	__rb_change_child(node, child, parent, root);
--
--color:
+ 		child = node->rb_right;
+ 		parent = rb_parent(node);
+@@ -410,13 +411,7 @@ void rb_erase(struct rb_node *node, stru
+ 
+ 	if (child)
+ 		rb_set_parent(child, parent);
+-	if (parent) {
+-		if (parent->rb_left == node)
+-			parent->rb_left = child;
+-		else
+-			parent->rb_right = child;
+-	} else
+-		root->rb_node = child;
++	__rb_change_child(node, child, parent, root);
+ 
+ color:
  	if (color == RB_BLACK)
- 		__rb_erase_color(child, parent, root);
- }
+@@ -591,14 +586,7 @@ void rb_replace_node(struct rb_node *vic
+ 	struct rb_node *parent = rb_parent(victim);
+ 
+ 	/* Set the surrounding nodes to point to the replacement */
+-	if (parent) {
+-		if (victim == parent->rb_left)
+-			parent->rb_left = new;
+-		else
+-			parent->rb_right = new;
+-	} else {
+-		root->rb_node = new;
+-	}
++	__rb_change_child(victim, new, parent, root);
+ 	if (victim->rb_left)
+ 		rb_set_parent(victim->rb_left, new);
+ 	if (victim->rb_right)
 _
 
 Patches currently in -mm which might be from walken@google.com are
