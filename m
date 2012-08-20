@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fat-use-accessor-function-for-msdos_dir_entry-start.patch added to -mm tree
-Date: Mon, 20 Aug 2012 13:13:15 -0700
-Message-ID: <20120820201316.0CA14200059@hpza10.eem.corp.google.com>
+Subject: + fs-fat-fix-some-checkpatch-issues-in-fath.patch added to -mm tree
+Date: Mon, 20 Aug 2012 13:23:25 -0700
+Message-ID: <20120820202326.9ED1A20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:59231 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753725Ab2HTUNS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Aug 2012 16:13:18 -0400
-Received: by weyr1 with SMTP id r1so311128wey.1
-        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 13:13:17 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:35981 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753673Ab2HTUX3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Aug 2012 16:23:29 -0400
+Received: by lbbge1 with SMTP id ge1so314618lbb.1
+        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 13:23:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linkinjeon@gmail.com, amit.sahrawat83@gmail.com, hirofumi@mail.parknet.co.jp
+Cc: cruzjbishop@gmail.com, hirofumi@mail.parknet.co.jp
 
 
 The patch titled
-     Subject: fat: use accessor function for msdos_dir_entry 'start'
+     Subject: fs/fat: fix some checkpatch issues in fat.h
 has been added to the -mm tree.  Its filename is
-     fat-use-accessor-function-for-msdos_dir_entry-start.patch
+     fs-fat-fix-some-checkpatch-issues-in-fath.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,41 +33,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Namjae Jeon <linkinjeon@gmail.com>
-Subject: fat: use accessor function for msdos_dir_entry 'start'
+From: Cruz Julian Bishop <cruzjbishop@gmail.com>
+Subject: fs/fat: fix some checkpatch issues in fat.h
 
-Use accessor function for msdos_dir_entry 'start'
+Mainly fix spacing issues such as "foo * bar" and "foo= bar"
 
-Signed-off-by: Namjae Jeon <linkinjeon@gmail.com>
-Signed-off-by: Amit Sahrawat <amit.sahrawat83@gmail.com>
+Signed-off-by: Cruz Julian Bishop <cruzjbishop@gmail.com>
 Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/dir.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ fs/fat/fat.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/fat/dir.c~fat-use-accessor-function-for-msdos_dir_entry-start fs/fat/dir.c
---- a/fs/fat/dir.c~fat-use-accessor-function-for-msdos_dir_entry-start
-+++ a/fs/fat/dir.c
-@@ -1141,10 +1141,8 @@ int fat_alloc_new_dir(struct inode *dir,
- 		de[0].ctime_cs = de[1].ctime_cs = 0;
- 		de[0].adate = de[0].cdate = de[1].adate = de[1].cdate = 0;
- 	}
--	de[0].start = cpu_to_le16(cluster);
--	de[0].starthi = cpu_to_le16(cluster >> 16);
--	de[1].start = cpu_to_le16(MSDOS_I(dir)->i_logstart);
--	de[1].starthi = cpu_to_le16(MSDOS_I(dir)->i_logstart >> 16);
-+	fat_set_start(&de[0], cluster);
-+	fat_set_start(&de[1], MSDOS_I(dir)->i_logstart);
- 	de[0].size = de[1].size = 0;
- 	memset(de + 2, 0, sb->s_blocksize - 2 * sizeof(*de));
- 	set_buffer_uptodate(bhs[0]);
+diff -puN fs/fat/fat.h~fs-fat-fix-some-checkpatch-issues-in-fath fs/fat/fat.h
+--- a/fs/fat/fat.h~fs-fat-fix-some-checkpatch-issues-in-fath
++++ a/fs/fat/fat.h
+@@ -61,7 +61,7 @@ struct msdos_sb_info {
+ 	unsigned short sec_per_clus; /* sectors/cluster */
+ 	unsigned short cluster_bits; /* log2(cluster_size) */
+ 	unsigned int cluster_size;   /* cluster size */
+-	unsigned char fats,fat_bits; /* number of FATs, FAT bits (12 or 16) */
++	unsigned char fats, fat_bits; /* number of FATs, FAT bits (12 or 16) */
+ 	unsigned short fat_start;
+ 	unsigned long fat_length;    /* FAT start & length (sec.) */
+ 	unsigned long dir_start;
+@@ -328,7 +328,7 @@ extern long fat_generic_ioctl(struct fil
+ 			      unsigned long arg);
+ extern const struct file_operations fat_file_operations;
+ extern const struct inode_operations fat_file_inode_operations;
+-extern int fat_setattr(struct dentry * dentry, struct iattr * attr);
++extern int fat_setattr(struct dentry *dentry, struct iattr *attr);
+ extern void fat_truncate_blocks(struct inode *inode, loff_t offset);
+ extern int fat_getattr(struct vfsmount *mnt, struct dentry *dentry,
+ 		       struct kstat *stat);
+@@ -346,7 +346,7 @@ extern int fat_fill_super(struct super_b
+ 			  int isvfat, void (*setup)(struct super_block *));
+ 
+ extern int fat_flush_inodes(struct super_block *sb, struct inode *i1,
+-		            struct inode *i2);
++			    struct inode *i2);
+ static inline unsigned long fat_dir_hash(int logstart)
+ {
+ 	return hash_32(logstart, FAT_HASH_BITS);
 _
 
-Patches currently in -mm which might be from linkinjeon@gmail.com are
+Patches currently in -mm which might be from cruzjbishop@gmail.com are
 
-documentation-update-mount-option-in-filesystem-vfattxt.patch
 linux-next.patch
-fat-use-accessor-function-for-msdos_dir_entry-start.patch
+fs-fat-fix-a-checkpatch-issue-in-namei_msdosc.patch
+fs-fat-fix-some-checkpatch-issues-in-fath.patch
+fs-fat-changed-indentation-of-some-comments-in-fath.patch
+fs-fat-fix-two-checkpatch-issues-in-cachec.patch
+fs-fat-fixes-some-small-checkpatch-issues-in-dirc.patch
+fs-fat-fix-all-other-checkpatch-issues-in-dirc.patch
+fs-fat-fix-all-other-checkpatch-issues-in-dirc-fix.patch
+fs-fat-fix-checkpatch-issues-in-fatentc.patch
 
