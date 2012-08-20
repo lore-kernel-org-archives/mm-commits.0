@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-rs5c348c-fix-hour-decoding-in-12-hour-mode.patch added to -mm tree
-Date: Mon, 20 Aug 2012 14:20:29 -0700
-Message-ID: <20120820212029.A920E100047@wpzn3.hot.corp.google.com>
+Subject: + h8300-select-generic-atomic64_t-support.patch added to -mm tree
+Date: Mon, 20 Aug 2012 14:21:58 -0700
+Message-ID: <20120820212159.27F155C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:55477 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754095Ab2HTVUb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Aug 2012 17:20:31 -0400
-Received: by obbwc20 with SMTP id wc20so4080123obb.1
-        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 14:20:30 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:62956 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751643Ab2HTVWB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Aug 2012 17:22:01 -0400
+Received: by wgbdt11 with SMTP id dt11so312462wgb.1
+        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 14:22:00 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: anemo@mba.ocn.ne.jp, newten82@gmail.com, stable@vger.kernel.org
+Cc: fengguang.wu@intel.com, ebiederm@xmission.com, ysato@users.sourceforge.jp
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-rs5c348.c: fix hour decoding in 12-hour mode
+     Subject: h8300: select generic atomic64_t support
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-rs5c348c-fix-hour-decoding-in-12-hour-mode.patch
+     h8300-select-generic-atomic64_t-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +33,78 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Subject: drivers/rtc/rtc-rs5c348.c: fix hour decoding in 12-hour mode
+From: Fengguang Wu <fengguang.wu@intel.com>
+Subject: h8300: select generic atomic64_t support
 
-Correct the offset by subtracting 20 from tm_hour before taking the modulo
-12.
+Rationales from Eric:
 
-Reported-by: James Nute <newten82@gmail.com>
-Tested-by: James Nute <newten82@gmail.com>
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Cc: <stable@vger.kernel.org>
+So I just looked a little deeper and it appears architectures that do
+not support atomic64_t are broken.
+
+The generic atomic64 support came in 2009 to support the perf subsystem
+with the expectation that all architectures would implement atomic64
+support.
+
+Furthermore upon inspection of the kernel atomic64_t is used in a fair
+number of places beyond the performance counters:
+
+block/blk-cgroup.c
+drivers/acpi/apei/
+drivers/block/rbd.c
+drivers/crypto/nx/nx.h
+drivers/gpu/drm/radeon/radeon.h
+drivers/infiniband/hw/ipath/
+drivers/infiniband/hw/qib/
+drivers/staging/octeon/
+fs/xfs/
+include/linux/perf_event.h
+include/net/netfilter/nf_conntrack_acct.h
+kernel/events/
+kernel/trace/
+net/mac80211/key.h
+net/rds/
+
+The block control group, infiniband, xfs, crypto, 802.11, netfilter. 
+Nothing quite so fundamental as fs/namespace.c but definitely in
+multiplatform-code that should work, and is already broken on those
+architecutres.
+
+Looking at the implementation of atomic64_add_return in lib/atomic64.c the
+code looks as efficient as these kinds of things get.
+
+Which leads me to the conclusion that we need atomic64 support on all
+architectures.
+
+Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rs5c348.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ arch/h8300/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/rtc/rtc-rs5c348.c~drivers-rtc-rtc-rs5c348c-fix-hour-decoding-in-12-hour-mode drivers/rtc/rtc-rs5c348.c
---- a/drivers/rtc/rtc-rs5c348.c~drivers-rtc-rtc-rs5c348c-fix-hour-decoding-in-12-hour-mode
-+++ a/drivers/rtc/rtc-rs5c348.c
-@@ -122,9 +122,12 @@ rs5c348_rtc_read_time(struct device *dev
- 	tm->tm_min = bcd2bin(rxbuf[RS5C348_REG_MINS] & RS5C348_MINS_MASK);
- 	tm->tm_hour = bcd2bin(rxbuf[RS5C348_REG_HOURS] & RS5C348_HOURS_MASK);
- 	if (!pdata->rtc_24h) {
--		tm->tm_hour %= 12;
--		if (rxbuf[RS5C348_REG_HOURS] & RS5C348_BIT_PM)
-+		if (rxbuf[RS5C348_REG_HOURS] & RS5C348_BIT_PM) {
-+			tm->tm_hour -= 20;
-+			tm->tm_hour %= 12;
- 			tm->tm_hour += 12;
-+		} else
-+			tm->tm_hour %= 12;
- 	}
- 	tm->tm_wday = bcd2bin(rxbuf[RS5C348_REG_WDAY] & RS5C348_WDAY_MASK);
- 	tm->tm_mday = bcd2bin(rxbuf[RS5C348_REG_DAY] & RS5C348_DAY_MASK);
+diff -puN arch/h8300/Kconfig~h8300-select-generic-atomic64_t-support arch/h8300/Kconfig
+--- a/arch/h8300/Kconfig~h8300-select-generic-atomic64_t-support
++++ a/arch/h8300/Kconfig
+@@ -3,6 +3,7 @@ config H8300
+ 	default y
+ 	select HAVE_IDE
+ 	select HAVE_GENERIC_HARDIRQS
++	select GENERIC_ATOMIC64
+ 	select ARCH_WANT_IPC_PARSE_VERSION
+ 	select GENERIC_IRQ_SHOW
+ 	select GENERIC_CPU_DEVICES
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
-drivers-rtc-rtc-rs5c348c-fix-hour-decoding-in-12-hour-mode.patch
+origin.patch
+linux-next.patch
+alpha-redefine-atomic_init-and-atomic64_init-to-drop-the-casts.patch
+h8300-select-generic-atomic64_t-support.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
+rbtree-performance-and-correctness-test-fix.patch
 
