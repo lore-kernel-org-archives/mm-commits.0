@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-tsi721-fix-unused-variable-compiler-warning.patch added to -mm tree
-Date: Mon, 20 Aug 2012 14:29:01 -0700
-Message-ID: <20120820212902.67CD6100048@wpzn3.hot.corp.google.com>
+Subject: + rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch added to -mm tree
+Date: Mon, 20 Aug 2012 14:36:44 -0700
+Message-ID: <20120820213645.259725C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-iy0-f202.google.com ([209.85.210.202]:34705 "EHLO
-	mail-iy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751836Ab2HTV3D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Aug 2012 17:29:03 -0400
-Received: by ialo24 with SMTP id o24so930431ial.1
-        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 14:29:03 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:60078 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754784Ab2HTVgr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Aug 2012 17:36:47 -0400
+Received: by lbbge1 with SMTP id ge1so316400lbb.1
+        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 14:36:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alexandre.bounine@idt.com, mporter@kernel.crashing.org, stable@vger.kernel.org
+Cc: shawn.guo@linaro.org, a.zummo@towertech.it, kim.phillips@freescale.com, s.hauer@pengutronix.de, sboyd@codeaurora.org
 
 
 The patch titled
-     Subject: rapidio/tsi721: fix unused variable compiler warning
+     Subject: rtc: snvs: change timeout to use a fixed number of loop
 has been added to the -mm tree.  Its filename is
-     rapidio-tsi721-fix-unused-variable-compiler-warning.patch
+     rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,55 +33,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio/tsi721: fix unused variable compiler warning
+From: Shawn Guo <shawn.guo@linaro.org>
+Subject: rtc: snvs: change timeout to use a fixed number of loop
 
-Fix unused variable compiler warning when built with CONFIG_RAPIDIO_DEBUG
-option off.
+Andrew Morton <akpm@linux-foundation.org> wrote:
 
-This patch is applicable to kernel versions starting from v3.2
+> The timeout code here is fragile.  If acquiring the spinlock takes more
+> than a millisecond or if this thread gets interrupted or preempted then
+> we could easily execute that loop just a single time, and fail.
+>
+> It would be better to retry a fixed number of times, say 1000?  That
+> would take around 1 millisecond, but might be overkill.
 
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: <stable@vger.kernel.org>
+Take Andrew's suggestion to change the timeout code to retry 1000
+times.
+
+Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Kim Phillips <kim.phillips@freescale.com>
+Cc: Sascha Hauer <s.hauer@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/tsi721.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-snvs.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rapidio/devices/tsi721.c~rapidio-tsi721-fix-unused-variable-compiler-warning drivers/rapidio/devices/tsi721.c
---- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-fix-unused-variable-compiler-warning
-+++ a/drivers/rapidio/devices/tsi721.c
-@@ -2219,7 +2219,7 @@ static int __devinit tsi721_probe(struct
- 				  const struct pci_device_id *id)
+diff -puN drivers/rtc/rtc-snvs.c~rtc-snvs-add-freescale-rtc-snvs-driver-fix drivers/rtc/rtc-snvs.c
+--- a/drivers/rtc/rtc-snvs.c~rtc-snvs-add-freescale-rtc-snvs-driver-fix
++++ a/drivers/rtc/rtc-snvs.c
+@@ -83,8 +83,8 @@ static void rtc_write_sync_lp(void __iom
+ 
+ static int snvs_rtc_enable(struct snvs_rtc_data *data, bool enable)
  {
- 	struct tsi721_device *priv;
--	int i, cap;
-+	int cap;
- 	int err;
- 	u32 regval;
+-	unsigned long timeout = jiffies + msecs_to_jiffies(1);
+ 	unsigned long flags;
++	int timeout = 1000;
+ 	u32 lpcr;
  
-@@ -2239,12 +2239,15 @@ static int __devinit tsi721_probe(struct
- 	priv->pdev = pdev;
+ 	spin_lock_irqsave(&data->lock, flags);
+@@ -98,7 +98,7 @@ static int snvs_rtc_enable(struct snvs_r
  
- #ifdef DEBUG
-+	{
-+	int i;
- 	for (i = 0; i <= PCI_STD_RESOURCE_END; i++) {
- 		dev_dbg(&pdev->dev, "res[%d] @ 0x%llx (0x%lx, 0x%lx)\n",
- 			i, (unsigned long long)pci_resource_start(pdev, i),
- 			(unsigned long)pci_resource_len(pdev, i),
- 			pci_resource_flags(pdev, i));
- 	}
-+	}
- #endif
- 	/*
- 	 * Verify BAR configuration
-_
-
-Patches currently in -mm which might be from alexandre.bounine@idt.com are
-
-rapidio-tsi721-fix-inbound-doorbell-interrupt-handling.patch
-rapidio-tsi721-fix-unused-variable-compiler-warning.patch
-
+ 	spin_unlock_irqrestore(&data->lock, flags);
+ 
+-	while (1) {
++	while (--timeout) {
+ 		lpcr = readl(data->ioaddr + SNVS_LPCR);
+ 
+ 		if (enable) {
+@@ -108,11 +108,11 @@ static int snvs_rtc_enable(struct snvs_r
+ 			if (!(lpcr & SNVS_LPCR_SRTC_ENV))
+ 				break;
+ 		}
