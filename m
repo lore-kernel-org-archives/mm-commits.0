@@ -1,193 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-slab_commonc-restructure-kmem_cache_create-to-move-debug-cache-integrity-checks-into-a-new-function.patch removed from -mm tree
-Date: Mon, 20 Aug 2012 12:56:35 -0700
-Message-ID: <20120820195635.C7FF91E0043@wpzn4.hot.corp.google.com>
+Subject: [merged] slab-do-not-call-compound_head-in-page_get_cache.patch removed from -mm tree
+Date: Mon, 20 Aug 2012 12:56:32 -0700
+Message-ID: <20120820195632.C689C1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-ob0-f202.google.com ([209.85.214.202]:34156 "EHLO
 	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752326Ab2HTT4h (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Aug 2012 15:56:37 -0400
+	with ESMTP id S1752519Ab2HTT4e (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Aug 2012 15:56:34 -0400
 Received: by mail-ob0-f202.google.com with SMTP id wc20so4032395obb.1
-        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 12:56:36 -0700 (PDT)
+        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 12:56:33 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shuah.khan@hp.com, cl@linux.com, penberg@kernel.org, mm-commits@vger.kernel.org
+To: walken@google.com, cl@linux-foundation.org, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab_common.c: restructure kmem_cache_create() to move debug cache integrity checks into a new function
+     Subject: slab: do not call compound_head() in page_get_cache()
 has been removed from the -mm tree.  Its filename was
-     mm-slab_commonc-restructure-kmem_cache_create-to-move-debug-cache-integrity-checks-into-a-new-function.patch
+     slab-do-not-call-compound_head-in-page_get_cache.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Shuah Khan <shuah.khan@hp.com>
-Subject: mm/slab_common.c: restructure kmem_cache_create() to move debug cache integrity checks into a new function
+From: Michel Lespinasse <walken@google.com>
+Subject: slab: do not call compound_head() in page_get_cache()
 
-kmem_cache_create() does cache integrity checks when CONFIG_DEBUG_VM is
-defined.  These checks interspersed with the regular code path has lead to
-compile time warnings when compiled without CONFIG_DEBUG_VM defined. 
-Restructuring the code to move the integrity checks in to a new function
-would eliminate the current compile warning problem and also will allow
-for future changes to the debug only code to evolve without introducing
-new warnings in the regular path.  This restructuring work is based on the
-discussion in the following thread:
+page_get_cache() does not need to call compound_head(), as its unique
+caller virt_to_slab() already makes sure to return a head page.
 
-https://lkml.org/lkml/2012/7/13/424
+Additionally, removing the compound_head() call makes page_get_cache()
+consistent with page_get_slab().
 
-[akpm@linux-foundation.org: fix build, cleanup]
-Signed-off-by: Shuah Khan <shuah.khan@hp.com>
-Acked-by: Christoph Lameter <cl@linux.com>
+Signed-off-by: Michel Lespinasse <walken@google.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Cc: Pekka Enberg <penberg@kernel.org>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |   97 ++++++++++++++++++++++-----------------------
- 1 file changed, 48 insertions(+), 49 deletions(-)
+ mm/slab.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/slab_common.c~mm-slab_commonc-restructure-kmem_cache_create-to-move-debug-cache-integrity-checks-into-a-new-function mm/slab_common.c
---- a/mm/slab_common.c~mm-slab_commonc-restructure-kmem_cache_create-to-move-debug-cache-integrity-checks-into-a-new-function
-+++ a/mm/slab_common.c
-@@ -23,49 +23,17 @@ enum slab_state slab_state;
- LIST_HEAD(slab_caches);
- DEFINE_MUTEX(slab_mutex);
+diff -puN mm/slab.c~slab-do-not-call-compound_head-in-page_get_cache mm/slab.c
+--- a/mm/slab.c~slab-do-not-call-compound_head-in-page_get_cache
++++ a/mm/slab.c
+@@ -517,7 +517,6 @@ static bool slab_max_order_set __initdat
  
--/*
-- * kmem_cache_create - Create a cache.
-- * @name: A string which is used in /proc/slabinfo to identify this cache.
-- * @size: The size of objects to be created in this cache.
-- * @align: The required alignment for the objects.
-- * @flags: SLAB flags
-- * @ctor: A constructor for the objects.
-- *
-- * Returns a ptr to the cache on success, NULL on failure.
-- * Cannot be called within a interrupt, but can be interrupted.
-- * The @ctor is run when new pages are allocated by the cache.
-- *
-- * The flags are
-- *
-- * %SLAB_POISON - Poison the slab with a known test pattern (a5a5a5a5)
-- * to catch references to uninitialised memory.
-- *
-- * %SLAB_RED_ZONE - Insert `Red' zones around the allocated memory to check
-- * for buffer overruns.
-- *
-- * %SLAB_HWCACHE_ALIGN - Align the objects in this cache to a hardware
-- * cacheline.  This can be beneficial if you're counting cycles as closely
-- * as davem.
-- */
--
--struct kmem_cache *kmem_cache_create(const char *name, size_t size, size_t align,
--		unsigned long flags, void (*ctor)(void *))
-+#ifdef CONFIG_DEBUG_VM
-+static int kmem_cache_sanity_check(const char *name, size_t size)
+ static inline struct kmem_cache *page_get_cache(struct page *page)
  {
- 	struct kmem_cache *s = NULL;
- 
--#ifdef CONFIG_DEBUG_VM
- 	if (!name || in_interrupt() || size < sizeof(void *) ||
- 		size > KMALLOC_MAX_SIZE) {
--		printk(KERN_ERR "kmem_cache_create(%s) integrity check"
--			" failed\n", name);
--		goto out;
-+		pr_err("kmem_cache_create(%s) integrity check failed\n", name);
-+		return -EINVAL;
- 	}
--#endif
- 
--	get_online_cpus();
--	mutex_lock(&slab_mutex);
--
--#ifdef CONFIG_DEBUG_VM
- 	list_for_each_entry(s, &slab_caches, list) {
- 		char tmp;
- 		int res;
-@@ -77,36 +45,67 @@ struct kmem_cache *kmem_cache_create(con
- 		 */
- 		res = probe_kernel_address(s->name, tmp);
- 		if (res) {
--			printk(KERN_ERR
--			       "Slab cache with size %d has lost its name\n",
-+			pr_err("Slab cache with size %d has lost its name\n",
- 			       s->object_size);
- 			continue;
- 		}
- 
- 		if (!strcmp(s->name, name)) {
--			printk(KERN_ERR "kmem_cache_create(%s): Cache name"
--				" already exists.\n",
--				name);
-+			pr_err("%s (%s): Cache name already exists.\n",
-+			       __func__, name);
- 			dump_stack();
- 			s = NULL;
--			goto oops;
-+			return -EINVAL;
- 		}
- 	}
- 
- 	WARN_ON(strchr(name, ' '));	/* It confuses parsers */
-+	return 0;
-+}
-+#else
-+static inline int kmem_cache_sanity_check(const char *name, size_t size)
-+{
-+	return 0;
-+}
- #endif
- 
--	s = __kmem_cache_create(name, size, align, flags, ctor);
-+/*
-+ * kmem_cache_create - Create a cache.
-+ * @name: A string which is used in /proc/slabinfo to identify this cache.
-+ * @size: The size of objects to be created in this cache.
-+ * @align: The required alignment for the objects.
-+ * @flags: SLAB flags
-+ * @ctor: A constructor for the objects.
-+ *
-+ * Returns a ptr to the cache on success, NULL on failure.
-+ * Cannot be called within a interrupt, but can be interrupted.
-+ * The @ctor is run when new pages are allocated by the cache.
-+ *
-+ * The flags are
-+ *
-+ * %SLAB_POISON - Poison the slab with a known test pattern (a5a5a5a5)
-+ * to catch references to uninitialised memory.
-+ *
-+ * %SLAB_RED_ZONE - Insert `Red' zones around the allocated memory to check
-+ * for buffer overruns.
-+ *
-+ * %SLAB_HWCACHE_ALIGN - Align the objects in this cache to a hardware
-+ * cacheline.  This can be beneficial if you're counting cycles as closely
-+ * as davem.
-+ */
-+
-+struct kmem_cache *kmem_cache_create(const char *name, size_t size, size_t align,
-+		unsigned long flags, void (*ctor)(void *))
-+{
-+	struct kmem_cache *s = NULL;
- 
--#ifdef CONFIG_DEBUG_VM
--oops:
--#endif
-+	get_online_cpus();
-+	mutex_lock(&slab_mutex);
-+	if (kmem_cache_sanity_check(name, size) == 0)
-+		s = __kmem_cache_create(name, size, align, flags, ctor);
- 	mutex_unlock(&slab_mutex);
- 	put_online_cpus();
- 
--#ifdef CONFIG_DEBUG_VM
--out:
--#endif
- 	if (!s && (flags & SLAB_PANIC))
- 		panic("kmem_cache_create: Failed to create slab '%s'\n", name);
- 
+-	page = compound_head(page);
+ 	BUG_ON(!PageSlab(page));
+ 	return page->slab_cache;
+ }
 _
 
-Patches currently in -mm which might be from shuah.khan@hp.com are
+Patches currently in -mm which might be from walken@google.com are
 
 linux-next.patch
+ipc-mqueue-remove-unnecessary-rb_init_node-calls.patch
+rbtree-reference-documentation-rbtreetxt-for-usage-instructions.patch
+rbtree-empty-nodes-have-no-color.patch
+rbtree-empty-nodes-have-no-color-fix.patch
+rbtree-fix-incorrect-rbtree-node-insertion-in-fs-proc-proc_sysctlc.patch
+rbtree-move-some-implementation-details-from-rbtreeh-to-rbtreec.patch
+rbtree-move-some-implementation-details-from-rbtreeh-to-rbtreec-fix.patch
+rbtree-performance-and-correctness-test.patch
+rbtree-performance-and-correctness-test-fix.patch
+rbtree-break-out-of-rb_insert_color-loop-after-tree-rotation.patch
+rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary.patch
+rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix-perf-compilation.patch
+rbtree-low-level-optimizations-in-rb_insert_color.patch
+rbtree-adjust-node-color-in-__rb_erase_color-only-when-necessary.patch
+rbtree-optimize-case-selection-logic-in-__rb_erase_color.patch
+rbtree-low-level-optimizations-in-__rb_erase_color.patch
+rbtree-coding-style-adjustments.patch
+rbtree-optimize-fetching-of-sibling-node.patch
 
