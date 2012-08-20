@@ -1,66 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] slub-use-free_page-instead-of-put_page-for-freeing-kmalloc-allocation.patch removed from -mm tree
-Date: Mon, 20 Aug 2012 12:56:38 -0700
-Message-ID: <20120820195639.42FF220005C@hpza10.eem.corp.google.com>
+Subject: [merged] debugfs-make-__create_file-static.patch removed from -mm tree
+Date: Mon, 20 Aug 2012 12:56:42 -0700
+Message-ID: <20120820195643.1768D200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-lb0-f202.google.com ([209.85.217.202]:45267 "EHLO
 	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752326Ab2HTT4l (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Aug 2012 15:56:41 -0400
+	with ESMTP id S1752763Ab2HTT4p (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Aug 2012 15:56:45 -0400
 Received: by mail-lb0-f202.google.com with SMTP id ge1so313971lbb.1
-        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 12:56:40 -0700 (PDT)
+        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 12:56:44 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: glommer@parallels.com, cl@linux.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: chrisw@sous-sol.org, gregkh@linuxfoundation.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: use free_page() instead of put_page() for freeing kmalloc() allocation
+     Subject: debugfs: make __create_file() static
 has been removed from the -mm tree.  Its filename was
-     slub-use-free_page-instead-of-put_page-for-freeing-kmalloc-allocation.patch
+     debugfs-make-__create_file-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Glauber Costa <glommer@parallels.com>
-Subject: slub: use free_page() instead of put_page() for freeing kmalloc() allocation
+From: Chris Wright <chrisw@sous-sol.org>
+Subject: debugfs: make __create_file() static
 
-When freeing objects, the slub allocator will most of the time freeing
-empty pages by calling __free_pages().  But high-order kmalloc() will be
-diposed by means of put_page() instead.  It makes no sense to call
-put_page() against kernel pages that are provided by the object
-allocators, so we shouldn't be doing this ourselves.  Aside from the
-consistency change, we don't change the flow too much.  put_page()'s would
-call its dtor function, which is __free_pages.  We also already do all of
-the Compound page tests ourselves, and the Mlock test we lose don't really
-matter.
+It's only used locally, no need to pollute global namespace.
 
-Signed-off-by: Glauber Costa <glommer@parallels.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Signed-off-by: Chris Wright <chrisw@sous-sol.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/debugfs/inode.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/slub.c~slub-use-free_page-instead-of-put_page-for-freeing-kmalloc-allocation mm/slub.c
---- a/mm/slub.c~slub-use-free_page-instead-of-put_page-for-freeing-kmalloc-allocation
-+++ a/mm/slub.c
-@@ -3477,7 +3477,7 @@ void kfree(const void *x)
- 	if (unlikely(!PageSlab(page))) {
- 		BUG_ON(!PageCompound(page));
- 		kmemleak_free(x);
--		put_page(page);
-+		__free_pages(page, compound_order(page));
- 		return;
- 	}
- 	slab_free(page->slab, page, object, _RET_IP_);
+diff -puN fs/debugfs/inode.c~debugfs-make-__create_file-static fs/debugfs/inode.c
+--- a/fs/debugfs/inode.c~debugfs-make-__create_file-static
++++ a/fs/debugfs/inode.c
+@@ -291,9 +291,9 @@ static struct file_system_type debug_fs_
+ 	.kill_sb =	kill_litter_super,
+ };
+ 
+-struct dentry *__create_file(const char *name, umode_t mode,
+-				   struct dentry *parent, void *data,
+-				   const struct file_operations *fops)
++static struct dentry *__create_file(const char *name, umode_t mode,
++				    struct dentry *parent, void *data,
++				    const struct file_operations *fops)
+ {
+ 	struct dentry *dentry = NULL;
+ 	int error;
 _
 
-Patches currently in -mm which might be from glommer@parallels.com are
+Patches currently in -mm which might be from chrisw@sous-sol.org are
 
 linux-next.patch
 
