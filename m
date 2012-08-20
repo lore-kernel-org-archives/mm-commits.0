@@ -1,30 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-slab-remove-duplicate-check.patch removed from -mm tree
-Date: Mon, 20 Aug 2012 15:51:37 -0700
-Message-ID: <20120820225138.44C6E100047@wpzn3.hot.corp.google.com>
+Subject: + mm-slab-remove-duplicate-check.patch added to -mm tree
+Date: Mon, 20 Aug 2012 15:56:02 -0700
+Message-ID: <20120820225603.1155B200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:50968 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756727Ab2HTWvj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Aug 2012 18:51:39 -0400
-Received: by obbwc20 with SMTP id wc20so4123487obb.1
-        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 15:51:39 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:61014 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756102Ab2HTW4G (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Aug 2012 18:56:06 -0400
+Received: by faem1 with SMTP id m1so225227fae.1
+        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 15:56:04 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shangw@linux.vnet.ibm.com, hannes@cmpxchg.org, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: shangw@linux.vnet.ibm.com, hannes@cmpxchg.org, penberg@cs.helsinki.fi
 
 
 The patch titled
      Subject: mm/page_alloc.c: remove duplicate check
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      mm-slab-remove-duplicate-check.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Gavin Shan <shangw@linux.vnet.ibm.com>
-Subject: mm/slab: remove duplicate check
+Subject: mm/page_alloc.c: remove duplicate check
 
 While allocating pages using buddy allocator, the compound page is
 probably split up to free pages.  Under these circumstances, the compound
@@ -37,7 +47,7 @@ destroy_compound_page() needn't check PageHead().
 
 Signed-off-by: Gavin Shan <shangw@linux.vnet.ibm.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
@@ -61,4 +71,5 @@ _
 
 Patches currently in -mm which might be from shangw@linux.vnet.ibm.com are
 
+mm-slab-remove-duplicate-check.patch
 
