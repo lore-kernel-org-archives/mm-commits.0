@@ -1,26 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-compaction-capture-a-suitable-high-order-page-immediately-when-it-is-made-available.patch removed from -mm tree
-Date: Mon, 20 Aug 2012 15:58:04 -0700
-Message-ID: <20120820225804.DA8D5100047@wpzn3.hot.corp.google.com>
+Subject: + mm-compaction-capture-a-suitable-high-order-page-immediately-when-it-is-made-available.patch added to -mm tree
+Date: Mon, 20 Aug 2012 15:58:40 -0700
+Message-ID: <20120820225841.15913200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:38908 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756102Ab2HTW6H (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Aug 2012 18:58:07 -0400
-Received: by obbwc20 with SMTP id wc20so4126017obb.1
-        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 15:58:06 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:45675 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756102Ab2HTW6n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Aug 2012 18:58:43 -0400
+Received: by faem1 with SMTP id m1so225277fae.1
+        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 15:58:42 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, minchan@kernel.org, riel@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mgorman@suse.de, minchan@kernel.org, riel@redhat.com
 
 
 The patch titled
      Subject: mm: compaction: capture a suitable high-order page immediately when it is made available
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      mm-compaction-capture-a-suitable-high-order-page-immediately-when-it-is-made-available.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
@@ -41,10 +51,10 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
  include/linux/compaction.h |    4 -
  include/linux/mm.h         |    1 
- mm/compaction.c            |   88 ++++++++++++++++++++++++++++++-----
+ mm/compaction.c            |   90 ++++++++++++++++++++++++++++++-----
  mm/internal.h              |    1 
- mm/page_alloc.c            |   63 ++++++++++++++++++-------
- 5 files changed, 128 insertions(+), 29 deletions(-)
+ mm/page_alloc.c            |   63 ++++++++++++++++++------
+ 5 files changed, 130 insertions(+), 29 deletions(-)
 
 diff -puN include/linux/compaction.h~mm-compaction-capture-a-suitable-high-order-page-immediately-when-it-is-made-available include/linux/compaction.h
 --- a/include/linux/compaction.h~mm-compaction-capture-a-suitable-high-order-page-immediately-when-it-is-made-available
@@ -53,8 +63,8 @@ diff -puN include/linux/compaction.h~mm-compaction-capture-a-suitable-high-order
  extern int fragmentation_index(struct zone *zone, unsigned int order);
  extern unsigned long try_to_compact_pages(struct zonelist *zonelist,
  			int order, gfp_t gfp_mask, nodemask_t *mask,
--			bool sync);
-+			bool sync, struct page **page);
+-			bool sync, bool *contended);
++			bool sync, bool *contended, struct page **page);
  extern int compact_pgdat(pg_data_t *pgdat, int order);
  extern unsigned long compaction_suitable(struct zone *zone, int order);
  
@@ -62,8 +72,8 @@ diff -puN include/linux/compaction.h~mm-compaction-capture-a-suitable-high-order
  #else
  static inline unsigned long try_to_compact_pages(struct zonelist *zonelist,
  			int order, gfp_t gfp_mask, nodemask_t *nodemask,
--			bool sync)
-+			bool sync, struct page **page)
+-			bool sync, bool *contended)
++			bool sync, bool *contended, struct page **page)
  {
  	return COMPACT_CONTINUE;
  }
@@ -81,8 +91,8 @@ diff -puN include/linux/mm.h~mm-compaction-capture-a-suitable-high-order-page-im
 diff -puN mm/compaction.c~mm-compaction-capture-a-suitable-high-order-page-immediately-when-it-is-made-available mm/compaction.c
 --- a/mm/compaction.c~mm-compaction-capture-a-suitable-high-order-page-immediately-when-it-is-made-available
 +++ a/mm/compaction.c
-@@ -50,6 +50,59 @@ static inline bool migrate_async_suitabl
- 	return is_migrate_cma(migratetype) || migratetype == MIGRATE_MOVABLE;
+@@ -91,6 +91,60 @@ static inline bool compact_trylock_irqsa
+ 	return compact_checklock_irqsave(lock, flags, false, cc);
  }
  
 +static void compact_capture_page(struct compact_control *cc)
@@ -122,7 +132,8 @@ diff -puN mm/compaction.c~mm-compaction-capture-a-suitable-high-order-page-immed
 +				continue;
 +
 +			/* Take the lock and attempt capture of the page */
-+			spin_lock_irqsave(&cc->zone->lock, flags);
++			if (!compact_trylock_irqsave(&cc->zone->lock, &flags, cc))
++				return;
 +			if (!list_empty(&area->free_list[mtype])) {
 +				page = list_entry(area->free_list[mtype].next,
 +							struct page, lru);
@@ -141,7 +152,7 @@ diff -puN mm/compaction.c~mm-compaction-capture-a-suitable-high-order-page-immed
  /*
   * Isolate free pages onto a private freelist. Caller must hold zone->lock.
   * If @strict is true, will abort returning 0 on any invalid PFNs or non-free
-@@ -587,7 +640,6 @@ static unsigned long start_free_pfn(stru
+@@ -645,7 +699,6 @@ static isolate_migrate_t isolate_migrate
  static int compact_finished(struct zone *zone,
  			    struct compact_control *cc)
  {
@@ -149,7 +160,7 @@ diff -puN mm/compaction.c~mm-compaction-capture-a-suitable-high-order-page-immed
  	unsigned long watermark;
  
  	if (fatal_signal_pending(current))
-@@ -630,14 +682,22 @@ static int compact_finished(struct zone 
+@@ -688,14 +741,22 @@ static int compact_finished(struct zone 
  		return COMPACT_CONTINUE;
  
  	/* Direct compactor: Is a suitable page free? */
@@ -179,7 +190,7 @@ diff -puN mm/compaction.c~mm-compaction-capture-a-suitable-high-order-page-immed
  	}
  
  	return COMPACT_CONTINUE;
-@@ -759,6 +819,9 @@ static int compact_zone(struct zone *zon
+@@ -817,6 +878,9 @@ static int compact_zone(struct zone *zon
  				goto out;
  			}
  		}
@@ -189,42 +200,43 @@ diff -puN mm/compaction.c~mm-compaction-capture-a-suitable-high-order-page-immed
  	}
  
  out:
-@@ -771,7 +834,7 @@ out:
+@@ -829,7 +893,8 @@ out:
  
  static unsigned long compact_zone_order(struct zone *zone,
  				 int order, gfp_t gfp_mask,
--				 bool sync)
-+				 bool sync, struct page **page)
+-				 bool sync, bool *contended)
++				 bool sync, bool *contended,
++				 struct page **page)
  {
  	struct compact_control cc = {
  		.nr_freepages = 0,
-@@ -780,6 +843,7 @@ static unsigned long compact_zone_order(
- 		.migratetype = allocflags_to_migratetype(gfp_mask),
+@@ -839,6 +904,7 @@ static unsigned long compact_zone_order(
  		.zone = zone,
  		.sync = sync,
+ 		.contended = contended,
 +		.page = page,
  	};
  	INIT_LIST_HEAD(&cc.freepages);
  	INIT_LIST_HEAD(&cc.migratepages);
-@@ -801,7 +865,7 @@ int sysctl_extfrag_threshold = 500;
+@@ -860,7 +926,7 @@ int sysctl_extfrag_threshold = 500;
   */
  unsigned long try_to_compact_pages(struct zonelist *zonelist,
  			int order, gfp_t gfp_mask, nodemask_t *nodemask,
--			bool sync)
-+			bool sync, struct page **page)
+-			bool sync, bool *contended)
++			bool sync, bool *contended, struct page **page)
  {
  	enum zone_type high_zoneidx = gfp_zone(gfp_mask);
  	int may_enter_fs = gfp_mask & __GFP_FS;
-@@ -821,7 +885,7 @@ unsigned long try_to_compact_pages(struc
- 								nodemask) {
+@@ -881,7 +947,7 @@ unsigned long try_to_compact_pages(struc
  		int status;
  
--		status = compact_zone_order(zone, order, gfp_mask, sync);
-+		status = compact_zone_order(zone, order, gfp_mask, sync, page);
+ 		status = compact_zone_order(zone, order, gfp_mask, sync,
+-						contended);
++						contended, page);
  		rc = max(status, rc);
  
  		/* If a normal allocation would succeed, stop compacting */
-@@ -876,6 +940,7 @@ int compact_pgdat(pg_data_t *pgdat, int 
+@@ -936,6 +1002,7 @@ int compact_pgdat(pg_data_t *pgdat, int 
  	struct compact_control cc = {
  		.order = order,
  		.sync = false,
@@ -232,7 +244,7 @@ diff -puN mm/compaction.c~mm-compaction-capture-a-suitable-high-order-page-immed
  	};
  
  	return __compact_pgdat(pgdat, &cc);
-@@ -886,6 +951,7 @@ static int compact_node(int nid)
+@@ -946,6 +1013,7 @@ static int compact_node(int nid)
  	struct compact_control cc = {
  		.order = -1,
  		.sync = true,
@@ -243,10 +255,10 @@ diff -puN mm/compaction.c~mm-compaction-capture-a-suitable-high-order-page-immed
 diff -puN mm/internal.h~mm-compaction-capture-a-suitable-high-order-page-immediately-when-it-is-made-available mm/internal.h
 --- a/mm/internal.h~mm-compaction-capture-a-suitable-high-order-page-immediately-when-it-is-made-available
 +++ a/mm/internal.h
-@@ -130,6 +130,7 @@ struct compact_control {
- 	int order;			/* order a direct compactor needs */
+@@ -131,6 +131,7 @@ struct compact_control {
  	int migratetype;		/* MOVABLE, RECLAIMABLE etc */
  	struct zone *zone;
+ 	bool *contended;		/* True if a lock was contended */
 +	struct page **page;		/* Page captured of requested size */
  };
  
@@ -328,7 +340,7 @@ diff -puN mm/page_alloc.c~mm-compaction-capture-a-suitable-high-order-page-immed
  
  /*
 @@ -2104,7 +2128,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 	bool *deferred_compaction,
+ 	bool *contended_compaction, bool *deferred_compaction,
  	unsigned long *did_some_progress)
  {
 -	struct page *page;
@@ -336,12 +348,12 @@ diff -puN mm/page_alloc.c~mm-compaction-capture-a-suitable-high-order-page-immed
  
  	if (!order)
  		return NULL;
-@@ -2116,10 +2140,16 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 
+@@ -2117,10 +2141,16 @@ __alloc_pages_direct_compact(gfp_t gfp_m
  	current->flags |= PF_MEMALLOC;
  	*did_some_progress = try_to_compact_pages(zonelist, order, gfp_mask,
--						nodemask, sync_migration);
-+					nodemask, sync_migration, &page);
+ 						nodemask, sync_migration,
+-						contended_compaction);
++						contended_compaction, &page);
  	current->flags &= ~PF_MEMALLOC;
 -	if (*did_some_progress != COMPACT_SKIPPED) {
  
@@ -355,7 +367,7 @@ diff -puN mm/page_alloc.c~mm-compaction-capture-a-suitable-high-order-page-immed
  		/* Page migration frees to the PCP lists but we want merging */
  		drain_pages(get_cpu());
  		put_cpu();
-@@ -2129,6 +2159,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
+@@ -2130,6 +2160,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
  				alloc_flags & ~ALLOC_NO_WATERMARKS,
  				preferred_zone, migratetype);
  		if (page) {
@@ -378,6 +390,7 @@ mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long-v
 mm-remove-__gfp_no_kswapd.patch
 mm-compaction-update-comment-in-try_to_compact_pages.patch
 mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures.patch
+mm-compaction-capture-a-suitable-high-order-page-immediately-when-it-is-made-available.patch
 mm-have-order-0-compaction-start-near-a-pageblock-with-free-pages.patch
 mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long.patch
 
