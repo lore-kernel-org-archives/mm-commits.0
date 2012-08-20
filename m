@@ -1,26 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-remove-__gfp_no_kswapd.patch removed from -mm tree
-Date: Mon, 20 Aug 2012 15:56:16 -0700
-Message-ID: <20120820225617.91AB9200057@hpza10.eem.corp.google.com>
+Subject: + mm-remove-__gfp_no_kswapd.patch added to -mm tree
+Date: Mon, 20 Aug 2012 15:56:50 -0700
+Message-ID: <20120820225650.9720D100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:40424 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756102Ab2HTW4U (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Aug 2012 18:56:20 -0400
-Received: by weyr1 with SMTP id r1so314918wey.1
-        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 15:56:19 -0700 (PDT)
+Received: from mail-iy0-f202.google.com ([209.85.210.202]:44194 "EHLO
+	mail-iy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756102Ab2HTW4x (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Aug 2012 18:56:53 -0400
+Received: by ialo24 with SMTP id o24so951426ial.1
+        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 15:56:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: riel@redhat.com, David.Woodhouse@intel.com, aarcange@redhat.com, artem.bityutskiy@linux.intel.com, mel@csn.ul.ie, minchan@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: riel@redhat.com, aarcange@redhat.com, mgorman@suse.de
 
 
 The patch titled
      Subject: mm: remove __GFP_NO_KSWAPD
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      mm-remove-__gfp_no_kswapd.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Rik van Riel <riel@redhat.com>
@@ -34,16 +44,43 @@ Now that we have working compaction deferral, kswapd is smart enough to
 invoke compaction and the quadratic behaviour around isolate_free_pages
 has been fixed, it should be safe to remove __GFP_NO_KSWAPD.
 
-Signed-off-by: Rik van Riel <riel@redhat.com>
+[minchan@kernel.org: Comment fix]
+[mgorman@suse.de: Avoid direct reclaim for deferred compaction]
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    5 +----
- mm/page_alloc.c     |    7 +++----
- 2 files changed, 4 insertions(+), 8 deletions(-)
+ drivers/mtd/mtdcore.c           |    6 ++----
+ include/linux/gfp.h             |    5 +----
+ include/trace/events/gfpflags.h |    1 -
+ mm/page_alloc.c                 |    7 +++----
+ 4 files changed, 6 insertions(+), 13 deletions(-)
 
+diff -puN drivers/mtd/mtdcore.c~mm-remove-__gfp_no_kswapd drivers/mtd/mtdcore.c
+--- a/drivers/mtd/mtdcore.c~mm-remove-__gfp_no_kswapd
++++ a/drivers/mtd/mtdcore.c
+@@ -1077,8 +1077,7 @@ EXPORT_SYMBOL_GPL(mtd_writev);
+  * until the request succeeds or until the allocation size falls below
+  * the system page size. This attempts to make sure it does not adversely
+  * impact system performance, so when allocating more than one page, we
+- * ask the memory allocator to avoid re-trying, swapping, writing back
+- * or performing I/O.
++ * ask the memory allocator to avoid re-trying.
+  *
+  * Note, this function also makes sure that the allocated buffer is aligned to
+  * the MTD device's min. I/O unit, i.e. the "mtd->writesize" value.
+@@ -1092,8 +1091,7 @@ EXPORT_SYMBOL_GPL(mtd_writev);
+  */
+ void *mtd_kmalloc_up_to(const struct mtd_info *mtd, size_t *size)
+ {
+-	gfp_t flags = __GFP_NOWARN | __GFP_WAIT |
+-		       __GFP_NORETRY | __GFP_NO_KSWAPD;
++	gfp_t flags = __GFP_NOWARN | __GFP_WAIT | __GFP_NORETRY;
+ 	size_t min_alloc = max_t(size_t, mtd->writesize, PAGE_SIZE);
+ 	void *kbuf;
+ 
 diff -puN include/linux/gfp.h~mm-remove-__gfp_no_kswapd include/linux/gfp.h
 --- a/include/linux/gfp.h~mm-remove-__gfp_no_kswapd
 +++ a/include/linux/gfp.h
@@ -73,10 +110,21 @@ diff -puN include/linux/gfp.h~mm-remove-__gfp_no_kswapd include/linux/gfp.h
  
  #ifdef CONFIG_NUMA
  #define GFP_THISNODE	(__GFP_THISNODE | __GFP_NOWARN | __GFP_NORETRY)
+diff -puN include/trace/events/gfpflags.h~mm-remove-__gfp_no_kswapd include/trace/events/gfpflags.h
+--- a/include/trace/events/gfpflags.h~mm-remove-__gfp_no_kswapd
++++ a/include/trace/events/gfpflags.h
+@@ -36,7 +36,6 @@
+ 	{(unsigned long)__GFP_RECLAIMABLE,	"GFP_RECLAIMABLE"},	\
+ 	{(unsigned long)__GFP_MOVABLE,		"GFP_MOVABLE"},		\
+ 	{(unsigned long)__GFP_NOTRACK,		"GFP_NOTRACK"},		\
+-	{(unsigned long)__GFP_NO_KSWAPD,	"GFP_NO_KSWAPD"},	\
+ 	{(unsigned long)__GFP_OTHER_NODE,	"GFP_OTHER_NODE"}	\
+ 	) : "GFP_NOWAIT"
+ 
 diff -puN mm/page_alloc.c~mm-remove-__gfp_no_kswapd mm/page_alloc.c
 --- a/mm/page_alloc.c~mm-remove-__gfp_no_kswapd
 +++ a/mm/page_alloc.c
-@@ -2348,9 +2348,8 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+@@ -2361,9 +2361,8 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
  		goto nopage;
  
  restart:
@@ -88,12 +136,12 @@ diff -puN mm/page_alloc.c~mm-remove-__gfp_no_kswapd mm/page_alloc.c
  
  	/*
  	 * OK, we're below the kswapd watermark and have kicked background
-@@ -2433,7 +2432,7 @@ rebalance:
- 	 * has requested the system not be heavily disrupted, fail the
- 	 * allocation now instead of entering direct reclaim
+@@ -2440,7 +2439,7 @@ rebalance:
+ 	 * system then fail the allocation instead of entering direct reclaim.
  	 */
--	if (deferred_compaction && (gfp_mask & __GFP_NO_KSWAPD))
-+	if (deferred_compaction)
+ 	if ((deferred_compaction || contended_compaction) &&
+-						(gfp_mask & __GFP_NO_KSWAPD))
++	    (gfp_mask & (__GFP_MOVABLE|__GFP_REPEAT)) == __GFP_MOVABLE)
  		goto nopage;
  
  	/* Try direct reclaim and then allocating */
@@ -106,6 +154,7 @@ mm-hugetlbfs-correctly-populate-shared-pmd.patch
 mm-hugetlbfs-correctly-populate-shared-pmd-fix.patch
 mm-compactionc-fix-deferring-compaction-mistake.patch
 mm-have-order-0-compaction-start-near-a-pageblock-with-free-pages-v2.patch
+mm-remove-__gfp_no_kswapd.patch
 remove-__gfp_no_kswapd-fixes.patch
 remove-__gfp_no_kswapd-fixes-fix.patch
 mm-compaction-update-comment-in-try_to_compact_pages.patch
