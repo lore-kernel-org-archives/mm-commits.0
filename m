@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rbtree-low-level-optimizations-in-rb_erase.patch added to -mm tree
-Date: Mon, 20 Aug 2012 15:37:01 -0700
-Message-ID: <20120820223702.60C6A1E0048@wpzn4.hot.corp.google.com>
+Subject: + rbtree-augmented-rbtree-test.patch added to -mm tree
+Date: Mon, 20 Aug 2012 15:37:04 -0700
+Message-ID: <20120820223705.4A141100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-ob0-f202.google.com ([209.85.214.202]:42800 "EHLO
 	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756583Ab2HTWhD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Aug 2012 18:37:03 -0400
+	with ESMTP id S1756583Ab2HTWhG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Aug 2012 18:37:06 -0400
 Received: by mail-ob0-f202.google.com with SMTP id wc20so4115762obb.1
-        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 15:37:03 -0700 (PDT)
+        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 15:37:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: walken@google.com, a.p.zijlstra@chello.nl, aarcange@redhat.com, dwmw2@infrad
 
 
 The patch titled
-     Subject: rbtree: low level optimizations in rb_erase()
+     Subject: rbtree: augmented rbtree test
 has been added to the -mm tree.  Its filename is
-     rbtree-low-level-optimizations-in-rb_erase.patch
+     rbtree-augmented-rbtree-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,24 +34,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michel Lespinasse <walken@google.com>
-Subject: rbtree: low level optimizations in rb_erase()
+Subject: rbtree: augmented rbtree test
 
-Various minor optimizations in rb_erase():
-- Avoid multiple loading of node->__rb_parent_color when computing parent
-  and color information (possibly not in close sequence, as there might
-  be further branches in the algorithm)
-- In the 1-child subcase of case 1, copy the __rb_parent_color field from
-  the erased node to the child instead of recomputing it from the desired
-  parent and color
-- When searching for the erased node's successor, differentiate between
-  cases 2 and 3 based on whether any left links were followed. This avoids
-  a condition later down.
-- In case 3, keep a pointer to the erased node's right child so we don't
-  have to refetch it later to adjust its parent.
-- In the no-childs subcase of cases 2 and 3, place the rebalance assigment
-  last so that the compiler can remove the following if(rebalance) test.
-
-Also, added some comments to illustrate cases 2 and 3.
+Small test to measure the performance of augmented rbtrees.
 
 Signed-off-by: Michel Lespinasse <walken@google.com>
 Acked-by: Rik van Riel <riel@redhat.com>
@@ -61,145 +46,157 @@ Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/rbtree.c |   98 ++++++++++++++++++++++++++++++++-----------------
- 1 file changed, 64 insertions(+), 34 deletions(-)
+ lib/rbtree_test.c |  103 +++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 101 insertions(+), 2 deletions(-)
 
-diff -puN lib/rbtree.c~rbtree-low-level-optimizations-in-rb_erase lib/rbtree.c
---- a/lib/rbtree.c~rbtree-low-level-optimizations-in-rb_erase
-+++ a/lib/rbtree.c
-@@ -47,9 +47,14 @@
- #define	RB_RED		0
- #define	RB_BLACK	1
- 
--#define rb_color(r)   ((r)->__rb_parent_color & 1)
--#define rb_is_red(r)   (!rb_color(r))
--#define rb_is_black(r) rb_color(r)
-+#define __rb_parent(pc)    ((struct rb_node *)(pc & ~3))
+diff -puN lib/rbtree_test.c~rbtree-augmented-rbtree-test lib/rbtree_test.c
+--- a/lib/rbtree_test.c~rbtree-augmented-rbtree-test
++++ a/lib/rbtree_test.c
+@@ -10,6 +10,10 @@
+ struct test_node {
+ 	struct rb_node rb;
+ 	u32 key;
 +
-+#define __rb_color(pc)     ((pc) & 1)
-+#define __rb_is_black(pc)  __rb_color(pc)
-+#define __rb_is_red(pc)    (!__rb_color(pc))
-+#define rb_color(rb)       __rb_color((rb)->__rb_parent_color)
-+#define rb_is_red(rb)      __rb_is_red((rb)->__rb_parent_color)
-+#define rb_is_black(rb)    __rb_is_black((rb)->__rb_parent_color)
++	/* following fields used for testing augmented rbtree functionality */
++	u32 val;
++	u32 augmented;
+ };
  
- static inline void rb_set_black(struct rb_node *rb)
+ static struct rb_root root = RB_ROOT;
+@@ -20,10 +24,11 @@ static struct rnd_state rnd;
+ static void insert(struct test_node *node, struct rb_root *root)
  {
-@@ -378,6 +383,7 @@ void rb_erase(struct rb_node *node, stru
- {
- 	struct rb_node *child = node->rb_right, *tmp = node->rb_left;
- 	struct rb_node *parent, *rebalance;
-+	unsigned long pc;
+ 	struct rb_node **new = &root->rb_node, *parent = NULL;
++	u32 key = node->key;
  
- 	if (!tmp) {
- 		/*
-@@ -387,51 +393,75 @@ void rb_erase(struct rb_node *node, stru
- 		 * and node must be black due to 4). We adjust colors locally
- 		 * so as to bypass __rb_erase_color() later on.
- 		 */
--
--		parent = rb_parent(node);
-+		pc = node->__rb_parent_color;
-+		parent = __rb_parent(pc);
- 		__rb_change_child(node, child, parent, root);
- 		if (child) {
--			rb_set_parent_color(child, parent, RB_BLACK);
-+			child->__rb_parent_color = pc;
- 			rebalance = NULL;
--		} else {
--			rebalance = rb_is_black(node) ? parent : NULL;
--		}
-+		} else
-+			rebalance = __rb_is_black(pc) ? parent : NULL;
- 	} else if (!child) {
- 		/* Still case 1, but this time the child is node->rb_left */
--		parent = rb_parent(node);
-+		tmp->__rb_parent_color = pc = node->__rb_parent_color;
-+		parent = __rb_parent(pc);
- 		__rb_change_child(node, tmp, parent, root);
--		rb_set_parent_color(tmp, parent, RB_BLACK);
- 		rebalance = NULL;
- 	} else {
--		struct rb_node *old = node, *left;
--
--		node = child;
--		while ((left = node->rb_left) != NULL)
--			node = left;
--
--		__rb_change_child(old, node, rb_parent(old), root);
--
--		child = node->rb_right;
--		parent = rb_parent(node);
--
--		if (parent == old) {
--			parent = node;
-+		struct rb_node *successor = child, *child2;
-+		tmp = child->rb_left;
-+		if (!tmp) {
-+			/*
-+			 * Case 2: node's successor is its right child
-+			 *
-+			 *    (n)          (s)
-+			 *    / \          / \
-+			 *  (x) (s)  ->  (x) (c)
-+			 *        \
-+			 *        (c)
-+			 */
-+			parent = child;
-+			child2 = child->rb_right;
- 		} else {
--			parent->rb_left = child;
--
--			node->rb_right = old->rb_right;
--			rb_set_parent(old->rb_right, node);
-+			/*
-+			 * Case 3: node's successor is leftmost under
-+			 * node's right child subtree
-+			 *
-+			 *    (n)          (s)
-+			 *    / \          / \
-+			 *  (x) (y)  ->  (x) (y)
-+			 *      /            /
-+			 *    (p)          (p)
-+			 *    /            /
-+			 *  (s)          (c)
-+			 *    \
-+			 *    (c)
-+			 */
-+			do {
-+				parent = successor;
-+				successor = tmp;
-+				tmp = tmp->rb_left;
-+			} while (tmp);
-+			parent->rb_left = child2 = successor->rb_right;
-+			successor->rb_right = child;
-+			rb_set_parent(child, successor);
- 		}
+ 	while (*new) {
+ 		parent = *new;
+-		if (node->key < rb_entry(parent, struct test_node, rb)->key)
++		if (key < rb_entry(parent, struct test_node, rb)->key)
+ 			new = &parent->rb_left;
+ 		else
+ 			new = &parent->rb_right;
+@@ -38,11 +43,62 @@ static inline void erase(struct test_nod
+ 	rb_erase(&node->rb, root);
+ }
  
--		if (child) {
--			rb_set_parent_color(child, parent, RB_BLACK);
-+		successor->rb_left = tmp = node->rb_left;
-+		rb_set_parent(tmp, successor);
++static inline u32 augment_recompute(struct test_node *node)
++{
++	u32 max = node->val, child_augmented;
++	if (node->rb.rb_left) {
++		child_augmented = rb_entry(node->rb.rb_left, struct test_node,
++					   rb)->augmented;
++		if (max < child_augmented)
++			max = child_augmented;
++	}
++	if (node->rb.rb_right) {
++		child_augmented = rb_entry(node->rb.rb_right, struct test_node,
++					   rb)->augmented;
++		if (max < child_augmented)
++			max = child_augmented;
++	}
++	return max;
++}
 +
-+		pc = node->__rb_parent_color;
-+		tmp = __rb_parent(pc);
-+		__rb_change_child(node, successor, tmp, root);
-+		if (child2) {
-+			successor->__rb_parent_color = pc;
-+			rb_set_parent_color(child2, parent, RB_BLACK);
- 			rebalance = NULL;
- 		} else {
--			rebalance = rb_is_black(node) ? parent : NULL;
-+			unsigned long pc2 = successor->__rb_parent_color;
-+			successor->__rb_parent_color = pc;
-+			rebalance = __rb_is_black(pc2) ? parent : NULL;
- 		}
--		node->__rb_parent_color = old->__rb_parent_color;
--		node->rb_left = old->rb_left;
--		rb_set_parent(old->rb_left, node);
++static void augment_callback(struct rb_node *rb, void *unused)
++{
++	struct test_node *node = rb_entry(rb, struct test_node, rb);
++	node->augmented = augment_recompute(node);
++}
++
++static void insert_augmented(struct test_node *node, struct rb_root *root)
++{
++	struct rb_node **new = &root->rb_node, *parent = NULL;
++	u32 key = node->key;
++
++	while (*new) {
++		parent = *new;
++		if (key < rb_entry(parent, struct test_node, rb)->key)
++			new = &parent->rb_left;
++		else
++			new = &parent->rb_right;
++	}
++
++	rb_link_node(&node->rb, parent, new);
++	rb_insert_color(&node->rb, root);
++	rb_augment_insert(&node->rb, augment_callback, NULL);
++}
++
++static void erase_augmented(struct test_node *node, struct rb_root *root)
++{
++	struct rb_node *deepest = rb_augment_erase_begin(&node->rb);
++	rb_erase(&node->rb, root);
++	rb_augment_erase_end(deepest, augment_callback, NULL);
++}
++
+ static void init(void)
+ {
+ 	int i;
+-	for (i = 0; i < NODES; i++)
++	for (i = 0; i < NODES; i++) {
+ 		nodes[i].key = prandom32(&rnd);
++		nodes[i].val = prandom32(&rnd);
++	}
+ }
+ 
+ static bool is_red(struct rb_node *rb)
+@@ -81,6 +137,17 @@ static void check(int nr_nodes)
+ 	WARN_ON_ONCE(count != nr_nodes);
+ }
+ 
++static void check_augmented(int nr_nodes)
++{
++	struct rb_node *rb;
++
++	check(nr_nodes);
++	for (rb = rb_first(&root); rb; rb = rb_next(rb)) {
++		struct test_node *node = rb_entry(rb, struct test_node, rb);
++		WARN_ON_ONCE(node->augmented != augment_recompute(node));
++	}
++}
++
+ static int rbtree_test_init(void)
+ {
+ 	int i, j;
+@@ -119,6 +186,38 @@ static int rbtree_test_init(void)
+ 		check(0);
  	}
  
- 	if (rebalance)
++	printk(KERN_ALERT "augmented rbtree testing");
++
++	init();
++
++	time1 = get_cycles();
++
++	for (i = 0; i < PERF_LOOPS; i++) {
++		for (j = 0; j < NODES; j++)
++			insert_augmented(nodes + j, &root);
++		for (j = 0; j < NODES; j++)
++			erase_augmented(nodes + j, &root);
++	}
++
++	time2 = get_cycles();
++	time = time2 - time1;
++
++	time = div_u64(time, PERF_LOOPS);
++	printk(" -> %llu cycles\n", (unsigned long long)time);
++
++	for (i = 0; i < CHECK_LOOPS; i++) {
++		init();
++		for (j = 0; j < NODES; j++) {
++			check_augmented(j);
++			insert_augmented(nodes + j, &root);
++		}
++		for (j = 0; j < NODES; j++) {
++			check_augmented(NODES - j);
++			erase_augmented(nodes + j, &root);
++		}
++		check_augmented(0);
++	}
++
+ 	return -EAGAIN; /* Fail will directly unload the module */
+ }
+ 
 _
 
 Patches currently in -mm which might be from walken@google.com are
