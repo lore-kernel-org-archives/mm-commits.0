@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-update-comment-in-try_to_compact_pages.patch added to -mm tree
-Date: Mon, 20 Aug 2012 14:19:13 -0700
-Message-ID: <20120820211914.60A2F1E0048@wpzn4.hot.corp.google.com>
+Subject: + mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures.patch added to -mm tree
+Date: Mon, 20 Aug 2012 14:19:16 -0700
+Message-ID: <20120820211917.C0CBC20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:34577 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754956Ab2HTVTP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Aug 2012 17:19:15 -0400
-Received: by obbwc20 with SMTP id wc20so4078367obb.1
-        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 14:19:15 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:63801 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754956Ab2HTVTU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Aug 2012 17:19:20 -0400
+Received: by wibhr14 with SMTP id hr14so219524wib.1
+        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 14:19:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: mgorman@suse.de, minchan@kernel.org, riel@redhat.com
 
 
 The patch titled
-     Subject: mm: compaction: update comment in try_to_compact_pages
+     Subject: mm: vmscan: scale number of pages reclaimed by reclaim/compaction based on failures
 has been added to the -mm tree.  Its filename is
-     mm-compaction-update-comment-in-try_to_compact_pages.patch
+     mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,123 +34,72 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: compaction: update comment in try_to_compact_pages
+Subject: mm: vmscan: scale number of pages reclaimed by reclaim/compaction based on failures
 
-Allocation success rates have been far lower since 3.4 due to commit
-fe2c2a10 ("vmscan: reclaim at order 0 when compaction is enabled").  This
-commit was introduced for good reasons and it was known in advance that
-the success rates would suffer but it was justified on the grounds that
-the high allocation success rates were achieved by aggressive reclaim. 
-Success rates are expected to suffer even more in 3.6 due to commit
-7db8889a ("mm: have order > 0 compaction start off where it left") which
-testing has shown to severely reduce allocation success rates under load -
-to 0% in one case.
+If allocation fails after compaction then compaction may be deferred for a
+number of allocation attempts.  If there are subsequent failures,
+compact_defer_shift is increased to defer for longer periods.  This patch
+uses that information to scale the number of pages reclaimed with
+compact_defer_shift until allocations succeed again.  The rationale is
+that reclaiming the normal number of pages still allowed compaction to
+fail and its success depends on the number of pages.  If it's failing,
+reclaim more pages until it succeeds again.
 
-This series aims to improve the allocation success rates without
-regressing the benefits of commit fe2c2a10.  The series is based on latest
-mmotm and takes into account the __GFP_NO_KSWAPD flag is going away.
+Note that this is not implying that VM reclaim is not reclaiming enough
+pages or that its logic is broken.  try_to_free_pages() always asks for
+SWAP_CLUSTER_MAX pages to be reclaimed regardless of order and that is
+what it does.  Direct reclaim stops normally with this check.
 
-Patch 1 updates a stale comment seeing as I was in the general area.
+	if (sc->nr_reclaimed >= sc->nr_to_reclaim)
+		goto out;
 
-Patch 2 updates reclaim/compaction to reclaim pages scaled on the number
-	of recent failures.
-
-Patch 3 captures suitable high-order pages freed by compaction to reduce
-	races with parallel allocation requests.
-
-Patch 4 fixes the upstream commit [7db8889a: mm: have order > 0 compaction
-	start off where it left] to enable compaction again
-
-Patch 5 identifies when compacion is taking too long due to contention
-	and aborts.
-
-STRESS-HIGHALLOC
-		 3.6-rc1-akpm	  full-series
-Pass 1          36.00 ( 0.00%)    51.00 (15.00%)
-Pass 2          42.00 ( 0.00%)    63.00 (21.00%)
-while Rested    86.00 ( 0.00%)    86.00 ( 0.00%)
-
-From
-http://www.csn.ul.ie/~mel/postings/mmtests-20120424/global-dhp__stress-highalloc-performance-ext3/hydra/comparison.html
-I know that the allocation success rates in 3.3.6 was 78% in comparison to
-36% in in the current akpm tree.  With the full series applied, the
-success rates are up to around 51% with some variability in the results. 
-This is not as high a success rate but it does not reclaim excessively
-which is a key point.
-
-MMTests Statistics: vmstat
-Page Ins                                     3050912     3078892
-Page Outs                                    8033528     8039096
-Swap Ins                                           0           0
-Swap Outs                                          0           0
-
-Note that swap in/out rates remain at 0. In 3.3.6 with 78% success rates
-there were 71881 pages swapped out.
-
-Direct pages scanned                           70942      122976
-Kswapd pages scanned                         1366300     1520122
-Kswapd pages reclaimed                       1366214     1484629
-Direct pages reclaimed                         70936      105716
-Kswapd efficiency                                99%         97%
-Kswapd velocity                             1072.550    1182.615
-Direct efficiency                                99%         85%
-Direct velocity                               55.690      95.672
-
-The kswapd velocity changes very little as expected.  kswapd velocity is
-around the 1000 pages/sec mark where as in kernel 3.3.6 with the high
-allocation success rates it was 8140 pages/second.  Direct velocity is
-higher as a result of patch 2 of the series but this is expected and is
-acceptable.  The direct reclaim and kswapd velocities change very little.
-
-If these get accepted for merging then there is a difficulty in how they
-should be handled.  7db8889a ("mm: have order > 0 compaction start off
-where it left") is broken but it is already in 3.6-rc1 and needs to be
-fixed.  However, if just patch 4 from this series is applied then Jim
-Schutt's workload is known to break again as his workload also requires
-patch 5.  While it would be preferred to have all these patches in 3.6 to
-improve compaction in general, it would at least be acceptable if just
-patches 4 and 5 were merged to 3.6 to fix a known problem without breaking
-compaction completely.  On the face of it, that would force
-__GFP_NO_KSWAPD patches to be merged at the same time but I can do a
-version of this series with __GFP_NO_KSWAPD change reverted and then
-rebase it on top of this series.  That might be best overall because I
-note that the __GFP_NO_KSWAPD patch should have removed
-deferred_compaction from page_alloc.c but it didn't but fixing that causes
-collisions with this series.
-
-
-This patch:
-
-The comment about order applied when the check was order >
-PAGE_ALLOC_COSTLY_ORDER which has not been the case since c5a73c3d ("thp:
-use compaction for all allocation orders").  Fixing the comment while I'm
-in the general area.
+should_continue_reclaim delays when that check is made until a minimum
+number of pages for reclaim/compaction are reclaimed.  It is possible that
+this patch could instead set nr_to_reclaim in try_to_free_pages() and
+drive it from there but that's behaves differently and not necessarily for
+the better.  If driven from do_try_to_free_pages(), it is also possible
+that priorities will rise.  When they reach DEF_PRIORITY-2, it will also
+start stalling and setting pages for immediate reclaim which is more
+disruptive than not desirable in this case.  That is a more wide-reaching
+change that could cause another regression related to THP requests causing
+interactive jitter.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reviewed-by: Rik van Riel <riel@redhat.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Reviewed-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ mm/vmscan.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN mm/compaction.c~mm-compaction-update-comment-in-try_to_compact_pages mm/compaction.c
---- a/mm/compaction.c~mm-compaction-update-comment-in-try_to_compact_pages
-+++ a/mm/compaction.c
-@@ -810,11 +810,7 @@ unsigned long try_to_compact_pages(struc
- 	struct zone *zone;
- 	int rc = COMPACT_SKIPPED;
+diff -puN mm/vmscan.c~mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures
++++ a/mm/vmscan.c
+@@ -1743,6 +1743,7 @@ static inline bool should_continue_recla
+ {
+ 	unsigned long pages_for_compaction;
+ 	unsigned long inactive_lru_pages;
++	struct zone *zone;
  
--	/*
--	 * Check whether it is worth even starting compaction. The order check is
--	 * made because an assumption is made that the page allocator can satisfy
--	 * the "cheaper" orders without taking special steps
--	 */
-+	/* Check if the GFP flags allow compaction */
- 	if (!order || !may_enter_fs || !may_perform_io)
- 		return rc;
- 
+ 	/* If not in reclaim/compaction mode, stop */
+ 	if (!in_reclaim_compaction(sc))
+@@ -1776,6 +1777,15 @@ static inline bool should_continue_recla
+ 	 * inactive lists are large enough, continue reclaiming
+ 	 */
+ 	pages_for_compaction = (2UL << sc->order);
++
++	/*
++	 * If compaction is deferred for sc->order then scale the number of
++	 * pages reclaimed based on the number of consecutive allocation
++	 * failures
++	 */
++	zone = lruvec_zone(lruvec);
++	if (zone->compact_order_failed <= sc->order)
++		pages_for_compaction <<= zone->compact_defer_shift;
+ 	inactive_lru_pages = get_lru_size(lruvec, LRU_INACTIVE_FILE);
+ 	if (nr_swap_pages > 0)
+ 		inactive_lru_pages += get_lru_size(lruvec, LRU_INACTIVE_ANON);
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
