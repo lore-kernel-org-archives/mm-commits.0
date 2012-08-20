@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-correct-page-pfmemalloc-to-fix-deactivate_slab-regression.patch added to -mm tree
-Date: Mon, 20 Aug 2012 14:10:35 -0700
-Message-ID: <20120820211036.184E15C0050@hpza9.eem.corp.google.com>
+Subject: + mm-compaction-update-comment-in-try_to_compact_pages.patch added to -mm tree
+Date: Mon, 20 Aug 2012 14:19:13 -0700
+Message-ID: <20120820211914.60A2F1E0048@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:55613 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755134Ab2HTVKi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Aug 2012 17:10:38 -0400
-Received: by bkcjc3 with SMTP id jc3so313814bkc.1
-        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 14:10:37 -0700 (PDT)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:34577 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754956Ab2HTVTP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Aug 2012 17:19:15 -0400
+Received: by obbwc20 with SMTP id wc20so4078367obb.1
+        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 14:19:15 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alex.shi@intel.com, a.p.zijlstra@chello.nl, davem@davemloft.net, mgorman@suse.de
+Cc: mgorman@suse.de, minchan@kernel.org, riel@redhat.com
 
 
 The patch titled
-     Subject: mm: correct page->pfmemalloc to fix deactivate_slab regression
+     Subject: mm: compaction: update comment in try_to_compact_pages
 has been added to the -mm tree.  Its filename is
-     mm-correct-page-pfmemalloc-to-fix-deactivate_slab-regression.patch
+     mm-compaction-update-comment-in-try_to_compact_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,88 +33,137 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alex Shi <alex.shi@intel.com>
-Subject: mm: correct page->pfmemalloc to fix deactivate_slab regression
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: compaction: update comment in try_to_compact_pages
 
-cfd19c5a9ec ("mm: only set page->pfmemalloc when ALLOC_NO_WATERMARKS was
-used") tried to narrow down page->pfmemalloc setting, but it missed some
-places the pfmemalloc should be set.
+Allocation success rates have been far lower since 3.4 due to commit
+fe2c2a10 ("vmscan: reclaim at order 0 when compaction is enabled").  This
+commit was introduced for good reasons and it was known in advance that
+the success rates would suffer but it was justified on the grounds that
+the high allocation success rates were achieved by aggressive reclaim. 
+Success rates are expected to suffer even more in 3.6 due to commit
+7db8889a ("mm: have order > 0 compaction start off where it left") which
+testing has shown to severely reduce allocation success rates under load -
+to 0% in one case.
 
-So, in __slab_alloc, the unalignment pfmemalloc and ALLOC_NO_WATERMARKS
-cause incorrect deactivate_slab() on our core2 server:
+This series aims to improve the allocation success rates without
+regressing the benefits of commit fe2c2a10.  The series is based on latest
+mmotm and takes into account the __GFP_NO_KSWAPD flag is going away.
 
-    64.73%           fio  [kernel.kallsyms]     [k] _raw_spin_lock
-                     |
-                     --- _raw_spin_lock
-                        |
-                        |---0.34%-- deactivate_slab
-                        |          __slab_alloc
-                        |          kmem_cache_alloc
-                        |          |
+Patch 1 updates a stale comment seeing as I was in the general area.
 
-That causes our fio sync write performance to have a 40% regression.
+Patch 2 updates reclaim/compaction to reclaim pages scaled on the number
+	of recent failures.
 
-Move the checking in get_page_from_freelist() which resolves this issue.
+Patch 3 captures suitable high-order pages freed by compaction to reduce
+	races with parallel allocation requests.
 
-Signed-off-by: Alex Shi <alex.shi@intel.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: David Miller <davem@davemloft.net
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Patch 4 fixes the upstream commit [7db8889a: mm: have order > 0 compaction
+	start off where it left] to enable compaction again
+
+Patch 5 identifies when compacion is taking too long due to contention
+	and aborts.
+
+STRESS-HIGHALLOC
+		 3.6-rc1-akpm	  full-series
+Pass 1          36.00 ( 0.00%)    51.00 (15.00%)
+Pass 2          42.00 ( 0.00%)    63.00 (21.00%)
+while Rested    86.00 ( 0.00%)    86.00 ( 0.00%)
+
+From
+http://www.csn.ul.ie/~mel/postings/mmtests-20120424/global-dhp__stress-highalloc-performance-ext3/hydra/comparison.html
+I know that the allocation success rates in 3.3.6 was 78% in comparison to
+36% in in the current akpm tree.  With the full series applied, the
+success rates are up to around 51% with some variability in the results. 
+This is not as high a success rate but it does not reclaim excessively
+which is a key point.
+
+MMTests Statistics: vmstat
+Page Ins                                     3050912     3078892
+Page Outs                                    8033528     8039096
+Swap Ins                                           0           0
+Swap Outs                                          0           0
+
+Note that swap in/out rates remain at 0. In 3.3.6 with 78% success rates
+there were 71881 pages swapped out.
+
+Direct pages scanned                           70942      122976
+Kswapd pages scanned                         1366300     1520122
+Kswapd pages reclaimed                       1366214     1484629
+Direct pages reclaimed                         70936      105716
+Kswapd efficiency                                99%         97%
+Kswapd velocity                             1072.550    1182.615
+Direct efficiency                                99%         85%
+Direct velocity                               55.690      95.672
+
+The kswapd velocity changes very little as expected.  kswapd velocity is
+around the 1000 pages/sec mark where as in kernel 3.3.6 with the high
+allocation success rates it was 8140 pages/second.  Direct velocity is
+higher as a result of patch 2 of the series but this is expected and is
+acceptable.  The direct reclaim and kswapd velocities change very little.
+
+If these get accepted for merging then there is a difficulty in how they
+should be handled.  7db8889a ("mm: have order > 0 compaction start off
+where it left") is broken but it is already in 3.6-rc1 and needs to be
+fixed.  However, if just patch 4 from this series is applied then Jim
+Schutt's workload is known to break again as his workload also requires
+patch 5.  While it would be preferred to have all these patches in 3.6 to
+improve compaction in general, it would at least be acceptable if just
+patches 4 and 5 were merged to 3.6 to fix a known problem without breaking
+compaction completely.  On the face of it, that would force
+__GFP_NO_KSWAPD patches to be merged at the same time but I can do a
+version of this series with __GFP_NO_KSWAPD change reverted and then
+rebase it on top of this series.  That might be best overall because I
+note that the __GFP_NO_KSWAPD patch should have removed
+deferred_compaction from page_alloc.c but it didn't but fixing that causes
+collisions with this series.
+
+
+This patch:
+
+The comment about order applied when the check was order >
+PAGE_ALLOC_COSTLY_ORDER which has not been the case since c5a73c3d ("thp:
+use compaction for all allocation orders").  Fixing the comment while I'm
+in the general area.
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Reviewed-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   21 +++++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
+ mm/compaction.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-correct-page-pfmemalloc-to-fix-deactivate_slab-regression mm/page_alloc.c
---- a/mm/page_alloc.c~mm-correct-page-pfmemalloc-to-fix-deactivate_slab-regression
-+++ a/mm/page_alloc.c
-@@ -1928,6 +1928,17 @@ this_zone_full:
- 		zlc_active = 0;
- 		goto zonelist_scan;
- 	}
-+
-+	if (page)
-+		/*
-+		 * page->pfmemalloc is set when ALLOC_NO_WATERMARKS was
-+		 * necessary to allocate the page. The expectation is
-+		 * that the caller is taking steps that will free more
-+		 * memory. The caller should avoid the page being used
-+		 * for !PFMEMALLOC purposes.
-+		 */
-+		page->pfmemalloc = !!(alloc_flags & ALLOC_NO_WATERMARKS);
-+
- 	return page;
- }
+diff -puN mm/compaction.c~mm-compaction-update-comment-in-try_to_compact_pages mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-update-comment-in-try_to_compact_pages
++++ a/mm/compaction.c
+@@ -810,11 +810,7 @@ unsigned long try_to_compact_pages(struc
+ 	struct zone *zone;
+ 	int rc = COMPACT_SKIPPED;
  
-@@ -2389,14 +2400,6 @@ rebalance:
- 				zonelist, high_zoneidx, nodemask,
- 				preferred_zone, migratetype);
- 		if (page) {
--			/*
--			 * page->pfmemalloc is set when ALLOC_NO_WATERMARKS was
--			 * necessary to allocate the page. The expectation is
--			 * that the caller is taking steps that will free more
--			 * memory. The caller should avoid the page being used
--			 * for !PFMEMALLOC purposes.
--			 */
--			page->pfmemalloc = true;
- 			goto got_pg;
- 		}
- 	}
-@@ -2569,8 +2572,6 @@ retry_cpuset:
- 		page = __alloc_pages_slowpath(gfp_mask, order,
- 				zonelist, high_zoneidx, nodemask,
- 				preferred_zone, migratetype);
--	else
--		page->pfmemalloc = false;
- 
- 	trace_mm_page_alloc(page, order, gfp_mask, migratetype);
+-	/*
+-	 * Check whether it is worth even starting compaction. The order check is
+-	 * made because an assumption is made that the page allocator can satisfy
+-	 * the "cheaper" orders without taking special steps
+-	 */
++	/* Check if the GFP flags allow compaction */
+ 	if (!order || !may_enter_fs || !may_perform_io)
+ 		return rc;
  
 _
 
-Patches currently in -mm which might be from alex.shi@intel.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
 linux-next.patch
+mm-hugetlbfs-correctly-populate-shared-pmd.patch
+mm-hugetlbfs-correctly-populate-shared-pmd-fix.patch
+alpha-redefine-atomic_init-and-atomic64_init-to-drop-the-casts.patch
+netvm-check-for-page-==-null-when-propagating-the-skb-pfmemalloc-flag.patch
 mm-correct-page-pfmemalloc-to-fix-deactivate_slab-regression.patch
+mm-compaction-update-comment-in-try_to_compact_pages.patch
+mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures.patch
+mm-compaction-capture-a-suitable-high-order-page-immediately-when-it-is-made-available.patch
+mm-have-order-0-compaction-start-near-a-pageblock-with-free-pages.patch
+mm-compaction-abort-async-compaction-if-locks-are-contended-or-taking-too-long.patch
 
