@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + h8300-select-generic-atomic64_t-support.patch added to -mm tree
-Date: Mon, 20 Aug 2012 14:21:58 -0700
-Message-ID: <20120820212159.27F155C0050@hpza9.eem.corp.google.com>
+Subject: + rapidio-tsi721-fix-inbound-doorbell-interrupt-handling.patch added to -mm tree
+Date: Mon, 20 Aug 2012 14:28:57 -0700
+Message-ID: <20120820212858.BA9E45C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:62956 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751643Ab2HTVWB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Aug 2012 17:22:01 -0400
-Received: by wgbdt11 with SMTP id dt11so312462wgb.1
-        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 14:22:00 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:54132 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751455Ab2HTV3D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Aug 2012 17:29:03 -0400
+Received: by eaac1 with SMTP id c1so312674eaa.1
+        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 14:28:59 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fengguang.wu@intel.com, ebiederm@xmission.com, ysato@users.sourceforge.jp
+Cc: alexandre.bounine@idt.com, mporter@kernel.crashing.org, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: h8300: select generic atomic64_t support
+     Subject: rapidio/tsi721: fix inbound doorbell interrupt handling
 has been added to the -mm tree.  Its filename is
-     h8300-select-generic-atomic64_t-support.patch
+     rapidio-tsi721-fix-inbound-doorbell-interrupt-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,78 +33,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: h8300: select generic atomic64_t support
+From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: rapidio/tsi721: fix inbound doorbell interrupt handling
 
-Rationales from Eric:
+Make sure that there is no doorbell messages left behind due to disabled
+interrupts during inbound doorbell processing.
 
-So I just looked a little deeper and it appears architectures that do
-not support atomic64_t are broken.
+The most common case for this bug is loss of rionet JOIN messages in
+systems with three or more rionet participants and MSI or MSI-X enabled. 
+As result, requests for packet transfers may finish with "destination
+unreachable" error message.
 
-The generic atomic64 support came in 2009 to support the perf subsystem
-with the expectation that all architectures would implement atomic64
-support.
+This patch is applicable to kernel versions starting from v3.2.
 
-Furthermore upon inspection of the kernel atomic64_t is used in a fair
-number of places beyond the performance counters:
-
-block/blk-cgroup.c
-drivers/acpi/apei/
-drivers/block/rbd.c
-drivers/crypto/nx/nx.h
-drivers/gpu/drm/radeon/radeon.h
-drivers/infiniband/hw/ipath/
-drivers/infiniband/hw/qib/
-drivers/staging/octeon/
-fs/xfs/
-include/linux/perf_event.h
-include/net/netfilter/nf_conntrack_acct.h
-kernel/events/
-kernel/trace/
-net/mac80211/key.h
-net/rds/
-
-The block control group, infiniband, xfs, crypto, 802.11, netfilter. 
-Nothing quite so fundamental as fs/namespace.c but definitely in
-multiplatform-code that should work, and is already broken on those
-architecutres.
-
-Looking at the implementation of atomic64_add_return in lib/atomic64.c the
-code looks as efficient as these kinds of things get.
-
-Which leads me to the conclusion that we need atomic64 support on all
-architectures.
-
-Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/rapidio/devices/tsi721.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN arch/h8300/Kconfig~h8300-select-generic-atomic64_t-support arch/h8300/Kconfig
---- a/arch/h8300/Kconfig~h8300-select-generic-atomic64_t-support
-+++ a/arch/h8300/Kconfig
-@@ -3,6 +3,7 @@ config H8300
- 	default y
- 	select HAVE_IDE
- 	select HAVE_GENERIC_HARDIRQS
-+	select GENERIC_ATOMIC64
- 	select ARCH_WANT_IPC_PARSE_VERSION
- 	select GENERIC_IRQ_SHOW
- 	select GENERIC_CPU_DEVICES
+diff -puN drivers/rapidio/devices/tsi721.c~rapidio-tsi721-fix-inbound-doorbell-interrupt-handling drivers/rapidio/devices/tsi721.c
+--- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-fix-inbound-doorbell-interrupt-handling
++++ a/drivers/rapidio/devices/tsi721.c
+@@ -435,6 +435,9 @@ static void tsi721_db_dpc(struct work_st
+ 				" info %4.4x\n", DBELL_SID(idb.bytes),
+ 				DBELL_TID(idb.bytes), DBELL_INF(idb.bytes));
+ 		}
++
++		wr_ptr = ioread32(priv->regs +
++				  TSI721_IDQ_WP(IDB_QUEUE)) % IDB_QSIZE;
+ 	}
+ 
+ 	iowrite32(rd_ptr & (IDB_QSIZE - 1),
+@@ -445,6 +448,10 @@ static void tsi721_db_dpc(struct work_st
+ 	regval |= TSI721_SR_CHINT_IDBQRCV;
+ 	iowrite32(regval,
+ 		priv->regs + TSI721_SR_CHINTE(IDB_QUEUE));
++
++	wr_ptr = ioread32(priv->regs + TSI721_IDQ_WP(IDB_QUEUE)) % IDB_QSIZE;
++	if (wr_ptr != rd_ptr)
++		schedule_work(&priv->idb_work);
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from alexandre.bounine@idt.com are
 
-origin.patch
-linux-next.patch
-alpha-redefine-atomic_init-and-atomic64_init-to-drop-the-casts.patch
-h8300-select-generic-atomic64_t-support.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
-rbtree-performance-and-correctness-test-fix.patch
+rapidio-tsi721-fix-inbound-doorbell-interrupt-handling.patch
+rapidio-tsi721-fix-unused-variable-compiler-warning.patch
 
