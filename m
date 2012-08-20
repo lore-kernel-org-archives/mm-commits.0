@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + thp-remove-khugepaged_loop.patch added to -mm tree
-Date: Mon, 20 Aug 2012 14:08:34 -0700
-Message-ID: <20120820210835.961C720004E@hpza10.eem.corp.google.com>
+Subject: + thp-use-khugepaged_enabled-to-remove-duplicate-code.patch added to -mm tree
+Date: Mon, 20 Aug 2012 14:08:38 -0700
+Message-ID: <20120820210839.439851E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:48375 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754956Ab2HTVIh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Aug 2012 17:08:37 -0400
-Received: by mail-we0-f202.google.com with SMTP id r1so312557wey.1
-        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 14:08:36 -0700 (PDT)
+Received: from mail-iy0-f202.google.com ([209.85.210.202]:51393 "EHLO
+	mail-iy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754956Ab2HTVIl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Aug 2012 17:08:41 -0400
+Received: by mail-iy0-f202.google.com with SMTP id o24so925435ial.1
+        for <mm-commits@vger.kernel.org>; Mon, 20 Aug 2012 14:08:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: xiaoguangrong@linux.vnet.ibm.com, aarcange@redhat.com, hughd@google.com, rie
 
 
 The patch titled
-     Subject: thp: remove khugepaged_loop
+     Subject: thp: use khugepaged_enabled to remove duplicate code
 has been added to the -mm tree.  Its filename is
-     thp-remove-khugepaged_loop.patch
+     thp-use-khugepaged_enabled-to-remove-duplicate-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,9 +34,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
-Subject: thp: remove khugepaged_loop
+Subject: thp: use khugepaged_enabled to remove duplicate code
 
-Merge khugepaged_loop into khugepaged
+Use khugepaged_enabled to see whether thp is enabled
 
 Signed-off-by: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -45,40 +45,37 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   14 ++++----------
- 1 file changed, 4 insertions(+), 10 deletions(-)
+ mm/huge_memory.c |   11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-remove-khugepaged_loop mm/huge_memory.c
---- a/mm/huge_memory.c~thp-remove-khugepaged_loop
+diff -puN mm/huge_memory.c~thp-use-khugepaged_enabled-to-remove-duplicate-code mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-use-khugepaged_enabled-to-remove-duplicate-code
 +++ a/mm/huge_memory.c
-@@ -2340,14 +2340,6 @@ static void khugepaged_wait_work(void)
- 		wait_event_freezable(khugepaged_wait, khugepaged_wait_event());
- }
+@@ -102,10 +102,7 @@ static int set_recommended_min_free_kbyt
+ 	unsigned long recommended_min;
+ 	extern int min_free_kbytes;
  
--static void khugepaged_loop(void)
--{
--	while (likely(khugepaged_enabled())) {
--		khugepaged_do_scan();
--		khugepaged_wait_work();
--	}
--}
--
- static int khugepaged(void *none)
- {
- 	struct mm_slot *mm_slot;
-@@ -2355,8 +2347,10 @@ static int khugepaged(void *none)
- 	set_freezable();
- 	set_user_nice(current, 19);
+-	if (!test_bit(TRANSPARENT_HUGEPAGE_FLAG,
+-		      &transparent_hugepage_flags) &&
+-	    !test_bit(TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG,
+-		      &transparent_hugepage_flags))
++	if (!khugepaged_enabled())
+ 		return 0;
  
--	while (!kthread_should_stop())
--		khugepaged_loop();
-+	while (!kthread_should_stop()) {
-+		khugepaged_do_scan();
-+		khugepaged_wait_work();
-+	}
+ 	for_each_populated_zone(zone)
+@@ -228,11 +225,7 @@ static ssize_t enabled_store(struct kobj
+ 			ret = err;
+ 	}
  
- 	spin_lock(&khugepaged_mm_lock);
- 	mm_slot = khugepaged_scan.mm_slot;
+-	if (ret > 0 &&
+-	    (test_bit(TRANSPARENT_HUGEPAGE_FLAG,
+-		      &transparent_hugepage_flags) ||
+-	     test_bit(TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG,
+-		      &transparent_hugepage_flags)))
++	if (ret > 0 && khugepaged_enabled())
+ 		set_recommended_min_free_kbytes();
+ 
+ 	return ret;
 _
 
 Patches currently in -mm which might be from xiaoguangrong@linux.vnet.ibm.com are
