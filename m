@@ -1,68 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: + sgi-xpc-fails-to-load-when-cpu-0-is-out-of-irq-resources-v2-fix.patch added to -mm tree
-Date: Tue, 21 Aug 2012 14:16:03 -0700
-Message-ID: <20120821220340.9D28420004E@hpza10.eem.corp.google.com>
+Subject: [folded] mm-hugetlbfs-correctly-populate-shared-pmd-fix.patch removed from -mm tree
+Date: Tue, 21 Aug 2012 16:11:32 -0700
+Message-ID: <20120821231133.CF858100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:57598 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758697Ab2HUWDn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Aug 2012 18:03:43 -0400
-Received: by eekd4 with SMTP id d4so10099eek.1
-        for <mm-commits@vger.kernel.org>; Tue, 21 Aug 2012 15:03:41 -0700 (PDT)
+Received: from mail-iy0-f202.google.com ([209.85.210.202]:57969 "EHLO
+	mail-iy0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751486Ab2HUXLf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Aug 2012 19:11:35 -0400
+Received: by ialo24 with SMTP id o24so92901ial.1
+        for <mm-commits@vger.kernel.org>; Tue, 21 Aug 2012 16:11:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, holt@sgi.com
+To: akpm@linux-foundation.org, david@gibson.dropbear.id.au, dhillf@gmail.com, kenchen@google.com, lwoodman@redhat.com, mgorman@suse.de, mhocko@suse.cz, riel@redhat.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sgi-xpc-fails-to-load-when-cpu-0-is-out-of-irq-resources-v2-fix
-has been added to the -mm tree.  Its filename is
-     sgi-xpc-fails-to-load-when-cpu-0-is-out-of-irq-resources-v2-fix.patch
+     Subject: mm-hugetlbfs-correctly-populate-shared-pmd-fix
+has been removed from the -mm tree.  Its filename was
+     mm-hugetlbfs-correctly-populate-shared-pmd-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-hugetlbfs-correctly-populate-shared-pmd.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: sgi-xpc-fails-to-load-when-cpu-0-is-out-of-irq-resources-v2-fix
+Subject: mm-hugetlbfs-correctly-populate-shared-pmd-fix
 
-fix build: include cpu.h and module.h
+attempt to make the huge_pmd_share() comment comprehensible, clean up coding style
 
-Cc: Robin Holt <holt@sgi.com>
+Cc: Cong Wang <xiyou.wangcong@gmail.com>
+Cc: David Gibson <david@gibson.dropbear.id.au>
+Cc: Hillf Danton <dhillf@gmail.com>
+Cc: Ken Chen <kenchen@google.com>
+Cc: Larry Woodman <lwoodman@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/sgi-xp/xpc_uv.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/x86/mm/hugetlbpage.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN drivers/misc/sgi-xp/xpc_uv.c~sgi-xpc-fails-to-load-when-cpu-0-is-out-of-irq-resources-v2-fix drivers/misc/sgi-xp/xpc_uv.c
---- a/drivers/misc/sgi-xp/xpc_uv.c~sgi-xpc-fails-to-load-when-cpu-0-is-out-of-irq-resources-v2-fix
-+++ a/drivers/misc/sgi-xp/xpc_uv.c
-@@ -18,6 +18,8 @@
- #include <linux/interrupt.h>
- #include <linux/delay.h>
- #include <linux/device.h>
-+#include <linux/cpu.h>
-+#include <linux/module.h>
- #include <linux/err.h>
- #include <linux/slab.h>
- #include <asm/uv/uv_hub.h>
+diff -puN arch/x86/mm/hugetlbpage.c~mm-hugetlbfs-correctly-populate-shared-pmd-fix arch/x86/mm/hugetlbpage.c
+--- a/arch/x86/mm/hugetlbpage.c~mm-hugetlbfs-correctly-populate-shared-pmd-fix
++++ a/arch/x86/mm/hugetlbpage.c
+@@ -56,15 +56,15 @@ static int vma_shareable(struct vm_area_
+ }
+ 
+ /*
+- * search for a shareable pmd page for hugetlb. In any case calls
+- * pmd_alloc and returns the corresponding pte. While this not necessary
+- * for the !shared pmd case because we can allocate the pmd later as
+- * well it makes the code much cleaner. pmd allocation is essential for
+- * the shared case though because pud has to be populated inside the
+- * same i_mmap_mutex section otherwise racing tasks could either miss
+- * the sharing (see huge_pte_offset) or selected a bad pmd for sharing.
++ * Search for a shareable pmd page for hugetlb. In any case calls pmd_alloc()
++ * and returns the corresponding pte. While this is not necessary for the
++ * !shared pmd case because we can allocate the pmd later as well, it makes the
++ * code much cleaner. pmd allocation is essential for the shared case because
++ * pud has to be populated inside the same i_mmap_mutex section - otherwise
++ * racing tasks could either miss the sharing (see huge_pte_offset) or select a
++ * bad pmd for sharing.
+  */
+-static pte_t*
++static pte_t *
+ huge_pmd_share(struct mm_struct *mm, unsigned long addr, pud_t *pud)
+ {
+ 	struct vm_area_struct *vma = find_vma(mm, addr);
+@@ -154,7 +154,7 @@ pte_t *huge_pte_alloc(struct mm_struct *
+ 			if (pud_none(*pud))
+ 				pte = huge_pmd_share(mm, addr, pud);
+ 			else
+-				pte = (pte_t *) pmd_alloc(mm, pud, addr);
++				pte = (pte_t *)pmd_alloc(mm, pud, addr);
+ 		}
+ 	}
+ 	BUG_ON(pte && !pte_none(*pte) && !pte_huge(*pte));
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-hugetlbfs-correctly-populate-shared-pmd-fix.patch
+mm-hugetlbfs-correctly-populate-shared-pmd.patch
 sgi-xpc-fails-to-load-when-cpu-0-is-out-of-irq-resources-v2-fix.patch
 linux-next.patch
 linux-next-git-rejects.patch
