@@ -1,26 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host.patch added to -mm tree
-Date: Wed, 22 Aug 2012 12:15:52 -0700
-Message-ID: <20120822191553.3ED535C0060@hpza9.eem.corp.google.com>
+Subject: + memory-hotplug-reset-pgdat-kswapd-to-null-if-creating-kernel-thread-fails.patch added to -mm tree
+Date: Wed, 22 Aug 2012 12:20:29 -0700
+Message-ID: <20120822192030.09D4A200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:33351 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965012Ab2HVTP4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 22 Aug 2012 15:15:56 -0400
-Received: by lagw12 with SMTP id w12so63300lag.1
-        for <mm-commits@vger.kernel.org>; Wed, 22 Aug 2012 12:15:55 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:62589 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758806Ab2HVTUb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Aug 2012 15:20:31 -0400
+Received: by wgbdt11 with SMTP id dt11so63914wgb.1
+        for <mm-commits@vger.kernel.org>; Wed, 22 Aug 2012 12:20:30 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xiaoguangrong@linux.vnet.ibm.com, aarcange@redhat.com, avi@redhat.com, hughd@google.com, mtosatti@redhat.com
+Cc: wency@cn.fujitsu.com, minchan@kernel.org
 
 
 The patch titled
-     Subject: mm: mmu_notifier: fix inconsistent memory between secondary MMU and host
+     Subject: memory hotplug: reset pgdat->kswapd to NULL if creating kernel thread fails
 has been added to the -mm tree.  Its filename is
-     mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host.patch
+     memory-hotplug-reset-pgdat-kswapd-to-null-if-creating-kernel-thread-fails.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,86 +33,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
-Subject: mm: mmu_notifier: fix inconsistent memory between secondary MMU and host
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: memory hotplug: reset pgdat->kswapd to NULL if creating kernel thread fails
 
-There is a bug in set_pte_at_notify() which always sets the pte to the new
-page before releasing the old page in the secondary MMU.  At this time,
-the process will access on the new page, but the secondary MMU still
-access on the old page, the memory is inconsistent between them
+If kthread_run() fails, pgdat->kswapd contains errno.  When we stop this
+thread, we only check whether pgdat->kswapd is NULL and access it.  If it
+contains errno, it will cause page fault.  Reset pgdat->kswapd to NULL
+when creating kernel thread fails can avoid this problem.
 
-The below scenario shows the bug more clearly:
-
-at the beginning: *p = 0, and p is write-protected by KSM or shared with
-parent process
-
-CPU 0                                       CPU 1
-write 1 to p to trigger COW,
-set_pte_at_notify will be called:
-  *pte = new_page + W; /* The W bit of pte is set */
-
-                                     *p = 1; /* pte is valid, so no #PF */
-
-                                     return back to secondary MMU, then
-                                     the secondary MMU read p, but get:
-                                     *p == 0;
-
-                         /*
-                          * !!!!!!
-                          * the host has already set p to 1, but the secondary
-                          * MMU still get the old value 0
-                          */
-
-  call mmu_notifier_change_pte to release
-  old page in secondary MMU
-
-We can fix it by release old page first, then set the pte to the new
-page.
-
-Note, the new page will be firstly used in secondary MMU before it is
-mapped into the page table of the process, but this is safe because it
-is protected by the page table lock, there is no race to change the pte
-
-Signed-off-by: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
-Cc: Avi Kivity <avi@redhat.com>
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+Reviewed-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmu_notifier.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/mmu_notifier.h~mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host include/linux/mmu_notifier.h
---- a/include/linux/mmu_notifier.h~mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host
-+++ a/include/linux/mmu_notifier.h
-@@ -317,8 +317,8 @@ static inline void mmu_notifier_mm_destr
- 	unsigned long ___address = __address;				\
- 	pte_t ___pte = __pte;						\
- 									\
--	set_pte_at(___mm, ___address, __ptep, ___pte);			\
- 	mmu_notifier_change_pte(___mm, ___address, ___pte);		\
-+	set_pte_at(___mm, ___address, __ptep, ___pte);			\
- })
- 
- #else /* CONFIG_MMU_NOTIFIER */
+diff -puN mm/vmscan.c~memory-hotplug-reset-pgdat-kswapd-to-null-if-creating-kernel-thread-fails mm/vmscan.c
+--- a/mm/vmscan.c~memory-hotplug-reset-pgdat-kswapd-to-null-if-creating-kernel-thread-fails
++++ a/mm/vmscan.c
+@@ -3112,6 +3112,7 @@ int kswapd_run(int nid)
+ 		/* failure at boot is fatal */
+ 		BUG_ON(system_state == SYSTEM_BOOTING);
+ 		printk("Failed to start kswapd on node %d\n",nid);
++		pgdat->kswapd = NULL;
+ 		ret = -1;
+ 	}
+ 	return ret;
 _
 
-Patches currently in -mm which might be from xiaoguangrong@linux.vnet.ibm.com are
+Patches currently in -mm which might be from wency@cn.fujitsu.com are
 
-linux-next.patch
-mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host.patch
-thp-fix-the-count-of-thp_collapse_alloc.patch
-thp-remove-unnecessary-check-in-start_khugepaged.patch
-thp-move-khugepaged_mutex-out-of-khugepaged.patch
-thp-remove-unnecessary-khugepaged_thread-check.patch
-thp-remove-wake_up_interruptible-in-the-exit-path.patch
-thp-remove-some-code-depend-on-config_numa.patch
-thp-merge-page-pre-alloc-in-khugepaged_loop-into-khugepaged_do_scan.patch
-thp-release-page-in-page-pre-alloc-path.patch
-thp-introduce-khugepaged_prealloc_page-and-khugepaged_alloc_page.patch
-thp-remove-khugepaged_loop.patch
-thp-use-khugepaged_enabled-to-remove-duplicate-code.patch
-thp-remove-unnecessary-set_recommended_min_free_kbytes.patch
+memory-hotplug-reset-pgdat-kswapd-to-null-if-creating-kernel-thread-fails.patch
+acpi_memhotplugc-fix-memory-leak-when-memory-device-is-unbound-from-the-module-acpi_memhotplug.patch
+acpi_memhotplugc-free-memory-device-if-acpi_memory_enable_device-failed.patch
+acpi_memhotplugc-remove-memory-info-from-list-before-freeing-it.patch
+acpi_memhotplugc-dont-allow-to-eject-the-memory-device-if-it-is-being-used.patch
+acpi_memhotplugc-bind-the-memory-device-when-the-driver-is-being-loaded.patch
+acpi_memhotplugc-auto-bind-the-memory-device-which-is-hotplugged-before-the-driver-is-loaded.patch
 
