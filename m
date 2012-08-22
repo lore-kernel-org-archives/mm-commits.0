@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-spearc-fix-several-error-checks.patch added to -mm tree
-Date: Wed, 22 Aug 2012 14:35:26 -0700
-Message-ID: <20120822213527.78799200057@hpza10.eem.corp.google.com>
+Subject: + drivers-rtc-rtc-jz4740c-fix-irq-error-check.patch added to -mm tree
+Date: Wed, 22 Aug 2012 16:49:26 -0700
+Message-ID: <20120822234928.00A955C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:39096 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753630Ab2HVVfa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Aug 2012 17:35:30 -0400
-Received: by bkcjc3 with SMTP id jc3so1948bkc.1
-        for <mm-commits@vger.kernel.org>; Wed, 22 Aug 2012 14:35:28 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:44706 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757296Ab2HVXta (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Aug 2012 19:49:30 -0400
+Received: by faem1 with SMTP id m1so5109fae.1
+        for <mm-commits@vger.kernel.org>; Wed, 22 Aug 2012 16:49:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lars@metafoo.de, a.zummo@towertech.it, viresh.kumar@st.com
+Cc: lars@metafoo.de, a.zummo@towertech.it
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-spear.c: fix several error checks
+     Subject: drivers/rtc/rtc-jz4740.c: fix IRQ error check
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-spearc-fix-several-error-checks.patch
+     drivers-rtc-rtc-jz4740c-fix-irq-error-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,18 +34,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Lars-Peter Clausen <lars@metafoo.de>
-Subject: drivers/rtc/rtc-spear.c: fix several error checks
+Subject: drivers/rtc/rtc-jz4740.c: fix IRQ error check
 
-There are several comparisons of a unsigned int to less than zero int
-spear RTC driver.  Such a check will always be true.  In all these cases a
-signed int is assigned to the unsigned variable, which is checked, before.
- So the right fix is to make the checked variable signed as well.  In one
-case the check can be dropped completely, because all it does it returns
-'err' if 'err' is less than zero, otherwise it returns 0.  Since in this
-particular case 'err' is always either 0 or less this is the same as just
-returning 'err'.
+The irq field of the jz4740_irc struct is unsigned.  Yet we assign the
+result of platform_get_irq() to it.  platform_get_irq() may return a
+negative error code and the code checks for this condition by checking if
+'irq' is less than zero.  But since 'irq' is unsigned this test will
+always be false.  Fix it by making 'irq' signed.
 
-The issue has been found using the following coccinelle semantic patch:
+The issue was found using the following coccinelle semantic patch:
 
 //<smpl>
 @@
@@ -60,64 +57,31 @@ unsigned T i;
 //</smpl>
 
 Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
-Cc: Viresh Kumar <viresh.kumar@st.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-spear.c |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ drivers/rtc/rtc-jz4740.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-spear.c~drivers-rtc-rtc-spearc-fix-several-error-checks drivers/rtc/rtc-spear.c
---- a/drivers/rtc/rtc-spear.c~drivers-rtc-rtc-spearc-fix-several-error-checks
-+++ a/drivers/rtc/rtc-spear.c
-@@ -235,7 +235,7 @@ static int spear_rtc_read_time(struct de
- static int spear_rtc_set_time(struct device *dev, struct rtc_time *tm)
- {
- 	struct spear_rtc_config *config = dev_get_drvdata(dev);
--	unsigned int time, date, err = 0;
-+	unsigned int time, date;
+diff -puN drivers/rtc/rtc-jz4740.c~drivers-rtc-rtc-jz4740c-fix-irq-error-check drivers/rtc/rtc-jz4740.c
+--- a/drivers/rtc/rtc-jz4740.c~drivers-rtc-rtc-jz4740c-fix-irq-error-check
++++ a/drivers/rtc/rtc-jz4740.c
+@@ -42,7 +42,7 @@ struct jz4740_rtc {
  
- 	if (tm2bcd(tm) < 0)
- 		return -EINVAL;
-@@ -247,11 +247,8 @@ static int spear_rtc_set_time(struct dev
- 		(tm->tm_year << YEAR_SHIFT);
- 	writel(time, config->ioaddr + TIME_REG);
- 	writel(date, config->ioaddr + DATE_REG);
--	err = is_write_complete(config);
--	if (err < 0)
--		return err;
+ 	struct rtc_device *rtc;
  
--	return 0;
-+	return is_write_complete(config);
- }
+-	unsigned int irq;
++	int irq;
  
- /*
-@@ -295,7 +292,8 @@ static int spear_rtc_read_alarm(struct d
- static int spear_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
- {
- 	struct spear_rtc_config *config = dev_get_drvdata(dev);
--	unsigned int time, date, err = 0;
-+	unsigned int time, date;
-+	int err;
- 
- 	if (tm2bcd(&alm->time) < 0)
- 		return -EINVAL;
-@@ -357,7 +355,7 @@ static int __devinit spear_rtc_probe(str
- {
- 	struct resource *res;
- 	struct spear_rtc_config *config;
--	unsigned int status = 0;
-+	int status = 0;
- 	int irq;
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	spinlock_t lock;
+ };
 _
 
 Patches currently in -mm which might be from lars@metafoo.de are
 
 origin.patch
 linux-next.patch
-rtc-jz4740-fix-irq-error-check.patch
+drivers-rtc-rtc-jz4740c-fix-irq-error-check.patch
 drivers-rtc-rtc-spearc-fix-several-error-checks.patch
 
