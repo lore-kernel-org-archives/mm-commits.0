@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-ia64-fix-a-memory-block-size-bug.patch added to -mm tree
-Date: Wed, 22 Aug 2012 14:31:54 -0700
-Message-ID: <20120822213154.7931E1E0043@wpzn4.hot.corp.google.com>
+Subject: + rtc-spear-fix-several-error-checks.patch added to -mm tree
+Date: Wed, 22 Aug 2012 14:34:51 -0700
+Message-ID: <20120822213451.A5E7B100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:56151 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752765Ab2HVVbz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Aug 2012 17:31:55 -0400
-Received: by vbnl22 with SMTP id l22so10800vbn.1
-        for <mm-commits@vger.kernel.org>; Wed, 22 Aug 2012 14:31:55 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:53348 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753630Ab2HVVex (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Aug 2012 17:34:53 -0400
+Received: by yhl10 with SMTP id 10so11456yhl.1
+        for <mm-commits@vger.kernel.org>; Wed, 22 Aug 2012 14:34:52 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wujianguo@huawei.com, stable@vger.kernel.org, tony.luck@intel.com
+Cc: lars@metafoo.de, viresh.kumar@st.com
 
 
 The patch titled
-     Subject: mm/ia64: fix a memory block size bug
+     Subject: RTC: spear: Fix several error checks
 has been added to the -mm tree.  Its filename is
-     mm-ia64-fix-a-memory-block-size-bug.patch
+     rtc-spear-fix-several-error-checks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,111 +33,93 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jianguo Wu <wujianguo@huawei.com>
-Subject: mm/ia64: fix a memory block size bug
+From: Lars-Peter Clausen <lars@metafoo.de>
+Subject: RTC: spear: Fix several error checks
 
-I found following definition in include/linux/memory.h, in my IA64
-platform, SECTION_SIZE_BITS is equal to 32, and MIN_MEMORY_BLOCK_SIZE will
-be 0.
+There are several comparisons of a unsigned int to less than zero int spear RTC
+driver. Such a check will always be true. In all these cases a signed int is
+assigned to the unsigned variable, which is checked, before. So the right fix is
+to make the checked variable signed as well. In one case the check can be
+dropped completely, because all it does it returns 'err' if 'err' is less than
+zero, otherwise it returns 0. Since in this particular case 'err' is always
+either 0 or less this is the same as just returning 'err'.
 
-	#define MIN_MEMORY_BLOCK_SIZE     (1 << SECTION_SIZE_BITS)
+The issue has been found using the following coccinelle semantic patch:
 
-will equal to 0.  This will cause wrong system memory infomation in sysfs.
- I think it should be:
+//<smpl>
+@@
+type T;
+unsigned T i;
+@@
+(
+*i < 0
+|
+*i >= 0
+)
+//</smpl>
 
-	#define MIN_MEMORY_BLOCK_SIZE     (1UL << SECTION_SIZE_BITS)
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Viresh Kumar <viresh.kumar@st.com>
+---
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-linux-drf:/sys/devices/system/memory # ll
-total 0
--r--r--r-- 1 root root 65536 Aug 20 02:35 block_size_bytes
-drwxr-xr-x 3 root root     0 Aug 20 02:19 memory0
-drwxr-xr-x 2 root root     0 Aug 20 02:35 power
--rw-r--r-- 1 root root 65536 Aug 20 02:35 uevent
-
-linux-drf:/sys/devices/system/memory # cat block_size_bytes
-0
-
-linux-drf:/sys/devices/system/memory/memory0 # cat *
-8000000000000000
-cat: node0: Is a directory
-cat: node1: Is a directory
-cat: node2: Is a directory
-cat: node3: Is a directory
-0
-8000000000000000
-cat: power: Is a directory
-1
-online
-cat: subsystem: Is a directory
-
-	And "echo offline > memory0/state" will cause following call trace:
-
-kernel BUG at mm/memory_hotplug.c:885!
-sh[6455]: bugcheck! 0 [1]
-
-Pid: 6455, CPU 0, comm:                   sh
-psr : 0000101008526030 ifs : 8000000000000fa4 ip  : [<a0000001008c40f0>]    Not tainted (3.6.0-rc1)
-ip is at offline_pages+0x210/0xee0
-unat: 0000000000000000 pfs : 0000000000000fa4 rsc : 0000000000000003
-rnat: a0000001008f2d50 bsps: 0000000000000000 pr  : 65519a96659a9565
-ldrs: 0000000000000000 ccv : 0000010b9263f310 fpsr: 0009804c0270033f
-csd : 0000000000000000 ssd : 0000000000000000
-b0  : a0000001008c40f0 b6  : a000000100473980 b7  : a0000001000106d0
-f6  : 000000000000000000000 f7  : 1003e0000000085c9354c
-f8  : 1003e0044b82fa09b5a53 f9  : 1003e000000d65cd62abf
-f10 : 1003efd02efdec682803d f11 : 1003e0000000000000042
-r1  : a00000010152c2e0 r2  : 0000000000006ada r3  : 000000000000fffe
-r8  : 0000000000000026 r9  : a00000010121cc18 r10 : a0000001013309f0
-r11 : 65519a96659a19e9 r12 : e00000070a91fdf0 r13 : e00000070a910000
-r14 : 0000000000006ada r15 : 0000000000004000 r16 : 000000006ad8356c
-r17 : a0000001019a525e r18 : 0000000000007fff r19 : 0000000000000000
-r20 : 0000000000006ad6 r21 : 0000000000006ad6 r22 : a00000010133bec8
-r23 : 0000000000006ad4 r24 : 0000000000000002 r25 : 8200000000260038
-r26 : 00000000000004f9 r27 : 00000000000004f8 r28 : 000000000001cf98
-r29 : 0000000000000038 r30 : a0000001019a5ae0 r31 : 000000000001cf60
-
-Call Trace:
- [<a0000001000163e0>] show_stack+0x80/0xa0
-                                sp=e00000070a91f9b0 bsp=e00000070a9115e0
- [<a000000100016a40>] show_regs+0x640/0x920
-                                sp=e00000070a91fb80 bsp=e00000070a911588
- [<a000000100040590>] die+0x190/0x2c0
-                                sp=e00000070a91fb90 bsp=e00000070a911548
- [<a000000100040710>] die_if_kernel+0x50/0x80
-                                sp=e00000070a91fb90 bsp=e00000070a911518
- [<a0000001008f8030>] ia64_bad_break+0x3d0/0x6e0
-                                sp=e00000070a91fb90 bsp=e00000070a9114f0
- [<a00000010000c0c0>] ia64_native_leave_kernel+0x0/0x270
-                                sp=e00000070a91fc20 bsp=e00000070a9114f0
- [<a0000001008c40f0>] offline_pages+0x210/0xee0
-                                sp=e00000070a91fdf0 bsp=e00000070a9113c8
- [<a00000010022d580>] alloc_pages_current+0x180/0x2a0
-                                sp=e00000070a91fe20 bsp=e00000070a9113a
-
-Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: <stable@vger.kernel.org>
+index e278547..bb507d2 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-spear.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/memory.h~mm-ia64-fix-a-memory-block-size-bug include/linux/memory.h
---- a/include/linux/memory.h~mm-ia64-fix-a-memory-block-size-bug
-+++ a/include/linux/memory.h
-@@ -19,7 +19,7 @@
- #include <linux/compiler.h>
- #include <linux/mutex.h>
+diff -puN drivers/rtc/rtc-spear.c~rtc-spear-fix-several-error-checks drivers/rtc/rtc-spear.c
+--- a/drivers/rtc/rtc-spear.c~rtc-spear-fix-several-error-checks
++++ a/drivers/rtc/rtc-spear.c
+@@ -235,7 +235,7 @@ static int spear_rtc_read_time(struct de
+ static int spear_rtc_set_time(struct device *dev, struct rtc_time *tm)
+ {
+ 	struct spear_rtc_config *config = dev_get_drvdata(dev);
+-	unsigned int time, date, err = 0;
++	unsigned int time, date;
  
--#define MIN_MEMORY_BLOCK_SIZE     (1 << SECTION_SIZE_BITS)
-+#define MIN_MEMORY_BLOCK_SIZE     (1UL << SECTION_SIZE_BITS)
+ 	if (tm2bcd(tm) < 0)
+ 		return -EINVAL;
+@@ -247,11 +247,8 @@ static int spear_rtc_set_time(struct dev
+ 		(tm->tm_year << YEAR_SHIFT);
+ 	writel(time, config->ioaddr + TIME_REG);
+ 	writel(date, config->ioaddr + DATE_REG);
+-	err = is_write_complete(config);
+-	if (err < 0)
+-		return err;
  
- struct memory_block {
- 	unsigned long start_section_nr;
+-	return 0;
++	return is_write_complete(config);
+ }
+ 
+ /*
+@@ -295,7 +292,8 @@ static int spear_rtc_read_alarm(struct d
+ static int spear_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
+ {
+ 	struct spear_rtc_config *config = dev_get_drvdata(dev);
+-	unsigned int time, date, err = 0;
++	unsigned int time, date;
++	int err;
+ 
+ 	if (tm2bcd(&alm->time) < 0)
+ 		return -EINVAL;
+@@ -357,7 +355,7 @@ static int __devinit spear_rtc_probe(str
+ {
+ 	struct resource *res;
+ 	struct spear_rtc_config *config;
+-	unsigned int status = 0;
++	int status = 0;
+ 	int irq;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 _
 
-Patches currently in -mm which might be from wujianguo@huawei.com are
+Patches currently in -mm which might be from lars@metafoo.de are
 
-mm-ia64-fix-a-memory-block-size-bug.patch
+origin.patch
+linux-next.patch
+rtc-jz4740-fix-irq-error-check.patch
+rtc-spear-fix-several-error-checks.patch
 
