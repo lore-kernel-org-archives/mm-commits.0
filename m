@@ -1,186 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-have-order-0-compaction-start-near-a-pageblock-with-free-pages-v2.patch removed from -mm tree
-Date: Fri, 24 Aug 2012 11:41:55 -0700
-Message-ID: <20120824184156.6DEF120004E@hpza10.eem.corp.google.com>
+Subject: [merged] arch-x86-include-asm-spinlockh-fix-comment.patch removed from -mm tree
+Date: Fri, 24 Aug 2012 11:42:02 -0700
+Message-ID: <20120824184203.01FB420004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:40164 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752223Ab2HXSl6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Aug 2012 14:41:58 -0400
-Received: by mail-bk0-f74.google.com with SMTP id jc3so106165bkc.1
-        for <mm-commits@vger.kernel.org>; Fri, 24 Aug 2012 11:41:57 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:55093 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752370Ab2HXSmF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Fri, 24 Aug 2012 14:42:05 -0400
+Received: by lagw12 with SMTP id w12so106887lag.1
+        for <mm-commits@vger.kernel.org>; Fri, 24 Aug 2012 11:42:04 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, minchan@kernel.org, riel@redhat.com, mm-commits@vger.kernel.org
+To: richard@nod.at, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: have order > 0 compaction start near a pageblock with free pages
+     Subject: arch/x86/include/asm/spinlock.h: fix comment
 has been removed from the -mm tree.  Its filename was
-     mm-have-order-0-compaction-start-near-a-pageblock-with-free-pages-v2.patch
+     arch-x86-include-asm-spinlockh-fix-comment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: have order > 0 compaction start near a pageblock with free pages
+From: Richard Weinberger <richard@nod.at>
+Subject: arch/x86/include/asm/spinlock.h: fix comment
 
-7db8889a ("mm: have order > 0 compaction start off where it left")
-introduced a caching mechanism to reduce the amount work the free page
-scanner does in compaction.  However, it has a problem.  Consider two
-process simultaneously scanning free pages
+This comment is no longer true.  We support up to 2^16 CPUs because
+__ticket_t is an u16 if NR_CPUS is larger than 256.
 
-				    			C
-Process A		M     S     			F
-		|---------------------------------------|
-Process B		M 	FS
-
-C is zone->compact_cached_free_pfn
-S is cc->start_pfree_pfn
-M is cc->migrate_pfn
-F is cc->free_pfn
-
-In this diagram, Process A has just reached its migrate scanner, wrapped
-around and updated compact_cached_free_pfn accordingly.
-
-Simultaneously, Process B finishes isolating in a block and updates
-compact_cached_free_pfn again to the location of its free scanner.
-
-Process A moves to "end_of_zone - one_pageblock" and runs this check
-
-                if (cc->order > 0 && (!cc->wrapped ||
-                                      zone->compact_cached_free_pfn >
-                                      cc->start_free_pfn))
-                        pfn = min(pfn, zone->compact_cached_free_pfn);
-
-compact_cached_free_pfn is above where it started so the free scanner skips
-almost the entire space it should have scanned. When there are multiple
-processes compacting it can end in a situation where the entire zone is
-not being scanned at all.  Further, it is possible for two processes to
-ping-pong update to compact_cached_free_pfn which is just random.
-
-Overall, the end result wrecks allocation success rates.
-
-There is not an obvious way around this problem without introducing new
-locking and state so this patch takes a different approach.
-
-First, it gets rid of the skip logic because it's not clear that it matters
-if two free scanners happen to be in the same block but with racing updates
-it's too easy for it to skip over blocks it should not.
-
-Second, it updates compact_cached_free_pfn in a more limited set of
-circumstances.
-
-If a scanner has wrapped, it updates compact_cached_free_pfn to the end
-	of the zone. When a wrapped scanner isolates a page, it updates
-	compact_cached_free_pfn to point to the highest pageblock it
-	can isolate pages from.
-
-If a scanner has not wrapped when it has finished isolated pages it
-	checks if compact_cached_free_pfn is pointing to the end of the
-	zone. If so, the value is updated to point to the highest
-	pageblock that pages were isolated from. This value will not
-	be updated again until a free page scanner wraps and resets
-	compact_cached_free_pfn.
-
-This is not optimal and it can still race but the compact_cached_free_pfn
-will be pointing to or very near a pageblock with free pages.
-
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Reviewed-by: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Richard Weinberger <richard@nod.at>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   54 +++++++++++++++++++++++-----------------------
- 1 file changed, 28 insertions(+), 26 deletions(-)
+ arch/x86/include/asm/spinlock.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/compaction.c~mm-have-order-0-compaction-start-near-a-pageblock-with-free-pages-v2 mm/compaction.c
---- a/mm/compaction.c~mm-have-order-0-compaction-start-near-a-pageblock-with-free-pages-v2
-+++ a/mm/compaction.c
-@@ -384,6 +384,20 @@ static bool suitable_migration_target(st
- }
- 
- /*
-+ * Returns the start pfn of the last page block in a zone.  This is the starting
-+ * point for full compaction of a zone.  Compaction searches for free pages from
-+ * the end of each zone, while isolate_freepages_block scans forward inside each
-+ * page block.
-+ */
-+static unsigned long start_free_pfn(struct zone *zone)
-+{
-+	unsigned long free_pfn;
-+	free_pfn = zone->zone_start_pfn + zone->spanned_pages;
-+	free_pfn &= ~(pageblock_nr_pages-1);
-+	return free_pfn;
-+}
-+
-+/*
-  * Based on information in the current compact_control, find blocks
-  * suitable for isolating free pages from and then isolate them.
+diff -puN arch/x86/include/asm/spinlock.h~arch-x86-include-asm-spinlockh-fix-comment arch/x86/include/asm/spinlock.h
+--- a/arch/x86/include/asm/spinlock.h~arch-x86-include-asm-spinlockh-fix-comment
++++ a/arch/x86/include/asm/spinlock.h
+@@ -12,8 +12,7 @@
+  * Simple spin lock operations.  There are two variants, one clears IRQ's
+  * on the local processor, one does not.
+  *
+- * These are fair FIFO ticket locks, which are currently limited to 256
+- * CPUs.
++ * These are fair FIFO ticket locks, which support up to 2^16 CPUs.
+  *
+  * (the type definitions are in asm/spinlock_types.h)
   */
-@@ -422,17 +436,6 @@ static void isolate_freepages(struct zon
- 					pfn -= pageblock_nr_pages) {
- 		unsigned long isolated;
- 
--		/*
--		 * Skip ahead if another thread is compacting in the area
--		 * simultaneously. If we wrapped around, we can only skip
--		 * ahead if zone->compact_cached_free_pfn also wrapped to
--		 * above our starting point.
--		 */
--		if (cc->order > 0 && (!cc->wrapped ||
--				      zone->compact_cached_free_pfn >
--				      cc->start_free_pfn))
--			pfn = min(pfn, zone->compact_cached_free_pfn);
--
- 		if (!pfn_valid(pfn))
- 			continue;
- 
-@@ -474,7 +477,15 @@ static void isolate_freepages(struct zon
- 		 */
- 		if (isolated) {
- 			high_pfn = max(high_pfn, pfn);
--			if (cc->order > 0)
-+
-+			/*
-+			 * If the free scanner has wrapped, update
-+			 * compact_cached_free_pfn to point to the highest
-+			 * pageblock with free pages. This reduces excessive
-+			 * scanning of full pageblocks near the end of the
-+			 * zone
-+			 */
-+			if (cc->order > 0 && cc->wrapped)
- 				zone->compact_cached_free_pfn = high_pfn;
- 		}
- 	}
-@@ -484,6 +495,11 @@ static void isolate_freepages(struct zon
- 
- 	cc->free_pfn = high_pfn;
- 	cc->nr_freepages = nr_freepages;
-+
-+	/* If compact_cached_free_pfn is reset then set it now */
-+	if (cc->order > 0 && !cc->wrapped &&
-+			zone->compact_cached_free_pfn == start_free_pfn(zone))
-+		zone->compact_cached_free_pfn = high_pfn;
- }
- 
- /*
-@@ -570,20 +586,6 @@ static isolate_migrate_t isolate_migrate
- 	return ISOLATE_SUCCESS;
- }
- 
--/*
-- * Returns the start pfn of the last page block in a zone.  This is the starting
-- * point for full compaction of a zone.  Compaction searches for free pages from
-- * the end of each zone, while isolate_freepages_block scans forward inside each
-- * page block.
-- */
--static unsigned long start_free_pfn(struct zone *zone)
--{
--	unsigned long free_pfn;
--	free_pfn = zone->zone_start_pfn + zone->spanned_pages;
--	free_pfn &= ~(pageblock_nr_pages-1);
--	return free_pfn;
--}
+_
+
+Patches currently in -mm which might be from richard@nod.at are
+
+origin.patch
+linux-next.patch
+
