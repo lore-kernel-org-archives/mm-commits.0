@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-adjust-final-endif-position-in-mm-internalh.patch added to -mm tree
-Date: Fri, 24 Aug 2012 15:31:00 -0700
-Message-ID: <20120824223100.928E3100047@wpzn3.hot.corp.google.com>
+Subject: + readahead-fault-retry-breaks-mmap-file-read-random-detection.patch added to -mm tree
+Date: Fri, 24 Aug 2012 15:33:24 -0700
+Message-ID: <20120824223324.AE30E1E0048@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:46610 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933389Ab2HXWbB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Aug 2012 18:31:01 -0400
-Received: by vcqp1 with SMTP id p1so339072vcq.1
-        for <mm-commits@vger.kernel.org>; Fri, 24 Aug 2012 15:31:01 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:45353 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751444Ab2HXWd0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Aug 2012 18:33:26 -0400
+Received: by qafl39 with SMTP id l39so209918qaf.1
+        for <mm-commits@vger.kernel.org>; Fri, 24 Aug 2012 15:33:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: walken@google.com
+Cc: shli@kernel.org, fengguang.wu@intel.com, riel@redhat.com, shaohua.li@fusionio.com
 
 
 The patch titled
-     Subject: mm: adjust final #endif position in mm/internal.h
+     Subject: readahead: fault retry breaks mmap file read random detection
 has been added to the -mm tree.  Its filename is
-     mm-adjust-final-endif-position-in-mm-internalh.patch
+     readahead-fault-retry-breaks-mmap-file-read-random-detection.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,68 +33,280 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michel Lespinasse <walken@google.com>
-Subject: mm: adjust final #endif position in mm/internal.h
+From: Shaohua Li <shli@kernel.org>
+Subject: readahead: fault retry breaks mmap file read random detection
 
-Make sure the #endif that terminates the standard #ifndef / #define /
-#endif construct gets labeled, and gets positioned at the end of the file
-as is normally the case.
+.fault now can retry.  The retry can break state machine of .fault.  In
+filemap_fault, if page is miss, ra->mmap_miss is increased.  In the second
+try, since the page is in page cache now, ra->mmap_miss is decreased.  And
+these are done in one fault, so we can't detect random mmap file access.
 
-Signed-off-by: Michel Lespinasse <walken@google.com>
+Add a new flag to indicate .fault is tried once.  In the second try, skip
+ra->mmap_miss decreasing.  The filemap_fault state machine is ok with it.
+
+I only tested x86, didn't test other archs, but looks the change for other
+archs is obvious, but who knows :)
+
+Signed-off-by: Shaohua Li <shaohua.li@fusionio.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/arm/mm/fault.c        |    1 +
+ arch/avr32/mm/fault.c      |    1 +
+ arch/cris/mm/fault.c       |    1 +
+ arch/hexagon/mm/vm_fault.c |    1 +
+ arch/ia64/mm/fault.c       |    1 +
+ arch/m68k/mm/fault.c       |    1 +
+ arch/microblaze/mm/fault.c |    1 +
+ arch/mips/mm/fault.c       |    1 +
+ arch/openrisc/mm/fault.c   |    1 +
+ arch/powerpc/mm/fault.c    |    1 +
+ arch/s390/mm/fault.c       |    1 +
+ arch/sh/mm/fault.c         |    1 +
+ arch/sparc/mm/fault_32.c   |    1 +
+ arch/sparc/mm/fault_64.c   |    1 +
+ arch/tile/mm/fault.c       |    1 +
+ arch/um/kernel/trap.c      |    1 +
+ arch/x86/mm/fault.c        |    1 +
+ arch/xtensa/mm/fault.c     |    1 +
+ include/linux/mm.h         |    1 +
+ mm/filemap.c               |    4 ++--
+ 20 files changed, 21 insertions(+), 2 deletions(-)
 
-diff -puN mm/internal.h~mm-adjust-final-endif-position-in-mm-internalh mm/internal.h
---- a/mm/internal.h~mm-adjust-final-endif-position-in-mm-internalh
-+++ a/mm/internal.h
-@@ -341,7 +341,6 @@ static inline void mminit_validate_memmo
- #define ZONE_RECLAIM_FULL	-1
- #define ZONE_RECLAIM_SOME	0
- #define ZONE_RECLAIM_SUCCESS	1
--#endif
+diff -puN arch/arm/mm/fault.c~readahead-fault-retry-breaks-mmap-file-read-random-detection arch/arm/mm/fault.c
+--- a/arch/arm/mm/fault.c~readahead-fault-retry-breaks-mmap-file-read-random-detection
++++ a/arch/arm/mm/fault.c
+@@ -336,6 +336,7 @@ retry:
+ 			/* Clear FAULT_FLAG_ALLOW_RETRY to avoid any risk
+ 			* of starvation. */
+ 			flags &= ~FAULT_FLAG_ALLOW_RETRY;
++			flags |= FAULT_FLAG_TRIED;
+ 			goto retry;
+ 		}
+ 	}
+diff -puN arch/avr32/mm/fault.c~readahead-fault-retry-breaks-mmap-file-read-random-detection arch/avr32/mm/fault.c
+--- a/arch/avr32/mm/fault.c~readahead-fault-retry-breaks-mmap-file-read-random-detection
++++ a/arch/avr32/mm/fault.c
+@@ -152,6 +152,7 @@ good_area:
+ 			tsk->min_flt++;
+ 		if (fault & VM_FAULT_RETRY) {
+ 			flags &= ~FAULT_FLAG_ALLOW_RETRY;
++			flags |= FAULT_FLAG_TRIED;
  
- extern int hwpoison_filter(struct page *p);
+ 			/*
+ 			 * No need to up_read(&mm->mmap_sem) as we would have
+diff -puN arch/cris/mm/fault.c~readahead-fault-retry-breaks-mmap-file-read-random-detection arch/cris/mm/fault.c
+--- a/arch/cris/mm/fault.c~readahead-fault-retry-breaks-mmap-file-read-random-detection
++++ a/arch/cris/mm/fault.c
+@@ -186,6 +186,7 @@ retry:
+ 			tsk->min_flt++;
+ 		if (fault & VM_FAULT_RETRY) {
+ 			flags &= ~FAULT_FLAG_ALLOW_RETRY;
++			flags |= FAULT_FLAG_TRIED;
  
-@@ -357,3 +356,5 @@ extern unsigned long vm_mmap_pgoff(struc
-         unsigned long, unsigned long);
+ 			/*
+ 			 * No need to up_read(&mm->mmap_sem) as we would
+diff -puN arch/hexagon/mm/vm_fault.c~readahead-fault-retry-breaks-mmap-file-read-random-detection arch/hexagon/mm/vm_fault.c
+--- a/arch/hexagon/mm/vm_fault.c~readahead-fault-retry-breaks-mmap-file-read-random-detection
++++ a/arch/hexagon/mm/vm_fault.c
+@@ -113,6 +113,7 @@ good_area:
+ 				current->min_flt++;
+ 			if (fault & VM_FAULT_RETRY) {
+ 				flags &= ~FAULT_FLAG_ALLOW_RETRY;
++				flags |= FAULT_FLAG_TRIED;
+ 				goto retry;
+ 			}
+ 		}
+diff -puN arch/ia64/mm/fault.c~readahead-fault-retry-breaks-mmap-file-read-random-detection arch/ia64/mm/fault.c
+--- a/arch/ia64/mm/fault.c~readahead-fault-retry-breaks-mmap-file-read-random-detection
++++ a/arch/ia64/mm/fault.c
+@@ -184,6 +184,7 @@ retry:
+ 			current->min_flt++;
+ 		if (fault & VM_FAULT_RETRY) {
+ 			flags &= ~FAULT_FLAG_ALLOW_RETRY;
++			flags |= FAULT_FLAG_TRIED;
  
- extern void set_pageblock_order(void);
-+
-+#endif	/* __MM_INTERNAL_H */
+ 			 /* No need to up_read(&mm->mmap_sem) as we would
+ 			 * have already released it in __lock_page_or_retry
+diff -puN arch/m68k/mm/fault.c~readahead-fault-retry-breaks-mmap-file-read-random-detection arch/m68k/mm/fault.c
+--- a/arch/m68k/mm/fault.c~readahead-fault-retry-breaks-mmap-file-read-random-detection
++++ a/arch/m68k/mm/fault.c
+@@ -170,6 +170,7 @@ good_area:
+ 			/* Clear FAULT_FLAG_ALLOW_RETRY to avoid any risk
+ 			 * of starvation. */
+ 			flags &= ~FAULT_FLAG_ALLOW_RETRY;
++			flags |= FAULT_FLAG_TRIED;
+ 
+ 			/*
+ 			 * No need to up_read(&mm->mmap_sem) as we would
+diff -puN arch/microblaze/mm/fault.c~readahead-fault-retry-breaks-mmap-file-read-random-detection arch/microblaze/mm/fault.c
+--- a/arch/microblaze/mm/fault.c~readahead-fault-retry-breaks-mmap-file-read-random-detection
++++ a/arch/microblaze/mm/fault.c
+@@ -233,6 +233,7 @@ good_area:
+ 			current->min_flt++;
+ 		if (fault & VM_FAULT_RETRY) {
+ 			flags &= ~FAULT_FLAG_ALLOW_RETRY;
++			flags |= FAULT_FLAG_TRIED;
+ 
+ 			/*
+ 			 * No need to up_read(&mm->mmap_sem) as we would
+diff -puN arch/mips/mm/fault.c~readahead-fault-retry-breaks-mmap-file-read-random-detection arch/mips/mm/fault.c
+--- a/arch/mips/mm/fault.c~readahead-fault-retry-breaks-mmap-file-read-random-detection
++++ a/arch/mips/mm/fault.c
+@@ -171,6 +171,7 @@ good_area:
+ 		}
+ 		if (fault & VM_FAULT_RETRY) {
+ 			flags &= ~FAULT_FLAG_ALLOW_RETRY;
++			flags |= FAULT_FLAG_TRIED;
+ 
+ 			/*
+ 			 * No need to up_read(&mm->mmap_sem) as we would
+diff -puN arch/openrisc/mm/fault.c~readahead-fault-retry-breaks-mmap-file-read-random-detection arch/openrisc/mm/fault.c
+--- a/arch/openrisc/mm/fault.c~readahead-fault-retry-breaks-mmap-file-read-random-detection
++++ a/arch/openrisc/mm/fault.c
+@@ -183,6 +183,7 @@ good_area:
+ 			tsk->min_flt++;
+ 		if (fault & VM_FAULT_RETRY) {
+ 			flags &= ~FAULT_FLAG_ALLOW_RETRY;
++			flags |= FAULT_FLAG_TRIED;
+ 
+ 			 /* No need to up_read(&mm->mmap_sem) as we would
+ 			 * have already released it in __lock_page_or_retry
+diff -puN arch/powerpc/mm/fault.c~readahead-fault-retry-breaks-mmap-file-read-random-detection arch/powerpc/mm/fault.c
+--- a/arch/powerpc/mm/fault.c~readahead-fault-retry-breaks-mmap-file-read-random-detection
++++ a/arch/powerpc/mm/fault.c
+@@ -450,6 +450,7 @@ good_area:
+ 			/* Clear FAULT_FLAG_ALLOW_RETRY to avoid any risk
+ 			 * of starvation. */
+ 			flags &= ~FAULT_FLAG_ALLOW_RETRY;
++			flags |= FAULT_FLAG_TRIED;
+ 			goto retry;
+ 		}
+ 	}
+diff -puN arch/s390/mm/fault.c~readahead-fault-retry-breaks-mmap-file-read-random-detection arch/s390/mm/fault.c
+--- a/arch/s390/mm/fault.c~readahead-fault-retry-breaks-mmap-file-read-random-detection
++++ a/arch/s390/mm/fault.c
+@@ -367,6 +367,7 @@ retry:
+ 			/* Clear FAULT_FLAG_ALLOW_RETRY to avoid any risk
+ 			 * of starvation. */
+ 			flags &= ~FAULT_FLAG_ALLOW_RETRY;
++			flags |= FAULT_FLAG_TRIED;
+ 			down_read(&mm->mmap_sem);
+ 			goto retry;
+ 		}
+diff -puN arch/sh/mm/fault.c~readahead-fault-retry-breaks-mmap-file-read-random-detection arch/sh/mm/fault.c
+--- a/arch/sh/mm/fault.c~readahead-fault-retry-breaks-mmap-file-read-random-detection
++++ a/arch/sh/mm/fault.c
+@@ -504,6 +504,7 @@ good_area:
+ 		}
+ 		if (fault & VM_FAULT_RETRY) {
+ 			flags &= ~FAULT_FLAG_ALLOW_RETRY;
++			flags |= FAULT_FLAG_TRIED;
+ 
+ 			/*
+ 			 * No need to up_read(&mm->mmap_sem) as we would
+diff -puN arch/sparc/mm/fault_32.c~readahead-fault-retry-breaks-mmap-file-read-random-detection arch/sparc/mm/fault_32.c
+--- a/arch/sparc/mm/fault_32.c~readahead-fault-retry-breaks-mmap-file-read-random-detection
++++ a/arch/sparc/mm/fault_32.c
+@@ -265,6 +265,7 @@ good_area:
+ 		}
+ 		if (fault & VM_FAULT_RETRY) {
+ 			flags &= ~FAULT_FLAG_ALLOW_RETRY;
++			flags |= FAULT_FLAG_TRIED;
+ 
+ 			/* No need to up_read(&mm->mmap_sem) as we would
+ 			 * have already released it in __lock_page_or_retry
+diff -puN arch/sparc/mm/fault_64.c~readahead-fault-retry-breaks-mmap-file-read-random-detection arch/sparc/mm/fault_64.c
+--- a/arch/sparc/mm/fault_64.c~readahead-fault-retry-breaks-mmap-file-read-random-detection
++++ a/arch/sparc/mm/fault_64.c
+@@ -452,6 +452,7 @@ good_area:
+ 		}
+ 		if (fault & VM_FAULT_RETRY) {
+ 			flags &= ~FAULT_FLAG_ALLOW_RETRY;
++			flags |= FAULT_FLAG_TRIED;
+ 
+ 			/* No need to up_read(&mm->mmap_sem) as we would
+ 			 * have already released it in __lock_page_or_retry
+diff -puN arch/tile/mm/fault.c~readahead-fault-retry-breaks-mmap-file-read-random-detection arch/tile/mm/fault.c
+--- a/arch/tile/mm/fault.c~readahead-fault-retry-breaks-mmap-file-read-random-detection
++++ a/arch/tile/mm/fault.c
+@@ -454,6 +454,7 @@ good_area:
+ 			tsk->min_flt++;
+ 		if (fault & VM_FAULT_RETRY) {
+ 			flags &= ~FAULT_FLAG_ALLOW_RETRY;
++			flags |= FAULT_FLAG_TRIED;
+ 
+ 			 /*
+ 			  * No need to up_read(&mm->mmap_sem) as we would
+diff -puN arch/um/kernel/trap.c~readahead-fault-retry-breaks-mmap-file-read-random-detection arch/um/kernel/trap.c
+--- a/arch/um/kernel/trap.c~readahead-fault-retry-breaks-mmap-file-read-random-detection
++++ a/arch/um/kernel/trap.c
+@@ -89,6 +89,7 @@ good_area:
+ 				current->min_flt++;
+ 			if (fault & VM_FAULT_RETRY) {
+ 				flags &= ~FAULT_FLAG_ALLOW_RETRY;
++				flags |= FAULT_FLAG_TRIED;
+ 
+ 				goto retry;
+ 			}
+diff -puN arch/x86/mm/fault.c~readahead-fault-retry-breaks-mmap-file-read-random-detection arch/x86/mm/fault.c
+--- a/arch/x86/mm/fault.c~readahead-fault-retry-breaks-mmap-file-read-random-detection
++++ a/arch/x86/mm/fault.c
+@@ -1202,6 +1202,7 @@ good_area:
+ 			/* Clear FAULT_FLAG_ALLOW_RETRY to avoid any risk
+ 			 * of starvation. */
+ 			flags &= ~FAULT_FLAG_ALLOW_RETRY;
++			flags |= FAULT_FLAG_TRIED;
+ 			goto retry;
+ 		}
+ 	}
+diff -puN arch/xtensa/mm/fault.c~readahead-fault-retry-breaks-mmap-file-read-random-detection arch/xtensa/mm/fault.c
+--- a/arch/xtensa/mm/fault.c~readahead-fault-retry-breaks-mmap-file-read-random-detection
++++ a/arch/xtensa/mm/fault.c
+@@ -126,6 +126,7 @@ good_area:
+ 			current->min_flt++;
+ 		if (fault & VM_FAULT_RETRY) {
+ 			flags &= ~FAULT_FLAG_ALLOW_RETRY;
++			flags |= FAULT_FLAG_TRIED;
+ 
+ 			 /* No need to up_read(&mm->mmap_sem) as we would
+ 			 * have already released it in __lock_page_or_retry
+diff -puN include/linux/mm.h~readahead-fault-retry-breaks-mmap-file-read-random-detection include/linux/mm.h
+--- a/include/linux/mm.h~readahead-fault-retry-breaks-mmap-file-read-random-detection
++++ a/include/linux/mm.h
+@@ -157,6 +157,7 @@ extern pgprot_t protection_map[16];
+ #define FAULT_FLAG_ALLOW_RETRY	0x08	/* Retry fault if blocking */
+ #define FAULT_FLAG_RETRY_NOWAIT	0x10	/* Don't drop mmap_sem and wait when retrying */
+ #define FAULT_FLAG_KILLABLE	0x20	/* The fault task is in SIGKILL killable region */
++#define FAULT_FLAG_TRIED	0x40	/* second try */
+ 
+ /*
+  * This interface is used by x86 PAT code to identify a pfn mapping that is
+diff -puN mm/filemap.c~readahead-fault-retry-breaks-mmap-file-read-random-detection mm/filemap.c
+--- a/mm/filemap.c~readahead-fault-retry-breaks-mmap-file-read-random-detection
++++ a/mm/filemap.c
+@@ -1607,13 +1607,13 @@ int filemap_fault(struct vm_area_struct 
+ 	 * Do we have something in the page cache already?
+ 	 */
+ 	page = find_get_page(mapping, offset);
+-	if (likely(page)) {
++	if (likely(page) && !(vmf->flags & FAULT_FLAG_TRIED)) {
+ 		/*
+ 		 * We found the page, so try async readahead before
+ 		 * waiting for the lock.
+ 		 */
+ 		do_async_mmap_readahead(vma, ra, file, page, offset);
+-	} else {
++	} else if (!page) {
+ 		/* No page in the page cache at all */
+ 		do_sync_mmap_readahead(vma, ra, file, offset);
+ 		count_vm_event(PGMAJFAULT);
 _
 
-Patches currently in -mm which might be from walken@google.com are
+Patches currently in -mm which might be from shli@kernel.org are
 
 linux-next.patch
-mm-adjust-final-endif-position-in-mm-internalh.patch
-ipc-mqueue-remove-unnecessary-rb_init_node-calls.patch
-rbtree-reference-documentation-rbtreetxt-for-usage-instructions.patch
-rbtree-empty-nodes-have-no-color.patch
-rbtree-empty-nodes-have-no-color-fix.patch
-rbtree-fix-incorrect-rbtree-node-insertion-in-fs-proc-proc_sysctlc.patch
-rbtree-move-some-implementation-details-from-rbtreeh-to-rbtreec.patch
-rbtree-move-some-implementation-details-from-rbtreeh-to-rbtreec-fix.patch
-rbtree-performance-and-correctness-test.patch
-rbtree-performance-and-correctness-test-fix.patch
-rbtree-break-out-of-rb_insert_color-loop-after-tree-rotation.patch
-rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary.patch
-rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix-perf-compilation.patch
-rbtree-low-level-optimizations-in-rb_insert_color.patch
-rbtree-adjust-node-color-in-__rb_erase_color-only-when-necessary.patch
-rbtree-optimize-case-selection-logic-in-__rb_erase_color.patch
-rbtree-low-level-optimizations-in-__rb_erase_color.patch
-rbtree-coding-style-adjustments.patch
-rbtree-optimize-fetching-of-sibling-node.patch
-rbtree-test-fix-sparse-warning-about-64-bit-constant.patch
-rbtree-add-__rb_change_child-helper-function.patch
-rbtree-place-easiest-case-first-in-rb_erase.patch
-rbtree-handle-1-child-recoloring-in-rb_erase-instead-of-rb_erase_color.patch
-rbtree-low-level-optimizations-in-rb_erase.patch
-rbtree-augmented-rbtree-test.patch
-rbtree-faster-augmented-rbtree-manipulation.patch
-rbtree-remove-prior-augmented-rbtree-implementation.patch
-rbtree-add-rb_declare_callbacks-macro.patch
+readahead-fault-retry-breaks-mmap-file-read-random-detection.patch
 
