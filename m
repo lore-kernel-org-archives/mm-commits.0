@@ -1,112 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-correct-page-pfmemalloc-to-fix-deactivate_slab-regression.patch removed from -mm tree
-Date: Fri, 24 Aug 2012 11:41:42 -0700
-Message-ID: <20120824184142.C16A5100048@wpzn3.hot.corp.google.com>
+Subject: [merged] drivers-rtc-rtc-rs5c348c-fix-hour-decoding-in-12-hour-mode.patch removed from -mm tree
+Date: Fri, 24 Aug 2012 11:41:45 -0700
+Message-ID: <20120824184146.1A6565C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:40570 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755870Ab2HXSlo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Aug 2012 14:41:44 -0400
-Received: by qafl39 with SMTP id l39so182213qaf.1
-        for <mm-commits@vger.kernel.org>; Fri, 24 Aug 2012 11:41:43 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:40164 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755870Ab2HXSlr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Aug 2012 14:41:47 -0400
+Received: by mail-bk0-f74.google.com with SMTP id jc3so106165bkc.1
+        for <mm-commits@vger.kernel.org>; Fri, 24 Aug 2012 11:41:47 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.shi@intel.com, a.p.zijlstra@chello.nl, davem@davemloft.net, eric.dumazet@gmail.com, mgorman@suse.de, sage@inktank.com, mm-commits@vger.kernel.org
+To: anemo@mba.ocn.ne.jp, newten82@gmail.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: correct page->pfmemalloc to fix deactivate_slab regression
+     Subject: drivers/rtc/rtc-rs5c348.c: fix hour decoding in 12-hour mode
 has been removed from the -mm tree.  Its filename was
-     mm-correct-page-pfmemalloc-to-fix-deactivate_slab-regression.patch
+     drivers-rtc-rtc-rs5c348c-fix-hour-decoding-in-12-hour-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alex Shi <alex.shi@intel.com>
-Subject: mm: correct page->pfmemalloc to fix deactivate_slab regression
+From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Subject: drivers/rtc/rtc-rs5c348.c: fix hour decoding in 12-hour mode
 
-cfd19c5a9ec ("mm: only set page->pfmemalloc when ALLOC_NO_WATERMARKS was
-used") tried to narrow down page->pfmemalloc setting, but it missed some
-places the pfmemalloc should be set.
+Correct the offset by subtracting 20 from tm_hour before taking the modulo
+12.
 
-So, in __slab_alloc, the unalignment pfmemalloc and ALLOC_NO_WATERMARKS
-cause incorrect deactivate_slab() on our core2 server:
-
-    64.73%           fio  [kernel.kallsyms]     [k] _raw_spin_lock
-                     |
-                     --- _raw_spin_lock
-                        |
-                        |---0.34%-- deactivate_slab
-                        |          __slab_alloc
-                        |          kmem_cache_alloc
-                        |          |
-
-That causes our fio sync write performance to have a 40% regression.
-
-Move the checking in get_page_from_freelist() which resolves this issue.
-
-Signed-off-by: Alex Shi <alex.shi@intel.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: David Miller <davem@davemloft.net
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Tested-by: Eric Dumazet <eric.dumazet@gmail.com>
-Tested-by: Sage Weil <sage@inktank.com>
+Reported-by: James Nute <newten82@gmail.com>
+Tested-by: James Nute <newten82@gmail.com>
+Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   21 +++++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
+ drivers/rtc/rtc-rs5c348.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-correct-page-pfmemalloc-to-fix-deactivate_slab-regression mm/page_alloc.c
---- a/mm/page_alloc.c~mm-correct-page-pfmemalloc-to-fix-deactivate_slab-regression
-+++ a/mm/page_alloc.c
-@@ -1928,6 +1928,17 @@ this_zone_full:
- 		zlc_active = 0;
- 		goto zonelist_scan;
+diff -puN drivers/rtc/rtc-rs5c348.c~drivers-rtc-rtc-rs5c348c-fix-hour-decoding-in-12-hour-mode drivers/rtc/rtc-rs5c348.c
+--- a/drivers/rtc/rtc-rs5c348.c~drivers-rtc-rtc-rs5c348c-fix-hour-decoding-in-12-hour-mode
++++ a/drivers/rtc/rtc-rs5c348.c
+@@ -122,9 +122,12 @@ rs5c348_rtc_read_time(struct device *dev
+ 	tm->tm_min = bcd2bin(rxbuf[RS5C348_REG_MINS] & RS5C348_MINS_MASK);
+ 	tm->tm_hour = bcd2bin(rxbuf[RS5C348_REG_HOURS] & RS5C348_HOURS_MASK);
+ 	if (!pdata->rtc_24h) {
+-		tm->tm_hour %= 12;
+-		if (rxbuf[RS5C348_REG_HOURS] & RS5C348_BIT_PM)
++		if (rxbuf[RS5C348_REG_HOURS] & RS5C348_BIT_PM) {
++			tm->tm_hour -= 20;
++			tm->tm_hour %= 12;
+ 			tm->tm_hour += 12;
++		} else
++			tm->tm_hour %= 12;
  	}
-+
-+	if (page)
-+		/*
-+		 * page->pfmemalloc is set when ALLOC_NO_WATERMARKS was
-+		 * necessary to allocate the page. The expectation is
-+		 * that the caller is taking steps that will free more
-+		 * memory. The caller should avoid the page being used
-+		 * for !PFMEMALLOC purposes.
-+		 */
-+		page->pfmemalloc = !!(alloc_flags & ALLOC_NO_WATERMARKS);
-+
- 	return page;
- }
- 
-@@ -2389,14 +2400,6 @@ rebalance:
- 				zonelist, high_zoneidx, nodemask,
- 				preferred_zone, migratetype);
- 		if (page) {
--			/*
--			 * page->pfmemalloc is set when ALLOC_NO_WATERMARKS was
--			 * necessary to allocate the page. The expectation is
--			 * that the caller is taking steps that will free more
--			 * memory. The caller should avoid the page being used
--			 * for !PFMEMALLOC purposes.
--			 */
--			page->pfmemalloc = true;
- 			goto got_pg;
- 		}
- 	}
-@@ -2569,8 +2572,6 @@ retry_cpuset:
- 		page = __alloc_pages_slowpath(gfp_mask, order,
- 				zonelist, high_zoneidx, nodemask,
- 				preferred_zone, migratetype);
--	else
--		page->pfmemalloc = false;
- 
- 	trace_mm_page_alloc(page, order, gfp_mask, migratetype);
- 
+ 	tm->tm_wday = bcd2bin(rxbuf[RS5C348_REG_WDAY] & RS5C348_WDAY_MASK);
+ 	tm->tm_mday = bcd2bin(rxbuf[RS5C348_REG_DAY] & RS5C348_DAY_MASK);
 _
 
-Patches currently in -mm which might be from alex.shi@intel.com are
+Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
 
 origin.patch
-linux-next.patch
 
