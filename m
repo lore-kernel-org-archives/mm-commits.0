@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + revert-netpoll-re-enable-irq-in-poll_napi.patch added to -mm tree
-Date: Fri, 24 Aug 2012 11:56:01 -0700
-Message-ID: <20120824194342.7F45F100047@wpzn3.hot.corp.google.com>
+Subject: + rapidio-tsi721-modify-mport-name-assignment.patch added to -mm tree
+Date: Fri, 24 Aug 2012 14:05:09 -0700
+Message-ID: <20120824210512.42C475C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:60519 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760037Ab2HXTnn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Aug 2012 15:43:43 -0400
-Received: by ghbz15 with SMTP id z15so318618ghb.1
-        for <mm-commits@vger.kernel.org>; Fri, 24 Aug 2012 12:43:43 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:53845 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030446Ab2HXVFP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Aug 2012 17:05:15 -0400
+Received: by lbbge1 with SMTP id ge1so111037lbb.1
+        for <mm-commits@vger.kernel.org>; Fri, 24 Aug 2012 14:05:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, amwang@redhat.com, davem@davemloft.net
+Cc: alexandre.bounine@idt.com, mporter@kernel.crashing.org
 
 
 The patch titled
-     Subject: revert "netpoll: re-enable irq in poll_napi()"
+     Subject: rapidio/tsi721: modify mport name assignment
 has been added to the -mm tree.  Its filename is
-     revert-netpoll-re-enable-irq-in-poll_napi.patch
+     rapidio-tsi721-modify-mport-name-assignment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,88 +33,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert "netpoll: re-enable irq in poll_napi()"
+From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: rapidio/tsi721: modify mport name assignment
 
-Revert
+Modify mport device name assignment to provide clear reference to devices
+in systems with multiple Tsi721 bridges.
 
-: commit 6bdb7fe31046ac50b47e83c35cd6c6b6160a475d
-: Author:     Amerigo Wang <amwang@redhat.com>
-: AuthorDate: Fri Aug 10 01:24:50 2012 +0000
-: Commit:     David S. Miller <davem@davemloft.net>
-: CommitDate: Tue Aug 14 14:33:33 2012 -0700
+This patch is applicable to kernel versions starting from v3.2.
 
-because it makes my netconsole-using x86_64 box lock duing boot.
-
-Cc: David Miller <davem@davemloft.net>
-Cc: Cong Wang <amwang@redhat.com>
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/core/netpoll.c |   10 +---------
- 1 file changed, 1 insertion(+), 9 deletions(-)
+ drivers/rapidio/devices/tsi721.c |    3 ++-
+ include/linux/rio.h              |    3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN net/core/netpoll.c~revert-netpoll-re-enable-irq-in-poll_napi net/core/netpoll.c
---- a/net/core/netpoll.c~revert-netpoll-re-enable-irq-in-poll_napi
-+++ a/net/core/netpoll.c
-@@ -168,24 +168,16 @@ static void poll_napi(struct net_device 
- 	struct napi_struct *napi;
- 	int budget = 16;
+diff -puN drivers/rapidio/devices/tsi721.c~rapidio-tsi721-modify-mport-name-assignment drivers/rapidio/devices/tsi721.c
+--- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-modify-mport-name-assignment
++++ a/drivers/rapidio/devices/tsi721.c
+@@ -2165,7 +2165,8 @@ static int __devinit tsi721_setup_mport(
+ 	rio_init_dbell_res(&mport->riores[RIO_DOORBELL_RESOURCE], 0, 0xffff);
+ 	rio_init_mbox_res(&mport->riores[RIO_INB_MBOX_RESOURCE], 0, 3);
+ 	rio_init_mbox_res(&mport->riores[RIO_OUTB_MBOX_RESOURCE], 0, 3);
+-	strcpy(mport->name, "Tsi721 mport");
++	snprintf(mport->name, RIO_MAX_MPORT_NAME, "%s(%s)",
++		 dev_driver_string(&pdev->dev), dev_name(&pdev->dev));
  
--	WARN_ON_ONCE(!irqs_disabled());
--
- 	list_for_each_entry(napi, &dev->napi_list, dev_list) {
--		local_irq_enable();
- 		if (napi->poll_owner != smp_processor_id() &&
- 		    spin_trylock(&napi->poll_lock)) {
--			rcu_read_lock_bh();
- 			budget = poll_one_napi(rcu_dereference_bh(dev->npinfo),
- 					       napi, budget);
--			rcu_read_unlock_bh();
- 			spin_unlock(&napi->poll_lock);
+ 	/* Hook up interrupt handler */
  
--			if (!budget) {
--				local_irq_disable();
-+			if (!budget)
- 				break;
--			}
- 		}
--		local_irq_disable();
- 	}
- }
+diff -puN include/linux/rio.h~rapidio-tsi721-modify-mport-name-assignment include/linux/rio.h
+--- a/include/linux/rio.h~rapidio-tsi721-modify-mport-name-assignment
++++ a/include/linux/rio.h
+@@ -30,6 +30,7 @@
+ #define RIO_MAX_MPORTS		8
+ #define RIO_MAX_MPORT_RESOURCES	16
+ #define RIO_MAX_DEV_RESOURCES	16
++#define RIO_MAX_MPORT_NAME	40
  
+ #define RIO_GLOBAL_TABLE	0xff	/* Indicates access of a switch's
+ 					   global routing table if it
+@@ -255,7 +256,7 @@ struct rio_mport {
+ 				 */
+ 	enum rio_phy_type phy_type;	/* RapidIO phy type */
+ 	u32 phys_efptr;
+-	unsigned char name[40];
++	unsigned char name[RIO_MAX_MPORT_NAME];
+ 	void *priv;		/* Master port private data */
+ #ifdef CONFIG_RAPIDIO_DMA_ENGINE
+ 	struct dma_device	dma;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from alexandre.bounine@idt.com are
 
-origin.patch
-revert-netpoll-re-enable-irq-in-poll_napi.patch
-linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-audith-replace-defines-with-c-stubs.patch
-thermal-add-generic-cpufreq-cooling-implementation.patch
-thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
-thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
-mm.patch
-x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
-mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
-mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch
-backlight-add-backlight-driver-for-lm3630-chip-fix.patch
-backlight-add-new-lm3639-backlight-driver-fix.patch
-rbtree-performance-and-correctness-test-fix.patch
-lib-parserc-avoid-overflow-in-match_number-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-rtc-add-dallas-ds2404-driver-fix.patch
-rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch
-fs-fat-fix-all-other-checkpatch-issues-in-dirc-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+rapidio-tsi721-modify-mport-name-assignment.patch
+rapidio-apply-rx-tx-enable-to-active-switch-ports-only.patch
 
