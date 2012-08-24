@@ -1,65 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-rs5c348c-fix-hour-decoding-in-12-hour-mode.patch removed from -mm tree
-Date: Fri, 24 Aug 2012 11:41:45 -0700
-Message-ID: <20120824184146.1A6565C0060@hpza9.eem.corp.google.com>
+Subject: [merged] rapidio-tsi721-fix-inbound-doorbell-interrupt-handling.patch removed from -mm tree
+Date: Fri, 24 Aug 2012 11:41:49 -0700
+Message-ID: <20120824184149.A639D100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:40164 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755870Ab2HXSlr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Aug 2012 14:41:47 -0400
-Received: by mail-bk0-f74.google.com with SMTP id jc3so106165bkc.1
-        for <mm-commits@vger.kernel.org>; Fri, 24 Aug 2012 11:41:47 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:34895 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755870Ab2HXSlu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Aug 2012 14:41:50 -0400
+Received: by qcqs25 with SMTP id s25so312371qcq.1
+        for <mm-commits@vger.kernel.org>; Fri, 24 Aug 2012 11:41:50 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anemo@mba.ocn.ne.jp, newten82@gmail.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: alexandre.bounine@idt.com, mporter@kernel.crashing.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-rs5c348.c: fix hour decoding in 12-hour mode
+     Subject: rapidio/tsi721: fix inbound doorbell interrupt handling
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-rs5c348c-fix-hour-decoding-in-12-hour-mode.patch
+     rapidio-tsi721-fix-inbound-doorbell-interrupt-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
-Subject: drivers/rtc/rtc-rs5c348.c: fix hour decoding in 12-hour mode
+From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: rapidio/tsi721: fix inbound doorbell interrupt handling
 
-Correct the offset by subtracting 20 from tm_hour before taking the modulo
-12.
+Make sure that there is no doorbell messages left behind due to disabled
+interrupts during inbound doorbell processing.
 
-Reported-by: James Nute <newten82@gmail.com>
-Tested-by: James Nute <newten82@gmail.com>
-Signed-off-by: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+The most common case for this bug is loss of rionet JOIN messages in
+systems with three or more rionet participants and MSI or MSI-X enabled. 
+As result, requests for packet transfers may finish with "destination
+unreachable" error message.
+
+This patch is applicable to kernel versions starting from v3.2.
+
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rs5c348.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/rapidio/devices/tsi721.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/rtc/rtc-rs5c348.c~drivers-rtc-rtc-rs5c348c-fix-hour-decoding-in-12-hour-mode drivers/rtc/rtc-rs5c348.c
---- a/drivers/rtc/rtc-rs5c348.c~drivers-rtc-rtc-rs5c348c-fix-hour-decoding-in-12-hour-mode
-+++ a/drivers/rtc/rtc-rs5c348.c
-@@ -122,9 +122,12 @@ rs5c348_rtc_read_time(struct device *dev
- 	tm->tm_min = bcd2bin(rxbuf[RS5C348_REG_MINS] & RS5C348_MINS_MASK);
- 	tm->tm_hour = bcd2bin(rxbuf[RS5C348_REG_HOURS] & RS5C348_HOURS_MASK);
- 	if (!pdata->rtc_24h) {
--		tm->tm_hour %= 12;
--		if (rxbuf[RS5C348_REG_HOURS] & RS5C348_BIT_PM)
-+		if (rxbuf[RS5C348_REG_HOURS] & RS5C348_BIT_PM) {
-+			tm->tm_hour -= 20;
-+			tm->tm_hour %= 12;
- 			tm->tm_hour += 12;
-+		} else
-+			tm->tm_hour %= 12;
+diff -puN drivers/rapidio/devices/tsi721.c~rapidio-tsi721-fix-inbound-doorbell-interrupt-handling drivers/rapidio/devices/tsi721.c
+--- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-fix-inbound-doorbell-interrupt-handling
++++ a/drivers/rapidio/devices/tsi721.c
+@@ -435,6 +435,9 @@ static void tsi721_db_dpc(struct work_st
+ 				" info %4.4x\n", DBELL_SID(idb.bytes),
+ 				DBELL_TID(idb.bytes), DBELL_INF(idb.bytes));
+ 		}
++
++		wr_ptr = ioread32(priv->regs +
++				  TSI721_IDQ_WP(IDB_QUEUE)) % IDB_QSIZE;
  	}
- 	tm->tm_wday = bcd2bin(rxbuf[RS5C348_REG_WDAY] & RS5C348_WDAY_MASK);
- 	tm->tm_mday = bcd2bin(rxbuf[RS5C348_REG_DAY] & RS5C348_DAY_MASK);
+ 
+ 	iowrite32(rd_ptr & (IDB_QSIZE - 1),
+@@ -445,6 +448,10 @@ static void tsi721_db_dpc(struct work_st
+ 	regval |= TSI721_SR_CHINT_IDBQRCV;
+ 	iowrite32(regval,
+ 		priv->regs + TSI721_SR_CHINTE(IDB_QUEUE));
++
++	wr_ptr = ioread32(priv->regs + TSI721_IDQ_WP(IDB_QUEUE)) % IDB_QSIZE;
++	if (wr_ptr != rd_ptr)
++		schedule_work(&priv->idb_work);
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from anemo@mba.ocn.ne.jp are
+Patches currently in -mm which might be from alexandre.bounine@idt.com are
 
 origin.patch
 
