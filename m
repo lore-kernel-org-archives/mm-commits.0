@@ -1,67 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] documentation-update-mount-option-in-filesystem-vfattxt.patch removed from -mm tree
-Date: Fri, 24 Aug 2012 11:41:09 -0700
-Message-ID: <20120824184109.A6B30100047@wpzn3.hot.corp.google.com>
+Subject: [merged] alpha-redefine-atomic_init-and-atomic64_init-to-drop-the-casts.patch removed from -mm tree
+Date: Fri, 24 Aug 2012 11:41:00 -0700
+Message-ID: <20120824184100.8B655100049@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:50983 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760031Ab2HXSlL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Aug 2012 14:41:11 -0400
-Received: by qcqs25 with SMTP id s25so312302qcq.1
-        for <mm-commits@vger.kernel.org>; Fri, 24 Aug 2012 11:41:10 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:65465 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753582Ab2HXSlC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Aug 2012 14:41:02 -0400
+Received: by vcqp1 with SMTP id p1so311760vcq.1
+        for <mm-commits@vger.kernel.org>; Fri, 24 Aug 2012 11:41:01 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linkinjeon@gmail.com, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
+To: mgorman@suse.de, James.Bottomley@hansenpartnership.com, dave.anglin@bell.net, davem@davemloft.net, fengguang.wu@intel.com, ink@jurassic.park.msu.ru, kyle@parisc-linux.org, mattst88@gmail.com, rth@twiddle.net, tony.luck@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation: update mount option in filesystem/vfat.txt
+     Subject: alpha: redefine ATOMIC_INIT and ATOMIC64_INIT to drop the casts
 has been removed from the -mm tree.  Its filename was
-     documentation-update-mount-option-in-filesystem-vfattxt.patch
+     alpha-redefine-atomic_init-and-atomic64_init-to-drop-the-casts.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Namjae Jeon <linkinjeon@gmail.com>
-Subject: Documentation: update mount option in filesystem/vfat.txt
+From: Mel Gorman <mgorman@suse.de>
+Subject: alpha: redefine ATOMIC_INIT and ATOMIC64_INIT to drop the casts
 
-Update two mount options(discard, nfs) in vfat.txt.
+The following build error occurred during an alpha build:
 
-Signed-off-by: Namjae Jeon <linkinjeon@gmail.com>
-Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+net/core/sock.c:274:36: error: initializer element is not constant
+
+Dave Anglin says:
+> Here is the line in sock.i:
+>
+> struct static_key memalloc_socks = ((struct static_key) { .enabled =
+> ((atomic_t) { (0) }) });
+
+The above line contains two compound literals.  It also uses a designated
+initializer to initialize the field enabled.  A compound literal is not a
+constant expression.
+
+The location of the above statement isn't fully clear, but if a compound
+literal occurs outside the body of a function, the initializer list must
+consist of constant expressions.
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Tony Luck <tony.luck@gmail.com>
+Cc: James Bottomley <James.Bottomley@hansenpartnership.com>
+Cc: John David Anglin <dave.anglin@bell.net>
+Cc: Kyle McMartin <kyle@parisc-linux.org>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/vfat.txt |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ arch/alpha/include/asm/atomic.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/filesystems/vfat.txt~documentation-update-mount-option-in-filesystem-vfattxt Documentation/filesystems/vfat.txt
---- a/Documentation/filesystems/vfat.txt~documentation-update-mount-option-in-filesystem-vfattxt
-+++ a/Documentation/filesystems/vfat.txt
-@@ -137,6 +137,17 @@ errors=panic|continue|remount-ro
- 		 without doing anything or remount the partition in
- 		 read-only mode (default behavior).
+diff -puN arch/alpha/include/asm/atomic.h~alpha-redefine-atomic_init-and-atomic64_init-to-drop-the-casts arch/alpha/include/asm/atomic.h
+--- a/arch/alpha/include/asm/atomic.h~alpha-redefine-atomic_init-and-atomic64_init-to-drop-the-casts
++++ a/arch/alpha/include/asm/atomic.h
+@@ -14,8 +14,8 @@
+  */
  
-+discard       -- If set, issues discard/TRIM commands to the block
-+		 device when blocks are freed. This is useful for SSD devices
-+		 and sparse/thinly-provisoned LUNs.
-+
-+nfs           -- This option maintains an index (cache) of directory
-+		 inodes by i_logstart which is used by the nfs-related code to
-+		 improve look-ups.
-+
-+		 Enable this only if you want to export the FAT filesystem
-+		 over NFS
-+
- <bool>: 0,1,yes,no,true,false
  
- TODO
+-#define ATOMIC_INIT(i)		( (atomic_t) { (i) } )
+-#define ATOMIC64_INIT(i)	( (atomic64_t) { (i) } )
++#define ATOMIC_INIT(i)		{ (i) }
++#define ATOMIC64_INIT(i)	{ (i) }
+ 
+ #define atomic_read(v)		(*(volatile int *)&(v)->counter)
+ #define atomic64_read(v)	(*(volatile long *)&(v)->counter)
 _
 
-Patches currently in -mm which might be from linkinjeon@gmail.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
 origin.patch
 linux-next.patch
-fat-use-accessor-function-for-msdos_dir_entry-start.patch
+mm-remove-__gfp_no_kswapd.patch
+mm-compaction-update-comment-in-try_to_compact_pages.patch
+mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures.patch
+mm-compaction-capture-a-suitable-high-order-page-immediately-when-it-is-made-available.patch
+revert-mm-mempolicy-let-vma_merge-and-vma_split-handle-vma-vm_policy-linkages.patch
+mempolicy-remove-mempolicy-sharing.patch
+mempolicy-fix-a-race-in-shared_policy_replace.patch
+mempolicy-fix-refcount-leak-in-mpol_set_shared_policy.patch
+mempolicy-fix-a-memory-corruption-by-refcount-imbalance-in-alloc_pages_vma.patch
+mempolicy-fix-a-memory-corruption-by-refcount-imbalance-in-alloc_pages_vma-v2.patch
 
