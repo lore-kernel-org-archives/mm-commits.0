@@ -1,76 +1,186 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rapidio-tsi721-fix-unused-variable-compiler-warning.patch removed from -mm tree
-Date: Fri, 24 Aug 2012 11:41:52 -0700
-Message-ID: <20120824184152.9C0C4100047@wpzn3.hot.corp.google.com>
+Subject: [merged] mm-have-order-0-compaction-start-near-a-pageblock-with-free-pages-v2.patch removed from -mm tree
+Date: Fri, 24 Aug 2012 11:41:55 -0700
+Message-ID: <20120824184156.6DEF120004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:36459 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753481Ab2HXSlx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Aug 2012 14:41:53 -0400
-Received: by mail-gh0-f202.google.com with SMTP id z15so311246ghb.1
-        for <mm-commits@vger.kernel.org>; Fri, 24 Aug 2012 11:41:53 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:40164 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752223Ab2HXSl6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Aug 2012 14:41:58 -0400
+Received: by mail-bk0-f74.google.com with SMTP id jc3so106165bkc.1
+        for <mm-commits@vger.kernel.org>; Fri, 24 Aug 2012 11:41:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandre.bounine@idt.com, mporter@kernel.crashing.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: mgorman@suse.de, minchan@kernel.org, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio/tsi721: fix unused variable compiler warning
+     Subject: mm: have order > 0 compaction start near a pageblock with free pages
 has been removed from the -mm tree.  Its filename was
-     rapidio-tsi721-fix-unused-variable-compiler-warning.patch
+     mm-have-order-0-compaction-start-near-a-pageblock-with-free-pages-v2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio/tsi721: fix unused variable compiler warning
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: have order > 0 compaction start near a pageblock with free pages
 
-Fix unused variable compiler warning when built with CONFIG_RAPIDIO_DEBUG
-option off.
+7db8889a ("mm: have order > 0 compaction start off where it left")
+introduced a caching mechanism to reduce the amount work the free page
+scanner does in compaction.  However, it has a problem.  Consider two
+process simultaneously scanning free pages
 
-This patch is applicable to kernel versions starting from v3.2
+				    			C
+Process A		M     S     			F
+		|---------------------------------------|
+Process B		M 	FS
 
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: <stable@vger.kernel.org>
+C is zone->compact_cached_free_pfn
+S is cc->start_pfree_pfn
+M is cc->migrate_pfn
+F is cc->free_pfn
+
+In this diagram, Process A has just reached its migrate scanner, wrapped
+around and updated compact_cached_free_pfn accordingly.
+
+Simultaneously, Process B finishes isolating in a block and updates
+compact_cached_free_pfn again to the location of its free scanner.
+
+Process A moves to "end_of_zone - one_pageblock" and runs this check
+
+                if (cc->order > 0 && (!cc->wrapped ||
+                                      zone->compact_cached_free_pfn >
+                                      cc->start_free_pfn))
+                        pfn = min(pfn, zone->compact_cached_free_pfn);
+
+compact_cached_free_pfn is above where it started so the free scanner skips
+almost the entire space it should have scanned. When there are multiple
+processes compacting it can end in a situation where the entire zone is
+not being scanned at all.  Further, it is possible for two processes to
+ping-pong update to compact_cached_free_pfn which is just random.
+
+Overall, the end result wrecks allocation success rates.
+
+There is not an obvious way around this problem without introducing new
+locking and state so this patch takes a different approach.
+
+First, it gets rid of the skip logic because it's not clear that it matters
+if two free scanners happen to be in the same block but with racing updates
+it's too easy for it to skip over blocks it should not.
+
+Second, it updates compact_cached_free_pfn in a more limited set of
+circumstances.
+
+If a scanner has wrapped, it updates compact_cached_free_pfn to the end
+	of the zone. When a wrapped scanner isolates a page, it updates
+	compact_cached_free_pfn to point to the highest pageblock it
+	can isolate pages from.
+
+If a scanner has not wrapped when it has finished isolated pages it
+	checks if compact_cached_free_pfn is pointing to the end of the
+	zone. If so, the value is updated to point to the highest
+	pageblock that pages were isolated from. This value will not
+	be updated again until a free page scanner wraps and resets
+	compact_cached_free_pfn.
+
+This is not optimal and it can still race but the compact_cached_free_pfn
+will be pointing to or very near a pageblock with free pages.
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Reviewed-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/tsi721.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/compaction.c |   54 +++++++++++++++++++++++-----------------------
+ 1 file changed, 28 insertions(+), 26 deletions(-)
 
-diff -puN drivers/rapidio/devices/tsi721.c~rapidio-tsi721-fix-unused-variable-compiler-warning drivers/rapidio/devices/tsi721.c
---- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-fix-unused-variable-compiler-warning
-+++ a/drivers/rapidio/devices/tsi721.c
-@@ -2219,7 +2219,7 @@ static int __devinit tsi721_probe(struct
- 				  const struct pci_device_id *id)
- {
- 	struct tsi721_device *priv;
--	int i, cap;
-+	int cap;
- 	int err;
- 	u32 regval;
+diff -puN mm/compaction.c~mm-have-order-0-compaction-start-near-a-pageblock-with-free-pages-v2 mm/compaction.c
+--- a/mm/compaction.c~mm-have-order-0-compaction-start-near-a-pageblock-with-free-pages-v2
++++ a/mm/compaction.c
+@@ -384,6 +384,20 @@ static bool suitable_migration_target(st
+ }
  
-@@ -2239,12 +2239,15 @@ static int __devinit tsi721_probe(struct
- 	priv->pdev = pdev;
+ /*
++ * Returns the start pfn of the last page block in a zone.  This is the starting
++ * point for full compaction of a zone.  Compaction searches for free pages from
++ * the end of each zone, while isolate_freepages_block scans forward inside each
++ * page block.
++ */
++static unsigned long start_free_pfn(struct zone *zone)
++{
++	unsigned long free_pfn;
++	free_pfn = zone->zone_start_pfn + zone->spanned_pages;
++	free_pfn &= ~(pageblock_nr_pages-1);
++	return free_pfn;
++}
++
++/*
+  * Based on information in the current compact_control, find blocks
+  * suitable for isolating free pages from and then isolate them.
+  */
+@@ -422,17 +436,6 @@ static void isolate_freepages(struct zon
+ 					pfn -= pageblock_nr_pages) {
+ 		unsigned long isolated;
  
- #ifdef DEBUG
-+	{
-+	int i;
- 	for (i = 0; i <= PCI_STD_RESOURCE_END; i++) {
- 		dev_dbg(&pdev->dev, "res[%d] @ 0x%llx (0x%lx, 0x%lx)\n",
- 			i, (unsigned long long)pci_resource_start(pdev, i),
- 			(unsigned long)pci_resource_len(pdev, i),
- 			pci_resource_flags(pdev, i));
+-		/*
+-		 * Skip ahead if another thread is compacting in the area
+-		 * simultaneously. If we wrapped around, we can only skip
+-		 * ahead if zone->compact_cached_free_pfn also wrapped to
+-		 * above our starting point.
+-		 */
+-		if (cc->order > 0 && (!cc->wrapped ||
+-				      zone->compact_cached_free_pfn >
+-				      cc->start_free_pfn))
+-			pfn = min(pfn, zone->compact_cached_free_pfn);
+-
+ 		if (!pfn_valid(pfn))
+ 			continue;
+ 
+@@ -474,7 +477,15 @@ static void isolate_freepages(struct zon
+ 		 */
+ 		if (isolated) {
+ 			high_pfn = max(high_pfn, pfn);
+-			if (cc->order > 0)
++
++			/*
++			 * If the free scanner has wrapped, update
++			 * compact_cached_free_pfn to point to the highest
++			 * pageblock with free pages. This reduces excessive
++			 * scanning of full pageblocks near the end of the
++			 * zone
++			 */
++			if (cc->order > 0 && cc->wrapped)
+ 				zone->compact_cached_free_pfn = high_pfn;
+ 		}
  	}
-+	}
- #endif
- 	/*
- 	 * Verify BAR configuration
-_
-
-Patches currently in -mm which might be from alexandre.bounine@idt.com are
-
-origin.patch
-
+@@ -484,6 +495,11 @@ static void isolate_freepages(struct zon
+ 
+ 	cc->free_pfn = high_pfn;
+ 	cc->nr_freepages = nr_freepages;
++
++	/* If compact_cached_free_pfn is reset then set it now */
++	if (cc->order > 0 && !cc->wrapped &&
++			zone->compact_cached_free_pfn == start_free_pfn(zone))
++		zone->compact_cached_free_pfn = high_pfn;
+ }
+ 
+ /*
+@@ -570,20 +586,6 @@ static isolate_migrate_t isolate_migrate
+ 	return ISOLATE_SUCCESS;
+ }
+ 
+-/*
+- * Returns the start pfn of the last page block in a zone.  This is the starting
+- * point for full compaction of a zone.  Compaction searches for free pages from
+- * the end of each zone, while isolate_freepages_block scans forward inside each
+- * page block.
+- */
+-static unsigned long start_free_pfn(struct zone *zone)
+-{
+-	unsigned long free_pfn;
+-	free_pfn = zone->zone_start_pfn + zone->spanned_pages;
+-	free_pfn &= ~(pageblock_nr_pages-1);
+-	return free_pfn;
+-}
