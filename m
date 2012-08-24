@@ -1,59 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] string-do-not-export-memweight-to-userspace.patch removed from -mm tree
-Date: Fri, 24 Aug 2012 11:41:27 -0700
-Message-ID: <20120824184128.190A520004E@hpza10.eem.corp.google.com>
+Subject: [merged] hugetlb-update-hugetlbpagetxt.patch removed from -mm tree
+Date: Fri, 24 Aug 2012 11:41:23 -0700
+Message-ID: <20120824184124.0E3E9200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:56684 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755831Ab2HXSla (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Aug 2012 14:41:30 -0400
-Received: by eekd4 with SMTP id d4so108447eek.1
-        for <mm-commits@vger.kernel.org>; Fri, 24 Aug 2012 11:41:29 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:53434 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756262Ab2HXSl0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Aug 2012 14:41:26 -0400
+Received: by wibhr14 with SMTP id hr14so53119wib.1
+        for <mm-commits@vger.kernel.org>; Fri, 24 Aug 2012 11:41:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiyou.wangcong@gmail.com, akinobu.mita@gmail.com, mm-commits@vger.kernel.org
+To: sanweidaying@gmail.com, dyoung@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: string: do not export memweight() to userspace
+     Subject: hugetlb: update hugetlbpage.txt
 has been removed from the -mm tree.  Its filename was
-     string-do-not-export-memweight-to-userspace.patch
+     hugetlb-update-hugetlbpagetxt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: WANG Cong <xiyou.wangcong@gmail.com>
-Subject: string: do not export memweight() to userspace
+From: Zhouping Liu <sanweidaying@gmail.com>
+Subject: hugetlb: update hugetlbpage.txt
 
-Fix the following warning:
+Commit f0f57b2b1 ("mm: move hugepage test examples to
+tools/testing/selftests/vm") moved map_hugetlb.c, hugepage-shm.c and
+hugepage-mmap.c tests into tools/testing/selftests/vm/ directory, but it
+didn't update hugetlbpage.txt
 
-usr/include/linux/string.h:8: userspace cannot reference function or variable defined in the kernel
-
-Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
-Acked-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Zhouping Liu <sanweidaying@gmail.com>
+Acked-by: Dave Young <dyoung@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/string.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/vm/hugetlbpage.txt |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/string.h~string-do-not-export-memweight-to-userspace include/linux/string.h
---- a/include/linux/string.h~string-do-not-export-memweight-to-userspace
-+++ a/include/linux/string.h
-@@ -144,8 +144,8 @@ static inline bool strstarts(const char 
- {
- 	return strncmp(str, prefix, strlen(prefix)) == 0;
- }
--#endif
+diff -puN Documentation/vm/hugetlbpage.txt~hugetlb-update-hugetlbpagetxt Documentation/vm/hugetlbpage.txt
+--- a/Documentation/vm/hugetlbpage.txt~hugetlb-update-hugetlbpagetxt
++++ a/Documentation/vm/hugetlbpage.txt
+@@ -299,11 +299,17 @@ map_hugetlb.c.
+ *******************************************************************
  
- extern size_t memweight(const void *ptr, size_t bytes);
+ /*
+- * hugepage-shm:  see Documentation/vm/hugepage-shm.c
++ * map_hugetlb: see tools/testing/selftests/vm/map_hugetlb.c
+  */
  
-+#endif /* __KERNEL__ */
- #endif /* _LINUX_STRING_H_ */
+ *******************************************************************
+ 
+ /*
+- * hugepage-mmap:  see Documentation/vm/hugepage-mmap.c
++ * hugepage-shm:  see tools/testing/selftests/vm/hugepage-shm.c
++ */
++
++*******************************************************************
++
++/*
++ * hugepage-mmap:  see tools/testing/selftests/vm/hugepage-mmap.c
+  */
 _
 
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
+Patches currently in -mm which might be from sanweidaying@gmail.com are
 
 origin.patch
 
