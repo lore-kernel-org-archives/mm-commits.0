@@ -1,258 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [merged] block-replace-__getblk_slow-misfix-by-grow_dev_page-fix.patch removed from -mm tree
-Date: Thu, 30 Aug 2012 12:03:48 -0700
-Message-ID: <20120830190350.0934120004E@hpza10.eem.corp.google.com>
+Subject: + thp-s390-disable-thp-for-kvm-host-on-s390.patch added to -mm tree
+Date: Thu, 30 Aug 2012 12:55:14 -0700
+Message-ID: <20120830195515.3FF87100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:64390 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751071Ab2H3TDx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Aug 2012 15:03:53 -0400
-Received: by lbbge1 with SMTP id ge1so58909lbb.1
-        for <mm-commits@vger.kernel.org>; Thu, 30 Aug 2012 12:03:51 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:60050 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751768Ab2H3TzQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Aug 2012 15:55:16 -0400
+Received: by mail-yw0-f74.google.com with SMTP id 10so256205yhl.1
+        for <mm-commits@vger.kernel.org>; Thu, 30 Aug 2012 12:55:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, axboe@kernel.dk, jmoyer@redhat.com, stable@vger.kernel.org, torsten.hilbrich@secunet.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: gerald.schaefer@de.ibm.com, aarcange@redhat.com, ak@linux.intel.com, dhillf@gmail.com, heiko.carstens@de.ibm.com, hughd@google.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     Subject: block: replace __getblk_slow misfix by grow_dev_page fix
-has been removed from the -mm tree.  Its filename was
-     block-replace-__getblk_slow-misfix-by-grow_dev_page-fix.patch
+     Subject: thp, s390: disable thp for kvm host on s390
+has been added to the -mm tree.  Its filename is
+     thp-s390-disable-thp-for-kvm-host-on-s390.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: block: replace __getblk_slow misfix by grow_dev_page fix
+From: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Subject: thp, s390: disable thp for kvm host on s390
 
-Commit 91f68c89d8f3 ("block: fix infinite loop in __getblk_slow") is not
-good: a successful call to grow_buffers() cannot guarantee that the page
-won't be reclaimed before the immediate next call to __find_get_block(),
-which is why there was always a loop there.
+This patch is part of the architecture backend for thp on s390.  It
+disables thp for kvm hosts, because there is no kvm host hugepage support
+so far.  Existing thp mappings are split by follow_page() with FOLL_SPLIT,
+and future thp mappings are prevented by setting VM_NOHUGEPAGE in
+mm->def_flags.
 
-Yesterday I got "EXT4-fs error (device loop0): __ext4_get_inode_loc:3595:
-inode #19278: block 664: comm cc1: unable to read itable block" on
-console, which pointed to this commit.
-
-I've been trying to bisect for weeks, why kbuild-on-ext4-on-loop-on-tmpfs
-sometimes fails from a missing header file, under memory pressure on ppc
-G5.  I've never seen this on x86, and I've never seen it on 3.5-rc7
-itself, despite that commit being in there: bisection pointed to an
-irrelevant pinctrl merge, but hard to tell when failure takes between 18
-minutes and 38 hours (but so far it's happened quicker on 3.6-rc2).
-
-(I've since found such __ext4_get_inode_loc errors in /var/log/messages
-from previous weeks: why the message never appeared on console until
-yesterday morning is a mystery for another day.)
-
-Revert 91f68c89d8f3, restoring __getblk_slow() to how it was (plus a
-checkpatch nitfix).  Simplify the interface between grow_buffers() and
-grow_dev_page(), and avoid the infinite loop beyond end of device by
-instead checking init_page_buffers()'s end_block there (I presume that's
-more efficient than a repeated call to blkdev_max_block()), returning
--ENXIO to __getblk_slow() in that case.
-
-And remove akpm's ten-year-old "__getblk() cannot fail ...  weird"
-comment, but that is worrying: are all users of __getblk() really now
-prepared for a NULL bh beyond end of device, or will some oops??
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org> # 3.0 3.2 3.4 3.5
-Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
-Tested-by: Jeff Moyer <jmoyer@redhat.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Torsten Hilbrich <torsten.hilbrich@secunet.com>
+Signed-off-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Hillf Danton <dhillf@gmail.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |   66 ++++++++++++++++++++++----------------------------
- 1 file changed, 30 insertions(+), 36 deletions(-)
+ arch/s390/mm/pgtable.c |   30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff -puN fs/buffer.c~block-replace-__getblk_slow-misfix-by-grow_dev_page-fix fs/buffer.c
---- a/fs/buffer.c~block-replace-__getblk_slow-misfix-by-grow_dev_page-fix
-+++ a/fs/buffer.c
-@@ -914,7 +914,7 @@ link_dev_buffers(struct page *page, stru
- /*
-  * Initialise the state of a blockdev page's buffers.
-  */ 
--static void
-+static sector_t
- init_page_buffers(struct page *page, struct block_device *bdev,
- 			sector_t block, int size)
- {
-@@ -936,33 +936,41 @@ init_page_buffers(struct page *page, str
- 		block++;
- 		bh = bh->b_this_page;
- 	} while (bh != head);
-+
-+	/*
-+	 * Caller needs to validate requested block against end of device.
-+	 */
-+	return end_block;
+diff -puN arch/s390/mm/pgtable.c~thp-s390-disable-thp-for-kvm-host-on-s390 arch/s390/mm/pgtable.c
+--- a/arch/s390/mm/pgtable.c~thp-s390-disable-thp-for-kvm-host-on-s390
++++ a/arch/s390/mm/pgtable.c
+@@ -787,6 +787,30 @@ void tlb_remove_table(struct mmu_gather 
+ 		tlb_table_flush(tlb);
  }
  
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++void thp_split_vma(struct vm_area_struct *vma)
++{
++	unsigned long addr;
++	struct page *page;
++
++	for (addr = vma->vm_start; addr < vma->vm_end; addr += PAGE_SIZE) {
++		page = follow_page(vma, addr, FOLL_SPLIT);
++	}
++}
++
++void thp_split_mm(struct mm_struct *mm)
++{
++	struct vm_area_struct *vma = mm->mmap;
++
++	while (vma != NULL) {
++		thp_split_vma(vma);
++		vma->vm_flags &= ~VM_HUGEPAGE;
++		vma->vm_flags |= VM_NOHUGEPAGE;
++		vma = vma->vm_next;
++	}
++}
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
++
  /*
-  * Create the page-cache page that contains the requested block.
-  *
-- * This is user purely for blockdev mappings.
-+ * This is used purely for blockdev mappings.
+  * switch on pgstes for its userspace process (for kvm)
   */
--static struct page *
-+static int
- grow_dev_page(struct block_device *bdev, sector_t block,
--		pgoff_t index, int size)
-+		pgoff_t index, int size, int sizebits)
- {
- 	struct inode *inode = bdev->bd_inode;
- 	struct page *page;
- 	struct buffer_head *bh;
-+	sector_t end_block;
-+	int ret = 0;		/* Will call free_more_memory() */
+@@ -824,6 +848,12 @@ int s390_enable_sie(void)
+ 	if (!mm)
+ 		return -ENOMEM;
  
- 	page = find_or_create_page(inode->i_mapping, index,
- 		(mapping_gfp_mask(inode->i_mapping) & ~__GFP_FS)|__GFP_MOVABLE);
- 	if (!page)
--		return NULL;
-+		return ret;
- 
- 	BUG_ON(!PageLocked(page));
- 
- 	if (page_has_buffers(page)) {
- 		bh = page_buffers(page);
- 		if (bh->b_size == size) {
--			init_page_buffers(page, bdev, block, size);
--			return page;
-+			end_block = init_page_buffers(page, bdev,
-+						index << sizebits, size);
-+			goto done;
- 		}
- 		if (!try_to_free_buffers(page))
- 			goto failed;
-@@ -982,14 +990,14 @@ grow_dev_page(struct block_device *bdev,
- 	 */
- 	spin_lock(&inode->i_mapping->private_lock);
- 	link_dev_buffers(page, bh);
--	init_page_buffers(page, bdev, block, size);
-+	end_block = init_page_buffers(page, bdev, index << sizebits, size);
- 	spin_unlock(&inode->i_mapping->private_lock);
--	return page;
--
-+done:
-+	ret = (block < end_block) ? 1 : -ENXIO;
- failed:
- 	unlock_page(page);
- 	page_cache_release(page);
--	return NULL;
-+	return ret;
- }
- 
- /*
-@@ -999,7 +1007,6 @@ failed:
- static int
- grow_buffers(struct block_device *bdev, sector_t block, int size)
- {
--	struct page *page;
- 	pgoff_t index;
- 	int sizebits;
- 
-@@ -1023,22 +1030,14 @@ grow_buffers(struct block_device *bdev, 
- 			bdevname(bdev, b));
- 		return -EIO;
- 	}
--	block = index << sizebits;
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	/* split thp mappings and disable thp for future mappings */
++	thp_split_mm(mm);
++	mm->def_flags |= VM_NOHUGEPAGE;
++#endif
 +
- 	/* Create a page with the proper size buffers.. */
--	page = grow_dev_page(bdev, block, index, size);
--	if (!page)
--		return 0;
--	unlock_page(page);
--	page_cache_release(page);
--	return 1;
-+	return grow_dev_page(bdev, block, index, size, sizebits);
- }
- 
- static struct buffer_head *
- __getblk_slow(struct block_device *bdev, sector_t block, int size)
- {
--	int ret;
--	struct buffer_head *bh;
--
- 	/* Size must be multiple of hard sectorsize */
- 	if (unlikely(size & (bdev_logical_block_size(bdev)-1) ||
- 			(size < 512 || size > PAGE_SIZE))) {
-@@ -1051,21 +1050,20 @@ __getblk_slow(struct block_device *bdev,
- 		return NULL;
- 	}
- 
--retry:
--	bh = __find_get_block(bdev, block, size);
--	if (bh)
--		return bh;
-+	for (;;) {
-+		struct buffer_head *bh;
-+		int ret;
- 
--	ret = grow_buffers(bdev, block, size);
--	if (ret == 0) {
--		free_more_memory();
--		goto retry;
--	} else if (ret > 0) {
- 		bh = __find_get_block(bdev, block, size);
- 		if (bh)
- 			return bh;
-+
-+		ret = grow_buffers(bdev, block, size);
-+		if (ret < 0)
-+			return NULL;
-+		if (ret == 0)
-+			free_more_memory();
- 	}
--	return NULL;
- }
- 
- /*
-@@ -1321,10 +1319,6 @@ EXPORT_SYMBOL(__find_get_block);
-  * which corresponds to the passed block_device, block and size. The
-  * returned buffer has its reference count incremented.
-  *
-- * __getblk() cannot fail - it just keeps trying.  If you pass it an
-- * illegal block number, __getblk() will happily return a buffer_head
-- * which represents the non-existent block.  Very weird.
-- *
-  * __getblk() will lock up the machine if grow_dev_page's try_to_free_buffers()
-  * attempt is failing.  FIXME, perhaps?
-  */
+ 	/* Now lets check again if something happened */
+ 	task_lock(tsk);
+ 	if (!tsk->mm || atomic_read(&tsk->mm->mm_users) > 1 ||
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from gerald.schaefer@de.ibm.com are
 
-origin.patch
-x86-pat-remove-the-dependency-on-vm_pgoff-in-track-untrack-pfn-vma-routines.patch
-x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn.patch
-mm-x86-pat-rework-linear-pfn-mmap-tracking.patch
-mm-introduce-arch-specific-vma-flag-vm_arch_1.patch
-mm-kill-vma-flag-vm_insertpage.patch
-mm-kill-vma-flag-vm_can_nonlinear.patch
-mm-use-mm-exe_file-instead-of-first-vm_executable-vma-vm_file.patch
-mm-kill-vma-flag-vm_executable-and-mm-num_exe_file_vmas.patch
-mm-prepare-vm_dontdump-for-using-in-drivers.patch
-mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter.patch
-mm-mmapc-replace-find_vma_prepare-with-clearer-find_vma_links.patch
-mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host.patch
-mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch
-mm-mmu_notifier-init-notifier-if-necessary.patch
-thp-fix-the-count-of-thp_collapse_alloc.patch
-thp-remove-unnecessary-check-in-start_khugepaged.patch
-thp-move-khugepaged_mutex-out-of-khugepaged.patch
-thp-remove-unnecessary-khugepaged_thread-check.patch
-thp-remove-wake_up_interruptible-in-the-exit-path.patch
-thp-remove-some-code-depend-on-config_numa.patch
-thp-merge-page-pre-alloc-in-khugepaged_loop-into-khugepaged_do_scan.patch
-thp-release-page-in-page-pre-alloc-path.patch
-thp-introduce-khugepaged_prealloc_page-and-khugepaged_alloc_page.patch
-thp-remove-khugepaged_loop.patch
-thp-use-khugepaged_enabled-to-remove-duplicate-code.patch
-thp-remove-unnecessary-set_recommended_min_free_kbytes.patch
-prio_tree-debugging-patch.patch
+linux-next.patch
+thp-remove-assumptions-on-pgtable_t-type.patch
+thp-introduce-pmdp_invalidate.patch
+thp-make-madv_hugepage-check-for-mm-def_flags.patch
+thp-s390-thp-splitting-backend-for-s390.patch
+thp-s390-thp-pagetable-pre-allocation-for-s390.patch
+thp-s390-disable-thp-for-kvm-host-on-s390.patch
+thp-s390-architecture-backend-for-thp-on-s390.patch
 
