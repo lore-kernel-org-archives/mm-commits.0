@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + thp-s390-thp-pagetable-pre-allocation-for-s390.patch added to -mm tree
-Date: Thu, 30 Aug 2012 12:55:11 -0700
-Message-ID: <20120830195512.5CF91100047@wpzn3.hot.corp.google.com>
+Subject: + thp-introduce-pmdp_invalidate.patch added to -mm tree
+Date: Thu, 30 Aug 2012 12:54:57 -0700
+Message-ID: <20120830195458.AE01520004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:59439 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751768Ab2H3TzO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Aug 2012 15:55:14 -0400
-Received: by vbnl22 with SMTP id l22so254954vbn.1
-        for <mm-commits@vger.kernel.org>; Thu, 30 Aug 2012 12:55:13 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:60331 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751676Ab2H3TzC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Aug 2012 15:55:02 -0400
+Received: by lbbge1 with SMTP id ge1so60077lbb.1
+        for <mm-commits@vger.kernel.org>; Thu, 30 Aug 2012 12:55:00 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: gerald.schaefer@de.ibm.com, aarcange@redhat.com, ak@linux.intel.com, dhillf@
 
 
 The patch titled
-     Subject: thp, s390: thp pagetable pre-allocation for s390
+     Subject: thp: introduce pmdp_invalidate()
 has been added to the -mm tree.  Its filename is
-     thp-s390-thp-pagetable-pre-allocation-for-s390.patch
+     thp-introduce-pmdp_invalidate.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Subject: thp, s390: thp pagetable pre-allocation for s390
+Subject: thp: introduce pmdp_invalidate()
 
-This patch is part of the architecture backend for thp on s390.  It
-provides the pagetable pre-allocation functions pgtable_deposit() and
-pgtable_withdraw().  Unlike other archs, s390 has no struct page * as
-pgtable_t, but rather a pointer to the page table.  So instead of saving
-the pagetable pre-allocation list info inside the struct page, it is being
-saved within the pagetable itself.
+On s390, a valid page table entry must not be changed while it is attached
+to any CPU.  So instead of pmd_mknotpresent() and set_pmd_at(), an IDTE
+operation would be necessary there.  This patch introduces the
+pmdp_invalidate() function, to allow architecture-specific
+implementations.
 
 Signed-off-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -53,72 +52,57 @@ Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/pgtable.h |    6 ++++
- arch/s390/mm/pgtable.c          |   38 ++++++++++++++++++++++++++++++
- 2 files changed, 44 insertions(+)
+ include/asm-generic/pgtable.h |    5 +++++
+ mm/huge_memory.c              |    3 +--
+ mm/pgtable-generic.c          |   11 +++++++++++
+ 3 files changed, 17 insertions(+), 2 deletions(-)
 
-diff -puN arch/s390/include/asm/pgtable.h~thp-s390-thp-pagetable-pre-allocation-for-s390 arch/s390/include/asm/pgtable.h
---- a/arch/s390/include/asm/pgtable.h~thp-s390-thp-pagetable-pre-allocation-for-s390
-+++ a/arch/s390/include/asm/pgtable.h
-@@ -1166,6 +1166,12 @@ static inline pmd_t *pmd_offset(pud_t *p
- #define pte_unmap(pte) do { } while (0)
+diff -puN include/asm-generic/pgtable.h~thp-introduce-pmdp_invalidate include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~thp-introduce-pmdp_invalidate
++++ a/include/asm-generic/pgtable.h
+@@ -170,6 +170,11 @@ extern void pgtable_deposit(struct mm_st
+ extern pgtable_t pgtable_withdraw(struct mm_struct *mm);
+ #endif
  
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+#define __HAVE_ARCH_PGTABLE_DEPOSIT
-+extern void pgtable_deposit(struct mm_struct *mm, pgtable_t pgtable);
++#ifndef __HAVE_ARCH_PMDP_INVALIDATE
++extern void pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
++			    pmd_t *pmdp);
++#endif
 +
-+#define __HAVE_ARCH_PGTABLE_WITHDRAW
-+extern pgtable_t pgtable_withdraw(struct mm_struct *mm);
-+
- static inline int pmd_trans_splitting(pmd_t pmd)
+ #ifndef __HAVE_ARCH_PTE_SAME
+ static inline int pte_same(pte_t pte_a, pte_t pte_b)
  {
- 	return pmd_val(pmd) & _SEGMENT_ENTRY_SPLIT;
-diff -puN arch/s390/mm/pgtable.c~thp-s390-thp-pagetable-pre-allocation-for-s390 arch/s390/mm/pgtable.c
---- a/arch/s390/mm/pgtable.c~thp-s390-thp-pagetable-pre-allocation-for-s390
-+++ a/arch/s390/mm/pgtable.c
-@@ -883,4 +883,42 @@ void pmdp_splitting_flush(struct vm_area
- 		smp_call_function(pmdp_splitting_flush_sync, NULL, 1);
+diff -puN mm/huge_memory.c~thp-introduce-pmdp_invalidate mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-introduce-pmdp_invalidate
++++ a/mm/huge_memory.c
+@@ -1361,8 +1361,7 @@ static int __split_huge_page_map(struct 
+ 		 * SMP TLB and finally we write the non-huge version
+ 		 * of the pmd entry with pmd_populate.
+ 		 */
+-		set_pmd_at(mm, address, pmd, pmd_mknotpresent(*pmd));
+-		flush_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
++		pmdp_invalidate(vma, address, pmd);
+ 		pmd_populate(mm, pmd, pgtable);
+ 		ret = 1;
  	}
+diff -puN mm/pgtable-generic.c~thp-introduce-pmdp_invalidate mm/pgtable-generic.c
+--- a/mm/pgtable-generic.c~thp-introduce-pmdp_invalidate
++++ a/mm/pgtable-generic.c
+@@ -159,3 +159,14 @@ pgtable_t pgtable_withdraw(struct mm_str
  }
-+
-+void pgtable_deposit(struct mm_struct *mm, pgtable_t pgtable)
-+{
-+	struct list_head *lh = (struct list_head *) pgtable;
-+
-+	assert_spin_locked(&mm->page_table_lock);
-+
-+	/* FIFO */
-+	if (!mm->pmd_huge_pte)
-+		INIT_LIST_HEAD(lh);
-+	else
-+		list_add(lh, (struct list_head *) mm->pmd_huge_pte);
-+	mm->pmd_huge_pte = pgtable;
-+}
-+
-+pgtable_t pgtable_withdraw(struct mm_struct *mm)
-+{
-+	struct list_head *lh;
-+	pgtable_t pgtable;
-+	pte_t *ptep;
-+
-+	assert_spin_locked(&mm->page_table_lock);
-+
-+	/* FIFO */
-+	pgtable = mm->pmd_huge_pte;
-+	lh = (struct list_head *) pgtable;
-+	if (list_empty(lh))
-+		mm->pmd_huge_pte = NULL;
-+	else {
-+		mm->pmd_huge_pte = (pgtable_t) lh->next;
-+		list_del(lh);
-+	}
-+	ptep = (pte_t *) pgtable;
-+	pte_val(*ptep) = _PAGE_TYPE_EMPTY;
-+	ptep++;
-+	pte_val(*ptep) = _PAGE_TYPE_EMPTY;
-+	return pgtable;
-+}
  #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ #endif
++
++#ifndef __HAVE_ARCH_PMDP_INVALIDATE
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++void pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
++		     pmd_t *pmdp)
++{
++	set_pmd_at(vma->vm_mm, address, pmdp, pmd_mknotpresent(*pmdp));
++	flush_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
++}
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
++#endif
 _
 
 Patches currently in -mm which might be from gerald.schaefer@de.ibm.com are
