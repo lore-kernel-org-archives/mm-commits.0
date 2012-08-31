@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-make-core-dump-functionality-optional-fix.patch added to -mm tree
-Date: Fri, 31 Aug 2012 15:58:49 -0700
-Message-ID: <20120831225849.A536D1E0043@wpzn4.hot.corp.google.com>
+Subject: + cciss-remove-useless-set-memory-to-zero-use-memset.patch added to -mm tree
+Date: Fri, 31 Aug 2012 16:00:14 -0700
+Message-ID: <20120831230014.A0CC71E0048@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:33500 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753714Ab2HaW6u (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Aug 2012 18:58:50 -0400
-Received: by yhl10 with SMTP id 10so400863yhl.1
-        for <mm-commits@vger.kernel.org>; Fri, 31 Aug 2012 15:58:50 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:34143 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753714Ab2HaXAP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Aug 2012 19:00:15 -0400
+Received: by vcqp1 with SMTP id p1so400157vcq.1
+        for <mm-commits@vger.kernel.org>; Fri, 31 Aug 2012 16:00:15 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alex.page.kelly@gmail.com, josh@joshtriplett.org, keescook@chromium.org, serge.hallyn@canonical.com
+Cc: yongjun_wei@trendmicro.com.cn, axboe@kernel.dk, mike.miller@hp.com, scameron@beardog.cce.hp.com
 
 
 The patch titled
-     Subject: fs: amended coredump-related sysctl functions
+     Subject: cciss: remove unneeded memset()
 has been added to the -mm tree.  Its filename is
-     coredump-make-core-dump-functionality-optional-fix.patch
+     cciss-remove-useless-set-memory-to-zero-use-memset.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,75 +33,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alex Kelly <alex.page.kelly@gmail.com>
-Subject: fs: amended coredump-related sysctl functions
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Subject: cciss: remove unneeded memset()
 
-This fixes an error introduced in the coredump-header patch in the
-coredump removal patch I submitted earlier.  It should be squashed into
-that patch series so that the Kconfig option to remove coredump doesn't
-cause compile-time errors.
+The memory return by kzalloc() or kmem_cache_zalloc() has already be set
+to zero, so remove useless memset(0).
 
-Signed-off-by: Alex Kelly <alex.page.kelly@gmail.com>
-Reviewed-by: Josh Triplett <josh@joshtriplett.org>
-Cc: Serge Hallyn <serge.hallyn@canonical.com>
-Cc: Kees Cook <keescook@chromium.org>
+spatch with a semantic match is used to found this problem.
+(http://coccinelle.lip6.fr/)
+
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Cc: Mike Miller <mike.miller@hp.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Stephen M. Cameron <scameron@beardog.cce.hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/block/cciss.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN kernel/sysctl.c~coredump-make-core-dump-functionality-optional-fix kernel/sysctl.c
---- a/kernel/sysctl.c~coredump-make-core-dump-functionality-optional-fix
-+++ a/kernel/sysctl.c
-@@ -179,8 +179,10 @@ static int proc_dointvec_minmax_sysadmin
- 
- static int proc_dointvec_minmax_coredump(struct ctl_table *table, int write,
- 		void __user *buffer, size_t *lenp, loff_t *ppos);
-+#ifdef CONFIG_COREDUMP
- static int proc_dostring_coredump(struct ctl_table *table, int write,
- 		void __user *buffer, size_t *lenp, loff_t *ppos);
-+#endif
- 
- #ifdef CONFIG_MAGIC_SYSRQ
- /* Note: sysrq code uses it's own private copy */
-@@ -2040,12 +2042,14 @@ int proc_dointvec_minmax(struct ctl_tabl
- 
- static void validate_coredump_safety(void)
- {
-+#ifdef CONFIG_COREDUMP
- 	if (suid_dumpable == SUID_DUMPABLE_SAFE &&
- 	    core_pattern[0] != '/' && core_pattern[0] != '|') {
- 		printk(KERN_WARNING "Unsafe core_pattern used with "\
- 			"suid_dumpable=2. Pipe handler or fully qualified "\
- 			"core dump path required.\n");
+diff -puN drivers/block/cciss.c~cciss-remove-useless-set-memory-to-zero-use-memset drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-remove-useless-set-memory-to-zero-use-memset
++++ a/drivers/block/cciss.c
+@@ -5198,7 +5198,6 @@ static void cciss_shutdown(struct pci_de
+ 		return;
  	}
-+#endif
- }
- 
- static int proc_dointvec_minmax_coredump(struct ctl_table *table, int write,
-@@ -2057,6 +2061,7 @@ static int proc_dointvec_minmax_coredump
- 	return error;
- }
- 
-+#ifdef CONFIG_COREDUMP
- static int proc_dostring_coredump(struct ctl_table *table, int write,
- 		  void __user *buffer, size_t *lenp, loff_t *ppos)
- {
-@@ -2065,6 +2070,7 @@ static int proc_dostring_coredump(struct
- 		validate_coredump_safety();
- 	return error;
- }
-+#endif
- 
- static int __do_proc_doulongvec_minmax(void *data, struct ctl_table *table, int write,
- 				     void __user *buffer,
+ 	/* write all data in the battery backed cache to disk */
+-	memset(flush_buf, 0, 4);
+ 	return_code = sendcmd_withirq(h, CCISS_CACHE_FLUSH, flush_buf,
+ 		4, 0, CTLR_LUNID, TYPE_CMD);
+ 	kfree(flush_buf);
 _
 
-Patches currently in -mm which might be from alex.page.kelly@gmail.com are
+Patches currently in -mm which might be from yongjun_wei@trendmicro.com.cn are
 
-coredump-move-core-dump-functionality-into-its-own-file.patch
-coredump-make-core-dump-functionality-optional.patch
-coredump-make-core-dump-functionality-optional-fix.patch
-coredump-update-coredump-related-headers.patch
+cciss-remove-useless-set-memory-to-zero-use-memset.patch
 
