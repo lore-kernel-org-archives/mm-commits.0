@@ -1,16 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + aoe-failover-remote-interface-based-on-aoe_deadsecs-parameter.patch added to -mm tree
-Date: Fri, 31 Aug 2012 13:11:52 -0700
-Message-ID: <20120831201153.A2C0D20004E@hpza10.eem.corp.google.com>
+Subject: + aoe-use-a-kernel-thread-for-transmissions.patch added to -mm tree
+Date: Fri, 31 Aug 2012 13:11:45 -0700
+Message-ID: <20120831201146.928CA20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:33376 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754755Ab2HaUL4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2012 16:11:56 -0400
-Received: by lagw12 with SMTP id w12so172246lag.1
-        for <mm-commits@vger.kernel.org>; Fri, 31 Aug 2012 13:11:54 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:43177 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754755Ab2HaULs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Aug 2012 16:11:48 -0400
+Received: by mail-we0-f202.google.com with SMTP id r1so172642wey.1
+        for <mm-commits@vger.kernel.org>; Fri, 31 Aug 2012 13:11:47 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,9 +17,9 @@ Cc: ecashin@coraid.com
 
 
 The patch titled
-     Subject: aoe: failover remote interface based on aoe_deadsecs parameter
+     Subject: aoe: use a kernel thread for transmissions
 has been added to the -mm tree.  Its filename is
-     aoe-failover-remote-interface-based-on-aoe_deadsecs-parameter.patch
+     aoe-use-a-kernel-thread-for-transmissions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,59 +34,132 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ed Cashin <ecashin@coraid.com>
-Subject: aoe: failover remote interface based on aoe_deadsecs parameter
+Subject: aoe: use a kernel thread for transmissions
 
-The aoe_deadsecs module parameter allows the user to specify a hard limit
-on the number of seconds an AoE command can be retransmitted before the
-AoE block device is considered to have failed.
-
-Using aoe_deadsecs to determine the time we try using a different remote
-interface helps to ensure that the hard limit is not reached before we've
-tried to recover by sending to a different remote port.
-
-As a data storage target, the AoE target is unambiguously identified by
-its {major, minor} AoE address tuple, and an AoE target can have multiple
-MAC addresses.  However, note that "target" in the driver code and
-comments means a {major, minor, MAC address} tuple, as in "somewhere to
-send packets".
+The dev_queue_xmit function needs to have interrupts enabled, so the most
+simple way to get the locking right but still fulfill that requirement is
+to use a process that can call dev_queue_xmit serially over queued
+transmissions.
 
 Signed-off-by: Ed Cashin <ecashin@coraid.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoe.h    |    1 -
- drivers/block/aoe/aoecmd.c |    8 +++-----
- 2 files changed, 3 insertions(+), 6 deletions(-)
+ drivers/block/aoe/aoe.h    |    2 +
+ drivers/block/aoe/aoecmd.c |    4 +--
+ drivers/block/aoe/aoenet.c |   37 ++++++++++++++++++++++++++++++++++-
+ 3 files changed, 40 insertions(+), 3 deletions(-)
 
-diff -puN drivers/block/aoe/aoe.h~aoe-failover-remote-interface-based-on-aoe_deadsecs-parameter drivers/block/aoe/aoe.h
---- a/drivers/block/aoe/aoe.h~aoe-failover-remote-interface-based-on-aoe_deadsecs-parameter
+diff -puN drivers/block/aoe/aoe.h~aoe-use-a-kernel-thread-for-transmissions drivers/block/aoe/aoe.h
+--- a/drivers/block/aoe/aoe.h~aoe-use-a-kernel-thread-for-transmissions
 +++ a/drivers/block/aoe/aoe.h
-@@ -96,7 +96,6 @@ enum {
- 	TIMERTICK = HZ / 10,
- 	MINTIMER = HZ >> 2,
- 	MAXTIMER = HZ << 1,
--	HELPWAIT = 20,
- };
+@@ -210,6 +210,8 @@ struct sk_buff *aoecmd_ata_id(struct aoe
+ void aoe_freetframe(struct frame *);
+ void aoe_flush_iocq(void);
+ void aoe_end_request(struct aoedev *, struct request *, int);
++int aoe_ktstart(struct ktstate *k);
++void aoe_ktstop(struct ktstate *k);
  
- struct buf {
-diff -puN drivers/block/aoe/aoecmd.c~aoe-failover-remote-interface-based-on-aoe_deadsecs-parameter drivers/block/aoe/aoecmd.c
---- a/drivers/block/aoe/aoecmd.c~aoe-failover-remote-interface-based-on-aoe_deadsecs-parameter
+ int aoedev_init(void);
+ void aoedev_exit(void);
+diff -puN drivers/block/aoe/aoecmd.c~aoe-use-a-kernel-thread-for-transmissions drivers/block/aoe/aoecmd.c
+--- a/drivers/block/aoe/aoecmd.c~aoe-use-a-kernel-thread-for-transmissions
 +++ a/drivers/block/aoe/aoecmd.c
-@@ -632,11 +632,9 @@ rexmit_timer(ulong vp)
- 		list_del(pos);
+@@ -1109,14 +1109,14 @@ kthread(void *vp)
+ 	return 0;
+ }
  
- 		t = f->t;
--		if (n > HELPWAIT) {
--			/* see if another target can help */
--			if (d->ntargets > 1)
--				d->htgt = t;
--		}
-+		if (n > aoe_deadsecs/2)
-+			d->htgt = t; /* see if another target can help */
+-static void
++void
+ aoe_ktstop(struct ktstate *k)
+ {
+ 	kthread_stop(k->task);
+ 	wait_for_completion(&k->rendez);
+ }
+ 
+-static int
++int
+ aoe_ktstart(struct ktstate *k)
+ {
+ 	struct task_struct *task;
+diff -puN drivers/block/aoe/aoenet.c~aoe-use-a-kernel-thread-for-transmissions drivers/block/aoe/aoenet.c
+--- a/drivers/block/aoe/aoenet.c~aoe-use-a-kernel-thread-for-transmissions
++++ a/drivers/block/aoe/aoenet.c
+@@ -33,6 +33,9 @@ static char aoe_iflist[IFLISTSZ];
+ module_param_string(aoe_iflist, aoe_iflist, IFLISTSZ, 0600);
+ MODULE_PARM_DESC(aoe_iflist, "aoe_iflist=\"dev1 [dev2 ...]\"");
+ 
++static wait_queue_head_t txwq;
++static struct ktstate kts;
 +
- 		if (t->nout == t->maxout) {
- 			if (t->maxout > 1)
- 				t->maxout--;
+ #ifndef MODULE
+ static int __init aoe_iflist_setup(char *str)
+ {
+@@ -44,6 +47,23 @@ static int __init aoe_iflist_setup(char 
+ __setup("aoe_iflist=", aoe_iflist_setup);
+ #endif
+ 
++static spinlock_t txlock;
++static struct sk_buff_head skbtxq;
++
++/* enters with txlock held */
++static int
++tx(void)
++{
++	struct sk_buff *skb;
++
++	while ((skb = skb_dequeue(&skbtxq))) {
++		spin_unlock_irq(&txlock);
++		dev_queue_xmit(skb);
++		spin_lock_irq(&txlock);
++	}
++	return 0;
++}
++
+ int
+ is_aoe_netif(struct net_device *ifp)
+ {
+@@ -88,10 +108,14 @@ void
+ aoenet_xmit(struct sk_buff_head *queue)
+ {
+ 	struct sk_buff *skb, *tmp;
++	ulong flags;
+ 
+ 	skb_queue_walk_safe(queue, skb, tmp) {
+ 		__skb_unlink(skb, queue);
+-		dev_queue_xmit(skb);
++		spin_lock_irqsave(&txlock, flags);
++		skb_queue_tail(&skbtxq, skb);
++		spin_unlock_irqrestore(&txlock, flags);
++		wake_up(&txwq);
+ 	}
+ }
+ 
+@@ -169,6 +193,15 @@ static struct packet_type aoe_pt __read_
+ int __init
+ aoenet_init(void)
+ {
++	skb_queue_head_init(&skbtxq);
++	init_waitqueue_head(&txwq);
++	spin_lock_init(&txlock);
++	kts.lock = &txlock;
++	kts.fn = tx;
++	kts.waitq = &txwq;
++	kts.name = "aoe_tx";
++	if (aoe_ktstart(&kts))
++		return -EAGAIN;
+ 	dev_add_pack(&aoe_pt);
+ 	return 0;
+ }
+@@ -176,6 +209,8 @@ aoenet_init(void)
+ void
+ aoenet_exit(void)
+ {
++	aoe_ktstop(&kts);
++	skb_queue_purge(&skbtxq);
+ 	dev_remove_pack(&aoe_pt);
+ }
+ 
 _
 
 Patches currently in -mm which might be from ecashin@coraid.com are
