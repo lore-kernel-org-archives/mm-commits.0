@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + aoe-update-copyright-year-in-touched-files.patch added to -mm tree
-Date: Fri, 31 Aug 2012 13:12:13 -0700
-Message-ID: <20120831201214.3A8191E004A@wpzn4.hot.corp.google.com>
+Subject: + nbd-clear-waiting_queue-on-shutdown.patch added to -mm tree
+Date: Fri, 31 Aug 2012 15:03:16 -0700
+Message-ID: <20120831220316.8C2A1100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:35690 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754916Ab2HaUMO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Aug 2012 16:12:14 -0400
-Received: by mail-yx0-f202.google.com with SMTP id q6so383761yen.1
-        for <mm-commits@vger.kernel.org>; Fri, 31 Aug 2012 13:12:14 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:41520 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752687Ab2HaWDS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Aug 2012 18:03:18 -0400
+Received: by vbnl22 with SMTP id l22so394404vbn.1
+        for <mm-commits@vger.kernel.org>; Fri, 31 Aug 2012 15:03:17 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ecashin@coraid.com
+Cc: paul.clements@steeleye.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: aoe: update copyright year in touched files
+     Subject: nbd: clear waiting_queue on shutdown
 has been added to the -mm tree.  Its filename is
-     aoe-update-copyright-year-in-touched-files.patch
+     nbd-clear-waiting_queue-on-shutdown.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,101 +33,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ed Cashin <ecashin@coraid.com>
-Subject: aoe: update copyright year in touched files
+From: Paul Clements <paul.clements@steeleye.com>
+Subject: nbd: clear waiting_queue on shutdown
 
-Signed-off-by: Ed Cashin <ecashin@coraid.com>
+Fix a serious but uncommon bug in nbd which occurs when there is heavy I/O
+going to the nbd device while, at the same time, a failure (server,
+network) or manual disconnect of the nbd connection occurs.
+
+There is a small window between the time that the nbd_thread is stopped
+and the socket is shutdown where requests can continue to be queued to
+nbd's internal waiting_queue.  When this happens, those requests are never
+completed or freed.
+
+The fix is to clear the waiting_queue on shutdown of the nbd device, in
+the same way that the nbd request queue (queue_head) is already being cleared.
+
+Signed-off-by: Paul Clements <paul.clements@steeleye.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoe.h     |    2 +-
- drivers/block/aoe/aoeblk.c  |    2 +-
- drivers/block/aoe/aoechr.c  |    2 +-
- drivers/block/aoe/aoecmd.c  |    2 +-
- drivers/block/aoe/aoedev.c  |    2 +-
- drivers/block/aoe/aoemain.c |    2 +-
- drivers/block/aoe/aoenet.c  |    2 +-
- 7 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/block/nbd.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN drivers/block/aoe/aoe.h~aoe-update-copyright-year-in-touched-files drivers/block/aoe/aoe.h
---- a/drivers/block/aoe/aoe.h~aoe-update-copyright-year-in-touched-files
-+++ a/drivers/block/aoe/aoe.h
-@@ -1,4 +1,4 @@
--/* Copyright (c) 2007 Coraid, Inc.  See COPYING for GPL terms. */
-+/* Copyright (c) 2012 Coraid, Inc.  See COPYING for GPL terms. */
- #define VERSION "49"
- #define AOE_MAJOR 152
- #define DEVICE_NAME "aoe"
-diff -puN drivers/block/aoe/aoeblk.c~aoe-update-copyright-year-in-touched-files drivers/block/aoe/aoeblk.c
---- a/drivers/block/aoe/aoeblk.c~aoe-update-copyright-year-in-touched-files
-+++ a/drivers/block/aoe/aoeblk.c
-@@ -1,4 +1,4 @@
--/* Copyright (c) 2007 Coraid, Inc.  See COPYING for GPL terms. */
-+/* Copyright (c) 2012 Coraid, Inc.  See COPYING for GPL terms. */
- /*
-  * aoeblk.c
-  * block device routines
-diff -puN drivers/block/aoe/aoechr.c~aoe-update-copyright-year-in-touched-files drivers/block/aoe/aoechr.c
---- a/drivers/block/aoe/aoechr.c~aoe-update-copyright-year-in-touched-files
-+++ a/drivers/block/aoe/aoechr.c
-@@ -1,4 +1,4 @@
--/* Copyright (c) 2007 Coraid, Inc.  See COPYING for GPL terms. */
-+/* Copyright (c) 2012 Coraid, Inc.  See COPYING for GPL terms. */
- /*
-  * aoechr.c
-  * AoE character device driver
-diff -puN drivers/block/aoe/aoecmd.c~aoe-update-copyright-year-in-touched-files drivers/block/aoe/aoecmd.c
---- a/drivers/block/aoe/aoecmd.c~aoe-update-copyright-year-in-touched-files
-+++ a/drivers/block/aoe/aoecmd.c
-@@ -1,4 +1,4 @@
--/* Copyright (c) 2007 Coraid, Inc.  See COPYING for GPL terms. */
-+/* Copyright (c) 2012 Coraid, Inc.  See COPYING for GPL terms. */
- /*
-  * aoecmd.c
-  * Filesystem request handling methods
-diff -puN drivers/block/aoe/aoedev.c~aoe-update-copyright-year-in-touched-files drivers/block/aoe/aoedev.c
---- a/drivers/block/aoe/aoedev.c~aoe-update-copyright-year-in-touched-files
-+++ a/drivers/block/aoe/aoedev.c
-@@ -1,4 +1,4 @@
--/* Copyright (c) 2007 Coraid, Inc.  See COPYING for GPL terms. */
-+/* Copyright (c) 2012 Coraid, Inc.  See COPYING for GPL terms. */
- /*
-  * aoedev.c
-  * AoE device utility functions; maintains device list.
-diff -puN drivers/block/aoe/aoemain.c~aoe-update-copyright-year-in-touched-files drivers/block/aoe/aoemain.c
---- a/drivers/block/aoe/aoemain.c~aoe-update-copyright-year-in-touched-files
-+++ a/drivers/block/aoe/aoemain.c
-@@ -1,4 +1,4 @@
--/* Copyright (c) 2007 Coraid, Inc.  See COPYING for GPL terms. */
-+/* Copyright (c) 2012 Coraid, Inc.  See COPYING for GPL terms. */
- /*
-  * aoemain.c
-  * Module initialization routines, discover timer
-diff -puN drivers/block/aoe/aoenet.c~aoe-update-copyright-year-in-touched-files drivers/block/aoe/aoenet.c
---- a/drivers/block/aoe/aoenet.c~aoe-update-copyright-year-in-touched-files
-+++ a/drivers/block/aoe/aoenet.c
-@@ -1,4 +1,4 @@
--/* Copyright (c) 2007 Coraid, Inc.  See COPYING for GPL terms. */
-+/* Copyright (c) 2012 Coraid, Inc.  See COPYING for GPL terms. */
- /*
-  * aoenet.c
-  * Ethernet portion of AoE driver
+diff -puN drivers/block/nbd.c~nbd-clear-waiting_queue-on-shutdown drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbd-clear-waiting_queue-on-shutdown
++++ a/drivers/block/nbd.c
+@@ -449,6 +449,14 @@ static void nbd_clear_que(struct nbd_dev
+ 		req->errors++;
+ 		nbd_end_request(req);
+ 	}
++
++	while (!list_empty(&nbd->waiting_queue)) {
++		req = list_entry(nbd->waiting_queue.next, struct request,
++				 queuelist);
++		list_del_init(&req->queuelist);
++		req->errors++;
++		nbd_end_request(req);
++	}
+ }
+ 
+ 
+@@ -598,6 +606,7 @@ static int __nbd_ioctl(struct block_devi
+ 		nbd->file = NULL;
+ 		nbd_clear_que(nbd);
+ 		BUG_ON(!list_empty(&nbd->queue_head));
++		BUG_ON(!list_empty(&nbd->waiting_queue));
+ 		if (file)
+ 			fput(file);
+ 		return 0;
 _
 
-Patches currently in -mm which might be from ecashin@coraid.com are
+Patches currently in -mm which might be from paul.clements@steeleye.com are
 
-aoe-for-performance-support-larger-packet-payloads.patch
-aoe-kernel-thread-handles-i-o-completions-for-simple-locking.patch
-aoe-become-i-o-request-queue-handler-for-increased-user-control.patch
-aoe-use-a-kernel-thread-for-transmissions.patch
-aoe-use-packets-that-work-with-the-smallest-mtu-local-interface.patch
-aoe-failover-remote-interface-based-on-aoe_deadsecs-parameter.patch
-aoe-do-revalidation-steps-in-order.patch
-aoe-disallow-unsupported-aoe-minor-addresses.patch
-aoe-associate-frames-with-the-aoe-storage-target.patch
-aoe-increase-net_device-reference-count-while-using-it.patch
-aoe-remove-unused-code-and-add-cosmetic-improvements.patch
-aoe-update-internal-version-number-to-49.patch
-aoe-update-copyright-year-in-touched-files.patch
-aoe-update-documentation-with-new-url-and-vm-settings-reference.patch
+nbd-clear-waiting_queue-on-shutdown.patch
+nbd-add-set-flags-ioctl.patch
+nbd-handle-discard-requests.patch
 
