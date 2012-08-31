@@ -1,36 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + dw_dmac-make-driver-endianness-configurable.patch added to -mm tree
-Date: Fri, 31 Aug 2012 16:44:51 -0700
-Message-ID: <20120831234452.188061E0043@wpzn4.hot.corp.google.com>
+Subject: [to-be-updated] dw_dmac-make-driver-endianness-configurable.patch removed from -mm tree
+Date: Fri, 31 Aug 2012 16:50:22 -0700
+Message-ID: <20120831235023.577621E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:35240 "EHLO
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:47448 "EHLO
 	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755171Ab2HaXox (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Aug 2012 19:44:53 -0400
-Received: by yenq6 with SMTP id q6so404401yen.1
-        for <mm-commits@vger.kernel.org>; Fri, 31 Aug 2012 16:44:52 -0700 (PDT)
+	with ESMTP id S1755171Ab2HaXuY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Aug 2012 19:50:24 -0400
+Received: by yenq6 with SMTP id q6so405048yen.1
+        for <mm-commits@vger.kernel.org>; Fri, 31 Aug 2012 16:50:23 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: hein_tibosch@yahoo.es, arnd.bergmann@linaro.org, egtvedt@samfundet.no, havard@skinnemoen.net, nicolas.ferre@atmel.com
+To: hein_tibosch@yahoo.es, arnd.bergmann@linaro.org, egtvedt@samfundet.no, havard@skinnemoen.net, nicolas.ferre@atmel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      Subject: dw_dmac: make driver endianness configurable
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      dw_dmac-make-driver-endianness-configurable.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Hein Tibosch <hein_tibosch@yahoo.es>
@@ -126,7 +116,6 @@ _
 
 Patches currently in -mm which might be from hein_tibosch@yahoo.es are
 
-dw_dmac-make-driver-endianness-configurable.patch
 avr32-linux-at32ap700x-set-dma-slave-properties-for-mci-dw_dmac.patch
 lib-decompressc-add-__init-to-decompress_method-and-data.patch
 
