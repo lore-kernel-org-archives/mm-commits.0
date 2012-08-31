@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mmu_notifier-init-notifier-if-necessary-v2.patch added to -mm tree
-Date: Fri, 31 Aug 2012 12:48:36 -0700
-Message-ID: <20120831194837.88DBA5C0050@hpza9.eem.corp.google.com>
+Subject: + lib-decompressc-add-__init-to-decompress_method-and-data.patch added to -mm tree
+Date: Fri, 31 Aug 2012 12:51:34 -0700
+Message-ID: <20120831195135.29DF75C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:58129 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754814Ab2HaTsj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Aug 2012 15:48:39 -0400
-Received: by wibhr14 with SMTP id hr14so84977wib.1
-        for <mm-commits@vger.kernel.org>; Fri, 31 Aug 2012 12:48:38 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:45053 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754786Ab2HaTvh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Aug 2012 15:51:37 -0400
+Received: by bkcjc3 with SMTP id jc3so172112bkc.1
+        for <mm-commits@vger.kernel.org>; Fri, 31 Aug 2012 12:51:36 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shangw@linux.vnet.ibm.com
+Cc: hein_tibosch@yahoo.es, albin.tonnerre@free-electrons.com, hpa@zytor.com, phillip@lougher.demon.co.uk
 
 
 The patch titled
-     Subject: mm/mmu_notifier: init notifier if necessary
+     Subject:  lib/decompress.c add __init to decompress_method and data
 has been added to the -mm tree.  Its filename is
-     mm-mmu_notifier-init-notifier-if-necessary-v2.patch
+     lib-decompressc-add-__init-to-decompress_method-and-data.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,37 +33,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Gavin Shan <shangw@linux.vnet.ibm.com>
-Subject: mm/mmu_notifier: init notifier if necessary
+From: Hein Tibosch <hein_tibosch@yahoo.es>
+Subject:  lib/decompress.c add __init to decompress_method and data
 
-v2: Use GFP_KERNEL instead of GFP_ATOMIC when allocating the MMU
-    notifier_mm as Andrew suggested.
+WARNING: vmlinux.o(.text+0x14cfd8): Section mismatch in
+reference from the variable compressed_formats to the function
+.init.text:gunzip()
+The function compressed_formats() references
+the function __init gunzip().
+etc..
 
-Signed-off-by: Gavin Shan <shangw@linux.vnet.ibm.com>
+This patch should solve it:
+
+Within decompress.c, compressed_formats[] needs 'a __initdata annotation',
+because some of it's data members refer to functions which will be
+unloaded after init.
+
+Consequently, its user decompress_method() will get the __init prefix.
+
+Signed-off-by: Hein Tibosch <hein_tibosch@yahoo.es>
+Cc: Albin Tonnerre <albin.tonnerre@free-electrons.com>
+Cc: Phillip Lougher <phillip@lougher.demon.co.uk>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmu_notifier.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/decompress.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN mm/mmu_notifier.c~mm-mmu_notifier-init-notifier-if-necessary-v2 mm/mmu_notifier.c
---- a/mm/mmu_notifier.c~mm-mmu_notifier-init-notifier-if-necessary-v2
-+++ a/mm/mmu_notifier.c
-@@ -215,7 +215,7 @@ static int do_mmu_notifier_register(stru
+diff -puN lib/decompress.c~lib-decompressc-add-__init-to-decompress_method-and-data lib/decompress.c
+--- a/lib/decompress.c~lib-decompressc-add-__init-to-decompress_method-and-data
++++ a/lib/decompress.c
+@@ -14,6 +14,7 @@
  
- 	if (!mm_has_notifiers(mm)) {
- 		mmu_notifier_mm = kmalloc(sizeof(struct mmu_notifier_mm),
--					GFP_ATOMIC);
-+					GFP_KERNEL);
- 		if (unlikely(!mmu_notifier_mm)) {
- 			ret = -ENOMEM;
- 			goto out_of_mem;
+ #include <linux/types.h>
+ #include <linux/string.h>
++#include <linux/init.h>
+ 
+ #ifndef CONFIG_DECOMPRESS_GZIP
+ # define gunzip NULL
+@@ -31,11 +32,13 @@
+ # define unlzo NULL
+ #endif
+ 
+-static const struct compress_format {
++struct compress_format {
+ 	unsigned char magic[2];
+ 	const char *name;
+ 	decompress_fn decompressor;
+-} compressed_formats[] = {
++};
++
++static const struct compress_format compressed_formats[] __initdata = {
+ 	{ {037, 0213}, "gzip", gunzip },
+ 	{ {037, 0236}, "gzip", gunzip },
+ 	{ {0x42, 0x5a}, "bzip2", bunzip2 },
+@@ -45,7 +48,7 @@ static const struct compress_format {
+ 	{ {0, 0}, NULL, NULL }
+ };
+ 
+-decompress_fn decompress_method(const unsigned char *inbuf, int len,
++decompress_fn __init decompress_method(const unsigned char *inbuf, int len,
+ 				const char **name)
+ {
+ 	const struct compress_format *cf;
 _
 
-Patches currently in -mm which might be from shangw@linux.vnet.ibm.com are
+Patches currently in -mm which might be from hein_tibosch@yahoo.es are
 
-mm-slab-remove-duplicate-check.patch
-mm-mmu_notifier-init-notifier-if-necessary.patch
-mm-mmu_notifier-init-notifier-if-necessary-v2.patch
-mm-vmscan-fix-error-number-for-failed-kthread.patch
+lib-decompressc-add-__init-to-decompress_method-and-data.patch
 
