@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + aoe-do-revalidation-steps-in-order.patch added to -mm tree
-Date: Fri, 31 Aug 2012 13:11:55 -0700
-Message-ID: <20120831201156.926165C0060@hpza9.eem.corp.google.com>
+Subject: + aoe-increase-net_device-reference-count-while-using-it.patch added to -mm tree
+Date: Fri, 31 Aug 2012 13:12:04 -0700
+Message-ID: <20120831201205.395C6100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:41482 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754755Ab2HaUL6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Aug 2012 16:11:58 -0400
-Received: by mail-ey0-f202.google.com with SMTP id c1so171672eaa.1
-        for <mm-commits@vger.kernel.org>; Fri, 31 Aug 2012 13:11:57 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:45458 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754755Ab2HaUMG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Aug 2012 16:12:06 -0400
+Received: by qafl39 with SMTP id l39so204555qaf.1
+        for <mm-commits@vger.kernel.org>; Fri, 31 Aug 2012 13:12:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: ecashin@coraid.com
 
 
 The patch titled
-     Subject: aoe: do revalidation steps in order
+     Subject: aoe: increase net_device reference count while using it
 has been added to the -mm tree.  Its filename is
-     aoe-do-revalidation-steps-in-order.patch
+     aoe-increase-net_device-reference-count-while-using-it.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,63 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ed Cashin <ecashin@coraid.com>
-Subject: aoe: do revalidation steps in order
+Subject: aoe: increase net_device reference count while using it
 
-The discovery process begins with an optional AoE config query command and
-an AoE config query response.  Normally when an aoe device is already
-open, the config query response does not trigger an ATA identify device
-command to be sent out, since the response contains storage capacity
-information that, if changed, could surprise the user of the device.
-
-The userland "aoe-revalidate" tool uses a character device to trigger an
-AoE config query for a particular AoE storage target and an ATA device
-identify command, even when the device is open.
-
-This change causes the config query to go out first, reflecting the normal
-discovery sequence.  The responses could come back in any order, so this
-change is fairly cosmetic.
+This change eliminates the danger that the user could rmmod the driver for
+a network interface that is being used for AoE by the aoe driver.
 
 Signed-off-by: Ed Cashin <ecashin@coraid.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoechr.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/block/aoe/aoecmd.c |    4 ++++
+ drivers/block/aoe/aoedev.c |    7 +++++++
+ 2 files changed, 11 insertions(+)
 
-diff -puN drivers/block/aoe/aoechr.c~aoe-do-revalidation-steps-in-order drivers/block/aoe/aoechr.c
---- a/drivers/block/aoe/aoechr.c~aoe-do-revalidation-steps-in-order
-+++ a/drivers/block/aoe/aoechr.c
-@@ -96,13 +96,14 @@ revalidate(const char __user *str, size_
- 		return -EINVAL;
- 	spin_lock_irqsave(&d->lock, flags);
- 	aoecmd_cleanslate(d);
-+	aoecmd_cfg(major, minor);
- loop:
- 	skb = aoecmd_ata_id(d);
- 	spin_unlock_irqrestore(&d->lock, flags);
- 	/* try again if we are able to sleep a bit,
- 	 * otherwise give up this revalidation
- 	 */
--	if (!skb && !msleep_interruptible(200)) {
-+	if (!skb && !msleep_interruptible(250)) {
- 		spin_lock_irqsave(&d->lock, flags);
- 		goto loop;
- 	}
-@@ -113,7 +114,6 @@ loop:
- 		__skb_queue_tail(&queue, skb);
- 		aoenet_xmit(&queue);
- 	}
--	aoecmd_cfg(major, minor);
- 	return 0;
+diff -puN drivers/block/aoe/aoecmd.c~aoe-increase-net_device-reference-count-while-using-it drivers/block/aoe/aoecmd.c
+--- a/drivers/block/aoe/aoecmd.c~aoe-increase-net_device-reference-count-while-using-it
++++ a/drivers/block/aoe/aoecmd.c
+@@ -493,12 +493,15 @@ static void
+ ejectif(struct aoetgt *t, struct aoeif *ifp)
+ {
+ 	struct aoeif *e;
++	struct net_device *nd;
+ 	ulong n;
+ 
++	nd = ifp->nd;
+ 	e = t->ifs + NAOEIFS - 1;
+ 	n = (e - ifp) * sizeof *ifp;
+ 	memmove(ifp, ifp+1, n);
+ 	e->nd = NULL;
++	dev_put(nd);
  }
  
+ static int
+@@ -1317,6 +1320,7 @@ setifbcnt(struct aoetgt *t, struct net_d
+ 			pr_err("aoe: device setifbcnt failure; too many interfaces.\n");
+ 			return;
+ 		}
++		dev_hold(nd);
+ 		p->nd = nd;
+ 		p->bcnt = bcnt;
+ 	}
+diff -puN drivers/block/aoe/aoedev.c~aoe-increase-net_device-reference-count-while-using-it drivers/block/aoe/aoedev.c
+--- a/drivers/block/aoe/aoedev.c~aoe-increase-net_device-reference-count-while-using-it
++++ a/drivers/block/aoe/aoedev.c
+@@ -295,6 +295,13 @@ freetgt(struct aoedev *d, struct aoetgt 
+ {
+ 	struct frame *f;
+ 	struct list_head *pos, *nx, *head;
++	struct aoeif *ifp;
++
++	for (ifp = t->ifs; ifp < &t->ifs[NAOEIFS]; ++ifp) {
++		if (!ifp->nd)
++			break;
++		dev_put(ifp->nd);
++	}
+ 
+ 	head = &t->ffree;
+ 	list_for_each_safe(pos, nx, head) {
 _
 
 Patches currently in -mm which might be from ecashin@coraid.com are
