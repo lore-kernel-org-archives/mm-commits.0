@@ -1,26 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + linux-kernelh-fix-div_round_closest-to-support-negative-dividends.patch added to -mm tree
-Date: Fri, 31 Aug 2012 12:38:19 -0700
-Message-ID: <20120831193820.12DF720004E@hpza10.eem.corp.google.com>
+Subject: + nbd-add-set-flags-ioctl.patch added to -mm tree
+Date: Fri, 31 Aug 2012 12:39:45 -0700
+Message-ID: <20120831193946.9A1135C0063@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:46450 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754755Ab2HaTiW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 31 Aug 2012 15:38:22 -0400
-Received: by lagw12 with SMTP id w12so171487lag.1
-        for <mm-commits@vger.kernel.org>; Fri, 31 Aug 2012 12:38:21 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:35024 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754570Ab2HaTjs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Aug 2012 15:39:48 -0400
+Received: by eaac1 with SMTP id c1so170879eaa.1
+        for <mm-commits@vger.kernel.org>; Fri, 31 Aug 2012 12:39:47 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linux@roeck-us.net
+Cc: paul.clements@steeleye.com
 
 
 The patch titled
-     Subject: linux/kernel.h: fix DIV_ROUND_CLOSEST to support negative dividends
+     Subject: nbd: add set flags ioctl
 has been added to the -mm tree.  Its filename is
-     linux-kernelh-fix-div_round_closest-to-support-negative-dividends.patch
+     nbd-add-set-flags-ioctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +33,85 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: linux/kernel.h: fix DIV_ROUND_CLOSEST to support negative dividends
+From: Paul Clements <paul.clements@steeleye.com>
+Subject: nbd: add set flags ioctl
 
-DIV_ROUND_CLOSEST returns a bad result for negative dividends:
-	DIV_ROUND_CLOSEST(-2, 2) = 0
+Add a set-flags ioctl, allowing various option flags to be set on an nbd
+device.  This allows the nbd-client to set the device flags (to enable
+read-only mode, or enable discard support, etc.).
 
-Most of the time this does not matter. However, in the hardware monitoring
-subsystem, DIV_ROUND_CLOSEST is sometimes used on integers which can be
-negative (such as temperatures).
+Flags are typically specified by the nbd-server.  During the negotiation
+phase of the nbd connection, the server sends its flags to the client. 
+The client then uses NBD_SET_FLAGS to inform the kernel of the options.
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Also included is a one-line fix to debug output for the set-timeout ioctl.
+
+Signed-off-by: Paul Clements <paul.clements@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ drivers/block/nbd.c |    8 +++++++-
+ include/linux/nbd.h |    9 +++++----
+ 2 files changed, 12 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/kernel.h~linux-kernelh-fix-div_round_closest-to-support-negative-dividends include/linux/kernel.h
---- a/include/linux/kernel.h~linux-kernelh-fix-div_round_closest-to-support-negative-dividends
-+++ a/include/linux/kernel.h
-@@ -82,10 +82,18 @@
- 	__x - (__x % (y));				\
- }							\
- )
-+
-+/*
-+ * Divide positive or negative dividend by positive divisor and round
-+ * to closest integer. Result is undefined for negative divisors.
-+ */
- #define DIV_ROUND_CLOSEST(x, divisor)(			\
- {							\
--	typeof(divisor) __divisor = divisor;		\
--	(((x) + ((__divisor) / 2)) / (__divisor));	\
-+	typeof(x) __x = x;				\
-+	typeof(divisor) __d = divisor;			\
-+	(((typeof(x))-1) >= 0 || (__x) >= 0) ?		\
-+		(((__x) + ((__d) / 2)) / (__d)) :	\
-+		(((__x) - ((__d) / 2)) / (__d));	\
- }							\
- )
+diff -puN drivers/block/nbd.c~nbd-add-set-flags-ioctl drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbd-add-set-flags-ioctl
++++ a/drivers/block/nbd.c
+@@ -78,6 +78,8 @@ static const char *ioctl_cmd_to_ascii(in
+ 	case NBD_SET_SOCK: return "set-sock";
+ 	case NBD_SET_BLKSIZE: return "set-blksize";
+ 	case NBD_SET_SIZE: return "set-size";
++	case NBD_SET_TIMEOUT: return "set-timeout";
++	case NBD_SET_FLAGS: return "set-flags";
+ 	case NBD_DO_IT: return "do-it";
+ 	case NBD_CLEAR_SOCK: return "clear-sock";
+ 	case NBD_CLEAR_QUE: return "clear-que";
+@@ -460,7 +462,7 @@ static void nbd_handle_req(struct nbd_de
+ 	nbd_cmd(req) = NBD_CMD_READ;
+ 	if (rq_data_dir(req) == WRITE) {
+ 		nbd_cmd(req) = NBD_CMD_WRITE;
+-		if (nbd->flags & NBD_READ_ONLY) {
++		if (nbd->flags & NBD_FLAG_READ_ONLY) {
+ 			dev_err(disk_to_dev(nbd->disk),
+ 				"Write on read-only\n");
+ 			goto error_out;
+@@ -642,6 +644,10 @@ static int __nbd_ioctl(struct block_devi
+ 		nbd->xmit_timeout = arg * HZ;
+ 		return 0;
  
-_
-
-Patches currently in -mm which might be from linux@roeck-us.net are
-
-origin.patch
-linux-next.patch
-linux-kernelh-fix-div_round_closest-to-support-negative-dividends.patch
-
++	case NBD_SET_FLAGS:
++		nbd->flags = arg;
++		return 0;
++
+ 	case NBD_SET_SIZE_BLOCKS:
+ 		nbd->bytesize = ((u64) arg) * nbd->blksize;
+ 		bdev->bd_inode->i_size = nbd->bytesize;
+diff -puN include/linux/nbd.h~nbd-add-set-flags-ioctl include/linux/nbd.h
+--- a/include/linux/nbd.h~nbd-add-set-flags-ioctl
++++ a/include/linux/nbd.h
+@@ -27,6 +27,7 @@
+ #define NBD_SET_SIZE_BLOCKS	_IO( 0xab, 7 )
+ #define NBD_DISCONNECT  _IO( 0xab, 8 )
+ #define NBD_SET_TIMEOUT _IO( 0xab, 9 )
++#define NBD_SET_FLAGS   _IO( 0xab, 10)
+ 
+ enum {
+ 	NBD_CMD_READ = 0,
+@@ -34,6 +35,10 @@ enum {
+ 	NBD_CMD_DISC = 2
+ };
+ 
++/* values for flags field */
++#define NBD_FLAG_HAS_FLAGS    (1 << 0) /* nbd-server supports flags */
++#define NBD_FLAG_READ_ONLY    (1 << 1) /* device is read-only */
++
+ #define nbd_cmd(req) ((req)->cmd[0])
+ 
+ /* userspace doesn't need the nbd_device structure */
+@@ -42,10 +47,6 @@ enum {
+ #include <linux/wait.h>
+ #include <linux/mutex.h>
+ 
+-/* values for flags field */
+-#define NBD_READ_ONLY 0x0001
+-#define NBD_WRITE_NOCHK 0x0002
