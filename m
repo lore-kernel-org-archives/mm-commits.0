@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + cciss-remove-useless-set-memory-to-zero-use-memset.patch added to -mm tree
-Date: Fri, 31 Aug 2012 16:00:14 -0700
-Message-ID: <20120831230014.A0CC71E0048@wpzn4.hot.corp.google.com>
+Subject: + memory-hotplug-build-zonelists-when-offlining-pages.patch added to -mm tree
+Date: Fri, 31 Aug 2012 16:25:18 -0700
+Message-ID: <20120831232519.0B4DB200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:34143 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753714Ab2HaXAP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Aug 2012 19:00:15 -0400
-Received: by vcqp1 with SMTP id p1so400157vcq.1
-        for <mm-commits@vger.kernel.org>; Fri, 31 Aug 2012 16:00:15 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:63838 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755170Ab2HaXZV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Aug 2012 19:25:21 -0400
+Received: by eaac1 with SMTP id c1so175603eaa.1
+        for <mm-commits@vger.kernel.org>; Fri, 31 Aug 2012 16:25:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yongjun_wei@trendmicro.com.cn, axboe@kernel.dk, mike.miller@hp.com, scameron@beardog.cce.hp.com
+Cc: qiuxishi@huawei.com, isimatu.yasuaki@jp.fujitsu.com
 
 
 The patch titled
-     Subject: cciss: remove unneeded memset()
+     Subject: memory-hotplug: build zonelists when offlining pages
 has been added to the -mm tree.  Its filename is
-     cciss-remove-useless-set-memory-to-zero-use-memset.patch
+     memory-hotplug-build-zonelists-when-offlining-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +33,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Subject: cciss: remove unneeded memset()
+From: Xishi Qiu <qiuxishi@huawei.com>
+Subject: memory-hotplug: build zonelists when offlining pages
 
-The memory return by kzalloc() or kmem_cache_zalloc() has already be set
-to zero, so remove useless memset(0).
+online_pages() does build_all_zonelists() and zone_pcp_update(), I think
+offline_pages() should do it too.
 
-spatch with a semantic match is used to found this problem.
-(http://coccinelle.lip6.fr/)
+When the zone has no memory to allocate, remove it from other nodes'
+zonelists.  zone_batchsize() depends on zone's present pages, if zone's
+present pages are changed, zone's pcp should be updated.
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Cc: Mike Miller <mike.miller@hp.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Stephen M. Cameron <scameron@beardog.cce.hp.com>
+Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/memory_hotplug.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/block/cciss.c~cciss-remove-useless-set-memory-to-zero-use-memset drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-remove-useless-set-memory-to-zero-use-memset
-+++ a/drivers/block/cciss.c
-@@ -5198,7 +5198,6 @@ static void cciss_shutdown(struct pci_de
- 		return;
- 	}
- 	/* write all data in the battery backed cache to disk */
--	memset(flush_buf, 0, 4);
- 	return_code = sendcmd_withirq(h, CCISS_CACHE_FLUSH, flush_buf,
- 		4, 0, CTLR_LUNID, TYPE_CMD);
- 	kfree(flush_buf);
+diff -puN mm/memory_hotplug.c~memory-hotplug-build-zonelists-when-offlining-pages mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-build-zonelists-when-offlining-pages
++++ a/mm/memory_hotplug.c
+@@ -966,8 +966,13 @@ repeat:
+ 
+ 	init_per_zone_wmark_min();
+ 
+-	if (!populated_zone(zone))
++	if (!populated_zone(zone)) {
+ 		zone_pcp_reset(zone);
++		mutex_lock(&zonelists_mutex);
++		build_all_zonelists(NULL, NULL);
++		mutex_unlock(&zonelists_mutex);
++	} else
++		zone_pcp_update(zone);
+ 
+ 	if (!node_present_pages(node)) {
+ 		node_clear_state(node, N_HIGH_MEMORY);
 _
 
-Patches currently in -mm which might be from yongjun_wei@trendmicro.com.cn are
+Patches currently in -mm which might be from qiuxishi@huawei.com are
 
-cciss-remove-useless-set-memory-to-zero-use-memset.patch
+memory-hotplug-build-zonelists-when-offlining-pages.patch
 
