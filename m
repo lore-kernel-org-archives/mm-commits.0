@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + nbd-add-set-flags-ioctl.patch added to -mm tree
-Date: Fri, 31 Aug 2012 12:39:45 -0700
-Message-ID: <20120831193946.9A1135C0063@hpza9.eem.corp.google.com>
+Subject: + nbd-handle-discard-requests.patch added to -mm tree
+Date: Fri, 31 Aug 2012 12:39:48 -0700
+Message-ID: <20120831193949.2A4D11E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:35024 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754570Ab2HaTjs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Aug 2012 15:39:48 -0400
-Received: by eaac1 with SMTP id c1so170879eaa.1
-        for <mm-commits@vger.kernel.org>; Fri, 31 Aug 2012 12:39:47 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:62844 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754570Ab2HaTju (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Aug 2012 15:39:50 -0400
+Received: by qcqs25 with SMTP id s25so380296qcq.1
+        for <mm-commits@vger.kernel.org>; Fri, 31 Aug 2012 12:39:49 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: paul.clements@steeleye.com
 
 
 The patch titled
-     Subject: nbd: add set flags ioctl
+     Subject: nbd: handle discard requests
 has been added to the -mm tree.  Its filename is
-     nbd-add-set-flags-ioctl.patch
+     nbd-handle-discard-requests.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,84 +34,107 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Paul Clements <paul.clements@steeleye.com>
-Subject: nbd: add set flags ioctl
+Subject: nbd: handle discard requests
 
-Add a set-flags ioctl, allowing various option flags to be set on an nbd
-device.  This allows the nbd-client to set the device flags (to enable
-read-only mode, or enable discard support, etc.).
+Add discard support to nbd.  If the nbd-server supports discard, it will
+send NBD_FLAG_SEND_TRIM to the client.  The client will then set the flag
+in the kernel via NBD_SET_FLAGS, which tells the kernel to enable discards
+for the device (QUEUE_FLAG_DISCARD).
 
-Flags are typically specified by the nbd-server.  During the negotiation
-phase of the nbd connection, the server sends its flags to the client. 
-The client then uses NBD_SET_FLAGS to inform the kernel of the options.
+If discard support is enabled, then when the nbd client system receives a
+discard request, this will be passed along to the nbd-server.  When the
+discard request is received by the nbd-server, it will perform:
 
-Also included is a one-line fix to debug output for the set-timeout ioctl.
+	fallocate(.. FALLOC_FL_PUNCH_HOLE ..)
+
+To punch a hole in the backend storage, which is no longer needed.
 
 Signed-off-by: Paul Clements <paul.clements@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/nbd.c |    8 +++++++-
- include/linux/nbd.h |    9 +++++----
- 2 files changed, 12 insertions(+), 5 deletions(-)
+ drivers/block/nbd.c |   15 ++++++++++++++-
+ include/linux/nbd.h |    6 +++++-
+ 2 files changed, 19 insertions(+), 2 deletions(-)
 
-diff -puN drivers/block/nbd.c~nbd-add-set-flags-ioctl drivers/block/nbd.c
---- a/drivers/block/nbd.c~nbd-add-set-flags-ioctl
+diff -puN drivers/block/nbd.c~nbd-handle-discard-requests drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbd-handle-discard-requests
 +++ a/drivers/block/nbd.c
-@@ -78,6 +78,8 @@ static const char *ioctl_cmd_to_ascii(in
- 	case NBD_SET_SOCK: return "set-sock";
- 	case NBD_SET_BLKSIZE: return "set-blksize";
- 	case NBD_SET_SIZE: return "set-size";
-+	case NBD_SET_TIMEOUT: return "set-timeout";
-+	case NBD_SET_FLAGS: return "set-flags";
- 	case NBD_DO_IT: return "do-it";
- 	case NBD_CLEAR_SOCK: return "clear-sock";
- 	case NBD_CLEAR_QUE: return "clear-que";
-@@ -460,7 +462,7 @@ static void nbd_handle_req(struct nbd_de
+@@ -98,6 +98,7 @@ static const char *nbdcmd_to_ascii(int c
+ 	case  NBD_CMD_READ: return "read";
+ 	case NBD_CMD_WRITE: return "write";
+ 	case  NBD_CMD_DISC: return "disconnect";
++	case  NBD_CMD_TRIM: return "trim/discard";
+ 	}
+ 	return "invalid";
+ }
+@@ -461,7 +462,11 @@ static void nbd_handle_req(struct nbd_de
+ 
  	nbd_cmd(req) = NBD_CMD_READ;
  	if (rq_data_dir(req) == WRITE) {
- 		nbd_cmd(req) = NBD_CMD_WRITE;
--		if (nbd->flags & NBD_READ_ONLY) {
-+		if (nbd->flags & NBD_FLAG_READ_ONLY) {
+-		nbd_cmd(req) = NBD_CMD_WRITE;
++		if ((req->cmd_flags & REQ_DISCARD)) {
++			WARN_ON(!(nbd->flags & NBD_FLAG_SEND_TRIM));
++			nbd_cmd(req) = NBD_CMD_TRIM;
++		} else
++			nbd_cmd(req) = NBD_CMD_WRITE;
+ 		if (nbd->flags & NBD_FLAG_READ_ONLY) {
  			dev_err(disk_to_dev(nbd->disk),
  				"Write on read-only\n");
- 			goto error_out;
-@@ -642,6 +644,10 @@ static int __nbd_ioctl(struct block_devi
- 		nbd->xmit_timeout = arg * HZ;
- 		return 0;
+@@ -667,6 +672,10 @@ static int __nbd_ioctl(struct block_devi
  
-+	case NBD_SET_FLAGS:
-+		nbd->flags = arg;
-+		return 0;
+ 		mutex_unlock(&nbd->tx_lock);
+ 
++		if (nbd->flags & NBD_FLAG_SEND_TRIM)
++			queue_flag_set_unlocked(QUEUE_FLAG_DISCARD,
++				nbd->disk->queue);
 +
- 	case NBD_SET_SIZE_BLOCKS:
- 		nbd->bytesize = ((u64) arg) * nbd->blksize;
- 		bdev->bd_inode->i_size = nbd->bytesize;
-diff -puN include/linux/nbd.h~nbd-add-set-flags-ioctl include/linux/nbd.h
---- a/include/linux/nbd.h~nbd-add-set-flags-ioctl
-+++ a/include/linux/nbd.h
-@@ -27,6 +27,7 @@
- #define NBD_SET_SIZE_BLOCKS	_IO( 0xab, 7 )
- #define NBD_DISCONNECT  _IO( 0xab, 8 )
- #define NBD_SET_TIMEOUT _IO( 0xab, 9 )
-+#define NBD_SET_FLAGS   _IO( 0xab, 10)
+ 		thread = kthread_create(nbd_thread, nbd, nbd->disk->disk_name);
+ 		if (IS_ERR(thread)) {
+ 			mutex_lock(&nbd->tx_lock);
+@@ -684,6 +693,7 @@ static int __nbd_ioctl(struct block_devi
+ 		nbd->file = NULL;
+ 		nbd_clear_que(nbd);
+ 		dev_warn(disk_to_dev(nbd->disk), "queue cleared\n");
++		queue_flag_clear_unlocked(QUEUE_FLAG_DISCARD, nbd->disk->queue);
+ 		if (file)
+ 			fput(file);
+ 		nbd->bytesize = 0;
+@@ -802,6 +812,9 @@ static int __init nbd_init(void)
+ 		 * Tell the block layer that we are not a rotational device
+ 		 */
+ 		queue_flag_set_unlocked(QUEUE_FLAG_NONROT, disk->queue);
++		disk->queue->limits.discard_granularity = 512;
++		disk->queue->limits.max_discard_sectors = UINT_MAX;
++		disk->queue->limits.discard_zeroes_data = 0;
+ 	}
  
+ 	if (register_blkdev(NBD_MAJOR, "nbd")) {
+diff -puN include/linux/nbd.h~nbd-handle-discard-requests include/linux/nbd.h
+--- a/include/linux/nbd.h~nbd-handle-discard-requests
++++ a/include/linux/nbd.h
+@@ -32,12 +32,16 @@
  enum {
  	NBD_CMD_READ = 0,
-@@ -34,6 +35,10 @@ enum {
- 	NBD_CMD_DISC = 2
+ 	NBD_CMD_WRITE = 1,
+-	NBD_CMD_DISC = 2
++	NBD_CMD_DISC = 2,
++	/* there is a gap here to match userspace */
++	NBD_CMD_TRIM = 4
  };
  
-+/* values for flags field */
-+#define NBD_FLAG_HAS_FLAGS    (1 << 0) /* nbd-server supports flags */
-+#define NBD_FLAG_READ_ONLY    (1 << 1) /* device is read-only */
-+
+ /* values for flags field */
+ #define NBD_FLAG_HAS_FLAGS    (1 << 0) /* nbd-server supports flags */
+ #define NBD_FLAG_READ_ONLY    (1 << 1) /* device is read-only */
++/* there is a gap here to match userspace */
++#define NBD_FLAG_SEND_TRIM    (1 << 5) /* send trim/discard */
+ 
  #define nbd_cmd(req) ((req)->cmd[0])
  
- /* userspace doesn't need the nbd_device structure */
-@@ -42,10 +47,6 @@ enum {
- #include <linux/wait.h>
- #include <linux/mutex.h>
- 
--/* values for flags field */
--#define NBD_READ_ONLY 0x0001
--#define NBD_WRITE_NOCHK 0x0002
+_
+
+Patches currently in -mm which might be from paul.clements@steeleye.com are
+
+nbd-add-set-flags-ioctl.patch
+nbd-handle-discard-requests.patch
+
