@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + aoe-use-a-kernel-thread-for-transmissions.patch added to -mm tree
-Date: Fri, 31 Aug 2012 13:11:45 -0700
-Message-ID: <20120831201146.928CA20004E@hpza10.eem.corp.google.com>
+Subject: + aoe-do-revalidation-steps-in-order.patch added to -mm tree
+Date: Fri, 31 Aug 2012 13:11:55 -0700
+Message-ID: <20120831201156.926165C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:43177 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754755Ab2HaULs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Aug 2012 16:11:48 -0400
-Received: by mail-we0-f202.google.com with SMTP id r1so172642wey.1
-        for <mm-commits@vger.kernel.org>; Fri, 31 Aug 2012 13:11:47 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:41482 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754755Ab2HaUL6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Aug 2012 16:11:58 -0400
+Received: by mail-ey0-f202.google.com with SMTP id c1so171672eaa.1
+        for <mm-commits@vger.kernel.org>; Fri, 31 Aug 2012 13:11:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: ecashin@coraid.com
 
 
 The patch titled
-     Subject: aoe: use a kernel thread for transmissions
+     Subject: aoe: do revalidation steps in order
 has been added to the -mm tree.  Its filename is
-     aoe-use-a-kernel-thread-for-transmissions.patch
+     aoe-do-revalidation-steps-in-order.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,130 +34,54 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ed Cashin <ecashin@coraid.com>
-Subject: aoe: use a kernel thread for transmissions
+Subject: aoe: do revalidation steps in order
 
-The dev_queue_xmit function needs to have interrupts enabled, so the most
-simple way to get the locking right but still fulfill that requirement is
-to use a process that can call dev_queue_xmit serially over queued
-transmissions.
+The discovery process begins with an optional AoE config query command and
+an AoE config query response.  Normally when an aoe device is already
+open, the config query response does not trigger an ATA identify device
+command to be sent out, since the response contains storage capacity
+information that, if changed, could surprise the user of the device.
+
+The userland "aoe-revalidate" tool uses a character device to trigger an
+AoE config query for a particular AoE storage target and an ATA device
+identify command, even when the device is open.
+
+This change causes the config query to go out first, reflecting the normal
+discovery sequence.  The responses could come back in any order, so this
+change is fairly cosmetic.
 
 Signed-off-by: Ed Cashin <ecashin@coraid.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoe.h    |    2 +
- drivers/block/aoe/aoecmd.c |    4 +--
- drivers/block/aoe/aoenet.c |   37 ++++++++++++++++++++++++++++++++++-
- 3 files changed, 40 insertions(+), 3 deletions(-)
+ drivers/block/aoe/aoechr.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/block/aoe/aoe.h~aoe-use-a-kernel-thread-for-transmissions drivers/block/aoe/aoe.h
---- a/drivers/block/aoe/aoe.h~aoe-use-a-kernel-thread-for-transmissions
-+++ a/drivers/block/aoe/aoe.h
-@@ -210,6 +210,8 @@ struct sk_buff *aoecmd_ata_id(struct aoe
- void aoe_freetframe(struct frame *);
- void aoe_flush_iocq(void);
- void aoe_end_request(struct aoedev *, struct request *, int);
-+int aoe_ktstart(struct ktstate *k);
-+void aoe_ktstop(struct ktstate *k);
- 
- int aoedev_init(void);
- void aoedev_exit(void);
-diff -puN drivers/block/aoe/aoecmd.c~aoe-use-a-kernel-thread-for-transmissions drivers/block/aoe/aoecmd.c
---- a/drivers/block/aoe/aoecmd.c~aoe-use-a-kernel-thread-for-transmissions
-+++ a/drivers/block/aoe/aoecmd.c
-@@ -1109,14 +1109,14 @@ kthread(void *vp)
- 	return 0;
- }
- 
--static void
-+void
- aoe_ktstop(struct ktstate *k)
- {
- 	kthread_stop(k->task);
- 	wait_for_completion(&k->rendez);
- }
- 
--static int
-+int
- aoe_ktstart(struct ktstate *k)
- {
- 	struct task_struct *task;
-diff -puN drivers/block/aoe/aoenet.c~aoe-use-a-kernel-thread-for-transmissions drivers/block/aoe/aoenet.c
---- a/drivers/block/aoe/aoenet.c~aoe-use-a-kernel-thread-for-transmissions
-+++ a/drivers/block/aoe/aoenet.c
-@@ -33,6 +33,9 @@ static char aoe_iflist[IFLISTSZ];
- module_param_string(aoe_iflist, aoe_iflist, IFLISTSZ, 0600);
- MODULE_PARM_DESC(aoe_iflist, "aoe_iflist=\"dev1 [dev2 ...]\"");
- 
-+static wait_queue_head_t txwq;
-+static struct ktstate kts;
-+
- #ifndef MODULE
- static int __init aoe_iflist_setup(char *str)
- {
-@@ -44,6 +47,23 @@ static int __init aoe_iflist_setup(char 
- __setup("aoe_iflist=", aoe_iflist_setup);
- #endif
- 
-+static spinlock_t txlock;
-+static struct sk_buff_head skbtxq;
-+
-+/* enters with txlock held */
-+static int
-+tx(void)
-+{
-+	struct sk_buff *skb;
-+
-+	while ((skb = skb_dequeue(&skbtxq))) {
-+		spin_unlock_irq(&txlock);
-+		dev_queue_xmit(skb);
-+		spin_lock_irq(&txlock);
-+	}
-+	return 0;
-+}
-+
- int
- is_aoe_netif(struct net_device *ifp)
- {
-@@ -88,10 +108,14 @@ void
- aoenet_xmit(struct sk_buff_head *queue)
- {
- 	struct sk_buff *skb, *tmp;
-+	ulong flags;
- 
- 	skb_queue_walk_safe(queue, skb, tmp) {
- 		__skb_unlink(skb, queue);
--		dev_queue_xmit(skb);
-+		spin_lock_irqsave(&txlock, flags);
-+		skb_queue_tail(&skbtxq, skb);
-+		spin_unlock_irqrestore(&txlock, flags);
-+		wake_up(&txwq);
+diff -puN drivers/block/aoe/aoechr.c~aoe-do-revalidation-steps-in-order drivers/block/aoe/aoechr.c
+--- a/drivers/block/aoe/aoechr.c~aoe-do-revalidation-steps-in-order
++++ a/drivers/block/aoe/aoechr.c
+@@ -96,13 +96,14 @@ revalidate(const char __user *str, size_
+ 		return -EINVAL;
+ 	spin_lock_irqsave(&d->lock, flags);
+ 	aoecmd_cleanslate(d);
++	aoecmd_cfg(major, minor);
+ loop:
+ 	skb = aoecmd_ata_id(d);
+ 	spin_unlock_irqrestore(&d->lock, flags);
+ 	/* try again if we are able to sleep a bit,
+ 	 * otherwise give up this revalidation
+ 	 */
+-	if (!skb && !msleep_interruptible(200)) {
++	if (!skb && !msleep_interruptible(250)) {
+ 		spin_lock_irqsave(&d->lock, flags);
+ 		goto loop;
  	}
- }
- 
-@@ -169,6 +193,15 @@ static struct packet_type aoe_pt __read_
- int __init
- aoenet_init(void)
- {
-+	skb_queue_head_init(&skbtxq);
-+	init_waitqueue_head(&txwq);
-+	spin_lock_init(&txlock);
-+	kts.lock = &txlock;
-+	kts.fn = tx;
-+	kts.waitq = &txwq;
-+	kts.name = "aoe_tx";
-+	if (aoe_ktstart(&kts))
-+		return -EAGAIN;
- 	dev_add_pack(&aoe_pt);
+@@ -113,7 +114,6 @@ loop:
+ 		__skb_queue_tail(&queue, skb);
+ 		aoenet_xmit(&queue);
+ 	}
+-	aoecmd_cfg(major, minor);
  	return 0;
- }
-@@ -176,6 +209,8 @@ aoenet_init(void)
- void
- aoenet_exit(void)
- {
-+	aoe_ktstop(&kts);
-+	skb_queue_purge(&skbtxq);
- 	dev_remove_pack(&aoe_pt);
  }
  
 _
