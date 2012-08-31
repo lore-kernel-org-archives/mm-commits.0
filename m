@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + aoe-update-documentation-with-new-url-and-vm-settings-reference.patch added to -mm tree
-Date: Fri, 31 Aug 2012 13:12:16 -0700
-Message-ID: <20120831201217.3183A1E0043@wpzn4.hot.corp.google.com>
+Subject: + aoe-update-copyright-year-in-touched-files.patch added to -mm tree
+Date: Fri, 31 Aug 2012 13:12:13 -0700
+Message-ID: <20120831201214.3A8191E004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-yx0-f202.google.com ([209.85.213.202]:35690 "EHLO
 	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754960Ab2HaUMR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Aug 2012 16:12:17 -0400
+	with ESMTP id S1754916Ab2HaUMO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Aug 2012 16:12:14 -0400
 Received: by mail-yx0-f202.google.com with SMTP id q6so383761yen.1
-        for <mm-commits@vger.kernel.org>; Fri, 31 Aug 2012 13:12:17 -0700 (PDT)
+        for <mm-commits@vger.kernel.org>; Fri, 31 Aug 2012 13:12:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: ecashin@coraid.com
 
 
 The patch titled
-     Subject: aoe: update documentation with new URL and VM settings reference
+     Subject: aoe: update copyright year in touched files
 has been added to the -mm tree.  Its filename is
-     aoe-update-documentation-with-new-url-and-vm-settings-reference.patch
+     aoe-update-copyright-year-in-touched-files.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,84 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ed Cashin <ecashin@coraid.com>
-Subject: aoe: update documentation with new URL and VM settings reference
-
-The old area has a new URL.  Also, now that the driver can perform better,
-it is worth mentioning the VM settings that help aoe to sink dirty pages
-out early, avoiding unecessary memory pressure when much I/O is going on.
+Subject: aoe: update copyright year in touched files
 
 Signed-off-by: Ed Cashin <ecashin@coraid.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/aoe/aoe.txt |    9 ++++++---
- MAINTAINERS               |    2 +-
- 2 files changed, 7 insertions(+), 4 deletions(-)
+ drivers/block/aoe/aoe.h     |    2 +-
+ drivers/block/aoe/aoeblk.c  |    2 +-
+ drivers/block/aoe/aoechr.c  |    2 +-
+ drivers/block/aoe/aoecmd.c  |    2 +-
+ drivers/block/aoe/aoedev.c  |    2 +-
+ drivers/block/aoe/aoemain.c |    2 +-
+ drivers/block/aoe/aoenet.c  |    2 +-
+ 7 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN Documentation/aoe/aoe.txt~aoe-update-documentation-with-new-url-and-vm-settings-reference Documentation/aoe/aoe.txt
---- a/Documentation/aoe/aoe.txt~aoe-update-documentation-with-new-url-and-vm-settings-reference
-+++ a/Documentation/aoe/aoe.txt
-@@ -1,8 +1,11 @@
--The EtherDrive (R) HOWTO for users of 2.6 kernels is found at ...
-+The EtherDrive (R) HOWTO for 2.6 and 3.x kernels is found at ...
- 
--  http://www.coraid.com/SUPPORT/EtherDrive-HBA  
-+  http://support.coraid.com/support/linux/EtherDrive-2.6-HOWTO.html
- 
--  It has many tips and hints!
-+It has many tips and hints!  Please see, especially, recommended
-+tunings for virtual memory:
-+
-+  http://support.coraid.com/support/linux/EtherDrive-2.6-HOWTO-5.html#ss5.19
- 
- The aoetools are userland programs that are designed to work with this
- driver.  The aoetools are on sourceforge.
-diff -puN MAINTAINERS~aoe-update-documentation-with-new-url-and-vm-settings-reference MAINTAINERS
---- a/MAINTAINERS~aoe-update-documentation-with-new-url-and-vm-settings-reference
-+++ a/MAINTAINERS
-@@ -1250,7 +1250,7 @@ F:	include/linux/i2c/at24.h
- 
- ATA OVER ETHERNET (AOE) DRIVER
- M:	"Ed L. Cashin" <ecashin@coraid.com>
--W:	http://www.coraid.com/support/linux
-+W:	http://support.coraid.com/support/linux
- S:	Supported
- F:	Documentation/aoe/
- F:	drivers/block/aoe/
+diff -puN drivers/block/aoe/aoe.h~aoe-update-copyright-year-in-touched-files drivers/block/aoe/aoe.h
+--- a/drivers/block/aoe/aoe.h~aoe-update-copyright-year-in-touched-files
++++ a/drivers/block/aoe/aoe.h
+@@ -1,4 +1,4 @@
+-/* Copyright (c) 2007 Coraid, Inc.  See COPYING for GPL terms. */
++/* Copyright (c) 2012 Coraid, Inc.  See COPYING for GPL terms. */
+ #define VERSION "49"
+ #define AOE_MAJOR 152
+ #define DEVICE_NAME "aoe"
+diff -puN drivers/block/aoe/aoeblk.c~aoe-update-copyright-year-in-touched-files drivers/block/aoe/aoeblk.c
+--- a/drivers/block/aoe/aoeblk.c~aoe-update-copyright-year-in-touched-files
++++ a/drivers/block/aoe/aoeblk.c
+@@ -1,4 +1,4 @@
+-/* Copyright (c) 2007 Coraid, Inc.  See COPYING for GPL terms. */
++/* Copyright (c) 2012 Coraid, Inc.  See COPYING for GPL terms. */
+ /*
+  * aoeblk.c
+  * block device routines
+diff -puN drivers/block/aoe/aoechr.c~aoe-update-copyright-year-in-touched-files drivers/block/aoe/aoechr.c
+--- a/drivers/block/aoe/aoechr.c~aoe-update-copyright-year-in-touched-files
++++ a/drivers/block/aoe/aoechr.c
+@@ -1,4 +1,4 @@
+-/* Copyright (c) 2007 Coraid, Inc.  See COPYING for GPL terms. */
++/* Copyright (c) 2012 Coraid, Inc.  See COPYING for GPL terms. */
+ /*
+  * aoechr.c
+  * AoE character device driver
+diff -puN drivers/block/aoe/aoecmd.c~aoe-update-copyright-year-in-touched-files drivers/block/aoe/aoecmd.c
+--- a/drivers/block/aoe/aoecmd.c~aoe-update-copyright-year-in-touched-files
++++ a/drivers/block/aoe/aoecmd.c
+@@ -1,4 +1,4 @@
+-/* Copyright (c) 2007 Coraid, Inc.  See COPYING for GPL terms. */
++/* Copyright (c) 2012 Coraid, Inc.  See COPYING for GPL terms. */
+ /*
+  * aoecmd.c
+  * Filesystem request handling methods
+diff -puN drivers/block/aoe/aoedev.c~aoe-update-copyright-year-in-touched-files drivers/block/aoe/aoedev.c
+--- a/drivers/block/aoe/aoedev.c~aoe-update-copyright-year-in-touched-files
++++ a/drivers/block/aoe/aoedev.c
+@@ -1,4 +1,4 @@
+-/* Copyright (c) 2007 Coraid, Inc.  See COPYING for GPL terms. */
++/* Copyright (c) 2012 Coraid, Inc.  See COPYING for GPL terms. */
+ /*
+  * aoedev.c
+  * AoE device utility functions; maintains device list.
+diff -puN drivers/block/aoe/aoemain.c~aoe-update-copyright-year-in-touched-files drivers/block/aoe/aoemain.c
+--- a/drivers/block/aoe/aoemain.c~aoe-update-copyright-year-in-touched-files
++++ a/drivers/block/aoe/aoemain.c
+@@ -1,4 +1,4 @@
+-/* Copyright (c) 2007 Coraid, Inc.  See COPYING for GPL terms. */
++/* Copyright (c) 2012 Coraid, Inc.  See COPYING for GPL terms. */
+ /*
+  * aoemain.c
+  * Module initialization routines, discover timer
+diff -puN drivers/block/aoe/aoenet.c~aoe-update-copyright-year-in-touched-files drivers/block/aoe/aoenet.c
+--- a/drivers/block/aoe/aoenet.c~aoe-update-copyright-year-in-touched-files
++++ a/drivers/block/aoe/aoenet.c
+@@ -1,4 +1,4 @@
+-/* Copyright (c) 2007 Coraid, Inc.  See COPYING for GPL terms. */
++/* Copyright (c) 2012 Coraid, Inc.  See COPYING for GPL terms. */
+ /*
+  * aoenet.c
+  * Ethernet portion of AoE driver
 _
 
 Patches currently in -mm which might be from ecashin@coraid.com are
