@@ -1,69 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix-perf-compilation.patch removed from -mm tree
-Date: Fri, 31 Aug 2012 12:42:41 -0700
-Message-ID: <20120831194242.59D0620004E@hpza10.eem.corp.google.com>
+Subject: + rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix.patch added to -mm tree
+Date: Fri, 31 Aug 2012 12:44:17 -0700
+Message-ID: <20120831194417.EEF591E0049@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:32913 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754570Ab2HaTmo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Aug 2012 15:42:44 -0400
-Received: by weyr1 with SMTP id r1so171900wey.1
-        for <mm-commits@vger.kernel.org>; Fri, 31 Aug 2012 12:42:43 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:52557 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754755Ab2HaToT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Aug 2012 15:44:19 -0400
+Received: by qcqs25 with SMTP id s25so380644qcq.1
+        for <mm-commits@vger.kernel.org>; Fri, 31 Aug 2012 12:44:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexander.shishkin@linux.intel.com, walken@google.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: adrian.hunter@intel.com, alexander.shishkin@intel.com, walken@google.com
 
 
 The patch titled
-     Subject: rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix-perf-compilation
-has been removed from the -mm tree.  Its filename was
-     rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix-perf-compilation.patch
+     Subject: perf tools: fix build for another rbtree.c change
+has been added to the -mm tree.  Its filename is
+     rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Subject: rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix-perf-compilation
+From: Adrian Hunter <adrian.hunter@intel.com>
+Subject: perf tools: fix build for another rbtree.c change
 
-Commit 2cfaf9cc68190c24fdd05e4d104099b3f27c7a44 (rbtree: adjust root color
-in rb_insert_color() only when necessary) introduces bool type and constants
-to the rbtree.c, and breaks compilation of tools/perf:
+Fixes:
 
-../../lib/rbtree.c: In function `rb_insert_color':
-../../lib/rbtree.c:95:9: error: `true' undeclared (first use in this function)
-../../lib/rbtree.c:95:9: note: each undeclared identifier is reported only once
-or each function it appears in
-../../lib/rbtree.c: In function `__rb_erase_color':
-../../lib/rbtree.c:216:9: error: `true' undeclared (first use in this function)
-../../lib/rbtree.c: In function `rb_erase':
-../../lib/rbtree.c:368:2: error: unknown type name `bool'
+../../lib/rbtree.c: In function 'rb_insert_color':
+../../lib/rbtree.c:95:9: error: 'true' undeclared (first use in this function)
+../../lib/rbtree.c:95:9: note: each undeclared identifier is reported only once for each function it appears in
+../../lib/rbtree.c: In function '__rb_erase_color':
+../../lib/rbtree.c:216:9: error: 'true' undeclared (first use in this function)
+../../lib/rbtree.c: In function 'rb_erase':
+../../lib/rbtree.c:368:2: error: unknown type name 'bool'
 make: *** [util/rbtree.o] Error 1
 
-This patch is the easiest solution I can think of.
-
-Signed-off-by: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Acked-by: Michel Lespinasse <walken@google.com>
+Signed-off-by: Adrian Hunter <adrian.hunter@intel.com>
+Cc: Michel Lespinasse <walken@google.com>
+Reported-by: Alexander Shishkin <alexander.shishkin@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/perf/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/perf/util/include/linux/rbtree.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN tools/perf/Makefile~rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix-perf-compilation tools/perf/Makefile
---- a/tools/perf/Makefile~rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix-perf-compilation
-+++ a/tools/perf/Makefile
-@@ -806,7 +806,7 @@ $(OUTPUT)ui/browsers/map.o: ui/browsers/
- 	$(QUIET_CC)$(CC) -o $@ -c $(ALL_CFLAGS) -DENABLE_SLFUTURE_CONST $<
- 
- $(OUTPUT)util/rbtree.o: ../../lib/rbtree.c $(OUTPUT)PERF-CFLAGS
--	$(QUIET_CC)$(CC) -o $@ -c $(ALL_CFLAGS) -DETC_PERFCONFIG='"$(ETC_PERFCONFIG_SQ)"' $<
-+	$(QUIET_CC)$(CC) -o $@ -c $(ALL_CFLAGS) -DETC_PERFCONFIG='"$(ETC_PERFCONFIG_SQ)"' -include stdbool.h $<
- 
- $(OUTPUT)util/parse-events.o: util/parse-events.c $(OUTPUT)PERF-CFLAGS
- 	$(QUIET_CC)$(CC) -o $@ -c $(ALL_CFLAGS) -Wno-redundant-decls $<
+diff -puN tools/perf/util/include/linux/rbtree.h~rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix tools/perf/util/include/linux/rbtree.h
+--- a/tools/perf/util/include/linux/rbtree.h~rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix
++++ a/tools/perf/util/include/linux/rbtree.h
+@@ -1 +1,2 @@
++#include <stdbool.h>
+ #include "../../../../include/linux/rbtree.h"
 _
 
-Patches currently in -mm which might be from alexander.shishkin@linux.intel.com are
+Patches currently in -mm which might be from adrian.hunter@intel.com are
 
+rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix.patch
 
