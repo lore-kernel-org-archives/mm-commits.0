@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix.patch added to -mm tree
-Date: Fri, 31 Aug 2012 12:44:17 -0700
-Message-ID: <20120831194417.EEF591E0049@wpzn4.hot.corp.google.com>
+Subject: + mm-mmu_notifier-init-notifier-if-necessary-v2.patch added to -mm tree
+Date: Fri, 31 Aug 2012 12:48:36 -0700
+Message-ID: <20120831194837.88DBA5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:52557 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754755Ab2HaToT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Aug 2012 15:44:19 -0400
-Received: by qcqs25 with SMTP id s25so380644qcq.1
-        for <mm-commits@vger.kernel.org>; Fri, 31 Aug 2012 12:44:18 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:58129 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754814Ab2HaTsj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 31 Aug 2012 15:48:39 -0400
+Received: by wibhr14 with SMTP id hr14so84977wib.1
+        for <mm-commits@vger.kernel.org>; Fri, 31 Aug 2012 12:48:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adrian.hunter@intel.com, alexander.shishkin@intel.com, walken@google.com
+Cc: shangw@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: perf tools: fix build for another rbtree.c change
+     Subject: mm/mmu_notifier: init notifier if necessary
 has been added to the -mm tree.  Its filename is
-     rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix.patch
+     mm-mmu_notifier-init-notifier-if-necessary-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,38 +33,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Adrian Hunter <adrian.hunter@intel.com>
-Subject: perf tools: fix build for another rbtree.c change
+From: Gavin Shan <shangw@linux.vnet.ibm.com>
+Subject: mm/mmu_notifier: init notifier if necessary
 
-Fixes:
+v2: Use GFP_KERNEL instead of GFP_ATOMIC when allocating the MMU
+    notifier_mm as Andrew suggested.
 
-../../lib/rbtree.c: In function 'rb_insert_color':
-../../lib/rbtree.c:95:9: error: 'true' undeclared (first use in this function)
-../../lib/rbtree.c:95:9: note: each undeclared identifier is reported only once for each function it appears in
-../../lib/rbtree.c: In function '__rb_erase_color':
-../../lib/rbtree.c:216:9: error: 'true' undeclared (first use in this function)
-../../lib/rbtree.c: In function 'rb_erase':
-../../lib/rbtree.c:368:2: error: unknown type name 'bool'
-make: *** [util/rbtree.o] Error 1
-
-Signed-off-by: Adrian Hunter <adrian.hunter@intel.com>
-Cc: Michel Lespinasse <walken@google.com>
-Reported-by: Alexander Shishkin <alexander.shishkin@intel.com>
+Signed-off-by: Gavin Shan <shangw@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/perf/util/include/linux/rbtree.h |    1 +
- 1 file changed, 1 insertion(+)
+ mm/mmu_notifier.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN tools/perf/util/include/linux/rbtree.h~rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix tools/perf/util/include/linux/rbtree.h
---- a/tools/perf/util/include/linux/rbtree.h~rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix
-+++ a/tools/perf/util/include/linux/rbtree.h
-@@ -1 +1,2 @@
-+#include <stdbool.h>
- #include "../../../../include/linux/rbtree.h"
+diff -puN mm/mmu_notifier.c~mm-mmu_notifier-init-notifier-if-necessary-v2 mm/mmu_notifier.c
+--- a/mm/mmu_notifier.c~mm-mmu_notifier-init-notifier-if-necessary-v2
++++ a/mm/mmu_notifier.c
+@@ -215,7 +215,7 @@ static int do_mmu_notifier_register(stru
+ 
+ 	if (!mm_has_notifiers(mm)) {
+ 		mmu_notifier_mm = kmalloc(sizeof(struct mmu_notifier_mm),
+-					GFP_ATOMIC);
++					GFP_KERNEL);
+ 		if (unlikely(!mmu_notifier_mm)) {
+ 			ret = -ENOMEM;
+ 			goto out_of_mem;
 _
 
-Patches currently in -mm which might be from adrian.hunter@intel.com are
+Patches currently in -mm which might be from shangw@linux.vnet.ibm.com are
 
-rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix.patch
+mm-slab-remove-duplicate-check.patch
+mm-mmu_notifier-init-notifier-if-necessary.patch
+mm-mmu_notifier-init-notifier-if-necessary-v2.patch
+mm-vmscan-fix-error-number-for-failed-kthread.patch
 
