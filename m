@@ -1,215 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Tue, 04 Sep 2012 12:20:18 -0700
-Message-ID: <20120904192020.90FDC1E0048@wpzn4.hot.corp.google.com>
+Subject: [merged] revert-netpoll-re-enable-irq-in-poll_napi.patch removed from -mm tree
+Date: Tue, 04 Sep 2012 12:26:24 -0700
+Message-ID: <20120904192624.86BF9100049@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:53731 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757623Ab2IDTUW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Sep 2012 15:20:22 -0400
-Received: by ggnu1 with SMTP id u1so750319ggn.1
-        for <mm-commits@vger.kernel.org>; Tue, 04 Sep 2012 12:20:21 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:48533 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757582Ab2IDT0Z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Sep 2012 15:26:25 -0400
+Received: by ghbz15 with SMTP id z15so751033ghb.1
+        for <mm-commits@vger.kernel.org>; Tue, 04 Sep 2012 12:26:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, amwang@redhat.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: revert "netpoll: re-enable irq in poll_napi()"
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     revert-netpoll-re-enable-irq-in-poll_napi.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: revert "netpoll: re-enable irq in poll_napi()"
 
+Revert
+
+: commit 6bdb7fe31046ac50b47e83c35cd6c6b6160a475d
+: Author:     Amerigo Wang <amwang@redhat.com>
+: AuthorDate: Fri Aug 10 01:24:50 2012 +0000
+: Commit:     David S. Miller <davem@davemloft.net>
+: CommitDate: Tue Aug 14 14:33:33 2012 -0700
+
+because it makes my netconsole-using x86_64 box lock duing boot.
+
+Cc: David Miller <davem@davemloft.net>
+Cc: Cong Wang <amwang@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/mach-ath79/cpu-feature-overrides.h |    3 
- arch/mips/kernel/module.c                                |   41 -------
- arch/powerpc/include/asm/kvm_ppc.h                       |    3 
- arch/powerpc/kvm/e500_tlb.c                              |    3 
- arch/x86/kernel/microcode_amd.c                          |   53 ----------
- 5 files changed, 103 deletions(-)
+ net/core/netpoll.c |   10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
 
-diff -puN arch/x86/kernel/microcode_amd.c~linux-next-git-rejects arch/x86/kernel/microcode_amd.c
---- a/arch/x86/kernel/microcode_amd.c~linux-next-git-rejects
-+++ a/arch/x86/kernel/microcode_amd.c
-@@ -219,26 +219,9 @@ static int apply_microcode_amd(int cpu)
- 	struct ucode_patch *p;
- 	u32 rev, dummy;
+diff -puN net/core/netpoll.c~revert-netpoll-re-enable-irq-in-poll_napi net/core/netpoll.c
+--- a/net/core/netpoll.c~revert-netpoll-re-enable-irq-in-poll_napi
++++ a/net/core/netpoll.c
+@@ -168,24 +168,16 @@ static void poll_napi(struct net_device 
+ 	struct napi_struct *napi;
+ 	int budget = 16;
  
--<<<<<<< HEAD
--/*
-- * we signal a good patch is found by returning its size > 0
-- */
--static int get_matching_microcode(int cpu, const u8 *ucode_ptr,
--				  unsigned int leftover_size, int rev,
--				  unsigned int *current_size)
--{
--	struct microcode_header_amd *mc_hdr;
--	unsigned int actual_size, patch_size;
--	u16 equiv_cpu_id;
+-	WARN_ON_ONCE(!irqs_disabled());
 -
--	/* size of the current patch we're staring at */
--	patch_size = *(u32 *)(ucode_ptr + 4);
--	*current_size = patch_size + SECTION_HDR_SIZE;
--=======
- 	BUG_ON(raw_smp_processor_id() != cpu);
+ 	list_for_each_entry(napi, &dev->napi_list, dev_list) {
+-		local_irq_enable();
+ 		if (napi->poll_owner != smp_processor_id() &&
+ 		    spin_trylock(&napi->poll_lock)) {
+-			rcu_read_lock_bh();
+ 			budget = poll_one_napi(rcu_dereference_bh(dev->npinfo),
+ 					       napi, budget);
+-			rcu_read_unlock_bh();
+ 			spin_unlock(&napi->poll_lock);
  
- 	uci = ucode_cpu_info + cpu;
-->>>>>>> linux-next/akpm-base
- 
- 	p = find_patch(cpu);
- 	if (!p)
-@@ -255,42 +238,6 @@ static int get_matching_microcode(int cp
- 		return 0;
- 	}
- 
--<<<<<<< HEAD
--	if (mc_hdr->patch_id <= rev)
--		return 0;
--
--	/*
--	 * now that the header looks sane, verify its size
--	 */
--	actual_size = verify_ucode_size(cpu, patch_size, leftover_size);
--	if (!actual_size)
--		return 0;
--
--	/* clear the patch buffer */
--	memset(patch, 0, PAGE_SIZE);
--
--	/* all looks ok, get the binary patch */
--	get_ucode_data(patch, ucode_ptr + SECTION_HDR_SIZE, actual_size);
--
--	return actual_size;
--}
--
--static int apply_microcode_amd(int cpu)
--{
--	u32 rev, dummy;
--	int cpu_num = raw_smp_processor_id();
--	struct ucode_cpu_info *uci = ucode_cpu_info + cpu_num;
--	struct microcode_amd *mc_amd = uci->mc;
--	struct cpuinfo_x86 *c = &cpu_data(cpu);
--
--	/* We should bind the task to the CPU */
--	BUG_ON(cpu_num != cpu);
--
--	if (mc_amd == NULL)
--		return 0;
--
--=======
-->>>>>>> linux-next/akpm-base
- 	wrmsrl(MSR_AMD64_PATCH_LOADER, (u64)(long)&mc_amd->hdr.data_code);
- 
- 	/* verify patch application was successful */
-diff -puN arch/mips/include/asm/mach-ath79/cpu-feature-overrides.h~linux-next-git-rejects arch/mips/include/asm/mach-ath79/cpu-feature-overrides.h
---- a/arch/mips/include/asm/mach-ath79/cpu-feature-overrides.h~linux-next-git-rejects
-+++ a/arch/mips/include/asm/mach-ath79/cpu-feature-overrides.h
-@@ -42,11 +42,8 @@
- #define cpu_has_mips64r1	0
- #define cpu_has_mips64r2	0
- 
--<<<<<<< HEAD
--=======
- #define cpu_has_dsp		0
- #define cpu_has_dsp2		0
-->>>>>>> linux-next/akpm-base
- #define cpu_has_mipsmt		0
- 
- #define cpu_has_64bits		0
-diff -puN arch/mips/kernel/module.c~linux-next-git-rejects arch/mips/kernel/module.c
---- a/arch/mips/kernel/module.c~linux-next-git-rejects
-+++ a/arch/mips/kernel/module.c
-@@ -249,47 +249,6 @@ int apply_relocate(Elf_Shdr *sechdrs, co
- 	if (me->arch.r_mips_hi16_list) {
- 		free_relocation_chain(me->arch.r_mips_hi16_list);
- 		me->arch.r_mips_hi16_list = NULL;
--<<<<<<< HEAD
--
--		return -ENOEXEC;
--	}
--
--	return 0;
--}
--
--int apply_relocate_add(Elf_Shdr *sechdrs, const char *strtab,
--		       unsigned int symindex, unsigned int relsec,
--		       struct module *me)
--{
--	Elf_Mips_Rela *rel = (void *) sechdrs[relsec].sh_addr;
--	Elf_Sym *sym;
--	u32 *location;
--	unsigned int i;
--	Elf_Addr v;
--	int res;
--
--	pr_debug("Applying relocate section %u to %u\n", relsec,
--	       sechdrs[relsec].sh_info);
--
--	for (i = 0; i < sechdrs[relsec].sh_size / sizeof(*rel); i++) {
--		/* This is where to make the change */
--		location = (void *)sechdrs[sechdrs[relsec].sh_info].sh_addr
--			+ rel[i].r_offset;
--		/* This is the symbol it is referring to */
--		sym = (Elf_Sym *)sechdrs[symindex].sh_addr
--			+ ELF_MIPS_R_SYM(rel[i]);
--		if (IS_ERR_VALUE(sym->st_value)) {
--			/* Ignore unresolved weak symbol */
--			if (ELF_ST_BIND(sym->st_info) == STB_WEAK)
--				continue;
--			printk(KERN_WARNING "%s: Unknown symbol %s\n",
--			       me->name, strtab + sym->st_name);
--			return -ENOENT;
--		}
--
--		v = sym->st_value + rel[i].r_addend;
--=======
-->>>>>>> linux-next/akpm-base
- 
- 		return -ENOEXEC;
- 	}
-diff -puN arch/powerpc/include/asm/kvm_ppc.h~linux-next-git-rejects arch/powerpc/include/asm/kvm_ppc.h
---- a/arch/powerpc/include/asm/kvm_ppc.h~linux-next-git-rejects
-+++ a/arch/powerpc/include/asm/kvm_ppc.h
-@@ -236,8 +236,6 @@ static inline void kvmppc_mmu_flush_icac
+-			if (!budget) {
+-				local_irq_disable();
++			if (!budget)
+ 				break;
+-			}
+ 		}
+-		local_irq_disable();
  	}
  }
  
--<<<<<<< HEAD
--=======
- /* Please call after prepare_to_enter. This function puts the lazy ee state
-    back to normal mode, without actually enabling interrupts. */
- static inline void kvmppc_lazy_ee_enable(void)
-@@ -248,6 +246,5 @@ static inline void kvmppc_lazy_ee_enable
- 	local_paca->soft_enabled = 1;
- #endif
- }
-->>>>>>> linux-next/akpm-base
- 
- #endif /* __POWERPC_KVM_PPC_H__ */
-diff -puN arch/powerpc/kvm/e500_tlb.c~linux-next-git-rejects arch/powerpc/kvm/e500_tlb.c
---- a/arch/powerpc/kvm/e500_tlb.c~linux-next-git-rejects
-+++ a/arch/powerpc/kvm/e500_tlb.c
-@@ -544,12 +544,9 @@ static inline void kvmppc_e500_shadow_ma
- 
- 	/* Clear i-cache for new pages */
- 	kvmppc_mmu_flush_icache(pfn);
--<<<<<<< HEAD
--=======
- 
- 	/* Drop refcount on page, so that mmu notifiers can clear it */
- 	kvm_release_pfn_clean(pfn);
-->>>>>>> linux-next/akpm-base
- }
- 
- /* XXX only map the one-one case, for now use TLB0 */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -218,7 +81,6 @@ origin.patch
 linux-next.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
-revert-netpoll-re-enable-irq-in-poll_napi.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 audith-replace-defines-with-c-stubs.patch
 thermal-add-generic-cpufreq-cooling-implementation.patch
