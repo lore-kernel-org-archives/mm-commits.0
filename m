@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memblock-replace-0-with-null-for-pointer.patch added to -mm tree
-Date: Tue, 04 Sep 2012 15:17:57 -0700
-Message-ID: <20120904221758.0FC0220004E@hpza10.eem.corp.google.com>
+Subject: + pid-namespace-limit-value-of-ns_last_pid-to-0-max_pid.patch added to -mm tree
+Date: Tue, 04 Sep 2012 15:21:21 -0700
+Message-ID: <20120904222122.2268D200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:59223 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757739Ab2IDWSA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Sep 2012 18:18:00 -0400
-Received: by wgbdt11 with SMTP id dt11so374723wgb.1
-        for <mm-commits@vger.kernel.org>; Tue, 04 Sep 2012 15:17:59 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:34807 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757739Ab2IDWVZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Sep 2012 18:21:25 -0400
+Received: by lagw12 with SMTP id w12so373516lag.1
+        for <mm-commits@vger.kernel.org>; Tue, 04 Sep 2012 15:21:23 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sachin.kamat@linaro.org, mingo@kernel.org, tj@kernel.org
+Cc: avagin@openvz.org, ebiederm@xmission.com, gorcunov@openvz.org, oleg@redhat.com, xemul@parallels.com
 
 
 The patch titled
-     Subject: mm/memblock: replace 0 with NULL for pointer
+     Subject: pid-namespace: limit value of ns_last_pid to (0, max_pid)
 has been added to the -mm tree.  Its filename is
-     mm-memblock-replace-0-with-null-for-pointer.patch
+     pid-namespace-limit-value-of-ns_last_pid-to-0-max_pid.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +33,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: mm/memblock: replace 0 with NULL for pointer
+From: Andrew Vagin <avagin@openvz.org>
+Subject: pid-namespace: limit value of ns_last_pid to (0, max_pid)
 
-Silences the following sparse warning:
-mm/memblock.c:249:49: warning: Using plain integer as NULL pointer
+The kernel doesn't check the pid for negative values, so if you try to
+write -2 to /proc/sys/kernel/ns_last_pid, you will get a kernel panic.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Ingo Molnar <mingo@kernel.org>
+The crash happens because the next pid is -1, and alloc_pidmap() will try
+to access to a nonexistent pidmap.
+
+map = &pid_ns->pidmap[pid/BITS_PER_PAGE];
+
+Signed-off-by: Andrew Vagin <avagin@openvz.org>
+Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/pid_namespace.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN mm/memblock.c~mm-memblock-replace-0-with-null-for-pointer mm/memblock.c
---- a/mm/memblock.c~mm-memblock-replace-0-with-null-for-pointer
-+++ a/mm/memblock.c
-@@ -246,7 +246,7 @@ static int __init_memblock memblock_doub
- 				min(new_area_start, memblock.current_limit),
- 				new_alloc_size, PAGE_SIZE);
+diff -puN kernel/pid_namespace.c~pid-namespace-limit-value-of-ns_last_pid-to-0-max_pid kernel/pid_namespace.c
+--- a/kernel/pid_namespace.c~pid-namespace-limit-value-of-ns_last_pid-to-0-max_pid
++++ a/kernel/pid_namespace.c
+@@ -232,15 +232,19 @@ static int pid_ns_ctl_handler(struct ctl
+ 	 */
  
--		new_array = addr ? __va(addr) : 0;
-+		new_array = addr ? __va(addr) : NULL;
- 	}
- 	if (!addr) {
- 		pr_err("memblock: Failed to double %s array from %ld to %ld entries !\n",
+ 	tmp.data = &current->nsproxy->pid_ns->last_pid;
+-	return proc_dointvec(&tmp, write, buffer, lenp, ppos);
++	return proc_dointvec_minmax(&tmp, write, buffer, lenp, ppos);
+ }
+ 
++extern int pid_max;
++static int zero = 0;
+ static struct ctl_table pid_ns_ctl_table[] = {
+ 	{
+ 		.procname = "ns_last_pid",
+ 		.maxlen = sizeof(int),
+ 		.mode = 0666, /* permissions are checked in the handler */
+ 		.proc_handler = pid_ns_ctl_handler,
++		.extra1 = &zero,
++		.extra2 = &pid_max,
+ 	},
+ 	{ }
+ };
 _
 
-Patches currently in -mm which might be from sachin.kamat@linaro.org are
+Patches currently in -mm which might be from avagin@openvz.org are
 
+pid-namespace-limit-value-of-ns_last_pid-to-0-max_pid.patch
 linux-next.patch
-thermal-exynos-fix-build-error.patch
-thermal-exynos-remove-duplicate-inclusion-of-errh-header-file.patch
-thermal-exynos-use-devm_-functions.patch
-mm-memblock-replace-0-with-null-for-pointer.patch
-drivers-video-backlight-da9052_blc-use-usleep_range-instead-of-msleep-for-small-sleeps.patch
-drivers-video-backlight-ltv350qvc-use-usleep_range-instead-of-msleep-for-small-sleeps.patch
-drivers-video-backlight-kb3886_blc-use-usleep_range-instead-of-msleep-for-small-sleeps.patch
 
