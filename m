@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-coh901331c-use-clk_prepare_enable-and-clk_disable_unprepare.patch added to -mm tree
-Date: Tue, 04 Sep 2012 15:23:28 -0700
-Message-ID: <20120904222328.ACB611E0043@wpzn4.hot.corp.google.com>
+Subject: + drm-i915-optimize-div_round_closest-call.patch added to -mm tree
+Date: Tue, 04 Sep 2012 15:29:49 -0700
+Message-ID: <20120904222950.0BC9B200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:41629 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757739Ab2IDWX3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Sep 2012 18:23:29 -0400
-Received: by yenq6 with SMTP id q6so787458yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 04 Sep 2012 15:23:29 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:64215 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932828Ab2IDW3x (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Sep 2012 18:29:53 -0400
+Received: by lagw12 with SMTP id w12so373678lag.1
+        for <mm-commits@vger.kernel.org>; Tue, 04 Sep 2012 15:29:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Julia.Lawall@lip6.fr, linus.walleij@linaro.org
+Cc: khali@linux-fr.org, airlied@linux.ie, daniel.vetter@ffwll.ch, linux@roeck-us.net
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-coh901331.c: use clk_prepare_enable() and clk_disable_unprepare()
+     Subject: drm/i915: optimize DIV_ROUND_CLOSEST() call
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-coh901331c-use-clk_prepare_enable-and-clk_disable_unprepare.patch
+     drm-i915-optimize-div_round_closest-call.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,60 +33,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: drivers/rtc/rtc-coh901331.c: use clk_prepare_enable() and clk_disable_unprepare()
+From: Jean Delvare <khali@linux-fr.org>
+Subject: drm/i915: optimize DIV_ROUND_CLOSEST() call
 
-clk_prepare_enable and clk_disable_unprepare combine clk_prepare and
-clk_enable, and clk_disable and clk_unprepare.  They make the code more
-concise, and ensure that clk_unprepare is called when clk_enable fails.
+DIV_ROUND_CLOSEST is faster if the compiler knows it will only be dealing
+with unsigned dividends.
 
-A simplified version of the semantic patch that introduces calls to these
-functions is as follows: (http://coccinelle.lip6.fr/)
-
-// <smpl>
-@@
-expression e;
-@@
-
-- clk_prepare(e);
-- clk_enable(e);
-+ clk_prepare_enable(e);
-
-@@
-expression e;
-@@
-
-- clk_disable(e);
-- clk_unprepare(e);
-+ clk_disable_unprepare(e);
-// </smpl>
-
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: David Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-coh901331.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/gpu/drm/i915/intel_pm.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-coh901331.c~drivers-rtc-rtc-coh901331c-use-clk_prepare_enable-and-clk_disable_unprepare drivers/rtc/rtc-coh901331.c
---- a/drivers/rtc/rtc-coh901331.c~drivers-rtc-rtc-coh901331c-use-clk_prepare_enable-and-clk_disable_unprepare
-+++ a/drivers/rtc/rtc-coh901331.c
-@@ -276,8 +276,7 @@ static void coh901331_shutdown(struct pl
+diff -puN drivers/gpu/drm/i915/intel_pm.c~drm-i915-optimize-div_round_closest-call drivers/gpu/drm/i915/intel_pm.c
+--- a/drivers/gpu/drm/i915/intel_pm.c~drm-i915-optimize-div_round_closest-call
++++ a/drivers/gpu/drm/i915/intel_pm.c
+@@ -2545,7 +2545,8 @@ static void gen6_update_ring_freq(struct
+ {
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+ 	int min_freq = 15;
+-	int gpu_freq, ia_freq, max_ia_freq;
++	int gpu_freq;
++	unsigned int ia_freq, max_ia_freq;
+ 	int scaling_factor = 180;
  
- 	clk_enable(rtap->clk);
- 	writel(0, rtap->virtbase + COH901331_IRQ_MASK);
--	clk_disable(rtap->clk);
--	clk_unprepare(rtap->clk);
-+	clk_disable_unprepare(rtap->clk);
- }
- 
- static struct platform_driver coh901331_driver = {
+ 	WARN_ON(!mutex_is_locked(&dev->struct_mutex));
 _
 
-Patches currently in -mm which might be from Julia.Lawall@lip6.fr are
+Patches currently in -mm which might be from khali@linux-fr.org are
 
-origin.patch
 linux-next.patch
-drivers-rtc-rtc-coh901331c-use-clk_prepare_enable-and-clk_disable_unprepare.patch
+drm-i915-optimize-div_round_closest-call.patch
+thermal-add-generic-cpufreq-cooling-implementation.patch
+hwmon-exynos4-move-thermal-sensor-driver-to-driver-thermal-directory.patch
+thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
+thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
+arm-exynos-add-thermal-sensor-driver-platform-data-support.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
 
