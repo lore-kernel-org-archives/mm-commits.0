@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + include-net-sockh-squelch-compiler-warning-in-sk_rmem_schedule.patch added to -mm tree
-Date: Tue, 04 Sep 2012 13:44:46 -0700
-Message-ID: <20120904204447.91B275C0065@hpza9.eem.corp.google.com>
+Subject: + mm-memblock-replace-0-with-null-for-pointer.patch added to -mm tree
+Date: Tue, 04 Sep 2012 15:17:57 -0700
+Message-ID: <20120904221758.0FC0220004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:43619 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932490Ab2IDUot (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Sep 2012 16:44:49 -0400
-Received: by mail-bk0-f74.google.com with SMTP id jc3so371608bkc.1
-        for <mm-commits@vger.kernel.org>; Tue, 04 Sep 2012 13:44:49 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:59223 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757739Ab2IDWSA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Sep 2012 18:18:00 -0400
+Received: by wgbdt11 with SMTP id dt11so374723wgb.1
+        for <mm-commits@vger.kernel.org>; Tue, 04 Sep 2012 15:17:59 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: chuck.lever@oracle.com, davem@davemloft.net, js1304@gmail.com, mgorman@suse.de, penberg@kernel.org, rientjes@google.com
+Cc: sachin.kamat@linaro.org, mingo@kernel.org, tj@kernel.org
 
 
 The patch titled
-     Subject: include/net/sock.h: squelch compiler warning in sk_rmem_schedule()
+     Subject: mm/memblock: replace 0 with NULL for pointer
 has been added to the -mm tree.  Its filename is
-     include-net-sockh-squelch-compiler-warning-in-sk_rmem_schedule.patch
+     mm-memblock-replace-0-with-null-for-pointer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,63 +33,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chuck Lever <chuck.lever@oracle.com>
-Subject: include/net/sock.h: squelch compiler warning in sk_rmem_schedule()
+From: Sachin Kamat <sachin.kamat@linaro.org>
+Subject: mm/memblock: replace 0 with NULL for pointer
 
-In file included from linux/include/linux/tcp.h:227:0,
-                 from linux/include/linux/ipv6.h:221,
-                 from linux/include/net/ipv6.h:16,
-                 from linux/include/linux/sunrpc/clnt.h:26,
-                 from linux/net/sunrpc/stats.c:22:
-linux/include/net/sock.h: In function `sk_rmem_schedule':
-linux/nfs-2.6/include/net/sock.h:1339:13: warning: comparison between
-  signed and unsigned integer expressions [-Wsign-compare]
+Silences the following sparse warning:
+mm/memblock.c:249:49: warning: Using plain integer as NULL pointer
 
-Seen with gcc (GCC) 4.6.3 20120306 (Red Hat 4.6.3-2) using the
--Wextra option.
-
-c76562b6 ("netvm: prevent a stream-specific deadlock") accidentally
-replaced the "size" parameter of sk_rmem_schedule() with an unsigned int. 
-This changes the semantics of the comparison in the return statement.
-
-In sk_wmem_schedule we have syntactically the same comparison, but "size"
-is a signed integer.  In addition, __sk_mem_schedule() takes a signed
-integer for its "size" parameter, so there is an implicit type conversion
-in sk_rmem_schedule() anyway.
-
-Revert the "size" parameter back to a signed integer so that the semantics
-of the expressions in both sk_[rw]mem_schedule() are exactly the same.
-
-Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: David Miller <davem@davemloft.net>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/net/sock.h |    2 +-
+ mm/memblock.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/net/sock.h~include-net-sockh-squelch-compiler-warning-in-sk_rmem_schedule include/net/sock.h
---- a/include/net/sock.h~include-net-sockh-squelch-compiler-warning-in-sk_rmem_schedule
-+++ a/include/net/sock.h
-@@ -1332,7 +1332,7 @@ static inline bool sk_wmem_schedule(stru
- }
+diff -puN mm/memblock.c~mm-memblock-replace-0-with-null-for-pointer mm/memblock.c
+--- a/mm/memblock.c~mm-memblock-replace-0-with-null-for-pointer
++++ a/mm/memblock.c
+@@ -246,7 +246,7 @@ static int __init_memblock memblock_doub
+ 				min(new_area_start, memblock.current_limit),
+ 				new_alloc_size, PAGE_SIZE);
  
- static inline bool
--sk_rmem_schedule(struct sock *sk, struct sk_buff *skb, unsigned int size)
-+sk_rmem_schedule(struct sock *sk, struct sk_buff *skb, int size)
- {
- 	if (!sk_has_account(sk))
- 		return true;
+-		new_array = addr ? __va(addr) : 0;
++		new_array = addr ? __va(addr) : NULL;
+ 	}
+ 	if (!addr) {
+ 		pr_err("memblock: Failed to double %s array from %ld to %ld entries !\n",
 _
 
-Patches currently in -mm which might be from chuck.lever@oracle.com are
+Patches currently in -mm which might be from sachin.kamat@linaro.org are
 
-slab-do-clearslabpfmemalloc-for-all-pages-of-slab.patch
-slab-fix-starting-index-for-finding-another-object.patch
-slub-consider-pfmemalloc_match-in-get_partial_node.patch
-include-net-sockh-squelch-compiler-warning-in-sk_rmem_schedule.patch
+linux-next.patch
+thermal-exynos-fix-build-error.patch
+thermal-exynos-remove-duplicate-inclusion-of-errh-header-file.patch
+thermal-exynos-use-devm_-functions.patch
+mm-memblock-replace-0-with-null-for-pointer.patch
+drivers-video-backlight-da9052_blc-use-usleep_range-instead-of-msleep-for-small-sleeps.patch
+drivers-video-backlight-ltv350qvc-use-usleep_range-instead-of-msleep-for-small-sleeps.patch
+drivers-video-backlight-kb3886_blc-use-usleep_range-instead-of-msleep-for-small-sleeps.patch
 
