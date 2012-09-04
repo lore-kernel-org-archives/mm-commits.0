@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-sysc-call-disable_nonboot_cpus-in-kernel_restart.patch added to -mm tree
-Date: Tue, 04 Sep 2012 15:36:29 -0700
-Message-ID: <20120904223629.8B3EF100047@wpzn3.hot.corp.google.com>
+Subject: + proc-return-enomem-when-inode-allocation-failed.patch added to -mm tree
+Date: Tue, 04 Sep 2012 15:42:15 -0700
+Message-ID: <20120904224216.09F0D5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:59742 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757896Ab2IDWgb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Sep 2012 18:36:31 -0400
-Received: by vcqp1 with SMTP id p1so676198vcq.1
-        for <mm-commits@vger.kernel.org>; Tue, 04 Sep 2012 15:36:30 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:62210 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757824Ab2IDWmT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Sep 2012 18:42:19 -0400
+Received: by lagw12 with SMTP id w12so373934lag.1
+        for <mm-commits@vger.kernel.org>; Tue, 04 Sep 2012 15:42:17 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shawn.guo@linaro.org
+Cc: clouds.yan@gmail.com, rmallon@gmail.com, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     Subject: kernel/sys.c: call disable_nonboot_cpus() in kernel_restart()
+     Subject: proc: return -ENOMEM when inode allocation failed
 has been added to the -mm tree.  Its filename is
-     kernel-sysc-call-disable_nonboot_cpus-in-kernel_restart.patch
+     proc-return-enomem-when-inode-allocation-failed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,38 +33,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Shawn Guo <shawn.guo@linaro.org>
-Subject: kernel/sys.c: call disable_nonboot_cpus() in kernel_restart()
+From: yan <clouds.yan@gmail.com>
+Subject: proc: return -ENOMEM when inode allocation failed
 
-As kernel_power_off() calls disable_nonboot_cpus(), we may also want to
-have kernel_restart() call disable_nonboot_cpus().  Doing so can help
-machines that require boot cpu be the last alive cpu during reboot to
-survive with kernel restart.
+If proc_get_inode() returns NULL then presumably it encountered memory
+exhaustion.  proc_lookup_de() should return -ENOMEM in this case, not
+-EINVAL.
 
-Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
+Signed-off-by: yan <clouds.yan@gmail.com>
+Cc: Ryan Mallon <rmallon@gmail.com>
+Cc: Cong Wang <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/proc/generic.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/sys.c~kernel-sysc-call-disable_nonboot_cpus-in-kernel_restart kernel/sys.c
---- a/kernel/sys.c~kernel-sysc-call-disable_nonboot_cpus-in-kernel_restart
-+++ a/kernel/sys.c
-@@ -368,6 +368,7 @@ EXPORT_SYMBOL(unregister_reboot_notifier
- void kernel_restart(char *cmd)
- {
- 	kernel_restart_prepare(cmd);
-+	disable_nonboot_cpus();
- 	if (!cmd)
- 		printk(KERN_EMERG "Restarting system.\n");
- 	else
+diff -puN fs/proc/generic.c~proc-return-enomem-when-inode-allocation-failed fs/proc/generic.c
+--- a/fs/proc/generic.c~proc-return-enomem-when-inode-allocation-failed
++++ a/fs/proc/generic.c
+@@ -427,7 +427,7 @@ struct dentry *proc_lookup_de(struct pro
+ 		if (!memcmp(dentry->d_name.name, de->name, de->namelen)) {
+ 			pde_get(de);
+ 			spin_unlock(&proc_subdir_lock);
+-			error = -EINVAL;
++			error = -ENOMEM;
+ 			inode = proc_get_inode(dir->i_sb, de);
+ 			goto out_unlock;
+ 		}
 _
 
-Patches currently in -mm which might be from shawn.guo@linaro.org are
+Patches currently in -mm which might be from clouds.yan@gmail.com are
 
-linux-next.patch
-kernel-sysc-call-disable_nonboot_cpus-in-kernel_restart.patch
-rtc-snvs-add-freescale-rtc-snvs-driver.patch
-rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch
+proc-return-enomem-when-inode-allocation-failed.patch
 
