@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + proc-use-kzalloc-instead-of-kmalloc-and-memset-fix.patch added to -mm tree
-Date: Wed, 05 Sep 2012 14:37:15 -0700
-Message-ID: <20120905213716.7A0965C0050@hpza9.eem.corp.google.com>
+Subject: + mm-mmu_notifier-make-the-mmu_notifier-srcu-static.patch added to -mm tree
+Date: Wed, 05 Sep 2012 15:58:29 -0700
+Message-ID: <20120905225830.13B7920004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ey0-f202.google.com ([209.85.215.202]:59421 "EHLO
-	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759538Ab2IEVhS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Sep 2012 17:37:18 -0400
-Received: by eaac1 with SMTP id c1so64259eaa.1
-        for <mm-commits@vger.kernel.org>; Wed, 05 Sep 2012 14:37:17 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:44478 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759760Ab2IEW6c (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Sep 2012 18:58:32 -0400
+Received: by fass10 with SMTP id s10so65937fas.1
+        for <mm-commits@vger.kernel.org>; Wed, 05 Sep 2012 15:58:31 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clouds.yan@gmail.com
+Cc: aarcange@redhat.com, a.p.zijlstra@chello.nl, haggaie@mellanox.com, sagig@mellanox.com, xiaoguangrong@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: proc-use-kzalloc-instead-of-kmalloc-and-memset-fix
+     Subject: mm: mmu_notifier: make the mmu_notifier srcu static
 has been added to the -mm tree.  Its filename is
-     proc-use-kzalloc-instead-of-kmalloc-and-memset-fix.patch
+     mm-mmu_notifier-make-the-mmu_notifier-srcu-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,86 +33,109 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: proc-use-kzalloc-instead-of-kmalloc-and-memset-fix
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: mm: mmu_notifier: make the mmu_notifier srcu static
 
-fix __proc_create() coding-style issues, remove unneeded zero-initialisations
+The variable must be static especially given the variable name.
 
-Cc: yan <clouds.yan@gmail.com>
+s/RCU/SRCU/ over a few comments.
+
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
+Cc: Sagi Grimberg <sagig@mellanox.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Haggai Eran <haggaie@mellanox.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/mmu_notifier.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/proc/generic.c~proc-use-kzalloc-instead-of-kmalloc-and-memset-fix fs/proc/generic.c
---- a/fs/proc/generic.c~proc-use-kzalloc-instead-of-kmalloc-and-memset-fix
-+++ a/fs/proc/generic.c
-@@ -605,7 +605,8 @@ static struct proc_dir_entry *__proc_cre
- 	unsigned int len;
+diff -puN mm/mmu_notifier.c~mm-mmu_notifier-make-the-mmu_notifier-srcu-static mm/mmu_notifier.c
+--- a/mm/mmu_notifier.c~mm-mmu_notifier-make-the-mmu_notifier-srcu-static
++++ a/mm/mmu_notifier.c
+@@ -20,7 +20,7 @@
+ #include <linux/slab.h>
  
- 	/* make sure name is valid */
--	if (!name || !strlen(name)) goto out;
-+	if (!name || !strlen(name))
-+		goto out;
+ /* global SRCU for all MMs */
+-struct srcu_struct srcu;
++static struct srcu_struct srcu;
  
- 	if (xlate_proc_name(name, parent, &fn) != 0)
- 		goto out;
-@@ -617,18 +618,17 @@ static struct proc_dir_entry *__proc_cre
- 	len = strlen(fn);
+ /*
+  * This function can't run concurrently against mmu_notifier_register
+@@ -41,7 +41,7 @@ void __mmu_notifier_release(struct mm_st
+ 	int id;
  
- 	ent = kzalloc(sizeof(struct proc_dir_entry) + len + 1, GFP_KERNEL);
--	if (!ent) goto out;
-+	if (!ent)
-+		goto out;
+ 	/*
+-	 * RCU here will block mmu_notifier_unregister until
++	 * SRCU here will block mmu_notifier_unregister until
+ 	 * ->release returns.
+ 	 */
+ 	id = srcu_read_lock(&srcu);
+@@ -302,7 +302,7 @@ void mmu_notifier_unregister(struct mmu_
  
- 	memcpy(ent->name, fn, len + 1);
- 	ent->namelen = len;
- 	ent->mode = mode;
- 	ent->nlink = nlink;
- 	atomic_set(&ent->count, 1);
--	ent->pde_users = 0;
- 	spin_lock_init(&ent->pde_unload_lock);
--	ent->pde_unload_completion = NULL;
- 	INIT_LIST_HEAD(&ent->pde_openers);
-- out:
-+out:
- 	return ent;
- }
- 
+ 	if (!hlist_unhashed(&mn->hlist)) {
+ 		/*
+-		 * RCU here will force exit_mmap to wait ->release to finish
++		 * SRCU here will force exit_mmap to wait ->release to finish
+ 		 * before freeing the pages.
+ 		 */
+ 		int id;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-origin.patch
-linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-audith-replace-defines-with-c-stubs.patch
-thermal-add-generic-cpufreq-cooling-implementation.patch
-thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
-thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
-mm.patch
-x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
-mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
+mm-remove-__gfp_no_kswapd.patch
+mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host.patch
 mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch
-rbtree-performance-and-correctness-test-fix.patch
-backlight-add-backlight-driver-for-lm3630-chip-fix.patch
-backlight-add-new-lm3639-backlight-driver-fix.patch
-lib-parserc-avoid-overflow-in-match_number-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-rtc-add-dallas-ds2404-driver-fix.patch
-rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch
-fs-fat-fix-all-other-checkpatch-issues-in-dirc-fix.patch
-fat-simplify-writeback_inode-checkpatch-fixes.patch
-fat-simplify-writeback_inode-checkpatch-fixes-fix.patch
-proc-use-kzalloc-instead-of-kmalloc-and-memset-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mm-mmu_notifier-have-mmu_notifiers-use-a-global-srcu-so-they-may-safely-schedule.patch
+mm-mmu_notifier-init-notifier-if-necessary.patch
+thp-fix-the-count-of-thp_collapse_alloc.patch
+thp-remove-unnecessary-check-in-start_khugepaged.patch
+thp-move-khugepaged_mutex-out-of-khugepaged.patch
+thp-remove-unnecessary-khugepaged_thread-check.patch
+thp-remove-wake_up_interruptible-in-the-exit-path.patch
+thp-remove-some-code-depend-on-config_numa.patch
+thp-merge-page-pre-alloc-in-khugepaged_loop-into-khugepaged_do_scan.patch
+thp-release-page-in-page-pre-alloc-path.patch
+thp-introduce-khugepaged_prealloc_page-and-khugepaged_alloc_page.patch
+thp-remove-khugepaged_loop.patch
+thp-use-khugepaged_enabled-to-remove-duplicate-code.patch
+thp-remove-unnecessary-set_recommended_min_free_kbytes.patch
+mm-fix-potential-anon_vma-locking-issue-in-mprotect.patch
+thp-remove-assumptions-on-pgtable_t-type.patch
+thp-introduce-pmdp_invalidate.patch
+thp-make-madv_hugepage-check-for-mm-def_flags.patch
+thp-s390-thp-splitting-backend-for-s390.patch
+thp-s390-thp-pagetable-pre-allocation-for-s390.patch
+thp-s390-disable-thp-for-kvm-host-on-s390.patch
+thp-s390-architecture-backend-for-thp-on-s390.patch
+rbtree-reference-documentation-rbtreetxt-for-usage-instructions.patch
+rbtree-empty-nodes-have-no-color.patch
+rbtree-fix-incorrect-rbtree-node-insertion-in-fs-proc-proc_sysctlc.patch
+rbtree-move-some-implementation-details-from-rbtreeh-to-rbtreec.patch
+rbtree-performance-and-correctness-test.patch
+rbtree-break-out-of-rb_insert_color-loop-after-tree-rotation.patch
+rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary.patch
+rbtree-low-level-optimizations-in-rb_insert_color.patch
+rbtree-adjust-node-color-in-__rb_erase_color-only-when-necessary.patch
+rbtree-optimize-case-selection-logic-in-__rb_erase_color.patch
+rbtree-low-level-optimizations-in-__rb_erase_color.patch
+rbtree-coding-style-adjustments.patch
+rbtree-optimize-fetching-of-sibling-node.patch
+rbtree-test-fix-sparse-warning-about-64-bit-constant.patch
+rbtree-add-__rb_change_child-helper-function.patch
+rbtree-place-easiest-case-first-in-rb_erase.patch
+rbtree-handle-1-child-recoloring-in-rb_erase-instead-of-rb_erase_color.patch
+rbtree-low-level-optimizations-in-rb_erase.patch
+rbtree-augmented-rbtree-test.patch
+rbtree-faster-augmented-rbtree-manipulation.patch
+rbtree-remove-prior-augmented-rbtree-implementation.patch
+rbtree-add-rb_declare_callbacks-macro.patch
+rbtree-add-prio-tree-and-interval-tree-tests.patch
+mm-replace-vma-prio_tree-with-an-interval-tree.patch
+kmemleak-use-rbtree-instead-of-prio-tree.patch
+prio_tree-remove.patch
+rbtree-move-augmented-rbtree-functionality-to-rbtree_augmentedh.patch
+mm-mmu_notifier-make-the-mmu_notifier-srcu-static.patch
 
