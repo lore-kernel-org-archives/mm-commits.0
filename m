@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + thp-make-madv_hugepage-check-for-mm-def_flags.patch added to -mm tree
-Date: Thu, 06 Sep 2012 14:00:28 -0700
-Message-ID: <20120906210029.53E7B1E0048@wpzn4.hot.corp.google.com>
+Subject: + thp-introduce-pmdp_invalidate.patch added to -mm tree
+Date: Thu, 06 Sep 2012 14:00:24 -0700
+Message-ID: <20120906210025.BD20F20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:45557 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759932Ab2IFVAa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Sep 2012 17:00:30 -0400
-Received: by mail-vc0-f202.google.com with SMTP id p1so243165vcq.1
-        for <mm-commits@vger.kernel.org>; Thu, 06 Sep 2012 14:00:30 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:40848 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759932Ab2IFVA2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Sep 2012 17:00:28 -0400
+Received: by wgbdt11 with SMTP id dt11so130714wgb.1
+        for <mm-commits@vger.kernel.org>; Thu, 06 Sep 2012 14:00:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: gerald.schaefer@de.ibm.com, aarcange@redhat.com, ak@linux.intel.com, dhillf@
 
 
 The patch titled
-     Subject: thp: make MADV_HUGEPAGE check for mm->def_flags
+     Subject: thp: introduce pmdp_invalidate()
 has been added to the -mm tree.  Its filename is
-     thp-make-madv_hugepage-check-for-mm-def_flags.patch
+     thp-introduce-pmdp_invalidate.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Subject: thp: make MADV_HUGEPAGE check for mm->def_flags
+Subject: thp: introduce pmdp_invalidate()
 
-This adds a check to hugepage_madvise(), to refuse MADV_HUGEPAGE if
-VM_NOHUGEPAGE is set in mm->def_flags.  On s390, the VM_NOHUGEPAGE flag
-will be set in mm->def_flags for kvm processes, to prevent any future thp
-mappings.  In order to also prevent MADV_HUGEPAGE on such an mm,
-hugepage_madvise() should check mm->def_flags.
+On s390, a valid page table entry must not be changed while it is attached
+to any CPU.  So instead of pmd_mknotpresent() and set_pmd_at(), an IDTE
+operation would be necessary there.  This patch introduces the
+pmdp_invalidate() function, to allow architecture-specific
+implementations.
 
 Signed-off-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -52,30 +52,57 @@ Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/asm-generic/pgtable.h |    5 +++++
+ mm/huge_memory.c              |    3 +--
+ mm/pgtable-generic.c          |   11 +++++++++++
+ 3 files changed, 17 insertions(+), 2 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-make-madv_hugepage-check-for-mm-def_flags mm/huge_memory.c
---- a/mm/huge_memory.c~thp-make-madv_hugepage-check-for-mm-def_flags
-+++ a/mm/huge_memory.c
-@@ -1450,6 +1450,8 @@ out:
- int hugepage_madvise(struct vm_area_struct *vma,
- 		     unsigned long *vm_flags, int advice)
- {
-+	struct mm_struct *mm = vma->vm_mm;
+diff -puN include/asm-generic/pgtable.h~thp-introduce-pmdp_invalidate include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~thp-introduce-pmdp_invalidate
++++ a/include/asm-generic/pgtable.h
+@@ -170,6 +170,11 @@ extern void pgtable_trans_huge_deposit(s
+ extern pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm);
+ #endif
+ 
++#ifndef __HAVE_ARCH_PMDP_INVALIDATE
++extern void pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
++			    pmd_t *pmdp);
++#endif
 +
- 	switch (advice) {
- 	case MADV_HUGEPAGE:
- 		/*
-@@ -1457,6 +1459,8 @@ int hugepage_madvise(struct vm_area_stru
+ #ifndef __HAVE_ARCH_PTE_SAME
+ static inline int pte_same(pte_t pte_a, pte_t pte_b)
+ {
+diff -puN mm/huge_memory.c~thp-introduce-pmdp_invalidate mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-introduce-pmdp_invalidate
++++ a/mm/huge_memory.c
+@@ -1361,8 +1361,7 @@ static int __split_huge_page_map(struct 
+ 		 * SMP TLB and finally we write the non-huge version
+ 		 * of the pmd entry with pmd_populate.
  		 */
- 		if (*vm_flags & (VM_HUGEPAGE | VM_NO_THP))
- 			return -EINVAL;
-+		if (mm->def_flags & VM_NOHUGEPAGE)
-+			return -EINVAL;
- 		*vm_flags &= ~VM_NOHUGEPAGE;
- 		*vm_flags |= VM_HUGEPAGE;
- 		/*
+-		set_pmd_at(mm, address, pmd, pmd_mknotpresent(*pmd));
+-		flush_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
++		pmdp_invalidate(vma, address, pmd);
+ 		pmd_populate(mm, pmd, pgtable);
+ 		ret = 1;
+ 	}
+diff -puN mm/pgtable-generic.c~thp-introduce-pmdp_invalidate mm/pgtable-generic.c
+--- a/mm/pgtable-generic.c~thp-introduce-pmdp_invalidate
++++ a/mm/pgtable-generic.c
+@@ -159,3 +159,14 @@ pgtable_t pgtable_trans_huge_withdraw(st
+ }
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ #endif
++
++#ifndef __HAVE_ARCH_PMDP_INVALIDATE
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++void pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
++		     pmd_t *pmdp)
++{
++	set_pmd_at(vma->vm_mm, address, pmdp, pmd_mknotpresent(*pmdp));
++	flush_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
++}
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
++#endif
 _
 
 Patches currently in -mm which might be from gerald.schaefer@de.ibm.com are
