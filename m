@@ -1,240 +1,254 @@
 From: akpm@linux-foundation.org
-Subject: + mm-wrap-calls-to-set_pte_at_notify-with-invalidate_range_start-and-invalidate_range_end.patch added to -mm tree
-Date: Thu, 06 Sep 2012 13:08:56 -0700
-Message-ID: <20120906200856.871F4100047@wpzn3.hot.corp.google.com>
+Subject: [to-be-updated] thp-remove-assumptions-on-pgtable_t-type.patch removed from -mm tree
+Date: Thu, 06 Sep 2012 13:51:37 -0700
+Message-ID: <20120906205137.CFD661E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:41980 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759593Ab2IFUI6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Sep 2012 16:08:58 -0400
-Received: by vcqp1 with SMTP id p1so234364vcq.1
-        for <mm-commits@vger.kernel.org>; Thu, 06 Sep 2012 13:08:57 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:45075 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932217Ab2IFUvj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Sep 2012 16:51:39 -0400
+Received: by qcqs25 with SMTP id s25so202424qcq.1
+        for <mm-commits@vger.kernel.org>; Thu, 06 Sep 2012 13:51:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: haggaie@mellanox.com, a.p.zijlstra@chello.nl, andrea@qumranet.com, avi@redhat.com, cl@linux-foundation.org, hughd@google.com, liranl@mellanox.com, ogerlitz@mellanox.com, raindel@mellanox.com, sagig@mellanox.com, xiaoguangrong@linux.vnet.ibm.com
+To: gerald.schaefer@de.ibm.com, aarcange@redhat.com, ak@linux.intel.com, dhillf@gmail.com, heiko.carstens@de.ibm.com, hughd@google.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: wrap calls to set_pte_at_notify with invalidate_range_start and invalidate_range_end
-has been added to the -mm tree.  Its filename is
-     mm-wrap-calls-to-set_pte_at_notify-with-invalidate_range_start-and-invalidate_range_end.patch
+     Subject: thp: remove assumptions on pgtable_t type
+has been removed from the -mm tree.  Its filename was
+     thp-remove-assumptions-on-pgtable_t-type.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Haggai Eran <haggaie@mellanox.com>
-Subject: mm: wrap calls to set_pte_at_notify with invalidate_range_start and invalidate_range_end
+From: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Subject: thp: remove assumptions on pgtable_t type
 
-In order to allow sleeping during invalidate_page mmu notifier calls, we
-need to avoid calling when holding the PT lock.  In addition to its direct
-calls, invalidate_page can also be called as a substitute for a change_pte
-call, in case the notifier client hasn't implemented change_pte.
+The thp page table pre-allocation code currently assumes that pgtable_t is
+of type "struct page *".  This may not be true for all architectures, so
+this patch removes that assumption by replacing the functions
+prepare_pmd_huge_pte() and get_pmd_huge_pte() with two new functions that
+can be defined architecture-specific.
 
-This patch drops the invalidate_page call from change_pte, and instead
-wraps all calls to change_pte with invalidate_range_start and
-invalidate_range_end calls.
+It also removes two VM_BUG_ON checks for page_count() and page_mapcount()
+operating on a pgtable_t.  Apart from the VM_BUG_ON removal, there will be
+no functional change introduced by this patch.
 
-Note that change_pte still cannot sleep after this patch, and that clients
-implementing change_pte should not take action on it in case the number of
-outstanding invalidate_range_start calls is larger than one, otherwise
-they might miss a later invalidation.
-
-Signed-off-by: Haggai Eran <haggaie@mellanox.com>
-Cc: Andrea Arcangeli <andrea@qumranet.com>
-Cc: Sagi Grimberg <sagig@mellanox.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
-Cc: Or Gerlitz <ogerlitz@mellanox.com>
-Cc: Haggai Eran <haggaie@mellanox.com>
-Cc: Shachar Raindel <raindel@mellanox.com>
-Cc: Liran Liss <liranl@mellanox.com>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: Avi Kivity <avi@redhat.com>
+Signed-off-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Hillf Danton <dhillf@gmail.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/events/uprobes.c |    5 +++++
- mm/ksm.c                |   21 +++++++++++++++++++--
- mm/memory.c             |   17 +++++++++++------
- mm/mmu_notifier.c       |    6 ------
- 4 files changed, 35 insertions(+), 14 deletions(-)
+ include/asm-generic/pgtable.h |    8 +++++
+ include/linux/huge_mm.h       |    1 
+ mm/huge_memory.c              |   46 ++++----------------------------
+ mm/pgtable-generic.c          |   39 +++++++++++++++++++++++++++
+ 4 files changed, 53 insertions(+), 41 deletions(-)
 
-diff -puN kernel/events/uprobes.c~mm-wrap-calls-to-set_pte_at_notify-with-invalidate_range_start-and-invalidate_range_end kernel/events/uprobes.c
---- a/kernel/events/uprobes.c~mm-wrap-calls-to-set_pte_at_notify-with-invalidate_range_start-and-invalidate_range_end
-+++ a/kernel/events/uprobes.c
-@@ -141,10 +141,14 @@ static int __replace_page(struct vm_area
- 	spinlock_t *ptl;
- 	pte_t *ptep;
- 	int err;
-+	/* For mmu_notifiers */
-+	const unsigned long mmun_start = addr;
-+	const unsigned long mmun_end   = addr + PAGE_SIZE;
+diff -puN include/asm-generic/pgtable.h~thp-remove-assumptions-on-pgtable_t-type include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~thp-remove-assumptions-on-pgtable_t-type
++++ a/include/asm-generic/pgtable.h
+@@ -162,6 +162,14 @@ extern void pmdp_splitting_flush(struct 
+ 				 unsigned long address, pmd_t *pmdp);
+ #endif
  
- 	/* For try_to_free_swap() and munlock_vma_page() below */
- 	lock_page(page);
- 
-+	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
- 	err = -EAGAIN;
- 	ptep = page_check_address(page, mm, addr, &ptl, 0);
- 	if (!ptep)
-@@ -173,6 +177,7 @@ static int __replace_page(struct vm_area
- 
- 	err = 0;
-  unlock:
-+	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
- 	unlock_page(page);
- 	return err;
++#ifndef __HAVE_ARCH_PGTABLE_DEPOSIT
++extern void pgtable_deposit(struct mm_struct *mm, pgtable_t pgtable);
++#endif
++
++#ifndef __HAVE_ARCH_PGTABLE_WITHDRAW
++extern pgtable_t pgtable_withdraw(struct mm_struct *mm);
++#endif
++
+ #ifndef __HAVE_ARCH_PTE_SAME
+ static inline int pte_same(pte_t pte_a, pte_t pte_b)
+ {
+diff -puN include/linux/huge_mm.h~thp-remove-assumptions-on-pgtable_t-type include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~thp-remove-assumptions-on-pgtable_t-type
++++ a/include/linux/huge_mm.h
+@@ -11,7 +11,6 @@ extern int copy_huge_pmd(struct mm_struc
+ extern int do_huge_pmd_wp_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			       unsigned long address, pmd_t *pmd,
+ 			       pmd_t orig_pmd);
+-extern pgtable_t get_pmd_huge_pte(struct mm_struct *mm);
+ extern struct page *follow_trans_huge_pmd(struct mm_struct *mm,
+ 					  unsigned long addr,
+ 					  pmd_t *pmd,
+diff -puN mm/huge_memory.c~thp-remove-assumptions-on-pgtable_t-type mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-remove-assumptions-on-pgtable_t-type
++++ a/mm/huge_memory.c
+@@ -598,19 +598,6 @@ out:
  }
-diff -puN mm/ksm.c~mm-wrap-calls-to-set_pte_at_notify-with-invalidate_range_start-and-invalidate_range_end mm/ksm.c
---- a/mm/ksm.c~mm-wrap-calls-to-set_pte_at_notify-with-invalidate_range_start-and-invalidate_range_end
-+++ a/mm/ksm.c
-@@ -709,15 +709,22 @@ static int write_protect_page(struct vm_
- 	spinlock_t *ptl;
- 	int swapped;
- 	int err = -EFAULT;
-+	unsigned long mmun_start;	/* For mmu_notifiers */
-+	unsigned long mmun_end;		/* For mmu_notifiers */
+ __setup("transparent_hugepage=", setup_transparent_hugepage);
  
- 	addr = page_address_in_vma(page, vma);
- 	if (addr == -EFAULT)
- 		goto out;
+-static void prepare_pmd_huge_pte(pgtable_t pgtable,
+-				 struct mm_struct *mm)
+-{
+-	assert_spin_locked(&mm->page_table_lock);
+-
+-	/* FIFO */
+-	if (!mm->pmd_huge_pte)
+-		INIT_LIST_HEAD(&pgtable->lru);
+-	else
+-		list_add(&pgtable->lru, &mm->pmd_huge_pte->lru);
+-	mm->pmd_huge_pte = pgtable;
+-}
+-
+ static inline pmd_t maybe_pmd_mkwrite(pmd_t pmd, struct vm_area_struct *vma)
+ {
+ 	if (likely(vma->vm_flags & VM_WRITE))
+@@ -652,7 +639,7 @@ static int __do_huge_pmd_anonymous_page(
+ 		 */
+ 		page_add_new_anon_rmap(page, vma, haddr);
+ 		set_pmd_at(mm, haddr, pmd, entry);
+-		prepare_pmd_huge_pte(pgtable, mm);
++		pgtable_deposit(mm, pgtable);
+ 		add_mm_counter(mm, MM_ANONPAGES, HPAGE_PMD_NR);
+ 		mm->nr_ptes++;
+ 		spin_unlock(&mm->page_table_lock);
+@@ -778,7 +765,7 @@ int copy_huge_pmd(struct mm_struct *dst_
+ 	pmdp_set_wrprotect(src_mm, addr, src_pmd);
+ 	pmd = pmd_mkold(pmd_wrprotect(pmd));
+ 	set_pmd_at(dst_mm, addr, dst_pmd, pmd);
+-	prepare_pmd_huge_pte(pgtable, dst_mm);
++	pgtable_deposit(dst_mm, pgtable);
+ 	dst_mm->nr_ptes++;
  
- 	BUG_ON(PageTransCompound(page));
-+
-+	mmun_start = addr;
-+	mmun_end   = addr + PAGE_SIZE;
-+	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
-+
- 	ptep = page_check_address(page, mm, addr, &ptl, 0);
- 	if (!ptep)
--		goto out;
-+		goto out_mn;
- 
- 	if (pte_write(*ptep) || pte_dirty(*ptep)) {
- 		pte_t entry;
-@@ -752,6 +759,8 @@ static int write_protect_page(struct vm_
- 
- out_unlock:
- 	pte_unmap_unlock(ptep, ptl);
-+out_mn:
-+	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
- out:
- 	return err;
+ 	ret = 0;
+@@ -789,25 +776,6 @@ out:
+ 	return ret;
  }
-@@ -776,6 +785,8 @@ static int replace_page(struct vm_area_s
- 	spinlock_t *ptl;
- 	unsigned long addr;
- 	int err = -EFAULT;
-+	unsigned long mmun_start;	/* For mmu_notifiers */
-+	unsigned long mmun_end;		/* For mmu_notifiers */
  
- 	addr = page_address_in_vma(page, vma);
- 	if (addr == -EFAULT)
-@@ -794,10 +805,14 @@ static int replace_page(struct vm_area_s
- 	if (!pmd_present(*pmd))
- 		goto out;
- 
-+	mmun_start = addr;
-+	mmun_end   = addr + PAGE_SIZE;
-+	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
-+
- 	ptep = pte_offset_map_lock(mm, pmd, addr, &ptl);
- 	if (!pte_same(*ptep, orig_pte)) {
- 		pte_unmap_unlock(ptep, ptl);
--		goto out;
-+		goto out_mn;
- 	}
- 
- 	get_page(kpage);
-@@ -814,6 +829,8 @@ static int replace_page(struct vm_area_s
- 
- 	pte_unmap_unlock(ptep, ptl);
- 	err = 0;
-+out_mn:
-+	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
- out:
- 	return err;
- }
-diff -puN mm/memory.c~mm-wrap-calls-to-set_pte_at_notify-with-invalidate_range_start-and-invalidate_range_end mm/memory.c
---- a/mm/memory.c~mm-wrap-calls-to-set_pte_at_notify-with-invalidate_range_start-and-invalidate_range_end
-+++ a/mm/memory.c
-@@ -2526,6 +2526,8 @@ static int do_wp_page(struct mm_struct *
- 	int ret = 0;
- 	int page_mkwrite = 0;
- 	struct page *dirty_page = NULL;
-+	unsigned long mmun_start;	/* For mmu_notifiers */
-+	unsigned long mmun_end;		/* For mmu_notifiers */
- 
- 	old_page = vm_normal_page(vma, address, orig_pte);
- 	if (!old_page) {
-@@ -2703,6 +2705,10 @@ gotten:
- 	if (mem_cgroup_newpage_charge(new_page, mm, GFP_KERNEL))
- 		goto oom_free_new;
- 
-+	mmun_start = address & PAGE_MASK;
-+	mmun_end   = (address & PAGE_MASK) + PAGE_SIZE;
-+	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
-+
- 	/*
- 	 * Re-check the pte - we dropped the lock
- 	 */
-@@ -2765,14 +2771,13 @@ gotten:
- 	} else
- 		mem_cgroup_uncharge_page(new_page);
- 
-+	if (new_page)
-+		page_cache_release(new_page);
- unlock:
- 	pte_unmap_unlock(page_table, ptl);
--	if (new_page) {
--		if (new_page == old_page)
--			/* cow happened, notify before releasing old_page */
--			mmu_notifier_invalidate_page(mm, address);
--		page_cache_release(new_page);
+-/* no "address" argument so destroys page coloring of some arch */
+-pgtable_t get_pmd_huge_pte(struct mm_struct *mm)
+-{
+-	pgtable_t pgtable;
+-
+-	assert_spin_locked(&mm->page_table_lock);
+-
+-	/* FIFO */
+-	pgtable = mm->pmd_huge_pte;
+-	if (list_empty(&pgtable->lru))
+-		mm->pmd_huge_pte = NULL;
+-	else {
+-		mm->pmd_huge_pte = list_entry(pgtable->lru.next,
+-					      struct page, lru);
+-		list_del(&pgtable->lru);
 -	}
-+	if (new_page)
-+		/* Only call the end notifier if the begin was called. */
-+		mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
- 	if (old_page) {
- 		/*
- 		 * Don't let another task, with possibly unlocked vma,
-diff -puN mm/mmu_notifier.c~mm-wrap-calls-to-set_pte_at_notify-with-invalidate_range_start-and-invalidate_range_end mm/mmu_notifier.c
---- a/mm/mmu_notifier.c~mm-wrap-calls-to-set_pte_at_notify-with-invalidate_range_start-and-invalidate_range_end
-+++ a/mm/mmu_notifier.c
-@@ -137,12 +137,6 @@ void __mmu_notifier_change_pte(struct mm
- 	hlist_for_each_entry_rcu(mn, n, &mm->mmu_notifier_mm->list, hlist) {
- 		if (mn->ops->change_pte)
- 			mn->ops->change_pte(mn, mm, address, pte);
--		/*
--		 * Some drivers don't have change_pte,
--		 * so we must call invalidate_page in that case.
--		 */
--		else if (mn->ops->invalidate_page)
--			mn->ops->invalidate_page(mn, mm, address);
- 	}
- 	srcu_read_unlock(&srcu, id);
+-	return pgtable;
+-}
+-
+ static int do_huge_pmd_wp_page_fallback(struct mm_struct *mm,
+ 					struct vm_area_struct *vma,
+ 					unsigned long address,
+@@ -863,7 +831,7 @@ static int do_huge_pmd_wp_page_fallback(
+ 	pmdp_clear_flush_notify(vma, haddr, pmd);
+ 	/* leave pmd empty until pte is filled */
+ 
+-	pgtable = get_pmd_huge_pte(mm);
++	pgtable = pgtable_withdraw(mm);
+ 	pmd_populate(mm, &_pmd, pgtable);
+ 
+ 	for (i = 0; i < HPAGE_PMD_NR; i++, haddr += PAGE_SIZE) {
+@@ -1028,7 +996,7 @@ int zap_huge_pmd(struct mmu_gather *tlb,
+ 	if (__pmd_trans_huge_lock(pmd, vma) == 1) {
+ 		struct page *page;
+ 		pgtable_t pgtable;
+-		pgtable = get_pmd_huge_pte(tlb->mm);
++		pgtable = pgtable_withdraw(tlb->mm);
+ 		page = pmd_page(*pmd);
+ 		pmd_clear(pmd);
+ 		tlb_remove_pmd_tlb_entry(tlb, pmd, addr);
+@@ -1345,7 +1313,7 @@ static int __split_huge_page_map(struct 
+ 	pmd = page_check_address_pmd(page, mm, address,
+ 				     PAGE_CHECK_ADDRESS_PMD_SPLITTING_FLAG);
+ 	if (pmd) {
+-		pgtable = get_pmd_huge_pte(mm);
++		pgtable = pgtable_withdraw(mm);
+ 		pmd_populate(mm, &_pmd, pgtable);
+ 
+ 		for (i = 0, haddr = address; i < HPAGE_PMD_NR;
+@@ -2018,8 +1986,6 @@ static void collapse_huge_page(struct mm
+ 	pte_unmap(pte);
+ 	__SetPageUptodate(new_page);
+ 	pgtable = pmd_pgtable(_pmd);
+-	VM_BUG_ON(page_count(pgtable) != 1);
+-	VM_BUG_ON(page_mapcount(pgtable) != 0);
+ 
+ 	_pmd = mk_pmd(new_page, vma->vm_page_prot);
+ 	_pmd = maybe_pmd_mkwrite(pmd_mkdirty(_pmd), vma);
+@@ -2037,7 +2003,7 @@ static void collapse_huge_page(struct mm
+ 	page_add_new_anon_rmap(new_page, vma, address);
+ 	set_pmd_at(mm, address, pmd, _pmd);
+ 	update_mmu_cache(vma, address, _pmd);
+-	prepare_pmd_huge_pte(pgtable, mm);
++	pgtable_deposit(mm, pgtable);
+ 	spin_unlock(&mm->page_table_lock);
+ 
+ 	*hpage = NULL;
+diff -puN mm/pgtable-generic.c~thp-remove-assumptions-on-pgtable_t-type mm/pgtable-generic.c
+--- a/mm/pgtable-generic.c~thp-remove-assumptions-on-pgtable_t-type
++++ a/mm/pgtable-generic.c
+@@ -120,3 +120,42 @@ void pmdp_splitting_flush(struct vm_area
  }
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ #endif
++
++#ifndef __HAVE_ARCH_PGTABLE_DEPOSIT
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++void pgtable_deposit(struct mm_struct *mm, pgtable_t pgtable)
++{
++	assert_spin_locked(&mm->page_table_lock);
++
++	/* FIFO */
++	if (!mm->pmd_huge_pte)
++		INIT_LIST_HEAD(&pgtable->lru);
++	else
++		list_add(&pgtable->lru, &mm->pmd_huge_pte->lru);
++	mm->pmd_huge_pte = pgtable;
++}
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
++#endif
++
++#ifndef __HAVE_ARCH_PGTABLE_WITHDRAW
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++/* no "address" argument so destroys page coloring of some arch */
++pgtable_t pgtable_withdraw(struct mm_struct *mm)
++{
++	pgtable_t pgtable;
++
++	assert_spin_locked(&mm->page_table_lock);
++
++	/* FIFO */
++	pgtable = mm->pmd_huge_pte;
++	if (list_empty(&pgtable->lru))
++		mm->pmd_huge_pte = NULL;
++	else {
++		mm->pmd_huge_pte = list_entry(pgtable->lru.next,
++					      struct page, lru);
++		list_del(&pgtable->lru);
++	}
++	return pgtable;
++}
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
++#endif
 _
 
-Patches currently in -mm which might be from haggaie@mellanox.com are
+Patches currently in -mm which might be from gerald.schaefer@de.ibm.com are
 
 linux-next.patch
-mm-mmu_notifier-have-mmu_notifiers-use-a-global-srcu-so-they-may-safely-schedule.patch
-mm-mmu_notifier-init-notifier-if-necessary.patch
-mm-mmu_notifier-make-the-mmu_notifier-srcu-static.patch
-mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock.patch
-mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock-fix.patch
-mm-wrap-calls-to-set_pte_at_notify-with-invalidate_range_start-and-invalidate_range_end.patch
+thp-x86-introduce-have_arch_transparent_hugepage.patch
+thp-introduce-pmdp_invalidate.patch
+thp-make-madv_hugepage-check-for-mm-def_flags.patch
+thp-s390-thp-splitting-backend-for-s390.patch
+thp-s390-thp-pagetable-pre-allocation-for-s390.patch
+thp-s390-disable-thp-for-kvm-host-on-s390.patch
+thp-s390-architecture-backend-for-thp-on-s390.patch
 
