@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] thp-make-madv_hugepage-check-for-mm-def_flags.patch removed from -mm tree
-Date: Thu, 06 Sep 2012 13:51:43 -0700
-Message-ID: <20120906205144.320C25C0050@hpza9.eem.corp.google.com>
+Subject: [to-be-updated] thp-s390-thp-splitting-backend-for-s390.patch removed from -mm tree
+Date: Thu, 06 Sep 2012 13:51:48 -0700
+Message-ID: <20120906205149.4D05F5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:43714 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932217Ab2IFUvr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Sep 2012 16:51:47 -0400
-Received: by wgbdt11 with SMTP id dt11so130162wgb.1
-        for <mm-commits@vger.kernel.org>; Thu, 06 Sep 2012 13:51:45 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:51334 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932217Ab2IFUvw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Sep 2012 16:51:52 -0400
+Received: by bkcjc3 with SMTP id jc3so130091bkc.1
+        for <mm-commits@vger.kernel.org>; Thu, 06 Sep 2012 13:51:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: gerald.schaefer@de.ibm.com, aarcange@redhat.com, ak@linux.intel.com, dhillf@gmail.com, heiko.carstens@de.ibm.com, hughd@google.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: make MADV_HUGEPAGE check for mm->def_flags
+     Subject: thp, s390: thp splitting backend for s390
 has been removed from the -mm tree.  Its filename was
-     thp-make-madv_hugepage-check-for-mm-def_flags.patch
+     thp-s390-thp-splitting-backend-for-s390.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Subject: thp: make MADV_HUGEPAGE check for mm->def_flags
+Subject: thp, s390: thp splitting backend for s390
 
-This adds a check to hugepage_madvise(), to refuse MADV_HUGEPAGE if
-VM_NOHUGEPAGE is set in mm->def_flags.  On s390, the VM_NOHUGEPAGE flag
-will be set in mm->def_flags for kvm processes, to prevent any future thp
-mappings.  In order to also prevent MADV_HUGEPAGE on such an mm,
-hugepage_madvise() should check mm->def_flags.
+This patch is part of the architecture backend for thp on s390.  It
+provides the functions related to thp splitting, including serialization
+against gup.  Unlike other archs, pmdp_splitting_flush() cannot use a tlb
+flushing operation to serialize against gup on s390, because that wouldn't
+be stopped by the disabled IRQs.  So instead, smp_call_function() is
+called with an empty function, which will have the expected effect.
 
 Signed-off-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -42,37 +43,100 @@ Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ arch/s390/include/asm/pgtable.h |   13 +++++++++++++
+ arch/s390/mm/gup.c              |   11 ++++++++++-
+ arch/s390/mm/pgtable.c          |   18 ++++++++++++++++++
+ 3 files changed, 41 insertions(+), 1 deletion(-)
 
-diff -puN mm/huge_memory.c~thp-make-madv_hugepage-check-for-mm-def_flags mm/huge_memory.c
---- a/mm/huge_memory.c~thp-make-madv_hugepage-check-for-mm-def_flags
-+++ a/mm/huge_memory.c
-@@ -1450,6 +1450,8 @@ out:
- int hugepage_madvise(struct vm_area_struct *vma,
- 		     unsigned long *vm_flags, int advice)
- {
-+	struct mm_struct *mm = vma->vm_mm;
+diff -puN arch/s390/include/asm/pgtable.h~thp-s390-thp-splitting-backend-for-s390 arch/s390/include/asm/pgtable.h
+--- a/arch/s390/include/asm/pgtable.h~thp-s390-thp-splitting-backend-for-s390
++++ a/arch/s390/include/asm/pgtable.h
+@@ -347,6 +347,8 @@ extern struct page *vmemmap;
+ 
+ #define _SEGMENT_ENTRY_LARGE	0x400	/* STE-format control, large page   */
+ #define _SEGMENT_ENTRY_CO	0x100	/* change-recording override   */
++#define _SEGMENT_ENTRY_SPLIT_BIT 0	/* THP splitting bit number */
++#define _SEGMENT_ENTRY_SPLIT	(1UL << _SEGMENT_ENTRY_SPLIT_BIT)
+ 
+ /* Page status table bits for virtualization */
+ #define RCP_ACC_BITS	0xf000000000000000UL
+@@ -506,6 +508,10 @@ static inline int pmd_bad(pmd_t pmd)
+ 	return (pmd_val(pmd) & mask) != _SEGMENT_ENTRY;
+ }
+ 
++#define __HAVE_ARCH_PMDP_SPLITTING_FLUSH
++extern void pmdp_splitting_flush(struct vm_area_struct *vma,
++				 unsigned long addr, pmd_t *pmdp);
 +
- 	switch (advice) {
- 	case MADV_HUGEPAGE:
- 		/*
-@@ -1457,6 +1459,8 @@ int hugepage_madvise(struct vm_area_stru
- 		 */
- 		if (*vm_flags & (VM_HUGEPAGE | VM_NO_THP))
- 			return -EINVAL;
-+		if (mm->def_flags & VM_NOHUGEPAGE)
-+			return -EINVAL;
- 		*vm_flags &= ~VM_NOHUGEPAGE;
- 		*vm_flags |= VM_HUGEPAGE;
- 		/*
+ static inline int pte_none(pte_t pte)
+ {
+ 	return (pte_val(pte) & _PAGE_INVALID) && !(pte_val(pte) & _PAGE_SWT);
+@@ -1159,6 +1165,13 @@ static inline pmd_t *pmd_offset(pud_t *p
+ #define pte_offset_map(pmd, address) pte_offset_kernel(pmd, address)
+ #define pte_unmap(pte) do { } while (0)
+ 
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++static inline int pmd_trans_splitting(pmd_t pmd)
++{
++	return pmd_val(pmd) & _SEGMENT_ENTRY_SPLIT;
++}
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
++
+ /*
+  * 31 bit swap entry format:
+  * A page-table entry has some bits we have to treat in a special way.
+diff -puN arch/s390/mm/gup.c~thp-s390-thp-splitting-backend-for-s390 arch/s390/mm/gup.c
+--- a/arch/s390/mm/gup.c~thp-s390-thp-splitting-backend-for-s390
++++ a/arch/s390/mm/gup.c
+@@ -115,7 +115,16 @@ static inline int gup_pmd_range(pud_t *p
+ 		pmd = *pmdp;
+ 		barrier();
+ 		next = pmd_addr_end(addr, end);
+-		if (pmd_none(pmd))
++		/*
++		 * The pmd_trans_splitting() check below explains why
++		 * pmdp_splitting_flush() has to serialize with
++		 * smp_call_function() against our disabled IRQs, to stop
++		 * this gup-fast code from running while we set the
++		 * splitting bit in the pmd. Returning zero will take
++		 * the slow path that will call wait_split_huge_page()
++		 * if the pmd is still in splitting state.
++		 */
++		if (pmd_none(pmd) || pmd_trans_splitting(pmd))
+ 			return 0;
+ 		if (unlikely(pmd_huge(pmd))) {
+ 			if (!gup_huge_pmd(pmdp, pmd, addr, next,
+diff -puN arch/s390/mm/pgtable.c~thp-s390-thp-splitting-backend-for-s390 arch/s390/mm/pgtable.c
+--- a/arch/s390/mm/pgtable.c~thp-s390-thp-splitting-backend-for-s390
++++ a/arch/s390/mm/pgtable.c
+@@ -866,3 +866,21 @@ bool kernel_page_present(struct page *pa
+ 	return cc == 0;
+ }
+ #endif /* CONFIG_HIBERNATION && CONFIG_DEBUG_PAGEALLOC */
++
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++static void pmdp_splitting_flush_sync(void *arg)
++{
++	/* Simply deliver the interrupt */
++}
++
++void pmdp_splitting_flush(struct vm_area_struct *vma, unsigned long address,
++			  pmd_t *pmdp)
++{
++	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
++	if (!test_and_set_bit(_SEGMENT_ENTRY_SPLIT_BIT,
++			      (unsigned long *) pmdp)) {
++		/* need to serialize against gup-fast (IRQ disabled) */
++		smp_call_function(pmdp_splitting_flush_sync, NULL, 1);
++	}
++}
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
 _
 
 Patches currently in -mm which might be from gerald.schaefer@de.ibm.com are
 
 linux-next.patch
 thp-x86-introduce-have_arch_transparent_hugepage.patch
-thp-s390-thp-splitting-backend-for-s390.patch
 thp-s390-thp-pagetable-pre-allocation-for-s390.patch
 thp-s390-disable-thp-for-kvm-host-on-s390.patch
 thp-s390-architecture-backend-for-thp-on-s390.patch
