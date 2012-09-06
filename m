@@ -1,38 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] thp-s390-disable-thp-for-kvm-host-on-s390.patch removed from -mm tree
-Date: Thu, 06 Sep 2012 13:51:56 -0700
-Message-ID: <20120906205157.422A25C0050@hpza9.eem.corp.google.com>
+Subject: + thp-x86-introduce-have_arch_transparent_hugepage.patch added to -mm tree
+Date: Thu, 06 Sep 2012 14:00:16 -0700
+Message-ID: <20120906210017.B381D5C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:43714 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933119Ab2IFUv7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Sep 2012 16:51:59 -0400
-Received: by mail-wg0-f74.google.com with SMTP id dt11so130162wgb.1
-        for <mm-commits@vger.kernel.org>; Thu, 06 Sep 2012 13:51:59 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:34599 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759932Ab2IFVAV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Sep 2012 17:00:21 -0400
+Received: by fass10 with SMTP id s10so130685fas.1
+        for <mm-commits@vger.kernel.org>; Thu, 06 Sep 2012 14:00:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gerald.schaefer@de.ibm.com, aarcange@redhat.com, ak@linux.intel.com, dhillf@gmail.com, heiko.carstens@de.ibm.com, hughd@google.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: gerald.schaefer@de.ibm.com, aarcange@redhat.com, ak@linux.intel.com, dhillf@gmail.com, heiko.carstens@de.ibm.com, hpa@zytor.com, hughd@google.com, mingo@kernel.org, schwidefsky@de.ibm.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: thp, s390: disable thp for kvm host on s390
-has been removed from the -mm tree.  Its filename was
-     thp-s390-disable-thp-for-kvm-host-on-s390.patch
+     Subject: thp, x86: introduce HAVE_ARCH_TRANSPARENT_HUGEPAGE
+has been added to the -mm tree.  Its filename is
+     thp-x86-introduce-have_arch_transparent_hugepage.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Subject: thp, s390: disable thp for kvm host on s390
+Subject: thp, x86: introduce HAVE_ARCH_TRANSPARENT_HUGEPAGE
 
-This patch is part of the architecture backend for thp on s390.  It
-disables thp for kvm hosts, because there is no kvm host hugepage support
-so far.  Existing thp mappings are split by follow_page() with FOLL_SPLIT,
-and future thp mappings are prevented by setting VM_NOHUGEPAGE in
-mm->def_flags.
+Cleanup patch in preparation for transparent hugepage support on s390. 
+Adding new architectures to the TRANSPARENT_HUGEPAGE config option can
+make the "depends" line rather ugly, like "depends on (X86 || (S390 &&
+64BIT)) && MMU".
+
+This patch adds a HAVE_ARCH_TRANSPARENT_HUGEPAGE instead.  x86 already has
+MMU "def_bool y", so the MMU check is superfluous there and
+HAVE_ARCH_TRANSPARENT_HUGEPAGE can be selected in arch/x86/Kconfig.
 
 Signed-off-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Hugh Dickins <hughd@google.com>
@@ -42,61 +58,56 @@ Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/mm/pgtable.c |   30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+ arch/Kconfig     |    3 +++
+ arch/x86/Kconfig |    1 +
+ mm/Kconfig       |    2 +-
+ 3 files changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN arch/s390/mm/pgtable.c~thp-s390-disable-thp-for-kvm-host-on-s390 arch/s390/mm/pgtable.c
---- a/arch/s390/mm/pgtable.c~thp-s390-disable-thp-for-kvm-host-on-s390
-+++ a/arch/s390/mm/pgtable.c
-@@ -787,6 +787,30 @@ void tlb_remove_table(struct mmu_gather 
- 		tlb_table_flush(tlb);
- }
+diff -puN arch/Kconfig~thp-x86-introduce-have_arch_transparent_hugepage arch/Kconfig
+--- a/arch/Kconfig~thp-x86-introduce-have_arch_transparent_hugepage
++++ a/arch/Kconfig
+@@ -326,4 +326,7 @@ config HAVE_RCU_USER_QS
+ 	  are already protected inside rcu_irq_enter/rcu_irq_exit() but
+ 	  preemption or signal handling on irq exit still need to be protected.
  
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+void thp_split_vma(struct vm_area_struct *vma)
-+{
-+	unsigned long addr;
-+	struct page *page;
++config HAVE_ARCH_TRANSPARENT_HUGEPAGE
++	bool
 +
-+	for (addr = vma->vm_start; addr < vma->vm_end; addr += PAGE_SIZE) {
-+		page = follow_page(vma, addr, FOLL_SPLIT);
-+	}
-+}
-+
-+void thp_split_mm(struct mm_struct *mm)
-+{
-+	struct vm_area_struct *vma = mm->mmap;
-+
-+	while (vma != NULL) {
-+		thp_split_vma(vma);
-+		vma->vm_flags &= ~VM_HUGEPAGE;
-+		vma->vm_flags |= VM_NOHUGEPAGE;
-+		vma = vma->vm_next;
-+	}
-+}
-+#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
-+
- /*
-  * switch on pgstes for its userspace process (for kvm)
-  */
-@@ -824,6 +848,12 @@ int s390_enable_sie(void)
- 	if (!mm)
- 		return -ENOMEM;
+ source "kernel/gcov/Kconfig"
+diff -puN arch/x86/Kconfig~thp-x86-introduce-have_arch_transparent_hugepage arch/x86/Kconfig
+--- a/arch/x86/Kconfig~thp-x86-introduce-have_arch_transparent_hugepage
++++ a/arch/x86/Kconfig
+@@ -83,6 +83,7 @@ config X86
+ 	select IRQ_FORCED_THREADING
+ 	select USE_GENERIC_SMP_HELPERS if SMP
+ 	select HAVE_BPF_JIT if X86_64
++	select HAVE_ARCH_TRANSPARENT_HUGEPAGE
+ 	select CLKEVT_I8253
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	select GENERIC_IOMAP
+diff -puN mm/Kconfig~thp-x86-introduce-have_arch_transparent_hugepage mm/Kconfig
+--- a/mm/Kconfig~thp-x86-introduce-have_arch_transparent_hugepage
++++ a/mm/Kconfig
+@@ -318,7 +318,7 @@ config NOMMU_INITIAL_TRIM_EXCESS
  
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	/* split thp mappings and disable thp for future mappings */
-+	thp_split_mm(mm);
-+	mm->def_flags |= VM_NOHUGEPAGE;
-+#endif
-+
- 	/* Now lets check again if something happened */
- 	task_lock(tsk);
- 	if (!tsk->mm || atomic_read(&tsk->mm->mm_users) > 1 ||
+ config TRANSPARENT_HUGEPAGE
+ 	bool "Transparent Hugepage Support"
+-	depends on X86 && MMU
++	depends on HAVE_ARCH_TRANSPARENT_HUGEPAGE
+ 	select COMPACTION
+ 	help
+ 	  Transparent Hugepages allows the kernel to use huge pages and
 _
 
 Patches currently in -mm which might be from gerald.schaefer@de.ibm.com are
 
 linux-next.patch
 thp-x86-introduce-have_arch_transparent_hugepage.patch
+thp-remove-assumptions-on-pgtable_t-type.patch
+thp-introduce-pmdp_invalidate.patch
+thp-make-madv_hugepage-check-for-mm-def_flags.patch
+thp-s390-thp-splitting-backend-for-s390.patch
+thp-s390-thp-pagetable-pre-allocation-for-s390.patch
+thp-s390-disable-thp-for-kvm-host-on-s390.patch
 thp-s390-architecture-backend-for-thp-on-s390.patch
 
