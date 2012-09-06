@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + thp-s390-thp-pagetable-pre-allocation-for-s390.patch added to -mm tree
-Date: Thu, 06 Sep 2012 14:00:36 -0700
-Message-ID: <20120906210037.B27D35C0060@hpza9.eem.corp.google.com>
+Subject: + thp-s390-disable-thp-for-kvm-host-on-s390.patch added to -mm tree
+Date: Thu, 06 Sep 2012 14:00:40 -0700
+Message-ID: <20120906210041.B14BA5C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:55680 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759932Ab2IFVAk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Sep 2012 17:00:40 -0400
-Received: by mail-lpp01m010-f74.google.com with SMTP id w12so129993lag.1
-        for <mm-commits@vger.kernel.org>; Thu, 06 Sep 2012 14:00:39 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:46768 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759932Ab2IFVAp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Sep 2012 17:00:45 -0400
+Received: by lbbge1 with SMTP id ge1so134165lbb.1
+        for <mm-commits@vger.kernel.org>; Thu, 06 Sep 2012 14:00:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: gerald.schaefer@de.ibm.com, aarcange@redhat.com, ak@linux.intel.com, dhillf@
 
 
 The patch titled
-     Subject: thp, s390: thp pagetable pre-allocation for s390
+     Subject: thp, s390: disable thp for kvm host on s390
 has been added to the -mm tree.  Its filename is
-     thp-s390-thp-pagetable-pre-allocation-for-s390.patch
+     thp-s390-disable-thp-for-kvm-host-on-s390.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Subject: thp, s390: thp pagetable pre-allocation for s390
+Subject: thp, s390: disable thp for kvm host on s390
 
 This patch is part of the architecture backend for thp on s390.  It
-provides the pagetable pre-allocation functions
-pgtable_trans_huge_deposit() and pgtable_trans_huge_withdraw().  Unlike
-other archs, s390 has no struct page * as pgtable_t, but rather a pointer
-to the page table.  So instead of saving the pagetable pre- allocation
-list info inside the struct page, it is being saved within the pagetable
-itself.
+disables thp for kvm hosts, because there is no kvm host hugepage support
+so far.  Existing thp mappings are split by follow_page() with FOLL_SPLIT,
+and future thp mappings are prevented by setting VM_NOHUGEPAGE in
+mm->def_flags.
 
 Signed-off-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -54,72 +52,56 @@ Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/pgtable.h |    6 ++++
- arch/s390/mm/pgtable.c          |   38 ++++++++++++++++++++++++++++++
- 2 files changed, 44 insertions(+)
+ arch/s390/mm/pgtable.c |   30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff -puN arch/s390/include/asm/pgtable.h~thp-s390-thp-pagetable-pre-allocation-for-s390 arch/s390/include/asm/pgtable.h
---- a/arch/s390/include/asm/pgtable.h~thp-s390-thp-pagetable-pre-allocation-for-s390
-+++ a/arch/s390/include/asm/pgtable.h
-@@ -1166,6 +1166,12 @@ static inline pmd_t *pmd_offset(pud_t *p
- #define pte_unmap(pte) do { } while (0)
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+#define __HAVE_ARCH_PGTABLE_DEPOSIT
-+extern void pgtable_trans_huge_deposit(struct mm_struct *mm, pgtable_t pgtable);
-+
-+#define __HAVE_ARCH_PGTABLE_WITHDRAW
-+extern pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm);
-+
- static inline int pmd_trans_splitting(pmd_t pmd)
- {
- 	return pmd_val(pmd) & _SEGMENT_ENTRY_SPLIT;
-diff -puN arch/s390/mm/pgtable.c~thp-s390-thp-pagetable-pre-allocation-for-s390 arch/s390/mm/pgtable.c
---- a/arch/s390/mm/pgtable.c~thp-s390-thp-pagetable-pre-allocation-for-s390
+diff -puN arch/s390/mm/pgtable.c~thp-s390-disable-thp-for-kvm-host-on-s390 arch/s390/mm/pgtable.c
+--- a/arch/s390/mm/pgtable.c~thp-s390-disable-thp-for-kvm-host-on-s390
 +++ a/arch/s390/mm/pgtable.c
-@@ -883,4 +883,42 @@ void pmdp_splitting_flush(struct vm_area
- 		smp_call_function(pmdp_splitting_flush_sync, NULL, 1);
- 	}
+@@ -787,6 +787,30 @@ void tlb_remove_table(struct mmu_gather 
+ 		tlb_table_flush(tlb);
  }
-+
-+void pgtable_trans_huge_deposit(struct mm_struct *mm, pgtable_t pgtable)
+ 
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++void thp_split_vma(struct vm_area_struct *vma)
 +{
-+	struct list_head *lh = (struct list_head *) pgtable;
++	unsigned long addr;
++	struct page *page;
 +
-+	assert_spin_locked(&mm->page_table_lock);
-+
-+	/* FIFO */
-+	if (!mm->pmd_huge_pte)
-+		INIT_LIST_HEAD(lh);
-+	else
-+		list_add(lh, (struct list_head *) mm->pmd_huge_pte);
-+	mm->pmd_huge_pte = pgtable;
-+}
-+
-+pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm)
-+{
-+	struct list_head *lh;
-+	pgtable_t pgtable;
-+	pte_t *ptep;
-+
-+	assert_spin_locked(&mm->page_table_lock);
-+
-+	/* FIFO */
-+	pgtable = mm->pmd_huge_pte;
-+	lh = (struct list_head *) pgtable;
-+	if (list_empty(lh))
-+		mm->pmd_huge_pte = NULL;
-+	else {
-+		mm->pmd_huge_pte = (pgtable_t) lh->next;
-+		list_del(lh);
++	for (addr = vma->vm_start; addr < vma->vm_end; addr += PAGE_SIZE) {
++		page = follow_page(vma, addr, FOLL_SPLIT);
 +	}
-+	ptep = (pte_t *) pgtable;
-+	pte_val(*ptep) = _PAGE_TYPE_EMPTY;
-+	ptep++;
-+	pte_val(*ptep) = _PAGE_TYPE_EMPTY;
-+	return pgtable;
 +}
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
++
++void thp_split_mm(struct mm_struct *mm)
++{
++	struct vm_area_struct *vma = mm->mmap;
++
++	while (vma != NULL) {
++		thp_split_vma(vma);
++		vma->vm_flags &= ~VM_HUGEPAGE;
++		vma->vm_flags |= VM_NOHUGEPAGE;
++		vma = vma->vm_next;
++	}
++}
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
++
+ /*
+  * switch on pgstes for its userspace process (for kvm)
+  */
+@@ -824,6 +848,12 @@ int s390_enable_sie(void)
+ 	if (!mm)
+ 		return -ENOMEM;
+ 
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	/* split thp mappings and disable thp for future mappings */
++	thp_split_mm(mm);
++	mm->def_flags |= VM_NOHUGEPAGE;
++#endif
++
+ 	/* Now lets check again if something happened */
+ 	task_lock(tsk);
+ 	if (!tsk->mm || atomic_read(&tsk->mm->mm_users) > 1 ||
 _
 
 Patches currently in -mm which might be from gerald.schaefer@de.ibm.com are
