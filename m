@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-support-migrate_discard-fix.patch added to -mm tree
-Date: Wed, 05 Sep 2012 16:37:35 -0700
-Message-ID: <20120905233736.560DC1E0043@wpzn4.hot.corp.google.com>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Thu, 06 Sep 2012 12:12:55 -0700
+Message-ID: <20120906191257.0AA1E200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:40061 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759946Ab2IEXhh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Sep 2012 19:37:37 -0400
-Received: by qafl39 with SMTP id l39so138369qaf.1
-        for <mm-commits@vger.kernel.org>; Wed, 05 Sep 2012 16:37:37 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:65010 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751927Ab2IFTM7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Sep 2012 15:12:59 -0400
+Received: by eaac1 with SMTP id c1so127065eaa.1
+        for <mm-commits@vger.kernel.org>; Thu, 06 Sep 2012 12:12:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, riel@redhat.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: mm-support-migrate_discard-fix
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     mm-support-migrate_discard-fix.patch
+     linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,92 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-support-migrate_discard-fix
+Subject: linux-next-git-rejects
 
-whitespace fixlet
-
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mmc/host/mxs-mmc.c |    8 --------
+ sound/pci/hda/hda_codec.c  |    9 ---------
+ sound/pci/hda/hda_codec.h  |    4 ----
+ 3 files changed, 21 deletions(-)
 
-diff -puN mm/migrate.c~mm-support-migrate_discard-fix mm/migrate.c
---- a/mm/migrate.c~mm-support-migrate_discard-fix
-+++ a/mm/migrate.c
-@@ -681,8 +681,8 @@ static int move_to_new_page(struct page 
- static int discard_page(struct page *page)
- {
- 	int ret = -EAGAIN;
--
- 	struct address_space *mapping = page_mapping(page);
-+
- 	if (page_has_private(page))
- 		if (!try_to_release_page(page, GFP_KERNEL))
- 			return ret;
+diff -puN drivers/mmc/host/mxs-mmc.c~linux-next-git-rejects drivers/mmc/host/mxs-mmc.c
+--- a/drivers/mmc/host/mxs-mmc.c~linux-next-git-rejects
++++ a/drivers/mmc/host/mxs-mmc.c
+@@ -527,11 +527,7 @@ static void mxs_mmc_enable_sdio_irq(stru
+ 		writel(BM_SSP_CTRL0_SDIO_IRQ_CHECK,
+ 		       ssp->base + HW_SSP_CTRL0 + STMP_OFFSET_REG_SET);
+ 		writel(BM_SSP_CTRL1_SDIO_IRQ_EN,
+-<<<<<<< HEAD
+-		       host->base + HW_SSP_CTRL1(host) + STMP_OFFSET_REG_SET);
+-=======
+ 		       ssp->base + HW_SSP_CTRL1(ssp) + STMP_OFFSET_REG_SET);
+->>>>>>> linux-next/akpm-base
+ 	} else {
+ 		writel(BM_SSP_CTRL0_SDIO_IRQ_CHECK,
+ 		       ssp->base + HW_SSP_CTRL0 + STMP_OFFSET_REG_CLR);
+@@ -541,11 +537,7 @@ static void mxs_mmc_enable_sdio_irq(stru
+ 
+ 	spin_unlock_irqrestore(&host->lock, flags);
+ 
+-<<<<<<< HEAD
+-	if (enable && readl(host->base + HW_SSP_STATUS(host)) &
+-=======
+ 	if (enable && readl(ssp->base + HW_SSP_STATUS(ssp)) &
+->>>>>>> linux-next/akpm-base
+ 			BM_SSP_STATUS_SDIO_IRQ)
+ 		mmc_signal_sdio_irq(host->mmc);
+ 
+diff -puN sound/pci/hda/hda_codec.c~linux-next-git-rejects sound/pci/hda/hda_codec.c
+--- a/sound/pci/hda/hda_codec.c~linux-next-git-rejects
++++ a/sound/pci/hda/hda_codec.c
+@@ -1222,11 +1222,7 @@ static void snd_hda_codec_free(struct hd
+ static bool snd_hda_codec_get_supported_ps(struct hda_codec *codec,
+ 				hda_nid_t fg, unsigned int power_state);
+ 
+-<<<<<<< HEAD
+-static void hda_set_power_state(struct hda_codec *codec, hda_nid_t fg,
+-=======
+ static unsigned int hda_set_power_state(struct hda_codec *codec,
+->>>>>>> linux-next/akpm-base
+ 				unsigned int power_state);
+ 
+ /**
+@@ -1336,10 +1332,6 @@ int /*__devinit*/ snd_hda_codec_new(stru
+ 					   AC_VERB_GET_SUBSYSTEM_ID, 0);
+ 	}
+ 
+-<<<<<<< HEAD
+-	codec->epss = snd_hda_codec_get_supported_ps(codec,
+-					codec->afg ? codec->afg : codec->mfg,
+-=======
+ #ifdef CONFIG_PM
+ 	codec->d3_stop_clk = snd_hda_codec_get_supported_ps(codec, fg,
+ 					AC_PWRST_CLKSTOP);
+@@ -1347,7 +1339,6 @@ int /*__devinit*/ snd_hda_codec_new(stru
+ 		bus->power_keep_link_on = 1;
+ #endif
+ 	codec->epss = snd_hda_codec_get_supported_ps(codec, fg,
+->>>>>>> linux-next/akpm-base
+ 					AC_PWRST_EPSS);
+ 
+ 	/* power-up all before initialization */
+diff -puN sound/pci/hda/hda_codec.h~linux-next-git-rejects sound/pci/hda/hda_codec.h
+--- a/sound/pci/hda/hda_codec.h~linux-next-git-rejects
++++ a/sound/pci/hda/hda_codec.h
+@@ -865,11 +865,7 @@ struct hda_codec {
+ 	unsigned int no_jack_detect:1;	/* Machine has no jack-detection */
+ 	unsigned int pcm_format_first:1; /* PCM format must be set first */
+ 	unsigned int epss:1;		/* supporting EPSS? */
+-<<<<<<< HEAD
+-#ifdef CONFIG_SND_HDA_POWER_SAVE
+-=======
+ #ifdef CONFIG_PM
+->>>>>>> linux-next/akpm-base
+ 	unsigned int power_on :1;	/* current (global) power-state */
+ 	unsigned int d3_stop_clk:1;	/* support D3 operation without BCLK */
+ 	unsigned int pm_down_notified:1; /* PM notified to controller */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -98,4 +156,5 @@ journal_add_journal_head-debug.patch
 mutex-subsystem-synchro-test-module-fix.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
+linux-next-git-rejects.patch
 
