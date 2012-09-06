@@ -1,40 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] thp-remove-assumptions-on-pgtable_t-type.patch removed from -mm tree
-Date: Thu, 06 Sep 2012 13:51:37 -0700
-Message-ID: <20120906205137.CFD661E0043@wpzn4.hot.corp.google.com>
+Subject: [to-be-updated] thp-introduce-pmdp_invalidate.patch removed from -mm tree
+Date: Thu, 06 Sep 2012 13:51:40 -0700
+Message-ID: <20120906205140.BD05F1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:45075 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932217Ab2IFUvj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Sep 2012 16:51:39 -0400
-Received: by qcqs25 with SMTP id s25so202424qcq.1
-        for <mm-commits@vger.kernel.org>; Thu, 06 Sep 2012 13:51:38 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:45203 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932217Ab2IFUvm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Sep 2012 16:51:42 -0400
+Received: by qafl39 with SMTP id l39so251052qaf.1
+        for <mm-commits@vger.kernel.org>; Thu, 06 Sep 2012 13:51:41 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: gerald.schaefer@de.ibm.com, aarcange@redhat.com, ak@linux.intel.com, dhillf@gmail.com, heiko.carstens@de.ibm.com, hughd@google.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: remove assumptions on pgtable_t type
+     Subject: thp: introduce pmdp_invalidate()
 has been removed from the -mm tree.  Its filename was
-     thp-remove-assumptions-on-pgtable_t-type.patch
+     thp-introduce-pmdp_invalidate.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Subject: thp: remove assumptions on pgtable_t type
+Subject: thp: introduce pmdp_invalidate()
 
-The thp page table pre-allocation code currently assumes that pgtable_t is
-of type "struct page *".  This may not be true for all architectures, so
-this patch removes that assumption by replacing the functions
-prepare_pmd_huge_pte() and get_pmd_huge_pte() with two new functions that
-can be defined architecture-specific.
-
-It also removes two VM_BUG_ON checks for page_count() and page_mapcount()
-operating on a pgtable_t.  Apart from the VM_BUG_ON removal, there will be
-no functional change introduced by this patch.
+On s390, a valid page table entry must not be changed while it is attached
+to any CPU.  So instead of pmd_mknotpresent() and set_pmd_at(), an IDTE
+operation would be necessary there.  This patch introduces the
+pmdp_invalidate() function, to allow architecture-specific
+implementations.
 
 Signed-off-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -46,196 +42,54 @@ Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/pgtable.h |    8 +++++
- include/linux/huge_mm.h       |    1 
- mm/huge_memory.c              |   46 ++++----------------------------
- mm/pgtable-generic.c          |   39 +++++++++++++++++++++++++++
- 4 files changed, 53 insertions(+), 41 deletions(-)
+ include/asm-generic/pgtable.h |    5 +++++
+ mm/huge_memory.c              |    3 +--
+ mm/pgtable-generic.c          |   11 +++++++++++
+ 3 files changed, 17 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-generic/pgtable.h~thp-remove-assumptions-on-pgtable_t-type include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~thp-remove-assumptions-on-pgtable_t-type
+diff -puN include/asm-generic/pgtable.h~thp-introduce-pmdp_invalidate include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~thp-introduce-pmdp_invalidate
 +++ a/include/asm-generic/pgtable.h
-@@ -162,6 +162,14 @@ extern void pmdp_splitting_flush(struct 
- 				 unsigned long address, pmd_t *pmdp);
+@@ -170,6 +170,11 @@ extern void pgtable_deposit(struct mm_st
+ extern pgtable_t pgtable_withdraw(struct mm_struct *mm);
  #endif
  
-+#ifndef __HAVE_ARCH_PGTABLE_DEPOSIT
-+extern void pgtable_deposit(struct mm_struct *mm, pgtable_t pgtable);
-+#endif
-+
-+#ifndef __HAVE_ARCH_PGTABLE_WITHDRAW
-+extern pgtable_t pgtable_withdraw(struct mm_struct *mm);
++#ifndef __HAVE_ARCH_PMDP_INVALIDATE
++extern void pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
++			    pmd_t *pmdp);
 +#endif
 +
  #ifndef __HAVE_ARCH_PTE_SAME
  static inline int pte_same(pte_t pte_a, pte_t pte_b)
  {
-diff -puN include/linux/huge_mm.h~thp-remove-assumptions-on-pgtable_t-type include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~thp-remove-assumptions-on-pgtable_t-type
-+++ a/include/linux/huge_mm.h
-@@ -11,7 +11,6 @@ extern int copy_huge_pmd(struct mm_struc
- extern int do_huge_pmd_wp_page(struct mm_struct *mm, struct vm_area_struct *vma,
- 			       unsigned long address, pmd_t *pmd,
- 			       pmd_t orig_pmd);
--extern pgtable_t get_pmd_huge_pte(struct mm_struct *mm);
- extern struct page *follow_trans_huge_pmd(struct mm_struct *mm,
- 					  unsigned long addr,
- 					  pmd_t *pmd,
-diff -puN mm/huge_memory.c~thp-remove-assumptions-on-pgtable_t-type mm/huge_memory.c
---- a/mm/huge_memory.c~thp-remove-assumptions-on-pgtable_t-type
+diff -puN mm/huge_memory.c~thp-introduce-pmdp_invalidate mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-introduce-pmdp_invalidate
 +++ a/mm/huge_memory.c
-@@ -598,19 +598,6 @@ out:
- }
- __setup("transparent_hugepage=", setup_transparent_hugepage);
- 
--static void prepare_pmd_huge_pte(pgtable_t pgtable,
--				 struct mm_struct *mm)
--{
--	assert_spin_locked(&mm->page_table_lock);
--
--	/* FIFO */
--	if (!mm->pmd_huge_pte)
--		INIT_LIST_HEAD(&pgtable->lru);
--	else
--		list_add(&pgtable->lru, &mm->pmd_huge_pte->lru);
--	mm->pmd_huge_pte = pgtable;
--}
--
- static inline pmd_t maybe_pmd_mkwrite(pmd_t pmd, struct vm_area_struct *vma)
- {
- 	if (likely(vma->vm_flags & VM_WRITE))
-@@ -652,7 +639,7 @@ static int __do_huge_pmd_anonymous_page(
+@@ -1361,8 +1361,7 @@ static int __split_huge_page_map(struct 
+ 		 * SMP TLB and finally we write the non-huge version
+ 		 * of the pmd entry with pmd_populate.
  		 */
- 		page_add_new_anon_rmap(page, vma, haddr);
- 		set_pmd_at(mm, haddr, pmd, entry);
--		prepare_pmd_huge_pte(pgtable, mm);
-+		pgtable_deposit(mm, pgtable);
- 		add_mm_counter(mm, MM_ANONPAGES, HPAGE_PMD_NR);
- 		mm->nr_ptes++;
- 		spin_unlock(&mm->page_table_lock);
-@@ -778,7 +765,7 @@ int copy_huge_pmd(struct mm_struct *dst_
- 	pmdp_set_wrprotect(src_mm, addr, src_pmd);
- 	pmd = pmd_mkold(pmd_wrprotect(pmd));
- 	set_pmd_at(dst_mm, addr, dst_pmd, pmd);
--	prepare_pmd_huge_pte(pgtable, dst_mm);
-+	pgtable_deposit(dst_mm, pgtable);
- 	dst_mm->nr_ptes++;
- 
- 	ret = 0;
-@@ -789,25 +776,6 @@ out:
- 	return ret;
- }
- 
--/* no "address" argument so destroys page coloring of some arch */
--pgtable_t get_pmd_huge_pte(struct mm_struct *mm)
--{
--	pgtable_t pgtable;
--
--	assert_spin_locked(&mm->page_table_lock);
--
--	/* FIFO */
--	pgtable = mm->pmd_huge_pte;
--	if (list_empty(&pgtable->lru))
--		mm->pmd_huge_pte = NULL;
--	else {
--		mm->pmd_huge_pte = list_entry(pgtable->lru.next,
--					      struct page, lru);
--		list_del(&pgtable->lru);
--	}
--	return pgtable;
--}
--
- static int do_huge_pmd_wp_page_fallback(struct mm_struct *mm,
- 					struct vm_area_struct *vma,
- 					unsigned long address,
-@@ -863,7 +831,7 @@ static int do_huge_pmd_wp_page_fallback(
- 	pmdp_clear_flush_notify(vma, haddr, pmd);
- 	/* leave pmd empty until pte is filled */
- 
--	pgtable = get_pmd_huge_pte(mm);
-+	pgtable = pgtable_withdraw(mm);
- 	pmd_populate(mm, &_pmd, pgtable);
- 
- 	for (i = 0; i < HPAGE_PMD_NR; i++, haddr += PAGE_SIZE) {
-@@ -1028,7 +996,7 @@ int zap_huge_pmd(struct mmu_gather *tlb,
- 	if (__pmd_trans_huge_lock(pmd, vma) == 1) {
- 		struct page *page;
- 		pgtable_t pgtable;
--		pgtable = get_pmd_huge_pte(tlb->mm);
-+		pgtable = pgtable_withdraw(tlb->mm);
- 		page = pmd_page(*pmd);
- 		pmd_clear(pmd);
- 		tlb_remove_pmd_tlb_entry(tlb, pmd, addr);
-@@ -1345,7 +1313,7 @@ static int __split_huge_page_map(struct 
- 	pmd = page_check_address_pmd(page, mm, address,
- 				     PAGE_CHECK_ADDRESS_PMD_SPLITTING_FLAG);
- 	if (pmd) {
--		pgtable = get_pmd_huge_pte(mm);
-+		pgtable = pgtable_withdraw(mm);
- 		pmd_populate(mm, &_pmd, pgtable);
- 
- 		for (i = 0, haddr = address; i < HPAGE_PMD_NR;
-@@ -2018,8 +1986,6 @@ static void collapse_huge_page(struct mm
- 	pte_unmap(pte);
- 	__SetPageUptodate(new_page);
- 	pgtable = pmd_pgtable(_pmd);
--	VM_BUG_ON(page_count(pgtable) != 1);
--	VM_BUG_ON(page_mapcount(pgtable) != 0);
- 
- 	_pmd = mk_pmd(new_page, vma->vm_page_prot);
- 	_pmd = maybe_pmd_mkwrite(pmd_mkdirty(_pmd), vma);
-@@ -2037,7 +2003,7 @@ static void collapse_huge_page(struct mm
- 	page_add_new_anon_rmap(new_page, vma, address);
- 	set_pmd_at(mm, address, pmd, _pmd);
- 	update_mmu_cache(vma, address, _pmd);
--	prepare_pmd_huge_pte(pgtable, mm);
-+	pgtable_deposit(mm, pgtable);
- 	spin_unlock(&mm->page_table_lock);
- 
- 	*hpage = NULL;
-diff -puN mm/pgtable-generic.c~thp-remove-assumptions-on-pgtable_t-type mm/pgtable-generic.c
---- a/mm/pgtable-generic.c~thp-remove-assumptions-on-pgtable_t-type
+-		set_pmd_at(mm, address, pmd, pmd_mknotpresent(*pmd));
+-		flush_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
++		pmdp_invalidate(vma, address, pmd);
+ 		pmd_populate(mm, pmd, pgtable);
+ 		ret = 1;
+ 	}
+diff -puN mm/pgtable-generic.c~thp-introduce-pmdp_invalidate mm/pgtable-generic.c
+--- a/mm/pgtable-generic.c~thp-introduce-pmdp_invalidate
 +++ a/mm/pgtable-generic.c
-@@ -120,3 +120,42 @@ void pmdp_splitting_flush(struct vm_area
+@@ -159,3 +159,14 @@ pgtable_t pgtable_withdraw(struct mm_str
  }
  #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  #endif
 +
-+#ifndef __HAVE_ARCH_PGTABLE_DEPOSIT
++#ifndef __HAVE_ARCH_PMDP_INVALIDATE
 +#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+void pgtable_deposit(struct mm_struct *mm, pgtable_t pgtable)
++void pmdp_invalidate(struct vm_area_struct *vma, unsigned long address,
++		     pmd_t *pmdp)
 +{
-+	assert_spin_locked(&mm->page_table_lock);
-+
-+	/* FIFO */
-+	if (!mm->pmd_huge_pte)
-+		INIT_LIST_HEAD(&pgtable->lru);
-+	else
-+		list_add(&pgtable->lru, &mm->pmd_huge_pte->lru);
-+	mm->pmd_huge_pte = pgtable;
-+}
-+#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
-+#endif
-+
-+#ifndef __HAVE_ARCH_PGTABLE_WITHDRAW
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+/* no "address" argument so destroys page coloring of some arch */
-+pgtable_t pgtable_withdraw(struct mm_struct *mm)
-+{
-+	pgtable_t pgtable;
-+
-+	assert_spin_locked(&mm->page_table_lock);
-+
-+	/* FIFO */
-+	pgtable = mm->pmd_huge_pte;
-+	if (list_empty(&pgtable->lru))
-+		mm->pmd_huge_pte = NULL;
-+	else {
-+		mm->pmd_huge_pte = list_entry(pgtable->lru.next,
-+					      struct page, lru);
-+		list_del(&pgtable->lru);
-+	}
-+	return pgtable;
++	set_pmd_at(vma->vm_mm, address, pmdp, pmd_mknotpresent(*pmdp));
++	flush_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
 +}
 +#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
 +#endif
@@ -245,7 +99,6 @@ Patches currently in -mm which might be from gerald.schaefer@de.ibm.com are
 
 linux-next.patch
 thp-x86-introduce-have_arch_transparent_hugepage.patch
-thp-introduce-pmdp_invalidate.patch
 thp-make-madv_hugepage-check-for-mm-def_flags.patch
 thp-s390-thp-splitting-backend-for-s390.patch
 thp-s390-thp-pagetable-pre-allocation-for-s390.patch
