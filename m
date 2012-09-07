@@ -1,25 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memblock-cleanup-early_node_map-related-comments.patch added to -mm tree
-Date: Fri, 07 Sep 2012 16:51:08 -0700
-Message-ID: <20120907235109.AE000200163@hpza10.eem.corp.google.com>
+Subject: + rtc_sysfs_show_hctosys-return-0-if-resume-failed.patch added to -mm tree
+Date: Fri, 07 Sep 2012 16:56:36 -0700
+Message-ID: <20120907235637.1F6345C0213@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:35791 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752628Ab2IGXvM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Sep 2012 19:51:12 -0400
-Received: by wgbdt11 with SMTP id dt11so5348wgb.1
-        for <mm-commits@vger.kernel.org>; Fri, 07 Sep 2012 16:51:11 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:54277 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758824Ab2IGX4k (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Sep 2012 19:56:40 -0400
+Received: by lagw12 with SMTP id w12so5347lag.1
+        for <mm-commits@vger.kernel.org>; Fri, 07 Sep 2012 16:56:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: liwanp@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, minchan@kernel.org, shangw@linux.vnet.ibm.com, yinghai@kernel.org
+Cc: david@fries.net, David@Fries.net, a.zummo@towertech.it, mjg@redhat.com, u.kleine-koenig@pengutronix.de
 
 
 The patch titled
-     Subject: mm/memblock: cleanup early_node_map[] related comments
+     Subject: rtc_sysfs_show_hctosys(): display 0 if resume failed
 has been added to the -mm tree.  Its filename is
-     mm-memblock-cleanup-early_node_map-related-comments.patch
+     rtc_sysfs_show_hctosys-return-0-if-resume-failed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -27,77 +30,139 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: mm/memblock: cleanup early_node_map[] related comments
+=46rom: David Fries <david@fries.net>
+Subject: rtc_sysfs_show_hctosys(): display 0 if resume failed
 
-0ee332c14518699 ("memblock: Kill early_node_map[]") removed
-early_node_map[].  Clean up the comments to comply with that change.
+The original rtc_sysfs_show_hctosys() returnd 1 if this device was the
+CONFIG_RTC_HCTOSYS_DEVICE device.  A later patch checked rtc_hctosys_re=
+t
+from boot, this verifies that the boot do_settimeofday() succeeded, and
+sets rtc_hctosys_ret in resume to indicate when adjusting the clock fro=
+m
+resume fails.
 
-Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Gavin Shan <shangw@linux.vnet.ibm.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
+This uses only CONFIG_RTC_HCTOSYS_DEVICE for conditional compilation
+instead of it and CONFIG_RTC_HCTOSYS.  rtc_hctosys_ret was moved to
+class.c so rtc_hctosys can be removed with just a Kconfig change if boo=
+t
+time setting isn't desired.
+
+Signed-off-by: David Fries <David@Fries.net>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |    3 +--
- mm/nobootmem.c           |    2 --
- mm/page_alloc.c          |    2 +-
- 3 files changed, 2 insertions(+), 5 deletions(-)
+ drivers/rtc/class.c     |    5 ++++-
+ drivers/rtc/hctosys.c   |    4 +---
+ drivers/rtc/rtc-sysfs.c |    6 ++++++
+ include/linux/rtc.h     |    2 +-
+ 4 files changed, 12 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/memblock.h~mm-memblock-cleanup-early_node_map-related-comments include/linux/memblock.h
---- a/include/linux/memblock.h~mm-memblock-cleanup-early_node_map-related-comments
-+++ a/include/linux/memblock.h
-@@ -70,8 +70,7 @@ void __next_mem_pfn_range(int *idx, int 
-  * @p_end: ptr to ulong for end pfn of the range, can be %NULL
-  * @p_nid: ptr to int for nid of the range, can be %NULL
-  *
-- * Walks over configured memory ranges.  Available after early_node_map is
-- * populated.
-+ * Walks over configured memory ranges.
+diff -puN drivers/rtc/class.c~rtc_sysfs_show_hctosys-return-0-if-resume=
+-failed drivers/rtc/class.c
+--- a/drivers/rtc/class.c~rtc_sysfs_show_hctosys-return-0-if-resume-fai=
+led
++++ a/drivers/rtc/class.c
+@@ -39,7 +39,8 @@ static void rtc_device_release(struct de
   */
- #define for_each_mem_pfn_range(i, nid, p_start, p_end, p_nid)		\
- 	for (i = -1, __next_mem_pfn_range(&i, nid, p_start, p_end, p_nid); \
-diff -puN mm/nobootmem.c~mm-memblock-cleanup-early_node_map-related-comments mm/nobootmem.c
---- a/mm/nobootmem.c~mm-memblock-cleanup-early_node_map-related-comments
-+++ a/mm/nobootmem.c
-@@ -162,8 +162,6 @@ unsigned long __init free_all_bootmem(vo
- 	 * We need to use MAX_NUMNODES instead of NODE_DATA(0)->node_id
- 	 *  because in some case like Node0 doesn't have RAM installed
- 	 *  low ram will be on Node1
--	 * Use MAX_NUMNODES will make sure all ranges in early_node_map[]
--	 *  will be used instead of only Node0 related
- 	 */
- 	return free_low_memory_core_early(MAX_NUMNODES);
+=20
+ static struct timespec old_rtc, old_system, old_delta;
+-
++/* Result of the last RTC to system clock attempt. */
++int rtc_hctosys_ret =3D -ENODEV;
+=20
+ static int rtc_suspend(struct device *dev, pm_message_t mesg)
+ {
+@@ -84,6 +85,7 @@ static int rtc_resume(struct device *dev
+ 	struct timespec		new_system, new_rtc;
+ 	struct timespec		sleep_time;
+=20
++	rtc_hctosys_ret =3D -ENODEV;
+ 	if (strcmp(dev_name(&rtc->dev), CONFIG_RTC_HCTOSYS_DEVICE) !=3D 0)
+ 		return 0;
+=20
+@@ -117,6 +119,7 @@ static int rtc_resume(struct device *dev
+=20
+ 	if (sleep_time.tv_sec >=3D 0)
+ 		timekeeping_inject_sleeptime(&sleep_time);
++	rtc_hctosys_ret =3D 0;
+ 	return 0;
  }
-diff -puN mm/page_alloc.c~mm-memblock-cleanup-early_node_map-related-comments mm/page_alloc.c
---- a/mm/page_alloc.c~mm-memblock-cleanup-early_node_map-related-comments
-+++ a/mm/page_alloc.c
-@@ -4913,7 +4913,7 @@ void __init free_area_init_nodes(unsigne
- 			       zone_movable_pfn[i] << PAGE_SHIFT);
- 	}
- 
--	/* Print out the early_node_map[] */
-+	/* Print out the early node map */
- 	printk("Early memory node ranges\n");
- 	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid)
- 		printk("  node %3d: [mem %#010lx-%#010lx]\n", nid,
+=20
+diff -puN drivers/rtc/hctosys.c~rtc_sysfs_show_hctosys-return-0-if-resu=
+me-failed drivers/rtc/hctosys.c
+--- a/drivers/rtc/hctosys.c~rtc_sysfs_show_hctosys-return-0-if-resume-f=
+ailed
++++ a/drivers/rtc/hctosys.c
+@@ -22,8 +22,6 @@
+  * the best guess is to add 0.5s.
+  */
+=20
+-int rtc_hctosys_ret =3D -ENODEV;
+-
+ static int __init rtc_hctosys(void)
+ {
+ 	int err =3D -ENODEV;
+@@ -56,7 +54,7 @@ static int __init rtc_hctosys(void)
+=20
+ 	rtc_tm_to_time(&tm, &tv.tv_sec);
+=20
+-	do_settimeofday(&tv);
++	err =3D do_settimeofday(&tv);
+=20
+ 	dev_info(rtc->dev.parent,
+ 		"setting system clock to "
+diff -puN drivers/rtc/rtc-sysfs.c~rtc_sysfs_show_hctosys-return-0-if-re=
+sume-failed drivers/rtc/rtc-sysfs.c
+--- a/drivers/rtc/rtc-sysfs.c~rtc_sysfs_show_hctosys-return-0-if-resume=
+-failed
++++ a/drivers/rtc/rtc-sysfs.c
+@@ -102,6 +102,12 @@ rtc_sysfs_set_max_user_freq(struct devic
+ 	return n;
+ }
+=20
++/**
++ * rtc_sysfs_show_hctosys - indicate if the given RTC set the system t=
+ime
++ *
++ * Returns 1 if the system clock was set by this RTC at the last
++ * boot or resume event.
++ */
+ static ssize_t
+ rtc_sysfs_show_hctosys(struct device *dev, struct device_attribute *at=
+tr,
+ 		char *buf)
+diff -puN include/linux/rtc.h~rtc_sysfs_show_hctosys-return-0-if-resume=
+-failed include/linux/rtc.h
+--- a/include/linux/rtc.h~rtc_sysfs_show_hctosys-return-0-if-resume-fai=
+led
++++ a/include/linux/rtc.h
+@@ -276,7 +276,7 @@ static inline bool is_leap_year(unsigned
+ 	return (!(year % 4) && (year % 100)) || !(year % 400);
+ }
+=20
+-#ifdef CONFIG_RTC_HCTOSYS
++#ifdef CONFIG_RTC_HCTOSYS_DEVICE
+ extern int rtc_hctosys_ret;
+ #else
+ #define rtc_hctosys_ret -ENODEV
 _
 
-Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
+Patches currently in -mm which might be from david@fries.net are
 
-mm-mmu_notifier-init-notifier-if-necessary.patch
-mm-vmscan-fix-error-number-for-failed-kthread.patch
-mm-memblock-reduce-overhead-in-binary-search.patch
-mm-memblock-rename-get_allocated_memblock_reserved_regions_info.patch
-mm-memblock-use-existing-interface-to-set-nid.patch
-mm-memblock-cleanup-early_node_map-related-comments.patch
+rtc_sysfs_show_hctosys-return-0-if-resume-failed.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
