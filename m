@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-bug-fix-race-between-isolation-and-allocation.patch added to -mm tree
-Date: Fri, 07 Sep 2012 12:56:22 -0700
-Message-ID: <20120907195622.D6A0E5C01DA@hpza9.eem.corp.google.com>
+Subject: + memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch added to -mm tree
+Date: Fri, 07 Sep 2012 12:56:29 -0700
+Message-ID: <20120907195630.328E11E00E8@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:44060 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756662Ab2IGT4Z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Sep 2012 15:56:25 -0400
-Received: by mail-fa0-f74.google.com with SMTP id s10so189687fas.1
-        for <mm-commits@vger.kernel.org>; Fri, 07 Sep 2012 12:56:24 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:46159 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755905Ab2IGT4c (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Sep 2012 15:56:32 -0400
+Received: by ghbz15 with SMTP id z15so372890ghb.1
+        for <mm-commits@vger.kernel.org>; Fri, 07 Sep 2012 12:56:30 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minchan@kernel.org, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, qiuxishi@huawei.com, wency@cn.fujitsu.com
+Cc: akpm@linux-foundation.org, minchan@kernel.org
 
 
 The patch titled
-     Subject: memory-hotplug: bug fix race between isolation and allocation
+     Subject: memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-bug-fix-race-between-isolation-and-allocation.patch
+     memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,104 +33,70 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: memory-hotplug: bug fix race between isolation and allocation
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix
 
-Like below, memory-hotplug makes race between page-isolation
-and page-allocation so it can hit BUG_ON in __offline_isolated_pages.
+small cleanup
 
-	CPU A					CPU B
-
-start_isolate_page_range
-set_migratetype_isolate
-spin_lock_irqsave(zone->lock)
-
-				free_hot_cold_page(Page A)
-				/* without zone->lock */
-				migratetype = get_pageblock_migratetype(Page A);
-				/*
-				 * Page could be moved into MIGRATE_MOVABLE
-				 * of per_cpu_pages
-				 */
-				list_add_tail(&page->lru, &pcp->lists[migratetype]);
-
-set_pageblock_isolate
-move_freepages_block
-drain_all_pages
-
-				/* Page A could be in MIGRATE_MOVABLE of free_list. */
-
-check_pages_isolated
-__test_page_isolated_in_pageblock
-/*
- * We can't catch freed page which
- * is free_list[MIGRATE_MOVABLE]
- */
-if (PageBuddy(page A))
-	pfn += 1 << page_order(page A);
-
-				/* So, Page A could be allocated */
-
-__offline_isolated_pages
-/*
- * BUG_ON hit or offline page
- * which is used by someone
- */
-BUG_ON(!PageBuddy(page A));
-
-This patch checks page's migratetype in freelist in
-__test_page_isolated_in_pageblock.  So now
-__test_page_isolated_in_pageblock can check the page caused by above race
-and can fail of memory offlining.
-
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_isolation.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/page_isolation.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_isolation.c~memory-hotplug-bug-fix-race-between-isolation-and-allocation mm/page_isolation.c
---- a/mm/page_isolation.c~memory-hotplug-bug-fix-race-between-isolation-and-allocation
+diff -puN mm/page_isolation.c~memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix mm/page_isolation.c
+--- a/mm/page_isolation.c~memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix
 +++ a/mm/page_isolation.c
-@@ -193,8 +193,11 @@ __test_page_isolated_in_pageblock(unsign
- 			continue;
- 		}
- 		page = pfn_to_page(pfn);
--		if (PageBuddy(page))
-+		if (PageBuddy(page)) {
-+			if (get_freepage_migratetype(page) != MIGRATE_ISOLATE)
-+				break;
- 			pfn += 1 << page_order(page);
-+		}
- 		else if (page_count(page) == 0 &&
- 			get_freepage_migratetype(page) == MIGRATE_ISOLATE)
- 			pfn += 1;
+@@ -202,8 +202,9 @@ __test_page_isolated_in_pageblock(unsign
+ 			 * MIGRATE_ISOLATE list.
+ 			 */
+ 			if (get_freepage_migratetype(page) != MIGRATE_ISOLATE) {
+-				struct page *end_page = page +
+-						(1 << page_order(page)) - 1;
++				struct page *end_page;
++
++				end_page = page + (1 << page_order(page)) - 1;
+ 				move_freepages(page_zone(page), page, end_page,
+ 						MIGRATE_ISOLATE);
+ 			}
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memory-hotplug-reset-pgdat-kswapd-to-null-if-creating-kernel-thread-fails.patch
+origin.patch
 linux-next.patch
-mm-remove-__gfp_no_kswapd.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+audith-replace-defines-with-c-stubs.patch
+thermal-add-generic-cpufreq-cooling-implementation.patch
+thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
+thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
+mm.patch
+x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
+mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
 mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
 mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
-mm-compaction-update-comment-in-try_to_compact_pages.patch
-mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures.patch
 mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures-fix.patch
-mm-compaction-capture-a-suitable-high-order-page-immediately-when-it-is-made-available.patch
-mm-change-enum-migrate_mode-with-bitwise-type.patch
-mm-support-migrate_discard.patch
+mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch
+rbtree-performance-and-correctness-test-fix.patch
 mm-support-migrate_discard-fix.patch
-mm-page_alloc-use-get_freepage_migratetype-instead-of-page_private.patch
-mm-remain-migratetype-in-freed-page.patch
-memory-hotplug-bug-fix-race-between-isolation-and-allocation.patch
-memory-hotplug-fix-pages-missed-by-race-rather-than-failing.patch
+mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock-fix.patch
 memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
+backlight-add-backlight-driver-for-lm3630-chip-fix.patch
+backlight-add-new-lm3639-backlight-driver-fix.patch
+lib-parserc-avoid-overflow-in-match_number-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+rtc-add-dallas-ds2404-driver-fix.patch
+rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch
+fs-fat-fix-all-other-checkpatch-issues-in-dirc-fix.patch
+fat-simplify-writeback_inode-checkpatch-fixes.patch
+fat-simplify-writeback_inode-checkpatch-fixes-fix.patch
+proc-use-kzalloc-instead-of-kmalloc-and-memset-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
