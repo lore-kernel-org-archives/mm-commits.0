@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memblock-reduce-overhead-in-binary-search.patch added to -mm tree
-Date: Fri, 07 Sep 2012 16:50:57 -0700
-Message-ID: <20120907235058.A33F75C0219@hpza9.eem.corp.google.com>
+Subject: + mm-memblock-use-existing-interface-to-set-nid.patch added to -mm tree
+Date: Fri, 07 Sep 2012 16:51:04 -0700
+Message-ID: <20120907235105.A6863200163@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-ee0-f74.google.com ([74.125.83.74]:48382 "EHLO
 	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751877Ab2IGXvC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Sep 2012 19:51:02 -0400
-Received: by eekd4 with SMTP id d4so5197eek.1
-        for <mm-commits@vger.kernel.org>; Fri, 07 Sep 2012 16:51:00 -0700 (PDT)
+	with ESMTP id S1751877Ab2IGXvH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Sep 2012 19:51:07 -0400
+Received: by mail-ee0-f74.google.com with SMTP id d4so5197eek.1
+        for <mm-commits@vger.kernel.org>; Fri, 07 Sep 2012 16:51:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: liwanp@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, m
 
 
 The patch titled
-     Subject: mm/memblock: reduce overhead in binary search
+     Subject: mm/memblock: use existing interface to set nid
 has been added to the -mm tree.  Its filename is
-     mm-memblock-reduce-overhead-in-binary-search.patch
+     mm-memblock-use-existing-interface-to-set-nid.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: mm/memblock: reduce overhead in binary search
+Subject: mm/memblock: use existing interface to set nid
 
-When checking that the indicated address belongs to the memory region, the
-memory regions are checked one by one through a binary search, which will
-be time consuming.
-
-If the indicated address isn't in the memory region, then we needn't do
-the time-consuming search.  Add a check on the indicated address for that
-purpose.
+Use the existing interface function to set the NUMA node ID (NID) for the
+regions, either memory or reserved region.
 
 Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Cc: Michal Hocko <mhocko@suse.cz>
@@ -53,24 +48,21 @@ Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/memblock.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memblock.c~mm-memblock-reduce-overhead-in-binary-search mm/memblock.c
---- a/mm/memblock.c~mm-memblock-reduce-overhead-in-binary-search
+diff -puN mm/memblock.c~mm-memblock-use-existing-interface-to-set-nid mm/memblock.c
+--- a/mm/memblock.c~mm-memblock-use-existing-interface-to-set-nid
 +++ a/mm/memblock.c
-@@ -888,6 +888,11 @@ int __init memblock_is_reserved(phys_add
+@@ -756,7 +756,7 @@ int __init_memblock memblock_set_node(ph
+ 		return ret;
  
- int __init_memblock memblock_is_memory(phys_addr_t addr)
- {
-+
-+	if (unlikely(addr < memblock_start_of_DRAM() ||
-+		addr >= memblock_end_of_DRAM()))
-+		return 0;
-+
- 	return memblock_search(&memblock.memory, addr) != -1;
- }
+ 	for (i = start_rgn; i < end_rgn; i++)
+-		type->regions[i].nid = nid;
++		memblock_set_region_node(&type->regions[i], nid);
  
+ 	memblock_merge_regions(type);
+ 	return 0;
 _
 
 Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
