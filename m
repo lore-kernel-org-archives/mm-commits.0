@@ -1,293 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: + mm-avoid-taking-rmap-locks-in-move_ptes.patch added to -mm tree
-Date: Fri, 07 Sep 2012 15:16:33 -0700
-Message-ID: <20120907221634.7C8975C01CB@hpza9.eem.corp.google.com>
+Subject: [to-be-updated] x86-mm-limit-2-4m-size-calculation-to-x86_32.patch removed from -mm tree
+Date: Fri, 07 Sep 2012 15:56:32 -0700
+Message-ID: <20120907225632.7AFCC1001AD@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:51154 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751250Ab2IGWQh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Sep 2012 18:16:37 -0400
-Received: by wibhr14 with SMTP id hr14so65wib.1
-        for <mm-commits@vger.kernel.org>; Fri, 07 Sep 2012 15:16:36 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:52752 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751686Ab2IGW4e (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Sep 2012 18:56:34 -0400
+Received: by qafl39 with SMTP id l39so6085qaf.1
+        for <mm-commits@vger.kernel.org>; Fri, 07 Sep 2012 15:56:33 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: walken@google.com, a.p.zijlstra@chello.nl, aarcange@redhat.com, daniel.santos@pobox.com, hughd@google.com, riel@redhat.com
+To: stefan.bader@canonical.com, hpa@zytor.com, mingo@elte.hu, stable@vger.kernel.org, tglx@linutronix.de, tj@kernel.org, xiyou.wangcong@gmail.com, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: avoid taking rmap locks in move_ptes()
-has been added to the -mm tree.  Its filename is
-     mm-avoid-taking-rmap-locks-in-move_ptes.patch
+     Subject: x86/mm: limit extra padding calculation to x86_32
+has been removed from the -mm tree.  Its filename was
+     x86-mm-limit-2-4m-size-calculation-to-x86_32.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Michel Lespinasse <walken@google.com>
-Subject: mm: avoid taking rmap locks in move_ptes()
+From: Stefan Bader <stefan.bader@canonical.com>
+Subject: x86/mm: limit extra padding calculation to x86_32
 
-During mremap(), the destination VMA is generally placed after the
-original vma in rmap traversal order: in move_vma(), we always have
-new_pgoff >= vma->vm_pgoff, and as a result new_vma->vm_pgoff >=
-vma->vm_pgoff unless vma_merge() merged the new vma with an adjacent one.
+Starting with kernel v3.5 kexec based crash dumping was observed to fail
+(without any apparent message) on x86_64 machines.  This was traced to a
+lack of memory triggered by a substantial increase (several megabyes) in
+the size of the initial page tables.
 
-When the destination VMA is placed after the original in rmap traversal
-order, we can avoid taking the rmap locks in move_ptes().
+ After regression (on a VM with 2GB of memory):
+ kernel direct mapping tables up to 0x7fffcfff @ [mem 0x1fbfd000-0x1fffffff]
+ size = 4206591 bytes
 
-Essentially, this reintroduces the optimization that had been disabled in
-"mm anon rmap: remove anon_vma_moveto_tail".  The difference is that we
-don't try to impose the rmap traversal order; instead we just rely on
-things being in the desired order in the common case and fall back to
-taking locks in the uncommon case.  Also we skip the i_mmap_mutex in
-addition to the anon_vma lock: in both cases, the vmas are traversed in
-increasing vm_pgoff order with ties resolved in tree insertion order.
+ With this patch applied:
+ kernel direct mapping tables up to 0x7fffcfff @ [mem 0x1fffc000-0x1fffffff]
+ size = 16383 bytes
 
-Signed-off-by: Michel Lespinasse <walken@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Daniel Santos <daniel.santos@pobox.com>
-Cc: Hugh Dickins <hughd@google.com>
+A bisection lead to commit 722bc6b ("x86/mm: Fix the size calculation of
+mapping tables")
+
+This change modified the extra space calculation to take into account that
+the first 2/4M range of memory would be mapped as 4K pages as suggested in
+chapter 11.11.9 of the Intel software developer's manual.
+
+However this is currently only true for x86_32 (the reasons behind that
+are unclear but apparently the whole page table setup needs to be re-
+visited as it turns out to be very easy to break and has flaws in its
+current form).
+
+Until the logic can be revisited and combined, pair up the extra space
+calculation with the logic which creates the extra mappings.
+
+Signed-off-by: Stefan Bader <stefan.bader@canonical.com>
+Cc: WANG Cong <xiyou.wangcong@gmail.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: <stable@vger.kernel.org>	[v3.5+]
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c          |    2 -
- include/linux/mm.h |    6 +++-
- mm/mmap.c          |    7 +++--
- mm/mremap.c        |   57 +++++++++++++++++++++++++++++--------------
- 4 files changed, 49 insertions(+), 23 deletions(-)
+ arch/x86/mm/init.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/exec.c~mm-avoid-taking-rmap-locks-in-move_ptes fs/exec.c
---- a/fs/exec.c~mm-avoid-taking-rmap-locks-in-move_ptes
-+++ a/fs/exec.c
-@@ -612,7 +612,7 @@ static int shift_arg_pages(struct vm_are
- 	 * process cleanup to remove whatever mess we made.
- 	 */
- 	if (length != move_page_tables(vma, old_start,
--				       vma, new_start, length))
-+				       vma, new_start, length, false))
- 		return -ENOMEM;
+diff -puN arch/x86/mm/init.c~x86-mm-limit-2-4m-size-calculation-to-x86_32 arch/x86/mm/init.c
+--- a/arch/x86/mm/init.c~x86-mm-limit-2-4m-size-calculation-to-x86_32
++++ a/arch/x86/mm/init.c
+@@ -60,10 +60,11 @@ static void __init find_early_table_spac
+ 		extra = end - ((end>>PMD_SHIFT) << PMD_SHIFT);
+ #ifdef CONFIG_X86_32
+ 		extra += PMD_SIZE;
+-#endif
++
+ 		/* The first 2/4M doesn't use large pages. */
+ 		if (mr->start < PMD_SIZE)
+ 			extra += mr->end - mr->start;
++#endif
  
- 	lru_add_drain();
-diff -puN include/linux/mm.h~mm-avoid-taking-rmap-locks-in-move_ptes include/linux/mm.h
---- a/include/linux/mm.h~mm-avoid-taking-rmap-locks-in-move_ptes
-+++ a/include/linux/mm.h
-@@ -1061,7 +1061,8 @@ vm_is_stack(struct task_struct *task, st
- 
- extern unsigned long move_page_tables(struct vm_area_struct *vma,
- 		unsigned long old_addr, struct vm_area_struct *new_vma,
--		unsigned long new_addr, unsigned long len);
-+		unsigned long new_addr, unsigned long len,
-+		bool need_rmap_locks);
- extern unsigned long do_mremap(unsigned long addr,
- 			       unsigned long old_len, unsigned long new_len,
- 			       unsigned long flags, unsigned long new_addr);
-@@ -1411,7 +1412,8 @@ extern void __vma_link_rb(struct mm_stru
- 	struct rb_node **, struct rb_node *);
- extern void unlink_file_vma(struct vm_area_struct *);
- extern struct vm_area_struct *copy_vma(struct vm_area_struct **,
--	unsigned long addr, unsigned long len, pgoff_t pgoff);
-+	unsigned long addr, unsigned long len, pgoff_t pgoff,
-+	bool *need_rmap_locks);
- extern void exit_mmap(struct mm_struct *);
- 
- extern int mm_take_all_locks(struct mm_struct *mm);
-diff -puN mm/mmap.c~mm-avoid-taking-rmap-locks-in-move_ptes mm/mmap.c
---- a/mm/mmap.c~mm-avoid-taking-rmap-locks-in-move_ptes
-+++ a/mm/mmap.c
-@@ -2372,7 +2372,8 @@ int insert_vm_struct(struct mm_struct *m
-  * prior to moving page table entries, to effect an mremap move.
-  */
- struct vm_area_struct *copy_vma(struct vm_area_struct **vmap,
--	unsigned long addr, unsigned long len, pgoff_t pgoff)
-+	unsigned long addr, unsigned long len, pgoff_t pgoff,
-+	bool *need_rmap_locks)
- {
- 	struct vm_area_struct *vma = *vmap;
- 	unsigned long vma_start = vma->vm_start;
-@@ -2414,8 +2415,9 @@ struct vm_area_struct *copy_vma(struct v
- 			 * linear if there are no pages mapped yet.
- 			 */
- 			VM_BUG_ON(faulted_in_anon_vma);
--			*vmap = new_vma;
-+			*vmap = vma = new_vma;
- 		}
-+		*need_rmap_locks = (new_vma->vm_pgoff <= vma->vm_pgoff);
- 	} else {
- 		new_vma = kmem_cache_alloc(vm_area_cachep, GFP_KERNEL);
- 		if (new_vma) {
-@@ -2435,6 +2437,7 @@ struct vm_area_struct *copy_vma(struct v
- 			if (new_vma->vm_ops && new_vma->vm_ops->open)
- 				new_vma->vm_ops->open(new_vma);
- 			vma_link(mm, new_vma, prev, rb_link, rb_parent);
-+			*need_rmap_locks = false;
- 		}
- 	}
- 	return new_vma;
-diff -puN mm/mremap.c~mm-avoid-taking-rmap-locks-in-move_ptes mm/mremap.c
---- a/mm/mremap.c~mm-avoid-taking-rmap-locks-in-move_ptes
-+++ a/mm/mremap.c
-@@ -71,26 +71,42 @@ static pmd_t *alloc_new_pmd(struct mm_st
- static void move_ptes(struct vm_area_struct *vma, pmd_t *old_pmd,
- 		unsigned long old_addr, unsigned long old_end,
- 		struct vm_area_struct *new_vma, pmd_t *new_pmd,
--		unsigned long new_addr)
-+		unsigned long new_addr, bool need_rmap_locks)
- {
- 	struct address_space *mapping = NULL;
--	struct anon_vma *anon_vma = vma->anon_vma;
-+	struct anon_vma *anon_vma = NULL;
- 	struct mm_struct *mm = vma->vm_mm;
- 	pte_t *old_pte, *new_pte, pte;
- 	spinlock_t *old_ptl, *new_ptl;
- 
--	if (vma->vm_file) {
--		/*
--		 * Subtle point from Rajesh Venkatasubramanian: before
--		 * moving file-based ptes, we must lock truncate_pagecache
--		 * out, since it might clean the dst vma before the src vma,
--		 * and we propagate stale pages into the dst afterward.
--		 */
--		mapping = vma->vm_file->f_mapping;
--		mutex_lock(&mapping->i_mmap_mutex);
-+	/*
-+	 * When need_rmap_locks is true, we take the i_mmap_mutex and anon_vma
-+	 * locks to ensure that rmap will always observe either the old or the
-+	 * new ptes. This is the easiest way to avoid races with
-+	 * truncate_pagecache(), page migration, etc...
-+	 *
-+	 * When need_rmap_locks is false, we use other ways to avoid
-+	 * such races:
-+	 *
-+	 * - During exec() shift_arg_pages(), we use a specially tagged vma
-+	 *   which rmap call sites look for using is_vma_temporary_stack().
-+	 *
-+	 * - During mremap(), new_vma is often known to be placed after vma
-+	 *   in rmap traversal order. This ensures rmap will always observe
-+	 *   either the old pte, or the new pte, or both (the page table locks
-+	 *   serialize access to individual ptes, but only rmap traversal
-+	 *   order guarantees that we won't miss both the old and new ptes).
-+	 */
-+	if (need_rmap_locks) {
-+		if (vma->vm_file) {
-+			mapping = vma->vm_file->f_mapping;
-+			mutex_lock(&mapping->i_mmap_mutex);
-+		}
-+		if (vma->anon_vma) {
-+			anon_vma = vma->anon_vma;
-+			anon_vma_lock(anon_vma);
-+		}
- 	}
--	if (anon_vma)
--		anon_vma_lock(anon_vma);
- 
- 	/*
- 	 * We don't have to worry about the ordering of src and dst
-@@ -127,7 +143,8 @@ static void move_ptes(struct vm_area_str
- 
- unsigned long move_page_tables(struct vm_area_struct *vma,
- 		unsigned long old_addr, struct vm_area_struct *new_vma,
--		unsigned long new_addr, unsigned long len)
-+		unsigned long new_addr, unsigned long len,
-+		bool need_rmap_locks)
- {
- 	unsigned long extent, next, old_end;
- 	pmd_t *old_pmd, *new_pmd;
-@@ -174,7 +191,7 @@ unsigned long move_page_tables(struct vm
- 		if (extent > LATENCY_LIMIT)
- 			extent = LATENCY_LIMIT;
- 		move_ptes(vma, old_pmd, old_addr, old_addr + extent,
--				new_vma, new_pmd, new_addr);
-+			  new_vma, new_pmd, new_addr, need_rmap_locks);
- 		need_flush = true;
- 	}
- 	if (likely(need_flush))
-@@ -198,6 +215,7 @@ static unsigned long move_vma(struct vm_
- 	unsigned long hiwater_vm;
- 	int split = 0;
- 	int err;
-+	bool need_rmap_locks;
- 
- 	/*
- 	 * We'd prefer to avoid failure later on in do_munmap:
-@@ -219,18 +237,21 @@ static unsigned long move_vma(struct vm_
- 		return err;
- 
- 	new_pgoff = vma->vm_pgoff + ((old_addr - vma->vm_start) >> PAGE_SHIFT);
--	new_vma = copy_vma(&vma, new_addr, new_len, new_pgoff);
-+	new_vma = copy_vma(&vma, new_addr, new_len, new_pgoff,
-+			   &need_rmap_locks);
- 	if (!new_vma)
- 		return -ENOMEM;
- 
--	moved_len = move_page_tables(vma, old_addr, new_vma, new_addr, old_len);
-+	moved_len = move_page_tables(vma, old_addr, new_vma, new_addr, old_len,
-+				     need_rmap_locks);
- 	if (moved_len < old_len) {
- 		/*
- 		 * On error, move entries back from new area to old,
- 		 * which will succeed since page tables still there,
- 		 * and then proceed to unmap new area instead of old.
- 		 */
--		move_page_tables(new_vma, new_addr, vma, old_addr, moved_len);
-+		move_page_tables(new_vma, new_addr, vma, old_addr, moved_len,
-+				 true);
- 		vma = new_vma;
- 		old_len = new_len;
- 		old_addr = new_addr;
+ 		ptes = (extra + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 	} else
 _
 
-Patches currently in -mm which might be from walken@google.com are
+Patches currently in -mm which might be from stefan.bader@canonical.com are
 
-linux-next.patch
-mm-adjust-final-endif-position-in-mm-internalh.patch
-mm-fix-potential-anon_vma-locking-issue-in-mprotect.patch
-ipc-mqueue-remove-unnecessary-rb_init_node-calls.patch
-rbtree-reference-documentation-rbtreetxt-for-usage-instructions.patch
-rbtree-empty-nodes-have-no-color.patch
-rbtree-empty-nodes-have-no-color-fix.patch
-rbtree-fix-incorrect-rbtree-node-insertion-in-fs-proc-proc_sysctlc.patch
-rbtree-move-some-implementation-details-from-rbtreeh-to-rbtreec.patch
-rbtree-move-some-implementation-details-from-rbtreeh-to-rbtreec-fix.patch
-rbtree-performance-and-correctness-test.patch
-rbtree-performance-and-correctness-test-fix.patch
-rbtree-break-out-of-rb_insert_color-loop-after-tree-rotation.patch
-rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary.patch
-rbtree-low-level-optimizations-in-rb_insert_color.patch
-rbtree-adjust-node-color-in-__rb_erase_color-only-when-necessary.patch
-rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary-fix.patch
-rbtree-optimize-case-selection-logic-in-__rb_erase_color.patch
-rbtree-low-level-optimizations-in-__rb_erase_color.patch
-rbtree-coding-style-adjustments.patch
-rbtree-optimize-fetching-of-sibling-node.patch
-rbtree-test-fix-sparse-warning-about-64-bit-constant.patch
-rbtree-add-__rb_change_child-helper-function.patch
-rbtree-place-easiest-case-first-in-rb_erase.patch
-rbtree-handle-1-child-recoloring-in-rb_erase-instead-of-rb_erase_color.patch
-rbtree-low-level-optimizations-in-rb_erase.patch
-rbtree-augmented-rbtree-test.patch
-rbtree-faster-augmented-rbtree-manipulation.patch
-rbtree-remove-prior-augmented-rbtree-implementation.patch
-rbtree-add-rb_declare_callbacks-macro.patch
-rbtree-add-prio-tree-and-interval-tree-tests.patch
-mm-replace-vma-prio_tree-with-an-interval-tree.patch
-kmemleak-use-rbtree-instead-of-prio-tree.patch
-prio_tree-remove.patch
-rbtree-move-augmented-rbtree-functionality-to-rbtree_augmentedh.patch
-mm-interval-tree-updates.patch
-mm-anon-rmap-remove-anon_vma_moveto_tail.patch
-mm-anon-rmap-replace-same_anon_vma-linked-list-with-an-interval-tree.patch
-mm-rmap-remove-vma_address-check-for-address-inside-vma.patch
-mm-add-config_debug_vm_rb-build-option.patch
-mm-avoid-taking-rmap-locks-in-move_ptes.patch
 
