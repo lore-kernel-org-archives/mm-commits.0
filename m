@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remain-migratetype-in-freed-page.patch added to -mm tree
-Date: Fri, 07 Sep 2012 12:56:18 -0700
-Message-ID: <20120907195619.4DAB81E00E7@wpzn4.hot.corp.google.com>
+Subject: + mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock-fix-fix.patch added to -mm tree
+Date: Fri, 07 Sep 2012 13:06:46 -0700
+Message-ID: <20120907200647.3EFDB100135@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:39402 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756780Ab2IGT4V (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Sep 2012 15:56:21 -0400
-Received: by vbis24 with SMTP id s24so40418vbi.1
-        for <mm-commits@vger.kernel.org>; Fri, 07 Sep 2012 12:56:20 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:33638 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753247Ab2IGUGs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Sep 2012 16:06:48 -0400
+Received: by qcqs25 with SMTP id s25so327646qcq.1
+        for <mm-commits@vger.kernel.org>; Fri, 07 Sep 2012 13:06:48 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minchan@kernel.org, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, qiuxishi@huawei.com, wency@cn.fujitsu.com
+Cc: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, andrea@qumranet.com, avi@redhat.com, cl@linux-foundation.org, haggaie@mellanox.com, hughd@google.com, liranl@mellanox.com, ogerlitz@mellanox.com, raindel@mellanox.com, sagig@mellanox.com, xiaoguangrong@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: mm: remain migratetype in freed page
+     Subject: mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock-fix-fix
 has been added to the -mm tree.  Its filename is
-     mm-remain-migratetype-in-freed-page.patch
+     mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,101 +33,96 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: remain migratetype in freed page
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock-fix-fix
 
-The page allocator caches the pageblock information in page->private while
-it is in the PCP freelists but this is overwritten with the order of the
-page when freed to the buddy allocator.  This patch stores the migratetype
-of the page in the page->index field so that it is available at all times
-when the page remain in free_list.
+small optimisation.  might fix bogus used-uninitialised warnings
 
-This patch adds a new call site in __free_pages_ok so it might be overhead
-a bit but it's for high order allocation.  So I believe damage isn't hurt.
-
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Andrea Arcangeli <andrea@qumranet.com>
+Cc: Avi Kivity <avi@redhat.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Haggai Eran <haggaie@mellanox.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Liran Liss <liranl@mellanox.com>
+Cc: Or Gerlitz <ogerlitz@mellanox.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Sagi Grimberg <sagig@mellanox.com>
+Cc: Shachar Raindel <raindel@mellanox.com>
+Cc: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    4 ++--
- mm/page_alloc.c    |    7 +++++--
- 2 files changed, 7 insertions(+), 4 deletions(-)
+ mm/memory.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mm.h~mm-remain-migratetype-in-freed-page include/linux/mm.h
---- a/include/linux/mm.h~mm-remain-migratetype-in-freed-page
-+++ a/include/linux/mm.h
-@@ -240,13 +240,13 @@ struct inode;
- /* It's valid only if the page is free path or free_list */
- static inline void set_freepage_migratetype(struct page *page, int migratetype)
- {
--	set_page_private(page, migratetype);
-+	page->index = migratetype;
+diff -puN mm/memory.c~mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock-fix-fix mm/memory.c
+--- a/mm/memory.c~mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock-fix-fix
++++ a/mm/memory.c
+@@ -1041,6 +1041,7 @@ int copy_page_range(struct mm_struct *ds
+ 	unsigned long end = vma->vm_end;
+ 	unsigned long mmun_start;	/* For mmu_notifiers */
+ 	unsigned long mmun_end;		/* For mmu_notifiers */
++	bool is_cow;
+ 	int ret;
+ 
+ 	/*
+@@ -1074,7 +1075,8 @@ int copy_page_range(struct mm_struct *ds
+ 	 * parent mm. And a permission downgrade will only happen if
+ 	 * is_cow_mapping() returns true.
+ 	 */
+-	if (is_cow_mapping(vma->vm_flags)) {
++	is_cow = is_cow_mapping(vma->vm_flags);
++	if (is_cow) {
+ 		mmun_start = addr;
+ 		mmun_end   = end;
+ 		mmu_notifier_invalidate_range_start(src_mm, mmun_start,
+@@ -1095,7 +1097,7 @@ int copy_page_range(struct mm_struct *ds
+ 		}
+ 	} while (dst_pgd++, src_pgd++, addr = next, addr != end);
+ 
+-	if (is_cow_mapping(vma->vm_flags))
++	if (is_cow)
+ 		mmu_notifier_invalidate_range_end(src_mm, mmun_start, mmun_end);
+ 	return ret;
  }
- 
- /* It's valid only if the page is free path or free_list */
- static inline int get_freepage_migratetype(struct page *page)
- {
--	return page_private(page);
-+	return page->index;
- }
- 
- /*
-diff -puN mm/page_alloc.c~mm-remain-migratetype-in-freed-page mm/page_alloc.c
---- a/mm/page_alloc.c~mm-remain-migratetype-in-freed-page
-+++ a/mm/page_alloc.c
-@@ -723,6 +723,7 @@ static void __free_pages_ok(struct page 
- {
- 	unsigned long flags;
- 	int wasMlocked = __TestClearPageMlocked(page);
-+	int migratetype;
- 
- 	if (!free_pages_prepare(page, order))
- 		return;
-@@ -731,8 +732,9 @@ static void __free_pages_ok(struct page 
- 	if (unlikely(wasMlocked))
- 		free_page_mlock(page);
- 	__count_vm_events(PGFREE, 1 << order);
--	free_one_page(page_zone(page), page, order,
--					get_pageblock_migratetype(page));
-+	migratetype = get_pageblock_migratetype(page);
-+	set_freepage_migratetype(page, migratetype);
-+	free_one_page(page_zone(page), page, order, migratetype);
- 	local_irq_restore(flags);
- }
- 
-@@ -952,6 +954,7 @@ static int move_freepages(struct zone *z
- 		order = page_order(page);
- 		list_move(&page->lru,
- 			  &zone->free_area[order].free_list[migratetype]);
-+		set_freepage_migratetype(page, migratetype);
- 		page += 1 << order;
- 		pages_moved += 1 << order;
- 	}
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memory-hotplug-reset-pgdat-kswapd-to-null-if-creating-kernel-thread-fails.patch
+origin.patch
 linux-next.patch
-mm-remove-__gfp_no_kswapd.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+audith-replace-defines-with-c-stubs.patch
+thermal-add-generic-cpufreq-cooling-implementation.patch
+thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
+thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
+mm.patch
+x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
+mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
 mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
 mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
-mm-compaction-update-comment-in-try_to_compact_pages.patch
-mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures.patch
 mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures-fix.patch
-mm-compaction-capture-a-suitable-high-order-page-immediately-when-it-is-made-available.patch
-mm-change-enum-migrate_mode-with-bitwise-type.patch
-mm-support-migrate_discard.patch
+mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch
+rbtree-performance-and-correctness-test-fix.patch
 mm-support-migrate_discard-fix.patch
-mm-page_alloc-use-get_freepage_migratetype-instead-of-page_private.patch
-mm-remain-migratetype-in-freed-page.patch
-memory-hotplug-bug-fix-race-between-isolation-and-allocation.patch
-memory-hotplug-fix-pages-missed-by-race-rather-than-failing.patch
+mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock-fix.patch
+mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock-fix-fix.patch
 memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
+backlight-add-backlight-driver-for-lm3630-chip-fix.patch
+backlight-add-new-lm3639-backlight-driver-fix.patch
+lib-parserc-avoid-overflow-in-match_number-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+rtc-add-dallas-ds2404-driver-fix.patch
+rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch
+fs-fat-fix-all-other-checkpatch-issues-in-dirc-fix.patch
+fat-simplify-writeback_inode-checkpatch-fixes.patch
+fat-simplify-writeback_inode-checkpatch-fixes-fix.patch
+proc-use-kzalloc-instead-of-kmalloc-and-memset-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
