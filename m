@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-config_debug_vm_rb-build-option.patch added to -mm tree
-Date: Fri, 07 Sep 2012 15:16:29 -0700
-Message-ID: <20120907221630.83C292000F6@hpza10.eem.corp.google.com>
+Subject: + mm-avoid-taking-rmap-locks-in-move_ptes.patch added to -mm tree
+Date: Fri, 07 Sep 2012 15:16:33 -0700
+Message-ID: <20120907221634.7C8975C01CB@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:61860 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751250Ab2IGWQd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Sep 2012 18:16:33 -0400
-Received: by eekd4 with SMTP id d4so2887eek.1
-        for <mm-commits@vger.kernel.org>; Fri, 07 Sep 2012 15:16:32 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:51154 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751250Ab2IGWQh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Sep 2012 18:16:37 -0400
+Received: by wibhr14 with SMTP id hr14so65wib.1
+        for <mm-commits@vger.kernel.org>; Fri, 07 Sep 2012 15:16:36 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: walken@google.com, a.p.zijlstra@chello.nl, aarcange@redhat.com, daniel.santo
 
 
 The patch titled
-     Subject: mm: add CONFIG_DEBUG_VM_RB build option
+     Subject: mm: avoid taking rmap locks in move_ptes()
 has been added to the -mm tree.  Its filename is
-     mm-add-config_debug_vm_rb-build-option.patch
+     mm-avoid-taking-rmap-locks-in-move_ptes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,23 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michel Lespinasse <walken@google.com>
-Subject: mm: add CONFIG_DEBUG_VM_RB build option
+Subject: mm: avoid taking rmap locks in move_ptes()
 
-Add a CONFIG_DEBUG_VM_RB build option for the previously existing
-DEBUG_MM_RB code.  Now that Andi Kleen modified it to avoid using
-recursive algorithms, we can expose it a bit more.
+During mremap(), the destination VMA is generally placed after the
+original vma in rmap traversal order: in move_vma(), we always have
+new_pgoff >= vma->vm_pgoff, and as a result new_vma->vm_pgoff >=
+vma->vm_pgoff unless vma_merge() merged the new vma with an adjacent one.
 
-Also extend this code to validate_mm() after stack expansion, and to check
-that the vma's start and last pgoffs have not changed since the nodes were
-inserted on the anon vma interval tree (as it is important that the nodes
-be reindexed after each such update).
+When the destination VMA is placed after the original in rmap traversal
+order, we can avoid taking the rmap locks in move_ptes().
+
+Essentially, this reintroduces the optimization that had been disabled in
+"mm anon rmap: remove anon_vma_moveto_tail".  The difference is that we
+don't try to impose the rmap traversal order; instead we just rely on
+things being in the desired order in the common case and fall back to
+taking locks in the uncommon case.  Also we skip the i_mmap_mutex in
+addition to the anon_vma lock: in both cases, the vmas are traversed in
+increasing vm_pgoff order with ties resolved in tree insertion order.
 
 Signed-off-by: Michel Lespinasse <walken@google.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -54,163 +61,190 @@ Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h   |    3 +++
- include/linux/rmap.h |    3 +++
- lib/Kconfig.debug    |    9 +++++++++
- mm/interval_tree.c   |   41 ++++++++++++++++++++++++++++++++++++++++-
- mm/mmap.c            |   19 +++++++++----------
- 5 files changed, 64 insertions(+), 11 deletions(-)
+ fs/exec.c          |    2 -
+ include/linux/mm.h |    6 +++-
+ mm/mmap.c          |    7 +++--
+ mm/mremap.c        |   57 +++++++++++++++++++++++++++++--------------
+ 4 files changed, 49 insertions(+), 23 deletions(-)
 
-diff -puN include/linux/mm.h~mm-add-config_debug_vm_rb-build-option include/linux/mm.h
---- a/include/linux/mm.h~mm-add-config_debug_vm_rb-build-option
+diff -puN fs/exec.c~mm-avoid-taking-rmap-locks-in-move_ptes fs/exec.c
+--- a/fs/exec.c~mm-avoid-taking-rmap-locks-in-move_ptes
++++ a/fs/exec.c
+@@ -612,7 +612,7 @@ static int shift_arg_pages(struct vm_are
+ 	 * process cleanup to remove whatever mess we made.
+ 	 */
+ 	if (length != move_page_tables(vma, old_start,
+-				       vma, new_start, length))
++				       vma, new_start, length, false))
+ 		return -ENOMEM;
+ 
+ 	lru_add_drain();
+diff -puN include/linux/mm.h~mm-avoid-taking-rmap-locks-in-move_ptes include/linux/mm.h
+--- a/include/linux/mm.h~mm-avoid-taking-rmap-locks-in-move_ptes
 +++ a/include/linux/mm.h
-@@ -1387,6 +1387,9 @@ struct anon_vma_chain *anon_vma_interval
- 	struct rb_root *root, unsigned long start, unsigned long last);
- struct anon_vma_chain *anon_vma_interval_tree_iter_next(
- 	struct anon_vma_chain *node, unsigned long start, unsigned long last);
-+#ifdef CONFIG_DEBUG_VM_RB
-+void anon_vma_interval_tree_verify(struct anon_vma_chain *node);
-+#endif
+@@ -1061,7 +1061,8 @@ vm_is_stack(struct task_struct *task, st
  
- #define anon_vma_interval_tree_foreach(avc, root, start, last)		 \
- 	for (avc = anon_vma_interval_tree_iter_first(root, start, last); \
-diff -puN include/linux/rmap.h~mm-add-config_debug_vm_rb-build-option include/linux/rmap.h
---- a/include/linux/rmap.h~mm-add-config_debug_vm_rb-build-option
-+++ a/include/linux/rmap.h
-@@ -66,6 +66,9 @@ struct anon_vma_chain {
- 	struct list_head same_vma;   /* locked by mmap_sem & page_table_lock */
- 	struct rb_node rb;			/* locked by anon_vma->mutex */
- 	unsigned long rb_subtree_last;
-+#ifdef CONFIG_DEBUG_VM_RB
-+	unsigned long cached_vma_start, cached_vma_last;
-+#endif
- };
+ extern unsigned long move_page_tables(struct vm_area_struct *vma,
+ 		unsigned long old_addr, struct vm_area_struct *new_vma,
+-		unsigned long new_addr, unsigned long len);
++		unsigned long new_addr, unsigned long len,
++		bool need_rmap_locks);
+ extern unsigned long do_mremap(unsigned long addr,
+ 			       unsigned long old_len, unsigned long new_len,
+ 			       unsigned long flags, unsigned long new_addr);
+@@ -1411,7 +1412,8 @@ extern void __vma_link_rb(struct mm_stru
+ 	struct rb_node **, struct rb_node *);
+ extern void unlink_file_vma(struct vm_area_struct *);
+ extern struct vm_area_struct *copy_vma(struct vm_area_struct **,
+-	unsigned long addr, unsigned long len, pgoff_t pgoff);
++	unsigned long addr, unsigned long len, pgoff_t pgoff,
++	bool *need_rmap_locks);
+ extern void exit_mmap(struct mm_struct *);
  
- #ifdef CONFIG_MMU
-diff -puN lib/Kconfig.debug~mm-add-config_debug_vm_rb-build-option lib/Kconfig.debug
---- a/lib/Kconfig.debug~mm-add-config_debug_vm_rb-build-option
-+++ a/lib/Kconfig.debug
-@@ -797,6 +797,15 @@ config DEBUG_VM
- 
- 	  If unsure, say N.
- 
-+config DEBUG_VM_RB
-+	bool "Debug VM red-black trees"
-+	depends on DEBUG_VM
-+	help
-+	  Enable this to turn on more extended checks in the virtual-memory
-+	  system that may impact performance.
-+
-+	  If unsure, say N.
-+
- config DEBUG_VIRTUAL
- 	bool "Debug VM translations"
- 	depends on DEBUG_KERNEL && X86
-diff -puN mm/interval_tree.c~mm-add-config_debug_vm_rb-build-option mm/interval_tree.c
---- a/mm/interval_tree.c~mm-add-config_debug_vm_rb-build-option
-+++ a/mm/interval_tree.c
-@@ -70,4 +70,43 @@ static inline unsigned long avc_last_pgo
- }
- 
- INTERVAL_TREE_DEFINE(struct anon_vma_chain, rb, unsigned long, rb_subtree_last,
--		     avc_start_pgoff, avc_last_pgoff,, anon_vma_interval_tree)
-+		     avc_start_pgoff, avc_last_pgoff,
-+		     static inline, __anon_vma_interval_tree)
-+
-+void anon_vma_interval_tree_insert(struct anon_vma_chain *node,
-+				   struct rb_root *root)
-+{
-+#ifdef CONFIG_DEBUG_VM_RB
-+	node->cached_vma_start = avc_start_pgoff(node);
-+	node->cached_vma_last = avc_last_pgoff(node);
-+#endif
-+	__anon_vma_interval_tree_insert(node, root);
-+}
-+
-+void anon_vma_interval_tree_remove(struct anon_vma_chain *node,
-+				   struct rb_root *root)
-+{
-+	__anon_vma_interval_tree_remove(node, root);
-+}
-+
-+struct anon_vma_chain *
-+anon_vma_interval_tree_iter_first(struct rb_root *root,
-+				  unsigned long first, unsigned long last)
-+{
-+	return __anon_vma_interval_tree_iter_first(root, first, last);
-+}
-+
-+struct anon_vma_chain *
-+anon_vma_interval_tree_iter_next(struct anon_vma_chain *node,
-+				 unsigned long first, unsigned long last)
-+{
-+	return __anon_vma_interval_tree_iter_next(node, first, last);
-+}
-+
-+#ifdef CONFIG_DEBUG_VM_RB
-+void anon_vma_interval_tree_verify(struct anon_vma_chain *node)
-+{
-+	WARN_ON_ONCE(node->cached_vma_start != avc_start_pgoff(node));
-+	WARN_ON_ONCE(node->cached_vma_last != avc_last_pgoff(node));
-+}
-+#endif
-diff -puN mm/mmap.c~mm-add-config_debug_vm_rb-build-option mm/mmap.c
---- a/mm/mmap.c~mm-add-config_debug_vm_rb-build-option
+ extern int mm_take_all_locks(struct mm_struct *mm);
+diff -puN mm/mmap.c~mm-avoid-taking-rmap-locks-in-move_ptes mm/mmap.c
+--- a/mm/mmap.c~mm-avoid-taking-rmap-locks-in-move_ptes
 +++ a/mm/mmap.c
-@@ -51,12 +51,6 @@ static void unmap_region(struct mm_struc
- 		struct vm_area_struct *vma, struct vm_area_struct *prev,
- 		unsigned long start, unsigned long end);
- 
--/*
-- * WARNING: the debugging will use recursive algorithms so never enable this
-- * unless you know what you are doing.
-- */
--#undef DEBUG_MM_RB
--
- /* description of effects of mapping type and prot in current implementation.
-  * this is due to the limited x86 page protection hardware.  The expected
-  * behavior is in parens:
-@@ -303,7 +297,7 @@ out:
- 	return retval;
- }
- 
--#ifdef DEBUG_MM_RB
-+#ifdef CONFIG_DEBUG_VM_RB
- static int browse_rb(struct rb_root *root)
+@@ -2372,7 +2372,8 @@ int insert_vm_struct(struct mm_struct *m
+  * prior to moving page table entries, to effect an mremap move.
+  */
+ struct vm_area_struct *copy_vma(struct vm_area_struct **vmap,
+-	unsigned long addr, unsigned long len, pgoff_t pgoff)
++	unsigned long addr, unsigned long len, pgoff_t pgoff,
++	bool *need_rmap_locks)
  {
- 	int i = 0, j;
-@@ -337,9 +331,12 @@ void validate_mm(struct mm_struct *mm)
+ 	struct vm_area_struct *vma = *vmap;
+ 	unsigned long vma_start = vma->vm_start;
+@@ -2414,8 +2415,9 @@ struct vm_area_struct *copy_vma(struct v
+ 			 * linear if there are no pages mapped yet.
+ 			 */
+ 			VM_BUG_ON(faulted_in_anon_vma);
+-			*vmap = new_vma;
++			*vmap = vma = new_vma;
+ 		}
++		*need_rmap_locks = (new_vma->vm_pgoff <= vma->vm_pgoff);
+ 	} else {
+ 		new_vma = kmem_cache_alloc(vm_area_cachep, GFP_KERNEL);
+ 		if (new_vma) {
+@@ -2435,6 +2437,7 @@ struct vm_area_struct *copy_vma(struct v
+ 			if (new_vma->vm_ops && new_vma->vm_ops->open)
+ 				new_vma->vm_ops->open(new_vma);
+ 			vma_link(mm, new_vma, prev, rb_link, rb_parent);
++			*need_rmap_locks = false;
+ 		}
+ 	}
+ 	return new_vma;
+diff -puN mm/mremap.c~mm-avoid-taking-rmap-locks-in-move_ptes mm/mremap.c
+--- a/mm/mremap.c~mm-avoid-taking-rmap-locks-in-move_ptes
++++ a/mm/mremap.c
+@@ -71,26 +71,42 @@ static pmd_t *alloc_new_pmd(struct mm_st
+ static void move_ptes(struct vm_area_struct *vma, pmd_t *old_pmd,
+ 		unsigned long old_addr, unsigned long old_end,
+ 		struct vm_area_struct *new_vma, pmd_t *new_pmd,
+-		unsigned long new_addr)
++		unsigned long new_addr, bool need_rmap_locks)
  {
- 	int bug = 0;
- 	int i = 0;
--	struct vm_area_struct *tmp = mm->mmap;
--	while (tmp) {
--		tmp = tmp->vm_next;
-+	struct vm_area_struct *vma = mm->mmap;
-+	while (vma) {
-+		struct anon_vma_chain *avc;
-+		list_for_each_entry(avc, &vma->anon_vma_chain, same_vma)
-+			anon_vma_interval_tree_verify(avc);
-+		vma = vma->vm_next;
- 		i++;
- 	}
- 	if (i != mm->map_count)
-@@ -1791,6 +1788,7 @@ int expand_upwards(struct vm_area_struct
- 	}
- 	vma_unlock_anon_vma(vma);
- 	khugepaged_enter_vma_merge(vma);
-+	validate_mm(vma->vm_mm);
- 	return error;
- }
- #endif /* CONFIG_STACK_GROWSUP || CONFIG_IA64 */
-@@ -1844,6 +1842,7 @@ int expand_downwards(struct vm_area_stru
- 	}
- 	vma_unlock_anon_vma(vma);
- 	khugepaged_enter_vma_merge(vma);
-+	validate_mm(vma->vm_mm);
- 	return error;
- }
+ 	struct address_space *mapping = NULL;
+-	struct anon_vma *anon_vma = vma->anon_vma;
++	struct anon_vma *anon_vma = NULL;
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	pte_t *old_pte, *new_pte, pte;
+ 	spinlock_t *old_ptl, *new_ptl;
  
+-	if (vma->vm_file) {
+-		/*
+-		 * Subtle point from Rajesh Venkatasubramanian: before
+-		 * moving file-based ptes, we must lock truncate_pagecache
+-		 * out, since it might clean the dst vma before the src vma,
+-		 * and we propagate stale pages into the dst afterward.
+-		 */
+-		mapping = vma->vm_file->f_mapping;
+-		mutex_lock(&mapping->i_mmap_mutex);
++	/*
++	 * When need_rmap_locks is true, we take the i_mmap_mutex and anon_vma
++	 * locks to ensure that rmap will always observe either the old or the
++	 * new ptes. This is the easiest way to avoid races with
++	 * truncate_pagecache(), page migration, etc...
++	 *
++	 * When need_rmap_locks is false, we use other ways to avoid
++	 * such races:
++	 *
++	 * - During exec() shift_arg_pages(), we use a specially tagged vma
++	 *   which rmap call sites look for using is_vma_temporary_stack().
++	 *
++	 * - During mremap(), new_vma is often known to be placed after vma
++	 *   in rmap traversal order. This ensures rmap will always observe
++	 *   either the old pte, or the new pte, or both (the page table locks
++	 *   serialize access to individual ptes, but only rmap traversal
++	 *   order guarantees that we won't miss both the old and new ptes).
++	 */
++	if (need_rmap_locks) {
++		if (vma->vm_file) {
++			mapping = vma->vm_file->f_mapping;
++			mutex_lock(&mapping->i_mmap_mutex);
++		}
++		if (vma->anon_vma) {
++			anon_vma = vma->anon_vma;
++			anon_vma_lock(anon_vma);
++		}
+ 	}
+-	if (anon_vma)
+-		anon_vma_lock(anon_vma);
+ 
+ 	/*
+ 	 * We don't have to worry about the ordering of src and dst
+@@ -127,7 +143,8 @@ static void move_ptes(struct vm_area_str
+ 
+ unsigned long move_page_tables(struct vm_area_struct *vma,
+ 		unsigned long old_addr, struct vm_area_struct *new_vma,
+-		unsigned long new_addr, unsigned long len)
++		unsigned long new_addr, unsigned long len,
++		bool need_rmap_locks)
+ {
+ 	unsigned long extent, next, old_end;
+ 	pmd_t *old_pmd, *new_pmd;
+@@ -174,7 +191,7 @@ unsigned long move_page_tables(struct vm
+ 		if (extent > LATENCY_LIMIT)
+ 			extent = LATENCY_LIMIT;
+ 		move_ptes(vma, old_pmd, old_addr, old_addr + extent,
+-				new_vma, new_pmd, new_addr);
++			  new_vma, new_pmd, new_addr, need_rmap_locks);
+ 		need_flush = true;
+ 	}
+ 	if (likely(need_flush))
+@@ -198,6 +215,7 @@ static unsigned long move_vma(struct vm_
+ 	unsigned long hiwater_vm;
+ 	int split = 0;
+ 	int err;
++	bool need_rmap_locks;
+ 
+ 	/*
+ 	 * We'd prefer to avoid failure later on in do_munmap:
+@@ -219,18 +237,21 @@ static unsigned long move_vma(struct vm_
+ 		return err;
+ 
+ 	new_pgoff = vma->vm_pgoff + ((old_addr - vma->vm_start) >> PAGE_SHIFT);
+-	new_vma = copy_vma(&vma, new_addr, new_len, new_pgoff);
++	new_vma = copy_vma(&vma, new_addr, new_len, new_pgoff,
++			   &need_rmap_locks);
+ 	if (!new_vma)
+ 		return -ENOMEM;
+ 
+-	moved_len = move_page_tables(vma, old_addr, new_vma, new_addr, old_len);
++	moved_len = move_page_tables(vma, old_addr, new_vma, new_addr, old_len,
++				     need_rmap_locks);
+ 	if (moved_len < old_len) {
+ 		/*
+ 		 * On error, move entries back from new area to old,
+ 		 * which will succeed since page tables still there,
+ 		 * and then proceed to unmap new area instead of old.
+ 		 */
+-		move_page_tables(new_vma, new_addr, vma, old_addr, moved_len);
++		move_page_tables(new_vma, new_addr, vma, old_addr, moved_len,
++				 true);
+ 		vma = new_vma;
+ 		old_len = new_len;
+ 		old_addr = new_addr;
 _
 
 Patches currently in -mm which might be from walken@google.com are
