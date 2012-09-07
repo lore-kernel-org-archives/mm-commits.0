@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-use-get_freepage_migratetype-instead-of-page_private.patch added to -mm tree
-Date: Fri, 07 Sep 2012 12:56:14 -0700
-Message-ID: <20120907195615.B7BD5200135@hpza10.eem.corp.google.com>
+Subject: + memory-hotplug-bug-fix-race-between-isolation-and-allocation.patch added to -mm tree
+Date: Fri, 07 Sep 2012 12:56:22 -0700
+Message-ID: <20120907195622.D6A0E5C01DA@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-fa0-f74.google.com ([209.85.161.74]:44060 "EHLO
 	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757091Ab2IGT4T (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Sep 2012 15:56:19 -0400
-Received: by fass10 with SMTP id s10so189687fas.1
-        for <mm-commits@vger.kernel.org>; Fri, 07 Sep 2012 12:56:17 -0700 (PDT)
+	with ESMTP id S1756662Ab2IGT4Z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Sep 2012 15:56:25 -0400
+Received: by mail-fa0-f74.google.com with SMTP id s10so189687fas.1
+        for <mm-commits@vger.kernel.org>; Fri, 07 Sep 2012 12:56:24 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: minchan@kernel.org, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujit
 
 
 The patch titled
-     Subject: mm: page_alloc: use get_freepage_migratetype() instead of page_private()
+     Subject: memory-hotplug: bug fix race between isolation and allocation
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-use-get_freepage_migratetype-instead-of-page_private.patch
+     memory-hotplug-bug-fix-race-between-isolation-and-allocation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,54 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: mm: page_alloc: use get_freepage_migratetype() instead of page_private()
+Subject: memory-hotplug: bug fix race between isolation and allocation
 
-The page allocator uses set_page_private and page_private for handling
-migratetype when it frees page.  Let's replace them with [set|get]
-_freepage_migratetype to make it more clear.
+Like below, memory-hotplug makes race between page-isolation
+and page-allocation so it can hit BUG_ON in __offline_isolated_pages.
+
+	CPU A					CPU B
+
+start_isolate_page_range
+set_migratetype_isolate
+spin_lock_irqsave(zone->lock)
+
+				free_hot_cold_page(Page A)
+				/* without zone->lock */
+				migratetype = get_pageblock_migratetype(Page A);
+				/*
+				 * Page could be moved into MIGRATE_MOVABLE
+				 * of per_cpu_pages
+				 */
+				list_add_tail(&page->lru, &pcp->lists[migratetype]);
+
+set_pageblock_isolate
+move_freepages_block
+drain_all_pages
+
+				/* Page A could be in MIGRATE_MOVABLE of free_list. */
+
+check_pages_isolated
+__test_page_isolated_in_pageblock
+/*
+ * We can't catch freed page which
+ * is free_list[MIGRATE_MOVABLE]
+ */
+if (PageBuddy(page A))
+	pfn += 1 << page_order(page A);
+
+				/* So, Page A could be allocated */
+
+__offline_isolated_pages
+/*
+ * BUG_ON hit or offline page
+ * which is used by someone
+ */
+BUG_ON(!PageBuddy(page A));
+
+This patch checks page's migratetype in freelist in
+__test_page_isolated_in_pageblock.  So now
+__test_page_isolated_in_pageblock can check the page caused by above race
+and can fail of memory offlining.
 
 Signed-off-by: Minchan Kim <minchan@kernel.org>
 Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -49,79 +92,25 @@ Cc: Wen Congyang <wency@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h  |   12 ++++++++++++
- mm/page_alloc.c     |   10 ++++++----
- mm/page_isolation.c |    2 +-
- 3 files changed, 19 insertions(+), 5 deletions(-)
+ mm/page_isolation.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/mm.h~mm-page_alloc-use-get_freepage_migratetype-instead-of-page_private include/linux/mm.h
---- a/include/linux/mm.h~mm-page_alloc-use-get_freepage_migratetype-instead-of-page_private
-+++ a/include/linux/mm.h
-@@ -237,6 +237,18 @@ struct inode;
- #define page_private(page)		((page)->private)
- #define set_page_private(page, v)	((page)->private = (v))
- 
-+/* It's valid only if the page is free path or free_list */
-+static inline void set_freepage_migratetype(struct page *page, int migratetype)
-+{
-+	set_page_private(page, migratetype);
-+}
-+
-+/* It's valid only if the page is free path or free_list */
-+static inline int get_freepage_migratetype(struct page *page)
-+{
-+	return page_private(page);
-+}
-+
- /*
-  * FIXME: take this include out, include page-flags.h in
-  * files which need it (119 of them)
-diff -puN mm/page_alloc.c~mm-page_alloc-use-get_freepage_migratetype-instead-of-page_private mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-use-get_freepage_migratetype-instead-of-page_private
-+++ a/mm/page_alloc.c
-@@ -671,8 +671,10 @@ static void free_pcppages_bulk(struct zo
- 			/* must delete as __free_one_page list manipulates */
- 			list_del(&page->lru);
- 			/* MIGRATE_MOVABLE list may include MIGRATE_RESERVEs */
--			__free_one_page(page, zone, 0, page_private(page));
--			trace_mm_page_pcpu_drain(page, 0, page_private(page));
-+			__free_one_page(page, zone, 0,
-+				get_freepage_migratetype(page));
-+			trace_mm_page_pcpu_drain(page, 0,
-+				get_freepage_migratetype(page));
- 		} while (--to_free && --batch_free && !list_empty(list));
- 	}
- 	__mod_zone_page_state(zone, NR_FREE_PAGES, count);
-@@ -1134,7 +1136,7 @@ static int rmqueue_bulk(struct zone *zon
- 			if (!is_migrate_cma(mt) && mt != MIGRATE_ISOLATE)
- 				mt = migratetype;
- 		}
--		set_page_private(page, mt);
-+		set_freepage_migratetype(page, mt);
- 		list = &page->lru;
- 	}
- 	__mod_zone_page_state(zone, NR_FREE_PAGES, -(i << order));
-@@ -1301,7 +1303,7 @@ void free_hot_cold_page(struct page *pag
- 		return;
- 
- 	migratetype = get_pageblock_migratetype(page);
--	set_page_private(page, migratetype);
-+	set_freepage_migratetype(page, migratetype);
- 	local_irq_save(flags);
- 	if (unlikely(wasMlocked))
- 		free_page_mlock(page);
-diff -puN mm/page_isolation.c~mm-page_alloc-use-get_freepage_migratetype-instead-of-page_private mm/page_isolation.c
---- a/mm/page_isolation.c~mm-page_alloc-use-get_freepage_migratetype-instead-of-page_private
+diff -puN mm/page_isolation.c~memory-hotplug-bug-fix-race-between-isolation-and-allocation mm/page_isolation.c
+--- a/mm/page_isolation.c~memory-hotplug-bug-fix-race-between-isolation-and-allocation
 +++ a/mm/page_isolation.c
-@@ -196,7 +196,7 @@ __test_page_isolated_in_pageblock(unsign
- 		if (PageBuddy(page))
+@@ -193,8 +193,11 @@ __test_page_isolated_in_pageblock(unsign
+ 			continue;
+ 		}
+ 		page = pfn_to_page(pfn);
+-		if (PageBuddy(page))
++		if (PageBuddy(page)) {
++			if (get_freepage_migratetype(page) != MIGRATE_ISOLATE)
++				break;
  			pfn += 1 << page_order(page);
++		}
  		else if (page_count(page) == 0 &&
--				page_private(page) == MIGRATE_ISOLATE)
-+			get_freepage_migratetype(page) == MIGRATE_ISOLATE)
+ 			get_freepage_migratetype(page) == MIGRATE_ISOLATE)
  			pfn += 1;
- 		else
- 			break;
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
