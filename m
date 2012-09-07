@@ -1,102 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: + x86-mm-limit-2-4m-size-calculation-to-x86_32.patch added to -mm tree
-Date: Fri, 07 Sep 2012 14:31:33 -0700
-Message-ID: <20120907213134.458EA5C019C@hpza9.eem.corp.google.com>
+Subject: [folded] mm-support-migrate_discard-fix.patch removed from -mm tree
+Date: Fri, 07 Sep 2012 14:36:04 -0700
+Message-ID: <20120907213604.E715E5C00BD@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:45923 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758331Ab2IGVbh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Sep 2012 17:31:37 -0400
-Received: by eekd4 with SMTP id d4so1616eek.1
-        for <mm-commits@vger.kernel.org>; Fri, 07 Sep 2012 14:31:36 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:56100 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751101Ab2IGVgI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Sep 2012 17:36:08 -0400
+Received: by fass10 with SMTP id s10so1820fas.1
+        for <mm-commits@vger.kernel.org>; Fri, 07 Sep 2012 14:36:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: stefan.bader@canonical.com, hpa@zytor.com, mingo@elte.hu, stable@vger.kernel.org, tglx@linutronix.de, tj@kernel.org, xiyou.wangcong@gmail.com, yinghai@kernel.org
+To: akpm@linux-foundation.org, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86/mm: limit extra padding calculation to x86_32
-has been added to the -mm tree.  Its filename is
-     x86-mm-limit-2-4m-size-calculation-to-x86_32.patch
+     Subject: mm-support-migrate_discard-fix
+has been removed from the -mm tree.  Its filename was
+     mm-support-migrate_discard-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-support-migrate_discard.patch
 
 ------------------------------------------------------
-From: Stefan Bader <stefan.bader@canonical.com>
-Subject: x86/mm: limit extra padding calculation to x86_32
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-support-migrate_discard-fix
 
-Starting with kernel v3.5 kexec based crash dumping was observed to fail
-(without any apparent message) on x86_64 machines.  This was traced to a
-lack of memory triggered by a substantial increase (several megabyes) in
-the size of the initial page tables.
+whitespace fixlet
 
- After regression (on a VM with 2GB of memory):
- kernel direct mapping tables up to 0x7fffcfff @ [mem 0x1fbfd000-0x1fffffff]
- size = 4206591 bytes
-
- With this patch applied:
- kernel direct mapping tables up to 0x7fffcfff @ [mem 0x1fffc000-0x1fffffff]
- size = 16383 bytes
-
-A bisection lead to commit 722bc6b ("x86/mm: Fix the size calculation of
-mapping tables")
-
-This change modified the extra space calculation to take into account that
-the first 2/4M range of memory would be mapped as 4K pages as suggested in
-chapter 11.11.9 of the Intel software developer's manual.
-
-However this is currently only true for x86_32 (the reasons behind that
-are unclear but apparently the whole page table setup needs to be re-
-visited as it turns out to be very easy to break and has flaws in its
-current form).
-
-Until the logic can be revisited and combined, pair up the extra space
-calculation with the logic which creates the extra mappings.
-
-Signed-off-by: Stefan Bader <stefan.bader@canonical.com>
-Cc: WANG Cong <xiyou.wangcong@gmail.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: <stable@vger.kernel.org>	[v3.5+]
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/migrate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/mm/init.c~x86-mm-limit-2-4m-size-calculation-to-x86_32 arch/x86/mm/init.c
---- a/arch/x86/mm/init.c~x86-mm-limit-2-4m-size-calculation-to-x86_32
-+++ a/arch/x86/mm/init.c
-@@ -60,10 +60,11 @@ static void __init find_early_table_spac
- 		extra = end - ((end>>PMD_SHIFT) << PMD_SHIFT);
- #ifdef CONFIG_X86_32
- 		extra += PMD_SIZE;
--#endif
+diff -puN mm/migrate.c~mm-support-migrate_discard-fix mm/migrate.c
+--- a/mm/migrate.c~mm-support-migrate_discard-fix
++++ a/mm/migrate.c
+@@ -681,8 +681,8 @@ static int move_to_new_page(struct page 
+ static int discard_page(struct page *page)
+ {
+ 	int ret = -EAGAIN;
+-
+ 	struct address_space *mapping = page_mapping(page);
 +
- 		/* The first 2/4M doesn't use large pages. */
- 		if (mr->start < PMD_SIZE)
- 			extra += mr->end - mr->start;
-+#endif
- 
- 		ptes = (extra + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	} else
+ 	if (page_has_private(page))
+ 		if (!try_to_release_page(page, GFP_KERNEL))
+ 			return ret;
 _
 
-Patches currently in -mm which might be from stefan.bader@canonical.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-x86-mm-limit-2-4m-size-calculation-to-x86_32.patch
+origin.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+audith-replace-defines-with-c-stubs.patch
+thermal-add-generic-cpufreq-cooling-implementation.patch
+thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
+thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
+mm.patch
+x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
+mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
+mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures-fix.patch
+mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch
+rbtree-performance-and-correctness-test-fix.patch
+mm-support-migrate_discard.patch
+mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock-fix.patch
+mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock-fix-fix.patch
+memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
+backlight-add-backlight-driver-for-lm3630-chip-fix.patch
+backlight-add-new-lm3639-backlight-driver-fix.patch
+lib-parserc-avoid-overflow-in-match_number-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+rtc-add-dallas-ds2404-driver-fix.patch
+rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch
+fs-fat-fix-all-other-checkpatch-issues-in-dirc-fix.patch
+fat-simplify-writeback_inode-checkpatch-fixes.patch
+fat-simplify-writeback_inode-checkpatch-fixes-fix.patch
+proc-use-kzalloc-instead-of-kmalloc-and-memset-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
