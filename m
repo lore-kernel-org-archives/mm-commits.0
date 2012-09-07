@@ -1,95 +1,168 @@
 From: akpm@linux-foundation.org
-Subject: [folded] mm-support-migrate_discard-fix.patch removed from -mm tree
-Date: Fri, 07 Sep 2012 14:36:04 -0700
-Message-ID: <20120907213604.E715E5C00BD@hpza9.eem.corp.google.com>
+Subject: [failures] mm-support-migrate_discard.patch removed from -mm tree
+Date: Fri, 07 Sep 2012 14:36:36 -0700
+Message-ID: <20120907213636.CCA6B1000C0@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:56100 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751101Ab2IGVgI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Sep 2012 17:36:08 -0400
-Received: by fass10 with SMTP id s10so1820fas.1
-        for <mm-commits@vger.kernel.org>; Fri, 07 Sep 2012 14:36:06 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:63577 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756733Ab2IGVgi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Sep 2012 17:36:38 -0400
+Received: by ghbz15 with SMTP id z15so7752ghb.1
+        for <mm-commits@vger.kernel.org>; Fri, 07 Sep 2012 14:36:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, riel@redhat.com, mm-commits@vger.kernel.org
+To: minchan@kernel.org, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-support-migrate_discard-fix
+     Subject: mm: support MIGRATE_DISCARD
 has been removed from the -mm tree.  Its filename was
-     mm-support-migrate_discard-fix.patch
+     mm-support-migrate_discard.patch
 
-This patch was dropped because it was folded into mm-support-migrate_discard.patch
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-support-migrate_discard-fix
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: support MIGRATE_DISCARD
 
-whitespace fixlet
+Introduce MIGRATE_DISCARD mode in migration.  It drops *clean cache pages*
+instead of migration so that migration latency could be reduced by
+avoiding (memcpy + page remapping).  It's useful for CMA because latency
+of migration is very important rather than eviction of background
+processes's workingset.  In addition, it needs less free pages for
+migration targets so it could avoid memory reclaiming to get free pages,
+which is another factor increase latency.
 
+[akpm@linux-foundation.org: whitespace fixlet]
+Signed-off-by: Minchan Kim <minchan@kernel.org>
 Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Mel Gorman <mgorman@suse.de>
 Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Minchan Kim <minchan@kernel.org>
 Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/migrate_mode.h |    7 +++++
+ mm/migrate.c                 |   41 ++++++++++++++++++++++++++++++---
+ mm/page_alloc.c              |    2 -
+ 3 files changed, 46 insertions(+), 4 deletions(-)
 
-diff -puN mm/migrate.c~mm-support-migrate_discard-fix mm/migrate.c
---- a/mm/migrate.c~mm-support-migrate_discard-fix
-+++ a/mm/migrate.c
-@@ -681,8 +681,8 @@ static int move_to_new_page(struct page 
- static int discard_page(struct page *page)
- {
- 	int ret = -EAGAIN;
--
- 	struct address_space *mapping = page_mapping(page);
+diff -puN include/linux/migrate_mode.h~mm-support-migrate_discard include/linux/migrate_mode.h
+--- a/include/linux/migrate_mode.h~mm-support-migrate_discard
++++ a/include/linux/migrate_mode.h
+@@ -14,6 +14,13 @@
+  */
+ #define MIGRATE_SYNC		((__force migrate_mode_t)0x4)
+ 
++/*
++ * MIGRTATE_DISCARD will discard clean cache page instead of migration.
++ * MIGRATE_ASYNC, MIGRATE_SYNC_LIGHT, MIGRATE_SYNC shouldn't be used
++ * together with OR flag in current implementation.
++ */
++#define MIGRATE_DISCARD		((__force migrate_mode_t)0x8)
 +
- 	if (page_has_private(page))
- 		if (!try_to_release_page(page, GFP_KERNEL))
- 			return ret;
+ typedef unsigned __bitwise__ migrate_mode_t;
+ 
+ #endif		/* MIGRATE_MODE_H_INCLUDED */
+diff -puN mm/migrate.c~mm-support-migrate_discard mm/migrate.c
+--- a/mm/migrate.c~mm-support-migrate_discard
++++ a/mm/migrate.c
+@@ -678,6 +678,19 @@ static int move_to_new_page(struct page 
+ 	return rc;
+ }
+ 
++static int discard_page(struct page *page)
++{
++	int ret = -EAGAIN;
++	struct address_space *mapping = page_mapping(page);
++
++	if (page_has_private(page))
++		if (!try_to_release_page(page, GFP_KERNEL))
++			return ret;
++	if (remove_mapping(mapping, page))
++		ret = 0;
++	return ret;
++}
++
+ static int __unmap_and_move(struct page *page, struct page *newpage,
+ 			int force, bool offlining, migrate_mode_t mode)
+ {
+@@ -685,6 +698,9 @@ static int __unmap_and_move(struct page 
+ 	int remap_swapcache = 1;
+ 	struct mem_cgroup *mem;
+ 	struct anon_vma *anon_vma = NULL;
++	enum ttu_flags ttu_flags;
++	bool discard_mode = false;
++	bool file = false;
+ 
+ 	if (!trylock_page(page)) {
+ 		if (!force || (mode & MIGRATE_ASYNC))
+@@ -799,12 +815,31 @@ static int __unmap_and_move(struct page 
+ 		goto skip_unmap;
+ 	}
+ 
++	file = page_is_file_cache(page);
++	ttu_flags = TTU_IGNORE_ACCESS;
++retry:
++	if (!(mode & MIGRATE_DISCARD) || !file || PageDirty(page))
++		ttu_flags |= (TTU_MIGRATION | TTU_IGNORE_MLOCK);
++	else
++		discard_mode = true;
++
+ 	/* Establish migration ptes or remove ptes */
+-	try_to_unmap(page, TTU_MIGRATION|TTU_IGNORE_MLOCK|TTU_IGNORE_ACCESS);
++	rc = try_to_unmap(page, ttu_flags);
+ 
+ skip_unmap:
+-	if (!page_mapped(page))
+-		rc = move_to_new_page(newpage, page, remap_swapcache, mode);
++	if (rc == SWAP_SUCCESS) {
++		if (!discard_mode) {
++			rc = move_to_new_page(newpage, page,
++					remap_swapcache, mode);
++		} else {
++			rc = discard_page(page);
++			goto uncharge;
++		}
++	} else if (rc == SWAP_MLOCK && discard_mode) {
++		mode &= ~MIGRATE_DISCARD;
++		discard_mode = false;
++		goto retry;
++	}
+ 
+ 	if (rc && remap_swapcache)
+ 		remove_migration_ptes(page, page);
+diff -puN mm/page_alloc.c~mm-support-migrate_discard mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-support-migrate_discard
++++ a/mm/page_alloc.c
+@@ -5701,7 +5701,7 @@ static int __alloc_contig_migrate_range(
+ 
+ 		ret = migrate_pages(&cc.migratepages,
+ 				    __alloc_contig_migrate_alloc,
+-				    0, false, MIGRATE_SYNC);
++				    0, false, MIGRATE_SYNC|MIGRATE_DISCARD);
+ 	}
+ 
+ 	putback_lru_pages(&cc.migratepages);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-origin.patch
+memory-hotplug-reset-pgdat-kswapd-to-null-if-creating-kernel-thread-fails.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-audith-replace-defines-with-c-stubs.patch
-thermal-add-generic-cpufreq-cooling-implementation.patch
-thermal-exynos5-add-exynos5-thermal-sensor-driver-support.patch
-thermal-exynos-register-the-tmu-sensor-with-the-kernel-thermal-layer.patch
-mm.patch
-x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
-mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
+mm-remove-__gfp_no_kswapd.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer.patch
 mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
 mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
+mm-compaction-update-comment-in-try_to_compact_pages.patch
+mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures.patch
 mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures-fix.patch
-mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch
-rbtree-performance-and-correctness-test-fix.patch
-mm-support-migrate_discard.patch
-mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock-fix.patch
-mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock-fix-fix.patch
+mm-compaction-capture-a-suitable-high-order-page-immediately-when-it-is-made-available.patch
+mm-change-enum-migrate_mode-with-bitwise-type.patch
+mm-page_alloc-use-get_freepage_migratetype-instead-of-page_private.patch
+mm-remain-migratetype-in-freed-page.patch
+memory-hotplug-bug-fix-race-between-isolation-and-allocation.patch
+memory-hotplug-fix-pages-missed-by-race-rather-than-failing.patch
 memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
-backlight-add-backlight-driver-for-lm3630-chip-fix.patch
-backlight-add-new-lm3639-backlight-driver-fix.patch
-lib-parserc-avoid-overflow-in-match_number-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-rtc-add-dallas-ds2404-driver-fix.patch
-rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch
-fs-fat-fix-all-other-checkpatch-issues-in-dirc-fix.patch
-fat-simplify-writeback_inode-checkpatch-fixes.patch
-fat-simplify-writeback_inode-checkpatch-fixes-fix.patch
-proc-use-kzalloc-instead-of-kmalloc-and-memset-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
