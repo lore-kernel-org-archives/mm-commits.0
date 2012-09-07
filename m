@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-fix-pages-missed-by-race-rather-than-failing.patch added to -mm tree
-Date: Fri, 07 Sep 2012 12:56:25 -0700
-Message-ID: <20120907195626.C775D5C01DB@hpza9.eem.corp.google.com>
+Subject: + mm-remain-migratetype-in-freed-page.patch added to -mm tree
+Date: Fri, 07 Sep 2012 12:56:18 -0700
+Message-ID: <20120907195619.4DAB81E00E7@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:44238 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757177Ab2IGT43 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Sep 2012 15:56:29 -0400
-Received: by weyr1 with SMTP id r1so190188wey.1
-        for <mm-commits@vger.kernel.org>; Fri, 07 Sep 2012 12:56:28 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:39402 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756780Ab2IGT4V (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Sep 2012 15:56:21 -0400
+Received: by vbis24 with SMTP id s24so40418vbi.1
+        for <mm-commits@vger.kernel.org>; Fri, 07 Sep 2012 12:56:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: minchan@kernel.org, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujit
 
 
 The patch titled
-     Subject: memory-hotplug: fix pages missed by race rather than failing
+     Subject: mm: remain migratetype in freed page
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-fix-pages-missed-by-race-rather-than-failing.patch
+     mm-remain-migratetype-in-freed-page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,25 +34,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: memory-hotplug: fix pages missed by race rather than failing
+Subject: mm: remain migratetype in freed page
 
-If race between allocation and isolation in memory-hotplug offline
-happens, some pages could be in MIGRATE_MOVABLE of free_list although the
-pageblock's migratetype of the page is MIGRATE_ISOLATE.
+The page allocator caches the pageblock information in page->private while
+it is in the PCP freelists but this is overwritten with the order of the
+page when freed to the buddy allocator.  This patch stores the migratetype
+of the page in the page->index field so that it is available at all times
+when the page remain in free_list.
 
-The race could be detected by get_freepage_migratetype in
-__test_page_isolated_in_pageblock.  If it is detected, now EBUSY gets
-bubbled all the way up and the hotplug operations fails.
-
-But better idea is instead of returning and failing memory-hotremove, move
-the free page to the correct list at the time it is detected.  It could
-enhance memory-hotremove operation success ratio although the race is
-really rare.
-
-Suggested by Mel Gorman.
+This patch adds a new call site in __free_pages_ok so it might be overhead
+a bit but it's for high order allocation.  So I believe damage isn't hurt.
 
 Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Acked-by: Mel Gorman <mgorman@suse.de>
 Cc: Xishi Qiu <qiuxishi@huawei.com>
@@ -60,62 +54,60 @@ Cc: Wen Congyang <wency@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-isolation.h |    4 ++++
- mm/page_alloc.c                |    2 +-
- mm/page_isolation.c            |   15 +++++++++++++--
- 3 files changed, 18 insertions(+), 3 deletions(-)
+ include/linux/mm.h |    4 ++--
+ mm/page_alloc.c    |    7 +++++--
+ 2 files changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/page-isolation.h~memory-hotplug-fix-pages-missed-by-race-rather-than-failing include/linux/page-isolation.h
---- a/include/linux/page-isolation.h~memory-hotplug-fix-pages-missed-by-race-rather-than-failing
-+++ a/include/linux/page-isolation.h
-@@ -6,6 +6,10 @@ bool has_unmovable_pages(struct zone *zo
- void set_pageblock_migratetype(struct page *page, int migratetype);
- int move_freepages_block(struct zone *zone, struct page *page,
- 				int migratetype);
-+int move_freepages(struct zone *zone,
-+			  struct page *start_page, struct page *end_page,
-+			  int migratetype);
-+
- /*
-  * Changes migrate type in [start_pfn, end_pfn) to be MIGRATE_ISOLATE.
-  * If specified range includes migrate types other than MOVABLE or CMA,
-diff -puN mm/page_alloc.c~memory-hotplug-fix-pages-missed-by-race-rather-than-failing mm/page_alloc.c
---- a/mm/page_alloc.c~memory-hotplug-fix-pages-missed-by-race-rather-than-failing
-+++ a/mm/page_alloc.c
-@@ -918,7 +918,7 @@ static int fallbacks[MIGRATE_TYPES][4] =
-  * Note that start_page and end_pages are not aligned on a pageblock
-  * boundary. If alignment is required, use move_freepages_block()
-  */
--static int move_freepages(struct zone *zone,
-+int move_freepages(struct zone *zone,
- 			  struct page *start_page, struct page *end_page,
- 			  int migratetype)
+diff -puN include/linux/mm.h~mm-remain-migratetype-in-freed-page include/linux/mm.h
+--- a/include/linux/mm.h~mm-remain-migratetype-in-freed-page
++++ a/include/linux/mm.h
+@@ -240,13 +240,13 @@ struct inode;
+ /* It's valid only if the page is free path or free_list */
+ static inline void set_freepage_migratetype(struct page *page, int migratetype)
  {
-diff -puN mm/page_isolation.c~memory-hotplug-fix-pages-missed-by-race-rather-than-failing mm/page_isolation.c
---- a/mm/page_isolation.c~memory-hotplug-fix-pages-missed-by-race-rather-than-failing
-+++ a/mm/page_isolation.c
-@@ -194,8 +194,19 @@ __test_page_isolated_in_pageblock(unsign
- 		}
- 		page = pfn_to_page(pfn);
- 		if (PageBuddy(page)) {
--			if (get_freepage_migratetype(page) != MIGRATE_ISOLATE)
--				break;
-+			/*
-+			 * If race between isolatation and allocation happens,
-+			 * some free pages could be in MIGRATE_MOVABLE list
-+			 * although pageblock's migratation type of the page
-+			 * is MIGRATE_ISOLATE. Catch it and move the page into
-+			 * MIGRATE_ISOLATE list.
-+			 */
-+			if (get_freepage_migratetype(page) != MIGRATE_ISOLATE) {
-+				struct page *end_page = page +
-+						(1 << page_order(page)) - 1;
-+				move_freepages(page_zone(page), page, end_page,
-+						MIGRATE_ISOLATE);
-+			}
- 			pfn += 1 << page_order(page);
- 		}
- 		else if (page_count(page) == 0 &&
+-	set_page_private(page, migratetype);
++	page->index = migratetype;
+ }
+ 
+ /* It's valid only if the page is free path or free_list */
+ static inline int get_freepage_migratetype(struct page *page)
+ {
+-	return page_private(page);
++	return page->index;
+ }
+ 
+ /*
+diff -puN mm/page_alloc.c~mm-remain-migratetype-in-freed-page mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-remain-migratetype-in-freed-page
++++ a/mm/page_alloc.c
+@@ -723,6 +723,7 @@ static void __free_pages_ok(struct page 
+ {
+ 	unsigned long flags;
+ 	int wasMlocked = __TestClearPageMlocked(page);
++	int migratetype;
+ 
+ 	if (!free_pages_prepare(page, order))
+ 		return;
+@@ -731,8 +732,9 @@ static void __free_pages_ok(struct page 
+ 	if (unlikely(wasMlocked))
+ 		free_page_mlock(page);
+ 	__count_vm_events(PGFREE, 1 << order);
+-	free_one_page(page_zone(page), page, order,
+-					get_pageblock_migratetype(page));
++	migratetype = get_pageblock_migratetype(page);
++	set_freepage_migratetype(page, migratetype);
++	free_one_page(page_zone(page), page, order, migratetype);
+ 	local_irq_restore(flags);
+ }
+ 
+@@ -952,6 +954,7 @@ static int move_freepages(struct zone *z
+ 		order = page_order(page);
+ 		list_move(&page->lru,
+ 			  &zone->free_area[order].free_list[migratetype]);
++		set_freepage_migratetype(page, migratetype);
+ 		page += 1 << order;
+ 		pages_moved += 1 << order;
+ 	}
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
