@@ -1,61 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memblock-replace-0-with-null-for-pointer.patch removed from -mm tree
-Date: Tue, 11 Sep 2012 12:32:27 -0700
-Message-ID: <20120911193227.A9BD41E0043@wpzn4.hot.corp.google.com>
+Subject: [merged] mm-ia64-fix-a-node-distance-bug.patch removed from -mm tree
+Date: Tue, 11 Sep 2012 12:32:30 -0700
+Message-ID: <20120911193231.386FF5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:63116 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751504Ab2IKTc2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Sep 2012 15:32:28 -0400
-Received: by qcqs25 with SMTP id s25so96112qcq.1
-        for <mm-commits@vger.kernel.org>; Tue, 11 Sep 2012 12:32:28 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:34527 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751824Ab2IKTce (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Sep 2012 15:32:34 -0400
+Received: by lbbge1 with SMTP id ge1so69820lbb.1
+        for <mm-commits@vger.kernel.org>; Tue, 11 Sep 2012 12:32:32 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sachin.kamat@linaro.org, mingo@kernel.org, tj@kernel.org, mm-commits@vger.kernel.org
+To: wujianguo@huawei.com, jiang.liu@huawei.com, rientjes@google.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memblock: replace 0 with NULL for pointer
+     Subject: mm/ia64: fix a node distance bug
 has been removed from the -mm tree.  Its filename was
-     mm-memblock-replace-0-with-null-for-pointer.patch
+     mm-ia64-fix-a-node-distance-bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: mm/memblock: replace 0 with NULL for pointer
+From: Jianguo Wu <wujianguo@huawei.com>
+Subject: mm/ia64: fix a node distance bug
 
-Silences the following sparse warning:
-mm/memblock.c:249:49: warning: Using plain integer as NULL pointer
+ia64 has the following definition:
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Ingo Molnar <mingo@kernel.org>
+extern u8 numa_slit[MAX_NUMNODES * MAX_NUMNODES];
+#define node_distance(from,to) (numa_slit[(from) * num_online_nodes() + (to)])
+
+num_online_nodes() is a variable value, it can be changed after
+hot-remove/add a node.
+
+I my practice, I found node distance is wrong after offline a node in IA64
+platform.  For example system has 4 nodes: node distances:
+
+node   0   1   2   3
+  0:  10  21  21  32
+  1:  21  10  32  21
+  2:  21  32  10  21
+  3:  32  21  21  10
+
+linux-drf:/sys/devices/system/node/node0 # cat distance
+10  21  21  32
+linux-drf:/sys/devices/system/node/node1 # cat distance
+21  10  32  21
+
+After offline node2:
+linux-drf:/sys/devices/system/node/node0 # cat distance
+10 21 32
+linux-drf:/sys/devices/system/node/node1 # cat distance
+32 21 32	--------->expected value is: 21  10  21
+
+Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |    2 +-
+ arch/ia64/include/asm/numa.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memblock.c~mm-memblock-replace-0-with-null-for-pointer mm/memblock.c
---- a/mm/memblock.c~mm-memblock-replace-0-with-null-for-pointer
-+++ a/mm/memblock.c
-@@ -246,7 +246,7 @@ static int __init_memblock memblock_doub
- 				min(new_area_start, memblock.current_limit),
- 				new_alloc_size, PAGE_SIZE);
+diff -puN arch/ia64/include/asm/numa.h~mm-ia64-fix-a-node-distance-bug arch/ia64/include/asm/numa.h
+--- a/arch/ia64/include/asm/numa.h~mm-ia64-fix-a-node-distance-bug
++++ a/arch/ia64/include/asm/numa.h
+@@ -59,7 +59,7 @@ extern struct node_cpuid_s node_cpuid[NR
+  */
  
--		new_array = addr ? __va(addr) : 0;
-+		new_array = addr ? __va(addr) : NULL;
- 	}
- 	if (!addr) {
- 		pr_err("memblock: Failed to double %s array from %ld to %ld entries !\n",
+ extern u8 numa_slit[MAX_NUMNODES * MAX_NUMNODES];
+-#define node_distance(from,to) (numa_slit[(from) * num_online_nodes() + (to)])
++#define node_distance(from,to) (numa_slit[(from) * MAX_NUMNODES + (to)])
+ 
+ extern int paddr_to_nid(unsigned long paddr);
+ 
 _
 
-Patches currently in -mm which might be from sachin.kamat@linaro.org are
+Patches currently in -mm which might be from wujianguo@huawei.com are
 
+mm-ia64-fix-a-memory-block-size-bug.patch
 linux-next.patch
-drivers-video-backlight-da9052_blc-use-usleep_range-instead-of-msleep-for-small-sleeps.patch
-drivers-video-backlight-ltv350qvc-use-usleep_range-instead-of-msleep-for-small-sleeps.patch
-drivers-video-backlight-kb3886_blc-use-usleep_range-instead-of-msleep-for-small-sleeps.patch
 
