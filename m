@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-check-utf-8-content-from-a-commit-log-when-its-missing-from-charset.patch added to -mm tree
-Date: Tue, 11 Sep 2012 14:50:14 -0700
-Message-ID: <20120911215014.A7673100048@wpzn3.hot.corp.google.com>
+Subject: + kbuild-make-fix-if_changed-when-command-contains-backslashes.patch added to -mm tree
+Date: Tue, 11 Sep 2012 14:52:10 -0700
+Message-ID: <20120911215211.25437200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:43957 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751245Ab2IKVuQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Sep 2012 17:50:16 -0400
-Received: by qafl39 with SMTP id l39so125052qaf.1
-        for <mm-commits@vger.kernel.org>; Tue, 11 Sep 2012 14:50:15 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:46372 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754278Ab2IKVwO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Sep 2012 17:52:14 -0400
+Received: by wgbdt11 with SMTP id dt11so70976wgb.1
+        for <mm-commits@vger.kernel.org>; Tue, 11 Sep 2012 14:52:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pasi.savanainen@nixu.com, apw@canonical.com, joe@perches.com
+Cc: s.hauer@pengutronix.de, bernhard@bwalle.de, jlu@pengutronix.de, mmarek@suse.cz, sam@ravnborg.org
 
 
 The patch titled
-     Subject: checkpatch: check utf-8 content from a commit log when it's missing from charset
+     Subject: kbuild: make: fix if_changed when command contains backslashes
 has been added to the -mm tree.  Its filename is
-     checkpatch-check-utf-8-content-from-a-commit-log-when-its-missing-from-charset.patch
+     kbuild-make-fix-if_changed-when-command-contains-backslashes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,59 +33,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Pasi Savanainen <pasi.savanainen@nixu.com>
-Subject: checkpatch: check utf-8 content from a commit log when it's missing from charset
+From: Sascha Hauer <s.hauer@pengutronix.de>
+Subject: kbuild: make: fix if_changed when command contains backslashes
 
-Check that a commit log doesn't contain UTF-8 when a mail header
-explicitly defines a different charset, like
+The call if_changed mechanism does not work when the command
+contains backslashes. This basically is an issue with lzo
+and bzip2 compressed kernels. The compressed binaries do not
+contain the uncompressed image size, so these use size_append
+to append the size. This results in backslashes in the executed
+command. With this if_changed always detects a change in the
+command and rebuilds the compressed image even if nothing
+has changed.
 
-'Content-Type: text/plain; charset="us-ascii"'
+Fix this by escaping backslashes in make-cmd
 
-Signed-off-by: Pasi Savanainen <pasi.savanainen@nixu.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@canonical.com>
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Bernhard Walle <bernhard@bwalle.de>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+ scripts/Kbuild.include |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-check-utf-8-content-from-a-commit-log-when-its-missing-from-charset scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-check-utf-8-content-from-a-commit-log-when-its-missing-from-charset
-+++ a/scripts/checkpatch.pl
-@@ -1386,6 +1386,8 @@ sub process {
- 	my $in_header_lines = 1;
- 	my $in_commit_log = 0;		#Scanning lines before patch
+diff -puN scripts/Kbuild.include~kbuild-make-fix-if_changed-when-command-contains-backslashes scripts/Kbuild.include
+--- a/scripts/Kbuild.include~kbuild-make-fix-if_changed-when-command-contains-backslashes
++++ a/scripts/Kbuild.include
+@@ -209,7 +209,7 @@ endif
+ # >$< substitution to preserve $ when reloading .cmd file
+ # note: when using inline perl scripts [perl -e '...$$t=1;...']
+ # in $(cmd_xxx) double $$ your perl vars
+-make-cmd = $(subst \#,\\\#,$(subst $$,$$$$,$(call escsq,$(cmd_$(1)))))
++make-cmd = $(subst \\,\\\\,$(subst \#,\\\#,$(subst $$,$$$$,$(call escsq,$(cmd_$(1))))))
  
-+	my $non_utf8_charset = 0;
-+
- 	our @report = ();
- 	our $cnt_lines = 0;
- 	our $cnt_error = 0;
-@@ -1686,10 +1688,17 @@ sub process {
- 			$in_commit_log = 1;
- 		}
- 
--# Still not yet in a patch, check for any UTF-8
--		if ($in_commit_log && $realfile =~ /^$/ &&
-+# Check if there is UTF-8 in a commit log when a mail header has explicitly
-+# declined it, i.e defined some charset where it is missing.
-+		if ($in_header_lines &&
-+		    $rawline =~ /^Content-Type:.+charset="(.+)".*$/ &&
-+		    $1 !~ /utf-8/i) {
-+			$non_utf8_charset = 1;
-+		}
-+
-+		if ($in_commit_log && $non_utf8_charset && $realfile =~ /^$/ &&
- 		    $rawline =~ /$NON_ASCII_UTF8/) {
--			CHK("UTF8_BEFORE_PATCH",
-+			WARN("UTF8_BEFORE_PATCH",
- 			    "8-bit UTF-8 used in possible commit log\n" . $herecurr);
- 		}
- 
+ # Find any prerequisites that is newer than target or that does not exist.
+ # PHONY targets skipped in both cases.
 _
 
-Patches currently in -mm which might be from pasi.savanainen@nixu.com are
+Patches currently in -mm which might be from s.hauer@pengutronix.de are
 
-checkpatch-check-utf-8-content-from-a-commit-log-when-its-missing-from-charset.patch
+linux-next.patch
+kbuild-make-fix-if_changed-when-command-contains-backslashes.patch
+rtc-snvs-add-freescale-rtc-snvs-driver.patch
+rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch
+rtc-rtc-mxc-adapt-to-the-new-imx-clock-framework.patch
+rtc-rtc-mxc-convert-to-module_platform_driver.patch
 
