@@ -1,25 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-code-fix.patch added to -mm tree
-Date: Tue, 11 Sep 2012 15:20:12 -0700
-Message-ID: <20120911222012.9A23C100047@wpzn3.hot.corp.google.com>
+Subject: + rtc_sysfs_show_hctosys-return-0-if-resume-failed.patch added to -mm tree
+Date: Tue, 11 Sep 2012 15:22:40 -0700
+Message-ID: <20120911222241.AC0265C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:63971 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750934Ab2IKWUN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Sep 2012 18:20:13 -0400
-Received: by qafl39 with SMTP id l39so128484qaf.1
-        for <mm-commits@vger.kernel.org>; Tue, 11 Sep 2012 15:20:13 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:34495 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750934Ab2IKWWo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Sep 2012 18:22:44 -0400
+Received: by fass10 with SMTP id s10so71820fas.1
+        for <mm-commits@vger.kernel.org>; Tue, 11 Sep 2012 15:22:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zonque@gmail.com, rdunlap@xenotime.net
+Cc: david@fries.net, David@Fries.net, a.zummo@towertech.it, mjg@redhat.com, u.kleine-koenig@pengutronix.de
 
 
 The patch titled
-     Subject: lis3: lis3lv02d_spi.c: include linux/of.h
+     Subject: rtc_sysfs_show_hctosys(): display 0 if resume failed
 has been added to the -mm tree.  Its filename is
-     drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-code-fix.patch
+     rtc_sysfs_show_hctosys-return-0-if-resume-failed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -27,44 +30,137 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Daniel Mack <zonque@gmail.com>
-Subject: lis3: lis3lv02d_spi.c: include linux/of.h
+=46rom: David Fries <david@fries.net>
+Subject: rtc_sysfs_show_hctosys(): display 0 if resume failed
 
-This include is needed to define of_match:ptr() for !CONFIG_OF &&
-1CONFIG_DTC.
+Without this patch /sys/class/rtc/$CONFIG_RTC_HCTOSYS_DEVICE/hctosys
+contains a 1 (meaning "This rtc was used to initialize the system
+clock") even if setting the time by do_settimeofday() at bootup failed.
+The RTC can also be used to set the clock on resume, if it did 1,
+otherwise 0.  Previously there was no indication if the RTC was used
+to set the clock in resume.
 
-Signed-off-by: Daniel Mack <zonque@gmail.com>
-Reported-by: Randy Dunlap <rdunlap@xenotime.net>
+This uses only CONFIG_RTC_HCTOSYS_DEVICE for conditional compilation
+instead of it and CONFIG_RTC_HCTOSYS to be more consistent.
+rtc_hctosys_ret was moved to class.c so class.c no longer depends on
+hctosys.c.
+
+Signed-off-by: David Fries <David@Fries.net>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/lis3lv02d/lis3lv02d_spi.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/rtc/class.c     |    5 ++++-
+ drivers/rtc/hctosys.c   |    4 +---
+ drivers/rtc/rtc-sysfs.c |    6 ++++++
+ include/linux/rtc.h     |    2 +-
+ 4 files changed, 12 insertions(+), 5 deletions(-)
 
-diff -puN drivers/misc/lis3lv02d/lis3lv02d_spi.c~drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-code-fix drivers/misc/lis3lv02d/lis3lv02d_spi.c
---- a/drivers/misc/lis3lv02d/lis3lv02d_spi.c~drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-code-fix
-+++ a/drivers/misc/lis3lv02d/lis3lv02d_spi.c
-@@ -17,6 +17,7 @@
- #include <linux/workqueue.h>
- #include <linux/spi/spi.h>
- #include <linux/pm.h>
-+#include <linux/of.h>
- #include <linux/of_platform.h>
- 
- #include "lis3lv02d.h"
+diff -puN drivers/rtc/class.c~rtc_sysfs_show_hctosys-return-0-if-resume=
+-failed drivers/rtc/class.c
+--- a/drivers/rtc/class.c~rtc_sysfs_show_hctosys-return-0-if-resume-fai=
+led
++++ a/drivers/rtc/class.c
+@@ -39,7 +39,8 @@ static void rtc_device_release(struct de
+  */
+=20
+ static struct timespec old_rtc, old_system, old_delta;
+-
++/* Result of the last RTC to system clock attempt. */
++int rtc_hctosys_ret =3D -ENODEV;
+=20
+ static int rtc_suspend(struct device *dev, pm_message_t mesg)
+ {
+@@ -84,6 +85,7 @@ static int rtc_resume(struct device *dev
+ 	struct timespec		new_system, new_rtc;
+ 	struct timespec		sleep_time;
+=20
++	rtc_hctosys_ret =3D -ENODEV;
+ 	if (strcmp(dev_name(&rtc->dev), CONFIG_RTC_HCTOSYS_DEVICE) !=3D 0)
+ 		return 0;
+=20
+@@ -117,6 +119,7 @@ static int rtc_resume(struct device *dev
+=20
+ 	if (sleep_time.tv_sec >=3D 0)
+ 		timekeeping_inject_sleeptime(&sleep_time);
++	rtc_hctosys_ret =3D 0;
+ 	return 0;
+ }
+=20
+diff -puN drivers/rtc/hctosys.c~rtc_sysfs_show_hctosys-return-0-if-resu=
+me-failed drivers/rtc/hctosys.c
+--- a/drivers/rtc/hctosys.c~rtc_sysfs_show_hctosys-return-0-if-resume-f=
+ailed
++++ a/drivers/rtc/hctosys.c
+@@ -22,8 +22,6 @@
+  * the best guess is to add 0.5s.
+  */
+=20
+-int rtc_hctosys_ret =3D -ENODEV;
+-
+ static int __init rtc_hctosys(void)
+ {
+ 	int err =3D -ENODEV;
+@@ -56,7 +54,7 @@ static int __init rtc_hctosys(void)
+=20
+ 	rtc_tm_to_time(&tm, &tv.tv_sec);
+=20
+-	do_settimeofday(&tv);
++	err =3D do_settimeofday(&tv);
+=20
+ 	dev_info(rtc->dev.parent,
+ 		"setting system clock to "
+diff -puN drivers/rtc/rtc-sysfs.c~rtc_sysfs_show_hctosys-return-0-if-re=
+sume-failed drivers/rtc/rtc-sysfs.c
+--- a/drivers/rtc/rtc-sysfs.c~rtc_sysfs_show_hctosys-return-0-if-resume=
+-failed
++++ a/drivers/rtc/rtc-sysfs.c
+@@ -102,6 +102,12 @@ rtc_sysfs_set_max_user_freq(struct devic
+ 	return n;
+ }
+=20
++/**
++ * rtc_sysfs_show_hctosys - indicate if the given RTC set the system t=
+ime
++ *
++ * Returns 1 if the system clock was set by this RTC at the last
++ * boot or resume event.
++ */
+ static ssize_t
+ rtc_sysfs_show_hctosys(struct device *dev, struct device_attribute *at=
+tr,
+ 		char *buf)
+diff -puN include/linux/rtc.h~rtc_sysfs_show_hctosys-return-0-if-resume=
+-failed include/linux/rtc.h
+--- a/include/linux/rtc.h~rtc_sysfs_show_hctosys-return-0-if-resume-fai=
+led
++++ a/include/linux/rtc.h
+@@ -276,7 +276,7 @@ static inline bool is_leap_year(unsigned
+ 	return (!(year % 4) && (year % 100)) || !(year % 400);
+ }
+=20
+-#ifdef CONFIG_RTC_HCTOSYS
++#ifdef CONFIG_RTC_HCTOSYS_DEVICE
+ extern int rtc_hctosys_ret;
+ #else
+ #define rtc_hctosys_ret -ENODEV
 _
 
-Patches currently in -mm which might be from zonque@gmail.com are
+Patches currently in -mm which might be from david@fries.net are
 
-origin.patch
-linux-next.patch
-drivers-misc-lis3lv02d-add-generic-dt-matching-code.patch
-drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-code.patch
-drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-code-fix.patch
+rtc_sysfs_show_hctosys-return-0-if-resume-failed.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
