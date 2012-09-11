@@ -1,67 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cciss-use-check_signature-fix.patch removed from -mm tree
-Date: Tue, 11 Sep 2012 12:33:09 -0700
-Message-ID: <20120911193309.C9A4C1E0043@wpzn4.hot.corp.google.com>
+Subject: [merged] cciss-remove-useless-set-memory-to-zero-use-memset.patch removed from -mm tree
+Date: Tue, 11 Sep 2012 12:33:12 -0700
+Message-ID: <20120911193312.AFD98100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:62302 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751504Ab2IKTdL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Sep 2012 15:33:11 -0400
-Received: by ghbz15 with SMTP id z15so95958ghb.1
-        for <mm-commits@vger.kernel.org>; Tue, 11 Sep 2012 12:33:10 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:54593 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751504Ab2IKTdN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Sep 2012 15:33:13 -0400
+Received: by yhl10 with SMTP id 10so95675yhl.1
+        for <mm-commits@vger.kernel.org>; Tue, 11 Sep 2012 12:33:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, axboe@kernel.dk, mike.miller@hp.com, scameron@beardog.cce.hp.com, wfg@linux.intel.com, mm-commits@vger.kernel.org
+To: yongjun_wei@trendmicro.com.cn, axboe@kernel.dk, mike.miller@hp.com, scameron@beardog.cce.hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cciss: select CONFIG_CHECK_SIGNATURE
+     Subject: cciss: remove unneeded memset()
 has been removed from the -mm tree.  Its filename was
-     cciss-use-check_signature-fix.patch
+     cciss-remove-useless-set-memory-to-zero-use-memset.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: cciss: select CONFIG_CHECK_SIGNATURE
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Subject: cciss: remove unneeded memset()
 
-The patch cciss-use-check_signature.patch in -mm tree introduced
-a build error:
+The memory return by kzalloc() or kmem_cache_zalloc() has already be set
+to zero, so remove useless memset(0).
 
-drivers/built-in.o: In function `CISS_signature_present':
-drivers/block/cciss.c:4270: undefined reference to `check_signature'
+spatch with a semantic match is used to found this problem.
+(http://coccinelle.lip6.fr/)
 
-Add missing CONFIG_CHECK_SIGNATURE to fix this issue.
-
-Reported-by: Fengguang Wu <wfg@linux.intel.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Fengguang Wu <wfg@linux.intel.com>
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 Cc: Mike Miller <mike.miller@hp.com>
 Cc: Jens Axboe <axboe@kernel.dk>
-Acked-by: "Stephen M. Cameron" <scameron@beardog.cce.hp.com>
+Cc: Stephen M. Cameron <scameron@beardog.cce.hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/block/cciss.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/block/Kconfig~cciss-use-check_signature-fix drivers/block/Kconfig
---- a/drivers/block/Kconfig~cciss-use-check_signature-fix
-+++ a/drivers/block/Kconfig
-@@ -131,6 +131,7 @@ config BLK_CPQ_DA
- config BLK_CPQ_CISS_DA
- 	tristate "Compaq Smart Array 5xxx support"
- 	depends on PCI
-+	select CHECK_SIGNATURE
- 	help
- 	  This is the driver for Compaq Smart Array 5xxx controllers.
- 	  Everyone using these boards should say Y here.
+diff -puN drivers/block/cciss.c~cciss-remove-useless-set-memory-to-zero-use-memset drivers/block/cciss.c
+--- a/drivers/block/cciss.c~cciss-remove-useless-set-memory-to-zero-use-memset
++++ a/drivers/block/cciss.c
+@@ -5198,7 +5198,6 @@ static void cciss_shutdown(struct pci_de
+ 		return;
+ 	}
+ 	/* write all data in the battery backed cache to disk */
+-	memset(flush_buf, 0, 4);
+ 	return_code = sendcmd_withirq(h, CCISS_CACHE_FLUSH, flush_buf,
+ 		4, 0, CTLR_LUNID, TYPE_CMD);
+ 	kfree(flush_buf);
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from yongjun_wei@trendmicro.com.cn are
 
 linux-next.patch
-cciss-cleanup-bitops-usage.patch
-cciss-use-check_signature.patch
+kdump-remove-unneeded-include.patch
 
