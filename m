@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch added to -mm tree
-Date: Tue, 11 Sep 2012 16:35:20 -0700
-Message-ID: <20120911233520.BC4781E0043@wpzn4.hot.corp.google.com>
+Subject: + mm-compaction-check-lock-contention-first-before-taking-lock.patch added to -mm tree
+Date: Tue, 11 Sep 2012 16:43:39 -0700
+Message-ID: <20120911234339.A14C71E0066@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:54382 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755489Ab2IKXfW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Sep 2012 19:35:22 -0400
-Received: by vcqp1 with SMTP id p1so125760vcq.1
-        for <mm-commits@vger.kernel.org>; Tue, 11 Sep 2012 16:35:21 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:60576 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751516Ab2IKXnk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Sep 2012 19:43:40 -0400
+Received: by qafl39 with SMTP id l39so135562qaf.1
+        for <mm-commits@vger.kernel.org>; Tue, 11 Sep 2012 16:43:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shli@kernel.org, aarcange@redhat.com, mgorman@suse.de, minchan@kernel.org, shli@fusionio.com
+Cc: shli@kernel.org, mgorman@suse.de, minchan@kernel.org, shli@fusionio.com
 
 
 The patch titled
-     Subject: mm: compaction: abort compaction loop if lock is contended or run too long
+     Subject: mm: compaction: check lock contention first before taking lock
 has been added to the -mm tree.  Its filename is
-     mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
+     mm-compaction-check-lock-contention-first-before-taking-lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Shaohua Li <shli@kernel.org>
-Subject: mm: compaction: abort compaction loop if lock is contended or run too long
+Subject: mm: compaction: check lock contention first before taking lock
 
-isolate_migratepages_range() might isolate no pages, for example, when
-zone->lru_lock is contended and compaction is async.  In this case, we
-should abort compaction, otherwise, compact_zone will run a useless loop
-and make zone->lru_lock is even contended.
+isolate_migratepages_range will take zone->lru_lock first and check if the
+lock is contented, if yes, it will release the lock.  This isn't
+efficient.  If the lock is truly contented, a lock/unlock pair will
+increase the lock contention.  We'd better check if the lock is contended
+first.  compact_trylock_irqsave perfectly meets the requirement.
 
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Shaohua Li <shli@fusionio.com>
 Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Minchan Kim <minchan@kernel.org>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   12 +++++++-----
- mm/internal.h   |    2 +-
- 2 files changed, 8 insertions(+), 6 deletions(-)
+ mm/compaction.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long mm/compaction.c
---- a/mm/compaction.c~mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long
+diff -puN mm/compaction.c~mm-compaction-check-lock-contention-first-before-taking-lock mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-check-lock-contention-first-before-taking-lock
 +++ a/mm/compaction.c
-@@ -70,8 +70,7 @@ static bool compact_checklock_irqsave(sp
+@@ -349,8 +349,9 @@ isolate_migratepages_range(struct zone *
  
- 		/* async aborts if taking too long or contended */
- 		if (!cc->sync) {
--			if (cc->contended)
--				*cc->contended = true;
-+			cc->contended = true;
- 			return false;
- 		}
- 
-@@ -688,7 +687,7 @@ static isolate_migrate_t isolate_migrate
- 
- 	/* Perform the isolation */
- 	low_pfn = isolate_migratepages_range(zone, cc, low_pfn, end_pfn);
--	if (!low_pfn)
-+	if (!low_pfn || cc->contended)
- 		return ISOLATE_ABORT;
- 
- 	cc->migrate_pfn = low_pfn;
-@@ -896,6 +895,7 @@ static unsigned long compact_zone_order(
- 				 bool sync, bool *contended,
- 				 struct page **page)
- {
-+	unsigned long ret;
- 	struct compact_control cc = {
- 		.nr_freepages = 0,
- 		.nr_migratepages = 0,
-@@ -903,13 +903,15 @@ static unsigned long compact_zone_order(
- 		.migratetype = allocflags_to_migratetype(gfp_mask),
- 		.zone = zone,
- 		.sync = sync,
--		.contended = contended,
- 		.page = page,
- 	};
- 	INIT_LIST_HEAD(&cc.freepages);
- 	INIT_LIST_HEAD(&cc.migratepages);
- 
--	return compact_zone(zone, &cc);
-+	ret = compact_zone(zone, &cc);
-+	if (contended)
-+		*contended = cc.contended;
-+	return ret;
- }
- 
- int sysctl_extfrag_threshold = 500;
-diff -puN mm/internal.h~mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long mm/internal.h
---- a/mm/internal.h~mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long
-+++ a/mm/internal.h
-@@ -131,7 +131,7 @@ struct compact_control {
- 	int order;			/* order a direct compactor needs */
- 	int migratetype;		/* MOVABLE, RECLAIMABLE etc */
- 	struct zone *zone;
--	bool *contended;		/* True if a lock was contended */
-+	bool contended;			/* True if a lock was contended */
- 	struct page **page;		/* Page captured of requested size */
- };
+ 	/* Time to isolate some pages for migration */
+ 	cond_resched();
+-	spin_lock_irqsave(&zone->lru_lock, flags);
+-	locked = true;
++	locked = compact_trylock_irqsave(&zone->lru_lock, &flags, cc);
++	if (!locked)
++		return 0;
+ 	for (; low_pfn < end_pfn; low_pfn++) {
+ 		struct page *page;
  
 _
 
@@ -121,4 +75,5 @@ readahead-fault-retry-breaks-mmap-file-read-random-detection.patch
 swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
 swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
 mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
+mm-compaction-check-lock-contention-first-before-taking-lock.patch
 
