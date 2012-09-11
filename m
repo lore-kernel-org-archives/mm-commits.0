@@ -1,190 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arm-exynos-add-thermal-sensor-driver-platform-data-support.patch removed from -mm tree
-Date: Tue, 11 Sep 2012 12:32:53 -0700
-Message-ID: <20120911193254.1A25420004E@hpza10.eem.corp.google.com>
+Subject: [merged] thermal-exynos-remove-duplicate-inclusion-of-errh-header-file.patch removed from -mm tree
+Date: Tue, 11 Sep 2012 12:33:02 -0700
+Message-ID: <20120911193302.AB5B11E004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:34527 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751504Ab2IKTc4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Sep 2012 15:32:56 -0400
-Received: by mail-lb0-f202.google.com with SMTP id ge1so69820lbb.1
-        for <mm-commits@vger.kernel.org>; Tue, 11 Sep 2012 12:32:56 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:40773 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751504Ab2IKTdD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Sep 2012 15:33:03 -0400
+Received: by qcqs25 with SMTP id s25so96181qcq.1
+        for <mm-commits@vger.kernel.org>; Tue, 11 Sep 2012 12:33:03 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: amit.kachhap@linaro.org, dg77.kim@samsung.com, durgadoss.r@intel.com, guenter.roeck@ericsson.com, khali@linux-fr.org, kmpark@infradead.org, lenb@kernel.org, sw.ju@samsung.com, mm-commits@vger.kernel.org
+To: sachin.kamat@linaro.org, guenter.roeck@ericsson.com, len.brown@intel.com, lenb@kernel.org, sachin.kamat@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ARM: exynos: add thermal sensor driver platform data support
+     Subject: drivers/thermal/exynos_thermal.c: remove duplicate inclusion of err.h header file
 has been removed from the -mm tree.  Its filename was
-     arm-exynos-add-thermal-sensor-driver-platform-data-support.patch
+     thermal-exynos-remove-duplicate-inclusion-of-errh-header-file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Amit Daniel Kachhap <amit.kachhap@linaro.org>
-Subject: ARM: exynos: add thermal sensor driver platform data support
+From: Sachin Kamat <sachin.kamat@linaro.org>
+Subject: drivers/thermal/exynos_thermal.c: remove duplicate inclusion of err.h header file
 
-Add necessary default platform data support needed for TMU driver.  This
-dt/non-dt values are tested for origen exynos4210 and smdk exynos5250
-platforms.
+err.h header file was included twice.
 
-Signed-off-by: Amit Daniel Kachhap <amit.kachhap@linaro.org>
-Cc: Donggeun Kim <dg77.kim@samsung.com>
-Acked-by: Guenter Roeck <guenter.roeck@ericsson.com>
-Cc: SangWook Ju <sw.ju@samsung.com>
-Cc: Durgadoss <durgadoss.r@intel.com>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Signed-off-by: Sachin Kamat <sachin.kamat@samsung.com>
+Cc: Guenter Roeck <guenter.roeck@ericsson.com>
 Cc: Len Brown <lenb@kernel.org>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Kyungmin Park <kmpark@infradead.org>
+Cc: "Brown, Len" <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/thermal/exynos_thermal.c |  111 ++++++++++++++++++++++++++++-
- 1 file changed, 110 insertions(+), 1 deletion(-)
+ drivers/thermal/exynos_thermal.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/thermal/exynos_thermal.c~arm-exynos-add-thermal-sensor-driver-platform-data-support drivers/thermal/exynos_thermal.c
---- a/drivers/thermal/exynos_thermal.c~arm-exynos-add-thermal-sensor-driver-platform-data-support
+diff -puN drivers/thermal/exynos_thermal.c~thermal-exynos-remove-duplicate-inclusion-of-errh-header-file drivers/thermal/exynos_thermal.c
+--- a/drivers/thermal/exynos_thermal.c~thermal-exynos-remove-duplicate-inclusion-of-errh-header-file
 +++ a/drivers/thermal/exynos_thermal.c
-@@ -662,14 +662,121 @@ static irqreturn_t exynos_tmu_irq(int ir
- static struct thermal_sensor_conf exynos_sensor_conf = {
- 	.name			= "exynos-therm",
- 	.read_temperature	= (int (*)(void *))exynos_tmu_read,
-+};
-+
-+#if defined(CONFIG_CPU_EXYNOS4210)
-+static struct exynos_tmu_platform_data const exynos4_default_tmu_data = {
-+	.threshold = 80,
-+	.trigger_levels[0] = 5,
-+	.trigger_levels[1] = 20,
-+	.trigger_levels[2] = 30,
-+	.trigger_level0_en = 1,
-+	.trigger_level1_en = 1,
-+	.trigger_level2_en = 1,
-+	.trigger_level3_en = 0,
-+	.gain = 15,
-+	.reference_voltage = 7,
-+	.cal_type = TYPE_ONE_POINT_TRIMMING,
-+	.freq_tab[0] = {
-+		.freq_clip_max = 800 * 1000,
-+		.temp_level = 85,
-+	},
-+	.freq_tab[1] = {
-+		.freq_clip_max = 200 * 1000,
-+		.temp_level = 100,
-+	},
-+	.freq_tab_count = 2,
-+	.type = SOC_ARCH_EXYNOS4,
-+};
-+#define EXYNOS4_TMU_DRV_DATA (&exynos4_default_tmu_data)
-+#else
-+#define EXYNOS4_TMU_DRV_DATA (NULL)
-+#endif
-+
-+#if defined(CONFIG_SOC_EXYNOS5250)
-+static struct exynos_tmu_platform_data const exynos5_default_tmu_data = {
-+	.trigger_levels[0] = 85,
-+	.trigger_levels[1] = 103,
-+	.trigger_levels[2] = 110,
-+	.trigger_level0_en = 1,
-+	.trigger_level1_en = 1,
-+	.trigger_level2_en = 1,
-+	.trigger_level3_en = 0,
-+	.gain = 8,
-+	.reference_voltage = 16,
-+	.noise_cancel_mode = 4,
-+	.cal_type = TYPE_ONE_POINT_TRIMMING,
-+	.efuse_value = 55,
-+	.freq_tab[0] = {
-+		.freq_clip_max = 800 * 1000,
-+		.temp_level = 85,
-+	},
-+	.freq_tab[1] = {
-+		.freq_clip_max = 200 * 1000,
-+		.temp_level = 103,
-+	},
-+	.freq_tab_count = 2,
-+	.type = SOC_ARCH_EXYNOS5,
-+};
-+#define EXYNOS5_TMU_DRV_DATA (&exynos5_default_tmu_data)
-+#else
-+#define EXYNOS5_TMU_DRV_DATA (NULL)
-+#endif
-+
-+#ifdef CONFIG_OF
-+static const struct of_device_id exynos_tmu_match[] = {
-+	{
-+		.compatible = "samsung,exynos4-tmu",
-+		.data = (void *)EXYNOS4_TMU_DRV_DATA,
-+	},
-+	{
-+		.compatible = "samsung,exynos5-tmu",
-+		.data = (void *)EXYNOS5_TMU_DRV_DATA,
-+	},
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, exynos_tmu_match);
-+#else
-+#define  exynos_tmu_match NULL
-+#endif
-+
-+static struct platform_device_id exynos_tmu_driver_ids[] = {
-+	{
-+		.name		= "exynos4-tmu",
-+		.driver_data    = (kernel_ulong_t)EXYNOS4_TMU_DRV_DATA,
-+	},
-+	{
-+		.name		= "exynos5-tmu",
-+		.driver_data    = (kernel_ulong_t)EXYNOS5_TMU_DRV_DATA,
-+	},
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(platform, exynos4_tmu_driver_ids);
-+
-+static inline struct  exynos_tmu_platform_data *exynos_get_driver_data(
-+			struct platform_device *pdev)
-+{
-+#ifdef CONFIG_OF
-+	if (pdev->dev.of_node) {
-+		const struct of_device_id *match;
-+		match = of_match_node(exynos_tmu_match, pdev->dev.of_node);
-+		if (!match)
-+			return NULL;
-+		return (struct exynos_tmu_platform_data *) match->data;
-+	}
-+#endif
-+	return (struct exynos_tmu_platform_data *)
-+			platform_get_device_id(pdev)->driver_data;
- }
--;
- static int __devinit exynos_tmu_probe(struct platform_device *pdev)
- {
- 	struct exynos_tmu_data *data;
- 	struct exynos_tmu_platform_data *pdata = pdev->dev.platform_data;
- 	int ret, i;
- 
-+	if (!pdata)
-+		pdata = exynos_get_driver_data(pdev);
-+
- 	if (!pdata) {
- 		dev_err(&pdev->dev, "No platform init data supplied.\n");
- 		return -ENODEV;
-@@ -838,9 +945,11 @@ static struct platform_driver exynos_tmu
- 		.name   = "exynos-tmu",
- 		.owner  = THIS_MODULE,
- 		.pm     = EXYNOS_TMU_PM,
-+		.of_match_table = exynos_tmu_match,
- 	},
- 	.probe = exynos_tmu_probe,
- 	.remove	= __devexit_p(exynos_tmu_remove),
-+	.id_table = exynos_tmu_driver_ids,
- };
- 
- module_platform_driver(exynos_tmu_driver);
+@@ -33,7 +33,6 @@
+ #include <linux/kobject.h>
+ #include <linux/io.h>
+ #include <linux/mutex.h>
+-#include <linux/err.h>
+ #include <linux/platform_data/exynos_thermal.h>
+ #include <linux/thermal.h>
+ #include <linux/cpufreq.h>
 _
 
-Patches currently in -mm which might be from amit.kachhap@linaro.org are
+Patches currently in -mm which might be from sachin.kamat@linaro.org are
 
 linux-next.patch
+drivers-video-backlight-da9052_blc-use-usleep_range-instead-of-msleep-for-small-sleeps.patch
+drivers-video-backlight-ltv350qvc-use-usleep_range-instead-of-msleep-for-small-sleeps.patch
+drivers-video-backlight-kb3886_blc-use-usleep_range-instead-of-msleep-for-small-sleeps.patch
 
