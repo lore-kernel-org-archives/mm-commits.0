@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-dont-replace-lowmem-pages-with-highmem.patch added to -mm tree
-Date: Wed, 12 Sep 2012 14:32:53 -0700
-Message-ID: <20120912213253.C2E861E0048@wpzn4.hot.corp.google.com>
+Subject: + mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc.patch added to -mm tree
+Date: Wed, 12 Sep 2012 14:32:48 -0700
+Message-ID: <20120912213249.9C8E05C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:47202 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754516Ab2ILVcz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Sep 2012 17:32:55 -0400
-Received: by yenq6 with SMTP id q6so246086yen.1
-        for <mm-commits@vger.kernel.org>; Wed, 12 Sep 2012 14:32:54 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:48287 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754516Ab2ILVcw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Sep 2012 17:32:52 -0400
+Received: by eaac1 with SMTP id c1so146764eaa.1
+        for <mm-commits@vger.kernel.org>; Wed, 12 Sep 2012 14:32:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: minchan@kernel.org, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujit
 
 
 The patch titled
-     Subject: memory-hotplug: don't replace lowmem pages with highmem
+     Subject: mm/page_alloc: refactor out __alloc_contig_migrate_alloc()
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-dont-replace-lowmem-pages-with-highmem.patch
+     mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: memory-hotplug: don't replace lowmem pages with highmem
+Subject: mm/page_alloc: refactor out __alloc_contig_migrate_alloc()
 
-The changelog for 6a6dccba2 ("mm: cma: don't replace lowmem pages with
-highmem") mentioned that lowmem pages can be replaced by highmem pages
-during CMA migration.  6a6dccba2 fixed that issue.
-
-Quote from that changelog:
-
-:   The filesystem layer expects pages in the block device's mapping to not
-:   be in highmem (the mapping's gfp mask is set in bdget()), but CMA can
-:   currently replace lowmem pages with highmem pages, leading to crashes in
-:   filesystem code such as the one below:
-:
-:     Unable to handle kernel NULL pointer dereference at virtual address 00000400
-:     pgd = c0c98000
-:     [00000400] *pgd=00c91831, *pte=00000000, *ppte=00000000
-:     Internal error: Oops: 817 [#1] PREEMPT SMP ARM
-:     CPU: 0    Not tainted  (3.5.0-rc5+ #80)
-:     PC is at __memzero+0x24/0x80
-:     ...
-:     Process fsstress (pid: 323, stack limit = 0xc0cbc2f0)
-:     Backtrace:
-:     [<c010e3f0>] (ext4_getblk+0x0/0x180) from [<c010e58c>] (ext4_bread+0x1c/0x98)
-:     [<c010e570>] (ext4_bread+0x0/0x98) from [<c0117944>] (ext4_mkdir+0x160/0x3bc)
-:      r4:c15337f0
-:     [<c01177e4>] (ext4_mkdir+0x0/0x3bc) from [<c00c29e0>] (vfs_mkdir+0x8c/0x98)
-:     [<c00c2954>] (vfs_mkdir+0x0/0x98) from [<c00c2a60>] (sys_mkdirat+0x74/0xac)
-:      r6:00000000 r5:c152eb40 r4:000001ff r3:c14b43f0
-:     [<c00c29ec>] (sys_mkdirat+0x0/0xac) from [<c00c2ab8>] (sys_mkdir+0x20/0x24)
-:      r6:beccdcf0 r5:00074000 r4:beccdbbc
-:     [<c00c2a98>] (sys_mkdir+0x0/0x24) from [<c000e3c0>] (ret_fast_syscall+0x0/0x30)
-
-Memory-hotplug has same problem as CMA has so the same fix can be applied
-to memory-hotplug as well.
-
-Fix it by reusing.
+__alloc_contig_migrate_alloc() can be used by memory-hotplug so refactor
+it out (move + rename as a common name) into page_isolation.c.
 
 Signed-off-by: Minchan Kim <minchan@kernel.org>
 Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -80,41 +48,72 @@ Cc: Wen Congyang <wency@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ include/linux/page-isolation.h |    3 ++-
+ mm/page_alloc.c                |   14 +-------------
+ mm/page_isolation.c            |   11 +++++++++++
+ 3 files changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN mm/memory_hotplug.c~memory-hotplug-dont-replace-lowmem-pages-with-highmem mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory-hotplug-dont-replace-lowmem-pages-with-highmem
-+++ a/mm/memory_hotplug.c
-@@ -752,13 +752,6 @@ static unsigned long scan_lru_pages(unsi
- 	return 0;
+diff -puN include/linux/page-isolation.h~mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc include/linux/page-isolation.h
+--- a/include/linux/page-isolation.h~mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc
++++ a/include/linux/page-isolation.h
+@@ -41,6 +41,7 @@ int test_pages_isolated(unsigned long st
+  */
+ int set_migratetype_isolate(struct page *page);
+ void unset_migratetype_isolate(struct page *page, unsigned migratetype);
+-
++struct page *alloc_migrate_target(struct page *page, unsigned long private,
++				int **resultp);
+ 
+ #endif
+diff -puN mm/page_alloc.c~mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc
++++ a/mm/page_alloc.c
+@@ -5653,18 +5653,6 @@ static unsigned long pfn_max_align_up(un
+ 				pageblock_nr_pages));
  }
  
 -static struct page *
--hotremove_migrate_alloc(struct page *page, unsigned long private, int **x)
+-__alloc_contig_migrate_alloc(struct page *page, unsigned long private,
+-			     int **resultp)
 -{
--	/* This should be improooooved!! */
--	return alloc_page(GFP_HIGHUSER_MOVABLE);
+-	gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE;
+-
+-	if (PageHighMem(page))
+-		gfp_mask |= __GFP_HIGHMEM;
+-
+-	return alloc_page(gfp_mask);
 -}
 -
- #define NR_OFFLINE_AT_ONCE_PAGES	(256)
- static int
- do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
-@@ -809,8 +802,12 @@ do_migrate_range(unsigned long start_pfn
- 			putback_lru_pages(&source);
- 			goto out;
- 		}
--		/* this function returns # of failed pages */
--		ret = migrate_pages(&source, hotremove_migrate_alloc, 0,
+ /* [start, end) must belong to a single zone. */
+ static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
+ {
+@@ -5707,7 +5695,7 @@ static int __alloc_contig_migrate_range(
+ 		reclaim_clean_pages_from_list(cc.zone, &cc.migratepages);
+ 
+ 		ret = migrate_pages(&cc.migratepages,
+-				    __alloc_contig_migrate_alloc,
++				    alloc_migrate_target,
+ 				    0, false, MIGRATE_SYNC);
+ 	}
+ 
+diff -puN mm/page_isolation.c~mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc mm/page_isolation.c
+--- a/mm/page_isolation.c~mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc
++++ a/mm/page_isolation.c
+@@ -248,3 +248,14 @@ int test_pages_isolated(unsigned long st
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+ 	return ret ? 0 : -EBUSY;
+ }
 +
-+		/*
-+		 * alloc_migrate_target should be improooooved!!
-+		 * migrate_pages returns # of failed pages.
-+		 */
-+		ret = migrate_pages(&source, alloc_migrate_target, 0,
- 							true, MIGRATE_SYNC);
- 		if (ret)
- 			putback_lru_pages(&source);
++struct page *alloc_migrate_target(struct page *page, unsigned long private,
++                             int **resultp)
++{
++        gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE;
++
++        if (PageHighMem(page))
++                gfp_mask |= __GFP_HIGHMEM;
++
++        return alloc_page(gfp_mask);
++}
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
