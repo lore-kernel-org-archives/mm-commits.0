@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 12 Sep 2012 14:34:13 -0700
-Message-ID: <20120912213414.0E5195C0050@hpza9.eem.corp.google.com>
+Subject: + thp-khugepaged_prealloc_page-forgot-to-reset-the-page-alloc-indicator.patch added to -mm tree
+Date: Wed, 12 Sep 2012 14:38:27 -0700
+Message-ID: <20120912213827.A592E100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:52591 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751599Ab2ILVeQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Sep 2012 17:34:16 -0400
-Received: by fass10 with SMTP id s10so146404fas.1
-        for <mm-commits@vger.kernel.org>; Wed, 12 Sep 2012 14:34:15 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:40724 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754833Ab2ILVi3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Sep 2012 17:38:29 -0400
+Received: by vbis24 with SMTP id s24so246757vbi.1
+        for <mm-commits@vger.kernel.org>; Wed, 12 Sep 2012 14:38:28 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, minchan@kernel.org
+Cc: xiaoguangrong@linux.vnet.ibm.com, aarcange@redhat.com, hughd@google.com, rientjes@google.com, walken@google.com
 
 
 The patch titled
-     Subject: mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes
+     Subject: thp: khugepaged_prealloc_page() forgot to reset the page alloc indicator
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch
+     thp-khugepaged_prealloc_page-forgot-to-reset-the-page-alloc-indicator.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,125 +33,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes
+From: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
+Subject: thp: khugepaged_prealloc_page() forgot to reset the page alloc indicator
 
-ERROR: code indent should use tabs where possible
-#73: FILE: mm/page_isolation.c:253:
-+                             int **resultp)$
+If NUMA is enabled, the indicator is not reset if the previous page
+request failed, ausing us to trigger the BUG_ON() in
+khugepaged_alloc_page().
 
-WARNING: please, no spaces at the start of a line
-#73: FILE: mm/page_isolation.c:253:
-+                             int **resultp)$
-
-ERROR: code indent should use tabs where possible
-#75: FILE: mm/page_isolation.c:255:
-+        gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE;$
-
-WARNING: please, no spaces at the start of a line
-#75: FILE: mm/page_isolation.c:255:
-+        gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE;$
-
-ERROR: code indent should use tabs where possible
-#77: FILE: mm/page_isolation.c:257:
-+        if (PageHighMem(page))$
-
-WARNING: please, no spaces at the start of a line
-#77: FILE: mm/page_isolation.c:257:
-+        if (PageHighMem(page))$
-
-ERROR: code indent should use tabs where possible
-#78: FILE: mm/page_isolation.c:258:
-+                gfp_mask |= __GFP_HIGHMEM;$
-
-WARNING: please, no spaces at the start of a line
-#78: FILE: mm/page_isolation.c:258:
-+                gfp_mask |= __GFP_HIGHMEM;$
-
-ERROR: code indent should use tabs where possible
-#80: FILE: mm/page_isolation.c:260:
-+        return alloc_page(gfp_mask);$
-
-WARNING: please, no spaces at the start of a line
-#80: FILE: mm/page_isolation.c:260:
-+        return alloc_page(gfp_mask);$
-
-total: 5 errors, 5 warnings, 48 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_isolation.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/huge_memory.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/page_isolation.c~mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes mm/page_isolation.c
---- a/mm/page_isolation.c~mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes
-+++ a/mm/page_isolation.c
-@@ -250,12 +250,12 @@ int test_pages_isolated(unsigned long st
- }
+diff -puN mm/huge_memory.c~thp-khugepaged_prealloc_page-forgot-to-reset-the-page-alloc-indicator mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-khugepaged_prealloc_page-forgot-to-reset-the-page-alloc-indicator
++++ a/mm/huge_memory.c
+@@ -1822,6 +1822,7 @@ static bool khugepaged_prealloc_page(str
+ 			return false;
  
- struct page *alloc_migrate_target(struct page *page, unsigned long private,
--                             int **resultp)
-+				  int **resultp)
- {
--        gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE;
-+	gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE;
- 
--        if (PageHighMem(page))
--                gfp_mask |= __GFP_HIGHMEM;
-+	if (PageHighMem(page))
-+		gfp_mask |= __GFP_HIGHMEM;
- 
--        return alloc_page(gfp_mask);
-+	return alloc_page(gfp_mask);
- }
+ 		*wait = false;
++		*hpage = NULL;
+ 		khugepaged_alloc_sleep();
+ 	} else if (*hpage) {
+ 		put_page(*hpage);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from xiaoguangrong@linux.vnet.ibm.com are
 
+origin.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-audith-replace-defines-with-c-stubs.patch
-mm.patch
-x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
-mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
-mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures-fix.patch
+mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host.patch
 mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch
-rbtree-performance-and-correctness-test-fix.patch
+mm-mmu_notifier-init-notifier-if-necessary.patch
+thp-fix-the-count-of-thp_collapse_alloc.patch
+thp-remove-unnecessary-check-in-start_khugepaged.patch
+thp-move-khugepaged_mutex-out-of-khugepaged.patch
+thp-remove-unnecessary-khugepaged_thread-check.patch
+thp-remove-wake_up_interruptible-in-the-exit-path.patch
+thp-remove-some-code-depend-on-config_numa.patch
+thp-merge-page-pre-alloc-in-khugepaged_loop-into-khugepaged_do_scan.patch
+thp-release-page-in-page-pre-alloc-path.patch
+thp-introduce-khugepaged_prealloc_page-and-khugepaged_alloc_page.patch
+thp-remove-khugepaged_loop.patch
+thp-use-khugepaged_enabled-to-remove-duplicate-code.patch
+thp-remove-unnecessary-set_recommended_min_free_kbytes.patch
+mm-mmu_notifier-make-the-mmu_notifier-srcu-static.patch
+mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock.patch
 mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock-fix.patch
-memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix.patch
-mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch
-backlight-add-backlight-driver-for-lm3630-chip-fix.patch
-backlight-add-new-lm3639-backlight-driver-fix.patch
-lib-parserc-avoid-overflow-in-match_number-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-rtc-add-dallas-ds2404-driver-fix.patch
-rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch
-fs-fat-fix-all-other-checkpatch-issues-in-dirc-fix.patch
-fat-simplify-writeback_inode-checkpatch-fixes.patch
-fat-simplify-writeback_inode-checkpatch-fixes-fix.patch
-coredump-make-core-dump-functionality-optional-fix-fix.patch
-proc-use-kzalloc-instead-of-kmalloc-and-memset-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mm-wrap-calls-to-set_pte_at_notify-with-invalidate_range_start-and-invalidate_range_end.patch
+thp-khugepaged_prealloc_page-forgot-to-reset-the-page-alloc-indicator.patch
 
