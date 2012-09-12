@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + slab-fix-debug==0-warning.patch added to -mm tree
-Date: Wed, 12 Sep 2012 15:38:21 -0700
-Message-ID: <20120912232629.8229420004E@hpza10.eem.corp.google.com>
+Subject: + idr-rename-max_level-to-max_idr_level-fix-3.patch added to -mm tree
+Date: Wed, 12 Sep 2012 16:07:43 -0700
+Message-ID: <20120912235552.16AD81E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:54136 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751137Ab2ILX0c (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Sep 2012 19:26:32 -0400
-Received: by lbbge1 with SMTP id ge1so152404lbb.1
-        for <mm-commits@vger.kernel.org>; Wed, 12 Sep 2012 16:26:30 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:52993 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933178Ab2ILXzy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Sep 2012 19:55:54 -0400
+Received: by qcqs25 with SMTP id s25so261861qcq.1
+        for <mm-commits@vger.kernel.org>; Wed, 12 Sep 2012 16:55:53 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, penberg@kernel.org
+Cc: akpm@linux-foundation.org, fengguang.wu@intel.com
 
 
 The patch titled
-     Subject: slab: fix DEBUG==0 warning
+     Subject: idr-rename-max_level-to-max_idr_level-fix-3
 has been added to the -mm tree.  Its filename is
-     slab-fix-debug==0-warning.patch
+     idr-rename-max_level-to-max_idr_level-fix-3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,27 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: slab: fix DEBUG==0 warning
+Subject: idr-rename-max_level-to-max_idr_level-fix-3
 
-mm/slab.c:808: warning: '__slab_error' defined but not used
-
-Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Fengguang Wu <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/thermal/cpu_cooling.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slab.c~slab-fix-debug==0-warning mm/slab.c
---- a/mm/slab.c~slab-fix-debug==0-warning
-+++ a/mm/slab.c
-@@ -803,6 +803,7 @@ static void cache_estimate(unsigned long
- 	*left_over = slab_size - nr_objs*buffer_size - mgmt_size;
+diff -puN drivers/thermal/cpu_cooling.c~idr-rename-max_level-to-max_idr_level-fix-3 drivers/thermal/cpu_cooling.c
+--- a/drivers/thermal/cpu_cooling.c~idr-rename-max_level-to-max_idr_level-fix-3
++++ a/drivers/thermal/cpu_cooling.c
+@@ -86,7 +86,7 @@ again:
+ 	else if (unlikely(err))
+ 		return err;
+ 
+-	*id = *id & MAX_ID_MASK;
++	*id = *id & MAX_IDR_MASK;
+ 	return 0;
  }
  
-+#if DEBUG
- #define slab_error(cachep, msg) __slab_error(__func__, cachep, msg)
- 
- static void __slab_error(const char *function, struct kmem_cache *cachep,
-@@ -812,6 +813,7 @@ static void __slab_error(const char *fun
- 	       function, cachep->name, msg);
- 	dump_stack();
- }
-+#endif
- 
- /*
-  * By default on NUMA we use alien caches to stage the freeing of
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,6 +66,7 @@ i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 audith-replace-defines-with-c-stubs.patch
+slab-fix-debug==0-warning.patch
 mm.patch
 x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
 mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
@@ -104,5 +96,5 @@ journal_add_journal_head-debug.patch
 mutex-subsystem-synchro-test-module-fix.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
-slab-fix-debug==0-warning.patch
+idr-rename-max_level-to-max_idr_level-fix-3.patch
 
