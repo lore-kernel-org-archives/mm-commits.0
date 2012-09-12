@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-check-networking-specific-block-comment-style.patch added to -mm tree
-Date: Wed, 12 Sep 2012 14:12:33 -0700
-Message-ID: <20120912211233.990331E0043@wpzn4.hot.corp.google.com>
+Subject: + codingstyle-add-networking-specific-block-comment-style.patch added to -mm tree
+Date: Wed, 12 Sep 2012 14:12:35 -0700
+Message-ID: <20120912211236.91AD8200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:52366 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753141Ab2ILVMe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Sep 2012 17:12:34 -0400
-Received: by yhl10 with SMTP id 10so243744yhl.1
-        for <mm-commits@vger.kernel.org>; Wed, 12 Sep 2012 14:12:34 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:52615 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753141Ab2ILVMj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Sep 2012 17:12:39 -0400
+Received: by fass10 with SMTP id s10so145844fas.1
+        for <mm-commits@vger.kernel.org>; Wed, 12 Sep 2012 14:12:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: joe@perches.com, apw@canonical.com, bruce.w.allan@intel.com, davem@davemloft
 
 
 The patch titled
-     Subject: checkpatch: check networking specific block comment style
+     Subject: CodingStyle: add networking specific block comment style
 has been added to the -mm tree.  Its filename is
-     checkpatch-check-networking-specific-block-comment-style.patch
+     codingstyle-add-networking-specific-block-comment-style.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: check networking specific block comment style
+Subject: CodingStyle: add networking specific block comment style
 
-In an effort to get fewer checkpatch reviewer corrections, add a
-networking specific style test for the preferred networking comment style.
-
-	/* The preferred style for block comments in
-	 * drivers/net/... and net/... is like this
-	 */
-
-These tests are only used in net/ and drivers/net/
-
-Tested with:
-
-$ cat drivers/net/t.c
-
-/* foo */
-
-/*
- * foo
- */
-
-/* foo
- */
-
-/* foo
- * bar */
-$ ./scripts/checkpatch.pl -f drivers/net/t.c
-WARNING: networking block comments don't use an empty /* line, use /* Comment...
-#4: FILE: net/t.c:4:
-+
-+/*
-
-WARNING: networking block comments put the trailing */ on a separate line
-#12: FILE: net/t.c:12:
-+ * bar */
-
-total: 0 errors, 2 warnings, 12 lines checked
+The block comment style in net/ and drivers/net is non-standard.
+Document it.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: "Allan, Bruce W" <bruce.w.allan@intel.com>
@@ -79,33 +46,29 @@ Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ Documentation/CodingStyle |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-check-networking-specific-block-comment-style scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-check-networking-specific-block-comment-style
-+++ a/scripts/checkpatch.pl
-@@ -1882,6 +1882,20 @@ sub process {
- 			    "No space is necessary after a cast\n" . $hereprev);
- 		}
+diff -puN Documentation/CodingStyle~codingstyle-add-networking-specific-block-comment-style Documentation/CodingStyle
+--- a/Documentation/CodingStyle~codingstyle-add-networking-specific-block-comment-style
++++ a/Documentation/CodingStyle
+@@ -454,6 +454,16 @@ The preferred style for long (multi-line
+ 	 * with beginning and ending almost-blank lines.
+ 	 */
  
-+		if ($realfile =~ m@^(drivers/net/|net/)@ &&
-+		    $rawline =~ /^\+[ \t]*\/\*[ \t]*$/ &&
-+		    $prevrawline =~ /^\+[ \t]*$/) {
-+			WARN("NETWORKING_BLOCK_COMMENT_STYLE",
-+			     "networking block comments don't use an empty /* line, use /* Comment...\n" . $hereprev);
-+		}
++For files in net/ and drivers/net/ the preferred style for long (multi-line)
++comments is a little different.
 +
-+		if ($realfile =~ m@^(drivers/net/|net/)@ &&
-+		    $rawline !~ m@^\+[ \t]*(\/\*|\*\/)@ &&
-+		    $rawline =~ m@^\+[ \t]*.+\*\/[ \t]*$@) {
-+			WARN("NETWORKING_BLOCK_COMMENT_STYLE",
-+			     "networking block comments put the trailing */ on a separate line\n" . $herecurr);
-+		}
++	/* The preferred comment style for files in net/ and drivers/net
++	 * looks like this.
++	 *
++	 * It is nearly the same as the generally preferred comment style,
++	 * but there is no initial almost-blank line.
++	 */
 +
- # check for spaces at the beginning of a line.
- # Exceptions:
- #  1) within comments
+ It's also important to comment data, whether they are basic types or derived
+ types.  To this end, use just one data declaration per line (no commas for
+ multiple data declarations).  This leaves you room for a small comment on each
 _
 
 Patches currently in -mm which might be from joe@perches.com are
