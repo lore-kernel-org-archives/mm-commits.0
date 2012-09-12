@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + idr-rename-max_level-to-max_idr_level-fix.patch added to -mm tree
-Date: Wed, 12 Sep 2012 16:03:07 -0700
-Message-ID: <20120912230308.AC7FA5C0050@hpza9.eem.corp.google.com>
+Subject: + idr-rename-max_level-to-max_idr_level-fix-fix-2.patch added to -mm tree
+Date: Wed, 12 Sep 2012 15:23:01 -0700
+Message-ID: <20120912231110.11ED31E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:58454 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751745Ab2ILXDM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Sep 2012 19:03:12 -0400
-Received: by wibhr14 with SMTP id hr14so150830wib.1
-        for <mm-commits@vger.kernel.org>; Wed, 12 Sep 2012 16:03:10 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:47845 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751017Ab2ILXLM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Sep 2012 19:11:12 -0400
+Received: by vbis24 with SMTP id s24so258114vbi.1
+        for <mm-commits@vger.kernel.org>; Wed, 12 Sep 2012 16:11:11 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akpm@linux-foundation.org, bernd@petrovitsch.priv.at, fengguang.wu@intel.com
 
 
 The patch titled
-     Subject: idr-rename-max_level-to-max_idr_level-fix
+     Subject: idr-rename-max_level-to-max_idr_level-fix-fix-2
 has been added to the -mm tree.  Its filename is
-     idr-rename-max_level-to-max_idr_level-fix.patch
+     idr-rename-max_level-to-max_idr_level-fix-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,9 +34,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: idr-rename-max_level-to-max_idr_level-fix
+Subject: idr-rename-max_level-to-max_idr_level-fix-fix-2
 
-repair fallout
+ho hum
 
 Cc: Bernd Petrovitsch <bernd@petrovitsch.priv.at>
 Cc: Fengguang Wu <fengguang.wu@intel.com>
@@ -45,78 +45,81 @@ Cc: walter harms <wharms@bfs.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/i2c-core.c        |    2 +-
- drivers/infiniband/core/cm.c  |    2 +-
- drivers/pps/pps.c             |    2 +-
- drivers/thermal/thermal_sys.c |    2 +-
- fs/super.c                    |    2 +-
- 5 files changed, 5 insertions(+), 5 deletions(-)
+ lib/idr.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/i2c/i2c-core.c~idr-rename-max_level-to-max_idr_level-fix drivers/i2c/i2c-core.c
---- a/drivers/i2c/i2c-core.c~idr-rename-max_level-to-max_idr_level-fix
-+++ a/drivers/i2c/i2c-core.c
-@@ -982,7 +982,7 @@ int i2c_add_numbered_adapter(struct i2c_
+diff -puN lib/idr.c~idr-rename-max_level-to-max_idr_level-fix-fix-2 lib/idr.c
+--- a/lib/idr.c~idr-rename-max_level-to-max_idr_level-fix-fix-2
++++ a/lib/idr.c
+@@ -223,7 +223,7 @@ build_up:
+ 	 * Add a new layer to the top of the tree if the requested
+ 	 * id is larger than the currently allocated space.
+ 	 */
+-	while ((layers < (MAX_LEVEL - 1)) && (id >= (1 << (layers*IDR_BITS)))) {
++	while ((layers < (MAX_IDR_LEVEL - 1)) && (id >= (1 << (layers*IDR_BITS)))) {
+ 		layers++;
+ 		if (!p->count) {
+ 			/* special case: if the tree is currently empty,
+@@ -265,7 +265,7 @@ build_up:
  
- 	if (adap->nr == -1) /* -1 means dynamically assign bus id */
- 		return i2c_add_adapter(adap);
--	if (adap->nr & ~MAX_ID_MASK)
-+	if (adap->nr & ~MAX_IDR_MASK)
- 		return -EINVAL;
+ static int idr_get_new_above_int(struct idr *idp, void *ptr, int starting_id)
+ {
+-	struct idr_layer *pa[MAX_LEVEL];
++	struct idr_layer *pa[MAX_IDR_LEVEL];
+ 	int id;
  
- retry:
-diff -puN drivers/infiniband/core/cm.c~idr-rename-max_level-to-max_idr_level-fix drivers/infiniband/core/cm.c
---- a/drivers/infiniband/core/cm.c~idr-rename-max_level-to-max_idr_level-fix
-+++ a/drivers/infiniband/core/cm.c
-@@ -390,7 +390,7 @@ static int cm_alloc_id(struct cm_id_priv
- 		ret = idr_get_new_above(&cm.local_id_table, cm_id_priv,
- 					next_id, &id);
- 		if (!ret)
--			next_id = ((unsigned) id + 1) & MAX_ID_MASK;
-+			next_id = ((unsigned) id + 1) & MAX_IDR_MASK;
- 		spin_unlock_irqrestore(&cm.lock, flags);
- 	} while( (ret == -EAGAIN) && idr_pre_get(&cm.local_id_table, GFP_KERNEL) );
+ 	id = idr_get_empty_slot(idp, starting_id, pa);
+@@ -357,7 +357,7 @@ static void idr_remove_warning(int id)
+ static void sub_remove(struct idr *idp, int shift, int id)
+ {
+ 	struct idr_layer *p = idp->top;
+-	struct idr_layer **pa[MAX_LEVEL];
++	struct idr_layer **pa[MAX_IDR_LEVEL];
+ 	struct idr_layer ***paa = &pa[0];
+ 	struct idr_layer *to_free;
+ 	int n;
+@@ -451,7 +451,7 @@ void idr_remove_all(struct idr *idp)
+ 	int n, id, max;
+ 	int bt_mask;
+ 	struct idr_layer *p;
+-	struct idr_layer *pa[MAX_LEVEL];
++	struct idr_layer *pa[MAX_IDR_LEVEL];
+ 	struct idr_layer **paa = &pa[0];
  
-diff -puN drivers/pps/pps.c~idr-rename-max_level-to-max_idr_level-fix drivers/pps/pps.c
---- a/drivers/pps/pps.c~idr-rename-max_level-to-max_idr_level-fix
-+++ a/drivers/pps/pps.c
-@@ -306,7 +306,7 @@ int pps_register_cdev(struct pps_device 
- 	if (err < 0)
- 		return err;
+ 	n = idp->layers * IDR_BITS;
+@@ -555,7 +555,7 @@ int idr_for_each(struct idr *idp,
+ {
+ 	int n, id, max, error = 0;
+ 	struct idr_layer *p;
+-	struct idr_layer *pa[MAX_LEVEL];
++	struct idr_layer *pa[MAX_IDR_LEVEL];
+ 	struct idr_layer **paa = &pa[0];
  
--	pps->id &= MAX_ID_MASK;
-+	pps->id &= MAX_IDR_MASK;
- 	if (pps->id >= PPS_MAX_SOURCES) {
- 		pr_err("%s: too many PPS sources in the system\n",
- 					pps->info.name);
-diff -puN drivers/thermal/thermal_sys.c~idr-rename-max_level-to-max_idr_level-fix drivers/thermal/thermal_sys.c
---- a/drivers/thermal/thermal_sys.c~idr-rename-max_level-to-max_idr_level-fix
-+++ a/drivers/thermal/thermal_sys.c
-@@ -78,7 +78,7 @@ again:
- 	else if (unlikely(err))
- 		return err;
- 
--	*id = *id & MAX_ID_MASK;
-+	*id = *id & MAX_IDR_MASK;
- 	return 0;
- }
- 
-diff -puN fs/super.c~idr-rename-max_level-to-max_idr_level-fix fs/super.c
---- a/fs/super.c~idr-rename-max_level-to-max_idr_level-fix
-+++ a/fs/super.c
-@@ -871,7 +871,7 @@ int get_anon_bdev(dev_t *p)
- 	else if (error)
- 		return -EAGAIN;
- 
--	if ((dev & MAX_ID_MASK) == (1 << MINORBITS)) {
-+	if ((dev & MAX_IDR_MASK) == (1 << MINORBITS)) {
- 		spin_lock(&unnamed_dev_lock);
- 		ida_remove(&unnamed_dev_ida, dev);
- 		if (unnamed_dev_start > dev)
+ 	n = idp->layers * IDR_BITS;
+@@ -601,7 +601,7 @@ EXPORT_SYMBOL(idr_for_each);
+  */
+ void *idr_get_next(struct idr *idp, int *nextidp)
+ {
+-	struct idr_layer *p, *pa[MAX_LEVEL];
++	struct idr_layer *p, *pa[MAX_IDR_LEVEL];
+ 	struct idr_layer **paa = &pa[0];
+ 	int id = *nextidp;
+ 	int n, max;
+@@ -780,7 +780,7 @@ EXPORT_SYMBOL(ida_pre_get);
+  */
+ int ida_get_new_above(struct ida *ida, int starting_id, int *p_id)
+ {
+-	struct idr_layer *pa[MAX_LEVEL];
++	struct idr_layer *pa[MAX_IDR_LEVEL];
+ 	struct ida_bitmap *bitmap;
+ 	unsigned long flags;
+ 	int idr_id = starting_id / IDA_BITMAP_BITS;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 idr-rename-max_level-to-max_idr_level-fix.patch
+idr-rename-max_level-to-max_idr_level-fix-fix-2.patch
 linux-next.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
