@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mmapc-replace-find_vma_prepare-with-clearer-find_vma_links-fix.patch added to -mm tree
-Date: Wed, 12 Sep 2012 15:23:57 -0700
-Message-ID: <20120912222357.9E809100047@wpzn3.hot.corp.google.com>
+Subject: + idr-rename-max_level-to-max_idr_level-fix.patch added to -mm tree
+Date: Wed, 12 Sep 2012 16:03:07 -0700
+Message-ID: <20120912230308.AC7FA5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:44946 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751194Ab2ILWX7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Sep 2012 18:23:59 -0400
-Received: by vcbfy27 with SMTP id fy27so117888vcb.1
-        for <mm-commits@vger.kernel.org>; Wed, 12 Sep 2012 15:23:58 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:58454 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751745Ab2ILXDM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Sep 2012 19:03:12 -0400
+Received: by wibhr14 with SMTP id hr14so150830wib.1
+        for <mm-commits@vger.kernel.org>; Wed, 12 Sep 2012 16:03:10 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, bhalevy@tonian.com, dhillf@gmail.com, rientjes@google.com
+Cc: akpm@linux-foundation.org, bernd@petrovitsch.priv.at, fengguang.wu@intel.com, glommer@parallels.com, wharms@bfs.de
 
 
 The patch titled
-     Subject: mm-mmapc-replace-find_vma_prepare-with-clearer-find_vma_links fix
+     Subject: idr-rename-max_level-to-max_idr_level-fix
 has been added to the -mm tree.  Its filename is
-     mm-mmapc-replace-find_vma_prepare-with-clearer-find_vma_links-fix.patch
+     idr-rename-max_level-to-max_idr_level-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,95 +33,122 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm-mmapc-replace-find_vma_prepare-with-clearer-find_vma_links fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: idr-rename-max_level-to-max_idr_level-fix
 
-Strangely, I can no longer get an uninitialized variable warning out of
-copy_vma(), with or without the BUG() there; but David Rientjes gets it
-when he builds with CONFIG_BUG off, which is understandable.
+repair fallout
 
-uninitialized_var() can be a useful tool, but I do prefer to avoid it:
-partly because it might hide future errors, partly because I misspell it,
-but mainly because the need for it comes and goes so mysteriously.
-
-Given David's preference for no warning, mine for no uninitialized_var,
-and Linus's for renaming BUG() to I_AM_A_MORON() to discourage its use in
-the first place: copy_vma() seems a prime candidate for returning failure
-to mremap instead of crashing the system.
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Benny Halevy <bhalevy@tonian.com>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: David Rientjes <rientjes@google.com>
+Cc: Bernd Petrovitsch <bernd@petrovitsch.priv.at>
+Cc: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Glauber Costa <glommer@parallels.com>
+Cc: walter harms <wharms@bfs.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/i2c/i2c-core.c        |    2 +-
+ drivers/infiniband/core/cm.c  |    2 +-
+ drivers/pps/pps.c             |    2 +-
+ drivers/thermal/thermal_sys.c |    2 +-
+ fs/super.c                    |    2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN mm/mmap.c~mm-mmapc-replace-find_vma_prepare-with-clearer-find_vma_links-fix mm/mmap.c
---- a/mm/mmap.c~mm-mmapc-replace-find_vma_prepare-with-clearer-find_vma_links-fix
-+++ a/mm/mmap.c
-@@ -2352,7 +2352,7 @@ struct vm_area_struct *copy_vma(struct v
- 	}
+diff -puN drivers/i2c/i2c-core.c~idr-rename-max_level-to-max_idr_level-fix drivers/i2c/i2c-core.c
+--- a/drivers/i2c/i2c-core.c~idr-rename-max_level-to-max_idr_level-fix
++++ a/drivers/i2c/i2c-core.c
+@@ -982,7 +982,7 @@ int i2c_add_numbered_adapter(struct i2c_
  
- 	if (find_vma_links(mm, addr, addr + len, &prev, &rb_link, &rb_parent))
--		BUG();
-+		return NULL;	/* should never get here */
- 	new_vma = vma_merge(mm, prev, addr, addr + len, vma->vm_flags,
- 			vma->anon_vma, vma->vm_file, pgoff, vma_policy(vma));
- 	if (new_vma) {
+ 	if (adap->nr == -1) /* -1 means dynamically assign bus id */
+ 		return i2c_add_adapter(adap);
+-	if (adap->nr & ~MAX_ID_MASK)
++	if (adap->nr & ~MAX_IDR_MASK)
+ 		return -EINVAL;
+ 
+ retry:
+diff -puN drivers/infiniband/core/cm.c~idr-rename-max_level-to-max_idr_level-fix drivers/infiniband/core/cm.c
+--- a/drivers/infiniband/core/cm.c~idr-rename-max_level-to-max_idr_level-fix
++++ a/drivers/infiniband/core/cm.c
+@@ -390,7 +390,7 @@ static int cm_alloc_id(struct cm_id_priv
+ 		ret = idr_get_new_above(&cm.local_id_table, cm_id_priv,
+ 					next_id, &id);
+ 		if (!ret)
+-			next_id = ((unsigned) id + 1) & MAX_ID_MASK;
++			next_id = ((unsigned) id + 1) & MAX_IDR_MASK;
+ 		spin_unlock_irqrestore(&cm.lock, flags);
+ 	} while( (ret == -EAGAIN) && idr_pre_get(&cm.local_id_table, GFP_KERNEL) );
+ 
+diff -puN drivers/pps/pps.c~idr-rename-max_level-to-max_idr_level-fix drivers/pps/pps.c
+--- a/drivers/pps/pps.c~idr-rename-max_level-to-max_idr_level-fix
++++ a/drivers/pps/pps.c
+@@ -306,7 +306,7 @@ int pps_register_cdev(struct pps_device 
+ 	if (err < 0)
+ 		return err;
+ 
+-	pps->id &= MAX_ID_MASK;
++	pps->id &= MAX_IDR_MASK;
+ 	if (pps->id >= PPS_MAX_SOURCES) {
+ 		pr_err("%s: too many PPS sources in the system\n",
+ 					pps->info.name);
+diff -puN drivers/thermal/thermal_sys.c~idr-rename-max_level-to-max_idr_level-fix drivers/thermal/thermal_sys.c
+--- a/drivers/thermal/thermal_sys.c~idr-rename-max_level-to-max_idr_level-fix
++++ a/drivers/thermal/thermal_sys.c
+@@ -78,7 +78,7 @@ again:
+ 	else if (unlikely(err))
+ 		return err;
+ 
+-	*id = *id & MAX_ID_MASK;
++	*id = *id & MAX_IDR_MASK;
+ 	return 0;
+ }
+ 
+diff -puN fs/super.c~idr-rename-max_level-to-max_idr_level-fix fs/super.c
+--- a/fs/super.c~idr-rename-max_level-to-max_idr_level-fix
++++ a/fs/super.c
+@@ -871,7 +871,7 @@ int get_anon_bdev(dev_t *p)
+ 	else if (error)
+ 		return -EAGAIN;
+ 
+-	if ((dev & MAX_ID_MASK) == (1 << MINORBITS)) {
++	if ((dev & MAX_IDR_MASK) == (1 << MINORBITS)) {
+ 		spin_lock(&unnamed_dev_lock);
+ 		ida_remove(&unnamed_dev_ida, dev);
+ 		if (unnamed_dev_start > dev)
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+idr-rename-max_level-to-max_idr_level-fix.patch
 linux-next.patch
-x86-pat-remove-the-dependency-on-vm_pgoff-in-track-untrack-pfn-vma-routines.patch
-x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn.patch
-mm-x86-pat-rework-linear-pfn-mmap-tracking.patch
-mm-introduce-arch-specific-vma-flag-vm_arch_1.patch
-mm-kill-vma-flag-vm_insertpage.patch
-mm-kill-vma-flag-vm_can_nonlinear.patch
-mm-use-mm-exe_file-instead-of-first-vm_executable-vma-vm_file.patch
-mm-kill-vma-flag-vm_executable-and-mm-num_exe_file_vmas.patch
-mm-prepare-vm_dontdump-for-using-in-drivers.patch
-mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter.patch
-mm-mmapc-replace-find_vma_prepare-with-clearer-find_vma_links.patch
-mm-mmapc-replace-find_vma_prepare-with-clearer-find_vma_links-fix.patch
-mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+audith-replace-defines-with-c-stubs.patch
+mm.patch
+x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
+mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
+mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures-fix.patch
 mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch
-mm-mmu_notifier-init-notifier-if-necessary.patch
-thp-fix-the-count-of-thp_collapse_alloc.patch
-thp-remove-unnecessary-check-in-start_khugepaged.patch
-thp-move-khugepaged_mutex-out-of-khugepaged.patch
-thp-remove-unnecessary-khugepaged_thread-check.patch
-thp-remove-wake_up_interruptible-in-the-exit-path.patch
-thp-remove-some-code-depend-on-config_numa.patch
-thp-merge-page-pre-alloc-in-khugepaged_loop-into-khugepaged_do_scan.patch
-thp-release-page-in-page-pre-alloc-path.patch
-thp-introduce-khugepaged_prealloc_page-and-khugepaged_alloc_page.patch
-thp-remove-khugepaged_loop.patch
-thp-use-khugepaged_enabled-to-remove-duplicate-code.patch
-thp-remove-unnecessary-set_recommended_min_free_kbytes.patch
-mm-fix-potential-anon_vma-locking-issue-in-mprotect.patch
-thp-x86-introduce-have_arch_transparent_hugepage.patch
-thp-remove-assumptions-on-pgtable_t-type.patch
-thp-introduce-pmdp_invalidate.patch
-thp-make-madv_hugepage-check-for-mm-def_flags.patch
-thp-s390-thp-splitting-backend-for-s390.patch
-thp-s390-thp-pagetable-pre-allocation-for-s390.patch
-thp-s390-disable-thp-for-kvm-host-on-s390.patch
-thp-s390-architecture-backend-for-thp-on-s390.patch
-mm-interval-tree-updates.patch
-mm-anon-rmap-remove-anon_vma_moveto_tail.patch
-mm-anon-rmap-replace-same_anon_vma-linked-list-with-an-interval-tree.patch
-mm-rmap-remove-vma_address-check-for-address-inside-vma.patch
-mm-add-config_debug_vm_rb-build-option.patch
-mm-avoid-taking-rmap-locks-in-move_ptes.patch
-mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock.patch
+rbtree-performance-and-correctness-test-fix.patch
 mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock-fix.patch
-mm-wrap-calls-to-set_pte_at_notify-with-invalidate_range_start-and-invalidate_range_end.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
+memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
 swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-thp-khugepaged_prealloc_page-forgot-to-reset-the-page-alloc-indicator.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix.patch
+mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch
+backlight-add-backlight-driver-for-lm3630-chip-fix.patch
+backlight-add-new-lm3639-backlight-driver-fix.patch
+lib-parserc-avoid-overflow-in-match_number-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+rtc-add-dallas-ds2404-driver-fix.patch
+rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch
+fs-fat-fix-all-other-checkpatch-issues-in-dirc-fix.patch
+fat-simplify-writeback_inode-checkpatch-fixes.patch
+fat-simplify-writeback_inode-checkpatch-fixes-fix.patch
+coredump-make-core-dump-functionality-optional-fix-fix.patch
+proc-use-kzalloc-instead-of-kmalloc-and-memset-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
