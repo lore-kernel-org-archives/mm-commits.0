@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + sections-fix-section-conflicts-in-arch-mips.patch added to -mm tree
-Date: Thu, 13 Sep 2012 16:36:50 -0700
-Message-ID: <20120913233651.2DD231E0043@wpzn4.hot.corp.google.com>
+Subject: + sections-fix-section-conflicts-in-arch-score.patch added to -mm tree
+Date: Thu, 13 Sep 2012 16:36:56 -0700
+Message-ID: <20120913233657.8CAF920004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:38926 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759146Ab2IMXgw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 19:36:52 -0400
-Received: by qafl39 with SMTP id l39so398542qaf.1
-        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 16:36:51 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:61303 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759061Ab2IMXhA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 19:37:00 -0400
+Received: by lbbge1 with SMTP id ge1so222461lbb.1
+        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 16:36:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ak@linux.intel.com, ralf@linux-mips.org
+Cc: ak@linux.intel.com, lennox.wu@gmail.com, liqin.chen@sunplusct.com
 
 
 The patch titled
-     Subject: sections: fix section conflicts in arch/mips
+     Subject: sections: fix section conflicts in arch/score
 has been added to the -mm tree.  Its filename is
-     sections-fix-section-conflicts-in-arch-mips.patch
+     sections-fix-section-conflicts-in-arch-score.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andi Kleen <ak@linux.intel.com>
-Subject: sections: fix section conflicts in arch/mips
+Subject: sections: fix section conflicts in arch/score
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Chen Liqin <liqin.chen@sunplusct.com>
+Cc: Lennox Wu <lennox.wu@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/bcm63xx/boards/board_bcm963xx.c |    2 +-
- arch/mips/pci/pci-octeon.c                |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/score/kernel/sys_score.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/mips/bcm63xx/boards/board_bcm963xx.c~sections-fix-section-conflicts-in-arch-mips arch/mips/bcm63xx/boards/board_bcm963xx.c
---- a/arch/mips/bcm63xx/boards/board_bcm963xx.c~sections-fix-section-conflicts-in-arch-mips
-+++ a/arch/mips/bcm63xx/boards/board_bcm963xx.c
-@@ -639,7 +639,7 @@ static struct board_info __initdata boar
- /*
-  * all boards
+diff -puN arch/score/kernel/sys_score.c~sections-fix-section-conflicts-in-arch-score arch/score/kernel/sys_score.c
+--- a/arch/score/kernel/sys_score.c~sections-fix-section-conflicts-in-arch-score
++++ a/arch/score/kernel/sys_score.c
+@@ -112,6 +112,7 @@ score_execve(struct pt_regs *regs)
+  * Do a system call from kernel instead of calling sys_execve so we
+  * end up with proper pt_regs.
   */
--static const struct board_info __initdata *bcm963xx_boards[] = {
-+static const struct board_info __initconst *bcm963xx_boards[] = {
- #ifdef CONFIG_BCM63XX_CPU_6328
- 	&board_96328avng,
- #endif
-diff -puN arch/mips/pci/pci-octeon.c~sections-fix-section-conflicts-in-arch-mips arch/mips/pci/pci-octeon.c
---- a/arch/mips/pci/pci-octeon.c~sections-fix-section-conflicts-in-arch-mips
-+++ a/arch/mips/pci/pci-octeon.c
-@@ -58,7 +58,7 @@ union octeon_pci_address {
- 	} s;
- };
- 
--int __initdata (*octeon_pcibios_map_irq)(const struct pci_dev *dev,
-+int __initconst (*octeon_pcibios_map_irq)(const struct pci_dev *dev,
- 					 u8 slot, u8 pin);
- enum octeon_dma_bar_type octeon_dma_bar_type = OCTEON_DMA_BAR_TYPE_INVALID;
- 
++asmlinkage
+ int kernel_execve(const char *filename,
+ 		  const char *const argv[],
+ 		  const char *const envp[])
 _
 
 Patches currently in -mm which might be from ak@linux.intel.com are
