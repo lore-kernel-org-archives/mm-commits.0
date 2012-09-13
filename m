@@ -1,26 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-twl-ensure-all-interrupts-are-disabled-during-probe.patch added to -mm tree
-Date: Thu, 13 Sep 2012 15:49:16 -0700
-Message-ID: <20120913224917.34ADC5C0050@hpza9.eem.corp.google.com>
+Subject: + mm-page_alloc-fix-the-page-address-of-higher-pages-buddy-calculation.patch added to -mm tree
+Date: Thu, 13 Sep 2012 15:52:24 -0700
+Message-ID: <20120913225225.368B120004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:38385 "EHLO
-	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751146Ab2IMWtU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 13 Sep 2012 18:49:20 -0400
-Received: by lagw12 with SMTP id w12so218241lag.1
-        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 15:49:18 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:51120 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750721Ab2IMWw2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 18:52:28 -0400
+Received: by wgbdt11 with SMTP id dt11so219064wgb.1
+        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 15:52:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khilman@ti.com, a.zummo@towertech.it, balbi@ti.com, steve@sakoman.com
+Cc: omycle@gmail.com, jweiner@redhat.com, mgorman@suse.de, mhocko@suse.cz, minchan.kim@gmail.com, pullip.cho@samsung.com, shangw@linux.vnet.ibm.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-twl.c: ensure all interrupts are disabled during probe
+     Subject: mm/page_alloc: fix the page address of higher page's buddy calculation
 has been added to the -mm tree.  Its filename is
-     rtc-twl-ensure-all-interrupts-are-disabled-during-probe.patch
+     mm-page_alloc-fix-the-page-address-of-higher-pages-buddy-calculation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +33,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kevin Hilman <khilman@ti.com>
-Subject: drivers/rtc/rtc-twl.c: ensure all interrupts are disabled during probe
+From: Li Haifeng <omycle@gmail.com>
+Subject: mm/page_alloc: fix the page address of higher page's buddy calculation
 
-On some platforms, bootloaders are known to do some interesting RTC
-programming.  Without going into the obscurities as to why this may be the
-case, suffice it to say the the driver should not make any assumptions
-about the state of the RTC when the driver loads.  In particular, the
-driver probe should be sure that all interrupts are disabled until
-otherwise programmed.
+The heuristic method for buddy has been introduced since 43506fad
+("mm/page_alloc.c: simplify calculation of combined index of adjacent
+buddy lists").  But the page address of higher page's buddy was wrongly
+calculated, which will lead page_is_buddy to fail for ever.  IOW, the
+heuristic method would be disabled with the wrong page address of higher
+page's buddy.
 
-This was discovered when finding bursty I2C traffic every second on Overo
-platforms.  This I2C overhead was keeping the SoC from hitting deep power
-states.  The cause was found to be the RTC firing every second on the
-I2C-connected TWL PMIC.
+Calculating the page address of higher page's buddy should be based
+higher_page with the offset between index of higher page and index of
+higher page's buddy.
 
-Special thanks to Felipe Balbi for suggesting to look for a rogue driver
-as the source of the I2C traffic rather than the I2C driver itself.
-
-Special thanks to Steve Sakoman for helping track down the source of the
-continuous RTC interrups on the Overo boards.
-
-Signed-off-by: Kevin Hilman <khilman@ti.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Steve Sakoman <steve@sakoman.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Haifeng Li <omycle@gmail.com>
+Signed-off-by: Gavin Shan <shangw@linux.vnet.ibm.com>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Cc: KyongHo Cho <pullip.cho@samsung.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Cc: <stable@vger.kernel.org>	[2.6.38+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-twl.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-twl.c~rtc-twl-ensure-all-interrupts-are-disabled-during-probe drivers/rtc/rtc-twl.c
---- a/drivers/rtc/rtc-twl.c~rtc-twl-ensure-all-interrupts-are-disabled-during-probe
-+++ a/drivers/rtc/rtc-twl.c
-@@ -495,6 +495,11 @@ static int __devinit twl_rtc_probe(struc
- 	if (ret < 0)
- 		goto out1;
- 
-+	/* ensure interrupts are disabled, bootloaders can be strange */
-+	ret = twl_rtc_write_u8(0, REG_RTC_INTERRUPTS_REG);
-+	if (ret < 0)
-+		dev_warn(&pdev->dev, "unable to disable interrupt\n");
-+
- 	/* init cached IRQ enable bits */
- 	ret = twl_rtc_read_u8(&rtc_irq_bits, REG_RTC_INTERRUPTS_REG);
- 	if (ret < 0)
+diff -puN mm/page_alloc.c~mm-page_alloc-fix-the-page-address-of-higher-pages-buddy-calculation mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-fix-the-page-address-of-higher-pages-buddy-calculation
++++ a/mm/page_alloc.c
+@@ -584,7 +584,7 @@ static inline void __free_one_page(struc
+ 		combined_idx = buddy_idx & page_idx;
+ 		higher_page = page + (combined_idx - page_idx);
+ 		buddy_idx = __find_buddy_index(combined_idx, order + 1);
+-		higher_buddy = page + (buddy_idx - combined_idx);
++		higher_buddy = higher_page + (buddy_idx - combined_idx);
+ 		if (page_is_buddy(higher_page, higher_buddy, order + 1)) {
+ 			list_add_tail(&page->lru,
+ 				&zone->free_area[order].free_list[migratetype]);
 _
 
-Patches currently in -mm which might be from khilman@ti.com are
+Patches currently in -mm which might be from omycle@gmail.com are
 
-rtc-twl-ensure-all-interrupts-are-disabled-during-probe.patch
-linux-next.patch
+mm-page_alloc-fix-the-page-address-of-higher-pages-buddy-calculation.patch
 
