@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + sections-fix-section-conflicts-in-drivers-net-wan.patch added to -mm tree
-Date: Thu, 13 Sep 2012 16:37:34 -0700
-Message-ID: <20120913233735.335AF100047@wpzn3.hot.corp.google.com>
+Subject: + sections-fix-section-conflicts-in-drivers-platform-x86.patch added to -mm tree
+Date: Thu, 13 Sep 2012 16:37:37 -0700
+Message-ID: <20120913233738.A82FA5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:38716 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759059Ab2IMXhg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 19:37:36 -0400
-Received: by qafl39 with SMTP id l39so398579qaf.1
-        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 16:37:35 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:44480 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759059Ab2IMXhl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 19:37:41 -0400
+Received: by fass10 with SMTP id s10so219312fas.1
+        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 16:37:39 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ak@linux.intel.com, davem@davemloft.net, khc@pm.waw.pl
+Cc: ak@linux.intel.com, mjg@redhat.com
 
 
 The patch titled
-     Subject: sections: fix section conflicts in drivers/net/wan
+     Subject: sections: fix section conflicts in drivers/platform/x86
 has been added to the -mm tree.  Its filename is
-     sections-fix-section-conflicts-in-drivers-net-wan.patch
+     sections-fix-section-conflicts-in-drivers-platform-x86.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,90 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andi Kleen <ak@linux.intel.com>
-Subject: sections: fix section conflicts in drivers/net/wan
+Subject: sections: fix section conflicts in drivers/platform/x86
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Krzysztof Halasa <khc@pm.waw.pl>
-Cc: David Miller <davem@davemloft.net>
+Cc: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wan/z85230.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/platform/x86/amilo-rfkill.c   |    2 +-
+ drivers/platform/x86/fujitsu-tablet.c |   10 +++++-----
+ drivers/platform/x86/thinkpad_acpi.c  |    2 +-
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/net/wan/z85230.c~sections-fix-section-conflicts-in-drivers-net-wan drivers/net/wan/z85230.c
---- a/drivers/net/wan/z85230.c~sections-fix-section-conflicts-in-drivers-net-wan
-+++ a/drivers/net/wan/z85230.c
-@@ -1775,7 +1775,7 @@ EXPORT_SYMBOL(z8530_queue_xmit);
- /*
-  *	Module support
-  */
--static const char banner[] __initdata =
-+static const char banner[] __initconst =
- 	KERN_INFO "Generic Z85C30/Z85230 interface driver v0.02\n";
+diff -puN drivers/platform/x86/amilo-rfkill.c~sections-fix-section-conflicts-in-drivers-platform-x86 drivers/platform/x86/amilo-rfkill.c
+--- a/drivers/platform/x86/amilo-rfkill.c~sections-fix-section-conflicts-in-drivers-platform-x86
++++ a/drivers/platform/x86/amilo-rfkill.c
+@@ -74,7 +74,7 @@ static const struct rfkill_ops amilo_m74
+ 	.set_block = amilo_m7440_rfkill_set_block
+ };
  
- static int __init z85230_init_driver(void)
+-static const struct dmi_system_id __devinitdata amilo_rfkill_id_table[] = {
++static const struct dmi_system_id __devinitconst amilo_rfkill_id_table[] = {
+ 	{
+ 		.matches = {
+ 			DMI_MATCH(DMI_SYS_VENDOR, "FUJITSU SIEMENS"),
+diff -puN drivers/platform/x86/fujitsu-tablet.c~sections-fix-section-conflicts-in-drivers-platform-x86 drivers/platform/x86/fujitsu-tablet.c
+--- a/drivers/platform/x86/fujitsu-tablet.c~sections-fix-section-conflicts-in-drivers-platform-x86
++++ a/drivers/platform/x86/fujitsu-tablet.c
+@@ -52,7 +52,7 @@ struct fujitsu_config {
+ 	unsigned int quirks;
+ };
+ 
+-static unsigned short keymap_Lifebook_Tseries[KEYMAP_LEN] __initconst = {
++static unsigned short keymap_Lifebook_Tseries[KEYMAP_LEN] __initdata = {
+ 	KEY_RESERVED,
+ 	KEY_RESERVED,
+ 	KEY_RESERVED,
+@@ -71,7 +71,7 @@ static unsigned short keymap_Lifebook_Ts
+ 	KEY_LEFTALT
+ };
+ 
+-static unsigned short keymap_Lifebook_U810[KEYMAP_LEN] __initconst = {
++static unsigned short keymap_Lifebook_U810[KEYMAP_LEN] __initdata = {
+ 	KEY_RESERVED,
+ 	KEY_RESERVED,
+ 	KEY_RESERVED,
+@@ -90,7 +90,7 @@ static unsigned short keymap_Lifebook_U8
+ 	KEY_LEFTALT
+ };
+ 
+-static unsigned short keymap_Stylistic_Tseries[KEYMAP_LEN] __initconst = {
++static unsigned short keymap_Stylistic_Tseries[KEYMAP_LEN] __initdata = {
+ 	KEY_RESERVED,
+ 	KEY_RESERVED,
+ 	KEY_RESERVED,
+@@ -109,7 +109,7 @@ static unsigned short keymap_Stylistic_T
+ 	KEY_LEFTALT
+ };
+ 
+-static unsigned short keymap_Stylistic_ST5xxx[KEYMAP_LEN] __initconst = {
++static unsigned short keymap_Stylistic_ST5xxx[KEYMAP_LEN] __initdata = {
+ 	KEY_RESERVED,
+ 	KEY_RESERVED,
+ 	KEY_RESERVED,
+@@ -299,7 +299,7 @@ static int __devinit fujitsu_dmi_stylist
+ 	return 1;
+ }
+ 
+-static struct dmi_system_id dmi_ids[] __initconst = {
++static const struct dmi_system_id dmi_ids[] __initconst = {
+ 	{
+ 		.callback = fujitsu_dmi_lifebook,
+ 		.ident = "Fujitsu Siemens P/T Series",
+diff -puN drivers/platform/x86/thinkpad_acpi.c~sections-fix-section-conflicts-in-drivers-platform-x86 drivers/platform/x86/thinkpad_acpi.c
+--- a/drivers/platform/x86/thinkpad_acpi.c~sections-fix-section-conflicts-in-drivers-platform-x86
++++ a/drivers/platform/x86/thinkpad_acpi.c
+@@ -522,7 +522,7 @@ static acpi_handle ec_handle;
+ 
+ #define TPACPI_HANDLE(object, parent, paths...)			\
+ 	static acpi_handle  object##_handle;			\
+-	static const acpi_handle *object##_parent __initdata =	\
++	static const acpi_handle * const object##_parent __initconst =	\
+ 						&parent##_handle; \
+ 	static char *object##_paths[] __initdata = { paths }
+ 
 _
 
 Patches currently in -mm which might be from ak@linux.intel.com are
