@@ -1,25 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + mm-enable-config_compaction-by-default.patch added to -mm tree
-Date: Thu, 13 Sep 2012 15:39:52 -0700
-Message-ID: <20120913223953.32FAB5C0050@hpza9.eem.corp.google.com>
+Subject: + rtc-twl-ensure-all-interrupts-are-disabled-during-probe.patch added to -mm tree
+Date: Thu, 13 Sep 2012 15:49:16 -0700
+Message-ID: <20120913224917.34ADC5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:58427 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751074Ab2IMWj4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 18:39:56 -0400
-Received: by bkcjc3 with SMTP id jc3so82824bkc.1
-        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 15:39:54 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:38385 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751146Ab2IMWtU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Thu, 13 Sep 2012 18:49:20 -0400
+Received: by lagw12 with SMTP id w12so218241lag.1
+        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 15:49:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: riel@redhat.com, aquini@redhat.com, mel@csn.ul.ie
+Cc: khilman@ti.com, a.zummo@towertech.it, balbi@ti.com, steve@sakoman.com
 
 
 The patch titled
-     Subject: mm: enable CONFIG_COMPACTION by default
+     Subject: drivers/rtc/rtc-twl.c: ensure all interrupts are disabled during probe
 has been added to the -mm tree.  Its filename is
-     mm-enable-config_compaction-by-default.patch
+     rtc-twl-ensure-all-interrupts-are-disabled-during-probe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,83 +34,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rik van Riel <riel@redhat.com>
-Subject: mm: enable CONFIG_COMPACTION by default
+From: Kevin Hilman <khilman@ti.com>
+Subject: drivers/rtc/rtc-twl.c: ensure all interrupts are disabled during probe
 
-Now that lumpy reclaim has been removed, compaction is the only way left
-to free up contiguous memory areas.  It is time to just enable
-CONFIG_COMPACTION by default.
+On some platforms, bootloaders are known to do some interesting RTC
+programming.  Without going into the obscurities as to why this may be the
+case, suffice it to say the the driver should not make any assumptions
+about the state of the RTC when the driver loads.  In particular, the
+driver probe should be sure that all interrupts are disabled until
+otherwise programmed.
 
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Rafael Aquini <aquini@redhat.com> 
+This was discovered when finding bursty I2C traffic every second on Overo
+platforms.  This I2C overhead was keeping the SoC from hitting deep power
+states.  The cause was found to be the RTC firing every second on the
+I2C-connected TWL PMIC.
+
+Special thanks to Felipe Balbi for suggesting to look for a rogue driver
+as the source of the I2C traffic rather than the I2C driver itself.
+
+Special thanks to Steve Sakoman for helping track down the source of the
+continuous RTC interrups on the Overo boards.
+
+Signed-off-by: Kevin Hilman <khilman@ti.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Steve Sakoman <steve@sakoman.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/rtc/rtc-twl.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN mm/Kconfig~mm-enable-config_compaction-by-default mm/Kconfig
---- a/mm/Kconfig~mm-enable-config_compaction-by-default
-+++ a/mm/Kconfig
-@@ -191,6 +191,7 @@ config SPLIT_PTLOCK_CPUS
- # support for memory compaction
- config COMPACTION
- 	bool "Allow for memory compaction"
-+	def_bool y
- 	select MIGRATION
- 	depends on MMU
- 	help
+diff -puN drivers/rtc/rtc-twl.c~rtc-twl-ensure-all-interrupts-are-disabled-during-probe drivers/rtc/rtc-twl.c
+--- a/drivers/rtc/rtc-twl.c~rtc-twl-ensure-all-interrupts-are-disabled-during-probe
++++ a/drivers/rtc/rtc-twl.c
+@@ -495,6 +495,11 @@ static int __devinit twl_rtc_probe(struc
+ 	if (ret < 0)
+ 		goto out1;
+ 
++	/* ensure interrupts are disabled, bootloaders can be strange */
++	ret = twl_rtc_write_u8(0, REG_RTC_INTERRUPTS_REG);
++	if (ret < 0)
++		dev_warn(&pdev->dev, "unable to disable interrupt\n");
++
+ 	/* init cached IRQ enable bits */
+ 	ret = twl_rtc_read_u8(&rtc_irq_bits, REG_RTC_INTERRUPTS_REG);
+ 	if (ret < 0)
 _
 
-Patches currently in -mm which might be from riel@redhat.com are
+Patches currently in -mm which might be from khilman@ti.com are
 
+rtc-twl-ensure-all-interrupts-are-disabled-during-probe.patch
 linux-next.patch
-readahead-fault-retry-breaks-mmap-file-read-random-detection.patch
-mm-remove-__gfp_no_kswapd.patch
-mm-compaction-update-comment-in-try_to_compact_pages.patch
-mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures.patch
-mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures-fix.patch
-mm-compaction-capture-a-suitable-high-order-page-immediately-when-it-is-made-available.patch
-rbtree-reference-documentation-rbtreetxt-for-usage-instructions.patch
-rbtree-empty-nodes-have-no-color.patch
-rbtree-fix-incorrect-rbtree-node-insertion-in-fs-proc-proc_sysctlc.patch
-rbtree-move-some-implementation-details-from-rbtreeh-to-rbtreec.patch
-rbtree-performance-and-correctness-test.patch
-rbtree-break-out-of-rb_insert_color-loop-after-tree-rotation.patch
-rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary.patch
-rbtree-low-level-optimizations-in-rb_insert_color.patch
-rbtree-adjust-node-color-in-__rb_erase_color-only-when-necessary.patch
-rbtree-optimize-case-selection-logic-in-__rb_erase_color.patch
-rbtree-low-level-optimizations-in-__rb_erase_color.patch
-rbtree-coding-style-adjustments.patch
-rbtree-optimize-fetching-of-sibling-node.patch
-rbtree-test-fix-sparse-warning-about-64-bit-constant.patch
-rbtree-add-__rb_change_child-helper-function.patch
-rbtree-place-easiest-case-first-in-rb_erase.patch
-rbtree-handle-1-child-recoloring-in-rb_erase-instead-of-rb_erase_color.patch
-rbtree-low-level-optimizations-in-rb_erase.patch
-rbtree-augmented-rbtree-test.patch
-rbtree-faster-augmented-rbtree-manipulation.patch
-rbtree-remove-prior-augmented-rbtree-implementation.patch
-rbtree-add-rb_declare_callbacks-macro.patch
-rbtree-add-prio-tree-and-interval-tree-tests.patch
-mm-replace-vma-prio_tree-with-an-interval-tree.patch
-kmemleak-use-rbtree-instead-of-prio-tree.patch
-prio_tree-remove.patch
-rbtree-move-augmented-rbtree-functionality-to-rbtree_augmentedh.patch
-mm-interval-tree-updates.patch
-mm-anon-rmap-remove-anon_vma_moveto_tail.patch
-mm-anon-rmap-replace-same_anon_vma-linked-list-with-an-interval-tree.patch
-mm-rmap-remove-vma_address-check-for-address-inside-vma.patch
-mm-add-config_debug_vm_rb-build-option.patch
-mm-avoid-taking-rmap-locks-in-move_ptes.patch
-mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration.patch
-mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix.patch
-atomic-implement-generic-atomic_dec_if_positive.patch
-atomic-implement-generic-atomic_dec_if_positive-fix.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-mm-compaction-move-fatal-signal-check-out-of-compact_checklock_irqsave.patch
-mm-enable-config_compaction-by-default.patch
 
