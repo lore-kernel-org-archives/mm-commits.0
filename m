@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + sections-fix-section-conflicts-in-drivers-atm.patch added to -mm tree
-Date: Thu, 13 Sep 2012 16:37:07 -0700
-Message-ID: <20120913233708.26AAE100047@wpzn3.hot.corp.google.com>
+Subject: + sections-fix-section-conflicts-in-drivers-char.patch added to -mm tree
+Date: Thu, 13 Sep 2012 16:37:10 -0700
+Message-ID: <20120913233711.79F4A5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:57579 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759107Ab2IMXhJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 19:37:09 -0400
-Received: by mail-vb0-f74.google.com with SMTP id s24so388964vbi.1
-        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 16:37:09 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:42320 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759122Ab2IMXhN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 19:37:13 -0400
+Received: by bkcjc3 with SMTP id jc3so84260bkc.1
+        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 16:37:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ak@linux.intel.com, chas@cmf.nrl.navy.mil
+Cc: ak@linux.intel.com
 
 
 The patch titled
-     Subject: sections: fix section conflicts in drivers/atm
+     Subject: sections: fix section conflicts in drivers/char
 has been added to the -mm tree.  Its filename is
-     sections-fix-section-conflicts-in-drivers-atm.patch
+     sections-fix-section-conflicts-in-drivers-char.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,28 +34,27 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andi Kleen <ak@linux.intel.com>
-Subject: sections: fix section conflicts in drivers/atm
+Subject: sections: fix section conflicts in drivers/char
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Chas Williams <chas@cmf.nrl.navy.mil>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/atm/eni.c |    2 +-
+ drivers/char/mbcs.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/atm/eni.c~sections-fix-section-conflicts-in-drivers-atm drivers/atm/eni.c
---- a/drivers/atm/eni.c~sections-fix-section-conflicts-in-drivers-atm
-+++ a/drivers/atm/eni.c
-@@ -1567,7 +1567,7 @@ tx_complete++;
- /*--------------------------------- entries ---------------------------------*/
+diff -puN drivers/char/mbcs.c~sections-fix-section-conflicts-in-drivers-char drivers/char/mbcs.c
+--- a/drivers/char/mbcs.c~sections-fix-section-conflicts-in-drivers-char
++++ a/drivers/char/mbcs.c
+@@ -799,7 +799,7 @@ static int mbcs_remove(struct cx_dev *de
+ 	return 0;
+ }
  
- 
--static const char *media_name[] __devinitdata = {
-+static char * const media_name[] __devinitconst = {
-     "MMF", "SMF", "MMF", "03?", /*  0- 3 */
-     "UTP", "05?", "06?", "07?", /*  4- 7 */
-     "TAXI","09?", "10?", "11?", /*  8-11 */
+-static const struct cx_device_id __devinitdata mbcs_id_table[] = {
++static const struct cx_device_id __devinitconst mbcs_id_table[] = {
+ 	{
+ 	 .part_num = MBCS_PART_NUM,
+ 	 .mfg_num = MBCS_MFG_NUM,
 _
 
 Patches currently in -mm which might be from ak@linux.intel.com are
