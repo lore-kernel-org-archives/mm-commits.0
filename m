@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + sections-fix-section-conflicts-in-mm-percpuc.patch added to -mm tree
-Date: Thu, 13 Sep 2012 16:37:48 -0700
-Message-ID: <20120913233749.3AFA2100047@wpzn3.hot.corp.google.com>
+Subject: + sections-fix-section-conflicts-in-net-can.patch added to -mm tree
+Date: Thu, 13 Sep 2012 16:37:52 -0700
+Message-ID: <20120913233752.89430100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:51233 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759055Ab2IMXhu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 19:37:50 -0400
-Received: by yhl10 with SMTP id 10so389423yhl.1
-        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 16:37:49 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:40019 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759061Ab2IMXhx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 19:37:53 -0400
+Received: by ggnu1 with SMTP id u1so389061ggn.1
+        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 16:37:52 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ak@linux.intel.com
+Cc: ak@linux.intel.com, davem@davemloft.net, socketcan@hartkopp.net
 
 
 The patch titled
-     Subject: sections: fix section conflicts in mm/percpu.c
+     Subject: sections: fix section conflicts in net/can
 has been added to the -mm tree.  Its filename is
-     sections-fix-section-conflicts-in-mm-percpuc.patch
+     sections-fix-section-conflicts-in-net-can.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,68 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andi Kleen <ak@linux.intel.com>
-Subject: sections: fix section conflicts in mm/percpu.c
+Subject: sections: fix section conflicts in net/can
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: Oliver Hartkopp <socketcan@hartkopp.net>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/percpu.h |    2 +-
- mm/percpu.c            |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ net/can/af_can.c |    2 +-
+ net/can/bcm.c    |    2 +-
+ net/can/gw.c     |    2 +-
+ net/can/raw.c    |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/percpu.h~sections-fix-section-conflicts-in-mm-percpuc include/linux/percpu.h
---- a/include/linux/percpu.h~sections-fix-section-conflicts-in-mm-percpuc
-+++ a/include/linux/percpu.h
-@@ -107,7 +107,7 @@ enum pcpu_fc {
+diff -puN net/can/af_can.c~sections-fix-section-conflicts-in-net-can net/can/af_can.c
+--- a/net/can/af_can.c~sections-fix-section-conflicts-in-net-can
++++ a/net/can/af_can.c
+@@ -63,7 +63,7 @@
  
- 	PCPU_FC_NR,
- };
--extern const char *pcpu_fc_names[PCPU_FC_NR];
-+extern const char * const pcpu_fc_names[PCPU_FC_NR];
+ #include "af_can.h"
  
- extern enum pcpu_fc pcpu_chosen_fc;
+-static __initdata const char banner[] = KERN_INFO
++static __initconst const char banner[] = KERN_INFO
+ 	"can: controller area network core (" CAN_VERSION_STRING ")\n";
  
-diff -puN mm/percpu.c~sections-fix-section-conflicts-in-mm-percpuc mm/percpu.c
---- a/mm/percpu.c~sections-fix-section-conflicts-in-mm-percpuc
-+++ a/mm/percpu.c
-@@ -1370,7 +1370,7 @@ int __init pcpu_setup_first_chunk(const 
+ MODULE_DESCRIPTION("Controller Area Network PF_CAN core");
+diff -puN net/can/bcm.c~sections-fix-section-conflicts-in-net-can net/can/bcm.c
+--- a/net/can/bcm.c~sections-fix-section-conflicts-in-net-can
++++ a/net/can/bcm.c
+@@ -77,7 +77,7 @@
+ 		     (CAN_SFF_MASK | CAN_EFF_FLAG | CAN_RTR_FLAG))
  
- #ifdef CONFIG_SMP
+ #define CAN_BCM_VERSION CAN_VERSION
+-static __initdata const char banner[] = KERN_INFO
++static __initconst const char banner[] = KERN_INFO
+ 	"can: broadcast manager protocol (rev " CAN_BCM_VERSION " t)\n";
  
--const char *pcpu_fc_names[PCPU_FC_NR] __initdata = {
-+const char * const pcpu_fc_names[PCPU_FC_NR] __initconst = {
- 	[PCPU_FC_AUTO]	= "auto",
- 	[PCPU_FC_EMBED]	= "embed",
- 	[PCPU_FC_PAGE]	= "page",
+ MODULE_DESCRIPTION("PF_CAN broadcast manager protocol");
+diff -puN net/can/gw.c~sections-fix-section-conflicts-in-net-can net/can/gw.c
+--- a/net/can/gw.c~sections-fix-section-conflicts-in-net-can
++++ a/net/can/gw.c
+@@ -58,7 +58,7 @@
+ #include <net/sock.h>
+ 
+ #define CAN_GW_VERSION "20101209"
+-static __initdata const char banner[] =
++static __initconst const char banner[] =
+ 	KERN_INFO "can: netlink gateway (rev " CAN_GW_VERSION ")\n";
+ 
+ MODULE_DESCRIPTION("PF_CAN netlink gateway");
+diff -puN net/can/raw.c~sections-fix-section-conflicts-in-net-can net/can/raw.c
+--- a/net/can/raw.c~sections-fix-section-conflicts-in-net-can
++++ a/net/can/raw.c
+@@ -55,7 +55,7 @@
+ #include <net/net_namespace.h>
+ 
+ #define CAN_RAW_VERSION CAN_VERSION
+-static __initdata const char banner[] =
++static __initconst const char banner[] =
+ 	KERN_INFO "can: raw protocol (rev " CAN_RAW_VERSION ")\n";
+ 
+ MODULE_DESCRIPTION("PF_CAN raw protocol");
 _
 
 Patches currently in -mm which might be from ak@linux.intel.com are
