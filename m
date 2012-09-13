@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + sections-fix-section-conflicts-in-arch-h8300-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 13 Sep 2012 16:43:01 -0700
-Message-ID: <20120913234302.31F661E0043@wpzn4.hot.corp.google.com>
+Subject: + sections-fix-section-conflicts-in-drivers-macintosh-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 13 Sep 2012 16:43:08 -0700
+Message-ID: <20120913234309.481A9100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:41545 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751026Ab2IMXnD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 19:43:03 -0400
-Received: by qafl39 with SMTP id l39so398922qaf.1
-        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 16:43:02 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:59923 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751026Ab2IMXnK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 19:43:10 -0400
+Received: by yenq6 with SMTP id q6so390092yen.1
+        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 16:43:09 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@linux.intel.com, ysato@users.sourceforge.jp
+Cc: akpm@linux-foundation.org, ak@linux.intel.com, benh@kernel.crashing.org
 
 
 The patch titled
-     Subject: sections-fix-section-conflicts-in-arch-h8300-checkpatch-fixes
+     Subject: sections-fix-section-conflicts-in-drivers-macintosh-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     sections-fix-section-conflicts-in-arch-h8300-checkpatch-fixes.patch
+     sections-fix-section-conflicts-in-drivers-macintosh-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: sections-fix-section-conflicts-in-arch-h8300-checkpatch-fixes
+Subject: sections-fix-section-conflicts-in-drivers-macintosh-checkpatch-fixes
 
-ERROR: spaces required around that '=' (ctx:VxV)
-#105: FILE: arch/h8300/platform/h8s/irq.c:21:
-+const int __initconst h8300_saved_vectors[]={
-                                            ^
+ERROR: space prohibited before open square bracket '['
+#20: FILE: drivers/macintosh/macio_asic.c:751:
++static const struct pci_device_id __devinitconst pci_ids [] = { {
 
-total: 1 errors, 0 warnings, 71 lines checked
+total: 1 errors, 0 warnings, 8 lines checked
 
-./patches/sections-fix-section-conflicts-in-arch-h8300.patch has style problems, please review.
+./patches/sections-fix-section-conflicts-in-drivers-macintosh.patch has style problems, please review.
 
 If any of these errors are false positives, please report
 them to the maintainer, see CHECKPATCH in MAINTAINERS.
@@ -51,25 +50,25 @@ them to the maintainer, see CHECKPATCH in MAINTAINERS.
 Please run checkpatch prior to sending patches
 
 Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/platform/h8s/irq.c |    2 +-
+ drivers/macintosh/macio_asic.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/h8300/platform/h8s/irq.c~sections-fix-section-conflicts-in-arch-h8300-checkpatch-fixes arch/h8300/platform/h8s/irq.c
---- a/arch/h8300/platform/h8s/irq.c~sections-fix-section-conflicts-in-arch-h8300-checkpatch-fixes
-+++ a/arch/h8300/platform/h8s/irq.c
-@@ -18,7 +18,7 @@
- #include <asm/regs267x.h>
- 
- /* saved vector list */
--const int __initconst h8300_saved_vectors[]={
-+const int __initconst h8300_saved_vectors[] = {
- #if defined(CONFIG_GDB_DEBUG)
- 	TRACE_VEC,
- 	TRAP3_VEC,
+diff -puN drivers/macintosh/macio_asic.c~sections-fix-section-conflicts-in-drivers-macintosh-checkpatch-fixes drivers/macintosh/macio_asic.c
+--- a/drivers/macintosh/macio_asic.c~sections-fix-section-conflicts-in-drivers-macintosh-checkpatch-fixes
++++ a/drivers/macintosh/macio_asic.c
+@@ -748,7 +748,7 @@ static void __devexit macio_pci_remove(s
+  * MacIO is matched against any Apple ID, it's probe() function
+  * will then decide wether it applies or not
+  */
+-static const struct pci_device_id __devinitconst pci_ids [] = { {
++static const struct pci_device_id __devinitconst pci_ids[] = { {
+ 	.vendor		= PCI_VENDOR_ID_APPLE,
+ 	.device		= PCI_ANY_ID,
+ 	.subvendor	= PCI_ANY_ID,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
