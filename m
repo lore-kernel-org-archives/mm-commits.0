@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + sections-fix-section-conflicts-in-arch-x86.patch added to -mm tree
-Date: Thu, 13 Sep 2012 16:37:04 -0700
-Message-ID: <20120913233705.672FF1E0043@wpzn4.hot.corp.google.com>
+Subject: + sections-fix-section-conflicts-in-drivers-atm.patch added to -mm tree
+Date: Thu, 13 Sep 2012 16:37:07 -0700
+Message-ID: <20120913233708.26AAE100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:33886 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759107Ab2IMXhG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 19:37:06 -0400
-Received: by mail-yx0-f202.google.com with SMTP id q6so389740yen.1
-        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 16:37:05 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:57579 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759107Ab2IMXhJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 19:37:09 -0400
+Received: by mail-vb0-f74.google.com with SMTP id s24so388964vbi.1
+        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 16:37:09 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ak@linux.intel.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de
+Cc: ak@linux.intel.com, chas@cmf.nrl.navy.mil
 
 
 The patch titled
-     Subject: sections: fix section conflicts in arch/x86
+     Subject: sections: fix section conflicts in drivers/atm
 has been added to the -mm tree.  Its filename is
-     sections-fix-section-conflicts-in-arch-x86.patch
+     sections-fix-section-conflicts-in-drivers-atm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andi Kleen <ak@linux.intel.com>
-Subject: sections: fix section conflicts in arch/x86
+Subject: sections: fix section conflicts in drivers/atm
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Chas Williams <chas@cmf.nrl.navy.mil>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/apic.h          |    2 +-
- arch/x86/kernel/apic/apic_numachip.c |    4 ++--
- arch/x86/kernel/rtc.c                |    2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/atm/eni.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/include/asm/apic.h~sections-fix-section-conflicts-in-arch-x86 arch/x86/include/asm/apic.h
---- a/arch/x86/include/asm/apic.h~sections-fix-section-conflicts-in-arch-x86
-+++ a/arch/x86/include/asm/apic.h
-@@ -409,7 +409,7 @@ extern struct apic *apic;
-  * to enforce the order with in them.
-  */
- #define apic_driver(sym)					\
--	static struct apic *__apicdrivers_##sym __used		\
-+	static const struct apic *__apicdrivers_##sym __used		\
- 	__aligned(sizeof(struct apic *))			\
- 	__section(.apicdrivers) = { &sym }
+diff -puN drivers/atm/eni.c~sections-fix-section-conflicts-in-drivers-atm drivers/atm/eni.c
+--- a/drivers/atm/eni.c~sections-fix-section-conflicts-in-drivers-atm
++++ a/drivers/atm/eni.c
+@@ -1567,7 +1567,7 @@ tx_complete++;
+ /*--------------------------------- entries ---------------------------------*/
  
-diff -puN arch/x86/kernel/apic/apic_numachip.c~sections-fix-section-conflicts-in-arch-x86 arch/x86/kernel/apic/apic_numachip.c
---- a/arch/x86/kernel/apic/apic_numachip.c~sections-fix-section-conflicts-in-arch-x86
-+++ a/arch/x86/kernel/apic/apic_numachip.c
-@@ -30,7 +30,7 @@
  
- static int numachip_system __read_mostly;
- 
--static struct apic apic_numachip __read_mostly;
-+static const struct apic apic_numachip __read_mostly;
- 
- static unsigned int get_apic_id(unsigned long x)
- {
-@@ -199,7 +199,7 @@ static int numachip_acpi_madt_oem_check(
- 	return 0;
- }
- 
--static struct apic apic_numachip __refconst = {
-+static const struct apic apic_numachip __refconst = {
- 
- 	.name				= "NumaConnect system",
- 	.probe				= numachip_probe,
-diff -puN arch/x86/kernel/rtc.c~sections-fix-section-conflicts-in-arch-x86 arch/x86/kernel/rtc.c
---- a/arch/x86/kernel/rtc.c~sections-fix-section-conflicts-in-arch-x86
-+++ a/arch/x86/kernel/rtc.c
-@@ -225,7 +225,7 @@ static struct platform_device rtc_device
- static __init int add_rtc_cmos(void)
- {
- #ifdef CONFIG_PNP
--	static const char *ids[] __initconst =
-+	static const char * const  const ids[] __initconst =
- 	    { "PNP0b00", "PNP0b01", "PNP0b02", };
- 	struct pnp_dev *dev;
- 	struct pnp_id *id;
+-static const char *media_name[] __devinitdata = {
++static char * const media_name[] __devinitconst = {
+     "MMF", "SMF", "MMF", "03?", /*  0- 3 */
+     "UTP", "05?", "06?", "07?", /*  4- 7 */
+     "TAXI","09?", "10?", "11?", /*  8-11 */
 _
 
 Patches currently in -mm which might be from ak@linux.intel.com are
