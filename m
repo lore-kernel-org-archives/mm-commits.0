@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + sections-fix-section-conflicts-in-drivers-macintosh-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 13 Sep 2012 16:43:08 -0700
-Message-ID: <20120913234309.481A9100047@wpzn3.hot.corp.google.com>
+Subject: + sectons-fix-const-sections-for-crc32-table-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 13 Sep 2012 16:43:17 -0700
+Message-ID: <20120913234318.0141D1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:59923 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751026Ab2IMXnK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 19:43:10 -0400
-Received: by yenq6 with SMTP id q6so390092yen.1
-        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 16:43:09 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:64892 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751026Ab2IMXnT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 19:43:19 -0400
+Received: by vbis24 with SMTP id s24so389350vbi.1
+        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 16:43:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@linux.intel.com, benh@kernel.crashing.org
+Cc: akpm@linux-foundation.org, ak@linux.intel.com, jmario@redhat.com
 
 
 The patch titled
-     Subject: sections-fix-section-conflicts-in-drivers-macintosh-checkpatch-fixes
+     Subject: sectons-fix-const-sections-for-crc32-table-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     sections-fix-section-conflicts-in-drivers-macintosh-checkpatch-fixes.patch
+     sectons-fix-const-sections-for-crc32-table-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,50 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: sections-fix-section-conflicts-in-drivers-macintosh-checkpatch-fixes
+Subject: sectons-fix-const-sections-for-crc32-table-checkpatch-fixes
 
-ERROR: space prohibited before open square bracket '['
-#20: FILE: drivers/macintosh/macio_asic.c:751:
-+static const struct pci_device_id __devinitconst pci_ids [] = { {
+ERROR: code indent should use tabs where possible
+#54: FILE: lib/gen_crc32table.c:112:
++        ^Iprintf("static u32 __cacheline_aligned "$
 
-total: 1 errors, 0 warnings, 8 lines checked
+WARNING: please, no space before tabs
+#54: FILE: lib/gen_crc32table.c:112:
++        ^Iprintf("static u32 __cacheline_aligned "$
 
-./patches/sections-fix-section-conflicts-in-drivers-macintosh.patch has style problems, please review.
+WARNING: please, no spaces at the start of a line
+#54: FILE: lib/gen_crc32table.c:112:
++        ^Iprintf("static u32 __cacheline_aligned "$
+
+ERROR: code indent should use tabs where possible
+#63: FILE: lib/gen_crc32table.c:122:
++        ^Iprintf("static u32 __cacheline_aligned "$
+
+WARNING: please, no space before tabs
+#63: FILE: lib/gen_crc32table.c:122:
++        ^Iprintf("static u32 __cacheline_aligned "$
+
+WARNING: please, no spaces at the start of a line
+#63: FILE: lib/gen_crc32table.c:122:
++        ^Iprintf("static u32 __cacheline_aligned "$
+
+ERROR: code indent should use tabs where possible
+#72: FILE: lib/gen_crc32table.c:131:
++        ^Iprintf("static u32 __cacheline_aligned "$
+
+WARNING: please, no space before tabs
+#72: FILE: lib/gen_crc32table.c:131:
++        ^Iprintf("static u32 __cacheline_aligned "$
+
+WARNING: please, no spaces at the start of a line
+#72: FILE: lib/gen_crc32table.c:131:
++        ^Iprintf("static u32 __cacheline_aligned "$
+
+total: 3 errors, 6 warnings, 48 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/sectons-fix-const-sections-for-crc32-table.patch has style problems, please review.
 
 If any of these errors are false positives, please report
 them to the maintainer, see CHECKPATCH in MAINTAINERS.
@@ -50,25 +85,43 @@ them to the maintainer, see CHECKPATCH in MAINTAINERS.
 Please run checkpatch prior to sending patches
 
 Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Joe Mario <jmario@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/macintosh/macio_asic.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/gen_crc32table.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/macintosh/macio_asic.c~sections-fix-section-conflicts-in-drivers-macintosh-checkpatch-fixes drivers/macintosh/macio_asic.c
---- a/drivers/macintosh/macio_asic.c~sections-fix-section-conflicts-in-drivers-macintosh-checkpatch-fixes
-+++ a/drivers/macintosh/macio_asic.c
-@@ -748,7 +748,7 @@ static void __devexit macio_pci_remove(s
-  * MacIO is matched against any Apple ID, it's probe() function
-  * will then decide wether it applies or not
-  */
--static const struct pci_device_id __devinitconst pci_ids [] = { {
-+static const struct pci_device_id __devinitconst pci_ids[] = { {
- 	.vendor		= PCI_VENDOR_ID_APPLE,
- 	.device		= PCI_ANY_ID,
- 	.subvendor	= PCI_ANY_ID,
+diff -puN lib/gen_crc32table.c~sectons-fix-const-sections-for-crc32-table-checkpatch-fixes lib/gen_crc32table.c
+--- a/lib/gen_crc32table.c~sectons-fix-const-sections-for-crc32-table-checkpatch-fixes
++++ a/lib/gen_crc32table.c
+@@ -109,7 +109,7 @@ int main(int argc, char** argv)
+ 
+ 	if (CRC_LE_BITS > 1) {
+ 		crc32init_le();
+-        	printf("static u32 __cacheline_aligned "
++		printf("static u32 __cacheline_aligned "
+ 		       "crc32table_le[%d][%d] = {",
+ 		       LE_TABLE_ROWS, LE_TABLE_SIZE);
+ 		output_table(crc32table_le, LE_TABLE_ROWS,
+@@ -119,7 +119,7 @@ int main(int argc, char** argv)
+ 
+ 	if (CRC_BE_BITS > 1) {
+ 		crc32init_be();
+-        	printf("static u32 __cacheline_aligned "
++		printf("static u32 __cacheline_aligned "
+ 		       "crc32table_be[%d][%d] = {",
+ 		       BE_TABLE_ROWS, BE_TABLE_SIZE);
+ 		output_table(crc32table_be, LE_TABLE_ROWS,
+@@ -128,7 +128,7 @@ int main(int argc, char** argv)
+ 	}
+ 	if (CRC_LE_BITS > 1) {
+ 		crc32cinit_le();
+-        	printf("static u32 __cacheline_aligned "
++		printf("static u32 __cacheline_aligned "
+ 		       "crc32ctable_le[%d][%d] = {",
+ 		       LE_TABLE_ROWS, LE_TABLE_SIZE);
+ 		output_table(crc32ctable_le, LE_TABLE_ROWS,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
