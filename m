@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + sections-fix-section-conflicts-in-arch-score.patch added to -mm tree
-Date: Thu, 13 Sep 2012 16:36:56 -0700
-Message-ID: <20120913233657.8CAF920004E@hpza10.eem.corp.google.com>
+Subject: + sections-fix-section-conflicts-in-arch-sh.patch added to -mm tree
+Date: Thu, 13 Sep 2012 16:37:00 -0700
+Message-ID: <20120913233701.8905020004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:61303 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759061Ab2IMXhA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 19:37:00 -0400
-Received: by lbbge1 with SMTP id ge1so222461lbb.1
-        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 16:36:58 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:53924 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759082Ab2IMXhD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 19:37:03 -0400
+Received: by wgbdt11 with SMTP id dt11so220119wgb.1
+        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 16:37:02 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ak@linux.intel.com, lennox.wu@gmail.com, liqin.chen@sunplusct.com
+Cc: ak@linux.intel.com, lethal@linux-sh.org
 
 
 The patch titled
-     Subject: sections: fix section conflicts in arch/score
+     Subject: sections: fix section conflicts in arch/sh
 has been added to the -mm tree.  Its filename is
-     sections-fix-section-conflicts-in-arch-score.patch
+     sections-fix-section-conflicts-in-arch-sh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,28 +34,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andi Kleen <ak@linux.intel.com>
-Subject: sections: fix section conflicts in arch/score
+Subject: sections: fix section conflicts in arch/sh
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Chen Liqin <liqin.chen@sunplusct.com>
-Cc: Lennox Wu <lennox.wu@gmail.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/score/kernel/sys_score.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/sh/kernel/ioport.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/score/kernel/sys_score.c~sections-fix-section-conflicts-in-arch-score arch/score/kernel/sys_score.c
---- a/arch/score/kernel/sys_score.c~sections-fix-section-conflicts-in-arch-score
-+++ a/arch/score/kernel/sys_score.c
-@@ -112,6 +112,7 @@ score_execve(struct pt_regs *regs)
-  * Do a system call from kernel instead of calling sys_execve so we
-  * end up with proper pt_regs.
-  */
-+asmlinkage
- int kernel_execve(const char *filename,
- 		  const char *const argv[],
- 		  const char *const envp[])
+diff -puN arch/sh/kernel/ioport.c~sections-fix-section-conflicts-in-arch-sh arch/sh/kernel/ioport.c
+--- a/arch/sh/kernel/ioport.c~sections-fix-section-conflicts-in-arch-sh
++++ a/arch/sh/kernel/ioport.c
+@@ -11,7 +11,7 @@
+ #include <linux/module.h>
+ #include <linux/io.h>
+ 
+-const unsigned long sh_io_port_base __read_mostly = -1;
++unsigned long sh_io_port_base __read_mostly = -1;
+ EXPORT_SYMBOL(sh_io_port_base);
+ 
+ void __iomem *__ioport_map(unsigned long addr, unsigned int size)
 _
 
 Patches currently in -mm which might be from ak@linux.intel.com are
