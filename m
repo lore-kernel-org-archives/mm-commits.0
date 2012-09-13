@@ -1,89 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: + mm-introduce-have_arch_transparent_hugepage.patch added to -mm tree
-Date: Thu, 13 Sep 2012 12:07:03 -0700
-Message-ID: <20120913190704.7F371200059@hpza10.eem.corp.google.com>
+Subject: [obsolete] drivers-video-backlight-pwm_blc-use-devm_pwm_get.patch removed from -mm tree
+Date: Thu, 13 Sep 2012 12:28:04 -0700
+Message-ID: <20120913192804.ED3FC200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:39098 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752142Ab2IMTHH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 15:07:07 -0400
-Received: by wibhr14 with SMTP id hr14so214791wib.1
-        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 12:07:06 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:33301 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752889Ab2IMT2I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 15:28:08 -0400
+Received: by lbbge1 with SMTP id ge1so215751lbb.1
+        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 12:28:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: steve.capper@arm.com, aarcange@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, cmetcalf@tilera.com, gerald.schaefer@de.ibm.com, kirill@shutemov.name, mhocko@suse.cz, will.deacon@arm.com
+To: sachin.kamat@linaro.org, jg1.han@samsung.com, rpurdie@rpsys.net, thierry.reding@avionic-design.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: introduce HAVE_ARCH_TRANSPARENT_HUGEPAGE
-has been added to the -mm tree.  Its filename is
-     mm-introduce-have_arch_transparent_hugepage.patch
+     Subject: drivers/video/backlight/pwm_bl.c: use devm_pwm_get()
+has been removed from the -mm tree.  Its filename was
+     drivers-video-backlight-pwm_blc-use-devm_pwm_get.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Steve Capper <steve.capper@arm.com>
-Subject: mm: introduce HAVE_ARCH_TRANSPARENT_HUGEPAGE
+From: Sachin Kamat <sachin.kamat@linaro.org>
+Subject: drivers/video/backlight/pwm_bl.c: use devm_pwm_get()
 
-Different architectures have slightly different pre-requisites for
-supporting Transparent Huge Pages.  To simplify the layout of mm/Kconfig,
-a new option HAVE_ARCH_TRANSPARENT_HUGEPAGE is introduced and set in each
-architecture's Kconfig file (at the moment x86, with ARM being set in a
-future patch).
+This file already makes use of device managed functions.  Convert
+pwm_get() to use it as well.
 
-Signed-off-by: Steve Capper <steve.capper@arm.com>
-Signed-off-by: Will Deacon <will.deacon@arm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Chris Metcalf <cmetcalf@tilera.com>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Acked-by: Jingoo Han <jg1.han@samsung.com>
+Cc: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/video/backlight/pwm_bl.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN arch/x86/Kconfig~mm-introduce-have_arch_transparent_hugepage arch/x86/Kconfig
---- a/arch/x86/Kconfig~mm-introduce-have_arch_transparent_hugepage
-+++ a/arch/x86/Kconfig
-@@ -83,7 +83,6 @@ config X86
- 	select IRQ_FORCED_THREADING
- 	select USE_GENERIC_SMP_HELPERS if SMP
- 	select HAVE_BPF_JIT if X86_64
--	select HAVE_ARCH_TRANSPARENT_HUGEPAGE
- 	select CLKEVT_I8253
- 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	select GENERIC_IOMAP
-@@ -1330,6 +1329,10 @@ config ILLEGAL_POINTER_VALUE
-        default 0 if X86_32
-        default 0xdead000000000000 if X86_64
+diff -puN drivers/video/backlight/pwm_bl.c~drivers-video-backlight-pwm_blc-use-devm_pwm_get drivers/video/backlight/pwm_bl.c
+--- a/drivers/video/backlight/pwm_bl.c~drivers-video-backlight-pwm_blc-use-devm_pwm_get
++++ a/drivers/video/backlight/pwm_bl.c
+@@ -218,7 +218,7 @@ static int pwm_backlight_probe(struct pl
+ 	pb->exit = data->exit;
+ 	pb->dev = &pdev->dev;
  
-+config HAVE_ARCH_TRANSPARENT_HUGEPAGE
-+       def_bool y
-+       depends on MMU
-+
- source "mm/Kconfig"
+-	pb->pwm = pwm_get(&pdev->dev, NULL);
++	pb->pwm = devm_pwm_get(&pdev->dev, NULL);
+ 	if (IS_ERR(pb->pwm)) {
+ 		dev_err(&pdev->dev, "unable to request PWM, trying legacy API\n");
  
- config HIGHPTE
+@@ -251,7 +251,7 @@ static int pwm_backlight_probe(struct pl
+ 	if (IS_ERR(bl)) {
+ 		dev_err(&pdev->dev, "failed to register backlight\n");
+ 		ret = PTR_ERR(bl);
+-		goto err_bl;
++		goto err_alloc;
+ 	}
+ 
+ 	bl->props.brightness = data->dft_brightness;
+@@ -260,8 +260,6 @@ static int pwm_backlight_probe(struct pl
+ 	platform_set_drvdata(pdev, bl);
+ 	return 0;
+ 
+-err_bl:
+-	pwm_put(pb->pwm);
+ err_alloc:
+ 	if (data->exit)
+ 		data->exit(&pdev->dev);
+@@ -276,7 +274,6 @@ static int pwm_backlight_remove(struct p
+ 	backlight_device_unregister(bl);
+ 	pwm_config(pb->pwm, 0, pb->period);
+ 	pwm_disable(pb->pwm);
+-	pwm_put(pb->pwm);
+ 	if (pb->exit)
+ 		pb->exit(&pdev->dev);
+ 	return 0;
 _
 
-Patches currently in -mm which might be from steve.capper@arm.com are
+Patches currently in -mm which might be from sachin.kamat@linaro.org are
 
-mm-thp-fix-the-pmd_clear-arguments-in-pmdp_get_and_clear.patch
-mm-thp-fix-the-update_mmu_cache-last-argument-passing-in-mm-huge_memoryc.patch
-mm-introduce-have_arch_transparent_hugepage.patch
+linux-next.patch
+mm-hugetlbc-remove-duplicate-inclusion-of-header-file.patch
+drivers-video-backlight-da9052_blc-use-usleep_range-instead-of-msleep-for-small-sleeps.patch
+drivers-video-backlight-ltv350qvc-use-usleep_range-instead-of-msleep-for-small-sleeps.patch
+drivers-video-backlight-kb3886_blc-use-usleep_range-instead-of-msleep-for-small-sleeps.patch
+proc-use-null-instead-of-0-for-pointer.patch
 
