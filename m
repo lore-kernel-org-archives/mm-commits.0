@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + sections-fix-section-conflicts-in-arch-powerpc.patch added to -mm tree
-Date: Thu, 13 Sep 2012 16:36:53 -0700
-Message-ID: <20120913233654.34FDA1E0043@wpzn4.hot.corp.google.com>
+Subject: + sections-fix-section-conflicts-in-arch-mips.patch added to -mm tree
+Date: Thu, 13 Sep 2012 16:36:50 -0700
+Message-ID: <20120913233651.2DD231E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:33886 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759090Ab2IMXg4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 19:36:56 -0400
-Received: by yenq6 with SMTP id q6so389740yen.1
-        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 16:36:54 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:38926 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759146Ab2IMXgw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 19:36:52 -0400
+Received: by qafl39 with SMTP id l39so398542qaf.1
+        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 16:36:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ak@linux.intel.com, benh@kernel.crashing.org
+Cc: ak@linux.intel.com, ralf@linux-mips.org
 
 
 The patch titled
-     Subject: sections: fix section conflicts in arch/powerpc
+     Subject: sections: fix section conflicts in arch/mips
 has been added to the -mm tree.  Its filename is
-     sections-fix-section-conflicts-in-arch-powerpc.patch
+     sections-fix-section-conflicts-in-arch-mips.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,93 +34,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andi Kleen <ak@linux.intel.com>
-Subject: sections: fix section conflicts in arch/powerpc
+Subject: sections: fix section conflicts in arch/mips
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/40x/ppc40x_simple.c    |    2 +-
- arch/powerpc/platforms/512x/mpc5121_generic.c |    2 +-
- arch/powerpc/platforms/52xx/lite5200.c        |    2 +-
- arch/powerpc/platforms/52xx/media5200.c       |    2 +-
- arch/powerpc/platforms/83xx/mpc837x_rdb.c     |    2 +-
- arch/powerpc/platforms/85xx/tqm85xx.c         |    2 +-
- 6 files changed, 6 insertions(+), 6 deletions(-)
+ arch/mips/bcm63xx/boards/board_bcm963xx.c |    2 +-
+ arch/mips/pci/pci-octeon.c                |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/powerpc/platforms/40x/ppc40x_simple.c~sections-fix-section-conflicts-in-arch-powerpc arch/powerpc/platforms/40x/ppc40x_simple.c
---- a/arch/powerpc/platforms/40x/ppc40x_simple.c~sections-fix-section-conflicts-in-arch-powerpc
-+++ a/arch/powerpc/platforms/40x/ppc40x_simple.c
-@@ -50,7 +50,7 @@ machine_device_initcall(ppc40x_simple, p
-  * Again, if your board needs to do things differently then create a
-  * board.c file for it rather than adding it to this list.
-  */
--static const char *board[] __initdata = {
-+static const char * const board[] __initconst = {
- 	"amcc,acadia",
- 	"amcc,haleakala",
- 	"amcc,kilauea",
-diff -puN arch/powerpc/platforms/512x/mpc5121_generic.c~sections-fix-section-conflicts-in-arch-powerpc arch/powerpc/platforms/512x/mpc5121_generic.c
---- a/arch/powerpc/platforms/512x/mpc5121_generic.c~sections-fix-section-conflicts-in-arch-powerpc
-+++ a/arch/powerpc/platforms/512x/mpc5121_generic.c
-@@ -26,7 +26,7 @@
+diff -puN arch/mips/bcm63xx/boards/board_bcm963xx.c~sections-fix-section-conflicts-in-arch-mips arch/mips/bcm63xx/boards/board_bcm963xx.c
+--- a/arch/mips/bcm63xx/boards/board_bcm963xx.c~sections-fix-section-conflicts-in-arch-mips
++++ a/arch/mips/bcm63xx/boards/board_bcm963xx.c
+@@ -639,7 +639,7 @@ static struct board_info __initdata boar
  /*
-  * list of supported boards
+  * all boards
   */
--static const char *board[] __initdata = {
-+static const char * const board[] __initconst = {
- 	"prt,prtlvt",
- 	NULL
+-static const struct board_info __initdata *bcm963xx_boards[] = {
++static const struct board_info __initconst *bcm963xx_boards[] = {
+ #ifdef CONFIG_BCM63XX_CPU_6328
+ 	&board_96328avng,
+ #endif
+diff -puN arch/mips/pci/pci-octeon.c~sections-fix-section-conflicts-in-arch-mips arch/mips/pci/pci-octeon.c
+--- a/arch/mips/pci/pci-octeon.c~sections-fix-section-conflicts-in-arch-mips
++++ a/arch/mips/pci/pci-octeon.c
+@@ -58,7 +58,7 @@ union octeon_pci_address {
+ 	} s;
  };
-diff -puN arch/powerpc/platforms/52xx/lite5200.c~sections-fix-section-conflicts-in-arch-powerpc arch/powerpc/platforms/52xx/lite5200.c
---- a/arch/powerpc/platforms/52xx/lite5200.c~sections-fix-section-conflicts-in-arch-powerpc
-+++ a/arch/powerpc/platforms/52xx/lite5200.c
-@@ -172,7 +172,7 @@ static void __init lite5200_setup_arch(v
- 	mpc52xx_setup_pci();
- }
  
--static const char *board[] __initdata = {
-+static const char * const board[] __initconst = {
- 	"fsl,lite5200",
- 	"fsl,lite5200b",
- 	NULL,
-diff -puN arch/powerpc/platforms/52xx/media5200.c~sections-fix-section-conflicts-in-arch-powerpc arch/powerpc/platforms/52xx/media5200.c
---- a/arch/powerpc/platforms/52xx/media5200.c~sections-fix-section-conflicts-in-arch-powerpc
-+++ a/arch/powerpc/platforms/52xx/media5200.c
-@@ -232,7 +232,7 @@ static void __init media5200_setup_arch(
- }
+-int __initdata (*octeon_pcibios_map_irq)(const struct pci_dev *dev,
++int __initconst (*octeon_pcibios_map_irq)(const struct pci_dev *dev,
+ 					 u8 slot, u8 pin);
+ enum octeon_dma_bar_type octeon_dma_bar_type = OCTEON_DMA_BAR_TYPE_INVALID;
  
- /* list of the supported boards */
--static const char *board[] __initdata = {
-+static const char * const board[] __initconst = {
- 	"fsl,media5200",
- 	NULL
- };
-diff -puN arch/powerpc/platforms/83xx/mpc837x_rdb.c~sections-fix-section-conflicts-in-arch-powerpc arch/powerpc/platforms/83xx/mpc837x_rdb.c
---- a/arch/powerpc/platforms/83xx/mpc837x_rdb.c~sections-fix-section-conflicts-in-arch-powerpc
-+++ a/arch/powerpc/platforms/83xx/mpc837x_rdb.c
-@@ -60,7 +60,7 @@ static void __init mpc837x_rdb_setup_arc
- 
- machine_device_initcall(mpc837x_rdb, mpc83xx_declare_of_platform_devices);
- 
--static const char *board[] __initdata = {
-+static const char * const board[] __initconst = {
- 	"fsl,mpc8377rdb",
- 	"fsl,mpc8378rdb",
- 	"fsl,mpc8379rdb",
-diff -puN arch/powerpc/platforms/85xx/tqm85xx.c~sections-fix-section-conflicts-in-arch-powerpc arch/powerpc/platforms/85xx/tqm85xx.c
---- a/arch/powerpc/platforms/85xx/tqm85xx.c~sections-fix-section-conflicts-in-arch-powerpc
-+++ a/arch/powerpc/platforms/85xx/tqm85xx.c
-@@ -108,7 +108,7 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_T
- 
- machine_arch_initcall(tqm85xx, mpc85xx_common_publish_devices);
- 
--static const char *board[] __initdata = {
-+static const char * const board[] __initconst = {
- 	"tqc,tqm8540",
- 	"tqc,tqm8541",
- 	"tqc,tqm8548",
 _
 
 Patches currently in -mm which might be from ak@linux.intel.com are
