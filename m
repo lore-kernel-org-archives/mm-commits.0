@@ -1,90 +1,185 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] drivers-video-backlight-pwm_blc-use-devm_pwm_get.patch removed from -mm tree
-Date: Thu, 13 Sep 2012 12:28:04 -0700
-Message-ID: <20120913192804.ED3FC200057@hpza10.eem.corp.google.com>
+Subject: + atomic-implement-generic-atomic_dec_if_positive.patch added to -mm tree
+Date: Thu, 13 Sep 2012 12:35:45 -0700
+Message-ID: <20120913193546.32AA720004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:33301 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752889Ab2IMT2I (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 15:28:08 -0400
-Received: by lbbge1 with SMTP id ge1so215751lbb.1
-        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 12:28:06 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:49252 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752563Ab2IMTfu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Thu, 13 Sep 2012 15:35:50 -0400
+Received: by lagw12 with SMTP id w12so213033lag.1
+        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 12:35:48 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sachin.kamat@linaro.org, jg1.han@samsung.com, rpurdie@rpsys.net, thierry.reding@avionic-design.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: shli@kernel.org, benh@kernel.crashing.org, davem@davemloft.net, hpa@zytor.com, mingo@elte.hu, monstr@monstr.eu, riel@redhat.com, sfr@canb.auug.org.au, shli@fusionio.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: drivers/video/backlight/pwm_bl.c: use devm_pwm_get()
-has been removed from the -mm tree.  Its filename was
-     drivers-video-backlight-pwm_blc-use-devm_pwm_get.patch
+     Subject: atomic: implement generic atomic_dec_if_positive()
+has been added to the -mm tree.  Its filename is
+     atomic-implement-generic-atomic_dec_if_positive.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/video/backlight/pwm_bl.c: use devm_pwm_get()
+From: Shaohua Li <shli@kernel.org>
+Subject: atomic: implement generic atomic_dec_if_positive()
 
-This file already makes use of device managed functions.  Convert
-pwm_get() to use it as well.
+The x86 implementation of atomic_dec_if_positive is quite generic, so make
+it available to all architectures.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Acked-by: Jingoo Han <jg1.han@samsung.com>
-Cc: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+This is needed for "swap: add a simple detector for inappropriate swapin
+readahead".
+
+Signed-off-by: Shaohua Li <shli@fusionio.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Michal Simek <monstr@monstr.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/pwm_bl.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ arch/microblaze/include/asm/atomic.h |    3 ++-
+ arch/powerpc/include/asm/atomic.h    |    3 ++-
+ arch/x86/include/asm/atomic.h        |   24 ------------------------
+ include/linux/atomic.h               |   25 +++++++++++++++++++++++++
+ 4 files changed, 29 insertions(+), 26 deletions(-)
 
-diff -puN drivers/video/backlight/pwm_bl.c~drivers-video-backlight-pwm_blc-use-devm_pwm_get drivers/video/backlight/pwm_bl.c
---- a/drivers/video/backlight/pwm_bl.c~drivers-video-backlight-pwm_blc-use-devm_pwm_get
-+++ a/drivers/video/backlight/pwm_bl.c
-@@ -218,7 +218,7 @@ static int pwm_backlight_probe(struct pl
- 	pb->exit = data->exit;
- 	pb->dev = &pdev->dev;
+diff -puN arch/microblaze/include/asm/atomic.h~atomic-implement-generic-atomic_dec_if_positive arch/microblaze/include/asm/atomic.h
+--- a/arch/microblaze/include/asm/atomic.h~atomic-implement-generic-atomic_dec_if_positive
++++ a/arch/microblaze/include/asm/atomic.h
+@@ -9,7 +9,7 @@
+  * Atomically test *v and decrement if it is greater than 0.
+  * The function returns the old value of *v minus 1.
+  */
+-static inline int atomic_dec_if_positive(atomic_t *v)
++static inline int __atomic_dec_if_positive(atomic_t *v)
+ {
+ 	unsigned long flags;
+ 	int res;
+@@ -22,5 +22,6 @@ static inline int atomic_dec_if_positive
  
--	pb->pwm = pwm_get(&pdev->dev, NULL);
-+	pb->pwm = devm_pwm_get(&pdev->dev, NULL);
- 	if (IS_ERR(pb->pwm)) {
- 		dev_err(&pdev->dev, "unable to request PWM, trying legacy API\n");
+ 	return res;
+ }
++#define atomic_dec_if_positive __atomic_dec_if_positive
  
-@@ -251,7 +251,7 @@ static int pwm_backlight_probe(struct pl
- 	if (IS_ERR(bl)) {
- 		dev_err(&pdev->dev, "failed to register backlight\n");
- 		ret = PTR_ERR(bl);
--		goto err_bl;
-+		goto err_alloc;
- 	}
+ #endif /* _ASM_MICROBLAZE_ATOMIC_H */
+diff -puN arch/powerpc/include/asm/atomic.h~atomic-implement-generic-atomic_dec_if_positive arch/powerpc/include/asm/atomic.h
+--- a/arch/powerpc/include/asm/atomic.h~atomic-implement-generic-atomic_dec_if_positive
++++ a/arch/powerpc/include/asm/atomic.h
+@@ -247,7 +247,7 @@ static __inline__ int atomic_inc_not_zer
+  * The function returns the old value of *v minus 1, even if
+  * the atomic variable, v, was not decremented.
+  */
+-static __inline__ int atomic_dec_if_positive(atomic_t *v)
++static __inline__ int __atomic_dec_if_positive(atomic_t *v)
+ {
+ 	int t;
  
- 	bl->props.brightness = data->dft_brightness;
-@@ -260,8 +260,6 @@ static int pwm_backlight_probe(struct pl
- 	platform_set_drvdata(pdev, bl);
- 	return 0;
+@@ -268,6 +268,7 @@ static __inline__ int atomic_dec_if_posi
  
--err_bl:
--	pwm_put(pb->pwm);
- err_alloc:
- 	if (data->exit)
- 		data->exit(&pdev->dev);
-@@ -276,7 +274,6 @@ static int pwm_backlight_remove(struct p
- 	backlight_device_unregister(bl);
- 	pwm_config(pb->pwm, 0, pb->period);
- 	pwm_disable(pb->pwm);
--	pwm_put(pb->pwm);
- 	if (pb->exit)
- 		pb->exit(&pdev->dev);
- 	return 0;
+ 	return t;
+ }
++#define atomic_dec_if_positive __atomic_dec_if_positive
+ 
+ #define smp_mb__before_atomic_dec()     smp_mb()
+ #define smp_mb__after_atomic_dec()      smp_mb()
+diff -puN arch/x86/include/asm/atomic.h~atomic-implement-generic-atomic_dec_if_positive arch/x86/include/asm/atomic.h
+--- a/arch/x86/include/asm/atomic.h~atomic-implement-generic-atomic_dec_if_positive
++++ a/arch/x86/include/asm/atomic.h
+@@ -240,30 +240,6 @@ static inline int __atomic_add_unless(at
+ 	return c;
+ }
+ 
+-
+-/*
+- * atomic_dec_if_positive - decrement by 1 if old value positive
+- * @v: pointer of type atomic_t
+- *
+- * The function returns the old value of *v minus 1, even if
+- * the atomic variable, v, was not decremented.
+- */
+-static inline int atomic_dec_if_positive(atomic_t *v)
+-{
+-	int c, old, dec;
+-	c = atomic_read(v);
+-	for (;;) {
+-		dec = c - 1;
+-		if (unlikely(dec < 0))
+-			break;
+-		old = atomic_cmpxchg((v), c, dec);
+-		if (likely(old == c))
+-			break;
+-		c = old;
+-	}
+-	return dec;
+-}
+-
+ /**
+  * atomic_inc_short - increment of a short integer
+  * @v: pointer to type int
+diff -puN include/linux/atomic.h~atomic-implement-generic-atomic_dec_if_positive include/linux/atomic.h
+--- a/include/linux/atomic.h~atomic-implement-generic-atomic_dec_if_positive
++++ a/include/linux/atomic.h
+@@ -86,6 +86,31 @@ static inline int atomic_dec_unless_posi
+ }
+ #endif
+ 
++/*
++ * atomic_dec_if_positive - decrement by 1 if old value positive
++ * @v: pointer of type atomic_t
++ *
++ * The function returns the old value of *v minus 1, even if
++ * the atomic variable, v, was not decremented.
++ */
++#ifndef atomic_dec_if_positive
++static inline int atomic_dec_if_positive(atomic_t *v)
++{
++	int c, old, dec;
++	c = atomic_read(v);
++	for (;;) {
++		dec = c - 1;
++		if (unlikely(dec < 0))
++			break;
++		old = atomic_cmpxchg((v), c, dec);
++		if (likely(old == c))
++			break;
++		c = old;
++	}
++	return dec;
++}
++#endif
++
+ #ifndef CONFIG_ARCH_HAS_ATOMIC_OR
+ static inline void atomic_or(int i, atomic_t *v)
+ {
 _
 
-Patches currently in -mm which might be from sachin.kamat@linaro.org are
+Patches currently in -mm which might be from shli@kernel.org are
 
 linux-next.patch
-mm-hugetlbc-remove-duplicate-inclusion-of-header-file.patch
-drivers-video-backlight-da9052_blc-use-usleep_range-instead-of-msleep-for-small-sleeps.patch
-drivers-video-backlight-ltv350qvc-use-usleep_range-instead-of-msleep-for-small-sleeps.patch
-drivers-video-backlight-kb3886_blc-use-usleep_range-instead-of-msleep-for-small-sleeps.patch
-proc-use-null-instead-of-0-for-pointer.patch
+readahead-fault-retry-breaks-mmap-file-read-random-detection.patch
+atomic-implement-generic-atomic_dec_if_positive.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix.patch
+mm-compaction-check-lock-contention-first-before-taking-lock.patch
+mm-compaction-move-fatal-signal-check-out-of-compact_checklock_irqsave.patch
 
