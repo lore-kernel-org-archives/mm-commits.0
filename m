@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-fix-the-update_mmu_cache-last-argument-passing-in-mm-huge_memoryc.patch added to -mm tree
-Date: Thu, 13 Sep 2012 12:06:59 -0700
-Message-ID: <20120913190700.35EA95C0050@hpza9.eem.corp.google.com>
+Subject: + mm-introduce-have_arch_transparent_hugepage.patch added to -mm tree
+Date: Thu, 13 Sep 2012 12:07:03 -0700
+Message-ID: <20120913190704.7F371200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:51888 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752917Ab2IMTHD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 15:07:03 -0400
-Received: by fass10 with SMTP id s10so211850fas.1
-        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 12:07:02 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:39098 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752142Ab2IMTHH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 15:07:07 -0400
+Received: by wibhr14 with SMTP id hr14so214791wib.1
+        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 12:07:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: catalin.marinas@arm.com, aarcange@redhat.com, arnd@arndb.de, cmetcalf@tilera.com, gerald.schaefer@de.ibm.com, kirill@shutemov.name, mhocko@suse.cz, steve.capper@arm.com, will.deacon@arm.com
+Cc: steve.capper@arm.com, aarcange@redhat.com, arnd@arndb.de, catalin.marinas@arm.com, cmetcalf@tilera.com, gerald.schaefer@de.ibm.com, kirill@shutemov.name, mhocko@suse.cz, will.deacon@arm.com
 
 
 The patch titled
-     Subject: mm: thp: fix the update_mmu_cache() last argument passing in mm/huge_memory.c
+     Subject: mm: introduce HAVE_ARCH_TRANSPARENT_HUGEPAGE
 has been added to the -mm tree.  Its filename is
-     mm-thp-fix-the-update_mmu_cache-last-argument-passing-in-mm-huge_memoryc.patch
+     mm-introduce-have_arch_transparent_hugepage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,69 +33,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: mm: thp: fix the update_mmu_cache() last argument passing in mm/huge_memory.c
+From: Steve Capper <steve.capper@arm.com>
+Subject: mm: introduce HAVE_ARCH_TRANSPARENT_HUGEPAGE
 
-The update_mmu_cache() takes a pointer (to pte_t by default) as the last
-argument but the huge_memory.c passes a pmd_t value.  The patch changes
-the argument to the pmd_t * pointer.
+Different architectures have slightly different pre-requisites for
+supporting Transparent Huge Pages.  To simplify the layout of mm/Kconfig,
+a new option HAVE_ARCH_TRANSPARENT_HUGEPAGE is introduced and set in each
+architecture's Kconfig file (at the moment x86, with ARM being set in a
+future patch).
 
-Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Steve Capper <steve.capper@arm.com>
 Signed-off-by: Will Deacon <will.deacon@arm.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Kirill A. Shutemov <kirill@shutemov.name>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Chris Metcalf <cmetcalf@tilera.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/x86/Kconfig |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/huge_memory.c~mm-thp-fix-the-update_mmu_cache-last-argument-passing-in-mm-huge_memoryc mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-fix-the-update_mmu_cache-last-argument-passing-in-mm-huge_memoryc
-+++ a/mm/huge_memory.c
-@@ -900,7 +900,7 @@ int do_huge_pmd_wp_page(struct mm_struct
- 		entry = pmd_mkyoung(orig_pmd);
- 		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
- 		if (pmdp_set_access_flags(vma, haddr, pmd, entry,  1))
--			update_mmu_cache(vma, address, entry);
-+			update_mmu_cache(vma, address, pmd);
- 		ret |= VM_FAULT_WRITE;
- 		goto out_unlock;
- 	}
-@@ -956,7 +956,7 @@ int do_huge_pmd_wp_page(struct mm_struct
- 		pmdp_clear_flush(vma, haddr, pmd);
- 		page_add_new_anon_rmap(new_page, vma, haddr);
- 		set_pmd_at(mm, haddr, pmd, entry);
--		update_mmu_cache(vma, address, entry);
-+		update_mmu_cache(vma, address, pmd);
- 		page_remove_rmap(page);
- 		put_page(page);
- 		ret |= VM_FAULT_WRITE;
-@@ -2033,7 +2033,7 @@ static void collapse_huge_page(struct mm
- 	BUG_ON(!pmd_none(*pmd));
- 	page_add_new_anon_rmap(new_page, vma, address);
- 	set_pmd_at(mm, address, pmd, _pmd);
--	update_mmu_cache(vma, address, _pmd);
-+	update_mmu_cache(vma, address, pmd);
- 	pgtable_trans_huge_deposit(mm, pgtable);
- 	spin_unlock(&mm->page_table_lock);
+diff -puN arch/x86/Kconfig~mm-introduce-have_arch_transparent_hugepage arch/x86/Kconfig
+--- a/arch/x86/Kconfig~mm-introduce-have_arch_transparent_hugepage
++++ a/arch/x86/Kconfig
+@@ -83,7 +83,6 @@ config X86
+ 	select IRQ_FORCED_THREADING
+ 	select USE_GENERIC_SMP_HELPERS if SMP
+ 	select HAVE_BPF_JIT if X86_64
+-	select HAVE_ARCH_TRANSPARENT_HUGEPAGE
+ 	select CLKEVT_I8253
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	select GENERIC_IOMAP
+@@ -1330,6 +1329,10 @@ config ILLEGAL_POINTER_VALUE
+        default 0 if X86_32
+        default 0xdead000000000000 if X86_64
  
++config HAVE_ARCH_TRANSPARENT_HUGEPAGE
++       def_bool y
++       depends on MMU
++
+ source "mm/Kconfig"
+ 
+ config HIGHPTE
 _
 
-Patches currently in -mm which might be from catalin.marinas@arm.com are
+Patches currently in -mm which might be from steve.capper@arm.com are
 
-origin.patch
-linux-next.patch
-rbtree-add-prio-tree-and-interval-tree-tests.patch
-mm-replace-vma-prio_tree-with-an-interval-tree.patch
-kmemleak-use-rbtree-instead-of-prio-tree.patch
-prio_tree-remove.patch
-rbtree-move-augmented-rbtree-functionality-to-rbtree_augmentedh.patch
 mm-thp-fix-the-pmd_clear-arguments-in-pmdp_get_and_clear.patch
 mm-thp-fix-the-update_mmu_cache-last-argument-passing-in-mm-huge_memoryc.patch
 mm-introduce-have_arch_transparent_hugepage.patch
