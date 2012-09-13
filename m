@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + thp-s390-architecture-backend-for-thp-on-s390-fix.patch added to -mm tree
-Date: Thu, 13 Sep 2012 14:43:43 -0700
-Message-ID: <20120913214343.A60B11E0043@wpzn4.hot.corp.google.com>
+Subject: + syscalls-make-kcmp-syscall-available-for-all-architectures.patch added to -mm tree
+Date: Thu, 13 Sep 2012 15:00:13 -0700
+Message-ID: <20120913220014.0E0B45C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:56308 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753066Ab2IMVno (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 17:43:44 -0400
-Received: by qcqs25 with SMTP id s25so378547qcq.1
-        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 14:43:44 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:63183 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755518Ab2IMWAR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 18:00:17 -0400
+Received: by lbbge1 with SMTP id ge1so220136lbb.1
+        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 15:00:15 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gerald.schaefer@de.ibm.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com
+Cc: heiko.carstens@de.ibm.com, gorcunov@openvz.org, hpa@linux.intel.com, mmarek@suse.cz
 
 
 The patch titled
-     Subject: thp, s390: add missing earlyclobber to inline assembly
+     Subject: syscalls: make kcmp syscall available for all architectures
 has been added to the -mm tree.  Its filename is
-     thp-s390-architecture-backend-for-thp-on-s390-fix.patch
+     syscalls-make-kcmp-syscall-available-for-all-architectures.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,40 +33,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Subject: thp, s390: add missing earlyclobber to inline assembly
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: syscalls: make kcmp syscall available for all architectures
 
-The constraints of the rrbm inline assembly are missing two
-earlyclobber operands, which can lead to an addressing exception
-depending on compiler register allocation decisions.
+Remove the x86 dependency, since the system call is not architecture
+dependent.
 
-Signed-off-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Also add a ptrace.h include, so it compiles at least also on s390.
+
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Michal Marek <mmarek@suse.cz>
+Cc: "H. Peter Anvin" <hpa@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/pgtable.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/Makefile |    4 +---
+ kernel/kcmp.c   |    1 +
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN arch/s390/include/asm/pgtable.h~thp-s390-architecture-backend-for-thp-on-s390-fix arch/s390/include/asm/pgtable.h
---- a/arch/s390/include/asm/pgtable.h~thp-s390-architecture-backend-for-thp-on-s390-fix
-+++ a/arch/s390/include/asm/pgtable.h
-@@ -1296,7 +1296,8 @@ static inline int pmdp_test_and_clear_yo
- 			"	ogr	%1,%0\n"
- 			"	la	%3,0(%4,%3)\n"
- 			"	brct	%2,0b\n"
--			: "=d" (tmp), "+d" (rc), "+d" (counter), "+a" (pmd_addr)
-+			: "=&d" (tmp), "+&d" (rc), "+d" (counter),
-+			  "+a" (pmd_addr)
- 			: "a" (64 * 4096UL) : "cc");
- 		rc = !!rc;
- 	} else {
+diff -puN kernel/Makefile~syscalls-make-kcmp-syscall-available-for-all-architectures kernel/Makefile
+--- a/kernel/Makefile~syscalls-make-kcmp-syscall-available-for-all-architectures
++++ a/kernel/Makefile
+@@ -25,9 +25,7 @@ endif
+ obj-y += sched/
+ obj-y += power/
+ 
+-ifeq ($(CONFIG_CHECKPOINT_RESTORE),y)
+-obj-$(CONFIG_X86) += kcmp.o
+-endif
++obj-$(CONFIG_CHECKPOINT_RESTORE) += kcmp.o
+ obj-$(CONFIG_FREEZER) += freezer.o
+ obj-$(CONFIG_PROFILING) += profile.o
+ obj-$(CONFIG_STACKTRACE) += stacktrace.o
+diff -puN kernel/kcmp.c~syscalls-make-kcmp-syscall-available-for-all-architectures kernel/kcmp.c
+--- a/kernel/kcmp.c~syscalls-make-kcmp-syscall-available-for-all-architectures
++++ a/kernel/kcmp.c
+@@ -4,6 +4,7 @@
+ #include <linux/string.h>
+ #include <linux/random.h>
+ #include <linux/module.h>
++#include <linux/ptrace.h>
+ #include <linux/init.h>
+ #include <linux/errno.h>
+ #include <linux/cache.h>
 _
 
-Patches currently in -mm which might be from gerald.schaefer@de.ibm.com are
+Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
 
 linux-next.patch
+checksyscalls-fix-here-document-handling.patch
 thp-x86-introduce-have_arch_transparent_hugepage.patch
 thp-remove-assumptions-on-pgtable_t-type.patch
 thp-introduce-pmdp_invalidate.patch
@@ -76,6 +92,5 @@ thp-s390-thp-pagetable-pre-allocation-for-s390.patch
 thp-s390-disable-thp-for-kvm-host-on-s390.patch
 thp-s390-architecture-backend-for-thp-on-s390.patch
 thp-s390-architecture-backend-for-thp-on-s390-fix.patch
-mm-thp-fix-the-pmd_clear-arguments-in-pmdp_get_and_clear.patch
-mm-thp-fix-the-update_mmu_cache-last-argument-passing-in-mm-huge_memoryc.patch
+syscalls-make-kcmp-syscall-available-for-all-architectures.patch
 
