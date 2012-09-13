@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + sections-fix-section-conflicts-in-arch-frv.patch added to -mm tree
-Date: Thu, 13 Sep 2012 16:36:41 -0700
-Message-ID: <20120913233642.9116420004E@hpza10.eem.corp.google.com>
+Subject: + sections-fix-section-conflicts-in-arch-ia64.patch added to -mm tree
+Date: Thu, 13 Sep 2012 16:36:47 -0700
+Message-ID: <20120913233648.8EDAF5C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:48669 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759089Ab2IMXgo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 19:36:44 -0400
-Received: by fass10 with SMTP id s10so219284fas.1
-        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 16:36:43 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:39069 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759088Ab2IMXgv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 19:36:51 -0400
+Received: by eaac1 with SMTP id c1so219756eaa.1
+        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 16:36:49 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ak@linux.intel.com, dhowells@redhat.com
+Cc: ak@linux.intel.com, tony.luck@intel.com
 
 
 The patch titled
-     Subject: sections: fix section conflicts in arch/frv
+     Subject: sections: fix section conflicts in arch/ia64
 has been added to the -mm tree.  Its filename is
-     sections-fix-section-conflicts-in-arch-frv.patch
+     sections-fix-section-conflicts-in-arch-ia64.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andi Kleen <ak@linux.intel.com>
-Subject: sections: fix section conflicts in arch/frv
+Subject: sections: fix section conflicts in arch/ia64
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: David Howells <dhowells@redhat.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/setup.c         |    2 +-
- arch/frv/mb93090-mb00/pci-irq.c |    2 +-
+ arch/ia64/xen/irq_xen.c |    2 +-
+ arch/ia64/xen/irq_xen.h |    2 +-
  2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/frv/kernel/setup.c~sections-fix-section-conflicts-in-arch-frv arch/frv/kernel/setup.c
---- a/arch/frv/kernel/setup.c~sections-fix-section-conflicts-in-arch-frv
-+++ a/arch/frv/kernel/setup.c
-@@ -184,7 +184,7 @@ static struct clock_cmode __pminitdata c
- 	[6]	= {	_x1,	_x1_5,	_x1_5,	_x4_5,	_x0_375	},
- };
+diff -puN arch/ia64/xen/irq_xen.c~sections-fix-section-conflicts-in-arch-ia64 arch/ia64/xen/irq_xen.c
+--- a/arch/ia64/xen/irq_xen.c~sections-fix-section-conflicts-in-arch-ia64
++++ a/arch/ia64/xen/irq_xen.c
+@@ -433,7 +433,7 @@ xen_resend_irq(unsigned int vector)
+ 	(void)resend_irq_on_evtchn(vector);
+ }
  
--static const struct clock_cmode __pminitdata *clock_cmodes;
-+static const struct clock_cmode __pminitconst *clock_cmodes;
- static int __pminitdata clock_doubled;
+-const struct pv_irq_ops xen_irq_ops __initdata = {
++const struct pv_irq_ops xen_irq_ops __initconst = {
+ 	.register_ipi = xen_register_ipi,
  
- static struct uart_port __pminitdata __frv_uart0 = {
-diff -puN arch/frv/mb93090-mb00/pci-irq.c~sections-fix-section-conflicts-in-arch-frv arch/frv/mb93090-mb00/pci-irq.c
---- a/arch/frv/mb93090-mb00/pci-irq.c~sections-fix-section-conflicts-in-arch-frv
-+++ a/arch/frv/mb93090-mb00/pci-irq.c
-@@ -28,7 +28,7 @@
-  *
-  */
+ 	.assign_irq_vector = xen_assign_irq_vector,
+diff -puN arch/ia64/xen/irq_xen.h~sections-fix-section-conflicts-in-arch-ia64 arch/ia64/xen/irq_xen.h
+--- a/arch/ia64/xen/irq_xen.h~sections-fix-section-conflicts-in-arch-ia64
++++ a/arch/ia64/xen/irq_xen.h
+@@ -27,7 +27,7 @@ extern void (*late_time_init)(void);
+ extern char xen_event_callback;
+ void __init xen_init_IRQ(void);
  
--static const uint8_t __initdata pci_bus0_irq_routing[32][4] = {
-+static const uint8_t __initconst pci_bus0_irq_routing[32][4] = {
- 	[0 ] = { IRQ_FPGA_MB86943_PCI_INTA },
- 	[16] = { IRQ_FPGA_RTL8029_INTA },
- 	[17] = { IRQ_FPGA_PCI_INTC, IRQ_FPGA_PCI_INTD, IRQ_FPGA_PCI_INTA, IRQ_FPGA_PCI_INTB },
+-extern const struct pv_irq_ops xen_irq_ops __initdata;
++extern const struct pv_irq_ops xen_irq_ops __initconst;
+ extern void xen_smp_intr_init(void);
+ extern void xen_send_ipi(int cpu, int vec);
+ 
 _
 
 Patches currently in -mm which might be from ak@linux.intel.com are
