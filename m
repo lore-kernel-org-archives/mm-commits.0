@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-up-zone-present-pages.patch added to -mm tree
-Date: Thu, 13 Sep 2012 16:14:21 -0700
-Message-ID: <20120913231422.4602820004E@hpza10.eem.corp.google.com>
+Subject: + sections-disable-const-sections-for-pa-risc-v2.patch added to -mm tree
+Date: Thu, 13 Sep 2012 16:36:35 -0700
+Message-ID: <20120913233636.43F191E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:46139 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750958Ab2IMXOZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 19:14:25 -0400
-Received: by fass10 with SMTP id s10so218683fas.1
-        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 16:14:24 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:45426 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759117Ab2IMXgh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 19:36:37 -0400
+Received: by ghbz15 with SMTP id z15so201480ghb.1
+        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 16:36:36 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wujianguo@huawei.com, hannes@cmpxchg.org, jiang.liu@huawei.com, mel@csn.ul.ie, minchan.kim@gmail.com, ptesarik@suse.cz, rientjes@google.com, tony.luck@intel.com, yinghai@kernel.org
+Cc: ak@linux.intel.com, deller@gmx.de, jejb@parisc-linux.org, sam@ravnborg.org
 
 
 The patch titled
-     Subject: mm: fix-up zone present pages
+     Subject: sections: disable const sections for PA-RISC v2
 has been added to the -mm tree.  Its filename is
-     mm-fix-up-zone-present-pages.patch
+     sections-disable-const-sections-for-pa-risc-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,214 +33,165 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jianguo Wu <wujianguo@huawei.com>
-Subject: mm: fix-up zone present pages
+From: Andi Kleen <ak@linux.intel.com>
+Subject: sections: disable const sections for PA-RISC v2
 
-I think zone->present_pages indicates pages that buddy system can management,
-it should be:
+The PA-RISC tool chain seems to have some problem with correct read/write
+attributes on sections. This causes problems when the const sections
+are fixed up for other architecture to only contain truly read-only
+data.
 
-	zone->present_pages = spanned pages - absent pages - bootmem pages,
+Disable const sections for PA-RISC
 
-but is now:
-	zone->present_pages = spanned pages - absent pages - memmap pages.
+This can cause a bit of noise with modpost.
 
-spanned pages: total size, including holes.
-absent pages: holes.
-bootmem pages: pages used in system boot, managed by bootmem allocator.
-memmap pages: pages used by page structs.
-
-This may cause zone->present_pages less than it should be.  For example,
-numa node 1 has ZONE_NORMAL and ZONE_MOVABLE, it's memmap and other
-bootmem will be allocated from ZONE_MOVABLE, so ZONE_NORMAL's
-present_pages should be spanned pages - absent pages, but now it also
-minus memmap pages(free_area_init_core), which are actually allocated from
-ZONE_MOVABLE.  When offlining all memory of a zone, this will cause
-zone->present_pages less than 0, because present_pages is unsigned long
-type, it is actually a very large integer, it indirectly caused
-zone->watermark[WMARK_MIN] becomes a large
-integer(setup_per_zone_wmarks()), than cause totalreserve_pages become a
-large integer(calculate_totalreserve_pages()), and finally cause memory
-allocating failure when fork process(__vm_enough_memory()).
-
-[root@localhost ~]# dmesg
--bash: fork: Cannot allocate memory
-
-I think the bug described in
-http://marc.info/?l=linux-mm&m=134502182714186&w=2 is also caused by wrong
-zone present pages.
-
-This patch intends to fix-up zone->present_pages when memory are freed to
-buddy system on x86_64 and IA64 platforms.
-
-Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
-Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Reported-by: Petr Tesarik <ptesarik@suse.cz>
-Tested-by: Petr Tesarik <ptesarik@suse.cz>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: Helge Deller <deller@gmx.de>
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/init.c |    1 +
- include/linux/mm.h  |    4 ++++
- mm/bootmem.c        |    9 ++++++++-
- mm/memory_hotplug.c |    7 +++++++
- mm/nobootmem.c      |    3 +++
- mm/page_alloc.c     |   34 ++++++++++++++++++++++++++++++++++
- 6 files changed, 57 insertions(+), 1 deletion(-)
+ arch/parisc/Kconfig  |    1 +
+ include/linux/init.h |   27 +++++++++++++++++++--------
+ init/Kconfig         |    6 ++++++
+ 3 files changed, 26 insertions(+), 8 deletions(-)
 
-diff -puN arch/ia64/mm/init.c~mm-fix-up-zone-present-pages arch/ia64/mm/init.c
---- a/arch/ia64/mm/init.c~mm-fix-up-zone-present-pages
-+++ a/arch/ia64/mm/init.c
-@@ -637,6 +637,7 @@ mem_init (void)
+diff -puN arch/parisc/Kconfig~sections-disable-const-sections-for-pa-risc-v2 arch/parisc/Kconfig
+--- a/arch/parisc/Kconfig~sections-disable-const-sections-for-pa-risc-v2
++++ a/arch/parisc/Kconfig
+@@ -13,6 +13,7 @@ config PARISC
+ 	select HAVE_PERF_EVENTS
+ 	select GENERIC_ATOMIC64 if !64BIT
+ 	select HAVE_GENERIC_HARDIRQS
++	select BROKEN_RODATA
+ 	select GENERIC_IRQ_PROBE
+ 	select GENERIC_PCI_IOMAP
+ 	select IRQ_PER_CPU
+diff -puN include/linux/init.h~sections-disable-const-sections-for-pa-risc-v2 include/linux/init.h
+--- a/include/linux/init.h~sections-disable-const-sections-for-pa-risc-v2
++++ a/include/linux/init.h
+@@ -43,11 +43,22 @@
+    discard it in modules) */
+ #define __init		__section(.init.text) __cold notrace
+ #define __initdata	__section(.init.data)
+-#define __initconst	__section(.init.rodata)
++#define __initconst	__constsection(.init.rodata)
+ #define __exitdata	__section(.exit.data)
+ #define __exit_call	__used __section(.exitcall.exit)
  
- 	high_memory = __va(max_low_pfn * PAGE_SIZE);
- 
-+	reset_zone_present_pages();
- 	for_each_online_pgdat(pgdat)
- 		if (pgdat->bdata->node_bootmem_map)
- 			totalram_pages += free_all_bootmem_node(pgdat);
-diff -puN include/linux/mm.h~mm-fix-up-zone-present-pages include/linux/mm.h
---- a/include/linux/mm.h~mm-fix-up-zone-present-pages
-+++ a/include/linux/mm.h
-@@ -1684,5 +1684,9 @@ static inline unsigned int debug_guardpa
- static inline bool page_is_guard(struct page *page) { return false; }
- #endif /* CONFIG_DEBUG_PAGEALLOC */
- 
-+extern void reset_zone_present_pages(void);
-+extern void fixup_zone_present_pages(int nid, unsigned long start_pfn,
-+				unsigned long end_pfn);
+ /*
++ * Some architecture have tool chains which do not handle rodata attributes
++ * correctly. For those disable special sections for const, so that other
++ * architectures can annotate correctly.
++ */
++#ifdef CONFIG_BROKEN_RODATA
++#define __constsection(x)
++#else
++#define __constsection(x) __section(x)
++#endif
 +
- #endif /* __KERNEL__ */
- #endif /* _LINUX_MM_H */
-diff -puN mm/bootmem.c~mm-fix-up-zone-present-pages mm/bootmem.c
---- a/mm/bootmem.c~mm-fix-up-zone-present-pages
-+++ a/mm/bootmem.c
-@@ -198,6 +198,8 @@ static unsigned long __init free_all_boo
- 			int order = ilog2(BITS_PER_LONG);
++/*
+  * modpost check for section mismatches during the kernel build.
+  * A section mismatch happens when there are references from a
+  * code or data section to an init section (both code or data).
+@@ -66,7 +77,7 @@
+  */
+ #define __ref            __section(.ref.text) noinline
+ #define __refdata        __section(.ref.data)
+-#define __refconst       __section(.ref.rodata)
++#define __refconst       __constsection(.ref.rodata)
  
- 			__free_pages_bootmem(pfn_to_page(start), order);
-+			fixup_zone_present_pages(page_to_nid(pfn_to_page(start)),
-+					start, start + BITS_PER_LONG);
- 			count += BITS_PER_LONG;
- 			start += BITS_PER_LONG;
- 		} else {
-@@ -208,6 +210,8 @@ static unsigned long __init free_all_boo
- 				if (vec & 1) {
- 					page = pfn_to_page(start + off);
- 					__free_pages_bootmem(page, 0);
-+					fixup_zone_present_pages(page_to_nid(page),
-+							start + off, start + off + 1);
- 					count++;
- 				}
- 				vec >>= 1;
-@@ -221,8 +225,11 @@ static unsigned long __init free_all_boo
- 	pages = bdata->node_low_pfn - bdata->node_min_pfn;
- 	pages = bootmem_bootmap_pages(pages);
- 	count += pages;
--	while (pages--)
-+	while (pages--) {
-+		fixup_zone_present_pages(page_to_nid(page),
-+				page_to_pfn(page), page_to_pfn(page) + 1);
- 		__free_pages_bootmem(page++, 0);
-+	}
+ /* compatibility defines */
+ #define __init_refok     __ref
+@@ -85,26 +96,26 @@
+ /* Used for HOTPLUG */
+ #define __devinit        __section(.devinit.text) __cold notrace
+ #define __devinitdata    __section(.devinit.data)
+-#define __devinitconst   __section(.devinit.rodata)
++#define __devinitconst   __constsection(.devinit.rodata)
+ #define __devexit        __section(.devexit.text) __exitused __cold notrace
+ #define __devexitdata    __section(.devexit.data)
+-#define __devexitconst   __section(.devexit.rodata)
++#define __devexitconst   __constsection(.devexit.rodata)
  
- 	bdebug("nid=%td released=%lx\n", bdata - bootmem_node_data, count);
+ /* Used for HOTPLUG_CPU */
+ #define __cpuinit        __section(.cpuinit.text) __cold notrace
+ #define __cpuinitdata    __section(.cpuinit.data)
+-#define __cpuinitconst   __section(.cpuinit.rodata)
++#define __cpuinitconst   __constsection(.cpuinit.rodata)
+ #define __cpuexit        __section(.cpuexit.text) __exitused __cold notrace
+ #define __cpuexitdata    __section(.cpuexit.data)
+-#define __cpuexitconst   __section(.cpuexit.rodata)
++#define __cpuexitconst   __constsection(.cpuexit.rodata)
  
-diff -puN mm/memory_hotplug.c~mm-fix-up-zone-present-pages mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-fix-up-zone-present-pages
-+++ a/mm/memory_hotplug.c
-@@ -106,6 +106,7 @@ static void get_page_bootmem(unsigned lo
- void __ref put_page_bootmem(struct page *page)
- {
- 	unsigned long type;
-+	struct zone *zone;
+ /* Used for MEMORY_HOTPLUG */
+ #define __meminit        __section(.meminit.text) __cold notrace
+ #define __meminitdata    __section(.meminit.data)
+-#define __meminitconst   __section(.meminit.rodata)
++#define __meminitconst   __constsection(.meminit.rodata)
+ #define __memexit        __section(.memexit.text) __exitused __cold notrace
+ #define __memexitdata    __section(.memexit.data)
+-#define __memexitconst   __section(.memexit.rodata)
++#define __memexitconst   __constsection(.memexit.rodata)
  
- 	type = (unsigned long) page->lru.next;
- 	BUG_ON(type < MEMORY_HOTPLUG_MIN_BOOTMEM_TYPE ||
-@@ -116,6 +117,12 @@ void __ref put_page_bootmem(struct page 
- 		set_page_private(page, 0);
- 		INIT_LIST_HEAD(&page->lru);
- 		__free_pages_bootmem(page, 0);
+ /* For assembly routines */
+ #define __HEAD		.section	".head.text","ax"
+diff -puN init/Kconfig~sections-disable-const-sections-for-pa-risc-v2 init/Kconfig
+--- a/init/Kconfig~sections-disable-const-sections-for-pa-risc-v2
++++ a/init/Kconfig
+@@ -1614,4 +1614,10 @@ config PADATA
+ 	depends on SMP
+ 	bool
+ 
++# Can be selected by architectures with broken toolchains
++# that get confused by correct const<->read_only section
++# mappings
++config BROKEN_RODATA
++	bool
 +
-+		zone = page_zone(page);
-+		zone_span_writelock(zone);
-+		zone->present_pages++;
-+		zone_span_writeunlock(zone);
-+		totalram_pages++;
- 	}
- 
- }
-diff -puN mm/nobootmem.c~mm-fix-up-zone-present-pages mm/nobootmem.c
---- a/mm/nobootmem.c~mm-fix-up-zone-present-pages
-+++ a/mm/nobootmem.c
-@@ -116,6 +116,8 @@ static unsigned long __init __free_memor
- 		return 0;
- 
- 	__free_pages_memory(start_pfn, end_pfn);
-+	fixup_zone_present_pages(pfn_to_nid(start >> PAGE_SHIFT),
-+			start_pfn, end_pfn);
- 
- 	return end_pfn - start_pfn;
- }
-@@ -126,6 +128,7 @@ unsigned long __init free_low_memory_cor
- 	phys_addr_t start, end, size;
- 	u64 i;
- 
-+	reset_zone_present_pages();
- 	for_each_free_mem_range(i, MAX_NUMNODES, &start, &end, NULL)
- 		count += __free_memory_core(start, end);
- 
-diff -puN mm/page_alloc.c~mm-fix-up-zone-present-pages mm/page_alloc.c
---- a/mm/page_alloc.c~mm-fix-up-zone-present-pages
-+++ a/mm/page_alloc.c
-@@ -6071,3 +6071,37 @@ void dump_page(struct page *page)
- 	dump_page_flags(page->flags);
- 	mem_cgroup_print_bad_page(page);
- }
-+
-+/* reset zone->present_pages */
-+void reset_zone_present_pages(void)
-+{
-+	struct zone *z;
-+	int i, nid;
-+
-+	for_each_node_state(nid, N_HIGH_MEMORY) {
-+		for (i = 0; i < MAX_NR_ZONES; i++) {
-+			z = NODE_DATA(nid)->node_zones + i;
-+			z->present_pages = 0;
-+		}
-+	}
-+}
-+
-+/* calculate zone's present pages in buddy system */
-+void fixup_zone_present_pages(int nid, unsigned long start_pfn,
-+				unsigned long end_pfn)
-+{
-+	struct zone *z;
-+	unsigned long zone_start_pfn, zone_end_pfn;
-+	int i;
-+
-+	for (i = 0; i < MAX_NR_ZONES; i++) {
-+		z = NODE_DATA(nid)->node_zones + i;
-+		zone_start_pfn = z->zone_start_pfn;
-+		zone_end_pfn = zone_start_pfn + z->spanned_pages;
-+
-+		/* if the two regions intersect */
-+		if (!(zone_start_pfn >= end_pfn	|| zone_end_pfn <= start_pfn))
-+			z->present_pages += min(end_pfn, zone_end_pfn) -
-+								max(start_pfn, zone_start_pfn);
-+	}
-+}
+ source "kernel/Kconfig.locks"
 _
 
-Patches currently in -mm which might be from wujianguo@huawei.com are
+Patches currently in -mm which might be from ak@linux.intel.com are
 
-mm-ia64-fix-a-memory-block-size-bug.patch
+compilerh-add-__visible.patch
 linux-next.patch
-mm-fix-up-zone-present-pages.patch
+thp-x86-introduce-have_arch_transparent_hugepage.patch
+thp-remove-assumptions-on-pgtable_t-type.patch
+thp-introduce-pmdp_invalidate.patch
+thp-make-madv_hugepage-check-for-mm-def_flags.patch
+thp-s390-thp-splitting-backend-for-s390.patch
+thp-s390-thp-pagetable-pre-allocation-for-s390.patch
+thp-s390-disable-thp-for-kvm-host-on-s390.patch
+thp-s390-architecture-backend-for-thp-on-s390.patch
+sections-disable-const-sections-for-pa-risc-v2.patch
+sections-fix-section-conflicts-in-arch-arm.patch
+sections-fix-section-conflicts-in-arch-frv.patch
+sections-fix-section-conflicts-in-arch-h8300.patch
+sections-fix-section-conflicts-in-arch-ia64.patch
+sections-fix-section-conflicts-in-arch-mips.patch
+sections-fix-section-conflicts-in-arch-powerpc.patch
+sections-fix-section-conflicts-in-arch-score.patch
+sections-fix-section-conflicts-in-arch-sh.patch
+sections-fix-section-conflicts-in-arch-x86.patch
+sections-fix-section-conflicts-in-drivers-atm.patch
+sections-fix-section-conflicts-in-drivers-char.patch
+sections-fix-section-conflicts-in-drivers-cpufreq.patch
+sections-fix-section-conflicts-in-drivers-ide.patch
+sections-fix-section-conflicts-in-drivers-macintosh.patch
+sections-fix-section-conflicts-in-drivers-mfd.patch
+sections-fix-section-conflicts-in-drivers-mmc.patch
+sections-fix-section-conflicts-in-drivers-net.patch
+sections-fix-section-conflicts-in-drivers-net-hamradio.patch
+sections-fix-section-conflicts-in-drivers-net-wan.patch
+sections-fix-section-conflicts-in-drivers-platform-x86.patch
+sections-fix-section-conflicts-in-drivers-scsi.patch
+sections-fix-section-conflicts-in-drivers-video.patch
+sections-fix-section-conflicts-in-mm-percpuc.patch
+sections-fix-section-conflicts-in-net-can.patch
+sections-fix-section-conflicts-in-net.patch
+sections-fix-section-conflicts-in-sound.patch
+sectons-fix-const-sections-for-crc32-table.patch
+compat_ioctl-remove-unused-local-typedef.patch
 
