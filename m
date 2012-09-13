@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix.patch added to -mm tree
-Date: Thu, 13 Sep 2012 15:19:30 -0700
-Message-ID: <20120913221931.287B01E0043@wpzn4.hot.corp.google.com>
+Subject: + coredump-add-support-for-%d=__get_dumpable-in-core-name.patch added to -mm tree
+Date: Thu, 13 Sep 2012 15:26:20 -0700
+Message-ID: <20120913222621.33EB75C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:32978 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758517Ab2IMWTc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 18:19:32 -0400
-Received: by yhl10 with SMTP id 10so382584yhl.1
-        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 15:19:31 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:42420 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758861Ab2IMW0Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 18:26:24 -0400
+Received: by weyr1 with SMTP id r1so219197wey.1
+        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 15:26:23 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, geert@linux-m68k.org, minchan@kernel.org
+Cc: oleg@redhat.com, alan@lxorguk.ukuu.org.uk, alex.page.kelly@gmail.com, amwang@redhat.com, andi@firstfloor.org, jmoskovc@redhat.com, nhorman@tuxdriver.com, vda.linux@googlemail.com
 
 
 The patch titled
-     Subject: mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix
+     Subject: coredump: add support for %d=__get_dumpable() in core name
 has been added to the -mm tree.  Its filename is
-     mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix.patch
+     coredump-add-support-for-%d=__get_dumpable-in-core-name.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,102 +33,88 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: coredump: add support for %d=__get_dumpable() in core name
 
-fix nommu build
+Some coredump handlers want to create a core file in a way compatible with
+standard behavior.  Standard behavior with fs.suid_dumpable = 2 is to
+create core file with uid=gid=0.  However, there was no way for coredump
+handler to know that the process being dumped was suid'ed.
 
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+This patch adds the new %d specifier for format_corename() which simply
+reports __get_dumpable(mm->flags), this is compatible with
+/proc/sys/fs/suid_dumpable we already have.
+
+Addresses https://bugzilla.redhat.com/show_bug.cgi?id=787135
+
+Developed during a discussion with Denys Vlasenko.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Denys Vlasenko <vda.linux@googlemail.com>
+Cc: Alex Kelly <alex.page.kelly@gmail.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Cong Wang <amwang@redhat.com>
+Cc: Jiri Moskovcak <jmoskovc@redhat.com>
+Acked-by: Neil Horman <nhorman@tuxdriver.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |   21 +++++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
+ fs/coredump.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/rmap.h~mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix include/linux/rmap.h
---- a/include/linux/rmap.h~mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix
-+++ a/include/linux/rmap.h
-@@ -71,6 +71,17 @@ struct anon_vma_chain {
- #endif
- };
- 
-+enum ttu_flags {
-+	TTU_UNMAP = 0,			/* unmap mode */
-+	TTU_MIGRATION = 1,		/* migration mode */
-+	TTU_MUNLOCK = 2,		/* munlock mode */
-+	TTU_ACTION_MASK = 0xff,
-+
-+	TTU_IGNORE_MLOCK = (1 << 8),	/* ignore mlock */
-+	TTU_IGNORE_ACCESS = (1 << 9),	/* don't age */
-+	TTU_IGNORE_HWPOISON = (1 << 10),/* corrupted page is recoverable */
-+};
-+
- #ifdef CONFIG_MMU
- static inline void get_anon_vma(struct anon_vma *anon_vma)
+diff -puN fs/coredump.c~coredump-add-support-for-%d=__get_dumpable-in-core-name fs/coredump.c
+--- a/fs/coredump.c~coredump-add-support-for-%d=__get_dumpable-in-core-name
++++ a/fs/coredump.c
+@@ -149,7 +149,7 @@ put_exe_file:
+  * name into corename, which must have space for at least
+  * CORENAME_MAX_SIZE bytes plus one byte for the zero terminator.
+  */
+-static int format_corename(struct core_name *cn, long signr)
++static int format_corename(struct core_name *cn, struct coredump_params *cprm)
  {
-@@ -164,16 +175,6 @@ int page_referenced(struct page *, int i
- int page_referenced_one(struct page *, struct vm_area_struct *,
- 	unsigned long address, unsigned int *mapcount, unsigned long *vm_flags);
+ 	const struct cred *cred = current_cred();
+ 	const char *pat_ptr = core_pattern;
+@@ -194,9 +194,13 @@ static int format_corename(struct core_n
+ 			case 'g':
+ 				err = cn_printf(cn, "%d", cred->gid);
+ 				break;
++			case 'd':
++				err = cn_printf(cn, "%d",
++					__get_dumpable(cprm->mm_flags));
++				break;
+ 			/* signal that caused the coredump */
+ 			case 's':
+-				err = cn_printf(cn, "%ld", signr);
++				err = cn_printf(cn, "%ld", cprm->signr);
+ 				break;
+ 			/* UNIX time of coredump */
+ 			case 't': {
+@@ -524,7 +528,7 @@ void do_coredump(long signr, int exit_co
+ 	 */
+ 	clear_thread_flag(TIF_SIGPENDING);
  
--enum ttu_flags {
--	TTU_UNMAP = 0,			/* unmap mode */
--	TTU_MIGRATION = 1,		/* migration mode */
--	TTU_MUNLOCK = 2,		/* munlock mode */
--	TTU_ACTION_MASK = 0xff,
--
--	TTU_IGNORE_MLOCK = (1 << 8),	/* ignore mlock */
--	TTU_IGNORE_ACCESS = (1 << 9),	/* don't age */
--	TTU_IGNORE_HWPOISON = (1 << 10),/* corrupted page is recoverable */
--};
- #define TTU_ACTION(x) ((x) & TTU_ACTION_MASK)
+-	ispipe = format_corename(&cn, signr);
++	ispipe = format_corename(&cn, &cprm);
  
- int try_to_unmap(struct page *, enum ttu_flags flags);
+  	if (ispipe) {
+ 		int dump_count;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-idr-rename-max_level-to-max_idr_level-fix.patch
-idr-rename-max_level-to-max_idr_level-fix-fix-2.patch
+pid-namespace-limit-value-of-ns_last_pid-to-0-max_pid.patch
 linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-idr-rename-max_level-to-max_idr_level-fix-3.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-audith-replace-defines-with-c-stubs.patch
-slab-fix-debug==0-warning.patch
-mm.patch
-x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
-mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
-mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures-fix.patch
-mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch
-rbtree-performance-and-correctness-test-fix.patch
-mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix.patch
-mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock-fix.patch
-memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
-atomic-implement-generic-atomic_dec_if_positive-fix.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix-2.patch
-mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch
-backlight-add-backlight-driver-for-lm3630-chip-fix.patch
-backlight-add-new-lm3639-backlight-driver-fix.patch
-lib-parserc-avoid-overflow-in-match_number-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-rtc-add-dallas-ds2404-driver-fix.patch
-rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch
-fs-fat-fix-all-other-checkpatch-issues-in-dirc-fix.patch
-fat-simplify-writeback_inode-checkpatch-fixes.patch
-fat-simplify-writeback_inode-checkpatch-fixes-fix.patch
-coredump-make-core-dump-functionality-optional-fix-fix.patch
-proc-use-kzalloc-instead-of-kmalloc-and-memset-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+x86-pat-remove-the-dependency-on-vm_pgoff-in-track-untrack-pfn-vma-routines.patch
+x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn.patch
+mm-x86-pat-rework-linear-pfn-mmap-tracking.patch
+mm-introduce-arch-specific-vma-flag-vm_arch_1.patch
+mm-kill-vma-flag-vm_insertpage.patch
+mm-kill-vma-flag-vm_can_nonlinear.patch
+mm-use-mm-exe_file-instead-of-first-vm_executable-vma-vm_file.patch
+mm-kill-vma-flag-vm_executable-and-mm-num_exe_file_vmas.patch
+mm-prepare-vm_dontdump-for-using-in-drivers.patch
+mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter.patch
+coredump-prevent-double-free-on-an-error-path-in-core-dumper.patch
+coredump-add-support-for-%d=__get_dumpable-in-core-name.patch
 
