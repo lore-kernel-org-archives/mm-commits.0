@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc_sysfs_show_hctosys-return-0-if-resume-failed-fix.patch added to -mm tree
-Date: Fri, 14 Sep 2012 13:03:09 -0700
-Message-ID: <20120914200309.A34AB100047@wpzn3.hot.corp.google.com>
+Subject: + memory-hotplug-fix-a-double-register-section-info-bug.patch added to -mm tree
+Date: Fri, 14 Sep 2012 13:14:40 -0700
+Message-ID: <20120914201441.B3B985C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:47584 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750978Ab2INUDK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Sep 2012 16:03:10 -0400
-Received: by qafl39 with SMTP id l39so27102qaf.1
-        for <mm-commits@vger.kernel.org>; Fri, 14 Sep 2012 13:03:10 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:39212 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751702Ab2INUOp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Sep 2012 16:14:45 -0400
+Received: by eekd4 with SMTP id d4so277573eek.1
+        for <mm-commits@vger.kernel.org>; Fri, 14 Sep 2012 13:14:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david@fries.net, David@Fries.net, sfr@canb.auug.org.au
+Cc: qiuxishi@gmail.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, mgorman@suse.de, qiuxishi@huawei.com, stable@vger.kernel.org, tony.luck@intel.com
 
 
 The patch titled
-     Subject: rtc_sysfs_show_hctosys-return-0-if-resume-failed-fix
+     Subject: memory hotplug: fix section info double registration bug
 has been added to the -mm tree.  Its filename is
-     rtc_sysfs_show_hctosys-return-0-if-resume-failed-fix.patch
+     memory-hotplug-fix-a-double-register-section-info-bug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,56 +33,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Fries <david@fries.net>
-Subject: rtc_sysfs_show_hctosys-return-0-if-resume-failed-fix
+From: qiuxishi <qiuxishi@gmail.com>
+Subject: memory hotplug: fix section info double registration bug
 
-fix build
+There may be a bug when registering section info.  For example, on my
+Itanium platform, the pfn range of node0 includes the other nodes, so
+other nodes' section info will be double registered, and memmap's page
+count will equal to 3.
 
-Signed-off-by: David Fries <David@Fries.net>
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+node0: start_pfn=0x100,    spanned_pfn=0x20fb00, present_pfn=0x7f8a3, => 0x000100-0x20fc00
+node1: start_pfn=0x80000,  spanned_pfn=0x80000,  present_pfn=0x80000, => 0x080000-0x100000
+node2: start_pfn=0x100000, spanned_pfn=0x80000,  present_pfn=0x80000, => 0x100000-0x180000
+node3: start_pfn=0x180000, spanned_pfn=0x80000,  present_pfn=0x80000, => 0x180000-0x200000
+
+free_all_bootmem_node()
+	register_page_bootmem_info_node()
+		register_page_bootmem_info_section()
+
+When hot remove memory, we can't free the memmap's page because
+page_count() is 2 after put_page_bootmem().
+
+sparse_remove_one_section()
+	free_section_usemap()
+		free_map_bootmem()
+			put_page_bootmem()
+
+Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/class.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ mm/memory_hotplug.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN drivers/rtc/class.c~rtc_sysfs_show_hctosys-return-0-if-resume-failed-fix drivers/rtc/class.c
---- a/drivers/rtc/class.c~rtc_sysfs_show_hctosys-return-0-if-resume-failed-fix
-+++ a/drivers/rtc/class.c
-@@ -31,16 +31,18 @@ static void rtc_device_release(struct de
- 	kfree(rtc);
- }
+diff -puN mm/memory_hotplug.c~memory-hotplug-fix-a-double-register-section-info-bug mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-fix-a-double-register-section-info-bug
++++ a/mm/memory_hotplug.c
+@@ -126,9 +126,6 @@ static void register_page_bootmem_info_s
+ 	struct mem_section *ms;
+ 	struct page *page, *memmap;
  
--#if defined(CONFIG_PM) && defined(CONFIG_RTC_HCTOSYS_DEVICE)
-+#ifdef CONFIG_RTC_HCTOSYS_DEVICE
-+/* Result of the last RTC to system clock attempt. */
-+int rtc_hctosys_ret = -ENODEV;
+-	if (!pfn_valid(start_pfn))
+-		return;
+-
+ 	section_nr = pfn_to_section_nr(start_pfn);
+ 	ms = __nr_to_section(section_nr);
  
-+#ifdef CONFIG_PM
- /*
-  * On suspend(), measure the delta between one RTC and the
-  * system's wall clock; restore it on resume().
-  */
+@@ -187,9 +184,10 @@ void register_page_bootmem_info_node(str
+ 	end_pfn = pfn + pgdat->node_spanned_pages;
  
- static struct timespec old_rtc, old_system, old_delta;
--/* Result of the last RTC to system clock attempt. */
--int rtc_hctosys_ret = -ENODEV;
-+
- 
- static int rtc_suspend(struct device *dev, pm_message_t mesg)
- {
-@@ -127,6 +129,7 @@ static int rtc_resume(struct device *dev
- #define rtc_suspend	NULL
- #define rtc_resume	NULL
- #endif
-+#endif
- 
- 
- /**
-_
-
-Patches currently in -mm which might be from david@fries.net are
-
-rtc_sysfs_show_hctosys-return-0-if-resume-failed.patch
-rtc_sysfs_show_hctosys-return-0-if-resume-failed-fix.patch
-
+ 	/* register_section info */
+-	for (; pfn < end_pfn; pfn += PAGES_PER_SECTION)
+-		register_page_bootmem_info_section(pfn);
