@@ -1,127 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: + sectons-fix-const-sections-for-crc32-table-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 13 Sep 2012 16:43:17 -0700
-Message-ID: <20120913234318.0141D1E0043@wpzn4.hot.corp.google.com>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Fri, 14 Sep 2012 12:07:07 -0700
+Message-ID: <20120914190710.6CEE720004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:64892 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751026Ab2IMXnT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Sep 2012 19:43:19 -0400
-Received: by vbis24 with SMTP id s24so389350vbi.1
-        for <mm-commits@vger.kernel.org>; Thu, 13 Sep 2012 16:43:18 -0700 (PDT)
+Received: from mail-lpp01m010-f74.google.com ([209.85.215.74]:47702 "EHLO
+	mail-lpp01m010-f74.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759934Ab2INTHN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>);
+	Fri, 14 Sep 2012 15:07:13 -0400
+Received: by lagw12 with SMTP id w12so275760lag.1
+        for <mm-commits@vger.kernel.org>; Fri, 14 Sep 2012 12:07:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@linux.intel.com, jmario@redhat.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sectons-fix-const-sections-for-crc32-table-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     sectons-fix-const-sections-for-crc32-table-checkpatch-fixes.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: sectons-fix-const-sections-for-crc32-table-checkpatch-fixes
+Subject: linux-next-git-rejects
 
-ERROR: code indent should use tabs where possible
-#54: FILE: lib/gen_crc32table.c:112:
-+        ^Iprintf("static u32 __cacheline_aligned "$
-
-WARNING: please, no space before tabs
-#54: FILE: lib/gen_crc32table.c:112:
-+        ^Iprintf("static u32 __cacheline_aligned "$
-
-WARNING: please, no spaces at the start of a line
-#54: FILE: lib/gen_crc32table.c:112:
-+        ^Iprintf("static u32 __cacheline_aligned "$
-
-ERROR: code indent should use tabs where possible
-#63: FILE: lib/gen_crc32table.c:122:
-+        ^Iprintf("static u32 __cacheline_aligned "$
-
-WARNING: please, no space before tabs
-#63: FILE: lib/gen_crc32table.c:122:
-+        ^Iprintf("static u32 __cacheline_aligned "$
-
-WARNING: please, no spaces at the start of a line
-#63: FILE: lib/gen_crc32table.c:122:
-+        ^Iprintf("static u32 __cacheline_aligned "$
-
-ERROR: code indent should use tabs where possible
-#72: FILE: lib/gen_crc32table.c:131:
-+        ^Iprintf("static u32 __cacheline_aligned "$
-
-WARNING: please, no space before tabs
-#72: FILE: lib/gen_crc32table.c:131:
-+        ^Iprintf("static u32 __cacheline_aligned "$
-
-WARNING: please, no spaces at the start of a line
-#72: FILE: lib/gen_crc32table.c:131:
-+        ^Iprintf("static u32 __cacheline_aligned "$
-
-total: 3 errors, 6 warnings, 48 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/sectons-fix-const-sections-for-crc32-table.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Joe Mario <jmario@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/gen_crc32table.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/arm/mm/mmu.c |   11 -----------
+ 1 file changed, 11 deletions(-)
 
-diff -puN lib/gen_crc32table.c~sectons-fix-const-sections-for-crc32-table-checkpatch-fixes lib/gen_crc32table.c
---- a/lib/gen_crc32table.c~sectons-fix-const-sections-for-crc32-table-checkpatch-fixes
-+++ a/lib/gen_crc32table.c
-@@ -109,7 +109,7 @@ int main(int argc, char** argv)
+diff -puN arch/arm/mm/mmu.c~linux-next-git-rejects arch/arm/mm/mmu.c
+--- a/arch/arm/mm/mmu.c~linux-next-git-rejects
++++ a/arch/arm/mm/mmu.c
+@@ -805,18 +805,7 @@ void __init vm_reserve_area_early(unsign
  
- 	if (CRC_LE_BITS > 1) {
- 		crc32init_le();
--        	printf("static u32 __cacheline_aligned "
-+		printf("static u32 __cacheline_aligned "
- 		       "crc32table_le[%d][%d] = {",
- 		       LE_TABLE_ROWS, LE_TABLE_SIZE);
- 		output_table(crc32table_le, LE_TABLE_ROWS,
-@@ -119,7 +119,7 @@ int main(int argc, char** argv)
+ static void __init pmd_empty_section_gap(unsigned long addr)
+ {
+-<<<<<<< HEAD
+-	struct vm_struct *vm;
+-
+-	vm = early_alloc_aligned(sizeof(*vm), __alignof__(*vm));
+-	vm->addr = (void *)addr;
+-	vm->size = SECTION_SIZE;
+-	vm->flags = VM_IOREMAP | VM_ARM_EMPTY_MAPPING;
+-	vm->caller = pmd_empty_section_gap;
+-	vm_area_add_early(vm);
+-=======
+ 	vm_reserve_area_early(addr, SECTION_SIZE, pmd_empty_section_gap);
+->>>>>>> linux-next/akpm-base
+ }
  
- 	if (CRC_BE_BITS > 1) {
- 		crc32init_be();
--        	printf("static u32 __cacheline_aligned "
-+		printf("static u32 __cacheline_aligned "
- 		       "crc32table_be[%d][%d] = {",
- 		       BE_TABLE_ROWS, BE_TABLE_SIZE);
- 		output_table(crc32table_be, LE_TABLE_ROWS,
-@@ -128,7 +128,7 @@ int main(int argc, char** argv)
- 	}
- 	if (CRC_LE_BITS > 1) {
- 		crc32cinit_le();
--        	printf("static u32 __cacheline_aligned "
-+		printf("static u32 __cacheline_aligned "
- 		       "crc32ctable_le[%d][%d] = {",
- 		       LE_TABLE_ROWS, LE_TABLE_SIZE);
- 		output_table(crc32ctable_le, LE_TABLE_ROWS,
+ static void __init fill_pmd_gaps(void)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -129,7 +62,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 idr-rename-max_level-to-max_idr_level-fix.patch
 idr-rename-max_level-to-max_idr_level-fix-fix-2.patch
 linux-next.patch
-linux-next-git-rejects.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 idr-rename-max_level-to-max_idr_level-fix-3.patch
