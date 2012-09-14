@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-fix-a-double-register-section-info-bug-fix.patch added to -mm tree
-Date: Fri, 14 Sep 2012 13:14:44 -0700
-Message-ID: <20120914201445.25C1A100047@wpzn3.hot.corp.google.com>
+Subject: + lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock.patch added to -mm tree
+Date: Fri, 14 Sep 2012 14:00:11 -0700
+Message-ID: <20120914210012.5AB34100048@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:52593 "EHLO
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:47055 "EHLO
 	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753265Ab2INUOq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Sep 2012 16:14:46 -0400
-Received: by ggnu1 with SMTP id u1so483473ggn.1
-        for <mm-commits@vger.kernel.org>; Fri, 14 Sep 2012 13:14:45 -0700 (PDT)
+	with ESMTP id S1751372Ab2INVAN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Sep 2012 17:00:13 -0400
+Received: by ggnu1 with SMTP id u1so489221ggn.1
+        for <mm-commits@vger.kernel.org>; Fri, 14 Sep 2012 14:00:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, mgorman@suse.de, qiuxishi@gmail.com, qiuxishi@huawei.com, stable@vger.kernel.org, tony.luck@intel.com
+Cc: markivx@codeaurora.org, a.p.zijlstra@chello.nl, tglx@linutronix.de
 
 
 The patch titled
-     Subject: memory-hotplug-fix-a-double-register-section-info-bug-fix
+     Subject: lib/spinlock_debug: avoid livelock in do_raw_spin_lock()
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-fix-a-double-register-section-info-bug-fix.patch
+     lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,87 +33,104 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memory-hotplug-fix-a-double-register-section-info-bug-fix
+From: Vikram Mulukutla <markivx@codeaurora.org>
+Subject: lib/spinlock_debug: avoid livelock in do_raw_spin_lock()
 
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: <stable@vger.kernel.org>
-Cc: Jiang Liu <jiang.liu@huawei.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: qiuxishi <qiuxishi@gmail.com>
+The logic in do_raw_spin_lock() attempts to acquire a spinlock by invoking
+arch_spin_trylock() in a loop with a delay between each attempt.  Now
+consider the following situation in a 2 CPU system:
+
+1. CPU-0 continually acquires and releases a spinlock in a
+   tight loop; it stays in this loop until some condition X
+   is satisfied. X can only be satisfied by another CPU.
+
+2. CPU-1 tries to acquire the same spinlock, in an attempt
+   to satisfy the aforementioned condition X. However, it
+   never sees the unlocked value of the lock because the
+   debug spinlock code uses trylock instead of just lock;
+   it checks at all the wrong moments - whenever CPU-0 has
+   locked the lock.
+
+Now in the absence of debug spinlocks, the architecture specific spinlock
+code can correctly allow CPU-1 to wait in a "queue" (e.g., ticket
+spinlocks), ensuring that it acquires the lock at some point.  However,
+with the debug spinlock code, livelock can easily occur due to the use of
+try_lock, which obviously cannot put the CPU in that "queue".  This
+queueing mechanism is implemented in both x86 and ARM spinlock code.
+
+Note that the situation mentioned above is not hypothetical.  A real
+problem was encountered where CPU-0 was running hrtimer_cancel with
+interrupts disabled, and CPU-1 was attempting to run the hrtimer that
+CPU-0 was trying to cancel.
+
+Address this by actually attempting arch_spin_lock once it is suspected
+that there is a spinlock lockup.  If we're in a situation that is
+described above, the arch_spin_lock should succeed; otherwise other
+timeout mechanisms (e.g., watchdog) should alert the system of a lockup. 
+Therefore, if there is a genuine system problem and the spinlock can't be
+acquired, the end result (irrespective of this change being present) is
+the same.  If there is a livelock caused by the debug code, this change
+will allow the lock to be acquired, depending on the implementation of the
+lower level arch specific spinlock code.
+
+Signed-off-by: Vikram Mulukutla <markivx@codeaurora.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ lib/spinlock_debug.c |   32 ++++++++++++++++++--------------
+ 1 file changed, 18 insertions(+), 14 deletions(-)
 
-diff -puN mm/memory_hotplug.c~memory-hotplug-fix-a-double-register-section-info-bug-fix mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory-hotplug-fix-a-double-register-section-info-bug-fix
-+++ a/mm/memory_hotplug.c
-@@ -185,6 +185,12 @@ void register_page_bootmem_info_node(str
+diff -puN lib/spinlock_debug.c~lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock lib/spinlock_debug.c
+--- a/lib/spinlock_debug.c~lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock
++++ a/lib/spinlock_debug.c
+@@ -107,23 +107,27 @@ static void __spin_lock_debug(raw_spinlo
+ {
+ 	u64 i;
+ 	u64 loops = loops_per_jiffy * HZ;
+-	int print_once = 1;
  
- 	/* register_section info */
- 	for (; pfn < end_pfn; pfn += PAGES_PER_SECTION) {
-+		/*
-+		 * Some platforms can assign the same pfn to multiple nodes - on
-+		 * node0 as well as nodeN.  To avoid registering a pfn against
-+		 * multiple nodes we check that this pfn does not already
-+		 * reside in some other node.
-+		 */
- 		if (pfn_valid(pfn) && (pfn_to_nid(pfn) == node))
- 			register_page_bootmem_info_section(pfn);
- 	}
+-	for (;;) {
+-		for (i = 0; i < loops; i++) {
+-			if (arch_spin_trylock(&lock->raw_lock))
+-				return;
+-			__delay(1);
+-		}
+-		/* lockup suspected: */
+-		if (print_once) {
+-			print_once = 0;
+-			spin_dump(lock, "lockup suspected");
++	for (i = 0; i < loops; i++) {
++		if (arch_spin_trylock(&lock->raw_lock))
++			return;
++		__delay(1);
++	}
++	/* lockup suspected: */
++	spin_dump(lock, "lockup suspected");
+ #ifdef CONFIG_SMP
+-			trigger_all_cpu_backtrace();
++	trigger_all_cpu_backtrace();
+ #endif
+-		}
+-	}
++
++	/*
++	 * In case the trylock above was causing a livelock, give the lower
++	 * level arch specific lock code a chance to acquire the lock. We have
++	 * already printed a warning/backtrace at this point. The non-debug arch
++	 * specific code might actually succeed in acquiring the lock. If it is
++	 * not successful, the end-result is the same - there is no forward
++	 * progress.
++	 */
++	arch_spin_lock(&lock->raw_lock);
+ }
+ 
+ void do_raw_spin_lock(raw_spinlock_t *lock)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from markivx@codeaurora.org are
 
-idr-rename-max_level-to-max_idr_level-fix.patch
-idr-rename-max_level-to-max_idr_level-fix-fix-2.patch
-memory-hotplug-fix-a-double-register-section-info-bug-fix.patch
-linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-idr-rename-max_level-to-max_idr_level-fix-3.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-audith-replace-defines-with-c-stubs.patch
-slab-fix-debug==0-warning.patch
-mm.patch
-x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
-mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
-mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures-fix.patch
-mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch
-rbtree-performance-and-correctness-test-fix.patch
-mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix.patch
-mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock-fix.patch
-memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
-atomic-implement-generic-atomic_dec_if_positive-fix.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix-2.patch
-mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch
-sections-fix-section-conflicts-in-arch-h8300-checkpatch-fixes.patch
-sections-fix-section-conflicts-in-drivers-macintosh-checkpatch-fixes.patch
-sectons-fix-const-sections-for-crc32-table-checkpatch-fixes.patch
-backlight-add-backlight-driver-for-lm3630-chip-fix.patch
-backlight-add-new-lm3639-backlight-driver-fix.patch
-lib-parserc-avoid-overflow-in-match_number-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-rtc-add-dallas-ds2404-driver-fix.patch
-rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch
-fs-fat-fix-all-other-checkpatch-issues-in-dirc-fix.patch
-fat-simplify-writeback_inode-checkpatch-fixes.patch
-fat-simplify-writeback_inode-checkpatch-fixes-fix.patch
-coredump-make-core-dump-functionality-optional-fix-fix.patch
-coredump-use-suid_dumpable_enabled-rather-than-hardcoded-1-checkpatch-fixes.patch
-proc-use-kzalloc-instead-of-kmalloc-and-memset-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock.patch
+lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock-fix.patch
 
