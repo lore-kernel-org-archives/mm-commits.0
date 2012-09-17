@@ -1,68 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-scsi-iprc-missing-unlock-before-a-return.patch removed from -mm tree
-Date: Mon, 17 Sep 2012 11:37:09 -0700
-Message-ID: <20120917183710.CD5635C0060@hpza9.eem.corp.google.com>
+Subject: [merged] serial-imx-fix-imx-uart-macro-usage-to-reflect-correct.patch removed from -mm tree
+Date: Mon, 17 Sep 2012 11:37:18 -0700
+Message-ID: <20120917183718.B4ABC1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:59810 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757145Ab2IQShO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Sep 2012 14:37:14 -0400
-Received: by weyr1 with SMTP id r1so417473wey.1
-        for <mm-commits@vger.kernel.org>; Mon, 17 Sep 2012 11:37:12 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:59284 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757190Ab2IQShV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Sep 2012 14:37:21 -0400
+Received: by ghbz15 with SMTP id z15so536727ghb.1
+        for <mm-commits@vger.kernel.org>; Mon, 17 Sep 2012 11:37:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, James.Bottomley@HansenPartnership.com, brking@linux.vnet.ibm.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: oskar@scara.com, kernel@pengutronix.de, linux@arm.linux.org.uk, u.kleine-koenig@pengutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/scsi/ipr.c: missing unlock before a return
+     Subject: serial/imx: fix IMX UART macro usage to reflect correct
 has been removed from the -mm tree.  Its filename was
-     drivers-scsi-iprc-missing-unlock-before-a-return.patch
+     serial-imx-fix-imx-uart-macro-usage-to-reflect-correct.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: drivers/scsi/ipr.c: missing unlock before a return
+=46rom: "Oskar Schirmer" <oskar@scara.com>
+Subject: serial/imx: fix IMX UART macro usage to reflect correct
 
-We recently changed the locking in this function, but this return was
-missed.  It needs an unlock and the IRQs need to be restored.
+Platform dependant UART data refers to MX31 macro for MX35 machines.  F=
+or
+all other machines, macro usage matches machine type.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Acked-by: Brian King <brking@linux.vnet.ibm.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: <stable@vger.kernel.org>
+Though this compiles out to the same result, it looks much like a typo,=
+ so
+fix it to use the right macros instead.
+
+Signed-off-by: Oskar Schirmer <oskar@scara.com>
+Acked-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+Cc: Sascha Hauer <kernel@pengutronix.de>
+Cc: Russell King <linux@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ipr.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ arch/arm/plat-mxc/devices/platform-imx-uart.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/ipr.c~drivers-scsi-iprc-missing-unlock-before-a-return drivers/scsi/ipr.c
---- a/drivers/scsi/ipr.c~drivers-scsi-iprc-missing-unlock-before-a-return
-+++ a/drivers/scsi/ipr.c
-@@ -5874,8 +5874,11 @@ static int ipr_queuecommand(struct Scsi_
- 		goto err_nodev;
- 	}
- 
--	if (ipr_is_gata(res) && res->sata_port)
--		return ata_sas_queuecmd(scsi_cmd, res->sata_port->ap);
-+	if (ipr_is_gata(res) && res->sata_port) {
-+		rc = ata_sas_queuecmd(scsi_cmd, res->sata_port->ap);
-+		spin_unlock_irqrestore(shost->host_lock, lock_flags);
-+		return rc;
-+	}
- 
- 	ipr_cmd = __ipr_get_free_ipr_cmnd(ioa_cfg);
- 	spin_unlock_irqrestore(shost->host_lock, lock_flags);
+diff -puN arch/arm/plat-mxc/devices/platform-imx-uart.c~serial-imx-fix-=
+imx-uart-macro-usage-to-reflect-correct arch/arm/plat-mxc/devices/platf=
+orm-imx-uart.c
+--- a/arch/arm/plat-mxc/devices/platform-imx-uart.c~serial-imx-fix-imx-=
+uart-macro-usage-to-reflect-correct
++++ a/arch/arm/plat-mxc/devices/platform-imx-uart.c
+@@ -87,7 +87,7 @@ const struct imx_imx_uart_1irq_data imx3
+ #ifdef CONFIG_SOC_IMX35
+ const struct imx_imx_uart_1irq_data imx35_imx_uart_data[] __initconst =
+=3D {
+ #define imx35_imx_uart_data_entry(_id, _hwid)				\
+-	imx_imx_uart_1irq_data_entry(MX31, _id, _hwid, SZ_16K)
++	imx_imx_uart_1irq_data_entry(MX35, _id, _hwid, SZ_16K)
+ 	imx35_imx_uart_data_entry(0, 1),
+ 	imx35_imx_uart_data_entry(1, 2),
+ 	imx35_imx_uart_data_entry(2, 3),
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from oskar@scara.com are
 
-origin.patch
 linux-next.patch
-drivers-scsi-iprc-remove-an-unneeded-check.patch
-checkpatch-update-suggested-printk-conversions.patch
-aoe-kernel-thread-handles-i-o-completions-for-simple-locking-fix.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
