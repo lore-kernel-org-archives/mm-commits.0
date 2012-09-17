@@ -1,77 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] serial-imx-fix-imx-uart-macro-usage-to-reflect-correct.patch removed from -mm tree
-Date: Mon, 17 Sep 2012 11:37:18 -0700
-Message-ID: <20120917183718.B4ABC1E0043@wpzn4.hot.corp.google.com>
+Subject: [merged] drivers-scsi-iprc-remove-an-unneeded-check.patch removed from -mm tree
+Date: Mon, 17 Sep 2012 12:33:23 -0700
+Message-ID: <20120917193325.8D43420004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:59284 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757190Ab2IQShV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Sep 2012 14:37:21 -0400
-Received: by ghbz15 with SMTP id z15so536727ghb.1
-        for <mm-commits@vger.kernel.org>; Mon, 17 Sep 2012 11:37:19 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:34962 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932502Ab2IQTd3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Sep 2012 15:33:29 -0400
+Received: by eekd4 with SMTP id d4so418423eek.1
+        for <mm-commits@vger.kernel.org>; Mon, 17 Sep 2012 12:33:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oskar@scara.com, kernel@pengutronix.de, linux@arm.linux.org.uk, u.kleine-koenig@pengutronix.de, mm-commits@vger.kernel.org
+To: dan.carpenter@oracle.com, James.Bottomley@HansenPartnership.com, brking@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: serial/imx: fix IMX UART macro usage to reflect correct
+     Subject: drivers/scsi/ipr.c: remove an unneeded check
 has been removed from the -mm tree.  Its filename was
-     serial-imx-fix-imx-uart-macro-usage-to-reflect-correct.patch
+     drivers-scsi-iprc-remove-an-unneeded-check.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: "Oskar Schirmer" <oskar@scara.com>
-Subject: serial/imx: fix IMX UART macro usage to reflect correct
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: drivers/scsi/ipr.c: remove an unneeded check
 
-Platform dependant UART data refers to MX31 macro for MX35 machines.  F=
-or
-all other machines, macro usage matches machine type.
+"rc" is always zero here, so there is no need to check.
 
-Though this compiles out to the same result, it looks much like a typo,=
- so
-fix it to use the right macros instead.
-
-Signed-off-by: Oskar Schirmer <oskar@scara.com>
-Acked-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
-Cc: Sascha Hauer <kernel@pengutronix.de>
-Cc: Russell King <linux@arm.linux.org.uk>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Acked-by: Brian King <brking@linux.vnet.ibm.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/plat-mxc/devices/platform-imx-uart.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/ipr.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN arch/arm/plat-mxc/devices/platform-imx-uart.c~serial-imx-fix-=
-imx-uart-macro-usage-to-reflect-correct arch/arm/plat-mxc/devices/platf=
-orm-imx-uart.c
---- a/arch/arm/plat-mxc/devices/platform-imx-uart.c~serial-imx-fix-imx-=
-uart-macro-usage-to-reflect-correct
-+++ a/arch/arm/plat-mxc/devices/platform-imx-uart.c
-@@ -87,7 +87,7 @@ const struct imx_imx_uart_1irq_data imx3
- #ifdef CONFIG_SOC_IMX35
- const struct imx_imx_uart_1irq_data imx35_imx_uart_data[] __initconst =
-=3D {
- #define imx35_imx_uart_data_entry(_id, _hwid)				\
--	imx_imx_uart_1irq_data_entry(MX31, _id, _hwid, SZ_16K)
-+	imx_imx_uart_1irq_data_entry(MX35, _id, _hwid, SZ_16K)
- 	imx35_imx_uart_data_entry(0, 1),
- 	imx35_imx_uart_data_entry(1, 2),
- 	imx35_imx_uart_data_entry(2, 3),
+diff -puN drivers/scsi/ipr.c~drivers-scsi-iprc-remove-an-unneeded-check drivers/scsi/ipr.c
+--- a/drivers/scsi/ipr.c~drivers-scsi-iprc-remove-an-unneeded-check
++++ a/drivers/scsi/ipr.c
+@@ -5847,7 +5847,7 @@ static int ipr_queuecommand(struct Scsi_
+ 	struct ipr_ioarcb *ioarcb;
+ 	struct ipr_cmnd *ipr_cmd;
+ 	unsigned long lock_flags;
+-	int rc = 0;
++	int rc;
+ 
+ 	ioa_cfg = (struct ipr_ioa_cfg *)shost->hostdata;
+ 
+@@ -5905,12 +5905,10 @@ static int ipr_queuecommand(struct Scsi_
+ 	    (!ipr_is_gscsi(res) || scsi_cmd->cmnd[0] == IPR_QUERY_RSRC_STATE))
+ 		ioarcb->cmd_pkt.request_type = IPR_RQTYPE_IOACMD;
+ 
+-	if (likely(rc == 0)) {
+-		if (ioa_cfg->sis64)
+-			rc = ipr_build_ioadl64(ioa_cfg, ipr_cmd);
+-		else
+-			rc = ipr_build_ioadl(ioa_cfg, ipr_cmd);
+-	}
++	if (ioa_cfg->sis64)
++		rc = ipr_build_ioadl64(ioa_cfg, ipr_cmd);
++	else
++		rc = ipr_build_ioadl(ioa_cfg, ipr_cmd);
+ 
+ 	spin_lock_irqsave(shost->host_lock, lock_flags);
+ 	if (unlikely(rc || (!ioa_cfg->allow_cmds && !ioa_cfg->ioa_is_dead))) {
 _
 
-Patches currently in -mm which might be from oskar@scara.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
 linux-next.patch
+checkpatch-update-suggested-printk-conversions.patch
+aoe-kernel-thread-handles-i-o-completions-for-simple-locking-fix.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
