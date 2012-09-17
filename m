@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rapidio-devices-tsi721c-fix-error-return-code.patch added to -mm tree
-Date: Mon, 17 Sep 2012 15:29:21 -0700
-Message-ID: <20120917222922.103675C0050@hpza9.eem.corp.google.com>
+Subject: + drivers-misc-lis3lv02d-remove-lis3lv02d-driver-dt-init.patch added to -mm tree
+Date: Mon, 17 Sep 2012 15:36:18 -0700
+Message-ID: <20120917223619.226EC100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:63806 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757338Ab2IQW3Y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Sep 2012 18:29:24 -0400
-Received: by eekd4 with SMTP id d4so424141eek.1
-        for <mm-commits@vger.kernel.org>; Mon, 17 Sep 2012 15:29:23 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:37144 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756817Ab2IQWgU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Sep 2012 18:36:20 -0400
+Received: by ggnu1 with SMTP id u1so747246ggn.1
+        for <mm-commits@vger.kernel.org>; Mon, 17 Sep 2012 15:36:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: peter.senna@gmail.com, alexandre.bounine@idt.com
+Cc: anilkumar@ti.com, arnd@arndb.de, broonie@opensource.wolfsonmicro.com, eric.piel@tremplin-utc.net, tony@atomide.com
 
 
 The patch titled
-     Subject: drivers/rapidio/devices/tsi721.c: fix error return code
+     Subject: drivers/misc/lis3lv02d: remove lis3lv02d driver DT init
 has been added to the -mm tree.  Its filename is
-     drivers-rapidio-devices-tsi721c-fix-error-return-code.patch
+     drivers-misc-lis3lv02d-remove-lis3lv02d-driver-dt-init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,57 +33,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: drivers/rapidio/devices/tsi721.c: fix error return code
+From: AnilKumar Ch <anilkumar@ti.com>
+Subject: drivers/misc/lis3lv02d: remove lis3lv02d driver DT init
 
-Convert a nonnegative error return code to a negative one, as returned
-elsewhere in the function.
+Remove lis3lv02d driver device tree initialization from core driver and
+move it to individual drivers.  With the current implementation some pdata
+parameters are missing if we use lis3lv02d_init_device() in lis3lv02d_i2c
+driver.
 
-A simplified version of the semantic match that finds this problem is as
-follows: (http://coccinelle.lip6.fr/)
-
-// <smpl>
-(
-if@p1 (\(ret < 0\|ret != 0\))
- { ... return ret; }
-|
-ret@p1 = 0
-)
-... when != ret = e1
-    when != &ret
-*if(...)
-{
-  ... when != ret = e2
-      when forall
- return ret;
-}
-// </smpl>
-
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
-Cc: Alexandre Bounine <alexandre.bounine@idt.com>
+Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+Cc: Eric Piel <eric.piel@tremplin-utc.net>
+Reviewed-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/tsi721.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/misc/lis3lv02d/lis3lv02d.c |    8 ++------
+ drivers/misc/lis3lv02d/lis3lv02d.h |    1 +
+ 2 files changed, 3 insertions(+), 6 deletions(-)
 
-diff -puN drivers/rapidio/devices/tsi721.c~drivers-rapidio-devices-tsi721c-fix-error-return-code drivers/rapidio/devices/tsi721.c
---- a/drivers/rapidio/devices/tsi721.c~drivers-rapidio-devices-tsi721c-fix-error-return-code
-+++ a/drivers/rapidio/devices/tsi721.c
-@@ -2316,7 +2316,8 @@ static int __devinit tsi721_probe(struct
+diff -puN drivers/misc/lis3lv02d/lis3lv02d.c~drivers-misc-lis3lv02d-remove-lis3lv02d-driver-dt-init drivers/misc/lis3lv02d/lis3lv02d.c
+--- a/drivers/misc/lis3lv02d/lis3lv02d.c~drivers-misc-lis3lv02d-remove-lis3lv02d-driver-dt-init
++++ a/drivers/misc/lis3lv02d/lis3lv02d.c
+@@ -944,7 +944,7 @@ static void lis3lv02d_8b_configure(struc
+ }
  
- 	/* Configure DMA attributes. */
- 	if (pci_set_dma_mask(pdev, DMA_BIT_MASK(64))) {
--		if (pci_set_dma_mask(pdev, DMA_BIT_MASK(32))) {
-+		err = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
-+		if (err) {
- 			dev_info(&pdev->dev, "Unable to set DMA mask\n");
- 			goto err_unmap_bars;
- 		}
-_
-
-Patches currently in -mm which might be from peter.senna@gmail.com are
-
-linux-next.patch
-drivers-rapidio-devices-tsi721c-fix-error-return-code.patch
-
+ #ifdef CONFIG_OF
+-static int lis3lv02d_init_dt(struct lis3lv02d *lis3)
++int lis3lv02d_init_dt(struct lis3lv02d *lis3)
+ {
+ 	struct lis3lv02d_platform_data *pdata;
+ 	struct device_node *np = lis3->of_node;
+@@ -1084,7 +1084,7 @@ static int lis3lv02d_init_dt(struct lis3
+ }
+ 
+ #else
+-static int lis3lv02d_init_dt(struct lis3lv02d *lis3)
++int lis3lv02d_init_dt(struct lis3lv02d *lis3)
+ {
+ 	return 0;
+ }
+@@ -1100,10 +1100,6 @@ int lis3lv02d_init_device(struct lis3lv0
+ 	irq_handler_t thread_fn;
+ 	int irq_flags = 0;
+ 
+-	err = lis3lv02d_init_dt(lis3);
+-	if (err < 0)
+-		return err;
