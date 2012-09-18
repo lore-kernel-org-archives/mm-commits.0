@@ -1,65 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-fix-txt-maintainer-list-and-source-repo-path.patch removed from -mm tree
-Date: Tue, 18 Sep 2012 12:04:50 -0700
-Message-ID: <20120918190450.B72E41E0049@wpzn4.hot.corp.google.com>
+Subject: [merged] nbd-clear-waiting_queue-on-shutdown.patch removed from -mm tree
+Date: Tue, 18 Sep 2012 12:04:53 -0700
+Message-ID: <20120918190453.99998100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:33403 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754217Ab2IRTEv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Sep 2012 15:04:51 -0400
-Received: by ggnu1 with SMTP id u1so27199ggn.1
-        for <mm-commits@vger.kernel.org>; Tue, 18 Sep 2012 12:04:51 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:44109 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754217Ab2IRTEy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Sep 2012 15:04:54 -0400
+Received: by qcqs25 with SMTP id s25so27055qcq.1
+        for <mm-commits@vger.kernel.org>; Tue, 18 Sep 2012 12:04:54 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gang.wei@intel.com, hpa@zytor.com, mingo@elte.hu, richard.l.maliszewski@intel.com, shane.wang@intel.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: paul.clements@steeleye.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: fix TXT maintainer list and source repo path
+     Subject: nbd: clear waiting_queue on shutdown
 has been removed from the -mm tree.  Its filename was
-     maintainers-fix-txt-maintainer-list-and-source-repo-path.patch
+     nbd-clear-waiting_queue-on-shutdown.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Gang Wei <gang.wei@intel.com>
-Subject: MAINTAINERS: fix TXT maintainer list and source repo path
+From: Paul Clements <paul.clements@steeleye.com>
+Subject: nbd: clear waiting_queue on shutdown
 
-Signed-off-by: Gang Wei <gang.wei@intel.com>
-Cc: Richard L Maliszewski <richard.l.maliszewski@intel.com>
-Cc: Gang Wei <gang.wei@intel.com>
-Cc: Shane Wang <shane.wang@intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Fix a serious but uncommon bug in nbd which occurs when there is heavy I/O
+going to the nbd device while, at the same time, a failure (server,
+network) or manual disconnect of the nbd connection occurs.
+
+There is a small window between the time that the nbd_thread is stopped
+and the socket is shutdown where requests can continue to be queued to
+nbd's internal waiting_queue.  When this happens, those requests are never
+completed or freed.
+
+The fix is to clear the waiting_queue on shutdown of the nbd device, in
+the same way that the nbd request queue (queue_head) is already being cleared.
+
+Signed-off-by: Paul Clements <paul.clements@steeleye.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/block/nbd.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN MAINTAINERS~maintainers-fix-txt-maintainer-list-and-source-repo-path MAINTAINERS
---- a/MAINTAINERS~maintainers-fix-txt-maintainer-list-and-source-repo-path
-+++ a/MAINTAINERS
-@@ -3666,11 +3666,12 @@ F:	Documentation/networking/README.ipw22
- F:	drivers/net/wireless/ipw2x00/
+diff -puN drivers/block/nbd.c~nbd-clear-waiting_queue-on-shutdown drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbd-clear-waiting_queue-on-shutdown
++++ a/drivers/block/nbd.c
+@@ -449,6 +449,14 @@ static void nbd_clear_que(struct nbd_dev
+ 		req->errors++;
+ 		nbd_end_request(req);
+ 	}
++
++	while (!list_empty(&nbd->waiting_queue)) {
++		req = list_entry(nbd->waiting_queue.next, struct request,
++				 queuelist);
++		list_del_init(&req->queuelist);
++		req->errors++;
++		nbd_end_request(req);
++	}
+ }
  
- INTEL(R) TRUSTED EXECUTION TECHNOLOGY (TXT)
--M:	Joseph Cihula <joseph.cihula@intel.com>
-+M:	Richard L Maliszewski <richard.l.maliszewski@intel.com>
-+M:	Gang Wei <gang.wei@intel.com>
- M:	Shane Wang <shane.wang@intel.com>
- L:	tboot-devel@lists.sourceforge.net
- W:	http://tboot.sourceforge.net
--T:	Mercurial http://www.bughost.org/repos.hg/tboot.hg
-+T:	hg http://tboot.hg.sourceforge.net:8000/hgroot/tboot/tboot
- S:	Supported
- F:	Documentation/intel_txt.txt
- F:	include/linux/tboot.h
+ 
+@@ -598,6 +606,7 @@ static int __nbd_ioctl(struct block_devi
+ 		nbd->file = NULL;
+ 		nbd_clear_que(nbd);
+ 		BUG_ON(!list_empty(&nbd->queue_head));
++		BUG_ON(!list_empty(&nbd->waiting_queue));
+ 		if (file)
+ 			fput(file);
+ 		return 0;
 _
 
-Patches currently in -mm which might be from gang.wei@intel.com are
+Patches currently in -mm which might be from paul.clements@steeleye.com are
 
 origin.patch
+nbd-add-set-flags-ioctl.patch
+nbd-handle-discard-requests.patch
 
