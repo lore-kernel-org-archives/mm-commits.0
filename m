@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-move-mem_cgroup_is_root-upwards.patch added to -mm tree
-Date: Tue, 18 Sep 2012 14:04:39 -0700
-Message-ID: <20120918210439.A2D59100047@wpzn3.hot.corp.google.com>
+Subject: + lib-vsprintfc-improve-standard-conformance-of-sscanf.patch added to -mm tree
+Date: Tue, 18 Sep 2012 14:37:04 -0700
+Message-ID: <20120918213704.BD7D41E0048@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:43532 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755315Ab2IRVEl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Sep 2012 17:04:41 -0400
-Received: by vbis24 with SMTP id s24so44766vbi.1
-        for <mm-commits@vger.kernel.org>; Tue, 18 Sep 2012 14:04:40 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:63266 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755481Ab2IRVhG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Sep 2012 17:37:06 -0400
+Received: by yhl10 with SMTP id 10so48518yhl.1
+        for <mm-commits@vger.kernel.org>; Tue, 18 Sep 2012 14:37:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhocko@suse.cz, glommer@parallels.com, sachin.kamat@linaro.org
+Cc: JBeulich@suse.com, jbeulich@suse.com, konrad.wilk@oracle.com
 
 
 The patch titled
-     Subject: memcg: move mem_cgroup_is_root upwards
+     Subject: lib/vsprintf.c: improve standard conformance of sscanf()
 has been added to the -mm tree.  Its filename is
-     memcg-move-mem_cgroup_is_root-upwards.patch
+     lib-vsprintfc-improve-standard-conformance-of-sscanf.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,51 +33,105 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg: move mem_cgroup_is_root upwards
+From: "Jan Beulich" <JBeulich@suse.com>
+Subject: lib/vsprintf.c: improve standard conformance of sscanf()
 
-kmem code uses this function and it is better to not use forward
-declarations for static inline functions as some (older) compilers don't
-like it:
+Xen's pciback points out a couple of deficiencies with vsscanf()'s
+standard conformance:
 
-gcc version 4.3.4 [gcc-4_3-branch revision 152973] (SUSE Linux)
+- Trailing character matching cannot be checked by the caller: With a
+  format string of "(%x:%x.%x) %n" absence of the closing parenthesis
+  cannot be checked, as input of "(00:00.0)" doesn't cause the %n to be
+  evaluated (because of the code not skipping white space before the
+  trailing %n).
 
-mm/memcontrol.c:421: warning: `mem_cgroup_is_root' declared inline after being called
-mm/memcontrol.c:421: warning: previous declaration of `mem_cgroup_is_root' was here
+- The parameter corresponding to a trailing %n could get filled even if
+  there was a matching error: With a format string of "(%x:%x.%x)%n",
+  input of "(00:00.0]" would still fill the respective variable pointed to
+  (and hence again make the mismatch non-detectable by the caller).
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Cc: Glauber Costa <glommer@parallels.com>
-Cc: Sachin Kamat <sachin.kamat@linaro.org>
+This patch aims at fixing those, but leaves other non-conforming aspects
+of it untouched, among them these possibly relevant ones:
+
+- improper handling of the assignment suppression character '*' (blindly
+  discarding all succeeding non-white space from the format and input
+  strings),
+
+- not honoring conversion specifiers for %n, - not recognizing the C99
+  conversion specifier 't' (recognized by vsprintf()).
+
+Signed-off-by: Jan Beulich <jbeulich@suse.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ lib/vsprintf.c |   33 ++++++++++++++-------------------
+ 1 file changed, 14 insertions(+), 19 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-move-mem_cgroup_is_root-upwards mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-move-mem_cgroup_is_root-upwards
-+++ a/mm/memcontrol.c
-@@ -412,10 +412,14 @@ struct mem_cgroup *mem_cgroup_from_css(s
- 	return container_of(s, struct mem_cgroup, css);
- }
+diff -puN lib/vsprintf.c~lib-vsprintfc-improve-standard-conformance-of-sscanf lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-vsprintfc-improve-standard-conformance-of-sscanf
++++ a/lib/vsprintf.c
+@@ -2019,7 +2019,7 @@ int vsscanf(const char *buf, const char 
+ 	s16 field_width;
+ 	bool is_sign;
  
-+static inline bool mem_cgroup_is_root(struct mem_cgroup *memcg)
-+{
-+	return (memcg == root_mem_cgroup);
-+}
+-	while (*fmt && *str) {
++	while (*fmt) {
+ 		/* skip any white space in format */
+ 		/* white space in format matchs any amount of
+ 		 * white space, including none, in the input.
+@@ -2044,6 +2044,8 @@ int vsscanf(const char *buf, const char 
+ 		 * advance both strings to next white space
+ 		 */
+ 		if (*fmt == '*') {
++			if (!*str)
++				break;
+ 			while (!isspace(*fmt) && *fmt != '%' && *fmt)
+ 				fmt++;
+ 			while (!isspace(*str) && *str)
+@@ -2072,7 +2074,17 @@ int vsscanf(const char *buf, const char 
+ 			}
+ 		}
+ 
+-		if (!*fmt || !*str)
++		if (!*fmt)
++			break;
 +
- /* Writing them here to avoid exposing memcg's inner layout */
- #if defined(CONFIG_INET) && defined(CONFIG_MEMCG_KMEM)
++		if (*fmt == 'n') {
++			/* return number of characters read so far */
++			*va_arg(args, int *) = str - buf;
++			++fmt;
++			continue;
++		}
++
++		if (!*str)
+ 			break;
  
--static bool mem_cgroup_is_root(struct mem_cgroup *memcg);
- void sock_update_memcg(struct sock *sk)
- {
- 	if (mem_cgroup_sockets_enabled) {
-@@ -1011,11 +1015,6 @@ void mem_cgroup_iter_break(struct mem_cg
- 	     iter != NULL;				\
- 	     iter = mem_cgroup_iter(NULL, iter, NULL))
+ 		base = 10;
+@@ -2105,13 +2117,6 @@ int vsscanf(const char *buf, const char 
+ 			num++;
+ 		}
+ 		continue;
+-		case 'n':
+-			/* return number of characters read so far */
+-		{
+-			int *i = (int *)va_arg(args, int*);
+-			*i = str - buf;
+-		}
+-		continue;
+ 		case 'o':
+ 			base = 8;
+ 			break;
+@@ -2212,16 +2217,6 @@ int vsscanf(const char *buf, const char 
+ 		str = next;
+ 	}
  
--static inline bool mem_cgroup_is_root(struct mem_cgroup *memcg)
--{
--	return (memcg == root_mem_cgroup);
--}
+-	/*
+-	 * Now we've come all the way through so either the input string or the
+-	 * format ended. In the former case, there can be a %n at the current
+-	 * position in the format that needs to be filled.
+-	 */
+-	if (*fmt == '%' && *(fmt + 1) == 'n') {
+-		int *p = (int *)va_arg(args, int *);
+-		*p = str - buf;
+-	}
