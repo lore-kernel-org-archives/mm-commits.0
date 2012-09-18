@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-do-not-use-vma_hugecache_offset-for-vma_prio_tree_foreach.patch added to -mm tree
-Date: Tue, 18 Sep 2012 16:15:04 -0700
-Message-ID: <20120918231504.B68481E0043@wpzn4.hot.corp.google.com>
+Subject: + drivers-net-ethernet-dec-tulip-use-standard-__set_bit_le-function.patch added to -mm tree
+Date: Tue, 18 Sep 2012 16:21:43 -0700
+Message-ID: <20120918232144.13E801E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:37430 "EHLO
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:46494 "EHLO
 	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752115Ab2IRXPG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Sep 2012 19:15:06 -0400
-Received: by yhl10 with SMTP id 10so61606yhl.1
-        for <mm-commits@vger.kernel.org>; Tue, 18 Sep 2012 16:15:05 -0700 (PDT)
+	with ESMTP id S1751666Ab2IRXVp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Sep 2012 19:21:45 -0400
+Received: by yhl10 with SMTP id 10so62366yhl.1
+        for <mm-commits@vger.kernel.org>; Tue, 18 Sep 2012 16:21:44 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhocko@suse.cz, aarcange@redhat.com, dhillf@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, rientjes@google.com
+Cc: yoshikawa.takuya@oss.ntt.co.jp, davem@davemloft.net, grundler@parisc-linux.org
 
 
 The patch titled
-     Subject: hugetlb: do not use vma_hugecache_offset() for vma_prio_tree_foreach
+     Subject: drivers/net/ethernet/dec/tulip: Use standard __set_bit_le() function
 has been added to the -mm tree.  Its filename is
-     hugetlb-do-not-use-vma_hugecache_offset-for-vma_prio_tree_foreach.patch
+     drivers-net-ethernet-dec-tulip-use-standard-__set_bit_le-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,58 +33,86 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: hugetlb: do not use vma_hugecache_offset() for vma_prio_tree_foreach
+From: Takuya Yoshikawa <yoshikawa.takuya@oss.ntt.co.jp>
+Subject: drivers/net/ethernet/dec/tulip: Use standard __set_bit_le() function
 
-0c176d5 ("mm: hugetlb: fix pgoff computation when unmapping page from
-vma") fixed pgoff calculation but it has replaced it by
-vma_hugecache_offset() which is not approapriate for offsets used for
-vma_prio_tree_foreach() because that one expects index in page units
-rather than in huge_page_shift.
+To introduce generic set_bit_le() later, we remove our own definition
+and use a proper non-atomic bitops function: __set_bit_le().
 
-Using vma_hugecache_offset() is not incorrect because the pgoff will fit
-into the same vmas but it is confusing so the standard PAGE_SHIFT based
-index calculation is used instead.
-
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: Hillf Danton <dhillf@gmail.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Takuya Yoshikawa <yoshikawa.takuya@oss.ntt.co.jp>
+Acked-by: Grant Grundler <grundler@parisc-linux.org>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/net/ethernet/dec/tulip/de2104x.c    |    7 ++-----
+ drivers/net/ethernet/dec/tulip/tulip_core.c |    7 ++-----
+ 2 files changed, 4 insertions(+), 10 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-do-not-use-vma_hugecache_offset-for-vma_prio_tree_foreach mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-do-not-use-vma_hugecache_offset-for-vma_prio_tree_foreach
-+++ a/mm/hugetlb.c
-@@ -2480,7 +2480,8 @@ static int unmap_ref_private(struct mm_s
- 	 * from page cache lookup which is in HPAGE_SIZE units.
- 	 */
- 	address = address & huge_page_mask(h);
--	pgoff = vma_hugecache_offset(h, vma, address);
-+	pgoff = ((address - vma->vm_start) >> PAGE_SHIFT) +
-+			vma->vm_pgoff;
- 	mapping = vma->vm_file->f_dentry->d_inode->i_mapping;
+diff -puN drivers/net/ethernet/dec/tulip/de2104x.c~drivers-net-ethernet-dec-tulip-use-standard-__set_bit_le-function drivers/net/ethernet/dec/tulip/de2104x.c
+--- a/drivers/net/ethernet/dec/tulip/de2104x.c~drivers-net-ethernet-dec-tulip-use-standard-__set_bit_le-function
++++ a/drivers/net/ethernet/dec/tulip/de2104x.c
+@@ -661,9 +661,6 @@ static netdev_tx_t de_start_xmit (struct
+    new frame, not around filling de->setup_frame.  This is non-deterministic
+    when re-entered but still correct. */
  
- 	/*
+-#undef set_bit_le
+-#define set_bit_le(i,p) do { ((char *)(p))[(i)/8] |= (1<<((i)%8)); } while(0)
+-
+ static void build_setup_frame_hash(u16 *setup_frm, struct net_device *dev)
+ {
+ 	struct de_private *de = netdev_priv(dev);
+@@ -673,12 +670,12 @@ static void build_setup_frame_hash(u16 *
+ 	u16 *eaddrs;
+ 
+ 	memset(hash_table, 0, sizeof(hash_table));
+-	set_bit_le(255, hash_table); 			/* Broadcast entry */
++	__set_bit_le(255, hash_table);			/* Broadcast entry */
+ 	/* This should work on big-endian machines as well. */
+ 	netdev_for_each_mc_addr(ha, dev) {
+ 		int index = ether_crc_le(ETH_ALEN, ha->addr) & 0x1ff;
+ 
+-		set_bit_le(index, hash_table);
++		__set_bit_le(index, hash_table);
+ 	}
+ 
+ 	for (i = 0; i < 32; i++) {
+diff -puN drivers/net/ethernet/dec/tulip/tulip_core.c~drivers-net-ethernet-dec-tulip-use-standard-__set_bit_le-function drivers/net/ethernet/dec/tulip/tulip_core.c
+--- a/drivers/net/ethernet/dec/tulip/tulip_core.c~drivers-net-ethernet-dec-tulip-use-standard-__set_bit_le-function
++++ a/drivers/net/ethernet/dec/tulip/tulip_core.c
+@@ -1010,9 +1010,6 @@ static int private_ioctl (struct net_dev
+    new frame, not around filling tp->setup_frame.  This is non-deterministic
+    when re-entered but still correct. */
+ 
+-#undef set_bit_le
+-#define set_bit_le(i,p) do { ((char *)(p))[(i)/8] |= (1<<((i)%8)); } while(0)
+-
+ static void build_setup_frame_hash(u16 *setup_frm, struct net_device *dev)
+ {
+ 	struct tulip_private *tp = netdev_priv(dev);
+@@ -1022,12 +1019,12 @@ static void build_setup_frame_hash(u16 *
+ 	u16 *eaddrs;
+ 
+ 	memset(hash_table, 0, sizeof(hash_table));
+-	set_bit_le(255, hash_table); 			/* Broadcast entry */
++	__set_bit_le(255, hash_table);			/* Broadcast entry */
+ 	/* This should work on big-endian machines as well. */
+ 	netdev_for_each_mc_addr(ha, dev) {
+ 		int index = ether_crc_le(ETH_ALEN, ha->addr) & 0x1ff;
+ 
+-		set_bit_le(index, hash_table);
++		__set_bit_le(index, hash_table);
+ 	}
+ 	for (i = 0; i < 32; i++) {
+ 		*setup_frm++ = hash_table[i];
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from yoshikawa.takuya@oss.ntt.co.jp are
 
-origin.patch
 linux-next.patch
-mm-hugetlb-add-arch-hook-for-clearing-page-flags-before-entering-pool.patch
-mm-memblock-reduce-overhead-in-binary-search.patch
-mm-memblock-use-existing-interface-to-set-nid.patch
-mm-memblock-cleanup-early_node_map-related-comments.patch
-mm-thp-fix-the-pmd_clear-arguments-in-pmdp_get_and_clear.patch
-mm-thp-fix-the-update_mmu_cache-last-argument-passing-in-mm-huge_memoryc.patch
-memcg-trivial-fixes-for-documentation-cgroups-memorytxt.patch
-memcg-cleanup-kmem-tcp-ifdefs.patch
-memcg-move-mem_cgroup_is_root-upwards.patch
-hugetlb-do-not-use-vma_hugecache_offset-for-vma_prio_tree_foreach.patch
+sfc-use-standard-__clearset_bit_le-functions.patch
+drivers-net-ethernet-dec-tulip-use-standard-__set_bit_le-function.patch
+bitops-introduce-generic-clearset_bit_le.patch
+powerpc-bitops-introduce-clearset_bit_le.patch
+kvm-replace-test_and_set_bit_le-in-mark_page_dirty_in_slot-with-set_bit_le.patch
 
