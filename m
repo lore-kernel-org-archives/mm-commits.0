@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memorytxt-remove-stray-information.patch added to -mm tree
-Date: Tue, 18 Sep 2012 14:50:58 -0700
-Message-ID: <20120918215059.008625C0050@hpza9.eem.corp.google.com>
+Subject: + mm-thp-fix-pmd_present-for-split_huge_page-and-prot_none-with-thp.patch added to -mm tree
+Date: Tue, 18 Sep 2012 15:12:34 -0700
+Message-ID: <20120918221234.C894A100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:47461 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755595Ab2IRVvA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Sep 2012 17:51:00 -0400
-Received: by wibhr14 with SMTP id hr14so14132wib.1
-        for <mm-commits@vger.kernel.org>; Tue, 18 Sep 2012 14:50:59 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:36500 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754502Ab2IRWMg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Sep 2012 18:12:36 -0400
+Received: by ggnu1 with SMTP id u1so53051ggn.1
+        for <mm-commits@vger.kernel.org>; Tue, 18 Sep 2012 15:12:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jkosina@suse.cz
+Cc: aarcange@redhat.com, hughd@google.com, jweiner@redhat.com, mgorman@suse.de, riel@redhat.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: memory.txt: remove stray information
+     Subject: mm: thp: fix pmd_present for split_huge_page and PROT_NONE with THP
 has been added to the -mm tree.  Its filename is
-     memorytxt-remove-stray-information.patch
+     mm-thp-fix-pmd_present-for-split_huge_page-and-prot_none-with-thp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,53 +33,142 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: memory.txt: remove stray information
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: mm: thp: fix pmd_present for split_huge_page and PROT_NONE with THP
 
-Andi removed some outedated documentation from Documentation/memory.txt
-back in 2009 by 3b2b9a875dd ("Documentation/memory.txt: remove some very
-outdated recommendations"), but the resulting document is not in a nice
-shape either.
+In many places !pmd_present has been converted to pmd_none.  For pmds
+that's equivalent and pmd_none is quicker so using pmd_none is better.
 
-It seems to me like we are not losing anything by completely removing the
-file now.
+However (unless we delete pmd_present) we should provide an accurate
+pmd_present too.  This will avoid the risk of code thinking the pmd is non
+present because it's under __split_huge_page_map, see the pmd_mknotpresent
+there and the comment above it.
 
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+If the page has been mprotected as PROT_NONE, it would also lead to a
+pmd_present false negative in the same way as the race with
+split_huge_page.
+
+Because the PSE bit stays on at all times (both during split_huge_page and
+when the _PAGE_PROTNONE bit get set), we could only check for the PSE bit,
+but checking the PROTNONE bit too is still good to remember pmd_present
+must always keep PROT_NONE into account.
+
+This explains a not reproducible BUG_ON that was seldom reported on the
+lists.
+
+The same issue is in pmd_large, it would go wrong with both PROT_NONE and
+if it races with split_huge_page.
+
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/memory.txt |   33 ---------------------------------
- 1 file changed, 33 deletions(-)
+ arch/x86/include/asm/pgtable.h |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/memory.txt~memorytxt-remove-stray-information /dev/null
---- a/Documentation/memory.txt
-+++ /dev/null
-@@ -1,33 +0,0 @@
--There are several classic problems related to memory on Linux
--systems.
--
--	1) There are some motherboards that will not cache above
--	   a certain quantity of memory.  If you have one of these
--	   motherboards, your system will be SLOWER, not faster
--	   as you add more memory.  Consider exchanging your 
--           motherboard.
--
--All of these problems can be addressed with the "mem=XXXM" boot option
--(where XXX is the size of RAM to use in megabytes).  
--It can also tell Linux to use less memory than is actually installed.
--If you use "mem=" on a machine with PCI, consider using "memmap=" to avoid
--physical address space collisions.
--
--See the documentation of your boot loader (LILO, grub, loadlin, etc.) about
--how to pass options to the kernel.
--
--There are other memory problems which Linux cannot deal with.  Random
--corruption of memory is usually a sign of serious hardware trouble.
--Try:
--
--	* Reducing memory settings in the BIOS to the most conservative 
--          timings.
--
--	* Adding a cooling fan.
--
--	* Not overclocking your CPU.
+diff -puN arch/x86/include/asm/pgtable.h~mm-thp-fix-pmd_present-for-split_huge_page-and-prot_none-with-thp arch/x86/include/asm/pgtable.h
+--- a/arch/x86/include/asm/pgtable.h~mm-thp-fix-pmd_present-for-split_huge_page-and-prot_none-with-thp
++++ a/arch/x86/include/asm/pgtable.h
+@@ -146,8 +146,7 @@ static inline unsigned long pmd_pfn(pmd_
+ 
+ static inline int pmd_large(pmd_t pte)
+ {
+-	return (pmd_flags(pte) & (_PAGE_PSE | _PAGE_PRESENT)) ==
+-		(_PAGE_PSE | _PAGE_PRESENT);
++	return pmd_flags(pte) & _PAGE_PSE;
+ }
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+@@ -415,7 +414,13 @@ static inline int pte_hidden(pte_t pte)
+ 
+ static inline int pmd_present(pmd_t pmd)
+ {
+-	return pmd_flags(pmd) & _PAGE_PRESENT;
++	/*
++	 * Checking for _PAGE_PSE is needed too because
++	 * split_huge_page will temporarily clear the present bit (but
++	 * the _PAGE_PSE flag will remain set at all times while the
++	 * _PAGE_PRESENT bit is clear).
++	 */
++	return pmd_flags(pmd) & (_PAGE_PRESENT | _PAGE_PROTNONE | _PAGE_PSE);
+ }
+ 
+ static inline int pmd_none(pmd_t pmd)
+_
+
+Patches currently in -mm which might be from aarcange@redhat.com are
+
+mm-thp-fix-pmd_present-for-split_huge_page-and-prot_none-with-thp.patch
+mm-remove-__gfp_no_kswapd.patch
+mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host.patch
+mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch
+mm-mmu_notifier-have-mmu_notifiers-use-a-global-srcu-so-they-may-safely-schedule.patch
+mm-mmu_notifier-init-notifier-if-necessary.patch
+thp-fix-the-count-of-thp_collapse_alloc.patch
+thp-remove-unnecessary-check-in-start_khugepaged.patch
+thp-move-khugepaged_mutex-out-of-khugepaged.patch
+thp-remove-unnecessary-khugepaged_thread-check.patch
+thp-remove-wake_up_interruptible-in-the-exit-path.patch
+thp-remove-some-code-depend-on-config_numa.patch
+thp-merge-page-pre-alloc-in-khugepaged_loop-into-khugepaged_do_scan.patch
+thp-release-page-in-page-pre-alloc-path.patch
+thp-introduce-khugepaged_prealloc_page-and-khugepaged_alloc_page.patch
+thp-remove-khugepaged_loop.patch
+thp-use-khugepaged_enabled-to-remove-duplicate-code.patch
+thp-remove-unnecessary-set_recommended_min_free_kbytes.patch
+mm-fix-potential-anon_vma-locking-issue-in-mprotect.patch
+thp-x86-introduce-have_arch_transparent_hugepage.patch
+thp-remove-assumptions-on-pgtable_t-type.patch
+thp-introduce-pmdp_invalidate.patch
+thp-make-madv_hugepage-check-for-mm-def_flags.patch
+thp-s390-thp-splitting-backend-for-s390.patch
+thp-s390-thp-pagetable-pre-allocation-for-s390.patch
+thp-s390-disable-thp-for-kvm-host-on-s390.patch
+thp-s390-architecture-backend-for-thp-on-s390.patch
+rbtree-reference-documentation-rbtreetxt-for-usage-instructions.patch
+rbtree-empty-nodes-have-no-color.patch
+rbtree-fix-incorrect-rbtree-node-insertion-in-fs-proc-proc_sysctlc.patch
+rbtree-move-some-implementation-details-from-rbtreeh-to-rbtreec.patch
+rbtree-performance-and-correctness-test.patch
+rbtree-break-out-of-rb_insert_color-loop-after-tree-rotation.patch
+rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary.patch
+rbtree-low-level-optimizations-in-rb_insert_color.patch
+rbtree-adjust-node-color-in-__rb_erase_color-only-when-necessary.patch
+rbtree-optimize-case-selection-logic-in-__rb_erase_color.patch
+rbtree-low-level-optimizations-in-__rb_erase_color.patch
+rbtree-coding-style-adjustments.patch
+rbtree-optimize-fetching-of-sibling-node.patch
+rbtree-test-fix-sparse-warning-about-64-bit-constant.patch
+rbtree-add-__rb_change_child-helper-function.patch
+rbtree-place-easiest-case-first-in-rb_erase.patch
+rbtree-handle-1-child-recoloring-in-rb_erase-instead-of-rb_erase_color.patch
+rbtree-low-level-optimizations-in-rb_erase.patch
+rbtree-augmented-rbtree-test.patch
+rbtree-faster-augmented-rbtree-manipulation.patch
+rbtree-remove-prior-augmented-rbtree-implementation.patch
+rbtree-add-rb_declare_callbacks-macro.patch
+rbtree-add-prio-tree-and-interval-tree-tests.patch
+mm-replace-vma-prio_tree-with-an-interval-tree.patch
+kmemleak-use-rbtree-instead-of-prio-tree.patch
+prio_tree-remove.patch
+rbtree-move-augmented-rbtree-functionality-to-rbtree_augmentedh.patch
+mm-interval-tree-updates.patch
+mm-anon-rmap-remove-anon_vma_moveto_tail.patch
+mm-anon-rmap-replace-same_anon_vma-linked-list-with-an-interval-tree.patch
+mm-rmap-remove-vma_address-check-for-address-inside-vma.patch
+mm-add-config_debug_vm_rb-build-option.patch
+mm-avoid-taking-rmap-locks-in-move_ptes.patch
+mm-mmu_notifier-make-the-mmu_notifier-srcu-static.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix-2.patch
+thp-khugepaged_prealloc_page-forgot-to-reset-the-page-alloc-indicator.patch
+mm-compaction-move-fatal-signal-check-out-of-compact_checklock_irqsave.patch
+mm-thp-fix-the-pmd_clear-arguments-in-pmdp_get_and_clear.patch
+mm-thp-fix-the-update_mmu_cache-last-argument-passing-in-mm-huge_memoryc.patch
+
