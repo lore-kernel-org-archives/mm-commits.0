@@ -1,82 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memory-hotplug-fix-a-double-register-section-info-bug.patch removed from -mm tree
-Date: Tue, 18 Sep 2012 12:05:26 -0700
-Message-ID: <20120918190526.C620F1E0043@wpzn4.hot.corp.google.com>
+Subject: [folded-dropped] mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock-fix.patch removed from -mm tree
+Date: Tue, 18 Sep 2012 12:47:26 -0700
+Message-ID: <20120918194726.E2455100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:36077 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752240Ab2IRTF1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Sep 2012 15:05:27 -0400
-Received: by mail-yw0-f74.google.com with SMTP id 10so27406yhl.1
-        for <mm-commits@vger.kernel.org>; Tue, 18 Sep 2012 12:05:27 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:58227 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754551Ab2IRTr3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Sep 2012 15:47:29 -0400
+Received: by vcbfy27 with SMTP id fy27so32327vcb.1
+        for <mm-commits@vger.kernel.org>; Tue, 18 Sep 2012 12:47:28 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: qiuxishi@gmail.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, mgorman@suse.de, qiuxishi@huawei.com, stable@vger.kernel.org, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, andrea@qumranet.com, avi@redhat.com, cl@linux-foundation.org, haggaie@mellanox.com, hughd@google.com, liranl@mellanox.com, ogerlitz@mellanox.com, raindel@mellanox.com, sagig@mellanox.com, xiaoguangrong@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory hotplug: fix section info double registration bug
+     Subject: mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock-fix
 has been removed from the -mm tree.  Its filename was
-     memory-hotplug-fix-a-double-register-section-info-bug.patch
+     mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock.patch
 
 ------------------------------------------------------
-From: qiuxishi <qiuxishi@gmail.com>
-Subject: memory hotplug: fix section info double registration bug
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock-fix
 
-There may be a bug when registering section info.  For example, on my
-Itanium platform, the pfn range of node0 includes the other nodes, so
-other nodes' section info will be double registered, and memmap's page
-count will equal to 3.
+possible speed tweak in hugetlb_cow(), cleanups
 
-node0: start_pfn=0x100,    spanned_pfn=0x20fb00, present_pfn=0x7f8a3, => 0x000100-0x20fc00
-node1: start_pfn=0x80000,  spanned_pfn=0x80000,  present_pfn=0x80000, => 0x080000-0x100000
-node2: start_pfn=0x100000, spanned_pfn=0x80000,  present_pfn=0x80000, => 0x100000-0x180000
-node3: start_pfn=0x180000, spanned_pfn=0x80000,  present_pfn=0x80000, => 0x180000-0x200000
-
-free_all_bootmem_node()
-	register_page_bootmem_info_node()
-		register_page_bootmem_info_section()
-
-When hot remove memory, we can't free the memmap's page because
-page_count() is 2 after put_page_bootmem().
-
-sparse_remove_one_section()
-	free_section_usemap()
-		free_map_bootmem()
-			put_page_bootmem()
-
-[akpm@linux-foundation.org: add code comment]
-Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
-Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: <stable@vger.kernel.org>
+Cc: Andrea Arcangeli <andrea@qumranet.com>
+Cc: Avi Kivity <avi@redhat.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Haggai Eran <haggaie@mellanox.com>
+Cc: Liran Liss <liranl@mellanox.com>
+Cc: Or Gerlitz <ogerlitz@mellanox.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Sagi Grimberg <sagig@mellanox.com>
+Cc: Shachar Raindel <raindel@mellanox.com>
+Cc: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ mm/hugetlb.c |    2 +-
+ mm/memory.c  |    3 +--
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN mm/memory_hotplug.c~memory-hotplug-fix-a-double-register-section-info-bug mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory-hotplug-fix-a-double-register-section-info-bug
-+++ a/mm/memory_hotplug.c
-@@ -126,9 +126,6 @@ static void register_page_bootmem_info_s
- 	struct mem_section *ms;
- 	struct page *page, *memmap;
+diff -puN mm/hugetlb.c~mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock-fix
++++ a/mm/hugetlb.c
+@@ -2616,7 +2616,7 @@ retry_avoidcopy:
+ 	__SetPageUptodate(new_page);
  
--	if (!pfn_valid(start_pfn))
--		return;
--
- 	section_nr = pfn_to_section_nr(start_pfn);
- 	ms = __nr_to_section(section_nr);
+ 	mmun_start = address & huge_page_mask(h);
+-	mmun_end   = (address & huge_page_mask(h)) + huge_page_size(h);
++	mmun_end = mmun_start + huge_page_size(h);
+ 	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
+ 	/*
+ 	 * Retake the page_table_lock to check for racing updates
+diff -puN mm/memory.c~mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock-fix mm/memory.c
+--- a/mm/memory.c~mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock-fix
++++ a/mm/memory.c
+@@ -1096,8 +1096,7 @@ int copy_page_range(struct mm_struct *ds
+ 	} while (dst_pgd++, src_pgd++, addr = next, addr != end);
  
-@@ -187,9 +184,16 @@ void register_page_bootmem_info_node(str
- 	end_pfn = pfn + pgdat->node_spanned_pages;
+ 	if (is_cow_mapping(vma->vm_flags))
+-		mmu_notifier_invalidate_range_end(src_mm, mmun_start,
+-						  mmun_end);
++		mmu_notifier_invalidate_range_end(src_mm, mmun_start, mmun_end);
+ 	return ret;
+ }
  
- 	/* register_section info */
--	for (; pfn < end_pfn; pfn += PAGES_PER_SECTION)
--		register_page_bootmem_info_section(pfn);
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+idr-rename-max_level-to-max_idr_level-fix-3.patch
+cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+audith-replace-defines-with-c-stubs.patch
+slab-fix-debug==0-warning.patch
+mm.patch
+x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
+mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
+mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures-fix.patch
+mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch
+rbtree-performance-and-correctness-test-fix.patch
+mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix.patch
+mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock.patch
+memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
+atomic-implement-generic-atomic_dec_if_positive-fix.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix-2.patch
+mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch
+mm-isolate_lru_page-dont-enable-local-interrupts.patch
+sections-fix-section-conflicts-in-arch-h8300-checkpatch-fixes.patch
+sections-fix-section-conflicts-in-drivers-macintosh-checkpatch-fixes.patch
+sectons-fix-const-sections-for-crc32-table-checkpatch-fixes.patch
+backlight-add-backlight-driver-for-lm3630-chip-fix.patch
+backlight-add-new-lm3639-backlight-driver-fix.patch
+idr-rename-max_level-to-max_idr_level-fix.patch
+idr-rename-max_level-to-max_idr_level-fix-fix-2.patch
+lib-parserc-avoid-overflow-in-match_number-fix.patch
+lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+rtc-add-dallas-ds2404-driver-fix.patch
+rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch
+fs-fat-fix-all-other-checkpatch-issues-in-dirc-fix.patch
+fat-simplify-writeback_inode-checkpatch-fixes.patch
+fat-simplify-writeback_inode-checkpatch-fixes-fix.patch
+coredump-make-core-dump-functionality-optional-fix-fix.patch
+coredump-use-suid_dumpable_enabled-rather-than-hardcoded-1-checkpatch-fixes.patch
+proc-use-kzalloc-instead-of-kmalloc-and-memset-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+
