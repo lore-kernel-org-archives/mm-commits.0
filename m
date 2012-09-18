@@ -1,135 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: + mm-isolate_lru_page-dont-enable-local-interrupts.patch added to -mm tree
-Date: Mon, 17 Sep 2012 16:23:03 -0700
-Message-ID: <20120917232304.102ED200057@hpza10.eem.corp.google.com>
+Subject: [merged] mm-ia64-fix-a-memory-block-size-bug.patch removed from -mm tree
+Date: Tue, 18 Sep 2012 12:04:45 -0700
+Message-ID: <20120918190446.6E8AC20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:48836 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754975Ab2IQXXG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Sep 2012 19:23:06 -0400
-Received: by wibhr14 with SMTP id hr14so154699wib.1
-        for <mm-commits@vger.kernel.org>; Mon, 17 Sep 2012 16:23:05 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:57839 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754116Ab2IRTEt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Sep 2012 15:04:49 -0400
+Received: by eekd4 with SMTP id d4so8526eek.1
+        for <mm-commits@vger.kernel.org>; Tue, 18 Sep 2012 12:04:48 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, levinsasha928@gmail.com, mel@csn.ul.ie
+To: wujianguo@huawei.com, jiang.liu@huawei.com, mhocko@suse.cz, stable@vger.kernel.org, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: isolate_lru_page(): don't enable local interrupts
-has been added to the -mm tree.  Its filename is
-     mm-isolate_lru_page-dont-enable-local-interrupts.patch
+     Subject: mm/ia64: fix a memory block size bug
+has been removed from the -mm tree.  Its filename was
+     mm-ia64-fix-a-memory-block-size-bug.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm: isolate_lru_page(): don't enable local interrupts
+From: Jianguo Wu <wujianguo@huawei.com>
+Subject: mm/ia64: fix a memory block size bug
 
-isolate_lru_page() is called with local interrupts disabled, via
+I found following definition in include/linux/memory.h, in my IA64
+platform, SECTION_SIZE_BITS is equal to 32, and MIN_MEMORY_BLOCK_SIZE will be 0.
 
-invalidate_complete_page2()
-->spin_lock_irq(&mapping->tree_lock)
-->clear_page_mlock()
-  __clear_page_mlock()
-  ->isolate_lru_page()
+#define MIN_MEMORY_BLOCK_SIZE     (1 << SECTION_SIZE_BITS)
 
-so it should not unconditionally enable local interrupts.
+Because MIN_MEMORY_BLOCK_SIZE is int type and length of 32bits,
+so MIN_MEMORY_BLOCK_SIZE(1 << 32) will will equal to 0.
+Actually when SECTION_SIZE_BITS >= 31, MIN_MEMORY_BLOCK_SIZE will be wrong.
+This will cause wrong system memory infomation in sysfs.
+I think it should be:
 
-Sasha hit a lockdep warning when running Trinity as a result of this.
+#define MIN_MEMORY_BLOCK_SIZE     (1UL << SECTION_SIZE_BITS)
 
-Reported-by: Sasha Levin <levinsasha928@gmail.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+And "echo offline > memory0/state" will cause following call trace:
+
+kernel BUG at mm/memory_hotplug.c:885!
+sh[6455]: bugcheck! 0 [1]
+
+Pid: 6455, CPU 0, comm:                   sh
+psr : 0000101008526030 ifs : 8000000000000fa4 ip  : [<a0000001008c40f0>]    Not tainted (3.6.0-rc1)
+ip is at offline_pages+0x210/0xee0
+unat: 0000000000000000 pfs : 0000000000000fa4 rsc : 0000000000000003
+rnat: a0000001008f2d50 bsps: 0000000000000000 pr  : 65519a96659a9565
+ldrs: 0000000000000000 ccv : 0000010b9263f310 fpsr: 0009804c0270033f
+csd : 0000000000000000 ssd : 0000000000000000
+b0  : a0000001008c40f0 b6  : a000000100473980 b7  : a0000001000106d0
+f6  : 000000000000000000000 f7  : 1003e0000000085c9354c
+f8  : 1003e0044b82fa09b5a53 f9  : 1003e000000d65cd62abf
+f10 : 1003efd02efdec682803d f11 : 1003e0000000000000042
+r1  : a00000010152c2e0 r2  : 0000000000006ada r3  : 000000000000fffe
+r8  : 0000000000000026 r9  : a00000010121cc18 r10 : a0000001013309f0
+r11 : 65519a96659a19e9 r12 : e00000070a91fdf0 r13 : e00000070a910000
+r14 : 0000000000006ada r15 : 0000000000004000 r16 : 000000006ad8356c
+r17 : a0000001019a525e r18 : 0000000000007fff r19 : 0000000000000000
+r20 : 0000000000006ad6 r21 : 0000000000006ad6 r22 : a00000010133bec8
+r23 : 0000000000006ad4 r24 : 0000000000000002 r25 : 8200000000260038
+r26 : 00000000000004f9 r27 : 00000000000004f8 r28 : 000000000001cf98
+r29 : 0000000000000038 r30 : a0000001019a5ae0 r31 : 000000000001cf60
+
+Call Trace:
+ [<a0000001000163e0>] show_stack+0x80/0xa0
+                                sp=e00000070a91f9b0 bsp=e00000070a9115e0
+ [<a000000100016a40>] show_regs+0x640/0x920
+                                sp=e00000070a91fb80 bsp=e00000070a911588
+ [<a000000100040590>] die+0x190/0x2c0
+                                sp=e00000070a91fb90 bsp=e00000070a911548
+ [<a000000100040710>] die_if_kernel+0x50/0x80
+                                sp=e00000070a91fb90 bsp=e00000070a911518
+ [<a0000001008f8030>] ia64_bad_break+0x3d0/0x6e0
+                                sp=e00000070a91fb90 bsp=e00000070a9114f0
+ [<a00000010000c0c0>] ia64_native_leave_kernel+0x0/0x270
+                                sp=e00000070a91fc20 bsp=e00000070a9114f0
+ [<a0000001008c40f0>] offline_pages+0x210/0xee0
+                                sp=e00000070a91fdf0 bsp=e00000070a9113c8
+ [<a00000010022d580>] alloc_pages_current+0x180/0x2a0
+                                sp=e00000070a91fe20 bsp=e00000070a9113a
+
+Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/memory.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-isolate_lru_page-dont-enable-local-interrupts mm/vmscan.c
---- a/mm/vmscan.c~mm-isolate_lru_page-dont-enable-local-interrupts
-+++ a/mm/vmscan.c
-@@ -1161,8 +1161,9 @@ int isolate_lru_page(struct page *page)
- 	if (PageLRU(page)) {
- 		struct zone *zone = page_zone(page);
- 		struct lruvec *lruvec;
-+		unsigned long flags;
+diff -puN include/linux/memory.h~mm-ia64-fix-a-memory-block-size-bug include/linux/memory.h
+--- a/include/linux/memory.h~mm-ia64-fix-a-memory-block-size-bug
++++ a/include/linux/memory.h
+@@ -19,7 +19,7 @@
+ #include <linux/compiler.h>
+ #include <linux/mutex.h>
  
--		spin_lock_irq(&zone->lru_lock);
-+		spin_lock_irqsave(&zone->lru_lock, flags);
- 		lruvec = mem_cgroup_page_lruvec(page, zone);
- 		if (PageLRU(page)) {
- 			int lru = page_lru(page);
-@@ -1171,7 +1172,7 @@ int isolate_lru_page(struct page *page)
- 			del_page_from_lru_list(page, lruvec, lru);
- 			ret = 0;
- 		}
--		spin_unlock_irq(&zone->lru_lock);
-+		spin_unlock_irqrestore(&zone->lru_lock, flags);
- 	}
- 	return ret;
- }
+-#define MIN_MEMORY_BLOCK_SIZE     (1 << SECTION_SIZE_BITS)
++#define MIN_MEMORY_BLOCK_SIZE     (1UL << SECTION_SIZE_BITS)
+ 
+ struct memory_block {
+ 	unsigned long start_section_nr;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wujianguo@huawei.com are
 
-memory-hotplug-fix-a-double-register-section-info-bug.patch
+origin.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-idr-rename-max_level-to-max_idr_level-fix-3.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-audith-replace-defines-with-c-stubs.patch
-slab-fix-debug==0-warning.patch
-mm.patch
-x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
-mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
-mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures-fix.patch
-mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch
-rbtree-performance-and-correctness-test-fix.patch
-mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix.patch
-mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock-fix.patch
-memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
-atomic-implement-generic-atomic_dec_if_positive-fix.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix-2.patch
-mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch
-mm-isolate_lru_page-dont-enable-local-interrupts.patch
-sections-fix-section-conflicts-in-arch-h8300-checkpatch-fixes.patch
-sections-fix-section-conflicts-in-drivers-macintosh-checkpatch-fixes.patch
-sectons-fix-const-sections-for-crc32-table-checkpatch-fixes.patch
-backlight-add-backlight-driver-for-lm3630-chip-fix.patch
-backlight-add-new-lm3639-backlight-driver-fix.patch
-idr-rename-max_level-to-max_idr_level-fix.patch
-idr-rename-max_level-to-max_idr_level-fix-fix-2.patch
-lib-parserc-avoid-overflow-in-match_number-fix.patch
-lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-rtc-add-dallas-ds2404-driver-fix.patch
-rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch
-fs-fat-fix-all-other-checkpatch-issues-in-dirc-fix.patch
-fat-simplify-writeback_inode-checkpatch-fixes.patch
-fat-simplify-writeback_inode-checkpatch-fixes-fix.patch
-coredump-make-core-dump-functionality-optional-fix-fix.patch
-coredump-use-suid_dumpable_enabled-rather-than-hardcoded-1-checkpatch-fixes.patch
-proc-use-kzalloc-instead-of-kmalloc-and-memset-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mm-fix-up-zone-present-pages.patch
 
