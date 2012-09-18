@@ -1,71 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-page_alloc-fix-the-page-address-of-higher-pages-buddy-calculation.patch removed from -mm tree
-Date: Tue, 18 Sep 2012 12:05:21 -0700
-Message-ID: <20120918190522.27B765C0065@hpza9.eem.corp.google.com>
+Subject: [merged] memory-hotplug-fix-a-double-register-section-info-bug.patch removed from -mm tree
+Date: Tue, 18 Sep 2012 12:05:26 -0700
+Message-ID: <20120918190526.C620F1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:41190 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753957Ab2IRTFZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Sep 2012 15:05:25 -0400
-Received: by faet1 with SMTP id t1so8607fae.1
-        for <mm-commits@vger.kernel.org>; Tue, 18 Sep 2012 12:05:24 -0700 (PDT)
+Received: from mail-yw0-f74.google.com ([209.85.213.74]:36077 "EHLO
+	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752240Ab2IRTF1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Sep 2012 15:05:27 -0400
+Received: by mail-yw0-f74.google.com with SMTP id 10so27406yhl.1
+        for <mm-commits@vger.kernel.org>; Tue, 18 Sep 2012 12:05:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: omycle@gmail.com, jweiner@redhat.com, mgorman@suse.de, mhocko@suse.cz, minchan.kim@gmail.com, pullip.cho@samsung.com, shangw@linux.vnet.ibm.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: qiuxishi@gmail.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, mgorman@suse.de, qiuxishi@huawei.com, stable@vger.kernel.org, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: fix the page address of higher page's buddy calculation
+     Subject: memory hotplug: fix section info double registration bug
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-fix-the-page-address-of-higher-pages-buddy-calculation.patch
+     memory-hotplug-fix-a-double-register-section-info-bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Li Haifeng <omycle@gmail.com>
-Subject: mm/page_alloc: fix the page address of higher page's buddy calculation
+From: qiuxishi <qiuxishi@gmail.com>
+Subject: memory hotplug: fix section info double registration bug
 
-The heuristic method for buddy has been introduced since 43506fad
-("mm/page_alloc.c: simplify calculation of combined index of adjacent
-buddy lists").  But the page address of higher page's buddy was wrongly
-calculated, which will lead page_is_buddy to fail for ever.  IOW, the
-heuristic method would be disabled with the wrong page address of higher
-page's buddy.
+There may be a bug when registering section info.  For example, on my
+Itanium platform, the pfn range of node0 includes the other nodes, so
+other nodes' section info will be double registered, and memmap's page
+count will equal to 3.
 
-Calculating the page address of higher page's buddy should be based
-higher_page with the offset between index of higher page and index of
-higher page's buddy.
+node0: start_pfn=0x100,    spanned_pfn=0x20fb00, present_pfn=0x7f8a3, => 0x000100-0x20fc00
+node1: start_pfn=0x80000,  spanned_pfn=0x80000,  present_pfn=0x80000, => 0x080000-0x100000
+node2: start_pfn=0x100000, spanned_pfn=0x80000,  present_pfn=0x80000, => 0x100000-0x180000
+node3: start_pfn=0x180000, spanned_pfn=0x80000,  present_pfn=0x80000, => 0x180000-0x200000
 
-Signed-off-by: Haifeng Li <omycle@gmail.com>
-Signed-off-by: Gavin Shan <shangw@linux.vnet.ibm.com>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
-Cc: KyongHo Cho <pullip.cho@samsung.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Johannes Weiner <jweiner@redhat.com>
-Cc: <stable@vger.kernel.org>	[2.6.38+]
+free_all_bootmem_node()
+	register_page_bootmem_info_node()
+		register_page_bootmem_info_section()
+
+When hot remove memory, we can't free the memmap's page because
+page_count() is 2 after put_page_bootmem().
+
+sparse_remove_one_section()
+	free_section_usemap()
+		free_map_bootmem()
+			put_page_bootmem()
+
+[akpm@linux-foundation.org: add code comment]
+Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory_hotplug.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-fix-the-page-address-of-higher-pages-buddy-calculation mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-fix-the-page-address-of-higher-pages-buddy-calculation
-+++ a/mm/page_alloc.c
-@@ -584,7 +584,7 @@ static inline void __free_one_page(struc
- 		combined_idx = buddy_idx & page_idx;
- 		higher_page = page + (combined_idx - page_idx);
- 		buddy_idx = __find_buddy_index(combined_idx, order + 1);
--		higher_buddy = page + (buddy_idx - combined_idx);
-+		higher_buddy = higher_page + (buddy_idx - combined_idx);
- 		if (page_is_buddy(higher_page, higher_buddy, order + 1)) {
- 			list_add_tail(&page->lru,
- 				&zone->free_area[order].free_list[migratetype]);
-_
-
-Patches currently in -mm which might be from omycle@gmail.com are
-
-origin.patch
-
+diff -puN mm/memory_hotplug.c~memory-hotplug-fix-a-double-register-section-info-bug mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-fix-a-double-register-section-info-bug
++++ a/mm/memory_hotplug.c
+@@ -126,9 +126,6 @@ static void register_page_bootmem_info_s
+ 	struct mem_section *ms;
+ 	struct page *page, *memmap;
+ 
+-	if (!pfn_valid(start_pfn))
+-		return;
+-
+ 	section_nr = pfn_to_section_nr(start_pfn);
+ 	ms = __nr_to_section(section_nr);
+ 
+@@ -187,9 +184,16 @@ void register_page_bootmem_info_node(str
+ 	end_pfn = pfn + pgdat->node_spanned_pages;
+ 
+ 	/* register_section info */
+-	for (; pfn < end_pfn; pfn += PAGES_PER_SECTION)
+-		register_page_bootmem_info_section(pfn);
