@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + lib-vsprintfc-improve-standard-conformance-of-sscanf.patch added to -mm tree
-Date: Tue, 18 Sep 2012 14:37:04 -0700
-Message-ID: <20120918213704.BD7D41E0048@wpzn4.hot.corp.google.com>
+Subject: + rapidio-add-inbound-memory-mapping-interface.patch added to -mm tree
+Date: Tue, 18 Sep 2012 14:41:01 -0700
+Message-ID: <20120918214102.B58D85C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yw0-f74.google.com ([209.85.213.74]:63266 "EHLO
-	mail-yw0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755481Ab2IRVhG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Sep 2012 17:37:06 -0400
-Received: by yhl10 with SMTP id 10so48518yhl.1
-        for <mm-commits@vger.kernel.org>; Tue, 18 Sep 2012 14:37:05 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:44492 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755554Ab2IRVlG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Sep 2012 17:41:06 -0400
+Received: by lbbge1 with SMTP id ge1so24689lbb.1
+        for <mm-commits@vger.kernel.org>; Tue, 18 Sep 2012 14:41:04 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: JBeulich@suse.com, jbeulich@suse.com, konrad.wilk@oracle.com
+Cc: alexandre.bounine@idt.com, galak@kernel.crashing.org, leoli@freescale.com, mporter@kernel.crashing.org
 
 
 The patch titled
-     Subject: lib/vsprintf.c: improve standard conformance of sscanf()
+     Subject: rapidio: add inbound memory mapping interface
 has been added to the -mm tree.  Its filename is
-     lib-vsprintfc-improve-standard-conformance-of-sscanf.patch
+     rapidio-add-inbound-memory-mapping-interface.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,105 +33,136 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Jan Beulich" <JBeulich@suse.com>
-Subject: lib/vsprintf.c: improve standard conformance of sscanf()
+From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: rapidio: add inbound memory mapping interface
 
-Xen's pciback points out a couple of deficiencies with vsscanf()'s
-standard conformance:
+Add common inbound memory mapping/unmapping interface. This allows to make
+local memory space accessible from the RapidIO side using hardware mapping
+capabilities of RapidIO bridging devices. The new interface is intended to
+enable data transfers between RapidIO devices in combination with DMA engine
+support.
 
-- Trailing character matching cannot be checked by the caller: With a
-  format string of "(%x:%x.%x) %n" absence of the closing parenthesis
-  cannot be checked, as input of "(00:00.0)" doesn't cause the %n to be
-  evaluated (because of the code not skipping white space before the
-  trailing %n).
+This patch is based on patch submitted by Li Yang <leoli@freescale.com>
+(https://lists.ozlabs.org/pipermail/linuxppc-dev/2009-April/071210.html)
 
-- The parameter corresponding to a trailing %n could get filled even if
-  there was a matching error: With a format string of "(%x:%x.%x)%n",
-  input of "(00:00.0]" would still fill the respective variable pointed to
-  (and hence again make the mismatch non-detectable by the caller).
-
-This patch aims at fixing those, but leaves other non-conforming aspects
-of it untouched, among them these possibly relevant ones:
-
-- improper handling of the assignment suppression character '*' (blindly
-  discarding all succeeding non-white space from the format and input
-  strings),
-
-- not honoring conversion specifiers for %n, - not recognizing the C99
-  conversion specifier 't' (recognized by vsprintf()).
-
-Signed-off-by: Jan Beulich <jbeulich@suse.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Li Yang <leoli@freescale.com>
+Cc: Kumar Gala <galak@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |   33 ++++++++++++++-------------------
- 1 file changed, 14 insertions(+), 19 deletions(-)
+ drivers/rapidio/rio.c   |   44 ++++++++++++++++++++++++++++++++++++++
+ include/linux/rio.h     |    5 ++++
+ include/linux/rio_drv.h |    5 ++++
+ 3 files changed, 54 insertions(+)
 
-diff -puN lib/vsprintf.c~lib-vsprintfc-improve-standard-conformance-of-sscanf lib/vsprintf.c
---- a/lib/vsprintf.c~lib-vsprintfc-improve-standard-conformance-of-sscanf
-+++ a/lib/vsprintf.c
-@@ -2019,7 +2019,7 @@ int vsscanf(const char *buf, const char 
- 	s16 field_width;
- 	bool is_sign;
+diff -puN drivers/rapidio/rio.c~rapidio-add-inbound-memory-mapping-interface drivers/rapidio/rio.c
+--- a/drivers/rapidio/rio.c~rapidio-add-inbound-memory-mapping-interface
++++ a/drivers/rapidio/rio.c
+@@ -33,6 +33,7 @@
  
--	while (*fmt && *str) {
-+	while (*fmt) {
- 		/* skip any white space in format */
- 		/* white space in format matchs any amount of
- 		 * white space, including none, in the input.
-@@ -2044,6 +2044,8 @@ int vsscanf(const char *buf, const char 
- 		 * advance both strings to next white space
- 		 */
- 		if (*fmt == '*') {
-+			if (!*str)
-+				break;
- 			while (!isspace(*fmt) && *fmt != '%' && *fmt)
- 				fmt++;
- 			while (!isspace(*str) && *str)
-@@ -2072,7 +2074,17 @@ int vsscanf(const char *buf, const char 
- 			}
- 		}
+ static LIST_HEAD(rio_mports);
+ static unsigned char next_portid;
++static DEFINE_SPINLOCK(rio_mmap_lock);
  
--		if (!*fmt || !*str)
-+		if (!*fmt)
-+			break;
+ /**
+  * rio_local_get_device_id - Get the base/extended device id for a port
+@@ -398,6 +399,49 @@ int rio_release_inb_pwrite(struct rio_de
+ EXPORT_SYMBOL_GPL(rio_release_inb_pwrite);
+ 
+ /**
++ * rio_map_inb_region -- Map inbound memory region.
++ * @mport: Master port.
++ * @lstart: physical address of memory region to be mapped
++ * @rbase: RIO base address assigned to this window
++ * @size: Size of the memory region
++ * @rflags: Flags for mapping.
++ *
++ * Return: 0 -- Success.
++ *
++ * This function will create the mapping from RIO space to local memory.
++ */
++int rio_map_inb_region(struct rio_mport *mport, dma_addr_t local,
++			u64 rbase, u32 size, u32 rflags)
++{
++	int rc = 0;
++	unsigned long flags;
 +
-+		if (*fmt == 'n') {
-+			/* return number of characters read so far */
-+			*va_arg(args, int *) = str - buf;
-+			++fmt;
-+			continue;
-+		}
++	if (!mport->ops->map_inb)
++		return -1;
++	spin_lock_irqsave(&rio_mmap_lock, flags);
++	rc = mport->ops->map_inb(mport, local, rbase, size, rflags);
++	spin_unlock_irqrestore(&rio_mmap_lock, flags);
++	return rc;
++}
++EXPORT_SYMBOL_GPL(rio_map_inb_region);
 +
-+		if (!*str)
- 			break;
++/**
++ * rio_unmap_inb_region -- Unmap the inbound memory region
++ * @mport: Master port
++ * @lstart: physical address of memory region to be unmapped
++ */
++void rio_unmap_inb_region(struct rio_mport *mport, dma_addr_t lstart)
++{
++	unsigned long flags;
++	if (!mport->ops->unmap_inb)
++		return;
++	spin_lock_irqsave(&rio_mmap_lock, flags);
++	mport->ops->unmap_inb(mport, lstart);
++	spin_unlock_irqrestore(&rio_mmap_lock, flags);
++}
++EXPORT_SYMBOL_GPL(rio_unmap_inb_region);
++
++/**
+  * rio_mport_get_physefb - Helper function that returns register offset
+  *                      for Physical Layer Extended Features Block.
+  * @port: Master port to issue transaction
+diff -puN include/linux/rio.h~rapidio-add-inbound-memory-mapping-interface include/linux/rio.h
+--- a/include/linux/rio.h~rapidio-add-inbound-memory-mapping-interface
++++ a/include/linux/rio.h
+@@ -301,6 +301,8 @@ struct rio_net {
+  * @add_outb_message: Callback to add a message to an outbound mailbox queue.
+  * @add_inb_buffer: Callback to	add a buffer to an inbound mailbox queue.
+  * @get_inb_message: Callback to get a message from an inbound mailbox queue.
++ * @map_inb: Callback to map RapidIO address region into local memory space.
++ * @unmap_inb: Callback to unmap RapidIO address region mapped with map_inb().
+  */
+ struct rio_ops {
+ 	int (*lcread) (struct rio_mport *mport, int index, u32 offset, int len,
+@@ -323,6 +325,9 @@ struct rio_ops {
+ 				 int mbox, void *buffer, size_t len);
+ 	int (*add_inb_buffer)(struct rio_mport *mport, int mbox, void *buf);
+ 	void *(*get_inb_message)(struct rio_mport *mport, int mbox);
++	int (*map_inb)(struct rio_mport *mport, dma_addr_t lstart,
++			u64 rstart, u32 size, u32 flags);
++	void (*unmap_inb)(struct rio_mport *mport, dma_addr_t lstart);
+ };
  
- 		base = 10;
-@@ -2105,13 +2117,6 @@ int vsscanf(const char *buf, const char 
- 			num++;
- 		}
- 		continue;
--		case 'n':
--			/* return number of characters read so far */
--		{
--			int *i = (int *)va_arg(args, int*);
--			*i = str - buf;
--		}
--		continue;
- 		case 'o':
- 			base = 8;
- 			break;
-@@ -2212,16 +2217,6 @@ int vsscanf(const char *buf, const char 
- 		str = next;
- 	}
+ #define RIO_RESOURCE_MEM	0x00000100
+diff -puN include/linux/rio_drv.h~rapidio-add-inbound-memory-mapping-interface include/linux/rio_drv.h
+--- a/include/linux/rio_drv.h~rapidio-add-inbound-memory-mapping-interface
++++ a/include/linux/rio_drv.h
+@@ -365,6 +365,11 @@ void rio_release_regions(struct rio_dev 
+ int rio_request_region(struct rio_dev *, int, char *);
+ void rio_release_region(struct rio_dev *, int);
  
--	/*
--	 * Now we've come all the way through so either the input string or the
--	 * format ended. In the former case, there can be a %n at the current
--	 * position in the format that needs to be filled.
--	 */
--	if (*fmt == '%' && *(fmt + 1) == 'n') {
--		int *p = (int *)va_arg(args, int *);
--		*p = str - buf;
--	}
++/* Memory mapping functions */
++extern int rio_map_inb_region(struct rio_mport *mport, dma_addr_t local,
++			u64 rbase, u32 size, u32 rflags);
++extern void rio_unmap_inb_region(struct rio_mport *mport, dma_addr_t lstart);
++
+ /* Port-Write management */
+ extern int rio_request_inb_pwrite(struct rio_dev *,
+ 			int (*)(struct rio_dev *, union rio_pw_msg*, int));
+_
+
+Patches currently in -mm which might be from alexandre.bounine@idt.com are
+
+linux-next.patch
+rapidio-tsi721-modify-mport-name-assignment.patch
+rapidio-fix-kerneldoc-warnings-after-dma-support-was-added.patch
+drivers-rapidio-devices-tsi721c-fix-error-return-code.patch
+rapidio-add-inbound-memory-mapping-interface.patch
+rapidio-tsi721-add-inbound-memory-mapping-callbacks.patch
+
