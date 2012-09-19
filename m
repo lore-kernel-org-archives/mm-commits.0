@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + cma-fix-counting-of-isolated-pages.patch added to -mm tree
-Date: Wed, 19 Sep 2012 12:51:42 -0700
-Message-ID: <20120919195143.0B4F0100047@wpzn3.hot.corp.google.com>
+Subject: + cma-count-free-cma-pages.patch added to -mm tree
+Date: Wed, 19 Sep 2012 12:51:45 -0700
+Message-ID: <20120919195146.1C290100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:37080 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751014Ab2ISTvo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Sep 2012 15:51:44 -0400
-Received: by mail-gh0-f202.google.com with SMTP id z15so190857ghb.1
-        for <mm-commits@vger.kernel.org>; Wed, 19 Sep 2012 12:51:43 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:60615 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751014Ab2ISTvs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Sep 2012 15:51:48 -0400
+Received: by qafl39 with SMTP id l39so210920qaf.1
+        for <mm-commits@vger.kernel.org>; Wed, 19 Sep 2012 12:51:47 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: b.zolnierkie@samsung.com, hughd@google.com, kyungmin.park@samsung.com, m.szy
 
 
 The patch titled
-     Subject: cma: fix counting of isolated pages
+     Subject: cma: count free CMA pages
 has been added to the -mm tree.  Its filename is
-     cma-fix-counting-of-isolated-pages.patch
+     cma-count-free-cma-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: cma: fix counting of isolated pages
+Subject: cma: count free CMA pages
 
-Isolated free pages shouldn't be accounted to NR_FREE_PAGES counter.  Fix
-it by properly decreasing/increasing NR_FREE_PAGES counter in
-set_migratetype_isolate()/unset_migratetype_isolate() and removing counter
-adjustment for isolated pages from free_one_page() and split_free_page().
+Add NR_FREE_CMA_PAGES counter to be later used for checking watermark in
+__zone_watermark_ok().  For simplicity and to avoid #ifdef hell make this
+counter always available (not only when CONFIG_CMA=y).
 
 Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
 Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
@@ -51,77 +50,185 @@ Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c     |    9 +++++++--
- mm/page_isolation.c |   12 +++++++++---
- 2 files changed, 16 insertions(+), 5 deletions(-)
+ include/linux/mmzone.h |    1 +
+ include/linux/vmstat.h |    8 ++++++++
+ mm/page_alloc.c        |   26 +++++++++++++++++++-------
+ mm/page_isolation.c    |    5 +++--
+ mm/vmstat.c            |    1 +
+ 5 files changed, 32 insertions(+), 9 deletions(-)
 
-diff -puN mm/page_alloc.c~cma-fix-counting-of-isolated-pages mm/page_alloc.c
---- a/mm/page_alloc.c~cma-fix-counting-of-isolated-pages
+diff -puN include/linux/mmzone.h~cma-count-free-cma-pages include/linux/mmzone.h
+--- a/include/linux/mmzone.h~cma-count-free-cma-pages
++++ a/include/linux/mmzone.h
+@@ -142,6 +142,7 @@ enum zone_stat_item {
+ 	NUMA_OTHER,		/* allocation from other node */
+ #endif
+ 	NR_ANON_TRANSPARENT_HUGEPAGES,
++	NR_FREE_CMA_PAGES,
+ 	NR_VM_ZONE_STAT_ITEMS };
+ 
+ /*
+diff -puN include/linux/vmstat.h~cma-count-free-cma-pages include/linux/vmstat.h
+--- a/include/linux/vmstat.h~cma-count-free-cma-pages
++++ a/include/linux/vmstat.h
+@@ -253,6 +253,14 @@ static inline void refresh_zone_stat_thr
+ 
+ #endif		/* CONFIG_SMP */
+ 
++static inline void __mod_zone_freepage_state(struct zone *zone, int nr_pages,
++					     int migratetype)
++{
++	__mod_zone_page_state(zone, NR_FREE_PAGES, nr_pages);
++	if (is_migrate_cma(migratetype))
++		__mod_zone_page_state(zone, NR_FREE_CMA_PAGES, nr_pages);
++}
++
+ extern const char * const vmstat_text[];
+ 
+ #endif /* _LINUX_VMSTAT_H */
+diff -puN mm/page_alloc.c~cma-count-free-cma-pages mm/page_alloc.c
+--- a/mm/page_alloc.c~cma-count-free-cma-pages
 +++ a/mm/page_alloc.c
-@@ -690,7 +690,8 @@ static void free_one_page(struct zone *z
- 	zone->pages_scanned = 0;
+@@ -557,7 +557,8 @@ static inline void __free_one_page(struc
+ 		if (page_is_guard(buddy)) {
+ 			clear_page_guard_flag(buddy);
+ 			set_page_private(page, 0);
+-			__mod_zone_page_state(zone, NR_FREE_PAGES, 1 << order);
++			__mod_zone_freepage_state(zone, 1 << order,
++						  migratetype);
+ 		} else {
+ 			list_del(&buddy->lru);
+ 			zone->free_area[order].nr_free--;
+@@ -676,6 +677,8 @@ static void free_pcppages_bulk(struct zo
+ 			/* MIGRATE_MOVABLE list may include MIGRATE_RESERVEs */
+ 			__free_one_page(page, zone, 0, mt);
+ 			trace_mm_page_pcpu_drain(page, 0, mt);
++			if (is_migrate_cma(mt))
++				__mod_zone_page_state(zone, NR_FREE_CMA_PAGES, 1);
+ 		} while (--to_free && --batch_free && !list_empty(list));
+ 	}
+ 	__mod_zone_page_state(zone, NR_FREE_PAGES, count);
+@@ -691,7 +694,7 @@ static void free_one_page(struct zone *z
  
  	__free_one_page(page, zone, order, migratetype);
--	__mod_zone_page_state(zone, NR_FREE_PAGES, 1 << order);
-+	if (unlikely(migratetype != MIGRATE_ISOLATE))
-+		__mod_zone_page_state(zone, NR_FREE_PAGES, 1 << order);
+ 	if (unlikely(migratetype != MIGRATE_ISOLATE))
+-		__mod_zone_page_state(zone, NR_FREE_PAGES, 1 << order);
++		__mod_zone_freepage_state(zone, 1 << order, migratetype);
  	spin_unlock(&zone->lock);
  }
  
-@@ -1391,6 +1392,7 @@ int capture_free_page(struct page *page,
- 	unsigned int order;
- 	unsigned long watermark;
- 	struct zone *zone;
-+	int mt;
+@@ -814,7 +817,8 @@ static inline void expand(struct zone *z
+ 			set_page_guard_flag(&page[size]);
+ 			set_page_private(&page[size], high);
+ 			/* Guard pages are not available for any usage */
+-			__mod_zone_page_state(zone, NR_FREE_PAGES, -(1 << high));
++			__mod_zone_freepage_state(zone, -(1 << high),
++						  migratetype);
+ 			continue;
+ 		}
+ #endif
+@@ -1140,6 +1144,9 @@ static int rmqueue_bulk(struct zone *zon
+ 		}
+ 		set_page_private(page, mt);
+ 		list = &page->lru;
++		if (is_migrate_cma(mt))
++			__mod_zone_page_state(zone, NR_FREE_CMA_PAGES,
++					      -(1 << order));
+ 	}
+ 	__mod_zone_page_state(zone, NR_FREE_PAGES, -(i << order));
+ 	spin_unlock(&zone->lock);
+@@ -1411,7 +1418,7 @@ int capture_free_page(struct page *page,
  
- 	BUG_ON(!PageBuddy(page));
- 
-@@ -1406,7 +1408,10 @@ int capture_free_page(struct page *page,
- 	list_del(&page->lru);
- 	zone->free_area[order].nr_free--;
- 	rmv_page_order(page);
--	__mod_zone_page_state(zone, NR_FREE_PAGES, -(1UL << order));
-+
-+	mt = get_pageblock_migratetype(page);
-+	if (unlikely(mt != MIGRATE_ISOLATE))
-+		__mod_zone_page_state(zone, NR_FREE_PAGES, -(1UL << order));
+ 	mt = get_pageblock_migratetype(page);
+ 	if (unlikely(mt != MIGRATE_ISOLATE))
+-		__mod_zone_page_state(zone, NR_FREE_PAGES, -(1UL << order));
++		__mod_zone_freepage_state(zone, -(1UL << order), mt);
  
  	if (alloc_order != order)
  		expand(zone, page, alloc_order, order,
-diff -puN mm/page_isolation.c~cma-fix-counting-of-isolated-pages mm/page_isolation.c
---- a/mm/page_isolation.c~cma-fix-counting-of-isolated-pages
-+++ a/mm/page_isolation.c
-@@ -76,8 +76,12 @@ int set_migratetype_isolate(struct page 
+@@ -1515,7 +1522,8 @@ again:
+ 		spin_unlock(&zone->lock);
+ 		if (!page)
+ 			goto failed;
+-		__mod_zone_page_state(zone, NR_FREE_PAGES, -(1 << order));
++		__mod_zone_freepage_state(zone, -(1 << order),
++					  get_pageblock_migratetype(page));
+ 	}
  
+ 	__count_zone_vm_events(PGALLOC, zone, 1 << order);
+@@ -2889,7 +2897,8 @@ void show_free_areas(unsigned int filter
+ 		" unevictable:%lu"
+ 		" dirty:%lu writeback:%lu unstable:%lu\n"
+ 		" free:%lu slab_reclaimable:%lu slab_unreclaimable:%lu\n"
+-		" mapped:%lu shmem:%lu pagetables:%lu bounce:%lu\n",
++		" mapped:%lu shmem:%lu pagetables:%lu bounce:%lu\n"
++		" free_cma:%lu\n",
+ 		global_page_state(NR_ACTIVE_ANON),
+ 		global_page_state(NR_INACTIVE_ANON),
+ 		global_page_state(NR_ISOLATED_ANON),
+@@ -2906,7 +2915,8 @@ void show_free_areas(unsigned int filter
+ 		global_page_state(NR_FILE_MAPPED),
+ 		global_page_state(NR_SHMEM),
+ 		global_page_state(NR_PAGETABLE),
+-		global_page_state(NR_BOUNCE));
++		global_page_state(NR_BOUNCE),
++		global_page_state(NR_FREE_CMA_PAGES));
+ 
+ 	for_each_populated_zone(zone) {
+ 		int i;
+@@ -2938,6 +2948,7 @@ void show_free_areas(unsigned int filter
+ 			" pagetables:%lukB"
+ 			" unstable:%lukB"
+ 			" bounce:%lukB"
++			" free_cma:%lukB"
+ 			" writeback_tmp:%lukB"
+ 			" pages_scanned:%lu"
+ 			" all_unreclaimable? %s"
+@@ -2967,6 +2978,7 @@ void show_free_areas(unsigned int filter
+ 			K(zone_page_state(zone, NR_PAGETABLE)),
+ 			K(zone_page_state(zone, NR_UNSTABLE_NFS)),
+ 			K(zone_page_state(zone, NR_BOUNCE)),
++			K(zone_page_state(zone, NR_FREE_CMA_PAGES)),
+ 			K(zone_page_state(zone, NR_WRITEBACK_TEMP)),
+ 			zone->pages_scanned,
+ 			(zone->all_unreclaimable ? "yes" : "no")
+diff -puN mm/page_isolation.c~cma-count-free-cma-pages mm/page_isolation.c
+--- a/mm/page_isolation.c~cma-count-free-cma-pages
++++ a/mm/page_isolation.c
+@@ -77,11 +77,12 @@ int set_migratetype_isolate(struct page 
  out:
  	if (!ret) {
-+		unsigned long nr_pages;
-+
+ 		unsigned long nr_pages;
++		int mt = get_pageblock_migratetype(page);
+ 
  		set_pageblock_isolate(page);
--		move_freepages_block(zone, page, MIGRATE_ISOLATE);
-+		nr_pages = move_freepages_block(zone, page, MIGRATE_ISOLATE);
-+
-+		__mod_zone_page_state(zone, NR_FREE_PAGES, -nr_pages);
+ 		nr_pages = move_freepages_block(zone, page, MIGRATE_ISOLATE);
+ 
+-		__mod_zone_page_state(zone, NR_FREE_PAGES, -nr_pages);
++		__mod_zone_freepage_state(zone, -nr_pages, mt);
  	}
  
  	spin_unlock_irqrestore(&zone->lock, flags);
-@@ -89,12 +93,14 @@ out:
- void unset_migratetype_isolate(struct page *page, unsigned migratetype)
- {
- 	struct zone *zone;
--	unsigned long flags;
-+	unsigned long flags, nr_pages;
-+
- 	zone = page_zone(page);
- 	spin_lock_irqsave(&zone->lock, flags);
+@@ -100,7 +101,7 @@ void unset_migratetype_isolate(struct pa
  	if (get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
  		goto out;
--	move_freepages_block(zone, page, migratetype);
-+	nr_pages = move_freepages_block(zone, page, migratetype);
-+	__mod_zone_page_state(zone, NR_FREE_PAGES, nr_pages);
+ 	nr_pages = move_freepages_block(zone, page, migratetype);
+-	__mod_zone_page_state(zone, NR_FREE_PAGES, nr_pages);
++	__mod_zone_freepage_state(zone, nr_pages, migratetype);
  	restore_pageblock_isolate(page, migratetype);
  out:
  	spin_unlock_irqrestore(&zone->lock, flags);
+diff -puN mm/vmstat.c~cma-count-free-cma-pages mm/vmstat.c
+--- a/mm/vmstat.c~cma-count-free-cma-pages
++++ a/mm/vmstat.c
+@@ -722,6 +722,7 @@ const char * const vmstat_text[] = {
+ 	"numa_other",
+ #endif
+ 	"nr_anon_transparent_hugepages",
++	"nr_free_cma",
+ 	"nr_dirty_threshold",
+ 	"nr_dirty_background_threshold",
+ 
 _
 
 Patches currently in -mm which might be from b.zolnierkie@samsung.com are
