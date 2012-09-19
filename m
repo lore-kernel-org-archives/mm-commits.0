@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-bitops-introduce-clearset_bit_le.patch added to -mm tree
-Date: Tue, 18 Sep 2012 16:21:49 -0700
-Message-ID: <20120918232150.9966F20004E@hpza10.eem.corp.google.com>
+Subject: + net-do-not-disable-sg-for-aoe.patch added to -mm tree
+Date: Wed, 19 Sep 2012 11:45:02 -0700
+Message-ID: <20120919184504.852A61E0048@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:33501 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751666Ab2IRXVw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Sep 2012 19:21:52 -0400
-Received: by wibhr14 with SMTP id hr14so16506wib.1
-        for <mm-commits@vger.kernel.org>; Tue, 18 Sep 2012 16:21:51 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:61928 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756470Ab2ISSpH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Sep 2012 14:45:07 -0400
+Received: by yenq6 with SMTP id q6so178675yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 19 Sep 2012 11:45:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yoshikawa.takuya@oss.ntt.co.jp, avi@redhat.com, benh@kernel.crashing.org, mtosatti@redhat.com
+Cc: ecashin@coraid.com, jesse@nicira.com
 
 
 The patch titled
-     Subject: powerpc: bitops: introduce {clear,set}_bit_le()
+     Subject: net: do not disable sg for AoE
 has been added to the -mm tree.  Its filename is
-     powerpc-bitops-introduce-clearset_bit_le.patch
+     net-do-not-disable-sg-for-aoe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +33,83 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Takuya Yoshikawa <yoshikawa.takuya@oss.ntt.co.jp>
-Subject: powerpc: bitops: introduce {clear,set}_bit_le()
+From: Ed Cashin <ecashin@coraid.com>
+Subject: net: do not disable sg for AoE
 
-Needed to replace test_and_set_bit_le() in virt/kvm/kvm_main.c which is
-being used for this missing function.
+A change in a series of VLAN-related changes appears to have inadvertently
+disabled the use of the scatter gather feature of network cards for
+transmission of non-IP ethernet protocols like ATA over Ethernet (AoE). 
+Below is a reference to the commit that introduces a "harmonize_features"
+function that turns off scatter gather when the NIC does not support
+hardware checksumming for the ethernet protocol of an sk buff.
 
-Signed-off-by: Takuya Yoshikawa <yoshikawa.takuya@oss.ntt.co.jp>
-Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Avi Kivity <avi@redhat.com>
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
+  commit f01a5236bd4b140198fbcc550f085e8361fd73fa
+  Author: Jesse Gross <jesse@nicira.com>
+  Date:   Sun Jan 9 06:23:31 2011 +0000
+
+      net offloading: Generalize netif_get_vlan_features().
+
+The can_checksum_protocol function is not equipped to consider a protocol
+that does not require checksumming.  Calling it for a protocol that
+requires no checksum is inappropriate.
+
+The patch below has harmonize_features call can_checksum_protocol when the
+protocol needs a checksum, so that the network layer is not forced to
+perform unnecessary skb linearization on the transmission of AoE packets. 
+Unnecessary linearization results in decreased performance and increased
+memory pressure, as reported here:
+
+  http://www.spinics.net/lists/linux-mm/msg15184.html
+
+The problem has probably not been widely experienced yet, because only
+recently has the kernel.org-distributed aoe driver acquired the ability to
+use payloads of over a page in size, with the patchset recently included
+in the mm tree:
+
+  https://lkml.org/lkml/2012/8/28/140
+
+The coraid.com-distributed aoe driver already could use payloads of
+greater than a page in size, but its users generally do not use the newest
+kernels.
+
+Signed-off-by: Ed Cashin <ecashin@coraid.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/bitops.h |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ net/core/dev.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/powerpc/include/asm/bitops.h~powerpc-bitops-introduce-clearset_bit_le arch/powerpc/include/asm/bitops.h
---- a/arch/powerpc/include/asm/bitops.h~powerpc-bitops-introduce-clearset_bit_le
-+++ a/arch/powerpc/include/asm/bitops.h
-@@ -288,6 +288,16 @@ static __inline__ int test_bit_le(unsign
- 	return (tmp[nr >> 3] >> (nr & 7)) & 1;
- }
- 
-+static inline void set_bit_le(int nr, void *addr)
-+{
-+	set_bit(nr ^ BITOP_LE_SWIZZLE, addr);
-+}
-+
-+static inline void clear_bit_le(int nr, void *addr)
-+{
-+	clear_bit(nr ^ BITOP_LE_SWIZZLE, addr);
-+}
-+
- static inline void __set_bit_le(int nr, void *addr)
+diff -puN net/core/dev.c~net-do-not-disable-sg-for-aoe net/core/dev.c
+--- a/net/core/dev.c~net-do-not-disable-sg-for-aoe
++++ a/net/core/dev.c
+@@ -2144,7 +2144,8 @@ static bool can_checksum_protocol(netdev
+ static netdev_features_t harmonize_features(struct sk_buff *skb,
+ 	__be16 protocol, netdev_features_t features)
  {
- 	__set_bit(nr ^ BITOP_LE_SWIZZLE, addr);
+-	if (!can_checksum_protocol(features, protocol)) {
++	if (protocol != htons(ETH_P_AOE) &&
++	    !can_checksum_protocol(features, protocol)) {
+ 		features &= ~NETIF_F_ALL_CSUM;
+ 		features &= ~NETIF_F_SG;
+ 	} else if (illegal_highdma(skb->dev, skb)) {
 _
 
-Patches currently in -mm which might be from yoshikawa.takuya@oss.ntt.co.jp are
+Patches currently in -mm which might be from ecashin@coraid.com are
 
-linux-next.patch
-sfc-use-standard-__clearset_bit_le-functions.patch
-drivers-net-ethernet-dec-tulip-use-standard-__set_bit_le-function.patch
-bitops-introduce-generic-clearset_bit_le.patch
-powerpc-bitops-introduce-clearset_bit_le.patch
-kvm-replace-test_and_set_bit_le-in-mark_page_dirty_in_slot-with-set_bit_le.patch
+net-do-not-disable-sg-for-aoe.patch
+aoe-for-performance-support-larger-packet-payloads.patch
+aoe-kernel-thread-handles-i-o-completions-for-simple-locking.patch
+aoe-kernel-thread-handles-i-o-completions-for-simple-locking-fix.patch
+aoe-become-i-o-request-queue-handler-for-increased-user-control.patch
+aoe-use-a-kernel-thread-for-transmissions.patch
+aoe-use-packets-that-work-with-the-smallest-mtu-local-interface.patch
+aoe-failover-remote-interface-based-on-aoe_deadsecs-parameter.patch
+aoe-do-revalidation-steps-in-order.patch
+aoe-disallow-unsupported-aoe-minor-addresses.patch
+aoe-associate-frames-with-the-aoe-storage-target.patch
+aoe-increase-net_device-reference-count-while-using-it.patch
+aoe-remove-unused-code-and-add-cosmetic-improvements.patch
+aoe-update-internal-version-number-to-49.patch
+aoe-update-copyright-year-in-touched-files.patch
+aoe-update-documentation-with-new-url-and-vm-settings-reference.patch
 
