@@ -1,78 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: + poweroff-fix-bug-in-orderly_poweroff.patch added to -mm tree
-Date: Wed, 19 Sep 2012 12:12:39 -0700
-Message-ID: <20120919191240.2DDC120004E@hpza10.eem.corp.google.com>
+Subject: [to-be-updated] drivers-video-backlight-pwm_blc-add-device-tree-support-for-low-threshold-brightness.patch removed from -mm tree
+Date: Wed, 19 Sep 2012 12:13:36 -0700
+Message-ID: <20120919191336.9DE5D1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:44961 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754843Ab2ISTMm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Sep 2012 15:12:42 -0400
-Received: by faet1 with SMTP id t1so83957fae.1
-        for <mm-commits@vger.kernel.org>; Wed, 19 Sep 2012 12:12:41 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:48287 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754843Ab2ISTNi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Sep 2012 15:13:38 -0400
+Received: by ghbz15 with SMTP id z15so183428ghb.1
+        for <mm-commits@vger.kernel.org>; Wed, 19 Sep 2012 12:13:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: hongfeng@marvell.com, ebiederm@xmission.com, keescook@chromium.org, rjw@sisk.pl, serge.hallyn@canonical.com
+To: avinashphilip@ti.com, FlorianSchandinat@gmx.de, broonie@opensource.wolfsonmicro.com, grant.likely@secretlab.ca, rob.herring@calxeda.com, thierry.reding@avionic-design.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: poweroff: fix bug in orderly_poweroff()
-has been added to the -mm tree.  Its filename is
-     poweroff-fix-bug-in-orderly_poweroff.patch
+     Subject: drivers/video/backlight/pwm_bl.c: add device tree support for Low Threshold Brightness
+has been removed from the -mm tree.  Its filename was
+     drivers-video-backlight-pwm_blc-add-device-tree-support-for-low-threshold-brightness.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: hongfeng <hongfeng@marvell.com>
-Subject: poweroff: fix bug in orderly_poweroff()
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Subject: drivers/video/backlight/pwm_bl.c: add device tree support for Low Threshold Brightness
 
-orderly_poweroff is trying to poweroff platform by two steps:
+Low Threshold Brightness should be configured to have a linear relation in
+brightness scale.  This patch adds device tree support for low threshold
+brightness as optional one for pwm_backlight.
 
-step 1: Call userspace application to poweroff
-
-step 2: If userspace poweroff fail, then do a force power off if force
-param is set.
-
-The bug here is, step 1 is always successful with param UMH_NO_WAIT,
-should change to UMH_WAIT_EXEC which will monitor whether user application
-successful run.
-
-Signed-off-by: Feng Hong <hongfeng@marvell.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Serge Hallyn <serge.hallyn@canonical.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Thierry Reding <thierry.reding@avionic-design.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/devicetree/bindings/video/backlight/pwm-backlight.txt |   21 ++++++++++
+ drivers/video/backlight/pwm_bl.c                                    |    5 ++
+ 2 files changed, 26 insertions(+)
 
-diff -puN kernel/sys.c~poweroff-fix-bug-in-orderly_poweroff kernel/sys.c
---- a/kernel/sys.c~poweroff-fix-bug-in-orderly_poweroff
-+++ a/kernel/sys.c
-@@ -2205,7 +2205,7 @@ static int __orderly_poweroff(void)
- 		return -ENOMEM;
+diff -puN Documentation/devicetree/bindings/video/backlight/pwm-backlight.txt~drivers-video-backlight-pwm_blc-add-device-tree-support-for-low-threshold-brightness Documentation/devicetree/bindings/video/backlight/pwm-backlight.txt
+--- a/Documentation/devicetree/bindings/video/backlight/pwm-backlight.txt~drivers-video-backlight-pwm_blc-add-device-tree-support-for-low-threshold-brightness
++++ a/Documentation/devicetree/bindings/video/backlight/pwm-backlight.txt
+@@ -14,6 +14,8 @@ Required properties:
+ Optional properties:
+   - pwm-names: a list of names for the PWM devices specified in the
+                "pwms" property (see PWM binding[0])
++  - low_threshold_brightness: brightness threshold low level. (get linear
++		 scales in brightness in low end of brightness levels)
+ 
+ [0]: Documentation/devicetree/bindings/pwm/pwm.txt
+ 
+@@ -26,3 +28,22 @@ Example:
+ 		brightness-levels = <0 4 8 16 32 64 128 255>;
+ 		default-brightness-level = <6>;
+ 	};
++
++Example for brightness_threshold_level:
++
++	backlight {
++		compatible	= "pwm-backlight";
++		pwms = <&pwm 0 50000>;
++
++		brightness-levels = <0 4 8 16 32 64 128 255>;
++		default-brightness-level = <6>;
++		low_threshold_brightness = <50>;
++	};
++};
++Note:
++Low threshold support is required to have linear brightness scale from
++0 to max. For some panels, backlight absent on low end of brightness
++scale. So support for Low Threshold been required. So that the scale of
++brightness changed from Low Threshold to Max in scales defined in
++brightness-levels. In this example 20% maximum brightness scale should
++be required to turn on panel backlight.
+diff -puN drivers/video/backlight/pwm_bl.c~drivers-video-backlight-pwm_blc-add-device-tree-support-for-low-threshold-brightness drivers/video/backlight/pwm_bl.c
+--- a/drivers/video/backlight/pwm_bl.c~drivers-video-backlight-pwm_blc-add-device-tree-support-for-low-threshold-brightness
++++ a/drivers/video/backlight/pwm_bl.c
+@@ -143,6 +143,11 @@ static int pwm_backlight_parse_dt(struct
+ 
+ 		data->dft_brightness = value;
+ 		data->max_brightness--;
++
++		ret = of_property_read_u32(node, "low_threshold_brightness",
++					   &value);
++		if (!ret)
++			data->lth_brightness = value;
  	}
  
--	ret = call_usermodehelper_fns(argv[0], argv, envp, UMH_NO_WAIT,
-+	ret = call_usermodehelper_fns(argv[0], argv, envp, UMH_WAIT_EXEC,
- 				      NULL, argv_cleanup, NULL);
- 	if (ret == -ENOMEM)
- 		argv_free(argv);
+ 	/*
 _
 
-Patches currently in -mm which might be from hongfeng@marvell.com are
+Patches currently in -mm which might be from avinashphilip@ti.com are
 
-poweroff-fix-bug-in-orderly_poweroff.patch
+linux-next.patch
 
