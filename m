@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + net-do-not-disable-sg-for-aoe.patch added to -mm tree
-Date: Wed, 19 Sep 2012 11:45:02 -0700
-Message-ID: <20120919184504.852A61E0048@wpzn4.hot.corp.google.com>
+Subject: + mm-fix-invalidate_complete_page2-lock-ordering.patch added to -mm tree
+Date: Wed, 19 Sep 2012 11:50:36 -0700
+Message-ID: <20120919185036.C38AC100048@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:61928 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756470Ab2ISSpH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Sep 2012 14:45:07 -0400
-Received: by yenq6 with SMTP id q6so178675yen.1
-        for <mm-commits@vger.kernel.org>; Wed, 19 Sep 2012 11:45:06 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:62050 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755469Ab2ISSui (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Sep 2012 14:50:38 -0400
+Received: by ggnu1 with SMTP id u1so179704ggn.1
+        for <mm-commits@vger.kernel.org>; Wed, 19 Sep 2012 11:50:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ecashin@coraid.com, jesse@nicira.com
+Cc: hughd@google.com, akpm@linux-foundation.org, hannes@cmpxchg.org, levinsasha928@gmail.com, mel@csn.ul.ie, riel@redhat.com, stable@vger.kernel.org, walken@google.com, yinghan@google.com
 
 
 The patch titled
-     Subject: net: do not disable sg for AoE
+     Subject: mm: fix invalidate_complete_page2() lock ordering
 has been added to the -mm tree.  Its filename is
-     net-do-not-disable-sg-for-aoe.patch
+     mm-fix-invalidate_complete_page2-lock-ordering.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,83 +33,115 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ed Cashin <ecashin@coraid.com>
-Subject: net: do not disable sg for AoE
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: fix invalidate_complete_page2() lock ordering
 
-A change in a series of VLAN-related changes appears to have inadvertently
-disabled the use of the scatter gather feature of network cards for
-transmission of non-IP ethernet protocols like ATA over Ethernet (AoE). 
-Below is a reference to the commit that introduces a "harmonize_features"
-function that turns off scatter gather when the NIC does not support
-hardware checksumming for the ethernet protocol of an sk buff.
+In fuzzing with trinity, lockdep protested "possible irq lock inversion
+dependency detected" when isolate_lru_page() reenabled interrupts while
+still holding the supposedly irq-safe tree_lock:
 
-  commit f01a5236bd4b140198fbcc550f085e8361fd73fa
-  Author: Jesse Gross <jesse@nicira.com>
-  Date:   Sun Jan 9 06:23:31 2011 +0000
+invalidate_inode_pages2
+  invalidate_complete_page2
+    spin_lock_irq(&mapping->tree_lock)
+    clear_page_mlock
+      isolate_lru_page
+        spin_unlock_irq(&zone->lru_lock)
 
-      net offloading: Generalize netif_get_vlan_features().
+isolate_lru_page() is correct to enable interrupts unconditionally:
+invalidate_complete_page2() is incorrect to call clear_page_mlock() while
+holding tree_lock, which is supposed to nest inside lru_lock.
 
-The can_checksum_protocol function is not equipped to consider a protocol
-that does not require checksumming.  Calling it for a protocol that
-requires no checksum is inappropriate.
+Both truncate_complete_page() and invalidate_complete_page() call
+clear_page_mlock() before taking tree_lock to remove page from radix_tree.
+ I guess invalidate_complete_page2() preferred to test PageDirty (again)
+under tree_lock before committing to the munlock; but since the page has
+already been unmapped, its state is already somewhat inconsistent, and no
+worse if clear_page_mlock() moved up.
 
-The patch below has harmonize_features call can_checksum_protocol when the
-protocol needs a checksum, so that the network layer is not forced to
-perform unnecessary skb linearization on the transmission of AoE packets. 
-Unnecessary linearization results in decreased performance and increased
-memory pressure, as reported here:
-
-  http://www.spinics.net/lists/linux-mm/msg15184.html
-
-The problem has probably not been widely experienced yet, because only
-recently has the kernel.org-distributed aoe driver acquired the ability to
-use payloads of over a page in size, with the patchset recently included
-in the mm tree:
-
-  https://lkml.org/lkml/2012/8/28/140
-
-The coraid.com-distributed aoe driver already could use payloads of
-greater than a page in size, but its users generally do not use the newest
-kernels.
-
-Signed-off-by: Ed Cashin <ecashin@coraid.com>
+Reported-by: Sasha Levin <levinsasha928@gmail.com>
+Deciphered-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Ying Han <yinghan@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/core/dev.c |    3 ++-
+ mm/truncate.c |    3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN net/core/dev.c~net-do-not-disable-sg-for-aoe net/core/dev.c
---- a/net/core/dev.c~net-do-not-disable-sg-for-aoe
-+++ a/net/core/dev.c
-@@ -2144,7 +2144,8 @@ static bool can_checksum_protocol(netdev
- static netdev_features_t harmonize_features(struct sk_buff *skb,
- 	__be16 protocol, netdev_features_t features)
- {
--	if (!can_checksum_protocol(features, protocol)) {
-+	if (protocol != htons(ETH_P_AOE) &&
-+	    !can_checksum_protocol(features, protocol)) {
- 		features &= ~NETIF_F_ALL_CSUM;
- 		features &= ~NETIF_F_SG;
- 	} else if (illegal_highdma(skb->dev, skb)) {
+diff -puN mm/truncate.c~mm-fix-invalidate_complete_page2-lock-ordering mm/truncate.c
+--- a/mm/truncate.c~mm-fix-invalidate_complete_page2-lock-ordering
++++ a/mm/truncate.c
+@@ -394,11 +394,12 @@ invalidate_complete_page2(struct address
+ 	if (page_has_private(page) && !try_to_release_page(page, GFP_KERNEL))
+ 		return 0;
+ 
++	clear_page_mlock(page);
++
+ 	spin_lock_irq(&mapping->tree_lock);
+ 	if (PageDirty(page))
+ 		goto failed;
+ 
+-	clear_page_mlock(page);
+ 	BUG_ON(page_has_private(page));
+ 	__delete_from_page_cache(page);
+ 	spin_unlock_irq(&mapping->tree_lock);
 _
 
-Patches currently in -mm which might be from ecashin@coraid.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-net-do-not-disable-sg-for-aoe.patch
-aoe-for-performance-support-larger-packet-payloads.patch
-aoe-kernel-thread-handles-i-o-completions-for-simple-locking.patch
-aoe-kernel-thread-handles-i-o-completions-for-simple-locking-fix.patch
-aoe-become-i-o-request-queue-handler-for-increased-user-control.patch
-aoe-use-a-kernel-thread-for-transmissions.patch
-aoe-use-packets-that-work-with-the-smallest-mtu-local-interface.patch
-aoe-failover-remote-interface-based-on-aoe_deadsecs-parameter.patch
-aoe-do-revalidation-steps-in-order.patch
-aoe-disallow-unsupported-aoe-minor-addresses.patch
-aoe-associate-frames-with-the-aoe-storage-target.patch
-aoe-increase-net_device-reference-count-while-using-it.patch
-aoe-remove-unused-code-and-add-cosmetic-improvements.patch
-aoe-update-internal-version-number-to-49.patch
-aoe-update-copyright-year-in-touched-files.patch
-aoe-update-documentation-with-new-url-and-vm-settings-reference.patch
+linux-next.patch
+x86-pat-remove-the-dependency-on-vm_pgoff-in-track-untrack-pfn-vma-routines.patch
+x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn.patch
+mm-x86-pat-rework-linear-pfn-mmap-tracking.patch
+mm-introduce-arch-specific-vma-flag-vm_arch_1.patch
+mm-kill-vma-flag-vm_insertpage.patch
+mm-kill-vma-flag-vm_can_nonlinear.patch
+mm-use-mm-exe_file-instead-of-first-vm_executable-vma-vm_file.patch
+mm-kill-vma-flag-vm_executable-and-mm-num_exe_file_vmas.patch
+mm-prepare-vm_dontdump-for-using-in-drivers.patch
+mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter.patch
+mm-mmapc-replace-find_vma_prepare-with-clearer-find_vma_links.patch
+mm-mmapc-replace-find_vma_prepare-with-clearer-find_vma_links-fix.patch
+mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host.patch
+mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch
+mm-mmu_notifier-init-notifier-if-necessary.patch
+thp-fix-the-count-of-thp_collapse_alloc.patch
+thp-remove-unnecessary-check-in-start_khugepaged.patch
+thp-move-khugepaged_mutex-out-of-khugepaged.patch
+thp-remove-unnecessary-khugepaged_thread-check.patch
+thp-remove-wake_up_interruptible-in-the-exit-path.patch
+thp-remove-some-code-depend-on-config_numa.patch
+thp-merge-page-pre-alloc-in-khugepaged_loop-into-khugepaged_do_scan.patch
+thp-release-page-in-page-pre-alloc-path.patch
+thp-introduce-khugepaged_prealloc_page-and-khugepaged_alloc_page.patch
+thp-remove-khugepaged_loop.patch
+thp-use-khugepaged_enabled-to-remove-duplicate-code.patch
+thp-remove-unnecessary-set_recommended_min_free_kbytes.patch
+mm-fix-potential-anon_vma-locking-issue-in-mprotect.patch
+thp-x86-introduce-have_arch_transparent_hugepage.patch
+thp-remove-assumptions-on-pgtable_t-type.patch
+thp-introduce-pmdp_invalidate.patch
+thp-make-madv_hugepage-check-for-mm-def_flags.patch
+thp-s390-thp-splitting-backend-for-s390.patch
+thp-s390-thp-pagetable-pre-allocation-for-s390.patch
+thp-s390-disable-thp-for-kvm-host-on-s390.patch
+thp-s390-architecture-backend-for-thp-on-s390.patch
+mm-interval-tree-updates.patch
+mm-anon-rmap-remove-anon_vma_moveto_tail.patch
+mm-anon-rmap-replace-same_anon_vma-linked-list-with-an-interval-tree.patch
+mm-rmap-remove-vma_address-check-for-address-inside-vma.patch
+mm-add-config_debug_vm_rb-build-option.patch
+mm-anon-rmap-in-mremap-set-the-new-vmas-position-before-anon_vma_clone.patch
+mm-avoid-taking-rmap-locks-in-move_ptes.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+thp-khugepaged_prealloc_page-forgot-to-reset-the-page-alloc-indicator.patch
+mm-fix-invalidate_complete_page2-lock-ordering.patch
+mm-isolate_lru_page-dont-enable-local-interrupts.patch
+mm-thp-fix-pmd_present-for-split_huge_page-and-prot_none-with-thp.patch
 
