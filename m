@@ -1,147 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-invalidate_complete_page2-lock-ordering.patch added to -mm tree
-Date: Wed, 19 Sep 2012 11:50:36 -0700
-Message-ID: <20120919185036.C38AC100048@wpzn3.hot.corp.google.com>
+Subject: [alternative-merged] mm-isolate_lru_page-dont-enable-local-interrupts.patch removed from -mm tree
+Date: Wed, 19 Sep 2012 11:50:48 -0700
+Message-ID: <20120919185049.C78A420004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:62050 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755469Ab2ISSui (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Sep 2012 14:50:38 -0400
-Received: by ggnu1 with SMTP id u1so179704ggn.1
-        for <mm-commits@vger.kernel.org>; Wed, 19 Sep 2012 11:50:37 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:53555 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755469Ab2ISSuw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Sep 2012 14:50:52 -0400
+Received: by wibhr14 with SMTP id hr14so84594wib.1
+        for <mm-commits@vger.kernel.org>; Wed, 19 Sep 2012 11:50:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, akpm@linux-foundation.org, hannes@cmpxchg.org, levinsasha928@gmail.com, mel@csn.ul.ie, riel@redhat.com, stable@vger.kernel.org, walken@google.com, yinghan@google.com
+To: akpm@linux-foundation.org, hughd@google.com, levinsasha928@gmail.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix invalidate_complete_page2() lock ordering
-has been added to the -mm tree.  Its filename is
-     mm-fix-invalidate_complete_page2-lock-ordering.patch
+     Subject: mm: isolate_lru_page(): don't enable local interrupts
+has been removed from the -mm tree.  Its filename was
+     mm-isolate_lru_page-dont-enable-local-interrupts.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: fix invalidate_complete_page2() lock ordering
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: isolate_lru_page(): don't enable local interrupts
 
-In fuzzing with trinity, lockdep protested "possible irq lock inversion
-dependency detected" when isolate_lru_page() reenabled interrupts while
-still holding the supposedly irq-safe tree_lock:
+isolate_lru_page() is called with local interrupts disabled, via
 
-invalidate_inode_pages2
-  invalidate_complete_page2
-    spin_lock_irq(&mapping->tree_lock)
-    clear_page_mlock
-      isolate_lru_page
-        spin_unlock_irq(&zone->lru_lock)
+invalidate_complete_page2()
+->spin_lock_irq(&mapping->tree_lock)
+->clear_page_mlock()
+  __clear_page_mlock()
+  ->isolate_lru_page()
 
-isolate_lru_page() is correct to enable interrupts unconditionally:
-invalidate_complete_page2() is incorrect to call clear_page_mlock() while
-holding tree_lock, which is supposed to nest inside lru_lock.
+so it should not unconditionally enable local interrupts.
 
-Both truncate_complete_page() and invalidate_complete_page() call
-clear_page_mlock() before taking tree_lock to remove page from radix_tree.
- I guess invalidate_complete_page2() preferred to test PageDirty (again)
-under tree_lock before committing to the munlock; but since the page has
-already been unmapped, its state is already somewhat inconsistent, and no
-worse if clear_page_mlock() moved up.
+Sasha hit a lockdep warning when running Trinity as a result of this.
 
 Reported-by: Sasha Levin <levinsasha928@gmail.com>
-Deciphered-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Ying Han <yinghan@google.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/truncate.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/vmscan.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/truncate.c~mm-fix-invalidate_complete_page2-lock-ordering mm/truncate.c
---- a/mm/truncate.c~mm-fix-invalidate_complete_page2-lock-ordering
-+++ a/mm/truncate.c
-@@ -394,11 +394,12 @@ invalidate_complete_page2(struct address
- 	if (page_has_private(page) && !try_to_release_page(page, GFP_KERNEL))
- 		return 0;
+diff -puN mm/vmscan.c~mm-isolate_lru_page-dont-enable-local-interrupts mm/vmscan.c
+--- a/mm/vmscan.c~mm-isolate_lru_page-dont-enable-local-interrupts
++++ a/mm/vmscan.c
+@@ -1161,8 +1161,9 @@ int isolate_lru_page(struct page *page)
+ 	if (PageLRU(page)) {
+ 		struct zone *zone = page_zone(page);
+ 		struct lruvec *lruvec;
++		unsigned long flags;
  
-+	clear_page_mlock(page);
-+
- 	spin_lock_irq(&mapping->tree_lock);
- 	if (PageDirty(page))
- 		goto failed;
- 
--	clear_page_mlock(page);
- 	BUG_ON(page_has_private(page));
- 	__delete_from_page_cache(page);
- 	spin_unlock_irq(&mapping->tree_lock);
+-		spin_lock_irq(&zone->lru_lock);
++		spin_lock_irqsave(&zone->lru_lock, flags);
+ 		lruvec = mem_cgroup_page_lruvec(page, zone);
+ 		if (PageLRU(page)) {
+ 			int lru = page_lru(page);
+@@ -1171,7 +1172,7 @@ int isolate_lru_page(struct page *page)
+ 			del_page_from_lru_list(page, lruvec, lru);
+ 			ret = 0;
+ 		}
+-		spin_unlock_irq(&zone->lru_lock);
++		spin_unlock_irqrestore(&zone->lru_lock, flags);
+ 	}
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-x86-pat-remove-the-dependency-on-vm_pgoff-in-track-untrack-pfn-vma-routines.patch
-x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn.patch
-mm-x86-pat-rework-linear-pfn-mmap-tracking.patch
-mm-introduce-arch-specific-vma-flag-vm_arch_1.patch
-mm-kill-vma-flag-vm_insertpage.patch
-mm-kill-vma-flag-vm_can_nonlinear.patch
-mm-use-mm-exe_file-instead-of-first-vm_executable-vma-vm_file.patch
-mm-kill-vma-flag-vm_executable-and-mm-num_exe_file_vmas.patch
-mm-prepare-vm_dontdump-for-using-in-drivers.patch
-mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter.patch
-mm-mmapc-replace-find_vma_prepare-with-clearer-find_vma_links.patch
-mm-mmapc-replace-find_vma_prepare-with-clearer-find_vma_links-fix.patch
-mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+idr-rename-max_level-to-max_idr_level-fix-3.patch
+cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+audith-replace-defines-with-c-stubs.patch
+slab-fix-debug==0-warning.patch
+mm.patch
+x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
+mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
+mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures-fix.patch
 mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch
-mm-mmu_notifier-init-notifier-if-necessary.patch
-thp-fix-the-count-of-thp_collapse_alloc.patch
-thp-remove-unnecessary-check-in-start_khugepaged.patch
-thp-move-khugepaged_mutex-out-of-khugepaged.patch
-thp-remove-unnecessary-khugepaged_thread-check.patch
-thp-remove-wake_up_interruptible-in-the-exit-path.patch
-thp-remove-some-code-depend-on-config_numa.patch
-thp-merge-page-pre-alloc-in-khugepaged_loop-into-khugepaged_do_scan.patch
-thp-release-page-in-page-pre-alloc-path.patch
-thp-introduce-khugepaged_prealloc_page-and-khugepaged_alloc_page.patch
-thp-remove-khugepaged_loop.patch
-thp-use-khugepaged_enabled-to-remove-duplicate-code.patch
-thp-remove-unnecessary-set_recommended_min_free_kbytes.patch
-mm-fix-potential-anon_vma-locking-issue-in-mprotect.patch
-thp-x86-introduce-have_arch_transparent_hugepage.patch
-thp-remove-assumptions-on-pgtable_t-type.patch
-thp-introduce-pmdp_invalidate.patch
-thp-make-madv_hugepage-check-for-mm-def_flags.patch
-thp-s390-thp-splitting-backend-for-s390.patch
-thp-s390-thp-pagetable-pre-allocation-for-s390.patch
-thp-s390-disable-thp-for-kvm-host-on-s390.patch
-thp-s390-architecture-backend-for-thp-on-s390.patch
-mm-interval-tree-updates.patch
-mm-anon-rmap-remove-anon_vma_moveto_tail.patch
-mm-anon-rmap-replace-same_anon_vma-linked-list-with-an-interval-tree.patch
-mm-rmap-remove-vma_address-check-for-address-inside-vma.patch
-mm-add-config_debug_vm_rb-build-option.patch
-mm-anon-rmap-in-mremap-set-the-new-vmas-position-before-anon_vma_clone.patch
-mm-avoid-taking-rmap-locks-in-move_ptes.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
+rbtree-performance-and-correctness-test-fix.patch
+mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix.patch
+memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
+atomic-implement-generic-atomic_dec_if_positive-fix.patch
 swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-thp-khugepaged_prealloc_page-forgot-to-reset-the-page-alloc-indicator.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix-2.patch
+mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch
 mm-fix-invalidate_complete_page2-lock-ordering.patch
-mm-isolate_lru_page-dont-enable-local-interrupts.patch
-mm-thp-fix-pmd_present-for-split_huge_page-and-prot_none-with-thp.patch
+sections-fix-section-conflicts-in-arch-h8300-checkpatch-fixes.patch
+sections-fix-section-conflicts-in-drivers-macintosh-checkpatch-fixes.patch
+sectons-fix-const-sections-for-crc32-table-checkpatch-fixes.patch
+backlight-add-backlight-driver-for-lm3630-chip-fix.patch
+backlight-add-new-lm3639-backlight-driver-fix.patch
+idr-rename-max_level-to-max_idr_level-fix.patch
+idr-rename-max_level-to-max_idr_level-fix-fix-2.patch
+lib-parserc-avoid-overflow-in-match_number-fix.patch
+lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+rtc-add-dallas-ds2404-driver-fix.patch
+rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch
+fs-fat-fix-all-other-checkpatch-issues-in-dirc-fix.patch
+fat-simplify-writeback_inode-checkpatch-fixes.patch
+fat-simplify-writeback_inode-checkpatch-fixes-fix.patch
+coredump-make-core-dump-functionality-optional-fix-fix.patch
+coredump-use-suid_dumpable_enabled-rather-than-hardcoded-1-checkpatch-fixes.patch
+proc-use-kzalloc-instead-of-kmalloc-and-memset-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
