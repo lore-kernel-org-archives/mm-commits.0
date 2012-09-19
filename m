@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-vma-arg-from-page_evictable.patch added to -mm tree
-Date: Wed, 19 Sep 2012 15:02:02 -0700
-Message-ID: <20120919220202.F3E1B200069@hpza10.eem.corp.google.com>
+Subject: + mm-clear_page_mlock-in-page_remove_rmap.patch added to -mm tree
+Date: Wed, 19 Sep 2012 15:02:07 -0700
+Message-ID: <20120919220207.E01D65C0080@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:39128 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752474Ab2ISWCH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Sep 2012 18:02:07 -0400
-Received: by eekd4 with SMTP id d4so91587eek.1
-        for <mm-commits@vger.kernel.org>; Wed, 19 Sep 2012 15:02:04 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:46237 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752474Ab2ISWCL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Sep 2012 18:02:11 -0400
+Received: by faet1 with SMTP id t1so91057fae.1
+        for <mm-commits@vger.kernel.org>; Wed, 19 Sep 2012 15:02:09 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: hughd@google.com, hannes@cmpxchg.org, mel@csn.ul.ie, riel@redhat.com, walken
 
 
 The patch titled
-     Subject: mm: remove vma arg from page_evictable
+     Subject: mm: clear_page_mlock in page_remove_rmap
 has been added to the -mm tree.  Its filename is
-     mm-remove-vma-arg-from-page_evictable.patch
+     mm-clear_page_mlock-in-page_remove_rmap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,210 +34,187 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm: remove vma arg from page_evictable
+Subject: mm: clear_page_mlock in page_remove_rmap
 
-page_evictable(page, vma) is an irritant: almost all its callers pass
-NULL for vma.  Remove the vma arg and use mlocked_vma_newpage(vma, page)
-explicitly in the couple of places it's needed.  But in those places we
-don't even need page_evictable() itself!  They're dealing with a freshly
-allocated anonymous page, which has no "mapping" and cannot be mlocked yet.
+We had thought that pages could no longer get freed while still marked as
+mlocked; but Johannes Weiner posted this program to demonstrate that
+truncating an mlocked private file mapping containing COWed pages is still
+mishandled:
 
+#include <sys/types.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <stdio.h>
+
+int main(void)
+{
+	char *map;
+	int fd;
+
+	system("grep mlockfreed /proc/vmstat");
+	fd = open("chigurh", O_CREAT|O_EXCL|O_RDWR);
+	unlink("chigurh");
+	ftruncate(fd, 4096);
+	map = mmap(NULL, 4096, PROT_WRITE, MAP_PRIVATE, fd, 0);
+	map[0] = 11;
+	mlock(map, sizeof(fd));
+	ftruncate(fd, 0);
+	close(fd);
+	munlock(map, sizeof(fd));
+	munmap(map, 4096);
+	system("grep mlockfreed /proc/vmstat");
+	return 0;
+}
+
+The anon COWed pages are not caught by truncation's clear_page_mlock() of
+the pagecache pages; but unmap_mapping_range() unmaps them, so we ought to
+look out for them there in page_remove_rmap().  Indeed, why should
+truncation or invalidation be doing the clear_page_mlock() when removing
+from pagecache?  mlock is a property of mapping in userspace, not a
+properthihughy of pagecache: an mlocked unmapped page is nonsensical.
+
+Reported-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: Rik van Riel <riel@redhat.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michel Lespinasse <walken@google.com>
 Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/unevictable-lru.txt |   10 ++-------
- include/linux/swap.h                 |    2 -
- mm/internal.h                        |    5 +---
- mm/ksm.c                             |    2 -
- mm/rmap.c                            |    2 -
- mm/swap.c                            |    2 -
- mm/vmscan.c                          |   27 ++++++++-----------------
- 7 files changed, 18 insertions(+), 32 deletions(-)
+ mm/internal.h |    7 +------
+ mm/memory.c   |   10 +++++-----
+ mm/mlock.c    |   16 +++-------------
+ mm/rmap.c     |    4 ++++
+ mm/truncate.c |    4 ----
+ 5 files changed, 13 insertions(+), 28 deletions(-)
 
-diff -puN Documentation/vm/unevictable-lru.txt~mm-remove-vma-arg-from-page_evictable Documentation/vm/unevictable-lru.txt
---- a/Documentation/vm/unevictable-lru.txt~mm-remove-vma-arg-from-page_evictable
-+++ a/Documentation/vm/unevictable-lru.txt
-@@ -197,12 +197,8 @@ the pages are also "rescued" from the un
- freeing them.
- 
- page_evictable() also checks for mlocked pages by testing an additional page
--flag, PG_mlocked (as wrapped by PageMlocked()).  If the page is NOT mlocked,
--and a non-NULL VMA is supplied, page_evictable() will check whether the VMA is
--VM_LOCKED via is_mlocked_vma().  is_mlocked_vma() will SetPageMlocked() and
--update the appropriate statistics if the vma is VM_LOCKED.  This method allows
--efficient "culling" of pages in the fault path that are being faulted in to
--VM_LOCKED VMAs.
-+flag, PG_mlocked (as wrapped by PageMlocked()), which is set when a page is
-+faulted into a VM_LOCKED vma, or found in a vma being VM_LOCKED.
- 
- 
- VMSCAN'S HANDLING OF UNEVICTABLE PAGES
-@@ -651,7 +647,7 @@ PAGE RECLAIM IN shrink_*_list()
- -------------------------------
- 
- shrink_active_list() culls any obviously unevictable pages - i.e.
--!page_evictable(page, NULL) - diverting these to the unevictable list.
-+!page_evictable(page) - diverting these to the unevictable list.
- However, shrink_active_list() only sees unevictable pages that made it onto the
- active/inactive lru lists.  Note that these pages do not have PageUnevictable
- set - otherwise they would be on the unevictable list and shrink_active_list
-diff -puN include/linux/swap.h~mm-remove-vma-arg-from-page_evictable include/linux/swap.h
---- a/include/linux/swap.h~mm-remove-vma-arg-from-page_evictable
-+++ a/include/linux/swap.h
-@@ -281,7 +281,7 @@ static inline int zone_reclaim(struct zo
- }
- #endif
- 
--extern int page_evictable(struct page *page, struct vm_area_struct *vma);
-+extern int page_evictable(struct page *page);
- extern void check_move_unevictable_pages(struct page **, int nr_pages);
- 
- extern unsigned long scan_unevictable_pages;
-diff -puN mm/internal.h~mm-remove-vma-arg-from-page_evictable mm/internal.h
---- a/mm/internal.h~mm-remove-vma-arg-from-page_evictable
+diff -puN mm/internal.h~mm-clear_page_mlock-in-page_remove_rmap mm/internal.h
+--- a/mm/internal.h~mm-clear_page_mlock-in-page_remove_rmap
 +++ a/mm/internal.h
-@@ -169,9 +169,8 @@ static inline void munlock_vma_pages_all
- }
+@@ -202,12 +202,7 @@ extern void munlock_vma_page(struct page
+  * If called for a page that is still mapped by mlocked vmas, all we do
+  * is revert to lazy LRU behaviour -- semantics are not broken.
+  */
+-extern void __clear_page_mlock(struct page *page);
+-static inline void clear_page_mlock(struct page *page)
+-{
+-	if (unlikely(TestClearPageMlocked(page)))
+-		__clear_page_mlock(page);
+-}
++extern void clear_page_mlock(struct page *page);
  
  /*
-- * Called only in fault path via page_evictable() for a new page
-- * to determine if it's being mapped into a LOCKED vma.
-- * If so, mark page as mlocked.
-+ * Called only in fault path, to determine if a new page is being
-+ * mapped into a LOCKED vma.  If it is, mark page as mlocked.
-  */
- static inline int mlocked_vma_newpage(struct vm_area_struct *vma,
- 				    struct page *page)
-diff -puN mm/ksm.c~mm-remove-vma-arg-from-page_evictable mm/ksm.c
---- a/mm/ksm.c~mm-remove-vma-arg-from-page_evictable
-+++ a/mm/ksm.c
-@@ -1586,7 +1586,7 @@ struct page *ksm_does_need_to_copy(struc
- 		SetPageSwapBacked(new_page);
- 		__set_page_locked(new_page);
- 
--		if (page_evictable(new_page, vma))
-+		if (!mlocked_vma_newpage(vma, new_page))
- 			lru_cache_add_lru(new_page, LRU_ACTIVE_ANON);
- 		else
- 			add_page_to_unevictable_list(new_page);
-diff -puN mm/rmap.c~mm-remove-vma-arg-from-page_evictable mm/rmap.c
---- a/mm/rmap.c~mm-remove-vma-arg-from-page_evictable
-+++ a/mm/rmap.c
-@@ -1083,7 +1083,7 @@ void page_add_new_anon_rmap(struct page 
- 	else
- 		__inc_zone_page_state(page, NR_ANON_TRANSPARENT_HUGEPAGES);
- 	__page_set_anon_rmap(page, vma, address, 1);
--	if (page_evictable(page, vma))
-+	if (!mlocked_vma_newpage(vma, page))
- 		lru_cache_add_lru(page, LRU_ACTIVE_ANON);
- 	else
- 		add_page_to_unevictable_list(page);
-diff -puN mm/swap.c~mm-remove-vma-arg-from-page_evictable mm/swap.c
---- a/mm/swap.c~mm-remove-vma-arg-from-page_evictable
-+++ a/mm/swap.c
-@@ -751,7 +751,7 @@ void lru_add_page_tail(struct page *page
- 
- 	SetPageLRU(page_tail);
- 
--	if (page_evictable(page_tail, NULL)) {
-+	if (page_evictable(page_tail)) {
- 		if (PageActive(page)) {
- 			SetPageActive(page_tail);
- 			active = 1;
-diff -puN mm/vmscan.c~mm-remove-vma-arg-from-page_evictable mm/vmscan.c
---- a/mm/vmscan.c~mm-remove-vma-arg-from-page_evictable
-+++ a/mm/vmscan.c
-@@ -553,7 +553,7 @@ void putback_lru_page(struct page *page)
- redo:
- 	ClearPageUnevictable(page);
- 
--	if (page_evictable(page, NULL)) {
-+	if (page_evictable(page)) {
- 		/*
- 		 * For evictable pages, we can use the cache.
- 		 * In event of a race, worst case is we end up with an
-@@ -587,7 +587,7 @@ redo:
- 	 * page is on unevictable list, it never be freed. To avoid that,
- 	 * check after we added it to the list, again.
- 	 */
--	if (lru == LRU_UNEVICTABLE && page_evictable(page, NULL)) {
-+	if (lru == LRU_UNEVICTABLE && page_evictable(page)) {
- 		if (!isolate_lru_page(page)) {
- 			put_page(page);
- 			goto redo;
-@@ -709,7 +709,7 @@ static unsigned long shrink_page_list(st
- 
- 		sc->nr_scanned++;
- 
--		if (unlikely(!page_evictable(page, NULL)))
-+		if (unlikely(!page_evictable(page)))
- 			goto cull_mlocked;
- 
- 		if (!sc->may_unmap && page_mapped(page))
-@@ -1217,7 +1217,7 @@ putback_inactive_pages(struct lruvec *lr
- 
- 		VM_BUG_ON(PageLRU(page));
- 		list_del(&page->lru);
--		if (unlikely(!page_evictable(page, NULL))) {
-+		if (unlikely(!page_evictable(page))) {
- 			spin_unlock_irq(&zone->lru_lock);
- 			putback_lru_page(page);
- 			spin_lock_irq(&zone->lru_lock);
-@@ -1470,7 +1470,7 @@ static void shrink_active_list(unsigned 
- 		page = lru_to_page(&l_hold);
- 		list_del(&page->lru);
- 
--		if (unlikely(!page_evictable(page, NULL))) {
-+		if (unlikely(!page_evictable(page))) {
- 			putback_lru_page(page);
- 			continue;
+  * mlock_migrate_page - called only from migrate_page_copy() to
+diff -puN mm/memory.c~mm-clear_page_mlock-in-page_remove_rmap mm/memory.c
+--- a/mm/memory.c~mm-clear_page_mlock-in-page_remove_rmap
++++ a/mm/memory.c
+@@ -1577,12 +1577,12 @@ split_fallthrough:
+ 		if (page->mapping && trylock_page(page)) {
+ 			lru_add_drain();  /* push cached pages to LRU */
+ 			/*
+-			 * Because we lock page here and migration is
+-			 * blocked by the pte's page reference, we need
+-			 * only check for file-cache page truncation.
++			 * Because we lock page here, and migration is
++			 * blocked by the pte's page reference, and we
++			 * know the page is still mapped, we don't even
++			 * need to check for file-cache page truncation.
+ 			 */
+-			if (page->mapping)
+-				mlock_vma_page(page);
++			mlock_vma_page(page);
+ 			unlock_page(page);
  		}
-@@ -3406,27 +3406,18 @@ int zone_reclaim(struct zone *zone, gfp_
+ 	}
+diff -puN mm/mlock.c~mm-clear_page_mlock-in-page_remove_rmap mm/mlock.c
+--- a/mm/mlock.c~mm-clear_page_mlock-in-page_remove_rmap
++++ a/mm/mlock.c
+@@ -51,13 +51,10 @@ EXPORT_SYMBOL(can_do_mlock);
  /*
-  * page_evictable - test whether a page is evictable
-  * @page: the page to test
-- * @vma: the VMA in which the page is or will be mapped, may be NULL
-  *
-  * Test whether page is evictable--i.e., should be placed on active/inactive
-- * lists vs unevictable list.  The vma argument is !NULL when called from the
-- * fault path to determine how to instantate a new page.
-+ * lists vs unevictable list.
-  *
-  * Reasons page might not be evictable:
-  * (1) page's mapping marked unevictable
-  * (2) page is part of an mlocked VMA
-  *
+  *  LRU accounting for clear_page_mlock()
   */
--int page_evictable(struct page *page, struct vm_area_struct *vma)
-+int page_evictable(struct page *page)
+-void __clear_page_mlock(struct page *page)
++void clear_page_mlock(struct page *page)
  {
+-	VM_BUG_ON(!PageLocked(page));
 -
--	if (mapping_unevictable(page_mapping(page)))
--		return 0;
+-	if (!page->mapping) {	/* truncated ? */
++	if (!TestClearPageMlocked(page))
+ 		return;
+-	}
+ 
+ 	dec_zone_page_state(page, NR_MLOCK);
+ 	count_vm_event(UNEVICTABLE_PGCLEARED);
+@@ -290,14 +287,7 @@ void munlock_vma_pages_range(struct vm_a
+ 		page = follow_page(vma, addr, FOLL_GET | FOLL_DUMP);
+ 		if (page && !IS_ERR(page)) {
+ 			lock_page(page);
+-			/*
+-			 * Like in __mlock_vma_pages_range(),
+-			 * because we lock page here and migration is
+-			 * blocked by the elevated reference, we need
+-			 * only check for file-cache page truncation.
+-			 */
+-			if (page->mapping)
+-				munlock_vma_page(page);
++			munlock_vma_page(page);
+ 			unlock_page(page);
+ 			put_page(page);
+ 		}
+diff -puN mm/rmap.c~mm-clear_page_mlock-in-page_remove_rmap mm/rmap.c
+--- a/mm/rmap.c~mm-clear_page_mlock-in-page_remove_rmap
++++ a/mm/rmap.c
+@@ -1158,7 +1158,10 @@ void page_remove_rmap(struct page *page)
+ 	} else {
+ 		__dec_zone_page_state(page, NR_FILE_MAPPED);
+ 		mem_cgroup_dec_page_stat(page, MEMCG_NR_FILE_MAPPED);
++		mem_cgroup_end_update_page_stat(page, &locked, &flags);
+ 	}
++	if (unlikely(PageMlocked(page)))
++		clear_page_mlock(page);
+ 	/*
+ 	 * It would be tidy to reset the PageAnon mapping here,
+ 	 * but that might overwrite a racing page_add_anon_rmap
+@@ -1168,6 +1171,7 @@ void page_remove_rmap(struct page *page)
+ 	 * Leaving it set also helps swapoff to reinstate ptes
+ 	 * faster for those pages still in swapcache.
+ 	 */
++	return;
+ out:
+ 	if (!anon)
+ 		mem_cgroup_end_update_page_stat(page, &locked, &flags);
+diff -puN mm/truncate.c~mm-clear_page_mlock-in-page_remove_rmap mm/truncate.c
+--- a/mm/truncate.c~mm-clear_page_mlock-in-page_remove_rmap
++++ a/mm/truncate.c
+@@ -107,7 +107,6 @@ truncate_complete_page(struct address_sp
+ 
+ 	cancel_dirty_page(page, PAGE_CACHE_SIZE);
+ 
+-	clear_page_mlock(page);
+ 	ClearPageMappedToDisk(page);
+ 	delete_from_page_cache(page);
+ 	return 0;
+@@ -132,7 +131,6 @@ invalidate_complete_page(struct address_
+ 	if (page_has_private(page) && !try_to_release_page(page, 0))
+ 		return 0;
+ 
+-	clear_page_mlock(page);
+ 	ret = remove_mapping(mapping, page);
+ 
+ 	return ret;
+@@ -394,8 +392,6 @@ invalidate_complete_page2(struct address
+ 	if (page_has_private(page) && !try_to_release_page(page, GFP_KERNEL))
+ 		return 0;
+ 
+-	clear_page_mlock(page);
 -
--	if (PageMlocked(page) || (vma && mlocked_vma_newpage(vma, page)))
--		return 0;
--
--	return 1;
-+	return !mapping_unevictable(page_mapping(page)) && !PageMlocked(page);
- }
- 
- #ifdef CONFIG_SHMEM
-@@ -3464,7 +3455,7 @@ void check_move_unevictable_pages(struct
- 		if (!PageLRU(page) || !PageUnevictable(page))
- 			continue;
- 
--		if (page_evictable(page, NULL)) {
-+		if (page_evictable(page)) {
- 			enum lru_list lru = page_lru_base_type(page);
- 
- 			VM_BUG_ON(PageActive(page));
+ 	spin_lock_irq(&mapping->tree_lock);
+ 	if (PageDirty(page))
+ 		goto failed;
 _
 
 Patches currently in -mm which might be from hughd@google.com are
