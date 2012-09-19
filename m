@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-free_page_mlock.patch added to -mm tree
-Date: Wed, 19 Sep 2012 15:02:10 -0700
-Message-ID: <20120919220211.59CF01E004A@wpzn4.hot.corp.google.com>
+Subject: + mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock.patch added to -mm tree
+Date: Wed, 19 Sep 2012 15:07:34 -0700
+Message-ID: <20120919220734.BF9581E0146@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:51224 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752474Ab2ISWCM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Sep 2012 18:02:12 -0400
-Received: by qcqs25 with SMTP id s25so212139qcq.1
-        for <mm-commits@vger.kernel.org>; Wed, 19 Sep 2012 15:02:12 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:50876 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751072Ab2ISWHg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Sep 2012 18:07:36 -0400
+Received: by qafl39 with SMTP id l39so233592qaf.1
+        for <mm-commits@vger.kernel.org>; Wed, 19 Sep 2012 15:07:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, hannes@cmpxchg.org, mel@csn.ul.ie, riel@redhat.com, walken@google.com, yinghan@google.com
+Cc: sagig@mellanox.com, a.p.zijlstra@chello.nl, andrea@qumranet.com, avi@redhat.com, cl@linux-foundation.org, haggaie@mellanox.com, hughd@google.com, liranl@mellanox.com, ogerlitz@mellanox.com, raindel@mellanox.com, xiaoguangrong@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: mm: remove free_page_mlock
+     Subject: mm: move all mmu notifier invocations to be done outside the PT lock
 has been added to the -mm tree.  Its filename is
-     mm-remove-free_page_mlock.patch
+     mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,167 +33,612 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: remove free_page_mlock
+From: Sagi Grimberg <sagig@mellanox.com>
+Subject: mm: move all mmu notifier invocations to be done outside the PT lock
 
-We should not be seeing non-0 unevictable_pgs_mlockfreed any longer.  So
-remove free_page_mlock() from the page freeing paths: __PG_MLOCKED is
-already in PAGE_FLAGS_CHECK_AT_FREE, so free_pages_check() will now be
-checking it, reporting "BUG: Bad page state" if it's ever found set. 
-Comment UNEVICTABLE_MLOCKFREED and unevictable_pgs_mlockfreed always 0.
+In order to allow sleeping during mmu notifier calls, we need to avoid
+invoking them under the page table spinlock.  This patch solves the
+problem by calling invalidate_page notification after releasing the lock
+(but before freeing the page itself), or by wrapping the page invalidation
+with calls to invalidate_range_begin and invalidate_range_end.
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Ying Han <yinghan@google.com>
+To prevent accidental changes to the invalidate_range_end arguments after
+the call to invalidate_range_begin, the patch introduces a convention of
+saving the arguments in consistently named locals:
+
+	unsigned long mmun_start;	/* For mmu_notifiers */
+	unsigned long mmun_end;	/* For mmu_notifiers */
+
+	...
+
+	mmun_start = ...
+	mmun_end = ...
+	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
+
+	...
+
+	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
+
+The patch changes code to use this convention for all calls to
+mmu_notifier_invalidate_range_start/end, except those where the calls are
+close enough so that anyone who glances at the code can see the values
+aren't changing.
+
+This patchset is a preliminary step towards on-demand paging design to be
+added to the RDMA stack.
+
+Why do we want on-demand paging for Infiniband?
+
+  Applications register memory with an RDMA adapter using system calls,
+  and subsequently post IO operations that refer to the corresponding
+  virtual addresses directly to HW.  Until now, this was achieved by
+  pinning the memory during the registration calls.  The goal of on demand
+  paging is to avoid pinning the pages of registered memory regions (MRs).
+   This will allow users the same flexibility they get when swapping any
+  other part of their processes address spaces.  Instead of requiring the
+  entire MR to fit in physical memory, we can allow the MR to be larger,
+  and only fit the current working set in physical memory.
+
+Why should anyone care?  What problems are users currently experiencing?
+
+  This can make programming with RDMA much simpler.  Today, developers
+  that are working with more data than their RAM can hold need either to
+  deregister and reregister memory regions throughout their process's
+  life, or keep a single memory region and copy the data to it.  On demand
+  paging will allow these developers to register a single MR at the
+  beginning of their process's life, and let the operating system manage
+  which pages needs to be fetched at a given time.  In the future, we
+  might be able to provide a single memory access key for each process
+  that would provide the entire process's address as one large memory
+  region, and the developers wouldn't need to register memory regions at
+  all.
+
+Is there any prospect that any other subsystems will utilise these
+infrastructural changes?  If so, which and how, etc?
+
+  As for other subsystems, I understand that XPMEM wanted to sleep in
+  MMU notifiers, as Christoph Lameter wrote at
+  http://lkml.indiana.edu/hypermail/linux/kernel/0802.1/0460.html and
+  perhaps Andrea knows about other use cases.
+
+  Scheduling in mmu notifications is required since we need to sync the
+  hardware with the secondary page tables change.  A TLB flush of an IO
+  device is inherently slower than a CPU TLB flush, so our design works by
+  sending the invalidation request to the device, and waiting for an
+  interrupt before exiting the mmu notifier handler.
+
+Avi said:
+
+  kvm may be a buyer.  kvm::mmu_lock, which serializes guest page
+  faults, also protects long operations such as destroying large ranges. 
+  It would be good to convert it into a spinlock, but as it is used inside
+  mmu notifiers, this cannot be done.
+
+  (there are alternatives, such as keeping the spinlock and using a
+  generation counter to do the teardown in O(1), which is what the "may"
+  is doing up there).
+
+[akpm@linux-foundation.orgpossible speed tweak in hugetlb_cow(), cleanups]
+Signed-off-by: Andrea Arcangeli <andrea@qumranet.com>
+Signed-off-by: Sagi Grimberg <sagig@mellanox.com>
+Signed-off-by: Haggai Eran <haggaie@mellanox.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
+Cc: Or Gerlitz <ogerlitz@mellanox.com>
+Cc: Haggai Eran <haggaie@mellanox.com>
+Cc: Shachar Raindel <raindel@mellanox.com>
+Cc: Liran Liss <liranl@mellanox.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Avi Kivity <avi@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vm_event_item.h |    2 +-
- mm/page_alloc.c               |   17 -----------------
- mm/vmstat.c                   |    2 +-
- 3 files changed, 2 insertions(+), 19 deletions(-)
+ include/linux/mmu_notifier.h |   47 ---------------------------------
+ mm/filemap_xip.c             |    4 ++
+ mm/huge_memory.c             |   42 +++++++++++++++++++++++++----
+ mm/hugetlb.c                 |   21 +++++++++-----
+ mm/memory.c                  |   28 +++++++++++++------
+ mm/mremap.c                  |    8 ++++-
+ mm/rmap.c                    |   18 ++++++++++--
+ 7 files changed, 92 insertions(+), 76 deletions(-)
 
-diff -puN include/linux/vm_event_item.h~mm-remove-free_page_mlock include/linux/vm_event_item.h
---- a/include/linux/vm_event_item.h~mm-remove-free_page_mlock
-+++ a/include/linux/vm_event_item.h
-@@ -52,7 +52,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		UNEVICTABLE_PGMUNLOCKED,
- 		UNEVICTABLE_PGCLEARED,	/* on COW, page truncate */
- 		UNEVICTABLE_PGSTRANDED,	/* unable to isolate on unlock */
--		UNEVICTABLE_MLOCKFREED,
-+		UNEVICTABLE_MLOCKFREED,	/* no longer useful: always zero */
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 		THP_FAULT_ALLOC,
- 		THP_FAULT_FALLBACK,
-diff -puN mm/page_alloc.c~mm-remove-free_page_mlock mm/page_alloc.c
---- a/mm/page_alloc.c~mm-remove-free_page_mlock
-+++ a/mm/page_alloc.c
-@@ -597,17 +597,6 @@ out:
- 	zone->free_area[order].nr_free++;
+diff -puN include/linux/mmu_notifier.h~mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock include/linux/mmu_notifier.h
+--- a/include/linux/mmu_notifier.h~mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock
++++ a/include/linux/mmu_notifier.h
+@@ -246,50 +246,6 @@ static inline void mmu_notifier_mm_destr
+ 		__mmu_notifier_mm_destroy(mm);
  }
  
 -/*
-- * free_page_mlock() -- clean up attempts to free and mlocked() page.
-- * Page should not be on lru, so no need to fix that up.
-- * free_pages_check() will verify...
+- * These two macros will sometime replace ptep_clear_flush.
+- * ptep_clear_flush is implemented as macro itself, so this also is
+- * implemented as a macro until ptep_clear_flush will converted to an
+- * inline function, to diminish the risk of compilation failure. The
+- * invalidate_page method over time can be moved outside the PT lock
+- * and these two macros can be later removed.
 - */
--static inline void free_page_mlock(struct page *page)
--{
--	__dec_zone_page_state(page, NR_MLOCK);
--	__count_vm_event(UNEVICTABLE_MLOCKFREED);
--}
+-#define ptep_clear_flush_notify(__vma, __address, __ptep)		\
+-({									\
+-	pte_t __pte;							\
+-	struct vm_area_struct *___vma = __vma;				\
+-	unsigned long ___address = __address;				\
+-	__pte = ptep_clear_flush(___vma, ___address, __ptep);		\
+-	mmu_notifier_invalidate_page(___vma->vm_mm, ___address);	\
+-	__pte;								\
+-})
 -
- static inline int free_pages_check(struct page *page)
+-#define pmdp_clear_flush_notify(__vma, __address, __pmdp)		\
+-({									\
+-	pmd_t __pmd;							\
+-	struct vm_area_struct *___vma = __vma;				\
+-	unsigned long ___address = __address;				\
+-	VM_BUG_ON(__address & ~HPAGE_PMD_MASK);				\
+-	mmu_notifier_invalidate_range_start(___vma->vm_mm, ___address,	\
+-					    (__address)+HPAGE_PMD_SIZE);\
+-	__pmd = pmdp_clear_flush(___vma, ___address, __pmdp);		\
+-	mmu_notifier_invalidate_range_end(___vma->vm_mm, ___address,	\
+-					  (__address)+HPAGE_PMD_SIZE);	\
+-	__pmd;								\
+-})
+-
+-#define pmdp_splitting_flush_notify(__vma, __address, __pmdp)		\
+-({									\
+-	struct vm_area_struct *___vma = __vma;				\
+-	unsigned long ___address = __address;				\
+-	VM_BUG_ON(__address & ~HPAGE_PMD_MASK);				\
+-	mmu_notifier_invalidate_range_start(___vma->vm_mm, ___address,	\
+-					    (__address)+HPAGE_PMD_SIZE);\
+-	pmdp_splitting_flush(___vma, ___address, __pmdp);		\
+-	mmu_notifier_invalidate_range_end(___vma->vm_mm, ___address,	\
+-					  (__address)+HPAGE_PMD_SIZE);	\
+-})
+-
+ #define ptep_clear_flush_young_notify(__vma, __address, __ptep)		\
+ ({									\
+ 	int __young;							\
+@@ -380,9 +336,6 @@ static inline void mmu_notifier_mm_destr
+ 
+ #define ptep_clear_flush_young_notify ptep_clear_flush_young
+ #define pmdp_clear_flush_young_notify pmdp_clear_flush_young
+-#define ptep_clear_flush_notify ptep_clear_flush
+-#define pmdp_clear_flush_notify pmdp_clear_flush
+-#define pmdp_splitting_flush_notify pmdp_splitting_flush
+ #define set_pte_at_notify set_pte_at
+ 
+ #endif /* CONFIG_MMU_NOTIFIER */
+diff -puN mm/filemap_xip.c~mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock mm/filemap_xip.c
+--- a/mm/filemap_xip.c~mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock
++++ a/mm/filemap_xip.c
+@@ -192,11 +192,13 @@ retry:
+ 		if (pte) {
+ 			/* Nuke the page table entry. */
+ 			flush_cache_page(vma, address, pte_pfn(*pte));
+-			pteval = ptep_clear_flush_notify(vma, address, pte);
++			pteval = ptep_clear_flush(vma, address, pte);
+ 			page_remove_rmap(page);
+ 			dec_mm_counter(mm, MM_FILEPAGES);
+ 			BUG_ON(pte_dirty(pteval));
+ 			pte_unmap_unlock(pte, ptl);
++			/* must invalidate_page _before_ freeing the page */
++			mmu_notifier_invalidate_page(mm, address);
+ 			page_cache_release(page);
+ 		}
+ 	}
+diff -puN mm/huge_memory.c~mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock
++++ a/mm/huge_memory.c
+@@ -787,6 +787,8 @@ static int do_huge_pmd_wp_page_fallback(
+ 	pmd_t _pmd;
+ 	int ret = 0, i;
+ 	struct page **pages;
++	unsigned long mmun_start;	/* For mmu_notifiers */
++	unsigned long mmun_end;		/* For mmu_notifiers */
+ 
+ 	pages = kmalloc(sizeof(struct page *) * HPAGE_PMD_NR,
+ 			GFP_KERNEL);
+@@ -823,12 +825,16 @@ static int do_huge_pmd_wp_page_fallback(
+ 		cond_resched();
+ 	}
+ 
++	mmun_start = haddr;
++	mmun_end   = haddr + HPAGE_PMD_SIZE;
++	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
++
+ 	spin_lock(&mm->page_table_lock);
+ 	if (unlikely(!pmd_same(*pmd, orig_pmd)))
+ 		goto out_free_pages;
+ 	VM_BUG_ON(!PageHead(page));
+ 
+-	pmdp_clear_flush_notify(vma, haddr, pmd);
++	pmdp_clear_flush(vma, haddr, pmd);
+ 	/* leave pmd empty until pte is filled */
+ 
+ 	pgtable = pgtable_trans_huge_withdraw(mm);
+@@ -851,6 +857,8 @@ static int do_huge_pmd_wp_page_fallback(
+ 	page_remove_rmap(page);
+ 	spin_unlock(&mm->page_table_lock);
+ 
++	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
++
+ 	ret |= VM_FAULT_WRITE;
+ 	put_page(page);
+ 
+@@ -859,6 +867,7 @@ out:
+ 
+ out_free_pages:
+ 	spin_unlock(&mm->page_table_lock);
++	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
+ 	mem_cgroup_uncharge_start();
+ 	for (i = 0; i < HPAGE_PMD_NR; i++) {
+ 		mem_cgroup_uncharge_page(pages[i]);
+@@ -875,6 +884,8 @@ int do_huge_pmd_wp_page(struct mm_struct
+ 	int ret = 0;
+ 	struct page *page, *new_page;
+ 	unsigned long haddr;
++	unsigned long mmun_start;	/* For mmu_notifiers */
++	unsigned long mmun_end;		/* For mmu_notifiers */
+ 
+ 	VM_BUG_ON(!vma->anon_vma);
+ 	spin_lock(&mm->page_table_lock);
+@@ -925,20 +936,24 @@ int do_huge_pmd_wp_page(struct mm_struct
+ 	copy_user_huge_page(new_page, page, haddr, vma, HPAGE_PMD_NR);
+ 	__SetPageUptodate(new_page);
+ 
++	mmun_start = haddr;
++	mmun_end   = haddr + HPAGE_PMD_SIZE;
++	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
++
+ 	spin_lock(&mm->page_table_lock);
+ 	put_page(page);
+ 	if (unlikely(!pmd_same(*pmd, orig_pmd))) {
+ 		spin_unlock(&mm->page_table_lock);
+ 		mem_cgroup_uncharge_page(new_page);
+ 		put_page(new_page);
+-		goto out;
++		goto out_mn;
+ 	} else {
+ 		pmd_t entry;
+ 		VM_BUG_ON(!PageHead(page));
+ 		entry = mk_pmd(new_page, vma->vm_page_prot);
+ 		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
+ 		entry = pmd_mkhuge(entry);
+-		pmdp_clear_flush_notify(vma, haddr, pmd);
++		pmdp_clear_flush(vma, haddr, pmd);
+ 		page_add_new_anon_rmap(new_page, vma, haddr);
+ 		set_pmd_at(mm, haddr, pmd, entry);
+ 		update_mmu_cache(vma, address, pmd);
+@@ -946,10 +961,14 @@ int do_huge_pmd_wp_page(struct mm_struct
+ 		put_page(page);
+ 		ret |= VM_FAULT_WRITE;
+ 	}
+-out_unlock:
+ 	spin_unlock(&mm->page_table_lock);
++out_mn:
++	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
+ out:
+ 	return ret;
++out_unlock:
++	spin_unlock(&mm->page_table_lock);
++	return ret;
+ }
+ 
+ struct page *follow_trans_huge_pmd(struct mm_struct *mm,
+@@ -1162,7 +1181,11 @@ static int __split_huge_page_splitting(s
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	pmd_t *pmd;
+ 	int ret = 0;
++	/* For mmu_notifiers */
++	const unsigned long mmun_start = address;
++	const unsigned long mmun_end   = address + HPAGE_PMD_SIZE;
+ 
++	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
+ 	spin_lock(&mm->page_table_lock);
+ 	pmd = page_check_address_pmd(page, mm, address,
+ 				     PAGE_CHECK_ADDRESS_PMD_NOTSPLITTING_FLAG);
+@@ -1174,10 +1197,11 @@ static int __split_huge_page_splitting(s
+ 		 * and it won't wait on the anon_vma->root->mutex to
+ 		 * serialize against split_huge_page*.
+ 		 */
+-		pmdp_splitting_flush_notify(vma, address, pmd);
++		pmdp_splitting_flush(vma, address, pmd);
+ 		ret = 1;
+ 	}
+ 	spin_unlock(&mm->page_table_lock);
++	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
+ 
+ 	return ret;
+ }
+@@ -1899,6 +1923,8 @@ static void collapse_huge_page(struct mm
+ 	spinlock_t *ptl;
+ 	int isolated;
+ 	unsigned long hstart, hend;
++	unsigned long mmun_start;	/* For mmu_notifiers */
++	unsigned long mmun_end;		/* For mmu_notifiers */
+ 
+ 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
+ 
+@@ -1953,6 +1979,9 @@ static void collapse_huge_page(struct mm
+ 	pte = pte_offset_map(pmd, address);
+ 	ptl = pte_lockptr(mm, pmd);
+ 
++	mmun_start = address;
++	mmun_end   = address + HPAGE_PMD_SIZE;
++	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
+ 	spin_lock(&mm->page_table_lock); /* probably unnecessary */
+ 	/*
+ 	 * After this gup_fast can't run anymore. This also removes
+@@ -1960,8 +1989,9 @@ static void collapse_huge_page(struct mm
+ 	 * huge and small TLB entries for the same virtual address
+ 	 * to avoid the risk of CPU bugs in that area.
+ 	 */
+-	_pmd = pmdp_clear_flush_notify(vma, address, pmd);
++	_pmd = pmdp_clear_flush(vma, address, pmd);
+ 	spin_unlock(&mm->page_table_lock);
++	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
+ 
+ 	spin_lock(ptl);
+ 	isolated = __collapse_huge_page_isolate(vma, address, pte);
+diff -puN mm/hugetlb.c~mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock
++++ a/mm/hugetlb.c
+@@ -2355,13 +2355,15 @@ void __unmap_hugepage_range(struct mmu_g
+ 	struct page *page;
+ 	struct hstate *h = hstate_vma(vma);
+ 	unsigned long sz = huge_page_size(h);
++	const unsigned long mmun_start = start;	/* For mmu_notifiers */
++	const unsigned long mmun_end   = end;	/* For mmu_notifiers */
+ 
+ 	WARN_ON(!is_vm_hugetlb_page(vma));
+ 	BUG_ON(start & ~huge_page_mask(h));
+ 	BUG_ON(end & ~huge_page_mask(h));
+ 
+ 	tlb_start_vma(tlb, vma);
+-	mmu_notifier_invalidate_range_start(mm, start, end);
++	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
+ again:
+ 	spin_lock(&mm->page_table_lock);
+ 	for (address = start; address < end; address += sz) {
+@@ -2425,7 +2427,7 @@ again:
+ 		if (address < end && !ref_page)
+ 			goto again;
+ 	}
+-	mmu_notifier_invalidate_range_end(mm, start, end);
++	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
+ 	tlb_end_vma(tlb, vma);
+ }
+ 
+@@ -2525,6 +2527,8 @@ static int hugetlb_cow(struct mm_struct 
+ 	struct page *old_page, *new_page;
+ 	int avoidcopy;
+ 	int outside_reserve = 0;
++	unsigned long mmun_start;	/* For mmu_notifiers */
++	unsigned long mmun_end;		/* For mmu_notifiers */
+ 
+ 	old_page = pte_page(pte);
+ 
+@@ -2611,6 +2615,9 @@ retry_avoidcopy:
+ 			    pages_per_huge_page(h));
+ 	__SetPageUptodate(new_page);
+ 
++	mmun_start = address & huge_page_mask(h);
++	mmun_end = mmun_start + huge_page_size(h);
++	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
+ 	/*
+ 	 * Retake the page_table_lock to check for racing updates
+ 	 * before the page tables are altered
+@@ -2619,9 +2626,6 @@ retry_avoidcopy:
+ 	ptep = huge_pte_offset(mm, address & huge_page_mask(h));
+ 	if (likely(pte_same(huge_ptep_get(ptep), pte))) {
+ 		/* Break COW */
+-		mmu_notifier_invalidate_range_start(mm,
+-			address & huge_page_mask(h),
+-			(address & huge_page_mask(h)) + huge_page_size(h));
+ 		huge_ptep_clear_flush(vma, address, ptep);
+ 		set_huge_pte_at(mm, address, ptep,
+ 				make_huge_pte(vma, new_page, 1));
+@@ -2629,10 +2633,11 @@ retry_avoidcopy:
+ 		hugepage_add_new_anon_rmap(new_page, vma, address);
+ 		/* Make the old page be freed below */
+ 		new_page = old_page;
+-		mmu_notifier_invalidate_range_end(mm,
+-			address & huge_page_mask(h),
+-			(address & huge_page_mask(h)) + huge_page_size(h));
+ 	}
++	spin_unlock(&mm->page_table_lock);
++	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
++	/* Caller expects lock to be held */
++	spin_lock(&mm->page_table_lock);
+ 	page_cache_release(new_page);
+ 	page_cache_release(old_page);
+ 	return 0;
+diff -puN mm/memory.c~mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock mm/memory.c
+--- a/mm/memory.c~mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock
++++ a/mm/memory.c
+@@ -712,7 +712,7 @@ static void print_bad_pte(struct vm_area
+ 	add_taint(TAINT_BAD_PAGE);
+ }
+ 
+-static inline int is_cow_mapping(vm_flags_t flags)
++static inline bool is_cow_mapping(vm_flags_t flags)
  {
- 	if (unlikely(page_mapcount(page) |
-@@ -727,15 +716,12 @@ static bool free_pages_prepare(struct pa
- static void __free_pages_ok(struct page *page, unsigned int order)
- {
- 	unsigned long flags;
--	int wasMlocked = __TestClearPageMlocked(page);
- 	int migratetype;
- 
- 	if (!free_pages_prepare(page, order))
- 		return;
- 
- 	local_irq_save(flags);
--	if (unlikely(wasMlocked))
--		free_page_mlock(page);
- 	__count_vm_events(PGFREE, 1 << order);
- 	migratetype = get_pageblock_migratetype(page);
- 	set_freepage_migratetype(page, migratetype);
-@@ -1309,7 +1295,6 @@ void free_hot_cold_page(struct page *pag
- 	struct per_cpu_pages *pcp;
- 	unsigned long flags;
- 	int migratetype;
--	int wasMlocked = __TestClearPageMlocked(page);
- 
- 	if (!free_pages_prepare(page, 0))
- 		return;
-@@ -1317,8 +1302,6 @@ void free_hot_cold_page(struct page *pag
- 	migratetype = get_pageblock_migratetype(page);
- 	set_freepage_migratetype(page, migratetype);
- 	local_irq_save(flags);
--	if (unlikely(wasMlocked))
--		free_page_mlock(page);
- 	__count_vm_event(PGFREE);
+ 	return (flags & (VM_SHARED | VM_MAYWRITE)) == VM_MAYWRITE;
+ }
+@@ -1039,6 +1039,9 @@ int copy_page_range(struct mm_struct *ds
+ 	unsigned long next;
+ 	unsigned long addr = vma->vm_start;
+ 	unsigned long end = vma->vm_end;
++	unsigned long mmun_start;	/* For mmu_notifiers */
++	unsigned long mmun_end;		/* For mmu_notifiers */
++	bool is_cow;
+ 	int ret;
  
  	/*
-diff -puN mm/vmstat.c~mm-remove-free_page_mlock mm/vmstat.c
---- a/mm/vmstat.c~mm-remove-free_page_mlock
-+++ a/mm/vmstat.c
-@@ -782,7 +782,7 @@ const char * const vmstat_text[] = {
- 	"unevictable_pgs_munlocked",
- 	"unevictable_pgs_cleared",
- 	"unevictable_pgs_stranded",
--	"unevictable_pgs_mlockfreed",
-+	"unevictable_pgs_mlockfreed",	/* no longer useful: always zero */
+@@ -1072,8 +1075,12 @@ int copy_page_range(struct mm_struct *ds
+ 	 * parent mm. And a permission downgrade will only happen if
+ 	 * is_cow_mapping() returns true.
+ 	 */
+-	if (is_cow_mapping(vma->vm_flags))
+-		mmu_notifier_invalidate_range_start(src_mm, addr, end);
++	is_cow = is_cow_mapping(vma->vm_flags);
++	mmun_start = addr;
++	mmun_end   = end;
++	if (is_cow)
++		mmu_notifier_invalidate_range_start(src_mm, mmun_start,
++						    mmun_end);
  
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	"thp_fault_alloc",
+ 	ret = 0;
+ 	dst_pgd = pgd_offset(dst_mm, addr);
+@@ -1089,9 +1096,8 @@ int copy_page_range(struct mm_struct *ds
+ 		}
+ 	} while (dst_pgd++, src_pgd++, addr = next, addr != end);
+ 
+-	if (is_cow_mapping(vma->vm_flags))
+-		mmu_notifier_invalidate_range_end(src_mm,
+-						  vma->vm_start, end);
++	if (is_cow)
++		mmu_notifier_invalidate_range_end(src_mm, mmun_start, mmun_end);
+ 	return ret;
+ }
+ 
+@@ -2516,7 +2522,7 @@ static int do_wp_page(struct mm_struct *
+ 		spinlock_t *ptl, pte_t orig_pte)
+ 	__releases(ptl)
+ {
+-	struct page *old_page, *new_page;
++	struct page *old_page, *new_page = NULL;
+ 	pte_t entry;
+ 	int ret = 0;
+ 	int page_mkwrite = 0;
+@@ -2760,10 +2766,14 @@ gotten:
+ 	} else
+ 		mem_cgroup_uncharge_page(new_page);
+ 
+-	if (new_page)
+-		page_cache_release(new_page);
+ unlock:
+ 	pte_unmap_unlock(page_table, ptl);
++	if (new_page) {
++		if (new_page == old_page)
++			/* cow happened, notify before releasing old_page */
++			mmu_notifier_invalidate_page(mm, address);
++		page_cache_release(new_page);
++	}
+ 	if (old_page) {
+ 		/*
+ 		 * Don't let another task, with possibly unlocked vma,
+diff -puN mm/mremap.c~mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock mm/mremap.c
+--- a/mm/mremap.c~mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock
++++ a/mm/mremap.c
+@@ -149,11 +149,15 @@ unsigned long move_page_tables(struct vm
+ 	unsigned long extent, next, old_end;
+ 	pmd_t *old_pmd, *new_pmd;
+ 	bool need_flush = false;
++	unsigned long mmun_start;	/* For mmu_notifiers */
++	unsigned long mmun_end;		/* For mmu_notifiers */
+ 
+ 	old_end = old_addr + len;
+ 	flush_cache_range(vma, old_addr, old_end);
+ 
+-	mmu_notifier_invalidate_range_start(vma->vm_mm, old_addr, old_end);
++	mmun_start = old_addr;
++	mmun_end   = old_end;
++	mmu_notifier_invalidate_range_start(vma->vm_mm, mmun_start, mmun_end);
+ 
+ 	for (; old_addr < old_end; old_addr += extent, new_addr += extent) {
+ 		cond_resched();
+@@ -197,7 +201,7 @@ unsigned long move_page_tables(struct vm
+ 	if (likely(need_flush))
+ 		flush_tlb_range(vma, old_end-len, old_addr);
+ 
+-	mmu_notifier_invalidate_range_end(vma->vm_mm, old_end-len, old_end);
++	mmu_notifier_invalidate_range_end(vma->vm_mm, mmun_start, mmun_end);
+ 
+ 	return len + old_addr - old_end;	/* how much done */
+ }
+diff -puN mm/rmap.c~mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock mm/rmap.c
+--- a/mm/rmap.c~mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock
++++ a/mm/rmap.c
+@@ -887,7 +887,7 @@ static int page_mkclean_one(struct page 
+ 		pte_t entry;
+ 
+ 		flush_cache_page(vma, address, pte_pfn(*pte));
+-		entry = ptep_clear_flush_notify(vma, address, pte);
++		entry = ptep_clear_flush(vma, address, pte);
+ 		entry = pte_wrprotect(entry);
+ 		entry = pte_mkclean(entry);
+ 		set_pte_at(mm, address, pte, entry);
+@@ -895,6 +895,9 @@ static int page_mkclean_one(struct page 
+ 	}
+ 
+ 	pte_unmap_unlock(pte, ptl);
++
++	if (ret)
++		mmu_notifier_invalidate_page(mm, address);
+ out:
+ 	return ret;
+ }
+@@ -1215,7 +1218,7 @@ int try_to_unmap_one(struct page *page, 
+ 
+ 	/* Nuke the page table entry. */
+ 	flush_cache_page(vma, address, page_to_pfn(page));
+-	pteval = ptep_clear_flush_notify(vma, address, pte);
++	pteval = ptep_clear_flush(vma, address, pte);
+ 
+ 	/* Move the dirty bit to the physical page now the pte is gone. */
+ 	if (pte_dirty(pteval))
+@@ -1277,6 +1280,8 @@ int try_to_unmap_one(struct page *page, 
+ 
+ out_unmap:
+ 	pte_unmap_unlock(pte, ptl);
++	if (ret != SWAP_FAIL)
++		mmu_notifier_invalidate_page(mm, address);
+ out:
+ 	return ret;
+ 
+@@ -1341,6 +1346,8 @@ static int try_to_unmap_cluster(unsigned
+ 	spinlock_t *ptl;
+ 	struct page *page;
+ 	unsigned long address;
++	unsigned long mmun_start;	/* For mmu_notifiers */
++	unsigned long mmun_end;		/* For mmu_notifiers */
+ 	unsigned long end;
+ 	int ret = SWAP_AGAIN;
+ 	int locked_vma = 0;
+@@ -1364,6 +1371,10 @@ static int try_to_unmap_cluster(unsigned
+ 	if (!pmd_present(*pmd))
+ 		return ret;
+ 
++	mmun_start = address;
++	mmun_end   = end;
++	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
++
+ 	/*
+ 	 * If we can acquire the mmap_sem for read, and vma is VM_LOCKED,
+ 	 * keep the sem while scanning the cluster for mlocking pages.
+@@ -1397,7 +1408,7 @@ static int try_to_unmap_cluster(unsigned
+ 
+ 		/* Nuke the page table entry. */
+ 		flush_cache_page(vma, address, pte_pfn(*pte));
+-		pteval = ptep_clear_flush_notify(vma, address, pte);
++		pteval = ptep_clear_flush(vma, address, pte);
+ 
+ 		/* If nonlinear, store the file page offset in the pte. */
+ 		if (page->index != linear_page_index(vma, address))
+@@ -1413,6 +1424,7 @@ static int try_to_unmap_cluster(unsigned
+ 		(*mapcount)--;
+ 	}
+ 	pte_unmap_unlock(pte - 1, ptl);
++	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
+ 	if (locked_vma)
+ 		up_read(&vma->vm_mm->mmap_sem);
+ 	return ret;
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from sagig@mellanox.com are
 
-linux-next.patch
-x86-pat-remove-the-dependency-on-vm_pgoff-in-track-untrack-pfn-vma-routines.patch
-x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn.patch
-mm-x86-pat-rework-linear-pfn-mmap-tracking.patch
-mm-introduce-arch-specific-vma-flag-vm_arch_1.patch
-mm-kill-vma-flag-vm_insertpage.patch
-mm-kill-vma-flag-vm_can_nonlinear.patch
-mm-use-mm-exe_file-instead-of-first-vm_executable-vma-vm_file.patch
-mm-kill-vma-flag-vm_executable-and-mm-num_exe_file_vmas.patch
-mm-prepare-vm_dontdump-for-using-in-drivers.patch
-mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter.patch
-mm-mmapc-replace-find_vma_prepare-with-clearer-find_vma_links.patch
-mm-mmapc-replace-find_vma_prepare-with-clearer-find_vma_links-fix.patch
-mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host.patch
-mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch
-mm-mmu_notifier-init-notifier-if-necessary.patch
-thp-fix-the-count-of-thp_collapse_alloc.patch
-thp-remove-unnecessary-check-in-start_khugepaged.patch
-thp-move-khugepaged_mutex-out-of-khugepaged.patch
-thp-remove-unnecessary-khugepaged_thread-check.patch
-thp-remove-wake_up_interruptible-in-the-exit-path.patch
-thp-remove-some-code-depend-on-config_numa.patch
-thp-merge-page-pre-alloc-in-khugepaged_loop-into-khugepaged_do_scan.patch
-thp-release-page-in-page-pre-alloc-path.patch
-thp-introduce-khugepaged_prealloc_page-and-khugepaged_alloc_page.patch
-thp-remove-khugepaged_loop.patch
-thp-use-khugepaged_enabled-to-remove-duplicate-code.patch
-thp-remove-unnecessary-set_recommended_min_free_kbytes.patch
-mm-fix-potential-anon_vma-locking-issue-in-mprotect.patch
-thp-x86-introduce-have_arch_transparent_hugepage.patch
-thp-remove-assumptions-on-pgtable_t-type.patch
-thp-introduce-pmdp_invalidate.patch
-thp-make-madv_hugepage-check-for-mm-def_flags.patch
-thp-s390-thp-splitting-backend-for-s390.patch
-thp-s390-thp-pagetable-pre-allocation-for-s390.patch
-thp-s390-disable-thp-for-kvm-host-on-s390.patch
-thp-s390-architecture-backend-for-thp-on-s390.patch
-mm-interval-tree-updates.patch
-mm-anon-rmap-remove-anon_vma_moveto_tail.patch
-mm-anon-rmap-replace-same_anon_vma-linked-list-with-an-interval-tree.patch
-mm-rmap-remove-vma_address-check-for-address-inside-vma.patch
-mm-add-config_debug_vm_rb-build-option.patch
-mm-anon-rmap-in-mremap-set-the-new-vmas-position-before-anon_vma_clone.patch
-mm-avoid-taking-rmap-locks-in-move_ptes.patch
-mm-fix-tracing-in-free_pcppages_bulk.patch
-mm-fix-tracing-in-free_pcppages_bulk-fix.patch
-cma-fix-counting-of-isolated-pages.patch
-cma-count-free-cma-pages.patch
-cma-count-free-cma-pages-fix.patch
-cma-fix-watermark-checking.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-thp-khugepaged_prealloc_page-forgot-to-reset-the-page-alloc-indicator.patch
-mm-fix-invalidate_complete_page2-lock-ordering.patch
-mm-remove-vma-arg-from-page_evictable.patch
-mm-clear_page_mlock-in-page_remove_rmap.patch
-mm-remove-free_page_mlock.patch
-mm-thp-fix-pmd_present-for-split_huge_page-and-prot_none-with-thp.patch
+mm-mmu_notifier-make-the-mmu_notifier-srcu-static.patch
+mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock.patch
+mm-wrap-calls-to-set_pte_at_notify-with-invalidate_range_start-and-invalidate_range_end.patch
+mm-wrap-calls-to-set_pte_at_notify-with-invalidate_range_start-and-invalidate_range_end-fix.patch
 
