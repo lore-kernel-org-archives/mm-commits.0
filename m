@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-tracing-in-free_pcppages_bulk-fix.patch added to -mm tree
-Date: Wed, 19 Sep 2012 12:51:39 -0700
-Message-ID: <20120919195140.009F9100047@wpzn3.hot.corp.google.com>
+Subject: + cma-fix-counting-of-isolated-pages.patch added to -mm tree
+Date: Wed, 19 Sep 2012 12:51:42 -0700
+Message-ID: <20120919195143.0B4F0100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-gh0-f202.google.com ([209.85.160.202]:37080 "EHLO
 	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751014Ab2ISTvl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Sep 2012 15:51:41 -0400
-Received: by ghbz15 with SMTP id z15so190857ghb.1
-        for <mm-commits@vger.kernel.org>; Wed, 19 Sep 2012 12:51:40 -0700 (PDT)
+	with ESMTP id S1751014Ab2ISTvo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Sep 2012 15:51:44 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z15so190857ghb.1
+        for <mm-commits@vger.kernel.org>; Wed, 19 Sep 2012 12:51:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, b.zolnierkie@samsung.com, hughd@google.com, kyungmin.park@samsung.com, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org
+Cc: b.zolnierkie@samsung.com, hughd@google.com, kyungmin.park@samsung.com, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org
 
 
 The patch titled
-     Subject: mm-fix-tracing-in-free_pcppages_bulk-fix
+     Subject: cma: fix counting of isolated pages
 has been added to the -mm tree.  Its filename is
-     mm-fix-tracing-in-free_pcppages_bulk-fix.patch
+     cma-fix-counting-of-isolated-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,89 +33,103 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-fix-tracing-in-free_pcppages_bulk-fix
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: cma: fix counting of isolated pages
 
-add comment
+Isolated free pages shouldn't be accounted to NR_FREE_PAGES counter.  Fix
+it by properly decreasing/increasing NR_FREE_PAGES counter in
+set_migratetype_isolate()/unset_migratetype_isolate() and removing counter
+adjustment for isolated pages from free_one_page() and split_free_page().
 
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Mel Gorman <mgorman@suse.de>
 Cc: Michal Nazarewicz <mina86@mina86.com>
 Cc: Minchan Kim <minchan@kernel.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c     |    9 +++++++--
+ mm/page_isolation.c |   12 +++++++++---
+ 2 files changed, 16 insertions(+), 5 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-fix-tracing-in-free_pcppages_bulk-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-fix-tracing-in-free_pcppages_bulk-fix
+diff -puN mm/page_alloc.c~cma-fix-counting-of-isolated-pages mm/page_alloc.c
+--- a/mm/page_alloc.c~cma-fix-counting-of-isolated-pages
 +++ a/mm/page_alloc.c
-@@ -667,7 +667,7 @@ static void free_pcppages_bulk(struct zo
- 			batch_free = to_free;
+@@ -690,7 +690,8 @@ static void free_one_page(struct zone *z
+ 	zone->pages_scanned = 0;
  
- 		do {
--			int mt;
-+			int mt;	/* migratetype of the to-be-freed page */
+ 	__free_one_page(page, zone, order, migratetype);
+-	__mod_zone_page_state(zone, NR_FREE_PAGES, 1 << order);
++	if (unlikely(migratetype != MIGRATE_ISOLATE))
++		__mod_zone_page_state(zone, NR_FREE_PAGES, 1 << order);
+ 	spin_unlock(&zone->lock);
+ }
  
- 			page = list_entry(list->prev, struct page, lru);
- 			/* must delete as __free_one_page list manipulates */
+@@ -1391,6 +1392,7 @@ int capture_free_page(struct page *page,
+ 	unsigned int order;
+ 	unsigned long watermark;
+ 	struct zone *zone;
++	int mt;
+ 
+ 	BUG_ON(!PageBuddy(page));
+ 
+@@ -1406,7 +1408,10 @@ int capture_free_page(struct page *page,
+ 	list_del(&page->lru);
+ 	zone->free_area[order].nr_free--;
+ 	rmv_page_order(page);
+-	__mod_zone_page_state(zone, NR_FREE_PAGES, -(1UL << order));
++
++	mt = get_pageblock_migratetype(page);
++	if (unlikely(mt != MIGRATE_ISOLATE))
++		__mod_zone_page_state(zone, NR_FREE_PAGES, -(1UL << order));
+ 
+ 	if (alloc_order != order)
+ 		expand(zone, page, alloc_order, order,
+diff -puN mm/page_isolation.c~cma-fix-counting-of-isolated-pages mm/page_isolation.c
+--- a/mm/page_isolation.c~cma-fix-counting-of-isolated-pages
++++ a/mm/page_isolation.c
+@@ -76,8 +76,12 @@ int set_migratetype_isolate(struct page 
+ 
+ out:
+ 	if (!ret) {
++		unsigned long nr_pages;
++
+ 		set_pageblock_isolate(page);
+-		move_freepages_block(zone, page, MIGRATE_ISOLATE);
++		nr_pages = move_freepages_block(zone, page, MIGRATE_ISOLATE);
++
++		__mod_zone_page_state(zone, NR_FREE_PAGES, -nr_pages);
+ 	}
+ 
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+@@ -89,12 +93,14 @@ out:
+ void unset_migratetype_isolate(struct page *page, unsigned migratetype)
+ {
+ 	struct zone *zone;
+-	unsigned long flags;
++	unsigned long flags, nr_pages;
++
+ 	zone = page_zone(page);
+ 	spin_lock_irqsave(&zone->lock, flags);
+ 	if (get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
+ 		goto out;
+-	move_freepages_block(zone, page, migratetype);
++	nr_pages = move_freepages_block(zone, page, migratetype);
++	__mod_zone_page_state(zone, NR_FREE_PAGES, nr_pages);
+ 	restore_pageblock_isolate(page, migratetype);
+ out:
+ 	spin_unlock_irqrestore(&zone->lock, flags);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from b.zolnierkie@samsung.com are
 
-origin.patch
-linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-idr-rename-max_level-to-max_idr_level-fix-3.patch
-cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-audith-replace-defines-with-c-stubs.patch
-slab-fix-debug==0-warning.patch
-mm.patch
-x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
-mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
-mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures-fix.patch
-mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch
-rbtree-performance-and-correctness-test-fix.patch
-mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix.patch
+mm-fix-tracing-in-free_pcppages_bulk.patch
 mm-fix-tracing-in-free_pcppages_bulk-fix.patch
+cma-fix-counting-of-isolated-pages.patch
+cma-count-free-cma-pages.patch
 cma-count-free-cma-pages-fix.patch
-memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
-atomic-implement-generic-atomic_dec_if_positive-fix.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix-2.patch
-mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch
-mm-fix-invalidate_complete_page2-lock-ordering.patch
-sections-fix-section-conflicts-in-arch-h8300-checkpatch-fixes.patch
-sections-fix-section-conflicts-in-drivers-macintosh-checkpatch-fixes.patch
-sectons-fix-const-sections-for-crc32-table-checkpatch-fixes.patch
-backlight-add-backlight-driver-for-lm3630-chip-fix.patch
-backlight-add-new-lm3639-backlight-driver-fix.patch
-idr-rename-max_level-to-max_idr_level-fix.patch
-idr-rename-max_level-to-max_idr_level-fix-fix-2.patch
-lib-parserc-avoid-overflow-in-match_number-fix.patch
-lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-rtc-add-dallas-ds2404-driver-fix.patch
-rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch
-fs-fat-fix-all-other-checkpatch-issues-in-dirc-fix.patch
-fat-simplify-writeback_inode-checkpatch-fixes.patch
-fat-simplify-writeback_inode-checkpatch-fixes-fix.patch
-coredump-make-core-dump-functionality-optional-fix-fix.patch
-coredump-use-suid_dumpable_enabled-rather-than-hardcoded-1-checkpatch-fixes.patch
-proc-use-kzalloc-instead-of-kmalloc-and-memset-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+cma-fix-watermark-checking.patch
 
