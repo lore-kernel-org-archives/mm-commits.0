@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-clear_page_mlock-in-page_remove_rmap.patch added to -mm tree
-Date: Wed, 19 Sep 2012 15:02:07 -0700
-Message-ID: <20120919220207.E01D65C0080@hpza9.eem.corp.google.com>
+Subject: + mm-remove-free_page_mlock.patch added to -mm tree
+Date: Wed, 19 Sep 2012 15:02:10 -0700
+Message-ID: <20120919220211.59CF01E004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:46237 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752474Ab2ISWCL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Sep 2012 18:02:11 -0400
-Received: by faet1 with SMTP id t1so91057fae.1
-        for <mm-commits@vger.kernel.org>; Wed, 19 Sep 2012 15:02:09 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:51224 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752474Ab2ISWCM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Sep 2012 18:02:12 -0400
+Received: by qcqs25 with SMTP id s25so212139qcq.1
+        for <mm-commits@vger.kernel.org>; Wed, 19 Sep 2012 15:02:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: hughd@google.com, hannes@cmpxchg.org, mel@csn.ul.ie, riel@redhat.com, walken
 
 
 The patch titled
-     Subject: mm: clear_page_mlock in page_remove_rmap
+     Subject: mm: remove free_page_mlock
 has been added to the -mm tree.  Its filename is
-     mm-clear_page_mlock-in-page_remove_rmap.patch
+     mm-remove-free_page_mlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,187 +34,106 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm: clear_page_mlock in page_remove_rmap
+Subject: mm: remove free_page_mlock
 
-We had thought that pages could no longer get freed while still marked as
-mlocked; but Johannes Weiner posted this program to demonstrate that
-truncating an mlocked private file mapping containing COWed pages is still
-mishandled:
+We should not be seeing non-0 unevictable_pgs_mlockfreed any longer.  So
+remove free_page_mlock() from the page freeing paths: __PG_MLOCKED is
+already in PAGE_FLAGS_CHECK_AT_FREE, so free_pages_check() will now be
+checking it, reporting "BUG: Bad page state" if it's ever found set. 
+Comment UNEVICTABLE_MLOCKFREED and unevictable_pgs_mlockfreed always 0.
 
-#include <sys/types.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <stdio.h>
-
-int main(void)
-{
-	char *map;
-	int fd;
-
-	system("grep mlockfreed /proc/vmstat");
-	fd = open("chigurh", O_CREAT|O_EXCL|O_RDWR);
-	unlink("chigurh");
-	ftruncate(fd, 4096);
-	map = mmap(NULL, 4096, PROT_WRITE, MAP_PRIVATE, fd, 0);
-	map[0] = 11;
-	mlock(map, sizeof(fd));
-	ftruncate(fd, 0);
-	close(fd);
-	munlock(map, sizeof(fd));
-	munmap(map, 4096);
-	system("grep mlockfreed /proc/vmstat");
-	return 0;
-}
-
-The anon COWed pages are not caught by truncation's clear_page_mlock() of
-the pagecache pages; but unmap_mapping_range() unmaps them, so we ought to
-look out for them there in page_remove_rmap().  Indeed, why should
-truncation or invalidation be doing the clear_page_mlock() when removing
-from pagecache?  mlock is a property of mapping in userspace, not a
-properthihughy of pagecache: an mlocked unmapped page is nonsensical.
-
-Reported-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: Rik van Riel <riel@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michel Lespinasse <walken@google.com>
 Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    7 +------
- mm/memory.c   |   10 +++++-----
- mm/mlock.c    |   16 +++-------------
- mm/rmap.c     |    4 ++++
- mm/truncate.c |    4 ----
- 5 files changed, 13 insertions(+), 28 deletions(-)
+ include/linux/vm_event_item.h |    2 +-
+ mm/page_alloc.c               |   17 -----------------
+ mm/vmstat.c                   |    2 +-
+ 3 files changed, 2 insertions(+), 19 deletions(-)
 
-diff -puN mm/internal.h~mm-clear_page_mlock-in-page_remove_rmap mm/internal.h
---- a/mm/internal.h~mm-clear_page_mlock-in-page_remove_rmap
-+++ a/mm/internal.h
-@@ -202,12 +202,7 @@ extern void munlock_vma_page(struct page
-  * If called for a page that is still mapped by mlocked vmas, all we do
-  * is revert to lazy LRU behaviour -- semantics are not broken.
-  */
--extern void __clear_page_mlock(struct page *page);
--static inline void clear_page_mlock(struct page *page)
+diff -puN include/linux/vm_event_item.h~mm-remove-free_page_mlock include/linux/vm_event_item.h
+--- a/include/linux/vm_event_item.h~mm-remove-free_page_mlock
++++ a/include/linux/vm_event_item.h
+@@ -52,7 +52,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		UNEVICTABLE_PGMUNLOCKED,
+ 		UNEVICTABLE_PGCLEARED,	/* on COW, page truncate */
+ 		UNEVICTABLE_PGSTRANDED,	/* unable to isolate on unlock */
+-		UNEVICTABLE_MLOCKFREED,
++		UNEVICTABLE_MLOCKFREED,	/* no longer useful: always zero */
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 		THP_FAULT_ALLOC,
+ 		THP_FAULT_FALLBACK,
+diff -puN mm/page_alloc.c~mm-remove-free_page_mlock mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-remove-free_page_mlock
++++ a/mm/page_alloc.c
+@@ -597,17 +597,6 @@ out:
+ 	zone->free_area[order].nr_free++;
+ }
+ 
+-/*
+- * free_page_mlock() -- clean up attempts to free and mlocked() page.
+- * Page should not be on lru, so no need to fix that up.
+- * free_pages_check() will verify...
+- */
+-static inline void free_page_mlock(struct page *page)
 -{
--	if (unlikely(TestClearPageMlocked(page)))
--		__clear_page_mlock(page);
+-	__dec_zone_page_state(page, NR_MLOCK);
+-	__count_vm_event(UNEVICTABLE_MLOCKFREED);
 -}
-+extern void clear_page_mlock(struct page *page);
- 
- /*
-  * mlock_migrate_page - called only from migrate_page_copy() to
-diff -puN mm/memory.c~mm-clear_page_mlock-in-page_remove_rmap mm/memory.c
---- a/mm/memory.c~mm-clear_page_mlock-in-page_remove_rmap
-+++ a/mm/memory.c
-@@ -1577,12 +1577,12 @@ split_fallthrough:
- 		if (page->mapping && trylock_page(page)) {
- 			lru_add_drain();  /* push cached pages to LRU */
- 			/*
--			 * Because we lock page here and migration is
--			 * blocked by the pte's page reference, we need
--			 * only check for file-cache page truncation.
-+			 * Because we lock page here, and migration is
-+			 * blocked by the pte's page reference, and we
-+			 * know the page is still mapped, we don't even
-+			 * need to check for file-cache page truncation.
- 			 */
--			if (page->mapping)
--				mlock_vma_page(page);
-+			mlock_vma_page(page);
- 			unlock_page(page);
- 		}
- 	}
-diff -puN mm/mlock.c~mm-clear_page_mlock-in-page_remove_rmap mm/mlock.c
---- a/mm/mlock.c~mm-clear_page_mlock-in-page_remove_rmap
-+++ a/mm/mlock.c
-@@ -51,13 +51,10 @@ EXPORT_SYMBOL(can_do_mlock);
- /*
-  *  LRU accounting for clear_page_mlock()
-  */
--void __clear_page_mlock(struct page *page)
-+void clear_page_mlock(struct page *page)
+-
+ static inline int free_pages_check(struct page *page)
  {
--	VM_BUG_ON(!PageLocked(page));
--
--	if (!page->mapping) {	/* truncated ? */
-+	if (!TestClearPageMlocked(page))
+ 	if (unlikely(page_mapcount(page) |
+@@ -727,15 +716,12 @@ static bool free_pages_prepare(struct pa
+ static void __free_pages_ok(struct page *page, unsigned int order)
+ {
+ 	unsigned long flags;
+-	int wasMlocked = __TestClearPageMlocked(page);
+ 	int migratetype;
+ 
+ 	if (!free_pages_prepare(page, order))
  		return;
--	}
  
- 	dec_zone_page_state(page, NR_MLOCK);
- 	count_vm_event(UNEVICTABLE_PGCLEARED);
-@@ -290,14 +287,7 @@ void munlock_vma_pages_range(struct vm_a
- 		page = follow_page(vma, addr, FOLL_GET | FOLL_DUMP);
- 		if (page && !IS_ERR(page)) {
- 			lock_page(page);
--			/*
--			 * Like in __mlock_vma_pages_range(),
--			 * because we lock page here and migration is
--			 * blocked by the elevated reference, we need
--			 * only check for file-cache page truncation.
--			 */
--			if (page->mapping)
--				munlock_vma_page(page);
-+			munlock_vma_page(page);
- 			unlock_page(page);
- 			put_page(page);
- 		}
-diff -puN mm/rmap.c~mm-clear_page_mlock-in-page_remove_rmap mm/rmap.c
---- a/mm/rmap.c~mm-clear_page_mlock-in-page_remove_rmap
-+++ a/mm/rmap.c
-@@ -1158,7 +1158,10 @@ void page_remove_rmap(struct page *page)
- 	} else {
- 		__dec_zone_page_state(page, NR_FILE_MAPPED);
- 		mem_cgroup_dec_page_stat(page, MEMCG_NR_FILE_MAPPED);
-+		mem_cgroup_end_update_page_stat(page, &locked, &flags);
- 	}
-+	if (unlikely(PageMlocked(page)))
-+		clear_page_mlock(page);
+ 	local_irq_save(flags);
+-	if (unlikely(wasMlocked))
+-		free_page_mlock(page);
+ 	__count_vm_events(PGFREE, 1 << order);
+ 	migratetype = get_pageblock_migratetype(page);
+ 	set_freepage_migratetype(page, migratetype);
+@@ -1309,7 +1295,6 @@ void free_hot_cold_page(struct page *pag
+ 	struct per_cpu_pages *pcp;
+ 	unsigned long flags;
+ 	int migratetype;
+-	int wasMlocked = __TestClearPageMlocked(page);
+ 
+ 	if (!free_pages_prepare(page, 0))
+ 		return;
+@@ -1317,8 +1302,6 @@ void free_hot_cold_page(struct page *pag
+ 	migratetype = get_pageblock_migratetype(page);
+ 	set_freepage_migratetype(page, migratetype);
+ 	local_irq_save(flags);
+-	if (unlikely(wasMlocked))
+-		free_page_mlock(page);
+ 	__count_vm_event(PGFREE);
+ 
  	/*
- 	 * It would be tidy to reset the PageAnon mapping here,
- 	 * but that might overwrite a racing page_add_anon_rmap
-@@ -1168,6 +1171,7 @@ void page_remove_rmap(struct page *page)
- 	 * Leaving it set also helps swapoff to reinstate ptes
- 	 * faster for those pages still in swapcache.
- 	 */
-+	return;
- out:
- 	if (!anon)
- 		mem_cgroup_end_update_page_stat(page, &locked, &flags);
-diff -puN mm/truncate.c~mm-clear_page_mlock-in-page_remove_rmap mm/truncate.c
---- a/mm/truncate.c~mm-clear_page_mlock-in-page_remove_rmap
-+++ a/mm/truncate.c
-@@ -107,7 +107,6 @@ truncate_complete_page(struct address_sp
+diff -puN mm/vmstat.c~mm-remove-free_page_mlock mm/vmstat.c
+--- a/mm/vmstat.c~mm-remove-free_page_mlock
++++ a/mm/vmstat.c
+@@ -782,7 +782,7 @@ const char * const vmstat_text[] = {
+ 	"unevictable_pgs_munlocked",
+ 	"unevictable_pgs_cleared",
+ 	"unevictable_pgs_stranded",
+-	"unevictable_pgs_mlockfreed",
++	"unevictable_pgs_mlockfreed",	/* no longer useful: always zero */
  
- 	cancel_dirty_page(page, PAGE_CACHE_SIZE);
- 
--	clear_page_mlock(page);
- 	ClearPageMappedToDisk(page);
- 	delete_from_page_cache(page);
- 	return 0;
-@@ -132,7 +131,6 @@ invalidate_complete_page(struct address_
- 	if (page_has_private(page) && !try_to_release_page(page, 0))
- 		return 0;
- 
--	clear_page_mlock(page);
- 	ret = remove_mapping(mapping, page);
- 
- 	return ret;
-@@ -394,8 +392,6 @@ invalidate_complete_page2(struct address
- 	if (page_has_private(page) && !try_to_release_page(page, GFP_KERNEL))
- 		return 0;
- 
--	clear_page_mlock(page);
--
- 	spin_lock_irq(&mapping->tree_lock);
- 	if (PageDirty(page))
- 		goto failed;
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	"thp_fault_alloc",
 _
 
 Patches currently in -mm which might be from hughd@google.com are
