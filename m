@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-fix-zone-stat-mismatch.patch added to -mm tree
-Date: Thu, 20 Sep 2012 14:42:05 -0700
-Message-ID: <20120920214205.BD672100047@wpzn3.hot.corp.google.com>
+Subject: + coredump-add-a-new-elf-note-with-siginfo-of-the-signal.patch added to -mm tree
+Date: Thu, 20 Sep 2012 14:44:27 -0700
+Message-ID: <20120920214428.A905520004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:33230 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752286Ab2ITVmH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Sep 2012 17:42:07 -0400
-Received: by ggnq2 with SMTP id q2so131089ggn.1
-        for <mm-commits@vger.kernel.org>; Thu, 20 Sep 2012 14:42:06 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:52184 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755882Ab2ITVob (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Sep 2012 17:44:31 -0400
+Received: by bkcjc3 with SMTP id jc3so173367bkc.1
+        for <mm-commits@vger.kernel.org>; Thu, 20 Sep 2012 14:44:30 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minchan@kernel.org, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com
+Cc: vda.linux@googlemail.com, amwang@redhat.com, jmfoote@cert.org, oleg@redhat.com, palves@redhat.com, roland@hack.frob.com
 
 
 The patch titled
-     Subject: memory-hotplug: fix zone stat mismatch
+     Subject: coredump: add a new elf note with siginfo of the signal
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-fix-zone-stat-mismatch.patch
+     coredump-add-a-new-elf-note-with-siginfo-of-the-signal.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,150 +33,168 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: memory-hotplug: fix zone stat mismatch
+From: Denys Vlasenko <vda.linux@googlemail.com>
+Subject: coredump: add a new elf note with siginfo of the signal
 
-During memory-hotplug, I found NR_ISOLATED_[ANON|FILE] are increasing,
-causing the kernel to hang.  When the system doesn't have enough free
-pages, it enters reclaim but never reclaim any pages due to
-too_many_isolated()==true and loops forever.
+Existing PRSTATUS note contains only si_signo, si_code, si_errno fields
+from the siginfo of the signal which caused core to be dumped.
 
-The cause is that when we do memory-hotadd after memory-remove,
-__zone_pcp_update() clears a zone's ZONE_STAT_ITEMS in setup_pageset()
-although the vm_stat_diff of all CPUs still have values.
+There are tools which try to analyze crashes for possible security
+implications, and they want to use, among other data, si_addr field from
+the SIGSEGV.
 
-In addtion, when we offline all pages of the zone, we reset them in
-zone_pcp_reset without draining so we loss some zone stat item.
+This patch adds a new elf note, NT_SIGINFO, which contains the complete
+siginfo_t of the signal which killed the process.
 
-Reviewed-by: Wen Congyang <wency@cn.fujitsu.com>
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Amerigo Wang <amwang@redhat.com>
+Cc: "Jonathan M. Foote" <jmfoote@cert.org>
+Cc: Roland McGrath <roland@hack.frob.com>
+Cc: Pedro Alves <palves@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    4 ++++
- mm/page_alloc.c        |    7 +++++++
- mm/vmstat.c            |   12 ++++++++++++
- 3 files changed, 23 insertions(+)
+ fs/binfmt_elf.c        |   26 ++++++++++++++++++++++++--
+ fs/compat_binfmt_elf.c |    7 +++++++
+ include/linux/elf.h    |    5 +++++
+ 3 files changed, 36 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/vmstat.h~memory-hotplug-fix-zone-stat-mismatch include/linux/vmstat.h
---- a/include/linux/vmstat.h~memory-hotplug-fix-zone-stat-mismatch
-+++ a/include/linux/vmstat.h
-@@ -198,6 +198,8 @@ extern void __dec_zone_state(struct zone
- void refresh_cpu_vm_stats(int);
- void refresh_zone_stat_thresholds(void);
+diff -puN fs/binfmt_elf.c~coredump-add-a-new-elf-note-with-siginfo-of-the-signal fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~coredump-add-a-new-elf-note-with-siginfo-of-the-signal
++++ a/fs/binfmt_elf.c
+@@ -36,6 +36,10 @@
+ #include <asm/param.h>
+ #include <asm/page.h>
  
-+void drain_zonestat(struct zone *zone, struct per_cpu_pageset *);
++#ifndef user_siginfo_t
++#define user_siginfo_t siginfo_t
++#endif
 +
- int calculate_pressure_threshold(struct zone *zone);
- int calculate_normal_threshold(struct zone *zone);
- void set_pgdat_percpu_threshold(pg_data_t *pgdat,
-@@ -251,6 +253,8 @@ static inline void __dec_zone_page_state
- static inline void refresh_cpu_vm_stats(int cpu) { }
- static inline void refresh_zone_stat_thresholds(void) { }
- 
-+static inline void drain_zonestat(struct zone *zone,
-+			struct per_cpu_pageset *pset) { }
- #endif		/* CONFIG_SMP */
- 
- static inline void __mod_zone_freepage_state(struct zone *zone, int nr_pages,
-diff -puN mm/page_alloc.c~memory-hotplug-fix-zone-stat-mismatch mm/page_alloc.c
---- a/mm/page_alloc.c~memory-hotplug-fix-zone-stat-mismatch
-+++ a/mm/page_alloc.c
-@@ -5908,6 +5908,7 @@ static int __meminit __zone_pcp_update(v
- 		local_irq_save(flags);
- 		if (pcp->count > 0)
- 			free_pcppages_bulk(zone, pcp->count, pcp);
-+		drain_zonestat(zone, pset);
- 		setup_pageset(pset, batch);
- 		local_irq_restore(flags);
- 	}
-@@ -5924,10 +5925,16 @@ void __meminit zone_pcp_update(struct zo
- void zone_pcp_reset(struct zone *zone)
- {
- 	unsigned long flags;
-+	int cpu;
-+	struct per_cpu_pageset *pset;
- 
- 	/* avoid races with drain_pages()  */
- 	local_irq_save(flags);
- 	if (zone->pageset != &boot_pageset) {
-+		for_each_online_cpu(cpu) {
-+			pset = per_cpu_ptr(zone->pageset, cpu);
-+			drain_zonestat(zone, pset);
-+		}
- 		free_percpu(zone->pageset);
- 		zone->pageset = &boot_pageset;
- 	}
-diff -puN mm/vmstat.c~memory-hotplug-fix-zone-stat-mismatch mm/vmstat.c
---- a/mm/vmstat.c~memory-hotplug-fix-zone-stat-mismatch
-+++ a/mm/vmstat.c
-@@ -495,6 +495,18 @@ void refresh_cpu_vm_stats(int cpu)
- 			atomic_long_add(global_diff[i], &vm_stat[i]);
+ static int load_elf_binary(struct linux_binprm *bprm, struct pt_regs *regs);
+ static int load_elf_library(struct file *);
+ static unsigned long elf_map(struct file *, unsigned long, struct elf_phdr *,
+@@ -1371,6 +1375,15 @@ static void fill_auxv_note(struct memelf
+ 	fill_note(note, "CORE", NT_AUXV, i * sizeof(elf_addr_t), auxv);
  }
  
-+void drain_zonestat(struct zone *zone, struct per_cpu_pageset *pset)
++static void fill_siginfo_note(struct memelfnote *note, user_siginfo_t *csigdata, siginfo_t *siginfo)
 +{
-+	int i;
-+
-+	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
-+		if (pset->vm_stat_diff[i]) {
-+			int v = pset->vm_stat_diff[i];
-+			pset->vm_stat_diff[i] = 0;
-+			atomic_long_add(v, &zone->vm_stat[i]);
-+			atomic_long_add(v, &vm_stat[i]);
-+		}
++	mm_segment_t old_fs = get_fs();
++	set_fs(KERNEL_DS);
++	copy_siginfo_to_user((user_siginfo_t __user *) csigdata, siginfo);
++	set_fs(old_fs);
++	fill_note(note, "CORE", NT_SIGINFO, sizeof(*csigdata), csigdata);
 +}
- #endif
++
+ #ifdef CORE_DUMP_USE_REGSET
+ #include <linux/regset.h>
  
- #ifdef CONFIG_NUMA
+@@ -1384,7 +1397,9 @@ struct elf_thread_core_info {
+ struct elf_note_info {
+ 	struct elf_thread_core_info *thread;
+ 	struct memelfnote psinfo;
++	struct memelfnote signote;
+ 	struct memelfnote auxv;
++	user_siginfo_t csigdata;
+ 	size_t size;
+ 	int thread_notes;
+ };
+@@ -1558,6 +1573,9 @@ static int fill_note_info(struct elfhdr 
+ 	fill_psinfo(psinfo, dump_task->group_leader, dump_task->mm);
+ 	info->size += notesize(&info->psinfo);
+ 
++	fill_siginfo_note(&info->signote, &info->csigdata, siginfo);
++	info->size += notesize(&info->signote);
++
+ 	fill_auxv_note(&info->auxv, current->mm);
+ 	info->size += notesize(&info->auxv);
+ 
+@@ -1587,6 +1605,8 @@ static int write_note_info(struct elf_no
+ 
+ 		if (first && !writenote(&info->psinfo, file, foffset))
+ 			return 0;
++		if (first && !writenote(&info->signote, file, foffset))
++			return 0;
+ 		if (first && !writenote(&info->auxv, file, foffset))
+ 			return 0;
+ 
+@@ -1680,6 +1700,7 @@ struct elf_note_info {
+ #ifdef ELF_CORE_COPY_XFPREGS
+ 	elf_fpxregset_t *xfpu;
+ #endif
++	user_siginfo_t csigdata;
+ 	int thread_status_size;
+ 	int numnote;
+ };
+@@ -1689,8 +1710,8 @@ static int elf_note_info_init(struct elf
+ 	memset(info, 0, sizeof(*info));
+ 	INIT_LIST_HEAD(&info->thread_list);
+ 
+-	/* Allocate space for six ELF notes */
+-	info->notes = kmalloc(6 * sizeof(struct memelfnote), GFP_KERNEL);
++	/* Allocate space for ELF notes */
++	info->notes = kmalloc(7 * sizeof(struct memelfnote), GFP_KERNEL);
+ 	if (!info->notes)
+ 		return 0;
+ 	info->psinfo = kmalloc(sizeof(*info->psinfo), GFP_KERNEL);
+@@ -1762,6 +1783,7 @@ static int fill_note_info(struct elfhdr 
+ 
+ 	info->numnote = 2;
+ 
++	fill_siginfo_note(&info->notes[info->numnote++], &info->csigdata, siginfo);
+ 	fill_auxv_note(&info->notes[info->numnote++], current->mm);
+ 
+ 	/* Try to dump the FPU. */
+diff -puN fs/compat_binfmt_elf.c~coredump-add-a-new-elf-note-with-siginfo-of-the-signal fs/compat_binfmt_elf.c
+--- a/fs/compat_binfmt_elf.c~coredump-add-a-new-elf-note-with-siginfo-of-the-signal
++++ a/fs/compat_binfmt_elf.c
+@@ -19,6 +19,7 @@
+ 
+ #include <linux/elfcore-compat.h>
+ #include <linux/time.h>
++#include <asm/sigframe.h> /* for compat_siginfo_t */
+ 
+ /*
+  * Rename the basic ELF layout types to refer to the 32-bit class of files.
+@@ -38,6 +39,12 @@
+ #define elf_addr_t	Elf32_Addr
+ 
+ /*
++ * Some data types as stored in coredump.
++ */
++#define user_siginfo_t		compat_siginfo_t
++#define copy_siginfo_to_user	copy_siginfo_to_user32
++
++/*
+  * The machine-dependent core note format types are defined in elfcore-compat.h,
+  * which requires asm/elf.h to define compat_elf_gregset_t et al.
+  */
+diff -puN include/linux/elf.h~coredump-add-a-new-elf-note-with-siginfo-of-the-signal include/linux/elf.h
+--- a/include/linux/elf.h~coredump-add-a-new-elf-note-with-siginfo-of-the-signal
++++ a/include/linux/elf.h
+@@ -372,6 +372,11 @@ typedef struct elf64_shdr {
+ #define NT_PRPSINFO	3
+ #define NT_TASKSTRUCT	4
+ #define NT_AUXV		6
++/*
++ * Note to userspace developers: size of NT_SIGINFO note may increase
++ * in the future to accomodate more fields, don't assume it is fixed!
++ */
++#define NT_SIGINFO      0x53494749
+ #define NT_PRXFPREG     0x46e62b7f      /* copied from gdb5.1/include/elf/common.h */
+ #define NT_PPC_VMX	0x100		/* PowerPC Altivec/VMX registers */
+ #define NT_PPC_SPE	0x101		/* PowerPC SPE/EVR registers */
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from vda.linux@googlemail.com are
 
-origin.patch
-linux-next.patch
-mm-remove-__gfp_no_kswapd.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
-mm-compaction-update-comment-in-try_to_compact_pages.patch
-mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures.patch
-mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures-fix.patch
-mm-compaction-capture-a-suitable-high-order-page-immediately-when-it-is-made-available.patch
-mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration.patch
-mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix.patch
-mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix.patch
-mm-fix-tracing-in-free_pcppages_bulk.patch
-mm-fix-tracing-in-free_pcppages_bulk-fix.patch
-cma-fix-counting-of-isolated-pages.patch
-cma-count-free-cma-pages.patch
-cma-count-free-cma-pages-fix.patch
-cma-fix-watermark-checking.patch
-mm-page_alloc-use-get_freepage_migratetype-instead-of-page_private.patch
-mm-remain-migratetype-in-freed-page.patch
-memory-hotplug-bug-fix-race-between-isolation-and-allocation.patch
-memory-hotplug-fix-pages-missed-by-race-rather-than-failing.patch
-memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-mm-memblock-reduce-overhead-in-binary-search.patch
-mm-memblock-use-existing-interface-to-set-nid.patch
-mm-memblock-cleanup-early_node_map-related-comments.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix-2.patch
-mm-compaction-check-lock-contention-first-before-taking-lock.patch
-mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc.patch
-mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch
-memory-hotplug-dont-replace-lowmem-pages-with-highmem.patch
-mm-compaction-move-fatal-signal-check-out-of-compact_checklock_irqsave.patch
-mm-enable-config_compaction-by-default.patch
-mm-numa-reclaim-from-all-nodes-within-reclaim-distance.patch
-mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix.patch
-mm-revert-0def08e3-mm-mempolicyc-check-return-code-of-check_range.patch
-trace-events-kmem-dont-call-page_to_pfn-if-page-is-null.patch
-memory-hotplug-fix-zone-stat-mismatch.patch
+lib-vsprintf-optimize-division-by-10-for-small-integers.patch
+lib-vsprintf-optimize-division-by-10000.patch
+lib-vsprintf-optimize-put_dec_trunc8.patch
+lib-vsprintf-fix-broken-comments.patch
+coredump-prevent-double-free-on-an-error-path-in-core-dumper.patch
+coredump-add-support-for-%d=__get_dumpable-in-core-name.patch
+coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr.patch
+coredump-add-a-new-elf-note-with-siginfo-of-the-signal.patch
 
