@@ -1,89 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-backlight-da9052_blc-drop-devm_kfree-of-devm_kzallocd-data.patch added to -mm tree
-Date: Thu, 20 Sep 2012 13:05:19 -0700
-Message-ID: <20120920200520.03000200057@hpza10.eem.corp.google.com>
+Subject: [merged] linux-kernelh-fix-warning-seen-with-w=1-due-to-change-in-div_round_closest.patch removed from -mm tree
+Date: Thu, 20 Sep 2012 13:11:38 -0700
+Message-ID: <20120920201139.BA228200061@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:59842 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754870Ab2ITUFW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Sep 2012 16:05:22 -0400
-Received: by wibhr14 with SMTP id hr14so73786wib.1
-        for <mm-commits@vger.kernel.org>; Thu, 20 Sep 2012 13:05:21 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:47105 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755108Ab2ITULm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Sep 2012 16:11:42 -0400
+Received: by eekd4 with SMTP id d4so170278eek.1
+        for <mm-commits@vger.kernel.org>; Thu, 20 Sep 2012 13:11:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: Julia.Lawall@lip6.fr, FlorianSchandinat@gmx.de, jg1.han@samsung.com
+To: linux@roeck-us.net, khali@linux-fr.org, mchehab@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/video/backlight/da9052_bl.c: drop devm_kfree of devm_kzalloc'd data
-has been added to the -mm tree.  Its filename is
-     drivers-video-backlight-da9052_blc-drop-devm_kfree-of-devm_kzallocd-data.patch
+     Subject: linux/kernel.h: fix warning seen with W=1 due to change in DIV_ROUND_CLOSEST
+has been removed from the -mm tree.  Its filename was
+     linux-kernelh-fix-warning-seen-with-w=1-due-to-change-in-div_round_closest.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: drivers/video/backlight/da9052_bl.c: drop devm_kfree of devm_kzalloc'd data
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: linux/kernel.h: fix warning seen with W=1 due to change in DIV_ROUND_CLOSEST
 
-devm_kfree should not have to be explicitly used.
+After commit b6d86d3d ("Fix DIV_ROUND_CLOSEST to support negative
+dividends"), the following warning is seen if the kernel is compiled with
+W=1 (-Wextra):
 
-The semantic patch that fixes this problem is as follows:
-(http://coccinelle.lip6.fr/)
+warning: comparison of unsigned expression >= 0 is always true
 
-// <smpl>
-@@
-expression x,d;
-@@
+The warning is due to the test '((typeof(x))-1) >= 0', which is used to
+detect if the variable type is unsigned.  Research on the web suggests
+that the warning disappears if '>' instead of '>=' is used for the
+comparison.
 
-x = devm_kzalloc(...)
-...
-?-devm_kfree(d,x);
-// </smpl>
+Tests after changing the macro along that line show that the warning is gone,
+and that the result is still correct:
 
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-Acked-by: Jingoo Han <jg1.han@samsung.com>
-Signed-off-by: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+i=-4: DIV_ROUND_CLOSEST(i, 2)=-2
+i=-3: DIV_ROUND_CLOSEST(i, 2)=-2
+i=-2: DIV_ROUND_CLOSEST(i, 2)=-1
+i=-1: DIV_ROUND_CLOSEST(i, 2)=-1
+i=0: DIV_ROUND_CLOSEST(i, 2)=0
+i=1: DIV_ROUND_CLOSEST(i, 2)=1
+i=2: DIV_ROUND_CLOSEST(i, 2)=1
+i=3: DIV_ROUND_CLOSEST(i, 2)=2
+i=4: DIV_ROUND_CLOSEST(i, 2)=2
+
+Code size is the same as before.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Tested-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Acked-by: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/da9052_bl.c |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/kernel.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/da9052_bl.c~drivers-video-backlight-da9052_blc-drop-devm_kfree-of-devm_kzallocd-data drivers/video/backlight/da9052_bl.c
---- a/drivers/video/backlight/da9052_bl.c~drivers-video-backlight-da9052_blc-drop-devm_kfree-of-devm_kzallocd-data
-+++ a/drivers/video/backlight/da9052_bl.c
-@@ -129,7 +129,6 @@ static int da9052_backlight_probe(struct
- 				       &da9052_backlight_ops, &props);
- 	if (IS_ERR(bl)) {
- 		dev_err(&pdev->dev, "Failed to register backlight\n");
--		devm_kfree(&pdev->dev, wleds);
- 		return PTR_ERR(bl);
- 	}
- 
-@@ -149,7 +148,6 @@ static int da9052_backlight_remove(struc
- 	wleds->state = DA9052_WLEDS_OFF;
- 	da9052_adjust_wled_brightness(wleds);
- 	backlight_device_unregister(bl);
--	devm_kfree(&pdev->dev, wleds);
- 
- 	return 0;
- }
+diff -puN include/linux/kernel.h~linux-kernelh-fix-warning-seen-with-w=1-due-to-change-in-div_round_closest include/linux/kernel.h
+--- a/include/linux/kernel.h~linux-kernelh-fix-warning-seen-with-w=1-due-to-change-in-div_round_closest
++++ a/include/linux/kernel.h
+@@ -91,7 +91,7 @@
+ {							\
+ 	typeof(x) __x = x;				\
+ 	typeof(divisor) __d = divisor;			\
+-	(((typeof(x))-1) >= 0 || (__x) >= 0) ?		\
++	(((typeof(x))-1) > 0 || (__x) > 0) ?		\
+ 		(((__x) + ((__d) / 2)) / (__d)) :	\
+ 		(((__x) - ((__d) / 2)) / (__d));	\
+ }							\
 _
 
-Patches currently in -mm which might be from Julia.Lawall@lip6.fr are
+Patches currently in -mm which might be from linux@roeck-us.net are
 
 linux-next.patch
-drivers-video-backlight-da9052_blc-drop-devm_kfree-of-devm_kzallocd-data.patch
-drivers-rtc-rtc-coh901331c-use-clk_prepare_enable-and-clk_disable_unprepare.patch
+drm-i915-optimize-div_round_closest-call.patch
 
