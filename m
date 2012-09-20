@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix.patch added to -mm tree
-Date: Wed, 19 Sep 2012 15:58:42 -0700
-Message-ID: <20120919234702.A95F42001FA@hpza10.eem.corp.google.com>
+Subject: + scatterlist-atomic-sg_mapping_iter-no-longer-needs-disabled-irqs.patch added to -mm tree
+Date: Thu, 20 Sep 2012 13:02:44 -0700
+Message-ID: <20120920200246.08ED5100048@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:62525 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752821Ab2ISXrF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Sep 2012 19:47:05 -0400
-Received: by faet1 with SMTP id t1so94036fae.1
-        for <mm-commits@vger.kernel.org>; Wed, 19 Sep 2012 16:47:04 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:64704 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754635Ab2ITUCt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Sep 2012 16:02:49 -0400
+Received: by qcqs25 with SMTP id s25so69277qcq.1
+        for <mm-commits@vger.kernel.org>; Thu, 20 Sep 2012 13:02:48 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, rientjes@google.com
+Cc: tj@kernel.org, maximlevitsky@gmail.com, oakad@yahoo.com
 
 
 The patch titled
-     Subject: mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix
+     Subject: scatterlist: atomic sg_mapping_iter() no longer needs disabled IRQs
 has been added to the -mm tree.  Its filename is
-     mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix.patch
+     scatterlist-atomic-sg_mapping_iter-no-longer-needs-disabled-irqs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,91 +33,84 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix
+From: Tejun Heo <tj@kernel.org>
+Subject: scatterlist: atomic sg_mapping_iter() no longer needs disabled IRQs
 
-fix CONFIG_NUMA=n build
+SG mapping iterator w/ SG_MITER_ATOMIC set required IRQ disabled because
+it originally used KM_BIO_SRC_IRQ to allow use from IRQ handlers. 
+kmap_atomic() has long been updated to handle stacking atomic mapping
+requests on per-cpu basis and only requires not sleeping while mapped.
 
-Cc: David Rientjes <rientjes@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Minchan Kim <minchan@kernel.org>
+Update sg_mapping_iter such that atomic iterators only require disabling
+preemption instead of disabling IRQ.
+
+While at it, convert wte weird @ARG@ notations to @ARG in the comment of
+sg_miter_start().
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Alex Dubov <oakad@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 ++
- 1 file changed, 2 insertions(+)
+ lib/scatterlist.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix include/linux/mmzone.h
-diff -puN mm/page_alloc.c~mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix
-+++ a/mm/page_alloc.c
-@@ -4561,7 +4561,9 @@ void __paginginit free_area_init_node(in
- 	for_each_online_node(i)
- 		if (node_distance(nid, i) <= RECLAIM_DISTANCE) {
- 			node_set(i, pgdat->reclaim_nodes);
-+#ifdef CONFIG_NUMA
- 			zone_reclaim_mode = 1;
-+#endif
- 		}
- 	calculate_node_totalpages(pgdat, zones_size, zholes_size);
+diff -puN lib/scatterlist.c~scatterlist-atomic-sg_mapping_iter-no-longer-needs-disabled-irqs lib/scatterlist.c
+--- a/lib/scatterlist.c~scatterlist-atomic-sg_mapping_iter-no-longer-needs-disabled-irqs
++++ a/lib/scatterlist.c
+@@ -404,14 +404,13 @@ EXPORT_SYMBOL(sg_miter_start);
+  * @miter: sg mapping iter to proceed
+  *
+  * Description:
+- *   Proceeds @miter@ to the next mapping.  @miter@ should have been
+- *   started using sg_miter_start().  On successful return,
+- *   @miter@->page, @miter@->addr and @miter@->length point to the
+- *   current mapping.
++ *   Proceeds @miter to the next mapping.  @miter should have been started
++ *   using sg_miter_start().  On successful return, @miter->page,
++ *   @miter->addr and @miter->length point to the current mapping.
+  *
+  * Context:
+- *   IRQ disabled if SG_MITER_ATOMIC.  IRQ must stay disabled till
+- *   @miter@ is stopped.  May sleep if !SG_MITER_ATOMIC.
++ *   Preemption disabled if SG_MITER_ATOMIC.  Preemption must stay disabled
++ *   till @miter is stopped.  May sleep if !SG_MITER_ATOMIC.
+  *
+  * Returns:
+  *   true if @miter contains the next mapping.  false if end of sg
+@@ -465,7 +464,8 @@ EXPORT_SYMBOL(sg_miter_next);
+  *   resources (kmap) need to be released during iteration.
+  *
+  * Context:
+- *   IRQ disabled if the SG_MITER_ATOMIC is set.  Don't care otherwise.
++ *   Preemption disabled if the SG_MITER_ATOMIC is set.  Don't care
++ *   otherwise.
+  */
+ void sg_miter_stop(struct sg_mapping_iter *miter)
+ {
+@@ -479,7 +479,7 @@ void sg_miter_stop(struct sg_mapping_ite
+ 			flush_kernel_dcache_page(miter->page);
  
+ 		if (miter->__flags & SG_MITER_ATOMIC) {
+-			WARN_ON(!irqs_disabled());
++			WARN_ON_ONCE(preemptible());
+ 			kunmap_atomic(miter->addr);
+ 		} else
+ 			kunmap(miter->page);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tj@kernel.org are
 
 origin.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-idr-rename-max_level-to-max_idr_level-fix-3.patch
-cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-audith-replace-defines-with-c-stubs.patch
-slab-fix-debug==0-warning.patch
-mm.patch
-x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
-mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
-mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures-fix.patch
-mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch
-rbtree-performance-and-correctness-test-fix.patch
-mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix.patch
-mm-fix-tracing-in-free_pcppages_bulk-fix.patch
-cma-count-free-cma-pages-fix.patch
-memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
-atomic-implement-generic-atomic_dec_if_positive-fix.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix-2.patch
-mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch
-mm-fix-invalidate_complete_page2-lock-ordering.patch
-mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix.patch
-mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock.patch
-sections-fix-section-conflicts-in-arch-h8300-checkpatch-fixes.patch
-sections-fix-section-conflicts-in-drivers-macintosh-checkpatch-fixes.patch
-sectons-fix-const-sections-for-crc32-table-checkpatch-fixes.patch
-backlight-add-backlight-driver-for-lm3630-chip-fix.patch
-backlight-add-new-lm3639-backlight-driver-fix.patch
-idr-rename-max_level-to-max_idr_level-fix.patch
-idr-rename-max_level-to-max_idr_level-fix-fix-2.patch
-lib-parserc-avoid-overflow-in-match_number-fix.patch
-lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock-fix.patch
-compat-fs-generic-compat_sys_sendfile-implementation.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-rtc-add-dallas-ds2404-driver-fix.patch
-rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch
-fs-fat-fix-all-other-checkpatch-issues-in-dirc-fix.patch
-fat-simplify-writeback_inode-checkpatch-fixes.patch
-fat-simplify-writeback_inode-checkpatch-fixes-fix.patch
-coredump-make-core-dump-functionality-optional-fix-fix.patch
-coredump-use-suid_dumpable_enabled-rather-than-hardcoded-1-checkpatch-fixes.patch
-proc-use-kzalloc-instead-of-kmalloc-and-memset-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+block-store-partition_meta_infouuid-as-a-string.patch
+init-reduce-partuuid-min-length-to-1-from-36.patch
+block-partition-msdos-provide-uuids-for-partitions.patch
+scatterlist-atomic-sg_mapping_iter-no-longer-needs-disabled-irqs.patch
+device_cgroup-add-deny_all-in-dev_cgroup-structure.patch
+device_cgroup-introduce-dev_whitelist_clean.patch
+device_cgroup-convert-device_cgroup-internally-to-policy-exceptions.patch
+device_cgroup-rename-whitelist-to-exception-list.patch
+memstick-add-support-for-legacy-memorysticks.patch
 
