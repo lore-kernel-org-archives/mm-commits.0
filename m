@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 20 Sep 2012 14:54:08 -0700
-Message-ID: <20120920215409.BB53A5C0065@hpza9.eem.corp.google.com>
+Subject: + drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-code-fix-fix.patch added to -mm tree
+Date: Thu, 20 Sep 2012 15:16:51 -0700
+Message-ID: <20120920230512.B76005C0063@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:39819 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753309Ab2ITVyM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Sep 2012 17:54:12 -0400
-Received: by wibhr14 with SMTP id hr14so77719wib.1
-        for <mm-commits@vger.kernel.org>; Thu, 20 Sep 2012 14:54:10 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:51686 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932217Ab2ITXFQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Sep 2012 19:05:16 -0400
+Received: by bkcjc3 with SMTP id jc3so174006bkc.1
+        for <mm-commits@vger.kernel.org>; Thu, 20 Sep 2012 16:05:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, vda.linux@googlemail.com
+Cc: akpm@linux-foundation.org, rdunlap@xenotime.net, zonque@gmail.com
 
 
 The patch titled
-     Subject: coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files-checkpatch-fixes
+     Subject: drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-code-fix-fix
 has been added to the -mm tree.  Its filename is
-     coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files-checkpatch-fixes.patch
+     drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-code-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files-checkpatch-fixes
+Subject: drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-code-fix-fix
 
-ERROR: "(foo*)" should be "(foo *)"
-#79: FILE: fs/binfmt_elf.c:1424:
-+	name_base = name_curpos = ((char*)data) + names_ofs;
+fix lis302dl_spi_dt_ids unused warning when CONFIG_OF=n
 
-WARNING: line over 80 characters
-#122: FILE: fs/binfmt_elf.c:1467:
-+		memmove(name_base - shift_bytes, name_base, name_curpos - name_base);
+drivers/misc/lis3lv02d/lis3lv02d_spi.c:63: warning: 'lis302dl_spi_dt_ids' defined but not used
 
-ERROR: "(foo*)" should be "(foo *)"
-#126: FILE: fs/binfmt_elf.c:1471:
-+	size = name_curpos - (char*)data;
-
-total: 2 errors, 1 warnings, 177 lines checked
-
-./patches/coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Denys Vlasenko <vda.linux@googlemail.com>
+Cc: Daniel Mack <zonque@gmail.com>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/misc/lis3lv02d/lis3lv02d_spi.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/binfmt_elf.c~coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files-checkpatch-fixes fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files-checkpatch-fixes
-+++ a/fs/binfmt_elf.c
-@@ -1421,7 +1421,7 @@ static void fill_files_note(struct memel
- 		goto err;
+diff -puN drivers/misc/lis3lv02d/lis3lv02d_spi.c~drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-code-fix-fix drivers/misc/lis3lv02d/lis3lv02d_spi.c
+--- a/drivers/misc/lis3lv02d/lis3lv02d_spi.c~drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-code-fix-fix
++++ a/drivers/misc/lis3lv02d/lis3lv02d_spi.c
+@@ -60,11 +60,13 @@ static int lis3_spi_init(struct lis3lv02
+ static union axis_conversion lis3lv02d_axis_normal =
+ 	{ .as_array = { 1, 2, 3 } };
  
- 	start_end_ofs = data + 2;
--	name_base = name_curpos = ((char*)data) + names_ofs;
-+	name_base = name_curpos = ((char *)data) + names_ofs;
- 	remaining = size - names_ofs;
- 	count = 0;
- 	for (vma = current->mm->mmap; vma != NULL; vma = vma->vm_next) {
-@@ -1464,11 +1464,12 @@ static void fill_files_note(struct memel
- 	n = current->mm->map_count - count;
- 	if (n != 0) {
- 		unsigned shift_bytes = n * 3 * sizeof(data[0]);
--		memmove(name_base - shift_bytes, name_base, name_curpos - name_base);
-+		memmove(name_base - shift_bytes, name_base,
-+			name_curpos - name_base);
- 		name_curpos -= shift_bytes;
- 	}
++#ifdef CONFIG_OF
+ static struct of_device_id lis302dl_spi_dt_ids[] = {
+ 	{ .compatible = "st,lis302dl-spi" },
+ 	{}
+ };
+ MODULE_DEVICE_TABLE(of, lis302dl_spi_dt_ids);
++#endif
  
--	size = name_curpos - (char*)data;
-+	size = name_curpos - (char *)data;
- 	fill_note(note, "CORE", NT_FILE, size, data);
-  err: ;
- }
+ static int __devinit lis302dl_spi_probe(struct spi_device *spi)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -127,6 +101,8 @@ mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock.patch
 sections-fix-section-conflicts-in-arch-h8300-checkpatch-fixes.patch
 sections-fix-section-conflicts-in-drivers-macintosh-checkpatch-fixes.patch
 sectons-fix-const-sections-for-crc32-table-checkpatch-fixes.patch
+drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-code-fix-fix.patch
+drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init-fix.patch
 backlight-add-backlight-driver-for-lm3630-chip-fix.patch
 backlight-add-new-lm3639-backlight-driver-fix.patch
 idr-rename-max_level-to-max_idr_level-fix.patch
