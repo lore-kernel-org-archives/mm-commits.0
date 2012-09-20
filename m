@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr.patch added to -mm tree
-Date: Thu, 20 Sep 2012 14:44:23 -0700
-Message-ID: <20120920214424.57C7B100047@wpzn3.hot.corp.google.com>
+Subject: + coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files.patch added to -mm tree
+Date: Thu, 20 Sep 2012 14:53:10 -0700
+Message-ID: <20120920215311.41A035C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:53807 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755882Ab2ITVo0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Sep 2012 17:44:26 -0400
-Received: by qafl39 with SMTP id l39so135786qaf.1
-        for <mm-commits@vger.kernel.org>; Thu, 20 Sep 2012 14:44:25 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:56735 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752211Ab2ITVxO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Sep 2012 17:53:14 -0400
+Received: by faet1 with SMTP id t1so173782fae.1
+        for <mm-commits@vger.kernel.org>; Thu, 20 Sep 2012 14:53:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: vda.linux@googlemail.com, amwang@redhat.com, jmfoote@cert.org, oleg@redhat.c
 
 
 The patch titled
-     Subject: coredump: pass siginfo_t* to do_coredump() and below, not merely signr
+     Subject: coredump: extend core dump note section to contain file names of mapped files
 has been added to the -mm tree.  Its filename is
-     coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr.patch
+     coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Denys Vlasenko <vda.linux@googlemail.com>
-Subject: coredump: pass siginfo_t* to do_coredump() and below, not merely signr
+Subject: coredump: extend core dump note section to contain file names of mapped files
 
-This is a preparatory patch for the introduction of NT_SIGINFO elf note.
+This note has the following format:
 
-With this patch we pass "siginfo_t *siginfo" instead of "int signr" to
-do_coredump() and put it into coredump_params.  It will be used by the
-next patch.  Most changes are simple s/signr/siginfo->si_signo/.
+long count     -- how many files are mapped
+long page_size -- units for file_ofs
+array of [COUNT] elements of
+   long start
+   long end
+   long file_ofs
+followed by COUNT filenames in ASCII: "FILE1" NUL "FILE2" NUL...
 
 Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
-Reviewed-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Amerigo Wang <amwang@redhat.com>
 Cc: "Jonathan M. Foote" <jmfoote@cert.org>
 Cc: Roland McGrath <roland@hack.frob.com>
@@ -51,218 +55,208 @@ Cc: Pedro Alves <palves@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_aout.c         |    2 +-
- fs/binfmt_elf.c          |   14 +++++++-------
- fs/binfmt_elf_fdpic.c    |    6 +++---
- fs/binfmt_flat.c         |    2 +-
- fs/coredump.c            |   10 +++++-----
- include/linux/binfmts.h  |    2 +-
- include/linux/coredump.h |    4 ++--
- kernel/signal.c          |    2 +-
- 8 files changed, 21 insertions(+), 21 deletions(-)
+ fs/binfmt_elf.c        |  108 +++++++++++++++++++++++++++++++++++++--
+ fs/compat_binfmt_elf.c |    1 
+ include/linux/elf.h    |    1 
+ 3 files changed, 106 insertions(+), 4 deletions(-)
 
-diff -puN fs/binfmt_aout.c~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr fs/binfmt_aout.c
---- a/fs/binfmt_aout.c~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr
-+++ a/fs/binfmt_aout.c
-@@ -65,7 +65,7 @@ static int aout_core_dump(struct coredum
- 	current->flags |= PF_DUMPCORE;
-        	strncpy(dump.u_comm, current->comm, sizeof(dump.u_comm));
- 	dump.u_ar0 = offsetof(struct user, regs);
--	dump.signal = cprm->signr;
-+	dump.signal = cprm->siginfo->si_signo;
- 	aout_dump_thread(cprm->regs, &dump);
- 
- /* If the size of the dump file exceeds the rlimit, then see what would happen
-diff -puN fs/binfmt_elf.c~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr
+diff -puN fs/binfmt_elf.c~coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files
 +++ a/fs/binfmt_elf.c
-@@ -1479,7 +1479,7 @@ static int fill_thread_core_info(struct 
+@@ -36,6 +36,9 @@
+ #include <asm/param.h>
+ #include <asm/page.h>
  
- static int fill_note_info(struct elfhdr *elf, int phdrs,
- 			  struct elf_note_info *info,
--			  long signr, struct pt_regs *regs)
-+			  siginfo_t *siginfo, struct pt_regs *regs)
- {
- 	struct task_struct *dump_task = current;
- 	const struct user_regset_view *view = task_user_regset_view(dump_task);
-@@ -1549,7 +1549,7 @@ static int fill_note_info(struct elfhdr 
- 	 * Now fill in each thread's information.
- 	 */
- 	for (t = info->thread; t != NULL; t = t->next)
--		if (!fill_thread_core_info(t, view, signr, &info->size))
-+		if (!fill_thread_core_info(t, view, siginfo->si_signo, &info->size))
++#ifndef user_long_t
++#define user_long_t long
++#endif
+ #ifndef user_siginfo_t
+ #define user_siginfo_t siginfo_t
+ #endif
+@@ -1384,6 +1387,92 @@ static void fill_siginfo_note(struct mem
+ 	fill_note(note, "CORE", NT_SIGINFO, sizeof(*csigdata), csigdata);
+ }
+ 
++#define MAX_FILE_NOTE_SIZE (4*1024*1024)
++/*
++ * Format of NT_FILE note:
++ *
++ * long count     -- how many files are mapped
++ * long page_size -- units for file_ofs
++ * array of [COUNT] elements of
++ *   long start
++ *   long end
++ *   long file_ofs
++ * followed by COUNT filenames in ASCII: "FILE1" NUL "FILE2" NUL...
++ */
++static void fill_files_note(struct memelfnote *note)
++{
++	struct vm_area_struct *vma;
++	unsigned count, size, names_ofs, remaining, n;
++	user_long_t *data;
++	user_long_t *start_end_ofs;
++	char *name_base, *name_curpos;
++
++	/* *Estimated* file count and total data size needed */
++	count = current->mm->map_count;
++	size = count * 64;
++
++	names_ofs = (2 + 3 * count) * sizeof(data[0]);
++ alloc:
++	if (size >= MAX_FILE_NOTE_SIZE) /* paranoia check */
++		goto err;
++	size = round_up(size, PAGE_SIZE);
++	data = vmalloc(size);
++	if (!data)
++		goto err;
++
++	start_end_ofs = data + 2;
++	name_base = name_curpos = ((char*)data) + names_ofs;
++	remaining = size - names_ofs;
++	count = 0;
++	for (vma = current->mm->mmap; vma != NULL; vma = vma->vm_next) {
++		struct file *file;
++		const char *filename;
++
++		file = vma->vm_file;
++		if (!file)
++			continue;
++		filename = d_path(&file->f_path, name_curpos, remaining);
++		if (IS_ERR(filename)) {
++			if (PTR_ERR(filename) == -ENAMETOOLONG) {
++				vfree(data);
++				size = size * 5 / 4;
++				goto alloc;
++			}
++			continue;
++		}
++
++		/* d_path() fills at the end, move name down */
++		/* n = strlen(filename) + 1: */
++		n = (name_curpos + remaining) - filename;
++		remaining = filename - name_curpos;
++		memmove(name_curpos, filename, n);
++		name_curpos += n;
++
++		*start_end_ofs++ = vma->vm_start;
++		*start_end_ofs++ = vma->vm_end;
++		*start_end_ofs++ = vma->vm_pgoff;
++		count++;
++	}
++
++	/* Now we know exact count of files, can store it */
++	data[0] = count;
++	data[1] = PAGE_SIZE;
++	/*
++	 * Count usually is less than current->mm->map_count,
++	 * we need to move filenames down.
++	 */
++	n = current->mm->map_count - count;
++	if (n != 0) {
++		unsigned shift_bytes = n * 3 * sizeof(data[0]);
++		memmove(name_base - shift_bytes, name_base, name_curpos - name_base);
++		name_curpos -= shift_bytes;
++	}
++
++	size = name_curpos - (char*)data;
++	fill_note(note, "CORE", NT_FILE, size, data);
++ err: ;
++}
++
+ #ifdef CORE_DUMP_USE_REGSET
+ #include <linux/regset.h>
+ 
+@@ -1399,6 +1488,7 @@ struct elf_note_info {
+ 	struct memelfnote psinfo;
+ 	struct memelfnote signote;
+ 	struct memelfnote auxv;
++	struct memelfnote files;
+ 	user_siginfo_t csigdata;
+ 	size_t size;
+ 	int thread_notes;
+@@ -1579,6 +1669,9 @@ static int fill_note_info(struct elfhdr 
+ 	fill_auxv_note(&info->auxv, current->mm);
+ 	info->size += notesize(&info->auxv);
+ 
++	fill_files_note(&info->files);
++	info->size += notesize(&info->files);
++
+ 	return 1;
+ }
+ 
+@@ -1609,6 +1702,8 @@ static int write_note_info(struct elf_no
  			return 0;
+ 		if (first && !writenote(&info->auxv, file, foffset))
+ 			return 0;
++		if (first && !writenote(&info->files, file, foffset))
++			return 0;
  
- 	/*
-@@ -1712,14 +1712,14 @@ static int elf_note_info_init(struct elf
- 
- static int fill_note_info(struct elfhdr *elf, int phdrs,
- 			  struct elf_note_info *info,
--			  long signr, struct pt_regs *regs)
-+			  siginfo_t *siginfo, struct pt_regs *regs)
- {
- 	struct list_head *t;
- 
- 	if (!elf_note_info_init(info))
- 		return 0;
- 
--	if (signr) {
-+	if (siginfo->si_signo) {
- 		struct core_thread *ct;
- 		struct elf_thread_status *ets;
- 
-@@ -1737,13 +1737,13 @@ static int fill_note_info(struct elfhdr 
- 			int sz;
- 
- 			ets = list_entry(t, struct elf_thread_status, list);
--			sz = elf_dump_thread_status(signr, ets);
-+			sz = elf_dump_thread_status(siginfo->si_signo, ets);
- 			info->thread_status_size += sz;
- 		}
+ 		for (i = 1; i < info->thread_notes; ++i)
+ 			if (t->notes[i].data &&
+@@ -1635,6 +1730,7 @@ static void free_note_info(struct elf_no
+ 		kfree(t);
  	}
- 	/* now collect the dump for the current */
- 	memset(info->prstatus, 0, sizeof(*info->prstatus));
--	fill_prstatus(info->prstatus, current, signr);
-+	fill_prstatus(info->prstatus, current, siginfo->si_signo);
- 	elf_core_copy_regs(&info->prstatus->pr_reg, regs);
- 
- 	/* Set up header */
-@@ -1950,7 +1950,7 @@ static int elf_core_dump(struct coredump
- 	 * Collect all the non-memory information about the process for the
- 	 * notes.  This also sets up the file header.
- 	 */
--	if (!fill_note_info(elf, e_phnum, &info, cprm->signr, cprm->regs))
-+	if (!fill_note_info(elf, e_phnum, &info, cprm->siginfo, cprm->regs))
- 		goto cleanup;
- 
- 	has_dumped = 1;
-diff -puN fs/binfmt_elf_fdpic.c~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr fs/binfmt_elf_fdpic.c
---- a/fs/binfmt_elf_fdpic.c~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -1641,7 +1641,7 @@ static int elf_fdpic_core_dump(struct co
- 		goto cleanup;
- #endif
- 
--	if (cprm->signr) {
-+	if (cprm->siginfo->si_signo) {
- 		struct core_thread *ct;
- 		struct elf_thread_status *tmp;
- 
-@@ -1660,13 +1660,13 @@ static int elf_fdpic_core_dump(struct co
- 			int sz;
- 
- 			tmp = list_entry(t, struct elf_thread_status, list);
--			sz = elf_dump_thread_status(cprm->signr, tmp);
-+			sz = elf_dump_thread_status(cprm->siginfo->si_signo, tmp);
- 			thread_status_size += sz;
- 		}
- 	}
- 
- 	/* now collect the dump for the current */
--	fill_prstatus(prstatus, current, cprm->signr);
-+	fill_prstatus(prstatus, current, cprm->siginfo->si_signo);
- 	elf_core_copy_regs(&prstatus->pr_reg, cprm->regs);
- 
- 	segs = current->mm->map_count;
-diff -puN fs/binfmt_flat.c~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr fs/binfmt_flat.c
---- a/fs/binfmt_flat.c~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr
-+++ a/fs/binfmt_flat.c
-@@ -107,7 +107,7 @@ static struct linux_binfmt flat_format =
- static int flat_core_dump(struct coredump_params *cprm)
- {
- 	printk("Process %s:%d received signr %d and should have core dumped\n",
--			current->comm, current->pid, (int) cprm->signr);
-+			current->comm, current->pid, (int) cprm->siginfo->si_signo);
- 	return(1);
+ 	kfree(info->psinfo.data);
++	vfree(info->files.data);
  }
  
-diff -puN fs/coredump.c~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr fs/coredump.c
---- a/fs/coredump.c~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr
-+++ a/fs/coredump.c
-@@ -200,7 +200,7 @@ static int format_corename(struct core_n
- 				break;
- 			/* signal that caused the coredump */
- 			case 's':
--				err = cn_printf(cn, "%ld", cprm->signr);
-+				err = cn_printf(cn, "%ld", cprm->siginfo->si_signo);
- 				break;
- 			/* UNIX time of coredump */
- 			case 't': {
-@@ -467,7 +467,7 @@ static int umh_pipe_setup(struct subproc
- 	return 0;
- }
- 
--void do_coredump(long signr, int exit_code, struct pt_regs *regs)
-+void do_coredump(siginfo_t *siginfo, struct pt_regs *regs)
- {
- 	struct core_state core_state;
- 	struct core_name cn;
-@@ -481,7 +481,7 @@ void do_coredump(long signr, int exit_co
- 	bool need_nonrelative = false;
- 	static atomic_t core_dump_count = ATOMIC_INIT(0);
- 	struct coredump_params cprm = {
--		.signr = signr,
-+		.siginfo = siginfo,
- 		.regs = regs,
- 		.limit = rlimit(RLIMIT_CORE),
- 		/*
-@@ -492,7 +492,7 @@ void do_coredump(long signr, int exit_co
- 		.mm_flags = mm->flags,
- 	};
- 
--	audit_core_dumps(signr);
-+	audit_core_dumps(siginfo->si_signo);
- 
- 	binfmt = mm->binfmt;
- 	if (!binfmt || !binfmt->core_dump)
-@@ -516,7 +516,7 @@ void do_coredump(long signr, int exit_co
- 		need_nonrelative = true;
- 	}
- 
--	retval = coredump_wait(exit_code, &core_state);
-+	retval = coredump_wait(siginfo->si_signo, &core_state);
- 	if (retval < 0)
- 		goto fail_creds;
- 
-diff -puN include/linux/binfmts.h~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr include/linux/binfmts.h
---- a/include/linux/binfmts.h~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr
-+++ a/include/linux/binfmts.h
-@@ -74,7 +74,7 @@ struct linux_binprm {
- 
- /* Function parameter for binfmt->coredump */
- struct coredump_params {
--	long signr;
-+	siginfo_t *siginfo;
- 	struct pt_regs *regs;
- 	struct file *file;
- 	unsigned long limit;
-diff -puN include/linux/coredump.h~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr include/linux/coredump.h
---- a/include/linux/coredump.h~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr
-+++ a/include/linux/coredump.h
-@@ -12,9 +12,9 @@
- extern int dump_write(struct file *file, const void *addr, int nr);
- extern int dump_seek(struct file *file, loff_t off);
- #ifdef CONFIG_COREDUMP
--extern void do_coredump(long signr, int exit_code, struct pt_regs *regs);
-+extern void do_coredump(siginfo_t *siginfo, struct pt_regs *regs);
  #else
--static inline void do_coredump(long signr, int exit_code, struct pt_regs *regs) {}
-+static inline void do_coredump(siginfo_t *siginfo, struct pt_regs *regs) {}
- #endif
+@@ -1711,7 +1807,7 @@ static int elf_note_info_init(struct elf
+ 	INIT_LIST_HEAD(&info->thread_list);
  
- #endif /* _LINUX_COREDUMP_H */
-diff -puN kernel/signal.c~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr kernel/signal.c
---- a/kernel/signal.c~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr
-+++ a/kernel/signal.c
-@@ -2360,7 +2360,7 @@ relock:
- 			 * first and our do_group_exit call below will use
- 			 * that value and ignore the one we pass it.
- 			 */
--			do_coredump(info->si_signo, info->si_signo, regs);
-+			do_coredump(info, regs);
- 		}
+ 	/* Allocate space for ELF notes */
+-	info->notes = kmalloc(7 * sizeof(struct memelfnote), GFP_KERNEL);
++	info->notes = kmalloc(8 * sizeof(struct memelfnote), GFP_KERNEL);
+ 	if (!info->notes)
+ 		return 0;
+ 	info->psinfo = kmalloc(sizeof(*info->psinfo), GFP_KERNEL);
+@@ -1781,10 +1877,11 @@ static int fill_note_info(struct elfhdr 
+ 	fill_note(info->notes + 1, "CORE", NT_PRPSINFO,
+ 		  sizeof(*info->psinfo), info->psinfo);
  
- 		/*
+-	info->numnote = 2;
++	fill_siginfo_note(info->notes + 2, &info->csigdata, siginfo);
++	fill_auxv_note(info->notes + 3, current->mm);
++	fill_files_note(info->notes + 4);
+ 
+-	fill_siginfo_note(&info->notes[info->numnote++], &info->csigdata, siginfo);
+-	fill_auxv_note(&info->notes[info->numnote++], current->mm);
++	info->numnote = 5;
+ 
+ 	/* Try to dump the FPU. */
+ 	info->prstatus->pr_fpvalid = elf_core_copy_task_fpregs(current, regs,
+@@ -1846,6 +1943,9 @@ static void free_note_info(struct elf_no
+ 		kfree(list_entry(tmp, struct elf_thread_status, list));
+ 	}
+ 
++	/* Free data allocated by fill_files_note(): */
++	vfree(info->notes[4].data);
++
+ 	kfree(info->prstatus);
+ 	kfree(info->psinfo);
+ 	kfree(info->notes);
+diff -puN fs/compat_binfmt_elf.c~coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files fs/compat_binfmt_elf.c
+--- a/fs/compat_binfmt_elf.c~coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files
++++ a/fs/compat_binfmt_elf.c
+@@ -41,6 +41,7 @@
+ /*
+  * Some data types as stored in coredump.
+  */
++#define user_long_t		compat_long_t
+ #define user_siginfo_t		compat_siginfo_t
+ #define copy_siginfo_to_user	copy_siginfo_to_user32
+ 
+diff -puN include/linux/elf.h~coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files include/linux/elf.h
+--- a/include/linux/elf.h~coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files
++++ a/include/linux/elf.h
+@@ -377,6 +377,7 @@ typedef struct elf64_shdr {
+  * in the future to accomodate more fields, don't assume it is fixed!
+  */
+ #define NT_SIGINFO      0x53494749
++#define NT_FILE         0x46494c45
+ #define NT_PRXFPREG     0x46e62b7f      /* copied from gdb5.1/include/elf/common.h */
+ #define NT_PPC_VMX	0x100		/* PowerPC Altivec/VMX registers */
+ #define NT_PPC_SPE	0x101		/* PowerPC SPE/EVR registers */
 _
 
 Patches currently in -mm which might be from vda.linux@googlemail.com are
@@ -275,4 +269,5 @@ coredump-prevent-double-free-on-an-error-path-in-core-dumper.patch
 coredump-add-support-for-%d=__get_dumpable-in-core-name.patch
 coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr.patch
 coredump-add-a-new-elf-note-with-siginfo-of-the-signal.patch
+coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files.patch
 
