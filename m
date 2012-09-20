@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init-fix.patch added to -mm tree
-Date: Thu, 20 Sep 2012 15:26:02 -0700
-Message-ID: <20120920231422.B2CCC20004E@hpza10.eem.corp.google.com>
+Subject: + mm-revert-0def08e3-mm-mempolicyc-check-return-code-of-check_range-fix.patch added to -mm tree
+Date: Thu, 20 Sep 2012 16:28:49 -0700
+Message-ID: <20120920232850.58F97100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:46339 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932441Ab2ITXOZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Sep 2012 19:14:25 -0400
-Received: by wgbdt11 with SMTP id dt11so136442wgb.1
-        for <mm-commits@vger.kernel.org>; Thu, 20 Sep 2012 16:14:24 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:35859 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932468Ab2ITX2w (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Sep 2012 19:28:52 -0400
+Received: by vcbfy27 with SMTP id fy27so378377vcb.1
+        for <mm-commits@vger.kernel.org>; Thu, 20 Sep 2012 16:28:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, anilkumar@ti.com, arnd@arndb.de, broonie@opensource.wolfsonmicro.com, eric.piel@tremplin-utc.net, tony@atomide.com
+Cc: minchan@kernel.org, cl@linux.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, rientjes@google.com, segooon@gmail.com
 
 
 The patch titled
-     Subject: drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init-fix
+     Subject: mm: enhance comment and bug check
 has been added to the -mm tree.  Its filename is
-     drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init-fix.patch
+     mm-revert-0def08e3-mm-mempolicyc-check-return-code-of-check_range-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,126 +33,92 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init-fix
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: enhance comment and bug check
 
-fix CONFIG_OF=n build
+This patch updates comment and bug check.
+It can be fold into [1].
 
-drivers/misc/lis3lv02d/lis3lv02d_i2c.c: In function 'lis3lv02d_i2c_probe':
-drivers/misc/lis3lv02d/lis3lv02d_i2c.c:120: error: implicit declaration of function 'of_match_device'
-drivers/misc/lis3lv02d/lis3lv02d_i2c.c:121: error: 'struct lis3lv02d' has no member named 'of_node'
+[1] mm-revert-0def08e3-mm-mempolicyc-check-return-code-of-check_range.patch
 
-Cc: AnilKumar Ch <anilkumar@ti.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Eric Piel <eric.piel@tremplin-utc.net>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Tony Lindgren <tony@atomide.com>
+Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Vasiliy Kulikov <segooon@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/lis3lv02d/lis3lv02d_i2c.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/mempolicy.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/misc/lis3lv02d/lis3lv02d_i2c.c~drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init-fix drivers/misc/lis3lv02d/lis3lv02d_i2c.c
---- a/drivers/misc/lis3lv02d/lis3lv02d_i2c.c~drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init-fix
-+++ a/drivers/misc/lis3lv02d/lis3lv02d_i2c.c
-@@ -33,6 +33,7 @@
- #include <linux/delay.h>
- #include <linux/of.h>
- #include <linux/of_platform.h>
-+#include <linux/of_device.h>
+diff -puN mm/mempolicy.c~mm-revert-0def08e3-mm-mempolicyc-check-return-code-of-check_range-fix mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-revert-0def08e3-mm-mempolicyc-check-return-code-of-check_range-fix
++++ a/mm/mempolicy.c
+@@ -951,9 +951,11 @@ static int migrate_to_node(struct mm_str
+ 	node_set(source, nmask);
  
- #include "lis3lv02d.h"
+ 	/*
+-	 * Collect migrate pages and it shoudn't be failed.
++	 * This does not "check" the range but isolates all pages that
++	 * need migration.  Between passing in the full user address
++	 * space range and MPOL_MF_DISCONTIG_OK, this call can not fail.
+ 	 */
+-	VM_BUG_ON(flags & MPOL_MF_STRICT);
++	VM_BUG_ON(!(flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL)));
+ 	check_range(mm, mm->mmap->vm_start, mm->task_size, &nmask,
+ 			flags | MPOL_MF_DISCONTIG_OK, &pagelist);
  
-@@ -105,11 +106,13 @@ static int lis3_i2c_init(struct lis3lv02
- static union axis_conversion lis3lv02d_axis_map =
- 	{ .as_array = { LIS3_DEV_X, LIS3_DEV_Y, LIS3_DEV_Z } };
- 
-+#ifdef CONFIG_OF
- static struct of_device_id lis3lv02d_i2c_dt_ids[] = {
- 	{ .compatible = "st,lis3lv02d" },
- 	{}
- };
- MODULE_DEVICE_TABLE(of, lis3lv02d_i2c_dt_ids);
-+#endif
- 
- static int __devinit lis3lv02d_i2c_probe(struct i2c_client *client,
- 					const struct i2c_device_id *id)
-@@ -117,6 +120,7 @@ static int __devinit lis3lv02d_i2c_probe
- 	int ret = 0;
- 	struct lis3lv02d_platform_data *pdata = client->dev.platform_data;
- 
-+#ifdef CONFIG_OF
- 	if (of_match_device(lis3lv02d_i2c_dt_ids, &client->dev)) {
- 		lis3_dev.of_node = client->dev.of_node;
- 		ret = lis3lv02d_init_dt(&lis3_dev);
-@@ -124,6 +128,7 @@ static int __devinit lis3lv02d_i2c_probe
- 			return ret;
- 		pdata = lis3_dev.pdata;
- 	}
-+#endif
- 
- 	if (pdata) {
- 		if ((pdata->driver_features & LIS3_USE_BLOCK_READ) &&
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from minchan@kernel.org are
 
 origin.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-idr-rename-max_level-to-max_idr_level-fix-3.patch
-cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-audith-replace-defines-with-c-stubs.patch
-mm.patch
-x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
-mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
+mm-remove-__gfp_no_kswapd.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer.patch
 mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
 mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
+mm-compaction-update-comment-in-try_to_compact_pages.patch
+mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures.patch
 mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures-fix.patch
-mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch
-rbtree-performance-and-correctness-test-fix.patch
+mm-compaction-capture-a-suitable-high-order-page-immediately-when-it-is-made-available.patch
+mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration.patch
+mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix.patch
 mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix.patch
+mm-fix-tracing-in-free_pcppages_bulk.patch
 mm-fix-tracing-in-free_pcppages_bulk-fix.patch
+cma-fix-counting-of-isolated-pages.patch
+cma-count-free-cma-pages.patch
 cma-count-free-cma-pages-fix.patch
+cma-fix-watermark-checking.patch
+mm-page_alloc-use-get_freepage_migratetype-instead-of-page_private.patch
+mm-remain-migratetype-in-freed-page.patch
+memory-hotplug-bug-fix-race-between-isolation-and-allocation.patch
+memory-hotplug-fix-pages-missed-by-race-rather-than-failing.patch
 memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
-atomic-implement-generic-atomic_dec_if_positive-fix.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
 swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+mm-memblock-reduce-overhead-in-binary-search.patch
+mm-memblock-use-existing-interface-to-set-nid.patch
+mm-memblock-cleanup-early_node_map-related-comments.patch
 mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
 mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix.patch
 mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix-2.patch
+mm-compaction-check-lock-contention-first-before-taking-lock.patch
+mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc.patch
 mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch
-mm-fix-invalidate_complete_page2-lock-ordering.patch
+memory-hotplug-dont-replace-lowmem-pages-with-highmem.patch
+mm-compaction-move-fatal-signal-check-out-of-compact_checklock_irqsave.patch
+mm-enable-config_compaction-by-default.patch
+mm-numa-reclaim-from-all-nodes-within-reclaim-distance.patch
 mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix.patch
-mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock.patch
-sections-fix-section-conflicts-in-arch-h8300-checkpatch-fixes.patch
-sections-fix-section-conflicts-in-drivers-macintosh-checkpatch-fixes.patch
-sectons-fix-const-sections-for-crc32-table-checkpatch-fixes.patch
-drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-code-fix-fix.patch
-drivers-misc-lis3lv02d-lis3lv02d_spic-add-lis3lv02d-device-tree-init-fix.patch
-drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init-fix.patch
-backlight-add-backlight-driver-for-lm3630-chip-fix.patch
-backlight-add-new-lm3639-backlight-driver-fix.patch
-idr-rename-max_level-to-max_idr_level-fix.patch
-idr-rename-max_level-to-max_idr_level-fix-fix-2.patch
-lib-parserc-avoid-overflow-in-match_number-fix.patch
-lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock-fix.patch
-compat-fs-generic-compat_sys_sendfile-implementation.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-rtc-add-dallas-ds2404-driver-fix.patch
-rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch
-fs-fat-fix-all-other-checkpatch-issues-in-dirc-fix.patch
-fat-simplify-writeback_inode-checkpatch-fixes.patch
-fat-simplify-writeback_inode-checkpatch-fixes-fix.patch
-coredump-make-core-dump-functionality-optional-fix-fix.patch
-coredump-use-suid_dumpable_enabled-rather-than-hardcoded-1-checkpatch-fixes.patch
-coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files-checkpatch-fixes.patch
-proc-use-kzalloc-instead-of-kmalloc-and-memset-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mm-revert-0def08e3-mm-mempolicyc-check-return-code-of-check_range.patch
+mm-revert-0def08e3-mm-mempolicyc-check-return-code-of-check_range-fix.patch
+trace-events-kmem-dont-call-page_to_pfn-if-page-is-null.patch
+memory-hotplug-fix-zone-stat-mismatch.patch
 
