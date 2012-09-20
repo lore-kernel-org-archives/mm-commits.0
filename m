@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-misc-lis3lv02d-lis3lv02d_spic-add-lis3lv02d-device-tree-init-fix.patch added to -mm tree
-Date: Thu, 20 Sep 2012 15:25:35 -0700
-Message-ID: <20120920231355.B2A815C0060@hpza9.eem.corp.google.com>
+Subject: + drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init-fix.patch added to -mm tree
+Date: Thu, 20 Sep 2012 15:26:02 -0700
+Message-ID: <20120920231422.B2CCC20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:38307 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932407Ab2ITXN6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Sep 2012 19:13:58 -0400
-Received: by bkcjc3 with SMTP id jc3so174193bkc.1
-        for <mm-commits@vger.kernel.org>; Thu, 20 Sep 2012 16:13:57 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:46339 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932441Ab2ITXOZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Sep 2012 19:14:25 -0400
+Received: by wgbdt11 with SMTP id dt11so136442wgb.1
+        for <mm-commits@vger.kernel.org>; Thu, 20 Sep 2012 16:14:24 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akpm@linux-foundation.org, anilkumar@ti.com, arnd@arndb.de, broonie@opensour
 
 
 The patch titled
-     Subject: drivers-misc-lis3lv02d-lis3lv02d_spic-add-lis3lv02d-device-tree-init-fix
+     Subject: drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init-fix
 has been added to the -mm tree.  Its filename is
-     drivers-misc-lis3lv02d-lis3lv02d_spic-add-lis3lv02d-device-tree-init-fix.patch
+     drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers-misc-lis3lv02d-lis3lv02d_spic-add-lis3lv02d-device-tree-init-fix
+Subject: drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init-fix
 
-config CONFIG_OF=n build
+fix CONFIG_OF=n build
 
-drivers/misc/lis3lv02d/lis3lv02d_spi.c: In function 'lis302dl_spi_probe':
-drivers/misc/lis3lv02d/lis3lv02d_spi.c:89: error: implicit declaration of function 'of_match_device'
-drivers/misc/lis3lv02d/lis3lv02d_spi.c:89: error: 'lis302dl_spi_dt_ids' undeclared (first use in this function)
-drivers/misc/lis3lv02d/lis3lv02d_spi.c:89: error: (Each undeclared identifier is reported only once
-drivers/misc/lis3lv02d/lis3lv02d_spi.c:89: error: for each function it appears in.)
-drivers/misc/lis3lv02d/lis3lv02d_spi.c:90: error: 'struct lis3lv02d' has no member named 'of_node'
+drivers/misc/lis3lv02d/lis3lv02d_i2c.c: In function 'lis3lv02d_i2c_probe':
+drivers/misc/lis3lv02d/lis3lv02d_i2c.c:120: error: implicit declaration of function 'of_match_device'
+drivers/misc/lis3lv02d/lis3lv02d_i2c.c:121: error: 'struct lis3lv02d' has no member named 'of_node'
 
 Cc: AnilKumar Ch <anilkumar@ti.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -53,36 +50,50 @@ Cc: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/lis3lv02d/lis3lv02d_spi.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/misc/lis3lv02d/lis3lv02d_i2c.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN drivers/misc/lis3lv02d/lis3lv02d_spi.c~drivers-misc-lis3lv02d-lis3lv02d_spic-add-lis3lv02d-device-tree-init-fix drivers/misc/lis3lv02d/lis3lv02d_spi.c
---- a/drivers/misc/lis3lv02d/lis3lv02d_spi.c~drivers-misc-lis3lv02d-lis3lv02d_spic-add-lis3lv02d-device-tree-init-fix
-+++ a/drivers/misc/lis3lv02d/lis3lv02d_spi.c
-@@ -19,6 +19,7 @@
- #include <linux/pm.h>
+diff -puN drivers/misc/lis3lv02d/lis3lv02d_i2c.c~drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init-fix drivers/misc/lis3lv02d/lis3lv02d_i2c.c
+--- a/drivers/misc/lis3lv02d/lis3lv02d_i2c.c~drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init-fix
++++ a/drivers/misc/lis3lv02d/lis3lv02d_i2c.c
+@@ -33,6 +33,7 @@
+ #include <linux/delay.h>
  #include <linux/of.h>
  #include <linux/of_platform.h>
 +#include <linux/of_device.h>
  
  #include "lis3lv02d.h"
  
-@@ -86,13 +87,14 @@ static int __devinit lis302dl_spi_probe(
- 	lis3_dev.ac		= lis3lv02d_axis_normal;
- 	lis3_dev.pdata		= spi->dev.platform_data;
+@@ -105,11 +106,13 @@ static int lis3_i2c_init(struct lis3lv02
+ static union axis_conversion lis3lv02d_axis_map =
+ 	{ .as_array = { LIS3_DEV_X, LIS3_DEV_Y, LIS3_DEV_Z } };
  
 +#ifdef CONFIG_OF
- 	if (of_match_device(lis302dl_spi_dt_ids, &spi->dev)) {
- 		lis3_dev.of_node = spi->dev.of_node;
- 		ret = lis3lv02d_init_dt(&lis3_dev);
- 		if (ret)
- 			return ret;
- 	}
--
+ static struct of_device_id lis3lv02d_i2c_dt_ids[] = {
+ 	{ .compatible = "st,lis3lv02d" },
+ 	{}
+ };
+ MODULE_DEVICE_TABLE(of, lis3lv02d_i2c_dt_ids);
 +#endif
- 	spi_set_drvdata(spi, &lis3_dev);
  
- 	return lis3lv02d_init_device(&lis3_dev);
+ static int __devinit lis3lv02d_i2c_probe(struct i2c_client *client,
+ 					const struct i2c_device_id *id)
+@@ -117,6 +120,7 @@ static int __devinit lis3lv02d_i2c_probe
+ 	int ret = 0;
+ 	struct lis3lv02d_platform_data *pdata = client->dev.platform_data;
+ 
++#ifdef CONFIG_OF
+ 	if (of_match_device(lis3lv02d_i2c_dt_ids, &client->dev)) {
+ 		lis3_dev.of_node = client->dev.of_node;
+ 		ret = lis3lv02d_init_dt(&lis3_dev);
+@@ -124,6 +128,7 @@ static int __devinit lis3lv02d_i2c_probe
+ 			return ret;
+ 		pdata = lis3_dev.pdata;
+ 	}
++#endif
+ 
+ 	if (pdata) {
+ 		if ((pdata->driver_features & LIS3_USE_BLOCK_READ) &&
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
