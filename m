@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + revert-mm-have-order-0-compaction-start-off-where-it-left.patch added to -mm tree
-Date: Fri, 21 Sep 2012 14:33:07 -0700
-Message-ID: <20120921213308.59D6D1E0043@wpzn4.hot.corp.google.com>
+Subject: + mm-compaction-restart-compaction-from-near-where-it-left-off.patch added to -mm tree
+Date: Fri, 21 Sep 2012 14:33:13 -0700
+Message-ID: <20120921213314.CB8DE5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:50500 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757991Ab2IUVdK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Sep 2012 17:33:10 -0400
-Received: by vbis24 with SMTP id s24so516031vbi.1
-        for <mm-commits@vger.kernel.org>; Fri, 21 Sep 2012 14:33:09 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:60735 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753566Ab2IUVdS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Sep 2012 17:33:18 -0400
+Received: by wgbdt11 with SMTP id dt11so204060wgb.1
+        for <mm-commits@vger.kernel.org>; Fri, 21 Sep 2012 14:33:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: mgorman@suse.de, aquini@redhat.com, avi@redhat.com, richard@arachsys.com, ri
 
 
 The patch titled
-     Subject: Revert "mm: have order > 0 compaction start off where it left"
+     Subject: mm: compaction: Restart compaction from near where it left off
 has been added to the -mm tree.  Its filename is
-     revert-mm-have-order-0-compaction-start-off-where-it-left.patch
+     mm-compaction-restart-compaction-from-near-where-it-left-off.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: Revert "mm: have order > 0 compaction start off where it left"
+Subject: mm: compaction: Restart compaction from near where it left off
 
-This reverts commit 7db8889a ("mm: have order > 0 compaction start off
-where it left") and commit de74f1cc ("mm: have order > 0 compaction start
-near a pageblock with free pages").  These patches were a good idea and
-tests confirmed that they massively reduced the amount of scanning but the
-implementation is complex and tricky to understand.  A later patch will
-cache what pageblocks should be skipped and reimplements the concept of
-compact_cached_free_pfn on top for both migration and free scanners.
+This is almost entirely based on Rik's previous patches and discussions
+with him about how this might be implemented.
+
+Order > 0 compaction stops when enough free pages of the correct page
+order have been coalesced.  When doing subsequent higher order
+allocations, it is possible for compaction to be invoked many times.
+
+However, the compaction code always starts out looking for things to
+compact at the start of the zone, and for free pages to compact things to
+at the end of the zone.
+
+This can cause quadratic behaviour, with isolate_freepages starting at the
+end of the zone each time, even though previous invocations of the
+compaction code already filled up all free memory on that end of the zone.
+ This can cause isolate_freepages to take enormous amounts of CPU with
+certain workloads on larger memory systems.
+
+This patch caches where the migration and free scanner should start from
+on subsequent compaction invocations using the pageblock-skip information.
+ When compaction starts it begins from the cached restart points and will
+update the cached restart points until a page is isolated or a pageblock
+is skipped that would have been scanned by synchronous compaction.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Acked-by: Rik van Riel <riel@redhat.com>
@@ -53,163 +68,165 @@ Acked-by: Rafael Aquini <aquini@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    4 --
- mm/compaction.c        |   65 +++------------------------------------
- mm/internal.h          |    6 ---
- mm/page_alloc.c        |    5 ---
- 4 files changed, 5 insertions(+), 75 deletions(-)
+ include/linux/mmzone.h |    4 ++
+ mm/compaction.c        |   54 ++++++++++++++++++++++++++++++++-------
+ mm/internal.h          |    4 ++
+ 3 files changed, 53 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/mmzone.h~revert-mm-have-order-0-compaction-start-off-where-it-left include/linux/mmzone.h
---- a/include/linux/mmzone.h~revert-mm-have-order-0-compaction-start-off-where-it-left
+diff -puN include/linux/mmzone.h~mm-compaction-restart-compaction-from-near-where-it-left-off include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-compaction-restart-compaction-from-near-where-it-left-off
 +++ a/include/linux/mmzone.h
-@@ -384,10 +384,6 @@ struct zone {
- 	 */
- 	spinlock_t		lock;
+@@ -386,6 +386,10 @@ struct zone {
  	int                     all_unreclaimable; /* All pages pinned */
--#if defined CONFIG_COMPACTION || defined CONFIG_CMA
--	/* pfn where the last incremental compaction isolated free pages */
--	unsigned long		compact_cached_free_pfn;
--#endif
+ #if defined CONFIG_COMPACTION || defined CONFIG_CMA
+ 	unsigned long		compact_blockskip_expire;
++
++	/* pfns where compaction scanners should start */
++	unsigned long		compact_cached_free_pfn;
++	unsigned long		compact_cached_migrate_pfn;
+ #endif
  #ifdef CONFIG_MEMORY_HOTPLUG
  	/* see spanned/present_pages for more description */
- 	seqlock_t		span_seqlock;
-diff -puN mm/compaction.c~revert-mm-have-order-0-compaction-start-off-where-it-left mm/compaction.c
---- a/mm/compaction.c~revert-mm-have-order-0-compaction-start-off-where-it-left
+diff -puN mm/compaction.c~mm-compaction-restart-compaction-from-near-where-it-left-off mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-restart-compaction-from-near-where-it-left-off
 +++ a/mm/compaction.c
-@@ -539,20 +539,6 @@ next_pageblock:
- #endif /* CONFIG_COMPACTION || CONFIG_CMA */
- #ifdef CONFIG_COMPACTION
- /*
-- * Returns the start pfn of the last page block in a zone.  This is the starting
-- * point for full compaction of a zone.  Compaction searches for free pages from
-- * the end of each zone, while isolate_freepages_block scans forward inside each
-- * page block.
-- */
--static unsigned long start_free_pfn(struct zone *zone)
--{
--	unsigned long free_pfn;
--	free_pfn = zone->zone_start_pfn + zone->spanned_pages;
--	free_pfn &= ~(pageblock_nr_pages-1);
--	return free_pfn;
--}
--
--/*
-  * Based on information in the current compact_control, find blocks
-  * suitable for isolating free pages from and then isolate them.
+@@ -79,6 +79,9 @@ static void reset_isolation_suitable(str
+ 	 */
+ 	if (time_before(jiffies, zone->compact_blockskip_expire))
+ 		return;
++
++	zone->compact_cached_migrate_pfn = start_pfn;
++	zone->compact_cached_free_pfn = end_pfn;
+ 	zone->compact_blockskip_expire = jiffies + (HZ * 5);
+ 
+ 	/* Walk the zone and mark every pageblock as suitable for isolation */
+@@ -99,13 +102,29 @@ static void reset_isolation_suitable(str
+  * If no pages were isolated then mark this pageblock to be skipped in the
+  * future. The information is later cleared by reset_isolation_suitable().
   */
-@@ -620,19 +606,8 @@ static void isolate_freepages(struct zon
+-static void update_pageblock_skip(struct page *page, unsigned long nr_isolated)
++static void update_pageblock_skip(struct compact_control *cc,
++			struct page *page, unsigned long nr_isolated,
++			bool migrate_scanner)
+ {
++	struct zone *zone = cc->zone;
+ 	if (!page)
+ 		return;
+ 
+-	if (!nr_isolated)
++	if (!nr_isolated) {
++		unsigned long pfn = page_to_pfn(page);
+ 		set_pageblock_skip(page);
++
++		/* Update where compaction should restart */
++		if (migrate_scanner) {
++			if (!cc->finished_update_migrate &&
++			    pfn > zone->compact_cached_migrate_pfn)
++				zone->compact_cached_migrate_pfn = pfn;
++		} else {
++			if (!cc->finished_update_free &&
++			    pfn < zone->compact_cached_free_pfn)
++				zone->compact_cached_free_pfn = pfn;
++		}
++	}
+ }
+ 
+ static inline bool should_release_lock(spinlock_t *lock)
+@@ -315,7 +334,7 @@ out:
+ 
+ 	/* Update the pageblock-skip if the whole pageblock was scanned */
+ 	if (blockpfn == end_pfn)
+-		update_pageblock_skip(valid_page, total_isolated);
++		update_pageblock_skip(cc, valid_page, total_isolated, false);
+ 
+ 	return total_isolated;
+ }
+@@ -530,6 +549,7 @@ isolate_migratepages_range(struct zone *
+ 		 */
+ 		if (!cc->sync && last_pageblock_nr != pageblock_nr &&
+ 		    !migrate_async_suitable(get_pageblock_migratetype(page))) {
++			cc->finished_update_migrate = true;
+ 			goto next_pageblock;
+ 		}
+ 
+@@ -578,6 +598,7 @@ isolate_migratepages_range(struct zone *
+ 		VM_BUG_ON(PageTransCompound(page));
+ 
+ 		/* Successfully isolated */
++		cc->finished_update_migrate = true;
+ 		del_page_from_lru_list(page, lruvec, page_lru(page));
+ 		list_add(&page->lru, migratelist);
+ 		cc->nr_migratepages++;
+@@ -604,7 +625,7 @@ next_pageblock:
+ 
+ 	/* Update the pageblock-skip if the whole pageblock was scanned */
+ 	if (low_pfn == end_pfn)
+-		update_pageblock_skip(valid_page, nr_isolated);
++		update_pageblock_skip(cc, valid_page, nr_isolated, true);
+ 
+ 	trace_mm_compaction_isolate_migratepages(nr_scanned, nr_isolated);
+ 
+@@ -685,8 +706,10 @@ static void isolate_freepages(struct zon
  		 * looking for free pages, the search will restart here as
  		 * page migration may have returned some pages to the allocator
  		 */
--		if (isolated) {
-+		if (isolated)
+-		if (isolated)
++		if (isolated) {
++			cc->finished_update_free = true;
  			high_pfn = max(high_pfn, pfn);
--
--			/*
--			 * If the free scanner has wrapped, update
--			 * compact_cached_free_pfn to point to the highest
--			 * pageblock with free pages. This reduces excessive
--			 * scanning of full pageblocks near the end of the
--			 * zone
--			 */
--			if (cc->order > 0 && cc->wrapped)
--				zone->compact_cached_free_pfn = high_pfn;
--		}
++		}
  	}
  
  	/* split_free_page does not map the pages */
-@@ -640,11 +615,6 @@ static void isolate_freepages(struct zon
+@@ -883,6 +906,8 @@ unsigned long compaction_suitable(struct
+ static int compact_zone(struct zone *zone, struct compact_control *cc)
+ {
+ 	int ret;
++	unsigned long start_pfn = zone->zone_start_pfn;
++	unsigned long end_pfn = zone->zone_start_pfn + zone->spanned_pages;
  
- 	cc->free_pfn = high_pfn;
- 	cc->nr_freepages = nr_freepages;
--
--	/* If compact_cached_free_pfn is reset then set it now */
--	if (cc->order > 0 && !cc->wrapped &&
--			zone->compact_cached_free_pfn == start_free_pfn(zone))
--		zone->compact_cached_free_pfn = high_pfn;
- }
+ 	ret = compaction_suitable(zone, cc->order);
+ 	switch (ret) {
+@@ -895,10 +920,21 @@ static int compact_zone(struct zone *zon
+ 		;
+ 	}
  
- /*
-@@ -739,26 +709,8 @@ static int compact_finished(struct zone 
- 	if (fatal_signal_pending(current))
- 		return COMPACT_PARTIAL;
+-	/* Setup to move all movable pages to the end of the zone */
+-	cc->migrate_pfn = zone->zone_start_pfn;
+-	cc->free_pfn = cc->migrate_pfn + zone->spanned_pages;
+-	cc->free_pfn &= ~(pageblock_nr_pages-1);
++	/*
++	 * Setup to move all movable pages to the end of the zone. Used cached
++	 * information on where the scanners should start but check that it
++	 * is initialised by ensuring the values are within zone boundaries.
++	 */
++	cc->migrate_pfn = zone->compact_cached_migrate_pfn;
++	cc->free_pfn = zone->compact_cached_free_pfn;
++	if (cc->free_pfn < start_pfn || cc->free_pfn > end_pfn) {
++		cc->free_pfn = end_pfn & ~(pageblock_nr_pages-1);
++		zone->compact_cached_free_pfn = cc->free_pfn;
++	}
++	if (cc->migrate_pfn < start_pfn || cc->migrate_pfn > end_pfn) {
++		cc->migrate_pfn = start_pfn;
++		zone->compact_cached_migrate_pfn = cc->migrate_pfn;
++	}
  
--	/*
--	 * A full (order == -1) compaction run starts at the beginning and
--	 * end of a zone; it completes when the migrate and free scanner meet.
--	 * A partial (order > 0) compaction can start with the free scanner
--	 * at a random point in the zone, and may have to restart.
--	 */
--	if (cc->free_pfn <= cc->migrate_pfn) {
--		if (cc->order > 0 && !cc->wrapped) {
--			/* We started partway through; restart at the end. */
--			unsigned long free_pfn = start_free_pfn(zone);
--			zone->compact_cached_free_pfn = free_pfn;
--			cc->free_pfn = free_pfn;
--			cc->wrapped = 1;
--			return COMPACT_CONTINUE;
--		}
--		return COMPACT_COMPLETE;
--	}
--
--	/* We wrapped around and ended up where we started. */
--	if (cc->wrapped && cc->free_pfn <= cc->start_free_pfn)
-+	/* Compaction run completes if the migrate and free scanner meet */
-+	if (cc->free_pfn <= cc->migrate_pfn)
- 		return COMPACT_COMPLETE;
- 
- 	/*
-@@ -864,15 +816,8 @@ static int compact_zone(struct zone *zon
- 
- 	/* Setup to move all movable pages to the end of the zone */
- 	cc->migrate_pfn = zone->zone_start_pfn;
--
--	if (cc->order > 0) {
--		/* Incremental compaction. Start where the last one stopped. */
--		cc->free_pfn = zone->compact_cached_free_pfn;
--		cc->start_free_pfn = cc->free_pfn;
--	} else {
--		/* Order == -1 starts at the end of the zone. */
--		cc->free_pfn = start_free_pfn(zone);
--	}
-+	cc->free_pfn = cc->migrate_pfn + zone->spanned_pages;
-+	cc->free_pfn &= ~(pageblock_nr_pages-1);
- 
- 	migrate_prep_local();
- 
-diff -puN mm/internal.h~revert-mm-have-order-0-compaction-start-off-where-it-left mm/internal.h
---- a/mm/internal.h~revert-mm-have-order-0-compaction-start-off-where-it-left
+ 	/* Clear pageblock skip if there are numerous alloc failures */
+ 	if (zone->compact_defer_shift == COMPACT_MAX_DEFER_SHIFT)
+diff -puN mm/internal.h~mm-compaction-restart-compaction-from-near-where-it-left-off mm/internal.h
+--- a/mm/internal.h~mm-compaction-restart-compaction-from-near-where-it-left-off
 +++ a/mm/internal.h
-@@ -119,14 +119,8 @@ struct compact_control {
- 	unsigned long nr_freepages;	/* Number of isolated free pages */
- 	unsigned long nr_migratepages;	/* Number of pages to migrate */
- 	unsigned long free_pfn;		/* isolate_freepages search base */
--	unsigned long start_free_pfn;	/* where we started the search */
+@@ -122,6 +122,10 @@ struct compact_control {
  	unsigned long migrate_pfn;	/* isolate_migratepages search base */
  	bool sync;			/* Synchronous migration */
--	bool wrapped;			/* Order > 0 compactions are
--					   incremental, once free_pfn
--					   and migrate_pfn meet, we restart
--					   from the top of the zone;
--					   remember we wrapped around. */
+ 	bool ignore_skip_hint;		/* Scan blocks even if marked skip */
++	bool finished_update_free;	/* True when the zone cached pfns are
++					 * no longer being updated
++					 */
++	bool finished_update_migrate;
  
  	int order;			/* order a direct compactor needs */
  	int migratetype;		/* MOVABLE, RECLAIMABLE etc */
-diff -puN mm/page_alloc.c~revert-mm-have-order-0-compaction-start-off-where-it-left mm/page_alloc.c
---- a/mm/page_alloc.c~revert-mm-have-order-0-compaction-start-off-where-it-left
-+++ a/mm/page_alloc.c
-@@ -4488,11 +4488,6 @@ static void __paginginit free_area_init_
- 
- 		zone->spanned_pages = size;
- 		zone->present_pages = realsize;
--#if defined CONFIG_COMPACTION || defined CONFIG_CMA
--		zone->compact_cached_free_pfn = zone->zone_start_pfn +
--						zone->spanned_pages;
--		zone->compact_cached_free_pfn &= ~(pageblock_nr_pages-1);
--#endif
- #ifdef CONFIG_NUMA
- 		zone->node = nid;
- 		zone->min_unmapped_pages = (realsize*sysctl_min_unmapped_ratio)
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
