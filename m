@@ -1,104 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: + sections-fix-section-conflicts-in-arch-sh-fix.patch added to -mm tree
-Date: Fri, 21 Sep 2012 12:33:45 -0700
-Message-ID: <20120921193346.0D9391E0043@wpzn4.hot.corp.google.com>
+Subject: [to-be-updated] mm-compaction-check-lock-contention-first-before-taking-lock.patch removed from -mm tree
+Date: Fri, 21 Sep 2012 14:30:10 -0700
+Message-ID: <20120921213011.2F4B11E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:65354 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752044Ab2IUTdr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Sep 2012 15:33:47 -0400
-Received: by vbis24 with SMTP id s24so499928vbi.1
-        for <mm-commits@vger.kernel.org>; Fri, 21 Sep 2012 12:33:46 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:61879 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753217Ab2IUVaM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Sep 2012 17:30:12 -0400
+Received: by ghbz15 with SMTP id z15so516490ghb.1
+        for <mm-commits@vger.kernel.org>; Fri, 21 Sep 2012 14:30:11 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: ak@linux.intel.com, fengguang.wu@intel.com
+To: shli@kernel.org, mgorman@suse.de, minchan@kernel.org, shli@fusionio.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sections-fix-section-conflicts-in-arch-sh-fix
-has been added to the -mm tree.  Its filename is
-     sections-fix-section-conflicts-in-arch-sh-fix.patch
+     Subject: mm: compaction: check lock contention first before taking lock
+has been removed from the -mm tree.  Its filename was
+     mm-compaction-check-lock-contention-first-before-taking-lock.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andi Kleen <ak@linux.intel.com>
-Subject: sections-fix-section-conflicts-in-arch-sh-fix
+From: Shaohua Li <shli@kernel.org>
+Subject: mm: compaction: check lock contention first before taking lock
 
-Cc: Fengguang Wu <fengguang.wu@intel.com>
+isolate_migratepages_range will take zone->lru_lock first and check if the
+lock is contented, if yes, it will release the lock.  This isn't
+efficient.  If the lock is truly contented, a lock/unlock pair will
+increase the lock contention.  We'd better check if the lock is contended
+first.  compact_trylock_irqsave perfectly meets the requirement.
+
+Signed-off-by: Shaohua Li <shli@fusionio.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/include/asm/io.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/compaction.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/sh/include/asm/io.h~sections-fix-section-conflicts-in-arch-sh-fix arch/sh/include/asm/io.h
---- a/arch/sh/include/asm/io.h~sections-fix-section-conflicts-in-arch-sh-fix
-+++ a/arch/sh/include/asm/io.h
-@@ -134,7 +134,7 @@ __BUILD_MEMORY_STRING(__raw_, q, u64)
-  * load/store instructions. sh_io_port_base is the virtual address to
-  * which all ports are being mapped.
-  */
--extern const unsigned long sh_io_port_base;
-+extern unsigned long sh_io_port_base;
+diff -puN mm/compaction.c~mm-compaction-check-lock-contention-first-before-taking-lock mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-check-lock-contention-first-before-taking-lock
++++ a/mm/compaction.c
+@@ -349,8 +349,9 @@ isolate_migratepages_range(struct zone *
  
- static inline void __set_io_port_base(unsigned long pbase)
- {
+ 	/* Time to isolate some pages for migration */
+ 	cond_resched();
+-	spin_lock_irqsave(&zone->lru_lock, flags);
+-	locked = true;
++	locked = compact_trylock_irqsave(&zone->lru_lock, &flags, cc);
++	if (!locked)
++		return 0;
+ 	for (; low_pfn < end_pfn; low_pfn++) {
+ 		struct page *page;
+ 
 _
 
-Patches currently in -mm which might be from ak@linux.intel.com are
+Patches currently in -mm which might be from shli@kernel.org are
 
 origin.patch
 linux-next.patch
-thp-x86-introduce-have_arch_transparent_hugepage.patch
-thp-remove-assumptions-on-pgtable_t-type.patch
-thp-introduce-pmdp_invalidate.patch
-thp-make-madv_hugepage-check-for-mm-def_flags.patch
-thp-s390-thp-splitting-backend-for-s390.patch
-thp-s390-thp-pagetable-pre-allocation-for-s390.patch
-thp-s390-disable-thp-for-kvm-host-on-s390.patch
-thp-s390-architecture-backend-for-thp-on-s390.patch
-sections-disable-const-sections-for-pa-risc-v2.patch
-sections-fix-section-conflicts-in-arch-arm.patch
-sections-fix-section-conflicts-in-arch-frv.patch
-sections-fix-section-conflicts-in-arch-h8300.patch
-sections-fix-section-conflicts-in-arch-h8300-checkpatch-fixes.patch
-sections-fix-section-conflicts-in-arch-ia64.patch
-sections-fix-section-conflicts-in-arch-mips.patch
-sections-fix-section-conflicts-in-arch-powerpc.patch
-sections-fix-section-conflicts-in-arch-score.patch
-sections-fix-section-conflicts-in-arch-sh.patch
-sections-fix-section-conflicts-in-arch-sh-fix.patch
-sections-fix-section-conflicts-in-arch-x86.patch
-sections-fix-section-conflicts-in-drivers-atm.patch
-sections-fix-section-conflicts-in-drivers-char.patch
-sections-fix-section-conflicts-in-drivers-ide.patch
-sections-fix-section-conflicts-in-drivers-macintosh.patch
-sections-fix-section-conflicts-in-drivers-macintosh-checkpatch-fixes.patch
-sections-fix-section-conflicts-in-drivers-mfd.patch
-sections-fix-section-conflicts-in-drivers-mmc.patch
-sections-fix-section-conflicts-in-drivers-net.patch
-sections-fix-section-conflicts-in-drivers-net-hamradio.patch
-sections-fix-section-conflicts-in-drivers-net-wan.patch
-sections-fix-section-conflicts-in-drivers-platform-x86.patch
-sections-fix-section-conflicts-in-drivers-scsi.patch
-sections-fix-section-conflicts-in-drivers-video.patch
-sections-fix-section-conflicts-in-mm-percpuc.patch
-sections-fix-section-conflicts-in-net-can.patch
-sections-fix-section-conflicts-in-net.patch
-sections-fix-section-conflicts-in-sound.patch
-sectons-fix-const-sections-for-crc32-table.patch
-sectons-fix-const-sections-for-crc32-table-checkpatch-fixes.patch
-compat_ioctl-remove-unused-local-typedef.patch
+readahead-fault-retry-breaks-mmap-file-read-random-detection.patch
+atomic-implement-generic-atomic_dec_if_positive.patch
+atomic-implement-generic-atomic_dec_if_positive-fix.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix.patch
+mm-compaction-move-fatal-signal-check-out-of-compact_checklock_irqsave.patch
+mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible.patch
+mm-compaction-acquire-the-zone-lock-as-late-as-possible.patch
+revert-mm-have-order-0-compaction-start-off-where-it-left.patch
+mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated.patch
+mm-compaction-restart-compaction-from-near-where-it-left-off.patch
 
