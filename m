@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible.patch added to -mm tree
-Date: Fri, 21 Sep 2012 14:33:00 -0700
-Message-ID: <20120921213301.BE5735C0050@hpza9.eem.corp.google.com>
+Subject: + mm-compaction-acquire-the-zone-lock-as-late-as-possible.patch added to -mm tree
+Date: Fri, 21 Sep 2012 14:33:04 -0700
+Message-ID: <20120921213305.58421100048@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:43525 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753217Ab2IUVdF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Sep 2012 17:33:05 -0400
-Received: by faet1 with SMTP id t1so243695fae.1
-        for <mm-commits@vger.kernel.org>; Fri, 21 Sep 2012 14:33:03 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:35410 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753566Ab2IUVdH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Sep 2012 17:33:07 -0400
+Received: by qcqs25 with SMTP id s25so229004qcq.1
+        for <mm-commits@vger.kernel.org>; Fri, 21 Sep 2012 14:33:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: mgorman@suse.de, aquini@redhat.com, avi@redhat.com, richard@arachsys.com, ri
 
 
 The patch titled
-     Subject: mm: compaction: acquire the zone->lru_lock as late as possible
+     Subject: mm: compaction: acquire the zone->lock as late as possible
 has been added to the -mm tree.  Its filename is
-     mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible.patch
+     mm-compaction-acquire-the-zone-lock-as-late-as-possible.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,96 +34,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: compaction: acquire the zone->lru_lock as late as possible
+Subject: mm: compaction: acquire the zone->lock as late as possible
 
-Richard Davies and Shaohua Li have both reported lock contention problems
-in compaction on the zone and LRU locks as well as significant amounts of
-time being spent in compaction.  This series aims to reduce lock
-contention and scanning rates to reduce that CPU usage.  Richard reported
-at https://lkml.org/lkml/2012/9/21/91 that this series made a big
-different to a problem he reported in August
-(http://marc.info/?l=kvm&m=134511507015614&w=2).
+Compaction's free scanner acquires the zone->lock when checking for
+PageBuddy pages and isolating them.  It does this even if there are no
+PageBuddy pages in the range.
 
-Patch 1 defers acquiring the zone->lru_lock as long as possible.
-
-Patch 2 defers acquiring the zone->lock as lock as possible.
-
-Patch 3 reverts Rik's "skip-free" patches as the core concept gets
-	reimplemented later and the remaining patches are easier to
-	understand if this is reverted first.
-
-Patch 4 adds a pageblock-skip bit to the pageblock flags to cache what
-	pageblocks should be skipped by the migrate and free scanners.
-	This drastically reduces the amount of scanning compaction has
-	to do.
-
-Patch 5 reimplements something similar to Rik's idea except it uses the
-	pageblock-skip information to decide where the scanners should
-	restart from and does not need to wrap around.
-
-I tested this on 3.6-rc6 + linux-next/akpm. Kernels tested were
-
-akpm-20120920	3.6-rc6 + linux-next/akpm as of Septeber 20th, 2012
-lesslock	Patches 1-6
-revert		Patches 1-7
-cachefail	Patches 1-8
-skipuseless	Patches 1-9
-
-Stress high-order allocation tests looked ok.  Success rates are more or
-less the same with the full series applied but there is an expectation
-that there is less opportunity to race with other allocation requests if
-there is less scanning.  The time to complete the tests did not vary that
-much and are uninteresting as were the vmstat statistics so I will not
-present them here.
-
-Using ftrace I recorded how much scanning was done by compaction and got this
-
-                            3.6.0-rc6     3.6.0-rc6   3.6.0-rc6  3.6.0-rc6 3.6.0-rc6
-                            akpm-20120920 lockless  revert-v2r2  cachefail skipuseless
-
-Total   free    scanned         360753976  515414028  565479007   17103281   18916589 
-Total   free    isolated          2852429    3597369    4048601     670493     727840 
-Total   free    efficiency        0.0079%    0.0070%    0.0072%    0.0392%    0.0385% 
-Total   migrate scanned         247728664  822729112 1004645830   17946827   14118903 
-Total   migrate isolated          2555324    3245937    3437501     616359     658616 
-Total   migrate efficiency        0.0103%    0.0039%    0.0034%    0.0343%    0.0466% 
-
-The efficiency is worthless because of the nature of the test and the
-number of failures.  The really interesting point as far as this patch
-series is concerned is the number of pages scanned.  Note that reverting
-Rik's patches massively increases the number of pages scanned indicating
-that those patches really did make a difference to CPU usage.
-
-However, caching what pageblocks should be skipped has a much higher
-impact.  With patches 1-8 applied, free page and migrate page scanning are
-both reduced by 95% in comparison to the akpm kernel.  If the basic
-concept of Rik's patches are implemened on top then scanning then the free
-scanner barely changed but migrate scanning was further reduced.  That
-said, tests on 3.6-rc5 indicated that the last patch had greater impact
-than what was measured here so it is a bit variable.
-
-One way or the other, this series has a large impact on the amount of
-scanning compaction does when there is a storm of THP allocations.
-
-
-
-This patch:
-
-Compaction's migrate scanner acquires the zone->lru_lock when scanning a
-range of pages looking for LRU pages to acquire.  It does this even if
-there are no LRU pages in the range.  If multiple processes are compacting
-then this can cause severe locking contention.  To make matters worse
-commit b2eef8c0 ("mm: compaction: minimise the time IRQs are disabled
-while isolating pages for migration") releases the lru_lock every
-SWAP_CLUSTER_MAX pages that are scanned.
-
-This patch makes two changes to how the migrate scanner acquires the LRU
-lock.  First, it only releases the LRU lock every SWAP_CLUSTER_MAX pages
-if the lock is contended.  This reduces the number of times it
-unnecessarily disables and re-enables IRQs.  The second is that it defers
-acquiring the LRU lock for as long as possible.  If there are no LRU pages
-or the only LRU pages are transhuge then the LRU lock will not be acquired
-at all which reduces contention on zone->lru_lock.
+This patch defers acquiring the zone lock for as long as possible.  In the
+event there are no free pages in the pageblock then the lock will not be
+acquired at all which reduces contention on zone->lock.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Acked-by: Rik van Riel <riel@redhat.com>
@@ -134,131 +53,239 @@ Acked-by: Rafael Aquini <aquini@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   63 +++++++++++++++++++++++++++++++---------------
- 1 file changed, 43 insertions(+), 20 deletions(-)
+ mm/compaction.c |  141 +++++++++++++++++++++++++---------------------
+ 1 file changed, 78 insertions(+), 63 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible mm/compaction.c
---- a/mm/compaction.c~mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible
+diff -puN mm/compaction.c~mm-compaction-acquire-the-zone-lock-as-late-as-possible mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-acquire-the-zone-lock-as-late-as-possible
 +++ a/mm/compaction.c
-@@ -50,6 +50,11 @@ static inline bool migrate_async_suitabl
- 	return is_migrate_cma(migratetype) || migratetype == MIGRATE_MOVABLE;
+@@ -93,6 +93,28 @@ static inline bool compact_trylock_irqsa
+ 	return compact_checklock_irqsave(lock, flags, false, cc);
  }
  
-+static inline bool should_release_lock(spinlock_t *lock)
++/* Returns true if the page is within a block suitable for migration to */
++static bool suitable_migration_target(struct page *page)
 +{
-+	return need_resched() || spin_is_contended(lock);
++
++	int migratetype = get_pageblock_migratetype(page);
++
++	/* Don't interfere with memory hot-remove or the min_free_kbytes blocks */
++	if (migratetype == MIGRATE_ISOLATE || migratetype == MIGRATE_RESERVE)
++		return false;
++
++	/* If the page is a large free page, then allow migration */
++	if (PageBuddy(page) && page_order(page) >= pageblock_order)
++		return true;
++
++	/* If the block is MIGRATE_MOVABLE or MIGRATE_CMA, allow migration */
++	if (migrate_async_suitable(migratetype))
++		return true;
++
++	/* Otherwise skip the block */
++	return false;
 +}
 +
- /*
-  * Compaction requires the taking of some coarse locks that are potentially
-  * very heavily contended. Check if the process needs to be scheduled or
-@@ -62,7 +67,7 @@ static inline bool migrate_async_suitabl
- static bool compact_checklock_irqsave(spinlock_t *lock, unsigned long *flags,
- 				      bool locked, struct compact_control *cc)
+ static void compact_capture_page(struct compact_control *cc)
  {
--	if (need_resched() || spin_is_contended(lock)) {
-+	if (should_release_lock(lock)) {
- 		if (locked) {
- 			spin_unlock_irqrestore(lock, *flags);
- 			locked = false;
-@@ -327,7 +332,7 @@ isolate_migratepages_range(struct zone *
- 	isolate_mode_t mode = 0;
- 	struct lruvec *lruvec;
  	unsigned long flags;
--	bool locked;
+@@ -153,13 +175,16 @@ static void compact_capture_page(struct 
+  * pages inside of the pageblock (even though it may still end up isolating
+  * some pages).
+  */
+-static unsigned long isolate_freepages_block(unsigned long blockpfn,
++static unsigned long isolate_freepages_block(struct compact_control *cc,
++				unsigned long blockpfn,
+ 				unsigned long end_pfn,
+ 				struct list_head *freelist,
+ 				bool strict)
+ {
+ 	int nr_scanned = 0, total_isolated = 0;
+ 	struct page *cursor;
++	unsigned long flags;
 +	bool locked = false;
  
- 	/*
- 	 * Ensure that there are not too many pages isolated from the LRU
-@@ -347,23 +352,17 @@ isolate_migratepages_range(struct zone *
+ 	cursor = pfn_to_page(blockpfn);
  
- 	/* Time to isolate some pages for migration */
- 	cond_resched();
--	spin_lock_irqsave(&zone->lru_lock, flags);
--	locked = true;
- 	for (; low_pfn < end_pfn; low_pfn++) {
- 		struct page *page;
+@@ -168,23 +193,38 @@ static unsigned long isolate_freepages_b
+ 		int isolated, i;
+ 		struct page *page = cursor;
  
- 		/* give a chance to irqs before checking need_resched() */
--		if (!((low_pfn+1) % SWAP_CLUSTER_MAX)) {
--			spin_unlock_irqrestore(&zone->lru_lock, flags);
--			locked = false;
-+		if (locked && !((low_pfn+1) % SWAP_CLUSTER_MAX)) {
-+			if (should_release_lock(&zone->lru_lock)) {
-+				spin_unlock_irqrestore(&zone->lru_lock, flags);
-+				locked = false;
-+			}
- 		}
- 
--		/* Check if it is ok to still hold the lock */
--		locked = compact_checklock_irqsave(&zone->lru_lock, &flags,
--								locked, cc);
--		if (!locked || fatal_signal_pending(current))
--			break;
--
- 		/*
- 		 * migrate_pfn does not necessarily start aligned to a
- 		 * pageblock. Ensure that pfn_valid is called when moving
-@@ -403,21 +402,38 @@ isolate_migratepages_range(struct zone *
- 		pageblock_nr = low_pfn >> pageblock_order;
- 		if (!cc->sync && last_pageblock_nr != pageblock_nr &&
- 		    !migrate_async_suitable(get_pageblock_migratetype(page))) {
--			low_pfn += pageblock_nr_pages;
--			low_pfn = ALIGN(low_pfn, pageblock_nr_pages) - 1;
--			last_pageblock_nr = pageblock_nr;
+-		if (!pfn_valid_within(blockpfn)) {
+-			if (strict)
+-				return 0;
 -			continue;
-+			goto next_pageblock;
- 		}
+-		}
++		if (!pfn_valid_within(blockpfn))
++			goto strict_check;
+ 		nr_scanned++;
  
-+		/* Check may be lockless but that's ok as we recheck later */
- 		if (!PageLRU(page))
- 			continue;
- 
- 		/*
--		 * PageLRU is set, and lru_lock excludes isolation,
--		 * splitting and collapsing (collapsing has already
--		 * happened if PageLRU is set).
-+		 * PageLRU is set. lru_lock normally excludes isolation
-+		 * splitting and collapsing (collapsing has already happened
-+		 * if PageLRU is set) but the lock is not necessarily taken
-+		 * here and it is wasteful to take it just to check transhuge.
-+		 * Check transhuge without lock and skip if it's either a
-+		 * transhuge or hugetlbfs page.
- 		 */
- 		if (PageTransHuge(page)) {
-+			if (!locked)
-+				goto next_pageblock;
-+			low_pfn += (1 << compound_order(page)) - 1;
-+			continue;
-+		}
+-		if (!PageBuddy(page)) {
+-			if (strict)
+-				return 0;
+-			continue;
+-		}
++		if (!PageBuddy(page))
++			goto strict_check;
 +
-+		/* Check if it is ok to still hold the lock */
-+		locked = compact_checklock_irqsave(&zone->lru_lock, &flags,
++		/*
++		 * The zone lock must be held to isolate freepages. This
++		 * unfortunately this is a very coarse lock and can be
++		 * heavily contended if there are parallel allocations
++		 * or parallel compactions. For async compaction do not
++		 * spin on the lock and we acquire the lock as late as
++		 * possible.
++		 */
++		locked = compact_checklock_irqsave(&cc->zone->lock, &flags,
 +								locked, cc);
-+		if (!locked || fatal_signal_pending(current))
++		if (!locked)
 +			break;
 +
-+		/* Recheck PageLRU and PageTransHuge under lock */
-+		if (!PageLRU(page))
-+			continue;
-+		if (PageTransHuge(page)) {
- 			low_pfn += (1 << compound_order(page)) - 1;
- 			continue;
- 		}
-@@ -444,6 +460,13 @@ isolate_migratepages_range(struct zone *
- 			++low_pfn;
- 			break;
++		/* Recheck this is a suitable migration target under lock */
++		if (!strict && !suitable_migration_target(page))
++			break;
++
++		/* Recheck this is a buddy page under lock */
++		if (!PageBuddy(page))
++			goto strict_check;
+ 
+ 		/* Found a free page, break it into order-0 pages */
+ 		isolated = split_free_page(page);
+ 		if (!isolated && strict)
+-			return 0;
++			goto strict_check;
+ 		total_isolated += isolated;
+ 		for (i = 0; i < isolated; i++) {
+ 			list_add(&page->lru, freelist);
+@@ -196,9 +236,23 @@ static unsigned long isolate_freepages_b
+ 			blockpfn += isolated - 1;
+ 			cursor += isolated - 1;
  		}
 +
 +		continue;
 +
-+next_pageblock:
-+		low_pfn += pageblock_nr_pages;
-+		low_pfn = ALIGN(low_pfn, pageblock_nr_pages) - 1;
-+		last_pageblock_nr = pageblock_nr;
++strict_check:
++		/* Abort isolation if the caller requested strict isolation */
++		if (strict) {
++			total_isolated = 0;
++			goto out;
++		}
  	}
  
- 	acct_isolated(zone, locked, cc);
+ 	trace_mm_compaction_isolate_freepages(nr_scanned, total_isolated);
++
++out:
++	if (locked)
++		spin_unlock_irqrestore(&cc->zone->lock, flags);
++
+ 	return total_isolated;
+ }
+ 
+@@ -218,13 +272,18 @@ static unsigned long isolate_freepages_b
+ unsigned long
+ isolate_freepages_range(unsigned long start_pfn, unsigned long end_pfn)
+ {
+-	unsigned long isolated, pfn, block_end_pfn, flags;
++	unsigned long isolated, pfn, block_end_pfn;
+ 	struct zone *zone = NULL;
+ 	LIST_HEAD(freelist);
++	struct compact_control cc;
+ 
+ 	if (pfn_valid(start_pfn))
+ 		zone = page_zone(pfn_to_page(start_pfn));
+ 
++	/* cc needed for isolate_freepages_block to acquire zone->lock */
++	cc.zone = zone;
++	cc.sync = true;
++
+ 	for (pfn = start_pfn; pfn < end_pfn; pfn += isolated) {
+ 		if (!pfn_valid(pfn) || zone != page_zone(pfn_to_page(pfn)))
+ 			break;
+@@ -236,10 +295,8 @@ isolate_freepages_range(unsigned long st
+ 		block_end_pfn = ALIGN(pfn + 1, pageblock_nr_pages);
+ 		block_end_pfn = min(block_end_pfn, end_pfn);
+ 
+-		spin_lock_irqsave(&zone->lock, flags);
+-		isolated = isolate_freepages_block(pfn, block_end_pfn,
++		isolated = isolate_freepages_block(&cc, pfn, block_end_pfn,
+ 						   &freelist, true);
+-		spin_unlock_irqrestore(&zone->lock, flags);
+ 
+ 		/*
+ 		 * In strict mode, isolate_freepages_block() returns 0 if
+@@ -481,29 +538,6 @@ next_pageblock:
+ 
+ #endif /* CONFIG_COMPACTION || CONFIG_CMA */
+ #ifdef CONFIG_COMPACTION
+-
+-/* Returns true if the page is within a block suitable for migration to */
+-static bool suitable_migration_target(struct page *page)
+-{
+-
+-	int migratetype = get_pageblock_migratetype(page);
+-
+-	/* Don't interfere with memory hot-remove or the min_free_kbytes blocks */
+-	if (migratetype == MIGRATE_ISOLATE || migratetype == MIGRATE_RESERVE)
+-		return false;
+-
+-	/* If the page is a large free page, then allow migration */
+-	if (PageBuddy(page) && page_order(page) >= pageblock_order)
+-		return true;
+-
+-	/* If the block is MIGRATE_MOVABLE or MIGRATE_CMA, allow migration */
+-	if (migrate_async_suitable(migratetype))
+-		return true;
+-
+-	/* Otherwise skip the block */
+-	return false;
+-}
+-
+ /*
+  * Returns the start pfn of the last page block in a zone.  This is the starting
+  * point for full compaction of a zone.  Compaction searches for free pages from
+@@ -527,7 +561,6 @@ static void isolate_freepages(struct zon
+ {
+ 	struct page *page;
+ 	unsigned long high_pfn, low_pfn, pfn, zone_end_pfn, end_pfn;
+-	unsigned long flags;
+ 	int nr_freepages = cc->nr_freepages;
+ 	struct list_head *freelist = &cc->freepages;
+ 
+@@ -575,30 +608,12 @@ static void isolate_freepages(struct zon
+ 		if (!suitable_migration_target(page))
+ 			continue;
+ 
+-		/*
+-		 * Found a block suitable for isolating free pages from. Now
+-		 * we disabled interrupts, double check things are ok and
+-		 * isolate the pages. This is to minimise the time IRQs
+-		 * are disabled
+-		 */
++		/* Found a block suitable for isolating free pages from */
+ 		isolated = 0;
+-
+-		/*
+-		 * The zone lock must be held to isolate freepages. This
+-		 * unfortunately this is a very coarse lock and can be
+-		 * heavily contended if there are parallel allocations
+-		 * or parallel compactions. For async compaction do not
+-		 * spin on the lock
+-		 */
+-		if (!compact_trylock_irqsave(&zone->lock, &flags, cc))
+-			break;
+-		if (suitable_migration_target(page)) {
+-			end_pfn = min(pfn + pageblock_nr_pages, zone_end_pfn);
+-			isolated = isolate_freepages_block(pfn, end_pfn,
+-							   freelist, false);
+-			nr_freepages += isolated;
+-		}
+-		spin_unlock_irqrestore(&zone->lock, flags);
++		end_pfn = min(pfn + pageblock_nr_pages, zone_end_pfn);
++		isolated = isolate_freepages_block(cc, pfn, end_pfn,
++						   freelist, false);
++		nr_freepages += isolated;
+ 
+ 		/*
+ 		 * Record the highest PFN we isolated pages from. When next
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
