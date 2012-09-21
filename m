@@ -1,66 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files-fix.patch added to -mm tree
-Date: Fri, 21 Sep 2012 12:14:57 -0700
-Message-ID: <20120921191500.9ECDF200057@hpza10.eem.corp.google.com>
+Subject: [folded-dropped] coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 21 Sep 2012 12:23:40 -0700
+Message-ID: <20120921192340.93A2E100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:50419 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756608Ab2IUTPE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Sep 2012 15:15:04 -0400
-Received: by wgbdt11 with SMTP id dt11so199676wgb.1
-        for <mm-commits@vger.kernel.org>; Fri, 21 Sep 2012 12:15:02 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:42983 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757701Ab2IUTXl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Sep 2012 15:23:41 -0400
+Received: by mail-yx0-f202.google.com with SMTP id r11so105131yen.1
+        for <mm-commits@vger.kernel.org>; Fri, 21 Sep 2012 12:23:41 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, amwang@redhat.com, jmfoote@cert.org, oleg@redhat.com, palves@redhat.com, roland@hack.frob.com, vda.linux@googlemail.com
+To: akpm@linux-foundation.org, vda.linux@googlemail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files-fix
-has been added to the -mm tree.  Its filename is
-     coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files-fix.patch
+     Subject: coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files-fix
+Subject: coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files-checkpatch-fixes
 
-include vmalloc.h
+ERROR: "(foo*)" should be "(foo *)"
+#79: FILE: fs/binfmt_elf.c:1424:
++	name_base = name_curpos = ((char*)data) + names_ofs;
 
-Cc: "Jonathan M. Foote" <jmfoote@cert.org>
-Cc: Amerigo Wang <amwang@redhat.com>
+WARNING: line over 80 characters
+#122: FILE: fs/binfmt_elf.c:1467:
++		memmove(name_base - shift_bytes, name_base, name_curpos - name_base);
+
+ERROR: "(foo*)" should be "(foo *)"
+#126: FILE: fs/binfmt_elf.c:1471:
++	size = name_curpos - (char*)data;
+
+total: 2 errors, 1 warnings, 177 lines checked
+
+./patches/coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Denys Vlasenko <vda.linux@googlemail.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Pedro Alves <palves@redhat.com>
-Cc: Roland McGrath <roland@hack.frob.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/binfmt_elf.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN fs/binfmt_elf.c~coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files-fix fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files-fix
+diff -puN fs/binfmt_elf.c~coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files-checkpatch-fixes fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files-checkpatch-fixes
 +++ a/fs/binfmt_elf.c
-@@ -27,6 +27,7 @@
- #include <linux/compiler.h>
- #include <linux/highmem.h>
- #include <linux/pagemap.h>
-+#include <linux/vmalloc.h>
- #include <linux/security.h>
- #include <linux/random.h>
- #include <linux/elf.h>
+@@ -1421,7 +1421,7 @@ static void fill_files_note(struct memel
+ 		goto err;
+ 
+ 	start_end_ofs = data + 2;
+-	name_base = name_curpos = ((char*)data) + names_ofs;
++	name_base = name_curpos = ((char *)data) + names_ofs;
+ 	remaining = size - names_ofs;
+ 	count = 0;
+ 	for (vma = current->mm->mmap; vma != NULL; vma = vma->vm_next) {
+@@ -1464,11 +1464,12 @@ static void fill_files_note(struct memel
+ 	n = current->mm->map_count - count;
+ 	if (n != 0) {
+ 		unsigned shift_bytes = n * 3 * sizeof(data[0]);
+-		memmove(name_base - shift_bytes, name_base, name_curpos - name_base);
++		memmove(name_base - shift_bytes, name_base,
++			name_curpos - name_base);
+ 		name_curpos -= shift_bytes;
+ 	}
+ 
+-	size = name_curpos - (char*)data;
++	size = name_curpos - (char *)data;
+ 	fill_note(note, "CORE", NT_FILE, size, data);
+  err: ;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -117,8 +137,7 @@ fat-simplify-writeback_inode-checkpatch-fixes.patch
 fat-simplify-writeback_inode-checkpatch-fixes-fix.patch
 coredump-make-core-dump-functionality-optional-fix-fix.patch
 coredump-use-suid_dumpable_enabled-rather-than-hardcoded-1-checkpatch-fixes.patch
-coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files-fix.patch
-coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files-checkpatch-fixes.patch
+coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files.patch
 proc-use-kzalloc-instead-of-kmalloc-and-memset-fix.patch
 journal_add_journal_head-debug.patch
 mutex-subsystem-synchro-test-module-fix.patch
