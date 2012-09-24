@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-unevictable_pgs_mlockfreed.patch added to -mm tree
-Date: Fri, 21 Sep 2012 16:01:23 -0700
-Message-ID: <20120921230124.2908A5C0050@hpza9.eem.corp.google.com>
+Subject: + linux-next-unbork.patch added to -mm tree
+Date: Mon, 24 Sep 2012 12:55:41 -0700
+Message-ID: <20120924195543.7454C20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:53987 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754581Ab2IUXB1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Sep 2012 19:01:27 -0400
-Received: by wgbdt11 with SMTP id dt11so206406wgb.1
-        for <mm-commits@vger.kernel.org>; Fri, 21 Sep 2012 16:01:25 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:46820 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751017Ab2IXTzr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Sep 2012 15:55:47 -0400
+Received: by eaak14 with SMTP id k14so101449eaa.1
+        for <mm-commits@vger.kernel.org>; Mon, 24 Sep 2012 12:55:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, hannes@cmpxchg.org, mel@csn.ul.ie, riel@redhat.com, walken@google.com, yinghan@google.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: mm: remove unevictable_pgs_mlockfreed
+     Subject: linux-next-unbork
 has been added to the -mm tree.  Its filename is
-     mm-remove-unevictable_pgs_mlockfreed.patch
+     linux-next-unbork.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,113 +33,80 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: remove unevictable_pgs_mlockfreed
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-unbork
 
-Simply remove UNEVICTABLE_MLOCKFREED and unevictable_pgs_mlockfreed line
-from /proc/vmstat: Johannes and Mel point out that it was very unlikely to
-have been used by any tool, and of course we can restore it easily enough
-if that turns out to be wrong.
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Ying Han <yinghan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vm_event_item.h |    1 -
- mm/vmstat.c                   |    1 -
- 2 files changed, 2 deletions(-)
+ drivers/irqchip/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/vm_event_item.h~mm-remove-unevictable_pgs_mlockfreed include/linux/vm_event_item.h
---- a/include/linux/vm_event_item.h~mm-remove-unevictable_pgs_mlockfreed
-+++ a/include/linux/vm_event_item.h
-@@ -52,7 +52,6 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		UNEVICTABLE_PGMUNLOCKED,
- 		UNEVICTABLE_PGCLEARED,	/* on COW, page truncate */
- 		UNEVICTABLE_PGSTRANDED,	/* unable to isolate on unlock */
--		UNEVICTABLE_MLOCKFREED,	/* no longer useful: always zero */
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 		THP_FAULT_ALLOC,
- 		THP_FAULT_FALLBACK,
-diff -puN mm/vmstat.c~mm-remove-unevictable_pgs_mlockfreed mm/vmstat.c
---- a/mm/vmstat.c~mm-remove-unevictable_pgs_mlockfreed
-+++ a/mm/vmstat.c
-@@ -794,7 +794,6 @@ const char * const vmstat_text[] = {
- 	"unevictable_pgs_munlocked",
- 	"unevictable_pgs_cleared",
- 	"unevictable_pgs_stranded",
--	"unevictable_pgs_mlockfreed",	/* no longer useful: always zero */
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	"thp_fault_alloc",
+diff -puN /dev/null drivers/irqchip/Kconfig
+--- /dev/null
++++ a/drivers/irqchip/Kconfig
+@@ -0,0 +1 @@
++#
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-x86-pat-remove-the-dependency-on-vm_pgoff-in-track-untrack-pfn-vma-routines.patch
-x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn.patch
-mm-x86-pat-rework-linear-pfn-mmap-tracking.patch
-mm-introduce-arch-specific-vma-flag-vm_arch_1.patch
-mm-kill-vma-flag-vm_insertpage.patch
-mm-kill-vma-flag-vm_can_nonlinear.patch
-mm-use-mm-exe_file-instead-of-first-vm_executable-vma-vm_file.patch
-mm-kill-vma-flag-vm_executable-and-mm-num_exe_file_vmas.patch
-mm-prepare-vm_dontdump-for-using-in-drivers.patch
-mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter.patch
-mm-mmapc-replace-find_vma_prepare-with-clearer-find_vma_links.patch
-mm-mmapc-replace-find_vma_prepare-with-clearer-find_vma_links-fix.patch
-mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+idr-rename-max_level-to-max_idr_level-fix-3.patch
+cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+audith-replace-defines-with-c-stubs.patch
+mm.patch
+x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
+mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
+mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures-fix.patch
 mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch
-mm-mmu_notifier-init-notifier-if-necessary.patch
-thp-fix-the-count-of-thp_collapse_alloc.patch
-thp-remove-unnecessary-check-in-start_khugepaged.patch
-thp-move-khugepaged_mutex-out-of-khugepaged.patch
-thp-remove-unnecessary-khugepaged_thread-check.patch
-thp-remove-wake_up_interruptible-in-the-exit-path.patch
-thp-remove-some-code-depend-on-config_numa.patch
-thp-merge-page-pre-alloc-in-khugepaged_loop-into-khugepaged_do_scan.patch
-thp-release-page-in-page-pre-alloc-path.patch
-thp-introduce-khugepaged_prealloc_page-and-khugepaged_alloc_page.patch
-thp-remove-khugepaged_loop.patch
-thp-use-khugepaged_enabled-to-remove-duplicate-code.patch
-thp-remove-unnecessary-set_recommended_min_free_kbytes.patch
-mm-fix-potential-anon_vma-locking-issue-in-mprotect.patch
-thp-x86-introduce-have_arch_transparent_hugepage.patch
-thp-remove-assumptions-on-pgtable_t-type.patch
-thp-introduce-pmdp_invalidate.patch
-thp-make-madv_hugepage-check-for-mm-def_flags.patch
-thp-s390-thp-splitting-backend-for-s390.patch
-thp-s390-thp-pagetable-pre-allocation-for-s390.patch
-thp-s390-disable-thp-for-kvm-host-on-s390.patch
-thp-s390-architecture-backend-for-thp-on-s390.patch
-mm-interval-tree-updates.patch
-mm-anon-rmap-remove-anon_vma_moveto_tail.patch
-mm-anon-rmap-replace-same_anon_vma-linked-list-with-an-interval-tree.patch
-mm-rmap-remove-vma_address-check-for-address-inside-vma.patch
-mm-add-config_debug_vm_rb-build-option.patch
-mm-anon-rmap-in-mremap-set-the-new-vmas-position-before-anon_vma_clone.patch
-mm-avoid-taking-rmap-locks-in-move_ptes.patch
-mm-fix-tracing-in-free_pcppages_bulk.patch
+rbtree-performance-and-correctness-test-fix.patch
+mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix.patch
 mm-fix-tracing-in-free_pcppages_bulk-fix.patch
-cma-fix-counting-of-isolated-pages.patch
-cma-count-free-cma-pages.patch
 cma-count-free-cma-pages-fix.patch
-cma-fix-watermark-checking.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
+memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
+atomic-implement-generic-atomic_dec_if_positive-fix.patch
 swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-thp-khugepaged_prealloc_page-forgot-to-reset-the-page-alloc-indicator.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix-2.patch
+mm-compaction-acquire-the-zone-lock-as-late-as-possible-fix.patch
+mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch
 mm-fix-invalidate_complete_page2-lock-ordering.patch
-mm-remove-vma-arg-from-page_evictable.patch
-mm-clear_page_mlock-in-page_remove_rmap.patch
-mm-remove-free_page_mlock.patch
-mm-thp-fix-pmd_present-for-split_huge_page-and-prot_none-with-thp.patch
+mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix.patch
 mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock.patch
-mm-wrap-calls-to-set_pte_at_notify-with-invalidate_range_start-and-invalidate_range_end.patch
-mm-wrap-calls-to-set_pte_at_notify-with-invalidate_range_start-and-invalidate_range_end-fix.patch
-mm-remove-unevictable_pgs_mlockfreed.patch
+sections-fix-section-conflicts-in-arch-h8300-checkpatch-fixes.patch
+sections-fix-section-conflicts-in-drivers-macintosh-checkpatch-fixes.patch
+sectons-fix-const-sections-for-crc32-table-checkpatch-fixes.patch
+drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-code-fix-fix.patch
+drivers-misc-lis3lv02d-lis3lv02d_spic-add-lis3lv02d-device-tree-init-fix.patch
+drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init-fix.patch
+backlight-add-backlight-driver-for-lm3630-chip-fix.patch
+backlight-add-new-lm3639-backlight-driver-fix.patch
+backlight-platform-lcd-add-support-for-device-tree-based-probe-fix.patch
+idr-rename-max_level-to-max_idr_level-fix.patch
+idr-rename-max_level-to-max_idr_level-fix-fix-2.patch
+lib-parserc-avoid-overflow-in-match_number-fix.patch
+lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+rtc-add-dallas-ds2404-driver-fix.patch
+rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch
+fs-fat-fix-all-other-checkpatch-issues-in-dirc-fix.patch
+fat-simplify-writeback_inode-checkpatch-fixes.patch
+fat-simplify-writeback_inode-checkpatch-fixes-fix.patch
+coredump-make-core-dump-functionality-optional-fix-fix.patch
+coredump-use-suid_dumpable_enabled-rather-than-hardcoded-1-checkpatch-fixes.patch
+proc-use-kzalloc-instead-of-kmalloc-and-memset-fix.patch
+journal_add_journal_head-debug.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+linux-next-unbork.patch
 
