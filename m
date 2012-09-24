@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + compat-move-compat_siginfo_t-definition-to-asm-compath.patch added to -mm tree
-Date: Mon, 24 Sep 2012 14:10:07 -0700
-Message-ID: <20120924211008.2421C200059@hpza10.eem.corp.google.com>
+Subject: + coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files.patch added to -mm tree
+Date: Mon, 24 Sep 2012 14:10:15 -0700
+Message-ID: <20120924211016.D22F35C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:65404 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750715Ab2IXVKM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Sep 2012 17:10:12 -0400
-Received: by lbol12 with SMTP id l12so107719lbo.1
-        for <mm-commits@vger.kernel.org>; Mon, 24 Sep 2012 14:10:10 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:46197 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750735Ab2IXVKU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Sep 2012 17:10:20 -0400
+Received: by weyr1 with SMTP id r1so394576wey.1
+        for <mm-commits@vger.kernel.org>; Mon, 24 Sep 2012 14:10:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: vda.linux@googlemail.com, amwang@redhat.com, fengguang.wu@intel.com, jmfoote
 
 
 The patch titled
-     Subject: compat: move compat_siginfo_t definition to asm/compat.h
+     Subject: coredump: extend core dump note section to contain file names of mapped files
 has been added to the -mm tree.  Its filename is
-     compat-move-compat_siginfo_t-definition-to-asm-compath.patch
+     coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,19 +34,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Denys Vlasenko <vda.linux@googlemail.com>
-Subject: compat: move compat_siginfo_t definition to asm/compat.h
+Subject: coredump: extend core dump note section to contain file names of mapped files
 
-This is a preparatory patch for the introduction of NT_SIGINFO elf note.
+This note has the following format:
 
-Make the location of compat_siginfo_t uniform across eight architectures
-which have it.  Now it can be pulled in by including asm/compat.h or
-linux/compat.h.
-
-Most of the copies are verbatim.  compat_uid[32]_t had to be replaced by
-__compat_uid[32]_t.  compat_uptr_t had to be moved up before
-compat_siginfo_t in asm/compat.h on a several architectures (tile already
-had it moved up).  compat_sigval_t had to be relocated from linux/compat.h
-to asm/compat.h.
+long count     -- how many files are mapped
+long page_size -- units for file_ofs
+array of [COUNT] elements of
+   long start
+   long end
+   long file_ofs
+followed by COUNT filenames in ASCII: "FILE1" NUL "FILE2" NUL...
 
 Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
 Cc: Oleg Nesterov <oleg@redhat.com>
@@ -59,1297 +57,229 @@ Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/compat.h       |   60 ++++++++++++++++++-
- arch/arm64/kernel/signal32.c          |   53 ----------------
- arch/mips/include/asm/compat-signal.h |   62 -------------------
- arch/mips/include/asm/compat.h        |   69 +++++++++++++++++++++-
- arch/parisc/include/asm/compat.h      |   59 ++++++++++++++++++
- arch/parisc/kernel/signal32.h         |   52 ----------------
- arch/powerpc/include/asm/compat.h     |   60 ++++++++++++++++++-
- arch/powerpc/include/asm/siginfo.h    |    1 
- arch/powerpc/kernel/ppc32.h           |   51 ----------------
- arch/s390/include/asm/compat.h        |   75 +++++++++++++++++++++++-
- arch/s390/kernel/compat_linux.h       |   68 ---------------------
- arch/sparc/include/asm/compat.h       |   61 +++++++++++++++++++
- arch/sparc/include/asm/siginfo.h      |    1 
- arch/sparc/kernel/signal32.c          |   52 ----------------
- arch/tile/include/asm/compat.h        |   62 +++++++++++++++++++
- arch/tile/kernel/compat_signal.c      |   57 ------------------
- arch/x86/include/asm/compat.h         |   74 +++++++++++++++++++++++
- arch/x86/include/asm/ia32.h           |   67 ---------------------
- include/linux/compat.h                |    5 -
- 19 files changed, 513 insertions(+), 476 deletions(-)
+ fs/binfmt_elf.c        |  110 +++++++++++++++++++++++++++++++++++++--
+ fs/compat_binfmt_elf.c |    1 
+ include/linux/elf.h    |    1 
+ 3 files changed, 108 insertions(+), 4 deletions(-)
 
-diff -puN arch/arm64/include/asm/compat.h~compat-move-compat_siginfo_t-definition-to-asm-compath arch/arm64/include/asm/compat.h
---- a/arch/arm64/include/asm/compat.h~compat-move-compat_siginfo_t-definition-to-asm-compath
-+++ a/arch/arm64/include/asm/compat.h
-@@ -55,6 +55,7 @@ typedef s64		compat_s64;
- typedef u32		compat_uint_t;
- typedef u32		compat_ulong_t;
- typedef u64		compat_u64;
-+typedef u32		compat_uptr_t;
+diff -puN fs/binfmt_elf.c~coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files
++++ a/fs/binfmt_elf.c
+@@ -27,6 +27,7 @@
+ #include <linux/compiler.h>
+ #include <linux/highmem.h>
+ #include <linux/pagemap.h>
++#include <linux/vmalloc.h>
+ #include <linux/security.h>
+ #include <linux/random.h>
+ #include <linux/elf.h>
+@@ -36,6 +37,9 @@
+ #include <asm/param.h>
+ #include <asm/page.h>
  
- struct compat_timespec {
- 	compat_time_t	tv_sec;
-@@ -130,6 +131,64 @@ typedef u32		compat_old_sigset_t;
- 
- typedef u32		compat_sigset_word;
- 
-+typedef union compat_sigval {
-+	compat_int_t	sival_int;
-+	compat_uptr_t	sival_ptr;
-+} compat_sigval_t;
-+
-+typedef struct compat_siginfo {
-+	int si_signo;
-+	int si_errno;
-+	int si_code;
-+
-+	union {
-+		/* The padding is the same size as AArch64. */
-+		int _pad[128/sizeof(int) - 3];
-+
-+		/* kill() */
-+		struct {
-+			compat_pid_t _pid;	/* sender's pid */
-+			__compat_uid32_t _uid;	/* sender's uid */
-+		} _kill;
-+
-+		/* POSIX.1b timers */
-+		struct {
-+			compat_timer_t _tid;	/* timer id */
-+			int _overrun;		/* overrun count */
-+			compat_sigval_t _sigval;	/* same as below */
-+			int _sys_private;       /* not to be passed to user */
-+		} _timer;
-+
-+		/* POSIX.1b signals */
-+		struct {
-+			compat_pid_t _pid;	/* sender's pid */
-+			__compat_uid32_t _uid;	/* sender's uid */
-+			compat_sigval_t _sigval;
-+		} _rt;
-+
-+		/* SIGCHLD */
-+		struct {
-+			compat_pid_t _pid;	/* which child */
-+			__compat_uid32_t _uid;	/* sender's uid */
-+			int _status;		/* exit code */
-+			compat_clock_t _utime;
-+			compat_clock_t _stime;
-+		} _sigchld;
-+
-+		/* SIGILL, SIGFPE, SIGSEGV, SIGBUS */
-+		struct {
-+			compat_uptr_t _addr; /* faulting insn/memory ref. */
-+			short _addr_lsb; /* LSB of the reported address */
-+		} _sigfault;
-+
-+		/* SIGPOLL */
-+		struct {
-+			compat_long_t _band;	/* POLL_IN, POLL_OUT, POLL_MSG */
-+			int _fd;
-+		} _sigpoll;
-+	} _sifields;
-+} compat_siginfo_t;
-+
- #define COMPAT_OFF_T_MAX	0x7fffffff
- #define COMPAT_LOFF_T_MAX	0x7fffffffffffffffL
- 
-@@ -139,7 +198,6 @@ typedef u32		compat_sigset_word;
-  * as pointers because the syscall entry code will have
-  * appropriately converted them already.
-  */
--typedef	u32		compat_uptr_t;
- 
- static inline void __user *compat_ptr(compat_uptr_t uptr)
- {
-diff -puN arch/arm64/kernel/signal32.c~compat-move-compat_siginfo_t-definition-to-asm-compath arch/arm64/kernel/signal32.c
---- a/arch/arm64/kernel/signal32.c~compat-move-compat_siginfo_t-definition-to-asm-compath
-+++ a/arch/arm64/kernel/signal32.c
-@@ -30,59 +30,6 @@
- #include <asm/uaccess.h>
- #include <asm/unistd.h>
- 
--typedef struct compat_siginfo {
--	int si_signo;
--	int si_errno;
--	int si_code;
--
--	union {
--		/* The padding is the same size as AArch64. */
--		int _pad[SI_PAD_SIZE];
--
--		/* kill() */
--		struct {
--			compat_pid_t _pid;	/* sender's pid */
--			__compat_uid32_t _uid;	/* sender's uid */
--		} _kill;
--
--		/* POSIX.1b timers */
--		struct {
--			compat_timer_t _tid;	/* timer id */
--			int _overrun;		/* overrun count */
--			compat_sigval_t _sigval;	/* same as below */
--			int _sys_private;       /* not to be passed to user */
--		} _timer;
--
--		/* POSIX.1b signals */
--		struct {
--			compat_pid_t _pid;	/* sender's pid */
--			__compat_uid32_t _uid;	/* sender's uid */
--			compat_sigval_t _sigval;
--		} _rt;
--
--		/* SIGCHLD */
--		struct {
--			compat_pid_t _pid;	/* which child */
--			__compat_uid32_t _uid;	/* sender's uid */
--			int _status;		/* exit code */
--			compat_clock_t _utime;
--			compat_clock_t _stime;
--		} _sigchld;
--
--		/* SIGILL, SIGFPE, SIGSEGV, SIGBUS */
--		struct {
--			compat_uptr_t _addr; /* faulting insn/memory ref. */
--			short _addr_lsb; /* LSB of the reported address */
--		} _sigfault;
--
--		/* SIGPOLL */
--		struct {
--			compat_long_t _band;	/* POLL_IN, POLL_OUT, POLL_MSG */
--			int _fd;
--		} _sigpoll;
--	} _sifields;
--} compat_siginfo_t;
--
- struct compat_sigaction {
- 	compat_uptr_t			sa_handler;
- 	compat_ulong_t			sa_flags;
-diff -puN arch/mips/include/asm/compat-signal.h~compat-move-compat_siginfo_t-definition-to-asm-compath arch/mips/include/asm/compat-signal.h
---- a/arch/mips/include/asm/compat-signal.h~compat-move-compat_siginfo_t-definition-to-asm-compath
-+++ a/arch/mips/include/asm/compat-signal.h
-@@ -10,68 +10,6 @@
- 
- #include <asm/uaccess.h>
- 
--#define SI_PAD_SIZE32   ((SI_MAX_SIZE/sizeof(int)) - 3)
--
--typedef struct compat_siginfo {
--	int si_signo;
--	int si_code;
--	int si_errno;
--
--	union {
--		int _pad[SI_PAD_SIZE32];
--
--		/* kill() */
--		struct {
--			compat_pid_t _pid;	/* sender's pid */
--			compat_uid_t _uid;	/* sender's uid */
--		} _kill;
--
--		/* SIGCHLD */
--		struct {
--			compat_pid_t _pid;	/* which child */
--			compat_uid_t _uid;	/* sender's uid */
--			int _status;		/* exit code */
--			compat_clock_t _utime;
--			compat_clock_t _stime;
--		} _sigchld;
--
--		/* IRIX SIGCHLD */
--		struct {
--			compat_pid_t _pid;	/* which child */
--			compat_clock_t _utime;
--			int _status;		/* exit code */
--			compat_clock_t _stime;
--		} _irix_sigchld;
--
--		/* SIGILL, SIGFPE, SIGSEGV, SIGBUS */
--		struct {
--			s32 _addr; /* faulting insn/memory ref. */
--		} _sigfault;
--
--		/* SIGPOLL, SIGXFSZ (To do ...)  */
--		struct {
--			int _band;	/* POLL_IN, POLL_OUT, POLL_MSG */
--			int _fd;
--		} _sigpoll;
--
--		/* POSIX.1b timers */
--		struct {
--			timer_t _tid;		/* timer id */
--			int _overrun;		/* overrun count */
--			compat_sigval_t _sigval;/* same as below */
--			int _sys_private;       /* not to be passed to user */
--		} _timer;
--
--		/* POSIX.1b signals */
--		struct {
--			compat_pid_t _pid;	/* sender's pid */
--			compat_uid_t _uid;	/* sender's uid */
--			compat_sigval_t _sigval;
--		} _rt;
--
--	} _sifields;
--} compat_siginfo_t;
--
- static inline int __copy_conv_sigset_to_user(compat_sigset_t __user *d,
- 	const sigset_t *s)
- {
-diff -puN arch/mips/include/asm/compat.h~compat-move-compat_siginfo_t-definition-to-asm-compath arch/mips/include/asm/compat.h
---- a/arch/mips/include/asm/compat.h~compat-move-compat_siginfo_t-definition-to-asm-compath
-+++ a/arch/mips/include/asm/compat.h
-@@ -43,6 +43,7 @@ typedef s64		compat_s64;
- typedef u32		compat_uint_t;
- typedef u32		compat_ulong_t;
- typedef u64		compat_u64;
-+typedef u32		compat_uptr_t;
- 
- struct compat_timespec {
- 	compat_time_t	tv_sec;
-@@ -124,6 +125,73 @@ typedef u32		compat_old_sigset_t;	/* at 
- 
- typedef u32		compat_sigset_word;
- 
-+typedef union compat_sigval {
-+	compat_int_t	sival_int;
-+	compat_uptr_t	sival_ptr;
-+} compat_sigval_t;
-+
-+#define SI_PAD_SIZE32	(128/sizeof(int) - 3)
-+
-+typedef struct compat_siginfo {
-+	int si_signo;
-+	int si_code;
-+	int si_errno;
-+
-+	union {
-+		int _pad[SI_PAD_SIZE32];
-+
-+		/* kill() */
-+		struct {
-+			compat_pid_t _pid;	/* sender's pid */
-+			__compat_uid_t _uid;	/* sender's uid */
-+		} _kill;
-+
-+		/* SIGCHLD */
-+		struct {
-+			compat_pid_t _pid;	/* which child */
-+			__compat_uid_t _uid;	/* sender's uid */
-+			int _status;		/* exit code */
-+			compat_clock_t _utime;
-+			compat_clock_t _stime;
-+		} _sigchld;
-+
-+		/* IRIX SIGCHLD */
-+		struct {
-+			compat_pid_t _pid;	/* which child */
-+			compat_clock_t _utime;
-+			int _status;		/* exit code */
-+			compat_clock_t _stime;
-+		} _irix_sigchld;
-+
-+		/* SIGILL, SIGFPE, SIGSEGV, SIGBUS */
-+		struct {
-+			s32 _addr; /* faulting insn/memory ref. */
-+		} _sigfault;
-+
-+		/* SIGPOLL, SIGXFSZ (To do ...)  */
-+		struct {
-+			int _band;	/* POLL_IN, POLL_OUT, POLL_MSG */
-+			int _fd;
-+		} _sigpoll;
-+
-+		/* POSIX.1b timers */
-+		struct {
-+			timer_t _tid;		/* timer id */
-+			int _overrun;		/* overrun count */
-+			compat_sigval_t _sigval;/* same as below */
-+			int _sys_private;       /* not to be passed to user */
-+		} _timer;
-+
-+		/* POSIX.1b signals */
-+		struct {
-+			compat_pid_t _pid;	/* sender's pid */
-+			__compat_uid_t _uid;	/* sender's uid */
-+			compat_sigval_t _sigval;
-+		} _rt;
-+
-+	} _sifields;
-+} compat_siginfo_t;
-+
- #define COMPAT_OFF_T_MAX	0x7fffffff
- #define COMPAT_LOFF_T_MAX	0x7fffffffffffffffL
- 
-@@ -133,7 +201,6 @@ typedef u32		compat_sigset_word;
-  * as pointers because the syscall entry code will have
-  * appropriately converted them already.
-  */
--typedef u32		compat_uptr_t;
- 
- static inline void __user *compat_ptr(compat_uptr_t uptr)
- {
-diff -puN arch/parisc/include/asm/compat.h~compat-move-compat_siginfo_t-definition-to-asm-compath arch/parisc/include/asm/compat.h
---- a/arch/parisc/include/asm/compat.h~compat-move-compat_siginfo_t-definition-to-asm-compath
-+++ a/arch/parisc/include/asm/compat.h
-@@ -36,6 +36,7 @@ typedef s64	compat_s64;
- typedef u32	compat_uint_t;
- typedef u32	compat_ulong_t;
- typedef u64	compat_u64;
-+typedef u32	compat_uptr_t;
- 
- struct compat_timespec {
- 	compat_time_t		tv_sec;
-@@ -127,6 +128,63 @@ typedef u32		compat_old_sigset_t;	/* at 
- 
- typedef u32		compat_sigset_word;
- 
-+typedef union compat_sigval {
-+	compat_int_t	sival_int;
-+	compat_uptr_t	sival_ptr;
-+} compat_sigval_t;
-+
-+typedef struct compat_siginfo {
-+	int si_signo;
-+	int si_errno;
-+	int si_code;
-+
-+	union {
-+		int _pad[128/sizeof(int) - 3];
-+
-+		/* kill() */
-+		struct {
-+			unsigned int _pid;      /* sender's pid */
-+			unsigned int _uid;      /* sender's uid */
-+		} _kill;
-+
-+		/* POSIX.1b timers */
-+		struct {
-+			compat_timer_t _tid;            /* timer id */
-+			int _overrun;           /* overrun count */
-+			char _pad[sizeof(unsigned int) - sizeof(int)];
-+			compat_sigval_t _sigval;        /* same as below */
-+			int _sys_private;       /* not to be passed to user */
-+		} _timer;
-+
-+		/* POSIX.1b signals */
-+		struct {
-+			unsigned int _pid;      /* sender's pid */
-+			unsigned int _uid;      /* sender's uid */
-+			compat_sigval_t _sigval;
-+		} _rt;
-+
-+		/* SIGCHLD */
-+		struct {
-+			unsigned int _pid;      /* which child */
-+			unsigned int _uid;      /* sender's uid */
-+			int _status;            /* exit code */
-+			compat_clock_t _utime;
-+			compat_clock_t _stime;
-+		} _sigchld;
-+
-+		/* SIGILL, SIGFPE, SIGSEGV, SIGBUS */
-+		struct {
-+			unsigned int _addr;     /* faulting insn/memory ref. */
-+		} _sigfault;
-+
-+		/* SIGPOLL */
-+		struct {
-+			int _band;      /* POLL_IN, POLL_OUT, POLL_MSG */
-+			int _fd;
-+		} _sigpoll;
-+	} _sifields;
-+} compat_siginfo_t;
-+
- #define COMPAT_OFF_T_MAX	0x7fffffff
- #define COMPAT_LOFF_T_MAX	0x7fffffffffffffffL
- 
-@@ -136,7 +194,6 @@ typedef u32		compat_sigset_word;
-  * as pointers because the syscall entry code will have
-  * appropriately converted them already.
-  */
--typedef	u32		compat_uptr_t;
- 
- static inline void __user *compat_ptr(compat_uptr_t uptr)
- {
-diff -puN arch/parisc/kernel/signal32.h~compat-move-compat_siginfo_t-definition-to-asm-compath arch/parisc/kernel/signal32.h
---- a/arch/parisc/kernel/signal32.h~compat-move-compat_siginfo_t-definition-to-asm-compath
-+++ a/arch/parisc/kernel/signal32.h
-@@ -55,58 +55,6 @@ struct k_sigaction32 {
- 	struct compat_sigaction sa;
- };
- 
--typedef struct compat_siginfo {
--        int si_signo;
--        int si_errno;
--        int si_code;
--
--        union {
--                int _pad[((128/sizeof(int)) - 3)];
--
--                /* kill() */
--                struct {
--                        unsigned int _pid;      /* sender's pid */
--                        unsigned int _uid;      /* sender's uid */
--                } _kill;
--
--                /* POSIX.1b timers */
--                struct {
--                        compat_timer_t _tid;            /* timer id */
--                        int _overrun;           /* overrun count */
--                        char _pad[sizeof(unsigned int) - sizeof(int)];
--                        compat_sigval_t _sigval;        /* same as below */
--                        int _sys_private;       /* not to be passed to user */
--                } _timer;
--
--                /* POSIX.1b signals */
--                struct {
--                        unsigned int _pid;      /* sender's pid */
--                        unsigned int _uid;      /* sender's uid */
--                        compat_sigval_t _sigval;
--                } _rt;
--
--                /* SIGCHLD */
--                struct {
--                        unsigned int _pid;      /* which child */
--                        unsigned int _uid;      /* sender's uid */
--                        int _status;            /* exit code */
--                        compat_clock_t _utime;
--                        compat_clock_t _stime;
--                } _sigchld;
--
--                /* SIGILL, SIGFPE, SIGSEGV, SIGBUS */
--                struct {
--                        unsigned int _addr;     /* faulting insn/memory ref. */
--                } _sigfault;
--
--                /* SIGPOLL */
--                struct {
--                        int _band;      /* POLL_IN, POLL_OUT, POLL_MSG */
--                        int _fd;
--                } _sigpoll;
--        } _sifields;
--} compat_siginfo_t;
--
- int copy_siginfo_to_user32 (compat_siginfo_t __user *to, siginfo_t *from);
- int copy_siginfo_from_user32 (siginfo_t *to, compat_siginfo_t __user *from);
- 
-diff -puN arch/powerpc/include/asm/compat.h~compat-move-compat_siginfo_t-definition-to-asm-compath arch/powerpc/include/asm/compat.h
---- a/arch/powerpc/include/asm/compat.h~compat-move-compat_siginfo_t-definition-to-asm-compath
-+++ a/arch/powerpc/include/asm/compat.h
-@@ -38,6 +38,7 @@ typedef s64		compat_s64;
- typedef u32		compat_uint_t;
- typedef u32		compat_ulong_t;
- typedef u64		compat_u64;
-+typedef u32		compat_uptr_t;
- 
- struct compat_timespec {
- 	compat_time_t	tv_sec;
-@@ -114,6 +115,64 @@ typedef u32		compat_old_sigset_t;
- 
- typedef u32		compat_sigset_word;
- 
-+typedef union compat_sigval {
-+	compat_int_t	sival_int;
-+	compat_uptr_t	sival_ptr;
-+} compat_sigval_t;
-+
-+#define SI_PAD_SIZE32	(128/sizeof(int) - 3)
-+
-+typedef struct compat_siginfo {
-+	int si_signo;
-+	int si_errno;
-+	int si_code;
-+
-+	union {
-+		int _pad[SI_PAD_SIZE32];
-+
-+		/* kill() */
-+		struct {
-+			compat_pid_t _pid;		/* sender's pid */
-+			__compat_uid_t _uid;		/* sender's uid */
-+		} _kill;
-+
-+		/* POSIX.1b timers */
-+		struct {
-+			compat_timer_t _tid;		/* timer id */
-+			int _overrun;			/* overrun count */
-+			compat_sigval_t _sigval;	/* same as below */
-+			int _sys_private;	/* not to be passed to user */
-+		} _timer;
-+
-+		/* POSIX.1b signals */
-+		struct {
-+			compat_pid_t _pid;		/* sender's pid */
-+			__compat_uid_t _uid;		/* sender's uid */
-+			compat_sigval_t _sigval;
-+		} _rt;
-+
-+		/* SIGCHLD */
-+		struct {
-+			compat_pid_t _pid;		/* which child */
-+			__compat_uid_t _uid;		/* sender's uid */
-+			int _status;			/* exit code */
-+			compat_clock_t _utime;
-+			compat_clock_t _stime;
-+		} _sigchld;
-+
-+		/* SIGILL, SIGFPE, SIGSEGV, SIGBUS, SIGEMT */
-+		struct {
-+			unsigned int _addr; /* faulting insn/memory ref. */
-+		} _sigfault;
-+
-+		/* SIGPOLL */
-+		struct {
-+			int _band;	/* POLL_IN, POLL_OUT, POLL_MSG */
-+			int _fd;
-+		} _sigpoll;
-+	} _sifields;
-+} compat_siginfo_t;
-+
- #define COMPAT_OFF_T_MAX	0x7fffffff
- #define COMPAT_LOFF_T_MAX	0x7fffffffffffffffL
- 
-@@ -123,7 +182,6 @@ typedef u32		compat_sigset_word;
-  * as pointers because the syscall entry code will have
-  * appropriately converted them already.
-  */
--typedef	u32		compat_uptr_t;
- 
- static inline void __user *compat_ptr(compat_uptr_t uptr)
- {
-diff -puN arch/powerpc/include/asm/siginfo.h~compat-move-compat_siginfo_t-definition-to-asm-compath arch/powerpc/include/asm/siginfo.h
---- a/arch/powerpc/include/asm/siginfo.h~compat-move-compat_siginfo_t-definition-to-asm-compath
-+++ a/arch/powerpc/include/asm/siginfo.h
-@@ -10,7 +10,6 @@
- 
- #ifdef __powerpc64__
- #    define __ARCH_SI_PREAMBLE_SIZE	(4 * sizeof(int))
--#    define SI_PAD_SIZE32		((SI_MAX_SIZE/sizeof(int)) - 3)
- #endif
- 
- #include <asm-generic/siginfo.h>
-diff -puN arch/powerpc/kernel/ppc32.h~compat-move-compat_siginfo_t-definition-to-asm-compath arch/powerpc/kernel/ppc32.h
---- a/arch/powerpc/kernel/ppc32.h~compat-move-compat_siginfo_t-definition-to-asm-compath
-+++ a/arch/powerpc/kernel/ppc32.h
-@@ -16,57 +16,6 @@
- 
- /* These are here to support 32-bit syscalls on a 64-bit kernel. */
- 
--typedef struct compat_siginfo {
--	int si_signo;
--	int si_errno;
--	int si_code;
--
--	union {
--		int _pad[SI_PAD_SIZE32];
--
--		/* kill() */
--		struct {
--			compat_pid_t _pid;		/* sender's pid */
--			compat_uid_t _uid;		/* sender's uid */
--		} _kill;
--
--		/* POSIX.1b timers */
--		struct {
--			compat_timer_t _tid;			/* timer id */
--			int _overrun;			/* overrun count */
--			compat_sigval_t _sigval;		/* same as below */
--			int _sys_private;		/* not to be passed to user */
--		} _timer;
--
--		/* POSIX.1b signals */
--		struct {
--			compat_pid_t _pid;		/* sender's pid */
--			compat_uid_t _uid;		/* sender's uid */
--			compat_sigval_t _sigval;
--		} _rt;
--
--		/* SIGCHLD */
--		struct {
--			compat_pid_t _pid;		/* which child */
--			compat_uid_t _uid;		/* sender's uid */
--			int _status;			/* exit code */
--			compat_clock_t _utime;
--			compat_clock_t _stime;
--		} _sigchld;
--
--		/* SIGILL, SIGFPE, SIGSEGV, SIGBUS, SIGEMT */
--		struct {
--			unsigned int _addr; /* faulting insn/memory ref. */
--		} _sigfault;
--
--		/* SIGPOLL */
--		struct {
--			int _band;	/* POLL_IN, POLL_OUT, POLL_MSG */
--			int _fd;
--		} _sigpoll;
--	} _sifields;
--} compat_siginfo_t;
--
- #define __old_sigaction32	old_sigaction32
- 
- struct __old_sigaction32 {
-diff -puN arch/s390/include/asm/compat.h~compat-move-compat_siginfo_t-definition-to-asm-compath arch/s390/include/asm/compat.h
---- a/arch/s390/include/asm/compat.h~compat-move-compat_siginfo_t-definition-to-asm-compath
-+++ a/arch/s390/include/asm/compat.h
-@@ -65,6 +65,7 @@ typedef s64		compat_s64;
- typedef u32		compat_uint_t;
- typedef u32		compat_ulong_t;
- typedef u64		compat_u64;
-+typedef u32		compat_uptr_t;
- 
- struct compat_timespec {
- 	compat_time_t	tv_sec;
-@@ -144,6 +145,79 @@ typedef u32		compat_old_sigset_t;	/* at 
- 
- typedef u32		compat_sigset_word;
- 
-+typedef union compat_sigval {
-+	compat_int_t	sival_int;
-+	compat_uptr_t	sival_ptr;
-+} compat_sigval_t;
-+
-+typedef struct compat_siginfo {
-+	int	si_signo;
-+	int	si_errno;
-+	int	si_code;
-+
-+	union {
-+		int _pad[128/sizeof(int) - 3];
-+
-+		/* kill() */
-+		struct {
-+			pid_t	_pid;	/* sender's pid */
-+			uid_t	_uid;	/* sender's uid */
-+		} _kill;
-+
-+		/* POSIX.1b timers */
-+		struct {
-+			compat_timer_t _tid;		/* timer id */
-+			int _overrun;			/* overrun count */
-+			compat_sigval_t _sigval;	/* same as below */
-+			int _sys_private;	/* not to be passed to user */
-+		} _timer;
-+
-+		/* POSIX.1b signals */
-+		struct {
-+			pid_t			_pid;	/* sender's pid */
-+			uid_t			_uid;	/* sender's uid */
-+			compat_sigval_t		_sigval;
-+		} _rt;
-+
-+		/* SIGCHLD */
-+		struct {
-+			pid_t			_pid;	/* which child */
-+			uid_t			_uid;	/* sender's uid */
-+			int			_status;/* exit code */
-+			compat_clock_t		_utime;
-+			compat_clock_t		_stime;
-+		} _sigchld;
-+
-+		/* SIGILL, SIGFPE, SIGSEGV, SIGBUS */
-+		struct {
-+			__u32	_addr;	/* faulting insn/memory ref. - pointer */
-+		} _sigfault;
-+
-+		/* SIGPOLL */
-+		struct {
-+			int	_band;	/* POLL_IN, POLL_OUT, POLL_MSG */
-+			int	_fd;
-+		} _sigpoll;
-+	} _sifields;
-+} compat_siginfo_t;
-+
-+/*
-+ * How these fields are to be accessed.
-+ */
-+#define si_pid		_sifields._kill._pid
-+#define si_uid		_sifields._kill._uid
-+#define si_status	_sifields._sigchld._status
-+#define si_utime	_sifields._sigchld._utime
-+#define si_stime	_sifields._sigchld._stime
-+#define si_value	_sifields._rt._sigval
-+#define si_int		_sifields._rt._sigval.sival_int
-+#define si_ptr		_sifields._rt._sigval.sival_ptr
-+#define si_addr		_sifields._sigfault._addr
-+#define si_band		_sifields._sigpoll._band
-+#define si_fd		_sifields._sigpoll._fd
-+#define si_tid		_sifields._timer._tid
-+#define si_overrun	_sifields._timer._overrun
-+
- #define COMPAT_OFF_T_MAX	0x7fffffff
- #define COMPAT_LOFF_T_MAX	0x7fffffffffffffffL
- 
-@@ -153,7 +227,6 @@ typedef u32		compat_sigset_word;
-  * as pointers because the syscall entry code will have
-  * appropriately converted them already.
-  */
--typedef	u32		compat_uptr_t;
- 
- static inline void __user *compat_ptr(compat_uptr_t uptr)
- {
-diff -puN arch/s390/kernel/compat_linux.h~compat-move-compat_siginfo_t-definition-to-asm-compath arch/s390/kernel/compat_linux.h
---- a/arch/s390/kernel/compat_linux.h~compat-move-compat_siginfo_t-definition-to-asm-compath
-+++ a/arch/s390/kernel/compat_linux.h
-@@ -23,74 +23,6 @@ struct old_sigaction32 {
-        __u32			sa_flags;
-        __u32			sa_restorer;	/* Another 32 bit pointer */
- };
-- 
--typedef struct compat_siginfo {
--	int	si_signo;
--	int	si_errno;
--	int	si_code;
--
--	union {
--		int _pad[((128/sizeof(int)) - 3)];
--
--		/* kill() */
--		struct {
--			pid_t	_pid;	/* sender's pid */
--			uid_t	_uid;	/* sender's uid */
--		} _kill;
--
--		/* POSIX.1b timers */
--		struct {
--			compat_timer_t _tid;		/* timer id */
--			int _overrun;		/* overrun count */
--			compat_sigval_t _sigval;	/* same as below */
--			int _sys_private;       /* not to be passed to user */
--		} _timer;
--
--		/* POSIX.1b signals */
--		struct {
--			pid_t			_pid;	/* sender's pid */
--			uid_t			_uid;	/* sender's uid */
--			compat_sigval_t		_sigval;
--		} _rt;
--
--		/* SIGCHLD */
--		struct {
--			pid_t			_pid;	/* which child */
--			uid_t			_uid;	/* sender's uid */
--			int			_status;/* exit code */
--			compat_clock_t		_utime;
--			compat_clock_t		_stime;
--		} _sigchld;
--
--		/* SIGILL, SIGFPE, SIGSEGV, SIGBUS */
--		struct {
--			__u32	_addr;	/* faulting insn/memory ref. - pointer */
--		} _sigfault;
--                          
--		/* SIGPOLL */
--		struct {
--			int	_band;	/* POLL_IN, POLL_OUT, POLL_MSG */
--			int	_fd;
--		} _sigpoll;
--	} _sifields;
--} compat_siginfo_t;
--
--/*
-- * How these fields are to be accessed.
-- */
--#define si_pid		_sifields._kill._pid
--#define si_uid		_sifields._kill._uid
--#define si_status	_sifields._sigchld._status
--#define si_utime	_sifields._sigchld._utime
--#define si_stime	_sifields._sigchld._stime
--#define si_value	_sifields._rt._sigval
--#define si_int		_sifields._rt._sigval.sival_int
--#define si_ptr		_sifields._rt._sigval.sival_ptr
--#define si_addr		_sifields._sigfault._addr
--#define si_band		_sifields._sigpoll._band
--#define si_fd		_sifields._sigpoll._fd    
--#define si_tid		_sifields._timer._tid
--#define si_overrun	_sifields._timer._overrun
- 
- /* asm/sigcontext.h */
- typedef union
-diff -puN arch/sparc/include/asm/compat.h~compat-move-compat_siginfo_t-definition-to-asm-compath arch/sparc/include/asm/compat.h
---- a/arch/sparc/include/asm/compat.h~compat-move-compat_siginfo_t-definition-to-asm-compath
-+++ a/arch/sparc/include/asm/compat.h
-@@ -36,6 +36,7 @@ typedef s64		compat_s64;
- typedef u32		compat_uint_t;
- typedef u32		compat_ulong_t;
- typedef u64		compat_u64;
-+typedef u32		compat_uptr_t;
- 
- struct compat_timespec {
- 	compat_time_t	tv_sec;
-@@ -147,6 +148,65 @@ typedef u32		compat_old_sigset_t;
- 
- typedef u32		compat_sigset_word;
- 
-+typedef union compat_sigval {
-+	compat_int_t	sival_int;
-+	compat_uptr_t	sival_ptr;
-+} compat_sigval_t;
-+
-+#define SI_PAD_SIZE32	(128/sizeof(int) - 3)
-+
-+typedef struct compat_siginfo {
-+	int si_signo;
-+	int si_errno;
-+	int si_code;
-+
-+	union {
-+		int _pad[SI_PAD_SIZE32];
-+
-+		/* kill() */
-+		struct {
-+			compat_pid_t _pid;		/* sender's pid */
-+			unsigned int _uid;		/* sender's uid */
-+		} _kill;
-+
-+		/* POSIX.1b timers */
-+		struct {
-+			compat_timer_t _tid;		/* timer id */
-+			int _overrun;			/* overrun count */
-+			compat_sigval_t _sigval;	/* same as below */
-+			int _sys_private;	/* not to be passed to user */
-+		} _timer;
-+
-+		/* POSIX.1b signals */
-+		struct {
-+			compat_pid_t _pid;		/* sender's pid */
-+			unsigned int _uid;		/* sender's uid */
-+			compat_sigval_t _sigval;
-+		} _rt;
-+
-+		/* SIGCHLD */
-+		struct {
-+			compat_pid_t _pid;		/* which child */
-+			unsigned int _uid;		/* sender's uid */
-+			int _status;			/* exit code */
-+			compat_clock_t _utime;
-+			compat_clock_t _stime;
-+		} _sigchld;
-+
-+		/* SIGILL, SIGFPE, SIGSEGV, SIGBUS, SIGEMT */
-+		struct {
-+			u32 _addr; /* faulting insn/memory ref. */
-+			int _trapno;
-+		} _sigfault;
-+
-+		/* SIGPOLL */
-+		struct {
-+			int _band;	/* POLL_IN, POLL_OUT, POLL_MSG */
-+			int _fd;
-+		} _sigpoll;
-+	} _sifields;
-+} compat_siginfo_t;
-+
- #define COMPAT_OFF_T_MAX	0x7fffffff
- #define COMPAT_LOFF_T_MAX	0x7fffffffffffffffL
- 
-@@ -156,7 +216,6 @@ typedef u32		compat_sigset_word;
-  * as pointers because the syscall entry code will have
-  * appropriately converted them already.
-  */
--typedef	u32		compat_uptr_t;
- 
- static inline void __user *compat_ptr(compat_uptr_t uptr)
- {
-diff -puN arch/sparc/include/asm/siginfo.h~compat-move-compat_siginfo_t-definition-to-asm-compath arch/sparc/include/asm/siginfo.h
---- a/arch/sparc/include/asm/siginfo.h~compat-move-compat_siginfo_t-definition-to-asm-compath
-+++ a/arch/sparc/include/asm/siginfo.h
-@@ -3,7 +3,6 @@
- 
- #if defined(__sparc__) && defined(__arch64__)
- 
--#define SI_PAD_SIZE32	((SI_MAX_SIZE/sizeof(int)) - 3)
- #define __ARCH_SI_PREAMBLE_SIZE	(4 * sizeof(int))
- #define __ARCH_SI_BAND_T int
- 
-diff -puN arch/sparc/kernel/signal32.c~compat-move-compat_siginfo_t-definition-to-asm-compath arch/sparc/kernel/signal32.c
---- a/arch/sparc/kernel/signal32.c~compat-move-compat_siginfo_t-definition-to-asm-compath
-+++ a/arch/sparc/kernel/signal32.c
-@@ -54,58 +54,6 @@ struct signal_frame32 {
- 	/* __siginfo_rwin_t * */u32 rwin_save;
- } __attribute__((aligned(8)));
- 
--typedef struct compat_siginfo{
--	int si_signo;
--	int si_errno;
--	int si_code;
--
--	union {
--		int _pad[SI_PAD_SIZE32];
--
--		/* kill() */
--		struct {
--			compat_pid_t _pid;		/* sender's pid */
--			unsigned int _uid;		/* sender's uid */
--		} _kill;
--
--		/* POSIX.1b timers */
--		struct {
--			compat_timer_t _tid;			/* timer id */
--			int _overrun;			/* overrun count */
--			compat_sigval_t _sigval;		/* same as below */
--			int _sys_private;		/* not to be passed to user */
--		} _timer;
--
--		/* POSIX.1b signals */
--		struct {
--			compat_pid_t _pid;		/* sender's pid */
--			unsigned int _uid;		/* sender's uid */
--			compat_sigval_t _sigval;
--		} _rt;
--
--		/* SIGCHLD */
--		struct {
--			compat_pid_t _pid;		/* which child */
--			unsigned int _uid;		/* sender's uid */
--			int _status;			/* exit code */
--			compat_clock_t _utime;
--			compat_clock_t _stime;
--		} _sigchld;
--
--		/* SIGILL, SIGFPE, SIGSEGV, SIGBUS, SIGEMT */
--		struct {
--			u32 _addr; /* faulting insn/memory ref. */
--			int _trapno;
--		} _sigfault;
--
--		/* SIGPOLL */
--		struct {
--			int _band;	/* POLL_IN, POLL_OUT, POLL_MSG */
--			int _fd;
--		} _sigpoll;
--	} _sifields;
--}compat_siginfo_t;
--
- struct rt_signal_frame32 {
- 	struct sparc_stackf32	ss;
- 	compat_siginfo_t	info;
-diff -puN arch/tile/include/asm/compat.h~compat-move-compat_siginfo_t-definition-to-asm-compath arch/tile/include/asm/compat.h
---- a/arch/tile/include/asm/compat.h~compat-move-compat_siginfo_t-definition-to-asm-compath
-+++ a/arch/tile/include/asm/compat.h
-@@ -110,6 +110,68 @@ struct compat_flock64 {
- 
- typedef u32               compat_sigset_word;
- 
-+typedef union compat_sigval {
-+	compat_int_t	sival_int;
-+	compat_uptr_t	sival_ptr;
-+} compat_sigval_t;
-+
-+#define COMPAT_SI_PAD_SIZE	(128/sizeof(int) - 3)
-+
-+typedef struct compat_siginfo {
-+	int si_signo;
-+	int si_errno;
-+	int si_code;
-+
-+	union {
-+		int _pad[COMPAT_SI_PAD_SIZE];
-+
-+		/* kill() */
-+		struct {
-+			unsigned int _pid;	/* sender's pid */
-+			unsigned int _uid;	/* sender's uid */
-+		} _kill;
-+
-+		/* POSIX.1b timers */
-+		struct {
-+			compat_timer_t _tid;	/* timer id */
-+			int _overrun;		/* overrun count */
-+			compat_sigval_t _sigval;	/* same as below */
-+			int _sys_private;	/* not to be passed to user */
-+			int _overrun_incr;	/* amount to add to overrun */
-+		} _timer;
-+
-+		/* POSIX.1b signals */
-+		struct {
-+			unsigned int _pid;	/* sender's pid */
-+			unsigned int _uid;	/* sender's uid */
-+			compat_sigval_t _sigval;
-+		} _rt;
-+
-+		/* SIGCHLD */
-+		struct {
-+			unsigned int _pid;	/* which child */
-+			unsigned int _uid;	/* sender's uid */
-+			int _status;		/* exit code */
-+			compat_clock_t _utime;
-+			compat_clock_t _stime;
-+		} _sigchld;
-+
-+		/* SIGILL, SIGFPE, SIGSEGV, SIGBUS */
-+		struct {
-+			unsigned int _addr;	/* faulting insn/memory ref. */
-+#ifdef __ARCH_SI_TRAPNO
-+			int _trapno;	/* TRAP # which caused the signal */
++#ifndef user_long_t
++#define user_long_t long
 +#endif
-+		} _sigfault;
-+
-+		/* SIGPOLL */
-+		struct {
-+			int _band;	/* POLL_IN, POLL_OUT, POLL_MSG */
-+			int _fd;
-+		} _sigpoll;
-+	} _sifields;
-+} compat_siginfo_t;
-+
- #define COMPAT_OFF_T_MAX	0x7fffffff
- #define COMPAT_LOFF_T_MAX	0x7fffffffffffffffL
+ #ifndef user_siginfo_t
+ #define user_siginfo_t siginfo_t
+ #endif
+@@ -1385,6 +1389,93 @@ static void fill_siginfo_note(struct mem
+ 	fill_note(note, "CORE", NT_SIGINFO, sizeof(*csigdata), csigdata);
+ }
  
-diff -puN arch/tile/kernel/compat_signal.c~compat-move-compat_siginfo_t-definition-to-asm-compath arch/tile/kernel/compat_signal.c
---- a/arch/tile/kernel/compat_signal.c~compat-move-compat_siginfo_t-definition-to-asm-compath
-+++ a/arch/tile/kernel/compat_signal.c
-@@ -55,63 +55,6 @@ struct compat_ucontext {
- 	sigset_t	  uc_sigmask;	/* mask last for extensibility */
- };
++#define MAX_FILE_NOTE_SIZE (4*1024*1024)
++/*
++ * Format of NT_FILE note:
++ *
++ * long count     -- how many files are mapped
++ * long page_size -- units for file_ofs
++ * array of [COUNT] elements of
++ *   long start
++ *   long end
++ *   long file_ofs
++ * followed by COUNT filenames in ASCII: "FILE1" NUL "FILE2" NUL...
++ */
++static void fill_files_note(struct memelfnote *note)
++{
++	struct vm_area_struct *vma;
++	unsigned count, size, names_ofs, remaining, n;
++	user_long_t *data;
++	user_long_t *start_end_ofs;
++	char *name_base, *name_curpos;
++
++	/* *Estimated* file count and total data size needed */
++	count = current->mm->map_count;
++	size = count * 64;
++
++	names_ofs = (2 + 3 * count) * sizeof(data[0]);
++ alloc:
++	if (size >= MAX_FILE_NOTE_SIZE) /* paranoia check */
++		goto err;
++	size = round_up(size, PAGE_SIZE);
++	data = vmalloc(size);
++	if (!data)
++		goto err;
++
++	start_end_ofs = data + 2;
++	name_base = name_curpos = ((char *)data) + names_ofs;
++	remaining = size - names_ofs;
++	count = 0;
++	for (vma = current->mm->mmap; vma != NULL; vma = vma->vm_next) {
++		struct file *file;
++		const char *filename;
++
++		file = vma->vm_file;
++		if (!file)
++			continue;
++		filename = d_path(&file->f_path, name_curpos, remaining);
++		if (IS_ERR(filename)) {
++			if (PTR_ERR(filename) == -ENAMETOOLONG) {
++				vfree(data);
++				size = size * 5 / 4;
++				goto alloc;
++			}
++			continue;
++		}
++
++		/* d_path() fills at the end, move name down */
++		/* n = strlen(filename) + 1: */
++		n = (name_curpos + remaining) - filename;
++		remaining = filename - name_curpos;
++		memmove(name_curpos, filename, n);
++		name_curpos += n;
++
++		*start_end_ofs++ = vma->vm_start;
++		*start_end_ofs++ = vma->vm_end;
++		*start_end_ofs++ = vma->vm_pgoff;
++		count++;
++	}
++
++	/* Now we know exact count of files, can store it */
++	data[0] = count;
++	data[1] = PAGE_SIZE;
++	/*
++	 * Count usually is less than current->mm->map_count,
++	 * we need to move filenames down.
++	 */
++	n = current->mm->map_count - count;
++	if (n != 0) {
++		unsigned shift_bytes = n * 3 * sizeof(data[0]);
++		memmove(name_base - shift_bytes, name_base,
++			name_curpos - name_base);
++		name_curpos -= shift_bytes;
++	}
++
++	size = name_curpos - (char *)data;
++	fill_note(note, "CORE", NT_FILE, size, data);
++ err: ;
++}
++
+ #ifdef CORE_DUMP_USE_REGSET
+ #include <linux/regset.h>
  
--#define COMPAT_SI_PAD_SIZE	((SI_MAX_SIZE - 3 * sizeof(int)) / sizeof(int))
--
--struct compat_siginfo {
--	int si_signo;
--	int si_errno;
--	int si_code;
--
--	union {
--		int _pad[COMPAT_SI_PAD_SIZE];
--
--		/* kill() */
--		struct {
--			unsigned int _pid;	/* sender's pid */
--			unsigned int _uid;	/* sender's uid */
--		} _kill;
--
--		/* POSIX.1b timers */
--		struct {
--			compat_timer_t _tid;	/* timer id */
--			int _overrun;		/* overrun count */
--			compat_sigval_t _sigval;	/* same as below */
--			int _sys_private;	/* not to be passed to user */
--			int _overrun_incr;	/* amount to add to overrun */
--		} _timer;
--
--		/* POSIX.1b signals */
--		struct {
--			unsigned int _pid;	/* sender's pid */
--			unsigned int _uid;	/* sender's uid */
--			compat_sigval_t _sigval;
--		} _rt;
--
--		/* SIGCHLD */
--		struct {
--			unsigned int _pid;	/* which child */
--			unsigned int _uid;	/* sender's uid */
--			int _status;		/* exit code */
--			compat_clock_t _utime;
--			compat_clock_t _stime;
--		} _sigchld;
--
--		/* SIGILL, SIGFPE, SIGSEGV, SIGBUS */
--		struct {
--			unsigned int _addr;	/* faulting insn/memory ref. */
--#ifdef __ARCH_SI_TRAPNO
--			int _trapno;	/* TRAP # which caused the signal */
--#endif
--		} _sigfault;
--
--		/* SIGPOLL */
--		struct {
--			int _band;	/* POLL_IN, POLL_OUT, POLL_MSG */
--			int _fd;
--		} _sigpoll;
--	} _sifields;
--};
--
- struct compat_rt_sigframe {
- 	unsigned char save_area[C_ABI_SAVE_AREA_SIZE]; /* caller save area */
- 	struct compat_siginfo info;
-diff -puN arch/x86/include/asm/compat.h~compat-move-compat_siginfo_t-definition-to-asm-compath arch/x86/include/asm/compat.h
---- a/arch/x86/include/asm/compat.h~compat-move-compat_siginfo_t-definition-to-asm-compath
-+++ a/arch/x86/include/asm/compat.h
-@@ -41,6 +41,7 @@ typedef s64 __attribute__((aligned(4))) 
- typedef u32		compat_uint_t;
- typedef u32		compat_ulong_t;
- typedef u64 __attribute__((aligned(4))) compat_u64;
-+typedef u32		compat_uptr_t;
+@@ -1400,6 +1491,7 @@ struct elf_note_info {
+ 	struct memelfnote psinfo;
+ 	struct memelfnote signote;
+ 	struct memelfnote auxv;
++	struct memelfnote files;
+ 	user_siginfo_t csigdata;
+ 	size_t size;
+ 	int thread_notes;
+@@ -1580,6 +1672,9 @@ static int fill_note_info(struct elfhdr 
+ 	fill_auxv_note(&info->auxv, current->mm);
+ 	info->size += notesize(&info->auxv);
  
- struct compat_timespec {
- 	compat_time_t	tv_sec;
-@@ -124,6 +125,78 @@ typedef u32		compat_old_sigset_t;	/* at 
++	fill_files_note(&info->files);
++	info->size += notesize(&info->files);
++
+ 	return 1;
+ }
  
- typedef u32               compat_sigset_word;
+@@ -1610,6 +1705,8 @@ static int write_note_info(struct elf_no
+ 			return 0;
+ 		if (first && !writenote(&info->auxv, file, foffset))
+ 			return 0;
++		if (first && !writenote(&info->files, file, foffset))
++			return 0;
  
-+typedef union compat_sigval {
-+	compat_int_t	sival_int;
-+	compat_uptr_t	sival_ptr;
-+} compat_sigval_t;
-+
-+typedef struct compat_siginfo {
-+	int si_signo;
-+	int si_errno;
-+	int si_code;
-+
-+	union {
-+		int _pad[128/sizeof(int) - 3];
-+
-+		/* kill() */
-+		struct {
-+			unsigned int _pid;	/* sender's pid */
-+			unsigned int _uid;	/* sender's uid */
-+		} _kill;
-+
-+		/* POSIX.1b timers */
-+		struct {
-+			compat_timer_t _tid;	/* timer id */
-+			int _overrun;		/* overrun count */
-+			compat_sigval_t _sigval;	/* same as below */
-+			int _sys_private;	/* not to be passed to user */
-+			int _overrun_incr;	/* amount to add to overrun */
-+		} _timer;
-+
-+		/* POSIX.1b signals */
-+		struct {
-+			unsigned int _pid;	/* sender's pid */
-+			unsigned int _uid;	/* sender's uid */
-+			compat_sigval_t _sigval;
-+		} _rt;
-+
-+		/* SIGCHLD */
-+		struct {
-+			unsigned int _pid;	/* which child */
-+			unsigned int _uid;	/* sender's uid */
-+			int _status;		/* exit code */
-+			compat_clock_t _utime;
-+			compat_clock_t _stime;
-+		} _sigchld;
-+
-+		/* SIGCHLD (x32 version) */
-+		struct {
-+			unsigned int _pid;	/* which child */
-+			unsigned int _uid;	/* sender's uid */
-+			int _status;		/* exit code */
-+			compat_s64 _utime;
-+			compat_s64 _stime;
-+		} _sigchld_x32;
-+
-+		/* SIGILL, SIGFPE, SIGSEGV, SIGBUS */
-+		struct {
-+			unsigned int _addr;	/* faulting insn/memory ref. */
-+		} _sigfault;
-+
-+		/* SIGPOLL */
-+		struct {
-+			int _band;	/* POLL_IN, POLL_OUT, POLL_MSG */
-+			int _fd;
-+		} _sigpoll;
-+
-+		struct {
-+			unsigned int _call_addr; /* calling insn */
-+			int _syscall;	/* triggering system call number */
-+			unsigned int _arch;	/* AUDIT_ARCH_* of syscall */
-+		} _sigsys;
-+	} _sifields;
-+} compat_siginfo_t;
-+
- #define COMPAT_OFF_T_MAX	0x7fffffff
- #define COMPAT_LOFF_T_MAX	0x7fffffffffffffffL
+ 		for (i = 1; i < info->thread_notes; ++i)
+ 			if (t->notes[i].data &&
+@@ -1636,6 +1733,7 @@ static void free_note_info(struct elf_no
+ 		kfree(t);
+ 	}
+ 	kfree(info->psinfo.data);
++	vfree(info->files.data);
+ }
  
-@@ -209,7 +282,6 @@ typedef struct user_regs_struct32 compat
-  * as pointers because the syscall entry code will have
-  * appropriately converted them already.
+ #else
+@@ -1712,7 +1810,7 @@ static int elf_note_info_init(struct elf
+ 	INIT_LIST_HEAD(&info->thread_list);
+ 
+ 	/* Allocate space for ELF notes */
+-	info->notes = kmalloc(7 * sizeof(struct memelfnote), GFP_KERNEL);
++	info->notes = kmalloc(8 * sizeof(struct memelfnote), GFP_KERNEL);
+ 	if (!info->notes)
+ 		return 0;
+ 	info->psinfo = kmalloc(sizeof(*info->psinfo), GFP_KERNEL);
+@@ -1782,10 +1880,11 @@ static int fill_note_info(struct elfhdr 
+ 	fill_note(info->notes + 1, "CORE", NT_PRPSINFO,
+ 		  sizeof(*info->psinfo), info->psinfo);
+ 
+-	info->numnote = 2;
++	fill_siginfo_note(info->notes + 2, &info->csigdata, siginfo);
++	fill_auxv_note(info->notes + 3, current->mm);
++	fill_files_note(info->notes + 4);
+ 
+-	fill_siginfo_note(&info->notes[info->numnote++], &info->csigdata, siginfo);
+-	fill_auxv_note(&info->notes[info->numnote++], current->mm);
++	info->numnote = 5;
+ 
+ 	/* Try to dump the FPU. */
+ 	info->prstatus->pr_fpvalid = elf_core_copy_task_fpregs(current, regs,
+@@ -1847,6 +1946,9 @@ static void free_note_info(struct elf_no
+ 		kfree(list_entry(tmp, struct elf_thread_status, list));
+ 	}
+ 
++	/* Free data allocated by fill_files_note(): */
++	vfree(info->notes[4].data);
++
+ 	kfree(info->prstatus);
+ 	kfree(info->psinfo);
+ 	kfree(info->notes);
+diff -puN fs/compat_binfmt_elf.c~coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files fs/compat_binfmt_elf.c
+--- a/fs/compat_binfmt_elf.c~coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files
++++ a/fs/compat_binfmt_elf.c
+@@ -40,6 +40,7 @@
+ /*
+  * Some data types as stored in coredump.
   */
--typedef	u32		compat_uptr_t;
++#define user_long_t		compat_long_t
+ #define user_siginfo_t		compat_siginfo_t
+ #define copy_siginfo_to_user	copy_siginfo_to_user32
  
- static inline void __user *compat_ptr(compat_uptr_t uptr)
- {
-diff -puN arch/x86/include/asm/ia32.h~compat-move-compat_siginfo_t-definition-to-asm-compath arch/x86/include/asm/ia32.h
---- a/arch/x86/include/asm/ia32.h~compat-move-compat_siginfo_t-definition-to-asm-compath
-+++ a/arch/x86/include/asm/ia32.h
-@@ -86,73 +86,6 @@ struct stat64 {
- 	unsigned long long	st_ino;
- } __attribute__((packed));
- 
--typedef struct compat_siginfo {
--	int si_signo;
--	int si_errno;
--	int si_code;
--
--	union {
--		int _pad[((128 / sizeof(int)) - 3)];
--
--		/* kill() */
--		struct {
--			unsigned int _pid;	/* sender's pid */
--			unsigned int _uid;	/* sender's uid */
--		} _kill;
--
--		/* POSIX.1b timers */
--		struct {
--			compat_timer_t _tid;	/* timer id */
--			int _overrun;		/* overrun count */
--			compat_sigval_t _sigval;	/* same as below */
--			int _sys_private;	/* not to be passed to user */
--			int _overrun_incr;	/* amount to add to overrun */
--		} _timer;
--
--		/* POSIX.1b signals */
--		struct {
--			unsigned int _pid;	/* sender's pid */
--			unsigned int _uid;	/* sender's uid */
--			compat_sigval_t _sigval;
--		} _rt;
--
--		/* SIGCHLD */
--		struct {
--			unsigned int _pid;	/* which child */
--			unsigned int _uid;	/* sender's uid */
--			int _status;		/* exit code */
--			compat_clock_t _utime;
--			compat_clock_t _stime;
--		} _sigchld;
--
--		/* SIGCHLD (x32 version) */
--		struct {
--			unsigned int _pid;	/* which child */
--			unsigned int _uid;	/* sender's uid */
--			int _status;		/* exit code */
--			compat_s64 _utime;
--			compat_s64 _stime;
--		} _sigchld_x32;
--
--		/* SIGILL, SIGFPE, SIGSEGV, SIGBUS */
--		struct {
--			unsigned int _addr;	/* faulting insn/memory ref. */
--		} _sigfault;
--
--		/* SIGPOLL */
--		struct {
--			int _band;	/* POLL_IN, POLL_OUT, POLL_MSG */
--			int _fd;
--		} _sigpoll;
--
--		struct {
--			unsigned int _call_addr; /* calling insn */
--			int _syscall;	/* triggering system call number */
--			unsigned int _arch;	/* AUDIT_ARCH_* of syscall */
--		} _sigsys;
--	} _sifields;
--} compat_siginfo_t;
--
- #define IA32_STACK_TOP IA32_PAGE_OFFSET
- 
- #ifdef __KERNEL__
-diff -puN include/linux/compat.h~compat-move-compat_siginfo_t-definition-to-asm-compath include/linux/compat.h
---- a/include/linux/compat.h~compat-move-compat_siginfo_t-definition-to-asm-compath
-+++ a/include/linux/compat.h
-@@ -160,11 +160,6 @@ struct compat_ustat {
- 	char			f_fpack[6];
- };
- 
--typedef union compat_sigval {
--	compat_int_t	sival_int;
--	compat_uptr_t	sival_ptr;
--} compat_sigval_t;
+diff -puN include/linux/elf.h~coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files include/linux/elf.h
+--- a/include/linux/elf.h~coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files
++++ a/include/linux/elf.h
+@@ -377,6 +377,7 @@ typedef struct elf64_shdr {
+  * in the future to accomodate more fields, don't assume it is fixed!
+  */
+ #define NT_SIGINFO      0x53494749
++#define NT_FILE         0x46494c45
+ #define NT_PRXFPREG     0x46e62b7f      /* copied from gdb5.1/include/elf/common.h */
+ #define NT_PPC_VMX	0x100		/* PowerPC Altivec/VMX registers */
+ #define NT_PPC_SPE	0x101		/* PowerPC SPE/EVR registers */
+_
+
+Patches currently in -mm which might be from vda.linux@googlemail.com are
+
+lib-vsprintf-optimize-division-by-10-for-small-integers.patch
+lib-vsprintf-optimize-division-by-10000.patch
+lib-vsprintf-optimize-put_dec_trunc8.patch
+lib-vsprintf-fix-broken-comments.patch
+coredump-prevent-double-free-on-an-error-path-in-core-dumper.patch
+coredump-add-support-for-%d=__get_dumpable-in-core-name.patch
+coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr.patch
+compat-move-compat_siginfo_t-definition-to-asm-compath.patch
+coredump-add-a-new-elf-note-with-siginfo-of-the-signal.patch
+coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files.patch
+
