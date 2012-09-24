@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr.patch added to -mm tree
-Date: Mon, 24 Sep 2012 14:10:03 -0700
-Message-ID: <20120924211004.15BC31E0043@wpzn4.hot.corp.google.com>
+Subject: + coredump-add-a-new-elf-note-with-siginfo-of-the-signal.patch added to -mm tree
+Date: Mon, 24 Sep 2012 14:10:12 -0700
+Message-ID: <20120924211013.643A61E0048@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-gh0-f202.google.com ([209.85.160.202]:42001 "EHLO
 	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750715Ab2IXVKF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Sep 2012 17:10:05 -0400
-Received: by ghbz15 with SMTP id z15so817929ghb.1
-        for <mm-commits@vger.kernel.org>; Mon, 24 Sep 2012 14:10:04 -0700 (PDT)
+	with ESMTP id S1750715Ab2IXVKO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Sep 2012 17:10:14 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z15so817929ghb.1
+        for <mm-commits@vger.kernel.org>; Mon, 24 Sep 2012 14:10:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: vda.linux@googlemail.com, amwang@redhat.com, fengguang.wu@intel.com, jmfoote
 
 
 The patch titled
-     Subject: coredump: pass siginfo_t* to do_coredump() and below, not merely signr
+     Subject: coredump: add a new elf note with siginfo of the signal
 has been added to the -mm tree.  Its filename is
-     coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr.patch
+     coredump-add-a-new-elf-note-with-siginfo-of-the-signal.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Denys Vlasenko <vda.linux@googlemail.com>
-Subject: coredump: pass siginfo_t* to do_coredump() and below, not merely signr
+Subject: coredump: add a new elf note with siginfo of the signal
 
-This is a preparatory patch for the introduction of NT_SIGINFO elf note.
+Existing PRSTATUS note contains only si_signo, si_code, si_errno fields
+from the siginfo of the signal which caused core to be dumped.
 
-With this patch we pass "siginfo_t *siginfo" instead of "int signr" to
-do_coredump() and put it into coredump_params.  It will be used by the
-next patch.  Most changes are simple s/signr/siginfo->si_signo/.
+There are tools which try to analyze crashes for possible security
+implications, and they want to use, among other data, si_addr field from
+the SIGSEGV.
+
+This patch adds a new elf note, NT_SIGINFO, which contains the complete
+siginfo_t of the signal which killed the process.
 
 Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
 Reviewed-by: Oleg Nesterov <oleg@redhat.com>
@@ -53,218 +57,129 @@ Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_aout.c         |    2 +-
- fs/binfmt_elf.c          |   14 +++++++-------
- fs/binfmt_elf_fdpic.c    |    6 +++---
- fs/binfmt_flat.c         |    2 +-
- fs/coredump.c            |   10 +++++-----
- include/linux/binfmts.h  |    2 +-
- include/linux/coredump.h |    4 ++--
- kernel/signal.c          |    2 +-
- 8 files changed, 21 insertions(+), 21 deletions(-)
+ fs/binfmt_elf.c        |   27 +++++++++++++++++++++++++--
+ fs/compat_binfmt_elf.c |    6 ++++++
+ include/linux/elf.h    |    5 +++++
+ 3 files changed, 36 insertions(+), 2 deletions(-)
 
-diff -puN fs/binfmt_aout.c~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr fs/binfmt_aout.c
---- a/fs/binfmt_aout.c~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr
-+++ a/fs/binfmt_aout.c
-@@ -65,7 +65,7 @@ static int aout_core_dump(struct coredum
- 	current->flags |= PF_DUMPCORE;
-        	strncpy(dump.u_comm, current->comm, sizeof(dump.u_comm));
- 	dump.u_ar0 = offsetof(struct user, regs);
--	dump.signal = cprm->signr;
-+	dump.signal = cprm->siginfo->si_signo;
- 	aout_dump_thread(cprm->regs, &dump);
- 
- /* If the size of the dump file exceeds the rlimit, then see what would happen
-diff -puN fs/binfmt_elf.c~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr
+diff -puN fs/binfmt_elf.c~coredump-add-a-new-elf-note-with-siginfo-of-the-signal fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~coredump-add-a-new-elf-note-with-siginfo-of-the-signal
 +++ a/fs/binfmt_elf.c
-@@ -1479,7 +1479,7 @@ static int fill_thread_core_info(struct 
+@@ -36,6 +36,10 @@
+ #include <asm/param.h>
+ #include <asm/page.h>
  
- static int fill_note_info(struct elfhdr *elf, int phdrs,
- 			  struct elf_note_info *info,
--			  long signr, struct pt_regs *regs)
-+			  siginfo_t *siginfo, struct pt_regs *regs)
- {
- 	struct task_struct *dump_task = current;
- 	const struct user_regset_view *view = task_user_regset_view(dump_task);
-@@ -1549,7 +1549,7 @@ static int fill_note_info(struct elfhdr 
- 	 * Now fill in each thread's information.
- 	 */
- 	for (t = info->thread; t != NULL; t = t->next)
--		if (!fill_thread_core_info(t, view, signr, &info->size))
-+		if (!fill_thread_core_info(t, view, siginfo->si_signo, &info->size))
++#ifndef user_siginfo_t
++#define user_siginfo_t siginfo_t
++#endif
++
+ static int load_elf_binary(struct linux_binprm *bprm, struct pt_regs *regs);
+ static int load_elf_library(struct file *);
+ static unsigned long elf_map(struct file *, unsigned long, struct elf_phdr *,
+@@ -1371,6 +1375,16 @@ static void fill_auxv_note(struct memelf
+ 	fill_note(note, "CORE", NT_AUXV, i * sizeof(elf_addr_t), auxv);
+ }
+ 
++static void fill_siginfo_note(struct memelfnote *note, user_siginfo_t *csigdata,
++		siginfo_t *siginfo)
++{
++	mm_segment_t old_fs = get_fs();
++	set_fs(KERNEL_DS);
++	copy_siginfo_to_user((user_siginfo_t __user *) csigdata, siginfo);
++	set_fs(old_fs);
++	fill_note(note, "CORE", NT_SIGINFO, sizeof(*csigdata), csigdata);
++}
++
+ #ifdef CORE_DUMP_USE_REGSET
+ #include <linux/regset.h>
+ 
+@@ -1384,7 +1398,9 @@ struct elf_thread_core_info {
+ struct elf_note_info {
+ 	struct elf_thread_core_info *thread;
+ 	struct memelfnote psinfo;
++	struct memelfnote signote;
+ 	struct memelfnote auxv;
++	user_siginfo_t csigdata;
+ 	size_t size;
+ 	int thread_notes;
+ };
+@@ -1558,6 +1574,9 @@ static int fill_note_info(struct elfhdr 
+ 	fill_psinfo(psinfo, dump_task->group_leader, dump_task->mm);
+ 	info->size += notesize(&info->psinfo);
+ 
++	fill_siginfo_note(&info->signote, &info->csigdata, siginfo);
++	info->size += notesize(&info->signote);
++
+ 	fill_auxv_note(&info->auxv, current->mm);
+ 	info->size += notesize(&info->auxv);
+ 
+@@ -1587,6 +1606,8 @@ static int write_note_info(struct elf_no
+ 
+ 		if (first && !writenote(&info->psinfo, file, foffset))
+ 			return 0;
++		if (first && !writenote(&info->signote, file, foffset))
++			return 0;
+ 		if (first && !writenote(&info->auxv, file, foffset))
  			return 0;
  
- 	/*
-@@ -1712,14 +1712,14 @@ static int elf_note_info_init(struct elf
+@@ -1680,6 +1701,7 @@ struct elf_note_info {
+ #ifdef ELF_CORE_COPY_XFPREGS
+ 	elf_fpxregset_t *xfpu;
+ #endif
++	user_siginfo_t csigdata;
+ 	int thread_status_size;
+ 	int numnote;
+ };
+@@ -1689,8 +1711,8 @@ static int elf_note_info_init(struct elf
+ 	memset(info, 0, sizeof(*info));
+ 	INIT_LIST_HEAD(&info->thread_list);
  
- static int fill_note_info(struct elfhdr *elf, int phdrs,
- 			  struct elf_note_info *info,
--			  long signr, struct pt_regs *regs)
-+			  siginfo_t *siginfo, struct pt_regs *regs)
- {
- 	struct list_head *t;
- 
- 	if (!elf_note_info_init(info))
+-	/* Allocate space for six ELF notes */
+-	info->notes = kmalloc(6 * sizeof(struct memelfnote), GFP_KERNEL);
++	/* Allocate space for ELF notes */
++	info->notes = kmalloc(7 * sizeof(struct memelfnote), GFP_KERNEL);
+ 	if (!info->notes)
  		return 0;
+ 	info->psinfo = kmalloc(sizeof(*info->psinfo), GFP_KERNEL);
+@@ -1762,6 +1784,7 @@ static int fill_note_info(struct elfhdr 
  
--	if (signr) {
-+	if (siginfo->si_signo) {
- 		struct core_thread *ct;
- 		struct elf_thread_status *ets;
+ 	info->numnote = 2;
  
-@@ -1737,13 +1737,13 @@ static int fill_note_info(struct elfhdr 
- 			int sz;
++	fill_siginfo_note(&info->notes[info->numnote++], &info->csigdata, siginfo);
+ 	fill_auxv_note(&info->notes[info->numnote++], current->mm);
  
- 			ets = list_entry(t, struct elf_thread_status, list);
--			sz = elf_dump_thread_status(signr, ets);
-+			sz = elf_dump_thread_status(siginfo->si_signo, ets);
- 			info->thread_status_size += sz;
- 		}
- 	}
- 	/* now collect the dump for the current */
- 	memset(info->prstatus, 0, sizeof(*info->prstatus));
--	fill_prstatus(info->prstatus, current, signr);
-+	fill_prstatus(info->prstatus, current, siginfo->si_signo);
- 	elf_core_copy_regs(&info->prstatus->pr_reg, regs);
+ 	/* Try to dump the FPU. */
+diff -puN fs/compat_binfmt_elf.c~coredump-add-a-new-elf-note-with-siginfo-of-the-signal fs/compat_binfmt_elf.c
+--- a/fs/compat_binfmt_elf.c~coredump-add-a-new-elf-note-with-siginfo-of-the-signal
++++ a/fs/compat_binfmt_elf.c
+@@ -38,6 +38,12 @@
+ #define elf_addr_t	Elf32_Addr
  
- 	/* Set up header */
-@@ -1950,7 +1950,7 @@ static int elf_core_dump(struct coredump
- 	 * Collect all the non-memory information about the process for the
- 	 * notes.  This also sets up the file header.
- 	 */
--	if (!fill_note_info(elf, e_phnum, &info, cprm->signr, cprm->regs))
-+	if (!fill_note_info(elf, e_phnum, &info, cprm->siginfo, cprm->regs))
- 		goto cleanup;
- 
- 	has_dumped = 1;
-diff -puN fs/binfmt_elf_fdpic.c~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr fs/binfmt_elf_fdpic.c
---- a/fs/binfmt_elf_fdpic.c~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -1641,7 +1641,7 @@ static int elf_fdpic_core_dump(struct co
- 		goto cleanup;
- #endif
- 
--	if (cprm->signr) {
-+	if (cprm->siginfo->si_signo) {
- 		struct core_thread *ct;
- 		struct elf_thread_status *tmp;
- 
-@@ -1660,13 +1660,13 @@ static int elf_fdpic_core_dump(struct co
- 			int sz;
- 
- 			tmp = list_entry(t, struct elf_thread_status, list);
--			sz = elf_dump_thread_status(cprm->signr, tmp);
-+			sz = elf_dump_thread_status(cprm->siginfo->si_signo, tmp);
- 			thread_status_size += sz;
- 		}
- 	}
- 
- 	/* now collect the dump for the current */
--	fill_prstatus(prstatus, current, cprm->signr);
-+	fill_prstatus(prstatus, current, cprm->siginfo->si_signo);
- 	elf_core_copy_regs(&prstatus->pr_reg, cprm->regs);
- 
- 	segs = current->mm->map_count;
-diff -puN fs/binfmt_flat.c~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr fs/binfmt_flat.c
---- a/fs/binfmt_flat.c~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr
-+++ a/fs/binfmt_flat.c
-@@ -107,7 +107,7 @@ static struct linux_binfmt flat_format =
- static int flat_core_dump(struct coredump_params *cprm)
- {
- 	printk("Process %s:%d received signr %d and should have core dumped\n",
--			current->comm, current->pid, (int) cprm->signr);
-+			current->comm, current->pid, (int) cprm->siginfo->si_signo);
- 	return(1);
- }
- 
-diff -puN fs/coredump.c~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr fs/coredump.c
---- a/fs/coredump.c~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr
-+++ a/fs/coredump.c
-@@ -200,7 +200,7 @@ static int format_corename(struct core_n
- 				break;
- 			/* signal that caused the coredump */
- 			case 's':
--				err = cn_printf(cn, "%ld", cprm->signr);
-+				err = cn_printf(cn, "%ld", cprm->siginfo->si_signo);
- 				break;
- 			/* UNIX time of coredump */
- 			case 't': {
-@@ -457,7 +457,7 @@ static int umh_pipe_setup(struct subproc
- 	return 0;
- }
- 
--void do_coredump(long signr, int exit_code, struct pt_regs *regs)
-+void do_coredump(siginfo_t *siginfo, struct pt_regs *regs)
- {
- 	struct core_state core_state;
- 	struct core_name cn;
-@@ -472,7 +472,7 @@ void do_coredump(long signr, int exit_co
- 	bool need_nonrelative = false;
- 	static atomic_t core_dump_count = ATOMIC_INIT(0);
- 	struct coredump_params cprm = {
--		.signr = signr,
-+		.siginfo = siginfo,
- 		.regs = regs,
- 		.limit = rlimit(RLIMIT_CORE),
- 		/*
-@@ -483,7 +483,7 @@ void do_coredump(long signr, int exit_co
- 		.mm_flags = mm->flags,
- 	};
- 
--	audit_core_dumps(signr);
-+	audit_core_dumps(siginfo->si_signo);
- 
- 	binfmt = mm->binfmt;
- 	if (!binfmt || !binfmt->core_dump)
-@@ -507,7 +507,7 @@ void do_coredump(long signr, int exit_co
- 		need_nonrelative = true;
- 	}
- 
--	retval = coredump_wait(exit_code, &core_state);
-+	retval = coredump_wait(siginfo->si_signo, &core_state);
- 	if (retval < 0)
- 		goto fail_creds;
- 
-diff -puN include/linux/binfmts.h~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr include/linux/binfmts.h
---- a/include/linux/binfmts.h~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr
-+++ a/include/linux/binfmts.h
-@@ -74,7 +74,7 @@ struct linux_binprm {
- 
- /* Function parameter for binfmt->coredump */
- struct coredump_params {
--	long signr;
-+	siginfo_t *siginfo;
- 	struct pt_regs *regs;
- 	struct file *file;
- 	unsigned long limit;
-diff -puN include/linux/coredump.h~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr include/linux/coredump.h
---- a/include/linux/coredump.h~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr
-+++ a/include/linux/coredump.h
-@@ -12,9 +12,9 @@
- extern int dump_write(struct file *file, const void *addr, int nr);
- extern int dump_seek(struct file *file, loff_t off);
- #ifdef CONFIG_COREDUMP
--extern void do_coredump(long signr, int exit_code, struct pt_regs *regs);
-+extern void do_coredump(siginfo_t *siginfo, struct pt_regs *regs);
- #else
--static inline void do_coredump(long signr, int exit_code, struct pt_regs *regs) {}
-+static inline void do_coredump(siginfo_t *siginfo, struct pt_regs *regs) {}
- #endif
- 
- #endif /* _LINUX_COREDUMP_H */
-diff -puN kernel/signal.c~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr kernel/signal.c
---- a/kernel/signal.c~coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr
-+++ a/kernel/signal.c
-@@ -2360,7 +2360,7 @@ relock:
- 			 * first and our do_group_exit call below will use
- 			 * that value and ignore the one we pass it.
- 			 */
--			do_coredump(info->si_signo, info->si_signo, regs);
-+			do_coredump(info, regs);
- 		}
- 
- 		/*
+ /*
++ * Some data types as stored in coredump.
++ */
++#define user_siginfo_t		compat_siginfo_t
++#define copy_siginfo_to_user	copy_siginfo_to_user32
++
++/*
+  * The machine-dependent core note format types are defined in elfcore-compat.h,
+  * which requires asm/elf.h to define compat_elf_gregset_t et al.
+  */
+diff -puN include/linux/elf.h~coredump-add-a-new-elf-note-with-siginfo-of-the-signal include/linux/elf.h
+--- a/include/linux/elf.h~coredump-add-a-new-elf-note-with-siginfo-of-the-signal
++++ a/include/linux/elf.h
+@@ -372,6 +372,11 @@ typedef struct elf64_shdr {
+ #define NT_PRPSINFO	3
+ #define NT_TASKSTRUCT	4
+ #define NT_AUXV		6
++/*
++ * Note to userspace developers: size of NT_SIGINFO note may increase
++ * in the future to accomodate more fields, don't assume it is fixed!
++ */
++#define NT_SIGINFO      0x53494749
+ #define NT_PRXFPREG     0x46e62b7f      /* copied from gdb5.1/include/elf/common.h */
+ #define NT_PPC_VMX	0x100		/* PowerPC Altivec/VMX registers */
+ #define NT_PPC_SPE	0x101		/* PowerPC SPE/EVR registers */
 _
 
 Patches currently in -mm which might be from vda.linux@googlemail.com are
