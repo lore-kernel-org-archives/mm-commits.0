@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + hfsplus-add-on-disk-layout-declarations-related-to-attributes-tree.patch added to -mm tree
-Date: Mon, 24 Sep 2012 15:49:18 -0700
-Message-ID: <20120924224919.5676C1E0043@wpzn4.hot.corp.google.com>
+Subject: + hfsplus-add-functionality-of-manipulating-by-records-in-attributes-tree.patch added to -mm tree
+Date: Mon, 24 Sep 2012 15:49:21 -0700
+Message-ID: <20120924224921.F2EA61E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:38684 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751209Ab2IXWtU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Sep 2012 18:49:20 -0400
-Received: by yenr11 with SMTP id r11so438826yen.1
-        for <mm-commits@vger.kernel.org>; Mon, 24 Sep 2012 15:49:19 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:64947 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751209Ab2IXWtX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Sep 2012 18:49:23 -0400
+Received: by vbis24 with SMTP id s24so831925vbi.1
+        for <mm-commits@vger.kernel.org>; Mon, 24 Sep 2012 15:49:22 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: slava@dubeyko.com, hch@lst.de, htl10@users.sourceforge.net, jack@suse.cz, vi
 
 
 The patch titled
-     Subject: hfsplus: add on-disk layout declarations related to attributes tree
+     Subject: hfsplus: add functionality of manipulating by records in attributes tree
 has been added to the -mm tree.  Its filename is
-     hfsplus-add-on-disk-layout-declarations-related-to-attributes-tree.patch
+     hfsplus-add-functionality-of-manipulating-by-records-in-attributes-tree.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vyacheslav Dubeyko <slava@dubeyko.com>
-Subject: hfsplus: add on-disk layout declarations related to attributes tree
+Subject: hfsplus: add functionality of manipulating by records in attributes tree
 
-Current mainline implementation of hfsplus file system driver treats as
-extended attributes only two fields (fdType and fdCreator) of user_info
-field in file description record (struct hfsplus_cat_file).  It is
-possible to get or set only these two fields as extended attributes.  But
-HFS+ treats as com.apple.FinderInfo extended attribute an union of
-user_info and finder_info fields as for file (struct hfsplus_cat_file) as
-for folder (struct hfsplus_cat_folder).  Moreover, current mainline
-implementation of hfsplus file system driver doesn't support special
-metadata file - attributes tree.
-
-Mac OS X 10.4 and later support extended attributes by making use of the
-HFS+ filesystem Attributes file B*-tree feature which allows for named
-forks.  Mac OS X supports only inline extended attributes, limiting their
-size to 3802 bytes.  Any regular file may have a list of extended
-attributes.  HFS+ supports an arbitrary number of named forks.  Each
-attribute is denoted by a name and the associated data.  The name is a
-null-terminated Unicode string.  It is possible to list, to get, to set,
-and to remove extended attributes from files or directories.
-
-It exists some peculiarity during getting of extended attributes list by
-means of getfattr utility.  The getfattr utility expects prefix "user."
-before any extended attribute's name.  So, it ignores any names that don't
-contained such prefix.  Such behavior of getfattr utility results in
-unexpected empty output of extended attributes list even in the case when
-file (or folder) contains extended attributes.  It needs to use empty
-string as regular expression pattern for names matching (getfattr
---match="").  
-
-For support of extended attributes in HFS+:
-
-1. It was added necessary on-disk layout declarations related to
-   Attributes tree into hfsplus_raw.h file.
-
-2. It was added attributes.c file with implementation of functionality
-   of manipulation by records in Attributes tree.
-
-3. It was reworked hfsplus_listxattr, hfsplus_getxattr,
-   hfsplus_setxattr functions in ioctl.c.  Moreover, it was added
-   hfsplus_removexattr method.
-
-
-This patch:
-
-Add all neccessary on-disk layout declarations related to attributes
-file.
+Add functionality of manipulating by records in attributes tree.
 
 Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
 Reported-by: Hin-Tak Leung <htl10@users.sourceforge.net>
@@ -90,112 +46,413 @@ Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/hfsplus_raw.h |   72 ++++++++++++++++++++++++++++++++++---
- 1 file changed, 67 insertions(+), 5 deletions(-)
+ fs/hfsplus/Makefile     |    3 
+ fs/hfsplus/attributes.c |  388 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 390 insertions(+), 1 deletion(-)
 
-diff -puN fs/hfsplus/hfsplus_raw.h~hfsplus-add-on-disk-layout-declarations-related-to-attributes-tree fs/hfsplus/hfsplus_raw.h
---- a/fs/hfsplus/hfsplus_raw.h~hfsplus-add-on-disk-layout-declarations-related-to-attributes-tree
-+++ a/fs/hfsplus/hfsplus_raw.h
-@@ -52,13 +52,21 @@
- typedef __be32 hfsplus_cnid;
- typedef __be16 hfsplus_unichr;
+diff -puN fs/hfsplus/Makefile~hfsplus-add-functionality-of-manipulating-by-records-in-attributes-tree fs/hfsplus/Makefile
+--- a/fs/hfsplus/Makefile~hfsplus-add-functionality-of-manipulating-by-records-in-attributes-tree
++++ a/fs/hfsplus/Makefile
+@@ -5,5 +5,6 @@
+ obj-$(CONFIG_HFSPLUS_FS) += hfsplus.o
  
-+#define HFSPLUS_MAX_STRLEN 255
-+#define HFSPLUS_ATTR_MAX_STRLEN 127
-+
-+#define HFSPLUS_STRING(name, max_len)		\
-+struct hfsplus_##name {				\
-+	__be16 length;				\
-+	hfsplus_unichr unicode[max_len];	\
-+} __packed;					\
-+
- /* A "string" as used in filenames, etc. */
--struct hfsplus_unistr {
--	__be16 length;
--	hfsplus_unichr unicode[255];
--} __packed;
-+HFSPLUS_STRING(unistr, HFSPLUS_MAX_STRLEN)
+ hfsplus-objs := super.o options.o inode.o ioctl.o extents.o catalog.o dir.o btree.o \
+-		bnode.o brec.o bfind.o tables.o unicode.o wrapper.o bitmap.o part_tbl.o
++		bnode.o brec.o bfind.o tables.o unicode.o wrapper.o bitmap.o part_tbl.o \
++		attributes.o
  
--#define HFSPLUS_MAX_STRLEN 255
-+/* A "string" is used in attributes file
-+   for name of extended attribute */
-+HFSPLUS_STRING(attr_unistr, HFSPLUS_ATTR_MAX_STRLEN)
- 
- /* POSIX permissions */
- struct hfsplus_perm {
-@@ -291,6 +299,8 @@ struct hfsplus_cat_file {
- /* File attribute bits */
- #define HFSPLUS_FILE_LOCKED		0x0001
- #define HFSPLUS_FILE_THREAD_EXISTS	0x0002
-+#define HFSPLUS_XATTR_EXISTS		0x0004
-+#define HFSPLUS_ACL_EXISTS		0x0008
- 
- /* HFS+ catalog thread (part of a cat_entry) */
- struct hfsplus_cat_thread {
-@@ -327,11 +337,63 @@ struct hfsplus_ext_key {
- 
- #define HFSPLUS_EXT_KEYLEN	sizeof(struct hfsplus_ext_key)
- 
-+#define HFSPLUS_XATTR_FINDER_INFO_NAME "com.apple.FinderInfo"
-+#define HFSPLUS_XATTR_ACL_NAME "com.apple.system.Security"
+diff -puN /dev/null fs/hfsplus/attributes.c
+--- /dev/null
++++ a/fs/hfsplus/attributes.c
+@@ -0,0 +1,388 @@
++/*
++ * linux/fs/hfsplus/attributes.c
++ *
++ * Vyacheslav Dubeyko <slava@dubeyko.com>
++ *
++ * Handling of records in attributes tree
++ */
 +
-+#define HFSPLUS_ATTR_INLINE_DATA 0x10
-+#define HFSPLUS_ATTR_FORK_DATA   0x20
-+#define HFSPLUS_ATTR_EXTENTS     0x30
++#include "hfsplus_fs.h"
++#include "hfsplus_raw.h"
 +
-+/* HFS+ attributes tree key */
-+struct hfsplus_attr_key {
-+	__be16 key_len;
-+	__be16 pad;
-+	hfsplus_cnid cnid;
-+	__be32 start_block;
-+	struct hfsplus_attr_unistr key_name;
-+} __packed;
++static struct kmem_cache *hfsplus_attr_tree_cachep;
 +
-+#define HFSPLUS_ATTR_KEYLEN	sizeof(struct hfsplus_attr_key)
++int hfsplus_create_attr_tree_cache(void)
++{
++	if (hfsplus_attr_tree_cachep)
++		return -EEXIST;
 +
-+/* HFS+ fork data attribute */
-+struct hfsplus_attr_fork_data {
-+	__be32 record_type;
-+	__be32 reserved;
-+	struct hfsplus_fork_raw the_fork;
-+} __packed;
++	hfsplus_attr_tree_cachep =
++		kmem_cache_create("hfsplus_attr_cache",
++			sizeof(hfsplus_attr_entry), 0,
++			SLAB_HWCACHE_ALIGN, NULL);
++	if (!hfsplus_attr_tree_cachep)
++		return -ENOMEM;
 +
-+/* HFS+ extension attribute */
-+struct hfsplus_attr_extents {
-+	__be32 record_type;
-+	__be32 reserved;
-+	struct hfsplus_extent extents;
-+} __packed;
++	return 0;
++}
 +
-+#define HFSPLUS_MAX_INLINE_DATA_SIZE 3802
++void hfsplus_destroy_attr_tree_cache(void)
++{
++	kmem_cache_destroy(hfsplus_attr_tree_cachep);
++}
 +
-+/* HFS+ attribute inline data */
-+struct hfsplus_attr_inline_data {
-+	__be32 record_type;
-+	__be32 reserved1;
-+	u8 reserved2[6];
-+	__be16 length;
-+	u8 raw_bytes[HFSPLUS_MAX_INLINE_DATA_SIZE];
-+} __packed;
++int hfsplus_attr_bin_cmp_key(const hfsplus_btree_key *k1,
++				const hfsplus_btree_key *k2)
++{
++	__be32 k1_cnid, k2_cnid;
 +
-+/* A data record in the attributes tree */
-+typedef union {
-+	__be32 record_type;
-+	struct hfsplus_attr_fork_data fork_data;
-+	struct hfsplus_attr_extents extents;
-+	struct hfsplus_attr_inline_data inline_data;
-+} __packed hfsplus_attr_entry;
++	k1_cnid = k1->attr.cnid;
++	k2_cnid = k2->attr.cnid;
++	if (k1_cnid != k2_cnid)
++		return be32_to_cpu(k1_cnid) < be32_to_cpu(k2_cnid) ? -1 : 1;
 +
- /* HFS+ generic BTree key */
- typedef union {
- 	__be16 key_len;
- 	struct hfsplus_cat_key cat;
- 	struct hfsplus_ext_key ext;
-+	struct hfsplus_attr_key attr;
- } __packed hfsplus_btree_key;
- 
- #endif
++	return hfsplus_strcmp(
++			(const struct hfsplus_unistr *)&k1->attr.key_name,
++			(const struct hfsplus_unistr *)&k2->attr.key_name);
++}
++
++int hfsplus_attr_build_key(struct super_block *sb, hfsplus_btree_key *key,
++			u32 cnid, const char *name)
++{
++	int len;
++
++	memset(key, 0, sizeof(struct hfsplus_attr_key));
++	key->attr.cnid = cpu_to_be32(cnid);
++	if (name) {
++		len = strlen(name);
++		if (len > HFSPLUS_ATTR_MAX_STRLEN) {
++			printk(KERN_ERR "hfs: invalid xattr name's length\n");
++			return -EINVAL;
++		}
++		hfsplus_asc2uni(sb,
++				(struct hfsplus_unistr *)&key->attr.key_name,
++				HFSPLUS_ATTR_MAX_STRLEN, name, len);
++		len = be16_to_cpu(key->attr.key_name.length);
++	} else {
++		key->attr.key_name.length = 0;
++		len = 0;
++	}
++	/* The key_length (be16) doesn't summed in the lenght of whole key.
++	   But the length of the string (be16) should be included in sum.
++	   So, offsetof(hfsplus_attr_key, key_name) is a trick that give
++	   right value. */
++	key->key_len =
++		cpu_to_be16(offsetof(struct hfsplus_attr_key, key_name) +
++				2 * len);
++
++	return 0;
++}
++
++void hfsplus_attr_build_key_uni(hfsplus_btree_key *key,
++					u32 cnid,
++					struct hfsplus_attr_unistr *name)
++{
++	int ustrlen;
++
++	memset(key, 0, sizeof(struct hfsplus_attr_key));
++	ustrlen = be16_to_cpu(name->length);
++	key->attr.cnid = cpu_to_be32(cnid);
++	key->attr.key_name.length = cpu_to_be16(ustrlen);
++	ustrlen *= 2;
++	memcpy(key->attr.key_name.unicode, name->unicode, ustrlen);
++	/* The key_length (be16) doesn't summed in the lenght of whole key.
++	   But the length of the string (be16) should be included in sum.
++	   So, offsetof(hfsplus_attr_key, key_name) is a trick that give
++	   right value. */
++	key->key_len =
++		cpu_to_be16(offsetof(struct hfsplus_attr_key, key_name) +
++				ustrlen);
++}
++
++hfsplus_attr_entry *hfsplus_alloc_attr_entry(void)
++{
++	hfsplus_attr_entry *entry;
++	entry = kmem_cache_alloc(hfsplus_attr_tree_cachep, GFP_KERNEL);
++
++	return (entry) ? entry : NULL;
++}
++
++void hfsplus_destroy_attr_entry(hfsplus_attr_entry *entry)
++{
++	if (entry)
++		kmem_cache_free(hfsplus_attr_tree_cachep, entry);
++}
++
++#define HFSPLUS_INVALID_ATTR_RECORD -1
++
++static int hfsplus_attr_build_record(hfsplus_attr_entry *entry, int record_type,
++				u32 cnid, const void *value, size_t size)
++{
++	if (record_type == HFSPLUS_ATTR_FORK_DATA) {
++		/* Mac OS X supports only inline data attributes.
++		   Do nothing. */
++		memset(entry, 0, sizeof(*entry));
++		return sizeof(struct hfsplus_attr_fork_data);
++	} else if (record_type == HFSPLUS_ATTR_EXTENTS) {
++		/* Mac OS X supports only inline data attributes.
++		   Do nothing. */
++		memset(entry, 0, sizeof(*entry));
++		return sizeof(struct hfsplus_attr_extents);
++	} else if (record_type == HFSPLUS_ATTR_INLINE_DATA) {
++		u16 len;
++
++		memset(entry, 0, sizeof(struct hfsplus_attr_inline_data));
++		entry->inline_data.record_type = cpu_to_be32(record_type);
++		if (size <= HFSPLUS_MAX_INLINE_DATA_SIZE)
++			len = size;
++		else
++			return HFSPLUS_INVALID_ATTR_RECORD;
++		entry->inline_data.length = cpu_to_be16(len);
++		memcpy(entry->inline_data.raw_bytes, value, len);
++		/* Align len on two-byte boundary.
++		   It needs to add pad byte if we have odd len. */
++		len = round_up(len, 2);
++		return offsetof(struct hfsplus_attr_inline_data, raw_bytes) +
++					len;
++	} else /* invalid input */
++		memset(entry, 0, sizeof(*entry));
++
++	return HFSPLUS_INVALID_ATTR_RECORD;
++}
++
++int hfsplus_find_attr(struct super_block *sb, u32 cnid,
++			const char *name, struct hfs_find_data *fd)
++{
++	int err = 0;
++
++	dprint(DBG_ATTR_MOD, "find_attr: %s,%d\n", name ? name : NULL, cnid);
++
++	if (!HFSPLUS_SB(sb)->attr_tree) {
++		printk(KERN_ERR "hfs: attributes file doesn't exist\n");
++		return -EINVAL;
++	}
++
++	if (name) {
++		err = hfsplus_attr_build_key(sb, fd->search_key, cnid, name);
++		if (err)
++			goto failed_find_attr;
++		err = hfs_brec_find(fd, hfs_find_rec_by_key);
++		if (err)
++			goto failed_find_attr;
++	} else {
++		err = hfsplus_attr_build_key(sb, fd->search_key, cnid, NULL);
++		if (err)
++			goto failed_find_attr;
++		err = hfs_brec_find(fd, hfs_find_1st_rec_by_cnid);
++		if (err)
++			goto failed_find_attr;
++	}
++
++failed_find_attr:
++	return err;
++}
++
++int hfsplus_attr_exists(struct inode *inode, const char *name)
++{
++	int err = 0;
++	struct super_block *sb = inode->i_sb;
++	struct hfs_find_data fd;
++
++	if (!HFSPLUS_SB(sb)->attr_tree)
++		return 0;
++
++	err = hfs_find_init(HFSPLUS_SB(sb)->attr_tree, &fd);
++	if (err)
++		return 0;
++
++	err = hfsplus_find_attr(sb, inode->i_ino, name, &fd);
++	if (err)
++		goto attr_not_found;
++
++	hfs_find_exit(&fd);
++	return 1;
++
++attr_not_found:
++	hfs_find_exit(&fd);
++	return 0;
++}
++
++int hfsplus_create_attr(struct inode *inode,
++				const char *name,
++				const void *value, size_t size)
++{
++	struct super_block *sb = inode->i_sb;
++	struct hfs_find_data fd;
++	hfsplus_attr_entry *entry_ptr;
++	int entry_size;
++	int err;
++
++	dprint(DBG_ATTR_MOD, "create_attr: %s,%ld\n",
++		name ? name : NULL, inode->i_ino);
++
++	if (!HFSPLUS_SB(sb)->attr_tree) {
++		printk(KERN_ERR "hfs: attributes file doesn't exist\n");
++		return -EINVAL;
++	}
++
++	entry_ptr = hfsplus_alloc_attr_entry();
++	if (!entry_ptr)
++		return -ENOMEM;
++
++	err = hfs_find_init(HFSPLUS_SB(sb)->attr_tree, &fd);
++	if (err)
++		goto failed_init_create_attr;
++
++	if (name) {
++		err = hfsplus_attr_build_key(sb, fd.search_key,
++						inode->i_ino, name);
++		if (err)
++			goto failed_create_attr;
++	} else {
++		err = -EINVAL;
++		goto failed_create_attr;
++	}
++
++	/* Mac OS X supports only inline data attributes. */
++	entry_size = hfsplus_attr_build_record(entry_ptr,
++					HFSPLUS_ATTR_INLINE_DATA,
++					inode->i_ino,
++					value, size);
++	if (entry_size == HFSPLUS_INVALID_ATTR_RECORD) {
++		err = -EINVAL;
++		goto failed_create_attr;
++	}
++
++	err = hfs_brec_find(&fd, hfs_find_rec_by_key);
++	if (err != -ENOENT) {
++		if (!err)
++			err = -EEXIST;
++		goto failed_create_attr;
++	}
++
++	err = hfs_brec_insert(&fd, entry_ptr, entry_size);
++	if (err)
++		goto failed_create_attr;
++
++	hfsplus_mark_inode_dirty(inode, HFSPLUS_I_ATTR_DIRTY);
++
++failed_create_attr:
++	hfs_find_exit(&fd);
++
++failed_init_create_attr:
++	hfsplus_destroy_attr_entry(entry_ptr);
++	return err;
++}
++
++static int __hfsplus_delete_attr(struct inode *inode, u32 cnid,
++					struct hfs_find_data *fd)
++{
++	int err = 0;
++	__be32 found_cnid, record_type;
++
++	hfs_bnode_read(fd->bnode, &found_cnid,
++			fd->keyoffset +
++			offsetof(struct hfsplus_attr_key, cnid),
++			sizeof(__be32));
++	if (cnid != be32_to_cpu(found_cnid))
++		return -ENOENT;
++
++	hfs_bnode_read(fd->bnode, &record_type,
++			fd->entryoffset, sizeof(record_type));
++
++	switch (be32_to_cpu(record_type)) {
++	case HFSPLUS_ATTR_INLINE_DATA:
++		/* All is OK. Do nothing. */
++		break;
++	case HFSPLUS_ATTR_FORK_DATA:
++	case HFSPLUS_ATTR_EXTENTS:
++		printk(KERN_ERR "hfs: only inline data xattr are supported\n");
++		return -EOPNOTSUPP;
++	default:
++		printk(KERN_ERR "hfs: invalid extended attribute record\n");
++		return -ENOENT;
++	}
++
++	err = hfs_brec_remove(fd);
++	if (err)
++		return err;
++
++	hfsplus_mark_inode_dirty(inode, HFSPLUS_I_ATTR_DIRTY);
++	return err;
++}
++
++int hfsplus_delete_attr(struct inode *inode, const char *name)
++{
++	int err = 0;
++	struct super_block *sb = inode->i_sb;
++	struct hfs_find_data fd;
++
++	dprint(DBG_ATTR_MOD, "delete_attr: %s,%ld\n",
++		name ? name : NULL, inode->i_ino);
++
++	if (!HFSPLUS_SB(sb)->attr_tree) {
++		printk(KERN_ERR "hfs: attributes file doesn't exist\n");
++		return -EINVAL;
++	}
++
++	err = hfs_find_init(HFSPLUS_SB(sb)->attr_tree, &fd);
++	if (err)
++		return err;
++
++	if (name) {
++		err = hfsplus_attr_build_key(sb, fd.search_key,
++						inode->i_ino, name);
++		if (err)
++			goto out;
++	} else {
++		printk(KERN_ERR "hfs: invalid extended attribute name\n");
++		err = -EINVAL;
++		goto out;
++	}
++
++	err = hfs_brec_find(&fd, hfs_find_rec_by_key);
++	if (err)
++		goto out;
++
++	err = __hfsplus_delete_attr(inode, inode->i_ino, &fd);
++	if (err)
++		goto out;
++
++out:
++	hfs_find_exit(&fd);
++	return err;
++}
++
++int hfsplus_delete_all_attrs(struct inode *dir, u32 cnid)
++{
++	int err = 0;
++	struct hfs_find_data fd;
++
++	dprint(DBG_ATTR_MOD, "delete_all_attrs: %d\n", cnid);
++
++	if (!HFSPLUS_SB(dir->i_sb)->attr_tree) {
++		printk(KERN_ERR "hfs: attributes file doesn't exist\n");
++		return -EINVAL;
++	}
++
++	err = hfs_find_init(HFSPLUS_SB(dir->i_sb)->attr_tree, &fd);
++	if (err)
++		return err;
++
++	for (;;) {
++		err = hfsplus_find_attr(dir->i_sb, cnid, NULL, &fd);
++		if (err) {
++			if (err != -ENOENT)
++				printk(KERN_ERR "hfs: xattr search failed.\n");
++			goto end_delete_all;
++		}
++
++		err = __hfsplus_delete_attr(dir, cnid, &fd);
++		if (err)
++			goto end_delete_all;
++	}
++
++end_delete_all:
++	hfs_find_exit(&fd);
++	return err;
++}
 _
 
 Patches currently in -mm which might be from slava@dubeyko.com are
