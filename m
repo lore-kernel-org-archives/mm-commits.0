@@ -1,25 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + cma-fix-watermark-checking-fix.patch added to -mm tree
-Date: Mon, 24 Sep 2012 14:32:02 -0700
-Message-ID: <20120924213202.C7E17100047@wpzn3.hot.corp.google.com>
+Subject: + drivers-misc-lis3lv02d-fix-some-comments-specific-to-lis331dlh-driver.patch added to -mm tree
+Date: Mon, 24 Sep 2012 14:46:07 -0700
+Message-ID: <20120924214608.383C75C0098@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:39739 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750927Ab2IXVcE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Sep 2012 17:32:04 -0400
-Received: by vcbfy27 with SMTP id fy27so816500vcb.1
-        for <mm-commits@vger.kernel.org>; Mon, 24 Sep 2012 14:32:03 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:60215 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750722Ab2IXVqL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Sep 2012 17:46:11 -0400
+Received: by bkcjc3 with SMTP id jc3so391523bkc.1
+        for <mm-commits@vger.kernel.org>; Mon, 24 Sep 2012 14:46:09 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: b.zolnierkie@samsung.com, hughd@google.com, kyungmin.park@samsung.com, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org
+Cc: anilkumar@ti.com, arnd@arndb.de, broonie@opensource.wolfsonmicro.com, eric.piel@tremplin-utc.net, tony@atomide.com
 
 
 The patch titled
-     Subject: cma: fix watermark checking cleanup
+     Subject: drivers/misc/lis3lv02d: fix some comments specific to lis=
+331dlh driver
 has been added to the -mm tree.  Its filename is
-     cma-fix-watermark-checking-fix.patch
+     drivers-misc-lis3lv02d-fix-some-comments-specific-to-lis331dlh-dri=
+ver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -27,102 +32,144 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: cma: fix watermark checking cleanup
+=46rom: AnilKumar Ch <anilkumar@ti.com>
+Subject: drivers/misc/lis3lv02d: fix some comments specific to lis331dl=
+h driver
 
-Changes:
-* document ALLOC_CMA
-* add comment to __zone_watermark_ok()
-* move ALLOC_* defines to mm/internal.h
+=46ix some minor problems in comments of lis331dlh driver
 
-Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Hugh Dickins <hughd@google.com>
+  * correct comments with respect to 2G sensitivity
+  * correct typo lis3331dlh mistake to lis331dlh
+  * add comment to say only 2G range is supported
+  * change the function name from lis3lv02d_read_16 to
+    lis331dlh_read_data.
+  * update i2c_device_id table entry to maintaine consistancy
+  * update sensor display message
+
+This patch is created based on Eric Piel's review comments on "lis3lv02=
+d:
+Add STMicroelectronics lis331dlh digital accelerometer" v2 patch.
+
+Signed-off-by: AnilKumar Ch <anilkumar@ti.com>
+Cc: =C9ric Piel <eric.piel@tremplin-utc.net>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   15 ---------------
- mm/internal.h          |   14 ++++++++++++++
- mm/page_alloc.c        |    1 +
- 3 files changed, 15 insertions(+), 15 deletions(-)
+ drivers/misc/lis3lv02d/lis3lv02d.c     |   13 +++++++------
+ drivers/misc/lis3lv02d/lis3lv02d.h     |    2 +-
+ drivers/misc/lis3lv02d/lis3lv02d_i2c.c |    2 +-
+ 3 files changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/mmzone.h~cma-fix-watermark-checking-fix include/linux/mmzone.h
---- a/include/linux/mmzone.h~cma-fix-watermark-checking-fix
-+++ a/include/linux/mmzone.h
-@@ -233,21 +233,6 @@ enum zone_watermarks {
- #define low_wmark_pages(z) (z->watermark[WMARK_LOW])
- #define high_wmark_pages(z) (z->watermark[WMARK_HIGH])
- 
--/* The ALLOC_WMARK bits are used as an index to zone->watermark */
--#define ALLOC_WMARK_MIN		WMARK_MIN
--#define ALLOC_WMARK_LOW		WMARK_LOW
--#define ALLOC_WMARK_HIGH	WMARK_HIGH
--#define ALLOC_NO_WATERMARKS	0x04 /* don't check watermarks at all */
--
--/* Mask to get the watermark bits */
--#define ALLOC_WMARK_MASK	(ALLOC_NO_WATERMARKS-1)
--
--#define ALLOC_HARDER		0x10 /* try to alloc harder */
--#define ALLOC_HIGH		0x20 /* __GFP_HIGH set */
--#define ALLOC_CPUSET		0x40 /* check for correct cpuset */
--
--#define ALLOC_CMA		0x80
--
- struct per_cpu_pages {
- 	int count;		/* number of pages in the list */
- 	int high;		/* high watermark, emptying needed */
-diff -puN mm/internal.h~cma-fix-watermark-checking-fix mm/internal.h
---- a/mm/internal.h~cma-fix-watermark-checking-fix
-+++ a/mm/internal.h
-@@ -358,4 +358,18 @@ extern unsigned long vm_mmap_pgoff(struc
- extern void set_pageblock_order(void);
- unsigned long reclaim_clean_pages_from_list(struct zone *zone,
- 					    struct list_head *page_list);
-+/* The ALLOC_WMARK bits are used as an index to zone->watermark */
-+#define ALLOC_WMARK_MIN		WMARK_MIN
-+#define ALLOC_WMARK_LOW		WMARK_LOW
-+#define ALLOC_WMARK_HIGH	WMARK_HIGH
-+#define ALLOC_NO_WATERMARKS	0x04 /* don't check watermarks at all */
-+
-+/* Mask to get the watermark bits */
-+#define ALLOC_WMARK_MASK	(ALLOC_NO_WATERMARKS-1)
-+
-+#define ALLOC_HARDER		0x10 /* try to alloc harder */
-+#define ALLOC_HIGH		0x20 /* __GFP_HIGH set */
-+#define ALLOC_CPUSET		0x40 /* check for correct cpuset */
-+#define ALLOC_CMA		0x80 /* allow allocations from CMA areas */
-+
- #endif	/* __MM_INTERNAL_H */
-diff -puN mm/page_alloc.c~cma-fix-watermark-checking-fix mm/page_alloc.c
---- a/mm/page_alloc.c~cma-fix-watermark-checking-fix
-+++ a/mm/page_alloc.c
-@@ -1635,6 +1635,7 @@ static bool __zone_watermark_ok(struct z
- 	if (alloc_flags & ALLOC_HARDER)
- 		min -= min / 4;
- #ifdef CONFIG_CMA
-+	/* If allocation can't use CMA areas don't use free CMA pages */
- 	if (!(alloc_flags & ALLOC_CMA))
- 		free_pages -= zone_page_state(z, NR_FREE_CMA_PAGES);
- #endif
+diff -puN drivers/misc/lis3lv02d/lis3lv02d.c~drivers-misc-lis3lv02d-fix=
+-some-comments-specific-to-lis331dlh-driver drivers/misc/lis3lv02d/lis3=
+lv02d.c
+--- a/drivers/misc/lis3lv02d/lis3lv02d.c~drivers-misc-lis3lv02d-fix-som=
+e-comments-specific-to-lis331dlh-driver
++++ a/drivers/misc/lis3lv02d/lis3lv02d.c
+@@ -82,9 +82,10 @@
+ #define LIS3_SENSITIVITY_8B		(18 * LIS3_ACCURACY)
+=20
+ /*
+- * LIS3331DLH spec says 1LSBs corresponds 4G/1024 -> 1LSB is 1000/1024=
+ mG.
+- * Sensitivity values for +/-2G, outdata in 12 bits for +/-2G scale. s=
+o 4
+- * bits adjustment is required
++ * LIS331DLH spec says 1LSBs corresponds 4G/4096 -> 1LSB is 1000/1024 =
+mG.
++ * Below macros defines sensitivity values for +/-2G. Dataout bits for
++ * +/-2G range is 12 bits so 4 bits adjustment must be done to get 12b=
+it
++ * data from 16bit value. Currently this driver supports only 2G range=
+=2E
+  */
+ #define LIS3DLH_SENSITIVITY_2G		((LIS3_ACCURACY * 1000) / 1024)
+ #define SHIFT_ADJ_2G			4
+@@ -145,7 +146,7 @@ static s16 lis3lv02d_read_12(struct lis3
+ }
+=20
+ /* 12bits for 2G range, 13 bits for 4G range and 14 bits for 8G range =
+*/
+-static s16 lis3lv02d_read_16(struct lis3lv02d *lis3, int reg)
++static s16 lis331dlh_read_data(struct lis3lv02d *lis3, int reg)
+ {
+ 	u8 lo, hi;
+ 	int v;
+@@ -1136,8 +1137,8 @@ int lis3lv02d_init_device(struct lis3lv0
+ 		lis3->scale =3D LIS3_SENSITIVITY_8B;
+ 		break;
+ 	case WAI_3DLH:
+-		pr_info("16 bits 3DLH sensor found\n");
+-		lis3->read_data =3D lis3lv02d_read_16;
++		pr_info("16 bits lis331dlh sensor found\n");
++		lis3->read_data =3D lis331dlh_read_data;
+ 		lis3->mdps_max_val =3D 2048; /* 12 bits for 2G */
+ 		lis3->shift_adj =3D SHIFT_ADJ_2G;
+ 		lis3->pwron_delay =3D LIS3_PWRON_DELAY_WAI_8B;
+diff -puN drivers/misc/lis3lv02d/lis3lv02d.h~drivers-misc-lis3lv02d-fix=
+-some-comments-specific-to-lis331dlh-driver drivers/misc/lis3lv02d/lis3=
+lv02d.h
+--- a/drivers/misc/lis3lv02d/lis3lv02d.h~drivers-misc-lis3lv02d-fix-som=
+e-comments-specific-to-lis331dlh-driver
++++ a/drivers/misc/lis3lv02d/lis3lv02d.h
+@@ -104,9 +104,9 @@ enum lis3_who_am_i {
+ };
+=20
+ enum lis3_type {
++	LIS3LV02D,
+ 	LIS3DC,
+ 	HP3DC,
+-	LIS3LV02D,
+ 	LIS2302D,
+ 	LIS331DLF,
+ 	LIS331DLH,
+diff -puN drivers/misc/lis3lv02d/lis3lv02d_i2c.c~drivers-misc-lis3lv02d=
+-fix-some-comments-specific-to-lis331dlh-driver drivers/misc/lis3lv02d/=
+lis3lv02d_i2c.c
+--- a/drivers/misc/lis3lv02d/lis3lv02d_i2c.c~drivers-misc-lis3lv02d-fix=
+-some-comments-specific-to-lis331dlh-driver
++++ a/drivers/misc/lis3lv02d/lis3lv02d_i2c.c
+@@ -257,7 +257,7 @@ static int lis3_i2c_runtime_resume(struc
+ #endif /* CONFIG_PM_RUNTIME */
+=20
+ static const struct i2c_device_id lis3lv02d_id[] =3D {
+-	{"lis3lv02d", 0 },
++	{"lis3lv02d", LIS3LV02D},
+ 	{"lis331dlh", LIS331DLH},
+ 	{}
+ };
 _
 
-Patches currently in -mm which might be from b.zolnierkie@samsung.com are
+Patches currently in -mm which might be from anilkumar@ti.com are
 
-mm-fix-tracing-in-free_pcppages_bulk.patch
-mm-fix-tracing-in-free_pcppages_bulk-fix.patch
-cma-fix-counting-of-isolated-pages.patch
-cma-count-free-cma-pages.patch
-cma-count-free-cma-pages-fix.patch
-cma-fix-watermark-checking.patch
-cma-fix-watermark-checking-fix.patch
+linux-next.patch
+drivers-misc-lis3lv02d-add-generic-dt-matching-code.patch
+drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-co=
+de.patch
+drivers-misc-lis3lv02d-remove-lis3lv02d-driver-dt-init.patch
+drivers-misc-lis3lv02d-lis3lv02d_spic-add-lis3lv02d-device-tree-init.pa=
+tch
+drivers-misc-lis3lv02d-lis3lv02d_spic-add-lis3lv02d-device-tree-init-fi=
+x.patch
+drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init.pa=
+tch
+drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init-fi=
+x.patch
+drivers-misc-lis3lv02d-fix-some-comments-specific-to-lis331dlh-driver.p=
+atch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
