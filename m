@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-tps65910c-use-platform_get_irq-to-get-rtc-irq-details.patch added to -mm tree
-Date: Tue, 25 Sep 2012 14:55:09 -0700
-Message-ID: <20120925215510.1C32E1E0043@wpzn4.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-m41t80c-remove-disabled-alarm-functionality.patch added to -mm tree
+Date: Tue, 25 Sep 2012 14:58:41 -0700
+Message-ID: <20120925215842.0D5E25C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:63764 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750898Ab2IYVzL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Sep 2012 17:55:11 -0400
-Received: by qaea16 with SMTP id a16so91990qae.1
-        for <mm-commits@vger.kernel.org>; Tue, 25 Sep 2012 14:55:10 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:59196 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750962Ab2IYV6o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Sep 2012 17:58:44 -0400
+Received: by faet1 with SMTP id t1so473584fae.1
+        for <mm-commits@vger.kernel.org>; Tue, 25 Sep 2012 14:58:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: vbyravarasu@nvidia.com, swarren@wwwdotorg.org
+Cc: pebolle@tiscali.nl, john.stultz@linaro.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-tps65910.c: use platform_get_irq() to get RTC irq details
+     Subject: drivers/rtc/rtc-m41t80.c: remove disabled alarm functionality
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-tps65910c-use-platform_get_irq-to-get-rtc-irq-details.patch
+     drivers-rtc-rtc-m41t80c-remove-disabled-alarm-functionality.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,57 +33,206 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Venu Byravarasu <vbyravarasu@nvidia.com>
-Subject: drivers/rtc/rtc-tps65910.c: use platform_get_irq() to get RTC irq details
+From: Paul Bolle <pebolle@tiscali.nl>
+Subject: drivers/rtc/rtc-m41t80.c: remove disabled alarm functionality
 
-As RTC driver needs only irq number from platform data, using
-platform_get_irq(), instead of generic dev_get_platdata().
+Commit c3b79770e51ab1fd ("rtc: m41t80: Workaround broken alarm
+functionality") disabled m41t80's alarm functions.  But since those
+functions were not touched, building this driver triggers these GCC
+warnings:
 
-Signed-off-by: Venu Byravarasu <vbyravarasu@nvidia.com>
-Acked-by: Stephen Warren <swarren@wwwdotorg.org>
+    drivers/rtc/rtc-m41t80.c:216:12: warning: 'm41t80_rtc_alarm_irq_enable' defined but not used [-Wunused-function]
+    drivers/rtc/rtc-m41t80.c:238:12: warning: 'm41t80_rtc_set_alarm' defined but not used [-Wunused-function]
+    drivers/rtc/rtc-m41t80.c:308:12: warning: 'm41t80_rtc_read_alarm' defined but not used [-Wunused-function]
+
+Remove these functions (and the commented out references to them) to
+silence these warnings.  Anyone wanting to fix the alarm irq functionality
+can easily find the removed code in the git log of this file or through
+some web searches.
+
+Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+Cc: John Stultz <john.stultz@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-tps65910.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/rtc/rtc-m41t80.c |  157 -------------------------------------
+ 1 file changed, 4 insertions(+), 153 deletions(-)
 
-diff -puN drivers/rtc/rtc-tps65910.c~drivers-rtc-rtc-tps65910c-use-platform_get_irq-to-get-rtc-irq-details drivers/rtc/rtc-tps65910.c
---- a/drivers/rtc/rtc-tps65910.c~drivers-rtc-rtc-tps65910c-use-platform_get_irq-to-get-rtc-irq-details
-+++ a/drivers/rtc/rtc-tps65910.c
-@@ -226,7 +226,6 @@ static int __devinit tps65910_rtc_probe(
- {
- 	struct tps65910 *tps65910 = NULL;
- 	struct tps65910_rtc *tps_rtc = NULL;
--	struct tps65910_board *pmic_plat_data;
- 	int ret;
- 	int irq;
- 	u32 rtc_reg;
-@@ -253,15 +252,13 @@ static int __devinit tps65910_rtc_probe(
- 	if (ret < 0)
- 		return ret;
+diff -puN drivers/rtc/rtc-m41t80.c~drivers-rtc-rtc-m41t80c-remove-disabled-alarm-functionality drivers/rtc/rtc-m41t80.c
+--- a/drivers/rtc/rtc-m41t80.c~drivers-rtc-rtc-m41t80c-remove-disabled-alarm-functionality
++++ a/drivers/rtc/rtc-m41t80.c
+@@ -213,163 +213,14 @@ static int m41t80_rtc_set_time(struct de
+ 	return m41t80_set_datetime(to_i2c_client(dev), tm);
+ }
  
--	pmic_plat_data = dev_get_platdata(tps65910->dev);
--	irq = pmic_plat_data->irq_base;
-+	irq  = platform_get_irq(pdev, 0);
- 	if (irq <= 0) {
- 		dev_warn(&pdev->dev, "Wake up is not possible as irq = %d\n",
- 			irq);
- 		return ret;
- 	}
+-static int m41t80_rtc_alarm_irq_enable(struct device *dev, unsigned int enabled)
+-{
+-	struct i2c_client *client = to_i2c_client(dev);
+-	int rc;
+-
+-	rc = i2c_smbus_read_byte_data(client, M41T80_REG_ALARM_MON);
+-	if (rc < 0)
+-		goto err;
+-
+-	if (enabled)
+-		rc |= M41T80_ALMON_AFE;
+-	else
+-		rc &= ~M41T80_ALMON_AFE;
+-
+-	if (i2c_smbus_write_byte_data(client, M41T80_REG_ALARM_MON, rc) < 0)
+-		goto err;
+-
+-	return 0;
+-err:
+-	return -EIO;
+-}
+-
+-static int m41t80_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *t)
+-{
+-	struct i2c_client *client = to_i2c_client(dev);
+-	u8 wbuf[1 + M41T80_ALARM_REG_SIZE];
+-	u8 *buf = &wbuf[1];
+-	u8 *reg = buf - M41T80_REG_ALARM_MON;
+-	u8 dt_addr[1] = { M41T80_REG_ALARM_MON };
+-	struct i2c_msg msgs_in[] = {
+-		{
+-			.addr	= client->addr,
+-			.flags	= 0,
+-			.len	= 1,
+-			.buf	= dt_addr,
+-		},
+-		{
+-			.addr	= client->addr,
+-			.flags	= I2C_M_RD,
+-			.len	= M41T80_ALARM_REG_SIZE,
+-			.buf	= buf,
+-		},
+-	};
+-	struct i2c_msg msgs[] = {
+-		{
+-			.addr	= client->addr,
+-			.flags	= 0,
+-			.len	= 1 + M41T80_ALARM_REG_SIZE,
+-			.buf	= wbuf,
+-		 },
+-	};
+-
+-	if (i2c_transfer(client->adapter, msgs_in, 2) < 0) {
+-		dev_err(&client->dev, "read error\n");
+-		return -EIO;
+-	}
+-	reg[M41T80_REG_ALARM_MON] &= ~(0x1f | M41T80_ALMON_AFE);
+-	reg[M41T80_REG_ALARM_DAY] = 0;
+-	reg[M41T80_REG_ALARM_HOUR] &= ~(0x3f | 0x80);
+-	reg[M41T80_REG_ALARM_MIN] = 0;
+-	reg[M41T80_REG_ALARM_SEC] = 0;
+-
+-	wbuf[0] = M41T80_REG_ALARM_MON; /* offset into rtc's regs */
+-	reg[M41T80_REG_ALARM_SEC] |= t->time.tm_sec >= 0 ?
+-		bin2bcd(t->time.tm_sec) : 0x80;
+-	reg[M41T80_REG_ALARM_MIN] |= t->time.tm_min >= 0 ?
+-		bin2bcd(t->time.tm_min) : 0x80;
+-	reg[M41T80_REG_ALARM_HOUR] |= t->time.tm_hour >= 0 ?
+-		bin2bcd(t->time.tm_hour) : 0x80;
+-	reg[M41T80_REG_ALARM_DAY] |= t->time.tm_mday >= 0 ?
+-		bin2bcd(t->time.tm_mday) : 0x80;
+-	if (t->time.tm_mon >= 0)
+-		reg[M41T80_REG_ALARM_MON] |= bin2bcd(t->time.tm_mon + 1);
+-	else
+-		reg[M41T80_REG_ALARM_DAY] |= 0x40;
+-
+-	if (i2c_transfer(client->adapter, msgs, 1) != 1) {
+-		dev_err(&client->dev, "write error\n");
+-		return -EIO;
+-	}
+-
+-	if (t->enabled) {
+-		reg[M41T80_REG_ALARM_MON] |= M41T80_ALMON_AFE;
+-		if (i2c_smbus_write_byte_data(client, M41T80_REG_ALARM_MON,
+-					      reg[M41T80_REG_ALARM_MON]) < 0) {
+-			dev_err(&client->dev, "write error\n");
+-			return -EIO;
+-		}
+-	}
+-	return 0;
+-}
+-
+-static int m41t80_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *t)
+-{
+-	struct i2c_client *client = to_i2c_client(dev);
+-	u8 buf[M41T80_ALARM_REG_SIZE + 1]; /* all alarm regs and flags */
+-	u8 dt_addr[1] = { M41T80_REG_ALARM_MON };
+-	u8 *reg = buf - M41T80_REG_ALARM_MON;
+-	struct i2c_msg msgs[] = {
+-		{
+-			.addr	= client->addr,
+-			.flags	= 0,
+-			.len	= 1,
+-			.buf	= dt_addr,
+-		},
+-		{
+-			.addr	= client->addr,
+-			.flags	= I2C_M_RD,
+-			.len	= M41T80_ALARM_REG_SIZE + 1,
+-			.buf	= buf,
+-		},
+-	};
+-
+-	if (i2c_transfer(client->adapter, msgs, 2) < 0) {
+-		dev_err(&client->dev, "read error\n");
+-		return -EIO;
+-	}
+-	t->time.tm_sec = -1;
+-	t->time.tm_min = -1;
+-	t->time.tm_hour = -1;
+-	t->time.tm_mday = -1;
+-	t->time.tm_mon = -1;
+-	if (!(reg[M41T80_REG_ALARM_SEC] & 0x80))
+-		t->time.tm_sec = bcd2bin(reg[M41T80_REG_ALARM_SEC] & 0x7f);
+-	if (!(reg[M41T80_REG_ALARM_MIN] & 0x80))
+-		t->time.tm_min = bcd2bin(reg[M41T80_REG_ALARM_MIN] & 0x7f);
+-	if (!(reg[M41T80_REG_ALARM_HOUR] & 0x80))
+-		t->time.tm_hour = bcd2bin(reg[M41T80_REG_ALARM_HOUR] & 0x3f);
+-	if (!(reg[M41T80_REG_ALARM_DAY] & 0x80))
+-		t->time.tm_mday = bcd2bin(reg[M41T80_REG_ALARM_DAY] & 0x3f);
+-	if (!(reg[M41T80_REG_ALARM_DAY] & 0x40))
+-		t->time.tm_mon = bcd2bin(reg[M41T80_REG_ALARM_MON] & 0x1f) - 1;
+-	t->time.tm_year = -1;
+-	t->time.tm_wday = -1;
+-	t->time.tm_yday = -1;
+-	t->time.tm_isdst = -1;
+-	t->enabled = !!(reg[M41T80_REG_ALARM_MON] & M41T80_ALMON_AFE);
+-	t->pending = !!(reg[M41T80_REG_FLAGS] & M41T80_FLAGS_AF);
+-	return 0;
+-}
+-
++/*
++ * XXX - m41t80 alarm functionality is reported broken.
++ * until it is fixed, don't register alarm functions.
++ */
+ static struct rtc_class_ops m41t80_rtc_ops = {
+ 	.read_time = m41t80_rtc_read_time,
+ 	.set_time = m41t80_rtc_set_time,
+-	/*
+-	 * XXX - m41t80 alarm functionality is reported broken.
+-	 * until it is fixed, don't register alarm functions.
+-	 *
+-	.read_alarm = m41t80_rtc_read_alarm,
+-	.set_alarm = m41t80_rtc_set_alarm,
+-	*/
+ 	.proc = m41t80_rtc_proc,
+-	/*
+-	 * See above comment on broken alarm
+-	 *
+-	.alarm_irq_enable = m41t80_rtc_alarm_irq_enable,
+-	*/
+ };
  
--	irq += TPS65910_IRQ_RTC_ALARM;
- 	ret = devm_request_threaded_irq(&pdev->dev, irq, NULL,
- 		tps65910_rtc_interrupt, IRQF_TRIGGER_LOW,
- 		"rtc-tps65910", &pdev->dev);
+ #if defined(CONFIG_RTC_INTF_SYSFS) || defined(CONFIG_RTC_INTF_SYSFS_MODULE)
 _
 
-Patches currently in -mm which might be from vbyravarasu@nvidia.com are
+Patches currently in -mm which might be from pebolle@tiscali.nl are
 
 linux-next.patch
-rtc-tps65910-add-rtc-driver-for-tps65910-pmic-rtc.patch
-rtc-tps65910-add-rtc-driver-for-tps65910-pmic-rtc-fix.patch
-rtc-kconfig-remove-unnecessary-dependencies.patch
-rtc-rc5t583-add-ricoh-rc5t583-rtc-driver.patch
-drivers-rtc-rtc-tps65910c-use-platform_get_irq-to-get-rtc-irq-details.patch
-coredump-prevent-double-free-on-an-error-path-in-core-dumper.patch
+drivers-rtc-rtc-m41t80c-remove-disabled-alarm-functionality.patch
 
