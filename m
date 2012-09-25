@@ -1,101 +1,184 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-unbork.patch removed from -mm tree
-Date: Tue, 25 Sep 2012 12:15:58 -0700
-Message-ID: <20120925191600.4FD2E100047@wpzn3.hot.corp.google.com>
+Subject: + thp-avoid-vm_bug_on-page_countpage-false-positives-in-__collapse_huge_page_copy.patch added to -mm tree
+Date: Tue, 25 Sep 2012 12:26:17 -0700
+Message-ID: <20120925192618.24E145C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:41852 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750920Ab2IYTQE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Sep 2012 15:16:04 -0400
-Received: by qcqs25 with SMTP id s25so659867qcq.1
-        for <mm-commits@vger.kernel.org>; Tue, 25 Sep 2012 12:16:02 -0700 (PDT)
+Received: from mail-ey0-f202.google.com ([209.85.215.202]:53205 "EHLO
+	mail-ey0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753244Ab2IYT0V (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Sep 2012 15:26:21 -0400
+Received: by eaak14 with SMTP id k14so181997eaa.1
+        for <mm-commits@vger.kernel.org>; Tue, 25 Sep 2012 12:26:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: aarcange@redhat.com, hughd@google.com, jweiner@redhat.com, mgorman@suse.de, pholasek@redhat.com, riel@redhat.com
 
 
 The patch titled
-     Subject: linux-next-unbork
-has been removed from the -mm tree.  Its filename was
-     linux-next-unbork.patch
+     Subject: thp: avoid VM_BUG_ON page_count(page) false positives in __collapse_huge_page_copy
+has been added to the -mm tree.  Its filename is
+     thp-avoid-vm_bug_on-page_countpage-false-positives-in-__collapse_huge_page_copy.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-unbork
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: thp: avoid VM_BUG_ON page_count(page) false positives in __collapse_huge_page_copy
 
+Some time ago Petr once reproduced a false positive VM_BUG_ON in
+khugepaged while running the autonuma-benchmark on a large 8 node system. 
+All production kernels out there have DEBUG_VM=n so it was only noticeable
+on self built kernels.  It's not easily reproducible even on the 8 nodes
+system.
+
+Use page_freeze_refs to prevent speculative pagecache lookups to
+trigger the false positives, so we're still able to check the
+page_count to be exact.
+
+This patch removes the false positive and it has been tested for a
+while and it's good idea to queue it for upstream too. It's not urgent
+and probably not worth it for -stable, though it wouldn't hurt. On
+smaller systems it's not reproducible AFIK.
+
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Johannes Weiner <jweiner@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Petr Holasek <pholasek@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/irqchip/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ mm/huge_memory.c |   19 ++++++++++++++++++-
+ 1 file changed, 18 insertions(+), 1 deletion(-)
 
-diff -puN /dev/null drivers/irqchip/Kconfig
---- /dev/null
-+++ a/drivers/irqchip/Kconfig
-@@ -0,0 +1 @@
-+#
+diff -puN mm/huge_memory.c~thp-avoid-vm_bug_on-page_countpage-false-positives-in-__collapse_huge_page_copy mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-avoid-vm_bug_on-page_countpage-false-positives-in-__collapse_huge_page_copy
++++ a/mm/huge_memory.c
+@@ -1701,6 +1701,9 @@ void __khugepaged_exit(struct mm_struct 
+ 
+ static void release_pte_page(struct page *page)
+ {
++#ifdef CONFIG_DEBUG_VM
++	page_unfreeze_refs(page, 2);
++#endif
+ 	/* 0 stands for page_is_file_cache(page) == false */
+ 	dec_zone_page_state(page, NR_ISOLATED_ANON + 0);
+ 	unlock_page(page);
+@@ -1781,6 +1784,20 @@ static int __collapse_huge_page_isolate(
+ 		VM_BUG_ON(!PageLocked(page));
+ 		VM_BUG_ON(PageLRU(page));
+ 
++#ifdef CONFIG_DEBUG_VM
++		/*
++		 * For the VM_BUG_ON check on page_count(page) in
++		 * __collapse_huge_page_copy not to trigger false
++		 * positives we've to prevent the speculative
++		 * pagecache lookups too with page_freeze_refs. We
++		 * could check for >= 2 instead but this provides for
++		 * a more strict debugging behavior.
++		 */
++		if (!page_freeze_refs(page, 2)) {
++			release_pte_pages(pte, _pte+1);
++			goto out;
++		}
++#endif
+ 		/* If there is no mapped pte young don't collapse the page */
+ 		if (pte_young(pteval) || PageReferenced(page) ||
+ 		    mmu_notifier_test_young(vma->vm_mm, address))
+@@ -1811,7 +1828,7 @@ static void __collapse_huge_page_copy(pt
+ 			src_page = pte_page(pteval);
+ 			copy_user_highpage(page, src_page, address, vma);
+ 			VM_BUG_ON(page_mapcount(src_page) != 1);
+-			VM_BUG_ON(page_count(src_page) != 2);
++			VM_BUG_ON(page_count(src_page) != 0);
+ 			release_pte_page(src_page);
+ 			/*
+ 			 * ptl mostly unnecessary, but preempt has to
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-idr-rename-max_level-to-max_idr_level-fix-3.patch
-cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-audith-replace-defines-with-c-stubs.patch
-mm.patch
-x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
-mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
-mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures-fix.patch
+thp-avoid-vm_bug_on-page_countpage-false-positives-in-__collapse_huge_page_copy.patch
+mm-remove-__gfp_no_kswapd.patch
+mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host.patch
 mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch
-rbtree-performance-and-correctness-test-fix.patch
-mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix.patch
-mm-fix-tracing-in-free_pcppages_bulk-fix.patch
-cma-count-free-cma-pages-fix.patch
-memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
-atomic-implement-generic-atomic_dec_if_positive-fix.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+mm-mmu_notifier-have-mmu_notifiers-use-a-global-srcu-so-they-may-safely-schedule.patch
+mm-mmu_notifier-init-notifier-if-necessary.patch
+thp-fix-the-count-of-thp_collapse_alloc.patch
+thp-remove-unnecessary-check-in-start_khugepaged.patch
+thp-move-khugepaged_mutex-out-of-khugepaged.patch
+thp-remove-unnecessary-khugepaged_thread-check.patch
+thp-remove-wake_up_interruptible-in-the-exit-path.patch
+thp-remove-some-code-depend-on-config_numa.patch
+thp-merge-page-pre-alloc-in-khugepaged_loop-into-khugepaged_do_scan.patch
+thp-release-page-in-page-pre-alloc-path.patch
+thp-introduce-khugepaged_prealloc_page-and-khugepaged_alloc_page.patch
+thp-remove-khugepaged_loop.patch
+thp-use-khugepaged_enabled-to-remove-duplicate-code.patch
+thp-remove-unnecessary-set_recommended_min_free_kbytes.patch
+mm-fix-potential-anon_vma-locking-issue-in-mprotect.patch
+thp-x86-introduce-have_arch_transparent_hugepage.patch
+thp-remove-assumptions-on-pgtable_t-type.patch
+thp-introduce-pmdp_invalidate.patch
+thp-make-madv_hugepage-check-for-mm-def_flags.patch
+thp-s390-thp-splitting-backend-for-s390.patch
+thp-s390-thp-pagetable-pre-allocation-for-s390.patch
+thp-s390-disable-thp-for-kvm-host-on-s390.patch
+thp-s390-architecture-backend-for-thp-on-s390.patch
+rbtree-reference-documentation-rbtreetxt-for-usage-instructions.patch
+rbtree-empty-nodes-have-no-color.patch
+rbtree-fix-incorrect-rbtree-node-insertion-in-fs-proc-proc_sysctlc.patch
+rbtree-move-some-implementation-details-from-rbtreeh-to-rbtreec.patch
+rbtree-performance-and-correctness-test.patch
+rbtree-break-out-of-rb_insert_color-loop-after-tree-rotation.patch
+rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary.patch
+rbtree-low-level-optimizations-in-rb_insert_color.patch
+rbtree-adjust-node-color-in-__rb_erase_color-only-when-necessary.patch
+rbtree-optimize-case-selection-logic-in-__rb_erase_color.patch
+rbtree-low-level-optimizations-in-__rb_erase_color.patch
+rbtree-coding-style-adjustments.patch
+rbtree-optimize-fetching-of-sibling-node.patch
+rbtree-test-fix-sparse-warning-about-64-bit-constant.patch
+rbtree-add-__rb_change_child-helper-function.patch
+rbtree-place-easiest-case-first-in-rb_erase.patch
+rbtree-handle-1-child-recoloring-in-rb_erase-instead-of-rb_erase_color.patch
+rbtree-low-level-optimizations-in-rb_erase.patch
+rbtree-augmented-rbtree-test.patch
+rbtree-faster-augmented-rbtree-manipulation.patch
+rbtree-remove-prior-augmented-rbtree-implementation.patch
+rbtree-add-rb_declare_callbacks-macro.patch
+rbtree-add-prio-tree-and-interval-tree-tests.patch
+mm-replace-vma-prio_tree-with-an-interval-tree.patch
+kmemleak-use-rbtree-instead-of-prio-tree.patch
+prio_tree-remove.patch
+rbtree-move-augmented-rbtree-functionality-to-rbtree_augmentedh.patch
+mm-interval-tree-updates.patch
+mm-anon-rmap-remove-anon_vma_moveto_tail.patch
+mm-anon-rmap-replace-same_anon_vma-linked-list-with-an-interval-tree.patch
+mm-rmap-remove-vma_address-check-for-address-inside-vma.patch
+mm-add-config_debug_vm_rb-build-option.patch
+mm-avoid-taking-rmap-locks-in-move_ptes.patch
+mm-mmu_notifier-make-the-mmu_notifier-srcu-static.patch
 mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
 mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix.patch
 mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix-2.patch
-mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch
-mm-fix-invalidate_complete_page2-lock-ordering.patch
-mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix.patch
-mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock.patch
-sections-fix-section-conflicts-in-arch-h8300-checkpatch-fixes.patch
-sections-fix-section-conflicts-in-drivers-macintosh-checkpatch-fixes.patch
-sectons-fix-const-sections-for-crc32-table-checkpatch-fixes.patch
-drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-code-fix-fix.patch
-drivers-misc-lis3lv02d-lis3lv02d_spic-add-lis3lv02d-device-tree-init-fix.patch
-drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init-fix.patch
-backlight-add-backlight-driver-for-lm3630-chip-fix.patch
-backlight-add-new-lm3639-backlight-driver-fix.patch
-backlight-platform-lcd-add-support-for-device-tree-based-probe-fix.patch
-idr-rename-max_level-to-max_idr_level-fix.patch
-idr-rename-max_level-to-max_idr_level-fix-fix-2.patch
-lib-parserc-avoid-overflow-in-match_number-fix.patch
-lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-rtc-add-dallas-ds2404-driver-fix.patch
-rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch
-hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
-fs-fat-fix-all-other-checkpatch-issues-in-dirc-fix.patch
-fat-simplify-writeback_inode-checkpatch-fixes.patch
-fat-simplify-writeback_inode-checkpatch-fixes-fix.patch
-coredump-make-core-dump-functionality-optional-fix-fix.patch
-coredump-use-suid_dumpable_enabled-rather-than-hardcoded-1-checkpatch-fixes.patch
-proc-use-kzalloc-instead-of-kmalloc-and-memset-fix.patch
-journal_add_journal_head-debug.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mm-compaction-move-fatal-signal-check-out-of-compact_checklock_irqsave.patch
+thp-khugepaged_prealloc_page-forgot-to-reset-the-page-alloc-indicator.patch
+mm-thp-fix-the-pmd_clear-arguments-in-pmdp_get_and_clear.patch
+mm-thp-fix-the-update_mmu_cache-last-argument-passing-in-mm-huge_memoryc.patch
+mm-thp-fix-pmd_present-for-split_huge_page-and-prot_none-with-thp.patch
+hugetlb-do-not-use-vma_hugecache_offset-for-vma_prio_tree_foreach.patch
+ksm-numa-awareness-sysfs-knob.patch
 
