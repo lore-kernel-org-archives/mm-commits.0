@@ -1,72 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checksyscalls-fix-here-document-handling.patch removed from -mm tree
-Date: Wed, 26 Sep 2012 12:35:30 -0700
-Message-ID: <20120926193530.A95F51E0048@wpzn4.hot.corp.google.com>
+Subject: [merged] pwm-backlight-take-over-maintenance.patch removed from -mm tree
+Date: Wed, 26 Sep 2012 12:35:27 -0700
+Message-ID: <20120926193527.C92451E0048@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:45884 "EHLO
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:41085 "EHLO
 	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758309Ab2IZTfb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Sep 2012 15:35:31 -0400
-Received: by yenr11 with SMTP id r11so113859yen.1
-        for <mm-commits@vger.kernel.org>; Wed, 26 Sep 2012 12:35:31 -0700 (PDT)
+	with ESMTP id S1758300Ab2IZTf3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Sep 2012 15:35:29 -0400
+Received: by yenr11 with SMTP id r11so113854yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 26 Sep 2012 12:35:28 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: heiko.carstens@de.ibm.com, gorcunov@openvz.org, hpa@linux.intel.com, mmarek@suse.cz, mm-commits@vger.kernel.org
+To: thierry.reding@avionic-design.de, acourbot@nvidia.com, arun.murthy@stericsson.com, axel.lin@gmail.com, broonie@opensource.wolfsonmicro.com, dilee@nvidia.com, linus.walleij@linaro.org, mjg@redhat.com, rmorell@nvidia.com, sachin.kamat@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checksyscalls: fix "here document" handling
+     Subject: pwm-backlight: take over maintenance
 has been removed from the -mm tree.  Its filename was
-     checksyscalls-fix-here-document-handling.patch
+     pwm-backlight-take-over-maintenance.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
-Subject: checksyscalls: fix "here document" handling
+From: Thierry Reding <thierry.reding@avionic-design.de>
+Subject: pwm-backlight: take over maintenance
 
-"echo" doesn't read from stdin, therefore the checksyscalls script didn't
-warn about not implemented system calls anymore since 29dc54c6
-("checksyscalls: Use arch/x86/syscalls/syscall_32.tbl as source").
+Since the pwm-backlight driver is lacking a proper maintainer and is the
+heaviest user of the PWM framework I'm taking over maintenance.
 
-Use "cat" instead of "echo" which handles this correctly.
-
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Michal Marek <mmarek@suse.cz>
-Cc: H. Peter Anvin <hpa@linux.intel.com>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Signed-off-by: Thierry Reding <thierry.reding@avionic-design.de>
+Acked-by: Arun Murthy <arun.murthy@stericsson.com>
+Cc: Matthew Garrett <mjg@redhat.com>
+Cc: Robert Morell <rmorell@nvidia.com>
+Cc: Dilan Lee <dilee@nvidia.com>
+Cc: Axel Lin <axel.lin@gmail.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Alexandre Courbot <acourbot@nvidia.com>
+Acked-by: Sachin Kamat <sachin.kamat@linaro.org>
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checksyscalls.sh |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN scripts/checksyscalls.sh~checksyscalls-fix-here-document-handling scripts/checksyscalls.sh
---- a/scripts/checksyscalls.sh~checksyscalls-fix-here-document-handling
-+++ a/scripts/checksyscalls.sh
-@@ -200,7 +200,7 @@ EOF
- syscall_list() {
-     grep '^[0-9]' "$1" | sort -n | (
- 	while read nr abi name entry ; do
--	    echo <<EOF
-+	    cat <<EOF
- #if !defined(__NR_${name}) && !defined(__IGNORE_${name})
- #warning syscall ${name} not implemented
- #endif
+diff -puN MAINTAINERS~pwm-backlight-take-over-maintenance MAINTAINERS
+--- a/MAINTAINERS~pwm-backlight-take-over-maintenance
++++ a/MAINTAINERS
+@@ -5544,6 +5544,8 @@ F:	Documentation/devicetree/bindings/pwm
+ F:	include/linux/pwm.h
+ F:	include/linux/of_pwm.h
+ F:	drivers/pwm/
++F:	drivers/video/backlight/pwm_bl.c
++F:	include/linux/pwm_backlight.h
+ 
+ PXA2xx/PXA3xx SUPPORT
+ M:	Eric Miao <eric.y.miao@gmail.com>
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from thierry.reding@avionic-design.de are
 
 origin.patch
 linux-next.patch
-thp-x86-introduce-have_arch_transparent_hugepage.patch
-thp-remove-assumptions-on-pgtable_t-type.patch
-thp-introduce-pmdp_invalidate.patch
-thp-make-madv_hugepage-check-for-mm-def_flags.patch
-thp-s390-thp-splitting-backend-for-s390.patch
-thp-s390-thp-pagetable-pre-allocation-for-s390.patch
-thp-s390-disable-thp-for-kvm-host-on-s390.patch
-thp-s390-architecture-backend-for-thp-on-s390.patch
-thp-s390-architecture-backend-for-thp-on-s390-fix.patch
 
