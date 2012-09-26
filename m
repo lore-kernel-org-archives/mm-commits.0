@@ -1,72 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] prctl-use-access_ok-instead-of-task_size-in-prctl_set_mm.patch removed from -mm tree
-Date: Wed, 26 Sep 2012 14:17:57 -0700
-Message-ID: <20120926211757.9A83D100047@wpzn3.hot.corp.google.com>
+Subject: + maintainers-fix-indentation-for-viresh-kumar.patch added to -mm tree
+Date: Wed, 26 Sep 2012 14:32:32 -0700
+Message-ID: <20120926213232.94D82100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:62369 "EHLO
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:50711 "EHLO
 	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752010Ab2IZVR6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Sep 2012 17:17:58 -0400
-Received: by yenr11 with SMTP id r11so130172yen.1
-        for <mm-commits@vger.kernel.org>; Wed, 26 Sep 2012 14:17:58 -0700 (PDT)
+	with ESMTP id S1750890Ab2IZVcd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Sep 2012 17:32:33 -0400
+Received: by yenr11 with SMTP id r11so132055yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 26 Sep 2012 14:32:33 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gorcunov@openvz.org, ebiederm@xmission.com, keescook@chromium.org, msalter@redhat.com, xemul@parallels.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: andriy.shevchenko@linux.intel.com, viresh.kumar@linaro.org
 
 
 The patch titled
-     Subject: prctl: use access_ok() instead of TASK_SIZE in prctl_set_mm()
-has been removed from the -mm tree.  Its filename was
-     prctl-use-access_ok-instead-of-task_size-in-prctl_set_mm.patch
+     Subject: MAINTAINERS: fix indentation for Viresh Kumar
+has been added to the -mm tree.  Its filename is
+     maintainers-fix-indentation-for-viresh-kumar.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Cyrill Gorcunov <gorcunov@openvz.org>
-Subject: prctl: use access_ok() instead of TASK_SIZE in prctl_set_mm()
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: MAINTAINERS: fix indentation for Viresh Kumar
 
-Eric pointed that better to use access_ok instead of TASK_SIZE for testing
-if address is allowed for use.
-
-Reported-by: "Eric W. Biederman" <ebiederm@xmission.com>
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Mark Salter <msalter@redhat.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Pavel Emelyanov <xemul@parallels.com>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ MAINTAINERS |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN kernel/sys.c~prctl-use-access_ok-instead-of-task_size-in-prctl_set_mm kernel/sys.c
---- a/kernel/sys.c~prctl-use-access_ok-instead-of-task_size-in-prctl_set_mm
-+++ a/kernel/sys.c
-@@ -1865,7 +1865,8 @@ static int prctl_set_mm(int opt, unsigne
- 	if (opt == PR_SET_MM_EXE_FILE)
- 		return prctl_set_mm_exe_file(mm, (unsigned int)addr);
+diff -puN MAINTAINERS~maintainers-fix-indentation-for-viresh-kumar MAINTAINERS
+--- a/MAINTAINERS~maintainers-fix-indentation-for-viresh-kumar
++++ a/MAINTAINERS
+@@ -572,7 +572,7 @@ F:	drivers/net/appletalk/
+ F:	net/appletalk/
  
--	if (addr >= TASK_SIZE || addr < mmap_min_addr)
-+	if (!access_ok(VERIFY_READ, (void __user *)addr, sizeof(addr)) ||
-+			addr < mmap_min_addr)
- 		return -EINVAL;
+ ARASAN COMPACT FLASH PATA CONTROLLER
+-M:     Viresh Kumar <viresh.linux@gmail.com>
++M:	Viresh Kumar <viresh.linux@gmail.com>
+ L:	linux-ide@vger.kernel.org
+ S:	Maintained
+ F:	include/linux/pata_arasan_cf_data.h
+@@ -5998,7 +5998,7 @@ S:	Maintained
+ F:	drivers/tty/serial
  
- 	error = -EINVAL;
+ SYNOPSYS DESIGNWARE DMAC DRIVER
+-M:     Viresh Kumar <viresh.linux@gmail.com>
++M:	Viresh Kumar <viresh.linux@gmail.com>
+ S:	Maintained
+ F:	include/linux/dw_dmac.h
+ F:	drivers/dma/dw_dmac_regs.h
+@@ -6146,7 +6146,7 @@ S:	Maintained
+ F:	drivers/mmc/host/sdhci-s3c.c
+ 
+ SECURE DIGITAL HOST CONTROLLER INTERFACE (SDHCI) ST SPEAR DRIVER
+-M:     Viresh Kumar <viresh.linux@gmail.com>
++M:	Viresh Kumar <viresh.linux@gmail.com>
+ L:	spear-devel@list.st.com
+ L:	linux-mmc@vger.kernel.org
+ S:	Maintained
+@@ -6512,7 +6512,7 @@ S:	Maintained
+ F:	include/linux/compiler.h
+ 
+ SPEAR PLATFORM SUPPORT
+-M:     Viresh Kumar <viresh.linux@gmail.com>
++M:	Viresh Kumar <viresh.linux@gmail.com>
+ M:	Shiraz Hashim <shiraz.hashim@st.com>
+ L:	spear-devel@list.st.com
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+@@ -6521,7 +6521,7 @@ S:	Maintained
+ F:	arch/arm/plat-spear/
+ 
+ SPEAR13XX MACHINE SUPPORT
+-M:     Viresh Kumar <viresh.linux@gmail.com>
++M:	Viresh Kumar <viresh.linux@gmail.com>
+ M:	Shiraz Hashim <shiraz.hashim@st.com>
+ L:	spear-devel@list.st.com
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+@@ -6530,7 +6530,7 @@ S:	Maintained
+ F:	arch/arm/mach-spear13xx/
+ 
+ SPEAR3XX MACHINE SUPPORT
+-M:     Viresh Kumar <viresh.linux@gmail.com>
++M:	Viresh Kumar <viresh.linux@gmail.com>
+ M:	Shiraz Hashim <shiraz.hashim@st.com>
+ L:	spear-devel@list.st.com
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+@@ -6541,7 +6541,7 @@ F:	arch/arm/mach-spear3xx/
+ SPEAR6XX MACHINE SUPPORT
+ M:	Rajeev Kumar <rajeev-dlh.kumar@st.com>
+ M:	Shiraz Hashim <shiraz.hashim@st.com>
+-M:     Viresh Kumar <viresh.linux@gmail.com>
++M:	Viresh Kumar <viresh.linux@gmail.com>
+ L:	spear-devel@list.st.com
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ W:	http://www.st.com/spear
+@@ -6549,7 +6549,7 @@ S:	Maintained
+ F:	arch/arm/mach-spear6xx/
+ 
+ SPEAR CLOCK FRAMEWORK SUPPORT
+-M:     Viresh Kumar <viresh.linux@gmail.com>
++M:	Viresh Kumar <viresh.linux@gmail.com>
+ L:	spear-devel@list.st.com
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ W:	http://www.st.com/spear
 _
 
-Patches currently in -mm which might be from gorcunov@openvz.org are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-origin.patch
 linux-next.patch
-x86-pat-remove-the-dependency-on-vm_pgoff-in-track-untrack-pfn-vma-routines.patch
-x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn.patch
-mm-x86-pat-rework-linear-pfn-mmap-tracking.patch
-mm-introduce-arch-specific-vma-flag-vm_arch_1.patch
-mm-kill-vma-flag-vm_insertpage.patch
-mm-kill-vma-flag-vm_can_nonlinear.patch
-mm-use-mm-exe_file-instead-of-first-vm_executable-vma-vm_file.patch
-mm-kill-vma-flag-vm_executable-and-mm-num_exe_file_vmas.patch
-mm-prepare-vm_dontdump-for-using-in-drivers.patch
-mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter.patch
+lib-vsprintf-update-documentation-to-cover-all-of-%p.patch
+maintainers-fix-indentation-for-viresh-kumar.patch
 
