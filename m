@@ -1,60 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-code-fix-fix.patch removed from -mm tree
-Date: Wed, 26 Sep 2012 13:55:41 -0700
-Message-ID: <20120926205542.7A9005C0050@hpza9.eem.corp.google.com>
+Subject: [folded-merged] drivers-misc-lis3lv02d-lis3lv02d_spic-add-lis3lv02d-device-tree-init-fix.patch removed from -mm tree
+Date: Wed, 26 Sep 2012 13:56:11 -0700
+Message-ID: <20120926205611.9F1CC1E0049@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:41364 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751481Ab2IZUzo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Sep 2012 16:55:44 -0400
-Received: by eekb57 with SMTP id b57so77270eek.1
-        for <mm-commits@vger.kernel.org>; Wed, 26 Sep 2012 13:55:43 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:34449 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751548Ab2IZU4N (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Sep 2012 16:56:13 -0400
+Received: by vbis24 with SMTP id s24so127679vbi.1
+        for <mm-commits@vger.kernel.org>; Wed, 26 Sep 2012 13:56:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, rdunlap@xenotime.net, zonque@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, anilkumar@ti.com, arnd@arndb.de, broonie@opensource.wolfsonmicro.com, eric.piel@tremplin-utc.net, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-code-fix-fix
+     Subject: drivers-misc-lis3lv02d-lis3lv02d_spic-add-lis3lv02d-device-tree-init-fix
 has been removed from the -mm tree.  Its filename was
-     drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-code-fix-fix.patch
+     drivers-misc-lis3lv02d-lis3lv02d_spic-add-lis3lv02d-device-tree-init-fix.patch
 
-This patch was dropped because it was folded into drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-code.patch
+This patch was dropped because it was folded into drivers-misc-lis3lv02d-lis3lv02d_spic-add-lis3lv02d-device-tree-init.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-code-fix-fix
+Subject: drivers-misc-lis3lv02d-lis3lv02d_spic-add-lis3lv02d-device-tree-init-fix
 
-fix lis302dl_spi_dt_ids unused warning when CONFIG_OF=n
+config CONFIG_OF=n build
 
-drivers/misc/lis3lv02d/lis3lv02d_spi.c:63: warning: 'lis302dl_spi_dt_ids' defined but not used
+drivers/misc/lis3lv02d/lis3lv02d_spi.c: In function 'lis302dl_spi_probe':
+drivers/misc/lis3lv02d/lis3lv02d_spi.c:89: error: implicit declaration of function 'of_match_device'
+drivers/misc/lis3lv02d/lis3lv02d_spi.c:89: error: 'lis302dl_spi_dt_ids' undeclared (first use in this function)
+drivers/misc/lis3lv02d/lis3lv02d_spi.c:89: error: (Each undeclared identifier is reported only once
+drivers/misc/lis3lv02d/lis3lv02d_spi.c:89: error: for each function it appears in.)
+drivers/misc/lis3lv02d/lis3lv02d_spi.c:90: error: 'struct lis3lv02d' has no member named 'of_node'
 
-Cc: Daniel Mack <zonque@gmail.com>
-Cc: Randy Dunlap <rdunlap@xenotime.net>
+Cc: AnilKumar Ch <anilkumar@ti.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Eric Piel <eric.piel@tremplin-utc.net>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/lis3lv02d/lis3lv02d_spi.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/misc/lis3lv02d/lis3lv02d_spi.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/misc/lis3lv02d/lis3lv02d_spi.c~drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-code-fix-fix drivers/misc/lis3lv02d/lis3lv02d_spi.c
---- a/drivers/misc/lis3lv02d/lis3lv02d_spi.c~drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-code-fix-fix
+diff -puN drivers/misc/lis3lv02d/lis3lv02d_spi.c~drivers-misc-lis3lv02d-lis3lv02d_spic-add-lis3lv02d-device-tree-init-fix drivers/misc/lis3lv02d/lis3lv02d_spi.c
+--- a/drivers/misc/lis3lv02d/lis3lv02d_spi.c~drivers-misc-lis3lv02d-lis3lv02d_spic-add-lis3lv02d-device-tree-init-fix
 +++ a/drivers/misc/lis3lv02d/lis3lv02d_spi.c
-@@ -60,11 +60,13 @@ static int lis3_spi_init(struct lis3lv02
- static union axis_conversion lis3lv02d_axis_normal =
- 	{ .as_array = { 1, 2, 3 } };
+@@ -19,6 +19,7 @@
+ #include <linux/pm.h>
+ #include <linux/of.h>
+ #include <linux/of_platform.h>
++#include <linux/of_device.h>
+ 
+ #include "lis3lv02d.h"
+ 
+@@ -86,13 +87,14 @@ static int __devinit lis302dl_spi_probe(
+ 	lis3_dev.ac		= lis3lv02d_axis_normal;
+ 	lis3_dev.pdata		= spi->dev.platform_data;
  
 +#ifdef CONFIG_OF
- static struct of_device_id lis302dl_spi_dt_ids[] = {
- 	{ .compatible = "st,lis302dl-spi" },
- 	{}
- };
- MODULE_DEVICE_TABLE(of, lis302dl_spi_dt_ids);
+ 	if (of_match_device(lis302dl_spi_dt_ids, &spi->dev)) {
+ 		lis3_dev.of_node = spi->dev.of_node;
+ 		ret = lis3lv02d_init_dt(&lis3_dev);
+ 		if (ret)
+ 			return ret;
+ 	}
+-
 +#endif
+ 	spi_set_drvdata(spi, &lis3_dev);
  
- static int __devinit lis302dl_spi_probe(struct spi_device *spi)
- {
+ 	return lis3lv02d_init_device(&lis3_dev);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -94,7 +112,7 @@ sections-fix-section-conflicts-in-arch-h8300-checkpatch-fixes.patch
 sections-fix-section-conflicts-in-drivers-macintosh-checkpatch-fixes.patch
 sectons-fix-const-sections-for-crc32-table-checkpatch-fixes.patch
 drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-code.patch
-drivers-misc-lis3lv02d-lis3lv02d_spic-add-lis3lv02d-device-tree-init-fix.patch
+drivers-misc-lis3lv02d-lis3lv02d_spic-add-lis3lv02d-device-tree-init.patch
 drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init-fix.patch
 backlight-add-backlight-driver-for-lm3630-chip-fix.patch
 backlight-add-new-lm3639-backlight-driver-fix.patch
