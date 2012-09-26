@@ -1,56 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] prctl-use-access_ok-instead-of-task_size-in-prctl_set_mm-fix.patch removed from -mm tree
-Date: Wed, 26 Sep 2012 14:16:49 -0700
-Message-ID: <20120926211650.0395120004E@hpza10.eem.corp.google.com>
+Subject: [nacked] prctl-use-access_ok-instead-of-task_size-in-prctl_set_mm.patch removed from -mm tree
+Date: Wed, 26 Sep 2012 14:17:57 -0700
+Message-ID: <20120926211757.9A83D100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:63318 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752010Ab2IZVQw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Sep 2012 17:16:52 -0400
-Received: by wibhr7 with SMTP id hr7so78867wib.1
-        for <mm-commits@vger.kernel.org>; Wed, 26 Sep 2012 14:16:51 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:62369 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752010Ab2IZVR6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Sep 2012 17:17:58 -0400
+Received: by yenr11 with SMTP id r11so130172yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 26 Sep 2012 14:17:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gorcunov@openvz.org, fengguang.wu@intel.com, mm-commits@vger.kernel.org
+To: gorcunov@openvz.org, ebiederm@xmission.com, keescook@chromium.org, msalter@redhat.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: prctl-use-access_ok-instead-of-task_size-in-prctl_set_mm-fix
+     Subject: prctl: use access_ok() instead of TASK_SIZE in prctl_set_mm()
 has been removed from the -mm tree.  Its filename was
-     prctl-use-access_ok-instead-of-task_size-in-prctl_set_mm-fix.patch
+     prctl-use-access_ok-instead-of-task_size-in-prctl_set_mm.patch
 
-This patch was dropped because it was folded into prctl-use-access_ok-instead-of-task_size-in-prctl_set_mm.patch
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
 From: Cyrill Gorcunov <gorcunov@openvz.org>
-Subject: prctl-use-access_ok-instead-of-task_size-in-prctl_set_mm-fix
+Subject: prctl: use access_ok() instead of TASK_SIZE in prctl_set_mm()
 
-prctl: prctl_set_mm - Cast type of @addr
+Eric pointed that better to use access_ok instead of TASK_SIZE for testing
+if address is allowed for use.
 
-The sparse tool warns about type casting
-
- >   kernel/sys.c:1048:38: sparse: incorrect type in argument 2 (different modifiers)
-
-Fix it with explicit type convention.
-
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Reported-by: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Mark Salter <msalter@redhat.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/sys.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/sys.c~prctl-use-access_ok-instead-of-task_size-in-prctl_set_mm-fix kernel/sys.c
---- a/kernel/sys.c~prctl-use-access_ok-instead-of-task_size-in-prctl_set_mm-fix
+diff -puN kernel/sys.c~prctl-use-access_ok-instead-of-task_size-in-prctl_set_mm kernel/sys.c
+--- a/kernel/sys.c~prctl-use-access_ok-instead-of-task_size-in-prctl_set_mm
 +++ a/kernel/sys.c
-@@ -1865,7 +1865,7 @@ static int prctl_set_mm(int opt, unsigne
+@@ -1865,7 +1865,8 @@ static int prctl_set_mm(int opt, unsigne
  	if (opt == PR_SET_MM_EXE_FILE)
  		return prctl_set_mm_exe_file(mm, (unsigned int)addr);
  
--	if (!access_ok(VERIFY_READ, addr, sizeof(addr)) || addr < mmap_min_addr)
-+	if (!access_ok(VERIFY_READ, (void *)addr, sizeof(addr)) || addr < mmap_min_addr)
+-	if (addr >= TASK_SIZE || addr < mmap_min_addr)
++	if (!access_ok(VERIFY_READ, (void __user *)addr, sizeof(addr)) ||
++			addr < mmap_min_addr)
  		return -EINVAL;
  
  	error = -EINVAL;
@@ -60,8 +59,6 @@ Patches currently in -mm which might be from gorcunov@openvz.org are
 
 origin.patch
 linux-next.patch
-prctl-use-access_ok-instead-of-task_size-in-prctl_set_mm.patch
-prctl-use-access_ok-instead-of-task_size-in-prctl_set_mm-fix-fix.patch
 x86-pat-remove-the-dependency-on-vm_pgoff-in-track-untrack-pfn-vma-routines.patch
 x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn.patch
 mm-x86-pat-rework-linear-pfn-mmap-tracking.patch
