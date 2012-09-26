@@ -1,39 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] drivers-misc-lis3lv02d-lis3lv02d_spic-add-lis3lv02d-device-tree-init-fix.patch removed from -mm tree
-Date: Wed, 26 Sep 2012 13:56:11 -0700
-Message-ID: <20120926205611.9F1CC1E0049@wpzn4.hot.corp.google.com>
+Subject: [folded-merged] drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init-fix.patch removed from -mm tree
+Date: Wed, 26 Sep 2012 13:56:38 -0700
+Message-ID: <20120926205638.D10A3100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:34449 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751548Ab2IZU4N (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Sep 2012 16:56:13 -0400
-Received: by vbis24 with SMTP id s24so127679vbi.1
-        for <mm-commits@vger.kernel.org>; Wed, 26 Sep 2012 13:56:12 -0700 (PDT)
+Received: from mail-yx0-f202.google.com ([209.85.213.202]:50391 "EHLO
+	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751695Ab2IZU4k (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Sep 2012 16:56:40 -0400
+Received: by yenr11 with SMTP id r11so127661yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 26 Sep 2012 13:56:39 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, anilkumar@ti.com, arnd@arndb.de, broonie@opensource.wolfsonmicro.com, eric.piel@tremplin-utc.net, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers-misc-lis3lv02d-lis3lv02d_spic-add-lis3lv02d-device-tree-init-fix
+     Subject: drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init-fix
 has been removed from the -mm tree.  Its filename was
-     drivers-misc-lis3lv02d-lis3lv02d_spic-add-lis3lv02d-device-tree-init-fix.patch
+     drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init-fix.patch
 
-This patch was dropped because it was folded into drivers-misc-lis3lv02d-lis3lv02d_spic-add-lis3lv02d-device-tree-init.patch
+This patch was dropped because it was folded into drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers-misc-lis3lv02d-lis3lv02d_spic-add-lis3lv02d-device-tree-init-fix
+Subject: drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init-fix
 
-config CONFIG_OF=n build
+fix CONFIG_OF=n build
 
-drivers/misc/lis3lv02d/lis3lv02d_spi.c: In function 'lis302dl_spi_probe':
-drivers/misc/lis3lv02d/lis3lv02d_spi.c:89: error: implicit declaration of function 'of_match_device'
-drivers/misc/lis3lv02d/lis3lv02d_spi.c:89: error: 'lis302dl_spi_dt_ids' undeclared (first use in this function)
-drivers/misc/lis3lv02d/lis3lv02d_spi.c:89: error: (Each undeclared identifier is reported only once
-drivers/misc/lis3lv02d/lis3lv02d_spi.c:89: error: for each function it appears in.)
-drivers/misc/lis3lv02d/lis3lv02d_spi.c:90: error: 'struct lis3lv02d' has no member named 'of_node'
+drivers/misc/lis3lv02d/lis3lv02d_i2c.c: In function 'lis3lv02d_i2c_probe':
+drivers/misc/lis3lv02d/lis3lv02d_i2c.c:120: error: implicit declaration of function 'of_match_device'
+drivers/misc/lis3lv02d/lis3lv02d_i2c.c:121: error: 'struct lis3lv02d' has no member named 'of_node'
 
 Cc: AnilKumar Ch <anilkumar@ti.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -43,36 +40,50 @@ Cc: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/lis3lv02d/lis3lv02d_spi.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/misc/lis3lv02d/lis3lv02d_i2c.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN drivers/misc/lis3lv02d/lis3lv02d_spi.c~drivers-misc-lis3lv02d-lis3lv02d_spic-add-lis3lv02d-device-tree-init-fix drivers/misc/lis3lv02d/lis3lv02d_spi.c
---- a/drivers/misc/lis3lv02d/lis3lv02d_spi.c~drivers-misc-lis3lv02d-lis3lv02d_spic-add-lis3lv02d-device-tree-init-fix
-+++ a/drivers/misc/lis3lv02d/lis3lv02d_spi.c
-@@ -19,6 +19,7 @@
- #include <linux/pm.h>
+diff -puN drivers/misc/lis3lv02d/lis3lv02d_i2c.c~drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init-fix drivers/misc/lis3lv02d/lis3lv02d_i2c.c
+--- a/drivers/misc/lis3lv02d/lis3lv02d_i2c.c~drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init-fix
++++ a/drivers/misc/lis3lv02d/lis3lv02d_i2c.c
+@@ -33,6 +33,7 @@
+ #include <linux/delay.h>
  #include <linux/of.h>
  #include <linux/of_platform.h>
 +#include <linux/of_device.h>
  
  #include "lis3lv02d.h"
  
-@@ -86,13 +87,14 @@ static int __devinit lis302dl_spi_probe(
- 	lis3_dev.ac		= lis3lv02d_axis_normal;
- 	lis3_dev.pdata		= spi->dev.platform_data;
+@@ -105,11 +106,13 @@ static int lis3_i2c_init(struct lis3lv02
+ static union axis_conversion lis3lv02d_axis_map =
+ 	{ .as_array = { LIS3_DEV_X, LIS3_DEV_Y, LIS3_DEV_Z } };
  
 +#ifdef CONFIG_OF
- 	if (of_match_device(lis302dl_spi_dt_ids, &spi->dev)) {
- 		lis3_dev.of_node = spi->dev.of_node;
- 		ret = lis3lv02d_init_dt(&lis3_dev);
- 		if (ret)
- 			return ret;
- 	}
--
+ static struct of_device_id lis3lv02d_i2c_dt_ids[] = {
+ 	{ .compatible = "st,lis3lv02d" },
+ 	{}
+ };
+ MODULE_DEVICE_TABLE(of, lis3lv02d_i2c_dt_ids);
 +#endif
- 	spi_set_drvdata(spi, &lis3_dev);
  
- 	return lis3lv02d_init_device(&lis3_dev);
+ static int __devinit lis3lv02d_i2c_probe(struct i2c_client *client,
+ 					const struct i2c_device_id *id)
+@@ -117,6 +120,7 @@ static int __devinit lis3lv02d_i2c_probe
+ 	int ret = 0;
+ 	struct lis3lv02d_platform_data *pdata = client->dev.platform_data;
+ 
++#ifdef CONFIG_OF
+ 	if (of_match_device(lis3lv02d_i2c_dt_ids, &client->dev)) {
+ 		lis3_dev.of_node = client->dev.of_node;
+ 		ret = lis3lv02d_init_dt(&lis3_dev);
+@@ -124,6 +128,7 @@ static int __devinit lis3lv02d_i2c_probe
+ 			return ret;
+ 		pdata = lis3_dev.pdata;
+ 	}
++#endif
+ 
+ 	if (pdata) {
+ 		if ((pdata->driver_features & LIS3_USE_BLOCK_READ) &&
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -113,7 +124,7 @@ sections-fix-section-conflicts-in-drivers-macintosh-checkpatch-fixes.patch
 sectons-fix-const-sections-for-crc32-table-checkpatch-fixes.patch
 drivers-misc-lis3lv02d-lis3lv02d_spic-add-dt-matching-table-passthru-code.patch
 drivers-misc-lis3lv02d-lis3lv02d_spic-add-lis3lv02d-device-tree-init.patch
-drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init-fix.patch
+drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init.patch
 backlight-add-backlight-driver-for-lm3630-chip-fix.patch
 backlight-add-new-lm3639-backlight-driver-fix.patch
 backlight-platform-lcd-add-support-for-device-tree-based-probe-fix.patch
