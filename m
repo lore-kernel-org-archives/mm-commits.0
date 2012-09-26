@@ -1,91 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: + fs-fs-writebackc-remove-unneccesary-parameter-of-__writeback_single_inode.patch added to -mm tree
-Date: Wed, 26 Sep 2012 13:18:43 -0700
-Message-ID: <20120926201843.940271E0043@wpzn4.hot.corp.google.com>
+Subject: [to-be-updated] pagemap-fix-wrong-kpf_thp-on-slab-pages.patch removed from -mm tree
+Date: Wed, 26 Sep 2012 13:37:17 -0700
+Message-ID: <20120926203718.1EB3620004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:47217 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750945Ab2IZUSo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Sep 2012 16:18:44 -0400
-Received: by yenr11 with SMTP id r11so121052yen.1
-        for <mm-commits@vger.kernel.org>; Wed, 26 Sep 2012 13:18:44 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:43754 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751830Ab2IZUhU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Sep 2012 16:37:20 -0400
+Received: by wgbdt11 with SMTP id dt11so76531wgb.1
+        for <mm-commits@vger.kernel.org>; Wed, 26 Sep 2012 13:37:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: clouds.yan@gmail.com, fengguang.wu@intel.com
+To: n-horiguchi@ah.jp.nec.com, andi.kleen@intel.com, fengguang.wu@intel.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/fs-writeback.c: remove unneccesary parameter of __writeback_single_inode()
-has been added to the -mm tree.  Its filename is
-     fs-fs-writebackc-remove-unneccesary-parameter-of-__writeback_single_inode.patch
+     Subject: Re: pagemap: fix wrong KPF_THP on slab pages
+has been removed from the -mm tree.  Its filename was
+     pagemap-fix-wrong-kpf_thp-on-slab-pages.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Yan Hong <clouds.yan@gmail.com>
-Subject: fs/fs-writeback.c: remove unneccesary parameter of __writeback_single_inode()
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: Re: pagemap: fix wrong KPF_THP on slab pages
 
-The parameter 'wb' is never used in this function.
+KPF_THP can be set on non-huge compound pages like slab pages, because
+PageTransCompound only sees PG_head and PG_tail. Obviously this is a bug
+and breaks user space applications which look for thp via /proc/kpageflags.
+Currently thp is constructed only on anonymous pages, so this patch makes
+KPF_THP be set when both of PageAnon and PageTransCompound are true.
 
-Signed-off-by: Yan Hong <clouds.yan@gmail.com>
-Acked-by: Wu Fengguang <fengguang.wu@intel.com>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Andi Kleen <andi.kleen@intel.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ fs/proc/page.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN fs/fs-writeback.c~fs-fs-writebackc-remove-unneccesary-parameter-of-__writeback_single_inode fs/fs-writeback.c
---- a/fs/fs-writeback.c~fs-fs-writebackc-remove-unneccesary-parameter-of-__writeback_single_inode
-+++ a/fs/fs-writeback.c
-@@ -439,8 +439,7 @@ static void requeue_inode(struct inode *
-  * setting I_SYNC flag and calling inode_sync_complete() to clear it.
-  */
- static int
--__writeback_single_inode(struct inode *inode, struct bdi_writeback *wb,
--			 struct writeback_control *wbc)
-+__writeback_single_inode(struct inode *inode, struct writeback_control *wbc)
- {
- 	struct address_space *mapping = inode->i_mapping;
- 	long nr_to_write = wbc->nr_to_write;
-@@ -527,7 +526,7 @@ writeback_single_inode(struct inode *ino
- 	inode->i_state |= I_SYNC;
- 	spin_unlock(&inode->i_lock);
+diff -puN fs/proc/page.c~pagemap-fix-wrong-kpf_thp-on-slab-pages fs/proc/page.c
+--- a/fs/proc/page.c~pagemap-fix-wrong-kpf_thp-on-slab-pages
++++ a/fs/proc/page.c
+@@ -115,7 +115,12 @@ u64 stable_page_flags(struct page *page)
+ 		u |= 1 << KPF_COMPOUND_TAIL;
+ 	if (PageHuge(page))
+ 		u |= 1 << KPF_HUGE;
+-	else if (PageTransCompound(page))
++	/*
++	 * Since THP is relevant only for anonymous pages so far, we check it
++	 * explicitly with PageAnon. Otherwise thp is confounded with non-huge
++	 * compound pages like slab pages.
++	 */
++	else if (PageTransCompound(page) && PageAnon(page))
+ 		u |= 1 << KPF_THP;
  
--	ret = __writeback_single_inode(inode, wb, wbc);
-+	ret = __writeback_single_inode(inode, wbc);
- 
- 	spin_lock(&wb->list_lock);
- 	spin_lock(&inode->i_lock);
-@@ -670,7 +669,7 @@ static long writeback_sb_inodes(struct s
- 		 * We use I_SYNC to pin the inode in memory. While it is set
- 		 * evict_inode() will wait so the inode cannot be freed.
- 		 */
--		__writeback_single_inode(inode, wb, &wbc);
-+		__writeback_single_inode(inode, &wbc);
- 
- 		work->nr_pages -= write_chunk - wbc.nr_to_write;
- 		wrote += write_chunk - wbc.nr_to_write;
+ 	/*
 _
 
-Patches currently in -mm which might be from clouds.yan@gmail.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-fs-debugsfs-remove-unnecessary-inode-i_private-initialization.patch
-fs-block_devc-need-not-to-check-inode-i_bdev-in-bd_forget.patch
-fs-fs-writebackc-remove-unneccesary-parameter-of-__writeback_single_inode.patch
-proc-return-enomem-when-inode-allocation-failed.patch
-proc-no-need-to-initialize-proc_inode-fd-in-proc_get_inode.patch
-proc-use-kzalloc-instead-of-kmalloc-and-memset.patch
-proc-use-kzalloc-instead-of-kmalloc-and-memset-fix.patch
 
