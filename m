@@ -1,66 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pwm-backlight-take-over-maintenance.patch removed from -mm tree
-Date: Wed, 26 Sep 2012 12:35:27 -0700
-Message-ID: <20120926193527.C92451E0048@wpzn4.hot.corp.google.com>
+Subject: [merged] lib-flex_proportionsc-fix-corruption-of-denominator-in-flexible-proportions.patch removed from -mm tree
+Date: Wed, 26 Sep 2012 12:35:34 -0700
+Message-ID: <20120926193534.692F41E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:41085 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758300Ab2IZTf3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Sep 2012 15:35:29 -0400
-Received: by yenr11 with SMTP id r11so113854yen.1
-        for <mm-commits@vger.kernel.org>; Wed, 26 Sep 2012 12:35:28 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:53673 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758314Ab2IZTff (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Sep 2012 15:35:35 -0400
+Received: by qcqs25 with SMTP id s25so113303qcq.1
+        for <mm-commits@vger.kernel.org>; Wed, 26 Sep 2012 12:35:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: thierry.reding@avionic-design.de, acourbot@nvidia.com, arun.murthy@stericsson.com, axel.lin@gmail.com, broonie@opensource.wolfsonmicro.com, dilee@nvidia.com, linus.walleij@linaro.org, mjg@redhat.com, rmorell@nvidia.com, sachin.kamat@linaro.org, mm-commits@vger.kernel.org
+To: jack@suse.cz, a.p.zijlstra@chello.nl, bp@amd64.org, conny.seidel@amd.com, fengguang.wu@intel.com, srivatsa.bhat@linux.vnet.ibm.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pwm-backlight: take over maintenance
+     Subject: lib/flex_proportions.c: fix corruption of denominator in flexible proportions
 has been removed from the -mm tree.  Its filename was
-     pwm-backlight-take-over-maintenance.patch
+     lib-flex_proportionsc-fix-corruption-of-denominator-in-flexible-proportions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Thierry Reding <thierry.reding@avionic-design.de>
-Subject: pwm-backlight: take over maintenance
+From: Jan Kara <jack@suse.cz>
+Subject: lib/flex_proportions.c: fix corruption of denominator in flexible proportions
 
-Since the pwm-backlight driver is lacking a proper maintainer and is the
-heaviest user of the PWM framework I'm taking over maintenance.
+When racing with CPU hotplug, percpu_counter_sum() can return negative
+values for the number of observed events.  This confuses
+fprop_new_period(), which uses unsigned type and as a result number of
+events is set to big *positive* number.  From that moment on, things go
+pear shaped and can result e.g.  in division by zero as denominator is
+later truncated to 32-bits.
 
-Signed-off-by: Thierry Reding <thierry.reding@avionic-design.de>
-Acked-by: Arun Murthy <arun.murthy@stericsson.com>
-Cc: Matthew Garrett <mjg@redhat.com>
-Cc: Robert Morell <rmorell@nvidia.com>
-Cc: Dilan Lee <dilee@nvidia.com>
-Cc: Axel Lin <axel.lin@gmail.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Alexandre Courbot <acourbot@nvidia.com>
-Acked-by: Sachin Kamat <sachin.kamat@linaro.org>
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
+This bug causes a divide-by-zero oops in bdi_dirty_limit() in Borislav's
+3.6.0-rc6 based kernel.
+
+Fix the issue by using a signed type in fprop_new_period().  That makes us
+bail out from the function without doing anything (mistakenly) thinking
+there are no events to age.  That makes aging somewhat inaccurate but
+getting accurate data would be rather hard.
+
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reported-by: Borislav Petkov <bp@amd64.org>
+Reported-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 ++
- 1 file changed, 2 insertions(+)
+ lib/flex_proportions.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~pwm-backlight-take-over-maintenance MAINTAINERS
---- a/MAINTAINERS~pwm-backlight-take-over-maintenance
-+++ a/MAINTAINERS
-@@ -5544,6 +5544,8 @@ F:	Documentation/devicetree/bindings/pwm
- F:	include/linux/pwm.h
- F:	include/linux/of_pwm.h
- F:	drivers/pwm/
-+F:	drivers/video/backlight/pwm_bl.c
-+F:	include/linux/pwm_backlight.h
+diff -puN lib/flex_proportions.c~lib-flex_proportionsc-fix-corruption-of-denominator-in-flexible-proportions lib/flex_proportions.c
+--- a/lib/flex_proportions.c~lib-flex_proportionsc-fix-corruption-of-denominator-in-flexible-proportions
++++ a/lib/flex_proportions.c
+@@ -62,7 +62,7 @@ void fprop_global_destroy(struct fprop_g
+  */
+ bool fprop_new_period(struct fprop_global *p, int periods)
+ {
+-	u64 events;
++	s64 events;
+ 	unsigned long flags;
  
- PXA2xx/PXA3xx SUPPORT
- M:	Eric Miao <eric.y.miao@gmail.com>
+ 	local_irq_save(flags);
 _
 
-Patches currently in -mm which might be from thierry.reding@avionic-design.de are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
 linux-next.patch
+fs-change-return-values-from-eacces-to-eperm.patch
+hfsplus-add-on-disk-layout-declarations-related-to-attributes-tree.patch
+hfsplus-add-functionality-of-manipulating-by-records-in-attributes-tree.patch
+hfsplus-rework-functionality-of-getting-setting-and-deleting-of-extended-attributes.patch
+hfsplus-add-support-of-manipulation-by-attributes-file.patch
 
