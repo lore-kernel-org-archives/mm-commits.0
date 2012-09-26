@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fs-block_devc-need-not-to-check-inode-i_bdev-in-bd_forget.patch added to -mm tree
-Date: Wed, 26 Sep 2012 13:17:19 -0700
-Message-ID: <20120926201719.AF2A8100047@wpzn3.hot.corp.google.com>
+Subject: + fs-debugsfs-remove-unnecessary-inode-i_private-initialization.patch added to -mm tree
+Date: Wed, 26 Sep 2012 13:17:59 -0700
+Message-ID: <20120926201800.0C5065C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:54224 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750945Ab2IZURU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Sep 2012 16:17:20 -0400
-Received: by vcbfy27 with SMTP id fy27so120617vcb.1
-        for <mm-commits@vger.kernel.org>; Wed, 26 Sep 2012 13:17:20 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:56270 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750945Ab2IZUSC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Sep 2012 16:18:02 -0400
+Received: by eekb57 with SMTP id b57so75741eek.1
+        for <mm-commits@vger.kernel.org>; Wed, 26 Sep 2012 13:18:01 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clouds.yan@gmail.com, viro@zeniv.linux.org.uk
+Cc: clouds.yan@gmail.com, greg@kroah.com
 
 
 The patch titled
-     Subject: fs/block_dev.c: no need to check inode->i_bdev in bd_forget()
+     Subject: fs/debugsfs: remove unnecessary inode->i_private initialization
 has been added to the -mm tree.  Its filename is
-     fs-block_devc-need-not-to-check-inode-i_bdev-in-bd_forget.patch
+     fs-debugsfs-remove-unnecessary-inode-i_private-initialization.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yan Hong <clouds.yan@gmail.com>
-Subject: fs/block_dev.c: no need to check inode->i_bdev in bd_forget()
+Subject: fs/debugsfs: remove unnecessary inode->i_private initialization
 
-Its only caller evict() has promised a non-NULL inode->i_bdev.
+inode->i_private is promised to be NULL on allocation, no need to set it
+explicitly.
 
 Signed-off-by: Yan Hong <clouds.yan@gmail.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/block_dev.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ fs/debugfs/inode.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/block_dev.c~fs-block_devc-need-not-to-check-inode-i_bdev-in-bd_forget fs/block_dev.c
---- a/fs/block_dev.c~fs-block_devc-need-not-to-check-inode-i_bdev-in-bd_forget
-+++ a/fs/block_dev.c
-@@ -669,11 +669,9 @@ void bd_forget(struct inode *inode)
- 	struct block_device *bdev = NULL;
+diff -puN fs/debugfs/inode.c~fs-debugsfs-remove-unnecessary-inode-i_private-initialization fs/debugfs/inode.c
+--- a/fs/debugfs/inode.c~fs-debugsfs-remove-unnecessary-inode-i_private-initialization
++++ a/fs/debugfs/inode.c
+@@ -59,7 +59,6 @@ static struct inode *debugfs_get_inode(s
+ 		case S_IFDIR:
+ 			inode->i_op = &simple_dir_inode_operations;
+ 			inode->i_fop = &simple_dir_operations;
+-			inode->i_private = NULL;
  
- 	spin_lock(&bdev_lock);
--	if (inode->i_bdev) {
--		if (!sb_is_blkdev_sb(inode->i_sb))
--			bdev = inode->i_bdev;
--		__bd_forget(inode);
--	}
-+	if (!sb_is_blkdev_sb(inode->i_sb))
-+		bdev = inode->i_bdev;
-+	__bd_forget(inode);
- 	spin_unlock(&bdev_lock);
- 
- 	if (bdev)
+ 			/* directory inodes start off with i_nlink == 2
+ 			 * (for "." entry) */
 _
 
 Patches currently in -mm which might be from clouds.yan@gmail.com are
 
+fs-debugsfs-remove-unnecessary-inode-i_private-initialization.patch
 fs-block_devc-need-not-to-check-inode-i_bdev-in-bd_forget.patch
 proc-return-enomem-when-inode-allocation-failed.patch
 proc-no-need-to-initialize-proc_inode-fd-in-proc_get_inode.patch
