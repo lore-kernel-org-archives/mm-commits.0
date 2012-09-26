@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + cma-decrease-ccnr_migratepages-after-reclaiming-pagelist.patch added to -mm tree
-Date: Wed, 26 Sep 2012 14:36:49 -0700
-Message-ID: <20120926213650.4D278100047@wpzn3.hot.corp.google.com>
+Subject: + mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix-fix.patch added to -mm tree
+Date: Wed, 26 Sep 2012 14:37:59 -0700
+Message-ID: <20120926213759.C1291100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:45120 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750945Ab2IZVgv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Sep 2012 17:36:51 -0400
-Received: by qaea16 with SMTP id a16so233658qae.1
-        for <mm-commits@vger.kernel.org>; Wed, 26 Sep 2012 14:36:50 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:49375 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751121Ab2IZViB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Sep 2012 17:38:01 -0400
+Received: by qcqs25 with SMTP id s25so131821qcq.1
+        for <mm-commits@vger.kernel.org>; Wed, 26 Sep 2012 14:38:00 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minchan@kernel.org, b.zolnierkie@samsung.com, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com
+Cc: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org
 
 
 The patch titled
-     Subject: CMA: decrease cc.nr_migratepages after reclaiming pagelist
+     Subject: mm, numa: reclaim from all nodes within reclaim distance fix fix
 has been added to the -mm tree.  Its filename is
-     cma-decrease-ccnr_migratepages-after-reclaiming-pagelist.patch
+     mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,97 +33,115 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: CMA: decrease cc.nr_migratepages after reclaiming pagelist
+From: David Rientjes <rientjes@google.com>
+Subject: mm, numa: reclaim from all nodes within reclaim distance fix fix
 
-reclaim_clean_pages_from_list() reclaims clean pages before migration so
-cc.nr_migratepages should be updated.  Currently, there is no problem but
-it can be wrong if we try to use the value in future.
+It's cleaner if the iteration is explicitly done only for NUMA kernels.
+No functional change.
 
-Signed-off-by: Minchan Kim <minchan@kernel.org>
+Intended to be folded into
+mm-numa-reclaim-from-all-nodes-within-reclaim-distance.patch already in
+-mm.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
 Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |   24 ++++++++++++++++--------
+ 1 file changed, 16 insertions(+), 8 deletions(-)
 
-diff -puN mm/page_alloc.c~cma-decrease-ccnr_migratepages-after-reclaiming-pagelist mm/page_alloc.c
---- a/mm/page_alloc.c~cma-decrease-ccnr_migratepages-after-reclaiming-pagelist
+diff -puN mm/page_alloc.c~mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix-fix
 +++ a/mm/page_alloc.c
-@@ -5663,7 +5663,7 @@ static unsigned long pfn_max_align_up(un
- static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
+@@ -1803,6 +1803,17 @@ static bool zone_allows_reclaim(struct z
+ 	return node_isset(local_zone->node, zone->zone_pgdat->reclaim_nodes);
+ }
+ 
++static void __paginginit init_zone_allows_reclaim(int nid)
++{
++	int i;
++
++	for_each_online_node(i)
++		if (node_distance(nid, i) <= RECLAIM_DISTANCE) {
++			node_set(i, NODE_DATA(nid)->reclaim_nodes);
++			zone_reclaim_mode = 1;
++		}
++}
++
+ #else	/* CONFIG_NUMA */
+ 
+ static nodemask_t *zlc_setup(struct zonelist *zonelist, int alloc_flags)
+@@ -1828,6 +1839,10 @@ static bool zone_allows_reclaim(struct z
  {
- 	/* This function is based on compact_zone() from compaction.c. */
--
-+	unsigned long nr_reclaimed;
- 	unsigned long pfn = start;
- 	unsigned int tries = 0;
- 	int ret = 0;
-@@ -5699,7 +5699,9 @@ static int __alloc_contig_migrate_range(
- 			break;
- 		}
+ 	return true;
+ }
++
++static inline void init_zone_allows_reclaim(int nid)
++{
++}
+ #endif	/* CONFIG_NUMA */
  
--		reclaim_clean_pages_from_list(cc.zone, &cc.migratepages);
-+		nr_reclaimed = reclaim_clean_pages_from_list(cc.zone,
-+							&cc.migratepages);
-+		cc.nr_migratepages -= nr_reclaimed;
+ /*
+@@ -4547,20 +4562,13 @@ void __paginginit free_area_init_node(in
+ 		unsigned long node_start_pfn, unsigned long *zholes_size)
+ {
+ 	pg_data_t *pgdat = NODE_DATA(nid);
+-	int i;
  
- 		ret = migrate_pages(&cc.migratepages,
- 				    alloc_migrate_target,
+ 	/* pg_data_t should be reset to zero when it's allocated */
+ 	WARN_ON(pgdat->nr_zones || pgdat->classzone_idx);
+ 
+ 	pgdat->node_id = nid;
+ 	pgdat->node_start_pfn = node_start_pfn;
+-	for_each_online_node(i)
+-		if (node_distance(nid, i) <= RECLAIM_DISTANCE) {
+-			node_set(i, pgdat->reclaim_nodes);
+-#ifdef CONFIG_NUMA
+-			zone_reclaim_mode = 1;
+-#endif
+-		}
++	init_zone_allows_reclaim(nid);
+ 	calculate_node_totalpages(pgdat, zones_size, zholes_size);
+ 
+ 	alloc_node_mem_map(pgdat);
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from rientjes@google.com are
 
 linux-next.patch
-mm-remove-__gfp_no_kswapd.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
-mm-compaction-update-comment-in-try_to_compact_pages.patch
-mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures.patch
-mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures-fix.patch
-mm-compaction-capture-a-suitable-high-order-page-immediately-when-it-is-made-available.patch
-mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration.patch
-mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix.patch
-mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix.patch
-mm-fix-tracing-in-free_pcppages_bulk.patch
-mm-fix-tracing-in-free_pcppages_bulk-fix.patch
-cma-fix-counting-of-isolated-pages.patch
-cma-count-free-cma-pages.patch
-cma-count-free-cma-pages-fix.patch
-cma-fix-watermark-checking.patch
-cma-fix-watermark-checking-fix.patch
-mm-page_alloc-use-get_freepage_migratetype-instead-of-page_private.patch
-mm-remain-migratetype-in-freed-page.patch
-memory-hotplug-bug-fix-race-between-isolation-and-allocation.patch
-memory-hotplug-fix-pages-missed-by-race-rather-than-failing.patch
-memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-mm-memblock-reduce-overhead-in-binary-search.patch
-mm-memblock-use-existing-interface-to-set-nid.patch
-mm-memblock-cleanup-early_node_map-related-comments.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix-2.patch
-mm-compaction-move-fatal-signal-check-out-of-compact_checklock_irqsave.patch
-mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible-fix.patch
-mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible-fix-fix.patch
-mm-compaction-acquire-the-zone-lock-as-late-as-possible.patch
-revert-mm-have-order-0-compaction-start-off-where-it-left.patch
+acpi_memhotplugc-fix-memory-leak-when-memory-device-is-unbound-from-the-module-acpi_memhotplug.patch
+acpi_memhotplugc-free-memory-device-if-acpi_memory_enable_device-failed.patch
+acpi_memhotplugc-remove-memory-info-from-list-before-freeing-it.patch
+acpi_memhotplugc-dont-allow-to-eject-the-memory-device-if-it-is-being-used.patch
+acpi_memhotplugc-bind-the-memory-device-when-the-driver-is-being-loaded.patch
+acpi_memhotplugc-auto-bind-the-memory-device-which-is-hotplugged-before-the-driver-is-loaded.patch
+mm-mmapc-replace-find_vma_prepare-with-clearer-find_vma_links-fix.patch
+oom-remove-deprecated-oom_adj.patch
+thp-fix-the-count-of-thp_collapse_alloc.patch
+thp-remove-unnecessary-check-in-start_khugepaged.patch
+thp-move-khugepaged_mutex-out-of-khugepaged.patch
+thp-remove-unnecessary-khugepaged_thread-check.patch
+thp-remove-wake_up_interruptible-in-the-exit-path.patch
+thp-remove-some-code-depend-on-config_numa.patch
+thp-merge-page-pre-alloc-in-khugepaged_loop-into-khugepaged_do_scan.patch
+thp-release-page-in-page-pre-alloc-path.patch
+thp-introduce-khugepaged_prealloc_page-and-khugepaged_alloc_page.patch
+thp-remove-khugepaged_loop.patch
+thp-use-khugepaged_enabled-to-remove-duplicate-code.patch
+thp-remove-unnecessary-set_recommended_min_free_kbytes.patch
 mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc.patch
-mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch
 memory-hotplug-dont-replace-lowmem-pages-with-highmem.patch
-mm-enable-config_compaction-by-default.patch
+thp-khugepaged_prealloc_page-forgot-to-reset-the-page-alloc-indicator.patch
+mm-fix-up-zone-present-pages.patch
 mm-numa-reclaim-from-all-nodes-within-reclaim-distance.patch
 mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix.patch
+mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix-fix.patch
+hugetlb-do-not-use-vma_hugecache_offset-for-vma_prio_tree_foreach.patch
 mm-revert-0def08e3-mm-mempolicyc-check-return-code-of-check_range.patch
 mm-revert-0def08e3-mm-mempolicyc-check-return-code-of-check_range-fix.patch
-memory-hotplug-fix-zone-stat-mismatch.patch
-cma-migrate-mlocked-pages.patch
-cma-decrease-ccnr_migratepages-after-reclaiming-pagelist.patch
+ksm-numa-awareness-sysfs-knob.patch
+kpageflags-fix-wrong-kpf_thp-on-non-huge-compound-pages.patch
 
