@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-fix-indentation-for-viresh-kumar.patch added to -mm tree
-Date: Wed, 26 Sep 2012 14:32:32 -0700
-Message-ID: <20120926213232.94D82100047@wpzn3.hot.corp.google.com>
+Subject: + cma-migrate-mlocked-pages.patch added to -mm tree
+Date: Wed, 26 Sep 2012 14:36:00 -0700
+Message-ID: <20120926213600.A52AF100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:50711 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750890Ab2IZVcd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Sep 2012 17:32:33 -0400
-Received: by yenr11 with SMTP id r11so132055yen.1
-        for <mm-commits@vger.kernel.org>; Wed, 26 Sep 2012 14:32:33 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:59431 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750994Ab2IZVgB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Sep 2012 17:36:01 -0400
+Received: by qcqs25 with SMTP id s25so131631qcq.1
+        for <mm-commits@vger.kernel.org>; Wed, 26 Sep 2012 14:36:01 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andriy.shevchenko@linux.intel.com, viresh.kumar@linaro.org
+Cc: minchan@kernel.org, b.zolnierkie@samsung.com, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com
 
 
 The patch titled
-     Subject: MAINTAINERS: fix indentation for Viresh Kumar
+     Subject: CMA: migrate mlocked pages
 has been added to the -mm tree.  Its filename is
-     maintainers-fix-indentation-for-viresh-kumar.patch
+     cma-migrate-mlocked-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,97 +33,172 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: MAINTAINERS: fix indentation for Viresh Kumar
+From: Minchan Kim <minchan@kernel.org>
+Subject: CMA: migrate mlocked pages
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
+Presently CMA cannot migrate mlocked pages so it ends up failing to allocate
+contiguous memory space.
+
+This patch makes mlocked pages be migrated out.  Of course, it can affect
+realtime processes but in CMA usecase, contiguous memory allocation failing
+is far worse than access latency to an mlocked page being variable while
+CMA is running.  If someone wants to make the system realtime, he shouldn't
+enable CMA because stalls can still happen at random times.
+
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ include/linux/mmzone.h |    2 ++
+ mm/compaction.c        |    8 ++++++--
+ mm/internal.h          |    2 +-
+ mm/page_alloc.c        |    2 +-
+ mm/vmscan.c            |    4 ++--
+ 5 files changed, 12 insertions(+), 6 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-fix-indentation-for-viresh-kumar MAINTAINERS
---- a/MAINTAINERS~maintainers-fix-indentation-for-viresh-kumar
-+++ a/MAINTAINERS
-@@ -572,7 +572,7 @@ F:	drivers/net/appletalk/
- F:	net/appletalk/
+diff -puN include/linux/mmzone.h~cma-migrate-mlocked-page include/linux/mmzone.h
+--- a/include/linux/mmzone.h~cma-migrate-mlocked-page
++++ a/include/linux/mmzone.h
+@@ -218,6 +218,8 @@ struct lruvec {
+ #define ISOLATE_UNMAPPED	((__force isolate_mode_t)0x2)
+ /* Isolate for asynchronous migration */
+ #define ISOLATE_ASYNC_MIGRATE	((__force isolate_mode_t)0x4)
++/* Isolate unevictable pages */
++#define ISOLATE_UNEVICTABLE	((__force isolate_mode_t)0x8)
  
- ARASAN COMPACT FLASH PATA CONTROLLER
--M:     Viresh Kumar <viresh.linux@gmail.com>
-+M:	Viresh Kumar <viresh.linux@gmail.com>
- L:	linux-ide@vger.kernel.org
- S:	Maintained
- F:	include/linux/pata_arasan_cf_data.h
-@@ -5998,7 +5998,7 @@ S:	Maintained
- F:	drivers/tty/serial
+ /* LRU Isolation modes. */
+ typedef unsigned __bitwise__ isolate_mode_t;
+diff -puN mm/compaction.c~cma-migrate-mlocked-page mm/compaction.c
+--- a/mm/compaction.c~cma-migrate-mlocked-page
++++ a/mm/compaction.c
+@@ -445,6 +445,7 @@ static bool too_many_isolated(struct zon
+  * @cc:		Compaction control structure.
+  * @low_pfn:	The first PFN of the range.
+  * @end_pfn:	The one-past-the-last PFN of the range.
++ * @unevictable: true if it allows to isolate unevictable pages
+  *
+  * Isolate all pages that can be migrated from the range specified by
+  * [low_pfn, end_pfn).  Returns zero if there is a fatal signal
+@@ -460,7 +461,7 @@ static bool too_many_isolated(struct zon
+  */
+ unsigned long
+ isolate_migratepages_range(struct zone *zone, struct compact_control *cc,
+-			   unsigned long low_pfn, unsigned long end_pfn)
++		unsigned long low_pfn, unsigned long end_pfn, bool unevictable)
+ {
+ 	unsigned long last_pageblock_nr = 0, pageblock_nr;
+ 	unsigned long nr_scanned = 0, nr_isolated = 0;
+@@ -586,6 +587,9 @@ isolate_migratepages_range(struct zone *
+ 		if (!cc->sync)
+ 			mode |= ISOLATE_ASYNC_MIGRATE;
  
- SYNOPSYS DESIGNWARE DMAC DRIVER
--M:     Viresh Kumar <viresh.linux@gmail.com>
-+M:	Viresh Kumar <viresh.linux@gmail.com>
- S:	Maintained
- F:	include/linux/dw_dmac.h
- F:	drivers/dma/dw_dmac_regs.h
-@@ -6146,7 +6146,7 @@ S:	Maintained
- F:	drivers/mmc/host/sdhci-s3c.c
++		if (unevictable)
++			mode |= ISOLATE_UNEVICTABLE;
++
+ 		lruvec = mem_cgroup_page_lruvec(page, zone);
  
- SECURE DIGITAL HOST CONTROLLER INTERFACE (SDHCI) ST SPEAR DRIVER
--M:     Viresh Kumar <viresh.linux@gmail.com>
-+M:	Viresh Kumar <viresh.linux@gmail.com>
- L:	spear-devel@list.st.com
- L:	linux-mmc@vger.kernel.org
- S:	Maintained
-@@ -6512,7 +6512,7 @@ S:	Maintained
- F:	include/linux/compiler.h
+ 		/* Try isolate the page */
+@@ -791,7 +795,7 @@ static isolate_migrate_t isolate_migrate
+ 	}
  
- SPEAR PLATFORM SUPPORT
--M:     Viresh Kumar <viresh.linux@gmail.com>
-+M:	Viresh Kumar <viresh.linux@gmail.com>
- M:	Shiraz Hashim <shiraz.hashim@st.com>
- L:	spear-devel@list.st.com
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
-@@ -6521,7 +6521,7 @@ S:	Maintained
- F:	arch/arm/plat-spear/
+ 	/* Perform the isolation */
+-	low_pfn = isolate_migratepages_range(zone, cc, low_pfn, end_pfn);
++	low_pfn = isolate_migratepages_range(zone, cc, low_pfn, end_pfn, false);
+ 	if (!low_pfn || cc->contended)
+ 		return ISOLATE_ABORT;
  
- SPEAR13XX MACHINE SUPPORT
--M:     Viresh Kumar <viresh.linux@gmail.com>
-+M:	Viresh Kumar <viresh.linux@gmail.com>
- M:	Shiraz Hashim <shiraz.hashim@st.com>
- L:	spear-devel@list.st.com
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
-@@ -6530,7 +6530,7 @@ S:	Maintained
- F:	arch/arm/mach-spear13xx/
+diff -puN mm/internal.h~cma-migrate-mlocked-page mm/internal.h
+--- a/mm/internal.h~cma-migrate-mlocked-page
++++ a/mm/internal.h
+@@ -138,7 +138,7 @@ unsigned long
+ isolate_freepages_range(unsigned long start_pfn, unsigned long end_pfn);
+ unsigned long
+ isolate_migratepages_range(struct zone *zone, struct compact_control *cc,
+-			   unsigned long low_pfn, unsigned long end_pfn);
++	unsigned long low_pfn, unsigned long end_pfn, bool unevictable);
  
- SPEAR3XX MACHINE SUPPORT
--M:     Viresh Kumar <viresh.linux@gmail.com>
-+M:	Viresh Kumar <viresh.linux@gmail.com>
- M:	Shiraz Hashim <shiraz.hashim@st.com>
- L:	spear-devel@list.st.com
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
-@@ -6541,7 +6541,7 @@ F:	arch/arm/mach-spear3xx/
- SPEAR6XX MACHINE SUPPORT
- M:	Rajeev Kumar <rajeev-dlh.kumar@st.com>
- M:	Shiraz Hashim <shiraz.hashim@st.com>
--M:     Viresh Kumar <viresh.linux@gmail.com>
-+M:	Viresh Kumar <viresh.linux@gmail.com>
- L:	spear-devel@list.st.com
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- W:	http://www.st.com/spear
-@@ -6549,7 +6549,7 @@ S:	Maintained
- F:	arch/arm/mach-spear6xx/
+ #endif
  
- SPEAR CLOCK FRAMEWORK SUPPORT
--M:     Viresh Kumar <viresh.linux@gmail.com>
-+M:	Viresh Kumar <viresh.linux@gmail.com>
- L:	spear-devel@list.st.com
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- W:	http://www.st.com/spear
+diff -puN mm/page_alloc.c~cma-migrate-mlocked-page mm/page_alloc.c
+--- a/mm/page_alloc.c~cma-migrate-mlocked-page
++++ a/mm/page_alloc.c
+@@ -5688,7 +5688,7 @@ static int __alloc_contig_migrate_range(
+ 		if (list_empty(&cc.migratepages)) {
+ 			cc.nr_migratepages = 0;
+ 			pfn = isolate_migratepages_range(cc.zone, &cc,
+-							 pfn, end);
++							 pfn, end, true);
+ 			if (!pfn) {
+ 				ret = -EINTR;
+ 				break;
+diff -puN mm/vmscan.c~cma-migrate-mlocked-page mm/vmscan.c
+--- a/mm/vmscan.c~cma-migrate-mlocked-page
++++ a/mm/vmscan.c
+@@ -1009,8 +1009,8 @@ int __isolate_lru_page(struct page *page
+ 	if (!PageLRU(page))
+ 		return ret;
+ 
+-	/* Do not give back unevictable pages for compaction */
+-	if (PageUnevictable(page))
++	/* Compaction can't handle unevictable pages but CMA can do */
++	if (PageUnevictable(page) && !(mode & ISOLATE_UNEVICTABLE))
+ 		return ret;
+ 
+ 	ret = -EBUSY;
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
 linux-next.patch
-lib-vsprintf-update-documentation-to-cover-all-of-%p.patch
-maintainers-fix-indentation-for-viresh-kumar.patch
+mm-remove-__gfp_no_kswapd.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
+mm-compaction-update-comment-in-try_to_compact_pages.patch
+mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures.patch
+mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures-fix.patch
+mm-compaction-capture-a-suitable-high-order-page-immediately-when-it-is-made-available.patch
+mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration.patch
+mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix.patch
+mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix.patch
+mm-fix-tracing-in-free_pcppages_bulk.patch
+mm-fix-tracing-in-free_pcppages_bulk-fix.patch
+cma-fix-counting-of-isolated-pages.patch
+cma-count-free-cma-pages.patch
+cma-count-free-cma-pages-fix.patch
+cma-fix-watermark-checking.patch
+cma-fix-watermark-checking-fix.patch
+mm-page_alloc-use-get_freepage_migratetype-instead-of-page_private.patch
+mm-remain-migratetype-in-freed-page.patch
+memory-hotplug-bug-fix-race-between-isolation-and-allocation.patch
+memory-hotplug-fix-pages-missed-by-race-rather-than-failing.patch
+memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+mm-memblock-reduce-overhead-in-binary-search.patch
+mm-memblock-use-existing-interface-to-set-nid.patch
+mm-memblock-cleanup-early_node_map-related-comments.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix-2.patch
+mm-compaction-move-fatal-signal-check-out-of-compact_checklock_irqsave.patch
+mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible-fix.patch
+mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible-fix-fix.patch
+mm-compaction-acquire-the-zone-lock-as-late-as-possible.patch
+revert-mm-have-order-0-compaction-start-off-where-it-left.patch
+mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc.patch
+mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch
+memory-hotplug-dont-replace-lowmem-pages-with-highmem.patch
+mm-enable-config_compaction-by-default.patch
+mm-numa-reclaim-from-all-nodes-within-reclaim-distance.patch
+mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix.patch
+mm-revert-0def08e3-mm-mempolicyc-check-return-code-of-check_range.patch
+mm-revert-0def08e3-mm-mempolicyc-check-return-code-of-check_range-fix.patch
+memory-hotplug-fix-zone-stat-mismatch.patch
+cma-migrate-mlocked-pages.patch
+cma-decrease-ccnr_migratepages-after-reclaiming-pagelist.patch
 
