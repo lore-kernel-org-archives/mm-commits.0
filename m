@@ -1,89 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init-fix.patch removed from -mm tree
-Date: Wed, 26 Sep 2012 13:56:38 -0700
-Message-ID: <20120926205638.D10A3100047@wpzn3.hot.corp.google.com>
+Subject: + mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible-fix-fix.patch added to -mm tree
+Date: Wed, 26 Sep 2012 14:06:30 -0700
+Message-ID: <20120926210631.23B421E0048@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yx0-f202.google.com ([209.85.213.202]:50391 "EHLO
-	mail-yx0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751695Ab2IZU4k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Sep 2012 16:56:40 -0400
-Received: by yenr11 with SMTP id r11so127661yen.1
-        for <mm-commits@vger.kernel.org>; Wed, 26 Sep 2012 13:56:39 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:56499 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751888Ab2IZVGc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Sep 2012 17:06:32 -0400
+Received: by qcqs25 with SMTP id s25so128334qcq.1
+        for <mm-commits@vger.kernel.org>; Wed, 26 Sep 2012 14:06:31 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, anilkumar@ti.com, arnd@arndb.de, broonie@opensource.wolfsonmicro.com, eric.piel@tremplin-utc.net, tony@atomide.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, mgorman@suse.de, minchan@kernel.org
 
 
 The patch titled
-     Subject: drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init-fix
-has been removed from the -mm tree.  Its filename was
-     drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init-fix.patch
+     Subject: mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible-fix-fix
+has been added to the -mm tree.  Its filename is
+     mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible-fix-fix.patch
 
-This patch was dropped because it was folded into drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init-fix
+Subject: mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible-fix-fix
 
-fix CONFIG_OF=n build
-
-drivers/misc/lis3lv02d/lis3lv02d_i2c.c: In function 'lis3lv02d_i2c_probe':
-drivers/misc/lis3lv02d/lis3lv02d_i2c.c:120: error: implicit declaration of function 'of_match_device'
-drivers/misc/lis3lv02d/lis3lv02d_i2c.c:121: error: 'struct lis3lv02d' has no member named 'of_node'
-
-Cc: AnilKumar Ch <anilkumar@ti.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Eric Piel <eric.piel@tremplin-utc.net>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Tony Lindgren <tony@atomide.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/lis3lv02d/lis3lv02d_i2c.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/compaction.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/misc/lis3lv02d/lis3lv02d_i2c.c~drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init-fix drivers/misc/lis3lv02d/lis3lv02d_i2c.c
---- a/drivers/misc/lis3lv02d/lis3lv02d_i2c.c~drivers-misc-lis3lv02d-lis3lv02d_i2cc-add-lis3lv02d-device-tree-init-fix
-+++ a/drivers/misc/lis3lv02d/lis3lv02d_i2c.c
-@@ -33,6 +33,7 @@
- #include <linux/delay.h>
- #include <linux/of.h>
- #include <linux/of_platform.h>
-+#include <linux/of_device.h>
- 
- #include "lis3lv02d.h"
- 
-@@ -105,11 +106,13 @@ static int lis3_i2c_init(struct lis3lv02
- static union axis_conversion lis3lv02d_axis_map =
- 	{ .as_array = { LIS3_DEV_X, LIS3_DEV_Y, LIS3_DEV_Z } };
- 
-+#ifdef CONFIG_OF
- static struct of_device_id lis3lv02d_i2c_dt_ids[] = {
- 	{ .compatible = "st,lis3lv02d" },
- 	{}
- };
- MODULE_DEVICE_TABLE(of, lis3lv02d_i2c_dt_ids);
-+#endif
- 
- static int __devinit lis3lv02d_i2c_probe(struct i2c_client *client,
- 					const struct i2c_device_id *id)
-@@ -117,6 +120,7 @@ static int __devinit lis3lv02d_i2c_probe
- 	int ret = 0;
- 	struct lis3lv02d_platform_data *pdata = client->dev.platform_data;
- 
-+#ifdef CONFIG_OF
- 	if (of_match_device(lis3lv02d_i2c_dt_ids, &client->dev)) {
- 		lis3_dev.of_node = client->dev.of_node;
- 		ret = lis3lv02d_init_dt(&lis3_dev);
-@@ -124,6 +128,7 @@ static int __devinit lis3lv02d_i2c_probe
- 			return ret;
- 		pdata = lis3_dev.pdata;
- 	}
-+#endif
- 
- 	if (pdata) {
- 		if ((pdata->driver_features & LIS3_USE_BLOCK_READ) &&
+diff -puN mm/compaction.c~mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible-fix-fix mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible-fix-fix
++++ a/mm/compaction.c
+@@ -414,9 +414,10 @@ isolate_migratepages_range(struct zone *
+ 		 * splitting and collapsing (collapsing has already happened
+ 		 * if PageLRU is set) but the lock is not necessarily taken
+ 		 * here and it is wasteful to take it just to check transhuge.
+-		 * Check transhuge without lock and skip if it's either a
+-		 * transhuge or hugetlbfs page because calling compound_order()
+-		 * requires lru_lock to exclude isolation and splitting.
++                 * Check TransHuge without lock and skip the whole pageblock if
++		 * it's either a transhuge or hugetlbfs page, as calling
++		 * compound_order() without preventing THP from splitting the
++		 * page underneath us may return surprising results.
+ 		 */
+ 		if (PageTransHuge(page)) {
+ 			if (!locked)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -115,6 +92,7 @@ swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
 mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
 mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix.patch
 mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix-2.patch
+mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible-fix-fix.patch
 mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch
 mm-fix-invalidate_complete_page2-lock-ordering.patch
 mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix.patch
