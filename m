@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + cma-migrate-mlocked-pages.patch added to -mm tree
-Date: Wed, 26 Sep 2012 14:36:00 -0700
-Message-ID: <20120926213600.A52AF100047@wpzn3.hot.corp.google.com>
+Subject: + cma-decrease-ccnr_migratepages-after-reclaiming-pagelist.patch added to -mm tree
+Date: Wed, 26 Sep 2012 14:36:49 -0700
+Message-ID: <20120926213650.4D278100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:59431 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750994Ab2IZVgB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Sep 2012 17:36:01 -0400
-Received: by qcqs25 with SMTP id s25so131631qcq.1
-        for <mm-commits@vger.kernel.org>; Wed, 26 Sep 2012 14:36:01 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:45120 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750945Ab2IZVgv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Sep 2012 17:36:51 -0400
+Received: by qaea16 with SMTP id a16so233658qae.1
+        for <mm-commits@vger.kernel.org>; Wed, 26 Sep 2012 14:36:50 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: minchan@kernel.org, b.zolnierkie@samsung.com, m.szyprowski@samsung.com, mgor
 
 
 The patch titled
-     Subject: CMA: migrate mlocked pages
+     Subject: CMA: decrease cc.nr_migratepages after reclaiming pagelist
 has been added to the -mm tree.  Its filename is
-     cma-migrate-mlocked-pages.patch
+     cma-decrease-ccnr_migratepages-after-reclaiming-pagelist.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: CMA: migrate mlocked pages
+Subject: CMA: decrease cc.nr_migratepages after reclaiming pagelist
 
-Presently CMA cannot migrate mlocked pages so it ends up failing to allocate
-contiguous memory space.
-
-This patch makes mlocked pages be migrated out.  Of course, it can affect
-realtime processes but in CMA usecase, contiguous memory allocation failing
-is far worse than access latency to an mlocked page being variable while
-CMA is running.  If someone wants to make the system realtime, he shouldn't
-enable CMA because stalls can still happen at random times.
+reclaim_clean_pages_from_list() reclaims clean pages before migration so
+cc.nr_migratepages should be updated.  Currently, there is no problem but
+it can be wrong if we try to use the value in future.
 
 Signed-off-by: Minchan Kim <minchan@kernel.org>
 Cc: Mel Gorman <mgorman@suse.de>
@@ -53,102 +48,32 @@ Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 ++
- mm/compaction.c        |    8 ++++++--
- mm/internal.h          |    2 +-
- mm/page_alloc.c        |    2 +-
- mm/vmscan.c            |    4 ++--
- 5 files changed, 12 insertions(+), 6 deletions(-)
+ mm/page_alloc.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mmzone.h~cma-migrate-mlocked-page include/linux/mmzone.h
---- a/include/linux/mmzone.h~cma-migrate-mlocked-page
-+++ a/include/linux/mmzone.h
-@@ -218,6 +218,8 @@ struct lruvec {
- #define ISOLATE_UNMAPPED	((__force isolate_mode_t)0x2)
- /* Isolate for asynchronous migration */
- #define ISOLATE_ASYNC_MIGRATE	((__force isolate_mode_t)0x4)
-+/* Isolate unevictable pages */
-+#define ISOLATE_UNEVICTABLE	((__force isolate_mode_t)0x8)
- 
- /* LRU Isolation modes. */
- typedef unsigned __bitwise__ isolate_mode_t;
-diff -puN mm/compaction.c~cma-migrate-mlocked-page mm/compaction.c
---- a/mm/compaction.c~cma-migrate-mlocked-page
-+++ a/mm/compaction.c
-@@ -445,6 +445,7 @@ static bool too_many_isolated(struct zon
-  * @cc:		Compaction control structure.
-  * @low_pfn:	The first PFN of the range.
-  * @end_pfn:	The one-past-the-last PFN of the range.
-+ * @unevictable: true if it allows to isolate unevictable pages
-  *
-  * Isolate all pages that can be migrated from the range specified by
-  * [low_pfn, end_pfn).  Returns zero if there is a fatal signal
-@@ -460,7 +461,7 @@ static bool too_many_isolated(struct zon
-  */
- unsigned long
- isolate_migratepages_range(struct zone *zone, struct compact_control *cc,
--			   unsigned long low_pfn, unsigned long end_pfn)
-+		unsigned long low_pfn, unsigned long end_pfn, bool unevictable)
- {
- 	unsigned long last_pageblock_nr = 0, pageblock_nr;
- 	unsigned long nr_scanned = 0, nr_isolated = 0;
-@@ -586,6 +587,9 @@ isolate_migratepages_range(struct zone *
- 		if (!cc->sync)
- 			mode |= ISOLATE_ASYNC_MIGRATE;
- 
-+		if (unevictable)
-+			mode |= ISOLATE_UNEVICTABLE;
-+
- 		lruvec = mem_cgroup_page_lruvec(page, zone);
- 
- 		/* Try isolate the page */
-@@ -791,7 +795,7 @@ static isolate_migrate_t isolate_migrate
- 	}
- 
- 	/* Perform the isolation */
--	low_pfn = isolate_migratepages_range(zone, cc, low_pfn, end_pfn);
-+	low_pfn = isolate_migratepages_range(zone, cc, low_pfn, end_pfn, false);
- 	if (!low_pfn || cc->contended)
- 		return ISOLATE_ABORT;
- 
-diff -puN mm/internal.h~cma-migrate-mlocked-page mm/internal.h
---- a/mm/internal.h~cma-migrate-mlocked-page
-+++ a/mm/internal.h
-@@ -138,7 +138,7 @@ unsigned long
- isolate_freepages_range(unsigned long start_pfn, unsigned long end_pfn);
- unsigned long
- isolate_migratepages_range(struct zone *zone, struct compact_control *cc,
--			   unsigned long low_pfn, unsigned long end_pfn);
-+	unsigned long low_pfn, unsigned long end_pfn, bool unevictable);
- 
- #endif
- 
-diff -puN mm/page_alloc.c~cma-migrate-mlocked-page mm/page_alloc.c
---- a/mm/page_alloc.c~cma-migrate-mlocked-page
+diff -puN mm/page_alloc.c~cma-decrease-ccnr_migratepages-after-reclaiming-pagelist mm/page_alloc.c
+--- a/mm/page_alloc.c~cma-decrease-ccnr_migratepages-after-reclaiming-pagelist
 +++ a/mm/page_alloc.c
-@@ -5688,7 +5688,7 @@ static int __alloc_contig_migrate_range(
- 		if (list_empty(&cc.migratepages)) {
- 			cc.nr_migratepages = 0;
- 			pfn = isolate_migratepages_range(cc.zone, &cc,
--							 pfn, end);
-+							 pfn, end, true);
- 			if (!pfn) {
- 				ret = -EINTR;
- 				break;
-diff -puN mm/vmscan.c~cma-migrate-mlocked-page mm/vmscan.c
---- a/mm/vmscan.c~cma-migrate-mlocked-page
-+++ a/mm/vmscan.c
-@@ -1009,8 +1009,8 @@ int __isolate_lru_page(struct page *page
- 	if (!PageLRU(page))
- 		return ret;
+@@ -5663,7 +5663,7 @@ static unsigned long pfn_max_align_up(un
+ static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
+ {
+ 	/* This function is based on compact_zone() from compaction.c. */
+-
++	unsigned long nr_reclaimed;
+ 	unsigned long pfn = start;
+ 	unsigned int tries = 0;
+ 	int ret = 0;
+@@ -5699,7 +5699,9 @@ static int __alloc_contig_migrate_range(
+ 			break;
+ 		}
  
--	/* Do not give back unevictable pages for compaction */
--	if (PageUnevictable(page))
-+	/* Compaction can't handle unevictable pages but CMA can do */
-+	if (PageUnevictable(page) && !(mode & ISOLATE_UNEVICTABLE))
- 		return ret;
+-		reclaim_clean_pages_from_list(cc.zone, &cc.migratepages);
++		nr_reclaimed = reclaim_clean_pages_from_list(cc.zone,
++							&cc.migratepages);
++		cc.nr_migratepages -= nr_reclaimed;
  
- 	ret = -EBUSY;
+ 		ret = migrate_pages(&cc.migratepages,
+ 				    alloc_migrate_target,
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
