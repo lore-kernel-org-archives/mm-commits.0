@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-intel-c600-sas-driver-maintainers.patch added to -mm tree
-Date: Wed, 26 Sep 2012 15:14:03 -0700
-Message-ID: <20120926221404.2FEEB5C0065@hpza9.eem.corp.google.com>
+Subject: + deviceh-add-missing-inline-to-ifndef-config_printk-dev_vprintk_emit.patch added to -mm tree
+Date: Wed, 26 Sep 2012 15:15:23 -0700
+Message-ID: <20120926221524.1E664200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:52018 "EHLO
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:47183 "EHLO
 	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751680Ab2IZWOH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Sep 2012 18:14:07 -0400
-Received: by wgbdt11 with SMTP id dt11so80199wgb.1
-        for <mm-commits@vger.kernel.org>; Wed, 26 Sep 2012 15:14:05 -0700 (PDT)
+	with ESMTP id S1751680Ab2IZWP0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Sep 2012 18:15:26 -0400
+Received: by wgbdt11 with SMTP id dt11so80234wgb.1
+        for <mm-commits@vger.kernel.org>; Wed, 26 Sep 2012 15:15:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dave.jiang@intel.com, lukasz.dorau@intel.com, maciej.patelczyk@intel.com
+Cc: joe@perches.com, geert@linux-m68k.org, greg@kroah.com
 
 
 The patch titled
-     Subject: MAINTAINERS: update Intel C600 SAS driver maintainers
+     Subject: device.h: add missing inline to #ifndef CONFIG_PRINTK dev_vprintk_emit()
 has been added to the -mm tree.  Its filename is
-     maintainers-update-intel-c600-sas-driver-maintainers.patch
+     deviceh-add-missing-inline-to-ifndef-config_printk-dev_vprintk_emit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,41 +33,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dave Jiang <dave.jiang@intel.com>
-Subject: MAINTAINERS: update Intel C600 SAS driver maintainers
+From: Joe Perches <joe@perches.com>
+Subject: device.h: add missing inline to #ifndef CONFIG_PRINTK dev_vprintk_emit()
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
-Cc: Lukasz Dorau <lukasz.dorau@intel.com>
-Cc: Maciej Patelczyk <maciej.patelczyk@intel.com>
+Also add __printf() verification for format string.
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ include/linux/device.h |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-update-intel-c600-sas-driver-maintainers MAINTAINERS
---- a/MAINTAINERS~maintainers-update-intel-c600-sas-driver-maintainers
-+++ a/MAINTAINERS
-@@ -3581,11 +3581,12 @@ K:	\b(ABS|SYN)_MT_
+diff -puN include/linux/device.h~deviceh-add-missing-inline-to-ifndef-config_printk-dev_vprintk_emit include/linux/device.h
+--- a/include/linux/device.h~deviceh-add-missing-inline-to-ifndef-config_printk-dev_vprintk_emit
++++ a/include/linux/device.h
+@@ -902,8 +902,9 @@ extern const char *dev_driver_string(con
  
- INTEL C600 SERIES SAS CONTROLLER DRIVER
- M:	Intel SCU Linux support <intel-linux-scu@intel.com>
-+M:	Lukasz Dorau <lukasz.dorau@intel.com>
-+M:	Maciej Patelczyk <maciej.patelczyk@intel.com>
- M:	Dave Jiang <dave.jiang@intel.com>
--M:	Ed Nadolski <edmund.nadolski@intel.com>
- L:	linux-scsi@vger.kernel.org
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/djbw/isci.git
--S:	Maintained
-+T:	git git://git.code.sf.net/p/intel-sas/isci
-+S:	Supported
- F:	drivers/scsi/isci/
- F:	firmware/isci/
+ #ifdef CONFIG_PRINTK
  
+-extern int dev_vprintk_emit(int level, const struct device *dev,
+-			    const char *fmt, va_list args);
++extern __printf(3, 0)
++int dev_vprintk_emit(int level, const struct device *dev,
++		     const char *fmt, va_list args);
+ extern __printf(3, 4)
+ int dev_printk_emit(int level, const struct device *dev, const char *fmt, ...);
+ 
+@@ -927,8 +928,9 @@ int _dev_info(const struct device *dev, 
+ 
+ #else
+ 
+-static int dev_vprintk_emit(int level, const struct device *dev,
+-			    const char *fmt, va_list args)
++static inline __printf(3, 0)
++int dev_vprintk_emit(int level, const struct device *dev,
++		     const char *fmt, va_list args)
+ { return 0; }
+ static inline __printf(3, 4)
+ int dev_printk_emit(int level, const struct device *dev, const char *fmt, ...)
 _
 
-Patches currently in -mm which might be from dave.jiang@intel.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 linux-next.patch
-maintainers-update-intel-c600-sas-driver-maintainers.patch
+deviceh-add-missing-inline-to-ifndef-config_printk-dev_vprintk_emit.patch
+maintainers-update-gianfar_ptp-after-renaming.patch
+checkpatch-check-utf-8-content-from-a-commit-log-when-its-missing-from-charset.patch
+checkpatch-update-suggested-printk-conversions.patch
+checkpatch-check-networking-specific-block-comment-style.patch
+codingstyle-add-networking-specific-block-comment-style.patch
 
