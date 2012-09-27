@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-thermal-step_wisec-add-missing-static-storage-class-specifiers.patch added to -mm tree
-Date: Thu, 27 Sep 2012 15:01:19 -0700
-Message-ID: <20120927220120.CC52020004E@hpza10.eem.corp.google.com>
+Subject: + drivers-thermal-fair_sharec-add-missing-static-storage-class-specifiers.patch added to -mm tree
+Date: Thu, 27 Sep 2012 15:04:07 -0700
+Message-ID: <20120927220408.9FB2820004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:38598 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754140Ab2I0WBX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Sep 2012 18:01:23 -0400
-Received: by bkwq16 with SMTP id q16so163568bkw.1
-        for <mm-commits@vger.kernel.org>; Thu, 27 Sep 2012 15:01:22 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:58724 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754738Ab2I0WEL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Sep 2012 18:04:11 -0400
+Received: by wibhr7 with SMTP id hr7so166372wib.1
+        for <mm-commits@vger.kernel.org>; Thu, 27 Sep 2012 15:04:10 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: sachin.kamat@linaro.org, amit.kachhap@linaro.org, durgadoss.r@intel.com, len
 
 
 The patch titled
-     Subject: drivers/thermal/step_wise.c: add missing static storage class specifiers
+     Subject: drivers/thermal/fair_share.c: add missing static storage class specifiers
 has been added to the -mm tree.  Its filename is
-     drivers-thermal-step_wisec-add-missing-static-storage-class-specifiers.patch
+     drivers-thermal-fair_sharec-add-missing-static-storage-class-specifiers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/thermal/step_wise.c: add missing static storage class specifiers
+Subject: drivers/thermal/fair_share.c: add missing static storage class specifiers
 
 Fixes the following sparse warnings:
-drivers/thermal/step_wise.c:153:5: warning:
-symbol 'step_wise_throttle' was not declared. Should it be static?
-drivers/thermal/step_wise.c:172:25: warning:
-symbol 'thermal_gov_step_wise' was not declared. Should it be static?
+drivers/thermal/fair_share.c:80:5: warning:
+symbol 'fair_share_throttle' was not declared. Should it be static?
+drivers/thermal/fair_share.c:111:25: warning:
+symbol 'thermal_gov_fair_share' was not declared. Should it be static?
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 Acked-by: Durgadoss R <durgadoss.r@intel.com>
@@ -51,29 +51,29 @@ Cc: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/thermal/step_wise.c |    4 ++--
+ drivers/thermal/fair_share.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/thermal/step_wise.c~drivers-thermal-step_wisec-add-missing-static-storage-class-specifiers drivers/thermal/step_wise.c
---- a/drivers/thermal/step_wise.c~drivers-thermal-step_wisec-add-missing-static-storage-class-specifiers
-+++ a/drivers/thermal/step_wise.c
-@@ -150,7 +150,7 @@ static void thermal_zone_trip_update(str
-  * step. If the zone is 'cooling down' it brings back the performance of
-  * the devices by one step.
+diff -puN drivers/thermal/fair_share.c~drivers-thermal-fair_sharec-add-missing-static-storage-class-specifiers drivers/thermal/fair_share.c
+--- a/drivers/thermal/fair_share.c~drivers-thermal-fair_sharec-add-missing-static-storage-class-specifiers
++++ a/drivers/thermal/fair_share.c
+@@ -77,7 +77,7 @@ static long get_target_state(struct ther
+  *	(Heavily assumes the trip points are in ascending order)
+  * new_state of cooling device = P3 * P2 * P1
   */
--int step_wise_throttle(struct thermal_zone_device *tz, int trip)
-+static int step_wise_throttle(struct thermal_zone_device *tz, int trip)
+-int fair_share_throttle(struct thermal_zone_device *tz, int trip)
++static int fair_share_throttle(struct thermal_zone_device *tz, int trip)
  {
- 	struct thermal_instance *instance;
- 
-@@ -169,7 +169,7 @@ int step_wise_throttle(struct thermal_zo
+ 	const struct thermal_zone_params *tzp;
+ 	struct thermal_cooling_device *cdev;
+@@ -108,7 +108,7 @@ int fair_share_throttle(struct thermal_z
  	return 0;
  }
  
--struct thermal_governor thermal_gov_step_wise = {
-+static struct thermal_governor thermal_gov_step_wise = {
- 	.name		= DEFAULT_THERMAL_GOVERNOR,
- 	.throttle	= step_wise_throttle,
+-struct thermal_governor thermal_gov_fair_share = {
++static struct thermal_governor thermal_gov_fair_share = {
+ 	.name		= "fair_share",
+ 	.throttle	= fair_share_throttle,
  	.owner		= THIS_MODULE,
 _
 
@@ -83,6 +83,8 @@ origin.patch
 linux-next.patch
 thermal-exynos-fix-null-pointer-dereference-in-exynos_unregister_thermal.patch
 drivers-thermal-step_wisec-add-missing-static-storage-class-specifiers.patch
+drivers-thermal-fair_sharec-add-missing-static-storage-class-specifiers.patch
+drivers-thermal-user_spacec-add-missing-static-storage-class-specifiers.patch
 mm-hugetlbc-remove-duplicate-inclusion-of-header-file.patch
 memcg-cleanup-kmem-tcp-ifdefs.patch
 memcg-move-mem_cgroup_is_root-upwards.patch
