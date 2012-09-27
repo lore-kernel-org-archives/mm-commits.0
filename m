@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + thermal-exynos-fix-null-pointer-dereference-in-exynos_unregister_thermal.patch added to -mm tree
-Date: Thu, 27 Sep 2012 14:59:54 -0700
-Message-ID: <20120927215954.B415B1E0043@wpzn4.hot.corp.google.com>
+Subject: + drivers-thermal-step_wisec-add-missing-static-storage-class-specifiers.patch added to -mm tree
+Date: Thu, 27 Sep 2012 15:01:19 -0700
+Message-ID: <20120927220120.CC52020004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:53698 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754738Ab2I0V74 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Sep 2012 17:59:56 -0400
-Received: by vcbfy27 with SMTP id fy27so289260vcb.1
-        for <mm-commits@vger.kernel.org>; Thu, 27 Sep 2012 14:59:55 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:38598 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754140Ab2I0WBX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Sep 2012 18:01:23 -0400
+Received: by bkwq16 with SMTP id q16so163568bkw.1
+        for <mm-commits@vger.kernel.org>; Thu, 27 Sep 2012 15:01:22 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: sachin.kamat@linaro.org, amit.kachhap@linaro.org, durgadoss.r@intel.com, len
 
 
 The patch titled
-     Subject: drivers/thermal/exynos_thermal.c: fix NULL pointer dereference in exynos_unregister_thermal()
+     Subject: drivers/thermal/step_wise.c: add missing static storage class specifiers
 has been added to the -mm tree.  Its filename is
-     thermal-exynos-fix-null-pointer-dereference-in-exynos_unregister_thermal.patch
+     drivers-thermal-step_wisec-add-missing-static-storage-class-specifiers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/thermal/exynos_thermal.c: fix NULL pointer dereference in exynos_unregister_thermal()
+Subject: drivers/thermal/step_wise.c: add missing static storage class specifiers
 
-exynos_unregister_thermal() is functional only when 'th_zone' is not NULL
-(ensured by the NULL checks).  However, in the event it is NULL, it gets
-dereferenced in the for loop.  This patch fixes this issue.
+Fixes the following sparse warnings:
+drivers/thermal/step_wise.c:153:5: warning:
+symbol 'step_wise_throttle' was not declared. Should it be static?
+drivers/thermal/step_wise.c:172:25: warning:
+symbol 'thermal_gov_step_wise' was not declared. Should it be static?
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Durgadoss R <durgadoss.r@intel.com>
+Acked-by: Durgadoss R <durgadoss.r@intel.com>
 Cc: Amit Daniel Kachhap <amit.kachhap@linaro.org>
 Cc: Len Brown <lenb@kernel.org>
 Cc: "Brown, Len" <len.brown@intel.com>
@@ -49,29 +51,30 @@ Cc: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/thermal/exynos_thermal.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/thermal/step_wise.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/thermal/exynos_thermal.c~thermal-exynos-fix-null-pointer-dereference-in-exynos_unregister_thermal drivers/thermal/exynos_thermal.c
---- a/drivers/thermal/exynos_thermal.c~thermal-exynos-fix-null-pointer-dereference-in-exynos_unregister_thermal
-+++ a/drivers/thermal/exynos_thermal.c
-@@ -475,11 +475,14 @@ static void exynos_unregister_thermal(vo
+diff -puN drivers/thermal/step_wise.c~drivers-thermal-step_wisec-add-missing-static-storage-class-specifiers drivers/thermal/step_wise.c
+--- a/drivers/thermal/step_wise.c~drivers-thermal-step_wisec-add-missing-static-storage-class-specifiers
++++ a/drivers/thermal/step_wise.c
+@@ -150,7 +150,7 @@ static void thermal_zone_trip_update(str
+  * step. If the zone is 'cooling down' it brings back the performance of
+  * the devices by one step.
+  */
+-int step_wise_throttle(struct thermal_zone_device *tz, int trip)
++static int step_wise_throttle(struct thermal_zone_device *tz, int trip)
  {
- 	int i;
+ 	struct thermal_instance *instance;
  
--	if (th_zone && th_zone->therm_dev)
-+	if (!th_zone)
-+		return;
-+
-+	if (th_zone->therm_dev)
- 		thermal_zone_device_unregister(th_zone->therm_dev);
+@@ -169,7 +169,7 @@ int step_wise_throttle(struct thermal_zo
+ 	return 0;
+ }
  
- 	for (i = 0; i < th_zone->cool_dev_size; i++) {
--		if (th_zone && th_zone->cool_dev[i])
-+		if (th_zone->cool_dev[i])
- 			cpufreq_cooling_unregister(th_zone->cool_dev[i]);
- 	}
- 
+-struct thermal_governor thermal_gov_step_wise = {
++static struct thermal_governor thermal_gov_step_wise = {
+ 	.name		= DEFAULT_THERMAL_GOVERNOR,
+ 	.throttle	= step_wise_throttle,
+ 	.owner		= THIS_MODULE,
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
@@ -79,6 +82,7 @@ Patches currently in -mm which might be from sachin.kamat@linaro.org are
 origin.patch
 linux-next.patch
 thermal-exynos-fix-null-pointer-dereference-in-exynos_unregister_thermal.patch
+drivers-thermal-step_wisec-add-missing-static-storage-class-specifiers.patch
 mm-hugetlbc-remove-duplicate-inclusion-of-header-file.patch
 memcg-cleanup-kmem-tcp-ifdefs.patch
 memcg-move-mem_cgroup_is_root-upwards.patch
