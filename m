@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + hfsplus-code-style-fixes-reworked-support-of-extended-attributes.patch added to -mm tree
-Date: Thu, 27 Sep 2012 14:07:43 -0700
-Message-ID: <20120927210744.3BF2F20004E@hpza10.eem.corp.google.com>
+Subject: + pwm_backlight-add-device-tree-support-for-low-threshold-brightness.patch added to -mm tree
+Date: Thu, 27 Sep 2012 14:33:19 -0700
+Message-ID: <20120927213320.37FA01E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:52111 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754844Ab2I0VHq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Sep 2012 17:07:46 -0400
-Received: by wgbdt11 with SMTP id dt11so162828wgb.1
-        for <mm-commits@vger.kernel.org>; Thu, 27 Sep 2012 14:07:45 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:35402 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755545Ab2I0VdV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Sep 2012 17:33:21 -0400
+Received: by ggnq2 with SMTP id q2so283394ggn.1
+        for <mm-commits@vger.kernel.org>; Thu, 27 Sep 2012 14:33:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: slava@dubeyko.com
+Cc: avinashphilip@ti.com, FlorianSchandinat@gmx.de, grant.likely@secretlab.ca, rpurdie@rpsys.net, thierry.reding@avionic-design.de
 
 
 The patch titled
-     
+     Subject: pwm_backlight: add device tree support for Low Threshold Brightness
 has been added to the -mm tree.  Its filename is
-     hfsplus-code-style-fixes-reworked-support-of-extended-attributes.patch
+     pwm_backlight-add-device-tree-support-for-low-threshold-brightness.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,153 +33,75 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
+From: "Philip, Avinash" <avinashphilip@ti.com>
+Subject: pwm_backlight: add device tree support for Low Threshold Brightness
 
-Subject: [PATCH 1/1] hfsplus: code style fixes - reworked support of extended attributes
+Some backlights perform poorly when driven by a PWM with a short
+duty-cycle.  For such devices, the low threshold can be used to specify a
+lower bound for the duty-cycle and should be chosen to exclude the
+problematic range.
 
-This patch fixes code style issues:
-1. Rephrase comment.
-2. Fix multiline comment style.
-3. The hfsplus_alloc_attr_entry() was corrected.
-4. The hfsplus_unistr and hfsplus_attr_unistr structures were declared independently.
+Add device tree probing support for
+platform_pwm_backlight_data,lth_brightness, putting
+low-threshold-brightness as the optional property's name.
 
-Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
+Signed-off-by: Philip, Avinash <avinashphilip@ti.com>
+Cc: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/attributes.c  |   47 ++++++++++++++++++++++---------------
- fs/hfsplus/hfsplus_raw.h |   22 +++++++++--------
- 2 files changed, 41 insertions(+), 28 deletions(-)
+ Documentation/devicetree/bindings/video/backlight/pwm-backlight.txt |   10 ++++++++++
+ drivers/video/backlight/pwm_bl.c                                    |    5 +++++
+ 2 files changed, 15 insertions(+)
 
-diff -puN fs/hfsplus/attributes.c~hfsplus-code-style-fixes-reworked-support-of-extended-attributes fs/hfsplus/attributes.c
---- a/fs/hfsplus/attributes.c~hfsplus-code-style-fixes-reworked-support-of-extended-attributes
-+++ a/fs/hfsplus/attributes.c
-@@ -67,10 +67,14 @@ int hfsplus_attr_build_key(struct super_
- 		key->attr.key_name.length = 0;
- 		len = 0;
+diff -puN Documentation/devicetree/bindings/video/backlight/pwm-backlight.txt~pwm_backlight-add-device-tree-support-for-low-threshold-brightness Documentation/devicetree/bindings/video/backlight/pwm-backlight.txt
+--- a/Documentation/devicetree/bindings/video/backlight/pwm-backlight.txt~pwm_backlight-add-device-tree-support-for-low-threshold-brightness
++++ a/Documentation/devicetree/bindings/video/backlight/pwm-backlight.txt
+@@ -14,6 +14,15 @@ Required properties:
+ Optional properties:
+   - pwm-names: a list of names for the PWM devices specified in the
+                "pwms" property (see PWM binding[0])
++  - low-threshold-brightness: brightness threshold low level. Low threshold
++    brightness set to value so that backlight present on low end of
++    brightness.
++    Some panels, backlight would absent if duty percentage of PWM wave is less
++    than certain level (say 20%). By setting low-threshold-brightness to a
++    value above (percentage of brightness-levels max) 50 (20% of 255, if 255
++    is max). On setting low-threshold-brightness, range of brightness-levels
++    is calculated in a region of low-threshold-brightness to brightness-levels
++    max.
+ 
+ [0]: Documentation/devicetree/bindings/pwm/pwm.txt
+ 
+@@ -25,4 +34,5 @@ Example:
+ 
+ 		brightness-levels = <0 4 8 16 32 64 128 255>;
+ 		default-brightness-level = <6>;
++		low-threshold-brightness = <50>;
+ 	};
+diff -puN drivers/video/backlight/pwm_bl.c~pwm_backlight-add-device-tree-support-for-low-threshold-brightness drivers/video/backlight/pwm_bl.c
+--- a/drivers/video/backlight/pwm_bl.c~pwm_backlight-add-device-tree-support-for-low-threshold-brightness
++++ a/drivers/video/backlight/pwm_bl.c
+@@ -143,6 +143,11 @@ static int pwm_backlight_parse_dt(struct
+ 
+ 		data->dft_brightness = value;
+ 		data->max_brightness--;
++
++		ret = of_property_read_u32(node, "low-threshold-brightness",
++					   &value);
++		if (!ret)
++			data->lth_brightness = value;
  	}
--	/* The key_length (be16) doesn't summed in the lenght of whole key.
--	   But the length of the string (be16) should be included in sum.
--	   So, offsetof(hfsplus_attr_key, key_name) is a trick that give
--	   right value. */
-+
-+	/* The length of the key, as stored in key_len field, does not include
-+	 * the size of the key_len field itself.
-+	 * So, offsetof(hfsplus_attr_key, key_name) is a trick because
-+	 * it takes into consideration key_len field (__be16) of
-+	 * hfsplus_attr_key structure instead of length field (__be16) of
-+	 * hfsplus_attr_unistr structure.
-+	 */
- 	key->key_len =
- 		cpu_to_be16(offsetof(struct hfsplus_attr_key, key_name) +
- 				2 * len);
-@@ -90,10 +94,14 @@ void hfsplus_attr_build_key_uni(hfsplus_
- 	key->attr.key_name.length = cpu_to_be16(ustrlen);
- 	ustrlen *= 2;
- 	memcpy(key->attr.key_name.unicode, name->unicode, ustrlen);
--	/* The key_length (be16) doesn't summed in the lenght of whole key.
--	   But the length of the string (be16) should be included in sum.
--	   So, offsetof(hfsplus_attr_key, key_name) is a trick that give
--	   right value. */
-+
-+	/* The length of the key, as stored in key_len field, does not include
-+	 * the size of the key_len field itself.
-+	 * So, offsetof(hfsplus_attr_key, key_name) is a trick because
-+	 * it takes into consideration key_len field (__be16) of
-+	 * hfsplus_attr_key structure instead of length field (__be16) of
-+	 * hfsplus_attr_unistr structure.
-+	 */
- 	key->key_len =
- 		cpu_to_be16(offsetof(struct hfsplus_attr_key, key_name) +
- 				ustrlen);
-@@ -101,10 +109,7 @@ void hfsplus_attr_build_key_uni(hfsplus_
  
- hfsplus_attr_entry *hfsplus_alloc_attr_entry(void)
- {
--	hfsplus_attr_entry *entry;
--	entry = kmem_cache_alloc(hfsplus_attr_tree_cachep, GFP_KERNEL);
--
--	return (entry) ? entry : NULL;
-+	return kmem_cache_alloc(hfsplus_attr_tree_cachep, GFP_KERNEL);
- }
- 
- void hfsplus_destroy_attr_entry(hfsplus_attr_entry *entry)
-@@ -119,13 +124,17 @@ static int hfsplus_attr_build_record(hfs
- 				u32 cnid, const void *value, size_t size)
- {
- 	if (record_type == HFSPLUS_ATTR_FORK_DATA) {
--		/* Mac OS X supports only inline data attributes.
--		   Do nothing. */
-+		/*
-+		 * Mac OS X supports only inline data attributes.
-+		 * Do nothing
-+		 */
- 		memset(entry, 0, sizeof(*entry));
- 		return sizeof(struct hfsplus_attr_fork_data);
- 	} else if (record_type == HFSPLUS_ATTR_EXTENTS) {
--		/* Mac OS X supports only inline data attributes.
--		   Do nothing. */
-+		/*
-+		 * Mac OS X supports only inline data attributes.
-+		 * Do nothing.
-+		 */
- 		memset(entry, 0, sizeof(*entry));
- 		return sizeof(struct hfsplus_attr_extents);
- 	} else if (record_type == HFSPLUS_ATTR_INLINE_DATA) {
-@@ -139,8 +148,10 @@ static int hfsplus_attr_build_record(hfs
- 			return HFSPLUS_INVALID_ATTR_RECORD;
- 		entry->inline_data.length = cpu_to_be16(len);
- 		memcpy(entry->inline_data.raw_bytes, value, len);
--		/* Align len on two-byte boundary.
--		   It needs to add pad byte if we have odd len. */
-+		/*
-+		 * Align len on two-byte boundary.
-+		 * It needs to add pad byte if we have odd len.
-+		 */
- 		len = round_up(len, 2);
- 		return offsetof(struct hfsplus_attr_inline_data, raw_bytes) +
- 					len;
-diff -puN fs/hfsplus/hfsplus_raw.h~hfsplus-code-style-fixes-reworked-support-of-extended-attributes fs/hfsplus/hfsplus_raw.h
---- a/fs/hfsplus/hfsplus_raw.h~hfsplus-code-style-fixes-reworked-support-of-extended-attributes
-+++ a/fs/hfsplus/hfsplus_raw.h
-@@ -55,18 +55,20 @@ typedef __be16 hfsplus_unichr;
- #define HFSPLUS_MAX_STRLEN 255
- #define HFSPLUS_ATTR_MAX_STRLEN 127
- 
--#define HFSPLUS_STRING(name, max_len)		\
--struct hfsplus_##name {				\
--	__be16 length;				\
--	hfsplus_unichr unicode[max_len];	\
--} __packed;					\
--
- /* A "string" as used in filenames, etc. */
--HFSPLUS_STRING(unistr, HFSPLUS_MAX_STRLEN)
-+struct hfsplus_unistr {
-+	__be16 length;
-+	hfsplus_unichr unicode[HFSPLUS_MAX_STRLEN];
-+} __packed;
- 
--/* A "string" is used in attributes file
--   for name of extended attribute */
--HFSPLUS_STRING(attr_unistr, HFSPLUS_ATTR_MAX_STRLEN)
-+/*
-+ * A "string" is used in attributes file
-+ * for name of extended attribute
-+ */
-+struct hfsplus_attr_unistr {
-+	__be16 length;
-+	hfsplus_unichr unicode[HFSPLUS_ATTR_MAX_STRLEN];
-+} __packed;
- 
- /* POSIX permissions */
- struct hfsplus_perm {
+ 	/*
 _
 
-Patches currently in -mm which might be from slava@dubeyko.com are
+Patches currently in -mm which might be from avinashphilip@ti.com are
 
-hfsplus-add-on-disk-layout-declarations-related-to-attributes-tree.patch
-hfsplus-add-functionality-of-manipulating-by-records-in-attributes-tree.patch
-hfsplus-rework-functionality-of-getting-setting-and-deleting-of-extended-attributes.patch
-hfsplus-add-support-of-manipulation-by-attributes-file.patch
-hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
-hfsplus-code-style-fixes-reworked-support-of-extended-attributes.patch
+linux-next.patch
+pwm_backlight-add-device-tree-support-for-low-threshold-brightness.patch
+pwm_backlight-add-device-tree-support-for-low-threshold-brightness-fix.patch
 
