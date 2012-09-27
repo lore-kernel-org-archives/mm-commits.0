@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + binfmt_elf-uninitialized-variable.patch added to -mm tree
-Date: Wed, 26 Sep 2012 16:24:16 -0700
-Message-ID: <20120926232416.9AEDD100047@wpzn3.hot.corp.google.com>
+Subject: + scatterlist-add-sg_nents-fix.patch added to -mm tree
+Date: Thu, 27 Sep 2012 13:53:23 -0700
+Message-ID: <20120927205325.A1CEB20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:37736 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750868Ab2IZXYR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Sep 2012 19:24:17 -0400
-Received: by qaea16 with SMTP id a16so245647qae.1
-        for <mm-commits@vger.kernel.org>; Wed, 26 Sep 2012 16:24:17 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:38786 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754404Ab2I0Uxb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 27 Sep 2012 16:53:31 -0400
+Received: by wgbdt11 with SMTP id dt11so162236wgb.1
+        for <mm-commits@vger.kernel.org>; Thu, 27 Sep 2012 13:53:30 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@linux.intel.com
+Cc: maximlevitsky@gmail.com, axboe@kernel.dk, oakad@yahoo.com, tj@kernel.org
 
 
 The patch titled
-     Subject: binfmt_elf: Uninitialized variable
+     Subject: scatterlist: refactor the sg_nents
 has been added to the -mm tree.  Its filename is
-     binfmt_elf-uninitialized-variable.patch
+     scatterlist-add-sg_nents-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +33,32 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alan Cox <alan@linux.intel.com>
-Subject: binfmt_elf: Uninitialized variable
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: scatterlist: refactor the sg_nents
 
-load_elf_interp() has interp_map_addr carefully described as
-"uninitialized_var" and marked so as to avoid a warning.  However if you
-trace the code it is passed into load_elf_interp and then this value is
-checked against NULL.
+Replace 'while' with 'for' as suggested by Tejun Heo
 
-As this return value isn't used this is actually safe but it freaks
-various analysis tools that see un-initialized memory addresses being read
-before their value is ever defined.
-
-Set it to NULL as a matter of programming good taste if nothing else
-
-Signed-off-by: Alan Cox <alan@linux.intel.com>
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Alex Dubov <oakad@yahoo.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/scatterlist.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN fs/binfmt_elf.c~binfmt_elf-uninitialized-variable fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~binfmt_elf-uninitialized-variable
-+++ a/fs/binfmt_elf.c
-@@ -880,7 +880,7 @@ static int load_elf_binary(struct linux_
- 	}
- 
- 	if (elf_interpreter) {
--		unsigned long uninitialized_var(interp_map_addr);
-+		unsigned long interp_map_addr = 0;
- 
- 		elf_entry = load_elf_interp(&loc->interp_elf_ex,
- 					    interpreter,
-_
-
-Patches currently in -mm which might be from alan@linux.intel.com are
-
-linux-next.patch
-binfmt_elf-uninitialized-variable.patch
-
+diff -puN lib/scatterlist.c~scatterlist-add-sg_nents-fix lib/scatterlist.c
+--- a/lib/scatterlist.c~scatterlist-add-sg_nents-fix
++++ a/lib/scatterlist.c
+@@ -49,12 +49,9 @@ EXPORT_SYMBOL(sg_next);
+  **/
+ int sg_nents(struct scatterlist *sg)
+ {
+-	int nents = 0;
+-	while (sg) {
++	int nents;
++	for (nents = 0; sg; sg = sg_next(sg))
+ 		nents++;
+-		sg = sg_next(sg);
+-	}
