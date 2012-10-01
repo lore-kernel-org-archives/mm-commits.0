@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + compiler-gcc4h-introduce-__flatten-function-attribute.patch added to -mm tree
-Date: Mon, 01 Oct 2012 12:44:01 -0700
-Message-ID: <20121001194402.421C61E0061@wpzn4.hot.corp.google.com>
+Subject: + compiler-gcc4h-remove-duplicate-macros.patch added to -mm tree
+Date: Mon, 01 Oct 2012 12:43:53 -0700
+Message-ID: <20121001194354.5C6D51E0061@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:55909 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752062Ab2JAToD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2012 15:44:03 -0400
-Received: by yhl10 with SMTP id 10so190497yhl.1
-        for <mm-commits@vger.kernel.org>; Mon, 01 Oct 2012 12:44:02 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:49799 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754290Ab2JATnz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2012 15:43:55 -0400
+Received: by vbis24 with SMTP id s24so689121vbi.1
+        for <mm-commits@vger.kernel.org>; Mon, 01 Oct 2012 12:43:54 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: daniel.santos@pobox.com, mmarek@suse.cz
 
 
 The patch titled
-     Subject: compiler{,-gcc4}.h: introduce __flatten function attribute
+     Subject: compiler{,-gcc4}.h: remove duplicate macros
 has been added to the -mm tree.  Its filename is
-     compiler-gcc4h-introduce-__flatten-function-attribute.patch
+     compiler-gcc4h-remove-duplicate-macros.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,71 +34,48 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Daniel Santos <daniel.santos@pobox.com>
-Subject: compiler{,-gcc4}.h: introduce __flatten function attribute
+Subject: compiler{,-gcc4}.h: remove duplicate macros
 
-For gcc 4.1 & later, expands to __attribute__((flatten)) which forces the
-compiler to inline everything it can into the function.  This is useful in
-combination with noinline when you want to control the depth of inlining,
-or create a single function where inline expansions will occur.  (see
-http://gcc.gnu.org/onlinedocs/gcc/Function-Attributes.html#index-g_t_0040code_007bflatten_007d-function-attribute-2512)
-
-Normally, it's best to leave this type of thing up to the compiler. 
-However, the generic rbtree code uses inline functions just to be able to
-inject compile-time constant data that specifies how the caller wants the
-function to behave (via struct rb_relationship).  This data can be thought
-of as the template parameters of a C++ templatized function.  Since some
-of these functions, once expanded, become quite large, gcc sometimes
-decides not to perform some important inlining, in one case, even
-generating a few bytes more code by not doing so.  (Note: I have not
-eliminated the possibility that this was an optimization bug, but the
-flatten attribute fixes it in either case.)
-
-Combining __flatten and noinline insures that important optimizations
-occur in these cases and that the inline expansion occurs in exactly one
-place, thus not leading to unnecissary bloat.  However, it also can
-eliminate some opportunities for optimization should gcc otherwise decide
-the function its self is a good candidate for inlining.
+__linktime_error() does the same thing as __compiletime_error() and is
+only used in bug.h.  Since the macro defines a function attribute that
+will cause a failure at compile-time (not link-time), it makes more sense
+to keep __compiletime_error(), which is also neatly mated with
+__compiletime_warning().
 
 Signed-off-by: Daniel Santos <daniel.santos@pobox.com>
 Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc4.h |    7 ++++++-
- include/linux/compiler.h      |    4 ++++
- 2 files changed, 10 insertions(+), 1 deletion(-)
+ include/linux/compiler-gcc4.h |    2 --
+ include/linux/compiler.h      |    3 ---
+ 2 files changed, 5 deletions(-)
 
-diff -puN include/linux/compiler-gcc4.h~compiler-gcc4h-introduce-__flatten-function-attribute include/linux/compiler-gcc4.h
---- a/include/linux/compiler-gcc4.h~compiler-gcc4h-introduce-__flatten-function-attribute
+diff -puN include/linux/compiler-gcc4.h~compiler-gcc4h-remove-duplicate-macros include/linux/compiler-gcc4.h
+--- a/include/linux/compiler-gcc4.h~compiler-gcc4h-remove-duplicate-macros
 +++ a/include/linux/compiler-gcc4.h
-@@ -15,7 +15,12 @@
+@@ -33,8 +33,6 @@
+    the kernel context */
+ #define __cold			__attribute__((__cold__))
  
- #if GCC_VERSION >= 40102
- # define __compiletime_object_size(obj) __builtin_object_size(obj, 0)
--#endif
-+
-+/* flatten introduced in 4.1, but broken in 4.6.0 (gcc bug #48731)*/
-+# if GCC_VERSION != 40600
-+#  define __flatten __attribute__((flatten))
-+# endif
-+#endif /* GCC_VERSION >= 40102 */
- 
- #if GCC_VERSION >= 40300
- /* Mark functions as cold. gcc will assume any path leading to a call
-diff -puN include/linux/compiler.h~compiler-gcc4h-introduce-__flatten-function-attribute include/linux/compiler.h
---- a/include/linux/compiler.h~compiler-gcc4h-introduce-__flatten-function-attribute
+-#define __linktime_error(message) __attribute__((__error__(message)))
+-
+ #ifndef __CHECKER__
+ # define __compiletime_warning(message) __attribute__((warning(message)))
+ # define __compiletime_error(message) __attribute__((error(message)))
+diff -puN include/linux/compiler.h~compiler-gcc4h-remove-duplicate-macros include/linux/compiler.h
+--- a/include/linux/compiler.h~compiler-gcc4h-remove-duplicate-macros
 +++ a/include/linux/compiler.h
-@@ -244,6 +244,10 @@ void ftrace_likely_update(struct ftrace_
- #define __always_inline inline
+@@ -297,9 +297,6 @@ void ftrace_likely_update(struct ftrace_
+ #ifndef __compiletime_error
+ # define __compiletime_error(message)
  #endif
- 
-+#ifndef __flatten
-+#define __flatten
-+#endif
-+
- #endif /* __KERNEL__ */
- 
+-#ifndef __linktime_error
+-# define __linktime_error(message)
+-#endif
  /*
+  * Prevent the compiler from merging or refetching accesses.  The compiler
+  * is also forbidden from reordering successive instances of ACCESS_ONCE(),
 _
 
 Patches currently in -mm which might be from daniel.santos@pobox.com are
