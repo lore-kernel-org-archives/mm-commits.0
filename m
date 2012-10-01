@@ -1,82 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-thermal-user_spacec-add-missing-static-storage-class-specifiers.patch removed from -mm tree
-Date: Mon, 01 Oct 2012 12:28:57 -0700
-Message-ID: <20121001192857.9EFD21E0043@wpzn4.hot.corp.google.com>
+Subject: [merged] coredump-prevent-double-free-on-an-error-path-in-core-dumper.patch removed from -mm tree
+Date: Mon, 01 Oct 2012 12:29:04 -0700
+Message-ID: <20121001192904.B8A90100048@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:64848 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751735Ab2JAT27 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2012 15:28:59 -0400
-Received: by vbis24 with SMTP id s24so687145vbi.1
-        for <mm-commits@vger.kernel.org>; Mon, 01 Oct 2012 12:28:58 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:48494 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751735Ab2JAT3F (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2012 15:29:05 -0400
+Received: by mail-gg0-f202.google.com with SMTP id i4so8389ggm.1
+        for <mm-commits@vger.kernel.org>; Mon, 01 Oct 2012 12:29:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sachin.kamat@linaro.org, amit.kachhap@linaro.org, durgadoss.r@intel.com, len.brown@intel.com, lenb@kernel.org, rui.zhang@intel.com, mm-commits@vger.kernel.org
+To: vda.linux@googlemail.com, oleg@redhat.com, stable@vger.kernel.org, vbyravarasu@nvidia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/thermal/user_space.c: add missing static storage class specifiers
+     Subject: coredump: prevent double-free on an error path in core dumper
 has been removed from the -mm tree.  Its filename was
-     drivers-thermal-user_spacec-add-missing-static-storage-class-specifiers.patch
+     coredump-prevent-double-free-on-an-error-path-in-core-dumper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/thermal/user_space.c: add missing static storage class specifiers
+From: Denys Vlasenko <vda.linux@googlemail.com>
+Subject: coredump: prevent double-free on an error path in core dumper
 
-Fixes the following sparse warnings:
-drivers/thermal/user_space.c:38:5: warning:
-symbol 'notify_user_space' was not declared. Should it be static?
-drivers/thermal/user_space.c:46:25: warning:
-symbol 'thermal_gov_user_space' was not declared. Should it be static?
+In !CORE_DUMP_USE_REGSET case, if elf_note_info_init fails to allocate
+memory for info->fields, it frees already allocated stuff and returns
+error to its caller, fill_note_info.  Which in turn returns error to its
+caller, elf_core_dump.  Which jumps to cleanup label and calls
+free_note_info, which will happily try to free all info->fields again. 
+BOOM.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Acked-by: Durgadoss R <durgadoss.r@intel.com>
-Cc: Amit Daniel Kachhap <amit.kachhap@linaro.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Brown, Len" <len.brown@intel.com>
-Cc: Zhang Rui <rui.zhang@intel.com>
+This is the fix.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
+Cc: Venu Byravarasu <vbyravarasu@nvidia.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/thermal/user_space.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/binfmt_elf.c |   19 ++++---------------
+ 1 file changed, 4 insertions(+), 15 deletions(-)
 
-diff -puN drivers/thermal/user_space.c~drivers-thermal-user_spacec-add-missing-static-storage-class-specifiers drivers/thermal/user_space.c
---- a/drivers/thermal/user_space.c~drivers-thermal-user_spacec-add-missing-static-storage-class-specifiers
-+++ a/drivers/thermal/user_space.c
-@@ -35,7 +35,7 @@
-  *
-  * This function notifies the user space through UEvents.
-  */
--int notify_user_space(struct thermal_zone_device *tz, int trip)
-+static int notify_user_space(struct thermal_zone_device *tz, int trip)
- {
- 	mutex_lock(&tz->lock);
- 	kobject_uevent(&tz->device.kobj, KOBJ_CHANGE);
-@@ -43,7 +43,7 @@ int notify_user_space(struct thermal_zon
- 	return 0;
+diff -puN fs/binfmt_elf.c~coredump-prevent-double-free-on-an-error-path-in-core-dumper fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~coredump-prevent-double-free-on-an-error-path-in-core-dumper
++++ a/fs/binfmt_elf.c
+@@ -1695,30 +1695,19 @@ static int elf_note_info_init(struct elf
+ 		return 0;
+ 	info->psinfo = kmalloc(sizeof(*info->psinfo), GFP_KERNEL);
+ 	if (!info->psinfo)
+-		goto notes_free;
++		return 0;
+ 	info->prstatus = kmalloc(sizeof(*info->prstatus), GFP_KERNEL);
+ 	if (!info->prstatus)
+-		goto psinfo_free;
++		return 0;
+ 	info->fpu = kmalloc(sizeof(*info->fpu), GFP_KERNEL);
+ 	if (!info->fpu)
+-		goto prstatus_free;
++		return 0;
+ #ifdef ELF_CORE_COPY_XFPREGS
+ 	info->xfpu = kmalloc(sizeof(*info->xfpu), GFP_KERNEL);
+ 	if (!info->xfpu)
+-		goto fpu_free;
++		return 0;
+ #endif
+ 	return 1;
+-#ifdef ELF_CORE_COPY_XFPREGS
+- fpu_free:
+-	kfree(info->fpu);
+-#endif
+- prstatus_free:
+-	kfree(info->prstatus);
+- psinfo_free:
+-	kfree(info->psinfo);
+- notes_free:
+-	kfree(info->notes);
+-	return 0;
  }
  
--struct thermal_governor thermal_gov_user_space = {
-+static struct thermal_governor thermal_gov_user_space = {
- 	.name		= "user_space",
- 	.throttle	= notify_user_space,
- 	.owner		= THIS_MODULE,
+ static int fill_note_info(struct elfhdr *elf, int phdrs,
 _
 
-Patches currently in -mm which might be from sachin.kamat@linaro.org are
+Patches currently in -mm which might be from vda.linux@googlemail.com are
 
-origin.patch
 linux-next.patch
-mm-hugetlbc-remove-duplicate-inclusion-of-header-file.patch
-memcg-cleanup-kmem-tcp-ifdefs.patch
-memcg-move-mem_cgroup_is_root-upwards.patch
-drivers-video-backlight-da9052_blc-use-usleep_range-instead-of-msleep-for-small-sleeps.patch
-drivers-video-backlight-ltv350qvc-use-usleep_range-instead-of-msleep-for-small-sleeps.patch
-drivers-video-backlight-kb3886_blc-use-usleep_range-instead-of-msleep-for-small-sleeps.patch
-drivers-rtc-rtc-s3cc-fix-return-value-in-s3c_rtc_probe.patch
-proc-use-null-instead-of-0-for-pointer.patch
+lib-vsprintf-optimize-division-by-10-for-small-integers.patch
+lib-vsprintf-optimize-division-by-10000.patch
+lib-vsprintf-optimize-put_dec_trunc8.patch
+lib-vsprintf-optimize-put_dec_trunc8-fix.patch
+lib-vsprintf-fix-broken-comments.patch
+coredump-add-support-for-%d=__get_dumpable-in-core-name.patch
+coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr.patch
+compat-move-compat_siginfo_t-definition-to-asm-compath.patch
+coredump-add-a-new-elf-note-with-siginfo-of-the-signal.patch
+coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files.patch
 
