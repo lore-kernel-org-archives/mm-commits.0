@@ -1,75 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] compiler-gcc4h-remove-duplicate-macros.patch removed from -mm tree
-Date: Mon, 01 Oct 2012 13:48:22 -0700
-Message-ID: <20121001204823.396FC20004E@hpza10.eem.corp.google.com>
+Subject: [to-be-updated] compiler-gcc34h-use-gcc_version-macro.patch removed from -mm tree
+Date: Mon, 01 Oct 2012 13:48:17 -0700
+Message-ID: <20121001204818.E272C20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:47627 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755643Ab2JAUsZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2012 16:48:25 -0400
-Received: by wgbdt11 with SMTP id dt11so331270wgb.1
-        for <mm-commits@vger.kernel.org>; Mon, 01 Oct 2012 13:48:24 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:33709 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757282Ab2JAUsV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2012 16:48:21 -0400
+Received: by faet1 with SMTP id t1so386584fae.1
+        for <mm-commits@vger.kernel.org>; Mon, 01 Oct 2012 13:48:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: daniel.santos@pobox.com, mmarek@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: compiler{,-gcc4}.h: remove duplicate macros
+     Subject: compiler-gcc{3,4}.h: use GCC_VERSION macro
 has been removed from the -mm tree.  Its filename was
-     compiler-gcc4h-remove-duplicate-macros.patch
+     compiler-gcc34h-use-gcc_version-macro.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Daniel Santos <daniel.santos@pobox.com>
-Subject: compiler{,-gcc4}.h: remove duplicate macros
+Subject: compiler-gcc{3,4}.h: use GCC_VERSION macro
 
-__linktime_error() does the same thing as __compiletime_error() and is
-only used in bug.h.  Since the macro defines a function attribute that
-will cause a failure at compile-time (not link-time), it makes more sense
-to keep __compiletime_error(), which is also neatly mated with
-__compiletime_warning().
+Using GCC_VERSION reduces complexity, is easier to read and is GCC's
+recommended mechanism for doing version checks.  (Just don't ask me why
+they didn't define it in the first place.) This also makes it easy to
+merge compiler-gcc{3,4}.h should somebody want to.
 
 Signed-off-by: Daniel Santos <daniel.santos@pobox.com>
 Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc4.h |    2 --
- include/linux/compiler.h      |    3 ---
- 2 files changed, 5 deletions(-)
+ include/linux/compiler-gcc3.h |    8 ++++----
+ include/linux/compiler-gcc4.h |   14 +++++++-------
+ 2 files changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/compiler-gcc4.h~compiler-gcc4h-remove-duplicate-macros include/linux/compiler-gcc4.h
---- a/include/linux/compiler-gcc4.h~compiler-gcc4h-remove-duplicate-macros
-+++ a/include/linux/compiler-gcc4.h
-@@ -33,8 +33,6 @@
-    the kernel context */
- #define __cold			__attribute__((__cold__))
+diff -puN include/linux/compiler-gcc3.h~compiler-gcc34h-use-gcc_version-macro include/linux/compiler-gcc3.h
+--- a/include/linux/compiler-gcc3.h~compiler-gcc34h-use-gcc_version-macro
++++ a/include/linux/compiler-gcc3.h
+@@ -2,22 +2,22 @@
+ #error "Please don't include <linux/compiler-gcc3.h> directly, include <linux/compiler.h> instead."
+ #endif
  
--#define __linktime_error(message) __attribute__((__error__(message)))
--
- #ifndef __CHECKER__
+-#if __GNUC_MINOR__ < 2
++#if GCC_VERSION < 30200
+ # error Sorry, your compiler is too old - please upgrade it.
+ #endif
+ 
+-#if __GNUC_MINOR__ >= 3
++#if GCC_VERSION >= 30300
+ # define __used			__attribute__((__used__))
+ #else
+ # define __used			__attribute__((__unused__))
+ #endif
+ 
+-#if __GNUC_MINOR__ >= 4
++#if GCC_VERSION >= 30400
+ #define __must_check		__attribute__((warn_unused_result))
+ #endif
+ 
+ #ifdef CONFIG_GCOV_KERNEL
+-# if __GNUC_MINOR__ < 4
++# if GCC_VERSION < 30400
+ #   error "GCOV profiling support for gcc versions below 3.4 not included"
+ # endif /* __GNUC_MINOR__ */
+ #endif /* CONFIG_GCOV_KERNEL */
+diff -puN include/linux/compiler-gcc4.h~compiler-gcc34h-use-gcc_version-macro include/linux/compiler-gcc4.h
+--- a/include/linux/compiler-gcc4.h~compiler-gcc34h-use-gcc_version-macro
++++ a/include/linux/compiler-gcc4.h
+@@ -4,7 +4,7 @@
+ 
+ /* GCC 4.1.[01] miscompiles __weak */
+ #ifdef __KERNEL__
+-# if __GNUC_MINOR__ == 1 && __GNUC_PATCHLEVEL__ <= 1
++# if GCC_VERSION >= 40100 &&  GCC_VERSION <= 40101
+ //#  error Your version of gcc miscompiles the __weak directive
+ # endif
+ #endif
+@@ -13,11 +13,11 @@
+ #define __must_check 		__attribute__((warn_unused_result))
+ #define __compiler_offsetof(a,b) __builtin_offsetof(a,b)
+ 
+-#if __GNUC_MINOR__ > 0
++#if GCC_VERSION >= 40102
+ # define __compiletime_object_size(obj) __builtin_object_size(obj, 0)
+ #endif
+ 
+-#if __GNUC_MINOR__ >= 3
++#if GCC_VERSION >= 40300
+ /* Mark functions as cold. gcc will assume any path leading to a call
+    to them will be unlikely.  This means a lot of manual unlikely()s
+    are unnecessary now for any paths leading to the usual suspects
+@@ -39,9 +39,9 @@
  # define __compiletime_warning(message) __attribute__((warning(message)))
  # define __compiletime_error(message) __attribute__((error(message)))
-diff -puN include/linux/compiler.h~compiler-gcc4h-remove-duplicate-macros include/linux/compiler.h
---- a/include/linux/compiler.h~compiler-gcc4h-remove-duplicate-macros
-+++ a/include/linux/compiler.h
-@@ -297,9 +297,6 @@ void ftrace_likely_update(struct ftrace_
- #ifndef __compiletime_error
- # define __compiletime_error(message)
- #endif
--#ifndef __linktime_error
--# define __linktime_error(message)
--#endif
+ #endif /* __CHECKER__ */
+-#endif /* __GNUC_MINOR__ >= 3 */
++#endif /* GCC_VERSION >= 40300 */
+ 
+-#if __GNUC_MINOR__ >= 5
++#if GCC_VERSION >= 40500
  /*
-  * Prevent the compiler from merging or refetching accesses.  The compiler
-  * is also forbidden from reordering successive instances of ACCESS_ONCE(),
+  * Mark a position in code as unreachable.  This can be used to
+  * suppress control flow warnings after asm blocks that transfer
+@@ -56,9 +56,9 @@
+ /* Mark a function definition as prohibited from being cloned. */
+ #define __noclone	__attribute__((__noclone__))
+ 
+-#endif /* __GNUC_MINOR__ >= 5 */
++#endif /* GCC_VERSION >= 40500 */
+ 
+-#if __GNUC_MINOR__ >= 6
++#if GCC_VERSION >= 40600
+ /*
+  * Tell the optimizer that something else uses this function or variable.
+  */
 _
 
 Patches currently in -mm which might be from daniel.santos@pobox.com are
 
+compiler-gcc4h-remove-duplicate-macros.patch
 bugh-replace-__linktime_error-with-__compiletime_error.patch
 compiler-gcc4h-introduce-__flatten-function-attribute.patch
 rbtree-reference-documentation-rbtreetxt-for-usage-instructions.patch
