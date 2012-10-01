@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + cma-migrate-mlocked-pages-fix.patch added to -mm tree
-Date: Mon, 01 Oct 2012 14:07:59 -0700
-Message-ID: <20121001210800.1215A100047@wpzn3.hot.corp.google.com>
+Subject: + kernel-doc-bugfix-empty-line-in-example-section.patch added to -mm tree
+Date: Mon, 01 Oct 2012 14:21:34 -0700
+Message-ID: <20121001212135.5656D100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:64734 "EHLO
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:55715 "EHLO
 	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752234Ab2JAVIB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2012 17:08:01 -0400
-Received: by ghbz15 with SMTP id z15so703381ghb.1
-        for <mm-commits@vger.kernel.org>; Mon, 01 Oct 2012 14:08:00 -0700 (PDT)
+	with ESMTP id S1752483Ab2JAVVg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2012 17:21:36 -0400
+Received: by ghbz15 with SMTP id z15so705387ghb.1
+        for <mm-commits@vger.kernel.org>; Mon, 01 Oct 2012 14:21:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, b.zolnierkie@samsung.com, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org
+Cc: daniel.santos@pobox.com, mmarek@suse.cz, rdunlap@xenotime.net
 
 
 The patch titled
-     Subject: cma-migrate-mlocked-pages-fix
+     Subject: kernel-doc: bugfix - empty line in Example section
 has been added to the -mm tree.  Its filename is
-     cma-migrate-mlocked-pages-fix.patch
+     kernel-doc-bugfix-empty-line-in-example-section.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,98 +33,126 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: cma-migrate-mlocked-pages-fix
+From: Daniel Santos <daniel.santos@pobox.com>
+Subject: kernel-doc: bugfix - empty line in Example section
 
-tweak comment text, per Mel
+If you have a section named "Example" that contains an empty line,
+attempting to generate htmldocs give you the error:
 
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Minchan Kim <minchan@kernel.org>
+/path/Documentation/DocBook/kernel-api.xml:3455: parser error : Opening and ending tag mismatch: programlisting line 3449 and para
+   </para><para>
+          ^
+/path/Documentation/DocBook/kernel-api.xml:3473: parser error : Opening and ending tag mismatch: para line 3467 and programlisting
+</programlisting></informalexample>
+                 ^
+/path/Documentation/DocBook/kernel-api.xml:3678: parser error : Opening and ending tag mismatch: programlisting line 3672 and para
+   </para><para>
+          ^
+/path/Documentation/DocBook/kernel-api.xml:3701: parser error : Opening and ending tag mismatch: para line 3690 and programlisting
+</programlisting></informalexample>
+                 ^
+unable to parse
+/path/Documentation/DocBook/kernel-api.xml
+
+Essentially, the script attempts to close a <programlisting> with a
+closing tag for a <para> block.  This patch corrects the problem by
+simply not outputting anything extra when we're dumping pre-formatted
+text, since the empty line will be rendered correctly anyway.
+
+Signed-off-by: Daniel Santos <daniel.santos@pobox.com>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/kernel-doc |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~cma-migrate-mlocked-pages-fix mm/vmscan.c
---- a/mm/vmscan.c~cma-migrate-mlocked-pages-fix
-+++ a/mm/vmscan.c
-@@ -1009,7 +1009,7 @@ int __isolate_lru_page(struct page *page
- 	if (!PageLRU(page))
- 		return ret;
+diff -puN scripts/kernel-doc~kernel-doc-bugfix-empty-line-in-example-section scripts/kernel-doc
+--- a/scripts/kernel-doc~kernel-doc-bugfix-empty-line-in-example-section
++++ a/scripts/kernel-doc
+@@ -245,6 +245,7 @@ my $dohighlight = "";
  
--	/* Compaction can't handle unevictable pages but CMA can do */
-+	/* Compaction should not handle unevictable pages but CMA can do so */
- 	if (PageUnevictable(page) && !(mode & ISOLATE_UNEVICTABLE))
- 		return ret;
- 
+ my $verbose = 0;
+ my $output_mode = "man";
++my $output_preformatted = 0;
+ my $no_doc_sections = 0;
+ my %highlights = %highlights_man;
+ my $blankline = $blankline_man;
+@@ -486,7 +487,9 @@ sub output_highlight {
+     }
+     foreach $line (split "\n", $contents) {
+ 	if ($line eq ""){
+-	    print $lineprefix, local_unescape($blankline);
++	    if (! $output_preformatted) {
++		print $lineprefix, local_unescape($blankline);
++	    }
+ 	} else {
+ 	    $line =~ s/\\\\\\/\&/g;
+ 	    if ($output_mode eq "man" && substr($line, 0, 1) eq ".") {
+@@ -902,10 +905,12 @@ sub output_section_xml(%) {
+ 	print "<title>$section</title>\n";
+ 	if ($section =~ m/EXAMPLE/i) {
+ 	    print "<informalexample><programlisting>\n";
++	    $output_preformatted = 1;
+ 	} else {
+ 	    print "<para>\n";
+ 	}
+ 	output_highlight($args{'sections'}{$section});
++	$output_preformatted = 0;
+ 	if ($section =~ m/EXAMPLE/i) {
+ 	    print "</programlisting></informalexample>\n";
+ 	} else {
+@@ -1208,10 +1213,12 @@ sub output_blockhead_xml(%) {
+ 	}
+ 	if ($section =~ m/EXAMPLE/i) {
+ 	    print "<example><para>\n";
++	    $output_preformatted = 1;
+ 	} else {
+ 	    print "<para>\n";
+ 	}
+ 	output_highlight($args{'sections'}{$section});
++	$output_preformatted = 0;
+ 	if ($section =~ m/EXAMPLE/i) {
+ 	    print "</para></example>\n";
+ 	} else {
+@@ -1287,10 +1294,12 @@ sub output_function_gnome {
+ 	print "<simplesect>\n <title>$section</title>\n";
+ 	if ($section =~ m/EXAMPLE/i) {
+ 	    print "<example><programlisting>\n";
++	    $output_preformatted = 1;
+ 	} else {
+ 	}
+ 	print "<para>\n";
+ 	output_highlight($args{'sections'}{$section});
++	$output_preformatted = 0;
+ 	print "</para>\n";
+ 	if ($section =~ m/EXAMPLE/i) {
+ 	    print "</programlisting></example>\n";
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from daniel.santos@pobox.com are
 
-origin.patch
-linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-audith-replace-defines-with-c-stubs.patch
-audith-replace-defines-with-c-stubs-fix.patch
-mm.patch
-x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
-mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
-mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures-fix.patch
-mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch
-rbtree-performance-and-correctness-test-fix.patch
-mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix.patch
-mm-fix-tracing-in-free_pcppages_bulk-fix.patch
-cma-count-free-cma-pages-fix.patch
-memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
-atomic-implement-generic-atomic_dec_if_positive-fix.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix-2.patch
-mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible-fix-fix.patch
-mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch
-mm-fix-invalidate_complete_page2-lock-ordering.patch
-mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix.patch
-mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock.patch
-cma-migrate-mlocked-pages-fix.patch
-fs-block_devc-set_blocksize-use-mapping_mapped.patch
-mm-avoid-section-mismatch-warning-for-memblock_type_name-fix.patch
-sections-fix-section-conflicts-in-arch-h8300-checkpatch-fixes.patch
-sections-fix-section-conflicts-in-drivers-macintosh-checkpatch-fixes.patch
-sectons-fix-const-sections-for-crc32-table-checkpatch-fixes.patch
-backlight-add-backlight-driver-for-lm3630-chip-fix.patch
-backlight-add-new-lm3639-backlight-driver-fix.patch
-backlight-platform-lcd-add-support-for-device-tree-based-probe-fix.patch
-idr-rename-max_level-to-max_idr_level-fix.patch
-idr-rename-max_level-to-max_idr_level-fix-fix-2.patch
-idr-rename-max_level-to-max_idr_level-fix-3.patch
-lib-parserc-avoid-overflow-in-match_number-fix.patch
-lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-rtc-add-dallas-ds2404-driver-fix.patch
-rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch
-hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
-fs-fat-fix-all-other-checkpatch-issues-in-dirc-fix.patch
-fat-simplify-writeback_inode-checkpatch-fixes.patch
-fat-simplify-writeback_inode-checkpatch-fixes-fix.patch
-coredump-make-core-dump-functionality-optional-fix-fix.patch
-coredump-use-suid_dumpable_enabled-rather-than-hardcoded-1-checkpatch-fixes.patch
-proc-use-kzalloc-instead-of-kmalloc-and-memset-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+rbtree-reference-documentation-rbtreetxt-for-usage-instructions.patch
+rbtree-empty-nodes-have-no-color.patch
+rbtree-fix-incorrect-rbtree-node-insertion-in-fs-proc-proc_sysctlc.patch
+rbtree-move-some-implementation-details-from-rbtreeh-to-rbtreec.patch
+rbtree-performance-and-correctness-test.patch
+rbtree-break-out-of-rb_insert_color-loop-after-tree-rotation.patch
+rbtree-adjust-root-color-in-rb_insert_color-only-when-necessary.patch
+rbtree-low-level-optimizations-in-rb_insert_color.patch
+rbtree-adjust-node-color-in-__rb_erase_color-only-when-necessary.patch
+rbtree-optimize-case-selection-logic-in-__rb_erase_color.patch
+rbtree-low-level-optimizations-in-__rb_erase_color.patch
+rbtree-coding-style-adjustments.patch
+rbtree-optimize-fetching-of-sibling-node.patch
+mm-interval-tree-updates.patch
+mm-anon-rmap-remove-anon_vma_moveto_tail.patch
+mm-anon-rmap-replace-same_anon_vma-linked-list-with-an-interval-tree.patch
+mm-rmap-remove-vma_address-check-for-address-inside-vma.patch
+mm-add-config_debug_vm_rb-build-option.patch
+mm-avoid-taking-rmap-locks-in-move_ptes.patch
+kernel-doc-bugfix-multi-line-macros.patch
+kernel-doc-bugfix-empty-line-in-example-section.patch
+kernel-doc-dont-mangle-whitespace-in-example-section.patch
 
