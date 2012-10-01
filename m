@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-doc-bugfix-multi-line-macros.patch added to -mm tree
-Date: Mon, 01 Oct 2012 14:21:29 -0700
-Message-ID: <20121001212130.C9D5420004E@hpza10.eem.corp.google.com>
+Subject: + kernel-doc-dont-mangle-whitespace-in-example-section.patch added to -mm tree
+Date: Mon, 01 Oct 2012 14:21:38 -0700
+Message-ID: <20121001212139.926FA20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:65258 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752483Ab2JAVVd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2012 17:21:33 -0400
-Received: by lbol12 with SMTP id l12so258308lbo.1
-        for <mm-commits@vger.kernel.org>; Mon, 01 Oct 2012 14:21:32 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:58693 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752483Ab2JAVVm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2012 17:21:42 -0400
+Received: by wibhr7 with SMTP id hr7so1130wib.1
+        for <mm-commits@vger.kernel.org>; Mon, 01 Oct 2012 14:21:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: daniel.santos@pobox.com, mmarek@suse.cz, rdunlap@xenotime.net
 
 
 The patch titled
-     Subject: kernel-doc: bugfix - multi-line macros
+     Subject: kernel-doc: don't mangle whitespace in Example section
 has been added to the -mm tree.  Its filename is
-     kernel-doc-bugfix-multi-line-macros.patch
+     kernel-doc-dont-mangle-whitespace-in-example-section.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,26 +34,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Daniel Santos <daniel.santos@pobox.com>
-Subject: kernel-doc: bugfix - multi-line macros
+Subject: kernel-doc: don't mangle whitespace in Example section
 
-Prior to this patch the following code breaks:
+A section with the name "Example" (case-insensitive) has a special meaning
+to kernel-doc.  These sections are output using mono-type fonts.  However,
+leading whitespace is stripped, thus robbing a lot of meaning from this,
+as indented code examples will be mangled.
 
-/**
- * multiline_example - this breaks kernel-doc
- */
- #define multiline_example( \
-myparam)
-
-Producing this error:
-
-Error(somefile.h:983): cannot understand prototype: 'multiline_example( \ '
-
-This patch fixes the issue by appending all lines ending in a blackslash
-(optionally followed by whitespace), removing the backslash and any
-whitespace after it prior to appending (just like the C pre-processor
-would).
-
-This fixes a break in kerel-doc introduced by the additions to rbtree.h.
+This patch preserves the leading whitespace for "Example" sections.  More
+accurately, it preserves it for all sections, but removes it later if the
+section isn't an "Example" section.
 
 Signed-off-by: Daniel Santos <daniel.santos@pobox.com>
 Cc: Randy Dunlap <rdunlap@xenotime.net>
@@ -61,22 +51,51 @@ Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kernel-doc |    3 +++
- 1 file changed, 3 insertions(+)
+ scripts/kernel-doc |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN scripts/kernel-doc~kernel-doc-bugfix-multi-line-macros scripts/kernel-doc
---- a/scripts/kernel-doc~kernel-doc-bugfix-multi-line-macros
+diff -puN scripts/kernel-doc~kernel-doc-dont-mangle-whitespace-in-example-section scripts/kernel-doc
+--- a/scripts/kernel-doc~kernel-doc-dont-mangle-whitespace-in-example-section
 +++ a/scripts/kernel-doc
-@@ -2305,6 +2305,9 @@ sub process_file($) {
+@@ -296,9 +296,10 @@ my $doc_special = "\@\%\$\&";
+ my $doc_start = '^/\*\*\s*$'; # Allow whitespace at end of comment start.
+ my $doc_end = '\*/';
+ my $doc_com = '\s*\*\s*';
++my $doc_com_body = '\s*\* ?';
+ my $doc_decl = $doc_com . '(\w+)';
+ my $doc_sect = $doc_com . '([' . $doc_special . ']?[\w\s]+):(.*)';
+-my $doc_content = $doc_com . '(.*)';
++my $doc_content = $doc_com_body . '(.*)';
+ my $doc_block = $doc_com . 'DOC:\s*(.*)?';
  
-     $section_counter = 0;
-     while (<IN>) {
-+	while (s/\\\s*$//) {
-+	    $_ .= <IN>;
+ my %constants;
+@@ -486,6 +487,9 @@ sub output_highlight {
+ 	$contents =~ s/\s+$//;
+     }
+     foreach $line (split "\n", $contents) {
++	if (! $output_preformatted) {
++	    $line =~ s/^\s*//;
 +	}
- 	if ($state == 0) {
- 	    if (/$doc_start/o) {
- 		$state = 1;		# next line is always the function name
+ 	if ($line eq ""){
+ 	    if (! $output_preformatted) {
+ 		print $lineprefix, local_unescape($blankline);
+@@ -2344,7 +2348,7 @@ sub process_file($) {
+ 		    $descr= $1;
+ 		    $descr =~ s/^\s*//;
+ 		    $descr =~ s/\s*$//;
+-		    $descr =~ s/\s+/ /;
++		    $descr =~ s/\s+/ /g;
+ 		    $declaration_purpose = xml_escape($descr);
+ 		    $in_purpose = 1;
+ 		} else {
+@@ -2436,6 +2440,7 @@ sub process_file($) {
+ 		    # Continued declaration purpose
+ 		    chomp($declaration_purpose);
+ 		    $declaration_purpose .= " " . xml_escape($1);
++		    $declaration_purpose =~ s/\s+/ /g;
+ 		} else {
+ 		    $contents .= $1 . "\n";
+ 		}
 _
 
 Patches currently in -mm which might be from daniel.santos@pobox.com are
