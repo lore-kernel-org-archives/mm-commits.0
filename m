@@ -1,37 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thermal-exynos-fix-null-pointer-dereference-in-exynos_unregister_thermal.patch removed from -mm tree
-Date: Mon, 01 Oct 2012 12:28:43 -0700
-Message-ID: <20121001192844.3964E5C0060@hpza9.eem.corp.google.com>
+Subject: [merged] drivers-thermal-fair_sharec-add-missing-static-storage-class-specifiers.patch removed from -mm tree
+Date: Mon, 01 Oct 2012 12:28:52 -0700
+Message-ID: <20121001192853.38DEB5C0063@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:37797 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751735Ab2JAT2r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2012 15:28:47 -0400
-Received: by wibhr7 with SMTP id hr7so152732wib.1
-        for <mm-commits@vger.kernel.org>; Mon, 01 Oct 2012 12:28:45 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:35837 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751735Ab2JAT2z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2012 15:28:55 -0400
+Received: by mail-lb0-f202.google.com with SMTP id l12so254863lbo.1
+        for <mm-commits@vger.kernel.org>; Mon, 01 Oct 2012 12:28:54 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sachin.kamat@linaro.org, amit.kachhap@linaro.org, durgadoss.r@intel.com, len.brown@intel.com, lenb@kernel.org, rui.zhang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/thermal/exynos_thermal.c: fix NULL pointer dereference in exynos_unregister_thermal()
+     Subject: drivers/thermal/fair_share.c: add missing static storage class specifiers
 has been removed from the -mm tree.  Its filename was
-     thermal-exynos-fix-null-pointer-dereference-in-exynos_unregister_thermal.patch
+     drivers-thermal-fair_sharec-add-missing-static-storage-class-specifiers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/thermal/exynos_thermal.c: fix NULL pointer dereference in exynos_unregister_thermal()
+Subject: drivers/thermal/fair_share.c: add missing static storage class specifiers
 
-exynos_unregister_thermal() is functional only when 'th_zone' is not NULL
-(ensured by the NULL checks).  However, in the event it is NULL, it gets
-dereferenced in the for loop.  This patch fixes this issue.
+Fixes the following sparse warnings:
+drivers/thermal/fair_share.c:80:5: warning:
+symbol 'fair_share_throttle' was not declared. Should it be static?
+drivers/thermal/fair_share.c:111:25: warning:
+symbol 'thermal_gov_fair_share' was not declared. Should it be static?
 
 Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Durgadoss R <durgadoss.r@intel.com>
+Acked-by: Durgadoss R <durgadoss.r@intel.com>
 Cc: Amit Daniel Kachhap <amit.kachhap@linaro.org>
 Cc: Len Brown <lenb@kernel.org>
 Cc: "Brown, Len" <len.brown@intel.com>
@@ -39,29 +41,30 @@ Cc: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/thermal/exynos_thermal.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/thermal/fair_share.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/thermal/exynos_thermal.c~thermal-exynos-fix-null-pointer-dereference-in-exynos_unregister_thermal drivers/thermal/exynos_thermal.c
---- a/drivers/thermal/exynos_thermal.c~thermal-exynos-fix-null-pointer-dereference-in-exynos_unregister_thermal
-+++ a/drivers/thermal/exynos_thermal.c
-@@ -475,11 +475,14 @@ static void exynos_unregister_thermal(vo
+diff -puN drivers/thermal/fair_share.c~drivers-thermal-fair_sharec-add-missing-static-storage-class-specifiers drivers/thermal/fair_share.c
+--- a/drivers/thermal/fair_share.c~drivers-thermal-fair_sharec-add-missing-static-storage-class-specifiers
++++ a/drivers/thermal/fair_share.c
+@@ -77,7 +77,7 @@ static long get_target_state(struct ther
+  *	(Heavily assumes the trip points are in ascending order)
+  * new_state of cooling device = P3 * P2 * P1
+  */
+-int fair_share_throttle(struct thermal_zone_device *tz, int trip)
++static int fair_share_throttle(struct thermal_zone_device *tz, int trip)
  {
- 	int i;
+ 	const struct thermal_zone_params *tzp;
+ 	struct thermal_cooling_device *cdev;
+@@ -108,7 +108,7 @@ int fair_share_throttle(struct thermal_z
+ 	return 0;
+ }
  
--	if (th_zone && th_zone->therm_dev)
-+	if (!th_zone)
-+		return;
-+
-+	if (th_zone->therm_dev)
- 		thermal_zone_device_unregister(th_zone->therm_dev);
- 
- 	for (i = 0; i < th_zone->cool_dev_size; i++) {
--		if (th_zone && th_zone->cool_dev[i])
-+		if (th_zone->cool_dev[i])
- 			cpufreq_cooling_unregister(th_zone->cool_dev[i]);
- 	}
- 
+-struct thermal_governor thermal_gov_fair_share = {
++static struct thermal_governor thermal_gov_fair_share = {
+ 	.name		= "fair_share",
+ 	.throttle	= fair_share_throttle,
+ 	.owner		= THIS_MODULE,
 _
 
 Patches currently in -mm which might be from sachin.kamat@linaro.org are
