@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-doc-bugfix-empty-line-in-example-section.patch added to -mm tree
-Date: Mon, 01 Oct 2012 14:21:34 -0700
-Message-ID: <20121001212135.5656D100047@wpzn3.hot.corp.google.com>
+Subject: + kernel-doc-bugfix-multi-line-macros.patch added to -mm tree
+Date: Mon, 01 Oct 2012 14:21:29 -0700
+Message-ID: <20121001212130.C9D5420004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:55715 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752483Ab2JAVVg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2012 17:21:36 -0400
-Received: by ghbz15 with SMTP id z15so705387ghb.1
-        for <mm-commits@vger.kernel.org>; Mon, 01 Oct 2012 14:21:35 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:65258 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752483Ab2JAVVd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2012 17:21:33 -0400
+Received: by lbol12 with SMTP id l12so258308lbo.1
+        for <mm-commits@vger.kernel.org>; Mon, 01 Oct 2012 14:21:32 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: daniel.santos@pobox.com, mmarek@suse.cz, rdunlap@xenotime.net
 
 
 The patch titled
-     Subject: kernel-doc: bugfix - empty line in Example section
+     Subject: kernel-doc: bugfix - multi-line macros
 has been added to the -mm tree.  Its filename is
-     kernel-doc-bugfix-empty-line-in-example-section.patch
+     kernel-doc-bugfix-multi-line-macros.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,26 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Daniel Santos <daniel.santos@pobox.com>
-Subject: kernel-doc: bugfix - empty line in Example section
+Subject: kernel-doc: bugfix - multi-line macros
 
-If you have a section named "Example" that contains an empty line,
-attempting to generate htmldocs give you the error:
+Prior to this patch the following code breaks:
 
-/path/Documentation/DocBook/kernel-api.xml:3455: parser error : Opening and ending tag mismatch: programlisting line 3449 and para
-   </para><para>
-          ^
-/path/Documentation/DocBook/kernel-api.xml:3473: parser error : Opening and ending tag mismatch: para line 3467 and programlisting
-</programlisting></informalexample>
-                 ^
-/path/Documentation/DocBook/kernel-api.xml:3678: parser error : Opening and ending tag mismatch: programlisting line 3672 and para
-   </para><para>
-          ^
-/path/Documentation/DocBook/kernel-api.xml:3701: parser error : Opening and ending tag mismatch: para line 3690 and programlisting
-</programlisting></informalexample>
-                 ^
-unable to parse
-/path/Documentation/DocBook/kernel-api.xml
+/**
+ * multiline_example - this breaks kernel-doc
+ */
+ #define multiline_example( \
+myparam)
 
-Essentially, the script attempts to close a <programlisting> with a
-closing tag for a <para> block.  This patch corrects the problem by
-simply not outputting anything extra when we're dumping pre-formatted
-text, since the empty line will be rendered correctly anyway.
+Producing this error:
+
+Error(somefile.h:983): cannot understand prototype: 'multiline_example( \ '
+
+This patch fixes the issue by appending all lines ending in a blackslash
+(optionally followed by whitespace), removing the backslash and any
+whitespace after it prior to appending (just like the C pre-processor
+would).
+
+This fixes a break in kerel-doc introduced by the additions to rbtree.h.
 
 Signed-off-by: Daniel Santos <daniel.santos@pobox.com>
 Cc: Randy Dunlap <rdunlap@xenotime.net>
@@ -65,70 +61,22 @@ Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kernel-doc |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ scripts/kernel-doc |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN scripts/kernel-doc~kernel-doc-bugfix-empty-line-in-example-section scripts/kernel-doc
---- a/scripts/kernel-doc~kernel-doc-bugfix-empty-line-in-example-section
+diff -puN scripts/kernel-doc~kernel-doc-bugfix-multi-line-macros scripts/kernel-doc
+--- a/scripts/kernel-doc~kernel-doc-bugfix-multi-line-macros
 +++ a/scripts/kernel-doc
-@@ -245,6 +245,7 @@ my $dohighlight = "";
+@@ -2305,6 +2305,9 @@ sub process_file($) {
  
- my $verbose = 0;
- my $output_mode = "man";
-+my $output_preformatted = 0;
- my $no_doc_sections = 0;
- my %highlights = %highlights_man;
- my $blankline = $blankline_man;
-@@ -486,7 +487,9 @@ sub output_highlight {
-     }
-     foreach $line (split "\n", $contents) {
- 	if ($line eq ""){
--	    print $lineprefix, local_unescape($blankline);
-+	    if (! $output_preformatted) {
-+		print $lineprefix, local_unescape($blankline);
-+	    }
- 	} else {
- 	    $line =~ s/\\\\\\/\&/g;
- 	    if ($output_mode eq "man" && substr($line, 0, 1) eq ".") {
-@@ -902,10 +905,12 @@ sub output_section_xml(%) {
- 	print "<title>$section</title>\n";
- 	if ($section =~ m/EXAMPLE/i) {
- 	    print "<informalexample><programlisting>\n";
-+	    $output_preformatted = 1;
- 	} else {
- 	    print "<para>\n";
- 	}
- 	output_highlight($args{'sections'}{$section});
-+	$output_preformatted = 0;
- 	if ($section =~ m/EXAMPLE/i) {
- 	    print "</programlisting></informalexample>\n";
- 	} else {
-@@ -1208,10 +1213,12 @@ sub output_blockhead_xml(%) {
- 	}
- 	if ($section =~ m/EXAMPLE/i) {
- 	    print "<example><para>\n";
-+	    $output_preformatted = 1;
- 	} else {
- 	    print "<para>\n";
- 	}
- 	output_highlight($args{'sections'}{$section});
-+	$output_preformatted = 0;
- 	if ($section =~ m/EXAMPLE/i) {
- 	    print "</para></example>\n";
- 	} else {
-@@ -1287,10 +1294,12 @@ sub output_function_gnome {
- 	print "<simplesect>\n <title>$section</title>\n";
- 	if ($section =~ m/EXAMPLE/i) {
- 	    print "<example><programlisting>\n";
-+	    $output_preformatted = 1;
- 	} else {
- 	}
- 	print "<para>\n";
- 	output_highlight($args{'sections'}{$section});
-+	$output_preformatted = 0;
- 	print "</para>\n";
- 	if ($section =~ m/EXAMPLE/i) {
- 	    print "</programlisting></example>\n";
+     $section_counter = 0;
+     while (<IN>) {
++	while (s/\\\s*$//) {
++	    $_ .= <IN>;
++	}
+ 	if ($state == 0) {
+ 	    if (/$doc_start/o) {
+ 		$state = 1;		# next line is always the function name
 _
 
 Patches currently in -mm which might be from daniel.santos@pobox.com are
