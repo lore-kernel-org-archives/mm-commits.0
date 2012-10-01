@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + compiler-gcc4h-reorder-macros-based-upon-gcc-ver.patch added to -mm tree
-Date: Mon, 01 Oct 2012 12:43:43 -0700
-Message-ID: <20121001194344.99C7F20006C@hpza10.eem.corp.google.com>
+Subject: + compiler-gcc4h-introduce-__flatten-function-attribute.patch added to -mm tree
+Date: Mon, 01 Oct 2012 12:44:01 -0700
+Message-ID: <20121001194402.421C61E0061@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f74.google.com ([209.85.215.74]:61228 "EHLO
-	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754283Ab2JATnr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2012 15:43:47 -0400
-Received: by lahj13 with SMTP id j13so103554lah.1
-        for <mm-commits@vger.kernel.org>; Mon, 01 Oct 2012 12:43:45 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:55909 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752062Ab2JAToD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Oct 2012 15:44:03 -0400
+Received: by yhl10 with SMTP id 10so190497yhl.1
+        for <mm-commits@vger.kernel.org>; Mon, 01 Oct 2012 12:44:02 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: daniel.santos@pobox.com, mmarek@suse.cz
 
 
 The patch titled
-     Subject: compiler-gcc4.h: reorder macros based upon gcc ver
+     Subject: compiler{,-gcc4}.h: introduce __flatten function attribute
 has been added to the -mm tree.  Its filename is
-     compiler-gcc4h-reorder-macros-based-upon-gcc-ver.patch
+     compiler-gcc4h-introduce-__flatten-function-attribute.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,71 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Daniel Santos <daniel.santos@pobox.com>
-Subject: compiler-gcc4.h: reorder macros based upon gcc ver
+Subject: compiler{,-gcc4}.h: introduce __flatten function attribute
 
-This helps to keep the file from getting confusing, removes one
-duplicate version check and should encourage future editors to put new
-macros where they belong.
+For gcc 4.1 & later, expands to __attribute__((flatten)) which forces the
+compiler to inline everything it can into the function.  This is useful in
+combination with noinline when you want to control the depth of inlining,
+or create a single function where inline expansions will occur.  (see
+http://gcc.gnu.org/onlinedocs/gcc/Function-Attributes.html#index-g_t_0040code_007bflatten_007d-function-attribute-2512)
+
+Normally, it's best to leave this type of thing up to the compiler. 
+However, the generic rbtree code uses inline functions just to be able to
+inject compile-time constant data that specifies how the caller wants the
+function to behave (via struct rb_relationship).  This data can be thought
+of as the template parameters of a C++ templatized function.  Since some
+of these functions, once expanded, become quite large, gcc sometimes
+decides not to perform some important inlining, in one case, even
+generating a few bytes more code by not doing so.  (Note: I have not
+eliminated the possibility that this was an optimization bug, but the
+flatten attribute fixes it in either case.)
+
+Combining __flatten and noinline insures that important optimizations
+occur in these cases and that the inline expansion occurs in exactly one
+place, thus not leading to unnecissary bloat.  However, it also can
+eliminate some opportunities for optimization should gcc otherwise decide
+the function its self is a good candidate for inlining.
 
 Signed-off-by: Daniel Santos <daniel.santos@pobox.com>
 Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc4.h |   20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
+ include/linux/compiler-gcc4.h |    7 ++++++-
+ include/linux/compiler.h      |    4 ++++
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/compiler-gcc4.h~compiler-gcc4h-reorder-macros-based-upon-gcc-ver include/linux/compiler-gcc4.h
---- a/include/linux/compiler-gcc4.h~compiler-gcc4h-reorder-macros-based-upon-gcc-ver
+diff -puN include/linux/compiler-gcc4.h~compiler-gcc4h-introduce-__flatten-function-attribute include/linux/compiler-gcc4.h
+--- a/include/linux/compiler-gcc4.h~compiler-gcc4h-introduce-__flatten-function-attribute
 +++ a/include/linux/compiler-gcc4.h
-@@ -13,6 +13,10 @@
- #define __must_check 		__attribute__((warn_unused_result))
- #define __compiler_offsetof(a,b) __builtin_offsetof(a,b)
+@@ -15,7 +15,12 @@
  
-+#if __GNUC_MINOR__ > 0
-+# define __compiletime_object_size(obj) __builtin_object_size(obj, 0)
-+#endif
+ #if GCC_VERSION >= 40102
+ # define __compiletime_object_size(obj) __builtin_object_size(obj, 0)
+-#endif
 +
- #if __GNUC_MINOR__ >= 3
++/* flatten introduced in 4.1, but broken in 4.6.0 (gcc bug #48731)*/
++# if GCC_VERSION != 40600
++#  define __flatten __attribute__((flatten))
++# endif
++#endif /* GCC_VERSION >= 40102 */
+ 
+ #if GCC_VERSION >= 40300
  /* Mark functions as cold. gcc will assume any path leading to a call
-    to them will be unlikely.  This means a lot of manual unlikely()s
-@@ -31,6 +35,12 @@
- 
- #define __linktime_error(message) __attribute__((__error__(message)))
- 
-+#ifndef __CHECKER__
-+# define __compiletime_warning(message) __attribute__((warning(message)))
-+# define __compiletime_error(message) __attribute__((error(message)))
-+#endif /* __CHECKER__ */
-+#endif /* __GNUC_MINOR__ >= 3 */
-+
- #if __GNUC_MINOR__ >= 5
- /*
-  * Mark a position in code as unreachable.  This can be used to
-@@ -46,8 +56,7 @@
- /* Mark a function definition as prohibited from being cloned. */
- #define __noclone	__attribute__((__noclone__))
- 
--#endif
--#endif
-+#endif /* __GNUC_MINOR__ >= 5 */
- 
- #if __GNUC_MINOR__ >= 6
- /*
-@@ -56,10 +65,3 @@
- #define __visible __attribute__((externally_visible))
+diff -puN include/linux/compiler.h~compiler-gcc4h-introduce-__flatten-function-attribute include/linux/compiler.h
+--- a/include/linux/compiler.h~compiler-gcc4h-introduce-__flatten-function-attribute
++++ a/include/linux/compiler.h
+@@ -244,6 +244,10 @@ void ftrace_likely_update(struct ftrace_
+ #define __always_inline inline
  #endif
  
--#if __GNUC_MINOR__ > 0
--#define __compiletime_object_size(obj) __builtin_object_size(obj, 0)
--#endif
--#if __GNUC_MINOR__ >= 3 && !defined(__CHECKER__)
--#define __compiletime_warning(message) __attribute__((warning(message)))
--#define __compiletime_error(message) __attribute__((error(message)))
--#endif
++#ifndef __flatten
++#define __flatten
++#endif
++
+ #endif /* __KERNEL__ */
+ 
+ /*
 _
 
 Patches currently in -mm which might be from daniel.santos@pobox.com are
