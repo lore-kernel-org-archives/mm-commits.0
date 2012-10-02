@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + aoe-update-and-specify-aoe-address-guards-and-error-messages.patch added to -mm tree
-Date: Tue, 02 Oct 2012 14:18:11 -0700
-Message-ID: <20121002211811.EBE351E0043@wpzn4.hot.corp.google.com>
+Subject: + aoe-retain-static-block-device-numbers-for-backwards-compatibility.patch added to -mm tree
+Date: Tue, 02 Oct 2012 14:18:06 -0700
+Message-ID: <20121002211807.59D9F5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:42214 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932280Ab2JBVSN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2012 17:18:13 -0400
-Received: by qcqs25 with SMTP id s25so852301qcq.1
-        for <mm-commits@vger.kernel.org>; Tue, 02 Oct 2012 14:18:12 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:63569 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932281Ab2JBVSI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2012 17:18:08 -0400
+Received: by mail-wg0-f74.google.com with SMTP id dt11so413606wgb.1
+        for <mm-commits@vger.kernel.org>; Tue, 02 Oct 2012 14:18:08 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: ecashin@coraid.com
 
 
 The patch titled
-     Subject: aoe: update and specify AoE address guards and error messages
+     Subject: aoe: retain static block device numbers for backwards compatibility
 has been added to the -mm tree.  Its filename is
-     aoe-update-and-specify-aoe-address-guards-and-error-messages.patch
+     aoe-retain-static-block-device-numbers-for-backwards-compatibility.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,69 +34,115 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ed Cashin <ecashin@coraid.com>
-Subject: aoe: update and specify AoE address guards and error messages
+Subject: aoe: retain static block device numbers for backwards compatibility
 
-In general, specific is better when it comes to messages about AoE usage
-problems.  Also, explicit checks for the AoE broadcast addresses are
-added.
+The old mapping between AoE target shelf and slot addresses and the block
+device minor number is retained as a backwards-compatible feature, with a
+new "aoe_dyndevs" module parameter available for enabling dynamic block
+device minor numbers.
 
 Signed-off-by: Ed Cashin <ecashin@coraid.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoe.h    |    2 --
- drivers/block/aoe/aoecmd.c |   17 +++++++++++------
- 2 files changed, 11 insertions(+), 8 deletions(-)
+ drivers/block/aoe/aoedev.c |   54 +++++++++++++++++++++++++++++++++--
+ 1 file changed, 51 insertions(+), 3 deletions(-)
 
-diff -puN drivers/block/aoe/aoe.h~aoe-update-and-specify-aoe-address-guards-and-error-messages drivers/block/aoe/aoe.h
---- a/drivers/block/aoe/aoe.h~aoe-update-and-specify-aoe-address-guards-and-error-messages
-+++ a/drivers/block/aoe/aoe.h
-@@ -49,8 +49,6 @@ struct aoe_hdr {
- 	__be32 tag;
- };
+diff -puN drivers/block/aoe/aoedev.c~aoe-retain-static-block-device-numbers-for-backwards-compatibility drivers/block/aoe/aoedev.c
+--- a/drivers/block/aoe/aoedev.c~aoe-retain-static-block-device-numbers-for-backwards-compatibility
++++ a/drivers/block/aoe/aoedev.c
+@@ -11,6 +11,7 @@
+ #include <linux/slab.h>
+ #include <linux/bitmap.h>
+ #include <linux/kdev_t.h>
++#include <linux/moduleparam.h>
+ #include "aoe.h"
  
--#define AOE_MAXSHELF (0xffff-1)	/* one less than the broadcast shelf address */
--
- struct aoe_atahdr {
- 	unsigned char aflags;
- 	unsigned char errfeat;
-diff -puN drivers/block/aoe/aoecmd.c~aoe-update-and-specify-aoe-address-guards-and-error-messages drivers/block/aoe/aoecmd.c
---- a/drivers/block/aoe/aoecmd.c~aoe-update-and-specify-aoe-address-guards-and-error-messages
-+++ a/drivers/block/aoe/aoecmd.c
-@@ -1349,15 +1349,14 @@ aoecmd_cfg_rsp(struct sk_buff *skb)
- 			"Check shelf dip switches.\n");
- 		return;
- 	}
--	if (aoemajor > AOE_MAXSHELF) {
--		pr_info("aoe: e%ld.%d: shelf number too large\n",
-+	if (aoemajor == 0xffff) {
-+		pr_info("aoe: e%ld.%d: broadcast shelf number invalid\n",
- 			aoemajor, (int) h->minor);
- 		return;
- 	}
--
--	d = aoedev_by_aoeaddr(aoemajor, h->minor, 1);
--	if (d == NULL) {
--		pr_info("aoe: device allocation failure\n");
-+	if (h->minor == 0xff) {
-+		pr_info("aoe: e%ld.%d: broadcast slot number invalid\n",
-+			aoemajor, (int) h->minor);
- 		return;
- 	}
+ static void dummy_timer(ulong);
+@@ -18,6 +19,10 @@ static void aoedev_freedev(struct aoedev
+ static void freetgt(struct aoedev *d, struct aoetgt *t);
+ static void skbpoolfree(struct aoedev *d);
  
-@@ -1365,6 +1364,12 @@ aoecmd_cfg_rsp(struct sk_buff *skb)
- 	if (n > aoe_maxout)	/* keep it reasonable */
- 		n = aoe_maxout;
++static int aoe_dyndevs;
++module_param(aoe_dyndevs, int, 0644);
++MODULE_PARM_DESC(aoe_dyndevs, "Use dynamic minor numbers for devices.");
++
+ static struct aoedev *devlist;
+ static DEFINE_SPINLOCK(devlist_lock);
  
-+	d = aoedev_by_aoeaddr(aoemajor, h->minor, 1);
-+	if (d == NULL) {
-+		pr_info("aoe: device allocation failure\n");
-+		return;
+@@ -34,7 +39,7 @@ static DEFINE_SPINLOCK(used_minors_lock)
+ static DECLARE_BITMAP(used_minors, N_DEVS);
+ 
+ static int
+-minor_get(ulong *minor)
++minor_get_dyn(ulong *sysminor)
+ {
+ 	ulong flags;
+ 	ulong n;
+@@ -48,10 +53,53 @@ minor_get(ulong *minor)
+ 		error = -1;
+ 	spin_unlock_irqrestore(&used_minors_lock, flags);
+ 
+-	*minor = n * AOE_PARTITIONS;
++	*sysminor = n * AOE_PARTITIONS;
+ 	return error;
+ }
+ 
++static int
++minor_get_static(ulong *sysminor, ulong aoemaj, int aoemin)
++{
++	ulong flags;
++	ulong n;
++	int error = 0;
++	enum {
++		/* for backwards compatibility when !aoe_dyndevs,
++		 * a static number of supported slots per shelf */
++		NPERSHELF = 16,
++	};
++
++	n = aoemaj * NPERSHELF + aoemin;
++	if (aoemin >= NPERSHELF || n >= N_DEVS) {
++		pr_err("aoe: %s with e%ld.%d\n",
++			"cannot use static minor device numbers",
++			aoemaj, aoemin);
++		error = -1;
++	} else {
++		spin_lock_irqsave(&used_minors_lock, flags);
++		if (test_bit(n, used_minors)) {
++			pr_err("aoe: %s %lu\n",
++				"existing device already has static minor number",
++				n);
++			error = -1;
++		} else
++			set_bit(n, used_minors);
++		spin_unlock_irqrestore(&used_minors_lock, flags);
 +	}
 +
- 	spin_lock_irqsave(&d->lock, flags);
- 
- 	t = gettgt(d, h->src);
++	*sysminor = n;
++	return error;
++}
++
++static int
++minor_get(ulong *sysminor, ulong aoemaj, int aoemin)
++{
++	if (aoe_dyndevs)
++		return minor_get_dyn(sysminor);
++	else
++		return minor_get_static(sysminor, aoemaj, aoemin);
++}
++
+ static void
+ minor_free(ulong minor)
+ {
+@@ -293,7 +341,7 @@ aoedev_by_aoeaddr(ulong maj, int min, in
+ 			d->ref++;
+ 			break;
+ 		}
+-	if (d || !do_alloc || minor_get(&sysminor) < 0)
++	if (d || !do_alloc || minor_get(&sysminor, maj, min) < 0)
+ 		goto out;
+ 	d = kcalloc(1, sizeof *d, GFP_ATOMIC);
+ 	if (!d)
 _
 
 Patches currently in -mm which might be from ecashin@coraid.com are
