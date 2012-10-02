@@ -1,94 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: [merged] gpu-drm-ttm-use-copy_highpage.patch removed from -mm tree
-Date: Tue, 02 Oct 2012 12:33:19 -0700
-Message-ID: <20121002193320.9DB855C0050@hpza9.eem.corp.google.com>
+Subject: + mutex-subsystem-synchro-test-module-fix-2.patch added to -mm tree
+Date: Tue, 02 Oct 2012 13:25:18 -0700
+Message-ID: <20121002202518.8C7D7100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:55836 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751782Ab2JBTdW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2012 15:33:22 -0400
-Received: by wibhr7 with SMTP id hr7so79118wib.1
-        for <mm-commits@vger.kernel.org>; Tue, 02 Oct 2012 12:33:21 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:44739 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754424Ab2JBUZT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2012 16:25:19 -0400
+Received: by ggmi4 with SMTP id i4so167073ggm.1
+        for <mm-commits@vger.kernel.org>; Tue, 02 Oct 2012 13:25:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, airlied@linux.ie, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: viro@ZenIV.linux.org.uk
 
 
 The patch titled
-     Subject: gpu/drm/ttm: use copy_highpage
-has been removed from the -mm tree.  Its filename was
-     gpu-drm-ttm-use-copy_highpage.patch
+     Subject: mutex-subsystem-synchro-test-module-fix-2
+has been added to the -mm tree.  Its filename is
+     mutex-subsystem-synchro-test-module-fix-2.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: gpu/drm/ttm: use copy_highpage
+From: Al Viro <viro@ZenIV.linux.org.uk>
+Subject: mutex-subsystem-synchro-test-module-fix-2
 
-Use copy_highpage() to copy from one page to another.
+BTW, why not just do
+	kthread_run(mutexer, (void *)loop, "Mutex%u", loop);
+instead of
+	kernel_thread(mutexer, (void *)loop, 0);
+etc. and kill daemonize() calls in there, while we are at it?
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: David Airlie <airlied@linux.ie>
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/ttm/ttm_tt.c |   16 ++--------------
- 1 file changed, 2 insertions(+), 14 deletions(-)
+ kernel/synchro-test.c |   16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
 
-diff -puN drivers/gpu/drm/ttm/ttm_tt.c~gpu-drm-ttm-use-copy_highpage drivers/gpu/drm/ttm/ttm_tt.c
---- a/drivers/gpu/drm/ttm/ttm_tt.c~gpu-drm-ttm-use-copy_highpage
-+++ a/drivers/gpu/drm/ttm/ttm_tt.c
-@@ -290,8 +290,6 @@ int ttm_tt_swapin(struct ttm_tt *ttm)
- 	struct file *swap_storage;
- 	struct page *from_page;
- 	struct page *to_page;
--	void *from_virtual;
--	void *to_virtual;
- 	int i;
- 	int ret = -ENOMEM;
+diff -puN kernel/synchro-test.c~mutex-subsystem-synchro-test-module-fix-2 kernel/synchro-test.c
+--- a/kernel/synchro-test.c~mutex-subsystem-synchro-test-module-fix-2
++++ a/kernel/synchro-test.c
+@@ -30,6 +30,7 @@
+ #include <linux/timer.h>
+ #include <linux/completion.h>
+ #include <linux/mutex.h>
++#include <linux/kthread.h>
  
-@@ -311,11 +309,7 @@ int ttm_tt_swapin(struct ttm_tt *ttm)
- 			goto out_err;
+ #define MAX_THREADS 64
  
- 		preempt_disable();
--		from_virtual = kmap_atomic(from_page);
--		to_virtual = kmap_atomic(to_page);
--		memcpy(to_virtual, from_virtual, PAGE_SIZE);
--		kunmap_atomic(to_virtual);
--		kunmap_atomic(from_virtual);
-+		copy_highpage(to_page, from_page);
- 		preempt_enable();
- 		page_cache_release(from_page);
- 	}
-@@ -336,8 +330,6 @@ int ttm_tt_swapout(struct ttm_tt *ttm, s
- 	struct file *swap_storage;
- 	struct page *from_page;
- 	struct page *to_page;
--	void *from_virtual;
--	void *to_virtual;
- 	int i;
- 	int ret = -ENOMEM;
+@@ -224,7 +225,6 @@ static int mutexer(void *arg)
+ {
+ 	unsigned int N = (unsigned long) arg;
  
-@@ -367,11 +359,7 @@ int ttm_tt_swapout(struct ttm_tt *ttm, s
- 			goto out_err;
+-	daemonize("Mutex%u", N);
+ 	set_user_nice(current, 19);
+ 
+ 	while (atomic_read(&do_stuff)) {
+@@ -246,7 +246,6 @@ static int semaphorer(void *arg)
+ {
+ 	unsigned int N = (unsigned long) arg;
+ 
+-	daemonize("Sem%u", N);
+ 	set_user_nice(current, 19);
+ 
+ 	while (atomic_read(&do_stuff)) {
+@@ -268,7 +267,6 @@ static int reader(void *arg)
+ {
+ 	unsigned int N = (unsigned long) arg;
+ 
+-	daemonize("Read%u", N);
+ 	set_user_nice(current, 19);
+ 
+ 	while (atomic_read(&do_stuff)) {
+@@ -292,7 +290,6 @@ static int writer(void *arg)
+ {
+ 	unsigned int N = (unsigned long) arg;
+ 
+-	daemonize("Write%u", N);
+ 	set_user_nice(current, 19);
+ 
+ 	while (atomic_read(&do_stuff)) {
+@@ -316,7 +313,6 @@ static int downgrader(void *arg)
+ {
+ 	unsigned int N = (unsigned long) arg;
+ 
+-	daemonize("Down%u", N);
+ 	set_user_nice(current, 19);
+ 
+ 	while (atomic_read(&do_stuff)) {
+@@ -433,27 +429,27 @@ static int __init do_tests(void)
+ 	for (loop = 0; loop < MAX_THREADS; loop++) {
+ 		if (loop < nummx) {
+ 			init_completion(&mx_comp[loop]);
+-			kernel_thread(mutexer, (void *) loop, 0);
++			kthread_run(mutexer, (void *) loop, "Mutex%u", loop);
  		}
- 		preempt_disable();
--		from_virtual = kmap_atomic(from_page);
--		to_virtual = kmap_atomic(to_page);
--		memcpy(to_virtual, from_virtual, PAGE_SIZE);
--		kunmap_atomic(to_virtual);
--		kunmap_atomic(from_virtual);
-+		copy_highpage(to_page, from_page);
- 		preempt_enable();
- 		set_page_dirty(to_page);
- 		mark_page_accessed(to_page);
+ 
+ 		if (loop < numsm) {
+ 			init_completion(&sm_comp[loop]);
+-			kernel_thread(semaphorer, (void *) loop, 0);
++			kthread_run(semaphorer, (void *) loop, "Sem%u", loop);
+ 		}
+ 
+ 		if (loop < numrd) {
+ 			init_completion(&rd_comp[loop]);
+-			kernel_thread(reader, (void *) loop, 0);
++			kthread_run(reader, (void *) loop, "Read%u", loop);
+ 		}
+ 
+ 		if (loop < numwr) {
+ 			init_completion(&wr_comp[loop]);
+-			kernel_thread(writer, (void *) loop, 0);
++			kthread_run(writer, (void *) loop, "Write%u", loop);
+ 		}
+ 
+ 		if (loop < numdg) {
+ 			init_completion(&dg_comp[loop]);
+-			kernel_thread(downgrader, (void *) loop, 0);
++			kthread_run(downgrader, (void *) loop, "Down%u", loop);
+ 		}
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from viro@ZenIV.linux.org.uk are
 
+origin.patch
 linux-next.patch
-cciss-cleanup-bitops-usage.patch
-cciss-use-check_signature.patch
-drbd-use-copy_highpage.patch
+mutex-subsystem-synchro-test-module-fix-2.patch
 
