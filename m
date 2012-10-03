@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-huge_memoryc-fix-build-warning-for-uma-kernels.patch added to -mm tree
-Date: Tue, 02 Oct 2012 15:32:53 -0700
-Message-ID: <20121002223253.936D8100047@wpzn3.hot.corp.google.com>
+Subject: + mm-thp-fix-mapped-pages-avoiding-unevictable-list-on-mlock.patch added to -mm tree
+Date: Wed, 03 Oct 2012 13:10:23 -0700
+Message-ID: <20121003201025.205C7100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:51049 "EHLO
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:52053 "EHLO
 	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752746Ab2JBWcy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Oct 2012 18:32:54 -0400
-Received: by ghbz15 with SMTP id z15so860554ghb.1
-        for <mm-commits@vger.kernel.org>; Tue, 02 Oct 2012 15:32:53 -0700 (PDT)
+	with ESMTP id S1753165Ab2JCUK2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2012 16:10:28 -0400
+Received: by ghbz15 with SMTP id z15so978365ghb.1
+        for <mm-commits@vger.kernel.org>; Wed, 03 Oct 2012 13:10:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com
+Cc: rientjes@google.com, aarcange@redhat.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, n-horiguchi@ah.jp.nec.com, walken@google.com
 
 
 The patch titled
-     Subject: mm/huge_memory.c: fix build warning for UMA kernels
+     Subject: mm, thp: fix mapped pages avoiding unevictable list on mlock
 has been added to the -mm tree.  Its filename is
-     mm-huge_memoryc-fix-build-warning-for-uma-kernels.patch
+     mm-thp-fix-mapped-pages-avoiding-unevictable-list-on-mlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,130 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Rientjes <rientjes@google.com>
-Subject: mm/huge_memory.c: fix build warning for UMA kernels
+Subject: mm, thp: fix mapped pages avoiding unevictable list on mlock
 
-"mm, mpol: Use special PROT_NONE to migrate pages" causes a build warning
-when CONFIG_NUMA is not enabled:
+When a transparent hugepage is mapped and it is included in an mlock()
+range, follow_page() incorrectly avoids setting the page's mlock bit and
+moving it to the unevictable lru.
 
-mm/huge_memory.c: In function 'do_huge_pmd_prot_none':
-mm/huge_memory.c:745: warning: unused variable 'node'
+This is evident if you try to mlock(), munlock(), and then mlock() a
+range again.  Currently:
 
-"node" is only used once, so avoid using it altogether.
+	#define MAP_SIZE	(4 << 30)	/* 4GB */
+
+	void *ptr = mmap(NULL, MAP_SIZE, PROT_READ | PROT_WRITE,
+			 MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+	mlock(ptr, MAP_SIZE);
+
+		$ grep -E "Unevictable|Inactive\(anon" /proc/meminfo
+		Inactive(anon):     6304 kB
+		Unevictable:     4213924 kB
+
+	munlock(ptr, MAP_SIZE);
+
+		Inactive(anon):  4186252 kB
+		Unevictable:       19652 kB
+
+	mlock(ptr, MAP_SIZE);
+
+		Inactive(anon):  4198556 kB
+		Unevictable:       21684 kB
+
+Notice that less than 2MB was added to the unevictable list; this is
+because these pages in the range are not transparent hugepages since the
+4GB range was allocated with mmap() and has no specific alignment.  If
+posix_memalign() were used instead, unevictable would not have grown at
+all on the second mlock().
+
+The fix is to call mlock_vma_page() so that the mlock bit is set and the
+page is added to the unevictable list.  With this patch:
+
+	mlock(ptr, MAP_SIZE);
+
+		Inactive(anon):     4056 kB
+		Unevictable:     4213940 kB
+
+	munlock(ptr, MAP_SIZE);
+
+		Inactive(anon):  4198268 kB
+		Unevictable:       19636 kB
+
+	mlock(ptr, MAP_SIZE);
+
+		Inactive(anon):     4008 kB
+		Unevictable:     4213940 kB
 
 Signed-off-by: David Rientjes <rientjes@google.com>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michel Lespinasse <walken@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ include/linux/huge_mm.h |    2 +-
+ mm/huge_memory.c        |   11 ++++++++++-
+ mm/memory.c             |    2 +-
+ 3 files changed, 12 insertions(+), 3 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-huge_memoryc-fix-build-warning-for-uma-kernels mm/huge_memory.c
---- a/mm/huge_memory.c~mm-huge_memoryc-fix-build-warning-for-uma-kernels
+diff -puN include/linux/huge_mm.h~mm-thp-fix-mapped-pages-avoiding-unevictable-list-on-mlock include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~mm-thp-fix-mapped-pages-avoiding-unevictable-list-on-mlock
++++ a/include/linux/huge_mm.h
+@@ -11,7 +11,7 @@ extern int copy_huge_pmd(struct mm_struc
+ extern int do_huge_pmd_wp_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			       unsigned long address, pmd_t *pmd,
+ 			       pmd_t orig_pmd);
+-extern struct page *follow_trans_huge_pmd(struct mm_struct *mm,
++extern struct page *follow_trans_huge_pmd(struct vm_area_struct *vma,
+ 					  unsigned long addr,
+ 					  pmd_t *pmd,
+ 					  unsigned int flags);
+diff -puN mm/huge_memory.c~mm-thp-fix-mapped-pages-avoiding-unevictable-list-on-mlock mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-fix-mapped-pages-avoiding-unevictable-list-on-mlock
 +++ a/mm/huge_memory.c
-@@ -742,7 +742,6 @@ void do_huge_pmd_prot_none(struct mm_str
+@@ -1040,11 +1040,12 @@ out_unlock:
+ 	return ret;
+ }
+ 
+-struct page *follow_trans_huge_pmd(struct mm_struct *mm,
++struct page *follow_trans_huge_pmd(struct vm_area_struct *vma,
+ 				   unsigned long addr,
+ 				   pmd_t *pmd,
+ 				   unsigned int flags)
  {
- 	unsigned long haddr = address & HPAGE_PMD_MASK;
++	struct mm_struct *mm = vma->vm_mm;
  	struct page *page = NULL;
--	int node;
  
- 	spin_lock(&mm->page_table_lock);
- 	if (unlikely(!pmd_same(*pmd, entry)))
-@@ -765,8 +764,7 @@ void do_huge_pmd_prot_none(struct mm_str
- 	 * XXX should we serialize against split_huge_page ?
- 	 */
- 
--	node = mpol_misplaced(page, vma, haddr, mm->numa_big);
--	if (node == -1)
-+	if (mpol_misplaced(page, vma, haddr, mm->numa_big) == -1)
- 		goto do_fixup;
- 
- 	/*
+ 	assert_spin_locked(&mm->page_table_lock);
+@@ -1067,6 +1068,14 @@ struct page *follow_trans_huge_pmd(struc
+ 		_pmd = pmd_mkyoung(pmd_mkdirty(*pmd));
+ 		set_pmd_at(mm, addr & HPAGE_PMD_MASK, pmd, _pmd);
+ 	}
++	if ((flags & FOLL_MLOCK) && (vma->vm_flags & VM_LOCKED)) {
++		if (page->mapping && trylock_page(page)) {
++			lru_add_drain();
++			if (page->mapping)
++				mlock_vma_page(page);
++			unlock_page(page);
++		}
++	}
+ 	page += (addr & ~HPAGE_PMD_MASK) >> PAGE_SHIFT;
+ 	VM_BUG_ON(!PageCompound(page));
+ 	if (flags & FOLL_GET)
+diff -puN mm/memory.c~mm-thp-fix-mapped-pages-avoiding-unevictable-list-on-mlock mm/memory.c
+--- a/mm/memory.c~mm-thp-fix-mapped-pages-avoiding-unevictable-list-on-mlock
++++ a/mm/memory.c
+@@ -1533,7 +1533,7 @@ struct page *follow_page(struct vm_area_
+ 				spin_unlock(&mm->page_table_lock);
+ 				wait_split_huge_page(vma->anon_vma, pmd);
+ 			} else {
+-				page = follow_trans_huge_pmd(mm, address,
++				page = follow_trans_huge_pmd(vma, address,
+ 							     pmd, flags);
+ 				spin_unlock(&mm->page_table_lock);
+ 				goto out;
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
@@ -112,4 +198,6 @@ kpageflags-fix-wrong-kpf_thp-on-non-huge-compound-pages.patch
 memory-hotplug-preparation-to-notify-memory-blocks-state-at-memory-hot-remove.patch
 memory-hotplug-update-memory-blocks-state-and-notfy-theinformation-to-userspace.patch
 mm-huge_memoryc-fix-build-warning-for-uma-kernels.patch
+mm-thp-fix-mapped-pages-avoiding-unevictable-list-on-mlock.patch
+mm-thp-fix-mlock-statistics.patch
 
