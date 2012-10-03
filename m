@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-run-discovery-as-an-asynchronous-process.patch added to -mm tree
-Date: Wed, 03 Oct 2012 15:37:04 -0700
-Message-ID: <20121003223705.26F03100047@wpzn3.hot.corp.google.com>
+Subject: + rapidio-use-device-lists-handling-on-per-net-basis.patch added to -mm tree
+Date: Wed, 03 Oct 2012 15:37:00 -0700
+Message-ID: <20121003223701.97C245C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:60068 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756629Ab2JCWhH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2012 18:37:07 -0400
-Received: by vbis24 with SMTP id s24so1000821vbi.1
-        for <mm-commits@vger.kernel.org>; Wed, 03 Oct 2012 15:37:05 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:54670 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756629Ab2JCWhD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2012 18:37:03 -0400
+Received: by mail-fa0-f74.google.com with SMTP id t1so551064fae.1
+        for <mm-commits@vger.kernel.org>; Wed, 03 Oct 2012 15:37:02 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: alexandre.bounine@idt.com, leoli@freescale.com, mporter@kernel.crashing.org
 
 
 The patch titled
-     Subject: rapidio: run discovery as an asynchronous process
+     Subject: rapidio: use device lists handling on per-net basis
 has been added to the -mm tree.  Its filename is
-     rapidio-run-discovery-as-an-asynchronous-process.patch
+     rapidio-use-device-lists-handling-on-per-net-basis.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,17 +34,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio: run discovery as an asynchronous process
+Subject: rapidio: use device lists handling on per-net basis
 
-Modify mport initialization routine to run the RapidIO discovery process
-asynchronously.  This allows to have an arbitrary order of enumerating and
-discovering ports in systems with multiple RapidIO controllers without
-creating a deadlock situation if enumerator port is registered after a
-discovering one.
-
-Making netID matching to mportID ensures consistent net ID assignment in
-multiport RapidIO systems with asynchronous discovery process (global
-counter implementation is affected by race between threads).
+Modify handling of device lists to resolve issues caused by using single
+global list of RIO devices during enumeration/discovery.  The most common
+sign of existing issue is incorrect contents of switch routing tables in
+systems with multiple mport controllers while single-port configuration
+performs as expected.
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
@@ -52,98 +48,181 @@ Cc: Li Yang <leoli@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio-scan.c |    3 --
- drivers/rapidio/rio.c      |   51 +++++++++++++++++++++++++++++++++--
- 2 files changed, 50 insertions(+), 4 deletions(-)
+ drivers/rapidio/rio-scan.c |   60 ++++++++++++++++++-----------------
+ include/linux/rio.h        |    1 
+ 2 files changed, 32 insertions(+), 29 deletions(-)
 
-diff -puN drivers/rapidio/rio-scan.c~rapidio-run-discovery-as-an-asynchronous-process drivers/rapidio/rio-scan.c
---- a/drivers/rapidio/rio-scan.c~rapidio-run-discovery-as-an-asynchronous-process
+diff -puN drivers/rapidio/rio-scan.c~rapidio-use-device-lists-handling-on-per-net-basis drivers/rapidio/rio-scan.c
+--- a/drivers/rapidio/rio-scan.c~rapidio-use-device-lists-handling-on-per-net-basis
 +++ a/drivers/rapidio/rio-scan.c
-@@ -44,7 +44,6 @@ static void rio_init_em(struct rio_dev *
- DEFINE_SPINLOCK(rio_global_list_lock);
+@@ -38,7 +38,6 @@
+ #include "rio.h"
  
- static int next_destid = 0;
--static int next_net = 0;
- static int next_comptag = 1;
+ LIST_HEAD(rio_devices);
+-static LIST_HEAD(rio_switches);
  
- static int rio_mport_phys_table[] = {
-@@ -1062,7 +1061,7 @@ static struct rio_net __devinit *rio_all
+ static void rio_init_em(struct rio_dev *rdev);
+ 
+@@ -104,14 +103,15 @@ static void rio_local_set_device_id(stru
+ 
+ /**
+  * rio_clear_locks- Release all host locks and signal enumeration complete
+- * @port: Master port to issue transaction
++ * @net: RIO network to run on
+  *
+  * Marks the component tag CSR on each device with the enumeration
+  * complete flag. When complete, it then release the host locks on
+  * each device. Returns 0 on success or %-EINVAL on failure.
+  */
+-static int rio_clear_locks(struct rio_mport *port)
++static int rio_clear_locks(struct rio_net *net)
+ {
++	struct rio_mport *port = net->hport;
+ 	struct rio_dev *rdev;
+ 	u32 result;
+ 	int ret = 0;
+@@ -126,7 +126,7 @@ static int rio_clear_locks(struct rio_mp
+ 		       result);
+ 		ret = -EINVAL;
+ 	}
+-	list_for_each_entry(rdev, &rio_devices, global_list) {
++	list_for_each_entry(rdev, &net->devices, net_list) {
+ 		rio_write_config_32(rdev, RIO_HOST_DID_LOCK_CSR,
+ 				    port->host_deviceid);
+ 		rio_read_config_32(rdev, RIO_HOST_DID_LOCK_CSR, &result);
+@@ -479,7 +479,7 @@ static struct rio_dev __devinit *rio_set
+ 			rswitch->clr_table(port, destid, hopcount,
+ 					   RIO_GLOBAL_TABLE);
+ 
+-		list_add_tail(&rswitch->node, &rio_switches);
++		list_add_tail(&rswitch->node, &net->switches);
+ 
+ 	} else {
+ 		if (do_enum)
+@@ -1058,6 +1058,7 @@ static struct rio_net __devinit *rio_all
+ 	if (net) {
+ 		INIT_LIST_HEAD(&net->node);
+ 		INIT_LIST_HEAD(&net->devices);
++		INIT_LIST_HEAD(&net->switches);
  		INIT_LIST_HEAD(&net->mports);
  		list_add_tail(&port->nnode, &net->mports);
  		net->hport = port;
--		net->id = next_net++;
-+		net->id = port->id;
- 	}
- 	return net;
- }
-diff -puN drivers/rapidio/rio.c~rapidio-run-discovery-as-an-asynchronous-process drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-run-discovery-as-an-asynchronous-process
-+++ a/drivers/rapidio/rio.c
-@@ -1260,15 +1260,62 @@ static int __devinit rio_init(void)
- 	return 0;
- }
+@@ -1068,24 +1069,24 @@ static struct rio_net __devinit *rio_all
  
-+static struct workqueue_struct *rio_wq;
-+
-+struct rio_disc_work {
-+	struct work_struct	work;
-+	struct rio_mport	*mport;
-+};
-+
-+static void __devinit disc_work_handler(struct work_struct *_work)
-+{
-+	struct rio_disc_work *work = container_of(_work,
-+						  struct rio_disc_work, work);
-+
-+	pr_debug("RIO: discovery work for mport %d %s\n",
-+		 work->mport->id, work->mport->name);
-+	rio_disc_mport(work->mport);
-+
-+	kfree(work);
-+}
-+
- int __devinit rio_init_mports(void)
+ /**
+  * rio_update_route_tables- Updates route tables in switches
+- * @port: Master port associated with the RIO network
++ * @net: RIO network to run update on
+  *
+  * For each enumerated device, ensure that each switch in a system
+  * has correct routing entries. Add routes for devices that where
+  * unknown dirung the first enumeration pass through the switch.
+  */
+-static void rio_update_route_tables(struct rio_mport *port)
++static void rio_update_route_tables(struct rio_net *net)
  {
- 	struct rio_mport *port;
-+	struct rio_disc_work *work;
-+	int no_disc = 0;
+ 	struct rio_dev *rdev, *swrdev;
+ 	struct rio_switch *rswitch;
+ 	u8 sport;
+ 	u16 destid;
  
- 	list_for_each_entry(port, &rio_mports, node) {
- 		if (port->host_deviceid >= 0)
- 			rio_enum_mport(port);
--		else
--			rio_disc_mport(port);
-+		else if (!no_disc) {
-+			if (!rio_wq) {
-+				rio_wq = alloc_workqueue("riodisc", 0, 0);
-+				if (!rio_wq) {
-+					pr_err("RIO: unable allocate rio_wq\n");
-+					no_disc = 1;
-+					continue;
-+				}
-+			}
-+
-+			work = kzalloc(sizeof *work, GFP_KERNEL);
-+			if (!work) {
-+				pr_err("RIO: no memory for work struct\n");
-+				no_disc = 1;
+-	list_for_each_entry(rdev, &rio_devices, global_list) {
++	list_for_each_entry(rdev, &net->devices, net_list) {
+ 
+ 		destid = rdev->destid;
+ 
+-		list_for_each_entry(rswitch, &rio_switches, node) {
++		list_for_each_entry(rswitch, &net->switches, node) {
+ 
+ 			if (rio_is_switch(rdev)	&& (rdev->rswitch == rswitch))
+ 				continue;
+@@ -1181,12 +1182,12 @@ int __devinit rio_enum_mport(struct rio_
+ 			printk(KERN_INFO
+ 			       "RIO: master port %d device has lost enumeration to a remote host\n",
+ 			       mport->id);
+-			rio_clear_locks(mport);
++			rio_clear_locks(net);
+ 			rc = -EBUSY;
+ 			goto out;
+ 		}
+-		rio_update_route_tables(mport);
+-		rio_clear_locks(mport);
++		rio_update_route_tables(net);
++		rio_clear_locks(net);
+ 		rio_pw_enable(mport, 1);
+ 	} else {
+ 		printk(KERN_INFO "RIO: master port %d link inactive\n",
+@@ -1200,33 +1201,34 @@ int __devinit rio_enum_mport(struct rio_
+ 
+ /**
+  * rio_build_route_tables- Generate route tables from switch route entries
++ * @net: RIO network to run route tables scan on
+  *
+  * For each switch device, generate a route table by copying existing
+  * route entries from the switch.
+  */
+-static void rio_build_route_tables(void)
++static void rio_build_route_tables(struct rio_net *net)
+ {
++	struct rio_switch *rswitch;
+ 	struct rio_dev *rdev;
+ 	int i;
+ 	u8 sport;
+ 
+-	list_for_each_entry(rdev, &rio_devices, global_list)
+-		if (rio_is_switch(rdev)) {
+-			rio_lock_device(rdev->net->hport, rdev->destid,
+-					rdev->hopcount, 1000);
+-			for (i = 0;
+-			     i < RIO_MAX_ROUTE_ENTRIES(rdev->net->hport->sys_size);
+-			     i++) {
+-				if (rio_route_get_entry(rdev,
+-					RIO_GLOBAL_TABLE, i, &sport, 0) < 0)
+-					continue;
+-				rdev->rswitch->route_table[i] = sport;
+-			}
++	list_for_each_entry(rswitch, &net->switches, node) {
++		rdev = sw_to_rio_dev(rswitch);
+ 
+-			rio_unlock_device(rdev->net->hport,
+-					  rdev->destid,
+-					  rdev->hopcount);
++		rio_lock_device(net->hport, rdev->destid,
++				rdev->hopcount, 1000);
++		for (i = 0;
++		     i < RIO_MAX_ROUTE_ENTRIES(net->hport->sys_size);
++		     i++) {
++			if (rio_route_get_entry(rdev, RIO_GLOBAL_TABLE,
++						i, &sport, 0) < 0)
 +				continue;
-+			}
++			rswitch->route_table[i] = sport;
+ 		}
 +
-+			work->mport = port;
-+			INIT_WORK(&work->work, disc_work_handler);
-+			queue_work(rio_wq, &work->work);
-+		}
++		rio_unlock_device(net->hport, rdev->destid, rdev->hopcount);
 +	}
-+
-+	if (rio_wq) {
-+		pr_debug("RIO: flush discovery workqueue\n");
-+		flush_workqueue(rio_wq);
-+		pr_debug("RIO: flush discovery workqueue finished\n");
-+		destroy_workqueue(rio_wq);
+ }
+ 
+ /**
+@@ -1284,7 +1286,7 @@ enum_done:
+ 			goto bail;
+ 		}
+ 
+-		rio_build_route_tables();
++		rio_build_route_tables(net);
  	}
  
- 	rio_init();
+ 	return 0;
+diff -puN include/linux/rio.h~rapidio-use-device-lists-handling-on-per-net-basis include/linux/rio.h
+--- a/include/linux/rio.h~rapidio-use-device-lists-handling-on-per-net-basis
++++ a/include/linux/rio.h
+@@ -275,6 +275,7 @@ struct rio_mport {
+ struct rio_net {
+ 	struct list_head node;	/* node in list of networks */
+ 	struct list_head devices;	/* list of devices in this net */
++	struct list_head switches;	/* list of switches in this net */
+ 	struct list_head mports;	/* list of ports accessing net */
+ 	struct rio_mport *hport;	/* primary port for accessing net */
+ 	unsigned char id;	/* RIO network ID */
 _
 
 Patches currently in -mm which might be from alexandre.bounine@idt.com are
