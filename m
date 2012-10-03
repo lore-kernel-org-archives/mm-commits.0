@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-fix-blocking-wait-for-discovery-ready.patch added to -mm tree
-Date: Wed, 03 Oct 2012 15:36:56 -0700
-Message-ID: <20121003223657.D11D95C0050@hpza9.eem.corp.google.com>
+Subject: + rapidio-run-discovery-as-an-asynchronous-process.patch added to -mm tree
+Date: Wed, 03 Oct 2012 15:37:04 -0700
+Message-ID: <20121003223705.26F03100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:54670 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756629Ab2JCWhA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2012 18:37:00 -0400
-Received: by faet1 with SMTP id t1so551064fae.1
-        for <mm-commits@vger.kernel.org>; Wed, 03 Oct 2012 15:36:59 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:60068 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756629Ab2JCWhH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2012 18:37:07 -0400
+Received: by vbis24 with SMTP id s24so1000821vbi.1
+        for <mm-commits@vger.kernel.org>; Wed, 03 Oct 2012 15:37:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: alexandre.bounine@idt.com, leoli@freescale.com, mporter@kernel.crashing.org
 
 
 The patch titled
-     Subject: rapidio: fix blocking wait for discovery ready
+     Subject: rapidio: run discovery as an asynchronous process
 has been added to the -mm tree.  Its filename is
-     rapidio-fix-blocking-wait-for-discovery-ready.patch
+     rapidio-run-discovery-as-an-asynchronous-process.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,101 +34,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio: fix blocking wait for discovery ready
+Subject: rapidio: run discovery as an asynchronous process
 
-The following set of patches provides modifications targeting support of
-multiple RapidIO master port (mport) devices on a CPU-side of
-RapidIO-capable board.  While the RapidIO subsystem code has definitions
-suitable for multi-controller/multi-net support, the existing
-implementation cannot be considered ready for multiple mport
-configurations.  
+Modify mport initialization routine to run the RapidIO discovery process
+asynchronously.  This allows to have an arbitrary order of enumerating and
+discovering ports in systems with multiple RapidIO controllers without
+creating a deadlock situation if enumerator port is registered after a
+discovering one.
 
-=========== NOTES: =============
-
-a) The patches below do not address RapidIO side view of multiport
-   processing elements defined in Part 6 of RapidIO spec Rev.2.1 (section
-   6.4.1).  These devices have Base Device ID CSR (0x60) and Component Tag
-   CSR (0x6C) shared by all SRIO ports.  For example, Freescale's P4080,
-   P3041 and P5020 have a dual-port SRIO controller implemented according
-   the specification.  Enumeration/discovery of such devices from RapidIO
-   side may require device-specific fixups.
-
-b) Devices referenced above may also require implementation specific
-   code to setup a host device ID for mport device.  These operations are
-   not addressed by patches in this package.  
-
-=================================
-
-Details about provided patches:
-
-1. Fix blocking wait for discovery ready
-
-   While it does not happen on PowerPC based platforms, there is
-   possibility of stalled CPU warning dump on x86 based platforms that run
-   RapidIO discovery process if they wait too long for being enumerated.
-
-   Currently users can avoid it by disabling the soft-lockup detector
-   using "nosoftlockup" kernel parameter OR by ensuring that enumeration
-   is completed before soft-lockup is detected.
-
-   This patch eliminates blocking wait and keeps a scheduler running. 
-   It also is required for patch 3 below which introduces asynchronous
-   discovery process.
-
-2. Use device lists handling on per-net basis
-
-   This patch allows to correctly support multiple RapidIO nets and
-   resolves possible issues caused by using single global list of devices
-   during RapidIO system enumeration/discovery.  The most common sign of
-   existing issue is incorrect contents of switch routing tables in
-   systems with multiple mport controllers while single-port configuration
-   performs as expected.
-
-   The patch does not eliminate the global RapidIO device list but
-   changes some routines in enumeration/discovery to use per-net device
-   lists instead.  This way compatibility with upper layer RIO routines is
-   preserved.
-
-3.  Run discovery as an asynchronous process
-
-   This patch modifies RapidIO initialization routine to asynchronously
-   run the discovery process for each corresponding mport.  This allows
-   having an arbitrary order of enumerating and discovering mports without
-   creating a deadlock situation if an enumerator port was registered
-   after a discovering one.
-
-   On boards with multiple discovering mports it also eliminates order
-   dependency between mports and may reduce total time of RapidIO
-   subsystem initialization.
-
-   Making netID matching to mportID ensures consistent netID assignment
-   in multiport RapidIO systems with asynchronous discovery process
-   (global counter implementation is affected by race between threads).
-
-4. Rework RIONET to support multiple RIO master ports
-
-   In the current version of the driver rionet_probe() has comment "XXX
-   Make multi-net safe".  Now it is a good time to address this comment.
-
-   This patch makes RIONET driver multi-net safe/capable by introducing
-   per-net lists of RapidIO network peers.  It also enables to register
-   network adapters for all available mport devices.
-
-5. Add destination ID allocation mechanism
-
-   The patch replaces a single global destination ID counter with
-   per-net allocation mechanism to allow independent destID management for
-   each available RapidIO network.  Using bitmap based mechanism instead
-   of counters allows destination ID release and reuse in systems that
-   support hot-swap.
-
-
-
-
-This patch:
-
-Fix blocking wait loop in the RapidIO discovery routine to avoid warning
-dumps about stalled CPU on x86 platforms.
+Making netID matching to mportID ensures consistent net ID assignment in
+multiport RapidIO systems with asynchronous discovery process (global
+counter implementation is affected by race between threads).
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
@@ -136,123 +52,98 @@ Cc: Li Yang <leoli@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio-scan.c |   60 +++++++++++------------------------
- 1 file changed, 19 insertions(+), 41 deletions(-)
+ drivers/rapidio/rio-scan.c |    3 --
+ drivers/rapidio/rio.c      |   51 +++++++++++++++++++++++++++++++++--
+ 2 files changed, 50 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rapidio/rio-scan.c~rapidio-fix-blocking-wait-for-discovery-ready drivers/rapidio/rio-scan.c
---- a/drivers/rapidio/rio-scan.c~rapidio-fix-blocking-wait-for-discovery-ready
+diff -puN drivers/rapidio/rio-scan.c~rapidio-run-discovery-as-an-asynchronous-process drivers/rapidio/rio-scan.c
+--- a/drivers/rapidio/rio-scan.c~rapidio-run-discovery-as-an-asynchronous-process
 +++ a/drivers/rapidio/rio-scan.c
-@@ -31,6 +31,7 @@
- #include <linux/module.h>
- #include <linux/spinlock.h>
- #include <linux/timer.h>
-+#include <linux/sched.h>
- #include <linux/jiffies.h>
- #include <linux/slab.h>
- 
-@@ -39,8 +40,6 @@
- LIST_HEAD(rio_devices);
- static LIST_HEAD(rio_switches);
- 
--static void rio_enum_timeout(unsigned long);
--
- static void rio_init_em(struct rio_dev *rdev);
- 
+@@ -44,7 +44,6 @@ static void rio_init_em(struct rio_dev *
  DEFINE_SPINLOCK(rio_global_list_lock);
-@@ -49,9 +48,6 @@ static int next_destid = 0;
- static int next_net = 0;
+ 
+ static int next_destid = 0;
+-static int next_net = 0;
  static int next_comptag = 1;
  
--static struct timer_list rio_enum_timer =
--TIMER_INITIALIZER(rio_enum_timeout, 0, 0);
--
  static int rio_mport_phys_table[] = {
- 	RIO_EFB_PAR_EP_ID,
- 	RIO_EFB_PAR_EP_REC_ID,
-@@ -1234,20 +1230,6 @@ static void rio_build_route_tables(void)
+@@ -1062,7 +1061,7 @@ static struct rio_net __devinit *rio_all
+ 		INIT_LIST_HEAD(&net->mports);
+ 		list_add_tail(&port->nnode, &net->mports);
+ 		net->hport = port;
+-		net->id = next_net++;
++		net->id = port->id;
+ 	}
+ 	return net;
+ }
+diff -puN drivers/rapidio/rio.c~rapidio-run-discovery-as-an-asynchronous-process drivers/rapidio/rio.c
+--- a/drivers/rapidio/rio.c~rapidio-run-discovery-as-an-asynchronous-process
++++ a/drivers/rapidio/rio.c
+@@ -1260,15 +1260,62 @@ static int __devinit rio_init(void)
+ 	return 0;
  }
  
- /**
-- * rio_enum_timeout- Signal that enumeration timed out
-- * @data: Address of timeout flag.
-- *
-- * When the enumeration complete timer expires, set a flag that
-- * signals to the discovery process that enumeration did not
-- * complete in a sane amount of time.
-- */
--static void rio_enum_timeout(unsigned long data)
--{
--	/* Enumeration timed out, set flag */
--	*(int *)data = 1;
--}
--
--/**
-  * rio_disc_mport- Start discovery through a master port
-  * @mport: Master port to send transactions
-  *
-@@ -1260,34 +1242,33 @@ static void rio_enum_timeout(unsigned lo
- int __devinit rio_disc_mport(struct rio_mport *mport)
- {
- 	struct rio_net *net = NULL;
--	int enum_timeout_flag = 0;
-+	unsigned long to_end;
- 
- 	printk(KERN_INFO "RIO: discover master port %d, %s\n", mport->id,
- 	       mport->name);
- 
- 	/* If master port has an active link, allocate net and discover peers */
- 	if (rio_mport_is_active(mport)) {
--		if (!(net = rio_alloc_net(mport))) {
--			printk(KERN_ERR "RIO: Failed to allocate new net\n");
--			goto bail;
-+		pr_debug("RIO: wait for enumeration to complete...\n");
++static struct workqueue_struct *rio_wq;
 +
-+		to_end = jiffies + CONFIG_RAPIDIO_DISC_TIMEOUT * HZ;
-+		while (time_before(jiffies, to_end)) {
-+			if (rio_enum_complete(mport))
-+				goto enum_done;
-+			schedule_timeout_uninterruptible(msecs_to_jiffies(10));
- 		}
++struct rio_disc_work {
++	struct work_struct	work;
++	struct rio_mport	*mport;
++};
++
++static void __devinit disc_work_handler(struct work_struct *_work)
++{
++	struct rio_disc_work *work = container_of(_work,
++						  struct rio_disc_work, work);
++
++	pr_debug("RIO: discovery work for mport %d %s\n",
++		 work->mport->id, work->mport->name);
++	rio_disc_mport(work->mport);
++
++	kfree(work);
++}
++
+ int __devinit rio_init_mports(void)
+ {
+ 	struct rio_mport *port;
++	struct rio_disc_work *work;
++	int no_disc = 0;
  
--		pr_debug("RIO: wait for enumeration complete...");
-+		pr_debug("RIO: discovery timeout on mport %d %s\n",
-+			 mport->id, mport->name);
-+		goto bail;
-+enum_done:
-+		pr_debug("RIO: ... enumeration done\n");
- 
--		rio_enum_timer.expires =
--		    jiffies + CONFIG_RAPIDIO_DISC_TIMEOUT * HZ;
--		rio_enum_timer.data = (unsigned long)&enum_timeout_flag;
--		add_timer(&rio_enum_timer);
--		while (!rio_enum_complete(mport)) {
--			mdelay(1);
--			if (enum_timeout_flag) {
--				del_timer_sync(&rio_enum_timer);
--				goto timeout;
--			}
-+		net = rio_alloc_net(mport);
-+		if (!net) {
-+			printk(KERN_ERR "RIO: Failed to allocate new net\n");
-+			goto bail;
- 		}
--		del_timer_sync(&rio_enum_timer);
--
--		pr_debug("done\n");
- 
- 		/* Read DestID assigned by enumerator */
- 		rio_local_read_config_32(mport, RIO_DID_CSR,
-@@ -1307,9 +1288,6 @@ int __devinit rio_disc_mport(struct rio_
+ 	list_for_each_entry(port, &rio_mports, node) {
+ 		if (port->host_deviceid >= 0)
+ 			rio_enum_mport(port);
+-		else
+-			rio_disc_mport(port);
++		else if (!no_disc) {
++			if (!rio_wq) {
++				rio_wq = alloc_workqueue("riodisc", 0, 0);
++				if (!rio_wq) {
++					pr_err("RIO: unable allocate rio_wq\n");
++					no_disc = 1;
++					continue;
++				}
++			}
++
++			work = kzalloc(sizeof *work, GFP_KERNEL);
++			if (!work) {
++				pr_err("RIO: no memory for work struct\n");
++				no_disc = 1;
++				continue;
++			}
++
++			work->mport = port;
++			INIT_WORK(&work->work, disc_work_handler);
++			queue_work(rio_wq, &work->work);
++		}
++	}
++
++	if (rio_wq) {
++		pr_debug("RIO: flush discovery workqueue\n");
++		flush_workqueue(rio_wq);
++		pr_debug("RIO: flush discovery workqueue finished\n");
++		destroy_workqueue(rio_wq);
  	}
  
- 	return 0;
--
--      timeout:
--	pr_debug("timeout\n");
--      bail:
-+bail:
- 	return -EBUSY;
- }
+ 	rio_init();
 _
 
 Patches currently in -mm which might be from alexandre.bounine@idt.com are
