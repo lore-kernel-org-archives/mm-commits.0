@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-add-destination-id-allocation-mechanism.patch added to -mm tree
-Date: Wed, 03 Oct 2012 15:37:15 -0700
-Message-ID: <20121003223716.544AA100047@wpzn3.hot.corp.google.com>
+Subject: + rapidio-run-discovery-as-an-asynchronous-process-fix.patch added to -mm tree
+Date: Wed, 03 Oct 2012 15:37:07 -0700
+Message-ID: <20121003223708.6E76D5C0063@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:41977 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756629Ab2JCWhT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2012 18:37:19 -0400
-Received: by qcqs25 with SMTP id s25so998761qcq.1
-        for <mm-commits@vger.kernel.org>; Wed, 03 Oct 2012 15:37:16 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:50423 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756629Ab2JCWhL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2012 18:37:11 -0400
+Received: by bkwq16 with SMTP id q16so552790bkw.1
+        for <mm-commits@vger.kernel.org>; Wed, 03 Oct 2012 15:37:09 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alexandre.bounine@idt.com, leoli@freescale.com, mporter@kernel.crashing.org
+Cc: akpm@linux-foundation.org, alexandre.bounine@idt.com, leoli@freescale.com, mporter@kernel.crashing.org
 
 
 The patch titled
-     Subject: rapidio: add destination ID allocation mechanism
+     Subject: rapidio-run-discovery-as-an-asynchronous-process-fix
 has been added to the -mm tree.  Its filename is
-     rapidio-add-destination-id-allocation-mechanism.patch
+     rapidio-run-discovery-as-an-asynchronous-process-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,385 +33,101 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio: add destination ID allocation mechanism
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rapidio-run-discovery-as-an-asynchronous-process-fix
 
-Replace the single global destination ID counter with per-net allocation
-mechanism to allow independent destID management for each available
-RapidIO network.  Using bitmap based mechanism instead of counters allows
-destination ID release and reuse in systems that support hot-swap.
+tweak code layput
 
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Li Yang <leoli@freescale.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio-scan.c |  205 +++++++++++++++++++++++++++++------
- include/linux/rio.h        |    9 +
- 2 files changed, 179 insertions(+), 35 deletions(-)
+ drivers/rapidio/rio.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rapidio/rio-scan.c~rapidio-add-destination-id-allocation-mechanism drivers/rapidio/rio-scan.c
---- a/drivers/rapidio/rio-scan.c~rapidio-add-destination-id-allocation-mechanism
-+++ a/drivers/rapidio/rio-scan.c
-@@ -54,6 +54,114 @@ static int rio_mport_phys_table[] = {
- 	-1,
- };
+diff -puN drivers/rapidio/rio.c~rapidio-run-discovery-as-an-asynchronous-process-fix drivers/rapidio/rio.c
+--- a/drivers/rapidio/rio.c~rapidio-run-discovery-as-an-asynchronous-process-fix
++++ a/drivers/rapidio/rio.c
+@@ -1269,9 +1269,9 @@ struct rio_disc_work {
  
-+
-+/*
-+ * rio_destid_alloc - Allocate next available destID for given network
-+ * net: RIO network
-+ *
-+ * Returns next available device destination ID for the specified RIO network.
-+ * Marks allocated ID as one in use.
-+ * Returns RIO_INVALID_DESTID if new destID is not available.
-+ */
-+static u16 rio_destid_alloc(struct rio_net *net)
-+{
-+	int destid;
-+	struct rio_id_table *idtab = &net->destid_table;
-+
-+	spin_lock(&idtab->lock);
-+	destid = find_next_zero_bit(idtab->table, idtab->max, idtab->next);
-+	if (destid >= idtab->max)
-+		destid = find_first_zero_bit(idtab->table, idtab->max);
-+
-+	if (destid < idtab->max) {
-+		idtab->next = destid + 1;
-+		if (idtab->next >= idtab->max)
-+			idtab->next = 0;
-+		set_bit(destid, idtab->table);
-+		destid += idtab->start;
-+	} else
-+		destid = RIO_INVALID_DESTID;
-+
-+	spin_unlock(&idtab->lock);
-+	return (u16)destid;
-+}
-+
-+/*
-+ * rio_destid_reserve - Reserve the specivied destID
-+ * net: RIO network
-+ * destid: destID to reserve
-+ *
-+ * Tries to reserve the specified destID.
-+ * Returns 0 if successfull.
-+ */
-+static int rio_destid_reserve(struct rio_net *net, u16 destid)
-+{
-+	int oldbit;
-+	struct rio_id_table *idtab = &net->destid_table;
-+
-+	destid -= idtab->start;
-+	spin_lock(&idtab->lock);
-+	oldbit = test_and_set_bit(destid, idtab->table);
-+	spin_unlock(&idtab->lock);
-+	return oldbit;
-+}
-+
-+/*
-+ * rio_destid_free - free a previously allocated destID
-+ * net: RIO network
-+ * destid: destID to free
-+ *
-+ * Makes the specified destID available for use.
-+ */
-+static void rio_destid_free(struct rio_net *net, u16 destid)
-+{
-+	struct rio_id_table *idtab = &net->destid_table;
-+
-+	destid -= idtab->start;
-+	spin_lock(&idtab->lock);
-+	clear_bit(destid, idtab->table);
-+	spin_unlock(&idtab->lock);
-+}
-+
-+/*
-+ * rio_destid_first - return first destID in use
-+ * net: RIO network
-+ */
-+static u16 rio_destid_first(struct rio_net *net)
-+{
-+	int destid;
-+	struct rio_id_table *idtab = &net->destid_table;
-+
-+	spin_lock(&idtab->lock);
-+	destid = find_first_bit(idtab->table, idtab->max);
-+	if (destid >= idtab->max)
-+		destid = RIO_INVALID_DESTID;
-+	else
-+		destid += idtab->start;
-+	spin_unlock(&idtab->lock);
-+	return (u16)destid;
-+}
-+
-+/*
-+ * rio_destid_next - return next destID in use
-+ * net: RIO network
-+ * from: destination ID from which search shall continue
-+ */
-+static u16 rio_destid_next(struct rio_net *net, u16 from)
-+{
-+	int destid;
-+	struct rio_id_table *idtab = &net->destid_table;
-+
-+	spin_lock(&idtab->lock);
-+	destid = find_next_bit(idtab->table, idtab->max, from);
-+	if (destid >= idtab->max)
-+		destid = RIO_INVALID_DESTID;
-+	else
-+		destid += idtab->start;
-+	spin_unlock(&idtab->lock);
-+	return (u16)destid;
-+}
-+
- /**
-  * rio_get_device_id - Get the base/extended device id for a device
-  * @port: RIO master port
-@@ -171,10 +279,6 @@ static int rio_enum_host(struct rio_mpor
- 
- 	/* Set master port destid and init destid ctr */
- 	rio_local_set_device_id(port, port->host_deviceid);
--
--	if (next_destid == port->host_deviceid)
--		next_destid++;
--
- 	return 0;
- }
- 
-@@ -441,9 +545,8 @@ static struct rio_dev __devinit *rio_set
- 	if (rio_device_has_destid(port, rdev->src_ops, rdev->dst_ops)) {
- 		if (do_enum) {
- 			rio_set_device_id(port, destid, hopcount, next_destid);
--			rdev->destid = next_destid++;
--			if (next_destid == port->host_deviceid)
--				next_destid++;
-+			rdev->destid = next_destid;
-+			next_destid = rio_destid_alloc(net);
- 		} else
- 			rdev->destid = rio_get_device_id(port, destid, hopcount);
- 
-@@ -742,12 +845,7 @@ static u16 rio_get_host_deviceid_lock(st
- static int __devinit rio_enum_peer(struct rio_net *net, struct rio_mport *port,
- 			 u8 hopcount, struct rio_dev *prev, int prev_port)
+ static void __devinit disc_work_handler(struct work_struct *_work)
  {
--	int port_num;
--	int cur_destid;
--	int sw_destid;
--	int sw_inport;
- 	struct rio_dev *rdev;
--	u16 destid;
- 	u32 regval;
- 	int tmp;
+-	struct rio_disc_work *work = container_of(_work,
+-						  struct rio_disc_work, work);
++	struct rio_disc_work *work;
  
-@@ -813,19 +911,26 @@ static int __devinit rio_enum_peer(struc
- 		return -1;
- 
- 	if (rio_is_switch(rdev)) {
-+		int sw_destid;
-+		int cur_destid;
-+		int sw_inport;
-+		u16 destid;
-+		int port_num;
-+
- 		sw_inport = RIO_GET_PORT_NUM(rdev->swpinfo);
- 		rio_route_add_entry(rdev, RIO_GLOBAL_TABLE,
- 				    port->host_deviceid, sw_inport, 0);
- 		rdev->rswitch->route_table[port->host_deviceid] = sw_inport;
- 
--		for (destid = 0; destid < next_destid; destid++) {
--			if (destid == port->host_deviceid)
--				continue;
--			rio_route_add_entry(rdev, RIO_GLOBAL_TABLE,
--					    destid, sw_inport, 0);
--			rdev->rswitch->route_table[destid] = sw_inport;
-+		destid = rio_destid_first(net);
-+		while (destid != RIO_INVALID_DESTID && destid < next_destid) {
-+			if (destid != port->host_deviceid) {
-+				rio_route_add_entry(rdev, RIO_GLOBAL_TABLE,
-+						    destid, sw_inport, 0);
-+				rdev->rswitch->route_table[destid] = sw_inport;
-+			}
-+			destid = rio_destid_next(net, destid + 1);
- 		}
--
- 		pr_debug(
- 		    "RIO: found %s (vid %4.4x did %4.4x) with %d ports\n",
- 		    rio_name(rdev), rdev->vid, rdev->did,
-@@ -863,19 +968,22 @@ static int __devinit rio_enum_peer(struc
- 					return -1;
- 
- 				/* Update routing tables */
--				if (next_destid > cur_destid) {
-+				destid = rio_destid_next(net, cur_destid + 1);
-+				if (destid != RIO_INVALID_DESTID) {
- 					for (destid = cur_destid;
--					     destid < next_destid; destid++) {
--						if (destid == port->host_deviceid)
--							continue;
--						rio_route_add_entry(rdev,
-+					     destid < next_destid;) {
-+						if (destid != port->host_deviceid) {
-+							rio_route_add_entry(rdev,
- 								    RIO_GLOBAL_TABLE,
- 								    destid,
- 								    port_num,
- 								    0);
--						rdev->rswitch->
--						    route_table[destid] =
--						    port_num;
-+							rdev->rswitch->
-+								route_table[destid] =
-+								port_num;
-+						}
-+						destid = rio_destid_next(net,
-+								destid + 1);
- 					}
- 				}
- 			} else {
-@@ -901,11 +1009,8 @@ static int __devinit rio_enum_peer(struc
- 		rio_init_em(rdev);
- 
- 		/* Check for empty switch */
--		if (next_destid == sw_destid) {
--			next_destid++;
--			if (next_destid == port->host_deviceid)
--				next_destid++;
--		}
-+		if (next_destid == sw_destid)
-+			next_destid = rio_destid_alloc(net);
- 
- 		rdev->destid = sw_destid;
- 	} else
-@@ -1043,17 +1148,39 @@ static int rio_mport_is_active(struct ri
- /**
-  * rio_alloc_net- Allocate and configure a new RIO network
-  * @port: Master port associated with the RIO network
-+ * @do_enum: Enumeration/Discovery mode flag
-+ * @start: logical minimal start id for new net
-  *
-  * Allocates a RIO network structure, initializes per-network
-  * list heads, and adds the associated master port to the
-  * network list of associated master ports. Returns a
-  * RIO network pointer on success or %NULL on failure.
-  */
--static struct rio_net __devinit *rio_alloc_net(struct rio_mport *port)
-+static struct rio_net __devinit *rio_alloc_net(struct rio_mport *port,
-+					       int do_enum, u16 start)
- {
- 	struct rio_net *net;
- 
- 	net = kzalloc(sizeof(struct rio_net), GFP_KERNEL);
-+	if (net && do_enum) {
-+		net->destid_table.table = kzalloc(
-+			BITS_TO_LONGS(RIO_MAX_ROUTE_ENTRIES(port->sys_size)) *
-+			sizeof(long),
-+			GFP_KERNEL);
-+
-+		if (net->destid_table.table == NULL) {
-+			pr_err("RIO: failed to allocate destID table\n");
-+			kfree(net);
-+			net = NULL;
-+		} else {
-+			net->destid_table.start = start;
-+			net->destid_table.next = 0;
-+			net->destid_table.max =
-+					RIO_MAX_ROUTE_ENTRIES(port->sys_size);
-+			spin_lock_init(&net->destid_table.lock);
-+		}
-+	}
-+
- 	if (net) {
- 		INIT_LIST_HEAD(&net->node);
- 		INIT_LIST_HEAD(&net->devices);
-@@ -1163,12 +1290,16 @@ int __devinit rio_enum_mport(struct rio_
- 
- 	/* If master port has an active link, allocate net and enum peers */
- 	if (rio_mport_is_active(mport)) {
--		if (!(net = rio_alloc_net(mport))) {
-+		net = rio_alloc_net(mport, 1, 0);
-+		if (!net) {
- 			printk(KERN_ERR "RIO: failed to allocate new net\n");
- 			rc = -ENOMEM;
- 			goto out;
- 		}
- 
-+		/* reserve mport destID in new net */
-+		rio_destid_reserve(net, mport->host_deviceid);
-+
- 		/* Enable Input Output Port (transmitter reviever) */
- 		rio_enable_rx_tx_port(mport, 1, 0, 0, 0);
- 
-@@ -1176,6 +1307,8 @@ int __devinit rio_enum_mport(struct rio_
- 		rio_local_write_config_32(mport, RIO_COMPONENT_TAG_CSR,
- 					  next_comptag++);
- 
-+		next_destid = rio_destid_alloc(net);
-+
- 		if (rio_enum_peer(net, mport, 0, NULL, 0) < 0) {
- 			/* A higher priority host won enumeration, bail. */
- 			printk(KERN_INFO
-@@ -1185,6 +1318,8 @@ int __devinit rio_enum_mport(struct rio_
- 			rc = -EBUSY;
- 			goto out;
- 		}
-+		/* free the last allocated destID (unused) */
-+		rio_destid_free(net, next_destid);
- 		rio_update_route_tables(net);
- 		rio_clear_locks(net);
- 		rio_pw_enable(mport, 1);
-@@ -1265,7 +1400,7 @@ int __devinit rio_disc_mport(struct rio_
- enum_done:
- 		pr_debug("RIO: ... enumeration done\n");
- 
--		net = rio_alloc_net(mport);
-+		net = rio_alloc_net(mport, 0, 0);
- 		if (!net) {
- 			printk(KERN_ERR "RIO: Failed to allocate new net\n");
- 			goto bail;
-diff -puN include/linux/rio.h~rapidio-add-destination-id-allocation-mechanism include/linux/rio.h
---- a/include/linux/rio.h~rapidio-add-destination-id-allocation-mechanism
-+++ a/include/linux/rio.h
-@@ -264,6 +264,14 @@ struct rio_mport {
- #endif
- };
- 
-+struct rio_id_table {
-+	u16 start;	/* logical minimal id */
-+	u16 next;	/* hint for find */
-+	u32 max;	/* max number of IDs in table */
-+	spinlock_t lock;
-+	unsigned long *table;
-+};
-+
- /**
-  * struct rio_net - RIO network info
-  * @node: Node in global list of RIO networks
-@@ -279,6 +287,7 @@ struct rio_net {
- 	struct list_head mports;	/* list of ports accessing net */
- 	struct rio_mport *hport;	/* primary port for accessing net */
- 	unsigned char id;	/* RIO network ID */
-+	struct rio_id_table destid_table;  /* destID allocation table */
- };
- 
- /* Definitions used by switch sysfs initialization callback */
++	work = container_of(_work, struct rio_disc_work, work);
+ 	pr_debug("RIO: discovery work for mport %d %s\n",
+ 		 work->mport->id, work->mport->name);
+ 	rio_disc_mport(work->mport);
 _
 
-Patches currently in -mm which might be from alexandre.bounine@idt.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-rapidio-rionet-fix-multicast-packet-transmit-logic.patch
-rapidio-tsi721-modify-mport-name-assignment.patch
-rapidio-fix-kerneldoc-warnings-after-dma-support-was-added.patch
-drivers-rapidio-devices-tsi721c-fix-error-return-code.patch
-rapidio-add-inbound-memory-mapping-interface.patch
-rapidio-tsi721-add-inbound-memory-mapping-callbacks.patch
-rapidio-apply-rx-tx-enable-to-active-switch-ports-only.patch
-rapidio-fix-blocking-wait-for-discovery-ready.patch
-rapidio-use-device-lists-handling-on-per-net-basis.patch
-rapidio-run-discovery-as-an-asynchronous-process.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+audith-replace-defines-with-c-stubs.patch
+audith-replace-defines-with-c-stubs-fix.patch
+mm.patch
+x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
+mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
+mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures-fix.patch
+mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch
+rbtree-performance-and-correctness-test-fix.patch
+mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix.patch
+mm-fix-tracing-in-free_pcppages_bulk-fix.patch
+cma-count-free-cma-pages-fix.patch
+memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
+atomic-implement-generic-atomic_dec_if_positive-fix.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix-2.patch
+mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible-fix-fix.patch
+mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch
+mm-fix-invalidate_complete_page2-lock-ordering.patch
+mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix.patch
+mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock.patch
+cma-migrate-mlocked-pages-fix.patch
+fs-block_devc-set_blocksize-use-mapping_mapped.patch
+mm-avoid-section-mismatch-warning-for-memblock_type_name-fix.patch
+mm-document-pagehuge-somewhat.patch
+sections-fix-section-conflicts-in-arch-h8300-checkpatch-fixes.patch
+sections-fix-section-conflicts-in-drivers-macintosh-checkpatch-fixes.patch
+sectons-fix-const-sections-for-crc32-table-checkpatch-fixes.patch
+backlight-add-backlight-driver-for-lm3630-chip-fix.patch
+backlight-add-new-lm3639-backlight-driver-fix.patch
+backlight-platform-lcd-add-support-for-device-tree-based-probe-fix.patch
+idr-rename-max_level-to-max_idr_level-fix.patch
+idr-rename-max_level-to-max_idr_level-fix-fix-2.patch
+idr-rename-max_level-to-max_idr_level-fix-3.patch
+lib-parserc-avoid-overflow-in-match_number-fix.patch
+lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+rtc-add-dallas-ds2404-driver-fix.patch
+rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch
+hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
+fs-fat-fix-all-other-checkpatch-issues-in-dirc-fix.patch
+fat-simplify-writeback_inode-checkpatch-fixes.patch
+fat-simplify-writeback_inode-checkpatch-fixes-fix.patch
+coredump-make-core-dump-functionality-optional-fix-fix.patch
+coredump-use-suid_dumpable_enabled-rather-than-hardcoded-1-checkpatch-fixes.patch
+proc-use-kzalloc-instead-of-kmalloc-and-memset-fix.patch
+cpu-hotplug-debug-detect-imbalance-between-get_online_cpus-and-put_online_cpus-fix.patch
 rapidio-run-discovery-as-an-asynchronous-process-fix.patch
-rapidio-rionet-rework-to-support-multiple-rio-master-ports.patch
-rapidio-add-destination-id-allocation-mechanism.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
