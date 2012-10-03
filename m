@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + cpu-hotplug-debug-detect-imbalance-between-get_online_cpus-and-put_online_cpus-fix.patch added to -mm tree
-Date: Wed, 03 Oct 2012 14:13:39 -0700
-Message-ID: <20121003211340.B28365C0050@hpza9.eem.corp.google.com>
+Subject: + mm-document-pagehuge-somewhat.patch added to -mm tree
+Date: Wed, 03 Oct 2012 14:25:23 -0700
+Message-ID: <20121003212524.115EA5C0063@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:36040 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755577Ab2JCVNo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2012 17:13:44 -0400
-Received: by lbol12 with SMTP id l12so418969lbo.1
-        for <mm-commits@vger.kernel.org>; Wed, 03 Oct 2012 14:13:42 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:49420 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756347Ab2JCVZ1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2012 17:25:27 -0400
+Received: by wgbdt11 with SMTP id dt11so495111wgb.1
+        for <mm-commits@vger.kernel.org>; Wed, 03 Oct 2012 14:25:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jkosina@suse.cz, mingo@kernel.org, peterz@infradead.org, srivatsa.bhat@linux.vnet.ibm.com, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, aarcange@redhat.com, mel@csn.ul.ie, rientjes@google.com
 
 
 The patch titled
-     Subject: cpu-hotplug-debug-detect-imbalance-between-get_online_cpus-and-put_online_cpus-fix
+     Subject: mm: document PageHuge somewhat
 has been added to the -mm tree.  Its filename is
-     cpu-hotplug-debug-detect-imbalance-between-get_online_cpus-and-put_online_cpus-fix.patch
+     mm-document-pagehuge-somewhat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: cpu-hotplug-debug-detect-imbalance-between-get_online_cpus-and-put_online_cpus-fix
+Subject: mm: document PageHuge somewhat
 
-s/BUG/WARN/ and try to fix things up
-
-Cc: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpu.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ mm/hugetlb.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN kernel/cpu.c~cpu-hotplug-debug-detect-imbalance-between-get_online_cpus-and-put_online_cpus-fix kernel/cpu.c
---- a/kernel/cpu.c~cpu-hotplug-debug-detect-imbalance-between-get_online_cpus-and-put_online_cpus-fix
-+++ a/kernel/cpu.c
-@@ -80,9 +80,12 @@ void put_online_cpus(void)
- 	if (cpu_hotplug.active_writer == current)
- 		return;
- 	mutex_lock(&cpu_hotplug.lock);
--	BUG_ON(cpu_hotplug.refcount == 0);
--	if (!--cpu_hotplug.refcount && unlikely(cpu_hotplug.active_writer))
--		wake_up_process(cpu_hotplug.active_writer);
-+	if (!--cpu_hotplug.refcount) {
-+		if (WARN_ON(cpu_hotplug.refcount == -1))
-+			cpu_hotplug.refcount++;	/* try to fix things up */
-+		if (unlikely(cpu_hotplug.active_writer))
-+			wake_up_process(cpu_hotplug.active_writer);
-+	}
- 	mutex_unlock(&cpu_hotplug.lock);
- 
+diff -puN mm/hugetlb.c~mm-document-pagehuge-somewhat mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-document-pagehuge-somewhat
++++ a/mm/hugetlb.c
+@@ -671,6 +671,11 @@ static void prep_compound_gigantic_page(
+ 	}
  }
+ 
++/*
++ * PageHuge() only returns true for hugetlbfs pages, but not for normal or
++ * transparent huge pages.  See the PageTransHuge() documentation for more
++ * details.
++ */
+ int PageHuge(struct page *page)
+ {
+ 	compound_page_dtor *dtor;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -107,6 +98,7 @@ mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock.patch
 cma-migrate-mlocked-pages-fix.patch
 fs-block_devc-set_blocksize-use-mapping_mapped.patch
 mm-avoid-section-mismatch-warning-for-memblock_type_name-fix.patch
+mm-document-pagehuge-somewhat.patch
 sections-fix-section-conflicts-in-arch-h8300-checkpatch-fixes.patch
 sections-fix-section-conflicts-in-drivers-macintosh-checkpatch-fixes.patch
 sectons-fix-const-sections-for-crc32-table-checkpatch-fixes.patch
