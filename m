@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-%pk-for-proc-vmallocinfo.patch added to -mm tree
-Date: Wed, 03 Oct 2012 13:39:18 -0700
-Message-ID: <20121003203918.ACE261E0043@wpzn4.hot.corp.google.com>
+Subject: + cpu-hotplug-debug-detect-imbalance-between-get_online_cpus-and-put_online_cpus.patch added to -mm tree
+Date: Wed, 03 Oct 2012 14:13:36 -0700
+Message-ID: <20121003211337.49045100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:62873 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753816Ab2JCUjT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2012 16:39:19 -0400
-Received: by ghbz15 with SMTP id z15so981934ghb.1
-        for <mm-commits@vger.kernel.org>; Wed, 03 Oct 2012 13:39:19 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:38897 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755577Ab2JCVNi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Oct 2012 17:13:38 -0400
+Received: by ggmi4 with SMTP id i4so311485ggm.1
+        for <mm-commits@vger.kernel.org>; Wed, 03 Oct 2012 14:13:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: keescook@chromium.org, kosaki.motohiro@jp.fujitsu.com, rientjes@google.com, spender@grsecurity.net
+Cc: srivatsa.bhat@linux.vnet.ibm.com, jkosina@suse.cz, mingo@kernel.org, peterz@infradead.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: mm: use %pK for /proc/vmallocinfo
+     Subject: CPU hotplug, debug: detect imbalance between get_online_cpus() and put_online_cpus()
 has been added to the -mm tree.  Its filename is
-     mm-use-%pk-for-proc-vmallocinfo.patch
+     cpu-hotplug-debug-detect-imbalance-between-get_online_cpus-and-put_online_cpus.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,47 +33,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: mm: use %pK for /proc/vmallocinfo
+From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Subject: CPU hotplug, debug: detect imbalance between get_online_cpus() and put_online_cpus()
 
-In the paranoid case of sysctl kernel.kptr_restrict=2, mask the kernel
-virtual addresses in /proc/vmallocinfo too.
+The synchronization between CPU hotplug readers and writers is achieved by
+means of refcounting, safe-guarded by the cpu_hotplug.lock.
 
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reported-by: Brad Spengler <spender@grsecurity.net>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
+get_online_cpus() increments the refcount, whereas put_online_cpus()
+decrements it.  If we ever hit an imbalance between the two, we end up
+compromising the guarantees of the hotplug synchronization i.e, for
+example, an extra call to put_online_cpus() can end up allowing a hotplug
+reader to execute concurrently with a hotplug writer.  So, add a BUG_ON()
+in put_online_cpus() to detect such cases where the refcount can go
+negative.
+
+Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/cpu.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/vmalloc.c~mm-use-%pk-for-proc-vmallocinfo mm/vmalloc.c
---- a/mm/vmalloc.c~mm-use-%pk-for-proc-vmallocinfo
-+++ a/mm/vmalloc.c
-@@ -2571,7 +2571,7 @@ static int s_show(struct seq_file *m, vo
- {
- 	struct vm_struct *v = p;
- 
--	seq_printf(m, "0x%p-0x%p %7ld",
-+	seq_printf(m, "0x%pK-0x%pK %7ld",
- 		v->addr, v->addr + v->size, v->size);
- 
- 	if (v->caller)
+diff -puN kernel/cpu.c~cpu-hotplug-debug-detect-imbalance-between-get_online_cpus-and-put_online_cpus kernel/cpu.c
+--- a/kernel/cpu.c~cpu-hotplug-debug-detect-imbalance-between-get_online_cpus-and-put_online_cpus
++++ a/kernel/cpu.c
+@@ -80,6 +80,7 @@ void put_online_cpus(void)
+ 	if (cpu_hotplug.active_writer == current)
+ 		return;
+ 	mutex_lock(&cpu_hotplug.lock);
++	BUG_ON(cpu_hotplug.refcount == 0);
+ 	if (!--cpu_hotplug.refcount && unlikely(cpu_hotplug.active_writer))
+ 		wake_up_process(cpu_hotplug.active_writer);
+ 	mutex_unlock(&cpu_hotplug.lock);
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from srivatsa.bhat@linux.vnet.ibm.com are
 
 origin.patch
 linux-next.patch
-audith-replace-defines-with-c-stubs.patch
-audith-replace-defines-with-c-stubs-fix.patch
-mm-use-%pk-for-proc-vmallocinfo.patch
-poweroff-fix-bug-in-orderly_poweroff.patch
-checkpatch-fix-name-of-module_parm_desc.patch
-coredump-make-core-dump-functionality-optional.patch
-coredump-make-core-dump-functionality-optional-fix.patch
-coredump-make-core-dump-functionality-optional-fix-fix.patch
-coredump-update-coredump-related-headers.patch
+cpu-hotplug-debug-detect-imbalance-between-get_online_cpus-and-put_online_cpus.patch
+cpu-hotplug-debug-detect-imbalance-between-get_online_cpus-and-put_online_cpus-fix.patch
 
