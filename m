@@ -1,65 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] sections-fix-section-conflicts-in-arch-h8300-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 04 Oct 2012 16:52:51 -0700
-Message-ID: <20121004235252.1F200100047@wpzn3.hot.corp.google.com>
+Subject: [folded-dropped] backlight-platform-lcd-add-support-for-device-tree-based-probe-fix.patch removed from -mm tree
+Date: Thu, 04 Oct 2012 16:56:28 -0700
+Message-ID: <20121004235629.9208220004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:35443 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750745Ab2JDXwx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2012 19:52:53 -0400
-Received: by mail-gh0-f202.google.com with SMTP id z15so128813ghb.1
-        for <mm-commits@vger.kernel.org>; Thu, 04 Oct 2012 16:52:52 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:46622 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751026Ab2JDX4c (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2012 19:56:32 -0400
+Received: by mail-lb0-f202.google.com with SMTP id l12so78122lbo.1
+        for <mm-commits@vger.kernel.org>; Thu, 04 Oct 2012 16:56:30 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@linux.intel.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jg1.han@samsung.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sections-fix-section-conflicts-in-arch-h8300-checkpatch-fixes
+     Subject: backlight-platform-lcd-add-support-for-device-tree-based-probe-fix
 has been removed from the -mm tree.  Its filename was
-     sections-fix-section-conflicts-in-arch-h8300-checkpatch-fixes.patch
+     backlight-platform-lcd-add-support-for-device-tree-based-probe-fix.patch
 
-This patch was dropped because it was folded into sections-fix-section-conflicts-in-arch-h8300.patch
+This patch was dropped because it was folded into backlight-platform-lcd-add-support-for-device-tree-based-probe.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: sections-fix-section-conflicts-in-arch-h8300-checkpatch-fixes
+Subject: backlight-platform-lcd-add-support-for-device-tree-based-probe-fix
 
-ERROR: spaces required around that '=' (ctx:VxV)
-#105: FILE: arch/h8300/platform/h8s/irq.c:21:
-+const int __initconst h8300_saved_vectors[]={
-                                            ^
+include of.h
 
-total: 1 errors, 0 warnings, 71 lines checked
-
-./patches/sections-fix-section-conflicts-in-arch-h8300.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Jingoo Han <jg1.han@samsung.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/platform/h8s/irq.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/backlight/platform_lcd.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/h8300/platform/h8s/irq.c~sections-fix-section-conflicts-in-arch-h8300-checkpatch-fixes arch/h8300/platform/h8s/irq.c
---- a/arch/h8300/platform/h8s/irq.c~sections-fix-section-conflicts-in-arch-h8300-checkpatch-fixes
-+++ a/arch/h8300/platform/h8s/irq.c
-@@ -18,7 +18,7 @@
- #include <asm/regs267x.h>
+diff -puN drivers/video/backlight/platform_lcd.c~backlight-platform-lcd-add-support-for-device-tree-based-probe-fix drivers/video/backlight/platform_lcd.c
+--- a/drivers/video/backlight/platform_lcd.c~backlight-platform-lcd-add-support-for-device-tree-based-probe-fix
++++ a/drivers/video/backlight/platform_lcd.c
+@@ -16,6 +16,7 @@
+ #include <linux/fb.h>
+ #include <linux/backlight.h>
+ #include <linux/lcd.h>
++#include <linux/of.h>
+ #include <linux/slab.h>
  
- /* saved vector list */
--const int __initconst h8300_saved_vectors[]={
-+const int __initconst h8300_saved_vectors[] = {
- #if defined(CONFIG_GDB_DEBUG)
- 	TRACE_VEC,
- 	TRAP3_VEC,
+ #include <video/platform_lcd.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -67,11 +54,11 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 audith-replace-defines-with-c-stubs.patch
 sections-fix-section-conflicts-in-arch-h8300.patch
-sections-fix-section-conflicts-in-drivers-macintosh-checkpatch-fixes.patch
-sectons-fix-const-sections-for-crc32-table-checkpatch-fixes.patch
-backlight-add-backlight-driver-for-lm3630-chip-fix.patch
-backlight-add-new-lm3639-backlight-driver-fix.patch
-backlight-platform-lcd-add-support-for-device-tree-based-probe-fix.patch
+sections-fix-section-conflicts-in-drivers-macintosh.patch
+sectons-fix-const-sections-for-crc32-table.patch
+backlight-add-backlight-driver-for-lm3630-chip.patch
+backlight-add-new-lm3639-backlight-driver.patch
+backlight-platform-lcd-add-support-for-device-tree-based-probe.patch
 idr-rename-max_level-to-max_idr_level-fix.patch
 idr-rename-max_level-to-max_idr_level-fix-fix-2.patch
 lib-parserc-avoid-overflow-in-match_number-fix.patch
