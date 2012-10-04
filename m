@@ -1,76 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] rapidio-run-discovery-as-an-asynchronous-process-fix.patch removed from -mm tree
-Date: Thu, 04 Oct 2012 17:03:46 -0700
-Message-ID: <20121005000347.C097B20004E@hpza10.eem.corp.google.com>
+Subject: [folded-dropped] rtc-tps65910-add-rtc-driver-for-tps65910-pmic-rtc-fix.patch removed from -mm tree
+Date: Thu, 04 Oct 2012 16:59:24 -0700
+Message-ID: <20121004235925.C80335C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:47748 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753846Ab2JEADu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2012 20:03:50 -0400
-Received: by mail-lb0-f202.google.com with SMTP id l12so78265lbo.1
-        for <mm-commits@vger.kernel.org>; Thu, 04 Oct 2012 17:03:49 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:57982 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753192Ab2JDX72 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2012 19:59:28 -0400
+Received: by mail-wi0-f202.google.com with SMTP id hr7so76398wib.1
+        for <mm-commits@vger.kernel.org>; Thu, 04 Oct 2012 16:59:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alexandre.bounine@idt.com, leoli@freescale.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
+To: vbyravarasu@nvidia.com, a.zummo@towertech.it, broonie@opensource.wolfsonmicro.com, sameo@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio-run-discovery-as-an-asynchronous-process-fix
+     Subject: rtc: tps65910: change RTC driver name as per mfd
 has been removed from the -mm tree.  Its filename was
-     rapidio-run-discovery-as-an-asynchronous-process-fix.patch
+     rtc-tps65910-add-rtc-driver-for-tps65910-pmic-rtc-fix.patch
 
-This patch was dropped because it was folded into rapidio-run-discovery-as-an-asynchronous-process.patch
+This patch was dropped because it was folded into rtc-tps65910-add-rtc-driver-for-tps65910-pmic-rtc.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: rapidio-run-discovery-as-an-asynchronous-process-fix
+From: Venu Byravarasu <vbyravarasu@nvidia.com>
+Subject: rtc: tps65910: change RTC driver name as per mfd
 
-tweak code layput
+As TPS65910 mfd uses "tps65910-rtc" as driver name, change the
+driver name in the RTC driver to match with the same.
 
-Cc: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Li Yang <leoli@freescale.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
+Signed-off-by: Venu Byravarasu <vbyravarasu@nvidia.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-tps65910.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rapidio/rio.c~rapidio-run-discovery-as-an-asynchronous-process-fix drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-run-discovery-as-an-asynchronous-process-fix
-+++ a/drivers/rapidio/rio.c
-@@ -1269,9 +1269,9 @@ struct rio_disc_work {
- 
- static void __devinit disc_work_handler(struct work_struct *_work)
- {
--	struct rio_disc_work *work = container_of(_work,
--						  struct rio_disc_work, work);
-+	struct rio_disc_work *work;
- 
-+	work = container_of(_work, struct rio_disc_work, work);
- 	pr_debug("RIO: discovery work for mport %d %s\n",
- 		 work->mport->id, work->mport->name);
- 	rio_disc_mport(work->mport);
+diff -puN drivers/rtc/rtc-tps65910.c~rtc-tps65910-add-rtc-driver-for-tps65910-pmic-rtc-fix drivers/rtc/rtc-tps65910.c
+--- a/drivers/rtc/rtc-tps65910.c~rtc-tps65910-add-rtc-driver-for-tps65910-pmic-rtc-fix
++++ a/drivers/rtc/rtc-tps65910.c
+@@ -341,7 +341,7 @@ static struct platform_driver tps65910_r
+ 	.remove		= __devexit_p(tps65910_rtc_remove),
+ 	.driver		= {
+ 		.owner	= THIS_MODULE,
+-		.name	= "rtc-tps65910",
++		.name	= "tps65910-rtc",
+ 		.pm	= DEV_PM_OPS,
+ 	},
+ };
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vbyravarasu@nvidia.com are
 
 origin.patch
-audith-replace-defines-with-c-stubs.patch
-sections-fix-section-conflicts-in-arch-h8300.patch
-sections-fix-section-conflicts-in-drivers-macintosh.patch
-sectons-fix-const-sections-for-crc32-table.patch
-backlight-add-backlight-driver-for-lm3630-chip.patch
-backlight-add-new-lm3639-backlight-driver.patch
-backlight-platform-lcd-add-support-for-device-tree-based-probe.patch
-idr-rename-max_level-to-max_idr_level.patch
-lib-parserc-avoid-overflow-in-match_number.patch
-lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock.patch
-rtc-add-dallas-ds2404-driver.patch
-fat-simplify-writeback_inode.patch
-coredump-make-core-dump-functionality-optional.patch
-coredump-use-suid_dumpable_enabled-rather-than-hardcoded-1.patch
-proc-use-kzalloc-instead-of-kmalloc-and-memset.patch
-rapidio-run-discovery-as-an-asynchronous-process.patch
+rtc-tps65910-add-rtc-driver-for-tps65910-pmic-rtc.patch
+rtc-kconfig-remove-unnecessary-dependencies.patch
+rtc-rc5t583-add-ricoh-rc5t583-rtc-driver.patch
+drivers-rtc-rtc-tps65910c-use-platform_get_irq-to-get-rtc-irq-details.patch
 
