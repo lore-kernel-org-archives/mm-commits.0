@@ -1,78 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] rtc_sysfs_show_hctosys-return-0-if-resume-failed-fix-fix.patch removed from -mm tree
-Date: Thu, 04 Oct 2012 16:59:51 -0700
-Message-ID: <20121004235952.5C1D15C0050@hpza9.eem.corp.google.com>
+Subject: [folded-dropped] lib-parserc-avoid-overflow-in-match_number-fix.patch removed from -mm tree
+Date: Thu, 04 Oct 2012 16:57:48 -0700
+Message-ID: <20121004235748.77DA3100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:33188 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753192Ab2JDX7y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2012 19:59:54 -0400
-Received: by mail-bk0-f74.google.com with SMTP id q16so75212bkw.1
-        for <mm-commits@vger.kernel.org>; Thu, 04 Oct 2012 16:59:53 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:41442 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751515Ab2JDX5t (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2012 19:57:49 -0400
+Received: by mail-vc0-f202.google.com with SMTP id fy27so129560vcb.1
+        for <mm-commits@vger.kernel.org>; Thu, 04 Oct 2012 16:57:48 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sfr@canb.auug.org.au, David@Fries.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, elder@inktank.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc_sysfs_show_hctosys-return-0-if-resume-failed-fix-fix
+     Subject: lib-parserc-avoid-overflow-in-match_number-fix
 has been removed from the -mm tree.  Its filename was
-     rtc_sysfs_show_hctosys-return-0-if-resume-failed-fix-fix.patch
+     lib-parserc-avoid-overflow-in-match_number-fix.patch
 
-This patch was dropped because it was folded into rtc_sysfs_show_hctosys-return-0-if-resume-failed.patch
+This patch was dropped because it was folded into lib-parserc-avoid-overflow-in-match_number.patch
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: rtc_sysfs_show_hctosys-return-0-if-resume-failed-fix-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib-parserc-avoid-overflow-in-match_number-fix
 
-drivers/rtc/class.c: In function 'rtc_init':
-drivers/rtc/class.c:261:23: error: 'rtc_suspend' undeclared (first use in t=
-his function)
-drivers/rtc/class.c:261:23: note: each undeclared identifier is reported on=
-ly once for each function it appears in
-drivers/rtc/class.c:262:22: error: 'rtc_resume' undeclared (first use in th=
-is function)
+coding-style tweaks
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: David Fries <David@Fries.net>
+Cc: Alex Elder <elder@inktank.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/class.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/parser.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/class.c~rtc_sysfs_show_hctosys-return-0-if-resume-failed-fix-fix drivers/rtc/class.c
---- a/drivers/rtc/class.c~rtc_sysfs_show_hctosys-return-0-if-resume-failed-fix-fix
-+++ a/drivers/rtc/class.c
-@@ -34,8 +34,9 @@ static void rtc_device_release(struct de
- #ifdef CONFIG_RTC_HCTOSYS_DEVICE
- /* Result of the last RTC to system clock attempt. */
- int rtc_hctosys_ret = -ENODEV;
-+#endif
- 
--#ifdef CONFIG_PM
-+#if defined(CONFIG_PM) && defined(CONFIG_RTC_HCTOSYS_DEVICE)
- /*
-  * On suspend(), measure the delta between one RTC and the
-  * system's wall clock; restore it on resume().
-@@ -129,7 +130,6 @@ static int rtc_resume(struct device *dev
- #define rtc_suspend	NULL
- #define rtc_resume	NULL
- #endif
--#endif
- 
- 
- /**
+diff -puN lib/parser.c~lib-parserc-avoid-overflow-in-match_number-fix lib/parser.c
+--- a/lib/parser.c~lib-parserc-avoid-overflow-in-match_number-fix
++++ a/lib/parser.c
+@@ -142,7 +142,7 @@ static int match_number(substring_t *s, 
+ 	val = simple_strtol(buf, &endp, base);
+ 	if (endp == buf)
+ 		ret = -EINVAL;
+-	else if (val < (long) INT_MIN || val > (long) INT_MAX)
++	else if (val < (long)INT_MIN || val > (long)INT_MAX)
+ 		ret = -ERANGE;
+ 	else
+ 		*result = (int) val;
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+audith-replace-defines-with-c-stubs.patch
+sections-fix-section-conflicts-in-arch-h8300.patch
+sections-fix-section-conflicts-in-drivers-macintosh.patch
+sectons-fix-const-sections-for-crc32-table.patch
+backlight-add-backlight-driver-for-lm3630-chip.patch
+backlight-add-new-lm3639-backlight-driver.patch
+backlight-platform-lcd-add-support-for-device-tree-based-probe.patch
 idr-rename-max_level-to-max_idr_level.patch
-rtc_sysfs_show_hctosys-return-0-if-resume-failed.patch
-coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr.patch
-compat-move-compat_siginfo_t-definition-to-asm-compath.patch
-coredump-add-a-new-elf-note-with-siginfo-of-the-signal.patch
-coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files.patch
+lib-parserc-avoid-overflow-in-match_number.patch
+lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock-fix.patch
+rtc-add-dallas-ds2404-driver-fix.patch
+rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch
+fs-fat-fix-all-other-checkpatch-issues-in-dirc-fix.patch
+fat-simplify-writeback_inode-checkpatch-fixes.patch
+fat-simplify-writeback_inode-checkpatch-fixes-fix.patch
+coredump-make-core-dump-functionality-optional-fix-fix.patch
+coredump-use-suid_dumpable_enabled-rather-than-hardcoded-1-checkpatch-fixes.patch
+proc-use-kzalloc-instead-of-kmalloc-and-memset-fix.patch
+rapidio-run-discovery-as-an-asynchronous-process-fix.patch
 
