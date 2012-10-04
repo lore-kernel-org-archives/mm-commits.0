@@ -1,82 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] sections-fix-section-conflicts-in-arch-sh-fix.patch removed from -mm tree
-Date: Thu, 04 Oct 2012 16:53:12 -0700
-Message-ID: <20121004235312.E84E1100047@wpzn3.hot.corp.google.com>
+Subject: [folded-dropped] backlight-add-new-lm3639-backlight-driver-fix-2.patch removed from -mm tree
+Date: Thu, 04 Oct 2012 16:55:57 -0700
+Message-ID: <20121004235557.E46F2100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:47394 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750907Ab2JDXxO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2012 19:53:14 -0400
-Received: by mail-yh0-f74.google.com with SMTP id 10so90210yhl.1
-        for <mm-commits@vger.kernel.org>; Thu, 04 Oct 2012 16:53:13 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:51980 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750907Ab2JDXz7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2012 19:55:59 -0400
+Received: by mail-qc0-f202.google.com with SMTP id s25so129440qcq.1
+        for <mm-commits@vger.kernel.org>; Thu, 04 Oct 2012 16:55:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@linux.intel.com, fengguang.wu@intel.com, mm-commits@vger.kernel.org
+To: gshark.jeong@gmail.com, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sections-fix-section-conflicts-in-arch-sh-fix
+     Subject: backlight-add-new-lm3639-backlight-driver-fix-2
 has been removed from the -mm tree.  Its filename was
-     sections-fix-section-conflicts-in-arch-sh-fix.patch
+     backlight-add-new-lm3639-backlight-driver-fix-2.patch
 
-This patch was dropped because it was folded into sections-fix-section-conflicts-in-arch-sh.patch
+This patch was dropped because it was folded into backlight-add-new-lm3639-backlight-driver.patch
 
 ------------------------------------------------------
-From: Andi Kleen <ak@linux.intel.com>
-Subject: sections-fix-section-conflicts-in-arch-sh-fix
+From: "G.Shark Jeong" <gshark.jeong@gmail.com>
+Subject: backlight-add-new-lm3639-backlight-driver-fix-2
 
-Cc: Fengguang Wu <fengguang.wu@intel.com>
+Put NEW_LEDS and LEDS_CLASS into Kconfig file to reduce additional
+configuration works in LEDs.
+
+Signed-off-by: G.Shark Jeong <gshark.jeong@gmail.com>
+Reported-by: Randy Dunlap <rdunlap@xenotime.net>
+Acked-by: Randy Dunlap <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/include/asm/io.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/backlight/Kconfig |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/sh/include/asm/io.h~sections-fix-section-conflicts-in-arch-sh-fix arch/sh/include/asm/io.h
---- a/arch/sh/include/asm/io.h~sections-fix-section-conflicts-in-arch-sh-fix
-+++ a/arch/sh/include/asm/io.h
-@@ -134,7 +134,7 @@ __BUILD_MEMORY_STRING(__raw_, q, u64)
-  * load/store instructions. sh_io_port_base is the virtual address to
-  * which all ports are being mapped.
-  */
--extern const unsigned long sh_io_port_base;
-+extern unsigned long sh_io_port_base;
+diff -puN drivers/video/backlight/Kconfig~backlight-add-new-lm3639-backlight-driver-fix-2 drivers/video/backlight/Kconfig
+--- a/drivers/video/backlight/Kconfig~backlight-add-new-lm3639-backlight-driver-fix-2
++++ a/drivers/video/backlight/Kconfig
+@@ -363,6 +363,8 @@ config BACKLIGHT_LM3639
+ 	tristate "Backlight Driver for LM3639"
+ 	depends on BACKLIGHT_CLASS_DEVICE && I2C
+ 	select REGMAP_I2C
++	select NEW_LEDS
++	select LEDS_CLASS
+ 	help
+ 	  This supports TI LM3639 Backlight + 1.5A Flash LED Driver
  
- static inline void __set_io_port_base(unsigned long pbase)
- {
 _
 
-Patches currently in -mm which might be from ak@linux.intel.com are
+Patches currently in -mm which might be from gshark.jeong@gmail.com are
 
-origin.patch
-sections-disable-const-sections-for-pa-risc-v2.patch
-sections-fix-section-conflicts-in-arch-arm.patch
-sections-fix-section-conflicts-in-arch-frv.patch
-sections-fix-section-conflicts-in-arch-h8300.patch
-sections-fix-section-conflicts-in-arch-ia64.patch
-sections-fix-section-conflicts-in-arch-mips.patch
-sections-fix-section-conflicts-in-arch-powerpc.patch
-sections-fix-section-conflicts-in-arch-score.patch
-sections-fix-section-conflicts-in-arch-sh.patch
-sections-fix-section-conflicts-in-arch-x86.patch
-sections-fix-section-conflicts-in-drivers-atm.patch
-sections-fix-section-conflicts-in-drivers-char.patch
-sections-fix-section-conflicts-in-drivers-ide.patch
-sections-fix-section-conflicts-in-drivers-macintosh.patch
-sections-fix-section-conflicts-in-drivers-macintosh-checkpatch-fixes.patch
-sections-fix-section-conflicts-in-drivers-mfd.patch
-sections-fix-section-conflicts-in-drivers-mmc.patch
-sections-fix-section-conflicts-in-drivers-net.patch
-sections-fix-section-conflicts-in-drivers-net-hamradio.patch
-sections-fix-section-conflicts-in-drivers-net-wan.patch
-sections-fix-section-conflicts-in-drivers-platform-x86.patch
-sections-fix-section-conflicts-in-drivers-scsi.patch
-sections-fix-section-conflicts-in-drivers-video.patch
-sections-fix-section-conflicts-in-mm-percpuc.patch
-sections-fix-section-conflicts-in-net-can.patch
-sections-fix-section-conflicts-in-net.patch
-sections-fix-section-conflicts-in-sound.patch
-sectons-fix-const-sections-for-crc32-table.patch
-sectons-fix-const-sections-for-crc32-table-checkpatch-fixes.patch
+backlight-add-backlight-driver-for-lm3630-chip.patch
+backlight-add-new-lm3639-backlight-driver.patch
 
