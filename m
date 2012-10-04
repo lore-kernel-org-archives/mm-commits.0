@@ -1,77 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] rtc_sysfs_show_hctosys-return-0-if-resume-failed-fix.patch removed from -mm tree
-Date: Thu, 04 Oct 2012 16:59:48 -0700
-Message-ID: <20121004235948.A07AE100047@wpzn3.hot.corp.google.com>
+Subject: [folded-dropped] rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch removed from -mm tree
+Date: Thu, 04 Oct 2012 16:59:07 -0700
+Message-ID: <20121004235908.60E4E1E0048@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:35458 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753192Ab2JDX7t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2012 19:59:49 -0400
-Received: by mail-yh0-f74.google.com with SMTP id 10so90702yhl.1
-        for <mm-commits@vger.kernel.org>; Thu, 04 Oct 2012 16:59:49 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:41747 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752223Ab2JDX7J (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2012 19:59:09 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z15so129482ghb.1
+        for <mm-commits@vger.kernel.org>; Thu, 04 Oct 2012 16:59:09 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david@fries.net, David@Fries.net, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: shawn.guo@linaro.org, a.zummo@towertech.it, kim.phillips@freescale.com, s.hauer@pengutronix.de, sboyd@codeaurora.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc_sysfs_show_hctosys-return-0-if-resume-failed-fix
+     Subject: rtc: snvs: change timeout to use a fixed number of loop
 has been removed from the -mm tree.  Its filename was
-     rtc_sysfs_show_hctosys-return-0-if-resume-failed-fix.patch
+     rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch
 
-This patch was dropped because it was folded into rtc_sysfs_show_hctosys-return-0-if-resume-failed.patch
+This patch was dropped because it was folded into rtc-snvs-add-freescale-rtc-snvs-driver.patch
 
 ------------------------------------------------------
-From: David Fries <david@fries.net>
-Subject: rtc_sysfs_show_hctosys-return-0-if-resume-failed-fix
+From: Shawn Guo <shawn.guo@linaro.org>
+Subject: rtc: snvs: change timeout to use a fixed number of loop
 
-fix build
+Andrew Morton <akpm@linux-foundation.org> wrote:
 
-Signed-off-by: David Fries <David@Fries.net>
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+> The timeout code here is fragile.  If acquiring the spinlock takes more
+> than a millisecond or if this thread gets interrupted or preempted then
+> we could easily execute that loop just a single time, and fail.
+>
+> It would be better to retry a fixed number of times, say 1000?  That
+> would take around 1 millisecond, but might be overkill.
+
+Take Andrew's suggestion to change the timeout code to retry 1000
+times.
+
+Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Kim Phillips <kim.phillips@freescale.com>
+Cc: Sascha Hauer <s.hauer@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/class.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-snvs.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/class.c~rtc_sysfs_show_hctosys-return-0-if-resume-failed-fix drivers/rtc/class.c
---- a/drivers/rtc/class.c~rtc_sysfs_show_hctosys-return-0-if-resume-failed-fix
-+++ a/drivers/rtc/class.c
-@@ -31,16 +31,18 @@ static void rtc_device_release(struct de
- 	kfree(rtc);
- }
+diff -puN drivers/rtc/rtc-snvs.c~rtc-snvs-add-freescale-rtc-snvs-driver-fix drivers/rtc/rtc-snvs.c
+--- a/drivers/rtc/rtc-snvs.c~rtc-snvs-add-freescale-rtc-snvs-driver-fix
++++ a/drivers/rtc/rtc-snvs.c
+@@ -83,8 +83,8 @@ static void rtc_write_sync_lp(void __iom
  
--#if defined(CONFIG_PM) && defined(CONFIG_RTC_HCTOSYS_DEVICE)
-+#ifdef CONFIG_RTC_HCTOSYS_DEVICE
-+/* Result of the last RTC to system clock attempt. */
-+int rtc_hctosys_ret = -ENODEV;
- 
-+#ifdef CONFIG_PM
- /*
-  * On suspend(), measure the delta between one RTC and the
-  * system's wall clock; restore it on resume().
-  */
- 
- static struct timespec old_rtc, old_system, old_delta;
--/* Result of the last RTC to system clock attempt. */
--int rtc_hctosys_ret = -ENODEV;
-+
- 
- static int rtc_suspend(struct device *dev, pm_message_t mesg)
+ static int snvs_rtc_enable(struct snvs_rtc_data *data, bool enable)
  {
-@@ -127,6 +129,7 @@ static int rtc_resume(struct device *dev
- #define rtc_suspend	NULL
- #define rtc_resume	NULL
- #endif
-+#endif
+-	unsigned long timeout = jiffies + msecs_to_jiffies(1);
+ 	unsigned long flags;
++	int timeout = 1000;
+ 	u32 lpcr;
  
+ 	spin_lock_irqsave(&data->lock, flags);
+@@ -98,7 +98,7 @@ static int snvs_rtc_enable(struct snvs_r
  
- /**
-_
-
-Patches currently in -mm which might be from david@fries.net are
-
-rtc_sysfs_show_hctosys-return-0-if-resume-failed.patch
-
+ 	spin_unlock_irqrestore(&data->lock, flags);
+ 
+-	while (1) {
++	while (--timeout) {
+ 		lpcr = readl(data->ioaddr + SNVS_LPCR);
+ 
+ 		if (enable) {
+@@ -108,11 +108,11 @@ static int snvs_rtc_enable(struct snvs_r
+ 			if (!(lpcr & SNVS_LPCR_SRTC_ENV))
+ 				break;
+ 		}
