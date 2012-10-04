@@ -1,107 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] idr-rename-max_level-to-max_idr_level-fix.patch removed from -mm tree
-Date: Thu, 04 Oct 2012 16:56:57 -0700
-Message-ID: <20121004235658.BF9B4200057@hpza10.eem.corp.google.com>
+Subject: [folded-dropped] backlight-add-new-lm3639-backlight-driver-fix.patch removed from -mm tree
+Date: Thu, 04 Oct 2012 16:55:54 -0700
+Message-ID: <20121004235554.CC5D21E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f74.google.com ([209.85.215.74]:51982 "EHLO
-	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751026Ab2JDX5C (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2012 19:57:02 -0400
-Received: by mail-la0-f74.google.com with SMTP id j13so51603lah.1
-        for <mm-commits@vger.kernel.org>; Thu, 04 Oct 2012 16:57:00 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:36826 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750907Ab2JDXz4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2012 19:55:56 -0400
+Received: by mail-gg0-f202.google.com with SMTP id i4so128584ggm.1
+        for <mm-commits@vger.kernel.org>; Thu, 04 Oct 2012 16:55:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bernd@petrovitsch.priv.at, fengguang.wu@intel.com, glommer@parallels.com, wharms@bfs.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, daniel.jeong@ti.com, gshark.jeong@gmail.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: idr-rename-max_level-to-max_idr_level-fix
+     Subject: backlight-add-new-lm3639-backlight-driver-fix
 has been removed from the -mm tree.  Its filename was
-     idr-rename-max_level-to-max_idr_level-fix.patch
+     backlight-add-new-lm3639-backlight-driver-fix.patch
 
-This patch was dropped because it was folded into idr-rename-max_level-to-max_idr_level.patch
+This patch was dropped because it was folded into backlight-add-new-lm3639-backlight-driver.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: idr-rename-max_level-to-max_idr_level-fix
+Subject: backlight-add-new-lm3639-backlight-driver-fix
 
-repair fallout
+code layout tweaks
 
-Cc: Bernd Petrovitsch <bernd@petrovitsch.priv.at>
-Cc: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Glauber Costa <glommer@parallels.com>
-Cc: walter harms <wharms@bfs.de>
+Cc: "G.Shark Jeong" <gshark.jeong@gmail.com>
+Cc: Daniel Jeong <daniel.jeong@ti.com>
+Cc: G.Shark Jeong <gshark.jeong@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/i2c-core.c        |    2 +-
- drivers/infiniband/core/cm.c  |    2 +-
- drivers/pps/pps.c             |    2 +-
- drivers/thermal/thermal_sys.c |    2 +-
- fs/super.c                    |    2 +-
- 5 files changed, 5 insertions(+), 5 deletions(-)
+ drivers/video/backlight/lm3639_bl.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN drivers/i2c/i2c-core.c~idr-rename-max_level-to-max_idr_level-fix drivers/i2c/i2c-core.c
---- a/drivers/i2c/i2c-core.c~idr-rename-max_level-to-max_idr_level-fix
-+++ a/drivers/i2c/i2c-core.c
-@@ -982,7 +982,7 @@ int i2c_add_numbered_adapter(struct i2c_
+diff -puN drivers/video/backlight/lm3639_bl.c~backlight-add-new-lm3639-backlight-driver-fix drivers/video/backlight/lm3639_bl.c
+--- a/drivers/video/backlight/lm3639_bl.c~backlight-add-new-lm3639-backlight-driver-fix
++++ a/drivers/video/backlight/lm3639_bl.c
+@@ -222,8 +222,9 @@ static void lm3639_torch_brightness_set(
+ {
+ 	int ret;
+ 	unsigned int reg_val;
+-	struct lm3639_chip_data *pchip =
+-	    container_of(cdev, struct lm3639_chip_data, cdev_torch);
++	struct lm3639_chip_data *pchip;
++
++	pchip = container_of(cdev, struct lm3639_chip_data, cdev_torch);
  
- 	if (adap->nr == -1) /* -1 means dynamically assign bus id */
- 		return i2c_add_adapter(adap);
--	if (adap->nr & ~MAX_ID_MASK)
-+	if (adap->nr & ~MAX_IDR_MASK)
- 		return -EINVAL;
+ 	ret = regmap_read(pchip->regmap, REG_FLAG, &reg_val);
+ 	if (ret < 0)
+@@ -259,8 +260,9 @@ static void lm3639_flash_brightness_set(
+ {
+ 	int ret;
+ 	unsigned int reg_val;
+-	struct lm3639_chip_data *pchip =
+-	    container_of(cdev, struct lm3639_chip_data, cdev_flash);
++	struct lm3639_chip_data *pchip;
++
++	pchip = container_of(cdev, struct lm3639_chip_data, cdev_flash);
  
- retry:
-diff -puN drivers/infiniband/core/cm.c~idr-rename-max_level-to-max_idr_level-fix drivers/infiniband/core/cm.c
---- a/drivers/infiniband/core/cm.c~idr-rename-max_level-to-max_idr_level-fix
-+++ a/drivers/infiniband/core/cm.c
-@@ -390,7 +390,7 @@ static int cm_alloc_id(struct cm_id_priv
- 		ret = idr_get_new_above(&cm.local_id_table, cm_id_priv,
- 					next_id, &id);
- 		if (!ret)
--			next_id = ((unsigned) id + 1) & MAX_ID_MASK;
-+			next_id = ((unsigned) id + 1) & MAX_IDR_MASK;
- 		spin_unlock_irqrestore(&cm.lock, flags);
- 	} while( (ret == -EAGAIN) && idr_pre_get(&cm.local_id_table, GFP_KERNEL) );
+ 	ret = regmap_read(pchip->regmap, REG_FLAG, &reg_val);
+ 	if (ret < 0)
+@@ -303,7 +305,6 @@ static int __devinit lm3639_probe(struct
+ 	int ret;
+ 	struct lm3639_chip_data *pchip;
+ 	struct lm3639_platform_data *pdata = client->dev.platform_data;
+-
+ 	struct backlight_properties props;
  
-diff -puN drivers/pps/pps.c~idr-rename-max_level-to-max_idr_level-fix drivers/pps/pps.c
---- a/drivers/pps/pps.c~idr-rename-max_level-to-max_idr_level-fix
-+++ a/drivers/pps/pps.c
-@@ -306,7 +306,7 @@ int pps_register_cdev(struct pps_device 
- 	if (err < 0)
- 		return err;
- 
--	pps->id &= MAX_ID_MASK;
-+	pps->id &= MAX_IDR_MASK;
- 	if (pps->id >= PPS_MAX_SOURCES) {
- 		pr_err("%s: too many PPS sources in the system\n",
- 					pps->info.name);
-diff -puN drivers/thermal/thermal_sys.c~idr-rename-max_level-to-max_idr_level-fix drivers/thermal/thermal_sys.c
---- a/drivers/thermal/thermal_sys.c~idr-rename-max_level-to-max_idr_level-fix
-+++ a/drivers/thermal/thermal_sys.c
-@@ -148,7 +148,7 @@ again:
- 	else if (unlikely(err))
- 		return err;
- 
--	*id = *id & MAX_ID_MASK;
-+	*id = *id & MAX_IDR_MASK;
- 	return 0;
- }
- 
-diff -puN fs/super.c~idr-rename-max_level-to-max_idr_level-fix fs/super.c
---- a/fs/super.c~idr-rename-max_level-to-max_idr_level-fix
-+++ a/fs/super.c
-@@ -865,7 +865,7 @@ int get_anon_bdev(dev_t *p)
- 	else if (error)
- 		return -EAGAIN;
- 
--	if ((dev & MAX_ID_MASK) == (1 << MINORBITS)) {
-+	if ((dev & MAX_IDR_MASK) == (1 << MINORBITS)) {
- 		spin_lock(&unnamed_dev_lock);
- 		ida_remove(&unnamed_dev_ida, dev);
- 		if (unnamed_dev_start > dev)
+ 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -113,8 +84,8 @@ sections-fix-section-conflicts-in-drivers-macintosh.patch
 sectons-fix-const-sections-for-crc32-table.patch
 backlight-add-backlight-driver-for-lm3630-chip.patch
 backlight-add-new-lm3639-backlight-driver.patch
-backlight-platform-lcd-add-support-for-device-tree-based-probe.patch
-idr-rename-max_level-to-max_idr_level.patch
+backlight-platform-lcd-add-support-for-device-tree-based-probe-fix.patch
+idr-rename-max_level-to-max_idr_level-fix.patch
 idr-rename-max_level-to-max_idr_level-fix-fix-2.patch
 lib-parserc-avoid-overflow-in-match_number-fix.patch
 lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock-fix.patch
