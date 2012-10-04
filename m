@@ -1,60 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock-fix.patch removed from -mm tree
-Date: Thu, 04 Oct 2012 16:58:12 -0700
-Message-ID: <20121004235813.C72D55C0060@hpza9.eem.corp.google.com>
+Subject: [folded-dropped] rtc-add-dallas-ds2404-driver-fix.patch removed from -mm tree
+Date: Thu, 04 Oct 2012 16:58:41 -0700
+Message-ID: <20121004235842.759015C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-lb0-f202.google.com ([209.85.217.202]:58172 "EHLO
 	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752223Ab2JDX6Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2012 19:58:16 -0400
+	with ESMTP id S1752223Ab2JDX6o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2012 19:58:44 -0400
 Received: by mail-lb0-f202.google.com with SMTP id l12so78159lbo.1
-        for <mm-commits@vger.kernel.org>; Thu, 04 Oct 2012 16:58:15 -0700 (PDT)
+        for <mm-commits@vger.kernel.org>; Thu, 04 Oct 2012 16:58:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, markivx@codeaurora.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.zummo@towertech.it, svens@stackframe.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock-fix
+     Subject: rtc-add-dallas-ds2404-driver-fix
 has been removed from the -mm tree.  Its filename was
-     lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock-fix.patch
+     rtc-add-dallas-ds2404-driver-fix.patch
 
-This patch was dropped because it was folded into lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock.patch
+This patch was dropped because it was folded into rtc-add-dallas-ds2404-driver.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock-fix
+Subject: rtc-add-dallas-ds2404-driver-fix
 
-tweak comment
+drivers/rtc/rtc-ds2404.c:23:1: warning: "DEBUG" redefined <command-line>:
+warning: this is the location of the previous definition
 
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vikram Mulukutla <markivx@codeaurora.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Sven Schnelle <svens@stackframe.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/spinlock_debug.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/rtc/rtc-ds2404.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN lib/spinlock_debug.c~lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock-fix lib/spinlock_debug.c
---- a/lib/spinlock_debug.c~lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock-fix
-+++ a/lib/spinlock_debug.c
-@@ -120,10 +120,10 @@ static void __spin_lock_debug(raw_spinlo
- #endif
+diff -puN drivers/rtc/rtc-ds2404.c~rtc-add-dallas-ds2404-driver-fix drivers/rtc/rtc-ds2404.c
+--- a/drivers/rtc/rtc-ds2404.c~rtc-add-dallas-ds2404-driver-fix
++++ a/drivers/rtc/rtc-ds2404.c
+@@ -20,8 +20,6 @@
  
- 	/*
--	 * In case the trylock above was causing a livelock, give the lower
--	 * level arch specific lock code a chance to acquire the lock. We have
--	 * already printed a warning/backtrace at this point. The non-debug arch
--	 * specific code might actually succeed in acquiring the lock. If it is
-+	 * The trylock above was causing a livelock.  Give the lower level arch
-+	 * specific lock code a chance to acquire the lock. We have already
-+	 * printed a warning/backtrace at this point. The non-debug arch
-+	 * specific code might actually succeed in acquiring the lock.  If it is
- 	 * not successful, the end-result is the same - there is no forward
- 	 * progress.
- 	 */
+ #include <linux/io.h>
+ 
+-#define DEBUG
+-
+ #define DS2404_STATUS_REG 0x200
+ #define DS2404_CONTROL_REG 0x201
+ #define DS2404_RTC_REG 0x202
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,7 +64,7 @@ backlight-platform-lcd-add-support-for-device-tree-based-probe.patch
 idr-rename-max_level-to-max_idr_level.patch
 lib-parserc-avoid-overflow-in-match_number.patch
 lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock.patch
-rtc-add-dallas-ds2404-driver-fix.patch
+rtc-add-dallas-ds2404-driver.patch
 rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch
 fs-fat-fix-all-other-checkpatch-issues-in-dirc-fix.patch
 fat-simplify-writeback_inode-checkpatch-fixes.patch
