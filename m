@@ -1,98 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] coredump-make-core-dump-functionality-optional-fix.patch removed from -mm tree
-Date: Thu, 04 Oct 2012 17:01:56 -0700
-Message-ID: <20121005000156.78D6D100047@wpzn3.hot.corp.google.com>
+Subject: [folded-dropped] lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock-fix.patch removed from -mm tree
+Date: Thu, 04 Oct 2012 16:58:12 -0700
+Message-ID: <20121004235813.C72D55C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:51821 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753707Ab2JEAB5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2012 20:01:57 -0400
-Received: by mail-qa0-f74.google.com with SMTP id a16so138748qae.1
-        for <mm-commits@vger.kernel.org>; Thu, 04 Oct 2012 17:01:57 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:58172 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752223Ab2JDX6Q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2012 19:58:16 -0400
+Received: by mail-lb0-f202.google.com with SMTP id l12so78159lbo.1
+        for <mm-commits@vger.kernel.org>; Thu, 04 Oct 2012 16:58:15 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.page.kelly@gmail.com, josh@joshtriplett.org, keescook@chromium.org, serge.hallyn@canonical.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, markivx@codeaurora.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: amended coredump-related sysctl functions
+     Subject: lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock-fix
 has been removed from the -mm tree.  Its filename was
-     coredump-make-core-dump-functionality-optional-fix.patch
+     lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock-fix.patch
 
-This patch was dropped because it was folded into coredump-make-core-dump-functionality-optional.patch
+This patch was dropped because it was folded into lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock.patch
 
 ------------------------------------------------------
-From: Alex Kelly <alex.page.kelly@gmail.com>
-Subject: fs: amended coredump-related sysctl functions
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock-fix
 
-This fixes an error introduced in the coredump-header patch in the
-coredump removal patch I submitted earlier.  It should be squashed into
-that patch series so that the Kconfig option to remove coredump doesn't
-cause compile-time errors.
+tweak comment
 
-Signed-off-by: Alex Kelly <alex.page.kelly@gmail.com>
-Reviewed-by: Josh Triplett <josh@joshtriplett.org>
-Cc: Serge Hallyn <serge.hallyn@canonical.com>
-Cc: Kees Cook <keescook@chromium.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vikram Mulukutla <markivx@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ lib/spinlock_debug.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN kernel/sysctl.c~coredump-make-core-dump-functionality-optional-fix kernel/sysctl.c
---- a/kernel/sysctl.c~coredump-make-core-dump-functionality-optional-fix
-+++ a/kernel/sysctl.c
-@@ -179,8 +179,10 @@ static int proc_dointvec_minmax_sysadmin
+diff -puN lib/spinlock_debug.c~lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock-fix lib/spinlock_debug.c
+--- a/lib/spinlock_debug.c~lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock-fix
++++ a/lib/spinlock_debug.c
+@@ -120,10 +120,10 @@ static void __spin_lock_debug(raw_spinlo
+ #endif
  
- static int proc_dointvec_minmax_coredump(struct ctl_table *table, int write,
- 		void __user *buffer, size_t *lenp, loff_t *ppos);
-+#ifdef CONFIG_COREDUMP
- static int proc_dostring_coredump(struct ctl_table *table, int write,
- 		void __user *buffer, size_t *lenp, loff_t *ppos);
-+#endif
- 
- #ifdef CONFIG_MAGIC_SYSRQ
- /* Note: sysrq code uses it's own private copy */
-@@ -2040,12 +2042,14 @@ int proc_dointvec_minmax(struct ctl_tabl
- 
- static void validate_coredump_safety(void)
- {
-+#ifdef CONFIG_COREDUMP
- 	if (suid_dumpable == SUID_DUMPABLE_SAFE &&
- 	    core_pattern[0] != '/' && core_pattern[0] != '|') {
- 		printk(KERN_WARNING "Unsafe core_pattern used with "\
- 			"suid_dumpable=2. Pipe handler or fully qualified "\
- 			"core dump path required.\n");
- 	}
-+#endif
- }
- 
- static int proc_dointvec_minmax_coredump(struct ctl_table *table, int write,
-@@ -2057,6 +2061,7 @@ static int proc_dointvec_minmax_coredump
- 	return error;
- }
- 
-+#ifdef CONFIG_COREDUMP
- static int proc_dostring_coredump(struct ctl_table *table, int write,
- 		  void __user *buffer, size_t *lenp, loff_t *ppos)
- {
-@@ -2065,6 +2070,7 @@ static int proc_dostring_coredump(struct
- 		validate_coredump_safety();
- 	return error;
- }
-+#endif
- 
- static int __do_proc_doulongvec_minmax(void *data, struct ctl_table *table, int write,
- 				     void __user *buffer,
+ 	/*
+-	 * In case the trylock above was causing a livelock, give the lower
+-	 * level arch specific lock code a chance to acquire the lock. We have
+-	 * already printed a warning/backtrace at this point. The non-debug arch
+-	 * specific code might actually succeed in acquiring the lock. If it is
++	 * The trylock above was causing a livelock.  Give the lower level arch
++	 * specific lock code a chance to acquire the lock. We have already
++	 * printed a warning/backtrace at this point. The non-debug arch
++	 * specific code might actually succeed in acquiring the lock.  If it is
+ 	 * not successful, the end-result is the same - there is no forward
+ 	 * progress.
+ 	 */
 _
 
-Patches currently in -mm which might be from alex.page.kelly@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-coredump-make-core-dump-functionality-optional.patch
+audith-replace-defines-with-c-stubs.patch
+sections-fix-section-conflicts-in-arch-h8300.patch
+sections-fix-section-conflicts-in-drivers-macintosh.patch
+sectons-fix-const-sections-for-crc32-table.patch
+backlight-add-backlight-driver-for-lm3630-chip.patch
+backlight-add-new-lm3639-backlight-driver.patch
+backlight-platform-lcd-add-support-for-device-tree-based-probe.patch
+idr-rename-max_level-to-max_idr_level.patch
+lib-parserc-avoid-overflow-in-match_number.patch
+lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock.patch
+rtc-add-dallas-ds2404-driver-fix.patch
+rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch
+fs-fat-fix-all-other-checkpatch-issues-in-dirc-fix.patch
+fat-simplify-writeback_inode-checkpatch-fixes.patch
+fat-simplify-writeback_inode-checkpatch-fixes-fix.patch
 coredump-make-core-dump-functionality-optional-fix-fix.patch
-coredump-update-coredump-related-headers.patch
-coredump-add-support-for-%d=__get_dumpable-in-core-name.patch
+coredump-use-suid_dumpable_enabled-rather-than-hardcoded-1-checkpatch-fixes.patch
+proc-use-kzalloc-instead-of-kmalloc-and-memset-fix.patch
+rapidio-run-discovery-as-an-asynchronous-process-fix.patch
 
