@@ -1,64 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sections-fix-section-conflicts-in-arch-sh.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:12:36 -0700
-Message-ID: <20121005201237.123B320004E@hpza10.eem.corp.google.com>
+Subject: [merged] sections-fix-section-conflicts-in-arch-score.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:12:32 -0700
+Message-ID: <20121005201233.1DA5420004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-we0-f202.google.com ([74.125.82.202]:57713 "EHLO
 	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932567Ab2JEUMi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:12:38 -0400
+	with ESMTP id S932567Ab2JEUMf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:12:35 -0400
 Received: by mail-we0-f202.google.com with SMTP id x43so139507wey.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:12:38 -0700 (PDT)
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:12:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@linux.intel.com, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: ak@linux.intel.com, lennox.wu@gmail.com, liqin.chen@sunplusct.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sections: fix section conflicts in arch/sh
+     Subject: sections: fix section conflicts in arch/score
 has been removed from the -mm tree.  Its filename was
-     sections-fix-section-conflicts-in-arch-sh.patch
+     sections-fix-section-conflicts-in-arch-score.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andi Kleen <ak@linux.intel.com>
-Subject: sections: fix section conflicts in arch/sh
+Subject: sections: fix section conflicts in arch/score
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Chen Liqin <liqin.chen@sunplusct.com>
+Cc: Lennox Wu <lennox.wu@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/include/asm/io.h |    2 +-
- arch/sh/kernel/ioport.c  |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/score/kernel/sys_score.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/sh/include/asm/io.h~sections-fix-section-conflicts-in-arch-sh arch/sh/include/asm/io.h
---- a/arch/sh/include/asm/io.h~sections-fix-section-conflicts-in-arch-sh
-+++ a/arch/sh/include/asm/io.h
-@@ -134,7 +134,7 @@ __BUILD_MEMORY_STRING(__raw_, q, u64)
-  * load/store instructions. sh_io_port_base is the virtual address to
-  * which all ports are being mapped.
+diff -puN arch/score/kernel/sys_score.c~sections-fix-section-conflicts-in-arch-score arch/score/kernel/sys_score.c
+--- a/arch/score/kernel/sys_score.c~sections-fix-section-conflicts-in-arch-score
++++ a/arch/score/kernel/sys_score.c
+@@ -112,6 +112,7 @@ score_execve(struct pt_regs *regs)
+  * Do a system call from kernel instead of calling sys_execve so we
+  * end up with proper pt_regs.
   */
--extern const unsigned long sh_io_port_base;
-+extern unsigned long sh_io_port_base;
- 
- static inline void __set_io_port_base(unsigned long pbase)
- {
-diff -puN arch/sh/kernel/ioport.c~sections-fix-section-conflicts-in-arch-sh arch/sh/kernel/ioport.c
---- a/arch/sh/kernel/ioport.c~sections-fix-section-conflicts-in-arch-sh
-+++ a/arch/sh/kernel/ioport.c
-@@ -11,7 +11,7 @@
- #include <linux/module.h>
- #include <linux/io.h>
- 
--const unsigned long sh_io_port_base __read_mostly = -1;
-+unsigned long sh_io_port_base __read_mostly = -1;
- EXPORT_SYMBOL(sh_io_port_base);
- 
- void __iomem *__ioport_map(unsigned long addr, unsigned int size)
++asmlinkage
+ int kernel_execve(const char *filename,
+ 		  const char *const argv[],
+ 		  const char *const envp[])
 _
 
 Patches currently in -mm which might be from ak@linux.intel.com are
