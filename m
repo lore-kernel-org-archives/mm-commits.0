@@ -1,336 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rapidio-rionet-rework-to-support-multiple-rio-master-ports.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:20:45 -0700
-Message-ID: <20121005202046.2B6E75C0050@hpza9.eem.corp.google.com>
+Subject: [merged] nbd-add-set-flags-ioctl.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:20:53 -0700
+Message-ID: <20121005202054.1D21820004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:34201 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932319Ab2JEUUs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:20:48 -0400
-Received: by mail-fa0-f74.google.com with SMTP id t1so138540fae.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:20:47 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:55438 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932319Ab2JEUUz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:20:55 -0400
+Received: by mail-bk0-f74.google.com with SMTP id q16so139102bkw.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:20:54 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandre.bounine@idt.com, davem@davemloft.net, leoli@freescale.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
+To: paul.clements@steeleye.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio/rionet: rework to support multiple RIO master ports
+     Subject: nbd: add set flags ioctl
 has been removed from the -mm tree.  Its filename was
-     rapidio-rionet-rework-to-support-multiple-rio-master-ports.patch
+     nbd-add-set-flags-ioctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio/rionet: rework to support multiple RIO master ports
+From: Paul Clements <paul.clements@steeleye.com>
+Subject: nbd: add set flags ioctl
 
-Make RIONET driver multi-net safe/capable by introducing per-net lists of
-RapidIO network peers.  Rework registration of network adapters to support
-all available RIO master port devices.
+Add a set-flags ioctl, allowing various option flags to be set on an nbd
+device.  This allows the nbd-client to set the device flags (to enable
+read-only mode, or enable discard support, etc.).
 
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Li Yang <leoli@freescale.com>
-Cc: David S. Miller <davem@davemloft.net>
+Flags are typically specified by the nbd-server.  During the negotiation
+phase of the nbd connection, the server sends its flags to the client. 
+The client then uses NBD_SET_FLAGS to inform the kernel of the options.
+
+Also included is a one-line fix to debug output for the set-timeout ioctl.
+
+Signed-off-by: Paul Clements <paul.clements@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/rionet.c |  133 +++++++++++++++++++++--------------------
- 1 file changed, 70 insertions(+), 63 deletions(-)
+ drivers/block/nbd.c |    8 +++++++-
+ include/linux/nbd.h |    9 +++++----
+ 2 files changed, 12 insertions(+), 5 deletions(-)
 
-diff -puN drivers/net/rionet.c~rapidio-rionet-rework-to-support-multiple-rio-master-ports drivers/net/rionet.c
---- a/drivers/net/rionet.c~rapidio-rionet-rework-to-support-multiple-rio-master-ports
-+++ a/drivers/net/rionet.c
-@@ -26,7 +26,7 @@
- #include <linux/ethtool.h>
+diff -puN drivers/block/nbd.c~nbd-add-set-flags-ioctl drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbd-add-set-flags-ioctl
++++ a/drivers/block/nbd.c
+@@ -78,6 +78,8 @@ static const char *ioctl_cmd_to_ascii(in
+ 	case NBD_SET_SOCK: return "set-sock";
+ 	case NBD_SET_BLKSIZE: return "set-blksize";
+ 	case NBD_SET_SIZE: return "set-size";
++	case NBD_SET_TIMEOUT: return "set-timeout";
++	case NBD_SET_FLAGS: return "set-flags";
+ 	case NBD_DO_IT: return "do-it";
+ 	case NBD_CLEAR_SOCK: return "clear-sock";
+ 	case NBD_CLEAR_QUE: return "clear-que";
+@@ -468,7 +470,7 @@ static void nbd_handle_req(struct nbd_de
+ 	nbd_cmd(req) = NBD_CMD_READ;
+ 	if (rq_data_dir(req) == WRITE) {
+ 		nbd_cmd(req) = NBD_CMD_WRITE;
+-		if (nbd->flags & NBD_READ_ONLY) {
++		if (nbd->flags & NBD_FLAG_READ_ONLY) {
+ 			dev_err(disk_to_dev(nbd->disk),
+ 				"Write on read-only\n");
+ 			goto error_out;
+@@ -651,6 +653,10 @@ static int __nbd_ioctl(struct block_devi
+ 		nbd->xmit_timeout = arg * HZ;
+ 		return 0;
  
- #define DRV_NAME        "rionet"
--#define DRV_VERSION     "0.2"
-+#define DRV_VERSION     "0.3"
- #define DRV_AUTHOR      "Matt Porter <mporter@kernel.crashing.org>"
- #define DRV_DESC        "Ethernet over RapidIO"
++	case NBD_SET_FLAGS:
++		nbd->flags = arg;
++		return 0;
++
+ 	case NBD_SET_SIZE_BLOCKS:
+ 		nbd->bytesize = ((u64) arg) * nbd->blksize;
+ 		bdev->bd_inode->i_size = nbd->bytesize;
+diff -puN include/linux/nbd.h~nbd-add-set-flags-ioctl include/linux/nbd.h
+--- a/include/linux/nbd.h~nbd-add-set-flags-ioctl
++++ a/include/linux/nbd.h
+@@ -27,6 +27,7 @@
+ #define NBD_SET_SIZE_BLOCKS	_IO( 0xab, 7 )
+ #define NBD_DISCONNECT  _IO( 0xab, 8 )
+ #define NBD_SET_TIMEOUT _IO( 0xab, 9 )
++#define NBD_SET_FLAGS   _IO( 0xab, 10)
  
-@@ -47,8 +47,7 @@ MODULE_LICENSE("GPL");
- 
- #define RIONET_TX_RING_SIZE	CONFIG_RIONET_TX_SIZE
- #define RIONET_RX_RING_SIZE	CONFIG_RIONET_RX_SIZE
--
--static LIST_HEAD(rionet_peers);
-+#define RIONET_MAX_NETS		8
- 
- struct rionet_private {
- 	struct rio_mport *mport;
-@@ -69,17 +68,14 @@ struct rionet_peer {
- 	struct resource *res;
+ enum {
+ 	NBD_CMD_READ = 0,
+@@ -34,6 +35,10 @@ enum {
+ 	NBD_CMD_DISC = 2
  };
  
--static int rionet_check = 0;
--static int rionet_capable = 1;
-+struct rionet_net {
-+	struct net_device *ndev;
-+	struct list_head peers;
-+	struct rio_dev **active;
-+	int nact;	/* number of active peers */
-+};
- 
--/*
-- * This is a fast lookup table for translating TX
-- * Ethernet packets into a destination RIO device. It
-- * could be made into a hash table to save memory depending
-- * on system trade-offs.
-- */
--static struct rio_dev **rionet_active;
--static int nact;	/* total number of active rionet peers */
-+static struct rionet_net nets[RIONET_MAX_NETS];
- 
- #define is_rionet_capable(src_ops, dst_ops)			\
- 			((src_ops & RIO_SRC_OPS_DATA_MSG) &&	\
-@@ -185,7 +181,7 @@ static int rionet_start_xmit(struct sk_b
- 	}
- 
- 	if (is_multicast_ether_addr(eth->h_dest))
--		add_num = nact;
-+		add_num = nets[rnet->mport->id].nact;
- 
- 	if ((rnet->tx_cnt + add_num) > RIONET_TX_RING_SIZE) {
- 		netif_stop_queue(ndev);
-@@ -197,19 +193,21 @@ static int rionet_start_xmit(struct sk_b
- 
- 	if (is_multicast_ether_addr(eth->h_dest)) {
- 		int count = 0;
++/* values for flags field */
++#define NBD_FLAG_HAS_FLAGS    (1 << 0) /* nbd-server supports flags */
++#define NBD_FLAG_READ_ONLY    (1 << 1) /* device is read-only */
 +
- 		for (i = 0; i < RIO_MAX_ROUTE_ENTRIES(rnet->mport->sys_size);
- 				i++)
--			if (rionet_active[i]) {
-+			if (nets[rnet->mport->id].active[i]) {
- 				rionet_queue_tx_msg(skb, ndev,
--						    rionet_active[i]);
-+					nets[rnet->mport->id].active[i]);
- 				if (count)
- 					atomic_inc(&skb->users);
- 				count++;
- 			}
- 	} else if (RIONET_MAC_MATCH(eth->h_dest)) {
- 		destid = RIONET_GET_DESTID(eth->h_dest);
--		if (rionet_active[destid])
--			rionet_queue_tx_msg(skb, ndev, rionet_active[destid]);
-+		if (nets[rnet->mport->id].active[destid])
-+			rionet_queue_tx_msg(skb, ndev,
-+					nets[rnet->mport->id].active[destid]);
- 	}
+ #define nbd_cmd(req) ((req)->cmd[0])
  
- 	spin_unlock_irqrestore(&rnet->tx_lock, flags);
-@@ -228,19 +226,21 @@ static void rionet_dbell_event(struct ri
- 		printk(KERN_INFO "%s: doorbell sid %4.4x tid %4.4x info %4.4x",
- 		       DRV_NAME, sid, tid, info);
- 	if (info == RIONET_DOORBELL_JOIN) {
--		if (!rionet_active[sid]) {
--			list_for_each_entry(peer, &rionet_peers, node) {
-+		if (!nets[rnet->mport->id].active[sid]) {
-+			list_for_each_entry(peer,
-+					   &nets[rnet->mport->id].peers, node) {
- 				if (peer->rdev->destid == sid) {
--					rionet_active[sid] = peer->rdev;
--					nact++;
-+					nets[rnet->mport->id].active[sid] =
-+								peer->rdev;
-+					nets[rnet->mport->id].nact++;
- 				}
- 			}
- 			rio_mport_send_doorbell(mport, sid,
- 						RIONET_DOORBELL_JOIN);
- 		}
- 	} else if (info == RIONET_DOORBELL_LEAVE) {
--		rionet_active[sid] = NULL;
--		nact--;
-+		nets[rnet->mport->id].active[sid] = NULL;
-+		nets[rnet->mport->id].nact--;
- 	} else {
- 		if (netif_msg_intr(rnet))
- 			printk(KERN_WARNING "%s: unhandled doorbell\n",
-@@ -334,7 +334,8 @@ static int rionet_open(struct net_device
- 	netif_carrier_on(ndev);
- 	netif_start_queue(ndev);
+ /* userspace doesn't need the nbd_device structure */
+@@ -42,10 +47,6 @@ enum {
+ #include <linux/wait.h>
+ #include <linux/mutex.h>
  
--	list_for_each_entry_safe(peer, tmp, &rionet_peers, node) {
-+	list_for_each_entry_safe(peer, tmp,
-+				 &nets[rnet->mport->id].peers, node) {
- 		if (!(peer->res = rio_request_outb_dbell(peer->rdev,
- 							 RIONET_DOORBELL_JOIN,
- 							 RIONET_DOORBELL_LEAVE)))
-@@ -359,7 +360,7 @@ static int rionet_close(struct net_devic
- 	int i;
- 
- 	if (netif_msg_ifup(rnet))
--		printk(KERN_INFO "%s: close\n", DRV_NAME);
-+		printk(KERN_INFO "%s: close %s\n", DRV_NAME, ndev->name);
- 
- 	netif_stop_queue(ndev);
- 	netif_carrier_off(ndev);
-@@ -367,10 +368,11 @@ static int rionet_close(struct net_devic
- 	for (i = 0; i < RIONET_RX_RING_SIZE; i++)
- 		kfree_skb(rnet->rx_skb[i]);
- 
--	list_for_each_entry_safe(peer, tmp, &rionet_peers, node) {
--		if (rionet_active[peer->rdev->destid]) {
-+	list_for_each_entry_safe(peer, tmp,
-+				 &nets[rnet->mport->id].peers, node) {
-+		if (nets[rnet->mport->id].active[peer->rdev->destid]) {
- 			rio_send_doorbell(peer->rdev, RIONET_DOORBELL_LEAVE);
--			rionet_active[peer->rdev->destid] = NULL;
-+			nets[rnet->mport->id].active[peer->rdev->destid] = NULL;
- 		}
- 		rio_release_outb_dbell(peer->rdev, peer->res);
- 	}
-@@ -386,17 +388,21 @@ static int rionet_close(struct net_devic
- static void rionet_remove(struct rio_dev *rdev)
- {
- 	struct net_device *ndev = rio_get_drvdata(rdev);
-+	unsigned char netid = rdev->net->hport->id;
- 	struct rionet_peer *peer, *tmp;
- 
--	free_pages((unsigned long)rionet_active, get_order(sizeof(void *) *
--			RIO_MAX_ROUTE_ENTRIES(rdev->net->hport->sys_size)));
- 	unregister_netdev(ndev);
--	free_netdev(ndev);
- 
--	list_for_each_entry_safe(peer, tmp, &rionet_peers, node) {
-+	free_pages((unsigned long)nets[netid].active, get_order(sizeof(void *) *
-+			RIO_MAX_ROUTE_ENTRIES(rdev->net->hport->sys_size)));
-+	nets[netid].active = NULL;
-+
-+	list_for_each_entry_safe(peer, tmp, &nets[netid].peers, node) {
- 		list_del(&peer->node);
- 		kfree(peer);
- 	}
-+
-+	free_netdev(ndev);
- }
- 
- static void rionet_get_drvinfo(struct net_device *ndev,
-@@ -448,13 +454,13 @@ static int rionet_setup_netdev(struct ri
- 	const size_t rionet_active_bytes = sizeof(void *) *
- 				RIO_MAX_ROUTE_ENTRIES(mport->sys_size);
- 
--	rionet_active = (struct rio_dev **)__get_free_pages(GFP_KERNEL,
--			get_order(rionet_active_bytes));
--	if (!rionet_active) {
-+	nets[mport->id].active = (struct rio_dev **)__get_free_pages(GFP_KERNEL,
-+						get_order(rionet_active_bytes));
-+	if (!nets[mport->id].active) {
- 		rc = -ENOMEM;
- 		goto out;
- 	}
--	memset((void *)rionet_active, 0, rionet_active_bytes);
-+	memset((void *)nets[mport->id].active, 0, rionet_active_bytes);
- 
- 	/* Set up private area */
- 	rnet = netdev_priv(ndev);
-@@ -483,61 +489,62 @@ static int rionet_setup_netdev(struct ri
- 	if (rc != 0)
- 		goto out;
- 
--	printk("%s: %s %s Version %s, MAC %pM\n",
-+	printk(KERN_INFO "%s: %s %s Version %s, MAC %pM, %s\n",
- 	       ndev->name,
- 	       DRV_NAME,
- 	       DRV_DESC,
- 	       DRV_VERSION,
--	       ndev->dev_addr);
-+	       ndev->dev_addr,
-+	       mport->name);
- 
-       out:
- 	return rc;
- }
- 
--/*
-- * XXX Make multi-net safe
-- */
-+static unsigned long net_table[RIONET_MAX_NETS/sizeof(unsigned long) + 1];
-+
- static int rionet_probe(struct rio_dev *rdev, const struct rio_device_id *id)
- {
- 	int rc = -ENODEV;
- 	u32 lsrc_ops, ldst_ops;
- 	struct rionet_peer *peer;
- 	struct net_device *ndev = NULL;
-+	unsigned char netid = rdev->net->hport->id;
-+	int oldnet;
- 
--	/* If local device is not rionet capable, give up quickly */
--	if (!rionet_capable)
--		goto out;
-+	if (netid >= RIONET_MAX_NETS)
-+		return rc;
- 
--	/* Allocate our net_device structure */
--	ndev = alloc_etherdev(sizeof(struct rionet_private));
--	if (ndev == NULL) {
--		rc = -ENOMEM;
--		goto out;
--	}
-+	oldnet = test_and_set_bit(netid, net_table);
- 
- 	/*
- 	 * First time through, make sure local device is rionet
--	 * capable, setup netdev,  and set flags so this is skipped
--	 * on later probes
-+	 * capable, setup netdev (will be skipped on later probes)
- 	 */
--	if (!rionet_check) {
-+	if (!oldnet) {
- 		rio_local_read_config_32(rdev->net->hport, RIO_SRC_OPS_CAR,
- 					 &lsrc_ops);
- 		rio_local_read_config_32(rdev->net->hport, RIO_DST_OPS_CAR,
- 					 &ldst_ops);
- 		if (!is_rionet_capable(lsrc_ops, ldst_ops)) {
- 			printk(KERN_ERR
--			       "%s: local device is not network capable\n",
--			       DRV_NAME);
--			rionet_check = 1;
--			rionet_capable = 0;
-+			       "%s: local device %s is not network capable\n",
-+			       DRV_NAME, rdev->net->hport->name);
- 			goto out;
- 		}
- 
-+		/* Allocate our net_device structure */
-+		ndev = alloc_etherdev(sizeof(struct rionet_private));
-+		if (ndev == NULL) {
-+			rc = -ENOMEM;
-+			goto out;
-+		}
-+		nets[netid].ndev = ndev;
- 		rc = rionet_setup_netdev(rdev->net->hport, ndev);
--		rionet_check = 1;
--		nact = 0;
--	}
-+		INIT_LIST_HEAD(&nets[netid].peers);
-+		nets[netid].nact = 0;
-+	} else if (nets[netid].ndev == NULL)
-+		goto out;
- 
- 	/*
- 	 * If the remote device has mailbox/doorbell capabilities,
-@@ -549,10 +556,10 @@ static int rionet_probe(struct rio_dev *
- 			goto out;
- 		}
- 		peer->rdev = rdev;
--		list_add_tail(&peer->node, &rionet_peers);
-+		list_add_tail(&peer->node, &nets[netid].peers);
- 	}
- 
--	rio_set_drvdata(rdev, ndev);
-+	rio_set_drvdata(rdev, nets[netid].ndev);
- 
-       out:
- 	return rc;
-_
-
-Patches currently in -mm which might be from alexandre.bounine@idt.com are
-
-origin.patch
-
+-/* values for flags field */
+-#define NBD_READ_ONLY 0x0001
+-#define NBD_WRITE_NOCHK 0x0002
