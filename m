@@ -1,64 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-sysc-call-disable_nonboot_cpus-in-kernel_restart.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:13:59 -0700
-Message-ID: <20121005201400.232AA5C0050@hpza9.eem.corp.google.com>
+Subject: [merged] poweroff-fix-bug-in-orderly_poweroff.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:14:03 -0700
+Message-ID: <20121005201403.F185B100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:36851 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932820Ab2JEUOC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:14:02 -0400
-Received: by mail-wg0-f74.google.com with SMTP id dt11so139794wgb.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:14:01 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:34492 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932820Ab2JEUOE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:14:04 -0400
+Received: by mail-gg0-f202.google.com with SMTP id i4so235045ggm.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:14:04 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shawn.guo@linaro.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: hongfeng@marvell.com, ebiederm@xmission.com, keescook@chromium.org, rjw@sisk.pl, serge.hallyn@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/sys.c: call disable_nonboot_cpus() in kernel_restart()
+     Subject: poweroff: fix bug in orderly_poweroff()
 has been removed from the -mm tree.  Its filename was
-     kernel-sysc-call-disable_nonboot_cpus-in-kernel_restart.patch
+     poweroff-fix-bug-in-orderly_poweroff.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Shawn Guo <shawn.guo@linaro.org>
-Subject: kernel/sys.c: call disable_nonboot_cpus() in kernel_restart()
+From: hongfeng <hongfeng@marvell.com>
+Subject: poweroff: fix bug in orderly_poweroff()
 
-As kernel_power_off() calls disable_nonboot_cpus(), we may also want to
-have kernel_restart() call disable_nonboot_cpus().  Doing so can help
-machines that require boot cpu be the last alive cpu during reboot to
-survive with kernel restart.
+orderly_poweroff is trying to poweroff platform in two steps:
 
-This fixes one reboot issue seen on imx6q (Cortex-A9 Quad).  The machine
-requires that the restart routine be run on the primary cpu rather than
-secondary ones.  Otherwise, the secondary core running the restart routine
-will fail to come to online after reboot.
+step 1: Call user space application to poweroff
+step 2: If user space poweroff fail, then do a force power off if force param
+        is set.
 
-Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
-Cc: <stable@vger.kernel.org>
+The bug here is, step 1 is always successful with param UMH_NO_WAIT, which obey
+the design goal of orderly_poweroff.
+
+We have two choices here:
+UMH_WAIT_EXEC which means wait for the exec, but not the process;
+UMH_WAIT_PROC which means wait for the process to complete.
+we need to trade off the two choices:
+
+If using UMH_WAIT_EXEC, there is potential issue comments by Serge E. 
+Hallyn: The exec will have started, but may for whatever (very unlikely)
+reason fail.
+
+If using UMH_WAIT_PROC, there is potential issue comments by Eric W. 
+Biederman: If the caller is not running in a kernel thread then we can
+easily get into a case where the user space caller will block waiting for
+us when we are waiting for the user space caller.
+
+Thanks for their excellent ideas, based on the above discussion, we
+finally choose UMH_WAIT_EXEC, which is much more safe, if the user
+application really fails, we just complain the application itself, it
+seems a better choice here.
+
+Signed-off-by: Feng Hong <hongfeng@marvell.com>
+Acked-by: Kees Cook <keescook@chromium.org>
+Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Acked-by: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/sys.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/sys.c~kernel-sysc-call-disable_nonboot_cpus-in-kernel_restart kernel/sys.c
---- a/kernel/sys.c~kernel-sysc-call-disable_nonboot_cpus-in-kernel_restart
+diff -puN kernel/sys.c~poweroff-fix-bug-in-orderly_poweroff kernel/sys.c
+--- a/kernel/sys.c~poweroff-fix-bug-in-orderly_poweroff
 +++ a/kernel/sys.c
-@@ -368,6 +368,7 @@ EXPORT_SYMBOL(unregister_reboot_notifier
- void kernel_restart(char *cmd)
- {
- 	kernel_restart_prepare(cmd);
-+	disable_nonboot_cpus();
- 	if (!cmd)
- 		printk(KERN_EMERG "Restarting system.\n");
- 	else
+@@ -2205,7 +2205,7 @@ static int __orderly_poweroff(void)
+ 		return -ENOMEM;
+ 	}
+ 
+-	ret = call_usermodehelper_fns(argv[0], argv, envp, UMH_NO_WAIT,
++	ret = call_usermodehelper_fns(argv[0], argv, envp, UMH_WAIT_EXEC,
+ 				      NULL, argv_cleanup, NULL);
+ 	if (ret == -ENOMEM)
+ 		argv_free(argv);
 _
 
-Patches currently in -mm which might be from shawn.guo@linaro.org are
+Patches currently in -mm which might be from hongfeng@marvell.com are
 
 origin.patch
-linux-next.patch
 
