@@ -1,407 +1,531 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-add-dallas-ds2404-driver.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:16:35 -0700
-Message-ID: <20121005201635.A877F100048@wpzn3.hot.corp.google.com>
+Subject: [merged] rtc-snvs-add-freescale-rtc-snvs-driver.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:16:38 -0700
+Message-ID: <20121005201639.33DE25C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:43213 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757272Ab2JEUQg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:16:36 -0400
-Received: by mail-vc0-f202.google.com with SMTP id fy27so236711vcb.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:16:36 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:47280 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757170Ab2JEUQl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:16:41 -0400
+Received: by mail-wg0-f74.google.com with SMTP id dt11so139871wgb.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:16:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: svens@stackframe.org, a.zummo@towertech.it, mm-commits@vger.kernel.org
+To: shawn.guo@linaro.org, a.zummo@towertech.it, kim.phillips@freescale.com, s.hauer@pengutronix.de, sboyd@codeaurora.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: add Dallas DS2404 driver
+     Subject: rtc: snvs: add Freescale rtc-snvs driver
 has been removed from the -mm tree.  Its filename was
-     rtc-add-dallas-ds2404-driver.patch
+     rtc-snvs-add-freescale-rtc-snvs-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sven Schnelle <svens@stackframe.org>
-Subject: rtc: add Dallas DS2404 driver
+From: Shawn Guo <shawn.guo@linaro.org>
+Subject: rtc: snvs: add Freescale rtc-snvs driver
 
-[akpm@linux-foundation.org: fix warning]
-Signed-off-by: Sven Schnelle <svens@stackframe.org>
+Add an RTC driver for Freescale Secure Non-Volatile Storage (SNVS)
+Low Power (LP) RTC.
+
+Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
+Reviewed-by: Stephen Boyd <sboyd@codeaurora.org>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Kim Phillips <kim.phillips@freescale.com>
+Cc: Sascha Hauer <s.hauer@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig        |    9 +
- drivers/rtc/Makefile       |    1 
- drivers/rtc/rtc-ds2404.c   |  303 +++++++++++++++++++++++++++++++++++
- include/linux/rtc-ds2404.h |   20 ++
- 4 files changed, 333 insertions(+)
+ Documentation/devicetree/bindings/crypto/fsl-sec4.txt |   51 +
+ Documentation/devicetree/bindings/rtc/snvs-rtc.txt    |    1 
+ drivers/rtc/Kconfig                                   |   11 
+ drivers/rtc/Makefile                                  |    1 
+ drivers/rtc/rtc-snvs.c                                |  350 ++++++++++
+ 5 files changed, 414 insertions(+)
 
-diff -puN drivers/rtc/Kconfig~rtc-add-dallas-ds2404-driver drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-add-dallas-ds2404-driver
-+++ a/drivers/rtc/Kconfig
-@@ -660,6 +660,15 @@ config RTC_DRV_V3020
- 	  This driver can also be built as a module. If so, the module
- 	  will be called rtc-v3020.
+diff -puN Documentation/devicetree/bindings/crypto/fsl-sec4.txt~rtc-snvs-add-freescale-rtc-snvs-driver Documentation/devicetree/bindings/crypto/fsl-sec4.txt
+--- a/Documentation/devicetree/bindings/crypto/fsl-sec4.txt~rtc-snvs-add-freescale-rtc-snvs-driver
++++ a/Documentation/devicetree/bindings/crypto/fsl-sec4.txt
+@@ -9,6 +9,7 @@ Copyright (C) 2008-2011 Freescale Semico
+    -Run Time Integrity Check (RTIC) Node
+    -Run Time Integrity Check (RTIC) Memory Node
+    -Secure Non-Volatile Storage (SNVS) Node
++   -Secure Non-Volatile Storage (SNVS) Low Power (LP) RTC Node
+    -Full Example
  
-+config RTC_DRV_DS2404
-+	tristate "Dallas DS2404"
-+	help
-+	  If you say yes here you get support for the
-+	  Dallas DS2404 RTC chip.
+ NOTE: the SEC 4 is also known as Freescale's Cryptographic Accelerator
+@@ -294,6 +295,27 @@ Secure Non-Volatile Storage (SNVS) Node
+           address and length of the SEC4 configuration
+           registers.
+ 
++   - #address-cells
++       Usage: required
++       Value type: <u32>
++       Definition: A standard property.  Defines the number of cells
++           for representing physical addresses in child nodes.  Must
++           have a value of 1.
 +
-+	  This driver can also be built as a module. If so, the module
-+	  will be called rtc-ds2404.
++   - #size-cells
++       Usage: required
++       Value type: <u32>
++       Definition: A standard property.  Defines the number of cells
++           for representing the size of physical addresses in
++           child nodes.  Must have a value of 1.
 +
- config RTC_DRV_WM831X
- 	tristate "Wolfson Microelectronics WM831x RTC"
- 	depends on MFD_WM831X
-diff -puN drivers/rtc/Makefile~rtc-add-dallas-ds2404-driver drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-add-dallas-ds2404-driver
-+++ a/drivers/rtc/Makefile
-@@ -43,6 +43,7 @@ obj-$(CONFIG_RTC_DRV_DS1511)	+= rtc-ds15
- obj-$(CONFIG_RTC_DRV_DS1553)	+= rtc-ds1553.o
- obj-$(CONFIG_RTC_DRV_DS1672)	+= rtc-ds1672.o
- obj-$(CONFIG_RTC_DRV_DS1742)	+= rtc-ds1742.o
-+obj-$(CONFIG_RTC_DRV_DS2404)    += rtc-ds2404.o
- obj-$(CONFIG_RTC_DRV_DS3232)	+= rtc-ds3232.o
- obj-$(CONFIG_RTC_DRV_DS3234)	+= rtc-ds3234.o
- obj-$(CONFIG_RTC_DRV_EFI)	+= rtc-efi.o
-diff -puN /dev/null drivers/rtc/rtc-ds2404.c
++   - ranges
++       Usage: required
++       Value type: <prop-encoded-array>
++       Definition: A standard property.  Specifies the physical address
++           range of the SNVS register space.  A triplet that includes
++           the child address, parent address, & length.
++
+    - interrupts
+       Usage: required
+       Value type: <prop_encoded-array>
+@@ -314,11 +336,34 @@ EXAMPLE
+ 	sec_mon@314000 {
+ 		compatible = "fsl,sec-v4.0-mon";
+ 		reg = <0x314000 0x1000>;
++		ranges = <0 0x314000 0x1000>;
+ 		interrupt-parent = <&mpic>;
+ 		interrupts = <93 2>;
+ 	};
+ 
+ =====================================================================
++Secure Non-Volatile Storage (SNVS) Low Power (LP) RTC Node
++
++  A SNVS child node that defines SNVS LP RTC.
++
++  - compatible
++      Usage: required
++      Value type: <string>
++      Definition: Must include "fsl,sec-v4.0-mon-rtc-lp".
++
++  - reg
++      Usage: required
++      Value type: <prop-encoded-array>
++      Definition: A standard property.  Specifies the physical
++          address and length of the SNVS LP configuration registers.
++
++EXAMPLE
++	sec_mon_rtc_lp@314000 {
++		compatible = "fsl,sec-v4.0-mon-rtc-lp";
++		reg = <0x34 0x58>;
++	};
++
++=====================================================================
+ FULL EXAMPLE
+ 
+ 	crypto: crypto@300000 {
+@@ -390,8 +435,14 @@ FULL EXAMPLE
+ 	sec_mon: sec_mon@314000 {
+ 		compatible = "fsl,sec-v4.0-mon";
+ 		reg = <0x314000 0x1000>;
++		ranges = <0 0x314000 0x1000>;
+ 		interrupt-parent = <&mpic>;
+ 		interrupts = <93 2>;
++
++		sec_mon_rtc_lp@34 {
++			compatible = "fsl,sec-v4.0-mon-rtc-lp";
++			reg = <0x34 0x58>;
++		};
+ 	};
+ 
+ =====================================================================
+diff -puN /dev/null Documentation/devicetree/bindings/rtc/snvs-rtc.txt
 --- /dev/null
-+++ a/drivers/rtc/rtc-ds2404.c
-@@ -0,0 +1,303 @@
++++ a/Documentation/devicetree/bindings/rtc/snvs-rtc.txt
+@@ -0,0 +1 @@
++See Documentation/devicetree/bindings/crypto/fsl-sec4.txt for details.
+diff -puN drivers/rtc/Kconfig~rtc-snvs-add-freescale-rtc-snvs-driver drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-snvs-add-freescale-rtc-snvs-driver
++++ a/drivers/rtc/Kconfig
+@@ -1109,4 +1109,15 @@ config RTC_DRV_MXC
+ 	   This driver can also be built as a module, if so, the module
+ 	   will be called "rtc-mxc".
+ 
++config RTC_DRV_SNVS
++	tristate "Freescale SNVS RTC support"
++	depends on HAS_IOMEM
++	depends on OF
++	help
++	   If you say yes here you get support for the Freescale SNVS
++	   Low Power (LP) RTC module.
++
++	   This driver can also be built as a module, if so, the module
++	   will be called "rtc-snvs".
++
+ endif # RTC_CLASS
+diff -puN drivers/rtc/Makefile~rtc-snvs-add-freescale-rtc-snvs-driver drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-snvs-add-freescale-rtc-snvs-driver
++++ a/drivers/rtc/Makefile
+@@ -97,6 +97,7 @@ obj-$(CONFIG_RTC_DRV_S35390A)	+= rtc-s35
+ obj-$(CONFIG_RTC_DRV_S3C)	+= rtc-s3c.o
+ obj-$(CONFIG_RTC_DRV_SA1100)	+= rtc-sa1100.o
+ obj-$(CONFIG_RTC_DRV_SH)	+= rtc-sh.o
++obj-$(CONFIG_RTC_DRV_SNVS)	+= rtc-snvs.o
+ obj-$(CONFIG_RTC_DRV_SPEAR)	+= rtc-spear.o
+ obj-$(CONFIG_RTC_DRV_STARFIRE)	+= rtc-starfire.o
+ obj-$(CONFIG_RTC_DRV_STK17TA8)	+= rtc-stk17ta8.o
+diff -puN /dev/null drivers/rtc/rtc-snvs.c
+--- /dev/null
++++ a/drivers/rtc/rtc-snvs.c
+@@ -0,0 +1,350 @@
 +/*
-+ * Copyright (C) 2012 Sven Schnelle <svens@stackframe.org>
++ * Copyright (C) 2011-2012 Freescale Semiconductor, Inc.
 + *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
++ * The code contained herein is licensed under the GNU General Public
++ * License. You may obtain a copy of the GNU General Public License
++ * Version 2 or later at the following locations:
 + *
++ * http://www.opensource.org/licenses/gpl-license.html
++ * http://www.gnu.org/copyleft/gpl.html
 + */
 +
-+#include <linux/platform_device.h>
-+#include <linux/module.h>
 +#include <linux/init.h>
-+#include <linux/rtc.h>
-+#include <linux/types.h>
-+#include <linux/bcd.h>
-+#include <linux/rtc-ds2404.h>
-+#include <linux/delay.h>
-+#include <linux/gpio.h>
-+#include <linux/slab.h>
-+
 +#include <linux/io.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/of_device.h>
++#include <linux/platform_device.h>
++#include <linux/rtc.h>
 +
-+#define DS2404_STATUS_REG 0x200
-+#define DS2404_CONTROL_REG 0x201
-+#define DS2404_RTC_REG 0x202
++/* These register offsets are relative to LP (Low Power) range */
++#define SNVS_LPCR		0x04
++#define SNVS_LPSR		0x18
++#define SNVS_LPSRTCMR		0x1c
++#define SNVS_LPSRTCLR		0x20
++#define SNVS_LPTAR		0x24
++#define SNVS_LPPGDR		0x30
 +
-+#define DS2404_WRITE_SCRATCHPAD_CMD 0x0f
-+#define DS2404_READ_SCRATCHPAD_CMD 0xaa
-+#define DS2404_COPY_SCRATCHPAD_CMD 0x55
-+#define DS2404_READ_MEMORY_CMD 0xf0
++#define SNVS_LPCR_SRTC_ENV	(1 << 0)
++#define SNVS_LPCR_LPTA_EN	(1 << 1)
++#define SNVS_LPCR_LPWUI_EN	(1 << 3)
++#define SNVS_LPSR_LPTA		(1 << 0)
 +
-+struct ds2404;
++#define SNVS_LPPGDR_INIT	0x41736166
++#define CNTR_TO_SECS_SH		15
 +
-+struct ds2404_chip_ops {
-+	int (*map_io)(struct ds2404 *chip, struct platform_device *pdev,
-+		      struct ds2404_platform_data *pdata);
-+	void (*unmap_io)(struct ds2404 *chip);
-+};
-+
-+#define DS2404_RST	0
-+#define DS2404_CLK	1
-+#define DS2404_DQ	2
-+
-+struct ds2404_gpio {
-+	const char *name;
-+	unsigned int gpio;
-+};
-+
-+struct ds2404 {
-+	struct ds2404_gpio *gpio;
-+	struct ds2404_chip_ops *ops;
++struct snvs_rtc_data {
 +	struct rtc_device *rtc;
++	void __iomem *ioaddr;
++	int irq;
++	spinlock_t lock;
 +};
 +
-+static struct ds2404_gpio ds2404_gpio[] = {
-+	{ "RTC RST", 0 },
-+	{ "RTC CLK", 0 },
-+	{ "RTC DQ", 0 },
-+};
-+
-+static int ds2404_gpio_map(struct ds2404 *chip, struct platform_device *pdev,
-+			  struct ds2404_platform_data *pdata)
++static u32 rtc_read_lp_counter(void __iomem *ioaddr)
 +{
-+	int i, err;
++	u64 read1, read2;
 +
-+	ds2404_gpio[DS2404_RST].gpio = pdata->gpio_rst;
-+	ds2404_gpio[DS2404_CLK].gpio = pdata->gpio_clk;
-+	ds2404_gpio[DS2404_DQ].gpio = pdata->gpio_dq;
++	do {
++		read1 = readl(ioaddr + SNVS_LPSRTCMR);
++		read1 <<= 32;
++		read1 |= readl(ioaddr + SNVS_LPSRTCLR);
 +
-+	for (i = 0; i < ARRAY_SIZE(ds2404_gpio); i++) {
-+		err = gpio_request(ds2404_gpio[i].gpio, ds2404_gpio[i].name);
-+		if (err) {
-+			printk(KERN_ERR "error mapping gpio %s: %d\n",
-+				ds2404_gpio[i].name, err);
-+			goto err_request;
-+		}
-+		if (i != DS2404_DQ)
-+			gpio_direction_output(ds2404_gpio[i].gpio, 1);
-+	}
++		read2 = readl(ioaddr + SNVS_LPSRTCMR);
++		read2 <<= 32;
++		read2 |= readl(ioaddr + SNVS_LPSRTCLR);
++	} while (read1 != read2);
 +
-+	chip->gpio = ds2404_gpio;
-+	return 0;
-+
-+err_request:
-+	while (--i >= 0)
-+		gpio_free(ds2404_gpio[i].gpio);
-+	return err;
++	/* Convert 47-bit counter to 32-bit raw second count */
++	return (u32) (read1 >> CNTR_TO_SECS_SH);
 +}
 +
-+static void ds2404_gpio_unmap(struct ds2404 *chip)
++static void rtc_write_sync_lp(void __iomem *ioaddr)
 +{
++	u32 count1, count2, count3;
 +	int i;
 +
-+	for (i = 0; i < ARRAY_SIZE(ds2404_gpio); i++)
-+		gpio_free(ds2404_gpio[i].gpio);
-+}
++	/* Wait for 3 CKIL cycles */
++	for (i = 0; i < 3; i++) {
++		do {
++			count1 = readl(ioaddr + SNVS_LPSRTCLR);
++			count2 = readl(ioaddr + SNVS_LPSRTCLR);
++		} while (count1 != count2);
 +
-+static struct ds2404_chip_ops ds2404_gpio_ops = {
-+	.map_io		= ds2404_gpio_map,
-+	.unmap_io	= ds2404_gpio_unmap,
-+};
-+
-+static void ds2404_reset(struct device *dev)
-+{
-+	gpio_set_value(ds2404_gpio[DS2404_RST].gpio, 0);
-+	udelay(1000);
-+	gpio_set_value(ds2404_gpio[DS2404_RST].gpio, 1);
-+	gpio_set_value(ds2404_gpio[DS2404_CLK].gpio, 0);
-+	gpio_direction_output(ds2404_gpio[DS2404_DQ].gpio, 0);
-+	udelay(10);
-+}
-+
-+static void ds2404_write_byte(struct device *dev, u8 byte)
-+{
-+	int i;
-+
-+	gpio_direction_output(ds2404_gpio[DS2404_DQ].gpio, 1);
-+	for (i = 0; i < 8; i++) {
-+		gpio_set_value(ds2404_gpio[DS2404_DQ].gpio, byte & (1 << i));
-+		udelay(10);
-+		gpio_set_value(ds2404_gpio[DS2404_CLK].gpio, 1);
-+		udelay(10);
-+		gpio_set_value(ds2404_gpio[DS2404_CLK].gpio, 0);
-+		udelay(10);
++		/* Now wait until counter value changes */
++		do {
++			do {
++				count2 = readl(ioaddr + SNVS_LPSRTCLR);
++				count3 = readl(ioaddr + SNVS_LPSRTCLR);
++			} while (count2 != count3);
++		} while (count3 == count1);
 +	}
 +}
 +
-+static u8 ds2404_read_byte(struct device *dev)
++static int snvs_rtc_enable(struct snvs_rtc_data *data, bool enable)
 +{
-+	int i;
-+	u8 ret = 0;
++	unsigned long flags;
++	int timeout = 1000;
++	u32 lpcr;
 +
-+	gpio_direction_input(ds2404_gpio[DS2404_DQ].gpio);
++	spin_lock_irqsave(&data->lock, flags);
 +
-+	for (i = 0; i < 8; i++) {
-+		gpio_set_value(ds2404_gpio[DS2404_CLK].gpio, 0);
-+		udelay(10);
-+		if (gpio_get_value(ds2404_gpio[DS2404_DQ].gpio))
-+			ret |= 1 << i;
-+		gpio_set_value(ds2404_gpio[DS2404_CLK].gpio, 1);
-+		udelay(10);
-+	}
-+	return ret;
-+}
++	lpcr = readl(data->ioaddr + SNVS_LPCR);
++	if (enable)
++		lpcr |= SNVS_LPCR_SRTC_ENV;
++	else
++		lpcr &= ~SNVS_LPCR_SRTC_ENV;
++	writel(lpcr, data->ioaddr + SNVS_LPCR);
 +
-+static void ds2404_read_memory(struct device *dev, u16 offset,
-+			       int length, u8 *out)
-+{
-+	ds2404_reset(dev);
-+	ds2404_write_byte(dev, DS2404_READ_MEMORY_CMD);
-+	ds2404_write_byte(dev, offset & 0xff);
-+	ds2404_write_byte(dev, (offset >> 8) & 0xff);
-+	while (length--)
-+		*out++ = ds2404_read_byte(dev);
-+}
++	spin_unlock_irqrestore(&data->lock, flags);
 +
-+static void ds2404_write_memory(struct device *dev, u16 offset,
-+				int length, u8 *out)
-+{
-+	int i;
-+	u8 ta01, ta02, es;
++	while (--timeout) {
++		lpcr = readl(data->ioaddr + SNVS_LPCR);
 +
-+	ds2404_reset(dev);
-+	ds2404_write_byte(dev, DS2404_WRITE_SCRATCHPAD_CMD);
-+	ds2404_write_byte(dev, offset & 0xff);
-+	ds2404_write_byte(dev, (offset >> 8) & 0xff);
-+
-+	for (i = 0; i < length; i++)
-+		ds2404_write_byte(dev, out[i]);
-+
-+	ds2404_reset(dev);
-+	ds2404_write_byte(dev, DS2404_READ_SCRATCHPAD_CMD);
-+
-+	ta01 = ds2404_read_byte(dev);
-+	ta02 = ds2404_read_byte(dev);
-+	es = ds2404_read_byte(dev);
-+
-+	for (i = 0; i < length; i++) {
-+		if (out[i] != ds2404_read_byte(dev)) {
-+			printk(KERN_ERR "read invalid data\n");
-+			return;
++		if (enable) {
++			if (lpcr & SNVS_LPCR_SRTC_ENV)
++				break;
++		} else {
++			if (!(lpcr & SNVS_LPCR_SRTC_ENV))
++				break;
 +		}
 +	}
 +
-+	ds2404_reset(dev);
-+	ds2404_write_byte(dev, DS2404_COPY_SCRATCHPAD_CMD);
-+	ds2404_write_byte(dev, ta01);
-+	ds2404_write_byte(dev, ta02);
-+	ds2404_write_byte(dev, es);
++	if (!timeout)
++		return -ETIMEDOUT;
 +
-+	gpio_direction_input(ds2404_gpio[DS2404_DQ].gpio);
-+	while (gpio_get_value(ds2404_gpio[DS2404_DQ].gpio))
-+		;
-+}
-+
-+static void ds2404_enable_osc(struct device *dev)
-+{
-+	u8 in[1] = { 0x10 }; /* enable oscillator */
-+	ds2404_write_memory(dev, 0x201, 1, in);
-+}
-+
-+static int ds2404_read_time(struct device *dev, struct rtc_time *dt)
-+{
-+	unsigned long time = 0;
-+
-+	ds2404_read_memory(dev, 0x203, 4, (u8 *)&time);
-+	time = le32_to_cpu(time);
-+
-+	rtc_time_to_tm(time, dt);
-+	return rtc_valid_tm(dt);
-+}
-+
-+static int ds2404_set_mmss(struct device *dev, unsigned long secs)
-+{
-+	u32 time = cpu_to_le32(secs);
-+	ds2404_write_memory(dev, 0x203, 4, (u8 *)&time);
 +	return 0;
 +}
 +
-+static const struct rtc_class_ops ds2404_rtc_ops = {
-+	.read_time	= ds2404_read_time,
-+	.set_mmss	= ds2404_set_mmss,
++static int snvs_rtc_read_time(struct device *dev, struct rtc_time *tm)
++{
++	struct snvs_rtc_data *data = dev_get_drvdata(dev);
++	unsigned long time = rtc_read_lp_counter(data->ioaddr);
++
++	rtc_time_to_tm(time, tm);
++
++	return 0;
++}
++
++static int snvs_rtc_set_time(struct device *dev, struct rtc_time *tm)
++{
++	struct snvs_rtc_data *data = dev_get_drvdata(dev);
++	unsigned long time;
++
++	rtc_tm_to_time(tm, &time);
++
++	/* Disable RTC first */
++	snvs_rtc_enable(data, false);
++
++	/* Write 32-bit time to 47-bit timer, leaving 15 LSBs blank */
++	writel(time << CNTR_TO_SECS_SH, data->ioaddr + SNVS_LPSRTCLR);
++	writel(time >> (32 - CNTR_TO_SECS_SH), data->ioaddr + SNVS_LPSRTCMR);
++
++	/* Enable RTC again */
++	snvs_rtc_enable(data, true);
++
++	return 0;
++}
++
++static int snvs_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
++{
++	struct snvs_rtc_data *data = dev_get_drvdata(dev);
++	u32 lptar, lpsr;
++
++	lptar = readl(data->ioaddr + SNVS_LPTAR);
++	rtc_time_to_tm(lptar, &alrm->time);
++
++	lpsr = readl(data->ioaddr + SNVS_LPSR);
++	alrm->pending = (lpsr & SNVS_LPSR_LPTA) ? 1 : 0;
++
++	return 0;
++}
++
++static int snvs_rtc_alarm_irq_enable(struct device *dev, unsigned int enable)
++{
++	struct snvs_rtc_data *data = dev_get_drvdata(dev);
++	u32 lpcr;
++	unsigned long flags;
++
++	spin_lock_irqsave(&data->lock, flags);
++
++	lpcr = readl(data->ioaddr + SNVS_LPCR);
++	if (enable)
++		lpcr |= (SNVS_LPCR_LPTA_EN | SNVS_LPCR_LPWUI_EN);
++	else
++		lpcr &= ~(SNVS_LPCR_LPTA_EN | SNVS_LPCR_LPWUI_EN);
++	writel(lpcr, data->ioaddr + SNVS_LPCR);
++
++	spin_unlock_irqrestore(&data->lock, flags);
++
++	rtc_write_sync_lp(data->ioaddr);
++
++	return 0;
++}
++
++static int snvs_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
++{
++	struct snvs_rtc_data *data = dev_get_drvdata(dev);
++	struct rtc_time *alrm_tm = &alrm->time;
++	unsigned long time;
++	unsigned long flags;
++	u32 lpcr;
++
++	rtc_tm_to_time(alrm_tm, &time);
++
++	spin_lock_irqsave(&data->lock, flags);
++
++	/* Have to clear LPTA_EN before programming new alarm time in LPTAR */
++	lpcr = readl(data->ioaddr + SNVS_LPCR);
++	lpcr &= ~SNVS_LPCR_LPTA_EN;
++	writel(lpcr, data->ioaddr + SNVS_LPCR);
++
++	spin_unlock_irqrestore(&data->lock, flags);
++
++	writel(time, data->ioaddr + SNVS_LPTAR);
++
++	/* Clear alarm interrupt status bit */
++	writel(SNVS_LPSR_LPTA, data->ioaddr + SNVS_LPSR);
++
++	return snvs_rtc_alarm_irq_enable(dev, alrm->enabled);
++}
++
++static const struct rtc_class_ops snvs_rtc_ops = {
++	.read_time = snvs_rtc_read_time,
++	.set_time = snvs_rtc_set_time,
++	.read_alarm = snvs_rtc_read_alarm,
++	.set_alarm = snvs_rtc_set_alarm,
++	.alarm_irq_enable = snvs_rtc_alarm_irq_enable,
 +};
 +
-+static int rtc_probe(struct platform_device *pdev)
++static irqreturn_t snvs_rtc_irq_handler(int irq, void *dev_id)
 +{
-+	struct ds2404_platform_data *pdata = pdev->dev.platform_data;
-+	struct ds2404 *chip;
-+	int retval = -EBUSY;
++	struct device *dev = dev_id;
++	struct snvs_rtc_data *data = dev_get_drvdata(dev);
++	u32 lpsr;
++	u32 events = 0;
 +
-+	chip = kzalloc(sizeof(struct ds2404), GFP_KERNEL);
-+	if (!chip)
++	lpsr = readl(data->ioaddr + SNVS_LPSR);
++
++	if (lpsr & SNVS_LPSR_LPTA) {
++		events |= (RTC_AF | RTC_IRQF);
++
++		/* RTC alarm should be one-shot */
++		snvs_rtc_alarm_irq_enable(dev, 0);
++
++		rtc_update_irq(data->rtc, 1, events);
++	}
++
++	/* clear interrupt status */
++	writel(lpsr, data->ioaddr + SNVS_LPSR);
++
++	return events ? IRQ_HANDLED : IRQ_NONE;
++}
++
++static int __devinit snvs_rtc_probe(struct platform_device *pdev)
++{
++	struct snvs_rtc_data *data;
++	struct resource *res;
++	int ret;
++
++	data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
++	if (!data)
 +		return -ENOMEM;
 +
-+	chip->ops = &ds2404_gpio_ops;
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	data->ioaddr = devm_request_and_ioremap(&pdev->dev, res);
++	if (!data->ioaddr)
++		return -EADDRNOTAVAIL;
 +
-+	retval = chip->ops->map_io(chip, pdev, pdata);
-+	if (retval)
-+		goto err_chip;
++	data->irq = platform_get_irq(pdev, 0);
++	if (data->irq < 0)
++		return data->irq;
 +
-+	dev_info(&pdev->dev, "using GPIOs RST:%d, CLK:%d, DQ:%d\n",
-+		 chip->gpio[DS2404_RST].gpio, chip->gpio[DS2404_CLK].gpio,
-+		 chip->gpio[DS2404_DQ].gpio);
++	platform_set_drvdata(pdev, data);
 +
-+	platform_set_drvdata(pdev, chip);
++	spin_lock_init(&data->lock);
 +
-+	chip->rtc = rtc_device_register("ds2404",
-+				&pdev->dev, &ds2404_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(chip->rtc)) {
-+		retval = PTR_ERR(chip->rtc);
-+		goto err_io;
++	/* Initialize glitch detect */
++	writel(SNVS_LPPGDR_INIT, data->ioaddr + SNVS_LPPGDR);
++
++	/* Clear interrupt status */
++	writel(0xffffffff, data->ioaddr + SNVS_LPSR);
++
++	/* Enable RTC */
++	snvs_rtc_enable(data, true);
++
++	device_init_wakeup(&pdev->dev, true);
++
++	ret = devm_request_irq(&pdev->dev, data->irq, snvs_rtc_irq_handler,
++			       IRQF_SHARED, "rtc alarm", &pdev->dev);
++	if (ret) {
++		dev_err(&pdev->dev, "failed to request irq %d: %d\n",
++			data->irq, ret);
++		return ret;
 +	}
 +
-+	ds2404_enable_osc(&pdev->dev);
-+	return 0;
-+
-+err_io:
-+	chip->ops->unmap_io(chip);
-+err_chip:
-+	kfree(chip);
-+	return retval;
-+}
-+
-+static int rtc_remove(struct platform_device *dev)
-+{
-+	struct ds2404 *chip = platform_get_drvdata(dev);
-+	struct rtc_device *rtc = chip->rtc;
-+
-+	if (rtc)
-+		rtc_device_unregister(rtc);
-+
-+	chip->ops->unmap_io(chip);
-+	kfree(chip);
++	data->rtc = rtc_device_register(pdev->name, &pdev->dev,
++					&snvs_rtc_ops, THIS_MODULE);
++	if (IS_ERR(data->rtc)) {
++		ret = PTR_ERR(data->rtc);
++		dev_err(&pdev->dev, "failed to register rtc: %d\n", ret);
++		return ret;
++	}
 +
 +	return 0;
 +}
 +
-+static struct platform_driver rtc_device_driver = {
-+	.probe	= rtc_probe,
-+	.remove = rtc_remove,
-+	.driver = {
-+		.name	= "ds2404",
-+		.owner	= THIS_MODULE,
-+	},
-+};
-+
-+static __init int ds2404_init(void)
++static int __devexit snvs_rtc_remove(struct platform_device *pdev)
 +{
-+	return platform_driver_register(&rtc_device_driver);
++	struct snvs_rtc_data *data = platform_get_drvdata(pdev);
++
++	rtc_device_unregister(data->rtc);
++
++	return 0;
 +}
 +
-+static __exit void ds2404_exit(void)
++#ifdef CONFIG_PM_SLEEP
++static int snvs_rtc_suspend(struct device *dev)
 +{
-+	platform_driver_unregister(&rtc_device_driver);
++	struct snvs_rtc_data *data = dev_get_drvdata(dev);
++
++	if (device_may_wakeup(dev))
++		enable_irq_wake(data->irq);
++
++	return 0;
 +}
 +
-+module_init(ds2404_init);
-+module_exit(ds2404_exit);
++static int snvs_rtc_resume(struct device *dev)
++{
++	struct snvs_rtc_data *data = dev_get_drvdata(dev);
 +
-+MODULE_DESCRIPTION("DS2404 RTC");
-+MODULE_AUTHOR("Sven Schnelle");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:ds2404");
-diff -puN /dev/null include/linux/rtc-ds2404.h
---- /dev/null
-+++ a/include/linux/rtc-ds2404.h
-@@ -0,0 +1,20 @@
-+/*
-+ * ds2404.h - platform data structure for the DS2404 RTC.
-+ *
-+ * This file is subject to the terms and conditions of the GNU General Public
-+ * License.  See the file "COPYING" in the main directory of this archive
-+ * for more details.
-+ *
-+ * Copyright (C) 2012 Sven Schnelle <svens@stackframe.org>
-+ */
++	if (device_may_wakeup(dev))
++		disable_irq_wake(data->irq);
 +
-+#ifndef __LINUX_DS2404_H
-+#define __LINUX_DS2404_H
-+
-+struct ds2404_platform_data {
-+
-+	unsigned int gpio_rst;
-+	unsigned int gpio_clk;
-+	unsigned int gpio_dq;
-+};
++	return 0;
++}
 +#endif
++
++static SIMPLE_DEV_PM_OPS(snvs_rtc_pm_ops, snvs_rtc_suspend, snvs_rtc_resume);
++
++static const struct of_device_id __devinitconst snvs_dt_ids[] = {
++	{ .compatible = "fsl,sec-v4.0-mon-rtc-lp", },
++	{ /* sentinel */ }
++};
++MODULE_DEVICE_TABLE(of, snvs_dt_ids);
++
++static struct platform_driver snvs_rtc_driver = {
++	.driver = {
++		.name	= "snvs_rtc",
++		.owner	= THIS_MODULE,
++		.pm	= &snvs_rtc_pm_ops,
++		.of_match_table = snvs_dt_ids,
++	},
++	.probe		= snvs_rtc_probe,
++	.remove		= __devexit_p(snvs_rtc_remove),
++};
++module_platform_driver(snvs_rtc_driver);
++
++MODULE_AUTHOR("Freescale Semiconductor, Inc.");
++MODULE_DESCRIPTION("Freescale SNVS RTC Driver");
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from svens@stackframe.org are
+Patches currently in -mm which might be from shawn.guo@linaro.org are
 
 origin.patch
+linux-next.patch
 
