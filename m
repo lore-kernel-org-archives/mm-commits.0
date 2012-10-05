@@ -1,346 +1,200 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-add-max8907-rtc-driver.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:16:54 -0700
-Message-ID: <20121005201654.BDA95100048@wpzn3.hot.corp.google.com>
+Subject: [merged] rtc-kconfig-remove-unnecessary-dependencies.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:16:57 -0700
+Message-ID: <20121005201657.9EF8F100048@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-qa0-f74.google.com ([209.85.216.74]:36995 "EHLO
 	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757170Ab2JEUQ4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:16:56 -0400
+	with ESMTP id S1754566Ab2JEUQ6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:16:58 -0400
 Received: by mail-qa0-f74.google.com with SMTP id a16so94002qae.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:16:55 -0700 (PDT)
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:16:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: swarren@nvidia.com, a.zummo@towertech.it, pgaikwad@nvidia.com, tcherry@nvidia.com, tyoon@nvidia.com, mm-commits@vger.kernel.org
+To: vbyravarasu@nvidia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: add MAX8907 RTC driver
+     Subject: rtc: kconfig: remove unnecessary dependencies.
 has been removed from the -mm tree.  Its filename was
-     rtc-add-max8907-rtc-driver.patch
+     rtc-kconfig-remove-unnecessary-dependencies.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Stephen Warren <swarren@nvidia.com>
-Subject: rtc: add MAX8907 RTC driver
+From: Venu Byravarasu <vbyravarasu@nvidia.com>
+Subject: rtc: kconfig: remove unnecessary dependencies.
 
-The MAX8907 is an I2C-based power-management IC containing voltage
-regulators, a reset controller, a real-time clock, and a touch-screen
-controller.
+Remove "depends on RTC_CLASS = y" for multiple Kconfig definitions, as all
+of them are already placed under "if RTC_CLASS".
 
-The driver is based on an original by or fixed by:
-* Tom Cherry
-* Prashant Gaikwad
-* Joseph Yoon
-
-During upstreaming, I (swarren):
-* Converted to regmap.
-* Fixed handling of RTC_HOUR register containing 12.
-* Fixed handling of RTC_WEEKDAY register.
-* General cleanup.
-
-Signed-off-by: Stephen Warren <swarren@nvidia.com>
-Cc: Tom Cherry <tcherry@nvidia.com>
-Cc: Prashant Gaikwad <pgaikwad@nvidia.com>
-Cc: Joseph Yoon <tyoon@nvidia.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Venu Byravarasu <vbyravarasu@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig       |   10 +
- drivers/rtc/Makefile      |    1 
- drivers/rtc/rtc-max8907.c |  245 ++++++++++++++++++++++++++++++++++++
- 3 files changed, 256 insertions(+)
+ drivers/rtc/Kconfig |   26 ++++++++------------------
+ 1 file changed, 8 insertions(+), 18 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-add-max8907-rtc-driver drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-add-max8907-rtc-driver
+diff -puN drivers/rtc/Kconfig~rtc-kconfig-remove-unnecessary-dependencies drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-kconfig-remove-unnecessary-dependencies
 +++ a/drivers/rtc/Kconfig
-@@ -205,6 +205,16 @@ config RTC_DRV_MAX6900
- 	  This driver can also be built as a module. If so, the module
- 	  will be called rtc-max6900.
+@@ -19,7 +19,6 @@ if RTC_CLASS
  
-+config RTC_DRV_MAX8907
-+	tristate "Maxim MAX8907"
-+	depends on MFD_MAX8907
-+	help
-+	  If you say yes here you will get support for the
-+	  RTC of Maxim MAX8907 PMIC.
-+
-+	  This driver can also be built as a module. If so, the module
-+	  will be called rtc-max8907.
-+
- config RTC_DRV_MAX8925
- 	tristate "Maxim MAX8925"
- 	depends on MFD_MAX8925
-diff -puN drivers/rtc/Makefile~rtc-add-max8907-rtc-driver drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-add-max8907-rtc-driver
-+++ a/drivers/rtc/Makefile
-@@ -65,6 +65,7 @@ obj-$(CONFIG_RTC_DRV_M48T59)	+= rtc-m48t
- obj-$(CONFIG_RTC_DRV_M48T86)	+= rtc-m48t86.o
- obj-$(CONFIG_RTC_DRV_MXC)	+= rtc-mxc.o
- obj-$(CONFIG_RTC_DRV_MAX6900)	+= rtc-max6900.o
-+obj-$(CONFIG_RTC_DRV_MAX8907)	+= rtc-max8907.o
- obj-$(CONFIG_RTC_DRV_MAX8925)	+= rtc-max8925.o
- obj-$(CONFIG_RTC_DRV_MAX8998)	+= rtc-max8998.o
- obj-$(CONFIG_RTC_DRV_MAX6902)	+= rtc-max6902.o
-diff -puN /dev/null drivers/rtc/rtc-max8907.c
---- /dev/null
-+++ a/drivers/rtc/rtc-max8907.c
-@@ -0,0 +1,245 @@
-+/*
-+ * RTC driver for Maxim MAX8907
-+ *
-+ * Copyright (c) 2011-2012, NVIDIA Corporation.
-+ *
-+ * Based on drivers/rtc/rtc-max8925.c,
-+ * Copyright (C) 2009-2010 Marvell International Ltd.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/bcd.h>
-+#include <linux/i2c.h>
-+#include <linux/mfd/max8907.h>
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/regmap.h>
-+#include <linux/rtc.h>
-+#include <linux/slab.h>
-+
-+enum {
-+	RTC_SEC = 0,
-+	RTC_MIN,
-+	RTC_HOUR,
-+	RTC_WEEKDAY,
-+	RTC_DATE,
-+	RTC_MONTH,
-+	RTC_YEAR1,
-+	RTC_YEAR2,
-+};
-+
-+#define TIME_NUM			8
-+#define ALARM_1SEC			(1 << 7)
-+#define HOUR_12				(1 << 7)
-+#define HOUR_AM_PM			(1 << 5)
-+#define ALARM0_IRQ			(1 << 3)
-+#define ALARM1_IRQ			(1 << 2)
-+#define ALARM0_STATUS			(1 << 2)
-+#define ALARM1_STATUS			(1 << 1)
-+
-+struct max8907_rtc {
-+	struct max8907		*max8907;
-+	struct regmap		*regmap;
-+	struct rtc_device	*rtc_dev;
-+	int			irq;
-+};
-+
-+static irqreturn_t max8907_irq_handler(int irq, void *data)
-+{
-+	struct max8907_rtc *rtc = data;
-+
-+	regmap_update_bits(rtc->regmap, MAX8907_REG_ALARM0_CNTL, 0x7f, 0);
-+
-+	rtc_update_irq(rtc->rtc_dev, 1, RTC_IRQF | RTC_AF);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static void regs_to_tm(u8 *regs, struct rtc_time *tm)
-+{
-+	tm->tm_year = bcd2bin(regs[RTC_YEAR2]) * 100 +
-+		bcd2bin(regs[RTC_YEAR1]) - 1900;
-+	tm->tm_mon = bcd2bin(regs[RTC_MONTH] & 0x1f) - 1;
-+	tm->tm_mday = bcd2bin(regs[RTC_DATE] & 0x3f);
-+	tm->tm_wday = (regs[RTC_WEEKDAY] & 0x07) - 1;
-+	if (regs[RTC_HOUR] & HOUR_12) {
-+		tm->tm_hour = bcd2bin(regs[RTC_HOUR] & 0x01f);
-+		if (tm->tm_hour == 12)
-+			tm->tm_hour = 0;
-+		if (regs[RTC_HOUR] & HOUR_AM_PM)
-+			tm->tm_hour += 12;
-+	} else {
-+		tm->tm_hour = bcd2bin(regs[RTC_HOUR] & 0x03f);
-+	}
-+	tm->tm_min = bcd2bin(regs[RTC_MIN] & 0x7f);
-+	tm->tm_sec = bcd2bin(regs[RTC_SEC] & 0x7f);
-+}
-+
-+static void tm_to_regs(struct rtc_time *tm, u8 *regs)
-+{
-+	u8 high, low;
-+
-+	high = (tm->tm_year + 1900) / 100;
-+	low = tm->tm_year % 100;
-+	regs[RTC_YEAR2] = bin2bcd(high);
-+	regs[RTC_YEAR1] = bin2bcd(low);
-+	regs[RTC_MONTH] = bin2bcd(tm->tm_mon + 1);
-+	regs[RTC_DATE] = bin2bcd(tm->tm_mday);
-+	regs[RTC_WEEKDAY] = tm->tm_wday + 1;
-+	regs[RTC_HOUR] = bin2bcd(tm->tm_hour);
-+	regs[RTC_MIN] = bin2bcd(tm->tm_min);
-+	regs[RTC_SEC] = bin2bcd(tm->tm_sec);
-+}
-+
-+static int max8907_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct max8907_rtc *rtc = dev_get_drvdata(dev);
-+	u8 regs[TIME_NUM];
-+	int ret;
-+
-+	ret = regmap_bulk_read(rtc->regmap, MAX8907_REG_RTC_SEC, regs,
-+			       TIME_NUM);
-+	if (ret < 0)
-+		return ret;
-+
-+	regs_to_tm(regs, tm);
-+
-+	return 0;
-+}
-+
-+static int max8907_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct max8907_rtc *rtc = dev_get_drvdata(dev);
-+	u8 regs[TIME_NUM];
-+
-+	tm_to_regs(tm, regs);
-+
-+	return regmap_bulk_write(rtc->regmap, MAX8907_REG_RTC_SEC, regs,
-+				 TIME_NUM);
-+}
-+
-+static int max8907_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
-+{
-+	struct max8907_rtc *rtc = dev_get_drvdata(dev);
-+	u8 regs[TIME_NUM];
-+	unsigned int val;
-+	int ret;
-+
-+	ret = regmap_bulk_read(rtc->regmap, MAX8907_REG_ALARM0_SEC, regs,
-+			       TIME_NUM);
-+	if (ret < 0)
-+		return ret;
-+
-+	regs_to_tm(regs, &alrm->time);
-+
-+	ret = regmap_read(rtc->regmap, MAX8907_REG_ALARM0_CNTL, &val);
-+	if (ret < 0)
-+		return ret;
-+
-+	alrm->enabled = !!(val & 0x7f);
-+
-+	return 0;
-+}
-+
-+static int max8907_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
-+{
-+	struct max8907_rtc *rtc = dev_get_drvdata(dev);
-+	u8 regs[TIME_NUM];
-+	int ret;
-+
-+	tm_to_regs(&alrm->time, regs);
-+
-+	/* Disable alarm while we update the target time */
-+	ret = regmap_update_bits(rtc->regmap, MAX8907_REG_ALARM0_CNTL, 0x7f, 0);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = regmap_bulk_write(rtc->regmap, MAX8907_REG_ALARM0_SEC, regs,
-+				TIME_NUM);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (alrm->enabled)
-+		ret = regmap_update_bits(rtc->regmap, MAX8907_REG_ALARM0_CNTL,
-+					 0x7f, 0x7f);
-+
-+	return ret;
-+}
-+
-+static const struct rtc_class_ops max8907_rtc_ops = {
-+	.read_time	= max8907_rtc_read_time,
-+	.set_time	= max8907_rtc_set_time,
-+	.read_alarm	= max8907_rtc_read_alarm,
-+	.set_alarm	= max8907_rtc_set_alarm,
-+};
-+
-+static int __devinit max8907_rtc_probe(struct platform_device *pdev)
-+{
-+	struct max8907 *max8907 = dev_get_drvdata(pdev->dev.parent);
-+	struct max8907_rtc *rtc;
-+	int ret;
-+
-+	rtc = devm_kzalloc(&pdev->dev, sizeof(*rtc), GFP_KERNEL);
-+	if (!rtc)
-+		return -ENOMEM;
-+	platform_set_drvdata(pdev, rtc);
-+
-+	rtc->max8907 = max8907;
-+	rtc->regmap = max8907->regmap_rtc;
-+
-+	rtc->rtc_dev = rtc_device_register("max8907-rtc", &pdev->dev,
-+					&max8907_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(rtc->rtc_dev)) {
-+		ret = PTR_ERR(rtc->rtc_dev);
-+		dev_err(&pdev->dev, "Failed to register RTC device: %d\n", ret);
-+		return ret;
-+	}
-+
-+	rtc->irq = regmap_irq_get_virq(max8907->irqc_rtc,
-+				       MAX8907_IRQ_RTC_ALARM0);
-+	if (rtc->irq < 0) {
-+		ret = rtc->irq;
-+		goto err_unregister;
-+	}
-+
-+	ret = request_threaded_irq(rtc->irq, NULL, max8907_irq_handler,
-+				   IRQF_ONESHOT, "max8907-alarm0", rtc);
-+	if (ret < 0) {
-+		dev_err(&pdev->dev, "Failed to request IRQ%d: %d\n",
-+			rtc->irq, ret);
-+		goto err_unregister;
-+	}
-+
-+	return 0;
-+
-+err_unregister:
-+	rtc_device_unregister(rtc->rtc_dev);
-+	return ret;
-+}
-+
-+static int __devexit max8907_rtc_remove(struct platform_device *pdev)
-+{
-+	struct max8907_rtc *rtc = platform_get_drvdata(pdev);
-+
-+	free_irq(rtc->irq, rtc);
-+	rtc_device_unregister(rtc->rtc_dev);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver max8907_rtc_driver = {
-+	.driver = {
-+		.name = "max8907-rtc",
-+		.owner = THIS_MODULE,
-+	},
-+	.probe = max8907_rtc_probe,
-+	.remove = __devexit_p(max8907_rtc_remove),
-+};
-+module_platform_driver(max8907_rtc_driver);
-+
-+MODULE_DESCRIPTION("Maxim MAX8907 RTC driver");
-+MODULE_LICENSE("GPL v2");
-+
+ config RTC_HCTOSYS
+ 	bool "Set system time from RTC on startup and resume"
+-	depends on RTC_CLASS = y
+ 	default y
+ 	help
+ 	  If you say yes here, the system time (wall clock) will be set using
+@@ -51,7 +50,6 @@ config RTC_HCTOSYS_DEVICE
+ 
+ config RTC_DEBUG
+ 	bool "RTC debug support"
+-	depends on RTC_CLASS = y
+ 	help
+ 	  Say yes here to enable debugging support in the RTC framework
+ 	  and individual RTC drivers.
+@@ -61,7 +59,6 @@ comment "RTC interfaces"
+ config RTC_INTF_SYSFS
+ 	boolean "/sys/class/rtc/rtcN (sysfs)"
+ 	depends on SYSFS
+-	default RTC_CLASS
+ 	help
+ 	  Say yes here if you want to use your RTCs using sysfs interfaces,
+ 	  /sys/class/rtc/rtc0 through /sys/.../rtcN.
+@@ -71,7 +68,6 @@ config RTC_INTF_SYSFS
+ config RTC_INTF_PROC
+ 	boolean "/proc/driver/rtc (procfs for rtcN)"
+ 	depends on PROC_FS
+-	default RTC_CLASS
+ 	help
+ 	  Say yes here if you want to use your system clock RTC through
+ 	  the proc interface, /proc/driver/rtc.
+@@ -83,7 +79,6 @@ config RTC_INTF_PROC
+ 
+ config RTC_INTF_DEV
+ 	boolean "/dev/rtcN (character devices)"
+-	default RTC_CLASS
+ 	help
+ 	  Say yes here if you want to use your RTCs using the /dev
+ 	  interfaces, which "udev" sets up as /dev/rtc0 through
+@@ -129,7 +124,7 @@ if I2C
+ 
+ config RTC_DRV_88PM860X
+ 	tristate "Marvell 88PM860x"
+-	depends on RTC_CLASS && I2C && MFD_88PM860X
++	depends on I2C && MFD_88PM860X
+ 	help
+ 	  If you say yes here you get support for RTC function in Marvell
+ 	  88PM860x chips.
+@@ -139,7 +134,7 @@ config RTC_DRV_88PM860X
+ 
+ config RTC_DRV_88PM80X
+ 	tristate "Marvell 88PM80x"
+-	depends on RTC_CLASS && I2C && MFD_88PM800
++	depends on I2C && MFD_88PM800
+ 	help
+ 	  If you say yes here you get support for RTC function in Marvell
+ 	  88PM80x chips.
+@@ -167,7 +162,7 @@ config RTC_DRV_DS1307
+ 
+ config RTC_DRV_DS1374
+ 	tristate "Dallas/Maxim DS1374"
+-	depends on RTC_CLASS && I2C
++	depends on I2C
+ 	help
+ 	  If you say yes here you get support for Dallas Semiconductor
+ 	  DS1374 real-time clock chips. If an interrupt is associated
+@@ -187,7 +182,7 @@ config RTC_DRV_DS1672
+ 
+ config RTC_DRV_DS3232
+ 	tristate "Dallas/Maxim DS3232"
+-	depends on RTC_CLASS && I2C
++	depends on I2C
+ 	help
+ 	  If you say yes here you get support for Dallas Semiconductor
+ 	  DS3232 real-time clock chips. If an interrupt is associated
+@@ -337,7 +332,7 @@ config RTC_DRV_TWL92330
+ 
+ config RTC_DRV_TWL4030
+ 	tristate "TI TWL4030/TWL5030/TWL6030/TPS659x0"
+-	depends on RTC_CLASS && TWL4030_CORE
++	depends on TWL4030_CORE
+ 	help
+ 	  If you say yes here you get support for the RTC on the
+ 	  TWL4030/TWL5030/TWL6030 family chips, used mostly with OMAP3 platforms.
+@@ -560,7 +555,6 @@ config RTC_DRV_DS1302
+ 
+ config RTC_DRV_DS1511
+ 	tristate "Dallas DS1511"
+-	depends on RTC_CLASS
+ 	help
+ 	  If you say yes here you get support for the
+ 	  Dallas DS1511 timekeeping/watchdog chip.
+@@ -605,7 +599,6 @@ config RTC_DRV_EFI
+ 
+ config RTC_DRV_STK17TA8
+ 	tristate "Simtek STK17TA8"
+-	depends on RTC_CLASS
+ 	help
+ 	  If you say yes here you get support for the
+ 	  Simtek STK17TA8 timekeeping chip.
+@@ -742,7 +735,7 @@ config RTC_DRV_AB8500
+ 
+ config RTC_DRV_NUC900
+ 	tristate "NUC910/NUC920 RTC driver"
+-	depends on RTC_CLASS && ARCH_W90X900
++	depends on ARCH_W90X900
+ 	help
+ 	  If you say yes here you get support for the RTC subsystem of the
+ 	  NUC910/NUC920 used in embedded systems.
+@@ -762,7 +755,6 @@ config RTC_DRV_DAVINCI
+ config RTC_DRV_IMXDI
+ 	tristate "Freescale IMX DryIce Real Time Clock"
+ 	depends on SOC_IMX25
+-	depends on RTC_CLASS
+ 	help
+ 	   Support for Freescale IMX DryIce RTC
+ 
+@@ -822,7 +814,7 @@ config RTC_DRV_SA1100
+ 
+ config RTC_DRV_SH
+ 	tristate "SuperH On-Chip RTC"
+-	depends on RTC_CLASS && SUPERH && HAVE_CLK
++	depends on SUPERH && HAVE_CLK
+ 	help
+ 	  Say Y here to enable support for the on-chip RTC found in
+ 	  most SuperH processors.
+@@ -1054,7 +1046,6 @@ config RTC_DRV_MPC5121
+ 
+ config RTC_DRV_JZ4740
+ 	tristate "Ingenic JZ4740 SoC"
+-	depends on RTC_CLASS
+ 	depends on MACH_JZ4740
+ 	help
+ 	  If you say yes here you get support for the Ingenic JZ4740 SoC RTC
+@@ -1084,7 +1075,7 @@ config RTC_DRV_PM8XXX
+ 
+ config RTC_DRV_TEGRA
+ 	tristate "NVIDIA Tegra Internal RTC driver"
+-	depends on RTC_CLASS && ARCH_TEGRA
++	depends on ARCH_TEGRA
+ 	help
+ 	  If you say yes here you get support for the
+ 	  Tegra 200 series internal RTC module.
+@@ -1121,7 +1112,6 @@ config RTC_DRV_LOONGSON1
+ config RTC_DRV_MXC
+ 	tristate "Freescale MXC Real Time Clock"
+ 	depends on ARCH_MXC
+-	depends on RTC_CLASS
+ 	help
+ 	   If you say yes here you get support for the Freescale MXC
+ 	   RTC module.
 _
 
-Patches currently in -mm which might be from swarren@nvidia.com are
+Patches currently in -mm which might be from vbyravarasu@nvidia.com are
 
 origin.patch
 linux-next.patch
-block-store-partition_meta_infouuid-as-a-string.patch
-init-reduce-partuuid-min-length-to-1-from-36.patch
-block-partition-msdos-provide-uuids-for-partitions.patch
 
