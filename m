@@ -1,394 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rapidio-add-destination-id-allocation-mechanism.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:20:49 -0700
-Message-ID: <20121005202050.2415120004E@hpza10.eem.corp.google.com>
+Subject: [merged] nbd-handle-discard-requests.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:20:57 -0700
+Message-ID: <20121005202058.176EC20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:55438 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932319Ab2JEUUw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:20:52 -0400
-Received: by mail-bk0-f74.google.com with SMTP id q16so139102bkw.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:20:51 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:60969 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932319Ab2JEUVA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:21:00 -0400
+Received: by mail-wg0-f74.google.com with SMTP id dt11so140000wgb.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:20:59 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandre.bounine@idt.com, leoli@freescale.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
+To: paul.clements@steeleye.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio: add destination ID allocation mechanism
+     Subject: nbd: handle discard requests
 has been removed from the -mm tree.  Its filename was
-     rapidio-add-destination-id-allocation-mechanism.patch
+     nbd-handle-discard-requests.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio: add destination ID allocation mechanism
+From: Paul Clements <paul.clements@steeleye.com>
+Subject: nbd: handle discard requests
 
-Replace the single global destination ID counter with per-net allocation
-mechanism to allow independent destID management for each available
-RapidIO network.  Using bitmap based mechanism instead of counters allows
-destination ID release and reuse in systems that support hot-swap.
+Add discard support to nbd.  If the nbd-server supports discard, it will
+send NBD_FLAG_SEND_TRIM to the client.  The client will then set the flag
+in the kernel via NBD_SET_FLAGS, which tells the kernel to enable discards
+for the device (QUEUE_FLAG_DISCARD).
 
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Li Yang <leoli@freescale.com>
+If discard support is enabled, then when the nbd client system receives a
+discard request, this will be passed along to the nbd-server.  When the
+discard request is received by the nbd-server, it will perform:
+
+	fallocate(.. FALLOC_FL_PUNCH_HOLE ..)
+
+To punch a hole in the backend storage, which is no longer needed.
+
+Signed-off-by: Paul Clements <paul.clements@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio-scan.c |  205 +++++++++++++++++++++++++++++------
- include/linux/rio.h        |    9 +
- 2 files changed, 179 insertions(+), 35 deletions(-)
+ drivers/block/nbd.c |   15 ++++++++++++++-
+ include/linux/nbd.h |    6 +++++-
+ 2 files changed, 19 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rapidio/rio-scan.c~rapidio-add-destination-id-allocation-mechanism drivers/rapidio/rio-scan.c
---- a/drivers/rapidio/rio-scan.c~rapidio-add-destination-id-allocation-mechanism
-+++ a/drivers/rapidio/rio-scan.c
-@@ -54,6 +54,114 @@ static int rio_mport_phys_table[] = {
- 	-1,
- };
- 
-+
-+/*
-+ * rio_destid_alloc - Allocate next available destID for given network
-+ * net: RIO network
-+ *
-+ * Returns next available device destination ID for the specified RIO network.
-+ * Marks allocated ID as one in use.
-+ * Returns RIO_INVALID_DESTID if new destID is not available.
-+ */
-+static u16 rio_destid_alloc(struct rio_net *net)
-+{
-+	int destid;
-+	struct rio_id_table *idtab = &net->destid_table;
-+
-+	spin_lock(&idtab->lock);
-+	destid = find_next_zero_bit(idtab->table, idtab->max, idtab->next);
-+	if (destid >= idtab->max)
-+		destid = find_first_zero_bit(idtab->table, idtab->max);
-+
-+	if (destid < idtab->max) {
-+		idtab->next = destid + 1;
-+		if (idtab->next >= idtab->max)
-+			idtab->next = 0;
-+		set_bit(destid, idtab->table);
-+		destid += idtab->start;
-+	} else
-+		destid = RIO_INVALID_DESTID;
-+
-+	spin_unlock(&idtab->lock);
-+	return (u16)destid;
-+}
-+
-+/*
-+ * rio_destid_reserve - Reserve the specivied destID
-+ * net: RIO network
-+ * destid: destID to reserve
-+ *
-+ * Tries to reserve the specified destID.
-+ * Returns 0 if successfull.
-+ */
-+static int rio_destid_reserve(struct rio_net *net, u16 destid)
-+{
-+	int oldbit;
-+	struct rio_id_table *idtab = &net->destid_table;
-+
-+	destid -= idtab->start;
-+	spin_lock(&idtab->lock);
-+	oldbit = test_and_set_bit(destid, idtab->table);
-+	spin_unlock(&idtab->lock);
-+	return oldbit;
-+}
-+
-+/*
-+ * rio_destid_free - free a previously allocated destID
-+ * net: RIO network
-+ * destid: destID to free
-+ *
-+ * Makes the specified destID available for use.
-+ */
-+static void rio_destid_free(struct rio_net *net, u16 destid)
-+{
-+	struct rio_id_table *idtab = &net->destid_table;
-+
-+	destid -= idtab->start;
-+	spin_lock(&idtab->lock);
-+	clear_bit(destid, idtab->table);
-+	spin_unlock(&idtab->lock);
-+}
-+
-+/*
-+ * rio_destid_first - return first destID in use
-+ * net: RIO network
-+ */
-+static u16 rio_destid_first(struct rio_net *net)
-+{
-+	int destid;
-+	struct rio_id_table *idtab = &net->destid_table;
-+
-+	spin_lock(&idtab->lock);
-+	destid = find_first_bit(idtab->table, idtab->max);
-+	if (destid >= idtab->max)
-+		destid = RIO_INVALID_DESTID;
-+	else
-+		destid += idtab->start;
-+	spin_unlock(&idtab->lock);
-+	return (u16)destid;
-+}
-+
-+/*
-+ * rio_destid_next - return next destID in use
-+ * net: RIO network
-+ * from: destination ID from which search shall continue
-+ */
-+static u16 rio_destid_next(struct rio_net *net, u16 from)
-+{
-+	int destid;
-+	struct rio_id_table *idtab = &net->destid_table;
-+
-+	spin_lock(&idtab->lock);
-+	destid = find_next_bit(idtab->table, idtab->max, from);
-+	if (destid >= idtab->max)
-+		destid = RIO_INVALID_DESTID;
-+	else
-+		destid += idtab->start;
-+	spin_unlock(&idtab->lock);
-+	return (u16)destid;
-+}
-+
- /**
-  * rio_get_device_id - Get the base/extended device id for a device
-  * @port: RIO master port
-@@ -171,10 +279,6 @@ static int rio_enum_host(struct rio_mpor
- 
- 	/* Set master port destid and init destid ctr */
- 	rio_local_set_device_id(port, port->host_deviceid);
--
--	if (next_destid == port->host_deviceid)
--		next_destid++;
--
- 	return 0;
+diff -puN drivers/block/nbd.c~nbd-handle-discard-requests drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbd-handle-discard-requests
++++ a/drivers/block/nbd.c
+@@ -98,6 +98,7 @@ static const char *nbdcmd_to_ascii(int c
+ 	case  NBD_CMD_READ: return "read";
+ 	case NBD_CMD_WRITE: return "write";
+ 	case  NBD_CMD_DISC: return "disconnect";
++	case  NBD_CMD_TRIM: return "trim/discard";
+ 	}
+ 	return "invalid";
  }
+@@ -469,7 +470,11 @@ static void nbd_handle_req(struct nbd_de
  
-@@ -441,9 +545,8 @@ static struct rio_dev __devinit *rio_set
- 	if (rio_device_has_destid(port, rdev->src_ops, rdev->dst_ops)) {
- 		if (do_enum) {
- 			rio_set_device_id(port, destid, hopcount, next_destid);
--			rdev->destid = next_destid++;
--			if (next_destid == port->host_deviceid)
--				next_destid++;
-+			rdev->destid = next_destid;
-+			next_destid = rio_destid_alloc(net);
- 		} else
- 			rdev->destid = rio_get_device_id(port, destid, hopcount);
+ 	nbd_cmd(req) = NBD_CMD_READ;
+ 	if (rq_data_dir(req) == WRITE) {
+-		nbd_cmd(req) = NBD_CMD_WRITE;
++		if ((req->cmd_flags & REQ_DISCARD)) {
++			WARN_ON(!(nbd->flags & NBD_FLAG_SEND_TRIM));
++			nbd_cmd(req) = NBD_CMD_TRIM;
++		} else
++			nbd_cmd(req) = NBD_CMD_WRITE;
+ 		if (nbd->flags & NBD_FLAG_READ_ONLY) {
+ 			dev_err(disk_to_dev(nbd->disk),
+ 				"Write on read-only\n");
+@@ -676,6 +681,10 @@ static int __nbd_ioctl(struct block_devi
  
-@@ -742,12 +845,7 @@ static u16 rio_get_host_deviceid_lock(st
- static int __devinit rio_enum_peer(struct rio_net *net, struct rio_mport *port,
- 			 u8 hopcount, struct rio_dev *prev, int prev_port)
- {
--	int port_num;
--	int cur_destid;
--	int sw_destid;
--	int sw_inport;
- 	struct rio_dev *rdev;
--	u16 destid;
- 	u32 regval;
- 	int tmp;
+ 		mutex_unlock(&nbd->tx_lock);
  
-@@ -813,19 +911,26 @@ static int __devinit rio_enum_peer(struc
- 		return -1;
- 
- 	if (rio_is_switch(rdev)) {
-+		int sw_destid;
-+		int cur_destid;
-+		int sw_inport;
-+		u16 destid;
-+		int port_num;
++		if (nbd->flags & NBD_FLAG_SEND_TRIM)
++			queue_flag_set_unlocked(QUEUE_FLAG_DISCARD,
++				nbd->disk->queue);
 +
- 		sw_inport = RIO_GET_PORT_NUM(rdev->swpinfo);
- 		rio_route_add_entry(rdev, RIO_GLOBAL_TABLE,
- 				    port->host_deviceid, sw_inport, 0);
- 		rdev->rswitch->route_table[port->host_deviceid] = sw_inport;
+ 		thread = kthread_create(nbd_thread, nbd, nbd->disk->disk_name);
+ 		if (IS_ERR(thread)) {
+ 			mutex_lock(&nbd->tx_lock);
+@@ -693,6 +702,7 @@ static int __nbd_ioctl(struct block_devi
+ 		nbd->file = NULL;
+ 		nbd_clear_que(nbd);
+ 		dev_warn(disk_to_dev(nbd->disk), "queue cleared\n");
++		queue_flag_clear_unlocked(QUEUE_FLAG_DISCARD, nbd->disk->queue);
+ 		if (file)
+ 			fput(file);
+ 		nbd->bytesize = 0;
+@@ -811,6 +821,9 @@ static int __init nbd_init(void)
+ 		 * Tell the block layer that we are not a rotational device
+ 		 */
+ 		queue_flag_set_unlocked(QUEUE_FLAG_NONROT, disk->queue);
++		disk->queue->limits.discard_granularity = 512;
++		disk->queue->limits.max_discard_sectors = UINT_MAX;
++		disk->queue->limits.discard_zeroes_data = 0;
+ 	}
  
--		for (destid = 0; destid < next_destid; destid++) {
--			if (destid == port->host_deviceid)
--				continue;
--			rio_route_add_entry(rdev, RIO_GLOBAL_TABLE,
--					    destid, sw_inport, 0);
--			rdev->rswitch->route_table[destid] = sw_inport;
-+		destid = rio_destid_first(net);
-+		while (destid != RIO_INVALID_DESTID && destid < next_destid) {
-+			if (destid != port->host_deviceid) {
-+				rio_route_add_entry(rdev, RIO_GLOBAL_TABLE,
-+						    destid, sw_inport, 0);
-+				rdev->rswitch->route_table[destid] = sw_inport;
-+			}
-+			destid = rio_destid_next(net, destid + 1);
- 		}
--
- 		pr_debug(
- 		    "RIO: found %s (vid %4.4x did %4.4x) with %d ports\n",
- 		    rio_name(rdev), rdev->vid, rdev->did,
-@@ -863,19 +968,22 @@ static int __devinit rio_enum_peer(struc
- 					return -1;
- 
- 				/* Update routing tables */
--				if (next_destid > cur_destid) {
-+				destid = rio_destid_next(net, cur_destid + 1);
-+				if (destid != RIO_INVALID_DESTID) {
- 					for (destid = cur_destid;
--					     destid < next_destid; destid++) {
--						if (destid == port->host_deviceid)
--							continue;
--						rio_route_add_entry(rdev,
-+					     destid < next_destid;) {
-+						if (destid != port->host_deviceid) {
-+							rio_route_add_entry(rdev,
- 								    RIO_GLOBAL_TABLE,
- 								    destid,
- 								    port_num,
- 								    0);
--						rdev->rswitch->
--						    route_table[destid] =
--						    port_num;
-+							rdev->rswitch->
-+								route_table[destid] =
-+								port_num;
-+						}
-+						destid = rio_destid_next(net,
-+								destid + 1);
- 					}
- 				}
- 			} else {
-@@ -901,11 +1009,8 @@ static int __devinit rio_enum_peer(struc
- 		rio_init_em(rdev);
- 
- 		/* Check for empty switch */
--		if (next_destid == sw_destid) {
--			next_destid++;
--			if (next_destid == port->host_deviceid)
--				next_destid++;
--		}
-+		if (next_destid == sw_destid)
-+			next_destid = rio_destid_alloc(net);
- 
- 		rdev->destid = sw_destid;
- 	} else
-@@ -1043,17 +1148,39 @@ static int rio_mport_is_active(struct ri
- /**
-  * rio_alloc_net- Allocate and configure a new RIO network
-  * @port: Master port associated with the RIO network
-+ * @do_enum: Enumeration/Discovery mode flag
-+ * @start: logical minimal start id for new net
-  *
-  * Allocates a RIO network structure, initializes per-network
-  * list heads, and adds the associated master port to the
-  * network list of associated master ports. Returns a
-  * RIO network pointer on success or %NULL on failure.
-  */
--static struct rio_net __devinit *rio_alloc_net(struct rio_mport *port)
-+static struct rio_net __devinit *rio_alloc_net(struct rio_mport *port,
-+					       int do_enum, u16 start)
- {
- 	struct rio_net *net;
- 
- 	net = kzalloc(sizeof(struct rio_net), GFP_KERNEL);
-+	if (net && do_enum) {
-+		net->destid_table.table = kzalloc(
-+			BITS_TO_LONGS(RIO_MAX_ROUTE_ENTRIES(port->sys_size)) *
-+			sizeof(long),
-+			GFP_KERNEL);
-+
-+		if (net->destid_table.table == NULL) {
-+			pr_err("RIO: failed to allocate destID table\n");
-+			kfree(net);
-+			net = NULL;
-+		} else {
-+			net->destid_table.start = start;
-+			net->destid_table.next = 0;
-+			net->destid_table.max =
-+					RIO_MAX_ROUTE_ENTRIES(port->sys_size);
-+			spin_lock_init(&net->destid_table.lock);
-+		}
-+	}
-+
- 	if (net) {
- 		INIT_LIST_HEAD(&net->node);
- 		INIT_LIST_HEAD(&net->devices);
-@@ -1163,12 +1290,16 @@ int __devinit rio_enum_mport(struct rio_
- 
- 	/* If master port has an active link, allocate net and enum peers */
- 	if (rio_mport_is_active(mport)) {
--		if (!(net = rio_alloc_net(mport))) {
-+		net = rio_alloc_net(mport, 1, 0);
-+		if (!net) {
- 			printk(KERN_ERR "RIO: failed to allocate new net\n");
- 			rc = -ENOMEM;
- 			goto out;
- 		}
- 
-+		/* reserve mport destID in new net */
-+		rio_destid_reserve(net, mport->host_deviceid);
-+
- 		/* Enable Input Output Port (transmitter reviever) */
- 		rio_enable_rx_tx_port(mport, 1, 0, 0, 0);
- 
-@@ -1176,6 +1307,8 @@ int __devinit rio_enum_mport(struct rio_
- 		rio_local_write_config_32(mport, RIO_COMPONENT_TAG_CSR,
- 					  next_comptag++);
- 
-+		next_destid = rio_destid_alloc(net);
-+
- 		if (rio_enum_peer(net, mport, 0, NULL, 0) < 0) {
- 			/* A higher priority host won enumeration, bail. */
- 			printk(KERN_INFO
-@@ -1185,6 +1318,8 @@ int __devinit rio_enum_mport(struct rio_
- 			rc = -EBUSY;
- 			goto out;
- 		}
-+		/* free the last allocated destID (unused) */
-+		rio_destid_free(net, next_destid);
- 		rio_update_route_tables(net);
- 		rio_clear_locks(net);
- 		rio_pw_enable(mport, 1);
-@@ -1265,7 +1400,7 @@ int __devinit rio_disc_mport(struct rio_
- enum_done:
- 		pr_debug("RIO: ... enumeration done\n");
- 
--		net = rio_alloc_net(mport);
-+		net = rio_alloc_net(mport, 0, 0);
- 		if (!net) {
- 			printk(KERN_ERR "RIO: Failed to allocate new net\n");
- 			goto bail;
-diff -puN include/linux/rio.h~rapidio-add-destination-id-allocation-mechanism include/linux/rio.h
---- a/include/linux/rio.h~rapidio-add-destination-id-allocation-mechanism
-+++ a/include/linux/rio.h
-@@ -264,6 +264,14 @@ struct rio_mport {
- #endif
+ 	if (register_blkdev(NBD_MAJOR, "nbd")) {
+diff -puN include/linux/nbd.h~nbd-handle-discard-requests include/linux/nbd.h
+--- a/include/linux/nbd.h~nbd-handle-discard-requests
++++ a/include/linux/nbd.h
+@@ -32,12 +32,16 @@
+ enum {
+ 	NBD_CMD_READ = 0,
+ 	NBD_CMD_WRITE = 1,
+-	NBD_CMD_DISC = 2
++	NBD_CMD_DISC = 2,
++	/* there is a gap here to match userspace */
++	NBD_CMD_TRIM = 4
  };
  
-+struct rio_id_table {
-+	u16 start;	/* logical minimal id */
-+	u16 next;	/* hint for find */
-+	u32 max;	/* max number of IDs in table */
-+	spinlock_t lock;
-+	unsigned long *table;
-+};
-+
- /**
-  * struct rio_net - RIO network info
-  * @node: Node in global list of RIO networks
-@@ -279,6 +287,7 @@ struct rio_net {
- 	struct list_head mports;	/* list of ports accessing net */
- 	struct rio_mport *hport;	/* primary port for accessing net */
- 	unsigned char id;	/* RIO network ID */
-+	struct rio_id_table destid_table;  /* destID allocation table */
- };
+ /* values for flags field */
+ #define NBD_FLAG_HAS_FLAGS    (1 << 0) /* nbd-server supports flags */
+ #define NBD_FLAG_READ_ONLY    (1 << 1) /* device is read-only */
++/* there is a gap here to match userspace */
++#define NBD_FLAG_SEND_TRIM    (1 << 5) /* send trim/discard */
  
- /* Definitions used by switch sysfs initialization callback */
+ #define nbd_cmd(req) ((req)->cmd[0])
+ 
 _
 
-Patches currently in -mm which might be from alexandre.bounine@idt.com are
+Patches currently in -mm which might be from paul.clements@steeleye.com are
 
 origin.patch
 
