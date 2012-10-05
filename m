@@ -1,460 +1,346 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-tps65910-add-rtc-driver-for-tps65910-pmic-rtc.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:16:49 -0700
-Message-ID: <20121005201650.76CC2200057@hpza10.eem.corp.google.com>
+Subject: [merged] rtc-add-max8907-rtc-driver.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:16:54 -0700
+Message-ID: <20121005201654.BDA95100048@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:39474 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757170Ab2JEUQx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:16:53 -0400
-Received: by mail-lb0-f202.google.com with SMTP id l12so141050lbo.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:16:52 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:36995 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757170Ab2JEUQ4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:16:56 -0400
+Received: by mail-qa0-f74.google.com with SMTP id a16so94002qae.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:16:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbyravarasu@nvidia.com, a.zummo@towertech.it, broonie@opensource.wolfsonmicro.com, sameo@linux.intel.com, mm-commits@vger.kernel.org
+To: swarren@nvidia.com, a.zummo@towertech.it, pgaikwad@nvidia.com, tcherry@nvidia.com, tyoon@nvidia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: tps65910: add RTC driver for TPS65910 PMIC RTC
+     Subject: rtc: add MAX8907 RTC driver
 has been removed from the -mm tree.  Its filename was
-     rtc-tps65910-add-rtc-driver-for-tps65910-pmic-rtc.patch
+     rtc-add-max8907-rtc-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Venu Byravarasu <vbyravarasu@nvidia.com>
-Subject: rtc: tps65910: add RTC driver for TPS65910 PMIC RTC
+From: Stephen Warren <swarren@nvidia.com>
+Subject: rtc: add MAX8907 RTC driver
 
-TPS65910 PMIC is a MFD with RTC as one of the device.  Adding RTC driver
-for supporting RTC device present inside TPS65910 PMIC.
+The MAX8907 is an I2C-based power-management IC containing voltage
+regulators, a reset controller, a real-time clock, and a touch-screen
+controller.
 
-Only support for RTC alarm is implemented as part of this patch.
+The driver is based on an original by or fixed by:
+* Tom Cherry
+* Prashant Gaikwad
+* Joseph Yoon
 
-Signed-off-by: Venu Byravarasu <vbyravarasu@nvidia.com>
+During upstreaming, I (swarren):
+* Converted to regmap.
+* Fixed handling of RTC_HOUR register containing 12.
+* Fixed handling of RTC_WEEKDAY register.
+* General cleanup.
+
+Signed-off-by: Stephen Warren <swarren@nvidia.com>
+Cc: Tom Cherry <tcherry@nvidia.com>
+Cc: Prashant Gaikwad <pgaikwad@nvidia.com>
+Cc: Joseph Yoon <tyoon@nvidia.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig          |   10 
- drivers/rtc/Makefile         |    1 
- drivers/rtc/rtc-tps65910.c   |  352 +++++++++++++++++++++++++++++++++
- include/linux/mfd/tps65910.h |   10 
- 4 files changed, 373 insertions(+)
+ drivers/rtc/Kconfig       |   10 +
+ drivers/rtc/Makefile      |    1 
+ drivers/rtc/rtc-max8907.c |  245 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 256 insertions(+)
 
-diff -puN drivers/rtc/Kconfig~rtc-tps65910-add-rtc-driver-for-tps65910-pmic-rtc drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-tps65910-add-rtc-driver-for-tps65910-pmic-rtc
+diff -puN drivers/rtc/Kconfig~rtc-add-max8907-rtc-driver drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-add-max8907-rtc-driver
 +++ a/drivers/rtc/Kconfig
-@@ -335,6 +335,16 @@ config RTC_DRV_TWL4030
+@@ -205,6 +205,16 @@ config RTC_DRV_MAX6900
  	  This driver can also be built as a module. If so, the module
- 	  will be called rtc-twl.
+ 	  will be called rtc-max6900.
  
-+config RTC_DRV_TPS65910
-+	tristate "TI TPS65910 RTC driver"
-+	depends on RTC_CLASS && MFD_TPS65910
++config RTC_DRV_MAX8907
++	tristate "Maxim MAX8907"
++	depends on MFD_MAX8907
 +	help
-+	  If you say yes here you get support for the RTC on the
-+	  TPS65910 chips.
++	  If you say yes here you will get support for the
++	  RTC of Maxim MAX8907 PMIC.
 +
 +	  This driver can also be built as a module. If so, the module
-+	  will be called rtc-tps65910.
++	  will be called rtc-max8907.
 +
- config RTC_DRV_S35390A
- 	tristate "Seiko Instruments S-35390A"
- 	select BITREVERSE
-diff -puN drivers/rtc/Makefile~rtc-tps65910-add-rtc-driver-for-tps65910-pmic-rtc drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-tps65910-add-rtc-driver-for-tps65910-pmic-rtc
+ config RTC_DRV_MAX8925
+ 	tristate "Maxim MAX8925"
+ 	depends on MFD_MAX8925
+diff -puN drivers/rtc/Makefile~rtc-add-max8907-rtc-driver drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-add-max8907-rtc-driver
 +++ a/drivers/rtc/Makefile
-@@ -107,6 +107,7 @@ obj-$(CONFIG_RTC_DRV_TEGRA)	+= rtc-tegra
- obj-$(CONFIG_RTC_DRV_TEST)	+= rtc-test.o
- obj-$(CONFIG_RTC_DRV_TILE)	+= rtc-tile.o
- obj-$(CONFIG_RTC_DRV_TWL4030)	+= rtc-twl.o
-+obj-$(CONFIG_RTC_DRV_TPS65910)	+= rtc-tps65910.o
- obj-$(CONFIG_RTC_DRV_TX4939)	+= rtc-tx4939.o
- obj-$(CONFIG_RTC_DRV_V3020)	+= rtc-v3020.o
- obj-$(CONFIG_RTC_DRV_VR41XX)	+= rtc-vr41xx.o
-diff -puN /dev/null drivers/rtc/rtc-tps65910.c
+@@ -65,6 +65,7 @@ obj-$(CONFIG_RTC_DRV_M48T59)	+= rtc-m48t
+ obj-$(CONFIG_RTC_DRV_M48T86)	+= rtc-m48t86.o
+ obj-$(CONFIG_RTC_DRV_MXC)	+= rtc-mxc.o
+ obj-$(CONFIG_RTC_DRV_MAX6900)	+= rtc-max6900.o
++obj-$(CONFIG_RTC_DRV_MAX8907)	+= rtc-max8907.o
+ obj-$(CONFIG_RTC_DRV_MAX8925)	+= rtc-max8925.o
+ obj-$(CONFIG_RTC_DRV_MAX8998)	+= rtc-max8998.o
+ obj-$(CONFIG_RTC_DRV_MAX6902)	+= rtc-max6902.o
+diff -puN /dev/null drivers/rtc/rtc-max8907.c
 --- /dev/null
-+++ a/drivers/rtc/rtc-tps65910.c
-@@ -0,0 +1,352 @@
++++ a/drivers/rtc/rtc-max8907.c
+@@ -0,0 +1,245 @@
 +/*
-+ * rtc-tps65910.c -- TPS65910 Real Time Clock interface
++ * RTC driver for Maxim MAX8907
 + *
-+ * Copyright (c) 2012, NVIDIA CORPORATION.  All rights reserved.
-+ * Author: Venu Byravarasu <vbyravarasu@nvidia.com>
++ * Copyright (c) 2011-2012, NVIDIA Corporation.
 + *
-+ * Based on original TI driver rtc-twl.c
-+ *   Copyright (C) 2007 MontaVista Software, Inc
-+ *   Author: Alexandre Rusev <source@mvista.com>
++ * Based on drivers/rtc/rtc-max8925.c,
++ * Copyright (C) 2009-2010 Marvell International Ltd.
 + *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version
-+ * 2 of the License, or (at your option) any later version.
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
 +
-+#include <linux/kernel.h>
-+#include <linux/errno.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/types.h>
-+#include <linux/rtc.h>
 +#include <linux/bcd.h>
++#include <linux/i2c.h>
++#include <linux/mfd/max8907.h>
++#include <linux/module.h>
 +#include <linux/platform_device.h>
-+#include <linux/interrupt.h>
-+#include <linux/mfd/tps65910.h>
++#include <linux/regmap.h>
++#include <linux/rtc.h>
++#include <linux/slab.h>
 +
-+struct tps65910_rtc {
-+	struct rtc_device	*rtc;
-+	/* To store the list of enabled interrupts */
-+	u32 irqstat;
++enum {
++	RTC_SEC = 0,
++	RTC_MIN,
++	RTC_HOUR,
++	RTC_WEEKDAY,
++	RTC_DATE,
++	RTC_MONTH,
++	RTC_YEAR1,
++	RTC_YEAR2,
 +};
 +
-+/* Total number of RTC registers needed to set time*/
-+#define NUM_TIME_REGS	(TPS65910_YEARS - TPS65910_SECONDS + 1)
++#define TIME_NUM			8
++#define ALARM_1SEC			(1 << 7)
++#define HOUR_12				(1 << 7)
++#define HOUR_AM_PM			(1 << 5)
++#define ALARM0_IRQ			(1 << 3)
++#define ALARM1_IRQ			(1 << 2)
++#define ALARM0_STATUS			(1 << 2)
++#define ALARM1_STATUS			(1 << 1)
 +
-+static int tps65910_rtc_alarm_irq_enable(struct device *dev, unsigned enabled)
++struct max8907_rtc {
++	struct max8907		*max8907;
++	struct regmap		*regmap;
++	struct rtc_device	*rtc_dev;
++	int			irq;
++};
++
++static irqreturn_t max8907_irq_handler(int irq, void *data)
 +{
-+	struct tps65910 *tps = dev_get_drvdata(dev->parent);
-+	u8 val = 0;
++	struct max8907_rtc *rtc = data;
 +
-+	if (enabled)
-+		val = TPS65910_RTC_INTERRUPTS_IT_ALARM;
++	regmap_update_bits(rtc->regmap, MAX8907_REG_ALARM0_CNTL, 0x7f, 0);
 +
-+	return regmap_write(tps->regmap, TPS65910_RTC_INTERRUPTS, val);
-+}
-+
-+/*
-+ * Gets current tps65910 RTC time and date parameters.
-+ *
-+ * The RTC's time/alarm representation is not what gmtime(3) requires
-+ * Linux to use:
-+ *
-+ *  - Months are 1..12 vs Linux 0-11
-+ *  - Years are 0..99 vs Linux 1900..N (we assume 21st century)
-+ */
-+static int tps65910_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	unsigned char rtc_data[NUM_TIME_REGS];
-+	struct tps65910 *tps = dev_get_drvdata(dev->parent);
-+	int ret;
-+
-+	/* Copy RTC counting registers to static registers or latches */
-+	ret = regmap_update_bits(tps->regmap, TPS65910_RTC_CTRL,
-+		TPS65910_RTC_CTRL_GET_TIME, TPS65910_RTC_CTRL_GET_TIME);
-+	if (ret < 0) {
-+		dev_err(dev, "RTC CTRL reg update failed with err:%d\n", ret);
-+		return ret;
-+	}
-+
-+	ret = regmap_bulk_read(tps->regmap, TPS65910_SECONDS, rtc_data,
-+		NUM_TIME_REGS);
-+	if (ret < 0) {
-+		dev_err(dev, "reading from RTC failed with err:%d\n", ret);
-+		return ret;
-+	}
-+
-+	tm->tm_sec = bcd2bin(rtc_data[0]);
-+	tm->tm_min = bcd2bin(rtc_data[1]);
-+	tm->tm_hour = bcd2bin(rtc_data[2]);
-+	tm->tm_mday = bcd2bin(rtc_data[3]);
-+	tm->tm_mon = bcd2bin(rtc_data[4]) - 1;
-+	tm->tm_year = bcd2bin(rtc_data[5]) + 100;
-+
-+	return ret;
-+}
-+
-+static int tps65910_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+	unsigned char rtc_data[NUM_TIME_REGS];
-+	struct tps65910 *tps = dev_get_drvdata(dev->parent);
-+	int ret;
-+
-+	rtc_data[0] = bin2bcd(tm->tm_sec);
-+	rtc_data[1] = bin2bcd(tm->tm_min);
-+	rtc_data[2] = bin2bcd(tm->tm_hour);
-+	rtc_data[3] = bin2bcd(tm->tm_mday);
-+	rtc_data[4] = bin2bcd(tm->tm_mon + 1);
-+	rtc_data[5] = bin2bcd(tm->tm_year - 100);
-+
-+	/* Stop RTC while updating the RTC time registers */
-+	ret = regmap_update_bits(tps->regmap, TPS65910_RTC_CTRL,
-+		TPS65910_RTC_CTRL_STOP_RTC, 0);
-+	if (ret < 0) {
-+		dev_err(dev, "RTC stop failed with err:%d\n", ret);
-+		return ret;
-+	}
-+
-+	/* update all the time registers in one shot */
-+	ret = regmap_bulk_write(tps->regmap, TPS65910_SECONDS, rtc_data,
-+		NUM_TIME_REGS);
-+	if (ret < 0) {
-+		dev_err(dev, "rtc_set_time error %d\n", ret);
-+		return ret;
-+	}
-+
-+	/* Start back RTC */
-+	ret = regmap_update_bits(tps->regmap, TPS65910_RTC_CTRL,
-+		TPS65910_RTC_CTRL_STOP_RTC, 1);
-+	if (ret < 0)
-+		dev_err(dev, "RTC start failed with err:%d\n", ret);
-+
-+	return ret;
-+}
-+
-+/*
-+ * Gets current tps65910 RTC alarm time.
-+ */
-+static int tps65910_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alm)
-+{
-+	unsigned char alarm_data[NUM_TIME_REGS];
-+	u32 int_val;
-+	struct tps65910 *tps = dev_get_drvdata(dev->parent);
-+	int ret;
-+
-+	ret = regmap_bulk_read(tps->regmap, TPS65910_SECONDS, alarm_data,
-+		NUM_TIME_REGS);
-+	if (ret < 0) {
-+		dev_err(dev, "rtc_read_alarm error %d\n", ret);
-+		return ret;
-+	}
-+
-+	alm->time.tm_sec = bcd2bin(alarm_data[0]);
-+	alm->time.tm_min = bcd2bin(alarm_data[1]);
-+	alm->time.tm_hour = bcd2bin(alarm_data[2]);
-+	alm->time.tm_mday = bcd2bin(alarm_data[3]);
-+	alm->time.tm_mon = bcd2bin(alarm_data[4]) - 1;
-+	alm->time.tm_year = bcd2bin(alarm_data[5]) + 100;
-+
-+	ret = regmap_read(tps->regmap, TPS65910_RTC_INTERRUPTS, &int_val);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (int_val & TPS65910_RTC_INTERRUPTS_IT_ALARM)
-+		alm->enabled = 1;
-+
-+	return ret;
-+}
-+
-+static int tps65910_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
-+{
-+	unsigned char alarm_data[NUM_TIME_REGS];
-+	struct tps65910 *tps = dev_get_drvdata(dev->parent);
-+	int ret;
-+
-+	ret = tps65910_rtc_alarm_irq_enable(dev, 0);
-+	if (ret)
-+		return ret;
-+
-+	alarm_data[0] = bin2bcd(alm->time.tm_sec);
-+	alarm_data[1] = bin2bcd(alm->time.tm_min);
-+	alarm_data[2] = bin2bcd(alm->time.tm_hour);
-+	alarm_data[3] = bin2bcd(alm->time.tm_mday);
-+	alarm_data[4] = bin2bcd(alm->time.tm_mon + 1);
-+	alarm_data[5] = bin2bcd(alm->time.tm_year - 100);
-+
-+	/* update all the alarm registers in one shot */
-+	ret = regmap_bulk_write(tps->regmap, TPS65910_ALARM_SECONDS,
-+		alarm_data, NUM_TIME_REGS);
-+	if (ret) {
-+		dev_err(dev, "rtc_set_alarm error %d\n", ret);
-+		return ret;
-+	}
-+
-+	if (alm->enabled)
-+		ret = tps65910_rtc_alarm_irq_enable(dev, 1);
-+
-+	return ret;
-+}
-+
-+static irqreturn_t tps65910_rtc_interrupt(int irq, void *rtc)
-+{
-+	struct device *dev = rtc;
-+	unsigned long events = 0;
-+	struct tps65910 *tps = dev_get_drvdata(dev->parent);
-+	struct tps65910_rtc *tps_rtc = dev_get_drvdata(dev);
-+	int ret;
-+	u32 rtc_reg;
-+
-+	ret = regmap_read(tps->regmap, TPS65910_RTC_STATUS, &rtc_reg);
-+	if (ret)
-+		return IRQ_NONE;
-+
-+	if (rtc_reg & TPS65910_RTC_STATUS_ALARM)
-+		events = RTC_IRQF | RTC_AF;
-+
-+	ret = regmap_write(tps->regmap, TPS65910_RTC_STATUS, rtc_reg);
-+	if (ret)
-+		return IRQ_NONE;
-+
-+	/* Notify RTC core on event */
-+	rtc_update_irq(tps_rtc->rtc, 1, events);
++	rtc_update_irq(rtc->rtc_dev, 1, RTC_IRQF | RTC_AF);
 +
 +	return IRQ_HANDLED;
 +}
 +
-+static const struct rtc_class_ops tps65910_rtc_ops = {
-+	.read_time	= tps65910_rtc_read_time,
-+	.set_time	= tps65910_rtc_set_time,
-+	.read_alarm	= tps65910_rtc_read_alarm,
-+	.set_alarm	= tps65910_rtc_set_alarm,
-+	.alarm_irq_enable = tps65910_rtc_alarm_irq_enable,
++static void regs_to_tm(u8 *regs, struct rtc_time *tm)
++{
++	tm->tm_year = bcd2bin(regs[RTC_YEAR2]) * 100 +
++		bcd2bin(regs[RTC_YEAR1]) - 1900;
++	tm->tm_mon = bcd2bin(regs[RTC_MONTH] & 0x1f) - 1;
++	tm->tm_mday = bcd2bin(regs[RTC_DATE] & 0x3f);
++	tm->tm_wday = (regs[RTC_WEEKDAY] & 0x07) - 1;
++	if (regs[RTC_HOUR] & HOUR_12) {
++		tm->tm_hour = bcd2bin(regs[RTC_HOUR] & 0x01f);
++		if (tm->tm_hour == 12)
++			tm->tm_hour = 0;
++		if (regs[RTC_HOUR] & HOUR_AM_PM)
++			tm->tm_hour += 12;
++	} else {
++		tm->tm_hour = bcd2bin(regs[RTC_HOUR] & 0x03f);
++	}
++	tm->tm_min = bcd2bin(regs[RTC_MIN] & 0x7f);
++	tm->tm_sec = bcd2bin(regs[RTC_SEC] & 0x7f);
++}
++
++static void tm_to_regs(struct rtc_time *tm, u8 *regs)
++{
++	u8 high, low;
++
++	high = (tm->tm_year + 1900) / 100;
++	low = tm->tm_year % 100;
++	regs[RTC_YEAR2] = bin2bcd(high);
++	regs[RTC_YEAR1] = bin2bcd(low);
++	regs[RTC_MONTH] = bin2bcd(tm->tm_mon + 1);
++	regs[RTC_DATE] = bin2bcd(tm->tm_mday);
++	regs[RTC_WEEKDAY] = tm->tm_wday + 1;
++	regs[RTC_HOUR] = bin2bcd(tm->tm_hour);
++	regs[RTC_MIN] = bin2bcd(tm->tm_min);
++	regs[RTC_SEC] = bin2bcd(tm->tm_sec);
++}
++
++static int max8907_rtc_read_time(struct device *dev, struct rtc_time *tm)
++{
++	struct max8907_rtc *rtc = dev_get_drvdata(dev);
++	u8 regs[TIME_NUM];
++	int ret;
++
++	ret = regmap_bulk_read(rtc->regmap, MAX8907_REG_RTC_SEC, regs,
++			       TIME_NUM);
++	if (ret < 0)
++		return ret;
++
++	regs_to_tm(regs, tm);
++
++	return 0;
++}
++
++static int max8907_rtc_set_time(struct device *dev, struct rtc_time *tm)
++{
++	struct max8907_rtc *rtc = dev_get_drvdata(dev);
++	u8 regs[TIME_NUM];
++
++	tm_to_regs(tm, regs);
++
++	return regmap_bulk_write(rtc->regmap, MAX8907_REG_RTC_SEC, regs,
++				 TIME_NUM);
++}
++
++static int max8907_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
++{
++	struct max8907_rtc *rtc = dev_get_drvdata(dev);
++	u8 regs[TIME_NUM];
++	unsigned int val;
++	int ret;
++
++	ret = regmap_bulk_read(rtc->regmap, MAX8907_REG_ALARM0_SEC, regs,
++			       TIME_NUM);
++	if (ret < 0)
++		return ret;
++
++	regs_to_tm(regs, &alrm->time);
++
++	ret = regmap_read(rtc->regmap, MAX8907_REG_ALARM0_CNTL, &val);
++	if (ret < 0)
++		return ret;
++
++	alrm->enabled = !!(val & 0x7f);
++
++	return 0;
++}
++
++static int max8907_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
++{
++	struct max8907_rtc *rtc = dev_get_drvdata(dev);
++	u8 regs[TIME_NUM];
++	int ret;
++
++	tm_to_regs(&alrm->time, regs);
++
++	/* Disable alarm while we update the target time */
++	ret = regmap_update_bits(rtc->regmap, MAX8907_REG_ALARM0_CNTL, 0x7f, 0);
++	if (ret < 0)
++		return ret;
++
++	ret = regmap_bulk_write(rtc->regmap, MAX8907_REG_ALARM0_SEC, regs,
++				TIME_NUM);
++	if (ret < 0)
++		return ret;
++
++	if (alrm->enabled)
++		ret = regmap_update_bits(rtc->regmap, MAX8907_REG_ALARM0_CNTL,
++					 0x7f, 0x7f);
++
++	return ret;
++}
++
++static const struct rtc_class_ops max8907_rtc_ops = {
++	.read_time	= max8907_rtc_read_time,
++	.set_time	= max8907_rtc_set_time,
++	.read_alarm	= max8907_rtc_read_alarm,
++	.set_alarm	= max8907_rtc_set_alarm,
 +};
 +
-+static int __devinit tps65910_rtc_probe(struct platform_device *pdev)
++static int __devinit max8907_rtc_probe(struct platform_device *pdev)
 +{
-+	struct tps65910 *tps65910 = NULL;
-+	struct tps65910_rtc *tps_rtc = NULL;
-+	struct tps65910_board *pmic_plat_data;
++	struct max8907 *max8907 = dev_get_drvdata(pdev->dev.parent);
++	struct max8907_rtc *rtc;
 +	int ret;
-+	int irq;
-+	u32 rtc_reg;
 +
-+	tps65910 = dev_get_drvdata(pdev->dev.parent);
-+
-+	tps_rtc = devm_kzalloc(&pdev->dev, sizeof(struct tps65910_rtc),
-+			GFP_KERNEL);
-+	if (!tps_rtc)
++	rtc = devm_kzalloc(&pdev->dev, sizeof(*rtc), GFP_KERNEL);
++	if (!rtc)
 +		return -ENOMEM;
++	platform_set_drvdata(pdev, rtc);
 +
-+	/* Clear pending interrupts */
-+	ret = regmap_read(tps65910->regmap, TPS65910_RTC_STATUS, &rtc_reg);
-+	if (ret < 0)
-+		return ret;
++	rtc->max8907 = max8907;
++	rtc->regmap = max8907->regmap_rtc;
 +
-+	ret = regmap_write(tps65910->regmap, TPS65910_RTC_STATUS, rtc_reg);
-+	if (ret < 0)
-+		return ret;
-+
-+	dev_dbg(&pdev->dev, "Enabling rtc-tps65910.\n");
-+	rtc_reg = TPS65910_RTC_CTRL_STOP_RTC;
-+	ret = regmap_write(tps65910->regmap, TPS65910_RTC_CTRL, rtc_reg);
-+	if (ret < 0)
-+		return ret;
-+
-+	pmic_plat_data = dev_get_platdata(tps65910->dev);
-+	irq = pmic_plat_data->irq_base;
-+	if (irq <= 0) {
-+		dev_warn(&pdev->dev, "Wake up is not possible as irq = %d\n",
-+			irq);
++	rtc->rtc_dev = rtc_device_register("max8907-rtc", &pdev->dev,
++					&max8907_rtc_ops, THIS_MODULE);
++	if (IS_ERR(rtc->rtc_dev)) {
++		ret = PTR_ERR(rtc->rtc_dev);
++		dev_err(&pdev->dev, "Failed to register RTC device: %d\n", ret);
 +		return ret;
 +	}
 +
-+	irq += TPS65910_IRQ_RTC_ALARM;
-+	ret = devm_request_threaded_irq(&pdev->dev, irq, NULL,
-+		tps65910_rtc_interrupt, IRQF_TRIGGER_LOW,
-+		"rtc-tps65910", &pdev->dev);
++	rtc->irq = regmap_irq_get_virq(max8907->irqc_rtc,
++				       MAX8907_IRQ_RTC_ALARM0);
++	if (rtc->irq < 0) {
++		ret = rtc->irq;
++		goto err_unregister;
++	}
++
++	ret = request_threaded_irq(rtc->irq, NULL, max8907_irq_handler,
++				   IRQF_ONESHOT, "max8907-alarm0", rtc);
 +	if (ret < 0) {
-+		dev_err(&pdev->dev, "IRQ is not free.\n");
-+		return ret;
-+	}
-+	device_init_wakeup(&pdev->dev, 1);
-+
-+	tps_rtc->rtc = rtc_device_register(pdev->name, &pdev->dev,
-+		&tps65910_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(tps_rtc->rtc)) {
-+		ret = PTR_ERR(tps_rtc->rtc);
-+		dev_err(&pdev->dev, "RTC device register: err %d\n", ret);
-+		return ret;
++		dev_err(&pdev->dev, "Failed to request IRQ%d: %d\n",
++			rtc->irq, ret);
++		goto err_unregister;
 +	}
 +
-+	platform_set_drvdata(pdev, tps_rtc);
++	return 0;
++
++err_unregister:
++	rtc_device_unregister(rtc->rtc_dev);
++	return ret;
++}
++
++static int __devexit max8907_rtc_remove(struct platform_device *pdev)
++{
++	struct max8907_rtc *rtc = platform_get_drvdata(pdev);
++
++	free_irq(rtc->irq, rtc);
++	rtc_device_unregister(rtc->rtc_dev);
 +
 +	return 0;
 +}
 +
-+/*
-+ * Disable tps65910 RTC interrupts.
-+ * Sets status flag to free.
-+ */
-+static int __devexit tps65910_rtc_remove(struct platform_device *pdev)
-+{
-+	/* leave rtc running, but disable irqs */
-+	struct rtc_device *rtc = platform_get_drvdata(pdev);
-+
-+	tps65910_rtc_alarm_irq_enable(&rtc->dev, 0);
-+
-+	rtc_device_unregister(rtc);
-+	return 0;
-+}
-+
-+#ifdef CONFIG_PM_SLEEP
-+
-+static int tps65910_rtc_suspend(struct device *dev)
-+{
-+	struct tps65910 *tps = dev_get_drvdata(dev->parent);
-+	u8 alarm = TPS65910_RTC_INTERRUPTS_IT_ALARM;
-+	int ret;
-+
-+	/* Store current list of enabled interrupts*/
-+	ret = regmap_read(tps->regmap, TPS65910_RTC_INTERRUPTS,
-+		&tps->rtc->irqstat);
-+	if (ret < 0)
-+		return ret;
-+
-+	/* Enable RTC ALARM interrupt only */
-+	return regmap_write(tps->regmap, TPS65910_RTC_INTERRUPTS, alarm);
-+}
-+
-+static int tps65910_rtc_resume(struct device *dev)
-+{
-+	struct tps65910 *tps = dev_get_drvdata(dev->parent);
-+
-+	/* Restore list of enabled interrupts before suspend */
-+	return regmap_write(tps->regmap, TPS65910_RTC_INTERRUPTS,
-+		tps->rtc->irqstat);
-+}
-+
-+static const struct dev_pm_ops tps65910_rtc_pm_ops = {
-+	.suspend	= tps65910_rtc_suspend,
-+	.resume		= tps65910_rtc_resume,
-+};
-+
-+#define DEV_PM_OPS     (&tps65910_rtc_pm_ops)
-+#else
-+#define DEV_PM_OPS     NULL
-+#endif
-+
-+static struct platform_driver tps65910_rtc_driver = {
-+	.probe		= tps65910_rtc_probe,
-+	.remove		= __devexit_p(tps65910_rtc_remove),
-+	.driver		= {
-+		.owner	= THIS_MODULE,
-+		.name	= "tps65910-rtc",
-+		.pm	= DEV_PM_OPS,
++static struct platform_driver max8907_rtc_driver = {
++	.driver = {
++		.name = "max8907-rtc",
++		.owner = THIS_MODULE,
 +	},
++	.probe = max8907_rtc_probe,
++	.remove = __devexit_p(max8907_rtc_remove),
 +};
++module_platform_driver(max8907_rtc_driver);
 +
-+module_platform_driver(tps65910_rtc_driver);
-+MODULE_ALIAS("platform:rtc-tps65910");
-+MODULE_AUTHOR("Venu Byravarasu <vbyravarasu@nvidia.com>");
-+MODULE_LICENSE("GPL");
-diff -puN include/linux/mfd/tps65910.h~rtc-tps65910-add-rtc-driver-for-tps65910-pmic-rtc include/linux/mfd/tps65910.h
---- a/include/linux/mfd/tps65910.h~rtc-tps65910-add-rtc-driver-for-tps65910-pmic-rtc
-+++ a/include/linux/mfd/tps65910.h
-@@ -132,6 +132,16 @@
-  *
-  */
- 
-+/* RTC_CTRL_REG bitfields */
-+#define TPS65910_RTC_CTRL_STOP_RTC			0x01 /*0=stop, 1=run */
-+#define TPS65910_RTC_CTRL_GET_TIME			0x40
++MODULE_DESCRIPTION("Maxim MAX8907 RTC driver");
++MODULE_LICENSE("GPL v2");
 +
-+/* RTC_STATUS_REG bitfields */
-+#define TPS65910_RTC_STATUS_ALARM               0x40
-+
-+/* RTC_INTERRUPTS_REG bitfields */
-+#define TPS65910_RTC_INTERRUPTS_EVERY           0x03
-+#define TPS65910_RTC_INTERRUPTS_IT_ALARM        0x08
- 
- /*Register BCK1  (0x80) register.RegisterDescription */
- #define BCK1_BCKUP_MASK					0xFF
 _
 
-Patches currently in -mm which might be from vbyravarasu@nvidia.com are
+Patches currently in -mm which might be from swarren@nvidia.com are
 
 origin.patch
 linux-next.patch
+block-store-partition_meta_infouuid-as-a-string.patch
+init-reduce-partuuid-min-length-to-1-from-36.patch
+block-partition-msdos-provide-uuids-for-partitions.patch
 
