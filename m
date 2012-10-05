@@ -1,92 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dma-dmaengine-lower-the-priority-of-failed-to-get-dma-channel-message.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:11:56 -0700
-Message-ID: <20121005201156.D17AB1E0043@wpzn4.hot.corp.google.com>
+Subject: [merged] unicore32-select-generic-atomic64_t-support.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:12:02 -0700
+Message-ID: <20121005201202.AC5E21E0048@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:38013 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757239Ab2JEUL6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:11:58 -0400
-Received: by mail-qa0-f74.google.com with SMTP id a16so93506qae.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:11:57 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:53975 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757239Ab2JEUMD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:12:03 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z15so235722ghb.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:12:03 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabio.estevam@freescale.com, dan.j.williams@intel.com, stable@vger.kernel.org, vinod.koul@intel.com, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, ebiederm@xmission.com, gxt@mprc.pku.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/dma/dmaengine.c: lower the priority of 'failed to get' dma channel message
+     Subject: unicore32: select generic atomic64_t support
 has been removed from the -mm tree.  Its filename was
-     dma-dmaengine-lower-the-priority-of-failed-to-get-dma-channel-message.patch
+     unicore32-select-generic-atomic64_t-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabio Estevam <fabio.estevam@freescale.com>
-Subject: drivers/dma/dmaengine.c: lower the priority of 'failed to get' dma channel message
+From: Fengguang Wu <fengguang.wu@intel.com>
+Subject: unicore32: select generic atomic64_t support
 
-Do the same as commit a03a202e9 ("dmaengine: failure to get a specific DMA
-channel is not critical") to get rid of the following messages during
-kernel boot:
+It's required for the core fs/namespace.c and many other basic features.
 
-dmaengine_get: failed to get dma1chan0: (-22)
-dmaengine_get: failed to get dma1chan1: (-22)
-dmaengine_get: failed to get dma1chan2: (-22)
-dmaengine_get: failed to get dma1chan3: (-22)
-dmaengine_get: failed to get dma1chan4: (-22)
-dmaengine_get: failed to get dma1chan5: (-22)
-dmaengine_get: failed to get dma1chan6: (-22)
-dmaengine_get: failed to get dma1chan7: (-22)
-dmaengine_get: failed to get dma1chan8: (-22)
-dmaengine_get: failed to get dma1chan9: (-22)
-dmaengine_get: failed to get dma1chan10: (-22)
-dmaengine_get: failed to get dma1chan11: (-22)
-dmaengine_get: failed to get dma1chan12: (-22)
-dmaengine_get: failed to get dma1chan13: (-22)
-dmaengine_get: failed to get dma1chan14: (-22)
-dmaengine_get: failed to get dma1chan15: (-22)
-dmaengine_get: failed to get dma1chan16: (-22)
-dmaengine_get: failed to get dma1chan17: (-22)
-dmaengine_get: failed to get dma1chan18: (-22)
-dmaengine_get: failed to get dma1chan19: (-22)
-dmaengine_get: failed to get dma1chan20: (-22)
-dmaengine_get: failed to get dma1chan21: (-22)
-dmaengine_get: failed to get dma1chan22: (-22)
-dmaengine_get: failed to get dma1chan23: (-22)
-dmaengine_get: failed to get dma1chan24: (-22)
-dmaengine_get: failed to get dma1chan25: (-22)
-dmaengine_get: failed to get dma1chan26: (-22)
-dmaengine_get: failed to get dma1chan27: (-22)
-dmaengine_get: failed to get dma1chan28: (-22)
-dmaengine_get: failed to get dma1chan29: (-22)
-
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
-Cc: Vinod Koul <vinod.koul@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Guan Xuetao <gxt@mprc.pku.edu.cn>
+Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/dmaengine.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/unicore32/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/dma/dmaengine.c~dma-dmaengine-lower-the-priority-of-failed-to-get-dma-channel-message drivers/dma/dmaengine.c
---- a/drivers/dma/dmaengine.c~dma-dmaengine-lower-the-priority-of-failed-to-get-dma-channel-message
-+++ a/drivers/dma/dmaengine.c
-@@ -582,7 +582,7 @@ void dmaengine_get(void)
- 				list_del_rcu(&device->global_node);
- 				break;
- 			} else if (err)
--				pr_err("%s: failed to get %s: (%d)\n",
-+				pr_debug("%s: failed to get %s: (%d)\n",
- 				       __func__, dma_chan_name(chan), err);
- 		}
- 	}
+diff -puN arch/unicore32/Kconfig~unicore32-select-generic-atomic64_t-support arch/unicore32/Kconfig
+--- a/arch/unicore32/Kconfig~unicore32-select-generic-atomic64_t-support
++++ a/arch/unicore32/Kconfig
+@@ -6,6 +6,7 @@ config UNICORE32
+ 	select HAVE_DMA_ATTRS
+ 	select HAVE_KERNEL_GZIP
+ 	select HAVE_KERNEL_BZIP2
++	select GENERIC_ATOMIC64
+ 	select HAVE_KERNEL_LZO
+ 	select HAVE_KERNEL_LZMA
+ 	select ARCH_HAVE_CUSTOM_GPIO_H
 _
 
-Patches currently in -mm which might be from fabio.estevam@freescale.com are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
 origin.patch
 linux-next.patch
+h8300-select-generic-atomic64_t-support.patch
+readahead-fault-retry-breaks-mmap-file-read-random-detection.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
+rbtree-performance-and-correctness-test-fix.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated-fix.patch
+mm-compaction-restart-compaction-from-near-where-it-left-off-fix.patch
+fs-fs-writebackc-remove-unneccesary-parameter-of-__writeback_single_inode.patch
+kpageflags-fix-wrong-kpf_thp-on-non-huge-compound-pages.patch
+idr-rename-max_level-to-max_idr_level-fix-3.patch
 
