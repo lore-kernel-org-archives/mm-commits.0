@@ -1,228 +1,204 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-m41t80c-remove-disabled-alarm-functionality.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:18:00 -0700
-Message-ID: <20121005201800.B3A3E100048@wpzn3.hot.corp.google.com>
+Subject: [merged] drivers-rtc-rtc-s35390ac-add-wakealarm-support-for-rtc-s35390a-rtc-chip.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:18:03 -0700
+Message-ID: <20121005201803.A341E1E0049@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:36926 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757277Ab2JEUSC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:18:02 -0400
-Received: by mail-vb0-f74.google.com with SMTP id s24so236734vbi.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:18:01 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:44734 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757277Ab2JEUSE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:18:04 -0400
+Received: by mail-qa0-f74.google.com with SMTP id a16so94098qae.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:18:04 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pebolle@tiscali.nl, john.stultz@linaro.org, mm-commits@vger.kernel.org
+To: michael.brainbug.langer@googlemail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-m41t80.c: remove disabled alarm functionality
+     Subject: drivers/rtc/rtc-s35390a.c: add wakealarm support for rtc-s35390A rtc chip
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-m41t80c-remove-disabled-alarm-functionality.patch
+     drivers-rtc-rtc-s35390ac-add-wakealarm-support-for-rtc-s35390a-rtc-chip.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Paul Bolle <pebolle@tiscali.nl>
-Subject: drivers/rtc/rtc-m41t80.c: remove disabled alarm functionality
+From: Michael Langer <michael.brainbug.langer@googlemail.com>
+Subject: drivers/rtc/rtc-s35390a.c: add wakealarm support for rtc-s35390A rtc chip
 
-Commit c3b79770e51ab1fd ("rtc: m41t80: Workaround broken alarm
-functionality") disabled m41t80's alarm functions.  But since those
-functions were not touched, building this driver triggers these GCC
-warnings:
+Add basic get/set alarm support for the Seiko Instruments S-35390A.  The
+chip is used on the QNAP TS-219P+ NAS device.
 
-    drivers/rtc/rtc-m41t80.c:216:12: warning: 'm41t80_rtc_alarm_irq_enable' defined but not used [-Wunused-function]
-    drivers/rtc/rtc-m41t80.c:238:12: warning: 'm41t80_rtc_set_alarm' defined but not used [-Wunused-function]
-    drivers/rtc/rtc-m41t80.c:308:12: warning: 'm41t80_rtc_read_alarm' defined but not used [-Wunused-function]
-
-Remove these functions (and the commented out references to them) to
-silence these warnings.  Anyone wanting to fix the alarm irq functionality
-can easily find the removed code in the git log of this file or through
-some web searches.
-
-Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
-Cc: John Stultz <john.stultz@linaro.org>
+Signed-off-by: Michael Langer <michael.brainbug.langer@googlemail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-m41t80.c |  157 -------------------------------------
- 1 file changed, 4 insertions(+), 153 deletions(-)
+ drivers/rtc/rtc-s35390a.c |  116 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 116 insertions(+)
 
-diff -puN drivers/rtc/rtc-m41t80.c~drivers-rtc-rtc-m41t80c-remove-disabled-alarm-functionality drivers/rtc/rtc-m41t80.c
---- a/drivers/rtc/rtc-m41t80.c~drivers-rtc-rtc-m41t80c-remove-disabled-alarm-functionality
-+++ a/drivers/rtc/rtc-m41t80.c
-@@ -213,163 +213,14 @@ static int m41t80_rtc_set_time(struct de
- 	return m41t80_set_datetime(to_i2c_client(dev), tm);
+diff -puN drivers/rtc/rtc-s35390a.c~drivers-rtc-rtc-s35390ac-add-wakealarm-support-for-rtc-s35390a-rtc-chip drivers/rtc/rtc-s35390a.c
+--- a/drivers/rtc/rtc-s35390a.c~drivers-rtc-rtc-s35390ac-add-wakealarm-support-for-rtc-s35390a-rtc-chip
++++ a/drivers/rtc/rtc-s35390a.c
+@@ -19,6 +19,8 @@
+ #define S35390A_CMD_STATUS1	0
+ #define S35390A_CMD_STATUS2	1
+ #define S35390A_CMD_TIME1	2
++#define S35390A_CMD_TIME2	3
++#define S35390A_CMD_INT2_REG1	5
+ 
+ #define S35390A_BYTE_YEAR	0
+ #define S35390A_BYTE_MONTH	1
+@@ -28,12 +30,23 @@
+ #define S35390A_BYTE_MINS	5
+ #define S35390A_BYTE_SECS	6
+ 
++#define S35390A_ALRM_BYTE_WDAY	0
++#define S35390A_ALRM_BYTE_HOURS	1
++#define S35390A_ALRM_BYTE_MINS	2
++
+ #define S35390A_FLAG_POC	0x01
+ #define S35390A_FLAG_BLD	0x02
+ #define S35390A_FLAG_24H	0x40
+ #define S35390A_FLAG_RESET	0x80
+ #define S35390A_FLAG_TEST	0x01
+ 
++#define S35390A_INT2_MODE_MASK		0xF0
++
++#define S35390A_INT2_MODE_NOINTR	0x00
++#define S35390A_INT2_MODE_FREQ		0x10
++#define S35390A_INT2_MODE_ALARM		0x40
++#define S35390A_INT2_MODE_PMIN_EDG	0x20
++
+ static const struct i2c_device_id s35390a_id[] = {
+ 	{ "s35390a", 0 },
+ 	{ }
+@@ -193,6 +206,104 @@ static int s35390a_get_datetime(struct i
+ 	return rtc_valid_tm(tm);
  }
  
--static int m41t80_rtc_alarm_irq_enable(struct device *dev, unsigned int enabled)
--{
--	struct i2c_client *client = to_i2c_client(dev);
--	int rc;
--
--	rc = i2c_smbus_read_byte_data(client, M41T80_REG_ALARM_MON);
--	if (rc < 0)
--		goto err;
--
--	if (enabled)
--		rc |= M41T80_ALMON_AFE;
--	else
--		rc &= ~M41T80_ALMON_AFE;
--
--	if (i2c_smbus_write_byte_data(client, M41T80_REG_ALARM_MON, rc) < 0)
--		goto err;
--
--	return 0;
--err:
--	return -EIO;
--}
--
--static int m41t80_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *t)
--{
--	struct i2c_client *client = to_i2c_client(dev);
--	u8 wbuf[1 + M41T80_ALARM_REG_SIZE];
--	u8 *buf = &wbuf[1];
--	u8 *reg = buf - M41T80_REG_ALARM_MON;
--	u8 dt_addr[1] = { M41T80_REG_ALARM_MON };
--	struct i2c_msg msgs_in[] = {
--		{
--			.addr	= client->addr,
--			.flags	= 0,
--			.len	= 1,
--			.buf	= dt_addr,
--		},
--		{
--			.addr	= client->addr,
--			.flags	= I2C_M_RD,
--			.len	= M41T80_ALARM_REG_SIZE,
--			.buf	= buf,
--		},
--	};
--	struct i2c_msg msgs[] = {
--		{
--			.addr	= client->addr,
--			.flags	= 0,
--			.len	= 1 + M41T80_ALARM_REG_SIZE,
--			.buf	= wbuf,
--		 },
--	};
--
--	if (i2c_transfer(client->adapter, msgs_in, 2) < 0) {
--		dev_err(&client->dev, "read error\n");
--		return -EIO;
--	}
--	reg[M41T80_REG_ALARM_MON] &= ~(0x1f | M41T80_ALMON_AFE);
--	reg[M41T80_REG_ALARM_DAY] = 0;
--	reg[M41T80_REG_ALARM_HOUR] &= ~(0x3f | 0x80);
--	reg[M41T80_REG_ALARM_MIN] = 0;
--	reg[M41T80_REG_ALARM_SEC] = 0;
--
--	wbuf[0] = M41T80_REG_ALARM_MON; /* offset into rtc's regs */
--	reg[M41T80_REG_ALARM_SEC] |= t->time.tm_sec >= 0 ?
--		bin2bcd(t->time.tm_sec) : 0x80;
--	reg[M41T80_REG_ALARM_MIN] |= t->time.tm_min >= 0 ?
--		bin2bcd(t->time.tm_min) : 0x80;
--	reg[M41T80_REG_ALARM_HOUR] |= t->time.tm_hour >= 0 ?
--		bin2bcd(t->time.tm_hour) : 0x80;
--	reg[M41T80_REG_ALARM_DAY] |= t->time.tm_mday >= 0 ?
--		bin2bcd(t->time.tm_mday) : 0x80;
--	if (t->time.tm_mon >= 0)
--		reg[M41T80_REG_ALARM_MON] |= bin2bcd(t->time.tm_mon + 1);
--	else
--		reg[M41T80_REG_ALARM_DAY] |= 0x40;
--
--	if (i2c_transfer(client->adapter, msgs, 1) != 1) {
--		dev_err(&client->dev, "write error\n");
--		return -EIO;
--	}
--
--	if (t->enabled) {
--		reg[M41T80_REG_ALARM_MON] |= M41T80_ALMON_AFE;
--		if (i2c_smbus_write_byte_data(client, M41T80_REG_ALARM_MON,
--					      reg[M41T80_REG_ALARM_MON]) < 0) {
--			dev_err(&client->dev, "write error\n");
--			return -EIO;
--		}
--	}
--	return 0;
--}
--
--static int m41t80_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *t)
--{
--	struct i2c_client *client = to_i2c_client(dev);
--	u8 buf[M41T80_ALARM_REG_SIZE + 1]; /* all alarm regs and flags */
--	u8 dt_addr[1] = { M41T80_REG_ALARM_MON };
--	u8 *reg = buf - M41T80_REG_ALARM_MON;
--	struct i2c_msg msgs[] = {
--		{
--			.addr	= client->addr,
--			.flags	= 0,
--			.len	= 1,
--			.buf	= dt_addr,
--		},
--		{
--			.addr	= client->addr,
--			.flags	= I2C_M_RD,
--			.len	= M41T80_ALARM_REG_SIZE + 1,
--			.buf	= buf,
--		},
--	};
--
--	if (i2c_transfer(client->adapter, msgs, 2) < 0) {
--		dev_err(&client->dev, "read error\n");
--		return -EIO;
--	}
--	t->time.tm_sec = -1;
--	t->time.tm_min = -1;
--	t->time.tm_hour = -1;
--	t->time.tm_mday = -1;
--	t->time.tm_mon = -1;
--	if (!(reg[M41T80_REG_ALARM_SEC] & 0x80))
--		t->time.tm_sec = bcd2bin(reg[M41T80_REG_ALARM_SEC] & 0x7f);
--	if (!(reg[M41T80_REG_ALARM_MIN] & 0x80))
--		t->time.tm_min = bcd2bin(reg[M41T80_REG_ALARM_MIN] & 0x7f);
--	if (!(reg[M41T80_REG_ALARM_HOUR] & 0x80))
--		t->time.tm_hour = bcd2bin(reg[M41T80_REG_ALARM_HOUR] & 0x3f);
--	if (!(reg[M41T80_REG_ALARM_DAY] & 0x80))
--		t->time.tm_mday = bcd2bin(reg[M41T80_REG_ALARM_DAY] & 0x3f);
--	if (!(reg[M41T80_REG_ALARM_DAY] & 0x40))
--		t->time.tm_mon = bcd2bin(reg[M41T80_REG_ALARM_MON] & 0x1f) - 1;
--	t->time.tm_year = -1;
--	t->time.tm_wday = -1;
--	t->time.tm_yday = -1;
--	t->time.tm_isdst = -1;
--	t->enabled = !!(reg[M41T80_REG_ALARM_MON] & M41T80_ALMON_AFE);
--	t->pending = !!(reg[M41T80_REG_FLAGS] & M41T80_FLAGS_AF);
--	return 0;
--}
--
-+/*
-+ * XXX - m41t80 alarm functionality is reported broken.
-+ * until it is fixed, don't register alarm functions.
-+ */
- static struct rtc_class_ops m41t80_rtc_ops = {
- 	.read_time = m41t80_rtc_read_time,
- 	.set_time = m41t80_rtc_set_time,
--	/*
--	 * XXX - m41t80 alarm functionality is reported broken.
--	 * until it is fixed, don't register alarm functions.
--	 *
--	.read_alarm = m41t80_rtc_read_alarm,
--	.set_alarm = m41t80_rtc_set_alarm,
--	*/
- 	.proc = m41t80_rtc_proc,
--	/*
--	 * See above comment on broken alarm
--	 *
--	.alarm_irq_enable = m41t80_rtc_alarm_irq_enable,
--	*/
++static int s35390a_set_alarm(struct i2c_client *client, struct rtc_wkalrm *alm)
++{
++	struct s35390a *s35390a = i2c_get_clientdata(client);
++	char buf[3], sts = 0;
++	int err, i;
++
++	dev_dbg(&client->dev, "%s: alm is secs=%d, mins=%d, hours=%d mday=%d, "\
++		"mon=%d, year=%d, wday=%d\n", __func__, alm->time.tm_sec,
++		alm->time.tm_min, alm->time.tm_hour, alm->time.tm_mday,
++		alm->time.tm_mon, alm->time.tm_year, alm->time.tm_wday);
++
++	/* disable interrupt */
++	err = s35390a_set_reg(s35390a, S35390A_CMD_STATUS2, &sts, sizeof(sts));
++	if (err < 0)
++		return err;
++
++	/* clear pending interrupt, if any */
++	err = s35390a_get_reg(s35390a, S35390A_CMD_STATUS1, &sts, sizeof(sts));
++	if (err < 0)
++		return err;
++
++	if (alm->enabled)
++		sts = S35390A_INT2_MODE_ALARM;
++	else
++		sts = S35390A_INT2_MODE_NOINTR;
++
++	/* This chip expects the bits of each byte to be in reverse order */
++	sts = bitrev8(sts);
++
++	/* set interupt mode*/
++	err = s35390a_set_reg(s35390a, S35390A_CMD_STATUS2, &sts, sizeof(sts));
++	if (err < 0)
++		return err;
++
++	if (alm->time.tm_wday != -1)
++		buf[S35390A_ALRM_BYTE_WDAY] = bin2bcd(alm->time.tm_wday) | 0x80;
++
++	buf[S35390A_ALRM_BYTE_HOURS] = s35390a_hr2reg(s35390a,
++			alm->time.tm_hour) | 0x80;
++	buf[S35390A_ALRM_BYTE_MINS] = bin2bcd(alm->time.tm_min) | 0x80;
++
++	if (alm->time.tm_hour >= 12)
++		buf[S35390A_ALRM_BYTE_HOURS] |= 0x40;
++
++	for (i = 0; i < 3; ++i)
++		buf[i] = bitrev8(buf[i]);
++
++	err = s35390a_set_reg(s35390a, S35390A_CMD_INT2_REG1, buf,
++								sizeof(buf));
++
++	return err;
++}
++
++static int s35390a_read_alarm(struct i2c_client *client, struct rtc_wkalrm *alm)
++{
++	struct s35390a *s35390a = i2c_get_clientdata(client);
++	char buf[3], sts;
++	int i, err;
++
++	err = s35390a_get_reg(s35390a, S35390A_CMD_STATUS2, &sts, sizeof(sts));
++	if (err < 0)
++		return err;
++
++	if (bitrev8(sts) != S35390A_INT2_MODE_ALARM)
++		return -EINVAL;
++
++	err = s35390a_get_reg(s35390a, S35390A_CMD_INT2_REG1, buf, sizeof(buf));
++	if (err < 0)
++		return err;
++
++	/* This chip returns the bits of each byte in reverse order */
++	for (i = 0; i < 3; ++i) {
++		buf[i] = bitrev8(buf[i]);
++		buf[i] &= ~0x80;
++	}
++
++	alm->time.tm_wday = bcd2bin(buf[S35390A_ALRM_BYTE_WDAY]);
++	alm->time.tm_hour = s35390a_reg2hr(s35390a,
++						buf[S35390A_ALRM_BYTE_HOURS]);
++	alm->time.tm_min = bcd2bin(buf[S35390A_ALRM_BYTE_MINS]);
++
++	dev_dbg(&client->dev, "%s: alm is mins=%d, hours=%d, wday=%d\n",
++			__func__, alm->time.tm_min, alm->time.tm_hour,
++			alm->time.tm_wday);
++
++	return 0;
++}
++
++static int s35390a_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alm)
++{
++	return s35390a_read_alarm(to_i2c_client(dev), alm);
++}
++
++static int s35390a_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
++{
++	return s35390a_set_alarm(to_i2c_client(dev), alm);
++}
++
+ static int s35390a_rtc_read_time(struct device *dev, struct rtc_time *tm)
+ {
+ 	return s35390a_get_datetime(to_i2c_client(dev), tm);
+@@ -206,6 +317,9 @@ static int s35390a_rtc_set_time(struct d
+ static const struct rtc_class_ops s35390a_rtc_ops = {
+ 	.read_time	= s35390a_rtc_read_time,
+ 	.set_time	= s35390a_rtc_set_time,
++	.set_alarm	= s35390a_rtc_set_alarm,
++	.read_alarm	= s35390a_rtc_read_alarm,
++
  };
  
- #if defined(CONFIG_RTC_INTF_SYSFS) || defined(CONFIG_RTC_INTF_SYSFS_MODULE)
+ static struct i2c_driver s35390a_driver;
+@@ -270,6 +384,8 @@ static int s35390a_probe(struct i2c_clie
+ 	if (s35390a_get_datetime(client, &tm) < 0)
+ 		dev_warn(&client->dev, "clock needs to be set\n");
+ 
++	device_set_wakeup_capable(&client->dev, 1);
++
+ 	s35390a->rtc = rtc_device_register(s35390a_driver.driver.name,
+ 				&client->dev, &s35390a_rtc_ops, THIS_MODULE);
+ 
 _
 
-Patches currently in -mm which might be from pebolle@tiscali.nl are
+Patches currently in -mm which might be from michael.brainbug.langer@googlemail.com are
 
 origin.patch
-linux-next.patch
 
