@@ -1,70 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [merged] omfs-convert-to-use-bexx_add_cpu.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:22:20 -0700
-Message-ID: <20121005202220.BC5C1100047@wpzn3.hot.corp.google.com>
+Subject: [merged] kernel-resourcec-fix-stack-overflow-in-__reserve_region_with_split.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:22:23 -0700
+Message-ID: <20121005202223.B6431100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:57660 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932319Ab2JEUWV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:22:21 -0400
-Received: by mail-gg0-f202.google.com with SMTP id i4so236199ggm.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:22:21 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:56456 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932319Ab2JEUWY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:22:24 -0400
+Received: by mail-qc0-f202.google.com with SMTP id s25so237754qcq.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:22:24 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yongjun_wei@trendmicro.com.cn, me@bobcopeland.com, mm-commits@vger.kernel.org
+To: tmac@hp.com, linuxram@us.ibm.com, paul.gortmaker@gmail.com, weiyang@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: omfs: convert to use beXX_add_cpu()
+     Subject: kernel/resource.c: fix stack overflow in __reserve_region_with_split()
 has been removed from the -mm tree.  Its filename was
-     omfs-convert-to-use-bexx_add_cpu.patch
+     kernel-resourcec-fix-stack-overflow-in-__reserve_region_with_split.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Subject: omfs: convert to use beXX_add_cpu()
+From: T Makphaibulchoke <tmac@hp.com>
+Subject: kernel/resource.c: fix stack overflow in __reserve_region_with_split()
 
-Convert cpu_to_beXX(beXX_to_cpu(E1) + E2) to use beXX_add_cpu().
+Using a recurvise call add a non-conflicting region in
+__reserve_region_with_split() could result in a stack overflow in the case
+that the recursive calls are too deep.  Convert the recursive calls to an
+iterative loop to avoid the problem.
 
-dpatch engine is used to auto generate this patch.
-(https://github.com/weiyj/dpatch)
+Tested on a machine containing 135 regions.  The kernel no longer panicked
+with stack overflow.
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Acked-by: Bob Copeland <me@bobcopeland.com>
+Also tested with code arbitrarily adding regions with no conflict,
+embedding two consecutive conflicts and embedding two non-consecutive
+conflicts.
+
+Signed-off-by: T Makphaibulchoke <tmac@hp.com>
+Reviewed-by: Ram Pai <linuxram@us.ibm.com>
+Cc: Paul Gortmaker <paul.gortmaker@gmail.com>
+Cc: Wei Yang <weiyang@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/omfs/file.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ kernel/resource.c |   50 +++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 38 insertions(+), 12 deletions(-)
 
-diff -puN fs/omfs/file.c~omfs-convert-to-use-bexx_add_cpu fs/omfs/file.c
---- a/fs/omfs/file.c~omfs-convert-to-use-bexx_add_cpu
-+++ a/fs/omfs/file.c
-@@ -146,8 +146,7 @@ static int omfs_grow_extent(struct inode
- 			be64_to_cpu(entry->e_blocks);
+diff -puN kernel/resource.c~kernel-resourcec-fix-stack-overflow-in-__reserve_region_with_split kernel/resource.c
+--- a/kernel/resource.c~kernel-resourcec-fix-stack-overflow-in-__reserve_region_with_split
++++ a/kernel/resource.c
+@@ -763,6 +763,7 @@ static void __init __reserve_region_with
+ 	struct resource *parent = root;
+ 	struct resource *conflict;
+ 	struct resource *res = kzalloc(sizeof(*res), GFP_ATOMIC);
++	struct resource *next_res = NULL;
  
- 		if (omfs_allocate_block(inode->i_sb, new_block)) {
--			entry->e_blocks =
--				cpu_to_be64(be64_to_cpu(entry->e_blocks) + 1);
-+			be64_add_cpu(&entry->e_blocks, 1);
- 			terminator->e_blocks = ~(cpu_to_be64(
- 				be64_to_cpu(~terminator->e_blocks) + 1));
- 			goto out;
-@@ -177,7 +176,7 @@ static int omfs_grow_extent(struct inode
- 		be64_to_cpu(~terminator->e_blocks) + (u64) new_count));
+ 	if (!res)
+ 		return;
+@@ -772,21 +773,46 @@ static void __init __reserve_region_with
+ 	res->end = end;
+ 	res->flags = IORESOURCE_BUSY;
  
- 	/* write in new entry */
--	oe->e_extent_count = cpu_to_be32(1 + be32_to_cpu(oe->e_extent_count));
-+	be32_add_cpu(&oe->e_extent_count, 1);
+-	conflict = __request_resource(parent, res);
+-	if (!conflict)
+-		return;
++	while (1) {
  
- out:
- 	*ret_block = new_block;
+-	/* failed, split and try again */
+-	kfree(res);
++		conflict = __request_resource(parent, res);
++		if (!conflict) {
++			if (!next_res)
++				break;
++			res = next_res;
++			next_res = NULL;
++			continue;
++		}
+ 
+-	/* conflict covered whole area */
+-	if (conflict->start <= start && conflict->end >= end)
+-		return;
++		/* conflict covered whole area */
++		if (conflict->start <= res->start &&
++				conflict->end >= res->end) {
++			kfree(res);
++			WARN_ON(next_res);
++			break;
++		}
++
++		/* failed, split and try again */
++		if (conflict->start > res->start) {
++			end = res->end;
++			res->end = conflict->start - 1;
++			if (conflict->end < end) {
++				next_res = kzalloc(sizeof(*next_res),
++						GFP_ATOMIC);
++				if (!next_res) {
++					kfree(res);
++					break;
++				}
++				next_res->name = name;
++				next_res->start = conflict->end + 1;
++				next_res->end = end;
++				next_res->flags = IORESOURCE_BUSY;
++			}
++		} else {
++			res->start = conflict->end + 1;
++		}
++	}
+ 
+-	if (conflict->start > start)
+-		__reserve_region_with_split(root, start, conflict->start-1, name);
+-	if (conflict->end < end)
+-		__reserve_region_with_split(root, conflict->end+1, end, name);
+ }
+ 
+ void __init reserve_region_with_split(struct resource *root,
 _
 
-Patches currently in -mm which might be from yongjun_wei@trendmicro.com.cn are
+Patches currently in -mm which might be from tmac@hp.com are
 
 origin.patch
-linux-next.patch
 
