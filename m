@@ -1,81 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-check-utf-8-content-from-a-commit-log-when-its-missing-from-charset.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:16:03 -0700
-Message-ID: <20121005201603.B10061E0043@wpzn4.hot.corp.google.com>
+Subject: [merged] checkpatch-update-suggested-printk-conversions.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:16:06 -0700
+Message-ID: <20121005201606.B52A01E0048@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:62099 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751889Ab2JEUQE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:16:04 -0400
-Received: by mail-gg0-f202.google.com with SMTP id i4so235203ggm.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:16:04 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:33095 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751889Ab2JEUQH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:16:07 -0400
+Received: by mail-vb0-f74.google.com with SMTP id s24so236578vbi.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:16:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pasi.savanainen@nixu.com, apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
+To: joe@perches.com, apw@canonical.com, dan.carpenter@oracle.com, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: check utf-8 content from a commit log when it's missing from charset
+     Subject: checkpatch: update suggested printk conversions
 has been removed from the -mm tree.  Its filename was
-     checkpatch-check-utf-8-content-from-a-commit-log-when-its-missing-from-charset.patch
+     checkpatch-update-suggested-printk-conversions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Pasi Savanainen <pasi.savanainen@nixu.com>
-Subject: checkpatch: check utf-8 content from a commit log when it's missing from charset
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: update suggested printk conversions
 
-Check that a commit log doesn't contain UTF-8 when a mail header
-explicitly defines a different charset, like
+Direct conversion of printk(KERN_<LEVEL>...  to pr_<level> isn't the
+preferred conversion when a struct net_device or struct device is
+available.
 
-'Content-Type: text/plain; charset="us-ascii"'
+Hint that using netdev_<level> or dev_<level> is preferred to using
+pr_<level>.  Add netdev_dbg and dev_dbg variants too.
 
-Signed-off-by: Pasi Savanainen <pasi.savanainen@nixu.com>
-Cc: Joe Perches <joe@perches.com>
+Miscellaneous whitespace neatening of a misplaced close brace.
+
+Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Greg KH <gregkh@linuxfoundation.org>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+ scripts/checkpatch.pl |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-check-utf-8-content-from-a-commit-log-when-its-missing-from-charset scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-check-utf-8-content-from-a-commit-log-when-its-missing-from-charset
+diff -puN scripts/checkpatch.pl~checkpatch-update-suggested-printk-conversions scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-update-suggested-printk-conversions
 +++ a/scripts/checkpatch.pl
-@@ -1386,6 +1386,8 @@ sub process {
- 	my $in_header_lines = 1;
- 	my $in_commit_log = 0;		#Scanning lines before patch
+@@ -421,7 +421,7 @@ sub top_of_kernel_tree {
+ 		}
+ 	}
+ 	return 1;
+-    }
++}
  
-+	my $non_utf8_charset = 0;
-+
- 	our @report = ();
- 	our $cnt_lines = 0;
- 	our $cnt_error = 0;
-@@ -1686,10 +1688,17 @@ sub process {
- 			$in_commit_log = 1;
+ sub parse_email {
+ 	my ($formatted_email) = @_;
+@@ -2399,8 +2399,10 @@ sub process {
+ 			my $orig = $1;
+ 			my $level = lc($orig);
+ 			$level = "warn" if ($level eq "warning");
++			my $level2 = $level;
++			$level2 = "dbg" if ($level eq "debug");
+ 			WARN("PREFER_PR_LEVEL",
+-			     "Prefer pr_$level(... to printk(KERN_$1, ...\n" . $herecurr);
++			     "Prefer netdev_$level2(netdev, ... then dev_$level2(dev, ... then pr_$level(...  to printk(KERN_$orig ...\n" . $herecurr);
  		}
  
--# Still not yet in a patch, check for any UTF-8
--		if ($in_commit_log && $realfile =~ /^$/ &&
-+# Check if there is UTF-8 in a commit log when a mail header has explicitly
-+# declined it, i.e defined some charset where it is missing.
-+		if ($in_header_lines &&
-+		    $rawline =~ /^Content-Type:.+charset="(.+)".*$/ &&
-+		    $1 !~ /utf-8/i) {
-+			$non_utf8_charset = 1;
-+		}
-+
-+		if ($in_commit_log && $non_utf8_charset && $realfile =~ /^$/ &&
- 		    $rawline =~ /$NON_ASCII_UTF8/) {
--			CHK("UTF8_BEFORE_PATCH",
-+			WARN("UTF8_BEFORE_PATCH",
- 			    "8-bit UTF-8 used in possible commit log\n" . $herecurr);
- 		}
- 
+ 		if ($line =~ /\bpr_warning\s*\(/) {
 _
 
-Patches currently in -mm which might be from pasi.savanainen@nixu.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
+linux-next.patch
+kstrto-add-documentation.patch
+simple_strto-annotate-function-as-obsolete.patch
 
