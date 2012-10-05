@@ -1,67 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sections-fix-section-conflicts-in-drivers-mfd.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:12:59 -0700
-Message-ID: <20121005201259.A2766100047@wpzn3.hot.corp.google.com>
+Subject: [merged] sections-fix-section-conflicts-in-drivers-mmc.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:13:02 -0700
+Message-ID: <20121005201303.19AAF5C0066@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:48550 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932567Ab2JEUNA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:13:00 -0400
-Received: by mail-qc0-f202.google.com with SMTP id s25so236590qcq.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:13:00 -0700 (PDT)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:60205 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932567Ab2JEUNG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:13:06 -0400
+Received: by mail-la0-f74.google.com with SMTP id j13so98801lah.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:13:04 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@linux.intel.com, sameo@linux.intel.com, mm-commits@vger.kernel.org
+To: ak@linux.intel.com, cjb@laptop.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sections: fix section conflicts in drivers/mfd
+     Subject: sections: fix section conflicts in drivers/mmc
 has been removed from the -mm tree.  Its filename was
-     sections-fix-section-conflicts-in-drivers-mfd.patch
+     sections-fix-section-conflicts-in-drivers-mmc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andi Kleen <ak@linux.intel.com>
-Subject: sections: fix section conflicts in drivers/mfd
+Subject: sections: fix section conflicts in drivers/mmc
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Chris Ball <cjb@laptop.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/wm8994-core.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/mmc/host/sdhci-pci.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mfd/wm8994-core.c~sections-fix-section-conflicts-in-drivers-mfd drivers/mfd/wm8994-core.c
---- a/drivers/mfd/wm8994-core.c~sections-fix-section-conflicts-in-drivers-mfd
-+++ a/drivers/mfd/wm8994-core.c
-@@ -374,21 +374,21 @@ static int wm8994_ldo_in_use(struct wm89
- }
- #endif
- 
--static const __devinitdata struct reg_default wm8994_revc_patch[] = {
-+static const __devinitconst struct reg_default wm8994_revc_patch[] = {
- 	{ 0x102, 0x3 },
- 	{ 0x56, 0x3 },
- 	{ 0x817, 0x0 },
- 	{ 0x102, 0x0 },
+diff -puN drivers/mmc/host/sdhci-pci.c~sections-fix-section-conflicts-in-drivers-mmc drivers/mmc/host/sdhci-pci.c
+--- a/drivers/mmc/host/sdhci-pci.c~sections-fix-section-conflicts-in-drivers-mmc
++++ a/drivers/mmc/host/sdhci-pci.c
+@@ -653,7 +653,7 @@ static const struct sdhci_pci_fixes sdhc
+ 	.probe		= via_probe,
  };
  
--static const __devinitdata struct reg_default wm8958_reva_patch[] = {
-+static const __devinitconst struct reg_default wm8958_reva_patch[] = {
- 	{ 0x102, 0x3 },
- 	{ 0xcb, 0x81 },
- 	{ 0x817, 0x0 },
- 	{ 0x102, 0x0 },
- };
- 
--static const __devinitdata struct reg_default wm1811_reva_patch[] = {
-+static const __devinitconst struct reg_default wm1811_reva_patch[] = {
- 	{ 0x102, 0x3 },
- 	{ 0x56, 0x7 },
- 	{ 0x5d, 0x7e },
+-static const struct pci_device_id pci_ids[] __devinitdata = {
++static const struct pci_device_id pci_ids[] __devinitconst = {
+ 	{
+ 		.vendor		= PCI_VENDOR_ID_RICOH,
+ 		.device		= PCI_DEVICE_ID_RICOH_R5C822,
 _
 
 Patches currently in -mm which might be from ak@linux.intel.com are
