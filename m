@@ -1,57 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-isl1208c-add-support-for-the-isl1218.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:16:28 -0700
-Message-ID: <20121005201628.BB941100048@wpzn3.hot.corp.google.com>
+Subject: [merged] binfmt_elf-uninitialized-variable.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:16:24 -0700
+Message-ID: <20121005201625.13E6F20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:62099 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755725Ab2JEUQ3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:16:29 -0400
-Received: by mail-gg0-f202.google.com with SMTP id i4so235203ggm.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:16:29 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:34336 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757272Ab2JEUQ1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:16:27 -0400
+Received: by mail-fa0-f74.google.com with SMTP id t1so138409fae.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:16:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gardner.ben@gmail.com, a.zummo@towertech.it, mm-commits@vger.kernel.org
+To: alan@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-isl1208.c: add support for the ISL1218
+     Subject: binfmt_elf: Uninitialized variable
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-isl1208c-add-support-for-the-isl1218.patch
+     binfmt_elf-uninitialized-variable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ben Gardner <gardner.ben@gmail.com>
-Subject: drivers/rtc/rtc-isl1208.c: add support for the ISL1218
+From: Alan Cox <alan@linux.intel.com>
+Subject: binfmt_elf: Uninitialized variable
 
-The ISL1218 chip is identical to the ISL1208, except that it has 6
-additional user-storage registers.  This patch does not enable access to
-those additional registers, but only adds the chip name to the list.
+load_elf_interp() has interp_map_addr carefully described as
+"uninitialized_var" and marked so as to avoid a warning.  However if you
+trace the code it is passed into load_elf_interp and then this value is
+checked against NULL.
 
-Signed-off-by: Ben Gardner <gardner.ben@gmail.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+As this return value isn't used this is actually safe but it freaks
+various analysis tools that see un-initialized memory addresses being read
+before their value is ever defined.
+
+Set it to NULL as a matter of programming good taste if nothing else
+
+Signed-off-by: Alan Cox <alan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-isl1208.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/binfmt_elf.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-isl1208.c~drivers-rtc-rtc-isl1208c-add-support-for-the-isl1218 drivers/rtc/rtc-isl1208.c
---- a/drivers/rtc/rtc-isl1208.c~drivers-rtc-rtc-isl1208c-add-support-for-the-isl1218
-+++ a/drivers/rtc/rtc-isl1208.c
-@@ -697,6 +697,7 @@ isl1208_remove(struct i2c_client *client
+diff -puN fs/binfmt_elf.c~binfmt_elf-uninitialized-variable fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~binfmt_elf-uninitialized-variable
++++ a/fs/binfmt_elf.c
+@@ -881,7 +881,7 @@ static int load_elf_binary(struct linux_
+ 	}
  
- static const struct i2c_device_id isl1208_id[] = {
- 	{ "isl1208", 0 },
-+	{ "isl1218", 0 },
- 	{ }
- };
- MODULE_DEVICE_TABLE(i2c, isl1208_id);
+ 	if (elf_interpreter) {
+-		unsigned long uninitialized_var(interp_map_addr);
++		unsigned long interp_map_addr = 0;
+ 
+ 		elf_entry = load_elf_interp(&loc->interp_elf_ex,
+ 					    interpreter,
 _
 
-Patches currently in -mm which might be from gardner.ben@gmail.com are
+Patches currently in -mm which might be from alan@linux.intel.com are
 
 origin.patch
+linux-next.patch
 
