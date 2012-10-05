@@ -1,114 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcg-clean-up-mm_match_cgroup-signature.patch added to -mm tree
-Date: Fri, 05 Oct 2012 13:53:42 -0700
-Message-ID: <20121005205343.2CC3B100047@wpzn3.hot.corp.google.com>
+Subject: [to-be-updated] cpu-hotplug-debug-detect-imbalance-between-get_online_cpus-and-put_online_cpus.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:56:18 -0700
+Message-ID: <20121005205619.A0C7B200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:38335 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932931Ab2JEUxo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:53:44 -0400
-Received: by mail-gh0-f202.google.com with SMTP id z15so241308ghb.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:53:43 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:53830 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932876Ab2JEU4W (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:56:22 -0400
+Received: by mail-ee0-f74.google.com with SMTP id b57so140591eek.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:56:21 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: hannes@cmpxchg.org, mhocko@suse.cz
+To: srivatsa.bhat@linux.vnet.ibm.com, jkosina@suse.cz, mingo@kernel.org, peterz@infradead.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcg: clean up mm_match_cgroup() signature
-has been added to the -mm tree.  Its filename is
-     mm-memcg-clean-up-mm_match_cgroup-signature.patch
+     Subject: CPU hotplug, debug: detect imbalance between get_online_cpus() and put_online_cpus()
+has been removed from the -mm tree.  Its filename was
+     cpu-hotplug-debug-detect-imbalance-between-get_online_cpus-and-put_online_cpus.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcg: clean up mm_match_cgroup() signature
+From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Subject: CPU hotplug, debug: detect imbalance between get_online_cpus() and put_online_cpus()
 
-It really should return a boolean for match/no match.  And since it
-takes a memcg, not a cgroup, fix that parameter name as well.
+The synchronization between CPU hotplug readers and writers is achieved by
+means of refcounting, safe-guarded by the cpu_hotplug.lock.
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
----
- 1 file changed, 7 insertions(+), 7 deletions(-)
+get_online_cpus() increments the refcount, whereas put_online_cpus()
+decrements it.  If we ever hit an imbalance between the two, we end up
+compromising the guarantees of the hotplug synchronization i.e, for
+example, an extra call to put_online_cpus() can end up allowing a hotplug
+reader to execute concurrently with a hotplug writer.  So, add a BUG_ON()
+in put_online_cpus() to detect such cases where the refcount can go
+negative.
 
-index 8686294..7698182 100644
+Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ kernel/cpu.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/memcontrol.h~mm-memcg-clean-up-mm_match_cgroup-signature include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-memcg-clean-up-mm_match_cgroup-signature
-+++ a/include/linux/memcontrol.h
-@@ -84,14 +84,14 @@ extern struct mem_cgroup *parent_mem_cgr
- extern struct mem_cgroup *mem_cgroup_from_cont(struct cgroup *cont);
- 
- static inline
--int mm_match_cgroup(const struct mm_struct *mm, const struct mem_cgroup *cgroup)
-+bool mm_match_cgroup(const struct mm_struct *mm, const struct mem_cgroup *memcg)
- {
--	struct mem_cgroup *memcg;
--	int match;
-+	struct mem_cgroup *task_memcg;
-+	bool match;
- 
- 	rcu_read_lock();
--	memcg = mem_cgroup_from_task(rcu_dereference((mm)->owner));
--	match = __mem_cgroup_same_or_subtree(cgroup, memcg);
-+	task_memcg = mem_cgroup_from_task(rcu_dereference((mm)->owner));
-+	match = __mem_cgroup_same_or_subtree(cgroup, task_memcg);
- 	rcu_read_unlock();
- 	return match;
- }
-@@ -258,10 +258,10 @@ static inline struct mem_cgroup *try_get
- 	return NULL;
- }
- 
--static inline int mm_match_cgroup(struct mm_struct *mm,
-+static inline bool mm_match_cgroup(struct mm_struct *mm,
- 		struct mem_cgroup *memcg)
- {
--	return 1;
-+	return true;
- }
- 
- static inline int task_in_mem_cgroup(struct task_struct *task,
+diff -puN kernel/cpu.c~cpu-hotplug-debug-detect-imbalance-between-get_online_cpus-and-put_online_cpus kernel/cpu.c
+--- a/kernel/cpu.c~cpu-hotplug-debug-detect-imbalance-between-get_online_cpus-and-put_online_cpus
++++ a/kernel/cpu.c
+@@ -80,6 +80,7 @@ void put_online_cpus(void)
+ 	if (cpu_hotplug.active_writer == current)
+ 		return;
+ 	mutex_lock(&cpu_hotplug.lock);
++	BUG_ON(cpu_hotplug.refcount == 0);
+ 	if (!--cpu_hotplug.refcount && unlikely(cpu_hotplug.active_writer))
+ 		wake_up_process(cpu_hotplug.active_writer);
+ 	mutex_unlock(&cpu_hotplug.lock);
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from srivatsa.bhat@linux.vnet.ibm.com are
 
 origin.patch
-mm-slab-remove-duplicate-check.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
-mm-enable-config_compaction-by-default.patch
-mm-fix-up-zone-present-pages.patch
-mm-fix-invalidate_complete_page2-lock-ordering.patch
-mm-remove-vma-arg-from-page_evictable.patch
-mm-clear_page_mlock-in-page_remove_rmap.patch
-mm-remove-free_page_mlock.patch
-hugetlb-do-not-use-vma_hugecache_offset-for-vma_prio_tree_foreach.patch
-mm-revert-0def08e3-mm-mempolicyc-check-return-code-of-check_range.patch
-mm-revert-0def08e3-mm-mempolicyc-check-return-code-of-check_range-fix.patch
-mm-remove-unevictable_pgs_mlockfreed.patch
-mm-thp-fix-mapped-pages-avoiding-unevictable-list-on-mlock.patch
-mm-thp-fix-mlock-statistics.patch
-mm-thp-fix-mlock-statistics-fix.patch
-mm-memcg-clean-up-mm_match_cgroup-signature.patch
-mm-memcg-clean-up-mm_match_cgroup-signature-fix.patch
+linux-next.patch
+cpu-hotplug-debug-detect-imbalance-between-get_online_cpus-and-put_online_cpus-fix.patch
 
