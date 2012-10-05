@@ -1,73 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: [merged] aoe-update-documentation-with-new-url-and-vm-settings-reference.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:21:47 -0700
-Message-ID: <20121005202148.1992D5C0050@hpza9.eem.corp.google.com>
+Subject: [merged] aoe-retain-static-block-device-numbers-for-backwards-compatibility.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:21:55 -0700
+Message-ID: <20121005202155.B221D100049@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:56685 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932319Ab2JEUVu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:21:50 -0400
-Received: by mail-bk0-f74.google.com with SMTP id q16so139146bkw.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:21:48 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:56456 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932319Ab2JEUV4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:21:56 -0400
+Received: by mail-qc0-f202.google.com with SMTP id s25so237754qcq.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:21:56 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ecashin@coraid.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: aoe: update documentation with new URL and VM settings reference
+     Subject: aoe: retain static block device numbers for backwards compatibility
 has been removed from the -mm tree.  Its filename was
-     aoe-update-documentation-with-new-url-and-vm-settings-reference.patch
+     aoe-retain-static-block-device-numbers-for-backwards-compatibility.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Ed Cashin <ecashin@coraid.com>
-Subject: aoe: update documentation with new URL and VM settings reference
+Subject: aoe: retain static block device numbers for backwards compatibility
 
-The old area has a new URL.  Also, now that the driver can perform better,
-it is worth mentioning the VM settings that help aoe to sink dirty pages
-out early, avoiding unecessary memory pressure when much I/O is going on.
+The old mapping between AoE target shelf and slot addresses and the block
+device minor number is retained as a backwards-compatible feature, with a
+new "aoe_dyndevs" module parameter available for enabling dynamic block
+device minor numbers.
 
 Signed-off-by: Ed Cashin <ecashin@coraid.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/aoe/aoe.txt |    9 ++++++---
- MAINTAINERS               |    2 +-
- 2 files changed, 7 insertions(+), 4 deletions(-)
+ drivers/block/aoe/aoedev.c |   54 +++++++++++++++++++++++++++++++++--
+ 1 file changed, 51 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/aoe/aoe.txt~aoe-update-documentation-with-new-url-and-vm-settings-reference Documentation/aoe/aoe.txt
---- a/Documentation/aoe/aoe.txt~aoe-update-documentation-with-new-url-and-vm-settings-reference
-+++ a/Documentation/aoe/aoe.txt
-@@ -1,8 +1,11 @@
--The EtherDrive (R) HOWTO for users of 2.6 kernels is found at ...
-+The EtherDrive (R) HOWTO for 2.6 and 3.x kernels is found at ...
+diff -puN drivers/block/aoe/aoedev.c~aoe-retain-static-block-device-numbers-for-backwards-compatibility drivers/block/aoe/aoedev.c
+--- a/drivers/block/aoe/aoedev.c~aoe-retain-static-block-device-numbers-for-backwards-compatibility
++++ a/drivers/block/aoe/aoedev.c
+@@ -11,6 +11,7 @@
+ #include <linux/slab.h>
+ #include <linux/bitmap.h>
+ #include <linux/kdev_t.h>
++#include <linux/moduleparam.h>
+ #include "aoe.h"
  
--  http://www.coraid.com/SUPPORT/EtherDrive-HBA  
-+  http://support.coraid.com/support/linux/EtherDrive-2.6-HOWTO.html
+ static void dummy_timer(ulong);
+@@ -18,6 +19,10 @@ static void aoedev_freedev(struct aoedev
+ static void freetgt(struct aoedev *d, struct aoetgt *t);
+ static void skbpoolfree(struct aoedev *d);
  
--  It has many tips and hints!
-+It has many tips and hints!  Please see, especially, recommended
-+tunings for virtual memory:
++static int aoe_dyndevs;
++module_param(aoe_dyndevs, int, 0644);
++MODULE_PARM_DESC(aoe_dyndevs, "Use dynamic minor numbers for devices.");
 +
-+  http://support.coraid.com/support/linux/EtherDrive-2.6-HOWTO-5.html#ss5.19
+ static struct aoedev *devlist;
+ static DEFINE_SPINLOCK(devlist_lock);
  
- The aoetools are userland programs that are designed to work with this
- driver.  The aoetools are on sourceforge.
-diff -puN MAINTAINERS~aoe-update-documentation-with-new-url-and-vm-settings-reference MAINTAINERS
---- a/MAINTAINERS~aoe-update-documentation-with-new-url-and-vm-settings-reference
-+++ a/MAINTAINERS
-@@ -1246,7 +1246,7 @@ F:	include/linux/i2c/at24.h
+@@ -34,7 +39,7 @@ static DEFINE_SPINLOCK(used_minors_lock)
+ static DECLARE_BITMAP(used_minors, N_DEVS);
  
- ATA OVER ETHERNET (AOE) DRIVER
- M:	"Ed L. Cashin" <ecashin@coraid.com>
--W:	http://www.coraid.com/support/linux
-+W:	http://support.coraid.com/support/linux
- S:	Supported
- F:	Documentation/aoe/
- F:	drivers/block/aoe/
+ static int
+-minor_get(ulong *minor)
++minor_get_dyn(ulong *sysminor)
+ {
+ 	ulong flags;
+ 	ulong n;
+@@ -48,10 +53,53 @@ minor_get(ulong *minor)
+ 		error = -1;
+ 	spin_unlock_irqrestore(&used_minors_lock, flags);
+ 
+-	*minor = n * AOE_PARTITIONS;
++	*sysminor = n * AOE_PARTITIONS;
+ 	return error;
+ }
+ 
++static int
++minor_get_static(ulong *sysminor, ulong aoemaj, int aoemin)
++{
++	ulong flags;
++	ulong n;
++	int error = 0;
++	enum {
++		/* for backwards compatibility when !aoe_dyndevs,
++		 * a static number of supported slots per shelf */
++		NPERSHELF = 16,
++	};
++
++	n = aoemaj * NPERSHELF + aoemin;
++	if (aoemin >= NPERSHELF || n >= N_DEVS) {
++		pr_err("aoe: %s with e%ld.%d\n",
++			"cannot use static minor device numbers",
++			aoemaj, aoemin);
++		error = -1;
++	} else {
++		spin_lock_irqsave(&used_minors_lock, flags);
++		if (test_bit(n, used_minors)) {
++			pr_err("aoe: %s %lu\n",
++				"existing device already has static minor number",
++				n);
++			error = -1;
++		} else
++			set_bit(n, used_minors);
++		spin_unlock_irqrestore(&used_minors_lock, flags);
++	}
++
++	*sysminor = n;
++	return error;
++}
++
++static int
++minor_get(ulong *sysminor, ulong aoemaj, int aoemin)
++{
++	if (aoe_dyndevs)
++		return minor_get_dyn(sysminor);
++	else
++		return minor_get_static(sysminor, aoemaj, aoemin);
++}
++
+ static void
+ minor_free(ulong minor)
+ {
+@@ -293,7 +341,7 @@ aoedev_by_aoeaddr(ulong maj, int min, in
+ 			d->ref++;
+ 			break;
+ 		}
+-	if (d || !do_alloc || minor_get(&sysminor) < 0)
++	if (d || !do_alloc || minor_get(&sysminor, maj, min) < 0)
+ 		goto out;
+ 	d = kcalloc(1, sizeof *d, GFP_ATOMIC);
+ 	if (!d)
 _
 
 Patches currently in -mm which might be from ecashin@coraid.com are
