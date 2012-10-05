@@ -1,64 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-add-defconfig-file-to-imx-section.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:14:29 -0700
-Message-ID: <20121005201429.928AE100047@wpzn3.hot.corp.google.com>
+Subject: [merged] maintainers-update-gianfar_ptp-after-renaming.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:14:32 -0700
+Message-ID: <20121005201433.1D25020004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:34492 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932820Ab2JEUOa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:14:30 -0400
-Received: by mail-gg0-f202.google.com with SMTP id i4so235045ggm.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:14:30 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:54984 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932820Ab2JEUOe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:14:34 -0400
+Received: by mail-wi0-f202.google.com with SMTP id hr7so57836wib.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:14:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: u.kleine-koenig@pengutronix.de, mm-commits@vger.kernel.org
+To: joe@perches.com, jeffrey.t.kirsher@intel.com, richardcochran@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add defconfig file to IMX section
+     Subject: MAINTAINERS: Update gianfar_ptp after renaming
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-defconfig-file-to-imx-section.patch
+     maintainers-update-gianfar_ptp-after-renaming.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
-Subject: MAINTAINERS: add defconfig file to IMX section
+From: Joe Perches <joe@perches.com>
+Subject: MAINTAINERS: Update gianfar_ptp after renaming
 
-Signed-off-by: Uwe Kleine-K=F6nig <u.kleine-koenig@pengutronix.de>
+commit ec21e2ec36769 ("freescale: Move the Freescale drivers")
+moved the files, update the pattern.
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Richard Cochran <richardcochran@gmail.com>
+Acked-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-add-defconfig-file-to-imx-section MAI=
-NTAINERS
---- a/MAINTAINERS~maintainers-add-defconfig-file-to-imx-section
+diff -puN MAINTAINERS~maintainers-update-gianfar_ptp-after-renaming MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-gianfar_ptp-after-renaming
 +++ a/MAINTAINERS
-@@ -760,6 +760,7 @@ S:	Maintained
- T:	git git://git.pengutronix.de/git/imx/linux-2.6.git
- F:	arch/arm/mach-imx/
- F:	arch/arm/plat-mxc/
-+F:	arch/arm/configs/imx*_defconfig
-=20
- ARM/FREESCALE IMX6
- M:	Shawn Guo <shawn.guo@linaro.org>
+@@ -5556,7 +5556,7 @@ S:	Maintained
+ W:	http://linuxptp.sourceforge.net/
+ F:	Documentation/ABI/testing/sysfs-ptp
+ F:	Documentation/ptp/*
+-F:	drivers/net/gianfar_ptp.c
++F:	drivers/net/ethernet/freescale/gianfar_ptp.c
+ F:	drivers/net/phy/dp83640*
+ F:	drivers/ptp/*
+ F:	include/linux/ptp_cl*
 _
 
-Patches currently in -mm which might be from u.kleine-koenig@pengutroni=
-x.de are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
 linux-next.patch
+kstrto-add-documentation.patch
+simple_strto-annotate-function-as-obsolete.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
