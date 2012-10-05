@@ -1,110 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-huge_memoryc-fix-build-warning-for-uma-kernels.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:22:30 -0700
-Message-ID: <20121005202230.9992E100047@wpzn3.hot.corp.google.com>
+Subject: [merged] lib-decompressc-add-__init-to-decompress_method-and-data.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:22:26 -0700
+Message-ID: <20121005202227.4D8A6200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:54016 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932319Ab2JEUWb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:22:31 -0400
-Received: by mail-yh0-f74.google.com with SMTP id 10so173203yhl.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:22:31 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:63590 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932319Ab2JEUW3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:22:29 -0400
+Received: by mail-lb0-f202.google.com with SMTP id l12so141223lbo.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:22:28 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, mm-commits@vger.kernel.org
+To: hein_tibosch@yahoo.es, albin.tonnerre@free-electrons.com, hpa@zytor.com, phillip@lougher.demon.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/huge_memory.c: fix build warning for UMA kernels
+     Subject: lib/decompress.c add __init to decompress_method and data
 has been removed from the -mm tree.  Its filename was
-     mm-huge_memoryc-fix-build-warning-for-uma-kernels.patch
+     lib-decompressc-add-__init-to-decompress_method-and-data.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm/huge_memory.c: fix build warning for UMA kernels
+From: Hein Tibosch <hein_tibosch@yahoo.es>
+Subject: lib/decompress.c add __init to decompress_method and data
 
-"mm, mpol: Use special PROT_NONE to migrate pages" causes a build warning
-when CONFIG_NUMA is not enabled:
+WARNING: vmlinux.o(.text+0x14cfd8): Section mismatch in
+reference from the variable compressed_formats to the function
+.init.text:gunzip()
+The function compressed_formats() references
+the function __init gunzip().
+etc..
 
-mm/huge_memory.c: In function 'do_huge_pmd_prot_none':
-mm/huge_memory.c:745: warning: unused variable 'node'
+This patch should solve it:
 
-"node" is only used once, so avoid using it altogether.
+Within decompress.c, compressed_formats[] needs 'a __initdata annotation',
+because some of it's data members refer to functions which will be
+unloaded after init.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
+Consequently, its user decompress_method() will get the __init prefix.
+
+Signed-off-by: Hein Tibosch <hein_tibosch@yahoo.es>
+Cc: Albin Tonnerre <albin.tonnerre@free-electrons.com>
+Cc: Phillip Lougher <phillip@lougher.demon.co.uk>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ lib/decompress.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-huge_memoryc-fix-build-warning-for-uma-kernels mm/huge_memory.c
---- a/mm/huge_memory.c~mm-huge_memoryc-fix-build-warning-for-uma-kernels
-+++ a/mm/huge_memory.c
-@@ -742,7 +742,6 @@ void do_huge_pmd_prot_none(struct mm_str
+diff -puN lib/decompress.c~lib-decompressc-add-__init-to-decompress_method-and-data lib/decompress.c
+--- a/lib/decompress.c~lib-decompressc-add-__init-to-decompress_method-and-data
++++ a/lib/decompress.c
+@@ -14,6 +14,7 @@
+ 
+ #include <linux/types.h>
+ #include <linux/string.h>
++#include <linux/init.h>
+ 
+ #ifndef CONFIG_DECOMPRESS_GZIP
+ # define gunzip NULL
+@@ -31,11 +32,13 @@
+ # define unlzo NULL
+ #endif
+ 
+-static const struct compress_format {
++struct compress_format {
+ 	unsigned char magic[2];
+ 	const char *name;
+ 	decompress_fn decompressor;
+-} compressed_formats[] = {
++};
++
++static const struct compress_format compressed_formats[] __initdata = {
+ 	{ {037, 0213}, "gzip", gunzip },
+ 	{ {037, 0236}, "gzip", gunzip },
+ 	{ {0x42, 0x5a}, "bzip2", bunzip2 },
+@@ -45,7 +48,7 @@ static const struct compress_format {
+ 	{ {0, 0}, NULL, NULL }
+ };
+ 
+-decompress_fn decompress_method(const unsigned char *inbuf, int len,
++decompress_fn __init decompress_method(const unsigned char *inbuf, int len,
+ 				const char **name)
  {
- 	unsigned long haddr = address & HPAGE_PMD_MASK;
- 	struct page *page = NULL;
--	int node;
- 
- 	spin_lock(&mm->page_table_lock);
- 	if (unlikely(!pmd_same(*pmd, entry)))
-@@ -765,8 +764,7 @@ void do_huge_pmd_prot_none(struct mm_str
- 	 * XXX should we serialize against split_huge_page ?
- 	 */
- 
--	node = mpol_misplaced(page, vma, haddr, mm->numa_big);
--	if (node == -1)
-+	if (mpol_misplaced(page, vma, haddr, mm->numa_big) == -1)
- 		goto do_fixup;
- 
- 	/*
+ 	const struct compress_format *cf;
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from hein_tibosch@yahoo.es are
 
 origin.patch
 linux-next.patch
-acpi_memhotplugc-fix-memory-leak-when-memory-device-is-unbound-from-the-module-acpi_memhotplug.patch
-acpi_memhotplugc-free-memory-device-if-acpi_memory_enable_device-failed.patch
-acpi_memhotplugc-remove-memory-info-from-list-before-freeing-it.patch
-acpi_memhotplugc-dont-allow-to-eject-the-memory-device-if-it-is-being-used.patch
-acpi_memhotplugc-bind-the-memory-device-when-the-driver-is-being-loaded.patch
-acpi_memhotplugc-auto-bind-the-memory-device-which-is-hotplugged-before-the-driver-is-loaded.patch
-mm-mmapc-replace-find_vma_prepare-with-clearer-find_vma_links-fix.patch
-oom-remove-deprecated-oom_adj.patch
-thp-fix-the-count-of-thp_collapse_alloc.patch
-thp-remove-unnecessary-check-in-start_khugepaged.patch
-thp-move-khugepaged_mutex-out-of-khugepaged.patch
-thp-remove-unnecessary-khugepaged_thread-check.patch
-thp-remove-wake_up_interruptible-in-the-exit-path.patch
-thp-remove-some-code-depend-on-config_numa.patch
-thp-merge-page-pre-alloc-in-khugepaged_loop-into-khugepaged_do_scan.patch
-thp-release-page-in-page-pre-alloc-path.patch
-thp-introduce-khugepaged_prealloc_page-and-khugepaged_alloc_page.patch
-thp-remove-khugepaged_loop.patch
-thp-use-khugepaged_enabled-to-remove-duplicate-code.patch
-thp-remove-unnecessary-set_recommended_min_free_kbytes.patch
-mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc.patch
-memory-hotplug-dont-replace-lowmem-pages-with-highmem.patch
-thp-khugepaged_prealloc_page-forgot-to-reset-the-page-alloc-indicator.patch
-mm-fix-up-zone-present-pages.patch
-mm-numa-reclaim-from-all-nodes-within-reclaim-distance.patch
-mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix.patch
-mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix-fix.patch
-hugetlb-do-not-use-vma_hugecache_offset-for-vma_prio_tree_foreach.patch
-mm-revert-0def08e3-mm-mempolicyc-check-return-code-of-check_range.patch
-mm-revert-0def08e3-mm-mempolicyc-check-return-code-of-check_range-fix.patch
-kpageflags-fix-wrong-kpf_thp-on-non-huge-compound-pages.patch
-make-gfp_notrack-definition-unconditional.patch
-memory-hotplug-preparation-to-notify-memory-blocks-state-at-memory-hot-remove.patch
-memory-hotplug-update-memory-blocks-state-and-notfy-theinformation-to-userspace.patch
-mm-thp-fix-mapped-pages-avoiding-unevictable-list-on-mlock.patch
-mm-thp-fix-mlock-statistics.patch
-mm-thp-fix-mlock-statistics-fix.patch
-mm-use-%pk-for-proc-vmallocinfo.patch
-mm-document-pagehuge-somewhat.patch
 
