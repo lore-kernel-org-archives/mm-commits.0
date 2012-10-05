@@ -1,63 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] rtc-tps65910-add-rtc-driver-for-tps65910-pmic-rtc-fix.patch removed from -mm tree
-Date: Thu, 04 Oct 2012 16:59:24 -0700
-Message-ID: <20121004235925.C80335C0060@hpza9.eem.corp.google.com>
+Subject: [folded-dropped] coredump-add-support-for-%d=__get_dumpable-in-core-name-fix.patch removed from -mm tree
+Date: Thu, 04 Oct 2012 17:02:36 -0700
+Message-ID: <20121005000236.72C8F100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:57982 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753192Ab2JDX72 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2012 19:59:28 -0400
-Received: by mail-wi0-f202.google.com with SMTP id hr7so76398wib.1
-        for <mm-commits@vger.kernel.org>; Thu, 04 Oct 2012 16:59:27 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:55107 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754693Ab2JEACh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2012 20:02:37 -0400
+Received: by mail-vb0-f74.google.com with SMTP id s24so130038vbi.1
+        for <mm-commits@vger.kernel.org>; Thu, 04 Oct 2012 17:02:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbyravarasu@nvidia.com, a.zummo@towertech.it, broonie@opensource.wolfsonmicro.com, sameo@linux.intel.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: tps65910: change RTC driver name as per mfd
+     Subject:  coredump-add-support-for-%d=__get_dumpable-in-core-name-fix
 has been removed from the -mm tree.  Its filename was
-     rtc-tps65910-add-rtc-driver-for-tps65910-pmic-rtc-fix.patch
+     coredump-add-support-for-%d=__get_dumpable-in-core-name-fix.patch
 
-This patch was dropped because it was folded into rtc-tps65910-add-rtc-driver-for-tps65910-pmic-rtc.patch
+This patch was dropped because it was folded into coredump-add-support-for-%d=__get_dumpable-in-core-name.patch
 
 ------------------------------------------------------
-From: Venu Byravarasu <vbyravarasu@nvidia.com>
-Subject: rtc: tps65910: change RTC driver name as per mfd
+From: Oleg Nesterov <oleg@redhat.com>
+Subject:  coredump-add-support-for-%d=__get_dumpable-in-core-name-fix
 
-As TPS65910 mfd uses "tps65910-rtc" as driver name, change the
-driver name in the RTC driver to match with the same.
-
-Signed-off-by: Venu Byravarasu <vbyravarasu@nvidia.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-tps65910.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/sysctl/kernel.txt |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/rtc/rtc-tps65910.c~rtc-tps65910-add-rtc-driver-for-tps65910-pmic-rtc-fix drivers/rtc/rtc-tps65910.c
---- a/drivers/rtc/rtc-tps65910.c~rtc-tps65910-add-rtc-driver-for-tps65910-pmic-rtc-fix
-+++ a/drivers/rtc/rtc-tps65910.c
-@@ -341,7 +341,7 @@ static struct platform_driver tps65910_r
- 	.remove		= __devexit_p(tps65910_rtc_remove),
- 	.driver		= {
- 		.owner	= THIS_MODULE,
--		.name	= "rtc-tps65910",
-+		.name	= "tps65910-rtc",
- 		.pm	= DEV_PM_OPS,
- 	},
- };
+diff -puN Documentation/sysctl/kernel.txt~coredump-add-support-for-%d=__get_dumpable-in-core-name-fix Documentation/sysctl/kernel.txt
+--- a/Documentation/sysctl/kernel.txt~coredump-add-support-for-%d=__get_dumpable-in-core-name-fix
++++ a/Documentation/sysctl/kernel.txt
+@@ -181,6 +181,8 @@ core_pattern is used to specify a core d
+ 	%p	pid
+ 	%u	uid
+ 	%g	gid
++	%d	dump mode, matches PR_SET_DUMPABLE and
++		/proc/sys/fs/suid_dumpable
+ 	%s	signal number
+ 	%t	UNIX time of dump
+ 	%h	hostname
 _
 
-Patches currently in -mm which might be from vbyravarasu@nvidia.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
-rtc-tps65910-add-rtc-driver-for-tps65910-pmic-rtc.patch
-rtc-kconfig-remove-unnecessary-dependencies.patch
-rtc-rc5t583-add-ricoh-rc5t583-rtc-driver.patch
-drivers-rtc-rtc-tps65910c-use-platform_get_irq-to-get-rtc-irq-details.patch
+coredump-add-support-for-%d=__get_dumpable-in-core-name.patch
+coredump-use-suid_dumpable_enabled-rather-than-hardcoded-1.patch
+coredump-use-suid_dumpable_enabled-rather-than-hardcoded-1-checkpatch-fixes.patch
+coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr.patch
+compat-move-compat_siginfo_t-definition-to-asm-compath.patch
+coredump-add-a-new-elf-note-with-siginfo-of-the-signal.patch
+coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files.patch
 
