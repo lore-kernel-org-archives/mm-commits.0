@@ -1,146 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sections-disable-const-sections-for-pa-risc-v2.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:12:08 -0700
-Message-ID: <20121005201209.2BED020004E@hpza10.eem.corp.google.com>
+Subject: [merged] sections-fix-section-conflicts-in-arch-h8300.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:12:18 -0700
+Message-ID: <20121005201218.ACA2F100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:46749 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757263Ab2JEUML (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:12:11 -0400
-Received: by mail-wg0-f74.google.com with SMTP id dt11so139738wgb.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:12:10 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:45609 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757263Ab2JEUMT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:12:19 -0400
+Received: by mail-vc0-f202.google.com with SMTP id fy27so236268vcb.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:12:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@linux.intel.com, deller@gmx.de, jejb@parisc-linux.org, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: ak@linux.intel.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sections: disable const sections for PA-RISC v2
+     Subject: sections: fix section conflicts in arch/h8300
 has been removed from the -mm tree.  Its filename was
-     sections-disable-const-sections-for-pa-risc-v2.patch
+     sections-fix-section-conflicts-in-arch-h8300.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andi Kleen <ak@linux.intel.com>
-Subject: sections: disable const sections for PA-RISC v2
+Subject: sections: fix section conflicts in arch/h8300
 
-The PA-RISC tool chain seems to have some problem with correct read/write
-attributes on sections. This causes problems when the const sections
-are fixed up for other architecture to only contain truly read-only
-data.
-
-Disable const sections for PA-RISC
-
-This can cause a bit of noise with modpost.
-
+[akpm@linux-foundation.org: checkpatch fixes]
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
-Cc: Helge Deller <deller@gmx.de>
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/Kconfig  |    1 +
- include/linux/init.h |   27 +++++++++++++++++++--------
- init/Kconfig         |    6 ++++++
- 3 files changed, 26 insertions(+), 8 deletions(-)
+ arch/h8300/kernel/sys_h8300.c     |    1 +
+ arch/h8300/kernel/timer/itu.c     |    2 +-
+ arch/h8300/kernel/timer/timer16.c |    2 +-
+ arch/h8300/kernel/timer/timer8.c  |    2 +-
+ arch/h8300/kernel/timer/tpu.c     |    2 +-
+ arch/h8300/platform/h8300h/irq.c  |    4 ++--
+ arch/h8300/platform/h8s/irq.c     |    4 ++--
+ 7 files changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN arch/parisc/Kconfig~sections-disable-const-sections-for-pa-risc-v2 arch/parisc/Kconfig
---- a/arch/parisc/Kconfig~sections-disable-const-sections-for-pa-risc-v2
-+++ a/arch/parisc/Kconfig
-@@ -13,6 +13,7 @@ config PARISC
- 	select HAVE_PERF_EVENTS
- 	select GENERIC_ATOMIC64 if !64BIT
- 	select HAVE_GENERIC_HARDIRQS
-+	select BROKEN_RODATA
- 	select GENERIC_IRQ_PROBE
- 	select GENERIC_PCI_IOMAP
- 	select IRQ_PER_CPU
-diff -puN include/linux/init.h~sections-disable-const-sections-for-pa-risc-v2 include/linux/init.h
---- a/include/linux/init.h~sections-disable-const-sections-for-pa-risc-v2
-+++ a/include/linux/init.h
-@@ -43,11 +43,22 @@
-    discard it in modules) */
- #define __init		__section(.init.text) __cold notrace
- #define __initdata	__section(.init.data)
--#define __initconst	__section(.init.rodata)
-+#define __initconst	__constsection(.init.rodata)
- #define __exitdata	__section(.exit.data)
- #define __exit_call	__used __section(.exitcall.exit)
- 
- /*
-+ * Some architecture have tool chains which do not handle rodata attributes
-+ * correctly. For those disable special sections for const, so that other
-+ * architectures can annotate correctly.
-+ */
-+#ifdef CONFIG_BROKEN_RODATA
-+#define __constsection(x)
-+#else
-+#define __constsection(x) __section(x)
-+#endif
-+
-+/*
-  * modpost check for section mismatches during the kernel build.
-  * A section mismatch happens when there are references from a
-  * code or data section to an init section (both code or data).
-@@ -66,7 +77,7 @@
+diff -puN arch/h8300/kernel/sys_h8300.c~sections-fix-section-conflicts-in-arch-h8300 arch/h8300/kernel/sys_h8300.c
+--- a/arch/h8300/kernel/sys_h8300.c~sections-fix-section-conflicts-in-arch-h8300
++++ a/arch/h8300/kernel/sys_h8300.c
+@@ -51,6 +51,7 @@ asmlinkage void syscall_print(void *dumm
+  * Do a system call from kernel instead of calling sys_execve so we
+  * end up with proper pt_regs.
   */
- #define __ref            __section(.ref.text) noinline
- #define __refdata        __section(.ref.data)
--#define __refconst       __section(.ref.rodata)
-+#define __refconst       __constsection(.ref.rodata)
++asmlinkage
+ int kernel_execve(const char *filename,
+ 		  const char *const argv[],
+ 		  const char *const envp[])
+diff -puN arch/h8300/kernel/timer/itu.c~sections-fix-section-conflicts-in-arch-h8300 arch/h8300/kernel/timer/itu.c
+--- a/arch/h8300/kernel/timer/itu.c~sections-fix-section-conflicts-in-arch-h8300
++++ a/arch/h8300/kernel/timer/itu.c
+@@ -62,7 +62,7 @@ static struct irqaction itu_irq = {
+ 	.flags		= IRQF_DISABLED | IRQF_TIMER,
+ };
  
- /* compatibility defines */
- #define __init_refok     __ref
-@@ -85,26 +96,26 @@
- /* Used for HOTPLUG */
- #define __devinit        __section(.devinit.text) __cold notrace
- #define __devinitdata    __section(.devinit.data)
--#define __devinitconst   __section(.devinit.rodata)
-+#define __devinitconst   __constsection(.devinit.rodata)
- #define __devexit        __section(.devexit.text) __exitused __cold notrace
- #define __devexitdata    __section(.devexit.data)
--#define __devexitconst   __section(.devexit.rodata)
-+#define __devexitconst   __constsection(.devexit.rodata)
+-static const int __initdata divide_rate[] = {1, 2, 4, 8};
++static const int __initconst divide_rate[] = {1, 2, 4, 8};
  
- /* Used for HOTPLUG_CPU */
- #define __cpuinit        __section(.cpuinit.text) __cold notrace
- #define __cpuinitdata    __section(.cpuinit.data)
--#define __cpuinitconst   __section(.cpuinit.rodata)
-+#define __cpuinitconst   __constsection(.cpuinit.rodata)
- #define __cpuexit        __section(.cpuexit.text) __exitused __cold notrace
- #define __cpuexitdata    __section(.cpuexit.data)
--#define __cpuexitconst   __section(.cpuexit.rodata)
-+#define __cpuexitconst   __constsection(.cpuexit.rodata)
+ void __init h8300_timer_setup(void)
+ {
+diff -puN arch/h8300/kernel/timer/timer16.c~sections-fix-section-conflicts-in-arch-h8300 arch/h8300/kernel/timer/timer16.c
+--- a/arch/h8300/kernel/timer/timer16.c~sections-fix-section-conflicts-in-arch-h8300
++++ a/arch/h8300/kernel/timer/timer16.c
+@@ -57,7 +57,7 @@ static struct irqaction timer16_irq = {
+ 	.flags		= IRQF_DISABLED | IRQF_TIMER,
+ };
  
- /* Used for MEMORY_HOTPLUG */
- #define __meminit        __section(.meminit.text) __cold notrace
- #define __meminitdata    __section(.meminit.data)
--#define __meminitconst   __section(.meminit.rodata)
-+#define __meminitconst   __constsection(.meminit.rodata)
- #define __memexit        __section(.memexit.text) __exitused __cold notrace
- #define __memexitdata    __section(.memexit.data)
--#define __memexitconst   __section(.memexit.rodata)
-+#define __memexitconst   __constsection(.memexit.rodata)
+-static const int __initdata divide_rate[] = {1, 2, 4, 8};
++static const int __initconst divide_rate[] = {1, 2, 4, 8};
  
- /* For assembly routines */
- #define __HEAD		.section	".head.text","ax"
-diff -puN init/Kconfig~sections-disable-const-sections-for-pa-risc-v2 init/Kconfig
---- a/init/Kconfig~sections-disable-const-sections-for-pa-risc-v2
-+++ a/init/Kconfig
-@@ -1581,4 +1581,10 @@ config PADATA
- 	depends on SMP
- 	bool
+ void __init h8300_timer_setup(void)
+ {
+diff -puN arch/h8300/kernel/timer/timer8.c~sections-fix-section-conflicts-in-arch-h8300 arch/h8300/kernel/timer/timer8.c
+--- a/arch/h8300/kernel/timer/timer8.c~sections-fix-section-conflicts-in-arch-h8300
++++ a/arch/h8300/kernel/timer/timer8.c
+@@ -77,7 +77,7 @@ static struct irqaction timer8_irq = {
+ 	.flags		= IRQF_DISABLED | IRQF_TIMER,
+ };
  
-+# Can be selected by architectures with broken toolchains
-+# that get confused by correct const<->read_only section
-+# mappings
-+config BROKEN_RODATA
-+	bool
-+
- source "kernel/Kconfig.locks"
+-static const int __initdata divide_rate[] = {8, 64, 8192};
++static const int __initconst divide_rate[] = {8, 64, 8192};
+ 
+ void __init h8300_timer_setup(void)
+ {
+diff -puN arch/h8300/kernel/timer/tpu.c~sections-fix-section-conflicts-in-arch-h8300 arch/h8300/kernel/timer/tpu.c
+--- a/arch/h8300/kernel/timer/tpu.c~sections-fix-section-conflicts-in-arch-h8300
++++ a/arch/h8300/kernel/timer/tpu.c
+@@ -66,7 +66,7 @@ static struct irqaction tpu_irq = {
+ 	.flags		= IRQF_DISABLED | IRQF_TIMER,
+ };
+ 
+-static const int __initdata divide_rate[] = {
++static const int __initconst divide_rate[] = {
+ #if CONFIG_H8300_TPU_CH == 0
+ 	1,4,16,64,0,0,0,0,
+ #elif (CONFIG_H8300_TPU_CH == 1) || (CONFIG_H8300_TPU_CH == 5)
+diff -puN arch/h8300/platform/h8300h/irq.c~sections-fix-section-conflicts-in-arch-h8300 arch/h8300/platform/h8300h/irq.c
+--- a/arch/h8300/platform/h8300h/irq.c~sections-fix-section-conflicts-in-arch-h8300
++++ a/arch/h8300/platform/h8300h/irq.c
+@@ -14,14 +14,14 @@
+ #include <asm/gpio-internal.h>
+ #include <asm/regs306x.h>
+ 
+-const int __initdata h8300_saved_vectors[] = {
++const int __initconst h8300_saved_vectors[] = {
+ #if defined(CONFIG_GDB_DEBUG)
+ 	TRAP3_VEC,	/* TRAPA #3 is GDB breakpoint */
+ #endif
+ 	-1,
+ };
+ 
+-const h8300_vector __initdata h8300_trap_table[] = {
++const h8300_vector __initconst h8300_trap_table[] = {
+ 	0, 0, 0, 0, 0, 0, 0, 0,
+ 	system_call,
+ 	0,
+diff -puN arch/h8300/platform/h8s/irq.c~sections-fix-section-conflicts-in-arch-h8300 arch/h8300/platform/h8s/irq.c
+--- a/arch/h8300/platform/h8s/irq.c~sections-fix-section-conflicts-in-arch-h8300
++++ a/arch/h8300/platform/h8s/irq.c
+@@ -18,7 +18,7 @@
+ #include <asm/regs267x.h>
+ 
+ /* saved vector list */
+-const int __initdata h8300_saved_vectors[]={
++const int __initconst h8300_saved_vectors[] = {
+ #if defined(CONFIG_GDB_DEBUG)
+ 	TRACE_VEC,
+ 	TRAP3_VEC,
+@@ -27,7 +27,7 @@ const int __initdata h8300_saved_vectors
+ };
+ 
+ /* trap entry table */
+-const H8300_VECTOR __initdata h8300_trap_table[] = {
++const H8300_VECTOR __initconst h8300_trap_table[] = {
+ 	0,0,0,0,0,
+ 	trace_break,  /* TRACE */
+ 	0,0,
 _
 
 Patches currently in -mm which might be from ak@linux.intel.com are
