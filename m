@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcg-clean-up-mm_match_cgroup-signature-fix.patch added to -mm tree
-Date: Fri, 05 Oct 2012 13:53:45 -0700
-Message-ID: <20121005205346.B8ABE5C0050@hpza9.eem.corp.google.com>
+Subject: + mm-memcg-clean-up-mm_match_cgroup-signature.patch added to -mm tree
+Date: Fri, 05 Oct 2012 13:53:42 -0700
+Message-ID: <20121005205343.2CC3B100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:59751 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932918Ab2JEUxt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:53:49 -0400
-Received: by mail-ee0-f74.google.com with SMTP id b57so140527eek.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:53:48 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:38335 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932931Ab2JEUxo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:53:44 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z15so241308ghb.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:53:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hannes@cmpxchg.org, mhocko@suse.cz
+Cc: hannes@cmpxchg.org, mhocko@suse.cz
 
 
 The patch titled
-     Subject: mm-memcg-clean-up-mm_match_cgroup-signature-fix
+     Subject: mm: memcg: clean up mm_match_cgroup() signature
 has been added to the -mm tree.  Its filename is
-     mm-memcg-clean-up-mm_match_cgroup-signature-fix.patch
+     mm-memcg-clean-up-mm_match_cgroup-signature.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,78 +33,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memcg-clean-up-mm_match_cgroup-signature-fix
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcg: clean up mm_match_cgroup() signature
 
-mm_match_cgroup is not a macro
+It really should return a boolean for match/no match.  And since it
+takes a memcg, not a cgroup, fix that parameter name as well.
 
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+---
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+index 8686294..7698182 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/memcontrol.h |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/memcontrol.h~mm-memcg-clean-up-mm_match_cgroup-signature-fix include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-memcg-clean-up-mm_match_cgroup-signature-fix
+diff -puN include/linux/memcontrol.h~mm-memcg-clean-up-mm_match_cgroup-signature include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-memcg-clean-up-mm_match_cgroup-signature
 +++ a/include/linux/memcontrol.h
-@@ -90,7 +90,7 @@ bool mm_match_cgroup(const struct mm_str
- 	bool match;
+@@ -84,14 +84,14 @@ extern struct mem_cgroup *parent_mem_cgr
+ extern struct mem_cgroup *mem_cgroup_from_cont(struct cgroup *cont);
+ 
+ static inline
+-int mm_match_cgroup(const struct mm_struct *mm, const struct mem_cgroup *cgroup)
++bool mm_match_cgroup(const struct mm_struct *mm, const struct mem_cgroup *memcg)
+ {
+-	struct mem_cgroup *memcg;
+-	int match;
++	struct mem_cgroup *task_memcg;
++	bool match;
  
  	rcu_read_lock();
--	task_memcg = mem_cgroup_from_task(rcu_dereference((mm)->owner));
-+	task_memcg = mem_cgroup_from_task(rcu_dereference(mm->owner));
- 	match = __mem_cgroup_same_or_subtree(cgroup, task_memcg);
+-	memcg = mem_cgroup_from_task(rcu_dereference((mm)->owner));
+-	match = __mem_cgroup_same_or_subtree(cgroup, memcg);
++	task_memcg = mem_cgroup_from_task(rcu_dereference((mm)->owner));
++	match = __mem_cgroup_same_or_subtree(cgroup, task_memcg);
  	rcu_read_unlock();
  	return match;
+ }
+@@ -258,10 +258,10 @@ static inline struct mem_cgroup *try_get
+ 	return NULL;
+ }
+ 
+-static inline int mm_match_cgroup(struct mm_struct *mm,
++static inline bool mm_match_cgroup(struct mm_struct *mm,
+ 		struct mem_cgroup *memcg)
+ {
+-	return 1;
++	return true;
+ }
+ 
+ static inline int task_in_mem_cgroup(struct task_struct *task,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
-linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-mm.patch
-x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
-mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
+mm-slab-remove-duplicate-check.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer.patch
 mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
 mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
-mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures-fix.patch
-mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch
-rbtree-performance-and-correctness-test-fix.patch
-mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix.patch
-mm-fix-tracing-in-free_pcppages_bulk-fix.patch
-cma-count-free-cma-pages-fix.patch
-memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
-atomic-implement-generic-atomic_dec_if_positive-fix.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix-2.patch
-mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible-fix-fix.patch
-mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch
+mm-enable-config_compaction-by-default.patch
+mm-fix-up-zone-present-pages.patch
 mm-fix-invalidate_complete_page2-lock-ordering.patch
-mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix.patch
-mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock.patch
-cma-migrate-mlocked-pages-fix.patch
-fs-block_devc-set_blocksize-use-mapping_mapped.patch
-mm-avoid-section-mismatch-warning-for-memblock_type_name-fix.patch
-mm-document-pagehuge-somewhat.patch
+mm-remove-vma-arg-from-page_evictable.patch
+mm-clear_page_mlock-in-page_remove_rmap.patch
+mm-remove-free_page_mlock.patch
+hugetlb-do-not-use-vma_hugecache_offset-for-vma_prio_tree_foreach.patch
+mm-revert-0def08e3-mm-mempolicyc-check-return-code-of-check_range.patch
+mm-revert-0def08e3-mm-mempolicyc-check-return-code-of-check_range-fix.patch
+mm-remove-unevictable_pgs_mlockfreed.patch
+mm-thp-fix-mapped-pages-avoiding-unevictable-list-on-mlock.patch
+mm-thp-fix-mlock-statistics.patch
+mm-thp-fix-mlock-statistics-fix.patch
+mm-memcg-clean-up-mm_match_cgroup-signature.patch
 mm-memcg-clean-up-mm_match_cgroup-signature-fix.patch
-idr-rename-max_level-to-max_idr_level-fix-3.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
-cpu-hotplug-debug-detect-imbalance-between-get_online_cpus-and-put_online_cpus-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
