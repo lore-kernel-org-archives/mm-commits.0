@@ -1,77 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch removed from -mm tree
-Date: Thu, 04 Oct 2012 16:59:07 -0700
-Message-ID: <20121004235908.60E4E1E0048@wpzn4.hot.corp.google.com>
+Subject: [folded-dropped] fat-simplify-writeback_inode-checkpatch-fixes-fix.patch removed from -mm tree
+Date: Thu, 04 Oct 2012 17:01:30 -0700
+Message-ID: <20121005000131.5AF7B5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:41747 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752223Ab2JDX7J (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2012 19:59:09 -0400
-Received: by mail-gh0-f202.google.com with SMTP id z15so129482ghb.1
-        for <mm-commits@vger.kernel.org>; Thu, 04 Oct 2012 16:59:09 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:46524 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753472Ab2JEABe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2012 20:01:34 -0400
+Received: by mail-ee0-f74.google.com with SMTP id b57so75504eek.1
+        for <mm-commits@vger.kernel.org>; Thu, 04 Oct 2012 17:01:32 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shawn.guo@linaro.org, a.zummo@towertech.it, kim.phillips@freescale.com, s.hauer@pengutronix.de, sboyd@codeaurora.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, amit.sahrawat83@gmail.com, hirofumi@mail.parknet.co.jp, linkinjeon@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: snvs: change timeout to use a fixed number of loop
+     Subject: fat-simplify-writeback_inode-checkpatch-fixes-fix
 has been removed from the -mm tree.  Its filename was
-     rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch
+     fat-simplify-writeback_inode-checkpatch-fixes-fix.patch
 
-This patch was dropped because it was folded into rtc-snvs-add-freescale-rtc-snvs-driver.patch
+This patch was dropped because it was folded into fat-simplify-writeback_inode.patch
 
 ------------------------------------------------------
-From: Shawn Guo <shawn.guo@linaro.org>
-Subject: rtc: snvs: change timeout to use a fixed number of loop
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fat-simplify-writeback_inode-checkpatch-fixes-fix
 
-Andrew Morton <akpm@linux-foundation.org> wrote:
-
-> The timeout code here is fragile.  If acquiring the spinlock takes more
-> than a millisecond or if this thread gets interrupted or preempted then
-> we could easily execute that loop just a single time, and fail.
->
-> It would be better to retry a fixed number of times, say 1000?  That
-> would take around 1 millisecond, but might be overkill.
-
-Take Andrew's suggestion to change the timeout code to retry 1000
-times.
-
-Signed-off-by: Shawn Guo <shawn.guo@linaro.org>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Kim Phillips <kim.phillips@freescale.com>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Amit Sahrawat <amit.sahrawat83@gmail.com>
+Cc: Namjae Jeon <linkinjeon@gmail.com>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-snvs.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/fat/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-snvs.c~rtc-snvs-add-freescale-rtc-snvs-driver-fix drivers/rtc/rtc-snvs.c
---- a/drivers/rtc/rtc-snvs.c~rtc-snvs-add-freescale-rtc-snvs-driver-fix
-+++ a/drivers/rtc/rtc-snvs.c
-@@ -83,8 +83,8 @@ static void rtc_write_sync_lp(void __iom
+diff -puN fs/fat/inode.c~fat-simplify-writeback_inode-checkpatch-fixes-fix fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-simplify-writeback_inode-checkpatch-fixes-fix
++++ a/fs/fat/inode.c
+@@ -1470,7 +1470,7 @@ static int writeback_inode(struct inode 
+ 	*/
+ 	ret = sync_inode_metadata(inode, 0);
+ 	if (!ret)
+-		= filemap_fdatawrite(inode->i_mapping);
++		ret = filemap_fdatawrite(inode->i_mapping);
+ 	return ret;
+ }
  
- static int snvs_rtc_enable(struct snvs_rtc_data *data, bool enable)
- {
--	unsigned long timeout = jiffies + msecs_to_jiffies(1);
- 	unsigned long flags;
-+	int timeout = 1000;
- 	u32 lpcr;
- 
- 	spin_lock_irqsave(&data->lock, flags);
-@@ -98,7 +98,7 @@ static int snvs_rtc_enable(struct snvs_r
- 
- 	spin_unlock_irqrestore(&data->lock, flags);
- 
--	while (1) {
-+	while (--timeout) {
- 		lpcr = readl(data->ioaddr + SNVS_LPCR);
- 
- 		if (enable) {
-@@ -108,11 +108,11 @@ static int snvs_rtc_enable(struct snvs_r
- 			if (!(lpcr & SNVS_LPCR_SRTC_ENV))
- 				break;
- 		}
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+audith-replace-defines-with-c-stubs.patch
+sections-fix-section-conflicts-in-arch-h8300.patch
+sections-fix-section-conflicts-in-drivers-macintosh.patch
+sectons-fix-const-sections-for-crc32-table.patch
+backlight-add-backlight-driver-for-lm3630-chip.patch
+backlight-add-new-lm3639-backlight-driver.patch
+backlight-platform-lcd-add-support-for-device-tree-based-probe.patch
+idr-rename-max_level-to-max_idr_level.patch
+lib-parserc-avoid-overflow-in-match_number.patch
+lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock.patch
+rtc-add-dallas-ds2404-driver.patch
+fat-simplify-writeback_inode.patch
+coredump-make-core-dump-functionality-optional-fix-fix.patch
+coredump-use-suid_dumpable_enabled-rather-than-hardcoded-1-checkpatch-fixes.patch
+proc-use-kzalloc-instead-of-kmalloc-and-memset-fix.patch
+rapidio-run-discovery-as-an-asynchronous-process-fix.patch
+
