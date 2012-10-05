@@ -1,273 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: [merged] genalloc-make-it-possible-to-use-a-custom-allocation-algorithm.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:15:46 -0700
-Message-ID: <20121005201547.4805520004E@hpza10.eem.corp.google.com>
+Subject: [merged] lib-vsprintfc-improve-standard-conformance-of-sscanf.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:15:53 -0700
+Message-ID: <20121005201553.B92671E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f74.google.com ([209.85.215.74]:59940 "EHLO
-	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755725Ab2JEUPu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:15:50 -0400
-Received: by mail-la0-f74.google.com with SMTP id j13so98848lah.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:15:48 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:51942 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755725Ab2JEUPy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:15:54 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z15so236105ghb.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:15:54 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benjamin.gaignard@linaro.org, benjamin.gaignard@stericsson.com, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: JBeulich@suse.com, jbeulich@suse.com, konrad.wilk@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: genalloc: make it possible to use a custom allocation algorithm
+     Subject: lib/vsprintf.c: improve standard conformance of sscanf()
 has been removed from the -mm tree.  Its filename was
-     genalloc-make-it-possible-to-use-a-custom-allocation-algorithm.patch
+     lib-vsprintfc-improve-standard-conformance-of-sscanf.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: genalloc: make it possible to use a custom allocation algorithm
+From: "Jan Beulich" <JBeulich@suse.com>
+Subject: lib/vsprintf.c: improve standard conformance of sscanf()
 
-Premit use of another algorithm than the default first-fit one.  For
-example a custom algorithm could be used to manage alignment requirements.
+Xen's pciback points out a couple of deficiencies with vsscanf()'s
+standard conformance:
 
-As I can't predict all the possible requirements/needs for all allocation
-uses cases, I add a "free" field 'void *data' to pass any needed
-information to the allocation function.  For example 'data' could be used
-to handle a structure where you store the alignment, the expected memory
-bank, the requester device, or any information that could influence the
-allocation algorithm.
+- Trailing character matching cannot be checked by the caller: With a
+  format string of "(%x:%x.%x) %n" absence of the closing parenthesis
+  cannot be checked, as input of "(00:00.0)" doesn't cause the %n to be
+  evaluated (because of the code not skipping white space before the
+  trailing %n).
 
-An usage example may look like this:
-struct my_pool_constraints {
-	int align;
-	int bank;
-	...
-};
+- The parameter corresponding to a trailing %n could get filled even if
+  there was a matching error: With a format string of "(%x:%x.%x)%n",
+  input of "(00:00.0]" would still fill the respective variable pointed to
+  (and hence again make the mismatch non-detectable by the caller).
 
-unsigned long my_custom_algo(unsigned long *map, unsigned long size,
-		unsigned long start, unsigned int nr, void *data)
-{
-	struct my_pool_constraints *constraints = data;
-	...
-	deal with allocation contraints
-	...
-	return the index in bitmap where perform the allocation
-}
+This patch aims at fixing those, but leaves other non-conforming aspects
+of it untouched, among them these possibly relevant ones:
 
-void create_my_pool()
-{
-	struct my_pool_constraints c;
-	struct gen_pool *pool = gen_pool_create(...);
-	gen_pool_add(pool, ...);
-	gen_pool_set_algo(pool, my_custom_algo, &c);
-}
+- improper handling of the assignment suppression character '*' (blindly
+  discarding all succeeding non-white space from the format and input
+  strings),
 
-Add of best-fit algorithm function:
-most of the time best-fit is slower then first-fit but memory fragmentation
-is lower. The random buffer allocation/free tests don't show any arithmetic
-relation between the allocation time and fragmentation but the
-best-fit algorithm
-is sometime able to perform the allocation when the first-fit can't.
+- not honoring conversion specifiers for %n, - not recognizing the C99
+  conversion specifier 't' (recognized by vsprintf()).
 
-This new algorithm help to remove static allocations on ESRAM, a small but
-fast on-chip RAM of few KB, used for high-performance uses cases like DMA
-linked lists, graphic accelerators, encoders/decoders. On the Ux500
-(in the ARM tree) we have define 5 ESRAM banks of 128 KB each and use of
-static allocations becomes unmaintainable:
-cd arch/arm/mach-ux500 && grep -r ESRAM .
-./include/mach/db8500-regs.h:/* Base address and bank offsets for ESRAM */
-./include/mach/db8500-regs.h:#define U8500_ESRAM_BASE   0x40000000
-./include/mach/db8500-regs.h:#define U8500_ESRAM_BANK_SIZE      0x00020000
-./include/mach/db8500-regs.h:#define U8500_ESRAM_BANK0  U8500_ESRAM_BASE
-./include/mach/db8500-regs.h:#define U8500_ESRAM_BANK1       (U8500_ESRAM_BASE + U8500_ESRAM_BANK_SIZE)
-./include/mach/db8500-regs.h:#define U8500_ESRAM_BANK2       (U8500_ESRAM_BANK1 + U8500_ESRAM_BANK_SIZE)
-./include/mach/db8500-regs.h:#define U8500_ESRAM_BANK3       (U8500_ESRAM_BANK2 + U8500_ESRAM_BANK_SIZE)
-./include/mach/db8500-regs.h:#define U8500_ESRAM_BANK4       (U8500_ESRAM_BANK3 + U8500_ESRAM_BANK_SIZE)
-./include/mach/db8500-regs.h:#define U8500_ESRAM_DMA_LCPA_OFFSET     0x10000
-./include/mach/db8500-regs.h:#define U8500_DMA_LCPA_BASE
-(U8500_ESRAM_BANK0 + U8500_ESRAM_DMA_LCPA_OFFSET)
-./include/mach/db8500-regs.h:#define U8500_DMA_LCLA_BASE U8500_ESRAM_BANK4
-
-I want to use genalloc to do dynamic allocations but I need to be able to
-fine tune the allocation algorithm. I my case best-fit algorithm give
-better results than first-fit, but it will not be true for every use case.
-
-Signed-off-by: Benjamin Gaignard <benjamin.gaignard@stericsson.com>
-Cc: Huang Ying <ying.huang@intel.com>
+Signed-off-by: Jan Beulich <jbeulich@suse.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/genalloc.h |   27 +++++++++++
- lib/genalloc.c           |   88 +++++++++++++++++++++++++++++++++++--
- 2 files changed, 111 insertions(+), 4 deletions(-)
+ lib/vsprintf.c |   33 ++++++++++++++-------------------
+ 1 file changed, 14 insertions(+), 19 deletions(-)
 
-diff -puN include/linux/genalloc.h~genalloc-make-it-possible-to-use-a-custom-allocation-algorithm include/linux/genalloc.h
---- a/include/linux/genalloc.h~genalloc-make-it-possible-to-use-a-custom-allocation-algorithm
-+++ a/include/linux/genalloc.h
-@@ -29,6 +29,20 @@
+diff -puN lib/vsprintf.c~lib-vsprintfc-improve-standard-conformance-of-sscanf lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-vsprintfc-improve-standard-conformance-of-sscanf
++++ a/lib/vsprintf.c
+@@ -2017,7 +2017,7 @@ int vsscanf(const char *buf, const char 
+ 	s16 field_width;
+ 	bool is_sign;
  
- #ifndef __GENALLOC_H__
- #define __GENALLOC_H__
-+/**
-+ * Allocation callback function type definition
-+ * @map: Pointer to bitmap
-+ * @size: The bitmap size in bits
-+ * @start: The bitnumber to start searching at
-+ * @nr: The number of zeroed bits we're looking for
-+ * @data: optional additional data used by @genpool_algo_t
-+ */
-+typedef unsigned long (*genpool_algo_t)(unsigned long *map,
-+			unsigned long size,
-+			unsigned long start,
-+			unsigned int nr,
-+			void *data);
-+
- /*
-  *  General purpose special memory pool descriptor.
-  */
-@@ -36,6 +50,9 @@ struct gen_pool {
- 	spinlock_t lock;
- 	struct list_head chunks;	/* list of chunks in this pool */
- 	int min_alloc_order;		/* minimum allocation order */
-+
-+	genpool_algo_t algo;		/* allocation function */
-+	void *data;
- };
+-	while (*fmt && *str) {
++	while (*fmt) {
+ 		/* skip any white space in format */
+ 		/* white space in format matchs any amount of
+ 		 * white space, including none, in the input.
+@@ -2042,6 +2042,8 @@ int vsscanf(const char *buf, const char 
+ 		 * advance both strings to next white space
+ 		 */
+ 		if (*fmt == '*') {
++			if (!*str)
++				break;
+ 			while (!isspace(*fmt) && *fmt != '%' && *fmt)
+ 				fmt++;
+ 			while (!isspace(*str) && *str)
+@@ -2070,7 +2072,17 @@ int vsscanf(const char *buf, const char 
+ 			}
+ 		}
  
- /*
-@@ -78,4 +95,14 @@ extern void gen_pool_for_each_chunk(stru
- 	void (*)(struct gen_pool *, struct gen_pool_chunk *, void *), void *);
- extern size_t gen_pool_avail(struct gen_pool *);
- extern size_t gen_pool_size(struct gen_pool *);
+-		if (!*fmt || !*str)
++		if (!*fmt)
++			break;
 +
-+extern void gen_pool_set_algo(struct gen_pool *pool, genpool_algo_t algo,
-+		void *data);
-+
-+extern unsigned long gen_pool_first_fit(unsigned long *map, unsigned long size,
-+		unsigned long start, unsigned int nr, void *data);
-+
-+extern unsigned long gen_pool_best_fit(unsigned long *map, unsigned long size,
-+		unsigned long start, unsigned int nr, void *data);
-+
- #endif /* __GENALLOC_H__ */
-diff -puN lib/genalloc.c~genalloc-make-it-possible-to-use-a-custom-allocation-algorithm lib/genalloc.c
---- a/lib/genalloc.c~genalloc-make-it-possible-to-use-a-custom-allocation-algorithm
-+++ a/lib/genalloc.c
-@@ -152,6 +152,8 @@ struct gen_pool *gen_pool_create(int min
- 		spin_lock_init(&pool->lock);
- 		INIT_LIST_HEAD(&pool->chunks);
- 		pool->min_alloc_order = min_alloc_order;
-+		pool->algo = gen_pool_first_fit;
-+		pool->data = NULL;
- 	}
- 	return pool;
- }
-@@ -255,8 +257,9 @@ EXPORT_SYMBOL(gen_pool_destroy);
-  * @size: number of bytes to allocate from the pool
-  *
-  * Allocate the requested number of bytes from the specified pool.
-- * Uses a first-fit algorithm. Can not be used in NMI handler on
-- * architectures without NMI-safe cmpxchg implementation.
-+ * Uses the pool allocation function (with first-fit algorithm by default).
-+ * Can not be used in NMI handler on architectures without
-+ * NMI-safe cmpxchg implementation.
-  */
- unsigned long gen_pool_alloc(struct gen_pool *pool, size_t size)
- {
-@@ -280,8 +283,8 @@ unsigned long gen_pool_alloc(struct gen_
- 
- 		end_bit = (chunk->end_addr - chunk->start_addr) >> order;
- retry:
--		start_bit = bitmap_find_next_zero_area(chunk->bits, end_bit,
--						       start_bit, nbits, 0);
-+		start_bit = pool->algo(chunk->bits, end_bit, start_bit, nbits,
-+				pool->data);
- 		if (start_bit >= end_bit)
- 			continue;
- 		remain = bitmap_set_ll(chunk->bits, start_bit, nbits);
-@@ -400,3 +403,80 @@ size_t gen_pool_size(struct gen_pool *po
- 	return size;
- }
- EXPORT_SYMBOL_GPL(gen_pool_size);
-+
-+/**
-+ * gen_pool_set_algo - set the allocation algorithm
-+ * @pool: pool to change allocation algorithm
-+ * @algo: custom algorithm function
-+ * @data: additional data used by @algo
-+ *
-+ * Call @algo for each memory allocation in the pool.
-+ * If @algo is NULL use gen_pool_first_fit as default
-+ * memory allocation function.
-+ */
-+void gen_pool_set_algo(struct gen_pool *pool, genpool_algo_t algo, void *data)
-+{
-+	rcu_read_lock();
-+
-+	pool->algo = algo;
-+	if (!pool->algo)
-+		pool->algo = gen_pool_first_fit;
-+
-+	pool->data = data;
-+
-+	rcu_read_unlock();
-+}
-+EXPORT_SYMBOL(gen_pool_set_algo);
-+
-+/**
-+ * gen_pool_first_fit - find the first available region
-+ * of memory matching the size requirement (no alignment constraint)
-+ * @map: The address to base the search on
-+ * @size: The bitmap size in bits
-+ * @start: The bitnumber to start searching at
-+ * @nr: The number of zeroed bits we're looking for
-+ * @data: additional data - unused
-+ */
-+unsigned long gen_pool_first_fit(unsigned long *map, unsigned long size,
-+		unsigned long start, unsigned int nr, void *data)
-+{
-+	return bitmap_find_next_zero_area(map, size, start, nr, 0);
-+}
-+EXPORT_SYMBOL(gen_pool_first_fit);
-+
-+/**
-+ * gen_pool_best_fit - find the best fitting region of memory
-+ * macthing the size requirement (no alignment constraint)
-+ * @map: The address to base the search on
-+ * @size: The bitmap size in bits
-+ * @start: The bitnumber to start searching at
-+ * @nr: The number of zeroed bits we're looking for
-+ * @data: additional data - unused
-+ *
-+ * Iterate over the bitmap to find the smallest free region
-+ * which we can allocate the memory.
-+ */
-+unsigned long gen_pool_best_fit(unsigned long *map, unsigned long size,
-+		unsigned long start, unsigned int nr, void *data)
-+{
-+	unsigned long start_bit = size;
-+	unsigned long len = size + 1;
-+	unsigned long index;
-+
-+	index = bitmap_find_next_zero_area(map, size, start, nr, 0);
-+
-+	while (index < size) {
-+		int next_bit = find_next_bit(map, size, index + nr);
-+		if ((next_bit - index) < len) {
-+			len = next_bit - index;
-+			start_bit = index;
-+			if (len == nr)
-+				return start_bit;
++		if (*fmt == 'n') {
++			/* return number of characters read so far */
++			*va_arg(args, int *) = str - buf;
++			++fmt;
++			continue;
 +		}
-+		index = bitmap_find_next_zero_area(map, size,
-+						   next_bit + 1, nr, 0);
-+	}
 +
-+	return start_bit;
-+}
-+EXPORT_SYMBOL(gen_pool_best_fit);
-_
-
-Patches currently in -mm which might be from benjamin.gaignard@linaro.org are
-
-origin.patch
-
++		if (!*str)
+ 			break;
+ 
+ 		base = 10;
+@@ -2103,13 +2115,6 @@ int vsscanf(const char *buf, const char 
+ 			num++;
+ 		}
+ 		continue;
+-		case 'n':
+-			/* return number of characters read so far */
+-		{
+-			int *i = (int *)va_arg(args, int*);
+-			*i = str - buf;
+-		}
+-		continue;
+ 		case 'o':
+ 			base = 8;
+ 			break;
+@@ -2210,16 +2215,6 @@ int vsscanf(const char *buf, const char 
+ 		str = next;
+ 	}
+ 
+-	/*
+-	 * Now we've come all the way through so either the input string or the
+-	 * format ended. In the former case, there can be a %n at the current
+-	 * position in the format that needs to be filled.
+-	 */
+-	if (*fmt == '%' && *(fmt + 1) == 'n') {
+-		int *p = (int *)va_arg(args, int *);
+-		*p = str - buf;
+-	}
