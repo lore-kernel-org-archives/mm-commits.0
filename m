@@ -1,56 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kdump-remove-unneeded-include.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:20:09 -0700
-Message-ID: <20121005202009.9D2AD1E0043@wpzn4.hot.corp.google.com>
+Subject: [merged] rapidio-fix-kerneldoc-warnings-after-dma-support-was-added.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:20:18 -0700
+Message-ID: <20121005202019.2E858200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:41893 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932319Ab2JEUUK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:20:10 -0400
-Received: by mail-vc0-f202.google.com with SMTP id fy27so237228vcb.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:20:10 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:55438 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932319Ab2JEUUV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:20:21 -0400
+Received: by mail-bk0-f74.google.com with SMTP id q16so139102bkw.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:20:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yongjun_wei@trendmicro.com.cn, horms@verge.net.au, mm-commits@vger.kernel.org
+To: alexandre.bounine@idt.com, rpjday@crashcourse.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kdump: remove unneeded include
+     Subject: rapidio: fix kerneldoc warnings after DMA support was added
 has been removed from the -mm tree.  Its filename was
-     kdump-remove-unneeded-include.patch
+     rapidio-fix-kerneldoc-warnings-after-dma-support-was-added.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Subject: kdump: remove unneeded include
+From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: rapidio: fix kerneldoc warnings after DMA support was added
 
-The inclusion of <generated/utsrelease.h> is unnecessary.
-
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Reviewed-by: Simon Horman <horms@verge.net.au>
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Reported-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Cc: Robert P. J. Day <rpjday@crashcourse.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/rio.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/kexec.c~kdump-remove-unneeded-include kernel/kexec.c
---- a/kernel/kexec.c~kdump-remove-unneeded-include
-+++ a/kernel/kexec.c
-@@ -21,7 +21,6 @@
- #include <linux/hardirq.h>
- #include <linux/elf.h>
- #include <linux/elfcore.h>
--#include <generated/utsrelease.h>
- #include <linux/utsname.h>
- #include <linux/numa.h>
- #include <linux/suspend.h>
+diff -puN include/linux/rio.h~rapidio-fix-kerneldoc-warnings-after-dma-support-was-added include/linux/rio.h
+--- a/include/linux/rio.h~rapidio-fix-kerneldoc-warnings-after-dma-support-was-added
++++ a/include/linux/rio.h
+@@ -236,6 +236,7 @@ enum rio_phy_type {
+  * @phys_efptr: RIO port extended features pointer
+  * @name: Port name string
+  * @priv: Master port private data
++ * @dma: DMA device associated with mport
+  */
+ struct rio_mport {
+ 	struct list_head dbells;	/* list of doorbell events */
+@@ -404,7 +405,7 @@ union rio_pw_msg {
+ 
+ #ifdef CONFIG_RAPIDIO_DMA_ENGINE
+ 
+-/**
++/*
+  * enum rio_write_type - RIO write transaction types used in DMA transfers
+  *
+  * Note: RapidIO specification defines write (NWRITE) and
 _
 
-Patches currently in -mm which might be from yongjun_wei@trendmicro.com.cn are
+Patches currently in -mm which might be from alexandre.bounine@idt.com are
 
 origin.patch
-linux-next.patch
 
