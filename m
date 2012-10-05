@@ -1,54 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-update-email-address-for-khalid-aziz.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:14:40 -0700
-Message-ID: <20121005201441.1604820004E@hpza10.eem.corp.google.com>
+Subject: [merged] drivers-video-backlight-da9052_blc-use-usleep_range-instead-of-msleep-for-small-sleeps.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:14:44 -0700
+Message-ID: <20121005201444.C03A9100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:34885 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757235Ab2JEUOn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:14:43 -0400
-Received: by mail-lb0-f202.google.com with SMTP id l12so140979lbo.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:14:42 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:36136 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757235Ab2JEUOq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:14:46 -0400
+Received: by mail-vc0-f202.google.com with SMTP id fy27so236520vcb.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:14:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khalid.aziz@hp.com, khalid@gonehiking.org, mm-commits@vger.kernel.org
+To: jg1.han@samsung.com, ashish.jangam@kpitcummins.com, broonie@opensource.wolfsonmicro.com, rpurdie@rpsys.net, sachin.kamat@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update email address for Khalid Aziz
+     Subject: drivers/video/backlight/da9052_bl.c: use usleep_range() instead of msleep() for small sleeps
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-email-address-for-khalid-aziz.patch
+     drivers-video-backlight-da9052_blc-use-usleep_range-instead-of-msleep-for-small-sleeps.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Khalid Aziz <khalid.aziz@hp.com>
-Subject: MAINTAINERS: update email address for Khalid Aziz
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: drivers/video/backlight/da9052_bl.c: use usleep_range() instead of msleep() for small sleeps
 
-Signed-off-by: Khalid Aziz <khalid.aziz@hp.com>
-Cc: Khalid Aziz <khalid@gonehiking.org>
+Since msleep() might not sleep for the desired amount when less than 20ms,
+use usleep_range().
+
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Cc: Ashish Jangam <ashish.jangam@kpitcummins.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
+ drivers/video/backlight/da9052_bl.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-update-email-address-for-khalid-aziz MAINTAINERS
---- a/MAINTAINERS~maintainers-update-email-address-for-khalid-aziz
-+++ a/MAINTAINERS
-@@ -5267,7 +5267,7 @@ F:	include/linux/i2c-algo-pca.h
- F:	include/linux/i2c-pca-platform.h
+diff -puN drivers/video/backlight/da9052_bl.c~drivers-video-backlight-da9052_blc-use-usleep_range-instead-of-msleep-for-small-sleeps drivers/video/backlight/da9052_bl.c
+--- a/drivers/video/backlight/da9052_bl.c~drivers-video-backlight-da9052_blc-use-usleep_range-instead-of-msleep-for-small-sleeps
++++ a/drivers/video/backlight/da9052_bl.c
+@@ -72,7 +72,7 @@ static int da9052_adjust_wled_brightness
+ 	if (ret < 0)
+ 		return ret;
  
- PCDP - PRIMARY CONSOLE AND DEBUG PORT
--M:	Khalid Aziz <khalid.aziz@hp.com>
-+M:	Khalid Aziz <khalid@gonehiking.org>
- S:	Maintained
- F:	drivers/firmware/pcdp.*
+-	msleep(10);
++	usleep_range(10000, 11000);
  
+ 	if (wleds->brightness) {
+ 		ret = da9052_reg_write(wleds->da9052, wled_bank[wleds->led_reg],
 _
 
-Patches currently in -mm which might be from khalid.aziz@hp.com are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
 origin.patch
+linux-next.patch
 
