@@ -1,53 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-doc-bugfix-empty-line-in-example-section.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:18:58 -0700
-Message-ID: <20121005201858.BEA2F1E0043@wpzn4.hot.corp.google.com>
+Subject: [merged] kernel-doc-dont-mangle-whitespace-in-example-section.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:19:01 -0700
+Message-ID: <20121005201901.C9D881E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-gh0-f202.google.com ([209.85.160.202]:60924 "EHLO
 	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757185Ab2JEUTA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:19:00 -0400
+	with ESMTP id S1757185Ab2JEUTC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:19:02 -0400
 Received: by mail-gh0-f202.google.com with SMTP id z15so236358ghb.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:18:59 -0700 (PDT)
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:19:02 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: daniel.santos@pobox.com, mmarek@suse.cz, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel-doc: bugfix - empty line in Example section
+     Subject: kernel-doc: don't mangle whitespace in Example section
 has been removed from the -mm tree.  Its filename was
-     kernel-doc-bugfix-empty-line-in-example-section.patch
+     kernel-doc-dont-mangle-whitespace-in-example-section.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Daniel Santos <daniel.santos@pobox.com>
-Subject: kernel-doc: bugfix - empty line in Example section
+Subject: kernel-doc: don't mangle whitespace in Example section
 
-If you have a section named "Example" that contains an empty line,
-attempting to generate htmldocs give you the error:
+A section with the name "Example" (case-insensitive) has a special meaning
+to kernel-doc.  These sections are output using mono-type fonts.  However,
+leading whitespace is stripped, thus robbing a lot of meaning from this,
+as indented code examples will be mangled.
 
-/path/Documentation/DocBook/kernel-api.xml:3455: parser error : Opening and ending tag mismatch: programlisting line 3449 and para
-   </para><para>
-          ^
-/path/Documentation/DocBook/kernel-api.xml:3473: parser error : Opening and ending tag mismatch: para line 3467 and programlisting
-</programlisting></informalexample>
-                 ^
-/path/Documentation/DocBook/kernel-api.xml:3678: parser error : Opening and ending tag mismatch: programlisting line 3672 and para
-   </para><para>
-          ^
-/path/Documentation/DocBook/kernel-api.xml:3701: parser error : Opening and ending tag mismatch: para line 3690 and programlisting
-</programlisting></informalexample>
-                 ^
-unable to parse
-/path/Documentation/DocBook/kernel-api.xml
-
-Essentially, the script attempts to close a <programlisting> with a
-closing tag for a <para> block.  This patch corrects the problem by
-simply not outputting anything extra when we're dumping pre-formatted
-text, since the empty line will be rendered correctly anyway.
+This patch preserves the leading whitespace for "Example" sections.  More
+accurately, it preserves it for all sections, but removes it later if the
+section isn't an "Example" section.
 
 Signed-off-by: Daniel Santos <daniel.santos@pobox.com>
 Cc: Randy Dunlap <rdunlap@xenotime.net>
@@ -55,70 +41,51 @@ Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kernel-doc |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ scripts/kernel-doc |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN scripts/kernel-doc~kernel-doc-bugfix-empty-line-in-example-section scripts/kernel-doc
---- a/scripts/kernel-doc~kernel-doc-bugfix-empty-line-in-example-section
+diff -puN scripts/kernel-doc~kernel-doc-dont-mangle-whitespace-in-example-section scripts/kernel-doc
+--- a/scripts/kernel-doc~kernel-doc-dont-mangle-whitespace-in-example-section
 +++ a/scripts/kernel-doc
-@@ -230,6 +230,7 @@ my $dohighlight = "";
+@@ -281,9 +281,10 @@ my $doc_special = "\@\%\$\&";
+ my $doc_start = '^/\*\*\s*$'; # Allow whitespace at end of comment start.
+ my $doc_end = '\*/';
+ my $doc_com = '\s*\*\s*';
++my $doc_com_body = '\s*\* ?';
+ my $doc_decl = $doc_com . '(\w+)';
+ my $doc_sect = $doc_com . '([' . $doc_special . ']?[\w\s]+):(.*)';
+-my $doc_content = $doc_com . '(.*)';
++my $doc_content = $doc_com_body . '(.*)';
+ my $doc_block = $doc_com . 'DOC:\s*(.*)?';
  
- my $verbose = 0;
- my $output_mode = "man";
-+my $output_preformatted = 0;
- my $no_doc_sections = 0;
- my %highlights = %highlights_man;
- my $blankline = $blankline_man;
-@@ -460,7 +461,9 @@ sub output_highlight {
+ my %constants;
+@@ -460,6 +461,9 @@ sub output_highlight {
+ #   print STDERR "contents af:$contents\n";
  
      foreach $line (split "\n", $contents) {
++	if (! $output_preformatted) {
++	    $line =~ s/^\s*//;
++	}
  	if ($line eq ""){
--	    print $lineprefix, local_unescape($blankline);
-+	    if (! $output_preformatted) {
-+		print $lineprefix, local_unescape($blankline);
-+	    }
- 	} else {
- 	    $line =~ s/\\\\\\/\&/g;
- 	    if ($output_mode eq "man" && substr($line, 0, 1) eq ".") {
-@@ -643,10 +646,12 @@ sub output_section_xml(%) {
- 	print "<title>$section</title>\n";
- 	if ($section =~ m/EXAMPLE/i) {
- 	    print "<informalexample><programlisting>\n";
-+	    $output_preformatted = 1;
- 	} else {
- 	    print "<para>\n";
- 	}
- 	output_highlight($args{'sections'}{$section});
-+	$output_preformatted = 0;
- 	if ($section =~ m/EXAMPLE/i) {
- 	    print "</programlisting></informalexample>\n";
- 	} else {
-@@ -949,10 +954,12 @@ sub output_blockhead_xml(%) {
- 	}
- 	if ($section =~ m/EXAMPLE/i) {
- 	    print "<example><para>\n";
-+	    $output_preformatted = 1;
- 	} else {
- 	    print "<para>\n";
- 	}
- 	output_highlight($args{'sections'}{$section});
-+	$output_preformatted = 0;
- 	if ($section =~ m/EXAMPLE/i) {
- 	    print "</para></example>\n";
- 	} else {
-@@ -1028,10 +1035,12 @@ sub output_function_gnome {
- 	print "<simplesect>\n <title>$section</title>\n";
- 	if ($section =~ m/EXAMPLE/i) {
- 	    print "<example><programlisting>\n";
-+	    $output_preformatted = 1;
- 	} else {
- 	}
- 	print "<para>\n";
- 	output_highlight($args{'sections'}{$section});
-+	$output_preformatted = 0;
- 	print "</para>\n";
- 	if ($section =~ m/EXAMPLE/i) {
- 	    print "</programlisting></example>\n";
+ 	    if (! $output_preformatted) {
+ 		print $lineprefix, local_unescape($blankline);
+@@ -2085,7 +2089,7 @@ sub process_file($) {
+ 		    $descr= $1;
+ 		    $descr =~ s/^\s*//;
+ 		    $descr =~ s/\s*$//;
+-		    $descr =~ s/\s+/ /;
++		    $descr =~ s/\s+/ /g;
+ 		    $declaration_purpose = xml_escape($descr);
+ 		    $in_purpose = 1;
+ 		} else {
+@@ -2177,6 +2181,7 @@ sub process_file($) {
+ 		    # Continued declaration purpose
+ 		    chomp($declaration_purpose);
+ 		    $declaration_purpose .= " " . xml_escape($1);
++		    $declaration_purpose =~ s/\s+/ /g;
+ 		} else {
+ 		    $contents .= $1 . "\n";
+ 		}
 _
 
 Patches currently in -mm which might be from daniel.santos@pobox.com are
