@@ -1,515 +1,271 @@
 From: akpm@linux-foundation.org
-Subject: [merged] device_cgroup-rename-whitelist-to-exception-list.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:19:15 -0700
-Message-ID: <20121005201916.397805C0050@hpza9.eem.corp.google.com>
+Subject: [merged] coredump-make-core-dump-functionality-optional.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:19:20 -0700
+Message-ID: <20121005201920.BDF19100048@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:37923 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757185Ab2JEUTT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:19:19 -0400
-Received: by mail-wi0-f202.google.com with SMTP id hr7so57973wib.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:19:17 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:37882 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757185Ab2JEUTW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:19:22 -0400
+Received: by mail-vb0-f74.google.com with SMTP id s24so236864vbi.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:19:21 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aris@redhat.com, jmorris@namei.org, lizefan@huawei.com, serge.hallyn@canonical.com, tj@kernel.org, xemul@openvz.org, mm-commits@vger.kernel.org
+To: alex.page.kelly@gmail.com, josh@joshtriplett.org, keescook@chromium.org, rdunlap@xenotime.net, serge.hallyn@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: device_cgroup: rename whitelist to exception list
+     Subject: coredump: make core dump functionality optional
 has been removed from the -mm tree.  Its filename was
-     device_cgroup-rename-whitelist-to-exception-list.patch
+     coredump-make-core-dump-functionality-optional.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Aristeu Rozanski <aris@redhat.com>
-Subject: device_cgroup: rename whitelist to exception list
+From: Alex Kelly <alex.page.kelly@gmail.com>
+Subject: coredump: make core dump functionality optional
 
-This patch replaces the "whitelist" usage in the code and comments and replace
-them by exception list related information.
+Adds an expert Kconfig option, CONFIG_COREDUMP, which allows disabling of
+core dump.  This saves approximately 2.6k in the compiled kernel, and
+complements CONFIG_ELF_CORE, which now depends on it.
 
-Signed-off-by: Aristeu Rozanski <aris@redhat.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Li Zefan <lizefan@huawei.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Acked-by: Serge E. Hallyn <serge.hallyn@canonical.com>
+CONFIG_COREDUMP also disables coredump-related sysctls, except for
+suid_dumpable and related functions, which are necessary for ptrace.
+
+[akpm@linux-foundation.org: fix binfmt_aout.c build]
+Signed-off-by: Alex Kelly <alex.page.kelly@gmail.com>
+Reviewed-by: Josh Triplett <josh@joshtriplett.org>
+Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/device_cgroup.c |  198 ++++++++++++++++++-------------------
- 1 file changed, 99 insertions(+), 99 deletions(-)
+ fs/Kconfig.binfmt       |    8 +++++
+ fs/Makefile             |    3 +-
+ fs/binfmt_aout.c        |   52 +++++++++++++++++++-------------------
+ include/linux/binfmts.h |    4 ++
+ init/Kconfig            |    1 
+ kernel/sysctl.c         |   12 ++++++++
+ 6 files changed, 53 insertions(+), 27 deletions(-)
 
-diff -puN security/device_cgroup.c~device_cgroup-rename-whitelist-to-exception-list security/device_cgroup.c
---- a/security/device_cgroup.c~device_cgroup-rename-whitelist-to-exception-list
-+++ a/security/device_cgroup.c
-@@ -26,12 +26,12 @@
- static DEFINE_MUTEX(devcgroup_mutex);
+diff -puN fs/Kconfig.binfmt~coredump-make-core-dump-functionality-optional fs/Kconfig.binfmt
+--- a/fs/Kconfig.binfmt~coredump-make-core-dump-functionality-optional
++++ a/fs/Kconfig.binfmt
+@@ -164,3 +164,11 @@ config BINFMT_MISC
+ 	  You may say M here for module support and later load the module when
+ 	  you have use for it; the module is called binfmt_misc. If you
+ 	  don't know what to answer at this point, say Y.
++
++config COREDUMP
++	bool "Enable core dump support" if EXPERT
++	default y
++	help
++	  This option enables support for performing core dumps. You almost
++	  certainly want to say Y here. Not necessary on systems that never
++	  need debugging or only ever run flawless code.
+diff -puN fs/Makefile~coredump-make-core-dump-functionality-optional fs/Makefile
+--- a/fs/Makefile~coredump-make-core-dump-functionality-optional
++++ a/fs/Makefile
+@@ -11,7 +11,7 @@ obj-y :=	open.o read_write.o file_table.
+ 		attr.o bad_inode.o file.o filesystems.o namespace.o \
+ 		seq_file.o xattr.o libfs.o fs-writeback.o \
+ 		pnode.o drop_caches.o splice.o sync.o utimes.o \
+-		stack.o fs_struct.o statfs.o coredump.o
++		stack.o fs_struct.o statfs.o
+ 
+ ifeq ($(CONFIG_BLOCK),y)
+ obj-y +=	buffer.o bio.o block_dev.o direct-io.o mpage.o ioprio.o
+@@ -48,6 +48,7 @@ obj-$(CONFIG_FS_MBCACHE)	+= mbcache.o
+ obj-$(CONFIG_FS_POSIX_ACL)	+= posix_acl.o xattr_acl.o
+ obj-$(CONFIG_NFS_COMMON)	+= nfs_common/
+ obj-$(CONFIG_GENERIC_ACL)	+= generic_acl.o
++obj-$(CONFIG_COREDUMP)		+= coredump.o
+ 
+ obj-$(CONFIG_FHANDLE)		+= fhandle.o
+ 
+diff -puN fs/binfmt_aout.c~coredump-make-core-dump-functionality-optional fs/binfmt_aout.c
+--- a/fs/binfmt_aout.c~coredump-make-core-dump-functionality-optional
++++ a/fs/binfmt_aout.c
+@@ -32,31 +32,8 @@
+ 
+ static int load_aout_binary(struct linux_binprm *, struct pt_regs * regs);
+ static int load_aout_library(struct file*);
+-static int aout_core_dump(struct coredump_params *cprm);
+-
+-static struct linux_binfmt aout_format = {
+-	.module		= THIS_MODULE,
+-	.load_binary	= load_aout_binary,
+-	.load_shlib	= load_aout_library,
+-	.core_dump	= aout_core_dump,
+-	.min_coredump	= PAGE_SIZE
+-};
+-
+-#define BAD_ADDR(x)	((unsigned long)(x) >= TASK_SIZE)
+-
+-static int set_brk(unsigned long start, unsigned long end)
+-{
+-	start = PAGE_ALIGN(start);
+-	end = PAGE_ALIGN(end);
+-	if (end > start) {
+-		unsigned long addr;
+-		addr = vm_brk(start, end - start);
+-		if (BAD_ADDR(addr))
+-			return addr;
+-	}
+-	return 0;
+-}
+ 
++#ifdef CONFIG_COREDUMP
+ /*
+  * Routine writes a core dump image in the current directory.
+  * Currently only a stub-function.
+@@ -66,7 +43,6 @@ static int set_brk(unsigned long start, 
+  * field, which also makes sure the core-dumps won't be recursive if the
+  * dumping of the process results in another error..
+  */
+-
+ static int aout_core_dump(struct coredump_params *cprm)
+ {
+ 	struct file *file = cprm->file;
+@@ -135,6 +111,32 @@ end_coredump:
+ 	set_fs(fs);
+ 	return has_dumped;
+ }
++#else
++#define aout_core_dump NULL
++#endif
++
++static struct linux_binfmt aout_format = {
++	.module		= THIS_MODULE,
++	.load_binary	= load_aout_binary,
++	.load_shlib	= load_aout_library,
++	.core_dump	= aout_core_dump,
++	.min_coredump	= PAGE_SIZE
++};
++
++#define BAD_ADDR(x)	((unsigned long)(x) >= TASK_SIZE)
++
++static int set_brk(unsigned long start, unsigned long end)
++{
++	start = PAGE_ALIGN(start);
++	end = PAGE_ALIGN(end);
++	if (end > start) {
++		unsigned long addr;
++		addr = vm_brk(start, end - start);
++		if (BAD_ADDR(addr))
++			return addr;
++	}
++	return 0;
++}
  
  /*
-- * whitelist locking rules:
-+ * exception list locking rules:
-  * hold devcgroup_mutex for update/read.
-  * hold rcu_read_lock() for read.
-  */
+  * create_aout_tables() parses the env- and arg-strings in new user
+diff -puN include/linux/binfmts.h~coredump-make-core-dump-functionality-optional include/linux/binfmts.h
+--- a/include/linux/binfmts.h~coredump-make-core-dump-functionality-optional
++++ a/include/linux/binfmts.h
+@@ -132,7 +132,11 @@ extern int copy_strings_kernel(int argc,
+ 			       struct linux_binprm *bprm);
+ extern int prepare_bprm_creds(struct linux_binprm *bprm);
+ extern void install_exec_creds(struct linux_binprm *bprm);
++#ifdef CONFIG_COREDUMP
+ extern void do_coredump(long signr, int exit_code, struct pt_regs *regs);
++#else
++static inline void do_coredump(long signr, int exit_code, struct pt_regs *regs) {}
++#endif
+ extern void set_binfmt(struct linux_binfmt *new);
+ extern void free_bprm(struct linux_binprm *);
  
--struct dev_whitelist_item {
-+struct dev_exception_item {
- 	u32 major, minor;
- 	short type;
- 	short access;
-@@ -41,7 +41,7 @@ struct dev_whitelist_item {
+diff -puN init/Kconfig~coredump-make-core-dump-functionality-optional init/Kconfig
+--- a/init/Kconfig~coredump-make-core-dump-functionality-optional
++++ a/init/Kconfig
+@@ -1199,6 +1199,7 @@ config BUG
+           Just say Y.
  
- struct dev_cgroup {
- 	struct cgroup_subsys_state css;
--	struct list_head whitelist;
-+	struct list_head exceptions;
- 	bool deny_all;
- };
+ config ELF_CORE
++	depends on COREDUMP
+ 	default y
+ 	bool "Enable ELF core dumps" if EXPERT
+ 	help
+diff -puN kernel/sysctl.c~coredump-make-core-dump-functionality-optional kernel/sysctl.c
+--- a/kernel/sysctl.c~coredump-make-core-dump-functionality-optional
++++ a/kernel/sysctl.c
+@@ -97,10 +97,12 @@
+ extern int sysctl_overcommit_memory;
+ extern int sysctl_overcommit_ratio;
+ extern int max_threads;
+-extern int core_uses_pid;
+ extern int suid_dumpable;
++#ifdef CONFIG_COREDUMP
++extern int core_uses_pid;
+ extern char core_pattern[];
+ extern unsigned int core_pipe_limit;
++#endif
+ extern int pid_max;
+ extern int min_free_kbytes;
+ extern int pid_max_min, pid_max_max;
+@@ -177,8 +179,10 @@ static int proc_dointvec_minmax_sysadmin
  
-@@ -75,12 +75,12 @@ static int devcgroup_can_attach(struct c
- /*
-  * called under devcgroup_mutex
-  */
--static int dev_whitelist_copy(struct list_head *dest, struct list_head *orig)
-+static int dev_exceptions_copy(struct list_head *dest, struct list_head *orig)
+ static int proc_dointvec_minmax_coredump(struct ctl_table *table, int write,
+ 		void __user *buffer, size_t *lenp, loff_t *ppos);
++#ifdef CONFIG_COREDUMP
+ static int proc_dostring_coredump(struct ctl_table *table, int write,
+ 		void __user *buffer, size_t *lenp, loff_t *ppos);
++#endif
+ 
+ #ifdef CONFIG_MAGIC_SYSRQ
+ /* Note: sysrq code uses it's own private copy */
+@@ -404,6 +408,7 @@ static struct ctl_table kern_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec,
+ 	},
++#ifdef CONFIG_COREDUMP
+ 	{
+ 		.procname	= "core_uses_pid",
+ 		.data		= &core_uses_pid,
+@@ -425,6 +430,7 @@ static struct ctl_table kern_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec,
+ 	},
++#endif
+ #ifdef CONFIG_PROC_SYSCTL
+ 	{
+ 		.procname	= "tainted",
+@@ -2036,12 +2042,14 @@ int proc_dointvec_minmax(struct ctl_tabl
+ 
+ static void validate_coredump_safety(void)
  {
--	struct dev_whitelist_item *wh, *tmp, *new;
-+	struct dev_exception_item *ex, *tmp, *new;
- 
--	list_for_each_entry(wh, orig, list) {
--		new = kmemdup(wh, sizeof(*wh), GFP_KERNEL);
-+	list_for_each_entry(ex, orig, list) {
-+		new = kmemdup(ex, sizeof(*ex), GFP_KERNEL);
- 		if (!new)
- 			goto free_and_exit;
- 		list_add_tail(&new->list, dest);
-@@ -89,9 +89,9 @@ static int dev_whitelist_copy(struct lis
- 	return 0;
- 
- free_and_exit:
--	list_for_each_entry_safe(wh, tmp, dest, list) {
--		list_del(&wh->list);
--		kfree(wh);
-+	list_for_each_entry_safe(ex, tmp, dest, list) {
-+		list_del(&ex->list);
-+		kfree(ex);
++#ifdef CONFIG_COREDUMP
+ 	if (suid_dumpable == SUID_DUMPABLE_SAFE &&
+ 	    core_pattern[0] != '/' && core_pattern[0] != '|') {
+ 		printk(KERN_WARNING "Unsafe core_pattern used with "\
+ 			"suid_dumpable=2. Pipe handler or fully qualified "\
+ 			"core dump path required.\n");
  	}
- 	return -ENOMEM;
- }
-@@ -99,50 +99,50 @@ free_and_exit:
- /*
-  * called under devcgroup_mutex
-  */
--static int dev_whitelist_add(struct dev_cgroup *dev_cgroup,
--			struct dev_whitelist_item *wh)
-+static int dev_exception_add(struct dev_cgroup *dev_cgroup,
-+			     struct dev_exception_item *ex)
- {
--	struct dev_whitelist_item *whcopy, *walk;
-+	struct dev_exception_item *excopy, *walk;
- 
--	whcopy = kmemdup(wh, sizeof(*wh), GFP_KERNEL);
--	if (!whcopy)
-+	excopy = kmemdup(ex, sizeof(*ex), GFP_KERNEL);
-+	if (!excopy)
- 		return -ENOMEM;
- 
--	list_for_each_entry(walk, &dev_cgroup->whitelist, list) {
--		if (walk->type != wh->type)
-+	list_for_each_entry(walk, &dev_cgroup->exceptions, list) {
-+		if (walk->type != ex->type)
- 			continue;
--		if (walk->major != wh->major)
-+		if (walk->major != ex->major)
- 			continue;
--		if (walk->minor != wh->minor)
-+		if (walk->minor != ex->minor)
- 			continue;
- 
--		walk->access |= wh->access;
--		kfree(whcopy);
--		whcopy = NULL;
-+		walk->access |= ex->access;
-+		kfree(excopy);
-+		excopy = NULL;
- 	}
- 
--	if (whcopy != NULL)
--		list_add_tail_rcu(&whcopy->list, &dev_cgroup->whitelist);
-+	if (excopy != NULL)
-+		list_add_tail_rcu(&excopy->list, &dev_cgroup->exceptions);
- 	return 0;
++#endif
  }
  
- /*
-  * called under devcgroup_mutex
-  */
--static void dev_whitelist_rm(struct dev_cgroup *dev_cgroup,
--			struct dev_whitelist_item *wh)
-+static void dev_exception_rm(struct dev_cgroup *dev_cgroup,
-+			     struct dev_exception_item *ex)
- {
--	struct dev_whitelist_item *walk, *tmp;
-+	struct dev_exception_item *walk, *tmp;
- 
--	list_for_each_entry_safe(walk, tmp, &dev_cgroup->whitelist, list) {
--		if (walk->type != wh->type)
-+	list_for_each_entry_safe(walk, tmp, &dev_cgroup->exceptions, list) {
-+		if (walk->type != ex->type)
- 			continue;
--		if (walk->major != wh->major)
-+		if (walk->major != ex->major)
- 			continue;
--		if (walk->minor != wh->minor)
-+		if (walk->minor != ex->minor)
- 			continue;
- 
--		walk->access &= ~wh->access;
-+		walk->access &= ~ex->access;
- 		if (!walk->access) {
- 			list_del_rcu(&walk->list);
- 			kfree_rcu(walk, rcu);
-@@ -151,18 +151,18 @@ static void dev_whitelist_rm(struct dev_
+ static int proc_dointvec_minmax_coredump(struct ctl_table *table, int write,
+@@ -2053,6 +2061,7 @@ static int proc_dointvec_minmax_coredump
+ 	return error;
  }
  
- /**
-- * dev_whitelist_clean - frees all entries of the whitelist
-- * @dev_cgroup: dev_cgroup with the whitelist to be cleaned
-+ * dev_exception_clean - frees all entries of the exception list
-+ * @dev_cgroup: dev_cgroup with the exception list to be cleaned
-  *
-  * called under devcgroup_mutex
-  */
--static void dev_whitelist_clean(struct dev_cgroup *dev_cgroup)
-+static void dev_exception_clean(struct dev_cgroup *dev_cgroup)
++#ifdef CONFIG_COREDUMP
+ static int proc_dostring_coredump(struct ctl_table *table, int write,
+ 		  void __user *buffer, size_t *lenp, loff_t *ppos)
  {
--	struct dev_whitelist_item *wh, *tmp;
-+	struct dev_exception_item *ex, *tmp;
- 
--	list_for_each_entry_safe(wh, tmp, &dev_cgroup->whitelist, list) {
--		list_del(&wh->list);
--		kfree(wh);
-+	list_for_each_entry_safe(ex, tmp, &dev_cgroup->exceptions, list) {
-+		list_del(&ex->list);
-+		kfree(ex);
- 	}
+@@ -2061,6 +2070,7 @@ static int proc_dostring_coredump(struct
+ 		validate_coredump_safety();
+ 	return error;
  }
++#endif
  
-@@ -178,7 +178,7 @@ static struct cgroup_subsys_state *devcg
- 	dev_cgroup = kzalloc(sizeof(*dev_cgroup), GFP_KERNEL);
- 	if (!dev_cgroup)
- 		return ERR_PTR(-ENOMEM);
--	INIT_LIST_HEAD(&dev_cgroup->whitelist);
-+	INIT_LIST_HEAD(&dev_cgroup->exceptions);
- 	parent_cgroup = cgroup->parent;
- 
- 	if (parent_cgroup == NULL)
-@@ -186,8 +186,8 @@ static struct cgroup_subsys_state *devcg
- 	else {
- 		parent_dev_cgroup = cgroup_to_devcgroup(parent_cgroup);
- 		mutex_lock(&devcgroup_mutex);
--		ret = dev_whitelist_copy(&dev_cgroup->whitelist,
--				&parent_dev_cgroup->whitelist);
-+		ret = dev_exceptions_copy(&dev_cgroup->exceptions,
-+					  &parent_dev_cgroup->exceptions);
- 		dev_cgroup->deny_all = parent_dev_cgroup->deny_all;
- 		mutex_unlock(&devcgroup_mutex);
- 		if (ret) {
-@@ -204,7 +204,7 @@ static void devcgroup_destroy(struct cgr
- 	struct dev_cgroup *dev_cgroup;
- 
- 	dev_cgroup = cgroup_to_devcgroup(cgroup);
--	dev_whitelist_clean(dev_cgroup);
-+	dev_exception_clean(dev_cgroup);
- 	kfree(dev_cgroup);
- }
- 
-@@ -250,7 +250,7 @@ static int devcgroup_seq_read(struct cgr
- 				struct seq_file *m)
- {
- 	struct dev_cgroup *devcgroup = cgroup_to_devcgroup(cgroup);
--	struct dev_whitelist_item *wh;
-+	struct dev_exception_item *ex;
- 	char maj[MAJMINLEN], min[MAJMINLEN], acc[ACCLEN];
- 
- 	rcu_read_lock();
-@@ -267,11 +267,11 @@ static int devcgroup_seq_read(struct cgr
- 		seq_printf(m, "%c %s:%s %s\n", type_to_char(DEV_ALL),
- 			   maj, min, acc);
- 	} else {
--		list_for_each_entry_rcu(wh, &devcgroup->whitelist, list) {
--			set_access(acc, wh->access);
--			set_majmin(maj, wh->major);
--			set_majmin(min, wh->minor);
--			seq_printf(m, "%c %s:%s %s\n", type_to_char(wh->type),
-+		list_for_each_entry_rcu(ex, &devcgroup->exceptions, list) {
-+			set_access(acc, ex->access);
-+			set_majmin(maj, ex->major);
-+			set_majmin(min, ex->minor);
-+			seq_printf(m, "%c %s:%s %s\n", type_to_char(ex->type),
- 				   maj, min, acc);
- 		}
- 	}
-@@ -281,42 +281,42 @@ static int devcgroup_seq_read(struct cgr
- }
- 
- /**
-- * may_access_whitelist - verifies if a new rule is part of what is allowed
-- *			  by a dev cgroup based on the default policy +
-- *			  exceptions. This is used to make sure a child cgroup
-- *			  won't have more privileges than its parent or to
-- *			  verify if a certain access is allowed.
-+ * may_access - verifies if a new exception is part of what is allowed
-+ *		by a dev cgroup based on the default policy +
-+ *		exceptions. This is used to make sure a child cgroup
-+ *		won't have more privileges than its parent or to
-+ *		verify if a certain access is allowed.
-  * @dev_cgroup: dev cgroup to be tested against
-- * @refwh: new rule
-+ * @refex: new exception
-  */
--static int may_access_whitelist(struct dev_cgroup *dev_cgroup,
--			        struct dev_whitelist_item *refwh)
-+static int may_access(struct dev_cgroup *dev_cgroup,
-+		      struct dev_exception_item *refex)
- {
--	struct dev_whitelist_item *whitem;
-+	struct dev_exception_item *ex;
- 	bool match = false;
- 
--	list_for_each_entry(whitem, &dev_cgroup->whitelist, list) {
--		if ((refwh->type & DEV_BLOCK) && !(whitem->type & DEV_BLOCK))
-+	list_for_each_entry(ex, &dev_cgroup->exceptions, list) {
-+		if ((refex->type & DEV_BLOCK) && !(ex->type & DEV_BLOCK))
- 			continue;
--		if ((refwh->type & DEV_CHAR) && !(whitem->type & DEV_CHAR))
-+		if ((refex->type & DEV_CHAR) && !(ex->type & DEV_CHAR))
- 			continue;
--		if (whitem->major != ~0 && whitem->major != refwh->major)
-+		if (ex->major != ~0 && ex->major != refex->major)
- 			continue;
--		if (whitem->minor != ~0 && whitem->minor != refwh->minor)
-+		if (ex->minor != ~0 && ex->minor != refex->minor)
- 			continue;
--		if (refwh->access & (~whitem->access))
-+		if (refex->access & (~ex->access))
- 			continue;
- 		match = true;
- 		break;
- 	}
- 
- 	/*
--	 * In two cases we'll consider this new rule valid:
-+	 * In two cases we'll consider this new exception valid:
- 	 * - the dev cgroup has its default policy to allow + exception list:
--	 *   the new rule should *not* match any of the exceptions
-+	 *   the new exception should *not* match any of the exceptions
- 	 *   (!deny_all, !match)
- 	 * - the dev cgroup has its default policy to deny + exception list:
--	 *   the new rule *should* match the exceptions
-+	 *   the new exception *should* match the exceptions
- 	 *   (deny_all, match)
- 	 */
- 	if (dev_cgroup->deny_all == match)
-@@ -326,11 +326,11 @@ static int may_access_whitelist(struct d
- 
- /*
-  * parent_has_perm:
-- * when adding a new allow rule to a device whitelist, the rule
-+ * when adding a new allow rule to a device exception list, the rule
-  * must be allowed in the parent device
-  */
- static int parent_has_perm(struct dev_cgroup *childcg,
--				  struct dev_whitelist_item *wh)
-+				  struct dev_exception_item *ex)
- {
- 	struct cgroup *pcg = childcg->css.cgroup->parent;
- 	struct dev_cgroup *parent;
-@@ -338,17 +338,17 @@ static int parent_has_perm(struct dev_cg
- 	if (!pcg)
- 		return 1;
- 	parent = cgroup_to_devcgroup(pcg);
--	return may_access_whitelist(parent, wh);
-+	return may_access(parent, ex);
- }
- 
- /*
-- * Modify the whitelist using allow/deny rules.
-+ * Modify the exception list using allow/deny rules.
-  * CAP_SYS_ADMIN is needed for this.  It's at least separate from CAP_MKNOD
-  * so we can give a container CAP_MKNOD to let it create devices but not
-- * modify the whitelist.
-+ * modify the exception list.
-  * It seems likely we'll want to add a CAP_CONTAINER capability to allow
-  * us to also grant CAP_SYS_ADMIN to containers without giving away the
-- * device whitelist controls, but for now we'll stick with CAP_SYS_ADMIN
-+ * device exception list controls, but for now we'll stick with CAP_SYS_ADMIN
-  *
-  * Taking rules away is always allowed (given CAP_SYS_ADMIN).  Granting
-  * new access is only allowed if you're in the top-level cgroup, or your
-@@ -360,25 +360,25 @@ static int devcgroup_update_access(struc
- 	const char *b;
- 	char *endp;
- 	int count;
--	struct dev_whitelist_item wh;
-+	struct dev_exception_item ex;
- 
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
- 
--	memset(&wh, 0, sizeof(wh));
-+	memset(&ex, 0, sizeof(ex));
- 	b = buffer;
- 
- 	switch (*b) {
- 	case 'a':
- 		switch (filetype) {
- 		case DEVCG_ALLOW:
--			if (!parent_has_perm(devcgroup, &wh))
-+			if (!parent_has_perm(devcgroup, &ex))
- 				return -EPERM;
--			dev_whitelist_clean(devcgroup);
-+			dev_exception_clean(devcgroup);
- 			devcgroup->deny_all = false;
- 			break;
- 		case DEVCG_DENY:
--			dev_whitelist_clean(devcgroup);
-+			dev_exception_clean(devcgroup);
- 			devcgroup->deny_all = true;
- 			break;
- 		default:
-@@ -386,10 +386,10 @@ static int devcgroup_update_access(struc
- 		}
- 		return 0;
- 	case 'b':
--		wh.type = DEV_BLOCK;
-+		ex.type = DEV_BLOCK;
- 		break;
- 	case 'c':
--		wh.type = DEV_CHAR;
-+		ex.type = DEV_CHAR;
- 		break;
- 	default:
- 		return -EINVAL;
-@@ -399,10 +399,10 @@ static int devcgroup_update_access(struc
- 		return -EINVAL;
- 	b++;
- 	if (*b == '*') {
--		wh.major = ~0;
-+		ex.major = ~0;
- 		b++;
- 	} else if (isdigit(*b)) {
--		wh.major = simple_strtoul(b, &endp, 10);
-+		ex.major = simple_strtoul(b, &endp, 10);
- 		b = endp;
- 	} else {
- 		return -EINVAL;
-@@ -413,10 +413,10 @@ static int devcgroup_update_access(struc
- 
- 	/* read minor */
- 	if (*b == '*') {
--		wh.minor = ~0;
-+		ex.minor = ~0;
- 		b++;
- 	} else if (isdigit(*b)) {
--		wh.minor = simple_strtoul(b, &endp, 10);
-+		ex.minor = simple_strtoul(b, &endp, 10);
- 		b = endp;
- 	} else {
- 		return -EINVAL;
-@@ -426,13 +426,13 @@ static int devcgroup_update_access(struc
- 	for (b++, count = 0; count < 3; count++, b++) {
- 		switch (*b) {
- 		case 'r':
--			wh.access |= ACC_READ;
-+			ex.access |= ACC_READ;
- 			break;
- 		case 'w':
--			wh.access |= ACC_WRITE;
-+			ex.access |= ACC_WRITE;
- 			break;
- 		case 'm':
--			wh.access |= ACC_MKNOD;
-+			ex.access |= ACC_MKNOD;
- 			break;
- 		case '\n':
- 		case '\0':
-@@ -445,7 +445,7 @@ static int devcgroup_update_access(struc
- 
- 	switch (filetype) {
- 	case DEVCG_ALLOW:
--		if (!parent_has_perm(devcgroup, &wh))
-+		if (!parent_has_perm(devcgroup, &ex))
- 			return -EPERM;
- 		/*
- 		 * If the default policy is to allow by default, try to remove
-@@ -453,10 +453,10 @@ static int devcgroup_update_access(struc
- 		 * don't want to break compatibility
- 		 */
- 		if (devcgroup->deny_all == false) {
--			dev_whitelist_rm(devcgroup, &wh);
-+			dev_exception_rm(devcgroup, &ex);
- 			return 0;
- 		}
--		return dev_whitelist_add(devcgroup, &wh);
-+		return dev_exception_add(devcgroup, &ex);
- 	case DEVCG_DENY:
- 		/*
- 		 * If the default policy is to deny by default, try to remove
-@@ -464,10 +464,10 @@ static int devcgroup_update_access(struc
- 		 * don't want to break compatibility
- 		 */
- 		if (devcgroup->deny_all == true) {
--			dev_whitelist_rm(devcgroup, &wh);
-+			dev_exception_rm(devcgroup, &ex);
- 			return 0;
- 		}
--		return dev_whitelist_add(devcgroup, &wh);
-+		return dev_exception_add(devcgroup, &ex);
- 	default:
- 		return -EINVAL;
- 	}
-@@ -537,17 +537,17 @@ static int __devcgroup_check_permission(
- 					short type, u32 major, u32 minor,
- 				        short access)
- {
--	struct dev_whitelist_item wh;
-+	struct dev_exception_item ex;
- 	int rc;
- 
--	memset(&wh, 0, sizeof(wh));
--	wh.type = type;
--	wh.major = major;
--	wh.minor = minor;
--	wh.access = access;
-+	memset(&ex, 0, sizeof(ex));
-+	ex.type = type;
-+	ex.major = major;
-+	ex.minor = minor;
-+	ex.access = access;
- 
- 	rcu_read_lock();
--	rc = may_access_whitelist(dev_cgroup, &wh);
-+	rc = may_access(dev_cgroup, &ex);
- 	rcu_read_unlock();
- 
- 	if (!rc)
+ static int __do_proc_doulongvec_minmax(void *data, struct ctl_table *table, int write,
+ 				     void __user *buffer,
 _
 
-Patches currently in -mm which might be from aris@redhat.com are
+Patches currently in -mm which might be from alex.page.kelly@gmail.com are
 
 origin.patch
-linux-next.patch
-x86-pat-remove-the-dependency-on-vm_pgoff-in-track-untrack-pfn-vma-routines.patch
-x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn.patch
-mm-x86-pat-rework-linear-pfn-mmap-tracking.patch
-mm-introduce-arch-specific-vma-flag-vm_arch_1.patch
-mm-kill-vma-flag-vm_insertpage.patch
-mm-kill-vma-flag-vm_can_nonlinear.patch
-mm-use-mm-exe_file-instead-of-first-vm_executable-vma-vm_file.patch
-mm-kill-vma-flag-vm_executable-and-mm-num_exe_file_vmas.patch
-mm-prepare-vm_dontdump-for-using-in-drivers.patch
-mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter.patch
 
