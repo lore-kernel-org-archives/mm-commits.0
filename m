@@ -1,135 +1,407 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-proc-permit-the-proc-driver-rtc-device-to-use-other-devices.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:16:31 -0700
-Message-ID: <20121005201632.2E8F2200057@hpza10.eem.corp.google.com>
+Subject: [merged] rtc-add-dallas-ds2404-driver.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:16:35 -0700
+Message-ID: <20121005201635.A877F100048@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:34336 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754030Ab2JEUQe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:16:34 -0400
-Received: by mail-fa0-f74.google.com with SMTP id t1so138409fae.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:16:33 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:43213 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757272Ab2JEUQg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:16:36 -0400
+Received: by mail-vc0-f202.google.com with SMTP id fy27so236711vcb.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:16:36 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Milo.Kim@ti.com, a.zummo@towertech.it, milo.kim@ti.com, mm-commits@vger.kernel.org
+To: svens@stackframe.org, a.zummo@towertech.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc-proc: permit the /proc/driver/rtc device to use other devices
+     Subject: rtc: add Dallas DS2404 driver
 has been removed from the -mm tree.  Its filename was
-     rtc-proc-permit-the-proc-driver-rtc-device-to-use-other-devices.patch
+     rtc-add-dallas-ds2404-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kim, Milo" <Milo.Kim@ti.com>
-Subject: rtc-proc: permit the /proc/driver/rtc device to use other devices
+From: Sven Schnelle <svens@stackframe.org>
+Subject: rtc: add Dallas DS2404 driver
 
-To get time information via /proc/driver/rtc, only the first device (rtc0)
-is used.  If the rtcN (eg.  rtc1 or rtc2) is used for the system clock,
-there is no way to get information of rtcN via /proc/driver/rtc.  With
-this patch, the time data can be retrieved from the system clock RTC.
-
-If the RTC_HCTOSYS_DEVICE is not defined, then rtc0 is used by default.
-
-Signed-off-by: Milo(Woogyom) Kim <milo.kim@ti.com>
+[akpm@linux-foundation.org: fix warning]
+Signed-off-by: Sven Schnelle <svens@stackframe.org>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/rtc.txt  |    5 +++--
- drivers/rtc/Kconfig    |   10 ++++++----
- drivers/rtc/rtc-proc.c |   24 ++++++++++++++++++++++--
- 3 files changed, 31 insertions(+), 8 deletions(-)
+ drivers/rtc/Kconfig        |    9 +
+ drivers/rtc/Makefile       |    1 
+ drivers/rtc/rtc-ds2404.c   |  303 +++++++++++++++++++++++++++++++++++
+ include/linux/rtc-ds2404.h |   20 ++
+ 4 files changed, 333 insertions(+)
 
-diff -puN Documentation/rtc.txt~rtc-proc-permit-the-proc-driver-rtc-device-to-use-other-devices Documentation/rtc.txt
---- a/Documentation/rtc.txt~rtc-proc-permit-the-proc-driver-rtc-device-to-use-other-devices
-+++ a/Documentation/rtc.txt
-@@ -119,8 +119,9 @@ three different userspace interfaces:
-     *	/sys/class/rtc/rtcN ... sysfs attributes support readonly
- 	access to some RTC attributes.
- 
--    *	/proc/driver/rtc ... the first RTC (rtc0) may expose itself
--	using a procfs interface.  More information is (currently) shown
-+    *	/proc/driver/rtc ... the system clock RTC may expose itself
-+	using a procfs interface. If there is no RTC for the system clock,
-+	rtc0 is used by default. More information is (currently) shown
- 	here than through sysfs.
- 
- The RTC Class framework supports a wide variety of RTCs, ranging from those
-diff -puN drivers/rtc/Kconfig~rtc-proc-permit-the-proc-driver-rtc-device-to-use-other-devices drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-proc-permit-the-proc-driver-rtc-device-to-use-other-devices
+diff -puN drivers/rtc/Kconfig~rtc-add-dallas-ds2404-driver drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-add-dallas-ds2404-driver
 +++ a/drivers/rtc/Kconfig
-@@ -69,13 +69,15 @@ config RTC_INTF_SYSFS
- 	  If unsure, say Y.
+@@ -660,6 +660,15 @@ config RTC_DRV_V3020
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-v3020.
  
- config RTC_INTF_PROC
--	boolean "/proc/driver/rtc (procfs for rtc0)"
-+	boolean "/proc/driver/rtc (procfs for rtcN)"
- 	depends on PROC_FS
- 	default RTC_CLASS
- 	help
--	  Say yes here if you want to use your first RTC through the proc
--	  interface, /proc/driver/rtc. Other RTCs will not be available
--	  through that API.
-+	  Say yes here if you want to use your system clock RTC through
-+	  the proc interface, /proc/driver/rtc.
-+	  Other RTCs will not be available through that API.
-+	  If there is no RTC for the system clock, then the first RTC(rtc0)
-+	  is used by default.
- 
- 	  If unsure, say Y.
- 
-diff -puN drivers/rtc/rtc-proc.c~rtc-proc-permit-the-proc-driver-rtc-device-to-use-other-devices drivers/rtc/rtc-proc.c
---- a/drivers/rtc/rtc-proc.c~rtc-proc-permit-the-proc-driver-rtc-device-to-use-other-devices
-+++ a/drivers/rtc/rtc-proc.c
-@@ -18,6 +18,26 @@
- 
- #include "rtc-core.h"
- 
-+#define NAME_SIZE	10
++config RTC_DRV_DS2404
++	tristate "Dallas DS2404"
++	help
++	  If you say yes here you get support for the
++	  Dallas DS2404 RTC chip.
 +
-+#if defined(CONFIG_RTC_HCTOSYS_DEVICE)
-+static bool is_rtc_hctosys(struct rtc_device *rtc)
++	  This driver can also be built as a module. If so, the module
++	  will be called rtc-ds2404.
++
+ config RTC_DRV_WM831X
+ 	tristate "Wolfson Microelectronics WM831x RTC"
+ 	depends on MFD_WM831X
+diff -puN drivers/rtc/Makefile~rtc-add-dallas-ds2404-driver drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-add-dallas-ds2404-driver
++++ a/drivers/rtc/Makefile
+@@ -43,6 +43,7 @@ obj-$(CONFIG_RTC_DRV_DS1511)	+= rtc-ds15
+ obj-$(CONFIG_RTC_DRV_DS1553)	+= rtc-ds1553.o
+ obj-$(CONFIG_RTC_DRV_DS1672)	+= rtc-ds1672.o
+ obj-$(CONFIG_RTC_DRV_DS1742)	+= rtc-ds1742.o
++obj-$(CONFIG_RTC_DRV_DS2404)    += rtc-ds2404.o
+ obj-$(CONFIG_RTC_DRV_DS3232)	+= rtc-ds3232.o
+ obj-$(CONFIG_RTC_DRV_DS3234)	+= rtc-ds3234.o
+ obj-$(CONFIG_RTC_DRV_EFI)	+= rtc-efi.o
+diff -puN /dev/null drivers/rtc/rtc-ds2404.c
+--- /dev/null
++++ a/drivers/rtc/rtc-ds2404.c
+@@ -0,0 +1,303 @@
++/*
++ * Copyright (C) 2012 Sven Schnelle <svens@stackframe.org>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ */
++
++#include <linux/platform_device.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/rtc.h>
++#include <linux/types.h>
++#include <linux/bcd.h>
++#include <linux/rtc-ds2404.h>
++#include <linux/delay.h>
++#include <linux/gpio.h>
++#include <linux/slab.h>
++
++#include <linux/io.h>
++
++#define DS2404_STATUS_REG 0x200
++#define DS2404_CONTROL_REG 0x201
++#define DS2404_RTC_REG 0x202
++
++#define DS2404_WRITE_SCRATCHPAD_CMD 0x0f
++#define DS2404_READ_SCRATCHPAD_CMD 0xaa
++#define DS2404_COPY_SCRATCHPAD_CMD 0x55
++#define DS2404_READ_MEMORY_CMD 0xf0
++
++struct ds2404;
++
++struct ds2404_chip_ops {
++	int (*map_io)(struct ds2404 *chip, struct platform_device *pdev,
++		      struct ds2404_platform_data *pdata);
++	void (*unmap_io)(struct ds2404 *chip);
++};
++
++#define DS2404_RST	0
++#define DS2404_CLK	1
++#define DS2404_DQ	2
++
++struct ds2404_gpio {
++	const char *name;
++	unsigned int gpio;
++};
++
++struct ds2404 {
++	struct ds2404_gpio *gpio;
++	struct ds2404_chip_ops *ops;
++	struct rtc_device *rtc;
++};
++
++static struct ds2404_gpio ds2404_gpio[] = {
++	{ "RTC RST", 0 },
++	{ "RTC CLK", 0 },
++	{ "RTC DQ", 0 },
++};
++
++static int ds2404_gpio_map(struct ds2404 *chip, struct platform_device *pdev,
++			  struct ds2404_platform_data *pdata)
 +{
-+	int size;
-+	char name[NAME_SIZE];
++	int i, err;
 +
-+	size = scnprintf(name, NAME_SIZE, "rtc%d", rtc->id);
-+	if (size > NAME_SIZE)
-+		return false;
++	ds2404_gpio[DS2404_RST].gpio = pdata->gpio_rst;
++	ds2404_gpio[DS2404_CLK].gpio = pdata->gpio_clk;
++	ds2404_gpio[DS2404_DQ].gpio = pdata->gpio_dq;
 +
-+	return !strncmp(name, CONFIG_RTC_HCTOSYS_DEVICE, NAME_SIZE);
++	for (i = 0; i < ARRAY_SIZE(ds2404_gpio); i++) {
++		err = gpio_request(ds2404_gpio[i].gpio, ds2404_gpio[i].name);
++		if (err) {
++			printk(KERN_ERR "error mapping gpio %s: %d\n",
++				ds2404_gpio[i].name, err);
++			goto err_request;
++		}
++		if (i != DS2404_DQ)
++			gpio_direction_output(ds2404_gpio[i].gpio, 1);
++	}
++
++	chip->gpio = ds2404_gpio;
++	return 0;
++
++err_request:
++	while (--i >= 0)
++		gpio_free(ds2404_gpio[i].gpio);
++	return err;
 +}
-+#else
-+static bool is_rtc_hctosys(struct rtc_device *rtc)
++
++static void ds2404_gpio_unmap(struct ds2404 *chip)
 +{
-+	return (rtc->id == 0);
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(ds2404_gpio); i++)
++		gpio_free(ds2404_gpio[i].gpio);
 +}
++
++static struct ds2404_chip_ops ds2404_gpio_ops = {
++	.map_io		= ds2404_gpio_map,
++	.unmap_io	= ds2404_gpio_unmap,
++};
++
++static void ds2404_reset(struct device *dev)
++{
++	gpio_set_value(ds2404_gpio[DS2404_RST].gpio, 0);
++	udelay(1000);
++	gpio_set_value(ds2404_gpio[DS2404_RST].gpio, 1);
++	gpio_set_value(ds2404_gpio[DS2404_CLK].gpio, 0);
++	gpio_direction_output(ds2404_gpio[DS2404_DQ].gpio, 0);
++	udelay(10);
++}
++
++static void ds2404_write_byte(struct device *dev, u8 byte)
++{
++	int i;
++
++	gpio_direction_output(ds2404_gpio[DS2404_DQ].gpio, 1);
++	for (i = 0; i < 8; i++) {
++		gpio_set_value(ds2404_gpio[DS2404_DQ].gpio, byte & (1 << i));
++		udelay(10);
++		gpio_set_value(ds2404_gpio[DS2404_CLK].gpio, 1);
++		udelay(10);
++		gpio_set_value(ds2404_gpio[DS2404_CLK].gpio, 0);
++		udelay(10);
++	}
++}
++
++static u8 ds2404_read_byte(struct device *dev)
++{
++	int i;
++	u8 ret = 0;
++
++	gpio_direction_input(ds2404_gpio[DS2404_DQ].gpio);
++
++	for (i = 0; i < 8; i++) {
++		gpio_set_value(ds2404_gpio[DS2404_CLK].gpio, 0);
++		udelay(10);
++		if (gpio_get_value(ds2404_gpio[DS2404_DQ].gpio))
++			ret |= 1 << i;
++		gpio_set_value(ds2404_gpio[DS2404_CLK].gpio, 1);
++		udelay(10);
++	}
++	return ret;
++}
++
++static void ds2404_read_memory(struct device *dev, u16 offset,
++			       int length, u8 *out)
++{
++	ds2404_reset(dev);
++	ds2404_write_byte(dev, DS2404_READ_MEMORY_CMD);
++	ds2404_write_byte(dev, offset & 0xff);
++	ds2404_write_byte(dev, (offset >> 8) & 0xff);
++	while (length--)
++		*out++ = ds2404_read_byte(dev);
++}
++
++static void ds2404_write_memory(struct device *dev, u16 offset,
++				int length, u8 *out)
++{
++	int i;
++	u8 ta01, ta02, es;
++
++	ds2404_reset(dev);
++	ds2404_write_byte(dev, DS2404_WRITE_SCRATCHPAD_CMD);
++	ds2404_write_byte(dev, offset & 0xff);
++	ds2404_write_byte(dev, (offset >> 8) & 0xff);
++
++	for (i = 0; i < length; i++)
++		ds2404_write_byte(dev, out[i]);
++
++	ds2404_reset(dev);
++	ds2404_write_byte(dev, DS2404_READ_SCRATCHPAD_CMD);
++
++	ta01 = ds2404_read_byte(dev);
++	ta02 = ds2404_read_byte(dev);
++	es = ds2404_read_byte(dev);
++
++	for (i = 0; i < length; i++) {
++		if (out[i] != ds2404_read_byte(dev)) {
++			printk(KERN_ERR "read invalid data\n");
++			return;
++		}
++	}
++
++	ds2404_reset(dev);
++	ds2404_write_byte(dev, DS2404_COPY_SCRATCHPAD_CMD);
++	ds2404_write_byte(dev, ta01);
++	ds2404_write_byte(dev, ta02);
++	ds2404_write_byte(dev, es);
++
++	gpio_direction_input(ds2404_gpio[DS2404_DQ].gpio);
++	while (gpio_get_value(ds2404_gpio[DS2404_DQ].gpio))
++		;
++}
++
++static void ds2404_enable_osc(struct device *dev)
++{
++	u8 in[1] = { 0x10 }; /* enable oscillator */
++	ds2404_write_memory(dev, 0x201, 1, in);
++}
++
++static int ds2404_read_time(struct device *dev, struct rtc_time *dt)
++{
++	unsigned long time = 0;
++
++	ds2404_read_memory(dev, 0x203, 4, (u8 *)&time);
++	time = le32_to_cpu(time);
++
++	rtc_time_to_tm(time, dt);
++	return rtc_valid_tm(dt);
++}
++
++static int ds2404_set_mmss(struct device *dev, unsigned long secs)
++{
++	u32 time = cpu_to_le32(secs);
++	ds2404_write_memory(dev, 0x203, 4, (u8 *)&time);
++	return 0;
++}
++
++static const struct rtc_class_ops ds2404_rtc_ops = {
++	.read_time	= ds2404_read_time,
++	.set_mmss	= ds2404_set_mmss,
++};
++
++static int rtc_probe(struct platform_device *pdev)
++{
++	struct ds2404_platform_data *pdata = pdev->dev.platform_data;
++	struct ds2404 *chip;
++	int retval = -EBUSY;
++
++	chip = kzalloc(sizeof(struct ds2404), GFP_KERNEL);
++	if (!chip)
++		return -ENOMEM;
++
++	chip->ops = &ds2404_gpio_ops;
++
++	retval = chip->ops->map_io(chip, pdev, pdata);
++	if (retval)
++		goto err_chip;
++
++	dev_info(&pdev->dev, "using GPIOs RST:%d, CLK:%d, DQ:%d\n",
++		 chip->gpio[DS2404_RST].gpio, chip->gpio[DS2404_CLK].gpio,
++		 chip->gpio[DS2404_DQ].gpio);
++
++	platform_set_drvdata(pdev, chip);
++
++	chip->rtc = rtc_device_register("ds2404",
++				&pdev->dev, &ds2404_rtc_ops, THIS_MODULE);
++	if (IS_ERR(chip->rtc)) {
++		retval = PTR_ERR(chip->rtc);
++		goto err_io;
++	}
++
++	ds2404_enable_osc(&pdev->dev);
++	return 0;
++
++err_io:
++	chip->ops->unmap_io(chip);
++err_chip:
++	kfree(chip);
++	return retval;
++}
++
++static int rtc_remove(struct platform_device *dev)
++{
++	struct ds2404 *chip = platform_get_drvdata(dev);
++	struct rtc_device *rtc = chip->rtc;
++
++	if (rtc)
++		rtc_device_unregister(rtc);
++
++	chip->ops->unmap_io(chip);
++	kfree(chip);
++
++	return 0;
++}
++
++static struct platform_driver rtc_device_driver = {
++	.probe	= rtc_probe,
++	.remove = rtc_remove,
++	.driver = {
++		.name	= "ds2404",
++		.owner	= THIS_MODULE,
++	},
++};
++
++static __init int ds2404_init(void)
++{
++	return platform_driver_register(&rtc_device_driver);
++}
++
++static __exit void ds2404_exit(void)
++{
++	platform_driver_unregister(&rtc_device_driver);
++}
++
++module_init(ds2404_init);
++module_exit(ds2404_exit);
++
++MODULE_DESCRIPTION("DS2404 RTC");
++MODULE_AUTHOR("Sven Schnelle");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:ds2404");
+diff -puN /dev/null include/linux/rtc-ds2404.h
+--- /dev/null
++++ a/include/linux/rtc-ds2404.h
+@@ -0,0 +1,20 @@
++/*
++ * ds2404.h - platform data structure for the DS2404 RTC.
++ *
++ * This file is subject to the terms and conditions of the GNU General Public
++ * License.  See the file "COPYING" in the main directory of this archive
++ * for more details.
++ *
++ * Copyright (C) 2012 Sven Schnelle <svens@stackframe.org>
++ */
++
++#ifndef __LINUX_DS2404_H
++#define __LINUX_DS2404_H
++
++struct ds2404_platform_data {
++
++	unsigned int gpio_rst;
++	unsigned int gpio_clk;
++	unsigned int gpio_dq;
++};
 +#endif
- 
- static int rtc_proc_show(struct seq_file *seq, void *offset)
- {
-@@ -117,12 +137,12 @@ static const struct file_operations rtc_
- 
- void rtc_proc_add_device(struct rtc_device *rtc)
- {
--	if (rtc->id == 0)
-+	if (is_rtc_hctosys(rtc))
- 		proc_create_data("driver/rtc", 0, NULL, &rtc_proc_fops, rtc);
- }
- 
- void rtc_proc_del_device(struct rtc_device *rtc)
- {
--	if (rtc->id == 0)
-+	if (is_rtc_hctosys(rtc))
- 		remove_proc_entry("driver/rtc", NULL);
- }
 _
 
-Patches currently in -mm which might be from Milo.Kim@ti.com are
+Patches currently in -mm which might be from svens@stackframe.org are
 
 origin.patch
-linux-next.patch
 
