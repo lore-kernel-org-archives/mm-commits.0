@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code.patch added to -mm tree
-Date: Fri, 05 Oct 2012 15:01:00 -0700
-Message-ID: <20121005220101.4B58E1E0043@wpzn4.hot.corp.google.com>
+Subject: + mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code-fix.patch added to -mm tree
+Date: Fri, 05 Oct 2012 15:01:13 -0700
+Message-ID: <20121005220114.D2E7420004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:52773 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932459Ab2JEWBC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 18:01:02 -0400
-Received: by mail-vb0-f74.google.com with SMTP id s24so249417vbi.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 15:01:01 -0700 (PDT)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:61501 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754583Ab2JEWBT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 18:01:19 -0400
+Received: by mail-la0-f74.google.com with SMTP id j13so101078lah.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 15:01:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davem@davemloft.net, aarcange@redhat.com, gerald.schaefer@de.ibm.com, hannes@cmpxchg.org
+Cc: akpm@linux-foundation.org, aarcange@redhat.com, davem@davemloft.net, gerald.schaefer@de.ibm.com, hannes@cmpxchg.org
 
 
 The patch titled
-     Subject: mm: Add and use update_mmu_cache_pmd() in transparent huge page code.
+     Subject: mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code-fix
 has been added to the -mm tree.  Its filename is
-     mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code.patch
+     mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,103 +33,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Miller <davem@davemloft.net>
-Subject: mm: Add and use update_mmu_cache_pmd() in transparent huge page code.
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code-fix
 
-The transparent huge page code passes a PMD pointer in as the third
-argument of update_mmu_cache(), which expects a PTE pointer.
+implement update_mm_cache_pmd() for s390
 
-This never got noticed because X86 implements update_mmu_cache() as a
-macro and thus we don't get any type checking, and X86 is the only
-architecture which supports transparent huge pages currently.
-
-Before other architectures can support transparent huge pages properly we
-need to add a new interface which will take a PMD pointer as the third
-argument rather than a PTE pointer.
-
-Signed-off-by: David S. Miller <davem@davemloft.net>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: David Miller <davem@davemloft.net>
+Cc: David S. Miller <davem@davemloft.net>
 Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable_32.h |    1 +
- arch/x86/include/asm/pgtable_64.h |    1 +
- mm/huge_memory.c                  |    6 +++---
- 3 files changed, 5 insertions(+), 3 deletions(-)
+ arch/s390/include/asm/pgtable.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/x86/include/asm/pgtable_32.h~mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code arch/x86/include/asm/pgtable_32.h
---- a/arch/x86/include/asm/pgtable_32.h~mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code
-+++ a/arch/x86/include/asm/pgtable_32.h
-@@ -71,6 +71,7 @@ do {						\
+diff -puN arch/s390/include/asm/pgtable.h~mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code-fix arch/s390/include/asm/pgtable.h
+--- a/arch/s390/include/asm/pgtable.h~mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code-fix
++++ a/arch/s390/include/asm/pgtable.h
+@@ -42,6 +42,7 @@ extern void fault_init(void);
   * tables contain all the necessary information.
   */
- #define update_mmu_cache(vma, address, ptep) do { } while (0)
-+#define update_mmu_cache_pmd(vma, address, pmd) do { } while (0)
+ #define update_mmu_cache(vma, address, ptep)     do { } while (0)
++#define update_mmu_cache_pmd(vma, address, ptep) do { } while (0)
  
- #endif /* !__ASSEMBLY__ */
- 
-diff -puN arch/x86/include/asm/pgtable_64.h~mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code arch/x86/include/asm/pgtable_64.h
---- a/arch/x86/include/asm/pgtable_64.h~mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code
-+++ a/arch/x86/include/asm/pgtable_64.h
-@@ -143,6 +143,7 @@ static inline int pgd_large(pgd_t pgd) {
- #define pte_unmap(pte) ((void)(pte))/* NOP */
- 
- #define update_mmu_cache(vma, address, ptep) do { } while (0)
-+#define update_mmu_cache_pmd(vma, address, pmd) do { } while (0)
- 
- /* Encode and de-code a swap entry */
- #if _PAGE_BIT_FILE < _PAGE_BIT_PROTNONE
-diff -puN mm/huge_memory.c~mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code mm/huge_memory.c
---- a/mm/huge_memory.c~mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code
-+++ a/mm/huge_memory.c
-@@ -969,7 +969,7 @@ int do_huge_pmd_wp_page(struct mm_struct
- 		entry = pmd_mkyoung(orig_pmd);
- 		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
- 		if (pmdp_set_access_flags(vma, haddr, pmd, entry,  1))
--			update_mmu_cache(vma, address, pmd);
-+			update_mmu_cache_pmd(vma, address, pmd);
- 		ret |= VM_FAULT_WRITE;
- 		goto out_unlock;
- 	}
-@@ -1025,7 +1025,7 @@ int do_huge_pmd_wp_page(struct mm_struct
- 		pmdp_clear_flush(vma, haddr, pmd);
- 		page_add_new_anon_rmap(new_page, vma, haddr);
- 		set_pmd_at(mm, haddr, pmd, entry);
--		update_mmu_cache(vma, address, pmd);
-+		update_mmu_cache_pmd(vma, address, pmd);
- 		page_remove_rmap(page);
- 		put_page(page);
- 		ret |= VM_FAULT_WRITE;
-@@ -2108,7 +2108,7 @@ static void collapse_huge_page(struct mm
- 	BUG_ON(!pmd_none(*pmd));
- 	page_add_new_anon_rmap(new_page, vma, address);
- 	set_pmd_at(mm, address, pmd, _pmd);
--	update_mmu_cache(vma, address, pmd);
-+	update_mmu_cache_pmd(vma, address, pmd);
- 	pgtable_trans_huge_deposit(mm, pgtable);
- 	spin_unlock(&mm->page_table_lock);
- 
+ /*
+  * ZERO_PAGE is a global shared page that is always zero; used
 _
 
-Patches currently in -mm which might be from davem@davemloft.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-kconfig-clean-up-the-long-arch-list-for-the-uid16-config-option.patch
-kconfig-clean-up-the-long-arch-list-for-the-debug_kmemleak-config-option.patch
-kconfig-clean-up-the-long-arch-list-for-the-debug_bugverbose-config-option.patch
-kconfig-clean-up-the-if-definedarch-list-for-exception-trace-sysctl-entry.patch
-atomic-implement-generic-atomic_dec_if_positive.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+mm.patch
+x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
+mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
+mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures-fix.patch
+mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch
+rbtree-performance-and-correctness-test-fix.patch
+mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix.patch
+mm-fix-tracing-in-free_pcppages_bulk-fix.patch
+cma-count-free-cma-pages-fix.patch
+memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
 atomic-implement-generic-atomic_dec_if_positive-fix.patch
-sparc64-only-support-4mb-huge-pages-and-8kb-base-pages.patch
-sparc64-halve-the-size-of-pte-tables.patch
-sparc64-eliminate-pte-table-memory-wastage.patch
-sparc64-document-pgd-and-pmd-layout.patch
-mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix-2.patch
+mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible-fix-fix.patch
+mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch
+mm-fix-invalidate_complete_page2-lock-ordering.patch
+mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix.patch
+mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock.patch
+cma-migrate-mlocked-pages-fix.patch
+fs-block_devc-set_blocksize-use-mapping_mapped.patch
+mm-avoid-section-mismatch-warning-for-memblock_type_name-fix.patch
+mm-document-pagehuge-somewhat.patch
+mm-memcg-clean-up-mm_match_cgroup-signature-fix.patch
+memory-hotplug-suppress-trying-to-free-nonexistent-resource-xxxxxxxxxxxxxxxx-yyyyyyyyyyyyyyyy-warning.patch
 mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code-fix.patch
-mm-thp-use-more-portable-pmd-clearing-sequenece-in-zap_huge_pmd.patch
-sparc64-support-transparent-huge-pages.patch
-compat-generic-compat_sys_sched_rr_get_interval-implementation.patch
+idr-rename-max_level-to-max_idr_level-fix-3.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
