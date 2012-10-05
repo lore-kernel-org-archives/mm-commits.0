@@ -1,78 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rapidio-tsi721-modify-mport-name-assignment.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:20:15 -0700
-Message-ID: <20121005202015.9F8491E0048@wpzn4.hot.corp.google.com>
+Subject: [merged] rapidio-rionet-fix-multicast-packet-transmit-logic.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:20:12 -0700
+Message-ID: <20121005202012.B5A9B1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:54966 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932319Ab2JEUUQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:20:16 -0400
-Received: by mail-gg0-f202.google.com with SMTP id i4so236004ggm.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:20:16 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:51176 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932319Ab2JEUUN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:20:13 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z15so236894ghb.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:20:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandre.bounine@idt.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
+To: alexandre.bounine@idt.com, davem@davemloft.net, mporter@kernel.crashing.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio/tsi721: modify mport name assignment
+     Subject: rapidio/rionet: fix multicast packet transmit logic
 has been removed from the -mm tree.  Its filename was
-     rapidio-tsi721-modify-mport-name-assignment.patch
+     rapidio-rionet-fix-multicast-packet-transmit-logic.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio/tsi721: modify mport name assignment
+Subject: rapidio/rionet: fix multicast packet transmit logic
 
-Modify RapidIO mport device name assignment to include device name of PCIe
-side of Tsi721 bridge.  The new name format is intended to provide
-definitive reference between RapidIO and PCIe sides of the bridge in
-systems with multiple Tsi721 bridges.
+Fix multicast packet transmit logic to account for repetitive transmission
+of single skb:
+- correct check for available buffers (this bug may produce NULL pointer
+  crash dump in case of heavy traffic);
+- update skb user count (incorrect user counter causes a warning dump from
+  net_tx_action routine during multicast transfers in systems with three or
+  more rionet participants).
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/tsi721.c |    3 ++-
- include/linux/rio.h              |    3 ++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/net/rionet.c |   20 +++++++++++++++++---
+ 1 file changed, 17 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rapidio/devices/tsi721.c~rapidio-tsi721-modify-mport-name-assignment drivers/rapidio/devices/tsi721.c
---- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-modify-mport-name-assignment
-+++ a/drivers/rapidio/devices/tsi721.c
-@@ -2165,7 +2165,8 @@ static int __devinit tsi721_setup_mport(
- 	rio_init_dbell_res(&mport->riores[RIO_DOORBELL_RESOURCE], 0, 0xffff);
- 	rio_init_mbox_res(&mport->riores[RIO_INB_MBOX_RESOURCE], 0, 3);
- 	rio_init_mbox_res(&mport->riores[RIO_OUTB_MBOX_RESOURCE], 0, 3);
--	strcpy(mport->name, "Tsi721 mport");
-+	snprintf(mport->name, RIO_MAX_MPORT_NAME, "%s(%s)",
-+		 dev_driver_string(&pdev->dev), dev_name(&pdev->dev));
+diff -puN drivers/net/rionet.c~rapidio-rionet-fix-multicast-packet-transmit-logic drivers/net/rionet.c
+--- a/drivers/net/rionet.c~rapidio-rionet-fix-multicast-packet-transmit-logic
++++ a/drivers/net/rionet.c
+@@ -79,6 +79,7 @@ static int rionet_capable = 1;
+  * on system trade-offs.
+  */
+ static struct rio_dev **rionet_active;
++static int nact;	/* total number of active rionet peers */
  
- 	/* Hook up interrupt handler */
+ #define is_rionet_capable(src_ops, dst_ops)			\
+ 			((src_ops & RIO_SRC_OPS_DATA_MSG) &&	\
+@@ -175,6 +176,7 @@ static int rionet_start_xmit(struct sk_b
+ 	struct ethhdr *eth = (struct ethhdr *)skb->data;
+ 	u16 destid;
+ 	unsigned long flags;
++	int add_num = 1;
  
-diff -puN include/linux/rio.h~rapidio-tsi721-modify-mport-name-assignment include/linux/rio.h
---- a/include/linux/rio.h~rapidio-tsi721-modify-mport-name-assignment
-+++ a/include/linux/rio.h
-@@ -30,6 +30,7 @@
- #define RIO_MAX_MPORTS		8
- #define RIO_MAX_MPORT_RESOURCES	16
- #define RIO_MAX_DEV_RESOURCES	16
-+#define RIO_MAX_MPORT_NAME	40
+ 	local_irq_save(flags);
+ 	if (!spin_trylock(&rnet->tx_lock)) {
+@@ -182,7 +184,10 @@ static int rionet_start_xmit(struct sk_b
+ 		return NETDEV_TX_LOCKED;
+ 	}
  
- #define RIO_GLOBAL_TABLE	0xff	/* Indicates access of a switch's
- 					   global routing table if it
-@@ -255,7 +256,7 @@ struct rio_mport {
- 				 */
- 	enum rio_phy_type phy_type;	/* RapidIO phy type */
- 	u32 phys_efptr;
--	unsigned char name[40];
-+	unsigned char name[RIO_MAX_MPORT_NAME];
- 	void *priv;		/* Master port private data */
- #ifdef CONFIG_RAPIDIO_DMA_ENGINE
- 	struct dma_device	dma;
+-	if ((rnet->tx_cnt + 1) > RIONET_TX_RING_SIZE) {
++	if (is_multicast_ether_addr(eth->h_dest))
++		add_num = nact;
++
++	if ((rnet->tx_cnt + add_num) > RIONET_TX_RING_SIZE) {
+ 		netif_stop_queue(ndev);
+ 		spin_unlock_irqrestore(&rnet->tx_lock, flags);
+ 		printk(KERN_ERR "%s: BUG! Tx Ring full when queue awake!\n",
+@@ -191,11 +196,16 @@ static int rionet_start_xmit(struct sk_b
+ 	}
+ 
+ 	if (is_multicast_ether_addr(eth->h_dest)) {
++		int count = 0;
+ 		for (i = 0; i < RIO_MAX_ROUTE_ENTRIES(rnet->mport->sys_size);
+ 				i++)
+-			if (rionet_active[i])
++			if (rionet_active[i]) {
+ 				rionet_queue_tx_msg(skb, ndev,
+ 						    rionet_active[i]);
++				if (count)
++					atomic_inc(&skb->users);
++				count++;
++			}
+ 	} else if (RIONET_MAC_MATCH(eth->h_dest)) {
+ 		destid = RIONET_GET_DESTID(eth->h_dest);
+ 		if (rionet_active[destid])
+@@ -220,14 +230,17 @@ static void rionet_dbell_event(struct ri
+ 	if (info == RIONET_DOORBELL_JOIN) {
+ 		if (!rionet_active[sid]) {
+ 			list_for_each_entry(peer, &rionet_peers, node) {
+-				if (peer->rdev->destid == sid)
++				if (peer->rdev->destid == sid) {
+ 					rionet_active[sid] = peer->rdev;
++					nact++;
++				}
+ 			}
+ 			rio_mport_send_doorbell(mport, sid,
+ 						RIONET_DOORBELL_JOIN);
+ 		}
+ 	} else if (info == RIONET_DOORBELL_LEAVE) {
+ 		rionet_active[sid] = NULL;
++		nact--;
+ 	} else {
+ 		if (netif_msg_intr(rnet))
+ 			printk(KERN_WARNING "%s: unhandled doorbell\n",
+@@ -523,6 +536,7 @@ static int rionet_probe(struct rio_dev *
+ 
+ 		rc = rionet_setup_netdev(rdev->net->hport, ndev);
+ 		rionet_check = 1;
++		nact = 0;
+ 	}
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from alexandre.bounine@idt.com are
