@@ -1,204 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-s35390ac-add-wakealarm-support-for-rtc-s35390a-rtc-chip.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:18:03 -0700
-Message-ID: <20121005201803.A341E1E0049@wpzn4.hot.corp.google.com>
+Subject: [merged] fat-use-accessor-function-for-msdos_dir_entry-start.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:18:09 -0700
+Message-ID: <20121005201810.241E65C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:44734 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757277Ab2JEUSE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:18:04 -0400
-Received: by mail-qa0-f74.google.com with SMTP id a16so94098qae.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:18:04 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:55302 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757277Ab2JEUSM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:18:12 -0400
+Received: by mail-lb0-f202.google.com with SMTP id l12so141084lbo.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:18:11 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: michael.brainbug.langer@googlemail.com, mm-commits@vger.kernel.org
+To: linkinjeon@gmail.com, amit.sahrawat83@gmail.com, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-s35390a.c: add wakealarm support for rtc-s35390A rtc chip
+     Subject: fat: use accessor function for msdos_dir_entry 'start'
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-s35390ac-add-wakealarm-support-for-rtc-s35390a-rtc-chip.patch
+     fat-use-accessor-function-for-msdos_dir_entry-start.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michael Langer <michael.brainbug.langer@googlemail.com>
-Subject: drivers/rtc/rtc-s35390a.c: add wakealarm support for rtc-s35390A rtc chip
+From: Namjae Jeon <linkinjeon@gmail.com>
+Subject: fat: use accessor function for msdos_dir_entry 'start'
 
-Add basic get/set alarm support for the Seiko Instruments S-35390A.  The
-chip is used on the QNAP TS-219P+ NAS device.
+Use accessor function for msdos_dir_entry 'start'
 
-Signed-off-by: Michael Langer <michael.brainbug.langer@googlemail.com>
+Signed-off-by: Namjae Jeon <linkinjeon@gmail.com>
+Signed-off-by: Amit Sahrawat <amit.sahrawat83@gmail.com>
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-s35390a.c |  116 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 116 insertions(+)
+ fs/fat/dir.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-s35390a.c~drivers-rtc-rtc-s35390ac-add-wakealarm-support-for-rtc-s35390a-rtc-chip drivers/rtc/rtc-s35390a.c
---- a/drivers/rtc/rtc-s35390a.c~drivers-rtc-rtc-s35390ac-add-wakealarm-support-for-rtc-s35390a-rtc-chip
-+++ a/drivers/rtc/rtc-s35390a.c
-@@ -19,6 +19,8 @@
- #define S35390A_CMD_STATUS1	0
- #define S35390A_CMD_STATUS2	1
- #define S35390A_CMD_TIME1	2
-+#define S35390A_CMD_TIME2	3
-+#define S35390A_CMD_INT2_REG1	5
- 
- #define S35390A_BYTE_YEAR	0
- #define S35390A_BYTE_MONTH	1
-@@ -28,12 +30,23 @@
- #define S35390A_BYTE_MINS	5
- #define S35390A_BYTE_SECS	6
- 
-+#define S35390A_ALRM_BYTE_WDAY	0
-+#define S35390A_ALRM_BYTE_HOURS	1
-+#define S35390A_ALRM_BYTE_MINS	2
-+
- #define S35390A_FLAG_POC	0x01
- #define S35390A_FLAG_BLD	0x02
- #define S35390A_FLAG_24H	0x40
- #define S35390A_FLAG_RESET	0x80
- #define S35390A_FLAG_TEST	0x01
- 
-+#define S35390A_INT2_MODE_MASK		0xF0
-+
-+#define S35390A_INT2_MODE_NOINTR	0x00
-+#define S35390A_INT2_MODE_FREQ		0x10
-+#define S35390A_INT2_MODE_ALARM		0x40
-+#define S35390A_INT2_MODE_PMIN_EDG	0x20
-+
- static const struct i2c_device_id s35390a_id[] = {
- 	{ "s35390a", 0 },
- 	{ }
-@@ -193,6 +206,104 @@ static int s35390a_get_datetime(struct i
- 	return rtc_valid_tm(tm);
- }
- 
-+static int s35390a_set_alarm(struct i2c_client *client, struct rtc_wkalrm *alm)
-+{
-+	struct s35390a *s35390a = i2c_get_clientdata(client);
-+	char buf[3], sts = 0;
-+	int err, i;
-+
-+	dev_dbg(&client->dev, "%s: alm is secs=%d, mins=%d, hours=%d mday=%d, "\
-+		"mon=%d, year=%d, wday=%d\n", __func__, alm->time.tm_sec,
-+		alm->time.tm_min, alm->time.tm_hour, alm->time.tm_mday,
-+		alm->time.tm_mon, alm->time.tm_year, alm->time.tm_wday);
-+
-+	/* disable interrupt */
-+	err = s35390a_set_reg(s35390a, S35390A_CMD_STATUS2, &sts, sizeof(sts));
-+	if (err < 0)
-+		return err;
-+
-+	/* clear pending interrupt, if any */
-+	err = s35390a_get_reg(s35390a, S35390A_CMD_STATUS1, &sts, sizeof(sts));
-+	if (err < 0)
-+		return err;
-+
-+	if (alm->enabled)
-+		sts = S35390A_INT2_MODE_ALARM;
-+	else
-+		sts = S35390A_INT2_MODE_NOINTR;
-+
-+	/* This chip expects the bits of each byte to be in reverse order */
-+	sts = bitrev8(sts);
-+
-+	/* set interupt mode*/
-+	err = s35390a_set_reg(s35390a, S35390A_CMD_STATUS2, &sts, sizeof(sts));
-+	if (err < 0)
-+		return err;
-+
-+	if (alm->time.tm_wday != -1)
-+		buf[S35390A_ALRM_BYTE_WDAY] = bin2bcd(alm->time.tm_wday) | 0x80;
-+
-+	buf[S35390A_ALRM_BYTE_HOURS] = s35390a_hr2reg(s35390a,
-+			alm->time.tm_hour) | 0x80;
-+	buf[S35390A_ALRM_BYTE_MINS] = bin2bcd(alm->time.tm_min) | 0x80;
-+
-+	if (alm->time.tm_hour >= 12)
-+		buf[S35390A_ALRM_BYTE_HOURS] |= 0x40;
-+
-+	for (i = 0; i < 3; ++i)
-+		buf[i] = bitrev8(buf[i]);
-+
-+	err = s35390a_set_reg(s35390a, S35390A_CMD_INT2_REG1, buf,
-+								sizeof(buf));
-+
-+	return err;
-+}
-+
-+static int s35390a_read_alarm(struct i2c_client *client, struct rtc_wkalrm *alm)
-+{
-+	struct s35390a *s35390a = i2c_get_clientdata(client);
-+	char buf[3], sts;
-+	int i, err;
-+
-+	err = s35390a_get_reg(s35390a, S35390A_CMD_STATUS2, &sts, sizeof(sts));
-+	if (err < 0)
-+		return err;
-+
-+	if (bitrev8(sts) != S35390A_INT2_MODE_ALARM)
-+		return -EINVAL;
-+
-+	err = s35390a_get_reg(s35390a, S35390A_CMD_INT2_REG1, buf, sizeof(buf));
-+	if (err < 0)
-+		return err;
-+
-+	/* This chip returns the bits of each byte in reverse order */
-+	for (i = 0; i < 3; ++i) {
-+		buf[i] = bitrev8(buf[i]);
-+		buf[i] &= ~0x80;
-+	}
-+
-+	alm->time.tm_wday = bcd2bin(buf[S35390A_ALRM_BYTE_WDAY]);
-+	alm->time.tm_hour = s35390a_reg2hr(s35390a,
-+						buf[S35390A_ALRM_BYTE_HOURS]);
-+	alm->time.tm_min = bcd2bin(buf[S35390A_ALRM_BYTE_MINS]);
-+
-+	dev_dbg(&client->dev, "%s: alm is mins=%d, hours=%d, wday=%d\n",
-+			__func__, alm->time.tm_min, alm->time.tm_hour,
-+			alm->time.tm_wday);
-+
-+	return 0;
-+}
-+
-+static int s35390a_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alm)
-+{
-+	return s35390a_read_alarm(to_i2c_client(dev), alm);
-+}
-+
-+static int s35390a_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
-+{
-+	return s35390a_set_alarm(to_i2c_client(dev), alm);
-+}
-+
- static int s35390a_rtc_read_time(struct device *dev, struct rtc_time *tm)
- {
- 	return s35390a_get_datetime(to_i2c_client(dev), tm);
-@@ -206,6 +317,9 @@ static int s35390a_rtc_set_time(struct d
- static const struct rtc_class_ops s35390a_rtc_ops = {
- 	.read_time	= s35390a_rtc_read_time,
- 	.set_time	= s35390a_rtc_set_time,
-+	.set_alarm	= s35390a_rtc_set_alarm,
-+	.read_alarm	= s35390a_rtc_read_alarm,
-+
- };
- 
- static struct i2c_driver s35390a_driver;
-@@ -270,6 +384,8 @@ static int s35390a_probe(struct i2c_clie
- 	if (s35390a_get_datetime(client, &tm) < 0)
- 		dev_warn(&client->dev, "clock needs to be set\n");
- 
-+	device_set_wakeup_capable(&client->dev, 1);
-+
- 	s35390a->rtc = rtc_device_register(s35390a_driver.driver.name,
- 				&client->dev, &s35390a_rtc_ops, THIS_MODULE);
- 
+diff -puN fs/fat/dir.c~fat-use-accessor-function-for-msdos_dir_entry-start fs/fat/dir.c
+--- a/fs/fat/dir.c~fat-use-accessor-function-for-msdos_dir_entry-start
++++ a/fs/fat/dir.c
+@@ -1141,10 +1141,8 @@ int fat_alloc_new_dir(struct inode *dir,
+ 		de[0].ctime_cs = de[1].ctime_cs = 0;
+ 		de[0].adate = de[0].cdate = de[1].adate = de[1].cdate = 0;
+ 	}
+-	de[0].start = cpu_to_le16(cluster);
+-	de[0].starthi = cpu_to_le16(cluster >> 16);
+-	de[1].start = cpu_to_le16(MSDOS_I(dir)->i_logstart);
+-	de[1].starthi = cpu_to_le16(MSDOS_I(dir)->i_logstart >> 16);
++	fat_set_start(&de[0], cluster);
++	fat_set_start(&de[1], MSDOS_I(dir)->i_logstart);
+ 	de[0].size = de[1].size = 0;
+ 	memset(de + 2, 0, sb->s_blocksize - 2 * sizeof(*de));
+ 	set_buffer_uptodate(bhs[0]);
 _
 
-Patches currently in -mm which might be from michael.brainbug.langer@googlemail.com are
+Patches currently in -mm which might be from linkinjeon@gmail.com are
 
 origin.patch
+linux-next.patch
 
