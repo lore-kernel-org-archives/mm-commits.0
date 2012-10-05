@@ -1,63 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sections-fix-section-conflicts-in-mm-percpuc.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:13:27 -0700
-Message-ID: <20121005201328.13C5C5C0060@hpza9.eem.corp.google.com>
+Subject: [merged] sections-fix-section-conflicts-in-drivers-video.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:13:23 -0700
+Message-ID: <20121005201324.17BF15C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:32830 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932800Ab2JEUN3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:13:29 -0400
-Received: by mail-we0-f202.google.com with SMTP id x43so139530wey.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:13:28 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:40398 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932804Ab2JEUN1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:13:27 -0400
+Received: by mail-wi0-f202.google.com with SMTP id hr7so57806wib.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:13:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@linux.intel.com, mm-commits@vger.kernel.org
+To: ak@linux.intel.com, FlorianSchandinat@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sections: fix section conflicts in mm/percpu.c
+     Subject: sections: fix section conflicts in drivers/video
 has been removed from the -mm tree.  Its filename was
-     sections-fix-section-conflicts-in-mm-percpuc.patch
+     sections-fix-section-conflicts-in-drivers-video.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andi Kleen <ak@linux.intel.com>
-Subject: sections: fix section conflicts in mm/percpu.c
+Subject: sections: fix section conflicts in drivers/video
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/percpu.h |    2 +-
- mm/percpu.c            |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/aty/aty128fb.c     |    2 +-
+ drivers/video/geode/gx1fb_core.c |    2 +-
+ drivers/video/gxt4500.c          |    4 ++--
+ drivers/video/i810/i810_main.c   |    2 +-
+ drivers/video/jz4740_fb.c        |    2 +-
+ 5 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/percpu.h~sections-fix-section-conflicts-in-mm-percpuc include/linux/percpu.h
---- a/include/linux/percpu.h~sections-fix-section-conflicts-in-mm-percpuc
-+++ a/include/linux/percpu.h
-@@ -107,7 +107,7 @@ enum pcpu_fc {
- 
- 	PCPU_FC_NR,
+diff -puN drivers/video/aty/aty128fb.c~sections-fix-section-conflicts-in-drivers-video drivers/video/aty/aty128fb.c
+--- a/drivers/video/aty/aty128fb.c~sections-fix-section-conflicts-in-drivers-video
++++ a/drivers/video/aty/aty128fb.c
+@@ -149,7 +149,7 @@ enum {
  };
--extern const char *pcpu_fc_names[PCPU_FC_NR];
-+extern const char * const pcpu_fc_names[PCPU_FC_NR];
  
- extern enum pcpu_fc pcpu_chosen_fc;
+ /* Must match above enum */
+-static const char *r128_family[] __devinitdata = {
++static char * const r128_family[] __devinitconst = {
+ 	"AGP",
+ 	"PCI",
+ 	"PRO AGP",
+diff -puN drivers/video/geode/gx1fb_core.c~sections-fix-section-conflicts-in-drivers-video drivers/video/geode/gx1fb_core.c
+--- a/drivers/video/geode/gx1fb_core.c~sections-fix-section-conflicts-in-drivers-video
++++ a/drivers/video/geode/gx1fb_core.c
+@@ -29,7 +29,7 @@ static int  crt_option = 1;
+ static char panel_option[32] = "";
  
-diff -puN mm/percpu.c~sections-fix-section-conflicts-in-mm-percpuc mm/percpu.c
---- a/mm/percpu.c~sections-fix-section-conflicts-in-mm-percpuc
-+++ a/mm/percpu.c
-@@ -1370,7 +1370,7 @@ int __init pcpu_setup_first_chunk(const 
+ /* Modes relevant to the GX1 (taken from modedb.c) */
+-static const struct fb_videomode __devinitdata gx1_modedb[] = {
++static const struct fb_videomode __devinitconst gx1_modedb[] = {
+ 	/* 640x480-60 VESA */
+ 	{ NULL, 60, 640, 480, 39682,  48, 16, 33, 10, 96, 2,
+ 	  0, FB_VMODE_NONINTERLACED, FB_MODE_IS_VESA },
+diff -puN drivers/video/gxt4500.c~sections-fix-section-conflicts-in-drivers-video drivers/video/gxt4500.c
+--- a/drivers/video/gxt4500.c~sections-fix-section-conflicts-in-drivers-video
++++ a/drivers/video/gxt4500.c
+@@ -156,7 +156,7 @@ struct gxt4500_par {
+ static char *mode_option;
  
- #ifdef CONFIG_SMP
+ /* default mode: 1280x1024 @ 60 Hz, 8 bpp */
+-static const struct fb_videomode defaultmode __devinitdata = {
++static const struct fb_videomode defaultmode __devinitconst = {
+ 	.refresh = 60,
+ 	.xres = 1280,
+ 	.yres = 1024,
+@@ -581,7 +581,7 @@ static int gxt4500_blank(int blank, stru
+ 	return 0;
+ }
  
--const char *pcpu_fc_names[PCPU_FC_NR] __initdata = {
-+const char * const pcpu_fc_names[PCPU_FC_NR] __initconst = {
- 	[PCPU_FC_AUTO]	= "auto",
- 	[PCPU_FC_EMBED]	= "embed",
- 	[PCPU_FC_PAGE]	= "page",
+-static const struct fb_fix_screeninfo gxt4500_fix __devinitdata = {
++static const struct fb_fix_screeninfo gxt4500_fix __devinitconst = {
+ 	.id = "IBM GXT4500P",
+ 	.type = FB_TYPE_PACKED_PIXELS,
+ 	.visual = FB_VISUAL_PSEUDOCOLOR,
+diff -puN drivers/video/i810/i810_main.c~sections-fix-section-conflicts-in-drivers-video drivers/video/i810/i810_main.c
+--- a/drivers/video/i810/i810_main.c~sections-fix-section-conflicts-in-drivers-video
++++ a/drivers/video/i810/i810_main.c
+@@ -97,7 +97,7 @@ static int i810fb_blank      (int blank_
+ static void i810fb_release_resource       (struct fb_info *info, struct i810fb_par *par);
+ 
+ /* PCI */
+-static const char *i810_pci_list[] __devinitdata = {
++static const char * const i810_pci_list[] __devinitconst = {
+ 	"Intel(R) 810 Framebuffer Device"                                 ,
+ 	"Intel(R) 810-DC100 Framebuffer Device"                           ,
+ 	"Intel(R) 810E Framebuffer Device"                                ,
+diff -puN drivers/video/jz4740_fb.c~sections-fix-section-conflicts-in-drivers-video drivers/video/jz4740_fb.c
+--- a/drivers/video/jz4740_fb.c~sections-fix-section-conflicts-in-drivers-video
++++ a/drivers/video/jz4740_fb.c
+@@ -136,7 +136,7 @@ struct jzfb {
+ 	uint32_t pseudo_palette[16];
+ };
+ 
+-static const struct fb_fix_screeninfo jzfb_fix __devinitdata = {
++static const struct fb_fix_screeninfo jzfb_fix __devinitconst = {
+ 	.id		= "JZ4740 FB",
+ 	.type		= FB_TYPE_PACKED_PIXELS,
+ 	.visual		= FB_VISUAL_TRUECOLOR,
 _
 
 Patches currently in -mm which might be from ak@linux.intel.com are
