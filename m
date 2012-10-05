@@ -1,63 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] idr-rename-max_level-to-max_idr_level-fix-fix-2-fix.patch removed from -mm tree
-Date: Thu, 04 Oct 2012 16:57:07 -0700
-Message-ID: <20121004235707.E77B3100048@wpzn3.hot.corp.google.com>
+Subject: [folded-dropped] aoe-kernel-thread-handles-i-o-completions-for-simple-locking-fix.patch removed from -mm tree
+Date: Thu, 04 Oct 2012 17:04:11 -0700
+Message-ID: <20121005000411.9F7F11E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:42195 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751026Ab2JDX5K (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2012 19:57:10 -0400
-Received: by mail-vb0-f74.google.com with SMTP id s24so129579vbi.1
-        for <mm-commits@vger.kernel.org>; Thu, 04 Oct 2012 16:57:08 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:46129 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753946Ab2JEAEM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2012 20:04:12 -0400
+Received: by mail-qc0-f202.google.com with SMTP id s25so130124qcq.1
+        for <mm-commits@vger.kernel.org>; Thu, 04 Oct 2012 17:04:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sfr@canb.auug.org.au, roland@purestorage.com, mm-commits@vger.kernel.org
+To: dan.carpenter@oracle.com, ecashin@coraid.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: idr-rename-max_level-to-max_idr_level-fix-fix-2-fix
+     Subject: aoe: cleanup an allocation a bit
 has been removed from the -mm tree.  Its filename was
-     idr-rename-max_level-to-max_idr_level-fix-fix-2-fix.patch
+     aoe-kernel-thread-handles-i-o-completions-for-simple-locking-fix.patch
 
-This patch was dropped because it was folded into idr-rename-max_level-to-max_idr_level.patch
+This patch was dropped because it was folded into aoe-kernel-thread-handles-i-o-completions-for-simple-locking.patch
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: idr-rename-max_level-to-max_idr_level-fix-fix-2-fix
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: aoe: cleanup an allocation a bit
 
-IB/mlx4: fix for MAX_ID_MASK to MAX_IDR_MASK name change
+We changed this recently so we can just use kzalloc() here instead of
+kcalloc(1, ...).  Kernel style prefers sizeof(*t) over sizeof *t.  The
+kfree(t) is a no-op now as well so that can be removed.
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Roland Dreier <roland@purestorage.com>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Ed Cashin <ecashin@coraid.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/mlx4/cm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/block/aoe/aoecmd.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/infiniband/hw/mlx4/cm.c~idr-rename-max_level-to-max_idr_level-fix-fix-2-fix drivers/infiniband/hw/mlx4/cm.c
---- a/drivers/infiniband/hw/mlx4/cm.c~idr-rename-max_level-to-max_idr_level-fix-fix-2-fix
-+++ a/drivers/infiniband/hw/mlx4/cm.c
-@@ -225,7 +225,7 @@ id_map_alloc(struct ib_device *ibdev, in
- 		ret = idr_get_new_above(&sriov->pv_id_table, ent,
- 					next_id, &id);
- 		if (!ret) {
--			next_id = ((unsigned) id + 1) & MAX_ID_MASK;
-+			next_id = ((unsigned) id + 1) & MAX_IDR_MASK;
- 			ent->pv_cm_id = (u32)id;
- 			sl_id_map_add(ibdev, ent);
- 		}
+diff -puN drivers/block/aoe/aoecmd.c~aoe-kernel-thread-handles-i-o-completions-for-simple-locking-fix drivers/block/aoe/aoecmd.c
+--- a/drivers/block/aoe/aoecmd.c~aoe-kernel-thread-handles-i-o-completions-for-simple-locking-fix
++++ a/drivers/block/aoe/aoecmd.c
+@@ -1157,9 +1157,8 @@ addtgt(struct aoedev *d, char *addr, ulo
+ 			"aoe: device addtgt failure; too many targets\n");
+ 		return NULL;
+ 	}
+-	t = kcalloc(1, sizeof *t, GFP_ATOMIC);
++	t = kzalloc(sizeof(*t), GFP_ATOMIC);
+ 	if (!t) {
+-		kfree(t);
+ 		printk(KERN_INFO "aoe: cannot allocate memory to add target\n");
+ 		return NULL;
+ 	}
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
 origin.patch
-idr-rename-max_level-to-max_idr_level.patch
-rtc_sysfs_show_hctosys-return-0-if-resume-failed-fix.patch
-rtc_sysfs_show_hctosys-return-0-if-resume-failed-fix-fix.patch
-coredump-pass-siginfo_t-to-do_coredump-and-below-not-merely-signr.patch
-compat-move-compat_siginfo_t-definition-to-asm-compath.patch
-coredump-add-a-new-elf-note-with-siginfo-of-the-signal.patch
-coredump-extend-core-dump-note-section-to-contain-file-names-of-mapped-files.patch
+checkpatch-update-suggested-printk-conversions.patch
+aoe-kernel-thread-handles-i-o-completions-for-simple-locking.patch
 
