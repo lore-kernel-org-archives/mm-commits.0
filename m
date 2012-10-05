@@ -1,90 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] frv-kill-used-but-uninitialized-variable.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:13:45 -0700
-Message-ID: <20121005201345.A5CA6100047@wpzn3.hot.corp.google.com>
+Subject: [merged] score-select-generic-atomic64_t-support.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:13:48 -0700
+Message-ID: <20121005201349.176F85C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:33212 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932793Ab2JEUNr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:13:47 -0400
-Received: by mail-vb0-f74.google.com with SMTP id s24so236339vbi.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:13:46 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:46435 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932793Ab2JEUNv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:13:51 -0400
+Received: by mail-fa0-f74.google.com with SMTP id t1so138343fae.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:13:50 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, lennox.wu@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: frv: kill used but uninitialized variable
+     Subject: score: select generic atomic64_t support
 has been removed from the -mm tree.  Its filename was
-     frv-kill-used-but-uninitialized-variable.patch
+     score-select-generic-atomic64_t-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: frv: kill used but uninitialized variable
+From: Fengguang Wu <fengguang.wu@intel.com>
+Subject: score: select generic atomic64_t support
 
-Commit 6afe1a1fe8ff83f6a ("PM: Remove legacy PM") removed the
-initialization of retval, causing:
+It's required for the core fs/namespace.c and many other basic features.
 
-arch/frv/kernel/pm.c: In function 'sysctl_pm_do_suspend':
-arch/frv/kernel/pm.c:165:5: warning: 'retval' may be used uninitialized in this function [-Wuninitialized]
-
-Remove the variable completely to fix this, and convert to a proper
-switch (...) { ... } construct to improve readability.
-
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: David Howells <dhowells@redhat.com>
+Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
+Acked-by: Lennox Wu <lennox.wu@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/pm.c |   19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+ arch/score/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/frv/kernel/pm.c~frv-kill-used-but-uninitialized-variable arch/frv/kernel/pm.c
---- a/arch/frv/kernel/pm.c~frv-kill-used-but-uninitialized-variable
-+++ a/arch/frv/kernel/pm.c
-@@ -153,23 +153,22 @@ static int user_atoi(char __user *ubuf, 
- static int sysctl_pm_do_suspend(ctl_table *ctl, int write,
- 				void __user *buffer, size_t *lenp, loff_t *fpos)
- {
--	int retval, mode;
-+	int mode;
- 
- 	if (*lenp <= 0)
- 		return -EIO;
- 
- 	mode = user_atoi(buffer, *lenp);
--	if ((mode != 1) && (mode != 5))
--		return -EINVAL;
-+	switch (mode) {
-+	case 1:
-+	    return pm_do_suspend();
- 
--	if (retval == 0) {
--		if (mode == 5)
--		    retval = pm_do_bus_sleep();
--		else
--		    retval = pm_do_suspend();
--	}
-+	case 5:
-+	    return pm_do_bus_sleep();
- 
--	return retval;
-+	default:
-+	    return -EINVAL;
-+	}
- }
- 
- static int try_set_cmode(int new_cmode)
+diff -puN arch/score/Kconfig~score-select-generic-atomic64_t-support arch/score/Kconfig
+--- a/arch/score/Kconfig~score-select-generic-atomic64_t-support
++++ a/arch/score/Kconfig
+@@ -5,6 +5,7 @@ config SCORE
+        select HAVE_GENERIC_HARDIRQS
+        select GENERIC_IRQ_SHOW
+        select GENERIC_IOMAP
++       select GENERIC_ATOMIC64
+        select HAVE_MEMBLOCK
+        select HAVE_MEMBLOCK_NODE_MAP
+        select ARCH_DISCARD_MEMBLOCK
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
 origin.patch
 linux-next.patch
-cris-fix-i-o-macros.patch
-mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix.patch
+h8300-select-generic-atomic64_t-support.patch
+readahead-fault-retry-breaks-mmap-file-read-random-detection.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
+rbtree-performance-and-correctness-test-fix.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated-fix.patch
+mm-compaction-restart-compaction-from-near-where-it-left-off-fix.patch
+fs-fs-writebackc-remove-unneccesary-parameter-of-__writeback_single_inode.patch
+kpageflags-fix-wrong-kpf_thp-on-non-huge-compound-pages.patch
+idr-rename-max_level-to-max_idr_level-fix-3.patch
 
