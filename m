@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code-fix.patch added to -mm tree
-Date: Fri, 05 Oct 2012 15:01:13 -0700
-Message-ID: <20121005220114.D2E7420004E@hpza10.eem.corp.google.com>
+Subject: + sparc64-support-transparent-huge-pages.patch added to -mm tree
+Date: Fri, 05 Oct 2012 15:01:21 -0700
+Message-ID: <20121005220122.4CCC05C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f74.google.com ([209.85.215.74]:61501 "EHLO
-	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754583Ab2JEWBT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 18:01:19 -0400
-Received: by mail-la0-f74.google.com with SMTP id j13so101078lah.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 15:01:16 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:41857 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932832Ab2JEWBZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 18:01:25 -0400
+Received: by mail-wg0-f74.google.com with SMTP id dt11so142789wgb.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 15:01:23 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aarcange@redhat.com, davem@davemloft.net, gerald.schaefer@de.ibm.com, hannes@cmpxchg.org
+Cc: davem@davemloft.net, aarcange@redhat.com, gerald.schaefer@de.ibm.com, hannes@cmpxchg.org
 
 
 The patch titled
-     Subject: mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code-fix
+     Subject: sparc64: Support transparent huge pages.
 has been added to the -mm tree.  Its filename is
-     mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code-fix.patch
+     sparc64-support-transparent-huge-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,81 +33,1053 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code-fix
+From: David Miller <davem@davemloft.net>
+Subject: sparc64: Support transparent huge pages.
 
-implement update_mm_cache_pmd() for s390
+This is relatively easy since PMD's now cover exactly 4MB of memory.
 
+Our PMD entries are 32-bits each, so we use a special encoding.  The
+lowest bit, PMD_ISHUGE, determines the interpretation.  This is possible
+because sparc64's page tables are purely software entities so we can use
+whatever encoding scheme we want.  We just have to make the TLB miss
+assembler page table walkers aware of the layout.
+
+set_pmd_at() works much like set_pte_at() but it has to operate in two
+page from a table of non-huge PTEs, so we have to queue up TLB flushes
+based upon what mappings are valid in the PTE table.  In the second regime
+we are going from huge-page to non-huge-page, and in that case we need
+only queue up a single TLB flush to push out the huge page mapping.
+
+We still have 5 bits remaining in the huge PMD encoding so we can very
+likely support any new pieces of THP state tracking that might get added
+in the future.
+
+With lots of help from Johannes Weiner.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/pgtable.h |    1 +
- 1 file changed, 1 insertion(+)
+ arch/sparc/include/asm/hugetlb.h        |    5 
+ arch/sparc/include/asm/mmu_64.h         |    2 
+ arch/sparc/include/asm/mmu_context_64.h |    2 
+ arch/sparc/include/asm/page_64.h        |    7 
+ arch/sparc/include/asm/pgalloc_64.h     |    4 
+ arch/sparc/include/asm/pgtable_64.h     |  177 ++++++++++++++++++-
+ arch/sparc/include/asm/tsb.h            |   94 +++++++++-
+ arch/sparc/kernel/sun4v_tlb_miss.S      |    2 
+ arch/sparc/kernel/tsb.S                 |    9 
+ arch/sparc/mm/fault_64.c                |    4 
+ arch/sparc/mm/hugetlbpage.c             |   50 -----
+ arch/sparc/mm/init_64.c                 |  204 +++++++++++++++++++++-
+ arch/sparc/mm/tlb.c                     |  118 +++++++++++-
+ arch/sparc/mm/tsb.c                     |   14 -
+ 14 files changed, 582 insertions(+), 110 deletions(-)
 
-diff -puN arch/s390/include/asm/pgtable.h~mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code-fix arch/s390/include/asm/pgtable.h
---- a/arch/s390/include/asm/pgtable.h~mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code-fix
-+++ a/arch/s390/include/asm/pgtable.h
-@@ -42,6 +42,7 @@ extern void fault_init(void);
-  * tables contain all the necessary information.
-  */
- #define update_mmu_cache(vma, address, ptep)     do { } while (0)
-+#define update_mmu_cache_pmd(vma, address, ptep) do { } while (0)
+diff -puN arch/sparc/include/asm/hugetlb.h~sparc64-support-transparent-huge-pages arch/sparc/include/asm/hugetlb.h
+--- a/arch/sparc/include/asm/hugetlb.h~sparc64-support-transparent-huge-pages
++++ a/arch/sparc/include/asm/hugetlb.h
+@@ -10,7 +10,10 @@ void set_huge_pte_at(struct mm_struct *m
+ pte_t huge_ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
+ 			      pte_t *ptep);
  
- /*
-  * ZERO_PAGE is a global shared page that is always zero; used
+-void hugetlb_prefault_arch_hook(struct mm_struct *mm);
++static inline void hugetlb_prefault_arch_hook(struct mm_struct *mm)
++{
++	hugetlb_setup(mm);
++}
+ 
+ static inline int is_hugepage_only_range(struct mm_struct *mm,
+ 					 unsigned long addr,
+diff -puN arch/sparc/include/asm/mmu_64.h~sparc64-support-transparent-huge-pages arch/sparc/include/asm/mmu_64.h
+--- a/arch/sparc/include/asm/mmu_64.h~sparc64-support-transparent-huge-pages
++++ a/arch/sparc/include/asm/mmu_64.h
+@@ -82,7 +82,7 @@ struct tsb_config {
+ 
+ #define MM_TSB_BASE	0
+ 
+-#ifdef CONFIG_HUGETLB_PAGE
++#if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
+ #define MM_TSB_HUGE	1
+ #define MM_NUM_TSBS	2
+ #else
+diff -puN arch/sparc/include/asm/mmu_context_64.h~sparc64-support-transparent-huge-pages arch/sparc/include/asm/mmu_context_64.h
+--- a/arch/sparc/include/asm/mmu_context_64.h~sparc64-support-transparent-huge-pages
++++ a/arch/sparc/include/asm/mmu_context_64.h
+@@ -36,7 +36,7 @@ static inline void tsb_context_switch(st
+ {
+ 	__tsb_context_switch(__pa(mm->pgd),
+ 			     &mm->context.tsb_block[0],
+-#ifdef CONFIG_HUGETLB_PAGE
++#if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
+ 			     (mm->context.tsb_block[1].tsb ?
+ 			      &mm->context.tsb_block[1] :
+ 			      NULL)
+diff -puN arch/sparc/include/asm/page_64.h~sparc64-support-transparent-huge-pages arch/sparc/include/asm/page_64.h
+--- a/arch/sparc/include/asm/page_64.h~sparc64-support-transparent-huge-pages
++++ a/arch/sparc/include/asm/page_64.h
+@@ -17,7 +17,7 @@
+ 
+ #define HPAGE_SHIFT		22
+ 
+-#ifdef CONFIG_HUGETLB_PAGE
++#if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
+ #define HPAGE_SIZE		(_AC(1,UL) << HPAGE_SHIFT)
+ #define HPAGE_MASK		(~(HPAGE_SIZE - 1UL))
+ #define HUGETLB_PAGE_ORDER	(HPAGE_SHIFT - PAGE_SHIFT)
+@@ -26,6 +26,11 @@
+ 
+ #ifndef __ASSEMBLY__
+ 
++#if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
++struct mm_struct;
++extern void hugetlb_setup(struct mm_struct *mm);
++#endif
++
+ #define WANT_PAGE_VIRTUAL
+ 
+ extern void _clear_page(void *page);
+diff -puN arch/sparc/include/asm/pgalloc_64.h~sparc64-support-transparent-huge-pages arch/sparc/include/asm/pgalloc_64.h
+--- a/arch/sparc/include/asm/pgalloc_64.h~sparc64-support-transparent-huge-pages
++++ a/arch/sparc/include/asm/pgalloc_64.h
+@@ -45,8 +45,8 @@ extern pgtable_t pte_alloc_one(struct mm
+ extern void pte_free_kernel(struct mm_struct *mm, pte_t *pte);
+ extern void pte_free(struct mm_struct *mm, pgtable_t ptepage);
+ 
+-#define pmd_populate_kernel(MM, PMD, PTE)	pmd_set(PMD, PTE)
+-#define pmd_populate(MM, PMD, PTE)		pmd_set(PMD, PTE)
++#define pmd_populate_kernel(MM, PMD, PTE)	pmd_set(MM, PMD, PTE)
++#define pmd_populate(MM, PMD, PTE)		pmd_set(MM, PMD, PTE)
+ #define pmd_pgtable(PMD)			((pte_t *)__pmd_page(PMD))
+ 
+ #define check_pgt_cache()	do { } while (0)
+diff -puN arch/sparc/include/asm/pgtable_64.h~sparc64-support-transparent-huge-pages arch/sparc/include/asm/pgtable_64.h
+--- a/arch/sparc/include/asm/pgtable_64.h~sparc64-support-transparent-huge-pages
++++ a/arch/sparc/include/asm/pgtable_64.h
+@@ -63,10 +63,31 @@
+ #error Page table parameters do not cover virtual address space properly.
+ #endif
+ 
++#if (PMD_SHIFT != HPAGE_SHIFT)
++#error PMD_SHIFT must equal HPAGE_SHIFT for transparent huge pages.
++#endif
++
+ /* PMDs point to PTE tables which are 4K aligned.  */
+ #define PMD_PADDR	_AC(0xfffffffe,UL)
+ #define PMD_PADDR_SHIFT	_AC(11,UL)
+ 
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++#define PMD_ISHUGE	_AC(0x00000001,UL)
++
++/* This is the PMD layout when PMD_ISHUGE is set.  With 4MB huge
++ * pages, this frees up a bunch of bits in the layout that we can
++ * use for the protection settings and software metadata.
++ */
++#define PMD_HUGE_PADDR		_AC(0xfffff800,UL)
++#define PMD_HUGE_PROTBITS	_AC(0x000007ff,UL)
++#define PMD_HUGE_PRESENT	_AC(0x00000400,UL)
++#define PMD_HUGE_WRITE		_AC(0x00000200,UL)
++#define PMD_HUGE_DIRTY		_AC(0x00000100,UL)
++#define PMD_HUGE_ACCESSED	_AC(0x00000080,UL)
++#define PMD_HUGE_EXEC		_AC(0x00000040,UL)
++#define PMD_HUGE_SPLITTING	_AC(0x00000020,UL)
++#endif
++
+ /* PGDs point to PMD tables which are 8K aligned.  */
+ #define PGD_PADDR	_AC(0xfffffffc,UL)
+ #define PGD_PADDR_SHIFT	_AC(11,UL)
+@@ -219,6 +240,19 @@ static inline pte_t pfn_pte(unsigned lon
+ }
+ #define mk_pte(page, pgprot)	pfn_pte(page_to_pfn(page), (pgprot))
+ 
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++extern pmd_t pfn_pmd(unsigned long page_nr, pgprot_t pgprot);
++#define mk_pmd(page, pgprot)	pfn_pmd(page_to_pfn(page), (pgprot))
++
++extern pmd_t pmd_modify(pmd_t pmd, pgprot_t newprot);
++
++static inline pmd_t pmd_mkhuge(pmd_t pmd)
++{
++	/* Do nothing, mk_pmd() does this part.  */
++	return pmd;
++}
++#endif
++
+ /* This one can be done with two shifts.  */
+ static inline unsigned long pte_pfn(pte_t pte)
+ {
+@@ -588,19 +622,130 @@ static inline unsigned long pte_special(
+ 	return pte_val(pte) & _PAGE_SPECIAL;
+ }
+ 
+-#define pmd_set(pmdp, ptep)	\
+-	(pmd_val(*(pmdp)) = (__pa((unsigned long) (ptep)) >> PMD_PADDR_SHIFT))
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++static inline int pmd_young(pmd_t pmd)
++{
++	return pmd_val(pmd) & PMD_HUGE_ACCESSED;
++}
++
++static inline int pmd_write(pmd_t pmd)
++{
++	return pmd_val(pmd) & PMD_HUGE_WRITE;
++}
++
++static inline unsigned long pmd_pfn(pmd_t pmd)
++{
++	unsigned long val = pmd_val(pmd) & PMD_HUGE_PADDR;
++
++	return val >> (PAGE_SHIFT - PMD_PADDR_SHIFT);
++}
++
++static inline int pmd_large(pmd_t pmd)
++{
++	return (pmd_val(pmd) & (PMD_ISHUGE | PMD_HUGE_PRESENT)) ==
++		(PMD_ISHUGE | PMD_HUGE_PRESENT);
++}
++
++static inline int pmd_trans_splitting(pmd_t pmd)
++{
++	return (pmd_val(pmd) & (PMD_ISHUGE|PMD_HUGE_SPLITTING)) ==
++		(PMD_ISHUGE|PMD_HUGE_SPLITTING);
++}
++
++static inline int pmd_trans_huge(pmd_t pmd)
++{
++	return pmd_val(pmd) & PMD_ISHUGE;
++}
++
++#define has_transparent_hugepage() 1
++
++static inline pmd_t pmd_mkold(pmd_t pmd)
++{
++	pmd_val(pmd) &= ~PMD_HUGE_ACCESSED;
++	return pmd;
++}
++
++static inline pmd_t pmd_wrprotect(pmd_t pmd)
++{
++	pmd_val(pmd) &= ~PMD_HUGE_WRITE;
++	return pmd;
++}
++
++static inline pmd_t pmd_mkdirty(pmd_t pmd)
++{
++	pmd_val(pmd) |= PMD_HUGE_DIRTY;
++	return pmd;
++}
++
++static inline pmd_t pmd_mkyoung(pmd_t pmd)
++{
++	pmd_val(pmd) |= PMD_HUGE_ACCESSED;
++	return pmd;
++}
++
++static inline pmd_t pmd_mkwrite(pmd_t pmd)
++{
++	pmd_val(pmd) |= PMD_HUGE_WRITE;
++	return pmd;
++}
++
++static inline pmd_t pmd_mknotpresent(pmd_t pmd)
++{
++	pmd_val(pmd) &= ~PMD_HUGE_PRESENT;
++	return pmd;
++}
++
++static inline pmd_t pmd_mksplitting(pmd_t pmd)
++{
++	pmd_val(pmd) |= PMD_HUGE_SPLITTING;
++	return pmd;
++}
++
++extern pgprot_t pmd_pgprot(pmd_t entry);
++#endif
++
++static inline int pmd_present(pmd_t pmd)
++{
++	return pmd_val(pmd) != 0U;
++}
++
++#define pmd_none(pmd)			(!pmd_val(pmd))
++
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++extern void set_pmd_at(struct mm_struct *mm, unsigned long addr,
++		       pmd_t *pmdp, pmd_t pmd);
++#else
++static inline void set_pmd_at(struct mm_struct *mm, unsigned long addr,
++			      pmd_t *pmdp, pmd_t pmd)
++{
++	*pmdp = pmd;
++}
++#endif
++
++static inline void pmd_set(struct mm_struct *mm, pmd_t *pmdp, pte_t *ptep)
++{
++	unsigned long val = __pa((unsigned long) (ptep)) >> PMD_PADDR_SHIFT;
++
++	pmd_val(*pmdp) = val;
++}
++
+ #define pud_set(pudp, pmdp)	\
+ 	(pud_val(*(pudp)) = (__pa((unsigned long) (pmdp)) >> PGD_PADDR_SHIFT))
+-#define __pmd_page(pmd)		\
+-	((unsigned long) __va((((unsigned long)pmd_val(pmd))<<PMD_PADDR_SHIFT)))
++static inline unsigned long __pmd_page(pmd_t pmd)
++{
++	unsigned long paddr = (unsigned long) pmd_val(pmd);
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	if (pmd_val(pmd) & PMD_ISHUGE)
++		paddr &= PMD_HUGE_PADDR;
++#endif
++	paddr <<= PMD_PADDR_SHIFT;
++	return ((unsigned long) __va(paddr));
++}
+ #define pmd_page(pmd) 			virt_to_page((void *)__pmd_page(pmd))
+ #define pud_page_vaddr(pud)		\
+ 	((unsigned long) __va((((unsigned long)pud_val(pud))<<PGD_PADDR_SHIFT)))
+ #define pud_page(pud) 			virt_to_page((void *)pud_page_vaddr(pud))
+-#define pmd_none(pmd)			(!pmd_val(pmd))
+ #define pmd_bad(pmd)			(0)
+-#define pmd_present(pmd)		(pmd_val(pmd) != 0U)
+ #define pmd_clear(pmdp)			(pmd_val(*(pmdp)) = 0U)
+ #define pud_none(pud)			(!pud_val(pud))
+ #define pud_bad(pud)			(0)
+@@ -634,6 +779,16 @@ static inline unsigned long pte_special(
+ extern void tlb_batch_add(struct mm_struct *mm, unsigned long vaddr,
+ 			  pte_t *ptep, pte_t orig, int fullmm);
+ 
++#define __HAVE_ARCH_PMDP_GET_AND_CLEAR
++static inline pmd_t pmdp_get_and_clear(struct mm_struct *mm,
++				       unsigned long addr,
++				       pmd_t *pmdp)
++{
++	pmd_t pmd = *pmdp;
++	set_pmd_at(mm, addr, pmdp, __pmd(0U));
++	return pmd;
++}
++
+ static inline void __set_pte_at(struct mm_struct *mm, unsigned long addr,
+ 			     pte_t *ptep, pte_t pte, int fullmm)
+ {
+@@ -689,6 +844,16 @@ extern void mmu_info(struct seq_file *);
+ 
+ struct vm_area_struct;
+ extern void update_mmu_cache(struct vm_area_struct *, unsigned long, pte_t *);
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++extern void update_mmu_cache_pmd(struct vm_area_struct *vma, unsigned long addr,
++				 pmd_t *pmd);
++
++#define __HAVE_ARCH_PGTABLE_DEPOSIT
++extern void pgtable_trans_huge_deposit(struct mm_struct *mm, pgtable_t pgtable);
++
++#define __HAVE_ARCH_PGTABLE_WITHDRAW
++extern pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm);
++#endif
+ 
+ /* Encode and de-code a swap entry */
+ #define __swp_type(entry)	(((entry).val >> PAGE_SHIFT) & 0xffUL)
+diff -puN arch/sparc/include/asm/tsb.h~sparc64-support-transparent-huge-pages arch/sparc/include/asm/tsb.h
+--- a/arch/sparc/include/asm/tsb.h~sparc64-support-transparent-huge-pages
++++ a/arch/sparc/include/asm/tsb.h
+@@ -157,10 +157,86 @@ extern struct tsb_phys_patch_entry __tsb
+ 	andn		REG2, 0x7, REG2; \
+ 	add		REG1, REG2, REG1;
+ 
+-	/* Do a user page table walk in MMU globals.  Leaves physical PTE
+-	 * pointer in REG1.  Jumps to FAIL_LABEL on early page table walk
+-	 * termination.  Physical base of page tables is in PHYS_PGD which
+-	 * will not be modified.
++	/* This macro exists only to make the PMD translator below easier
++	 * to read.  It hides the ELF section switch for the sun4v code
++	 * patching.
++	 */
++#define OR_PTE_BIT(REG, NAME)				\
++661:	or		REG, _PAGE_##NAME##_4U, REG;	\
++	.section	.sun4v_1insn_patch, "ax";	\
++	.word		661b;				\
++	or		REG, _PAGE_##NAME##_4V, REG;	\
++	.previous;
++
++	/* Load into REG the PTE value for VALID, CACHE, and SZHUGE.  */
++#define BUILD_PTE_VALID_SZHUGE_CACHE(REG)				   \
++661:	sethi		%uhi(_PAGE_VALID|_PAGE_SZHUGE_4U), REG;		   \
++	.section	.sun4v_1insn_patch, "ax";			   \
++	.word		661b;						   \
++	sethi		%uhi(_PAGE_VALID), REG;				   \
++	.previous;							   \
++	sllx		REG, 32, REG;					   \
++661:	or		REG, _PAGE_CP_4U|_PAGE_CV_4U, REG;		   \
++	.section	.sun4v_1insn_patch, "ax";			   \
++	.word		661b;						   \
++	or		REG, _PAGE_CP_4V|_PAGE_CV_4V|_PAGE_SZHUGE_4V, REG; \
++	.previous;
++
++	/* PMD has been loaded into REG1, interpret the value, seeing
++	 * if it is a HUGE PMD or a normal one.  If it is not valid
++	 * then jump to FAIL_LABEL.  If it is a HUGE PMD, and it
++	 * translates to a valid PTE, branch to PTE_LABEL.
++	 *
++	 * We translate the PMD by hand, one bit at a time,
++	 * constructing the huge PTE.
++	 *
++	 * So we construct the PTE in REG2 as follows:
++	 *
++	 * 1) Extract the PMD PFN from REG1 and place it into REG2.
++	 *
++	 * 2) Translate PMD protection bits in REG1 into REG2, one bit
++	 *    at a time using andcc tests on REG1 and OR's into REG2.
++	 *
++	 *    Only two bits to be concerned with here, EXEC and WRITE.
++	 *    Now REG1 is freed up and we can use it as a temporary.
++	 *
++	 * 3) Construct the VALID, CACHE, and page size PTE bits in
++	 *    REG1, OR with REG2 to form final PTE.
++	 */
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++#define USER_PGTABLE_CHECK_PMD_HUGE(VADDR, REG1, REG2, FAIL_LABEL, PTE_LABEL) \
++	brz,pn		REG1, FAIL_LABEL;				      \
++	 andcc		REG1, PMD_ISHUGE, %g0;				      \
++	be,pt		%xcc, 700f;					      \
++	 and		REG1, PMD_HUGE_PRESENT|PMD_HUGE_ACCESSED, REG2;	      \
++	cmp		REG2, PMD_HUGE_PRESENT|PMD_HUGE_ACCESSED;	      \
++	bne,pn		%xcc, FAIL_LABEL;				      \
++	 andn		REG1, PMD_HUGE_PROTBITS, REG2;			      \
++	sllx		REG2, PMD_PADDR_SHIFT, REG2;			      \
++	/* REG2 now holds PFN << PAGE_SHIFT */				      \
++	andcc		REG1, PMD_HUGE_EXEC, %g0;			      \
++	bne,a,pt	%xcc, 1f;					      \
++	 OR_PTE_BIT(REG2, EXEC);					      \
++1:	andcc		REG1, PMD_HUGE_WRITE, %g0;			      \
++	bne,a,pt	%xcc, 1f;					      \
++	 OR_PTE_BIT(REG2, W);						      \
++	/* REG1 can now be clobbered, build final PTE */		      \
++1:	BUILD_PTE_VALID_SZHUGE_CACHE(REG1);				      \
++	ba,pt		%xcc, PTE_LABEL;				      \
++	 or		REG1, REG2, REG1;				      \
++700:
++#else
++#define USER_PGTABLE_CHECK_PMD_HUGE(VADDR, REG1, REG2, FAIL_LABEL, PTE_LABEL) \
++	brz,pn		REG1, FAIL_LABEL; \
++	 nop;
++#endif
++
++	/* Do a user page table walk in MMU globals.  Leaves final,
++	 * valid, PTE value in REG1.  Jumps to FAIL_LABEL on early
++	 * page table walk termination or if the PTE is not valid.
++	 *
++	 * Physical base of page tables is in PHYS_PGD which will not
++	 * be modified.
+ 	 *
+ 	 * VADDR will not be clobbered, but REG1 and REG2 will.
+ 	 */
+@@ -175,12 +251,16 @@ extern struct tsb_phys_patch_entry __tsb
+ 	sllx		REG1, PGD_PADDR_SHIFT, REG1; \
+ 	andn		REG2, 0x3, REG2; \
+ 	lduwa		[REG1 + REG2] ASI_PHYS_USE_EC, REG1; \
+-	brz,pn		REG1, FAIL_LABEL; \
+-	 sllx		VADDR, 64 - PMD_SHIFT, REG2; \
++	USER_PGTABLE_CHECK_PMD_HUGE(VADDR, REG1, REG2, FAIL_LABEL, 800f) \
++	sllx		VADDR, 64 - PMD_SHIFT, REG2; \
+ 	srlx		REG2, 64 - (PAGE_SHIFT - 1), REG2; \
+ 	sllx		REG1, PMD_PADDR_SHIFT, REG1; \
+ 	andn		REG2, 0x7, REG2; \
+-	add		REG1, REG2, REG1;
++	add		REG1, REG2, REG1; \
++	ldxa		[REG1] ASI_PHYS_USE_EC, REG1; \
++	brgez,pn	REG1, FAIL_LABEL; \
++	 nop; \
++800:
+ 
+ /* Lookup a OBP mapping on VADDR in the prom_trans[] table at TL>0.
+  * If no entry is found, FAIL_LABEL will be branched to.  On success
+diff -puN arch/sparc/kernel/sun4v_tlb_miss.S~sparc64-support-transparent-huge-pages arch/sparc/kernel/sun4v_tlb_miss.S
+--- a/arch/sparc/kernel/sun4v_tlb_miss.S~sparc64-support-transparent-huge-pages
++++ a/arch/sparc/kernel/sun4v_tlb_miss.S
+@@ -176,7 +176,7 @@ sun4v_tsb_miss_common:
+ 
+ 	sub	%g2, TRAP_PER_CPU_FAULT_INFO, %g2
+ 
+-#ifdef CONFIG_HUGETLB_PAGE
++#if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
+ 	mov	SCRATCHPAD_UTSBREG2, %g5
+ 	ldxa	[%g5] ASI_SCRATCHPAD, %g5
+ 	cmp	%g5, -1
+diff -puN arch/sparc/kernel/tsb.S~sparc64-support-transparent-huge-pages arch/sparc/kernel/tsb.S
+--- a/arch/sparc/kernel/tsb.S~sparc64-support-transparent-huge-pages
++++ a/arch/sparc/kernel/tsb.S
+@@ -49,7 +49,7 @@ tsb_miss_page_table_walk:
+ 	/* Before committing to a full page table walk,
+ 	 * check the huge page TSB.
+ 	 */
+-#ifdef CONFIG_HUGETLB_PAGE
++#if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
+ 
+ 661:	ldx		[%g7 + TRAP_PER_CPU_TSB_HUGE], %g5
+ 	nop
+@@ -110,12 +110,9 @@ tsb_miss_page_table_walk:
+ tsb_miss_page_table_walk_sun4v_fastpath:
+ 	USER_PGTABLE_WALK_TL1(%g4, %g7, %g5, %g2, tsb_do_fault)
+ 
+-	/* Load and check PTE.  */
+-	ldxa		[%g5] ASI_PHYS_USE_EC, %g5
+-	brgez,pn	%g5, tsb_do_fault
+-	 nop
++	/* Valid PTE is now in %g5.  */
+ 
+-#ifdef CONFIG_HUGETLB_PAGE
++#if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
+ 661:	sethi		%uhi(_PAGE_SZALL_4U), %g7
+ 	sllx		%g7, 32, %g7
+ 	.section	.sun4v_2insn_patch, "ax"
+diff -puN arch/sparc/mm/fault_64.c~sparc64-support-transparent-huge-pages arch/sparc/mm/fault_64.c
+--- a/arch/sparc/mm/fault_64.c~sparc64-support-transparent-huge-pages
++++ a/arch/sparc/mm/fault_64.c
+@@ -465,13 +465,13 @@ good_area:
+ 	up_read(&mm->mmap_sem);
+ 
+ 	mm_rss = get_mm_rss(mm);
+-#ifdef CONFIG_HUGETLB_PAGE
++#if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
+ 	mm_rss -= (mm->context.huge_pte_count * (HPAGE_SIZE / PAGE_SIZE));
+ #endif
+ 	if (unlikely(mm_rss >
+ 		     mm->context.tsb_block[MM_TSB_BASE].tsb_rss_limit))
+ 		tsb_grow(mm, MM_TSB_BASE, mm_rss);
+-#ifdef CONFIG_HUGETLB_PAGE
++#if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
+ 	mm_rss = mm->context.huge_pte_count;
+ 	if (unlikely(mm_rss >
+ 		     mm->context.tsb_block[MM_TSB_HUGE].tsb_rss_limit))
+diff -puN arch/sparc/mm/hugetlbpage.c~sparc64-support-transparent-huge-pages arch/sparc/mm/hugetlbpage.c
+--- a/arch/sparc/mm/hugetlbpage.c~sparc64-support-transparent-huge-pages
++++ a/arch/sparc/mm/hugetlbpage.c
+@@ -303,53 +303,3 @@ struct page *follow_huge_pmd(struct mm_s
+ {
+ 	return NULL;
+ }
+-
+-static void context_reload(void *__data)
+-{
+-	struct mm_struct *mm = __data;
+-
+-	if (mm == current->mm)
+-		load_secondary_context(mm);
+-}
+-
+-void hugetlb_prefault_arch_hook(struct mm_struct *mm)
+-{
+-	struct tsb_config *tp = &mm->context.tsb_block[MM_TSB_HUGE];
+-
+-	if (likely(tp->tsb != NULL))
+-		return;
+-
+-	tsb_grow(mm, MM_TSB_HUGE, 0);
+-	tsb_context_switch(mm);
+-	smp_tsb_sync(mm);
+-
+-	/* On UltraSPARC-III+ and later, configure the second half of
+-	 * the Data-TLB for huge pages.
+-	 */
+-	if (tlb_type == cheetah_plus) {
+-		unsigned long ctx;
+-
+-		spin_lock(&ctx_alloc_lock);
+-		ctx = mm->context.sparc64_ctx_val;
+-		ctx &= ~CTX_PGSZ_MASK;
+-		ctx |= CTX_PGSZ_BASE << CTX_PGSZ0_SHIFT;
+-		ctx |= CTX_PGSZ_HUGE << CTX_PGSZ1_SHIFT;
+-
+-		if (ctx != mm->context.sparc64_ctx_val) {
+-			/* When changing the page size fields, we
+-			 * must perform a context flush so that no
+-			 * stale entries match.  This flush must
+-			 * occur with the original context register
+-			 * settings.
+-			 */
+-			do_flush_tlb_mm(mm);
+-
+-			/* Reload the context register of all processors
+-			 * also executing in this address space.
+-			 */
+-			mm->context.sparc64_ctx_val = ctx;
+-			on_each_cpu(context_reload, mm, 0);
+-		}
+-		spin_unlock(&ctx_alloc_lock);
+-	}
+-}
+diff -puN arch/sparc/mm/init_64.c~sparc64-support-transparent-huge-pages arch/sparc/mm/init_64.c
+--- a/arch/sparc/mm/init_64.c~sparc64-support-transparent-huge-pages
++++ a/arch/sparc/mm/init_64.c
+@@ -306,12 +306,24 @@ static void flush_dcache(unsigned long p
+ 	}
+ }
+ 
++/* mm->context.lock must be held */
++static void __update_mmu_tsb_insert(struct mm_struct *mm, unsigned long tsb_index,
++				    unsigned long tsb_hash_shift, unsigned long address,
++				    unsigned long tte)
++{
++	struct tsb *tsb = mm->context.tsb_block[tsb_index].tsb;
++	unsigned long tag;
++
++	tsb += ((address >> tsb_hash_shift) &
++		(mm->context.tsb_block[tsb_index].tsb_nentries - 1UL));
++	tag = (address >> 22UL);
++	tsb_insert(tsb, tag, tte);
++}
++
+ void update_mmu_cache(struct vm_area_struct *vma, unsigned long address, pte_t *ptep)
+ {
++	unsigned long tsb_index, tsb_hash_shift, flags;
+ 	struct mm_struct *mm;
+-	struct tsb *tsb;
+-	unsigned long tag, flags;
+-	unsigned long tsb_index, tsb_hash_shift;
+ 	pte_t pte = *ptep;
+ 
+ 	if (tlb_type != hypervisor) {
+@@ -328,7 +340,7 @@ void update_mmu_cache(struct vm_area_str
+ 
+ 	spin_lock_irqsave(&mm->context.lock, flags);
+ 
+-#ifdef CONFIG_HUGETLB_PAGE
++#if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
+ 	if (mm->context.tsb_block[MM_TSB_HUGE].tsb != NULL) {
+ 		if ((tlb_type == hypervisor &&
+ 		     (pte_val(pte) & _PAGE_SZALL_4V) == _PAGE_SZHUGE_4V) ||
+@@ -340,11 +352,8 @@ void update_mmu_cache(struct vm_area_str
+ 	}
+ #endif
+ 
+-	tsb = mm->context.tsb_block[tsb_index].tsb;
+-	tsb += ((address >> tsb_hash_shift) &
+-		(mm->context.tsb_block[tsb_index].tsb_nentries - 1UL));
+-	tag = (address >> 22UL);
+-	tsb_insert(tsb, tag, pte_val(pte));
++	__update_mmu_tsb_insert(mm, tsb_index, tsb_hash_shift,
++				address, pte_val(pte));
+ 
+ 	spin_unlock_irqrestore(&mm->context.lock, flags);
+ }
+@@ -2568,3 +2577,180 @@ void pgtable_free(void *table, bool is_p
+ 	else
+ 		kmem_cache_free(pgtable_cache, table);
+ }
++
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++static pmd_t pmd_set_protbits(pmd_t pmd, pgprot_t pgprot, bool for_modify)
++{
++	if (pgprot_val(pgprot) & _PAGE_VALID)
++		pmd_val(pmd) |= PMD_HUGE_PRESENT;
++	if (tlb_type == hypervisor) {
++		if (pgprot_val(pgprot) & _PAGE_WRITE_4V)
++			pmd_val(pmd) |= PMD_HUGE_WRITE;
++		if (pgprot_val(pgprot) & _PAGE_EXEC_4V)
++			pmd_val(pmd) |= PMD_HUGE_EXEC;
++
++		if (!for_modify) {
++			if (pgprot_val(pgprot) & _PAGE_ACCESSED_4V)
++				pmd_val(pmd) |= PMD_HUGE_ACCESSED;
++			if (pgprot_val(pgprot) & _PAGE_MODIFIED_4V)
++				pmd_val(pmd) |= PMD_HUGE_DIRTY;
++		}
++	} else {
++		if (pgprot_val(pgprot) & _PAGE_WRITE_4U)
++			pmd_val(pmd) |= PMD_HUGE_WRITE;
++		if (pgprot_val(pgprot) & _PAGE_EXEC_4U)
++			pmd_val(pmd) |= PMD_HUGE_EXEC;
++
++		if (!for_modify) {
++			if (pgprot_val(pgprot) & _PAGE_ACCESSED_4U)
++				pmd_val(pmd) |= PMD_HUGE_ACCESSED;
++			if (pgprot_val(pgprot) & _PAGE_MODIFIED_4U)
++				pmd_val(pmd) |= PMD_HUGE_DIRTY;
++		}
++	}
++
++	return pmd;
++}
++
++pmd_t pfn_pmd(unsigned long page_nr, pgprot_t pgprot)
++{
++	pmd_t pmd;
++
++	pmd_val(pmd) = (page_nr << ((PAGE_SHIFT - PMD_PADDR_SHIFT)));
++	pmd_val(pmd) |= PMD_ISHUGE;
++	pmd = pmd_set_protbits(pmd, pgprot, false);
++	return pmd;
++}
++
++pmd_t pmd_modify(pmd_t pmd, pgprot_t newprot)
++{
++	pmd_val(pmd) &= ~(PMD_HUGE_PRESENT |
++			  PMD_HUGE_WRITE |
++			  PMD_HUGE_EXEC);
++	pmd = pmd_set_protbits(pmd, newprot, true);
++	return pmd;
++}
++
++pgprot_t pmd_pgprot(pmd_t entry)
++{
++	unsigned long pte = 0;
++
++	if (pmd_val(entry) & PMD_HUGE_PRESENT)
++		pte |= _PAGE_VALID;
++
++	if (tlb_type == hypervisor) {
++		if (pmd_val(entry) & PMD_HUGE_PRESENT)
++			pte |= _PAGE_PRESENT_4V;
++		if (pmd_val(entry) & PMD_HUGE_EXEC)
++			pte |= _PAGE_EXEC_4V;
++		if (pmd_val(entry) & PMD_HUGE_WRITE)
++			pte |= _PAGE_W_4V;
++		if (pmd_val(entry) & PMD_HUGE_ACCESSED)
++			pte |= _PAGE_ACCESSED_4V;
++		if (pmd_val(entry) & PMD_HUGE_DIRTY)
++			pte |= _PAGE_MODIFIED_4V;
++		pte |= _PAGE_CP_4V|_PAGE_CV_4V;
++	} else {
++		if (pmd_val(entry) & PMD_HUGE_PRESENT)
++			pte |= _PAGE_PRESENT_4U;
++		if (pmd_val(entry) & PMD_HUGE_EXEC)
++			pte |= _PAGE_EXEC_4U;
++		if (pmd_val(entry) & PMD_HUGE_WRITE)
++			pte |= _PAGE_W_4U;
++		if (pmd_val(entry) & PMD_HUGE_ACCESSED)
++			pte |= _PAGE_ACCESSED_4U;
++		if (pmd_val(entry) & PMD_HUGE_DIRTY)
++			pte |= _PAGE_MODIFIED_4U;
++		pte |= _PAGE_CP_4U|_PAGE_CV_4U;
++	}
++
++	return __pgprot(pte);
++}
++
++void update_mmu_cache_pmd(struct vm_area_struct *vma, unsigned long addr,
++			  pmd_t *pmd)
++{
++	unsigned long pte, flags;
++	struct mm_struct *mm;
++	pmd_t entry = *pmd;
++	pgprot_t prot;
++
++	if (!pmd_large(entry) || !pmd_young(entry))
++		return;
++
++	pte = (pmd_val(entry) & ~PMD_HUGE_PROTBITS);
++	pte <<= PMD_PADDR_SHIFT;
++	pte |= _PAGE_VALID;
++
++	prot = pmd_pgprot(entry);
++
++	if (tlb_type == hypervisor)
++		pgprot_val(prot) |= _PAGE_SZHUGE_4V;
++	else
++		pgprot_val(prot) |= _PAGE_SZHUGE_4U;
++
++	pte |= pgprot_val(prot);
++
++	mm = vma->vm_mm;
++
++	spin_lock_irqsave(&mm->context.lock, flags);
++
++	if (mm->context.tsb_block[MM_TSB_HUGE].tsb != NULL)
++		__update_mmu_tsb_insert(mm, MM_TSB_HUGE, HPAGE_SHIFT,
++					addr, pte);
++
++	spin_unlock_irqrestore(&mm->context.lock, flags);
++}
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
++
++#if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
++static void context_reload(void *__data)
++{
++	struct mm_struct *mm = __data;
++
++	if (mm == current->mm)
++		load_secondary_context(mm);
++}
++
++void hugetlb_setup(struct mm_struct *mm)
++{
++	struct tsb_config *tp = &mm->context.tsb_block[MM_TSB_HUGE];
++
++	if (likely(tp->tsb != NULL))
++		return;
++
++	tsb_grow(mm, MM_TSB_HUGE, 0);
++	tsb_context_switch(mm);
++	smp_tsb_sync(mm);
++
++	/* On UltraSPARC-III+ and later, configure the second half of
++	 * the Data-TLB for huge pages.
++	 */
++	if (tlb_type == cheetah_plus) {
++		unsigned long ctx;
++
++		spin_lock(&ctx_alloc_lock);
++		ctx = mm->context.sparc64_ctx_val;
++		ctx &= ~CTX_PGSZ_MASK;
++		ctx |= CTX_PGSZ_BASE << CTX_PGSZ0_SHIFT;
++		ctx |= CTX_PGSZ_HUGE << CTX_PGSZ1_SHIFT;
++
++		if (ctx != mm->context.sparc64_ctx_val) {
++			/* When changing the page size fields, we
++			 * must perform a context flush so that no
++			 * stale entries match.  This flush must
++			 * occur with the original context register
++			 * settings.
++			 */
++			do_flush_tlb_mm(mm);
++
++			/* Reload the context register of all processors
++			 * also executing in this address space.
++			 */
++			mm->context.sparc64_ctx_val = ctx;
++			on_each_cpu(context_reload, mm, 0);
++		}
++		spin_unlock(&ctx_alloc_lock);
++	}
++}
++#endif
+diff -puN arch/sparc/mm/tlb.c~sparc64-support-transparent-huge-pages arch/sparc/mm/tlb.c
+--- a/arch/sparc/mm/tlb.c~sparc64-support-transparent-huge-pages
++++ a/arch/sparc/mm/tlb.c
+@@ -43,16 +43,37 @@ void flush_tlb_pending(void)
+ 	put_cpu_var(tlb_batch);
+ }
+ 
+-void tlb_batch_add(struct mm_struct *mm, unsigned long vaddr,
+-		   pte_t *ptep, pte_t orig, int fullmm)
++static void tlb_batch_add_one(struct mm_struct *mm, unsigned long vaddr,
++			      bool exec)
+ {
+ 	struct tlb_batch *tb = &get_cpu_var(tlb_batch);
+ 	unsigned long nr;
+ 
+ 	vaddr &= PAGE_MASK;
+-	if (pte_exec(orig))
++	if (exec)
+ 		vaddr |= 0x1UL;
+ 
++	nr = tb->tlb_nr;
++
++	if (unlikely(nr != 0 && mm != tb->mm)) {
++		flush_tlb_pending();
++		nr = 0;
++	}
++
++	if (nr == 0)
++		tb->mm = mm;
++
++	tb->vaddrs[nr] = vaddr;
++	tb->tlb_nr = ++nr;
++	if (nr >= TLB_BATCH_NR)
++		flush_tlb_pending();
++
++	put_cpu_var(tlb_batch);
++}
++
++void tlb_batch_add(struct mm_struct *mm, unsigned long vaddr,
++		   pte_t *ptep, pte_t orig, int fullmm)
++{
+ 	if (tlb_type != hypervisor &&
+ 	    pte_dirty(orig)) {
+ 		unsigned long paddr, pfn = pte_pfn(orig);
+@@ -77,26 +98,91 @@ void tlb_batch_add(struct mm_struct *mm,
+ 	}
+ 
+ no_cache_flush:
++	if (!fullmm)
++		tlb_batch_add_one(mm, vaddr, pte_exec(orig));
++}
+ 
+-	if (fullmm) {
+-		put_cpu_var(tlb_batch);
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++static void tlb_batch_pmd_scan(struct mm_struct *mm, unsigned long vaddr,
++			       pmd_t pmd, bool exec)
++{
++	unsigned long end;
++	pte_t *pte;
++
++	pte = pte_offset_map(&pmd, vaddr);
++	end = vaddr + HPAGE_SIZE;
++	while (vaddr < end) {
++		if (pte_val(*pte) & _PAGE_VALID)
++			tlb_batch_add_one(mm, vaddr, exec);
++		pte++;
++		vaddr += PAGE_SIZE;
++	}
++	pte_unmap(pte);
++}
++
++void set_pmd_at(struct mm_struct *mm, unsigned long addr,
++		pmd_t *pmdp, pmd_t pmd)
++{
++	pmd_t orig = *pmdp;
++
++	*pmdp = pmd;
++
++	if (mm == &init_mm)
+ 		return;
++
++	if ((pmd_val(pmd) ^ pmd_val(orig)) & PMD_ISHUGE) {
++		if (pmd_val(pmd) & PMD_ISHUGE)
++			mm->context.huge_pte_count++;
++		else
++			mm->context.huge_pte_count--;
++		if (mm->context.huge_pte_count == 1)
++			hugetlb_setup(mm);
+ 	}
+ 
+-	nr = tb->tlb_nr;
++	if (!pmd_none(orig)) {
++		bool exec = ((pmd_val(orig) & PMD_HUGE_EXEC) != 0);
+ 
+-	if (unlikely(nr != 0 && mm != tb->mm)) {
+-		flush_tlb_pending();
+-		nr = 0;
++		addr &= HPAGE_MASK;
++		if (pmd_val(orig) & PMD_ISHUGE)
++			tlb_batch_add_one(mm, addr, exec);
++		else
++			tlb_batch_pmd_scan(mm, addr, orig, exec);
+ 	}
++}
+ 
+-	if (nr == 0)
+-		tb->mm = mm;
++void pgtable_trans_huge_deposit(struct mm_struct *mm, pgtable_t pgtable)
++{
++	struct list_head *lh = (struct list_head *) pgtable;
+ 
+-	tb->vaddrs[nr] = vaddr;
+-	tb->tlb_nr = ++nr;
+-	if (nr >= TLB_BATCH_NR)
+-		flush_tlb_pending();
++	assert_spin_locked(&mm->page_table_lock);
+ 
+-	put_cpu_var(tlb_batch);
++	/* FIFO */
++	if (!mm->pmd_huge_pte)
++		INIT_LIST_HEAD(lh);
++	else
++		list_add(lh, (struct list_head *) mm->pmd_huge_pte);
++	mm->pmd_huge_pte = pgtable;
++}
++
++pgtable_t pgtable_trans_huge_withdraw(struct mm_struct *mm)
++{
++	struct list_head *lh;
++	pgtable_t pgtable;
++
++	assert_spin_locked(&mm->page_table_lock);
++
++	/* FIFO */
++	pgtable = mm->pmd_huge_pte;
++	lh = (struct list_head *) pgtable;
++	if (list_empty(lh))
++		mm->pmd_huge_pte = NULL;
++	else {
++		mm->pmd_huge_pte = (pgtable_t) lh->next;
++		list_del(lh);
++	}
++	pte_val(pgtable[0]) = 0;
++	pte_val(pgtable[1]) = 0;
++
++	return pgtable;
+ }
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+diff -puN arch/sparc/mm/tsb.c~sparc64-support-transparent-huge-pages arch/sparc/mm/tsb.c
+--- a/arch/sparc/mm/tsb.c~sparc64-support-transparent-huge-pages
++++ a/arch/sparc/mm/tsb.c
+@@ -78,7 +78,7 @@ void flush_tsb_user(struct tlb_batch *tb
+ 		base = __pa(base);
+ 	__flush_tsb_one(tb, PAGE_SHIFT, base, nentries);
+ 
+-#ifdef CONFIG_HUGETLB_PAGE
++#if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
+ 	if (mm->context.tsb_block[MM_TSB_HUGE].tsb) {
+ 		base = (unsigned long) mm->context.tsb_block[MM_TSB_HUGE].tsb;
+ 		nentries = mm->context.tsb_block[MM_TSB_HUGE].tsb_nentries;
+@@ -93,7 +93,7 @@ void flush_tsb_user(struct tlb_batch *tb
+ #define HV_PGSZ_IDX_BASE	HV_PGSZ_IDX_8K
+ #define HV_PGSZ_MASK_BASE	HV_PGSZ_MASK_8K
+ 
+-#ifdef CONFIG_HUGETLB_PAGE
++#if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
+ #define HV_PGSZ_IDX_HUGE	HV_PGSZ_IDX_4MB
+ #define HV_PGSZ_MASK_HUGE	HV_PGSZ_MASK_4MB
+ #endif
+@@ -190,7 +190,7 @@ static void setup_tsb_params(struct mm_s
+ 		case MM_TSB_BASE:
+ 			hp->pgsz_idx = HV_PGSZ_IDX_BASE;
+ 			break;
+-#ifdef CONFIG_HUGETLB_PAGE
++#if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
+ 		case MM_TSB_HUGE:
+ 			hp->pgsz_idx = HV_PGSZ_IDX_HUGE;
+ 			break;
+@@ -205,7 +205,7 @@ static void setup_tsb_params(struct mm_s
+ 		case MM_TSB_BASE:
+ 			hp->pgsz_mask = HV_PGSZ_MASK_BASE;
+ 			break;
+-#ifdef CONFIG_HUGETLB_PAGE
++#if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
+ 		case MM_TSB_HUGE:
+ 			hp->pgsz_mask = HV_PGSZ_MASK_HUGE;
+ 			break;
+@@ -427,7 +427,7 @@ retry_tsb_alloc:
+ 
+ int init_new_context(struct task_struct *tsk, struct mm_struct *mm)
+ {
+-#ifdef CONFIG_HUGETLB_PAGE
++#if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
+ 	unsigned long huge_pte_count;
+ #endif
+ 	unsigned int i;
+@@ -436,7 +436,7 @@ int init_new_context(struct task_struct 
+ 
+ 	mm->context.sparc64_ctx_val = 0UL;
+ 
+-#ifdef CONFIG_HUGETLB_PAGE
++#if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
+ 	/* We reset it to zero because the fork() page copying
+ 	 * will re-increment the counters as the parent PTEs are
+ 	 * copied into the child address space.
+@@ -459,7 +459,7 @@ int init_new_context(struct task_struct 
+ 	 */
+ 	tsb_grow(mm, MM_TSB_BASE, get_mm_rss(mm));
+ 
+-#ifdef CONFIG_HUGETLB_PAGE
++#if defined(CONFIG_HUGETLB_PAGE) || defined(CONFIG_TRANSPARENT_HUGEPAGE)
+ 	if (unlikely(huge_pte_count))
+ 		tsb_grow(mm, MM_TSB_HUGE, huge_pte_count);
+ #endif
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from davem@davemloft.net are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-mm.patch
-x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
-mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
-mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures-fix.patch
-mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch
-rbtree-performance-and-correctness-test-fix.patch
-mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix.patch
-mm-fix-tracing-in-free_pcppages_bulk-fix.patch
-cma-count-free-cma-pages-fix.patch
-memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
+kconfig-clean-up-the-long-arch-list-for-the-uid16-config-option.patch
+kconfig-clean-up-the-long-arch-list-for-the-debug_kmemleak-config-option.patch
+kconfig-clean-up-the-long-arch-list-for-the-debug_bugverbose-config-option.patch
+kconfig-clean-up-the-if-definedarch-list-for-exception-trace-sysctl-entry.patch
+atomic-implement-generic-atomic_dec_if_positive.patch
 atomic-implement-generic-atomic_dec_if_positive-fix.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix-2.patch
-mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible-fix-fix.patch
-mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch
-mm-fix-invalidate_complete_page2-lock-ordering.patch
-mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix.patch
-mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock.patch
-cma-migrate-mlocked-pages-fix.patch
-fs-block_devc-set_blocksize-use-mapping_mapped.patch
-mm-avoid-section-mismatch-warning-for-memblock_type_name-fix.patch
-mm-document-pagehuge-somewhat.patch
-mm-memcg-clean-up-mm_match_cgroup-signature-fix.patch
-memory-hotplug-suppress-trying-to-free-nonexistent-resource-xxxxxxxxxxxxxxxx-yyyyyyyyyyyyyyyy-warning.patch
+sparc64-only-support-4mb-huge-pages-and-8kb-base-pages.patch
+sparc64-halve-the-size-of-pte-tables.patch
+sparc64-eliminate-pte-table-memory-wastage.patch
+sparc64-document-pgd-and-pmd-layout.patch
+mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code.patch
 mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code-fix.patch
-idr-rename-max_level-to-max_idr_level-fix-3.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mm-thp-use-more-portable-pmd-clearing-sequenece-in-zap_huge_pmd.patch
+sparc64-support-transparent-huge-pages.patch
+compat-generic-compat_sys_sched_rr_get_interval-implementation.patch
 
