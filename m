@@ -1,75 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-fat-fix-two-checkpatch-issues-in-cachec.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:18:30 -0700
-Message-ID: <20121005201831.25FB95C0050@hpza9.eem.corp.google.com>
+Subject: [merged] fs-fat-fixes-some-small-checkpatch-issues-in-dirc.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:18:34 -0700
+Message-ID: <20121005201835.2D86820004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:51688 "EHLO
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:37871 "EHLO
 	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757277Ab2JEUSg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:18:36 -0400
-Received: by mail-fa0-f74.google.com with SMTP id t1so138460fae.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:18:32 -0700 (PDT)
+	with ESMTP id S1757279Ab2JEUSh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:18:37 -0400
+Received: by mail-fa0-f74.google.com with SMTP id t1so138462fae.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:18:36 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: cruzjbishop@gmail.com, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/fat: fix two checkpatch issues in cache.c
+     Subject: fs/fat: fix some small checkpatch issues in dir.c
 has been removed from the -mm tree.  Its filename was
-     fs-fat-fix-two-checkpatch-issues-in-cachec.patch
+     fs-fat-fixes-some-small-checkpatch-issues-in-dirc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Cruz Julian Bishop <cruzjbishop@gmail.com>
-Subject: fs/fat: fix two checkpatch issues in cache.c
+Subject: fs/fat: fix some small checkpatch issues in dir.c
 
-This does the following:
-	1: Splits the arguments of a function call to stop it
-		from exceeding 80 characters
-	2: Re-indents the arguments of another function call
-		to prevent the splitting of a quoted string.
+Simply remove the spacing between function definitions and
+EXPORT_SYMBOL_GPL calls, which were previously generating warnings.
 
 Signed-off-by: Cruz Julian Bishop <cruzjbishop@gmail.com>
 Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/cache.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ fs/fat/dir.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN fs/fat/cache.c~fs-fat-fix-two-checkpatch-issues-in-cachec fs/fat/cache.c
---- a/fs/fat/cache.c~fs-fat-fix-two-checkpatch-issues-in-cachec
-+++ a/fs/fat/cache.c
-@@ -190,7 +190,8 @@ static void __fat_cache_inval_inode(stru
- 	struct fat_cache *cache;
+diff -puN fs/fat/dir.c~fs-fat-fixes-some-small-checkpatch-issues-in-dirc fs/fat/dir.c
+--- a/fs/fat/dir.c~fs-fat-fixes-some-small-checkpatch-issues-in-dirc
++++ a/fs/fat/dir.c
+@@ -537,7 +537,6 @@ end_of_dir:
  
- 	while (!list_empty(&i->cache_lru)) {
--		cache = list_entry(i->cache_lru.next, struct fat_cache, cache_list);
-+		cache = list_entry(i->cache_lru.next,
-+				   struct fat_cache, cache_list);
- 		list_del_init(&cache->cache_list);
- 		i->nr_caches--;
- 		fat_cache_free(cache);
-@@ -261,9 +262,10 @@ int fat_get_cluster(struct inode *inode,
- 		if (nr < 0)
- 			goto out;
- 		else if (nr == FAT_ENT_FREE) {
--			fat_fs_error_ratelimit(sb, "%s: invalid cluster chain"
--					       " (i_pos %lld)", __func__,
--					       MSDOS_I(inode)->i_pos);
-+			fat_fs_error_ratelimit(sb,
-+				       "%s: invalid cluster chain (i_pos %lld)",
-+				       __func__,
-+				       MSDOS_I(inode)->i_pos);
- 			nr = -EIO;
- 			goto out;
- 		} else if (nr == FAT_ENT_EOF) {
-_
-
-Patches currently in -mm which might be from cruzjbishop@gmail.com are
-
-origin.patch
-
+ 	return err;
+ }
+-
+ EXPORT_SYMBOL_GPL(fat_search_long);
+ 
+ struct fat_ioctl_filldir_callback {
+@@ -892,7 +891,6 @@ int fat_get_dotdot_entry(struct inode *d
+ 	}
+ 	return -ENOENT;
+ }
+-
+ EXPORT_SYMBOL_GPL(fat_get_dotdot_entry);
+ 
+ /* See if directory is empty */
+@@ -915,7 +913,6 @@ int fat_dir_empty(struct inode *dir)
+ 	brelse(bh);
+ 	return result;
+ }
+-
+ EXPORT_SYMBOL_GPL(fat_dir_empty);
+ 
+ /*
+@@ -961,7 +958,6 @@ int fat_scan(struct inode *dir, const un
+ 	}
+ 	return -ENOENT;
+ }
+-
+ EXPORT_SYMBOL_GPL(fat_scan);
+ 
+ static int __fat_remove_entries(struct inode *dir, loff_t pos, int nr_slots)
+@@ -1049,7 +1045,6 @@ int fat_remove_entries(struct inode *dir
+ 
+ 	return 0;
+ }
+-
+ EXPORT_SYMBOL_GPL(fat_remove_entries);
+ 
+ static int fat_zeroed_cluster(struct inode *dir, sector_t blknr, int nr_used,
+@@ -1161,7 +1156,6 @@ error_free:
+ error:
+ 	return err;
+ }
+-
+ EXPORT_SYMBOL_GPL(fat_alloc_new_dir);
+ 
+ static int fat_add_new_entries(struct inode *dir, void *slots, int nr_slots,
+@@ -1377,5 +1371,4 @@ error_remove:
+ 		__fat_remove_entries(dir, pos, free_slots);
+ 	return err;
+ }
