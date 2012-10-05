@@ -1,78 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-rtc-mxc-convert-to-module_platform_driver.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:17:17 -0700
-Message-ID: <20121005201717.92B1E1E0043@wpzn4.hot.corp.google.com>
+Subject: [merged] drivers-rtc-rtc-s3cc-fix-return-value-in-s3c_rtc_probe.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:17:23 -0700
+Message-ID: <20121005201723.A45291E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:34156 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757170Ab2JEURS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:17:18 -0400
-Received: by mail-gh0-f202.google.com with SMTP id z15so236232ghb.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:17:18 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:50910 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757173Ab2JEURY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:17:24 -0400
+Received: by mail-vc0-f202.google.com with SMTP id fy27so236805vcb.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:17:24 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabio.estevam@freescale.com, a.zummo@towertech.it, s.hauer@pengutronix.de, mm-commits@vger.kernel.org
+To: sachin.kamat@linaro.org, a.zummo@towertech.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: rtc-mxc: convert to module_platform_driver
+     Subject: drivers/rtc/rtc-s3c.c: fix return value in s3c_rtc_probe()
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-mxc-convert-to-module_platform_driver.patch
+     drivers-rtc-rtc-s3cc-fix-return-value-in-s3c_rtc_probe.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabio Estevam <fabio.estevam@freescale.com>
-Subject: rtc: rtc-mxc: convert to module_platform_driver
+From: Sachin Kamat <sachin.kamat@linaro.org>
+Subject: drivers/rtc/rtc-s3c.c: fix return value in s3c_rtc_probe()
 
-Converting to module_platform_driver can make the code smaller and cleaner.
+Return the value returned by platform_get_irq() instead of -ENOENT;
 
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-mxc.c |   20 +++++---------------
- 1 file changed, 5 insertions(+), 15 deletions(-)
+ drivers/rtc/rtc-s3c.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-mxc.c~rtc-rtc-mxc-convert-to-module_platform_driver drivers/rtc/rtc-mxc.c
---- a/drivers/rtc/rtc-mxc.c~rtc-rtc-mxc-convert-to-module_platform_driver
-+++ a/drivers/rtc/rtc-mxc.c
-@@ -343,7 +343,7 @@ static struct rtc_class_ops mxc_rtc_ops 
- 	.alarm_irq_enable	= mxc_rtc_alarm_irq_enable,
- };
+diff -puN drivers/rtc/rtc-s3c.c~drivers-rtc-rtc-s3cc-fix-return-value-in-s3c_rtc_probe drivers/rtc/rtc-s3c.c
+--- a/drivers/rtc/rtc-s3c.c~drivers-rtc-rtc-s3cc-fix-return-value-in-s3c_rtc_probe
++++ a/drivers/rtc/rtc-s3c.c
+@@ -476,13 +476,13 @@ static int __devinit s3c_rtc_probe(struc
+ 	s3c_rtc_tickno = platform_get_irq(pdev, 1);
+ 	if (s3c_rtc_tickno < 0) {
+ 		dev_err(&pdev->dev, "no irq for rtc tick\n");
+-		return -ENOENT;
++		return s3c_rtc_tickno;
+ 	}
  
--static int __init mxc_rtc_probe(struct platform_device *pdev)
-+static int __devinit mxc_rtc_probe(struct platform_device *pdev)
- {
- 	struct resource *res;
- 	struct rtc_device *rtc;
-@@ -433,7 +433,7 @@ exit_free_pdata:
- 	return ret;
- }
+ 	s3c_rtc_alarmno = platform_get_irq(pdev, 0);
+ 	if (s3c_rtc_alarmno < 0) {
+ 		dev_err(&pdev->dev, "no irq for alarm\n");
+-		return -ENOENT;
++		return s3c_rtc_alarmno;
+ 	}
  
--static int __exit mxc_rtc_remove(struct platform_device *pdev)
-+static int __devexit mxc_rtc_remove(struct platform_device *pdev)
- {
- 	struct rtc_plat_data *pdata = platform_get_drvdata(pdev);
- 
-@@ -480,21 +480,11 @@ static struct platform_driver mxc_rtc_dr
- #endif
- 		   .owner	= THIS_MODULE,
- 	},
--	.remove		= __exit_p(mxc_rtc_remove),
-+	.probe = mxc_rtc_probe,
-+	.remove = __devexit_p(mxc_rtc_remove),
- };
- 
--static int __init mxc_rtc_init(void)
--{
--	return platform_driver_probe(&mxc_rtc_driver, mxc_rtc_probe);
--}
--
--static void __exit mxc_rtc_exit(void)
--{
--	platform_driver_unregister(&mxc_rtc_driver);
--}
+ 	pr_debug("s3c2410_rtc: tick irq %d, alarm irq %d\n",
+_
+
+Patches currently in -mm which might be from sachin.kamat@linaro.org are
+
+origin.patch
+linux-next.patch
+mm-hugetlbc-remove-duplicate-inclusion-of-header-file.patch
+memcg-cleanup-kmem-tcp-ifdefs.patch
+memcg-move-mem_cgroup_is_root-upwards.patch
+
