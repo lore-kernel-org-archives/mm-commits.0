@@ -1,81 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-em3027c-convert-struct-i2c_msg-initialization-to-c99-format.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:17:51 -0700
-Message-ID: <20121005201751.AB31B100048@wpzn3.hot.corp.google.com>
+Subject: [merged] rtc-kconfig-fixup-dependency-for-ab8500.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:17:54 -0700
+Message-ID: <20121005201754.AE792100048@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:44734 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757157Ab2JEURw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:17:52 -0400
-Received: by mail-qa0-f74.google.com with SMTP id a16so94098qae.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:17:52 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:49101 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756760Ab2JEURz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:17:55 -0400
+Received: by mail-qc0-f202.google.com with SMTP id s25so237019qcq.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:17:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shubhrajyoti@ti.com, a.zummo@towertech.it, balbi@ti.com, mm-commits@vger.kernel.org
+To: ulf.hansson@linaro.org, linus.walleij@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-em3027.c: convert struct i2c_msg initialization to C99 format
+     Subject: rtc: kconfig: fix up dependency for ab8500
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-em3027c-convert-struct-i2c_msg-initialization-to-c99-format.patch
+     rtc-kconfig-fixup-dependency-for-ab8500.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Shubhrajyoti D <shubhrajyoti@ti.com>
-Subject: drivers/rtc/rtc-em3027.c: convert struct i2c_msg initialization to C99 format
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: rtc: kconfig: fix up dependency for ab8500
 
-Convert the struct i2c_msg initialization to C99 format.  This makes
-maintaining and editing the code simpler.  Also helps once other fields
-like transferred are added in future.
-
-Signed-off-by: Shubhrajyoti D <shubhrajyoti@ti.com>
-Reviewed-by: Felipe Balbi <balbi@ti.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-em3027.c |   17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ drivers/rtc/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/rtc/rtc-em3027.c~drivers-rtc-rtc-em3027c-convert-struct-i2c_msg-initialization-to-c99-format drivers/rtc/rtc-em3027.c
---- a/drivers/rtc/rtc-em3027.c~drivers-rtc-rtc-em3027c-convert-struct-i2c_msg-initialization-to-c99-format
-+++ a/drivers/rtc/rtc-em3027.c
-@@ -49,8 +49,17 @@ static int em3027_get_time(struct device
- 	unsigned char buf[7];
- 
- 	struct i2c_msg msgs[] = {
--		{client->addr, 0, 1, &addr},		/* setup read addr */
--		{client->addr, I2C_M_RD, 7, buf},	/* read time/date */
-+		{/* setup read addr */
-+			.addr = client->addr,
-+			.len = 1,
-+			.buf = &addr
-+		},
-+		{/* read time/date */
-+			.addr = client->addr,
-+			.flags = I2C_M_RD,
-+			.len = 7,
-+			.buf = buf
-+		},
- 	};
- 
- 	/* read time/date registers */
-@@ -76,7 +85,9 @@ static int em3027_set_time(struct device
- 	unsigned char buf[8];
- 
- 	struct i2c_msg msg = {
--		client->addr, 0, 8, buf,	/* write time/date */
-+		.addr = client->addr,
-+		.len = 8,
-+		.buf = buf,	/* write time/date */
- 	};
- 
- 	buf[0] = EM3027_REG_WATCH_SEC;
+diff -puN drivers/rtc/Kconfig~rtc-kconfig-fixup-dependency-for-ab8500 drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-kconfig-fixup-dependency-for-ab8500
++++ a/drivers/rtc/Kconfig
+@@ -738,6 +738,7 @@ config RTC_DRV_AB3100
+ config RTC_DRV_AB8500
+ 	tristate "ST-Ericsson AB8500 RTC"
+ 	depends on AB8500_CORE
++	select RTC_INTF_DEV
+ 	select RTC_INTF_DEV_UIE_EMUL
+ 	help
+ 	  Select this to enable the ST-Ericsson AB8500 power management IC RTC
 _
 
-Patches currently in -mm which might be from shubhrajyoti@ti.com are
+Patches currently in -mm which might be from ulf.hansson@linaro.org are
 
 origin.patch
 linux-next.patch
