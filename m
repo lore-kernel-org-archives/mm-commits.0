@@ -1,133 +1,292 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Fri, 05 Oct 2012 13:09:56 -0700
-Message-ID: <20121005200958.23937100048@wpzn3.hot.corp.google.com>
+Subject: [merged] audith-replace-defines-with-c-stubs.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:11:47 -0700
+Message-ID: <20121005201148.D3A7A5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:45319 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757170Ab2JEUKA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:10:00 -0400
-Received: by mail-qc0-f202.google.com with SMTP id s25so236239qcq.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:09:59 -0700 (PDT)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:52982 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757170Ab2JEULw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:11:52 -0400
+Received: by mail-la0-f74.google.com with SMTP id j13so98776lah.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:11:50 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: keescook@chromium.org, akpm@linux-foundation.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: audit.h: replace defines with C stubs
+has been removed from the -mm tree.  Its filename was
+     audith-replace-defines-with-c-stubs.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Kees Cook <keescook@chromium.org>
+Subject: audit.h: replace defines with C stubs
 
+Replace the #defines used when CONFIG_AUDIT or CONFIG_AUDIT_SYSCALLS are
+disabled so we get type checking during those builds.
+
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mfd/88pm860x.h |    3 ---
- init/Kconfig                 |    4 +---
- 2 files changed, 1 insertion(+), 6 deletions(-)
+ include/linux/audit.h |  206 +++++++++++++++++++++++++++++-----------
+ 1 file changed, 153 insertions(+), 53 deletions(-)
 
-diff -puN include/linux/mfd/88pm860x.h~linux-next-git-rejects include/linux/mfd/88pm860x.h
---- a/include/linux/mfd/88pm860x.h~linux-next-git-rejects
-+++ a/include/linux/mfd/88pm860x.h
-@@ -440,10 +440,7 @@ struct pm860x_platform_data {
- 	struct pm860x_rtc_pdata		*rtc;
- 	struct pm860x_touch_pdata	*touch;
- 	struct pm860x_power_pdata	*power;
--<<<<<<< HEAD
--=======
- 	struct charger_desc		*chg_desc;
-->>>>>>> linux-next/akpm-base
- 	struct regulator_init_data	*buck1;
- 	struct regulator_init_data	*buck2;
- 	struct regulator_init_data	*buck3;
-diff -puN init/Kconfig~linux-next-git-rejects init/Kconfig
---- a/init/Kconfig~linux-next-git-rejects
-+++ a/init/Kconfig
-@@ -1653,13 +1653,12 @@ config PADATA
- 	depends on SMP
- 	bool
- 
--<<<<<<< HEAD
- # Can be selected by architectures with broken toolchains
- # that get confused by correct const<->read_only section
- # mappings
- config BROKEN_RODATA
- 	bool
--=======
+diff -puN include/linux/audit.h~audith-replace-defines-with-c-stubs include/linux/audit.h
+--- a/include/linux/audit.h~audith-replace-defines-with-c-stubs
++++ a/include/linux/audit.h
+@@ -527,9 +527,18 @@ static inline void audit_ptrace(struct t
+ extern unsigned int audit_serial(void);
+ extern int auditsc_get_stamp(struct audit_context *ctx,
+ 			      struct timespec *t, unsigned int *serial);
+-extern int  audit_set_loginuid(kuid_t loginuid);
+-#define audit_get_loginuid(t) ((t)->loginuid)
+-#define audit_get_sessionid(t) ((t)->sessionid)
++extern int audit_set_loginuid(kuid_t loginuid);
 +
- config ASN1
- 	tristate
- 	help
-@@ -1667,6 +1666,5 @@ config ASN1
- 	  that can be interpreted by the ASN.1 stream decoder and used to
- 	  inform it as to what tags are to be expected in a stream and what
- 	  functions to call on what tags.
-->>>>>>> linux-next/akpm-base
++static inline kuid_t audit_get_loginuid(struct task_struct *tsk)
++{
++	return tsk->loginuid;
++}
++
++static inline int audit_get_sessionid(struct task_struct *tsk)
++{
++	return tsk->sessionid;
++}
++
+ extern void audit_log_task_context(struct audit_buffer *ab);
+ extern void audit_log_task_info(struct audit_buffer *ab, struct task_struct *tsk);
+ extern void __audit_ipc_obj(struct kern_ipc_perm *ipcp);
+@@ -626,38 +635,101 @@ static inline void audit_mmap_fd(int fd,
+ extern int audit_n_rules;
+ extern int audit_signals;
+ #else /* CONFIG_AUDITSYSCALL */
+-#define audit_alloc(t) ({ 0; })
+-#define audit_free(t) do { ; } while (0)
+-#define audit_syscall_entry(ta,a,b,c,d,e) do { ; } while (0)
+-#define audit_syscall_exit(r) do { ; } while (0)
+-#define audit_dummy_context() 1
+-#define audit_getname(n) do { ; } while (0)
+-#define audit_putname(n) do { ; } while (0)
+-#define __audit_inode(n,d) do { ; } while (0)
+-#define __audit_inode_child(i,p) do { ; } while (0)
+-#define audit_inode(n,d) do { (void)(d); } while (0)
+-#define audit_inode_child(i,p) do { ; } while (0)
+-#define audit_core_dumps(i) do { ; } while (0)
+-#define audit_seccomp(i,s,c) do { ; } while (0)
+-#define auditsc_get_stamp(c,t,s) (0)
+-#define audit_get_loginuid(t) (INVALID_UID)
+-#define audit_get_sessionid(t) (-1)
+-#define audit_log_task_context(b) do { ; } while (0)
+-#define audit_log_task_info(b, t) do { ; } while (0)
+-#define audit_ipc_obj(i) ((void)0)
+-#define audit_ipc_set_perm(q,u,g,m) ((void)0)
+-#define audit_bprm(p) ({ 0; })
+-#define audit_socketcall(n,a) ((void)0)
+-#define audit_fd_pair(n,a) ((void)0)
+-#define audit_sockaddr(len, addr) ({ 0; })
+-#define audit_mq_open(o,m,a) ((void)0)
+-#define audit_mq_sendrecv(d,l,p,t) ((void)0)
+-#define audit_mq_notify(d,n) ((void)0)
+-#define audit_mq_getsetattr(d,s) ((void)0)
+-#define audit_log_bprm_fcaps(b, ncr, ocr) ({ 0; })
+-#define audit_log_capset(pid, ncr, ocr) ((void)0)
+-#define audit_mmap_fd(fd, flags) ((void)0)
+-#define audit_ptrace(t) ((void)0)
++static inline int audit_alloc(struct task_struct *task)
++{
++	return 0;
++}
++static inline void audit_free(struct task_struct *task)
++{ }
++static inline void audit_syscall_entry(int arch, int major, unsigned long a0,
++				       unsigned long a1, unsigned long a2,
++				       unsigned long a3)
++{ }
++static inline void audit_syscall_exit(void *pt_regs)
++{ }
++static inline int audit_dummy_context(void)
++{
++	return 1;
++}
++static inline void audit_getname(const char *name)
++{ }
++static inline void audit_putname(const char *name)
++{ }
++static inline void __audit_inode(const char *name, const struct dentry *dentry)
++{ }
++static inline void __audit_inode_child(const struct dentry *dentry,
++					const struct inode *parent)
++{ }
++static inline void audit_inode(const char *name, const struct dentry *dentry)
++{ }
++static inline void audit_inode_child(const struct dentry *dentry,
++				     const struct inode *parent)
++{ }
++static inline void audit_core_dumps(long signr)
++{ }
++static inline void __audit_seccomp(unsigned long syscall, long signr, int code)
++{ }
++static inline void audit_seccomp(unsigned long syscall, long signr, int code)
++{ }
++static inline int auditsc_get_stamp(struct audit_context *ctx,
++			      struct timespec *t, unsigned int *serial)
++{
++	return 0;
++}
++static inline kuid_t audit_get_loginuid(struct task_struct *tsk)
++{
++	return INVALID_UID;
++}
++static inline int audit_get_sessionid(struct task_struct *tsk)
++{
++	return -1;
++}
++static inline void audit_log_task_context(struct audit_buffer *ab)
++{ }
++static inline void audit_log_task_info(struct audit_buffer *ab,
++				       struct task_struct *tsk)
++{ }
++static inline void audit_ipc_obj(struct kern_ipc_perm *ipcp)
++{ }
++static inline void audit_ipc_set_perm(unsigned long qbytes, uid_t uid,
++					gid_t gid, umode_t mode)
++{ }
++static inline int audit_bprm(struct linux_binprm *bprm)
++{
++	return 0;
++}
++static inline void audit_socketcall(int nargs, unsigned long *args)
++{ }
++static inline void audit_fd_pair(int fd1, int fd2)
++{ }
++static inline int audit_sockaddr(int len, void *addr)
++{
++	return 0;
++}
++static inline void audit_mq_open(int oflag, umode_t mode, struct mq_attr *attr)
++{ }
++static inline void audit_mq_sendrecv(mqd_t mqdes, size_t msg_len,
++				     unsigned int msg_prio,
++				     const struct timespec *abs_timeout)
++{ }
++static inline void audit_mq_notify(mqd_t mqdes,
++				   const struct sigevent *notification)
++{ }
++static inline void audit_mq_getsetattr(mqd_t mqdes, struct mq_attr *mqstat)
++{ }
++static inline int audit_log_bprm_fcaps(struct linux_binprm *bprm,
++				       const struct cred *new,
++				       const struct cred *old)
++{
++	return 0;
++}
++static inline void audit_log_capset(pid_t pid, const struct cred *new,
++				   const struct cred *old)
++{ }
++static inline void audit_mmap_fd(int fd, int flags)
++{ }
++static inline void audit_ptrace(struct task_struct *t)
++{ }
+ #define audit_n_rules 0
+ #define audit_signals 0
+ #endif /* CONFIG_AUDITSYSCALL */
+@@ -681,7 +753,6 @@ extern void		    audit_log_n_hex(struct 
+ extern void		    audit_log_n_string(struct audit_buffer *ab,
+ 					       const char *buf,
+ 					       size_t n);
+-#define audit_log_string(a,b) audit_log_n_string(a, b, strlen(b));
+ extern void		    audit_log_n_untrustedstring(struct audit_buffer *ab,
+ 							const char *string,
+ 							size_t n);
+@@ -698,7 +769,8 @@ extern void		    audit_log_lost(const ch
+ #ifdef CONFIG_SECURITY
+ extern void 		    audit_log_secctx(struct audit_buffer *ab, u32 secid);
+ #else
+-#define audit_log_secctx(b,s) do { ; } while (0)
++static inline void	    audit_log_secctx(struct audit_buffer *ab, u32 secid)
++{ }
+ #endif
  
- source "kernel/Kconfig.locks"
+ extern int		    audit_update_lsm_rules(void);
+@@ -710,22 +782,50 @@ extern int  audit_receive_filter(int typ
+ 				void *data, size_t datasz, kuid_t loginuid,
+ 				u32 sessionid, u32 sid);
+ extern int audit_enabled;
+-#else
+-#define audit_log(c,g,t,f,...) do { ; } while (0)
+-#define audit_log_start(c,g,t) ({ NULL; })
+-#define audit_log_vformat(b,f,a) do { ; } while (0)
+-#define audit_log_format(b,f,...) do { ; } while (0)
+-#define audit_log_end(b) do { ; } while (0)
+-#define audit_log_n_hex(a,b,l) do { ; } while (0)
+-#define audit_log_n_string(a,c,l) do { ; } while (0)
+-#define audit_log_string(a,c) do { ; } while (0)
+-#define audit_log_n_untrustedstring(a,n,s) do { ; } while (0)
+-#define audit_log_untrustedstring(a,s) do { ; } while (0)
+-#define audit_log_d_path(b, p, d) do { ; } while (0)
+-#define audit_log_key(b, k) do { ; } while (0)
+-#define audit_log_link_denied(o, l) do { ; } while (0)
+-#define audit_log_secctx(b,s) do { ; } while (0)
++#else /* CONFIG_AUDIT */
++static inline __printf(4, 5)
++void audit_log(struct audit_context *ctx, gfp_t gfp_mask, int type,
++	       const char *fmt, ...)
++{ }
++static inline struct audit_buffer *audit_log_start(struct audit_context *ctx,
++						   gfp_t gfp_mask, int type)
++{
++	return NULL;
++}
++static inline __printf(2, 3)
++void audit_log_format(struct audit_buffer *ab, const char *fmt, ...)
++{ }
++static inline void audit_log_end(struct audit_buffer *ab)
++{ }
++static inline void audit_log_n_hex(struct audit_buffer *ab,
++				   const unsigned char *buf, size_t len)
++{ }
++static inline void audit_log_n_string(struct audit_buffer *ab,
++				      const char *buf, size_t n)
++{ }
++static inline void  audit_log_n_untrustedstring(struct audit_buffer *ab,
++						const char *string, size_t n)
++{ }
++static inline void audit_log_untrustedstring(struct audit_buffer *ab,
++					     const char *string)
++{ }
++static inline void audit_log_d_path(struct audit_buffer *ab,
++				    const char *prefix,
++				    const struct path *path)
++{ }
++static inline void audit_log_key(struct audit_buffer *ab, char *key)
++{ }
++static inline void audit_log_link_denied(const char *string,
++					 const struct path *link)
++{ }
++static inline void audit_log_secctx(struct audit_buffer *ab, u32 secid)
++{ }
+ #define audit_enabled 0
+-#endif
++#endif /* CONFIG_AUDIT */
++static inline void audit_log_string(struct audit_buffer *ab, const char *buf)
++{
++	audit_log_n_string(ab, buf, strlen(buf));
++}
++
+ #endif
+ #endif
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from keescook@chromium.org are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-mm.patch
-x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
-mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
-mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures-fix.patch
-mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch
-rbtree-performance-and-correctness-test-fix.patch
-mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix.patch
-mm-fix-tracing-in-free_pcppages_bulk-fix.patch
-cma-count-free-cma-pages-fix.patch
-memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
-atomic-implement-generic-atomic_dec_if_positive-fix.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix-2.patch
-mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible-fix-fix.patch
-mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch
-mm-fix-invalidate_complete_page2-lock-ordering.patch
-mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix.patch
-mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock.patch
-cma-migrate-mlocked-pages-fix.patch
-fs-block_devc-set_blocksize-use-mapping_mapped.patch
-mm-avoid-section-mismatch-warning-for-memblock_type_name-fix.patch
-mm-document-pagehuge-somewhat.patch
-idr-rename-max_level-to-max_idr_level-fix-3.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
-cpu-hotplug-debug-detect-imbalance-between-get_online_cpus-and-put_online_cpus-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mm-use-%pk-for-proc-vmallocinfo.patch
 
