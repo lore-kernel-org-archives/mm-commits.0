@@ -1,54 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] rtc-add-dallas-ds2404-driver-fix.patch removed from -mm tree
-Date: Thu, 04 Oct 2012 16:58:41 -0700
-Message-ID: <20121004235842.759015C0050@hpza9.eem.corp.google.com>
+Subject: [folded-dropped] proc-use-kzalloc-instead-of-kmalloc-and-memset-fix.patch removed from -mm tree
+Date: Thu, 04 Oct 2012 17:03:14 -0700
+Message-ID: <20121005000315.89491200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:58172 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752223Ab2JDX6o (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2012 19:58:44 -0400
-Received: by mail-lb0-f202.google.com with SMTP id l12so78159lbo.1
-        for <mm-commits@vger.kernel.org>; Thu, 04 Oct 2012 16:58:43 -0700 (PDT)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:57342 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753846Ab2JEADS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2012 20:03:18 -0400
+Received: by mail-la0-f74.google.com with SMTP id j13so51690lah.1
+        for <mm-commits@vger.kernel.org>; Thu, 04 Oct 2012 17:03:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.zummo@towertech.it, svens@stackframe.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, clouds.yan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc-add-dallas-ds2404-driver-fix
+     Subject: proc-use-kzalloc-instead-of-kmalloc-and-memset-fix
 has been removed from the -mm tree.  Its filename was
-     rtc-add-dallas-ds2404-driver-fix.patch
+     proc-use-kzalloc-instead-of-kmalloc-and-memset-fix.patch
 
-This patch was dropped because it was folded into rtc-add-dallas-ds2404-driver.patch
+This patch was dropped because it was folded into proc-use-kzalloc-instead-of-kmalloc-and-memset.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: rtc-add-dallas-ds2404-driver-fix
+Subject: proc-use-kzalloc-instead-of-kmalloc-and-memset-fix
 
-drivers/rtc/rtc-ds2404.c:23:1: warning: "DEBUG" redefined <command-line>:
-warning: this is the location of the previous definition
+fix __proc_create() coding-style issues, remove unneeded zero-initialisations
 
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Sven Schnelle <svens@stackframe.org>
+Cc: yan <clouds.yan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds2404.c |    2 --
- 1 file changed, 2 deletions(-)
+ fs/proc/generic.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds2404.c~rtc-add-dallas-ds2404-driver-fix drivers/rtc/rtc-ds2404.c
---- a/drivers/rtc/rtc-ds2404.c~rtc-add-dallas-ds2404-driver-fix
-+++ a/drivers/rtc/rtc-ds2404.c
-@@ -20,8 +20,6 @@
+diff -puN fs/proc/generic.c~proc-use-kzalloc-instead-of-kmalloc-and-memset-fix fs/proc/generic.c
+--- a/fs/proc/generic.c~proc-use-kzalloc-instead-of-kmalloc-and-memset-fix
++++ a/fs/proc/generic.c
+@@ -605,7 +605,8 @@ static struct proc_dir_entry *__proc_cre
+ 	unsigned int len;
  
- #include <linux/io.h>
+ 	/* make sure name is valid */
+-	if (!name || !strlen(name)) goto out;
++	if (!name || !strlen(name))
++		goto out;
  
--#define DEBUG
--
- #define DS2404_STATUS_REG 0x200
- #define DS2404_CONTROL_REG 0x201
- #define DS2404_RTC_REG 0x202
+ 	if (xlate_proc_name(name, parent, &fn) != 0)
+ 		goto out;
+@@ -617,18 +618,17 @@ static struct proc_dir_entry *__proc_cre
+ 	len = strlen(fn);
+ 
+ 	ent = kzalloc(sizeof(struct proc_dir_entry) + len + 1, GFP_KERNEL);
+-	if (!ent) goto out;
++	if (!ent)
++		goto out;
+ 
+ 	memcpy(ent->name, fn, len + 1);
+ 	ent->namelen = len;
+ 	ent->mode = mode;
+ 	ent->nlink = nlink;
+ 	atomic_set(&ent->count, 1);
+-	ent->pde_users = 0;
+ 	spin_lock_init(&ent->pde_unload_lock);
+-	ent->pde_unload_completion = NULL;
+ 	INIT_LIST_HEAD(&ent->pde_openers);
+- out:
++out:
+ 	return ent;
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -65,12 +86,9 @@ idr-rename-max_level-to-max_idr_level.patch
 lib-parserc-avoid-overflow-in-match_number.patch
 lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock.patch
 rtc-add-dallas-ds2404-driver.patch
-rtc-snvs-add-freescale-rtc-snvs-driver-fix.patch
-fs-fat-fix-all-other-checkpatch-issues-in-dirc-fix.patch
-fat-simplify-writeback_inode-checkpatch-fixes.patch
-fat-simplify-writeback_inode-checkpatch-fixes-fix.patch
-coredump-make-core-dump-functionality-optional-fix-fix.patch
-coredump-use-suid_dumpable_enabled-rather-than-hardcoded-1-checkpatch-fixes.patch
-proc-use-kzalloc-instead-of-kmalloc-and-memset-fix.patch
+fat-simplify-writeback_inode.patch
+coredump-make-core-dump-functionality-optional.patch
+coredump-use-suid_dumpable_enabled-rather-than-hardcoded-1.patch
+proc-use-kzalloc-instead-of-kmalloc-and-memset.patch
 rapidio-run-discovery-as-an-asynchronous-process-fix.patch
 
