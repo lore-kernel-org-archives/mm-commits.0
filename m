@@ -1,140 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] coredump-make-core-dump-functionality-optional-fix-fix.patch removed from -mm tree
-Date: Thu, 04 Oct 2012 17:01:59 -0700
-Message-ID: <20121005000200.667385C0063@hpza9.eem.corp.google.com>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Fri, 05 Oct 2012 13:09:56 -0700
+Message-ID: <20121005200958.23937100048@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:50311 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753707Ab2JEACD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2012 20:02:03 -0400
-Received: by mail-bk0-f74.google.com with SMTP id q16so75269bkw.1
-        for <mm-commits@vger.kernel.org>; Thu, 04 Oct 2012 17:02:02 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:45319 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757170Ab2JEUKA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:10:00 -0400
+Received: by mail-qc0-f202.google.com with SMTP id s25so236239qcq.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:09:59 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alex.page.kelly@gmail.com, josh@joshtriplett.org, keescook@chromium.org, rdunlap@xenotime.net, serge.hallyn@canonical.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: coredump-make-core-dump-functionality-optional-fix-fix
-has been removed from the -mm tree.  Its filename was
-     coredump-make-core-dump-functionality-optional-fix-fix.patch
+     Subject: linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-This patch was dropped because it was folded into coredump-make-core-dump-functionality-optional.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: coredump-make-core-dump-functionality-optional-fix-fix
+Subject: linux-next-git-rejects
 
-fix binfmt_aout.c build
-
-Cc: Alex Kelly <alex.page.kelly@gmail.com>
-Cc: Josh Triplett <josh@joshtriplett.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Serge Hallyn <serge.hallyn@canonical.com>
-Reported-by: Randy Dunlap <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_aout.c |   52 +++++++++++++++++++++++----------------------
- 1 file changed, 27 insertions(+), 25 deletions(-)
+ include/linux/mfd/88pm860x.h |    3 ---
+ init/Kconfig                 |    4 +---
+ 2 files changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN fs/binfmt_aout.c~coredump-make-core-dump-functionality-optional-fix-fix fs/binfmt_aout.c
---- a/fs/binfmt_aout.c~coredump-make-core-dump-functionality-optional-fix-fix
-+++ a/fs/binfmt_aout.c
-@@ -32,31 +32,8 @@
+diff -puN include/linux/mfd/88pm860x.h~linux-next-git-rejects include/linux/mfd/88pm860x.h
+--- a/include/linux/mfd/88pm860x.h~linux-next-git-rejects
++++ a/include/linux/mfd/88pm860x.h
+@@ -440,10 +440,7 @@ struct pm860x_platform_data {
+ 	struct pm860x_rtc_pdata		*rtc;
+ 	struct pm860x_touch_pdata	*touch;
+ 	struct pm860x_power_pdata	*power;
+-<<<<<<< HEAD
+-=======
+ 	struct charger_desc		*chg_desc;
+->>>>>>> linux-next/akpm-base
+ 	struct regulator_init_data	*buck1;
+ 	struct regulator_init_data	*buck2;
+ 	struct regulator_init_data	*buck3;
+diff -puN init/Kconfig~linux-next-git-rejects init/Kconfig
+--- a/init/Kconfig~linux-next-git-rejects
++++ a/init/Kconfig
+@@ -1653,13 +1653,12 @@ config PADATA
+ 	depends on SMP
+ 	bool
  
- static int load_aout_binary(struct linux_binprm *, struct pt_regs * regs);
- static int load_aout_library(struct file*);
--static int aout_core_dump(struct coredump_params *cprm);
--
--static struct linux_binfmt aout_format = {
--	.module		= THIS_MODULE,
--	.load_binary	= load_aout_binary,
--	.load_shlib	= load_aout_library,
--	.core_dump	= aout_core_dump,
--	.min_coredump	= PAGE_SIZE
--};
--
--#define BAD_ADDR(x)	((unsigned long)(x) >= TASK_SIZE)
--
--static int set_brk(unsigned long start, unsigned long end)
--{
--	start = PAGE_ALIGN(start);
--	end = PAGE_ALIGN(end);
--	if (end > start) {
--		unsigned long addr;
--		addr = vm_brk(start, end - start);
--		if (BAD_ADDR(addr))
--			return addr;
--	}
--	return 0;
--}
+-<<<<<<< HEAD
+ # Can be selected by architectures with broken toolchains
+ # that get confused by correct const<->read_only section
+ # mappings
+ config BROKEN_RODATA
+ 	bool
+-=======
++
+ config ASN1
+ 	tristate
+ 	help
+@@ -1667,6 +1666,5 @@ config ASN1
+ 	  that can be interpreted by the ASN.1 stream decoder and used to
+ 	  inform it as to what tags are to be expected in a stream and what
+ 	  functions to call on what tags.
+->>>>>>> linux-next/akpm-base
  
-+#ifdef CONFIG_COREDUMP
- /*
-  * Routine writes a core dump image in the current directory.
-  * Currently only a stub-function.
-@@ -66,7 +43,6 @@ static int set_brk(unsigned long start, 
-  * field, which also makes sure the core-dumps won't be recursive if the
-  * dumping of the process results in another error..
-  */
--
- static int aout_core_dump(struct coredump_params *cprm)
- {
- 	struct file *file = cprm->file;
-@@ -135,6 +111,32 @@ end_coredump:
- 	set_fs(fs);
- 	return has_dumped;
- }
-+#else
-+#define aout_core_dump NULL
-+#endif
-+
-+static struct linux_binfmt aout_format = {
-+	.module		= THIS_MODULE,
-+	.load_binary	= load_aout_binary,
-+	.load_shlib	= load_aout_library,
-+	.core_dump	= aout_core_dump,
-+	.min_coredump	= PAGE_SIZE
-+};
-+
-+#define BAD_ADDR(x)	((unsigned long)(x) >= TASK_SIZE)
-+
-+static int set_brk(unsigned long start, unsigned long end)
-+{
-+	start = PAGE_ALIGN(start);
-+	end = PAGE_ALIGN(end);
-+	if (end > start) {
-+		unsigned long addr;
-+		addr = vm_brk(start, end - start);
-+		if (BAD_ADDR(addr))
-+			return addr;
-+	}
-+	return 0;
-+}
- 
- /*
-  * create_aout_tables() parses the env- and arg-strings in new user
+ source "kernel/Kconfig.locks"
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-audith-replace-defines-with-c-stubs.patch
-sections-fix-section-conflicts-in-arch-h8300.patch
-sections-fix-section-conflicts-in-drivers-macintosh.patch
-sectons-fix-const-sections-for-crc32-table.patch
-backlight-add-backlight-driver-for-lm3630-chip.patch
-backlight-add-new-lm3639-backlight-driver.patch
-backlight-platform-lcd-add-support-for-device-tree-based-probe.patch
-idr-rename-max_level-to-max_idr_level.patch
-lib-parserc-avoid-overflow-in-match_number.patch
-lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock.patch
-rtc-add-dallas-ds2404-driver.patch
-fat-simplify-writeback_inode.patch
-coredump-make-core-dump-functionality-optional.patch
-coredump-use-suid_dumpable_enabled-rather-than-hardcoded-1-checkpatch-fixes.patch
-proc-use-kzalloc-instead-of-kmalloc-and-memset-fix.patch
-rapidio-run-discovery-as-an-asynchronous-process-fix.patch
+linux-next.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+mm.patch
+x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
+mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
+mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures-fix.patch
+mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch
+rbtree-performance-and-correctness-test-fix.patch
+mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix.patch
+mm-fix-tracing-in-free_pcppages_bulk-fix.patch
+cma-count-free-cma-pages-fix.patch
+memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
+atomic-implement-generic-atomic_dec_if_positive-fix.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix-2.patch
+mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible-fix-fix.patch
+mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch
+mm-fix-invalidate_complete_page2-lock-ordering.patch
+mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix.patch
+mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock.patch
+cma-migrate-mlocked-pages-fix.patch
+fs-block_devc-set_blocksize-use-mapping_mapped.patch
+mm-avoid-section-mismatch-warning-for-memblock_type_name-fix.patch
+mm-document-pagehuge-somewhat.patch
+idr-rename-max_level-to-max_idr_level-fix-3.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
+cpu-hotplug-debug-detect-imbalance-between-get_online_cpus-and-put_online_cpus-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
