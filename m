@@ -1,139 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-fat-changed-indentation-of-some-comments-in-fath.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:18:27 -0700
-Message-ID: <20121005201827.A9D291E0043@wpzn4.hot.corp.google.com>
+Subject: [merged] fs-fat-fix-two-checkpatch-issues-in-cachec.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:18:30 -0700
+Message-ID: <20121005201831.25FB95C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:36926 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757277Ab2JEUS2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:18:28 -0400
-Received: by mail-vb0-f74.google.com with SMTP id s24so236734vbi.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:18:28 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:51688 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757277Ab2JEUSg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:18:36 -0400
+Received: by mail-fa0-f74.google.com with SMTP id t1so138460fae.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:18:32 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: cruzjbishop@gmail.com, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/fat: chang indentation of some comments in fat.h
+     Subject: fs/fat: fix two checkpatch issues in cache.c
 has been removed from the -mm tree.  Its filename was
-     fs-fat-changed-indentation-of-some-comments-in-fath.patch
+     fs-fat-fix-two-checkpatch-issues-in-cachec.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Cruz Julian Bishop <cruzjbishop@gmail.com>
-Subject: fs/fat: chang indentation of some comments in fat.h
+Subject: fs/fat: fix two checkpatch issues in cache.c
 
-The comments were not lined up properly, so I just re-indented them.
-
-This also fixes a stupid checkpatch issue unknowingly
+This does the following:
+	1: Splits the arguments of a function call to stop it
+		from exceeding 80 characters
+	2: Re-indents the arguments of another function call
+		to prevent the splitting of a quoted string.
 
 Signed-off-by: Cruz Julian Bishop <cruzjbishop@gmail.com>
 Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/fat.h |   72 ++++++++++++++++++++++++-------------------------
- 1 file changed, 36 insertions(+), 36 deletions(-)
+ fs/fat/cache.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN fs/fat/fat.h~fs-fat-changed-indentation-of-some-comments-in-fath fs/fat/fat.h
---- a/fs/fat/fat.h~fs-fat-changed-indentation-of-some-comments-in-fath
-+++ a/fs/fat/fat.h
-@@ -28,27 +28,27 @@ struct fat_mount_options {
- 	kgid_t fs_gid;
- 	unsigned short fs_fmask;
- 	unsigned short fs_dmask;
--	unsigned short codepage;  /* Codepage for shortname conversions */
--	char *iocharset;          /* Charset used for filename input/display */
--	unsigned short shortname; /* flags for shortname display/create rule */
--	unsigned char name_check; /* r = relaxed, n = normal, s = strict */
--	unsigned char errors;	  /* On error: continue, panic, remount-ro */
-+	unsigned short codepage;   /* Codepage for shortname conversions */
-+	char *iocharset;           /* Charset used for filename input/display */
-+	unsigned short shortname;  /* flags for shortname display/create rule */
-+	unsigned char name_check;  /* r = relaxed, n = normal, s = strict */
-+	unsigned char errors;	   /* On error: continue, panic, remount-ro */
- 	unsigned short allow_utime;/* permission for setting the [am]time */
--	unsigned quiet:1,         /* set = fake successful chmods and chowns */
--		 showexec:1,      /* set = only set x bit for com/exe/bat */
--		 sys_immutable:1, /* set = system files are immutable */
--		 dotsOK:1,        /* set = hidden and system files are named '.filename' */
--		 isvfat:1,        /* 0=no vfat long filename support, 1=vfat support */
--		 utf8:1,	  /* Use of UTF-8 character set (Default) */
--		 unicode_xlate:1, /* create escape sequences for unhandled Unicode */
--		 numtail:1,       /* Does first alias have a numeric '~1' type tail? */
--		 flush:1,	  /* write things quickly */
--		 nocase:1,	  /* Does this need case conversion? 0=need case conversion*/
--		 usefree:1,	  /* Use free_clusters for FAT32 */
--		 tz_utc:1,	  /* Filesystem timestamps are in UTC */
--		 rodir:1,	  /* allow ATTR_RO for directory */
--		 discard:1,	  /* Issue discard requests on deletions */
--		 nfs:1;		  /* Do extra work needed for NFS export */
-+	unsigned quiet:1,          /* set = fake successful chmods and chowns */
-+		 showexec:1,       /* set = only set x bit for com/exe/bat */
-+		 sys_immutable:1,  /* set = system files are immutable */
-+		 dotsOK:1,         /* set = hidden and system files are named '.filename' */
-+		 isvfat:1,         /* 0=no vfat long filename support, 1=vfat support */
-+		 utf8:1,	   /* Use of UTF-8 character set (Default) */
-+		 unicode_xlate:1,  /* create escape sequences for unhandled Unicode */
-+		 numtail:1,        /* Does first alias have a numeric '~1' type tail? */
-+		 flush:1,	   /* write things quickly */
-+		 nocase:1,	   /* Does this need case conversion? 0=need case conversion*/
-+		 usefree:1,	   /* Use free_clusters for FAT32 */
-+		 tz_utc:1,	   /* Filesystem timestamps are in UTC */
-+		 rodir:1,	   /* allow ATTR_RO for directory */
-+		 discard:1,	   /* Issue discard requests on deletions */
-+		 nfs:1;		   /* Do extra work needed for NFS export */
- };
+diff -puN fs/fat/cache.c~fs-fat-fix-two-checkpatch-issues-in-cachec fs/fat/cache.c
+--- a/fs/fat/cache.c~fs-fat-fix-two-checkpatch-issues-in-cachec
++++ a/fs/fat/cache.c
+@@ -190,7 +190,8 @@ static void __fat_cache_inval_inode(stru
+ 	struct fat_cache *cache;
  
- #define FAT_HASH_BITS	8
-@@ -58,28 +58,28 @@ struct fat_mount_options {
-  * MS-DOS file system in-core superblock data
-  */
- struct msdos_sb_info {
--	unsigned short sec_per_clus; /* sectors/cluster */
--	unsigned short cluster_bits; /* log2(cluster_size) */
--	unsigned int cluster_size;   /* cluster size */
-+	unsigned short sec_per_clus;  /* sectors/cluster */
-+	unsigned short cluster_bits;  /* log2(cluster_size) */
-+	unsigned int cluster_size;    /* cluster size */
- 	unsigned char fats, fat_bits; /* number of FATs, FAT bits (12 or 16) */
- 	unsigned short fat_start;
--	unsigned long fat_length;    /* FAT start & length (sec.) */
-+	unsigned long fat_length;     /* FAT start & length (sec.) */
- 	unsigned long dir_start;
--	unsigned short dir_entries;  /* root dir start & entries */
--	unsigned long data_start;    /* first data sector */
--	unsigned long max_cluster;   /* maximum cluster number */
--	unsigned long root_cluster;  /* first cluster of the root directory */
--	unsigned long fsinfo_sector; /* sector number of FAT32 fsinfo */
-+	unsigned short dir_entries;   /* root dir start & entries */
-+	unsigned long data_start;     /* first data sector */
-+	unsigned long max_cluster;    /* maximum cluster number */
-+	unsigned long root_cluster;   /* first cluster of the root directory */
-+	unsigned long fsinfo_sector;  /* sector number of FAT32 fsinfo */
- 	struct mutex fat_lock;
--	unsigned int prev_free;      /* previously allocated cluster number */
--	unsigned int free_clusters;  /* -1 if undefined */
-+	unsigned int prev_free;       /* previously allocated cluster number */
-+	unsigned int free_clusters;   /* -1 if undefined */
- 	unsigned int free_clus_valid; /* is free_clusters valid? */
- 	struct fat_mount_options options;
--	struct nls_table *nls_disk;  /* Codepage used on disk */
--	struct nls_table *nls_io;    /* Charset used for input and display */
--	const void *dir_ops;		     /* Opaque; default directory operations */
--	int dir_per_block;	     /* dir entries per block */
--	int dir_per_block_bits;	     /* log2(dir_per_block) */
-+	struct nls_table *nls_disk;   /* Codepage used on disk */
-+	struct nls_table *nls_io;     /* Charset used for input and display */
-+	const void *dir_ops;	      /* Opaque; default directory operations */
-+	int dir_per_block;	      /* dir entries per block */
-+	int dir_per_block_bits;	      /* log2(dir_per_block) */
- 
- 	int fatent_shift;
- 	struct fatent_operations *fatent_ops;
+ 	while (!list_empty(&i->cache_lru)) {
+-		cache = list_entry(i->cache_lru.next, struct fat_cache, cache_list);
++		cache = list_entry(i->cache_lru.next,
++				   struct fat_cache, cache_list);
+ 		list_del_init(&cache->cache_list);
+ 		i->nr_caches--;
+ 		fat_cache_free(cache);
+@@ -261,9 +262,10 @@ int fat_get_cluster(struct inode *inode,
+ 		if (nr < 0)
+ 			goto out;
+ 		else if (nr == FAT_ENT_FREE) {
+-			fat_fs_error_ratelimit(sb, "%s: invalid cluster chain"
+-					       " (i_pos %lld)", __func__,
+-					       MSDOS_I(inode)->i_pos);
++			fat_fs_error_ratelimit(sb,
++				       "%s: invalid cluster chain (i_pos %lld)",
++				       __func__,
++				       MSDOS_I(inode)->i_pos);
+ 			nr = -EIO;
+ 			goto out;
+ 		} else if (nr == FAT_ENT_EOF) {
 _
 
 Patches currently in -mm which might be from cruzjbishop@gmail.com are
