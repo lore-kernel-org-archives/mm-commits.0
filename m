@@ -1,145 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: [merged] coredump-update-coredump-related-headers.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:19:23 -0700
-Message-ID: <20121005201924.2BE225C0050@hpza9.eem.corp.google.com>
+Subject: [merged] coredump-add-support-for-%d=__get_dumpable-in-core-name.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:19:27 -0700
+Message-ID: <20121005201928.3DA555C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:37923 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757185Ab2JEUT0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:19:26 -0400
-Received: by mail-wi0-f202.google.com with SMTP id hr7so57973wib.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:19:25 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:44439 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757185Ab2JEUTb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:19:31 -0400
+Received: by mail-ee0-f74.google.com with SMTP id b57so139632eek.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:19:30 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.page.kelly@gmail.com, josh@joshtriplett.org, keescook@chromium.org, serge.hallyn@canonical.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, alan@lxorguk.ukuu.org.uk, alex.page.kelly@gmail.com, amwang@redhat.com, andi@firstfloor.org, jmoskovc@redhat.com, nhorman@tuxdriver.com, vda.linux@googlemail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: coredump: update coredump-related headers
+     Subject: coredump: add support for %d=__get_dumpable() in core name
 has been removed from the -mm tree.  Its filename was
-     coredump-update-coredump-related-headers.patch
+     coredump-add-support-for-%d=__get_dumpable-in-core-name.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alex Kelly <alex.page.kelly@gmail.com>
-Subject: coredump: update coredump-related headers
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: coredump: add support for %d=__get_dumpable() in core name
 
-Create a new header file, fs/coredump.h, which contains functions only
-used by the new coredump.c.  It also moves do_coredump to the
-include/linux/coredump.h header file, for consistency.
+Some coredump handlers want to create a core file in a way compatible with
+standard behavior.  Standard behavior with fs.suid_dumpable = 2 is to
+create core file with uid=gid=0.  However, there was no way for coredump
+handler to know that the process being dumped was suid'ed.
 
-Signed-off-by: Alex Kelly <alex.page.kelly@gmail.com>
-Reviewed-by: Josh Triplett <josh@joshtriplett.org>
-Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
-Acked-by: Kees Cook <keescook@chromium.org>
+This patch adds the new %d specifier for format_corename() which simply
+reports __get_dumpable(mm->flags), this is compatible with
+/proc/sys/fs/suid_dumpable we already have.
+
+Addresses https://bugzilla.redhat.com/show_bug.cgi?id=787135
+
+Developed during a discussion with Denys Vlasenko.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Denys Vlasenko <vda.linux@googlemail.com>
+Cc: Alex Kelly <alex.page.kelly@gmail.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Cong Wang <amwang@redhat.com>
+Cc: Jiri Moskovcak <jmoskovc@redhat.com>
+Acked-by: Neil Horman <nhorman@tuxdriver.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c            |    2 ++
- fs/coredump.h            |    6 ++++++
- fs/exec.c                |    1 +
- include/linux/binfmts.h  |    5 -----
- include/linux/coredump.h |    5 +++++
- include/linux/sched.h    |    1 -
- kernel/signal.c          |    1 +
- 7 files changed, 15 insertions(+), 6 deletions(-)
+ Documentation/sysctl/kernel.txt |    2 ++
+ fs/coredump.c                   |   10 +++++++---
+ 2 files changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN fs/coredump.c~coredump-update-coredump-related-headers fs/coredump.c
---- a/fs/coredump.c~coredump-update-coredump-related-headers
+diff -puN Documentation/sysctl/kernel.txt~coredump-add-support-for-%d=__get_dumpable-in-core-name Documentation/sysctl/kernel.txt
+--- a/Documentation/sysctl/kernel.txt~coredump-add-support-for-%d=__get_dumpable-in-core-name
++++ a/Documentation/sysctl/kernel.txt
+@@ -181,6 +181,8 @@ core_pattern is used to specify a core d
+ 	%p	pid
+ 	%u	uid
+ 	%g	gid
++	%d	dump mode, matches PR_SET_DUMPABLE and
++		/proc/sys/fs/suid_dumpable
+ 	%s	signal number
+ 	%t	UNIX time of dump
+ 	%h	hostname
+diff -puN fs/coredump.c~coredump-add-support-for-%d=__get_dumpable-in-core-name fs/coredump.c
+--- a/fs/coredump.c~coredump-add-support-for-%d=__get_dumpable-in-core-name
 +++ a/fs/coredump.c
-@@ -14,6 +14,7 @@
- #include <linux/key.h>
- #include <linux/personality.h>
- #include <linux/binfmts.h>
-+#include <linux/coredump.h>
- #include <linux/utsname.h>
- #include <linux/pid_namespace.h>
- #include <linux/module.h>
-@@ -39,6 +40,7 @@
- 
- #include <trace/events/task.h>
- #include "internal.h"
-+#include "coredump.h"
- 
- #include <trace/events/sched.h>
- 
-diff -puN /dev/null fs/coredump.h
---- /dev/null
-+++ a/fs/coredump.h
-@@ -0,0 +1,6 @@
-+#ifndef _FS_COREDUMP_H
-+#define _FS_COREDUMP_H
-+
-+extern int __get_dumpable(unsigned long mm_flags);
-+
-+#endif
-diff -puN fs/exec.c~coredump-update-coredump-related-headers fs/exec.c
---- a/fs/exec.c~coredump-update-coredump-related-headers
-+++ a/fs/exec.c
-@@ -63,6 +63,7 @@
- 
- #include <trace/events/task.h>
- #include "internal.h"
-+#include "coredump.h"
- 
- #include <trace/events/sched.h>
- 
-diff -puN include/linux/binfmts.h~coredump-update-coredump-related-headers include/linux/binfmts.h
---- a/include/linux/binfmts.h~coredump-update-coredump-related-headers
-+++ a/include/linux/binfmts.h
-@@ -132,11 +132,6 @@ extern int copy_strings_kernel(int argc,
- 			       struct linux_binprm *bprm);
- extern int prepare_bprm_creds(struct linux_binprm *bprm);
- extern void install_exec_creds(struct linux_binprm *bprm);
--#ifdef CONFIG_COREDUMP
--extern void do_coredump(long signr, int exit_code, struct pt_regs *regs);
--#else
--static inline void do_coredump(long signr, int exit_code, struct pt_regs *regs) {}
--#endif
- extern void set_binfmt(struct linux_binfmt *new);
- extern void free_bprm(struct linux_binprm *);
- 
-diff -puN include/linux/coredump.h~coredump-update-coredump-related-headers include/linux/coredump.h
---- a/include/linux/coredump.h~coredump-update-coredump-related-headers
-+++ a/include/linux/coredump.h
-@@ -11,5 +11,10 @@
+@@ -149,7 +149,7 @@ put_exe_file:
+  * name into corename, which must have space for at least
+  * CORENAME_MAX_SIZE bytes plus one byte for the zero terminator.
   */
- extern int dump_write(struct file *file, const void *addr, int nr);
- extern int dump_seek(struct file *file, loff_t off);
-+#ifdef CONFIG_COREDUMP
-+extern void do_coredump(long signr, int exit_code, struct pt_regs *regs);
-+#else
-+static inline void do_coredump(long signr, int exit_code, struct pt_regs *regs) {}
-+#endif
+-static int format_corename(struct core_name *cn, long signr)
++static int format_corename(struct core_name *cn, struct coredump_params *cprm)
+ {
+ 	const struct cred *cred = current_cred();
+ 	const char *pat_ptr = core_pattern;
+@@ -194,9 +194,13 @@ static int format_corename(struct core_n
+ 			case 'g':
+ 				err = cn_printf(cn, "%d", cred->gid);
+ 				break;
++			case 'd':
++				err = cn_printf(cn, "%d",
++					__get_dumpable(cprm->mm_flags));
++				break;
+ 			/* signal that caused the coredump */
+ 			case 's':
+-				err = cn_printf(cn, "%ld", signr);
++				err = cn_printf(cn, "%ld", cprm->signr);
+ 				break;
+ 			/* UNIX time of coredump */
+ 			case 't': {
+@@ -515,7 +519,7 @@ void do_coredump(long signr, int exit_co
+ 	 */
+ 	clear_thread_flag(TIF_SIGPENDING);
  
- #endif /* _LINUX_COREDUMP_H */
-diff -puN include/linux/sched.h~coredump-update-coredump-related-headers include/linux/sched.h
---- a/include/linux/sched.h~coredump-update-coredump-related-headers
-+++ a/include/linux/sched.h
-@@ -405,7 +405,6 @@ static inline void arch_pick_mmap_layout
+-	ispipe = format_corename(&cn, signr);
++	ispipe = format_corename(&cn, &cprm);
  
- extern void set_dumpable(struct mm_struct *mm, int value);
- extern int get_dumpable(struct mm_struct *mm);
--extern int __get_dumpable(unsigned long mm_flags);
- 
- /* get/set_dumpable() values */
- #define SUID_DUMPABLE_DISABLED	0
-diff -puN kernel/signal.c~coredump-update-coredump-related-headers kernel/signal.c
---- a/kernel/signal.c~coredump-update-coredump-related-headers
-+++ a/kernel/signal.c
-@@ -17,6 +17,7 @@
- #include <linux/fs.h>
- #include <linux/tty.h>
- #include <linux/binfmts.h>
-+#include <linux/coredump.h>
- #include <linux/security.h>
- #include <linux/syscalls.h>
- #include <linux/ptrace.h>
+  	if (ispipe) {
+ 		int dump_count;
 _
 
-Patches currently in -mm which might be from alex.page.kelly@gmail.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
+linux-next.patch
+x86-pat-remove-the-dependency-on-vm_pgoff-in-track-untrack-pfn-vma-routines.patch
+x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn.patch
+mm-x86-pat-rework-linear-pfn-mmap-tracking.patch
+mm-introduce-arch-specific-vma-flag-vm_arch_1.patch
+mm-kill-vma-flag-vm_insertpage.patch
+mm-kill-vma-flag-vm_can_nonlinear.patch
+mm-use-mm-exe_file-instead-of-first-vm_executable-vma-vm_file.patch
+mm-kill-vma-flag-vm_executable-and-mm-num_exe_file_vmas.patch
+mm-prepare-vm_dontdump-for-using-in-drivers.patch
+mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter.patch
 
