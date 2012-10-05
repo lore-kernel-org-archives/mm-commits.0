@@ -1,74 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-update-suggested-printk-conversions.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:16:06 -0700
-Message-ID: <20121005201606.B52A01E0048@wpzn4.hot.corp.google.com>
+Subject: [merged] checkpatch-check-networking-specific-block-comment-style.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:16:10 -0700
+Message-ID: <20121005201610.7897F1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:33095 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751889Ab2JEUQH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:16:07 -0400
-Received: by mail-vb0-f74.google.com with SMTP id s24so236578vbi.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:16:07 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:64934 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751889Ab2JEUQL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:16:11 -0400
+Received: by mail-qa0-f74.google.com with SMTP id a16so93875qae.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:16:11 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, apw@canonical.com, dan.carpenter@oracle.com, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org
+To: joe@perches.com, apw@canonical.com, bruce.w.allan@intel.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: update suggested printk conversions
+     Subject: checkpatch: check networking specific block comment style
 has been removed from the -mm tree.  Its filename was
-     checkpatch-update-suggested-printk-conversions.patch
+     checkpatch-check-networking-specific-block-comment-style.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: update suggested printk conversions
+Subject: checkpatch: check networking specific block comment style
 
-Direct conversion of printk(KERN_<LEVEL>...  to pr_<level> isn't the
-preferred conversion when a struct net_device or struct device is
-available.
+In an effort to get fewer checkpatch reviewer corrections, add a
+networking specific style test for the preferred networking comment style.
 
-Hint that using netdev_<level> or dev_<level> is preferred to using
-pr_<level>.  Add netdev_dbg and dev_dbg variants too.
+	/* The preferred style for block comments in
+	 * drivers/net/... and net/... is like this
+	 */
 
-Miscellaneous whitespace neatening of a misplaced close brace.
+These tests are only used in net/ and drivers/net/
+
+Tested with:
+
+$ cat drivers/net/t.c
+
+/* foo */
+
+/*
+ * foo
+ */
+
+/* foo
+ */
+
+/* foo
+ * bar */
+$ ./scripts/checkpatch.pl -f drivers/net/t.c
+WARNING: networking block comments don't use an empty /* line, use /* Comment...
+#4: FILE: net/t.c:4:
++
++/*
+
+WARNING: networking block comments put the trailing */ on a separate line
+#12: FILE: net/t.c:12:
++ * bar */
+
+total: 0 errors, 2 warnings, 12 lines checked
 
 Signed-off-by: Joe Perches <joe@perches.com>
+Cc: "Allan, Bruce W" <bruce.w.allan@intel.com>
 Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-update-suggested-printk-conversions scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-update-suggested-printk-conversions
+diff -puN scripts/checkpatch.pl~checkpatch-check-networking-specific-block-comment-style scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-check-networking-specific-block-comment-style
 +++ a/scripts/checkpatch.pl
-@@ -421,7 +421,7 @@ sub top_of_kernel_tree {
- 		}
- 	}
- 	return 1;
--    }
-+}
- 
- sub parse_email {
- 	my ($formatted_email) = @_;
-@@ -2399,8 +2399,10 @@ sub process {
- 			my $orig = $1;
- 			my $level = lc($orig);
- 			$level = "warn" if ($level eq "warning");
-+			my $level2 = $level;
-+			$level2 = "dbg" if ($level eq "debug");
- 			WARN("PREFER_PR_LEVEL",
--			     "Prefer pr_$level(... to printk(KERN_$1, ...\n" . $herecurr);
-+			     "Prefer netdev_$level2(netdev, ... then dev_$level2(dev, ... then pr_$level(...  to printk(KERN_$orig ...\n" . $herecurr);
+@@ -1882,6 +1882,20 @@ sub process {
+ 			    "No space is necessary after a cast\n" . $hereprev);
  		}
  
- 		if ($line =~ /\bpr_warning\s*\(/) {
++		if ($realfile =~ m@^(drivers/net/|net/)@ &&
++		    $rawline =~ /^\+[ \t]*\/\*[ \t]*$/ &&
++		    $prevrawline =~ /^\+[ \t]*$/) {
++			WARN("NETWORKING_BLOCK_COMMENT_STYLE",
++			     "networking block comments don't use an empty /* line, use /* Comment...\n" . $hereprev);
++		}
++
++		if ($realfile =~ m@^(drivers/net/|net/)@ &&
++		    $rawline !~ m@^\+[ \t]*(\/\*|\*\/)@ &&
++		    $rawline =~ m@^\+[ \t]*.+\*\/[ \t]*$@) {
++			WARN("NETWORKING_BLOCK_COMMENT_STYLE",
++			     "networking block comments put the trailing */ on a separate line\n" . $herecurr);
++		}
++
+ # check for spaces at the beginning of a line.
+ # Exceptions:
+ #  1) within comments
 _
 
 Patches currently in -mm which might be from joe@perches.com are
