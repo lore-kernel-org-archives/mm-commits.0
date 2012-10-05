@@ -1,62 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] aoe-kernel-thread-handles-i-o-completions-for-simple-locking-fix.patch removed from -mm tree
-Date: Thu, 04 Oct 2012 17:04:11 -0700
-Message-ID: <20121005000411.9F7F11E0043@wpzn4.hot.corp.google.com>
+Subject: [folded-dropped] fat-simplify-writeback_inode-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 04 Oct 2012 17:01:26 -0700
+Message-ID: <20121005000126.EF7BB5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:46129 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753946Ab2JEAEM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2012 20:04:12 -0400
-Received: by mail-qc0-f202.google.com with SMTP id s25so130124qcq.1
-        for <mm-commits@vger.kernel.org>; Thu, 04 Oct 2012 17:04:12 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:59646 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753472Ab2JEAB3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Oct 2012 20:01:29 -0400
+Received: by mail-wg0-f74.google.com with SMTP id dt11so75993wgb.1
+        for <mm-commits@vger.kernel.org>; Thu, 04 Oct 2012 17:01:28 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, ecashin@coraid.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, amit.sahrawat83@gmail.com, hirofumi@mail.parknet.co.jp, linkinjeon@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: aoe: cleanup an allocation a bit
+     Subject: fat-simplify-writeback_inode-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     aoe-kernel-thread-handles-i-o-completions-for-simple-locking-fix.patch
+     fat-simplify-writeback_inode-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into aoe-kernel-thread-handles-i-o-completions-for-simple-locking.patch
+This patch was dropped because it was folded into fat-simplify-writeback_inode.patch
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: aoe: cleanup an allocation a bit
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fat-simplify-writeback_inode-checkpatch-fixes
 
-We changed this recently so we can just use kzalloc() here instead of
-kcalloc(1, ...).  Kernel style prefers sizeof(*t) over sizeof *t.  The
-kfree(t) is a no-op now as well so that can be removed.
+WARNING: suspect code indent for conditional statements (8, 15)
+#34: FILE: fs/fat/inode.c:1466:
+ 	if (!ret)
++	       ret = filemap_fdatawrite(inode->i_mapping);
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Ed Cashin <ecashin@coraid.com>
+total: 0 errors, 1 warnings, 23 lines checked
+
+./patches/fat-simplify-writeback_inode.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Amit Sahrawat <amit.sahrawat83@gmail.com>
+Cc: Namjae Jeon <linkinjeon@gmail.com>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoecmd.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/fat/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/aoe/aoecmd.c~aoe-kernel-thread-handles-i-o-completions-for-simple-locking-fix drivers/block/aoe/aoecmd.c
---- a/drivers/block/aoe/aoecmd.c~aoe-kernel-thread-handles-i-o-completions-for-simple-locking-fix
-+++ a/drivers/block/aoe/aoecmd.c
-@@ -1157,9 +1157,8 @@ addtgt(struct aoedev *d, char *addr, ulo
- 			"aoe: device addtgt failure; too many targets\n");
- 		return NULL;
- 	}
--	t = kcalloc(1, sizeof *t, GFP_ATOMIC);
-+	t = kzalloc(sizeof(*t), GFP_ATOMIC);
- 	if (!t) {
--		kfree(t);
- 		printk(KERN_INFO "aoe: cannot allocate memory to add target\n");
- 		return NULL;
- 	}
+diff -puN fs/fat/inode.c~fat-simplify-writeback_inode-checkpatch-fixes fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-simplify-writeback_inode-checkpatch-fixes
++++ a/fs/fat/inode.c
+@@ -1470,7 +1470,7 @@ static int writeback_inode(struct inode 
+ 	*/
+ 	ret = sync_inode_metadata(inode, 0);
+ 	if (!ret)
+-	       ret = filemap_fdatawrite(inode->i_mapping);
++		= filemap_fdatawrite(inode->i_mapping);
+ 	return ret;
+ }
+ 
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-checkpatch-update-suggested-printk-conversions.patch
-aoe-kernel-thread-handles-i-o-completions-for-simple-locking.patch
+audith-replace-defines-with-c-stubs.patch
+sections-fix-section-conflicts-in-arch-h8300.patch
+sections-fix-section-conflicts-in-drivers-macintosh.patch
+sectons-fix-const-sections-for-crc32-table.patch
+backlight-add-backlight-driver-for-lm3630-chip.patch
+backlight-add-new-lm3639-backlight-driver.patch
+backlight-platform-lcd-add-support-for-device-tree-based-probe.patch
+idr-rename-max_level-to-max_idr_level.patch
+lib-parserc-avoid-overflow-in-match_number.patch
+lib-spinlock_debug-avoid-livelock-in-do_raw_spin_lock.patch
+rtc-add-dallas-ds2404-driver.patch
+fat-simplify-writeback_inode.patch
+fat-simplify-writeback_inode-checkpatch-fixes-fix.patch
+coredump-make-core-dump-functionality-optional-fix-fix.patch
+coredump-use-suid_dumpable_enabled-rather-than-hardcoded-1-checkpatch-fixes.patch
+proc-use-kzalloc-instead-of-kmalloc-and-memset-fix.patch
+rapidio-run-discovery-as-an-asynchronous-process-fix.patch
 
