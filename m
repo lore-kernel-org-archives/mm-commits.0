@@ -1,82 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] aoe-failover-remote-interface-based-on-aoe_deadsecs-parameter.patch removed from -mm tree
-Date: Fri, 05 Oct 2012 13:21:18 -0700
-Message-ID: <20121005202119.1F8185C0050@hpza9.eem.corp.google.com>
+Subject: [merged] aoe-do-revalidation-steps-in-order.patch removed from -mm tree
+Date: Fri, 05 Oct 2012 13:21:22 -0700
+Message-ID: <20121005202123.025ED5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:53149 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932319Ab2JEUVU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:21:20 -0400
-Received: by mail-wi0-f202.google.com with SMTP id hr7so58063wib.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:21:19 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:60969 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932319Ab2JEUVY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 16:21:24 -0400
+Received: by mail-wg0-f74.google.com with SMTP id dt11so140000wgb.1
+        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 13:21:23 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ecashin@coraid.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: aoe: failover remote interface based on aoe_deadsecs parameter
+     Subject: aoe: do revalidation steps in order
 has been removed from the -mm tree.  Its filename was
-     aoe-failover-remote-interface-based-on-aoe_deadsecs-parameter.patch
+     aoe-do-revalidation-steps-in-order.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Ed Cashin <ecashin@coraid.com>
-Subject: aoe: failover remote interface based on aoe_deadsecs parameter
+Subject: aoe: do revalidation steps in order
 
-The aoe_deadsecs module parameter allows the user to specify a hard limit
-on the number of seconds an AoE command can be retransmitted before the
-AoE block device is considered to have failed.
+The discovery process begins with an optional AoE config query command and
+an AoE config query response.  Normally when an aoe device is already
+open, the config query response does not trigger an ATA identify device
+command to be sent out, since the response contains storage capacity
+information that, if changed, could surprise the user of the device.
 
-Using aoe_deadsecs to determine the time we try using a different remote
-interface helps to ensure that the hard limit is not reached before we've
-tried to recover by sending to a different remote port.
+The userland "aoe-revalidate" tool uses a character device to trigger an
+AoE config query for a particular AoE storage target and an ATA device
+identify command, even when the device is open.
 
-As a data storage target, the AoE target is unambiguously identified by
-its {major, minor} AoE address tuple, and an AoE target can have multiple
-MAC addresses.  However, note that "target" in the driver code and
-comments means a {major, minor, MAC address} tuple, as in "somewhere to
-send packets".
+This change causes the config query to go out first, reflecting the normal
+discovery sequence.  The responses could come back in any order, so this
+change is fairly cosmetic.
 
 Signed-off-by: Ed Cashin <ecashin@coraid.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoe.h    |    1 -
- drivers/block/aoe/aoecmd.c |    8 +++-----
- 2 files changed, 3 insertions(+), 6 deletions(-)
+ drivers/block/aoe/aoechr.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/block/aoe/aoe.h~aoe-failover-remote-interface-based-on-aoe_deadsecs-parameter drivers/block/aoe/aoe.h
---- a/drivers/block/aoe/aoe.h~aoe-failover-remote-interface-based-on-aoe_deadsecs-parameter
-+++ a/drivers/block/aoe/aoe.h
-@@ -96,7 +96,6 @@ enum {
- 	TIMERTICK = HZ / 10,
- 	MINTIMER = HZ >> 2,
- 	MAXTIMER = HZ << 1,
--	HELPWAIT = 20,
- };
+diff -puN drivers/block/aoe/aoechr.c~aoe-do-revalidation-steps-in-order drivers/block/aoe/aoechr.c
+--- a/drivers/block/aoe/aoechr.c~aoe-do-revalidation-steps-in-order
++++ a/drivers/block/aoe/aoechr.c
+@@ -96,13 +96,14 @@ revalidate(const char __user *str, size_
+ 		return -EINVAL;
+ 	spin_lock_irqsave(&d->lock, flags);
+ 	aoecmd_cleanslate(d);
++	aoecmd_cfg(major, minor);
+ loop:
+ 	skb = aoecmd_ata_id(d);
+ 	spin_unlock_irqrestore(&d->lock, flags);
+ 	/* try again if we are able to sleep a bit,
+ 	 * otherwise give up this revalidation
+ 	 */
+-	if (!skb && !msleep_interruptible(200)) {
++	if (!skb && !msleep_interruptible(250)) {
+ 		spin_lock_irqsave(&d->lock, flags);
+ 		goto loop;
+ 	}
+@@ -113,7 +114,6 @@ loop:
+ 		__skb_queue_tail(&queue, skb);
+ 		aoenet_xmit(&queue);
+ 	}
+-	aoecmd_cfg(major, minor);
+ 	return 0;
+ }
  
- struct buf {
-diff -puN drivers/block/aoe/aoecmd.c~aoe-failover-remote-interface-based-on-aoe_deadsecs-parameter drivers/block/aoe/aoecmd.c
---- a/drivers/block/aoe/aoecmd.c~aoe-failover-remote-interface-based-on-aoe_deadsecs-parameter
-+++ a/drivers/block/aoe/aoecmd.c
-@@ -633,11 +633,9 @@ rexmit_timer(ulong vp)
- 		list_del(pos);
- 
- 		t = f->t;
--		if (n > HELPWAIT) {
--			/* see if another target can help */
--			if (d->ntargets > 1)
--				d->htgt = t;
--		}
-+		if (n > aoe_deadsecs/2)
-+			d->htgt = t; /* see if another target can help */
-+
- 		if (t->nout == t->maxout) {
- 			if (t->maxout > 1)
- 				t->maxout--;
 _
 
 Patches currently in -mm which might be from ecashin@coraid.com are
