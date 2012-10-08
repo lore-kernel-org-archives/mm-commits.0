@@ -1,178 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: + kconfig-clean-up-the-if-definedarch-list-for-exception-trace-sysctl-entry.patch added to -mm tree
-Date: Fri, 05 Oct 2012 15:06:09 -0700
-Message-ID: <20121005220610.51F5720004E@hpza10.eem.corp.google.com>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Mon, 08 Oct 2012 11:52:23 -0700
+Message-ID: <20121008185235.B08451E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:36866 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751598Ab2JEWGO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Oct 2012 18:06:14 -0400
-Received: by mail-fa0-f74.google.com with SMTP id t1so141310fae.1
-        for <mm-commits@vger.kernel.org>; Fri, 05 Oct 2012 15:06:12 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:46671 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754329Ab2JHSwi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 14:52:38 -0400
+Received: by mail-qa0-f74.google.com with SMTP id a16so356498qae.1
+        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 11:52:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: catalin.marinas@arm.com, benh@kernel.crashing.org, cmetcalf@tilera.com, davem@davemloft.net, heiko.carstens@de.ibm.com, hpa@zytor.com, mingo@redhat.com, paulus@samba.org, schwidefsky@de.ibm.com, tglx@linutronix.de
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Kconfig: clean up the "#if defined(arch)" list for exception-trace sysctl entry
-has been added to the -mm tree.  Its filename is
-     kconfig-clean-up-the-if-definedarch-list-for-exception-trace-sysctl-entry.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Kconfig: clean up the "#if defined(arch)" list for exception-trace sysctl entry
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-Introduce SYSCTL_EXCEPTION_TRACE config option and selec it in the
-architectures requiring support for the "exception-trace" debug_table
-entry in kernel/sysctl.c.
-
-Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Chris Metcalf <cmetcalf@tilera.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig   |    1 +
- arch/powerpc/Kconfig |    1 +
- arch/s390/Kconfig    |    1 +
- arch/sparc/Kconfig   |    1 +
- arch/tile/Kconfig    |    1 +
- arch/x86/Kconfig     |    1 +
- init/Kconfig         |    5 +++++
- kernel/sysctl.c      |    3 +--
- 8 files changed, 12 insertions(+), 2 deletions(-)
+ include/linux/mfd/88pm860x.h |    3 ---
+ init/Kconfig                 |    4 +---
+ 2 files changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN arch/arm64/Kconfig~kconfig-clean-up-the-if-definedarch-list-for-exception-trace-sysctl-entry arch/arm64/Kconfig
---- a/arch/arm64/Kconfig~kconfig-clean-up-the-if-definedarch-list-for-exception-trace-sysctl-entry
-+++ a/arch/arm64/Kconfig
-@@ -28,6 +28,7 @@ config ARM64
- 	select PERF_USE_VMALLOC
- 	select RTC_LIB
- 	select SPARSE_IRQ
-+	select SYSCTL_EXCEPTION_TRACE
- 	help
- 	  ARM 64-bit (AArch64) Linux support.
- 
-diff -puN arch/powerpc/Kconfig~kconfig-clean-up-the-if-definedarch-list-for-exception-trace-sysctl-entry arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~kconfig-clean-up-the-if-definedarch-list-for-exception-trace-sysctl-entry
-+++ a/arch/powerpc/Kconfig
-@@ -99,6 +99,7 @@ config PPC
- 	select HAVE_DYNAMIC_FTRACE
- 	select HAVE_FUNCTION_TRACER
- 	select HAVE_FUNCTION_GRAPH_TRACER
-+	select SYSCTL_EXCEPTION_TRACE
- 	select ARCH_WANT_OPTIONAL_GPIOLIB
- 	select HAVE_IDE
- 	select HAVE_IOREMAP_PROT
-diff -puN arch/s390/Kconfig~kconfig-clean-up-the-if-definedarch-list-for-exception-trace-sysctl-entry arch/s390/Kconfig
---- a/arch/s390/Kconfig~kconfig-clean-up-the-if-definedarch-list-for-exception-trace-sysctl-entry
-+++ a/arch/s390/Kconfig
-@@ -68,6 +68,7 @@ config S390
- 	select HAVE_FTRACE_MCOUNT_RECORD
- 	select HAVE_C_RECORDMCOUNT
- 	select HAVE_SYSCALL_TRACEPOINTS
-+	select SYSCTL_EXCEPTION_TRACE
- 	select HAVE_DYNAMIC_FTRACE
- 	select HAVE_FUNCTION_GRAPH_TRACER
- 	select HAVE_REGS_AND_STACK_ACCESS_API
-diff -puN arch/sparc/Kconfig~kconfig-clean-up-the-if-definedarch-list-for-exception-trace-sysctl-entry arch/sparc/Kconfig
---- a/arch/sparc/Kconfig~kconfig-clean-up-the-if-definedarch-list-for-exception-trace-sysctl-entry
-+++ a/arch/sparc/Kconfig
-@@ -18,6 +18,7 @@ config SPARC
- 	select HAVE_OPROFILE
- 	select HAVE_ARCH_KGDB if !SMP || SPARC64
- 	select HAVE_ARCH_TRACEHOOK
-+	select SYSCTL_EXCEPTION_TRACE
- 	select ARCH_WANT_OPTIONAL_GPIOLIB
- 	select RTC_CLASS
- 	select RTC_DRV_M48T59
-diff -puN arch/tile/Kconfig~kconfig-clean-up-the-if-definedarch-list-for-exception-trace-sysctl-entry arch/tile/Kconfig
---- a/arch/tile/Kconfig~kconfig-clean-up-the-if-definedarch-list-for-exception-trace-sysctl-entry
-+++ a/arch/tile/Kconfig
-@@ -7,6 +7,7 @@ config TILE
- 	select HAVE_DMA_API_DEBUG
- 	select HAVE_KVM if !TILEGX
- 	select GENERIC_FIND_FIRST_BIT
-+	select SYSCTL_EXCEPTION_TRACE
- 	select USE_GENERIC_SMP_HELPERS
- 	select CC_OPTIMIZE_FOR_SIZE
- 	select HAVE_DEBUG_KMEMLEAK
-diff -puN arch/x86/Kconfig~kconfig-clean-up-the-if-definedarch-list-for-exception-trace-sysctl-entry arch/x86/Kconfig
---- a/arch/x86/Kconfig~kconfig-clean-up-the-if-definedarch-list-for-exception-trace-sysctl-entry
-+++ a/arch/x86/Kconfig
-@@ -47,6 +47,7 @@ config X86
- 	select HAVE_FUNCTION_GRAPH_FP_TEST
- 	select HAVE_FUNCTION_TRACE_MCOUNT_TEST
- 	select HAVE_SYSCALL_TRACEPOINTS
-+	select SYSCTL_EXCEPTION_TRACE
- 	select HAVE_KVM
- 	select HAVE_ARCH_KGDB
- 	select HAVE_ARCH_TRACEHOOK
-diff -puN init/Kconfig~kconfig-clean-up-the-if-definedarch-list-for-exception-trace-sysctl-entry init/Kconfig
---- a/init/Kconfig~kconfig-clean-up-the-if-definedarch-list-for-exception-trace-sysctl-entry
+diff -puN include/linux/mfd/88pm860x.h~linux-next-git-rejects include/linux/mfd/88pm860x.h
+--- a/include/linux/mfd/88pm860x.h~linux-next-git-rejects
++++ a/include/linux/mfd/88pm860x.h
+@@ -440,10 +440,7 @@ struct pm860x_platform_data {
+ 	struct pm860x_rtc_pdata		*rtc;
+ 	struct pm860x_touch_pdata	*touch;
+ 	struct pm860x_power_pdata	*power;
+-<<<<<<< HEAD
+-=======
+ 	struct charger_desc		*chg_desc;
+->>>>>>> linux-next/akpm-base
+ 	struct regulator_init_data	*buck1;
+ 	struct regulator_init_data	*buck2;
+ 	struct regulator_init_data	*buck3;
+diff -puN init/Kconfig~linux-next-git-rejects init/Kconfig
+--- a/init/Kconfig~linux-next-git-rejects
 +++ a/init/Kconfig
-@@ -1163,6 +1163,11 @@ config SYSCTL_SYSCALL
+@@ -1653,13 +1653,12 @@ config PADATA
+ 	depends on SMP
+ 	bool
  
- 	  If unsure say N here.
- 
-+config SYSCTL_EXCEPTION_TRACE
-+	bool
-+	help
-+	  Enable support for /proc/sys/debug/exception-trace.
+-<<<<<<< HEAD
+ # Can be selected by architectures with broken toolchains
+ # that get confused by correct const<->read_only section
+ # mappings
+ config BROKEN_RODATA
+ 	bool
+-=======
 +
- config KALLSYMS
- 	 bool "Load all symbols for debugging/ksymoops" if EXPERT
- 	 default y
-diff -puN kernel/sysctl.c~kconfig-clean-up-the-if-definedarch-list-for-exception-trace-sysctl-entry kernel/sysctl.c
---- a/kernel/sysctl.c~kconfig-clean-up-the-if-definedarch-list-for-exception-trace-sysctl-entry
-+++ a/kernel/sysctl.c
-@@ -1560,8 +1560,7 @@ static struct ctl_table fs_table[] = {
- };
+ config ASN1
+ 	tristate
+ 	help
+@@ -1667,6 +1666,5 @@ config ASN1
+ 	  that can be interpreted by the ASN.1 stream decoder and used to
+ 	  inform it as to what tags are to be expected in a stream and what
+ 	  functions to call on what tags.
+->>>>>>> linux-next/akpm-base
  
- static struct ctl_table debug_table[] = {
--#if defined(CONFIG_X86) || defined(CONFIG_PPC) || defined(CONFIG_SPARC) || \
--    defined(CONFIG_S390) || defined(CONFIG_TILE) || defined(CONFIG_ARM64)
-+#ifdef CONFIG_SYSCTL_EXCEPTION_TRACE
- 	{
- 		.procname	= "exception-trace",
- 		.data		= &show_unhandled_signals,
+ source "kernel/Kconfig.locks"
 _
 
-Patches currently in -mm which might be from catalin.marinas@arm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-kconfig-clean-up-the-long-arch-list-for-the-uid16-config-option.patch
-kconfig-clean-up-the-long-arch-list-for-the-debug_kmemleak-config-option.patch
-kconfig-clean-up-the-long-arch-list-for-the-debug_bugverbose-config-option.patch
-kconfig-clean-up-the-if-definedarch-list-for-exception-trace-sysctl-entry.patch
-rbtree-add-prio-tree-and-interval-tree-tests.patch
-mm-replace-vma-prio_tree-with-an-interval-tree.patch
-kmemleak-use-rbtree-instead-of-prio-tree.patch
-prio_tree-remove.patch
-rbtree-move-augmented-rbtree-functionality-to-rbtree_augmentedh.patch
-mm-thp-fix-the-pmd_clear-arguments-in-pmdp_get_and_clear.patch
-mm-thp-fix-the-update_mmu_cache-last-argument-passing-in-mm-huge_memoryc.patch
-compat-generic-compat_sys_sched_rr_get_interval-implementation.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+mm.patch
+x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
+mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
+mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures-fix.patch
+mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch
+rbtree-performance-and-correctness-test-fix.patch
+mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix.patch
+mm-fix-tracing-in-free_pcppages_bulk-fix.patch
+cma-count-free-cma-pages-fix.patch
+memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
+atomic-implement-generic-atomic_dec_if_positive-fix.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix-2.patch
+mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible-fix-fix.patch
+mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch
+mm-fix-invalidate_complete_page2-lock-ordering.patch
+mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix.patch
+mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock.patch
+cma-migrate-mlocked-pages-fix.patch
+fs-block_devc-set_blocksize-use-mapping_mapped.patch
+mm-avoid-section-mismatch-warning-for-memblock_type_name-fix.patch
+mm-document-pagehuge-somewhat.patch
+mm-memcg-clean-up-mm_match_cgroup-signature-fix.patch
+memory-hotplug-suppress-trying-to-free-nonexistent-resource-xxxxxxxxxxxxxxxx-yyyyyyyyyyyyyyyy-warning.patch
+mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code-fix.patch
+idr-rename-max_level-to-max_idr_level-fix-3.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
