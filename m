@@ -1,36 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + lib-radix-treec-suppress-warning.patch added to -mm tree
-Date: Mon, 08 Oct 2012 14:03:40 -0700
-Message-ID: <20121008215227.4171D20004E@hpza10.eem.corp.google.com>
+Subject: [withdrawn] lib-radix-treec-suppress-warning.patch removed from -mm tree
+Date: Mon, 08 Oct 2012 15:01:12 -0700
+Message-ID: <20121008220114.8FA51100048@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:60730 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751705Ab2JHVw3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 17:52:29 -0400
-Received: by mail-wg0-f74.google.com with SMTP id dt11so292873wgb.1
-        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 14:52:28 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:35921 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751977Ab2JHWBQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 18:01:16 -0400
+Received: by mail-vc0-f202.google.com with SMTP id fy27so530659vcb.1
+        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 15:01:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
      Subject: lib/radix-tree.c: suppress warning
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      lib-radix-treec-suppress-warning.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
@@ -93,5 +83,4 @@ mm-document-pagehuge-somewhat.patch
 mm-memcg-clean-up-mm_match_cgroup-signature-fix.patch
 memory-hotplug-suppress-trying-to-free-nonexistent-resource-xxxxxxxxxxxxxxxx-yyyyyyyyyyyyyyyy-warning.patch
 mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code-fix.patch
-lib-radix-treec-suppress-warning.patch
 
