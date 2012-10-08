@@ -1,77 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch removed from -mm tree
-Date: Mon, 08 Oct 2012 15:45:50 -0700
-Message-ID: <20121008224550.A8CA21E0043@wpzn4.hot.corp.google.com>
+Subject: [folded-dropped] mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch removed from -mm tree
+Date: Mon, 08 Oct 2012 15:46:34 -0700
+Message-ID: <20121008224635.AAECA20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:43519 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752306Ab2JHWpv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 18:45:51 -0400
-Received: by mail-qa0-f74.google.com with SMTP id a16so392538qae.1
-        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 15:45:51 -0700 (PDT)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:47564 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754126Ab2JHWqi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 18:46:38 -0400
+Received: by mail-la0-f74.google.com with SMTP id j13so239437lah.1
+        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 15:46:36 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, khlebnikov@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix
+     Subject: mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix
 has been removed from the -mm tree.  Its filename was
-     x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix.patch
+     mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
 
-This patch was dropped because it was folded into x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn.patch
+This patch was dropped because it was folded into mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix
-
-tweak a few comments
+Subject: mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix
 
 Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/pat.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ drivers/vfio/pci/vfio_pci.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/mm/pat.c~x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix arch/x86/mm/pat.c
---- a/arch/x86/mm/pat.c~x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn-fix
-+++ a/arch/x86/mm/pat.c
-@@ -712,14 +712,12 @@ int track_pfn_remap(struct vm_area_struc
- 		return 0;
+diff -puN drivers/vfio/pci/vfio_pci.c~mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix drivers/vfio/pci/vfio_pci.c
+--- a/drivers/vfio/pci/vfio_pci.c~mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix
++++ a/drivers/vfio/pci/vfio_pci.c
+@@ -461,7 +461,7 @@ static int vfio_pci_mmap(void *device_da
+ 	}
  
- 	/*
--	 * for anything smaller than the vma size,
--	 * we set prot based on the lookup.
-+	 * For anything smaller than the vma size we set prot based on the
-+	 * lookup.
- 	 */
- 	flags = lookup_memtype(paddr);
+ 	vma->vm_private_data = vdev;
+-	vma->vm_flags |= (VM_IO | VM_RESERVED);
++	vma->vm_flags |= VM_IO;
+ 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
  
--	/*
--	 * Check memtype for the rest pages
--	 */
-+	/* Check memtype for the remaining pages */
- 	while (size > PAGE_SIZE) {
- 		size -= PAGE_SIZE;
- 		paddr += PAGE_SIZE;
-@@ -741,7 +739,7 @@ int track_pfn_insert(struct vm_area_stru
- 	if (!pat_enabled)
- 		return 0;
- 
--	/* we set prot based on lookup */
-+	/* Set prot based on lookup */
- 	flags = lookup_memtype((resource_size_t)pfn << PAGE_SHIFT);
- 	*prot = __pgprot((pgprot_val(vma->vm_page_prot) & (~_PAGE_CACHE_MASK)) |
- 			 flags);
+ 	phys = (pci_resource_start(pdev, index) >> PAGE_SHIFT) + pgoff;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn.patch
-mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter-fix.patch
+mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter.patch
 mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix.patch
 mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer-fix-fix.patch
 mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures-fix.patch
