@@ -1,111 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 08 Oct 2012 16:14:29 -0700
-Message-ID: <20121008231430.A474B5C0050@hpza9.eem.corp.google.com>
+Subject: [folded-dropped] mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix.patch removed from -mm tree
+Date: Mon, 08 Oct 2012 16:14:59 -0700
+Message-ID: <20121008231500.45BEE100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f202.google.com ([209.85.215.202]:39420 "EHLO
-	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750766Ab2JHXOd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 19:14:33 -0400
-Received: by mail-ea0-f202.google.com with SMTP id q10so36218eaa.1
-        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 16:14:31 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:46948 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750766Ab2JHXPB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 19:15:01 -0400
+Received: by mail-gg0-f202.google.com with SMTP id i4so537043ggm.1
+        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 16:15:01 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, minchan@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes
+     Subject: mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch
+     mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix.patch
 
-This patch was dropped because it was folded into mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc.patch
+This patch was dropped because it was folded into mm-numa-reclaim-from-all-nodes-within-reclaim-distance.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes
+Subject: mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix
 
-ERROR: code indent should use tabs where possible
-#73: FILE: mm/page_isolation.c:253:
-+                             int **resultp)$
+fix CONFIG_NUMA=n build
 
-WARNING: please, no spaces at the start of a line
-#73: FILE: mm/page_isolation.c:253:
-+                             int **resultp)$
-
-ERROR: code indent should use tabs where possible
-#75: FILE: mm/page_isolation.c:255:
-+        gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE;$
-
-WARNING: please, no spaces at the start of a line
-#75: FILE: mm/page_isolation.c:255:
-+        gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE;$
-
-ERROR: code indent should use tabs where possible
-#77: FILE: mm/page_isolation.c:257:
-+        if (PageHighMem(page))$
-
-WARNING: please, no spaces at the start of a line
-#77: FILE: mm/page_isolation.c:257:
-+        if (PageHighMem(page))$
-
-ERROR: code indent should use tabs where possible
-#78: FILE: mm/page_isolation.c:258:
-+                gfp_mask |= __GFP_HIGHMEM;$
-
-WARNING: please, no spaces at the start of a line
-#78: FILE: mm/page_isolation.c:258:
-+                gfp_mask |= __GFP_HIGHMEM;$
-
-ERROR: code indent should use tabs where possible
-#80: FILE: mm/page_isolation.c:260:
-+        return alloc_page(gfp_mask);$
-
-WARNING: please, no spaces at the start of a line
-#80: FILE: mm/page_isolation.c:260:
-+        return alloc_page(gfp_mask);$
-
-total: 5 errors, 5 warnings, 48 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
+Cc: David Rientjes <rientjes@google.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_isolation.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/page_alloc.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/page_isolation.c~mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes mm/page_isolation.c
---- a/mm/page_isolation.c~mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes
-+++ a/mm/page_isolation.c
-@@ -257,12 +257,12 @@ int test_pages_isolated(unsigned long st
- }
+diff -puN mm/page_alloc.c~mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix
++++ a/mm/page_alloc.c
+@@ -4558,7 +4558,9 @@ void __paginginit free_area_init_node(in
+ 	for_each_online_node(i)
+ 		if (node_distance(nid, i) <= RECLAIM_DISTANCE) {
+ 			node_set(i, pgdat->reclaim_nodes);
++#ifdef CONFIG_NUMA
+ 			zone_reclaim_mode = 1;
++#endif
+ 		}
+ 	calculate_node_totalpages(pgdat, zones_size, zholes_size);
  
- struct page *alloc_migrate_target(struct page *page, unsigned long private,
--                             int **resultp)
-+				  int **resultp)
- {
--        gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE;
-+	gfp_t gfp_mask = GFP_USER | __GFP_MOVABLE;
- 
--        if (PageHighMem(page))
--                gfp_mask |= __GFP_HIGHMEM;
-+	if (PageHighMem(page))
-+		gfp_mask |= __GFP_HIGHMEM;
- 
--        return alloc_page(gfp_mask);
-+	return alloc_page(gfp_mask);
- }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -126,7 +71,7 @@ mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
 mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible.patch
 mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc.patch
 mm-fix-invalidate_complete_page2-lock-ordering.patch
-mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix.patch
+mm-numa-reclaim-from-all-nodes-within-reclaim-distance.patch
 mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock.patch
 cma-migrate-mlocked-pages-fix.patch
 mm-avoid-section-mismatch-warning-for-memblock_type_name-fix.patch
