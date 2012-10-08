@@ -1,79 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] mm-compaction-acquire-the-zone-lock-as-late-as-possible-fix-3.patch removed from -mm tree
-Date: Mon, 08 Oct 2012 16:12:25 -0700
-Message-ID: <20121008231226.3FF15100047@wpzn3.hot.corp.google.com>
+Subject: [folded-dropped] mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated-fix.patch removed from -mm tree
+Date: Mon, 08 Oct 2012 16:12:58 -0700
+Message-ID: <20121008231259.23B825C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:34625 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750766Ab2JHXM1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 19:12:27 -0400
-Received: by mail-vc0-f202.google.com with SMTP id fy27so539422vcb.1
-        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 16:12:27 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:62226 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750766Ab2JHXNC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 19:13:02 -0400
+Received: by mail-ee0-f74.google.com with SMTP id b57so293853eek.1
+        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 16:13:01 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, b.zolnierkie@samsung.com, broonie@opensource.wolfsonmicro.com, kyungmin.park@samsung.com, m.szyprowski@samsung.com, mina86@mina86.com, peter.ujfalusi@ti.com, thierry.reding@avionic-design.de, mm-commits@vger.kernel.org
+To: mgorman@suse.de, aquini@redhat.com, dan.carpenter@oracle.com, fengguang.wu@intel.com, mhocko@suse.cz, riel@redhat.com, shli@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-compaction-acquire-the-zone-lock-as-late-as-possible-fix-3
+     Subject: mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated-fix
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-acquire-the-zone-lock-as-late-as-possible-fix-3.patch
+     mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated-fix.patch
 
-This patch was dropped because it was folded into mm-compaction-acquire-the-zone-lock-as-late-as-possible.patch
+This patch was dropped because it was folded into mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated.patch
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm-compaction-acquire-the-zone-lock-as-late-as-possible-fix-3
+Subject: mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated-fix
 
-mm: compaction: Iron out isolate_freepages_block() and isolate_freepages_range() -fix1
+Fengguang Wu reported the following
 
-CMA is reported to be broken in next-20120926. Minchan Kim pointed out
-that this was due to nr_scanned != total_isolated in the case of CMA
-because PageBuddy pages are one scan but many isolations in CMA. This
-patch should address the problem.
+tree:   git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git since-3.5
+head:   2f641f902ca76711e47e8d3b18004f0e46ca3d9b
+commit: 7faeb2a39c789f1bac69014cc468677a60b73395 [184/186] mm:
+compaction: cache if a pageblock was scanned and no pages were isolated
+config: i386-randconfig-b083 (attached as .config)
 
-This patch is a fix for
-mm-compaction-acquire-the-zone-lock-as-late-as-possible-fix-2.patch
+All error/warnings:
 
+mm/compaction.c: In function 'isolation_suitable':
+mm/compaction.c:60:2: error: implicit declaration of function 'get_pageblock_skip' [-Werror=implicit-function-declaration]
+mm/compaction.c: In function 'reset_isolation_suitable':
+mm/compaction.c:94:3: error: implicit declaration of function 'clear_pageblock_skip' [-Werror=implicit-function-declaration]
+mm/compaction.c: In function 'update_pageblock_skip':
+mm/compaction.c:108:3: error: implicit declaration of function 'set_pageblock_skip' [-Werror=implicit-function-declaration]
+mm/compaction.c: At top level:
+mm/compaction.c:68:13: warning: 'reset_isolation_suitable' defined but not used [-Wunused-function]
+mm/compaction.c:177:13: warning: 'compact_capture_page' defined but not used [-Wunused-function]
+cc1: some warnings being treated as errors
+
+Michal Hocko suggested implementing !CONFIG_COMPACTION versions of these
+functions but that still leaves the dead version of
+reset_isolation_suitable in the !CONFIG_COMPACTION && CONFIG_CMA case.
+Create !CONFIG_COMPACTION versions of isolation_suitable() and
+update_pageblock_skip() instead.
+
+This is a fix for
+mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated.patch
+
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
 Signed-off-by: Mel Gorman <mgorman@suse.de>
-Tested-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Shaohua Li <shli@kernel.org>
+Cc: Rafael Aquini <aquini@redhat.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/compaction.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN mm/compaction.c~mm-compaction-acquire-the-zone-lock-as-late-as-possible-fix-3 mm/compaction.c
---- a/mm/compaction.c~mm-compaction-acquire-the-zone-lock-as-late-as-possible-fix-3
+diff -puN mm/compaction.c~mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated-fix mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated-fix
 +++ a/mm/compaction.c
-@@ -182,6 +182,7 @@ static unsigned long isolate_freepages_b
+@@ -50,6 +50,7 @@ static inline bool migrate_async_suitabl
+ 	return is_migrate_cma(migratetype) || migratetype == MIGRATE_MOVABLE;
+ }
+ 
++#ifdef CONFIG_COMPACTION
+ /* Returns true if the pageblock should be scanned for pages to isolate. */
+ static inline bool isolation_suitable(struct compact_control *cc,
+ 					struct page *page)
+@@ -107,6 +108,17 @@ static void update_pageblock_skip(struct
+ 	if (!nr_isolated)
+ 		set_pageblock_skip(page);
+ }
++#else
++static inline bool isolation_suitable(struct compact_control *cc,
++					struct page *page)
++{
++	return true;
++}
++
++static void update_pageblock_skip(struct page *page, unsigned long nr_isolated)
++{
++}
++#endif /* CONFIG_COMPACTION */
+ 
+ static inline bool should_release_lock(spinlock_t *lock)
  {
- 	int nr_scanned = 0, total_isolated = 0;
- 	struct page *cursor;
-+	unsigned long nr_strict_required = end_pfn - blockpfn;
- 	unsigned long flags;
- 	bool locked = false;
- 
-@@ -240,10 +241,10 @@ static unsigned long isolate_freepages_b
- 
- 	/*
- 	 * If strict isolation is requested by CMA then check that all the
--	 * pages scanned were isolated. If there were any failures, 0 is
-+	 * pages requested were isolated. If there were any failures, 0 is
- 	 * returned and CMA will fail.
- 	 */
--	if (strict && nr_scanned != total_isolated)
-+	if (strict && nr_strict_required != total_isolated)
- 		total_isolated = 0;
- 
- 	if (locked)
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
@@ -103,7 +127,6 @@ mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible.patch
 mm-compaction-acquire-the-zone-lock-as-late-as-possible.patch
 revert-mm-have-order-0-compaction-start-off-where-it-left.patch
 mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated.patch
-mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated-fix.patch
 mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated-fix2.patch
 mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated-fix3.patch
 mm-compaction-restart-compaction-from-near-where-it-left-off.patch
