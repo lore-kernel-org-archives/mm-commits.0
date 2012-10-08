@@ -1,117 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] rbtree-move-some-implementation-details-from-rbtreeh-to-rbtreec-fix.patch removed from -mm tree
-Date: Mon, 08 Oct 2012 16:05:48 -0700
-Message-ID: <20121008230549.4335120004E@hpza10.eem.corp.google.com>
+Subject: [folded-dropped] rbtree-performance-and-correctness-test-fix.patch removed from -mm tree
+Date: Mon, 08 Oct 2012 16:06:18 -0700
+Message-ID: <20121008230619.C4974200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:60549 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754126Ab2JHXFv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 19:05:51 -0400
-Received: by mail-we0-f202.google.com with SMTP id x43so295144wey.1
-        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 16:05:50 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:41839 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754183Ab2JHXGW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 19:06:22 -0400
+Received: by mail-wi0-f202.google.com with SMTP id hr7so215526wib.1
+        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 16:06:21 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwmw2@infradead.org, David.Woodhouse@intel.com, walken@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fengguang.wu@intel.com, walken@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rbtree: fix jffs2 build issue due to renamed __rb_parent_=
-color field
+     Subject: rbtree-performance-and-correctness-test-fix
 has been removed from the -mm tree.  Its filename was
-     rbtree-move-some-implementation-details-from-rbtreeh-to-rbtreec-fi=
-x.patch
+     rbtree-performance-and-correctness-test-fix.patch
 
-This patch was dropped because it was folded into rbtree-move-some-impl=
-ementation-details-from-rbtreeh-to-rbtreec.patch
+This patch was dropped because it was folded into rbtree-performance-and-correctness-test.patch
 
 ------------------------------------------------------
-=46rom: David Woodhouse <dwmw2@infradead.org>
-Subject: rbtree: fix jffs2 build issue due to renamed __rb_parent_color=
- field
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rbtree-performance-and-correctness-test-fix
 
-=2E.. and clean up the comments to better explain why it's acceptable t=
-o
-do it this way instead of using rb_erase() "properly".
+fix printk warning: sparc64 cycles_t is unsigned long
 
-Signed-off-by: David Woodhouse <David.Woodhouse@intel.com>
 Cc: Michel Lespinasse <walken@google.com>
+Cc: Fengguang Wu <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jffs2/readinode.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ lib/rbtree_test.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/jffs2/readinode.c~rbtree-move-some-implementation-details-=
-from-rbtreeh-to-rbtreec-fix fs/jffs2/readinode.c
---- a/fs/jffs2/readinode.c~rbtree-move-some-implementation-details-from=
--rbtreeh-to-rbtreec-fix
-+++ a/fs/jffs2/readinode.c
-@@ -394,8 +394,11 @@ static int jffs2_add_tn_to_tree(struct j
- }
-=20
- /* Trivial function to remove the last node in the tree. Which by defi=
-nition
--   has no right-hand -- so can be removed just by making its only chil=
-d (if
--   any) take its place under its parent. */
-+   has no right-hand child =E2=80=94 so can be removed just by making =
-its left-hand
-+   child (if any) take its place under its parent. Since this is only =
-done
-+   when we're consuming the whole tree, there's no need to use rb_eras=
-e()
-+   and let it worry about adjusting colours and balancing the tree. Th=
-at
-+   would just be a waste of time. */
- static void eat_last(struct rb_root *root, struct rb_node *node)
- {
- 	struct rb_node *parent =3D rb_parent(node);
-@@ -412,12 +415,12 @@ static void eat_last(struct rb_root *roo
- 		link =3D &parent->rb_right;
-=20
- 	*link =3D node->rb_left;
--	/* Colour doesn't matter now. Only the parent pointer. */
- 	if (node->rb_left)
--		node->rb_left->rb_parent_color =3D node->rb_parent_color;
-+		node->rb_left->__rb_parent_color =3D node->__rb_parent_color;
- }
-=20
--/* We put this in reverse order, so we can just use eat_last */
-+/* We put the version tree in reverse order, so we can use the same ea=
-t_last()
-+   function that we use to consume the tmpnode tree (tn_root). */
- static void ver_insert(struct rb_root *ver_root, struct jffs2_tmp_dnod=
-e_info *tn)
- {
- 	struct rb_node **link =3D &ver_root->rb_node;
+diff -puN lib/rbtree_test.c~rbtree-performance-and-correctness-test-fix lib/rbtree_test.c
+--- a/lib/rbtree_test.c~rbtree-performance-and-correctness-test-fix
++++ a/lib/rbtree_test.c
+@@ -104,7 +104,7 @@ static int rbtree_test_init(void)
+ 	time = time2 - time1;
+ 
+ 	time = div_u64(time, PERF_LOOPS);
+-	printk(" -> %llu cycles\n", time);
++	printk(" -> %llu cycles\n", (unsigned long long)time);
+ 
+ 	for (i = 0; i < CHECK_LOOPS; i++) {
+ 		init();
 _
 
-Patches currently in -mm which might be from dwmw2@infradead.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-rbtree-move-some-implementation-details-from-rbtreeh-to-rbtreec.patch
-rbtree-test-fix-sparse-warning-about-64-bit-constant.patch
-rbtree-add-__rb_change_child-helper-function.patch
-rbtree-place-easiest-case-first-in-rb_erase.patch
-rbtree-handle-1-child-recoloring-in-rb_erase-instead-of-rb_erase_color.=
-patch
-rbtree-low-level-optimizations-in-rb_erase.patch
-rbtree-augmented-rbtree-test.patch
-rbtree-faster-augmented-rbtree-manipulation.patch
-rbtree-remove-prior-augmented-rbtree-implementation.patch
-rbtree-add-rb_declare_callbacks-macro.patch
-rbtree-add-prio-tree-and-interval-tree-tests.patch
-mm-replace-vma-prio_tree-with-an-interval-tree.patch
-kmemleak-use-rbtree-instead-of-prio-tree.patch
-prio_tree-remove.patch
-rbtree-move-augmented-rbtree-functionality-to-rbtree_augmentedh.patch
+x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn.patch
+mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer.patch
+mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures.patch
+mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host.patch
+rbtree-performance-and-correctness-test.patch
+mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix.patch
+mm-fix-tracing-in-free_pcppages_bulk-fix.patch
+cma-count-free-cma-pages-fix.patch
+memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
+atomic-implement-generic-atomic_dec_if_positive-fix.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix-2.patch
+mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible-fix-fix.patch
+mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch
+mm-fix-invalidate_complete_page2-lock-ordering.patch
+mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix.patch
+mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock.patch
+cma-migrate-mlocked-pages-fix.patch
+mm-avoid-section-mismatch-warning-for-memblock_type_name-fix.patch
+mm-document-pagehuge-somewhat.patch
+mm-memcg-clean-up-mm_match_cgroup-signature-fix.patch
+memory-hotplug-suppress-trying-to-free-nonexistent-resource-xxxxxxxxxxxxxxxx-yyyyyyyyyyyyyyyy-warning.patch
+mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code-fix.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
