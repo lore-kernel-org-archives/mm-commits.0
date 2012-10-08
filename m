@@ -1,210 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated-fix3.patch removed from -mm tree
-Date: Mon, 08 Oct 2012 16:13:06 -0700
-Message-ID: <20121008231307.171431E0043@wpzn4.hot.corp.google.com>
+Subject: [folded-dropped] mm-compaction-restart-compaction-from-near-where-it-left-off-fix.patch removed from -mm tree
+Date: Mon, 08 Oct 2012 16:14:01 -0700
+Message-ID: <20121008231402.3122A200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:62021 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750766Ab2JHXNI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 19:13:08 -0400
-Received: by mail-gg0-f202.google.com with SMTP id i4so536855ggm.1
-        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 16:13:07 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:41301 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750766Ab2JHXOE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 19:14:04 -0400
+Received: by mail-fa0-f74.google.com with SMTP id t1so291399fae.1
+        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 16:14:03 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, b.zolnierkie@samsung.com, broonie@opensource.wolfsonmicro.com, kyungmin.park@samsung.com, m.szyprowski@samsung.com, mina86@mina86.com, peter.ujfalusi@ti.com, thierry.reding@avionic-design.de, mm-commits@vger.kernel.org
+To: mgorman@suse.de, fengguang.wu@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated-fix3
+     Subject: mm: compaction: Restart compaction from near where it left off -fix
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated-fix3.patch
+     mm-compaction-restart-compaction-from-near-where-it-left-off-fix.patch
 
-This patch was dropped because it was folded into mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated.patch
+This patch was dropped because it was folded into mm-compaction-restart-compaction-from-near-where-it-left-off.patch
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated-fix3
+Subject: mm: compaction: Restart compaction from near where it left off -fix
 
-The following patch still has not been tested but I'm reposting it
-anyway. I've sent a rebased patch on top of next-20121004 that includes
-this patch privately to Thierry for testing.
+Fengguang Wu reported the following
 
-CMA requires that the PG_migrate_skip hint be skipped but it was only
-skipping it when isolating pages for migration, not for free. Ensure
-cc->isolate_skip_hint gets passed in both cases.
+tree:   git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git since-3.5
+head:   a1e6f861ce9bd58373728fe2de149eaf766238ae
+commit: c5e47c8e10f4f45effb589de310b124b4c8cd501 [192/198] mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated-fix
+config: i386-randconfig-b083 (attached as .config)
+
+All error/warnings:
+
+mm/compaction.c: In function 'isolate_freepages_block':
+mm/compaction.c:346:3: warning: passing argument 1 of 'update_pageblock_skip' from incompatible pointer type [enabled by default]
+mm/compaction.c:137:13: note: expected 'struct page *' but argument is of type 'struct compact_control *'
+mm/compaction.c:346:3: warning: passing argument 2 of 'update_pageblock_skip' makes integer from pointer without a cast [enabled by default]
+mm/compaction.c:137:13: note: expected 'long unsigned int' but argument is of type 'struct page *'
+mm/compaction.c:346:3: error: too many arguments to function 'update_pageblock_skip'
+mm/compaction.c:137:13: note: declared here
+mm/compaction.c: In function 'isolate_migratepages_range':
+mm/compaction.c:639:3: warning: passing argument 1 of 'update_pageblock_skip' from incompatible pointer type [enabled by default]
+mm/compaction.c:137:13: note: expected 'struct page *' but argument is of type 'struct compact_control *'
+mm/compaction.c:639:3: warning: passing argument 2 of 'update_pageblock_skip' makes integer from pointer without a cast [enabled by default]
+mm/compaction.c:137:13: note: expected 'long unsigned int' but argument is of type 'struct page *'
+mm/compaction.c:639:3: error: too many arguments to function 'update_pageblock_skip'
+mm/compaction.c:137:13: note: declared here
+mm/compaction.c: At top level:
+mm/compaction.c:206:13: warning: 'compact_capture_page' defined but not used [-Wunused-function]
 
 This is a fix for
-mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated-fix.patch
-but is based on top of linux-next/akpm as of 20121004. It will cause
-minor conflicts when it is slotted into place but the resolutions should
-be straight-forward.
+mm-compaction-restart-compaction-from-near-where-it-left-off.patch that
+became necessary after
+mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated-fix
+was merged but I missed the follow-up.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
-Minchan Kim <minchan@kernel.org>
-To: Mel Gorman <mgorman@suse.de>
-Cc: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   16 ++++------------
- mm/internal.h   |    3 ++-
- mm/page_alloc.c |   39 ++++++++++++++++++++-------------------
- 3 files changed, 26 insertions(+), 32 deletions(-)
+ mm/compaction.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/compaction.c~mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated-fix3 mm/compaction.c
---- a/mm/compaction.c~mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated-fix3
+diff -puN mm/compaction.c~mm-compaction-restart-compaction-from-near-where-it-left-off-fix mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-restart-compaction-from-near-where-it-left-off-fix
 +++ a/mm/compaction.c
-@@ -346,22 +346,14 @@ static unsigned long isolate_freepages_b
-  * a free page).
-  */
- unsigned long
--isolate_freepages_range(unsigned long start_pfn, unsigned long end_pfn)
-+isolate_freepages_range(struct compact_control *cc,
-+			unsigned long start_pfn, unsigned long end_pfn)
- {
- 	unsigned long isolated, pfn, block_end_pfn;
--	struct zone *zone = NULL;
- 	LIST_HEAD(freelist);
- 
--	/* cc needed for isolate_freepages_block to acquire zone->lock */
--	struct compact_control cc = {
--		.sync = true,
--	};
--
--	if (pfn_valid(start_pfn))
--		cc.zone = zone = page_zone(pfn_to_page(start_pfn));
--
- 	for (pfn = start_pfn; pfn < end_pfn; pfn += isolated) {
--		if (!pfn_valid(pfn) || zone != page_zone(pfn_to_page(pfn)))
-+		if (!pfn_valid(pfn) || cc->zone != page_zone(pfn_to_page(pfn)))
- 			break;
- 
- 		/*
-@@ -371,7 +363,7 @@ isolate_freepages_range(unsigned long st
- 		block_end_pfn = ALIGN(pfn + 1, pageblock_nr_pages);
- 		block_end_pfn = min(block_end_pfn, end_pfn);
- 
--		isolated = isolate_freepages_block(&cc, pfn, block_end_pfn,
-+		isolated = isolate_freepages_block(cc, pfn, block_end_pfn,
- 						   &freelist, true);
- 
- 		/*
-diff -puN mm/internal.h~mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated-fix3 mm/internal.h
---- a/mm/internal.h~mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated-fix3
-+++ a/mm/internal.h
-@@ -131,7 +131,8 @@ struct compact_control {
- };
- 
- unsigned long
--isolate_freepages_range(unsigned long start_pfn, unsigned long end_pfn);
-+isolate_freepages_range(struct compact_control *cc,
-+			unsigned long start_pfn, unsigned long end_pfn);
- unsigned long
- isolate_migratepages_range(struct zone *zone, struct compact_control *cc,
- 			   unsigned long low_pfn, unsigned long end_pfn);
-diff -puN mm/page_alloc.c~mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated-fix3 mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated-fix3
-+++ a/mm/page_alloc.c
-@@ -5678,7 +5678,8 @@ __alloc_contig_migrate_alloc(struct page
+@@ -137,7 +137,9 @@ static inline bool isolation_suitable(st
+ 	return true;
  }
  
- /* [start, end) must belong to a single zone. */
--static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
-+static int __alloc_contig_migrate_range(struct compact_control *cc,
-+					unsigned long start, unsigned long end)
+-static void update_pageblock_skip(struct page *page, unsigned long nr_isolated)
++static void update_pageblock_skip(struct compact_control *cc,
++			struct page *page, unsigned long nr_isolated,
++			bool migrate_scanner)
  {
- 	/* This function is based on compact_zone() from compaction.c. */
- 
-@@ -5686,26 +5687,17 @@ static int __alloc_contig_migrate_range(
- 	unsigned int tries = 0;
- 	int ret = 0;
- 
--	struct compact_control cc = {
--		.nr_migratepages = 0,
--		.order = -1,
--		.zone = page_zone(pfn_to_page(start)),
--		.sync = true,
--		.ignore_skip_hint = true,
--	};
--	INIT_LIST_HEAD(&cc.migratepages);
--
- 	migrate_prep_local();
- 
--	while (pfn < end || !list_empty(&cc.migratepages)) {
-+	while (pfn < end || !list_empty(&cc->migratepages)) {
- 		if (fatal_signal_pending(current)) {
- 			ret = -EINTR;
- 			break;
- 		}
- 
--		if (list_empty(&cc.migratepages)) {
--			cc.nr_migratepages = 0;
--			pfn = isolate_migratepages_range(cc.zone, &cc,
-+		if (list_empty(&cc->migratepages)) {
-+			cc->nr_migratepages = 0;
-+			pfn = isolate_migratepages_range(cc->zone, cc,
- 							 pfn, end);
- 			if (!pfn) {
- 				ret = -EINTR;
-@@ -5717,14 +5709,14 @@ static int __alloc_contig_migrate_range(
- 			break;
- 		}
- 
--		reclaim_clean_pages_from_list(cc.zone, &cc.migratepages);
-+		reclaim_clean_pages_from_list(cc->zone, &cc->migratepages);
- 
--		ret = migrate_pages(&cc.migratepages,
-+		ret = migrate_pages(&cc->migratepages,
- 				    __alloc_contig_migrate_alloc,
- 				    0, false, MIGRATE_SYNC);
- 	}
- 
--	putback_lru_pages(&cc.migratepages);
-+	putback_lru_pages(&cc->migratepages);
- 	return ret > 0 ? 0 : ret;
  }
- 
-@@ -5803,6 +5795,15 @@ int alloc_contig_range(unsigned long sta
- 	unsigned long outer_start, outer_end;
- 	int ret = 0, order;
- 
-+	struct compact_control cc = {
-+		.nr_migratepages = 0,
-+		.order = -1,
-+		.zone = page_zone(pfn_to_page(start)),
-+		.sync = true,
-+		.ignore_skip_hint = true,
-+	};
-+	INIT_LIST_HEAD(&cc.migratepages);
-+
- 	/*
- 	 * What we do here is we mark all pageblocks in range as
- 	 * MIGRATE_ISOLATE.  Because pageblock and max order pages may
-@@ -5832,7 +5833,7 @@ int alloc_contig_range(unsigned long sta
- 	if (ret)
- 		goto done;
- 
--	ret = __alloc_contig_migrate_range(start, end);
-+	ret = __alloc_contig_migrate_range(&cc, start, end);
- 	if (ret)
- 		goto done;
- 
-@@ -5881,7 +5882,7 @@ int alloc_contig_range(unsigned long sta
- 	__reclaim_pages(zone, GFP_HIGHUSER_MOVABLE, end-start);
- 
- 	/* Grab isolated pages from freelists. */
--	outer_end = isolate_freepages_range(outer_start, end);
-+	outer_end = isolate_freepages_range(&cc, outer_start, end);
- 	if (!outer_end) {
- 		ret = -EBUSY;
- 		goto done;
+ #endif /* CONFIG_COMPACTION */
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
@@ -235,7 +110,6 @@ mm-compaction-acquire-the-zone-lock-as-late-as-possible.patch
 revert-mm-have-order-0-compaction-start-off-where-it-left.patch
 mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated.patch
 mm-compaction-restart-compaction-from-near-where-it-left-off.patch
-mm-compaction-restart-compaction-from-near-where-it-left-off-fix.patch
 mm-compaction-clear-pg_migrate_skip-based-on-compaction-and-reclaim-activity.patch
 mm-numa-reclaim-from-all-nodes-within-reclaim-distance.patch
 mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix.patch
