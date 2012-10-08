@@ -1,79 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix.patch removed from -mm tree
-Date: Mon, 08 Oct 2012 16:08:00 -0700
-Message-ID: <20121008230801.679AA5C0050@hpza9.eem.corp.google.com>
+Subject: [folded-dropped] mm-fix-tracing-in-free_pcppages_bulk-fix.patch removed from -mm tree
+Date: Mon, 08 Oct 2012 16:08:30 -0700
+Message-ID: <20121008230830.F07301E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:62232 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754989Ab2JHXID (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 19:08:03 -0400
-Received: by mail-wg0-f74.google.com with SMTP id dt11so294899wgb.1
-        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 16:08:02 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:63145 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753225Ab2JHXIc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 19:08:32 -0400
+Received: by mail-qa0-f74.google.com with SMTP id a16so395747qae.1
+        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 16:08:31 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, geert@linux-m68k.org, minchan@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, b.zolnierkie@samsung.com, hughd@google.com, kyungmin.park@samsung.com, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix
+     Subject: mm-fix-tracing-in-free_pcppages_bulk-fix
 has been removed from the -mm tree.  Its filename was
-     mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix.patch
+     mm-fix-tracing-in-free_pcppages_bulk-fix.patch
 
-This patch was dropped because it was folded into mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration.patch
+This patch was dropped because it was folded into mm-fix-tracing-in-free_pcppages_bulk.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix
+Subject: mm-fix-tracing-in-free_pcppages_bulk-fix
 
-fix nommu build
+add comment
 
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Nazarewicz <mina86@mina86.com>
 Cc: Minchan Kim <minchan@kernel.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |   21 +++++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/rmap.h~mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix include/linux/rmap.h
---- a/include/linux/rmap.h~mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix
-+++ a/include/linux/rmap.h
-@@ -71,6 +71,17 @@ struct anon_vma_chain {
- #endif
- };
+diff -puN mm/page_alloc.c~mm-fix-tracing-in-free_pcppages_bulk-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-fix-tracing-in-free_pcppages_bulk-fix
++++ a/mm/page_alloc.c
+@@ -667,7 +667,7 @@ static void free_pcppages_bulk(struct zo
+ 			batch_free = to_free;
  
-+enum ttu_flags {
-+	TTU_UNMAP = 0,			/* unmap mode */
-+	TTU_MIGRATION = 1,		/* migration mode */
-+	TTU_MUNLOCK = 2,		/* munlock mode */
-+	TTU_ACTION_MASK = 0xff,
-+
-+	TTU_IGNORE_MLOCK = (1 << 8),	/* ignore mlock */
-+	TTU_IGNORE_ACCESS = (1 << 9),	/* don't age */
-+	TTU_IGNORE_HWPOISON = (1 << 10),/* corrupted page is recoverable */
-+};
-+
- #ifdef CONFIG_MMU
- static inline void get_anon_vma(struct anon_vma *anon_vma)
- {
-@@ -164,16 +175,6 @@ int page_referenced(struct page *, int i
- int page_referenced_one(struct page *, struct vm_area_struct *,
- 	unsigned long address, unsigned int *mapcount, unsigned long *vm_flags);
+ 		do {
+-			int mt;
++			int mt;	/* migratetype of the to-be-freed page */
  
--enum ttu_flags {
--	TTU_UNMAP = 0,			/* unmap mode */
--	TTU_MIGRATION = 1,		/* migration mode */
--	TTU_MUNLOCK = 2,		/* munlock mode */
--	TTU_ACTION_MASK = 0xff,
--
--	TTU_IGNORE_MLOCK = (1 << 8),	/* ignore mlock */
--	TTU_IGNORE_ACCESS = (1 << 9),	/* don't age */
--	TTU_IGNORE_HWPOISON = (1 << 10),/* corrupted page is recoverable */
--};
- #define TTU_ACTION(x) ((x) & TTU_ACTION_MASK)
- 
- int try_to_unmap(struct page *, enum ttu_flags flags);
+ 			page = list_entry(list->prev, struct page, lru);
+ 			/* must delete as __free_one_page list manipulates */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -86,7 +65,7 @@ mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failure
 mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host.patch
 rbtree-performance-and-correctness-test.patch
 mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration.patch
-mm-fix-tracing-in-free_pcppages_bulk-fix.patch
+mm-fix-tracing-in-free_pcppages_bulk.patch
 cma-count-free-cma-pages-fix.patch
 memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
 atomic-implement-generic-atomic_dec_if_positive-fix.patch
