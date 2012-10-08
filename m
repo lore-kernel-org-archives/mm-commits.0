@@ -1,60 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] mm-mmu_notifier-init-notifier-if-necessary-v2.patch removed from -mm tree
-Date: Mon, 08 Oct 2012 16:04:03 -0700
-Message-ID: <20121008230404.0180A1E0043@wpzn4.hot.corp.google.com>
+Subject: [folded-dropped] thp-s390-architecture-backend-for-thp-on-s390-fix.patch removed from -mm tree
+Date: Mon, 08 Oct 2012 16:04:41 -0700
+Message-ID: <20121008230442.AEF6B5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:62403 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754126Ab2JHXEE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 19:04:04 -0400
-Received: by mail-gh0-f202.google.com with SMTP id z15so537199ghb.1
-        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 16:04:04 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:41806 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753225Ab2JHXEp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 19:04:45 -0400
+Received: by mail-we0-f202.google.com with SMTP id x43so295119wey.1
+        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 16:04:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shangw@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: gerald.schaefer@de.ibm.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmu_notifier: init notifier if necessary
+     Subject: thp, s390: add missing earlyclobber to inline assembly
 has been removed from the -mm tree.  Its filename was
-     mm-mmu_notifier-init-notifier-if-necessary-v2.patch
+     thp-s390-architecture-backend-for-thp-on-s390-fix.patch
 
-This patch was dropped because it was folded into mm-mmu_notifier-init-notifier-if-necessary.patch
+This patch was dropped because it was folded into thp-s390-architecture-backend-for-thp-on-s390.patch
 
 ------------------------------------------------------
-From: Gavin Shan <shangw@linux.vnet.ibm.com>
-Subject: mm/mmu_notifier: init notifier if necessary
+From: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Subject: thp, s390: add missing earlyclobber to inline assembly
 
-v2: Use GFP_KERNEL instead of GFP_ATOMIC when allocating the MMU
-    notifier_mm as Andrew suggested.
+The constraints of the rrbm inline assembly are missing two
+earlyclobber operands, which can lead to an addressing exception
+depending on compiler register allocation decisions.
 
-Signed-off-by: Gavin Shan <shangw@linux.vnet.ibm.com>
+Signed-off-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmu_notifier.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/s390/include/asm/pgtable.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/mmu_notifier.c~mm-mmu_notifier-init-notifier-if-necessary-v2 mm/mmu_notifier.c
---- a/mm/mmu_notifier.c~mm-mmu_notifier-init-notifier-if-necessary-v2
-+++ a/mm/mmu_notifier.c
-@@ -215,7 +215,7 @@ static int do_mmu_notifier_register(stru
- 
- 	if (!mm_has_notifiers(mm)) {
- 		mmu_notifier_mm = kmalloc(sizeof(struct mmu_notifier_mm),
--					GFP_ATOMIC);
-+					GFP_KERNEL);
- 		if (unlikely(!mmu_notifier_mm)) {
- 			ret = -ENOMEM;
- 			goto out_of_mem;
+diff -puN arch/s390/include/asm/pgtable.h~thp-s390-architecture-backend-for-thp-on-s390-fix arch/s390/include/asm/pgtable.h
+--- a/arch/s390/include/asm/pgtable.h~thp-s390-architecture-backend-for-thp-on-s390-fix
++++ a/arch/s390/include/asm/pgtable.h
+@@ -1305,7 +1305,8 @@ static inline int pmdp_test_and_clear_yo
+ 			"	ogr	%1,%0\n"
+ 			"	la	%3,0(%4,%3)\n"
+ 			"	brct	%2,0b\n"
+-			: "=d" (tmp), "+d" (rc), "+d" (counter), "+a" (pmd_addr)
++			: "=&d" (tmp), "+&d" (rc), "+d" (counter),
++			  "+a" (pmd_addr)
+ 			: "a" (64 * 4096UL) : "cc");
+ 		rc = !!rc;
+ 	} else {
 _
 
-Patches currently in -mm which might be from shangw@linux.vnet.ibm.com are
+Patches currently in -mm which might be from gerald.schaefer@de.ibm.com are
 
 origin.patch
-mm-mmu_notifier-init-notifier-if-necessary.patch
-mm-vmscan-fix-error-number-for-failed-kthread.patch
-mm-memblock-use-existing-interface-to-set-nid.patch
-mm-memblock-cleanup-early_node_map-related-comments.patch
+thp-x86-introduce-have_arch_transparent_hugepage.patch
+thp-remove-assumptions-on-pgtable_t-type.patch
+thp-introduce-pmdp_invalidate.patch
+thp-make-madv_hugepage-check-for-mm-def_flags.patch
+thp-s390-thp-splitting-backend-for-s390.patch
+thp-s390-thp-pagetable-pre-allocation-for-s390.patch
+thp-s390-disable-thp-for-kvm-host-on-s390.patch
+thp-s390-architecture-backend-for-thp-on-s390.patch
+mm-thp-fix-the-pmd_clear-arguments-in-pmdp_get_and_clear.patch
+mm-thp-fix-the-update_mmu_cache-last-argument-passing-in-mm-huge_memoryc.patch
+sparc64-only-support-4mb-huge-pages-and-8kb-base-pages.patch
+sparc64-halve-the-size-of-pte-tables.patch
+sparc64-eliminate-pte-table-memory-wastage.patch
+sparc64-document-pgd-and-pmd-layout.patch
+mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code.patch
+mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code-fix.patch
+mm-thp-use-more-portable-pmd-clearing-sequenece-in-zap_huge_pmd.patch
+sparc64-support-transparent-huge-pages.patch
 
