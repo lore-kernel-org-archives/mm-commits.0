@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] mm-fix-tracing-in-free_pcppages_bulk-fix.patch removed from -mm tree
-Date: Mon, 08 Oct 2012 16:08:30 -0700
-Message-ID: <20121008230830.F07301E0043@wpzn4.hot.corp.google.com>
+Subject: [folded-dropped] cma-count-free-cma-pages-fix.patch removed from -mm tree
+Date: Mon, 08 Oct 2012 16:08:55 -0700
+Message-ID: <20121008230856.4B0EE1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:63145 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753225Ab2JHXIc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 19:08:32 -0400
-Received: by mail-qa0-f74.google.com with SMTP id a16so395747qae.1
-        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 16:08:31 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:57872 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753213Ab2JHXI5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 19:08:57 -0400
+Received: by mail-vc0-f202.google.com with SMTP id fy27so539033vcb.1
+        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 16:08:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, b.zolnierkie@samsung.com, hughd@google.com, kyungmin.park@samsung.com, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-fix-tracing-in-free_pcppages_bulk-fix
+     Subject: cma-count-free-cma-pages-fix
 has been removed from the -mm tree.  Its filename was
-     mm-fix-tracing-in-free_pcppages_bulk-fix.patch
+     cma-count-free-cma-pages-fix.patch
 
-This patch was dropped because it was folded into mm-fix-tracing-in-free_pcppages_bulk.patch
+This patch was dropped because it was folded into cma-count-free-cma-pages.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-fix-tracing-in-free_pcppages_bulk-fix
+Subject: cma-count-free-cma-pages-fix
 
-add comment
+use conventional migratetype naming
 
 Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
 Cc: Hugh Dickins <hughd@google.com>
@@ -38,21 +38,27 @@ Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_isolation.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-fix-tracing-in-free_pcppages_bulk-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-fix-tracing-in-free_pcppages_bulk-fix
-+++ a/mm/page_alloc.c
-@@ -667,7 +667,7 @@ static void free_pcppages_bulk(struct zo
- 			batch_free = to_free;
+diff -puN mm/page_isolation.c~cma-count-free-cma-pages-fix mm/page_isolation.c
+--- a/mm/page_isolation.c~cma-count-free-cma-pages-fix
++++ a/mm/page_isolation.c
+@@ -77,12 +77,12 @@ int set_migratetype_isolate(struct page 
+ out:
+ 	if (!ret) {
+ 		unsigned long nr_pages;
+-		int mt = get_pageblock_migratetype(page);
++		int migratetype = get_pageblock_migratetype(page);
  
- 		do {
--			int mt;
-+			int mt;	/* migratetype of the to-be-freed page */
+ 		set_pageblock_isolate(page);
+ 		nr_pages = move_freepages_block(zone, page, MIGRATE_ISOLATE);
  
- 			page = list_entry(list->prev, struct page, lru);
- 			/* must delete as __free_one_page list manipulates */
+-		__mod_zone_freepage_state(zone, -nr_pages, mt);
++		__mod_zone_freepage_state(zone, -nr_pages, migratetype);
+ 	}
+ 
+ 	spin_unlock_irqrestore(&zone->lock, flags);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -66,7 +72,7 @@ mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host.patch
 rbtree-performance-and-correctness-test.patch
 mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration.patch
 mm-fix-tracing-in-free_pcppages_bulk.patch
-cma-count-free-cma-pages-fix.patch
+cma-count-free-cma-pages.patch
 memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
 atomic-implement-generic-atomic_dec_if_positive-fix.patch
 mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
