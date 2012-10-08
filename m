@@ -1,155 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] mm-compaction-acquire-the-zone-lock-as-late-as-possible-fix-2.patch removed from -mm tree
-Date: Mon, 08 Oct 2012 16:12:19 -0700
-Message-ID: <20121008231220.A02FE5C0060@hpza9.eem.corp.google.com>
+Subject: [folded-dropped] mm-compaction-acquire-the-zone-lock-as-late-as-possible-fix-3.patch removed from -mm tree
+Date: Mon, 08 Oct 2012 16:12:25 -0700
+Message-ID: <20121008231226.3FF15100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f74.google.com ([209.85.215.74]:38094 "EHLO
-	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750766Ab2JHXMX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 19:12:23 -0400
-Received: by mail-la0-f74.google.com with SMTP id j13so240100lah.1
-        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 16:12:22 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:34625 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750766Ab2JHXM1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 19:12:27 -0400
+Received: by mail-vc0-f202.google.com with SMTP id fy27so539422vcb.1
+        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 16:12:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, aquini@redhat.com, avi@redhat.com, richard@arachsys.com, riel@redhat.com, shli@kernel.org, mm-commits@vger.kernel.org
+To: mgorman@suse.de, b.zolnierkie@samsung.com, broonie@opensource.wolfsonmicro.com, kyungmin.park@samsung.com, m.szyprowski@samsung.com, mina86@mina86.com, peter.ujfalusi@ti.com, thierry.reding@avionic-design.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: compaction: iron out isolate_freepages_block() and isolate_freepages_range()
+     Subject: mm-compaction-acquire-the-zone-lock-as-late-as-possible-fix-3
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-acquire-the-zone-lock-as-late-as-possible-fix-2.patch
+     mm-compaction-acquire-the-zone-lock-as-late-as-possible-fix-3.patch
 
 This patch was dropped because it was folded into mm-compaction-acquire-the-zone-lock-as-late-as-possible.patch
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: compaction: iron out isolate_freepages_block() and isolate_freepages_range()
+Subject: mm-compaction-acquire-the-zone-lock-as-late-as-possible-fix-3
 
-Andrew pointed out that isolate_freepages_block() is "straggly" and
-isolate_freepages_range() is making assumptions on how compact_control is
-used which is delicate.  This patch straightens isolate_freepages_block()
-and makes it fly straight and initialses compact_control to zeros in
-isolate_freepages_range().  The code should be easier to follow and is
-functionally equivalent.  The CMA failure path is now a little more
-expensive but that is a marginal corner-case.
+mm: compaction: Iron out isolate_freepages_block() and isolate_freepages_range() -fix1
+
+CMA is reported to be broken in next-20120926. Minchan Kim pointed out
+that this was due to nr_scanned != total_isolated in the case of CMA
+because PageBuddy pages are one scan but many isolations in CMA. This
+patch should address the problem.
+
+This patch is a fix for
+mm-compaction-acquire-the-zone-lock-as-late-as-possible-fix-2.patch
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Richard Davies <richard@arachsys.com>
-Cc: Shaohua Li <shli@kernel.org>
-Cc: Avi Kivity <avi@redhat.com>
-Cc: Rafael Aquini <aquini@redhat.com>
+Tested-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   48 +++++++++++++++++++++-------------------------
- 1 file changed, 22 insertions(+), 26 deletions(-)
+ mm/compaction.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-acquire-the-zone-lock-as-late-as-possible-fix-2 mm/compaction.c
---- a/mm/compaction.c~mm-compaction-acquire-the-zone-lock-as-late-as-possible-fix-2
+diff -puN mm/compaction.c~mm-compaction-acquire-the-zone-lock-as-late-as-possible-fix-3 mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-acquire-the-zone-lock-as-late-as-possible-fix-3
 +++ a/mm/compaction.c
-@@ -96,7 +96,6 @@ static inline bool compact_trylock_irqsa
- /* Returns true if the page is within a block suitable for migration to */
- static bool suitable_migration_target(struct page *page)
+@@ -182,6 +182,7 @@ static unsigned long isolate_freepages_b
  {
--
- 	int migratetype = get_pageblock_migratetype(page);
+ 	int nr_scanned = 0, total_isolated = 0;
+ 	struct page *cursor;
++	unsigned long nr_strict_required = end_pfn - blockpfn;
+ 	unsigned long flags;
+ 	bool locked = false;
  
- 	/* Don't interfere with memory hot-remove or the min_free_kbytes blocks */
-@@ -188,21 +187,20 @@ static unsigned long isolate_freepages_b
+@@ -240,10 +241,10 @@ static unsigned long isolate_freepages_b
  
- 	cursor = pfn_to_page(blockpfn);
+ 	/*
+ 	 * If strict isolation is requested by CMA then check that all the
+-	 * pages scanned were isolated. If there were any failures, 0 is
++	 * pages requested were isolated. If there were any failures, 0 is
+ 	 * returned and CMA will fail.
+ 	 */
+-	if (strict && nr_scanned != total_isolated)
++	if (strict && nr_strict_required != total_isolated)
+ 		total_isolated = 0;
  
--	/* Isolate free pages. This assumes the block is valid */
-+	/* Isolate free pages. */
- 	for (; blockpfn < end_pfn; blockpfn++, cursor++) {
- 		int isolated, i;
- 		struct page *page = cursor;
- 
--		if (!pfn_valid_within(blockpfn))
--			goto strict_check;
- 		nr_scanned++;
--
-+		if (!pfn_valid_within(blockpfn))
-+			continue;
- 		if (!PageBuddy(page))
--			goto strict_check;
-+			continue;
- 
- 		/*
--		 * The zone lock must be held to isolate freepages. This
--		 * unfortunately this is a very coarse lock and can be
-+		 * The zone lock must be held to isolate freepages.
-+		 * Unfortunately this is a very coarse lock and can be
- 		 * heavily contended if there are parallel allocations
- 		 * or parallel compactions. For async compaction do not
- 		 * spin on the lock and we acquire the lock as late as
-@@ -219,12 +217,12 @@ static unsigned long isolate_freepages_b
- 
- 		/* Recheck this is a buddy page under lock */
- 		if (!PageBuddy(page))
--			goto strict_check;
-+			continue;
- 
- 		/* Found a free page, break it into order-0 pages */
- 		isolated = split_free_page(page);
- 		if (!isolated && strict)
--			goto strict_check;
-+			break;
- 		total_isolated += isolated;
- 		for (i = 0; i < isolated; i++) {
- 			list_add(&page->lru, freelist);
-@@ -236,20 +234,18 @@ static unsigned long isolate_freepages_b
- 			blockpfn += isolated - 1;
- 			cursor += isolated - 1;
- 		}
--
--		continue;
--
--strict_check:
--		/* Abort isolation if the caller requested strict isolation */
--		if (strict) {
--			total_isolated = 0;
--			goto out;
--		}
- 	}
- 
- 	trace_mm_compaction_isolate_freepages(nr_scanned, total_isolated);
- 
--out:
-+	/*
-+	 * If strict isolation is requested by CMA then check that all the
-+	 * pages scanned were isolated. If there were any failures, 0 is
-+	 * returned and CMA will fail.
-+	 */
-+	if (strict && nr_scanned != total_isolated)
-+		total_isolated = 0;
-+
  	if (locked)
- 		spin_unlock_irqrestore(&cc->zone->lock, flags);
- 
-@@ -275,14 +271,14 @@ isolate_freepages_range(unsigned long st
- 	unsigned long isolated, pfn, block_end_pfn;
- 	struct zone *zone = NULL;
- 	LIST_HEAD(freelist);
--	struct compact_control cc;
--
--	if (pfn_valid(start_pfn))
--		zone = page_zone(pfn_to_page(start_pfn));
- 
- 	/* cc needed for isolate_freepages_block to acquire zone->lock */
--	cc.zone = zone;
--	cc.sync = true;
-+	struct compact_control cc = {
-+		.sync = true,
-+	};
-+
-+	if (pfn_valid(start_pfn))
-+		cc.zone = zone = page_zone(pfn_to_page(start_pfn));
- 
- 	for (pfn = start_pfn; pfn < end_pfn; pfn += isolated) {
- 		if (!pfn_valid(pfn) || zone != page_zone(pfn_to_page(pfn)))
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
@@ -177,7 +101,6 @@ mm-compaction-move-fatal-signal-check-out-of-compact_checklock_irqsave.patch
 mm-compaction-update-try_to_compact_pageskerneldoc-comment.patch
 mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible.patch
 mm-compaction-acquire-the-zone-lock-as-late-as-possible.patch
-mm-compaction-acquire-the-zone-lock-as-late-as-possible-fix-3.patch
 revert-mm-have-order-0-compaction-start-off-where-it-left.patch
 mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated.patch
 mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated-fix.patch
