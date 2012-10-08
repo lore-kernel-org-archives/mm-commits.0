@@ -1,120 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] cma-fix-watermark-checking-fix.patch removed from -mm tree
-Date: Mon, 08 Oct 2012 16:09:15 -0700
-Message-ID: <20121008230916.1030C100047@wpzn3.hot.corp.google.com>
+Subject: [folded-dropped] memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch removed from -mm tree
+Date: Mon, 08 Oct 2012 16:09:40 -0700
+Message-ID: <20121008230941.71248200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:44752 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755088Ab2JHXJR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 19:09:17 -0400
-Received: by mail-yh0-f74.google.com with SMTP id 10so449896yhl.1
-        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 16:09:17 -0700 (PDT)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:54170 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750766Ab2JHXJo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 19:09:44 -0400
+Received: by mail-la0-f74.google.com with SMTP id j13so240044lah.1
+        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 16:09:42 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: b.zolnierkie@samsung.com, hughd@google.com, kyungmin.park@samsung.com, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cma: fix watermark checking cleanup
+     Subject: memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix
 has been removed from the -mm tree.  Its filename was
-     cma-fix-watermark-checking-fix.patch
+     memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
 
-This patch was dropped because it was folded into cma-fix-watermark-checking.patch
+This patch was dropped because it was folded into memory-hotplug-fix-pages-missed-by-race-rather-than-failing.patch
 
 ------------------------------------------------------
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: cma: fix watermark checking cleanup
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix
 
-Changes:
-* document ALLOC_CMA
-* add comment to __zone_watermark_ok()
-* move ALLOC_* defines to mm/internal.h
+small cleanup
 
-Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
 Cc: Minchan Kim <minchan@kernel.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   15 ---------------
- mm/internal.h          |   14 ++++++++++++++
- mm/page_alloc.c        |    1 +
- 3 files changed, 15 insertions(+), 15 deletions(-)
+ mm/page_isolation.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mmzone.h~cma-fix-watermark-checking-fix include/linux/mmzone.h
---- a/include/linux/mmzone.h~cma-fix-watermark-checking-fix
-+++ a/include/linux/mmzone.h
-@@ -232,21 +232,6 @@ enum zone_watermarks {
- #define low_wmark_pages(z) (z->watermark[WMARK_LOW])
- #define high_wmark_pages(z) (z->watermark[WMARK_HIGH])
- 
--/* The ALLOC_WMARK bits are used as an index to zone->watermark */
--#define ALLOC_WMARK_MIN		WMARK_MIN
--#define ALLOC_WMARK_LOW		WMARK_LOW
--#define ALLOC_WMARK_HIGH	WMARK_HIGH
--#define ALLOC_NO_WATERMARKS	0x04 /* don't check watermarks at all */
--
--/* Mask to get the watermark bits */
--#define ALLOC_WMARK_MASK	(ALLOC_NO_WATERMARKS-1)
--
--#define ALLOC_HARDER		0x10 /* try to alloc harder */
--#define ALLOC_HIGH		0x20 /* __GFP_HIGH set */
--#define ALLOC_CPUSET		0x40 /* check for correct cpuset */
--
--#define ALLOC_CMA		0x80
--
- struct per_cpu_pages {
- 	int count;		/* number of pages in the list */
- 	int high;		/* high watermark, emptying needed */
-diff -puN mm/internal.h~cma-fix-watermark-checking-fix mm/internal.h
---- a/mm/internal.h~cma-fix-watermark-checking-fix
-+++ a/mm/internal.h
-@@ -358,4 +358,18 @@ extern unsigned long vm_mmap_pgoff(struc
- extern void set_pageblock_order(void);
- unsigned long reclaim_clean_pages_from_list(struct zone *zone,
- 					    struct list_head *page_list);
-+/* The ALLOC_WMARK bits are used as an index to zone->watermark */
-+#define ALLOC_WMARK_MIN		WMARK_MIN
-+#define ALLOC_WMARK_LOW		WMARK_LOW
-+#define ALLOC_WMARK_HIGH	WMARK_HIGH
-+#define ALLOC_NO_WATERMARKS	0x04 /* don't check watermarks at all */
+diff -puN mm/page_isolation.c~memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix mm/page_isolation.c
+--- a/mm/page_isolation.c~memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix
++++ a/mm/page_isolation.c
+@@ -209,8 +209,9 @@ __test_page_isolated_in_pageblock(unsign
+ 			 * MIGRATE_ISOLATE list.
+ 			 */
+ 			if (get_freepage_migratetype(page) != MIGRATE_ISOLATE) {
+-				struct page *end_page = page +
+-						(1 << page_order(page)) - 1;
++				struct page *end_page;
 +
-+/* Mask to get the watermark bits */
-+#define ALLOC_WMARK_MASK	(ALLOC_NO_WATERMARKS-1)
-+
-+#define ALLOC_HARDER		0x10 /* try to alloc harder */
-+#define ALLOC_HIGH		0x20 /* __GFP_HIGH set */
-+#define ALLOC_CPUSET		0x40 /* check for correct cpuset */
-+#define ALLOC_CMA		0x80 /* allow allocations from CMA areas */
-+
- #endif	/* __MM_INTERNAL_H */
-diff -puN mm/page_alloc.c~cma-fix-watermark-checking-fix mm/page_alloc.c
---- a/mm/page_alloc.c~cma-fix-watermark-checking-fix
-+++ a/mm/page_alloc.c
-@@ -1635,6 +1635,7 @@ static bool __zone_watermark_ok(struct z
- 	if (alloc_flags & ALLOC_HARDER)
- 		min -= min / 4;
- #ifdef CONFIG_CMA
-+	/* If allocation can't use CMA areas don't use free CMA pages */
- 	if (!(alloc_flags & ALLOC_CMA))
- 		free_pages -= zone_page_state(z, NR_FREE_CMA_PAGES);
- #endif
++				end_page = page + (1 << page_order(page)) - 1;
+ 				move_freepages(page_zone(page), page, end_page,
+ 						MIGRATE_ISOLATE);
+ 			}
 _
 
-Patches currently in -mm which might be from b.zolnierkie@samsung.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn.patch
+mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer.patch
+mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures.patch
+mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host.patch
+rbtree-performance-and-correctness-test.patch
+mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration.patch
 mm-fix-tracing-in-free_pcppages_bulk.patch
-cma-fix-counting-of-isolated-pages.patch
 cma-count-free-cma-pages.patch
-cma-fix-watermark-checking.patch
-mm-compaction-acquire-the-zone-lock-as-late-as-possible-fix-3.patch
-mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated-fix3.patch
-cma-migrate-mlocked-pages.patch
+memory-hotplug-fix-pages-missed-by-race-rather-than-failing.patch
+atomic-implement-generic-atomic_dec_if_positive-fix.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix.patch
+mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix-2.patch
+mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible-fix-fix.patch
+mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch
+mm-fix-invalidate_complete_page2-lock-ordering.patch
+mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix.patch
+mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock.patch
 cma-migrate-mlocked-pages-fix.patch
-cma-decrease-ccnr_migratepages-after-reclaiming-pagelist.patch
+mm-avoid-section-mismatch-warning-for-memblock_type_name-fix.patch
+mm-document-pagehuge-somewhat.patch
+mm-memcg-clean-up-mm_match_cgroup-signature-fix.patch
+memory-hotplug-suppress-trying-to-free-nonexistent-resource-xxxxxxxxxxxxxxxx-yyyyyyyyyyyyyyyy-warning.patch
+mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code-fix.patch
 
