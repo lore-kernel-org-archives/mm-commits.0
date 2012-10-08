@@ -1,56 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] cma-migrate-mlocked-pages-fix.patch removed from -mm tree
-Date: Mon, 08 Oct 2012 16:16:33 -0700
-Message-ID: <20121008231634.AAB4F20004E@hpza10.eem.corp.google.com>
+Subject: [folded-dropped] mm-avoid-section-mismatch-warning-for-memblock_type_name-fix.patch removed from -mm tree
+Date: Mon, 08 Oct 2012 16:16:58 -0700
+Message-ID: <20121008231658.8770C100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:51538 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750891Ab2JHXQi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 19:16:38 -0400
-Received: by mail-lb0-f202.google.com with SMTP id l12so294545lbo.1
-        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 16:16:36 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:39750 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750917Ab2JHXQ7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 19:16:59 -0400
+Received: by mail-qa0-f74.google.com with SMTP id a16so396595qae.1
+        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 16:16:59 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, b.zolnierkie@samsung.com, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, rprabhu@wnohang.net, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cma-migrate-mlocked-pages-fix
+     Subject: mm-avoid-section-mismatch-warning-for-memblock_type_name-fix
 has been removed from the -mm tree.  Its filename was
-     cma-migrate-mlocked-pages-fix.patch
+     mm-avoid-section-mismatch-warning-for-memblock_type_name-fix.patch
 
-This patch was dropped because it was folded into cma-migrate-mlocked-pages.patch
+This patch was dropped because it was folded into mm-avoid-section-mismatch-warning-for-memblock_type_name.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: cma-migrate-mlocked-pages-fix
+Subject: mm-avoid-section-mismatch-warning-for-memblock_type_name-fix
 
-tweak comment text, per Mel
+remove inline
 
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Minchan Kim <minchan@kernel.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Raghavendra D Prabhu <rprabhu@wnohang.net>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memblock.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~cma-migrate-mlocked-pages-fix mm/vmscan.c
---- a/mm/vmscan.c~cma-migrate-mlocked-pages-fix
-+++ a/mm/vmscan.c
-@@ -1009,7 +1009,7 @@ int __isolate_lru_page(struct page *page
- 	if (!PageLRU(page))
- 		return ret;
+diff -puN mm/memblock.c~mm-avoid-section-mismatch-warning-for-memblock_type_name-fix mm/memblock.c
+--- a/mm/memblock.c~mm-avoid-section-mismatch-warning-for-memblock_type_name-fix
++++ a/mm/memblock.c
+@@ -41,8 +41,8 @@ static int memblock_memory_in_slab __ini
+ static int memblock_reserved_in_slab __initdata_memblock = 0;
  
--	/* Compaction can't handle unevictable pages but CMA can do */
-+	/* Compaction should not handle unevictable pages but CMA can do so */
- 	if (PageUnevictable(page) && !(mode & ISOLATE_UNEVICTABLE))
- 		return ret;
- 
+ /* inline so we don't get a warning when pr_debug is compiled out */
+-static inline __init_memblock
+-		const char *memblock_type_name(struct memblock_type *type)
++static __init_memblock const char *
++memblock_type_name(struct memblock_type *type)
+ {
+ 	if (type == &memblock.memory)
+ 		return "memory";
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,7 +74,7 @@ mm-fix-invalidate_complete_page2-lock-ordering.patch
 mm-numa-reclaim-from-all-nodes-within-reclaim-distance.patch
 mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock.patch
 cma-migrate-mlocked-pages.patch
-mm-avoid-section-mismatch-warning-for-memblock_type_name-fix.patch
+mm-avoid-section-mismatch-warning-for-memblock_type_name.patch
 mm-document-pagehuge-somewhat.patch
 mm-memcg-clean-up-mm_match_cgroup-signature-fix.patch
 memory-hotplug-suppress-trying-to-free-nonexistent-resource-xxxxxxxxxxxxxxxx-yyyyyyyyyyyyyyyy-warning.patch
