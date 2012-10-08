@@ -1,137 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix-fix.patch removed from -mm tree
-Date: Mon, 08 Oct 2012 16:15:03 -0700
-Message-ID: <20121008231504.1B6A8100047@wpzn3.hot.corp.google.com>
+Subject: [folded-dropped] mm-wrap-calls-to-set_pte_at_notify-with-invalidate_range_start-and-invalidate_range_end-fix.patch removed from -mm tree
+Date: Mon, 08 Oct 2012 16:15:33 -0700
+Message-ID: <20121008231534.24075100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-yh0-f74.google.com ([209.85.213.74]:38399 "EHLO
 	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750766Ab2JHXPF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 19:15:05 -0400
+	with ESMTP id S1751080Ab2JHXPf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 19:15:35 -0400
 Received: by mail-yh0-f74.google.com with SMTP id 10so450467yhl.1
-        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 16:15:05 -0700 (PDT)
+        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 16:15:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, minchan@kernel.org, mm-commits@vger.kernel.org
+To: haggaie@mellanox.com, a.p.zijlstra@chello.nl, andrea@qumranet.com, avi@redhat.com, cl@linux-foundation.org, hughd@google.com, jslaby@suse.cz, liranl@mellanox.com, ogerlitz@mellanox.com, raindel@mellanox.com, sagig@mellanox.com, xiaoguangrong@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, numa: reclaim from all nodes within reclaim distance fix fix
+     Subject: mm: call invalidate_range_end in do_wp_page even for zero pages
 has been removed from the -mm tree.  Its filename was
-     mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix-fix.patch
+     mm-wrap-calls-to-set_pte_at_notify-with-invalidate_range_start-and-invalidate_range_end-fix.patch
 
-This patch was dropped because it was folded into mm-numa-reclaim-from-all-nodes-within-reclaim-distance.patch
+This patch was dropped because it was folded into mm-wrap-calls-to-set_pte_at_notify-with-invalidate_range_start-and-invalidate_range_end.patch
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, numa: reclaim from all nodes within reclaim distance fix fix
+From: Haggai Eran <haggaie@mellanox.com>
+Subject: mm: call invalidate_range_end in do_wp_page even for zero pages
 
-It's cleaner if the iteration is explicitly done only for NUMA kernels.
-No functional change.
+The previous patch "mm: wrap calls to set_pte_at_notify with
+invalidate_range_start and invalidate_range_end" only called the
+invalidate_range_end mmu notifier function in do_wp_page when the new_page
+variable wasn't NULL.  This was done in order to only call
+invalidate_range_end after invalidate_range_start was called. 
+Unfortunately, there are situations where new_page is NULL and
+invalidate_range_start is called.  This caused invalidate_range_start to
+be called without a matching invalidate_range_end, causing kvm to loop
+indefinitely on the first page fault.
 
-Intended to be folded into
-mm-numa-reclaim-from-all-nodes-within-reclaim-distance.patch already in
--mm.
+This patch adds a flag variable to do_wp_page that marks whether the
+invalidate_range_start notifier was called.  invalidate_range_end is then
+called if the flag is true.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reported-by: Jiri Slaby <jslaby@suse.cz>
+Signed-off-by: Haggai Eran <haggaie@mellanox.com>
+Cc: Andrea Arcangeli <andrea@qumranet.com>
+Cc: Sagi Grimberg <sagig@mellanox.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
+Cc: Or Gerlitz <ogerlitz@mellanox.com>
+Cc: Haggai Eran <haggaie@mellanox.com>
+Cc: Shachar Raindel <raindel@mellanox.com>
+Cc: Liran Liss <liranl@mellanox.com>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Avi Kivity <avi@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   24 ++++++++++++++++--------
- 1 file changed, 16 insertions(+), 8 deletions(-)
+ mm/memory.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix-fix
-+++ a/mm/page_alloc.c
-@@ -1803,6 +1803,17 @@ static bool zone_allows_reclaim(struct z
- 	return node_isset(local_zone->node, zone->zone_pgdat->reclaim_nodes);
- }
+diff -puN mm/memory.c~mm-wrap-calls-to-set_pte_at_notify-with-invalidate_range_start-and-invalidate_range_end-fix mm/memory.c
+--- a/mm/memory.c~mm-wrap-calls-to-set_pte_at_notify-with-invalidate_range_start-and-invalidate_range_end-fix
++++ a/mm/memory.c
+@@ -2534,6 +2534,7 @@ static int do_wp_page(struct mm_struct *
+ 	struct page *dirty_page = NULL;
+ 	unsigned long mmun_start;	/* For mmu_notifiers */
+ 	unsigned long mmun_end;		/* For mmu_notifiers */
++	bool mmun_called = false;	/* For mmu_notifiers */
  
-+static void __paginginit init_zone_allows_reclaim(int nid)
-+{
-+	int i;
-+
-+	for_each_online_node(i)
-+		if (node_distance(nid, i) <= RECLAIM_DISTANCE) {
-+			node_set(i, NODE_DATA(nid)->reclaim_nodes);
-+			zone_reclaim_mode = 1;
-+		}
-+}
-+
- #else	/* CONFIG_NUMA */
+ 	old_page = vm_normal_page(vma, address, orig_pte);
+ 	if (!old_page) {
+@@ -2711,8 +2712,9 @@ gotten:
+ 	if (mem_cgroup_newpage_charge(new_page, mm, GFP_KERNEL))
+ 		goto oom_free_new;
  
- static nodemask_t *zlc_setup(struct zonelist *zonelist, int alloc_flags)
-@@ -1828,6 +1839,10 @@ static bool zone_allows_reclaim(struct z
- {
- 	return true;
- }
-+
-+static inline void init_zone_allows_reclaim(int nid)
-+{
-+}
- #endif	/* CONFIG_NUMA */
+-	mmun_start = address & PAGE_MASK;
+-	mmun_end   = (address & PAGE_MASK) + PAGE_SIZE;
++	mmun_start  = address & PAGE_MASK;
++	mmun_end    = (address & PAGE_MASK) + PAGE_SIZE;
++	mmun_called = true;
+ 	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
  
- /*
-@@ -4548,20 +4563,13 @@ void __paginginit free_area_init_node(in
- 		unsigned long node_start_pfn, unsigned long *zholes_size)
- {
- 	pg_data_t *pgdat = NODE_DATA(nid);
--	int i;
- 
- 	/* pg_data_t should be reset to zero when it's allocated */
- 	WARN_ON(pgdat->nr_zones || pgdat->classzone_idx);
- 
- 	pgdat->node_id = nid;
- 	pgdat->node_start_pfn = node_start_pfn;
--	for_each_online_node(i)
--		if (node_distance(nid, i) <= RECLAIM_DISTANCE) {
--			node_set(i, pgdat->reclaim_nodes);
--#ifdef CONFIG_NUMA
--			zone_reclaim_mode = 1;
--#endif
--		}
-+	init_zone_allows_reclaim(nid);
- 	calculate_node_totalpages(pgdat, zones_size, zholes_size);
- 
- 	alloc_node_mem_map(pgdat);
+ 	/*
+@@ -2781,8 +2783,7 @@ gotten:
+ 		page_cache_release(new_page);
+ unlock:
+ 	pte_unmap_unlock(page_table, ptl);
+-	if (new_page)
+-		/* Only call the end notifier if the begin was called. */
++	if (mmun_called)
+ 		mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
+ 	if (old_page) {
+ 		/*
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from haggaie@mellanox.com are
 
-origin.patch
-mm-mmapc-replace-find_vma_prepare-with-clearer-find_vma_links.patch
-oom-remove-deprecated-oom_adj.patch
-thp-fix-the-count-of-thp_collapse_alloc.patch
-thp-remove-unnecessary-check-in-start_khugepaged.patch
-thp-move-khugepaged_mutex-out-of-khugepaged.patch
-thp-remove-unnecessary-khugepaged_thread-check.patch
-thp-remove-wake_up_interruptible-in-the-exit-path.patch
-thp-remove-some-code-depend-on-config_numa.patch
-thp-merge-page-pre-alloc-in-khugepaged_loop-into-khugepaged_do_scan.patch
-thp-release-page-in-page-pre-alloc-path.patch
-thp-introduce-khugepaged_prealloc_page-and-khugepaged_alloc_page.patch
-thp-remove-khugepaged_loop.patch
-thp-use-khugepaged_enabled-to-remove-duplicate-code.patch
-thp-remove-unnecessary-set_recommended_min_free_kbytes.patch
-mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc.patch
-memory-hotplug-dont-replace-lowmem-pages-with-highmem.patch
-thp-khugepaged_prealloc_page-forgot-to-reset-the-page-alloc-indicator.patch
-mm-fix-up-zone-present-pages.patch
-mm-numa-reclaim-from-all-nodes-within-reclaim-distance.patch
-hugetlb-do-not-use-vma_hugecache_offset-for-vma_prio_tree_foreach.patch
-mm-revert-0def08e3-mm-mempolicyc-check-return-code-of-check_range.patch
-mm-revert-0def08e3-mm-mempolicyc-check-return-code-of-check_range-fix.patch
-kpageflags-fix-wrong-kpf_thp-on-non-huge-compound-pages.patch
-make-gfp_notrack-definition-unconditional.patch
-memory-hotplug-preparation-to-notify-memory-blocks-state-at-memory-hot-remove.patch
-memory-hotplug-update-memory-blocks-state-and-notfy-theinformation-to-userspace.patch
-mm-thp-fix-mapped-pages-avoiding-unevictable-list-on-mlock.patch
-mm-thp-fix-mlock-statistics.patch
-mm-thp-fix-mlock-statistics-fix.patch
-mm-use-%pk-for-proc-vmallocinfo.patch
-mm-document-pagehuge-somewhat.patch
-memory-hotplug-suppress-trying-to-free-nonexistent-resource-xxxxxxxxxxxxxxxx-yyyyyyyyyyyyyyyy-warning.patch
+mm-mmu_notifier-have-mmu_notifiers-use-a-global-srcu-so-they-may-safely-schedule.patch
+mm-mmu_notifier-init-notifier-if-necessary.patch
+mm-mmu_notifier-make-the-mmu_notifier-srcu-static.patch
+mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock.patch
+mm-wrap-calls-to-set_pte_at_notify-with-invalidate_range_start-and-invalidate_range_end.patch
 
