@@ -1,115 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] mempolicy-fix-a-memory-corruption-by-refcount-imbalance-in-alloc_pages_vma-v2.patch removed from -mm tree
-Date: Mon, 08 Oct 2012 16:02:19 -0700
-Message-ID: <20121008230219.C9931100047@wpzn3.hot.corp.google.com>
+Subject: [folded-dropped] mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch removed from -mm tree
+Date: Mon, 08 Oct 2012 16:03:36 -0700
+Message-ID: <20121008230337.B78005C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:56626 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751692Ab2JHXCV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 19:02:21 -0400
-Received: by mail-qa0-f74.google.com with SMTP id a16so395055qae.1
-        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 16:02:20 -0700 (PDT)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:42536 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753225Ab2JHXDl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 19:03:41 -0400
+Received: by mail-la0-f74.google.com with SMTP id j13so239889lah.1
+        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 16:03:39 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, cl@linux.com, jwboyer@gmail.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, avi@redhat.com, hughd@google.com, mtosatti@redhat.com, xiaoguangrong@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mempolicy-fix-a-memory-corruption-by-refcount-imbalance-in-alloc_pages_vma-v2
+     Subject: mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix
 has been removed from the -mm tree.  Its filename was
-     mempolicy-fix-a-memory-corruption-by-refcount-imbalance-in-alloc_pages_vma-v2.patch
+     mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix.patch
 
-This patch was dropped because it was folded into mempolicy-fix-a-memory-corruption-by-refcount-imbalance-in-alloc_pages_vma.patch
+This patch was dropped because it was folded into mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host.patch
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mempolicy-fix-a-memory-corruption-by-refcount-imbalance-in-alloc_pages_vma-v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix
 
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reviewed-by: Christoph Lameter <cl@linux.com>
-Cc: Josh Boyer <jwboyer@gmail.com>
+add comment from Andrea
+
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Avi Kivity <avi@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Marcelo Tosatti <mtosatti@redhat.com>
+Cc: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ include/linux/mmu_notifier.h |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN mm/mempolicy.c~mempolicy-fix-a-memory-corruption-by-refcount-imbalance-in-alloc_pages_vma-v2 mm/mempolicy.c
---- a/mm/mempolicy.c~mempolicy-fix-a-memory-corruption-by-refcount-imbalance-in-alloc_pages_vma-v2
-+++ a/mm/mempolicy.c
-@@ -1604,16 +1604,13 @@ struct mempolicy *get_vma_policy(struct 
- 		struct vm_area_struct *vma, unsigned long addr)
- {
- 	struct mempolicy *pol = task->mempolicy;
--	int got_ref;
+diff -puN include/linux/mmu_notifier.h~mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix include/linux/mmu_notifier.h
+--- a/include/linux/mmu_notifier.h~mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host-fix
++++ a/include/linux/mmu_notifier.h
+@@ -311,6 +311,16 @@ static inline void mmu_notifier_mm_destr
+ 	__young;							\
+ })
  
- 	if (vma) {
- 		if (vma->vm_ops && vma->vm_ops->get_policy) {
- 			struct mempolicy *vpol = vma->vm_ops->get_policy(vma,
- 									addr);
--			if (vpol) {
-+			if (vpol)
- 				pol = vpol;
--				got_ref = 1;
--			}
- 		} else if (vma->vm_policy) {
- 			pol = vma->vm_policy;
- 
++/*
++ * set_pte_at_notify() sets the pte _after_ running the notifier.
++ * This is safe to start by updating the secondary MMUs, because the primary MMU
++ * pte invalidate must have already happened with a ptep_clear_flush() before
++ * set_pte_at_notify() has been invoked.  Updating the secondary MMUs first is
++ * required when we change both the protection of the mapping from read-only to
++ * read-write and the pfn (like during copy on write page faults). Otherwise the
++ * old page would remain mapped readonly in the secondary MMUs after the new
++ * page is already writable by some CPU through the primary MMU.
++ */
+ #define set_pte_at_notify(__mm, __address, __ptep, __pte)		\
+ ({									\
+ 	struct mm_struct *___mm = __mm;					\
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-remove-__gfp_no_kswapd.patch
-mm-compaction-update-comment-in-try_to_compact_pages.patch
+origin.patch
+x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn.patch
+mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter.patch
+mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer.patch
 mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures.patch
-mm-compaction-capture-a-suitable-high-order-page-immediately-when-it-is-made-available.patch
-revert-mm-mempolicy-let-vma_merge-and-vma_split-handle-vma-vm_policy-linkages.patch
-mempolicy-remove-mempolicy-sharing.patch
-mempolicy-fix-a-race-in-shared_policy_replace.patch
-mempolicy-fix-refcount-leak-in-mpol_set_shared_policy.patch
-mempolicy-fix-a-memory-corruption-by-refcount-imbalance-in-alloc_pages_vma.patch
-mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration.patch
-mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix.patch
-mm-fix-tracing-in-free_pcppages_bulk.patch
+mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host.patch
+rbtree-performance-and-correctness-test-fix.patch
+mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix.patch
 mm-fix-tracing-in-free_pcppages_bulk-fix.patch
-cma-fix-counting-of-isolated-pages.patch
-cma-count-free-cma-pages.patch
 cma-count-free-cma-pages-fix.patch
-cma-fix-watermark-checking.patch
-cma-fix-watermark-checking-fix.patch
-mm-page_alloc-use-get_freepage_migratetype-instead-of-page_private.patch
-mm-remain-migratetype-in-freed-page.patch
-memory-hotplug-bug-fix-race-between-isolation-and-allocation.patch
-memory-hotplug-fix-pages-missed-by-race-rather-than-failing.patch
+memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
+atomic-implement-generic-atomic_dec_if_positive-fix.patch
 mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
 mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix.patch
 mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix-2.patch
-mm-compaction-move-fatal-signal-check-out-of-compact_checklock_irqsave.patch
-mm-compaction-update-try_to_compact_pageskerneldoc-comment.patch
-mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible.patch
-mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible-fix.patch
 mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible-fix-fix.patch
-mm-compaction-acquire-the-zone-lock-as-late-as-possible.patch
-mm-compaction-acquire-the-zone-lock-as-late-as-possible-fix-2.patch
-mm-compaction-acquire-the-zone-lock-as-late-as-possible-fix-3.patch
-revert-mm-have-order-0-compaction-start-off-where-it-left.patch
-mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated.patch
-mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated-fix.patch
-mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated-fix2.patch
-mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated-fix3.patch
-mm-compaction-restart-compaction-from-near-where-it-left-off.patch
-mm-compaction-restart-compaction-from-near-where-it-left-off-fix.patch
-mm-compaction-clear-pg_migrate_skip-based-on-compaction-and-reclaim-activity.patch
-mm-numa-reclaim-from-all-nodes-within-reclaim-distance.patch
+mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch
+mm-fix-invalidate_complete_page2-lock-ordering.patch
 mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix.patch
-mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix-fix.patch
-mm-thp-fix-pmd_present-for-split_huge_page-and-prot_none-with-thp.patch
-mm-revert-0def08e3-mm-mempolicyc-check-return-code-of-check_range.patch
-mm-revert-0def08e3-mm-mempolicyc-check-return-code-of-check_range-fix.patch
-cma-migrate-mlocked-pages.patch
+mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock.patch
 cma-migrate-mlocked-pages-fix.patch
-cma-decrease-ccnr_migratepages-after-reclaiming-pagelist.patch
-make-gfp_notrack-definition-unconditional.patch
+mm-avoid-section-mismatch-warning-for-memblock_type_name-fix.patch
+mm-document-pagehuge-somewhat.patch
+mm-memcg-clean-up-mm_match_cgroup-signature-fix.patch
+memory-hotplug-suppress-trying-to-free-nonexistent-resource-xxxxxxxxxxxxxxxx-yyyyyyyyyyyyyyyy-warning.patch
+mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code-fix.patch
 
