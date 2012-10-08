@@ -1,108 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix.patch removed from -mm tree
-Date: Mon, 08 Oct 2012 16:07:55 -0700
-Message-ID: <20121008230756.2FCAA5C0050@hpza9.eem.corp.google.com>
+Subject: [folded-dropped] mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix.patch removed from -mm tree
+Date: Mon, 08 Oct 2012 16:08:00 -0700
+Message-ID: <20121008230801.679AA5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:52064 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754112Ab2JHXH7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 19:07:59 -0400
-Received: by mail-fa0-f74.google.com with SMTP id t1so291283fae.1
-        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 16:07:57 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:62232 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754989Ab2JHXID (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 19:08:03 -0400
+Received: by mail-wg0-f74.google.com with SMTP id dt11so294899wgb.1
+        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 16:08:02 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, kyungmin.park@samsung.com, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, geert@linux-m68k.org, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix
+     Subject: mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix
 has been removed from the -mm tree.  Its filename was
-     mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix.patch
+     mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix.patch
 
 This patch was dropped because it was folded into mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration.patch
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix
 
-It is possible for pages to be dirty after the check
-in reclaim_clean_pages_from_list so that it ends up
-paging out the pages, which is never what we want for speed up.
+fix nommu build
 
-This patch fixes it.
-
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/rmap.h |   21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN mm/vmscan.c~mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix
-+++ a/mm/vmscan.c
-@@ -694,7 +694,7 @@ static unsigned long shrink_page_list(st
- 		struct address_space *mapping;
- 		struct page *page;
- 		int may_enter_fs;
--		enum page_references references = PAGEREF_RECLAIM;
-+		enum page_references references = PAGEREF_RECLAIM_CLEAN;
+diff -puN include/linux/rmap.h~mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix include/linux/rmap.h
+--- a/include/linux/rmap.h~mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix
++++ a/include/linux/rmap.h
+@@ -71,6 +71,17 @@ struct anon_vma_chain {
+ #endif
+ };
  
- 		cond_resched();
++enum ttu_flags {
++	TTU_UNMAP = 0,			/* unmap mode */
++	TTU_MIGRATION = 1,		/* migration mode */
++	TTU_MUNLOCK = 2,		/* munlock mode */
++	TTU_ACTION_MASK = 0xff,
++
++	TTU_IGNORE_MLOCK = (1 << 8),	/* ignore mlock */
++	TTU_IGNORE_ACCESS = (1 << 9),	/* don't age */
++	TTU_IGNORE_HWPOISON = (1 << 10),/* corrupted page is recoverable */
++};
++
+ #ifdef CONFIG_MMU
+ static inline void get_anon_vma(struct anon_vma *anon_vma)
+ {
+@@ -164,16 +175,6 @@ int page_referenced(struct page *, int i
+ int page_referenced_one(struct page *, struct vm_area_struct *,
+ 	unsigned long address, unsigned int *mapcount, unsigned long *vm_flags);
  
+-enum ttu_flags {
+-	TTU_UNMAP = 0,			/* unmap mode */
+-	TTU_MIGRATION = 1,		/* migration mode */
+-	TTU_MUNLOCK = 2,		/* munlock mode */
+-	TTU_ACTION_MASK = 0xff,
+-
+-	TTU_IGNORE_MLOCK = (1 << 8),	/* ignore mlock */
+-	TTU_IGNORE_ACCESS = (1 << 9),	/* don't age */
+-	TTU_IGNORE_HWPOISON = (1 << 10),/* corrupted page is recoverable */
+-};
+ #define TTU_ACTION(x) ((x) & TTU_ACTION_MASK)
+ 
+ int try_to_unmap(struct page *, enum ttu_flags flags);
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-remove-__gfp_no_kswapd.patch
+x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn.patch
+mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter.patch
 mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer.patch
-mm-compaction-update-comment-in-try_to_compact_pages.patch
 mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures.patch
-mm-compaction-capture-a-suitable-high-order-page-immediately-when-it-is-made-available.patch
+mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host.patch
+rbtree-performance-and-correctness-test.patch
 mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration.patch
-mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration-fix-fix.patch
-mm-fix-tracing-in-free_pcppages_bulk.patch
 mm-fix-tracing-in-free_pcppages_bulk-fix.patch
-cma-fix-counting-of-isolated-pages.patch
-cma-count-free-cma-pages.patch
 cma-count-free-cma-pages-fix.patch
-cma-fix-watermark-checking.patch
-cma-fix-watermark-checking-fix.patch
-mm-page_alloc-use-get_freepage_migratetype-instead-of-page_private.patch
-mm-remain-migratetype-in-freed-page.patch
-memory-hotplug-bug-fix-race-between-isolation-and-allocation.patch
-memory-hotplug-fix-pages-missed-by-race-rather-than-failing.patch
 memory-hotplug-fix-pages-missed-by-race-rather-than-failng-fix.patch
-mm-memblock-use-existing-interface-to-set-nid.patch
-mm-memblock-cleanup-early_node_map-related-comments.patch
+atomic-implement-generic-atomic_dec_if_positive-fix.patch
 mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
 mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix.patch
 mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long-fix-2.patch
-mm-compaction-move-fatal-signal-check-out-of-compact_checklock_irqsave.patch
-mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible-fix.patch
 mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible-fix-fix.patch
-mm-compaction-acquire-the-zone-lock-as-late-as-possible.patch
-revert-mm-have-order-0-compaction-start-off-where-it-left.patch
-mm-compaction-cache-if-a-pageblock-was-scanned-and-no-pages-were-isolated-fix3.patch
-mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc.patch
 mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc-checkpatch-fixes.patch
-memory-hotplug-dont-replace-lowmem-pages-with-highmem.patch
-mm-enable-config_compaction-by-default.patch
-mm-numa-reclaim-from-all-nodes-within-reclaim-distance.patch
+mm-fix-invalidate_complete_page2-lock-ordering.patch
 mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix.patch
-mm-numa-reclaim-from-all-nodes-within-reclaim-distance-fix-fix.patch
-mm-revert-0def08e3-mm-mempolicyc-check-return-code-of-check_range.patch
-mm-revert-0def08e3-mm-mempolicyc-check-return-code-of-check_range-fix.patch
-memory-hotplug-fix-zone-stat-mismatch.patch
-cma-migrate-mlocked-pages.patch
+mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock.patch
 cma-migrate-mlocked-pages-fix.patch
-cma-decrease-ccnr_migratepages-after-reclaiming-pagelist.patch
+mm-avoid-section-mismatch-warning-for-memblock_type_name-fix.patch
+mm-document-pagehuge-somewhat.patch
+mm-memcg-clean-up-mm_match_cgroup-signature-fix.patch
+memory-hotplug-suppress-trying-to-free-nonexistent-resource-xxxxxxxxxxxxxxxx-yyyyyyyyyyyyyyyy-warning.patch
+mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code-fix.patch
 
