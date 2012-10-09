@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-thermal-rcar_thermalc-fix-compilation-errors.patch added to -mm tree
-Date: Tue, 09 Oct 2012 14:57:42 -0700
-Message-ID: <20121009215743.18DCF5C0050@hpza9.eem.corp.google.com>
+Subject: + documentation-update-nfs-option-in-filesystem-vfattxt.patch added to -mm tree
+Date: Tue, 09 Oct 2012 14:59:34 -0700
+Message-ID: <20121009215935.1AEB220004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:60986 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754650Ab2JIV5q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 17:57:46 -0400
-Received: by mail-lb0-f202.google.com with SMTP id l12so371303lbo.1
-        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 14:57:44 -0700 (PDT)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:51010 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754600Ab2JIV7i (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 17:59:38 -0400
+Received: by mail-la0-f74.google.com with SMTP id j13so317580lah.1
+        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 14:59:36 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kuninori.morimoto.gx@renesas.com, develkernel412222@gmail.com, rui.zhang@intel.com
+Cc: namjae.jeon@samsung.com, a.sahrawat@samsung.com, bfields@fieldses.org, hirofumi@mail.parknet.co.jp, ravi.n1@samsung.com
 
 
 The patch titled
-     Subject: drivers/thermal/rcar_thermal.c: fix compilation errors
+     Subject: Documentation: update nfs option in filesystem/vfat.txt
 has been added to the -mm tree.  Its filename is
-     drivers-thermal-rcar_thermalc-fix-compilation-errors.patch
+     documentation-update-nfs-option-in-filesystem-vfattxt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,46 +33,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Subject: drivers/thermal/rcar_thermal.c: fix compilation errors
+From: Namjae Jeon <namjae.jeon@samsung.com>
+Subject: Documentation: update nfs option in filesystem/vfat.txt
 
-This patch fixup following error
+Update nfs option in filesystem/vfat.txt
 
-${LINUX}/drivers/thermal/rcar_thermal.c: In function 'rcar_thermal_probe':
-${LINUX}/drivers/thermal/rcar_thermal.c:214:9: warning: passing argument 3 \
-	of 'thermal_zone_device_register' makes integer from pointer without\
-	a cast [enabled by default]
-${LINUX}/include/linux/thermal.h:215:29: note: expected 'int' but argument \
-	is of type 'struct rcar_thermal_priv *'
-${LINUX}/drivers/thermal/rcar_thermal.c:214:9:\
-	error: too few arguments to function 'thermal_zone_device_register'
-
-Signed-off-by: Devendra Naga <develkernel412222@gmail.com>
-Signed-off-by: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Cc: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Namjae Jeon <namjae.jeon@samsung.com>
+Signed-off-by: Ravishankar N <ravi.n1@samsung.com>
+Signed-off-by: Amit Sahrawat <a.sahrawat@samsung.com>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/thermal/rcar_thermal.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/filesystems/vfat.txt |   21 +++++++++++++++++----
+ 1 file changed, 17 insertions(+), 4 deletions(-)
 
-diff -puN drivers/thermal/rcar_thermal.c~drivers-thermal-rcar_thermalc-fix-compilation-errors drivers/thermal/rcar_thermal.c
---- a/drivers/thermal/rcar_thermal.c~drivers-thermal-rcar_thermalc-fix-compilation-errors
-+++ a/drivers/thermal/rcar_thermal.c
-@@ -210,7 +210,7 @@ static int rcar_thermal_probe(struct pla
- 		goto error_free_priv;
- 	}
+diff -puN Documentation/filesystems/vfat.txt~documentation-update-nfs-option-in-filesystem-vfattxt Documentation/filesystems/vfat.txt
+--- a/Documentation/filesystems/vfat.txt~documentation-update-nfs-option-in-filesystem-vfattxt
++++ a/Documentation/filesystems/vfat.txt
+@@ -141,12 +141,25 @@ discard       -- If set, issues discard/
+ 		 device when blocks are freed. This is useful for SSD devices
+ 		 and sparse/thinly-provisoned LUNs.
  
--	zone = thermal_zone_device_register("rcar_thermal", 0, priv,
-+	zone = thermal_zone_device_register("rcar_thermal", 0, 0, priv,
- 				    &rcar_thermal_zone_ops, NULL, 0, 0);
- 	if (IS_ERR(zone)) {
- 		dev_err(&pdev->dev, "thermal zone device is NULL\n");
+-nfs           -- This option maintains an index (cache) of directory
++nfs= stale_rw|nostale_ro
++	      -- Enable this only if you want to export the FAT filesystem
++		 over NFS
++
++		 stale_rw:This option maintains an index (cache) of directory
+ 		 inodes by i_logstart which is used by the nfs-related code to
+-		 improve look-ups.
++		 improve look-ups.Full file operations (read/write) over NFS is supported
++		 but with cache eviction at NFS server, this could result in ESTALE issues.
+ 
+-		 Enable this only if you want to export the FAT filesystem
+-		 over NFS
++		 nostale_ro:This option bases the inode number and filehandle on the on-disk
++		 location of a file in the MS-DOS directory entry.This ensures that ESTALE
++		 will not be returned after a file is evicted from the inode cache. However,
++		 it means that operations such as rename, create and unlink could cause
++		 filehandles that previously pointed at one file to point at a different file,
++		 potentially causing data corruption. For this reason, this option also mounts
++		 the filesystem readonly.
++
++		 To maintain backward compatibility, '-o nfs' is also accepted, defaulting to
++		 stale_rw
+ 
+ <bool>: 0,1,yes,no,true,false
+ 
 _
 
-Patches currently in -mm which might be from kuninori.morimoto.gx@renesas.com are
+Patches currently in -mm which might be from namjae.jeon@samsung.com are
 
-origin.patch
-linux-next.patch
-drivers-thermal-rcar_thermalc-fix-compilation-errors.patch
+fat-modify-nfs-mount-option.patch
+fat-exportfs-rebuild-inode-if-ilookup-fails.patch
+fat-exportfs-rebuild-directory-inode-if-fat_dget-fails.patch
+documentation-update-nfs-option-in-filesystem-vfattxt.patch
 
