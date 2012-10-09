@@ -1,46 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rbtree-optimize-case-selection-logic-in-__rb_erase_color.patch removed from -mm tree
-Date: Tue, 09 Oct 2012 11:09:36 -0700
-Message-ID: <20121009180936.D95BE100047@wpzn3.hot.corp.google.com>
+Subject: [merged] rbtree-optimize-fetching-of-sibling-node.patch removed from -mm tree
+Date: Tue, 09 Oct 2012 11:09:45 -0700
+Message-ID: <20121009180945.C43D81E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:63749 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756738Ab2JISJi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:09:38 -0400
-Received: by mail-vc0-f202.google.com with SMTP id fy27so662066vcb.1
-        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:09:37 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:50800 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756738Ab2JISJr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:09:47 -0400
+Received: by mail-yh0-f74.google.com with SMTP id 10so574008yhl.1
+        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:09:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: walken@google.com, David.Woodhouse@intel.com, a.p.zijlstra@chello.nl, aarcange@redhat.com, axboe@kernel.dk, daniel.santos@pobox.com, ebiederm@xmission.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rbtree: optimize case selection logic in __rb_erase_color()
+     Subject: rbtree: optimize fetching of sibling node
 has been removed from the -mm tree.  Its filename was
-     rbtree-optimize-case-selection-logic-in-__rb_erase_color.patch
+     rbtree-optimize-fetching-of-sibling-node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michel Lespinasse <walken@google.com>
-Subject: rbtree: optimize case selection logic in __rb_erase_color()
+Subject: rbtree: optimize fetching of sibling node
 
-In __rb_erase_color(), we have to select one of 3 cases depending on the
-color on the 'other' node children.  If both children are black, we flip a
-few node colors and iterate.  Otherwise, we do either one or two tree
-rotations, depending on the color of the 'other' child opposite to 'node',
-and then we are done.
+When looking to fetch a node's sibling, we went through a sequence of:
+- check if node is the parent's left child
+- if it is, then fetch the parent's right child
 
-The corresponding logic had duplicate checks for the color of the 'other'
-child opposite to 'node'.  It was checking it first to determine if both
-children are black, and then to determine how many tree rotations are
-required.  Rearrange the logic to avoid that extra check.
+This can be replaced with:
+- fetch the parent's right child as an assumed sibling
+- check that node is NOT the fetched child
+
+This avoids fetching the parent's left child when node is actually
+that child. Saves a bit on code size, though it doesn't seem to make
+a large difference in speed.
 
 Signed-off-by: Michel Lespinasse <walken@google.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Acked-by: David Woodhouse <David.Woodhouse@intel.com>
-Cc: Rik van Riel <riel@redhat.com>
+Cc: David Woodhouse <David.Woodhouse@intel.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Daniel Santos <daniel.santos@pobox.com>
 Cc: Jens Axboe <axboe@kernel.dk>
@@ -48,100 +49,85 @@ Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/rbtree.c |   68 +++++++++++++++++++++----------------------------
- 1 file changed, 30 insertions(+), 38 deletions(-)
+ lib/rbtree.c |   21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
-diff -puN lib/rbtree.c~rbtree-optimize-case-selection-logic-in-__rb_erase_color lib/rbtree.c
---- a/lib/rbtree.c~rbtree-optimize-case-selection-logic-in-__rb_erase_color
+diff -puN lib/rbtree.c~rbtree-optimize-fetching-of-sibling-node lib/rbtree.c
+--- a/lib/rbtree.c~rbtree-optimize-fetching-of-sibling-node
 +++ a/lib/rbtree.c
-@@ -283,28 +283,24 @@ static void __rb_erase_color(struct rb_n
- 				__rb_rotate_left(parent, root);
- 				other = parent->rb_right;
+@@ -107,8 +107,8 @@ void rb_insert_color(struct rb_node *nod
+ 
+ 		gparent = rb_red_parent(parent);
+ 
+-		if (parent == gparent->rb_left) {
+-			tmp = gparent->rb_right;
++		tmp = gparent->rb_right;
++		if (parent != tmp) {	/* parent == gparent->rb_left */
+ 			if (tmp && rb_is_red(tmp)) {
+ 				/*
+ 				 * Case 1 - color flips
+@@ -131,7 +131,8 @@ void rb_insert_color(struct rb_node *nod
+ 				continue;
  			}
--			if ((!other->rb_left || rb_is_black(other->rb_left)) &&
--			    (!other->rb_right || rb_is_black(other->rb_right)))
--			{
--				rb_set_red(other);
--				node = parent;
--				parent = rb_parent(node);
--			}
--			else
--			{
--				if (!other->rb_right || rb_is_black(other->rb_right))
--				{
--					rb_set_black(other->rb_left);
-+			if (!other->rb_right || rb_is_black(other->rb_right)) {
-+				if (!other->rb_left ||
-+				    rb_is_black(other->rb_left)) {
- 					rb_set_red(other);
--					__rb_rotate_right(other, root);
--					other = parent->rb_right;
-+					node = parent;
-+					parent = rb_parent(node);
-+					continue;
- 				}
--				rb_set_color(other, rb_color(parent));
--				rb_set_black(parent);
--				rb_set_black(other->rb_right);
--				__rb_rotate_left(parent, root);
--				break;
-+				rb_set_black(other->rb_left);
-+				rb_set_red(other);
-+				__rb_rotate_right(other, root);
-+				other = parent->rb_right;
+ 
+-			if (parent->rb_right == node) {
++			tmp = parent->rb_right;
++			if (node == tmp) {
+ 				/*
+ 				 * Case 2 - left rotate at parent
+ 				 *
+@@ -151,6 +152,7 @@ void rb_insert_color(struct rb_node *nod
+ 							    RB_BLACK);
+ 				rb_set_parent_color(parent, node, RB_RED);
+ 				parent = node;
++				tmp = node->rb_right;
  			}
-+			rb_set_color(other, rb_color(parent));
-+			rb_set_black(parent);
-+			rb_set_black(other->rb_right);
-+			__rb_rotate_left(parent, root);
-+			break;
- 		} else {
- 			other = parent->rb_left;
- 			if (rb_is_red(other))
-@@ -314,28 +310,24 @@ static void __rb_erase_color(struct rb_n
- 				__rb_rotate_right(parent, root);
- 				other = parent->rb_left;
+ 
+ 			/*
+@@ -162,7 +164,7 @@ void rb_insert_color(struct rb_node *nod
+ 			 *     /                 \
+ 			 *    n                   U
+ 			 */
+-			gparent->rb_left = tmp = parent->rb_right;
++			gparent->rb_left = tmp;  /* == parent->rb_right */
+ 			parent->rb_right = gparent;
+ 			if (tmp)
+ 				rb_set_parent_color(tmp, gparent, RB_BLACK);
+@@ -180,7 +182,8 @@ void rb_insert_color(struct rb_node *nod
+ 				continue;
  			}
--			if ((!other->rb_left || rb_is_black(other->rb_left)) &&
--			    (!other->rb_right || rb_is_black(other->rb_right)))
--			{
--				rb_set_red(other);
--				node = parent;
--				parent = rb_parent(node);
--			}
--			else
--			{
--				if (!other->rb_left || rb_is_black(other->rb_left))
--				{
--					rb_set_black(other->rb_right);
-+			if (!other->rb_left || rb_is_black(other->rb_left)) {
-+				if (!other->rb_right ||
-+				    rb_is_black(other->rb_right)) {
- 					rb_set_red(other);
--					__rb_rotate_left(other, root);
--					other = parent->rb_left;
-+					node = parent;
-+					parent = rb_parent(node);
-+					continue;
- 				}
--				rb_set_color(other, rb_color(parent));
--				rb_set_black(parent);
--				rb_set_black(other->rb_left);
--				__rb_rotate_right(parent, root);
--				break;
-+				rb_set_black(other->rb_right);
-+				rb_set_red(other);
-+				__rb_rotate_left(other, root);
-+				other = parent->rb_left;
+ 
+-			if (parent->rb_left == node) {
++			tmp = parent->rb_left;
++			if (node == tmp) {
+ 				/* Case 2 - right rotate at parent */
+ 				parent->rb_left = tmp = node->rb_right;
+ 				node->rb_right = parent;
+@@ -189,10 +192,11 @@ void rb_insert_color(struct rb_node *nod
+ 							    RB_BLACK);
+ 				rb_set_parent_color(parent, node, RB_RED);
+ 				parent = node;
++				tmp = node->rb_left;
  			}
-+			rb_set_color(other, rb_color(parent));
-+			rb_set_black(parent);
-+			rb_set_black(other->rb_left);
-+			__rb_rotate_right(parent, root);
-+			break;
- 		}
- 	}
- }
+ 
+ 			/* Case 3 - left rotate at gparent */
+-			gparent->rb_right = tmp = parent->rb_left;
++			gparent->rb_right = tmp;  /* == parent->rb_left */
+ 			parent->rb_left = gparent;
+ 			if (tmp)
+ 				rb_set_parent_color(tmp, gparent, RB_BLACK);
+@@ -223,8 +227,9 @@ static void __rb_erase_color(struct rb_n
+ 			break;
+ 		} else if (!parent) {
+ 			break;
+-		} else if (parent->rb_left == node) {
+-			sibling = parent->rb_right;
++		}
++		sibling = parent->rb_right;
++		if (node != sibling) {	/* node == parent->rb_left */
+ 			if (rb_is_red(sibling)) {
+ 				/*
+ 				 * Case 1 - left rotate at parent
 _
 
 Patches currently in -mm which might be from walken@google.com are
