@@ -1,89 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memblock-cleanup-early_node_map-related-comments.patch removed from -mm tree
-Date: Tue, 09 Oct 2012 11:12:02 -0700
-Message-ID: <20121009181203.0580F1E0048@wpzn4.hot.corp.google.com>
+Subject: [merged] mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch removed from -mm tree
+Date: Tue, 09 Oct 2012 11:12:04 -0700
+Message-ID: <20121009181205.569EB5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:53699 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756777Ab2JISME (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:12:04 -0400
-Received: by mail-qc0-f202.google.com with SMTP id s25so662627qcq.1
-        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:12:03 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:45285 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756777Ab2JISMH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:12:07 -0400
+Received: by mail-wi0-f202.google.com with SMTP id hr7so285662wib.1
+        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:12:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: liwanp@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, minchan@kernel.org, shangw@linux.vnet.ibm.com, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: shli@kernel.org, aarcange@redhat.com, mgorman@suse.de, minchan@kernel.org, shli@fusionio.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memblock: cleanup early_node_map[] related comments
+     Subject: mm: compaction: abort compaction loop if lock is contended or run too long
 has been removed from the -mm tree.  Its filename was
-     mm-memblock-cleanup-early_node_map-related-comments.patch
+     mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: mm/memblock: cleanup early_node_map[] related comments
+From: Shaohua Li <shli@kernel.org>
+Subject: mm: compaction: abort compaction loop if lock is contended or run too long
 
-0ee332c14518699 ("memblock: Kill early_node_map[]") removed
-early_node_map[].  Clean up the comments to comply with that change.
+isolate_migratepages_range() might isolate no pages if for example when
+zone->lru_lock is contended and running asynchronous compaction. In this
+case, we should abort compaction, otherwise, compact_zone will run a
+useless loop and make zone->lru_lock is even contended.
 
-Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Gavin Shan <shangw@linux.vnet.ibm.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
+An additional check is added to ensure that cc.migratepages and
+cc.freepages get properly drained whan compaction is aborted.
+
+[minchan@kernel.org: Putback pages isolated for migration if aborting]
+[akpm@linux-foundation.org: compact_zone_order requires non-NULL arg contended]
+[akpm@linux-foundation.org: make compact_zone_order() require non-NULL arg `contended']
+[minchan@kernel.org: Putback pages isolated for migration if aborting]
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Shaohua Li <shli@fusionio.com>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |    3 +--
- mm/nobootmem.c           |    2 --
- mm/page_alloc.c          |    2 +-
- 3 files changed, 2 insertions(+), 5 deletions(-)
+ mm/compaction.c |   17 ++++++++++++-----
+ mm/internal.h   |    2 +-
+ 2 files changed, 13 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/memblock.h~mm-memblock-cleanup-early_node_map-related-comments include/linux/memblock.h
---- a/include/linux/memblock.h~mm-memblock-cleanup-early_node_map-related-comments
-+++ a/include/linux/memblock.h
-@@ -70,8 +70,7 @@ void __next_mem_pfn_range(int *idx, int 
-  * @p_end: ptr to ulong for end pfn of the range, can be %NULL
-  * @p_nid: ptr to int for nid of the range, can be %NULL
-  *
-- * Walks over configured memory ranges.  Available after early_node_map is
-- * populated.
-+ * Walks over configured memory ranges.
-  */
- #define for_each_mem_pfn_range(i, nid, p_start, p_end, p_nid)		\
- 	for (i = -1, __next_mem_pfn_range(&i, nid, p_start, p_end, p_nid); \
-diff -puN mm/nobootmem.c~mm-memblock-cleanup-early_node_map-related-comments mm/nobootmem.c
---- a/mm/nobootmem.c~mm-memblock-cleanup-early_node_map-related-comments
-+++ a/mm/nobootmem.c
-@@ -162,8 +162,6 @@ unsigned long __init free_all_bootmem(vo
- 	 * We need to use MAX_NUMNODES instead of NODE_DATA(0)->node_id
- 	 *  because in some case like Node0 doesn't have RAM installed
- 	 *  low ram will be on Node1
--	 * Use MAX_NUMNODES will make sure all ranges in early_node_map[]
--	 *  will be used instead of only Node0 related
- 	 */
- 	return free_low_memory_core_early(MAX_NUMNODES);
- }
-diff -puN mm/page_alloc.c~mm-memblock-cleanup-early_node_map-related-comments mm/page_alloc.c
---- a/mm/page_alloc.c~mm-memblock-cleanup-early_node_map-related-comments
-+++ a/mm/page_alloc.c
-@@ -4931,7 +4931,7 @@ void __init free_area_init_nodes(unsigne
- 			       zone_movable_pfn[i] << PAGE_SHIFT);
- 	}
+diff -puN mm/compaction.c~mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long
++++ a/mm/compaction.c
+@@ -70,8 +70,7 @@ static bool compact_checklock_irqsave(sp
  
--	/* Print out the early_node_map[] */
-+	/* Print out the early node map */
- 	printk("Early memory node ranges\n");
- 	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid)
- 		printk("  node %3d: [mem %#010lx-%#010lx]\n", nid,
+ 		/* async aborts if taking too long or contended */
+ 		if (!cc->sync) {
+-			if (cc->contended)
+-				*cc->contended = true;
++			cc->contended = true;
+ 			return false;
+ 		}
+ 
+@@ -688,7 +687,7 @@ static isolate_migrate_t isolate_migrate
+ 
+ 	/* Perform the isolation */
+ 	low_pfn = isolate_migratepages_range(zone, cc, low_pfn, end_pfn);
+-	if (!low_pfn)
++	if (!low_pfn || cc->contended)
+ 		return ISOLATE_ABORT;
+ 
+ 	cc->migrate_pfn = low_pfn;
+@@ -848,6 +847,8 @@ static int compact_zone(struct zone *zon
+ 		switch (isolate_migratepages(zone, cc)) {
+ 		case ISOLATE_ABORT:
+ 			ret = COMPACT_PARTIAL;
++			putback_lru_pages(&cc->migratepages);
++			cc->nr_migratepages = 0;
+ 			goto out;
+ 		case ISOLATE_NONE:
+ 			continue;
+@@ -896,6 +897,7 @@ static unsigned long compact_zone_order(
+ 				 bool sync, bool *contended,
+ 				 struct page **page)
+ {
++	unsigned long ret;
+ 	struct compact_control cc = {
+ 		.nr_freepages = 0,
+ 		.nr_migratepages = 0,
+@@ -903,13 +905,18 @@ static unsigned long compact_zone_order(
+ 		.migratetype = allocflags_to_migratetype(gfp_mask),
+ 		.zone = zone,
+ 		.sync = sync,
+-		.contended = contended,
+ 		.page = page,
+ 	};
+ 	INIT_LIST_HEAD(&cc.freepages);
+ 	INIT_LIST_HEAD(&cc.migratepages);
+ 
+-	return compact_zone(zone, &cc);
++	ret = compact_zone(zone, &cc);
++
++	VM_BUG_ON(!list_empty(&cc.freepages));
++	VM_BUG_ON(!list_empty(&cc.migratepages));
++
++	*contended = cc.contended;
++	return ret;
+ }
+ 
+ int sysctl_extfrag_threshold = 500;
+diff -puN mm/internal.h~mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long mm/internal.h
+--- a/mm/internal.h~mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long
++++ a/mm/internal.h
+@@ -130,7 +130,7 @@ struct compact_control {
+ 	int order;			/* order a direct compactor needs */
+ 	int migratetype;		/* MOVABLE, RECLAIMABLE etc */
+ 	struct zone *zone;
+-	bool *contended;		/* True if a lock was contended */
++	bool contended;			/* True if a lock was contended */
+ 	struct page **page;		/* Page captured of requested size */
+ };
+ 
 _
 
-Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
+Patches currently in -mm which might be from shli@kernel.org are
 
 origin.patch
-mm-memblock-reduce-overhead-in-binary-search.patch
+linux-next.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
 
