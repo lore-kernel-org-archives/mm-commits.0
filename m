@@ -1,69 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-kill-vma-flag-vm_executable-and-mm-num_exe_file_vmas.patch removed from -mm tree
-Date: Tue, 09 Oct 2012 11:06:11 -0700
-Message-ID: <20121009180612.3E0A91E0043@wpzn4.hot.corp.google.com>
+Subject: [merged] mm-prepare-vm_dontdump-for-using-in-drivers.patch removed from -mm tree
+Date: Tue, 09 Oct 2012 11:06:16 -0700
+Message-ID: <20121009180617.1FFE21E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:62892 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752730Ab2JISGO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:06:14 -0400
-Received: by mail-gg0-f202.google.com with SMTP id i4so660175ggm.1
-        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:06:13 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:40838 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752730Ab2JISGS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:06:18 -0400
+Received: by mail-yh0-f74.google.com with SMTP id 10so573446yhl.1
+        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:06:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: khlebnikov@openvz.org, a.p.zijlstra@chello.nl, cmetcalf@tilera.com, cotte@de.ibm.com, eparis@redhat.com, gorcunov@openvz.org, hpa@zytor.com, hughd@google.com, james.l.morris@oracle.com, jbaron@redhat.com, matthltc@us.ibm.com, mingo@redhat.com, npiggin@kernel.dk, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, robert.richter@amd.com, suresh.b.siddha@intel.com, takedakn@nttdata.co.jp, torvalds@linux-foundation.org, venki@google.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: kill vma flag VM_EXECUTABLE and mm->num_exe_file_vmas
+     Subject: mm: prepare VM_DONTDUMP for using in drivers
 has been removed from the -mm tree.  Its filename was
-     mm-kill-vma-flag-vm_executable-and-mm-num_exe_file_vmas.patch
+     mm-prepare-vm_dontdump-for-using-in-drivers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: mm: kill vma flag VM_EXECUTABLE and mm->num_exe_file_vmas
+Subject: mm: prepare VM_DONTDUMP for using in drivers
 
-Currently the kernel sets mm->exe_file during sys_execve() and then tracks
-number of vmas with VM_EXECUTABLE flag in mm->num_exe_file_vmas, as soon
-as this counter drops to zero kernel resets mm->exe_file to NULL.  Plus it
-resets mm->exe_file at last mmput() when mm->mm_users drops to zero.
+Rename VM_NODUMP into VM_DONTDUMP: this name matches other negative flags:
+VM_DONTEXPAND, VM_DONTCOPY.  Currently this flag used only for
+sys_madvise.  The next patch will use it for replacing the outdated flag
+VM_RESERVED.
 
-VMA with VM_EXECUTABLE flag appears after mapping file with flag
-MAP_EXECUTABLE, such vmas can appears only at sys_execve() or after vma
-splitting, because sys_mmap ignores this flag.  Usually binfmt module sets
-mm->exe_file and mmaps executable vmas with this file, they hold
-mm->exe_file while task is running.
-
-comment from v2.6.25-6245-g925d1c4 ("procfs task exe symlink"),
-where all this stuff was introduced:
-
-> The kernel implements readlink of /proc/pid/exe by getting the file from
-> the first executable VMA.  Then the path to the file is reconstructed and
-> reported as the result.
->
-> Because of the VMA walk the code is slightly different on nommu systems.
-> This patch avoids separate /proc/pid/exe code on nommu systems.  Instead of
-> walking the VMAs to find the first executable file-backed VMA we store a
-> reference to the exec'd file in the mm_struct.
->
-> That reference would prevent the filesystem holding the executable file
-> from being unmounted even after unmapping the VMAs.  So we track the number
-> of VM_EXECUTABLE VMAs and drop the new reference when the last one is
-> unmapped.  This avoids pinning the mounted filesystem.
-
-exe_file's vma accounting is hooked into every file mmap/unmmap and vma
-split/merge just to fix some hypothetical pinning fs from umounting by mm,
-which already unmapped all its executable files, but still alive.
-
-Seems like currently nobody depends on this behaviour.  We can try to
-remove this logic and keep mm->exe_file until final mmput().
-
-mm->exe_file is still protected with mm->mmap_sem, because we want to
-change it via new sys_prctl(PR_SET_MM_EXE_FILE).  Also via this syscall
-task can change its mm->exe_file and unpin mountpoint explicitly.
+Also forbid madvise(MADV_DODUMP) for special kernel mappings VM_SPECIAL
+(VM_IO | VM_DONTEXPAND | VM_RESERVED | VM_PFNMAP)
 
 Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -89,205 +58,55 @@ Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h       |    4 ----
- include/linux/mm_types.h |    1 -
- include/linux/mman.h     |    1 -
- kernel/fork.c            |   21 ---------------------
- mm/mmap.c                |   25 ++++---------------------
- mm/nommu.c               |   11 +----------
- 6 files changed, 5 insertions(+), 58 deletions(-)
+ fs/binfmt_elf.c    |    2 +-
+ include/linux/mm.h |    2 +-
+ mm/madvise.c       |    8 ++++++--
+ 3 files changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/mm.h~mm-kill-vma-flag-vm_executable-and-mm-num_exe_file_vmas include/linux/mm.h
---- a/include/linux/mm.h~mm-kill-vma-flag-vm_executable-and-mm-num_exe_file_vmas
+diff -puN fs/binfmt_elf.c~mm-prepare-vm_dontdump-for-using-in-drivers fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~mm-prepare-vm_dontdump-for-using-in-drivers
++++ a/fs/binfmt_elf.c
+@@ -1123,7 +1123,7 @@ static unsigned long vma_dump_size(struc
+ 	if (always_dump_vma(vma))
+ 		goto whole;
+ 
+-	if (vma->vm_flags & VM_NODUMP)
++	if (vma->vm_flags & VM_DONTDUMP)
+ 		return 0;
+ 
+ 	/* Hugetlb memory check */
+diff -puN include/linux/mm.h~mm-prepare-vm_dontdump-for-using-in-drivers include/linux/mm.h
+--- a/include/linux/mm.h~mm-prepare-vm_dontdump-for-using-in-drivers
 +++ a/include/linux/mm.h
-@@ -87,7 +87,6 @@ extern unsigned int kobjsize(const void 
- #define VM_PFNMAP	0x00000400	/* Page-ranges managed without "struct page", just pure PFN */
- #define VM_DENYWRITE	0x00000800	/* ETXTBSY on write attempts.. */
+@@ -102,7 +102,7 @@ extern unsigned int kobjsize(const void 
+ #define VM_HUGETLB	0x00400000	/* Huge TLB Page VM */
+ #define VM_NONLINEAR	0x00800000	/* Is non-linear (remap_file_pages) */
+ #define VM_ARCH_1	0x01000000	/* Architecture-specific flag */
+-#define VM_NODUMP	0x04000000	/* Do not include in the core dump */
++#define VM_DONTDUMP	0x04000000	/* Do not include in the core dump */
  
--#define VM_EXECUTABLE	0x00001000
- #define VM_LOCKED	0x00002000
- #define VM_IO           0x00004000	/* Memory mapped I/O or similar */
- 
-@@ -1396,9 +1395,6 @@ extern void exit_mmap(struct mm_struct *
- extern int mm_take_all_locks(struct mm_struct *mm);
- extern void mm_drop_all_locks(struct mm_struct *mm);
- 
--/* From fs/proc/base.c. callers must _not_ hold the mm's exe_file_lock */
--extern void added_exe_file_vma(struct mm_struct *mm);
--extern void removed_exe_file_vma(struct mm_struct *mm);
- extern void set_mm_exe_file(struct mm_struct *mm, struct file *new_exe_file);
- extern struct file *get_mm_exe_file(struct mm_struct *mm);
- 
-diff -puN include/linux/mm_types.h~mm-kill-vma-flag-vm_executable-and-mm-num_exe_file_vmas include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-kill-vma-flag-vm_executable-and-mm-num_exe_file_vmas
-+++ a/include/linux/mm_types.h
-@@ -394,7 +394,6 @@ struct mm_struct {
- 
- 	/* store ref to file /proc/<pid>/exe symlink points to */
- 	struct file *exe_file;
--	unsigned long num_exe_file_vmas;
- #ifdef CONFIG_MMU_NOTIFIER
- 	struct mmu_notifier_mm *mmu_notifier_mm;
- #endif
-diff -puN include/linux/mman.h~mm-kill-vma-flag-vm_executable-and-mm-num_exe_file_vmas include/linux/mman.h
---- a/include/linux/mman.h~mm-kill-vma-flag-vm_executable-and-mm-num_exe_file_vmas
-+++ a/include/linux/mman.h
-@@ -86,7 +86,6 @@ calc_vm_flag_bits(unsigned long flags)
- {
- 	return _calc_vm_trans(flags, MAP_GROWSDOWN,  VM_GROWSDOWN ) |
- 	       _calc_vm_trans(flags, MAP_DENYWRITE,  VM_DENYWRITE ) |
--	       _calc_vm_trans(flags, MAP_EXECUTABLE, VM_EXECUTABLE) |
- 	       _calc_vm_trans(flags, MAP_LOCKED,     VM_LOCKED    );
- }
- #endif /* __KERNEL__ */
-diff -puN kernel/fork.c~mm-kill-vma-flag-vm_executable-and-mm-num_exe_file_vmas kernel/fork.c
---- a/kernel/fork.c~mm-kill-vma-flag-vm_executable-and-mm-num_exe_file_vmas
-+++ a/kernel/fork.c
-@@ -622,26 +622,6 @@ void mmput(struct mm_struct *mm)
- }
- EXPORT_SYMBOL_GPL(mmput);
- 
--/*
-- * We added or removed a vma mapping the executable. The vmas are only mapped
-- * during exec and are not mapped with the mmap system call.
-- * Callers must hold down_write() on the mm's mmap_sem for these
-- */
--void added_exe_file_vma(struct mm_struct *mm)
--{
--	mm->num_exe_file_vmas++;
--}
--
--void removed_exe_file_vma(struct mm_struct *mm)
--{
--	mm->num_exe_file_vmas--;
--	if ((mm->num_exe_file_vmas == 0) && mm->exe_file) {
--		fput(mm->exe_file);
--		mm->exe_file = NULL;
--	}
--
--}
--
- void set_mm_exe_file(struct mm_struct *mm, struct file *new_exe_file)
- {
- 	if (new_exe_file)
-@@ -649,7 +629,6 @@ void set_mm_exe_file(struct mm_struct *m
- 	if (mm->exe_file)
- 		fput(mm->exe_file);
- 	mm->exe_file = new_exe_file;
--	mm->num_exe_file_vmas = 0;
- }
- 
- struct file *get_mm_exe_file(struct mm_struct *mm)
-diff -puN mm/mmap.c~mm-kill-vma-flag-vm_executable-and-mm-num_exe_file_vmas mm/mmap.c
---- a/mm/mmap.c~mm-kill-vma-flag-vm_executable-and-mm-num_exe_file_vmas
-+++ a/mm/mmap.c
-@@ -231,11 +231,8 @@ static struct vm_area_struct *remove_vma
- 	might_sleep();
- 	if (vma->vm_ops && vma->vm_ops->close)
- 		vma->vm_ops->close(vma);
--	if (vma->vm_file) {
-+	if (vma->vm_file)
- 		fput(vma->vm_file);
--		if (vma->vm_flags & VM_EXECUTABLE)
--			removed_exe_file_vma(vma->vm_mm);
--	}
- 	mpol_put(vma_policy(vma));
- 	kmem_cache_free(vm_area_cachep, vma);
- 	return next;
-@@ -636,8 +633,6 @@ again:			remove_next = 1 + (end > next->
- 		if (file) {
- 			uprobe_munmap(next, next->vm_start, next->vm_end);
- 			fput(file);
--			if (next->vm_flags & VM_EXECUTABLE)
--				removed_exe_file_vma(mm);
- 		}
- 		if (next->anon_vma)
- 			anon_vma_merge(vma, next);
-@@ -1304,8 +1299,6 @@ munmap_back:
- 		error = file->f_op->mmap(file, vma);
- 		if (error)
- 			goto unmap_and_free_vma;
--		if (vm_flags & VM_EXECUTABLE)
--			added_exe_file_vma(mm);
- 
- 		/* Can addr have changed??
- 		 *
-@@ -1987,11 +1980,8 @@ static int __split_vma(struct mm_struct 
- 	if (anon_vma_clone(new, vma))
- 		goto out_free_mpol;
- 
--	if (new->vm_file) {
-+	if (new->vm_file)
- 		get_file(new->vm_file);
--		if (vma->vm_flags & VM_EXECUTABLE)
--			added_exe_file_vma(mm);
--	}
- 
- 	if (new->vm_ops && new->vm_ops->open)
- 		new->vm_ops->open(new);
-@@ -2009,11 +1999,8 @@ static int __split_vma(struct mm_struct 
- 	/* Clean everything up if vma_adjust failed. */
- 	if (new->vm_ops && new->vm_ops->close)
- 		new->vm_ops->close(new);
--	if (new->vm_file) {
--		if (vma->vm_flags & VM_EXECUTABLE)
--			removed_exe_file_vma(mm);
-+	if (new->vm_file)
- 		fput(new->vm_file);
--	}
- 	unlink_anon_vmas(new);
-  out_free_mpol:
- 	mpol_put(pol);
-@@ -2408,12 +2395,8 @@ struct vm_area_struct *copy_vma(struct v
- 			new_vma->vm_start = addr;
- 			new_vma->vm_end = addr + len;
- 			new_vma->vm_pgoff = pgoff;
--			if (new_vma->vm_file) {
-+			if (new_vma->vm_file)
- 				get_file(new_vma->vm_file);
--
--				if (vma->vm_flags & VM_EXECUTABLE)
--					added_exe_file_vma(mm);
--			}
- 			if (new_vma->vm_ops && new_vma->vm_ops->open)
- 				new_vma->vm_ops->open(new_vma);
- 			vma_link(mm, new_vma, prev, rb_link, rb_parent);
-diff -puN mm/nommu.c~mm-kill-vma-flag-vm_executable-and-mm-num_exe_file_vmas mm/nommu.c
---- a/mm/nommu.c~mm-kill-vma-flag-vm_executable-and-mm-num_exe_file_vmas
-+++ a/mm/nommu.c
-@@ -789,11 +789,8 @@ static void delete_vma(struct mm_struct 
- 	kenter("%p", vma);
- 	if (vma->vm_ops && vma->vm_ops->close)
- 		vma->vm_ops->close(vma);
--	if (vma->vm_file) {
-+	if (vma->vm_file)
- 		fput(vma->vm_file);
--		if (vma->vm_flags & VM_EXECUTABLE)
--			removed_exe_file_vma(mm);
--	}
- 	put_nommu_region(vma->vm_region);
- 	kmem_cache_free(vm_area_cachep, vma);
- }
-@@ -1284,10 +1281,6 @@ unsigned long do_mmap_pgoff(struct file 
- 	if (file) {
- 		region->vm_file = get_file(file);
- 		vma->vm_file = get_file(file);
--		if (vm_flags & VM_EXECUTABLE) {
--			added_exe_file_vma(current->mm);
--			vma->vm_mm = current->mm;
--		}
- 	}
- 
- 	down_write(&nommu_region_sem);
-@@ -1440,8 +1433,6 @@ error:
- 	kmem_cache_free(vm_region_jar, region);
- 	if (vma->vm_file)
- 		fput(vma->vm_file);
--	if (vma->vm_flags & VM_EXECUTABLE)
--		removed_exe_file_vma(vma->vm_mm);
- 	kmem_cache_free(vm_area_cachep, vma);
- 	kleave(" = %d", ret);
- 	return ret;
+ #define VM_MIXEDMAP	0x10000000	/* Can contain "struct page" and pure PFN pages */
+ #define VM_HUGEPAGE	0x20000000	/* MADV_HUGEPAGE marked this vma */
+diff -puN mm/madvise.c~mm-prepare-vm_dontdump-for-using-in-drivers mm/madvise.c
+--- a/mm/madvise.c~mm-prepare-vm_dontdump-for-using-in-drivers
++++ a/mm/madvise.c
+@@ -69,10 +69,14 @@ static long madvise_behavior(struct vm_a
+ 		new_flags &= ~VM_DONTCOPY;
+ 		break;
+ 	case MADV_DONTDUMP:
+-		new_flags |= VM_NODUMP;
++		new_flags |= VM_DONTDUMP;
+ 		break;
+ 	case MADV_DODUMP:
+-		new_flags &= ~VM_NODUMP;
++		if (new_flags & VM_SPECIAL) {
++			error = -EINVAL;
++			goto out;
++		}
++		new_flags &= ~VM_DONTDUMP;
+ 		break;
+ 	case MADV_MERGEABLE:
+ 	case MADV_UNMERGEABLE:
 _
 
 Patches currently in -mm which might be from khlebnikov@openvz.org are
