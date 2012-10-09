@@ -1,61 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-khugepaged_prealloc_page-forgot-to-reset-the-page-alloc-indicator.patch removed from -mm tree
-Date: Tue, 09 Oct 2012 11:13:02 -0700
-Message-ID: <20121009181302.B79111E0048@wpzn4.hot.corp.google.com>
+Subject: [merged] mm-thp-fix-the-pmd_clear-arguments-in-pmdp_get_and_clear.patch removed from -mm tree
+Date: Tue, 09 Oct 2012 11:13:05 -0700
+Message-ID: <20121009181305.E27CD100048@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:59664 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756748Ab2JISND (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:13:03 -0400
-Received: by mail-gh0-f202.google.com with SMTP id z15so661396ghb.1
-        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:13:03 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:38978 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756803Ab2JISNH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:13:07 -0400
+Received: by mail-qa0-f74.google.com with SMTP id a16so519002qae.1
+        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:13:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiaoguangrong@linux.vnet.ibm.com, aarcange@redhat.com, hughd@google.com, rientjes@google.com, walken@google.com, mm-commits@vger.kernel.org
+To: catalin.marinas@arm.com, aarcange@redhat.com, arnd@arndb.de, cmetcalf@tilera.com, gerald.schaefer@de.ibm.com, kirill@shutemov.name, mhocko@suse.cz, steve.capper@arm.com, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: khugepaged_prealloc_page() forgot to reset the page alloc indicator
+     Subject: mm: thp: fix the pmd_clear() arguments in pmdp_get_and_clear()
 has been removed from the -mm tree.  Its filename was
-     thp-khugepaged_prealloc_page-forgot-to-reset-the-page-alloc-indicator.patch
+     mm-thp-fix-the-pmd_clear-arguments-in-pmdp_get_and_clear.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
-Subject: thp: khugepaged_prealloc_page() forgot to reset the page alloc indicator
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: mm: thp: fix the pmd_clear() arguments in pmdp_get_and_clear()
 
-If NUMA is enabled, the indicator is not reset if the previous page
-request failed, ausing us to trigger the BUG_ON() in
-khugepaged_alloc_page().
+The CONFIG_TRANSPARENT_HUGEPAGE implementation of pmdp_get_and_clear()
+calls pmd_clear() with 3 arguments instead of 1.
 
-Signed-off-by: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: David Rientjes <rientjes@google.com>
+This happens only for !__HAVE_ARCH_PMDP_GET_AND_CLEAR which doesn't seem
+to happen because x86 defines this and it uses pmd_update.
+
+[mhocko@suse.cz: changelog addition]
+Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+Signed-off-by: Steve Capper <steve.capper@arm.com>
+Signed-off-by: Will Deacon <will.deacon@arm.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Reviewed-by: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/asm-generic/pgtable.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/huge_memory.c~thp-khugepaged_prealloc_page-forgot-to-reset-the-page-alloc-indicator mm/huge_memory.c
---- a/mm/huge_memory.c~thp-khugepaged_prealloc_page-forgot-to-reset-the-page-alloc-indicator
-+++ a/mm/huge_memory.c
-@@ -1797,6 +1797,7 @@ static bool khugepaged_prealloc_page(str
- 			return false;
- 
- 		*wait = false;
-+		*hpage = NULL;
- 		khugepaged_alloc_sleep();
- 	} else if (*hpage) {
- 		put_page(*hpage);
+diff -puN include/asm-generic/pgtable.h~mm-thp-fix-the-pmd_clear-arguments-in-pmdp_get_and_clear include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-thp-fix-the-pmd_clear-arguments-in-pmdp_get_and_clear
++++ a/include/asm-generic/pgtable.h
+@@ -87,7 +87,7 @@ static inline pmd_t pmdp_get_and_clear(s
+ 				       pmd_t *pmdp)
+ {
+ 	pmd_t pmd = *pmdp;
+-	pmd_clear(mm, address, pmdp);
++	pmd_clear(pmdp);
+ 	return pmd;
+ }
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
 _
 
-Patches currently in -mm which might be from xiaoguangrong@linux.vnet.ibm.com are
+Patches currently in -mm which might be from catalin.marinas@arm.com are
 
 origin.patch
 linux-next.patch
+compat-generic-compat_sys_sched_rr_get_interval-implementation.patch
 
