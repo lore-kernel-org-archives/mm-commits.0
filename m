@@ -1,54 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-introduce-arch-specific-vma-flag-vm_arch_1.patch removed from -mm tree
-Date: Tue, 09 Oct 2012 11:05:51 -0700
-Message-ID: <20121009180552.06289100047@wpzn3.hot.corp.google.com>
+Subject: [merged] mm-kill-vma-flag-vm_insertpage.patch removed from -mm tree
+Date: Tue, 09 Oct 2012 11:05:55 -0700
+Message-ID: <20121009180556.2049D100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:58666 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752730Ab2JISFy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:05:54 -0400
-Received: by mail-qa0-f74.google.com with SMTP id a16so518039qae.1
-        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:05:53 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:35195 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752730Ab2JISF6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:05:58 -0400
+Received: by mail-qc0-f202.google.com with SMTP id s25so661843qcq.1
+        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:05:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: khlebnikov@openvz.org, a.p.zijlstra@chello.nl, cmetcalf@tilera.com, cotte@de.ibm.com, eparis@redhat.com, gorcunov@openvz.org, hpa@zytor.com, hughd@google.com, james.l.morris@oracle.com, jbaron@redhat.com, matthltc@us.ibm.com, mingo@redhat.com, npiggin@kernel.dk, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, robert.richter@amd.com, suresh.b.siddha@intel.com, takedakn@nttdata.co.jp, torvalds@linux-foundation.org, venki@google.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: introduce arch-specific vma flag VM_ARCH_1
+     Subject: mm: kill vma flag VM_INSERTPAGE
 has been removed from the -mm tree.  Its filename was
-     mm-introduce-arch-specific-vma-flag-vm_arch_1.patch
+     mm-kill-vma-flag-vm_insertpage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Subject: mm: introduce arch-specific vma flag VM_ARCH_1
+Subject: mm: kill vma flag VM_INSERTPAGE
 
-Combine several arch-specific vma flags into one.
+Merge VM_INSERTPAGE into VM_MIXEDMAP.  VM_MIXEDMAP VMA can mix pure-pfn
+ptes, special ptes and normal ptes.
 
-before patch:
+Now copy_page_range() always copies VM_MIXEDMAP VMA on fork like
+VM_PFNMAP.  If driver populates whole VMA at mmap() it probably not
+expects page-faults.
 
-        0x00000200      0x01000000      0x20000000      0x40000000
-x86     VM_NOHUGEPAGE   VM_HUGEPAGE     -               VM_PAT
-powerpc -               -               VM_SAO          -
-parisc  VM_GROWSUP      -               -               -
-ia64    VM_GROWSUP      -               -               -
-nommu   -               VM_MAPPED_COPY  -               -
-others  -               -               -               -
+This patch removes special check from vma_wants_writenotify() which
+disables pages write tracking for VMA populated via vm_instert_page(). 
+BDI below mapped file should not use dirty-accounting, moreover
+do_wp_page() can handle this.
 
-after patch:
-
-        0x00000200      0x01000000      0x20000000      0x40000000
-x86     -               VM_PAT          VM_HUGEPAGE     VM_NOHUGEPAGE
-powerpc -               VM_SAO          -               -
-parisc  -               VM_GROWSUP      -               -
-ia64    -               VM_GROWSUP      -               -
-nommu   -               VM_MAPPED_COPY  -               -
-others  -               VM_ARCH_1       -               -
-
-And voila! One completely free bit.
+vm_insert_page() still marks vma after first usage.  Usually it is called
+from f_op->mmap() handler under mm->mmap_sem write-lock, so it able to
+change vma->vm_flags.  Caller must set VM_MIXEDMAP at mmap time if it
+wants to call this function from other places, for example from page-fault
+handler.
 
 Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -74,107 +68,99 @@ Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   34 +++++++++++++++++++++-------------
- mm/huge_memory.c   |    2 +-
- mm/ksm.c           |    7 ++++++-
- 3 files changed, 28 insertions(+), 15 deletions(-)
+ include/linux/mm.h |    1 -
+ mm/huge_memory.c   |    3 +--
+ mm/ksm.c           |    2 +-
+ mm/memory.c        |   14 ++++++++++++--
+ mm/mmap.c          |    2 +-
+ 5 files changed, 15 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/mm.h~mm-introduce-arch-specific-vma-flag-vm_arch_1 include/linux/mm.h
---- a/include/linux/mm.h~mm-introduce-arch-specific-vma-flag-vm_arch_1
+diff -puN include/linux/mm.h~mm-kill-vma-flag-vm_insertpage include/linux/mm.h
+--- a/include/linux/mm.h~mm-kill-vma-flag-vm_insertpage
 +++ a/include/linux/mm.h
-@@ -70,6 +70,8 @@ extern unsigned int kobjsize(const void 
- /*
-  * vm_flags in vm_area_struct, see mm_types.h.
-  */
-+#define VM_NONE		0x00000000
-+
- #define VM_READ		0x00000001	/* currently active flags */
- #define VM_WRITE	0x00000002
- #define VM_EXEC		0x00000004
-@@ -82,12 +84,6 @@ extern unsigned int kobjsize(const void 
- #define VM_MAYSHARE	0x00000080
- 
- #define VM_GROWSDOWN	0x00000100	/* general info on the segment */
--#if defined(CONFIG_STACK_GROWSUP) || defined(CONFIG_IA64)
--#define VM_GROWSUP	0x00000200
--#else
--#define VM_GROWSUP	0x00000000
--#define VM_NOHUGEPAGE	0x00000200	/* MADV_NOHUGEPAGE marked this vma */
--#endif
- #define VM_PFNMAP	0x00000400	/* Page-ranges managed without "struct page", just pure PFN */
- #define VM_DENYWRITE	0x00000800	/* ETXTBSY on write attempts.. */
- 
-@@ -106,20 +102,32 @@ extern unsigned int kobjsize(const void 
- #define VM_NORESERVE	0x00200000	/* should the VM suppress accounting */
+@@ -103,7 +103,6 @@ extern unsigned int kobjsize(const void 
  #define VM_HUGETLB	0x00400000	/* Huge TLB Page VM */
  #define VM_NONLINEAR	0x00800000	/* Is non-linear (remap_file_pages) */
--#ifndef CONFIG_TRANSPARENT_HUGEPAGE
--#define VM_MAPPED_COPY	0x01000000	/* T if mapped copy of data (nommu mmap) */
--#else
--#define VM_HUGEPAGE	0x01000000	/* MADV_HUGEPAGE marked this vma */
--#endif
-+#define VM_ARCH_1	0x01000000	/* Architecture-specific flag */
- #define VM_INSERTPAGE	0x02000000	/* The vma has had "vm_insert_page()" done on it */
+ #define VM_ARCH_1	0x01000000	/* Architecture-specific flag */
+-#define VM_INSERTPAGE	0x02000000	/* The vma has had "vm_insert_page()" done on it */
  #define VM_NODUMP	0x04000000	/* Do not include in the core dump */
  
  #define VM_CAN_NONLINEAR 0x08000000	/* Has ->fault & does nonlinear pages */
- #define VM_MIXEDMAP	0x10000000	/* Can contain "struct page" and pure PFN pages */
--#define VM_SAO		0x20000000	/* Strong Access Ordering (powerpc) */
--#define VM_PAT		0x40000000	/* PAT reserves whole VMA at once (x86) */
-+#define VM_HUGEPAGE	0x20000000	/* MADV_HUGEPAGE marked this vma */
-+#define VM_NOHUGEPAGE	0x40000000	/* MADV_NOHUGEPAGE marked this vma */
- #define VM_MERGEABLE	0x80000000	/* KSM may merge identical pages */
- 
-+#if defined(CONFIG_X86)
-+# define VM_PAT		VM_ARCH_1	/* PAT reserves whole VMA at once (x86) */
-+#elif defined(CONFIG_PPC)
-+# define VM_SAO		VM_ARCH_1	/* Strong Access Ordering (powerpc) */
-+#elif defined(CONFIG_PARISC)
-+# define VM_GROWSUP	VM_ARCH_1
-+#elif defined(CONFIG_IA64)
-+# define VM_GROWSUP	VM_ARCH_1
-+#elif !defined(CONFIG_MMU)
-+# define VM_MAPPED_COPY	VM_ARCH_1	/* T if mapped copy of data (nommu mmap) */
-+#endif
-+
-+#ifndef VM_GROWSUP
-+# define VM_GROWSUP	VM_NONE
-+#endif
-+
- /* Bits set in the VMA until the stack is in its final location */
- #define VM_STACK_INCOMPLETE_SETUP	(VM_RAND_READ | VM_SEQ_READ)
- 
-diff -puN mm/huge_memory.c~mm-introduce-arch-specific-vma-flag-vm_arch_1 mm/huge_memory.c
---- a/mm/huge_memory.c~mm-introduce-arch-specific-vma-flag-vm_arch_1
+diff -puN mm/huge_memory.c~mm-kill-vma-flag-vm_insertpage mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-kill-vma-flag-vm_insertpage
 +++ a/mm/huge_memory.c
-@@ -1491,7 +1491,7 @@ out:
+@@ -1491,8 +1491,7 @@ out:
  	return ret;
  }
  
--#define VM_NO_THP (VM_SPECIAL|VM_INSERTPAGE|VM_MIXEDMAP|VM_SAO| \
-+#define VM_NO_THP (VM_SPECIAL|VM_INSERTPAGE|VM_MIXEDMAP| \
- 		   VM_HUGETLB|VM_SHARED|VM_MAYSHARE)
+-#define VM_NO_THP (VM_SPECIAL|VM_INSERTPAGE|VM_MIXEDMAP| \
+-		   VM_HUGETLB|VM_SHARED|VM_MAYSHARE)
++#define VM_NO_THP (VM_SPECIAL|VM_MIXEDMAP|VM_HUGETLB|VM_SHARED|VM_MAYSHARE)
  
  int hugepage_madvise(struct vm_area_struct *vma,
-diff -puN mm/ksm.c~mm-introduce-arch-specific-vma-flag-vm_arch_1 mm/ksm.c
---- a/mm/ksm.c~mm-introduce-arch-specific-vma-flag-vm_arch_1
+ 		     unsigned long *vm_flags, int advice)
+diff -puN mm/ksm.c~mm-kill-vma-flag-vm_insertpage mm/ksm.c
+--- a/mm/ksm.c~mm-kill-vma-flag-vm_insertpage
 +++ a/mm/ksm.c
-@@ -1470,9 +1470,14 @@ int ksm_madvise(struct vm_area_struct *v
+@@ -1469,7 +1469,7 @@ int ksm_madvise(struct vm_area_struct *v
+ 		 */
  		if (*vm_flags & (VM_MERGEABLE | VM_SHARED  | VM_MAYSHARE   |
  				 VM_PFNMAP    | VM_IO      | VM_DONTEXPAND |
- 				 VM_RESERVED  | VM_HUGETLB | VM_INSERTPAGE |
--				 VM_NONLINEAR | VM_MIXEDMAP | VM_SAO))
-+				 VM_NONLINEAR | VM_MIXEDMAP))
+-				 VM_RESERVED  | VM_HUGETLB | VM_INSERTPAGE |
++				 VM_RESERVED  | VM_HUGETLB |
+ 				 VM_NONLINEAR | VM_MIXEDMAP))
  			return 0;		/* just ignore the advice */
  
-+#ifdef VM_SAO
-+		if (*vm_flags & VM_SAO)
-+			return 0;
-+#endif
-+
- 		if (!test_bit(MMF_VM_MERGEABLE, &mm->flags)) {
- 			err = __ksm_enter(mm);
- 			if (err)
+diff -puN mm/memory.c~mm-kill-vma-flag-vm_insertpage mm/memory.c
+--- a/mm/memory.c~mm-kill-vma-flag-vm_insertpage
++++ a/mm/memory.c
+@@ -1047,7 +1047,8 @@ int copy_page_range(struct mm_struct *ds
+ 	 * readonly mappings. The tradeoff is that copy_page_range is more
+ 	 * efficient than faulting.
+ 	 */
+-	if (!(vma->vm_flags & (VM_HUGETLB|VM_NONLINEAR|VM_PFNMAP|VM_INSERTPAGE))) {
++	if (!(vma->vm_flags & (VM_HUGETLB | VM_NONLINEAR |
++			       VM_PFNMAP | VM_MIXEDMAP))) {
+ 		if (!vma->anon_vma)
+ 			return 0;
+ 	}
+@@ -2085,6 +2086,11 @@ out:
+  * ask for a shared writable mapping!
+  *
+  * The page does not need to be reserved.
++ *
++ * Usually this function is called from f_op->mmap() handler
++ * under mm->mmap_sem write-lock, so it can change vma->vm_flags.
++ * Caller must set VM_MIXEDMAP on vma if it wants to call this
++ * function from other places, for example from page-fault handler.
+  */
+ int vm_insert_page(struct vm_area_struct *vma, unsigned long addr,
+ 			struct page *page)
+@@ -2093,7 +2099,11 @@ int vm_insert_page(struct vm_area_struct
+ 		return -EFAULT;
+ 	if (!page_count(page))
+ 		return -EINVAL;
+-	vma->vm_flags |= VM_INSERTPAGE;
++	if (!(vma->vm_flags & VM_MIXEDMAP)) {
++		BUG_ON(down_read_trylock(&vma->vm_mm->mmap_sem));
++		BUG_ON(vma->vm_flags & VM_PFNMAP);
++		vma->vm_flags |= VM_MIXEDMAP;
++	}
+ 	return insert_page(vma, addr, page, vma->vm_page_prot);
+ }
+ EXPORT_SYMBOL(vm_insert_page);
+diff -puN mm/mmap.c~mm-kill-vma-flag-vm_insertpage mm/mmap.c
+--- a/mm/mmap.c~mm-kill-vma-flag-vm_insertpage
++++ a/mm/mmap.c
+@@ -1190,7 +1190,7 @@ int vma_wants_writenotify(struct vm_area
+ 		return 0;
+ 
+ 	/* Specialty mapping? */
+-	if (vm_flags & (VM_PFNMAP|VM_INSERTPAGE))
++	if (vm_flags & VM_PFNMAP)
+ 		return 0;
+ 
+ 	/* Can the mapping track the dirty pages? */
 _
 
 Patches currently in -mm which might be from khlebnikov@openvz.org are
