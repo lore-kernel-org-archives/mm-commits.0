@@ -1,77 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-fs-writebackc-remove-unneccesary-parameter-of-__writeback_single_inode.patch removed from -mm tree
-Date: Tue, 09 Oct 2012 11:14:29 -0700
-Message-ID: <20121009181429.AA970100047@wpzn3.hot.corp.google.com>
+Subject: [merged] mm-remove-unevictable_pgs_mlockfreed.patch removed from -mm tree
+Date: Tue, 09 Oct 2012 11:14:23 -0700
+Message-ID: <20121009181423.C23A2100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:36966 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756823Ab2JISOa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:14:30 -0400
-Received: by mail-qc0-f202.google.com with SMTP id s25so662965qcq.1
-        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:14:30 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:43458 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756823Ab2JISOZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:14:25 -0400
+Received: by mail-qa0-f74.google.com with SMTP id a16so519186qae.1
+        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:14:24 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clouds.yan@gmail.com, fengguang.wu@intel.com, mm-commits@vger.kernel.org
+To: hughd@google.com, hannes@cmpxchg.org, mel@csn.ul.ie, riel@redhat.com, walken@google.com, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/fs-writeback.c: remove unneccesary parameter of __writeback_single_inode()
+     Subject: mm: remove unevictable_pgs_mlockfreed
 has been removed from the -mm tree.  Its filename was
-     fs-fs-writebackc-remove-unneccesary-parameter-of-__writeback_single_inode.patch
+     mm-remove-unevictable_pgs_mlockfreed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yan Hong <clouds.yan@gmail.com>
-Subject: fs/fs-writeback.c: remove unneccesary parameter of __writeback_single_inode()
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: remove unevictable_pgs_mlockfreed
 
-The parameter 'wb' is never used in this function.
+Simply remove UNEVICTABLE_MLOCKFREED and unevictable_pgs_mlockfreed line
+from /proc/vmstat: Johannes and Mel point out that it was very unlikely to
+have been used by any tool, and of course we can restore it easily enough
+if that turns out to be wrong.
 
-Signed-off-by: Yan Hong <clouds.yan@gmail.com>
-Acked-by: Wu Fengguang <fengguang.wu@intel.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Ying Han <yinghan@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ include/linux/vm_event_item.h |    1 -
+ mm/vmstat.c                   |    1 -
+ 2 files changed, 2 deletions(-)
 
-diff -puN fs/fs-writeback.c~fs-fs-writebackc-remove-unneccesary-parameter-of-__writeback_single_inode fs/fs-writeback.c
---- a/fs/fs-writeback.c~fs-fs-writebackc-remove-unneccesary-parameter-of-__writeback_single_inode
-+++ a/fs/fs-writeback.c
-@@ -439,8 +439,7 @@ static void requeue_inode(struct inode *
-  * setting I_SYNC flag and calling inode_sync_complete() to clear it.
-  */
- static int
--__writeback_single_inode(struct inode *inode, struct bdi_writeback *wb,
--			 struct writeback_control *wbc)
-+__writeback_single_inode(struct inode *inode, struct writeback_control *wbc)
- {
- 	struct address_space *mapping = inode->i_mapping;
- 	long nr_to_write = wbc->nr_to_write;
-@@ -527,7 +526,7 @@ writeback_single_inode(struct inode *ino
- 	inode->i_state |= I_SYNC;
- 	spin_unlock(&inode->i_lock);
+diff -puN include/linux/vm_event_item.h~mm-remove-unevictable_pgs_mlockfreed include/linux/vm_event_item.h
+--- a/include/linux/vm_event_item.h~mm-remove-unevictable_pgs_mlockfreed
++++ a/include/linux/vm_event_item.h
+@@ -52,7 +52,6 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		UNEVICTABLE_PGMUNLOCKED,
+ 		UNEVICTABLE_PGCLEARED,	/* on COW, page truncate */
+ 		UNEVICTABLE_PGSTRANDED,	/* unable to isolate on unlock */
+-		UNEVICTABLE_MLOCKFREED,	/* no longer useful: always zero */
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 		THP_FAULT_ALLOC,
+ 		THP_FAULT_FALLBACK,
+diff -puN mm/vmstat.c~mm-remove-unevictable_pgs_mlockfreed mm/vmstat.c
+--- a/mm/vmstat.c~mm-remove-unevictable_pgs_mlockfreed
++++ a/mm/vmstat.c
+@@ -794,7 +794,6 @@ const char * const vmstat_text[] = {
+ 	"unevictable_pgs_munlocked",
+ 	"unevictable_pgs_cleared",
+ 	"unevictable_pgs_stranded",
+-	"unevictable_pgs_mlockfreed",	/* no longer useful: always zero */
  
--	ret = __writeback_single_inode(inode, wb, wbc);
-+	ret = __writeback_single_inode(inode, wbc);
- 
- 	spin_lock(&wb->list_lock);
- 	spin_lock(&inode->i_lock);
-@@ -670,7 +669,7 @@ static long writeback_sb_inodes(struct s
- 		 * We use I_SYNC to pin the inode in memory. While it is set
- 		 * evict_inode() will wait so the inode cannot be freed.
- 		 */
--		__writeback_single_inode(inode, wb, &wbc);
-+		__writeback_single_inode(inode, &wbc);
- 
- 		work->nr_pages -= write_chunk - wbc.nr_to_write;
- 		wrote += write_chunk - wbc.nr_to_write;
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	"thp_fault_alloc",
 _
 
-Patches currently in -mm which might be from clouds.yan@gmail.com are
+Patches currently in -mm which might be from hughd@google.com are
 
 origin.patch
-fs-debugsfs-remove-unnecessary-inode-i_private-initialization.patch
-fs-block_devc-need-not-to-check-inode-i_bdev-in-bd_forget.patch
+linux-next.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
 
