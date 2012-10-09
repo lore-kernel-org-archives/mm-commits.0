@@ -1,43 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rbtree-performance-and-correctness-test.patch removed from -mm tree
-Date: Tue, 09 Oct 2012 11:09:13 -0700
-Message-ID: <20121009180914.41428200057@hpza10.eem.corp.google.com>
+Subject: [merged] rbtree-low-level-optimizations-in-rb_insert_color.patch removed from -mm tree
+Date: Tue, 09 Oct 2012 11:09:26 -0700
+Message-ID: <20121009180927.596C320004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f74.google.com ([209.85.215.74]:38942 "EHLO
-	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756723Ab2JISJR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:09:17 -0400
-Received: by mail-la0-f74.google.com with SMTP id j13so309190lah.1
-        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:09:16 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:43032 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756738Ab2JISJa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:09:30 -0400
+Received: by mail-we0-f202.google.com with SMTP id x43so365169wey.1
+        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:09:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: walken@google.com, David.Woodhouse@intel.com, a.p.zijlstra@chello.nl, aarcange@redhat.com, axboe@kernel.dk, daniel.santos@pobox.com, ebiederm@xmission.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rbtree: performance and correctness test
+     Subject: rbtree: low level optimizations in rb_insert_color()
 has been removed from the -mm tree.  Its filename was
-     rbtree-performance-and-correctness-test.patch
+     rbtree-low-level-optimizations-in-rb_insert_color.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michel Lespinasse <walken@google.com>
-Subject: rbtree: performance and correctness test
+Subject: rbtree: low level optimizations in rb_insert_color()
 
-This small module helps measure the performance of rbtree insert and
-erase.
+- Use the newly introduced rb_set_parent_color() function to flip the color
+  of nodes whose parent is already known.
+- Optimize rb_parent() when the node is known to be red - there is no need
+  to mask out the color in that case.
+- Flipping gparent's color to red requires us to fetch its rb_parent_color
+  field, so we can reuse it as the parent value for the next loop iteration.
+- Do not use __rb_rotate_left() and __rb_rotate_right() to handle tree
+  rotations: we already have pointers to all relevant nodes, and know their
+  colors (either because we want to adjust it, or because we've tested it,
+  or we can deduce it as black due to the node proximity to a known red node).
+  So we can generate more efficient code by making use of the node pointers
+  we already have, and setting both the parent and color attributes for
+  nodes all at once. Also in Case 2, some node attributes don't have to
+  be set because we know another tree rotation (Case 3) will always follow
+  and override them.
 
-Additionally, we run a few correctness tests to check that the rbtrees
-have all desired properties:
-
-- contains the right number of nodes in the order desired,
-- never two consecutive red nodes on any path,
-- all paths to leaf nodes have the same number of black nodes,
-- root node is black
-
-[akpm@linux-foundation.org: fix printk warning: sparc64 cycles_t is unsigned long]
 Signed-off-by: Michel Lespinasse <walken@google.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Acked-by: David Woodhouse <David.Woodhouse@intel.com>
@@ -49,179 +53,226 @@ Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    7 ++
- lib/Makefile      |    2 
- lib/rbtree_test.c |  135 ++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 144 insertions(+)
+ lib/rbtree.c |  164 ++++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 130 insertions(+), 34 deletions(-)
 
-diff -puN lib/Kconfig.debug~rbtree-performance-and-correctness-test lib/Kconfig.debug
---- a/lib/Kconfig.debug~rbtree-performance-and-correctness-test
-+++ a/lib/Kconfig.debug
-@@ -1282,6 +1282,13 @@ config LATENCYTOP
- source mm/Kconfig.debug
- source kernel/trace/Kconfig
+diff -puN lib/rbtree.c~rbtree-low-level-optimizations-in-rb_insert_color lib/rbtree.c
+--- a/lib/rbtree.c~rbtree-low-level-optimizations-in-rb_insert_color
++++ a/lib/rbtree.c
+@@ -23,6 +23,25 @@
+ #include <linux/rbtree.h>
+ #include <linux/export.h>
  
-+config RBTREE_TEST
-+	tristate "Red-Black tree test"
-+	depends on m && DEBUG_KERNEL
-+	help
-+	  A benchmark measuring the performance of the rbtree library.
-+	  Also includes rbtree invariant checks.
++/*
++ * red-black trees properties:  http://en.wikipedia.org/wiki/Rbtree
++ *
++ *  1) A node is either red or black
++ *  2) The root is black
++ *  3) All leaves (NULL) are black
++ *  4) Both children of every red node are black
++ *  5) Every simple path from root to leaves contains the same number
++ *     of black nodes.
++ *
++ *  4 and 5 give the O(log n) guarantee, since 4 implies you cannot have two
++ *  consecutive red nodes in a path and every red node is therefore followed by
++ *  a black. So if B is the number of black nodes on every simple path (as per
++ *  5), then the longest possible path due to 4 is 2B.
++ *
++ *  We shall indicate color with case, where black nodes are uppercase and red
++ *  nodes will be lowercase.
++ */
 +
- config PROVIDE_OHCI1394_DMA_INIT
- 	bool "Remote debugging over FireWire early on boot"
- 	depends on PCI && X86
-diff -puN lib/Makefile~rbtree-performance-and-correctness-test lib/Makefile
---- a/lib/Makefile~rbtree-performance-and-correctness-test
-+++ a/lib/Makefile
-@@ -140,6 +140,8 @@ $(foreach file, $(libfdt_files), \
- 	$(eval CFLAGS_$(file) = -I$(src)/../scripts/dtc/libfdt))
- lib-$(CONFIG_LIBFDT) += $(libfdt_files)
+ #define	RB_RED		0
+ #define	RB_BLACK	1
  
-+obj-$(CONFIG_RBTREE_TEST) += rbtree_test.o
-+
- hostprogs-y	:= gen_crc32table
- clean-files	:= crc32table.h
+@@ -41,6 +60,17 @@ static inline void rb_set_color(struct r
+ 	rb->__rb_parent_color = (rb->__rb_parent_color & ~1) | color;
+ }
  
-diff -puN /dev/null lib/rbtree_test.c
---- /dev/null
-+++ a/lib/rbtree_test.c
-@@ -0,0 +1,135 @@
-+#include <linux/module.h>
-+#include <linux/rbtree.h>
-+#include <linux/random.h>
-+#include <asm/timex.h>
-+
-+#define NODES       100
-+#define PERF_LOOPS  100000
-+#define CHECK_LOOPS 100
-+
-+struct test_node {
-+	struct rb_node rb;
-+	u32 key;
-+};
-+
-+static struct rb_root root = RB_ROOT;
-+static struct test_node nodes[NODES];
-+
-+static struct rnd_state rnd;
-+
-+static void insert(struct test_node *node, struct rb_root *root)
++static inline void rb_set_parent_color(struct rb_node *rb,
++				       struct rb_node *p, int color)
 +{
-+	struct rb_node **new = &root->rb_node, *parent = NULL;
++	rb->__rb_parent_color = (unsigned long)p | color;
++}
 +
-+	while (*new) {
-+		parent = *new;
-+		if (node->key < rb_entry(parent, struct test_node, rb)->key)
-+			new = &parent->rb_left;
++static inline struct rb_node *rb_red_parent(struct rb_node *red)
++{
++	return (struct rb_node *)red->__rb_parent_color;
++}
++
+ static void __rb_rotate_left(struct rb_node *node, struct rb_root *root)
+ {
+ 	struct rb_node *right = node->rb_right;
+@@ -87,9 +117,30 @@ static void __rb_rotate_right(struct rb_
+ 	rb_set_parent(node, left);
+ }
+ 
++/*
++ * Helper function for rotations:
++ * - old's parent and color get assigned to new
++ * - old gets assigned new as a parent and 'color' as a color.
++ */
++static inline void
++__rb_rotate_set_parents(struct rb_node *old, struct rb_node *new,
++			struct rb_root *root, int color)
++{
++	struct rb_node *parent = rb_parent(old);
++	new->__rb_parent_color = old->__rb_parent_color;
++	rb_set_parent_color(old, new, color);
++	if (parent) {
++		if (parent->rb_left == old)
++			parent->rb_left = new;
 +		else
-+			new = &parent->rb_right;
-+	}
-+
-+	rb_link_node(&node->rb, parent, new);
-+	rb_insert_color(&node->rb, root);
++			parent->rb_right = new;
++	} else
++		root->rb_node = new;
 +}
 +
-+static inline void erase(struct test_node *node, struct rb_root *root)
-+{
-+	rb_erase(&node->rb, root);
-+}
-+
-+static void init(void)
-+{
-+	int i;
-+	for (i = 0; i < NODES; i++)
-+		nodes[i].key = prandom32(&rnd);
-+}
-+
-+static bool is_red(struct rb_node *rb)
-+{
-+	return !(rb->__rb_parent_color & 1);
-+}
-+
-+static int black_path_count(struct rb_node *rb)
-+{
-+	int count;
-+	for (count = 0; rb; rb = rb_parent(rb))
-+		count += !is_red(rb);
-+	return count;
-+}
-+
-+static void check(int nr_nodes)
-+{
-+	struct rb_node *rb;
-+	int count = 0;
-+	int blacks;
-+	u32 prev_key = 0;
-+
-+	for (rb = rb_first(&root); rb; rb = rb_next(rb)) {
-+		struct test_node *node = rb_entry(rb, struct test_node, rb);
-+		WARN_ON_ONCE(node->key < prev_key);
-+		WARN_ON_ONCE(is_red(rb) &&
-+			     (!rb_parent(rb) || is_red(rb_parent(rb))));
-+		if (!count)
-+			blacks = black_path_count(rb);
-+		else
-+			WARN_ON_ONCE((!rb->rb_left || !rb->rb_right) &&
-+				     blacks != black_path_count(rb));
-+		prev_key = node->key;
-+		count++;
-+	}
-+	WARN_ON_ONCE(count != nr_nodes);
-+}
-+
-+static int rbtree_test_init(void)
-+{
-+	int i, j;
-+	cycles_t time1, time2, time;
-+
-+	printk(KERN_ALERT "rbtree testing");
-+
-+	prandom32_seed(&rnd, 3141592653589793238);
-+	init();
-+
-+	time1 = get_cycles();
-+
-+	for (i = 0; i < PERF_LOOPS; i++) {
-+		for (j = 0; j < NODES; j++)
-+			insert(nodes + j, &root);
-+		for (j = 0; j < NODES; j++)
-+			erase(nodes + j, &root);
-+	}
-+
-+	time2 = get_cycles();
-+	time = time2 - time1;
-+
-+	time = div_u64(time, PERF_LOOPS);
-+	printk(" -> %llu cycles\n", (unsigned long long)time);
-+
-+	for (i = 0; i < CHECK_LOOPS; i++) {
-+		init();
-+		for (j = 0; j < NODES; j++) {
-+			check(j);
-+			insert(nodes + j, &root);
-+		}
-+		for (j = 0; j < NODES; j++) {
-+			check(NODES - j);
-+			erase(nodes + j, &root);
-+		}
-+		check(0);
-+	}
-+
-+	return -EAGAIN; /* Fail will directly unload the module */
-+}
-+
-+static void rbtree_test_exit(void)
-+{
-+	printk(KERN_ALERT "test exit\n");
-+}
-+
-+module_init(rbtree_test_init)
-+module_exit(rbtree_test_exit)
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Michel Lespinasse");
-+MODULE_DESCRIPTION("Red Black Tree test");
+ void rb_insert_color(struct rb_node *node, struct rb_root *root)
+ {
+-	struct rb_node *parent, *gparent;
++	struct rb_node *parent = rb_red_parent(node), *gparent, *tmp;
+ 
+ 	while (true) {
+ 		/*
+@@ -99,59 +150,104 @@ void rb_insert_color(struct rb_node *nod
+ 		 * Otherwise, take some corrective action as we don't
+ 		 * want a red root or two consecutive red nodes.
+ 		 */
+-		parent = rb_parent(node);
+ 		if (!parent) {
+-			rb_set_black(node);
++			rb_set_parent_color(node, NULL, RB_BLACK);
+ 			break;
+ 		} else if (rb_is_black(parent))
+ 			break;
+ 
+-		gparent = rb_parent(parent);
++		gparent = rb_red_parent(parent);
+ 
+-		if (parent == gparent->rb_left)
+-		{
+-			{
+-				register struct rb_node *uncle = gparent->rb_right;
+-				if (uncle && rb_is_red(uncle))
+-				{
+-					rb_set_black(uncle);
+-					rb_set_black(parent);
+-					rb_set_red(gparent);
+-					node = gparent;
+-					continue;
+-				}
++		if (parent == gparent->rb_left) {
++			tmp = gparent->rb_right;
++			if (tmp && rb_is_red(tmp)) {
++				/*
++				 * Case 1 - color flips
++				 *
++				 *       G            g
++				 *      / \          / \
++				 *     p   u  -->   P   U
++				 *    /            /
++				 *   n            N
++				 *
++				 * However, since g's parent might be red, and
++				 * 4) does not allow this, we need to recurse
++				 * at g.
++				 */
++				rb_set_parent_color(tmp, gparent, RB_BLACK);
++				rb_set_parent_color(parent, gparent, RB_BLACK);
++				node = gparent;
++				parent = rb_parent(node);
++				rb_set_parent_color(node, parent, RB_RED);
++				continue;
+ 			}
+ 
+ 			if (parent->rb_right == node) {
+-				__rb_rotate_left(parent, root);
++				/*
++				 * Case 2 - left rotate at parent
++				 *
++				 *      G             G
++				 *     / \           / \
++				 *    p   U  -->    n   U
++				 *     \           /
++				 *      n         p
++				 *
++				 * This still leaves us in violation of 4), the
++				 * continuation into Case 3 will fix that.
++				 */
++				parent->rb_right = tmp = node->rb_left;
++				node->rb_left = parent;
++				if (tmp)
++					rb_set_parent_color(tmp, parent,
++							    RB_BLACK);
++				rb_set_parent_color(parent, node, RB_RED);
+ 				parent = node;
+ 			}
+ 
+-			rb_set_black(parent);
+-			rb_set_red(gparent);
+-			__rb_rotate_right(gparent, root);
++			/*
++			 * Case 3 - right rotate at gparent
++			 *
++			 *        G           P
++			 *       / \         / \
++			 *      p   U  -->  n   g
++			 *     /                 \
++			 *    n                   U
++			 */
++			gparent->rb_left = tmp = parent->rb_right;
++			parent->rb_right = gparent;
++			if (tmp)
++				rb_set_parent_color(tmp, gparent, RB_BLACK);
++			__rb_rotate_set_parents(gparent, parent, root, RB_RED);
+ 			break;
+ 		} else {
+-			{
+-				register struct rb_node *uncle = gparent->rb_left;
+-				if (uncle && rb_is_red(uncle))
+-				{
+-					rb_set_black(uncle);
+-					rb_set_black(parent);
+-					rb_set_red(gparent);
+-					node = gparent;
+-					continue;
+-				}
++			tmp = gparent->rb_left;
++			if (tmp && rb_is_red(tmp)) {
++				/* Case 1 - color flips */
++				rb_set_parent_color(tmp, gparent, RB_BLACK);
++				rb_set_parent_color(parent, gparent, RB_BLACK);
++				node = gparent;
++				parent = rb_parent(node);
++				rb_set_parent_color(node, parent, RB_RED);
++				continue;
+ 			}
+ 
+ 			if (parent->rb_left == node) {
+-				__rb_rotate_right(parent, root);
++				/* Case 2 - right rotate at parent */
++				parent->rb_left = tmp = node->rb_right;
++				node->rb_right = parent;
++				if (tmp)
++					rb_set_parent_color(tmp, parent,
++							    RB_BLACK);
++				rb_set_parent_color(parent, node, RB_RED);
+ 				parent = node;
+ 			}
+ 
+-			rb_set_black(parent);
+-			rb_set_red(gparent);
+-			__rb_rotate_left(gparent, root);
++			/* Case 3 - left rotate at gparent */
++			gparent->rb_right = tmp = parent->rb_left;
++			parent->rb_left = gparent;
++			if (tmp)
++				rb_set_parent_color(tmp, gparent, RB_BLACK);
++			__rb_rotate_set_parents(gparent, parent, root, RB_RED);
+ 			break;
+ 		}
+ 	}
 _
 
 Patches currently in -mm which might be from walken@google.com are
