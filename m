@@ -1,319 +1,235 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-trivial-fixes-for-documentation-cgroups-memorytxt.patch removed from -mm tree
-Date: Tue, 09 Oct 2012 11:13:23 -0700
-Message-ID: <20121009181323.B3509100047@wpzn3.hot.corp.google.com>
+Subject: [merged] mm-fix-up-zone-present-pages.patch removed from -mm tree
+Date: Tue, 09 Oct 2012 11:13:18 -0700
+Message-ID: <20121009181319.81BE720004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:55090 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756796Ab2JISNY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:13:24 -0400
-Received: by mail-vc0-f202.google.com with SMTP id fy27so662562vcb.1
-        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:13:24 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:51682 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756796Ab2JISNW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:13:22 -0400
+Received: by mail-wi0-f202.google.com with SMTP id hr7so285711wib.1
+        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:13:21 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mtk.manpages@gmail.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: wujianguo@huawei.com, hannes@cmpxchg.org, jiang.liu@huawei.com, mel@csn.ul.ie, minchan.kim@gmail.com, ptesarik@suse.cz, rientjes@google.com, tony.luck@intel.com, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: trivial fixes for Documentation/cgroups/memory.txt
+     Subject: mm: fix-up zone present pages
 has been removed from the -mm tree.  Its filename was
-     memcg-trivial-fixes-for-documentation-cgroups-memorytxt.patch
+     mm-fix-up-zone-present-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michael Kerrisk <mtk.manpages@gmail.com>
-Subject: memcg: trivial fixes for Documentation/cgroups/memory.txt
+From: Jianguo Wu <wujianguo@huawei.com>
+Subject: mm: fix-up zone present pages
 
-While reading through Documentation/cgroups/memory.txt, I found a number
-of minor wordos and typos.  The patch below is a conservative handling of
-some of these: it provides just a number of "obviously correct" fixes to
-the English that improve the readability of the document somewhat. 
-Obviously some more significant fixes need to be made to the document, but
-some of those may not be in the "obvious correct" category.
+I think zone->present_pages indicates pages that buddy system can management,
+it should be:
 
-Signed-off-by: Michael Kerrisk <mtk.manpages@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
+	zone->present_pages = spanned pages - absent pages - bootmem pages,
+
+but is now:
+	zone->present_pages = spanned pages - absent pages - memmap pages.
+
+spanned pages: total size, including holes.
+absent pages: holes.
+bootmem pages: pages used in system boot, managed by bootmem allocator.
+memmap pages: pages used by page structs.
+
+This may cause zone->present_pages less than it should be.  For example,
+numa node 1 has ZONE_NORMAL and ZONE_MOVABLE, it's memmap and other
+bootmem will be allocated from ZONE_MOVABLE, so ZONE_NORMAL's
+present_pages should be spanned pages - absent pages, but now it also
+minus memmap pages(free_area_init_core), which are actually allocated from
+ZONE_MOVABLE.  When offlining all memory of a zone, this will cause
+zone->present_pages less than 0, because present_pages is unsigned long
+type, it is actually a very large integer, it indirectly caused
+zone->watermark[WMARK_MIN] becomes a large
+integer(setup_per_zone_wmarks()), than cause totalreserve_pages become a
+large integer(calculate_totalreserve_pages()), and finally cause memory
+allocating failure when fork process(__vm_enough_memory()).
+
+[root@localhost ~]# dmesg
+-bash: fork: Cannot allocate memory
+
+I think the bug described in
+http://marc.info/?l=linux-mm&m=134502182714186&w=2 is also caused by wrong
+zone present pages.
+
+This patch intends to fix-up zone->present_pages when memory are freed to
+buddy system on x86_64 and IA64 platforms.
+
+Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Reported-by: Petr Tesarik <ptesarik@suse.cz>
+Tested-by: Petr Tesarik <ptesarik@suse.cz>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memory.txt |   90 ++++++++++++++---------------
- 1 file changed, 45 insertions(+), 45 deletions(-)
+ arch/ia64/mm/init.c |    1 +
+ include/linux/mm.h  |    4 ++++
+ mm/bootmem.c        |   10 +++++++++-
+ mm/memory_hotplug.c |    7 +++++++
+ mm/nobootmem.c      |    3 +++
+ mm/page_alloc.c     |   34 ++++++++++++++++++++++++++++++++++
+ 6 files changed, 58 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/cgroups/memory.txt~memcg-trivial-fixes-for-documentation-cgroups-memorytxt Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~memcg-trivial-fixes-for-documentation-cgroups-memorytxt
-+++ a/Documentation/cgroups/memory.txt
-@@ -18,16 +18,16 @@ from the rest of the system. The article
- uses of the memory controller. The memory controller can be used to
+diff -puN arch/ia64/mm/init.c~mm-fix-up-zone-present-pages arch/ia64/mm/init.c
+--- a/arch/ia64/mm/init.c~mm-fix-up-zone-present-pages
++++ a/arch/ia64/mm/init.c
+@@ -637,6 +637,7 @@ mem_init (void)
  
- a. Isolate an application or a group of applications
--   Memory hungry applications can be isolated and limited to a smaller
-+   Memory-hungry applications can be isolated and limited to a smaller
-    amount of memory.
--b. Create a cgroup with limited amount of memory, this can be used
-+b. Create a cgroup with a limited amount of memory; this can be used
-    as a good alternative to booting with mem=XXXX.
- c. Virtualization solutions can control the amount of memory they want
-    to assign to a virtual machine instance.
- d. A CD/DVD burner could control the amount of memory used by the
-    rest of the system to ensure that burning does not fail due to lack
-    of available memory.
--e. There are several other use cases, find one or use the controller just
-+e. There are several other use cases; find one or use the controller just
-    for fun (to learn and hack on the VM subsystem).
+ 	high_memory = __va(max_low_pfn * PAGE_SIZE);
  
- Current Status: linux-2.6.34-mmotm(development version of 2010/April)
-@@ -38,12 +38,12 @@ Features:
-  - optionally, memory+swap usage can be accounted and limited.
-  - hierarchical accounting
-  - soft limit
-- - moving(recharging) account at moving a task is selectable.
-+ - moving (recharging) account at moving a task is selectable.
-  - usage threshold notifier
-  - oom-killer disable knob and oom-notifier
-  - Root cgroup has no limit controls.
++	reset_zone_present_pages();
+ 	for_each_online_pgdat(pgdat)
+ 		if (pgdat->bdata->node_bootmem_map)
+ 			totalram_pages += free_all_bootmem_node(pgdat);
+diff -puN include/linux/mm.h~mm-fix-up-zone-present-pages include/linux/mm.h
+--- a/include/linux/mm.h~mm-fix-up-zone-present-pages
++++ a/include/linux/mm.h
+@@ -1684,5 +1684,9 @@ static inline unsigned int debug_guardpa
+ static inline bool page_is_guard(struct page *page) { return false; }
+ #endif /* CONFIG_DEBUG_PAGEALLOC */
  
-- Kernel memory support is work in progress, and the current version provides
-+ Kernel memory support is a work in progress, and the current version provides
-  basically functionality. (See Section 2.7)
++extern void reset_zone_present_pages(void);
++extern void fixup_zone_present_pages(int nid, unsigned long start_pfn,
++				unsigned long end_pfn);
++
+ #endif /* __KERNEL__ */
+ #endif /* _LINUX_MM_H */
+diff -puN mm/bootmem.c~mm-fix-up-zone-present-pages mm/bootmem.c
+--- a/mm/bootmem.c~mm-fix-up-zone-present-pages
++++ a/mm/bootmem.c
+@@ -198,6 +198,8 @@ static unsigned long __init free_all_boo
+ 			int order = ilog2(BITS_PER_LONG);
  
- Brief summary of control files.
-@@ -144,9 +144,9 @@ Figure 1 shows the important aspects of 
- 3. Each page has a pointer to the page_cgroup, which in turn knows the
-    cgroup it belongs to
+ 			__free_pages_bootmem(pfn_to_page(start), order);
++			fixup_zone_present_pages(page_to_nid(pfn_to_page(start)),
++					start, start + BITS_PER_LONG);
+ 			count += BITS_PER_LONG;
+ 			start += BITS_PER_LONG;
+ 		} else {
+@@ -208,6 +210,9 @@ static unsigned long __init free_all_boo
+ 				if (vec & 1) {
+ 					page = pfn_to_page(start + off);
+ 					__free_pages_bootmem(page, 0);
++					fixup_zone_present_pages(
++						page_to_nid(page),
++						start + off, start + off + 1);
+ 					count++;
+ 				}
+ 				vec >>= 1;
+@@ -221,8 +226,11 @@ static unsigned long __init free_all_boo
+ 	pages = bdata->node_low_pfn - bdata->node_min_pfn;
+ 	pages = bootmem_bootmap_pages(pages);
+ 	count += pages;
+-	while (pages--)
++	while (pages--) {
++		fixup_zone_present_pages(page_to_nid(page),
++				page_to_pfn(page), page_to_pfn(page) + 1);
+ 		__free_pages_bootmem(page++, 0);
++	}
  
--The accounting is done as follows: mem_cgroup_charge() is invoked to setup
-+The accounting is done as follows: mem_cgroup_charge() is invoked to set up
- the necessary data structures and check if the cgroup that is being charged
--is over its limit. If it is then reclaim is invoked on the cgroup.
-+is over its limit. If it is, then reclaim is invoked on the cgroup.
- More details can be found in the reclaim section of this document.
- If everything goes well, a page meta-data-structure called page_cgroup is
- updated. page_cgroup has its own LRU on cgroup.
-@@ -163,13 +163,13 @@ for earlier. A file page will be account
- inserted into inode (radix-tree). While it's mapped into the page tables of
- processes, duplicate accounting is carefully avoided.
+ 	bdebug("nid=%td released=%lx\n", bdata - bootmem_node_data, count);
  
--A RSS page is unaccounted when it's fully unmapped. A PageCache page is
-+An RSS page is unaccounted when it's fully unmapped. A PageCache page is
- unaccounted when it's removed from radix-tree. Even if RSS pages are fully
- unmapped (by kswapd), they may exist as SwapCache in the system until they
--are really freed. Such SwapCaches also also accounted.
-+are really freed. Such SwapCaches are also accounted.
- A swapped-in page is not accounted until it's mapped.
+diff -puN mm/memory_hotplug.c~mm-fix-up-zone-present-pages mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-fix-up-zone-present-pages
++++ a/mm/memory_hotplug.c
+@@ -106,6 +106,7 @@ static void get_page_bootmem(unsigned lo
+ void __ref put_page_bootmem(struct page *page)
+ {
+ 	unsigned long type;
++	struct zone *zone;
  
--Note: The kernel does swapin-readahead and read multiple swaps at once.
-+Note: The kernel does swapin-readahead and reads multiple swaps at once.
- This means swapped-in pages may contain pages for other tasks than a task
- causing page fault. So, we avoid accounting at swap-in I/O.
+ 	type = (unsigned long) page->lru.next;
+ 	BUG_ON(type < MEMORY_HOTPLUG_MIN_BOOTMEM_TYPE ||
+@@ -116,6 +117,12 @@ void __ref put_page_bootmem(struct page 
+ 		set_page_private(page, 0);
+ 		INIT_LIST_HEAD(&page->lru);
+ 		__free_pages_bootmem(page, 0);
++
++		zone = page_zone(page);
++		zone_span_writelock(zone);
++		zone->present_pages++;
++		zone_span_writeunlock(zone);
++		totalram_pages++;
+ 	}
  
-@@ -209,7 +209,7 @@ memsw.limit_in_bytes.
- Example: Assume a system with 4G of swap. A task which allocates 6G of memory
- (by mistake) under 2G memory limitation will use all swap.
- In this case, setting memsw.limit_in_bytes=3G will prevent bad use of swap.
--By using memsw limit, you can avoid system OOM which can be caused by swap
-+By using the memsw limit, you can avoid system OOM which can be caused by swap
- shortage.
+ }
+diff -puN mm/nobootmem.c~mm-fix-up-zone-present-pages mm/nobootmem.c
+--- a/mm/nobootmem.c~mm-fix-up-zone-present-pages
++++ a/mm/nobootmem.c
+@@ -116,6 +116,8 @@ static unsigned long __init __free_memor
+ 		return 0;
  
- * why 'memory+swap' rather than swap.
-@@ -217,7 +217,7 @@ The global LRU(kswapd) can swap out arbi
- to move account from memory to swap...there is no change in usage of
- memory+swap. In other words, when we want to limit the usage of swap without
- affecting global LRU, memory+swap limit is better than just limiting swap from
--OS point of view.
-+an OS point of view.
+ 	__free_pages_memory(start_pfn, end_pfn);
++	fixup_zone_present_pages(pfn_to_nid(start >> PAGE_SHIFT),
++			start_pfn, end_pfn);
  
- * What happens when a cgroup hits memory.memsw.limit_in_bytes
- When a cgroup hits memory.memsw.limit_in_bytes, it's useless to do swap-out
-@@ -236,7 +236,7 @@ an OOM routine is invoked to select and 
- cgroup. (See 10. OOM Control below.)
+ 	return end_pfn - start_pfn;
+ }
+@@ -126,6 +128,7 @@ unsigned long __init free_low_memory_cor
+ 	phys_addr_t start, end, size;
+ 	u64 i;
  
- The reclaim algorithm has not been modified for cgroups, except that
--pages that are selected for reclaiming come from the per cgroup LRU
-+pages that are selected for reclaiming come from the per-cgroup LRU
- list.
++	reset_zone_present_pages();
+ 	for_each_free_mem_range(i, MAX_NUMNODES, &start, &end, NULL)
+ 		count += __free_memory_core(start, end);
  
- NOTE: Reclaim does not work for the root cgroup, since we cannot set any
-@@ -316,7 +316,7 @@ We can check the usage:
- # cat /sys/fs/cgroup/memory/0/memory.usage_in_bytes
- 1216512
- 
--A successful write to this file does not guarantee a successful set of
-+A successful write to this file does not guarantee a successful setting of
- this limit to the value written into the file. This can be due to a
- number of factors, such as rounding up to page boundaries or the total
- availability of memory on the system. The user is required to re-read
-@@ -350,7 +350,7 @@ Trying usual test under memory controlle
- 4.1 Troubleshooting
- 
- Sometimes a user might find that the application under a cgroup is
--terminated by OOM killer. There are several causes for this:
-+terminated by the OOM killer. There are several causes for this:
- 
- 1. The cgroup limit is too low (just too low to do anything useful)
- 2. The user is using anonymous memory and swap is turned off or too low
-@@ -358,7 +358,7 @@ terminated by OOM killer. There are seve
- A sync followed by echo 1 > /proc/sys/vm/drop_caches will help get rid of
- some of the pages cached in the cgroup (page cache pages).
- 
--To know what happens, disable OOM_Kill by 10. OOM Control(see below) and
-+To know what happens, disabling OOM_Kill as per "10. OOM Control" (below) and
- seeing what happens will be helpful.
- 
- 4.2 Task migration
-@@ -399,10 +399,10 @@ About use_hierarchy, see Section 6.
- 
-   Almost all pages tracked by this memory cgroup will be unmapped and freed.
-   Some pages cannot be freed because they are locked or in-use. Such pages are
--  moved to parent(if use_hierarchy==1) or root (if use_hierarchy==0) and this
-+  moved to parent (if use_hierarchy==1) or root (if use_hierarchy==0) and this
-   cgroup will be empty.
- 
--  Typical use case of this interface is that calling this before rmdir().
-+  The typical use case for this interface is before calling rmdir().
-   Because rmdir() moves all pages to parent, some out-of-use page caches can be
-   moved to the parent. If you want to avoid that, force_empty will be useful.
- 
-@@ -486,7 +486,7 @@ You can reset failcnt by writing 0 to fa
- 
- For efficiency, as other kernel components, memory cgroup uses some optimization
- to avoid unnecessary cacheline false sharing. usage_in_bytes is affected by the
--method and doesn't show 'exact' value of memory(and swap) usage, it's an fuzz
-+method and doesn't show 'exact' value of memory (and swap) usage, it's a fuzz
- value for efficient access. (Of course, when necessary, it's synchronized.)
- If you want to know more exact memory usage, you should use RSS+CACHE(+SWAP)
- value in memory.stat(see 5.2).
-@@ -496,8 +496,8 @@ value in memory.stat(see 5.2).
- This is similar to numa_maps but operates on a per-memcg basis.  This is
- useful for providing visibility into the numa locality information within
- an memcg since the pages are allowed to be allocated from any physical
--node.  One of the usecases is evaluating application performance by
--combining this information with the application's cpu allocation.
-+node.  One of the use cases is evaluating application performance by
-+combining this information with the application's CPU allocation.
- 
- We export "total", "file", "anon" and "unevictable" pages per-node for
- each memcg.  The ouput format of memory.numa_stat is:
-@@ -561,10 +561,10 @@ are pushed back to their soft limits. If
- group is very high, they are pushed back as much as possible to make
- sure that one control group does not starve the others of memory.
- 
--Please note that soft limits is a best effort feature, it comes with
-+Please note that soft limits is a best-effort feature; it comes with
- no guarantees, but it does its best to make sure that when memory is
- heavily contended for, memory is allocated based on the soft limit
--hints/setup. Currently soft limit based reclaim is setup such that
-+hints/setup. Currently soft limit based reclaim is set up such that
- it gets invoked from balance_pgdat (kswapd).
- 
- 7.1 Interface
-@@ -592,7 +592,7 @@ page tables.
- 
- 8.1 Interface
- 
--This feature is disabled by default. It can be enabled(and disabled again) by
-+This feature is disabled by default. It can be enabledi (and disabled again) by
- writing to memory.move_charge_at_immigrate of the destination cgroup.
- 
- If you want to enable it:
-@@ -601,8 +601,8 @@ If you want to enable it:
- 
- Note: Each bits of move_charge_at_immigrate has its own meaning about what type
-       of charges should be moved. See 8.2 for details.
--Note: Charges are moved only when you move mm->owner, IOW, a leader of a thread
--      group.
-+Note: Charges are moved only when you move mm->owner, in other words,
-+      a leader of a thread group.
- Note: If we cannot find enough space for the task in the destination cgroup, we
-       try to make space by reclaiming memory. Task migration may fail if we
-       cannot make enough space.
-@@ -612,25 +612,25 @@ And if you want disable it again:
- 
- # echo 0 > memory.move_charge_at_immigrate
- 
--8.2 Type of charges which can be move
-+8.2 Type of charges which can be moved
- 
--Each bits of move_charge_at_immigrate has its own meaning about what type of
--charges should be moved. But in any cases, it must be noted that an account of
--a page or a swap can be moved only when it is charged to the task's current(old)
--memory cgroup.
-+Each bit in move_charge_at_immigrate has its own meaning about what type of
-+charges should be moved. But in any case, it must be noted that an account of
-+a page or a swap can be moved only when it is charged to the task's current
-+(old) memory cgroup.
- 
-   bit | what type of charges would be moved ?
-  -----+------------------------------------------------------------------------
--   0  | A charge of an anonymous page(or swap of it) used by the target task.
--      | You must enable Swap Extension(see 2.4) to enable move of swap charges.
-+   0  | A charge of an anonymous page (or swap of it) used by the target task.
-+      | You must enable Swap Extension (see 2.4) to enable move of swap charges.
-  -----+------------------------------------------------------------------------
--   1  | A charge of file pages(normal file, tmpfs file(e.g. ipc shared memory)
-+   1  | A charge of file pages (normal file, tmpfs file (e.g. ipc shared memory)
-       | and swaps of tmpfs file) mmapped by the target task. Unlike the case of
--      | anonymous pages, file pages(and swaps) in the range mmapped by the task
-+      | anonymous pages, file pages (and swaps) in the range mmapped by the task
-       | will be moved even if the task hasn't done page fault, i.e. they might
-       | not be the task's "RSS", but other task's "RSS" that maps the same file.
--      | And mapcount of the page is ignored(the page can be moved even if
--      | page_mapcount(page) > 1). You must enable Swap Extension(see 2.4) to
-+      | And mapcount of the page is ignored (the page can be moved even if
-+      | page_mapcount(page) > 1). You must enable Swap Extension (see 2.4) to
-       | enable move of swap charges.
- 
- 8.3 TODO
-@@ -640,11 +640,11 @@ memory cgroup.
- 
- 9. Memory thresholds
- 
--Memory cgroup implements memory thresholds using cgroups notification
-+Memory cgroup implements memory thresholds using the cgroups notification
- API (see cgroups.txt). It allows to register multiple memory and memsw
- thresholds and gets notifications when it crosses.
- 
--To register a threshold application need:
-+To register a threshold, an application must:
- - create an eventfd using eventfd(2);
- - open memory.usage_in_bytes or memory.memsw.usage_in_bytes;
- - write string like "<event_fd> <fd of memory.usage_in_bytes> <threshold>" to
-@@ -659,24 +659,24 @@ It's applicable for root and non-root cg
- 
- memory.oom_control file is for OOM notification and other controls.
- 
--Memory cgroup implements OOM notifier using cgroup notification
-+Memory cgroup implements OOM notifier using the cgroup notification
- API (See cgroups.txt). It allows to register multiple OOM notification
- delivery and gets notification when OOM happens.
- 
--To register a notifier, application need:
-+To register a notifier, an application must:
-  - create an eventfd using eventfd(2)
-  - open memory.oom_control file
-  - write string like "<event_fd> <fd of memory.oom_control>" to
-    cgroup.event_control
- 
--Application will be notified through eventfd when OOM happens.
--OOM notification doesn't work for root cgroup.
-+The application will be notified through eventfd when OOM happens.
-+OOM notification doesn't work for the root cgroup.
- 
--You can disable OOM-killer by writing "1" to memory.oom_control file, as:
-+You can disable the OOM-killer by writing "1" to memory.oom_control file, as:
- 
- 	#echo 1 > memory.oom_control
- 
--This operation is only allowed to the top cgroup of sub-hierarchy.
-+This operation is only allowed to the top cgroup of a sub-hierarchy.
- If OOM-killer is disabled, tasks under cgroup will hang/sleep
- in memory cgroup's OOM-waitqueue when they request accountable memory.
- 
+diff -puN mm/page_alloc.c~mm-fix-up-zone-present-pages mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-fix-up-zone-present-pages
++++ a/mm/page_alloc.c
+@@ -6087,3 +6087,37 @@ void dump_page(struct page *page)
+ 	dump_page_flags(page->flags);
+ 	mem_cgroup_print_bad_page(page);
+ }
++
++/* reset zone->present_pages */
++void reset_zone_present_pages(void)
++{
++	struct zone *z;
++	int i, nid;
++
++	for_each_node_state(nid, N_HIGH_MEMORY) {
++		for (i = 0; i < MAX_NR_ZONES; i++) {
++			z = NODE_DATA(nid)->node_zones + i;
++			z->present_pages = 0;
++		}
++	}
++}
++
++/* calculate zone's present pages in buddy system */
++void fixup_zone_present_pages(int nid, unsigned long start_pfn,
++				unsigned long end_pfn)
++{
++	struct zone *z;
++	unsigned long zone_start_pfn, zone_end_pfn;
++	int i;
++
++	for (i = 0; i < MAX_NR_ZONES; i++) {
++		z = NODE_DATA(nid)->node_zones + i;
++		zone_start_pfn = z->zone_start_pfn;
++		zone_end_pfn = zone_start_pfn + z->spanned_pages;
++
++		/* if the two regions intersect */
++		if (!(zone_start_pfn >= end_pfn	|| zone_end_pfn <= start_pfn))
++			z->present_pages += min(end_pfn, zone_end_pfn) -
++					    max(start_pfn, zone_start_pfn);
++	}
++}
 _
 
-Patches currently in -mm which might be from mtk.manpages@gmail.com are
+Patches currently in -mm which might be from wujianguo@huawei.com are
 
 origin.patch
-linux-next.patch
 
