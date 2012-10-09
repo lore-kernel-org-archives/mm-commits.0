@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + dma-debug-new-interfaces-to-debug-dma-mapping-errors.patch added to -mm tree
-Date: Tue, 09 Oct 2012 14:06:49 -0700
-Message-ID: <20121009210649.BD8CF1E0043@wpzn4.hot.corp.google.com>
+Subject: + mm-show-migration-types-in-show_mem.patch added to -mm tree
+Date: Tue, 09 Oct 2012 14:08:52 -0700
+Message-ID: <20121009210853.601035C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:61972 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752292Ab2JIVGu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 17:06:50 -0400
-Received: by mail-yh0-f74.google.com with SMTP id 10so606323yhl.1
-        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 14:06:50 -0700 (PDT)
+Received: from mail-ea0-f202.google.com ([209.85.215.202]:55527 "EHLO
+	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752730Ab2JIVIz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 17:08:55 -0400
+Received: by mail-ea0-f202.google.com with SMTP id q10so61556eaa.1
+        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 14:08:54 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shuah.khan@hp.com, konrad.wilk@oracle.com
+Cc: rabin.vincent@stericsson.com, mel@csn.ul.ie
 
 
 The patch titled
-     Subject: dma-debug: new interfaces to debug dma mapping errors
+     Subject: mm: show migration types in show_mem
 has been added to the -mm tree.  Its filename is
-     dma-debug-new-interfaces-to-debug-dma-mapping-errors.patch
+     mm-show-migration-types-in-show_mem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,236 +33,127 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Shuah Khan <shuah.khan@hp.com>
-Subject: dma-debug: new interfaces to debug dma mapping errors
+From: Rabin Vincent <rabin.vincent@stericsson.com>
+Subject: mm: show migration types in show_mem
 
-Add dma-debug interface debug_dma_mapping_error() to debug drivers that
-fail to check dma mapping errors on addresses returned by dma_map_single()
-and dma_map_page() interfaces.  This interface clears a flag set by
-debug_dma_map_page() to indicate that dma_mapping_error() has been called
-by the driver.  When driver does unmap, debug_dma_unmap() checks the flag
-and if this flag is still set, prints warning message that includes call
-trace that leads up to the unmap.  This interface can be called from
-dma_mapping_error() routines to enable dma mapping error check debugging.
+This is useful to diagnose the reason for page allocation failure for
+cases where there appear to be several free pages.
 
-Tested: Intel iommu and swiotlb (iommu=soft) on x86-64 with
-        CONFIG_DMA_API_DEBUG enabled and disabled.
+Example, with this alloc_pages(GFP_ATOMIC) failure:
 
-Signed-off-by: Shuah Khan <shuah.khan@hp.com>
-Reviewed-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+ swapper/0: page allocation failure: order:0, mode:0x0
+ ...
+ Mem-info:
+ Normal per-cpu:
+ CPU    0: hi:   90, btch:  15 usd:  48
+ CPU    1: hi:   90, btch:  15 usd:  21
+ active_anon:0 inactive_anon:0 isolated_anon:0
+  active_file:0 inactive_file:84 isolated_file:0
+  unevictable:0 dirty:0 writeback:0 unstable:0
+  free:4026 slab_reclaimable:75 slab_unreclaimable:484
+  mapped:0 shmem:0 pagetables:0 bounce:0
+ Normal free:16104kB min:2296kB low:2868kB high:3444kB active_anon:0kB
+ inactive_anon:0kB active_file:0kB inactive_file:336kB unevictable:0kB
+ isolated(anon):0kB isolated(file):0kB present:331776kB mlocked:0kB
+ dirty:0kB writeback:0kB mapped:0kB shmem:0kB slab_reclaimable:300kB
+ slab_unreclaimable:1936kB kernel_stack:328kB pagetables:0kB unstable:0kB
+ bounce:0kB writeback_tmp:0kB pages_scanned:0 all_unreclaimable? no
+ lowmem_reserve[]: 0 0
+
+Before the patch, it's hard (for me, at least) to say why all these free
+chunks weren't considered for allocation:
+
+ Normal: 0*4kB 0*8kB 0*16kB 0*32kB 0*64kB 0*128kB 1*256kB 1*512kB
+ 1*1024kB 1*2048kB 3*4096kB = 16128kB
+
+After the patch, it's obvious that the reason is that all of these are
+in the MIGRATE_CMA (C) freelist:
+
+ Normal: 0*4kB 0*8kB 0*16kB 0*32kB 0*64kB 0*128kB 1*256kB (C) 1*512kB
+ (C) 1*1024kB (C) 1*2048kB (C) 3*4096kB (C) = 16128kB
+
+Signed-off-by: Rabin Vincent <rabin.vincent@stericsson.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DMA-API.txt          |   12 ++++
- arch/x86/include/asm/dma-mapping.h |    1 
- include/linux/dma-debug.h          |    7 ++
- lib/dma-debug.c                    |   71 +++++++++++++++++++++++++--
- 4 files changed, 87 insertions(+), 4 deletions(-)
+ mm/page_alloc.c |   42 ++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 40 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/DMA-API.txt~dma-debug-new-interfaces-to-debug-dma-mapping-errors Documentation/DMA-API.txt
---- a/Documentation/DMA-API.txt~dma-debug-new-interfaces-to-debug-dma-mapping-errors
-+++ a/Documentation/DMA-API.txt
-@@ -678,3 +678,15 @@ out of dma_debug_entries. These entries 
- of preallocated entries is defined per architecture. If it is too low for you
- boot with 'dma_debug_entries=<your_desired_number>' to overwrite the
- architectural default.
-+
-+void debug_dmap_mapping_error(struct device *dev, dma_addr_t dma_addr);
-+
-+dma-debug interface debug_dma_mapping_error() to debug drivers that fail
-+to check dma mapping errors on addresses returned by dma_map_single() and
-+dma_map_page() interfaces. This interface clears a flag set by
-+debug_dma_map_page() to indicate that dma_mapping_error() has been called by
-+the driver. When driver does unmap, debug_dma_unmap() checks the flag and if
-+this flag is still set, prints warning message that includes call trace that
-+leads up to the unmap. This interface can be called from dma_mapping_error()
-+routines to enable dma mapping error check debugging.
-+
-diff -puN arch/x86/include/asm/dma-mapping.h~dma-debug-new-interfaces-to-debug-dma-mapping-errors arch/x86/include/asm/dma-mapping.h
---- a/arch/x86/include/asm/dma-mapping.h~dma-debug-new-interfaces-to-debug-dma-mapping-errors
-+++ a/arch/x86/include/asm/dma-mapping.h
-@@ -47,6 +47,7 @@ static inline struct dma_map_ops *get_dm
- static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
- {
- 	struct dma_map_ops *ops = get_dma_ops(dev);
-+	debug_dma_mapping_error(dev, dma_addr);
- 	if (ops->mapping_error)
- 		return ops->mapping_error(dev, dma_addr);
+diff -puN mm/page_alloc.c~mm-show-migration-types-in-show_mem mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-show-migration-types-in-show_mem
++++ a/mm/page_alloc.c
+@@ -2875,6 +2875,31 @@ out:
  
-diff -puN include/linux/dma-debug.h~dma-debug-new-interfaces-to-debug-dma-mapping-errors include/linux/dma-debug.h
---- a/include/linux/dma-debug.h~dma-debug-new-interfaces-to-debug-dma-mapping-errors
-+++ a/include/linux/dma-debug.h
-@@ -39,6 +39,8 @@ extern void debug_dma_map_page(struct de
- 			       int direction, dma_addr_t dma_addr,
- 			       bool map_single);
+ #define K(x) ((x) << (PAGE_SHIFT-10))
  
-+extern void debug_dma_mapping_error(struct device *dev, dma_addr_t dma_addr);
-+
- extern void debug_dma_unmap_page(struct device *dev, dma_addr_t addr,
- 				 size_t size, int direction, bool map_single);
- 
-@@ -105,6 +107,11 @@ static inline void debug_dma_map_page(st
- {
- }
- 
-+static inline void debug_dma_mapping_error(struct device *dev,
-+					  dma_addr_t dma_addr)
++static void show_migration_types(unsigned char type)
 +{
-+}
-+
- static inline void debug_dma_unmap_page(struct device *dev, dma_addr_t addr,
- 					size_t size, int direction,
- 					bool map_single)
-diff -puN lib/dma-debug.c~dma-debug-new-interfaces-to-debug-dma-mapping-errors lib/dma-debug.c
---- a/lib/dma-debug.c~dma-debug-new-interfaces-to-debug-dma-mapping-errors
-+++ a/lib/dma-debug.c
-@@ -45,6 +45,12 @@ enum {
- 	dma_debug_coherent,
- };
- 
-+enum map_err_types {
-+	MAP_ERR_CHECK_NOT_APPLICABLE,
-+	MAP_ERR_NOT_CHECKED,
-+	MAP_ERR_CHECKED,
-+};
-+
- #define DMA_DEBUG_STACKTRACE_ENTRIES 5
- 
- struct dma_debug_entry {
-@@ -57,6 +63,7 @@ struct dma_debug_entry {
- 	int              direction;
- 	int		 sg_call_ents;
- 	int		 sg_mapped_ents;
-+	enum map_err_types  map_err_type;
- #ifdef CONFIG_STACKTRACE
- 	struct		 stack_trace stacktrace;
- 	unsigned long	 st_entries[DMA_DEBUG_STACKTRACE_ENTRIES];
-@@ -114,6 +121,12 @@ static struct device_driver *current_dri
- 
- static DEFINE_RWLOCK(driver_name_lock);
- 
-+static const char *const maperr2str[] = {
-+	[MAP_ERR_CHECK_NOT_APPLICABLE] = "dma map error check not applicable",
-+	[MAP_ERR_NOT_CHECKED] = "dma map error not checked",
-+	[MAP_ERR_CHECKED] = "dma map error checked",
-+};
-+
- static const char *type2name[4] = { "single", "page",
- 				    "scather-gather", "coherent" };
- 
-@@ -376,11 +389,12 @@ void debug_dma_dump_mappings(struct devi
- 		list_for_each_entry(entry, &bucket->list, list) {
- 			if (!dev || dev == entry->dev) {
- 				dev_info(entry->dev,
--					 "%s idx %d P=%Lx D=%Lx L=%Lx %s\n",
-+					 "%s idx %d P=%Lx D=%Lx L=%Lx %s %s\n",
- 					 type2name[entry->type], idx,
- 					 (unsigned long long)entry->paddr,
- 					 entry->dev_addr, entry->size,
--					 dir2name[entry->direction]);
-+					 dir2name[entry->direction],
-+					 maperr2str[entry->map_err_type]);
- 			}
- 		}
- 
-@@ -838,13 +852,28 @@ static __init int dma_debug_entries_cmdl
- __setup("dma_debug=", dma_debug_cmdline);
- __setup("dma_debug_entries=", dma_debug_entries_cmdline);
- 
-+/* Calling dma_mapping_error() from dma-debug api will result in calling
-+   debug_dma_mapping_error() - need internal mapping error routine to
-+   avoid debug checks */
-+#ifndef DMA_ERROR_CODE
-+#define DMA_ERROR_CODE 0
++	static const char types[MIGRATE_TYPES] = {
++		[MIGRATE_UNMOVABLE]	= 'U',
++		[MIGRATE_RECLAIMABLE]	= 'E',
++		[MIGRATE_MOVABLE]	= 'M',
++		[MIGRATE_RESERVE]	= 'R',
++#ifdef CONFIG_CMA
++		[MIGRATE_CMA]		= 'C',
 +#endif
-+static inline int has_mapping_error(struct device *dev, dma_addr_t dma_addr)
-+{
-+	const struct dma_map_ops *ops = get_dma_ops(dev);
-+	if (ops->mapping_error)
-+		return ops->mapping_error(dev, dma_addr);
++		[MIGRATE_ISOLATE]	= 'I',
++	};
++	char tmp[MIGRATE_TYPES + 1];
++	char *p = tmp;
++	int i;
 +
-+	return (dma_addr == DMA_ERROR_CODE);
-+}
-+
- static void check_unmap(struct dma_debug_entry *ref)
- {
- 	struct dma_debug_entry *entry;
- 	struct hash_bucket *bucket;
- 	unsigned long flags;
- 
--	if (dma_mapping_error(ref->dev, ref->dev_addr)) {
-+	if (unlikely(has_mapping_error(ref->dev, ref->dev_addr))) {
- 		err_printk(ref->dev, NULL, "DMA-API: device driver tries "
- 			   "to free an invalid DMA memory address\n");
- 		return;
-@@ -910,6 +939,15 @@ static void check_unmap(struct dma_debug
- 			   dir2name[ref->direction]);
- 	}
- 
-+	if (entry->map_err_type == MAP_ERR_NOT_CHECKED) {
-+		err_printk(ref->dev, entry,
-+			   "DMA-API: device driver failed to check map error"
-+			   "[device address=0x%016llx] [size=%llu bytes] "
-+			   "[mapped as %s]",
-+			   ref->dev_addr, ref->size,
-+			   type2name[entry->type]);
++	for (i = 0; i < MIGRATE_TYPES; i++) {
++		if (type & (1 << i))
++			*p++ = types[i];
 +	}
 +
- 	hash_bucket_del(entry);
- 	dma_entry_free(entry);
- 
-@@ -1017,7 +1055,7 @@ void debug_dma_map_page(struct device *d
- 	if (unlikely(global_disable))
- 		return;
- 
--	if (unlikely(dma_mapping_error(dev, dma_addr)))
-+	if (unlikely(has_mapping_error(dev, dma_addr)))
- 		return;
- 
- 	entry = dma_entry_alloc();
-@@ -1030,6 +1068,7 @@ void debug_dma_map_page(struct device *d
- 	entry->dev_addr  = dma_addr;
- 	entry->size      = size;
- 	entry->direction = direction;
-+	entry->map_err_type = MAP_ERR_NOT_CHECKED;
- 
- 	if (map_single)
- 		entry->type = dma_debug_single;
-@@ -1045,6 +1084,30 @@ void debug_dma_map_page(struct device *d
- }
- EXPORT_SYMBOL(debug_dma_map_page);
- 
-+void debug_dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
-+{
-+	struct dma_debug_entry ref;
-+	struct dma_debug_entry *entry;
-+	struct hash_bucket *bucket;
-+	unsigned long flags;
-+
-+	if (unlikely(global_disable))
-+		return;
-+
-+	ref.dev = dev;
-+	ref.dev_addr = dma_addr;
-+	bucket = get_hash_bucket(&ref, &flags);
-+	entry = bucket_find_exact(bucket, &ref);
-+
-+	if (!entry)
-+		goto out;
-+
-+	entry->map_err_type = MAP_ERR_CHECKED;
-+out:
-+	put_hash_bucket(bucket, &flags);
++	*p = '\0';
++	printk("(%s) ", tmp);
 +}
-+EXPORT_SYMBOL(debug_dma_mapping_error);
 +
- void debug_dma_unmap_page(struct device *dev, dma_addr_t addr,
- 			  size_t size, int direction, bool map_single)
- {
+ /*
+  * Show free area list (used inside shift_scroll-lock stuff)
+  * We also calculate the percentage fragmentation. We do this by counting the
+@@ -3003,6 +3028,7 @@ void show_free_areas(unsigned int filter
+ 
+ 	for_each_populated_zone(zone) {
+  		unsigned long nr[MAX_ORDER], flags, order, total = 0;
++		unsigned char types[MAX_ORDER];
+ 
+ 		if (skip_free_areas_node(filter, zone_to_nid(zone)))
+ 			continue;
+@@ -3011,12 +3037,24 @@ void show_free_areas(unsigned int filter
+ 
+ 		spin_lock_irqsave(&zone->lock, flags);
+ 		for (order = 0; order < MAX_ORDER; order++) {
+-			nr[order] = zone->free_area[order].nr_free;
++			struct free_area *area = &zone->free_area[order];
++			int type;
++
++			nr[order] = area->nr_free;
+ 			total += nr[order] << order;
++
++			types[order] = 0;
++			for (type = 0; type < MIGRATE_TYPES; type++) {
++				if (!list_empty(&area->free_list[type]))
++					types[order] |= 1 << type;
++			}
+ 		}
+ 		spin_unlock_irqrestore(&zone->lock, flags);
+-		for (order = 0; order < MAX_ORDER; order++)
++		for (order = 0; order < MAX_ORDER; order++) {
+ 			printk("%lu*%lukB ", nr[order], K(1UL) << order);
++			if (nr[order])
++				show_migration_types(types[order]);
++		}
+ 		printk("= %lukB\n", K(total));
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from shuah.khan@hp.com are
+Patches currently in -mm which might be from rabin.vincent@stericsson.com are
 
 origin.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors.patch
+mm-show-migration-types-in-show_mem.patch
 
