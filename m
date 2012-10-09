@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-update-for-destination-id-allocation.patch added to -mm tree
-Date: Tue, 09 Oct 2012 13:03:26 -0700
-Message-ID: <20121009200327.36B41100047@wpzn3.hot.corp.google.com>
+Subject: + linux-compilerh-add-__must_hold-macro-for-functions-called-with-a-lock-held.patch added to -mm tree
+Date: Tue, 09 Oct 2012 13:07:38 -0700
+Message-ID: <20121009200738.A75B2100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:61269 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752933Ab2JIUD3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 16:03:29 -0400
-Received: by mail-qa0-f74.google.com with SMTP id a16so539019qae.1
-        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 13:03:27 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:51634 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752584Ab2JIUHj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 16:07:39 -0400
+Received: by mail-gg0-f202.google.com with SMTP id i4so682063ggm.1
+        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 13:07:39 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alexandre.bounine@idt.com, leoli@freescale.com, mporter@kernel.crashing.org
+Cc: josh@joshtriplett.org, ecashin@coraid.com
 
 
 The patch titled
-     Subject: rapidio: update for destination ID allocation
+     Subject: linux/compiler.h: add __must_hold macro for functions called with a lock held
 has been added to the -mm tree.  Its filename is
-     rapidio-update-for-destination-id-allocation.patch
+     linux-compilerh-add-__must_hold-macro-for-functions-called-with-a-lock-held.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,147 +33,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio: update for destination ID allocation
+From: Josh Triplett <josh@joshtriplett.org>
+Subject: linux/compiler.h: add __must_hold macro for functions called with a lock held
 
-Address comments provided by Andrew Morton:
-https://lkml.org/lkml/2012/10/3/550
+linux/compiler.h has macros to denote functions that acquire or release
+locks, but not to denote functions called with a lock held that return
+with the lock still held.  Add a __must_hold macro to cover that case.
 
-- Keeps consistent kerneldoc compatible comments style for new static functions.
-- Removes unnecessary complexity from destination ID allocation routine.
-- Uses kcalloc() for code clarity.
-
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Li Yang <leoli@freescale.com>
+Signed-off-by: Josh Triplett <josh@joshtriplett.org>
+Reported-by: Ed Cashin <ecashin@coraid.com>
+Tested-by: Ed Cashin <ecashin@coraid.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio-scan.c |   38 ++++++++++++++---------------------
- include/linux/rio.h        |    1 
- 2 files changed, 16 insertions(+), 23 deletions(-)
+ include/linux/compiler.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/rapidio/rio-scan.c~rapidio-update-for-destination-id-allocation drivers/rapidio/rio-scan.c
---- a/drivers/rapidio/rio-scan.c~rapidio-update-for-destination-id-allocation
-+++ a/drivers/rapidio/rio-scan.c
-@@ -55,9 +55,9 @@ static int rio_mport_phys_table[] = {
- };
- 
- 
--/*
-+/**
-  * rio_destid_alloc - Allocate next available destID for given network
-- * net: RIO network
-+ * @net: RIO network
-  *
-  * Returns next available device destination ID for the specified RIO network.
-  * Marks allocated ID as one in use.
-@@ -69,14 +69,9 @@ static u16 rio_destid_alloc(struct rio_n
- 	struct rio_id_table *idtab = &net->destid_table;
- 
- 	spin_lock(&idtab->lock);
--	destid = find_next_zero_bit(idtab->table, idtab->max, idtab->next);
--	if (destid >= idtab->max)
--		destid = find_first_zero_bit(idtab->table, idtab->max);
-+	destid = find_first_zero_bit(idtab->table, idtab->max);
- 
- 	if (destid < idtab->max) {
--		idtab->next = destid + 1;
--		if (idtab->next >= idtab->max)
--			idtab->next = 0;
- 		set_bit(destid, idtab->table);
- 		destid += idtab->start;
- 	} else
-@@ -86,10 +81,10 @@ static u16 rio_destid_alloc(struct rio_n
- 	return (u16)destid;
- }
- 
--/*
-+/**
-  * rio_destid_reserve - Reserve the specivied destID
-- * net: RIO network
-- * destid: destID to reserve
-+ * @net: RIO network
-+ * @destid: destID to reserve
-  *
-  * Tries to reserve the specified destID.
-  * Returns 0 if successfull.
-@@ -106,10 +101,10 @@ static int rio_destid_reserve(struct rio
- 	return oldbit;
- }
- 
--/*
-+/**
-  * rio_destid_free - free a previously allocated destID
-- * net: RIO network
-- * destid: destID to free
-+ * @net: RIO network
-+ * @destid: destID to free
-  *
-  * Makes the specified destID available for use.
-  */
-@@ -123,9 +118,9 @@ static void rio_destid_free(struct rio_n
- 	spin_unlock(&idtab->lock);
- }
- 
--/*
-+/**
-  * rio_destid_first - return first destID in use
-- * net: RIO network
-+ * @net: RIO network
-  */
- static u16 rio_destid_first(struct rio_net *net)
- {
-@@ -142,10 +137,10 @@ static u16 rio_destid_first(struct rio_n
- 	return (u16)destid;
- }
- 
--/*
-+/**
-  * rio_destid_next - return next destID in use
-- * net: RIO network
-- * from: destination ID from which search shall continue
-+ * @net: RIO network
-+ * @from: destination ID from which search shall continue
-  */
- static u16 rio_destid_next(struct rio_net *net, u16 from)
- {
-@@ -1163,8 +1158,8 @@ static struct rio_net __devinit *rio_all
- 
- 	net = kzalloc(sizeof(struct rio_net), GFP_KERNEL);
- 	if (net && do_enum) {
--		net->destid_table.table = kzalloc(
--			BITS_TO_LONGS(RIO_MAX_ROUTE_ENTRIES(port->sys_size)) *
-+		net->destid_table.table = kcalloc(
-+			BITS_TO_LONGS(RIO_MAX_ROUTE_ENTRIES(port->sys_size)),
- 			sizeof(long),
- 			GFP_KERNEL);
- 
-@@ -1174,7 +1169,6 @@ static struct rio_net __devinit *rio_all
- 			net = NULL;
- 		} else {
- 			net->destid_table.start = start;
--			net->destid_table.next = 0;
- 			net->destid_table.max =
- 					RIO_MAX_ROUTE_ENTRIES(port->sys_size);
- 			spin_lock_init(&net->destid_table.lock);
-diff -puN include/linux/rio.h~rapidio-update-for-destination-id-allocation include/linux/rio.h
---- a/include/linux/rio.h~rapidio-update-for-destination-id-allocation
-+++ a/include/linux/rio.h
-@@ -266,7 +266,6 @@ struct rio_mport {
- 
- struct rio_id_table {
- 	u16 start;	/* logical minimal id */
--	u16 next;	/* hint for find */
- 	u32 max;	/* max number of IDs in table */
- 	spinlock_t lock;
- 	unsigned long *table;
+diff -puN include/linux/compiler.h~linux-compilerh-add-__must_hold-macro-for-functions-called-with-a-lock-held include/linux/compiler.h
+--- a/include/linux/compiler.h~linux-compilerh-add-__must_hold-macro-for-functions-called-with-a-lock-held
++++ a/include/linux/compiler.h
+@@ -10,6 +10,7 @@
+ # define __force	__attribute__((force))
+ # define __nocast	__attribute__((nocast))
+ # define __iomem	__attribute__((noderef, address_space(2)))
++# define __must_hold(x)	__attribute__((context(x,1,1)))
+ # define __acquires(x)	__attribute__((context(x,0,1)))
+ # define __releases(x)	__attribute__((context(x,1,0)))
+ # define __acquire(x)	__context__(x,1)
+@@ -33,6 +34,7 @@ extern void __chk_io_ptr(const volatile 
+ # define __chk_user_ptr(x) (void)0
+ # define __chk_io_ptr(x) (void)0
+ # define __builtin_warning(x, y...) (1)
++# define __must_hold(x)
+ # define __acquires(x)
+ # define __releases(x)
+ # define __acquire(x) (void)0
 _
 
-Patches currently in -mm which might be from alexandre.bounine@idt.com are
+Patches currently in -mm which might be from josh@joshtriplett.org are
 
 origin.patch
-rapidio-use-msleep-in-discovery-wait.patch
-rapidio-update-asynchronous-discovery-initialization.patch
-rapidio-update-for-destination-id-allocation.patch
+linux-next.patch
+linux-compilerh-add-__must_hold-macro-for-functions-called-with-a-lock-held.patch
 
