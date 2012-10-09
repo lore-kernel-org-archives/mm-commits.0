@@ -1,123 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memory-hotplug-suppress-trying-to-free-nonexistent-resource-xxxxxxxxxxxxxxxx-yyyyyyyyyyyyyyyy-warning.patch removed from -mm tree
-Date: Tue, 09 Oct 2012 11:15:17 -0700
-Message-ID: <20121009181518.7A7305C0050@hpza9.eem.corp.google.com>
+Subject: [merged] sparc64-halve-the-size-of-pte-tables.patch removed from -mm tree
+Date: Tue, 09 Oct 2012 11:15:27 -0700
+Message-ID: <20121009181527.BE41D100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:44771 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756844Ab2JISPW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:15:22 -0400
-Received: by mail-wg0-f74.google.com with SMTP id dt11so364782wgb.1
-        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:15:21 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:62033 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756844Ab2JISP2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:15:28 -0400
+Received: by mail-qc0-f202.google.com with SMTP id s25so663107qcq.1
+        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:15:28 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: isimatu.yasuaki@jp.fujitsu.com, akpm@linux-foundation.org, benh@kernel.crashing.org, cl@linux.com, dave@linux.vnet.ibm.com, kosaki.motohiro@jp.fujitsu.com, len.brown@intel.com, liuj97@gmail.com, minchan.kim@gmail.com, nfont@austin.ibm.com, paulus@samba.org, pbadari@us.ibm.com, rientjes@google.com, wency@cn.fujitsu.com, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: davem@davemloft.net, aarcange@redhat.com, gerald.schaefer@de.ibm.com, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory-hotplug: suppress "Trying to free nonexistent resource <XXXXXXXXXXXXXXXX-YYYYYYYYYYYYYYYY>" warning
+     Subject: sparc64: Halve the size of PTE tables
 has been removed from the -mm tree.  Its filename was
-     memory-hotplug-suppress-trying-to-free-nonexistent-resource-xxxxxxxxxxxxxxxx-yyyyyyyyyyyyyyyy-warning.patch
+     sparc64-halve-the-size-of-pte-tables.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: memory-hotplug: suppress "Trying to free nonexistent resource <XXXXXXXXXXXXXXXX-YYYYYYYYYYYYYYYY>" warning
+From: David Miller <davem@davemloft.net>
+Subject: sparc64: Halve the size of PTE tables
 
-When our x86 box calls __remove_pages(), release_mem_region() shows many
-warnings.  And x86 box cannot unregister iomem_resource.
+The reason we want to do this is to facilitate transparent huge page
+support.
 
-"Trying to free nonexistent resource <XXXXXXXXXXXXXXXX-YYYYYYYYYYYYYYYY>"
+Right now PMD's cover 8MB of address space, and our huge page size is 4MB.
+ The current transparent hugepage support is not able to handle HPAGE_SIZE
+!= PMD_SIZE.
 
-release_mem_region() has been changed to be called in each
-PAGES_PER_SECTION by de7f0cba96786c ("memory hotplug: release memory
-regions in PAGES_PER_SECTION chunks").  Because powerpc registers
-iomem_resource in each PAGES_PER_SECTION chunk.  But when I hot add memory
-on x86 box, iomem_resource is register in each _CRS not PAGES_PER_SECTION
-chunk.  So x86 box unregisters iomem_resource.
+So make PTE tables be sized to half of a page instead of a full page.
 
-The patch fixes the problem.
+We can still map properly the whole supported virtual address range which
+on sparc64 requires 44 bits.  Add a compile time CPP test which ensures
+that this requirement is always met.
 
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Jiang Liu <liuj97@gmail.com>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: Nathan Fontenot <nfont@austin.ibm.com>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+There is a minor inefficiency added by this change.  We only use half of
+the page for PTE tables.  It's not trivial to use only half of the page
+yet still get all of the pgtable_page_{ctor,dtor}() stuff working
+properly.  It is doable, and that will come in a subsequent change.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/pseries/hotplug-memory.c |   13 +++++++++----
- mm/memory_hotplug.c                             |    4 ++--
- 2 files changed, 11 insertions(+), 6 deletions(-)
+ arch/sparc/include/asm/pgtable_64.h |   24 +++++++-----------------
+ arch/sparc/include/asm/tsb.h        |    4 ++--
+ 2 files changed, 9 insertions(+), 19 deletions(-)
 
-diff -puN arch/powerpc/platforms/pseries/hotplug-memory.c~memory-hotplug-suppress-trying-to-free-nonexistent-resource-xxxxxxxxxxxxxxxx-yyyyyyyyyyyyyyyy-warning arch/powerpc/platforms/pseries/hotplug-memory.c
---- a/arch/powerpc/platforms/pseries/hotplug-memory.c~memory-hotplug-suppress-trying-to-free-nonexistent-resource-xxxxxxxxxxxxxxxx-yyyyyyyyyyyyyyyy-warning
-+++ a/arch/powerpc/platforms/pseries/hotplug-memory.c
-@@ -77,7 +77,8 @@ static int pseries_remove_memblock(unsig
- {
- 	unsigned long start, start_pfn;
- 	struct zone *zone;
--	int ret;
-+	int i, ret;
-+	int sections_to_remove;
+diff -puN arch/sparc/include/asm/pgtable_64.h~sparc64-halve-the-size-of-pte-tables arch/sparc/include/asm/pgtable_64.h
+--- a/arch/sparc/include/asm/pgtable_64.h~sparc64-halve-the-size-of-pte-tables
++++ a/arch/sparc/include/asm/pgtable_64.h
+@@ -45,40 +45,30 @@
  
- 	start_pfn = base >> PAGE_SHIFT;
+ #define vmemmap			((struct page *)VMEMMAP_BASE)
  
-@@ -97,9 +98,13 @@ static int pseries_remove_memblock(unsig
- 	 * to sysfs "state" file and we can't remove sysfs entries
- 	 * while writing to it. So we have to defer it to here.
- 	 */
--	ret = __remove_pages(zone, start_pfn, memblock_size >> PAGE_SHIFT);
--	if (ret)
--		return ret;
-+	sections_to_remove = (memblock_size >> PAGE_SHIFT) / PAGES_PER_SECTION;
-+	for (i = 0; i < sections_to_remove; i++) {
-+		unsigned long pfn = start_pfn + i * PAGES_PER_SECTION;
-+		ret = __remove_pages(zone, start_pfn,  PAGES_PER_SECTION);
-+		if (ret)
-+			return ret;
-+	}
+-/* XXX All of this needs to be rethought so we can take advantage
+- * XXX cheetah's full 64-bit virtual address space, ie. no more hole
+- * XXX in the middle like on spitfire. -DaveM
+- */
+-/*
+- * Given a virtual address, the lowest PAGE_SHIFT bits determine offset
+- * into the page; the next higher PAGE_SHIFT-3 bits determine the pte#
+- * in the proper pagetable (the -3 is from the 8 byte ptes, and each page
+- * table is a single page long). The next higher PMD_BITS determine pmd#
+- * in the proper pmdtable (where we must have PMD_BITS <= (PAGE_SHIFT-2)
+- * since the pmd entries are 4 bytes, and each pmd page is a single page
+- * long). Finally, the higher few bits determine pgde#.
+- */
+-
+ /* PMD_SHIFT determines the size of the area a second-level page
+  * table can map
+  */
+-#define PMD_SHIFT	(PAGE_SHIFT + (PAGE_SHIFT-3))
++#define PMD_SHIFT	(PAGE_SHIFT + (PAGE_SHIFT-4))
+ #define PMD_SIZE	(_AC(1,UL) << PMD_SHIFT)
+ #define PMD_MASK	(~(PMD_SIZE-1))
+ #define PMD_BITS	(PAGE_SHIFT - 2)
  
- 	/*
- 	 * Update memory regions for memory remove
-diff -puN mm/memory_hotplug.c~memory-hotplug-suppress-trying-to-free-nonexistent-resource-xxxxxxxxxxxxxxxx-yyyyyyyyyyyyyyyy-warning mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory-hotplug-suppress-trying-to-free-nonexistent-resource-xxxxxxxxxxxxxxxx-yyyyyyyyyyyyyyyy-warning
-+++ a/mm/memory_hotplug.c
-@@ -369,11 +369,11 @@ int __remove_pages(struct zone *zone, un
- 	BUG_ON(phys_start_pfn & ~PAGE_SECTION_MASK);
- 	BUG_ON(nr_pages % PAGES_PER_SECTION);
+ /* PGDIR_SHIFT determines what a third-level page table entry can map */
+-#define PGDIR_SHIFT	(PAGE_SHIFT + (PAGE_SHIFT-3) + PMD_BITS)
++#define PGDIR_SHIFT	(PAGE_SHIFT + (PAGE_SHIFT-4) + PMD_BITS)
+ #define PGDIR_SIZE	(_AC(1,UL) << PGDIR_SHIFT)
+ #define PGDIR_MASK	(~(PGDIR_SIZE-1))
+ #define PGDIR_BITS	(PAGE_SHIFT - 2)
  
-+	release_mem_region(phys_start_pfn << PAGE_SHIFT, nr_pages * PAGE_SIZE);
++#if (PGDIR_SHIFT + PGDIR_BITS) != 44
++#error Page table parameters do not cover virtual address space properly.
++#endif
 +
- 	sections_to_remove = nr_pages / PAGES_PER_SECTION;
- 	for (i = 0; i < sections_to_remove; i++) {
- 		unsigned long pfn = phys_start_pfn + i*PAGES_PER_SECTION;
--		release_mem_region(pfn << PAGE_SHIFT,
--				   PAGES_PER_SECTION << PAGE_SHIFT);
- 		ret = __remove_section(zone, __pfn_to_section(pfn));
- 		if (ret)
- 			break;
+ #ifndef __ASSEMBLY__
+ 
+ #include <linux/sched.h>
+ 
+ /* Entries per page directory level. */
+-#define PTRS_PER_PTE	(1UL << (PAGE_SHIFT-3))
++#define PTRS_PER_PTE	(1UL << (PAGE_SHIFT-4))
+ #define PTRS_PER_PMD	(1UL << PMD_BITS)
+ #define PTRS_PER_PGD	(1UL << PGDIR_BITS)
+ 
+diff -puN arch/sparc/include/asm/tsb.h~sparc64-halve-the-size-of-pte-tables arch/sparc/include/asm/tsb.h
+--- a/arch/sparc/include/asm/tsb.h~sparc64-halve-the-size-of-pte-tables
++++ a/arch/sparc/include/asm/tsb.h
+@@ -152,7 +152,7 @@ extern struct tsb_phys_patch_entry __tsb
+ 	lduwa		[REG1 + REG2] ASI_PHYS_USE_EC, REG1; \
+ 	brz,pn		REG1, FAIL_LABEL; \
+ 	 sllx		VADDR, 64 - PMD_SHIFT, REG2; \
+-	srlx		REG2, 64 - PAGE_SHIFT, REG2; \
++	srlx		REG2, 64 - (PAGE_SHIFT - 1), REG2; \
+ 	sllx		REG1, 11, REG1; \
+ 	andn		REG2, 0x7, REG2; \
+ 	add		REG1, REG2, REG1;
+@@ -177,7 +177,7 @@ extern struct tsb_phys_patch_entry __tsb
+ 	lduwa		[REG1 + REG2] ASI_PHYS_USE_EC, REG1; \
+ 	brz,pn		REG1, FAIL_LABEL; \
+ 	 sllx		VADDR, 64 - PMD_SHIFT, REG2; \
+-	srlx		REG2, 64 - PAGE_SHIFT, REG2; \
++	srlx		REG2, 64 - (PAGE_SHIFT - 1), REG2; \
+ 	sllx		REG1, 11, REG1; \
+ 	andn		REG2, 0x7, REG2; \
+ 	add		REG1, REG2, REG1;
 _
 
-Patches currently in -mm which might be from isimatu.yasuaki@jp.fujitsu.com are
+Patches currently in -mm which might be from davem@davemloft.net are
 
 origin.patch
-acpi_memhotplugc-fix-memory-leak-when-memory-device-is-unbound-from-the-module-acpi_memhotplug.patch
-acpi_memhotplugc-free-memory-device-if-acpi_memory_enable_device-failed.patch
-acpi_memhotplugc-remove-memory-info-from-list-before-freeing-it.patch
-acpi_memhotplugc-dont-allow-to-eject-the-memory-device-if-it-is-being-used.patch
-acpi_memhotplugc-bind-the-memory-device-when-the-driver-is-being-loaded.patch
-acpi_memhotplugc-auto-bind-the-memory-device-which-is-hotplugged-before-the-driver-is-loaded.patch
+linux-next.patch
+compat-generic-compat_sys_sched_rr_get_interval-implementation.patch
 
