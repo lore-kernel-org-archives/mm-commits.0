@@ -1,50 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sparc64-eliminate-pte-table-memory-wastage.patch removed from -mm tree
-Date: Tue, 09 Oct 2012 11:15:30 -0700
-Message-ID: <20121009181530.C3C79100048@wpzn3.hot.corp.google.com>
+Subject: [merged] sparc64-document-pgd-and-pmd-layout.patch removed from -mm tree
+Date: Tue, 09 Oct 2012 11:15:33 -0700
+Message-ID: <20121009181534.2D2AA20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:49061 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756846Ab2JISPb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:15:31 -0400
-Received: by mail-gh0-f202.google.com with SMTP id z15so661774ghb.1
-        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:15:31 -0700 (PDT)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:38366 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756865Ab2JISPh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:15:37 -0400
+Received: by mail-la0-f74.google.com with SMTP id j13so309410lah.1
+        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:15:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: davem@davemloft.net, aarcange@redhat.com, gerald.schaefer@de.ibm.com, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sparc64: Eliminate PTE table memory wastage.
+     Subject: sparc64: Document PGD and PMD layout.
 has been removed from the -mm tree.  Its filename was
-     sparc64-eliminate-pte-table-memory-wastage.patch
+     sparc64-document-pgd-and-pmd-layout.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: David Miller <davem@davemloft.net>
-Subject: sparc64: Eliminate PTE table memory wastage.
+Subject: sparc64: Document PGD and PMD layout.
 
-We've split up the PTE tables so that they take up half a page instead of
-a full page.  This is in order to facilitate transparent huge page
-support, which works much better if our PMDs cover 4MB instead of 8MB.
-
-What we do is have a one-behind cache for PTE table allocations in the
-mm struct.
-
-This logic triggers only on allocations.  For example, we don't try to
-keep track of free'd up page table blocks in the style that the s390 port
-does.
-
-There were only two slightly annoying aspects to this change:
-
-1) Changing pgtable_t to be a "pte_t *".  There's all of this special
-   logic in the TLB free paths that needed adjustments, as did the
-   PMD populate interfaces.
-
-2) init_new_context() needs to zap the pointer, since the mm struct
-   just gets copied from the parent on fork.
+We're going to be messing around with the PMD interpretation and layout
+for the sake of transparent huge pages, so we better clearly document what
+we're starting with.
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -53,252 +37,82 @@ Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/mmu_64.h     |    1 
- arch/sparc/include/asm/page_64.h    |    2 
- arch/sparc/include/asm/pgalloc_64.h |   54 ++-----------
- arch/sparc/mm/init_64.c             |  101 ++++++++++++++++++++++++++
- arch/sparc/mm/tsb.c                 |    9 ++
- 5 files changed, 123 insertions(+), 44 deletions(-)
+ arch/sparc/include/asm/pgtable_64.h |   16 ++++++++++++----
+ arch/sparc/include/asm/tsb.h        |    8 ++++----
+ 2 files changed, 16 insertions(+), 8 deletions(-)
 
-diff -puN arch/sparc/include/asm/mmu_64.h~sparc64-eliminate-pte-table-memory-wastage arch/sparc/include/asm/mmu_64.h
---- a/arch/sparc/include/asm/mmu_64.h~sparc64-eliminate-pte-table-memory-wastage
-+++ a/arch/sparc/include/asm/mmu_64.h
-@@ -93,6 +93,7 @@ typedef struct {
- 	spinlock_t		lock;
- 	unsigned long		sparc64_ctx_val;
- 	unsigned long		huge_pte_count;
-+	struct page		*pgtable_page;
- 	struct tsb_config	tsb_block[MM_NUM_TSBS];
- 	struct hv_tsb_descr	tsb_descr[MM_NUM_TSBS];
- } mm_context_t;
-diff -puN arch/sparc/include/asm/page_64.h~sparc64-eliminate-pte-table-memory-wastage arch/sparc/include/asm/page_64.h
---- a/arch/sparc/include/asm/page_64.h~sparc64-eliminate-pte-table-memory-wastage
-+++ a/arch/sparc/include/asm/page_64.h
-@@ -86,7 +86,7 @@ typedef unsigned long pgprot_t;
- 
- #endif /* (STRICT_MM_TYPECHECKS) */
- 
--typedef struct page *pgtable_t;
-+typedef pte_t *pgtable_t;
- 
- #define TASK_UNMAPPED_BASE	(test_thread_flag(TIF_32BIT) ? \
- 				 (_AC(0x0000000070000000,UL)) : \
-diff -puN arch/sparc/include/asm/pgalloc_64.h~sparc64-eliminate-pte-table-memory-wastage arch/sparc/include/asm/pgalloc_64.h
---- a/arch/sparc/include/asm/pgalloc_64.h~sparc64-eliminate-pte-table-memory-wastage
-+++ a/arch/sparc/include/asm/pgalloc_64.h
-@@ -38,51 +38,20 @@ static inline void pmd_free(struct mm_st
- 	kmem_cache_free(pgtable_cache, pmd);
- }
- 
--static inline pte_t *pte_alloc_one_kernel(struct mm_struct *mm,
--					  unsigned long address)
--{
--	return (pte_t *)__get_free_page(GFP_KERNEL | __GFP_REPEAT | __GFP_ZERO);
--}
--
--static inline pgtable_t pte_alloc_one(struct mm_struct *mm,
--					unsigned long address)
--{
--	struct page *page;
--	pte_t *pte;
--
--	pte = pte_alloc_one_kernel(mm, address);
--	if (!pte)
--		return NULL;
--	page = virt_to_page(pte);
--	pgtable_page_ctor(page);
--	return page;
--}
--
--static inline void pte_free_kernel(struct mm_struct *mm, pte_t *pte)
--{
--	free_page((unsigned long)pte);
--}
--
--static inline void pte_free(struct mm_struct *mm, pgtable_t ptepage)
--{
--	pgtable_page_dtor(ptepage);
--	__free_page(ptepage);
--}
-+extern pte_t *pte_alloc_one_kernel(struct mm_struct *mm,
-+				   unsigned long address);
-+extern pgtable_t pte_alloc_one(struct mm_struct *mm,
-+			       unsigned long address);
-+extern void pte_free_kernel(struct mm_struct *mm, pte_t *pte);
-+extern void pte_free(struct mm_struct *mm, pgtable_t ptepage);
- 
- #define pmd_populate_kernel(MM, PMD, PTE)	pmd_set(PMD, PTE)
--#define pmd_populate(MM,PMD,PTE_PAGE)		\
--	pmd_populate_kernel(MM,PMD,page_address(PTE_PAGE))
--#define pmd_pgtable(pmd) pmd_page(pmd)
-+#define pmd_populate(MM, PMD, PTE)		pmd_set(PMD, PTE)
-+#define pmd_pgtable(PMD)			((pte_t *)__pmd_page(PMD))
- 
- #define check_pgt_cache()	do { } while (0)
- 
--static inline void pgtable_free(void *table, bool is_page)
--{
--	if (is_page)
--		free_page((unsigned long)table);
--	else
--		kmem_cache_free(pgtable_cache, table);
--}
-+extern void pgtable_free(void *table, bool is_page);
- 
- #ifdef CONFIG_SMP
- 
-@@ -113,11 +82,10 @@ static inline void pgtable_free_tlb(stru
- }
- #endif /* !CONFIG_SMP */
- 
--static inline void __pte_free_tlb(struct mmu_gather *tlb, struct page *ptepage,
-+static inline void __pte_free_tlb(struct mmu_gather *tlb, pte_t *pte,
- 				  unsigned long address)
- {
--	pgtable_page_dtor(ptepage);
--	pgtable_free_tlb(tlb, page_address(ptepage), true);
-+	pgtable_free_tlb(tlb, pte, true);
- }
- 
- #define __pmd_free_tlb(tlb, pmd, addr)		      \
-diff -puN arch/sparc/mm/init_64.c~sparc64-eliminate-pte-table-memory-wastage arch/sparc/mm/init_64.c
---- a/arch/sparc/mm/init_64.c~sparc64-eliminate-pte-table-memory-wastage
-+++ a/arch/sparc/mm/init_64.c
-@@ -2467,3 +2467,104 @@ void __flush_tlb_all(void)
- 	__asm__ __volatile__("wrpr	%0, 0, %%pstate"
- 			     : : "r" (pstate));
- }
-+
-+static pte_t *get_from_cache(struct mm_struct *mm)
-+{
-+	struct page *page;
-+	pte_t *ret;
-+
-+	spin_lock(&mm->page_table_lock);
-+	page = mm->context.pgtable_page;
-+	ret = NULL;
-+	if (page) {
-+		void *p = page_address(page);
-+
-+		mm->context.pgtable_page = NULL;
-+
-+		ret = (pte_t *) (p + (PAGE_SIZE / 2));
-+	}
-+	spin_unlock(&mm->page_table_lock);
-+
-+	return ret;
-+}
-+
-+static struct page *__alloc_for_cache(struct mm_struct *mm)
-+{
-+	struct page *page = alloc_page(GFP_KERNEL | __GFP_NOTRACK |
-+				       __GFP_REPEAT | __GFP_ZERO);
-+
-+	if (page) {
-+		spin_lock(&mm->page_table_lock);
-+		if (!mm->context.pgtable_page) {
-+			atomic_set(&page->_count, 2);
-+			mm->context.pgtable_page = page;
-+		}
-+		spin_unlock(&mm->page_table_lock);
-+	}
-+	return page;
-+}
-+
-+pte_t *pte_alloc_one_kernel(struct mm_struct *mm,
-+			    unsigned long address)
-+{
-+	struct page *page;
-+	pte_t *pte;
-+
-+	pte = get_from_cache(mm);
-+	if (pte)
-+		return pte;
-+
-+	page = __alloc_for_cache(mm);
-+	if (page)
-+		pte = (pte_t *) page_address(page);
-+
-+	return pte;
-+}
-+
-+pgtable_t pte_alloc_one(struct mm_struct *mm,
-+			unsigned long address)
-+{
-+	struct page *page;
-+	pte_t *pte;
-+
-+	pte = get_from_cache(mm);
-+	if (pte)
-+		return pte;
-+
-+	page = __alloc_for_cache(mm);
-+	if (page) {
-+		pgtable_page_ctor(page);
-+		pte = (pte_t *) page_address(page);
-+	}
-+
-+	return pte;
-+}
-+
-+void pte_free_kernel(struct mm_struct *mm, pte_t *pte)
-+{
-+	struct page *page = virt_to_page(pte);
-+	if (put_page_testzero(page))
-+		free_hot_cold_page(page, 0);
-+}
-+
-+static void __pte_free(pgtable_t pte)
-+{
-+	struct page *page = virt_to_page(pte);
-+	if (put_page_testzero(page)) {
-+		pgtable_page_dtor(page);
-+		free_hot_cold_page(page, 0);
-+	}
-+}
-+
-+void pte_free(struct mm_struct *mm, pgtable_t pte)
-+{
-+	__pte_free(pte);
-+}
-+
-+void pgtable_free(void *table, bool is_page)
-+{
-+	if (is_page)
-+		__pte_free(table);
-+	else
-+		kmem_cache_free(pgtable_cache, table);
-+}
-diff -puN arch/sparc/mm/tsb.c~sparc64-eliminate-pte-table-memory-wastage arch/sparc/mm/tsb.c
---- a/arch/sparc/mm/tsb.c~sparc64-eliminate-pte-table-memory-wastage
-+++ a/arch/sparc/mm/tsb.c
-@@ -445,6 +445,8 @@ int init_new_context(struct task_struct 
- 	mm->context.huge_pte_count = 0;
+diff -puN arch/sparc/include/asm/pgtable_64.h~sparc64-document-pgd-and-pmd-layout arch/sparc/include/asm/pgtable_64.h
+--- a/arch/sparc/include/asm/pgtable_64.h~sparc64-document-pgd-and-pmd-layout
++++ a/arch/sparc/include/asm/pgtable_64.h
+@@ -63,6 +63,14 @@
+ #error Page table parameters do not cover virtual address space properly.
  #endif
  
-+	mm->context.pgtable_page = NULL;
++/* PMDs point to PTE tables which are 4K aligned.  */
++#define PMD_PADDR	_AC(0xfffffffe,UL)
++#define PMD_PADDR_SHIFT	_AC(11,UL)
 +
- 	/* copy_mm() copies over the parent's mm_struct before calling
- 	 * us, so we need to zero out the TSB pointer or else tsb_grow()
- 	 * will be confused and think there is an older TSB to free up.
-@@ -483,10 +485,17 @@ static void tsb_destroy_one(struct tsb_c
- void destroy_context(struct mm_struct *mm)
- {
- 	unsigned long flags, i;
-+	struct page *page;
- 
- 	for (i = 0; i < MM_NUM_TSBS; i++)
- 		tsb_destroy_one(&mm->context.tsb_block[i]);
- 
-+	page = mm->context.pgtable_page;
-+	if (page && put_page_testzero(page)) {
-+		pgtable_page_dtor(page);
-+		free_hot_cold_page(page, 0);
-+	}
++/* PGDs point to PMD tables which are 8K aligned.  */
++#define PGD_PADDR	_AC(0xfffffffc,UL)
++#define PGD_PADDR_SHIFT	_AC(11,UL)
 +
- 	spin_lock_irqsave(&ctx_alloc_lock, flags);
+ #ifndef __ASSEMBLY__
  
- 	if (CTX_VALID(mm->context)) {
+ #include <linux/sched.h>
+@@ -581,14 +589,14 @@ static inline unsigned long pte_special(
+ }
+ 
+ #define pmd_set(pmdp, ptep)	\
+-	(pmd_val(*(pmdp)) = (__pa((unsigned long) (ptep)) >> 11UL))
++	(pmd_val(*(pmdp)) = (__pa((unsigned long) (ptep)) >> PMD_PADDR_SHIFT))
+ #define pud_set(pudp, pmdp)	\
+-	(pud_val(*(pudp)) = (__pa((unsigned long) (pmdp)) >> 11UL))
++	(pud_val(*(pudp)) = (__pa((unsigned long) (pmdp)) >> PGD_PADDR_SHIFT))
+ #define __pmd_page(pmd)		\
+-	((unsigned long) __va((((unsigned long)pmd_val(pmd))<<11UL)))
++	((unsigned long) __va((((unsigned long)pmd_val(pmd))<<PMD_PADDR_SHIFT)))
+ #define pmd_page(pmd) 			virt_to_page((void *)__pmd_page(pmd))
+ #define pud_page_vaddr(pud)		\
+-	((unsigned long) __va((((unsigned long)pud_val(pud))<<11UL)))
++	((unsigned long) __va((((unsigned long)pud_val(pud))<<PGD_PADDR_SHIFT)))
+ #define pud_page(pud) 			virt_to_page((void *)pud_page_vaddr(pud))
+ #define pmd_none(pmd)			(!pmd_val(pmd))
+ #define pmd_bad(pmd)			(0)
+diff -puN arch/sparc/include/asm/tsb.h~sparc64-document-pgd-and-pmd-layout arch/sparc/include/asm/tsb.h
+--- a/arch/sparc/include/asm/tsb.h~sparc64-document-pgd-and-pmd-layout
++++ a/arch/sparc/include/asm/tsb.h
+@@ -147,13 +147,13 @@ extern struct tsb_phys_patch_entry __tsb
+ 	brz,pn		REG1, FAIL_LABEL; \
+ 	 sllx		VADDR, 64 - (PMD_SHIFT + PMD_BITS), REG2; \
+ 	srlx		REG2, 64 - PAGE_SHIFT, REG2; \
+-	sllx		REG1, 11, REG1; \
++	sllx		REG1, PGD_PADDR_SHIFT, REG1; \
+ 	andn		REG2, 0x3, REG2; \
+ 	lduwa		[REG1 + REG2] ASI_PHYS_USE_EC, REG1; \
+ 	brz,pn		REG1, FAIL_LABEL; \
+ 	 sllx		VADDR, 64 - PMD_SHIFT, REG2; \
+ 	srlx		REG2, 64 - (PAGE_SHIFT - 1), REG2; \
+-	sllx		REG1, 11, REG1; \
++	sllx		REG1, PMD_PADDR_SHIFT, REG1; \
+ 	andn		REG2, 0x7, REG2; \
+ 	add		REG1, REG2, REG1;
+ 
+@@ -172,13 +172,13 @@ extern struct tsb_phys_patch_entry __tsb
+ 	brz,pn		REG1, FAIL_LABEL; \
+ 	 sllx		VADDR, 64 - (PMD_SHIFT + PMD_BITS), REG2; \
+ 	srlx		REG2, 64 - PAGE_SHIFT, REG2; \
+-	sllx		REG1, 11, REG1; \
++	sllx		REG1, PGD_PADDR_SHIFT, REG1; \
+ 	andn		REG2, 0x3, REG2; \
+ 	lduwa		[REG1 + REG2] ASI_PHYS_USE_EC, REG1; \
+ 	brz,pn		REG1, FAIL_LABEL; \
+ 	 sllx		VADDR, 64 - PMD_SHIFT, REG2; \
+ 	srlx		REG2, 64 - (PAGE_SHIFT - 1), REG2; \
+-	sllx		REG1, 11, REG1; \
++	sllx		REG1, PMD_PADDR_SHIFT, REG1; \
+ 	andn		REG2, 0x7, REG2; \
+ 	add		REG1, REG2, REG1;
+ 
 _
 
 Patches currently in -mm which might be from davem@davemloft.net are
