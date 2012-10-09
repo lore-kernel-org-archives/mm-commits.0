@@ -1,81 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code-fix.patch removed from -mm tree
-Date: Mon, 08 Oct 2012 16:18:21 -0700
-Message-ID: <20121008231822.48D681E0043@wpzn4.hot.corp.google.com>
+Subject: [merged] maintainers-add-konrad-as-the-swiotlb-maintainer.patch removed from -mm tree
+Date: Tue, 09 Oct 2012 11:05:03 -0700
+Message-ID: <20121009180506.E2C2320004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:44438 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751968Ab2JHXSX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Oct 2012 19:18:23 -0400
-Received: by mail-gh0-f202.google.com with SMTP id z15so538644ghb.1
-        for <mm-commits@vger.kernel.org>; Mon, 08 Oct 2012 16:18:22 -0700 (PDT)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:56917 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752730Ab2JISFK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:05:10 -0400
+Received: by mail-la0-f74.google.com with SMTP id j13so309043lah.1
+        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:05:08 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, davem@davemloft.net, gerald.schaefer@de.ibm.com, hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: konrad.wilk@oracle.com, fujita.tomonori@lab.ntt.co.jp, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code-fix
+     Subject: MAINTAINERS: add Konrad as the SWIOTLB maintainer
 has been removed from the -mm tree.  Its filename was
-     mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code-fix.patch
+     maintainers-add-konrad-as-the-swiotlb-maintainer.patch
 
-This patch was dropped because it was folded into mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code-fix
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Subject: MAINTAINERS: add Konrad as the SWIOTLB maintainer
 
-implement update_mm_cache_pmd() for s390
+Now that I've an IA64 box on top of the other boxes (IBM with Calgary-X,
+Intel VT-d, AMD Vi, and AMD GART - that can use SWIOTLB as fallback) I can
+reliably do regression testing.
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Ingo Molnar <mingo@elte.hu>
+Acked-by: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/pgtable.h |    1 +
- 1 file changed, 1 insertion(+)
+ MAINTAINERS |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN arch/s390/include/asm/pgtable.h~mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code-fix arch/s390/include/asm/pgtable.h
---- a/arch/s390/include/asm/pgtable.h~mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code-fix
-+++ a/arch/s390/include/asm/pgtable.h
-@@ -42,6 +42,7 @@ extern void fault_init(void);
-  * tables contain all the necessary information.
-  */
- #define update_mmu_cache(vma, address, ptep)     do { } while (0)
-+#define update_mmu_cache_pmd(vma, address, ptep) do { } while (0)
+diff -puN MAINTAINERS~maintainers-add-konrad-as-the-swiotlb-maintainer MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-konrad-as-the-swiotlb-maintainer
++++ a/MAINTAINERS
+@@ -7039,6 +7039,14 @@ S:	Maintained
+ F:	Documentation/svga.txt
+ F:	arch/x86/boot/video*
  
- /*
-  * ZERO_PAGE is a global shared page that is always zero; used
++SWIOTLB SUBSYSTEM
++M:	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
++L:	linux-kernel@vger.kernel.org
++S:	Supported
++F:	lib/swiotlb.c
++F:	arch/*/kernel/pci-swiotlb.c
++F:	include/linux/swiotlb.h
++
+ SYSV FILESYSTEM
+ M:	Christoph Hellwig <hch@infradead.org>
+ S:	Maintained
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from konrad.wilk@oracle.com are
 
 origin.patch
-x86-pat-separate-the-pfn-attribute-tracking-for-remap_pfn_range-and-vm_insert_pfn.patch
-mm-kill-vma-flag-vm_reserved-and-mm-reserved_vm-counter.patch
-mm-fix-nonuniform-page-status-when-writing-new-file-with-small-buffer.patch
-mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures.patch
-mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host.patch
-rbtree-performance-and-correctness-test.patch
-mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration.patch
-mm-fix-tracing-in-free_pcppages_bulk.patch
-cma-count-free-cma-pages.patch
-memory-hotplug-fix-pages-missed-by-race-rather-than-failing.patch
-atomic-implement-generic-atomic_dec_if_positive.patch
-mm-compaction-abort-compaction-loop-if-lock-is-contended-or-run-too-long.patch
-mm-compaction-acquire-the-zone-lru_lock-as-late-as-possible.patch
-mm-page_alloc-refactor-out-__alloc_contig_migrate_alloc.patch
-mm-fix-invalidate_complete_page2-lock-ordering.patch
-mm-numa-reclaim-from-all-nodes-within-reclaim-distance.patch
-mm-move-all-mmu-notifier-invocations-to-be-done-outside-the-pt-lock.patch
-cma-migrate-mlocked-pages.patch
-mm-avoid-section-mismatch-warning-for-memblock_type_name.patch
-mm-document-pagehuge-somewhat.patch
-mm-memcg-clean-up-mm_match_cgroup-signature.patch
-memory-hotplug-suppress-trying-to-free-nonexistent-resource-xxxxxxxxxxxxxxxx-yyyyyyyyyyyyyyyy-warning.patch
-mm-add-and-use-update_mmu_cache_pmd-in-transparent-huge-page-code.patch
+linux-next.patch
+acpi_memhotplugc-fix-memory-leak-when-memory-device-is-unbound-from-the-module-acpi_memhotplug.patch
+acpi_memhotplugc-free-memory-device-if-acpi_memory_enable_device-failed.patch
+acpi_memhotplugc-remove-memory-info-from-list-before-freeing-it.patch
+acpi_memhotplugc-dont-allow-to-eject-the-memory-device-if-it-is-being-used.patch
+acpi_memhotplugc-bind-the-memory-device-when-the-driver-is-being-loaded.patch
+acpi_memhotplugc-auto-bind-the-memory-device-which-is-hotplugged-before-the-driver-is-loaded.patch
 
