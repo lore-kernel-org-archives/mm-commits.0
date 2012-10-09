@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + lib-kasprintfc-use-kmalloc_track_caller-to-get-accurate-traces-for-kvasprintf.patch added to -mm tree
-Date: Tue, 09 Oct 2012 14:18:15 -0700
-Message-ID: <20121009211815.9BA7B100047@wpzn3.hot.corp.google.com>
+Subject: + arch-powerpc-platforms-pseries-hotplug-memoryc-section-removal-cleanups.patch added to -mm tree
+Date: Tue, 09 Oct 2012 14:39:48 -0700
+Message-ID: <20121009213949.EFB14200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:52872 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751929Ab2JIVSQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 17:18:16 -0400
-Received: by mail-qa0-f74.google.com with SMTP id a16so551815qae.1
-        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 14:18:16 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:45382 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756954Ab2JIVjw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 17:39:52 -0400
+Received: by mail-ee0-f74.google.com with SMTP id b57so371070eek.1
+        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 14:39:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: elezegarcia@gmail.com, sam@ravnborg.org
+Cc: isimatu.yasuaki@jp.fujitsu.com, benh@kernel.crashing.org
 
 
 The patch titled
-     Subject: lib/kasprintf.c: use kmalloc_track_caller() to get accurate traces for kvasprintf
+     Subject: arch/powerpc/platforms/pseries/hotplug-memory.c: section removal cleanups
 has been added to the -mm tree.  Its filename is
-     lib-kasprintfc-use-kmalloc_track_caller-to-get-accurate-traces-for-kvasprintf.patch
+     arch-powerpc-platforms-pseries-hotplug-memoryc-section-removal-cleanups.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,40 +33,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: lib/kasprintf.c: use kmalloc_track_caller() to get accurate traces for kvasprintf
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: arch/powerpc/platforms/pseries/hotplug-memory.c: section removal cleanups
 
-Previously kvasprintf() allocation was being done through kmalloc(), thus
-producing an inaccurate trace report.
+Followups to d760afd4d25 ("memory-hotplug: suppress "Trying to free
+nonexistent resource <XXXXXXXXXXXXXXXX-YYYYYYYYYYYYYYYY>" warning").
 
-This is a common problem: in order to get accurate callsite tracing, a
-lib/utils function shouldn't allocate kmalloc but instead use
-kmalloc_track_caller.
+- use unsigned long type, as overflows are conceivable
 
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+- rename `i' to the less-misleading and more informative `section'
+
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kasprintf.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/powerpc/platforms/pseries/hotplug-memory.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN lib/kasprintf.c~lib-kasprintfc-use-kmalloc_track_caller-to-get-accurate-traces-for-kvasprintf lib/kasprintf.c
---- a/lib/kasprintf.c~lib-kasprintfc-use-kmalloc_track_caller-to-get-accurate-traces-for-kvasprintf
-+++ a/lib/kasprintf.c
-@@ -21,7 +21,7 @@ char *kvasprintf(gfp_t gfp, const char *
- 	len = vsnprintf(NULL, 0, fmt, aq);
- 	va_end(aq);
+diff -puN arch/powerpc/platforms/pseries/hotplug-memory.c~arch-powerpc-platforms-pseries-hotplug-memoryc-section-removal-cleanups arch/powerpc/platforms/pseries/hotplug-memory.c
+--- a/arch/powerpc/platforms/pseries/hotplug-memory.c~arch-powerpc-platforms-pseries-hotplug-memoryc-section-removal-cleanups
++++ a/arch/powerpc/platforms/pseries/hotplug-memory.c
+@@ -77,8 +77,9 @@ static int pseries_remove_memblock(unsig
+ {
+ 	unsigned long start, start_pfn;
+ 	struct zone *zone;
+-	int i, ret;
+-	int sections_to_remove;
++	int ret;
++	unsigned long section;
++	unsigned long sections_to_remove;
  
--	p = kmalloc(len+1, gfp);
-+	p = kmalloc_track_caller(len+1, gfp);
- 	if (!p)
- 		return NULL;
+ 	start_pfn = base >> PAGE_SHIFT;
  
+@@ -99,8 +100,8 @@ static int pseries_remove_memblock(unsig
+ 	 * while writing to it. So we have to defer it to here.
+ 	 */
+ 	sections_to_remove = (memblock_size >> PAGE_SHIFT) / PAGES_PER_SECTION;
+-	for (i = 0; i < sections_to_remove; i++) {
+-		unsigned long pfn = start_pfn + i * PAGES_PER_SECTION;
++	for (section = 0; section < sections_to_remove; section++) {
++		unsigned long pfn = start_pfn + section * PAGES_PER_SECTION;
+ 		ret = __remove_pages(zone, start_pfn,  PAGES_PER_SECTION);
+ 		if (ret)
+ 			return ret;
 _
 
-Patches currently in -mm which might be from elezegarcia@gmail.com are
+Patches currently in -mm which might be from isimatu.yasuaki@jp.fujitsu.com are
 
 origin.patch
-lib-kasprintfc-use-kmalloc_track_caller-to-get-accurate-traces-for-kvasprintf.patch
+arch-powerpc-platforms-pseries-hotplug-memoryc-section-removal-cleanups.patch
+acpi_memhotplugc-fix-memory-leak-when-memory-device-is-unbound-from-the-module-acpi_memhotplug.patch
+acpi_memhotplugc-free-memory-device-if-acpi_memory_enable_device-failed.patch
+acpi_memhotplugc-remove-memory-info-from-list-before-freeing-it.patch
+acpi_memhotplugc-dont-allow-to-eject-the-memory-device-if-it-is-being-used.patch
+acpi_memhotplugc-bind-the-memory-device-when-the-driver-is-being-loaded.patch
+acpi_memhotplugc-auto-bind-the-memory-device-which-is-hotplugged-before-the-driver-is-loaded.patch
 
