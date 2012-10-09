@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-show-migration-types-in-show_mem.patch added to -mm tree
-Date: Tue, 09 Oct 2012 14:08:52 -0700
-Message-ID: <20121009210853.601035C0050@hpza9.eem.corp.google.com>
+Subject: + mm-slab-release-slab_mutex-earlier-in-kmem_cache_destroy.patch added to -mm tree
+Date: Tue, 09 Oct 2012 14:13:41 -0700
+Message-ID: <20121009211342.10054100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f202.google.com ([209.85.215.202]:55527 "EHLO
-	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752730Ab2JIVIz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 17:08:55 -0400
-Received: by mail-ea0-f202.google.com with SMTP id q10so61556eaa.1
-        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 14:08:54 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:58215 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751929Ab2JIVNn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 17:13:43 -0400
+Received: by mail-vc0-f202.google.com with SMTP id fy27so695094vcb.1
+        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 14:13:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rabin.vincent@stericsson.com, mel@csn.ul.ie
+Cc: jkosina@suse.cz, paulmck@linux.vnet.ibm.com, penberg@cs.helsinki.fi, rientjes@google.com, srivatsa.bhat@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: mm: show migration types in show_mem
+     Subject: mm, slab: release slab_mutex earlier in kmem_cache_destroy()
 has been added to the -mm tree.  Its filename is
-     mm-show-migration-types-in-show_mem.patch
+     mm-slab-release-slab_mutex-earlier-in-kmem_cache_destroy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,127 +33,163 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rabin Vincent <rabin.vincent@stericsson.com>
-Subject: mm: show migration types in show_mem
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: mm, slab: release slab_mutex earlier in kmem_cache_destroy()
 
-This is useful to diagnose the reason for page allocation failure for
-cases where there appear to be several free pages.
+Commit 1331e7a1bbe1 ("rcu: Remove _rcu_barrier() dependency on
+__stop_machine()") introduced slab_mutex -> cpu_hotplug.lock dependency
+through kmem_cache_destroy() -> rcu_barrier() -> _rcu_barrier() ->
+get_online_cpus().
 
-Example, with this alloc_pages(GFP_ATOMIC) failure:
+Lockdep thinks that this might actually result in ABBA deadlock, and
+reports it as below:
 
- swapper/0: page allocation failure: order:0, mode:0x0
- ...
- Mem-info:
- Normal per-cpu:
- CPU    0: hi:   90, btch:  15 usd:  48
- CPU    1: hi:   90, btch:  15 usd:  21
- active_anon:0 inactive_anon:0 isolated_anon:0
-  active_file:0 inactive_file:84 isolated_file:0
-  unevictable:0 dirty:0 writeback:0 unstable:0
-  free:4026 slab_reclaimable:75 slab_unreclaimable:484
-  mapped:0 shmem:0 pagetables:0 bounce:0
- Normal free:16104kB min:2296kB low:2868kB high:3444kB active_anon:0kB
- inactive_anon:0kB active_file:0kB inactive_file:336kB unevictable:0kB
- isolated(anon):0kB isolated(file):0kB present:331776kB mlocked:0kB
- dirty:0kB writeback:0kB mapped:0kB shmem:0kB slab_reclaimable:300kB
- slab_unreclaimable:1936kB kernel_stack:328kB pagetables:0kB unstable:0kB
- bounce:0kB writeback_tmp:0kB pages_scanned:0 all_unreclaimable? no
- lowmem_reserve[]: 0 0
+=== [ cut here ] ===
+ ======================================================
+ [ INFO: possible circular locking dependency detected ]
+ 3.6.0-rc5-00004-g0d8ee37 #143 Not tainted
+ -------------------------------------------------------
+ kworker/u:2/40 is trying to acquire lock:
+  (rcu_sched_state.barrier_mutex){+.+...}, at: [<ffffffff810f2126>] _rcu_barrier+0x26/0x1e0
 
-Before the patch, it's hard (for me, at least) to say why all these free
-chunks weren't considered for allocation:
+ but task is already holding lock:
+  (slab_mutex){+.+.+.}, at: [<ffffffff81176e15>] kmem_cache_destroy+0x45/0xe0
 
- Normal: 0*4kB 0*8kB 0*16kB 0*32kB 0*64kB 0*128kB 1*256kB 1*512kB
- 1*1024kB 1*2048kB 3*4096kB = 16128kB
+ which lock already depends on the new lock.
 
-After the patch, it's obvious that the reason is that all of these are
-in the MIGRATE_CMA (C) freelist:
+ the existing dependency chain (in reverse order) is:
 
- Normal: 0*4kB 0*8kB 0*16kB 0*32kB 0*64kB 0*128kB 1*256kB (C) 1*512kB
- (C) 1*1024kB (C) 1*2048kB (C) 3*4096kB (C) = 16128kB
+ -> #2 (slab_mutex){+.+.+.}:
+        [<ffffffff810ae1e2>] validate_chain+0x632/0x720
+        [<ffffffff810ae5d9>] __lock_acquire+0x309/0x530
+        [<ffffffff810ae921>] lock_acquire+0x121/0x190
+        [<ffffffff8155d4cc>] __mutex_lock_common+0x5c/0x450
+        [<ffffffff8155d9ee>] mutex_lock_nested+0x3e/0x50
+        [<ffffffff81558cb5>] cpuup_callback+0x2f/0xbe
+        [<ffffffff81564b83>] notifier_call_chain+0x93/0x140
+        [<ffffffff81076f89>] __raw_notifier_call_chain+0x9/0x10
+        [<ffffffff8155719d>] _cpu_up+0xba/0x14e
+        [<ffffffff815572ed>] cpu_up+0xbc/0x117
+        [<ffffffff81ae05e3>] smp_init+0x6b/0x9f
+        [<ffffffff81ac47d6>] kernel_init+0x147/0x1dc
+        [<ffffffff8156ab44>] kernel_thread_helper+0x4/0x10
 
-Signed-off-by: Rabin Vincent <rabin.vincent@stericsson.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+ -> #1 (cpu_hotplug.lock){+.+.+.}:
+        [<ffffffff810ae1e2>] validate_chain+0x632/0x720
+        [<ffffffff810ae5d9>] __lock_acquire+0x309/0x530
+        [<ffffffff810ae921>] lock_acquire+0x121/0x190
+        [<ffffffff8155d4cc>] __mutex_lock_common+0x5c/0x450
+        [<ffffffff8155d9ee>] mutex_lock_nested+0x3e/0x50
+        [<ffffffff81049197>] get_online_cpus+0x37/0x50
+        [<ffffffff810f21bb>] _rcu_barrier+0xbb/0x1e0
+        [<ffffffff810f22f0>] rcu_barrier_sched+0x10/0x20
+        [<ffffffff810f2309>] rcu_barrier+0x9/0x10
+        [<ffffffff8118c129>] deactivate_locked_super+0x49/0x90
+        [<ffffffff8118cc01>] deactivate_super+0x61/0x70
+        [<ffffffff811aaaa7>] mntput_no_expire+0x127/0x180
+        [<ffffffff811ab49e>] sys_umount+0x6e/0xd0
+        [<ffffffff81569979>] system_call_fastpath+0x16/0x1b
+
+ -> #0 (rcu_sched_state.barrier_mutex){+.+...}:
+        [<ffffffff810adb4e>] check_prev_add+0x3de/0x440
+        [<ffffffff810ae1e2>] validate_chain+0x632/0x720
+        [<ffffffff810ae5d9>] __lock_acquire+0x309/0x530
+        [<ffffffff810ae921>] lock_acquire+0x121/0x190
+        [<ffffffff8155d4cc>] __mutex_lock_common+0x5c/0x450
+        [<ffffffff8155d9ee>] mutex_lock_nested+0x3e/0x50
+        [<ffffffff810f2126>] _rcu_barrier+0x26/0x1e0
+        [<ffffffff810f22f0>] rcu_barrier_sched+0x10/0x20
+        [<ffffffff810f2309>] rcu_barrier+0x9/0x10
+        [<ffffffff81176ea1>] kmem_cache_destroy+0xd1/0xe0
+        [<ffffffffa04c3154>] nf_conntrack_cleanup_net+0xe4/0x110 [nf_conntrack]
+        [<ffffffffa04c31aa>] nf_conntrack_cleanup+0x2a/0x70 [nf_conntrack]
+        [<ffffffffa04c42ce>] nf_conntrack_net_exit+0x5e/0x80 [nf_conntrack]
+        [<ffffffff81454b79>] ops_exit_list+0x39/0x60
+        [<ffffffff814551ab>] cleanup_net+0xfb/0x1b0
+        [<ffffffff8106917b>] process_one_work+0x26b/0x4c0
+        [<ffffffff81069f3e>] worker_thread+0x12e/0x320
+        [<ffffffff8106f73e>] kthread+0x9e/0xb0
+        [<ffffffff8156ab44>] kernel_thread_helper+0x4/0x10
+
+ other info that might help us debug this:
+
+ Chain exists of:
+   rcu_sched_state.barrier_mutex --> cpu_hotplug.lock --> slab_mutex
+
+  Possible unsafe locking scenario:
+
+        CPU0                    CPU1
+        ----                    ----
+   lock(slab_mutex);
+                                lock(cpu_hotplug.lock);
+                                lock(slab_mutex);
+   lock(rcu_sched_state.barrier_mutex);
+
+  *** DEADLOCK ***
+=== [ cut here ] ===
+
+This is actually a false positive. Lockdep has no way of knowing the fact
+that the ABBA can actually never happen, because of special semantics of
+cpu_hotplug.refcount and its handling in cpu_hotplug_begin(); the mutual
+exclusion there is not achieved through mutex, but through
+cpu_hotplug.refcount.
+
+The "neither cpu_up() nor cpu_down() will proceed past cpu_hotplug_begin()
+until everyone who called get_online_cpus() will call put_online_cpus()"
+semantics is totally invisible to lockdep.
+
+This patch therefore moves the unlock of slab_mutex so that rcu_barrier()
+is being called with it unlocked. It has two advantages:
+
+- it slightly reduces hold time of slab_mutex; as it's used to protect
+  the cachep list, it's not necessary to hold it over kmem_cache_free()
+  call any more
+- it silences the lockdep false positive warning, as it avoids lockdep ever
+  learning about slab_mutex -> cpu_hotplug.lock dependency
+
+Reviewed-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Reviewed-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   42 ++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 40 insertions(+), 2 deletions(-)
+ mm/slab_common.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-show-migration-types-in-show_mem mm/page_alloc.c
---- a/mm/page_alloc.c~mm-show-migration-types-in-show_mem
-+++ a/mm/page_alloc.c
-@@ -2875,6 +2875,31 @@ out:
+diff -puN mm/slab_common.c~mm-slab-release-slab_mutex-earlier-in-kmem_cache_destroy mm/slab_common.c
+--- a/mm/slab_common.c~mm-slab-release-slab_mutex-earlier-in-kmem_cache_destroy
++++ a/mm/slab_common.c
+@@ -168,6 +168,7 @@ void kmem_cache_destroy(struct kmem_cach
+ 		list_del(&s->list);
  
- #define K(x) ((x) << (PAGE_SHIFT-10))
+ 		if (!__kmem_cache_shutdown(s)) {
++			mutex_unlock(&slab_mutex);
+ 			if (s->flags & SLAB_DESTROY_BY_RCU)
+ 				rcu_barrier();
  
-+static void show_migration_types(unsigned char type)
-+{
-+	static const char types[MIGRATE_TYPES] = {
-+		[MIGRATE_UNMOVABLE]	= 'U',
-+		[MIGRATE_RECLAIMABLE]	= 'E',
-+		[MIGRATE_MOVABLE]	= 'M',
-+		[MIGRATE_RESERVE]	= 'R',
-+#ifdef CONFIG_CMA
-+		[MIGRATE_CMA]		= 'C',
-+#endif
-+		[MIGRATE_ISOLATE]	= 'I',
-+	};
-+	char tmp[MIGRATE_TYPES + 1];
-+	char *p = tmp;
-+	int i;
-+
-+	for (i = 0; i < MIGRATE_TYPES; i++) {
-+		if (type & (1 << i))
-+			*p++ = types[i];
-+	}
-+
-+	*p = '\0';
-+	printk("(%s) ", tmp);
-+}
-+
- /*
-  * Show free area list (used inside shift_scroll-lock stuff)
-  * We also calculate the percentage fragmentation. We do this by counting the
-@@ -3003,6 +3028,7 @@ void show_free_areas(unsigned int filter
- 
- 	for_each_populated_zone(zone) {
-  		unsigned long nr[MAX_ORDER], flags, order, total = 0;
-+		unsigned char types[MAX_ORDER];
- 
- 		if (skip_free_areas_node(filter, zone_to_nid(zone)))
- 			continue;
-@@ -3011,12 +3037,24 @@ void show_free_areas(unsigned int filter
- 
- 		spin_lock_irqsave(&zone->lock, flags);
- 		for (order = 0; order < MAX_ORDER; order++) {
--			nr[order] = zone->free_area[order].nr_free;
-+			struct free_area *area = &zone->free_area[order];
-+			int type;
-+
-+			nr[order] = area->nr_free;
- 			total += nr[order] << order;
-+
-+			types[order] = 0;
-+			for (type = 0; type < MIGRATE_TYPES; type++) {
-+				if (!list_empty(&area->free_list[type]))
-+					types[order] |= 1 << type;
-+			}
+@@ -175,12 +176,14 @@ void kmem_cache_destroy(struct kmem_cach
+ 			kmem_cache_free(kmem_cache, s);
+ 		} else {
+ 			list_add(&s->list, &slab_caches);
++			mutex_unlock(&slab_mutex);
+ 			printk(KERN_ERR "kmem_cache_destroy %s: Slab cache still has objects\n",
+ 				s->name);
+ 			dump_stack();
  		}
- 		spin_unlock_irqrestore(&zone->lock, flags);
--		for (order = 0; order < MAX_ORDER; order++)
-+		for (order = 0; order < MAX_ORDER; order++) {
- 			printk("%lu*%lukB ", nr[order], K(1UL) << order);
-+			if (nr[order])
-+				show_migration_types(types[order]);
-+		}
- 		printk("= %lukB\n", K(total));
++	} else {
++		mutex_unlock(&slab_mutex);
  	}
- 
+-	mutex_unlock(&slab_mutex);
+ 	put_online_cpus();
+ }
+ EXPORT_SYMBOL(kmem_cache_destroy);
 _
 
-Patches currently in -mm which might be from rabin.vincent@stericsson.com are
+Patches currently in -mm which might be from jkosina@suse.cz are
 
 origin.patch
-mm-show-migration-types-in-show_mem.patch
+linux-next.patch
+mm-slab-release-slab_mutex-earlier-in-kmem_cache_destroy.patch
 
