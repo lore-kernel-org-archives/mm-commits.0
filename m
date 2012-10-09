@@ -1,141 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-thp-fix-mlock-statistics.patch removed from -mm tree
-Date: Tue, 09 Oct 2012 11:15:02 -0700
-Message-ID: <20121009181503.5E32620004E@hpza10.eem.corp.google.com>
+Subject: [merged] mm-document-pagehuge-somewhat.patch removed from -mm tree
+Date: Tue, 09 Oct 2012 11:15:11 -0700
+Message-ID: <20121009181511.B4314100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:35223 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932127Ab2JISPG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:15:06 -0400
-Received: by mail-ee0-f74.google.com with SMTP id b57so363410eek.1
-        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:15:05 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:37483 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932138Ab2JISPM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:15:12 -0400
+Received: by mail-qa0-f74.google.com with SMTP id a16so519302qae.1
+        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:15:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, aarcange@redhat.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, n-horiguchi@ah.jp.nec.com, walken@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, mel@csn.ul.ie, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, thp: fix mlock statistics
+     Subject: mm: document PageHuge somewhat
 has been removed from the -mm tree.  Its filename was
-     mm-thp-fix-mlock-statistics.patch
+     mm-document-pagehuge-somewhat.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, thp: fix mlock statistics
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: document PageHuge somewhat
 
-NR_MLOCK is only accounted in single page units: there's no logic to
-handle transparent hugepages.  This patch checks the appropriate number of
-pages to adjust the statistics by so that the correct amount of memory is
-reflected.
-
-Currently:
-
-		$ grep Mlocked /proc/meminfo
-		Mlocked:           19636 kB
-
-	#define MAP_SIZE	(4 << 30)	/* 4GB */
-
-	void *ptr = mmap(NULL, MAP_SIZE, PROT_READ | PROT_WRITE,
-			 MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
-	mlock(ptr, MAP_SIZE);
-
-		$ grep Mlocked /proc/meminfo
-		Mlocked:           29844 kB
-
-	munlock(ptr, MAP_SIZE);
-
-		$ grep Mlocked /proc/meminfo
-		Mlocked:           19636 kB
-
-And with this patch:
-
-		$ grep Mlock /proc/meminfo
-		Mlocked:           19636 kB
-
-	mlock(ptr, MAP_SIZE);
-
-		$ grep Mlock /proc/meminfo
-		Mlocked:         4213664 kB
-
-	munlock(ptr, MAP_SIZE);
-
-		$ grep Mlock /proc/meminfo
-		Mlocked:           19636 kB
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Reported-by: Hugh Dickens <hughd@google.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Michel Lespinasse <walken@google.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    3 ++-
- mm/mlock.c    |    9 ++++++---
- 2 files changed, 8 insertions(+), 4 deletions(-)
+ mm/hugetlb.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN mm/internal.h~mm-thp-fix-mlock-statistics mm/internal.h
---- a/mm/internal.h~mm-thp-fix-mlock-statistics
-+++ a/mm/internal.h
-@@ -180,7 +180,8 @@ static inline int mlocked_vma_newpage(st
- 		return 0;
- 
- 	if (!TestSetPageMlocked(page)) {
--		inc_zone_page_state(page, NR_MLOCK);
-+		mod_zone_page_state(page_zone(page), NR_MLOCK,
-+				    hpage_nr_pages(page));
- 		count_vm_event(UNEVICTABLE_PGMLOCKED);
+diff -puN mm/hugetlb.c~mm-document-pagehuge-somewhat mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-document-pagehuge-somewhat
++++ a/mm/hugetlb.c
+@@ -671,6 +671,11 @@ static void prep_compound_gigantic_page(
  	}
- 	return 1;
-diff -puN mm/mlock.c~mm-thp-fix-mlock-statistics mm/mlock.c
---- a/mm/mlock.c~mm-thp-fix-mlock-statistics
-+++ a/mm/mlock.c
-@@ -56,7 +56,8 @@ void clear_page_mlock(struct page *page)
- 	if (!TestClearPageMlocked(page))
- 		return;
+ }
  
--	dec_zone_page_state(page, NR_MLOCK);
-+	mod_zone_page_state(page_zone(page), NR_MLOCK,
-+			    -hpage_nr_pages(page));
- 	count_vm_event(UNEVICTABLE_PGCLEARED);
- 	if (!isolate_lru_page(page)) {
- 		putback_lru_page(page);
-@@ -78,7 +79,8 @@ void mlock_vma_page(struct page *page)
- 	BUG_ON(!PageLocked(page));
- 
- 	if (!TestSetPageMlocked(page)) {
--		inc_zone_page_state(page, NR_MLOCK);
-+		mod_zone_page_state(page_zone(page), NR_MLOCK,
-+				    hpage_nr_pages(page));
- 		count_vm_event(UNEVICTABLE_PGMLOCKED);
- 		if (!isolate_lru_page(page))
- 			putback_lru_page(page);
-@@ -105,7 +107,8 @@ void munlock_vma_page(struct page *page)
- 	BUG_ON(!PageLocked(page));
- 
- 	if (TestClearPageMlocked(page)) {
--		dec_zone_page_state(page, NR_MLOCK);
-+		mod_zone_page_state(page_zone(page), NR_MLOCK,
-+				    -hpage_nr_pages(page));
- 		if (!isolate_lru_page(page)) {
- 			int ret = SWAP_AGAIN;
- 
++/*
++ * PageHuge() only returns true for hugetlbfs pages, but not for normal or
++ * transparent huge pages.  See the PageTransHuge() documentation for more
++ * details.
++ */
+ int PageHuge(struct page *page)
+ {
+ 	compound_page_dtor *dtor;
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-acpi_memhotplugc-fix-memory-leak-when-memory-device-is-unbound-from-the-module-acpi_memhotplug.patch
-acpi_memhotplugc-free-memory-device-if-acpi_memory_enable_device-failed.patch
-acpi_memhotplugc-remove-memory-info-from-list-before-freeing-it.patch
-acpi_memhotplugc-dont-allow-to-eject-the-memory-device-if-it-is-being-used.patch
-acpi_memhotplugc-bind-the-memory-device-when-the-driver-is-being-loaded.patch
-acpi_memhotplugc-auto-bind-the-memory-device-which-is-hotplugged-before-the-driver-is-loaded.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+mm.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+fs-block_devc-set_blocksize-use-mapping_mapped.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
