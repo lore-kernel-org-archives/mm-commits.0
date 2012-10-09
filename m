@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-update-asynchronous-discovery-initialization.patch added to -mm tree
-Date: Tue, 09 Oct 2012 13:03:22 -0700
-Message-ID: <20121009200323.C47535C0050@hpza9.eem.corp.google.com>
+Subject: + rapidio-update-for-destination-id-allocation.patch added to -mm tree
+Date: Tue, 09 Oct 2012 13:03:26 -0700
+Message-ID: <20121009200327.36B41100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f74.google.com ([209.85.215.74]:52054 "EHLO
-	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752927Ab2JIUD0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 16:03:26 -0400
-Received: by mail-la0-f74.google.com with SMTP id j13so313632lah.1
-        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 13:03:25 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:61269 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752933Ab2JIUD3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 16:03:29 -0400
+Received: by mail-qa0-f74.google.com with SMTP id a16so539019qae.1
+        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 13:03:27 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: alexandre.bounine@idt.com, leoli@freescale.com, mporter@kernel.crashing.org
 
 
 The patch titled
-     Subject: rapidio: update asynchronous discovery initialization
+     Subject: rapidio: update for destination ID allocation
 has been added to the -mm tree.  Its filename is
-     rapidio-update-asynchronous-discovery-initialization.patch
+     rapidio-update-for-destination-id-allocation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio: update asynchronous discovery initialization
+Subject: rapidio: update for destination ID allocation
 
-Update discovery process initialization based on Andrew Morton's comments:
-https://lkml.org/lkml/2012/10/3/552.
+Address comments provided by Andrew Morton:
+https://lkml.org/lkml/2012/10/3/550
 
-This update processes all enumerating mports first and schedules discovery
-work after that. If the initialization routine fails to allocate resources
-needed to execute discovery, it abandons discovery for all ports.
+- Keeps consistent kerneldoc compatible comments style for new static functions.
+- Removes unnecessary complexity from destination ID allocation routine.
+- Uses kcalloc() for code clarity.
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
@@ -49,109 +49,125 @@ Cc: Li Yang <leoli@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio.c |   75 +++++++++++++++++++++++++---------------
- 1 file changed, 47 insertions(+), 28 deletions(-)
+ drivers/rapidio/rio-scan.c |   38 ++++++++++++++---------------------
+ include/linux/rio.h        |    1 
+ 2 files changed, 16 insertions(+), 23 deletions(-)
 
-diff -puN drivers/rapidio/rio.c~rapidio-update-asynchronous-discovery-initialization drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-update-asynchronous-discovery-initialization
-+++ a/drivers/rapidio/rio.c
-@@ -1275,49 +1275,68 @@ static void __devinit disc_work_handler(
- 	pr_debug("RIO: discovery work for mport %d %s\n",
- 		 work->mport->id, work->mport->name);
- 	rio_disc_mport(work->mport);
--
--	kfree(work);
+diff -puN drivers/rapidio/rio-scan.c~rapidio-update-for-destination-id-allocation drivers/rapidio/rio-scan.c
+--- a/drivers/rapidio/rio-scan.c~rapidio-update-for-destination-id-allocation
++++ a/drivers/rapidio/rio-scan.c
+@@ -55,9 +55,9 @@ static int rio_mport_phys_table[] = {
+ };
+ 
+ 
+-/*
++/**
+  * rio_destid_alloc - Allocate next available destID for given network
+- * net: RIO network
++ * @net: RIO network
+  *
+  * Returns next available device destination ID for the specified RIO network.
+  * Marks allocated ID as one in use.
+@@ -69,14 +69,9 @@ static u16 rio_destid_alloc(struct rio_n
+ 	struct rio_id_table *idtab = &net->destid_table;
+ 
+ 	spin_lock(&idtab->lock);
+-	destid = find_next_zero_bit(idtab->table, idtab->max, idtab->next);
+-	if (destid >= idtab->max)
+-		destid = find_first_zero_bit(idtab->table, idtab->max);
++	destid = find_first_zero_bit(idtab->table, idtab->max);
+ 
+ 	if (destid < idtab->max) {
+-		idtab->next = destid + 1;
+-		if (idtab->next >= idtab->max)
+-			idtab->next = 0;
+ 		set_bit(destid, idtab->table);
+ 		destid += idtab->start;
+ 	} else
+@@ -86,10 +81,10 @@ static u16 rio_destid_alloc(struct rio_n
+ 	return (u16)destid;
  }
  
- int __devinit rio_init_mports(void)
+-/*
++/**
+  * rio_destid_reserve - Reserve the specivied destID
+- * net: RIO network
+- * destid: destID to reserve
++ * @net: RIO network
++ * @destid: destID to reserve
+  *
+  * Tries to reserve the specified destID.
+  * Returns 0 if successfull.
+@@ -106,10 +101,10 @@ static int rio_destid_reserve(struct rio
+ 	return oldbit;
+ }
+ 
+-/*
++/**
+  * rio_destid_free - free a previously allocated destID
+- * net: RIO network
+- * destid: destID to free
++ * @net: RIO network
++ * @destid: destID to free
+  *
+  * Makes the specified destID available for use.
+  */
+@@ -123,9 +118,9 @@ static void rio_destid_free(struct rio_n
+ 	spin_unlock(&idtab->lock);
+ }
+ 
+-/*
++/**
+  * rio_destid_first - return first destID in use
+- * net: RIO network
++ * @net: RIO network
+  */
+ static u16 rio_destid_first(struct rio_net *net)
  {
- 	struct rio_mport *port;
- 	struct rio_disc_work *work;
--	int no_disc = 0;
-+	int n = 0;
+@@ -142,10 +137,10 @@ static u16 rio_destid_first(struct rio_n
+ 	return (u16)destid;
+ }
  
-+	if (!next_portid)
-+		return -ENODEV;
-+
-+	/*
-+	 * First, run enumerations and check if we need to perform discovery
-+	 * on any of the registered mports.
-+	 */
- 	list_for_each_entry(port, &rio_mports, node) {
- 		if (port->host_deviceid >= 0)
- 			rio_enum_mport(port);
--		else if (!no_disc) {
--			if (!rio_wq) {
--				rio_wq = alloc_workqueue("riodisc", 0, 0);
--				if (!rio_wq) {
--					pr_err("RIO: unable allocate rio_wq\n");
--					no_disc = 1;
--					continue;
--				}
--			}
--
--			work = kzalloc(sizeof *work, GFP_KERNEL);
--			if (!work) {
--				pr_err("RIO: no memory for work struct\n");
--				no_disc = 1;
--				continue;
--			}
--
--			work->mport = port;
--			INIT_WORK(&work->work, disc_work_handler);
--			queue_work(rio_wq, &work->work);
--		}
-+		else
-+			n++;
-+	}
-+
-+	if (!n)
-+		goto no_disc;
-+
-+	/*
-+	 * If we have mports that require discovery schedule a discovery work
-+	 * for each of them. If the code below fails to allocate needed
-+	 * resources, exit without error to keep results of enumeration
-+	 * process (if any).
-+	 * TODO: Implement restart of dicovery process for all or
-+	 * individual discovering mports.
-+	 */
-+	rio_wq = alloc_workqueue("riodisc", 0, 0);
-+	if (!rio_wq) {
-+		pr_err("RIO: unable allocate rio_wq\n");
-+		goto no_disc;
- 	}
+-/*
++/**
+  * rio_destid_next - return next destID in use
+- * net: RIO network
+- * from: destination ID from which search shall continue
++ * @net: RIO network
++ * @from: destination ID from which search shall continue
+  */
+ static u16 rio_destid_next(struct rio_net *net, u16 from)
+ {
+@@ -1163,8 +1158,8 @@ static struct rio_net __devinit *rio_all
  
--	if (rio_wq) {
--		pr_debug("RIO: flush discovery workqueue\n");
--		flush_workqueue(rio_wq);
--		pr_debug("RIO: flush discovery workqueue finished\n");
-+	work = kcalloc(n, sizeof *work, GFP_KERNEL);
-+	if (!work) {
-+		pr_err("RIO: no memory for work struct\n");
- 		destroy_workqueue(rio_wq);
-+		goto no_disc;
- 	}
+ 	net = kzalloc(sizeof(struct rio_net), GFP_KERNEL);
+ 	if (net && do_enum) {
+-		net->destid_table.table = kzalloc(
+-			BITS_TO_LONGS(RIO_MAX_ROUTE_ENTRIES(port->sys_size)) *
++		net->destid_table.table = kcalloc(
++			BITS_TO_LONGS(RIO_MAX_ROUTE_ENTRIES(port->sys_size)),
+ 			sizeof(long),
+ 			GFP_KERNEL);
  
-+	n = 0;
-+	list_for_each_entry(port, &rio_mports, node) {
-+		if (port->host_deviceid < 0) {
-+			work[n].mport = port;
-+			INIT_WORK(&work[n].work, disc_work_handler);
-+			queue_work(rio_wq, &work[n].work);
-+			n++;
-+		}
-+	}
-+
-+	flush_workqueue(rio_wq);
-+	pr_debug("RIO: destroy discovery workqueue\n");
-+	destroy_workqueue(rio_wq);
-+	kfree(work);
-+
-+no_disc:
- 	rio_init();
+@@ -1174,7 +1169,6 @@ static struct rio_net __devinit *rio_all
+ 			net = NULL;
+ 		} else {
+ 			net->destid_table.start = start;
+-			net->destid_table.next = 0;
+ 			net->destid_table.max =
+ 					RIO_MAX_ROUTE_ENTRIES(port->sys_size);
+ 			spin_lock_init(&net->destid_table.lock);
+diff -puN include/linux/rio.h~rapidio-update-for-destination-id-allocation include/linux/rio.h
+--- a/include/linux/rio.h~rapidio-update-for-destination-id-allocation
++++ a/include/linux/rio.h
+@@ -266,7 +266,6 @@ struct rio_mport {
  
- 	return 0;
+ struct rio_id_table {
+ 	u16 start;	/* logical minimal id */
+-	u16 next;	/* hint for find */
+ 	u32 max;	/* max number of IDs in table */
+ 	spinlock_t lock;
+ 	unsigned long *table;
 _
 
 Patches currently in -mm which might be from alexandre.bounine@idt.com are
