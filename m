@@ -1,78 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-remove-unevictable_pgs_mlockfreed.patch removed from -mm tree
-Date: Tue, 09 Oct 2012 11:14:23 -0700
-Message-ID: <20121009181423.C23A2100047@wpzn3.hot.corp.google.com>
+Subject: [merged] memory-hotplug-fix-zone-stat-mismatch.patch removed from -mm tree
+Date: Tue, 09 Oct 2012 11:14:20 -0700
+Message-ID: <20121009181420.CA0FE100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:43458 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756823Ab2JISOZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:14:25 -0400
-Received: by mail-qa0-f74.google.com with SMTP id a16so519186qae.1
-        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:14:24 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:44009 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756852Ab2JISOV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:14:21 -0400
+Received: by mail-gg0-f202.google.com with SMTP id i4so661213ggm.1
+        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:14:21 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, hannes@cmpxchg.org, mel@csn.ul.ie, riel@redhat.com, walken@google.com, yinghan@google.com, mm-commits@vger.kernel.org
+To: minchan@kernel.org, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, wency@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove unevictable_pgs_mlockfreed
+     Subject: memory-hotplug: fix zone stat mismatch
 has been removed from the -mm tree.  Its filename was
-     mm-remove-unevictable_pgs_mlockfreed.patch
+     memory-hotplug-fix-zone-stat-mismatch.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: remove unevictable_pgs_mlockfreed
+From: Minchan Kim <minchan@kernel.org>
+Subject: memory-hotplug: fix zone stat mismatch
 
-Simply remove UNEVICTABLE_MLOCKFREED and unevictable_pgs_mlockfreed line
-from /proc/vmstat: Johannes and Mel point out that it was very unlikely to
-have been used by any tool, and of course we can restore it easily enough
-if that turns out to be wrong.
+During memory-hotplug, I found NR_ISOLATED_[ANON|FILE] are increasing,
+causing the kernel to hang.  When the system doesn't have enough free
+pages, it enters reclaim but never reclaim any pages due to
+too_many_isolated()==true and loops forever.
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Ying Han <yinghan@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+The cause is that when we do memory-hotadd after memory-remove,
+__zone_pcp_update() clears a zone's ZONE_STAT_ITEMS in setup_pageset()
+although the vm_stat_diff of all CPUs still have values.
+
+In addtion, when we offline all pages of the zone, we reset them in
+zone_pcp_reset without draining so we loss some zone stat item.
+
+Reviewed-by: Wen Congyang <wency@cn.fujitsu.com>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vm_event_item.h |    1 -
- mm/vmstat.c                   |    1 -
- 2 files changed, 2 deletions(-)
+ include/linux/vmstat.h |    4 ++++
+ mm/page_alloc.c        |    7 +++++++
+ mm/vmstat.c            |   12 ++++++++++++
+ 3 files changed, 23 insertions(+)
 
-diff -puN include/linux/vm_event_item.h~mm-remove-unevictable_pgs_mlockfreed include/linux/vm_event_item.h
---- a/include/linux/vm_event_item.h~mm-remove-unevictable_pgs_mlockfreed
-+++ a/include/linux/vm_event_item.h
-@@ -52,7 +52,6 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		UNEVICTABLE_PGMUNLOCKED,
- 		UNEVICTABLE_PGCLEARED,	/* on COW, page truncate */
- 		UNEVICTABLE_PGSTRANDED,	/* unable to isolate on unlock */
--		UNEVICTABLE_MLOCKFREED,	/* no longer useful: always zero */
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 		THP_FAULT_ALLOC,
- 		THP_FAULT_FALLBACK,
-diff -puN mm/vmstat.c~mm-remove-unevictable_pgs_mlockfreed mm/vmstat.c
---- a/mm/vmstat.c~mm-remove-unevictable_pgs_mlockfreed
-+++ a/mm/vmstat.c
-@@ -794,7 +794,6 @@ const char * const vmstat_text[] = {
- 	"unevictable_pgs_munlocked",
- 	"unevictable_pgs_cleared",
- 	"unevictable_pgs_stranded",
--	"unevictable_pgs_mlockfreed",	/* no longer useful: always zero */
+diff -puN include/linux/vmstat.h~memory-hotplug-fix-zone-stat-mismatch include/linux/vmstat.h
+--- a/include/linux/vmstat.h~memory-hotplug-fix-zone-stat-mismatch
++++ a/include/linux/vmstat.h
+@@ -198,6 +198,8 @@ extern void __dec_zone_state(struct zone
+ void refresh_cpu_vm_stats(int);
+ void refresh_zone_stat_thresholds(void);
  
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	"thp_fault_alloc",
++void drain_zonestat(struct zone *zone, struct per_cpu_pageset *);
++
+ int calculate_pressure_threshold(struct zone *zone);
+ int calculate_normal_threshold(struct zone *zone);
+ void set_pgdat_percpu_threshold(pg_data_t *pgdat,
+@@ -251,6 +253,8 @@ static inline void __dec_zone_page_state
+ static inline void refresh_cpu_vm_stats(int cpu) { }
+ static inline void refresh_zone_stat_thresholds(void) { }
+ 
++static inline void drain_zonestat(struct zone *zone,
++			struct per_cpu_pageset *pset) { }
+ #endif		/* CONFIG_SMP */
+ 
+ static inline void __mod_zone_freepage_state(struct zone *zone, int nr_pages,
+diff -puN mm/page_alloc.c~memory-hotplug-fix-zone-stat-mismatch mm/page_alloc.c
+--- a/mm/page_alloc.c~memory-hotplug-fix-zone-stat-mismatch
++++ a/mm/page_alloc.c
+@@ -5916,6 +5916,7 @@ static int __meminit __zone_pcp_update(v
+ 		local_irq_save(flags);
+ 		if (pcp->count > 0)
+ 			free_pcppages_bulk(zone, pcp->count, pcp);
++		drain_zonestat(zone, pset);
+ 		setup_pageset(pset, batch);
+ 		local_irq_restore(flags);
+ 	}
+@@ -5932,10 +5933,16 @@ void __meminit zone_pcp_update(struct zo
+ void zone_pcp_reset(struct zone *zone)
+ {
+ 	unsigned long flags;
++	int cpu;
++	struct per_cpu_pageset *pset;
+ 
+ 	/* avoid races with drain_pages()  */
+ 	local_irq_save(flags);
+ 	if (zone->pageset != &boot_pageset) {
++		for_each_online_cpu(cpu) {
++			pset = per_cpu_ptr(zone->pageset, cpu);
++			drain_zonestat(zone, pset);
++		}
+ 		free_percpu(zone->pageset);
+ 		zone->pageset = &boot_pageset;
+ 	}
+diff -puN mm/vmstat.c~memory-hotplug-fix-zone-stat-mismatch mm/vmstat.c
+--- a/mm/vmstat.c~memory-hotplug-fix-zone-stat-mismatch
++++ a/mm/vmstat.c
+@@ -495,6 +495,18 @@ void refresh_cpu_vm_stats(int cpu)
+ 			atomic_long_add(global_diff[i], &vm_stat[i]);
+ }
+ 
++void drain_zonestat(struct zone *zone, struct per_cpu_pageset *pset)
++{
++	int i;
++
++	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
++		if (pset->vm_stat_diff[i]) {
++			int v = pset->vm_stat_diff[i];
++			pset->vm_stat_diff[i] = 0;
++			atomic_long_add(v, &zone->vm_stat[i]);
++			atomic_long_add(v, &vm_stat[i]);
++		}
++}
+ #endif
+ 
+ #ifdef CONFIG_NUMA
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
 origin.patch
-linux-next.patch
 swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
 swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+mm-memblock-reduce-overhead-in-binary-search.patch
 
