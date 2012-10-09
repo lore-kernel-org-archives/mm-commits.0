@@ -1,113 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host.patch removed from -mm tree
-Date: Tue, 09 Oct 2012 11:07:06 -0700
-Message-ID: <20121009180706.E1E3B1E0048@wpzn4.hot.corp.google.com>
+Subject: [merged] mempolicy-fix-a-memory-corruption-by-refcount-imbalance-in-alloc_pages_vma.patch removed from -mm tree
+Date: Tue, 09 Oct 2012 11:07:01 -0700
+Message-ID: <20121009180702.3014C5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:40838 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752730Ab2JISHH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:07:07 -0400
-Received: by mail-yh0-f74.google.com with SMTP id 10so573446yhl.1
-        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:07:07 -0700 (PDT)
+Received: from mail-ea0-f202.google.com ([209.85.215.202]:38405 "EHLO
+	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752730Ab2JISHF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:07:05 -0400
+Received: by mail-ea0-f202.google.com with SMTP id q10so59018eaa.1
+        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:07:03 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiaoguangrong@linux.vnet.ibm.com, aarcange@redhat.com, avi@redhat.com, hughd@google.com, mtosatti@redhat.com, mm-commits@vger.kernel.org
+To: mgorman@suse.de, cl@linux.com, jwboyer@gmail.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: mmu_notifier: fix inconsistent memory between secondary MMU and host
+     Subject: mempolicy: fix a memory corruption by refcount imbalance in alloc_pages_vma()
 has been removed from the -mm tree.  Its filename was
-     mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host.patch
+     mempolicy-fix-a-memory-corruption-by-refcount-imbalance-in-alloc_pages_vma.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
-Subject: mm: mmu_notifier: fix inconsistent memory between secondary MMU and host
+From: Mel Gorman <mgorman@suse.de>
+Subject: mempolicy: fix a memory corruption by refcount imbalance in alloc_pages_vma()
 
-There is a bug in set_pte_at_notify() which always sets the pte to the new
-page before releasing the old page in the secondary MMU.  At this time,
-the process will access on the new page, but the secondary MMU still
-access on the old page, the memory is inconsistent between them
+cc9a6c87 ("cpuset: mm: reduce large amounts of memory barrier related
+damage v3") introduced a potential memory corruption.  shmem_alloc_page()
+uses a pseudo vma and it has one significant unique combination,
+vma->vm_ops=NULL and vma->policy->flags & MPOL_F_SHARED.
 
-The below scenario shows the bug more clearly:
+get_vma_policy() does NOT increase a policy ref when vma->vm_ops=NULL and
+mpol_cond_put() DOES decrease a policy ref when a policy has
+MPOL_F_SHARED.  Therefore, when a cpuset update race occurs,
+alloc_pages_vma() falls in 'goto retry_cpuset' path, decrements the
+reference count and frees the policy prematurely.
 
-at the beginning: *p = 0, and p is write-protected by KSM or shared with
-parent process
-
-CPU 0                                       CPU 1
-write 1 to p to trigger COW,
-set_pte_at_notify will be called:
-  *pte = new_page + W; /* The W bit of pte is set */
-
-                                     *p = 1; /* pte is valid, so no #PF */
-
-                                     return back to secondary MMU, then
-                                     the secondary MMU read p, but get:
-                                     *p == 0;
-
-                         /*
-                          * !!!!!!
-                          * the host has already set p to 1, but the secondary
-                          * MMU still get the old value 0
-                          */
-
-  call mmu_notifier_change_pte to release
-  old page in secondary MMU
-
-We can fix it by release old page first, then set the pte to the new
-page.
-
-Note, the new page will be firstly used in secondary MMU before it is
-mapped into the page table of the process, but this is safe because it
-is protected by the page table lock, there is no race to change the pte
-
-[akpm@linux-foundation.org: add comment from Andrea]
-Signed-off-by: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
-Cc: Avi Kivity <avi@redhat.com>
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Reviewed-by: Christoph Lameter <cl@linux.com>
+Cc: Josh Boyer <jwboyer@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmu_notifier.h |   12 +++++++++++-
+ mm/mempolicy.c |   12 +++++++++++-
  1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/mmu_notifier.h~mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host include/linux/mmu_notifier.h
---- a/include/linux/mmu_notifier.h~mm-mmu_notifier-fix-inconsistent-memory-between-secondary-mmu-and-host
-+++ a/include/linux/mmu_notifier.h
-@@ -311,14 +311,24 @@ static inline void mmu_notifier_mm_destr
- 	__young;							\
- })
- 
-+/*
-+ * set_pte_at_notify() sets the pte _after_ running the notifier.
-+ * This is safe to start by updating the secondary MMUs, because the primary MMU
-+ * pte invalidate must have already happened with a ptep_clear_flush() before
-+ * set_pte_at_notify() has been invoked.  Updating the secondary MMUs first is
-+ * required when we change both the protection of the mapping from read-only to
-+ * read-write and the pfn (like during copy on write page faults). Otherwise the
-+ * old page would remain mapped readonly in the secondary MMUs after the new
-+ * page is already writable by some CPU through the primary MMU.
-+ */
- #define set_pte_at_notify(__mm, __address, __ptep, __pte)		\
- ({									\
- 	struct mm_struct *___mm = __mm;					\
- 	unsigned long ___address = __address;				\
- 	pte_t ___pte = __pte;						\
- 									\
--	set_pte_at(___mm, ___address, __ptep, ___pte);			\
- 	mmu_notifier_change_pte(___mm, ___address, ___pte);		\
-+	set_pte_at(___mm, ___address, __ptep, ___pte);			\
- })
- 
- #else /* CONFIG_MMU_NOTIFIER */
+diff -puN mm/mempolicy.c~mempolicy-fix-a-memory-corruption-by-refcount-imbalance-in-alloc_pages_vma mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-fix-a-memory-corruption-by-refcount-imbalance-in-alloc_pages_vma
++++ a/mm/mempolicy.c
+@@ -1552,8 +1552,18 @@ struct mempolicy *get_vma_policy(struct 
+ 									addr);
+ 			if (vpol)
+ 				pol = vpol;
+-		} else if (vma->vm_policy)
++		} else if (vma->vm_policy) {
+ 			pol = vma->vm_policy;
++
++			/*
++			 * shmem_alloc_page() passes MPOL_F_SHARED policy with
++			 * a pseudo vma whose vma->vm_ops=NULL. Take a reference
++			 * count on these policies which will be dropped by
++			 * mpol_cond_put() later
++			 */
++			if (mpol_needs_cond_ref(pol))
++				mpol_get(pol);
++		}
+ 	}
+ 	if (!pol)
+ 		pol = &default_policy;
 _
 
-Patches currently in -mm which might be from xiaoguangrong@linux.vnet.ibm.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
 origin.patch
-linux-next.patch
 
