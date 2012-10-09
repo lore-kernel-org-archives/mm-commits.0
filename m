@@ -1,181 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cma-fix-watermark-checking.patch removed from -mm tree
-Date: Tue, 09 Oct 2012 11:11:34 -0700
-Message-ID: <20121009181135.427AA5C0060@hpza9.eem.corp.google.com>
+Subject: [merged] memory-hotplug-fix-pages-missed-by-race-rather-than-failing.patch removed from -mm tree
+Date: Tue, 09 Oct 2012 11:11:48 -0700
+Message-ID: <20121009181149.3BE8920004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:54189 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756737Ab2JISLi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:11:38 -0400
-Received: by mail-bk0-f74.google.com with SMTP id q16so362338bkw.1
-        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:11:37 -0700 (PDT)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:59964 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756737Ab2JISLx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:11:53 -0400
+Received: by mail-la0-f74.google.com with SMTP id j13so309288lah.1
+        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:11:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: b.zolnierkie@samsung.com, hughd@google.com, kyungmin.park@samsung.com, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, mm-commits@vger.kernel.org
+To: minchan@kernel.org, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, qiuxishi@huawei.com, wency@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cma: fix watermark checking
+     Subject: memory-hotplug: fix pages missed by race rather than failing
 has been removed from the -mm tree.  Its filename was
-     cma-fix-watermark-checking.patch
+     memory-hotplug-fix-pages-missed-by-race-rather-than-failing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Subject: cma: fix watermark checking
+From: Minchan Kim <minchan@kernel.org>
+Subject: memory-hotplug: fix pages missed by race rather than failing
 
-* Add ALLOC_CMA alloc flag and pass it to [__]zone_watermark_ok()
-  (from Minchan Kim).
+If race between allocation and isolation in memory-hotplug offline
+happens, some pages could be in MIGRATE_MOVABLE of free_list although the
+pageblock's migratetype of the page is MIGRATE_ISOLATE.
 
-* During watermark check decrease available free pages number by
-  free CMA pages number if necessary (unmovable allocations cannot
-  use pages from CMA areas).
+The race could be detected by get_freepage_migratetype in
+__test_page_isolated_in_pageblock.  If it is detected, now EBUSY gets
+bubbled all the way up and the hotplug operations fails.
 
-Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Hugh Dickins <hughd@google.com>
+But better idea is instead of returning and failing memory-hotremove, move
+the free page to the correct list at the time it is detected.  It could
+enhance memory-hotremove operation success ratio although the race is
+really rare.
+
+Suggested by Mel Gorman.
+
+[akpm@linux-foundation.org: small cleanup]
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    8 +++++++-
- mm/internal.h   |   14 ++++++++++++++
- mm/page_alloc.c |   31 +++++++++++++++----------------
- 3 files changed, 36 insertions(+), 17 deletions(-)
+ include/linux/page-isolation.h |    4 ++++
+ mm/page_alloc.c                |    2 +-
+ mm/page_isolation.c            |   16 ++++++++++++++--
+ 3 files changed, 19 insertions(+), 3 deletions(-)
 
-diff -puN mm/compaction.c~cma-fix-watermark-checking mm/compaction.c
---- a/mm/compaction.c~cma-fix-watermark-checking
-+++ a/mm/compaction.c
-@@ -934,6 +934,7 @@ unsigned long try_to_compact_pages(struc
- 	struct zoneref *z;
- 	struct zone *zone;
- 	int rc = COMPACT_SKIPPED;
-+	int alloc_flags = 0;
- 
- 	/* Check if the GFP flags allow compaction */
- 	if (!order || !may_enter_fs || !may_perform_io)
-@@ -941,6 +942,10 @@ unsigned long try_to_compact_pages(struc
- 
- 	count_vm_event(COMPACTSTALL);
- 
-+#ifdef CONFIG_CMA
-+	if (allocflags_to_migratetype(gfp_mask) == MIGRATE_MOVABLE)
-+		alloc_flags |= ALLOC_CMA;
-+#endif
- 	/* Compact each zone in the list */
- 	for_each_zone_zonelist_nodemask(zone, z, zonelist, high_zoneidx,
- 								nodemask) {
-@@ -951,7 +956,8 @@ unsigned long try_to_compact_pages(struc
- 		rc = max(status, rc);
- 
- 		/* If a normal allocation would succeed, stop compacting */
--		if (zone_watermark_ok(zone, order, low_wmark_pages(zone), 0, 0))
-+		if (zone_watermark_ok(zone, order, low_wmark_pages(zone), 0,
-+				      alloc_flags))
- 			break;
- 	}
- 
-diff -puN mm/internal.h~cma-fix-watermark-checking mm/internal.h
---- a/mm/internal.h~cma-fix-watermark-checking
-+++ a/mm/internal.h
-@@ -358,4 +358,18 @@ extern unsigned long vm_mmap_pgoff(struc
- extern void set_pageblock_order(void);
- unsigned long reclaim_clean_pages_from_list(struct zone *zone,
- 					    struct list_head *page_list);
-+/* The ALLOC_WMARK bits are used as an index to zone->watermark */
-+#define ALLOC_WMARK_MIN		WMARK_MIN
-+#define ALLOC_WMARK_LOW		WMARK_LOW
-+#define ALLOC_WMARK_HIGH	WMARK_HIGH
-+#define ALLOC_NO_WATERMARKS	0x04 /* don't check watermarks at all */
+diff -puN include/linux/page-isolation.h~memory-hotplug-fix-pages-missed-by-race-rather-than-failing include/linux/page-isolation.h
+--- a/include/linux/page-isolation.h~memory-hotplug-fix-pages-missed-by-race-rather-than-failing
++++ a/include/linux/page-isolation.h
+@@ -6,6 +6,10 @@ bool has_unmovable_pages(struct zone *zo
+ void set_pageblock_migratetype(struct page *page, int migratetype);
+ int move_freepages_block(struct zone *zone, struct page *page,
+ 				int migratetype);
++int move_freepages(struct zone *zone,
++			  struct page *start_page, struct page *end_page,
++			  int migratetype);
 +
-+/* Mask to get the watermark bits */
-+#define ALLOC_WMARK_MASK	(ALLOC_NO_WATERMARKS-1)
-+
-+#define ALLOC_HARDER		0x10 /* try to alloc harder */
-+#define ALLOC_HIGH		0x20 /* __GFP_HIGH set */
-+#define ALLOC_CPUSET		0x40 /* check for correct cpuset */
-+#define ALLOC_CMA		0x80 /* allow allocations from CMA areas */
-+
- #endif	/* __MM_INTERNAL_H */
-diff -puN mm/page_alloc.c~cma-fix-watermark-checking mm/page_alloc.c
---- a/mm/page_alloc.c~cma-fix-watermark-checking
+ /*
+  * Changes migrate type in [start_pfn, end_pfn) to be MIGRATE_ISOLATE.
+  * If specified range includes migrate types other than MOVABLE or CMA,
+diff -puN mm/page_alloc.c~memory-hotplug-fix-pages-missed-by-race-rather-than-failing mm/page_alloc.c
+--- a/mm/page_alloc.c~memory-hotplug-fix-pages-missed-by-race-rather-than-failing
 +++ a/mm/page_alloc.c
-@@ -1541,19 +1541,6 @@ failed:
- 	return NULL;
- }
- 
--/* The ALLOC_WMARK bits are used as an index to zone->watermark */
--#define ALLOC_WMARK_MIN		WMARK_MIN
--#define ALLOC_WMARK_LOW		WMARK_LOW
--#define ALLOC_WMARK_HIGH	WMARK_HIGH
--#define ALLOC_NO_WATERMARKS	0x04 /* don't check watermarks at all */
--
--/* Mask to get the watermark bits */
--#define ALLOC_WMARK_MASK	(ALLOC_NO_WATERMARKS-1)
--
--#define ALLOC_HARDER		0x10 /* try to alloc harder */
--#define ALLOC_HIGH		0x20 /* __GFP_HIGH set */
--#define ALLOC_CPUSET		0x40 /* check for correct cpuset */
--
- #ifdef CONFIG_FAIL_PAGE_ALLOC
- 
- static struct {
-@@ -1648,7 +1635,11 @@ static bool __zone_watermark_ok(struct z
- 		min -= min / 2;
- 	if (alloc_flags & ALLOC_HARDER)
- 		min -= min / 4;
--
-+#ifdef CONFIG_CMA
-+	/* If allocation can't use CMA areas don't use free CMA pages */
-+	if (!(alloc_flags & ALLOC_CMA))
-+		free_pages -= zone_page_state(z, NR_FREE_CMA_PAGES);
-+#endif
- 	if (free_pages <= min + lowmem_reserve)
- 		return false;
- 	for (o = 0; o < order; o++) {
-@@ -2362,7 +2353,10 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
- 				 unlikely(test_thread_flag(TIF_MEMDIE))))
- 			alloc_flags |= ALLOC_NO_WATERMARKS;
- 	}
--
-+#ifdef CONFIG_CMA
-+	if (allocflags_to_migratetype(gfp_mask) == MIGRATE_MOVABLE)
-+		alloc_flags |= ALLOC_CMA;
-+#endif
- 	return alloc_flags;
- }
- 
-@@ -2587,6 +2581,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
- 	struct page *page = NULL;
- 	int migratetype = allocflags_to_migratetype(gfp_mask);
- 	unsigned int cpuset_mems_cookie;
-+	int alloc_flags = ALLOC_WMARK_LOW|ALLOC_CPUSET;
- 
- 	gfp_mask &= gfp_allowed_mask;
- 
-@@ -2615,9 +2610,13 @@ retry_cpuset:
- 	if (!preferred_zone)
- 		goto out;
- 
-+#ifdef CONFIG_CMA
-+	if (allocflags_to_migratetype(gfp_mask) == MIGRATE_MOVABLE)
-+		alloc_flags |= ALLOC_CMA;
-+#endif
- 	/* First allocation attempt */
- 	page = get_page_from_freelist(gfp_mask|__GFP_HARDWALL, nodemask, order,
--			zonelist, high_zoneidx, ALLOC_WMARK_LOW|ALLOC_CPUSET,
-+			zonelist, high_zoneidx, alloc_flags,
- 			preferred_zone, migratetype);
- 	if (unlikely(!page))
- 		page = __alloc_pages_slowpath(gfp_mask, order,
+@@ -925,7 +925,7 @@ static int fallbacks[MIGRATE_TYPES][4] =
+  * Note that start_page and end_pages are not aligned on a pageblock
+  * boundary. If alignment is required, use move_freepages_block()
+  */
+-static int move_freepages(struct zone *zone,
++int move_freepages(struct zone *zone,
+ 			  struct page *start_page, struct page *end_page,
+ 			  int migratetype)
+ {
+diff -puN mm/page_isolation.c~memory-hotplug-fix-pages-missed-by-race-rather-than-failing mm/page_isolation.c
+--- a/mm/page_isolation.c~memory-hotplug-fix-pages-missed-by-race-rather-than-failing
++++ a/mm/page_isolation.c
+@@ -201,8 +201,20 @@ __test_page_isolated_in_pageblock(unsign
+ 		}
+ 		page = pfn_to_page(pfn);
+ 		if (PageBuddy(page)) {
+-			if (get_freepage_migratetype(page) != MIGRATE_ISOLATE)
+-				break;
++			/*
++			 * If race between isolatation and allocation happens,
++			 * some free pages could be in MIGRATE_MOVABLE list
++			 * although pageblock's migratation type of the page
++			 * is MIGRATE_ISOLATE. Catch it and move the page into
++			 * MIGRATE_ISOLATE list.
++			 */
++			if (get_freepage_migratetype(page) != MIGRATE_ISOLATE) {
++				struct page *end_page;
++
++				end_page = page + (1 << page_order(page)) - 1;
++				move_freepages(page_zone(page), page, end_page,
++						MIGRATE_ISOLATE);
++			}
+ 			pfn += 1 << page_order(page);
+ 		}
+ 		else if (page_count(page) == 0 &&
 _
 
-Patches currently in -mm which might be from b.zolnierkie@samsung.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
 origin.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+mm-memblock-reduce-overhead-in-binary-search.patch
 
