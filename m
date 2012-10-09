@@ -1,135 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-remove-free_page_mlock.patch removed from -mm tree
-Date: Tue, 09 Oct 2012 11:13:46 -0700
-Message-ID: <20121009181346.C533A1E0043@wpzn4.hot.corp.google.com>
+Subject: [merged] memorytxt-remove-stray-information.patch removed from -mm tree
+Date: Tue, 09 Oct 2012 11:13:52 -0700
+Message-ID: <20121009181352.9F9A7100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:39481 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756819Ab2JISNr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:13:47 -0400
-Received: by mail-yh0-f74.google.com with SMTP id 10so574501yhl.1
-        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:13:47 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:55090 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756817Ab2JISNx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:13:53 -0400
+Received: by mail-vc0-f202.google.com with SMTP id fy27so662562vcb.1
+        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:13:53 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, hannes@cmpxchg.org, mel@csn.ul.ie, riel@redhat.com, walken@google.com, yinghan@google.com, mm-commits@vger.kernel.org
+To: jkosina@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove free_page_mlock
+     Subject: memory.txt: remove stray information
 has been removed from the -mm tree.  Its filename was
-     mm-remove-free_page_mlock.patch
+     memorytxt-remove-stray-information.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: remove free_page_mlock
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: memory.txt: remove stray information
 
-We should not be seeing non-0 unevictable_pgs_mlockfreed any longer.  So
-remove free_page_mlock() from the page freeing paths: __PG_MLOCKED is
-already in PAGE_FLAGS_CHECK_AT_FREE, so free_pages_check() will now be
-checking it, reporting "BUG: Bad page state" if it's ever found set. 
-Comment UNEVICTABLE_MLOCKFREED and unevictable_pgs_mlockfreed always 0.
+Andi removed some outedated documentation from Documentation/memory.txt
+back in 2009 by 3b2b9a875dd ("Documentation/memory.txt: remove some very
+outdated recommendations"), but the resulting document is not in a nice
+shape either.
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Ying Han <yinghan@google.com>
+It seems to me like we are not losing anything by completely removing the
+file now.
+
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vm_event_item.h |    2 +-
- mm/page_alloc.c               |   17 -----------------
- mm/vmstat.c                   |    2 +-
- 3 files changed, 2 insertions(+), 19 deletions(-)
+ Documentation/memory.txt |   33 ---------------------------------
+ 1 file changed, 33 deletions(-)
 
-diff -puN include/linux/vm_event_item.h~mm-remove-free_page_mlock include/linux/vm_event_item.h
---- a/include/linux/vm_event_item.h~mm-remove-free_page_mlock
-+++ a/include/linux/vm_event_item.h
-@@ -52,7 +52,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		UNEVICTABLE_PGMUNLOCKED,
- 		UNEVICTABLE_PGCLEARED,	/* on COW, page truncate */
- 		UNEVICTABLE_PGSTRANDED,	/* unable to isolate on unlock */
--		UNEVICTABLE_MLOCKFREED,
-+		UNEVICTABLE_MLOCKFREED,	/* no longer useful: always zero */
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 		THP_FAULT_ALLOC,
- 		THP_FAULT_FALLBACK,
-diff -puN mm/page_alloc.c~mm-remove-free_page_mlock mm/page_alloc.c
---- a/mm/page_alloc.c~mm-remove-free_page_mlock
-+++ a/mm/page_alloc.c
-@@ -598,17 +598,6 @@ out:
- 	zone->free_area[order].nr_free++;
- }
- 
--/*
-- * free_page_mlock() -- clean up attempts to free and mlocked() page.
-- * Page should not be on lru, so no need to fix that up.
-- * free_pages_check() will verify...
-- */
--static inline void free_page_mlock(struct page *page)
--{
--	__dec_zone_page_state(page, NR_MLOCK);
--	__count_vm_event(UNEVICTABLE_MLOCKFREED);
--}
+diff -puN Documentation/memory.txt~memorytxt-remove-stray-information /dev/null
+--- a/Documentation/memory.txt
++++ /dev/null
+@@ -1,33 +0,0 @@
+-There are several classic problems related to memory on Linux
+-systems.
 -
- static inline int free_pages_check(struct page *page)
- {
- 	if (unlikely(page_mapcount(page) |
-@@ -728,15 +717,12 @@ static bool free_pages_prepare(struct pa
- static void __free_pages_ok(struct page *page, unsigned int order)
- {
- 	unsigned long flags;
--	int wasMlocked = __TestClearPageMlocked(page);
- 	int migratetype;
- 
- 	if (!free_pages_prepare(page, order))
- 		return;
- 
- 	local_irq_save(flags);
--	if (unlikely(wasMlocked))
--		free_page_mlock(page);
- 	__count_vm_events(PGFREE, 1 << order);
- 	migratetype = get_pageblock_migratetype(page);
- 	set_freepage_migratetype(page, migratetype);
-@@ -1310,7 +1296,6 @@ void free_hot_cold_page(struct page *pag
- 	struct per_cpu_pages *pcp;
- 	unsigned long flags;
- 	int migratetype;
--	int wasMlocked = __TestClearPageMlocked(page);
- 
- 	if (!free_pages_prepare(page, 0))
- 		return;
-@@ -1318,8 +1303,6 @@ void free_hot_cold_page(struct page *pag
- 	migratetype = get_pageblock_migratetype(page);
- 	set_freepage_migratetype(page, migratetype);
- 	local_irq_save(flags);
--	if (unlikely(wasMlocked))
--		free_page_mlock(page);
- 	__count_vm_event(PGFREE);
- 
- 	/*
-diff -puN mm/vmstat.c~mm-remove-free_page_mlock mm/vmstat.c
---- a/mm/vmstat.c~mm-remove-free_page_mlock
-+++ a/mm/vmstat.c
-@@ -782,7 +782,7 @@ const char * const vmstat_text[] = {
- 	"unevictable_pgs_munlocked",
- 	"unevictable_pgs_cleared",
- 	"unevictable_pgs_stranded",
--	"unevictable_pgs_mlockfreed",
-+	"unevictable_pgs_mlockfreed",	/* no longer useful: always zero */
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	"thp_fault_alloc",
-_
-
-Patches currently in -mm which might be from hughd@google.com are
-
-origin.patch
-linux-next.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-
+-	1) There are some motherboards that will not cache above
+-	   a certain quantity of memory.  If you have one of these
+-	   motherboards, your system will be SLOWER, not faster
+-	   as you add more memory.  Consider exchanging your 
+-           motherboard.
+-
+-All of these problems can be addressed with the "mem=XXXM" boot option
+-(where XXX is the size of RAM to use in megabytes).  
+-It can also tell Linux to use less memory than is actually installed.
+-If you use "mem=" on a machine with PCI, consider using "memmap=" to avoid
+-physical address space collisions.
+-
+-See the documentation of your boot loader (LILO, grub, loadlin, etc.) about
+-how to pass options to the kernel.
+-
+-There are other memory problems which Linux cannot deal with.  Random
+-corruption of memory is usually a sign of serious hardware trouble.
+-Try:
+-
+-	* Reducing memory settings in the BIOS to the most conservative 
+-          timings.
+-
+-	* Adding a cooling fan.
+-
+-	* Not overclocking your CPU.
