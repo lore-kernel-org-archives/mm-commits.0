@@ -1,131 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rbtree-add-__rb_change_child-helper-function.patch removed from -mm tree
-Date: Tue, 09 Oct 2012 11:09:51 -0700
-Message-ID: <20121009180951.AE7031E0043@wpzn4.hot.corp.google.com>
+Subject: [merged] rbtree-test-fix-sparse-warning-about-64-bit-constant.patch removed from -mm tree
+Date: Tue, 09 Oct 2012 11:09:48 -0700
+Message-ID: <20121009180948.C20271E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:50981 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756738Ab2JISJw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:09:52 -0400
-Received: by mail-gh0-f202.google.com with SMTP id z15so660959ghb.1
-        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:09:52 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:50800 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756759Ab2JISJt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:09:49 -0400
+Received: by mail-yh0-f74.google.com with SMTP id 10so574008yhl.1
+        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:09:49 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: walken@google.com, a.p.zijlstra@chello.nl, aarcange@redhat.com, dwmw2@infradead.org, riel@redhat.com, mm-commits@vger.kernel.org
+To: walken@google.com, a.p.zijlstra@chello.nl, aarcange@redhat.com, dwmw2@infradead.org, riel@redhat.com, wfg@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rbtree: add __rb_change_child() helper function
+     Subject: rbtree test: fix sparse warning about 64-bit constant
 has been removed from the -mm tree.  Its filename was
-     rbtree-add-__rb_change_child-helper-function.patch
+     rbtree-test-fix-sparse-warning-about-64-bit-constant.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michel Lespinasse <walken@google.com>
-Subject: rbtree: add __rb_change_child() helper function
+Subject: rbtree test: fix sparse warning about 64-bit constant
 
-Add __rb_change_child() as an inline helper function to replace code that
-would otherwise be duplicated 4 times in the source.
-
-No changes to binary size or speed.
+Just a small fix to make sparse happy.
 
 Signed-off-by: Michel Lespinasse <walken@google.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
+Reported-by: Fengguang Wu <wfg@linux.intel.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/rbtree.c |   46 +++++++++++++++++-----------------------------
- 1 file changed, 17 insertions(+), 29 deletions(-)
+ lib/rbtree_test.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/rbtree.c~rbtree-add-__rb_change_child-helper-function lib/rbtree.c
---- a/lib/rbtree.c~rbtree-add-__rb_change_child-helper-function
-+++ a/lib/rbtree.c
-@@ -66,6 +66,19 @@ static inline struct rb_node *rb_red_par
- 	return (struct rb_node *)red->__rb_parent_color;
- }
+diff -puN lib/rbtree_test.c~rbtree-test-fix-sparse-warning-about-64-bit-constant lib/rbtree_test.c
+--- a/lib/rbtree_test.c~rbtree-test-fix-sparse-warning-about-64-bit-constant
++++ a/lib/rbtree_test.c
+@@ -88,7 +88,7 @@ static int rbtree_test_init(void)
  
-+static inline void
-+__rb_change_child(struct rb_node *old, struct rb_node *new,
-+		  struct rb_node *parent, struct rb_root *root)
-+{
-+	if (parent) {
-+		if (parent->rb_left == old)
-+			parent->rb_left = new;
-+		else
-+			parent->rb_right = new;
-+	} else
-+		root->rb_node = new;
-+}
-+
- /*
-  * Helper function for rotations:
-  * - old's parent and color get assigned to new
-@@ -78,13 +91,7 @@ __rb_rotate_set_parents(struct rb_node *
- 	struct rb_node *parent = rb_parent(old);
- 	new->__rb_parent_color = old->__rb_parent_color;
- 	rb_set_parent_color(old, new, color);
--	if (parent) {
--		if (parent->rb_left == old)
--			parent->rb_left = new;
--		else
--			parent->rb_right = new;
--	} else
--		root->rb_node = new;
-+	__rb_change_child(old, new, parent, root);
- }
+ 	printk(KERN_ALERT "rbtree testing");
  
- void rb_insert_color(struct rb_node *node, struct rb_root *root)
-@@ -375,13 +382,7 @@ void rb_erase(struct rb_node *node, stru
- 		while ((left = node->rb_left) != NULL)
- 			node = left;
+-	prandom32_seed(&rnd, 3141592653589793238);
++	prandom32_seed(&rnd, 3141592653589793238ULL);
+ 	init();
  
--		if (rb_parent(old)) {
--			if (rb_parent(old)->rb_left == old)
--				rb_parent(old)->rb_left = node;
--			else
--				rb_parent(old)->rb_right = node;
--		} else
--			root->rb_node = node;
-+		__rb_change_child(old, node, rb_parent(old), root);
- 
- 		child = node->rb_right;
- 		parent = rb_parent(node);
-@@ -410,13 +411,7 @@ void rb_erase(struct rb_node *node, stru
- 
- 	if (child)
- 		rb_set_parent(child, parent);
--	if (parent) {
--		if (parent->rb_left == node)
--			parent->rb_left = child;
--		else
--			parent->rb_right = child;
--	} else
--		root->rb_node = child;
-+	__rb_change_child(node, child, parent, root);
- 
- color:
- 	if (color == RB_BLACK)
-@@ -591,14 +586,7 @@ void rb_replace_node(struct rb_node *vic
- 	struct rb_node *parent = rb_parent(victim);
- 
- 	/* Set the surrounding nodes to point to the replacement */
--	if (parent) {
--		if (victim == parent->rb_left)
--			parent->rb_left = new;
--		else
--			parent->rb_right = new;
--	} else {
--		root->rb_node = new;
--	}
-+	__rb_change_child(victim, new, parent, root);
- 	if (victim->rb_left)
- 		rb_set_parent(victim->rb_left, new);
- 	if (victim->rb_right)
+ 	time1 = get_cycles();
 _
 
 Patches currently in -mm which might be from walken@google.com are
