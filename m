@@ -1,37 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-thp-fix-mapped-pages-avoiding-unevictable-list-on-mlock.patch removed from -mm tree
-Date: Tue, 09 Oct 2012 11:14:57 -0700
-Message-ID: <20121009181458.533EA5C0060@hpza9.eem.corp.google.com>
+Subject: [merged] mm-thp-fix-mlock-statistics.patch removed from -mm tree
+Date: Tue, 09 Oct 2012 11:15:02 -0700
+Message-ID: <20121009181503.5E32620004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:61367 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932127Ab2JISPB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:15:01 -0400
-Received: by mail-we0-f202.google.com with SMTP id x43so365372wey.1
-        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:15:00 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:35223 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932127Ab2JISPG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:15:06 -0400
+Received: by mail-ee0-f74.google.com with SMTP id b57so363410eek.1
+        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:15:05 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rientjes@google.com, aarcange@redhat.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, n-horiguchi@ah.jp.nec.com, walken@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, thp: fix mapped pages avoiding unevictable list on mlock
+     Subject: mm, thp: fix mlock statistics
 has been removed from the -mm tree.  Its filename was
-     mm-thp-fix-mapped-pages-avoiding-unevictable-list-on-mlock.patch
+     mm-thp-fix-mlock-statistics.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: David Rientjes <rientjes@google.com>
-Subject: mm, thp: fix mapped pages avoiding unevictable list on mlock
+Subject: mm, thp: fix mlock statistics
 
-When a transparent hugepage is mapped and it is included in an mlock()
-range, follow_page() incorrectly avoids setting the page's mlock bit and
-moving it to the unevictable lru.
+NR_MLOCK is only accounted in single page units: there's no logic to
+handle transparent hugepages.  This patch checks the appropriate number of
+pages to adjust the statistics by so that the correct amount of memory is
+reflected.
 
-This is evident if you try to mlock(), munlock(), and then mlock() a
-range again.  Currently:
+Currently:
+
+		$ grep Mlocked /proc/meminfo
+		Mlocked:           19636 kB
 
 	#define MAP_SIZE	(4 << 30)	/* 4GB */
 
@@ -39,115 +42,90 @@ range again.  Currently:
 			 MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
 	mlock(ptr, MAP_SIZE);
 
-		$ grep -E "Unevictable|Inactive\(anon" /proc/meminfo
-		Inactive(anon):     6304 kB
-		Unevictable:     4213924 kB
+		$ grep Mlocked /proc/meminfo
+		Mlocked:           29844 kB
 
 	munlock(ptr, MAP_SIZE);
 
-		Inactive(anon):  4186252 kB
-		Unevictable:       19652 kB
+		$ grep Mlocked /proc/meminfo
+		Mlocked:           19636 kB
+
+And with this patch:
+
+		$ grep Mlock /proc/meminfo
+		Mlocked:           19636 kB
 
 	mlock(ptr, MAP_SIZE);
 
-		Inactive(anon):  4198556 kB
-		Unevictable:       21684 kB
-
-Notice that less than 2MB was added to the unevictable list; this is
-because these pages in the range are not transparent hugepages since the
-4GB range was allocated with mmap() and has no specific alignment.  If
-posix_memalign() were used instead, unevictable would not have grown at
-all on the second mlock().
-
-The fix is to call mlock_vma_page() so that the mlock bit is set and the
-page is added to the unevictable list.  With this patch:
-
-	mlock(ptr, MAP_SIZE);
-
-		Inactive(anon):     4056 kB
-		Unevictable:     4213940 kB
+		$ grep Mlock /proc/meminfo
+		Mlocked:         4213664 kB
 
 	munlock(ptr, MAP_SIZE);
 
-		Inactive(anon):  4198268 kB
-		Unevictable:       19636 kB
-
-	mlock(ptr, MAP_SIZE);
-
-		Inactive(anon):     4008 kB
-		Unevictable:     4213940 kB
+		$ grep Mlock /proc/meminfo
+		Mlocked:           19636 kB
 
 Signed-off-by: David Rientjes <rientjes@google.com>
+Reported-by: Hugh Dickens <hughd@google.com>
 Acked-by: Hugh Dickins <hughd@google.com>
 Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michel Lespinasse <walken@google.com>
+Reviewed-by: Michel Lespinasse <walken@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    2 +-
- mm/huge_memory.c        |   11 ++++++++++-
- mm/memory.c             |    2 +-
- 3 files changed, 12 insertions(+), 3 deletions(-)
+ mm/internal.h |    3 ++-
+ mm/mlock.c    |    9 ++++++---
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/huge_mm.h~mm-thp-fix-mapped-pages-avoiding-unevictable-list-on-mlock include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~mm-thp-fix-mapped-pages-avoiding-unevictable-list-on-mlock
-+++ a/include/linux/huge_mm.h
-@@ -11,7 +11,7 @@ extern int copy_huge_pmd(struct mm_struc
- extern int do_huge_pmd_wp_page(struct mm_struct *mm, struct vm_area_struct *vma,
- 			       unsigned long address, pmd_t *pmd,
- 			       pmd_t orig_pmd);
--extern struct page *follow_trans_huge_pmd(struct mm_struct *mm,
-+extern struct page *follow_trans_huge_pmd(struct vm_area_struct *vma,
- 					  unsigned long addr,
- 					  pmd_t *pmd,
- 					  unsigned int flags);
-diff -puN mm/huge_memory.c~mm-thp-fix-mapped-pages-avoiding-unevictable-list-on-mlock mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-fix-mapped-pages-avoiding-unevictable-list-on-mlock
-+++ a/mm/huge_memory.c
-@@ -971,11 +971,12 @@ out_unlock:
- 	return ret;
- }
+diff -puN mm/internal.h~mm-thp-fix-mlock-statistics mm/internal.h
+--- a/mm/internal.h~mm-thp-fix-mlock-statistics
++++ a/mm/internal.h
+@@ -180,7 +180,8 @@ static inline int mlocked_vma_newpage(st
+ 		return 0;
  
--struct page *follow_trans_huge_pmd(struct mm_struct *mm,
-+struct page *follow_trans_huge_pmd(struct vm_area_struct *vma,
- 				   unsigned long addr,
- 				   pmd_t *pmd,
- 				   unsigned int flags)
- {
-+	struct mm_struct *mm = vma->vm_mm;
- 	struct page *page = NULL;
- 
- 	assert_spin_locked(&mm->page_table_lock);
-@@ -998,6 +999,14 @@ struct page *follow_trans_huge_pmd(struc
- 		_pmd = pmd_mkyoung(pmd_mkdirty(*pmd));
- 		set_pmd_at(mm, addr & HPAGE_PMD_MASK, pmd, _pmd);
+ 	if (!TestSetPageMlocked(page)) {
+-		inc_zone_page_state(page, NR_MLOCK);
++		mod_zone_page_state(page_zone(page), NR_MLOCK,
++				    hpage_nr_pages(page));
+ 		count_vm_event(UNEVICTABLE_PGMLOCKED);
  	}
-+	if ((flags & FOLL_MLOCK) && (vma->vm_flags & VM_LOCKED)) {
-+		if (page->mapping && trylock_page(page)) {
-+			lru_add_drain();
-+			if (page->mapping)
-+				mlock_vma_page(page);
-+			unlock_page(page);
-+		}
-+	}
- 	page += (addr & ~HPAGE_PMD_MASK) >> PAGE_SHIFT;
- 	VM_BUG_ON(!PageCompound(page));
- 	if (flags & FOLL_GET)
-diff -puN mm/memory.c~mm-thp-fix-mapped-pages-avoiding-unevictable-list-on-mlock mm/memory.c
---- a/mm/memory.c~mm-thp-fix-mapped-pages-avoiding-unevictable-list-on-mlock
-+++ a/mm/memory.c
-@@ -1528,7 +1528,7 @@ struct page *follow_page(struct vm_area_
- 				spin_unlock(&mm->page_table_lock);
- 				wait_split_huge_page(vma->anon_vma, pmd);
- 			} else {
--				page = follow_trans_huge_pmd(mm, address,
-+				page = follow_trans_huge_pmd(vma, address,
- 							     pmd, flags);
- 				spin_unlock(&mm->page_table_lock);
- 				goto out;
+ 	return 1;
+diff -puN mm/mlock.c~mm-thp-fix-mlock-statistics mm/mlock.c
+--- a/mm/mlock.c~mm-thp-fix-mlock-statistics
++++ a/mm/mlock.c
+@@ -56,7 +56,8 @@ void clear_page_mlock(struct page *page)
+ 	if (!TestClearPageMlocked(page))
+ 		return;
+ 
+-	dec_zone_page_state(page, NR_MLOCK);
++	mod_zone_page_state(page_zone(page), NR_MLOCK,
++			    -hpage_nr_pages(page));
+ 	count_vm_event(UNEVICTABLE_PGCLEARED);
+ 	if (!isolate_lru_page(page)) {
+ 		putback_lru_page(page);
+@@ -78,7 +79,8 @@ void mlock_vma_page(struct page *page)
+ 	BUG_ON(!PageLocked(page));
+ 
+ 	if (!TestSetPageMlocked(page)) {
+-		inc_zone_page_state(page, NR_MLOCK);
++		mod_zone_page_state(page_zone(page), NR_MLOCK,
++				    hpage_nr_pages(page));
+ 		count_vm_event(UNEVICTABLE_PGMLOCKED);
+ 		if (!isolate_lru_page(page))
+ 			putback_lru_page(page);
+@@ -105,7 +107,8 @@ void munlock_vma_page(struct page *page)
+ 	BUG_ON(!PageLocked(page));
+ 
+ 	if (TestClearPageMlocked(page)) {
+-		dec_zone_page_state(page, NR_MLOCK);
++		mod_zone_page_state(page_zone(page), NR_MLOCK,
++				    -hpage_nr_pages(page));
+ 		if (!isolate_lru_page(page)) {
+ 			int ret = SWAP_AGAIN;
+ 
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
