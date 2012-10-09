@@ -1,244 +1,220 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-avoid-taking-rmap-locks-in-move_ptes.patch removed from -mm tree
-Date: Tue, 09 Oct 2012 11:11:02 -0700
-Message-ID: <20121009181103.3E9AF5C0060@hpza9.eem.corp.google.com>
+Subject: [merged] mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration.patch removed from -mm tree
+Date: Tue, 09 Oct 2012 11:11:14 -0700
+Message-ID: <20121009181115.418BB20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-fa0-f74.google.com ([209.85.161.74]:62261 "EHLO
 	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756686Ab2JISLG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:11:06 -0400
+	with ESMTP id S1756772Ab2JISLR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:11:17 -0400
 Received: by mail-fa0-f74.google.com with SMTP id t1so360435fae.1
-        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:11:04 -0700 (PDT)
+        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:11:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: walken@google.com, a.p.zijlstra@chello.nl, aarcange@redhat.com, daniel.santos@pobox.com, hughd@google.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: minchan@kernel.org, kyungmin.park@samsung.com, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: avoid taking rmap locks in move_ptes()
+     Subject: mm: cma: discard clean pages during contiguous allocation instead of migration
 has been removed from the -mm tree.  Its filename was
-     mm-avoid-taking-rmap-locks-in-move_ptes.patch
+     mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michel Lespinasse <walken@google.com>
-Subject: mm: avoid taking rmap locks in move_ptes()
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: cma: discard clean pages during contiguous allocation instead of migration
 
-During mremap(), the destination VMA is generally placed after the
-original vma in rmap traversal order: in move_vma(), we always have
-new_pgoff >= vma->vm_pgoff, and as a result new_vma->vm_pgoff >=
-vma->vm_pgoff unless vma_merge() merged the new vma with an adjacent one.
+Drop clean cache pages instead of migration during alloc_contig_range() to
+minimise allocation latency by reducing the amount of migration that is
+necessary.  It's useful for CMA because latency of migration is more
+important than evicting the background process's working set.  In
+addition, as pages are reclaimed then fewer free pages for migration
+targets are required so it avoids memory reclaiming to get free pages,
+which is a contributory factor to increased latency.
 
-When the destination VMA is placed after the original in rmap traversal
-order, we can avoid taking the rmap locks in move_ptes().
+I measured elapsed time of __alloc_contig_migrate_range() which migrates
+10M in 40M movable zone in QEMU machine.
 
-Essentially, this reintroduces the optimization that had been disabled in
-"mm anon rmap: remove anon_vma_moveto_tail".  The difference is that we
-don't try to impose the rmap traversal order; instead we just rely on
-things being in the desired order in the common case and fall back to
-taking locks in the uncommon case.  Also we skip the i_mmap_mutex in
-addition to the anon_vma lock: in both cases, the vmas are traversed in
-increasing vm_pgoff order with ties resolved in tree insertion order.
+Before - 146ms, After - 7ms
 
-Signed-off-by: Michel Lespinasse <walken@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+[akpm@linux-foundation.org: fix nommu build]
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Reviewed-by: Mel Gorman <mgorman@suse.de>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Acked-by: Michal Nazarewicz <mina86@mina86.com>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Daniel Santos <daniel.santos@pobox.com>
-Cc: Hugh Dickins <hughd@google.com>
+Tested-by: Kyungmin Park <kyungmin.park@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c          |    2 -
- include/linux/mm.h |    6 +++-
- mm/mmap.c          |    7 +++--
- mm/mremap.c        |   57 +++++++++++++++++++++++++++++--------------
- 4 files changed, 49 insertions(+), 23 deletions(-)
+ include/linux/rmap.h |   21 ++++++++++----------
+ mm/internal.h        |    3 +-
+ mm/page_alloc.c      |    2 +
+ mm/vmscan.c          |   43 +++++++++++++++++++++++++++++++++++------
+ 4 files changed, 52 insertions(+), 17 deletions(-)
 
-diff -puN fs/exec.c~mm-avoid-taking-rmap-locks-in-move_ptes fs/exec.c
---- a/fs/exec.c~mm-avoid-taking-rmap-locks-in-move_ptes
-+++ a/fs/exec.c
-@@ -603,7 +603,7 @@ static int shift_arg_pages(struct vm_are
- 	 * process cleanup to remove whatever mess we made.
- 	 */
- 	if (length != move_page_tables(vma, old_start,
--				       vma, new_start, length))
-+				       vma, new_start, length, false))
- 		return -ENOMEM;
+diff -puN include/linux/rmap.h~mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration include/linux/rmap.h
+--- a/include/linux/rmap.h~mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration
++++ a/include/linux/rmap.h
+@@ -71,6 +71,17 @@ struct anon_vma_chain {
+ #endif
+ };
  
- 	lru_add_drain();
-diff -puN include/linux/mm.h~mm-avoid-taking-rmap-locks-in-move_ptes include/linux/mm.h
---- a/include/linux/mm.h~mm-avoid-taking-rmap-locks-in-move_ptes
-+++ a/include/linux/mm.h
-@@ -1060,7 +1060,8 @@ vm_is_stack(struct task_struct *task, st
- 
- extern unsigned long move_page_tables(struct vm_area_struct *vma,
- 		unsigned long old_addr, struct vm_area_struct *new_vma,
--		unsigned long new_addr, unsigned long len);
-+		unsigned long new_addr, unsigned long len,
-+		bool need_rmap_locks);
- extern unsigned long do_mremap(unsigned long addr,
- 			       unsigned long old_len, unsigned long new_len,
- 			       unsigned long flags, unsigned long new_addr);
-@@ -1410,7 +1411,8 @@ extern void __vma_link_rb(struct mm_stru
- 	struct rb_node **, struct rb_node *);
- extern void unlink_file_vma(struct vm_area_struct *);
- extern struct vm_area_struct *copy_vma(struct vm_area_struct **,
--	unsigned long addr, unsigned long len, pgoff_t pgoff);
-+	unsigned long addr, unsigned long len, pgoff_t pgoff,
-+	bool *need_rmap_locks);
- extern void exit_mmap(struct mm_struct *);
- 
- extern int mm_take_all_locks(struct mm_struct *mm);
-diff -puN mm/mmap.c~mm-avoid-taking-rmap-locks-in-move_ptes mm/mmap.c
---- a/mm/mmap.c~mm-avoid-taking-rmap-locks-in-move_ptes
-+++ a/mm/mmap.c
-@@ -2371,7 +2371,8 @@ int insert_vm_struct(struct mm_struct *m
-  * prior to moving page table entries, to effect an mremap move.
-  */
- struct vm_area_struct *copy_vma(struct vm_area_struct **vmap,
--	unsigned long addr, unsigned long len, pgoff_t pgoff)
-+	unsigned long addr, unsigned long len, pgoff_t pgoff,
-+	bool *need_rmap_locks)
++enum ttu_flags {
++	TTU_UNMAP = 0,			/* unmap mode */
++	TTU_MIGRATION = 1,		/* migration mode */
++	TTU_MUNLOCK = 2,		/* munlock mode */
++	TTU_ACTION_MASK = 0xff,
++
++	TTU_IGNORE_MLOCK = (1 << 8),	/* ignore mlock */
++	TTU_IGNORE_ACCESS = (1 << 9),	/* don't age */
++	TTU_IGNORE_HWPOISON = (1 << 10),/* corrupted page is recoverable */
++};
++
+ #ifdef CONFIG_MMU
+ static inline void get_anon_vma(struct anon_vma *anon_vma)
  {
- 	struct vm_area_struct *vma = *vmap;
- 	unsigned long vma_start = vma->vm_start;
-@@ -2413,8 +2414,9 @@ struct vm_area_struct *copy_vma(struct v
- 			 * linear if there are no pages mapped yet.
- 			 */
- 			VM_BUG_ON(faulted_in_anon_vma);
--			*vmap = new_vma;
-+			*vmap = vma = new_vma;
+@@ -164,16 +175,6 @@ int page_referenced(struct page *, int i
+ int page_referenced_one(struct page *, struct vm_area_struct *,
+ 	unsigned long address, unsigned int *mapcount, unsigned long *vm_flags);
+ 
+-enum ttu_flags {
+-	TTU_UNMAP = 0,			/* unmap mode */
+-	TTU_MIGRATION = 1,		/* migration mode */
+-	TTU_MUNLOCK = 2,		/* munlock mode */
+-	TTU_ACTION_MASK = 0xff,
+-
+-	TTU_IGNORE_MLOCK = (1 << 8),	/* ignore mlock */
+-	TTU_IGNORE_ACCESS = (1 << 9),	/* don't age */
+-	TTU_IGNORE_HWPOISON = (1 << 10),/* corrupted page is recoverable */
+-};
+ #define TTU_ACTION(x) ((x) & TTU_ACTION_MASK)
+ 
+ int try_to_unmap(struct page *, enum ttu_flags flags);
+diff -puN mm/internal.h~mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration mm/internal.h
+--- a/mm/internal.h~mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration
++++ a/mm/internal.h
+@@ -356,5 +356,6 @@ extern unsigned long vm_mmap_pgoff(struc
+         unsigned long, unsigned long);
+ 
+ extern void set_pageblock_order(void);
+-
++unsigned long reclaim_clean_pages_from_list(struct zone *zone,
++					    struct list_head *page_list);
+ #endif	/* __MM_INTERNAL_H */
+diff -puN mm/page_alloc.c~mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration
++++ a/mm/page_alloc.c
+@@ -5700,6 +5700,8 @@ static int __alloc_contig_migrate_range(
+ 			break;
  		}
-+		*need_rmap_locks = (new_vma->vm_pgoff <= vma->vm_pgoff);
- 	} else {
- 		new_vma = kmem_cache_alloc(vm_area_cachep, GFP_KERNEL);
- 		if (new_vma) {
-@@ -2434,6 +2436,7 @@ struct vm_area_struct *copy_vma(struct v
- 			if (new_vma->vm_ops && new_vma->vm_ops->open)
- 				new_vma->vm_ops->open(new_vma);
- 			vma_link(mm, new_vma, prev, rb_link, rb_parent);
-+			*need_rmap_locks = false;
+ 
++		reclaim_clean_pages_from_list(cc.zone, &cc.migratepages);
++
+ 		ret = migrate_pages(&cc.migratepages,
+ 				    __alloc_contig_migrate_alloc,
+ 				    0, false, MIGRATE_SYNC);
+diff -puN mm/vmscan.c~mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration mm/vmscan.c
+--- a/mm/vmscan.c~mm-cma-discard-clean-pages-during-contiguous-allocation-instead-of-migration
++++ a/mm/vmscan.c
+@@ -674,8 +674,10 @@ static enum page_references page_check_r
+ static unsigned long shrink_page_list(struct list_head *page_list,
+ 				      struct zone *zone,
+ 				      struct scan_control *sc,
++				      enum ttu_flags ttu_flags,
+ 				      unsigned long *ret_nr_dirty,
+-				      unsigned long *ret_nr_writeback)
++				      unsigned long *ret_nr_writeback,
++				      bool force_reclaim)
+ {
+ 	LIST_HEAD(ret_pages);
+ 	LIST_HEAD(free_pages);
+@@ -689,10 +691,10 @@ static unsigned long shrink_page_list(st
+ 
+ 	mem_cgroup_uncharge_start();
+ 	while (!list_empty(page_list)) {
+-		enum page_references references;
+ 		struct address_space *mapping;
+ 		struct page *page;
+ 		int may_enter_fs;
++		enum page_references references = PAGEREF_RECLAIM_CLEAN;
+ 
+ 		cond_resched();
+ 
+@@ -758,7 +760,9 @@ static unsigned long shrink_page_list(st
+ 			wait_on_page_writeback(page);
  		}
- 	}
- 	return new_vma;
-diff -puN mm/mremap.c~mm-avoid-taking-rmap-locks-in-move_ptes mm/mremap.c
---- a/mm/mremap.c~mm-avoid-taking-rmap-locks-in-move_ptes
-+++ a/mm/mremap.c
-@@ -71,26 +71,42 @@ static pmd_t *alloc_new_pmd(struct mm_st
- static void move_ptes(struct vm_area_struct *vma, pmd_t *old_pmd,
- 		unsigned long old_addr, unsigned long old_end,
- 		struct vm_area_struct *new_vma, pmd_t *new_pmd,
--		unsigned long new_addr)
-+		unsigned long new_addr, bool need_rmap_locks)
- {
- 	struct address_space *mapping = NULL;
--	struct anon_vma *anon_vma = vma->anon_vma;
-+	struct anon_vma *anon_vma = NULL;
- 	struct mm_struct *mm = vma->vm_mm;
- 	pte_t *old_pte, *new_pte, pte;
- 	spinlock_t *old_ptl, *new_ptl;
  
--	if (vma->vm_file) {
--		/*
--		 * Subtle point from Rajesh Venkatasubramanian: before
--		 * moving file-based ptes, we must lock truncate_pagecache
--		 * out, since it might clean the dst vma before the src vma,
--		 * and we propagate stale pages into the dst afterward.
--		 */
--		mapping = vma->vm_file->f_mapping;
--		mutex_lock(&mapping->i_mmap_mutex);
-+	/*
-+	 * When need_rmap_locks is true, we take the i_mmap_mutex and anon_vma
-+	 * locks to ensure that rmap will always observe either the old or the
-+	 * new ptes. This is the easiest way to avoid races with
-+	 * truncate_pagecache(), page migration, etc...
-+	 *
-+	 * When need_rmap_locks is false, we use other ways to avoid
-+	 * such races:
-+	 *
-+	 * - During exec() shift_arg_pages(), we use a specially tagged vma
-+	 *   which rmap call sites look for using is_vma_temporary_stack().
-+	 *
-+	 * - During mremap(), new_vma is often known to be placed after vma
-+	 *   in rmap traversal order. This ensures rmap will always observe
-+	 *   either the old pte, or the new pte, or both (the page table locks
-+	 *   serialize access to individual ptes, but only rmap traversal
-+	 *   order guarantees that we won't miss both the old and new ptes).
-+	 */
-+	if (need_rmap_locks) {
-+		if (vma->vm_file) {
-+			mapping = vma->vm_file->f_mapping;
-+			mutex_lock(&mapping->i_mmap_mutex);
-+		}
-+		if (vma->anon_vma) {
-+			anon_vma = vma->anon_vma;
-+			anon_vma_lock(anon_vma);
-+		}
- 	}
--	if (anon_vma)
--		anon_vma_lock(anon_vma);
- 
- 	/*
- 	 * We don't have to worry about the ordering of src and dst
-@@ -127,7 +143,8 @@ static void move_ptes(struct vm_area_str
- 
- unsigned long move_page_tables(struct vm_area_struct *vma,
- 		unsigned long old_addr, struct vm_area_struct *new_vma,
--		unsigned long new_addr, unsigned long len)
-+		unsigned long new_addr, unsigned long len,
-+		bool need_rmap_locks)
- {
- 	unsigned long extent, next, old_end;
- 	pmd_t *old_pmd, *new_pmd;
-@@ -174,7 +191,7 @@ unsigned long move_page_tables(struct vm
- 		if (extent > LATENCY_LIMIT)
- 			extent = LATENCY_LIMIT;
- 		move_ptes(vma, old_pmd, old_addr, old_addr + extent,
--				new_vma, new_pmd, new_addr);
-+			  new_vma, new_pmd, new_addr, need_rmap_locks);
- 		need_flush = true;
- 	}
- 	if (likely(need_flush))
-@@ -198,6 +215,7 @@ static unsigned long move_vma(struct vm_
- 	unsigned long hiwater_vm;
- 	int split = 0;
- 	int err;
-+	bool need_rmap_locks;
- 
- 	/*
- 	 * We'd prefer to avoid failure later on in do_munmap:
-@@ -219,18 +237,21 @@ static unsigned long move_vma(struct vm_
- 		return err;
- 
- 	new_pgoff = vma->vm_pgoff + ((old_addr - vma->vm_start) >> PAGE_SHIFT);
--	new_vma = copy_vma(&vma, new_addr, new_len, new_pgoff);
-+	new_vma = copy_vma(&vma, new_addr, new_len, new_pgoff,
-+			   &need_rmap_locks);
- 	if (!new_vma)
- 		return -ENOMEM;
- 
--	moved_len = move_page_tables(vma, old_addr, new_vma, new_addr, old_len);
-+	moved_len = move_page_tables(vma, old_addr, new_vma, new_addr, old_len,
-+				     need_rmap_locks);
- 	if (moved_len < old_len) {
- 		/*
- 		 * On error, move entries back from new area to old,
- 		 * which will succeed since page tables still there,
- 		 * and then proceed to unmap new area instead of old.
+-		references = page_check_references(page, sc);
++		if (!force_reclaim)
++			references = page_check_references(page, sc);
++
+ 		switch (references) {
+ 		case PAGEREF_ACTIVATE:
+ 			goto activate_locked;
+@@ -788,7 +792,7 @@ static unsigned long shrink_page_list(st
+ 		 * processes. Try to unmap it here.
  		 */
--		move_page_tables(new_vma, new_addr, vma, old_addr, moved_len);
-+		move_page_tables(new_vma, new_addr, vma, old_addr, moved_len,
-+				 true);
- 		vma = new_vma;
- 		old_len = new_len;
- 		old_addr = new_addr;
+ 		if (page_mapped(page) && mapping) {
+-			switch (try_to_unmap(page, TTU_UNMAP)) {
++			switch (try_to_unmap(page, ttu_flags)) {
+ 			case SWAP_FAIL:
+ 				goto activate_locked;
+ 			case SWAP_AGAIN:
+@@ -960,6 +964,33 @@ keep:
+ 	return nr_reclaimed;
+ }
+ 
++unsigned long reclaim_clean_pages_from_list(struct zone *zone,
++					    struct list_head *page_list)
++{
++	struct scan_control sc = {
++		.gfp_mask = GFP_KERNEL,
++		.priority = DEF_PRIORITY,
++		.may_unmap = 1,
++	};
++	unsigned long ret, dummy1, dummy2;
++	struct page *page, *next;
++	LIST_HEAD(clean_pages);
++
++	list_for_each_entry_safe(page, next, page_list, lru) {
++		if (page_is_file_cache(page) && !PageDirty(page)) {
++			ClearPageActive(page);
++			list_move(&page->lru, &clean_pages);
++		}
++	}
++
++	ret = shrink_page_list(&clean_pages, zone, &sc,
++				TTU_UNMAP|TTU_IGNORE_ACCESS,
++				&dummy1, &dummy2, true);
++	list_splice(&clean_pages, page_list);
++	__mod_zone_page_state(zone, NR_ISOLATED_FILE, -ret);
++	return ret;
++}
++
+ /*
+  * Attempt to remove the specified page from its LRU.  Only take this page
+  * if it is of the appropriate PageActive status.  Pages which are being
+@@ -1278,8 +1309,8 @@ shrink_inactive_list(unsigned long nr_to
+ 	if (nr_taken == 0)
+ 		return 0;
+ 
+-	nr_reclaimed = shrink_page_list(&page_list, zone, sc,
+-						&nr_dirty, &nr_writeback);
++	nr_reclaimed = shrink_page_list(&page_list, zone, sc, TTU_UNMAP,
++					&nr_dirty, &nr_writeback, false);
+ 
+ 	spin_lock_irq(&zone->lru_lock);
+ 
 _
 
-Patches currently in -mm which might be from walken@google.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
 origin.patch
-prio_tree-remove-fix.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+mm-memblock-reduce-overhead-in-binary-search.patch
 
