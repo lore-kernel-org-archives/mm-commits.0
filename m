@@ -1,36 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sparc64-only-support-4mb-huge-pages-and-8kb-base-pages.patch removed from -mm tree
-Date: Tue, 09 Oct 2012 11:15:23 -0700
-Message-ID: <20121009181524.269685C0060@hpza9.eem.corp.google.com>
+Subject: [merged] sparc64-eliminate-pte-table-memory-wastage.patch removed from -mm tree
+Date: Tue, 09 Oct 2012 11:15:30 -0700
+Message-ID: <20121009181530.C3C79100048@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:39935 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756844Ab2JISP0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:15:26 -0400
-Received: by mail-fa0-f74.google.com with SMTP id t1so360588fae.1
-        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:15:25 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:49061 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756846Ab2JISPb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:15:31 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z15so661774ghb.1
+        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:15:31 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: davem@davemloft.net, aarcange@redhat.com, gerald.schaefer@de.ibm.com, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sparc64: Only support 4MB huge pages and 8KB base pages.
+     Subject: sparc64: Eliminate PTE table memory wastage.
 has been removed from the -mm tree.  Its filename was
-     sparc64-only-support-4mb-huge-pages-and-8kb-base-pages.patch
+     sparc64-eliminate-pte-table-memory-wastage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: David Miller <davem@davemloft.net>
-Subject: sparc64: Only support 4MB huge pages and 8KB base pages.
+Subject: sparc64: Eliminate PTE table memory wastage.
 
-Narrowing the scope of the page size configurations will make the
-transparent hugepage changes much simpler.
+We've split up the PTE tables so that they take up half a page instead of
+a full page.  This is in order to facilitate transparent huge page
+support, which works much better if our PMDs cover 4MB instead of 8MB.
 
-In the end what we really want to do is have the kernel support multiple
-huge page sizes and use whatever is appropriate as the context dictactes.
+What we do is have a one-behind cache for PTE table allocations in the
+mm struct.
+
+This logic triggers only on allocations.  For example, we don't try to
+keep track of free'd up page table blocks in the style that the s390 port
+does.
+
+There were only two slightly annoying aspects to this change:
+
+1) Changing pgtable_t to be a "pte_t *".  There's all of this special
+   logic in the TLB free paths that needed adjustments, as did the
+   PMD populate interfaces.
+
+2) init_new_context() needs to zap the pointer, since the mm struct
+   just gets copied from the parent on fork.
 
 Signed-off-by: David S. Miller <davem@davemloft.net>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -39,289 +53,252 @@ Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/Kconfig                  |   36 ------------------------
- arch/sparc/include/asm/mmu_64.h     |   16 ----------
- arch/sparc/include/asm/page_64.h    |   12 --------
- arch/sparc/include/asm/pgtable_64.h |   38 +++-----------------------
- arch/sparc/mm/init_64.c             |    9 +-----
- arch/sparc/mm/tsb.c                 |   17 -----------
- 6 files changed, 8 insertions(+), 120 deletions(-)
+ arch/sparc/include/asm/mmu_64.h     |    1 
+ arch/sparc/include/asm/page_64.h    |    2 
+ arch/sparc/include/asm/pgalloc_64.h |   54 ++-----------
+ arch/sparc/mm/init_64.c             |  101 ++++++++++++++++++++++++++
+ arch/sparc/mm/tsb.c                 |    9 ++
+ 5 files changed, 123 insertions(+), 44 deletions(-)
 
-diff -puN arch/sparc/Kconfig~sparc64-only-support-4mb-huge-pages-and-8kb-base-pages arch/sparc/Kconfig
---- a/arch/sparc/Kconfig~sparc64-only-support-4mb-huge-pages-and-8kb-base-pages
-+++ a/arch/sparc/Kconfig
-@@ -230,25 +230,6 @@ config EARLYFB
- 	help
- 	  Say Y here to enable a faster early framebuffer boot console.
- 
--choice
--	prompt "Kernel page size" if SPARC64
--	default SPARC64_PAGE_SIZE_8KB
--
--config SPARC64_PAGE_SIZE_8KB
--	bool "8KB"
--	help
--	  This lets you select the page size of the kernel.
--
--	  8KB and 64KB work quite well, since SPARC ELF sections
--	  provide for up to 64KB alignment.
--
--	  If you don't know what to do, choose 8KB.
--
--config SPARC64_PAGE_SIZE_64KB
--	bool "64KB"
--
--endchoice
--
- config SECCOMP
- 	bool "Enable seccomp to safely compute untrusted bytecode"
- 	depends on SPARC64 && PROC_FS
-@@ -320,23 +301,6 @@ config GENERIC_LOCKBREAK
- 	default y
- 	depends on SPARC64 && SMP && PREEMPT
- 
--choice
--	prompt "SPARC64 Huge TLB Page Size"
--	depends on SPARC64 && HUGETLB_PAGE
--	default HUGETLB_PAGE_SIZE_4MB
--
--config HUGETLB_PAGE_SIZE_4MB
--	bool "4MB"
--
--config HUGETLB_PAGE_SIZE_512K
--	bool "512K"
--
--config HUGETLB_PAGE_SIZE_64K
--	depends on !SPARC64_PAGE_SIZE_64KB
--	bool "64K"
--
--endchoice
--
- config NUMA
- 	bool "NUMA support"
- 	depends on SPARC64 && SMP
-diff -puN arch/sparc/include/asm/mmu_64.h~sparc64-only-support-4mb-huge-pages-and-8kb-base-pages arch/sparc/include/asm/mmu_64.h
---- a/arch/sparc/include/asm/mmu_64.h~sparc64-only-support-4mb-huge-pages-and-8kb-base-pages
+diff -puN arch/sparc/include/asm/mmu_64.h~sparc64-eliminate-pte-table-memory-wastage arch/sparc/include/asm/mmu_64.h
+--- a/arch/sparc/include/asm/mmu_64.h~sparc64-eliminate-pte-table-memory-wastage
 +++ a/arch/sparc/include/asm/mmu_64.h
-@@ -30,22 +30,8 @@
- #define CTX_PGSZ_MASK		((CTX_PGSZ_BITS << CTX_PGSZ0_SHIFT) | \
- 				 (CTX_PGSZ_BITS << CTX_PGSZ1_SHIFT))
- 
--#if defined(CONFIG_SPARC64_PAGE_SIZE_8KB)
- #define CTX_PGSZ_BASE	CTX_PGSZ_8KB
--#elif defined(CONFIG_SPARC64_PAGE_SIZE_64KB)
--#define CTX_PGSZ_BASE	CTX_PGSZ_64KB
--#else
--#error No page size specified in kernel configuration
--#endif
--
--#if defined(CONFIG_HUGETLB_PAGE_SIZE_4MB)
--#define CTX_PGSZ_HUGE		CTX_PGSZ_4MB
--#elif defined(CONFIG_HUGETLB_PAGE_SIZE_512K)
--#define CTX_PGSZ_HUGE		CTX_PGSZ_512KB
--#elif defined(CONFIG_HUGETLB_PAGE_SIZE_64K)
--#define CTX_PGSZ_HUGE		CTX_PGSZ_64KB
--#endif
--
-+#define CTX_PGSZ_HUGE	CTX_PGSZ_4MB
- #define CTX_PGSZ_KERN	CTX_PGSZ_4MB
- 
- /* Thus, when running on UltraSPARC-III+ and later, we use the following
-diff -puN arch/sparc/include/asm/page_64.h~sparc64-only-support-4mb-huge-pages-and-8kb-base-pages arch/sparc/include/asm/page_64.h
---- a/arch/sparc/include/asm/page_64.h~sparc64-only-support-4mb-huge-pages-and-8kb-base-pages
+@@ -93,6 +93,7 @@ typedef struct {
+ 	spinlock_t		lock;
+ 	unsigned long		sparc64_ctx_val;
+ 	unsigned long		huge_pte_count;
++	struct page		*pgtable_page;
+ 	struct tsb_config	tsb_block[MM_NUM_TSBS];
+ 	struct hv_tsb_descr	tsb_descr[MM_NUM_TSBS];
+ } mm_context_t;
+diff -puN arch/sparc/include/asm/page_64.h~sparc64-eliminate-pte-table-memory-wastage arch/sparc/include/asm/page_64.h
+--- a/arch/sparc/include/asm/page_64.h~sparc64-eliminate-pte-table-memory-wastage
 +++ a/arch/sparc/include/asm/page_64.h
-@@ -3,13 +3,7 @@
+@@ -86,7 +86,7 @@ typedef unsigned long pgprot_t;
  
- #include <linux/const.h>
+ #endif /* (STRICT_MM_TYPECHECKS) */
  
--#if defined(CONFIG_SPARC64_PAGE_SIZE_8KB)
- #define PAGE_SHIFT   13
--#elif defined(CONFIG_SPARC64_PAGE_SIZE_64KB)
--#define PAGE_SHIFT   16
--#else
--#error No page size specified in kernel configuration
--#endif
+-typedef struct page *pgtable_t;
++typedef pte_t *pgtable_t;
  
- #define PAGE_SIZE    (_AC(1,UL) << PAGE_SHIFT)
- #define PAGE_MASK    (~(PAGE_SIZE-1))
-@@ -21,13 +15,7 @@
- #define DCACHE_ALIASING_POSSIBLE
- #endif
+ #define TASK_UNMAPPED_BASE	(test_thread_flag(TIF_32BIT) ? \
+ 				 (_AC(0x0000000070000000,UL)) : \
+diff -puN arch/sparc/include/asm/pgalloc_64.h~sparc64-eliminate-pte-table-memory-wastage arch/sparc/include/asm/pgalloc_64.h
+--- a/arch/sparc/include/asm/pgalloc_64.h~sparc64-eliminate-pte-table-memory-wastage
++++ a/arch/sparc/include/asm/pgalloc_64.h
+@@ -38,51 +38,20 @@ static inline void pmd_free(struct mm_st
+ 	kmem_cache_free(pgtable_cache, pmd);
+ }
  
--#if defined(CONFIG_HUGETLB_PAGE_SIZE_4MB)
- #define HPAGE_SHIFT		22
--#elif defined(CONFIG_HUGETLB_PAGE_SIZE_512K)
--#define HPAGE_SHIFT		19
--#elif defined(CONFIG_HUGETLB_PAGE_SIZE_64K)
--#define HPAGE_SHIFT		16
--#endif
+-static inline pte_t *pte_alloc_one_kernel(struct mm_struct *mm,
+-					  unsigned long address)
+-{
+-	return (pte_t *)__get_free_page(GFP_KERNEL | __GFP_REPEAT | __GFP_ZERO);
+-}
+-
+-static inline pgtable_t pte_alloc_one(struct mm_struct *mm,
+-					unsigned long address)
+-{
+-	struct page *page;
+-	pte_t *pte;
+-
+-	pte = pte_alloc_one_kernel(mm, address);
+-	if (!pte)
+-		return NULL;
+-	page = virt_to_page(pte);
+-	pgtable_page_ctor(page);
+-	return page;
+-}
+-
+-static inline void pte_free_kernel(struct mm_struct *mm, pte_t *pte)
+-{
+-	free_page((unsigned long)pte);
+-}
+-
+-static inline void pte_free(struct mm_struct *mm, pgtable_t ptepage)
+-{
+-	pgtable_page_dtor(ptepage);
+-	__free_page(ptepage);
+-}
++extern pte_t *pte_alloc_one_kernel(struct mm_struct *mm,
++				   unsigned long address);
++extern pgtable_t pte_alloc_one(struct mm_struct *mm,
++			       unsigned long address);
++extern void pte_free_kernel(struct mm_struct *mm, pte_t *pte);
++extern void pte_free(struct mm_struct *mm, pgtable_t ptepage);
  
- #ifdef CONFIG_HUGETLB_PAGE
- #define HPAGE_SIZE		(_AC(1,UL) << HPAGE_SHIFT)
-diff -puN arch/sparc/include/asm/pgtable_64.h~sparc64-only-support-4mb-huge-pages-and-8kb-base-pages arch/sparc/include/asm/pgtable_64.h
---- a/arch/sparc/include/asm/pgtable_64.h~sparc64-only-support-4mb-huge-pages-and-8kb-base-pages
-+++ a/arch/sparc/include/asm/pgtable_64.h
-@@ -160,26 +160,11 @@
- #define _PAGE_SZ8K_4V	  _AC(0x0000000000000000,UL) /* 8K Page              */
- #define _PAGE_SZALL_4V	  _AC(0x0000000000000007,UL) /* All pgsz bits        */
+ #define pmd_populate_kernel(MM, PMD, PTE)	pmd_set(PMD, PTE)
+-#define pmd_populate(MM,PMD,PTE_PAGE)		\
+-	pmd_populate_kernel(MM,PMD,page_address(PTE_PAGE))
+-#define pmd_pgtable(pmd) pmd_page(pmd)
++#define pmd_populate(MM, PMD, PTE)		pmd_set(PMD, PTE)
++#define pmd_pgtable(PMD)			((pte_t *)__pmd_page(PMD))
  
--#if PAGE_SHIFT == 13
- #define _PAGE_SZBITS_4U	_PAGE_SZ8K_4U
- #define _PAGE_SZBITS_4V	_PAGE_SZ8K_4V
--#elif PAGE_SHIFT == 16
--#define _PAGE_SZBITS_4U	_PAGE_SZ64K_4U
--#define _PAGE_SZBITS_4V	_PAGE_SZ64K_4V
--#else
--#error Wrong PAGE_SHIFT specified
--#endif
+ #define check_pgt_cache()	do { } while (0)
  
--#if defined(CONFIG_HUGETLB_PAGE_SIZE_4MB)
- #define _PAGE_SZHUGE_4U	_PAGE_SZ4MB_4U
- #define _PAGE_SZHUGE_4V	_PAGE_SZ4MB_4V
--#elif defined(CONFIG_HUGETLB_PAGE_SIZE_512K)
--#define _PAGE_SZHUGE_4U	_PAGE_SZ512K_4U
--#define _PAGE_SZHUGE_4V	_PAGE_SZ512K_4V
--#elif defined(CONFIG_HUGETLB_PAGE_SIZE_64K)
--#define _PAGE_SZHUGE_4U	_PAGE_SZ64K_4U
--#define _PAGE_SZHUGE_4V	_PAGE_SZ64K_4V
--#endif
+-static inline void pgtable_free(void *table, bool is_page)
+-{
+-	if (is_page)
+-		free_page((unsigned long)table);
+-	else
+-		kmem_cache_free(pgtable_cache, table);
+-}
++extern void pgtable_free(void *table, bool is_page);
  
- /* These are actually filled in at boot time by sun4{u,v}_pgprot_init() */
- #define __P000	__pgprot(0)
-@@ -218,7 +203,6 @@ extern unsigned long _PAGE_CACHE;
+ #ifdef CONFIG_SMP
  
- extern unsigned long pg_iobits;
- extern unsigned long _PAGE_ALL_SZ_BITS;
--extern unsigned long _PAGE_SZBITS;
+@@ -113,11 +82,10 @@ static inline void pgtable_free_tlb(stru
+ }
+ #endif /* !CONFIG_SMP */
  
- extern struct page *mem_map_zero;
- #define ZERO_PAGE(vaddr)	(mem_map_zero)
-@@ -231,22 +215,9 @@ extern struct page *mem_map_zero;
- static inline pte_t pfn_pte(unsigned long pfn, pgprot_t prot)
+-static inline void __pte_free_tlb(struct mmu_gather *tlb, struct page *ptepage,
++static inline void __pte_free_tlb(struct mmu_gather *tlb, pte_t *pte,
+ 				  unsigned long address)
  {
- 	unsigned long paddr = pfn << PAGE_SHIFT;
--	unsigned long sz_bits;
- 
--	sz_bits = 0UL;
--	if (_PAGE_SZBITS_4U != 0UL || _PAGE_SZBITS_4V != 0UL) {
--		__asm__ __volatile__(
--		"\n661:	sethi		%%uhi(%1), %0\n"
--		"	sllx		%0, 32, %0\n"
--		"	.section	.sun4v_2insn_patch, \"ax\"\n"
--		"	.word		661b\n"
--		"	mov		%2, %0\n"
--		"	nop\n"
--		"	.previous\n"
--		: "=r" (sz_bits)
--		: "i" (_PAGE_SZBITS_4U), "i" (_PAGE_SZBITS_4V));
--	}
--	return __pte(paddr | sz_bits | pgprot_val(prot));
-+	BUILD_BUG_ON(_PAGE_SZBITS_4U != 0UL || _PAGE_SZBITS_4V != 0UL);
-+	return __pte(paddr | pgprot_val(prot));
+-	pgtable_page_dtor(ptepage);
+-	pgtable_free_tlb(tlb, page_address(ptepage), true);
++	pgtable_free_tlb(tlb, pte, true);
  }
- #define mk_pte(page, pgprot)	pfn_pte(page_to_pfn(page), (pgprot))
  
-@@ -286,6 +257,7 @@ static inline pte_t pte_modify(pte_t pte
- 	 * Note: We encode this into 3 sun4v 2-insn patch sequences.
- 	 */
- 
-+	BUILD_BUG_ON(_PAGE_SZBITS_4U != 0UL || _PAGE_SZBITS_4V != 0UL);
- 	__asm__ __volatile__(
- 	"\n661:	sethi		%%uhi(%2), %1\n"
- 	"	sethi		%%hi(%2), %0\n"
-@@ -307,10 +279,10 @@ static inline pte_t pte_modify(pte_t pte
- 	: "=r" (mask), "=r" (tmp)
- 	: "i" (_PAGE_PADDR_4U | _PAGE_MODIFIED_4U | _PAGE_ACCESSED_4U |
- 	       _PAGE_CP_4U | _PAGE_CV_4U | _PAGE_E_4U | _PAGE_PRESENT_4U |
--	       _PAGE_SZBITS_4U | _PAGE_SPECIAL),
-+	       _PAGE_SPECIAL),
- 	  "i" (_PAGE_PADDR_4V | _PAGE_MODIFIED_4V | _PAGE_ACCESSED_4V |
- 	       _PAGE_CP_4V | _PAGE_CV_4V | _PAGE_E_4V | _PAGE_PRESENT_4V |
--	       _PAGE_SZBITS_4V | _PAGE_SPECIAL));
-+	       _PAGE_SPECIAL));
- 
- 	return __pte((pte_val(pte) & mask) | (pgprot_val(prot) & ~mask));
- }
-diff -puN arch/sparc/mm/init_64.c~sparc64-only-support-4mb-huge-pages-and-8kb-base-pages arch/sparc/mm/init_64.c
---- a/arch/sparc/mm/init_64.c~sparc64-only-support-4mb-huge-pages-and-8kb-base-pages
+ #define __pmd_free_tlb(tlb, pmd, addr)		      \
+diff -puN arch/sparc/mm/init_64.c~sparc64-eliminate-pte-table-memory-wastage arch/sparc/mm/init_64.c
+--- a/arch/sparc/mm/init_64.c~sparc64-eliminate-pte-table-memory-wastage
 +++ a/arch/sparc/mm/init_64.c
-@@ -276,7 +276,6 @@ static inline void tsb_insert(struct tsb
+@@ -2467,3 +2467,104 @@ void __flush_tlb_all(void)
+ 	__asm__ __volatile__("wrpr	%0, 0, %%pstate"
+ 			     : : "r" (pstate));
  }
- 
- unsigned long _PAGE_ALL_SZ_BITS __read_mostly;
--unsigned long _PAGE_SZBITS __read_mostly;
- 
- static void flush_dcache(unsigned long pfn)
- {
-@@ -2275,8 +2274,7 @@ static void __init sun4u_pgprot_init(voi
- 		     __ACCESS_BITS_4U | _PAGE_E_4U);
- 
- #ifdef CONFIG_DEBUG_PAGEALLOC
--	kern_linear_pte_xor[0] = (_PAGE_VALID | _PAGE_SZBITS_4U) ^
--		0xfffff80000000000UL;
-+	kern_linear_pte_xor[0] = _PAGE_VALID ^ 0xfffff80000000000UL;
- #else
- 	kern_linear_pte_xor[0] = (_PAGE_VALID | _PAGE_SZ4MB_4U) ^
- 		0xfffff80000000000UL;
-@@ -2287,7 +2285,6 @@ static void __init sun4u_pgprot_init(voi
- 	for (i = 1; i < 4; i++)
- 		kern_linear_pte_xor[i] = kern_linear_pte_xor[0];
- 
--	_PAGE_SZBITS = _PAGE_SZBITS_4U;
- 	_PAGE_ALL_SZ_BITS =  (_PAGE_SZ4MB_4U | _PAGE_SZ512K_4U |
- 			      _PAGE_SZ64K_4U | _PAGE_SZ8K_4U |
- 			      _PAGE_SZ32MB_4U | _PAGE_SZ256MB_4U);
-@@ -2324,8 +2321,7 @@ static void __init sun4v_pgprot_init(voi
- 	_PAGE_CACHE = _PAGE_CACHE_4V;
- 
- #ifdef CONFIG_DEBUG_PAGEALLOC
--	kern_linear_pte_xor[0] = (_PAGE_VALID | _PAGE_SZBITS_4V) ^
--		0xfffff80000000000UL;
-+	kern_linear_pte_xor[0] = _PAGE_VALID ^ 0xfffff80000000000UL;
- #else
- 	kern_linear_pte_xor[0] = (_PAGE_VALID | _PAGE_SZ4MB_4V) ^
- 		0xfffff80000000000UL;
-@@ -2339,7 +2335,6 @@ static void __init sun4v_pgprot_init(voi
- 	pg_iobits = (_PAGE_VALID | _PAGE_PRESENT_4V | __DIRTY_BITS_4V |
- 		     __ACCESS_BITS_4V | _PAGE_E_4V);
- 
--	_PAGE_SZBITS = _PAGE_SZBITS_4V;
- 	_PAGE_ALL_SZ_BITS = (_PAGE_SZ16GB_4V | _PAGE_SZ2GB_4V |
- 			     _PAGE_SZ256MB_4V | _PAGE_SZ32MB_4V |
- 			     _PAGE_SZ4MB_4V | _PAGE_SZ512K_4V |
-diff -puN arch/sparc/mm/tsb.c~sparc64-only-support-4mb-huge-pages-and-8kb-base-pages arch/sparc/mm/tsb.c
---- a/arch/sparc/mm/tsb.c~sparc64-only-support-4mb-huge-pages-and-8kb-base-pages
++
++static pte_t *get_from_cache(struct mm_struct *mm)
++{
++	struct page *page;
++	pte_t *ret;
++
++	spin_lock(&mm->page_table_lock);
++	page = mm->context.pgtable_page;
++	ret = NULL;
++	if (page) {
++		void *p = page_address(page);
++
++		mm->context.pgtable_page = NULL;
++
++		ret = (pte_t *) (p + (PAGE_SIZE / 2));
++	}
++	spin_unlock(&mm->page_table_lock);
++
++	return ret;
++}
++
++static struct page *__alloc_for_cache(struct mm_struct *mm)
++{
++	struct page *page = alloc_page(GFP_KERNEL | __GFP_NOTRACK |
++				       __GFP_REPEAT | __GFP_ZERO);
++
++	if (page) {
++		spin_lock(&mm->page_table_lock);
++		if (!mm->context.pgtable_page) {
++			atomic_set(&page->_count, 2);
++			mm->context.pgtable_page = page;
++		}
++		spin_unlock(&mm->page_table_lock);
++	}
++	return page;
++}
++
++pte_t *pte_alloc_one_kernel(struct mm_struct *mm,
++			    unsigned long address)
++{
++	struct page *page;
++	pte_t *pte;
++
++	pte = get_from_cache(mm);
++	if (pte)
++		return pte;
++
++	page = __alloc_for_cache(mm);
++	if (page)
++		pte = (pte_t *) page_address(page);
++
++	return pte;
++}
++
++pgtable_t pte_alloc_one(struct mm_struct *mm,
++			unsigned long address)
++{
++	struct page *page;
++	pte_t *pte;
++
++	pte = get_from_cache(mm);
++	if (pte)
++		return pte;
++
++	page = __alloc_for_cache(mm);
++	if (page) {
++		pgtable_page_ctor(page);
++		pte = (pte_t *) page_address(page);
++	}
++
++	return pte;
++}
++
++void pte_free_kernel(struct mm_struct *mm, pte_t *pte)
++{
++	struct page *page = virt_to_page(pte);
++	if (put_page_testzero(page))
++		free_hot_cold_page(page, 0);
++}
++
++static void __pte_free(pgtable_t pte)
++{
++	struct page *page = virt_to_page(pte);
++	if (put_page_testzero(page)) {
++		pgtable_page_dtor(page);
++		free_hot_cold_page(page, 0);
++	}
++}
++
++void pte_free(struct mm_struct *mm, pgtable_t pte)
++{
++	__pte_free(pte);
++}
++
++void pgtable_free(void *table, bool is_page)
++{
++	if (is_page)
++		__pte_free(table);
++	else
++		kmem_cache_free(pgtable_cache, table);
++}
+diff -puN arch/sparc/mm/tsb.c~sparc64-eliminate-pte-table-memory-wastage arch/sparc/mm/tsb.c
+--- a/arch/sparc/mm/tsb.c~sparc64-eliminate-pte-table-memory-wastage
 +++ a/arch/sparc/mm/tsb.c
-@@ -90,29 +90,12 @@ void flush_tsb_user(struct tlb_batch *tb
- 	spin_unlock_irqrestore(&mm->context.lock, flags);
- }
- 
--#if defined(CONFIG_SPARC64_PAGE_SIZE_8KB)
- #define HV_PGSZ_IDX_BASE	HV_PGSZ_IDX_8K
- #define HV_PGSZ_MASK_BASE	HV_PGSZ_MASK_8K
--#elif defined(CONFIG_SPARC64_PAGE_SIZE_64KB)
--#define HV_PGSZ_IDX_BASE	HV_PGSZ_IDX_64K
--#define HV_PGSZ_MASK_BASE	HV_PGSZ_MASK_64K
--#else
--#error Broken base page size setting...
--#endif
- 
- #ifdef CONFIG_HUGETLB_PAGE
--#if defined(CONFIG_HUGETLB_PAGE_SIZE_64K)
--#define HV_PGSZ_IDX_HUGE	HV_PGSZ_IDX_64K
--#define HV_PGSZ_MASK_HUGE	HV_PGSZ_MASK_64K
--#elif defined(CONFIG_HUGETLB_PAGE_SIZE_512K)
--#define HV_PGSZ_IDX_HUGE	HV_PGSZ_IDX_512K
--#define HV_PGSZ_MASK_HUGE	HV_PGSZ_MASK_512K
--#elif defined(CONFIG_HUGETLB_PAGE_SIZE_4MB)
- #define HV_PGSZ_IDX_HUGE	HV_PGSZ_IDX_4MB
- #define HV_PGSZ_MASK_HUGE	HV_PGSZ_MASK_4MB
--#else
--#error Broken huge page size setting...
--#endif
+@@ -445,6 +445,8 @@ int init_new_context(struct task_struct 
+ 	mm->context.huge_pte_count = 0;
  #endif
  
- static void setup_tsb_params(struct mm_struct *mm, unsigned long tsb_idx, unsigned long tsb_bytes)
++	mm->context.pgtable_page = NULL;
++
+ 	/* copy_mm() copies over the parent's mm_struct before calling
+ 	 * us, so we need to zero out the TSB pointer or else tsb_grow()
+ 	 * will be confused and think there is an older TSB to free up.
+@@ -483,10 +485,17 @@ static void tsb_destroy_one(struct tsb_c
+ void destroy_context(struct mm_struct *mm)
+ {
+ 	unsigned long flags, i;
++	struct page *page;
+ 
+ 	for (i = 0; i < MM_NUM_TSBS; i++)
+ 		tsb_destroy_one(&mm->context.tsb_block[i]);
+ 
++	page = mm->context.pgtable_page;
++	if (page && put_page_testzero(page)) {
++		pgtable_page_dtor(page);
++		free_hot_cold_page(page, 0);
++	}
++
+ 	spin_lock_irqsave(&ctx_alloc_lock, flags);
+ 
+ 	if (CTX_VALID(mm->context)) {
 _
 
 Patches currently in -mm which might be from davem@davemloft.net are
