@@ -1,78 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hugetlb-do-not-use-vma_hugecache_offset-for-vma_prio_tree_foreach.patch removed from -mm tree
-Date: Tue, 09 Oct 2012 11:14:01 -0700
-Message-ID: <20121009181402.016DE200061@hpza10.eem.corp.google.com>
+Subject: [merged] mm-revert-0def08e3-mm-mempolicyc-check-return-code-of-check_range.patch removed from -mm tree
+Date: Tue, 09 Oct 2012 11:14:15 -0700
+Message-ID: <20121009181416.9F44F20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:33221 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756829Ab2JISOE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:14:04 -0400
-Received: by mail-wi0-f202.google.com with SMTP id hr7so285733wib.1
-        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:14:03 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:33158 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756830Ab2JISOT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:14:19 -0400
+Received: by mail-we0-f202.google.com with SMTP id x43so365351wey.1
+        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:14:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, aarcange@redhat.com, dhillf@gmail.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: minchan@kernel.org, cl@linux.com, hannes@cmpxchg.org, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, rientjes@google.com, segooon@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: do not use vma_hugecache_offset() for vma_prio_tree_foreach
+     Subject: mm: revert 0def08e3 ("mm/mempolicy.c: check return code of check_range")
 has been removed from the -mm tree.  Its filename was
-     hugetlb-do-not-use-vma_hugecache_offset-for-vma_prio_tree_foreach.patch
+     mm-revert-0def08e3-mm-mempolicyc-check-return-code-of-check_range.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: hugetlb: do not use vma_hugecache_offset() for vma_prio_tree_foreach
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: revert 0def08e3 ("mm/mempolicy.c: check return code of check_range")
 
-0c176d5 ("mm: hugetlb: fix pgoff computation when unmapping page from
-vma") fixed pgoff calculation but it has replaced it by
-vma_hugecache_offset() which is not approapriate for offsets used for
-vma_prio_tree_foreach() because that one expects index in page units
-rather than in huge_page_shift.
+Revert 0def08e3 because check_range can't fail in migrate_to_node with
+considering current usecases.
 
-Johannes said:
+Quote from Johannes
 
-: The resulting index may not be too big, but it can be too small: assume
-: hpage size of 2M and the address to unmap to be 0x200000.  This is regular
-: page index 512 and hpage index 1.  If you have a VMA that maps the file
-: only starting at the second huge page, that VMAs vm_pgoff will be 512 but
-: you ask for offset 1 and miss it even though it does map the page of
-: interest.  hugetlb_cow() will try to unmap, miss the vma, and retry the
-: cow until the allocation succeeds or the skipped vma(s) go away.
+: I think it makes sense to revert.  Not because of the semantics, but I
+: just don't see how check_range() could even fail for this callsite:
+: 
+: 1. we pass mm->mmap->vm_start in there, so we should not fail due to
+:    find_vma()
+: 
+: 2. we pass MPOL_MF_DISCONTIG_OK, so the discontig checks do not apply
+:    and so can not fail
+: 
+: 3. we pass MPOL_MF_MOVE | MPOL_MF_MOVE_ALL, the page table loops will
+:    continue until addr == end, so we never fail with -EIO
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: Hillf Danton <dhillf@gmail.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+
+And I added a new VM_BUG_ON for checking migrate_to_node's future usecase
+which might pass to MPOL_MF_STRICT.
+
+Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
+Cc: Vasiliy Kulikov <segooon@gmail.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/mempolicy.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-do-not-use-vma_hugecache_offset-for-vma_prio_tree_foreach mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-do-not-use-vma_hugecache_offset-for-vma_prio_tree_foreach
-+++ a/mm/hugetlb.c
-@@ -2480,7 +2480,8 @@ static int unmap_ref_private(struct mm_s
- 	 * from page cache lookup which is in HPAGE_SIZE units.
- 	 */
- 	address = address & huge_page_mask(h);
--	pgoff = vma_hugecache_offset(h, vma, address);
-+	pgoff = ((address - vma->vm_start) >> PAGE_SHIFT) +
-+			vma->vm_pgoff;
- 	mapping = vma->vm_file->f_dentry->d_inode->i_mapping;
+diff -puN mm/mempolicy.c~mm-revert-0def08e3-mm-mempolicyc-check-return-code-of-check_range mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-revert-0def08e3-mm-mempolicyc-check-return-code-of-check_range
++++ a/mm/mempolicy.c
+@@ -946,15 +946,18 @@ static int migrate_to_node(struct mm_str
+ 	nodemask_t nmask;
+ 	LIST_HEAD(pagelist);
+ 	int err = 0;
+-	struct vm_area_struct *vma;
  
- 	/*
+ 	nodes_clear(nmask);
+ 	node_set(source, nmask);
+ 
+-	vma = check_range(mm, mm->mmap->vm_start, mm->task_size, &nmask,
++	/*
++	 * This does not "check" the range but isolates all pages that
++	 * need migration.  Between passing in the full user address
++	 * space range and MPOL_MF_DISCONTIG_OK, this call can not fail.
++	 */
++	VM_BUG_ON(!(flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL)));
++	check_range(mm, mm->mmap->vm_start, mm->task_size, &nmask,
+ 			flags | MPOL_MF_DISCONTIG_OK, &pagelist);
+-	if (IS_ERR(vma))
+-		return PTR_ERR(vma);
+ 
+ 	if (!list_empty(&pagelist)) {
+ 		err = migrate_pages(&pagelist, new_node_page, dest,
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from minchan@kernel.org are
 
 origin.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
 mm-memblock-reduce-overhead-in-binary-search.patch
 
