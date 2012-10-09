@@ -1,67 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memory-hotplug-build-zonelists-when-offlining-pages.patch removed from -mm tree
-Date: Tue, 09 Oct 2012 11:11:07 -0700
-Message-ID: <20121009181108.3128920004E@hpza10.eem.corp.google.com>
+Subject: [merged] mm-mmu_notifier-make-the-mmu_notifier-srcu-static.patch removed from -mm tree
+Date: Tue, 09 Oct 2012 11:11:11 -0700
+Message-ID: <20121009181111.B3D54100048@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:40119 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756686Ab2JISLK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:11:10 -0400
-Received: by mail-ee0-f74.google.com with SMTP id b57so363267eek.1
-        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:11:09 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:37488 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756772Ab2JISLM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Oct 2012 14:11:12 -0400
+Received: by mail-qc0-f202.google.com with SMTP id s25so662526qcq.1
+        for <mm-commits@vger.kernel.org>; Tue, 09 Oct 2012 11:11:12 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: qiuxishi@huawei.com, isimatu.yasuaki@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, a.p.zijlstra@chello.nl, haggaie@mellanox.com, sagig@mellanox.com, xiaoguangrong@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory-hotplug: build zonelists when offlining pages
+     Subject: mm: mmu_notifier: make the mmu_notifier srcu static
 has been removed from the -mm tree.  Its filename was
-     memory-hotplug-build-zonelists-when-offlining-pages.patch
+     mm-mmu_notifier-make-the-mmu_notifier-srcu-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Xishi Qiu <qiuxishi@huawei.com>
-Subject: memory-hotplug: build zonelists when offlining pages
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: mm: mmu_notifier: make the mmu_notifier srcu static
 
-online_pages() does build_all_zonelists() and zone_pcp_update(), I think
-offline_pages() should do it too.
+The variable must be static especially given the variable name.
 
-When the zone has no memory to allocate, remove it from other nodes'
-zonelists.  zone_batchsize() depends on zone's present pages, if zone's
-present pages are changed, zone's pcp should be updated.
+s/RCU/SRCU/ over a few comments.
 
-Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
+Cc: Sagi Grimberg <sagig@mellanox.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Haggai Eran <haggaie@mellanox.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ mm/mmu_notifier.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/memory_hotplug.c~memory-hotplug-build-zonelists-when-offlining-pages mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory-hotplug-build-zonelists-when-offlining-pages
-+++ a/mm/memory_hotplug.c
-@@ -970,8 +970,13 @@ repeat:
+diff -puN mm/mmu_notifier.c~mm-mmu_notifier-make-the-mmu_notifier-srcu-static mm/mmu_notifier.c
+--- a/mm/mmu_notifier.c~mm-mmu_notifier-make-the-mmu_notifier-srcu-static
++++ a/mm/mmu_notifier.c
+@@ -20,7 +20,7 @@
+ #include <linux/slab.h>
  
- 	init_per_zone_wmark_min();
+ /* global SRCU for all MMs */
+-struct srcu_struct srcu;
++static struct srcu_struct srcu;
  
--	if (!populated_zone(zone))
-+	if (!populated_zone(zone)) {
- 		zone_pcp_reset(zone);
-+		mutex_lock(&zonelists_mutex);
-+		build_all_zonelists(NULL, NULL);
-+		mutex_unlock(&zonelists_mutex);
-+	} else
-+		zone_pcp_update(zone);
+ /*
+  * This function can't run concurrently against mmu_notifier_register
+@@ -41,7 +41,7 @@ void __mmu_notifier_release(struct mm_st
+ 	int id;
  
- 	if (!node_present_pages(node)) {
- 		node_clear_state(node, N_HIGH_MEMORY);
+ 	/*
+-	 * RCU here will block mmu_notifier_unregister until
++	 * SRCU here will block mmu_notifier_unregister until
+ 	 * ->release returns.
+ 	 */
+ 	id = srcu_read_lock(&srcu);
+@@ -302,7 +302,7 @@ void mmu_notifier_unregister(struct mmu_
+ 
+ 	if (!hlist_unhashed(&mn->hlist)) {
+ 		/*
+-		 * RCU here will force exit_mmap to wait ->release to finish
++		 * SRCU here will force exit_mmap to wait ->release to finish
+ 		 * before freeing the pages.
+ 		 */
+ 		int id;
 _
 
-Patches currently in -mm which might be from qiuxishi@huawei.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
 origin.patch
 
