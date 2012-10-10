@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-kconfig-fix-rtc_intf-defaults-connected-to-rtc_class.patch added to -mm tree
-Date: Wed, 10 Oct 2012 13:57:19 -0700
-Message-ID: <20121010205720.455DE5C0050@hpza9.eem.corp.google.com>
+Subject: + nohz-fix-idle-ticks-in-cpu-summary-line-of-proc-stat.patch added to -mm tree
+Date: Wed, 10 Oct 2012 13:58:55 -0700
+Message-ID: <20121010205856.2A38E5C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:42817 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751305Ab2JJU5W (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Oct 2012 16:57:22 -0400
-Received: by mail-wi0-f202.google.com with SMTP id hr7so70383wib.1
-        for <mm-commits@vger.kernel.org>; Wed, 10 Oct 2012 13:57:21 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:36044 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751305Ab2JJU67 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Oct 2012 16:58:59 -0400
+Received: by mail-fa0-f74.google.com with SMTP id t1so69080fae.1
+        for <mm-commits@vger.kernel.org>; Wed, 10 Oct 2012 13:58:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: khilman@ti.com, vbyravarasu@nvidia.com
+Cc: mhocko@suse.cz, schwidefsky@de.ibm.com, srivatsa.bhat@linux.vnet.ibm.com, stable@vger.kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: rtc: kconfig: fix RTC_INTF defaults connected to RTC_CLASS
+     Subject: nohz: fix idle ticks in cpu summary line of /proc/stat
 has been added to the -mm tree.  Its filename is
-     rtc-kconfig-fix-rtc_intf-defaults-connected-to-rtc_class.patch
+     nohz-fix-idle-ticks-in-cpu-summary-line-of-proc-stat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,69 +33,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kevin Hilman <khilman@ti.com>
-Subject: rtc: kconfig: fix RTC_INTF defaults connected to RTC_CLASS
+From: Michal Hocko <mhocko@suse.cz>
+Subject: nohz: fix idle ticks in cpu summary line of /proc/stat
 
-commit 6b8029fab6416 ("rtc: kconfig: remove unnecessary dependencies")
-removed various 'depends on RTC_CLASS' dependencies but also removed a few
-'default RTC_CLASS' statements, which actually changed default behavior.
+Commit 09a1d34f8535ecf9 ("nohz: Make idle/iowait counter update
+conditional") introduced a bug in regard to cpu hotplug.  The effect is
+that the number of idle ticks in the cpu summary line in /proc/stat is
+still counting ticks for offline cpus.
 
-This resulted in the various RTC interfaces (sysfs, proc, dev) all being
-disabled by default, even when RTC_CLASS is enabled:
+Reproduction is easy, just start a workload that keeps all cpus busy,
+switch off one or more cpus and then watch the idle field in top.  On a
+dual-core with one cpu 100% busy and one offline cpu you will get
+something like this:
 
-   # CONFIG_RTC_INTF_SYSFS is not set
-   # CONFIG_RTC_INTF_PROC is not set
-   # CONFIG_RTC_INTF_DEV is not set
+%Cpu(s): 48.7 us,  1.3 sy,  0.0 ni, 50.0 id,  0.0 wa,  0.0 hi,  0.0 si,
+%0.0 st
 
-which is different from previous behavior (all of these where enabled.)
+The problem is that an offline cpu still has ts->idle_active == 1.  To fix
+this we should make sure that the cpu is online when calling
+get_cpu_idle_time_us and get_cpu_iowait_time_us.
 
-To fix, add back the 'default RTC_CLASS' statments to each of the
-RTC_INTF_* options.
-
-I noticed this because some RTC tests started failing on my TI OMAP
-platforms because /dev/rtc0 was not present anymore, even though the
-driver was present and RTC_CLASS was enabled.
-
-Signed-off-by: Kevin Hilman <khilman@ti.com>
-Acked-by: Venu Byravarasu <vbyravarasu@nvidia.com>
+[srivatsa.bhat@linux.vnet.ibm.com: rebased to current mainline]
+Reported-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Reviewed-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/proc/stat.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-kconfig-fix-rtc_intf-defaults-connected-to-rtc_class drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-kconfig-fix-rtc_intf-defaults-connected-to-rtc_class
-+++ a/drivers/rtc/Kconfig
-@@ -59,6 +59,7 @@ comment "RTC interfaces"
- config RTC_INTF_SYSFS
- 	boolean "/sys/class/rtc/rtcN (sysfs)"
- 	depends on SYSFS
-+	default RTC_CLASS
- 	help
- 	  Say yes here if you want to use your RTCs using sysfs interfaces,
- 	  /sys/class/rtc/rtc0 through /sys/.../rtcN.
-@@ -68,6 +69,7 @@ config RTC_INTF_SYSFS
- config RTC_INTF_PROC
- 	boolean "/proc/driver/rtc (procfs for rtcN)"
- 	depends on PROC_FS
-+	default RTC_CLASS
- 	help
- 	  Say yes here if you want to use your system clock RTC through
- 	  the proc interface, /proc/driver/rtc.
-@@ -79,6 +81,7 @@ config RTC_INTF_PROC
+diff -puN fs/proc/stat.c~nohz-fix-idle-ticks-in-cpu-summary-line-of-proc-stat fs/proc/stat.c
+--- a/fs/proc/stat.c~nohz-fix-idle-ticks-in-cpu-summary-line-of-proc-stat
++++ a/fs/proc/stat.c
+@@ -45,10 +45,13 @@ static cputime64_t get_iowait_time(int c
  
- config RTC_INTF_DEV
- 	boolean "/dev/rtcN (character devices)"
-+	default RTC_CLASS
- 	help
- 	  Say yes here if you want to use your RTCs using the /dev
- 	  interfaces, which "udev" sets up as /dev/rtc0 through
+ static u64 get_idle_time(int cpu)
+ {
+-	u64 idle, idle_time = get_cpu_idle_time_us(cpu, NULL);
++	u64 idle, idle_time = -1ULL;
++
++	if (cpu_online(cpu))
++		idle_time = get_cpu_idle_time_us(cpu, NULL);
+ 
+ 	if (idle_time == -1ULL)
+-		/* !NO_HZ so we can rely on cpustat.idle */
++		/* !NO_HZ or cpu offline so we can rely on cpustat.idle */
+ 		idle = kcpustat_cpu(cpu).cpustat[CPUTIME_IDLE];
+ 	else
+ 		idle = usecs_to_cputime64(idle_time);
+@@ -58,10 +61,13 @@ static u64 get_idle_time(int cpu)
+ 
+ static u64 get_iowait_time(int cpu)
+ {
+-	u64 iowait, iowait_time = get_cpu_iowait_time_us(cpu, NULL);
++	u64 iowait, iowait_time = -1ULL;
++
++	if (cpu_online(cpu))
++		iowait_time = get_cpu_iowait_time_us(cpu, NULL);
+ 
+ 	if (iowait_time == -1ULL)
+-		/* !NO_HZ so we can rely on cpustat.iowait */
++		/* !NO_HZ or cpu offline so we can rely on cpustat.iowait */
+ 		iowait = kcpustat_cpu(cpu).cpustat[CPUTIME_IOWAIT];
+ 	else
+ 		iowait = usecs_to_cputime64(iowait_time);
 _
 
-Patches currently in -mm which might be from khilman@ti.com are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
 origin.patch
-linux-next.patch
-rtc-kconfig-fix-rtc_intf-defaults-connected-to-rtc_class.patch
+nohz-fix-idle-ticks-in-cpu-summary-line-of-proc-stat.patch
+mm-memblock-reduce-overhead-in-binary-search.patch
 
