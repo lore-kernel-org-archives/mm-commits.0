@@ -1,67 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] drivers-thermal-rcar_thermalc-fix-compilation-errors.patch removed from -mm tree
-Date: Wed, 10 Oct 2012 13:04:21 -0700
-Message-ID: <20121010200422.1F44E1E0043@wpzn4.hot.corp.google.com>
+Subject: [wrecked] prio_tree-remove-fix.patch removed from -mm tree
+Date: Wed, 10 Oct 2012 13:09:16 -0700
+Message-ID: <20121010200917.379B820004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:52351 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751109Ab2JJUEX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Oct 2012 16:04:23 -0400
-Received: by mail-gh0-f202.google.com with SMTP id z15so111381ghb.1
-        for <mm-commits@vger.kernel.org>; Wed, 10 Oct 2012 13:04:22 -0700 (PDT)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:58162 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751807Ab2JJUJU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Oct 2012 16:09:20 -0400
+Received: by mail-la0-f74.google.com with SMTP id j13so68193lah.1
+        for <mm-commits@vger.kernel.org>; Wed, 10 Oct 2012 13:09:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kuninori.morimoto.gx@renesas.com, develkernel412222@gmail.com, rui.zhang@intel.com, mm-commits@vger.kernel.org
+To: sfr@canb.auug.org.au, walken@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/thermal/rcar_thermal.c: fix compilation errors
+     Subject: prio_tree: fix fs/block_dev.c for removal of prio_tree
 has been removed from the -mm tree.  Its filename was
-     drivers-thermal-rcar_thermalc-fix-compilation-errors.patch
+     prio_tree-remove-fix.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because other changes were merged, which wrecked this patch
 
 ------------------------------------------------------
-From: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Subject: drivers/thermal/rcar_thermal.c: fix compilation errors
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: prio_tree: fix fs/block_dev.c for removal of prio_tree
 
-This patch fixup following error
-
-${LINUX}/drivers/thermal/rcar_thermal.c: In function 'rcar_thermal_probe':
-${LINUX}/drivers/thermal/rcar_thermal.c:214:9: warning: passing argument 3 \
-	of 'thermal_zone_device_register' makes integer from pointer without\
-	a cast [enabled by default]
-${LINUX}/include/linux/thermal.h:215:29: note: expected 'int' but argument \
-	is of type 'struct rcar_thermal_priv *'
-${LINUX}/drivers/thermal/rcar_thermal.c:214:9:\
-	error: too few arguments to function 'thermal_zone_device_register'
-
-Signed-off-by: Devendra Naga <develkernel412222@gmail.com>
-Signed-off-by: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Cc: Zhang Rui <rui.zhang@intel.com>
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Michel Lespinasse <walken@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/thermal/rcar_thermal.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/block_dev.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/thermal/rcar_thermal.c~drivers-thermal-rcar_thermalc-fix-compilation-errors drivers/thermal/rcar_thermal.c
---- a/drivers/thermal/rcar_thermal.c~drivers-thermal-rcar_thermalc-fix-compilation-errors
-+++ a/drivers/thermal/rcar_thermal.c
-@@ -210,7 +210,7 @@ static int rcar_thermal_probe(struct pla
- 		goto error_free_priv;
- 	}
+diff -puN fs/block_dev.c~prio_tree-remove-fix fs/block_dev.c
+--- a/fs/block_dev.c~prio_tree-remove-fix
++++ a/fs/block_dev.c
+@@ -27,6 +27,7 @@
+ #include <linux/namei.h>
+ #include <linux/log2.h>
+ #include <linux/cleancache.h>
++#include <linux/rbtree.h>
+ #include <asm/uaccess.h>
+ #include "internal.h"
  
--	zone = thermal_zone_device_register("rcar_thermal", 0, priv,
-+	zone = thermal_zone_device_register("rcar_thermal", 0, 0, priv,
- 				    &rcar_thermal_zone_ops, NULL, 0, 0);
- 	if (IS_ERR(zone)) {
- 		dev_err(&pdev->dev, "thermal zone device is NULL\n");
+@@ -132,7 +133,7 @@ int set_blocksize(struct block_device *b
+ 	/* Check that the block device is not memory mapped */
+ 	mapping = bdev->bd_inode->i_mapping;
+ 	mutex_lock(&mapping->i_mmap_mutex);
+-	if (!prio_tree_empty(&mapping->i_mmap) ||
++	if (!RB_EMPTY_ROOT(&mapping->i_mmap) ||
+ 	    !list_empty(&mapping->i_mmap_nonlinear)) {
+ 		mutex_unlock(&mapping->i_mmap_mutex);
+ 		percpu_up_write(&bdev->bd_block_size_semaphore);
 _
 
-Patches currently in -mm which might be from kuninori.morimoto.gx@renesas.com are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
 origin.patch
+arch-powerpc-platforms-pseries-hotplug-memoryc-fix-section-handling-code.patch
 linux-next.patch
+fs-block_devc-set_blocksize-use-mapping_mapped.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
