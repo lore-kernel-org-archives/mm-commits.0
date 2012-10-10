@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + nohz-fix-idle-ticks-in-cpu-summary-line-of-proc-stat.patch added to -mm tree
-Date: Wed, 10 Oct 2012 13:58:55 -0700
-Message-ID: <20121010205856.2A38E5C0060@hpza9.eem.corp.google.com>
+Subject: + memcg-kmem-fix-build-error-when-config_inet-is-disabled.patch added to -mm tree
+Date: Wed, 10 Oct 2012 13:59:59 -0700
+Message-ID: <20121010210000.1E72B5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:36044 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751305Ab2JJU67 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Oct 2012 16:58:59 -0400
-Received: by mail-fa0-f74.google.com with SMTP id t1so69080fae.1
-        for <mm-commits@vger.kernel.org>; Wed, 10 Oct 2012 13:58:57 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:56882 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754752Ab2JJVAD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Oct 2012 17:00:03 -0400
+Received: by mail-ee0-f74.google.com with SMTP id b57so69874eek.1
+        for <mm-commits@vger.kernel.org>; Wed, 10 Oct 2012 14:00:01 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhocko@suse.cz, schwidefsky@de.ibm.com, srivatsa.bhat@linux.vnet.ibm.com, stable@vger.kernel.org, tglx@linutronix.de
+Cc: rientjes@google.com, fengguang.wu@intel.com, glommer@parallels.com, mhocko@suse.cz, rdunlap@xenotime.net
 
 
 The patch titled
-     Subject: nohz: fix idle ticks in cpu summary line of /proc/stat
+     Subject: memcg, kmem: fix build error when CONFIG_INET is disabled
 has been added to the -mm tree.  Its filename is
-     nohz-fix-idle-ticks-in-cpu-summary-line-of-proc-stat.patch
+     memcg-kmem-fix-build-error-when-config_inet-is-disabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,79 +33,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: nohz: fix idle ticks in cpu summary line of /proc/stat
+From: David Rientjes <rientjes@google.com>
+Subject: memcg, kmem: fix build error when CONFIG_INET is disabled
 
-Commit 09a1d34f8535ecf9 ("nohz: Make idle/iowait counter update
-conditional") introduced a bug in regard to cpu hotplug.  The effect is
-that the number of idle ticks in the cpu summary line in /proc/stat is
-still counting ticks for offline cpus.
+Commit e1aab161e013 ("socket: initial cgroup code.") causes a build error
+when CONFIG_INET is disabled in Linus' tree:
 
-Reproduction is easy, just start a workload that keeps all cpus busy,
-switch off one or more cpus and then watch the idle field in top.  On a
-dual-core with one cpu 100% busy and one offline cpu you will get
-something like this:
+net/built-in.o: In function `sk_update_clone':
+net/core/sock.c:1336: undefined reference to `sock_update_memcg'
 
-%Cpu(s): 48.7 us,  1.3 sy,  0.0 ni, 50.0 id,  0.0 wa,  0.0 hi,  0.0 si,
-%0.0 st
+sock_update_memcg() is only defined when CONFIG_INET is enabled, so fix it
+by defining the dummy function without this option.
 
-The problem is that an offline cpu still has ts->idle_active == 1.  To fix
-this we should make sure that the cpu is online when calling
-get_cpu_idle_time_us and get_cpu_iowait_time_us.
-
-[srivatsa.bhat@linux.vnet.ibm.com: rebased to current mainline]
-Reported-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Reviewed-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Reported-by: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Glauber Costa <glommer@parallels.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Fengguang Wu <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/stat.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ include/linux/memcontrol.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/stat.c~nohz-fix-idle-ticks-in-cpu-summary-line-of-proc-stat fs/proc/stat.c
---- a/fs/proc/stat.c~nohz-fix-idle-ticks-in-cpu-summary-line-of-proc-stat
-+++ a/fs/proc/stat.c
-@@ -45,10 +45,13 @@ static cputime64_t get_iowait_time(int c
+diff -puN include/linux/memcontrol.h~memcg-kmem-fix-build-error-when-config_inet-is-disabled include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-kmem-fix-build-error-when-config_inet-is-disabled
++++ a/include/linux/memcontrol.h
+@@ -396,7 +396,7 @@ enum {
+ };
  
- static u64 get_idle_time(int cpu)
+ struct sock;
+-#ifdef CONFIG_MEMCG_KMEM
++#if defined(CONFIG_INET) && defined(CONFIG_MEMCG_KMEM)
+ void sock_update_memcg(struct sock *sk);
+ void sock_release_memcg(struct sock *sk);
+ #else
+@@ -406,6 +406,6 @@ static inline void sock_update_memcg(str
+ static inline void sock_release_memcg(struct sock *sk)
  {
--	u64 idle, idle_time = get_cpu_idle_time_us(cpu, NULL);
-+	u64 idle, idle_time = -1ULL;
-+
-+	if (cpu_online(cpu))
-+		idle_time = get_cpu_idle_time_us(cpu, NULL);
+ }
+-#endif /* CONFIG_MEMCG_KMEM */
++#endif /* CONFIG_INET && CONFIG_MEMCG_KMEM */
+ #endif /* _LINUX_MEMCONTROL_H */
  
- 	if (idle_time == -1ULL)
--		/* !NO_HZ so we can rely on cpustat.idle */
-+		/* !NO_HZ or cpu offline so we can rely on cpustat.idle */
- 		idle = kcpustat_cpu(cpu).cpustat[CPUTIME_IDLE];
- 	else
- 		idle = usecs_to_cputime64(idle_time);
-@@ -58,10 +61,13 @@ static u64 get_idle_time(int cpu)
- 
- static u64 get_iowait_time(int cpu)
- {
--	u64 iowait, iowait_time = get_cpu_iowait_time_us(cpu, NULL);
-+	u64 iowait, iowait_time = -1ULL;
-+
-+	if (cpu_online(cpu))
-+		iowait_time = get_cpu_iowait_time_us(cpu, NULL);
- 
- 	if (iowait_time == -1ULL)
--		/* !NO_HZ so we can rely on cpustat.iowait */
-+		/* !NO_HZ or cpu offline so we can rely on cpustat.iowait */
- 		iowait = kcpustat_cpu(cpu).cpustat[CPUTIME_IOWAIT];
- 	else
- 		iowait = usecs_to_cputime64(iowait_time);
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-nohz-fix-idle-ticks-in-cpu-summary-line-of-proc-stat.patch
-mm-memblock-reduce-overhead-in-binary-search.patch
+linux-next.patch
+memcg-kmem-fix-build-error-when-config_inet-is-disabled.patch
+mm-slab-release-slab_mutex-earlier-in-kmem_cache_destroy.patch
+acpi_memhotplugc-fix-memory-leak-when-memory-device-is-unbound-from-the-module-acpi_memhotplug.patch
+acpi_memhotplugc-free-memory-device-if-acpi_memory_enable_device-failed.patch
+acpi_memhotplugc-remove-memory-info-from-list-before-freeing-it.patch
+acpi_memhotplugc-dont-allow-to-eject-the-memory-device-if-it-is-being-used.patch
+acpi_memhotplugc-bind-the-memory-device-when-the-driver-is-being-loaded.patch
+acpi_memhotplugc-auto-bind-the-memory-device-which-is-hotplugged-before-the-driver-is-loaded.patch
 
