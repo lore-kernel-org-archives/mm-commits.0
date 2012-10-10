@@ -1,95 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-sysc-fix-stack-memory-content-leak-via-uname26.patch added to -mm tree
-Date: Wed, 10 Oct 2012 13:46:55 -0700
-Message-ID: <20121010204656.1456220004E@hpza10.eem.corp.google.com>
+Subject: [to-be-updated] pidns-remove-recursion-from-free_pid_ns-v3.patch removed from -mm tree
+Date: Wed, 10 Oct 2012 13:49:40 -0700
+Message-ID: <20121010204941.2BA5D100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:48648 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756776Ab2JJUq7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Oct 2012 16:46:59 -0400
-Received: by mail-lb0-f202.google.com with SMTP id l12so72285lbo.1
-        for <mm-commits@vger.kernel.org>; Wed, 10 Oct 2012 13:46:57 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:56778 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753940Ab2JJUtm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Oct 2012 16:49:42 -0400
+Received: by mail-yh0-f74.google.com with SMTP id 10so117561yhl.1
+        for <mm-commits@vger.kernel.org>; Wed, 10 Oct 2012 13:49:41 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: keescook@chromium.org, ak@linux.intel.com, pageexec@freemail.hu, stable@vger.kernel.org
+To: avagin@openvz.org, ebiederm@xmission.com, gorcunov@openvz.org, greg@kroah.com, oleg@redhat.com, stable@vger.kernel.org, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/sys.c:uname(): fix stack memory content leak via UNAME26
-has been added to the -mm tree.  Its filename is
-     kernel-sysc-fix-stack-memory-content-leak-via-uname26.patch
+     Subject: pidns: remove recursion from free_pid_ns()
+has been removed from the -mm tree.  Its filename was
+     pidns-remove-recursion-from-free_pid_ns-v3.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: kernel/sys.c:uname(): fix stack memory content leak via UNAME26
+From: Andrew Vagin <avagin@openvz.org>
+Subject: pidns: remove recursion from free_pid_ns()
 
-Calling uname() with the UNAME26 personality set allows a leak of kernel
-stack contents.  This fixes it by initializing the stack buffer to zero,
-defensively calculating the length of copy_to_user() call, and making the
-len argument unsigned.
+Here is a stack trace of recursion:
+free_pid_ns(parent)
+  put_pid_ns(parent)
+    kref_put(&ns->kref, free_pid_ns);
+      free_pid_ns
 
-CVE-2012-0957
+This patch turns the recursion into loops.
 
-Reported-by: PaX Team <pageexec@freemail.hu>
-Cc: Andi Kleen <ak@linux.intel.com>
-Signed-off-by: Kees Cook <keescook@chromium.org>
+pidns can be nested many times, so in case of recursion a simple userspace
+program can provoke a kernel panic due to exceed of a kernel stack.
+
+Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Reviewed-by: Oleg Nesterov <oleg@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Signed-off-by: Andrew Vagin <avagin@openvz.org>
+Cc: Greg KH <greg@kroah.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ include/linux/kref.h   |   12 ++++++++++++
+ kernel/pid_namespace.c |   16 ++++++++++++----
+ 2 files changed, 24 insertions(+), 4 deletions(-)
 
-diff -puN kernel/sys.c~kernel-sysc-fix-stack-memory-content-leak-via-uname26 kernel/sys.c
---- a/kernel/sys.c~kernel-sysc-fix-stack-memory-content-leak-via-uname26
-+++ a/kernel/sys.c
-@@ -1265,13 +1265,13 @@ DECLARE_RWSEM(uts_sem);
-  * Work around broken programs that cannot handle "Linux 3.0".
-  * Instead we map 3.x to 2.6.40+x, so e.g. 3.0 would be 2.6.40
-  */
--static int override_release(char __user *release, int len)
-+static int override_release(char __user *release, size_t len)
- {
- 	int ret = 0;
--	char buf[65];
+diff -puN include/linux/kref.h~pidns-remove-recursion-from-free_pid_ns-v3 include/linux/kref.h
+--- a/include/linux/kref.h~pidns-remove-recursion-from-free_pid_ns-v3
++++ a/include/linux/kref.h
+@@ -95,6 +95,18 @@ static inline int kref_put(struct kref *
+ 	return kref_sub(kref, 1, release);
+ }
  
- 	if (current->personality & UNAME26) {
--		char *rest = UTS_RELEASE;
-+		const char *rest = UTS_RELEASE;
-+		char buf[65] = { 0 };
- 		int ndots = 0;
- 		unsigned v;
++/**
++ * kref_put - decrement refcount for object.
++ * @kref: object.
++ *
++ * Decrement the refcount.
++ * Return 1 if refcount is zero.
++ */
++static inline int __kref_put(struct kref *kref)
++{
++	return atomic_dec_and_test(&kref->refcount);
++}
++
+ static inline int kref_put_mutex(struct kref *kref,
+ 				 void (*release)(struct kref *kref),
+ 				 struct mutex *lock)
+diff -puN kernel/pid_namespace.c~pidns-remove-recursion-from-free_pid_ns-v3 kernel/pid_namespace.c
+--- a/kernel/pid_namespace.c~pidns-remove-recursion-from-free_pid_ns-v3
++++ a/kernel/pid_namespace.c
+@@ -139,11 +139,19 @@ void free_pid_ns(struct kref *kref)
  
-@@ -1283,7 +1283,9 @@ static int override_release(char __user 
- 			rest++;
- 		}
- 		v = ((LINUX_VERSION_CODE >> 8) & 0xff) + 40;
--		snprintf(buf, len, "2.6.%u%s", v, rest);
-+		snprintf(buf, sizeof(buf), "2.6.%u%s", v, rest);
-+		if (sizeof(buf) < len)
-+			len = sizeof(buf);
- 		ret = copy_to_user(release, buf, len);
- 	}
- 	return ret;
+ 	ns = container_of(kref, struct pid_namespace, kref);
+ 
+-	parent = ns->parent;
+-	destroy_pid_namespace(ns);
++	while (1) {
++		parent = ns->parent;
++		destroy_pid_namespace(ns);
+ 
+-	if (parent != NULL)
+-		put_pid_ns(parent);
++		if (parent == &init_pid_ns)
++			break;
++
++		/* kref_put cannot be used for avoiding recursion */
++		if (__kref_put(&parent->kref) == 0)
++			break;
++
++		ns = parent;
++	}
+ }
+ EXPORT_SYMBOL_GPL(free_pid_ns);
+ 
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from avagin@openvz.org are
 
 origin.patch
-linux-next.patch
-kernel-sysc-fix-stack-memory-content-leak-via-uname26.patch
+pidns-remove-recursion-from-free_pid_ns-v5.patch
 proc-dont-show-nonexistent-capabilities.patch
 
