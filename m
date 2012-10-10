@@ -1,100 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] pidns-remove-recursion-from-free_pid_ns-v3.patch removed from -mm tree
-Date: Wed, 10 Oct 2012 13:49:40 -0700
-Message-ID: <20121010204941.2BA5D100047@wpzn3.hot.corp.google.com>
+Subject: + pidns-remove-recursion-from-free_pid_ns-v5.patch added to -mm tree
+Date: Wed, 10 Oct 2012 13:54:21 -0700
+Message-ID: <20121010205421.C05A61E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:56778 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753940Ab2JJUtm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Oct 2012 16:49:42 -0400
-Received: by mail-yh0-f74.google.com with SMTP id 10so117561yhl.1
-        for <mm-commits@vger.kernel.org>; Wed, 10 Oct 2012 13:49:41 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:41492 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757014Ab2JJUyX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Oct 2012 16:54:23 -0400
+Received: by mail-qa0-f74.google.com with SMTP id a16so131999qae.1
+        for <mm-commits@vger.kernel.org>; Wed, 10 Oct 2012 13:54:22 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avagin@openvz.org, ebiederm@xmission.com, gorcunov@openvz.org, greg@kroah.com, oleg@redhat.com, stable@vger.kernel.org, xemul@parallels.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: gorcunov@openvz.org, avagin@openvz.org, ebiederm@xmission.com, greg@kroah.com, oleg@redhat.com, xemul@parallels.com
 
 
 The patch titled
      Subject: pidns: remove recursion from free_pid_ns()
-has been removed from the -mm tree.  Its filename was
-     pidns-remove-recursion-from-free_pid_ns-v3.patch
+has been added to the -mm tree.  Its filename is
+     pidns-remove-recursion-from-free_pid_ns-v5.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Vagin <avagin@openvz.org>
+From: Cyrill Gorcunov <gorcunov@openvz.org>
 Subject: pidns: remove recursion from free_pid_ns()
 
-Here is a stack trace of recursion:
+free_pid_ns() operates in a recursive fashion:
+
 free_pid_ns(parent)
   put_pid_ns(parent)
     kref_put(&ns->kref, free_pid_ns);
       free_pid_ns
 
-This patch turns the recursion into loops.
+thus if there was a huge nesting of namespaces the userspace may trigger
+avalanche calling of free_pid_ns leading to kernel stack exhausting and a
+panic eventually.
 
-pidns can be nested many times, so in case of recursion a simple userspace
-program can provoke a kernel panic due to exceed of a kernel stack.
+This patch turns the recursion into an iterative loop.
 
-Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Reviewed-by: Oleg Nesterov <oleg@redhat.com>
+Based on a patch by Andrew Vagin.
+
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Andrew Vagin <avagin@openvz.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Pavel Emelyanov <xemul@parallels.com>
-Signed-off-by: Andrew Vagin <avagin@openvz.org>
 Cc: Greg KH <greg@kroah.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kref.h   |   12 ++++++++++++
- kernel/pid_namespace.c |   16 ++++++++++++----
- 2 files changed, 24 insertions(+), 4 deletions(-)
+ include/linux/pid_namespace.h |    8 +-------
+ kernel/pid_namespace.c        |   19 +++++++++++++------
+ 2 files changed, 14 insertions(+), 13 deletions(-)
 
-diff -puN include/linux/kref.h~pidns-remove-recursion-from-free_pid_ns-v3 include/linux/kref.h
---- a/include/linux/kref.h~pidns-remove-recursion-from-free_pid_ns-v3
-+++ a/include/linux/kref.h
-@@ -95,6 +95,18 @@ static inline int kref_put(struct kref *
- 	return kref_sub(kref, 1, release);
+diff -puN include/linux/pid_namespace.h~pidns-remove-recursion-from-free_pid_ns-v5 include/linux/pid_namespace.h
+--- a/include/linux/pid_namespace.h~pidns-remove-recursion-from-free_pid_ns-v5
++++ a/include/linux/pid_namespace.h
+@@ -47,15 +47,9 @@ static inline struct pid_namespace *get_
  }
  
-+/**
-+ * kref_put - decrement refcount for object.
-+ * @kref: object.
-+ *
-+ * Decrement the refcount.
-+ * Return 1 if refcount is zero.
-+ */
-+static inline int __kref_put(struct kref *kref)
-+{
-+	return atomic_dec_and_test(&kref->refcount);
-+}
-+
- static inline int kref_put_mutex(struct kref *kref,
- 				 void (*release)(struct kref *kref),
- 				 struct mutex *lock)
-diff -puN kernel/pid_namespace.c~pidns-remove-recursion-from-free_pid_ns-v3 kernel/pid_namespace.c
---- a/kernel/pid_namespace.c~pidns-remove-recursion-from-free_pid_ns-v3
+ extern struct pid_namespace *copy_pid_ns(unsigned long flags, struct pid_namespace *ns);
+-extern void free_pid_ns(struct kref *kref);
+ extern void zap_pid_ns_processes(struct pid_namespace *pid_ns);
+ extern int reboot_pid_ns(struct pid_namespace *pid_ns, int cmd);
+-
+-static inline void put_pid_ns(struct pid_namespace *ns)
+-{
+-	if (ns != &init_pid_ns)
+-		kref_put(&ns->kref, free_pid_ns);
+-}
++extern void put_pid_ns(struct pid_namespace *ns);
+ 
+ #else /* !CONFIG_PID_NS */
+ #include <linux/err.h>
+diff -puN kernel/pid_namespace.c~pidns-remove-recursion-from-free_pid_ns-v5 kernel/pid_namespace.c
+--- a/kernel/pid_namespace.c~pidns-remove-recursion-from-free_pid_ns-v5
 +++ a/kernel/pid_namespace.c
-@@ -139,11 +139,19 @@ void free_pid_ns(struct kref *kref)
+@@ -133,17 +133,24 @@ struct pid_namespace *copy_pid_ns(unsign
+ 	return create_pid_namespace(old_ns);
+ }
+ 
+-void free_pid_ns(struct kref *kref)
++static void free_pid_ns(struct kref *kref)
+ {
+-	struct pid_namespace *ns, *parent;
++	struct pid_namespace *ns;
  
  	ns = container_of(kref, struct pid_namespace, kref);
- 
+-
 -	parent = ns->parent;
--	destroy_pid_namespace(ns);
-+	while (1) {
-+		parent = ns->parent;
-+		destroy_pid_namespace(ns);
+ 	destroy_pid_namespace(ns);
++}
++
++void put_pid_ns(struct pid_namespace *ns)
++{
++	struct pid_namespace *parent;
  
 -	if (parent != NULL)
 -		put_pid_ns(parent);
-+		if (parent == &init_pid_ns)
++	while (ns != &init_pid_ns) {
++		parent = ns->parent;
++		if (!kref_put(&ns->kref, free_pid_ns))
 +			break;
-+
-+		/* kref_put cannot be used for avoiding recursion */
-+		if (__kref_put(&parent->kref) == 0)
-+			break;
-+
 +		ns = parent;
 +	}
  }
@@ -102,9 +120,9 @@ diff -puN kernel/pid_namespace.c~pidns-remove-recursion-from-free_pid_ns-v3 kern
  
 _
 
-Patches currently in -mm which might be from avagin@openvz.org are
+Patches currently in -mm which might be from gorcunov@openvz.org are
 
 origin.patch
+linux-next.patch
 pidns-remove-recursion-from-free_pid_ns-v5.patch
-proc-dont-show-nonexistent-capabilities.patch
 
