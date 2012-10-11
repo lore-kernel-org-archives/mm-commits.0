@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-sysc-fix-stack-memory-content-leak-via-uname26.patch added to -mm tree
-Date: Thu, 11 Oct 2012 14:07:39 -0700
-Message-ID: <20121011210740.299FC5C0050@hpza9.eem.corp.google.com>
+Subject: + drivers-video-backlight-lm3639_blc-return-proper-error-in-lm3639_bled_mode_store-error-paths.patch added to -mm tree
+Date: Thu, 11 Oct 2012 14:09:17 -0700
+Message-ID: <20121011210917.9A17A1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:54343 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754856Ab2JKVHm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Oct 2012 17:07:42 -0400
-Received: by mail-wg0-f74.google.com with SMTP id dt11so142042wgb.1
-        for <mm-commits@vger.kernel.org>; Thu, 11 Oct 2012 14:07:41 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:54567 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759367Ab2JKVJS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Oct 2012 17:09:18 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z15so271943ghb.1
+        for <mm-commits@vger.kernel.org>; Thu, 11 Oct 2012 14:09:17 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: keescook@chromium.org, ak@linux.intel.com, pageexec@freemail.hu, spender@grsecurity.net, stable@vger.kernel.org
+Cc: axel.lin@ingics.com
 
 
 The patch titled
-     Subject: kernel/sys.c: fix stack memory content leak via UNAME26
+     Subject: drivers/video/backlight/lm3639_bl.c: return proper error in lm3639_bled_mode_store() error paths
 has been added to the -mm tree.  Its filename is
-     kernel-sysc-fix-stack-memory-content-leak-via-uname26.patch
+     drivers-video-backlight-lm3639_blc-return-proper-error-in-lm3639_bled_mode_store-error-paths.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,69 +33,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: kernel/sys.c: fix stack memory content leak via UNAME26
+From: Axel Lin <axel.lin@ingics.com>
+Subject: drivers/video/backlight/lm3639_bl.c: return proper error in lm3639_bled_mode_store() error paths
 
-Calling uname() with the UNAME26 personality set allows a leak of kernel
-stack contents.  This fixes it by defensively calculating the length of
-copy_to_user() call, making the len argument unsigned, and initializing
-the stack buffer to zero (now technically unneeded, but hey, overkill).
-
-CVE-2012-0957
-
-Reported-by: PaX Team <pageexec@freemail.hu>
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: PaX Team <pageexec@freemail.hu>
-Cc: Brad Spengler <spender@grsecurity.net>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ drivers/video/backlight/lm3639_bl.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/sys.c~kernel-sysc-fix-stack-memory-content-leak-via-uname26 kernel/sys.c
---- a/kernel/sys.c~kernel-sysc-fix-stack-memory-content-leak-via-uname26
-+++ a/kernel/sys.c
-@@ -1265,15 +1265,16 @@ DECLARE_RWSEM(uts_sem);
-  * Work around broken programs that cannot handle "Linux 3.0".
-  * Instead we map 3.x to 2.6.40+x, so e.g. 3.0 would be 2.6.40
-  */
--static int override_release(char __user *release, int len)
-+static int override_release(char __user *release, size_t len)
- {
- 	int ret = 0;
--	char buf[65];
+diff -puN drivers/video/backlight/lm3639_bl.c~backlight-lm3639-return-proper-error-in-lm3639_bled_mode_store-error-paths drivers/video/backlight/lm3639_bl.c
+--- a/drivers/video/backlight/lm3639_bl.c~backlight-lm3639-return-proper-error-in-lm3639_bled_mode_store-error-paths
++++ a/drivers/video/backlight/lm3639_bl.c
+@@ -206,11 +206,11 @@ static ssize_t lm3639_bled_mode_store(st
  
- 	if (current->personality & UNAME26) {
--		char *rest = UTS_RELEASE;
-+		const char *rest = UTS_RELEASE;
-+		char buf[65] = { 0 };
- 		int ndots = 0;
- 		unsigned v;
-+		size_t copy;
+ out:
+ 	dev_err(pchip->dev, "%s:i2c access fail to register\n", __func__);
+-	return size;
++	return ret;
  
- 		while (*rest) {
- 			if (*rest == '.' && ++ndots >= 3)
-@@ -1283,8 +1284,9 @@ static int override_release(char __user 
- 			rest++;
- 		}
- 		v = ((LINUX_VERSION_CODE >> 8) & 0xff) + 40;
--		snprintf(buf, len, "2.6.%u%s", v, rest);
--		ret = copy_to_user(release, buf, len);
-+		copy = min(sizeof(buf), max_t(size_t, 1, len));
-+		copy = scnprintf(buf, copy, "2.6.%u%s", v, rest);
-+		ret = copy_to_user(release, buf, copy + 1);
- 	}
- 	return ret;
+ out_input:
+ 	dev_err(pchip->dev, "%s:input conversion fail\n", __func__);
+-	return size;
++	return ret;
+ 
  }
+ 
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from axel.lin@ingics.com are
 
 origin.patch
-linux-next.patch
-kernel-sysc-fix-stack-memory-content-leak-via-uname26.patch
-proc-dont-show-nonexistent-capabilities.patch
+drivers-video-backlight-lm3639_blc-return-proper-error-in-lm3639_bled_mode_store-error-paths.patch
 
