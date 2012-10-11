@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcg-make-mem_cgroup_out_of_memory-static.patch added to -mm tree
-Date: Thu, 11 Oct 2012 14:23:17 -0700
-Message-ID: <20121011212318.152CC20004E@hpza10.eem.corp.google.com>
+Subject: + fat-exportfs-rebuild-inode-if-ilookup-fails-fix.patch added to -mm tree
+Date: Thu, 11 Oct 2012 14:22:31 -0700
+Message-ID: <20121011221123.8EB8420004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:51582 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754856Ab2JKVXU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Oct 2012 17:23:20 -0400
-Received: by mail-ee0-f74.google.com with SMTP id b57so142193eek.1
-        for <mm-commits@vger.kernel.org>; Thu, 11 Oct 2012 14:23:19 -0700 (PDT)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:43390 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752632Ab2JKWL0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Oct 2012 18:11:26 -0400
+Received: by mail-la0-f74.google.com with SMTP id j13so142829lah.1
+        for <mm-commits@vger.kernel.org>; Thu, 11 Oct 2012 15:11:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com
+Cc: akpm@linux-foundation.org, a.sahrawat@samsung.com, bfields@fieldses.org, hirofumi@mail.parknet.co.jp, namjae.jeon@samsung.com, ravi.n1@samsung.com
 
 
 The patch titled
-     Subject: mm, memcg: make mem_cgroup_out_of_memory() static
+     Subject: fat-exportfs-rebuild-inode-if-ilookup-fails-fix
 has been added to the -mm tree.  Its filename is
-     mm-memcg-make-mem_cgroup_out_of_memory-static.patch
+     fat-exportfs-rebuild-inode-if-ilookup-fails-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,60 +33,76 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, memcg: make mem_cgroup_out_of_memory() static
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fat-exportfs-rebuild-inode-if-ilookup-fails-fix
 
-mem_cgroup_out_of_memory() is only referenced from within file scope, so
-it can be marked static.
+fix warnings/types
 
-Signed-off-by: David Rientjes <rientjes@google.com>
+fs/fat/nfs.c: In function 'fat_nfs_get_inode':
+fs/fat/nfs.c:68: warning: passing argument 3 of 'fat_get_blknr_offset' from incompatible pointer type
+fs/fat/fat.h:218: note: expected 'sector_t *' but argument is of type 'loff_t *'
+fs/fat/inode.c: In function '__fat_write_inode':
+fs/fat/inode.c:630: warning: passing argument 3 of 'fat_get_blknr_offset' from incompatible pointer type
+fs/fat/fat.h:218: note: expected 'sector_t *' but argument is of type 'loff_t *'
+
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Amit Sahrawat <a.sahrawat@samsung.com>
+Cc: Namjae Jeon <namjae.jeon@samsung.com>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Ravishankar N <ravi.n1@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/oom.h |    2 --
- mm/memcontrol.c     |    4 ++--
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ fs/fat/inode.c |    3 ++-
+ fs/fat/nfs.c   |    2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/oom.h~mm-memcg-make-mem_cgroup_out_of_memory-static include/linux/oom.h
---- a/include/linux/oom.h~mm-memcg-make-mem_cgroup_out_of_memory-static
-+++ a/include/linux/oom.h
-@@ -56,8 +56,6 @@ extern void check_panic_on_oom(enum oom_
- extern enum oom_scan_t oom_scan_process_thread(struct task_struct *task,
- 		unsigned long totalpages, const nodemask_t *nodemask,
- 		bool force_kill);
--extern void mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask,
--				     int order);
+diff -puN fs/fat/inode.c~fat-exportfs-rebuild-inode-if-ilookup-fails-fix fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-exportfs-rebuild-inode-if-ilookup-fails-fix
++++ a/fs/fat/inode.c
+@@ -616,7 +616,8 @@ static int __fat_write_inode(struct inod
+ 	struct msdos_sb_info *sbi = MSDOS_SB(sb);
+ 	struct buffer_head *bh;
+ 	struct msdos_dir_entry *raw_entry;
+-	loff_t i_pos, blocknr;
++	loff_t i_pos;
++	sector_t blocknr;
+ 	int offset, err;
  
- extern void out_of_memory(struct zonelist *zonelist, gfp_t gfp_mask,
- 		int order, nodemask_t *mask, bool force_kill);
-diff -puN mm/memcontrol.c~mm-memcg-make-mem_cgroup_out_of_memory-static mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-make-mem_cgroup_out_of_memory-static
-+++ a/mm/memcontrol.c
-@@ -1465,8 +1465,8 @@ static u64 mem_cgroup_get_limit(struct m
- 	return min(limit, memsw);
- }
- 
--void mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask,
--			      int order)
-+static void mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask,
-+				     int order)
- {
- 	struct mem_cgroup *iter;
- 	unsigned long chosen_points = 0;
+ 	if (inode->i_ino == MSDOS_ROOT_INO)
+diff -puN fs/fat/nfs.c~fat-exportfs-rebuild-inode-if-ilookup-fails-fix fs/fat/nfs.c
+--- a/fs/fat/nfs.c~fat-exportfs-rebuild-inode-if-ilookup-fails-fix
++++ a/fs/fat/nfs.c
+@@ -63,7 +63,7 @@ static struct inode *fat_nfs_get_inode(s
+ 	if (inode == NULL && MSDOS_SB(sb)->options.nfs == FAT_NFS_NOSTALE_RO) {
+ 		struct buffer_head *bh = NULL;
+ 		struct msdos_dir_entry *de ;
+-		loff_t blocknr;
++		sector_t blocknr;
+ 		int offset;
+ 		fat_get_blknr_offset(MSDOS_SB(sb), i_pos, &blocknr, &offset);
+ 		bh = sb_bread(sb, blocknr);
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-mm-slab-release-slab_mutex-earlier-in-kmem_cache_destroy.patch
-acpi_memhotplugc-fix-memory-leak-when-memory-device-is-unbound-from-the-module-acpi_memhotplug.patch
-acpi_memhotplugc-free-memory-device-if-acpi_memory_enable_device-failed.patch
-acpi_memhotplugc-remove-memory-info-from-list-before-freeing-it.patch
-acpi_memhotplugc-dont-allow-to-eject-the-memory-device-if-it-is-being-used.patch
-acpi_memhotplugc-bind-the-memory-device-when-the-driver-is-being-loaded.patch
-acpi_memhotplugc-auto-bind-the-memory-device-which-is-hotplugged-before-the-driver-is-loaded.patch
-memory-hotplug-suppress-device-memoryx-does-not-have-a-release-function-warning.patch
-memory-hotplug-suppress-device-nodex-does-not-have-a-release-function-warning.patch
-mm-memcg-make-mem_cgroup_out_of_memory-static.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+mm.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
+fat-exportfs-rebuild-inode-if-ilookup-fails-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
