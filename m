@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-suppress-device-memoryx-does-not-have-a-release-function-warning.patch added to -mm tree
-Date: Thu, 11 Oct 2012 14:12:19 -0700
-Message-ID: <20121011211220.68E2F100047@wpzn3.hot.corp.google.com>
+Subject: + memory-hotplug-suppress-device-nodex-does-not-have-a-release-function-warning.patch added to -mm tree
+Date: Thu, 11 Oct 2012 14:12:22 -0700
+Message-ID: <20121011211223.C59A65C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:36762 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754856Ab2JKVMV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Oct 2012 17:12:21 -0400
-Received: by mail-gg0-f202.google.com with SMTP id i4so272197ggm.1
-        for <mm-commits@vger.kernel.org>; Thu, 11 Oct 2012 14:12:21 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:42250 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754856Ab2JKVM1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Oct 2012 17:12:27 -0400
+Received: by mail-bk0-f74.google.com with SMTP id q16so141127bkw.1
+        for <mm-commits@vger.kernel.org>; Thu, 11 Oct 2012 14:12:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: isimatu.yasuaki@jp.fujitsu.com, greg@kroah.com, kosaki.motohiro@jp.fujitsu.c
 
 
 The patch titled
-     Subject: memory hotplug: suppress "Device memoryX does not have a release() function" warning
+     Subject: memory hotplug: suppress "Device nodeX does not have a release() function" warning
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-suppress-device-memoryx-does-not-have-a-release-function-warning.patch
+     memory-hotplug-suppress-device-nodex-does-not-have-a-release-function-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,66 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: memory hotplug: suppress "Device memoryX does not have a release() function" warning
+Subject: memory hotplug: suppress "Device nodeX does not have a release() function" warning
 
-When calling remove_memory_block(), the function shows following message
-at device_release().
+When calling unregister_node(), the function shows following message at
+device_release().
 
-"Device 'memory528' does not have a release() function, it is broken and
-must be fixed."
+"Device 'node2' does not have a release() function, it is broken and must
+be fixed."
 
-The reason is memory_block's device struct does not have a release()
-function.
+The reason is node's device struct does not have a release() function.
 
-So the patch registers memory_block_release() to the device's release()
+So the patch registers node_device_release() to the device's release()
 function for suppressing the warning message.  Additionally, the patch
-moves kfree(mem) into the release function since the release function is
-prepared as a means to free a memory_block struct.
+adds memset() to initialize a node struct into register_node().  Because
+the node struct is part of node_devices[] array and it cannot be freed by
+node_device_release().  So if system reuses the node struct, it has a
+garbage.
 
 Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
 Acked-by: David Rientjes <rientjes@google.com>
 Cc: Jiang Liu <liuj97@gmail.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ drivers/base/node.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN drivers/base/memory.c~memory-hotplug-suppress-device-memoryx-does-not-have-a-release-function-warning drivers/base/memory.c
---- a/drivers/base/memory.c~memory-hotplug-suppress-device-memoryx-does-not-have-a-release-function-warning
-+++ a/drivers/base/memory.c
-@@ -70,6 +70,13 @@ void unregister_memory_isolate_notifier(
- }
- EXPORT_SYMBOL(unregister_memory_isolate_notifier);
+diff -puN drivers/base/node.c~memory-hotplug-suppress-device-nodex-does-not-have-a-release-function-warning drivers/base/node.c
+--- a/drivers/base/node.c~memory-hotplug-suppress-device-nodex-does-not-have-a-release-function-warning
++++ a/drivers/base/node.c
+@@ -252,6 +252,14 @@ static inline void hugetlb_register_node
+ static inline void hugetlb_unregister_node(struct node *node) {}
+ #endif
  
-+static void memory_block_release(struct device *dev)
++static void node_device_release(struct device *dev)
 +{
-+	struct memory_block *mem = container_of(dev, struct memory_block, dev);
++#if defined(CONFIG_MEMORY_HOTPLUG_SPARSE) && defined(CONFIG_HUGETLBFS)
++	struct node *node_dev = to_node(dev);
 +
-+	kfree(mem);
++	flush_work(&node_dev->node_work);
++#endif
 +}
-+
+ 
  /*
-  * register_memory - Setup a sysfs device for a memory block
-  */
-@@ -80,6 +87,7 @@ int register_memory(struct memory_block 
+  * register_node - Setup a sysfs device for a node.
+@@ -263,8 +271,11 @@ int register_node(struct node *node, int
+ {
+ 	int error;
  
- 	memory->dev.bus = &memory_subsys;
- 	memory->dev.id = memory->start_section_nr / sections_per_block;
-+	memory->dev.release = memory_block_release;
++	memset(node, 0, sizeof(*node));
++
+ 	node->dev.id = num;
+ 	node->dev.bus = &node_subsys;
++	node->dev.release = node_device_release;
+ 	error = device_register(&node->dev);
  
- 	error = device_register(&memory->dev);
- 	return error;
-@@ -635,7 +643,6 @@ int remove_memory_block(unsigned long no
- 		mem_remove_simple_file(mem, phys_device);
- 		mem_remove_simple_file(mem, removable);
- 		unregister_memory(mem);
--		kfree(mem);
- 	} else
- 		kobject_put(&mem->dev.kobj);
- 
+ 	if (!error){
 _
 
 Patches currently in -mm which might be from isimatu.yasuaki@jp.fujitsu.com are
