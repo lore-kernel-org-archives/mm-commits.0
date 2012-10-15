@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + random-fix-debug-format-strings.patch added to -mm tree
-Date: Mon, 15 Oct 2012 15:13:04 -0700
-Message-ID: <20121015221305.13E66100047@wpzn3.hot.corp.google.com>
+Subject: + firmware-memmap-avoid-type-conflicts-with-the-generic-memmap_init.patch added to -mm tree
+Date: Mon, 15 Oct 2012 15:21:08 -0700
+Message-ID: <20121015222108.A7DAB1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:57071 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932079Ab2JOWNI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Oct 2012 18:13:08 -0400
-Received: by mail-vb0-f74.google.com with SMTP id s24so673481vbi.1
-        for <mm-commits@vger.kernel.org>; Mon, 15 Oct 2012 15:13:05 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:64114 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751317Ab2JOWVJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Oct 2012 18:21:09 -0400
+Received: by mail-qa0-f74.google.com with SMTP id a16so283617qae.1
+        for <mm-commits@vger.kernel.org>; Mon, 15 Oct 2012 15:21:09 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jkosina@suse.cz, tytso@mit.edu
+Cc: fengguang.wu@intel.com, bwalle@suse.de, glommer@parallels.com
 
 
 The patch titled
-     Subject: random: fix debug format strings
+     Subject: firmware/memmap: avoid type conflicts with the generic memmap_init()
 has been added to the -mm tree.  Its filename is
-     random-fix-debug-format-strings.patch
+     firmware-memmap-avoid-type-conflicts-with-the-generic-memmap_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,80 +33,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: random: fix debug format strings
+From: Fengguang Wu <fengguang.wu@intel.com>
+Subject: firmware/memmap: avoid type conflicts with the generic memmap_init()
 
-Fix the following warnings in formatting debug output:
+This will fix build error:
 
-drivers/char/random.c: In function `xfer_secondary_pool':
-drivers/char/random.c:827: warning: format `%d' expects type `int', but argument 7 has type `size_t'
-drivers/char/random.c: In function `account':
-drivers/char/random.c:859: warning: format `%d' expects type `int', but argument 5 has type `size_t'
-drivers/char/random.c:881: warning: format `%d' expects type `int', but argument 5 has type `size_t'
-drivers/char/random.c: In function `random_read':
-drivers/char/random.c:1141: warning: format `%d' expects type `int', but argument 5 has type `ssize_t'
-drivers/char/random.c:1145: warning: format `%d' expects type `int', but argument 5 has type `ssize_t'
-drivers/char/random.c:1145: warning: format `%d' expects type `int', but argument 6 has type `long unsigned int'
+drivers/firmware/memmap.c:240:19: error: conflicting types for 'memmap_init'
+arch/ia64/include/asm/pgtable.h:565:17: note: previous declaration of 'memmap_init' was here
 
-by using '%zd' instead of '%d' to properly denote ssize_t/size_t conversion.
-
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
-Cc: Theodore Ts'o <tytso@mit.edu>
+Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Bernhard Walle <bwalle@suse.de>
+Cc: Glauber Costa <glommer@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/random.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/firmware/memmap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/random.c~random-fix-debug-format-strings drivers/char/random.c
---- a/drivers/char/random.c~random-fix-debug-format-strings
-+++ a/drivers/char/random.c
-@@ -825,7 +825,7 @@ static void xfer_secondary_pool(struct e
- 		bytes = min_t(int, bytes, sizeof(tmp));
+diff -puN drivers/firmware/memmap.c~firmware-memmap-avoid-type-conflicts-with-the-generic-memmap_init drivers/firmware/memmap.c
+--- a/drivers/firmware/memmap.c~firmware-memmap-avoid-type-conflicts-with-the-generic-memmap_init
++++ a/drivers/firmware/memmap.c
+@@ -237,7 +237,7 @@ static ssize_t memmap_attr_show(struct k
+  * firmware_map_add() or firmware_map_add_early() afterwards, the entries
+  * are not added to sysfs.
+  */
+-static int __init memmap_init(void)
++static int __init firmware_memmap_init(void)
+ {
+ 	struct firmware_map_entry *entry;
  
- 		DEBUG_ENT("going to reseed %s with %d bits "
--			  "(%d of %d requested)\n",
-+			  "(%zd of %d requested)\n",
- 			  r->name, bytes * 8, nbytes * 8, r->entropy_count);
+@@ -246,5 +246,5 @@ static int __init memmap_init(void)
  
- 		bytes = extract_entropy(r->pull, tmp, bytes,
-@@ -856,7 +856,7 @@ static size_t account(struct entropy_sto
- 	spin_lock_irqsave(&r->lock, flags);
+ 	return 0;
+ }
+-late_initcall(memmap_init);
++late_initcall(firmware_memmap_init);
  
- 	BUG_ON(r->entropy_count > r->poolinfo->POOLBITS);
--	DEBUG_ENT("trying to extract %d bits from %s\n",
-+	DEBUG_ENT("trying to extract %zd bits from %s\n",
- 		  nbytes * 8, r->name);
- 
- 	/* Can we pull enough? */
-@@ -878,7 +878,7 @@ static size_t account(struct entropy_sto
- 		}
- 	}
- 
--	DEBUG_ENT("debiting %d entropy credits from %s%s\n",
-+	DEBUG_ENT("debiting %zd entropy credits from %s%s\n",
- 		  nbytes * 8, r->name, r->limit ? "" : " (unlimited)");
- 
- 	spin_unlock_irqrestore(&r->lock, flags);
-@@ -1138,11 +1138,11 @@ random_read(struct file *file, char __us
- 		if (n > SEC_XFER_SIZE)
- 			n = SEC_XFER_SIZE;
- 
--		DEBUG_ENT("reading %d bits\n", n*8);
-+		DEBUG_ENT("reading %zd bits\n", n*8);
- 
- 		n = extract_entropy_user(&blocking_pool, buf, n);
- 
--		DEBUG_ENT("read got %d bits (%d still needed)\n",
-+		DEBUG_ENT("read got %zd bits (%zd still needed)\n",
- 			  n*8, (nbytes-n)*8);
- 
- 		if (n == 0) {
 _
 
-Patches currently in -mm which might be from jkosina@suse.cz are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
 linux-next.patch
-random-make-it-possible-to-enable-debugging-without-rebuild.patch
-random-fix-debug-format-strings.patch
+linux-coredumph-needs-asm-siginfoh.patch
+firmware-memmap-avoid-type-conflicts-with-the-generic-memmap_init.patch
+h8300-select-generic-atomic64_t-support.patch
+writeback-remove-nr_pages_dirtied-arg-from-balance_dirty_pages_ratelimited_nr.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
 
