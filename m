@@ -1,100 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nohz-fix-idle-ticks-in-cpu-summary-line-of-proc-stat.patch removed from -mm tree
-Date: Mon, 15 Oct 2012 14:08:42 -0700
-Message-ID: <20121015210843.3F70420004E@hpza10.eem.corp.google.com>
+Subject: + thermal-cpufreq-fix-build-when-cpu_freq_table-isnt-configured.patch added to -mm tree
+Date: Mon, 15 Oct 2012 14:26:49 -0700
+Message-ID: <20121015212649.B28D71E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:63758 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750895Ab2JOVIp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Oct 2012 17:08:45 -0400
-Received: by mail-wg0-f74.google.com with SMTP id dt11so348397wgb.1
-        for <mm-commits@vger.kernel.org>; Mon, 15 Oct 2012 14:08:44 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:48971 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754171Ab2JOV0v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Oct 2012 17:26:51 -0400
+Received: by mail-qa0-f74.google.com with SMTP id a16so276196qae.1
+        for <mm-commits@vger.kernel.org>; Mon, 15 Oct 2012 14:26:50 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, schwidefsky@de.ibm.com, srivatsa.bhat@linux.vnet.ibm.com, stable@vger.kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rientjes@google.com, amit.kachhap@linaro.org, len.brown@intel.com, rui.zhang@intel.com, viresh.linux@gmail.com
 
 
 The patch titled
-     Subject: nohz: fix idle ticks in cpu summary line of /proc/stat
-has been removed from the -mm tree.  Its filename was
-     nohz-fix-idle-ticks-in-cpu-summary-line-of-proc-stat.patch
+     Subject: thermal, cpufreq: Fix build when CPU_FREQ_TABLE isn't configured
+has been added to the -mm tree.  Its filename is
+     thermal-cpufreq-fix-build-when-cpu_freq_table-isnt-configured.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: nohz: fix idle ticks in cpu summary line of /proc/stat
+From: David Rientjes <rientjes@google.com>
+Subject: thermal, cpufreq: Fix build when CPU_FREQ_TABLE isn't configured
 
-Commit 09a1d34f8535ecf9 ("nohz: Make idle/iowait counter update
-conditional") introduced a bug in regard to cpu hotplug.  The effect is
-that the number of idle ticks in the cpu summary line in /proc/stat is
-still counting ticks for offline cpus.
+Commit 02361418 ("thermal: add generic cpufreq cooling implementation")
+requires cpufreq_frequency_get_table(), but that function is only defined
+for CONFIG_CPU_FREQ_TABLE resulting in the following build error:
 
-Reproduction is easy, just start a workload that keeps all cpus busy,
-switch off one or more cpus and then watch the idle field in top.  On a
-dual-core with one cpu 100% busy and one offline cpu you will get
-something like this:
+drivers/built-in.o: In function `cpufreq_get_max_state':
+drivers/thermal/cpu_cooling.c:259: undefined reference to `cpufreq_frequency_get_table'
+drivers/built-in.o: In function `get_cpu_frequency':
+drivers/thermal/cpu_cooling.c:129: undefined reference to `cpufreq_frequency_get_table'
 
-%Cpu(s): 48.7 us,  1.3 sy,  0.0 ni, 50.0 id,  0.0 wa,  0.0 hi,  0.0 si,
-%0.0 st
+Fix it by selecting CONFIG_CPU_FREQ_TABLE for such a configuration.
 
-The problem is that an offline cpu still has ts->idle_active == 1.  To fix
-this we should make sure that the cpu is online when calling
-get_cpu_idle_time_us and get_cpu_iowait_time_us.
+It turns out CONFIG_EXYNOS_THERMAL also needs CONFIG_CPU_FREQ_TABLE, so
+select it there as well.
 
-[srivatsa.bhat@linux.vnet.ibm.com: rebased to current mainline]
-Reported-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Reviewed-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Amit Daniel Kachhap <amit.kachhap@linaro.org>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Viresh Kumar <viresh.linux@gmail.com>
+Cc: Len Brown <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/stat.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ drivers/thermal/Kconfig |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/proc/stat.c~nohz-fix-idle-ticks-in-cpu-summary-line-of-proc-stat fs/proc/stat.c
---- a/fs/proc/stat.c~nohz-fix-idle-ticks-in-cpu-summary-line-of-proc-stat
-+++ a/fs/proc/stat.c
-@@ -45,10 +45,13 @@ static cputime64_t get_iowait_time(int c
- 
- static u64 get_idle_time(int cpu)
- {
--	u64 idle, idle_time = get_cpu_idle_time_us(cpu, NULL);
-+	u64 idle, idle_time = -1ULL;
-+
-+	if (cpu_online(cpu))
-+		idle_time = get_cpu_idle_time_us(cpu, NULL);
- 
- 	if (idle_time == -1ULL)
--		/* !NO_HZ so we can rely on cpustat.idle */
-+		/* !NO_HZ or cpu offline so we can rely on cpustat.idle */
- 		idle = kcpustat_cpu(cpu).cpustat[CPUTIME_IDLE];
- 	else
- 		idle = usecs_to_cputime64(idle_time);
-@@ -58,10 +61,13 @@ static u64 get_idle_time(int cpu)
- 
- static u64 get_iowait_time(int cpu)
- {
--	u64 iowait, iowait_time = get_cpu_iowait_time_us(cpu, NULL);
-+	u64 iowait, iowait_time = -1ULL;
-+
-+	if (cpu_online(cpu))
-+		iowait_time = get_cpu_iowait_time_us(cpu, NULL);
- 
- 	if (iowait_time == -1ULL)
--		/* !NO_HZ so we can rely on cpustat.iowait */
-+		/* !NO_HZ or cpu offline so we can rely on cpustat.iowait */
- 		iowait = kcpustat_cpu(cpu).cpustat[CPUTIME_IOWAIT];
- 	else
- 		iowait = usecs_to_cputime64(iowait_time);
+diff -puN drivers/thermal/Kconfig~thermal-cpufreq-fix-build-when-cpu_freq_table-isnt-configured drivers/thermal/Kconfig
+--- a/drivers/thermal/Kconfig~thermal-cpufreq-fix-build-when-cpu_freq_table-isnt-configured
++++ a/drivers/thermal/Kconfig
+@@ -22,6 +22,7 @@ config THERMAL_HWMON
+ config CPU_THERMAL
+ 	bool "generic cpu cooling support"
+ 	depends on THERMAL && CPU_FREQ
++	select CPU_FREQ_TABLE
+ 	help
+ 	  This implements the generic cpu cooling mechanism through frequency
+ 	  reduction, cpu hotplug and any other ways of reducing temperature. An
+@@ -50,6 +51,7 @@ config RCAR_THERMAL
+ config EXYNOS_THERMAL
+ 	tristate "Temperature sensor on Samsung EXYNOS"
+ 	depends on (ARCH_EXYNOS4 || ARCH_EXYNOS5) && THERMAL
++	select CPU_FREQ_TABLE
+ 	help
+ 	  If you say yes here you get support for TMU (Thermal Managment
+ 	  Unit) on SAMSUNG EXYNOS series of SoC.
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from rientjes@google.com are
 
 linux-next.patch
-mm-memblock-reduce-overhead-in-binary-search.patch
+thermal-cpufreq-fix-build-when-cpu_freq_table-isnt-configured.patch
+acpi_memhotplugc-fix-memory-leak-when-memory-device-is-unbound-from-the-module-acpi_memhotplug.patch
+acpi_memhotplugc-free-memory-device-if-acpi_memory_enable_device-failed.patch
+acpi_memhotplugc-remove-memory-info-from-list-before-freeing-it.patch
+acpi_memhotplugc-dont-allow-to-eject-the-memory-device-if-it-is-being-used.patch
+acpi_memhotplugc-bind-the-memory-device-when-the-driver-is-being-loaded.patch
+acpi_memhotplugc-auto-bind-the-memory-device-which-is-hotplugged-before-the-driver-is-loaded.patch
+memory-hotplug-suppress-device-memoryx-does-not-have-a-release-function-warning.patch
+memory-hotplug-suppress-device-nodex-does-not-have-a-release-function-warning.patch
+mm-memcg-make-mem_cgroup_out_of_memory-static.patch
 
