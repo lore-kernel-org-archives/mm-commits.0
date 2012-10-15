@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + thermal-cpufreq-fix-build-when-cpu_freq_table-isnt-configured.patch added to -mm tree
-Date: Mon, 15 Oct 2012 14:26:49 -0700
-Message-ID: <20121015212649.B28D71E0043@wpzn4.hot.corp.google.com>
+Subject: + proc-check-vma-vm_file-before-dereferencing.patch added to -mm tree
+Date: Mon, 15 Oct 2012 14:41:40 -0700
+Message-ID: <20121015214141.351725C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:48971 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754171Ab2JOV0v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Oct 2012 17:26:51 -0400
-Received: by mail-qa0-f74.google.com with SMTP id a16so276196qae.1
-        for <mm-commits@vger.kernel.org>; Mon, 15 Oct 2012 14:26:50 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:62333 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754853Ab2JOVln (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Oct 2012 17:41:43 -0400
+Received: by mail-fa0-f74.google.com with SMTP id t1so345881fae.1
+        for <mm-commits@vger.kernel.org>; Mon, 15 Oct 2012 14:41:42 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, amit.kachhap@linaro.org, len.brown@intel.com, rui.zhang@intel.com, viresh.linux@gmail.com
+Cc: skinsbursky@parallels.com, gorcunov@openvz.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: thermal, cpufreq: Fix build when CPU_FREQ_TABLE isn't configured
+     From: Stanislav Kinsbursky <skinsbursky@parallels.com>
 has been added to the -mm tree.  Its filename is
-     thermal-cpufreq-fix-build-when-cpu_freq_table-isnt-configured.patch
+     proc-check-vma-vm_file-before-dereferencing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,66 +33,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: thermal, cpufreq: Fix build when CPU_FREQ_TABLE isn't configured
+From: Stanislav Kinsbursky <skinsbursky@parallels.com>
+Subject: proc: check vma->vm_file before dereferencing
 
-Commit 02361418 ("thermal: add generic cpufreq cooling implementation")
-requires cpufreq_frequency_get_table(), but that function is only defined
-for CONFIG_CPU_FREQ_TABLE resulting in the following build error:
+Needs a changelog
 
-drivers/built-in.o: In function `cpufreq_get_max_state':
-drivers/thermal/cpu_cooling.c:259: undefined reference to `cpufreq_frequency_get_table'
-drivers/built-in.o: In function `get_cpu_frequency':
-drivers/thermal/cpu_cooling.c:129: undefined reference to `cpufreq_frequency_get_table'
-
-Fix it by selecting CONFIG_CPU_FREQ_TABLE for such a configuration.
-
-It turns out CONFIG_EXYNOS_THERMAL also needs CONFIG_CPU_FREQ_TABLE, so
-select it there as well.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Amit Daniel Kachhap <amit.kachhap@linaro.org>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Viresh Kumar <viresh.linux@gmail.com>
-Cc: Len Brown <len.brown@intel.com>
+Signed-off-by: Stanislav Kinsbursky <skinsbursky@parallels.com>
+Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/thermal/Kconfig |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/proc/base.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/thermal/Kconfig~thermal-cpufreq-fix-build-when-cpu_freq_table-isnt-configured drivers/thermal/Kconfig
---- a/drivers/thermal/Kconfig~thermal-cpufreq-fix-build-when-cpu_freq_table-isnt-configured
-+++ a/drivers/thermal/Kconfig
-@@ -22,6 +22,7 @@ config THERMAL_HWMON
- config CPU_THERMAL
- 	bool "generic cpu cooling support"
- 	depends on THERMAL && CPU_FREQ
-+	select CPU_FREQ_TABLE
- 	help
- 	  This implements the generic cpu cooling mechanism through frequency
- 	  reduction, cpu hotplug and any other ways of reducing temperature. An
-@@ -50,6 +51,7 @@ config RCAR_THERMAL
- config EXYNOS_THERMAL
- 	tristate "Temperature sensor on Samsung EXYNOS"
- 	depends on (ARCH_EXYNOS4 || ARCH_EXYNOS5) && THERMAL
-+	select CPU_FREQ_TABLE
- 	help
- 	  If you say yes here you get support for TMU (Thermal Managment
- 	  Unit) on SAMSUNG EXYNOS series of SoC.
+diff -puN fs/proc/base.c~proc-check-vma-vm_file-before-dereferencing fs/proc/base.c
+--- a/fs/proc/base.c~proc-check-vma-vm_file-before-dereferencing
++++ a/fs/proc/base.c
+@@ -1770,8 +1770,9 @@ static struct dentry *proc_map_files_loo
+ 	if (!vma)
+ 		goto out_no_vma;
+ 
+-	result = proc_map_files_instantiate(dir, dentry, task,
+-			(void *)(unsigned long)vma->vm_file->f_mode);
++	if (vma->vm_file)
++		result = proc_map_files_instantiate(dir, dentry, task,
++				(void *)(unsigned long)vma->vm_file->f_mode);
+ 
+ out_no_vma:
+ 	up_read(&mm->mmap_sem);
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from skinsbursky@parallels.com are
 
-linux-next.patch
-thermal-cpufreq-fix-build-when-cpu_freq_table-isnt-configured.patch
-acpi_memhotplugc-fix-memory-leak-when-memory-device-is-unbound-from-the-module-acpi_memhotplug.patch
-acpi_memhotplugc-free-memory-device-if-acpi_memory_enable_device-failed.patch
-acpi_memhotplugc-remove-memory-info-from-list-before-freeing-it.patch
-acpi_memhotplugc-dont-allow-to-eject-the-memory-device-if-it-is-being-used.patch
-acpi_memhotplugc-bind-the-memory-device-when-the-driver-is-being-loaded.patch
-acpi_memhotplugc-auto-bind-the-memory-device-which-is-hotplugged-before-the-driver-is-loaded.patch
-memory-hotplug-suppress-device-memoryx-does-not-have-a-release-function-warning.patch
-memory-hotplug-suppress-device-nodex-does-not-have-a-release-function-warning.patch
-mm-memcg-make-mem_cgroup_out_of_memory-static.patch
+proc-check-vma-vm_file-before-dereferencing.patch
 
