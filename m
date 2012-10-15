@@ -1,184 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-slab-release-slab_mutex-earlier-in-kmem_cache_destroy.patch removed from -mm tree
-Date: Mon, 15 Oct 2012 14:08:38 -0700
-Message-ID: <20121015210838.D453820005C@hpza10.eem.corp.google.com>
+Subject: [merged] nohz-fix-idle-ticks-in-cpu-summary-line-of-proc-stat.patch removed from -mm tree
+Date: Mon, 15 Oct 2012 14:08:42 -0700
+Message-ID: <20121015210843.3F70420004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:40143 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751311Ab2JOVIm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Oct 2012 17:08:42 -0400
-Received: by mail-bk0-f74.google.com with SMTP id q16so345877bkw.1
-        for <mm-commits@vger.kernel.org>; Mon, 15 Oct 2012 14:08:40 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:63758 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750895Ab2JOVIp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Oct 2012 17:08:45 -0400
+Received: by mail-wg0-f74.google.com with SMTP id dt11so348397wgb.1
+        for <mm-commits@vger.kernel.org>; Mon, 15 Oct 2012 14:08:44 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jkosina@suse.cz, paulmck@linux.vnet.ibm.com, penberg@cs.helsinki.fi, rientjes@google.com, srivatsa.bhat@linux.vnet.ibm.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: mhocko@suse.cz, schwidefsky@de.ibm.com, srivatsa.bhat@linux.vnet.ibm.com, stable@vger.kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slab: release slab_mutex earlier in kmem_cache_destroy()
+     Subject: nohz: fix idle ticks in cpu summary line of /proc/stat
 has been removed from the -mm tree.  Its filename was
-     mm-slab-release-slab_mutex-earlier-in-kmem_cache_destroy.patch
+     nohz-fix-idle-ticks-in-cpu-summary-line-of-proc-stat.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: mm, slab: release slab_mutex earlier in kmem_cache_destroy()
+From: Michal Hocko <mhocko@suse.cz>
+Subject: nohz: fix idle ticks in cpu summary line of /proc/stat
 
-Commit 1331e7a1bbe1 ("rcu: Remove _rcu_barrier() dependency on
-__stop_machine()") introduced slab_mutex -> cpu_hotplug.lock dependency
-through kmem_cache_destroy() -> rcu_barrier() -> _rcu_barrier() ->
-get_online_cpus().
+Commit 09a1d34f8535ecf9 ("nohz: Make idle/iowait counter update
+conditional") introduced a bug in regard to cpu hotplug.  The effect is
+that the number of idle ticks in the cpu summary line in /proc/stat is
+still counting ticks for offline cpus.
 
-Lockdep thinks that this might actually result in ABBA deadlock, and
-reports it as below:
+Reproduction is easy, just start a workload that keeps all cpus busy,
+switch off one or more cpus and then watch the idle field in top.  On a
+dual-core with one cpu 100% busy and one offline cpu you will get
+something like this:
 
-=== [ cut here ] ===
- ======================================================
- [ INFO: possible circular locking dependency detected ]
- 3.6.0-rc5-00004-g0d8ee37 #143 Not tainted
- -------------------------------------------------------
- kworker/u:2/40 is trying to acquire lock:
-  (rcu_sched_state.barrier_mutex){+.+...}, at: [<ffffffff810f2126>] _rcu_barrier+0x26/0x1e0
+%Cpu(s): 48.7 us,  1.3 sy,  0.0 ni, 50.0 id,  0.0 wa,  0.0 hi,  0.0 si,
+%0.0 st
 
- but task is already holding lock:
-  (slab_mutex){+.+.+.}, at: [<ffffffff81176e15>] kmem_cache_destroy+0x45/0xe0
+The problem is that an offline cpu still has ts->idle_active == 1.  To fix
+this we should make sure that the cpu is online when calling
+get_cpu_idle_time_us and get_cpu_iowait_time_us.
 
- which lock already depends on the new lock.
-
- the existing dependency chain (in reverse order) is:
-
- -> #2 (slab_mutex){+.+.+.}:
-        [<ffffffff810ae1e2>] validate_chain+0x632/0x720
-        [<ffffffff810ae5d9>] __lock_acquire+0x309/0x530
-        [<ffffffff810ae921>] lock_acquire+0x121/0x190
-        [<ffffffff8155d4cc>] __mutex_lock_common+0x5c/0x450
-        [<ffffffff8155d9ee>] mutex_lock_nested+0x3e/0x50
-        [<ffffffff81558cb5>] cpuup_callback+0x2f/0xbe
-        [<ffffffff81564b83>] notifier_call_chain+0x93/0x140
-        [<ffffffff81076f89>] __raw_notifier_call_chain+0x9/0x10
-        [<ffffffff8155719d>] _cpu_up+0xba/0x14e
-        [<ffffffff815572ed>] cpu_up+0xbc/0x117
-        [<ffffffff81ae05e3>] smp_init+0x6b/0x9f
-        [<ffffffff81ac47d6>] kernel_init+0x147/0x1dc
-        [<ffffffff8156ab44>] kernel_thread_helper+0x4/0x10
-
- -> #1 (cpu_hotplug.lock){+.+.+.}:
-        [<ffffffff810ae1e2>] validate_chain+0x632/0x720
-        [<ffffffff810ae5d9>] __lock_acquire+0x309/0x530
-        [<ffffffff810ae921>] lock_acquire+0x121/0x190
-        [<ffffffff8155d4cc>] __mutex_lock_common+0x5c/0x450
-        [<ffffffff8155d9ee>] mutex_lock_nested+0x3e/0x50
-        [<ffffffff81049197>] get_online_cpus+0x37/0x50
-        [<ffffffff810f21bb>] _rcu_barrier+0xbb/0x1e0
-        [<ffffffff810f22f0>] rcu_barrier_sched+0x10/0x20
-        [<ffffffff810f2309>] rcu_barrier+0x9/0x10
-        [<ffffffff8118c129>] deactivate_locked_super+0x49/0x90
-        [<ffffffff8118cc01>] deactivate_super+0x61/0x70
-        [<ffffffff811aaaa7>] mntput_no_expire+0x127/0x180
-        [<ffffffff811ab49e>] sys_umount+0x6e/0xd0
-        [<ffffffff81569979>] system_call_fastpath+0x16/0x1b
-
- -> #0 (rcu_sched_state.barrier_mutex){+.+...}:
-        [<ffffffff810adb4e>] check_prev_add+0x3de/0x440
-        [<ffffffff810ae1e2>] validate_chain+0x632/0x720
-        [<ffffffff810ae5d9>] __lock_acquire+0x309/0x530
-        [<ffffffff810ae921>] lock_acquire+0x121/0x190
-        [<ffffffff8155d4cc>] __mutex_lock_common+0x5c/0x450
-        [<ffffffff8155d9ee>] mutex_lock_nested+0x3e/0x50
-        [<ffffffff810f2126>] _rcu_barrier+0x26/0x1e0
-        [<ffffffff810f22f0>] rcu_barrier_sched+0x10/0x20
-        [<ffffffff810f2309>] rcu_barrier+0x9/0x10
-        [<ffffffff81176ea1>] kmem_cache_destroy+0xd1/0xe0
-        [<ffffffffa04c3154>] nf_conntrack_cleanup_net+0xe4/0x110 [nf_conntrack]
-        [<ffffffffa04c31aa>] nf_conntrack_cleanup+0x2a/0x70 [nf_conntrack]
-        [<ffffffffa04c42ce>] nf_conntrack_net_exit+0x5e/0x80 [nf_conntrack]
-        [<ffffffff81454b79>] ops_exit_list+0x39/0x60
-        [<ffffffff814551ab>] cleanup_net+0xfb/0x1b0
-        [<ffffffff8106917b>] process_one_work+0x26b/0x4c0
-        [<ffffffff81069f3e>] worker_thread+0x12e/0x320
-        [<ffffffff8106f73e>] kthread+0x9e/0xb0
-        [<ffffffff8156ab44>] kernel_thread_helper+0x4/0x10
-
- other info that might help us debug this:
-
- Chain exists of:
-   rcu_sched_state.barrier_mutex --> cpu_hotplug.lock --> slab_mutex
-
-  Possible unsafe locking scenario:
-
-        CPU0                    CPU1
-        ----                    ----
-   lock(slab_mutex);
-                                lock(cpu_hotplug.lock);
-                                lock(slab_mutex);
-   lock(rcu_sched_state.barrier_mutex);
-
-  *** DEADLOCK ***
-=== [ cut here ] ===
-
-This is actually a false positive. Lockdep has no way of knowing the fact
-that the ABBA can actually never happen, because of special semantics of
-cpu_hotplug.refcount and its handling in cpu_hotplug_begin(); the mutual
-exclusion there is not achieved through mutex, but through
-cpu_hotplug.refcount.
-
-The "neither cpu_up() nor cpu_down() will proceed past cpu_hotplug_begin()
-until everyone who called get_online_cpus() will call put_online_cpus()"
-semantics is totally invisible to lockdep.
-
-This patch therefore moves the unlock of slab_mutex so that rcu_barrier()
-is being called with it unlocked. It has two advantages:
-
-- it slightly reduces hold time of slab_mutex; as it's used to protect
-  the cachep list, it's not necessary to hold it over kmem_cache_free()
-  call any more
-- it silences the lockdep false positive warning, as it avoids lockdep ever
-  learning about slab_mutex -> cpu_hotplug.lock dependency
-
-Reviewed-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+[srivatsa.bhat@linux.vnet.ibm.com: rebased to current mainline]
+Reported-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Reviewed-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ fs/proc/stat.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN mm/slab_common.c~mm-slab-release-slab_mutex-earlier-in-kmem_cache_destroy mm/slab_common.c
---- a/mm/slab_common.c~mm-slab-release-slab_mutex-earlier-in-kmem_cache_destroy
-+++ a/mm/slab_common.c
-@@ -168,6 +168,7 @@ void kmem_cache_destroy(struct kmem_cach
- 		list_del(&s->list);
+diff -puN fs/proc/stat.c~nohz-fix-idle-ticks-in-cpu-summary-line-of-proc-stat fs/proc/stat.c
+--- a/fs/proc/stat.c~nohz-fix-idle-ticks-in-cpu-summary-line-of-proc-stat
++++ a/fs/proc/stat.c
+@@ -45,10 +45,13 @@ static cputime64_t get_iowait_time(int c
  
- 		if (!__kmem_cache_shutdown(s)) {
-+			mutex_unlock(&slab_mutex);
- 			if (s->flags & SLAB_DESTROY_BY_RCU)
- 				rcu_barrier();
+ static u64 get_idle_time(int cpu)
+ {
+-	u64 idle, idle_time = get_cpu_idle_time_us(cpu, NULL);
++	u64 idle, idle_time = -1ULL;
++
++	if (cpu_online(cpu))
++		idle_time = get_cpu_idle_time_us(cpu, NULL);
  
-@@ -175,12 +176,14 @@ void kmem_cache_destroy(struct kmem_cach
- 			kmem_cache_free(kmem_cache, s);
- 		} else {
- 			list_add(&s->list, &slab_caches);
-+			mutex_unlock(&slab_mutex);
- 			printk(KERN_ERR "kmem_cache_destroy %s: Slab cache still has objects\n",
- 				s->name);
- 			dump_stack();
- 		}
-+	} else {
-+		mutex_unlock(&slab_mutex);
- 	}
--	mutex_unlock(&slab_mutex);
- 	put_online_cpus();
- }
- EXPORT_SYMBOL(kmem_cache_destroy);
+ 	if (idle_time == -1ULL)
+-		/* !NO_HZ so we can rely on cpustat.idle */
++		/* !NO_HZ or cpu offline so we can rely on cpustat.idle */
+ 		idle = kcpustat_cpu(cpu).cpustat[CPUTIME_IDLE];
+ 	else
+ 		idle = usecs_to_cputime64(idle_time);
+@@ -58,10 +61,13 @@ static u64 get_idle_time(int cpu)
+ 
+ static u64 get_iowait_time(int cpu)
+ {
+-	u64 iowait, iowait_time = get_cpu_iowait_time_us(cpu, NULL);
++	u64 iowait, iowait_time = -1ULL;
++
++	if (cpu_online(cpu))
++		iowait_time = get_cpu_iowait_time_us(cpu, NULL);
+ 
+ 	if (iowait_time == -1ULL)
+-		/* !NO_HZ so we can rely on cpustat.iowait */
++		/* !NO_HZ or cpu offline so we can rely on cpustat.iowait */
+ 		iowait = kcpustat_cpu(cpu).cpustat[CPUTIME_IOWAIT];
+ 	else
+ 		iowait = usecs_to_cputime64(iowait_time);
 _
 
-Patches currently in -mm which might be from jkosina@suse.cz are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
 linux-next.patch
+mm-memblock-reduce-overhead-in-binary-search.patch
 
