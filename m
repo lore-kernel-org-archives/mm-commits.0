@@ -1,274 +1,184 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked] compat-generic-compat_sys_sched_rr_get_interval-implementation.patch removed from -mm tree
-Date: Mon, 15 Oct 2012 14:08:22 -0700
-Message-ID: <20121015210823.A35D31E0043@wpzn4.hot.corp.google.com>
+Subject: [merged] mm-slab-release-slab_mutex-earlier-in-kmem_cache_destroy.patch removed from -mm tree
+Date: Mon, 15 Oct 2012 14:08:38 -0700
+Message-ID: <20121015210838.D453820005C@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:34702 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750895Ab2JOVIZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Oct 2012 17:08:25 -0400
-Received: by mail-vc0-f202.google.com with SMTP id fy27so684431vcb.1
-        for <mm-commits@vger.kernel.org>; Mon, 15 Oct 2012 14:08:24 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:40143 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751311Ab2JOVIm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Oct 2012 17:08:42 -0400
+Received: by mail-bk0-f74.google.com with SMTP id q16so345877bkw.1
+        for <mm-commits@vger.kernel.org>; Mon, 15 Oct 2012 14:08:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: catalin.marinas@arm.com, arnd@arndb.de, benh@kernel.crashing.org, cmetcalf@tilera.com, davem@davemloft.net, paulus@samba.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: jkosina@suse.cz, paulmck@linux.vnet.ibm.com, penberg@cs.helsinki.fi, rientjes@google.com, srivatsa.bhat@linux.vnet.ibm.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: compat: generic compat_sys_sched_rr_get_interval implementation
+     Subject: mm, slab: release slab_mutex earlier in kmem_cache_destroy()
 has been removed from the -mm tree.  Its filename was
-     compat-generic-compat_sys_sched_rr_get_interval-implementation.patch
+     mm-slab-release-slab_mutex-earlier-in-kmem_cache_destroy.patch
 
-This patch was dropped because other changes were merged, which wrecked this patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: compat: generic compat_sys_sched_rr_get_interval implementation
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: mm, slab: release slab_mutex earlier in kmem_cache_destroy()
 
-This function is used by sparc, powerpc tile and arm64 for compat support.
- The patch adds a generic implementation with a wrapper for PowerPC to do
-the u32->int sign extension.
+Commit 1331e7a1bbe1 ("rcu: Remove _rcu_barrier() dependency on
+__stop_machine()") introduced slab_mutex -> cpu_hotplug.lock dependency
+through kmem_cache_destroy() -> rcu_barrier() -> _rcu_barrier() ->
+get_online_cpus().
 
-The reason for a single patch covering powerpc, tile, sparc and arm64 is
-to keep it bisectable, otherwise kernel building may fail with mismatched
-function declarations.
+Lockdep thinks that this might actually result in ABBA deadlock, and
+reports it as below:
 
-Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
-Acked-by: Chris Metcalf <cmetcalf@tilera.com>  [for tile]
-Acked-by: David S. Miller <davem@davemloft.net>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+=== [ cut here ] ===
+ ======================================================
+ [ INFO: possible circular locking dependency detected ]
+ 3.6.0-rc5-00004-g0d8ee37 #143 Not tainted
+ -------------------------------------------------------
+ kworker/u:2/40 is trying to acquire lock:
+  (rcu_sched_state.barrier_mutex){+.+...}, at: [<ffffffff810f2126>] _rcu_barrier+0x26/0x1e0
+
+ but task is already holding lock:
+  (slab_mutex){+.+.+.}, at: [<ffffffff81176e15>] kmem_cache_destroy+0x45/0xe0
+
+ which lock already depends on the new lock.
+
+ the existing dependency chain (in reverse order) is:
+
+ -> #2 (slab_mutex){+.+.+.}:
+        [<ffffffff810ae1e2>] validate_chain+0x632/0x720
+        [<ffffffff810ae5d9>] __lock_acquire+0x309/0x530
+        [<ffffffff810ae921>] lock_acquire+0x121/0x190
+        [<ffffffff8155d4cc>] __mutex_lock_common+0x5c/0x450
+        [<ffffffff8155d9ee>] mutex_lock_nested+0x3e/0x50
+        [<ffffffff81558cb5>] cpuup_callback+0x2f/0xbe
+        [<ffffffff81564b83>] notifier_call_chain+0x93/0x140
+        [<ffffffff81076f89>] __raw_notifier_call_chain+0x9/0x10
+        [<ffffffff8155719d>] _cpu_up+0xba/0x14e
+        [<ffffffff815572ed>] cpu_up+0xbc/0x117
+        [<ffffffff81ae05e3>] smp_init+0x6b/0x9f
+        [<ffffffff81ac47d6>] kernel_init+0x147/0x1dc
+        [<ffffffff8156ab44>] kernel_thread_helper+0x4/0x10
+
+ -> #1 (cpu_hotplug.lock){+.+.+.}:
+        [<ffffffff810ae1e2>] validate_chain+0x632/0x720
+        [<ffffffff810ae5d9>] __lock_acquire+0x309/0x530
+        [<ffffffff810ae921>] lock_acquire+0x121/0x190
+        [<ffffffff8155d4cc>] __mutex_lock_common+0x5c/0x450
+        [<ffffffff8155d9ee>] mutex_lock_nested+0x3e/0x50
+        [<ffffffff81049197>] get_online_cpus+0x37/0x50
+        [<ffffffff810f21bb>] _rcu_barrier+0xbb/0x1e0
+        [<ffffffff810f22f0>] rcu_barrier_sched+0x10/0x20
+        [<ffffffff810f2309>] rcu_barrier+0x9/0x10
+        [<ffffffff8118c129>] deactivate_locked_super+0x49/0x90
+        [<ffffffff8118cc01>] deactivate_super+0x61/0x70
+        [<ffffffff811aaaa7>] mntput_no_expire+0x127/0x180
+        [<ffffffff811ab49e>] sys_umount+0x6e/0xd0
+        [<ffffffff81569979>] system_call_fastpath+0x16/0x1b
+
+ -> #0 (rcu_sched_state.barrier_mutex){+.+...}:
+        [<ffffffff810adb4e>] check_prev_add+0x3de/0x440
+        [<ffffffff810ae1e2>] validate_chain+0x632/0x720
+        [<ffffffff810ae5d9>] __lock_acquire+0x309/0x530
+        [<ffffffff810ae921>] lock_acquire+0x121/0x190
+        [<ffffffff8155d4cc>] __mutex_lock_common+0x5c/0x450
+        [<ffffffff8155d9ee>] mutex_lock_nested+0x3e/0x50
+        [<ffffffff810f2126>] _rcu_barrier+0x26/0x1e0
+        [<ffffffff810f22f0>] rcu_barrier_sched+0x10/0x20
+        [<ffffffff810f2309>] rcu_barrier+0x9/0x10
+        [<ffffffff81176ea1>] kmem_cache_destroy+0xd1/0xe0
+        [<ffffffffa04c3154>] nf_conntrack_cleanup_net+0xe4/0x110 [nf_conntrack]
+        [<ffffffffa04c31aa>] nf_conntrack_cleanup+0x2a/0x70 [nf_conntrack]
+        [<ffffffffa04c42ce>] nf_conntrack_net_exit+0x5e/0x80 [nf_conntrack]
+        [<ffffffff81454b79>] ops_exit_list+0x39/0x60
+        [<ffffffff814551ab>] cleanup_net+0xfb/0x1b0
+        [<ffffffff8106917b>] process_one_work+0x26b/0x4c0
+        [<ffffffff81069f3e>] worker_thread+0x12e/0x320
+        [<ffffffff8106f73e>] kthread+0x9e/0xb0
+        [<ffffffff8156ab44>] kernel_thread_helper+0x4/0x10
+
+ other info that might help us debug this:
+
+ Chain exists of:
+   rcu_sched_state.barrier_mutex --> cpu_hotplug.lock --> slab_mutex
+
+  Possible unsafe locking scenario:
+
+        CPU0                    CPU1
+        ----                    ----
+   lock(slab_mutex);
+                                lock(cpu_hotplug.lock);
+                                lock(slab_mutex);
+   lock(rcu_sched_state.barrier_mutex);
+
+  *** DEADLOCK ***
+=== [ cut here ] ===
+
+This is actually a false positive. Lockdep has no way of knowing the fact
+that the ABBA can actually never happen, because of special semantics of
+cpu_hotplug.refcount and its handling in cpu_hotplug_begin(); the mutual
+exclusion there is not achieved through mutex, but through
+cpu_hotplug.refcount.
+
+The "neither cpu_up() nor cpu_down() will proceed past cpu_hotplug_begin()
+until everyone who called get_online_cpus() will call put_online_cpus()"
+semantics is totally invisible to lockdep.
+
+This patch therefore moves the unlock of slab_mutex so that rcu_barrier()
+is being called with it unlocked. It has two advantages:
+
+- it slightly reduces hold time of slab_mutex; as it's used to protect
+  the cachep list, it's not necessary to hold it over kmem_cache_free()
+  call any more
+- it silences the lockdep false positive warning, as it avoids lockdep ever
+  learning about slab_mutex -> cpu_hotplug.lock dependency
+
+Reviewed-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Reviewed-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/unistd32.h |    1 +
- arch/arm64/kernel/sys_compat.c    |   15 ---------------
- arch/powerpc/include/asm/systbl.h |    2 +-
- arch/powerpc/include/asm/unistd.h |    1 +
- arch/powerpc/kernel/sys_ppc32.c   |   15 +++------------
- arch/sparc/include/asm/unistd.h   |    1 +
- arch/sparc/kernel/sys_sparc32.c   |   14 --------------
- arch/tile/include/asm/compat.h    |    2 --
- arch/tile/include/asm/unistd.h    |    1 +
- arch/tile/kernel/compat.c         |   18 ------------------
- include/linux/compat.h            |    3 +++
- kernel/compat.c                   |   17 +++++++++++++++++
- 12 files changed, 28 insertions(+), 62 deletions(-)
+ mm/slab_common.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN arch/arm64/include/asm/unistd32.h~compat-generic-compat_sys_sched_rr_get_interval-implementation arch/arm64/include/asm/unistd32.h
---- a/arch/arm64/include/asm/unistd32.h~compat-generic-compat_sys_sched_rr_get_interval-implementation
-+++ a/arch/arm64/include/asm/unistd32.h
-@@ -753,3 +753,4 @@ __SYSCALL(__NR_syncfs, sys_syncfs)
- #define __ARCH_WANT_SYS_SIGPROCMASK
- #define __ARCH_WANT_COMPAT_SYS_RT_SIGSUSPEND
- #define __ARCH_WANT_COMPAT_SYS_SENDFILE
-+#define __ARCH_WANT_COMPAT_SYS_SCHED_RR_GET_INTERVAL
-diff -puN arch/arm64/kernel/sys_compat.c~compat-generic-compat_sys_sched_rr_get_interval-implementation arch/arm64/kernel/sys_compat.c
---- a/arch/arm64/kernel/sys_compat.c~compat-generic-compat_sys_sched_rr_get_interval-implementation
-+++ a/arch/arm64/kernel/sys_compat.c
-@@ -69,21 +69,6 @@ out:
- 	return error;
+diff -puN mm/slab_common.c~mm-slab-release-slab_mutex-earlier-in-kmem_cache_destroy mm/slab_common.c
+--- a/mm/slab_common.c~mm-slab-release-slab_mutex-earlier-in-kmem_cache_destroy
++++ a/mm/slab_common.c
+@@ -168,6 +168,7 @@ void kmem_cache_destroy(struct kmem_cach
+ 		list_del(&s->list);
+ 
+ 		if (!__kmem_cache_shutdown(s)) {
++			mutex_unlock(&slab_mutex);
+ 			if (s->flags & SLAB_DESTROY_BY_RCU)
+ 				rcu_barrier();
+ 
+@@ -175,12 +176,14 @@ void kmem_cache_destroy(struct kmem_cach
+ 			kmem_cache_free(kmem_cache, s);
+ 		} else {
+ 			list_add(&s->list, &slab_caches);
++			mutex_unlock(&slab_mutex);
+ 			printk(KERN_ERR "kmem_cache_destroy %s: Slab cache still has objects\n",
+ 				s->name);
+ 			dump_stack();
+ 		}
++	} else {
++		mutex_unlock(&slab_mutex);
+ 	}
+-	mutex_unlock(&slab_mutex);
+ 	put_online_cpus();
  }
- 
--asmlinkage int compat_sys_sched_rr_get_interval(compat_pid_t pid,
--						struct compat_timespec __user *interval)
--{
--	struct timespec t;
--	int ret;
--	mm_segment_t old_fs = get_fs();
--
--	set_fs(KERNEL_DS);
--	ret = sys_sched_rr_get_interval(pid, (struct timespec __user *)&t);
--	set_fs(old_fs);
--	if (put_compat_timespec(&t, interval))
--		return -EFAULT;
--	return ret;
--}
--
- static inline void
- do_compat_cache_op(unsigned long start, unsigned long end, int flags)
- {
-diff -puN arch/powerpc/include/asm/systbl.h~compat-generic-compat_sys_sched_rr_get_interval-implementation arch/powerpc/include/asm/systbl.h
---- a/arch/powerpc/include/asm/systbl.h~compat-generic-compat_sys_sched_rr_get_interval-implementation
-+++ a/arch/powerpc/include/asm/systbl.h
-@@ -164,7 +164,7 @@ COMPAT_SYS_SPU(sched_getscheduler)
- SYSCALL_SPU(sched_yield)
- COMPAT_SYS_SPU(sched_get_priority_max)
- COMPAT_SYS_SPU(sched_get_priority_min)
--COMPAT_SYS_SPU(sched_rr_get_interval)
-+SYSX_SPU(sys_sched_rr_get_interval,compat_sys_sched_rr_get_interval_wrapper,sys_sched_rr_get_interval)
- COMPAT_SYS_SPU(nanosleep)
- SYSCALL_SPU(mremap)
- SYSCALL_SPU(setresuid)
-diff -puN arch/powerpc/include/asm/unistd.h~compat-generic-compat_sys_sched_rr_get_interval-implementation arch/powerpc/include/asm/unistd.h
---- a/arch/powerpc/include/asm/unistd.h~compat-generic-compat_sys_sched_rr_get_interval-implementation
-+++ a/arch/powerpc/include/asm/unistd.h
-@@ -54,6 +54,7 @@
- #define __ARCH_WANT_COMPAT_SYS_RT_SIGSUSPEND
- #define __ARCH_WANT_SYS_NEWFSTATAT
- #define __ARCH_WANT_COMPAT_SYS_SENDFILE
-+#define __ARCH_WANT_COMPAT_SYS_SCHED_RR_GET_INTERVAL
- #endif
- #define __ARCH_WANT_SYS_EXECVE
- #define __ARCH_WANT_KERNEL_EXECVE
-diff -puN arch/powerpc/kernel/sys_ppc32.c~compat-generic-compat_sys_sched_rr_get_interval-implementation arch/powerpc/kernel/sys_ppc32.c
---- a/arch/powerpc/kernel/sys_ppc32.c~compat-generic-compat_sys_sched_rr_get_interval-implementation
-+++ a/arch/powerpc/kernel/sys_ppc32.c
-@@ -175,19 +175,10 @@ asmlinkage long compat_sys_prctl(u32 opt
-  * proper conversion (sign extension) between the register representation of a signed int (msr in 32-bit mode)
-  * and the register representation of a signed int (msr in 64-bit mode) is performed.
-  */
--asmlinkage long compat_sys_sched_rr_get_interval(u32 pid, struct compat_timespec __user *interval)
-+asmlinkage long compat_sys_sched_rr_get_interval_wrapper(u32 pid,
-+							 struct compat_timespec __user *interval)
- {
--	struct timespec t;
--	int ret;
--	mm_segment_t old_fs = get_fs ();
--
--	/* The __user pointer cast is valid because of the set_fs() */
--	set_fs (KERNEL_DS);
--	ret = sys_sched_rr_get_interval((int)pid, (struct timespec __user *) &t);
--	set_fs (old_fs);
--	if (put_compat_timespec(&t, interval))
--		return -EFAULT;
--	return ret;
-+	return compat_sys_sched_rr_get_interval((int)pid, interval);
- }
- 
- /* Note: it is necessary to treat mode as an unsigned int,
-diff -puN arch/sparc/include/asm/unistd.h~compat-generic-compat_sys_sched_rr_get_interval-implementation arch/sparc/include/asm/unistd.h
---- a/arch/sparc/include/asm/unistd.h~compat-generic-compat_sys_sched_rr_get_interval-implementation
-+++ a/arch/sparc/include/asm/unistd.h
-@@ -45,6 +45,7 @@
- #define __ARCH_WANT_COMPAT_SYS_TIME
- #define __ARCH_WANT_COMPAT_SYS_RT_SIGSUSPEND
- #define __ARCH_WANT_COMPAT_SYS_SENDFILE
-+#define __ARCH_WANT_COMPAT_SYS_SCHED_RR_GET_INTERVAL
- #endif
- 
- /*
-diff -puN arch/sparc/kernel/sys_sparc32.c~compat-generic-compat_sys_sched_rr_get_interval-implementation arch/sparc/kernel/sys_sparc32.c
---- a/arch/sparc/kernel/sys_sparc32.c~compat-generic-compat_sys_sched_rr_get_interval-implementation
-+++ a/arch/sparc/kernel/sys_sparc32.c
-@@ -211,20 +211,6 @@ asmlinkage long compat_sys_sysfs(int opt
- 	return sys_sysfs(option, arg1, arg2);
- }
- 
--asmlinkage long compat_sys_sched_rr_get_interval(compat_pid_t pid, struct compat_timespec __user *interval)
--{
--	struct timespec t;
--	int ret;
--	mm_segment_t old_fs = get_fs ();
--	
--	set_fs (KERNEL_DS);
--	ret = sys_sched_rr_get_interval(pid, (struct timespec __user *) &t);
--	set_fs (old_fs);
--	if (put_compat_timespec(&t, interval))
--		return -EFAULT;
--	return ret;
--}
--
- asmlinkage long compat_sys_rt_sigprocmask(int how,
- 					  compat_sigset_t __user *set,
- 					  compat_sigset_t __user *oset,
-diff -puN arch/tile/include/asm/compat.h~compat-generic-compat_sys_sched_rr_get_interval-implementation arch/tile/include/asm/compat.h
---- a/arch/tile/include/asm/compat.h~compat-generic-compat_sys_sched_rr_get_interval-implementation
-+++ a/arch/tile/include/asm/compat.h
-@@ -300,8 +300,6 @@ long compat_sys_sync_file_range2(int fd,
- long compat_sys_fallocate(int fd, int mode,
- 			  u32 offset_lo, u32 offset_hi,
- 			  u32 len_lo, u32 len_hi);
--long compat_sys_sched_rr_get_interval(compat_pid_t pid,
--				      struct compat_timespec __user *interval);
- 
- /* These are the intvec_64.S trampolines. */
- long _compat_sys_execve(const char __user *path,
-diff -puN arch/tile/include/asm/unistd.h~compat-generic-compat_sys_sched_rr_get_interval-implementation arch/tile/include/asm/unistd.h
---- a/arch/tile/include/asm/unistd.h~compat-generic-compat_sys_sched_rr_get_interval-implementation
-+++ a/arch/tile/include/asm/unistd.h
-@@ -37,6 +37,7 @@ __SYSCALL(__NR_cmpxchg_badaddr, sys_cmpx
- /* In compat mode, we use sys_llseek() for compat_sys_llseek(). */
- #ifdef CONFIG_COMPAT
- #define __ARCH_WANT_SYS_LLSEEK
-+#define __ARCH_WANT_COMPAT_SYS_SCHED_RR_GET_INTERVAL
- #endif
- #define __ARCH_WANT_SYS_NEWFSTATAT
- #endif
-diff -puN arch/tile/kernel/compat.c~compat-generic-compat_sys_sched_rr_get_interval-implementation arch/tile/kernel/compat.c
---- a/arch/tile/kernel/compat.c~compat-generic-compat_sys_sched_rr_get_interval-implementation
-+++ a/arch/tile/kernel/compat.c
-@@ -76,24 +76,6 @@ long compat_sys_fallocate(int fd, int mo
- 			     ((loff_t)len_hi << 32) | len_lo);
- }
- 
--
--
--long compat_sys_sched_rr_get_interval(compat_pid_t pid,
--				      struct compat_timespec __user *interval)
--{
--	struct timespec t;
--	int ret;
--	mm_segment_t old_fs = get_fs();
--
--	set_fs(KERNEL_DS);
--	ret = sys_sched_rr_get_interval(pid,
--					(struct timespec __force __user *)&t);
--	set_fs(old_fs);
--	if (put_compat_timespec(&t, interval))
--		return -EFAULT;
--	return ret;
--}
--
- /* Provide the compat syscall number to call mapping. */
- #undef __SYSCALL
- #define __SYSCALL(nr, call) [nr] = (call),
-diff -puN include/linux/compat.h~compat-generic-compat_sys_sched_rr_get_interval-implementation include/linux/compat.h
---- a/include/linux/compat.h~compat-generic-compat_sys_sched_rr_get_interval-implementation
-+++ a/include/linux/compat.h
-@@ -592,6 +592,9 @@ asmlinkage ssize_t compat_sys_process_vm
- asmlinkage long compat_sys_sendfile(int out_fd, int in_fd,
- 				    compat_off_t __user *offset, compat_size_t count);
- 
-+asmlinkage long compat_sys_sched_rr_get_interval(compat_pid_t pid,
-+						 struct compat_timespec __user *interval);
-+
- #else
- 
- #define is_compat_task() (0)
-diff -puN kernel/compat.c~compat-generic-compat_sys_sched_rr_get_interval-implementation kernel/compat.c
---- a/kernel/compat.c~compat-generic-compat_sys_sched_rr_get_interval-implementation
-+++ a/kernel/compat.c
-@@ -1215,6 +1215,23 @@ compat_sys_sysinfo(struct compat_sysinfo
- 	return 0;
- }
- 
-+#ifdef __ARCH_WANT_COMPAT_SYS_SCHED_RR_GET_INTERVAL
-+asmlinkage long compat_sys_sched_rr_get_interval(compat_pid_t pid,
-+						 struct compat_timespec __user *interval)
-+{
-+	struct timespec t;
-+	int ret;
-+	mm_segment_t old_fs = get_fs();
-+
-+	set_fs(KERNEL_DS);
-+	ret = sys_sched_rr_get_interval(pid, (struct timespec __user *)&t);
-+	set_fs(old_fs);
-+	if (put_compat_timespec(&t, interval))
-+		return -EFAULT;
-+	return ret;
-+}
-+#endif /* __ARCH_WANT_COMPAT_SYS_SCHED_RR_GET_INTERVAL */
-+
- /*
-  * Allocate user-space memory for the duration of a single system call,
-  * in order to marshall parameters inside a compat thunk.
+ EXPORT_SYMBOL(kmem_cache_destroy);
 _
 
-Patches currently in -mm which might be from catalin.marinas@arm.com are
+Patches currently in -mm which might be from jkosina@suse.cz are
 
 linux-next.patch
 
