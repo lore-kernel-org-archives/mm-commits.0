@@ -1,183 +1,274 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2012-10-11-16-14 uploaded
-Date: Thu, 11 Oct 2012 16:15:50 -0700
-Message-ID: <20121011231551.641101E0048__34418.2744542651$1349997365$gmane$org@wpzn4.hot.corp.google.com>
+Subject: [wrecked] compat-generic-compat_sys_sched_rr_get_interval-implementation.patch removed from -mm tree
+Date: Mon, 15 Oct 2012 14:08:22 -0700
+Message-ID: <20121015210823.A35D31E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:60802 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758436Ab2JKXPw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Oct 2012 19:15:52 -0400
-Received: by mail-gg0-f202.google.com with SMTP id i4so285870ggm.1
-        for <mm-commits@vger.kernel.org>; Thu, 11 Oct 2012 16:15:52 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:34702 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750895Ab2JOVIZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Oct 2012 17:08:25 -0400
+Received: by mail-vc0-f202.google.com with SMTP id fy27so684431vcb.1
+        for <mm-commits@vger.kernel.org>; Mon, 15 Oct 2012 14:08:24 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org
-
-The mm-of-the-moment snapshot 2012-10-11-16-14 has been uploaded to
-
-   http://www.ozlabs.org/~akpm/mmotm/
-
-mmotm-readme.txt says
-
-README for mm-of-the-moment:
-
-http://www.ozlabs.org/~akpm/mmotm/
-
-This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-more than once a week.
-
-You will need quilt to apply these patches to the latest Linus release (3.x
-or 3.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-http://ozlabs.org/~akpm/mmotm/series
-
-The file broken-out.tar.gz contains two datestamp files: .DATE and
-.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-followed by the base kernel version against which this patch series is to
-be applied.
-
-This tree is partially included in linux-next.  To see which patches are
-included in linux-next, consult the `series' file.  Only the patches
-within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
-linux-next.
-
-A git tree which contains the memory management portion of this tree is
-maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-by Michal Hocko.  It contains the patches which are between the
-"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
-file, http://www.ozlabs.org/~akpm/mmotm/series.
+To: catalin.marinas@arm.com, arnd@arndb.de, benh@kernel.crashing.org, cmetcalf@tilera.com, davem@davemloft.net, paulus@samba.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
-A full copy of the full kernel tree with the linux-next and mmotm patches
-already applied is available through git within an hour of the mmotm
-release.  Individual mmotm releases are tagged.  The master branch always
-points to the latest release, so it's constantly rebasing.
+The patch titled
+     Subject: compat: generic compat_sys_sched_rr_get_interval implementation
+has been removed from the -mm tree.  Its filename was
+     compat-generic-compat_sys_sched_rr_get_interval-implementation.patch
 
-http://git.cmpxchg.org/?p=linux-mmotm.git;a=summary
+This patch was dropped because other changes were merged, which wrecked this patch
 
-To develop on top of mmotm git:
+------------------------------------------------------
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: compat: generic compat_sys_sched_rr_get_interval implementation
 
-  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-  $ git remote update mmotm
-  $ git checkout -b topic mmotm/master
-  <make changes, commit>
-  $ git send-email mmotm/master.. [...]
+This function is used by sparc, powerpc tile and arm64 for compat support.
+ The patch adds a generic implementation with a wrapper for PowerPC to do
+the u32->int sign extension.
 
-To rebase a branch with older patches to a new mmotm release:
+The reason for a single patch covering powerpc, tile, sparc and arm64 is
+to keep it bisectable, otherwise kernel building may fail with mismatched
+function declarations.
 
-  $ git remote update mmotm
-  $ git rebase --onto mmotm/master <topic base> topic
+Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+Acked-by: Chris Metcalf <cmetcalf@tilera.com>  [for tile]
+Acked-by: David S. Miller <davem@davemloft.net>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
+ arch/arm64/include/asm/unistd32.h |    1 +
+ arch/arm64/kernel/sys_compat.c    |   15 ---------------
+ arch/powerpc/include/asm/systbl.h |    2 +-
+ arch/powerpc/include/asm/unistd.h |    1 +
+ arch/powerpc/kernel/sys_ppc32.c   |   15 +++------------
+ arch/sparc/include/asm/unistd.h   |    1 +
+ arch/sparc/kernel/sys_sparc32.c   |   14 --------------
+ arch/tile/include/asm/compat.h    |    2 --
+ arch/tile/include/asm/unistd.h    |    1 +
+ arch/tile/kernel/compat.c         |   18 ------------------
+ include/linux/compat.h            |    3 +++
+ kernel/compat.c                   |   17 +++++++++++++++++
+ 12 files changed, 28 insertions(+), 62 deletions(-)
 
+diff -puN arch/arm64/include/asm/unistd32.h~compat-generic-compat_sys_sched_rr_get_interval-implementation arch/arm64/include/asm/unistd32.h
+--- a/arch/arm64/include/asm/unistd32.h~compat-generic-compat_sys_sched_rr_get_interval-implementation
++++ a/arch/arm64/include/asm/unistd32.h
+@@ -753,3 +753,4 @@ __SYSCALL(__NR_syncfs, sys_syncfs)
+ #define __ARCH_WANT_SYS_SIGPROCMASK
+ #define __ARCH_WANT_COMPAT_SYS_RT_SIGSUSPEND
+ #define __ARCH_WANT_COMPAT_SYS_SENDFILE
++#define __ARCH_WANT_COMPAT_SYS_SCHED_RR_GET_INTERVAL
+diff -puN arch/arm64/kernel/sys_compat.c~compat-generic-compat_sys_sched_rr_get_interval-implementation arch/arm64/kernel/sys_compat.c
+--- a/arch/arm64/kernel/sys_compat.c~compat-generic-compat_sys_sched_rr_get_interval-implementation
++++ a/arch/arm64/kernel/sys_compat.c
+@@ -69,21 +69,6 @@ out:
+ 	return error;
+ }
+ 
+-asmlinkage int compat_sys_sched_rr_get_interval(compat_pid_t pid,
+-						struct compat_timespec __user *interval)
+-{
+-	struct timespec t;
+-	int ret;
+-	mm_segment_t old_fs = get_fs();
+-
+-	set_fs(KERNEL_DS);
+-	ret = sys_sched_rr_get_interval(pid, (struct timespec __user *)&t);
+-	set_fs(old_fs);
+-	if (put_compat_timespec(&t, interval))
+-		return -EFAULT;
+-	return ret;
+-}
+-
+ static inline void
+ do_compat_cache_op(unsigned long start, unsigned long end, int flags)
+ {
+diff -puN arch/powerpc/include/asm/systbl.h~compat-generic-compat_sys_sched_rr_get_interval-implementation arch/powerpc/include/asm/systbl.h
+--- a/arch/powerpc/include/asm/systbl.h~compat-generic-compat_sys_sched_rr_get_interval-implementation
++++ a/arch/powerpc/include/asm/systbl.h
+@@ -164,7 +164,7 @@ COMPAT_SYS_SPU(sched_getscheduler)
+ SYSCALL_SPU(sched_yield)
+ COMPAT_SYS_SPU(sched_get_priority_max)
+ COMPAT_SYS_SPU(sched_get_priority_min)
+-COMPAT_SYS_SPU(sched_rr_get_interval)
++SYSX_SPU(sys_sched_rr_get_interval,compat_sys_sched_rr_get_interval_wrapper,sys_sched_rr_get_interval)
+ COMPAT_SYS_SPU(nanosleep)
+ SYSCALL_SPU(mremap)
+ SYSCALL_SPU(setresuid)
+diff -puN arch/powerpc/include/asm/unistd.h~compat-generic-compat_sys_sched_rr_get_interval-implementation arch/powerpc/include/asm/unistd.h
+--- a/arch/powerpc/include/asm/unistd.h~compat-generic-compat_sys_sched_rr_get_interval-implementation
++++ a/arch/powerpc/include/asm/unistd.h
+@@ -54,6 +54,7 @@
+ #define __ARCH_WANT_COMPAT_SYS_RT_SIGSUSPEND
+ #define __ARCH_WANT_SYS_NEWFSTATAT
+ #define __ARCH_WANT_COMPAT_SYS_SENDFILE
++#define __ARCH_WANT_COMPAT_SYS_SCHED_RR_GET_INTERVAL
+ #endif
+ #define __ARCH_WANT_SYS_EXECVE
+ #define __ARCH_WANT_KERNEL_EXECVE
+diff -puN arch/powerpc/kernel/sys_ppc32.c~compat-generic-compat_sys_sched_rr_get_interval-implementation arch/powerpc/kernel/sys_ppc32.c
+--- a/arch/powerpc/kernel/sys_ppc32.c~compat-generic-compat_sys_sched_rr_get_interval-implementation
++++ a/arch/powerpc/kernel/sys_ppc32.c
+@@ -175,19 +175,10 @@ asmlinkage long compat_sys_prctl(u32 opt
+  * proper conversion (sign extension) between the register representation of a signed int (msr in 32-bit mode)
+  * and the register representation of a signed int (msr in 64-bit mode) is performed.
+  */
+-asmlinkage long compat_sys_sched_rr_get_interval(u32 pid, struct compat_timespec __user *interval)
++asmlinkage long compat_sys_sched_rr_get_interval_wrapper(u32 pid,
++							 struct compat_timespec __user *interval)
+ {
+-	struct timespec t;
+-	int ret;
+-	mm_segment_t old_fs = get_fs ();
+-
+-	/* The __user pointer cast is valid because of the set_fs() */
+-	set_fs (KERNEL_DS);
+-	ret = sys_sched_rr_get_interval((int)pid, (struct timespec __user *) &t);
+-	set_fs (old_fs);
+-	if (put_compat_timespec(&t, interval))
+-		return -EFAULT;
+-	return ret;
++	return compat_sys_sched_rr_get_interval((int)pid, interval);
+ }
+ 
+ /* Note: it is necessary to treat mode as an unsigned int,
+diff -puN arch/sparc/include/asm/unistd.h~compat-generic-compat_sys_sched_rr_get_interval-implementation arch/sparc/include/asm/unistd.h
+--- a/arch/sparc/include/asm/unistd.h~compat-generic-compat_sys_sched_rr_get_interval-implementation
++++ a/arch/sparc/include/asm/unistd.h
+@@ -45,6 +45,7 @@
+ #define __ARCH_WANT_COMPAT_SYS_TIME
+ #define __ARCH_WANT_COMPAT_SYS_RT_SIGSUSPEND
+ #define __ARCH_WANT_COMPAT_SYS_SENDFILE
++#define __ARCH_WANT_COMPAT_SYS_SCHED_RR_GET_INTERVAL
+ #endif
+ 
+ /*
+diff -puN arch/sparc/kernel/sys_sparc32.c~compat-generic-compat_sys_sched_rr_get_interval-implementation arch/sparc/kernel/sys_sparc32.c
+--- a/arch/sparc/kernel/sys_sparc32.c~compat-generic-compat_sys_sched_rr_get_interval-implementation
++++ a/arch/sparc/kernel/sys_sparc32.c
+@@ -211,20 +211,6 @@ asmlinkage long compat_sys_sysfs(int opt
+ 	return sys_sysfs(option, arg1, arg2);
+ }
+ 
+-asmlinkage long compat_sys_sched_rr_get_interval(compat_pid_t pid, struct compat_timespec __user *interval)
+-{
+-	struct timespec t;
+-	int ret;
+-	mm_segment_t old_fs = get_fs ();
+-	
+-	set_fs (KERNEL_DS);
+-	ret = sys_sched_rr_get_interval(pid, (struct timespec __user *) &t);
+-	set_fs (old_fs);
+-	if (put_compat_timespec(&t, interval))
+-		return -EFAULT;
+-	return ret;
+-}
+-
+ asmlinkage long compat_sys_rt_sigprocmask(int how,
+ 					  compat_sigset_t __user *set,
+ 					  compat_sigset_t __user *oset,
+diff -puN arch/tile/include/asm/compat.h~compat-generic-compat_sys_sched_rr_get_interval-implementation arch/tile/include/asm/compat.h
+--- a/arch/tile/include/asm/compat.h~compat-generic-compat_sys_sched_rr_get_interval-implementation
++++ a/arch/tile/include/asm/compat.h
+@@ -300,8 +300,6 @@ long compat_sys_sync_file_range2(int fd,
+ long compat_sys_fallocate(int fd, int mode,
+ 			  u32 offset_lo, u32 offset_hi,
+ 			  u32 len_lo, u32 len_hi);
+-long compat_sys_sched_rr_get_interval(compat_pid_t pid,
+-				      struct compat_timespec __user *interval);
+ 
+ /* These are the intvec_64.S trampolines. */
+ long _compat_sys_execve(const char __user *path,
+diff -puN arch/tile/include/asm/unistd.h~compat-generic-compat_sys_sched_rr_get_interval-implementation arch/tile/include/asm/unistd.h
+--- a/arch/tile/include/asm/unistd.h~compat-generic-compat_sys_sched_rr_get_interval-implementation
++++ a/arch/tile/include/asm/unistd.h
+@@ -37,6 +37,7 @@ __SYSCALL(__NR_cmpxchg_badaddr, sys_cmpx
+ /* In compat mode, we use sys_llseek() for compat_sys_llseek(). */
+ #ifdef CONFIG_COMPAT
+ #define __ARCH_WANT_SYS_LLSEEK
++#define __ARCH_WANT_COMPAT_SYS_SCHED_RR_GET_INTERVAL
+ #endif
+ #define __ARCH_WANT_SYS_NEWFSTATAT
+ #endif
+diff -puN arch/tile/kernel/compat.c~compat-generic-compat_sys_sched_rr_get_interval-implementation arch/tile/kernel/compat.c
+--- a/arch/tile/kernel/compat.c~compat-generic-compat_sys_sched_rr_get_interval-implementation
++++ a/arch/tile/kernel/compat.c
+@@ -76,24 +76,6 @@ long compat_sys_fallocate(int fd, int mo
+ 			     ((loff_t)len_hi << 32) | len_lo);
+ }
+ 
+-
+-
+-long compat_sys_sched_rr_get_interval(compat_pid_t pid,
+-				      struct compat_timespec __user *interval)
+-{
+-	struct timespec t;
+-	int ret;
+-	mm_segment_t old_fs = get_fs();
+-
+-	set_fs(KERNEL_DS);
+-	ret = sys_sched_rr_get_interval(pid,
+-					(struct timespec __force __user *)&t);
+-	set_fs(old_fs);
+-	if (put_compat_timespec(&t, interval))
+-		return -EFAULT;
+-	return ret;
+-}
+-
+ /* Provide the compat syscall number to call mapping. */
+ #undef __SYSCALL
+ #define __SYSCALL(nr, call) [nr] = (call),
+diff -puN include/linux/compat.h~compat-generic-compat_sys_sched_rr_get_interval-implementation include/linux/compat.h
+--- a/include/linux/compat.h~compat-generic-compat_sys_sched_rr_get_interval-implementation
++++ a/include/linux/compat.h
+@@ -592,6 +592,9 @@ asmlinkage ssize_t compat_sys_process_vm
+ asmlinkage long compat_sys_sendfile(int out_fd, int in_fd,
+ 				    compat_off_t __user *offset, compat_size_t count);
+ 
++asmlinkage long compat_sys_sched_rr_get_interval(compat_pid_t pid,
++						 struct compat_timespec __user *interval);
++
+ #else
+ 
+ #define is_compat_task() (0)
+diff -puN kernel/compat.c~compat-generic-compat_sys_sched_rr_get_interval-implementation kernel/compat.c
+--- a/kernel/compat.c~compat-generic-compat_sys_sched_rr_get_interval-implementation
++++ a/kernel/compat.c
+@@ -1215,6 +1215,23 @@ compat_sys_sysinfo(struct compat_sysinfo
+ 	return 0;
+ }
+ 
++#ifdef __ARCH_WANT_COMPAT_SYS_SCHED_RR_GET_INTERVAL
++asmlinkage long compat_sys_sched_rr_get_interval(compat_pid_t pid,
++						 struct compat_timespec __user *interval)
++{
++	struct timespec t;
++	int ret;
++	mm_segment_t old_fs = get_fs();
++
++	set_fs(KERNEL_DS);
++	ret = sys_sched_rr_get_interval(pid, (struct timespec __user *)&t);
++	set_fs(old_fs);
++	if (put_compat_timespec(&t, interval))
++		return -EFAULT;
++	return ret;
++}
++#endif /* __ARCH_WANT_COMPAT_SYS_SCHED_RR_GET_INTERVAL */
++
+ /*
+  * Allocate user-space memory for the duration of a single system call,
+  * in order to marshall parameters inside a compat thunk.
+_
 
+Patches currently in -mm which might be from catalin.marinas@arm.com are
 
-The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
-contains daily snapshots of the -mm tree.  It is updated more frequently
-than mmotm, and is untested.
+linux-next.patch
 
-A git copy of this tree is available at
-
-	http://git.cmpxchg.org/?p=linux-mmots.git;a=summary
-
-and use of this tree is similar to
-http://git.cmpxchg.org/?p=linux-mmotm.git, described above.
-
-
-This mmotm tree contains the following patches against 3.6:
-(patches marked "*" will be included in linux-next)
-
-  origin.patch
-  linux-next.patch
-  linux-next-git-rejects.patch
-  i-need-old-gcc.patch
-  arch-alpha-kernel-systblss-remove-debug-check.patch
-* linux-coredumph-needs-asm-siginfoh.patch
-* memstick-remove-unused-field-from-state-struct.patch
-* memstick-ms_block-fix-complile-issue.patch
-* memstick-use-after-free-in-msb_disk_release.patch
-* memstick-memory-leak-on-error-in-msb_ftl_scan.patch
-* kernel-sysc-fix-stack-memory-content-leak-via-uname26.patch
-* drivers-video-backlight-lm3639_blc-return-proper-error-in-lm3639_bled_mode_store-error-paths.patch
-* pidns-remove-recursion-from-free_pid_ns-v5.patch
-* pidns-remove-recursion-from-free_pid_ns-v5-fix.patch
-* cris-fix-i-o-macros.patch
-* selinux-fix-sel_netnode_insert-suspicious-rcu-dereference.patch
-* mm-slab-release-slab_mutex-earlier-in-kmem_cache_destroy.patch
-* nohz-fix-idle-ticks-in-cpu-summary-line-of-proc-stat.patch
-* vfs-d_obtain_alias-needs-to-use-as-default-name.patch
-* cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved.patch
-* cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
-* acpi_memhotplugc-fix-memory-leak-when-memory-device-is-unbound-from-the-module-acpi_memhotplug.patch
-* acpi_memhotplugc-free-memory-device-if-acpi_memory_enable_device-failed.patch
-* acpi_memhotplugc-remove-memory-info-from-list-before-freeing-it.patch
-* acpi_memhotplugc-dont-allow-to-eject-the-memory-device-if-it-is-being-used.patch
-* acpi_memhotplugc-bind-the-memory-device-when-the-driver-is-being-loaded.patch
-* acpi_memhotplugc-auto-bind-the-memory-device-which-is-hotplugged-before-the-driver-is-loaded.patch
-* arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-* x86-numa-dont-check-if-node-is-numa_no_node.patch
-* arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-* uv-fix-incorrect-tlb-flush-all-issue.patch
-* olpc-fix-olpc-xo1-scic-build-errors.patch
-* fs-debugsfs-remove-unnecessary-inode-i_private-initialization.patch
-* pcmcia-move-unbind-rebind-into-dev_pm_opscomplete.patch
-* drm-i915-optimize-div_round_closest-call.patch
-* drm-fix-radeon-printk-format-warnings.patch
-  cyber2000fb-avoid-palette-corruption-at-higher-clocks.patch
-* timeconstpl-remove-deprecated-defined-array.patch
-* time-dont-inline-export_symbol-functions.patch
-* h8300-select-generic-atomic64_t-support.patch
-* cciss-cleanup-bitops-usage.patch
-* cciss-use-check_signature.patch
-* block-store-partition_meta_infouuid-as-a-string.patch
-* init-reduce-partuuid-min-length-to-1-from-36.patch
-* block-partition-msdos-provide-uuids-for-partitions.patch
-* drbd-use-copy_highpage.patch
-* vfs-increment-iversion-when-a-file-is-truncated.patch
-* fs-change-return-values-from-eacces-to-eperm.patch
-* fs-block_devc-need-not-to-check-inode-i_bdev-in-bd_forget.patch
-* mm-slab-remove-duplicate-check.patch
-  mm.patch
-* writeback-remove-nr_pages_dirtied-arg-from-balance_dirty_pages_ratelimited_nr.patch
-* mm-show-migration-types-in-show_mem.patch
-* memory-hotplug-suppress-device-memoryx-does-not-have-a-release-function-warning.patch
-* memory-hotplug-suppress-device-nodex-does-not-have-a-release-function-warning.patch
-* mm-memcg-make-mem_cgroup_out_of_memory-static.patch
-* swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
-* swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-* mm-memblock-reduce-overhead-in-binary-search.patch
-* compat-generic-compat_sys_sched_rr_get_interval-implementation.patch
-* drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid.patch
-* drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-* drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists.patch
-* drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-* hfsplus-add-on-disk-layout-declarations-related-to-attributes-tree.patch
-* hfsplus-add-functionality-of-manipulating-by-records-in-attributes-tree.patch
-* hfsplus-rework-functionality-of-getting-setting-and-deleting-of-extended-attributes.patch
-* hfsplus-add-support-of-manipulation-by-attributes-file.patch
-* hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
-* hfsplus-code-style-fixes-reworked-support-of-extended-attributes.patch
-* fat-modify-nfs-mount-option.patch
-* fat-exportfs-rebuild-inode-if-ilookup-fails.patch
-* fat-exportfs-rebuild-inode-if-ilookup-fails-fix.patch
-* fat-exportfs-rebuild-directory-inode-if-fat_dget-fails.patch
-* documentation-update-nfs-option-in-filesystem-vfattxt.patch
-* kstrto-add-documentation.patch
-* simple_strto-annotate-function-as-obsolete.patch
-* proc-dont-show-nonexistent-capabilities.patch
-* ipc-semc-alternatives-to-preempt_disable.patch
-* dma-debug-new-interfaces-to-debug-dma-mapping-errors.patch
-* linux-compilerh-add-__must_hold-macro-for-functions-called-with-a-lock-held.patch
-  make-sure-nobodys-leaking-resources.patch
-  journal_add_journal_head-debug.patch
-  releasing-resources-with-children.patch
-  make-frame_pointer-default=y.patch
-  kernel-forkc-export-kernel_thread-to-modules.patch
-  mutex-subsystem-synchro-test-module.patch
-  mutex-subsystem-synchro-test-module-fix.patch
-  mutex-subsystem-synchro-test-module-fix-2.patch
-  slab-leaks3-default-y.patch
-  put_bh-debug.patch
-  add-debugging-aid-for-memory-initialisation-problems.patch
-  workaround-for-a-pci-restoring-bug.patch
-  single_open-seq_release-leak-diagnostics.patch
-  add-a-refcount-check-in-dput.patch
