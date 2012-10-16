@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + staging-rts_pstor-use-kbasename.patch added to -mm tree
-Date: Tue, 16 Oct 2012 14:35:21 -0700
-Message-ID: <20121016213522.8175E5C0050@hpza9.eem.corp.google.com>
+Subject: + lib-dynamic_debug-use-kbasename.patch added to -mm tree
+Date: Tue, 16 Oct 2012 14:35:18 -0700
+Message-ID: <20121016213519.7636F5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f202.google.com ([209.85.215.202]:52814 "EHLO
-	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754421Ab2JPVfZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Oct 2012 17:35:25 -0400
-Received: by mail-ea0-f202.google.com with SMTP id q10so257975eaa.1
-        for <mm-commits@vger.kernel.org>; Tue, 16 Oct 2012 14:35:23 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:41540 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755286Ab2JPVfW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Oct 2012 17:35:22 -0400
+Received: by mail-ee0-f74.google.com with SMTP id b57so420561eek.1
+        for <mm-commits@vger.kernel.org>; Tue, 16 Oct 2012 14:35:20 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andriy.shevchenko@linux.intel.com, gregkh@linuxfoundation.org, yamanetoshi@gmail.com
+Cc: andriy.shevchenko@linux.intel.com, jbaron@redhat.com
 
 
 The patch titled
-     Subject: staging: rts_pstor: use kbasename()
+     Subject: lib: dynamic_debug: use kbasename()
 has been added to the -mm tree.  Its filename is
-     staging-rts_pstor-use-kbasename.patch
+     lib-dynamic_debug-use-kbasename.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,78 +34,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: staging: rts_pstor: use kbasename()
+Subject: lib: dynamic_debug: use kbasename()
 
-The custom filename function mostly repeats the kernel's kbasename. This patch
-simplifies it. The updated filename() will not check for the '\' in the
-filenames. It seems redundant in Linux. The __FILE__ macro always defined if
-we compile an existing file. Thus, NULL check is not needed there as well.
+Remove the custom implementation of the functionality similar to kbasename().
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: YAMANE Toshiaki <yamanetoshi@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jason Baron <jbaron@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/rts_pstor/trace.h |   24 ++++--------------------
- 1 file changed, 4 insertions(+), 20 deletions(-)
+ lib/dynamic_debug.c |    9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
 
-diff -puN drivers/staging/rts_pstor/trace.h~staging-rts_pstor-use-kbasename drivers/staging/rts_pstor/trace.h
---- a/drivers/staging/rts_pstor/trace.h~staging-rts_pstor-use-kbasename
-+++ a/drivers/staging/rts_pstor/trace.h
-@@ -24,31 +24,15 @@
- #ifndef __REALTEK_RTSX_TRACE_H
- #define __REALTEK_RTSX_TRACE_H
+diff -puN lib/dynamic_debug.c~lib-dynamic_debug-use-kbasename lib/dynamic_debug.c
+--- a/lib/dynamic_debug.c~lib-dynamic_debug-use-kbasename
++++ a/lib/dynamic_debug.c
+@@ -62,13 +62,6 @@ static LIST_HEAD(ddebug_tables);
+ static int verbose = 0;
+ module_param(verbose, int, 0644);
  
-+#include <linux/string.h>
-+
- #define _MSG_TRACE
- 
- #ifdef _MSG_TRACE
--static inline char *filename(char *path)
+-/* Return the last part of a pathname */
+-static inline const char *basename(const char *path)
 -{
--	char *ptr;
--
--	if (path == NULL)
--		return NULL;
--
--	ptr = path;
--
--	while (*ptr != '\0') {
--		if ((*ptr == '\\') || (*ptr == '/'))
--			path = ptr + 1;
--		
--		ptr++;
--	}
--
--	return path;
+-	const char *tail = strrchr(path, '/');
+-	return tail ? tail+1 : path;
 -}
- 
- #define TRACE_RET(chip, ret)   										\
- do {													\
--	char *_file = filename(__FILE__);								\
-+	const char *_file = kbasename(__FILE__);								\
- 	RTSX_DEBUGP("[%s][%s]:[%d]\n", _file, __func__, __LINE__);					\
- 	(chip)->trace_msg[(chip)->msg_idx].line = (u16)(__LINE__);					\
- 	strncpy((chip)->trace_msg[(chip)->msg_idx].func, __func__, MSG_FUNC_LEN-1);			\
-@@ -64,7 +48,7 @@ do {													\
- 
- #define TRACE_GOTO(chip, label)   									\
- do {													\
--	char *_file = filename(__FILE__);								\
-+	const char *_file = kbasename(__FILE__);								\
- 	RTSX_DEBUGP("[%s][%s]:[%d]\n", _file, __func__, __LINE__);					\
- 	(chip)->trace_msg[(chip)->msg_idx].line = (u16)(__LINE__);					\
- 	strncpy((chip)->trace_msg[(chip)->msg_idx].func, __func__, MSG_FUNC_LEN-1);			\
-_
-
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
-
-linux-next.patch
-string-introduce-helper-to-get-base-file-name-from-given-path.patch
-lib-dynamic_debug-use-kbasename.patch
-staging-rts_pstor-use-kbasename.patch
-mm-use-kbasename.patch
-procfs-use-kbasename.patch
-trace-use-kbasename.patch
-
