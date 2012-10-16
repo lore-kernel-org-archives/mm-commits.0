@@ -1,88 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thermal-cpufreq-fix-build-when-cpu_freq_table-isnt-configured.patch removed from -mm tree
-Date: Tue, 16 Oct 2012 14:32:44 -0700
-Message-ID: <20121016213245.D7DF95C0050@hpza9.eem.corp.google.com>
+Subject: + string-introduce-helper-to-get-base-file-name-from-given-path.patch added to -mm tree
+Date: Tue, 16 Oct 2012 14:35:15 -0700
+Message-ID: <20121016213516.31E9F1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:57188 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753286Ab2JPVct (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Oct 2012 17:32:49 -0400
-Received: by mail-bk0-f74.google.com with SMTP id q16so418016bkw.1
-        for <mm-commits@vger.kernel.org>; Tue, 16 Oct 2012 14:32:47 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:50254 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754243Ab2JPVfR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Oct 2012 17:35:17 -0400
+Received: by mail-qc0-f202.google.com with SMTP id s25so841478qcq.1
+        for <mm-commits@vger.kernel.org>; Tue, 16 Oct 2012 14:35:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, amit.kachhap@linaro.org, len.brown@intel.com, rui.zhang@intel.com, viresh.linux@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: andriy.shevchenko@linux.intel.com, fweisbec@gmail.com, gregkh@linuxfoundation.org, jbaron@redhat.com, rostedt@goodmis.org, yamanetoshi@gmail.com
 
 
 The patch titled
-     Subject: thermal, cpufreq: Fix build when CPU_FREQ_TABLE isn't configured
-has been removed from the -mm tree.  Its filename was
-     thermal-cpufreq-fix-build-when-cpu_freq_table-isnt-configured.patch
+     Subject: string: introduce helper to get base file name from given path
+has been added to the -mm tree.  Its filename is
+     string-introduce-helper-to-get-base-file-name-from-given-path.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: thermal, cpufreq: Fix build when CPU_FREQ_TABLE isn't configured
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: string: introduce helper to get base file name from given path
 
-Commit 02361418 ("thermal: add generic cpufreq cooling implementation")
-requires cpufreq_frequency_get_table(), but that function is only defined
-for CONFIG_CPU_FREQ_TABLE resulting in the following build error:
+There are several places in the kernel that use functionality like
+basename(3) with the exception: in case of '/foo/bar/' we expect to get an
+empty string.  Let's do it common helper for them.
 
-drivers/built-in.o: In function `cpufreq_get_max_state':
-drivers/thermal/cpu_cooling.c:259: undefined reference to `cpufreq_frequency_get_table'
-drivers/built-in.o: In function `get_cpu_frequency':
-drivers/thermal/cpu_cooling.c:129: undefined reference to `cpufreq_frequency_get_table'
-
-Fix it by selecting CONFIG_CPU_FREQ_TABLE for such a configuration.
-
-It turns out CONFIG_EXYNOS_THERMAL also needs CONFIG_CPU_FREQ_TABLE, so
-select it there as well.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Amit Daniel Kachhap <amit.kachhap@linaro.org>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: Viresh Kumar <viresh.linux@gmail.com>
-Cc: Len Brown <len.brown@intel.com>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Jason Baron <jbaron@redhat.com>
+Cc: YAMANE Toshiaki <yamanetoshi@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/thermal/Kconfig |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/string.h |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN drivers/thermal/Kconfig~thermal-cpufreq-fix-build-when-cpu_freq_table-isnt-configured drivers/thermal/Kconfig
---- a/drivers/thermal/Kconfig~thermal-cpufreq-fix-build-when-cpu_freq_table-isnt-configured
-+++ a/drivers/thermal/Kconfig
-@@ -22,6 +22,7 @@ config THERMAL_HWMON
- config CPU_THERMAL
- 	bool "generic cpu cooling support"
- 	depends on THERMAL && CPU_FREQ
-+	select CPU_FREQ_TABLE
- 	help
- 	  This implements the generic cpu cooling mechanism through frequency
- 	  reduction, cpu hotplug and any other ways of reducing temperature. An
-@@ -50,6 +51,7 @@ config RCAR_THERMAL
- config EXYNOS_THERMAL
- 	tristate "Temperature sensor on Samsung EXYNOS"
- 	depends on (ARCH_EXYNOS4 || ARCH_EXYNOS5) && THERMAL
-+	select CPU_FREQ_TABLE
- 	help
- 	  If you say yes here you get support for TMU (Thermal Managment
- 	  Unit) on SAMSUNG EXYNOS series of SoC.
+diff -puN include/linux/string.h~string-introduce-helper-to-get-base-file-name-from-given-path include/linux/string.h
+--- a/include/linux/string.h~string-introduce-helper-to-get-base-file-name-from-given-path
++++ a/include/linux/string.h
+@@ -143,4 +143,15 @@ static inline bool strstarts(const char 
+ 
+ extern size_t memweight(const void *ptr, size_t bytes);
+ 
++/**
++ * kbasename - return the last part of a pathname.
++ *
++ * @path: path to extract the filename from.
++ */
++static inline const char *kbasename(const char *path)
++{
++	const char *tail = strrchr(path, '/');
++	return tail ? tail + 1 : path;
++}
++
+ #endif /* _LINUX_STRING_H_ */
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-origin.patch
 linux-next.patch
-acpi_memhotplugc-fix-memory-leak-when-memory-device-is-unbound-from-the-module-acpi_memhotplug.patch
-acpi_memhotplugc-free-memory-device-if-acpi_memory_enable_device-failed.patch
-acpi_memhotplugc-remove-memory-info-from-list-before-freeing-it.patch
-acpi_memhotplugc-dont-allow-to-eject-the-memory-device-if-it-is-being-used.patch
-acpi_memhotplugc-bind-the-memory-device-when-the-driver-is-being-loaded.patch
-acpi_memhotplugc-auto-bind-the-memory-device-which-is-hotplugged-before-the-driver-is-loaded.patch
-memory-hotplug-suppress-device-memoryx-does-not-have-a-release-function-warning.patch
-memory-hotplug-suppress-device-nodex-does-not-have-a-release-function-warning.patch
-mm-memcg-make-mem_cgroup_out_of_memory-static.patch
+string-introduce-helper-to-get-base-file-name-from-given-path.patch
+lib-dynamic_debug-use-kbasename.patch
+staging-rts_pstor-use-kbasename.patch
+mm-use-kbasename.patch
+procfs-use-kbasename.patch
+trace-use-kbasename.patch
 
