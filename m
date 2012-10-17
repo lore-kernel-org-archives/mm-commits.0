@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-pcf50633-fix-checkpatch-warning.patch added to -mm tree
-Date: Wed, 17 Oct 2012 16:14:05 -0700
-Message-ID: <20121017231406.A725E5C0065@hpza9.eem.corp.google.com>
+Subject: + backlight-tdo24m-fix-checkpatch-warning.patch added to -mm tree
+Date: Wed, 17 Oct 2012 16:14:11 -0700
+Message-ID: <20121017231412.8B89C5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:65057 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752493Ab2JQXOJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Oct 2012 19:14:09 -0400
-Received: by mail-ee0-f74.google.com with SMTP id b57so491795eek.1
-        for <mm-commits@vger.kernel.org>; Wed, 17 Oct 2012 16:14:07 -0700 (PDT)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:45428 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752493Ab2JQXOO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Oct 2012 19:14:14 -0400
+Received: by mail-fa0-f74.google.com with SMTP id t1so487201fae.1
+        for <mm-commits@vger.kernel.org>; Wed, 17 Oct 2012 16:14:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: backlight: pcf50633: fix checkpatch warning
+     Subject: backlight: tdo24m: fix checkpatch warning
 has been added to the -mm tree.  Its filename is
-     backlight-pcf50633-fix-checkpatch-warning.patch
+     backlight-tdo24m-fix-checkpatch-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,50 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: pcf50633: fix checkpatch warning
+Subject: backlight: tdo24m: fix checkpatch warning
 
 This patch fixes the checkpatch warning as below:
 
-WARNING: please, no spaces at the start of a line
-
-Also, long comments are fixed for the preferred style.
+WARNING: please, no space before tabs
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/pcf50633-backlight.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ drivers/video/backlight/tdo24m.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/backlight/pcf50633-backlight.c~backlight-pcf50633-fix-checkpatch-warning drivers/video/backlight/pcf50633-backlight.c
---- a/drivers/video/backlight/pcf50633-backlight.c~backlight-pcf50633-fix-checkpatch-warning
-+++ a/drivers/video/backlight/pcf50633-backlight.c
-@@ -52,7 +52,7 @@ int pcf50633_bl_set_brightness_limit(str
- 	pcf_bl->brightness_limit = limit & 0x3f;
- 	backlight_update_status(pcf_bl->bl);
+diff -puN drivers/video/backlight/tdo24m.c~backlight-tdo24m-fix-checkpatch-warning drivers/video/backlight/tdo24m.c
+--- a/drivers/video/backlight/tdo24m.c~backlight-tdo24m-fix-checkpatch-warning
++++ a/drivers/video/backlight/tdo24m.c
+@@ -2,7 +2,7 @@
+  * tdo24m - SPI-based drivers for Toppoly TDO24M series LCD panels
+  *
+  * Copyright (C) 2008 Marvell International Ltd.
+- * 	Eric Miao <eric.miao@marvell.com>
++ *	Eric Miao <eric.miao@marvell.com>
+  *
+  *  This program is free software; you can redistribute it and/or modify
+  *  it under the terms of the GNU General Public License version 2 as
+@@ -90,7 +90,7 @@ static uint32_t lcd_qvga_pass_through_td
+ };
  
--    return 0;
-+	return 0;
- }
+ static uint32_t lcd_vga_transfer_tdo24m[] = {
+-	CMD1(0xcf, 0x02), 	/* Blanking period control (1) */
++	CMD1(0xcf, 0x02),	/* Blanking period control (1) */
+ 	CMD2(0xd0, 0x08, 0x04),	/* Blanking period control (2) */
+ 	CMD1(0xd1, 0x01),	/* CKV timing control on/off */
+ 	CMD2(0xd2, 0x14, 0x00),	/* CKV 1,2 timing control */
+@@ -132,7 +132,7 @@ static uint32_t lcd_qvga_pass_through_td
+ };
  
- static int pcf50633_bl_update_status(struct backlight_device *bl)
-@@ -136,8 +136,10 @@ static int __devinit pcf50633_bl_probe(s
- 
- 	pcf50633_reg_write(pcf_bl->pcf, PCF50633_REG_LEDDIM, pdata->ramp_time);
- 
--	/* Should be different from bl_props.brightness, so we do not exit
--	 * update_status early the first time it's called */
-+	/*
-+	 * Should be different from bl_props.brightness, so we do not exit
-+	 * update_status early the first time it's called
-+	 */
- 	pcf_bl->brightness = pcf_bl->bl->props.brightness + 1;
- 
- 	backlight_update_status(pcf_bl->bl);
+ static uint32_t lcd_vga_transfer_tdo35s[] = {
+-	CMD1(0xcf, 0x02), 	/* Blanking period control (1) */
++	CMD1(0xcf, 0x02),	/* Blanking period control (1) */
+ 	CMD2(0xd0, 0x08, 0x04),	/* Blanking period control (2) */
+ 	CMD1(0xd1, 0x01),	/* CKV timing control on/off */
+ 	CMD2(0xd2, 0x00, 0x1e),	/* CKV 1,2 timing control */
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
