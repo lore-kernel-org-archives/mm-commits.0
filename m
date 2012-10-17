@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-88pm860x_bl-fix-checkpatch-warning.patch added to -mm tree
-Date: Wed, 17 Oct 2012 16:13:25 -0700
-Message-ID: <20121017231326.2B4B0100047@wpzn3.hot.corp.google.com>
+Subject: + backlight-atmel-pwm-bl-fix-checkpatch-warning.patch added to -mm tree
+Date: Wed, 17 Oct 2012 16:13:28 -0700
+Message-ID: <20121017231329.227A1100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:34655 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752199Ab2JQXN1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Oct 2012 19:13:27 -0400
-Received: by mail-qa0-f74.google.com with SMTP id a16so143552qae.1
-        for <mm-commits@vger.kernel.org>; Wed, 17 Oct 2012 16:13:26 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:59727 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752369Ab2JQXNa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Oct 2012 19:13:30 -0400
+Received: by mail-vc0-f202.google.com with SMTP id fy27so934451vcb.1
+        for <mm-commits@vger.kernel.org>; Wed, 17 Oct 2012 16:13:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: backlight: 88pm860x_bl: fix checkpatch warning
+     Subject: backlight: atmel-pwm-bl: fix checkpatch warning
 has been added to the -mm tree.  Its filename is
-     backlight-88pm860x_bl-fix-checkpatch-warning.patch
+     backlight-atmel-pwm-bl-fix-checkpatch-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: 88pm860x_bl: fix checkpatch warning
+Subject: backlight: atmel-pwm-bl: fix checkpatch warning
 
 This patch fixes the checkpatch warning as below:
 
@@ -45,23 +45,26 @@ Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/88pm860x_bl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/backlight/atmel-pwm-bl.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/backlight/88pm860x_bl.c~backlight-88pm860x_bl-fix-checkpatch-warning drivers/video/backlight/88pm860x_bl.c
---- a/drivers/video/backlight/88pm860x_bl.c~backlight-88pm860x_bl-fix-checkpatch-warning
-+++ a/drivers/video/backlight/88pm860x_bl.c
-@@ -117,8 +117,8 @@ static int pm860x_backlight_set(struct b
- 	data->current_brightness = value;
- 	return 0;
- out:
--	dev_dbg(chip->dev, "set brightness %d failure with return "
--		"value:%d\n", value, ret);
-+	dev_dbg(chip->dev, "set brightness %d failure with return value: %d\n",
-+		value, ret);
- 	return ret;
- }
+diff -puN drivers/video/backlight/atmel-pwm-bl.c~backlight-atmel-pwm-bl-fix-checkpatch-warning drivers/video/backlight/atmel-pwm-bl.c
+--- a/drivers/video/backlight/atmel-pwm-bl.c~backlight-atmel-pwm-bl-fix-checkpatch-warning
++++ a/drivers/video/backlight/atmel-pwm-bl.c
+@@ -106,10 +106,9 @@ static int atmel_pwm_bl_init_pwm(struct 
+ 	pwm_channel_writel(&pwmbl->pwmc, PWM_CPRD,
+ 			pwmbl->pdata->pwm_compare_max);
  
+-	dev_info(&pwmbl->pdev->dev, "Atmel PWM backlight driver "
+-			"(%lu Hz)\n", pwmbl->pwmc.mck /
+-			pwmbl->pdata->pwm_compare_max /
+-			(1 << prescale));
++	dev_info(&pwmbl->pdev->dev, "Atmel PWM backlight driver (%lu Hz)\n",
++		pwmbl->pwmc.mck / pwmbl->pdata->pwm_compare_max /
++		(1 << prescale));
+ 
+ 	return pwm_channel_enable(&pwmbl->pwmc);
+ }
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
