@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + aoe-support-larger-i-o-requests-via-aoe_maxsectors-module-param.patch added to -mm tree
-Date: Wed, 17 Oct 2012 15:10:42 -0700
-Message-ID: <20121017221043.28E6F1E0048@wpzn4.hot.corp.google.com>
+Subject: + aoe-payload-sysfs-file-exports-per-aoe-command-data-transfer-size.patch added to -mm tree
+Date: Wed, 17 Oct 2012 15:10:44 -0700
+Message-ID: <20121017221045.1D07C1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-gg0-f202.google.com ([209.85.161.202]:40239 "EHLO
 	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751834Ab2JQWKn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Oct 2012 18:10:43 -0400
+	with ESMTP id S1751834Ab2JQWKp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Oct 2012 18:10:45 -0400
 Received: by mail-gg0-f202.google.com with SMTP id i4so998975ggm.1
-        for <mm-commits@vger.kernel.org>; Wed, 17 Oct 2012 15:10:43 -0700 (PDT)
+        for <mm-commits@vger.kernel.org>; Wed, 17 Oct 2012 15:10:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: ecashin@coraid.com
 
 
 The patch titled
-     Subject: aoe: support larger I/O requests via aoe_maxsectors module param
+     Subject: aoe: "payload" sysfs file exports per-AoE-command data transfer size
 has been added to the -mm tree.  Its filename is
-     aoe-support-larger-i-o-requests-via-aoe_maxsectors-module-param.patch
+     aoe-payload-sysfs-file-exports-per-aoe-command-data-transfer-size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,54 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ed Cashin <ecashin@coraid.com>
-Subject: aoe: support larger I/O requests via aoe_maxsectors module param
+Subject: aoe: "payload" sysfs file exports per-AoE-command data transfer size
 
-The GPFS filesystem is an example of an aoe user that requires the aoe
-driver to support I/O request sizes larger than the default.  Most users
-will not need large I/O request sizes, because they would need to be split
-up into multiple AoE commands anyway.
+The userland aoetools package includes an "aoe-stat" command that can
+display a "payload size" column when the aoe driver exports this
+information.  Users can quickly see what amount of user data is
+transferred inside each AoE command on the network, network headers
+excluded.
 
 Signed-off-by: Ed Cashin <ecashin@coraid.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoeblk.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/block/aoe/aoeblk.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN drivers/block/aoe/aoeblk.c~aoe-support-larger-i-o-requests-via-aoe_maxsectors-module-param drivers/block/aoe/aoeblk.c
---- a/drivers/block/aoe/aoeblk.c~aoe-support-larger-i-o-requests-via-aoe_maxsectors-module-param
+diff -puN drivers/block/aoe/aoeblk.c~aoe-payload-sysfs-file-exports-per-aoe-command-data-transfer-size drivers/block/aoe/aoeblk.c
+--- a/drivers/block/aoe/aoeblk.c~aoe-payload-sysfs-file-exports-per-aoe-command-data-transfer-size
 +++ a/drivers/block/aoe/aoeblk.c
-@@ -16,11 +16,18 @@
- #include <linux/netdevice.h>
- #include <linux/mutex.h>
- #include <linux/export.h>
-+#include <linux/moduleparam.h>
- #include "aoe.h"
+@@ -98,6 +98,14 @@ static ssize_t aoedisk_show_fwver(struct
  
- static DEFINE_MUTEX(aoeblk_mutex);
- static struct kmem_cache *buf_pool_cache;
- 
-+/* GPFS needs a larger value than the default. */
-+static int aoe_maxsectors;
-+module_param(aoe_maxsectors, int, 0644);
-+MODULE_PARM_DESC(aoe_maxsectors,
-+	"When nonzero, set the maximum number of sectors per I/O request");
+ 	return snprintf(page, PAGE_SIZE, "0x%04x\n", (unsigned int) d->fw_ver);
+ }
++static ssize_t aoedisk_show_payload(struct device *dev,
++				    struct device_attribute *attr, char *page)
++{
++	struct gendisk *disk = dev_to_disk(dev);
++	struct aoedev *d = disk->private_data;
 +
- static ssize_t aoedisk_show_state(struct device *dev,
- 				  struct device_attribute *attr, char *page)
- {
-@@ -248,6 +255,8 @@ aoeblk_gdalloc(void *vp)
- 	d->blkq = gd->queue = q;
- 	q->queuedata = d;
- 	d->gd = gd;
-+	if (aoe_maxsectors)
-+		blk_queue_max_hw_sectors(q, aoe_maxsectors);
- 	gd->major = AOE_MAJOR;
- 	gd->first_minor = d->sysminor;
- 	gd->fops = &aoe_bdops;
++	return snprintf(page, PAGE_SIZE, "%lu\n", d->maxbcnt);
++}
+ 
+ static DEVICE_ATTR(state, S_IRUGO, aoedisk_show_state, NULL);
+ static DEVICE_ATTR(mac, S_IRUGO, aoedisk_show_mac, NULL);
+@@ -106,12 +114,14 @@ static struct device_attribute dev_attr_
+ 	.attr = { .name = "firmware-version", .mode = S_IRUGO },
+ 	.show = aoedisk_show_fwver,
+ };
++static DEVICE_ATTR(payload, S_IRUGO, aoedisk_show_payload, NULL);
+ 
+ static struct attribute *aoe_attrs[] = {
+ 	&dev_attr_state.attr,
+ 	&dev_attr_mac.attr,
+ 	&dev_attr_netif.attr,
+ 	&dev_attr_firmware_version.attr,
++	&dev_attr_payload.attr,
+ 	NULL,
+ };
+ 
 _
 
 Patches currently in -mm which might be from ecashin@coraid.com are
