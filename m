@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-lm3630-fix-checkpatch-warning.patch added to -mm tree
-Date: Wed, 17 Oct 2012 16:13:56 -0700
-Message-ID: <20121017231357.116D95C0050@hpza9.eem.corp.google.com>
+Subject: + backlight-pcf50633-fix-checkpatch-warning.patch added to -mm tree
+Date: Wed, 17 Oct 2012 16:14:05 -0700
+Message-ID: <20121017231406.A725E5C0065@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:45722 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752369Ab2JQXN7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Oct 2012 19:13:59 -0400
-Received: by mail-wg0-f74.google.com with SMTP id dt11so491243wgb.1
-        for <mm-commits@vger.kernel.org>; Wed, 17 Oct 2012 16:13:58 -0700 (PDT)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:65057 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752493Ab2JQXOJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Oct 2012 19:14:09 -0400
+Received: by mail-ee0-f74.google.com with SMTP id b57so491795eek.1
+        for <mm-commits@vger.kernel.org>; Wed, 17 Oct 2012 16:14:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: backlight: lm3630: fix checkpatch warning
+     Subject: backlight: pcf50633: fix checkpatch warning
 has been added to the -mm tree.  Its filename is
-     backlight-lm3630-fix-checkpatch-warning.patch
+     backlight-pcf50633-fix-checkpatch-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,47 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: lm3630: fix checkpatch warning
+Subject: backlight: pcf50633: fix checkpatch warning
 
 This patch fixes the checkpatch warning as below:
 
-WARNING: static const char * array should probably be static const char * const
+WARNING: please, no spaces at the start of a line
+
+Also, long comments are fixed for the preferred style.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/lm3630_bl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/backlight/pcf50633-backlight.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/backlight/lm3630_bl.c~backlight-lm3630-fix-checkpatch-warning drivers/video/backlight/lm3630_bl.c
---- a/drivers/video/backlight/lm3630_bl.c~backlight-lm3630-fix-checkpatch-warning
-+++ a/drivers/video/backlight/lm3630_bl.c
-@@ -37,7 +37,7 @@ enum lm3630_leds {
- 	BLED_2
- };
+diff -puN drivers/video/backlight/pcf50633-backlight.c~backlight-pcf50633-fix-checkpatch-warning drivers/video/backlight/pcf50633-backlight.c
+--- a/drivers/video/backlight/pcf50633-backlight.c~backlight-pcf50633-fix-checkpatch-warning
++++ a/drivers/video/backlight/pcf50633-backlight.c
+@@ -52,7 +52,7 @@ int pcf50633_bl_set_brightness_limit(str
+ 	pcf_bl->brightness_limit = limit & 0x3f;
+ 	backlight_update_status(pcf_bl->bl);
  
--static const char *bled_name[] = {
-+static const char * const bled_name[] = {
- 	[BLED_ALL] = "lm3630_bled",	/*Bank1 controls all string */
- 	[BLED_1] = "lm3630_bled1",	/*Bank1 controls bled1 */
- 	[BLED_2] = "lm3630_bled2",	/*Bank1 or 2 controls bled2 */
+-    return 0;
++	return 0;
+ }
+ 
+ static int pcf50633_bl_update_status(struct backlight_device *bl)
+@@ -136,8 +136,10 @@ static int __devinit pcf50633_bl_probe(s
+ 
+ 	pcf50633_reg_write(pcf_bl->pcf, PCF50633_REG_LEDDIM, pdata->ramp_time);
+ 
+-	/* Should be different from bl_props.brightness, so we do not exit
+-	 * update_status early the first time it's called */
++	/*
++	 * Should be different from bl_props.brightness, so we do not exit
++	 * update_status early the first time it's called
++	 */
+ 	pcf_bl->brightness = pcf_bl->bl->props.brightness + 1;
+ 
+ 	backlight_update_status(pcf_bl->bl);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
