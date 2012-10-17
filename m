@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + aoe-update-cap-on-outstanding-commands-based-on-config-query-response.patch added to -mm tree
-Date: Wed, 17 Oct 2012 15:10:37 -0700
-Message-ID: <20121017221038.2BF4D100047@wpzn3.hot.corp.google.com>
+Subject: + aoe-support-larger-i-o-requests-via-aoe_maxsectors-module-param.patch added to -mm tree
+Date: Wed, 17 Oct 2012 15:10:42 -0700
+Message-ID: <20121017221043.28E6F1E0048@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-gg0-f202.google.com ([209.85.161.202]:40239 "EHLO
 	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751834Ab2JQWKj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Oct 2012 18:10:39 -0400
+	with ESMTP id S1751834Ab2JQWKn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Oct 2012 18:10:43 -0400
 Received: by mail-gg0-f202.google.com with SMTP id i4so998975ggm.1
-        for <mm-commits@vger.kernel.org>; Wed, 17 Oct 2012 15:10:38 -0700 (PDT)
+        for <mm-commits@vger.kernel.org>; Wed, 17 Oct 2012 15:10:43 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: ecashin@coraid.com
 
 
 The patch titled
-     Subject: aoe: update cap on outstanding commands based on config query response
+     Subject: aoe: support larger I/O requests via aoe_maxsectors module param
 has been added to the -mm tree.  Its filename is
-     aoe-update-cap-on-outstanding-commands-based-on-config-query-response.patch
+     aoe-support-larger-i-o-requests-via-aoe_maxsectors-module-param.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,61 +34,51 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ed Cashin <ecashin@coraid.com>
-Subject: aoe: update cap on outstanding commands based on config query response
+Subject: aoe: support larger I/O requests via aoe_maxsectors module param
 
-The ATA over Ethernet config query response contains a "buffer count"
-field reflecting the AoE target's capacity to buffer incoming AoE
-commands.
-
-By taking the current value of this field into accound, we increase
-performance throughput or avoid network congestion, when the value
-has increased or decreased, respectively.
+The GPFS filesystem is an example of an aoe user that requires the aoe
+driver to support I/O request sizes larger than the default.  Most users
+will not need large I/O request sizes, because they would need to be split
+up into multiple AoE commands anyway.
 
 Signed-off-by: Ed Cashin <ecashin@coraid.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoe.h    |    6 +++---
- drivers/block/aoe/aoecmd.c |    6 +++++-
- 2 files changed, 8 insertions(+), 4 deletions(-)
+ drivers/block/aoe/aoeblk.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN drivers/block/aoe/aoe.h~aoe-update-cap-on-outstanding-commands-based-on-config-query-response drivers/block/aoe/aoe.h
---- a/drivers/block/aoe/aoe.h~aoe-update-cap-on-outstanding-commands-based-on-config-query-response
-+++ a/drivers/block/aoe/aoe.h
-@@ -122,14 +122,14 @@ struct aoeif {
+diff -puN drivers/block/aoe/aoeblk.c~aoe-support-larger-i-o-requests-via-aoe_maxsectors-module-param drivers/block/aoe/aoeblk.c
+--- a/drivers/block/aoe/aoeblk.c~aoe-support-larger-i-o-requests-via-aoe_maxsectors-module-param
++++ a/drivers/block/aoe/aoeblk.c
+@@ -16,11 +16,18 @@
+ #include <linux/netdevice.h>
+ #include <linux/mutex.h>
+ #include <linux/export.h>
++#include <linux/moduleparam.h>
+ #include "aoe.h"
  
- struct aoetgt {
- 	unsigned char addr[6];
--	ushort nframes;
-+	ushort nframes;		/* cap on frames to use */
- 	struct aoedev *d;			/* parent device I belong to */
- 	struct list_head ffree;			/* list of free frames */
- 	struct aoeif ifs[NAOEIFS];
- 	struct aoeif *ifp;	/* current aoeif in use */
- 	ushort nout;
--	ushort maxout;
--	ulong falloc;
-+	ushort maxout;		/* current value for max outstanding */
-+	ulong falloc;		/* number of allocated frames */
- 	ulong lastwadj;		/* last window adjustment */
- 	int minbcnt;
- 	int wpkts, rpkts;
-diff -puN drivers/block/aoe/aoecmd.c~aoe-update-cap-on-outstanding-commands-based-on-config-query-response drivers/block/aoe/aoecmd.c
---- a/drivers/block/aoe/aoecmd.c~aoe-update-cap-on-outstanding-commands-based-on-config-query-response
-+++ a/drivers/block/aoe/aoecmd.c
-@@ -1373,7 +1373,11 @@ aoecmd_cfg_rsp(struct sk_buff *skb)
- 	spin_lock_irqsave(&d->lock, flags);
+ static DEFINE_MUTEX(aoeblk_mutex);
+ static struct kmem_cache *buf_pool_cache;
  
- 	t = gettgt(d, h->src);
--	if (!t) {
-+	if (t) {
-+		t->nframes = n;
-+		if (n < t->maxout)
-+			t->maxout = n;
-+	} else {
- 		t = addtgt(d, h->src, n);
- 		if (!t)
- 			goto bail;
++/* GPFS needs a larger value than the default. */
++static int aoe_maxsectors;
++module_param(aoe_maxsectors, int, 0644);
++MODULE_PARM_DESC(aoe_maxsectors,
++	"When nonzero, set the maximum number of sectors per I/O request");
++
+ static ssize_t aoedisk_show_state(struct device *dev,
+ 				  struct device_attribute *attr, char *page)
+ {
+@@ -248,6 +255,8 @@ aoeblk_gdalloc(void *vp)
+ 	d->blkq = gd->queue = q;
+ 	q->queuedata = d;
+ 	d->gd = gd;
++	if (aoe_maxsectors)
++		blk_queue_max_hw_sectors(q, aoe_maxsectors);
+ 	gd->major = AOE_MAJOR;
+ 	gd->first_minor = d->sysminor;
+ 	gd->fops = &aoe_bdops;
 _
 
 Patches currently in -mm which might be from ecashin@coraid.com are
