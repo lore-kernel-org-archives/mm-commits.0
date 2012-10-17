@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + aoe-payload-sysfs-file-exports-per-aoe-command-data-transfer-size.patch added to -mm tree
-Date: Wed, 17 Oct 2012 15:10:44 -0700
-Message-ID: <20121017221045.1D07C1E0043@wpzn4.hot.corp.google.com>
+Subject: + aoe-support-the-forgetting-flushing-of-a-user-specified-aoe-target.patch added to -mm tree
+Date: Wed, 17 Oct 2012 15:10:40 -0700
+Message-ID: <20121017221041.05FB2100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-gg0-f202.google.com ([209.85.161.202]:40239 "EHLO
 	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751834Ab2JQWKp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Oct 2012 18:10:45 -0400
+	with ESMTP id S1751834Ab2JQWKl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Oct 2012 18:10:41 -0400
 Received: by mail-gg0-f202.google.com with SMTP id i4so998975ggm.1
-        for <mm-commits@vger.kernel.org>; Wed, 17 Oct 2012 15:10:45 -0700 (PDT)
+        for <mm-commits@vger.kernel.org>; Wed, 17 Oct 2012 15:10:41 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: ecashin@coraid.com
 
 
 The patch titled
-     Subject: aoe: "payload" sysfs file exports per-AoE-command data transfer size
+     Subject: aoe: support the forgetting (flushing) of a user-specified AoE target
 has been added to the -mm tree.  Its filename is
-     aoe-payload-sysfs-file-exports-per-aoe-command-data-transfer-size.patch
+     aoe-support-the-forgetting-flushing-of-a-user-specified-aoe-target.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,103 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ed Cashin <ecashin@coraid.com>
-Subject: aoe: "payload" sysfs file exports per-AoE-command data transfer size
+Subject: aoe: support the forgetting (flushing) of a user-specified AoE target
 
-The userland aoetools package includes an "aoe-stat" command that can
-display a "payload size" column when the aoe driver exports this
-information.  Users can quickly see what amount of user data is
-transferred inside each AoE command on the network, network headers
-excluded.
+Users sometimes want to cause the aoe driver to forget a particular
+previously discovered device when it is no longer online.  The aoetools
+provide an "aoe-flush" command that users run to perform this
+administrative task.  The changes below provide the support needed in the
+driver.
 
 Signed-off-by: Ed Cashin <ecashin@coraid.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoeblk.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/block/aoe/aoedev.c |   44 ++++++++++++++++++++++++++++++-----
+ 1 file changed, 38 insertions(+), 6 deletions(-)
 
-diff -puN drivers/block/aoe/aoeblk.c~aoe-payload-sysfs-file-exports-per-aoe-command-data-transfer-size drivers/block/aoe/aoeblk.c
---- a/drivers/block/aoe/aoeblk.c~aoe-payload-sysfs-file-exports-per-aoe-command-data-transfer-size
-+++ a/drivers/block/aoe/aoeblk.c
-@@ -98,6 +98,14 @@ static ssize_t aoedisk_show_fwver(struct
- 
- 	return snprintf(page, PAGE_SIZE, "0x%04x\n", (unsigned int) d->fw_ver);
+diff -puN drivers/block/aoe/aoedev.c~aoe-support-the-forgetting-flushing-of-a-user-specified-aoe-target drivers/block/aoe/aoedev.c
+--- a/drivers/block/aoe/aoedev.c~aoe-support-the-forgetting-flushing-of-a-user-specified-aoe-target
++++ a/drivers/block/aoe/aoedev.c
+@@ -241,6 +241,30 @@ aoedev_freedev(struct aoedev *d)
+ 	kfree(d);
  }
-+static ssize_t aoedisk_show_payload(struct device *dev,
-+				    struct device_attribute *attr, char *page)
+ 
++/* return whether the user asked for this particular
++ * device to be flushed
++ */
++static int
++user_req(char *s, size_t slen, struct aoedev *d)
 +{
-+	struct gendisk *disk = dev_to_disk(dev);
-+	struct aoedev *d = disk->private_data;
++	char *p;
++	size_t lim;
 +
-+	return snprintf(page, PAGE_SIZE, "%lu\n", d->maxbcnt);
++	if (!d->gd)
++		return 0;
++	p = strrchr(d->gd->disk_name, '/');
++	if (!p)
++		p = d->gd->disk_name;
++	else
++		p += 1;
++	lim = sizeof(d->gd->disk_name);
++	lim -= p - d->gd->disk_name;
++	if (slen < lim)
++		lim = slen;
++
++	return !strncmp(s, p, lim);
 +}
++
+ int
+ aoedev_flush(const char __user *str, size_t cnt)
+ {
+@@ -249,6 +273,7 @@ aoedev_flush(const char __user *str, siz
+ 	struct aoedev *rmd = NULL;
+ 	char buf[16];
+ 	int all = 0;
++	int specified = 0;	/* flush a specific device */
  
- static DEVICE_ATTR(state, S_IRUGO, aoedisk_show_state, NULL);
- static DEVICE_ATTR(mac, S_IRUGO, aoedisk_show_mac, NULL);
-@@ -106,12 +114,14 @@ static struct device_attribute dev_attr_
- 	.attr = { .name = "firmware-version", .mode = S_IRUGO },
- 	.show = aoedisk_show_fwver,
- };
-+static DEVICE_ATTR(payload, S_IRUGO, aoedisk_show_payload, NULL);
+ 	if (cnt >= 3) {
+ 		if (cnt > sizeof buf)
+@@ -256,26 +281,33 @@ aoedev_flush(const char __user *str, siz
+ 		if (copy_from_user(buf, str, cnt))
+ 			return -EFAULT;
+ 		all = !strncmp(buf, "all", 3);
++		if (!all)
++			specified = 1;
+ 	}
  
- static struct attribute *aoe_attrs[] = {
- 	&dev_attr_state.attr,
- 	&dev_attr_mac.attr,
- 	&dev_attr_netif.attr,
- 	&dev_attr_firmware_version.attr,
-+	&dev_attr_payload.attr,
- 	NULL,
- };
- 
+ 	spin_lock_irqsave(&devlist_lock, flags);
+ 	dd = &devlist;
+ 	while ((d = *dd)) {
+ 		spin_lock(&d->lock);
+-		if ((!all && (d->flags & DEVFL_UP))
++		if (specified) {
++			if (!user_req(buf, cnt, d))
++				goto skip;
++		} else if ((!all && (d->flags & DEVFL_UP))
+ 		|| (d->flags & (DEVFL_GDALLOC|DEVFL_NEWSIZE))
+ 		|| d->nopen
+-		|| d->ref) {
+-			spin_unlock(&d->lock);
+-			dd = &d->next;
+-			continue;
+-		}
++		|| d->ref)
++			goto skip;
++
+ 		*dd = d->next;
+ 		aoedev_downdev(d);
+ 		d->flags |= DEVFL_TKILL;
+ 		spin_unlock(&d->lock);
+ 		d->next = rmd;
+ 		rmd = d;
++		continue;
++skip:
++		spin_unlock(&d->lock);
++		dd = &d->next;
+ 	}
+ 	spin_unlock_irqrestore(&devlist_lock, flags);
+ 	while ((d = rmd)) {
 _
 
 Patches currently in -mm which might be from ecashin@coraid.com are
