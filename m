@@ -1,91 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Thu, 18 Oct 2012 12:05:24 -0700
-Message-ID: <20121018190525.081C75C0050@hpza9.eem.corp.google.com>
+Subject: + documentation-sparsetxt-document-context-annotations-for-lock-checking.patch added to -mm tree
+Date: Thu, 18 Oct 2012 12:38:24 -0700
+Message-ID: <20121018193825.135945C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:63172 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751457Ab2JRTF1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Oct 2012 15:05:27 -0400
-Received: by mail-wg0-f74.google.com with SMTP id dt11so551371wgb.1
-        for <mm-commits@vger.kernel.org>; Thu, 18 Oct 2012 12:05:25 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:37782 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753268Ab2JRTi1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Oct 2012 15:38:27 -0400
+Received: by mail-lb0-f202.google.com with SMTP id l12so553408lbo.1
+        for <mm-commits@vger.kernel.org>; Thu, 18 Oct 2012 12:38:26 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ecashin@coraid.com
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: Documentation/sparse.txt: document context annotations for lock checking
+has been added to the -mm tree.  Its filename is
+     documentation-sparsetxt-document-context-annotations-for-lock-checking.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Ed Cashin <ecashin@coraid.com>
+Subject: Documentation/sparse.txt: document context annotations for lock checking
 
+The context feature of sparse is used with the Linux kernel sources to
+check for imbalanced uses of locks.  Document the annotations defined in
+include/linux/compiler.h that tell sparse what to expect when a lock is
+held on function entry, exit, or both.
+
+Signed-off-by: Ed Cashin <ecashin@coraid.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/entry.S           |    3 ---
- drivers/pinctrl/pinctrl-nomadik.c |    3 ---
- 2 files changed, 6 deletions(-)
+ Documentation/sparse.txt |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff -puN arch/frv/kernel/entry.S~linux-next-git-rejects arch/frv/kernel/entry.S
---- a/arch/frv/kernel/entry.S~linux-next-git-rejects
-+++ a/arch/frv/kernel/entry.S
-@@ -869,14 +869,11 @@ ret_from_kernel_thread:
- 	call		schedule_tail
- 	calll.p		@(gr21,gr0)
- 	or		gr20,gr20,gr8
--<<<<<<< HEAD
- 	bra		sys_exit
+diff -puN Documentation/sparse.txt~documentation-sparsetxt-document-context-annotations-for-lock-checking Documentation/sparse.txt
+--- a/Documentation/sparse.txt~documentation-sparsetxt-document-context-annotations-for-lock-checking
++++ a/Documentation/sparse.txt
+@@ -49,6 +49,24 @@ be generated without __CHECK_ENDIAN__.
+ __bitwise - noisy stuff; in particular, __le*/__be* are that.  We really
+ don't want to drown in noise unless we'd explicitly asked for it.
  
- 	.globl		ret_from_kernel_execve
- ret_from_kernel_execve:
- 	ori		gr28,0,sp
--=======
-->>>>>>> linux-next/akpm-base
- 	bra		__syscall_exit
++Using sparse for lock checking
++~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++
++The following macros are undefined for gcc and defined during a sparse
++run to use the "context" tracking feature of sparse, applied to
++locking.  These annotations tell sparse when a lock is held, with
++regard to the annotated function's entry and exit.
++
++__must_hold - The specified lock is held on function entry and exit.
++
++__acquires - The specified lock is held on function exit, but not entry.
++
++__releases - The specified lock is held on function entry, but not exit.
++
++If the function enters and exits without the lock held, acquiring and
++releasing the lock inside the function in a balanced way, no
++annotation is needed.  The tree annotations above are for cases where
++sparse would otherwise report a context imbalance.
  
- ###################################################################################################
-diff -puN drivers/pinctrl/pinctrl-nomadik.c~linux-next-git-rejects drivers/pinctrl/pinctrl-nomadik.c
---- a/drivers/pinctrl/pinctrl-nomadik.c~linux-next-git-rejects
-+++ a/drivers/pinctrl/pinctrl-nomadik.c
-@@ -44,10 +44,7 @@ static inline u32 prcmu_read(unsigned in
- static inline void prcmu_write(unsigned int reg, u32 value) {}
- static inline void prcmu_write_masked(unsigned int reg, u32 mask, u32 value) {}
- #endif
--<<<<<<< HEAD
--=======
- #include <linux/platform_data/pinctrl-nomadik.h>
-->>>>>>> linux-next/akpm-base
- 
- #include <asm/mach/irq.h>
- 
+ Getting sparse
+ ~~~~~~~~~~~~~~
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ecashin@coraid.com are
 
-pidns-remove-recursion-from-free_pid_ns-v5-fix.patch
-revert-epoll-support-for-disabling-items-and-a-self-test-app.patch
-linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-mm.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
-fat-exportfs-rebuild-inode-if-ilookup-fails-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+linux-compilerh-add-__must_hold-macro-for-functions-called-with-a-lock-held.patch
+documentation-sparsetxt-document-context-annotations-for-lock-checking.patch
+aoe-describe-the-behavior-of-the-err-character-device.patch
+aoe-print-warning-regarding-a-common-reason-for-dropped-transmits.patch
+aoe-update-cap-on-outstanding-commands-based-on-config-query-response.patch
+aoe-support-the-forgetting-flushing-of-a-user-specified-aoe-target.patch
+aoe-support-larger-i-o-requests-via-aoe_maxsectors-module-param.patch
+aoe-payload-sysfs-file-exports-per-aoe-command-data-transfer-size.patch
+aoe-cleanup-remove-unused-ata_scnt-function.patch
+aoe-whitespace-cleanup.patch
+aoe-update-driver-internal-version-number-to-60.patch
 
