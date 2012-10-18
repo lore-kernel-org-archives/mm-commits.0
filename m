@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-sparsetxt-document-context-annotations-for-lock-checking.patch added to -mm tree
-Date: Thu, 18 Oct 2012 12:38:24 -0700
-Message-ID: <20121018193825.135945C0060@hpza9.eem.corp.google.com>
+Subject: + maintainers-networking-drivers-matches-too-much.patch added to -mm tree
+Date: Thu, 18 Oct 2012 12:48:06 -0700
+Message-ID: <20121018194806.A26B6100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:37782 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753268Ab2JRTi1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Oct 2012 15:38:27 -0400
-Received: by mail-lb0-f202.google.com with SMTP id l12so553408lbo.1
-        for <mm-commits@vger.kernel.org>; Thu, 18 Oct 2012 12:38:26 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:43308 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752653Ab2JRTsI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Oct 2012 15:48:08 -0400
+Received: by mail-yh0-f74.google.com with SMTP id 10so1128759yhl.1
+        for <mm-commits@vger.kernel.org>; Thu, 18 Oct 2012 12:48:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ecashin@coraid.com
+Cc: jdelvare@nerim.net, davem@davemloft.net, joe@perches.com, khali@linux-fr.org
 
 
 The patch titled
-     Subject: Documentation/sparse.txt: document context annotations for lock checking
+     Subject: MAINTAINERS: NETWORKING DRIVERS matches too much
 has been added to the -mm tree.  Its filename is
-     documentation-sparsetxt-document-context-annotations-for-lock-checking.patch
+     maintainers-networking-drivers-matches-too-much.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,62 +33,36 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ed Cashin <ecashin@coraid.com>
-Subject: Documentation/sparse.txt: document context annotations for lock checking
+From: Jean Delvare <jdelvare@nerim.net>
+Subject: MAINTAINERS: NETWORKING DRIVERS matches too much
 
-The context feature of sparse is used with the Linux kernel sources to
-check for imbalanced uses of locks.  Document the annotations defined in
-include/linux/compiler.h that tell sparse what to expect when a lock is
-held on function entry, exit, or both.
+File pattern include/linux/*device.h matches too much, including
+completely unrelated files.  If some of these files should really be
+listed, please list them explicitly.
 
-Signed-off-by: Ed Cashin <ecashin@coraid.com>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Joe Perches <joe@perches.com>
+Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sparse.txt |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ MAINTAINERS |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN Documentation/sparse.txt~documentation-sparsetxt-document-context-annotations-for-lock-checking Documentation/sparse.txt
---- a/Documentation/sparse.txt~documentation-sparsetxt-document-context-annotations-for-lock-checking
-+++ a/Documentation/sparse.txt
-@@ -49,6 +49,24 @@ be generated without __CHECK_ENDIAN__.
- __bitwise - noisy stuff; in particular, __le*/__be* are that.  We really
- don't want to drown in noise unless we'd explicitly asked for it.
+diff -puN MAINTAINERS~maintainers-networking-drivers-matches-too-much MAINTAINERS
+--- a/MAINTAINERS~maintainers-networking-drivers-matches-too-much
++++ a/MAINTAINERS
+@@ -5067,7 +5067,6 @@ T:	git git://git.kernel.org/pub/scm/linu
+ S:	Odd Fixes
+ F:	drivers/net/
+ F:	include/linux/if_*
+-F:	include/linux/*device.h
  
-+Using sparse for lock checking
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+The following macros are undefined for gcc and defined during a sparse
-+run to use the "context" tracking feature of sparse, applied to
-+locking.  These annotations tell sparse when a lock is held, with
-+regard to the annotated function's entry and exit.
-+
-+__must_hold - The specified lock is held on function entry and exit.
-+
-+__acquires - The specified lock is held on function exit, but not entry.
-+
-+__releases - The specified lock is held on function entry, but not exit.
-+
-+If the function enters and exits without the lock held, acquiring and
-+releasing the lock inside the function in a balanced way, no
-+annotation is needed.  The tree annotations above are for cases where
-+sparse would otherwise report a context imbalance.
- 
- Getting sparse
- ~~~~~~~~~~~~~~
+ NETXEN (1/10) GbE SUPPORT
+ M:	Sony Chacko <sony.chacko@qlogic.com>
 _
 
-Patches currently in -mm which might be from ecashin@coraid.com are
+Patches currently in -mm which might be from jdelvare@nerim.net are
 
-linux-compilerh-add-__must_hold-macro-for-functions-called-with-a-lock-held.patch
-documentation-sparsetxt-document-context-annotations-for-lock-checking.patch
-aoe-describe-the-behavior-of-the-err-character-device.patch
-aoe-print-warning-regarding-a-common-reason-for-dropped-transmits.patch
-aoe-update-cap-on-outstanding-commands-based-on-config-query-response.patch
-aoe-support-the-forgetting-flushing-of-a-user-specified-aoe-target.patch
-aoe-support-larger-i-o-requests-via-aoe_maxsectors-module-param.patch
-aoe-payload-sysfs-file-exports-per-aoe-command-data-transfer-size.patch
-aoe-cleanup-remove-unused-ata_scnt-function.patch
-aoe-whitespace-cleanup.patch
-aoe-update-driver-internal-version-number-to-60.patch
+maintainers-networking-drivers-matches-too-much.patch
 
