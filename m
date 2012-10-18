@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-update-mce_bad_pages-when-removing-the-memory.patch added to -mm tree
-Date: Thu, 18 Oct 2012 15:31:18 -0700
-Message-ID: <20121018223119.C9E6A20004E@hpza10.eem.corp.google.com>
+Subject: + memory-hotplug-auto-offline-page_cgroup-when-onlining-memory-block-failed.patch added to -mm tree
+Date: Thu, 18 Oct 2012 15:31:28 -0700
+Message-ID: <20121018223129.6617F1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f202.google.com ([209.85.215.202]:35264 "EHLO
-	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932135Ab2JRWbX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Oct 2012 18:31:23 -0400
-Received: by mail-ea0-f202.google.com with SMTP id q10so385941eaa.1
-        for <mm-commits@vger.kernel.org>; Thu, 18 Oct 2012 15:31:22 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:60807 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932135Ab2JRWbb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Oct 2012 18:31:31 -0400
+Received: by mail-qa0-f74.google.com with SMTP id a16so282767qae.1
+        for <mm-commits@vger.kernel.org>; Thu, 18 Oct 2012 15:31:30 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: wency@cn.fujitsu.com, benh@kernel.crashing.org, cl@linux.com, dave@linux.vne
 
 
 The patch titled
-     Subject: memory-hotplug: update mce_bad_pages when removing the memory
+     Subject: memory-hotplug: auto offline page_cgroup when onlining memory block failed
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-update-mce_bad_pages-when-removing-the-memory.patch
+     memory-hotplug-auto-offline-page_cgroup-when-onlining-memory-block-failed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: memory-hotplug: update mce_bad_pages when removing the memory
+Subject: memory-hotplug: auto offline page_cgroup when onlining memory block failed
 
-When we hotremove a memory device, we will free the memory to store struct
-page.  If the page is hwpoisoned page, we should decrease mce_bad_pages.
+When a memory block is onlined, we will try allocate memory on that node
+to store page_cgroup.  If onlining the memory block failed, we don't
+offline the page cgroup, and we have no chance to offline this page cgroup
+unless the memory block is onlined successfully again.  It will cause that
+we can't hot-remove the memory device on that node, because some memory is
+used to store page cgroup.  If onlining the memory block is failed, there
+is no need to stort page cgroup for this memory.  So auto offline
+page_cgroup when onlining memory block failed.
 
 Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -47,54 +53,29 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Paul Mackerras <paulus@samba.org>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |   21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ mm/page_cgroup.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/sparse.c~memory-hotplug-update-mce_bad_pages-when-removing-the-memory mm/sparse.c
---- a/mm/sparse.c~memory-hotplug-update-mce_bad_pages-when-removing-the-memory
-+++ a/mm/sparse.c
-@@ -773,6 +773,23 @@ out:
- 	return ret;
- }
- 
-+#ifdef CONFIG_MEMORY_FAILURE
-+static void clear_hwpoisoned_pages(struct page *memmap, int nr_pages)
-+{
-+	int i;
-+
-+	if (!memmap)
-+		return;
-+
-+	for (i = 0; i < PAGES_PER_SECTION; i++) {
-+		if (PageHWPoison(&memmap[i])) {
-+			atomic_long_sub(1, &mce_bad_pages);
-+			ClearPageHWPoison(&memmap[i]);
-+		}
-+	}
-+}
-+#endif
-+
- void sparse_remove_one_section(struct zone *zone, struct mem_section *ms)
- {
- 	struct page *memmap = NULL;
-@@ -786,6 +803,10 @@ void sparse_remove_one_section(struct zo
- 		ms->pageblock_flags = NULL;
- 	}
- 
-+#ifdef CONFIG_MEMORY_FAILURE
-+	clear_hwpoisoned_pages(memmap, PAGES_PER_SECTION);
-+#endif
-+
- 	free_section_usemap(memmap, usemap);
- }
- #endif
+diff -puN mm/page_cgroup.c~memory-hotplug-auto-offline-page_cgroup-when-onlining-memory-block-failed mm/page_cgroup.c
+--- a/mm/page_cgroup.c~memory-hotplug-auto-offline-page_cgroup-when-onlining-memory-block-failed
++++ a/mm/page_cgroup.c
+@@ -251,6 +251,9 @@ static int __meminit page_cgroup_callbac
+ 				mn->nr_pages, mn->status_change_nid);
+ 		break;
+ 	case MEM_CANCEL_ONLINE:
++		offline_page_cgroup(mn->start_pfn,
++				mn->nr_pages, mn->status_change_nid);
++		break;
+ 	case MEM_GOING_OFFLINE:
+ 		break;
+ 	case MEM_ONLINE:
 _
 
 Patches currently in -mm which might be from wency@cn.fujitsu.com are
