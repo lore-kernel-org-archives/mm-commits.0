@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + aoe-print-warning-regarding-a-common-reason-for-dropped-transmits-v2.patch added to -mm tree
-Date: Thu, 18 Oct 2012 14:46:00 -0700
-Message-ID: <20121018214601.03DF75C0050@hpza9.eem.corp.google.com>
+Subject: + mm-thp-set-the-accessed-flag-for-old-pages-on-access-fault.patch added to -mm tree
+Date: Thu, 18 Oct 2012 15:07:14 -0700
+Message-ID: <20121018220716.943C020004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f74.google.com ([209.85.215.74]:55055 "EHLO
-	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756092Ab2JRVqE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Oct 2012 17:46:04 -0400
-Received: by mail-la0-f74.google.com with SMTP id j13so551808lah.1
-        for <mm-commits@vger.kernel.org>; Thu, 18 Oct 2012 14:46:01 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:54138 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752085Ab2JRWHT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Oct 2012 18:07:19 -0400
+Received: by mail-wg0-f74.google.com with SMTP id dt11so556771wgb.1
+        for <mm-commits@vger.kernel.org>; Thu, 18 Oct 2012 15:07:18 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ecashin@coraid.com
+Cc: will.deacon@arm.com, aarcange@redhat.com, cmetcalf@tilera.com, davem@davemloft.net, kirill@shutemov.name, steve.capper@arm.com
 
 
 The patch titled
-     Subject: aoe-print-warning-regarding-a-common-reason-for-dropped-transmits-v2
+     Subject: mm: thp: et the accessed flag for old pages on access fault
 has been added to the -mm tree.  Its filename is
-     aoe-print-warning-regarding-a-common-reason-for-dropped-transmits-v2.patch
+     mm-thp-set-the-accessed-flag-for-old-pages-on-access-fault.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,52 +33,96 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ed Cashin <ecashin@coraid.com>
-Subject: aoe-print-warning-regarding-a-common-reason-for-dropped-transmits-v2
+From: Will Deacon <will.deacon@arm.com>
+Subject: mm: thp: et the accessed flag for old pages on access fault
 
-Dropped transmits are not common, but when they do occur, increasing
-the transmit queue length often helps.
+On x86 memory accesses to pages without the ACCESSED flag set result in
+the ACCESSED flag being set automatically.  With the ARM architecture a
+page access fault is raised instead (and it will continue to be raised
+until the ACCESSED flag is set for the appropriate PTE/PMD).
 
-Signed-off-by: Ed Cashin <ecashin@coraid.com>
+For normal memory pages, handle_pte_fault will call pte_mkyoung
+(effectively setting the ACCESSED flag).  For transparent huge pages,
+pmd_mkyoung will only be called for a write fault.
+
+This patch ensures that faults on transparent hugepages which do not
+result in a CoW update the access flags for the faulting pmd.
+
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Acked-by: Kirill A. Shutemov <kirill@shutemov.name>
+Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Steve Capper <steve.capper@arm.com>
+Signed-off-by: Will Deacon <will.deacon@arm.com>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoenet.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ include/linux/huge_mm.h |    2 ++
+ mm/huge_memory.c        |    8 ++++++++
+ mm/memory.c             |    9 ++++++++-
+ 3 files changed, 18 insertions(+), 1 deletion(-)
 
-diff -puN drivers/block/aoe/aoenet.c~aoe-print-warning-regarding-a-common-reason-for-dropped-transmits-v2 drivers/block/aoe/aoenet.c
---- a/drivers/block/aoe/aoenet.c~aoe-print-warning-regarding-a-common-reason-for-dropped-transmits-v2
-+++ a/drivers/block/aoe/aoenet.c
-@@ -50,13 +50,9 @@ __setup("aoe_iflist=", aoe_iflist_setup)
- static spinlock_t txlock;
- static struct sk_buff_head skbtxq;
+diff -puN include/linux/huge_mm.h~mm-thp-set-the-accessed-flag-for-old-pages-on-access-fault include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~mm-thp-set-the-accessed-flag-for-old-pages-on-access-fault
++++ a/include/linux/huge_mm.h
+@@ -8,6 +8,8 @@ extern int do_huge_pmd_anonymous_page(st
+ extern int copy_huge_pmd(struct mm_struct *dst_mm, struct mm_struct *src_mm,
+ 			 pmd_t *dst_pmd, pmd_t *src_pmd, unsigned long addr,
+ 			 struct vm_area_struct *vma);
++extern void huge_pmd_set_accessed(struct vm_area_struct *vma,
++				  unsigned long address, pmd_t *pmd, int dirty);
+ extern int do_huge_pmd_wp_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			       unsigned long address, pmd_t *pmd,
+ 			       pmd_t orig_pmd);
+diff -puN mm/huge_memory.c~mm-thp-set-the-accessed-flag-for-old-pages-on-access-fault mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-set-the-accessed-flag-for-old-pages-on-access-fault
++++ a/mm/huge_memory.c
+@@ -879,6 +879,14 @@ out_free_pages:
+ 	goto out;
+ }
  
--/* enters with txlock held
-- *
-- * Use __must_hold(&txlock) for sparse when upcoming patch adds it to
-- * compiler.h.
-- */
-+/* enters with txlock held */
- static int
--tx(void)
-+tx(void) __must_hold(&txlock)
++void huge_pmd_set_accessed(struct vm_area_struct *vma, unsigned long address,
++			   pmd_t *pmd, int dirty)
++{
++	pmd_t entry = pmd_mkyoung(*pmd);
++	if (pmdp_set_access_flags(vma, address & HPAGE_PMD_MASK, pmd, entry, dirty))
++		update_mmu_cache_pmd(vma, address, pmd);
++}
++
+ int do_huge_pmd_wp_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			unsigned long address, pmd_t *pmd, pmd_t orig_pmd)
  {
- 	struct sk_buff *skb;
+diff -puN mm/memory.c~mm-thp-set-the-accessed-flag-for-old-pages-on-access-fault mm/memory.c
+--- a/mm/memory.c~mm-thp-set-the-accessed-flag-for-old-pages-on-access-fault
++++ a/mm/memory.c
+@@ -3539,7 +3539,8 @@ retry:
  
+ 		barrier();
+ 		if (pmd_trans_huge(orig_pmd)) {
+-			if (flags & FAULT_FLAG_WRITE &&
++			unsigned int dirty = flags & FAULT_FLAG_WRITE;
++			if (dirty &&
+ 			    !pmd_write(orig_pmd) &&
+ 			    !pmd_trans_splitting(orig_pmd)) {
+ 				ret = do_huge_pmd_wp_page(mm, vma, address, pmd,
+@@ -3552,7 +3553,13 @@ retry:
+ 				if (unlikely(ret & VM_FAULT_OOM))
+ 					goto retry;
+ 				return ret;
++			} else if (pmd_trans_huge_lock(pmd, vma) == 1) {
++				if (likely(pmd_same(*pmd, orig_pmd)))
++					huge_pmd_set_accessed(vma, address, pmd,
++							      dirty);
++				spin_unlock(&mm->page_table_lock);
+ 			}
++
+ 			return 0;
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from ecashin@coraid.com are
+Patches currently in -mm which might be from will.deacon@arm.com are
 
-linux-compilerh-add-__must_hold-macro-for-functions-called-with-a-lock-held.patch
-documentation-sparsetxt-document-context-annotations-for-lock-checking.patch
-aoe-describe-the-behavior-of-the-err-character-device.patch
-aoe-print-warning-regarding-a-common-reason-for-dropped-transmits.patch
-aoe-print-warning-regarding-a-common-reason-for-dropped-transmits-v2.patch
-aoe-update-cap-on-outstanding-commands-based-on-config-query-response.patch
-aoe-support-the-forgetting-flushing-of-a-user-specified-aoe-target.patch
-aoe-support-larger-i-o-requests-via-aoe_maxsectors-module-param.patch
-aoe-payload-sysfs-file-exports-per-aoe-command-data-transfer-size.patch
-aoe-cleanup-remove-unused-ata_scnt-function.patch
-aoe-whitespace-cleanup.patch
-aoe-update-driver-internal-version-number-to-60.patch
+mm-thp-set-the-accessed-flag-for-old-pages-on-access-fault.patch
+linux-next.patch
 
