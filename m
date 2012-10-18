@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + printk-use-pointer-for-console_cmdline-indexing.patch added to -mm tree
-Date: Thu, 18 Oct 2012 16:16:30 -0700
-Message-ID: <20121018231631.2373A10004A@wpzn3.hot.corp.google.com>
+Subject: + printk-move-braille-console-support-into-separate-braille-files.patch added to -mm tree
+Date: Thu, 18 Oct 2012 16:16:26 -0700
+Message-ID: <20121018231627.B1C5D5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:47156 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754274Ab2JRXQc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Oct 2012 19:16:32 -0400
-Received: by mail-yh0-f74.google.com with SMTP id 10so1157616yhl.1
-        for <mm-commits@vger.kernel.org>; Thu, 18 Oct 2012 16:16:31 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:39283 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754274Ab2JRXQa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Oct 2012 19:16:30 -0400
+Received: by mail-bk0-f74.google.com with SMTP id q16so554689bkw.1
+        for <mm-commits@vger.kernel.org>; Thu, 18 Oct 2012 16:16:29 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, kay@vrfy.org
+Cc: joe@perches.com, kay@vrfy.org, samuel.thibault@ens-lyon.org
 
 
 The patch titled
-     Subject: printk: use pointer for console_cmdline indexing
+     Subject: printk: move braille console support into separate braille.[ch] files
 has been added to the -mm tree.  Its filename is
-     printk-use-pointer-for-console_cmdline-indexing.patch
+     printk-move-braille-console-support-into-separate-braille-files.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,117 +34,253 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: printk: use pointer for console_cmdline indexing
+Subject: printk: move braille console support into separate braille.[ch] files
 
-Make the code a bit more compact by always using a pointer
-for the active console_cmdline.
+Create files with prototypes and static inlines for braille
+support.  Make braille_console functions return 1 on success.
 
-Move overly indented code to correct indent level.
-
+Cc: Samuel Thibault <samuel.thibault@ens-lyon.org>
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Kay Sievers <kay@vrfy.org>
+Acked-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |   49 ++++++++++++++++++++-------------------
- 1 file changed, 26 insertions(+), 23 deletions(-)
+ drivers/accessibility/braille/braille_console.c |    9 ++
+ kernel/printk/Makefile                          |    1 
+ kernel/printk/braille.c                         |   48 ++++++++++++++
+ kernel/printk/braille.h                         |   48 ++++++++++++++
+ kernel/printk/printk.c                          |   44 +++---------
+ 5 files changed, 117 insertions(+), 33 deletions(-)
 
-diff -puN kernel/printk/printk.c~printk-use-pointer-for-console_cmdline-indexing kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-use-pointer-for-console_cmdline-indexing
-+++ a/kernel/printk/printk.c
-@@ -1718,18 +1718,19 @@ static int __add_preferred_console(char 
- 	 *	See if this tty is not yet registered, and
- 	 *	if we have a slot free.
- 	 */
--	for (i = 0; i < MAX_CMDLINECONSOLES && console_cmdline[i].name[0]; i++)
--		if (strcmp(console_cmdline[i].name, name) == 0 &&
--			  console_cmdline[i].index == idx) {
--				if (!brl_options)
--					selected_console = i;
--				return 0;
-+	for (i = 0, c = console_cmdline;
-+	     i < MAX_CMDLINECONSOLES && c->name[0];
-+	     i++, c++) {
-+		if (strcmp(c->name, name) == 0 && c->index == idx) {
-+			if (!brl_options)
-+				selected_console = i;
-+			return 0;
- 		}
+diff -puN drivers/accessibility/braille/braille_console.c~printk-move-braille-console-support-into-separate-braille-files drivers/accessibility/braille/braille_console.c
+--- a/drivers/accessibility/braille/braille_console.c~printk-move-braille-console-support-into-separate-braille-files
++++ a/drivers/accessibility/braille/braille_console.c
+@@ -359,6 +359,9 @@ int braille_register_console(struct cons
+ 		char *console_options, char *braille_options)
+ {
+ 	int ret;
++
++	if (!(console->flags & CON_BRL))
++		return 0;
+ 	if (!console_options)
+ 		/* Only support VisioBraille for now */
+ 		console_options = "57600o8";
+@@ -374,15 +377,17 @@ int braille_register_console(struct cons
+ 	braille_co = console;
+ 	register_keyboard_notifier(&keyboard_notifier_block);
+ 	register_vt_notifier(&vt_notifier_block);
+-	return 0;
++	return 1;
+ }
+ 
+ int braille_unregister_console(struct console *console)
+ {
+ 	if (braille_co != console)
+ 		return -EINVAL;
++	if (!(console->flags & CON_BRL))
++		return 0;
+ 	unregister_keyboard_notifier(&keyboard_notifier_block);
+ 	unregister_vt_notifier(&vt_notifier_block);
+ 	braille_co = NULL;
+-	return 0;
++	return 1;
+ }
+diff -puN kernel/printk/Makefile~printk-move-braille-console-support-into-separate-braille-files kernel/printk/Makefile
+--- a/kernel/printk/Makefile~printk-move-braille-console-support-into-separate-braille-files
++++ a/kernel/printk/Makefile
+@@ -1 +1,2 @@
+ obj-y	= printk.o
++obj-$(CONFIG_A11Y_BRAILLE_CONSOLE)	+= braille.o
+diff -puN /dev/null kernel/printk/braille.c
+--- /dev/null
++++ a/kernel/printk/braille.c
+@@ -0,0 +1,48 @@
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <linux/kernel.h>
++#include <linux/console.h>
++#include <linux/string.h>
++
++#include "console_cmdline.h"
++#include "braille.h"
++
++char *_braille_console_setup(char **str, char **brl_options)
++{
++	if (!memcmp(*str, "brl,", 4)) {
++		*brl_options = "";
++		*str += 4;
++	} else if (!memcmp(str, "brl=", 4)) {
++		*brl_options = *str + 4;
++		*str = strchr(*brl_options, ',');
++		if (!*str)
++			pr_err("need port name after brl=\n");
++		else
++			*((*str)++) = 0;
 +	}
- 	if (i == MAX_CMDLINECONSOLES)
- 		return -E2BIG;
- 	if (!brl_options)
- 		selected_console = i;
--	c = &console_cmdline[i];
++
++	return *str;
++}
++
++int
++_braille_register_console(struct console *console, struct console_cmdline *c)
++{
++	int rtn = 0;
++
++	if (c->brl_options) {
++		console->flags |= CON_BRL;
++		rtn = braille_register_console(console, c->index, c->options,
++					       c->brl_options);
++	}
++
++	return rtn;
++}
++
++int
++_braille_unregister_console(struct console *console)
++{
++	if (console->flags & CON_BRL)
++		return braille_unregister_console(console);
++
++	return 0;
++}
+diff -puN /dev/null kernel/printk/braille.h
+--- /dev/null
++++ a/kernel/printk/braille.h
+@@ -0,0 +1,48 @@
++#ifndef _PRINTK_BRAILLE_H
++#define _PRINTK_BRAILLE_H
++
++#ifdef CONFIG_A11Y_BRAILLE_CONSOLE
++
++static inline void
++braille_set_options(struct console_cmdline *c, char *brl_options)
++{
++	c->brl_options = brl_options;
++}
++
++char *
++_braille_console_setup(char **str, char **brl_options);
++
++int
++_braille_register_console(struct console *console, struct console_cmdline *c);
++
++int
++_braille_unregister_console(struct console *console);
++
++#else
++
++static inline void
++braille_set_options(struct console_cmdline *c, char *brl_options)
++{
++}
++
++static inline char *
++_braille_console_setup(char **str, char **brl_options)
++{
++	return *str;
++}
++
++static inline int
++_braille_register_console(struct console *console, struct console_cmdline *c)
++{
++	return 0;
++}
++
++static inline int
++_braille_unregister_console(struct console *console)
++{
++	return 0;
++}
++
++#endif
++
++#endif
+diff -puN kernel/printk/printk.c~printk-move-braille-console-support-into-separate-braille-files kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-move-braille-console-support-into-separate-braille-files
++++ a/kernel/printk/printk.c
+@@ -47,6 +47,7 @@
+ #include <trace/events/printk.h>
+ 
+ #include "console_cmdline.h"
++#include "braille.h"
+ 
+ /*
+  * Architectures can override it:
+@@ -1731,9 +1732,8 @@ static int __add_preferred_console(char 
+ 	c = &console_cmdline[i];
  	strlcpy(c->name, name, sizeof(c->name));
  	c->options = options;
- 	braille_set_options(c, brl_options);
-@@ -1802,15 +1803,15 @@ int update_console_cmdline(char *name, i
- 	struct console_cmdline *c;
- 	int i;
+-#ifdef CONFIG_A11Y_BRAILLE_CONSOLE
+-	c->brl_options = brl_options;
+-#endif
++	braille_set_options(c, brl_options);
++
+ 	c->index = idx;
+ 	return 0;
+ }
+@@ -1746,20 +1746,8 @@ static int __init console_setup(char *st
+ 	char *s, *options, *brl_options = NULL;
+ 	int idx;
  
--	for (i = 0; i < MAX_CMDLINECONSOLES && console_cmdline[i].name[0]; i++)
--		if (strcmp(console_cmdline[i].name, name) == 0 &&
--			  console_cmdline[i].index == idx) {
--				c = &console_cmdline[i];
--				strlcpy(c->name, name_new, sizeof(c->name));
--				c->name[sizeof(c->name) - 1] = 0;
--				c->options = options;
--				c->index = idx_new;
--				return i;
-+	for (i = 0, c = console_cmdline;
-+	     i < MAX_CMDLINECONSOLES && c->name[0];
-+	     i++, c++)
-+		if (strcmp(c->name, name) == 0 && c->index == idx) {
-+			strlcpy(c->name, name_new, sizeof(c->name));
-+			c->name[sizeof(c->name) - 1] = 0;
-+			c->options = options;
-+			c->index = idx_new;
-+			return i;
- 		}
- 	/* not found */
- 	return -1;
-@@ -2218,6 +2219,7 @@ void register_console(struct console *ne
- 	int i;
- 	unsigned long flags;
- 	struct console *bcon = NULL;
-+	struct console_cmdline *c;
+-#ifdef CONFIG_A11Y_BRAILLE_CONSOLE
+-	if (!memcmp(str, "brl,", 4)) {
+-		brl_options = "";
+-		str += 4;
+-	} else if (!memcmp(str, "brl=", 4)) {
+-		brl_options = str + 4;
+-		str = strchr(brl_options, ',');
+-		if (!str) {
+-			printk(KERN_ERR "need port name after brl=\n");
+-			return 1;
+-		}
+-		*(str++) = 0;
+-	}
+-#endif
++	if (_braille_console_setup(&str, &brl_options))
++		return 1;
  
  	/*
- 	 * before we register a new CON_BOOT console, make sure we don't
-@@ -2265,24 +2267,25 @@ void register_console(struct console *ne
- 	 *	See if this console matches one we selected on
- 	 *	the command line.
- 	 */
--	for (i = 0; i < MAX_CMDLINECONSOLES && console_cmdline[i].name[0];
--			i++) {
--		if (strcmp(console_cmdline[i].name, newcon->name) != 0)
-+	for (i = 0, c = console_cmdline;
-+	     i < MAX_CMDLINECONSOLES && c->name[0];
-+	     i++, c++) {
-+		if (strcmp(c->name, newcon->name) != 0)
- 			continue;
- 		if (newcon->index >= 0 &&
--		    newcon->index != console_cmdline[i].index)
-+		    newcon->index != c->index)
+ 	 * Decode str into name, index, options.
+@@ -2286,16 +2274,10 @@ void register_console(struct console *ne
  			continue;
  		if (newcon->index < 0)
--			newcon->index = console_cmdline[i].index;
-+			newcon->index = c->index;
- 
--		if (_braille_register_console(newcon, &console_cmdline[i]))
-+		if (_braille_register_console(newcon, c))
+ 			newcon->index = console_cmdline[i].index;
+-#ifdef CONFIG_A11Y_BRAILLE_CONSOLE
+-		if (console_cmdline[i].brl_options) {
+-			newcon->flags |= CON_BRL;
+-			braille_register_console(newcon,
+-					console_cmdline[i].index,
+-					console_cmdline[i].options,
+-					console_cmdline[i].brl_options);
++
++		if (_braille_register_console(newcon, &console_cmdline[i]))
  			return;
- 
+-		}
+-#endif
++
  		if (newcon->setup &&
  		    newcon->setup(newcon, console_cmdline[i].options) != 0)
  			break;
- 		newcon->flags |= CON_ENABLED;
--		newcon->index = console_cmdline[i].index;
-+		newcon->index = c->index;
- 		if (i == selected_console) {
- 			newcon->flags |= CON_CONSDEV;
- 			preferred_console = selected_console;
+@@ -2383,13 +2365,13 @@ EXPORT_SYMBOL(register_console);
+ int unregister_console(struct console *console)
+ {
+         struct console *a, *b;
+-	int res = 1;
++	int res;
+ 
+-#ifdef CONFIG_A11Y_BRAILLE_CONSOLE
+-	if (console->flags & CON_BRL)
+-		return braille_unregister_console(console);
+-#endif
++	res = _braille_unregister_console(console);
++	if (res)
++		return res;
+ 
++	res = 1;
+ 	console_lock();
+ 	if (console_drivers == console) {
+ 		console_drivers=console->next;
 _
 
 Patches currently in -mm which might be from joe@perches.com are
