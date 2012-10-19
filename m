@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + printk-move-kmsg_dump-functions-to-separate-file.patch added to -mm tree
-Date: Thu, 18 Oct 2012 16:17:36 -0700
-Message-ID: <20121018231737.3071D100048@wpzn3.hot.corp.google.com>
+Subject: + mm-mempolicy-hold-task-mempolicy-refcount-while-reading-numa_maps.patch added to -mm tree
+Date: Fri, 19 Oct 2012 11:47:20 -0700
+Message-ID: <20121019184722.67BDB100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:57313 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751125Ab2JRXRi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Oct 2012 19:17:38 -0400
-Received: by mail-gg0-f202.google.com with SMTP id i4so1150483ggm.1
-        for <mm-commits@vger.kernel.org>; Thu, 18 Oct 2012 16:17:37 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:46615 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752332Ab2JSSrY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Oct 2012 14:47:24 -0400
+Received: by mail-qa0-f74.google.com with SMTP id a16so61389qae.1
+        for <mm-commits@vger.kernel.org>; Fri, 19 Oct 2012 11:47:23 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, kay@vrfy.org
+Cc: kamezawa.hiroyu@jp.fujitsu.com, davej@redhat.com, hughd@google.com, khlebnikov@openvz.org, kosaki.motohiro@gmail.com, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, rientjes@google.com
 
 
 The patch titled
-     Subject: printk: move kmsg_dump functions to separate file
+     Subject: mm, mempolicy: hold task->mempolicy refcount while reading numa_maps
 has been added to the -mm tree.  Its filename is
-     printk-move-kmsg_dump-functions-to-separate-file.patch
+     mm-mempolicy-hold-task-mempolicy-refcount-while-reading-numa_maps.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,726 +33,148 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: printk: move kmsg_dump functions to separate file
+From: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: mm, mempolicy: hold task->mempolicy refcount while reading numa_maps
 
-Generic restructuring.
+/proc/<pid>/numa_maps scans vma and shows mempolicy under mmap_sem.  It
+sometimes accesses task->mempolicy which can be freed without mmap_sem and
+numa_maps can show some garbage while scanning.
 
-Create kmsg_dump.c, add to Makefile and remove from printk.c
+This patch tries to take reference count of task->mempolicy at reading
+numa_maps before calling get_vma_policy().  By this, task->mempolicy will
+not be freed until numa_maps reaches its end.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Kay Sievers <kay@vrfy.org>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Dave Jones <davej@redhat.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
+Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/Makefile    |    1 
- kernel/printk/kmsg_dump.c |  328 ++++++++++++++++++++++++++++++++++++
- kernel/printk/printk.c    |  318 ----------------------------------
- 3 files changed, 329 insertions(+), 318 deletions(-)
+ fs/proc/internal.h |    4 +++
+ fs/proc/task_mmu.c |   49 ++++++++++++++++++++++++++++++++++++++++---
+ 2 files changed, 50 insertions(+), 3 deletions(-)
 
-diff -puN kernel/printk/Makefile~printk-move-kmsg_dump-functions-to-separate-file kernel/printk/Makefile
---- a/kernel/printk/Makefile~printk-move-kmsg_dump-functions-to-separate-file
-+++ a/kernel/printk/Makefile
-@@ -2,4 +2,5 @@ obj-y	= printk.o
- obj-y	+= printk_log.o
- obj-y	+= devkmsg.o
- obj-y	+= printk_syslog.o
-+obj-y	+= kmsg_dump.o
- obj-$(CONFIG_A11Y_BRAILLE_CONSOLE)	+= braille.o
-diff -puN /dev/null kernel/printk/kmsg_dump.c
---- /dev/null
-+++ a/kernel/printk/kmsg_dump.c
-@@ -0,0 +1,328 @@
-+#include <linux/kernel.h>
-+#include <linux/mm.h>
-+#include <linux/kexec.h>
-+#include <linux/moduleparam.h>
-+#include <linux/export.h>
-+#include <linux/kmsg_dump.h>
-+#include <linux/rculist.h>
-+#include <linux/stat.h>
-+
-+#include "printk_log.h"
-+
-+static DEFINE_SPINLOCK(dump_list_lock);
-+static LIST_HEAD(dump_list);
-+
-+/**
-+ * kmsg_dump_register - register a kernel log dumper.
-+ * @dumper: pointer to the kmsg_dumper structure
-+ *
-+ * Adds a kernel log dumper to the system. The dump callback in the
-+ * structure will be called when the kernel oopses or panics and must be
-+ * set. Returns zero on success and %-EINVAL or %-EBUSY otherwise.
-+ */
-+int kmsg_dump_register(struct kmsg_dumper *dumper)
-+{
-+	unsigned long flags;
-+	int err = -EBUSY;
-+
-+	/* The dump callback needs to be set */
-+	if (!dumper->dump)
-+		return -EINVAL;
-+
-+	spin_lock_irqsave(&dump_list_lock, flags);
-+	/* Don't allow registering multiple times */
-+	if (!dumper->registered) {
-+		dumper->registered = 1;
-+		list_add_tail_rcu(&dumper->list, &dump_list);
-+		err = 0;
-+	}
-+	spin_unlock_irqrestore(&dump_list_lock, flags);
-+
-+	return err;
-+}
-+EXPORT_SYMBOL_GPL(kmsg_dump_register);
-+
-+/**
-+ * kmsg_dump_unregister - unregister a kmsg dumper.
-+ * @dumper: pointer to the kmsg_dumper structure
-+ *
-+ * Removes a dump device from the system. Returns zero on success and
-+ * %-EINVAL otherwise.
-+ */
-+int kmsg_dump_unregister(struct kmsg_dumper *dumper)
-+{
-+	unsigned long flags;
-+	int err = -EINVAL;
-+
-+	spin_lock_irqsave(&dump_list_lock, flags);
-+	if (dumper->registered) {
-+		dumper->registered = 0;
-+		list_del_rcu(&dumper->list);
-+		err = 0;
-+	}
-+	spin_unlock_irqrestore(&dump_list_lock, flags);
-+	synchronize_rcu();
-+
-+	return err;
-+}
-+EXPORT_SYMBOL_GPL(kmsg_dump_unregister);
-+
-+static bool always_kmsg_dump;
-+module_param_named(always_kmsg_dump, always_kmsg_dump, bool, S_IRUGO | S_IWUSR);
-+
-+/**
-+ * kmsg_dump - dump kernel log to kernel message dumpers.
-+ * @reason: the reason (oops, panic etc) for dumping
-+ *
-+ * Call each of the registered dumper's dump() callback, which can
-+ * retrieve the kmsg records with kmsg_dump_get_line() or
-+ * kmsg_dump_get_buffer().
-+ */
-+void kmsg_dump(enum kmsg_dump_reason reason)
-+{
-+	struct kmsg_dumper *dumper;
-+	unsigned long flags;
-+
-+	if ((reason > KMSG_DUMP_OOPS) && !always_kmsg_dump)
-+		return;
-+
-+	rcu_read_lock();
-+	list_for_each_entry_rcu(dumper, &dump_list, list) {
-+		if (dumper->max_reason && reason > dumper->max_reason)
-+			continue;
-+
-+		/* initialize iterator with data about the stored records */
-+		dumper->active = true;
-+
-+		raw_spin_lock_irqsave(&printk_logbuf_lock, flags);
-+		dumper->cur_seq = printk_log_clear_seq;
-+		dumper->cur_idx = printk_log_clear_idx;
-+		dumper->next_seq = printk_log_next_seq;
-+		dumper->next_idx = printk_log_next_idx;
-+		raw_spin_unlock_irqrestore(&printk_logbuf_lock, flags);
-+
-+		/* invoke dumper which will iterate over records */
-+		dumper->dump(dumper, reason);
-+
-+		/* reset iterator */
-+		dumper->active = false;
-+	}
-+	rcu_read_unlock();
-+}
-+
-+/**
-+ * kmsg_dump_get_line_nolock - retrieve one kmsg log line (unlocked version)
-+ * @dumper: registered kmsg dumper
-+ * @syslog: include the "<4>" prefixes
-+ * @line: buffer to copy the line to
-+ * @size: maximum size of the buffer
-+ * @len: length of line placed into buffer
-+ *
-+ * Start at the beginning of the kmsg buffer, with the oldest kmsg
-+ * record, and copy one record into the provided buffer.
-+ *
-+ * Consecutive calls will return the next available record moving
-+ * towards the end of the buffer with the youngest messages.
-+ *
-+ * A return value of FALSE indicates that there are no more records to
-+ * read.
-+ *
-+ * The function is similar to kmsg_dump_get_line(), but grabs no locks.
-+ */
-+bool kmsg_dump_get_line_nolock(struct kmsg_dumper *dumper, bool syslog,
-+			       char *line, size_t size, size_t *len)
-+{
-+	struct printk_log *msg;
-+	size_t l = 0;
-+	bool ret = false;
-+
-+	if (!dumper->active)
-+		goto out;
-+
-+	if (dumper->cur_seq < printk_log_first_seq) {
-+		/* messages are gone, move to first available one */
-+		dumper->cur_seq = printk_log_first_seq;
-+		dumper->cur_idx = printk_log_first_idx;
-+	}
-+
-+	/* last entry */
-+	if (dumper->cur_seq >= printk_log_next_seq)
-+		goto out;
-+
-+	msg = printk_log_from_idx(dumper->cur_idx);
-+	l = printk_msg_print_text(msg, 0, syslog, line, size);
-+
-+	dumper->cur_idx = printk_log_next(dumper->cur_idx);
-+	dumper->cur_seq++;
-+	ret = true;
-+out:
-+	if (len)
-+		*len = l;
-+	return ret;
-+}
-+
-+/**
-+ * kmsg_dump_get_line - retrieve one kmsg log line
-+ * @dumper: registered kmsg dumper
-+ * @syslog: include the "<4>" prefixes
-+ * @line: buffer to copy the line to
-+ * @size: maximum size of the buffer
-+ * @len: length of line placed into buffer
-+ *
-+ * Start at the beginning of the kmsg buffer, with the oldest kmsg
-+ * record, and copy one record into the provided buffer.
-+ *
-+ * Consecutive calls will return the next available record moving
-+ * towards the end of the buffer with the youngest messages.
-+ *
-+ * A return value of FALSE indicates that there are no more records to
-+ * read.
-+ */
-+bool kmsg_dump_get_line(struct kmsg_dumper *dumper, bool syslog,
-+			char *line, size_t size, size_t *len)
-+{
-+	unsigned long flags;
-+	bool ret;
-+
-+	raw_spin_lock_irqsave(&printk_logbuf_lock, flags);
-+	ret = kmsg_dump_get_line_nolock(dumper, syslog, line, size, len);
-+	raw_spin_unlock_irqrestore(&printk_logbuf_lock, flags);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(kmsg_dump_get_line);
-+
-+/**
-+ * kmsg_dump_get_buffer - copy kmsg log lines
-+ * @dumper: registered kmsg dumper
-+ * @syslog: include the "<4>" prefixes
-+ * @buf: buffer to copy the line to
-+ * @size: maximum size of the buffer
-+ * @len: length of line placed into buffer
-+ *
-+ * Start at the end of the kmsg buffer and fill the provided buffer
-+ * with as many of the the *youngest* kmsg records that fit into it.
-+ * If the buffer is large enough, all available kmsg records will be
-+ * copied with a single call.
-+ *
-+ * Consecutive calls will fill the buffer with the next block of
-+ * available older records, not including the earlier retrieved ones.
-+ *
-+ * A return value of FALSE indicates that there are no more records to
-+ * read.
-+ */
-+bool kmsg_dump_get_buffer(struct kmsg_dumper *dumper, bool syslog,
-+			  char *buf, size_t size, size_t *len)
-+{
-+	unsigned long flags;
-+	u64 seq;
-+	u32 idx;
-+	u64 next_seq;
-+	u32 next_idx;
-+	enum printk_log_flags prev;
-+	size_t l = 0;
-+	bool ret = false;
-+
-+	if (!dumper->active)
-+		goto out;
-+
-+	raw_spin_lock_irqsave(&printk_logbuf_lock, flags);
-+	if (dumper->cur_seq < printk_log_first_seq) {
-+		/* messages are gone, move to first available one */
-+		dumper->cur_seq = printk_log_first_seq;
-+		dumper->cur_idx = printk_log_first_idx;
-+	}
-+
-+	/* last entry */
-+	if (dumper->cur_seq >= dumper->next_seq) {
-+		raw_spin_unlock_irqrestore(&printk_logbuf_lock, flags);
-+		goto out;
-+	}
-+
-+	/* calculate length of entire buffer */
-+	seq = dumper->cur_seq;
-+	idx = dumper->cur_idx;
-+	prev = 0;
-+	while (seq < dumper->next_seq) {
-+		struct printk_log *msg = printk_log_from_idx(idx);
-+
-+		l += printk_msg_print_text(msg, prev, true, NULL, 0);
-+		idx = printk_log_next(idx);
-+		seq++;
-+		prev = msg->flags;
-+	}
-+
-+	/* move first record forward until length fits into the buffer */
-+	seq = dumper->cur_seq;
-+	idx = dumper->cur_idx;
-+	prev = 0;
-+	while (l > size && seq < dumper->next_seq) {
-+		struct printk_log *msg = printk_log_from_idx(idx);
-+
-+		l -= printk_msg_print_text(msg, prev, true, NULL, 0);
-+		idx = printk_log_next(idx);
-+		seq++;
-+		prev = msg->flags;
-+	}
-+
-+	/* last message in next interation */
-+	next_seq = seq;
-+	next_idx = idx;
-+
-+	l = 0;
-+	prev = 0;
-+	while (seq < dumper->next_seq) {
-+		struct printk_log *msg = printk_log_from_idx(idx);
-+
-+		l += printk_msg_print_text(msg, prev, syslog, buf + l, size - l);
-+		idx = printk_log_next(idx);
-+		seq++;
-+		prev = msg->flags;
-+	}
-+
-+	dumper->next_seq = next_seq;
-+	dumper->next_idx = next_idx;
-+	ret = true;
-+	raw_spin_unlock_irqrestore(&printk_logbuf_lock, flags);
-+out:
-+	if (len)
-+		*len = l;
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(kmsg_dump_get_buffer);
-+
-+/**
-+ * kmsg_dump_rewind_nolock - reset the interator (unlocked version)
-+ * @dumper: registered kmsg dumper
-+ *
-+ * Reset the dumper's iterator so that kmsg_dump_get_line() and
-+ * kmsg_dump_get_buffer() can be called again and used multiple
-+ * times within the same dumper.dump() callback.
-+ *
-+ * The function is similar to kmsg_dump_rewind(), but grabs no locks.
-+ */
-+void kmsg_dump_rewind_nolock(struct kmsg_dumper *dumper)
-+{
-+	dumper->cur_seq = printk_log_clear_seq;
-+	dumper->cur_idx = printk_log_clear_idx;
-+	dumper->next_seq = printk_log_next_seq;
-+	dumper->next_idx = printk_log_next_idx;
-+}
-+
-+/**
-+ * kmsg_dump_rewind - reset the interator
-+ * @dumper: registered kmsg dumper
-+ *
-+ * Reset the dumper's iterator so that kmsg_dump_get_line() and
-+ * kmsg_dump_get_buffer() can be called again and used multiple
-+ * times within the same dumper.dump() callback.
-+ */
-+void kmsg_dump_rewind(struct kmsg_dumper *dumper)
-+{
-+	unsigned long flags;
-+
-+	raw_spin_lock_irqsave(&printk_logbuf_lock, flags);
-+	kmsg_dump_rewind_nolock(dumper);
-+	raw_spin_unlock_irqrestore(&printk_logbuf_lock, flags);
-+}
-+EXPORT_SYMBOL_GPL(kmsg_dump_rewind);
-diff -puN kernel/printk/printk.c~printk-move-kmsg_dump-functions-to-separate-file kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-move-kmsg_dump-functions-to-separate-file
-+++ a/kernel/printk/printk.c
-@@ -33,7 +33,6 @@
- #include <linux/kexec.h>
- #include <linux/kdb.h>
- #include <linux/ratelimit.h>
--#include <linux/kmsg_dump.h>
- #include <linux/cpu.h>
- #include <linux/notifier.h>
- #include <linux/rculist.h>
-@@ -1513,321 +1512,4 @@ bool printk_timed_ratelimit(unsigned lon
- }
- EXPORT_SYMBOL(printk_timed_ratelimit);
+diff -puN fs/proc/internal.h~mm-mempolicy-hold-task-mempolicy-refcount-while-reading-numa_maps fs/proc/internal.h
+--- a/fs/proc/internal.h~mm-mempolicy-hold-task-mempolicy-refcount-while-reading-numa_maps
++++ a/fs/proc/internal.h
+@@ -12,6 +12,7 @@
+ #include <linux/sched.h>
+ #include <linux/proc_fs.h>
+ struct  ctl_table_header;
++struct  mempolicy;
  
--static DEFINE_SPINLOCK(dump_list_lock);
--static LIST_HEAD(dump_list);
--
--/**
-- * kmsg_dump_register - register a kernel log dumper.
-- * @dumper: pointer to the kmsg_dumper structure
-- *
-- * Adds a kernel log dumper to the system. The dump callback in the
-- * structure will be called when the kernel oopses or panics and must be
-- * set. Returns zero on success and %-EINVAL or %-EBUSY otherwise.
-- */
--int kmsg_dump_register(struct kmsg_dumper *dumper)
--{
--	unsigned long flags;
--	int err = -EBUSY;
--
--	/* The dump callback needs to be set */
--	if (!dumper->dump)
--		return -EINVAL;
--
--	spin_lock_irqsave(&dump_list_lock, flags);
--	/* Don't allow registering multiple times */
--	if (!dumper->registered) {
--		dumper->registered = 1;
--		list_add_tail_rcu(&dumper->list, &dump_list);
--		err = 0;
--	}
--	spin_unlock_irqrestore(&dump_list_lock, flags);
--
--	return err;
--}
--EXPORT_SYMBOL_GPL(kmsg_dump_register);
--
--/**
-- * kmsg_dump_unregister - unregister a kmsg dumper.
-- * @dumper: pointer to the kmsg_dumper structure
-- *
-- * Removes a dump device from the system. Returns zero on success and
-- * %-EINVAL otherwise.
-- */
--int kmsg_dump_unregister(struct kmsg_dumper *dumper)
--{
--	unsigned long flags;
--	int err = -EINVAL;
--
--	spin_lock_irqsave(&dump_list_lock, flags);
--	if (dumper->registered) {
--		dumper->registered = 0;
--		list_del_rcu(&dumper->list);
--		err = 0;
--	}
--	spin_unlock_irqrestore(&dump_list_lock, flags);
--	synchronize_rcu();
--
--	return err;
--}
--EXPORT_SYMBOL_GPL(kmsg_dump_unregister);
--
--static bool always_kmsg_dump;
--module_param_named(always_kmsg_dump, always_kmsg_dump, bool, S_IRUGO | S_IWUSR);
--
--/**
-- * kmsg_dump - dump kernel log to kernel message dumpers.
-- * @reason: the reason (oops, panic etc) for dumping
-- *
-- * Call each of the registered dumper's dump() callback, which can
-- * retrieve the kmsg records with kmsg_dump_get_line() or
-- * kmsg_dump_get_buffer().
-- */
--void kmsg_dump(enum kmsg_dump_reason reason)
--{
--	struct kmsg_dumper *dumper;
--	unsigned long flags;
--
--	if ((reason > KMSG_DUMP_OOPS) && !always_kmsg_dump)
--		return;
--
--	rcu_read_lock();
--	list_for_each_entry_rcu(dumper, &dump_list, list) {
--		if (dumper->max_reason && reason > dumper->max_reason)
--			continue;
--
--		/* initialize iterator with data about the stored records */
--		dumper->active = true;
--
--		raw_spin_lock_irqsave(&printk_logbuf_lock, flags);
--		dumper->cur_seq = printk_log_clear_seq;
--		dumper->cur_idx = printk_log_clear_idx;
--		dumper->next_seq = printk_log_next_seq;
--		dumper->next_idx = printk_log_next_idx;
--		raw_spin_unlock_irqrestore(&printk_logbuf_lock, flags);
--
--		/* invoke dumper which will iterate over records */
--		dumper->dump(dumper, reason);
--
--		/* reset iterator */
--		dumper->active = false;
--	}
--	rcu_read_unlock();
--}
--
--/**
-- * kmsg_dump_get_line_nolock - retrieve one kmsg log line (unlocked version)
-- * @dumper: registered kmsg dumper
-- * @syslog: include the "<4>" prefixes
-- * @line: buffer to copy the line to
-- * @size: maximum size of the buffer
-- * @len: length of line placed into buffer
-- *
-- * Start at the beginning of the kmsg buffer, with the oldest kmsg
-- * record, and copy one record into the provided buffer.
-- *
-- * Consecutive calls will return the next available record moving
-- * towards the end of the buffer with the youngest messages.
-- *
-- * A return value of FALSE indicates that there are no more records to
-- * read.
-- *
-- * The function is similar to kmsg_dump_get_line(), but grabs no locks.
-- */
--bool kmsg_dump_get_line_nolock(struct kmsg_dumper *dumper, bool syslog,
--			       char *line, size_t size, size_t *len)
--{
--	struct printk_log *msg;
--	size_t l = 0;
--	bool ret = false;
--
--	if (!dumper->active)
--		goto out;
--
--	if (dumper->cur_seq < printk_log_first_seq) {
--		/* messages are gone, move to first available one */
--		dumper->cur_seq = printk_log_first_seq;
--		dumper->cur_idx = printk_log_first_idx;
--	}
--
--	/* last entry */
--	if (dumper->cur_seq >= printk_log_next_seq)
--		goto out;
--
--	msg = printk_log_from_idx(dumper->cur_idx);
--	l = printk_msg_print_text(msg, 0, syslog, line, size);
--
--	dumper->cur_idx = printk_log_next(dumper->cur_idx);
--	dumper->cur_seq++;
--	ret = true;
--out:
--	if (len)
--		*len = l;
--	return ret;
--}
--
--/**
-- * kmsg_dump_get_line - retrieve one kmsg log line
-- * @dumper: registered kmsg dumper
-- * @syslog: include the "<4>" prefixes
-- * @line: buffer to copy the line to
-- * @size: maximum size of the buffer
-- * @len: length of line placed into buffer
-- *
-- * Start at the beginning of the kmsg buffer, with the oldest kmsg
-- * record, and copy one record into the provided buffer.
-- *
-- * Consecutive calls will return the next available record moving
-- * towards the end of the buffer with the youngest messages.
-- *
-- * A return value of FALSE indicates that there are no more records to
-- * read.
-- */
--bool kmsg_dump_get_line(struct kmsg_dumper *dumper, bool syslog,
--			char *line, size_t size, size_t *len)
--{
--	unsigned long flags;
--	bool ret;
--
--	raw_spin_lock_irqsave(&printk_logbuf_lock, flags);
--	ret = kmsg_dump_get_line_nolock(dumper, syslog, line, size, len);
--	raw_spin_unlock_irqrestore(&printk_logbuf_lock, flags);
--
--	return ret;
--}
--EXPORT_SYMBOL_GPL(kmsg_dump_get_line);
--
--/**
-- * kmsg_dump_get_buffer - copy kmsg log lines
-- * @dumper: registered kmsg dumper
-- * @syslog: include the "<4>" prefixes
-- * @buf: buffer to copy the line to
-- * @size: maximum size of the buffer
-- * @len: length of line placed into buffer
-- *
-- * Start at the end of the kmsg buffer and fill the provided buffer
-- * with as many of the the *youngest* kmsg records that fit into it.
-- * If the buffer is large enough, all available kmsg records will be
-- * copied with a single call.
-- *
-- * Consecutive calls will fill the buffer with the next block of
-- * available older records, not including the earlier retrieved ones.
-- *
-- * A return value of FALSE indicates that there are no more records to
-- * read.
-- */
--bool kmsg_dump_get_buffer(struct kmsg_dumper *dumper, bool syslog,
--			  char *buf, size_t size, size_t *len)
--{
--	unsigned long flags;
--	u64 seq;
--	u32 idx;
--	u64 next_seq;
--	u32 next_idx;
--	enum printk_log_flags prev;
--	size_t l = 0;
--	bool ret = false;
--
--	if (!dumper->active)
--		goto out;
--
--	raw_spin_lock_irqsave(&printk_logbuf_lock, flags);
--	if (dumper->cur_seq < printk_log_first_seq) {
--		/* messages are gone, move to first available one */
--		dumper->cur_seq = printk_log_first_seq;
--		dumper->cur_idx = printk_log_first_idx;
--	}
--
--	/* last entry */
--	if (dumper->cur_seq >= dumper->next_seq) {
--		raw_spin_unlock_irqrestore(&printk_logbuf_lock, flags);
--		goto out;
--	}
--
--	/* calculate length of entire buffer */
--	seq = dumper->cur_seq;
--	idx = dumper->cur_idx;
--	prev = 0;
--	while (seq < dumper->next_seq) {
--		struct printk_log *msg = printk_log_from_idx(idx);
--
--		l += printk_msg_print_text(msg, prev, true, NULL, 0);
--		idx = printk_log_next(idx);
--		seq++;
--		prev = msg->flags;
--	}
--
--	/* move first record forward until length fits into the buffer */
--	seq = dumper->cur_seq;
--	idx = dumper->cur_idx;
--	prev = 0;
--	while (l > size && seq < dumper->next_seq) {
--		struct printk_log *msg = printk_log_from_idx(idx);
--
--		l -= printk_msg_print_text(msg, prev, true, NULL, 0);
--		idx = printk_log_next(idx);
--		seq++;
--		prev = msg->flags;
--	}
--
--	/* last message in next interation */
--	next_seq = seq;
--	next_idx = idx;
--
--	l = 0;
--	prev = 0;
--	while (seq < dumper->next_seq) {
--		struct printk_log *msg = printk_log_from_idx(idx);
--
--		l += printk_msg_print_text(msg, prev, syslog, buf + l, size - l);
--		idx = printk_log_next(idx);
--		seq++;
--		prev = msg->flags;
--	}
--
--	dumper->next_seq = next_seq;
--	dumper->next_idx = next_idx;
--	ret = true;
--	raw_spin_unlock_irqrestore(&printk_logbuf_lock, flags);
--out:
--	if (len)
--		*len = l;
--	return ret;
--}
--EXPORT_SYMBOL_GPL(kmsg_dump_get_buffer);
--
--/**
-- * kmsg_dump_rewind_nolock - reset the interator (unlocked version)
-- * @dumper: registered kmsg dumper
-- *
-- * Reset the dumper's iterator so that kmsg_dump_get_line() and
-- * kmsg_dump_get_buffer() can be called again and used multiple
-- * times within the same dumper.dump() callback.
-- *
-- * The function is similar to kmsg_dump_rewind(), but grabs no locks.
-- */
--void kmsg_dump_rewind_nolock(struct kmsg_dumper *dumper)
--{
--	dumper->cur_seq = printk_log_clear_seq;
--	dumper->cur_idx = printk_log_clear_idx;
--	dumper->next_seq = printk_log_next_seq;
--	dumper->next_idx = printk_log_next_idx;
--}
--
--/**
-- * kmsg_dump_rewind - reset the interator
-- * @dumper: registered kmsg dumper
-- *
-- * Reset the dumper's iterator so that kmsg_dump_get_line() and
-- * kmsg_dump_get_buffer() can be called again and used multiple
-- * times within the same dumper.dump() callback.
-- */
--void kmsg_dump_rewind(struct kmsg_dumper *dumper)
--{
--	unsigned long flags;
--
--	raw_spin_lock_irqsave(&printk_logbuf_lock, flags);
--	kmsg_dump_rewind_nolock(dumper);
--	raw_spin_unlock_irqrestore(&printk_logbuf_lock, flags);
--}
--EXPORT_SYMBOL_GPL(kmsg_dump_rewind);
+ extern struct proc_dir_entry proc_root;
+ #ifdef CONFIG_PROC_SYSCTL
+@@ -74,6 +75,9 @@ struct proc_maps_private {
+ #ifdef CONFIG_MMU
+ 	struct vm_area_struct *tail_vma;
  #endif
++#ifdef CONFIG_NUMA
++	struct mempolicy *task_mempolicy;
++#endif
+ };
+ 
+ void proc_init_inodecache(void);
+diff -puN fs/proc/task_mmu.c~mm-mempolicy-hold-task-mempolicy-refcount-while-reading-numa_maps fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-mempolicy-hold-task-mempolicy-refcount-while-reading-numa_maps
++++ a/fs/proc/task_mmu.c
+@@ -89,11 +89,55 @@ static void pad_len_spaces(struct seq_fi
+ 		len = 1;
+ 	seq_printf(m, "%*c", len, ' ');
+ }
++#ifdef CONFIG_NUMA
++/*
++ * These functions are for numa_maps but called in generic **maps seq_file
++ * ->start(), ->stop() ops.
++ *
++ * numa_maps scans all vmas under mmap_sem and checks their mempolicy.
++ * Each mempolicy object is controlled by reference counting. The problem here
++ * is how to avoid accessing dead mempolicy object.
++ *
++ * Because we're holding mmap_sem while reading seq_file, it's safe to access
++ * each vma's mempolicy, no vma objects will never drop refs to mempolicy.
++ *
++ * A task's mempolicy (task->mempolicy) has different behavior. task->mempolicy
++ * is set and replaced under mmap_sem but unrefed and cleared under task_lock().
++ * So, without task_lock(), we cannot trust get_vma_policy() because we cannot
++ * gurantee the task never exits under us. But taking task_lock() around
++ * get_vma_plicy() causes lock order problem.
++ *
++ * To access task->mempolicy without lock, we hold a reference count of an
++ * object pointed by task->mempolicy and remember it. This will guarantee
++ * that task->mempolicy points to an alive object or NULL in numa_maps accesses.
++ */
++static void hold_task_mempolicy(struct proc_maps_private *priv)
++{
++	struct task_struct *task = priv->task;
++
++	task_lock(task);
++	priv->task_mempolicy = task->mempolicy;
++	mpol_get(priv->task_mempolicy);
++	task_unlock(task);
++}
++static void release_task_mempolicy(struct proc_maps_private *priv)
++{
++	mpol_put(priv->task_mempolicy);
++}
++#else
++static void hold_task_mempolicy(struct proc_maps_private *priv)
++{
++}
++static void release_task_mempolicy(struct proc_maps_private *priv)
++{
++}
++#endif
+ 
+ static void vma_stop(struct proc_maps_private *priv, struct vm_area_struct *vma)
+ {
+ 	if (vma && vma != priv->tail_vma) {
+ 		struct mm_struct *mm = vma->vm_mm;
++		release_task_mempolicy(priv);
+ 		up_read(&mm->mmap_sem);
+ 		mmput(mm);
+ 	}
+@@ -132,7 +176,7 @@ static void *m_start(struct seq_file *m,
+ 
+ 	tail_vma = get_gate_vma(priv->task->mm);
+ 	priv->tail_vma = tail_vma;
+-
++	hold_task_mempolicy(priv);
+ 	/* Start with last addr hint */
+ 	vma = find_vma(mm, last_addr);
+ 	if (last_addr && vma) {
+@@ -159,6 +203,7 @@ out:
+ 	if (vma)
+ 		return vma;
+ 
++	release_task_mempolicy(priv);
+ 	/* End of vmas has been reached */
+ 	m->version = (tail_vma != NULL)? 0: -1UL;
+ 	up_read(&mm->mmap_sem);
+@@ -1178,11 +1223,9 @@ static int show_numa_map(struct seq_file
+ 	walk.private = md;
+ 	walk.mm = mm;
+ 
+-	task_lock(task);
+ 	pol = get_vma_policy(task, vma, vma->vm_start);
+ 	mpol_to_str(buffer, sizeof(buffer), pol, 0);
+ 	mpol_cond_put(pol);
+-	task_unlock(task);
+ 
+ 	seq_printf(m, "%08lx %s", vma->vm_start, buffer);
+ 
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-printk-move-to-separate-directory-for-easier-modification.patch
-printk-add-console_cmdlineh.patch
-printk-move-braille-console-support-into-separate-braille-files.patch
-printk-use-pointer-for-console_cmdline-indexing.patch
-printk-rename-struct-log-to-struct-printk_log.patch
-printk-rename-log_buf-and-__log_buf_len.patch
-printk-rename-log_first-and-log_next-variables.patch
-printk-rename-log_foo-variables-and-functions.patch
-printk-rename-enum-log_flags-to-printk_log_flags.patch
-printk-rename-log_wait-to-printk_log_wait.patch
-printk-rename-logbuf_lock-to-printk_logbuf_lock.patch
-printk-rename-clear_seq-and-clear_idx-variables.patch
-printk-remove-static-from-printk_-variables.patch
-printk-rename-log_align-to-printk_log_align.patch
-printk-add-and-use-printk_logh.patch
-printk-add-printk_logc.patch
-printk-make-wait_queue_head_t-printk_log_wait-extern.patch
-printk-rename-and-move-2-defines-to-printk_logh.patch
-printk-move-devkmsg-bits-to-separate-file.patch
-printk-prefix-print_time-and-msg_print_text-with-printk_.patch
-printk-move-functions-printk_print_time-and-printk_msg_print_text.patch
-printk-add-printk_syslogc-and-h.patch
-printk-move-kmsg_dump-functions-to-separate-file.patch
-maintainers-networking-drivers-matches-too-much.patch
-checkpatch-improve-network-block-comment-style-checking.patch
-kstrto-add-documentation.patch
-simple_strto-annotate-function-as-obsolete.patch
+mm-mempolicy-hold-task-mempolicy-refcount-while-reading-numa_maps.patch
+mm-mempolicy-avoid-taking-mutex-inside-spinlock-when-reading-numa_maps.patch
+mm-memcg-make-mem_cgroup_out_of_memory-static.patch
+mm-memblock-reduce-overhead-in-binary-search.patch
+proc-dont-show-nonexistent-capabilities.patch
 
