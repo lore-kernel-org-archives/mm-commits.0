@@ -1,117 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [failures] mm-thp-set-the-accessed-flag-for-old-pages-on-access-fault.patch removed from -mm tree
-Date: Fri, 19 Oct 2012 11:50:10 -0700
-Message-ID: <20121019185011.369AE1E0043@wpzn4.hot.corp.google.com>
+Subject: [folded-dropped] pidns-remove-recursion-from-free_pid_ns-v5-fix.patch removed from -mm tree
+Date: Fri, 19 Oct 2012 13:54:44 -0700
+Message-ID: <20121019205444.9ADDE100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:43860 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754522Ab2JSSuM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Oct 2012 14:50:12 -0400
-Received: by mail-qc0-f202.google.com with SMTP id s25so86468qcq.1
-        for <mm-commits@vger.kernel.org>; Fri, 19 Oct 2012 11:50:12 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:34201 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753526Ab2JSUyq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Oct 2012 16:54:46 -0400
+Received: by mail-yh0-f74.google.com with SMTP id 10so102765yhl.1
+        for <mm-commits@vger.kernel.org>; Fri, 19 Oct 2012 13:54:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: will.deacon@arm.com, aarcange@redhat.com, cmetcalf@tilera.com, davem@davemloft.net, kirill@shutemov.name, steve.capper@arm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, avagin@openvz.org, ebiederm@xmission.com, gorcunov@openvz.org, greg@kroah.com, oleg@redhat.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: thp: et the accessed flag for old pages on access fault
+     Subject: pidns-remove-recursion-from-free_pid_ns-v5-fix
 has been removed from the -mm tree.  Its filename was
-     mm-thp-set-the-accessed-flag-for-old-pages-on-access-fault.patch
+     pidns-remove-recursion-from-free_pid_ns-v5-fix.patch
 
-This patch was dropped because it had testing failures
+This patch was dropped because it was folded into pidns-remove-recursion-from-free_pid_ns-v5.patch
 
 ------------------------------------------------------
-From: Will Deacon <will.deacon@arm.com>
-Subject: mm: thp: et the accessed flag for old pages on access fault
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: pidns-remove-recursion-from-free_pid_ns-v5-fix
 
-On x86 memory accesses to pages without the ACCESSED flag set result in
-the ACCESSED flag being set automatically.  With the ARM architecture a
-page access fault is raised instead (and it will continue to be raised
-until the ACCESSED flag is set for the appropriate PTE/PMD).
+export put_pid_ns() to modules
 
-For normal memory pages, handle_pte_fault will call pte_mkyoung
-(effectively setting the ACCESSED flag).  For transparent huge pages,
-pmd_mkyoung will only be called for a write fault.
+i386 allmodconfig:
+ERROR: "put_pid_ns" [net/ipv6/ipv6.ko] undefined!
 
-This patch ensures that faults on transparent hugepages which do not
-result in a CoW update the access flags for the faulting pmd.
-
-Cc: Chris Metcalf <cmetcalf@tilera.com>
-Acked-by: Kirill A. Shutemov <kirill@shutemov.name>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Signed-off-by: Steve Capper <steve.capper@arm.com>
-Signed-off-by: Will Deacon <will.deacon@arm.com>
-Cc: David Miller <davem@davemloft.net>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Andrew Vagin <avagin@openvz.org>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    2 ++
- mm/huge_memory.c        |    8 ++++++++
- mm/memory.c             |    9 ++++++++-
- 3 files changed, 18 insertions(+), 1 deletion(-)
+ kernel/pid_namespace.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/huge_mm.h~mm-thp-set-the-accessed-flag-for-old-pages-on-access-fault include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~mm-thp-set-the-accessed-flag-for-old-pages-on-access-fault
-+++ a/include/linux/huge_mm.h
-@@ -8,6 +8,8 @@ extern int do_huge_pmd_anonymous_page(st
- extern int copy_huge_pmd(struct mm_struct *dst_mm, struct mm_struct *src_mm,
- 			 pmd_t *dst_pmd, pmd_t *src_pmd, unsigned long addr,
- 			 struct vm_area_struct *vma);
-+extern void huge_pmd_set_accessed(struct vm_area_struct *vma,
-+				  unsigned long address, pmd_t *pmd, int dirty);
- extern int do_huge_pmd_wp_page(struct mm_struct *mm, struct vm_area_struct *vma,
- 			       unsigned long address, pmd_t *pmd,
- 			       pmd_t orig_pmd);
-diff -puN mm/huge_memory.c~mm-thp-set-the-accessed-flag-for-old-pages-on-access-fault mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-set-the-accessed-flag-for-old-pages-on-access-fault
-+++ a/mm/huge_memory.c
-@@ -879,6 +879,14 @@ out_free_pages:
- 	goto out;
- }
- 
-+void huge_pmd_set_accessed(struct vm_area_struct *vma, unsigned long address,
-+			   pmd_t *pmd, int dirty)
-+{
-+	pmd_t entry = pmd_mkyoung(*pmd);
-+	if (pmdp_set_access_flags(vma, address & HPAGE_PMD_MASK, pmd, entry, dirty))
-+		update_mmu_cache_pmd(vma, address, pmd);
-+}
-+
- int do_huge_pmd_wp_page(struct mm_struct *mm, struct vm_area_struct *vma,
- 			unsigned long address, pmd_t *pmd, pmd_t orig_pmd)
- {
-diff -puN mm/memory.c~mm-thp-set-the-accessed-flag-for-old-pages-on-access-fault mm/memory.c
---- a/mm/memory.c~mm-thp-set-the-accessed-flag-for-old-pages-on-access-fault
-+++ a/mm/memory.c
-@@ -3539,7 +3539,8 @@ retry:
- 
- 		barrier();
- 		if (pmd_trans_huge(orig_pmd)) {
--			if (flags & FAULT_FLAG_WRITE &&
-+			unsigned int dirty = flags & FAULT_FLAG_WRITE;
-+			if (dirty &&
- 			    !pmd_write(orig_pmd) &&
- 			    !pmd_trans_splitting(orig_pmd)) {
- 				ret = do_huge_pmd_wp_page(mm, vma, address, pmd,
-@@ -3552,7 +3553,13 @@ retry:
- 				if (unlikely(ret & VM_FAULT_OOM))
- 					goto retry;
- 				return ret;
-+			} else if (pmd_trans_huge_lock(pmd, vma) == 1) {
-+				if (likely(pmd_same(*pmd, orig_pmd)))
-+					huge_pmd_set_accessed(vma, address, pmd,
-+							      dirty);
-+				spin_unlock(&mm->page_table_lock);
- 			}
-+
- 			return 0;
- 		}
+diff -puN kernel/pid_namespace.c~pidns-remove-recursion-from-free_pid_ns-v5-fix kernel/pid_namespace.c
+--- a/kernel/pid_namespace.c~pidns-remove-recursion-from-free_pid_ns-v5-fix
++++ a/kernel/pid_namespace.c
+@@ -152,7 +152,7 @@ void put_pid_ns(struct pid_namespace *ns
+ 		ns = parent;
  	}
+ }
+-EXPORT_SYMBOL_GPL(free_pid_ns);
++EXPORT_SYMBOL_GPL(put_pid_ns);
+ 
+ void zap_pid_ns_processes(struct pid_namespace *pid_ns)
+ {
 _
 
-Patches currently in -mm which might be from will.deacon@arm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+pidns-remove-recursion-from-free_pid_ns-v5.patch
+revert-epoll-support-for-disabling-items-and-a-self-test-app.patch
 linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+mm.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
+fat-exportfs-rebuild-inode-if-ilookup-fails-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
