@@ -1,168 +1,192 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-mempolicy-hold-task-mempolicy-refcount-while-reading-numa_maps.patch removed from -mm tree
-Date: Mon, 22 Oct 2012 12:13:43 -0700
-Message-ID: <20121022191344.3B4635C0060@hpza9.eem.corp.google.com>
+Subject: + procfs-add-vmflags-field-in-smaps-output.patch added to -mm tree
+Date: Mon, 22 Oct 2012 12:29:37 -0700
+Message-ID: <20121022192937.B1E371E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f202.google.com ([209.85.215.202]:40656 "EHLO
-	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752416Ab2JVTNr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Oct 2012 15:13:47 -0400
-Received: by mail-ea0-f202.google.com with SMTP id q10so183166eaa.1
-        for <mm-commits@vger.kernel.org>; Mon, 22 Oct 2012 12:13:46 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:50549 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752198Ab2JVT3i (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Oct 2012 15:29:38 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z15so378576ghb.1
+        for <mm-commits@vger.kernel.org>; Mon, 22 Oct 2012 12:29:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, davej@redhat.com, hughd@google.com, khlebnikov@openvz.org, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: gorcunov@openvz.org, a.p.zijlstra@chello.nl, xemul@parallels.com
 
 
 The patch titled
-     Subject: mm, mempolicy: hold task->mempolicy refcount while reading numa_maps
-has been removed from the -mm tree.  Its filename was
-     mm-mempolicy-hold-task-mempolicy-refcount-while-reading-numa_maps.patch
+     Subject: procfs: add VmFlags field in smaps output
+has been added to the -mm tree.  Its filename is
+     procfs-add-vmflags-field-in-smaps-output.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: mm, mempolicy: hold task->mempolicy refcount while reading numa_maps
+From: Cyrill Gorcunov <gorcunov@openvz.org>
+Subject: procfs: add VmFlags field in smaps output
 
-/proc/<pid>/numa_maps scans vma and shows mempolicy under mmap_sem.  It
-sometimes accesses task->mempolicy which can be freed without mmap_sem and
-numa_maps can show some garbage while scanning.
+During c/r sessions we've found that there is no way at the moment to
+fetch some VMA associated flags, such as mlock() and madvise(), thus the
+patches in this series intorduce new field into "smaps" output called
+VmFlags where all flags associated with the particular VMA is shown in two
+letter mnemonic.
 
-This patch tries to take reference count of task->mempolicy at reading
-numa_maps before calling get_vma_policy().  By this, task->mempolicy will
-not be freed until numa_maps reaches its end.
+Strictly speaking for c/r we only need mlock/madvise bits but it has been
+said that providing just a few flags looks somehow inconsistent.  So all
+flags are here now.
 
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Dave Jones <davej@redhat.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+When we restore a VMA after checkpoint we would like to know if the area
+was locked or say it had mergeable attribute, but at moment the kernel
+does not provide such information, thus we can't figure out if we should
+call mlock/madvise on VMA restore.
+
+This patch adds new VmFlags field to smaps output with vma->vm_flags
+encoded.
+
+This feature is made available on CONFIG_CHECKPOINT_RESTORE=n kernels, as
+other applications may start to use these fields.
+
+The data is encoded in a somewhat awkward name:value form, to encourage
+userspace to be prepared for fields being added or removed in the future.
+
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/internal.h |    4 +++
- fs/proc/task_mmu.c |   49 ++++++++++++++++++++++++++++++++++++++++---
- 2 files changed, 50 insertions(+), 3 deletions(-)
+ Documentation/filesystems/proc.txt |   38 ++++++++++++++++++++++++++-
+ fs/proc/task_mmu.c                 |   32 ++++++++++++++++++++++
+ 2 files changed, 69 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/internal.h~mm-mempolicy-hold-task-mempolicy-refcount-while-reading-numa_maps fs/proc/internal.h
---- a/fs/proc/internal.h~mm-mempolicy-hold-task-mempolicy-refcount-while-reading-numa_maps
-+++ a/fs/proc/internal.h
-@@ -12,6 +12,7 @@
- #include <linux/sched.h>
- #include <linux/proc_fs.h>
- struct  ctl_table_header;
-+struct  mempolicy;
- 
- extern struct proc_dir_entry proc_root;
- #ifdef CONFIG_PROC_SYSCTL
-@@ -74,6 +75,9 @@ struct proc_maps_private {
- #ifdef CONFIG_MMU
- 	struct vm_area_struct *tail_vma;
- #endif
-+#ifdef CONFIG_NUMA
-+	struct mempolicy *task_mempolicy;
-+#endif
- };
- 
- void proc_init_inodecache(void);
-diff -puN fs/proc/task_mmu.c~mm-mempolicy-hold-task-mempolicy-refcount-while-reading-numa_maps fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-mempolicy-hold-task-mempolicy-refcount-while-reading-numa_maps
+diff -puN fs/proc/task_mmu.c~procfs-add-vmflags-field-in-smaps-output fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~procfs-add-vmflags-field-in-smaps-output
 +++ a/fs/proc/task_mmu.c
-@@ -89,11 +89,55 @@ static void pad_len_spaces(struct seq_fi
- 		len = 1;
- 	seq_printf(m, "%*c", len, ' ');
+@@ -526,6 +526,36 @@ static int smaps_pte_range(pmd_t *pmd, u
+ 	return 0;
  }
-+#ifdef CONFIG_NUMA
-+/*
-+ * These functions are for numa_maps but called in generic **maps seq_file
-+ * ->start(), ->stop() ops.
-+ *
-+ * numa_maps scans all vmas under mmap_sem and checks their mempolicy.
-+ * Each mempolicy object is controlled by reference counting. The problem here
-+ * is how to avoid accessing dead mempolicy object.
-+ *
-+ * Because we're holding mmap_sem while reading seq_file, it's safe to access
-+ * each vma's mempolicy, no vma objects will never drop refs to mempolicy.
-+ *
-+ * A task's mempolicy (task->mempolicy) has different behavior. task->mempolicy
-+ * is set and replaced under mmap_sem but unrefed and cleared under task_lock().
-+ * So, without task_lock(), we cannot trust get_vma_policy() because we cannot
-+ * gurantee the task never exits under us. But taking task_lock() around
-+ * get_vma_plicy() causes lock order problem.
-+ *
-+ * To access task->mempolicy without lock, we hold a reference count of an
-+ * object pointed by task->mempolicy and remember it. This will guarantee
-+ * that task->mempolicy points to an alive object or NULL in numa_maps accesses.
-+ */
-+static void hold_task_mempolicy(struct proc_maps_private *priv)
+ 
++static void show_smap_vma_flags(struct seq_file *m, struct vm_area_struct *vma)
 +{
-+	struct task_struct *task = priv->task;
++	/*
++	 * Don't forget to update Documentation/ on changes.
++	 */
++#define __VM_FLAG(_f) (!!(vma->vm_flags & (_f)))
++	seq_printf(m, "VmFlags: "
++		   "RD:%d WR:%d EX:%d SH:%d MR:%d "
++		   "MW:%d ME:%d MS:%d GD:%d PF:%d "
++		   "DW:%d LO:%d IO:%d SR:%d RR:%d "
++		   "DC:%d DE:%d AC:%d NR:%d HT:%d "
++		   "NL:%d AR:%d DD:%d MM:%d HG:%d "
++		   "NH:%d MG:%d\n",
++		   __VM_FLAG(VM_READ),		__VM_FLAG(VM_WRITE),
++		   __VM_FLAG(VM_EXEC),		__VM_FLAG(VM_SHARED),
++		   __VM_FLAG(VM_MAYREAD),	__VM_FLAG(VM_MAYWRITE),
++		   __VM_FLAG(VM_MAYEXEC),	__VM_FLAG(VM_MAYSHARE),
++		   __VM_FLAG(VM_GROWSDOWN),	__VM_FLAG(VM_PFNMAP),
++		   __VM_FLAG(VM_DENYWRITE),	__VM_FLAG(VM_LOCKED),
++		   __VM_FLAG(VM_IO),		__VM_FLAG(VM_SEQ_READ),
++		   __VM_FLAG(VM_RAND_READ),	__VM_FLAG(VM_DONTCOPY),
++		   __VM_FLAG(VM_DONTEXPAND),	__VM_FLAG(VM_ACCOUNT),
++		   __VM_FLAG(VM_NORESERVE),	__VM_FLAG(VM_HUGETLB),
++		   __VM_FLAG(VM_NONLINEAR),	__VM_FLAG(VM_ARCH_1),
++		   __VM_FLAG(VM_DONTDUMP),	__VM_FLAG(VM_MIXEDMAP),
++		   __VM_FLAG(VM_HUGEPAGE),	__VM_FLAG(VM_NOHUGEPAGE),
++		   __VM_FLAG(VM_MERGEABLE));
++#undef __VM_FLAG
++}
 +
-+	task_lock(task);
-+	priv->task_mempolicy = task->mempolicy;
-+	mpol_get(priv->task_mempolicy);
-+	task_unlock(task);
-+}
-+static void release_task_mempolicy(struct proc_maps_private *priv)
-+{
-+	mpol_put(priv->task_mempolicy);
-+}
-+#else
-+static void hold_task_mempolicy(struct proc_maps_private *priv)
-+{
-+}
-+static void release_task_mempolicy(struct proc_maps_private *priv)
-+{
-+}
-+#endif
- 
- static void vma_stop(struct proc_maps_private *priv, struct vm_area_struct *vma)
+ static int show_smap(struct seq_file *m, void *v, int is_pid)
  {
- 	if (vma && vma != priv->tail_vma) {
- 		struct mm_struct *mm = vma->vm_mm;
-+		release_task_mempolicy(priv);
- 		up_read(&mm->mmap_sem);
- 		mmput(mm);
- 	}
-@@ -132,7 +176,7 @@ static void *m_start(struct seq_file *m,
+ 	struct proc_maps_private *priv = m->private;
+@@ -581,6 +611,8 @@ static int show_smap(struct seq_file *m,
+ 		seq_printf(m, "Nonlinear:      %8lu kB\n",
+ 				mss.nonlinear >> 10);
  
- 	tail_vma = get_gate_vma(priv->task->mm);
- 	priv->tail_vma = tail_vma;
--
-+	hold_task_mempolicy(priv);
- 	/* Start with last addr hint */
- 	vma = find_vma(mm, last_addr);
- 	if (last_addr && vma) {
-@@ -159,6 +203,7 @@ out:
- 	if (vma)
- 		return vma;
++	show_smap_vma_flags(m, vma);
++
+ 	if (m->count < m->size)  /* vma is copied successfully */
+ 		m->version = (vma != get_gate_vma(task->mm))
+ 			? vma->vm_start : 0;
+diff -puN Documentation/filesystems/proc.txt~procfs-add-vmflags-field-in-smaps-output Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~procfs-add-vmflags-field-in-smaps-output
++++ a/Documentation/filesystems/proc.txt
+@@ -142,7 +142,7 @@ Table 1-1: Process specific entries in /
+  pagemap	Page table
+  stack		Report full stack trace, enable via CONFIG_STACKTRACE
+  smaps		a extension based on maps, showing the memory consumption of
+-		each mapping
++		each mapping and flags associated with it
+ ..............................................................................
  
-+	release_task_mempolicy(priv);
- 	/* End of vmas has been reached */
- 	m->version = (tail_vma != NULL)? 0: -1UL;
- 	up_read(&mm->mmap_sem);
-@@ -1178,11 +1223,9 @@ static int show_numa_map(struct seq_file
- 	walk.private = md;
- 	walk.mm = mm;
+ For example, to get the status information of a process, all you have to do is
+@@ -415,6 +415,7 @@ Swap:                  0 kB
+ KernelPageSize:        4 kB
+ MMUPageSize:           4 kB
+ Locked:              374 kB
++VmFlags: RD:1 WR:0 EX:1 SH:0 MR:1 MW:1 ME:1 MS:0 GD:0 PF:0 DW:1 LO:0 IO:0 SR:0 RR:0 DC:0 DE:0 AC:0 NR:0 HT:0 NL:0 AR:0 DD:0 MM:0 HG:0 NH:0 MG:0
  
--	task_lock(task);
- 	pol = get_vma_policy(task, vma, vma->vm_start);
- 	mpol_to_str(buffer, sizeof(buffer), pol, 0);
- 	mpol_cond_put(pol);
--	task_unlock(task);
+ The first of these lines shows the same information as is displayed for the
+ mapping in /proc/PID/maps.  The remaining lines show the size of the mapping
+@@ -430,6 +431,41 @@ and a page is modified, the file page is
+ "Swap" shows how much would-be-anonymous memory is also used, but out on
+ swap.
  
- 	seq_printf(m, "%08lx %s", vma->vm_start, buffer);
++"VmFlags" field deserves a separate description. This member represents the kernel
++flags associated with the particular virtual memory area in two letter encoded
++manner. The codes are the following:
++    RD  - readable
++    WR  - writeable
++    EX  - executable
++    SH  - shared
++    MR  - may read
++    MW  - may write
++    ME  - may execute
++    MS  - may share
++    GD  - stack segment growns down
++    PF  - pure PFN range
++    DW  - disabled write to the mapped file
++    LO  - pages are locked in memory
++    IO  - memory mapped I/O area
++    SR  - sequential read advise provided
++    RR  - random read advise provided
++    DC  - do not copy area on fork
++    DE  - do not expand area on remapping
++    AC  - area is accountable
++    NR  - swap space is not reserved for the area
++    HT  - area uses huge tlb pages
++    NL  - non-linear mapping
++    AR  - architecture specific flag
++    DD  - do not include area into core dump
++    MM  - mixed map area
++    HG  - huge page advise flag
++    NH  - no-huge page advise flag
++    MG  - mergable advise flag
++
++Note that there is no guarantee that every flag and associated mnemonic will
++be present in all further kernel releases. Things get changed, the flags may
++be vanished or the reverse -- new added.
++
+ This file is only present if the CONFIG_MMU kernel configuration option is
+ enabled.
  
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from gorcunov@openvz.org are
 
-mm-memcg-make-mem_cgroup_out_of_memory-static.patch
-mm-memblock-reduce-overhead-in-binary-search.patch
-proc-dont-show-nonexistent-capabilities.patch
+linux-next.patch
+proc-check-vma-vm_file-before-dereferencing.patch
+procfs-add-vmflags-field-in-smaps-output.patch
+tools-testing-selftests-kcmp-kcmp_testc-print-reason-for-failure-in-kcmp_test.patch
 
