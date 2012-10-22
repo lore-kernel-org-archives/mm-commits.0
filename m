@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-omap-add-runtime-pm-support.patch added to -mm tree
-Date: Mon, 22 Oct 2012 15:21:08 -0700
-Message-ID: <20121022222109.4804E100047@wpzn3.hot.corp.google.com>
+Subject: + rtc-omap-depend-on-am33xx.patch added to -mm tree
+Date: Mon, 22 Oct 2012 15:21:05 -0700
+Message-ID: <20121022222106.3B91F1E0048@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:53107 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932250Ab2JVWVK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Oct 2012 18:21:10 -0400
-Received: by mail-qc0-f202.google.com with SMTP id s25so404211qcq.1
-        for <mm-commits@vger.kernel.org>; Mon, 22 Oct 2012 15:21:10 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:40624 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932250Ab2JVWVH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Oct 2012 18:21:07 -0400
+Received: by mail-yh0-f74.google.com with SMTP id 10so406152yhl.1
+        for <mm-commits@vger.kernel.org>; Mon, 22 Oct 2012 15:21:07 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hvaibhav@ti.com, a.zummo@towertech.it, afzal@ti.com, grant.likely@secretlab.ca, khilman@ti.com, linux@arm.linux.org.uk, nsekhar@ti.com, zonque@gmail.com
+Cc: afzal@ti.com, a.zummo@towertech.it, grant.likely@secretlab.ca, hvaibhav@ti.com, khilman@ti.com, linux@arm.linux.org.uk, nsekhar@ti.com, zonque@gmail.com
 
 
 The patch titled
-     Subject: rtc: omap: add runtime pm support
+     Subject: rtc: omap: depend on am33xx
 has been added to the -mm tree.  Its filename is
-     rtc-omap-add-runtime-pm-support.patch
+     rtc-omap-depend-on-am33xx.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,18 +33,12 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: rtc: omap: add runtime pm support
+From: Afzal Mohammed <afzal@ti.com>
+Subject: rtc: omap: depend on am33xx
 
-OMAP1 RTC driver is used in multiple devices like, OMAPL138 and AM33XX. 
-Driver currently doesn't handle any clocks, which may be right for OMAP1
-architecture but in case of AM33XX, the clock/module needs to be enabled
-in order to access the registers.
+rtc-omap driver can be reused for AM33xx RTC.  Provide dependency in
+Kconfig.
 
-So convert this driver to runtime pm, which internally handles rest.
-
-[afzal@ti.com: handle error path]
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 Acked-by: Sekhar Nori <nsekhar@ti.com>
 Cc: Grant Likely <grant.likely@secretlab.ca>
@@ -57,73 +51,33 @@ Cc: Vaibhav Hiremath <hvaibhav@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-omap.c |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ drivers/rtc/Kconfig |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-omap.c~rtc-omap-add-runtime-pm-support drivers/rtc/rtc-omap.c
---- a/drivers/rtc/rtc-omap.c~rtc-omap-add-runtime-pm-support
-+++ a/drivers/rtc/rtc-omap.c
-@@ -22,6 +22,7 @@
- #include <linux/platform_device.h>
- #include <linux/of.h>
- #include <linux/of_device.h>
-+#include <linux/pm_runtime.h>
+diff -puN drivers/rtc/Kconfig~rtc-omap-depend-on-am33xx drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-omap-depend-on-am33xx
++++ a/drivers/rtc/Kconfig
+@@ -777,11 +777,13 @@ config RTC_DRV_IMXDI
  
- #include <asm/io.h>
+ config RTC_DRV_OMAP
+ 	tristate "TI OMAP1"
+-	depends on ARCH_OMAP15XX || ARCH_OMAP16XX || ARCH_OMAP730 || ARCH_DAVINCI_DA8XX
++	depends on ARCH_OMAP15XX || ARCH_OMAP16XX || ARCH_OMAP730 || ARCH_DAVINCI_DA8XX || SOC_AM33XX
+ 	help
+-	  Say "yes" here to support the real time clock on TI OMAP1 and
+-	  DA8xx/OMAP-L13x chips.  This driver can also be built as a
+-	  module called rtc-omap.
++	  Say "yes" here to support the on chip real time clock
++	  present on TI OMAP1, AM33xx and DA8xx/OMAP-L13x.
++
++	  This driver can also be built as a module, if so, module
++	  will be called rtc-omap.
  
-@@ -364,6 +365,10 @@ static int __init omap_rtc_probe(struct 
- 		goto fail;
- 	}
- 
-+	/* Enable the clock/module so that we can access the registers */
-+	pm_runtime_enable(&pdev->dev);
-+	pm_runtime_get_sync(&pdev->dev);
-+
- 	id_entry = platform_get_device_id(pdev);
- 	if (id_entry && (id_entry->driver_data & OMAP_RTC_HAS_KICKER)) {
- 		rtc_writel(KICK0_VALUE, OMAP_RTC_KICK0_REG);
-@@ -448,6 +453,8 @@ fail1:
- fail0:
- 	if (id_entry && (id_entry->driver_data & OMAP_RTC_HAS_KICKER))
- 		rtc_writel(0, OMAP_RTC_KICK0_REG);
-+	pm_runtime_put_sync(&pdev->dev);
-+	pm_runtime_disable(&pdev->dev);
- 	iounmap(rtc_base);
- fail:
- 	release_mem_region(mem->start, resource_size(mem));
-@@ -474,6 +481,11 @@ static int __exit omap_rtc_remove(struct
- 	rtc_device_unregister(rtc);
- 	if (id_entry && (id_entry->driver_data & OMAP_RTC_HAS_KICKER))
- 		rtc_writel(0, OMAP_RTC_KICK0_REG);
-+
-+	/* Disable the clock/module */
-+	pm_runtime_put_sync(&pdev->dev);
-+	pm_runtime_disable(&pdev->dev);
-+
- 	iounmap(rtc_base);
- 	release_mem_region(mem->start, resource_size(mem));
- 	return 0;
-@@ -496,11 +508,17 @@ static int omap_rtc_suspend(struct platf
- 	else
- 		rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
- 
-+	/* Disable the clock/module */
-+	pm_runtime_put_sync(&pdev->dev);
-+
- 	return 0;
- }
- 
- static int omap_rtc_resume(struct platform_device *pdev)
- {
-+	/* Enable the clock/module so that we can access the registers */
-+	pm_runtime_get_sync(&pdev->dev);
-+
- 	if (device_may_wakeup(&pdev->dev))
- 		disable_irq_wake(omap_rtc_alarm);
- 	else
+ config HAVE_S3C_RTC
+ 	bool
 _
 
-Patches currently in -mm which might be from hvaibhav@ti.com are
+Patches currently in -mm which might be from afzal@ti.com are
 
 rtc-omap-kicker-mechanism-support.patch
 arm-davinci-remove-rtc-kicker-release.patch
