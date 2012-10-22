@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + init-use-the-stringify-operator-for-the-__define_initcall-macro-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 22 Oct 2012 12:32:00 -0700
-Message-ID: <20121022193201.578A4100047@wpzn3.hot.corp.google.com>
+Subject: + mm-fix-xfs-oops-due-to-dirty-pages-without-buffers-on-s390.patch added to -mm tree
+Date: Mon, 22 Oct 2012 12:38:55 -0700
+Message-ID: <20121022193856.2DD1020004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:55414 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752145Ab2JVTcC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Oct 2012 15:32:02 -0400
-Received: by mail-vc0-f202.google.com with SMTP id fy27so379515vcb.1
-        for <mm-commits@vger.kernel.org>; Mon, 22 Oct 2012 12:32:01 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:45137 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753240Ab2JVTi7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Oct 2012 15:38:59 -0400
+Received: by mail-wi0-f202.google.com with SMTP id hr7so168377wib.1
+        for <mm-commits@vger.kernel.org>; Mon, 22 Oct 2012 12:38:57 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, matthew@mattleach.net
+Cc: jack@suse.cz, heiko.carstens@de.ibm.com, hughd@google.com, mgorman@suse.de, schwidefsky@de.ibm.com
 
 
 The patch titled
-     Subject: init-use-the-stringify-operator-for-the-__define_initcall-macro-checkpatch-fixes
+     Subject: mm: fix XFS oops due to dirty pages without buffers on s390
 has been added to the -mm tree.  Its filename is
-     init-use-the-stringify-operator-for-the-__define_initcall-macro-checkpatch-fixes.patch
+     mm-fix-xfs-oops-due-to-dirty-pages-without-buffers-on-s390.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,201 +33,115 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: init-use-the-stringify-operator-for-the-__define_initcall-macro-checkpatch-fixes
+From: Jan Kara <jack@suse.cz>
+Subject: mm: fix XFS oops due to dirty pages without buffers on s390
 
-Cc: Matthew Leach <matthew@mattleach.net>
+On s390 any write to a page (even from kernel itself) sets architecture
+specific page dirty bit.  Thus when a page is written to via buffered
+write, HW dirty bit gets set and when we later map and unmap the page,
+page_remove_rmap() finds the dirty bit and calls set_page_dirty().
 
-ERROR: space required after that ',' (ctx:VxV)
-#25: FILE: include/linux/init.h:189:
-+#define __define_initcall(fn,id) \
-                             ^
+Dirtying of a page which shouldn't be dirty can cause all sorts of
+problems to filesystems.  The bug we observed in practice is that buffers
+from the page get freed, so when the page gets later marked as dirty and
+writeback writes it, XFS crashes due to an assertion
+BUG_ON(!PagePrivate(page)) in page_buffers() called from
+xfs_count_page_state().
 
-ERROR: space required after that ',' (ctx:VxV)
-#36: FILE: include/linux/init.h:198:
-+#define early_initcall(fn)		__define_initcall(fn,early)
-                           		                    ^
+Similar problem can also happen when zero_user_segment() call from
+xfs_vm_writepage() (or block_write_full_page() for that matter) set the
+hardware dirty bit during writeback, later buffers get freed, and then
+page unmapped.
 
-ERROR: space required after that ',' (ctx:VxV)
-#45: FILE: include/linux/init.h:207:
-+#define pure_initcall(fn)		__define_initcall(fn,0)
-                          		                    ^
+Fix the issue by ignoring s390 HW dirty bit for page cache pages of
+mappings with mapping_cap_account_dirty().  This is safe because for such
+mappings when a page gets marked as writeable in PTE it is also marked
+dirty in do_wp_page() or do_page_fault().  When the dirty bit is cleared
+by clear_page_dirty_for_io(), the page gets writeprotected in
+page_mkclean().  So pagecache page is writeable if and only if it is
+dirty.
 
-ERROR: space required after that ',' (ctx:VxV)
-#62: FILE: include/linux/init.h:209:
-+#define core_initcall(fn)		__define_initcall(fn,1)
-                          		                    ^
+Thanks to Hugh Dickins for pointing out mapping has to have
+mapping_cap_account_dirty() for things to work and proposing a cleaned up
+variant of the patch.
 
-ERROR: space required after that ',' (ctx:VxV)
-#63: FILE: include/linux/init.h:210:
-+#define core_initcall_sync(fn)		__define_initcall(fn,1s)
-                               		                    ^
+The patch has survived about two hours of running fsx-linux on tmpfs while
+heavily swapping and several days of running on out build machines where
+the original problem was triggered.
 
-ERROR: space required after that ',' (ctx:VxV)
-#64: FILE: include/linux/init.h:211:
-+#define postcore_initcall(fn)		__define_initcall(fn,2)
-                              		                    ^
-
-ERROR: space required after that ',' (ctx:VxV)
-#65: FILE: include/linux/init.h:212:
-+#define postcore_initcall_sync(fn)	__define_initcall(fn,2s)
-                                   	                    ^
-
-ERROR: space required after that ',' (ctx:VxV)
-#66: FILE: include/linux/init.h:213:
-+#define arch_initcall(fn)		__define_initcall(fn,3)
-                          		                    ^
-
-ERROR: space required after that ',' (ctx:VxV)
-#67: FILE: include/linux/init.h:214:
-+#define arch_initcall_sync(fn)		__define_initcall(fn,3s)
-                               		                    ^
-
-ERROR: space required after that ',' (ctx:VxV)
-#68: FILE: include/linux/init.h:215:
-+#define subsys_initcall(fn)		__define_initcall(fn,4)
-                            		                    ^
-
-ERROR: space required after that ',' (ctx:VxV)
-#69: FILE: include/linux/init.h:216:
-+#define subsys_initcall_sync(fn)	__define_initcall(fn,4s)
-                                 	                    ^
-
-ERROR: space required after that ',' (ctx:VxV)
-#70: FILE: include/linux/init.h:217:
-+#define fs_initcall(fn)			__define_initcall(fn,5)
-                        			                    ^
-
-ERROR: space required after that ',' (ctx:VxV)
-#71: FILE: include/linux/init.h:218:
-+#define fs_initcall_sync(fn)		__define_initcall(fn,5s)
-                             		                    ^
-
-ERROR: space required after that ',' (ctx:VxV)
-#72: FILE: include/linux/init.h:219:
-+#define rootfs_initcall(fn)		__define_initcall(fn,rootfs)
-                            		                    ^
-
-ERROR: space required after that ',' (ctx:VxV)
-#73: FILE: include/linux/init.h:220:
-+#define device_initcall(fn)		__define_initcall(fn,6)
-                            		                    ^
-
-ERROR: space required after that ',' (ctx:VxV)
-#74: FILE: include/linux/init.h:221:
-+#define device_initcall_sync(fn)	__define_initcall(fn,6s)
-                                 	                    ^
-
-ERROR: space required after that ',' (ctx:VxV)
-#75: FILE: include/linux/init.h:222:
-+#define late_initcall(fn)		__define_initcall(fn,7)
-                          		                    ^
-
-ERROR: space required after that ',' (ctx:VxV)
-#76: FILE: include/linux/init.h:223:
-+#define late_initcall_sync(fn)		__define_initcall(fn,7s)
-                               		                    ^
-
-total: 18 errors, 0 warnings, 58 lines checked
-
-./patches/init-use-the-stringify-operator-for-the-__define_initcall-macro.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Matthew Leach <matthew@mattleach.net>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/init.h |   36 ++++++++++++++++++------------------
- 1 file changed, 18 insertions(+), 18 deletions(-)
+ mm/rmap.c |   20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/init.h~init-use-the-stringify-operator-for-the-__define_initcall-macro-checkpatch-fixes include/linux/init.h
---- a/include/linux/init.h~init-use-the-stringify-operator-for-the-__define_initcall-macro-checkpatch-fixes
-+++ a/include/linux/init.h
-@@ -186,7 +186,7 @@ extern bool initcall_debug;
-  * can point at the same handler without causing duplicate-symbol build errors.
+diff -puN mm/rmap.c~mm-fix-xfs-oops-due-to-dirty-pages-without-buffers-on-s390 mm/rmap.c
+--- a/mm/rmap.c~mm-fix-xfs-oops-due-to-dirty-pages-without-buffers-on-s390
++++ a/mm/rmap.c
+@@ -56,6 +56,7 @@
+ #include <linux/mmu_notifier.h>
+ #include <linux/migrate.h>
+ #include <linux/hugetlb.h>
++#include <linux/backing-dev.h>
+ 
+ #include <asm/tlbflush.h>
+ 
+@@ -926,11 +927,8 @@ int page_mkclean(struct page *page)
+ 
+ 	if (page_mapped(page)) {
+ 		struct address_space *mapping = page_mapping(page);
+-		if (mapping) {
++		if (mapping)
+ 			ret = page_mkclean_file(mapping, page);
+-			if (page_test_and_clear_dirty(page_to_pfn(page), 1))
+-				ret = 1;
+-		}
+ 	}
+ 
+ 	return ret;
+@@ -1116,6 +1114,7 @@ void page_add_file_rmap(struct page *pag
   */
- 
--#define __define_initcall(fn,id) \
-+#define __define_initcall(fn, id) \
- 	static initcall_t __initcall_##fn##id __used \
- 	__attribute__((__section__(".initcall" #id ".init"))) = fn
- 
-@@ -195,7 +195,7 @@ extern bool initcall_debug;
-  *
-  * Only for built-in code, not modules.
-  */
--#define early_initcall(fn)		__define_initcall(fn,early)
-+#define early_initcall(fn)		__define_initcall(fn, early)
- 
- /*
-  * A "pure" initcall has no dependencies on anything else, and purely
-@@ -204,23 +204,23 @@ extern bool initcall_debug;
-  * This only exists for built-in code, not for modules.
-  * Keep main.c:initcall_level_names[] in sync.
-  */
--#define pure_initcall(fn)		__define_initcall(fn,0)
-+#define pure_initcall(fn)		__define_initcall(fn, 0)
- 
--#define core_initcall(fn)		__define_initcall(fn,1)
--#define core_initcall_sync(fn)		__define_initcall(fn,1s)
--#define postcore_initcall(fn)		__define_initcall(fn,2)
--#define postcore_initcall_sync(fn)	__define_initcall(fn,2s)
--#define arch_initcall(fn)		__define_initcall(fn,3)
--#define arch_initcall_sync(fn)		__define_initcall(fn,3s)
--#define subsys_initcall(fn)		__define_initcall(fn,4)
--#define subsys_initcall_sync(fn)	__define_initcall(fn,4s)
--#define fs_initcall(fn)			__define_initcall(fn,5)
--#define fs_initcall_sync(fn)		__define_initcall(fn,5s)
--#define rootfs_initcall(fn)		__define_initcall(fn,rootfs)
--#define device_initcall(fn)		__define_initcall(fn,6)
--#define device_initcall_sync(fn)	__define_initcall(fn,6s)
--#define late_initcall(fn)		__define_initcall(fn,7)
--#define late_initcall_sync(fn)		__define_initcall(fn,7s)
-+#define core_initcall(fn)		__define_initcall(fn, 1)
-+#define core_initcall_sync(fn)		__define_initcall(fn, 1s)
-+#define postcore_initcall(fn)		__define_initcall(fn, 2)
-+#define postcore_initcall_sync(fn)	__define_initcall(fn, 2s)
-+#define arch_initcall(fn)		__define_initcall(fn, 3)
-+#define arch_initcall_sync(fn)		__define_initcall(fn, 3s)
-+#define subsys_initcall(fn)		__define_initcall(fn, 4)
-+#define subsys_initcall_sync(fn)	__define_initcall(fn, 4s)
-+#define fs_initcall(fn)			__define_initcall(fn, 5)
-+#define fs_initcall_sync(fn)		__define_initcall(fn, 5s)
-+#define rootfs_initcall(fn)		__define_initcall(fn, rootfs)
-+#define device_initcall(fn)		__define_initcall(fn, 6)
-+#define device_initcall_sync(fn)	__define_initcall(fn, 6s)
-+#define late_initcall(fn)		__define_initcall(fn, 7)
-+#define late_initcall_sync(fn)		__define_initcall(fn, 7s)
- 
- #define __initcall(fn) device_initcall(fn)
- 
+ void page_remove_rmap(struct page *page)
+ {
++	struct address_space *mapping = page_mapping(page);
+ 	bool anon = PageAnon(page);
+ 	bool locked;
+ 	unsigned long flags;
+@@ -1138,8 +1137,19 @@ void page_remove_rmap(struct page *page)
+ 	 * this if the page is anon, so about to be freed; but perhaps
+ 	 * not if it's in swapcache - there might be another pte slot
+ 	 * containing the swap entry, but page not yet written to swap.
++	 *
++	 * And we can skip it on file pages, so long as the filesystem
++	 * participates in dirty tracking; but need to catch shm and tmpfs
++	 * and ramfs pages which have been modified since creation by read
++	 * fault.
++	 *
++	 * Note that mapping must be decided above, before decrementing
++	 * mapcount (which luckily provides a barrier): once page is unmapped,
++	 * it could be truncated and page->mapping reset to NULL at any moment.
++	 * Note also that we are relying on page_mapping(page) to set mapping
++	 * to &swapper_space when PageSwapCache(page).
+ 	 */
+-	if ((!anon || PageSwapCache(page)) &&
++	if (mapping && !mapping_cap_account_dirty(mapping) &&
+ 	    page_test_and_clear_dirty(page_to_pfn(page), 1))
+ 		set_page_dirty(page);
+ 	/*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jack@suse.cz are
 
-revert-epoll-support-for-disabling-items-and-a-self-test-app.patch
+mm-fix-xfs-oops-due-to-dirty-pages-without-buffers-on-s390.patch
 linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-mm.patch
-memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-init-use-the-stringify-operator-for-the-__define_initcall-macro-checkpatch-fixes.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
-fat-exportfs-rebuild-inode-if-ilookup-fails-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+fs-change-return-values-from-eacces-to-eperm.patch
+hfsplus-add-on-disk-layout-declarations-related-to-attributes-tree.patch
+hfsplus-add-functionality-of-manipulating-by-records-in-attributes-tree.patch
+hfsplus-rework-functionality-of-getting-setting-and-deleting-of-extended-attributes.patch
+hfsplus-add-support-of-manipulation-by-attributes-file.patch
 
