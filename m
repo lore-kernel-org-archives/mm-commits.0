@@ -1,108 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Mon, 22 Oct 2012 12:01:23 -0700
-Message-ID: <20121022190125.5F3FB5C0060@hpza9.eem.corp.google.com>
+Subject: [merged] linux-coredumph-needs-asm-siginfoh.patch removed from -mm tree
+Date: Mon, 22 Oct 2012 12:13:21 -0700
+Message-ID: <20121022191321.98D671E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f202.google.com ([209.85.215.202]:41260 "EHLO
-	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932105Ab2JVTB1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Oct 2012 15:01:27 -0400
-Received: by mail-ea0-f202.google.com with SMTP id q10so182778eaa.1
-        for <mm-commits@vger.kernel.org>; Mon, 22 Oct 2012 12:01:26 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:35258 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752162Ab2JVTNX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Oct 2012 15:13:23 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z15so376379ghb.1
+        for <mm-commits@vger.kernel.org>; Mon, 22 Oct 2012 12:13:22 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: richard@nod.at, amwang@redhat.com, fengguang.wu@intel.com, jmfoote@cert.org, oleg@redhat.com, palves@redhat.com, roland@hack.frob.com, sfr@canb.auug.org.au, vda.linux@googlemail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: linux/coredump.h needs asm/siginfo.h
+has been removed from the -mm tree.  Its filename was
+     linux-coredumph-needs-asm-siginfoh.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Richard Weinberger <richard@nod.at>
+Subject: linux/coredump.h needs asm/siginfo.h
 
+commit 5ab1c30 ("coredump: pass siginfo_t* to do_coredump() and below, not
+merely signr") added siginfo_t to linux/coredump.h but forgot to include
+asm/siginfo.h.  This breaks the build for UML/i386.  (And any other arch
+where asm/siginfo.h is not magically preincluded...)
+
+In file included from arch/x86/um/elfcore.c:2:0:
+include/linux/coredump.h:15:25: error: unknown type name 'siginfo_t'
+make[1]: *** [arch/x86/um/elfcore.o] Error 1
+
+Signed-off-by: Richard Weinberger <richard@nod.at>
+Cc: Denys Vlasenko <vda.linux@googlemail.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Amerigo Wang <amwang@redhat.com>
+Cc: "Jonathan M. Foote" <jmfoote@cert.org>
+Cc: Roland McGrath <roland@hack.frob.com>
+Cc: Pedro Alves <palves@redhat.com>
+Cc: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/include/uapi/asm/Kbuild |    9 ---------
- 1 file changed, 9 deletions(-)
+ include/linux/coredump.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/m68k/include/uapi/asm/Kbuild~linux-next-git-rejects arch/m68k/include/uapi/asm/Kbuild
---- a/arch/m68k/include/uapi/asm/Kbuild~linux-next-git-rejects
-+++ a/arch/m68k/include/uapi/asm/Kbuild
-@@ -2,23 +2,16 @@
- include include/uapi/asm-generic/Kbuild.asm
+diff -puN include/linux/coredump.h~linux-coredumph-needs-asm-siginfoh include/linux/coredump.h
+--- a/include/linux/coredump.h~linux-coredumph-needs-asm-siginfoh
++++ a/include/linux/coredump.h
+@@ -4,6 +4,7 @@
+ #include <linux/types.h>
+ #include <linux/mm.h>
+ #include <linux/fs.h>
++#include <asm/siginfo.h>
  
- header-y += a.out.h
--<<<<<<< HEAD
- header-y += auxvec.h
--=======
-->>>>>>> linux-next/akpm-base
- header-y += byteorder.h
- header-y += cachectl.h
- header-y += fcntl.h
- header-y += ioctls.h
--<<<<<<< HEAD
- header-y += msgbuf.h
--=======
-->>>>>>> linux-next/akpm-base
- header-y += param.h
- header-y += poll.h
- header-y += posix_types.h
- header-y += ptrace.h
--<<<<<<< HEAD
- header-y += sembuf.h
- header-y += setup.h
- header-y += shmbuf.h
-@@ -30,11 +23,9 @@ header-y += stat.h
- header-y += swab.h
- header-y += termbits.h
- header-y += termios.h
--=======
- header-y += setup.h
- header-y += sigcontext.h
- header-y += signal.h
- header-y += stat.h
- header-y += swab.h
-->>>>>>> linux-next/akpm-base
- header-y += unistd.h
+ /*
+  * These are the only things you should do on a core-file: use only these
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from richard@nod.at are
 
-revert-epoll-support-for-disabling-items-and-a-self-test-app.patch
 linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-mm.patch
-memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
-fat-exportfs-rebuild-inode-if-ilookup-fails-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
