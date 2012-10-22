@@ -1,67 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] pidns-remove-recursion-from-free_pid_ns-v5-fix.patch removed from -mm tree
-Date: Fri, 19 Oct 2012 13:54:44 -0700
-Message-ID: <20121019205444.9ADDE100047@wpzn3.hot.corp.google.com>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Mon, 22 Oct 2012 12:01:23 -0700
+Message-ID: <20121022190125.5F3FB5C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:34201 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753526Ab2JSUyq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Oct 2012 16:54:46 -0400
-Received: by mail-yh0-f74.google.com with SMTP id 10so102765yhl.1
-        for <mm-commits@vger.kernel.org>; Fri, 19 Oct 2012 13:54:45 -0700 (PDT)
+Received: from mail-ea0-f202.google.com ([209.85.215.202]:41260 "EHLO
+	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932105Ab2JVTB1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Oct 2012 15:01:27 -0400
+Received: by mail-ea0-f202.google.com with SMTP id q10so182778eaa.1
+        for <mm-commits@vger.kernel.org>; Mon, 22 Oct 2012 12:01:26 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, avagin@openvz.org, ebiederm@xmission.com, gorcunov@openvz.org, greg@kroah.com, oleg@redhat.com, xemul@parallels.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: pidns-remove-recursion-from-free_pid_ns-v5-fix
-has been removed from the -mm tree.  Its filename was
-     pidns-remove-recursion-from-free_pid_ns-v5-fix.patch
+     Subject: linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-This patch was dropped because it was folded into pidns-remove-recursion-from-free_pid_ns-v5.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: pidns-remove-recursion-from-free_pid_ns-v5-fix
+Subject: linux-next-git-rejects
 
-export put_pid_ns() to modules
-
-i386 allmodconfig:
-ERROR: "put_pid_ns" [net/ipv6/ipv6.ko] undefined!
-
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Andrew Vagin <avagin@openvz.org>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/pid_namespace.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/m68k/include/uapi/asm/Kbuild |    9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff -puN kernel/pid_namespace.c~pidns-remove-recursion-from-free_pid_ns-v5-fix kernel/pid_namespace.c
---- a/kernel/pid_namespace.c~pidns-remove-recursion-from-free_pid_ns-v5-fix
-+++ a/kernel/pid_namespace.c
-@@ -152,7 +152,7 @@ void put_pid_ns(struct pid_namespace *ns
- 		ns = parent;
- 	}
- }
--EXPORT_SYMBOL_GPL(free_pid_ns);
-+EXPORT_SYMBOL_GPL(put_pid_ns);
+diff -puN arch/m68k/include/uapi/asm/Kbuild~linux-next-git-rejects arch/m68k/include/uapi/asm/Kbuild
+--- a/arch/m68k/include/uapi/asm/Kbuild~linux-next-git-rejects
++++ a/arch/m68k/include/uapi/asm/Kbuild
+@@ -2,23 +2,16 @@
+ include include/uapi/asm-generic/Kbuild.asm
  
- void zap_pid_ns_processes(struct pid_namespace *pid_ns)
- {
+ header-y += a.out.h
+-<<<<<<< HEAD
+ header-y += auxvec.h
+-=======
+->>>>>>> linux-next/akpm-base
+ header-y += byteorder.h
+ header-y += cachectl.h
+ header-y += fcntl.h
+ header-y += ioctls.h
+-<<<<<<< HEAD
+ header-y += msgbuf.h
+-=======
+->>>>>>> linux-next/akpm-base
+ header-y += param.h
+ header-y += poll.h
+ header-y += posix_types.h
+ header-y += ptrace.h
+-<<<<<<< HEAD
+ header-y += sembuf.h
+ header-y += setup.h
+ header-y += shmbuf.h
+@@ -30,11 +23,9 @@ header-y += stat.h
+ header-y += swab.h
+ header-y += termbits.h
+ header-y += termios.h
+-=======
+ header-y += setup.h
+ header-y += sigcontext.h
+ header-y += signal.h
+ header-y += stat.h
+ header-y += swab.h
+->>>>>>> linux-next/akpm-base
+ header-y += unistd.h
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-pidns-remove-recursion-from-free_pid_ns-v5.patch
 revert-epoll-support-for-disabling-items-and-a-self-test-app.patch
 linux-next.patch
+linux-next-git-rejects.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
