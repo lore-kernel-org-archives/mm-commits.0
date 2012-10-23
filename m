@@ -1,147 +1,245 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] printk-use-pointer-for-console_cmdline-indexing.patch removed from -mm tree
-Date: Tue, 23 Oct 2012 13:03:47 -0700
-Message-ID: <20121023200347.9D0B3100047@wpzn3.hot.corp.google.com>
+Subject: [to-be-updated] printk-rename-log_buf-and-__log_buf_len.patch removed from -mm tree
+Date: Tue, 23 Oct 2012 13:03:54 -0700
+Message-ID: <20121023200354.91EAD100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:42434 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933574Ab2JWUDt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 16:03:49 -0400
-Received: by mail-yh0-f74.google.com with SMTP id 10so532606yhl.1
-        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 13:03:48 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:52512 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933317Ab2JWUD4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 16:03:56 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z15so530219ghb.1
+        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 13:03:55 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, kay@vrfy.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk: use pointer for console_cmdline indexing
+     Subject: printk: rename log_buf and __LOG_BUF_LEN
 has been removed from the -mm tree.  Its filename was
-     printk-use-pointer-for-console_cmdline-indexing.patch
+     printk-rename-log_buf-and-__log_buf_len.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: printk: use pointer for console_cmdline indexing
+Subject: printk: rename log_buf and __LOG_BUF_LEN
 
-Make the code a bit more compact by always using a pointer
-for the active console_cmdline.
+Make these generic names more specific to the printk
+subsystem and allow these variables to become non-static.
 
-Move overly indented code to correct indent level.
+Rename log_buf to printk_log_buf.
+Rename __LOG_BUF_LEN define to __PRINTK_LOG_BUF_LEN.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Kay Sievers <kay@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |   49 ++++++++++++++++++++-------------------
- 1 file changed, 26 insertions(+), 23 deletions(-)
+ kernel/printk/printk.c |   76 +++++++++++++++++++--------------------
+ 1 file changed, 38 insertions(+), 38 deletions(-)
 
-diff -puN kernel/printk/printk.c~printk-use-pointer-for-console_cmdline-indexing kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-use-pointer-for-console_cmdline-indexing
+diff -puN kernel/printk/printk.c~printk-rename-log_buf-and-__log_buf_len kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-rename-log_buf-and-__log_buf_len
 +++ a/kernel/printk/printk.c
-@@ -1718,18 +1718,19 @@ static int __add_preferred_console(char 
- 	 *	See if this tty is not yet registered, and
- 	 *	if we have a slot free.
- 	 */
--	for (i = 0; i < MAX_CMDLINECONSOLES && console_cmdline[i].name[0]; i++)
--		if (strcmp(console_cmdline[i].name, name) == 0 &&
--			  console_cmdline[i].index == idx) {
--				if (!brl_options)
--					selected_console = i;
--				return 0;
-+	for (i = 0, c = console_cmdline;
-+	     i < MAX_CMDLINECONSOLES && c->name[0];
-+	     i++, c++) {
-+		if (strcmp(c->name, name) == 0 && c->index == idx) {
-+			if (!brl_options)
-+				selected_console = i;
-+			return 0;
- 		}
-+	}
- 	if (i == MAX_CMDLINECONSOLES)
- 		return -E2BIG;
- 	if (!brl_options)
- 		selected_console = i;
--	c = &console_cmdline[i];
- 	strlcpy(c->name, name, sizeof(c->name));
- 	c->options = options;
- 	braille_set_options(c, brl_options);
-@@ -1802,15 +1803,15 @@ int update_console_cmdline(char *name, i
- 	struct console_cmdline *c;
- 	int i;
+@@ -243,10 +243,10 @@ static u32 clear_idx;
+ #else
+ #define LOG_ALIGN __alignof__(struct printk_log)
+ #endif
+-#define __LOG_BUF_LEN (1 << CONFIG_LOG_BUF_SHIFT)
+-static char __log_buf[__LOG_BUF_LEN] __aligned(LOG_ALIGN);
+-static char *log_buf = __log_buf;
+-static u32 log_buf_len = __LOG_BUF_LEN;
++#define __PRINTK_LOG_BUF_LEN (1 << CONFIG_LOG_BUF_SHIFT)
++static char __printk_log_buf[__PRINTK_LOG_BUF_LEN] __aligned(LOG_ALIGN);
++static char *printk_log_buf = __printk_log_buf;
++static u32 printk_log_buf_len = __PRINTK_LOG_BUF_LEN;
  
--	for (i = 0; i < MAX_CMDLINECONSOLES && console_cmdline[i].name[0]; i++)
--		if (strcmp(console_cmdline[i].name, name) == 0 &&
--			  console_cmdline[i].index == idx) {
--				c = &console_cmdline[i];
--				strlcpy(c->name, name_new, sizeof(c->name));
--				c->name[sizeof(c->name) - 1] = 0;
--				c->options = options;
--				c->index = idx_new;
--				return i;
-+	for (i = 0, c = console_cmdline;
-+	     i < MAX_CMDLINECONSOLES && c->name[0];
-+	     i++, c++)
-+		if (strcmp(c->name, name) == 0 && c->index == idx) {
-+			strlcpy(c->name, name_new, sizeof(c->name));
-+			c->name[sizeof(c->name) - 1] = 0;
-+			c->options = options;
-+			c->index = idx_new;
-+			return i;
- 		}
- 	/* not found */
- 	return -1;
-@@ -2218,6 +2219,7 @@ void register_console(struct console *ne
- 	int i;
- 	unsigned long flags;
- 	struct console *bcon = NULL;
-+	struct console_cmdline *c;
+ /* cpu currently holding logbuf_lock */
+ static volatile unsigned int logbuf_cpu = UINT_MAX;
+@@ -266,21 +266,21 @@ static char *log_dict(const struct print
+ /* get record by index; idx must point to valid msg */
+ static struct printk_log *log_from_idx(u32 idx)
+ {
+-	struct printk_log *msg = (struct printk_log *)(log_buf + idx);
++	struct printk_log *msg = (struct printk_log *)(printk_log_buf + idx);
  
  	/*
- 	 * before we register a new CON_BOOT console, make sure we don't
-@@ -2265,24 +2267,25 @@ void register_console(struct console *ne
- 	 *	See if this console matches one we selected on
- 	 *	the command line.
+ 	 * A length == 0 record is the end of buffer marker. Wrap around and
+ 	 * read the message at the start of the buffer.
  	 */
--	for (i = 0; i < MAX_CMDLINECONSOLES && console_cmdline[i].name[0];
--			i++) {
--		if (strcmp(console_cmdline[i].name, newcon->name) != 0)
-+	for (i = 0, c = console_cmdline;
-+	     i < MAX_CMDLINECONSOLES && c->name[0];
-+	     i++, c++) {
-+		if (strcmp(c->name, newcon->name) != 0)
- 			continue;
- 		if (newcon->index >= 0 &&
--		    newcon->index != console_cmdline[i].index)
-+		    newcon->index != c->index)
- 			continue;
- 		if (newcon->index < 0)
--			newcon->index = console_cmdline[i].index;
-+			newcon->index = c->index;
+ 	if (!msg->len)
+-		return (struct printk_log *)log_buf;
++		return (struct printk_log *)printk_log_buf;
+ 	return msg;
+ }
  
--		if (_braille_register_console(newcon, &console_cmdline[i]))
-+		if (_braille_register_console(newcon, c))
+ /* get next record; idx must point to valid msg */
+ static u32 log_next(u32 idx)
+ {
+-	struct printk_log *msg = (struct printk_log *)(log_buf + idx);
++	struct printk_log *msg = (struct printk_log *)(printk_log_buf + idx);
+ 
+ 	/* length == 0 indicates the end of the buffer; wrap */
+ 	/*
+@@ -289,7 +289,7 @@ static u32 log_next(u32 idx)
+ 	 * return the one after that.
+ 	 */
+ 	if (!msg->len) {
+-		msg = (struct printk_log *)log_buf;
++		msg = (struct printk_log *)printk_log_buf;
+ 		return msg->len;
+ 	}
+ 	return idx + msg->len;
+@@ -313,7 +313,7 @@ static void log_store(int facility, int 
+ 		u32 free;
+ 
+ 		if (log_next_idx > log_first_idx)
+-			free = max(log_buf_len - log_next_idx, log_first_idx);
++			free = max(printk_log_buf_len - log_next_idx, log_first_idx);
+ 		else
+ 			free = log_first_idx - log_next_idx;
+ 
+@@ -325,18 +325,18 @@ static void log_store(int facility, int 
+ 		log_first_seq++;
+ 	}
+ 
+-	if (log_next_idx + size + sizeof(struct printk_log) >= log_buf_len) {
++	if (log_next_idx + size + sizeof(struct printk_log) >= printk_log_buf_len) {
+ 		/*
+ 		 * This message + an additional empty header does not fit
+ 		 * at the end of the buffer. Add an empty header with len == 0
+ 		 * to signify a wrap around.
+ 		 */
+-		memset(log_buf + log_next_idx, 0, sizeof(struct printk_log));
++		memset(printk_log_buf + log_next_idx, 0, sizeof(struct printk_log));
+ 		log_next_idx = 0;
+ 	}
+ 
+ 	/* fill message */
+-	msg = (struct printk_log *)(log_buf + log_next_idx);
++	msg = (struct printk_log *)(printk_log_buf + log_next_idx);
+ 	memcpy(log_text(msg), text, text_len);
+ 	msg->text_len = text_len;
+ 	memcpy(log_dict(msg), dict, dict_len);
+@@ -663,8 +663,8 @@ const struct file_operations kmsg_fops =
+  */
+ void log_buf_kexec_setup(void)
+ {
+-	VMCOREINFO_SYMBOL(log_buf);
+-	VMCOREINFO_SYMBOL(log_buf_len);
++	VMCOREINFO_SYMBOL(printk_log_buf);
++	VMCOREINFO_SYMBOL(printk_log_buf_len);
+ 	VMCOREINFO_SYMBOL(log_first_idx);
+ 	VMCOREINFO_SYMBOL(log_next_idx);
+ 	/*
+@@ -679,60 +679,60 @@ void log_buf_kexec_setup(void)
+ }
+ #endif
+ 
+-/* requested log_buf_len from kernel cmdline */
+-static unsigned long __initdata new_log_buf_len;
++/* requested printk_log_buf_len from kernel cmdline */
++static unsigned long __initdata new_printk_log_buf_len;
+ 
+-/* save requested log_buf_len since it's too early to process it */
+-static int __init log_buf_len_setup(char *str)
++/* save requested printk_log_buf_len since it's too early to process it */
++static int __init printk_log_buf_len_setup(char *str)
+ {
+ 	unsigned size = memparse(str, &str);
+ 
+ 	if (size)
+ 		size = roundup_pow_of_two(size);
+-	if (size > log_buf_len)
+-		new_log_buf_len = size;
++	if (size > printk_log_buf_len)
++		new_printk_log_buf_len = size;
+ 
+ 	return 0;
+ }
+-early_param("log_buf_len", log_buf_len_setup);
++early_param("log_buf_len", printk_log_buf_len_setup);
+ 
+ void __init setup_log_buf(int early)
+ {
+ 	unsigned long flags;
+-	char *new_log_buf;
++	char *new_printk_log_buf;
+ 	int free;
+ 
+-	if (!new_log_buf_len)
++	if (!new_printk_log_buf_len)
+ 		return;
+ 
+ 	if (early) {
+ 		unsigned long mem;
+ 
+-		mem = memblock_alloc(new_log_buf_len, PAGE_SIZE);
++		mem = memblock_alloc(new_printk_log_buf_len, PAGE_SIZE);
+ 		if (!mem)
  			return;
+-		new_log_buf = __va(mem);
++		new_printk_log_buf = __va(mem);
+ 	} else {
+-		new_log_buf = alloc_bootmem_nopanic(new_log_buf_len);
++		new_printk_log_buf = alloc_bootmem_nopanic(new_printk_log_buf_len);
+ 	}
  
- 		if (newcon->setup &&
- 		    newcon->setup(newcon, console_cmdline[i].options) != 0)
- 			break;
- 		newcon->flags |= CON_ENABLED;
--		newcon->index = console_cmdline[i].index;
-+		newcon->index = c->index;
- 		if (i == selected_console) {
- 			newcon->flags |= CON_CONSDEV;
- 			preferred_console = selected_console;
+-	if (unlikely(!new_log_buf)) {
+-		pr_err("log_buf_len: %ld bytes not available\n",
+-			new_log_buf_len);
++	if (unlikely(!new_printk_log_buf)) {
++		pr_err("printk_log_buf_len: %ld bytes not available\n",
++			new_printk_log_buf_len);
+ 		return;
+ 	}
+ 
+ 	raw_spin_lock_irqsave(&logbuf_lock, flags);
+-	log_buf_len = new_log_buf_len;
+-	log_buf = new_log_buf;
+-	new_log_buf_len = 0;
+-	free = __LOG_BUF_LEN - log_next_idx;
+-	memcpy(log_buf, __log_buf, __LOG_BUF_LEN);
++	printk_log_buf_len = new_printk_log_buf_len;
++	printk_log_buf = new_printk_log_buf;
++	new_printk_log_buf_len = 0;
++	free = __PRINTK_LOG_BUF_LEN - log_next_idx;
++	memcpy(printk_log_buf, __printk_log_buf, __PRINTK_LOG_BUF_LEN);
+ 	raw_spin_unlock_irqrestore(&logbuf_lock, flags);
+ 
+-	pr_info("log_buf_len: %d\n", log_buf_len);
++	pr_info("printk_log_buf_len: %d\n", printk_log_buf_len);
+ 	pr_info("early log buf free: %d(%d%%)\n",
+-		free, (free * 100) / __LOG_BUF_LEN);
++		free, (free * 100) / __PRINTK_LOG_BUF_LEN);
+ }
+ 
+ #ifdef CONFIG_BOOT_PRINTK_DELAY
+@@ -1211,7 +1211,7 @@ int do_syslog(int type, char __user *buf
+ 		break;
+ 	/* Size of the log buffer */
+ 	case SYSLOG_ACTION_SIZE_BUFFER:
+-		error = log_buf_len;
++		error = printk_log_buf_len;
+ 		break;
+ 	default:
+ 		error = -EINVAL;
+@@ -1243,7 +1243,7 @@ MODULE_PARM_DESC(ignore_loglevel, "ignor
+ 
+ /*
+  * Call the console drivers, asking them to write out
+- * log_buf[start] to log_buf[end - 1].
++ * printk_log_buf[start] to printk_log_buf[end - 1].
+  * The console_lock must be held.
+  */
+ static void call_console_drivers(int level, const char *text, size_t len)
 _
 
 Patches currently in -mm which might be from joe@perches.com are
 
 linux-next.patch
-printk-rename-struct-log-to-struct-printk_log.patch
-printk-rename-log_buf-and-__log_buf_len.patch
 printk-rename-log_first-and-log_next-variables.patch
 printk-rename-log_foo-variables-and-functions.patch
 printk-rename-enum-log_flags-to-printk_log_flags.patch
