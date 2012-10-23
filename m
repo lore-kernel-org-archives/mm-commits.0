@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-dma-dw_dmac-make-drivers-endianness-configurable.patch added to -mm tree
-Date: Tue, 23 Oct 2012 16:12:34 -0700
-Message-ID: <20121023231234.B4D62100047@wpzn3.hot.corp.google.com>
+Subject: + drop_caches-add-some-documentation-and-info-messsge.patch added to -mm tree
+Date: Tue, 23 Oct 2012 16:45:52 -0700
+Message-ID: <20121023234553.2D9B5100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:39914 "EHLO
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:49199 "EHLO
 	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755686Ab2JWXMg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 19:12:36 -0400
-Received: by mail-qc0-f202.google.com with SMTP id s25so552597qcq.1
-        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 16:12:35 -0700 (PDT)
+	with ESMTP id S933587Ab2JWXpy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 19:45:54 -0400
+Received: by mail-qc0-f202.google.com with SMTP id s25so555407qcq.1
+        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 16:45:53 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hein_tibosch@yahoo.es, andriy.shevchenko@linux.intel.com, arnd@arndb.de, egtvedt@samfundet.no, havard@skinnemoen.net, ludovic.desroches@atmel.com, nicolas.ferre@atmel.com, viresh.kumar@linaro.org
+Cc: mhocko@suse.cz, dave@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     Subject: drivers/dma/dw_dmac: make driver's endianness configurable
+     Subject: drop_caches: add some documentation and info messsge
 has been added to the -mm tree.  Its filename is
-     drivers-dma-dw_dmac-make-drivers-endianness-configurable.patch
+     drop_caches-add-some-documentation-and-info-messsge.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,110 +33,133 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hein Tibosch <hein_tibosch@yahoo.es>
-Subject: drivers/dma/dw_dmac: make driver's endianness configurable
+From: Michal Hocko <mhocko@suse.cz>
+Subject: drop_caches: add some documentation and info messsge
 
-The dw_dmac driver was originally developed for avr32 to be used with the
-Synopsys DesignWare AHB DMA controller.  Starting from 2.6.38, access to
-the device's i/o memory was done with the little-endian readl/writel
-functions(1)
+I would like to resurrect Dave's patch.  The last time it was posted was
+here https://lkml.org/lkml/2010/9/16/250 and there didn't seem to be any
+strong opposition.
 
-This broke the driver for the avr32 platform, because it needs big
-(native) endian accessors.  This patch makes the endianness configurable
-using 'DW_DMAC_BIG_ENDIAN_IO', which will default be true for AVR32
+Kosaki was worried about possible excessive logging when somebody drops
+caches too often (but then he claimed he didn't have a strong opinion on
+that) but I would say opposite.  If somebody does that then I would really
+like to know that from the log when supporting a system because it almost
+for sure means that there is something fishy going on.  It is also worth
+mentioning that only root can write drop caches so this is not an flooding
+attack vector.
 
-I submitted this patch before(2) but then waited for Andy to finish other
-changes to the same module(3).
+I am bringing that up again because this can be really helpful when
+chasing strange performance issues which (surprise surprise) turn out to
+be related to artificially dropped caches done because the admin thinks
+this would help...
 
-(1) https://patchwork.kernel.org/patch/608211
-(2) https://lkml.org/lkml/2012/8/26/148
-(3) https://lkml.org/lkml/2012/9/21/173
+I have just refreshed the original patch on top of the current mm tree
+but I could live with KERN_INFO as well if people think that KERN_NOTICE
+is too hysterical.
 
-Signed-off-by: Hein Tibosch <hein_tibosch@yahoo.es>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: Hans-Christian Egtvedt <egtvedt@samfundet.no>
-Cc: Ludovic Desroches <ludovic.desroches@atmel.com>
-Cc: Havard Skinnemoen <havard@skinnemoen.net>
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
+: From: Dave Hansen <dave@linux.vnet.ibm.com>
+: Date: Fri, 12 Oct 2012 14:30:54 +0200
+: 
+: There is plenty of anecdotal evidence and a load of blog posts
+: suggesting that using "drop_caches" periodically keeps your system
+: running in "tip top shape".  Perhaps adding some kernel
+: documentation will increase the amount of accurate data on its use.
+: 
+: If we are not shrinking caches effectively, then we have real bugs.
+: Using drop_caches will simply mask the bugs and make them harder
+: to find, but certainly does not fix them, nor is it an appropriate
+: "workaround" to limit the size of the caches.
+: 
+: It's a great debugging tool, and is really handy for doing things
+: like repeatable benchmark runs.  So, add a bit more documentation
+: about it, and add a little KERN_NOTICE.  It should help developers
+: who are chasing down reclaim-related bugs.
+
+[mhocko@suse.cz: refreshed to current -mm tree]
+Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/Kconfig        |   11 +++++++++++
- drivers/dma/dw_dmac_regs.h |   18 +++++++++++++-----
- 2 files changed, 24 insertions(+), 5 deletions(-)
+ Documentation/sysctl/vm.txt |   33 +++++++++++++++++++++++++++------
+ fs/drop_caches.c            |    2 ++
+ 2 files changed, 29 insertions(+), 6 deletions(-)
 
-diff -puN drivers/dma/Kconfig~drivers-dma-dw_dmac-make-drivers-endianness-configurable drivers/dma/Kconfig
---- a/drivers/dma/Kconfig~drivers-dma-dw_dmac-make-drivers-endianness-configurable
-+++ a/drivers/dma/Kconfig
-@@ -90,6 +90,17 @@ config DW_DMAC
- 	  Support the Synopsys DesignWare AHB DMA controller.  This
- 	  can be integrated in chips such as the Atmel AT32ap7000.
+diff -puN Documentation/sysctl/vm.txt~drop_caches-add-some-documentation-and-info-messsge Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~drop_caches-add-some-documentation-and-info-messsge
++++ a/Documentation/sysctl/vm.txt
+@@ -138,18 +138,39 @@ Setting this to zero disables periodic w
  
-+config DW_DMAC_BIG_ENDIAN_IO
-+	bool "Use big endian I/O register access"
-+	default y if AVR32
-+	depends on DW_DMAC
-+	help
-+	  Say yes here to use big endian I/O access when reading and writing
-+	  to the DMA controller registers. This is needed on some platforms,
-+	  like the Atmel AVR32 architecture.
+ drop_caches
+ 
+-Writing to this will cause the kernel to drop clean caches, dentries and
+-inodes from memory, causing that memory to become free.
++Writing to this will cause the kernel to drop clean caches, as well as
++reclaimable slab objects like dentries and inodes.  Once dropped, their
++memory becomes free.
+ 
+ To free pagecache:
+ 	echo 1 > /proc/sys/vm/drop_caches
+-To free dentries and inodes:
++To free reclaimable slab objects (includes dentries and inodes):
+ 	echo 2 > /proc/sys/vm/drop_caches
+-To free pagecache, dentries and inodes:
++To free slab objects and pagecache:
+ 	echo 3 > /proc/sys/vm/drop_caches
+ 
+-As this is a non-destructive operation and dirty objects are not freeable, the
+-user should run `sync' first.
++This is a non-destructive operation and will not free any dirty objects.
++To increase the number of objects freed by this operation, the user may run
++`sync' prior to writing to /proc/sys/vm/drop_caches.  This will minimize the
++number of dirty objects on the system and create more candidates to be
++dropped.
 +
-+	  If unsure, use the default setting.
++This file is not a means to control the growth of the various kernel caches
++(inodes, dentries, pagecache, etc...)  These objects are automatically
++reclaimed by the kernel when memory is needed elsewhere on the system.
 +
- config AT_HDMAC
- 	tristate "Atmel AHB DMA support"
- 	depends on ARCH_AT91
-diff -puN drivers/dma/dw_dmac_regs.h~drivers-dma-dw_dmac-make-drivers-endianness-configurable drivers/dma/dw_dmac_regs.h
---- a/drivers/dma/dw_dmac_regs.h~drivers-dma-dw_dmac-make-drivers-endianness-configurable
-+++ a/drivers/dma/dw_dmac_regs.h
-@@ -98,9 +98,17 @@ struct dw_dma_regs {
- 	u32	DW_PARAMS;
- };
- 
-+#ifdef CONFIG_DW_DMAC_BIG_ENDIAN_IO
-+#define dma_readl_native ioread32be
-+#define dma_writel_native iowrite32be
-+#else
-+#define dma_readl_native readl
-+#define dma_writel_native writel
-+#endif
++Use of this file can cause performance problems.  Since it discards cached
++objects, it may cost a significant amount of I/O and CPU to recreate the
++dropped objects, especially if they were under heavy use.  Because of this,
++use outside of a testing or debugging environment is not recommended.
 +
- /* To access the registers in early stage of probe */
- #define dma_read_byaddr(addr, name) \
--	readl((addr) + offsetof(struct dw_dma_regs, name))
-+	dma_readl_native((addr) + offsetof(struct dw_dma_regs, name))
++You may see informational messages in your kernel log when this file is
++used:
++
++	cat (1234): dropped kernel caches: 3
++
++These are informational only.  They do not mean that anything is wrong
++with your system.
  
- /* Bitfields in DW_PARAMS */
- #define DW_PARAMS_NR_CHAN	8		/* number of channels */
-@@ -216,9 +224,9 @@ __dwc_regs(struct dw_dma_chan *dwc)
- }
+ ==============================================================
  
- #define channel_readl(dwc, name) \
--	readl(&(__dwc_regs(dwc)->name))
-+	dma_readl_native(&(__dwc_regs(dwc)->name))
- #define channel_writel(dwc, name, val) \
--	writel((val), &(__dwc_regs(dwc)->name))
-+	dma_writel_native((val), &(__dwc_regs(dwc)->name))
- 
- static inline struct dw_dma_chan *to_dw_dma_chan(struct dma_chan *chan)
- {
-@@ -246,9 +254,9 @@ static inline struct dw_dma_regs __iomem
- }
- 
- #define dma_readl(dw, name) \
--	readl(&(__dw_regs(dw)->name))
-+	dma_readl_native(&(__dw_regs(dw)->name))
- #define dma_writel(dw, name, val) \
--	writel((val), &(__dw_regs(dw)->name))
-+	dma_writel_native((val), &(__dw_regs(dw)->name))
- 
- #define channel_set_bit(dw, reg, mask) \
- 	dma_writel(dw, reg, ((mask) << 8) | (mask))
+diff -puN fs/drop_caches.c~drop_caches-add-some-documentation-and-info-messsge fs/drop_caches.c
+--- a/fs/drop_caches.c~drop_caches-add-some-documentation-and-info-messsge
++++ a/fs/drop_caches.c
+@@ -58,6 +58,8 @@ int drop_caches_sysctl_handler(ctl_table
+ 	if (ret)
+ 		return ret;
+ 	if (write) {
++		printk(KERN_NOTICE "%s (%d): dropped kernel caches: %d\n",
++			current->comm, task_pid_nr(current), sysctl_drop_caches);
+ 		if (sysctl_drop_caches & 1)
+ 			iterate_supers(drop_pagecache_sb, NULL);
+ 		if (sysctl_drop_caches & 2)
 _
 
-Patches currently in -mm which might be from hein_tibosch@yahoo.es are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
-drivers-dma-dw_dmac-make-drivers-endianness-configurable.patch
+linux-next.patch
+thp-clean-up-__collapse_huge_page_isolate.patch
+thp-clean-up-__collapse_huge_page_isolate-v2.patch
+mm-introduce-mm_find_pmd.patch
+thp-introduce-hugepage_vma_check.patch
+thp-cleanup-introduce-mk_huge_pmd.patch
+memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+mm-memblock-reduce-overhead-in-binary-search.patch
 
