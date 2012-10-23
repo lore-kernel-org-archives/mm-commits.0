@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-imxdi-support-for-imx53.patch added to -mm tree
-Date: Tue, 23 Oct 2012 11:59:47 -0700
-Message-ID: <20121023185948.243B4100047@wpzn3.hot.corp.google.com>
+Subject: + rtc-imxdi-add-devicetree-support.patch added to -mm tree
+Date: Tue, 23 Oct 2012 11:59:50 -0700
+Message-ID: <20121023185951.6CAC520004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:44967 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756771Ab2JWS7t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 14:59:49 -0400
-Received: by mail-vb0-f74.google.com with SMTP id s24so522304vbi.1
-        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 11:59:48 -0700 (PDT)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:54837 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756771Ab2JWS7y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 14:59:54 -0400
+Received: by mail-la0-f74.google.com with SMTP id j13so252659lah.1
+        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 11:59:53 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: stigge@antcom.de, a.zummo@towertech.it, grant.likely@secretlab.ca, kernel@pe
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-imxdi: support for i.MX53
+     Subject: drivers/rtc/rtc-imxdi.c: add devicetree support
 has been added to the -mm tree.  Its filename is
-     rtc-imxdi-support-for-imx53.patch
+     rtc-imxdi-add-devicetree-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Roland Stigge <stigge@antcom.de>
-Subject: drivers/rtc/rtc-imxdi: support for i.MX53
+Subject: drivers/rtc/rtc-imxdi.c: add devicetree support
 
-Enable support for i.MX53 in addition to i.MX25 by enabling the driver on
-ARCH_MXC generally.
+Add device tree support to the rtc-imxdi driver.
 
 Signed-off-by: Roland Stigge <stigge@antcom.de>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
@@ -47,21 +46,63 @@ Cc: Russell King <linux@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/devicetree/bindings/rtc/imxdi-rtc.txt |   17 ++++++++++
+ drivers/rtc/rtc-imxdi.c                             |   11 ++++++
+ 2 files changed, 28 insertions(+)
 
-diff -puN drivers/rtc/Kconfig~rtc-imxdi-support-for-imx53 drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-imxdi-support-for-imx53
-+++ a/drivers/rtc/Kconfig
-@@ -768,7 +768,7 @@ config RTC_DRV_DAVINCI
+diff -puN /dev/null Documentation/devicetree/bindings/rtc/imxdi-rtc.txt
+--- /dev/null
++++ a/Documentation/devicetree/bindings/rtc/imxdi-rtc.txt
+@@ -0,0 +1,17 @@
++* i.MX25 Real Time Clock controller
++
++This binding supports the following chips: i.MX25, i.MX53
++
++Required properties:
++- compatible: should be: "fsl,imx25-rtc"
++- reg: physical base address of the controller and length of memory mapped
++  region.
++- interrupts: rtc alarm interrupt
++
++Example:
++
++rtc@80056000 {
++	compatible = "fsl,imx53-rtc", "fsl,imx25-rtc";
++	reg = <0x80056000 2000>;
++	interrupts = <29>;
++};
+diff -puN drivers/rtc/rtc-imxdi.c~rtc-imxdi-add-devicetree-support drivers/rtc/rtc-imxdi.c
+--- a/drivers/rtc/rtc-imxdi.c~rtc-imxdi-add-devicetree-support
++++ a/drivers/rtc/rtc-imxdi.c
+@@ -37,6 +37,7 @@
+ #include <linux/rtc.h>
+ #include <linux/sched.h>
+ #include <linux/workqueue.h>
++#include <linux/of.h>
  
- config RTC_DRV_IMXDI
- 	tristate "Freescale IMX DryIce Real Time Clock"
--	depends on SOC_IMX25
-+	depends on ARCH_MXC
- 	help
- 	   Support for Freescale IMX DryIce RTC
+ /* DryIce Register Definitions */
  
+@@ -493,10 +494,20 @@ static int __devexit dryice_rtc_remove(s
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_OF
++static const struct of_device_id dryice_dt_ids[] = {
++	{ .compatible = "fsl,imx25-rtc" },
++	{ /* sentinel */ }
++};
++
++MODULE_DEVICE_TABLE(of, dryice_dt_ids);
++#endif
++
+ static struct platform_driver dryice_rtc_driver = {
+ 	.driver = {
+ 		   .name = "imxdi_rtc",
+ 		   .owner = THIS_MODULE,
++		   .of_match_table = of_match_ptr(dryice_dt_ids),
+ 		   },
+ 	.remove = __devexit_p(dryice_rtc_remove),
+ };
 _
 
 Patches currently in -mm which might be from stigge@antcom.de are
