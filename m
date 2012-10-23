@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-message-fusion-mptscsihc-missing-break.patch added to -mm tree
-Date: Tue, 23 Oct 2012 15:49:27 -0700
-Message-ID: <20121023224927.8CBF8100047@wpzn3.hot.corp.google.com>
+Subject: + binfmt_elf-fix-corner-case-kfree-of-uninitialized-data.patch added to -mm tree
+Date: Tue, 23 Oct 2012 15:54:09 -0700
+Message-ID: <20121023225409.90114100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:52684 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933543Ab2JWWt2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 18:49:28 -0400
-Received: by mail-qc0-f202.google.com with SMTP id s25so549924qcq.1
-        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 15:49:28 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:49769 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757462Ab2JWWyK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 18:54:10 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z15so552138ghb.1
+        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 15:54:09 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@linux.intel.com, Eric.Moore@lsi.com, James.Bottomley@HansenPartnership.com
+Cc: alan@linux.intel.com
 
 
 The patch titled
-     Subject: drivers/message/fusion/mptscsih.c: missing break
+     Subject: binfmt_elf: fix corner case kfree of uninitialized data
 has been added to the -mm tree.  Its filename is
-     drivers-message-fusion-mptscsihc-missing-break.patch
+     binfmt_elf-fix-corner-case-kfree-of-uninitialized-data.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alan Cox <alan@linux.intel.com>
-Subject: drivers/message/fusion/mptscsih.c: missing break
+Subject: binfmt_elf: fix corner case kfree of uninitialized data
 
-This happens to do the right thing in all cases on fibre channel but not on
-other media types
+If elf_core_dump() is called and fill_note_info() fails in the kmalloc()
+then it returns 0 but has not yet initialised all the needed fields.  As a
+result we do a kfree(randomness) after correctly skipping the thread data.
 
 Signed-off-by: Alan Cox <alan@linux.intel.com>
-Cc: Eric Moore <Eric.Moore@lsi.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/message/fusion/mptscsih.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/binfmt_elf.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/message/fusion/mptscsih.c~drivers-message-fusion-mptscsihc-missing-break drivers/message/fusion/mptscsih.c
---- a/drivers/message/fusion/mptscsih.c~drivers-message-fusion-mptscsihc-missing-break
-+++ a/drivers/message/fusion/mptscsih.c
-@@ -792,6 +792,7 @@ mptscsih_io_done(MPT_ADAPTER *ioc, MPT_F
- 			 * than an unsolicited DID_ABORT.
- 			 */
- 			sc->result = DID_RESET << 16;
-+			break;
+diff -puN fs/binfmt_elf.c~binfmt_elf-fix-corner-case-kfree-of-uninitialized-data fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~binfmt_elf-fix-corner-case-kfree-of-uninitialized-data
++++ a/fs/binfmt_elf.c
+@@ -1600,8 +1600,10 @@ static int fill_note_info(struct elfhdr 
+ 	info->thread = NULL;
  
- 		case MPI_IOCSTATUS_SCSI_EXT_TERMINATED:		/* 0x004C */
- 			if (ioc->bus_type == FC)
+ 	psinfo = kmalloc(sizeof(*psinfo), GFP_KERNEL);
+-	if (psinfo == NULL)
++	if (psinfo == NULL) {
++		info->psinfo.data = NULL;	/* So we don't free this wrongly */
+ 		return 0;
++        }
+ 
+ 	fill_note(&info->psinfo, "CORE", NT_PRPSINFO, sizeof(*psinfo), psinfo);
+ 
 _
 
 Patches currently in -mm which might be from alan@linux.intel.com are
 
 linux-next.patch
 drivers-message-fusion-mptscsihc-missing-break.patch
+binfmt_elf-fix-corner-case-kfree-of-uninitialized-data.patch
 
