@@ -1,288 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] printk-move-braille-console-support-into-separate-braille-files.patch removed from -mm tree
-Date: Tue, 23 Oct 2012 13:03:43 -0700
-Message-ID: <20121023200344.0D86020004E@hpza10.eem.corp.google.com>
+Subject: [to-be-updated] printk-rename-log_wait-to-printk_log_wait.patch removed from -mm tree
+Date: Tue, 23 Oct 2012 13:04:08 -0700
+Message-ID: <20121023200408.9EBD7100048@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f202.google.com ([209.85.215.202]:56760 "EHLO
-	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933452Ab2JWUDq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 16:03:46 -0400
-Received: by mail-ea0-f202.google.com with SMTP id q10so255231eaa.1
-        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 13:03:45 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:42434 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933451Ab2JWUEJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 16:04:09 -0400
+Received: by mail-yh0-f74.google.com with SMTP id 10so532606yhl.1
+        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 13:04:09 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, kay@vrfy.org, samuel.thibault@ens-lyon.org, mm-commits@vger.kernel.org
+To: joe@perches.com, kay@vrfy.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk: move braille console support into separate braille.[ch] files
+     Subject: printk: rename log_wait to printk_log_wait
 has been removed from the -mm tree.  Its filename was
-     printk-move-braille-console-support-into-separate-braille-files.patch
+     printk-rename-log_wait-to-printk_log_wait.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: printk: move braille console support into separate braille.[ch] files
+Subject: printk: rename log_wait to printk_log_wait
 
-Create files with prototypes and static inlines for braille
-support.  Make braille_console functions return 1 on success.
+Make this generic variable more specific to the printk
+subsystem to allow this variable to be used without
+a specific extern.
 
-Cc: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Also update fs/proc/kmsg.c as it uses log_wait.
+
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Kay Sievers <kay@vrfy.org>
-Acked-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/accessibility/braille/braille_console.c |    9 ++
- kernel/printk/Makefile                          |    1 
- kernel/printk/braille.c                         |   48 ++++++++++++++
- kernel/printk/braille.h                         |   48 ++++++++++++++
- kernel/printk/printk.c                          |   44 +++---------
- 5 files changed, 117 insertions(+), 33 deletions(-)
+ fs/proc/kmsg.c         |    4 ++--
+ kernel/printk/printk.c |   12 ++++++------
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/accessibility/braille/braille_console.c~printk-move-braille-console-support-into-separate-braille-files drivers/accessibility/braille/braille_console.c
---- a/drivers/accessibility/braille/braille_console.c~printk-move-braille-console-support-into-separate-braille-files
-+++ a/drivers/accessibility/braille/braille_console.c
-@@ -359,6 +359,9 @@ int braille_register_console(struct cons
- 		char *console_options, char *braille_options)
+diff -puN fs/proc/kmsg.c~printk-rename-log_wait-to-printk_log_wait fs/proc/kmsg.c
+--- a/fs/proc/kmsg.c~printk-rename-log_wait-to-printk_log_wait
++++ a/fs/proc/kmsg.c
+@@ -17,7 +17,7 @@
+ #include <asm/uaccess.h>
+ #include <asm/io.h>
+ 
+-extern wait_queue_head_t log_wait;
++extern wait_queue_head_t printk_log_wait;
+ 
+ static int kmsg_open(struct inode * inode, struct file * file)
  {
- 	int ret;
-+
-+	if (!(console->flags & CON_BRL))
-+		return 0;
- 	if (!console_options)
- 		/* Only support VisioBraille for now */
- 		console_options = "57600o8";
-@@ -374,15 +377,17 @@ int braille_register_console(struct cons
- 	braille_co = console;
- 	register_keyboard_notifier(&keyboard_notifier_block);
- 	register_vt_notifier(&vt_notifier_block);
--	return 0;
-+	return 1;
- }
+@@ -41,7 +41,7 @@ static ssize_t kmsg_read(struct file *fi
  
- int braille_unregister_console(struct console *console)
+ static unsigned int kmsg_poll(struct file *file, poll_table *wait)
  {
- 	if (braille_co != console)
- 		return -EINVAL;
-+	if (!(console->flags & CON_BRL))
-+		return 0;
- 	unregister_keyboard_notifier(&keyboard_notifier_block);
- 	unregister_vt_notifier(&vt_notifier_block);
- 	braille_co = NULL;
--	return 0;
-+	return 1;
- }
-diff -puN kernel/printk/Makefile~printk-move-braille-console-support-into-separate-braille-files kernel/printk/Makefile
---- a/kernel/printk/Makefile~printk-move-braille-console-support-into-separate-braille-files
-+++ a/kernel/printk/Makefile
-@@ -1 +1,2 @@
- obj-y	= printk.o
-+obj-$(CONFIG_A11Y_BRAILLE_CONSOLE)	+= braille.o
-diff -puN /dev/null kernel/printk/braille.c
---- /dev/null
-+++ a/kernel/printk/braille.c
-@@ -0,0 +1,48 @@
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
-+#include <linux/kernel.h>
-+#include <linux/console.h>
-+#include <linux/string.h>
-+
-+#include "console_cmdline.h"
-+#include "braille.h"
-+
-+char *_braille_console_setup(char **str, char **brl_options)
-+{
-+	if (!memcmp(*str, "brl,", 4)) {
-+		*brl_options = "";
-+		*str += 4;
-+	} else if (!memcmp(str, "brl=", 4)) {
-+		*brl_options = *str + 4;
-+		*str = strchr(*brl_options, ',');
-+		if (!*str)
-+			pr_err("need port name after brl=\n");
-+		else
-+			*((*str)++) = 0;
-+	}
-+
-+	return *str;
-+}
-+
-+int
-+_braille_register_console(struct console *console, struct console_cmdline *c)
-+{
-+	int rtn = 0;
-+
-+	if (c->brl_options) {
-+		console->flags |= CON_BRL;
-+		rtn = braille_register_console(console, c->index, c->options,
-+					       c->brl_options);
-+	}
-+
-+	return rtn;
-+}
-+
-+int
-+_braille_unregister_console(struct console *console)
-+{
-+	if (console->flags & CON_BRL)
-+		return braille_unregister_console(console);
-+
-+	return 0;
-+}
-diff -puN /dev/null kernel/printk/braille.h
---- /dev/null
-+++ a/kernel/printk/braille.h
-@@ -0,0 +1,48 @@
-+#ifndef _PRINTK_BRAILLE_H
-+#define _PRINTK_BRAILLE_H
-+
-+#ifdef CONFIG_A11Y_BRAILLE_CONSOLE
-+
-+static inline void
-+braille_set_options(struct console_cmdline *c, char *brl_options)
-+{
-+	c->brl_options = brl_options;
-+}
-+
-+char *
-+_braille_console_setup(char **str, char **brl_options);
-+
-+int
-+_braille_register_console(struct console *console, struct console_cmdline *c);
-+
-+int
-+_braille_unregister_console(struct console *console);
-+
-+#else
-+
-+static inline void
-+braille_set_options(struct console_cmdline *c, char *brl_options)
-+{
-+}
-+
-+static inline char *
-+_braille_console_setup(char **str, char **brl_options)
-+{
-+	return *str;
-+}
-+
-+static inline int
-+_braille_register_console(struct console *console, struct console_cmdline *c)
-+{
-+	return 0;
-+}
-+
-+static inline int
-+_braille_unregister_console(struct console *console)
-+{
-+	return 0;
-+}
-+
-+#endif
-+
-+#endif
-diff -puN kernel/printk/printk.c~printk-move-braille-console-support-into-separate-braille-files kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-move-braille-console-support-into-separate-braille-files
-+++ a/kernel/printk/printk.c
-@@ -47,6 +47,7 @@
- #include <trace/events/printk.h>
- 
- #include "console_cmdline.h"
-+#include "braille.h"
- 
- /*
-  * Architectures can override it:
-@@ -1731,9 +1732,8 @@ static int __add_preferred_console(char 
- 	c = &console_cmdline[i];
- 	strlcpy(c->name, name, sizeof(c->name));
- 	c->options = options;
--#ifdef CONFIG_A11Y_BRAILLE_CONSOLE
--	c->brl_options = brl_options;
--#endif
-+	braille_set_options(c, brl_options);
-+
- 	c->index = idx;
+-	poll_wait(file, &log_wait, wait);
++	poll_wait(file, &printk_log_wait, wait);
+ 	if (do_syslog(SYSLOG_ACTION_SIZE_UNREAD, NULL, 0, SYSLOG_FROM_FILE))
+ 		return POLLIN | POLLRDNORM;
  	return 0;
+diff -puN kernel/printk/printk.c~printk-rename-log_wait-to-printk_log_wait kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-rename-log_wait-to-printk_log_wait
++++ a/kernel/printk/printk.c
+@@ -63,7 +63,7 @@ void asmlinkage __attribute__((weak)) ea
+ #define MINIMUM_CONSOLE_LOGLEVEL 1 /* Minimum loglevel we let people use */
+ #define DEFAULT_CONSOLE_LOGLEVEL 7 /* anything MORE serious than KERN_DEBUG */
+ 
+-DECLARE_WAIT_QUEUE_HEAD(log_wait);
++DECLARE_WAIT_QUEUE_HEAD(printk_log_wait);
+ 
+ int console_printk[4] = {
+ 	DEFAULT_CONSOLE_LOGLEVEL,	/* console_loglevel */
+@@ -447,7 +447,7 @@ static ssize_t devkmsg_read(struct file 
+ 		}
+ 
+ 		raw_spin_unlock_irq(&logbuf_lock);
+-		ret = wait_event_interruptible(log_wait,
++		ret = wait_event_interruptible(printk_log_wait,
+ 					       user->seq != printk_log_next_seq);
+ 		if (ret)
+ 			goto out;
+@@ -589,7 +589,7 @@ static unsigned int devkmsg_poll(struct 
+ 	if (!user)
+ 		return POLLERR|POLLNVAL;
+ 
+-	poll_wait(file, &log_wait, wait);
++	poll_wait(file, &printk_log_wait, wait);
+ 
+ 	raw_spin_lock_irq(&logbuf_lock);
+ 	if (user->seq < printk_log_next_seq) {
+@@ -1122,7 +1122,7 @@ int do_syslog(int type, char __user *buf
+ 			error = -EFAULT;
+ 			goto out;
+ 		}
+-		error = wait_event_interruptible(log_wait,
++		error = wait_event_interruptible(printk_log_wait,
+ 						 syslog_seq != printk_log_next_seq);
+ 		if (error)
+ 			goto out;
+@@ -1948,7 +1948,7 @@ void printk_tick(void)
+ 			printk(KERN_WARNING "[sched_delayed] %s", buf);
+ 		}
+ 		if (pending & PRINTK_PENDING_WAKEUP)
+-			wake_up_interruptible(&log_wait);
++			wake_up_interruptible(&printk_log_wait);
+ 	}
  }
-@@ -1746,20 +1746,8 @@ static int __init console_setup(char *st
- 	char *s, *options, *brl_options = NULL;
- 	int idx;
  
--#ifdef CONFIG_A11Y_BRAILLE_CONSOLE
--	if (!memcmp(str, "brl,", 4)) {
--		brl_options = "";
--		str += 4;
--	} else if (!memcmp(str, "brl=", 4)) {
--		brl_options = str + 4;
--		str = strchr(brl_options, ',');
--		if (!str) {
--			printk(KERN_ERR "need port name after brl=\n");
--			return 1;
--		}
--		*(str++) = 0;
--	}
--#endif
-+	if (_braille_console_setup(&str, &brl_options))
-+		return 1;
+@@ -1961,7 +1961,7 @@ int printk_needs_cpu(int cpu)
  
- 	/*
- 	 * Decode str into name, index, options.
-@@ -2286,16 +2274,10 @@ void register_console(struct console *ne
- 			continue;
- 		if (newcon->index < 0)
- 			newcon->index = console_cmdline[i].index;
--#ifdef CONFIG_A11Y_BRAILLE_CONSOLE
--		if (console_cmdline[i].brl_options) {
--			newcon->flags |= CON_BRL;
--			braille_register_console(newcon,
--					console_cmdline[i].index,
--					console_cmdline[i].options,
--					console_cmdline[i].brl_options);
-+
-+		if (_braille_register_console(newcon, &console_cmdline[i]))
- 			return;
--		}
--#endif
-+
- 		if (newcon->setup &&
- 		    newcon->setup(newcon, console_cmdline[i].options) != 0)
- 			break;
-@@ -2383,13 +2365,13 @@ EXPORT_SYMBOL(register_console);
- int unregister_console(struct console *console)
+ void wake_up_klogd(void)
  {
-         struct console *a, *b;
--	int res = 1;
-+	int res;
+-	if (waitqueue_active(&log_wait))
++	if (waitqueue_active(&printk_log_wait))
+ 		this_cpu_or(printk_pending, PRINTK_PENDING_WAKEUP);
+ }
  
--#ifdef CONFIG_A11Y_BRAILLE_CONSOLE
--	if (console->flags & CON_BRL)
--		return braille_unregister_console(console);
--#endif
-+	res = _braille_unregister_console(console);
-+	if (res)
-+		return res;
- 
-+	res = 1;
- 	console_lock();
- 	if (console_drivers == console) {
- 		console_drivers=console->next;
 _
 
 Patches currently in -mm which might be from joe@perches.com are
 
 linux-next.patch
-printk-use-pointer-for-console_cmdline-indexing.patch
-printk-rename-struct-log-to-struct-printk_log.patch
-printk-rename-log_buf-and-__log_buf_len.patch
-printk-rename-log_first-and-log_next-variables.patch
-printk-rename-log_foo-variables-and-functions.patch
-printk-rename-enum-log_flags-to-printk_log_flags.patch
-printk-rename-log_wait-to-printk_log_wait.patch
 printk-rename-logbuf_lock-to-printk_logbuf_lock.patch
 printk-rename-clear_seq-and-clear_idx-variables.patch
 printk-remove-static-from-printk_-variables.patch
