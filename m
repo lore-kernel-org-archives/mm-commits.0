@@ -1,129 +1,179 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] printk-rename-log_wait-to-printk_log_wait.patch removed from -mm tree
-Date: Tue, 23 Oct 2012 13:04:08 -0700
-Message-ID: <20121023200408.9EBD7100048@wpzn3.hot.corp.google.com>
+Subject: [to-be-updated] printk-rename-enum-log_flags-to-printk_log_flags.patch removed from -mm tree
+Date: Tue, 23 Oct 2012 13:04:05 -0700
+Message-ID: <20121023200405.939651E0048@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:42434 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933451Ab2JWUEJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 16:04:09 -0400
-Received: by mail-yh0-f74.google.com with SMTP id 10so532606yhl.1
-        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 13:04:09 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:59288 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933448Ab2JWUEH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 16:04:07 -0400
+Received: by mail-vb0-f74.google.com with SMTP id s24so530734vbi.1
+        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 13:04:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, kay@vrfy.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk: rename log_wait to printk_log_wait
+     Subject: printk: rename enum log_flags to printk_log_flags
 has been removed from the -mm tree.  Its filename was
-     printk-rename-log_wait-to-printk_log_wait.patch
+     printk-rename-enum-log_flags-to-printk_log_flags.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: printk: rename log_wait to printk_log_wait
+Subject: printk: rename enum log_flags to printk_log_flags
 
-Make this generic variable more specific to the printk
-subsystem to allow this variable to be used without
-a specific extern.
-
-Also update fs/proc/kmsg.c as it uses log_wait.
+Make this generic enum more specific to the printk subsystem.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Kay Sievers <kay@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/kmsg.c         |    4 ++--
- kernel/printk/printk.c |   12 ++++++------
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ kernel/printk/printk.c |   32 +++++++++++++++++---------------
+ 1 file changed, 17 insertions(+), 15 deletions(-)
 
-diff -puN fs/proc/kmsg.c~printk-rename-log_wait-to-printk_log_wait fs/proc/kmsg.c
---- a/fs/proc/kmsg.c~printk-rename-log_wait-to-printk_log_wait
-+++ a/fs/proc/kmsg.c
-@@ -17,7 +17,7 @@
- #include <asm/uaccess.h>
- #include <asm/io.h>
- 
--extern wait_queue_head_t log_wait;
-+extern wait_queue_head_t printk_log_wait;
- 
- static int kmsg_open(struct inode * inode, struct file * file)
- {
-@@ -41,7 +41,7 @@ static ssize_t kmsg_read(struct file *fi
- 
- static unsigned int kmsg_poll(struct file *file, poll_table *wait)
- {
--	poll_wait(file, &log_wait, wait);
-+	poll_wait(file, &printk_log_wait, wait);
- 	if (do_syslog(SYSLOG_ACTION_SIZE_UNREAD, NULL, 0, SYSLOG_FROM_FILE))
- 		return POLLIN | POLLRDNORM;
- 	return 0;
-diff -puN kernel/printk/printk.c~printk-rename-log_wait-to-printk_log_wait kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-rename-log_wait-to-printk_log_wait
+diff -puN kernel/printk/printk.c~printk-rename-enum-log_flags-to-printk_log_flags kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-rename-enum-log_flags-to-printk_log_flags
 +++ a/kernel/printk/printk.c
-@@ -63,7 +63,7 @@ void asmlinkage __attribute__((weak)) ea
- #define MINIMUM_CONSOLE_LOGLEVEL 1 /* Minimum loglevel we let people use */
- #define DEFAULT_CONSOLE_LOGLEVEL 7 /* anything MORE serious than KERN_DEBUG */
+@@ -187,7 +187,7 @@ static int console_may_schedule;
+  * separated by ',', and find the message after the ';' character.
+  */
  
--DECLARE_WAIT_QUEUE_HEAD(log_wait);
-+DECLARE_WAIT_QUEUE_HEAD(printk_log_wait);
+-enum log_flags {
++enum printk_log_flags {
+ 	LOG_NOCONS	= 1,	/* already flushed, do not print to console */
+ 	LOG_NEWLINE	= 2,	/* text ended with a newline */
+ 	LOG_PREFIX	= 4,	/* text started with a prefix */
+@@ -214,7 +214,7 @@ static DEFINE_RAW_SPINLOCK(logbuf_lock);
+ /* the next printk record to read by syslog(READ) or /proc/kmsg */
+ static u64 syslog_seq;
+ static u32 syslog_idx;
+-static enum log_flags syslog_prev;
++static enum printk_log_flags syslog_prev;
+ static size_t syslog_partial;
  
- int console_printk[4] = {
- 	DEFAULT_CONSOLE_LOGLEVEL,	/* console_loglevel */
-@@ -447,7 +447,7 @@ static ssize_t devkmsg_read(struct file 
- 		}
+ /* index and sequence number of the first record stored in the buffer */
+@@ -228,7 +228,7 @@ static u32 printk_log_next_idx;
+ /* the next printk record to write to the console */
+ static u64 console_seq;
+ static u32 console_idx;
+-static enum log_flags console_prev;
++static enum printk_log_flags console_prev;
  
- 		raw_spin_unlock_irq(&logbuf_lock);
--		ret = wait_event_interruptible(log_wait,
-+		ret = wait_event_interruptible(printk_log_wait,
- 					       user->seq != printk_log_next_seq);
- 		if (ret)
- 			goto out;
-@@ -589,7 +589,7 @@ static unsigned int devkmsg_poll(struct 
- 	if (!user)
- 		return POLLERR|POLLNVAL;
+ /* the next printk record to read after the last 'clear' command */
+ static u64 clear_seq;
+@@ -297,7 +297,7 @@ static u32 printk_log_next(u32 idx)
  
--	poll_wait(file, &log_wait, wait);
-+	poll_wait(file, &printk_log_wait, wait);
- 
- 	raw_spin_lock_irq(&logbuf_lock);
- 	if (user->seq < printk_log_next_seq) {
-@@ -1122,7 +1122,7 @@ int do_syslog(int type, char __user *buf
- 			error = -EFAULT;
- 			goto out;
- 		}
--		error = wait_event_interruptible(log_wait,
-+		error = wait_event_interruptible(printk_log_wait,
- 						 syslog_seq != printk_log_next_seq);
- 		if (error)
- 			goto out;
-@@ -1948,7 +1948,7 @@ void printk_tick(void)
- 			printk(KERN_WARNING "[sched_delayed] %s", buf);
- 		}
- 		if (pending & PRINTK_PENDING_WAKEUP)
--			wake_up_interruptible(&log_wait);
-+			wake_up_interruptible(&printk_log_wait);
- 	}
- }
- 
-@@ -1961,7 +1961,7 @@ int printk_needs_cpu(int cpu)
- 
- void wake_up_klogd(void)
+ /* insert record into the buffer, discard old ones, update heads */
+ static void printk_log_store(int facility, int level,
+-			     enum log_flags flags, u64 ts_nsec,
++			     enum printk_log_flags flags, u64 ts_nsec,
+ 			     const char *dict, u16 dict_len,
+ 			     const char *text, u16 text_len)
  {
--	if (waitqueue_active(&log_wait))
-+	if (waitqueue_active(&printk_log_wait))
- 		this_cpu_or(printk_pending, PRINTK_PENDING_WAKEUP);
+@@ -360,7 +360,7 @@ static void printk_log_store(int facilit
+ struct devkmsg_user {
+ 	u64 seq;
+ 	u32 idx;
+-	enum log_flags prev;
++	enum printk_log_flags prev;
+ 	struct mutex lock;
+ 	char buf[8192];
+ };
+@@ -872,7 +872,8 @@ static size_t print_prefix(const struct 
+ 	return len;
  }
+ 
+-static size_t msg_print_text(const struct printk_log *msg, enum log_flags prev,
++static size_t msg_print_text(const struct printk_log *msg,
++			     enum printk_log_flags prev,
+ 			     bool syslog, char *buf, size_t size)
+ {
+ 	const char *text = printk_log_text(msg);
+@@ -1009,7 +1010,7 @@ static int syslog_print_all(char __user 
+ 		u64 next_seq;
+ 		u64 seq;
+ 		u32 idx;
+-		enum log_flags prev;
++		enum printk_log_flags prev;
+ 
+ 		if (clear_seq < printk_log_first_seq) {
+ 			/* messages are gone, move to first available one */
+@@ -1194,7 +1195,7 @@ int do_syslog(int type, char __user *buf
+ 		} else {
+ 			u64 seq = syslog_seq;
+ 			u32 idx = syslog_idx;
+-			enum log_flags prev = syslog_prev;
++			enum printk_log_flags prev = syslog_prev;
+ 
+ 			error = 0;
+ 			while (seq < printk_log_next_seq) {
+@@ -1383,11 +1384,11 @@ static struct cont {
+ 	u64 ts_nsec;			/* time of first print */
+ 	u8 level;			/* log level of first message */
+ 	u8 facility;			/* log level of first message */
+-	enum log_flags flags;		/* prefix, newline flags */
++	enum printk_log_flags flags;	/* prefix, newline flags */
+ 	bool flushed:1;			/* buffer sealed and committed */
+ } cont;
+ 
+-static void cont_flush(enum log_flags flags)
++static void cont_flush(enum printk_log_flags flags)
+ {
+ 	if (cont.flushed)
+ 		return;
+@@ -1481,7 +1482,7 @@ asmlinkage int vprintk_emit(int facility
+ 	static char textbuf[LOG_LINE_MAX];
+ 	char *text = textbuf;
+ 	size_t text_len;
+-	enum log_flags lflags = 0;
++	enum printk_log_flags lflags = 0;
+ 	unsigned long flags;
+ 	int this_cpu;
+ 	int printed_len = 0;
+@@ -1688,11 +1689,11 @@ static u64 syslog_seq;
+ static u32 syslog_idx;
+ static u64 console_seq;
+ static u32 console_idx;
+-static enum log_flags syslog_prev;
++static enum printk_log_flags syslog_prev;
+ static u64 printk_log_first_seq;
+ static u32 printk_log_first_idx;
+ static u64 printk_log_next_seq;
+-static enum log_flags console_prev;
++static enum printk_log_flags console_prev;
+ static struct cont {
+ 	size_t len;
+ 	size_t cons;
+@@ -1702,7 +1703,8 @@ static struct cont {
+ static struct printk_log *printk_log_from_idx(u32 idx) { return NULL; }
+ static u32 printk_log_next(u32 idx) { return 0; }
+ static void call_console_drivers(int level, const char *text, size_t len) {}
+-static size_t msg_print_text(const struct printk_log *msg, enum log_flags prev,
++static size_t msg_print_text(const struct printk_log *msg,
++			     enum printk_log_flags prev,
+ 			     bool syslog, char *buf, size_t size) { return 0; }
+ static size_t cont_print_text(char *text, size_t size) { return 0; }
+ 
+@@ -2688,7 +2690,7 @@ bool kmsg_dump_get_buffer(struct kmsg_du
+ 	u32 idx;
+ 	u64 next_seq;
+ 	u32 next_idx;
+-	enum log_flags prev;
++	enum printk_log_flags prev;
+ 	size_t l = 0;
+ 	bool ret = false;
  
 _
 
 Patches currently in -mm which might be from joe@perches.com are
 
 linux-next.patch
+printk-rename-log_wait-to-printk_log_wait.patch
 printk-rename-logbuf_lock-to-printk_logbuf_lock.patch
 printk-rename-clear_seq-and-clear_idx-variables.patch
 printk-remove-static-from-printk_-variables.patch
