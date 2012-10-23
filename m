@@ -1,396 +1,286 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] printk-rename-log_foo-variables-and-functions.patch removed from -mm tree
-Date: Tue, 23 Oct 2012 13:04:01 -0700
-Message-ID: <20121023200402.57644200059@hpza10.eem.corp.google.com>
+Subject: [to-be-updated] printk-move-braille-console-support-into-separate-braille-files.patch removed from -mm tree
+Date: Tue, 23 Oct 2012 13:03:43 -0700
+Message-ID: <20121023200344.0D86020004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-ea0-f202.google.com ([209.85.215.202]:56760 "EHLO
 	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933448Ab2JWUEE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 16:04:04 -0400
+	with ESMTP id S933452Ab2JWUDq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 16:03:46 -0400
 Received: by mail-ea0-f202.google.com with SMTP id q10so255231eaa.1
-        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 13:04:03 -0700 (PDT)
+        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 13:03:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, kay@vrfy.org, mm-commits@vger.kernel.org
+To: joe@perches.com, kay@vrfy.org, samuel.thibault@ens-lyon.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk: rename log_<foo> variables and functions
+     Subject: printk: move braille console support into separate braille.[ch] files
 has been removed from the -mm tree.  Its filename was
-     printk-rename-log_foo-variables-and-functions.patch
+     printk-move-braille-console-support-into-separate-braille-files.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: printk: rename log_<foo> variables and functions
+Subject: printk: move braille console support into separate braille.[ch] files
 
-Make these generic names more specific to the printk
-subsystem and allow these variables and functions to
-become non-static.
+Create files with prototypes and static inlines for braille
+support.  Make braille_console functions return 1 on success.
 
-Rename log_text to printk_log_text.
-Rename log_dict to printk_log_dict.
-Rename log_from_idx to printk_log_from_idx.
-Rename log_next to printk_log_next.
-Rename log_store to printk_log_store.
-
+Cc: Samuel Thibault <samuel.thibault@ens-lyon.org>
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Kay Sievers <kay@vrfy.org>
+Acked-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |  100 +++++++++++++++++++--------------------
- 1 file changed, 50 insertions(+), 50 deletions(-)
+ drivers/accessibility/braille/braille_console.c |    9 ++
+ kernel/printk/Makefile                          |    1 
+ kernel/printk/braille.c                         |   48 ++++++++++++++
+ kernel/printk/braille.h                         |   48 ++++++++++++++
+ kernel/printk/printk.c                          |   44 +++---------
+ 5 files changed, 117 insertions(+), 33 deletions(-)
 
-diff -puN kernel/printk/printk.c~printk-rename-log_foo-variables-and-functions kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-rename-log_foo-variables-and-functions
+diff -puN drivers/accessibility/braille/braille_console.c~printk-move-braille-console-support-into-separate-braille-files drivers/accessibility/braille/braille_console.c
+--- a/drivers/accessibility/braille/braille_console.c~printk-move-braille-console-support-into-separate-braille-files
++++ a/drivers/accessibility/braille/braille_console.c
+@@ -359,6 +359,9 @@ int braille_register_console(struct cons
+ 		char *console_options, char *braille_options)
+ {
+ 	int ret;
++
++	if (!(console->flags & CON_BRL))
++		return 0;
+ 	if (!console_options)
+ 		/* Only support VisioBraille for now */
+ 		console_options = "57600o8";
+@@ -374,15 +377,17 @@ int braille_register_console(struct cons
+ 	braille_co = console;
+ 	register_keyboard_notifier(&keyboard_notifier_block);
+ 	register_vt_notifier(&vt_notifier_block);
+-	return 0;
++	return 1;
+ }
+ 
+ int braille_unregister_console(struct console *console)
+ {
+ 	if (braille_co != console)
+ 		return -EINVAL;
++	if (!(console->flags & CON_BRL))
++		return 0;
+ 	unregister_keyboard_notifier(&keyboard_notifier_block);
+ 	unregister_vt_notifier(&vt_notifier_block);
+ 	braille_co = NULL;
+-	return 0;
++	return 1;
+ }
+diff -puN kernel/printk/Makefile~printk-move-braille-console-support-into-separate-braille-files kernel/printk/Makefile
+--- a/kernel/printk/Makefile~printk-move-braille-console-support-into-separate-braille-files
++++ a/kernel/printk/Makefile
+@@ -1 +1,2 @@
+ obj-y	= printk.o
++obj-$(CONFIG_A11Y_BRAILLE_CONSOLE)	+= braille.o
+diff -puN /dev/null kernel/printk/braille.c
+--- /dev/null
++++ a/kernel/printk/braille.c
+@@ -0,0 +1,48 @@
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <linux/kernel.h>
++#include <linux/console.h>
++#include <linux/string.h>
++
++#include "console_cmdline.h"
++#include "braille.h"
++
++char *_braille_console_setup(char **str, char **brl_options)
++{
++	if (!memcmp(*str, "brl,", 4)) {
++		*brl_options = "";
++		*str += 4;
++	} else if (!memcmp(str, "brl=", 4)) {
++		*brl_options = *str + 4;
++		*str = strchr(*brl_options, ',');
++		if (!*str)
++			pr_err("need port name after brl=\n");
++		else
++			*((*str)++) = 0;
++	}
++
++	return *str;
++}
++
++int
++_braille_register_console(struct console *console, struct console_cmdline *c)
++{
++	int rtn = 0;
++
++	if (c->brl_options) {
++		console->flags |= CON_BRL;
++		rtn = braille_register_console(console, c->index, c->options,
++					       c->brl_options);
++	}
++
++	return rtn;
++}
++
++int
++_braille_unregister_console(struct console *console)
++{
++	if (console->flags & CON_BRL)
++		return braille_unregister_console(console);
++
++	return 0;
++}
+diff -puN /dev/null kernel/printk/braille.h
+--- /dev/null
++++ a/kernel/printk/braille.h
+@@ -0,0 +1,48 @@
++#ifndef _PRINTK_BRAILLE_H
++#define _PRINTK_BRAILLE_H
++
++#ifdef CONFIG_A11Y_BRAILLE_CONSOLE
++
++static inline void
++braille_set_options(struct console_cmdline *c, char *brl_options)
++{
++	c->brl_options = brl_options;
++}
++
++char *
++_braille_console_setup(char **str, char **brl_options);
++
++int
++_braille_register_console(struct console *console, struct console_cmdline *c);
++
++int
++_braille_unregister_console(struct console *console);
++
++#else
++
++static inline void
++braille_set_options(struct console_cmdline *c, char *brl_options)
++{
++}
++
++static inline char *
++_braille_console_setup(char **str, char **brl_options)
++{
++	return *str;
++}
++
++static inline int
++_braille_register_console(struct console *console, struct console_cmdline *c)
++{
++	return 0;
++}
++
++static inline int
++_braille_unregister_console(struct console *console)
++{
++	return 0;
++}
++
++#endif
++
++#endif
+diff -puN kernel/printk/printk.c~printk-move-braille-console-support-into-separate-braille-files kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-move-braille-console-support-into-separate-braille-files
 +++ a/kernel/printk/printk.c
-@@ -252,19 +252,19 @@ static u32 printk_log_buf_len = __PRINTK
- static volatile unsigned int logbuf_cpu = UINT_MAX;
+@@ -47,6 +47,7 @@
+ #include <trace/events/printk.h>
  
- /* human readable text of the record */
--static char *log_text(const struct printk_log *msg)
-+static char *printk_log_text(const struct printk_log *msg)
- {
- 	return (char *)msg + sizeof(struct printk_log);
+ #include "console_cmdline.h"
++#include "braille.h"
+ 
+ /*
+  * Architectures can override it:
+@@ -1731,9 +1732,8 @@ static int __add_preferred_console(char 
+ 	c = &console_cmdline[i];
+ 	strlcpy(c->name, name, sizeof(c->name));
+ 	c->options = options;
+-#ifdef CONFIG_A11Y_BRAILLE_CONSOLE
+-	c->brl_options = brl_options;
+-#endif
++	braille_set_options(c, brl_options);
++
+ 	c->index = idx;
+ 	return 0;
  }
+@@ -1746,20 +1746,8 @@ static int __init console_setup(char *st
+ 	char *s, *options, *brl_options = NULL;
+ 	int idx;
  
- /* optional key/value pair dictionary attached to the record */
--static char *log_dict(const struct printk_log *msg)
-+static char *printk_log_dict(const struct printk_log *msg)
- {
- 	return (char *)msg + sizeof(struct printk_log) + msg->text_len;
- }
- 
- /* get record by index; idx must point to valid msg */
--static struct printk_log *log_from_idx(u32 idx)
-+static struct printk_log *printk_log_from_idx(u32 idx)
- {
- 	struct printk_log *msg = (struct printk_log *)(printk_log_buf + idx);
- 
-@@ -278,7 +278,7 @@ static struct printk_log *log_from_idx(u
- }
- 
- /* get next record; idx must point to valid msg */
--static u32 log_next(u32 idx)
-+static u32 printk_log_next(u32 idx)
- {
- 	struct printk_log *msg = (struct printk_log *)(printk_log_buf + idx);
- 
-@@ -296,10 +296,10 @@ static u32 log_next(u32 idx)
- }
- 
- /* insert record into the buffer, discard old ones, update heads */
--static void log_store(int facility, int level,
--		      enum log_flags flags, u64 ts_nsec,
--		      const char *dict, u16 dict_len,
--		      const char *text, u16 text_len)
-+static void printk_log_store(int facility, int level,
-+			     enum log_flags flags, u64 ts_nsec,
-+			     const char *dict, u16 dict_len,
-+			     const char *text, u16 text_len)
- {
- 	struct printk_log *msg;
- 	u32 size, pad_len;
-@@ -321,7 +321,7 @@ static void log_store(int facility, int 
- 			break;
- 
- 		/* drop old messages until we have enough contiuous space */
--		printk_log_first_idx = log_next(printk_log_first_idx);
-+		printk_log_first_idx = printk_log_next(printk_log_first_idx);
- 		printk_log_first_seq++;
- 	}
- 
-@@ -337,9 +337,9 @@ static void log_store(int facility, int 
- 
- 	/* fill message */
- 	msg = (struct printk_log *)(printk_log_buf + printk_log_next_idx);
--	memcpy(log_text(msg), text, text_len);
-+	memcpy(printk_log_text(msg), text, text_len);
- 	msg->text_len = text_len;
--	memcpy(log_dict(msg), dict, dict_len);
-+	memcpy(printk_log_dict(msg), dict, dict_len);
- 	msg->dict_len = dict_len;
- 	msg->facility = facility;
- 	msg->level = level & 7;
-@@ -348,7 +348,7 @@ static void log_store(int facility, int 
- 		msg->ts_nsec = ts_nsec;
- 	else
- 		msg->ts_nsec = local_clock();
--	memset(log_dict(msg) + dict_len, 0, pad_len);
-+	memset(printk_log_dict(msg) + dict_len, 0, pad_len);
- 	msg->len = sizeof(struct printk_log) + text_len + dict_len + pad_len;
- 
- 	/* insert message */
-@@ -463,7 +463,7 @@ static ssize_t devkmsg_read(struct file 
- 		goto out;
- 	}
- 
--	msg = log_from_idx(user->idx);
-+	msg = printk_log_from_idx(user->idx);
- 	ts_usec = msg->ts_nsec;
- 	do_div(ts_usec, 1000);
- 
-@@ -488,7 +488,7 @@ static ssize_t devkmsg_read(struct file 
- 
- 	/* escape non-printable characters */
- 	for (i = 0; i < msg->text_len; i++) {
--		unsigned char c = log_text(msg)[i];
-+		unsigned char c = printk_log_text(msg)[i];
- 
- 		if (c < ' ' || c >= 127 || c == '\\')
- 			len += sprintf(user->buf + len, "\\x%02x", c);
-@@ -501,7 +501,7 @@ static ssize_t devkmsg_read(struct file 
- 		bool line = true;
- 
- 		for (i = 0; i < msg->dict_len; i++) {
--			unsigned char c = log_dict(msg)[i];
-+			unsigned char c = printk_log_dict(msg)[i];
- 
- 			if (line) {
- 				user->buf[len++] = ' ';
-@@ -524,7 +524,7 @@ static ssize_t devkmsg_read(struct file 
- 		user->buf[len++] = '\n';
- 	}
- 
--	user->idx = log_next(user->idx);
-+	user->idx = printk_log_next(user->idx);
- 	user->seq++;
- 	raw_spin_unlock_irq(&logbuf_lock);
- 
-@@ -875,7 +875,7 @@ static size_t print_prefix(const struct 
- static size_t msg_print_text(const struct printk_log *msg, enum log_flags prev,
- 			     bool syslog, char *buf, size_t size)
- {
--	const char *text = log_text(msg);
-+	const char *text = printk_log_text(msg);
- 	size_t text_size = msg->text_len;
- 	bool prefix = true;
- 	bool newline = true;
-@@ -959,12 +959,12 @@ static int syslog_print(char __user *buf
- 		}
- 
- 		skip = syslog_partial;
--		msg = log_from_idx(syslog_idx);
-+		msg = printk_log_from_idx(syslog_idx);
- 		n = msg_print_text(msg, syslog_prev, true, text,
- 				   LOG_LINE_MAX + PREFIX_MAX);
- 		if (n - syslog_partial <= size) {
- 			/* message fits into buffer, move forward */
--			syslog_idx = log_next(syslog_idx);
-+			syslog_idx = printk_log_next(syslog_idx);
- 			syslog_seq++;
- 			syslog_prev = msg->flags;
- 			n -= syslog_partial;
-@@ -1025,11 +1025,11 @@ static int syslog_print_all(char __user 
- 		idx = clear_idx;
- 		prev = 0;
- 		while (seq < printk_log_next_seq) {
--			struct printk_log *msg = log_from_idx(idx);
-+			struct printk_log *msg = printk_log_from_idx(idx);
- 
- 			len += msg_print_text(msg, prev, true, NULL, 0);
- 			prev = msg->flags;
--			idx = log_next(idx);
-+			idx = printk_log_next(idx);
- 			seq++;
- 		}
- 
-@@ -1038,11 +1038,11 @@ static int syslog_print_all(char __user 
- 		idx = clear_idx;
- 		prev = 0;
- 		while (len > size && seq < printk_log_next_seq) {
--			struct printk_log *msg = log_from_idx(idx);
-+			struct printk_log *msg = printk_log_from_idx(idx);
- 
- 			len -= msg_print_text(msg, prev, true, NULL, 0);
- 			prev = msg->flags;
--			idx = log_next(idx);
-+			idx = printk_log_next(idx);
- 			seq++;
- 		}
- 
-@@ -1052,7 +1052,7 @@ static int syslog_print_all(char __user 
- 		len = 0;
- 		prev = 0;
- 		while (len >= 0 && seq < next_seq) {
--			struct printk_log *msg = log_from_idx(idx);
-+			struct printk_log *msg = printk_log_from_idx(idx);
- 			int textlen;
- 
- 			textlen = msg_print_text(msg, prev, true, text,
-@@ -1061,7 +1061,7 @@ static int syslog_print_all(char __user 
- 				len = textlen;
- 				break;
- 			}
--			idx = log_next(idx);
-+			idx = printk_log_next(idx);
- 			seq++;
- 			prev = msg->flags;
- 
-@@ -1198,10 +1198,10 @@ int do_syslog(int type, char __user *buf
- 
- 			error = 0;
- 			while (seq < printk_log_next_seq) {
--				struct printk_log *msg = log_from_idx(idx);
-+				struct printk_log *msg = printk_log_from_idx(idx);
- 
- 				error += msg_print_text(msg, prev, true, NULL, 0);
--				idx = log_next(idx);
-+				idx = printk_log_next(idx);
- 				seq++;
- 				prev = msg->flags;
- 			}
-@@ -1400,8 +1400,8 @@ static void cont_flush(enum log_flags fl
- 		 * console; wait for the console to pick up the rest of the
- 		 * line. LOG_NOCONS suppresses a duplicated output.
- 		 */
--		log_store(cont.facility, cont.level, flags | LOG_NOCONS,
--			  cont.ts_nsec, NULL, 0, cont.buf, cont.len);
-+		printk_log_store(cont.facility, cont.level, flags | LOG_NOCONS,
-+				 cont.ts_nsec, NULL, 0, cont.buf, cont.len);
- 		cont.flags = flags;
- 		cont.flushed = true;
- 	} else {
-@@ -1409,8 +1409,8 @@ static void cont_flush(enum log_flags fl
- 		 * If no fragment of this line ever reached the console,
- 		 * just submit it to the store and free the buffer.
- 		 */
--		log_store(cont.facility, cont.level, flags, 0,
--			  NULL, 0, cont.buf, cont.len);
-+		printk_log_store(cont.facility, cont.level, flags, 0,
-+				 NULL, 0, cont.buf, cont.len);
- 		cont.len = 0;
- 	}
- }
-@@ -1522,8 +1522,8 @@ asmlinkage int vprintk_emit(int facility
- 		recursion_bug = 0;
- 		printed_len += strlen(recursion_msg);
- 		/* emit KERN_CRIT message */
--		log_store(0, 2, LOG_PREFIX|LOG_NEWLINE, 0,
--			  NULL, 0, recursion_msg, printed_len);
-+		printk_log_store(0, 2, LOG_PREFIX|LOG_NEWLINE, 0,
-+				 NULL, 0, recursion_msg, printed_len);
- 	}
+-#ifdef CONFIG_A11Y_BRAILLE_CONSOLE
+-	if (!memcmp(str, "brl,", 4)) {
+-		brl_options = "";
+-		str += 4;
+-	} else if (!memcmp(str, "brl=", 4)) {
+-		brl_options = str + 4;
+-		str = strchr(brl_options, ',');
+-		if (!str) {
+-			printk(KERN_ERR "need port name after brl=\n");
+-			return 1;
+-		}
+-		*(str++) = 0;
+-	}
+-#endif
++	if (_braille_console_setup(&str, &brl_options))
++		return 1;
  
  	/*
-@@ -1574,8 +1574,8 @@ asmlinkage int vprintk_emit(int facility
- 
- 		/* buffer line if possible, otherwise store it right away */
- 		if (!cont_add(facility, level, text, text_len))
--			log_store(facility, level, lflags | LOG_CONT, 0,
--				  dict, dictlen, text, text_len);
-+			printk_log_store(facility, level, lflags | LOG_CONT, 0,
-+					 dict, dictlen, text, text_len);
- 	} else {
- 		bool stored = false;
- 
-@@ -1592,8 +1592,8 @@ asmlinkage int vprintk_emit(int facility
- 		}
- 
- 		if (!stored)
--			log_store(facility, level, lflags, 0,
--				  dict, dictlen, text, text_len);
-+			printk_log_store(facility, level, lflags, 0,
-+					 dict, dictlen, text, text_len);
- 	}
- 	printed_len += text_len;
- 
-@@ -1699,8 +1699,8 @@ static struct cont {
- 	u8 level;
- 	bool flushed:1;
- } cont;
--static struct printk_log *log_from_idx(u32 idx) { return NULL; }
--static u32 log_next(u32 idx) { return 0; }
-+static struct printk_log *printk_log_from_idx(u32 idx) { return NULL; }
-+static u32 printk_log_next(u32 idx) { return 0; }
- static void call_console_drivers(int level, const char *text, size_t len) {}
- static size_t msg_print_text(const struct printk_log *msg, enum log_flags prev,
- 			     bool syslog, char *buf, size_t size) { return 0; }
-@@ -2045,13 +2045,13 @@ skip:
- 		if (console_seq == printk_log_next_seq)
+ 	 * Decode str into name, index, options.
+@@ -2286,16 +2274,10 @@ void register_console(struct console *ne
+ 			continue;
+ 		if (newcon->index < 0)
+ 			newcon->index = console_cmdline[i].index;
+-#ifdef CONFIG_A11Y_BRAILLE_CONSOLE
+-		if (console_cmdline[i].brl_options) {
+-			newcon->flags |= CON_BRL;
+-			braille_register_console(newcon,
+-					console_cmdline[i].index,
+-					console_cmdline[i].options,
+-					console_cmdline[i].brl_options);
++
++		if (_braille_register_console(newcon, &console_cmdline[i]))
+ 			return;
+-		}
+-#endif
++
+ 		if (newcon->setup &&
+ 		    newcon->setup(newcon, console_cmdline[i].options) != 0)
  			break;
+@@ -2383,13 +2365,13 @@ EXPORT_SYMBOL(register_console);
+ int unregister_console(struct console *console)
+ {
+         struct console *a, *b;
+-	int res = 1;
++	int res;
  
--		msg = log_from_idx(console_idx);
-+		msg = printk_log_from_idx(console_idx);
- 		if (msg->flags & LOG_NOCONS) {
- 			/*
- 			 * Skip record we have buffered and already printed
- 			 * directly to the console when we received it.
- 			 */
--			console_idx = log_next(console_idx);
-+			console_idx = printk_log_next(console_idx);
- 			console_seq++;
- 			/*
- 			 * We will get here again when we register a new
-@@ -2066,7 +2066,7 @@ skip:
- 		level = msg->level;
- 		len = msg_print_text(msg, console_prev, false,
- 				     text, sizeof(text));
--		console_idx = log_next(console_idx);
-+		console_idx = printk_log_next(console_idx);
- 		console_seq++;
- 		console_prev = msg->flags;
- 		raw_spin_unlock(&logbuf_lock);
-@@ -2618,10 +2618,10 @@ bool kmsg_dump_get_line_nolock(struct km
- 	if (dumper->cur_seq >= printk_log_next_seq)
- 		goto out;
+-#ifdef CONFIG_A11Y_BRAILLE_CONSOLE
+-	if (console->flags & CON_BRL)
+-		return braille_unregister_console(console);
+-#endif
++	res = _braille_unregister_console(console);
++	if (res)
++		return res;
  
--	msg = log_from_idx(dumper->cur_idx);
-+	msg = printk_log_from_idx(dumper->cur_idx);
- 	l = msg_print_text(msg, 0, syslog, line, size);
- 
--	dumper->cur_idx = log_next(dumper->cur_idx);
-+	dumper->cur_idx = printk_log_next(dumper->cur_idx);
- 	dumper->cur_seq++;
- 	ret = true;
- out:
-@@ -2713,10 +2713,10 @@ bool kmsg_dump_get_buffer(struct kmsg_du
- 	idx = dumper->cur_idx;
- 	prev = 0;
- 	while (seq < dumper->next_seq) {
--		struct printk_log *msg = log_from_idx(idx);
-+		struct printk_log *msg = printk_log_from_idx(idx);
- 
- 		l += msg_print_text(msg, prev, true, NULL, 0);
--		idx = log_next(idx);
-+		idx = printk_log_next(idx);
- 		seq++;
- 		prev = msg->flags;
- 	}
-@@ -2726,10 +2726,10 @@ bool kmsg_dump_get_buffer(struct kmsg_du
- 	idx = dumper->cur_idx;
- 	prev = 0;
- 	while (l > size && seq < dumper->next_seq) {
--		struct printk_log *msg = log_from_idx(idx);
-+		struct printk_log *msg = printk_log_from_idx(idx);
- 
- 		l -= msg_print_text(msg, prev, true, NULL, 0);
--		idx = log_next(idx);
-+		idx = printk_log_next(idx);
- 		seq++;
- 		prev = msg->flags;
- 	}
-@@ -2741,10 +2741,10 @@ bool kmsg_dump_get_buffer(struct kmsg_du
- 	l = 0;
- 	prev = 0;
- 	while (seq < dumper->next_seq) {
--		struct printk_log *msg = log_from_idx(idx);
-+		struct printk_log *msg = printk_log_from_idx(idx);
- 
- 		l += msg_print_text(msg, prev, syslog, buf + l, size - l);
--		idx = log_next(idx);
-+		idx = printk_log_next(idx);
- 		seq++;
- 		prev = msg->flags;
- 	}
++	res = 1;
+ 	console_lock();
+ 	if (console_drivers == console) {
+ 		console_drivers=console->next;
 _
 
 Patches currently in -mm which might be from joe@perches.com are
 
 linux-next.patch
+printk-use-pointer-for-console_cmdline-indexing.patch
+printk-rename-struct-log-to-struct-printk_log.patch
+printk-rename-log_buf-and-__log_buf_len.patch
+printk-rename-log_first-and-log_next-variables.patch
+printk-rename-log_foo-variables-and-functions.patch
 printk-rename-enum-log_flags-to-printk_log_flags.patch
 printk-rename-log_wait-to-printk_log_wait.patch
 printk-rename-logbuf_lock-to-printk_logbuf_lock.patch
