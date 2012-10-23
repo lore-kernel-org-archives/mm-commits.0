@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-inith-use-the-stringify-operator-for-the-__define_initcall-macro.patch added to -mm tree
-Date: Tue, 23 Oct 2012 15:17:21 -0700
-Message-ID: <20121023221722.0493F5C0050@hpza9.eem.corp.google.com>
+Subject: + mm-mmu_notifier-allocate-mmu_notifier-in-advance.patch added to -mm tree
+Date: Tue, 23 Oct 2012 15:43:28 -0700
+Message-ID: <20121023224329.A9A7A200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:51659 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933379Ab2JWWRY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 18:17:24 -0400
-Received: by mail-wi0-f202.google.com with SMTP id hr7so244485wib.1
-        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 15:17:23 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:41163 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757463Ab2JWWne (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 18:43:34 -0400
+Received: by mail-lb0-f202.google.com with SMTP id l12so68810lbo.1
+        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 15:43:32 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matthew@mattleach.net, benh@kernel.crashing.org
+Cc: shangw@linux.vnet.ibm.com, aarcange@redhat.com, andrea@betterlinux.com, avi@redhat.com, haggaie@mellanox.com, hughd@google.com, liwanp@linux.vnet.ibm.com, mtosatti@redhat.com, sagig@mellanox.co.il, xiaoguangrong@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: include/linux/init.h: use the stringify operator for the __define_initcall macro
+     Subject: mm/mmu_notifier: allocate mmu_notifier in advance
 has been added to the -mm tree.  Its filename is
-     include-linux-inith-use-the-stringify-operator-for-the-__define_initcall-macro.patch
+     mm-mmu_notifier-allocate-mmu_notifier-in-advance.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,139 +33,108 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Matthew Leach <matthew@mattleach.net>
-Subject: include/linux/init.h: use the stringify operator for the __define_initcall macro
+From: Gavin Shan <shangw@linux.vnet.ibm.com>
+Subject: mm/mmu_notifier: allocate mmu_notifier in advance
 
-Currently the __define_initcall() macro takes three arguments, fn, id and
-level.  The level argument is exactly the same as the id argument but
-wrapped in quotes.  To overcome this need to specify three arguments to
-the __define_initcall macro, where one argument is the stringification of
-another, we can just use the stringification macro instead.
+While allocating mmu_notifier with parameter GFP_KERNEL, swap would start
+to work in case of tight available memory.  Eventually, that would lead to
+a deadlock while the swap deamon swaps anonymous pages.  It was caused by
+commit e0f3c3f78da29b ("mm/mmu_notifier: init notifier if necessary").
 
-Signed-off-by: Matthew Leach <matthew@mattleach.net>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+: [49048.262912] =================================
+: [49048.262913] [ INFO: inconsistent lock state ]
+: [49048.262916] 3.7.0-rc1+ #518 Not tainted
+: [49048.262918] ---------------------------------
+: [49048.262919] inconsistent {RECLAIM_FS-ON-W} -> {IN-RECLAIM_FS-W} usage.
+: [49048.262922] kswapd0/35 [HC0[0]:SC0[0]:HE1:SE1] takes:
+: [49048.262924]  (&mapping->i_mmap_mutex){+.+.?.}, at: [<ffffffff81192fbc>] page_referenced+0x9c/0x2e0
+: [49048.262933] {RECLAIM_FS-ON-W} state was registered at:
+: [49048.262935]   [<ffffffff810ed5d6>] mark_held_locks+0x86/0x150
+: [49048.262938]   [<ffffffff810edce7>] lockdep_trace_alloc+0x67/0xc0
+: [49048.262942]   [<ffffffff811a9323>] kmem_cache_alloc_trace+0x33/0x230
+: [49048.262945]   [<ffffffff811a1a27>] do_mmu_notifier_register+0x87/0x180
+: [49048.262948]   [<ffffffff811a1b53>] mmu_notifier_register+0x13/0x20
+: [49048.262951]   [<ffffffff81006738>] kvm_dev_ioctl+0x428/0x510
+: [49048.262955]   [<ffffffff811c7ce8>] do_vfs_ioctl+0x98/0x570
+: [49048.262959]   [<ffffffff811c8251>] sys_ioctl+0x91/0xb0
+: [49048.262962]   [<ffffffff815df302>] system_call_fastpath+0x16/0x1b
+: [49048.262966] irq event stamp: 825
+: [49048.262968] hardirqs last  enabled at (825): [<ffffffff815d6fa0>] _raw_spin_unlock_irq+0x30/0x60
+: [49048.262971] hardirqs last disabled at (824): [<ffffffff815d6659>] _raw_spin_lock_irq+0x19/0x80
+: [49048.262975] softirqs last  enabled at (0): [<ffffffff81082170>] copy_process+0x630/0x17c0
+: [49048.262979] softirqs last disabled at (0): [<          (null)>]           (null)
+: ...
+
+Simply back out the above commit, which was a small performance
+optimization.
+
+Signed-off-by: Gavin Shan <shangw@linux.vnet.ibm.com>
+Reported-by: Andrea Righi <andrea@betterlinux.com>
+Tested-by: Andrea Righi <andrea@betterlinux.com>
+Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Avi Kivity <avi@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Marcelo Tosatti <mtosatti@redhat.com>
+Cc: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
+Cc: Sagi Grimberg <sagig@mellanox.co.il>
+Cc: Haggai Eran <haggaie@mellanox.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/machdep.h |   34 ++++++++++++------------
- include/linux/init.h               |   38 +++++++++++++--------------
- 2 files changed, 36 insertions(+), 36 deletions(-)
+ mm/mmu_notifier.c |   26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN arch/powerpc/include/asm/machdep.h~include-linux-inith-use-the-stringify-operator-for-the-__define_initcall-macro arch/powerpc/include/asm/machdep.h
---- a/arch/powerpc/include/asm/machdep.h~include-linux-inith-use-the-stringify-operator-for-the-__define_initcall-macro
-+++ a/arch/powerpc/include/asm/machdep.h
-@@ -320,28 +320,28 @@ static inline void log_error(char *buf, 
- 		ppc_md.log_error(buf, err_type, fatal);
- }
+diff -puN mm/mmu_notifier.c~mm-mmu_notifier-allocate-mmu_notifier-in-advance mm/mmu_notifier.c
+--- a/mm/mmu_notifier.c~mm-mmu_notifier-allocate-mmu_notifier-in-advance
++++ a/mm/mmu_notifier.c
+@@ -196,28 +196,28 @@ static int do_mmu_notifier_register(stru
+ 	BUG_ON(atomic_read(&mm->mm_users) <= 0);
  
--#define __define_machine_initcall(mach,level,fn,id) \
-+#define __define_machine_initcall(mach, fn, id) \
- 	static int __init __machine_initcall_##mach##_##fn(void) { \
- 		if (machine_is(mach)) return fn(); \
- 		return 0; \
- 	} \
--	__define_initcall(level,__machine_initcall_##mach##_##fn,id);
-+	__define_initcall(__machine_initcall_##mach##_##fn, id);
+ 	/*
+-	* Verify that mmu_notifier_init() already run and the global srcu is
+-	* initialized.
+-	*/
++	 * Verify that mmu_notifier_init() already run and the global srcu is
++	 * initialized.
++	 */
+ 	BUG_ON(!srcu.per_cpu_ref);
  
--#define machine_core_initcall(mach,fn)		__define_machine_initcall(mach,"1",fn,1)
--#define machine_core_initcall_sync(mach,fn)	__define_machine_initcall(mach,"1s",fn,1s)
--#define machine_postcore_initcall(mach,fn)	__define_machine_initcall(mach,"2",fn,2)
--#define machine_postcore_initcall_sync(mach,fn)	__define_machine_initcall(mach,"2s",fn,2s)
--#define machine_arch_initcall(mach,fn)		__define_machine_initcall(mach,"3",fn,3)
--#define machine_arch_initcall_sync(mach,fn)	__define_machine_initcall(mach,"3s",fn,3s)
--#define machine_subsys_initcall(mach,fn)	__define_machine_initcall(mach,"4",fn,4)
--#define machine_subsys_initcall_sync(mach,fn)	__define_machine_initcall(mach,"4s",fn,4s)
--#define machine_fs_initcall(mach,fn)		__define_machine_initcall(mach,"5",fn,5)
--#define machine_fs_initcall_sync(mach,fn)	__define_machine_initcall(mach,"5s",fn,5s)
--#define machine_rootfs_initcall(mach,fn)	__define_machine_initcall(mach,"rootfs",fn,rootfs)
--#define machine_device_initcall(mach,fn)	__define_machine_initcall(mach,"6",fn,6)
--#define machine_device_initcall_sync(mach,fn)	__define_machine_initcall(mach,"6s",fn,6s)
--#define machine_late_initcall(mach,fn)		__define_machine_initcall(mach,"7",fn,7)
--#define machine_late_initcall_sync(mach,fn)	__define_machine_initcall(mach,"7s",fn,7s)
-+#define machine_core_initcall(mach, fn)		__define_machine_initcall(mach, fn, 1)
-+#define machine_core_initcall_sync(mach, fn)	__define_machine_initcall(mach, fn, 1s)
-+#define machine_postcore_initcall(mach, fn)	__define_machine_initcall(mach, fn, 2)
-+#define machine_postcore_initcall_sync(mach, fn)	__define_machine_initcall(mach, fn, 2s)
-+#define machine_arch_initcall(mach, fn)		__define_machine_initcall(mach, fn, 3)
-+#define machine_arch_initcall_sync(mach, fn)	__define_machine_initcall(mach, fn, 3s)
-+#define machine_subsys_initcall(mach, fn)	__define_machine_initcall(mach, fn, 4)
-+#define machine_subsys_initcall_sync(mach, fn)	__define_machine_initcall(mach, fn, 4s)
-+#define machine_fs_initcall(mach, fn)		__define_machine_initcall(mach, fn, 5)
-+#define machine_fs_initcall_sync(mach, fn)	__define_machine_initcall(mach, fn, 5s)
-+#define machine_rootfs_initcall(mach, fn)	__define_machine_initcall(mach, fn, rootfs)
-+#define machine_device_initcall(mach, fn)	__define_machine_initcall(mach, fn, 6)
-+#define machine_device_initcall_sync(mach, fn)	__define_machine_initcall(mach, fn, 6s)
-+#define machine_late_initcall(mach, fn)		__define_machine_initcall(mach, fn, 7)
-+#define machine_late_initcall_sync(mach, fn)	__define_machine_initcall(mach, fn, 7s)
++	ret = -ENOMEM;
++	mmu_notifier_mm = kmalloc(sizeof(struct mmu_notifier_mm), GFP_KERNEL);
++	if (unlikely(!mmu_notifier_mm))
++		goto out;
++
+ 	if (take_mmap_sem)
+ 		down_write(&mm->mmap_sem);
+ 	ret = mm_take_all_locks(mm);
+ 	if (unlikely(ret))
+-		goto out;
++		goto out_clean;
  
- #endif /* __KERNEL__ */
- #endif /* _ASM_POWERPC_MACHDEP_H */
-diff -puN include/linux/init.h~include-linux-inith-use-the-stringify-operator-for-the-__define_initcall-macro include/linux/init.h
---- a/include/linux/init.h~include-linux-inith-use-the-stringify-operator-for-the-__define_initcall-macro
-+++ a/include/linux/init.h
-@@ -186,16 +186,16 @@ extern bool initcall_debug;
-  * can point at the same handler without causing duplicate-symbol build errors.
-  */
+ 	if (!mm_has_notifiers(mm)) {
+-		mmu_notifier_mm = kmalloc(sizeof(struct mmu_notifier_mm),
+-					GFP_KERNEL);
+-		if (unlikely(!mmu_notifier_mm)) {
+-			ret = -ENOMEM;
+-			goto out_of_mem;
+-		}
+ 		INIT_HLIST_HEAD(&mmu_notifier_mm->list);
+ 		spin_lock_init(&mmu_notifier_mm->lock);
  
--#define __define_initcall(level,fn,id) \
-+#define __define_initcall(fn, id) \
- 	static initcall_t __initcall_##fn##id __used \
--	__attribute__((__section__(".initcall" level ".init"))) = fn
-+	__attribute__((__section__(".initcall" #id ".init"))) = fn
+ 		mm->mmu_notifier_mm = mmu_notifier_mm;
++		mmu_notifier_mm = NULL;
+ 	}
+ 	atomic_inc(&mm->mm_count);
  
- /*
-  * Early initcalls run before initializing SMP.
-  *
-  * Only for built-in code, not modules.
-  */
--#define early_initcall(fn)		__define_initcall("early",fn,early)
-+#define early_initcall(fn)		__define_initcall(fn, early)
+@@ -233,12 +233,12 @@ static int do_mmu_notifier_register(stru
+ 	hlist_add_head(&mn->hlist, &mm->mmu_notifier_mm->list);
+ 	spin_unlock(&mm->mmu_notifier_mm->lock);
  
- /*
-  * A "pure" initcall has no dependencies on anything else, and purely
-@@ -204,23 +204,23 @@ extern bool initcall_debug;
-  * This only exists for built-in code, not for modules.
-  * Keep main.c:initcall_level_names[] in sync.
-  */
--#define pure_initcall(fn)		__define_initcall("0",fn,0)
-+#define pure_initcall(fn)		__define_initcall(fn, 0)
- 
--#define core_initcall(fn)		__define_initcall("1",fn,1)
--#define core_initcall_sync(fn)		__define_initcall("1s",fn,1s)
--#define postcore_initcall(fn)		__define_initcall("2",fn,2)
--#define postcore_initcall_sync(fn)	__define_initcall("2s",fn,2s)
--#define arch_initcall(fn)		__define_initcall("3",fn,3)
--#define arch_initcall_sync(fn)		__define_initcall("3s",fn,3s)
--#define subsys_initcall(fn)		__define_initcall("4",fn,4)
--#define subsys_initcall_sync(fn)	__define_initcall("4s",fn,4s)
--#define fs_initcall(fn)			__define_initcall("5",fn,5)
--#define fs_initcall_sync(fn)		__define_initcall("5s",fn,5s)
--#define rootfs_initcall(fn)		__define_initcall("rootfs",fn,rootfs)
--#define device_initcall(fn)		__define_initcall("6",fn,6)
--#define device_initcall_sync(fn)	__define_initcall("6s",fn,6s)
--#define late_initcall(fn)		__define_initcall("7",fn,7)
--#define late_initcall_sync(fn)		__define_initcall("7s",fn,7s)
-+#define core_initcall(fn)		__define_initcall(fn, 1)
-+#define core_initcall_sync(fn)		__define_initcall(fn, 1s)
-+#define postcore_initcall(fn)		__define_initcall(fn, 2)
-+#define postcore_initcall_sync(fn)	__define_initcall(fn, 2s)
-+#define arch_initcall(fn)		__define_initcall(fn, 3)
-+#define arch_initcall_sync(fn)		__define_initcall(fn, 3s)
-+#define subsys_initcall(fn)		__define_initcall(fn, 4)
-+#define subsys_initcall_sync(fn)	__define_initcall(fn, 4s)
-+#define fs_initcall(fn)			__define_initcall(fn, 5)
-+#define fs_initcall_sync(fn)		__define_initcall(fn, 5s)
-+#define rootfs_initcall(fn)		__define_initcall(fn, rootfs)
-+#define device_initcall(fn)		__define_initcall(fn, 6)
-+#define device_initcall_sync(fn)	__define_initcall(fn, 6s)
-+#define late_initcall(fn)		__define_initcall(fn, 7)
-+#define late_initcall_sync(fn)		__define_initcall(fn, 7s)
- 
- #define __initcall(fn) device_initcall(fn)
- 
-_
-
-Patches currently in -mm which might be from matthew@mattleach.net are
-
-include-linux-inith-use-the-stringify-operator-for-the-__define_initcall-macro.patch
-
+-out_of_mem:
+ 	mm_drop_all_locks(mm);
+-out:
++out_clean:
+ 	if (take_mmap_sem)
+ 		up_write(&mm->mmap_sem);
