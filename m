@@ -1,321 +1,709 @@
 From: akpm@linux-foundation.org
-Subject: + mm-introduce-mm_find_pmd.patch added to -mm tree
-Date: Tue, 23 Oct 2012 14:14:24 -0700
-Message-ID: <20121023211425.1987220004E@hpza10.eem.corp.google.com>
+Subject: [to-be-updated] printk-move-kmsg_dump-functions-to-separate-file.patch removed from -mm tree
+Date: Tue, 23 Oct 2012 13:04:56 -0700
+Message-ID: <20121023200457.23DE15C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:36910 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933655Ab2JWVO2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 17:14:28 -0400
-Received: by mail-wg0-f74.google.com with SMTP id dt11so258917wgb.1
-        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 14:14:26 -0700 (PDT)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:55689 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933630Ab2JWUFA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 16:05:00 -0400
+Received: by mail-la0-f74.google.com with SMTP id j13so254656lah.1
+        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 13:04:58 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: lliubbo@gmail.com, aarcange@redhat.com, mhocko@suse.cz, minchan.kim@gmail.com, nizhan.chen@gmail.com
+To: joe@perches.com, kay@vrfy.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: introduce mm_find_pmd()
-has been added to the -mm tree.  Its filename is
-     mm-introduce-mm_find_pmd.patch
+     Subject: printk: move kmsg_dump functions to separate file
+has been removed from the -mm tree.  Its filename was
+     printk-move-kmsg_dump-functions-to-separate-file.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Bob Liu <lliubbo@gmail.com>
-Subject: mm: introduce mm_find_pmd()
+From: Joe Perches <joe@perches.com>
+Subject: printk: move kmsg_dump functions to separate file
 
-Several place need to find the pmd by(mm_struct, address), so introduce a
-function to simplify it.
+Generic restructuring.
 
-Signed-off-by: Bob Liu <lliubbo@gmail.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Ni zhan Chen <nizhan.chen@gmail.com>
+Create kmsg_dump.c, add to Makefile and remove from printk.c
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Kay Sievers <kay@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   55 ++++++++-------------------------------------
- mm/internal.h    |    5 ++++
- mm/ksm.c         |   14 +----------
- mm/migrate.c     |   14 +----------
- mm/rmap.c        |   46 ++++++++++++++++++++-----------------
- 5 files changed, 44 insertions(+), 90 deletions(-)
+ kernel/printk/Makefile    |    1 
+ kernel/printk/kmsg_dump.c |  328 ++++++++++++++++++++++++++++++++++++
+ kernel/printk/printk.c    |  318 ----------------------------------
+ 3 files changed, 329 insertions(+), 318 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-introduce-mm_find_pmd mm/huge_memory.c
---- a/mm/huge_memory.c~mm-introduce-mm_find_pmd
-+++ a/mm/huge_memory.c
-@@ -1299,22 +1299,14 @@ pmd_t *page_check_address_pmd(struct pag
- 			      unsigned long address,
- 			      enum page_check_address_pmd_flag flag)
- {
--	pgd_t *pgd;
--	pud_t *pud;
- 	pmd_t *pmd, *ret = NULL;
- 
- 	if (address & ~HPAGE_PMD_MASK)
- 		goto out;
- 
--	pgd = pgd_offset(mm, address);
--	if (!pgd_present(*pgd))
--		goto out;
--
--	pud = pud_offset(pgd, address);
--	if (!pud_present(*pud))
-+	pmd = mm_find_pmd(mm, address);
-+	if (!pmd)
- 		goto out;
--
--	pmd = pmd_offset(pud, address);
- 	if (pmd_none(*pmd))
- 		goto out;
- 	if (pmd_page(*pmd) != page)
-@@ -2059,8 +2051,6 @@ static void collapse_huge_page(struct mm
- 				   struct vm_area_struct *vma,
- 				   int node)
- {
--	pgd_t *pgd;
--	pud_t *pud;
- 	pmd_t *pmd, _pmd;
- 	pte_t *pte;
- 	pgtable_t pgtable;
-@@ -2106,17 +2096,10 @@ static void collapse_huge_page(struct mm
- 		goto out;
- 	VM_BUG_ON(vma->vm_flags & VM_NO_THP);
- 
--	pgd = pgd_offset(mm, address);
--	if (!pgd_present(*pgd))
--		goto out;
--
--	pud = pud_offset(pgd, address);
--	if (!pud_present(*pud))
-+	pmd = mm_find_pmd(mm, address);
-+	if (!pmd)
- 		goto out;
--
--	pmd = pmd_offset(pud, address);
--	/* pmd can't go away or become huge under us */
--	if (!pmd_present(*pmd) || pmd_trans_huge(*pmd))
-+	if (pmd_trans_huge(*pmd))
- 		goto out;
- 
- 	anon_vma_lock(vma->anon_vma);
-@@ -2199,8 +2182,6 @@ static int khugepaged_scan_pmd(struct mm
- 			       unsigned long address,
- 			       struct page **hpage)
- {
--	pgd_t *pgd;
--	pud_t *pud;
- 	pmd_t *pmd;
- 	pte_t *pte, *_pte;
- 	int ret = 0, referenced = 0, none = 0;
-@@ -2211,16 +2192,10 @@ static int khugepaged_scan_pmd(struct mm
- 
- 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
- 
--	pgd = pgd_offset(mm, address);
--	if (!pgd_present(*pgd))
--		goto out;
--
--	pud = pud_offset(pgd, address);
--	if (!pud_present(*pud))
-+	pmd = mm_find_pmd(mm, address);
-+	if (!pmd)
- 		goto out;
--
--	pmd = pmd_offset(pud, address);
--	if (!pmd_present(*pmd) || pmd_trans_huge(*pmd))
-+	if (pmd_trans_huge(*pmd))
- 		goto out;
- 
- 	pte = pte_offset_map_lock(mm, pmd, address, &ptl);
-@@ -2512,22 +2487,12 @@ void __split_huge_page_pmd(struct mm_str
- static void split_huge_page_address(struct mm_struct *mm,
- 				    unsigned long address)
- {
--	pgd_t *pgd;
--	pud_t *pud;
- 	pmd_t *pmd;
- 
- 	VM_BUG_ON(!(address & ~HPAGE_PMD_MASK));
- 
--	pgd = pgd_offset(mm, address);
--	if (!pgd_present(*pgd))
--		return;
--
--	pud = pud_offset(pgd, address);
--	if (!pud_present(*pud))
--		return;
--
--	pmd = pmd_offset(pud, address);
--	if (!pmd_present(*pmd))
-+	pmd = mm_find_pmd(mm, address);
-+	if (!pmd)
- 		return;
- 	/*
- 	 * Caller holds the mmap_sem write mode, so a huge pmd cannot
-diff -puN mm/internal.h~mm-introduce-mm_find_pmd mm/internal.h
---- a/mm/internal.h~mm-introduce-mm_find_pmd
-+++ a/mm/internal.h
-@@ -92,6 +92,11 @@ extern int isolate_lru_page(struct page 
- extern void putback_lru_page(struct page *page);
- 
- /*
-+ * in mm/rmap.c:
+diff -puN kernel/printk/Makefile~printk-move-kmsg_dump-functions-to-separate-file kernel/printk/Makefile
+--- a/kernel/printk/Makefile~printk-move-kmsg_dump-functions-to-separate-file
++++ a/kernel/printk/Makefile
+@@ -2,4 +2,5 @@ obj-y	= printk.o
+ obj-y	+= printk_log.o
+ obj-y	+= devkmsg.o
+ obj-y	+= printk_syslog.o
++obj-y	+= kmsg_dump.o
+ obj-$(CONFIG_A11Y_BRAILLE_CONSOLE)	+= braille.o
+diff -puN /dev/null kernel/printk/kmsg_dump.c
+--- /dev/null
++++ a/kernel/printk/kmsg_dump.c
+@@ -0,0 +1,328 @@
++#include <linux/kernel.h>
++#include <linux/mm.h>
++#include <linux/kexec.h>
++#include <linux/moduleparam.h>
++#include <linux/export.h>
++#include <linux/kmsg_dump.h>
++#include <linux/rculist.h>
++#include <linux/stat.h>
++
++#include "printk_log.h"
++
++static DEFINE_SPINLOCK(dump_list_lock);
++static LIST_HEAD(dump_list);
++
++/**
++ * kmsg_dump_register - register a kernel log dumper.
++ * @dumper: pointer to the kmsg_dumper structure
++ *
++ * Adds a kernel log dumper to the system. The dump callback in the
++ * structure will be called when the kernel oopses or panics and must be
++ * set. Returns zero on success and %-EINVAL or %-EBUSY otherwise.
 + */
-+extern pmd_t *mm_find_pmd(struct mm_struct *mm, unsigned long address);
-+
-+/*
-  * in mm/page_alloc.c
-  */
- extern void __free_pages_bootmem(struct page *page, unsigned int order);
-diff -puN mm/ksm.c~mm-introduce-mm_find_pmd mm/ksm.c
---- a/mm/ksm.c~mm-introduce-mm_find_pmd
-+++ a/mm/ksm.c
-@@ -778,8 +778,6 @@ static int replace_page(struct vm_area_s
- 			struct page *kpage, pte_t orig_pte)
- {
- 	struct mm_struct *mm = vma->vm_mm;
--	pgd_t *pgd;
--	pud_t *pud;
- 	pmd_t *pmd;
- 	pte_t *ptep;
- 	spinlock_t *ptl;
-@@ -792,18 +790,10 @@ static int replace_page(struct vm_area_s
- 	if (addr == -EFAULT)
- 		goto out;
- 
--	pgd = pgd_offset(mm, addr);
--	if (!pgd_present(*pgd))
-+	pmd = mm_find_pmd(mm, addr);
-+	if (!pmd)
- 		goto out;
--
--	pud = pud_offset(pgd, addr);
--	if (!pud_present(*pud))
--		goto out;
--
--	pmd = pmd_offset(pud, addr);
- 	BUG_ON(pmd_trans_huge(*pmd));
--	if (!pmd_present(*pmd))
--		goto out;
- 
- 	mmun_start = addr;
- 	mmun_end   = addr + PAGE_SIZE;
-diff -puN mm/migrate.c~mm-introduce-mm_find_pmd mm/migrate.c
---- a/mm/migrate.c~mm-introduce-mm_find_pmd
-+++ a/mm/migrate.c
-@@ -91,8 +91,6 @@ static int remove_migration_pte(struct p
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	swp_entry_t entry;
-- 	pgd_t *pgd;
-- 	pud_t *pud;
-  	pmd_t *pmd;
- 	pte_t *ptep, pte;
-  	spinlock_t *ptl;
-@@ -103,19 +101,11 @@ static int remove_migration_pte(struct p
- 			goto out;
- 		ptl = &mm->page_table_lock;
- 	} else {
--		pgd = pgd_offset(mm, addr);
--		if (!pgd_present(*pgd))
-+		pmd = mm_find_pmd(mm, addr);
-+		if (!pmd)
- 			goto out;
--
--		pud = pud_offset(pgd, addr);
--		if (!pud_present(*pud))
--			goto out;
--
--		pmd = pmd_offset(pud, addr);
- 		if (pmd_trans_huge(*pmd))
- 			goto out;
--		if (!pmd_present(*pmd))
--			goto out;
- 
- 		ptep = pte_offset_map(pmd, addr);
- 
-diff -puN mm/rmap.c~mm-introduce-mm_find_pmd mm/rmap.c
---- a/mm/rmap.c~mm-introduce-mm_find_pmd
-+++ a/mm/rmap.c
-@@ -562,6 +562,27 @@ unsigned long page_address_in_vma(struct
- 	return address;
- }
- 
-+pmd_t *mm_find_pmd(struct mm_struct *mm, unsigned long address)
++int kmsg_dump_register(struct kmsg_dumper *dumper)
 +{
-+	pgd_t *pgd;
-+	pud_t *pud;
-+	pmd_t *pmd = NULL;
++	unsigned long flags;
++	int err = -EBUSY;
 +
-+	pgd = pgd_offset(mm, address);
-+	if (!pgd_present(*pgd))
-+		goto out;
++	/* The dump callback needs to be set */
++	if (!dumper->dump)
++		return -EINVAL;
 +
-+	pud = pud_offset(pgd, address);
-+	if (!pud_present(*pud))
-+		goto out;
++	spin_lock_irqsave(&dump_list_lock, flags);
++	/* Don't allow registering multiple times */
++	if (!dumper->registered) {
++		dumper->registered = 1;
++		list_add_tail_rcu(&dumper->list, &dump_list);
++		err = 0;
++	}
++	spin_unlock_irqrestore(&dump_list_lock, flags);
 +
-+	pmd = pmd_offset(pud, address);
-+	if (!pmd_present(*pmd))
-+		pmd = NULL;
-+out:
-+	return pmd;
++	return err;
++}
++EXPORT_SYMBOL_GPL(kmsg_dump_register);
++
++/**
++ * kmsg_dump_unregister - unregister a kmsg dumper.
++ * @dumper: pointer to the kmsg_dumper structure
++ *
++ * Removes a dump device from the system. Returns zero on success and
++ * %-EINVAL otherwise.
++ */
++int kmsg_dump_unregister(struct kmsg_dumper *dumper)
++{
++	unsigned long flags;
++	int err = -EINVAL;
++
++	spin_lock_irqsave(&dump_list_lock, flags);
++	if (dumper->registered) {
++		dumper->registered = 0;
++		list_del_rcu(&dumper->list);
++		err = 0;
++	}
++	spin_unlock_irqrestore(&dump_list_lock, flags);
++	synchronize_rcu();
++
++	return err;
++}
++EXPORT_SYMBOL_GPL(kmsg_dump_unregister);
++
++static bool always_kmsg_dump;
++module_param_named(always_kmsg_dump, always_kmsg_dump, bool, S_IRUGO | S_IWUSR);
++
++/**
++ * kmsg_dump - dump kernel log to kernel message dumpers.
++ * @reason: the reason (oops, panic etc) for dumping
++ *
++ * Call each of the registered dumper's dump() callback, which can
++ * retrieve the kmsg records with kmsg_dump_get_line() or
++ * kmsg_dump_get_buffer().
++ */
++void kmsg_dump(enum kmsg_dump_reason reason)
++{
++	struct kmsg_dumper *dumper;
++	unsigned long flags;
++
++	if ((reason > KMSG_DUMP_OOPS) && !always_kmsg_dump)
++		return;
++
++	rcu_read_lock();
++	list_for_each_entry_rcu(dumper, &dump_list, list) {
++		if (dumper->max_reason && reason > dumper->max_reason)
++			continue;
++
++		/* initialize iterator with data about the stored records */
++		dumper->active = true;
++
++		raw_spin_lock_irqsave(&printk_logbuf_lock, flags);
++		dumper->cur_seq = printk_log_clear_seq;
++		dumper->cur_idx = printk_log_clear_idx;
++		dumper->next_seq = printk_log_next_seq;
++		dumper->next_idx = printk_log_next_idx;
++		raw_spin_unlock_irqrestore(&printk_logbuf_lock, flags);
++
++		/* invoke dumper which will iterate over records */
++		dumper->dump(dumper, reason);
++
++		/* reset iterator */
++		dumper->active = false;
++	}
++	rcu_read_unlock();
 +}
 +
- /*
-  * Check that @page is mapped at @address into @mm.
-  *
-@@ -574,8 +595,6 @@ unsigned long page_address_in_vma(struct
- pte_t *__page_check_address(struct page *page, struct mm_struct *mm,
- 			  unsigned long address, spinlock_t **ptlp, int sync)
- {
--	pgd_t *pgd;
--	pud_t *pud;
- 	pmd_t *pmd;
- 	pte_t *pte;
- 	spinlock_t *ptl;
-@@ -586,17 +605,10 @@ pte_t *__page_check_address(struct page 
- 		goto check;
- 	}
++/**
++ * kmsg_dump_get_line_nolock - retrieve one kmsg log line (unlocked version)
++ * @dumper: registered kmsg dumper
++ * @syslog: include the "<4>" prefixes
++ * @line: buffer to copy the line to
++ * @size: maximum size of the buffer
++ * @len: length of line placed into buffer
++ *
++ * Start at the beginning of the kmsg buffer, with the oldest kmsg
++ * record, and copy one record into the provided buffer.
++ *
++ * Consecutive calls will return the next available record moving
++ * towards the end of the buffer with the youngest messages.
++ *
++ * A return value of FALSE indicates that there are no more records to
++ * read.
++ *
++ * The function is similar to kmsg_dump_get_line(), but grabs no locks.
++ */
++bool kmsg_dump_get_line_nolock(struct kmsg_dumper *dumper, bool syslog,
++			       char *line, size_t size, size_t *len)
++{
++	struct printk_log *msg;
++	size_t l = 0;
++	bool ret = false;
++
++	if (!dumper->active)
++		goto out;
++
++	if (dumper->cur_seq < printk_log_first_seq) {
++		/* messages are gone, move to first available one */
++		dumper->cur_seq = printk_log_first_seq;
++		dumper->cur_idx = printk_log_first_idx;
++	}
++
++	/* last entry */
++	if (dumper->cur_seq >= printk_log_next_seq)
++		goto out;
++
++	msg = printk_log_from_idx(dumper->cur_idx);
++	l = printk_msg_print_text(msg, 0, syslog, line, size);
++
++	dumper->cur_idx = printk_log_next(dumper->cur_idx);
++	dumper->cur_seq++;
++	ret = true;
++out:
++	if (len)
++		*len = l;
++	return ret;
++}
++
++/**
++ * kmsg_dump_get_line - retrieve one kmsg log line
++ * @dumper: registered kmsg dumper
++ * @syslog: include the "<4>" prefixes
++ * @line: buffer to copy the line to
++ * @size: maximum size of the buffer
++ * @len: length of line placed into buffer
++ *
++ * Start at the beginning of the kmsg buffer, with the oldest kmsg
++ * record, and copy one record into the provided buffer.
++ *
++ * Consecutive calls will return the next available record moving
++ * towards the end of the buffer with the youngest messages.
++ *
++ * A return value of FALSE indicates that there are no more records to
++ * read.
++ */
++bool kmsg_dump_get_line(struct kmsg_dumper *dumper, bool syslog,
++			char *line, size_t size, size_t *len)
++{
++	unsigned long flags;
++	bool ret;
++
++	raw_spin_lock_irqsave(&printk_logbuf_lock, flags);
++	ret = kmsg_dump_get_line_nolock(dumper, syslog, line, size, len);
++	raw_spin_unlock_irqrestore(&printk_logbuf_lock, flags);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(kmsg_dump_get_line);
++
++/**
++ * kmsg_dump_get_buffer - copy kmsg log lines
++ * @dumper: registered kmsg dumper
++ * @syslog: include the "<4>" prefixes
++ * @buf: buffer to copy the line to
++ * @size: maximum size of the buffer
++ * @len: length of line placed into buffer
++ *
++ * Start at the end of the kmsg buffer and fill the provided buffer
++ * with as many of the the *youngest* kmsg records that fit into it.
++ * If the buffer is large enough, all available kmsg records will be
++ * copied with a single call.
++ *
++ * Consecutive calls will fill the buffer with the next block of
++ * available older records, not including the earlier retrieved ones.
++ *
++ * A return value of FALSE indicates that there are no more records to
++ * read.
++ */
++bool kmsg_dump_get_buffer(struct kmsg_dumper *dumper, bool syslog,
++			  char *buf, size_t size, size_t *len)
++{
++	unsigned long flags;
++	u64 seq;
++	u32 idx;
++	u64 next_seq;
++	u32 next_idx;
++	enum printk_log_flags prev;
++	size_t l = 0;
++	bool ret = false;
++
++	if (!dumper->active)
++		goto out;
++
++	raw_spin_lock_irqsave(&printk_logbuf_lock, flags);
++	if (dumper->cur_seq < printk_log_first_seq) {
++		/* messages are gone, move to first available one */
++		dumper->cur_seq = printk_log_first_seq;
++		dumper->cur_idx = printk_log_first_idx;
++	}
++
++	/* last entry */
++	if (dumper->cur_seq >= dumper->next_seq) {
++		raw_spin_unlock_irqrestore(&printk_logbuf_lock, flags);
++		goto out;
++	}
++
++	/* calculate length of entire buffer */
++	seq = dumper->cur_seq;
++	idx = dumper->cur_idx;
++	prev = 0;
++	while (seq < dumper->next_seq) {
++		struct printk_log *msg = printk_log_from_idx(idx);
++
++		l += printk_msg_print_text(msg, prev, true, NULL, 0);
++		idx = printk_log_next(idx);
++		seq++;
++		prev = msg->flags;
++	}
++
++	/* move first record forward until length fits into the buffer */
++	seq = dumper->cur_seq;
++	idx = dumper->cur_idx;
++	prev = 0;
++	while (l > size && seq < dumper->next_seq) {
++		struct printk_log *msg = printk_log_from_idx(idx);
++
++		l -= printk_msg_print_text(msg, prev, true, NULL, 0);
++		idx = printk_log_next(idx);
++		seq++;
++		prev = msg->flags;
++	}
++
++	/* last message in next interation */
++	next_seq = seq;
++	next_idx = idx;
++
++	l = 0;
++	prev = 0;
++	while (seq < dumper->next_seq) {
++		struct printk_log *msg = printk_log_from_idx(idx);
++
++		l += printk_msg_print_text(msg, prev, syslog, buf + l, size - l);
++		idx = printk_log_next(idx);
++		seq++;
++		prev = msg->flags;
++	}
++
++	dumper->next_seq = next_seq;
++	dumper->next_idx = next_idx;
++	ret = true;
++	raw_spin_unlock_irqrestore(&printk_logbuf_lock, flags);
++out:
++	if (len)
++		*len = l;
++	return ret;
++}
++EXPORT_SYMBOL_GPL(kmsg_dump_get_buffer);
++
++/**
++ * kmsg_dump_rewind_nolock - reset the interator (unlocked version)
++ * @dumper: registered kmsg dumper
++ *
++ * Reset the dumper's iterator so that kmsg_dump_get_line() and
++ * kmsg_dump_get_buffer() can be called again and used multiple
++ * times within the same dumper.dump() callback.
++ *
++ * The function is similar to kmsg_dump_rewind(), but grabs no locks.
++ */
++void kmsg_dump_rewind_nolock(struct kmsg_dumper *dumper)
++{
++	dumper->cur_seq = printk_log_clear_seq;
++	dumper->cur_idx = printk_log_clear_idx;
++	dumper->next_seq = printk_log_next_seq;
++	dumper->next_idx = printk_log_next_idx;
++}
++
++/**
++ * kmsg_dump_rewind - reset the interator
++ * @dumper: registered kmsg dumper
++ *
++ * Reset the dumper's iterator so that kmsg_dump_get_line() and
++ * kmsg_dump_get_buffer() can be called again and used multiple
++ * times within the same dumper.dump() callback.
++ */
++void kmsg_dump_rewind(struct kmsg_dumper *dumper)
++{
++	unsigned long flags;
++
++	raw_spin_lock_irqsave(&printk_logbuf_lock, flags);
++	kmsg_dump_rewind_nolock(dumper);
++	raw_spin_unlock_irqrestore(&printk_logbuf_lock, flags);
++}
++EXPORT_SYMBOL_GPL(kmsg_dump_rewind);
+diff -puN kernel/printk/printk.c~printk-move-kmsg_dump-functions-to-separate-file kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-move-kmsg_dump-functions-to-separate-file
++++ a/kernel/printk/printk.c
+@@ -33,7 +33,6 @@
+ #include <linux/kexec.h>
+ #include <linux/kdb.h>
+ #include <linux/ratelimit.h>
+-#include <linux/kmsg_dump.h>
+ #include <linux/cpu.h>
+ #include <linux/notifier.h>
+ #include <linux/rculist.h>
+@@ -1513,321 +1512,4 @@ bool printk_timed_ratelimit(unsigned lon
+ }
+ EXPORT_SYMBOL(printk_timed_ratelimit);
  
--	pgd = pgd_offset(mm, address);
--	if (!pgd_present(*pgd))
--		return NULL;
+-static DEFINE_SPINLOCK(dump_list_lock);
+-static LIST_HEAD(dump_list);
 -
--	pud = pud_offset(pgd, address);
--	if (!pud_present(*pud))
-+	pmd = mm_find_pmd(mm, address);
-+	if (!pmd)
- 		return NULL;
- 
--	pmd = pmd_offset(pud, address);
--	if (!pmd_present(*pmd))
--		return NULL;
- 	if (pmd_trans_huge(*pmd))
- 		return NULL;
- 
-@@ -1366,16 +1378,8 @@ static int try_to_unmap_cluster(unsigned
- 	if (end > vma->vm_end)
- 		end = vma->vm_end;
- 
--	pgd = pgd_offset(mm, address);
--	if (!pgd_present(*pgd))
--		return ret;
+-/**
+- * kmsg_dump_register - register a kernel log dumper.
+- * @dumper: pointer to the kmsg_dumper structure
+- *
+- * Adds a kernel log dumper to the system. The dump callback in the
+- * structure will be called when the kernel oopses or panics and must be
+- * set. Returns zero on success and %-EINVAL or %-EBUSY otherwise.
+- */
+-int kmsg_dump_register(struct kmsg_dumper *dumper)
+-{
+-	unsigned long flags;
+-	int err = -EBUSY;
 -
--	pud = pud_offset(pgd, address);
--	if (!pud_present(*pud))
--		return ret;
+-	/* The dump callback needs to be set */
+-	if (!dumper->dump)
+-		return -EINVAL;
+-
+-	spin_lock_irqsave(&dump_list_lock, flags);
+-	/* Don't allow registering multiple times */
+-	if (!dumper->registered) {
+-		dumper->registered = 1;
+-		list_add_tail_rcu(&dumper->list, &dump_list);
+-		err = 0;
+-	}
+-	spin_unlock_irqrestore(&dump_list_lock, flags);
+-
+-	return err;
+-}
+-EXPORT_SYMBOL_GPL(kmsg_dump_register);
+-
+-/**
+- * kmsg_dump_unregister - unregister a kmsg dumper.
+- * @dumper: pointer to the kmsg_dumper structure
+- *
+- * Removes a dump device from the system. Returns zero on success and
+- * %-EINVAL otherwise.
+- */
+-int kmsg_dump_unregister(struct kmsg_dumper *dumper)
+-{
+-	unsigned long flags;
+-	int err = -EINVAL;
+-
+-	spin_lock_irqsave(&dump_list_lock, flags);
+-	if (dumper->registered) {
+-		dumper->registered = 0;
+-		list_del_rcu(&dumper->list);
+-		err = 0;
+-	}
+-	spin_unlock_irqrestore(&dump_list_lock, flags);
+-	synchronize_rcu();
+-
+-	return err;
+-}
+-EXPORT_SYMBOL_GPL(kmsg_dump_unregister);
+-
+-static bool always_kmsg_dump;
+-module_param_named(always_kmsg_dump, always_kmsg_dump, bool, S_IRUGO | S_IWUSR);
+-
+-/**
+- * kmsg_dump - dump kernel log to kernel message dumpers.
+- * @reason: the reason (oops, panic etc) for dumping
+- *
+- * Call each of the registered dumper's dump() callback, which can
+- * retrieve the kmsg records with kmsg_dump_get_line() or
+- * kmsg_dump_get_buffer().
+- */
+-void kmsg_dump(enum kmsg_dump_reason reason)
+-{
+-	struct kmsg_dumper *dumper;
+-	unsigned long flags;
+-
+-	if ((reason > KMSG_DUMP_OOPS) && !always_kmsg_dump)
+-		return;
+-
+-	rcu_read_lock();
+-	list_for_each_entry_rcu(dumper, &dump_list, list) {
+-		if (dumper->max_reason && reason > dumper->max_reason)
+-			continue;
+-
+-		/* initialize iterator with data about the stored records */
+-		dumper->active = true;
+-
+-		raw_spin_lock_irqsave(&printk_logbuf_lock, flags);
+-		dumper->cur_seq = printk_log_clear_seq;
+-		dumper->cur_idx = printk_log_clear_idx;
+-		dumper->next_seq = printk_log_next_seq;
+-		dumper->next_idx = printk_log_next_idx;
+-		raw_spin_unlock_irqrestore(&printk_logbuf_lock, flags);
+-
+-		/* invoke dumper which will iterate over records */
+-		dumper->dump(dumper, reason);
+-
+-		/* reset iterator */
+-		dumper->active = false;
+-	}
+-	rcu_read_unlock();
+-}
+-
+-/**
+- * kmsg_dump_get_line_nolock - retrieve one kmsg log line (unlocked version)
+- * @dumper: registered kmsg dumper
+- * @syslog: include the "<4>" prefixes
+- * @line: buffer to copy the line to
+- * @size: maximum size of the buffer
+- * @len: length of line placed into buffer
+- *
+- * Start at the beginning of the kmsg buffer, with the oldest kmsg
+- * record, and copy one record into the provided buffer.
+- *
+- * Consecutive calls will return the next available record moving
+- * towards the end of the buffer with the youngest messages.
+- *
+- * A return value of FALSE indicates that there are no more records to
+- * read.
+- *
+- * The function is similar to kmsg_dump_get_line(), but grabs no locks.
+- */
+-bool kmsg_dump_get_line_nolock(struct kmsg_dumper *dumper, bool syslog,
+-			       char *line, size_t size, size_t *len)
+-{
+-	struct printk_log *msg;
+-	size_t l = 0;
+-	bool ret = false;
+-
+-	if (!dumper->active)
+-		goto out;
+-
+-	if (dumper->cur_seq < printk_log_first_seq) {
+-		/* messages are gone, move to first available one */
+-		dumper->cur_seq = printk_log_first_seq;
+-		dumper->cur_idx = printk_log_first_idx;
+-	}
+-
+-	/* last entry */
+-	if (dumper->cur_seq >= printk_log_next_seq)
+-		goto out;
+-
+-	msg = printk_log_from_idx(dumper->cur_idx);
+-	l = printk_msg_print_text(msg, 0, syslog, line, size);
+-
+-	dumper->cur_idx = printk_log_next(dumper->cur_idx);
+-	dumper->cur_seq++;
+-	ret = true;
+-out:
+-	if (len)
+-		*len = l;
+-	return ret;
+-}
+-
+-/**
+- * kmsg_dump_get_line - retrieve one kmsg log line
+- * @dumper: registered kmsg dumper
+- * @syslog: include the "<4>" prefixes
+- * @line: buffer to copy the line to
+- * @size: maximum size of the buffer
+- * @len: length of line placed into buffer
+- *
+- * Start at the beginning of the kmsg buffer, with the oldest kmsg
+- * record, and copy one record into the provided buffer.
+- *
+- * Consecutive calls will return the next available record moving
+- * towards the end of the buffer with the youngest messages.
+- *
+- * A return value of FALSE indicates that there are no more records to
+- * read.
+- */
+-bool kmsg_dump_get_line(struct kmsg_dumper *dumper, bool syslog,
+-			char *line, size_t size, size_t *len)
+-{
+-	unsigned long flags;
+-	bool ret;
+-
+-	raw_spin_lock_irqsave(&printk_logbuf_lock, flags);
+-	ret = kmsg_dump_get_line_nolock(dumper, syslog, line, size, len);
+-	raw_spin_unlock_irqrestore(&printk_logbuf_lock, flags);
+-
+-	return ret;
+-}
+-EXPORT_SYMBOL_GPL(kmsg_dump_get_line);
+-
+-/**
+- * kmsg_dump_get_buffer - copy kmsg log lines
+- * @dumper: registered kmsg dumper
+- * @syslog: include the "<4>" prefixes
+- * @buf: buffer to copy the line to
+- * @size: maximum size of the buffer
+- * @len: length of line placed into buffer
+- *
+- * Start at the end of the kmsg buffer and fill the provided buffer
+- * with as many of the the *youngest* kmsg records that fit into it.
+- * If the buffer is large enough, all available kmsg records will be
+- * copied with a single call.
+- *
+- * Consecutive calls will fill the buffer with the next block of
+- * available older records, not including the earlier retrieved ones.
+- *
+- * A return value of FALSE indicates that there are no more records to
+- * read.
+- */
+-bool kmsg_dump_get_buffer(struct kmsg_dumper *dumper, bool syslog,
+-			  char *buf, size_t size, size_t *len)
+-{
+-	unsigned long flags;
+-	u64 seq;
+-	u32 idx;
+-	u64 next_seq;
+-	u32 next_idx;
+-	enum printk_log_flags prev;
+-	size_t l = 0;
+-	bool ret = false;
+-
+-	if (!dumper->active)
+-		goto out;
+-
+-	raw_spin_lock_irqsave(&printk_logbuf_lock, flags);
+-	if (dumper->cur_seq < printk_log_first_seq) {
+-		/* messages are gone, move to first available one */
+-		dumper->cur_seq = printk_log_first_seq;
+-		dumper->cur_idx = printk_log_first_idx;
+-	}
+-
+-	/* last entry */
+-	if (dumper->cur_seq >= dumper->next_seq) {
+-		raw_spin_unlock_irqrestore(&printk_logbuf_lock, flags);
+-		goto out;
+-	}
+-
+-	/* calculate length of entire buffer */
+-	seq = dumper->cur_seq;
+-	idx = dumper->cur_idx;
+-	prev = 0;
+-	while (seq < dumper->next_seq) {
+-		struct printk_log *msg = printk_log_from_idx(idx);
+-
+-		l += printk_msg_print_text(msg, prev, true, NULL, 0);
+-		idx = printk_log_next(idx);
+-		seq++;
+-		prev = msg->flags;
+-	}
+-
+-	/* move first record forward until length fits into the buffer */
+-	seq = dumper->cur_seq;
+-	idx = dumper->cur_idx;
+-	prev = 0;
+-	while (l > size && seq < dumper->next_seq) {
+-		struct printk_log *msg = printk_log_from_idx(idx);
+-
+-		l -= printk_msg_print_text(msg, prev, true, NULL, 0);
+-		idx = printk_log_next(idx);
+-		seq++;
+-		prev = msg->flags;
+-	}
+-
+-	/* last message in next interation */
+-	next_seq = seq;
+-	next_idx = idx;
+-
+-	l = 0;
+-	prev = 0;
+-	while (seq < dumper->next_seq) {
+-		struct printk_log *msg = printk_log_from_idx(idx);
+-
+-		l += printk_msg_print_text(msg, prev, syslog, buf + l, size - l);
+-		idx = printk_log_next(idx);
+-		seq++;
+-		prev = msg->flags;
+-	}
+-
+-	dumper->next_seq = next_seq;
+-	dumper->next_idx = next_idx;
+-	ret = true;
+-	raw_spin_unlock_irqrestore(&printk_logbuf_lock, flags);
+-out:
+-	if (len)
+-		*len = l;
+-	return ret;
+-}
+-EXPORT_SYMBOL_GPL(kmsg_dump_get_buffer);
+-
+-/**
+- * kmsg_dump_rewind_nolock - reset the interator (unlocked version)
+- * @dumper: registered kmsg dumper
+- *
+- * Reset the dumper's iterator so that kmsg_dump_get_line() and
+- * kmsg_dump_get_buffer() can be called again and used multiple
+- * times within the same dumper.dump() callback.
+- *
+- * The function is similar to kmsg_dump_rewind(), but grabs no locks.
+- */
+-void kmsg_dump_rewind_nolock(struct kmsg_dumper *dumper)
+-{
+-	dumper->cur_seq = printk_log_clear_seq;
+-	dumper->cur_idx = printk_log_clear_idx;
+-	dumper->next_seq = printk_log_next_seq;
+-	dumper->next_idx = printk_log_next_idx;
+-}
+-
+-/**
+- * kmsg_dump_rewind - reset the interator
+- * @dumper: registered kmsg dumper
+- *
+- * Reset the dumper's iterator so that kmsg_dump_get_line() and
+- * kmsg_dump_get_buffer() can be called again and used multiple
+- * times within the same dumper.dump() callback.
+- */
+-void kmsg_dump_rewind(struct kmsg_dumper *dumper)
+-{
+-	unsigned long flags;
