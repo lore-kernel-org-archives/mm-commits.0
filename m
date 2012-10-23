@@ -1,28 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-pnmtologo-fix-for-plain-pbm.patch added to -mm tree
-Date: Tue, 23 Oct 2012 11:56:09 -0700
-Message-ID: <20121023185610.231B35C0050@hpza9.eem.corp.google.com>
+Subject: + scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 23 Oct 2012 11:57:10 -0700
+Message-ID: <20121023185711.9A352200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:62439 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756875Ab2JWS4M (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 14:56:12 -0400
-Received: by mail-fa0-f74.google.com with SMTP id t1so252579fae.1
-        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 11:56:11 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:46313 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756836Ab2JWS5O (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 14:57:14 -0400
+Received: by mail-lb0-f202.google.com with SMTP id l12so62115lbo.1
+        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 11:57:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andreas@biessmann.de, geert@linux-m68k.org
+Cc: akpm@linux-foundation.org, andreas@biessmann.de, geert@linux-m68k.org
 
 
 The patch titled
-     Subject: scripts/pnmtologo: fix for plain PBM
+     Subject: scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     scripts-pnmtologo-fix-for-plain-pbm.patch
+     scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,62 +37,92 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Andreas Bie=DFmann <andreas@biessmann.de>
-Subject: scripts/pnmtologo: fix for plain PBM
+=46rom: Andrew Morton <akpm@linux-foundation.org>
+Subject: scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes
 
-PBM generated with current tools do not have a whitespace between the
-digits.  Therefore the pnmtologo tool fails to gernerate the required
-C-Array for these images.  This patch fixes that behaviour and can hand=
-le
-both 'old style' and 'new style' PBM files.
+ERROR: do not initialise statics to 0 or NULL
+#24: FILE: scripts/pnmtologo.c:77:
++static int is_plain_pbm =3D 0;
 
-Signed-off-by: Andreas Bie=DFmann <andreas@biessmann.de>
+WARNING: line over 80 characters
+#33: FILE: scripts/pnmtologo.c:108:
++	 * between the digits. This is Ok cause we know a PBM can only have a=
+ '1'
+
+total: 1 errors, 1 warnings, 25 lines checked
+
+=2E/patches/scripts-pnmtologo-fix-for-plain-pbm.patch has style problem=
+s, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Andreas Bie=DFmann <andreas@biessmann.de>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/pnmtologo.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ scripts/pnmtologo.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN scripts/pnmtologo.c~scripts-pnmtologo-fix-for-plain-pbm scrip=
-ts/pnmtologo.c
---- a/scripts/pnmtologo.c~scripts-pnmtologo-fix-for-plain-pbm
+diff -puN scripts/pnmtologo.c~scripts-pnmtologo-fix-for-plain-pbm-check=
+patch-fixes scripts/pnmtologo.c
+--- a/scripts/pnmtologo.c~scripts-pnmtologo-fix-for-plain-pbm-checkpatc=
+h-fixes
 +++ a/scripts/pnmtologo.c
-@@ -74,6 +74,7 @@ static unsigned int logo_height;
- static struct color **logo_data;
- static struct color logo_clut[MAX_LINUX_LOGO_COLORS];
- static unsigned int logo_clutsize;
-+static int is_plain_pbm =3D 0;
-=20
- static void die(const char *fmt, ...)
-     __attribute__ ((noreturn)) __attribute ((format (printf, 1, 2)));
-@@ -103,6 +104,11 @@ static unsigned int get_number(FILE *fp)
+@@ -104,9 +104,11 @@ static unsigned int get_number(FILE *fp)
      val =3D 0;
      while (isdigit(c)) {
  	val =3D 10*val+c-'0';
-+	/* some PBM are 'broken'; GiMP for example exports a PBM without spac=
+-	/* some PBM are 'broken'; GiMP for example exports a PBM without spac=
 e
-+	 * between the digits. This is Ok cause we know a PBM can only have a=
+-	 * between the digits. This is Ok cause we know a PBM can only have a=
  '1'
-+	 * or a '0' for the digit. */
-+	if (is_plain_pbm)
-+		break;
+-	 * or a '0' for the digit. */
++	/*
++	 * Some PBM are 'broken'; GiMP for example exports a PBM without spac=
+e
++	 * between the digits. This is OK because we know a PBM can only have=
+ a
++	 * '1' or a '0' for the digit.
++	 */
+ 	if (is_plain_pbm)
+ 		break;
  	c =3D fgetc(fp);
- 	if (c =3D=3D EOF)
- 	    die("%s: end of file\n", filename);
-@@ -167,6 +173,7 @@ static void read_image(void)
-     switch (magic) {
- 	case '1':
- 	    /* Plain PBM */
-+	    is_plain_pbm =3D 1;
- 	    for (i =3D 0; i < logo_height; i++)
- 		for (j =3D 0; j < logo_width; j++)
- 		    logo_data[i][j].red =3D logo_data[i][j].green =3D
 _
 
-Patches currently in -mm which might be from andreas@biessmann.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org =
+are
 
-scripts-pnmtologo-fix-for-plain-pbm.patch
+revert-epoll-support-for-disabling-items-and-a-self-test-app.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-=
+driver.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+mm.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+init-use-the-stringify-operator-for-the-__define_initcall-macro-checkpa=
+tch-fixes.patch
+drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.p=
+atch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-c=
+heckpatch-fixes.patch
+hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes=
+=2Epatch
+fat-exportfs-rebuild-inode-if-ilookup-fails-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
 --
 To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
