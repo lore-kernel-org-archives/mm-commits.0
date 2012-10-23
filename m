@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-backlight-s6e63m0c-remove-unnecessary-cast-of-void-pointer.patch added to -mm tree
-Date: Tue, 23 Oct 2012 13:15:46 -0700
-Message-ID: <20121023201547.03A0420004E@hpza10.eem.corp.google.com>
+Subject: + mm-page_allocc-alloc_contig_range-return-early-for-err-path.patch added to -mm tree
+Date: Tue, 23 Oct 2012 13:24:43 -0700
+Message-ID: <20121023202444.35DF420004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:39844 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965273Ab2JWUPt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 16:15:49 -0400
-Received: by mail-bk0-f74.google.com with SMTP id q16so254630bkw.1
-        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 13:15:48 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:52835 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757450Ab2JWUYq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 16:24:46 -0400
+Received: by mail-we0-f202.google.com with SMTP id x43so258087wey.1
+        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 13:24:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com, rpurdie@rpsys.net
+Cc: lliubbo@gmail.com, m.szyprowski@samsung.com, nizhan.chen@gmail.com
 
 
 The patch titled
-     Subject: drivers/video/backlight/s6e63m0.c: remove unnecessary cast of void pointer
+     Subject: mm/page_alloc.c:alloc_contig_range(): return early for err path
 has been added to the -mm tree.  Its filename is
-     drivers-video-backlight-s6e63m0c-remove-unnecessary-cast-of-void-pointer.patch
+     mm-page_allocc-alloc_contig_range-return-early-for-err-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,61 +33,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/video/backlight/s6e63m0.c: remove unnecessary cast of void pointer
+From: Bob Liu <lliubbo@gmail.com>
+Subject: mm/page_alloc.c:alloc_contig_range(): return early for err path
 
-Remove unnecessary cast of void pointer for platform data in probe
-function.
+If start_isolate_page_range() failed, unset_migratetype_isolate() has been
+done inside it.
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Signed-off-by: Bob Liu <lliubbo@gmail.com>
+Cc: Ni zhan Chen <nizhan.chen@gmail.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/s6e63m0.c |    2 +-
+ mm/page_alloc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/s6e63m0.c~drivers-video-backlight-s6e63m0c-remove-unnecessary-cast-of-void-pointer drivers/video/backlight/s6e63m0.c
---- a/drivers/video/backlight/s6e63m0.c~drivers-video-backlight-s6e63m0c-remove-unnecessary-cast-of-void-pointer
-+++ a/drivers/video/backlight/s6e63m0.c
-@@ -757,7 +757,7 @@ static int __devinit s6e63m0_probe(struc
- 	lcd->spi = spi;
- 	lcd->dev = &spi->dev;
+diff -puN mm/page_alloc.c~mm-page_allocc-alloc_contig_range-return-early-for-err-path mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_allocc-alloc_contig_range-return-early-for-err-path
++++ a/mm/page_alloc.c
+@@ -5825,7 +5825,7 @@ int alloc_contig_range(unsigned long sta
+ 	ret = start_isolate_page_range(pfn_max_align_down(start),
+ 				       pfn_max_align_up(end), migratetype);
+ 	if (ret)
+-		goto done;
++		return ret;
  
--	lcd->lcd_pd = (struct lcd_platform_data *)spi->dev.platform_data;
-+	lcd->lcd_pd = spi->dev.platform_data;
- 	if (!lcd->lcd_pd) {
- 		dev_err(&spi->dev, "platform data is NULL.\n");
- 		return -EFAULT;
+ 	ret = __alloc_contig_migrate_range(&cc, start, end);
+ 	if (ret)
 _
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from lliubbo@gmail.com are
 
-backlight-ili9320-add-missing-spi-dependency.patch
+mm-page_allocc-alloc_contig_range-return-early-for-err-path.patch
 linux-next.patch
-backlight-da903x_bl-use-dev_get_drvdata-instead-of-platform_get_drvdata.patch
-backlight-88pm860x_bl-fix-checkpatch-warning.patch
-backlight-atmel-pwm-bl-fix-checkpatch-warning.patch
-backlight-corgi_lcd-fix-checkpatch-error-and-warning.patch
-backlight-da903x_bl-fix-checkpatch-warning.patch
-backlight-generic_bl-fix-checkpatch-warning.patch
-backlight-hp680_bl-fix-checkpatch-error-and-warning.patch
-backlight-ili9320-fix-checkpatch-error-and-warning.patch
-backlight-jornada720-fix-checkpatch-error-and-warning.patch
-backlight-l4f00242t03-fix-checkpatch-warning.patch
-backlight-lm3630-fix-checkpatch-warning.patch
-backlight-locomolcd-fix-checkpatch-error-and-warning.patch
-backlight-omap1-fix-checkpatch-warning.patch
-backlight-pcf50633-fix-checkpatch-warning.patch
-backlight-platform_lcd-fix-checkpatch-error.patch
-backlight-tdo24m-fix-checkpatch-warning.patch
-backlight-tosa-fix-checkpatch-error-and-warning.patch
-backlight-vgg2432a4-fix-checkpatch-warning.patch
-backlight-lms283gf05-use-devm_gpio_request_one.patch
-backlight-tosa-use-devm_gpio_request_one.patch
-drivers-video-backlight-da9052_blc-add-missing-const.patch
-drivers-video-backlight-lms283gf05c-add-missing-const.patch
-drivers-video-backlight-tdo24mc-add-missing-const.patch
-drivers-video-backlight-vgg2432a4c-add-missing-const.patch
-drivers-video-backlight-s6e63m0c-remove-unnecessary-cast-of-void-pointer.patch
+thp-clean-up-__collapse_huge_page_isolate.patch
+thp-introduce-hugepage_get_pmd.patch
+thp-introduce-hugepage_vma_check.patch
+thp-cleanup-introduce-mk_huge_pmd.patch
 
