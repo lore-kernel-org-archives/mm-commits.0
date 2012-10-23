@@ -1,44 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] drivers-edac-edac_mc_sysfsc-check-the-kzalloc-return-value.patch removed from -mm tree
-Date: Tue, 23 Oct 2012 13:37:28 -0700
-Message-ID: <20121023203728.D7A011E0043@wpzn4.hot.corp.google.com>
+Subject: + thp-clean-up-__collapse_huge_page_isolate-v2.patch added to -mm tree
+Date: Tue, 23 Oct 2012 13:57:07 -0700
+Message-ID: <20121023205707.AE2FA1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:39477 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964784Ab2JWUha (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 16:37:30 -0400
-Received: by mail-vc0-f202.google.com with SMTP id fy27so534601vcb.1
-        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 13:37:29 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:40964 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933739Ab2JWU5J (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 16:57:09 -0400
+Received: by mail-vb0-f74.google.com with SMTP id s24so538488vbi.1
+        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 13:57:08 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirjanov@gmail.com, borislav.petkov@amd.com, dougthompson@xmission.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: lliubbo@gmail.com, aarcange@redhat.com, mhocko@suse.cz, minchan.kim@gmail.com, nizhan.chen@gmail.com
 
 
 The patch titled
-     Subject: drivers/edac/edac_mc_sysfs.c: check the kzalloc return value
-has been removed from the -mm tree.  Its filename was
-     drivers-edac-edac_mc_sysfsc-check-the-kzalloc-return-value.patch
+     Subject: thp-clean-up-__collapse_huge_page_isolate v2
+has been added to the -mm tree.  Its filename is
+     thp-clean-up-__collapse_huge_page_isolate-v2.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Denis Kirjanov <kirjanov@gmail.com>
-Subject: drivers/edac/edac_mc_sysfs.c: check the kzalloc return value
+From: Bob Liu <lliubbo@gmail.com>
+Subject: thp-clean-up-__collapse_huge_page_isolate v2
 
-Signed-off-by: Denis Kirjanov <kirjanov@gmail.com>
-Cc: Doug Thompson <dougthompson@xmission.com>
-Cc: Borislav Petkov <borislav.petkov@amd.com>
+mv label out of condition.
+
+Signed-off-by: Bob Liu <lliubbo@gmail.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Ni zhan Chen <nizhan.chen@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/edac_mc_sysfs.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/huge_memory.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN drivers/edac/edac_mc_sysfs.c~drivers-edac-edac_mc_sysfsc-check-the-kzalloc-return-value drivers/edac/edac_mc_sysfs.c
---- a/drivers/edac/edac_mc_sysfs.c~drivers-edac-edac_mc_sysfsc-check-the-kzalloc-return-value
-+++ a/drivers/edac/edac_mc_sysfs.c
-@@ -1136,7 +1136,8 @@ int __init edac_mc_sysfs_init(void)
+diff -puN mm/huge_memory.c~thp-clean-up-__collapse_huge_page_isolate-v2 mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-clean-up-__collapse_huge_page_isolate-v2
++++ a/mm/huge_memory.c
+@@ -1858,7 +1858,7 @@ static int __collapse_huge_page_isolate(
+ {
+ 	struct page *page;
+ 	pte_t *_pte;
+-	int referenced = 0, isolated = 1, none = 0;
++	int referenced = 0, none = 0;
+ 	for (_pte = pte; _pte < pte+HPAGE_PMD_NR;
+ 	     _pte++, address += PAGE_SIZE) {
+ 		pte_t pteval = *_pte;
+@@ -1907,12 +1907,11 @@ static int __collapse_huge_page_isolate(
+ 		    mmu_notifier_test_young(vma->vm_mm, address))
+ 			referenced = 1;
  	}
+-	if (unlikely(!referenced)) {
++	if (likely(referenced))
++		return 1;
+ out:
+-		release_pte_pages(pte, _pte);
+-		isolated = 0;
+-	}
+-	return isolated;
++	release_pte_pages(pte, _pte);
++	return 0;
+ }
  
- 	mci_pdev = kzalloc(sizeof(*mci_pdev), GFP_KERNEL);
+ static void __collapse_huge_page_copy(pte_t *pte, struct page *page,
+_
+
+Patches currently in -mm which might be from lliubbo@gmail.com are
+
+mm-page_allocc-alloc_contig_range-return-early-for-err-path.patch
+linux-next.patch
+thp-clean-up-__collapse_huge_page_isolate.patch
+thp-clean-up-__collapse_huge_page_isolate-v2.patch
+thp-introduce-hugepage_get_pmd.patch
+thp-introduce-hugepage_vma_check.patch
+thp-cleanup-introduce-mk_huge_pmd.patch
+
