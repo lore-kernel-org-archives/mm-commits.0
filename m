@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix.patch added to -mm tree
-Date: Tue, 23 Oct 2012 13:06:36 -0700
-Message-ID: <20121023200636.BC869100047@wpzn3.hot.corp.google.com>
+Subject: + drivers-video-backlight-s6e63m0c-remove-unnecessary-cast-of-void-pointer.patch added to -mm tree
+Date: Tue, 23 Oct 2012 13:15:46 -0700
+Message-ID: <20121023201547.03A0420004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:61538 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933380Ab2JWUGh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 16:06:37 -0400
-Received: by mail-yh0-f74.google.com with SMTP id 10so532997yhl.1
-        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 13:06:37 -0700 (PDT)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:39844 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965273Ab2JWUPt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 16:15:49 -0400
+Received: by mail-bk0-f74.google.com with SMTP id q16so254630bkw.1
+        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 13:15:48 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhocko@suse.cz, rientjes@google.com, wency@cn.fujitsu.com
+Cc: jg1.han@samsung.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: mm: make zone_pcp_reset independent of MEMORY_HOTREMOVE
+     Subject: drivers/video/backlight/s6e63m0.c: remove unnecessary cast of void pointer
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix.patch
+     drivers-video-backlight-s6e63m0c-remove-unnecessary-cast-of-void-pointer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,56 +33,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: mm: make zone_pcp_reset independent of MEMORY_HOTREMOVE
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: drivers/video/backlight/s6e63m0.c: remove unnecessary cast of void pointer
 
-340175b7 (mm/hotplug: free zone->pageset when a zone becomes empty)
-introduced zone_pcp_reset and hided it inside CONFIG_MEMORY_HOTREMOVE.
-Since "memory-hotplug: allocate zone's pcp before onlining pages" the
-function is also called from online_pages which is defined outside
-CONFIG_MEMORY_HOTREMOVE which causes a linkage error.
+Remove unnecessary cast of void pointer for platform data in probe
+function.
 
-The function, although not used outside of MEMORY_{HOTPLUT,HOTREMOVE},
-seems like universal enough so let's keep it at its current location
-and only remove the HOTREMOVE guard.
-
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Reviewed-by: Wen Congyang <wency@cn.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
+ drivers/video/backlight/s6e63m0.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix mm/page_alloc.c
---- a/mm/page_alloc.c~memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix
-+++ a/mm/page_alloc.c
-@@ -5981,7 +5981,6 @@ void __meminit zone_pcp_update(struct zo
- }
- #endif
+diff -puN drivers/video/backlight/s6e63m0.c~drivers-video-backlight-s6e63m0c-remove-unnecessary-cast-of-void-pointer drivers/video/backlight/s6e63m0.c
+--- a/drivers/video/backlight/s6e63m0.c~drivers-video-backlight-s6e63m0c-remove-unnecessary-cast-of-void-pointer
++++ a/drivers/video/backlight/s6e63m0.c
+@@ -757,7 +757,7 @@ static int __devinit s6e63m0_probe(struc
+ 	lcd->spi = spi;
+ 	lcd->dev = &spi->dev;
  
--#ifdef CONFIG_MEMORY_HOTREMOVE
- void zone_pcp_reset(struct zone *zone)
- {
- 	unsigned long flags;
-@@ -6001,6 +6000,7 @@ void zone_pcp_reset(struct zone *zone)
- 	local_irq_restore(flags);
- }
- 
-+#ifdef CONFIG_MEMORY_HOTREMOVE
- /*
-  * All pages in the range must be isolated before calling this.
-  */
+-	lcd->lcd_pd = (struct lcd_platform_data *)spi->dev.platform_data;
++	lcd->lcd_pd = spi->dev.platform_data;
+ 	if (!lcd->lcd_pd) {
+ 		dev_err(&spi->dev, "platform data is NULL.\n");
+ 		return -EFAULT;
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
+backlight-ili9320-add-missing-spi-dependency.patch
 linux-next.patch
-thp-clean-up-__collapse_huge_page_isolate.patch
-thp-introduce-hugepage_get_pmd.patch
-thp-introduce-hugepage_vma_check.patch
-thp-cleanup-introduce-mk_huge_pmd.patch
-memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix.patch
-mm-memblock-reduce-overhead-in-binary-search.patch
+backlight-da903x_bl-use-dev_get_drvdata-instead-of-platform_get_drvdata.patch
+backlight-88pm860x_bl-fix-checkpatch-warning.patch
+backlight-atmel-pwm-bl-fix-checkpatch-warning.patch
+backlight-corgi_lcd-fix-checkpatch-error-and-warning.patch
+backlight-da903x_bl-fix-checkpatch-warning.patch
+backlight-generic_bl-fix-checkpatch-warning.patch
+backlight-hp680_bl-fix-checkpatch-error-and-warning.patch
+backlight-ili9320-fix-checkpatch-error-and-warning.patch
+backlight-jornada720-fix-checkpatch-error-and-warning.patch
+backlight-l4f00242t03-fix-checkpatch-warning.patch
+backlight-lm3630-fix-checkpatch-warning.patch
+backlight-locomolcd-fix-checkpatch-error-and-warning.patch
+backlight-omap1-fix-checkpatch-warning.patch
+backlight-pcf50633-fix-checkpatch-warning.patch
+backlight-platform_lcd-fix-checkpatch-error.patch
+backlight-tdo24m-fix-checkpatch-warning.patch
+backlight-tosa-fix-checkpatch-error-and-warning.patch
+backlight-vgg2432a4-fix-checkpatch-warning.patch
+backlight-lms283gf05-use-devm_gpio_request_one.patch
+backlight-tosa-use-devm_gpio_request_one.patch
+drivers-video-backlight-da9052_blc-add-missing-const.patch
+drivers-video-backlight-lms283gf05c-add-missing-const.patch
+drivers-video-backlight-tdo24mc-add-missing-const.patch
+drivers-video-backlight-vgg2432a4c-add-missing-const.patch
+drivers-video-backlight-s6e63m0c-remove-unnecessary-cast-of-void-pointer.patch
 
