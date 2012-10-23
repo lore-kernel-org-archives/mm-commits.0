@@ -1,180 +1,453 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] printk-rename-enum-log_flags-to-printk_log_flags.patch removed from -mm tree
-Date: Tue, 23 Oct 2012 13:04:05 -0700
-Message-ID: <20121023200405.939651E0048@wpzn4.hot.corp.google.com>
+Subject: [to-be-updated] printk-rename-logbuf_lock-to-printk_logbuf_lock.patch removed from -mm tree
+Date: Tue, 23 Oct 2012 13:04:11 -0700
+Message-ID: <20121023200412.173695C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:59288 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933448Ab2JWUEH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 16:04:07 -0400
-Received: by mail-vb0-f74.google.com with SMTP id s24so530734vbi.1
-        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 13:04:06 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:46705 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756945Ab2JWUEP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 16:04:15 -0400
+Received: by mail-wg0-f74.google.com with SMTP id dt11so256704wgb.1
+        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 13:04:13 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, kay@vrfy.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk: rename enum log_flags to printk_log_flags
+     Subject: printk: rename logbuf_lock to printk_logbuf_lock
 has been removed from the -mm tree.  Its filename was
-     printk-rename-enum-log_flags-to-printk_log_flags.patch
+     printk-rename-logbuf_lock-to-printk_logbuf_lock.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: printk: rename enum log_flags to printk_log_flags
+Subject: printk: rename logbuf_lock to printk_logbuf_lock
 
-Make this generic enum more specific to the printk subsystem.
+Make this generic name more specific to the printk
+subsystem and allow it to become non-static.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Kay Sievers <kay@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |   32 +++++++++++++++++---------------
- 1 file changed, 17 insertions(+), 15 deletions(-)
+ kernel/printk/printk.c |  102 +++++++++++++++++++--------------------
+ 1 file changed, 51 insertions(+), 51 deletions(-)
 
-diff -puN kernel/printk/printk.c~printk-rename-enum-log_flags-to-printk_log_flags kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-rename-enum-log_flags-to-printk_log_flags
+diff -puN kernel/printk/printk.c~printk-rename-logbuf_lock-to-printk_logbuf_lock kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-rename-logbuf_lock-to-printk_logbuf_lock
 +++ a/kernel/printk/printk.c
-@@ -187,7 +187,7 @@ static int console_may_schedule;
-  * separated by ',', and find the message after the ';' character.
-  */
- 
--enum log_flags {
-+enum printk_log_flags {
- 	LOG_NOCONS	= 1,	/* already flushed, do not print to console */
- 	LOG_NEWLINE	= 2,	/* text ended with a newline */
- 	LOG_PREFIX	= 4,	/* text started with a prefix */
-@@ -214,7 +214,7 @@ static DEFINE_RAW_SPINLOCK(logbuf_lock);
- /* the next printk record to read by syslog(READ) or /proc/kmsg */
- static u64 syslog_seq;
- static u32 syslog_idx;
--static enum log_flags syslog_prev;
-+static enum printk_log_flags syslog_prev;
- static size_t syslog_partial;
- 
- /* index and sequence number of the first record stored in the buffer */
-@@ -228,7 +228,7 @@ static u32 printk_log_next_idx;
- /* the next printk record to write to the console */
- static u64 console_seq;
- static u32 console_idx;
--static enum log_flags console_prev;
-+static enum printk_log_flags console_prev;
- 
- /* the next printk record to read after the last 'clear' command */
- static u64 clear_seq;
-@@ -297,7 +297,7 @@ static u32 printk_log_next(u32 idx)
- 
- /* insert record into the buffer, discard old ones, update heads */
- static void printk_log_store(int facility, int level,
--			     enum log_flags flags, u64 ts_nsec,
-+			     enum printk_log_flags flags, u64 ts_nsec,
- 			     const char *dict, u16 dict_len,
- 			     const char *text, u16 text_len)
- {
-@@ -360,7 +360,7 @@ static void printk_log_store(int facilit
- struct devkmsg_user {
- 	u64 seq;
- 	u32 idx;
--	enum log_flags prev;
-+	enum printk_log_flags prev;
- 	struct mutex lock;
- 	char buf[8192];
+@@ -205,10 +205,10 @@ struct printk_log {
  };
-@@ -872,7 +872,8 @@ static size_t print_prefix(const struct 
- 	return len;
+ 
+ /*
+- * The logbuf_lock protects kmsg buffer, indices, counters. It is also
++ * The printk_logbuf_lock protects kmsg buffer, indices, counters. It is also
+  * used in interesting ways to provide interlocking in console_unlock();
+  */
+-static DEFINE_RAW_SPINLOCK(logbuf_lock);
++static DEFINE_RAW_SPINLOCK(printk_logbuf_lock);
+ 
+ #ifdef CONFIG_PRINTK
+ /* the next printk record to read by syslog(READ) or /proc/kmsg */
+@@ -248,7 +248,7 @@ static char __printk_log_buf[__PRINTK_LO
+ static char *printk_log_buf = __printk_log_buf;
+ static u32 printk_log_buf_len = __PRINTK_LOG_BUF_LEN;
+ 
+-/* cpu currently holding logbuf_lock */
++/* cpu currently holding printk_logbuf_lock */
+ static volatile unsigned int logbuf_cpu = UINT_MAX;
+ 
+ /* human readable text of the record */
+@@ -438,20 +438,20 @@ static ssize_t devkmsg_read(struct file 
+ 	ret = mutex_lock_interruptible(&user->lock);
+ 	if (ret)
+ 		return ret;
+-	raw_spin_lock_irq(&logbuf_lock);
++	raw_spin_lock_irq(&printk_logbuf_lock);
+ 	while (user->seq == printk_log_next_seq) {
+ 		if (file->f_flags & O_NONBLOCK) {
+ 			ret = -EAGAIN;
+-			raw_spin_unlock_irq(&logbuf_lock);
++			raw_spin_unlock_irq(&printk_logbuf_lock);
+ 			goto out;
+ 		}
+ 
+-		raw_spin_unlock_irq(&logbuf_lock);
++		raw_spin_unlock_irq(&printk_logbuf_lock);
+ 		ret = wait_event_interruptible(printk_log_wait,
+ 					       user->seq != printk_log_next_seq);
+ 		if (ret)
+ 			goto out;
+-		raw_spin_lock_irq(&logbuf_lock);
++		raw_spin_lock_irq(&printk_logbuf_lock);
+ 	}
+ 
+ 	if (user->seq < printk_log_first_seq) {
+@@ -459,7 +459,7 @@ static ssize_t devkmsg_read(struct file 
+ 		user->idx = printk_log_first_idx;
+ 		user->seq = printk_log_first_seq;
+ 		ret = -EPIPE;
+-		raw_spin_unlock_irq(&logbuf_lock);
++		raw_spin_unlock_irq(&printk_logbuf_lock);
+ 		goto out;
+ 	}
+ 
+@@ -526,7 +526,7 @@ static ssize_t devkmsg_read(struct file 
+ 
+ 	user->idx = printk_log_next(user->idx);
+ 	user->seq++;
+-	raw_spin_unlock_irq(&logbuf_lock);
++	raw_spin_unlock_irq(&printk_logbuf_lock);
+ 
+ 	if (len > count) {
+ 		ret = -EINVAL;
+@@ -553,7 +553,7 @@ static loff_t devkmsg_llseek(struct file
+ 	if (offset)
+ 		return -ESPIPE;
+ 
+-	raw_spin_lock_irq(&logbuf_lock);
++	raw_spin_lock_irq(&printk_logbuf_lock);
+ 	switch (whence) {
+ 	case SEEK_SET:
+ 		/* the first record */
+@@ -577,7 +577,7 @@ static loff_t devkmsg_llseek(struct file
+ 	default:
+ 		ret = -EINVAL;
+ 	}
+-	raw_spin_unlock_irq(&logbuf_lock);
++	raw_spin_unlock_irq(&printk_logbuf_lock);
+ 	return ret;
  }
  
--static size_t msg_print_text(const struct printk_log *msg, enum log_flags prev,
-+static size_t msg_print_text(const struct printk_log *msg,
-+			     enum printk_log_flags prev,
- 			     bool syslog, char *buf, size_t size)
- {
- 	const char *text = printk_log_text(msg);
-@@ -1009,7 +1010,7 @@ static int syslog_print_all(char __user 
+@@ -591,14 +591,14 @@ static unsigned int devkmsg_poll(struct 
+ 
+ 	poll_wait(file, &printk_log_wait, wait);
+ 
+-	raw_spin_lock_irq(&logbuf_lock);
++	raw_spin_lock_irq(&printk_logbuf_lock);
+ 	if (user->seq < printk_log_next_seq) {
+ 		/* return error when data has vanished underneath us */
+ 		if (user->seq < printk_log_first_seq)
+ 			ret = POLLIN|POLLRDNORM|POLLERR|POLLPRI;
+ 		ret = POLLIN|POLLRDNORM;
+ 	}
+-	raw_spin_unlock_irq(&logbuf_lock);
++	raw_spin_unlock_irq(&printk_logbuf_lock);
+ 
+ 	return ret;
+ }
+@@ -622,10 +622,10 @@ static int devkmsg_open(struct inode *in
+ 
+ 	mutex_init(&user->lock);
+ 
+-	raw_spin_lock_irq(&logbuf_lock);
++	raw_spin_lock_irq(&printk_logbuf_lock);
+ 	user->idx = printk_log_first_idx;
+ 	user->seq = printk_log_first_seq;
+-	raw_spin_unlock_irq(&logbuf_lock);
++	raw_spin_unlock_irq(&printk_logbuf_lock);
+ 
+ 	file->private_data = user;
+ 	return 0;
+@@ -722,13 +722,13 @@ void __init setup_log_buf(int early)
+ 		return;
+ 	}
+ 
+-	raw_spin_lock_irqsave(&logbuf_lock, flags);
++	raw_spin_lock_irqsave(&printk_logbuf_lock, flags);
+ 	printk_log_buf_len = new_printk_log_buf_len;
+ 	printk_log_buf = new_printk_log_buf;
+ 	new_printk_log_buf_len = 0;
+ 	free = __PRINTK_LOG_BUF_LEN - printk_log_next_idx;
+ 	memcpy(printk_log_buf, __printk_log_buf, __PRINTK_LOG_BUF_LEN);
+-	raw_spin_unlock_irqrestore(&logbuf_lock, flags);
++	raw_spin_unlock_irqrestore(&printk_logbuf_lock, flags);
+ 
+ 	pr_info("printk_log_buf_len: %d\n", printk_log_buf_len);
+ 	pr_info("early log buf free: %d(%d%%)\n",
+@@ -946,7 +946,7 @@ static int syslog_print(char __user *buf
+ 		size_t n;
+ 		size_t skip;
+ 
+-		raw_spin_lock_irq(&logbuf_lock);
++		raw_spin_lock_irq(&printk_logbuf_lock);
+ 		if (syslog_seq < printk_log_first_seq) {
+ 			/* messages are gone, move to first one */
+ 			syslog_seq = printk_log_first_seq;
+@@ -955,7 +955,7 @@ static int syslog_print(char __user *buf
+ 			syslog_partial = 0;
+ 		}
+ 		if (syslog_seq == printk_log_next_seq) {
+-			raw_spin_unlock_irq(&logbuf_lock);
++			raw_spin_unlock_irq(&printk_logbuf_lock);
+ 			break;
+ 		}
+ 
+@@ -976,7 +976,7 @@ static int syslog_print(char __user *buf
+ 			syslog_partial += n;
+ 		} else
+ 			n = 0;
+-		raw_spin_unlock_irq(&logbuf_lock);
++		raw_spin_unlock_irq(&printk_logbuf_lock);
+ 
+ 		if (!n)
+ 			break;
+@@ -1005,7 +1005,7 @@ static int syslog_print_all(char __user 
+ 	if (!text)
+ 		return -ENOMEM;
+ 
+-	raw_spin_lock_irq(&logbuf_lock);
++	raw_spin_lock_irq(&printk_logbuf_lock);
+ 	if (buf) {
  		u64 next_seq;
  		u64 seq;
- 		u32 idx;
--		enum log_flags prev;
-+		enum printk_log_flags prev;
+@@ -1066,12 +1066,12 @@ static int syslog_print_all(char __user 
+ 			seq++;
+ 			prev = msg->flags;
  
- 		if (clear_seq < printk_log_first_seq) {
- 			/* messages are gone, move to first available one */
-@@ -1194,7 +1195,7 @@ int do_syslog(int type, char __user *buf
- 		} else {
- 			u64 seq = syslog_seq;
- 			u32 idx = syslog_idx;
--			enum log_flags prev = syslog_prev;
-+			enum printk_log_flags prev = syslog_prev;
+-			raw_spin_unlock_irq(&logbuf_lock);
++			raw_spin_unlock_irq(&printk_logbuf_lock);
+ 			if (copy_to_user(buf + len, text, textlen))
+ 				len = -EFAULT;
+ 			else
+ 				len += textlen;
+-			raw_spin_lock_irq(&logbuf_lock);
++			raw_spin_lock_irq(&printk_logbuf_lock);
  
- 			error = 0;
- 			while (seq < printk_log_next_seq) {
-@@ -1383,11 +1384,11 @@ static struct cont {
- 	u64 ts_nsec;			/* time of first print */
- 	u8 level;			/* log level of first message */
- 	u8 facility;			/* log level of first message */
--	enum log_flags flags;		/* prefix, newline flags */
-+	enum printk_log_flags flags;	/* prefix, newline flags */
- 	bool flushed:1;			/* buffer sealed and committed */
- } cont;
+ 			if (seq < printk_log_first_seq) {
+ 				/* messages are gone, move to next one */
+@@ -1086,7 +1086,7 @@ static int syslog_print_all(char __user 
+ 		clear_seq = printk_log_next_seq;
+ 		clear_idx = printk_log_next_idx;
+ 	}
+-	raw_spin_unlock_irq(&logbuf_lock);
++	raw_spin_unlock_irq(&printk_logbuf_lock);
  
--static void cont_flush(enum log_flags flags)
-+static void cont_flush(enum printk_log_flags flags)
+ 	kfree(text);
+ 	return len;
+@@ -1177,7 +1177,7 @@ int do_syslog(int type, char __user *buf
+ 		break;
+ 	/* Number of chars in the log buffer */
+ 	case SYSLOG_ACTION_SIZE_UNREAD:
+-		raw_spin_lock_irq(&logbuf_lock);
++		raw_spin_lock_irq(&printk_logbuf_lock);
+ 		if (syslog_seq < printk_log_first_seq) {
+ 			/* messages are gone, move to first one */
+ 			syslog_seq = printk_log_first_seq;
+@@ -1208,7 +1208,7 @@ int do_syslog(int type, char __user *buf
+ 			}
+ 			error -= syslog_partial;
+ 		}
+-		raw_spin_unlock_irq(&logbuf_lock);
++		raw_spin_unlock_irq(&printk_logbuf_lock);
+ 		break;
+ 	/* Size of the log buffer */
+ 	case SYSLOG_ACTION_SIZE_BUFFER:
+@@ -1289,7 +1289,7 @@ static void zap_locks(void)
+ 
+ 	debug_locks_off();
+ 	/* If a crash is occurring, make sure we can't deadlock */
+-	raw_spin_lock_init(&logbuf_lock);
++	raw_spin_lock_init(&printk_logbuf_lock);
+ 	/* And make sure that we print immediately */
+ 	sema_init(&console_sem, 1);
+ }
+@@ -1325,12 +1325,12 @@ static inline int can_use_console(unsign
+  * console_lock held, and 'console_locked' set) if it
+  * is successful, false otherwise.
+  *
+- * This gets called with the 'logbuf_lock' spinlock held and
++ * This gets called with the 'printk_logbuf_lock' spinlock held and
+  * interrupts disabled. It should return with 'lockbuf_lock'
+  * released but interrupts still disabled.
+  */
+ static int console_trylock_for_printk(unsigned int cpu)
+-	__releases(&logbuf_lock)
++	__releases(&printk_logbuf_lock)
  {
- 	if (cont.flushed)
- 		return;
-@@ -1481,7 +1482,7 @@ asmlinkage int vprintk_emit(int facility
- 	static char textbuf[LOG_LINE_MAX];
- 	char *text = textbuf;
- 	size_t text_len;
--	enum log_flags lflags = 0;
-+	enum printk_log_flags lflags = 0;
+ 	int retval = 0, wake = 0;
+ 
+@@ -1352,7 +1352,7 @@ static int console_trylock_for_printk(un
+ 	logbuf_cpu = UINT_MAX;
+ 	if (wake)
+ 		up(&console_sem);
+-	raw_spin_unlock(&logbuf_lock);
++	raw_spin_unlock(&printk_logbuf_lock);
+ 	return retval;
+ }
+ 
+@@ -1513,7 +1513,7 @@ asmlinkage int vprintk_emit(int facility
+ 	}
+ 
+ 	lockdep_off();
+-	raw_spin_lock(&logbuf_lock);
++	raw_spin_lock(&printk_logbuf_lock);
+ 	logbuf_cpu = this_cpu;
+ 
+ 	if (recursion_bug) {
+@@ -1603,7 +1603,7 @@ asmlinkage int vprintk_emit(int facility
+ 	 * The release will print out buffers and wake up /dev/kmsg and syslog()
+ 	 * users.
+ 	 *
+-	 * The console_trylock_for_printk() function will release 'logbuf_lock'
++	 * The console_trylock_for_printk() function will release 'printk_logbuf_lock'
+ 	 * regardless of whether it actually gets the console semaphore or not.
+ 	 */
+ 	if (console_trylock_for_printk(this_cpu))
+@@ -1970,7 +1970,7 @@ static void console_cont_flush(char *tex
  	unsigned long flags;
- 	int this_cpu;
- 	int printed_len = 0;
-@@ -1688,11 +1689,11 @@ static u64 syslog_seq;
- static u32 syslog_idx;
- static u64 console_seq;
- static u32 console_idx;
--static enum log_flags syslog_prev;
-+static enum printk_log_flags syslog_prev;
- static u64 printk_log_first_seq;
- static u32 printk_log_first_idx;
- static u64 printk_log_next_seq;
--static enum log_flags console_prev;
-+static enum printk_log_flags console_prev;
- static struct cont {
  	size_t len;
- 	size_t cons;
-@@ -1702,7 +1703,8 @@ static struct cont {
- static struct printk_log *printk_log_from_idx(u32 idx) { return NULL; }
- static u32 printk_log_next(u32 idx) { return 0; }
- static void call_console_drivers(int level, const char *text, size_t len) {}
--static size_t msg_print_text(const struct printk_log *msg, enum log_flags prev,
-+static size_t msg_print_text(const struct printk_log *msg,
-+			     enum printk_log_flags prev,
- 			     bool syslog, char *buf, size_t size) { return 0; }
- static size_t cont_print_text(char *text, size_t size) { return 0; }
  
-@@ -2688,7 +2690,7 @@ bool kmsg_dump_get_buffer(struct kmsg_du
- 	u32 idx;
- 	u64 next_seq;
- 	u32 next_idx;
--	enum log_flags prev;
-+	enum printk_log_flags prev;
- 	size_t l = 0;
- 	bool ret = false;
+-	raw_spin_lock_irqsave(&logbuf_lock, flags);
++	raw_spin_lock_irqsave(&printk_logbuf_lock, flags);
  
+ 	if (!cont.len)
+ 		goto out;
+@@ -1984,14 +1984,14 @@ static void console_cont_flush(char *tex
+ 		goto out;
+ 
+ 	len = cont_print_text(text, size);
+-	raw_spin_unlock(&logbuf_lock);
++	raw_spin_unlock(&printk_logbuf_lock);
+ 	stop_critical_timings();
+ 	call_console_drivers(cont.level, text, len);
+ 	start_critical_timings();
+ 	local_irq_restore(flags);
+ 	return;
+ out:
+-	raw_spin_unlock_irqrestore(&logbuf_lock, flags);
++	raw_spin_unlock_irqrestore(&printk_logbuf_lock, flags);
+ }
+ 
+ /**
+@@ -2031,7 +2031,7 @@ again:
+ 		size_t len;
+ 		int level;
+ 
+-		raw_spin_lock_irqsave(&logbuf_lock, flags);
++		raw_spin_lock_irqsave(&printk_logbuf_lock, flags);
+ 		if (seen_seq != printk_log_next_seq) {
+ 			wake_klogd = true;
+ 			seen_seq = printk_log_next_seq;
+@@ -2071,7 +2071,7 @@ skip:
+ 		console_idx = printk_log_next(console_idx);
+ 		console_seq++;
+ 		console_prev = msg->flags;
+-		raw_spin_unlock(&logbuf_lock);
++		raw_spin_unlock(&printk_logbuf_lock);
+ 
+ 		stop_critical_timings();	/* don't trace print latency */
+ 		call_console_drivers(level, text, len);
+@@ -2084,7 +2084,7 @@ skip:
+ 	if (unlikely(exclusive_console))
+ 		exclusive_console = NULL;
+ 
+-	raw_spin_unlock(&logbuf_lock);
++	raw_spin_unlock(&printk_logbuf_lock);
+ 
+ 	up(&console_sem);
+ 
+@@ -2094,9 +2094,9 @@ skip:
+ 	 * there's a new owner and the console_unlock() from them will do the
+ 	 * flush, no worries.
+ 	 */
+-	raw_spin_lock(&logbuf_lock);
++	raw_spin_lock(&printk_logbuf_lock);
+ 	retry = console_seq != printk_log_next_seq;
+-	raw_spin_unlock_irqrestore(&logbuf_lock, flags);
++	raw_spin_unlock_irqrestore(&printk_logbuf_lock, flags);
+ 
+ 	if (retry && console_trylock())
+ 		goto again;
+@@ -2326,11 +2326,11 @@ void register_console(struct console *ne
+ 		 * console_unlock(); will print out the buffered messages
+ 		 * for us.
+ 		 */
+-		raw_spin_lock_irqsave(&logbuf_lock, flags);
++		raw_spin_lock_irqsave(&printk_logbuf_lock, flags);
+ 		console_seq = syslog_seq;
+ 		console_idx = syslog_idx;
+ 		console_prev = syslog_prev;
+-		raw_spin_unlock_irqrestore(&logbuf_lock, flags);
++		raw_spin_unlock_irqrestore(&printk_logbuf_lock, flags);
+ 		/*
+ 		 * We're about to replay the log buffer.  Only do this to the
+ 		 * just-registered console to avoid excessive message spam to
+@@ -2565,12 +2565,12 @@ void kmsg_dump(enum kmsg_dump_reason rea
+ 		/* initialize iterator with data about the stored records */
+ 		dumper->active = true;
+ 
+-		raw_spin_lock_irqsave(&logbuf_lock, flags);
++		raw_spin_lock_irqsave(&printk_logbuf_lock, flags);
+ 		dumper->cur_seq = clear_seq;
+ 		dumper->cur_idx = clear_idx;
+ 		dumper->next_seq = printk_log_next_seq;
+ 		dumper->next_idx = printk_log_next_idx;
+-		raw_spin_unlock_irqrestore(&logbuf_lock, flags);
++		raw_spin_unlock_irqrestore(&printk_logbuf_lock, flags);
+ 
+ 		/* invoke dumper which will iterate over records */
+ 		dumper->dump(dumper, reason);
+@@ -2655,9 +2655,9 @@ bool kmsg_dump_get_line(struct kmsg_dump
+ 	unsigned long flags;
+ 	bool ret;
+ 
+-	raw_spin_lock_irqsave(&logbuf_lock, flags);
++	raw_spin_lock_irqsave(&printk_logbuf_lock, flags);
+ 	ret = kmsg_dump_get_line_nolock(dumper, syslog, line, size, len);
+-	raw_spin_unlock_irqrestore(&logbuf_lock, flags);
++	raw_spin_unlock_irqrestore(&printk_logbuf_lock, flags);
+ 
+ 	return ret;
+ }
+@@ -2697,7 +2697,7 @@ bool kmsg_dump_get_buffer(struct kmsg_du
+ 	if (!dumper->active)
+ 		goto out;
+ 
+-	raw_spin_lock_irqsave(&logbuf_lock, flags);
++	raw_spin_lock_irqsave(&printk_logbuf_lock, flags);
+ 	if (dumper->cur_seq < printk_log_first_seq) {
+ 		/* messages are gone, move to first available one */
+ 		dumper->cur_seq = printk_log_first_seq;
+@@ -2706,7 +2706,7 @@ bool kmsg_dump_get_buffer(struct kmsg_du
+ 
+ 	/* last entry */
+ 	if (dumper->cur_seq >= dumper->next_seq) {
+-		raw_spin_unlock_irqrestore(&logbuf_lock, flags);
++		raw_spin_unlock_irqrestore(&printk_logbuf_lock, flags);
+ 		goto out;
+ 	}
+ 
+@@ -2754,7 +2754,7 @@ bool kmsg_dump_get_buffer(struct kmsg_du
+ 	dumper->next_seq = next_seq;
+ 	dumper->next_idx = next_idx;
+ 	ret = true;
+-	raw_spin_unlock_irqrestore(&logbuf_lock, flags);
++	raw_spin_unlock_irqrestore(&printk_logbuf_lock, flags);
+ out:
+ 	if (len)
+ 		*len = l;
+@@ -2792,9 +2792,9 @@ void kmsg_dump_rewind(struct kmsg_dumper
+ {
+ 	unsigned long flags;
+ 
+-	raw_spin_lock_irqsave(&logbuf_lock, flags);
++	raw_spin_lock_irqsave(&printk_logbuf_lock, flags);
+ 	kmsg_dump_rewind_nolock(dumper);
+-	raw_spin_unlock_irqrestore(&logbuf_lock, flags);
++	raw_spin_unlock_irqrestore(&printk_logbuf_lock, flags);
+ }
+ EXPORT_SYMBOL_GPL(kmsg_dump_rewind);
+ #endif
 _
 
 Patches currently in -mm which might be from joe@perches.com are
 
 linux-next.patch
-printk-rename-log_wait-to-printk_log_wait.patch
-printk-rename-logbuf_lock-to-printk_logbuf_lock.patch
 printk-rename-clear_seq-and-clear_idx-variables.patch
 printk-remove-static-from-printk_-variables.patch
 printk-rename-log_align-to-printk_log_align.patch
