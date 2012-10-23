@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + pidns-limit-the-nesting-depth-of-pid-namespaces.patch added to -mm tree
-Date: Tue, 23 Oct 2012 16:57:01 -0700
-Message-ID: <20121023235702.9E39F200059@hpza10.eem.corp.google.com>
+Subject: + pidns-limit-the-nesting-depth-of-pid-namespaces-fix.patch added to -mm tree
+Date: Tue, 23 Oct 2012 16:57:05 -0700
+Message-ID: <20121023235706.233AB1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:57602 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933579Ab2JWX5F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 19:57:05 -0400
-Received: by mail-ee0-f74.google.com with SMTP id b57so263209eek.1
-        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 16:57:04 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:59883 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934107Ab2JWX5H (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 19:57:07 -0400
+Received: by mail-gg0-f202.google.com with SMTP id i4so557691ggm.1
+        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 16:57:06 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: avagin@openvz.org, ebiederm@xmission.com, gorcunov@openvz.org, oleg@redhat.com, xemul@parallels.com
+Cc: akpm@linux-foundation.org, avagin@openvz.org, ebiederm@xmission.com, gorcunov@openvz.org, oleg@redhat.com, xemul@parallels.com
 
 
 The patch titled
-     Subject: pidns: limit the nesting depth of pid namespaces
+     Subject: pidns-limit-the-nesting-depth-of-pid-namespaces-fix
 has been added to the -mm tree.  Its filename is
-     pidns-limit-the-nesting-depth-of-pid-namespaces.patch
+     pidns-limit-the-nesting-depth-of-pid-namespaces-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,75 +33,74 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Vagin <avagin@openvz.org>
-Subject: pidns: limit the nesting depth of pid namespaces
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: pidns-limit-the-nesting-depth-of-pid-namespaces-fix
 
-'struct pid' is a "variable sized struct" - a header with an array of
-upids at the end.
+return -EINVAL in response to excessive nesting, not -ENOMEM
 
-The size of the array depends on a level (depth) of pid namespaces.  Now a
-level of pidns is not limited, so 'struct pid' can be more than one page.
-
-Looks reasonable, that it should be less than a page.  MAX_PIS_NS_LEVEL is
-not calculated from PAGE_SIZE, because in this case it depends on
-architectures, config options and it will be reduced, if someone adds a
-new fields in struct pid or struct upid.
-
-I suggest to set MAX_PIS_NS_LEVEL = 32, because it saves ability to expand
-"struct pid" and it's more than enough for all known for me use-cases. 
-When someone finds a reasonable use case, we can add a config option or a
-sysctl parameter.
-
-In addition it will reduce the effect of another problem, when we have
-many nested namespaces and the oldest one starts dying. 
-zap_pid_ns_processe will be called for each namespace and find_vpid will
-be called for each process in a namespace.  find_vpid will be called
-minimum max_level^2 / 2 times.  The reason of that is that when we found a
-bit in pidmap, we can't determine this pidns is top for this process or it
-isn't.
-
-vpid is a heavy operation, so a fork bomb, which create many nested
-namespace, can make a system inaccessible for a long time.  For example my
-system becomes inaccessible for a few minutes with 4000 processes.
-
-Signed-off-by: Andrew Vagin <avagin@openvz.org>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Andrew Vagin <avagin@openvz.org>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/pid_namespace.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ kernel/pid_namespace.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN kernel/pid_namespace.c~pidns-limit-the-nesting-depth-of-pid-namespaces kernel/pid_namespace.c
---- a/kernel/pid_namespace.c~pidns-limit-the-nesting-depth-of-pid-namespaces
+diff -puN kernel/pid_namespace.c~pidns-limit-the-nesting-depth-of-pid-namespaces-fix kernel/pid_namespace.c
+--- a/kernel/pid_namespace.c~pidns-limit-the-nesting-depth-of-pid-namespaces-fix
 +++ a/kernel/pid_namespace.c
-@@ -71,12 +71,18 @@ err_alloc:
- 	return NULL;
- }
- 
-+/* MAX_PID_NS_LEVEL is needed for limiting size of 'struct pid' */
-+#define MAX_PID_NS_LEVEL 32
-+
- static struct pid_namespace *create_pid_namespace(struct pid_namespace *parent_pid_ns)
+@@ -78,11 +78,15 @@ static struct pid_namespace *create_pid_
  {
  	struct pid_namespace *ns;
  	unsigned int level = parent_pid_ns->level + 1;
- 	int i, err = -ENOMEM;
+-	int i, err = -ENOMEM;
++	int i;
++	int err;
  
-+	if (level > MAX_PID_NS_LEVEL)
-+		goto out;
-+
+-	if (level > MAX_PID_NS_LEVEL)
++	if (level > MAX_PID_NS_LEVEL) {
++		err = -EINVAL;
+ 		goto out;
++	}
+ 
++	err = -ENOMEM;
  	ns = kmem_cache_zalloc(pid_ns_cachep, GFP_KERNEL);
  	if (ns == NULL)
  		goto out;
 _
 
-Patches currently in -mm which might be from avagin@openvz.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-pidns-limit-the-nesting-depth-of-pid-namespaces.patch
 pidns-limit-the-nesting-depth-of-pid-namespaces-fix.patch
-proc-dont-show-nonexistent-capabilities.patch
+revert-tools-testing-selftests-epoll-test_epollc-fix-build.patch
+revert-epoll-support-for-disabling-items-and-a-self-test-app.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+mm.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
+drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+drivers-edac-amd64_edacc-__amd64_set_scrub_rate-avoid-overindexing-scrubrates.patch
+binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
+hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
+fat-exportfs-rebuild-inode-if-ilookup-fails-fix.patch
+procfs-add-vmflags-field-in-smaps-output-v3-fix.patch
+random-fix-debug-format-strings-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
