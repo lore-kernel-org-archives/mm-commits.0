@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + uapi-fix-tools-vm-page-typesc.patch added to -mm tree
-Date: Tue, 23 Oct 2012 15:09:28 -0700
-Message-ID: <20121023220929.1A7635C0050@hpza9.eem.corp.google.com>
+Subject: + tools-testing-selftests-epoll-test_epollc-fix-build.patch added to -mm tree
+Date: Tue, 23 Oct 2012 15:12:14 -0700
+Message-ID: <20121023221214.8D8661E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:41439 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754324Ab2JWWJb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 18:09:31 -0400
-Received: by mail-ee0-f74.google.com with SMTP id b57so260672eek.1
-        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 15:09:30 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:57421 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932832Ab2JWWMQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 18:12:16 -0400
+Received: by mail-vc0-f202.google.com with SMTP id fy27so547660vcb.1
+        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 15:12:15 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, dshadowwolf@gmail.com, fengguang.wu@intel.com
+Cc: dshadowwolf@gmail.com, palewis@adobe.com
 
 
 The patch titled
-     Subject: UAPI: fix tools/vm/page-types.c
+     Subject: tools/testing/selftests/epoll/test_epoll.c: fix build
 has been added to the -mm tree.  Its filename is
-     uapi-fix-tools-vm-page-typesc.patch
+     tools-testing-selftests-epoll-test_epollc-fix-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,45 +33,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Howells <dhowells@redhat.com>
-Subject: UAPI: fix tools/vm/page-types.c
+From: Daniel Hazelton <dshadowwolf@gmail.com>
+Subject: tools/testing/selftests/epoll/test_epoll.c: fix build
 
-Fix tools/vm/page-types.c to use the UAPI variant of linux/kernel-page-flags.h
-lest the following error appear:
+Latest Linus head run of "make selftests" in the tools directory failed
+with references to undefined variables.  Reference was to
+'write_thread_data' which is the name of a struct that is being used, not
+the variable itself.  Change reference so it points to the variable.
 
-	In file included from page-types.c:38:0:
-	../../include/linux/kernel-page-flags.h:4:42: fatal error:
-	uapi/linux/kernel-page-flags.h: No such file or directory
-
-Reported-by: Daniel Hazelton <dshadowwolf@gmail.com>
-Signed-off-by: David Howells <dhowells@redhat.com>
-Reviewed-by: Fengguang Wu <fengguang.wu@intel.com>
-Tested-by: Daniel Hazelton <dshadowwolf@gmail.com>
+Signed-off-by: Daniel Hazelton <dshadowwolf@gmail.com>
+Cc: "Paton J. Lewis" <palewis@adobe.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/vm/page-types.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/epoll/test_epoll.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN tools/vm/page-types.c~uapi-fix-tools-vm-page-typesc tools/vm/page-types.c
---- a/tools/vm/page-types.c~uapi-fix-tools-vm-page-typesc
-+++ a/tools/vm/page-types.c
-@@ -35,7 +35,7 @@
- #include <sys/mount.h>
- #include <sys/statfs.h>
- #include "../../include/uapi/linux/magic.h"
--#include "../../include/linux/kernel-page-flags.h"
-+#include "../../include/uapi/linux/kernel-page-flags.h"
- 
- 
- #ifndef MAX_PATH
+diff -puN tools/testing/selftests/epoll/test_epoll.c~tools-testing-selftests-epoll-test_epollc-fix-build tools/testing/selftests/epoll/test_epoll.c
+--- a/tools/testing/selftests/epoll/test_epoll.c~tools-testing-selftests-epoll-test_epollc-fix-build
++++ a/tools/testing/selftests/epoll/test_epoll.c
+@@ -162,14 +162,14 @@ void *write_thread_function(void *functi
+ 	int index;
+ 	struct write_thread_data *thread_data =
+ 		(struct write_thread_data *)function_data;
+-	while (!write_thread_data->stop)
++       while (!thread_data->stop)
+ 		for (index = 0;
+ 		     !thread_data->stop && (index < thread_data->n_fds);
+ 		     ++index)
+ 			if ((write(thread_data->fds[index], &data, 1) < 1) &&
+ 				(errno != EAGAIN) &&
+ 				(errno != EWOULDBLOCK)) {
+-				write_thread_data->status = errno;
++                               thread_data->status = errno;
+ 				return;
+ 			}
+ }
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from dshadowwolf@gmail.com are
 
-origin.patch
 uapi-fix-tools-vm-page-typesc.patch
-linux-next.patch
-mutex-subsystem-synchro-test-module.patch
-mutex-subsystem-synchro-test-module-fix.patch
+tools-testing-selftests-epoll-test_epollc-fix-build.patch
 
