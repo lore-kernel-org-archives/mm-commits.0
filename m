@@ -1,215 +1,215 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] printk-prefix-print_time-and-msg_print_text-with-printk_.patch removed from -mm tree
-Date: Tue, 23 Oct 2012 13:04:42 -0700
-Message-ID: <20121023200442.A2B61100047@wpzn3.hot.corp.google.com>
+Subject: + procfs-add-vmflags-field-in-smaps-output-v3.patch added to -mm tree
+Date: Tue, 23 Oct 2012 14:30:54 -0700
+Message-ID: <20121023213055.97733200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:52672 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933335Ab2JWUEn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 16:04:43 -0400
-Received: by mail-qc0-f202.google.com with SMTP id s25so529302qcq.1
-        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 13:04:43 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:55943 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933439Ab2JWVa6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 17:30:58 -0400
+Received: by mail-wi0-f202.google.com with SMTP id hr7so243072wib.1
+        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 14:30:56 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, kay@vrfy.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: gorcunov@openvz.org, a.p.zijlstra@chello.nl, xemul@parallels.com
 
 
 The patch titled
-     Subject: printk: prefix print_time and msg_print_text with printk_
-has been removed from the -mm tree.  Its filename was
-     printk-prefix-print_time-and-msg_print_text-with-printk_.patch
+     Subject: procfs: add VmFlags field in smaps output
+has been added to the -mm tree.  Its filename is
+     procfs-add-vmflags-field-in-smaps-output-v3.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: printk: prefix print_time and msg_print_text with printk_
+From: Cyrill Gorcunov <gorcunov@openvz.org>
+Subject: procfs: add VmFlags field in smaps output
 
-Make these static functions global and prefix them with printk_.
-Create declarations for these functions in printk_log.h
+During c/r sessions we've found that there is no way at the moment to
+fetch some VMA associated flags, such as mlock() and madvise().
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Kay Sievers <kay@vrfy.org>
+This leads us to a problem -- we don't know if we should call for mlock()
+and/or madvise() after restore on the vma area we're bringing back to
+life.
+
+This patch intorduces a new field into "smaps" output called VmFlags,
+where all set flags associated with the particular VMA is shown as two
+letter mnemonics.
+
+[ Strictly speaking for c/r we only need mlock/madvise bits but it has been
+  said that providing just a few flags looks somehow inconsistent.  So all
+  flags are here now. ]
+
+This feature is made available on CONFIG_CHECKPOINT_RESTORE=n kernels, as
+other applications may start to use these fields.
+
+The data is encoded in a somewhat awkward two letters mnemonic form, to
+encourage userspace to be prepared for fields being added or removed in
+the future.
+
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c     |   43 +++++++++++++++++++----------------
- kernel/printk/printk_log.h |    4 +++
- 2 files changed, 28 insertions(+), 19 deletions(-)
+ Documentation/filesystems/proc.txt |   40 +++++++++++++++++++-
+ fs/proc/task_mmu.c                 |   52 +++++++++++++++++++++++++++
+ 2 files changed, 90 insertions(+), 2 deletions(-)
 
-diff -puN kernel/printk/printk.c~printk-prefix-print_time-and-msg_print_text-with-printk_ kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-prefix-print_time-and-msg_print_text-with-printk_
-+++ a/kernel/printk/printk.c
-@@ -318,7 +318,7 @@ static bool printk_time;
- #endif
- module_param_named(time, printk_time, bool, S_IRUGO | S_IWUSR);
+diff -puN Documentation/filesystems/proc.txt~procfs-add-vmflags-field-in-smaps-output-v3 Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~procfs-add-vmflags-field-in-smaps-output-v3
++++ a/Documentation/filesystems/proc.txt
+@@ -142,7 +142,7 @@ Table 1-1: Process specific entries in /
+  pagemap	Page table
+  stack		Report full stack trace, enable via CONFIG_STACKTRACE
+  smaps		a extension based on maps, showing the memory consumption of
+-		each mapping
++		each mapping and flags associated with it
+ ..............................................................................
  
--static size_t print_time(u64 ts, char *buf)
-+size_t printk_print_time(u64 ts, char *buf)
- {
- 	unsigned long rem_nsec;
+ For example, to get the status information of a process, all you have to do is
+@@ -415,8 +415,9 @@ Swap:                  0 kB
+ KernelPageSize:        4 kB
+ MMUPageSize:           4 kB
+ Locked:              374 kB
++VmFlags: rd ex mr mw me de
  
-@@ -352,11 +352,11 @@ static size_t print_prefix(const struct 
- 		}
- 	}
+-The first of these lines shows the same information as is displayed for the
++the first of these lines shows the same information as is displayed for the
+ mapping in /proc/PID/maps.  The remaining lines show the size of the mapping
+ (size), the amount of the mapping that is currently resident in RAM (RSS), the
+ process' proportional share of this mapping (PSS), the number of clean and
+@@ -430,6 +431,41 @@ and a page is modified, the file page is
+ "Swap" shows how much would-be-anonymous memory is also used, but out on
+ swap.
  
--	len += print_time(msg->ts_nsec, buf ? buf + len : NULL);
-+	len += printk_print_time(msg->ts_nsec, buf ? buf + len : NULL);
- 	return len;
++"VmFlags" field deserves a separate description. This member represents the kernel
++flags associated with the particular virtual memory area in two letter encoded
++manner. The codes are the following:
++    rd  - readable
++    wr  - writeable
++    ex  - executable
++    sh  - shared
++    mr  - may read
++    mw  - may write
++    me  - may execute
++    ms  - may share
++    gd  - stack segment growns down
++    pf  - pure PFN range
++    dw  - disabled write to the mapped file
++    lo  - pages are locked in memory
++    io  - memory mapped I/O area
++    sr  - sequential read advise provided
++    rr  - random read advise provided
++    dc  - do not copy area on fork
++    de  - do not expand area on remapping
++    ac  - area is accountable
++    nr  - swap space is not reserved for the area
++    ht  - area uses huge tlb pages
++    nl  - non-linear mapping
++    ar  - architecture specific flag
++    dd  - do not include area into core dump
++    mm  - mixed map area
++    hg  - huge page advise flag
++    nh  - no-huge page advise flag
++    mg  - mergable advise flag
++
++Note that there is no guarantee that every flag and associated mnemonic will
++be present in all further kernel releases. Things get changed, the flags may
++be vanished or the reverse -- new added.
++
+ This file is only present if the CONFIG_MMU kernel configuration option is
+ enabled.
+ 
+diff -puN fs/proc/task_mmu.c~procfs-add-vmflags-field-in-smaps-output-v3 fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~procfs-add-vmflags-field-in-smaps-output-v3
++++ a/fs/proc/task_mmu.c
+@@ -526,6 +526,56 @@ static int smaps_pte_range(pmd_t *pmd, u
+ 	return 0;
  }
  
--static size_t msg_print_text(const struct printk_log *msg,
-+size_t printk_msg_print_text(const struct printk_log *msg,
- 			     enum printk_log_flags prev,
- 			     bool syslog, char *buf, size_t size)
- {
-@@ -445,8 +445,8 @@ static int syslog_print(char __user *buf
- 
- 		skip = syslog_partial;
- 		msg = printk_log_from_idx(syslog_idx);
--		n = msg_print_text(msg, syslog_prev, true, text,
--				   PRINTK_LOG_LINE_MAX + PRINTK_PREFIX_MAX);
-+		n = printk_msg_print_text(msg, syslog_prev, true, text,
-+					  PRINTK_LOG_LINE_MAX + PRINTK_PREFIX_MAX);
- 		if (n - syslog_partial <= size) {
- 			/* message fits into buffer, move forward */
- 			syslog_idx = printk_log_next(syslog_idx);
-@@ -512,7 +512,7 @@ static int syslog_print_all(char __user 
- 		while (seq < printk_log_next_seq) {
- 			struct printk_log *msg = printk_log_from_idx(idx);
- 
--			len += msg_print_text(msg, prev, true, NULL, 0);
-+			len += printk_msg_print_text(msg, prev, true, NULL, 0);
- 			prev = msg->flags;
- 			idx = printk_log_next(idx);
- 			seq++;
-@@ -525,7 +525,7 @@ static int syslog_print_all(char __user 
- 		while (len > size && seq < printk_log_next_seq) {
- 			struct printk_log *msg = printk_log_from_idx(idx);
- 
--			len -= msg_print_text(msg, prev, true, NULL, 0);
-+			len -= printk_msg_print_text(msg, prev, true, NULL, 0);
- 			prev = msg->flags;
- 			idx = printk_log_next(idx);
- 			seq++;
-@@ -540,8 +540,8 @@ static int syslog_print_all(char __user 
- 			struct printk_log *msg = printk_log_from_idx(idx);
- 			int textlen;
- 
--			textlen = msg_print_text(msg, prev, true, text,
--						 PRINTK_LOG_LINE_MAX + PRINTK_PREFIX_MAX);
-+			textlen = printk_msg_print_text(msg, prev, true, text,
-+							PRINTK_LOG_LINE_MAX + PRINTK_PREFIX_MAX);
- 			if (textlen < 0) {
- 				len = textlen;
- 				break;
-@@ -685,7 +685,7 @@ int do_syslog(int type, char __user *buf
- 			while (seq < printk_log_next_seq) {
- 				struct printk_log *msg = printk_log_from_idx(idx);
- 
--				error += msg_print_text(msg, prev, true, NULL, 0);
-+				error += printk_msg_print_text(msg, prev, true, NULL, 0);
- 				idx = printk_log_next(idx);
- 				seq++;
- 				prev = msg->flags;
-@@ -936,7 +936,7 @@ static size_t cont_print_text(char *text
- 	size_t len;
- 
- 	if (cont.cons == 0 && (console_prev & LOG_NEWLINE)) {
--		textlen += print_time(cont.ts_nsec, text);
-+		textlen += printk_print_time(cont.ts_nsec, text);
- 		size -= textlen;
- 	}
- 
-@@ -1186,9 +1186,14 @@ static struct cont {
- struct printk_log *printk_log_from_idx(u32 idx) { return NULL; }
- u32 printk_log_next(u32 idx) { return 0; }
- static void call_console_drivers(int level, const char *text, size_t len) {}
--static size_t msg_print_text(const struct printk_log *msg,
-+size_t printk_print_time(u64 ts, char *buf) { return 0; }
-+size_t printk_msg_print_text(const struct printk_log *msg,
- 			     enum printk_log_flags prev,
--			     bool syslog, char *buf, size_t size) { return 0; }
-+			     bool syslog, char *buf, size_t size)
++static void show_smap_vma_flags(struct seq_file *m, struct vm_area_struct *vma)
 +{
-+	return 0;
++	/*
++	 * Don't forget to update Documentation/ on changes.
++	 */
++
++	const struct {
++		const char l[2];
++	} mnemonics[BITS_PER_LONG] = {
++		[ilog2(VM_READ)]	= { .l = {'r', 'd'} },
++		[ilog2(VM_WRITE)]	= { .l = {'w', 'r'} },
++		[ilog2(VM_EXEC)]	= { .l = {'e', 'x'} },
++		[ilog2(VM_SHARED)]	= { .l = {'s', 'h'} },
++		[ilog2(VM_MAYREAD)]	= { .l = {'m', 'r'} },
++		[ilog2(VM_MAYWRITE)]	= { .l = {'m', 'w'} },
++		[ilog2(VM_MAYEXEC)]	= { .l = {'m', 'e'} },
++		[ilog2(VM_MAYSHARE)]	= { .l = {'m', 's'} },
++		[ilog2(VM_GROWSDOWN)]	= { .l = {'g', 'd'} },
++		[ilog2(VM_PFNMAP)]	= { .l = {'p', 'f'} },
++		[ilog2(VM_DENYWRITE)]	= { .l = {'d', 'w'} },
++		[ilog2(VM_LOCKED)]	= { .l = {'l', 'o'} },
++		[ilog2(VM_IO)]		= { .l = {'i', 'o'} },
++		[ilog2(VM_SEQ_READ)]	= { .l = {'s', 'r'} },
++		[ilog2(VM_RAND_READ)]	= { .l = {'r', 'r'} },
++		[ilog2(VM_DONTCOPY)]	= { .l = {'d', 'c'} },
++		[ilog2(VM_DONTEXPAND)]	= { .l = {'d', 'e'} },
++		[ilog2(VM_ACCOUNT)]	= { .l = {'a', 'c'} },
++		[ilog2(VM_NORESERVE)]	= { .l = {'n', 'r'} },
++		[ilog2(VM_HUGETLB)]	= { .l = {'h', 't'} },
++		[ilog2(VM_NONLINEAR)]	= { .l = {'n', 'l'} },
++		[ilog2(VM_ARCH_1)]	= { .l = {'a', 'r'} },
++		[ilog2(VM_DONTDUMP)]	= { .l = {'d', 'd'} },
++		[ilog2(VM_MIXEDMAP)]	= { .l = {'m', 'm'} },
++		[ilog2(VM_HUGEPAGE)]	= { .l = {'h', 'g'} },
++		[ilog2(VM_NOHUGEPAGE)]	= { .l = {'n', 'h'} },
++		[ilog2(VM_MERGEABLE)]	= { .l = {'m', 'g'} },
++	};
++
++	size_t i;
++
++	seq_puts(m, "VmFlags: ");
++	for (i = 0; i < BITS_PER_LONG; i++) {
++		if (vma->vm_flags & (1 << i))
++			seq_printf(m, "%c%c ",
++				   mnemonics[i].l[0],
++				   mnemonics[i].l[1]);
++	}
++	seq_putc(m, '\n');
 +}
 +
- static size_t cont_print_text(char *text, size_t size) { return 0; }
+ static int show_smap(struct seq_file *m, void *v, int is_pid)
+ {
+ 	struct proc_maps_private *priv = m->private;
+@@ -581,6 +631,8 @@ static int show_smap(struct seq_file *m,
+ 		seq_printf(m, "Nonlinear:      %8lu kB\n",
+ 				mss.nonlinear >> 10);
  
- #endif /* CONFIG_PRINTK */
-@@ -1549,8 +1554,8 @@ skip:
- 		}
- 
- 		level = msg->level;
--		len = msg_print_text(msg, console_prev, false,
--				     text, sizeof(text));
-+		len = printk_msg_print_text(msg, console_prev, false,
-+					    text, sizeof(text));
- 		console_idx = printk_log_next(console_idx);
- 		console_seq++;
- 		console_prev = msg->flags;
-@@ -2104,7 +2109,7 @@ bool kmsg_dump_get_line_nolock(struct km
- 		goto out;
- 
- 	msg = printk_log_from_idx(dumper->cur_idx);
--	l = msg_print_text(msg, 0, syslog, line, size);
-+	l = printk_msg_print_text(msg, 0, syslog, line, size);
- 
- 	dumper->cur_idx = printk_log_next(dumper->cur_idx);
- 	dumper->cur_seq++;
-@@ -2200,7 +2205,7 @@ bool kmsg_dump_get_buffer(struct kmsg_du
- 	while (seq < dumper->next_seq) {
- 		struct printk_log *msg = printk_log_from_idx(idx);
- 
--		l += msg_print_text(msg, prev, true, NULL, 0);
-+		l += printk_msg_print_text(msg, prev, true, NULL, 0);
- 		idx = printk_log_next(idx);
- 		seq++;
- 		prev = msg->flags;
-@@ -2213,7 +2218,7 @@ bool kmsg_dump_get_buffer(struct kmsg_du
- 	while (l > size && seq < dumper->next_seq) {
- 		struct printk_log *msg = printk_log_from_idx(idx);
- 
--		l -= msg_print_text(msg, prev, true, NULL, 0);
-+		l -= printk_msg_print_text(msg, prev, true, NULL, 0);
- 		idx = printk_log_next(idx);
- 		seq++;
- 		prev = msg->flags;
-@@ -2228,7 +2233,7 @@ bool kmsg_dump_get_buffer(struct kmsg_du
- 	while (seq < dumper->next_seq) {
- 		struct printk_log *msg = printk_log_from_idx(idx);
- 
--		l += msg_print_text(msg, prev, syslog, buf + l, size - l);
-+		l += printk_msg_print_text(msg, prev, syslog, buf + l, size - l);
- 		idx = printk_log_next(idx);
- 		seq++;
- 		prev = msg->flags;
-diff -puN kernel/printk/printk_log.h~printk-prefix-print_time-and-msg_print_text-with-printk_ kernel/printk/printk_log.h
---- a/kernel/printk/printk_log.h~printk-prefix-print_time-and-msg_print_text-with-printk_
-+++ a/kernel/printk/printk_log.h
-@@ -115,5 +115,9 @@ void printk_log_store(int facility, int 
- 		      enum printk_log_flags flags, u64 ts_nsec,
- 		      const char *dict, u16 dict_len,
- 		      const char *text, u16 text_len);
-+size_t printk_print_time(u64 ts, char *buf);
-+size_t printk_msg_print_text(const struct printk_log *msg,
-+			     enum printk_log_flags prev,
-+			     bool syslog, char *buf, size_t size);
- 
- #endif
++	show_smap_vma_flags(m, vma);
++
+ 	if (m->count < m->size)  /* vma is copied successfully */
+ 		m->version = (vma != get_gate_vma(task->mm))
+ 			? vma->vm_start : 0;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from gorcunov@openvz.org are
 
 linux-next.patch
-printk-move-functions-printk_print_time-and-printk_msg_print_text.patch
-printk-add-printk_syslogc-and-h.patch
-printk-add-printk_syslogc-and-h-fix.patch
-printk-move-kmsg_dump-functions-to-separate-file.patch
-maintainers-networking-drivers-matches-too-much.patch
-checkpatch-improve-network-block-comment-style-checking.patch
-kstrto-add-documentation.patch
-simple_strto-annotate-function-as-obsolete.patch
+proc-check-vma-vm_file-before-dereferencing.patch
+procfs-add-vmflags-field-in-smaps-output-v3.patch
+procfs-add-vmflags-field-in-smaps-output-v3-fix.patch
+procfs-add-vmflags-field-in-smaps-output-v2.patch
+tools-testing-selftests-kcmp-kcmp_testc-print-reason-for-failure-in-kcmp_test.patch
 
