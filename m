@@ -1,116 +1,224 @@
 From: akpm@linux-foundation.org
-Subject: + fs-block_devc-page-cache-wrongly-left-invalidated-after-revalidate_disk.patch added to -mm tree
-Date: Tue, 23 Oct 2012 12:16:57 -0700
-Message-ID: <20121023191657.BCB791E0043@wpzn4.hot.corp.google.com>
+Subject: [folded-dropped] init-use-the-stringify-operator-for-the-__define_initcall-macro-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 23 Oct 2012 12:39:47 -0700
+Message-ID: <20121023193947.CE3DE100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:59503 "EHLO
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:40938 "EHLO
 	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932824Ab2JWTQ6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 15:16:58 -0400
-Received: by mail-gh0-f202.google.com with SMTP id z15so523665ghb.1
-        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 12:16:58 -0700 (PDT)
+	with ESMTP id S932223Ab2JWTjs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 15:39:48 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z15so526438ghb.1
+        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 12:39:48 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: herumi@nifty.com, viro@zeniv.linux.org.uk
+To: akpm@linux-foundation.org, matthew@mattleach.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/block_dev.c: page cache wrongly left invalidated after revalidate_disk()
-has been added to the -mm tree.  Its filename is
-     fs-block_devc-page-cache-wrongly-left-invalidated-after-revalidate_disk.patch
+     Subject: init-use-the-stringify-operator-for-the-__define_initcall-macro-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     init-use-the-stringify-operator-for-the-__define_initcall-macro-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into init-use-the-stringify-operator-for-the-__define_initcall-macro.patch
 
 ------------------------------------------------------
-From: MITSUNARI Shigeo <herumi@nifty.com>
-Subject: fs/block_dev.c: page cache wrongly left invalidated after revalidate_disk()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: init-use-the-stringify-operator-for-the-__define_initcall-macro-checkpatch-fixes
 
-We found that bdev->bd_invalidated was left set once revalidate_disk() is
-called, which results in page cache flush every time that device is open.
+Cc: Matthew Leach <matthew@mattleach.net>
 
-Specifically, we found this problem in MD block device.  Once we resize a
-MD device, mdadm --monitor periodically flush all page cache for that
-device every 60 or 1000 seconds when it opens the device.
+ERROR: space required after that ',' (ctx:VxV)
+#25: FILE: include/linux/init.h:189:
++#define __define_initcall(fn,id) \
+                             ^
 
-This bug lies since at least 3.2.0 till the latest kernel(3.6.2).
-Patch is attached.
+ERROR: space required after that ',' (ctx:VxV)
+#36: FILE: include/linux/init.h:198:
++#define early_initcall(fn)		__define_initcall(fn,early)
+                           		                    ^
 
-The following steps will reproduce the problem.
+ERROR: space required after that ',' (ctx:VxV)
+#45: FILE: include/linux/init.h:207:
++#define pure_initcall(fn)		__define_initcall(fn,0)
+                          		                    ^
 
-1. prepair a block device(ex. /dev/sdb).
-2. create two partitions.
+ERROR: space required after that ',' (ctx:VxV)
+#62: FILE: include/linux/init.h:209:
++#define core_initcall(fn)		__define_initcall(fn,1)
+                          		                    ^
 
-sudo parted /dev/sdb
-mklabel gpt
-mkpart primary 0% 50%
-mkpart primary 50% 100% 
+ERROR: space required after that ',' (ctx:VxV)
+#63: FILE: include/linux/init.h:210:
++#define core_initcall_sync(fn)		__define_initcall(fn,1s)
+                               		                    ^
 
-3. create a md device.
+ERROR: space required after that ',' (ctx:VxV)
+#64: FILE: include/linux/init.h:211:
++#define postcore_initcall(fn)		__define_initcall(fn,2)
+                              		                    ^
 
-sudo mdadm -C /dev/md/hoge -l 1 -n 2 -e 1.2 --assume-clean --auto=md \
- --symlink=no /dev/sdb1 /dev/sdb2
+ERROR: space required after that ',' (ctx:VxV)
+#65: FILE: include/linux/init.h:212:
++#define postcore_initcall_sync(fn)	__define_initcall(fn,2s)
+                                   	                    ^
 
-4. create file system and mount it
+ERROR: space required after that ',' (ctx:VxV)
+#66: FILE: include/linux/init.h:213:
++#define arch_initcall(fn)		__define_initcall(fn,3)
+                          		                    ^
 
-sudo mkfs.ext3 /dev/md/hoge
-sudo mkdir /mnt/test
-sudo mount /dev/md/hoge /mnt/test
+ERROR: space required after that ',' (ctx:VxV)
+#67: FILE: include/linux/init.h:214:
++#define arch_initcall_sync(fn)		__define_initcall(fn,3s)
+                               		                    ^
 
-5. try to resize the device
+ERROR: space required after that ',' (ctx:VxV)
+#68: FILE: include/linux/init.h:215:
++#define subsys_initcall(fn)		__define_initcall(fn,4)
+                            		                    ^
 
-sudo mdadm -G /dev/md/hoge --size=max
+ERROR: space required after that ',' (ctx:VxV)
+#69: FILE: include/linux/init.h:216:
++#define subsys_initcall_sync(fn)	__define_initcall(fn,4s)
+                                 	                    ^
 
-6. create a file to fill file cache.
+ERROR: space required after that ',' (ctx:VxV)
+#70: FILE: include/linux/init.h:217:
++#define fs_initcall(fn)			__define_initcall(fn,5)
+                        			                    ^
 
-sudo dd if=/dev/urandom of=/mnt/test/data bs=1M count=10
-and verity the current status of file by free command.
+ERROR: space required after that ',' (ctx:VxV)
+#71: FILE: include/linux/init.h:218:
++#define fs_initcall_sync(fn)		__define_initcall(fn,5s)
+                             		                    ^
 
-7. mdadm monitor will open the md device every 1000 seconds
-and you will find all file cache on the device are cleared.
+ERROR: space required after that ',' (ctx:VxV)
+#72: FILE: include/linux/init.h:219:
++#define rootfs_initcall(fn)		__define_initcall(fn,rootfs)
+                            		                    ^
 
-The timing can be reduced by the following steps.
+ERROR: space required after that ',' (ctx:VxV)
+#73: FILE: include/linux/init.h:220:
++#define device_initcall(fn)		__define_initcall(fn,6)
+                            		                    ^
 
-a) kill mdadm and restart it with --delay option
-/sbin/mdadm --monitor --delay=30 --pid-file /var/run/mdadm/monitor.pid \
- --daemonise --scan --syslog
+ERROR: space required after that ',' (ctx:VxV)
+#74: FILE: include/linux/init.h:221:
++#define device_initcall_sync(fn)	__define_initcall(fn,6s)
+                                 	                    ^
 
-or open the md device directly.
+ERROR: space required after that ',' (ctx:VxV)
+#75: FILE: include/linux/init.h:222:
++#define late_initcall(fn)		__define_initcall(fn,7)
+                          		                    ^
 
-sudo dd if=/dev/md/hoge of=/dev/null bs=4096 count=1
+ERROR: space required after that ',' (ctx:VxV)
+#76: FILE: include/linux/init.h:223:
++#define late_initcall_sync(fn)		__define_initcall(fn,7s)
+                               		                    ^
 
-Signed-off-by: MITSUNARI Shigeo <herumi@nifty.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+total: 18 errors, 0 warnings, 58 lines checked
+
+./patches/init-use-the-stringify-operator-for-the-__define_initcall-macro.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Matthew Leach <matthew@mattleach.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/block_dev.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/init.h |   36 ++++++++++++++++++------------------
+ 1 file changed, 18 insertions(+), 18 deletions(-)
 
-diff -puN fs/block_dev.c~fs-block_devc-page-cache-wrongly-left-invalidated-after-revalidate_disk fs/block_dev.c
---- a/fs/block_dev.c~fs-block_devc-page-cache-wrongly-left-invalidated-after-revalidate_disk
-+++ a/fs/block_dev.c
-@@ -1073,6 +1073,7 @@ int revalidate_disk(struct gendisk *disk
+diff -puN include/linux/init.h~init-use-the-stringify-operator-for-the-__define_initcall-macro-checkpatch-fixes include/linux/init.h
+--- a/include/linux/init.h~init-use-the-stringify-operator-for-the-__define_initcall-macro-checkpatch-fixes
++++ a/include/linux/init.h
+@@ -186,7 +186,7 @@ extern bool initcall_debug;
+  * can point at the same handler without causing duplicate-symbol build errors.
+  */
  
- 	mutex_lock(&bdev->bd_mutex);
- 	check_disk_size_change(disk, bdev);
-+	bdev->bd_invalidated = 0;
- 	mutex_unlock(&bdev->bd_mutex);
- 	bdput(bdev);
- 	return ret;
+-#define __define_initcall(fn,id) \
++#define __define_initcall(fn, id) \
+ 	static initcall_t __initcall_##fn##id __used \
+ 	__attribute__((__section__(".initcall" #id ".init"))) = fn
+ 
+@@ -195,7 +195,7 @@ extern bool initcall_debug;
+  *
+  * Only for built-in code, not modules.
+  */
+-#define early_initcall(fn)		__define_initcall(fn,early)
++#define early_initcall(fn)		__define_initcall(fn, early)
+ 
+ /*
+  * A "pure" initcall has no dependencies on anything else, and purely
+@@ -204,23 +204,23 @@ extern bool initcall_debug;
+  * This only exists for built-in code, not for modules.
+  * Keep main.c:initcall_level_names[] in sync.
+  */
+-#define pure_initcall(fn)		__define_initcall(fn,0)
++#define pure_initcall(fn)		__define_initcall(fn, 0)
+ 
+-#define core_initcall(fn)		__define_initcall(fn,1)
+-#define core_initcall_sync(fn)		__define_initcall(fn,1s)
+-#define postcore_initcall(fn)		__define_initcall(fn,2)
+-#define postcore_initcall_sync(fn)	__define_initcall(fn,2s)
+-#define arch_initcall(fn)		__define_initcall(fn,3)
+-#define arch_initcall_sync(fn)		__define_initcall(fn,3s)
+-#define subsys_initcall(fn)		__define_initcall(fn,4)
+-#define subsys_initcall_sync(fn)	__define_initcall(fn,4s)
+-#define fs_initcall(fn)			__define_initcall(fn,5)
+-#define fs_initcall_sync(fn)		__define_initcall(fn,5s)
+-#define rootfs_initcall(fn)		__define_initcall(fn,rootfs)
+-#define device_initcall(fn)		__define_initcall(fn,6)
+-#define device_initcall_sync(fn)	__define_initcall(fn,6s)
+-#define late_initcall(fn)		__define_initcall(fn,7)
+-#define late_initcall_sync(fn)		__define_initcall(fn,7s)
++#define core_initcall(fn)		__define_initcall(fn, 1)
++#define core_initcall_sync(fn)		__define_initcall(fn, 1s)
++#define postcore_initcall(fn)		__define_initcall(fn, 2)
++#define postcore_initcall_sync(fn)	__define_initcall(fn, 2s)
++#define arch_initcall(fn)		__define_initcall(fn, 3)
++#define arch_initcall_sync(fn)		__define_initcall(fn, 3s)
++#define subsys_initcall(fn)		__define_initcall(fn, 4)
++#define subsys_initcall_sync(fn)	__define_initcall(fn, 4s)
++#define fs_initcall(fn)			__define_initcall(fn, 5)
++#define fs_initcall_sync(fn)		__define_initcall(fn, 5s)
++#define rootfs_initcall(fn)		__define_initcall(fn, rootfs)
++#define device_initcall(fn)		__define_initcall(fn, 6)
++#define device_initcall_sync(fn)	__define_initcall(fn, 6s)
++#define late_initcall(fn)		__define_initcall(fn, 7)
++#define late_initcall_sync(fn)		__define_initcall(fn, 7s)
+ 
+ #define __initcall(fn) device_initcall(fn)
+ 
 _
 
-Patches currently in -mm which might be from herumi@nifty.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fs-block_devc-page-cache-wrongly-left-invalidated-after-revalidate_disk.patch
+revert-epoll-support-for-disabling-items-and-a-self-test-app.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+mm.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+init-use-the-stringify-operator-for-the-__define_initcall-macro.patch
+drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
+fat-exportfs-rebuild-inode-if-ilookup-fails-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
