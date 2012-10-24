@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + random-make-it-possible-to-enable-debugging-without-rebuild-fix.patch added to -mm tree
-Date: Wed, 24 Oct 2012 15:45:04 -0700
-Message-ID: <20121024224505.112DE5C0065@hpza9.eem.corp.google.com>
+Subject: + include-linux-tickh-fix-warning.patch added to -mm tree
+Date: Wed, 24 Oct 2012 15:17:23 -0700
+Message-ID: <20121024230635.D542C200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f202.google.com ([209.85.215.202]:37425 "EHLO
-	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161237Ab2JXWpI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Oct 2012 18:45:08 -0400
-Received: by mail-ea0-f202.google.com with SMTP id q10so63948eaa.1
-        for <mm-commits@vger.kernel.org>; Wed, 24 Oct 2012 15:45:06 -0700 (PDT)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:46489 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750710Ab2JXXGj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Oct 2012 19:06:39 -0400
+Received: by mail-la0-f74.google.com with SMTP id j13so64891lah.1
+        for <mm-commits@vger.kernel.org>; Wed, 24 Oct 2012 16:06:37 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, fengguang.wu@intel.com, jkosina@suse.cz, tytso@mit.edu
+Cc: akpm@linux-foundation.org, rafael.j.wysocki@intel.com, riel@redhat.com, youquan.song@intel.com
 
 
 The patch titled
-     Subject: random-make-it-possible-to-enable-debugging-without-rebuild-fix
+     Subject: include/linux/tick.h: fix warning
 has been added to the -mm tree.  Its filename is
-     random-make-it-possible-to-enable-debugging-without-rebuild-fix.patch
+     include-linux-tickh-fix-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: random-make-it-possible-to-enable-debugging-without-rebuild-fix
+Subject: include/linux/tick.h: fix warning
 
-fix resulting printk warnings
+In file included from init/main.c:43:
+include/linux/tick.h: In function 'menu_hrtimer_cancel':
+include/linux/tick.h:148: warning: 'return' with a value, in function returning void
+In file included from kernel/softirq.c:27:
+include/linux/tick.h: In function 'menu_hrtimer_cancel':
+include/linux/tick.h:148: warning: 'return' with a value, in function returning void
+etc.
 
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Wu Fengguang <fengguang.wu@intel.com>a
+Repairs 25d77b76d7aef ("cpuidle: Quickly notice prediction failure for repeat
+mode").
+
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Youquan Song <youquan.song@intel.com>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/random.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ include/linux/tick.h |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/random.c~random-make-it-possible-to-enable-debugging-without-rebuild-fix drivers/char/random.c
---- a/drivers/char/random.c~random-make-it-possible-to-enable-debugging-without-rebuild-fix
-+++ a/drivers/char/random.c
-@@ -825,7 +825,7 @@ static void xfer_secondary_pool(struct e
- 		bytes = min_t(int, bytes, sizeof(tmp));
+diff -puN include/linux/tick.h~include-linux-tickh-fix-warning include/linux/tick.h
+--- a/include/linux/tick.h~include-linux-tickh-fix-warning
++++ a/include/linux/tick.h
+@@ -145,7 +145,9 @@ static inline u64 get_cpu_iowait_time_us
+ # ifdef CONFIG_CPU_IDLE_GOV_MENU
+ extern void menu_hrtimer_cancel(void);
+ # else
+-static inline void menu_hrtimer_cancel(void) { return -1; }
++static inline void menu_hrtimer_cancel(void)
++{
++}
+ # endif /* CONFIG_CPU_IDLE_GOV_MENU */
  
- 		DEBUG_ENT("going to reseed %s with %d bits "
--			  "(%d of %d requested)\n",
-+			  "(%zu of %d requested)\n",
- 			  r->name, bytes * 8, nbytes * 8, r->entropy_count);
- 
- 		bytes = extract_entropy(r->pull, tmp, bytes,
-@@ -856,7 +856,7 @@ static size_t account(struct entropy_sto
- 	spin_lock_irqsave(&r->lock, flags);
- 
- 	BUG_ON(r->entropy_count > r->poolinfo->POOLBITS);
--	DEBUG_ENT("trying to extract %d bits from %s\n",
-+	DEBUG_ENT("trying to extract %zu bits from %s\n",
- 		  nbytes * 8, r->name);
- 
- 	/* Can we pull enough? */
-@@ -878,7 +878,7 @@ static size_t account(struct entropy_sto
- 		}
- 	}
- 
--	DEBUG_ENT("debiting %d entropy credits from %s%s\n",
-+	DEBUG_ENT("debiting %zu entropy credits from %s%s\n",
- 		  nbytes * 8, r->name, r->limit ? "" : " (unlimited)");
- 
- 	spin_unlock_irqrestore(&r->lock, flags);
-@@ -1138,11 +1138,11 @@ random_read(struct file *file, char __us
- 		if (n > SEC_XFER_SIZE)
- 			n = SEC_XFER_SIZE;
- 
--		DEBUG_ENT("reading %d bits\n", n*8);
-+		DEBUG_ENT("reading %zd bits\n", n*8);
- 
- 		n = extract_entropy_user(&blocking_pool, buf, n);
- 
--		DEBUG_ENT("read got %d bits (%d still needed)\n",
-+		DEBUG_ENT("read got %zd bits (%zd still needed)\n",
- 			  n*8, (nbytes-n)*8);
- 
- 		if (n == 0) {
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -102,6 +81,7 @@ linux-next.patch
 linux-next-git-rejects.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
+include-linux-tickh-fix-warning.patch
 cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
