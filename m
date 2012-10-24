@@ -1,66 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] procfs-add-vmflags-field-in-smaps-output-v3-fix-2.patch removed from -mm tree
-Date: Wed, 24 Oct 2012 13:39:45 -0700
-Message-ID: <20121024203945.9ECA7100047@wpzn3.hot.corp.google.com>
+Subject: + gen_init_cpio-avoid-stack-overflow-when-expanding.patch added to -mm tree
+Date: Wed, 24 Oct 2012 14:02:38 -0700
+Message-ID: <20121024210238.9EF6D100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:64364 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935511Ab2JXUjq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Oct 2012 16:39:46 -0400
-Received: by mail-vb0-f74.google.com with SMTP id s24so108653vbi.1
-        for <mm-commits@vger.kernel.org>; Wed, 24 Oct 2012 13:39:46 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:61550 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758774Ab2JXVCj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Oct 2012 17:02:39 -0400
+Received: by mail-gg0-f202.google.com with SMTP id i4so113985ggm.1
+        for <mm-commits@vger.kernel.org>; Wed, 24 Oct 2012 14:02:39 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gorcunov@openvz.org, a.p.zijlstra@chello.nl, xemul@parallels.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: keescook@chromium.org, mmarek@suse.cz, pageexec@freemail.hu, spender@grsecurity.net, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: procfs-add-vmflags-field-in-smaps-output-v3-fix-2
-has been removed from the -mm tree.  Its filename was
-     procfs-add-vmflags-field-in-smaps-output-v3-fix-2.patch
+     Subject: gen_init_cpio: avoid stack overflow when expanding
+has been added to the -mm tree.  Its filename is
+     gen_init_cpio-avoid-stack-overflow-when-expanding.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Cyrill Gorcunov <gorcunov@openvz.org>
-Subject: procfs-add-vmflags-field-in-smaps-output-v3-fix-2
+From: Kees Cook <keescook@chromium.org>
+Subject: gen_init_cpio: avoid stack overflow when expanding
 
-Use designated init to assign "??" mnemonic on unknown flags.
+Fix possible overflow of the buffer used for expanding environment
+variables when building file list.
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+$ cat usr/crash.list
+file foo ${BIG}${BIG}${BIG}${BIG}${BIG}${BIG} 0755 0 0
+$ BIG=$(perl -e 'print "A" x 4096;') ./usr/gen_init_cpio usr/crash.list
+*** buffer overflow detected ***: ./usr/gen_init_cpio terminated
+
+This also replaces the space-indenting with tabs.
+
+Patch based on existing fix extracted from grsecurity.
+
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Michal Marek <mmarek@suse.cz>
+Cc: Brad Spengler <spender@grsecurity.net>
+Cc: PaX Team <pageexec@freemail.hu>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ usr/gen_init_cpio.c |   41 ++++++++++++++++++++++-------------------
+ 1 file changed, 22 insertions(+), 19 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~procfs-add-vmflags-field-in-smaps-output-v3-fix-2 fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~procfs-add-vmflags-field-in-smaps-output-v3-fix-2
-+++ a/fs/proc/task_mmu.c
-@@ -534,6 +534,11 @@ static void show_smap_vma_flags(struct s
- 	static const struct {
- 		const char l[2];
- 	} mnemonics[BITS_PER_LONG] = {
-+		/*
-+		 * In case if we meet a flag we don't know about.
-+		 */
-+		[0 ... (BITS_PER_LONG-1)] = { {'?', '?'} },
+diff -puN usr/gen_init_cpio.c~gen_init_cpio-avoid-stack-overflow-when-expanding usr/gen_init_cpio.c
+--- a/usr/gen_init_cpio.c~gen_init_cpio-avoid-stack-overflow-when-expanding
++++ a/usr/gen_init_cpio.c
+@@ -303,7 +303,7 @@ static int cpio_mkfile(const char *name,
+ 	int retval;
+ 	int rc = -1;
+ 	int namesize;
+-	int i;
++	unsigned int i;
+ 
+ 	mode |= S_IFREG;
+ 
+@@ -381,25 +381,28 @@ error:
+ 
+ static char *cpio_replace_env(char *new_location)
+ {
+-       char expanded[PATH_MAX + 1];
+-       char env_var[PATH_MAX + 1];
+-       char *start;
+-       char *end;
+-
+-       for (start = NULL; (start = strstr(new_location, "${")); ) {
+-               end = strchr(start, '}');
+-               if (start < end) {
+-                       *env_var = *expanded = '\0';
+-                       strncat(env_var, start + 2, end - start - 2);
+-                       strncat(expanded, new_location, start - new_location);
+-                       strncat(expanded, getenv(env_var), PATH_MAX);
+-                       strncat(expanded, end + 1, PATH_MAX);
+-                       strncpy(new_location, expanded, PATH_MAX);
+-               } else
+-                       break;
+-       }
++	char expanded[PATH_MAX + 1];
++	char env_var[PATH_MAX + 1];
++	char *start;
++	char *end;
 +
- 		[ilog2(VM_READ)]	= { {'r', 'd'} },
- 		[ilog2(VM_WRITE)]	= { {'w', 'r'} },
- 		[ilog2(VM_EXEC)]	= { {'e', 'x'} },
++	for (start = NULL; (start = strstr(new_location, "${")); ) {
++		end = strchr(start, '}');
++		if (start < end) {
++			*env_var = *expanded = '\0';
++			strncat(env_var, start + 2, end - start - 2);
++			strncat(expanded, new_location, start - new_location);
++			strncat(expanded, getenv(env_var),
++				PATH_MAX - strlen(expanded));
++			strncat(expanded, end + 1,
++				PATH_MAX - strlen(expanded));
++			strncpy(new_location, expanded, PATH_MAX);
++			new_location[PATH_MAX] = 0;
++		} else
++			break;
++	}
+ 
+-       return new_location;
++	return new_location;
+ }
+ 
+ 
 _
 
-Patches currently in -mm which might be from gorcunov@openvz.org are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-pidns-limit-the-nesting-depth-of-pid-namespaces.patch
-pidns-limit-the-nesting-depth-of-pid-namespaces-fix.patch
+gen_init_cpio-avoid-stack-overflow-when-expanding.patch
 linux-next.patch
-proc-check-vma-vm_file-before-dereferencing.patch
-procfs-add-vmflags-field-in-smaps-output-v4.patch
-procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
-tools-testing-selftests-kcmp-kcmp_testc-print-reason-for-failure-in-kcmp_test.patch
+fs-pstore-ramc-fix-up-section-annotations.patch
+proc-dont-show-nonexistent-capabilities.patch
 
