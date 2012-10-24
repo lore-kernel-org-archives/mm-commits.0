@@ -1,106 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: + pidns-limit-the-nesting-depth-of-pid-namespaces-fix.patch added to -mm tree
-Date: Tue, 23 Oct 2012 16:57:05 -0700
-Message-ID: <20121023235706.233AB1E0043@wpzn4.hot.corp.google.com>
+Subject: [to-be-updated] random-fix-debug-format-strings.patch removed from -mm tree
+Date: Wed, 24 Oct 2012 12:23:43 -0700
+Message-ID: <20121024192345.9170D5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:59883 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934107Ab2JWX5H (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Oct 2012 19:57:07 -0400
-Received: by mail-gg0-f202.google.com with SMTP id i4so557691ggm.1
-        for <mm-commits@vger.kernel.org>; Tue, 23 Oct 2012 16:57:06 -0700 (PDT)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:54149 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933046Ab2JXTXs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Oct 2012 15:23:48 -0400
+Received: by mail-we0-f202.google.com with SMTP id x43so58904wey.1
+        for <mm-commits@vger.kernel.org>; Wed, 24 Oct 2012 12:23:46 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, avagin@openvz.org, ebiederm@xmission.com, gorcunov@openvz.org, oleg@redhat.com, xemul@parallels.com
+To: jkosina@suse.cz, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pidns-limit-the-nesting-depth-of-pid-namespaces-fix
-has been added to the -mm tree.  Its filename is
-     pidns-limit-the-nesting-depth-of-pid-namespaces-fix.patch
+     Subject: random: fix debug format strings
+has been removed from the -mm tree.  Its filename was
+     random-fix-debug-format-strings.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: pidns-limit-the-nesting-depth-of-pid-namespaces-fix
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: random: fix debug format strings
 
-return -EINVAL in response to excessive nesting, not -ENOMEM
+Fix the following warnings in formatting debug output:
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Andrew Vagin <avagin@openvz.org>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
+drivers/char/random.c: In function `xfer_secondary_pool':
+drivers/char/random.c:827: warning: format `%d' expects type `int', but argument 7 has type `size_t'
+drivers/char/random.c: In function `account':
+drivers/char/random.c:859: warning: format `%d' expects type `int', but argument 5 has type `size_t'
+drivers/char/random.c:881: warning: format `%d' expects type `int', but argument 5 has type `size_t'
+drivers/char/random.c: In function `random_read':
+drivers/char/random.c:1141: warning: format `%d' expects type `int', but argument 5 has type `ssize_t'
+drivers/char/random.c:1145: warning: format `%d' expects type `int', but argument 5 has type `ssize_t'
+drivers/char/random.c:1145: warning: format `%d' expects type `int', but argument 6 has type `long unsigned int'
+
+by using '%zd' instead of '%d' to properly denote ssize_t/size_t conversion.
+
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/pid_namespace.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ drivers/char/random.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN kernel/pid_namespace.c~pidns-limit-the-nesting-depth-of-pid-namespaces-fix kernel/pid_namespace.c
---- a/kernel/pid_namespace.c~pidns-limit-the-nesting-depth-of-pid-namespaces-fix
-+++ a/kernel/pid_namespace.c
-@@ -78,11 +78,15 @@ static struct pid_namespace *create_pid_
- {
- 	struct pid_namespace *ns;
- 	unsigned int level = parent_pid_ns->level + 1;
--	int i, err = -ENOMEM;
-+	int i;
-+	int err;
+diff -puN drivers/char/random.c~random-fix-debug-format-strings drivers/char/random.c
+--- a/drivers/char/random.c~random-fix-debug-format-strings
++++ a/drivers/char/random.c
+@@ -825,7 +825,7 @@ static void xfer_secondary_pool(struct e
+ 		bytes = min_t(int, bytes, sizeof(tmp));
  
--	if (level > MAX_PID_NS_LEVEL)
-+	if (level > MAX_PID_NS_LEVEL) {
-+		err = -EINVAL;
- 		goto out;
-+	}
+ 		DEBUG_ENT("going to reseed %s with %d bits "
+-			  "(%d of %d requested)\n",
++			  "(%zd of %d requested)\n",
+ 			  r->name, bytes * 8, nbytes * 8, r->entropy_count);
  
-+	err = -ENOMEM;
- 	ns = kmem_cache_zalloc(pid_ns_cachep, GFP_KERNEL);
- 	if (ns == NULL)
- 		goto out;
+ 		bytes = extract_entropy(r->pull, tmp, bytes,
+@@ -856,7 +856,7 @@ static size_t account(struct entropy_sto
+ 	spin_lock_irqsave(&r->lock, flags);
+ 
+ 	BUG_ON(r->entropy_count > r->poolinfo->POOLBITS);
+-	DEBUG_ENT("trying to extract %d bits from %s\n",
++	DEBUG_ENT("trying to extract %zd bits from %s\n",
+ 		  nbytes * 8, r->name);
+ 
+ 	/* Can we pull enough? */
+@@ -878,7 +878,7 @@ static size_t account(struct entropy_sto
+ 		}
+ 	}
+ 
+-	DEBUG_ENT("debiting %d entropy credits from %s%s\n",
++	DEBUG_ENT("debiting %zd entropy credits from %s%s\n",
+ 		  nbytes * 8, r->name, r->limit ? "" : " (unlimited)");
+ 
+ 	spin_unlock_irqrestore(&r->lock, flags);
+@@ -1138,11 +1138,11 @@ random_read(struct file *file, char __us
+ 		if (n > SEC_XFER_SIZE)
+ 			n = SEC_XFER_SIZE;
+ 
+-		DEBUG_ENT("reading %d bits\n", n*8);
++		DEBUG_ENT("reading %zd bits\n", n*8);
+ 
+ 		n = extract_entropy_user(&blocking_pool, buf, n);
+ 
+-		DEBUG_ENT("read got %d bits (%d still needed)\n",
++		DEBUG_ENT("read got %zd bits (%zd still needed)\n",
+ 			  n*8, (nbytes-n)*8);
+ 
+ 		if (n == 0) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jkosina@suse.cz are
 
-pidns-limit-the-nesting-depth-of-pid-namespaces-fix.patch
-revert-tools-testing-selftests-epoll-test_epollc-fix-build.patch
-revert-epoll-support-for-disabling-items-and-a-self-test-app.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-mm.patch
-memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
-drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-drivers-edac-amd64_edacc-__amd64_set_scrub_rate-avoid-overindexing-scrubrates.patch
-binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
-hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
-fat-exportfs-rebuild-inode-if-ilookup-fails-fix.patch
-procfs-add-vmflags-field-in-smaps-output-v3-fix.patch
+random-make-it-possible-to-enable-debugging-without-rebuild.patch
 random-fix-debug-format-strings-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
