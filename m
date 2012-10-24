@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 24 Oct 2012 15:19:40 -0700
-Message-ID: <20121024221941.0AACC20004E@hpza10.eem.corp.google.com>
+Subject: + random-make-it-possible-to-enable-debugging-without-rebuild-fix.patch added to -mm tree
+Date: Wed, 24 Oct 2012 14:55:27 -0700
+Message-ID: <20121024224437.BDDE31E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:53392 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161238Ab2JXWTn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Oct 2012 18:19:43 -0400
-Received: by mail-fa0-f74.google.com with SMTP id t1so63212fae.1
-        for <mm-commits@vger.kernel.org>; Wed, 24 Oct 2012 15:19:42 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:46189 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161237Ab2JXWoj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Oct 2012 18:44:39 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z15so127710ghb.1
+        for <mm-commits@vger.kernel.org>; Wed, 24 Oct 2012 15:44:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, skinsbursky@parallels.com
+Cc: akpm@linux-foundation.org, fengguang.wu@intel.com, jkosina@suse.cz, tytso@mit.edu
 
 
 The patch titled
-     Subject: ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes
+     Subject: random-make-it-possible-to-enable-debugging-without-rebuild-fix
 has been added to the -mm tree.  Its filename is
-     ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
+     random-make-it-possible-to-enable-debugging-without-rebuild-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,63 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes
+Subject: random-make-it-possible-to-enable-debugging-without-rebuild-fix
 
-ERROR: space required before the open parenthesis '('
-#123: FILE: ipc/util.c:285:
-+		if(ids->seq > ids->seq_max)
+fix resulting printk warnings
 
-total: 1 errors, 0 warnings, 94 lines checked
-
-./patches/ipc-add-sysctl-to-specify-desired-next-object-id.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Stanislav Kinsbursky <skinsbursky@parallels.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Wu Fengguang <fengguang.wu@intel.com>a
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/random.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/ipc_namespace.h~ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes include/linux/ipc_namespace.h
-diff -puN ipc/ipc_sysctl.c~ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes ipc/ipc_sysctl.c
-diff -puN ipc/util.c~ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes ipc/util.c
---- a/ipc/util.c~ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes
-+++ a/ipc/util.c
-@@ -282,7 +282,7 @@ int ipc_addid(struct ipc_ids* ids, struc
+diff -puN drivers/char/random.c~random-make-it-possible-to-enable-debugging-without-rebuild-fix drivers/char/random.c
+--- a/drivers/char/random.c~random-make-it-possible-to-enable-debugging-without-rebuild-fix
++++ a/drivers/char/random.c
+@@ -825,7 +825,7 @@ static void xfer_secondary_pool(struct e
+ 		bytes = min_t(int, bytes, sizeof(tmp));
  
- 	if (next_id < 0) {
- 		new->seq = ids->seq++;
--		if(ids->seq > ids->seq_max)
-+		if (ids->seq > ids->seq_max)
- 			ids->seq = 0;
- 	} else {
- 		new->seq = ipcid_to_seqx(next_id);
-diff -puN ipc/util.h~ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes ipc/util.h
+ 		DEBUG_ENT("going to reseed %s with %d bits "
+-			  "(%d of %d requested)\n",
++			  "(%zu of %d requested)\n",
+ 			  r->name, bytes * 8, nbytes * 8, r->entropy_count);
+ 
+ 		bytes = extract_entropy(r->pull, tmp, bytes,
+@@ -856,7 +856,7 @@ static size_t account(struct entropy_sto
+ 	spin_lock_irqsave(&r->lock, flags);
+ 
+ 	BUG_ON(r->entropy_count > r->poolinfo->POOLBITS);
+-	DEBUG_ENT("trying to extract %d bits from %s\n",
++	DEBUG_ENT("trying to extract %zu bits from %s\n",
+ 		  nbytes * 8, r->name);
+ 
+ 	/* Can we pull enough? */
+@@ -878,7 +878,7 @@ static size_t account(struct entropy_sto
+ 		}
+ 	}
+ 
+-	DEBUG_ENT("debiting %d entropy credits from %s%s\n",
++	DEBUG_ENT("debiting %zu entropy credits from %s%s\n",
+ 		  nbytes * 8, r->name, r->limit ? "" : " (unlimited)");
+ 
+ 	spin_unlock_irqrestore(&r->lock, flags);
+@@ -1138,11 +1138,11 @@ random_read(struct file *file, char __us
+ 		if (n > SEC_XFER_SIZE)
+ 			n = SEC_XFER_SIZE;
+ 
+-		DEBUG_ENT("reading %d bits\n", n*8);
++		DEBUG_ENT("reading %zd bits\n", n*8);
+ 
+ 		n = extract_entropy_user(&blocking_pool, buf, n);
+ 
+-		DEBUG_ENT("read got %d bits (%d still needed)\n",
++		DEBUG_ENT("read got %zd bits (%zd still needed)\n",
+ 			  n*8, (nbytes-n)*8);
+ 
+ 		if (n == 0) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -103,6 +123,7 @@ procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
 ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
 ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
 selftests-ipc-message-queue-copy-feature-test-checkpatch-fixes.patch
+random-make-it-possible-to-enable-debugging-without-rebuild-fix.patch
 dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
 journal_add_journal_head-debug.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
