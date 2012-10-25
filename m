@@ -1,65 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] pidns-limit-the-nesting-depth-of-pid-namespaces-fix.patch removed from -mm tree
-Date: Thu, 25 Oct 2012 13:25:45 -0700
-Message-ID: <20121025202547.3F4FE1E1A73@wpzn4.hot.corp.google.com>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Thu, 25 Oct 2012 14:57:39 -0700
+Message-ID: <20121025215740.14AE05C14C3@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:43056 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935274Ab2JYUZs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 25 Oct 2012 16:25:48 -0400
-Received: by mail-vc0-f202.google.com with SMTP id fy27so252152vcb.1
-        for <mm-commits@vger.kernel.org>; Thu, 25 Oct 2012 13:25:48 -0700 (PDT)
+Received: from mail-ea0-f202.google.com ([209.85.215.202]:36029 "EHLO
+	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750984Ab2JYV5m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 25 Oct 2012 17:57:42 -0400
+Received: by mail-ea0-f202.google.com with SMTP id q10so134944eaa.1
+        for <mm-commits@vger.kernel.org>; Thu, 25 Oct 2012 14:57:41 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, avagin@openvz.org, ebiederm@xmission.com, gorcunov@openvz.org, oleg@redhat.com, xemul@parallels.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pidns-limit-the-nesting-depth-of-pid-namespaces-fix
+     Subject: linux-next-git-rejects
 has been removed from the -mm tree.  Its filename was
-     pidns-limit-the-nesting-depth-of-pid-namespaces-fix.patch
+     linux-next-git-rejects.patch
 
-This patch was dropped because it was folded into pidns-limit-the-nesting-depth-of-pid-namespaces.patch
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: pidns-limit-the-nesting-depth-of-pid-namespaces-fix
+Subject: linux-next-git-rejects
 
-return -EINVAL in response to excessive nesting, not -ENOMEM
-
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Andrew Vagin <avagin@openvz.org>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/pid_namespace.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ arch/alpha/kernel/osf_sys.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN kernel/pid_namespace.c~pidns-limit-the-nesting-depth-of-pid-namespaces-fix kernel/pid_namespace.c
---- a/kernel/pid_namespace.c~pidns-limit-the-nesting-depth-of-pid-namespaces-fix
-+++ a/kernel/pid_namespace.c
-@@ -78,11 +78,15 @@ static struct pid_namespace *create_pid_
- {
- 	struct pid_namespace *ns;
- 	unsigned int level = parent_pid_ns->level + 1;
--	int i, err = -ENOMEM;
-+	int i;
-+	int err;
+diff -puN arch/alpha/kernel/osf_sys.c~linux-next-git-rejects arch/alpha/kernel/osf_sys.c
+--- a/arch/alpha/kernel/osf_sys.c~linux-next-git-rejects
++++ a/arch/alpha/kernel/osf_sys.c
+@@ -906,17 +906,10 @@ SYSCALL_DEFINE5(osf_setsysinfo, unsigned
+ 		unsigned __user *p = buffer;
+ 		unsigned i;
+ 		
+-<<<<<<< HEAD
+-		for (i = 0, p = buffer; i < nbytes; ++i, p += 2) {
+-			unsigned v, w, status;
+-
+-			if (get_user(v, p) || get_user(w, p + 1))
+-=======
+  		for (i = 0, p = buffer; i < nbytes; ++i, p += 2) {
+ 			unsigned v, w, status;
  
--	if (level > MAX_PID_NS_LEVEL)
-+	if (level > MAX_PID_NS_LEVEL) {
-+		err = -EINVAL;
- 		goto out;
-+	}
- 
-+	err = -ENOMEM;
- 	ns = kmem_cache_zalloc(pid_ns_cachep, GFP_KERNEL);
- 	if (ns == NULL)
- 		goto out;
+  			if (get_user(v, p) || get_user(w, p + 1))
+->>>>>>> linux-next/akpm-base
+  				return -EFAULT;
+  			switch (v) {
+  			case SSIN_UACPROC:
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,7 +62,6 @@ pidns-limit-the-nesting-depth-of-pid-namespaces.patch
 revert-tools-testing-selftests-epoll-test_epollc-fix-build.patch
 revert-epoll-support-for-disabling-items-and-a-self-test-app.patch
 linux-next.patch
-linux-next-git-rejects.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 include-linux-tickh-fix-warning.patch
