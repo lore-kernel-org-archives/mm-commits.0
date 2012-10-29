@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-forbid-pre_destroy-callback-to-fail.patch added to -mm tree
-Date: Mon, 29 Oct 2012 15:04:32 -0700
-Message-ID: <20121029220433.D167720004E@hpza10.eem.corp.google.com>
+Subject: + memcg-simplify-mem_cgroup_force_empty_list-error-handling.patch added to -mm tree
+Date: Mon, 29 Oct 2012 15:04:30 -0700
+Message-ID: <20121029220430.72DEC1E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:64403 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761330Ab2J2WEg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Oct 2012 18:04:36 -0400
-Received: by mail-bk0-f74.google.com with SMTP id q16so347985bkw.1
-        for <mm-commits@vger.kernel.org>; Mon, 29 Oct 2012 15:04:35 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:46385 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761392Ab2J2WEb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Oct 2012 18:04:31 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z15so702938ghb.1
+        for <mm-commits@vger.kernel.org>; Mon, 29 Oct 2012 15:04:31 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: mhocko@suse.cz, bsingharora@gmail.com, glommer@parallels.com, hannes@cmpxchg
 
 
 The patch titled
-     Subject: cgroups: forbid pre_destroy() callback failures
+     Subject: memcg: simplify mem_cgroup_force_empty_list() error handling
 has been added to the -mm tree.  Its filename is
-     cgroups-forbid-pre_destroy-callback-to-fail.patch
+     memcg-simplify-mem_cgroup_force_empty_list-error-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,24 +34,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.cz>
-Subject: cgroups: forbid pre_destroy() callback failures
+Subject: memcg: simplify mem_cgroup_force_empty_list() error handling
 
-Now that the mem_cgroup_pre_destroy() callback doesn't fail (other than a
-race with a task attach resp.  child group appears) finally we can safely
-move on and forbid all the callbacks from failing.
+mem_cgroup_force_empty_list() currently tries to remove all pages from the
+given LRU.  To avoid temporary failures (EBUSY returned by
+mem_cgroup_move_parent()) it uses a margin to the current LRU pages and
+returns the true if there are still some pages left on the list.
 
-The last missing piece is moving cgroup_call_pre_destroy() after
-cgroup_clear_css_refs() so that css_tryget() fails so no new charges for
-the memcg can happen.
+If we consider that mem_cgroup_move_parent() fails only when it is racing
+with somebody else removing (uncharging) the page or when the page is
+migrated then it is obvious that all those failures are only temporary and
+so we can safely retry later.
 
-We cannot, however, move cgroup_call_pre_destroy right after because we
-cannot call mem_cgroup_pre_destroy with the cgroup_lock held (see 3fa59dfb
-cgroup: fix potential deadlock in pre_destroy) so we have to move it after
-the lock is released.
+Let's get rid of the safety margin and make the loop really wait for the
+empty LRU.  The caller should still make sure that all charges have been
+removed from the res_counter because mem_cgroup_replace_page_cache might
+add a page to the LRU after the list_empty check (it doesn't touch
+res_counter though).
+
+This catches most of the cases except for shmem which might call
+mem_cgroup_replace_page_cache with a page which is not charged and on the
+LRU yet but this was the case also without this patch.  In order to fix
+this we need a guarantee that try_get_mem_cgroup_from_page falls back to
+the current mm's cgroup so it needs css_tryget to fail.  This will be
+fixed up in a later patch because it needs a help from cgroup core
+(pre_destroy has to be called after css is cleared).
+
+Although mem_cgroup_pre_destroy() can still fail (if a new task or a new
+sub-group appears) there is no reason to retry pre_destroy callback from
+the cgroup core.  This means that __DEPRECATED_clear_css_refs has lost its
+meaning and it can be removed.
 
 Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Glauber Costa <glommer@parallels.com>
+Reviewed-by: Tejun Heo <tj@kernel.org>
+Reviewed-by: Glauber Costa <glommer@parallels.com>
 Cc: Li Zefan <lizefan@huawei.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -59,85 +75,164 @@ Cc: Balbir Singh <bsingharora@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |   30 +++++++++---------------------
- 1 file changed, 9 insertions(+), 21 deletions(-)
+ mm/memcontrol.c |   76 +++++++++++++++++++++++++++++-----------------
+ 1 file changed, 48 insertions(+), 28 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroups-forbid-pre_destroy-callback-to-fail kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-forbid-pre_destroy-callback-to-fail
-+++ a/kernel/cgroup.c
-@@ -858,7 +858,7 @@ static struct inode *cgroup_new_inode(um
-  * Call subsys's pre_destroy handler.
-  * This is called before css refcnt check.
+diff -puN mm/memcontrol.c~memcg-simplify-mem_cgroup_force_empty_list-error-handling mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-simplify-mem_cgroup_force_empty_list-error-handling
++++ a/mm/memcontrol.c
+@@ -2696,10 +2696,27 @@ out:
+ 	return ret;
+ }
+ 
+-/*
+- * move charges to its parent.
++/**
++ * mem_cgroup_move_parent - moves page to the parent group
++ * @page: the page to move
++ * @pc: page_cgroup of the page
++ * @child: page's cgroup
++ *
++ * move charges to its parent or the root cgroup if the group has no
++ * parent (aka use_hierarchy==0).
++ * Although this might fail (get_page_unless_zero, isolate_lru_page or
++ * mem_cgroup_move_account fails) the failure is always temporary and
++ * it signals a race with a page removal/uncharge or migration. In the
++ * first case the page is on the way out and it will vanish from the LRU
++ * on the next attempt and the call should be retried later.
++ * Isolation from the LRU fails only if page has been isolated from
++ * the LRU since we looked at it and that usually means either global
++ * reclaim or migration going on. The page will either get back to the
++ * LRU or vanish.
++ * Finaly mem_cgroup_move_account fails only if the page got uncharged
++ * (!PageCgroupUsed) or moved to a different group. The page will
++ * disappear in the next attempt.
   */
--static int cgroup_call_pre_destroy(struct cgroup *cgrp)
-+static void cgroup_call_pre_destroy(struct cgroup *cgrp)
+-
+ static int mem_cgroup_move_parent(struct page *page,
+ 				  struct page_cgroup *pc,
+ 				  struct mem_cgroup *child)
+@@ -2726,8 +2743,10 @@ static int mem_cgroup_move_parent(struct
+ 	if (!parent)
+ 		parent = root_mem_cgroup;
+ 
+-	if (nr_pages > 1)
++	if (nr_pages > 1) {
++		VM_BUG_ON(!PageTransHuge(page));
+ 		flags = compound_lock_irqsave(page);
++	}
+ 
+ 	ret = mem_cgroup_move_account(page, nr_pages,
+ 				pc, child, parent);
+@@ -3677,17 +3696,22 @@ unsigned long mem_cgroup_soft_limit_recl
+ 	return nr_reclaimed;
+ }
+ 
+-/*
++/**
++ * mem_cgroup_force_empty_list - clears LRU of a group
++ * @memcg: group to clear
++ * @node: NUMA node
++ * @zid: zone id
++ * @lru: lru to to clear
++ *
+  * Traverse a specified page_cgroup list and try to drop them all.  This doesn't
+- * reclaim the pages page themselves - it just removes the page_cgroups.
+- * Returns true if some page_cgroups were not freed, indicating that the caller
+- * must retry this operation.
++ * reclaim the pages page themselves - pages are moved to the parent (or root)
++ * group.
+  */
+-static bool mem_cgroup_force_empty_list(struct mem_cgroup *memcg,
++static void mem_cgroup_force_empty_list(struct mem_cgroup *memcg,
+ 				int node, int zid, enum lru_list lru)
  {
- 	struct cgroup_subsys *ss;
- 	int ret = 0;
-@@ -867,15 +867,8 @@ static int cgroup_call_pre_destroy(struc
- 		if (!ss->pre_destroy)
- 			continue;
+ 	struct mem_cgroup_per_zone *mz;
+-	unsigned long flags, loop;
++	unsigned long flags;
+ 	struct list_head *list;
+ 	struct page *busy;
+ 	struct zone *zone;
+@@ -3696,11 +3720,8 @@ static bool mem_cgroup_force_empty_list(
+ 	mz = mem_cgroup_zoneinfo(memcg, node, zid);
+ 	list = &mz->lruvec.lists[lru];
  
--		ret = ss->pre_destroy(cgrp);
--		if (ret) {
--			/* ->pre_destroy() failure is being deprecated */
--			WARN_ON_ONCE(!ss->__DEPRECATED_clear_css_refs);
--			break;
--		}
-+		BUG_ON(ss->pre_destroy(cgrp));
- 	}
--
--	return ret;
- }
+-	loop = mz->lru_size[lru];
+-	/* give some margin against EBUSY etc...*/
+-	loop += 256;
+ 	busy = NULL;
+-	while (loop--) {
++	do {
+ 		struct page_cgroup *pc;
+ 		struct page *page;
  
- static void cgroup_diput(struct dentry *dentry, struct inode *inode)
-@@ -4282,7 +4275,6 @@ again:
- 		mutex_unlock(&cgroup_mutex);
- 		return -EBUSY;
- 	}
--	mutex_unlock(&cgroup_mutex);
- 
- 	/*
- 	 * In general, subsystem has no css->refcnt after pre_destroy(). But
-@@ -4295,17 +4287,6 @@ again:
- 	 */
- 	set_bit(CGRP_WAIT_ON_RMDIR, &cgrp->flags);
- 
--	/*
--	 * Call pre_destroy handlers of subsys. Notify subsystems
--	 * that rmdir() request comes.
--	 */
--	ret = cgroup_call_pre_destroy(cgrp);
--	if (ret) {
--		clear_bit(CGRP_WAIT_ON_RMDIR, &cgrp->flags);
--		return ret;
+@@ -3726,8 +3747,7 @@ static bool mem_cgroup_force_empty_list(
+ 			cond_resched();
+ 		} else
+ 			busy = NULL;
 -	}
--
--	mutex_lock(&cgroup_mutex);
- 	parent = cgrp->parent;
- 	if (atomic_read(&cgrp->count) || !list_empty(&cgrp->children)) {
- 		clear_bit(CGRP_WAIT_ON_RMDIR, &cgrp->flags);
-@@ -4327,6 +4308,7 @@ again:
- 			return -EINTR;
- 		goto again;
- 	}
-+
- 	/* NO css_tryget() can success after here. */
- 	finish_wait(&cgroup_rmdir_waitq, &wait);
- 	clear_bit(CGRP_WAIT_ON_RMDIR, &cgrp->flags);
-@@ -4365,6 +4347,12 @@ again:
- 	spin_unlock(&cgrp->event_list_lock);
- 
- 	mutex_unlock(&cgroup_mutex);
-+
-+	/*
-+	 * Call pre_destroy handlers of subsys. Notify subsystems
-+	 * that rmdir() request comes.
-+	 */
-+	cgroup_call_pre_destroy(cgrp);
- 	return 0;
+-	return !list_empty(list);
++	} while (!list_empty(list));
  }
  
+ /*
+@@ -3741,7 +3761,6 @@ static int mem_cgroup_reparent_charges(s
+ {
+ 	struct cgroup *cgrp = memcg->css.cgroup;
+ 	int node, zid;
+-	int ret;
+ 
+ 	do {
+ 		if (cgroup_task_count(cgrp) || !list_empty(&cgrp->children))
+@@ -3749,28 +3768,30 @@ static int mem_cgroup_reparent_charges(s
+ 		/* This is for making all *used* pages to be on LRU. */
+ 		lru_add_drain_all();
+ 		drain_all_stock_sync(memcg);
+-		ret = 0;
+ 		mem_cgroup_start_move(memcg);
+ 		for_each_node_state(node, N_HIGH_MEMORY) {
+-			for (zid = 0; !ret && zid < MAX_NR_ZONES; zid++) {
++			for (zid = 0; zid < MAX_NR_ZONES; zid++) {
+ 				enum lru_list lru;
+ 				for_each_lru(lru) {
+-					ret = mem_cgroup_force_empty_list(memcg,
++					mem_cgroup_force_empty_list(memcg,
+ 							node, zid, lru);
+-					if (ret)
+-						break;
+ 				}
+ 			}
+-			if (ret)
+-				break;
+ 		}
+ 		mem_cgroup_end_move(memcg);
+ 		memcg_oom_recover(memcg);
+ 		cond_resched();
+-	/* "ret" should also be checked to ensure all lists are empty. */
+-	} while (res_counter_read_u64(&memcg->res, RES_USAGE) > 0 || ret);
+ 
+-	return ret;
++		/*
++		 * This is a safety check because mem_cgroup_force_empty_list
++		 * could have raced with mem_cgroup_replace_page_cache callers
++		 * so the lru seemed empty but the page could have been added
++		 * right after the check. RES_USAGE should be safe as we always
++		 * charge before adding to the LRU.
++		 */
++	} while (res_counter_read_u64(&memcg->res, RES_USAGE) > 0);
++
++	return 0;
+ }
+ 
+ /*
+@@ -5619,7 +5640,6 @@ struct cgroup_subsys mem_cgroup_subsys =
+ 	.base_cftypes = mem_cgroup_files,
+ 	.early_init = 0,
+ 	.use_id = 1,
+-	.__DEPRECATED_clear_css_refs = true,
+ };
+ 
+ #ifdef CONFIG_MEMCG_SWAP
 _
 
 Patches currently in -mm which might be from mhocko@suse.cz are
