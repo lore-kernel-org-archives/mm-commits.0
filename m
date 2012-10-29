@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-introduce-mm_find_pmd-fix.patch added to -mm tree
-Date: Thu, 25 Oct 2012 15:35:42 -0700
-Message-ID: <20121025223543.70F8C1E13F3@wpzn4.hot.corp.google.com>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Mon, 29 Oct 2012 12:41:35 -0700
+Message-ID: <20121029194143.09D395C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:57072 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751075Ab2JYWfo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 25 Oct 2012 18:35:44 -0400
-Received: by mail-vb0-f74.google.com with SMTP id s24so271301vbi.1
-        for <mm-commits@vger.kernel.org>; Thu, 25 Oct 2012 15:35:44 -0700 (PDT)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:36455 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754795Ab2J2Tlp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Oct 2012 15:41:45 -0400
+Received: by mail-la0-f74.google.com with SMTP id j13so343751lah.1
+        for <mm-commits@vger.kernel.org>; Mon, 29 Oct 2012 12:41:44 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aarcange@redhat.com, lliubbo@gmail.com, mhocko@suse.cz, minchan.kim@gmail.com, nizhan.chen@gmail.com, sfr@canb.auug.org.au
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: mm-introduce-mm_find_pmd-fix
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     mm-introduce-mm_find_pmd-fix.patch
+     linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,48 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-introduce-mm_find_pmd-fix
+Subject: linux-next-git-rejects
 
-mm/rmap.c: In function 'try_to_unmap_cluster':
-mm/rmap.c:1364:9: warning: unused variable 'pud' [-Wunused-variable]
-mm/rmap.c:1363:9: warning: unused variable 'pgd' [-Wunused-variable]
-
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Bob Liu <lliubbo@gmail.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Ni zhan Chen <nizhan.chen@gmail.com>
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    2 --
- 1 file changed, 2 deletions(-)
+ net/ceph/messenger.c |   11 -----------
+ 1 file changed, 11 deletions(-)
 
-diff -puN mm/rmap.c~mm-introduce-mm_find_pmd-fix mm/rmap.c
---- a/mm/rmap.c~mm-introduce-mm_find_pmd-fix
-+++ a/mm/rmap.c
-@@ -1357,8 +1357,6 @@ static int try_to_unmap_cluster(unsigned
- 		struct vm_area_struct *vma, struct page *check_page)
- {
- 	struct mm_struct *mm = vma->vm_mm;
--	pgd_t *pgd;
--	pud_t *pud;
- 	pmd_t *pmd;
- 	pte_t *pte;
- 	pte_t pteval;
+diff -puN net/ceph/messenger.c~linux-next-git-rejects net/ceph/messenger.c
+--- a/net/ceph/messenger.c~linux-next-git-rejects
++++ a/net/ceph/messenger.c
+@@ -2305,22 +2305,11 @@ restart:
+ 
+ 	if (test_and_clear_bit(CON_FLAG_BACKOFF, &con->flags)) {
+ 		dout("con_work %p backing off\n", con);
+-<<<<<<< HEAD
+-		if (queue_delayed_work(ceph_msgr_wq, &con->work,
+-				       round_jiffies_relative(con->delay))) {
+-			dout("con_work %p backoff %lu\n", con, con->delay);
+-			mutex_unlock(&con->mutex);
+-			return;
+-		} else {
+-			dout("con_work %p FAILED to back off %lu\n", con,
+-			     con->delay);
+-=======
+ 		ret = queue_con_delay(con, round_jiffies_relative(con->delay));
+ 		if (ret) {
+ 			dout("con_work %p FAILED to back off %lu\n", con,
+ 			     con->delay);
+ 			BUG_ON(ret == -ENOENT);
+->>>>>>> linux-next/akpm-base
+ 			set_bit(CON_FLAG_BACKOFF, &con->flags);
+ 		}
+ 		goto done;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
-pidns-limit-the-nesting-depth-of-pid-namespaces.patch
 revert-tools-testing-selftests-epoll-test_epollc-fix-build.patch
 revert-epoll-support-for-disabling-items-and-a-self-test-app.patch
 linux-next.patch
+linux-next-git-rejects.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
