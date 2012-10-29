@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-split-mem_cgroup_force_empty-into-reclaiming-and-reparenting-parts.patch added to -mm tree
-Date: Mon, 29 Oct 2012 15:04:20 -0700
-Message-ID: <20121029220421.B7D8920004E@hpza10.eem.corp.google.com>
+Subject: + memcg-make-mem_cgroup_reparent_charges-non-failing.patch added to -mm tree
+Date: Mon, 29 Oct 2012 15:04:37 -0700
+Message-ID: <20121029220438.83CAA5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-bk0-f74.google.com ([209.85.214.74]:64403 "EHLO
 	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751928Ab2J2WEZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Oct 2012 18:04:25 -0400
+	with ESMTP id S1761330Ab2J2WEl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Oct 2012 18:04:41 -0400
 Received: by mail-bk0-f74.google.com with SMTP id q16so347985bkw.1
-        for <mm-commits@vger.kernel.org>; Mon, 29 Oct 2012 15:04:23 -0700 (PDT)
+        for <mm-commits@vger.kernel.org>; Mon, 29 Oct 2012 15:04:40 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: mhocko@suse.cz, bsingharora@gmail.com, glommer@parallels.com, hannes@cmpxchg
 
 
 The patch titled
-     Subject: memcg: split mem_cgroup_force_empty() into reclaiming and reparenting parts
+     Subject: memcg: make mem_cgroup_reparent_charges() non-failing
 has been added to the -mm tree.  Its filename is
-     memcg-split-mem_cgroup_force_empty-into-reclaiming-and-reparenting-parts.patch
+     memcg-make-mem_cgroup_reparent_charges-non-failing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,23 +34,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg: split mem_cgroup_force_empty() into reclaiming and reparenting parts
+Subject: memcg: make mem_cgroup_reparent_charges() non-failing
 
-mem_cgroup_force_empty() did two separate things depending on free_all
-parameter from the very beginning.  It either reclaimed as many pages as
-possible and moved the rest to the parent or just moved charges to the
-parent.  The first variant is used as memory.force_empty callback while
-the later is used from the mem_cgroup_pre_destroy().
+Now that pre_destroy() callbacks are called from the context where neither
+any task can attach the group nor any children group can be added there is
+no other way to fail from mem_cgroup_pre_destroy().
 
-The whole games around gotos are far from being nice and there is no
-reason to keep those two functions inside one. Let's split them and
-also move the responsibility for css reference counting to their callers
-to make to code easier.
-
-This patch doesn't make any functional changes.
+mem_cgroup_pre_destroy() doesn't have to take a reference to memcg's css
+because all css' are marked dead already.
 
 Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Reviewed-by: Tejun Heo <tj@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Reviewed-by: Glauber Costa <glommer@parallels.com>
 Cc: Li Zefan <lizefan@huawei.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -59,130 +53,61 @@ Cc: Balbir Singh <bsingharora@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   72 ++++++++++++++++++++++++++--------------------
- 1 file changed, 42 insertions(+), 30 deletions(-)
+ mm/memcontrol.c |   18 ++++++------------
+ 1 file changed, 6 insertions(+), 12 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-split-mem_cgroup_force_empty-into-reclaiming-and-reparenting-parts mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-split-mem_cgroup_force_empty-into-reclaiming-and-reparenting-parts
+diff -puN mm/memcontrol.c~memcg-make-mem_cgroup_reparent_charges-non-failing mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-make-mem_cgroup_reparent_charges-non-failing
 +++ a/mm/memcontrol.c
-@@ -3733,27 +3733,21 @@ static bool mem_cgroup_force_empty_list(
- }
- 
- /*
-- * make mem_cgroup's charge to be 0 if there is no task.
-+ * make mem_cgroup's charge to be 0 if there is no task by moving
-+ * all the charges and pages to the parent.
-  * This enables deleting this mem_cgroup.
-+ *
-+ * Caller is responsible for holding css reference on the memcg.
+@@ -3757,14 +3757,12 @@ static void mem_cgroup_force_empty_list(
+  *
+  * Caller is responsible for holding css reference on the memcg.
   */
--static int mem_cgroup_force_empty(struct mem_cgroup *memcg, bool free_all)
-+static int mem_cgroup_reparent_charges(struct mem_cgroup *memcg)
+-static int mem_cgroup_reparent_charges(struct mem_cgroup *memcg)
++static void mem_cgroup_reparent_charges(struct mem_cgroup *memcg)
  {
--	int ret;
--	int node, zid, shrink;
--	int nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
  	struct cgroup *cgrp = memcg->css.cgroup;
-+	int node, zid;
-+	int ret;
+ 	int node, zid;
  
--	css_get(&memcg->css);
--
--	shrink = 0;
--	/* should free all ? */
--	if (free_all)
--		goto try_to_free;
--move_account:
  	do {
--		ret = -EBUSY;
- 		if (cgroup_task_count(cgrp) || !list_empty(&cgrp->children))
--			goto out;
-+			return -EBUSY;
+-		if (cgroup_task_count(cgrp) || !list_empty(&cgrp->children))
+-			return -EBUSY;
  		/* This is for making all *used* pages to be on LRU. */
  		lru_add_drain_all();
  		drain_all_stock_sync(memcg);
-@@ -3777,27 +3771,34 @@ move_account:
- 		cond_resched();
- 	/* "ret" should also be checked to ensure all lists are empty. */
- 	} while (res_counter_read_u64(&memcg->res, RES_USAGE) > 0 || ret);
--out:
--	css_put(&memcg->css);
-+
- 	return ret;
-+}
-+
-+/*
-+ * Reclaims as many pages from the given memcg as possible and moves
-+ * the rest to the parent.
-+ *
-+ * Caller is responsible for holding css reference for memcg.
-+ */
-+static int mem_cgroup_force_empty(struct mem_cgroup *memcg)
-+{
-+	int nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
-+	struct cgroup *cgrp = memcg->css.cgroup;
+@@ -3790,8 +3788,6 @@ static int mem_cgroup_reparent_charges(s
+ 		 * charge before adding to the LRU.
+ 		 */
+ 	} while (res_counter_read_u64(&memcg->res, RES_USAGE) > 0);
+-
+-	return 0;
+ }
  
--try_to_free:
- 	/* returns EBUSY if there is a task or if we come here twice. */
--	if (cgroup_task_count(cgrp) || !list_empty(&cgrp->children) || shrink) {
--		ret = -EBUSY;
--		goto out;
--	}
-+	if (cgroup_task_count(cgrp) || !list_empty(&cgrp->children))
-+		return -EBUSY;
-+
- 	/* we call try-to-free pages for make this cgroup empty */
- 	lru_add_drain_all();
- 	/* try to free all pages in this cgroup */
--	shrink = 1;
- 	while (nr_retries && res_counter_read_u64(&memcg->res, RES_USAGE) > 0) {
- 		int progress;
- 
--		if (signal_pending(current)) {
--			ret = -EINTR;
--			goto out;
--		}
-+		if (signal_pending(current))
-+			return -EINTR;
-+
- 		progress = try_to_free_mem_cgroup_pages(memcg, GFP_KERNEL,
- 						false);
- 		if (!progress) {
-@@ -3808,13 +3809,19 @@ try_to_free:
+ /*
+@@ -3828,7 +3824,9 @@ static int mem_cgroup_force_empty(struct
  
  	}
  	lru_add_drain();
--	/* try move_account...there may be some *locked* pages. */
--	goto move_account;
-+	return mem_cgroup_reparent_charges(memcg);
+-	return mem_cgroup_reparent_charges(memcg);
++	mem_cgroup_reparent_charges(memcg);
++
++	return 0;
  }
  
  static int mem_cgroup_force_empty_write(struct cgroup *cont, unsigned int event)
- {
--	return mem_cgroup_force_empty(mem_cgroup_from_cont(cont), true);
-+	struct mem_cgroup *memcg = mem_cgroup_from_cont(cont);
-+	int ret;
-+
-+	css_get(&memcg->css);
-+	ret = mem_cgroup_force_empty(memcg);
-+	css_put(&memcg->css);
-+
-+	return ret;
- }
- 
- 
-@@ -5004,8 +5011,13 @@ free_out:
+@@ -5032,13 +5030,9 @@ free_out:
  static int mem_cgroup_pre_destroy(struct cgroup *cont)
  {
  	struct mem_cgroup *memcg = mem_cgroup_from_cont(cont);
-+	int ret;
+-	int ret;
  
--	return mem_cgroup_force_empty(memcg, false);
-+	css_get(&memcg->css);
-+	ret = mem_cgroup_reparent_charges(memcg);
-+	css_put(&memcg->css);
-+
-+	return ret;
+-	css_get(&memcg->css);
+-	ret = mem_cgroup_reparent_charges(memcg);
+-	css_put(&memcg->css);
+-
+-	return ret;
++	mem_cgroup_reparent_charges(memcg);
++	return 0;
  }
  
  static void mem_cgroup_destroy(struct cgroup *cont)
