@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-add-sysctl-to-specify-desired-next-object-id-documentation-update-sysctl-kerneltxt.patch added to -mm tree
-Date: Mon, 29 Oct 2012 14:46:31 -0700
-Message-ID: <20121029214632.326D91E0043@wpzn4.hot.corp.google.com>
+Subject: + ipc-message-queue-copy-feature-introduced-remove-redundant-msg_copy-check.patch added to -mm tree
+Date: Mon, 29 Oct 2012 14:46:35 -0700
+Message-ID: <20121029214636.B222220004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:55845 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933092Ab2J2Vqd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Oct 2012 17:46:33 -0400
-Received: by mail-vc0-f202.google.com with SMTP id fy27so700257vcb.1
-        for <mm-commits@vger.kernel.org>; Mon, 29 Oct 2012 14:46:32 -0700 (PDT)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:57183 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933078Ab2J2Vqk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Oct 2012 17:46:40 -0400
+Received: by mail-la0-f74.google.com with SMTP id j13so347973lah.1
+        for <mm-commits@vger.kernel.org>; Mon, 29 Oct 2012 14:46:38 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: skinsbursky@parallels.com, ebiederm@xmission.com, kosaki.motohiro@jp.fujitsu
 
 
 The patch titled
-     Subject: Documentation: update sysctl/kernel.txt
+     Subject: ipc: remove redundant MSG_COPY check
 has been added to the -mm tree.  Its filename is
-     ipc-add-sysctl-to-specify-desired-next-object-id-documentation-update-sysctl-kerneltxt.patch
+     ipc-message-queue-copy-feature-introduced-remove-redundant-msg_copy-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Stanislav Kinsbursky <skinsbursky@parallels.com>
-Subject: Documentation: update sysctl/kernel.txt
+Subject: ipc: remove redundant MSG_COPY check
 
-Add documentation about new "msg_next_id", "sem_next_id" and "shm_next_id"
-sysctls.
+Small cleanup patch.
 
 Signed-off-by: Stanislav Kinsbursky <skinsbursky@parallels.com>
 Cc: Serge Hallyn <serge.hallyn@canonical.com>
@@ -49,53 +48,26 @@ Cc: Michael Kerrisk <mtk.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/kernel.txt |   19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ ipc/msg.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN Documentation/sysctl/kernel.txt~ipc-add-sysctl-to-specify-desired-next-object-id-documentation-update-sysctl-kerneltxt Documentation/sysctl/kernel.txt
---- a/Documentation/sysctl/kernel.txt~ipc-add-sysctl-to-specify-desired-next-object-id-documentation-update-sysctl-kerneltxt
-+++ a/Documentation/sysctl/kernel.txt
-@@ -38,6 +38,7 @@ show up in /proc/sys/kernel:
- - l2cr                        [ PPC only ]
- - modprobe                    ==> Documentation/debugging-modules.txt
- - modules_disabled
-+- msg_next_id		      [ sysv ipc ]
- - msgmax
- - msgmnb
- - msgmni
-@@ -62,7 +63,9 @@ show up in /proc/sys/kernel:
- - rtsig-max
- - rtsig-nr
- - sem
-+- sem_next_id		      [ sysv ipc ]
- - sg-big-buff                 [ generic SCSI device (sg) ]
-+- shm_next_id		      [ sysv ipc ]
- - shm_rmid_forced
- - shmall
- - shmmax                      [ sysv ipc ]
-@@ -320,6 +323,22 @@ to false.
+diff -puN ipc/msg.c~ipc-message-queue-copy-feature-introduced-remove-redundant-msg_copy-check ipc/msg.c
+--- a/ipc/msg.c~ipc-message-queue-copy-feature-introduced-remove-redundant-msg_copy-check
++++ a/ipc/msg.c
+@@ -786,11 +786,8 @@ long do_msgrcv(int msqid, void __user *b
+ 		return -EINVAL;
+ 	if (msgflg & MSG_COPY) {
+ #ifdef CONFIG_CHECKPOINT_RESTORE
+-
+-		if (msgflg & MSG_COPY) {
+-			copy_number = msgtyp;
+-			msgtyp = 0;
+-		}
++		copy_number = msgtyp;
++		msgtyp = 0;
  
- ==============================================================
- 
-+msg_next_id, sem_next_id, and shm_next_id:
-+
-+These three toggles allows to specify desired id for next allocated IPC
-+object: message, semaphore or shared memory respectively.
-+
-+By default they are equal to -1, which means generic allocation logic.
-+Possible values to set are in range {0..INT_MAX}.
-+
-+Notes:
-+1) kernel doesn't guarantee, that new object will have desired id. So,
-+it's up to userspace, how to handle an object with "wrong" id.
-+2) Toggle with non-default value will be set back to -1 by kernel after
-+successful IPC object allocation.
-+
-+==============================================================
-+
- nmi_watchdog:
- 
- Enables/Disables the NMI watchdog on x86 systems. When the value is
+ 		/*
+ 		 * Create dummy message to copy real message to.
 _
 
 Patches currently in -mm which might be from skinsbursky@parallels.com are
