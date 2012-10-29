@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlb-do-not-fail-in-hugetlb_cgroup_pre_destroy.patch added to -mm tree
-Date: Mon, 29 Oct 2012 16:13:06 -0700
-Message-ID: <20121029231307.0668B5C0063@hpza9.eem.corp.google.com>
+Subject: + fat-remove-parent_logstart-check-in-fat_get_parent.patch added to -mm tree
+Date: Mon, 29 Oct 2012 16:49:50 -0700
+Message-ID: <20121029234951.27F8E100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:47590 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756039Ab2J2XNK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Oct 2012 19:13:10 -0400
-Received: by mail-bk0-f74.google.com with SMTP id q16so349685bkw.1
-        for <mm-commits@vger.kernel.org>; Mon, 29 Oct 2012 16:13:08 -0700 (PDT)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:35962 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932376Ab2J2Xtw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Oct 2012 19:49:52 -0400
+Received: by mail-qa0-f74.google.com with SMTP id a16so405728qae.1
+        for <mm-commits@vger.kernel.org>; Mon, 29 Oct 2012 16:49:51 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhocko@suse.cz, bsingharora@gmail.com, glommer@parallels.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, lizefan@huawei.com, tj@kernel.org
+Cc: namjae.jeon@samsung.com, a.sahrawat@samsung.com, hirofumi@mail.parknet.co.jp, ravi.n1@samsung.com
 
 
 The patch titled
-     Subject: hugetlb: do not fail in hugetlb_cgroup_pre_destroy()
+     Subject: fat: remove parent_logstart check in fat_get_parent
 has been added to the -mm tree.  Its filename is
-     hugetlb-do-not-fail-in-hugetlb_cgroup_pre_destroy.patch
+     fat-remove-parent_logstart-check-in-fat_get_parent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,74 +33,98 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: hugetlb: do not fail in hugetlb_cgroup_pre_destroy()
+From: Namjae Jeon <namjae.jeon@samsung.com>
+Subject: fat: remove parent_logstart check in fat_get_parent
 
-Now that pre_destroy() callbacks are called from the context where neither
-any task can attach the group nor any children group can be added there is
-no other way to fail from hugetlb_pre_destroy().
+The root directory inode is added to the directory hash table in
+fat_attach when mounted with nfs option.  Since root dentry never expires
+until umount, fat_dget never fails to return the root inode for
+subdirectories of root inode.i.e., parent_logstart cannot be zero.
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Reviewed-by: Tejun Heo <tj@kernel.org>
-Reviewed-by: Glauber Costa <glommer@parallels.com>
-Cc: Li Zefan <lizefan@huawei.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
+Signed-off-by: Namjae Jeon <namjae.jeon@samsung.com>
+Signed-off-by: Ravishankar N <ravi.n1@samsung.com>
+Signed-off-by: Amit Sahrawat <a.sahrawat@samsung.com>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_cgroup.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ fs/fat/nfs.c |   51 +++++++++++++++++++++----------------------------
+ 1 file changed, 22 insertions(+), 29 deletions(-)
 
-diff -puN mm/hugetlb_cgroup.c~hugetlb-do-not-fail-in-hugetlb_cgroup_pre_destroy mm/hugetlb_cgroup.c
---- a/mm/hugetlb_cgroup.c~hugetlb-do-not-fail-in-hugetlb_cgroup_pre_destroy
-+++ a/mm/hugetlb_cgroup.c
-@@ -159,14 +159,9 @@ static int hugetlb_cgroup_pre_destroy(st
- {
- 	struct hstate *h;
- 	struct page *page;
--	int ret = 0, idx = 0;
-+	int idx = 0;
- 
- 	do {
--		if (cgroup_task_count(cgroup) ||
--		    !list_empty(&cgroup->children)) {
--			ret = -EBUSY;
--			goto out;
--		}
- 		for_each_hstate(h) {
- 			spin_lock(&hugetlb_lock);
- 			list_for_each_entry(page, &h->hugepage_activelist, lru)
-@@ -177,8 +172,8 @@ static int hugetlb_cgroup_pre_destroy(st
+diff -puN fs/fat/nfs.c~fat-remove-parent_logstart-check-in-fat_get_parent fs/fat/nfs.c
+--- a/fs/fat/nfs.c~fat-remove-parent_logstart-check-in-fat_get_parent
++++ a/fs/fat/nfs.c
+@@ -274,36 +274,29 @@ struct dentry *fat_get_parent(struct den
+ 		parent_inode = fat_dget(sb, parent_logstart);
+ 		if (parent_inode || sbi->options.nfs != FAT_NFS_NOSTALE_RO)
+ 			goto out;
+-		if (!parent_logstart)
+-			/*logstart of dotdot entry is zero if
+-			* if the directory's parent is root
+-			*/
+-			parent_inode = sb->s_root->d_inode;
+-		else {
+-			blknr = fat_clus_to_blknr(sbi, parent_logstart);
+-			parent_bh = sb_bread(sb, blknr);
+-			if (!parent_bh) {
+-				fat_msg(sb, KERN_ERR,
+-					"NFS:unable to read cluster of parent directory");
+-				goto out;
+-			}
+-			de = (struct msdos_dir_entry *) parent_bh->b_data;
+-			clus_to_match = fat_get_start(sbi, &de[0]);
+-			search_clus = fat_get_start(sbi, &de[1]);
+-			if (!search_clus)
+-				search_clus = sbi->root_cluster;
+-			brelse(parent_bh);
+-			do {
+-				parent_inode =  fat_traverse_cluster(sb,
+-						search_clus, clus_to_match);
+-				if (IS_ERR(parent_inode) || parent_inode)
+-					break;
+-				search_clus = fat_read_next_clus(sb,
+-								search_clus);
+-				if (search_clus < 0)
+-					break;
+-			} while (search_clus != FAT_ENT_EOF);
++		blknr = fat_clus_to_blknr(sbi, parent_logstart);
++		parent_bh = sb_bread(sb, blknr);
++		if (!parent_bh) {
++			fat_msg(sb, KERN_ERR,
++				"NFS:unable to read cluster of parent directory");
++			goto out;
  		}
- 		cond_resched();
- 	} while (hugetlb_cgroup_have_usage(cgroup));
--out:
--	return ret;
-+
-+	return 0;
- }
- 
- int hugetlb_cgroup_charge_cgroup(int idx, unsigned long nr_pages,
++		de = (struct msdos_dir_entry *) parent_bh->b_data;
++		clus_to_match = fat_get_start(sbi, &de[0]);
++		search_clus = fat_get_start(sbi, &de[1]);
++		if (!search_clus)
++			search_clus = sbi->root_cluster;
++		brelse(parent_bh);
++		do {
++			parent_inode =  fat_traverse_cluster(sb,
++					search_clus, clus_to_match);
++			if (IS_ERR(parent_inode) || parent_inode)
++				break;
++			search_clus = fat_read_next_clus(sb,
++							search_clus);
++			if (search_clus < 0)
++				break;
++		} while (search_clus != FAT_ENT_EOF);
+ 	}
+ out:
+ 	brelse(dotdot_bh);
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from namjae.jeon@samsung.com are
 
-thp-clean-up-__collapse_huge_page_isolate.patch
-thp-clean-up-__collapse_huge_page_isolate-v2.patch
-mm-introduce-mm_find_pmd.patch
-mm-introduce-mm_find_pmd-fix.patch
-thp-introduce-hugepage_vma_check.patch
-thp-cleanup-introduce-mk_huge_pmd.patch
-memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix.patch
-memcg-split-mem_cgroup_force_empty-into-reclaiming-and-reparenting-parts.patch
-memcg-root_cgroup-cannot-reach-mem_cgroup_move_parent.patch
-memcg-simplify-mem_cgroup_force_empty_list-error-handling.patch
-cgroups-forbid-pre_destroy-callback-to-fail.patch
-memcg-make-mem_cgroup_reparent_charges-non-failing.patch
-hugetlb-do-not-fail-in-hugetlb_cgroup_pre_destroy.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
-mm-memblock-reduce-overhead-in-binary-search.patch
+fat-modify-nfs-mount-option.patch
+fat-exportfs-rebuild-inode-if-ilookup-fails.patch
+fat-exportfs-rebuild-inode-if-ilookup-fails-fix.patch
+fat-exportfs-rebuild-directory-inode-if-fat_dget-fails.patch
+documentation-update-nfs-option-in-filesystem-vfattxt.patch
+fat-remove-parent_logstart-check-in-fat_get_parent.patch
+fat-restructure-export-operations.patch
+fat-move-fat_i_pos_read-to-fath.patch
+fat-exportfs-move-code-to-rebuild-directory-inode-to-separate-function.patch
+fat-add-mutex-lock-to-fat_build_inode.patch
 
