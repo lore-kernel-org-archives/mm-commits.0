@@ -1,65 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-compat_ioctlc-video_set_spu_palette-missing-error-check.patch removed from -mm tree
-Date: Mon, 29 Oct 2012 12:50:39 -0700
-Message-ID: <20121029195040.267515C0050@hpza9.eem.corp.google.com>
+Subject: [merged] random-make-it-possible-to-enable-debugging-without-rebuild.patch removed from -mm tree
+Date: Mon, 29 Oct 2012 12:50:43 -0700
+Message-ID: <20121029195044.11D2D5C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:47906 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751069Ab2J2Tum (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Oct 2012 15:50:42 -0400
-Received: by mail-fa0-f74.google.com with SMTP id t1so341712fae.1
-        for <mm-commits@vger.kernel.org>; Mon, 29 Oct 2012 12:50:41 -0700 (PDT)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:37303 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752911Ab2J2Tuq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Oct 2012 15:50:46 -0400
+Received: by mail-lb0-f202.google.com with SMTP id l12so337158lbo.1
+        for <mm-commits@vger.kernel.org>; Mon, 29 Oct 2012 12:50:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, davem@davemloft.net, pageexec@freemail.hu, spender@grsecurity.net, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: jkosina@suse.cz, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/compat_ioctl.c: VIDEO_SET_SPU_PALETTE missing error check
+     Subject: random: make it possible to enable debugging without rebuild
 has been removed from the -mm tree.  Its filename was
-     fs-compat_ioctlc-video_set_spu_palette-missing-error-check.patch
+     random-make-it-possible-to-enable-debugging-without-rebuild.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: fs/compat_ioctl.c: VIDEO_SET_SPU_PALETTE missing error check
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: random: make it possible to enable debugging without rebuild
 
-The compat ioctl for VIDEO_SET_SPU_PALETTE was missing an error check
-while converting ioctl arguments.  This could lead to leaking kernel stack
-contents into userspace.
+The module parameter that turns debugging mode (which basically means
+printing a few extra lines during runtime) is in '#if 0' block.  Forcing
+everyone who would like to see how entropy is behaving on his system to
+rebuild seems to be a little bit too harsh.
 
-Patch extracted from existing fix in grsecurity.
+If we were concerned about speed, we could potentially turn 'debug' into a
+static key, but I don't think it's necessary.
 
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: David Miller <davem@davemloft.net>
-Cc: Brad Spengler <spender@grsecurity.net>
-Cc: PaX Team <pageexec@freemail.hu>
-Cc: <stable@vger.kernel.org>
+Drop the '#if 0' block to allow using the 'debug' parameter without
+rebuilding.
+
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat_ioctl.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/char/random.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN fs/compat_ioctl.c~fs-compat_ioctlc-video_set_spu_palette-missing-error-check fs/compat_ioctl.c
---- a/fs/compat_ioctl.c~fs-compat_ioctlc-video_set_spu_palette-missing-error-check
-+++ a/fs/compat_ioctl.c
-@@ -210,6 +210,8 @@ static int do_video_set_spu_palette(unsi
+diff -puN drivers/char/random.c~random-make-it-possible-to-enable-debugging-without-rebuild drivers/char/random.c
+--- a/drivers/char/random.c~random-make-it-possible-to-enable-debugging-without-rebuild
++++ a/drivers/char/random.c
+@@ -399,7 +399,6 @@ static DECLARE_WAIT_QUEUE_HEAD(random_re
+ static DECLARE_WAIT_QUEUE_HEAD(random_write_wait);
+ static struct fasync_struct *fasync;
  
- 	err  = get_user(palp, &up->palette);
- 	err |= get_user(length, &up->length);
-+	if (err)
-+		return -EFAULT;
+-#if 0
+ static bool debug;
+ module_param(debug, bool, 0644);
+ #define DEBUG_ENT(fmt, arg...) do { \
+@@ -410,9 +409,6 @@ module_param(debug, bool, 0644);
+ 		blocking_pool.entropy_count,\
+ 		nonblocking_pool.entropy_count,\
+ 		## arg); } while (0)
+-#else
+-#define DEBUG_ENT(fmt, arg...) do {} while (0)
+-#endif
  
- 	up_native = compat_alloc_user_space(sizeof(struct video_spu_palette));
- 	err  = put_user(compat_ptr(palp), &up_native->palette);
+ /**********************************************************************
+  *
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from jkosina@suse.cz are
 
 linux-next.patch
-fs-pstore-ramc-fix-up-section-annotations.patch
-proc-dont-show-nonexistent-capabilities.patch
 
