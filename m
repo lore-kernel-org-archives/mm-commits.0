@@ -1,96 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-comment-on-storage-key-dirty-bit-semantics.patch added to -mm tree
-Date: Mon, 29 Oct 2012 14:13:07 -0700
-Message-ID: <20121029211308.1966D20004E@hpza10.eem.corp.google.com>
+Subject: [alternative-merged] selftests-ipc-message-queue-copy-feature-test-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 29 Oct 2012 14:43:44 -0700
+Message-ID: <20121029214345.51DB81E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f202.google.com ([209.85.215.202]:59990 "EHLO
-	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759133Ab2J2VNL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Oct 2012 17:13:11 -0400
-Received: by mail-ea0-f202.google.com with SMTP id q10so345838eaa.1
-        for <mm-commits@vger.kernel.org>; Mon, 29 Oct 2012 14:13:09 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:42752 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933125Ab2J2Vnq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Oct 2012 17:43:46 -0400
+Received: by mail-vb0-f74.google.com with SMTP id s24so698025vbi.1
+        for <mm-commits@vger.kernel.org>; Mon, 29 Oct 2012 14:43:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz, hughd@google.com, mgorman@suse.de, schwidefsky@de.ibm.com
+To: akpm@linux-foundation.org, skinsbursky@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add comment on storage key dirty bit semantics
-has been added to the -mm tree.  Its filename is
-     mm-add-comment-on-storage-key-dirty-bit-semantics.patch
+     Subject: selftests-ipc-message-queue-copy-feature-test-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     selftests-ipc-message-queue-copy-feature-test-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: mm: add comment on storage key dirty bit semantics
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: selftests-ipc-message-queue-copy-feature-test-checkpatch-fixes
 
-Add comments that dirty bit in storage key gets set whenever page content
-is changed.  Hopefully if someone will use this function, he'll have a
-look at one of the two places where we comment on this.
+WARNING: line over 80 characters
+#114: FILE: tools/testing/selftests/ipc/msgque.c:61:
++		if (msgsnd(msgque->msq_id, &msgque->messages[i].mtype, msgque->messages[i].msize, IPC_NOWAIT) != 0) {
 
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Hugh Dickins <hughd@google.com>
+WARNING: line over 80 characters
+#128: FILE: tools/testing/selftests/ipc/msgque.c:75:
++		ret = msgrcv(msgque->msq_id, &message.mtype, MAX_MSG_SIZE, 0, IPC_NOWAIT);
+
+WARNING: line over 80 characters
+#137: FILE: tools/testing/selftests/ipc/msgque.c:84:
++			printf("Wrong message size: %d (expected %d)\n", ret, msgque->messages[cnt].msize);
+
+WARNING: line over 80 characters
+#179: FILE: tools/testing/selftests/ipc/msgque.c:126:
++			printf("Failed to get stats for IPC queue with id %d\n", msgque->kern_id);
+
+WARNING: line over 80 characters
+#198: FILE: tools/testing/selftests/ipc/msgque.c:145:
++		ret = msgrcv(msgque->msq_id, &msgque->messages[i].mtype, MAX_MSG_SIZE, i, IPC_NOWAIT | MSG_COPY);
+
+WARNING: line over 80 characters
+#214: FILE: tools/testing/selftests/ipc/msgque.c:161:
++	if (msgsnd(msgque->msq_id, &msgbuf.mtype, sizeof(TEST_STRING), IPC_NOWAIT) != 0) {
+
+WARNING: line over 80 characters
+#221: FILE: tools/testing/selftests/ipc/msgque.c:168:
++	if (msgsnd(msgque->msq_id, &msgbuf.mtype, sizeof(ANOTHER_TEST_STRING), IPC_NOWAIT) != 0) {
+
+WARNING: space prohibited between function name and open parenthesis '('
+#228: FILE: tools/testing/selftests/ipc/msgque.c:175:
++int main (int argc, char **argv)
+
+total: 0 errors, 8 warnings, 256 lines checked
+
+./patches/selftests-ipc-message-queue-copy-feature-test.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Stanislav Kinsbursky <skinsbursky@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/page.h |    3 +++
- mm/rmap.c                    |    8 +++++---
- 2 files changed, 8 insertions(+), 3 deletions(-)
+ tools/testing/selftests/ipc/msgque.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/s390/include/asm/page.h~mm-add-comment-on-storage-key-dirty-bit-semantics arch/s390/include/asm/page.h
---- a/arch/s390/include/asm/page.h~mm-add-comment-on-storage-key-dirty-bit-semantics
-+++ a/arch/s390/include/asm/page.h
-@@ -158,6 +158,9 @@ static inline int page_reset_referenced(
-  * race against modification of the referenced bit. This function
-  * should therefore only be called if it is not mapped in any
-  * address space.
-+ *
-+ * Note that the bit gets set whenever page content is changed. That means
-+ * also when the page is modified by DMA or from inside the kernel.
-  */
- #define __HAVE_ARCH_PAGE_TEST_AND_CLEAR_DIRTY
- static inline int page_test_and_clear_dirty(unsigned long pfn, int mapped)
-diff -puN mm/rmap.c~mm-add-comment-on-storage-key-dirty-bit-semantics mm/rmap.c
---- a/mm/rmap.c~mm-add-comment-on-storage-key-dirty-bit-semantics
-+++ a/mm/rmap.c
-@@ -1151,9 +1151,11 @@ void page_remove_rmap(struct page *page)
- 	 * containing the swap entry, but page not yet written to swap.
- 	 *
- 	 * And we can skip it on file pages, so long as the filesystem
--	 * participates in dirty tracking; but need to catch shm and tmpfs
--	 * and ramfs pages which have been modified since creation by read
--	 * fault.
-+	 * participates in dirty tracking (note that this is not only an
-+	 * optimization but also solves problems caused by dirty flag in
-+	 * storage key getting set by a write from inside kernel); but need to
-+	 * catch shm and tmpfs and ramfs pages which have been modified since
-+	 * creation by read fault.
- 	 *
- 	 * Note that mapping must be decided above, before decrementing
- 	 * mapcount (which luckily provides a barrier): once page is unmapped,
+diff -puN tools/testing/selftests/ipc/msgque.c~selftests-ipc-message-queue-copy-feature-test-checkpatch-fixes tools/testing/selftests/ipc/msgque.c
+--- a/tools/testing/selftests/ipc/msgque.c~selftests-ipc-message-queue-copy-feature-test-checkpatch-fixes
++++ a/tools/testing/selftests/ipc/msgque.c
+@@ -172,7 +172,7 @@ int fill_msgque(struct msgque_data *msgq
+ 	return 0;
+ }
+ 
+-int main (int argc, char **argv)
++int main(int argc, char **argv)
+ {
+ 	key_t key;
+ 	int msg, pid, err;
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+revert-tools-testing-selftests-epoll-test_epollc-fix-build.patch
+revert-epoll-support-for-disabling-items-and-a-self-test-app.patch
 linux-next.patch
-fs-change-return-values-from-eacces-to-eperm.patch
-mm-add-comment-on-storage-key-dirty-bit-semantics.patch
-hfsplus-add-on-disk-layout-declarations-related-to-attributes-tree.patch
-hfsplus-add-functionality-of-manipulating-by-records-in-attributes-tree.patch
-hfsplus-rework-functionality-of-getting-setting-and-deleting-of-extended-attributes.patch
-hfsplus-add-support-of-manipulation-by-attributes-file.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+mm.patch
+mm-introduce-mm_find_pmd-fix.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
+slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
+drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
+hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
+fat-exportfs-rebuild-inode-if-ilookup-fails-fix.patch
+procfs-add-vmflags-field-in-smaps-output-v4.patch
+procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
+ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
+ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
