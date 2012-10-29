@@ -1,220 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix.patch removed from -mm tree
-Date: Mon, 29 Oct 2012 12:49:29 -0700
-Message-ID: <20121029194930.2491B5C0050@hpza9.eem.corp.google.com>
+Subject: [merged] mm-fix-xfs-oops-due-to-dirty-pages-without-buffers-on-s390.patch removed from -mm tree
+Date: Mon, 29 Oct 2012 12:49:33 -0700
+Message-ID: <20121029194933.BFC10100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:37835 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752894Ab2J2Ttc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Oct 2012 15:49:32 -0400
-Received: by mail-wi0-f202.google.com with SMTP id hr7so197777wib.1
-        for <mm-commits@vger.kernel.org>; Mon, 29 Oct 2012 12:49:31 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:65335 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751069Ab2J2Tte (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Oct 2012 15:49:34 -0400
+Received: by mail-gg0-f202.google.com with SMTP id i4so680464ggm.1
+        for <mm-commits@vger.kernel.org>; Mon, 29 Oct 2012 12:49:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shuah.khan@hp.com, jj@chaosbits.net, konrad.wilk@oracle.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, heiko.carstens@de.ibm.com, hughd@google.com, mgorman@suse.de, schwidefsky@de.ibm.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation/DMA-API-HOWTO.txt: add dma mapping error check usage examples
+     Subject: mm: fix XFS oops due to dirty pages without buffers on s390
 has been removed from the -mm tree.  Its filename was
-     dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix.patch
+     mm-fix-xfs-oops-due-to-dirty-pages-without-buffers-on-s390.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Shuah Khan <shuah.khan@hp.com>
-Subject: Documentation/DMA-API-HOWTO.txt: add dma mapping error check usage examples
+From: Jan Kara <jack@suse.cz>
+Subject: mm: fix XFS oops due to dirty pages without buffers on s390
 
-Enhance the document to discuss the importance of dma mapping error checks
-after dma_map_single() and dma_map_page() calls.  Also added usage
-examples that include unmap examples in error paths when dma mapping error
-is returned.  Includes correct and incorrect usages to high light some
-common mistakes in error paths especially when dma mapping fails when more
-than one dma mapping call is made.
+On s390 any write to a page (even from kernel itself) sets architecture
+specific page dirty bit.  Thus when a page is written to via buffered
+write, HW dirty bit gets set and when we later map and unmap the page,
+page_remove_rmap() finds the dirty bit and calls set_page_dirty().
 
-Signed-off-by: Shuah Khan <shuah.khan@hp.com>
-Reviewed-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Jesper Juhl <jj@chaosbits.net>
+Dirtying of a page which shouldn't be dirty can cause all sorts of
+problems to filesystems.  The bug we observed in practice is that buffers
+from the page get freed, so when the page gets later marked as dirty and
+writeback writes it, XFS crashes due to an assertion
+BUG_ON(!PagePrivate(page)) in page_buffers() called from
+xfs_count_page_state().
+
+Similar problem can also happen when zero_user_segment() call from
+xfs_vm_writepage() (or block_write_full_page() for that matter) set the
+hardware dirty bit during writeback, later buffers get freed, and then
+page unmapped.
+
+Fix the issue by ignoring s390 HW dirty bit for page cache pages of
+mappings with mapping_cap_account_dirty().  This is safe because for such
+mappings when a page gets marked as writeable in PTE it is also marked
+dirty in do_wp_page() or do_page_fault().  When the dirty bit is cleared
+by clear_page_dirty_for_io(), the page gets writeprotected in
+page_mkclean().  So pagecache page is writeable if and only if it is
+dirty.
+
+Thanks to Hugh Dickins for pointing out mapping has to have
+mapping_cap_account_dirty() for things to work and proposing a cleaned up
+variant of the patch.
+
+The patch has survived about two hours of running fsx-linux on tmpfs while
+heavily swapping and several days of running on out build machines where
+the original problem was triggered.
+
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: <stable@vger.kernel.org>		[3.0+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DMA-API-HOWTO.txt |  126 ++++++++++++++++++++++++++++++
- 1 file changed, 126 insertions(+)
+ mm/rmap.c |   20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
 
-diff -puN Documentation/DMA-API-HOWTO.txt~dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix Documentation/DMA-API-HOWTO.txt
---- a/Documentation/DMA-API-HOWTO.txt~dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix
-+++ a/Documentation/DMA-API-HOWTO.txt
-@@ -468,11 +468,46 @@ To map a single region, you do:
- 	size_t size = buffer->len;
+diff -puN mm/rmap.c~mm-fix-xfs-oops-due-to-dirty-pages-without-buffers-on-s390 mm/rmap.c
+--- a/mm/rmap.c~mm-fix-xfs-oops-due-to-dirty-pages-without-buffers-on-s390
++++ a/mm/rmap.c
+@@ -56,6 +56,7 @@
+ #include <linux/mmu_notifier.h>
+ #include <linux/migrate.h>
+ #include <linux/hugetlb.h>
++#include <linux/backing-dev.h>
  
- 	dma_handle = dma_map_single(dev, addr, size, direction);
-+	if (dma_mapping_error(dma_handle)) {
-+		/*
-+		 * reduce current DMA mapping usage,
-+		 * delay and try again later or
-+		 * reset driver.
-+		 */
-+		goto map_error_handling;
-+	}
+ #include <asm/tlbflush.h>
  
- and to unmap it:
+@@ -926,11 +927,8 @@ int page_mkclean(struct page *page)
  
- 	dma_unmap_single(dev, dma_handle, size, direction);
- 
-+You should call dma_mapping_error() as dma_map_single() could fail and return
-+error. Not all dma implementations support dma_mapping_error() interface.
-+However, it is a good practice to call dma_mapping_error() interface, which
-+will invoke the generic mapping error check interface. Doing so will ensure
-+that the mapping code will work correctly on all dma implementations without
-+any dependency on the specifics of the underlying implementation. Using the
-+returned address without checking for errors could result in failures ranging
-+from panics to silent data corruption. Couple of example of incorrect ways to
-+check for errors that make assumptions about the underlying dma implementation
-+are as follows and these are applicable to dma_map_page() as well.
-+
-+Incorrect example 1:
-+	dma_addr_t dma_handle;
-+
-+	dma_handle = dma_map_single(dev, addr, size, direction);
-+	if ((dma_handle & 0xffff != 0) || (dma_handle >= 0x1000000)) {
-+		goto map_error;
-+	}
-+
-+Incorrect example 2:
-+	dma_addr_t dma_handle;
-+
-+	dma_handle = dma_map_single(dev, addr, size, direction);
-+	if (dma_handle == DMA_ERROR_CODE) {
-+		goto map_error;
-+	}
-+
- You should call dma_unmap_single when the DMA activity is finished, e.g.
- from the interrupt which told you that the DMA transfer is done.
- 
-@@ -489,6 +524,14 @@ Specifically:
- 	size_t size = buffer->len;
- 
- 	dma_handle = dma_map_page(dev, page, offset, size, direction);
-+	if (dma_mapping_error(dma_handle)) {
-+		/*
-+		 * reduce current DMA mapping usage,
-+		 * delay and try again later or
-+		 * reset driver.
-+		 */
-+		goto map_error_handling;
-+	}
- 
- 	...
- 
-@@ -496,6 +539,12 @@ Specifically:
- 
- Here, "offset" means byte offset within the given page.
- 
-+You should call dma_mapping_error() as dma_map_page() could fail and return
-+error as outlined under the dma_map_single() discussion.
-+
-+You should call dma_unmap_page when the DMA activity is finished, e.g.
-+from the interrupt which told you that the DMA transfer is done.
-+
- With scatterlists, you map a region gathered from several regions by:
- 
- 	int i, count = dma_map_sg(dev, sglist, nents, direction);
-@@ -578,6 +627,14 @@ to use the dma_sync_*() interfaces.
- 		dma_addr_t mapping;
- 
- 		mapping = dma_map_single(cp->dev, buffer, len, DMA_FROM_DEVICE);
-+		if (dma_mapping_error(dma_handle)) {
-+			/*
-+			 * reduce current DMA mapping usage,
-+			 * delay and try again later or
-+			 * reset driver.
-+			 */
-+			goto map_error_handling;
-+		}
- 
- 		cp->rx_buf = buffer;
- 		cp->rx_len = len;
-@@ -658,6 +715,75 @@ failure can be determined by:
- 		 * delay and try again later or
- 		 * reset driver.
- 		 */
-+		goto map_error_handling;
-+	}
-+
-+- unmap pages that are already mapped, when mapping error occurs in the middle
-+  of a multiple page mapping attempt. These example are applicable to
-+  dma_map_page() as well.
-+
-+Example 1:
-+	dma_addr_t dma_handle1;
-+	dma_addr_t dma_handle2;
-+
-+	dma_handle1 = dma_map_single(dev, addr, size, direction);
-+	if (dma_mapping_error(dev, dma_handle1)) {
-+		/*
-+		 * reduce current DMA mapping usage,
-+		 * delay and try again later or
-+		 * reset driver.
-+		 */
-+		goto map_error_handling1;
-+	}
-+	dma_handle2 = dma_map_single(dev, addr, size, direction);
-+	if (dma_mapping_error(dev, dma_handle2)) {
-+		/*
-+		 * reduce current DMA mapping usage,
-+		 * delay and try again later or
-+		 * reset driver.
-+		 */
-+		goto map_error_handling2;
-+	}
-+
-+	...
-+
-+	map_error_handling2:
-+		dma_unmap_single(dma_handle1);
-+	map_error_handling1:
-+
-+Example 2: (if buffers are allocated a loop, unmap all mapped buffers when
-+	    mapping error is detected in the middle)
-+
-+	dma_addr_t dma_addr;
-+	dma_addr_t array[DMA_BUFFERS];
-+	int save_index = 0;
-+
-+	for (i = 0; i < DMA_BUFFERS; i++) {
-+
-+		...
-+
-+		dma_addr = dma_map_single(dev, addr, size, direction);
-+		if (dma_mapping_error(dev, dma_addr)) {
-+			/*
-+			 * reduce current DMA mapping usage,
-+			 * delay and try again later or
-+			 * reset driver.
-+			 */
-+			goto map_error_handling;
-+		}
-+		array[i].dma_addr = dma_addr;
-+		save_index++;
-+	}
-+
-+	...
-+
-+	map_error_handling:
-+
-+	for (i = 0; i < save_index; i++) {
-+
-+		...
-+
-+		dma_unmap_single(array[i].dma_addr);
+ 	if (page_mapped(page)) {
+ 		struct address_space *mapping = page_mapping(page);
+-		if (mapping) {
++		if (mapping)
+ 			ret = page_mkclean_file(mapping, page);
+-			if (page_test_and_clear_dirty(page_to_pfn(page), 1))
+-				ret = 1;
+-		}
  	}
  
- Networking drivers must call dev_kfree_skb to free the socket buffer
+ 	return ret;
+@@ -1116,6 +1114,7 @@ void page_add_file_rmap(struct page *pag
+  */
+ void page_remove_rmap(struct page *page)
+ {
++	struct address_space *mapping = page_mapping(page);
+ 	bool anon = PageAnon(page);
+ 	bool locked;
+ 	unsigned long flags;
+@@ -1138,8 +1137,19 @@ void page_remove_rmap(struct page *page)
+ 	 * this if the page is anon, so about to be freed; but perhaps
+ 	 * not if it's in swapcache - there might be another pte slot
+ 	 * containing the swap entry, but page not yet written to swap.
++	 *
++	 * And we can skip it on file pages, so long as the filesystem
++	 * participates in dirty tracking; but need to catch shm and tmpfs
++	 * and ramfs pages which have been modified since creation by read
++	 * fault.
++	 *
++	 * Note that mapping must be decided above, before decrementing
++	 * mapcount (which luckily provides a barrier): once page is unmapped,
++	 * it could be truncated and page->mapping reset to NULL at any moment.
++	 * Note also that we are relying on page_mapping(page) to set mapping
++	 * to &swapper_space when PageSwapCache(page).
+ 	 */
+-	if ((!anon || PageSwapCache(page)) &&
++	if (mapping && !mapping_cap_account_dirty(mapping) &&
+ 	    page_test_and_clear_dirty(page_to_pfn(page), 1))
+ 		set_page_dirty(page);
+ 	/*
 _
 
-Patches currently in -mm which might be from shuah.khan@hp.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
 linux-next.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+fs-change-return-values-from-eacces-to-eperm.patch
+hfsplus-add-on-disk-layout-declarations-related-to-attributes-tree.patch
+hfsplus-add-functionality-of-manipulating-by-records-in-attributes-tree.patch
+hfsplus-rework-functionality-of-getting-setting-and-deleting-of-extended-attributes.patch
+hfsplus-add-support-of-manipulation-by-attributes-file.patch
 
