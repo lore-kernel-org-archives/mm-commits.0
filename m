@@ -1,89 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: [merged] backlight-ili9320-add-missing-spi-dependency.patch removed from -mm tree
-Date: Mon, 29 Oct 2012 12:49:54 -0700
-Message-ID: <20121029194955.20BD45C0050@hpza9.eem.corp.google.com>
+Subject: [merged] genalloc-stop-crashing-the-system-when-destroying-a-pool.patch removed from -mm tree
+Date: Mon, 29 Oct 2012 12:49:58 -0700
+Message-ID: <20121029194959.13A421E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f74.google.com ([209.85.215.74]:51708 "EHLO
-	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751069Ab2J2Tt5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Oct 2012 15:49:57 -0400
-Received: by mail-la0-f74.google.com with SMTP id j13so344046lah.1
-        for <mm-commits@vger.kernel.org>; Mon, 29 Oct 2012 12:49:56 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:53197 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752911Ab2J2Tt7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Oct 2012 15:49:59 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z15so682958ghb.1
+        for <mm-commits@vger.kernel.org>; Mon, 29 Oct 2012 12:49:59 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jg1.han@samsung.com, ben-linux@fluff.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: cascardo@linux.vnet.ibm.com, benjamin.gaignard@stericsson.com, paul.gortmaker@windriver.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight: ili9320: add missing SPI dependency
+     Subject: genalloc: stop crashing the system when destroying a pool
 has been removed from the -mm tree.  Its filename was
-     backlight-ili9320-add-missing-spi-dependency.patch
+     genalloc-stop-crashing-the-system-when-destroying-a-pool.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: ili9320: add missing SPI dependency
+From: Thadeu Lima de Souza Cascardo <cascardo@linux.vnet.ibm.com>
+Subject: genalloc: stop crashing the system when destroying a pool
 
-Add this missing SPI dependency and prevent the driver from building
-without SPI, because functions of the spi driver are used in this driver. 
+The genalloc code uses the bitmap API from include/linux/bitmap.h and
+lib/bitmap.c, which is based on long values. Both bitmap_set from
+lib/bitmap.c and bitmap_set_ll, which is the lockless version from
+genalloc.c, use BITMAP_LAST_WORD_MASK to set the first bits in a long in
+the bitmap.
 
-drivers/video/backlight/ili9320.c:51: undefined reference to `spi_sync'
+That one uses (1 << bits) - 1, 0b111, if you are setting the first three
+bits. This means that the API counts from the least significant bits
+(LSB from now on) to the MSB. The LSB in the first long is bit 0, then.
+The same works for the lookup functions.
 
-Also, a prompt string for CONFIG_LCD_ILI9320 is added for explicit
-selection.
+The genalloc code uses longs for the bitmap, as it should. In
+include/linux/genalloc.h, struct gen_pool_chunk has unsigned long
+bits[0] as its last member. When allocating the struct, genalloc should
+reserve enough space for the bitmap. This should be a proper number of
+longs that can fit the amount of bits in the bitmap.
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Ben Dooks <ben-linux@fluff.org>
+However, genalloc allocates an integer number of bytes that fit the
+amount of bits, but may not be an integer amount of longs. 9 bytes, for
+example, could be allocated for 70 bits.
+
+This is a problem in itself if the Least Significat Bit in a long is in
+the byte with the largest address, which happens in Big Endian machines.
+This means genalloc is not allocating the byte in which it will try to
+set or check for a bit.
+
+This may end up in memory corruption, where genalloc will try to set the
+bits it has not allocated. In fact, genalloc may not set these bits
+because it may find them already set, because they were not zeroed
+since they were not allocated. And that's what causes a BUG when
+gen_pool_destroy is called and check for any set bits.
+
+What really happens is that genalloc uses kmalloc_node with __GFP_ZERO
+on gen_pool_add_virt. With SLAB and SLUB, this means the whole slab will
+be cleared, not only the requested bytes. Since struct gen_pool_chunk
+has a size that is a multiple of 8, and slab sizes are multiples of 8,
+we get lucky and allocate and clear the right amount of bytes.
+
+Hower, this is not the case with SLOB or with older code that did memset
+after allocating instead of using __GFP_ZERO.
+
+So, a simple module as this (running 3.6.0), will cause a crash when
+rmmod'ed.
+
+[root@phantom-lp2 foo]# cat foo.c
+#include <linux/kernel.h>
+#include <linux/module.h>
+#include <linux/init.h>
+#include <linux/genalloc.h>
+
+MODULE_LICENSE("GPL");
+MODULE_VERSION("0.1");
+
+static struct gen_pool *foo_pool;
+
+static __init int foo_init(void)
+{
+        int ret;
+        foo_pool = gen_pool_create(10, -1);
+        if (!foo_pool)
+                return -ENOMEM;
+        ret = gen_pool_add(foo_pool, 0xa0000000, 32 << 10, -1);
+        if (ret) {
+                gen_pool_destroy(foo_pool);
+                return ret;
+        }
+        return 0;
+}
+
+static __exit void foo_exit(void)
+{
+        gen_pool_destroy(foo_pool);
+}
+
+module_init(foo_init);
+module_exit(foo_exit);
+[root@phantom-lp2 foo]# zcat /proc/config.gz | grep SLOB
+CONFIG_SLOB=y
+[root@phantom-lp2 foo]# insmod ./foo.ko
+[root@phantom-lp2 foo]# rmmod foo
+------------[ cut here ]------------
+kernel BUG at lib/genalloc.c:243!
+cpu 0x4: Vector: 700 (Program Check) at [c0000000bb0e7960]
+    pc: c0000000003cb50c: .gen_pool_destroy+0xac/0x110
+    lr: c0000000003cb4fc: .gen_pool_destroy+0x9c/0x110
+    sp: c0000000bb0e7be0
+   msr: 8000000000029032
+  current = 0xc0000000bb0e0000
+  paca    = 0xc000000006d30e00   softe: 0        irq_happened: 0x01
+    pid   = 13044, comm = rmmod
+kernel BUG at lib/genalloc.c:243!
+enter ? for help
+[c0000000bb0e7be0] 0000000000000000 (unreliable)
+[c0000000bb0e7ca0] d000000004b00020 .foo_exit+0x20/0x38 [foo]
+[c0000000bb0e7d20] c0000000000dff98 .SyS_delete_module+0x1a8/0x290
+[c0000000bb0e7e30] c0000000000097d4 syscall_exit+0x0/0x94
+--- Exception: c00 (System Call) at 000000800753d1a0
+SP (fffd0b0e640) is in userspace
+4:mon>
+
+Signed-off-by: Thadeu Lima de Souza Cascardo <cascardo@linux.vnet.ibm.com>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Benjamin Gaignard <benjamin.gaignard@stericsson.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/Kconfig |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ lib/genalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/Kconfig~backlight-ili9320-add-missing-spi-dependency drivers/video/backlight/Kconfig
---- a/drivers/video/backlight/Kconfig~backlight-ili9320-add-missing-spi-dependency
-+++ a/drivers/video/backlight/Kconfig
-@@ -60,7 +60,8 @@ config LCD_LTV350QV
- 	  The LTV350QV panel is present on all ATSTK1000 boards.
+diff -puN lib/genalloc.c~genalloc-stop-crashing-the-system-when-destroying-a-pool lib/genalloc.c
+--- a/lib/genalloc.c~genalloc-stop-crashing-the-system-when-destroying-a-pool
++++ a/lib/genalloc.c
+@@ -178,7 +178,7 @@ int gen_pool_add_virt(struct gen_pool *p
+ 	struct gen_pool_chunk *chunk;
+ 	int nbits = size >> pool->min_alloc_order;
+ 	int nbytes = sizeof(struct gen_pool_chunk) +
+-				(nbits + BITS_PER_BYTE - 1) / BITS_PER_BYTE;
++				BITS_TO_LONGS(nbits) * sizeof(long);
  
- config LCD_ILI9320
--	tristate
-+	tristate "ILI Technology ILI9320 controller support"
-+	depends on SPI
- 	help
- 	  If you have a panel based on the ILI9320 controller chip
- 	  then say y to include a power driver for it.
+ 	chunk = kmalloc_node(nbytes, GFP_KERNEL | __GFP_ZERO, nid);
+ 	if (unlikely(chunk == NULL))
 _
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from cascardo@linux.vnet.ibm.com are
 
-linux-next.patch
-backlight-da903x_bl-use-dev_get_drvdata-instead-of-platform_get_drvdata.patch
-backlight-88pm860x_bl-fix-checkpatch-warning.patch
-backlight-atmel-pwm-bl-fix-checkpatch-warning.patch
-backlight-corgi_lcd-fix-checkpatch-error-and-warning.patch
-backlight-da903x_bl-fix-checkpatch-warning.patch
-backlight-generic_bl-fix-checkpatch-warning.patch
-backlight-hp680_bl-fix-checkpatch-error-and-warning.patch
-backlight-ili9320-fix-checkpatch-error-and-warning.patch
-backlight-jornada720-fix-checkpatch-error-and-warning.patch
-backlight-l4f00242t03-fix-checkpatch-warning.patch
-backlight-lm3630-fix-checkpatch-warning.patch
-backlight-locomolcd-fix-checkpatch-error-and-warning.patch
-backlight-omap1-fix-checkpatch-warning.patch
-backlight-pcf50633-fix-checkpatch-warning.patch
-backlight-platform_lcd-fix-checkpatch-error.patch
-backlight-tdo24m-fix-checkpatch-warning.patch
-backlight-tosa-fix-checkpatch-error-and-warning.patch
-backlight-vgg2432a4-fix-checkpatch-warning.patch
-backlight-lms283gf05-use-devm_gpio_request_one.patch
-backlight-tosa-use-devm_gpio_request_one.patch
-drivers-video-backlight-da9052_blc-add-missing-const.patch
-drivers-video-backlight-lms283gf05c-add-missing-const.patch
-drivers-video-backlight-tdo24mc-add-missing-const.patch
-drivers-video-backlight-vgg2432a4c-add-missing-const.patch
-drivers-video-backlight-s6e63m0c-remove-unnecessary-cast-of-void-pointer.patch
 
