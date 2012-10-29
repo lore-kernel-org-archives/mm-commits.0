@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-add-sysctl-to-specify-desired-next-object-id-wrap-new-sysctls-for-criu-inside-config_checkpoint_restore.patch added to -mm tree
-Date: Mon, 29 Oct 2012 14:46:27 -0700
-Message-ID: <20121029214628.A595E5C0063@hpza9.eem.corp.google.com>
+Subject: + ipc-add-sysctl-to-specify-desired-next-object-id-documentation-update-sysctl-kerneltxt.patch added to -mm tree
+Date: Mon, 29 Oct 2012 14:46:31 -0700
+Message-ID: <20121029214632.326D91E0043@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f202.google.com ([209.85.215.202]:58605 "EHLO
-	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933094Ab2J2Vqb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Oct 2012 17:46:31 -0400
-Received: by mail-ea0-f202.google.com with SMTP id q10so346878eaa.1
-        for <mm-commits@vger.kernel.org>; Mon, 29 Oct 2012 14:46:30 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:55845 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933092Ab2J2Vqd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Oct 2012 17:46:33 -0400
+Received: by mail-vc0-f202.google.com with SMTP id fy27so700257vcb.1
+        for <mm-commits@vger.kernel.org>; Mon, 29 Oct 2012 14:46:32 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: skinsbursky@parallels.com, ebiederm@xmission.com, kosaki.motohiro@jp.fujitsu
 
 
 The patch titled
-     Subject: ipc: wrap new sysctls for CRIU inside CONFIG_CHECKPOINT_RESTORE
+     Subject: Documentation: update sysctl/kernel.txt
 has been added to the -mm tree.  Its filename is
-     ipc-add-sysctl-to-specify-desired-next-object-id-wrap-new-sysctls-for-criu-inside-config_checkpoint_restore.patch
+     ipc-add-sysctl-to-specify-desired-next-object-id-documentation-update-sysctl-kerneltxt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Stanislav Kinsbursky <skinsbursky@parallels.com>
-Subject: ipc: wrap new sysctls for CRIU inside CONFIG_CHECKPOINT_RESTORE
+Subject: Documentation: update sysctl/kernel.txt
 
-Wrap "msg_next_id", "sem_next_id" and "shm_next_id" inside
-CONFIG_CHECKPOINT_RESTORE macro.
+Add documentation about new "msg_next_id", "sem_next_id" and "shm_next_id"
+sysctls.
 
 Signed-off-by: Stanislav Kinsbursky <skinsbursky@parallels.com>
 Cc: Serge Hallyn <serge.hallyn@canonical.com>
@@ -49,38 +49,53 @@ Cc: Michael Kerrisk <mtk.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/ipc_sysctl.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ Documentation/sysctl/kernel.txt |   19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-diff -puN ipc/ipc_sysctl.c~ipc-add-sysctl-to-specify-desired-next-object-id-wrap-new-sysctls-for-criu-inside-config_checkpoint_restore ipc/ipc_sysctl.c
---- a/ipc/ipc_sysctl.c~ipc-add-sysctl-to-specify-desired-next-object-id-wrap-new-sysctls-for-criu-inside-config_checkpoint_restore
-+++ a/ipc/ipc_sysctl.c
-@@ -158,7 +158,9 @@ static int proc_ipcauto_dointvec_minmax(
+diff -puN Documentation/sysctl/kernel.txt~ipc-add-sysctl-to-specify-desired-next-object-id-documentation-update-sysctl-kerneltxt Documentation/sysctl/kernel.txt
+--- a/Documentation/sysctl/kernel.txt~ipc-add-sysctl-to-specify-desired-next-object-id-documentation-update-sysctl-kerneltxt
++++ a/Documentation/sysctl/kernel.txt
+@@ -38,6 +38,7 @@ show up in /proc/sys/kernel:
+ - l2cr                        [ PPC only ]
+ - modprobe                    ==> Documentation/debugging-modules.txt
+ - modules_disabled
++- msg_next_id		      [ sysv ipc ]
+ - msgmax
+ - msgmnb
+ - msgmni
+@@ -62,7 +63,9 @@ show up in /proc/sys/kernel:
+ - rtsig-max
+ - rtsig-nr
+ - sem
++- sem_next_id		      [ sysv ipc ]
+ - sg-big-buff                 [ generic SCSI device (sg) ]
++- shm_next_id		      [ sysv ipc ]
+ - shm_rmid_forced
+ - shmall
+ - shmmax                      [ sysv ipc ]
+@@ -320,6 +323,22 @@ to false.
  
- static int zero;
- static int one = 1;
-+#ifdef CONFIG_CHECKPOINT_RESTORE
- static int int_max = INT_MAX;
-+#endif
+ ==============================================================
  
- static struct ctl_table ipc_kern_table[] = {
- 	{
-@@ -228,6 +230,7 @@ static struct ctl_table ipc_kern_table[]
- 		.extra1		= &zero,
- 		.extra2		= &one,
- 	},
-+#ifdef CONFIG_CHECKPOINT_RESTORE
- 	{
- 		.procname	= "sem_next_id",
- 		.data		= &init_ipc_ns.ids[IPC_SEM_IDS].next_id,
-@@ -255,6 +258,7 @@ static struct ctl_table ipc_kern_table[]
- 		.extra1		= &zero,
- 		.extra2		= &int_max,
- 	},
-+#endif
- 	{}
- };
++msg_next_id, sem_next_id, and shm_next_id:
++
++These three toggles allows to specify desired id for next allocated IPC
++object: message, semaphore or shared memory respectively.
++
++By default they are equal to -1, which means generic allocation logic.
++Possible values to set are in range {0..INT_MAX}.
++
++Notes:
++1) kernel doesn't guarantee, that new object will have desired id. So,
++it's up to userspace, how to handle an object with "wrong" id.
++2) Toggle with non-default value will be set back to -1 by kernel after
++successful IPC object allocation.
++
++==============================================================
++
+ nmi_watchdog:
  
+ Enables/Disables the NMI watchdog on x86 systems. When the value is
 _
 
 Patches currently in -mm which might be from skinsbursky@parallels.com are
