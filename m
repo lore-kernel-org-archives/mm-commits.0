@@ -1,254 +1,216 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dma-debug-new-interfaces-to-debug-dma-mapping-errors.patch removed from -mm tree
-Date: Mon, 29 Oct 2012 12:49:25 -0700
-Message-ID: <20121029194926.3849E5C0050@hpza9.eem.corp.google.com>
+Subject: [merged] dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix.patch removed from -mm tree
+Date: Mon, 29 Oct 2012 12:49:29 -0700
+Message-ID: <20121029194930.2491B5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:34369 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752111Ab2J2Tt2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Oct 2012 15:49:28 -0400
-Received: by mail-we0-f202.google.com with SMTP id x43so344293wey.1
-        for <mm-commits@vger.kernel.org>; Mon, 29 Oct 2012 12:49:27 -0700 (PDT)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:37835 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752894Ab2J2Ttc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Oct 2012 15:49:32 -0400
+Received: by mail-wi0-f202.google.com with SMTP id hr7so197777wib.1
+        for <mm-commits@vger.kernel.org>; Mon, 29 Oct 2012 12:49:31 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shuah.khan@hp.com, konrad.wilk@oracle.com, mm-commits@vger.kernel.org
+To: shuah.khan@hp.com, jj@chaosbits.net, konrad.wilk@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dma-debug: new interfaces to debug dma mapping errors
+     Subject: Documentation/DMA-API-HOWTO.txt: add dma mapping error check usage examples
 has been removed from the -mm tree.  Its filename was
-     dma-debug-new-interfaces-to-debug-dma-mapping-errors.patch
+     dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Shuah Khan <shuah.khan@hp.com>
-Subject: dma-debug: new interfaces to debug dma mapping errors
+Subject: Documentation/DMA-API-HOWTO.txt: add dma mapping error check usage examples
 
-Add dma-debug interface debug_dma_mapping_error() to debug drivers that
-fail to check dma mapping errors on addresses returned by dma_map_single()
-and dma_map_page() interfaces.  This interface clears a flag set by
-debug_dma_map_page() to indicate that dma_mapping_error() has been called
-by the driver.  When driver does unmap, debug_dma_unmap() checks the flag
-and if this flag is still set, prints warning message that includes call
-trace that leads up to the unmap.  This interface can be called from
-dma_mapping_error() routines to enable dma mapping error check debugging.
-
-Tested: Intel iommu and swiotlb (iommu=soft) on x86-64 with
-        CONFIG_DMA_API_DEBUG enabled and disabled.
+Enhance the document to discuss the importance of dma mapping error checks
+after dma_map_single() and dma_map_page() calls.  Also added usage
+examples that include unmap examples in error paths when dma mapping error
+is returned.  Includes correct and incorrect usages to high light some
+common mistakes in error paths especially when dma mapping fails when more
+than one dma mapping call is made.
 
 Signed-off-by: Shuah Khan <shuah.khan@hp.com>
 Reviewed-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Jesper Juhl <jj@chaosbits.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DMA-API.txt          |   12 ++++
- arch/x86/include/asm/dma-mapping.h |    1 
- include/linux/dma-debug.h          |    7 ++
- lib/dma-debug.c                    |   71 +++++++++++++++++++++++++--
- 4 files changed, 87 insertions(+), 4 deletions(-)
+ Documentation/DMA-API-HOWTO.txt |  126 ++++++++++++++++++++++++++++++
+ 1 file changed, 126 insertions(+)
 
-diff -puN Documentation/DMA-API.txt~dma-debug-new-interfaces-to-debug-dma-mapping-errors Documentation/DMA-API.txt
---- a/Documentation/DMA-API.txt~dma-debug-new-interfaces-to-debug-dma-mapping-errors
-+++ a/Documentation/DMA-API.txt
-@@ -678,3 +678,15 @@ out of dma_debug_entries. These entries 
- of preallocated entries is defined per architecture. If it is too low for you
- boot with 'dma_debug_entries=<your_desired_number>' to overwrite the
- architectural default.
+diff -puN Documentation/DMA-API-HOWTO.txt~dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix Documentation/DMA-API-HOWTO.txt
+--- a/Documentation/DMA-API-HOWTO.txt~dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix
++++ a/Documentation/DMA-API-HOWTO.txt
+@@ -468,11 +468,46 @@ To map a single region, you do:
+ 	size_t size = buffer->len;
+ 
+ 	dma_handle = dma_map_single(dev, addr, size, direction);
++	if (dma_mapping_error(dma_handle)) {
++		/*
++		 * reduce current DMA mapping usage,
++		 * delay and try again later or
++		 * reset driver.
++		 */
++		goto map_error_handling;
++	}
+ 
+ and to unmap it:
+ 
+ 	dma_unmap_single(dev, dma_handle, size, direction);
+ 
++You should call dma_mapping_error() as dma_map_single() could fail and return
++error. Not all dma implementations support dma_mapping_error() interface.
++However, it is a good practice to call dma_mapping_error() interface, which
++will invoke the generic mapping error check interface. Doing so will ensure
++that the mapping code will work correctly on all dma implementations without
++any dependency on the specifics of the underlying implementation. Using the
++returned address without checking for errors could result in failures ranging
++from panics to silent data corruption. Couple of example of incorrect ways to
++check for errors that make assumptions about the underlying dma implementation
++are as follows and these are applicable to dma_map_page() as well.
 +
-+void debug_dmap_mapping_error(struct device *dev, dma_addr_t dma_addr);
++Incorrect example 1:
++	dma_addr_t dma_handle;
 +
-+dma-debug interface debug_dma_mapping_error() to debug drivers that fail
-+to check dma mapping errors on addresses returned by dma_map_single() and
-+dma_map_page() interfaces. This interface clears a flag set by
-+debug_dma_map_page() to indicate that dma_mapping_error() has been called by
-+the driver. When driver does unmap, debug_dma_unmap() checks the flag and if
-+this flag is still set, prints warning message that includes call trace that
-+leads up to the unmap. This interface can be called from dma_mapping_error()
-+routines to enable dma mapping error check debugging.
-+
-diff -puN arch/x86/include/asm/dma-mapping.h~dma-debug-new-interfaces-to-debug-dma-mapping-errors arch/x86/include/asm/dma-mapping.h
---- a/arch/x86/include/asm/dma-mapping.h~dma-debug-new-interfaces-to-debug-dma-mapping-errors
-+++ a/arch/x86/include/asm/dma-mapping.h
-@@ -47,6 +47,7 @@ static inline struct dma_map_ops *get_dm
- static inline int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
- {
- 	struct dma_map_ops *ops = get_dma_ops(dev);
-+	debug_dma_mapping_error(dev, dma_addr);
- 	if (ops->mapping_error)
- 		return ops->mapping_error(dev, dma_addr);
- 
-diff -puN include/linux/dma-debug.h~dma-debug-new-interfaces-to-debug-dma-mapping-errors include/linux/dma-debug.h
---- a/include/linux/dma-debug.h~dma-debug-new-interfaces-to-debug-dma-mapping-errors
-+++ a/include/linux/dma-debug.h
-@@ -39,6 +39,8 @@ extern void debug_dma_map_page(struct de
- 			       int direction, dma_addr_t dma_addr,
- 			       bool map_single);
- 
-+extern void debug_dma_mapping_error(struct device *dev, dma_addr_t dma_addr);
-+
- extern void debug_dma_unmap_page(struct device *dev, dma_addr_t addr,
- 				 size_t size, int direction, bool map_single);
- 
-@@ -105,6 +107,11 @@ static inline void debug_dma_map_page(st
- {
- }
- 
-+static inline void debug_dma_mapping_error(struct device *dev,
-+					  dma_addr_t dma_addr)
-+{
-+}
-+
- static inline void debug_dma_unmap_page(struct device *dev, dma_addr_t addr,
- 					size_t size, int direction,
- 					bool map_single)
-diff -puN lib/dma-debug.c~dma-debug-new-interfaces-to-debug-dma-mapping-errors lib/dma-debug.c
---- a/lib/dma-debug.c~dma-debug-new-interfaces-to-debug-dma-mapping-errors
-+++ a/lib/dma-debug.c
-@@ -45,6 +45,12 @@ enum {
- 	dma_debug_coherent,
- };
- 
-+enum map_err_types {
-+	MAP_ERR_CHECK_NOT_APPLICABLE,
-+	MAP_ERR_NOT_CHECKED,
-+	MAP_ERR_CHECKED,
-+};
-+
- #define DMA_DEBUG_STACKTRACE_ENTRIES 5
- 
- struct dma_debug_entry {
-@@ -57,6 +63,7 @@ struct dma_debug_entry {
- 	int              direction;
- 	int		 sg_call_ents;
- 	int		 sg_mapped_ents;
-+	enum map_err_types  map_err_type;
- #ifdef CONFIG_STACKTRACE
- 	struct		 stack_trace stacktrace;
- 	unsigned long	 st_entries[DMA_DEBUG_STACKTRACE_ENTRIES];
-@@ -114,6 +121,12 @@ static struct device_driver *current_dri
- 
- static DEFINE_RWLOCK(driver_name_lock);
- 
-+static const char *const maperr2str[] = {
-+	[MAP_ERR_CHECK_NOT_APPLICABLE] = "dma map error check not applicable",
-+	[MAP_ERR_NOT_CHECKED] = "dma map error not checked",
-+	[MAP_ERR_CHECKED] = "dma map error checked",
-+};
-+
- static const char *type2name[4] = { "single", "page",
- 				    "scather-gather", "coherent" };
- 
-@@ -376,11 +389,12 @@ void debug_dma_dump_mappings(struct devi
- 		list_for_each_entry(entry, &bucket->list, list) {
- 			if (!dev || dev == entry->dev) {
- 				dev_info(entry->dev,
--					 "%s idx %d P=%Lx D=%Lx L=%Lx %s\n",
-+					 "%s idx %d P=%Lx D=%Lx L=%Lx %s %s\n",
- 					 type2name[entry->type], idx,
- 					 (unsigned long long)entry->paddr,
- 					 entry->dev_addr, entry->size,
--					 dir2name[entry->direction]);
-+					 dir2name[entry->direction],
-+					 maperr2str[entry->map_err_type]);
- 			}
- 		}
- 
-@@ -838,13 +852,28 @@ static __init int dma_debug_entries_cmdl
- __setup("dma_debug=", dma_debug_cmdline);
- __setup("dma_debug_entries=", dma_debug_entries_cmdline);
- 
-+/* Calling dma_mapping_error() from dma-debug api will result in calling
-+   debug_dma_mapping_error() - need internal mapping error routine to
-+   avoid debug checks */
-+#ifndef DMA_ERROR_CODE
-+#define DMA_ERROR_CODE 0
-+#endif
-+static inline int has_mapping_error(struct device *dev, dma_addr_t dma_addr)
-+{
-+	const struct dma_map_ops *ops = get_dma_ops(dev);
-+	if (ops->mapping_error)
-+		return ops->mapping_error(dev, dma_addr);
-+
-+	return (dma_addr == DMA_ERROR_CODE);
-+}
-+
- static void check_unmap(struct dma_debug_entry *ref)
- {
- 	struct dma_debug_entry *entry;
- 	struct hash_bucket *bucket;
- 	unsigned long flags;
- 
--	if (dma_mapping_error(ref->dev, ref->dev_addr)) {
-+	if (unlikely(has_mapping_error(ref->dev, ref->dev_addr))) {
- 		err_printk(ref->dev, NULL, "DMA-API: device driver tries "
- 			   "to free an invalid DMA memory address\n");
- 		return;
-@@ -910,6 +939,15 @@ static void check_unmap(struct dma_debug
- 			   dir2name[ref->direction]);
- 	}
- 
-+	if (entry->map_err_type == MAP_ERR_NOT_CHECKED) {
-+		err_printk(ref->dev, entry,
-+			   "DMA-API: device driver failed to check map error"
-+			   "[device address=0x%016llx] [size=%llu bytes] "
-+			   "[mapped as %s]",
-+			   ref->dev_addr, ref->size,
-+			   type2name[entry->type]);
++	dma_handle = dma_map_single(dev, addr, size, direction);
++	if ((dma_handle & 0xffff != 0) || (dma_handle >= 0x1000000)) {
++		goto map_error;
 +	}
 +
- 	hash_bucket_del(entry);
- 	dma_entry_free(entry);
- 
-@@ -1017,7 +1055,7 @@ void debug_dma_map_page(struct device *d
- 	if (unlikely(global_disable))
- 		return;
- 
--	if (unlikely(dma_mapping_error(dev, dma_addr)))
-+	if (unlikely(has_mapping_error(dev, dma_addr)))
- 		return;
- 
- 	entry = dma_entry_alloc();
-@@ -1030,6 +1068,7 @@ void debug_dma_map_page(struct device *d
- 	entry->dev_addr  = dma_addr;
- 	entry->size      = size;
- 	entry->direction = direction;
-+	entry->map_err_type = MAP_ERR_NOT_CHECKED;
- 
- 	if (map_single)
- 		entry->type = dma_debug_single;
-@@ -1045,6 +1084,30 @@ void debug_dma_map_page(struct device *d
- }
- EXPORT_SYMBOL(debug_dma_map_page);
- 
-+void debug_dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
-+{
-+	struct dma_debug_entry ref;
-+	struct dma_debug_entry *entry;
-+	struct hash_bucket *bucket;
-+	unsigned long flags;
++Incorrect example 2:
++	dma_addr_t dma_handle;
 +
-+	if (unlikely(global_disable))
-+		return;
++	dma_handle = dma_map_single(dev, addr, size, direction);
++	if (dma_handle == DMA_ERROR_CODE) {
++		goto map_error;
++	}
 +
-+	ref.dev = dev;
-+	ref.dev_addr = dma_addr;
-+	bucket = get_hash_bucket(&ref, &flags);
-+	entry = bucket_find_exact(bucket, &ref);
+ You should call dma_unmap_single when the DMA activity is finished, e.g.
+ from the interrupt which told you that the DMA transfer is done.
+ 
+@@ -489,6 +524,14 @@ Specifically:
+ 	size_t size = buffer->len;
+ 
+ 	dma_handle = dma_map_page(dev, page, offset, size, direction);
++	if (dma_mapping_error(dma_handle)) {
++		/*
++		 * reduce current DMA mapping usage,
++		 * delay and try again later or
++		 * reset driver.
++		 */
++		goto map_error_handling;
++	}
+ 
+ 	...
+ 
+@@ -496,6 +539,12 @@ Specifically:
+ 
+ Here, "offset" means byte offset within the given page.
+ 
++You should call dma_mapping_error() as dma_map_page() could fail and return
++error as outlined under the dma_map_single() discussion.
 +
-+	if (!entry)
-+		goto out;
++You should call dma_unmap_page when the DMA activity is finished, e.g.
++from the interrupt which told you that the DMA transfer is done.
 +
-+	entry->map_err_type = MAP_ERR_CHECKED;
-+out:
-+	put_hash_bucket(bucket, &flags);
-+}
-+EXPORT_SYMBOL(debug_dma_mapping_error);
+ With scatterlists, you map a region gathered from several regions by:
+ 
+ 	int i, count = dma_map_sg(dev, sglist, nents, direction);
+@@ -578,6 +627,14 @@ to use the dma_sync_*() interfaces.
+ 		dma_addr_t mapping;
+ 
+ 		mapping = dma_map_single(cp->dev, buffer, len, DMA_FROM_DEVICE);
++		if (dma_mapping_error(dma_handle)) {
++			/*
++			 * reduce current DMA mapping usage,
++			 * delay and try again later or
++			 * reset driver.
++			 */
++			goto map_error_handling;
++		}
+ 
+ 		cp->rx_buf = buffer;
+ 		cp->rx_len = len;
+@@ -658,6 +715,75 @@ failure can be determined by:
+ 		 * delay and try again later or
+ 		 * reset driver.
+ 		 */
++		goto map_error_handling;
++	}
 +
- void debug_dma_unmap_page(struct device *dev, dma_addr_t addr,
- 			  size_t size, int direction, bool map_single)
- {
++- unmap pages that are already mapped, when mapping error occurs in the middle
++  of a multiple page mapping attempt. These example are applicable to
++  dma_map_page() as well.
++
++Example 1:
++	dma_addr_t dma_handle1;
++	dma_addr_t dma_handle2;
++
++	dma_handle1 = dma_map_single(dev, addr, size, direction);
++	if (dma_mapping_error(dev, dma_handle1)) {
++		/*
++		 * reduce current DMA mapping usage,
++		 * delay and try again later or
++		 * reset driver.
++		 */
++		goto map_error_handling1;
++	}
++	dma_handle2 = dma_map_single(dev, addr, size, direction);
++	if (dma_mapping_error(dev, dma_handle2)) {
++		/*
++		 * reduce current DMA mapping usage,
++		 * delay and try again later or
++		 * reset driver.
++		 */
++		goto map_error_handling2;
++	}
++
++	...
++
++	map_error_handling2:
++		dma_unmap_single(dma_handle1);
++	map_error_handling1:
++
++Example 2: (if buffers are allocated a loop, unmap all mapped buffers when
++	    mapping error is detected in the middle)
++
++	dma_addr_t dma_addr;
++	dma_addr_t array[DMA_BUFFERS];
++	int save_index = 0;
++
++	for (i = 0; i < DMA_BUFFERS; i++) {
++
++		...
++
++		dma_addr = dma_map_single(dev, addr, size, direction);
++		if (dma_mapping_error(dev, dma_addr)) {
++			/*
++			 * reduce current DMA mapping usage,
++			 * delay and try again later or
++			 * reset driver.
++			 */
++			goto map_error_handling;
++		}
++		array[i].dma_addr = dma_addr;
++		save_index++;
++	}
++
++	...
++
++	map_error_handling:
++
++	for (i = 0; i < save_index; i++) {
++
++		...
++
++		dma_unmap_single(array[i].dma_addr);
+ 	}
+ 
+ Networking drivers must call dev_kfree_skb to free the socket buffer
 _
 
 Patches currently in -mm which might be from shuah.khan@hp.com are
