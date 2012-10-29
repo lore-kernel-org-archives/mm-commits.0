@@ -1,65 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] include-linux-tickh-fix-warning.patch removed from -mm tree
-Date: Mon, 29 Oct 2012 12:49:16 -0700
-Message-ID: <20121029194917.7C1B35C0063@hpza9.eem.corp.google.com>
+Subject: [merged] drivers-edac-amd64_edacc-__amd64_set_scrub_rate-avoid-overindexing-scrubrates.patch removed from -mm tree
+Date: Mon, 29 Oct 2012 12:49:21 -0700
+Message-ID: <20121029194922.1A9115C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:34320 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752111Ab2J2TtU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Oct 2012 15:49:20 -0400
-Received: by mail-fa0-f74.google.com with SMTP id t1so341576fae.1
-        for <mm-commits@vger.kernel.org>; Mon, 29 Oct 2012 12:49:18 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:51400 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751069Ab2J2TtZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Oct 2012 15:49:25 -0400
+Received: by mail-wg0-f74.google.com with SMTP id dt11so344907wgb.1
+        for <mm-commits@vger.kernel.org>; Mon, 29 Oct 2012 12:49:23 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, rafael.j.wysocki@intel.com, riel@redhat.com, youquan.song@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, borislav.petkov@amd.com, dougthompson@xmission.com, kirjanov@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/tick.h: fix warning
+     Subject: drivers/edac/amd64_edac.c:__amd64_set_scrub_rate(): avoid overindexing scrubrates[]
 has been removed from the -mm tree.  Its filename was
-     include-linux-tickh-fix-warning.patch
+     drivers-edac-amd64_edacc-__amd64_set_scrub_rate-avoid-overindexing-scrubrates.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include/linux/tick.h: fix warning
+Subject: drivers/edac/amd64_edac.c:__amd64_set_scrub_rate(): avoid overindexing scrubrates[]
 
-In file included from init/main.c:43:
-include/linux/tick.h: In function 'menu_hrtimer_cancel':
-include/linux/tick.h:148: warning: 'return' with a value, in function returning void
-In file included from kernel/softirq.c:27:
-include/linux/tick.h: In function 'menu_hrtimer_cancel':
-include/linux/tick.h:148: warning: 'return' with a value, in function returning void
-etc.
+If none of the elements in scrubrates[] matches, this loop will cause
+__amd64_set_scrub_rate() to incorrectly use the n+1th element.
 
-Repairs 25d77b76d7aef ("cpuidle: Quickly notice prediction failure for repeat
-mode").
+As the function is designed to use the final scrubrates[] element in the
+case of no match, we can fix this bug by simply terminating the array
+search at the n-1th element.
 
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Youquan Song <youquan.song@intel.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Reported-by: Denis Kirjanov <kirjanov@gmail.com>
+Cc: Doug Thompson <dougthompson@xmission.com>
+Cc: Borislav Petkov <borislav.petkov@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/tick.h |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/edac/amd64_edac.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/tick.h~include-linux-tickh-fix-warning include/linux/tick.h
---- a/include/linux/tick.h~include-linux-tickh-fix-warning
-+++ a/include/linux/tick.h
-@@ -145,7 +145,9 @@ static inline u64 get_cpu_iowait_time_us
- # ifdef CONFIG_CPU_IDLE_GOV_MENU
- extern void menu_hrtimer_cancel(void);
- # else
--static inline void menu_hrtimer_cancel(void) { return -1; }
-+static inline void menu_hrtimer_cancel(void)
-+{
-+}
- # endif /* CONFIG_CPU_IDLE_GOV_MENU */
+diff -puN drivers/edac/amd64_edac.c~drivers-edac-amd64_edacc-__amd64_set_scrub_rate-avoid-overindexing-scrubrates drivers/edac/amd64_edac.c
+--- a/drivers/edac/amd64_edac.c~drivers-edac-amd64_edacc-__amd64_set_scrub_rate-avoid-overindexing-scrubrates
++++ a/drivers/edac/amd64_edac.c
+@@ -170,8 +170,11 @@ static int __amd64_set_scrub_rate(struct
+ 	 * memory controller and apply to register. Search for the first
+ 	 * bandwidth entry that is greater or equal than the setting requested
+ 	 * and program that. If at last entry, turn off DRAM scrubbing.
++	 *
++	 * If no suitable bandwidth is found, turn off DRAM scrubbing entirely
++	 * by falling back to the last element in scrubrates[].
+ 	 */
+-	for (i = 0; i < ARRAY_SIZE(scrubrates); i++) {
++	for (i = 0; i < ARRAY_SIZE(scrubrates) - 1; i++) {
+ 		/*
+ 		 * skip scrub rates which aren't recommended
+ 		 * (see F10 BKDG, F3x58)
+@@ -181,12 +184,6 @@ static int __amd64_set_scrub_rate(struct
  
- #endif
+ 		if (scrubrates[i].bandwidth <= new_bw)
+ 			break;
+-
+-		/*
+-		 * if no suitable bandwidth found, turn off DRAM scrubbing
+-		 * entirely by falling back to the last element in the
+-		 * scrubrates array.
+-		 */
+ 	}
+ 
+ 	scrubval = scrubrates[i].scrubval;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
