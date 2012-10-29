@@ -1,102 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pidns-limit-the-nesting-depth-of-pid-namespaces.patch removed from -mm tree
-Date: Mon, 29 Oct 2012 12:50:23 -0700
-Message-ID: <20121029195023.C0BC7100047@wpzn3.hot.corp.google.com>
+Subject: [merged] mm-numa-avoid-setting-zone_reclaim_mode-unless-a-node-is-sufficiently-distant.patch removed from -mm tree
+Date: Mon, 29 Oct 2012 12:50:27 -0700
+Message-ID: <20121029195027.ACAA1100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:43053 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752991Ab2J2TuZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Oct 2012 15:50:25 -0400
-Received: by mail-qc0-f202.google.com with SMTP id s25so581602qcq.1
-        for <mm-commits@vger.kernel.org>; Mon, 29 Oct 2012 12:50:24 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:35064 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752991Ab2J2Tu3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Oct 2012 15:50:29 -0400
+Received: by mail-vb0-f74.google.com with SMTP id s24so682391vbi.1
+        for <mm-commits@vger.kernel.org>; Mon, 29 Oct 2012 12:50:28 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avagin@openvz.org, ebiederm@xmission.com, gorcunov@openvz.org, oleg@redhat.com, xemul@parallels.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, hughd@google.com, jwollrath@web.de, patrik.kullman@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pidns: limit the nesting depth of pid namespaces
+     Subject: mm, numa: avoid setting zone_reclaim_mode unless a node is sufficiently distant
 has been removed from the -mm tree.  Its filename was
-     pidns-limit-the-nesting-depth-of-pid-namespaces.patch
+     mm-numa-avoid-setting-zone_reclaim_mode-unless-a-node-is-sufficiently-distant.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Vagin <avagin@openvz.org>
-Subject: pidns: limit the nesting depth of pid namespaces
+From: David Rientjes <rientjes@google.com>
+Subject: mm, numa: avoid setting zone_reclaim_mode unless a node is sufficiently distant
 
-'struct pid' is a "variable sized struct" - a header with an array of
-upids at the end.
+Commit 957f822a0ab9 ("mm, numa: reclaim from all nodes within reclaim
+distance") caused zone_reclaim_mode to be set for all systems where two
+nodes are within RECLAIM_DISTANCE of each other.  This is the opposite of
+what we actually want: zone_reclaim_mode should be set if two nodes are
+sufficiently distant.
 
-The size of the array depends on a level (depth) of pid namespaces.  Now a
-level of pidns is not limited, so 'struct pid' can be more than one page.
-
-Looks reasonable, that it should be less than a page.  MAX_PIS_NS_LEVEL is
-not calculated from PAGE_SIZE, because in this case it depends on
-architectures, config options and it will be reduced, if someone adds a
-new fields in struct pid or struct upid.
-
-I suggest to set MAX_PIS_NS_LEVEL = 32, because it saves ability to expand
-"struct pid" and it's more than enough for all known for me use-cases. 
-When someone finds a reasonable use case, we can add a config option or a
-sysctl parameter.
-
-In addition it will reduce the effect of another problem, when we have
-many nested namespaces and the oldest one starts dying. 
-zap_pid_ns_processe will be called for each namespace and find_vpid will
-be called for each process in a namespace.  find_vpid will be called
-minimum max_level^2 / 2 times.  The reason of that is that when we found a
-bit in pidmap, we can't determine this pidns is top for this process or it
-isn't.
-
-vpid is a heavy operation, so a fork bomb, which create many nested
-namespace, can make a system inaccessible for a long time.  For example my
-system becomes inaccessible for a few minutes with 4000 processes.
-
-[akpm@linux-foundation.org: return -EINVAL in response to excessive nesting, not -ENOMEM]
-Signed-off-by: Andrew Vagin <avagin@openvz.org>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Reported-by: Julian Wollrath <jwollrath@web.de>
+Tested-by: Julian Wollrath <jwollrath@web.de>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Patrik Kullman <patrik.kullman@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/pid_namespace.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/pid_namespace.c~pidns-limit-the-nesting-depth-of-pid-namespaces kernel/pid_namespace.c
---- a/kernel/pid_namespace.c~pidns-limit-the-nesting-depth-of-pid-namespaces
-+++ a/kernel/pid_namespace.c
-@@ -71,12 +71,22 @@ err_alloc:
- 	return NULL;
+diff -puN mm/page_alloc.c~mm-numa-avoid-setting-zone_reclaim_mode-unless-a-node-is-sufficiently-distant mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-numa-avoid-setting-zone_reclaim_mode-unless-a-node-is-sufficiently-distant
++++ a/mm/page_alloc.c
+@@ -1809,10 +1809,10 @@ static void __paginginit init_zone_allow
+ 	int i;
+ 
+ 	for_each_online_node(i)
+-		if (node_distance(nid, i) <= RECLAIM_DISTANCE) {
++		if (node_distance(nid, i) <= RECLAIM_DISTANCE)
+ 			node_set(i, NODE_DATA(nid)->reclaim_nodes);
++		else
+ 			zone_reclaim_mode = 1;
+-		}
  }
  
-+/* MAX_PID_NS_LEVEL is needed for limiting size of 'struct pid' */
-+#define MAX_PID_NS_LEVEL 32
-+
- static struct pid_namespace *create_pid_namespace(struct pid_namespace *parent_pid_ns)
- {
- 	struct pid_namespace *ns;
- 	unsigned int level = parent_pid_ns->level + 1;
--	int i, err = -ENOMEM;
-+	int i;
-+	int err;
-+
-+	if (level > MAX_PID_NS_LEVEL) {
-+		err = -EINVAL;
-+		goto out;
-+	}
- 
-+	err = -ENOMEM;
- 	ns = kmem_cache_zalloc(pid_ns_cachep, GFP_KERNEL);
- 	if (ns == NULL)
- 		goto out;
+ #else	/* CONFIG_NUMA */
 _
 
-Patches currently in -mm which might be from avagin@openvz.org are
+Patches currently in -mm which might be from rientjes@google.com are
 
 linux-next.patch
-proc-dont-show-nonexistent-capabilities.patch
+acpi_memhotplugc-fix-memory-leak-when-memory-device-is-unbound-from-the-module-acpi_memhotplug.patch
+acpi_memhotplugc-free-memory-device-if-acpi_memory_enable_device-failed.patch
+acpi_memhotplugc-remove-memory-info-from-list-before-freeing-it.patch
+acpi_memhotplugc-dont-allow-to-eject-the-memory-device-if-it-is-being-used.patch
+acpi_memhotplugc-bind-the-memory-device-when-the-driver-is-being-loaded.patch
+acpi_memhotplugc-auto-bind-the-memory-device-which-is-hotplugged-before-the-driver-is-loaded.patch
+memory-hotplug-suppress-device-memoryx-does-not-have-a-release-function-warning.patch
+memory-hotplug-suppress-device-nodex-does-not-have-a-release-function-warning.patch
+mm-memcg-make-mem_cgroup_out_of_memory-static.patch
+mm-use-is_enabledconfig_numa-instead-of-numa_build.patch
+mm-use-is_enabledconfig_compaction-instead-of-compaction_build.patch
+memory-hotplug-skip-hwpoisoned-page-when-offlining-pages.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
+memory-hotplug-auto-offline-page_cgroup-when-onlining-memory-block-failed.patch
+memory-hotplug-fix-nr_free_pages-mismatch.patch
+memory-hotplug-allocate-zones-pcp-before-onlining-pages.patch
+memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix.patch
+memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix-2.patch
+memory_hotplug-fix-possible-incorrect-node_states.patch
+slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
+slab-ignore-internal-flags-in-cache-creation.patch
 
