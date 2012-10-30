@@ -1,91 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] hugetlb-do-not-fail-in-hugetlb_cgroup_pre_destroy.patch removed from -mm tree
-Date: Tue, 30 Oct 2012 13:48:05 -0700
-Message-ID: <20121030204806.2B1B85C0063@hpza9.eem.corp.google.com>
+Subject: + mm-refactor-reinsert-of-swap_info-in-sys_swapoff.patch added to -mm tree
+Date: Tue, 30 Oct 2012 14:04:41 -0700
+Message-ID: <20121030210442.C94A620004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f74.google.com ([209.85.215.74]:43149 "EHLO
+Received: from mail-la0-f74.google.com ([209.85.215.74]:47353 "EHLO
 	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932322Ab2J3UsK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Oct 2012 16:48:10 -0400
-Received: by mail-la0-f74.google.com with SMTP id j13so48113lah.1
-        for <mm-commits@vger.kernel.org>; Tue, 30 Oct 2012 13:48:08 -0700 (PDT)
+	with ESMTP id S964775Ab2J3VEq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Oct 2012 17:04:46 -0400
+Received: by mail-la0-f74.google.com with SMTP id j13so48800lah.1
+        for <mm-commits@vger.kernel.org>; Tue, 30 Oct 2012 14:04:45 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, bsingharora@gmail.com, glommer@parallels.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, lizefan@huawei.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: cesarb@cesarb.net, dan.magenheimer@oracle.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, konrad.wilk@oracle.com, mgorman@suse.de, riel@redhat.com
 
 
 The patch titled
-     Subject: hugetlb: do not fail in hugetlb_cgroup_pre_destroy()
-has been removed from the -mm tree.  Its filename was
-     hugetlb-do-not-fail-in-hugetlb_cgroup_pre_destroy.patch
+     Subject: mm: refactor reinsert of swap_info in sys_swapoff()
+has been added to the -mm tree.  Its filename is
+     mm-refactor-reinsert-of-swap_info-in-sys_swapoff.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: hugetlb: do not fail in hugetlb_cgroup_pre_destroy()
+From: Cesar Eduardo Barros <cesarb@cesarb.net>
+Subject: mm: refactor reinsert of swap_info in sys_swapoff()
 
-Now that pre_destroy() callbacks are called from the context where neither
-any task can attach the group nor any children group can be added there is
-no other way to fail from hugetlb_pre_destroy().
+The block within sys_swapoff() which re-inserts the swap_info into the
+swap_list in case of failure of try_to_unuse() reads a few values outside
+the swap_lock.  While this is safe at that point, it is subtle code.
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Reviewed-by: Tejun Heo <tj@kernel.org>
-Reviewed-by: Glauber Costa <glommer@parallels.com>
-Cc: Li Zefan <lizefan@huawei.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Simplify the code by moving the reading of these values to a separate
+function, refactoring it a bit so they are read from within the swap_lock.
+ This is easier to understand, and matches better the way it worked before
+I unified the insertion of the swap_info from both sys_swapon and
+sys_swapoff.
+
+This change should make no functional difference.  The only real change is
+moving the read of two or three structure fields to within the lock
+(frontswap_map_get() is nothing more than a read of p->frontswap_map).
+
+Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Dan Magenheimer <dan.magenheimer@oracle.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_cgroup.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ mm/swapfile.c |   26 +++++++++++++++++---------
+ 1 file changed, 17 insertions(+), 9 deletions(-)
 
-diff -puN mm/hugetlb_cgroup.c~hugetlb-do-not-fail-in-hugetlb_cgroup_pre_destroy mm/hugetlb_cgroup.c
---- a/mm/hugetlb_cgroup.c~hugetlb-do-not-fail-in-hugetlb_cgroup_pre_destroy
-+++ a/mm/hugetlb_cgroup.c
-@@ -159,14 +159,9 @@ static int hugetlb_cgroup_pre_destroy(st
- {
- 	struct hstate *h;
- 	struct page *page;
--	int ret = 0, idx = 0;
-+	int idx = 0;
- 
- 	do {
--		if (cgroup_task_count(cgroup) ||
--		    !list_empty(&cgroup->children)) {
--			ret = -EBUSY;
--			goto out;
--		}
- 		for_each_hstate(h) {
- 			spin_lock(&hugetlb_lock);
- 			list_for_each_entry(page, &h->hugepage_activelist, lru)
-@@ -177,8 +172,8 @@ static int hugetlb_cgroup_pre_destroy(st
- 		}
- 		cond_resched();
- 	} while (hugetlb_cgroup_have_usage(cgroup));
--out:
--	return ret;
-+
-+	return 0;
+diff -puN mm/swapfile.c~mm-refactor-reinsert-of-swap_info-in-sys_swapoff mm/swapfile.c
+--- a/mm/swapfile.c~mm-refactor-reinsert-of-swap_info-in-sys_swapoff
++++ a/mm/swapfile.c
+@@ -1443,13 +1443,12 @@ static int setup_swap_extents(struct swa
+ 	return generic_swapfile_activate(sis, swap_file, span);
  }
  
- int hugetlb_cgroup_charge_cgroup(int idx, unsigned long nr_pages,
+-static void enable_swap_info(struct swap_info_struct *p, int prio,
++static void _enable_swap_info(struct swap_info_struct *p, int prio,
+ 				unsigned char *swap_map,
+ 				unsigned long *frontswap_map)
+ {
+ 	int i, prev;
+ 
+-	spin_lock(&swap_lock);
+ 	if (prio >= 0)
+ 		p->prio = prio;
+ 	else
+@@ -1473,6 +1472,21 @@ static void enable_swap_info(struct swap
+ 	else
+ 		swap_info[prev]->next = p->type;
+ 	frontswap_init(p->type);
++}
++
++static void enable_swap_info(struct swap_info_struct *p, int prio,
++				unsigned char *swap_map,
++				unsigned long *frontswap_map)
++{
++	spin_lock(&swap_lock);
++	_enable_swap_info(p, prio, swap_map, frontswap_map);
++	spin_unlock(&swap_lock);
++}
++
++static void reinsert_swap_info(struct swap_info_struct *p)
++{
++	spin_lock(&swap_lock);
++	_enable_swap_info(p, p->prio, p->swap_map, frontswap_map_get(p));
+ 	spin_unlock(&swap_lock);
+ }
+ 
+@@ -1549,14 +1563,8 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 	compare_swap_oom_score_adj(OOM_SCORE_ADJ_MAX, oom_score_adj);
+ 
+ 	if (err) {
+-		/*
+-		 * reading p->prio and p->swap_map outside the lock is
+-		 * safe here because only sys_swapon and sys_swapoff
+-		 * change them, and there can be no other sys_swapon or
+-		 * sys_swapoff for this swap_info_struct at this point.
+-		 */
+ 		/* re-insert swap space back into swap_list */
+-		enable_swap_info(p, p->prio, p->swap_map, frontswap_map_get(p));
++		reinsert_swap_info(p);
+ 		goto out_dput;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from cesarb@cesarb.net are
 
 linux-next.patch
-thp-clean-up-__collapse_huge_page_isolate.patch
-thp-clean-up-__collapse_huge_page_isolate-v2.patch
-mm-introduce-mm_find_pmd.patch
-mm-introduce-mm_find_pmd-fix.patch
-thp-introduce-hugepage_vma_check.patch
-thp-cleanup-introduce-mk_huge_pmd.patch
-memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
-mm-memblock-reduce-overhead-in-binary-search.patch
+mm-refactor-reinsert-of-swap_info-in-sys_swapoff.patch
+mm-do-not-call-frontswap_init-during-swapoff.patch
 
