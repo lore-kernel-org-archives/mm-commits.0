@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memmap_init_zone-performance-improvement.patch added to -mm tree
-Date: Tue, 30 Oct 2012 15:32:04 -0700
-Message-ID: <20121030223204.A82361E0043@wpzn4.hot.corp.google.com>
+Subject: + drivers-video-backlight-ep93xx_blc-fix-section-mismatch.patch added to -mm tree
+Date: Tue, 30 Oct 2012 15:41:11 -0700
+Message-ID: <20121030224112.A25045C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:43615 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934787Ab2J3WcF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Oct 2012 18:32:05 -0400
-Received: by mail-ye0-f202.google.com with SMTP id r11so92463yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 30 Oct 2012 15:32:05 -0700 (PDT)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:60958 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932223Ab2J3WlP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Oct 2012 18:41:15 -0400
+Received: by mail-la0-f74.google.com with SMTP id j13so51656lah.1
+        for <mm-commits@vger.kernel.org>; Tue, 30 Oct 2012 15:41:14 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mike.yoknis@hp.com, hannes@cmpxchg.org, mgorman@suse.de
+Cc: jg1.han@samsung.com, hsweeten@visionengravers.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: mm: memmap_init_zone() performance improvement
+     Subject: drivers/video/backlight/ep93xx_bl.c: fix section mismatch
 has been added to the -mm tree.  Its filename is
-     mm-memmap_init_zone-performance-improvement.patch
+     drivers-video-backlight-ep93xx_blc-fix-section-mismatch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,59 +33,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Yoknis <mike.yoknis@hp.com>
-Subject: mm: memmap_init_zone() performance improvement
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: drivers/video/backlight/ep93xx_bl.c: fix section mismatch
 
-We have what we call an "architectural simulator".  It is a computer
-program that pretends that it is a computer system.  We use it to test the
-firmware before real hardware is available.  We have booted Linux on our
-simulator.  As you would expect it takes longer to boot on the simulator
-than it does on real hardware.
+Fix section mismatch warning as below:
 
-With my patch - boot time 41 minutes
-Without patch - boot time 94 minutes
+WARNING: drivers/video/backlight/built-in.o(.data+0x110): Section mismatch in reference from the variable ep93xxbl_driver to the
+function .init.text:ep93xxbl_probe()
+The variable ep93xxbl_driver references
+the function __init ep93xxbl_probe()
+If the reference is valid then annotate the
+variable with __init* or __refdata (see linux/init.h) or name the variable:
+*_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console
 
-These numbers do not scale linearly to real hardware.  But indicate to me
-a place where Linux can be improved.
-
-
-memmap_init_zone() loops through every Page Frame Number (pfn), including
-pfn values that are within the gaps between existing memory sections.  The
-unneeded looping will become a boot performance issue when machines
-configure larger memory ranges that will contain larger and more numerous
-gaps.
-
-The code will skip across invalid pfn values to reduce the number of loops
-executed.
-
-Signed-off-by: Mike Yoknis <mike.yoknis@hp.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Cc: H Hartley Sweeten <hsweeten@visionengravers.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/video/backlight/ep93xx_bl.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-memmap_init_zone-performance-improvement mm/page_alloc.c
---- a/mm/page_alloc.c~mm-memmap_init_zone-performance-improvement
-+++ a/mm/page_alloc.c
-@@ -3857,8 +3857,11 @@ void __meminit memmap_init_zone(unsigned
- 		 * exist on hotplugged memory.
- 		 */
- 		if (context == MEMMAP_EARLY) {
--			if (!early_pfn_valid(pfn))
-+			if (!early_pfn_valid(pfn)) {
-+				pfn = ALIGN(pfn + MAX_ORDER_NR_PAGES,
-+						MAX_ORDER_NR_PAGES) - 1;
- 				continue;
-+			}
- 			if (!early_pfn_in_nid(pfn, nid))
- 				continue;
- 		}
+diff -puN drivers/video/backlight/ep93xx_bl.c~drivers-video-backlight-ep93xx_blc-fix-section-mismatch drivers/video/backlight/ep93xx_bl.c
+--- a/drivers/video/backlight/ep93xx_bl.c~drivers-video-backlight-ep93xx_blc-fix-section-mismatch
++++ a/drivers/video/backlight/ep93xx_bl.c
+@@ -60,7 +60,7 @@ static const struct backlight_ops ep93xx
+ 	.get_brightness	= ep93xxbl_get_brightness,
+ };
+ 
+-static int __init ep93xxbl_probe(struct platform_device *dev)
++static int __devinit ep93xxbl_probe(struct platform_device *dev)
+ {
+ 	struct ep93xxbl *ep93xxbl;
+ 	struct backlight_device *bl;
+@@ -106,7 +106,7 @@ static int __init ep93xxbl_probe(struct 
+ 	return 0;
+ }
+ 
+-static int ep93xxbl_remove(struct platform_device *dev)
++static int __devexit ep93xxbl_remove(struct platform_device *dev)
+ {
+ 	struct backlight_device *bl = platform_get_drvdata(dev);
+ 
 _
 
-Patches currently in -mm which might be from mike.yoknis@hp.com are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
-mm-memmap_init_zone-performance-improvement.patch
+linux-next.patch
+backlight-da903x_bl-use-dev_get_drvdata-instead-of-platform_get_drvdata.patch
+backlight-88pm860x_bl-fix-checkpatch-warning.patch
+backlight-atmel-pwm-bl-fix-checkpatch-warning.patch
+backlight-corgi_lcd-fix-checkpatch-error-and-warning.patch
+backlight-da903x_bl-fix-checkpatch-warning.patch
+backlight-generic_bl-fix-checkpatch-warning.patch
+backlight-hp680_bl-fix-checkpatch-error-and-warning.patch
+backlight-ili9320-fix-checkpatch-error-and-warning.patch
+backlight-jornada720-fix-checkpatch-error-and-warning.patch
+backlight-l4f00242t03-fix-checkpatch-warning.patch
+backlight-lm3630-fix-checkpatch-warning.patch
+backlight-locomolcd-fix-checkpatch-error-and-warning.patch
+backlight-omap1-fix-checkpatch-warning.patch
+backlight-pcf50633-fix-checkpatch-warning.patch
+backlight-platform_lcd-fix-checkpatch-error.patch
+backlight-tdo24m-fix-checkpatch-warning.patch
+backlight-tosa-fix-checkpatch-error-and-warning.patch
+backlight-vgg2432a4-fix-checkpatch-warning.patch
+backlight-lms283gf05-use-devm_gpio_request_one.patch
+backlight-tosa-use-devm_gpio_request_one.patch
+drivers-video-backlight-da9052_blc-add-missing-const.patch
+drivers-video-backlight-lms283gf05c-add-missing-const.patch
+drivers-video-backlight-tdo24mc-add-missing-const.patch
+drivers-video-backlight-vgg2432a4c-add-missing-const.patch
+drivers-video-backlight-s6e63m0c-remove-unnecessary-cast-of-void-pointer.patch
+drivers-video-backlight-88pm860x_blc-drop-devm_kfree-of-devm_kzallocd-data.patch
+drivers-video-backlight-max8925_blc-drop-devm_kfree-of-devm_kzallocd-data.patch
+drivers-video-backlight-ep93xx_blc-fix-section-mismatch.patch
+drivers-video-backlight-hp680_blc-add-missing-__devexit-macros-for-remove.patch
+drivers-video-backlight-ili9320c-add-missing-__devexit-macros-for-remove.patch
 
