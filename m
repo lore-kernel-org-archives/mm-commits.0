@@ -1,43 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: [wrecked] memcg-split-mem_cgroup_force_empty-into-reclaiming-and-reparenting-parts.patch removed from -mm tree
-Date: Tue, 30 Oct 2012 13:47:07 -0700
-Message-ID: <20121030204708.41E0D100047@wpzn3.hot.corp.google.com>
+Subject: [wrecked] memcg-root_cgroup-cannot-reach-mem_cgroup_move_parent.patch removed from -mm tree
+Date: Tue, 30 Oct 2012 13:47:15 -0700
+Message-ID: <20121030204715.D053A100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:61571 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932281Ab2J3UrK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Oct 2012 16:47:10 -0400
-Received: by mail-gg0-f202.google.com with SMTP id i4so80088ggm.1
-        for <mm-commits@vger.kernel.org>; Tue, 30 Oct 2012 13:47:09 -0700 (PDT)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:45506 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932281Ab2J3UrS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Oct 2012 16:47:18 -0400
+Received: by mail-vb0-f74.google.com with SMTP id s24so79494vbi.1
+        for <mm-commits@vger.kernel.org>; Tue, 30 Oct 2012 13:47:16 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhocko@suse.cz, bsingharora@gmail.com, glommer@parallels.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, lizefan@huawei.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: split mem_cgroup_force_empty() into reclaiming and reparenting parts
+     Subject: memcg: root_cgroup cannot reach mem_cgroup_move_parent()
 has been removed from the -mm tree.  Its filename was
-     memcg-split-mem_cgroup_force_empty-into-reclaiming-and-reparenting-parts.patch
+     memcg-root_cgroup-cannot-reach-mem_cgroup_move_parent.patch
 
 This patch was dropped because other changes were merged, which wrecked this patch
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg: split mem_cgroup_force_empty() into reclaiming and reparenting parts
+Subject: memcg: root_cgroup cannot reach mem_cgroup_move_parent()
 
-mem_cgroup_force_empty() did two separate things depending on free_all
-parameter from the very beginning.  It either reclaimed as many pages as
-possible and moved the rest to the parent or just moved charges to the
-parent.  The first variant is used as memory.force_empty callback while
-the later is used from the mem_cgroup_pre_destroy().
+The root cgroup cannot be destroyed so we never hit it down the
+mem_cgroup_pre_destroy() path and mem_cgroup_force_empty_write() shouldn't
+even try to do anything if called for the root.
 
-The whole games around gotos are far from being nice and there is no
-reason to keep those two functions inside one. Let's split them and
-also move the responsibility for css reference counting to their callers
-to make to code easier.
-
-This patch doesn't make any functional changes.
+This means that mem_cgroup_move_parent() doesn't have to bother with the
+root cgroup and it can assume it can always move charges upwards.
 
 Signed-off-by: Michal Hocko <mhocko@suse.cz>
 Reviewed-by: Tejun Heo <tj@kernel.org>
@@ -49,133 +43,32 @@ Cc: Balbir Singh <bsingharora@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   72 ++++++++++++++++++++++++++--------------------
- 1 file changed, 42 insertions(+), 30 deletions(-)
+ mm/memcontrol.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-split-mem_cgroup_force_empty-into-reclaiming-and-reparenting-parts mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-split-mem_cgroup_force_empty-into-reclaiming-and-reparenting-parts
+diff -puN mm/memcontrol.c~memcg-root_cgroup-cannot-reach-mem_cgroup_move_parent mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-root_cgroup-cannot-reach-mem_cgroup_move_parent
 +++ a/mm/memcontrol.c
-@@ -3733,27 +3733,21 @@ static bool mem_cgroup_force_empty_list(
- }
+@@ -2709,9 +2709,7 @@ static int mem_cgroup_move_parent(struct
+ 	unsigned long uninitialized_var(flags);
+ 	int ret;
  
- /*
-- * make mem_cgroup's charge to be 0 if there is no task.
-+ * make mem_cgroup's charge to be 0 if there is no task by moving
-+ * all the charges and pages to the parent.
-  * This enables deleting this mem_cgroup.
-+ *
-+ * Caller is responsible for holding css reference on the memcg.
-  */
--static int mem_cgroup_force_empty(struct mem_cgroup *memcg, bool free_all)
-+static int mem_cgroup_reparent_charges(struct mem_cgroup *memcg)
- {
--	int ret;
--	int node, zid, shrink;
--	int nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
- 	struct cgroup *cgrp = memcg->css.cgroup;
-+	int node, zid;
-+	int ret;
+-	/* Is ROOT ? */
+-	if (mem_cgroup_is_root(child))
+-		return -EINVAL;
++	VM_BUG_ON(mem_cgroup_is_root(child));
  
--	css_get(&memcg->css);
--
--	shrink = 0;
--	/* should free all ? */
--	if (free_all)
--		goto try_to_free;
--move_account:
- 	do {
--		ret = -EBUSY;
- 		if (cgroup_task_count(cgrp) || !list_empty(&cgrp->children))
--			goto out;
-+			return -EBUSY;
- 		/* This is for making all *used* pages to be on LRU. */
- 		lru_add_drain_all();
- 		drain_all_stock_sync(memcg);
-@@ -3777,27 +3771,34 @@ move_account:
- 		cond_resched();
- 	/* "ret" should also be checked to ensure all lists are empty. */
- 	} while (res_counter_read_u64(&memcg->res, RES_USAGE) > 0 || ret);
--out:
--	css_put(&memcg->css);
-+
- 	return ret;
-+}
-+
-+/*
-+ * Reclaims as many pages from the given memcg as possible and moves
-+ * the rest to the parent.
-+ *
-+ * Caller is responsible for holding css reference for memcg.
-+ */
-+static int mem_cgroup_force_empty(struct mem_cgroup *memcg)
-+{
-+	int nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
-+	struct cgroup *cgrp = memcg->css.cgroup;
- 
--try_to_free:
- 	/* returns EBUSY if there is a task or if we come here twice. */
--	if (cgroup_task_count(cgrp) || !list_empty(&cgrp->children) || shrink) {
--		ret = -EBUSY;
--		goto out;
--	}
-+	if (cgroup_task_count(cgrp) || !list_empty(&cgrp->children))
-+		return -EBUSY;
-+
- 	/* we call try-to-free pages for make this cgroup empty */
- 	lru_add_drain_all();
- 	/* try to free all pages in this cgroup */
--	shrink = 1;
- 	while (nr_retries && res_counter_read_u64(&memcg->res, RES_USAGE) > 0) {
- 		int progress;
- 
--		if (signal_pending(current)) {
--			ret = -EINTR;
--			goto out;
--		}
-+		if (signal_pending(current))
-+			return -EINTR;
-+
- 		progress = try_to_free_mem_cgroup_pages(memcg, GFP_KERNEL,
- 						false);
- 		if (!progress) {
-@@ -3808,13 +3809,19 @@ try_to_free:
- 
- 	}
- 	lru_add_drain();
--	/* try move_account...there may be some *locked* pages. */
--	goto move_account;
-+	return mem_cgroup_reparent_charges(memcg);
- }
- 
- static int mem_cgroup_force_empty_write(struct cgroup *cont, unsigned int event)
- {
--	return mem_cgroup_force_empty(mem_cgroup_from_cont(cont), true);
-+	struct mem_cgroup *memcg = mem_cgroup_from_cont(cont);
-+	int ret;
-+
-+	css_get(&memcg->css);
-+	ret = mem_cgroup_force_empty(memcg);
-+	css_put(&memcg->css);
-+
-+	return ret;
- }
- 
- 
-@@ -5004,8 +5011,13 @@ free_out:
- static int mem_cgroup_pre_destroy(struct cgroup *cont)
- {
+ 	ret = -EBUSY;
+ 	if (!get_page_unless_zero(page))
+@@ -3817,6 +3815,8 @@ static int mem_cgroup_force_empty_write(
  	struct mem_cgroup *memcg = mem_cgroup_from_cont(cont);
-+	int ret;
+ 	int ret;
  
--	return mem_cgroup_force_empty(memcg, false);
-+	css_get(&memcg->css);
-+	ret = mem_cgroup_reparent_charges(memcg);
-+	css_put(&memcg->css);
-+
-+	return ret;
- }
- 
- static void mem_cgroup_destroy(struct cgroup *cont)
++	if (mem_cgroup_is_root(memcg))
++		return -EINVAL;
+ 	css_get(&memcg->css);
+ 	ret = mem_cgroup_force_empty(memcg);
+ 	css_put(&memcg->css);
 _
 
 Patches currently in -mm which might be from mhocko@suse.cz are
@@ -188,7 +81,6 @@ mm-introduce-mm_find_pmd-fix.patch
 thp-introduce-hugepage_vma_check.patch
 thp-cleanup-introduce-mk_huge_pmd.patch
 memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix.patch
-memcg-root_cgroup-cannot-reach-mem_cgroup_move_parent.patch
 memcg-simplify-mem_cgroup_force_empty_list-error-handling.patch
 cgroups-forbid-pre_destroy-callback-to-fail.patch
 memcg-make-mem_cgroup_reparent_charges-non-failing.patch
