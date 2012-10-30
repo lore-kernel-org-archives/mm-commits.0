@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fork-unshare-remove-dead-code.patch added to -mm tree
-Date: Tue, 30 Oct 2012 16:08:48 -0700
-Message-ID: <20121030230848.7A78C100047@wpzn3.hot.corp.google.com>
+Subject: + fanotify-fix-missing-break.patch added to -mm tree
+Date: Tue, 30 Oct 2012 16:24:32 -0700
+Message-ID: <20121030232433.2047020004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:47994 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759806Ab2J3XIt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Oct 2012 19:08:49 -0400
-Received: by mail-vb0-f74.google.com with SMTP id s24so95814vbi.1
-        for <mm-commits@vger.kernel.org>; Tue, 30 Oct 2012 16:08:48 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:49885 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750737Ab2J3XYf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Oct 2012 19:24:35 -0400
+Received: by mail-wg0-f74.google.com with SMTP id dt11so52855wgb.1
+        for <mm-commits@vger.kernel.org>; Tue, 30 Oct 2012 16:24:34 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@linux.intel.com
+Cc: eparis@redhat.com, alan@linux.intel.com, anders.blomdell@control.lth.se, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: fork: unshare: remove dead code
+     Subject: fanotify: fix missing break
 has been added to the -mm tree.  Its filename is
-     fork-unshare-remove-dead-code.patch
+     fanotify-fix-missing-break.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,38 +33,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alan Cox <alan@linux.intel.com>
-Subject: fork: unshare: remove dead code
+From: Eric Paris <eparis@redhat.com>
+Subject: fanotify: fix missing break
 
-If new_nsproxy is set we will always call switch_task_namespaces and then
-set new_nsproxy back to NULL so the reassignment and fall through check
-are redundant
+Anders Blomdell noted in 2010 that Fanotify lost events and provided a
+test case.  Eric Paris confirmed it was a bug and posted a fix to the list
+
+https://groups.google.com/forum/?fromgroups=#!topic/linux.kernel/RrJfTfyW2BE
+
+but never applied it.  Repeated attempts over time to actually get him to
+apply it have never had a reply from anyone who has raised it
+
+So apply it anyway
 
 Signed-off-by: Alan Cox <alan@linux.intel.com>
+Reported-by: Anders Blomdell <anders.blomdell@control.lth.se>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ fs/notify/fanotify/fanotify.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/fork.c~fork-unshare-remove-dead-code kernel/fork.c
---- a/kernel/fork.c~fork-unshare-remove-dead-code
-+++ a/kernel/fork.c
-@@ -1792,10 +1792,8 @@ SYSCALL_DEFINE1(unshare, unsigned long, 
- 			exit_sem(current);
- 		}
- 
--		if (new_nsproxy) {
-+		if (new_nsproxy)
- 			switch_task_namespaces(current, new_nsproxy);
--			new_nsproxy = NULL;
--		}
- 
- 		task_lock(current);
- 
-@@ -1819,9 +1817,6 @@ SYSCALL_DEFINE1(unshare, unsigned long, 
- 		task_unlock(current);
- 	}
- 
--	if (new_nsproxy)
--		put_nsproxy(new_nsproxy);
+diff -puN fs/notify/fanotify/fanotify.c~fanotify-fix-missing-break fs/notify/fanotify/fanotify.c
+--- a/fs/notify/fanotify/fanotify.c~fanotify-fix-missing-break
++++ a/fs/notify/fanotify/fanotify.c
+@@ -21,6 +21,7 @@ static bool should_merge(struct fsnotify
+ 			if ((old->path.mnt == new->path.mnt) &&
+ 			    (old->path.dentry == new->path.dentry))
+ 				return true;
++			break;
+ 		case (FSNOTIFY_EVENT_NONE):
+ 			return true;
+ 		default:
+_
+
+Patches currently in -mm which might be from eparis@redhat.com are
+
+fanotify-fix-missing-break.patch
+linux-next.patch
+
