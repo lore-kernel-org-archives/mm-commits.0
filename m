@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-highmem-get-virtual-address-of-the-page-using-pkmap_addr.patch added to -mm tree
-Date: Tue, 30 Oct 2012 14:39:19 -0700
-Message-ID: <20121030213919.DB04620004E@hpza10.eem.corp.google.com>
+Subject: + drivers-video-backlight-88pm860x_blc-drop-devm_kfree-of-devm_kzallocd-data.patch added to -mm tree
+Date: Tue, 30 Oct 2012 15:03:51 -0700
+Message-ID: <20121030220352.2F075100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f74.google.com ([209.85.215.74]:33673 "EHLO
-	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756232Ab2J3VjX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Oct 2012 17:39:23 -0400
-Received: by mail-la0-f74.google.com with SMTP id j13so49766lah.1
-        for <mm-commits@vger.kernel.org>; Tue, 30 Oct 2012 14:39:21 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:44590 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965440Ab2J3WDx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Oct 2012 18:03:53 -0400
+Received: by mail-yh0-f74.google.com with SMTP id 10so89648yhl.1
+        for <mm-commits@vger.kernel.org>; Tue, 30 Oct 2012 15:03:52 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: js1304@gmail.com, a.p.zijlstra@chello.nl, mel@csn.ul.ie, minchan@kernel.org
+Cc: jg1.han@samsung.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: mm, highmem: get virtual address of the page using PKMAP_ADDR()
+     Subject: drivers/video/backlight/88pm860x_bl.c: drop devm_kfree of devm_kzalloc'd data
 has been added to the -mm tree.  Its filename is
-     mm-highmem-get-virtual-address-of-the-page-using-pkmap_addr.patch
+     drivers-video-backlight-88pm860x_blc-drop-devm_kfree-of-devm_kzallocd-data.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,89 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <js1304@gmail.com>
-Subject: mm, highmem: get virtual address of the page using PKMAP_ADDR()
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: drivers/video/backlight/88pm860x_bl.c: drop devm_kfree of devm_kzalloc'd data
 
-In flush_all_zero_pkmaps(), we have an index of the pkmap associated with
-the page.  Using this index, we can simply get virtual address of the
-page.  So change it.
+devm_kfree() allocates memory that is released when a driver detaches. 
+Thus, there is no reason to explicitly call devm_kfree() in probe or remove
+functions.
 
-Signed-off-by: Joonsoo Kim <js1304@gmail.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: Minchan Kim <minchan@kernel.org>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/highmem.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/video/backlight/88pm860x_bl.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN mm/highmem.c~mm-highmem-get-virtual-address-of-the-page-using-pkmap_addr mm/highmem.c
---- a/mm/highmem.c~mm-highmem-get-virtual-address-of-the-page-using-pkmap_addr
-+++ a/mm/highmem.c
-@@ -138,8 +138,7 @@ static int flush_all_zero_pkmaps(void)
- 		 * So no dangers, even with speculative execution.
- 		 */
- 		page = pte_page(pkmap_page_table[i]);
--		pte_clear(&init_mm, (unsigned long)page_address(page),
--			  &pkmap_page_table[i]);
-+		pte_clear(&init_mm, PKMAP_ADDR(i), &pkmap_page_table[i]);
+diff -puN drivers/video/backlight/88pm860x_bl.c~drivers-video-backlight-88pm860x_blc-drop-devm_kfree-of-devm_kzallocd-data drivers/video/backlight/88pm860x_bl.c
+--- a/drivers/video/backlight/88pm860x_bl.c~drivers-video-backlight-88pm860x_blc-drop-devm_kfree-of-devm_kzallocd-data
++++ a/drivers/video/backlight/88pm860x_bl.c
+@@ -208,22 +208,19 @@ static int pm860x_backlight_probe(struct
+ 	res = platform_get_resource_byname(pdev, IORESOURCE_REG, "duty cycle");
+ 	if (!res) {
+ 		dev_err(&pdev->dev, "No REG resource for duty cycle\n");
+-		ret = -ENXIO;
+-		goto out;
++		return -ENXIO;
+ 	}
+ 	data->reg_duty_cycle = res->start;
+ 	res = platform_get_resource_byname(pdev, IORESOURCE_REG, "always on");
+ 	if (!res) {
+ 		dev_err(&pdev->dev, "No REG resorce for always on\n");
+-		ret = -ENXIO;
+-		goto out;
++		return -ENXIO;
+ 	}
+ 	data->reg_always_on = res->start;
+ 	res = platform_get_resource_byname(pdev, IORESOURCE_REG, "current");
+ 	if (!res) {
+ 		dev_err(&pdev->dev, "No REG resource for current\n");
+-		ret = -ENXIO;
+-		goto out;
++		return -ENXIO;
+ 	}
+ 	data->reg_current = res->start;
  
- 		set_page_address(page, NULL);
- 		index = i;
+@@ -263,8 +260,6 @@ static int pm860x_backlight_probe(struct
+ 	return 0;
+ out_brt:
+ 	backlight_device_unregister(bl);
+-out:
+-	devm_kfree(&pdev->dev, data);
+ 	return ret;
+ }
+ 
 _
 
-Patches currently in -mm which might be from js1304@gmail.com are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
 linux-next.patch
-mm-highmem-use-pkmap_nr-to-calculate-an-index-of-pkmap.patch
-mm-highmem-remove-useless-pool_lock.patch
-mm-highmem-remove-page_address_pool-list.patch
-mm-highmem-makes-flush_all_zero_pkmaps-return-index-of-last-flushed-entry.patch
-mm-highmem-get-virtual-address-of-the-page-using-pkmap_addr.patch
+backlight-da903x_bl-use-dev_get_drvdata-instead-of-platform_get_drvdata.patch
+backlight-88pm860x_bl-fix-checkpatch-warning.patch
+backlight-atmel-pwm-bl-fix-checkpatch-warning.patch
+backlight-corgi_lcd-fix-checkpatch-error-and-warning.patch
+backlight-da903x_bl-fix-checkpatch-warning.patch
+backlight-generic_bl-fix-checkpatch-warning.patch
+backlight-hp680_bl-fix-checkpatch-error-and-warning.patch
+backlight-ili9320-fix-checkpatch-error-and-warning.patch
+backlight-jornada720-fix-checkpatch-error-and-warning.patch
+backlight-l4f00242t03-fix-checkpatch-warning.patch
+backlight-lm3630-fix-checkpatch-warning.patch
+backlight-locomolcd-fix-checkpatch-error-and-warning.patch
+backlight-omap1-fix-checkpatch-warning.patch
+backlight-pcf50633-fix-checkpatch-warning.patch
+backlight-platform_lcd-fix-checkpatch-error.patch
+backlight-tdo24m-fix-checkpatch-warning.patch
+backlight-tosa-fix-checkpatch-error-and-warning.patch
+backlight-vgg2432a4-fix-checkpatch-warning.patch
+backlight-lms283gf05-use-devm_gpio_request_one.patch
+backlight-tosa-use-devm_gpio_request_one.patch
+drivers-video-backlight-da9052_blc-add-missing-const.patch
+drivers-video-backlight-lms283gf05c-add-missing-const.patch
+drivers-video-backlight-tdo24mc-add-missing-const.patch
+drivers-video-backlight-vgg2432a4c-add-missing-const.patch
+drivers-video-backlight-s6e63m0c-remove-unnecessary-cast-of-void-pointer.patch
+drivers-video-backlight-88pm860x_blc-drop-devm_kfree-of-devm_kzallocd-data.patch
+backlight-max8925-drop-devm_kfree-of-devm_kzallocd-data.patch
 
