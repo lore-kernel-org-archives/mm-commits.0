@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-backlight-hp680_blc-add-missing-__devexit-macros-for-remove.patch added to -mm tree
-Date: Tue, 30 Oct 2012 15:41:15 -0700
-Message-ID: <20121030224116.36BFA100047@wpzn3.hot.corp.google.com>
+Subject: + drivers-video-backlight-ili9320c-add-missing-__devexit-macros-for-remove.patch added to -mm tree
+Date: Tue, 30 Oct 2012 15:41:18 -0700
+Message-ID: <20121030224119.16782100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:35277 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932223Ab2J3WlR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Oct 2012 18:41:17 -0400
-Received: by mail-qc0-f202.google.com with SMTP id s25so92737qcq.1
-        for <mm-commits@vger.kernel.org>; Tue, 30 Oct 2012 15:41:16 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:47969 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932223Ab2J3WlU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 30 Oct 2012 18:41:20 -0400
+Received: by mail-yh0-f74.google.com with SMTP id 10so92896yhl.1
+        for <mm-commits@vger.kernel.org>; Tue, 30 Oct 2012 15:41:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: drivers/video/backlight/hp680_bl.c: add missing __devexit macros for remove
+     Subject: drivers/video/backlight/ili9320.c: add missing __devexit macros for remove
 has been added to the -mm tree.  Its filename is
-     drivers-video-backlight-hp680_blc-add-missing-__devexit-macros-for-remove.patch
+     drivers-video-backlight-ili9320c-add-missing-__devexit-macros-for-remove.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/video/backlight/hp680_bl.c: add missing __devexit macros for remove
+Subject: drivers/video/backlight/ili9320.c: add missing __devexit macros for remove
 
-The __devexit macros is added to remove function.  The macro moves the
-remove function to devexit section.
+The __devexit macros is added to remove function.  The macros moves the
+remove function to devexit sections.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/hp680_bl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/backlight/ili9320.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/hp680_bl.c~drivers-video-backlight-hp680_blc-add-missing-__devexit-macros-for-remove drivers/video/backlight/hp680_bl.c
---- a/drivers/video/backlight/hp680_bl.c~drivers-video-backlight-hp680_blc-add-missing-__devexit-macros-for-remove
-+++ a/drivers/video/backlight/hp680_bl.c
-@@ -124,7 +124,7 @@ static int __devinit hp680bl_probe(struc
- 	return 0;
+diff -puN drivers/video/backlight/ili9320.c~drivers-video-backlight-ili9320c-add-missing-__devexit-macros-for-remove drivers/video/backlight/ili9320.c
+--- a/drivers/video/backlight/ili9320.c~drivers-video-backlight-ili9320c-add-missing-__devexit-macros-for-remove
++++ a/drivers/video/backlight/ili9320.c
+@@ -260,7 +260,7 @@ int __devinit ili9320_probe_spi(struct s
  }
+ EXPORT_SYMBOL_GPL(ili9320_probe_spi);
  
--static int hp680bl_remove(struct platform_device *pdev)
-+static int __devexit hp680bl_remove(struct platform_device *pdev)
+-int ili9320_remove(struct ili9320 *ili)
++int __devexit ili9320_remove(struct ili9320 *ili)
  {
- 	struct backlight_device *bd = platform_get_drvdata(pdev);
+ 	ili9320_power(ili, FB_BLANK_POWERDOWN);
  
-@@ -139,7 +139,7 @@ static int hp680bl_remove(struct platfor
- 
- static struct platform_driver hp680bl_driver = {
- 	.probe		= hp680bl_probe,
--	.remove		= hp680bl_remove,
-+	.remove		= __devexit_p(hp680bl_remove),
- 	.suspend	= hp680bl_suspend,
- 	.resume		= hp680bl_resume,
- 	.driver		= {
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
