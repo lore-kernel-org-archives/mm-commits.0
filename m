@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + device_cgroup-fix-unchecked-cgroup-parent-usage.patch added to -mm tree
-Date: Wed, 31 Oct 2012 16:35:10 -0700
-Message-ID: <20121031233510.95F21100049@wpzn3.hot.corp.google.com>
+Subject: + mm-highmem-remove-page_address_pool-list-v2.patch added to -mm tree
+Date: Wed, 31 Oct 2012 16:50:14 -0700
+Message-ID: <20121031235015.1B80B100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:53759 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753805Ab2JaXfM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 31 Oct 2012 19:35:12 -0400
-Received: by mail-yh0-f74.google.com with SMTP id 10so229242yhl.1
-        for <mm-commits@vger.kernel.org>; Wed, 31 Oct 2012 16:35:11 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:40230 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755031Ab2JaXuQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 31 Oct 2012 19:50:16 -0400
+Received: by mail-gg0-f202.google.com with SMTP id i4so231255ggm.1
+        for <mm-commits@vger.kernel.org>; Wed, 31 Oct 2012 16:50:15 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: aris@redhat.com, jmorris@namei.org, jslaby@suse.cz, lizefan@huawei.com, serge.hallyn@ubuntu.com, tj@kernel.org, xemul@openvz.org
+Cc: js1304@gmail.com, a.p.zijlstra@chello.nl, mel@csn.ul.ie, minchan@kernel.org
 
 
 The patch titled
-     Subject: device_cgroup: fix unchecked cgroup parent usage
+     Subject: mm-highmem-remove-page_address_pool-list-v2
 has been added to the -mm tree.  Its filename is
-     device_cgroup-fix-unchecked-cgroup-parent-usage.patch
+     mm-highmem-remove-page_address_pool-list-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,77 +33,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Aristeu Rozanski <aris@redhat.com>
-Subject: device_cgroup: fix unchecked cgroup parent usage
+From: Joonsoo Kim <js1304@gmail.com>
+Subject: mm-highmem-remove-page_address_pool-list-v2
 
-In 4cef7299b478687 ("device_cgroup: add proper checking when changing
-default behavior") the cgroup parent usage is unchecked.  root will not
-have a parent and trying to use device.{allow,deny} will cause problems. 
-For some reason my stressing scripts didn't test the root directory so I
-didn't catch it on my regular tests.
-
-Signed-off-by: Aristeu Rozanski <aris@redhat.com>
-Cc: Li Zefan <lizefan@huawei.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Acked-by: Serge E. Hallyn <serge.hallyn@ubuntu.com>
-Cc: Jiri Slaby <jslaby@suse.cz>
-Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: Joonsoo Kim <js1304@gmail.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/device_cgroup.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ mm/highmem.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN security/device_cgroup.c~device_cgroup-fix-unchecked-cgroup-parent-usage security/device_cgroup.c
---- a/security/device_cgroup.c~device_cgroup-fix-unchecked-cgroup-parent-usage
-+++ a/security/device_cgroup.c
-@@ -352,6 +352,8 @@ static int parent_has_perm(struct dev_cg
-  */
- static inline int may_allow_all(struct dev_cgroup *parent)
- {
-+	if (!parent)
-+		return 1;
- 	return parent->behavior == DEVCG_DEFAULT_ALLOW;
- }
- 
-@@ -376,11 +378,14 @@ static int devcgroup_update_access(struc
- 	int count, rc;
- 	struct dev_exception_item ex;
- 	struct cgroup *p = devcgroup->css.cgroup;
--	struct dev_cgroup *parent = cgroup_to_devcgroup(p->parent);
-+	struct dev_cgroup *parent = NULL;
- 
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
- 
-+	if (p->parent)
-+		parent = cgroup_to_devcgroup(p->parent);
+diff -puN mm/highmem.c~mm-highmem-remove-page_address_pool-list-v2 mm/highmem.c
+--- a/mm/highmem.c~mm-highmem-remove-page_address_pool-list-v2
++++ a/mm/highmem.c
+@@ -324,6 +324,7 @@ struct page_address_map {
+ 	void *virtual;
+ 	struct list_head list;
+ };
 +
- 	memset(&ex, 0, sizeof(ex));
- 	b = buffer;
+ static struct page_address_map page_address_maps[LAST_PKMAP];
  
-@@ -391,11 +396,14 @@ static int devcgroup_update_access(struc
- 			if (!may_allow_all(parent))
- 				return -EPERM;
- 			dev_exception_clean(devcgroup);
-+			devcgroup->behavior = DEVCG_DEFAULT_ALLOW;
-+			if (!parent)
-+				break;
-+
- 			rc = dev_exceptions_copy(&devcgroup->exceptions,
- 						 &parent->exceptions);
- 			if (rc)
- 				return rc;
--			devcgroup->behavior = DEVCG_DEFAULT_ALLOW;
- 			break;
- 		case DEVCG_DENY:
- 			dev_exception_clean(devcgroup);
+ /*
 _
 
-Patches currently in -mm which might be from aris@redhat.com are
+Patches currently in -mm which might be from js1304@gmail.com are
 
-fanotify-fix-missing-break.patch
-device_cgroup-fix-unchecked-cgroup-parent-usage.patch
 linux-next.patch
+mm-highmem-use-pkmap_nr-to-calculate-an-index-of-pkmap.patch
+mm-highmem-remove-useless-pool_lock.patch
+mm-highmem-remove-page_address_pool-list.patch
+mm-highmem-remove-page_address_pool-list-v2.patch
+mm-highmem-makes-flush_all_zero_pkmaps-return-index-of-last-flushed-entry.patch
+mm-highmem-makes-flush_all_zero_pkmaps-return-index-of-last-flushed-entry-v2.patch
+mm-highmem-get-virtual-address-of-the-page-using-pkmap_addr.patch
 
