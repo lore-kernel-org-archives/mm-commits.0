@@ -1,70 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-dma-api-howtotxt-minor-grammar-corrections.patch added to -mm tree
-Date: Wed, 31 Oct 2012 13:57:19 -0700
-Message-ID: <20121031205720.7B4235C0050@hpza9.eem.corp.google.com>
+Subject: [to-be-updated] memory-hotplug-suppress-device-nodex-does-not-have-a-release-function-warning.patch removed from -mm tree
+Date: Wed, 31 Oct 2012 15:21:32 -0700
+Message-ID: <20121031222133.6907D5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f202.google.com ([209.85.215.202]:57168 "EHLO
-	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760559Ab2JaU5W (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 31 Oct 2012 16:57:22 -0400
-Received: by mail-ea0-f202.google.com with SMTP id q10so120359eaa.1
-        for <mm-commits@vger.kernel.org>; Wed, 31 Oct 2012 13:57:21 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:46271 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755502Ab2JaWVg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 31 Oct 2012 18:21:36 -0400
+Received: by mail-wg0-f74.google.com with SMTP id dt11so123192wgb.1
+        for <mm-commits@vger.kernel.org>; Wed, 31 Oct 2012 15:21:35 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: shuah.khan@hp.com
+To: isimatu.yasuaki@jp.fujitsu.com, greg@kroah.com, kosaki.motohiro@jp.fujitsu.com, liuj97@gmail.com, minchan.kim@gmail.com, rientjes@google.com, wency@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation/DMA-API-HOWTO.txt: minor grammar corrections
-has been added to the -mm tree.  Its filename is
-     documentation-dma-api-howtotxt-minor-grammar-corrections.patch
+     Subject: memory hotplug: suppress "Device nodeX does not have a release() function" warning
+has been removed from the -mm tree.  Its filename was
+     memory-hotplug-suppress-device-nodex-does-not-have-a-release-function-warning.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Shuah Khan <shuah.khan@hp.com>
-Subject: Documentation/DMA-API-HOWTO.txt: minor grammar corrections
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: memory hotplug: suppress "Device nodeX does not have a release() function" warning
 
-Signed-off-by: Shuah Khan <shuah.khan@hp.com>
+When calling unregister_node(), the function shows following message at
+device_release().
+
+"Device 'node2' does not have a release() function, it is broken and must
+be fixed."
+
+The reason is node's device struct does not have a release() function.
+
+So the patch registers node_device_release() to the device's release()
+function for suppressing the warning message.  Additionally, the patch
+adds memset() to initialize a node struct into register_node().  Because
+the node struct is part of node_devices[] array and it cannot be freed by
+node_device_release().  So if system reuses the node struct, it has a
+garbage.
+
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Jiang Liu <liuj97@gmail.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DMA-API-HOWTO.txt |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/base/node.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN Documentation/DMA-API-HOWTO.txt~documentation-dma-api-howtotxt-minor-grammar-corrections Documentation/DMA-API-HOWTO.txt
---- a/Documentation/DMA-API-HOWTO.txt~documentation-dma-api-howtotxt-minor-grammar-corrections
-+++ a/Documentation/DMA-API-HOWTO.txt
-@@ -488,9 +488,10 @@ will invoke the generic mapping error ch
- that the mapping code will work correctly on all dma implementations without
- any dependency on the specifics of the underlying implementation. Using the
- returned address without checking for errors could result in failures ranging
--from panics to silent data corruption. Couple of example of incorrect ways to
--check for errors that make assumptions about the underlying dma implementation
--are as follows and these are applicable to dma_map_page() as well.
-+from panics to silent data corruption. A couple of examples of incorrect ways
-+to check for errors that make assumptions about the underlying dma
-+implementation are as follows and these are applicable to dma_map_page() as
-+well.
+diff -puN drivers/base/node.c~memory-hotplug-suppress-device-nodex-does-not-have-a-release-function-warning drivers/base/node.c
+--- a/drivers/base/node.c~memory-hotplug-suppress-device-nodex-does-not-have-a-release-function-warning
++++ a/drivers/base/node.c
+@@ -252,6 +252,14 @@ static inline void hugetlb_register_node
+ static inline void hugetlb_unregister_node(struct node *node) {}
+ #endif
  
- Incorrect example 1:
- 	dma_addr_t dma_handle;
++static void node_device_release(struct device *dev)
++{
++#if defined(CONFIG_MEMORY_HOTPLUG_SPARSE) && defined(CONFIG_HUGETLBFS)
++	struct node *node_dev = to_node(dev);
++
++	flush_work(&node_dev->node_work);
++#endif
++}
+ 
+ /*
+  * register_node - Setup a sysfs device for a node.
+@@ -263,8 +271,11 @@ int register_node(struct node *node, int
+ {
+ 	int error;
+ 
++	memset(node, 0, sizeof(*node));
++
+ 	node->dev.id = num;
+ 	node->dev.bus = &node_subsys;
++	node->dev.release = node_device_release;
+ 	error = device_register(&node->dev);
+ 
+ 	if (!error){
 _
 
-Patches currently in -mm which might be from shuah.khan@hp.com are
+Patches currently in -mm which might be from isimatu.yasuaki@jp.fujitsu.com are
 
 linux-next.patch
-documentation-dma-api-howtotxt-minor-grammar-corrections.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+acpi_memhotplugc-fix-memory-leak-when-memory-device-is-unbound-from-the-module-acpi_memhotplug.patch
+acpi_memhotplugc-free-memory-device-if-acpi_memory_enable_device-failed.patch
+acpi_memhotplugc-remove-memory-info-from-list-before-freeing-it.patch
+acpi_memhotplugc-dont-allow-to-eject-the-memory-device-if-it-is-being-used.patch
+acpi_memhotplugc-bind-the-memory-device-when-the-driver-is-being-loaded.patch
+acpi_memhotplugc-auto-bind-the-memory-device-which-is-hotplugged-before-the-driver-is-loaded.patch
+memory-hotplug-suppress-device-memoryx-does-not-have-a-release-function-warning.patch
+memory-hotplug-skip-hwpoisoned-page-when-offlining-pages.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
+memory-hotplug-auto-offline-page_cgroup-when-onlining-memory-block-failed.patch
+memory-hotplug-fix-nr_free_pages-mismatch.patch
+memory-hotplug-allocate-zones-pcp-before-onlining-pages.patch
+memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix-2.patch
+memory_hotplug-fix-possible-incorrect-node_states.patch
+slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
 
