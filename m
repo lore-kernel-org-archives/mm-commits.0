@@ -1,136 +1,156 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-mm-sparsec-clear-the-memory-to-store-struct-page.patch added to -mm tree
-Date: Wed, 31 Oct 2012 17:11:57 -0700
-Message-ID: <20121101001158.610E5100047@wpzn3.hot.corp.google.com>
+Subject: [merged] slab-ignore-internal-flags-in-cache-creation.patch removed from -mm tree
+Date: Thu, 01 Nov 2012 14:16:25 -0700
+Message-ID: <20121101211627.2456D100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:44977 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754236Ab2KAAL7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 31 Oct 2012 20:11:59 -0400
-Received: by mail-ye0-f202.google.com with SMTP id r11so233618yen.1
-        for <mm-commits@vger.kernel.org>; Wed, 31 Oct 2012 17:11:59 -0700 (PDT)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:46255 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751052Ab2KAVQ2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2012 17:16:28 -0400
+Received: by mail-gg0-f202.google.com with SMTP id i4so346332ggm.1
+        for <mm-commits@vger.kernel.org>; Thu, 01 Nov 2012 14:16:28 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: wency@cn.fujitsu.com, dave@linux.vnet.ibm.com, isimatu.yasuaki@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, liuj97@gmail.com, minchan.kim@gmail.com, rientjes@google.com, vasilis.liaskovitis@profitbricks.com
+To: glommer@parallels.com, cl@linux.com, penberg@cs.helsinki.fi, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory-hotplug, mm/sparse.c: clear the memory to store struct page
-has been added to the -mm tree.  Its filename is
-     memory-hotplug-mm-sparsec-clear-the-memory-to-store-struct-page.patch
+     Subject: slab: ignore internal flags in cache creation
+has been removed from the -mm tree.  Its filename was
+     slab-ignore-internal-flags-in-cache-creation.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: memory-hotplug, mm/sparse.c: clear the memory to store struct page
+From: Glauber Costa <glommer@parallels.com>
+Subject: slab: ignore internal flags in cache creation
 
-If sparse memory vmemmap is enabled, we can't free the memory to store
-struct page when a memory device is hotremoved, because we may store
-struct page in the memory to manage the memory which doesn't belong to
-this memory device.  When we hotadded this memory device again, we will
-reuse this memory to store struct page, and struct page may contain some
-obsolete information, and we will get bad-page state:
+Some flags are used internally by the allocators for management purposes. 
+One example of that is the CFLGS_OFF_SLAB flag that slab uses to mark that
+the metadata for that cache is stored outside of the slab.
 
-[   59.611278] init_memory_mapping: [mem 0x80000000-0x9fffffff]
-[   59.637836] Built 2 zonelists in Node order, mobility grouping on.  Total pages: 547617
-[   59.638739] Policy zone: Normal
-[   59.650840] BUG: Bad page state in process bash  pfn:9b6dc
-[   59.651124] page:ffffea0002200020 count:0 mapcount:0 mapping:          (null) index:0xfdfdfdfdfdfdfdfd
-[   59.651494] page flags: 0x2fdfdfdfd5df9fd(locked|referenced|uptodate|dirty|lru|active|slab|owner_priv_1|private|private_2|writeback|head|tail|swapcache|reclaim|swapbacked|unevictable|uncached|compound_lock)
-[   59.653604] Modules linked in: netconsole acpiphp pci_hotplug acpi_memhotplug loop kvm_amd kvm microcode tpm_tis tpm tpm_bios evdev psmouse serio_raw i2c_piix4 i2c_core parport_pc parport processor button thermal_sys ext3 jbd mbcache sg sr_mod cdrom ata_generic virtio_net ata_piix virtio_blk libata virtio_pci virtio_ring virtio scsi_mod
-[   59.656998] Pid: 988, comm: bash Not tainted 3.6.0-rc7-guest #12
-[   59.657172] Call Trace:
-[   59.657275]  [<ffffffff810e9b30>] ? bad_page+0xb0/0x100
-[   59.657434]  [<ffffffff810ea4c3>] ? free_pages_prepare+0xb3/0x100
-[   59.657610]  [<ffffffff810ea668>] ? free_hot_cold_page+0x48/0x1a0
-[   59.657787]  [<ffffffff8112cc08>] ? online_pages_range+0x68/0xa0
-[   59.657961]  [<ffffffff8112cba0>] ? __online_page_increment_counters+0x10/0x10
-[   59.658162]  [<ffffffff81045561>] ? walk_system_ram_range+0x101/0x110
-[   59.658346]  [<ffffffff814c4f95>] ? online_pages+0x1a5/0x2b0
-[   59.658515]  [<ffffffff8135663d>] ? __memory_block_change_state+0x20d/0x270
-[   59.658710]  [<ffffffff81356756>] ? store_mem_state+0xb6/0xf0
-[   59.658878]  [<ffffffff8119e482>] ? sysfs_write_file+0xd2/0x160
-[   59.659052]  [<ffffffff8113769a>] ? vfs_write+0xaa/0x160
-[   59.659212]  [<ffffffff81137977>] ? sys_write+0x47/0x90
-[   59.659371]  [<ffffffff814e2f25>] ? async_page_fault+0x25/0x30
-[   59.659543]  [<ffffffff814ea239>] ? system_call_fastpath+0x16/0x1b
-[   59.659720] Disabling lock debugging due to kernel taint
+No cache should ever pass those as a creation flags.  We can just ignore
+this bit if it happens to be passed (such as when duplicating a cache in
+the kmem memcg patches).
 
-This patch clears the memory to store struct page to avoid unexpected error.
+Because such flags can vary from allocator to allocator, we allow them to
+make their own decisions on that, defining SLAB_AVAILABLE_FLAGS with all
+flags that are valid at creation time.  Allocators that doesn't have any
+specific flag requirement should define that to mean all flags.
 
-Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Jiang Liu <liuj97@gmail.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Reported-by: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Common code will mask out all flags not belonging to that set.
+
+Signed-off-by: Glauber Costa <glommer@parallels.com>
+Acked-by: Christoph Lameter <cl@linux.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/slab.c        |   22 ----------------------
+ mm/slab.h        |   25 +++++++++++++++++++++++++
+ mm/slab_common.c |    7 +++++++
+ mm/slub.c        |    3 ---
+ 4 files changed, 32 insertions(+), 25 deletions(-)
 
-diff -puN mm/sparse.c~memory-hotplug-mm-sparsec-clear-the-memory-to-store-struct-page mm/sparse.c
---- a/mm/sparse.c~memory-hotplug-mm-sparsec-clear-the-memory-to-store-struct-page
-+++ a/mm/sparse.c
-@@ -638,7 +638,6 @@ static struct page *__kmalloc_section_me
- got_map_page:
- 	ret = (struct page *)pfn_to_kaddr(page_to_pfn(page));
- got_map_ptr:
--	memset(ret, 0, memmap_size);
+diff -puN mm/slab.c~slab-ignore-internal-flags-in-cache-creation mm/slab.c
+--- a/mm/slab.c~slab-ignore-internal-flags-in-cache-creation
++++ a/mm/slab.c
+@@ -162,23 +162,6 @@
+  */
+ static bool pfmemalloc_active __read_mostly;
  
- 	return ret;
- }
-@@ -760,6 +759,8 @@ int __meminit sparse_add_one_section(str
- 		goto out;
- 	}
+-/* Legal flag mask for kmem_cache_create(). */
+-#if DEBUG
+-# define CREATE_MASK	(SLAB_RED_ZONE | \
+-			 SLAB_POISON | SLAB_HWCACHE_ALIGN | \
+-			 SLAB_CACHE_DMA | \
+-			 SLAB_STORE_USER | \
+-			 SLAB_RECLAIM_ACCOUNT | SLAB_PANIC | \
+-			 SLAB_DESTROY_BY_RCU | SLAB_MEM_SPREAD | \
+-			 SLAB_DEBUG_OBJECTS | SLAB_NOLEAKTRACE | SLAB_NOTRACK)
+-#else
+-# define CREATE_MASK	(SLAB_HWCACHE_ALIGN | \
+-			 SLAB_CACHE_DMA | \
+-			 SLAB_RECLAIM_ACCOUNT | SLAB_PANIC | \
+-			 SLAB_DESTROY_BY_RCU | SLAB_MEM_SPREAD | \
+-			 SLAB_DEBUG_OBJECTS | SLAB_NOLEAKTRACE | SLAB_NOTRACK)
+-#endif
+-
+ /*
+  * kmem_bufctl_t:
+  *
+@@ -2378,11 +2361,6 @@ __kmem_cache_create (struct kmem_cache *
+ 	if (flags & SLAB_DESTROY_BY_RCU)
+ 		BUG_ON(flags & SLAB_POISON);
+ #endif
+-	/*
+-	 * Always checks flags, a caller might be expecting debug support which
+-	 * isn't available.
+-	 */
+-	BUG_ON(flags & ~CREATE_MASK);
  
-+	memset(memmap, 0, sizeof(struct page) * nr_pages);
+ 	/*
+ 	 * Check that size is in terms of words.  This is needed to avoid
+diff -puN mm/slab.h~slab-ignore-internal-flags-in-cache-creation mm/slab.h
+--- a/mm/slab.h~slab-ignore-internal-flags-in-cache-creation
++++ a/mm/slab.h
+@@ -45,6 +45,31 @@ static inline struct kmem_cache *__kmem_
+ #endif
+ 
+ 
++/* Legal flag mask for kmem_cache_create(), for various configurations */
++#define SLAB_CORE_FLAGS (SLAB_HWCACHE_ALIGN | SLAB_CACHE_DMA | SLAB_PANIC | \
++			 SLAB_DESTROY_BY_RCU | SLAB_DEBUG_OBJECTS )
 +
- 	ms->section_mem_map |= SECTION_MARKED_PRESENT;
++#if defined(CONFIG_DEBUG_SLAB)
++#define SLAB_DEBUG_FLAGS (SLAB_RED_ZONE | SLAB_POISON | SLAB_STORE_USER)
++#elif defined(CONFIG_SLUB_DEBUG)
++#define SLAB_DEBUG_FLAGS (SLAB_RED_ZONE | SLAB_POISON | SLAB_STORE_USER | \
++			  SLAB_TRACE | SLAB_DEBUG_FREE)
++#else
++#define SLAB_DEBUG_FLAGS (0)
++#endif
++
++#if defined(CONFIG_SLAB)
++#define SLAB_CACHE_FLAGS (SLAB_MEM_SPREAD | SLAB_NOLEAKTRACE | \
++			  SLAB_RECLAIM_ACCOUNT | SLAB_TEMPORARY | SLAB_NOTRACK)
++#elif defined(CONFIG_SLUB)
++#define SLAB_CACHE_FLAGS (SLAB_NOLEAKTRACE | SLAB_RECLAIM_ACCOUNT | \
++			  SLAB_TEMPORARY | SLAB_NOTRACK)
++#else
++#define SLAB_CACHE_FLAGS (0)
++#endif
++
++#define CACHE_CREATE_MASK (SLAB_CORE_FLAGS | SLAB_DEBUG_FLAGS | SLAB_CACHE_FLAGS)
++
+ int __kmem_cache_shutdown(struct kmem_cache *);
  
- 	ret = sparse_init_one_section(ms, section_nr, memmap, usemap);
-_
-
-Patches currently in -mm which might be from wency@cn.fujitsu.com are
-
-cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved.patch
-cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
-acpi_memhotplugc-fix-memory-leak-when-memory-device-is-unbound-from-the-module-acpi_memhotplug.patch
-acpi_memhotplugc-free-memory-device-if-acpi_memory_enable_device-failed.patch
-acpi_memhotplugc-remove-memory-info-from-list-before-freeing-it.patch
-acpi_memhotplugc-dont-allow-to-eject-the-memory-device-if-it-is-being-used.patch
-acpi_memhotplugc-bind-the-memory-device-when-the-driver-is-being-loaded.patch
-acpi_memhotplugc-auto-bind-the-memory-device-which-is-hotplugged-before-the-driver-is-loaded.patch
-x86-numa-dont-check-if-node-is-numa_no_node.patch
-x86-make-mem=-option-to-work-for-efi-platform.patch
-memory-hotplug-suppress-device-memoryx-does-not-have-a-release-function-warning.patch
-memory-hotplug-skip-hwpoisoned-page-when-offlining-pages.patch
-memory-hotplug-update-mce_bad_pages-when-removing-the-memory.patch
-memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
-memory-hotplug-auto-offline-page_cgroup-when-onlining-memory-block-failed.patch
-memory-hotplug-fix-nr_free_pages-mismatch.patch
-numa-convert-static-memory-to-dynamically-allocated-memory-for-per-node-device.patch
-memory-hotplug-suppress-device-nodex-does-not-have-a-release-function-warning.patch
-memory-hotplug-mm-sparsec-clear-the-memory-to-store-struct-page.patch
-memory-hotplug-allocate-zones-pcp-before-onlining-pages.patch
-memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix.patch
-memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix-2.patch
-memory_hotplug-fix-possible-incorrect-node_states.patch
-slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
-documentation-kernel-parameterstxt-update-mem=-options-spec-according-to-its-implementation.patch
-
+ #endif
+diff -puN mm/slab_common.c~slab-ignore-internal-flags-in-cache-creation mm/slab_common.c
+--- a/mm/slab_common.c~slab-ignore-internal-flags-in-cache-creation
++++ a/mm/slab_common.c
+@@ -107,6 +107,13 @@ struct kmem_cache *kmem_cache_create(con
+ 	if (!kmem_cache_sanity_check(name, size) == 0)
+ 		goto out_locked;
+ 
++	/*
++	 * Some allocators will constraint the set of valid flags to a subset
++	 * of all flags. We expect them to define CACHE_CREATE_MASK in this
++	 * case, and we'll just provide them with a sanitized version of the
++	 * passed flags.
++	 */
++	flags &= CACHE_CREATE_MASK;
+ 
+ 	s = __kmem_cache_alias(name, size, align, flags, ctor);
+ 	if (s)
+diff -puN mm/slub.c~slab-ignore-internal-flags-in-cache-creation mm/slub.c
+--- a/mm/slub.c~slab-ignore-internal-flags-in-cache-creation
++++ a/mm/slub.c
+@@ -112,9 +112,6 @@
+  * 			the fast path and disables lockless freelists.
+  */
+ 
+-#define SLAB_DEBUG_FLAGS (SLAB_RED_ZONE | SLAB_POISON | SLAB_STORE_USER | \
+-		SLAB_TRACE | SLAB_DEBUG_FREE)
