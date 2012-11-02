@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-use-static-branches-when-code-not-in-use.patch added to -mm tree
-Date: Thu, 01 Nov 2012 17:03:40 -0700
-Message-ID: <20121102000341.0C39E5C0050@hpza9.eem.corp.google.com>
+Subject: + memcg-allow-a-memcg-with-kmem-charges-to-be-destructed.patch added to -mm tree
+Date: Thu, 01 Nov 2012 17:03:46 -0700
+Message-ID: <20121102000346.F09E4200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:41242 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759292Ab2KBADo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2012 20:03:44 -0400
-Received: by mail-ee0-f74.google.com with SMTP id b57so194521eek.1
-        for <mm-commits@vger.kernel.org>; Thu, 01 Nov 2012 17:03:44 -0700 (PDT)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:65357 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759292Ab2KBADu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2012 20:03:50 -0400
+Received: by mail-wg0-f74.google.com with SMTP id dt11so194324wgb.1
+        for <mm-commits@vger.kernel.org>; Thu, 01 Nov 2012 17:03:50 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: glommer@parallels.com, cl@linux.com, fweisbec@redhat.com, gthelen@google.com
 
 
 The patch titled
-     Subject: memcg: use static branches when code not in use
+     Subject: memcg: allow a memcg with kmem charges to be destructed
 has been added to the -mm tree.  Its filename is
-     memcg-use-static-branches-when-code-not-in-use.patch
+     memcg-allow-a-memcg-with-kmem-charges-to-be-destructed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,213 +34,83 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Glauber Costa <glommer@parallels.com>
-Subject: memcg: use static branches when code not in use
+Subject: memcg: allow a memcg with kmem charges to be destructed
 
-We can use static branches to patch the code in or out when not used.
+Because the ultimate goal of the kmem tracking in memcg is to track slab
+pages as well, we can't guarantee that we'll always be able to point a
+page to a particular process, and migrate the charges along with it -
+since in the common case, a page will contain data belonging to multiple
+processes.
 
-Because the _ACTIVE bit on kmem_accounted is only set after the increment
-is done, we guarantee that the root memcg will always be selected for kmem
-charges until all call sites are patched (see memcg_kmem_enabled).  This
-guarantees that no mischarges are applied.
-
-Static branch decrement happens when the last reference count from the
-kmem accounting in memcg dies.  This will only happen when the charges
-drop down to 0.
-
-When that happens, we need to disable the static branch only on those
-memcgs that enabled it.  To achieve this, we would be forced to complicate
-the code by keeping track of which memcgs were the ones that actually
-enabled limits, and which ones got it from its parents.
-
-It is a lot simpler just to do static_key_slow_inc() on every child
-that is accounted.
+Because of that, when we destroy a memcg, we only make sure the
+destruction will succeed by discounting the kmem charges from the user
+charges when we try to empty the cgroup.
 
 Signed-off-by: Glauber Costa <glommer@parallels.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
 Acked-by: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
 Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Suleiman Souhlal <suleiman@google.com>
-Cc: Tejun Heo <tj@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Frederic Weisbecker <fweisbec@redhat.com>
 Cc: Greg Thelen <gthelen@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: JoonSoo Kim <js1304@gmail.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Cc: Rik van Riel <riel@redhat.com>
+Cc: Suleiman Souhlal <suleiman@google.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    4 +
- mm/memcontrol.c            |   79 +++++++++++++++++++++++++++++++++--
- 2 files changed, 78 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |   15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/memcontrol.h~memcg-use-static-branches-when-code-not-in-use include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-use-static-branches-when-code-not-in-use
-+++ a/include/linux/memcontrol.h
-@@ -22,6 +22,7 @@
- #include <linux/cgroup.h>
- #include <linux/vm_event_item.h>
- #include <linux/hardirq.h>
-+#include <linux/jump_label.h>
- 
- struct mem_cgroup;
- struct page_cgroup;
-@@ -410,9 +411,10 @@ static inline void sock_release_memcg(st
- #endif /* CONFIG_INET && CONFIG_MEMCG_KMEM */
- 
- #ifdef CONFIG_MEMCG_KMEM
-+extern struct static_key memcg_kmem_enabled_key;
- static inline bool memcg_kmem_enabled(void)
- {
--	return true;
-+	return static_key_false(&memcg_kmem_enabled_key);
- }
- 
- /*
-diff -puN mm/memcontrol.c~memcg-use-static-branches-when-code-not-in-use mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-use-static-branches-when-code-not-in-use
+diff -puN mm/memcontrol.c~memcg-allow-a-memcg-with-kmem-charges-to-be-destructed mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-allow-a-memcg-with-kmem-charges-to-be-destructed
 +++ a/mm/memcontrol.c
-@@ -344,10 +344,13 @@ struct mem_cgroup {
- /* internal only representation about the status of kmem accounting. */
- enum {
- 	KMEM_ACCOUNTED_ACTIVE = 0, /* accounted by this cgroup itself */
-+	KMEM_ACCOUNTED_ACTIVATED, /* static key enabled. */
- 	KMEM_ACCOUNTED_DEAD, /* dead memcg with pending kmem charges */
- };
- 
--#define KMEM_ACCOUNTED_MASK (1 << KMEM_ACCOUNTED_ACTIVE)
-+/* We account when limit is on, but only after call sites are patched */
-+#define KMEM_ACCOUNTED_MASK \
-+		((1 << KMEM_ACCOUNTED_ACTIVE) | (1 << KMEM_ACCOUNTED_ACTIVATED))
- 
- #ifdef CONFIG_MEMCG_KMEM
- static inline void memcg_kmem_set_active(struct mem_cgroup *memcg)
-@@ -360,6 +363,11 @@ static bool memcg_kmem_is_active(struct 
- 	return test_bit(KMEM_ACCOUNTED_ACTIVE, &memcg->kmem_account_flags);
- }
- 
-+static void memcg_kmem_set_activated(struct mem_cgroup *memcg)
-+{
-+	set_bit(KMEM_ACCOUNTED_ACTIVATED, &memcg->kmem_account_flags);
-+}
-+
- static void memcg_kmem_mark_dead(struct mem_cgroup *memcg)
+@@ -545,6 +545,11 @@ static void disarm_kmem_keys(struct mem_
  {
- 	if (test_bit(KMEM_ACCOUNTED_ACTIVE, &memcg->kmem_account_flags))
-@@ -530,6 +538,26 @@ static void disarm_sock_keys(struct mem_
+ 	if (memcg_kmem_is_active(memcg))
+ 		static_key_slow_dec(&memcg_kmem_enabled_key);
++	/*
++	 * This check can't live in kmem destruction function,
++	 * since the charges will outlive the cgroup
++	 */
++	WARN_ON(res_counter_read_u64(&memcg->kmem, RES_USAGE) != 0);
  }
- #endif
- 
-+#ifdef CONFIG_MEMCG_KMEM
-+struct static_key memcg_kmem_enabled_key;
-+
-+static void disarm_kmem_keys(struct mem_cgroup *memcg)
-+{
-+	if (memcg_kmem_is_active(memcg))
-+		static_key_slow_dec(&memcg_kmem_enabled_key);
-+}
-+#else
-+static void disarm_kmem_keys(struct mem_cgroup *memcg)
-+{
-+}
-+#endif /* CONFIG_MEMCG_KMEM */
-+
-+static void disarm_static_keys(struct mem_cgroup *memcg)
-+{
-+	disarm_sock_keys(memcg);
-+	disarm_kmem_keys(memcg);
-+}
-+
- static void drain_all_stock_async(struct mem_cgroup *memcg);
- 
- static struct mem_cgroup_per_zone *
-@@ -4195,6 +4223,8 @@ static int memcg_update_kmem_limit(struc
+ #else
+ static void disarm_kmem_keys(struct mem_cgroup *memcg)
+@@ -4014,6 +4019,7 @@ static int mem_cgroup_reparent_charges(s
  {
- 	int ret = -EINVAL;
- #ifdef CONFIG_MEMCG_KMEM
-+	bool must_inc_static_branch = false;
-+
- 	struct mem_cgroup *memcg = mem_cgroup_from_cont(cont);
- 	/*
- 	 * For simplicity, we won't allow this to be disabled.  It also can't
-@@ -4225,7 +4255,15 @@ static int memcg_update_kmem_limit(struc
- 		ret = res_counter_set_limit(&memcg->kmem, val);
- 		VM_BUG_ON(ret);
+ 	struct cgroup *cgrp = memcg->css.cgroup;
+ 	int node, zid;
++	u64 usage;
  
--		memcg_kmem_set_active(memcg);
-+		/*
-+		 * After this point, kmem_accounted (that we test atomically in
-+		 * the beginning of this conditional), is no longer 0. This
-+		 * guarantees only one process will set the following boolean
-+		 * to true. We don't need test_and_set because we're protected
-+		 * by the set_limit_mutex anyway.
-+		 */
-+		memcg_kmem_set_activated(memcg);
-+		must_inc_static_branch = true;
+ 	do {
+ 		if (cgroup_task_count(cgrp) || !list_empty(&cgrp->children))
+@@ -4036,13 +4042,20 @@ static int mem_cgroup_reparent_charges(s
+ 		cond_resched();
+ 
  		/*
- 		 * kmem charges can outlive the cgroup. In the case of slab
- 		 * pages, for instance, a page contain objects from various
-@@ -4238,6 +4276,27 @@ static int memcg_update_kmem_limit(struc
- out:
- 	mutex_unlock(&set_limit_mutex);
- 	cgroup_unlock();
-+
-+	/*
-+	 * We are by now familiar with the fact that we can't inc the static
-+	 * branch inside cgroup_lock. See disarm functions for details. A
-+	 * worker here is overkill, but also wrong: After the limit is set, we
-+	 * must start accounting right away. Since this operation can't fail,
-+	 * we can safely defer it to here - no rollback will be needed.
-+	 *
-+	 * The boolean used to control this is also safe, because
-+	 * KMEM_ACCOUNTED_ACTIVATED guarantees that only one process will be
-+	 * able to set it to true;
-+	 */
-+	if (must_inc_static_branch) {
-+		static_key_slow_inc(&memcg_kmem_enabled_key);
-+		/*
-+		 * setting the active bit after the inc will guarantee no one
-+		 * starts accounting before all call sites are patched
-+		 */
-+		memcg_kmem_set_active(memcg);
-+	}
-+
- #endif
- 	return ret;
- }
-@@ -4249,8 +4308,20 @@ static void memcg_propagate_kmem(struct 
- 		return;
- 	memcg->kmem_account_flags = parent->kmem_account_flags;
- #ifdef CONFIG_MEMCG_KMEM
--	if (memcg_kmem_is_active(memcg))
-+	/*
-+	 * When that happen, we need to disable the static branch only on those
-+	 * memcgs that enabled it. To achieve this, we would be forced to
-+	 * complicate the code by keeping track of which memcgs were the ones
-+	 * that actually enabled limits, and which ones got it from its
-+	 * parents.
-+	 *
-+	 * It is a lot simpler just to do static_key_slow_inc() on every child
-+	 * that is accounted.
-+	 */
-+	if (memcg_kmem_is_active(memcg)) {
- 		mem_cgroup_get(memcg);
-+		static_key_slow_inc(&memcg_kmem_enabled_key);
-+	}
- #endif
- }
++		 * Kernel memory may not necessarily be trackable to a specific
++		 * process. So they are not migrated, and therefore we can't
++		 * expect their value to drop to 0 here.
++		 * Having res filled up with kmem only is enough.
++		 *
+ 		 * This is a safety check because mem_cgroup_force_empty_list
+ 		 * could have raced with mem_cgroup_replace_page_cache callers
+ 		 * so the lru seemed empty but the page could have been added
+ 		 * right after the check. RES_USAGE should be safe as we always
+ 		 * charge before adding to the LRU.
+ 		 */
+-	} while (res_counter_read_u64(&memcg->res, RES_USAGE) > 0);
++		usage = res_counter_read_u64(&memcg->res, RES_USAGE) -
++			res_counter_read_u64(&memcg->kmem, RES_USAGE);
++	} while (usage > 0);
  
-@@ -5175,7 +5246,7 @@ static void free_work(struct work_struct
- 	 * to move this code around, and make sure it is outside
- 	 * the cgroup_lock.
- 	 */
--	disarm_sock_keys(memcg);
-+	disarm_static_keys(memcg);
- 	if (size < PAGE_SIZE)
- 		kfree(memcg);
- 	else
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from glommer@parallels.com are
