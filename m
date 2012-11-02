@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + slub-slub-specific-propagation-changes.patch added to -mm tree
-Date: Thu, 01 Nov 2012 17:05:13 -0700
-Message-ID: <20121102000514.BA37E5C0060@hpza9.eem.corp.google.com>
+Subject: + kmem-add-slab-specific-documentation-about-the-kmem-controller.patch added to -mm tree
+Date: Thu, 01 Nov 2012 17:05:20 -0700
+Message-ID: <20121102000520.78E0A100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:54826 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S2992680Ab2KBAFT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2012 20:05:19 -0400
-Received: by mail-lb0-f202.google.com with SMTP id l12so196300lbo.1
-        for <mm-commits@vger.kernel.org>; Thu, 01 Nov 2012 17:05:17 -0700 (PDT)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:61040 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S2992671Ab2KBAFW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2012 20:05:22 -0400
+Received: by mail-vc0-f202.google.com with SMTP id fy27so366750vcb.1
+        for <mm-commits@vger.kernel.org>; Thu, 01 Nov 2012 17:05:21 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: glommer@parallels.com, cl@linux.com, fweisbec@redhat.com, gthelen@google.com
 
 
 The patch titled
-     Subject: slub: slub-specific propagation changes
+     Subject: kmem: add slab-specific documentation about the kmem controller
 has been added to the -mm tree.  Its filename is
-     slub-slub-specific-propagation-changes.patch
+     kmem-add-slab-specific-documentation-about-the-kmem-controller.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,28 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Glauber Costa <glommer@parallels.com>
-Subject: slub: slub-specific propagation changes
-
-SLUB allows us to tune a particular cache behavior with sysfs-based
-tunables.  When creating a new memcg cache copy, we'd like to preserve any
-tunables the parent cache already had.
-
-This can be done by tapping into the store attribute function provided by
-the allocator.  We of course don't need to mess with read-only fields. 
-Since the attributes can have multiple types and are stored internally by
-sysfs, the best strategy is to issue a ->show() in the root cache, and
-then ->store() in the memcg cache.
-
-The drawback of that, is that sysfs can allocate up to a page in buffering
-for show(), that we are likely not to need, but also can't guarantee.  To
-avoid always allocating a page for that, we can update the caches at store
-time with the maximum attribute size ever stored to the root cache.  We
-will then get a buffer big enough to hold it.  The corolary to this, is
-that if no stores happened, nothing will be propagated.
-
-It can also happen that a root cache has its tunables updated during
-normal system operation.  In this case, we will propagate the change to
-all caches that are already active.
+Subject: kmem: add slab-specific documentation about the kmem controller
 
 Signed-off-by: Glauber Costa <glommer@parallels.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -74,138 +53,26 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slub_def.h |    1 
- mm/slub.c                |   76 ++++++++++++++++++++++++++++++++++++-
- 2 files changed, 76 insertions(+), 1 deletion(-)
+ Documentation/cgroups/memory.txt |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN include/linux/slub_def.h~slub-slub-specific-propagation-changes include/linux/slub_def.h
---- a/include/linux/slub_def.h~slub-slub-specific-propagation-changes
-+++ a/include/linux/slub_def.h
-@@ -103,6 +103,7 @@ struct kmem_cache {
- #endif
- #ifdef CONFIG_MEMCG_KMEM
- 	struct memcg_cache_params *memcg_params;
-+	int max_attr_size; /* for propagation, maximum size of a stored attr */
- #endif
+diff -puN Documentation/cgroups/memory.txt~kmem-add-slab-specific-documentation-about-the-kmem-controller Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~kmem-add-slab-specific-documentation-about-the-kmem-controller
++++ a/Documentation/cgroups/memory.txt
+@@ -301,6 +301,13 @@ to trigger slab reclaim when those limit
+ kernel memory, we prevent new processes from being created when the kernel
+ memory usage is too high.
  
- #ifdef CONFIG_NUMA
-diff -puN mm/slub.c~slub-slub-specific-propagation-changes mm/slub.c
---- a/mm/slub.c~slub-slub-specific-propagation-changes
-+++ a/mm/slub.c
-@@ -203,13 +203,14 @@ enum track_item { TRACK_ALLOC, TRACK_FRE
- static int sysfs_slab_add(struct kmem_cache *);
- static int sysfs_slab_alias(struct kmem_cache *, const char *);
- static void sysfs_slab_remove(struct kmem_cache *);
--
-+static void memcg_propagate_slab_attrs(struct kmem_cache *s);
- #else
- static inline int sysfs_slab_add(struct kmem_cache *s) { return 0; }
- static inline int sysfs_slab_alias(struct kmem_cache *s, const char *p)
- 							{ return 0; }
- static inline void sysfs_slab_remove(struct kmem_cache *s) { }
- 
-+static inline void memcg_propagate_slab_attrs(struct kmem_cache *s) { }
- #endif
- 
- static inline void stat(const struct kmem_cache *s, enum stat_item si)
-@@ -3948,6 +3949,7 @@ int __kmem_cache_create(struct kmem_cach
- 	if (err)
- 		return err;
- 
-+	memcg_propagate_slab_attrs(s);
- 	mutex_unlock(&slab_mutex);
- 	err = sysfs_slab_add(s);
- 	mutex_lock(&slab_mutex);
-@@ -5173,6 +5175,7 @@ static ssize_t slab_attr_store(struct ko
- 	struct slab_attribute *attribute;
- 	struct kmem_cache *s;
- 	int err;
-+	int i __maybe_unused;
- 
- 	attribute = to_slab_attr(attr);
- 	s = to_slab(kobj);
-@@ -5181,10 +5184,81 @@ static ssize_t slab_attr_store(struct ko
- 		return -EIO;
- 
- 	err = attribute->store(s, buf, len);
-+#ifdef CONFIG_MEMCG_KMEM
-+	if (slab_state < FULL)
-+		return err;
- 
-+	if ((err < 0) || !is_root_cache(s))
-+		return err;
++* slab pages: pages allocated by the SLAB or SLUB allocator are tracked. A copy
++of each kmem_cache is created everytime the cache is touched by the first time
++from inside the memcg. The creation is done lazily, so some objects can still be
++skipped while the cache is being created. All objects in a slab page should
++belong to the same memcg. This only fails to hold when a task is migrated to a
++different memcg during the page allocation by the cache.
 +
-+	mutex_lock(&slab_mutex);
-+	if (s->max_attr_size < len)
-+		s->max_attr_size = len;
-+
-+	for_each_memcg_cache_index(i) {
-+		struct kmem_cache *c = cache_from_memcg(s, i);
-+		if (c)
-+			/* return value determined by the parent cache only */
-+			attribute->store(c, buf, len);
-+	}
-+	mutex_unlock(&slab_mutex);
-+#endif
- 	return err;
- }
- 
-+static void memcg_propagate_slab_attrs(struct kmem_cache *s)
-+{
-+#ifdef CONFIG_MEMCG_KMEM
-+	int i;
-+	char *buffer = NULL;
-+
-+	if (!is_root_cache(s))
-+		return;
-+
-+	/*
-+	 * This mean this cache had no attribute written. Therefore, no point
-+	 * in copying default values around
-+	 */
-+	if (!s->max_attr_size)
-+		return;
-+
-+	for (i = 0; i < ARRAY_SIZE(slab_attrs); i++) {
-+		char mbuf[64];
-+		char *buf;
-+		struct slab_attribute *attr = to_slab_attr(slab_attrs[i]);
-+
-+		if (!attr || !attr->store || !attr->show)
-+			continue;
-+
-+		/*
-+		 * It is really bad that we have to allocate here, so we will
-+		 * do it only as a fallback. If we actually allocate, though,
-+		 * we can just use the allocated buffer until the end.
-+		 *
-+		 * Most of the slub attributes will tend to be very small in
-+		 * size, but sysfs allows buffers up to a page, so they can
-+		 * theoretically happen.
-+		 */
-+		if (buffer)
-+			buf = buffer;
-+		else if (s->max_attr_size < ARRAY_SIZE(mbuf))
-+			buf = mbuf;
-+		else {
-+			buffer = (char *) get_zeroed_page(GFP_KERNEL);
-+			if (WARN_ON(!buffer))
-+				continue;
-+			buf = buffer;
-+		}
-+
-+		attr->show(s->memcg_params->root_cache, buf);
-+		attr->store(s, buf, strlen(buf));
-+	}
-+
-+	if (buffer)
-+		free_page((unsigned long)buffer);
-+#endif
-+}
-+
- static const struct sysfs_ops slab_sysfs_ops = {
- 	.show = slab_attr_show,
- 	.store = slab_attr_store,
+ * sockets memory pressure: some sockets protocols have memory pressure
+ thresholds. The Memory Controller allows them to be controlled individually
+ per cgroup, instead of globally.
 _
 
 Patches currently in -mm which might be from glommer@parallels.com are
