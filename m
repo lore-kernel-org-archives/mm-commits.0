@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-oom-allow-exiting-threads-to-have-access-to-memory-reserves.patch added to -mm tree
-Date: Thu, 01 Nov 2012 15:43:11 -0700
-Message-ID: <20121101224312.287C35C0060@hpza9.eem.corp.google.com>
+Subject: + memcg-make-it-possible-to-use-the-stock-for-more-than-one-page.patch added to -mm tree
+Date: Thu, 01 Nov 2012 17:02:57 -0700
+Message-ID: <20121102000257.8C27D100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:43161 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S2992604Ab2KAWnP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2012 18:43:15 -0400
-Received: by mail-fa0-f74.google.com with SMTP id t1so190480fae.1
-        for <mm-commits@vger.kernel.org>; Thu, 01 Nov 2012 15:43:13 -0700 (PDT)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:41553 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751565Ab2KBADA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2012 20:03:00 -0400
+Received: by mail-yh0-f74.google.com with SMTP id 10so351201yhl.1
+        for <mm-commits@vger.kernel.org>; Thu, 01 Nov 2012 17:02:59 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, kosaki.motohiro@jp.fujitsu.com, minchan@kernel.org, semenzato@google.com
+Cc: ssouhlal@FreeBSD.org, cl@linux.com, fweisbec@redhat.com, glommer@parallels.com, gthelen@google.com, hannes@cmpxchg.org, js1304@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mhocko@suse.cz, penberg@cs.helsinki.fi, riel@redhat.com, rientjes@google.com, suleiman@google.com, tj@kernel.org
 
 
 The patch titled
-     Subject: mm, oom: allow exiting threads to have access to memory reserves
+     Subject: memcg: make it possible to use the stock for more than one page
 has been added to the -mm tree.  Its filename is
-     mm-oom-allow-exiting-threads-to-have-access-to-memory-reserves.patch
+     memcg-make-it-possible-to-use-the-stock-for-more-than-one-page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,116 +33,102 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, oom: allow exiting threads to have access to memory reserves
+From: Suleiman Souhlal <ssouhlal@FreeBSD.org>
+Subject: memcg: make it possible to use the stock for more than one page
 
-Exiting threads, those with PF_EXITING set, can pagefault and require
-memory before they can make forward progress.  This happens, for instance,
-when a process must fault task->robust_list, a userspace structure, before
-detaching its memory.
+We currently have a percpu stock cache scheme that charges one page at a
+time from memcg->res, the user counter.  When the kernel memory controller
+comes into play, we'll need to charge more than that.
 
-These threads also aren't guaranteed to get access to memory reserves
-unless oom killed or killed from userspace.  The oom killer won't grant
-memory reserves if other threads are also exiting other than current and
-stalling at the same point.  This prevents needlessly killing processes
-when others are already exiting.
+This is because kernel memory allocations will also draw from the user
+counter, and can be bigger than a single page, as it is the case with the
+stack (usually 2 pages) or some higher order slabs.
 
-Instead of special casing all the possible situations between PF_EXITING
-getting set and a thread detaching its mm where it may allocate memory,
-which probably wouldn't get updated when a change is made to the exit
-path, the solution is to give all exiting threads access to memory
-reserves if they call the oom killer.  This allows them to quickly
-allocate, detach its mm, and free the memory it represents.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Tested-by: Luigi Semenzato <semenzato@google.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+[glommer@parallels.com: added a changelog ]
+Signed-off-by: Suleiman Souhlal <suleiman@google.com>
+Signed-off-by: Glauber Costa <glommer@parallels.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Frederic Weisbecker <fweisbec@redhat.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: JoonSoo Kim <js1304@gmail.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Suleiman Souhlal <suleiman@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   31 +++++++++----------------------
- 1 file changed, 9 insertions(+), 22 deletions(-)
+ mm/memcontrol.c |   28 ++++++++++++++++++----------
+ 1 file changed, 18 insertions(+), 10 deletions(-)
 
-diff -puN mm/oom_kill.c~mm-oom-allow-exiting-threads-to-have-access-to-memory-reserves mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-allow-exiting-threads-to-have-access-to-memory-reserves
-+++ a/mm/oom_kill.c
-@@ -310,26 +310,13 @@ enum oom_scan_t oom_scan_process_thread(
- 	if (!task->mm)
- 		return OOM_SCAN_CONTINUE;
+diff -puN mm/memcontrol.c~memcg-make-it-possible-to-use-the-stock-for-more-than-one-page mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-make-it-possible-to-use-the-stock-for-more-than-one-page
++++ a/mm/memcontrol.c
+@@ -2028,20 +2028,28 @@ struct memcg_stock_pcp {
+ static DEFINE_PER_CPU(struct memcg_stock_pcp, memcg_stock);
+ static DEFINE_MUTEX(percpu_charge_mutex);
  
--	if (task->flags & PF_EXITING) {
-+	if (task->flags & PF_EXITING && !force_kill) {
- 		/*
--		 * If task is current and is in the process of releasing memory,
--		 * allow the "kill" to set TIF_MEMDIE, which will allow it to
--		 * access memory reserves.  Otherwise, it may stall forever.
--		 *
--		 * The iteration isn't broken here, however, in case other
--		 * threads are found to have already been oom killed.
-+		 * If this task is not being ptraced on exit, then wait for it
-+		 * to finish before killing some other task unnecessarily.
- 		 */
--		if (task == current)
--			return OOM_SCAN_SELECT;
--		else if (!force_kill) {
--			/*
--			 * If this task is not being ptraced on exit, then wait
--			 * for it to finish before killing some other task
--			 * unnecessarily.
--			 */
--			if (!(task->group_leader->ptrace & PT_TRACE_EXIT))
--				return OOM_SCAN_ABORT;
--		}
-+		if (!(task->group_leader->ptrace & PT_TRACE_EXIT))
-+			return OOM_SCAN_ABORT;
- 	}
- 	return OOM_SCAN_OK;
- }
-@@ -706,11 +693,11 @@ void out_of_memory(struct zonelist *zone
- 		return;
+-/*
+- * Try to consume stocked charge on this cpu. If success, one page is consumed
+- * from local stock and true is returned. If the stock is 0 or charges from a
+- * cgroup which is not current target, returns false. This stock will be
+- * refilled.
++/**
++ * consume_stock: Try to consume stocked charge on this cpu.
++ * @memcg: memcg to consume from.
++ * @nr_pages: how many pages to charge.
++ *
++ * The charges will only happen if @memcg matches the current cpu's memcg
++ * stock, and at least @nr_pages are available in that stock.  Failure to
++ * service an allocation will refill the stock.
++ *
++ * returns true if successful, false otherwise.
+  */
+-static bool consume_stock(struct mem_cgroup *memcg)
++static bool consume_stock(struct mem_cgroup *memcg, unsigned int nr_pages)
+ {
+ 	struct memcg_stock_pcp *stock;
+ 	bool ret = true;
  
- 	/*
--	 * If current has a pending SIGKILL, then automatically select it.  The
--	 * goal is to allow it to allocate so that it may quickly exit and free
--	 * its memory.
-+	 * If current has a pending SIGKILL or is exiting, then automatically
-+	 * select it.  The goal is to allow it to allocate so that it may
-+	 * quickly exit and free its memory.
- 	 */
--	if (fatal_signal_pending(current)) {
-+	if (fatal_signal_pending(current) || current->flags & PF_EXITING) {
- 		set_thread_flag(TIF_MEMDIE);
- 		return;
- 	}
++	if (nr_pages > CHARGE_BATCH)
++		return false;
++
+ 	stock = &get_cpu_var(memcg_stock);
+-	if (memcg == stock->cached && stock->nr_pages)
+-		stock->nr_pages--;
++	if (memcg == stock->cached && stock->nr_pages >= nr_pages)
++		stock->nr_pages -= nr_pages;
+ 	else /* need to call res_counter_charge */
+ 		ret = false;
+ 	put_cpu_var(memcg_stock);
+@@ -2340,7 +2348,7 @@ again:
+ 		VM_BUG_ON(css_is_removed(&memcg->css));
+ 		if (mem_cgroup_is_root(memcg))
+ 			goto done;
+-		if (nr_pages == 1 && consume_stock(memcg))
++		if (consume_stock(memcg, nr_pages))
+ 			goto done;
+ 		css_get(&memcg->css);
+ 	} else {
+@@ -2365,7 +2373,7 @@ again:
+ 			rcu_read_unlock();
+ 			goto done;
+ 		}
+-		if (nr_pages == 1 && consume_stock(memcg)) {
++		if (consume_stock(memcg, nr_pages)) {
+ 			/*
+ 			 * It seems dagerous to access memcg without css_get().
+ 			 * But considering how consume_stok works, it's not
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from ssouhlal@FreeBSD.org are
 
-linux-next.patch
-acpi_memhotplugc-fix-memory-leak-when-memory-device-is-unbound-from-the-module-acpi_memhotplug.patch
-acpi_memhotplugc-free-memory-device-if-acpi_memory_enable_device-failed.patch
-acpi_memhotplugc-remove-memory-info-from-list-before-freeing-it.patch
-acpi_memhotplugc-dont-allow-to-eject-the-memory-device-if-it-is-being-used.patch
-acpi_memhotplugc-bind-the-memory-device-when-the-driver-is-being-loaded.patch
-acpi_memhotplugc-auto-bind-the-memory-device-which-is-hotplugged-before-the-driver-is-loaded.patch
-mm-memcg-make-mem_cgroup_out_of_memory-static.patch
-mm-use-is_enabledconfig_numa-instead-of-numa_build.patch
-mm-use-is_enabledconfig_compaction-instead-of-compaction_build.patch
-thp-clean-up-__collapse_huge_page_isolate.patch
-memory-hotplug-suppress-device-memoryx-does-not-have-a-release-function-warning.patch
-memory-hotplug-skip-hwpoisoned-page-when-offlining-pages.patch
-memory-hotplug-update-mce_bad_pages-when-removing-the-memory.patch
-memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
-memory-hotplug-auto-offline-page_cgroup-when-onlining-memory-block-failed.patch
-memory-hotplug-fix-nr_free_pages-mismatch.patch
-numa-convert-static-memory-to-dynamically-allocated-memory-for-per-node-device.patch
-memory-hotplug-suppress-device-nodex-does-not-have-a-release-function-warning.patch
-memory-hotplug-mm-sparsec-clear-the-memory-to-store-struct-page.patch
-memory-hotplug-allocate-zones-pcp-before-onlining-pages.patch
-memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix.patch
-memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix-2.patch
-memory_hotplug-fix-possible-incorrect-node_states.patch
-slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
-mm-oom-allow-exiting-threads-to-have-access-to-memory-reserves.patch
+memcg-make-it-possible-to-use-the-stock-for-more-than-one-page.patch
+memcg-reclaim-when-more-than-one-page-needed.patch
 
