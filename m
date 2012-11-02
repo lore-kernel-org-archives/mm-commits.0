@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears.patch added to -mm tree
-Date: Thu, 01 Nov 2012 17:04:22 -0700
-Message-ID: <20121102000422.97669100048@wpzn3.hot.corp.google.com>
+Subject: + slab-slub-consider-a-memcg-parameter-in-kmem_create_cache.patch added to -mm tree
+Date: Thu, 01 Nov 2012 17:04:18 -0700
+Message-ID: <20121102000418.959A8100048@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:36051 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S2992605Ab2KBAEY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2012 20:04:24 -0400
-Received: by mail-gg0-f202.google.com with SMTP id i4so365559ggm.1
-        for <mm-commits@vger.kernel.org>; Thu, 01 Nov 2012 17:04:23 -0700 (PDT)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:58048 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S2992605Ab2KBAEU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2012 20:04:20 -0400
+Received: by mail-qc0-f202.google.com with SMTP id s25so61456qcq.1
+        for <mm-commits@vger.kernel.org>; Thu, 01 Nov 2012 17:04:19 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: glommer@parallels.com, cl@linux.com, fweisbec@redhat.com, gthelen@google.com
 
 
 The patch titled
-     Subject: memcg: allocate memory for memcg caches whenever a new memcg appears
+     Subject: slab/slub: consider a memcg parameter in kmem_create_cache
 has been added to the -mm tree.  Its filename is
-     memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears.patch
+     slab-slub-consider-a-memcg-parameter-in-kmem_create_cache.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Glauber Costa <glommer@parallels.com>
-Subject: memcg: allocate memory for memcg caches whenever a new memcg appears
+Subject: slab/slub: consider a memcg parameter in kmem_create_cache
 
-Every cache that is considered a root cache (basically the "original"
-caches, tied to the root memcg/no-memcg) will have an array that should be
-large enough to store a cache pointer per each memcg in the system.
+Allow a memcg parameter to be passed during cache creation.  When the slub
+allocator is being used, it will only merge caches that belong to the same
+memcg.  We'll do this by scanning the global list, and then translating
+the cache to a memcg-specific cache
 
-Theoreticaly, this is as high as 1 << sizeof(css_id), which is currently
-in the 64k pointers range.  Most of the time, we won't be using that much.
+Default function is created as a wrapper, passing NULL to the memcg
+version.  We only merge caches that belong to the same memcg.
 
-What goes in this patch, is a simple scheme to dynamically allocate such
-an array, in order to minimize memory usage for memcg caches.  Because we
-would also like to avoid allocations all the time, at least for now, the
-array will only grow.  It will tend to be big enough to hold the maximum
-number of kmem-limited memcgs ever achieved.
-
-We'll allocate it to be a minimum of 64 kmem-limited memcgs.  When we have
-more than that, we'll start doubling the size of this array every time the
-limit is reached.
-
-Because we are only considering kmem limited memcgs, a natural point for
-this to happen is when we write to the limit.  At that point, we already
-have set_limit_mutex held, so that will become our natural synchronization
-mechanism.
+A helper is provided, memcg_css_id: because slub needs a unique cache name
+for sysfs.  Since this is visible, but not the canonical location for slab
+data, the cache name is not used, the css_id should suffice.
 
 Signed-off-by: Glauber Costa <glommer@parallels.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -75,347 +65,415 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 
- mm/memcontrol.c            |  210 ++++++++++++++++++++++++++++++++---
- mm/slab_common.c           |   28 ++++
- 3 files changed, 224 insertions(+), 16 deletions(-)
+ include/linux/memcontrol.h |   26 +++++++++++++++++
+ include/linux/slab.h       |   14 ++++++++-
+ mm/memcontrol.c            |   51 +++++++++++++++++++++++++++++++++++
+ mm/slab.h                  |   23 +++++++++++++--
+ mm/slab_common.c           |   42 ++++++++++++++++++++++------
+ mm/slub.c                  |   19 ++++++++++---
+ 6 files changed, 157 insertions(+), 18 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears
+diff -puN include/linux/memcontrol.h~slab-slub-consider-a-memcg-parameter-in-kmem_create_cache include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~slab-slub-consider-a-memcg-parameter-in-kmem_create_cache
 +++ a/include/linux/memcontrol.h
-@@ -440,6 +440,8 @@ int memcg_register_cache(struct mem_cgro
- void memcg_release_cache(struct kmem_cache *cachep);
- void memcg_cache_list_add(struct mem_cgroup *memcg, struct kmem_cache *cachep);
+@@ -28,6 +28,7 @@ struct mem_cgroup;
+ struct page_cgroup;
+ struct page;
+ struct mm_struct;
++struct kmem_cache;
  
-+int memcg_update_cache_size(struct kmem_cache *s, int num_groups);
-+void memcg_update_array_size(int num_groups);
+ /* Stats that can be updated by kernel. */
+ enum mem_cgroup_page_stat_item {
+@@ -434,6 +435,11 @@ void __memcg_kmem_commit_charge(struct p
+ 				       struct mem_cgroup *memcg, int order);
+ void __memcg_kmem_uncharge_pages(struct page *page, int order);
+ 
++int memcg_cache_id(struct mem_cgroup *memcg);
++int memcg_register_cache(struct mem_cgroup *memcg, struct kmem_cache *s);
++void memcg_release_cache(struct kmem_cache *cachep);
++void memcg_cache_list_add(struct mem_cgroup *memcg, struct kmem_cache *cachep);
++
  /**
   * memcg_kmem_newpage_charge: verify if a new kmem allocation is allowed.
   * @gfp: the gfp allocation flags.
-diff -puN mm/memcontrol.c~memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears
-+++ a/mm/memcontrol.c
-@@ -376,6 +376,11 @@ static void memcg_kmem_set_activated(str
- 	set_bit(KMEM_ACCOUNTED_ACTIVATED, &memcg->kmem_account_flags);
+@@ -518,6 +524,26 @@ static inline void
+ memcg_kmem_commit_charge(struct page *page, struct mem_cgroup *memcg, int order)
+ {
  }
- 
-+static void memcg_kmem_clear_activated(struct mem_cgroup *memcg)
++
++static inline int memcg_cache_id(struct mem_cgroup *memcg)
 +{
-+	clear_bit(KMEM_ACCOUNTED_ACTIVATED, &memcg->kmem_account_flags);
++	return -1;
 +}
 +
- static void memcg_kmem_mark_dead(struct mem_cgroup *memcg)
- {
- 	if (test_bit(KMEM_ACCOUNTED_ACTIVE, &memcg->kmem_account_flags))
-@@ -547,12 +552,48 @@ static void disarm_sock_keys(struct mem_
- #endif
- 
- #ifdef CONFIG_MEMCG_KMEM
-+/*
-+ * This will be the memcg's index in each cache's ->memcg_params->memcg_caches.
-+ * There are two main reasons for not using the css_id for this:
-+ *  1) this works better in sparse environments, where we have a lot of memcgs,
-+ *     but only a few kmem-limited. Or also, if we have, for instance, 200
-+ *     memcgs, and none but the 200th is kmem-limited, we'd have to have a
-+ *     200 entry array for that.
-+ *
-+ *  2) In order not to violate the cgroup API, we would like to do all memory
-+ *     allocation in ->create(). At that point, we haven't yet allocated the
-+ *     css_id. Having a separate index prevents us from messing with the cgroup
-+ *     core for this
-+ *
-+ * The current size of the caches array is stored in
-+ * memcg_limited_groups_array_size.  It will double each time we have to
-+ * increase it.
-+ */
-+static struct ida kmem_limited_groups;
-+static int memcg_limited_groups_array_size;
-+/*
-+ * MIN_SIZE is different than 1, because we would like to avoid going through
-+ * the alloc/free process all the time. In a small machine, 4 kmem-limited
-+ * cgroups is a reasonable guess. In the future, it could be a parameter or
-+ * tunable, but that is strictly not necessary.
-+ *
-+ * MAX_SIZE should be as large as the number of css_ids. Ideally, we could get
-+ * this constant directly from cgroup, but it is understandable that this is
-+ * better kept as an internal representation in cgroup.c. In any case, the
-+ * css_id space is not getting any smaller, and we don't have to necessarily
-+ * increase ours as well if it increases.
-+ */
-+#define MEMCG_CACHES_MIN_SIZE 4
-+#define MEMCG_CACHES_MAX_SIZE 65535
-+
- struct static_key memcg_kmem_enabled_key;
- 
- static void disarm_kmem_keys(struct mem_cgroup *memcg)
- {
--	if (memcg_kmem_is_active(memcg))
-+	if (memcg_kmem_is_active(memcg)) {
- 		static_key_slow_dec(&memcg_kmem_enabled_key);
-+		ida_simple_remove(&kmem_limited_groups, memcg->kmemcg_id);
-+	}
- 	/*
- 	 * This check can't live in kmem destruction function,
- 	 * since the charges will outlive the cgroup
-@@ -2782,6 +2823,120 @@ int memcg_cache_id(struct mem_cgroup *me
- 	return memcg ? memcg->kmemcg_id : -1;
- }
- 
-+/*
-+ * This ends up being protected by the set_limit mutex, during normal
-+ * operation, because that is its main call site.
-+ *
-+ * But when we create a new cache, we can call this as well if its parent
-+ * is kmem-limited. That will have to hold set_limit_mutex as well.
-+ */
-+int memcg_update_cache_sizes(struct mem_cgroup *memcg)
++static inline int memcg_register_cache(struct mem_cgroup *memcg,
++				       struct kmem_cache *s)
 +{
-+	int num, ret;
-+
-+	num = ida_simple_get(&kmem_limited_groups,
-+				0, MEMCG_CACHES_MAX_SIZE, GFP_KERNEL);
-+	if (num < 0)
-+		return num;
-+	/*
-+	 * After this point, kmem_accounted (that we test atomically in
-+	 * the beginning of this conditional), is no longer 0. This
-+	 * guarantees only one process will set the following boolean
-+	 * to true. We don't need test_and_set because we're protected
-+	 * by the set_limit_mutex anyway.
-+	 */
-+	memcg_kmem_set_activated(memcg);
-+
-+	ret = memcg_update_all_caches(num+1);
-+	if (ret) {
-+		ida_simple_remove(&kmem_limited_groups, num);
-+		memcg_kmem_clear_activated(memcg);
-+		return ret;
-+	}
-+
-+	memcg->kmemcg_id = num;
-+	INIT_LIST_HEAD(&memcg->memcg_slab_caches);
-+	mutex_init(&memcg->slab_caches_mutex);
 +	return 0;
 +}
 +
-+static size_t memcg_caches_array_size(int num_groups)
++static inline void memcg_release_cache(struct kmem_cache *cachep)
 +{
-+	ssize_t size;
-+	if (num_groups <= 0)
++}
++
++static inline void memcg_cache_list_add(struct mem_cgroup *memcg,
++					struct kmem_cache *s)
++{
++}
+ #endif /* CONFIG_MEMCG_KMEM */
+ #endif /* _LINUX_MEMCONTROL_H */
+ 
+diff -puN include/linux/slab.h~slab-slub-consider-a-memcg-parameter-in-kmem_create_cache include/linux/slab.h
+--- a/include/linux/slab.h~slab-slub-consider-a-memcg-parameter-in-kmem_create_cache
++++ a/include/linux/slab.h
+@@ -116,6 +116,7 @@ struct kmem_cache {
+ };
+ #endif
+ 
++struct mem_cgroup;
+ /*
+  * struct kmem_cache related prototypes
+  */
+@@ -125,6 +126,9 @@ int slab_is_available(void);
+ struct kmem_cache *kmem_cache_create(const char *, size_t, size_t,
+ 			unsigned long,
+ 			void (*)(void *));
++struct kmem_cache *
++kmem_cache_create_memcg(struct mem_cgroup *, const char *, size_t, size_t,
++			unsigned long, void (*)(void *));
+ void kmem_cache_destroy(struct kmem_cache *);
+ int kmem_cache_shrink(struct kmem_cache *);
+ void kmem_cache_free(struct kmem_cache *, void *);
+@@ -191,15 +195,23 @@ void kmem_cache_free(struct kmem_cache *
+  * Child caches will hold extra metadata needed for its operation. Fields are:
+  *
+  * @memcg: pointer to the memcg this cache belongs to
++ * @list: list_head for the list of all caches in this memcg
++ * @root_cache: pointer to the global, root cache, this cache was derived from
+  */
+ struct memcg_cache_params {
+ 	bool is_root_cache;
+ 	union {
+ 		struct kmem_cache *memcg_caches[0];
+-		struct mem_cgroup *memcg;
++		struct {
++			struct mem_cgroup *memcg;
++			struct list_head list;
++			struct kmem_cache *root_cache;
++		};
+ 	};
+ };
+ 
++int memcg_update_all_caches(int num_memcgs);
++
+ /*
+  * Common kmalloc functions provided by all allocators
+  */
+diff -puN mm/memcontrol.c~slab-slub-consider-a-memcg-parameter-in-kmem_create_cache mm/memcontrol.c
+--- a/mm/memcontrol.c~slab-slub-consider-a-memcg-parameter-in-kmem_create_cache
++++ a/mm/memcontrol.c
+@@ -339,6 +339,14 @@ struct mem_cgroup {
+ #if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_INET)
+ 	struct tcp_memcontrol tcp_mem;
+ #endif
++#if defined(CONFIG_MEMCG_KMEM)
++	/* analogous to slab_common's slab_caches list. per-memcg */
++	struct list_head memcg_slab_caches;
++	/* Not a spinlock, we can take a lot of time walking the list */
++	struct mutex slab_caches_mutex;
++        /* Index in the kmem_cache->memcg_params->memcg_caches array */
++	int kmemcg_id;
++#endif
+ };
+ 
+ /* internal only representation about the status of kmem accounting. */
+@@ -2754,6 +2762,47 @@ static void memcg_uncharge_kmem(struct m
+ 		mem_cgroup_put(memcg);
+ }
+ 
++void memcg_cache_list_add(struct mem_cgroup *memcg, struct kmem_cache *cachep)
++{
++	if (!memcg)
++		return;
++
++	mutex_lock(&memcg->slab_caches_mutex);
++	list_add(&cachep->memcg_params->list, &memcg->memcg_slab_caches);
++	mutex_unlock(&memcg->slab_caches_mutex);
++}
++
++/*
++ * helper for acessing a memcg's index. It will be used as an index in the
++ * child cache array in kmem_cache, and also to derive its name. This function
++ * will return -1 when this is not a kmem-limited memcg.
++ */
++int memcg_cache_id(struct mem_cgroup *memcg)
++{
++	return memcg ? memcg->kmemcg_id : -1;
++}
++
++int memcg_register_cache(struct mem_cgroup *memcg, struct kmem_cache *s)
++{
++	size_t size = sizeof(struct memcg_cache_params);
++
++	if (!memcg_kmem_enabled())
 +		return 0;
 +
-+	size = 2 * num_groups;
-+	if (size < MEMCG_CACHES_MIN_SIZE)
-+		size = MEMCG_CACHES_MIN_SIZE;
-+	else if (size > MEMCG_CACHES_MAX_SIZE)
-+		size = MEMCG_CACHES_MAX_SIZE;
++	s->memcg_params = kzalloc(size, GFP_KERNEL);
++	if (!s->memcg_params)
++		return -ENOMEM;
 +
-+	return size;
-+}
-+
-+/*
-+ * We should update the current array size iff all caches updates succeed. This
-+ * can only be done from the slab side. The slab mutex needs to be held when
-+ * calling this.
-+ */
-+void memcg_update_array_size(int num)
-+{
-+	if (num > memcg_limited_groups_array_size)
-+		memcg_limited_groups_array_size = memcg_caches_array_size(num);
-+}
-+
-+int memcg_update_cache_size(struct kmem_cache *s, int num_groups)
-+{
-+	struct memcg_cache_params *cur_params = s->memcg_params;
-+
-+	VM_BUG_ON(s->memcg_params && !s->memcg_params->is_root_cache);
-+
-+	if (num_groups > memcg_limited_groups_array_size) {
-+		int i;
-+		ssize_t size = memcg_caches_array_size(num_groups);
-+
-+		size *= sizeof(void *);
-+		size += sizeof(struct memcg_cache_params);
-+
-+		s->memcg_params = kzalloc(size, GFP_KERNEL);
-+		if (!s->memcg_params) {
-+			s->memcg_params = cur_params;
-+			return -ENOMEM;
-+		}
-+
-+		s->memcg_params->is_root_cache = true;
-+
-+		/*
-+		 * There is the chance it will be bigger than
-+		 * memcg_limited_groups_array_size, if we failed an allocation
-+		 * in a cache, in which case all caches updated before it, will
-+		 * have a bigger array.
-+		 *
-+		 * But if that is the case, the data after
-+		 * memcg_limited_groups_array_size is certainly unused
-+		 */
-+		for (i = 0; i < memcg_limited_groups_array_size; i++) {
-+			if (!cur_params->memcg_caches[i])
-+				continue;
-+			s->memcg_params->memcg_caches[i] =
-+						cur_params->memcg_caches[i];
-+		}
-+
-+		/*
-+		 * Ideally, we would wait until all caches succeed, and only
-+		 * then free the old one. But this is not worth the extra
-+		 * pointer per-cache we'd have to have for this.
-+		 *
-+		 * It is not a big deal if some caches are left with a size
-+		 * bigger than the others. And all updates will reset this
-+		 * anyway.
-+		 */
-+		kfree(cur_params);
-+	}
++	if (memcg)
++		s->memcg_params->memcg = memcg;
 +	return 0;
 +}
 +
- int memcg_register_cache(struct mem_cgroup *memcg, struct kmem_cache *s)
- {
- 	size_t size = sizeof(struct memcg_cache_params);
-@@ -2789,6 +2944,9 @@ int memcg_register_cache(struct mem_cgro
- 	if (!memcg_kmem_enabled())
- 		return 0;
- 
-+	if (!memcg)
-+		size += memcg_limited_groups_array_size * sizeof(void *);
++void memcg_release_cache(struct kmem_cache *s)
++{
++	kfree(s->memcg_params);
++}
 +
- 	s->memcg_params = kzalloc(size, GFP_KERNEL);
- 	if (!s->memcg_params)
- 		return -ENOMEM;
-@@ -4317,14 +4475,11 @@ static int memcg_update_kmem_limit(struc
- 		ret = res_counter_set_limit(&memcg->kmem, val);
- 		VM_BUG_ON(ret);
- 
--		/*
--		 * After this point, kmem_accounted (that we test atomically in
--		 * the beginning of this conditional), is no longer 0. This
--		 * guarantees only one process will set the following boolean
--		 * to true. We don't need test_and_set because we're protected
--		 * by the set_limit_mutex anyway.
--		 */
--		memcg_kmem_set_activated(memcg);
-+		ret = memcg_update_cache_sizes(memcg);
-+		if (ret) {
-+			res_counter_set_limit(&memcg->kmem, RESOURCE_MAX);
-+			goto out;
-+		}
- 		must_inc_static_branch = true;
- 		/*
- 		 * kmem charges can outlive the cgroup. In the case of slab
-@@ -4363,11 +4518,13 @@ out:
- 	return ret;
- }
- 
--static void memcg_propagate_kmem(struct mem_cgroup *memcg)
-+static int memcg_propagate_kmem(struct mem_cgroup *memcg)
- {
-+	int ret = 0;
- 	struct mem_cgroup *parent = parent_mem_cgroup(memcg);
- 	if (!parent)
--		return;
-+		goto out;
-+
- 	memcg->kmem_account_flags = parent->kmem_account_flags;
- #ifdef CONFIG_MEMCG_KMEM
- 	/*
-@@ -4380,11 +4537,24 @@ static void memcg_propagate_kmem(struct 
- 	 * It is a lot simpler just to do static_key_slow_inc() on every child
- 	 * that is accounted.
- 	 */
--	if (memcg_kmem_is_active(memcg)) {
--		mem_cgroup_get(memcg);
--		static_key_slow_inc(&memcg_kmem_enabled_key);
--	}
-+	if (!memcg_kmem_is_active(memcg))
-+		goto out;
-+
-+	/*
-+	 * destroy(), called if we fail, will issue static_key_slow_inc() and
-+	 * mem_cgroup_put() if kmem is enabled. We have to either call them
-+	 * unconditionally, or clear the KMEM_ACTIVE flag. I personally find
-+	 * this more consistent, since it always leads to the same destroy path
-+	 */
-+	mem_cgroup_get(memcg);
-+	static_key_slow_inc(&memcg_kmem_enabled_key);
-+
-+	mutex_lock(&set_limit_mutex);
-+	ret = memcg_update_cache_sizes(memcg);
-+	mutex_unlock(&set_limit_mutex);
- #endif
-+out:
-+	return ret;
- }
- 
  /*
-@@ -5066,8 +5236,15 @@ static int mem_cgroup_oom_control_write(
+  * We need to verify if the allocation against current->mm->owner's memcg is
+  * possible for the given order. But the page is not allocated yet, so we'll
+@@ -5017,7 +5066,9 @@ static int mem_cgroup_oom_control_write(
  #ifdef CONFIG_MEMCG_KMEM
  static int memcg_init_kmem(struct mem_cgroup *memcg, struct cgroup_subsys *ss)
  {
-+	int ret;
++	memcg->kmemcg_id = -1;
+ 	memcg_propagate_kmem(memcg);
 +
- 	memcg->kmemcg_id = -1;
--	memcg_propagate_kmem(memcg);
-+	ret = memcg_propagate_kmem(memcg);
-+	if (ret)
-+		return ret;
-+
-+	if (mem_cgroup_is_root(memcg))
-+		ida_init(&kmem_limited_groups);
- 
  	return mem_cgroup_sockets_init(memcg, ss);
  };
-@@ -5470,6 +5647,7 @@ mem_cgroup_create(struct cgroup *cont)
- 		res_counter_init(&memcg->res, &parent->res);
- 		res_counter_init(&memcg->memsw, &parent->memsw);
- 		res_counter_init(&memcg->kmem, &parent->kmem);
-+
- 		/*
- 		 * We increment refcnt of the parent to ensure that we can
- 		 * safely access it on res_counter_charge/uncharge.
-diff -puN mm/slab_common.c~memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears mm/slab_common.c
---- a/mm/slab_common.c~memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears
-+++ a/mm/slab_common.c
-@@ -81,6 +81,34 @@ static inline int kmem_cache_sanity_chec
- }
+ 
+diff -puN mm/slab.h~slab-slub-consider-a-memcg-parameter-in-kmem_create_cache mm/slab.h
+--- a/mm/slab.h~slab-slub-consider-a-memcg-parameter-in-kmem_create_cache
++++ a/mm/slab.h
+@@ -35,12 +35,15 @@ extern struct kmem_cache *kmem_cache;
+ /* Functions provided by the slab allocators */
+ extern int __kmem_cache_create(struct kmem_cache *, unsigned long flags);
+ 
++struct mem_cgroup;
+ #ifdef CONFIG_SLUB
+-struct kmem_cache *__kmem_cache_alias(const char *name, size_t size,
+-	size_t align, unsigned long flags, void (*ctor)(void *));
++struct kmem_cache *
++__kmem_cache_alias(struct mem_cgroup *memcg, const char *name, size_t size,
++		   size_t align, unsigned long flags, void (*ctor)(void *));
+ #else
+-static inline struct kmem_cache *__kmem_cache_alias(const char *name, size_t size,
+-	size_t align, unsigned long flags, void (*ctor)(void *))
++static inline struct kmem_cache *
++__kmem_cache_alias(struct mem_cgroup *memcg, const char *name, size_t size,
++		   size_t align, unsigned long flags, void (*ctor)(void *))
+ { return NULL; }
  #endif
  
-+#ifdef CONFIG_MEMCG_KMEM
-+int memcg_update_all_caches(int num_memcgs)
-+{
-+	struct kmem_cache *s;
-+	int ret = 0;
-+	mutex_lock(&slab_mutex);
+@@ -98,11 +101,23 @@ static inline bool is_root_cache(struct 
+ {
+ 	return !s->memcg_params || s->memcg_params->is_root_cache;
+ }
 +
-+	list_for_each_entry(s, &slab_caches, list) {
-+		if (!is_root_cache(s))
++static inline bool cache_match_memcg(struct kmem_cache *cachep,
++				     struct mem_cgroup *memcg)
++{
++	return (is_root_cache(cachep) && !memcg) ||
++				(cachep->memcg_params->memcg == memcg);
++}
+ #else
+ static inline bool is_root_cache(struct kmem_cache *s)
+ {
+ 	return true;
+ }
+ 
++static inline bool cache_match_memcg(struct kmem_cache *cachep,
++				     struct mem_cgroup *memcg)
++{
++	return true;
++}
+ #endif
+ #endif
+diff -puN mm/slab_common.c~slab-slub-consider-a-memcg-parameter-in-kmem_create_cache mm/slab_common.c
+--- a/mm/slab_common.c~slab-slub-consider-a-memcg-parameter-in-kmem_create_cache
++++ a/mm/slab_common.c
+@@ -18,6 +18,7 @@
+ #include <asm/cacheflush.h>
+ #include <asm/tlbflush.h>
+ #include <asm/page.h>
++#include <linux/memcontrol.h>
+ 
+ #include "slab.h"
+ 
+@@ -27,7 +28,8 @@ DEFINE_MUTEX(slab_mutex);
+ struct kmem_cache *kmem_cache;
+ 
+ #ifdef CONFIG_DEBUG_VM
+-static int kmem_cache_sanity_check(const char *name, size_t size)
++static int kmem_cache_sanity_check(struct mem_cgroup *memcg, const char *name,
++				   size_t size)
+ {
+ 	struct kmem_cache *s = NULL;
+ 
+@@ -53,7 +55,13 @@ static int kmem_cache_sanity_check(const
+ 			continue;
+ 		}
+ 
+-		if (!strcmp(s->name, name)) {
++		/*
++		 * For simplicity, we won't check this in the list of memcg
++		 * caches. We have control over memcg naming, and if there
++		 * aren't duplicates in the global list, there won't be any
++		 * duplicates in the memcg lists as well.
++		 */
++		if (!memcg && !strcmp(s->name, name)) {
+ 			pr_err("%s (%s): Cache name already exists.\n",
+ 			       __func__, name);
+ 			dump_stack();
+@@ -66,7 +74,8 @@ static int kmem_cache_sanity_check(const
+ 	return 0;
+ }
+ #else
+-static inline int kmem_cache_sanity_check(const char *name, size_t size)
++static inline int kmem_cache_sanity_check(struct mem_cgroup *memcg,
++					  const char *name, size_t size)
+ {
+ 	return 0;
+ }
+@@ -97,8 +106,9 @@ static inline int kmem_cache_sanity_chec
+  * as davem.
+  */
+ 
+-struct kmem_cache *kmem_cache_create(const char *name, size_t size, size_t align,
+-		unsigned long flags, void (*ctor)(void *))
++struct kmem_cache *
++kmem_cache_create_memcg(struct mem_cgroup *memcg, const char *name, size_t size,
++			size_t align, unsigned long flags, void (*ctor)(void *))
+ {
+ 	struct kmem_cache *s = NULL;
+ 	int err = 0;
+@@ -106,7 +116,7 @@ struct kmem_cache *kmem_cache_create(con
+ 	get_online_cpus();
+ 	mutex_lock(&slab_mutex);
+ 
+-	if (!kmem_cache_sanity_check(name, size) == 0)
++	if (!kmem_cache_sanity_check(memcg, name, size) == 0)
+ 		goto out_locked;
+ 
+ 	/*
+@@ -117,7 +127,7 @@ struct kmem_cache *kmem_cache_create(con
+ 	 */
+ 	flags &= CACHE_CREATE_MASK;
+ 
+-	s = __kmem_cache_alias(name, size, align, flags, ctor);
++	s = __kmem_cache_alias(memcg, name, size, align, flags, ctor);
+ 	if (s)
+ 		goto out_locked;
+ 
+@@ -126,6 +136,13 @@ struct kmem_cache *kmem_cache_create(con
+ 		s->object_size = s->size = size;
+ 		s->align = align;
+ 		s->ctor = ctor;
++
++		if (memcg_register_cache(memcg, s)) {
++			kmem_cache_free(kmem_cache, s);
++			err = -ENOMEM;
++			goto out_locked;
++		}
++
+ 		s->name = kstrdup(name, GFP_KERNEL);
+ 		if (!s->name) {
+ 			kmem_cache_free(kmem_cache, s);
+@@ -135,10 +152,9 @@ struct kmem_cache *kmem_cache_create(con
+ 
+ 		err = __kmem_cache_create(s, flags);
+ 		if (!err) {
+-
+ 			s->refcount = 1;
+ 			list_add(&s->list, &slab_caches);
+-
++			memcg_cache_list_add(memcg, s);
+ 		} else {
+ 			kfree(s->name);
+ 			kmem_cache_free(kmem_cache, s);
+@@ -166,6 +182,13 @@ out_locked:
+ 
+ 	return s;
+ }
++
++struct kmem_cache *
++kmem_cache_create(const char *name, size_t size, size_t align,
++		  unsigned long flags, void (*ctor)(void *))
++{
++	return kmem_cache_create_memcg(NULL, name, size, align, flags, ctor);
++}
+ EXPORT_SYMBOL(kmem_cache_create);
+ 
+ void kmem_cache_destroy(struct kmem_cache *s)
+@@ -181,6 +204,7 @@ void kmem_cache_destroy(struct kmem_cach
+ 			if (s->flags & SLAB_DESTROY_BY_RCU)
+ 				rcu_barrier();
+ 
++			memcg_release_cache(s);
+ 			kfree(s->name);
+ 			kmem_cache_free(kmem_cache, s);
+ 		} else {
+diff -puN mm/slub.c~slab-slub-consider-a-memcg-parameter-in-kmem_create_cache mm/slub.c
+--- a/mm/slub.c~slab-slub-consider-a-memcg-parameter-in-kmem_create_cache
++++ a/mm/slub.c
+@@ -31,6 +31,7 @@
+ #include <linux/fault-inject.h>
+ #include <linux/stacktrace.h>
+ #include <linux/prefetch.h>
++#include <linux/memcontrol.h>
+ 
+ #include <trace/events/kmem.h>
+ 
+@@ -3873,7 +3874,7 @@ static int slab_unmergeable(struct kmem_
+ 	return 0;
+ }
+ 
+-static struct kmem_cache *find_mergeable(size_t size,
++static struct kmem_cache *find_mergeable(struct mem_cgroup *memcg, size_t size,
+ 		size_t align, unsigned long flags, const char *name,
+ 		void (*ctor)(void *))
+ {
+@@ -3909,17 +3910,21 @@ static struct kmem_cache *find_mergeable
+ 		if (s->size - size >= sizeof(void *))
+ 			continue;
+ 
++		if (!cache_match_memcg(s, memcg))
 +			continue;
 +
-+		ret = memcg_update_cache_size(s, num_memcgs);
-+		/*
-+		 * See comment in memcontrol.c, memcg_update_cache_size:
-+		 * Instead of freeing the memory, we'll just leave the caches
-+		 * up to this point in an updated state.
-+		 */
-+		if (ret)
-+			goto out;
-+	}
+ 		return s;
+ 	}
+ 	return NULL;
+ }
+ 
+-struct kmem_cache *__kmem_cache_alias(const char *name, size_t size,
+-		size_t align, unsigned long flags, void (*ctor)(void *))
++struct kmem_cache *
++__kmem_cache_alias(struct mem_cgroup *memcg, const char *name, size_t size,
++		   size_t align, unsigned long flags, void (*ctor)(void *))
+ {
+ 	struct kmem_cache *s;
+ 
+-	s = find_mergeable(size, align, flags, name, ctor);
++	s = find_mergeable(memcg, size, align, flags, name, ctor);
+ 	if (s) {
+ 		s->refcount++;
+ 		/*
+@@ -5239,6 +5244,12 @@ static char *create_unique_id(struct kme
+ 	if (p != name + 1)
+ 		*p++ = '-';
+ 	p += sprintf(p, "%07d", s->size);
 +
-+	memcg_update_array_size(num_memcgs);
-+out:
-+	mutex_unlock(&slab_mutex);
-+	return ret;
-+}
++#ifdef CONFIG_MEMCG_KMEM
++	if (!is_root_cache(s))
++		p += sprintf(p, "-%08d", memcg_cache_id(s->memcg_params->memcg));
 +#endif
 +
- /*
-  * kmem_cache_create - Create a cache.
-  * @name: A string which is used in /proc/slabinfo to identify this cache.
+ 	BUG_ON(p > name + ID_STR_LENGTH - 1);
+ 	return name;
+ }
 _
 
 Patches currently in -mm which might be from glommer@parallels.com are
