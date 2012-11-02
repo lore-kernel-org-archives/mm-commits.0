@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-a-__gfp_kmemcg-flag.patch added to -mm tree
-Date: Thu, 01 Nov 2012 17:03:14 -0700
-Message-ID: <20121102000314.A0457100048@wpzn3.hot.corp.google.com>
+Subject: + mm-allocate-kernel-pages-to-the-right-memcg.patch added to -mm tree
+Date: Thu, 01 Nov 2012 17:03:23 -0700
+Message-ID: <20121102000324.6688E100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:63248 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759292Ab2KBADQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2012 20:03:16 -0400
-Received: by mail-vc0-f202.google.com with SMTP id fy27so366461vcb.1
-        for <mm-commits@vger.kernel.org>; Thu, 01 Nov 2012 17:03:15 -0700 (PDT)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:51629 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759292Ab2KBAD1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Nov 2012 20:03:27 -0400
+Received: by mail-gh0-f202.google.com with SMTP id z15so365816ghb.1
+        for <mm-commits@vger.kernel.org>; Thu, 01 Nov 2012 17:03:25 -0700 (PDT)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: glommer@parallels.com, cl@linux.com, fweisbec@redhat.com, gthelen@google.com, hannes@cmpxchg.org, js1304@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mhocko@suse.cz, penberg@cs.helsinki.fi, riel@redhat.com, rientjes@google.com, suleiman@google.com, tj@kernel.org
+Cc: glommer@parallels.com, cl@linux.com, fweisbec@redhat.com, gthelen@google.com, hannes@cmpxchg.org, js1304@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, mhocko@suse.cz, penberg@cs.helsinki.fi, riel@redhat.com, rientjes@google.com, suleiman@google.com, tj@kernel.org
 
 
 The patch titled
-     Subject: mm: add a __GFP_KMEMCG flag
+     Subject: mm: allocate kernel pages to the right memcg
 has been added to the -mm tree.  Its filename is
-     mm-add-a-__gfp_kmemcg-flag.patch
+     mm-allocate-kernel-pages-to-the-right-memcg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,119 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Glauber Costa <glommer@parallels.com>
-Subject: mm: add a __GFP_KMEMCG flag
+Subject: mm: allocate kernel pages to the right memcg
 
-This flag is used to indicate to the callees that this allocation is a
-kernel allocation in process context, and should be accounted to current's
-memcg.  It takes numerical place of the of the recently removed
-__GFP_NO_KSWAPD.
+When a process tries to allocate a page with the __GFP_KMEMCG flag, the
+page allocator will call the corresponding memcg functions to validate the
+allocation.  Tasks in the root memcg can always proceed.
+
+To avoid adding markers to the page - and a kmem flag that would
+necessarily follow, as much as doing page_cgroup lookups for no reason,
+whoever is marking its allocations with __GFP_KMEMCG flag is responsible
+for telling the page allocator that this is such an allocation at
+free_pages() time.  This is done by the invocation of
+__free_accounted_pages() and free_accounted_pages().
 
 Signed-off-by: Glauber Costa <glommer@parallels.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Rik van Riel <riel@redhat.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Acked-by: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Acked-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Suleiman Souhlal <suleiman@google.com>
 Cc: Tejun Heo <tj@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
 Cc: Frederic Weisbecker <fweisbec@redhat.com>
 Cc: Greg Thelen <gthelen@google.com>
 Cc: JoonSoo Kim <js1304@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h             |    3 ++-
- include/trace/events/gfpflags.h |    1 +
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ include/linux/gfp.h |    3 +++
+ mm/page_alloc.c     |   35 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 38 insertions(+)
 
-diff -puN include/linux/gfp.h~mm-add-a-__gfp_kmemcg-flag include/linux/gfp.h
---- a/include/linux/gfp.h~mm-add-a-__gfp_kmemcg-flag
+diff -puN include/linux/gfp.h~mm-allocate-kernel-pages-to-the-right-memcg include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-allocate-kernel-pages-to-the-right-memcg
 +++ a/include/linux/gfp.h
-@@ -31,6 +31,7 @@ struct vm_area_struct;
- #define ___GFP_THISNODE		0x40000u
- #define ___GFP_RECLAIMABLE	0x80000u
- #define ___GFP_NOTRACK		0x200000u
-+#define ___GFP_KMEMCG		0x400000u
- #define ___GFP_OTHER_NODE	0x800000u
- #define ___GFP_WRITE		0x1000000u
+@@ -362,6 +362,9 @@ extern void free_pages(unsigned long add
+ extern void free_hot_cold_page(struct page *page, int cold);
+ extern void free_hot_cold_page_list(struct list_head *list, int cold);
  
-@@ -87,7 +88,7 @@ struct vm_area_struct;
++extern void __free_memcg_kmem_pages(struct page *page, unsigned int order);
++extern void free_memcg_kmem_pages(unsigned long addr, unsigned int order);
++
+ #define __free_page(page) __free_pages((page), 0)
+ #define free_page(addr) free_pages((addr), 0)
  
- #define __GFP_OTHER_NODE ((__force gfp_t)___GFP_OTHER_NODE) /* On behalf of other node */
- #define __GFP_WRITE	((__force gfp_t)___GFP_WRITE)	/* Allocator intends to dirty page */
--
-+#define __GFP_KMEMCG	((__force gfp_t)___GFP_KMEMCG) /* Allocation comes from a memcg-accounted resource */
- /*
-  * This may seem redundant, but it's a way of annotating false positives vs.
-  * allocations that simply cannot be supported (e.g. page tables).
-diff -puN include/trace/events/gfpflags.h~mm-add-a-__gfp_kmemcg-flag include/trace/events/gfpflags.h
---- a/include/trace/events/gfpflags.h~mm-add-a-__gfp_kmemcg-flag
-+++ a/include/trace/events/gfpflags.h
-@@ -36,6 +36,7 @@
- 	{(unsigned long)__GFP_RECLAIMABLE,	"GFP_RECLAIMABLE"},	\
- 	{(unsigned long)__GFP_MOVABLE,		"GFP_MOVABLE"},		\
- 	{(unsigned long)__GFP_NOTRACK,		"GFP_NOTRACK"},		\
-+	{(unsigned long)__GFP_KMEMCG,		"GFP_KMEMCG"},		\
- 	{(unsigned long)__GFP_OTHER_NODE,	"GFP_OTHER_NODE"}	\
- 	) : "GFP_NOWAIT"
+diff -puN mm/page_alloc.c~mm-allocate-kernel-pages-to-the-right-memcg mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-allocate-kernel-pages-to-the-right-memcg
++++ a/mm/page_alloc.c
+@@ -2598,6 +2598,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
+ 	int migratetype = allocflags_to_migratetype(gfp_mask);
+ 	unsigned int cpuset_mems_cookie;
+ 	int alloc_flags = ALLOC_WMARK_LOW|ALLOC_CPUSET;
++	struct mem_cgroup *memcg = NULL;
  
+ 	gfp_mask &= gfp_allowed_mask;
+ 
+@@ -2616,6 +2617,13 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
+ 	if (unlikely(!zonelist->_zonerefs->zone))
+ 		return NULL;
+ 
++	/*
++	 * Will only have any effect when __GFP_KMEMCG is set.  This is
++	 * verified in the (always inline) callee
++	 */
++	if (!memcg_kmem_newpage_charge(gfp_mask, &memcg, order))
++		return NULL;
++
+ retry_cpuset:
+ 	cpuset_mems_cookie = get_mems_allowed();
+ 
+@@ -2651,6 +2659,8 @@ out:
+ 	if (unlikely(!put_mems_allowed(cpuset_mems_cookie) && !page))
+ 		goto retry_cpuset;
+ 
++	memcg_kmem_commit_charge(page, memcg, order);
++
+ 	return page;
+ }
+ EXPORT_SYMBOL(__alloc_pages_nodemask);
+@@ -2703,6 +2713,31 @@ void free_pages(unsigned long addr, unsi
+ 
+ EXPORT_SYMBOL(free_pages);
+ 
++/*
++ * __free_memcg_kmem_pages and free_memcg_kmem_pages will free
++ * pages allocated with __GFP_KMEMCG.
++ *
++ * Those pages are accounted to a particular memcg, embedded in the
++ * corresponding page_cgroup. To avoid adding a hit in the allocator to search
++ * for that information only to find out that it is NULL for users who have no
++ * interest in that whatsoever, we provide these functions.
++ *
++ * The caller knows better which flags it relies on.
++ */
++void __free_memcg_kmem_pages(struct page *page, unsigned int order)
++{
++	memcg_kmem_uncharge_pages(page, order);
++	__free_pages(page, order);
++}
++
++void free_memcg_kmem_pages(unsigned long addr, unsigned int order)
++{
++	if (addr != 0) {
++		VM_BUG_ON(!virt_addr_valid((void *)addr));
++		__free_memcg_kmem_pages(virt_to_page((void *)addr), order);
++	}
++}
++
+ static void *make_alloc_exact(unsigned long addr, unsigned order, size_t size)
+ {
+ 	if (addr) {
 _
 
 Patches currently in -mm which might be from glommer@parallels.com are
