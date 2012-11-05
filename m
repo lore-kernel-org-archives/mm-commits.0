@@ -1,33 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] fat-exportfs-move-code-to-rebuild-directory-inode-to-separate-function.patch removed from -mm tree
-Date: Mon, 05 Nov 2012 12:07:19 -0800
-Message-ID: <20121105200720.23308200057@hpza10.eem.corp.google.com>
+Subject: [nacked] fat-restructure-export-operations.patch removed from -mm tree
+Date: Mon, 05 Nov 2012 12:07:12 -0800
+Message-ID: <20121105200712.A49AF100049@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:57126 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753164Ab2KEUHX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2012 15:07:23 -0500
-Received: by mail-bk0-f74.google.com with SMTP id q16so396295bkw.1
-        for <mm-commits@vger.kernel.org>; Mon, 05 Nov 2012 12:07:21 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:61916 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754609Ab2KEUHO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2012 15:07:14 -0500
+Received: by mail-yh0-f74.google.com with SMTP id 10so704950yhl.1
+        for <mm-commits@vger.kernel.org>; Mon, 05 Nov 2012 12:07:13 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: namjae.jeon@samsung.com, a.sahrawat@samsung.com, bfields@fieldses.org, hirofumi@mail.parknet.co.jp, ravi.n1@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fat: (exportfs) move code to rebuild directory-inode to separate function
+     Subject: fat: restructure export operations
 has been removed from the -mm tree.  Its filename was
-     fat-exportfs-move-code-to-rebuild-directory-inode-to-separate-function.patch
+     fat-restructure-export-operations.patch
 
 This patch was dropped because it was nacked
 
 ------------------------------------------------------
 From: Namjae Jeon <namjae.jeon@samsung.com>
-Subject: fat: (exportfs) move code to rebuild directory-inode to separate function
+Subject: fat: restructure export operations
 
-Move the logic to rebuild directory inode (when mounted with nostale_ro)
-to new function fat_rebuild_parent()
+Define two nfs export_operation structures,one for 'stale_rw' mounts and
+the other for 'nostale_ro'.The former uses the generic export_encode_fh
+function to encode file handle, while the latter uses fat_encode_fh().
+
+Since inode number is not needed for nostale_ro, remove it from struct
+fat_fid and repack other needed info viz.  i_pos and i_generation.
 
 Signed-off-by: Namjae Jeon <namjae.jeon@samsung.com>
 Signed-off-by: Ravishankar N <ravi.n1@samsung.com>
@@ -37,109 +41,268 @@ Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/nfs.c |   71 ++++++++++++++++++++++++++++---------------------
- 1 file changed, 42 insertions(+), 29 deletions(-)
+ fs/fat/fat.h   |    2 
+ fs/fat/inode.c |   12 +---
+ fs/fat/nfs.c   |  127 ++++++++++++++++++++++++++++++++++++-----------
+ 3 files changed, 104 insertions(+), 37 deletions(-)
 
-diff -puN fs/fat/nfs.c~fat-exportfs-move-code-to-rebuild-directory-inode-to-separate-function fs/fat/nfs.c
---- a/fs/fat/nfs.c~fat-exportfs-move-code-to-rebuild-directory-inode-to-separate-function
+diff -puN fs/fat/fat.h~fat-restructure-export-operations fs/fat/fat.h
+--- a/fs/fat/fat.h~fat-restructure-export-operations
++++ a/fs/fat/fat.h
+@@ -391,6 +391,8 @@ void fat_cache_destroy(void);
+ 
+ /* fat/nfs.c */
+ struct fid;
++extern const struct export_operations fat_export_ops;
++extern const struct export_operations fat_export_ops_nostale;
+ extern int fat_encode_fh(struct inode *inode, __u32 *fh, int *lenp,
+ 			 struct inode *parent);
+ extern struct dentry *fat_fh_to_dentry(struct super_block *sb, struct fid *fid,
+diff -puN fs/fat/inode.c~fat-restructure-export-operations fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-restructure-export-operations
++++ a/fs/fat/inode.c
+@@ -18,7 +18,6 @@
+ #include <linux/pagemap.h>
+ #include <linux/mpage.h>
+ #include <linux/buffer_head.h>
+-#include <linux/exportfs.h>
+ #include <linux/mount.h>
+ #include <linux/vfs.h>
+ #include <linux/parser.h>
+@@ -703,13 +702,6 @@ static const struct super_operations fat
+ 	.show_options	= fat_show_options,
+ };
+ 
+-static const struct export_operations fat_export_ops = {
+-	.encode_fh      = fat_encode_fh,
+-	.fh_to_dentry	= fat_fh_to_dentry,
+-	.fh_to_parent	= fat_fh_to_parent,
+-	.get_parent	= fat_get_parent,
+-};
+-
+ static int fat_show_options(struct seq_file *m, struct dentry *root)
+ {
+ 	struct msdos_sb_info *sbi = MSDOS_SB(root->d_sb);
+@@ -1118,8 +1110,10 @@ out:
+ 		opts->allow_utime = ~opts->fs_dmask & (S_IWGRP | S_IWOTH);
+ 	if (opts->unicode_xlate)
+ 		opts->utf8 = 0;
+-	if (opts->nfs == FAT_NFS_NOSTALE_RO)
++	if (opts->nfs == FAT_NFS_NOSTALE_RO) {
+ 		sb->s_flags |= MS_RDONLY;
++		sb->s_export_op = &fat_export_ops_nostale;
++	}
+ 
+ 	return 0;
+ }
+diff -puN fs/fat/nfs.c~fat-restructure-export-operations fs/fat/nfs.c
+--- a/fs/fat/nfs.c~fat-restructure-export-operations
 +++ a/fs/fat/nfs.c
-@@ -312,6 +312,45 @@ static int fat_read_next_clus(struct sup
+@@ -15,13 +15,17 @@
+ #include "fat.h"
+ 
+ struct fat_fid {
+-	u32 ino;
+-	u32 gen;
+-	u64 i_pos;
+-	u32 parent_ino;
+-	u32 parent_gen;
++	u32 i_gen;
++	u32 i_pos_low;
++	u16 i_pos_hi;
++	u16 parent_i_pos_hi;
++	u32 parent_i_pos_low;
++	u32 parent_i_gen;
+ } __packed;
+ 
++#define FILEID_FAT_WITHOUT_PARENT (offsetof(struct fat_fid, parent_i_pos_hi)/4)
++#define FILEID_FAT_WITH_PARENT (sizeof(struct fat_fid)/4)
++
+ /**
+  * Look up a directory inode given its starting cluster.
+  */
+@@ -47,15 +51,24 @@ static struct inode *fat_dget(struct sup
+ 	return inode;
  }
  
- /*
-+ * Rebuild the parent for a directory that is not connected
-+ * to the filesystem root
-+ */
-+static
-+struct inode *fat_rebuild_parent(struct super_block *sb, int parent_logstart)
++static struct inode *fat_ilookup(struct super_block *sb, u64 ino, loff_t i_pos)
 +{
-+	int search_clus, clus_to_match;
-+	struct msdos_dir_entry *de;
-+	struct inode *parent;
-+	struct msdos_sb_info *sbi = MSDOS_SB(sb);
-+	sector_t blknr = fat_clus_to_blknr(sbi, parent_logstart);
-+	struct buffer_head *parent_bh = sb_bread(sb, blknr);
++	if (MSDOS_SB(sb)->options.nfs == FAT_NFS_NOSTALE_RO)
++		return fat_iget(sb, i_pos);
 +
-+	if (!parent_bh) {
-+		fat_msg(sb, KERN_ERR,
-+			"NFS:unable to read cluster of parent directory");
-+		return NULL;
++	else {
++		if ((ino < MSDOS_ROOT_INO) || (ino == MSDOS_FSINFO_INO))
++			return NULL;
++		return ilookup(sb, ino);
 +	}
-+	de = (struct msdos_dir_entry *) parent_bh->b_data;
-+	clus_to_match = fat_get_start(sbi, &de[0]);
-+	search_clus = fat_get_start(sbi, &de[1]);
-+	if (!search_clus)
-+		search_clus = sbi->root_cluster;
-+	brelse(parent_bh);
-+	do {
-+		parent =  fat_traverse_cluster(sb,
-+					search_clus, clus_to_match);
-+		if (IS_ERR(parent) || parent)
-+			break;
-+		search_clus = fat_read_next_clus(sb, search_clus);
-+		if (search_clus < 0)
-+			break;
-+	} while (search_clus != FAT_ENT_EOF);
-+
-+	return parent;
-+
-+
 +}
-+/*
-  * Find the parent for a directory that is not currently connected to
-  * the filesystem root.
-  *
-@@ -320,44 +359,18 @@ static int fat_read_next_clus(struct sup
- struct dentry *fat_get_parent(struct dentry *child_dir)
++
+ static struct inode *fat_nfs_get_inode(struct super_block *sb,
+ 				       u64 ino, u32 generation, loff_t i_pos)
  {
- 	struct super_block *sb = child_dir->d_sb;
--	struct buffer_head *dotdot_bh = NULL, *parent_bh = NULL;
-+	struct buffer_head *dotdot_bh = NULL;
- 	struct msdos_dir_entry *de;
- 	struct inode *parent_inode = NULL;
- 	struct msdos_sb_info *sbi = MSDOS_SB(sb);
- 	int parent_logstart;
--	int search_clus, clus_to_match;
--	sector_t blknr;
+-	struct inode *inode;
  
- 	if (!fat_get_dotdot_entry(child_dir->d_inode, &dotdot_bh, &de)) {
- 		parent_logstart = fat_get_start(sbi, de);
- 		parent_inode = fat_dget(sb, parent_logstart);
--		if (parent_inode || sbi->options.nfs != FAT_NFS_NOSTALE_RO)
--			goto out;
--		blknr = fat_clus_to_blknr(sbi, parent_logstart);
--		parent_bh = sb_bread(sb, blknr);
--		if (!parent_bh) {
--			fat_msg(sb, KERN_ERR,
--				"NFS:unable to read cluster of parent directory");
--			goto out;
--		}
--		de = (struct msdos_dir_entry *) parent_bh->b_data;
--		clus_to_match = fat_get_start(sbi, &de[0]);
--		search_clus = fat_get_start(sbi, &de[1]);
--		if (!search_clus)
--			search_clus = sbi->root_cluster;
--		brelse(parent_bh);
--		do {
--			parent_inode =  fat_traverse_cluster(sb,
--					search_clus, clus_to_match);
--			if (IS_ERR(parent_inode) || parent_inode)
--				break;
--			search_clus = fat_read_next_clus(sb,
--							search_clus);
--			if (search_clus < 0)
--				break;
--		} while (search_clus != FAT_ENT_EOF);
-+		if (!parent_inode && sbi->options.nfs == FAT_NFS_NOSTALE_RO)
-+			parent_inode = fat_rebuild_parent(sb, parent_logstart);
+-	if ((ino < MSDOS_ROOT_INO) || (ino == MSDOS_FSINFO_INO))
+-		return NULL;
++	struct inode *inode = fat_ilookup(sb, ino, i_pos);
+ 
+-	inode = ilookup(sb, ino);
+ 	if (inode && generation && (inode->i_generation != generation)) {
+ 		iput(inode);
+ 		inode = NULL;
+@@ -89,7 +102,8 @@ static struct inode *fat_nfs_get_inode(s
+ 
+ 
+ int
+-fat_encode_fh(struct inode *inode, __u32 *fh, int *lenp, struct inode *parent)
++fat_encode_fh_nostale(struct inode *inode, __u32 *fh, int *lenp,
++					struct inode *parent)
+ {
+ 	int len = *lenp;
+ 	struct msdos_sb_info *sbi = MSDOS_SB(inode->i_sb);
+@@ -97,24 +111,26 @@ fat_encode_fh(struct inode *inode, __u32
+ 	loff_t i_pos;
+ 	int type = FILEID_INO32_GEN;
+ 
+-	if (parent && (len < 5)) {
+-		*lenp = 5;
++	if (parent && (len < FILEID_FAT_WITH_PARENT)) {
++		*lenp = FILEID_FAT_WITH_PARENT;
+ 		return 255;
+-	} else if (len < 3) {
+-		*lenp = 3;
++	} else if (len < FILEID_FAT_WITHOUT_PARENT) {
++		*lenp = FILEID_FAT_WITHOUT_PARENT;
+ 		return 255;
  	}
--out:
- 	brelse(dotdot_bh);
+ 
+ 	i_pos = fat_i_pos_read(sbi, inode);
+-	*lenp = 3;
+-	fid->ino = inode->i_ino;
+-	fid->gen = inode->i_generation;
+-	fid->i_pos = i_pos;
++	*lenp = FILEID_FAT_WITHOUT_PARENT;
++	fid->i_gen = inode->i_generation;
++	fid->i_pos_low = i_pos & 0xFFFFFFFF;
++	fid->i_pos_hi = (i_pos >> 32) & 0xFF;
+ 	if (parent) {
+-		fid->parent_ino = parent->i_ino;
+-		fid->parent_gen = parent->i_generation;
++		i_pos = fat_i_pos_read(sbi, parent);
++		fid->parent_i_pos_hi = (i_pos >> 32) & 0xFF;
++		fid->parent_i_pos_low = i_pos & 0xFFFFFFFF;
++		fid->parent_i_gen = parent->i_generation;
+ 		type = FILEID_INO32_GEN_PARENT;
+-		*lenp = 5;
++		*lenp = FILEID_FAT_WITH_PARENT;
+ 	}
+ 
+ 	return type;
+@@ -128,14 +144,36 @@ struct dentry *fat_fh_to_dentry(struct s
+ 				int fh_len, int fh_type)
+ {
+ 	struct inode *inode = NULL;
+-	struct fat_fid *fid = (struct fat_fid *)fh;
+-	if (fh_len < 3)
++	if (fh_len < 2)
+ 		return NULL;
+ 
+ 	switch (fh_type) {
+ 	case FILEID_INO32_GEN:
+ 	case FILEID_INO32_GEN_PARENT:
+-		inode = fat_nfs_get_inode(sb, fid->ino, fid->gen, fid->i_pos);
++		inode = fat_nfs_get_inode(sb, fh->i32.ino, fh->i32.gen, 0);
++		break;
++	}
++
++	return d_obtain_alias(inode);
++}
++struct dentry *fat_fh_to_dentry_nostale(struct super_block *sb, struct fid *fh,
++				int fh_len, int fh_type)
++{
++	struct inode *inode = NULL;
++	struct fat_fid *fid = (struct fat_fid *)fh;
++	loff_t i_pos;
++
++	switch (fh_type) {
++	case FILEID_INO32_GEN:
++		if (fh_len < FILEID_FAT_WITHOUT_PARENT)
++			return NULL;
++	case FILEID_INO32_GEN_PARENT:
++		if ((fh_len < FILEID_FAT_WITH_PARENT) &&
++			(fh_type == FILEID_INO32_GEN_PARENT))
++			return NULL;
++		i_pos = fid->i_pos_hi;
++		i_pos = (i_pos << 32) | (fid->i_pos_low);
++		inode = fat_nfs_get_inode(sb, 0, fid->i_gen, i_pos);
+ 
+ 		break;
+ 	}
+@@ -147,18 +185,39 @@ struct dentry *fat_fh_to_dentry(struct s
+  * Find the parent for a file specified by NFS handle.
+  * This requires that the handle contain the i_ino of the parent.
+  */
+-struct dentry *fat_fh_to_parent(struct super_block *sb, struct fid *fh,
++struct dentry *fat_fh_to_parent(struct super_block *sb, struct fid *fid,
++				int fh_len, int fh_type)
++{
++	struct inode *inode = NULL;
++
++	if (fh_len < 2)
++		return NULL;
++
++	switch (fh_type) {
++	case FILEID_INO32_GEN:
++	case FILEID_INO32_GEN_PARENT:
++		inode = fat_nfs_get_inode(sb, fid->i32.ino, fid->i32.gen, 0);
++		break;
++	}
++
++	return d_obtain_alias(inode);
++}
++
++struct dentry *fat_fh_to_parent_nostale(struct super_block *sb, struct fid *fh,
+ 				int fh_len, int fh_type)
+ {
+ 	struct inode *inode = NULL;
+ 	struct fat_fid *fid = (struct fat_fid *)fh;
+-	if (fh_len < 5)
++	loff_t i_pos;
++
++	if (fh_len < FILEID_FAT_WITH_PARENT)
+ 		return NULL;
+ 
+ 	switch (fh_type) {
+ 	case FILEID_INO32_GEN_PARENT:
+-		inode = fat_nfs_get_inode(sb, fid->parent_ino, fid->parent_gen,
+-						fid->i_pos);
++		i_pos = fid->parent_i_pos_hi;
++		i_pos = (i_pos << 32) | (fid->parent_i_pos_low);
++		inode = fat_nfs_get_inode(sb, 0, fid->parent_i_gen, i_pos);
+ 		break;
+ 	}
+ 
+@@ -303,3 +362,15 @@ out:
  
  	return d_obtain_alias(parent_inode);
+ }
++
++const struct export_operations fat_export_ops = {
++	.fh_to_dentry   = fat_fh_to_dentry,
++	.fh_to_parent   = fat_fh_to_parent,
++	.get_parent     = fat_get_parent,
++};
++const struct export_operations fat_export_ops_nostale = {
++	.encode_fh      = fat_encode_fh_nostale,
++	.fh_to_dentry   = fat_fh_to_dentry_nostale,
++	.fh_to_parent   = fat_fh_to_parent_nostale,
++	.get_parent     = fat_get_parent,
++};
 _
 
 Patches currently in -mm which might be from namjae.jeon@samsung.com are
 
+fat-move-fat_i_pos_read-to-fath.patch
+fat-exportfs-move-code-to-rebuild-directory-inode-to-separate-function.patch
 fat-add-mutex-lock-to-fat_build_inode.patch
 
