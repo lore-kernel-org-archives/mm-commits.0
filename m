@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] fat-remove-parent_logstart-check-in-fat_get_parent.patch removed from -mm tree
-Date: Mon, 05 Nov 2012 12:07:08 -0800
-Message-ID: <20121105200709.15D4A20004E@hpza10.eem.corp.google.com>
+Subject: [nacked] fat-move-fat_i_pos_read-to-fath.patch removed from -mm tree
+Date: Mon, 05 Nov 2012 12:07:15 -0800
+Message-ID: <20121105200716.277465C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:47869 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753164Ab2KEUHL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2012 15:07:11 -0500
-Received: by mail-wi0-f202.google.com with SMTP id hr7so273538wib.1
-        for <mm-commits@vger.kernel.org>; Mon, 05 Nov 2012 12:07:10 -0800 (PST)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:49682 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753164Ab2KEUHS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2012 15:07:18 -0500
+Received: by mail-la0-f74.google.com with SMTP id j13so400973lah.1
+        for <mm-commits@vger.kernel.org>; Mon, 05 Nov 2012 12:07:17 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: namjae.jeon@samsung.com, a.sahrawat@samsung.com, bfields@fieldses.org, hirofumi@mail.parknet.co.jp, ravi.n1@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fat: remove parent_logstart check in fat_get_parent
+     Subject: fat: move fat_i_pos_read to fat.h
 has been removed from the -mm tree.  Its filename was
-     fat-remove-parent_logstart-check-in-fat_get_parent.patch
+     fat-move-fat_i_pos_read-to-fath.patch
 
 This patch was dropped because it was nacked
 
 ------------------------------------------------------
 From: Namjae Jeon <namjae.jeon@samsung.com>
-Subject: fat: remove parent_logstart check in fat_get_parent
+Subject: fat: move fat_i_pos_read to fat.h
 
-The root directory inode is added to the directory hash table in
-fat_attach when mounted with nfs option.  Since root dentry never expires
-until umount, fat_dget never fails to return the root inode for
-subdirectories of root inode.i.e., parent_logstart cannot be zero.
+Originally, fat_i_pos_read() was a static inline function in inode.c.  The
+static keyword was removed so that it could be accessed from other files. 
+However it is better to make it a static inline function in fat.h as
+suggested by Ogawa.
 
 Signed-off-by: Namjae Jeon <namjae.jeon@samsung.com>
 Signed-off-by: Ravishankar N <ravi.n1@samsung.com>
@@ -39,77 +39,51 @@ Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/nfs.c |   51 +++++++++++++++++++++----------------------------
- 1 file changed, 22 insertions(+), 29 deletions(-)
+ fs/fat/fat.h   |   14 ++++++++++++++
+ fs/fat/inode.c |   14 --------------
+ 2 files changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN fs/fat/nfs.c~fat-remove-parent_logstart-check-in-fat_get_parent fs/fat/nfs.c
---- a/fs/fat/nfs.c~fat-remove-parent_logstart-check-in-fat_get_parent
-+++ a/fs/fat/nfs.c
-@@ -274,36 +274,29 @@ struct dentry *fat_get_parent(struct den
- 		parent_inode = fat_dget(sb, parent_logstart);
- 		if (parent_inode || sbi->options.nfs != FAT_NFS_NOSTALE_RO)
- 			goto out;
--		if (!parent_logstart)
--			/*logstart of dotdot entry is zero if
--			* if the directory's parent is root
--			*/
--			parent_inode = sb->s_root->d_inode;
--		else {
--			blknr = fat_clus_to_blknr(sbi, parent_logstart);
--			parent_bh = sb_bread(sb, blknr);
--			if (!parent_bh) {
--				fat_msg(sb, KERN_ERR,
--					"NFS:unable to read cluster of parent directory");
--				goto out;
--			}
--			de = (struct msdos_dir_entry *) parent_bh->b_data;
--			clus_to_match = fat_get_start(sbi, &de[0]);
--			search_clus = fat_get_start(sbi, &de[1]);
--			if (!search_clus)
--				search_clus = sbi->root_cluster;
--			brelse(parent_bh);
--			do {
--				parent_inode =  fat_traverse_cluster(sb,
--						search_clus, clus_to_match);
--				if (IS_ERR(parent_inode) || parent_inode)
--					break;
--				search_clus = fat_read_next_clus(sb,
--								search_clus);
--				if (search_clus < 0)
--					break;
--			} while (search_clus != FAT_ENT_EOF);
-+		blknr = fat_clus_to_blknr(sbi, parent_logstart);
-+		parent_bh = sb_bread(sb, blknr);
-+		if (!parent_bh) {
-+			fat_msg(sb, KERN_ERR,
-+				"NFS:unable to read cluster of parent directory");
-+			goto out;
- 		}
-+		de = (struct msdos_dir_entry *) parent_bh->b_data;
-+		clus_to_match = fat_get_start(sbi, &de[0]);
-+		search_clus = fat_get_start(sbi, &de[1]);
-+		if (!search_clus)
-+			search_clus = sbi->root_cluster;
-+		brelse(parent_bh);
-+		do {
-+			parent_inode =  fat_traverse_cluster(sb,
-+					search_clus, clus_to_match);
-+			if (IS_ERR(parent_inode) || parent_inode)
-+				break;
-+			search_clus = fat_read_next_clus(sb,
-+							search_clus);
-+			if (search_clus < 0)
-+				break;
-+		} while (search_clus != FAT_ENT_EOF);
- 	}
- out:
- 	brelse(dotdot_bh);
-_
-
-Patches currently in -mm which might be from namjae.jeon@samsung.com are
-
-fat-restructure-export-operations.patch
-fat-move-fat_i_pos_read-to-fath.patch
-fat-exportfs-move-code-to-rebuild-directory-inode-to-separate-function.patch
-fat-add-mutex-lock-to-fat_build_inode.patch
-
+diff -puN fs/fat/fat.h~fat-move-fat_i_pos_read-to-fath fs/fat/fat.h
+--- a/fs/fat/fat.h~fat-move-fat_i_pos_read-to-fath
++++ a/fs/fat/fat.h
+@@ -222,6 +222,20 @@ static inline void fat_get_blknr_offset(
+ 	*offset = i_pos & (sbi->dir_per_block - 1);
+ }
+ 
++static inline loff_t fat_i_pos_read(struct msdos_sb_info *sbi,
++					struct inode *inode)
++{
++	loff_t i_pos;
++#if BITS_PER_LONG == 32
++	spin_lock(&sbi->inode_hash_lock);
++#endif
++	i_pos = MSDOS_I(inode)->i_pos;
++#if BITS_PER_LONG == 32
++	spin_unlock(&sbi->inode_hash_lock);
++#endif
++	return i_pos;
++}
++
+ static inline void fat16_towchar(wchar_t *dst, const __u8 *src, size_t len)
+ {
+ #ifdef __BIG_ENDIAN
+diff -puN fs/fat/inode.c~fat-move-fat_i_pos_read-to-fath fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-move-fat_i_pos_read-to-fath
++++ a/fs/fat/inode.c
+@@ -595,20 +595,6 @@ static int fat_statfs(struct dentry *den
+ 	return 0;
+ }
+ 
+-loff_t fat_i_pos_read(struct msdos_sb_info *sbi,
+-				    struct inode *inode)
+-{
+-	loff_t i_pos;
+-#if BITS_PER_LONG == 32
+-	spin_lock(&sbi->inode_hash_lock);
+-#endif
+-	i_pos = MSDOS_I(inode)->i_pos;
+-#if BITS_PER_LONG == 32
+-	spin_unlock(&sbi->inode_hash_lock);
+-#endif
+-	return i_pos;
+-}
