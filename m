@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 06 Nov 2012 14:39:15 -0800
-Message-ID: <20121106223916.3D71A100047@wpzn3.hot.corp.google.com>
+Subject: + mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 06 Nov 2012 14:39:08 -0800
+Message-ID: <20121106223908.D077420004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:64120 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753736Ab2KFWjR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2012 17:39:17 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z15so108589ghb.1
-        for <mm-commits@vger.kernel.org>; Tue, 06 Nov 2012 14:39:16 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:55965 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753864Ab2KFWjL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2012 17:39:11 -0500
+Received: by mail-ee0-f74.google.com with SMTP id b57so67741eek.1
+        for <mm-commits@vger.kernel.org>; Tue, 06 Nov 2012 14:39:09 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akpm@linux-foundation.org, walken@google.com
 
 
 The patch titled
-     Subject: mm-vm_unmapped_area-lookup-function-checkpatch-fixes
+     Subject: mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
+     mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,19 +34,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vm_unmapped_area-lookup-function-checkpatch-fixes
+Subject: mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes
 
-WARNING: labels should not be indented
-#127: FILE: mm/mmap.c:1549:
-+	check_current:
+ERROR: "foo * bar" should be "foo *bar"
+#55: FILE: include/linux/mm_types.h:250:
++	struct mm_struct * vm_mm;	/* The address space we belong to. */
 
-WARNING: labels should not be indented
-#229: FILE: mm/mmap.c:1651:
-+	check_current:
+total: 1 errors, 0 warnings, 30 lines checked
 
-total: 0 errors, 2 warnings, 386 lines checked
-
-./patches/mm-vm_unmapped_area-lookup-function.patch has style problems, please review.
+./patches/mm-rearrange-vm_area_struct-for-fewer-cache-misses.patch has style problems, please review.
 
 If any of these errors are false positives, please report
 them to the maintainer, see CHECKPATCH in MAINTAINERS.
@@ -57,30 +53,21 @@ Cc: Michel Lespinasse <walken@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/mm_types.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/mmap.c~mm-vm_unmapped_area-lookup-function-checkpatch-fixes mm/mmap.c
---- a/mm/mmap.c~mm-vm_unmapped_area-lookup-function-checkpatch-fixes
-+++ a/mm/mmap.c
-@@ -1563,7 +1563,7 @@ unsigned long unmapped_area(struct vm_un
- 		}
+diff -puN include/linux/mm_types.h~mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes
++++ a/include/linux/mm_types.h
+@@ -247,7 +247,7 @@ struct vm_area_struct {
  
- 		gap_start = vma->vm_prev ? vma->vm_prev->vm_end : 0;
--	check_current:
-+check_current:
- 		/* Check if current node has a suitable gap */
- 		if (gap_start > high_limit)
- 			return -ENOMEM;
-@@ -1665,7 +1665,7 @@ unsigned long unmapped_area_topdown(stru
- 			}
- 		}
+ 	/* Second cache line starts here. */
  
--	check_current:
-+check_current:
- 		/* Check if current node has a suitable gap */
- 		gap_end = vma->vm_start;
- 		if (gap_end < low_limit)
+-	struct mm_struct * vm_mm;	/* The address space we belong to. */
++	struct mm_struct *vm_mm;	/* The address space we belong to. */
+ 	pgprot_t vm_page_prot;		/* Access permissions of this VMA. */
+ 	unsigned long vm_flags;		/* Flags, see mm.h. */
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
