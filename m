@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-cache-coloring-on-x86_64-architecture.patch added to -mm tree
-Date: Tue, 06 Nov 2012 14:39:23 -0800
-Message-ID: <20121106223924.3BE2C200057@hpza10.eem.corp.google.com>
+Subject: + mm-use-vm_unmapped_area-in-hugetlbfs.patch added to -mm tree
+Date: Tue, 06 Nov 2012 14:39:28 -0800
+Message-ID: <20121106223929.C684B5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:55965 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753733Ab2KFWj1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2012 17:39:27 -0500
-Received: by mail-ee0-f74.google.com with SMTP id b57so67741eek.1
-        for <mm-commits@vger.kernel.org>; Tue, 06 Nov 2012 14:39:26 -0800 (PST)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:62686 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753325Ab2KFWjd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2012 17:39:33 -0500
+Received: by mail-we0-f202.google.com with SMTP id x43so66937wey.1
+        for <mm-commits@vger.kernel.org>; Tue, 06 Nov 2012 14:39:32 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: walken@google.com, cmetcalf@tilera.com, davem@davemloft.net, hpa@zytor.com, 
 
 
 The patch titled
-     Subject: mm: fix cache coloring on x86_64 architecture
+     Subject: mm: use vm_unmapped_area() in hugetlbfs
 has been added to the -mm tree.  Its filename is
-     mm-fix-cache-coloring-on-x86_64-architecture.patch
+     mm-use-vm_unmapped_area-in-hugetlbfs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michel Lespinasse <walken@google.com>
-Subject: mm: fix cache coloring on x86_64 architecture
+Subject: mm: use vm_unmapped_area() in hugetlbfs
 
-Fix the x86-64 cache alignment code to take pgoff into account.  Use the
-x86 and MIPS cache alignment code as the basis for a generic cache
-alignment function.
-
-The old x86 code will always align the mmap to aliasing boundaries,
-even if the program mmaps the file with a non-zero pgoff.
-
-If program A mmaps the file with pgoff 0, and program B mmaps the file
-with pgoff 1.  The old code would align the mmaps, resulting in misaligned
-pages:
-
-A:  0123
-B:  123
-
-After this patch, they are aligned so the pages line up:
-
-A: 0123
-B:  123
-
-Proposed by Rik van Riel.
+Update the hugetlb_get_unmapped_area function to make use of
+vm_unmapped_area() instead of implementing a brute force search.
 
 Signed-off-by: Michel Lespinasse <walken@google.com>
-Cc: Rik van Riel <riel@redhat.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Russell King <linux@arm.linux.org.uk>
 Cc: Ralf Baechle <ralf@linux-mips.org>
@@ -71,30 +53,69 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/sys_x86_64.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/hugetlbfs/inode.c |   42 +++++++----------------------------------
+ 1 file changed, 8 insertions(+), 34 deletions(-)
 
-diff -puN arch/x86/kernel/sys_x86_64.c~mm-fix-cache-coloring-on-x86_64-architecture arch/x86/kernel/sys_x86_64.c
---- a/arch/x86/kernel/sys_x86_64.c~mm-fix-cache-coloring-on-x86_64-architecture
-+++ a/arch/x86/kernel/sys_x86_64.c
-@@ -136,7 +136,7 @@ arch_get_unmapped_area(struct file *filp
- 	info.low_limit = begin;
- 	info.high_limit = end;
- 	info.align_mask = filp ? get_align_mask() : 0;
--	info.align_offset = 0;
-+	info.align_offset = pgoff << PAGE_SHIFT;
- 	return vm_unmapped_area(&info);
- }
+diff -puN fs/hugetlbfs/inode.c~mm-use-vm_unmapped_area-in-hugetlbfs fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~mm-use-vm_unmapped_area-in-hugetlbfs
++++ a/fs/hugetlbfs/inode.c
+@@ -151,8 +151,8 @@ hugetlb_get_unmapped_area(struct file *f
+ {
+ 	struct mm_struct *mm = current->mm;
+ 	struct vm_area_struct *vma;
+-	unsigned long start_addr;
+ 	struct hstate *h = hstate_file(file);
++	struct vm_unmapped_area_info info;
  
-@@ -175,7 +175,7 @@ arch_get_unmapped_area_topdown(struct fi
- 	info.low_limit = PAGE_SIZE;
- 	info.high_limit = mm->mmap_base;
- 	info.align_mask = filp ? get_align_mask() : 0;
--	info.align_offset = 0;
-+	info.align_offset = pgoff << PAGE_SHIFT;
- 	addr = vm_unmapped_area(&info);
- 	if (!(addr & ~PAGE_MASK))
- 		return addr;
+ 	if (len & ~huge_page_mask(h))
+ 		return -EINVAL;
+@@ -173,39 +173,13 @@ hugetlb_get_unmapped_area(struct file *f
+ 			return addr;
+ 	}
+ 
+-	if (len > mm->cached_hole_size)
+-		start_addr = mm->free_area_cache;
+-	else {
+-		start_addr = TASK_UNMAPPED_BASE;
+-		mm->cached_hole_size = 0;
+-	}
+-
+-full_search:
+-	addr = ALIGN(start_addr, huge_page_size(h));
+-
+-	for (vma = find_vma(mm, addr); ; vma = vma->vm_next) {
+-		/* At this point:  (!vma || addr < vma->vm_end). */
+-		if (TASK_SIZE - len < addr) {
+-			/*
+-			 * Start a new search - just in case we missed
+-			 * some holes.
+-			 */
+-			if (start_addr != TASK_UNMAPPED_BASE) {
+-				start_addr = TASK_UNMAPPED_BASE;
+-				mm->cached_hole_size = 0;
+-				goto full_search;
+-			}
+-			return -ENOMEM;
+-		}
+-
+-		if (!vma || addr + len <= vma->vm_start) {
+-			mm->free_area_cache = addr + len;
+-			return addr;
+-		}
+-		if (addr + mm->cached_hole_size < vma->vm_start)
+-			mm->cached_hole_size = vma->vm_start - addr;
+-		addr = ALIGN(vma->vm_end, huge_page_size(h));
+-	}
++	info.flags = 0;
++	info.length = len;
++	info.low_limit = TASK_UNMAPPED_BASE;
++	info.high_limit = TASK_SIZE;
++	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
++	info.align_offset = 0;
++	return vm_unmapped_area(&info);
+ }
+ #endif
+ 
 _
 
 Patches currently in -mm which might be from walken@google.com are
