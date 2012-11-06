@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + tmpfs-fix-shmem_getpage_gfp-vm_bug_on.patch added to -mm tree
-Date: Tue, 06 Nov 2012 12:23:37 -0800
-Message-ID: <20121106202337.B73BD100047@wpzn3.hot.corp.google.com>
+Subject: + tmpfs-change-final-i_blocks-bug-to-warning.patch added to -mm tree
+Date: Tue, 06 Nov 2012 12:24:58 -0800
+Message-ID: <20121106202459.135065C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:63565 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752324Ab2KFUXj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2012 15:23:39 -0500
-Received: by mail-yh0-f74.google.com with SMTP id 10so90478yhl.1
-        for <mm-commits@vger.kernel.org>; Tue, 06 Nov 2012 12:23:39 -0800 (PST)
+Received: from mail-ea0-f202.google.com ([209.85.215.202]:57014 "EHLO
+	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751141Ab2KFUZB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2012 15:25:01 -0500
+Received: by mail-ea0-f202.google.com with SMTP id q10so61530eaa.1
+        for <mm-commits@vger.kernel.org>; Tue, 06 Nov 2012 12:25:00 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, davej@redhat.com, hannes@cmpxchg.com, stable@vger.kernel.org
+Cc: hughd@google.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: tmpfs: fix shmem_getpage_gfp VM_BUG_ON
+     Subject: tmpfs: change final i_blocks BUG to WARNING
 has been added to the -mm tree.  Its filename is
-     tmpfs-fix-shmem_getpage_gfp-vm_bug_on.patch
+     tmpfs-change-final-i_blocks-bug-to-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,77 +34,55 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: tmpfs: fix shmem_getpage_gfp VM_BUG_ON
+Subject: tmpfs: change final i_blocks BUG to WARNING
 
-Fuzzing with trinity hit the "impossible" VM_BUG_ON(error) (which Fedora
-has converted to WARNING) in shmem_getpage_gfp():
+Under a particular load on one machine, I have hit shmem_evict_inode()'s
+BUG_ON(inode->i_blocks), enough times to narrow it down to a particular
+race between swapout and eviction.
 
-WARNING: at mm/shmem.c:1151 shmem_getpage_gfp+0xa5c/0xa70()
-Pid: 29795, comm: trinity-child4 Not tainted 3.7.0-rc2+ #49
-Call Trace:
- [<ffffffff8107100f>] warn_slowpath_common+0x7f/0xc0
- [<ffffffff8107106a>] warn_slowpath_null+0x1a/0x20
- [<ffffffff811903fc>] shmem_getpage_gfp+0xa5c/0xa70
- [<ffffffff81190e4f>] shmem_fault+0x4f/0xa0
- [<ffffffff8119f391>] __do_fault+0x71/0x5c0
- [<ffffffff811a2767>] handle_pte_fault+0x97/0xae0
- [<ffffffff811a4a39>] handle_mm_fault+0x289/0x350
- [<ffffffff816d091e>] __do_page_fault+0x18e/0x530
- [<ffffffff816d0ceb>] do_page_fault+0x2b/0x50
- [<ffffffff816cd3b8>] page_fault+0x28/0x30
- [<ffffffff816d5688>] tracesys+0xe1/0xe6
+It comes from the "if (freed > 0)" asymmetry in shmem_recalc_inode(), and
+the lack of coherent locking between mapping's nrpages and shmem's swapped
+count.  There's a window in shmem_writepage(), between lowering nrpages in
+shmem_delete_from_page_cache() and then raising swapped count, when the
+freed count appears to be +1 when it should be 0, and then the asymmetry
+stops it from being corrected with -1 before hitting the BUG.
 
-Thanks to Johannes for pointing to truncation: free_swap_and_cache() only
-does a trylock on the page, so the page lock we've held since before
-confirming swap is not enough to protect against truncation.
+One answer is coherent locking: using tree_lock throughout, without
+info->lock; reasonable, but the raw_spin_lock in percpu_counter_add() on
+used_blocks makes that messier than expected.  Another answer may be a
+further effort to eliminate the weird shmem_recalc_inode() altogether, but
+previous attempts at that failed.
 
-What cleanup is needed in this case?  Just delete_from_swap_cache(), which
-takes care of the memcg uncharge.
+So far undecided, but for now change the BUG_ON to WARN_ON: in usual
+circumstances it remains a useful consistency check.
 
-Reported-by: Dave Jones <davej@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.com>
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   18 ++++++++++++++++--
- 1 file changed, 16 insertions(+), 2 deletions(-)
+ mm/shmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/shmem.c~tmpfs-fix-shmem_getpage_gfp-vm_bug_on mm/shmem.c
---- a/mm/shmem.c~tmpfs-fix-shmem_getpage_gfp-vm_bug_on
+diff -puN mm/shmem.c~tmpfs-change-final-i_blocks-bug-to-warning mm/shmem.c
+--- a/mm/shmem.c~tmpfs-change-final-i_blocks-bug-to-warning
 +++ a/mm/shmem.c
-@@ -1145,8 +1145,22 @@ repeat:
- 		if (!error) {
- 			error = shmem_add_to_page_cache(page, mapping, index,
- 						gfp, swp_to_radix_entry(swap));
--			/* We already confirmed swap, and make no allocation */
--			VM_BUG_ON(error);
-+			/*
-+			 * We already confirmed swap under page lock, and make
-+			 * no memory allocation here, so usually no possibility
-+			 * of error; but free_swap_and_cache() only trylocks a
-+			 * page, so it is just possible that the entry has been
-+			 * truncated or holepunched since swap was confirmed.
-+			 * shmem_undo_range() will have done some of the
-+			 * unaccounting, now delete_from_swap_cache() will do
-+			 * the rest (including mem_cgroup_uncharge_swapcache).
-+			 * Reset swap.val? No, leave it so "failed" goes back to
-+			 * "repeat": reading a hole and writing should succeed.
-+			 */
-+			if (error) {
-+				VM_BUG_ON(error != -ENOENT);
-+				delete_from_swap_cache(page);
-+			}
- 		}
- 		if (error)
- 			goto failed;
+@@ -643,7 +643,7 @@ static void shmem_evict_inode(struct ino
+ 		kfree(info->symlink);
+ 
+ 	simple_xattrs_free(&info->xattrs);
+-	BUG_ON(inode->i_blocks);
++	WARN_ON(inode->i_blocks);
+ 	shmem_free_inode(inode->i_sb);
+ 	clear_inode(inode);
+ }
 _
 
 Patches currently in -mm which might be from hughd@google.com are
 
 linux-next.patch
 tmpfs-fix-shmem_getpage_gfp-vm_bug_on.patch
+tmpfs-change-final-i_blocks-bug-to-warning.patch
 mm-add-comment-on-storage-key-dirty-bit-semantics.patch
 mm-refactor-reinsert-of-swap_info-in-sys_swapoff.patch
 mm-do-not-call-frontswap_init-during-swapoff.patch
