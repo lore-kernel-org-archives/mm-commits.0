@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-check-rb_subtree_gap-correctness-fix.patch added to -mm tree
-Date: Tue, 06 Nov 2012 14:38:59 -0800
-Message-ID: <20121106223900.A828F5C0050@hpza9.eem.corp.google.com>
+Subject: + mm-rearrange-vm_area_struct-for-fewer-cache-misses.patch added to -mm tree
+Date: Tue, 06 Nov 2012 14:39:04 -0800
+Message-ID: <20121106223905.248ED100049@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:48392 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753798Ab2KFWjF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2012 17:39:05 -0500
-Received: by mail-bk0-f74.google.com with SMTP id q16so66313bkw.1
-        for <mm-commits@vger.kernel.org>; Tue, 06 Nov 2012 14:39:03 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:53348 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753833Ab2KFWjH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2012 17:39:07 -0500
+Received: by mail-vc0-f202.google.com with SMTP id fy27so108218vcb.1
+        for <mm-commits@vger.kernel.org>; Tue, 06 Nov 2012 14:39:06 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cmetcalf@tilera.com, davem@davemloft.net, hpa@zytor.com, hughd@google.com, lethal@linux-sh.org, linux@arm.linux.org.uk, mingo@elte.hu, ralf@linux-mips.org, riel@redhat.com, tglx@linutronix.de, walken@google.com
+Cc: riel@surriel.com, cmetcalf@tilera.com, davem@davemloft.net, hpa@zytor.com, hughd@google.com, lethal@linux-sh.org, linux@arm.linux.org.uk, mingo@elte.hu, ralf@linux-mips.org, riel@redhat.com, tglx@linutronix.de, walken@google.com
 
 
 The patch titled
-     Subject: mm-check-rb_subtree_gap-correctness-fix
+     Subject: mm: rearrange vm_area_struct for fewer cache misses
 has been added to the -mm tree.  Its filename is
-     mm-check-rb_subtree_gap-correctness-fix.patch
+     mm-rearrange-vm_area_struct-for-fewer-cache-misses.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,149 +33,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-check-rb_subtree_gap-correctness-fix
+From: Rik van Riel <riel@surriel.com>
+Subject: mm: rearrange vm_area_struct for fewer cache misses
 
-repair innovative coding-style inventions
+The kernel walks the VMA rbtree in various places, including the page
+fault path.  However, the vm_rb node spanned two cache lines, on 64 bit
+systems with 64 byte cache lines (most x86 systems).
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Chris Metcalf <cmetcalf@tilera.com>
+Rearrange vm_area_struct a little, so all the information we need to do a
+VMA tree walk is in the first cache line.
+
+Signed-off-by: Michel Lespinasse <walken@google.com>
+Signed-off-by: Rik van Riel <riel@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Rik van Riel <riel@redhat.com>
 Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   49 +++++++++++++++++++++++++++++++++----------------
- 1 file changed, 33 insertions(+), 16 deletions(-)
+ include/linux/mm_types.h |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN mm/mmap.c~mm-check-rb_subtree_gap-correctness-fix mm/mmap.c
---- a/mm/mmap.c~mm-check-rb_subtree_gap-correctness-fix
-+++ a/mm/mmap.c
-@@ -372,16 +372,25 @@ static int browse_rb(struct rb_root *roo
- 	for (nd = rb_first(root); nd; nd = rb_next(nd)) {
- 		struct vm_area_struct *vma;
- 		vma = rb_entry(nd, struct vm_area_struct, vm_rb);
--		if (vma->vm_start < prev)
--			printk("vm_start %lx prev %lx\n", vma->vm_start, prev), bug = 1;
--		if (vma->vm_start < pend)
--			printk("vm_start %lx pend %lx\n", vma->vm_start, pend), bug = 1;
--		if (vma->vm_start > vma->vm_end)
--			printk("vm_end %lx < vm_start %lx\n", vma->vm_end, vma->vm_start), bug = 1;
--		if (vma->rb_subtree_gap != vma_compute_subtree_gap(vma))
-+		if (vma->vm_start < prev) {
-+			printk("vm_start %lx prev %lx\n", vma->vm_start, prev);
-+			bug = 1;
-+		}
-+		if (vma->vm_start < pend) {
-+			printk("vm_start %lx pend %lx\n", vma->vm_start, pend);
-+			bug = 1;
-+		}
-+		if (vma->vm_start > vma->vm_end) {
-+			printk("vm_end %lx < vm_start %lx\n",
-+				vma->vm_end, vma->vm_start);
-+			bug = 1;
-+		}
-+		if (vma->rb_subtree_gap != vma_compute_subtree_gap(vma)) {
- 			printk("free gap %lx, correct %lx\n",
- 			       vma->rb_subtree_gap,
--			       vma_compute_subtree_gap(vma)), bug = 1;
-+			       vma_compute_subtree_gap(vma));
-+			bug = 1;
-+		}
- 		i++;
- 		pn = nd;
- 		prev = vma->vm_start;
-@@ -390,8 +399,10 @@ static int browse_rb(struct rb_root *roo
- 	j = 0;
- 	for (nd = pn; nd; nd = rb_prev(nd))
- 		j++;
--	if (i != j)
--		printk("backwards %d, forwards %d\n", j, i), bug = 1;
-+	if (i != j) {
-+		printk("backwards %d, forwards %d\n", j, i);
-+		bug = 1;
-+	}
- 	return bug ? -1 : i;
- }
+diff -puN include/linux/mm_types.h~mm-rearrange-vm_area_struct-for-fewer-cache-misses include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-rearrange-vm_area_struct-for-fewer-cache-misses
++++ a/include/linux/mm_types.h
+@@ -226,7 +226,8 @@ struct vm_region {
+  * library, the executable area etc).
+  */
+ struct vm_area_struct {
+-	struct mm_struct * vm_mm;	/* The address space we belong to. */
++	/* The first cache line has the info for VMA tree walking. */
++
+ 	unsigned long vm_start;		/* Our start address within vm_mm. */
+ 	unsigned long vm_end;		/* The first byte after our end address
+ 					   within vm_mm. */
+@@ -234,9 +235,6 @@ struct vm_area_struct {
+ 	/* linked list of VM areas per task, sorted by address */
+ 	struct vm_area_struct *vm_next, *vm_prev;
  
-@@ -411,14 +422,20 @@ void validate_mm(struct mm_struct *mm)
- 		vma = vma->vm_next;
- 		i++;
- 	}
--	if (i != mm->map_count)
--		printk("map_count %d vm_next %d\n", mm->map_count, i), bug = 1;
--	if (highest_address != mm->highest_vm_end)
-+	if (i != mm->map_count) {
-+		printk("map_count %d vm_next %d\n", mm->map_count, i);
-+		bug = 1;
-+	}
-+	if (highest_address != mm->highest_vm_end) {
- 		printk("mm->highest_vm_end %lx, found %lx\n",
--		       mm->highest_vm_end, highest_address), bug = 1;
-+		       mm->highest_vm_end, highest_address);
-+		bug = 1;
-+	}
- 	i = browse_rb(&mm->mm_rb);
--	if (i != mm->map_count)
--		printk("map_count %d rb %d\n", mm->map_count, i), bug = 1;
-+	if (i != mm->map_count) {
-+		printk("map_count %d rb %d\n", mm->map_count, i);
-+		bug = 1;
-+	}
- 	BUG_ON(bug);
- }
- #else
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-revert-tools-testing-selftests-epoll-test_epollc-fix-build.patch
-revert-epoll-support-for-disabling-items-and-a-self-test-app.patch
-linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-mm.patch
-mm-introduce-mm_find_pmd-fix.patch
-memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
-slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
-mmvmscan-only-evict-file-pages-when-we-have-plenty-fix.patch
-slub-slub-specific-propagation-changes-fix.patch
-dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix.patch
-mm-check-rb_subtree_gap-correctness-fix.patch
-mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
-mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
-mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
-mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
-drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
-hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
-procfs-add-vmflags-field-in-smaps-output-v4.patch
-procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
-ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
-ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-
+-	pgprot_t vm_page_prot;		/* Access permissions of this VMA. */
+-	unsigned long vm_flags;		/* Flags, see mm.h. */
