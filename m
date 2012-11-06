@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + tmpfs-change-final-i_blocks-bug-to-warning.patch added to -mm tree
-Date: Tue, 06 Nov 2012 12:24:58 -0800
-Message-ID: <20121106202459.135065C0050@hpza9.eem.corp.google.com>
+Subject: + mm-fix-a-regression-with-highmem-introduced-by-changeset-7f1290f2f2a4d.patch added to -mm tree
+Date: Tue, 06 Nov 2012 12:43:35 -0800
+Message-ID: <20121106204335.D39B6100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f202.google.com ([209.85.215.202]:57014 "EHLO
-	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751141Ab2KFUZB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2012 15:25:01 -0500
-Received: by mail-ea0-f202.google.com with SMTP id q10so61530eaa.1
-        for <mm-commits@vger.kernel.org>; Tue, 06 Nov 2012 12:25:00 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:60247 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752595Ab2KFUnh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2012 15:43:37 -0500
+Received: by mail-yh0-f74.google.com with SMTP id 10so92402yhl.1
+        for <mm-commits@vger.kernel.org>; Tue, 06 Nov 2012 12:43:36 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, stable@vger.kernel.org
+Cc: jiang.liu@huawei.com, chris2553@googlemail.com, kamezawa.hiroyu@jp.fujitsu.com, maciej.rutecki@gmail.com, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, rjw@sisk.pl, wujianguo@huawei.com
 
 
 The patch titled
-     Subject: tmpfs: change final i_blocks BUG to WARNING
+     Subject: mm: fix a regression with HIGHMEM
 has been added to the -mm tree.  Its filename is
-     tmpfs-change-final-i_blocks-bug-to-warning.patch
+     mm-fix-a-regression-with-highmem-introduced-by-changeset-7f1290f2f2a4d.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,59 +33,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: tmpfs: change final i_blocks BUG to WARNING
+From: Jiang Liu <jiang.liu@huawei.com>
+Subject: mm: fix a regression with HIGHMEM
 
-Under a particular load on one machine, I have hit shmem_evict_inode()'s
-BUG_ON(inode->i_blocks), enough times to narrow it down to a particular
-race between swapout and eviction.
+Changeset 7f1290f2f2 ("mm: fix-up zone present pages") tried to fix a
+issue when calculating zone->present_pages, but it causes a regression to
+32bit systems with HIGHMEM.  With that changeset,
+reset_zone_present_pages() resets all zone->present_pages to zero, and
+fixup_zone_present_pages() is called to recalculate zone->present_pages
+when the boot allocator frees core memory pages into the buddy allocator. 
+Because highmem pages are not freed by bootmem allocator, all highmem
+zones' present_pages becomes zero.
 
-It comes from the "if (freed > 0)" asymmetry in shmem_recalc_inode(), and
-the lack of coherent locking between mapping's nrpages and shmem's swapped
-count.  There's a window in shmem_writepage(), between lowering nrpages in
-shmem_delete_from_page_cache() and then raising swapped count, when the
-freed count appears to be +1 when it should be 0, and then the asymmetry
-stops it from being corrected with -1 before hitting the BUG.
+Actually there's no need to recalculate present_pages for the highmem zone
+because the bootmem allocator never allocates pages from it.  So fix the
+regression by skipping highmem in function reset_zone_present_pages() and
+fixup_zone_present_pages().
 
-One answer is coherent locking: using tree_lock throughout, without
-info->lock; reasonable, but the raw_spin_lock in percpu_counter_add() on
-used_blocks makes that messier than expected.  Another answer may be a
-further effort to eliminate the weird shmem_recalc_inode() altogether, but
-previous attempts at that failed.
-
-So far undecided, but for now change the BUG_ON to WARN_ON: in usual
-circumstances it remains a useful consistency check.
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
+Reported-by: Maciej Rutecki <maciej.rutecki@gmail.com>
+Tested-by: Maciej Rutecki <maciej.rutecki@gmail.com>
+Tested-by: Chris Clayton <chris2553@googlemail.com>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN mm/shmem.c~tmpfs-change-final-i_blocks-bug-to-warning mm/shmem.c
---- a/mm/shmem.c~tmpfs-change-final-i_blocks-bug-to-warning
-+++ a/mm/shmem.c
-@@ -643,7 +643,7 @@ static void shmem_evict_inode(struct ino
- 		kfree(info->symlink);
- 
- 	simple_xattrs_free(&info->xattrs);
--	BUG_ON(inode->i_blocks);
-+	WARN_ON(inode->i_blocks);
- 	shmem_free_inode(inode->i_sb);
- 	clear_inode(inode);
+diff -puN mm/page_alloc.c~mm-fix-a-regression-with-highmem-introduced-by-changeset-7f1290f2f2a4d mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-fix-a-regression-with-highmem-introduced-by-changeset-7f1290f2f2a4d
++++ a/mm/page_alloc.c
+@@ -6108,7 +6108,8 @@ void reset_zone_present_pages(void)
+ 	for_each_node_state(nid, N_HIGH_MEMORY) {
+ 		for (i = 0; i < MAX_NR_ZONES; i++) {
+ 			z = NODE_DATA(nid)->node_zones + i;
+-			z->present_pages = 0;
++			if (!is_highmem(z))
++				z->present_pages = 0;
+ 		}
+ 	}
  }
-_
-
-Patches currently in -mm which might be from hughd@google.com are
-
-linux-next.patch
-tmpfs-fix-shmem_getpage_gfp-vm_bug_on.patch
-tmpfs-change-final-i_blocks-bug-to-warning.patch
-mm-add-comment-on-storage-key-dirty-bit-semantics.patch
-mm-refactor-reinsert-of-swap_info-in-sys_swapoff.patch
-mm-do-not-call-frontswap_init-during-swapoff.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-
+@@ -6123,10 +6124,11 @@ void fixup_zone_present_pages(int nid, u
+ 
+ 	for (i = 0; i < MAX_NR_ZONES; i++) {
+ 		z = NODE_DATA(nid)->node_zones + i;
++		if (is_highmem(z))
++			continue;
++
+ 		zone_start_pfn = z->zone_start_pfn;
+ 		zone_end_pfn = zone_start_pfn + z->spanned_pages;
