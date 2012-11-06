@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + tasklet-ignore-disabled-tasklet-in-tasklet_action.patch added to -mm tree
-Date: Mon, 05 Nov 2012 14:52:24 -0800
-Message-ID: <20121105225225.1C308200057@hpza10.eem.corp.google.com>
+Subject: + slub-slub-specific-propagation-changes-fix.patch added to -mm tree
+Date: Tue, 06 Nov 2012 11:25:47 -0800
+Message-ID: <20121106192549.01D7B100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:42935 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933406Ab2KEWw2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Nov 2012 17:52:28 -0500
-Received: by mail-fa0-f74.google.com with SMTP id t1so406491fae.1
-        for <mm-commits@vger.kernel.org>; Mon, 05 Nov 2012 14:52:26 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:39926 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751556Ab2KFTZv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2012 14:25:51 -0500
+Received: by mail-vb0-f74.google.com with SMTP id s24so82228vbi.1
+        for <mm-commits@vger.kernel.org>; Tue, 06 Nov 2012 11:25:50 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xtfeng@gmail.com, dannyfeng@tencent.com, eric.dumazet@gmail.com, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, cl@linux.com, fweisbec@redhat.com, glommer@parallels.com, gthelen@google.com, hannes@cmpxchg.org, js1304@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mhocko@suse.cz, penberg@cs.helsinki.fi, riel@redhat.com, rientjes@google.com, suleiman@google.com, tj@kernel.org
 
 
 The patch titled
-     Subject: tasklet: ignore disabled tasklet in tasklet_action()
+     Subject: slub-slub-specific-propagation-changes-fix
 has been added to the -mm tree.  Its filename is
-     tasklet-ignore-disabled-tasklet-in-tasklet_action.patch
+     slub-slub-specific-propagation-changes-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,115 +33,117 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xiaotian Feng <xtfeng@gmail.com>
-Subject: tasklet: ignore disabled tasklet in tasklet_action()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: slub-slub-specific-propagation-changes-fix
 
-We met a ksoftirqd 100% issue, the perf top shows kernel is busy with
-tasklet_action(), but no actual action is shown.  From dumped kernel,
-there's only one disabled tasklet on the tasklet_vec.
+tweak code to avoid __maybe_unused
 
-tasklet_action might be handled after tasklet is disabled, this will
-make disabled tasklet stayed on tasklet_vec. tasklet_action will not
-handle disabled tasklet, but place it on the tail of tasklet_vec,
-still raise softirq for this tasklet. Things will become worse if
-device driver uses tasklet_disable on its device remove/close code.
-The disabled tasklet will stay on the vec, frequently __raise_softirq_off()
-and make ksoftirqd wakeup even if no tasklets need to be handled.
-
-This patch introduced a new TASKLET_STATE_HI bit to indicate HI_SOFTIRQ,
-in tasklet_action(), simply ignore the disabled tasklet and don't raise
-the softirq nr. In my previous patch, I remove tasklet_hi_enable() since
-it is the same as tasklet_enable(). So only tasklet_enable() needs to be
-modified, if tasklet state is changed from disable to enable, use
-__tasklet_schedule() to put it on the right vec.
-
-Signed-off-by: Xiaotian Feng <dannyfeng@tencent.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Frederic Weisbecker <fweisbec@redhat.com>
+Cc: Glauber Costa <glommer@parallels.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: JoonSoo Kim <js1304@gmail.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Suleiman Souhlal <suleiman@google.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/interrupt.h |   12 ++++++++++--
- kernel/softirq.c          |    8 ++++----
- 2 files changed, 14 insertions(+), 6 deletions(-)
+ mm/slub.c |   32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
-diff -puN include/linux/interrupt.h~tasklet-ignore-disabled-tasklet-in-tasklet_action include/linux/interrupt.h
---- a/include/linux/interrupt.h~tasklet-ignore-disabled-tasklet-in-tasklet_action
-+++ a/include/linux/interrupt.h
-@@ -521,7 +521,8 @@ struct tasklet_struct name = { NULL, 0, 
- enum
- {
- 	TASKLET_STATE_SCHED,	/* Tasklet is scheduled for execution */
--	TASKLET_STATE_RUN	/* Tasklet is running (SMP only) */
-+	TASKLET_STATE_RUN,	/* Tasklet is running (SMP only) */
-+	TASKLET_STATE_HI	/* Tasklet is HI_SOFTIRQ */
- };
+diff -puN mm/slub.c~slub-slub-specific-propagation-changes-fix mm/slub.c
+--- a/mm/slub.c~slub-slub-specific-propagation-changes-fix
++++ a/mm/slub.c
+@@ -5175,7 +5175,6 @@ static ssize_t slab_attr_store(struct ko
+ 	struct slab_attribute *attribute;
+ 	struct kmem_cache *s;
+ 	int err;
+-	int i __maybe_unused;
  
- #ifdef CONFIG_SMP
-@@ -593,7 +594,14 @@ static inline void tasklet_disable(struc
- static inline void tasklet_enable(struct tasklet_struct *t)
- {
- 	smp_mb__before_atomic_dec();
--	atomic_dec(&t->count);
-+	if (atomic_dec_and_test(&t->count)) {
-+		if (!test_bit(TASKLET_STATE_SCHED, &t->state))
-+			return;
-+		if (test_bit(TASKLET_STATE_HI, &t->state))
-+			__tasklet_hi_schedule(t);
-+		else
-+			__tasklet_schedule(t);
-+	}
+ 	attribute = to_slab_attr(attr);
+ 	s = to_slab(kobj);
+@@ -5185,23 +5184,24 @@ static ssize_t slab_attr_store(struct ko
+ 
+ 	err = attribute->store(s, buf, len);
+ #ifdef CONFIG_MEMCG_KMEM
+-	if (slab_state < FULL)
+-		return err;
++	if (slab_state >= FULL && err >= 0 && is_root_cache(s)) {
++		int i;
+ 
+-	if ((err < 0) || !is_root_cache(s))
+-		return err;
+-
+-	mutex_lock(&slab_mutex);
+-	if (s->max_attr_size < len)
+-		s->max_attr_size = len;
+-
+-	for_each_memcg_cache_index(i) {
+-		struct kmem_cache *c = cache_from_memcg(s, i);
+-		if (c)
+-			/* return value determined by the parent cache only */
+-			attribute->store(c, buf, len);
++		mutex_lock(&slab_mutex);
++		if (s->max_attr_size < len)
++			s->max_attr_size = len;
++
++		for_each_memcg_cache_index(i) {
++			struct kmem_cache *c = cache_from_memcg(s, i);
++			/*
++			 * This function's return value is determined by the
++			 * parent cache only
++			 */
++			if (c)
++				attribute->store(c, buf, len);
++		}
++		mutex_unlock(&slab_mutex);
+ 	}
+-	mutex_unlock(&slab_mutex);
+ #endif
+ 	return err;
  }
- 
- static inline void tasklet_hi_enable(struct tasklet_struct *t)
-diff -puN kernel/softirq.c~tasklet-ignore-disabled-tasklet-in-tasklet_action kernel/softirq.c
---- a/kernel/softirq.c~tasklet-ignore-disabled-tasklet-in-tasklet_action
-+++ a/kernel/softirq.c
-@@ -431,6 +431,7 @@ void __tasklet_hi_schedule(struct taskle
- 	*__this_cpu_read(tasklet_hi_vec.tail) = t;
- 	__this_cpu_write(tasklet_hi_vec.tail,  &(t->next));
- 	raise_softirq_irqoff(HI_SOFTIRQ);
-+	set_bit(TASKLET_STATE_HI, &t->state);
- 	local_irq_restore(flags);
- }
- 
-@@ -442,6 +443,7 @@ void __tasklet_hi_schedule_first(struct 
- 
- 	t->next = __this_cpu_read(tasklet_hi_vec.head);
- 	__this_cpu_write(tasklet_hi_vec.head, t);
-+	set_bit(TASKLET_STATE_HI, &t->state);
- 	__raise_softirq_irqoff(HI_SOFTIRQ);
- }
- 
-@@ -467,10 +469,9 @@ static void tasklet_action(struct softir
- 				if (!test_and_clear_bit(TASKLET_STATE_SCHED, &t->state))
- 					BUG();
- 				t->func(t->data);
--				tasklet_unlock(t);
--				continue;
- 			}
- 			tasklet_unlock(t);
-+			continue;
- 		}
- 
- 		local_irq_disable();
-@@ -502,10 +503,9 @@ static void tasklet_hi_action(struct sof
- 				if (!test_and_clear_bit(TASKLET_STATE_SCHED, &t->state))
- 					BUG();
- 				t->func(t->data);
--				tasklet_unlock(t);
--				continue;
- 			}
- 			tasklet_unlock(t);
-+			continue;
- 		}
- 
- 		local_irq_disable();
 _
 
-Patches currently in -mm which might be from xtfeng@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+revert-tools-testing-selftests-epoll-test_epollc-fix-build.patch
+revert-epoll-support-for-disabling-items-and-a-self-test-app.patch
 linux-next.patch
-tasklet-ignore-disabled-tasklet-in-tasklet_action.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+mm.patch
+mm-introduce-mm_find_pmd-fix.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
+slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
+mmvmscan-only-evict-file-pages-when-we-have-plenty-fix.patch
+slub-slub-specific-propagation-changes-fix.patch
+dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
+drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
+hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
+procfs-add-vmflags-field-in-smaps-output-v4.patch
+procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
+ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
+ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
