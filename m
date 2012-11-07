@@ -1,19 +1,19 @@
 From: akpm@linux-foundation.org
 Subject: + memory-hotplug-fix-nr_free_pages-mismatchs-fix.patch added to -mm tree
-Date: Tue, 06 Nov 2012 16:24:28 -0800
-Message-ID: <20121107002428.8A5C2100047@wpzn3.hot.corp.google.com>
+Date: Tue, 06 Nov 2012 16:25:50 -0800
+Message-ID: <20121107002551.366F05C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:44838 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752619Ab2KGAY3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2012 19:24:29 -0500
-Received: by mail-yh0-f74.google.com with SMTP id 10so121321yhl.1
-        for <mm-commits@vger.kernel.org>; Tue, 06 Nov 2012 16:24:29 -0800 (PST)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:35986 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752619Ab2KGAZx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2012 19:25:53 -0500
+Received: by mail-lb0-f202.google.com with SMTP id l12so71932lbo.1
+        for <mm-commits@vger.kernel.org>; Tue, 06 Nov 2012 16:25:52 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wency@cn.fujitsu.com
+Cc: wency@cn.fujitsu.com, wujianguo106@gmail.com
 
 
 The patch titled
@@ -42,6 +42,7 @@ So we should use get_pageblock_migratetype() instead of mt to check
 whether it is isolated.
 
 Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+Reported-by: Jianguo Wu <wujianguo106@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
