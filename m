@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-fix-nr_free_pages-mismatchs-fix.patch added to -mm tree
-Date: Tue, 06 Nov 2012 16:25:50 -0800
-Message-ID: <20121107002551.366F05C0060@hpza9.eem.corp.google.com>
+Subject: + irq-tsk-comm-is-an-array.patch added to -mm tree
+Date: Tue, 06 Nov 2012 16:27:34 -0800
+Message-ID: <20121107002734.8DFA2100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:35986 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752619Ab2KGAZx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2012 19:25:53 -0500
-Received: by mail-lb0-f202.google.com with SMTP id l12so71932lbo.1
-        for <mm-commits@vger.kernel.org>; Tue, 06 Nov 2012 16:25:52 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:57389 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753519Ab2KGA1f (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2012 19:27:35 -0500
+Received: by mail-vc0-f202.google.com with SMTP id fy27so120950vcb.1
+        for <mm-commits@vger.kernel.org>; Tue, 06 Nov 2012 16:27:35 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wency@cn.fujitsu.com, wujianguo106@gmail.com
+Cc: alan@linux.intel.com, rientjes@google.com
 
 
 The patch titled
-     Subject: memory-hotplug-fix-nr_free_pages-mismatchs-fix
+     Subject: irq: tsk->comm is an array
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-fix-nr_free_pages-mismatchs-fix.patch
+     irq-tsk-comm-is-an-array.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,57 +33,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: memory-hotplug-fix-nr_free_pages-mismatchs-fix
+From: Alan Cox <alan@linux.intel.com>
+Subject: irq: tsk->comm is an array
 
-When a page is freed and put into pcp list, get_freepage_migratetype()
-doesn't return MIGRATE_ISOLATE even if this pageblock is isolated.
-So we should use get_pageblock_migratetype() instead of mt to check
-whether it is isolated.
+The array check is useless so remove it.
 
-Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
-Reported-by: Jianguo Wu <wujianguo106@gmail.com>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/irq/manage.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~memory-hotplug-fix-nr_free_pages-mismatchs-fix mm/page_alloc.c
---- a/mm/page_alloc.c~memory-hotplug-fix-nr_free_pages-mismatchs-fix
-+++ a/mm/page_alloc.c
-@@ -666,7 +666,7 @@ static void free_pcppages_bulk(struct zo
- 			/* MIGRATE_MOVABLE list may include MIGRATE_RESERVEs */
- 			__free_one_page(page, zone, 0, mt);
- 			trace_mm_page_pcpu_drain(page, 0, mt);
--			if (likely(mt != MIGRATE_ISOLATE)) {
-+			if (likely(mt != get_pageblock_migratetype(page))) {
- 				__mod_zone_page_state(zone, NR_FREE_PAGES, 1);
- 				if (is_migrate_cma(mt))
- 					__mod_zone_page_state(zone, NR_FREE_CMA_PAGES, 1);
+diff -puN kernel/irq/manage.c~irq-tsk-comm-is-an-array kernel/irq/manage.c
+--- a/kernel/irq/manage.c~irq-tsk-comm-is-an-array
++++ a/kernel/irq/manage.c
+@@ -792,8 +792,9 @@ static void irq_thread_dtor(struct callb
+ 
+ 	action = kthread_data(tsk);
+ 
++	/* FIXME: locking */
+ 	pr_err("exiting task \"%s\" (%d) is an active IRQ thread (irq %d)\n",
+-	       tsk->comm ? tsk->comm : "", tsk->pid, action->irq);
++	       tsk->comm, tsk->pid, action->irq);
+ 
+ 
+ 	desc = irq_to_desc(action->irq);
 _
 
-Patches currently in -mm which might be from wency@cn.fujitsu.com are
+Patches currently in -mm which might be from alan@linux.intel.com are
 
+fanotify-fix-missing-break.patch
 linux-next.patch
-cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved.patch
-cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
-x86-numa-dont-check-if-node-is-numa_no_node.patch
-x86-make-mem=-option-to-work-for-efi-platform.patch
-memory-hotplug-suppress-device-memoryx-does-not-have-a-release-function-warning.patch
-memory-hotplug-skip-hwpoisoned-page-when-offlining-pages.patch
-memory-hotplug-update-mce_bad_pages-when-removing-the-memory.patch
-memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
-memory-hotplug-auto-offline-page_cgroup-when-onlining-memory-block-failed.patch
-memory-hotplug-fix-nr_free_pages-mismatch.patch
-memory-hotplug-fix-nr_free_pages-mismatchs-fix.patch
-numa-convert-static-memory-to-dynamically-allocated-memory-for-per-node-device.patch
-memory-hotplug-suppress-device-nodex-does-not-have-a-release-function-warning.patch
-memory-hotplug-mm-sparsec-clear-the-memory-to-store-struct-page.patch
-memory-hotplug-allocate-zones-pcp-before-onlining-pages.patch
-memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix.patch
-memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix-2.patch
-memory_hotplug-fix-possible-incorrect-node_states.patch
-slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
-documentation-kernel-parameterstxt-update-mem=-options-spec-according-to-its-implementation.patch
+irq-tsk-comm-is-an-array.patch
+drivers-message-fusion-mptscsihc-missing-break.patch
+binfmt_elf-fix-corner-case-kfree-of-uninitialized-data.patch
+binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
+fork-unshare-remove-dead-code.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting-fix.patch
 
