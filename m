@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-introduce-a-common-interface-for-balloon-pages-mobility-fix.patch added to -mm tree
-Date: Wed, 07 Nov 2012 13:02:18 -0800
-Message-ID: <20121107210219.069405C0050@hpza9.eem.corp.google.com>
+Subject: + drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch added to -mm tree
+Date: Wed, 07 Nov 2012 12:28:42 -0800
+Message-ID: <20121107211813.A305E100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f74.google.com ([209.85.215.74]:42919 "EHLO
-	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752130Ab2KGVCW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Nov 2012 16:02:22 -0500
-Received: by mail-la0-f74.google.com with SMTP id j13so135420lah.1
-        for <mm-commits@vger.kernel.org>; Wed, 07 Nov 2012 13:02:21 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:34157 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751727Ab2KGVSP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Nov 2012 16:18:15 -0500
+Received: by mail-yh0-f74.google.com with SMTP id 10so240351yhl.1
+        for <mm-commits@vger.kernel.org>; Wed, 07 Nov 2012 13:18:14 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andi@firstfloor.org, aquini@redhat.com, konrad.wilk@oracle.com, mel@csn.ul.ie, minchan@kernel.org, mst@redhat.com, riel@redhat.com, rusty@rustcorp.com.au
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, greg@kroah.com
 
 
 The patch titled
-     Subject: mm-introduce-a-common-interface-for-balloon-pages-mobility-fix
+     Subject: drivers/tty/serial/serial_core.c: fix uart_get_attr_port() shift
 has been added to the -mm tree.  Its filename is
-     mm-introduce-a-common-interface-for-balloon-pages-mobility-fix.patch
+     drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-introduce-a-common-interface-for-balloon-pages-mobility-fix
+Subject: drivers/tty/serial/serial_core.c: fix uart_get_attr_port() shift
 
-fix build with CONFIG_BALLOON_COMPACTION=n
+drivers/tty/serial/serial_core.c: In function 'uart_get_attr_port':
+drivers/tty/serial/serial_core.c:2412: warning: left shift count >= width of type
 
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rafael Aquini <aquini@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Greg KH <greg@kroah.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- balloon_compaction.c               |    0 
- include/linux/balloon_compaction.h |    6 ++----
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ drivers/tty/serial/serial_core.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/balloon_compaction.h~mm-introduce-a-common-interface-for-balloon-pages-mobility-fix include/linux/balloon_compaction.h
---- a/include/linux/balloon_compaction.h~mm-introduce-a-common-interface-for-balloon-pages-mobility-fix
-+++ a/include/linux/balloon_compaction.h
-@@ -207,10 +207,8 @@ static inline gfp_t balloon_mapping_gfp_
- 	return GFP_HIGHUSER;
+diff -puN drivers/tty/serial/serial_core.c~drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift drivers/tty/serial/serial_core.c
+--- a/drivers/tty/serial/serial_core.c~drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift
++++ a/drivers/tty/serial/serial_core.c
+@@ -2409,7 +2409,8 @@ static ssize_t uart_get_attr_port(struct
+ 	struct tty_port *port = dev_get_drvdata(dev);
+ 
+ 	uart_get_info(port, &tmp);
+-	return snprintf(buf, PAGE_SIZE, "0x%lX\n", (unsigned long)(tmp.port | (tmp.port_high << HIGH_BITS_OFFSET)));
++	return snprintf(buf, PAGE_SIZE, "0x%lX\n",
++		tmp.port | ((unsigned long)tmp.port_high << HIGH_BITS_OFFSET));
  }
  
--static inline void balloon_event_count(enum vm_event_item item)
--{
--	return;
--}
-+/* A macro, to avoid generating references to the undefined COMPACTBALLOON* */
-+#define balloon_event_count(item) do { } while (0)
- 
- static inline bool balloon_compaction_check(void)
- {
-diff -puN include/linux/migrate.h~mm-introduce-a-common-interface-for-balloon-pages-mobility-fix include/linux/migrate.h
-diff -puN include/linux/pagemap.h~mm-introduce-a-common-interface-for-balloon-pages-mobility-fix include/linux/pagemap.h
-diff -puN mm/Kconfig~mm-introduce-a-common-interface-for-balloon-pages-mobility-fix mm/Kconfig
-diff -puN mm/Makefile~mm-introduce-a-common-interface-for-balloon-pages-mobility-fix mm/Makefile
-diff -puN mm/balloon_compaction.c~mm-introduce-a-common-interface-for-balloon-pages-mobility-fix mm/balloon_compaction.c
+ static ssize_t uart_get_attr_irq(struct device *dev,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -125,4 +111,5 @@ kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module-fix.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
+drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch
 
