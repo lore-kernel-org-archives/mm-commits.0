@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-convert-prepare_copy-from-macro-to-function.patch added to -mm tree
-Date: Wed, 07 Nov 2012 11:21:48 -0800
-Message-ID: <20121107192149.981AE5C0060@hpza9.eem.corp.google.com>
+Subject: + ipc-simplify-message-copying.patch added to -mm tree
+Date: Wed, 07 Nov 2012 11:21:56 -0800
+Message-ID: <20121107192157.0F514100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:55750 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751727Ab2KGTVv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Nov 2012 14:21:51 -0500
-Received: by mail-ee0-f74.google.com with SMTP id b57so133136eek.1
-        for <mm-commits@vger.kernel.org>; Wed, 07 Nov 2012 11:21:50 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:62158 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751727Ab2KGTV6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Nov 2012 14:21:58 -0500
+Received: by mail-vb0-f74.google.com with SMTP id s24so224812vbi.1
+        for <mm-commits@vger.kernel.org>; Wed, 07 Nov 2012 11:21:57 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: skinsbursky@parallels.com, ebiederm@xmission.com, jmorris@namei.org
 
 
 The patch titled
-     Subject: ipc: convert prepare_copy() from macro to function
+     Subject: ipc: simplify message copying
 has been added to the -mm tree.  Its filename is
-     ipc-convert-prepare_copy-from-macro-to-function.patch
+     ipc-simplify-message-copying.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,9 +34,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Stanislav Kinsbursky <skinsbursky@parallels.com>
-Subject: ipc: convert prepare_copy() from macro to function
+Subject: ipc: simplify message copying
 
-This code works if CONFIG_CHECKPOINT_RESTORE is disabled.
+Remvoe the redundant and confusing fill_copy().  Also add copy_msg() check
+for error.  In this case exit from the function have to be done instead of
+break, because further code interprets any error as EAGAIN.
+
+Also define copy_msg() for the case when CONFIG_CHECKPOINT_RESTORE is
+disabled.
 
 Signed-off-by: Stanislav Kinsbursky <skinsbursky@parallels.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -44,38 +49,75 @@ Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ ipc/msg.c     |   25 +++++++++----------------
+ ipc/msgutil.c |    5 +++++
+ 2 files changed, 14 insertions(+), 16 deletions(-)
 
-diff -puN ipc/msg.c~ipc-convert-prepare_copy-from-macro-to-function ipc/msg.c
---- a/ipc/msg.c~ipc-convert-prepare_copy-from-macro-to-function
+diff -puN ipc/msg.c~ipc-simplify-message-copying ipc/msg.c
+--- a/ipc/msg.c~ipc-simplify-message-copying
 +++ a/ipc/msg.c
-@@ -803,8 +803,15 @@ static inline void free_copy(struct msg_
+@@ -770,16 +770,6 @@ static long do_msg_fill(void __user *des
+ }
+ 
+ #ifdef CONFIG_CHECKPOINT_RESTORE
+-static inline struct msg_msg *fill_copy(unsigned long copy_nr,
+-					unsigned long msg_nr,
+-					struct msg_msg *msg,
+-					struct msg_msg *copy)
+-{
+-	if (copy_nr == msg_nr)
+-		return copy_msg(msg, copy);
+-	return NULL;
+-}
+-
+ static inline struct msg_msg *prepare_copy(void __user *buf, size_t bufsz,
+ 					   int msgflg, long *msgtyp,
+ 					   unsigned long *copy_number)
+@@ -803,8 +793,6 @@ static inline void free_copy(struct msg_
  		free_msg(copy);
  }
  #else
--#define prepare_copy(buf, sz, msgflg, msgtyp, copy_nr)	ERR_PTR(-ENOSYS)
- #define fill_copy(copy_nr, msg_nr, msg, copy)		NULL
-+
-+static inline struct msg_msg *prepare_copy(void __user *buf, size_t bufsz,
-+					   int msgflg, long *msgtyp,
-+					   unsigned long *copy_number)
+-#define fill_copy(copy_nr, msg_nr, msg, copy)		NULL
+-
+ static inline struct msg_msg *prepare_copy(void __user *buf, size_t bufsz,
+ 					   int msgflg, long *msgtyp,
+ 					   unsigned long *copy_number)
+@@ -868,11 +856,16 @@ long do_msgrcv(int msqid, void __user *b
+ 						walk_msg->m_type != 1) {
+ 					msgtyp = walk_msg->m_type - 1;
+ 				} else if (msgflg & MSG_COPY) {
+-					msg = fill_copy(copy_number,
+-							msg_counter,
+-							walk_msg, copy);
+-					if (msg)
++					if (copy_number == msg_counter) {
++						/*
++						 * Found requested message.
++						 * Copy it.
++						 */
++						msg = copy_msg(msg, copy);
++						if (IS_ERR(msg))
++							goto out_unlock;
+ 						break;
++					}
+ 				} else
+ 					break;
+ 				msg_counter++;
+diff -puN ipc/msgutil.c~ipc-simplify-message-copying ipc/msgutil.c
+--- a/ipc/msgutil.c~ipc-simplify-message-copying
++++ a/ipc/msgutil.c
+@@ -138,6 +138,11 @@ struct msg_msg *copy_msg(struct msg_msg 
+ 
+ 	return dst;
+ }
++#else
++struct msg_msg *copy_msg(struct msg_msg *src, struct msg_msg *dst)
 +{
 +	return ERR_PTR(-ENOSYS);
 +}
-+
- static inline void free_copy(struct msg_msg *copy)
+ #endif
+ int store_msg(void __user *dest, struct msg_msg *msg, int len)
  {
- }
-@@ -819,7 +826,7 @@ long do_msgrcv(int msqid, void __user *b
- 	int mode;
- 	struct ipc_namespace *ns;
- 	struct msg_msg *copy = NULL;
--	unsigned long __maybe_unused copy_number;
-+	unsigned long __maybe_unused copy_number = 0;
- 
- 	if (msqid < 0 || (long) bufsz < 0)
- 		return -EINVAL;
 _
 
 Patches currently in -mm which might be from skinsbursky@parallels.com are
