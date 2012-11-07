@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-simplify-free_copy-call.patch added to -mm tree
-Date: Wed, 07 Nov 2012 11:21:43 -0800
-Message-ID: <20121107192145.D70E25C0060@hpza9.eem.corp.google.com>
+Subject: + ipc-convert-prepare_copy-from-macro-to-function.patch added to -mm tree
+Date: Wed, 07 Nov 2012 11:21:48 -0800
+Message-ID: <20121107192149.981AE5C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-ee0-f74.google.com ([74.125.83.74]:55750 "EHLO
 	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751727Ab2KGTVs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Nov 2012 14:21:48 -0500
+	with ESMTP id S1751727Ab2KGTVv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Nov 2012 14:21:51 -0500
 Received: by mail-ee0-f74.google.com with SMTP id b57so133136eek.1
-        for <mm-commits@vger.kernel.org>; Wed, 07 Nov 2012 11:21:47 -0800 (PST)
+        for <mm-commits@vger.kernel.org>; Wed, 07 Nov 2012 11:21:50 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: skinsbursky@parallels.com, ebiederm@xmission.com, jmorris@namei.org
 
 
 The patch titled
-     Subject: ipc: simplify free_copy() call
+     Subject: ipc: convert prepare_copy() from macro to function
 has been added to the -mm tree.  Its filename is
-     ipc-simplify-free_copy-call.patch
+     ipc-convert-prepare_copy-from-macro-to-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Stanislav Kinsbursky <skinsbursky@parallels.com>
-Subject: ipc: simplify free_copy() call
+Subject: ipc: convert prepare_copy() from macro to function
 
-Passing and checking of msgflg to free_copy() is redundant.  This patch
-sets copy to NULL on declaration instead and checks for non-NULL in
-free_copy().
-
-Note: in case of copy allocation failure, error is returned immediately. 
-So no need to check for IS_ERR() in free_copy().
+This code works if CONFIG_CHECKPOINT_RESTORE is disabled.
 
 Signed-off-by: Stanislav Kinsbursky <skinsbursky@parallels.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -49,60 +44,38 @@ Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ ipc/msg.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN ipc/msg.c~ipc-simplify-free_copy-call ipc/msg.c
---- a/ipc/msg.c~ipc-simplify-free_copy-call
+diff -puN ipc/msg.c~ipc-convert-prepare_copy-from-macro-to-function ipc/msg.c
+--- a/ipc/msg.c~ipc-convert-prepare_copy-from-macro-to-function
 +++ a/ipc/msg.c
-@@ -797,15 +797,17 @@ static inline struct msg_msg *prepare_co
- 	return copy;
- }
- 
--static inline void free_copy(int msgflg, struct msg_msg *copy)
-+static inline void free_copy(struct msg_msg *copy)
- {
--	if (msgflg & MSG_COPY)
-+	if (copy)
+@@ -803,8 +803,15 @@ static inline void free_copy(struct msg_
  		free_msg(copy);
  }
  #else
--#define free_copy(msgflg, copy)				do {} while (0)
- #define prepare_copy(buf, sz, msgflg, msgtyp, copy_nr)	ERR_PTR(-ENOSYS)
+-#define prepare_copy(buf, sz, msgflg, msgtyp, copy_nr)	ERR_PTR(-ENOSYS)
  #define fill_copy(copy_nr, msg_nr, msg, copy)		NULL
-+static inline void free_copy(struct msg_msg *copy)
++
++static inline struct msg_msg *prepare_copy(void __user *buf, size_t bufsz,
++					   int msgflg, long *msgtyp,
++					   unsigned long *copy_number)
 +{
++	return ERR_PTR(-ENOSYS);
 +}
- #endif
- 
- long do_msgrcv(int msqid, void __user *buf, size_t bufsz, long msgtyp,
-@@ -816,7 +818,7 @@ long do_msgrcv(int msqid, void __user *b
- 	struct msg_msg *msg;
++
+ static inline void free_copy(struct msg_msg *copy)
+ {
+ }
+@@ -819,7 +826,7 @@ long do_msgrcv(int msqid, void __user *b
  	int mode;
  	struct ipc_namespace *ns;
--	struct msg_msg *copy;
-+	struct msg_msg *copy = NULL;
- 	unsigned long __maybe_unused copy_number;
+ 	struct msg_msg *copy = NULL;
+-	unsigned long __maybe_unused copy_number;
++	unsigned long __maybe_unused copy_number = 0;
  
  	if (msqid < 0 || (long) bufsz < 0)
-@@ -831,7 +833,7 @@ long do_msgrcv(int msqid, void __user *b
- 
- 	msq = msg_lock_check(ns, msqid);
- 	if (IS_ERR(msq)) {
--		free_copy(msgflg, copy);
-+		free_copy(copy);
- 		return PTR_ERR(msq);
- 	}
- 
-@@ -965,7 +967,7 @@ out_unlock:
- 		}
- 	}
- 	if (IS_ERR(msg)) {
--		free_copy(msgflg, copy);
-+		free_copy(copy);
- 		return PTR_ERR(msg);
- 	}
- 
+ 		return -EINVAL;
 _
 
 Patches currently in -mm which might be from skinsbursky@parallels.com are
