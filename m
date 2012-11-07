@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch added to -mm tree
-Date: Wed, 07 Nov 2012 13:28:58 -0800
-Message-ID: <20121107212858.CA5FA100047@wpzn3.hot.corp.google.com>
+Subject: + mm-adjust-address_space_operationsmigratepage-return-code-fix.patch added to -mm tree
+Date: Wed, 07 Nov 2012 13:56:41 -0800
+Message-ID: <20121107215642.13538100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:65320 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751909Ab2KGV3A (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Nov 2012 16:29:00 -0500
-Received: by mail-qc0-f202.google.com with SMTP id s25so239951qcq.1
-        for <mm-commits@vger.kernel.org>; Wed, 07 Nov 2012 13:28:59 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:49354 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751149Ab2KGV4n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Nov 2012 16:56:43 -0500
+Received: by mail-qa0-f74.google.com with SMTP id a16so252206qae.1
+        for <mm-commits@vger.kernel.org>; Wed, 07 Nov 2012 13:56:42 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, greg@kroah.com
+Cc: akpm@linux-foundation.org, aquini@redhat.com
 
 
 The patch titled
-     Subject: drivers/tty/serial/serial_core.c: fix uart_get_attr_port() shift
+     Subject: mm-adjust-address_space_operationsmigratepage-return-code-fix
 has been added to the -mm tree.  Its filename is
-     drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch
+     mm-adjust-address_space_operationsmigratepage-return-code-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/tty/serial/serial_core.c: fix uart_get_attr_port() shift
+Subject: mm-adjust-address_space_operationsmigratepage-return-code-fix
 
-drivers/tty/serial/serial_core.c: In function 'uart_get_attr_port':
-drivers/tty/serial/serial_core.c:2412: warning: left shift count >= width of type
-
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Rafael Aquini <aquini@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/serial/serial_core.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/migrate.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN drivers/tty/serial/serial_core.c~drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift drivers/tty/serial/serial_core.c
---- a/drivers/tty/serial/serial_core.c~drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift
-+++ a/drivers/tty/serial/serial_core.c
-@@ -2407,9 +2407,13 @@ static ssize_t uart_get_attr_port(struct
- {
- 	struct serial_struct tmp;
- 	struct tty_port *port = dev_get_drvdata(dev);
-+	unsigned long ioaddr;
+diff -puN mm/migrate.c~mm-adjust-address_space_operationsmigratepage-return-code-fix mm/migrate.c
+--- a/mm/migrate.c~mm-adjust-address_space_operationsmigratepage-return-code-fix
++++ a/mm/migrate.c
+@@ -996,15 +996,12 @@ int migrate_pages(struct list_head *from
+ 			}
+ 		}
+ 	}
+-	rc = 0;
++	rc = nr_failed + retry;
+ out:
+ 	if (!swapwrite)
+ 		current->flags &= ~PF_SWAPWRITE;
  
- 	uart_get_info(port, &tmp);
--	return snprintf(buf, PAGE_SIZE, "0x%lX\n", (unsigned long)(tmp.port | (tmp.port_high << HIGH_BITS_OFFSET)));
-+	ioaddr = tmp.port;
-+	if (HIGH_BITS_OFFSET)
-+		ioaddr |= (unsigned long)tmp.port_high << HIGH_BITS_OFFSET;
-+	return snprintf(buf, PAGE_SIZE, "0x%lX\n", ioaddr);
+-	if (rc != MIGRATEPAGE_SUCCESS)
+-		return rc;
+-
+-	return nr_failed + retry;
++	return rc;
  }
  
- static ssize_t uart_get_attr_irq(struct device *dev,
+ int migrate_huge_page(struct page *hpage, new_page_t get_new_page,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -94,6 +93,7 @@ mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
 mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
 mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
 mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
+mm-adjust-address_space_operationsmigratepage-return-code-fix.patch
 mm-introduce-a-common-interface-for-balloon-pages-mobility-fix.patch
 drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
 swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
