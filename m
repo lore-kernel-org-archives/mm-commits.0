@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-fixed-documentation-security-00-index.patch added to -mm tree
-Date: Tue, 06 Nov 2012 16:38:51 -0800
-Message-ID: <20121107003851.77CDB100047@wpzn3.hot.corp.google.com>
+Subject: + rtc-avoid-calling-platform_device_put-twice-in-test_init.patch added to -mm tree
+Date: Tue, 06 Nov 2012 16:52:33 -0800
+Message-ID: <20121107005234.BA9F320004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:48350 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753325Ab2KGAiw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2012 19:38:52 -0500
-Received: by mail-qc0-f202.google.com with SMTP id s25so120938qcq.1
-        for <mm-commits@vger.kernel.org>; Tue, 06 Nov 2012 16:38:52 -0800 (PST)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:44729 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753320Ab2KGAwh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2012 19:52:37 -0500
+Received: by mail-wg0-f74.google.com with SMTP id dt11so70316wgb.1
+        for <mm-commits@vger.kernel.org>; Tue, 06 Nov 2012 16:52:35 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jarkko.sakkinen@intel.com
+Cc: yongjun_wei@trendmicro.com.cn, a.zummo@towertech.it
 
 
 The patch titled
-     Subject: Documentation: fix Documentation/security/00-INDEX
+     Subject: drivers/rtc/rtc-test.c: avoid calling platform_device_put() twice
 has been added to the -mm tree.  Its filename is
-     documentation-fixed-documentation-security-00-index.patch
+     rtc-avoid-calling-platform_device_put-twice-in-test_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,33 +33,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jarkko Sakkinen <jarkko.sakkinen@intel.com>
-Subject: Documentation: fix Documentation/security/00-INDEX
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Subject: drivers/rtc/rtc-test.c: avoid calling platform_device_put() twice
 
-keys-ecryptfs.txt was missing from 00-INDEX.
+In case of error, test_init() needs to call platform_device_del() instead
+of platform_device_unregister().  Otherwise, we may call
+platform_device_put() twice.
 
-Signed-off-by: Jarkko Sakkinen <jarkko.sakkinen@intel.com>
+dpatch engine is used to auto generate this patch.
+(https://github.com/weiyj/dpatch)
+
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/security/00-INDEX |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/rtc/rtc-test.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/security/00-INDEX~documentation-fixed-documentation-security-00-index Documentation/security/00-INDEX
---- a/Documentation/security/00-INDEX~documentation-fixed-documentation-security-00-index
-+++ a/Documentation/security/00-INDEX
-@@ -12,6 +12,8 @@ apparmor.txt
- 	- documentation on the AppArmor security extension.
- credentials.txt
- 	- documentation about credentials in Linux.
-+keys-ecryptfs.txt
-+	- description of the encryption keys for the ecryptfs filesystem.
- keys-request-key.txt
- 	- description of the kernel key request service.
- keys-trusted-encrypted.txt
+diff -puN drivers/rtc/rtc-test.c~rtc-avoid-calling-platform_device_put-twice-in-test_init drivers/rtc/rtc-test.c
+--- a/drivers/rtc/rtc-test.c~rtc-avoid-calling-platform_device_put-twice-in-test_init
++++ a/drivers/rtc/rtc-test.c
+@@ -164,7 +164,7 @@ static int __init test_init(void)
+ 	return 0;
+ 
+ exit_device_unregister:
+-	platform_device_unregister(test0);
++	platform_device_del(test0);
+ 
+ exit_free_test1:
+ 	platform_device_put(test1);
 _
 
-Patches currently in -mm which might be from jarkko.sakkinen@intel.com are
+Patches currently in -mm which might be from yongjun_wei@trendmicro.com.cn are
 
-documentation-fixed-documentation-security-00-index.patch
+linux-next.patch
+procfs-use-kbasename-fix.patch
+rtc-avoid-calling-platform_device_put-twice-in-test_init.patch
+rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
 
