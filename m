@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-oom-fix-totalpages-calculation-for-memoryswappiness==0.patch added to -mm tree
-Date: Wed, 07 Nov 2012 14:11:37 -0800
-Message-ID: <20121107221138.AF8EA20004E@hpza10.eem.corp.google.com>
+Subject: + memcg-oom-fix-totalpages-calculation-for-memoryswappiness==0-fix.patch added to -mm tree
+Date: Wed, 07 Nov 2012 14:11:41 -0800
+Message-ID: <20121107221142.9D3E95C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:60570 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752188Ab2KGWLl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Nov 2012 17:11:41 -0500
-Received: by mail-ee0-f74.google.com with SMTP id b57so139233eek.1
-        for <mm-commits@vger.kernel.org>; Wed, 07 Nov 2012 14:11:40 -0800 (PST)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:49966 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753421Ab2KGWLp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Nov 2012 17:11:45 -0500
+Received: by mail-wg0-f74.google.com with SMTP id dt11so138490wgb.1
+        for <mm-commits@vger.kernel.org>; Wed, 07 Nov 2012 14:11:44 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: mhocko@suse.cz, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.m
 
 
 The patch titled
-     Subject: memcg: oom: fix totalpages calculation for memory.swappiness==0
+     Subject: doc: describe memcg swappiness more precisely
 has been added to the -mm tree.  Its filename is
-     memcg-oom-fix-totalpages-calculation-for-memoryswappiness==0.patch
+     memcg-oom-fix-totalpages-calculation-for-memoryswappiness==0-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,73 +34,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg: oom: fix totalpages calculation for memory.swappiness==0
+Subject: doc: describe memcg swappiness more precisely
 
-oom_badness() takes a totalpages argument which says how many pages are
-available and it uses it as a base for the score calculation.  The value
-is calculated by mem_cgroup_get_limit which considers both limit and
-total_swap_pages (resp.  memsw portion of it).
-
-This is usually correct but since fe35004f ("mm: avoid swapping out with
-swappiness==0") we do not swap when swappiness is 0 which means that we
-cannot really use up all the totalpages pages.  This in turn confuses oom
-score calculation if the memcg limit is much smaller than the available
-swap because the used memory (capped by the limit) is negligible comparing
-to totalpages so the resulting score is too small if adj!=0 (typically
-task with CAP_SYS_ADMIN or non zero oom_score_adj).  A wrong process might
-be selected as result.
-
-The problem can be worked around by checking mem_cgroup_swappiness==0 and
-not considering swap at all in such a case.
+since fe35004f (mm: avoid swapping out with swappiness==0) memcg reclaim
+stopped swapping out anon pages completely when 0 value is used.
+Although this is somehow expected it hasn't been done for a really long
+time this way and so it is probably better to be explicit about the
+effect. Moreover global reclaim swapps out even when swappiness is 0
+to prevent from OOM killer.
 
 Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   21 +++++++++++++++------
- 1 file changed, 15 insertions(+), 6 deletions(-)
+ Documentation/cgroups/memory.txt |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN mm/memcontrol.c~memcg-oom-fix-totalpages-calculation-for-memoryswappiness==0 mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-oom-fix-totalpages-calculation-for-memoryswappiness==0
-+++ a/mm/memcontrol.c
-@@ -1591,17 +1591,26 @@ static int mem_cgroup_count_children(str
- static u64 mem_cgroup_get_limit(struct mem_cgroup *memcg)
- {
- 	u64 limit;
--	u64 memsw;
+diff -puN Documentation/cgroups/memory.txt~memcg-oom-fix-totalpages-calculation-for-memoryswappiness==0-fix Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~memcg-oom-fix-totalpages-calculation-for-memoryswappiness==0-fix
++++ a/Documentation/cgroups/memory.txt
+@@ -530,6 +530,10 @@ Note:
+ 5.3 swappiness
  
- 	limit = res_counter_read_u64(&memcg->res, RES_LIMIT);
--	limit += total_swap_pages << PAGE_SHIFT;
+ Similar to /proc/sys/vm/swappiness, but affecting a hierarchy of groups only.
++Please note that unlike the global swappiness, memcg knob set to 0
++really prevents from any swapping even if there is a swap storage
++available. This might lead to memcg OOM killer if there are no file
++pages to reclaim.
  
--	memsw = res_counter_read_u64(&memcg->memsw, RES_LIMIT);
- 	/*
--	 * If memsw is finite and limits the amount of swap space available
--	 * to this memcg, return that limit.
-+	 * Do not consider swap space if we cannot swap due to swappiness
- 	 */
--	return min(limit, memsw);
-+	if (mem_cgroup_swappiness(memcg)) {
-+		u64 memsw;
-+
-+		limit += total_swap_pages << PAGE_SHIFT;
-+		memsw = res_counter_read_u64(&memcg->memsw, RES_LIMIT);
-+
-+		/*
-+		 * If memsw is finite and limits the amount of swap space
-+		 * available to this memcg, return that limit.
-+		 */
-+		limit = min(limit, memsw);
-+	}
-+
-+	return limit;
- }
- 
- static void mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask,
+ Following cgroups' swappiness can't be changed.
+ - root cgroup (uses /proc/sys/vm/swappiness).
 _
 
 Patches currently in -mm which might be from mhocko@suse.cz are
