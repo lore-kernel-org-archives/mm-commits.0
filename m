@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch added to -mm tree
-Date: Tue, 06 Nov 2012 16:52:37 -0800
-Message-ID: <20121107005238.1C2CE100047@wpzn3.hot.corp.google.com>
+Subject: + ipc-simplify-free_copy-call.patch added to -mm tree
+Date: Wed, 07 Nov 2012 11:21:43 -0800
+Message-ID: <20121107192145.D70E25C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:57266 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753320Ab2KGAwj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Nov 2012 19:52:39 -0500
-Received: by mail-qc0-f202.google.com with SMTP id s25so122737qcq.1
-        for <mm-commits@vger.kernel.org>; Tue, 06 Nov 2012 16:52:38 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:55750 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751727Ab2KGTVs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Nov 2012 14:21:48 -0500
+Received: by mail-ee0-f74.google.com with SMTP id b57so133136eek.1
+        for <mm-commits@vger.kernel.org>; Wed, 07 Nov 2012 11:21:47 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, a.zummo@towertech.it, yongjun_wei@trendmicro.com.cn
+Cc: skinsbursky@parallels.com, ebiederm@xmission.com, jmorris@namei.org
 
 
 The patch titled
-     Subject: rtc-avoid-calling-platform_device_put-twice-in-test_init-fix
+     Subject: ipc: simplify free_copy() call
 has been added to the -mm tree.  Its filename is
-     rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
+     ipc-simplify-free_copy-call.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,100 +33,97 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: rtc-avoid-calling-platform_device_put-twice-in-test_init-fix
+From: Stanislav Kinsbursky <skinsbursky@parallels.com>
+Subject: ipc: simplify free_copy() call
 
-improve label naming
+Passing and checking of msgflg to free_copy() is redundant.  This patch
+sets copy to NULL on declaration instead and checks for non-NULL in
+free_copy().
 
-Cc: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Note: in case of copy allocation failure, error is returned immediately. 
+So no need to check for IS_ERR() in free_copy().
+
+Signed-off-by: Stanislav Kinsbursky <skinsbursky@parallels.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-test.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ ipc/msg.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN drivers/rtc/rtc-test.c~rtc-avoid-calling-platform_device_put-twice-in-test_init-fix drivers/rtc/rtc-test.c
---- a/drivers/rtc/rtc-test.c~rtc-avoid-calling-platform_device_put-twice-in-test_init-fix
-+++ a/drivers/rtc/rtc-test.c
-@@ -152,24 +152,24 @@ static int __init test_init(void)
+diff -puN ipc/msg.c~ipc-simplify-free_copy-call ipc/msg.c
+--- a/ipc/msg.c~ipc-simplify-free_copy-call
++++ a/ipc/msg.c
+@@ -797,15 +797,17 @@ static inline struct msg_msg *prepare_co
+ 	return copy;
+ }
  
- 	if ((test1 = platform_device_alloc("rtc-test", 1)) == NULL) {
- 		err = -ENOMEM;
--		goto exit_free_test0;
-+		goto exit_put_test0;
+-static inline void free_copy(int msgflg, struct msg_msg *copy)
++static inline void free_copy(struct msg_msg *copy)
+ {
+-	if (msgflg & MSG_COPY)
++	if (copy)
+ 		free_msg(copy);
+ }
+ #else
+-#define free_copy(msgflg, copy)				do {} while (0)
+ #define prepare_copy(buf, sz, msgflg, msgtyp, copy_nr)	ERR_PTR(-ENOSYS)
+ #define fill_copy(copy_nr, msg_nr, msg, copy)		NULL
++static inline void free_copy(struct msg_msg *copy)
++{
++}
+ #endif
+ 
+ long do_msgrcv(int msqid, void __user *buf, size_t bufsz, long msgtyp,
+@@ -816,7 +818,7 @@ long do_msgrcv(int msqid, void __user *b
+ 	struct msg_msg *msg;
+ 	int mode;
+ 	struct ipc_namespace *ns;
+-	struct msg_msg *copy;
++	struct msg_msg *copy = NULL;
+ 	unsigned long __maybe_unused copy_number;
+ 
+ 	if (msqid < 0 || (long) bufsz < 0)
+@@ -831,7 +833,7 @@ long do_msgrcv(int msqid, void __user *b
+ 
+ 	msq = msg_lock_check(ns, msqid);
+ 	if (IS_ERR(msq)) {
+-		free_copy(msgflg, copy);
++		free_copy(copy);
+ 		return PTR_ERR(msq);
  	}
  
- 	if ((err = platform_device_add(test0)))
--		goto exit_free_test1;
-+		goto exit_put_test1;
+@@ -965,7 +967,7 @@ out_unlock:
+ 		}
+ 	}
+ 	if (IS_ERR(msg)) {
+-		free_copy(msgflg, copy);
++		free_copy(copy);
+ 		return PTR_ERR(msg);
+ 	}
  
- 	if ((err = platform_device_add(test1)))
--		goto exit_device_unregister;
-+		goto exit_del_test0;
- 
- 	return 0;
- 
--exit_device_unregister:
-+exit_del_test0:
- 	platform_device_del(test0);
- 
--exit_free_test1:
-+exit_put_test1:
- 	platform_device_put(test1);
- 
--exit_free_test0:
-+exit_put_test0:
- 	platform_device_put(test0);
- 
- exit_driver_unregister:
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from skinsbursky@parallels.com are
 
-revert-tools-testing-selftests-epoll-test_epollc-fix-build.patch
-revert-epoll-support-for-disabling-items-and-a-self-test-app.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-irq-tsk-comm-is-an-array-fix.patch
-mm.patch
-mm-introduce-mm_find_pmd-fix.patch
-memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
-slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
-mmvmscan-only-evict-file-pages-when-we-have-plenty-fix.patch
-slub-slub-specific-propagation-changes-fix.patch
-dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix.patch
-mm-check-rb_subtree_gap-correctness-fix.patch
-mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
-mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
-mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
-mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
-drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
-rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
-hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
-procfs-add-vmflags-field-in-smaps-output-v4.patch
-procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
+proc-check-vma-vm_file-before-dereferencing.patch
+ipc-remove-forced-assignment-of-selected-message.patch
+ipc-add-sysctl-to-specify-desired-next-object-id.patch
 ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
+ipc-add-sysctl-to-specify-desired-next-object-id-wrap-new-sysctls-for-criu-inside-config_checkpoint_restore.patch
+ipc-add-sysctl-to-specify-desired-next-object-id-documentation-update-sysctl-kerneltxt.patch
+ipc-message-queue-receive-cleanup.patch
 ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+ipc-message-queue-copy-feature-introduced.patch
+ipc-message-queue-copy-feature-introduced-remove-redundant-msg_copy-check.patch
+ipc-message-queue-copy-feature-introduced-cleanup-do_msgrcv-aroung-msg_copy-feature.patch
+selftests-ipc-message-queue-copy-feature-test.patch
+selftests-ipc-message-queue-copy-feature-test-update.patch
+ipc-simplify-free_copy-call.patch
+ipc-convert-prepare_copy-from-macro-to-function.patch
+ipc-convert-prepare_copy-from-macro-to-function-fix.patch
+ipc-simplify-message-copying.patch
+ipc-add-more-comments-to-message-copying-related-code.patch
 
