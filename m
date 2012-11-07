@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
 Subject: + drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch added to -mm tree
-Date: Wed, 07 Nov 2012 12:28:42 -0800
-Message-ID: <20121107211813.A305E100047@wpzn3.hot.corp.google.com>
+Date: Wed, 07 Nov 2012 13:28:58 -0800
+Message-ID: <20121107212858.CA5FA100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:34157 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751727Ab2KGVSP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Nov 2012 16:18:15 -0500
-Received: by mail-yh0-f74.google.com with SMTP id 10so240351yhl.1
-        for <mm-commits@vger.kernel.org>; Wed, 07 Nov 2012 13:18:14 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:65320 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751909Ab2KGV3A (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Nov 2012 16:29:00 -0500
+Received: by mail-qc0-f202.google.com with SMTP id s25so239951qcq.1
+        for <mm-commits@vger.kernel.org>; Wed, 07 Nov 2012 13:28:59 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -44,19 +44,24 @@ Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/serial/serial_core.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/tty/serial/serial_core.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
 diff -puN drivers/tty/serial/serial_core.c~drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift drivers/tty/serial/serial_core.c
 --- a/drivers/tty/serial/serial_core.c~drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift
 +++ a/drivers/tty/serial/serial_core.c
-@@ -2409,7 +2409,8 @@ static ssize_t uart_get_attr_port(struct
+@@ -2407,9 +2407,13 @@ static ssize_t uart_get_attr_port(struct
+ {
+ 	struct serial_struct tmp;
  	struct tty_port *port = dev_get_drvdata(dev);
++	unsigned long ioaddr;
  
  	uart_get_info(port, &tmp);
 -	return snprintf(buf, PAGE_SIZE, "0x%lX\n", (unsigned long)(tmp.port | (tmp.port_high << HIGH_BITS_OFFSET)));
-+	return snprintf(buf, PAGE_SIZE, "0x%lX\n",
-+		tmp.port | ((unsigned long)tmp.port_high << HIGH_BITS_OFFSET));
++	ioaddr = tmp.port;
++	if (HIGH_BITS_OFFSET)
++		ioaddr |= (unsigned long)tmp.port_high << HIGH_BITS_OFFSET;
++	return snprintf(buf, PAGE_SIZE, "0x%lX\n", ioaddr);
  }
  
  static ssize_t uart_get_attr_irq(struct device *dev,
