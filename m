@@ -1,79 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: + mm-introduce-a-common-interface-for-balloon-pages-mobility-fix-fix.patch added to -mm tree
-Date: Wed, 07 Nov 2012 16:42:28 -0800
-Message-ID: <20121108004228.8AEF1100048@wpzn3.hot.corp.google.com>
+Subject: [failures] memory-hotplug-fix-nr_free_pages-mismatchs-fix.patch removed from -mm tree
+Date: Wed, 07 Nov 2012 17:00:43 -0800
+Message-ID: <20121108010044.44086100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:62657 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754691Ab2KHAm3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Nov 2012 19:42:29 -0500
-Received: by mail-vc0-f202.google.com with SMTP id fy27so264007vcb.1
-        for <mm-commits@vger.kernel.org>; Wed, 07 Nov 2012 16:42:29 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:64275 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754701Ab2KHBAp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Nov 2012 20:00:45 -0500
+Received: by mail-ye0-f202.google.com with SMTP id r11so268379yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 07 Nov 2012 17:00:44 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: aquini@redhat.com
+To: wency@cn.fujitsu.com, wujianguo106@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-introduce-a-common-interface-for-balloon-pages-mobility-fix-fix
-has been added to the -mm tree.  Its filename is
-     mm-introduce-a-common-interface-for-balloon-pages-mobility-fix-fix.patch
+     Subject: memory-hotplug-fix-nr_free_pages-mismatchs-fix
+has been removed from the -mm tree.  Its filename was
+     memory-hotplug-fix-nr_free_pages-mismatchs-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Rafael Aquini <aquini@redhat.com>
-Subject: mm-introduce-a-common-interface-for-balloon-pages-mobility-fix-fix
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: memory-hotplug-fix-nr_free_pages-mismatchs-fix
 
+When a page is freed and put into pcp list, get_freepage_migratetype()
+doesn't return MIGRATE_ISOLATE even if this pageblock is isolated.
+So we should use get_pageblock_migratetype() instead of mt to check
+whether it is isolated.
 
-
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+Reported-by: Jianguo Wu <wujianguo106@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Makefile |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/Makefile~mm-introduce-a-common-interface-for-balloon-pages-mobility-fix-fix mm/Makefile
---- a/mm/Makefile~mm-introduce-a-common-interface-for-balloon-pages-mobility-fix-fix
-+++ a/mm/Makefile
-@@ -16,7 +16,8 @@ obj-y			:= filemap.o mempool.o oom_kill.
- 			   readahead.o swap.o truncate.o vmscan.o shmem.o \
- 			   util.o mmzone.o vmstat.o backing-dev.o \
- 			   mm_init.o mmu_context.o percpu.o slab_common.o \
--			   compaction.o interval_tree.o $(mmu-y)
-+			   compaction.o balloon_compaction.o \
-+			   interval_tree.o $(mmu-y)
- 
- obj-y += init-mm.o
- 
-@@ -57,4 +58,3 @@ obj-$(CONFIG_DEBUG_KMEMLEAK) += kmemleak
- obj-$(CONFIG_DEBUG_KMEMLEAK_TEST) += kmemleak-test.o
- obj-$(CONFIG_CLEANCACHE) += cleancache.o
- obj-$(CONFIG_MEMORY_ISOLATION) += page_isolation.o
--obj-$(CONFIG_BALLOON_COMPACTION) += balloon_compaction.o
+diff -puN mm/page_alloc.c~memory-hotplug-fix-nr_free_pages-mismatchs-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~memory-hotplug-fix-nr_free_pages-mismatchs-fix
++++ a/mm/page_alloc.c
+@@ -666,7 +666,7 @@ static void free_pcppages_bulk(struct zo
+ 			/* MIGRATE_MOVABLE list may include MIGRATE_RESERVEs */
+ 			__free_one_page(page, zone, 0, mt);
+ 			trace_mm_page_pcpu_drain(page, 0, mt);
+-			if (likely(mt != MIGRATE_ISOLATE)) {
++			if (likely(mt != get_pageblock_migratetype(page))) {
+ 				__mod_zone_page_state(zone, NR_FREE_PAGES, 1);
+ 				if (is_migrate_cma(mt))
+ 					__mod_zone_page_state(zone, NR_FREE_CMA_PAGES, 1);
 _
 
-Patches currently in -mm which might be from aquini@redhat.com are
+Patches currently in -mm which might be from wency@cn.fujitsu.com are
 
-mm-adjust-address_space_operationsmigratepage-return-code.patch
-mm-adjust-address_space_operationsmigratepage-return-code-fix.patch
-mm-redefine-address_spaceassoc_mapping.patch
-mm-introduce-a-common-interface-for-balloon-pages-mobility.patch
-mm-introduce-a-common-interface-for-balloon-pages-mobility-fix.patch
-mm-introduce-a-common-interface-for-balloon-pages-mobility-fix-fix.patch
-mm-introduce-compaction-and-migration-for-ballooned-pages.patch
-virtio_balloon-introduce-migration-primitives-to-balloon-pages.patch
-mm-introduce-putback_movable_pages.patch
-mm-add-vm-event-counters-for-balloon-pages-compaction.patch
+linux-next.patch
+cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved.patch
+cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
+x86-numa-dont-check-if-node-is-numa_no_node.patch
+x86-make-mem=-option-to-work-for-efi-platform.patch
+memory-hotplug-suppress-device-memoryx-does-not-have-a-release-function-warning.patch
+memory-hotplug-skip-hwpoisoned-page-when-offlining-pages.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
+memory-hotplug-auto-offline-page_cgroup-when-onlining-memory-block-failed.patch
+memory-hotplug-fix-nr_free_pages-mismatch.patch
+numa-convert-static-memory-to-dynamically-allocated-memory-for-per-node-device.patch
+memory-hotplug-suppress-device-nodex-does-not-have-a-release-function-warning.patch
+memory-hotplug-mm-sparsec-clear-the-memory-to-store-struct-page.patch
+memory-hotplug-allocate-zones-pcp-before-onlining-pages.patch
+memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix.patch
+memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix-2.patch
+memory_hotplug-fix-possible-incorrect-node_states.patch
+slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
+mm-memory_hotplugc-update-start_pfn-in-zone-and-pg_data-when-spanned_pages-==-0.patch
+documentation-kernel-parameterstxt-update-mem=-options-spec-according-to-its-implementation.patch
 
