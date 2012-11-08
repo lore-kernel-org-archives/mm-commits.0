@@ -1,36 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + selftests-add-a-test-program-for-variable-huge-page-sizes-in-mmap-shmget-fix.patch added to -mm tree
-Date: Thu, 08 Nov 2012 13:30:00 -0800
-Message-ID: <20121108213001.E94CB5C0060@hpza9.eem.corp.google.com>
+Subject: [withdrawn] selftests-add-a-test-program-for-variable-huge-page-sizes-in-mmap-shmget-fix.patch removed from -mm tree
+Date: Thu, 08 Nov 2012 14:06:32 -0800
+Message-ID: <20121108220633.2651E100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f202.google.com ([209.85.215.202]:54017 "EHLO
-	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756660Ab2KHVaE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2012 16:30:04 -0500
-Received: by mail-ea0-f202.google.com with SMTP id q10so208862eaa.1
-        for <mm-commits@vger.kernel.org>; Thu, 08 Nov 2012 13:30:03 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:38847 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757207Ab2KHWGe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2012 17:06:34 -0500
+Received: by mail-vb0-f74.google.com with SMTP id s24so389895vbi.1
+        for <mm-commits@vger.kernel.org>; Thu, 08 Nov 2012 14:06:33 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@linux.intel.com
+To: akpm@linux-foundation.org, ak@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      Subject: selftests-add-a-test-program-for-variable-huge-page-sizes-in-mmap-shmget-fix
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      selftests-add-a-test-program-for-variable-huge-page-sizes-in-mmap-shmget-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
@@ -78,7 +68,6 @@ slub-slub-specific-propagation-changes-fix.patch
 dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
 mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix.patch
 mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix.patch
-selftests-add-a-test-program-for-variable-huge-page-sizes-in-mmap-shmget-fix.patch
 mm-check-rb_subtree_gap-correctness-fix.patch
 mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
 mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
