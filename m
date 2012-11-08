@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + aoe-manipulate-aoedev-network-stats-under-lock.patch added to -mm tree
-Date: Thu, 08 Nov 2012 11:26:52 -0800
-Message-ID: <20121108192653.2869B100056@wpzn3.hot.corp.google.com>
+Subject: + aoe-err-device-include-mac-addresses-for-unexpected-responses.patch added to -mm tree
+Date: Thu, 08 Nov 2012 11:26:49 -0800
+Message-ID: <20121108192650.A5C5220004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:50863 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756705Ab2KHT0x (ORCPT
+Received: from mail-la0-f74.google.com ([209.85.215.74]:36632 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756696Ab2KHT0x (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2012 14:26:53 -0500
-Received: by mail-qc0-f202.google.com with SMTP id s25so364782qcq.1
-        for <mm-commits@vger.kernel.org>; Thu, 08 Nov 2012 11:26:53 -0800 (PST)
+Received: by mail-la0-f74.google.com with SMTP id j13so204056lah.1
+        for <mm-commits@vger.kernel.org>; Thu, 08 Nov 2012 11:26:51 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: ecashin@coraid.com
 
 
 The patch titled
-     Subject: aoe: manipulate aoedev network stats under lock
+     Subject: aoe: err device: include MAC addresses for unexpected responses
 has been added to the -mm tree.  Its filename is
-     aoe-manipulate-aoedev-network-stats-under-lock.patch
+     aoe-err-device-include-mac-addresses-for-unexpected-responses.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ed Cashin <ecashin@coraid.com>
-Subject: aoe: manipulate aoedev network stats under lock
+Subject: aoe: err device: include MAC addresses for unexpected responses
 
 Signed-off-by: Ed Cashin <ecashin@coraid.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoecmd.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/block/aoe/aoecmd.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/block/aoe/aoecmd.c~aoe-manipulate-aoedev-network-stats-under-lock drivers/block/aoe/aoecmd.c
---- a/drivers/block/aoe/aoecmd.c~aoe-manipulate-aoedev-network-stats-under-lock
+diff -puN drivers/block/aoe/aoecmd.c~aoe-err-device-include-mac-addresses-for-unexpected-responses drivers/block/aoe/aoecmd.c
+--- a/drivers/block/aoe/aoecmd.c~aoe-err-device-include-mac-addresses-for-unexpected-responses
 +++ a/drivers/block/aoe/aoecmd.c
-@@ -603,14 +603,14 @@ rexmit_timer(ulong vp)
- 
- 	d = (struct aoedev *) vp;
- 
-+	spin_lock_irqsave(&d->lock, flags);
-+
- 	/* timeout based on observed timings and variations */
- 	timeout = 2 * d->rttavg >> RTTSCALE;
- 	timeout += 8 * d->rttdev >> RTTDSCALE;
- 	if (timeout == 0)
- 		timeout = 1;
- 
--	spin_lock_irqsave(&d->lock, flags);
--
- 	if (d->flags & DEVFL_TKILL) {
- 		spin_unlock_irqrestore(&d->lock, flags);
- 		return;
+@@ -1204,12 +1204,14 @@ aoecmd_ata_rsp(struct sk_buff *skb)
+ 			spin_unlock_irqrestore(&d->lock, flags);
+ 			aoedev_put(d);
+ 			snprintf(ebuf, sizeof(ebuf),
+-				 "%15s e%d.%d    tag=%08x@%08lx\n",
++				 "%15s e%d.%d    tag=%08x@%08lx s=%pm d=%pm\n",
+ 				 "unexpected rsp",
+ 				 get_unaligned_be16(&h->major),
+ 				 h->minor,
+ 				 get_unaligned_be32(&h->tag),
+-				 jiffies);
++				 jiffies,
++				 h->src,
++				 h->dst);
+ 			aoechr_error(ebuf);
+ 			return skb;
+ 		}
 _
 
 Patches currently in -mm which might be from ecashin@coraid.com are
