@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + selftests-add-a-test-program-for-variable-huge-page-sizes-in-mmap-shmget.patch added to -mm tree
-Date: Thu, 08 Nov 2012 13:05:58 -0800
-Message-ID: <20121108210559.2F7CF100047@wpzn3.hot.corp.google.com>
+Subject: + selftests-add-a-test-program-for-variable-huge-page-sizes-in-mmap-shmget-fix.patch added to -mm tree
+Date: Thu, 08 Nov 2012 13:30:00 -0800
+Message-ID: <20121108213001.E94CB5C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:65110 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757053Ab2KHVGA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2012 16:06:00 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z15so381340ghb.1
-        for <mm-commits@vger.kernel.org>; Thu, 08 Nov 2012 13:05:59 -0800 (PST)
+Received: from mail-ea0-f202.google.com ([209.85.215.202]:54017 "EHLO
+	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756660Ab2KHVaE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2012 16:30:04 -0500
+Received: by mail-ea0-f202.google.com with SMTP id q10so208862eaa.1
+        for <mm-commits@vger.kernel.org>; Thu, 08 Nov 2012 13:30:03 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ak@linux.intel.com
+Cc: akpm@linux-foundation.org, ak@linux.intel.com
 
 
 The patch titled
-     Subject: selftests: Add a test program for variable huge page sizes in mmap/shmget
+     Subject: selftests-add-a-test-program-for-variable-huge-page-sizes-in-mmap-shmget-fix
 has been added to the -mm tree.  Its filename is
-     selftests-add-a-test-program-for-variable-huge-page-sizes-in-mmap-shmget.patch
+     selftests-add-a-test-program-for-variable-huge-page-sizes-in-mmap-shmget-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,299 +33,80 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andi Kleen <ak@linux.intel.com>
-Subject: selftests: Add a test program for variable huge page sizes in mmap/shmget
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: selftests-add-a-test-program-for-variable-huge-page-sizes-in-mmap-shmget-fix
 
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/Makefile    |    4 
- tools/testing/selftests/vm/thuge-gen.c |  254 +++++++++++++++++++++++
- 2 files changed, 256 insertions(+), 2 deletions(-)
+ tools/testing/selftests/vm/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN tools/testing/selftests/vm/Makefile~selftests-add-a-test-program-for-variable-huge-page-sizes-in-mmap-shmget tools/testing/selftests/vm/Makefile
---- a/tools/testing/selftests/vm/Makefile~selftests-add-a-test-program-for-variable-huge-page-sizes-in-mmap-shmget
+diff -puN tools/testing/selftests/vm/Makefile~selftests-add-a-test-program-for-variable-huge-page-sizes-in-mmap-shmget-fix tools/testing/selftests/vm/Makefile
+--- a/tools/testing/selftests/vm/Makefile~selftests-add-a-test-program-for-variable-huge-page-sizes-in-mmap-shmget-fix
 +++ a/tools/testing/selftests/vm/Makefile
-@@ -1,9 +1,9 @@
+@@ -1,7 +1,7 @@
  # Makefile for vm selftests
  
  CC = $(CROSS_COMPILE)gcc
--CFLAGS = -Wall -Wextra
-+CFLAGS = -Wall
+-CFLAGS = -Wall
++CFLAGS = -Wall -Wextra
  
--all: hugepage-mmap hugepage-shm  map_hugetlb
-+all: hugepage-mmap hugepage-shm  map_hugetlb thuge-gen
+ all: hugepage-mmap hugepage-shm  map_hugetlb thuge-gen
  %: %.c
- 	$(CC) $(CFLAGS) -o $@ $^
- 
-diff -puN /dev/null tools/testing/selftests/vm/thuge-gen.c
---- /dev/null
-+++ a/tools/testing/selftests/vm/thuge-gen.c
-@@ -0,0 +1,254 @@
-+/* Test selecting other page sizes for mmap/shmget.
-+
-+   Before running this huge pages for each huge page size must have been
-+   reserved.
-+   For large pages beyond MAX_ORDER (like 1GB on x86) boot options must be used.
-+   Also shmmax must be increased.
-+   And you need to run as root to work around some weird permissions in shm.
-+   And nothing using huge pages should run in parallel.
-+   When the program aborts you may need to clean up the shm segments with
-+   ipcrm -m by hand, like this
-+   sudo ipcs | awk '$1 == "0x00000000" {print $2}' | xargs -n1 sudo ipcrm -m
-+   (warning this will remove all if someone else uses them) */
-+
-+#define _GNU_SOURCE 1
-+#include <sys/mman.h>
-+#include <stdlib.h>
-+#include <stdio.h>
-+#include <sys/ipc.h>
-+#include <sys/shm.h>
-+#include <sys/stat.h>
-+#include <glob.h>
-+#include <assert.h>
-+#include <unistd.h>
-+#include <stdarg.h>
-+#include <string.h>
-+
-+#define err(x) perror(x), exit(1)
-+
-+#define MAP_HUGE_2MB    (21 << MAP_HUGE_SHIFT)
-+#define MAP_HUGE_1GB    (30 << MAP_HUGE_SHIFT)
-+#define MAP_HUGE_SHIFT  26
-+#define MAP_HUGE_MASK   0x3f
-+#define MAP_HUGETLB	0x40000
-+
-+#define SHM_HUGETLB     04000   /* segment will use huge TLB pages */
-+#define SHM_HUGE_SHIFT  26
-+#define SHM_HUGE_MASK   0x3f
-+#define SHM_HUGE_2MB    (21 << SHM_HUGE_SHIFT)
-+#define SHM_HUGE_1GB    (30 << SHM_HUGE_SHIFT)
-+
-+#define NUM_PAGESIZES   5
-+
-+#define NUM_PAGES 4
-+
-+#define Dprintf(fmt...) // printf(fmt)
-+
-+unsigned long page_sizes[NUM_PAGESIZES];
-+int num_page_sizes;
-+
-+int ilog2(unsigned long v)
-+{
-+	int l = 0;
-+	while ((1UL << l) < v)
-+		l++;
-+	return l;
-+}
-+
-+void find_pagesizes(void)
-+{
-+	glob_t g;
-+	int i;
-+	glob("/sys/kernel/mm/hugepages/hugepages-*kB", 0, NULL, &g);
-+	assert(g.gl_pathc <= NUM_PAGESIZES);
-+	for (i = 0; i < g.gl_pathc; i++) {
-+		sscanf(g.gl_pathv[i], "/sys/kernel/mm/hugepages/hugepages-%lukB",
-+				&page_sizes[i]);
-+		page_sizes[i] <<= 10;
-+		printf("Found %luMB\n", page_sizes[i] >> 20);
-+	}
-+	num_page_sizes = g.gl_pathc;
-+	globfree(&g);
-+}
-+
-+unsigned long default_huge_page_size(void)
-+{
-+	unsigned long hps = 0;
-+	char *line = NULL;
-+	size_t linelen = 0;
-+	FILE *f = fopen("/proc/meminfo", "r");
-+	if (!f)
-+		return 0;
-+	while (getline(&line, &linelen, f) > 0) {
-+		if (sscanf(line, "Hugepagesize:       %lu kB", &hps) == 1) {
-+			hps <<= 10;
-+			break;
-+		}
-+	}
-+	free(line);
-+	return hps;
-+}
-+
-+void show(unsigned long ps)
-+{
-+	char buf[100];
-+	if (ps == getpagesize())
-+		return;
-+	printf("%luMB: ", ps >> 20);
-+	fflush(stdout);
-+	snprintf(buf, sizeof buf,
-+		"cat /sys/kernel/mm/hugepages/hugepages-%lukB/free_hugepages",
-+		ps >> 10);
-+	system(buf);
-+}
-+
-+unsigned long read_sysfs(int warn, char *fmt, ...)
-+{
-+	char *line = NULL;
-+	size_t linelen = 0;
-+	char buf[100];
-+	FILE *f;
-+	va_list ap;
-+	unsigned long val = 0;
-+
-+	va_start(ap, fmt);
-+	vsnprintf(buf, sizeof buf, fmt, ap);
-+	va_end(ap);
-+
-+	f = fopen(buf, "r");
-+	if (!f) {
-+		if (warn)
-+			printf("missing %s\n", buf);
-+		return 0;
-+	}
-+	if (getline(&line, &linelen, f) > 0) {
-+		sscanf(line, "%lu", &val);
-+	}
-+	fclose(f);
-+	free(line);
-+	return val;
-+}
-+
-+unsigned long read_free(unsigned long ps)
-+{
-+	return read_sysfs(ps != getpagesize(),
-+			"/sys/kernel/mm/hugepages/hugepages-%lukB/free_hugepages",
-+			ps >> 10);
-+}
-+
-+void test_mmap(unsigned long size, unsigned flags)
-+{
-+	char *map;
-+	unsigned long before, after;
-+	int err;
-+
-+	before = read_free(size);
-+	map = mmap(NULL, size*NUM_PAGES, PROT_READ|PROT_WRITE,
-+			MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|flags, 0, 0);
-+
-+	if (map == (char *)-1) err("mmap");
-+	memset(map, 0xff, size*NUM_PAGES);
-+	after = read_free(size);
-+	Dprintf("before %lu after %lu diff %ld size %lu\n",
-+		before, after, before - after, size);
-+	assert(size == getpagesize() || (before - after) == NUM_PAGES);
-+	show(size);
-+	err = munmap(map, size);
-+	assert(!err);
-+}
-+
-+void test_shmget(unsigned long size, unsigned flags)
-+{
-+	int id;
-+	unsigned long before, after;
-+	int err;
-+
-+	before = read_free(size);
-+	id = shmget(IPC_PRIVATE, size * NUM_PAGES, IPC_CREAT|0600|flags);
-+	if (id < 0) err("shmget");
-+
-+	struct shm_info i;
-+	if (shmctl(id, SHM_INFO, (void *)&i) < 0) err("shmctl");
-+	Dprintf("alloc %lu res %lu\n", i.shm_tot, i.shm_rss);
-+
-+
-+	Dprintf("id %d\n", id);
-+	char *map = shmat(id, NULL, 0600);
-+	if (map == (char*)-1) err("shmat");
-+
-+	shmctl(id, IPC_RMID, NULL);
-+
-+	memset(map, 0xff, size*NUM_PAGES);
-+	after = read_free(size);
-+
-+	Dprintf("before %lu after %lu diff %ld size %lu\n",
-+		before, after, before - after, size);
-+	assert(size == getpagesize() || (before - after) == NUM_PAGES);
-+	show(size);
-+	err = shmdt(map);
-+	assert(!err);
-+}
-+
-+void sanity_checks(void)
-+{
-+	int i;
-+	unsigned long largest = getpagesize();
-+
-+	for (i = 0; i < num_page_sizes; i++) {
-+		if (page_sizes[i] > largest)
-+			largest = page_sizes[i];
-+
-+		if (read_free(page_sizes[i]) < NUM_PAGES) {
-+			printf("Not enough huge pages for page size %lu MB, need %u\n",
-+				page_sizes[i] >> 20,
-+				NUM_PAGES);
-+			exit(0);
-+		}
-+	}
-+
-+	if (read_sysfs(0, "/proc/sys/kernel/shmmax") < NUM_PAGES * largest) {
-+		printf("Please do echo %lu > /proc/sys/kernel/shmmax", largest * NUM_PAGES);
-+		exit(0);
-+	}
-+
-+#if defined(__x86_64__)
-+	if (largest != 1U<<30) {
-+		printf("No GB pages available on x86-64\n"
-+		       "Please boot with hugepagesz=1G hugepages=%d\n", NUM_PAGES);
-+		exit(0);
-+	}
-+#endif
-+}
-+
-+int main(void)
-+{
-+	int i;
-+	unsigned default_hps = default_huge_page_size();
-+
-+	find_pagesizes();
-+
-+	sanity_checks();
-+
-+	for (i = 0; i < num_page_sizes; i++) {
-+		unsigned long ps = page_sizes[i];
-+		int arg = ilog2(ps) << MAP_HUGE_SHIFT;
-+		printf("Testing %luMB mmap with shift %x\n", ps >> 20, arg);
-+		test_mmap(ps, MAP_HUGETLB | arg);
-+	}
-+	printf("Testing default huge mmap\n");
-+	test_mmap(default_hps, SHM_HUGETLB);
-+
-+	puts("Testing non-huge shmget");
-+	test_shmget(getpagesize(), 0);
-+
-+	for (i = 0; i < num_page_sizes; i++) {
-+		unsigned long ps = page_sizes[i];
-+		int arg = ilog2(ps) << SHM_HUGE_SHIFT;
-+		printf("Testing %luMB shmget with shift %x\n", ps >> 20, arg);
-+		test_shmget(ps, SHM_HUGETLB | arg);
-+	}
-+	puts("default huge shmget");
-+	test_shmget(default_hps, SHM_HUGETLB);
-+
-+	return 0;
-+}
 _
 
-Patches currently in -mm which might be from ak@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+revert-tools-testing-selftests-epoll-test_epollc-fix-build.patch
+revert-epoll-support-for-disabling-items-and-a-self-test-app.patch
 linux-next.patch
-hwpoison-fix-action_result-to-print-out-dirty-clean.patch
-mm-print-out-information-of-file-affected-by-memory-error.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+irq-tsk-comm-is-an-array-fix.patch
+drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch
+mm.patch
+mm-introduce-mm_find_pmd-fix.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
+slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
+mmvmscan-only-evict-file-pages-when-we-have-plenty-fix.patch
+slub-slub-specific-propagation-changes-fix.patch
+dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
 mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix.patch
 mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix.patch
-selftests-add-a-test-program-for-variable-huge-page-sizes-in-mmap-shmget.patch
+selftests-add-a-test-program-for-variable-huge-page-sizes-in-mmap-shmget-fix.patch
+mm-check-rb_subtree_gap-correctness-fix.patch
+mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
+mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
+mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
+mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
+mm-adjust-address_space_operationsmigratepage-return-code-fix.patch
+mm-introduce-a-common-interface-for-balloon-pages-mobility-fix.patch
+drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
+rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
+hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
+procfs-add-vmflags-field-in-smaps-output-v4.patch
+procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
+ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
+ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
+ipc-convert-prepare_copy-from-macro-to-function-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
