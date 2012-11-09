@@ -1,60 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] revert-tools-testing-selftests-epoll-test_epollc-fix-build.patch removed from -mm tree
-Date: Thu, 08 Nov 2012 15:51:29 -0800
-Message-ID: <20121108235130.A25385C0050@hpza9.eem.corp.google.com>
+Subject: [folded-dropped] irq-tsk-comm-is-an-array-fix.patch removed from -mm tree
+Date: Thu, 08 Nov 2012 16:07:27 -0800
+Message-ID: <20121109000728.0F082100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f202.google.com ([209.85.215.202]:34567 "EHLO
-	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751425Ab2KHXvd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2012 18:51:33 -0500
-Received: by mail-ea0-f202.google.com with SMTP id q10so213239eaa.1
-        for <mm-commits@vger.kernel.org>; Thu, 08 Nov 2012 15:51:31 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:34740 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751425Ab2KIAH3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2012 19:07:29 -0500
+Received: by mail-vc0-f202.google.com with SMTP id fy27so403363vcb.1
+        for <mm-commits@vger.kernel.org>; Thu, 08 Nov 2012 16:07:28 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mtk.manpages@gmail.com, palewis@adobe.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@linux.intel.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: revert-tools-testing-selftests-epoll-test_epollc-fix-build
+     Subject: irq-tsk-comm-is-an-array-fix
 has been removed from the -mm tree.  Its filename was
-     revert-tools-testing-selftests-epoll-test_epollc-fix-build.patch
+     irq-tsk-comm-is-an-array-fix.patch
 
-This patch was dropped because it was folded into revert-epoll-support-for-disabling-items-and-a-self-test-app.patch
+This patch was dropped because it was folded into irq-tsk-comm-is-an-array.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert-tools-testing-selftests-epoll-test_epollc-fix-build
+Subject: irq-tsk-comm-is-an-array-fix
 
-To include in revert-epoll-support-for-disabling-items-and-a-self-test-app.
+remove comment, per David
 
-
+Cc: Alan Cox <alan@linux.intel.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/epoll/test_epoll.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/irq/manage.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN tools/testing/selftests/epoll/test_epoll.c~revert-tools-testing-selftests-epoll-test_epollc-fix-build tools/testing/selftests/epoll/test_epoll.c
---- a/tools/testing/selftests/epoll/test_epoll.c~revert-tools-testing-selftests-epoll-test_epollc-fix-build
-+++ a/tools/testing/selftests/epoll/test_epoll.c
-@@ -162,14 +162,14 @@ void *write_thread_function(void *functi
- 	int index;
- 	struct write_thread_data *thread_data =
- 		(struct write_thread_data *)function_data;
--	while (!thread_data->stop)
-+	while (!write_thread_data->stop)
- 		for (index = 0;
- 		     !thread_data->stop && (index < thread_data->n_fds);
- 		     ++index)
- 			if ((write(thread_data->fds[index], &data, 1) < 1) &&
- 				(errno != EAGAIN) &&
- 				(errno != EWOULDBLOCK)) {
--				thread_data->status = errno;
-+				write_thread_data->status = errno;
- 				return;
- 			}
- }
+diff -puN kernel/irq/manage.c~irq-tsk-comm-is-an-array-fix kernel/irq/manage.c
+--- a/kernel/irq/manage.c~irq-tsk-comm-is-an-array-fix
++++ a/kernel/irq/manage.c
+@@ -792,7 +792,6 @@ static void irq_thread_dtor(struct callb
+ 
+ 	action = kthread_data(tsk);
+ 
+-	/* FIXME: locking */
+ 	pr_err("exiting task \"%s\" (%d) is an active IRQ thread (irq %d)\n",
+ 	       tsk->comm, tsk->pid, action->irq);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -66,7 +58,7 @@ arch-alpha-kernel-systblss-remove-debug-check.patch
 cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-irq-tsk-comm-is-an-array-fix.patch
+irq-tsk-comm-is-an-array.patch
 drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch
 mm.patch
 mm-introduce-mm_find_pmd-fix.patch
