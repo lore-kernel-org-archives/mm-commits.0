@@ -1,139 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] block-partition-msdos-provide-uuids-for-partitions.patch removed from -mm tree
-Date: Mon, 12 Nov 2012 13:09:48 -0800
-Message-ID: <20121112210949.2D24B5C0050@hpza9.eem.corp.google.com>
+Subject: [merged] drbd-use-copy_highpage.patch removed from -mm tree
+Date: Mon, 12 Nov 2012 13:09:52 -0800
+Message-ID: <20121112210953.0F74A20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:37244 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753710Ab2KLVJw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Nov 2012 16:09:52 -0500
-Received: by mail-lb0-f202.google.com with SMTP id i15so35845lbo.1
-        for <mm-commits@vger.kernel.org>; Mon, 12 Nov 2012 13:09:50 -0800 (PST)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:40174 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753733Ab2KLVJy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Nov 2012 16:09:54 -0500
+Received: by mail-wg0-f74.google.com with SMTP id dt11so429096wgb.1
+        for <mm-commits@vger.kernel.org>; Mon, 12 Nov 2012 13:09:54 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: swarren@nvidia.com, axboe@kernel.dk, kay.sievers@vrfy.org, tj@kernel.org, wad@chromium.org, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, drbd-dev@lists.linbit.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: block: partition: msdos: provide UUIDs for partitions
+     Subject: drbd: use copy_highpage
 has been removed from the -mm tree.  Its filename was
-     block-partition-msdos-provide-uuids-for-partitions.patch
+     drbd-use-copy_highpage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Stephen Warren <swarren@nvidia.com>
-Subject: block: partition: msdos: provide UUIDs for partitions
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: drbd: use copy_highpage
 
-The MSDOS/MBR partition table includes a 32-bit unique ID, often referred
-to as the NT disk signature.  When combined with a partition number within
-the table, this can form a unique ID similar in concept to EFI/GPT's
-partition UUID.  Constructing and recording this value in struct
-partition_meta_info allows MSDOS partitions to be referred to on the
-kernel command-line using the following syntax:
+Use copy_highpage() to copy from one page to another.
 
-root=PARTUUID=0002dd75-01
-
-Signed-off-by: Stephen Warren <swarren@nvidia.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Will Drewry <wad@chromium.org>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Lars Ellenberg <drbd-dev@lists.linbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/partitions/msdos.c |   21 +++++++++++++++++++--
- init/do_mounts.c         |    4 ++++
- 2 files changed, 23 insertions(+), 2 deletions(-)
+ drivers/block/drbd/drbd_bitmap.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN block/partitions/msdos.c~block-partition-msdos-provide-uuids-for-partitions block/partitions/msdos.c
---- a/block/partitions/msdos.c~block-partition-msdos-provide-uuids-for-partitions
-+++ a/block/partitions/msdos.c
-@@ -94,6 +94,17 @@ static int aix_magic_present(struct pars
- 	return ret;
- }
+diff -puN drivers/block/drbd/drbd_bitmap.c~drbd-use-copy_highpage drivers/block/drbd/drbd_bitmap.c
+--- a/drivers/block/drbd/drbd_bitmap.c~drbd-use-copy_highpage
++++ a/drivers/block/drbd/drbd_bitmap.c
+@@ -977,13 +977,8 @@ static void bm_page_io_async(struct bm_a
+ 	bm_set_page_unchanged(b->bm_pages[page_nr]);
  
-+static void set_info(struct parsed_partitions *state, int slot,
-+		     u32 disksig)
-+{
-+	struct partition_meta_info *info = &state->parts[slot].info;
-+
-+	snprintf(info->uuid, sizeof(info->uuid), "%08x-%02x", disksig,
-+		 slot);
-+	info->volname[0] = 0;
-+	state->parts[slot].has_info = true;
-+}
-+
- /*
-  * Create devices for each logical partition in an extended partition.
-  * The logical partitions form a linked list, with each entry being
-@@ -106,7 +117,8 @@ static int aix_magic_present(struct pars
-  */
- 
- static void parse_extended(struct parsed_partitions *state,
--			   sector_t first_sector, sector_t first_size)
-+			   sector_t first_sector, sector_t first_size,
-+			   u32 disksig)
- {
- 	struct partition *p;
- 	Sector sect;
-@@ -166,6 +178,7 @@ static void parse_extended(struct parsed
- 			}
- 
- 			put_partition(state, state->next, next, size);
-+			set_info(state, state->next, disksig);
- 			if (SYS_IND(p) == LINUX_RAID_PARTITION)
- 				state->parts[state->next].flags = ADDPART_FLAG_RAID;
- 			loopct = 0;
-@@ -437,6 +450,7 @@ int msdos_partition(struct parsed_partit
- 	struct partition *p;
- 	struct fat_boot_sector *fb;
- 	int slot;
-+	u32 disksig;
- 
- 	data = read_part_sector(state, 0, &sect);
- 	if (!data)
-@@ -491,6 +505,8 @@ int msdos_partition(struct parsed_partit
- #endif
- 	p = (struct partition *) (data + 0x1be);
- 
-+	disksig = le32_to_cpup((__le32 *)(data + 0x1b8));
-+
- 	/*
- 	 * Look for partitions in two passes:
- 	 * First find the primary and DOS-type extended partitions.
-@@ -515,11 +531,12 @@ int msdos_partition(struct parsed_partit
- 			put_partition(state, slot, start, n);
- 
- 			strlcat(state->pp_buf, " <", PAGE_SIZE);
--			parse_extended(state, start, size);
-+			parse_extended(state, start, size, disksig);
- 			strlcat(state->pp_buf, " >", PAGE_SIZE);
- 			continue;
- 		}
- 		put_partition(state, slot, start, size);
-+		set_info(state, slot, disksig);
- 		if (SYS_IND(p) == LINUX_RAID_PARTITION)
- 			state->parts[slot].flags = ADDPART_FLAG_RAID;
- 		if (SYS_IND(p) == DM6_PARTITION)
-diff -puN init/do_mounts.c~block-partition-msdos-provide-uuids-for-partitions init/do_mounts.c
---- a/init/do_mounts.c~block-partition-msdos-provide-uuids-for-partitions
-+++ a/init/do_mounts.c
-@@ -189,6 +189,10 @@ done:
-  *	   used when disk name of partitioned disk ends on a digit.
-  *	6) PARTUUID=00112233-4455-6677-8899-AABBCCDDEEFF representing the
-  *	   unique id of a partition if the partition table provides it.
-+ *	   The UUID may be either an EFI/GPT UUID, or refer to an MSDOS
-+ *	   partition using the format SSSSSSSS-PP, where SSSSSSSS is a zero-
-+ *	   filled hex representation of the 32-bit "NT disk signature", and PP
-+ *	   is a zero-filled hex representation of the 1-based partition number.
-  *	7) PARTUUID=<UUID>/PARTNROFF=<int> to select a partition in relation to
-  *	   a partition with a known unique id.
-  *
+ 	if (ctx->flags & BM_AIO_COPY_PAGES) {
+-		void *src, *dest;
+ 		page = mempool_alloc(drbd_md_io_page_pool, __GFP_HIGHMEM|__GFP_WAIT);
+-		dest = kmap_atomic(page);
+-		src = kmap_atomic(b->bm_pages[page_nr]);
+-		memcpy(dest, src, PAGE_SIZE);
+-		kunmap_atomic(src);
+-		kunmap_atomic(dest);
++		copy_highpage(page, b->bm_pages[page_nr]);
+ 		bm_store_page_idx(page, page_nr);
+ 	} else
+ 		page = b->bm_pages[page_nr];
 _
 
-Patches currently in -mm which might be from swarren@nvidia.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 linux-next.patch
 
