@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + bootmem-remove-alloc_arch_preferred_bootmem.patch added to -mm tree
-Date: Mon, 12 Nov 2012 15:23:58 -0800
-Message-ID: <20121112232359.B8B215C0050@hpza9.eem.corp.google.com>
+Subject: + bootmem-fix-wrong-call-parameter-for-free_bootmem.patch added to -mm tree
+Date: Mon, 12 Nov 2012 15:24:02 -0800
+Message-ID: <20121112232403.89D5520004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f202.google.com ([209.85.215.202]:49686 "EHLO
-	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752801Ab2KLXYD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Nov 2012 18:24:03 -0500
-Received: by mail-ea0-f202.google.com with SMTP id f11so150167eaa.1
-        for <mm-commits@vger.kernel.org>; Mon, 12 Nov 2012 15:24:01 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:40017 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752267Ab2KLXYG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Nov 2012 18:24:06 -0500
+Received: by mail-ee0-f74.google.com with SMTP id t10so136938eei.1
+        for <mm-commits@vger.kernel.org>; Mon, 12 Nov 2012 15:24:05 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: js1304@gmail.com, benh@kernel.crashing.org, egtvedt@samfundet.no, fujita.tom
 
 
 The patch titled
-     Subject: bootmem: remove alloc_arch_preferred_bootmem()
+     Subject: bootmem: fix wrong call parameter for free_bootmem()
 has been added to the -mm tree.  Its filename is
-     bootmem-remove-alloc_arch_preferred_bootmem.patch
+     bootmem-fix-wrong-call-parameter-for-free_bootmem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <js1304@gmail.com>
-Subject: bootmem: remove alloc_arch_preferred_bootmem()
+Subject: bootmem: fix wrong call parameter for free_bootmem()
 
-The name of this function is not suitable, and removing the function and
-open-coding it into each call sites makes the code more understandable.
+It is strange that alloc_bootmem() returns a virtual address and
+free_bootmem() requires a physical address.  Anyway, free_bootmem()'s
+first parameter should be physical address.
 
-Additionally, we shouldn't do an allocation from bootmem when
-slab_is_available(), so directly return kmalloc()'s return value.
+There are some call sites for free_bootmem() with virtual address.  So fix
+them.
 
 Signed-off-by: Joonsoo Kim <js1304@gmail.com>
 Cc: Haavard Skinnemoen <hskinnemoen@gmail.com>
@@ -51,53 +52,51 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |   19 ++++---------------
- 1 file changed, 4 insertions(+), 15 deletions(-)
+ arch/powerpc/platforms/cell/celleb_pci.c |    4 ++--
+ drivers/macintosh/smu.c                  |    2 +-
+ lib/cpumask.c                            |    2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/bootmem.c~bootmem-remove-alloc_arch_preferred_bootmem mm/bootmem.c
---- a/mm/bootmem.c~bootmem-remove-alloc_arch_preferred_bootmem
-+++ a/mm/bootmem.c
-@@ -583,14 +583,6 @@ find_block:
- 	return NULL;
- }
+diff -puN arch/powerpc/platforms/cell/celleb_pci.c~bootmem-fix-wrong-call-parameter-for-free_bootmem arch/powerpc/platforms/cell/celleb_pci.c
+--- a/arch/powerpc/platforms/cell/celleb_pci.c~bootmem-fix-wrong-call-parameter-for-free_bootmem
++++ a/arch/powerpc/platforms/cell/celleb_pci.c
+@@ -401,11 +401,11 @@ error:
+ 	} else {
+ 		if (config && *config) {
+ 			size = 256;
+-			free_bootmem((unsigned long)(*config), size);
++			free_bootmem(__pa(*config), size);
+ 		}
+ 		if (res && *res) {
+ 			size = sizeof(struct celleb_pci_resource);
+-			free_bootmem((unsigned long)(*res), size);
++			free_bootmem(__pa(*res), size);
+ 		}
+ 	}
  
--static void * __init alloc_arch_preferred_bootmem(bootmem_data_t *bdata,
--					unsigned long size, unsigned long align,
--					unsigned long goal, unsigned long limit)
--{
--	if (WARN_ON_ONCE(slab_is_available()))
--		return kzalloc(size, GFP_NOWAIT);
--}
--
- static void * __init alloc_bootmem_core(unsigned long size,
- 					unsigned long align,
- 					unsigned long goal,
-@@ -599,9 +591,8 @@ static void * __init alloc_bootmem_core(
- 	bootmem_data_t *bdata;
- 	void *region;
- 
--	region = alloc_arch_preferred_bootmem(NULL, size, align, goal, limit);
--	if (region)
--		return region;
-+	if (WARN_ON_ONCE(slab_is_available()))
-+		return kzalloc(size, GFP_NOWAIT);
- 
- 	list_for_each_entry(bdata, &bdata_list, list) {
- 		if (goal && bdata->node_low_pfn <= PFN_DOWN(goal))
-@@ -699,11 +690,9 @@ void * __init ___alloc_bootmem_node_nopa
+diff -puN drivers/macintosh/smu.c~bootmem-fix-wrong-call-parameter-for-free_bootmem drivers/macintosh/smu.c
+--- a/drivers/macintosh/smu.c~bootmem-fix-wrong-call-parameter-for-free_bootmem
++++ a/drivers/macintosh/smu.c
+@@ -565,7 +565,7 @@ fail_msg_node:
+ fail_db_node:
+ 	of_node_put(smu->db_node);
+ fail_bootmem:
+-	free_bootmem((unsigned long)smu, sizeof(struct smu_device));
++	free_bootmem(__pa(smu), sizeof(struct smu_device));
+ 	smu = NULL;
+ fail_np:
+ 	of_node_put(np);
+diff -puN lib/cpumask.c~bootmem-fix-wrong-call-parameter-for-free_bootmem lib/cpumask.c
+--- a/lib/cpumask.c~bootmem-fix-wrong-call-parameter-for-free_bootmem
++++ a/lib/cpumask.c
+@@ -161,6 +161,6 @@ EXPORT_SYMBOL(free_cpumask_var);
+  */
+ void __init free_bootmem_cpumask_var(cpumask_var_t mask)
  {
- 	void *ptr;
- 
-+	if (WARN_ON_ONCE(slab_is_available()))
-+		return kzalloc(size, GFP_NOWAIT);
- again:
--	ptr = alloc_arch_preferred_bootmem(pgdat->bdata, size,
--					   align, goal, limit);
--	if (ptr)
--		return ptr;
- 
- 	/* do not panic in alloc_bootmem_bdata() */
- 	if (limit && goal + size > limit)
+-	free_bootmem((unsigned long)mask, cpumask_size());
++	free_bootmem(__pa(mask), cpumask_size());
+ }
+ #endif
 _
 
 Patches currently in -mm which might be from js1304@gmail.com are
