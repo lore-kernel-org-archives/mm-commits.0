@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + bootmem-remove-not-implemented-function-call-bootmem_arch_preferred_node.patch added to -mm tree
-Date: Mon, 12 Nov 2012 15:23:51 -0800
-Message-ID: <20121112232352.92A5C20004E@hpza10.eem.corp.google.com>
+Subject: + avr32-kconfig-remove-have_arch_bootmem.patch added to -mm tree
+Date: Mon, 12 Nov 2012 15:23:55 -0800
+Message-ID: <20121112232356.3D149100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:37140 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752801Ab2KLXX6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Nov 2012 18:23:58 -0500
-Received: by mail-we0-f202.google.com with SMTP id x43so434034wey.1
-        for <mm-commits@vger.kernel.org>; Mon, 12 Nov 2012 15:23:56 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:34595 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752718Ab2KLXX5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Nov 2012 18:23:57 -0500
+Received: by mail-qc0-f202.google.com with SMTP id s25so792707qcq.1
+        for <mm-commits@vger.kernel.org>; Mon, 12 Nov 2012 15:23:57 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: js1304@gmail.com, benh@kernel.crashing.org, egtvedt@samfundet.no, fujita.tom
 
 
 The patch titled
-     Subject: bootmem: remove not implemented function call, bootmem_arch_preferred_node()
+     Subject: avr32, kconfig: remove HAVE_ARCH_BOOTMEM
 has been added to the -mm tree.  Its filename is
-     bootmem-remove-not-implemented-function-call-bootmem_arch_preferred_node.patch
+     avr32-kconfig-remove-have_arch_bootmem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <js1304@gmail.com>
-Subject: bootmem: remove not implemented function call, bootmem_arch_preferred_node()
+Subject: avr32, kconfig: remove HAVE_ARCH_BOOTMEM
 
-There is no implementation of bootmem_arch_preferred_node() and a call to
-this function will cause a compilation error.  So remove it.
+There is no code for CONFIG_HAVE_ARCH_BOOTMEM, so remove it.
 
 Signed-off-by: Joonsoo Kim <js1304@gmail.com>
 Cc: Haavard Skinnemoen <hskinnemoen@gmail.com>
@@ -48,32 +47,22 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |   13 -------------
- 1 file changed, 13 deletions(-)
+ arch/avr32/Kconfig |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN mm/bootmem.c~bootmem-remove-not-implemented-function-call-bootmem_arch_preferred_node mm/bootmem.c
---- a/mm/bootmem.c~bootmem-remove-not-implemented-function-call-bootmem_arch_preferred_node
-+++ a/mm/bootmem.c
-@@ -589,19 +589,6 @@ static void * __init alloc_arch_preferre
- {
- 	if (WARN_ON_ONCE(slab_is_available()))
- 		return kzalloc(size, GFP_NOWAIT);
--
--#ifdef CONFIG_HAVE_ARCH_BOOTMEM
--	{
--		bootmem_data_t *p_bdata;
--
--		p_bdata = bootmem_arch_preferred_node(bdata, size, align,
--							goal, limit);
--		if (p_bdata)
--			return alloc_bootmem_bdata(p_bdata, size, align,
--							goal, limit);
--	}
--#endif
--	return NULL;
- }
+diff -puN arch/avr32/Kconfig~avr32-kconfig-remove-have_arch_bootmem arch/avr32/Kconfig
+--- a/arch/avr32/Kconfig~avr32-kconfig-remove-have_arch_bootmem
++++ a/arch/avr32/Kconfig
+@@ -194,9 +194,6 @@ source "kernel/Kconfig.preempt"
+ config QUICKLIST
+ 	def_bool y
  
- static void * __init alloc_bootmem_core(unsigned long size,
+-config HAVE_ARCH_BOOTMEM
+-	def_bool n
+-
+ config ARCH_HAVE_MEMORY_PRESENT
+ 	def_bool n
+ 
 _
 
 Patches currently in -mm which might be from js1304@gmail.com are
