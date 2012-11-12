@@ -1,65 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fanotify-fix-missing-break.patch removed from -mm tree
-Date: Mon, 12 Nov 2012 13:09:23 -0800
-Message-ID: <20121112210924.BAB865C0050@hpza9.eem.corp.google.com>
+Subject: [merged] mm-bugfix-set-current-reclaim_state-to-null-while-returning-from-kswapd.patch removed from -mm tree
+Date: Mon, 12 Nov 2012 13:09:28 -0800
+Message-ID: <20121112210928.BAB61100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:55758 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753373Ab2KLVJ0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Nov 2012 16:09:26 -0500
-Received: by mail-we0-f202.google.com with SMTP id x43so429742wey.1
-        for <mm-commits@vger.kernel.org>; Mon, 12 Nov 2012 13:09:26 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:45286 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753475Ab2KLVJa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Nov 2012 16:09:30 -0500
+Received: by mail-yh0-f74.google.com with SMTP id 10so782043yhl.1
+        for <mm-commits@vger.kernel.org>; Mon, 12 Nov 2012 13:09:29 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eparis@redhat.com, alan@linux.intel.com, anders.blomdell@control.lth.se, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: takamori.yamaguchi@jp.sony.com, aaditya.kumar@ap.sony.com, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fanotify: fix missing break
+     Subject: mm: bugfix: set current->reclaim_state to NULL while returning from kswapd()
 has been removed from the -mm tree.  Its filename was
-     fanotify-fix-missing-break.patch
+     mm-bugfix-set-current-reclaim_state-to-null-while-returning-from-kswapd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Eric Paris <eparis@redhat.com>
-Subject: fanotify: fix missing break
+From: Takamori Yamaguchi <takamori.yamaguchi@jp.sony.com>
+Subject: mm: bugfix: set current->reclaim_state to NULL while returning from kswapd()
 
-Anders Blomdell noted in 2010 that Fanotify lost events and provided a
-test case.  Eric Paris confirmed it was a bug and posted a fix to the list
+In kswapd(), set current->reclaim_state to NULL before returning, as
+current->reclaim_state holds reference to variable on kswapd()'s stack.
 
-https://groups.google.com/forum/?fromgroups=#!topic/linux.kernel/RrJfTfyW2BE
+In rare cases, while returning from kswapd() during memory offlining,
+__free_slab() and freepages() can access the dangling pointer of
+current->reclaim_state.
 
-but never applied it.  Repeated attempts over time to actually get him to
-apply it have never had a reply from anyone who has raised it
-
-So apply it anyway
-
-Signed-off-by: Alan Cox <alan@linux.intel.com>
-Reported-by: Anders Blomdell <anders.blomdell@control.lth.se>
-Cc: Eric Paris <eparis@redhat.com>
+Signed-off-by: Takamori Yamaguchi <takamori.yamaguchi@jp.sony.com>
+Signed-off-by: Aaditya Kumar <aaditya.kumar@ap.sony.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/fanotify/fanotify.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/vmscan.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/notify/fanotify/fanotify.c~fanotify-fix-missing-break fs/notify/fanotify/fanotify.c
---- a/fs/notify/fanotify/fanotify.c~fanotify-fix-missing-break
-+++ a/fs/notify/fanotify/fanotify.c
-@@ -21,6 +21,7 @@ static bool should_merge(struct fsnotify
- 			if ((old->path.mnt == new->path.mnt) &&
- 			    (old->path.dentry == new->path.dentry))
- 				return true;
-+			break;
- 		case (FSNOTIFY_EVENT_NONE):
- 			return true;
- 		default:
+diff -puN mm/vmscan.c~mm-bugfix-set-current-reclaim_state-to-null-while-returning-from-kswapd mm/vmscan.c
+--- a/mm/vmscan.c~mm-bugfix-set-current-reclaim_state-to-null-while-returning-from-kswapd
++++ a/mm/vmscan.c
+@@ -3017,6 +3017,8 @@ static int kswapd(void *p)
+ 						&balanced_classzone_idx);
+ 		}
+ 	}
++
++	current->reclaim_state = NULL;
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from eparis@redhat.com are
+Patches currently in -mm which might be from takamori.yamaguchi@jp.sony.com are
 
-linux-next.patch
 
