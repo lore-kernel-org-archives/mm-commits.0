@@ -1,103 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] tasklet-ignore-disabled-tasklet-in-tasklet_action-v2.patch removed from -mm tree
-Date: Thu, 08 Nov 2012 16:08:05 -0800
-Message-ID: <20121109000806.BB08F200057@hpza10.eem.corp.google.com>
+Subject: [merged] device_cgroup-fix-unchecked-cgroup-parent-usage.patch removed from -mm tree
+Date: Mon, 12 Nov 2012 13:09:09 -0800
+Message-ID: <20121112210909.D90F2100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:36117 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751425Ab2KIAIJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Nov 2012 19:08:09 -0500
-Received: by mail-wi0-f202.google.com with SMTP id hr7so3134wib.1
-        for <mm-commits@vger.kernel.org>; Thu, 08 Nov 2012 16:08:08 -0800 (PST)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:39523 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753608Ab2KLVJM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Nov 2012 16:09:12 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z15so779043ghb.1
+        for <mm-commits@vger.kernel.org>; Mon, 12 Nov 2012 13:09:11 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xtfeng@gmail.com, dannyfeng@tencent.com, eric.dumazet@gmail.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: aris@redhat.com, jmorris@namei.org, jslaby@suse.cz, lizefan@huawei.com, serge.hallyn@ubuntu.com, tj@kernel.org, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tasklet: ignore disabled tasklet in tasklet_action v2
+     Subject: device_cgroup: fix unchecked cgroup parent usage
 has been removed from the -mm tree.  Its filename was
-     tasklet-ignore-disabled-tasklet-in-tasklet_action-v2.patch
+     device_cgroup-fix-unchecked-cgroup-parent-usage.patch
 
-This patch was dropped because it was folded into tasklet-ignore-disabled-tasklet-in-tasklet_action.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Xiaotian Feng <xtfeng@gmail.com>
-Subject: tasklet: ignore disabled tasklet in tasklet_action v2
+From: Aristeu Rozanski <aris@redhat.com>
+Subject: device_cgroup: fix unchecked cgroup parent usage
 
-v2 changes:
-  - clear TASKLET_STATE_HI bit in tasklet_schedule
-  - remove tasklet_hi_enable() as it is exactly the same as tasklet_enable()
+In 4cef7299b478687 ("device_cgroup: add proper checking when changing
+default behavior") the cgroup parent usage is unchecked.  root will not
+have a parent and trying to use device.{allow,deny} will cause a null
+pointer dereference.  For some reason my stressing scripts didn't test the
+root directory so I didn't catch it on my regular tests.
 
-Signed-off-by: Xiaotian Feng <dannyfeng@tencent.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Signed-off-by: Aristeu Rozanski <aris@redhat.com>
+Cc: Li Zefan <lizefan@huawei.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Acked-by: Serge E. Hallyn <serge.hallyn@ubuntu.com>
+Cc: Jiri Slaby <jslaby@suse.cz>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/jme.c |   16 ++++++++--------
- include/linux/interrupt.h  |    6 ------
- kernel/softirq.c           |    1 +
- 3 files changed, 9 insertions(+), 14 deletions(-)
+ security/device_cgroup.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/ethernet/jme.c~tasklet-ignore-disabled-tasklet-in-tasklet_action-v2 drivers/net/ethernet/jme.c
---- a/drivers/net/ethernet/jme.c~tasklet-ignore-disabled-tasklet-in-tasklet_action-v2
-+++ a/drivers/net/ethernet/jme.c
-@@ -1364,8 +1364,8 @@ err_out_free_rx_resources:
- 	jme_free_rx_resources(jme);
- out_enable_tasklet:
- 	tasklet_enable(&jme->txclean_task);
--	tasklet_hi_enable(&jme->rxclean_task);
--	tasklet_hi_enable(&jme->rxempty_task);
-+	tasklet_enable(&jme->rxclean_task);
-+	tasklet_enable(&jme->rxempty_task);
- out:
- 	atomic_inc(&jme->link_changing);
- }
-@@ -1862,8 +1862,8 @@ jme_open(struct net_device *netdev)
- 
- 	tasklet_enable(&jme->linkch_task);
- 	tasklet_enable(&jme->txclean_task);
--	tasklet_hi_enable(&jme->rxclean_task);
--	tasklet_hi_enable(&jme->rxempty_task);
-+	tasklet_enable(&jme->rxclean_task);
-+	tasklet_enable(&jme->rxempty_task);
- 
- 	rc = jme_request_irq(jme);
- 	if (rc)
-@@ -2375,8 +2375,8 @@ static inline void jme_resume_rx(struct 
- 	if (test_bit(JME_FLAG_POLL, &jme->flags)) {
- 		JME_NAPI_ENABLE(jme);
- 	} else {
--		tasklet_hi_enable(&jme->rxclean_task);
--		tasklet_hi_enable(&jme->rxempty_task);
-+		tasklet_enable(&jme->rxclean_task);
-+		tasklet_enable(&jme->rxempty_task);
- 	}
- 	dpi->cur		= PCC_P1;
- 	dpi->attempt		= PCC_P1;
-@@ -3276,8 +3276,8 @@ jme_suspend(struct device *dev)
- 	}
- 
- 	tasklet_enable(&jme->txclean_task);
--	tasklet_hi_enable(&jme->rxclean_task);
--	tasklet_hi_enable(&jme->rxempty_task);
-+	tasklet_enable(&jme->rxclean_task);
-+	tasklet_enable(&jme->rxempty_task);
- 
- 	jme_powersave_phy(jme);
- 
-diff -puN include/linux/interrupt.h~tasklet-ignore-disabled-tasklet-in-tasklet_action-v2 include/linux/interrupt.h
---- a/include/linux/interrupt.h~tasklet-ignore-disabled-tasklet-in-tasklet_action-v2
-+++ a/include/linux/interrupt.h
-@@ -604,12 +604,6 @@ static inline void tasklet_enable(struct
- 	}
+diff -puN security/device_cgroup.c~device_cgroup-fix-unchecked-cgroup-parent-usage security/device_cgroup.c
+--- a/security/device_cgroup.c~device_cgroup-fix-unchecked-cgroup-parent-usage
++++ a/security/device_cgroup.c
+@@ -352,6 +352,8 @@ static int parent_has_perm(struct dev_cg
+  */
+ static inline int may_allow_all(struct dev_cgroup *parent)
+ {
++	if (!parent)
++		return 1;
+ 	return parent->behavior == DEVCG_DEFAULT_ALLOW;
  }
  
--static inline void tasklet_hi_enable(struct tasklet_struct *t)
--{
--	smp_mb__before_atomic_dec();
--	atomic_dec(&t->count);
--}
+@@ -376,11 +378,14 @@ static int devcgroup_update_access(struc
+ 	int count, rc;
+ 	struct dev_exception_item ex;
+ 	struct cgroup *p = devcgroup->css.cgroup;
+-	struct dev_cgroup *parent = cgroup_to_devcgroup(p->parent);
++	struct dev_cgroup *parent = NULL;
+ 
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
+ 
++	if (p->parent)
++		parent = cgroup_to_devcgroup(p->parent);
++
+ 	memset(&ex, 0, sizeof(ex));
+ 	b = buffer;
+ 
+@@ -391,11 +396,14 @@ static int devcgroup_update_access(struc
+ 			if (!may_allow_all(parent))
+ 				return -EPERM;
+ 			dev_exception_clean(devcgroup);
++			devcgroup->behavior = DEVCG_DEFAULT_ALLOW;
++			if (!parent)
++				break;
++
+ 			rc = dev_exceptions_copy(&devcgroup->exceptions,
+ 						 &parent->exceptions);
+ 			if (rc)
+ 				return rc;
+-			devcgroup->behavior = DEVCG_DEFAULT_ALLOW;
+ 			break;
+ 		case DEVCG_DENY:
+ 			dev_exception_clean(devcgroup);
+_
+
+Patches currently in -mm which might be from aris@redhat.com are
+
+linux-next.patch
+
