@@ -1,71 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cciss-use-check_signature.patch removed from -mm tree
-Date: Mon, 12 Nov 2012 13:09:38 -0800
-Message-ID: <20121112210938.A8B49100047@wpzn3.hot.corp.google.com>
+Subject: [merged] init-reduce-partuuid-min-length-to-1-from-36.patch removed from -mm tree
+Date: Mon, 12 Nov 2012 13:09:44 -0800
+Message-ID: <20121112210945.38C7F5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:40825 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752798Ab2KLVJk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Nov 2012 16:09:40 -0500
-Received: by mail-ye0-f202.google.com with SMTP id r11so783366yen.1
-        for <mm-commits@vger.kernel.org>; Mon, 12 Nov 2012 13:09:39 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:63364 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753694Ab2KLVJr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Nov 2012 16:09:47 -0500
+Received: by mail-ee0-f74.google.com with SMTP id t10so132689eei.1
+        for <mm-commits@vger.kernel.org>; Mon, 12 Nov 2012 13:09:46 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, axboe@kernel.dk, mike.miller@hp.com, scameron@beardog.cce.hp.com, mm-commits@vger.kernel.org
+To: swarren@nvidia.com, axboe@kernel.dk, kay.sievers@vrfy.org, tj@kernel.org, wad@chromium.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cciss: use check_signature()
+     Subject: init: reduce PARTUUID min length to 1 from 36
 has been removed from the -mm tree.  Its filename was
-     cciss-use-check_signature.patch
+     init-reduce-partuuid-min-length-to-1-from-36.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: cciss: use check_signature()
+From: Stephen Warren <swarren@nvidia.com>
+Subject: init: reduce PARTUUID min length to 1 from 36
 
-Use check_signature() to find a signature in the mmio address.
+Reduce the minimum length for a root=PARTUUID= parameter to be considered
+valid from 36 to 1.  EFI/GPT partition UUIDs are always exactly 36
+characters long, hence the previous limit.  However, the next patch will
+support DOS/MBR UUIDs too, which have a different, shorter, format. 
+Instead of validating any particular length, just ensure that at least
+some non-empty value was given by the user.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Mike Miller <mike.miller@hp.com>
+Also, consider a missing UUID value to be a parsing error, in the same
+vein as if /PARTNROFF exists and can't be parsed.  As such, make both
+error cases print a message and disable rootwait.  Convert to pr_err while
+we're at it.
+
+Signed-off-by: Stephen Warren <swarren@nvidia.com>
 Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Stephen M. Cameron <scameron@beardog.cce.hp.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Will Drewry <wad@chromium.org>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ init/do_mounts.c |   35 ++++++++++++++++++++++-------------
+ 1 file changed, 22 insertions(+), 13 deletions(-)
 
-diff -puN drivers/block/cciss.c~cciss-use-check_signature drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-use-check_signature
-+++ a/drivers/block/cciss.c
-@@ -42,8 +42,8 @@
- #include <linux/compat.h>
- #include <linux/mutex.h>
- #include <linux/bitmap.h>
-+#include <linux/io.h>
- #include <asm/uaccess.h>
--#include <asm/io.h>
+diff -puN init/do_mounts.c~init-reduce-partuuid-min-length-to-1-from-36 init/do_mounts.c
+--- a/init/do_mounts.c~init-reduce-partuuid-min-length-to-1-from-36
++++ a/init/do_mounts.c
+@@ -119,27 +119,29 @@ static dev_t devt_from_partuuid(const ch
+ 	struct gendisk *disk;
+ 	struct hd_struct *part;
+ 	int offset = 0;
+-
+-	if (strlen(uuid_str) < 36)
+-		goto done;
++	bool clear_root_wait = false;
++	char *slash;
  
- #include <linux/dma-mapping.h>
- #include <linux/blkdev.h>
-@@ -4267,10 +4267,7 @@ static void __devinit cciss_find_board_p
+ 	cmp.uuid = uuid_str;
+-	cmp.len = 36;
  
- static inline bool CISS_signature_present(ctlr_info_t *h)
- {
--	if ((readb(&h->cfgtable->Signature[0]) != 'C') ||
--	    (readb(&h->cfgtable->Signature[1]) != 'I') ||
--	    (readb(&h->cfgtable->Signature[2]) != 'S') ||
--	    (readb(&h->cfgtable->Signature[3]) != 'S')) {
-+	if (!check_signature(h->cfgtable->Signature, "CISS", 4)) {
- 		dev_warn(&h->pdev->dev, "not a valid CISS config table\n");
- 		return false;
++	slash = strchr(uuid_str, '/');
+ 	/* Check for optional partition number offset attributes. */
+-	if (uuid_str[36]) {
++	if (slash) {
+ 		char c = 0;
+ 		/* Explicitly fail on poor PARTUUID syntax. */
+-		if (sscanf(&uuid_str[36],
+-			   "/PARTNROFF=%d%c", &offset, &c) != 1) {
+-			printk(KERN_ERR "VFS: PARTUUID= is invalid.\n"
+-			 "Expected PARTUUID=<valid-uuid-id>[/PARTNROFF=%%d]\n");
+-			if (root_wait)
+-				printk(KERN_ERR
+-				     "Disabling rootwait; root= is invalid.\n");
+-			root_wait = 0;
++		if (sscanf(slash + 1,
++			   "PARTNROFF=%d%c", &offset, &c) != 1) {
++			clear_root_wait = true;
+ 			goto done;
+ 		}
++		cmp.len = slash - uuid_str;
++	} else {
++		cmp.len = strlen(uuid_str);
++	}
++
++	if (!cmp.len) {
++		clear_root_wait = true;
++		goto done;
  	}
+ 
+ 	dev = class_find_device(&block_class, NULL, &cmp,
+@@ -164,6 +166,13 @@ static dev_t devt_from_partuuid(const ch
+ no_offset:
+ 	put_device(dev);
+ done:
++	if (clear_root_wait) {
++		pr_err("VFS: PARTUUID= is invalid.\n"
++		       "Expected PARTUUID=<valid-uuid-id>[/PARTNROFF=%%d]\n");
++		if (root_wait)
++			pr_err("Disabling rootwait; root= is invalid.\n");
++		root_wait = 0;
++	}
+ 	return res;
+ }
+ #endif
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from swarren@nvidia.com are
 
 linux-next.patch
 
