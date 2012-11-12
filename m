@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + avr32-kconfig-remove-have_arch_bootmem.patch added to -mm tree
-Date: Mon, 12 Nov 2012 15:23:55 -0800
-Message-ID: <20121112232356.3D149100047@wpzn3.hot.corp.google.com>
+Subject: + bootmem-remove-alloc_arch_preferred_bootmem.patch added to -mm tree
+Date: Mon, 12 Nov 2012 15:23:58 -0800
+Message-ID: <20121112232359.B8B215C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:34595 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752718Ab2KLXX5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Nov 2012 18:23:57 -0500
-Received: by mail-qc0-f202.google.com with SMTP id s25so792707qcq.1
-        for <mm-commits@vger.kernel.org>; Mon, 12 Nov 2012 15:23:57 -0800 (PST)
+Received: from mail-ea0-f202.google.com ([209.85.215.202]:49686 "EHLO
+	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752801Ab2KLXYD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Nov 2012 18:24:03 -0500
+Received: by mail-ea0-f202.google.com with SMTP id f11so150167eaa.1
+        for <mm-commits@vger.kernel.org>; Mon, 12 Nov 2012 15:24:01 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: js1304@gmail.com, benh@kernel.crashing.org, egtvedt@samfundet.no, fujita.tom
 
 
 The patch titled
-     Subject: avr32, kconfig: remove HAVE_ARCH_BOOTMEM
+     Subject: bootmem: remove alloc_arch_preferred_bootmem()
 has been added to the -mm tree.  Its filename is
-     avr32-kconfig-remove-have_arch_bootmem.patch
+     bootmem-remove-alloc_arch_preferred_bootmem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,9 +34,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <js1304@gmail.com>
-Subject: avr32, kconfig: remove HAVE_ARCH_BOOTMEM
+Subject: bootmem: remove alloc_arch_preferred_bootmem()
 
-There is no code for CONFIG_HAVE_ARCH_BOOTMEM, so remove it.
+The name of this function is not suitable, and removing the function and
+open-coding it into each call sites makes the code more understandable.
+
+Additionally, we shouldn't do an allocation from bootmem when
+slab_is_available(), so directly return kmalloc()'s return value.
 
 Signed-off-by: Joonsoo Kim <js1304@gmail.com>
 Cc: Haavard Skinnemoen <hskinnemoen@gmail.com>
@@ -47,22 +51,53 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/avr32/Kconfig |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/bootmem.c |   19 ++++---------------
+ 1 file changed, 4 insertions(+), 15 deletions(-)
 
-diff -puN arch/avr32/Kconfig~avr32-kconfig-remove-have_arch_bootmem arch/avr32/Kconfig
---- a/arch/avr32/Kconfig~avr32-kconfig-remove-have_arch_bootmem
-+++ a/arch/avr32/Kconfig
-@@ -194,9 +194,6 @@ source "kernel/Kconfig.preempt"
- config QUICKLIST
- 	def_bool y
+diff -puN mm/bootmem.c~bootmem-remove-alloc_arch_preferred_bootmem mm/bootmem.c
+--- a/mm/bootmem.c~bootmem-remove-alloc_arch_preferred_bootmem
++++ a/mm/bootmem.c
+@@ -583,14 +583,6 @@ find_block:
+ 	return NULL;
+ }
  
--config HAVE_ARCH_BOOTMEM
--	def_bool n
+-static void * __init alloc_arch_preferred_bootmem(bootmem_data_t *bdata,
+-					unsigned long size, unsigned long align,
+-					unsigned long goal, unsigned long limit)
+-{
+-	if (WARN_ON_ONCE(slab_is_available()))
+-		return kzalloc(size, GFP_NOWAIT);
+-}
 -
- config ARCH_HAVE_MEMORY_PRESENT
- 	def_bool n
+ static void * __init alloc_bootmem_core(unsigned long size,
+ 					unsigned long align,
+ 					unsigned long goal,
+@@ -599,9 +591,8 @@ static void * __init alloc_bootmem_core(
+ 	bootmem_data_t *bdata;
+ 	void *region;
  
+-	region = alloc_arch_preferred_bootmem(NULL, size, align, goal, limit);
+-	if (region)
+-		return region;
++	if (WARN_ON_ONCE(slab_is_available()))
++		return kzalloc(size, GFP_NOWAIT);
+ 
+ 	list_for_each_entry(bdata, &bdata_list, list) {
+ 		if (goal && bdata->node_low_pfn <= PFN_DOWN(goal))
+@@ -699,11 +690,9 @@ void * __init ___alloc_bootmem_node_nopa
+ {
+ 	void *ptr;
+ 
++	if (WARN_ON_ONCE(slab_is_available()))
++		return kzalloc(size, GFP_NOWAIT);
+ again:
+-	ptr = alloc_arch_preferred_bootmem(pgdat->bdata, size,
+-					   align, goal, limit);
+-	if (ptr)
+-		return ptr;
+ 
+ 	/* do not panic in alloc_bootmem_bdata() */
+ 	if (limit && goal + size > limit)
 _
 
 Patches currently in -mm which might be from js1304@gmail.com are
