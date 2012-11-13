@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-augment-vma-rbtree-with-rb_subtree_gap--debug-code-to-verify-rb_subtree_gap-updates-are-safe.patch added to -mm tree
-Date: Mon, 12 Nov 2012 16:24:31 -0800
-Message-ID: <20121113002431.6B69A100047@wpzn3.hot.corp.google.com>
+Subject: + procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers-fix.patch added to -mm tree
+Date: Mon, 12 Nov 2012 17:05:51 -0800
+Message-ID: <20121113010552.B4D6720004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:51246 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753916Ab2KMAYc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Nov 2012 19:24:32 -0500
-Received: by mail-gg0-f202.google.com with SMTP id i4so796047ggm.1
-        for <mm-commits@vger.kernel.org>; Mon, 12 Nov 2012 16:24:32 -0800 (PST)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:48696 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754310Ab2KMBF4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Nov 2012 20:05:56 -0500
+Received: by mail-bk0-f74.google.com with SMTP id jm19so116285bkc.1
+        for <mm-commits@vger.kernel.org>; Mon, 12 Nov 2012 17:05:55 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: walken@google.com, hughd@google.com, riel@redhat.com, sasha.levin@oracle.com
+Cc: akpm@linux-foundation.org, adobriyan@gmail.com, aneesh.kumar@linux.vnet.ibm.com, bfields@fieldses.org, gorcunov@openvz.org, jbottomley@parallels.com, matt.helsley@gmail.com, viro@ZenIV.linux.org.uk, xemul@parallels.com
 
 
 The patch titled
-     Subject: mm: debug code to verify rb_subtree_gap updates are safe
+     Subject: procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers-fix
 has been added to the -mm tree.  Its filename is
-     mm-augment-vma-rbtree-with-rb_subtree_gap--debug-code-to-verify-rb_subtree_gap-updates-are-safe.patch
+     procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,188 +33,105 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michel Lespinasse <walken@google.com>
-Subject: mm: debug code to verify rb_subtree_gap updates are safe
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers-fix
 
-Using the trinity fuzzer, Sasha Levin uncovered a case where
-rb_subtree_gap wasn't correctly updated.
-
-Digging into this, the root cause was that vma insertions and removals
-require both an rbtree insert or erase operation (which may trigger
-tree rotations), and an update of the next vma's gap (which does not
-change the tree topology, but may require iterating on the node's
-ancestors to propagate the update). The rbtree rotations caused the
-rb_subtree_gap values to be updated in some of the internal nodes, but
-without upstream propagation. Then the subsequent update on the next
-vma didn't iterate as high up the tree as it should have, as it
-stopped as soon as it hit one of the internal nodes that had been
-updated as part of a tree rotation.
-
-The fix is to impose that all rb_subtree_gap values must be up to date
-before any rbtree insertion or erase, with the possible exception that
-the node being erased doesn't need to have an up to date rb_subtree_gap.
-
-This change: introduce validate_mm_rb() to verify that the rbtree does
-not include any stale rb_subtree_gap values before node insertion or
-erase, so as to avoid the issue where a subsequent vma_gap_update() would
-fail to propagate the rb_subtree_gap updates as high up as necessary.
-
-Signed-off-by: Michel Lespinasse <walken@google.com>
-Reported-by: Sasha Levin <sasha.levin@oracle.com>
-Signed-off-by: Michel Lespinasse <walken@google.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: James Bottomley <jbottomley@parallels.com>
+Cc: Matthew Helsley <matt.helsley@gmail.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   88 ++++++++++++++++++++++++++++++++--------------------
- 1 file changed, 55 insertions(+), 33 deletions(-)
+ include/linux/fs.h |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN mm/mmap.c~mm-augment-vma-rbtree-with-rb_subtree_gap--debug-code-to-verify-rb_subtree_gap-updates-are-safe mm/mmap.c
---- a/mm/mmap.c~mm-augment-vma-rbtree-with-rb_subtree_gap--debug-code-to-verify-rb_subtree_gap-updates-are-safe
-+++ a/mm/mmap.c
-@@ -319,39 +319,6 @@ static long vma_compute_subtree_gap(stru
- 	return max;
- }
+diff -puN include/linux/fs.h~procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers-fix include/linux/fs.h
+--- a/include/linux/fs.h~procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers-fix
++++ a/include/linux/fs.h
+@@ -44,6 +44,7 @@ struct vm_area_struct;
+ struct vfsmount;
+ struct cred;
+ struct swap_info_struct;
++struct seq_file;
  
--RB_DECLARE_CALLBACKS(static, vma_gap_callbacks, struct vm_area_struct, vm_rb,
--		     unsigned long, rb_subtree_gap, vma_compute_subtree_gap)
--
--/*
-- * Update augmented rbtree rb_subtree_gap values after vma->vm_start or
-- * vma->vm_prev->vm_end values changed, without modifying the vma's position
-- * in the rbtree.
-- */
--static void vma_gap_update(struct vm_area_struct *vma)
--{
--	/*
--	 * As it turns out, RB_DECLARE_CALLBACKS() already created a callback
--	 * function that does exacltly what we want.
--	 */
--	vma_gap_callbacks_propagate(&vma->vm_rb, NULL);
--}
--
--static inline void vma_rb_insert(struct vm_area_struct *vma,
--				 struct rb_root *root)
--{
--	rb_insert_augmented(&vma->vm_rb, root, &vma_gap_callbacks);
--}
--
--static void vma_rb_erase(struct vm_area_struct *vma, struct rb_root *root)
--{
--	/*
--	 * Note rb_erase_augmented is a fairly large inline function,
--	 * so make sure we instantiate it only once with our desired
--	 * augmented rbtree callbacks.
--	 */
--	rb_erase_augmented(&vma->vm_rb, root, &vma_gap_callbacks);
--}
--
- #ifdef CONFIG_DEBUG_VM_RB
- static int browse_rb(struct rb_root *root)
- {
-@@ -382,6 +349,18 @@ static int browse_rb(struct rb_root *roo
- 	return i;
- }
+ extern void __init inode_init(void);
+ extern void __init inode_init_early(void);
+@@ -1517,8 +1518,6 @@ struct block_device_operations;
+ #define HAVE_COMPAT_IOCTL 1
+ #define HAVE_UNLOCKED_IOCTL 1
  
-+static void validate_mm_rb(struct rb_root *root, struct vm_area_struct *ignore)
-+{
-+	struct rb_node *nd;
-+
-+	for (nd = rb_first(root); nd; nd = rb_next(nd)) {
-+		struct vm_area_struct *vma;
-+		vma = rb_entry(nd, struct vm_area_struct, vm_rb);
-+		BUG_ON(vma != ignore &&
-+		       vma->rb_subtree_gap != vma_compute_subtree_gap(vma));
-+	}
-+}
-+
- void validate_mm(struct mm_struct *mm)
- {
- 	int bug = 0;
-@@ -404,9 +383,52 @@ void validate_mm(struct mm_struct *mm)
- 	BUG_ON(bug);
- }
- #else
-+#define validate_mm_rb(root, ignore) do { } while (0)
- #define validate_mm(mm) do { } while (0)
- #endif
+-struct seq_file;
+-
+ struct file_operations {
+ 	struct module *owner;
+ 	loff_t (*llseek) (struct file *, loff_t, int);
+@@ -1583,8 +1582,6 @@ struct inode_operations {
+ 			   umode_t create_mode, int *opened);
+ } ____cacheline_aligned;
  
-+RB_DECLARE_CALLBACKS(static, vma_gap_callbacks, struct vm_area_struct, vm_rb,
-+		     unsigned long, rb_subtree_gap, vma_compute_subtree_gap)
-+
-+/*
-+ * Update augmented rbtree rb_subtree_gap values after vma->vm_start or
-+ * vma->vm_prev->vm_end values changed, without modifying the vma's position
-+ * in the rbtree.
-+ */
-+static void vma_gap_update(struct vm_area_struct *vma)
-+{
-+	/*
-+	 * As it turns out, RB_DECLARE_CALLBACKS() already created a callback
-+	 * function that does exacltly what we want.
-+	 */
-+	vma_gap_callbacks_propagate(&vma->vm_rb, NULL);
-+}
-+
-+static inline void vma_rb_insert(struct vm_area_struct *vma,
-+				 struct rb_root *root)
-+{
-+	/* All rb_subtree_gap values must be consistent prior to insertion */
-+	validate_mm_rb(root, NULL);
-+
-+	rb_insert_augmented(&vma->vm_rb, root, &vma_gap_callbacks);
-+}
-+
-+static void vma_rb_erase(struct vm_area_struct *vma, struct rb_root *root)
-+{
-+	/*
-+	 * All rb_subtree_gap values must be consistent prior to erase,
-+	 * with the possible exception of the vma being erased.
-+	 */
-+	validate_mm_rb(root, vma);
-+
-+	/*
-+	 * Note rb_erase_augmented is a fairly large inline function,
-+	 * so make sure we instantiate it only once with our desired
-+	 * augmented rbtree callbacks.
-+	 */
-+	rb_erase_augmented(&vma->vm_rb, root, &vma_gap_callbacks);
-+}
-+
- /*
-  * vma has some anon_vma assigned, and is already inserted on that
-  * anon_vma's interval trees.
+-struct seq_file;
+-
+ ssize_t rw_copy_check_uvector(int type, const struct iovec __user * uvector,
+ 			      unsigned long nr_segs, unsigned long fast_segs,
+ 			      struct iovec *fast_pointer,
 _
 
-Patches currently in -mm which might be from walken@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-mm-add-anon_vma_lock-to-validate_mm.patch
-mm-augment-vma-rbtree-with-rb_subtree_gap.patch
-mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-inserting-new-vma.patch
-mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-removing-vma.patch
-mm-augment-vma-rbtree-with-rb_subtree_gap--debug-code-to-verify-rb_subtree_gap-updates-are-safe.patch
-mm-check-rb_subtree_gap-correctness.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+irq-tsk-comm-is-an-array.patch
+drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch
+mm.patch
+mm-introduce-mm_find_pmd-fix.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
+slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
+mmvmscan-only-evict-file-pages-when-we-have-plenty-fix.patch
+slub-slub-specific-propagation-changes-fix.patch
+dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix.patch
 mm-check-rb_subtree_gap-correctness-fix.patch
-mm-rearrange-vm_area_struct-for-fewer-cache-misses.patch
 mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
-mm-vm_unmapped_area-lookup-function.patch
 mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
-mm-use-vm_unmapped_area-on-x86_64-architecture.patch
-mm-fix-cache-coloring-on-x86_64-architecture.patch
-mm-use-vm_unmapped_area-in-hugetlbfs.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture.patch
 mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
-mm-use-vm_unmapped_area-on-mips-architecture.patch
 mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
-mm-use-vm_unmapped_area-on-arm-architecture.patch
 mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sh-architecture.patch
 mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc64-architecture.patch
 mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-sparc64-architecture.patch
-mm-use-vm_unmapped_area-on-sparc32-architecture.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture.patch
+mm-adjust-address_space_operationsmigratepage-return-code-fix.patch
+mm-introduce-a-common-interface-for-balloon-pages-mobility-fix.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
+bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
+drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
+rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
+hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
+procfs-add-vmflags-field-in-smaps-output-v4.patch
+procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
+procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers-fix.patch
+ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
+ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
+ipc-convert-prepare_copy-from-macro-to-function-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
