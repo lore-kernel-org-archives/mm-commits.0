@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch added to -mm tree
-Date: Mon, 12 Nov 2012 15:35:04 -0800
-Message-ID: <20121112233505.9F41420004E@hpza10.eem.corp.google.com>
+Subject: + mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix.patch added to -mm tree
+Date: Mon, 12 Nov 2012 16:13:09 -0800
+Message-ID: <20121113001310.40691200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:43590 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754297Ab2KLXfI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Nov 2012 18:35:08 -0500
-Received: by mail-ee0-f74.google.com with SMTP id t10so137400eei.1
-        for <mm-commits@vger.kernel.org>; Mon, 12 Nov 2012 15:35:06 -0800 (PST)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:34277 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752695Ab2KMANN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Nov 2012 19:13:13 -0500
+Received: by mail-fa0-f74.google.com with SMTP id w1so10240fad.1
+        for <mm-commits@vger.kernel.org>; Mon, 12 Nov 2012 16:13:11 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aquini@redhat.com, yongjun_wei@trendmicro.com.cn
+Cc: rientjes@google.com, ak@linux.intel.com, rdunlap@infradead.org, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix
+     Subject: MM: Support more pagesizes for MAP_HUGETLB/SHM_HUGETLB v7 fix fix fix
 has been added to the -mm tree.  Its filename is
-     virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
+     mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,91 +33,152 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix
+From: David Rientjes <rientjes@google.com>
+Subject: MM: Support more pagesizes for MAP_HUGETLB/SHM_HUGETLB v7 fix fix fix
 
-avoid having multiple return points in fill_balloon()
+On Fri, 9 Nov 2012, Randy Dunlap wrote:
 
-Cc: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-Cc: Rafael Aquini <aquini@redhat.com>
+> on x86_64:
+>
+> In file included from mm/mprotect.c:13:0:
+> include/linux/shm.h:57:20: error: redefinition of 'do_shmat'
+> include/linux/shm.h:57:20: note: previous definition of 'do_shmat' was here
+> include/linux/shm.h:63:19: error: redefinition of 'is_file_shm_hugepages'
+> include/linux/shm.h:63:19: note: previous definition of 'is_file_shm_hugepages' was here
+> include/linux/shm.h:67:20: error: redefinition of 'exit_shm'
+> include/linux/shm.h:67:20: note: previous definition of 'exit_shm' was here
+>
+> In file included from include/linux/hugetlb.h:16:0,
+>                  from mm/mmap.c:23:
+> include/linux/shm.h:57:20: error: redefinition of 'do_shmat'
+> include/linux/shm.h:57:20: note: previous definition of 'do_shmat' was here
+> include/linux/shm.h:63:19: error: redefinition of 'is_file_shm_hugepages'
+> include/linux/shm.h:63:19: note: previous definition of 'is_file_shm_hugepages' was here
+> include/linux/shm.h:67:20: error: redefinition of 'exit_shm'
+> include/linux/shm.h:67:20: note: previous definition of 'exit_shm' was here
+> make[2]: *** [mm/mprotect.o] Error 1
+>
+
+This is an elusive one, I couldn't reproduce it with master.  This appears
+to only happen on the akpm branch, correct?
+
+It happens because of e37c64a9751a ("mm: support more pagesizes for
+MAP_HUGETLB/SHM_HUGETLB") adds a spurious "#endif" to include/linux/shm.h
+and gets reverted in master by 359078d82a20 ("Revert "mm: support more
+pagesizes for MAP_HUGETLB/SHM_HUGETLB"") because of another build failure
+that Stephen reports on November 8:
+
+mm/mmap.c: In function 'SYSC_mmap_pgoff':
+mm/mmap.c:1271:15: error: 'MAP_HUGE_SHIFT' undeclared (first use in this function)
+mm/mmap.c:1271:15: note: each undeclared identifier is reported only once for each function it appears in
+mm/mmap.c:1271:33: error: 'MAP_HUGE_MASK' undeclared (first use in this function)
+
+I think the best bet would be to merge the following in -mm and then let
+Stephen revert it in master again if his build error persists for powerpc:
+
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix
+
+Fix the build:
+
+include/linux/shm.h:57:20: error: redefinition of 'do_shmat'
+include/linux/shm.h:57:20: note: previous definition of 'do_shmat' was here
+include/linux/shm.h:63:19: error: redefinition of 'is_file_shm_hugepages'
+include/linux/shm.h:63:19: note: previous definition of 'is_file_shm_hugepages' was here
+include/linux/shm.h:67:20: error: redefinition of 'exit_shm'
+include/linux/shm.h:67:20: note: previous definition of 'exit_shm' was here
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/virtio/virtio_balloon.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ include/linux/shm.h |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/virtio/virtio_balloon.c~virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix drivers/virtio/virtio_balloon.c
---- a/drivers/virtio/virtio_balloon.c~virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix
-+++ a/drivers/virtio/virtio_balloon.c
-@@ -151,13 +151,9 @@ static void fill_balloon(struct virtio_b
- 		totalram_pages--;
- 	}
+diff -puN include/linux/shm.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix include/linux/shm.h
+--- a/include/linux/shm.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix
++++ a/include/linux/shm.h
+@@ -23,8 +23,6 @@ struct shmid_kernel /* private to the ke
+ 	struct task_struct	*shm_creator;
+ };
  
--	/* Didn't get any?  Oh well. */
--	if (vb->num_pfns == 0) {
--		mutex_unlock(&vb->balloon_lock);
--		return;
--	}
+-#endif
 -
--	tell_host(vb, vb->inflate_vq);
-+	/* Did we get any? */
-+	if (vb->num_pfns != 0)
-+		tell_host(vb, vb->inflate_vq);
- 	mutex_unlock(&vb->balloon_lock);
- }
+ /* shm_mode upper byte flags */
+ #define	SHM_DEST	01000	/* segment will be destroyed on last detach */
+ #define SHM_LOCKED      02000   /* segment will not be swapped */
+@@ -46,8 +44,6 @@ struct shmid_kernel /* private to the ke
+ #define SHM_HUGE_2MB    (21 << SHM_HUGE_SHIFT)
+ #define SHM_HUGE_1GB    (30 << SHM_HUGE_SHIFT)
  
+-#ifdef __KERNEL__
+-
+ #ifdef CONFIG_SYSVIPC
+ long do_shmat(int shmid, char __user *shmaddr, int shmflg, unsigned long *addr,
+ 	      unsigned long shmlba);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rientjes@google.com are
 
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+mm-fix-build-warning-for-uninitialized-value.patch
+memcg-oom-fix-totalpages-calculation-for-memoryswappiness==0.patch
+memcg-oom-fix-totalpages-calculation-for-memoryswappiness==0-fix.patch
 irq-tsk-comm-is-an-array.patch
-drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch
-mm.patch
-mm-introduce-mm_find_pmd-fix.patch
+mm-memcg-make-mem_cgroup_out_of_memory-static.patch
+mm-use-is_enabledconfig_numa-instead-of-numa_build.patch
+mm-use-is_enabledconfig_compaction-instead-of-compaction_build.patch
+thp-clean-up-__collapse_huge_page_isolate.patch
+memory-hotplug-suppress-device-memoryx-does-not-have-a-release-function-warning.patch
+memory-hotplug-skip-hwpoisoned-page-when-offlining-pages.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory.patch
 memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
+memory-hotplug-auto-offline-page_cgroup-when-onlining-memory-block-failed.patch
+memory-hotplug-fix-nr_free_pages-mismatch.patch
+numa-convert-static-memory-to-dynamically-allocated-memory-for-per-node-device.patch
+memory-hotplug-suppress-device-nodex-does-not-have-a-release-function-warning.patch
+memory-hotplug-mm-sparsec-clear-the-memory-to-store-struct-page.patch
+memory-hotplug-allocate-zones-pcp-before-onlining-pages.patch
+memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix.patch
+memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix-2.patch
+memory_hotplug-fix-possible-incorrect-node_states.patch
 slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
-mmvmscan-only-evict-file-pages-when-we-have-plenty-fix.patch
+mm-oom-allow-exiting-threads-to-have-access-to-memory-reserves.patch
+memcg-make-it-possible-to-use-the-stock-for-more-than-one-page.patch
+memcg-reclaim-when-more-than-one-page-needed.patch
+memcg-change-defines-to-an-enum.patch
+memcg-kmem-accounting-basic-infrastructure.patch
+mm-add-a-__gfp_kmemcg-flag.patch
+memcg-kmem-controller-infrastructure.patch
+mm-allocate-kernel-pages-to-the-right-memcg.patch
+res_counter-return-amount-of-charges-after-res_counter_uncharge.patch
+memcg-kmem-accounting-lifecycle-management.patch
+memcg-use-static-branches-when-code-not-in-use.patch
+memcg-allow-a-memcg-with-kmem-charges-to-be-destructed.patch
+memcg-execute-the-whole-memcg-freeing-in-free_worker.patch
+fork-protect-architectures-where-thread_size-=-page_size-against-fork-bombs.patch
+memcg-add-documentation-about-the-kmem-controller.patch
+slab-slub-struct-memcg_params.patch
+slab-annotate-on-slab-caches-nodelist-locks.patch
+slab-slub-consider-a-memcg-parameter-in-kmem_create_cache.patch
+memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears.patch
+memcg-infrastructure-to-match-an-allocation-to-the-right-cache.patch
+memcg-skip-memcg-kmem-allocations-in-specified-code-regions.patch
+slb-always-get-the-cache-from-its-page-in-kmem_cache_free.patch
+slb-allocate-objects-from-memcg-cache.patch
+memcg-destroy-memcg-caches.patch
+memcg-slb-track-all-the-memcg-children-of-a-kmem_cache.patch
+memcg-slb-shrink-dead-caches.patch
+memcg-aggregate-memcg-cache-values-in-slabinfo.patch
+slab-propagate-tunable-values.patch
+slub-slub-specific-propagation-changes.patch
 slub-slub-specific-propagation-changes-fix.patch
-dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix.patch
-mm-check-rb_subtree_gap-correctness-fix.patch
-mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
-mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
-mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
-mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
-mm-adjust-address_space_operationsmigratepage-return-code-fix.patch
-mm-introduce-a-common-interface-for-balloon-pages-mobility-fix.patch
-virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
-bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
-drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
-rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
-hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
-procfs-add-vmflags-field-in-smaps-output-v4.patch
-procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
-ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
-ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
-ipc-convert-prepare_copy-from-macro-to-function-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+kmem-add-slab-specific-documentation-about-the-kmem-controller.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix.patch
+mm-mempolicy-remove-duplicate-code.patch
+mm-cleanup-register_node.patch
+mm-oom-change-type-of-oom_score_adj-to-short.patch
+mm-oom-fix-race-when-specifying-a-thread-as-the-oom-origin.patch
 
