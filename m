@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 13 Nov 2012 15:27:59 -0800
-Message-ID: <20121113232800.D44CF200057@hpza10.eem.corp.google.com>
+Subject: + printk-boot_delay-should-only-affect-output.patch added to -mm tree
+Date: Tue, 13 Nov 2012 15:29:17 -0800
+Message-ID: <20121113232918.0EC8B5C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:45382 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752680Ab2KMX2E (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Nov 2012 18:28:04 -0500
-Received: by mail-lb0-f202.google.com with SMTP id i15so115680lbo.1
-        for <mm-commits@vger.kernel.org>; Tue, 13 Nov 2012 15:28:02 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:54344 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755939Ab2KMX3U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Nov 2012 18:29:20 -0500
+Received: by mail-ee0-f74.google.com with SMTP id t10so213436eei.1
+        for <mm-commits@vger.kernel.org>; Tue, 13 Nov 2012 15:29:19 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, rientjes@google.com
+Cc: acooks@gmail.com, joe@perches.com, rdunlap@infradead.org
 
 
 The patch titled
-     Subject: mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes
+     Subject: printk: boot_delay should only affect output
 has been added to the -mm tree.  Its filename is
-     mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch
+     printk-boot_delay-should-only-affect-output.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,149 +33,91 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes
+From: Andrew Cooks <acooks@gmail.com>
+Subject: printk: boot_delay should only affect output
 
-ERROR: trailing whitespace
-#43: FILE: arch/alpha/include/asm/mman.h:73:
-+ */  $
+The boot_delay parameter affects all printk(), even if the log level
+prevents visible output from the call.  It results in delays greater than
+the user intended without purpose.
 
-ERROR: trailing whitespace
-#62: FILE: arch/mips/include/uapi/asm/mman.h:97:
-+ */  $
+This patch changes the behaviour of boot_delay to only delay output.
 
-ERROR: trailing whitespace
-#81: FILE: arch/parisc/include/uapi/asm/mman.h:80:
-+ */  $
-
-ERROR: trailing whitespace
-#100: FILE: arch/xtensa/include/uapi/asm/mman.h:103:
-+ */  $
-
-total: 4 errors, 0 warnings, 94 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Andrew Cooks <acooks@gmail.com>
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/mman.h       |    2 +-
- arch/mips/include/uapi/asm/mman.h   |    2 +-
- arch/parisc/include/uapi/asm/mman.h |    2 +-
- arch/xtensa/include/uapi/asm/mman.h |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ kernel/printk.c |   40 +++++++++++++++++++++-------------------
+ 1 file changed, 21 insertions(+), 19 deletions(-)
 
-diff -puN arch/alpha/include/asm/mman.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes arch/alpha/include/asm/mman.h
---- a/arch/alpha/include/asm/mman.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes
-+++ a/arch/alpha/include/asm/mman.h
-@@ -70,7 +70,7 @@
-  *
-  * Assume these are all power of twos.
-  * When 0 use the default page size.
-- */  
-+ */
- #define MAP_HUGE_SHIFT	26
- #define MAP_HUGE_MASK	0x3f
+diff -puN kernel/printk.c~printk-boot_delay-should-only-affect-output kernel/printk.c
+--- a/kernel/printk.c~printk-boot_delay-should-only-affect-output
++++ a/kernel/printk.c
+@@ -747,6 +747,21 @@ void __init setup_log_buf(int early)
+ 		free, (free * 100) / __LOG_BUF_LEN);
+ }
  
-diff -puN arch/mips/include/uapi/asm/mman.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes arch/mips/include/uapi/asm/mman.h
---- a/arch/mips/include/uapi/asm/mman.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes
-+++ a/arch/mips/include/uapi/asm/mman.h
-@@ -94,7 +94,7 @@
-  *
-  * Assume these are all power of twos.
-  * When 0 use the default page size.
-- */  
-+ */
- #define MAP_HUGE_SHIFT	26
- #define MAP_HUGE_MASK	0x3f
++static bool __read_mostly ignore_loglevel;
++
++static int __init ignore_loglevel_setup(char *str)
++{
++	ignore_loglevel = 1;
++	printk(KERN_INFO "debug: ignoring loglevel setting.\n");
++
++	return 0;
++}
++
++early_param("ignore_loglevel", ignore_loglevel_setup);
++module_param(ignore_loglevel, bool, S_IRUGO | S_IWUSR);
++MODULE_PARM_DESC(ignore_loglevel, "ignore loglevel setting, to"
++	"print all kernel messages to the console.");
++
+ #ifdef CONFIG_BOOT_PRINTK_DELAY
  
-diff -puN arch/parisc/include/uapi/asm/mman.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes arch/parisc/include/uapi/asm/mman.h
---- a/arch/parisc/include/uapi/asm/mman.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes
-+++ a/arch/parisc/include/uapi/asm/mman.h
-@@ -77,7 +77,7 @@
-  *
-  * Assume these are all power of twos.
-  * When 0 use the default page size.
-- */  
-+ */
- #define MAP_HUGE_SHIFT	26
- #define MAP_HUGE_MASK	0x3f
+ static int boot_delay; /* msecs delay after each printk during bootup */
+@@ -770,13 +785,15 @@ static int __init boot_delay_setup(char 
+ }
+ __setup("boot_delay=", boot_delay_setup);
  
-diff -puN arch/xtensa/include/uapi/asm/mman.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes arch/xtensa/include/uapi/asm/mman.h
---- a/arch/xtensa/include/uapi/asm/mman.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes
-+++ a/arch/xtensa/include/uapi/asm/mman.h
-@@ -100,7 +100,7 @@
-  *
-  * Assume these are all power of twos.
-  * When 0 use the default page size.
-- */  
-+ */
- #define MAP_HUGE_SHIFT	26
- #define MAP_HUGE_MASK	0x3f
+-static void boot_delay_msec(void)
++static void boot_delay_msec(int level)
+ {
+ 	unsigned long long k;
+ 	unsigned long timeout;
  
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-irq-tsk-comm-is-an-array.patch
-drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch
-mm.patch
-mm-introduce-mm_find_pmd-fix.patch
-memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
-slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
-mmvmscan-only-evict-file-pages-when-we-have-plenty-fix.patch
-slub-slub-specific-propagation-changes-fix.patch
-dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch
-mm-check-rb_subtree_gap-correctness-fix.patch
-mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
-mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
-mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
-mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
-mm-adjust-address_space_operationsmigratepage-return-code-fix.patch
-mm-introduce-a-common-interface-for-balloon-pages-mobility-fix.patch
-virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
-bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
-mm-export-a-function-to-get-vm-committed-memory-fix.patch
-drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
-rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
-hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
-procfs-add-vmflags-field-in-smaps-output-v4.patch
-procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
-ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
-ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
-ipc-convert-prepare_copy-from-macro-to-function-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-
+-	if (boot_delay == 0 || system_state != SYSTEM_BOOTING)
++	if ((boot_delay == 0 || system_state != SYSTEM_BOOTING)
++		|| (level >= console_loglevel && !ignore_loglevel)) {
+ 		return;
++	}
+ 
+ 	k = (unsigned long long)loops_per_msec * boot_delay;
+ 
+@@ -795,7 +812,7 @@ static void boot_delay_msec(void)
+ 	}
+ }
+ #else
+-static inline void boot_delay_msec(void)
++static inline void boot_delay_msec(int level)
+ {
+ }
+ #endif
+@@ -1238,21 +1255,6 @@ SYSCALL_DEFINE3(syslog, int, type, char 
+ 	return do_syslog(type, buf, len, SYSLOG_FROM_CALL);
+ }
+ 
+-static bool __read_mostly ignore_loglevel;
+-
+-static int __init ignore_loglevel_setup(char *str)
+-{
+-	ignore_loglevel = 1;
+-	printk(KERN_INFO "debug: ignoring loglevel setting.\n");
+-
+-	return 0;
+-}
+-
+-early_param("ignore_loglevel", ignore_loglevel_setup);
+-module_param(ignore_loglevel, bool, S_IRUGO | S_IWUSR);
+-MODULE_PARM_DESC(ignore_loglevel, "ignore loglevel setting, to"
+-	"print all kernel messages to the console.");
