@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix.patch added to -mm tree
-Date: Mon, 12 Nov 2012 16:13:09 -0800
-Message-ID: <20121113001310.40691200059@hpza10.eem.corp.google.com>
+Subject: + mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-inserting-new-vma.patch added to -mm tree
+Date: Mon, 12 Nov 2012 16:24:24 -0800
+Message-ID: <20121113002425.4429C100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:34277 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752695Ab2KMANN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Nov 2012 19:13:13 -0500
-Received: by mail-fa0-f74.google.com with SMTP id w1so10240fad.1
-        for <mm-commits@vger.kernel.org>; Mon, 12 Nov 2012 16:13:11 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:51246 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751783Ab2KMAY0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Nov 2012 19:24:26 -0500
+Received: by mail-gg0-f202.google.com with SMTP id i4so796047ggm.1
+        for <mm-commits@vger.kernel.org>; Mon, 12 Nov 2012 16:24:25 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, ak@linux.intel.com, rdunlap@infradead.org, sfr@canb.auug.org.au
+Cc: walken@google.com, hughd@google.com, riel@redhat.com, sasha.levin@oracle.com
 
 
 The patch titled
-     Subject: MM: Support more pagesizes for MAP_HUGETLB/SHM_HUGETLB v7 fix fix fix
+     Subject: mm: ensure safe rb_subtree_gap update when inserting new VMA
 has been added to the -mm tree.  Its filename is
-     mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix.patch
+     mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-inserting-new-vma.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,152 +33,122 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: MM: Support more pagesizes for MAP_HUGETLB/SHM_HUGETLB v7 fix fix fix
+From: Michel Lespinasse <walken@google.com>
+Subject: mm: ensure safe rb_subtree_gap update when inserting new VMA
 
-On Fri, 9 Nov 2012, Randy Dunlap wrote:
+Using the trinity fuzzer, Sasha Levin uncovered a case where
+rb_subtree_gap wasn't correctly updated.
 
-> on x86_64:
->
-> In file included from mm/mprotect.c:13:0:
-> include/linux/shm.h:57:20: error: redefinition of 'do_shmat'
-> include/linux/shm.h:57:20: note: previous definition of 'do_shmat' was here
-> include/linux/shm.h:63:19: error: redefinition of 'is_file_shm_hugepages'
-> include/linux/shm.h:63:19: note: previous definition of 'is_file_shm_hugepages' was here
-> include/linux/shm.h:67:20: error: redefinition of 'exit_shm'
-> include/linux/shm.h:67:20: note: previous definition of 'exit_shm' was here
->
-> In file included from include/linux/hugetlb.h:16:0,
->                  from mm/mmap.c:23:
-> include/linux/shm.h:57:20: error: redefinition of 'do_shmat'
-> include/linux/shm.h:57:20: note: previous definition of 'do_shmat' was here
-> include/linux/shm.h:63:19: error: redefinition of 'is_file_shm_hugepages'
-> include/linux/shm.h:63:19: note: previous definition of 'is_file_shm_hugepages' was here
-> include/linux/shm.h:67:20: error: redefinition of 'exit_shm'
-> include/linux/shm.h:67:20: note: previous definition of 'exit_shm' was here
-> make[2]: *** [mm/mprotect.o] Error 1
->
+Digging into this, the root cause was that vma insertions and removals
+require both an rbtree insert or erase operation (which may trigger tree
+rotations), and an update of the next vma's gap (which does not change the
+tree topology, but may require iterating on the node's ancestors to
+propagate the update).  The rbtree rotations caused the rb_subtree_gap
+values to be updated in some of the internal nodes, but without upstream
+propagation.  Then the subsequent update on the next vma didn't iterate as
+high up the tree as it should have, as it stopped as soon as it hit one of
+the internal nodes that had been updated as part of a tree rotation.
 
-This is an elusive one, I couldn't reproduce it with master.  This appears
-to only happen on the akpm branch, correct?
+The fix is to impose that all rb_subtree_gap values must be up to date
+before any rbtree insertion or erase, with the possible exception that the
+node being erased doesn't need to have an up to date rb_subtree_gap.
 
-It happens because of e37c64a9751a ("mm: support more pagesizes for
-MAP_HUGETLB/SHM_HUGETLB") adds a spurious "#endif" to include/linux/shm.h
-and gets reverted in master by 359078d82a20 ("Revert "mm: support more
-pagesizes for MAP_HUGETLB/SHM_HUGETLB"") because of another build failure
-that Stephen reports on November 8:
+This change: during vma insertion, make sure to update the rb_subtree_gap
+values for both the current and next vmas prior to rebalancing the rbtree
+to account for the just-inserted vma.
 
-mm/mmap.c: In function 'SYSC_mmap_pgoff':
-mm/mmap.c:1271:15: error: 'MAP_HUGE_SHIFT' undeclared (first use in this function)
-mm/mmap.c:1271:15: note: each undeclared identifier is reported only once for each function it appears in
-mm/mmap.c:1271:33: error: 'MAP_HUGE_MASK' undeclared (first use in this function)
+(Thanks to Sasha Levin for uncovering the problem and to Hugh Dickins
+for coming up with a simpler test case)
 
-I think the best bet would be to merge the following in -mm and then let
-Stephen revert it in master again if his build error persists for powerpc:
-
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix
-
-Fix the build:
-
-include/linux/shm.h:57:20: error: redefinition of 'do_shmat'
-include/linux/shm.h:57:20: note: previous definition of 'do_shmat' was here
-include/linux/shm.h:63:19: error: redefinition of 'is_file_shm_hugepages'
-include/linux/shm.h:63:19: note: previous definition of 'is_file_shm_hugepages' was here
-include/linux/shm.h:67:20: error: redefinition of 'exit_shm'
-include/linux/shm.h:67:20: note: previous definition of 'exit_shm' was here
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Reported-by: Sasha Levin <sasha.levin@oracle.com>
+Signed-off-by: Michel Lespinasse <walken@google.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/shm.h |    4 ----
- 1 file changed, 4 deletions(-)
+ mm/mmap.c |   27 +++++++++++++++------------
+ 1 file changed, 15 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/shm.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix include/linux/shm.h
---- a/include/linux/shm.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix
-+++ a/include/linux/shm.h
-@@ -23,8 +23,6 @@ struct shmid_kernel /* private to the ke
- 	struct task_struct	*shm_creator;
- };
+diff -puN mm/mmap.c~mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-inserting-new-vma mm/mmap.c
+--- a/mm/mmap.c~mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-inserting-new-vma
++++ a/mm/mmap.c
+@@ -339,17 +339,7 @@ static void vma_gap_update(struct vm_are
+ static inline void vma_rb_insert(struct vm_area_struct *vma,
+ 				 struct rb_root *root)
+ {
+-	/*
+-	 * vma->vm_prev wasn't known when we followed the rbtree to find the
+-	 * correct insertion point for that vma. As a result, we could not
+-	 * update the vma vm_rb parents rb_subtree_gap values on the way down.
+-	 * So, we first insert the vma with a zero rb_subtree_gap value
+-	 * (to be consistent with what we did on the way down), and then
+-	 * immediately update the gap to the correct value.
+-	 */
+-	vma->rb_subtree_gap = 0;
+ 	rb_insert_augmented(&vma->vm_rb, root, &vma_gap_callbacks);
+-	vma_gap_update(vma);
+ }
  
--#endif
--
- /* shm_mode upper byte flags */
- #define	SHM_DEST	01000	/* segment will be destroyed on last detach */
- #define SHM_LOCKED      02000   /* segment will not be swapped */
-@@ -46,8 +44,6 @@ struct shmid_kernel /* private to the ke
- #define SHM_HUGE_2MB    (21 << SHM_HUGE_SHIFT)
- #define SHM_HUGE_1GB    (30 << SHM_HUGE_SHIFT)
+ static void vma_rb_erase(struct vm_area_struct *vma, struct rb_root *root)
+@@ -486,12 +476,25 @@ static int find_vma_links(struct mm_stru
+ void __vma_link_rb(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		struct rb_node **rb_link, struct rb_node *rb_parent)
+ {
+-	rb_link_node(&vma->vm_rb, rb_parent, rb_link);
+-	vma_rb_insert(vma, &mm->mm_rb);
++	/* Update tracking information for the gap following the new vma. */
+ 	if (vma->vm_next)
+ 		vma_gap_update(vma->vm_next);
+ 	else
+ 		mm->highest_vm_end = vma->vm_end;
++
++	/*
++	 * vma->vm_prev wasn't known when we followed the rbtree to find the
++	 * correct insertion point for that vma. As a result, we could not
++	 * update the vma vm_rb parents rb_subtree_gap values on the way down.
++	 * So, we first insert the vma with a zero rb_subtree_gap value
++	 * (to be consistent with what we did on the way down), and then
++	 * immediately update the gap to the correct value. Finally we
++	 * rebalance the rbtree after all augmented values have been set.
++	 */
++	rb_link_node(&vma->vm_rb, rb_parent, rb_link);
++	vma->rb_subtree_gap = 0;
++	vma_gap_update(vma);
++	vma_rb_insert(vma, &mm->mm_rb);
+ }
  
--#ifdef __KERNEL__
--
- #ifdef CONFIG_SYSVIPC
- long do_shmat(int shmid, char __user *shmaddr, int shmflg, unsigned long *addr,
- 	      unsigned long shmlba);
+ static void __vma_link_file(struct vm_area_struct *vma)
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from walken@google.com are
 
 linux-next.patch
-mm-fix-build-warning-for-uninitialized-value.patch
-memcg-oom-fix-totalpages-calculation-for-memoryswappiness==0.patch
-memcg-oom-fix-totalpages-calculation-for-memoryswappiness==0-fix.patch
-irq-tsk-comm-is-an-array.patch
-mm-memcg-make-mem_cgroup_out_of_memory-static.patch
-mm-use-is_enabledconfig_numa-instead-of-numa_build.patch
-mm-use-is_enabledconfig_compaction-instead-of-compaction_build.patch
-thp-clean-up-__collapse_huge_page_isolate.patch
-memory-hotplug-suppress-device-memoryx-does-not-have-a-release-function-warning.patch
-memory-hotplug-skip-hwpoisoned-page-when-offlining-pages.patch
-memory-hotplug-update-mce_bad_pages-when-removing-the-memory.patch
-memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
-memory-hotplug-auto-offline-page_cgroup-when-onlining-memory-block-failed.patch
-memory-hotplug-fix-nr_free_pages-mismatch.patch
-numa-convert-static-memory-to-dynamically-allocated-memory-for-per-node-device.patch
-memory-hotplug-suppress-device-nodex-does-not-have-a-release-function-warning.patch
-memory-hotplug-mm-sparsec-clear-the-memory-to-store-struct-page.patch
-memory-hotplug-allocate-zones-pcp-before-onlining-pages.patch
-memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix.patch
-memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix-2.patch
-memory_hotplug-fix-possible-incorrect-node_states.patch
-slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
-mm-oom-allow-exiting-threads-to-have-access-to-memory-reserves.patch
-memcg-make-it-possible-to-use-the-stock-for-more-than-one-page.patch
-memcg-reclaim-when-more-than-one-page-needed.patch
-memcg-change-defines-to-an-enum.patch
-memcg-kmem-accounting-basic-infrastructure.patch
-mm-add-a-__gfp_kmemcg-flag.patch
-memcg-kmem-controller-infrastructure.patch
-mm-allocate-kernel-pages-to-the-right-memcg.patch
-res_counter-return-amount-of-charges-after-res_counter_uncharge.patch
-memcg-kmem-accounting-lifecycle-management.patch
-memcg-use-static-branches-when-code-not-in-use.patch
-memcg-allow-a-memcg-with-kmem-charges-to-be-destructed.patch
-memcg-execute-the-whole-memcg-freeing-in-free_worker.patch
-fork-protect-architectures-where-thread_size-=-page_size-against-fork-bombs.patch
-memcg-add-documentation-about-the-kmem-controller.patch
-slab-slub-struct-memcg_params.patch
-slab-annotate-on-slab-caches-nodelist-locks.patch
-slab-slub-consider-a-memcg-parameter-in-kmem_create_cache.patch
-memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears.patch
-memcg-infrastructure-to-match-an-allocation-to-the-right-cache.patch
-memcg-skip-memcg-kmem-allocations-in-specified-code-regions.patch
-slb-always-get-the-cache-from-its-page-in-kmem_cache_free.patch
-slb-allocate-objects-from-memcg-cache.patch
-memcg-destroy-memcg-caches.patch
-memcg-slb-track-all-the-memcg-children-of-a-kmem_cache.patch
-memcg-slb-shrink-dead-caches.patch
-memcg-aggregate-memcg-cache-values-in-slabinfo.patch
-slab-propagate-tunable-values.patch
-slub-slub-specific-propagation-changes.patch
-slub-slub-specific-propagation-changes-fix.patch
-kmem-add-slab-specific-documentation-about-the-kmem-controller.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix.patch
-mm-mempolicy-remove-duplicate-code.patch
-mm-cleanup-register_node.patch
-mm-oom-change-type-of-oom_score_adj-to-short.patch
-mm-oom-fix-race-when-specifying-a-thread-as-the-oom-origin.patch
+mm-add-anon_vma_lock-to-validate_mm.patch
+mm-augment-vma-rbtree-with-rb_subtree_gap.patch
+mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-inserting-new-vma.patch
+mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-removing-vma.patch
+mm-augment-vma-rbtree-with-rb_subtree_gap--debug-code-to-verify-rb_subtree_gap-updates-are-safe.patch
+mm-check-rb_subtree_gap-correctness.patch
+mm-check-rb_subtree_gap-correctness-fix.patch
+mm-rearrange-vm_area_struct-for-fewer-cache-misses.patch
+mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
+mm-vm_unmapped_area-lookup-function.patch
+mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
+mm-use-vm_unmapped_area-on-x86_64-architecture.patch
+mm-fix-cache-coloring-on-x86_64-architecture.patch
+mm-use-vm_unmapped_area-in-hugetlbfs.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
+mm-use-vm_unmapped_area-on-mips-architecture.patch
+mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
+mm-use-vm_unmapped_area-on-arm-architecture.patch
+mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sh-architecture.patch
+mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc64-architecture.patch
+mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-sparc64-architecture.patch
+mm-use-vm_unmapped_area-on-sparc32-architecture.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture.patch
 
