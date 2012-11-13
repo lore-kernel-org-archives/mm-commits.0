@@ -1,127 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers-fix.patch removed from -mm tree
-Date: Tue, 13 Nov 2012 11:43:40 -0800
-Message-ID: <20121113194340.A6380100048@wpzn3.hot.corp.google.com>
+Subject: [to-be-updated] procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers.patch removed from -mm tree
+Date: Tue, 13 Nov 2012 11:43:37 -0800
+Message-ID: <20121113194337.80B06100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:54583 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753907Ab2KMTnm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Nov 2012 14:43:42 -0500
-Received: by mail-qa0-f74.google.com with SMTP id g40so402014qab.1
-        for <mm-commits@vger.kernel.org>; Tue, 13 Nov 2012 11:43:41 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:52040 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753907Ab2KMTnj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Nov 2012 14:43:39 -0500
+Received: by mail-ye0-f202.google.com with SMTP id r11so906037yen.1
+        for <mm-commits@vger.kernel.org>; Tue, 13 Nov 2012 11:43:38 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adobriyan@gmail.com, aneesh.kumar@linux.vnet.ibm.com, bfields@fieldses.org, gorcunov@openvz.org, jbottomley@parallels.com, matt.helsley@gmail.com, viro@ZenIV.linux.org.uk, xemul@parallels.com, mm-commits@vger.kernel.org
+To: gorcunov@openvz.org, adobriyan@gmail.com, aneesh.kumar@linux.vnet.ibm.com, bfields@fieldses.org, jbottomley@parallels.com, matt.helsley@gmail.com, viro@ZenIV.linux.org.uk, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers-fix
+     Subject: procfs: add ability to plug in auxiliary fdinfo providers
 has been removed from the -mm tree.  Its filename was
-     procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers-fix.patch
+     procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers-fix
+From: Cyrill Gorcunov <gorcunov@openvz.org>
+Subject: procfs: add ability to plug in auxiliary fdinfo providers
 
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
+This patch brings ability to print out auxiliary data associated with file
+in procfs interface /proc/pid/fdinfo/fd.
+
+In particular further patches make eventfd, evenpoll, signalfd and
+fsnotify to print additional information complete enough to restore these
+objects after checkpoint.
+
+To simplify the code we add show_fdinfo callback inside struct
+file_operations (as Al and Pavel are proposing).
+
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
 Cc: Al Viro <viro@ZenIV.linux.org.uk>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
 Cc: James Bottomley <jbottomley@parallels.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Matthew Helsley <matt.helsley@gmail.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ fs/proc/fd.c       |    2 ++
+ include/linux/fs.h |    3 +++
+ 2 files changed, 5 insertions(+)
 
-diff -puN include/linux/fs.h~procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers-fix include/linux/fs.h
---- a/include/linux/fs.h~procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers-fix
-+++ a/include/linux/fs.h
-@@ -44,6 +44,7 @@ struct vm_area_struct;
- struct vfsmount;
- struct cred;
- struct swap_info_struct;
-+struct seq_file;
+diff -puN fs/proc/fd.c~procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers fs/proc/fd.c
+--- a/fs/proc/fd.c~procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers
++++ a/fs/proc/fd.c
+@@ -50,6 +50,8 @@ static int seq_show(struct seq_file *m, 
+ 	if (!ret) {
+                 seq_printf(m, "pos:\t%lli\nflags:\t0%o\n",
+ 			   (long long)file->f_pos, f_flags);
++		if (file->f_op->show_fdinfo)
++			ret = file->f_op->show_fdinfo(m, file);
+ 		fput(file);
+ 	}
  
- extern void __init inode_init(void);
- extern void __init inode_init_early(void);
-@@ -1517,8 +1518,6 @@ struct block_device_operations;
+diff -puN include/linux/fs.h~procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers include/linux/fs.h
+--- a/include/linux/fs.h~procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers
++++ a/include/linux/fs.h
+@@ -1517,6 +1517,8 @@ struct block_device_operations;
  #define HAVE_COMPAT_IOCTL 1
  #define HAVE_UNLOCKED_IOCTL 1
  
--struct seq_file;
--
++struct seq_file;
++
  struct file_operations {
  	struct module *owner;
  	loff_t (*llseek) (struct file *, loff_t, int);
-@@ -1583,8 +1582,6 @@ struct inode_operations {
- 			   umode_t create_mode, int *opened);
- } ____cacheline_aligned;
+@@ -1545,6 +1547,7 @@ struct file_operations {
+ 	int (*setlease)(struct file *, long, struct file_lock **);
+ 	long (*fallocate)(struct file *file, int mode, loff_t offset,
+ 			  loff_t len);
++	int (*show_fdinfo)(struct seq_file *m, struct file *f);
+ };
  
--struct seq_file;
--
- ssize_t rw_copy_check_uvector(int type, const struct iovec __user * uvector,
- 			      unsigned long nr_segs, unsigned long fast_segs,
- 			      struct iovec *fast_pointer,
+ struct inode_operations {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from gorcunov@openvz.org are
 
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-irq-tsk-comm-is-an-array.patch
-drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch
-mm.patch
-mm-introduce-mm_find_pmd-fix.patch
-memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
-slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
-mmvmscan-only-evict-file-pages-when-we-have-plenty-fix.patch
-slub-slub-specific-propagation-changes-fix.patch
-dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix.patch
-mm-check-rb_subtree_gap-correctness-fix.patch
-mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
-mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
-mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
-mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
-mm-adjust-address_space_operationsmigratepage-return-code-fix.patch
-mm-introduce-a-common-interface-for-balloon-pages-mobility-fix.patch
-virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
-bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
-mm-export-a-function-to-get-vm-committed-memory-fix.patch
-drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
-rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
-hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
+proc-check-vma-vm_file-before-dereferencing.patch
 procfs-add-vmflags-field-in-smaps-output-v4.patch
 procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
-ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
-ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
-ipc-convert-prepare_copy-from-macro-to-function-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+proc-pid-status-add-seccomp-field.patch
+procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers-fix.patch
+fs-exportfs-avoid-nil-dereference-if-no-s_export_op-present.patch
+fs-notify-add-file-handle-entry-into-inotify_inode_mark.patch
+fs-notify-add-procfs-fdinfo-helper.patch
+fs-eventfd-add-procfs-fdinfo-helper.patch
+fs-epoll-add-procfs-fdinfo-helper.patch
+fdinfo-show-sigmask-for-signalfd-fd.patch
+tools-testing-selftests-kcmp-kcmp_testc-print-reason-for-failure-in-kcmp_test.patch
 
