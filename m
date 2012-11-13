@@ -1,114 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] fs-epoll-add-procfs-fdinfo-helper.patch removed from -mm tree
-Date: Tue, 13 Nov 2012 11:43:59 -0800
-Message-ID: <20121113194400.497F65C0050@hpza9.eem.corp.google.com>
+Subject: + prandom-introduce-prandom_bytes-and-prandom_bytes_state.patch added to -mm tree
+Date: Tue, 13 Nov 2012 11:54:24 -0800
+Message-ID: <20121113195424.7BAA8100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:60119 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754626Ab2KMToD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Nov 2012 14:44:03 -0500
-Received: by mail-wi0-f202.google.com with SMTP id hm14so59237wib.1
-        for <mm-commits@vger.kernel.org>; Tue, 13 Nov 2012 11:44:02 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:55182 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754527Ab2KMTy0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Nov 2012 14:54:26 -0500
+Received: by mail-yh0-f74.google.com with SMTP id 10so38412yhl.1
+        for <mm-commits@vger.kernel.org>; Tue, 13 Nov 2012 11:54:25 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gorcunov@openvz.org, adobriyan@gmail.com, aneesh.kumar@linux.vnet.ibm.com, avagin@openvz.org, bfields@fieldses.org, jbottomley@parallels.com, matt.helsley@gmail.com, viro@ZenIV.linux.org.uk, xemul@parallels.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akinobu.mita@gmail.com, adrian.hunter@intel.com, david.laight@aculab.com, dedekind1@gmail.com, dwmw2@infradead.org, eilong@broadcom.com, robert.w.love@intel.com, tytso@mit.edu, valdis.kletnieks@vt.edu, walken@google.com
 
 
 The patch titled
-     Subject: fs, epoll: add procfs fdinfo helper
-has been removed from the -mm tree.  Its filename was
-     fs-epoll-add-procfs-fdinfo-helper.patch
+     Subject: prandom: introduce prandom_bytes() and prandom_bytes_state()
+has been added to the -mm tree.  Its filename is
+     prandom-introduce-prandom_bytes-and-prandom_bytes_state.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Cyrill Gorcunov <gorcunov@openvz.org>
-Subject: fs, epoll: add procfs fdinfo helper
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: prandom: introduce prandom_bytes() and prandom_bytes_state()
 
-This allow us to print out eventpoll target file descriptor,
-events and data, the /proc/pid/fdinfo/fd consists of
+Add functions to get the requested number of pseudo-random bytes.
 
- | pos:	0
- | flags:	02
- | tfd:        5 events:       1d data: ffffffffffffffff enabled: 1
+The difference from get_random_bytes() is that it generates pseudo-random
+numbers by prandom_u32().  It doesn't consume the entropy pool, and the
+sequence is reproducible if the same rnd_state is used.  So it is suitable
+for generating random bytes for testing.
 
-[avagin@: fix for unitialized ret variable]
-
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: James Bottomley <jbottomley@parallels.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Matthew Helsley <matt.helsley@gmail.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Andrey Vagin <avagin@openvz.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Artem Bityutskiy <dedekind1@gmail.com>
+Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Eilon Greenstein <eilong@broadcom.com>
+Cc: David Laight <david.laight@aculab.com>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Robert Love <robert.w.love@intel.com>
+Cc: Valdis Kletnieks <valdis.kletnieks@vt.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |   29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+ include/linux/random.h |    2 +
+ lib/random32.c         |   49 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 51 insertions(+)
 
-diff -puN fs/eventpoll.c~fs-epoll-add-procfs-fdinfo-helper fs/eventpoll.c
---- a/fs/eventpoll.c~fs-epoll-add-procfs-fdinfo-helper
-+++ a/fs/eventpoll.c
-@@ -38,6 +38,8 @@
- #include <asm/io.h>
- #include <asm/mman.h>
- #include <linux/atomic.h>
-+#include <linux/proc_fs.h>
-+#include <linux/seq_file.h>
+diff -puN include/linux/random.h~prandom-introduce-prandom_bytes-and-prandom_bytes_state include/linux/random.h
+--- a/include/linux/random.h~prandom-introduce-prandom_bytes-and-prandom_bytes_state
++++ a/include/linux/random.h
+@@ -26,6 +26,7 @@ unsigned int get_random_int(void);
+ unsigned long randomize_range(unsigned long start, unsigned long end, unsigned long len);
+ 
+ u32 prandom_u32(void);
++void prandom_bytes(void *buf, int nbytes);
+ void prandom_seed(u32 seed);
  
  /*
-  * LOCKING:
-@@ -813,8 +815,35 @@ static unsigned int ep_eventpoll_poll(st
- 	return pollflags != -1 ? pollflags : 0;
- }
+@@ -36,6 +37,7 @@ void prandom_seed(u32 seed);
+ #define srandom32(seed) prandom_seed(seed)
  
-+#ifdef CONFIG_PROC_FS
-+static int ep_show_fdinfo(struct seq_file *m, struct file *f)
+ u32 prandom_u32_state(struct rnd_state *);
++void prandom_bytes_state(struct rnd_state *state, void *buf, int nbytes);
+ 
+ /*
+  * Handle minimum values for seeds
+diff -puN lib/random32.c~prandom-introduce-prandom_bytes-and-prandom_bytes_state lib/random32.c
+--- a/lib/random32.c~prandom-introduce-prandom_bytes-and-prandom_bytes_state
++++ a/lib/random32.c
+@@ -77,6 +77,55 @@ u32 prandom_u32(void)
+ }
+ EXPORT_SYMBOL(prandom_u32);
+ 
++/*
++ *	prandom_bytes_state - get the requested number of pseudo-random bytes
++ *
++ *	@state: pointer to state structure holding seeded state.
++ *	@buf: where to copy the pseudo-random bytes to
++ *	@bytes: the requested number of bytes
++ *
++ *	This is used for pseudo-randomness with no outside seeding.
++ *	For more random results, use prandom_bytes().
++ */
++void prandom_bytes_state(struct rnd_state *state, void *buf, int bytes)
 +{
-+	struct eventpoll *ep = f->private_data;
-+	struct rb_node *rbp;
-+	int ret = 0;
++	unsigned char *p = buf;
++	int i;
 +
-+	mutex_lock(&ep->mtx);
-+	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
-+		struct epitem *epi = rb_entry(rbp, struct epitem, rbn);
++	for (i = 0; i < round_down(bytes, sizeof(u32)); i += sizeof(u32)) {
++		u32 random = prandom_u32_state(state);
++		int j;
 +
-+		ret = seq_printf(m, "tfd: %8d events: %8x data: %16llx enabled: %d\n",
-+				 epi->ffd.fd, epi->event.events,
-+				 (long long)epi->event.data,
-+				 ep_is_linked(&epi->rdllink));
-+		if (ret)
-+			break;
++		for (j = 0; j < sizeof(u32); j++) {
++			p[i + j] = random;
++			random >>= BITS_PER_BYTE;
++		}
 +	}
-+	mutex_unlock(&ep->mtx);
++	if (i < bytes) {
++		u32 random = prandom_u32_state(state);
 +
-+	return ret;
++		for (; i < bytes; i++) {
++			p[i] = random;
++			random >>= BITS_PER_BYTE;
++		}
++	}
 +}
-+#endif
++EXPORT_SYMBOL(prandom_bytes_state);
 +
- /* File callbacks that implement the eventpoll file behaviour */
- static const struct file_operations eventpoll_fops = {
-+#ifdef CONFIG_PROC_FS
-+	.show_fdinfo	= ep_show_fdinfo,
-+#endif
- 	.release	= ep_eventpoll_release,
- 	.poll		= ep_eventpoll_poll,
- 	.llseek		= noop_llseek,
++/**
++ *	prandom_bytes - get the requested number of pseudo-random bytes
++ *	@buf: where to copy the pseudo-random bytes to
++ *	@bytes: the requested number of bytes
++ */
++void prandom_bytes(void *buf, int bytes)
++{
++	struct rnd_state *state = &get_cpu_var(net_rand_state);
++
++	prandom_bytes_state(state, buf, bytes);
++	put_cpu_var(state);
++}
++EXPORT_SYMBOL(prandom_bytes);
++
+ /**
+  *	prandom_seed - add entropy to pseudo random number generator
+  *	@seed: seed value
 _
 
-Patches currently in -mm which might be from gorcunov@openvz.org are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 linux-next.patch
-proc-check-vma-vm_file-before-dereferencing.patch
-procfs-add-vmflags-field-in-smaps-output-v4.patch
-procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
-proc-pid-status-add-seccomp-field.patch
-fdinfo-show-sigmask-for-signalfd-fd.patch
-tools-testing-selftests-kcmp-kcmp_testc-print-reason-for-failure-in-kcmp_test.patch
+random32-rename-random32-to-prandom.patch
+prandom-introduce-prandom_bytes-and-prandom_bytes_state.patch
+bnx2x-use-prandom_bytes.patch
+mtd-nandsim-use-prandom_bytes.patch
+ubifs-use-prandom_bytes.patch
+mtd-mtd_nandecctest-use-prandom_bytes-instead-of-get_random_bytes.patch
+mtd-mtd_oobtest-convert-to-use-prandom-library.patch
+mtd-mtd_pagetest-convert-to-use-prandom-library.patch
+mtd-mtd_speedtest-use-prandom_bytes.patch
+mtd-mtd_subpagetest-convert-to-use-prandom-library.patch
+mtd-mtd_stresstest-use-prandom_bytes.patch
 
