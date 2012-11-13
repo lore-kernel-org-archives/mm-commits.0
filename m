@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + random32-rename-random32-to-prandom.patch added to -mm tree
-Date: Tue, 13 Nov 2012 12:04:18 -0800
-Message-ID: <20121113200418.D0E68100047@wpzn3.hot.corp.google.com>
+Subject: + x86-make-mem=-option-to-work-for-efi-platform.patch added to -mm tree
+Date: Tue, 13 Nov 2012 14:06:07 -0800
+Message-ID: <20121113220609.11478200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:50584 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755710Ab2KMUEU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Nov 2012 15:04:20 -0500
-Received: by mail-gg0-f202.google.com with SMTP id i4so896612ggm.1
-        for <mm-commits@vger.kernel.org>; Tue, 13 Nov 2012 12:04:19 -0800 (PST)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:36742 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751474Ab2KMWGM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Nov 2012 17:06:12 -0500
+Received: by mail-we0-f202.google.com with SMTP id x43so508319wey.1
+        for <mm-commits@vger.kernel.org>; Tue, 13 Nov 2012 14:06:11 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akinobu.mita@gmail.com, adrian.hunter@intel.com, david.laight@aculab.com, dedekind1@gmail.com, dwmw2@infradead.org, eilong@broadcom.com, robert.w.love@intel.com, tytso@mit.edu, valdis.kletnieks@vt.edu, walken@google.com
+Cc: wency@cn.fujitsu.com, bhelgaas@google.com, hpa@zytor.com, isimatu.yasuaki@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, matt.fleming@intel.com, mingo@redhat.com, mjg@redhat.com, rob@landley.net, tglx@linutronix.de
 
 
 The patch titled
-     Subject: random32: rename random32 to prandom
+     Subject: x86: make 'mem=' option to work for efi platform
 has been added to the -mm tree.  Its filename is
-     random32-rename-random32-to-prandom.patch
+     x86-make-mem=-option-to-work-for-efi-platform.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,301 +33,254 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: random32: rename random32 to prandom
+From: Wen Congyang <wency@cn.fujitsu.com>
+Subject: x86: make 'mem=' option to work for efi platform
 
-This renames all random32 functions to have 'prandom_' prefix as follows:
+Current mem boot option only can work for non efi environment.  If the
+user specifies add_efi_memmap, it cannot work for efi environment.  In the
+efi environment, we call e820_add_region() to add the memory map.  So we
+can modify __e820_add_region() and the mem boot option can work for efi
+environment.
 
-void prandom_seed(u32 seed);	/* rename from srandom32() */
-u32 prandom_u32(void);		/* rename from random32() */
-void prandom_seed_state(struct rnd_state *state, u64 seed);
-				/* rename from prandom32_seed() */
-u32 prandom_u32_state(struct rnd_state *state);
-				/* rename from prandom32() */
+Note: Only E820_RAM is limited, and BOOT_SERVICES_{CODE,DATA} are always
+mapped(If its address >= mem_limit, the memory won't be freed in
+efi_free_boot_services()).
 
-The purpose of this renaming is to prevent some kernel developers from
-assuming that prandom32() and random32() might imply that only
-prandom32() was the one using a pseudo-random number generator by
-prandom32's "p", and the result may be a very embarassing security
-exposure.  This concern was expressed by Theodore Ts'o.
-
-And furthermore, I'm going to introduce new functions for getting the
-requested number of pseudo-random bytes.  If I continue to use both
-prandom32 and random32 prefixes for these functions, the confusion
-is getting worse.
-
-As a result of this renaming, "prandom_" is the common prefix for
-pseudo-random number library.
-
-Currently, srandom32() and random32() are preserved because it is
-
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Robert Love <robert.w.love@intel.com>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Valdis Kletnieks <valdis.kletnieks@vt.edu>
-Cc: David Laight <david.laight@aculab.com>
-Cc: Adrian Hunter <adrian.hunter@intel.com>
-Cc: Artem Bityutskiy <dedekind1@gmail.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Eilon Greenstein <eilong@broadcom.com>
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Matt Fleming <matt.fleming@intel.com>
+Cc: Rob Landley <rob@landley.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Yasuaki ISIMATU <isimatu.yasuaki@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/fcoe/fcoe_ctlr.c |    4 +-
- include/linux/random.h        |   17 ++++++++---
- lib/interval_tree_test_main.c |    7 ++--
- lib/random32.c                |   48 ++++++++++++++++----------------
- lib/rbtree_test.c             |    6 ++--
- 5 files changed, 45 insertions(+), 37 deletions(-)
+ arch/x86/include/asm/e820.h |    2 
+ arch/x86/kernel/e820.c      |   72 +++++++++++++++++++++++++++++-----
+ arch/x86/platform/efi/efi.c |   15 +++++--
+ 3 files changed, 77 insertions(+), 12 deletions(-)
 
-diff -puN drivers/scsi/fcoe/fcoe_ctlr.c~random32-rename-random32-to-prandom drivers/scsi/fcoe/fcoe_ctlr.c
---- a/drivers/scsi/fcoe/fcoe_ctlr.c~random32-rename-random32-to-prandom
-+++ a/drivers/scsi/fcoe/fcoe_ctlr.c
-@@ -2144,7 +2144,7 @@ static void fcoe_ctlr_vn_restart(struct 
- 	 */
- 	port_id = fip->port_id;
- 	if (fip->probe_tries)
--		port_id = prandom32(&fip->rnd_state) & 0xffff;
-+		port_id = prandom_u32_state(&fip->rnd_state) & 0xffff;
- 	else if (!port_id)
- 		port_id = fip->lp->wwpn & 0xffff;
- 	if (!port_id || port_id == 0xffff)
-@@ -2169,7 +2169,7 @@ static void fcoe_ctlr_vn_restart(struct 
- static void fcoe_ctlr_vn_start(struct fcoe_ctlr *fip)
+diff -puN arch/x86/include/asm/e820.h~x86-make-mem=-option-to-work-for-efi-platform arch/x86/include/asm/e820.h
+--- a/arch/x86/include/asm/e820.h~x86-make-mem=-option-to-work-for-efi-platform
++++ a/arch/x86/include/asm/e820.h
+@@ -84,6 +84,8 @@ extern unsigned long pci_mem_start;
+ extern int e820_any_mapped(u64 start, u64 end, unsigned type);
+ extern int e820_all_mapped(u64 start, u64 end, unsigned type);
+ extern void e820_add_region(u64 start, u64 size, int type);
++extern void e820_add_limit_region(u64 start, u64 size, int type);
++extern void e820_adjust_region(u64 *start, u64 *size);
+ extern void e820_print_map(char *who);
+ extern int
+ sanitize_e820_map(struct e820entry *biosmap, int max_nr_map, u32 *pnr_map);
+diff -puN arch/x86/kernel/e820.c~x86-make-mem=-option-to-work-for-efi-platform arch/x86/kernel/e820.c
+--- a/arch/x86/kernel/e820.c~x86-make-mem=-option-to-work-for-efi-platform
++++ a/arch/x86/kernel/e820.c
+@@ -47,6 +47,7 @@ unsigned long pci_mem_start = 0xaeedbabe
+ #ifdef CONFIG_PCI
+ EXPORT_SYMBOL(pci_mem_start);
+ #endif
++static u64 mem_limit = ~0ULL;
+ 
+ /*
+  * This function checks if any part of the range <start,end> is mapped
+@@ -108,7 +109,7 @@ int __init e820_all_mapped(u64 start, u6
+  * Add a memory region to the kernel e820 map.
+  */
+ static void __init __e820_add_region(struct e820map *e820x, u64 start, u64 size,
+-					 int type)
++					 int type, bool limited)
  {
- 	fip->probe_tries = 0;
--	prandom32_seed(&fip->rnd_state, fip->lp->wwpn);
-+	prandom_seed_state(&fip->rnd_state, fip->lp->wwpn);
- 	fcoe_ctlr_vn_restart(fip);
- }
+ 	int x = e820x->nr_map;
  
-diff -puN include/linux/random.h~random32-rename-random32-to-prandom include/linux/random.h
---- a/include/linux/random.h~random32-rename-random32-to-prandom
-+++ a/include/linux/random.h
-@@ -25,10 +25,17 @@ extern const struct file_operations rand
- unsigned int get_random_int(void);
- unsigned long randomize_range(unsigned long start, unsigned long end, unsigned long len);
+@@ -119,6 +120,22 @@ static void __init __e820_add_region(str
+ 		return;
+ 	}
  
--u32 random32(void);
--void srandom32(u32 seed);
-+u32 prandom_u32(void);
-+void prandom_seed(u32 seed);
- 
--u32 prandom32(struct rnd_state *);
-+/*
-+ * These macros are preserved for backward compatibility and should be
-+ * removed as soon as a transition is finished.
-+ */
-+#define random32() prandom_u32()
-+#define srandom32(seed) prandom_seed(seed)
++	if (limited) {
++		if (start >= mem_limit) {
++			printk(KERN_ERR "e820: ignoring [mem %#010llx-%#010llx]\n",
++			       (unsigned long long)start,
++			       (unsigned long long)(start + size - 1));
++			return;
++		}
 +
-+u32 prandom_u32_state(struct rnd_state *);
++		if (mem_limit - start < size) {
++			printk(KERN_ERR "e820: ignoring [mem %#010llx-%#010llx]\n",
++			       (unsigned long long)mem_limit,
++			       (unsigned long long)(start + size - 1));
++			size = mem_limit - start;
++		}
++	}
++
+ 	e820x->map[x].addr = start;
+ 	e820x->map[x].size = size;
+ 	e820x->map[x].type = type;
+@@ -127,7 +144,37 @@ static void __init __e820_add_region(str
  
- /*
-  * Handle minimum values for seeds
-@@ -39,11 +46,11 @@ static inline u32 __seed(u32 x, u32 m)
+ void __init e820_add_region(u64 start, u64 size, int type)
+ {
+-	__e820_add_region(&e820, start, size, type);
++	__e820_add_region(&e820, start, size, type, false);
++}
++
++/*
++ * do_add_efi_memmap() calls this function().
++ *
++ * Note: BOOT_SERVICES_{CODE,DATA} regions on some efi machines are marked
++ * as E820_RAM, and they are needed to be mapped. Please use e820_add_region()
++ * to add BOOT_SERVICES_{CODE,DATA} regions.
++ */
++void __init e820_add_limit_region(u64 start, u64 size, int type)
++{
++	/*
++	 * efi_init() is called after finish_e820_parsing(), so we should
++	 * check whether [start, start + size) contains address above
++	 * mem_limit if the type is E820_RAM.
++	 */
++	__e820_add_region(&e820, start, size, type, type == E820_RAM);
++}
++
++void __init e820_adjust_region(u64 *start, u64 *size)
++{
++	if (*start >= mem_limit) {
++		*size = 0;
++		return;
++	}
++
++	if (mem_limit - *start < *size)
++		*size = mem_limit - *start;
++
++	return;
  }
  
- /**
-- * prandom32_seed - set seed for prandom32().
-+ * prandom_seed_state - set seed for prandom_u32_state().
-  * @state: pointer to state structure to receive the seed.
-  * @seed: arbitrary 64-bit value to use as a seed.
-  */
--static inline void prandom32_seed(struct rnd_state *state, u64 seed)
-+static inline void prandom_seed_state(struct rnd_state *state, u64 seed)
- {
- 	u32 i = (seed >> 32) ^ (seed << 10) ^ seed;
+ static void __init e820_print_type(u32 type)
+@@ -455,8 +502,9 @@ static u64 __init __e820_update_range(st
  
-diff -puN lib/interval_tree_test_main.c~random32-rename-random32-to-prandom lib/interval_tree_test_main.c
---- a/lib/interval_tree_test_main.c~random32-rename-random32-to-prandom
-+++ a/lib/interval_tree_test_main.c
-@@ -30,7 +30,8 @@ static void init(void)
+ 		/* new range is totally covered? */
+ 		if (ei->addr < start && ei_end > end) {
+-			__e820_add_region(e820x, start, size, new_type);
+-			__e820_add_region(e820x, end, ei_end - end, ei->type);
++			__e820_add_region(e820x, start, size, new_type, false);
++			__e820_add_region(e820x, end, ei_end - end, ei->type,
++					  false);
+ 			ei->size = start - ei->addr;
+ 			real_updated_size += size;
+ 			continue;
+@@ -469,7 +517,7 @@ static u64 __init __e820_update_range(st
+ 			continue;
+ 
+ 		__e820_add_region(e820x, final_start, final_end - final_start,
+-				  new_type);
++				  new_type, false);
+ 
+ 		real_updated_size += final_end - final_start;
+ 
+@@ -809,7 +857,7 @@ static int userdef __initdata;
+ /* "mem=nopentium" disables the 4MB page tables. */
+ static int __init parse_memopt(char *p)
  {
- 	int i;
- 	for (i = 0; i < NODES; i++) {
--		u32 a = prandom32(&rnd), b = prandom32(&rnd);
-+		u32 a = prandom_u32_state(&rnd);
-+		u32 b = prandom_u32_state(&rnd);
- 		if (a <= b) {
- 			nodes[i].start = a;
- 			nodes[i].last = b;
-@@ -40,7 +41,7 @@ static void init(void)
+-	u64 mem_size;
++	char *oldp;
+ 
+ 	if (!p)
+ 		return -EINVAL;
+@@ -825,11 +873,11 @@ static int __init parse_memopt(char *p)
+ 	}
+ 
+ 	userdef = 1;
+-	mem_size = memparse(p, &p);
++	oldp = p;
++	mem_limit = memparse(p, &p);
+ 	/* don't remove all of memory when handling "mem={invalid}" param */
+-	if (mem_size == 0)
++	if (mem_limit == 0 || p == oldp)
+ 		return -EINVAL;
+-	e820_remove_range(mem_size, ULLONG_MAX - mem_size, E820_RAM, 1);
+ 
+ 	return 0;
+ }
+@@ -881,6 +929,12 @@ early_param("memmap", parse_memmap_opt);
+ 
+ void __init finish_e820_parsing(void)
+ {
++	if (mem_limit != ~0ULL) {
++		userdef = 1;
++		e820_remove_range(mem_limit, ULLONG_MAX - mem_limit,
++				  E820_RAM, 1);
++	}
++
+ 	if (userdef) {
+ 		u32 nr = e820.nr_map;
+ 
+diff -puN arch/x86/platform/efi/efi.c~x86-make-mem=-option-to-work-for-efi-platform arch/x86/platform/efi/efi.c
+--- a/arch/x86/platform/efi/efi.c~x86-make-mem=-option-to-work-for-efi-platform
++++ a/arch/x86/platform/efi/efi.c
+@@ -314,10 +314,17 @@ static void __init do_add_efi_memmap(voi
+ 		int e820_type;
+ 
+ 		switch (md->type) {
+-		case EFI_LOADER_CODE:
+-		case EFI_LOADER_DATA:
+ 		case EFI_BOOT_SERVICES_CODE:
+ 		case EFI_BOOT_SERVICES_DATA:
++			/* EFI_BOOT_SERVICES_{CODE,DATA} needs to be mapped */
++			if (md->attribute & EFI_MEMORY_WB)
++				e820_type = E820_RAM;
++			else
++				e820_type = E820_RESERVED;
++			e820_add_region(start, size, e820_type);
++			continue;
++		case EFI_LOADER_CODE:
++		case EFI_LOADER_DATA:
+ 		case EFI_CONVENTIONAL_MEMORY:
+ 			if (md->attribute & EFI_MEMORY_WB)
+ 				e820_type = E820_RAM;
+@@ -342,7 +349,7 @@ static void __init do_add_efi_memmap(voi
+ 			e820_type = E820_RESERVED;
+ 			break;
  		}
+-		e820_add_region(start, size, e820_type);
++		e820_add_limit_region(start, size, e820_type);
  	}
- 	for (i = 0; i < SEARCHES; i++)
--		queries[i] = prandom32(&rnd);
-+		queries[i] = prandom_u32_state(&rnd);
+ 	sanitize_e820_map(e820.map, ARRAY_SIZE(e820.map), &e820.nr_map);
  }
+@@ -448,6 +455,8 @@ void __init efi_free_boot_services(void)
+ 		    md->type != EFI_BOOT_SERVICES_DATA)
+ 			continue;
  
- static int interval_tree_test_init(void)
-@@ -51,7 +52,7 @@ static int interval_tree_test_init(void)
- 
- 	printk(KERN_ALERT "interval tree insert/remove");
- 
--	prandom32_seed(&rnd, 3141592653589793238ULL);
-+	prandom_seed_state(&rnd, 3141592653589793238ULL);
- 	init();
- 
- 	time1 = get_cycles();
-diff -puN lib/random32.c~random32-rename-random32-to-prandom lib/random32.c
---- a/lib/random32.c~random32-rename-random32-to-prandom
-+++ a/lib/random32.c
-@@ -42,13 +42,13 @@
- static DEFINE_PER_CPU(struct rnd_state, net_rand_state);
- 
- /**
-- *	prandom32 - seeded pseudo-random number generator.
-+ *	prandom_u32_state - seeded pseudo-random number generator.
-  *	@state: pointer to state structure holding seeded state.
-  *
-  *	This is used for pseudo-randomness with no outside seeding.
-- *	For more random results, use random32().
-+ *	For more random results, use prandom_u32().
-  */
--u32 prandom32(struct rnd_state *state)
-+u32 prandom_u32_state(struct rnd_state *state)
- {
- #define TAUSWORTHE(s,a,b,c,d) ((s&c)<<d) ^ (((s <<a) ^ s)>>b)
- 
-@@ -58,32 +58,32 @@ u32 prandom32(struct rnd_state *state)
- 
- 	return (state->s1 ^ state->s2 ^ state->s3);
- }
--EXPORT_SYMBOL(prandom32);
-+EXPORT_SYMBOL(prandom_u32_state);
- 
- /**
-- *	random32 - pseudo random number generator
-+ *	prandom_u32 - pseudo random number generator
-  *
-  *	A 32 bit pseudo-random number is generated using a fast
-  *	algorithm suitable for simulation. This algorithm is NOT
-  *	considered safe for cryptographic use.
-  */
--u32 random32(void)
-+u32 prandom_u32(void)
- {
- 	unsigned long r;
- 	struct rnd_state *state = &get_cpu_var(net_rand_state);
--	r = prandom32(state);
-+	r = prandom_u32_state(state);
- 	put_cpu_var(state);
- 	return r;
- }
--EXPORT_SYMBOL(random32);
-+EXPORT_SYMBOL(prandom_u32);
- 
- /**
-- *	srandom32 - add entropy to pseudo random number generator
-+ *	prandom_seed - add entropy to pseudo random number generator
-  *	@seed: seed value
-  *
-- *	Add some additional seeding to the random32() pool.
-+ *	Add some additional seeding to the prandom pool.
-  */
--void srandom32(u32 entropy)
-+void prandom_seed(u32 entropy)
- {
- 	int i;
- 	/*
-@@ -95,13 +95,13 @@ void srandom32(u32 entropy)
- 		state->s1 = __seed(state->s1 ^ entropy, 1);
- 	}
- }
--EXPORT_SYMBOL(srandom32);
-+EXPORT_SYMBOL(prandom_seed);
- 
- /*
-  *	Generate some initially weak seeding values to allow
-- *	to start the random32() engine.
-+ *	to start the prandom_u32() engine.
-  */
--static int __init random32_init(void)
-+static int __init prandom_init(void)
- {
- 	int i;
- 
-@@ -114,22 +114,22 @@ static int __init random32_init(void)
- 		state->s3 = __seed(LCG(state->s2), 15);
- 
- 		/* "warm it up" */
--		prandom32(state);
--		prandom32(state);
--		prandom32(state);
--		prandom32(state);
--		prandom32(state);
--		prandom32(state);
-+		prandom_u32_state(state);
-+		prandom_u32_state(state);
-+		prandom_u32_state(state);
-+		prandom_u32_state(state);
-+		prandom_u32_state(state);
-+		prandom_u32_state(state);
- 	}
- 	return 0;
- }
--core_initcall(random32_init);
-+core_initcall(prandom_init);
- 
- /*
-  *	Generate better values after random number generator
-  *	is fully initialized.
-  */
--static int __init random32_reseed(void)
-+static int __init prandom_reseed(void)
- {
- 	int i;
- 
-@@ -143,8 +143,8 @@ static int __init random32_reseed(void)
- 		state->s3 = __seed(seeds[2], 15);
- 
- 		/* mix it in */
--		prandom32(state);
-+		prandom_u32_state(state);
- 	}
- 	return 0;
- }
--late_initcall(random32_reseed);
-+late_initcall(prandom_reseed);
-diff -puN lib/rbtree_test.c~random32-rename-random32-to-prandom lib/rbtree_test.c
---- a/lib/rbtree_test.c~random32-rename-random32-to-prandom
-+++ a/lib/rbtree_test.c
-@@ -96,8 +96,8 @@ static void init(void)
- {
- 	int i;
- 	for (i = 0; i < NODES; i++) {
--		nodes[i].key = prandom32(&rnd);
--		nodes[i].val = prandom32(&rnd);
-+		nodes[i].key = prandom_u32_state(&rnd);
-+		nodes[i].val = prandom_u32_state(&rnd);
- 	}
- }
- 
-@@ -155,7 +155,7 @@ static int rbtree_test_init(void)
- 
- 	printk(KERN_ALERT "rbtree testing");
- 
--	prandom32_seed(&rnd, 3141592653589793238ULL);
-+	prandom_seed_state(&rnd, 3141592653589793238ULL);
- 	init();
- 
- 	time1 = get_cycles();
++		e820_adjust_region(&start, &size);
++
+ 		/* Could not reserve boot area */
+ 		if (!size)
+ 			continue;
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from wency@cn.fujitsu.com are
 
 linux-next.patch
-random32-rename-random32-to-prandom.patch
-prandom-introduce-prandom_bytes-and-prandom_bytes_state.patch
-bnx2x-use-prandom_bytes.patch
-mtd-nandsim-use-prandom_bytes.patch
-ubifs-use-prandom_bytes.patch
-mtd-mtd_nandecctest-use-prandom_bytes-instead-of-get_random_bytes.patch
-mtd-mtd_oobtest-convert-to-use-prandom-library.patch
-mtd-mtd_pagetest-convert-to-use-prandom-library.patch
-mtd-mtd_speedtest-use-prandom_bytes.patch
-mtd-mtd_subpagetest-convert-to-use-prandom-library.patch
-mtd-mtd_stresstest-use-prandom_bytes.patch
+cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved.patch
+cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
+x86-numa-dont-check-if-node-is-numa_no_node.patch
+x86-make-mem=-option-to-work-for-efi-platform.patch
+memory-hotplug-suppress-device-memoryx-does-not-have-a-release-function-warning.patch
+memory-hotplug-skip-hwpoisoned-page-when-offlining-pages.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
+memory-hotplug-auto-offline-page_cgroup-when-onlining-memory-block-failed.patch
+memory-hotplug-fix-nr_free_pages-mismatch.patch
+memory-hotplug-fix-nr_free_pages-mismatch-fix.patch
+numa-convert-static-memory-to-dynamically-allocated-memory-for-per-node-device.patch
+memory-hotplug-suppress-device-nodex-does-not-have-a-release-function-warning.patch
+memory-hotplug-mm-sparsec-clear-the-memory-to-store-struct-page.patch
+memory-hotplug-allocate-zones-pcp-before-onlining-pages.patch
+memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix.patch
+memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix-2.patch
+memory_hotplug-fix-possible-incorrect-node_states.patch
+slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
+mm-memory_hotplugc-update-start_pfn-in-zone-and-pg_data-when-spanned_pages-==-0.patch
+documentation-kernel-parameterstxt-update-mem=-options-spec-according-to-its-implementation.patch
 
