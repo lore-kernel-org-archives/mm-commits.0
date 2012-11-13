@@ -1,73 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: + mm-export-a-function-to-get-vm-committed-memory-fix.patch added to -mm tree
-Date: Tue, 13 Nov 2012 11:41:46 -0800
-Message-ID: <20121113194147.859FC20004E@hpza10.eem.corp.google.com>
+Subject: [to-be-updated] procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers-fix.patch removed from -mm tree
+Date: Tue, 13 Nov 2012 11:43:40 -0800
+Message-ID: <20121113194340.A6380100048@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:50073 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754329Ab2KMTlu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Nov 2012 14:41:50 -0500
-Received: by mail-lb0-f202.google.com with SMTP id i15so107695lbo.1
-        for <mm-commits@vger.kernel.org>; Tue, 13 Nov 2012 11:41:48 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:54583 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753907Ab2KMTnm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Nov 2012 14:43:42 -0500
+Received: by mail-qa0-f74.google.com with SMTP id g40so402014qab.1
+        for <mm-commits@vger.kernel.org>; Tue, 13 Nov 2012 11:43:41 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, kys@microsoft.com
+To: akpm@linux-foundation.org, adobriyan@gmail.com, aneesh.kumar@linux.vnet.ibm.com, bfields@fieldses.org, gorcunov@openvz.org, jbottomley@parallels.com, matt.helsley@gmail.com, viro@ZenIV.linux.org.uk, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-export-a-function-to-get-vm-committed-memory-fix
-has been added to the -mm tree.  Its filename is
-     mm-export-a-function-to-get-vm-committed-memory-fix.patch
+     Subject: procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers-fix
+has been removed from the -mm tree.  Its filename was
+     procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-export-a-function-to-get-vm-committed-memory-fix
+Subject: procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers-fix
 
-coding-style tweak
-
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: James Bottomley <jbottomley@parallels.com>
+Cc: Matthew Helsley <matt.helsley@gmail.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c  |    1 -
- mm/nommu.c |    1 -
- 2 files changed, 2 deletions(-)
+ include/linux/fs.h |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN mm/mmap.c~mm-export-a-function-to-get-vm-committed-memory-fix mm/mmap.c
---- a/mm/mmap.c~mm-export-a-function-to-get-vm-committed-memory-fix
-+++ a/mm/mmap.c
-@@ -97,7 +97,6 @@ struct percpu_counter vm_committed_as __
-  * Several metrics drive this policy engine including the guest reported
-  * memory commitment.
-  */
+diff -puN include/linux/fs.h~procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers-fix include/linux/fs.h
+--- a/include/linux/fs.h~procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers-fix
++++ a/include/linux/fs.h
+@@ -44,6 +44,7 @@ struct vm_area_struct;
+ struct vfsmount;
+ struct cred;
+ struct swap_info_struct;
++struct seq_file;
+ 
+ extern void __init inode_init(void);
+ extern void __init inode_init_early(void);
+@@ -1517,8 +1518,6 @@ struct block_device_operations;
+ #define HAVE_COMPAT_IOCTL 1
+ #define HAVE_UNLOCKED_IOCTL 1
+ 
+-struct seq_file;
 -
- unsigned long vm_memory_committed(void)
- {
- 	return percpu_counter_read_positive(&vm_committed_as);
-diff -puN mm/nommu.c~mm-export-a-function-to-get-vm-committed-memory-fix mm/nommu.c
---- a/mm/nommu.c~mm-export-a-function-to-get-vm-committed-memory-fix
-+++ a/mm/nommu.c
-@@ -74,7 +74,6 @@ atomic_long_t mmap_pages_allocated;
-  * Several metrics drive this policy engine including the guest reported
-  * memory commitment.
-  */
+ struct file_operations {
+ 	struct module *owner;
+ 	loff_t (*llseek) (struct file *, loff_t, int);
+@@ -1583,8 +1582,6 @@ struct inode_operations {
+ 			   umode_t create_mode, int *opened);
+ } ____cacheline_aligned;
+ 
+-struct seq_file;
 -
- unsigned long vm_memory_committed(void)
- {
- 	return percpu_counter_read_positive(&vm_committed_as);
+ ssize_t rw_copy_check_uvector(int type, const struct iovec __user * uvector,
+ 			      unsigned long nr_segs, unsigned long fast_segs,
+ 			      struct iovec *fast_pointer,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -113,7 +114,6 @@ rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
 hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
 procfs-add-vmflags-field-in-smaps-output-v4.patch
 procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
-procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers-fix.patch
 ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
 ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
 ipc-convert-prepare_copy-from-macro-to-function-fix.patch
