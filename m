@@ -1,109 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: + hfsplus-avoid-crash-on-failed-block-map-free.patch added to -mm tree
-Date: Tue, 13 Nov 2012 14:35:00 -0800
-Message-ID: <20121113223500.BF460100047@wpzn3.hot.corp.google.com>
+Subject: [withdrawn] mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-only-in-direct-reclaim.patch removed from -mm tree
+Date: Tue, 13 Nov 2012 14:45:06 -0800
+Message-ID: <20121113224506.A5DA5100048@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:38070 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751474Ab2KMWfD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Nov 2012 17:35:03 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z15so922240ghb.1
-        for <mm-commits@vger.kernel.org>; Tue, 13 Nov 2012 14:35:02 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:33774 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754220Ab2KMWpI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Nov 2012 17:45:08 -0500
+Received: by mail-qc0-f202.google.com with SMTP id s25so917853qcq.1
+        for <mm-commits@vger.kernel.org>; Tue, 13 Nov 2012 14:45:07 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: alan@linux.intel.com, hch@lst.de, htl10@users.sourceforge.net, jack@suse.cz, slava@dubeyko.com, viro@zeniv.linux.org.uk
+To: mgorman@suse.de, Valdis.Kletnieks@vt.edu, jslaby@suse.cz, minchan@kernel.org, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hfsplus: avoid crash on failed block map free
-has been added to the -mm tree.  Its filename is
-     hfsplus-avoid-crash-on-failed-block-map-free.patch
+     Subject: mm: vmscan: scale number of pages reclaimed by reclaim/compaction only in direct reclaim
+has been removed from the -mm tree.  Its filename was
+     mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-only-in-direct-reclaim.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Alan Cox <alan@linux.intel.com>
-Subject: hfsplus: avoid crash on failed block map free
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: vmscan: scale number of pages reclaimed by reclaim/compaction only in direct reclaim
 
-If the read fails we kmap an error code.  This doesn't end well.  Instead
-print a critical error and pray.  This mirrors the rest of the fs
-behaviour with critical error cases.
+Jiri Slaby reported the following:
 
-Acked-by: Vyacheslav Dubeyko <slava@dubeyko.com>
-Signed-off-by: Alan Cox <alan@linux.intel.com>
-Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
-Cc: Hin-Tak Leung <htl10@users.sourceforge.net>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jan Kara <jack@suse.cz>
+	(It's an effective revert of "mm: vmscan: scale number of pages
+	reclaimed by reclaim/compaction based on failures".)
+	Given kswapd had hours of runtime in ps/top output yesterday in the
+	morning and after the revert it's now 2 minutes in sum for the last 24h,
+	I would say, it's gone.
+
+The intention of the patch in question was to compensate for the loss of
+lumpy reclaim.  Part of the reason lumpy reclaim worked is because it
+aggressively reclaimed pages and this patch was meant to be a sane
+compromise.
+
+When compaction fails, it gets deferred and both compaction and
+reclaim/compaction is deferred avoid excessive reclaim.  However, since
+commit c6543459 ("mm: remove __GFP_NO_KSWAPD"), kswapd is woken up each
+time and continues reclaiming which was not taken into account when the
+patch was developed.
+
+As it is not taking deferred compaction into account in this path it scans
+aggressively before falling out and making the compaction_deferred check
+in compaction_ready.  This patch avoids kswapd scaling pages for reclaim
+and leaves the aggressive reclaim to the process attempting the THP
+allocation.
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Reported-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/bitmap.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ mm/vmscan.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN fs/hfsplus/bitmap.c~hfsplus-avoid-crash-on-failed-block-map-free fs/hfsplus/bitmap.c
---- a/fs/hfsplus/bitmap.c~hfsplus-avoid-crash-on-failed-block-map-free
-+++ a/fs/hfsplus/bitmap.c
-@@ -176,12 +176,14 @@ int hfsplus_block_free(struct super_bloc
- 	dprint(DBG_BITMAP, "block_free: %u,%u\n", offset, count);
- 	/* are all of the bits in range? */
- 	if ((offset + count) > sbi->total_blocks)
--		return -2;
-+		return -ENOENT;
+diff -puN mm/vmscan.c~mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-only-in-direct-reclaim mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-only-in-direct-reclaim
++++ a/mm/vmscan.c
+@@ -1763,14 +1763,20 @@ static bool in_reclaim_compaction(struct
+ #ifdef CONFIG_COMPACTION
+ /*
+  * If compaction is deferred for sc->order then scale the number of pages
+- * reclaimed based on the number of consecutive allocation failures
++ * reclaimed based on the number of consecutive allocation failures. This
++ * scaling only happens for direct reclaim as it is about to attempt
++ * compaction. If compaction fails, future allocations will be deferred
++ * and reclaim avoided. On the other hand, kswapd does not take compaction
++ * deferral into account so if it scaled, it could scan excessively even
++ * though allocations are temporarily not being attempted.
+  */
+ static unsigned long scale_for_compaction(unsigned long pages_for_compaction,
+ 			struct lruvec *lruvec, struct scan_control *sc)
+ {
+ 	struct zone *zone = lruvec_zone(lruvec);
  
- 	mutex_lock(&sbi->alloc_mutex);
- 	mapping = sbi->alloc_file->i_mapping;
- 	pnr = offset / PAGE_CACHE_BITS;
- 	page = read_mapping_page(mapping, pnr, NULL);
-+	if (IS_ERR(page))
-+		goto kaboom;
- 	pptr = kmap(page);
- 	curr = pptr + (offset & (PAGE_CACHE_BITS - 1)) / 32;
- 	end = pptr + PAGE_CACHE_BITS / 32;
-@@ -214,6 +216,8 @@ int hfsplus_block_free(struct super_bloc
- 		set_page_dirty(page);
- 		kunmap(page);
- 		page = read_mapping_page(mapping, ++pnr, NULL);
-+		if (IS_ERR(page))
-+			goto kaboom;
- 		pptr = kmap(page);
- 		curr = pptr;
- 		end = pptr + PAGE_CACHE_BITS / 32;
-@@ -232,4 +236,11 @@ out:
- 	mutex_unlock(&sbi->alloc_mutex);
- 
- 	return 0;
-+
-+kaboom:
-+	printk(KERN_CRIT "hfsplus: unable to mark blocks free: error %ld\n",
-+			PTR_ERR(page));
-+	mutex_unlock(&sbi->alloc_mutex);
-+
-+	return -EIO;
+-	if (zone->compact_order_failed <= sc->order)
++	if (zone->compact_order_failed <= sc->order &&
++	    !current_is_kswapd())
+ 		pages_for_compaction <<= zone->compact_defer_shift;
+ 	return pages_for_compaction;
  }
 _
 
-Patches currently in -mm which might be from alan@linux.intel.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
 linux-next.patch
-irq-tsk-comm-is-an-array.patch
-drivers-message-fusion-mptscsihc-missing-break.patch
-binfmt_elf-fix-corner-case-kfree-of-uninitialized-data.patch
-binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
-hfsplus-avoid-crash-on-failed-block-map-free.patch
-fork-unshare-remove-dead-code.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting-fix.patch
+mm-fix-a-regression-with-highmem-introduced-by-changeset-7f1290f2f2a4d.patch
+memory_hotplug-fix-possible-incorrect-node_states.patch
+slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
+mm-add-comment-on-storage-key-dirty-bit-semantics.patch
+mm-refactor-reinsert-of-swap_info-in-sys_swapoff.patch
+mm-do-not-call-frontswap_init-during-swapoff.patch
+mm-memmap_init_zone-performance-improvement.patch
+mm-allocate-kernel-pages-to-the-right-memcg.patch
 
