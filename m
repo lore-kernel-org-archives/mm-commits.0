@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-mtd_oobtest-convert-to-use-prandom-library.patch added to -mm tree
-Date: Tue, 13 Nov 2012 11:54:46 -0800
-Message-ID: <20121113195446.D408A20004E@hpza10.eem.corp.google.com>
+Subject: + mtd-mtd_speedtest-use-prandom_bytes.patch added to -mm tree
+Date: Tue, 13 Nov 2012 11:54:53 -0800
+Message-ID: <20121113195454.5CCF8100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:33073 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755665Ab2KMTyu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Nov 2012 14:54:50 -0500
-Received: by mail-we0-f202.google.com with SMTP id x43so503164wey.1
-        for <mm-commits@vger.kernel.org>; Tue, 13 Nov 2012 11:54:49 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:43379 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755679Ab2KMTyz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Nov 2012 14:54:55 -0500
+Received: by mail-qa0-f74.google.com with SMTP id g40so404205qab.1
+        for <mm-commits@vger.kernel.org>; Tue, 13 Nov 2012 11:54:55 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akinobu.mita@gmail.com, adrian.hunter@intel.com, david.laight@aculab.com, de
 
 
 The patch titled
-     Subject: mtd: mtd_oobtest: convert to use prandom library
+     Subject: mtd: mtd_speedtest: use prandom_bytes
 has been added to the -mm tree.  Its filename is
-     mtd-mtd_oobtest-convert-to-use-prandom-library.patch
+     mtd-mtd_speedtest-use-prandom_bytes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: mtd: mtd_oobtest: convert to use prandom library
+Subject: mtd: mtd_speedtest: use prandom_bytes
 
-This removes home-brewed pseudo-random number generator and use
-prandom library.
+Use prandom_bytes instead of equivalent local function.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 Cc: Artem Bityutskiy <dedekind1@gmail.com>
@@ -52,158 +51,35 @@ Cc: Valdis Kletnieks <valdis.kletnieks@vt.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/tests/mtd_oobtest.c |   49 +++++++++---------------------
- 1 file changed, 16 insertions(+), 33 deletions(-)
+ drivers/mtd/tests/mtd_speedtest.c |    9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
 
-diff -puN drivers/mtd/tests/mtd_oobtest.c~mtd-mtd_oobtest-convert-to-use-prandom-library drivers/mtd/tests/mtd_oobtest.c
---- a/drivers/mtd/tests/mtd_oobtest.c~mtd-mtd_oobtest-convert-to-use-prandom-library
-+++ a/drivers/mtd/tests/mtd_oobtest.c
-@@ -29,6 +29,7 @@
- #include <linux/mtd/mtd.h>
- #include <linux/slab.h>
- #include <linux/sched.h>
-+#include <linux/random.h>
+diff -puN drivers/mtd/tests/mtd_speedtest.c~mtd-mtd_speedtest-use-prandom_bytes drivers/mtd/tests/mtd_speedtest.c
+--- a/drivers/mtd/tests/mtd_speedtest.c~mtd-mtd_speedtest-use-prandom_bytes
++++ a/drivers/mtd/tests/mtd_speedtest.c
+@@ -49,13 +49,6 @@ static int pgcnt;
+ static int goodebcnt;
+ static struct timeval start, finish;
  
- static int dev = -EINVAL;
- module_param(dev, int, S_IRUGO);
-@@ -46,26 +47,7 @@ static int use_offset;
- static int use_len;
- static int use_len_max;
- static int vary_offset;
--static unsigned long next = 1;
--
--static inline unsigned int simple_rand(void)
--{
--	next = next * 1103515245 + 12345;
--	return (unsigned int)((next / 65536) % 32768);
--}
--
--static inline void simple_srand(unsigned long seed)
--{
--	next = seed;
--}
--
 -static void set_random_data(unsigned char *buf, size_t len)
 -{
 -	size_t i;
 -
 -	for (i = 0; i < len; ++i)
--		buf[i] = simple_rand();
+-		buf[i] = random32();
 -}
-+static struct rnd_state rnd_state;
  
  static int erase_eraseblock(int ebnum)
  {
-@@ -129,7 +111,7 @@ static int write_eraseblock(int ebnum)
- 	loff_t addr = ebnum * mtd->erasesize;
- 
- 	for (i = 0; i < pgcnt; ++i, addr += mtd->writesize) {
--		set_random_data(writebuf, use_len);
-+		prandom_bytes_state(&rnd_state, writebuf, use_len);
- 		ops.mode      = MTD_OPS_AUTO_OOB;
- 		ops.len       = 0;
- 		ops.retlen    = 0;
-@@ -182,7 +164,7 @@ static int verify_eraseblock(int ebnum)
- 	loff_t addr = ebnum * mtd->erasesize;
- 
- 	for (i = 0; i < pgcnt; ++i, addr += mtd->writesize) {
--		set_random_data(writebuf, use_len);
-+		prandom_bytes_state(&rnd_state, writebuf, use_len);
- 		ops.mode      = MTD_OPS_AUTO_OOB;
- 		ops.len       = 0;
- 		ops.retlen    = 0;
-@@ -273,7 +255,7 @@ static int verify_eraseblock_in_one_go(i
- 	loff_t addr = ebnum * mtd->erasesize;
- 	size_t len = mtd->ecclayout->oobavail * pgcnt;
- 
--	set_random_data(writebuf, len);
-+	prandom_bytes_state(&rnd_state, writebuf, len);
- 	ops.mode      = MTD_OPS_AUTO_OOB;
- 	ops.len       = 0;
- 	ops.retlen    = 0;
-@@ -424,12 +406,12 @@ static int __init mtd_oobtest_init(void)
- 	if (err)
+@@ -396,7 +389,7 @@ static int __init mtd_speedtest_init(voi
  		goto out;
+ 	}
  
--	simple_srand(1);
-+	prandom_seed_state(&rnd_state, 1);
- 	err = write_whole_device();
+-	set_random_data(iobuf, mtd->erasesize);
++	prandom_bytes(iobuf, mtd->erasesize);
+ 
+ 	err = scan_for_bad_eraseblocks();
  	if (err)
- 		goto out;
- 
--	simple_srand(1);
-+	prandom_seed_state(&rnd_state, 1);
- 	err = verify_all_eraseblocks();
- 	if (err)
- 		goto out;
-@@ -444,13 +426,13 @@ static int __init mtd_oobtest_init(void)
- 	if (err)
- 		goto out;
- 
--	simple_srand(3);
-+	prandom_seed_state(&rnd_state, 3);
- 	err = write_whole_device();
- 	if (err)
- 		goto out;
- 
- 	/* Check all eraseblocks */
--	simple_srand(3);
-+	prandom_seed_state(&rnd_state, 3);
- 	pr_info("verifying all eraseblocks\n");
- 	for (i = 0; i < ebcnt; ++i) {
- 		if (bbt[i])
-@@ -479,7 +461,7 @@ static int __init mtd_oobtest_init(void)
- 	use_len = mtd->ecclayout->oobavail;
- 	use_len_max = mtd->ecclayout->oobavail;
- 	vary_offset = 1;
--	simple_srand(5);
-+	prandom_seed_state(&rnd_state, 5);
- 
- 	err = write_whole_device();
- 	if (err)
-@@ -490,7 +472,7 @@ static int __init mtd_oobtest_init(void)
- 	use_len = mtd->ecclayout->oobavail;
- 	use_len_max = mtd->ecclayout->oobavail;
- 	vary_offset = 1;
--	simple_srand(5);
-+	prandom_seed_state(&rnd_state, 5);
- 	err = verify_all_eraseblocks();
- 	if (err)
- 		goto out;
-@@ -649,7 +631,7 @@ static int __init mtd_oobtest_init(void)
- 		goto out;
- 
- 	/* Write all eraseblocks */
--	simple_srand(11);
-+	prandom_seed_state(&rnd_state, 11);
- 	pr_info("writing OOBs of whole device\n");
- 	for (i = 0; i < ebcnt - 1; ++i) {
- 		int cnt = 2;
-@@ -659,7 +641,7 @@ static int __init mtd_oobtest_init(void)
- 			continue;
- 		addr = (i + 1) * mtd->erasesize - mtd->writesize;
- 		for (pg = 0; pg < cnt; ++pg) {
--			set_random_data(writebuf, sz);
-+			prandom_bytes_state(&rnd_state, writebuf, sz);
- 			ops.mode      = MTD_OPS_AUTO_OOB;
- 			ops.len       = 0;
- 			ops.retlen    = 0;
-@@ -680,12 +662,13 @@ static int __init mtd_oobtest_init(void)
- 	pr_info("written %u eraseblocks\n", i);
- 
- 	/* Check all eraseblocks */
--	simple_srand(11);
-+	prandom_seed_state(&rnd_state, 11);
- 	pr_info("verifying all eraseblocks\n");
- 	for (i = 0; i < ebcnt - 1; ++i) {
- 		if (bbt[i] || bbt[i + 1])
- 			continue;
--		set_random_data(writebuf, mtd->ecclayout->oobavail * 2);
-+		prandom_bytes_state(&rnd_state, writebuf,
-+					mtd->ecclayout->oobavail * 2);
- 		addr = (i + 1) * mtd->erasesize - mtd->writesize;
- 		ops.mode      = MTD_OPS_AUTO_OOB;
- 		ops.len       = 0;
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
