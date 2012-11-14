@@ -1,249 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [failures] mm-use-vm_unmapped_area-in-hugetlbfs-on-sparc64-architecture.patch removed from -mm tree
-Date: Wed, 14 Nov 2012 14:18:54 -0800
-Message-ID: <20121114221855.2403E20004E@hpza10.eem.corp.google.com>
+Subject: [failures] mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch removed from -mm tree
+Date: Wed, 14 Nov 2012 14:19:04 -0800
+Message-ID: <20121114221904.D72AA100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:64310 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933156Ab2KNWS7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Nov 2012 17:18:59 -0500
-Received: by mail-we0-f202.google.com with SMTP id x43so67966wey.1
-        for <mm-commits@vger.kernel.org>; Wed, 14 Nov 2012 14:18:57 -0800 (PST)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:55440 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1423511Ab2KNWTG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Nov 2012 17:19:06 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z15so102868ghb.1
+        for <mm-commits@vger.kernel.org>; Wed, 14 Nov 2012 14:19:05 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: walken@google.com, cmetcalf@tilera.com, davem@davemloft.net, hpa@zytor.com, hughd@google.com, lethal@linux-sh.org, linux@arm.linux.org.uk, mingo@elte.hu, ralf@linux-mips.org, riel@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cmetcalf@tilera.com, davem@davemloft.net, hpa@zytor.com, hughd@google.com, lethal@linux-sh.org, linux@arm.linux.org.uk, mingo@elte.hu, ralf@linux-mips.org, riel@redhat.com, tglx@linutronix.de, walken@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use vm_unmapped_area() in hugetlbfs on sparc64 architecture
+     Subject: mm-use-vm_unmapped_area-on-sparc64-architecture-fix
 has been removed from the -mm tree.  Its filename was
-     mm-use-vm_unmapped_area-in-hugetlbfs-on-sparc64-architecture.patch
+     mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
 
 This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Michel Lespinasse <walken@google.com>
-Subject: mm: use vm_unmapped_area() in hugetlbfs on sparc64 architecture
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-use-vm_unmapped_area-on-sparc64-architecture-fix
 
-Update the sparc64 hugetlb_get_unmapped_area function to make use of
-vm_unmapped_area() instead of implementing a brute force search.
+remove now-unused COLOUR_ALIGN_DOWN()
 
-Signed-off-by: Michel Lespinasse <walken@google.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
 Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Chris Metcalf <cmetcalf@tilera.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/mm/hugetlbpage.c |  123 ++++++++--------------------------
- 1 file changed, 30 insertions(+), 93 deletions(-)
+ arch/sparc/kernel/sys_sparc_64.c |   11 -----------
+ 1 file changed, 11 deletions(-)
 
-diff -puN arch/sparc/mm/hugetlbpage.c~mm-use-vm_unmapped_area-in-hugetlbfs-on-sparc64-architecture arch/sparc/mm/hugetlbpage.c
---- a/arch/sparc/mm/hugetlbpage.c~mm-use-vm_unmapped_area-in-hugetlbfs-on-sparc64-architecture
-+++ a/arch/sparc/mm/hugetlbpage.c
-@@ -30,55 +30,28 @@ static unsigned long hugetlb_get_unmappe
- 							unsigned long pgoff,
- 							unsigned long flags)
+diff -puN arch/sparc/kernel/sys_sparc_64.c~mm-use-vm_unmapped_area-on-sparc64-architecture-fix arch/sparc/kernel/sys_sparc_64.c
+--- a/arch/sparc/kernel/sys_sparc_64.c~mm-use-vm_unmapped_area-on-sparc64-architecture-fix
++++ a/arch/sparc/kernel/sys_sparc_64.c
+@@ -84,17 +84,6 @@ static inline unsigned long COLOUR_ALIGN
+ 	return base + off;
+ }
+ 
+-static inline unsigned long COLOUR_ALIGN_DOWN(unsigned long addr,
+-					      unsigned long pgoff)
+-{
+-	unsigned long base = addr & ~(SHMLBA-1);
+-	unsigned long off = (pgoff<<PAGE_SHIFT) & (SHMLBA-1);
+-
+-	if (base + off <= addr)
+-		return base + off;
+-	return base - off;
+-}
+-
+ unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr, unsigned long len, unsigned long pgoff, unsigned long flags)
  {
--	struct mm_struct *mm = current->mm;
--	struct vm_area_struct * vma;
- 	unsigned long task_size = TASK_SIZE;
--	unsigned long start_addr;
-+	struct vm_unmapped_area_info info;
- 
- 	if (test_thread_flag(TIF_32BIT))
- 		task_size = STACK_TOP32;
--	if (unlikely(len >= VA_EXCLUDE_START))
--		return -ENOMEM;
- 
--	if (len > mm->cached_hole_size) {
--	        start_addr = addr = mm->free_area_cache;
--	} else {
--	        start_addr = addr = TASK_UNMAPPED_BASE;
--	        mm->cached_hole_size = 0;
-+	info.flags = 0;
-+	info.length = len;
-+	info.low_limit = TASK_UNMAPPED_BASE;
-+	info.high_limit = min(task_size, VA_EXCLUDE_START);
-+	info.align_mask = PAGE_MASK & ~HPAGE_MASK;
-+	info.align_offset = 0;
-+	addr = vm_unmapped_area(&info);
-+
-+	if ((addr & ~PAGE_MASK) && task_size > VA_EXCLUDE_END) {
-+		VM_BUG_ON(addr != -ENOMEM);
-+		info.low_limit = VA_EXCLUDE_END;
-+		info.high_limit = task_size;
-+		addr = vm_unmapped_area(&info);
- 	}
- 
--	task_size -= len;
--
--full_search:
--	addr = ALIGN(addr, HPAGE_SIZE);
--
--	for (vma = find_vma(mm, addr); ; vma = vma->vm_next) {
--		/* At this point:  (!vma || addr < vma->vm_end). */
--		if (addr < VA_EXCLUDE_START &&
--		    (addr + len) >= VA_EXCLUDE_START) {
--			addr = VA_EXCLUDE_END;
--			vma = find_vma(mm, VA_EXCLUDE_END);
--		}
--		if (unlikely(task_size < addr)) {
--			if (start_addr != TASK_UNMAPPED_BASE) {
--				start_addr = addr = TASK_UNMAPPED_BASE;
--				mm->cached_hole_size = 0;
--				goto full_search;
--			}
--			return -ENOMEM;
--		}
--		if (likely(!vma || addr + len <= vma->vm_start)) {
--			/*
--			 * Remember the place where we stopped the search:
--			 */
--			mm->free_area_cache = addr + len;
--			return addr;
--		}
--		if (addr + mm->cached_hole_size < vma->vm_start)
--		        mm->cached_hole_size = vma->vm_start - addr;
--
--		addr = ALIGN(vma->vm_end, HPAGE_SIZE);
--	}
-+	return addr;
- }
- 
- static unsigned long
-@@ -90,68 +63,32 @@ hugetlb_get_unmapped_area_topdown(struct
- 	struct vm_area_struct *vma;
  	struct mm_struct *mm = current->mm;
- 	unsigned long addr = addr0;
-+	struct vm_unmapped_area_info info;
- 
- 	/* This should only ever run for 32-bit processes.  */
- 	BUG_ON(!test_thread_flag(TIF_32BIT));
- 
--	/* check if free_area_cache is useful for us */
--	if (len <= mm->cached_hole_size) {
-- 	        mm->cached_hole_size = 0;
-- 		mm->free_area_cache = mm->mmap_base;
-- 	}
--
--	/* either no address requested or can't fit in requested address hole */
--	addr = mm->free_area_cache & HPAGE_MASK;
--
--	/* make sure it can fit in the remaining address space */
--	if (likely(addr > len)) {
--		vma = find_vma(mm, addr-len);
--		if (!vma || addr <= vma->vm_start) {
--			/* remember the address as a hint for next time */
--			return (mm->free_area_cache = addr-len);
--		}
--	}
--
--	if (unlikely(mm->mmap_base < len))
--		goto bottomup;
-+	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
-+	info.length = len;
-+	info.low_limit = PAGE_SIZE;
-+	info.high_limit = mm->mmap_base;
-+	info.align_mask = PAGE_MASK & ~HPAGE_MASK;
-+	info.align_offset = 0;
-+	addr = vm_unmapped_area(&info);
- 
--	addr = (mm->mmap_base-len) & HPAGE_MASK;
--
--	do {
--		/*
--		 * Lookup failure means no vma is above this address,
--		 * else if new region fits below vma->vm_start,
--		 * return with success:
--		 */
--		vma = find_vma(mm, addr);
--		if (likely(!vma || addr+len <= vma->vm_start)) {
--			/* remember the address as a hint for next time */
--			return (mm->free_area_cache = addr);
--		}
--
-- 		/* remember the largest hole we saw so far */
-- 		if (addr + mm->cached_hole_size < vma->vm_start)
-- 		        mm->cached_hole_size = vma->vm_start - addr;
--
--		/* try just below the current vma->vm_start */
--		addr = (vma->vm_start-len) & HPAGE_MASK;
--	} while (likely(len < vma->vm_start));
--
--bottomup:
- 	/*
- 	 * A failed mmap() very likely causes application failure,
- 	 * so fall back to the bottom-up function here. This scenario
- 	 * can happen with large stack limits and large mmap()
- 	 * allocations.
- 	 */
--	mm->cached_hole_size = ~0UL;
--  	mm->free_area_cache = TASK_UNMAPPED_BASE;
--	addr = arch_get_unmapped_area(filp, addr0, len, pgoff, flags);
--	/*
--	 * Restore the topdown base:
--	 */
--	mm->free_area_cache = mm->mmap_base;
--	mm->cached_hole_size = ~0UL;
-+	if (addr & ~PAGE_MASK) {
-+		VM_BUG_ON(addr != -ENOMEM);
-+		info.flags = 0;
-+		info.low_limit = TASK_UNMAPPED_BASE;
-+		info.high_limit = STACK_TOP32;
-+		addr = vm_unmapped_area(&info);
-+	}
- 
- 	return addr;
- }
 _
 
-Patches currently in -mm which might be from walken@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-add-anon_vma_lock-to-validate_mm.patch
 linux-next.patch
-mm-augment-vma-rbtree-with-rb_subtree_gap.patch
-mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-inserting-new-vma.patch
-mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-removing-vma.patch
-mm-augment-vma-rbtree-with-rb_subtree_gap--debug-code-to-verify-rb_subtree_gap-updates-are-safe.patch
-mm-check-rb_subtree_gap-correctness.patch
+linux-next-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+swapfile-fix-name-leak-in-swapoff-fix.patch
+cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+irq-tsk-comm-is-an-array.patch
+drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch
+mm.patch
+mm-introduce-mm_find_pmd-fix.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
+slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
+mmvmscan-only-evict-file-pages-when-we-have-plenty-fix.patch
+slub-slub-specific-propagation-changes-fix.patch
+dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch
 mm-check-rb_subtree_gap-correctness-fix.patch
-mm-rearrange-vm_area_struct-for-fewer-cache-misses.patch
 mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
-mm-vm_unmapped_area-lookup-function.patch
 mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
-mm-use-vm_unmapped_area-on-x86_64-architecture.patch
-mm-fix-cache-coloring-on-x86_64-architecture.patch
-mm-use-vm_unmapped_area-in-hugetlbfs.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture.patch
 mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
-mm-use-vm_unmapped_area-on-mips-architecture.patch
 mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
-mm-use-vm_unmapped_area-on-arm-architecture.patch
 mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sh-architecture.patch
 mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc64-architecture.patch
-mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc32-architecture.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture.patch
-random32-rename-random32-to-prandom.patch
-prandom-introduce-prandom_bytes-and-prandom_bytes_state.patch
-bnx2x-use-prandom_bytes.patch
-mtd-nandsim-use-prandom_bytes.patch
-ubifs-use-prandom_bytes.patch
-mtd-mtd_nandecctest-use-prandom_bytes-instead-of-get_random_bytes.patch
-mtd-mtd_oobtest-convert-to-use-prandom-library.patch
-mtd-mtd_pagetest-convert-to-use-prandom-library.patch
-mtd-mtd_speedtest-use-prandom_bytes.patch
-mtd-mtd_subpagetest-convert-to-use-prandom-library.patch
-mtd-mtd_stresstest-use-prandom_bytes.patch
+mm-adjust-address_space_operationsmigratepage-return-code-fix.patch
+mm-introduce-a-common-interface-for-balloon-pages-mobility-fix.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
+bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
+mm-export-a-function-to-get-vm-committed-memory-fix.patch
+mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch
+drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+maintainers-add-joe-to-checkpatch-maintainers.patch
+binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
+rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
+hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
+procfs-add-vmflags-field-in-smaps-output-v4.patch
+procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
+ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
+ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
+ipc-convert-prepare_copy-from-macro-to-function-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
