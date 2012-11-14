@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-vm_unmapped_area-on-sparc64-architecture-fix-fix.patch added to -mm tree
-Date: Wed, 14 Nov 2012 14:28:21 -0800
-Message-ID: <20121114222822.BE90120004E@hpza10.eem.corp.google.com>
+Subject: + mm-use-vm_unmapped_area-in-hugetlbfs-on-sparc64-architecture.patch added to -mm tree
+Date: Wed, 14 Nov 2012 14:28:25 -0800
+Message-ID: <20121114222826.AE6585C0060@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:62686 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1423512Ab2KNW2Y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Nov 2012 17:28:24 -0500
-Received: by mail-we0-f202.google.com with SMTP id x43so68232wey.1
-        for <mm-commits@vger.kernel.org>; Wed, 14 Nov 2012 14:28:23 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:42325 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1423512Ab2KNW2a (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Nov 2012 17:28:30 -0500
+Received: by mail-ee0-f74.google.com with SMTP id t10so68093eei.1
+        for <mm-commits@vger.kernel.org>; Wed, 14 Nov 2012 14:28:29 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: walken@google.com
+Cc: walken@google.com, cmetcalf@tilera.com, davem@davemloft.net, hpa@zytor.com, hughd@google.com, lethal@linux-sh.org, linux@arm.linux.org.uk, mingo@elte.hu, ralf@linux-mips.org, riel@redhat.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: Re: linux-next: build warning after merge of the final tree (akpm tree related)
+     Subject: mm: use vm_unmapped_area() in hugetlbfs on sparc64 architecture
 has been added to the -mm tree.  Its filename is
-     mm-use-vm_unmapped_area-on-sparc64-architecture-fix-fix.patch
+     mm-use-vm_unmapped_area-in-hugetlbfs-on-sparc64-architecture.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,186 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michel Lespinasse <walken@google.com>
-Subject: Re: linux-next: build warning after merge of the final tree (akpm tree related)
+Subject: mm: use vm_unmapped_area() in hugetlbfs on sparc64 architecture
 
-On Fri, Nov 09, 2012 at 03:19:03PM +1100, Stephen Rothwell wrote:
-> Hi all,
->
-> After merging the final tree, today's linux-next build (arm defconfig)
-> produced this warning:
->
-> arch/arm/mm/mmap.c: In function 'arch_get_unmapped_area':
-> arch/arm/mm/mmap.c:60:16: warning: unused variable 'start_addr' [-Wunused-variable]
->
-> Introduced by commit "mm: use vm_unmapped_area() on arm architecture".
+Update the sparc64 hugetlb_get_unmapped_area function to make use of
+vm_unmapped_area() instead of implementing a brute force search.
 
-Sorry for the mistakes. The following changes should fix what's been reported so far.
-
-commit 1c98949798ce7a1d4a910775623e1830cf88a92c
-Author: Michel Lespinasse <walken@google.com>
-Date:   Thu Nov 8 20:26:34 2012 -0800
-
-    fix mm: use vm_unmapped_area() on sparc32 architecture
-
-index a59bc637f9af..a20b5ab4c701 100644
-
+Signed-off-by: Michel Lespinasse <walken@google.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/kernel/sys_sparc_64.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/sparc/mm/hugetlbpage.c |  123 ++++++++--------------------------
+ 1 file changed, 30 insertions(+), 93 deletions(-)
 
-diff -puN arch/sparc/kernel/sys_sparc_64.c~mm-use-vm_unmapped_area-on-sparc64-architecture-fix-fix arch/sparc/kernel/sys_sparc_64.c
---- a/arch/sparc/kernel/sys_sparc_64.c~mm-use-vm_unmapped_area-on-sparc64-architecture-fix-fix
-+++ a/arch/sparc/kernel/sys_sparc_64.c
-@@ -89,7 +89,6 @@ unsigned long arch_get_unmapped_area(str
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct * vma;
+diff -puN arch/sparc/mm/hugetlbpage.c~mm-use-vm_unmapped_area-in-hugetlbfs-on-sparc64-architecture arch/sparc/mm/hugetlbpage.c
+--- a/arch/sparc/mm/hugetlbpage.c~mm-use-vm_unmapped_area-in-hugetlbfs-on-sparc64-architecture
++++ a/arch/sparc/mm/hugetlbpage.c
+@@ -30,55 +30,28 @@ static unsigned long hugetlb_get_unmappe
+ 							unsigned long pgoff,
+ 							unsigned long flags)
+ {
+-	struct mm_struct *mm = current->mm;
+-	struct vm_area_struct * vma;
  	unsigned long task_size = TASK_SIZE;
 -	unsigned long start_addr;
- 	int do_color_align;
- 	struct vm_unmapped_area_info info;
++	struct vm_unmapped_area_info info;
  
-@@ -191,7 +190,7 @@ arch_get_unmapped_area_topdown(struct fi
- 	info.length = len;
- 	info.low_limit = PAGE_SIZE;
- 	info.high_limit = mm->mmap_base;
--	info.align_mask = do_colour_align ? (PAGE_MASK & shm_align_mask) : 0;
-+	info.align_mask = do_color_align ? (PAGE_MASK & (SHMLBA - 1)) : 0;
- 	info.align_offset = pgoff << PAGE_SHIFT;
- 	addr = vm_unmapped_area(&info);
+ 	if (test_thread_flag(TIF_32BIT))
+ 		task_size = STACK_TOP32;
+-	if (unlikely(len >= VA_EXCLUDE_START))
+-		return -ENOMEM;
  
+-	if (len > mm->cached_hole_size) {
+-	        start_addr = addr = mm->free_area_cache;
+-	} else {
+-	        start_addr = addr = TASK_UNMAPPED_BASE;
+-	        mm->cached_hole_size = 0;
++	info.flags = 0;
++	info.length = len;
++	info.low_limit = TASK_UNMAPPED_BASE;
++	info.high_limit = min(task_size, VA_EXCLUDE_START);
++	info.align_mask = PAGE_MASK & ~HPAGE_MASK;
++	info.align_offset = 0;
++	addr = vm_unmapped_area(&info);
++
++	if ((addr & ~PAGE_MASK) && task_size > VA_EXCLUDE_END) {
++		VM_BUG_ON(addr != -ENOMEM);
++		info.low_limit = VA_EXCLUDE_END;
++		info.high_limit = task_size;
++		addr = vm_unmapped_area(&info);
+ 	}
+ 
+-	task_size -= len;
+-
+-full_search:
+-	addr = ALIGN(addr, HPAGE_SIZE);
+-
+-	for (vma = find_vma(mm, addr); ; vma = vma->vm_next) {
+-		/* At this point:  (!vma || addr < vma->vm_end). */
+-		if (addr < VA_EXCLUDE_START &&
+-		    (addr + len) >= VA_EXCLUDE_START) {
+-			addr = VA_EXCLUDE_END;
+-			vma = find_vma(mm, VA_EXCLUDE_END);
+-		}
+-		if (unlikely(task_size < addr)) {
+-			if (start_addr != TASK_UNMAPPED_BASE) {
+-				start_addr = addr = TASK_UNMAPPED_BASE;
+-				mm->cached_hole_size = 0;
+-				goto full_search;
+-			}
+-			return -ENOMEM;
+-		}
+-		if (likely(!vma || addr + len <= vma->vm_start)) {
+-			/*
+-			 * Remember the place where we stopped the search:
+-			 */
+-			mm->free_area_cache = addr + len;
+-			return addr;
+-		}
+-		if (addr + mm->cached_hole_size < vma->vm_start)
+-		        mm->cached_hole_size = vma->vm_start - addr;
+-
+-		addr = ALIGN(vma->vm_end, HPAGE_SIZE);
+-	}
++	return addr;
+ }
+ 
+ static unsigned long
+@@ -90,68 +63,32 @@ hugetlb_get_unmapped_area_topdown(struct
+ 	struct vm_area_struct *vma;
+ 	struct mm_struct *mm = current->mm;
+ 	unsigned long addr = addr0;
++	struct vm_unmapped_area_info info;
+ 
+ 	/* This should only ever run for 32-bit processes.  */
+ 	BUG_ON(!test_thread_flag(TIF_32BIT));
+ 
+-	/* check if free_area_cache is useful for us */
+-	if (len <= mm->cached_hole_size) {
+- 	        mm->cached_hole_size = 0;
+- 		mm->free_area_cache = mm->mmap_base;
+- 	}
+-
+-	/* either no address requested or can't fit in requested address hole */
+-	addr = mm->free_area_cache & HPAGE_MASK;
+-
+-	/* make sure it can fit in the remaining address space */
+-	if (likely(addr > len)) {
+-		vma = find_vma(mm, addr-len);
+-		if (!vma || addr <= vma->vm_start) {
+-			/* remember the address as a hint for next time */
+-			return (mm->free_area_cache = addr-len);
+-		}
+-	}
+-
+-	if (unlikely(mm->mmap_base < len))
+-		goto bottomup;
++	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
++	info.length = len;
++	info.low_limit = PAGE_SIZE;
++	info.high_limit = mm->mmap_base;
++	info.align_mask = PAGE_MASK & ~HPAGE_MASK;
++	info.align_offset = 0;
++	addr = vm_unmapped_area(&info);
+ 
+-	addr = (mm->mmap_base-len) & HPAGE_MASK;
+-
+-	do {
+-		/*
+-		 * Lookup failure means no vma is above this address,
+-		 * else if new region fits below vma->vm_start,
+-		 * return with success:
+-		 */
+-		vma = find_vma(mm, addr);
+-		if (likely(!vma || addr+len <= vma->vm_start)) {
+-			/* remember the address as a hint for next time */
+-			return (mm->free_area_cache = addr);
+-		}
+-
+- 		/* remember the largest hole we saw so far */
+- 		if (addr + mm->cached_hole_size < vma->vm_start)
+- 		        mm->cached_hole_size = vma->vm_start - addr;
+-
+-		/* try just below the current vma->vm_start */
+-		addr = (vma->vm_start-len) & HPAGE_MASK;
+-	} while (likely(len < vma->vm_start));
+-
+-bottomup:
+ 	/*
+ 	 * A failed mmap() very likely causes application failure,
+ 	 * so fall back to the bottom-up function here. This scenario
+ 	 * can happen with large stack limits and large mmap()
+ 	 * allocations.
+ 	 */
+-	mm->cached_hole_size = ~0UL;
+-  	mm->free_area_cache = TASK_UNMAPPED_BASE;
+-	addr = arch_get_unmapped_area(filp, addr0, len, pgoff, flags);
+-	/*
+-	 * Restore the topdown base:
+-	 */
+-	mm->free_area_cache = mm->mmap_base;
+-	mm->cached_hole_size = ~0UL;
++	if (addr & ~PAGE_MASK) {
++		VM_BUG_ON(addr != -ENOMEM);
++		info.flags = 0;
++		info.low_limit = TASK_UNMAPPED_BASE;
++		info.high_limit = STACK_TOP32;
++		addr = vm_unmapped_area(&info);
++	}
+ 
+ 	return addr;
+ }
 _
 
 Patches currently in -mm which might be from walken@google.com are
