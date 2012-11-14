@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-fix-kernel-doc-warnings.patch added to -mm tree
-Date: Wed, 14 Nov 2012 14:44:49 -0800
-Message-ID: <20121114224449.AA9C7100049@wpzn3.hot.corp.google.com>
+Subject: + mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix.patch added to -mm tree
+Date: Wed, 14 Nov 2012 14:48:20 -0800
+Message-ID: <20121114224821.19138100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:35630 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932997Ab2KNWou (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Nov 2012 17:44:50 -0500
-Received: by mail-ye0-f202.google.com with SMTP id r11so106098yen.1
-        for <mm-commits@vger.kernel.org>; Wed, 14 Nov 2012 14:44:50 -0800 (PST)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:55898 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932997Ab2KNWsW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Nov 2012 17:48:22 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z15so106033ghb.1
+        for <mm-commits@vger.kernel.org>; Wed, 14 Nov 2012 14:48:21 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rdunlap@infradead.org, alexandre.bounine@idt.com, mporter@kernel.crashing.org
+Cc: akpm@linux-foundation.org, walken@google.com
 
 
 The patch titled
-     Subject: rapidio: fix kernel-doc warnings
+     Subject: mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix
 has been added to the -mm tree.  Its filename is
-     rapidio-fix-kernel-doc-warnings.patch
+     mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,60 +33,90 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: rapidio: fix kernel-doc warnings
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix
 
-Fix rapidio kernel-doc warnings:
-
-Warning(drivers/rapidio/rio.c:415): No description found for parameter 'local'
-Warning(drivers/rapidio/rio.c:415): Excess function parameter 'lstart' description in 'rio_map_inb_region'
-Warning(include/linux/rio.h:290): No description found for parameter 'switches'
-Warning(include/linux/rio.h:290): No description found for parameter 'destid_table'
-
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Acked-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Michel Lespinasse <walken@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio.c |    2 +-
- include/linux/rio.h   |    2 ++
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ arch/tile/mm/hugetlbpage.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rapidio/rio.c~rapidio-fix-kernel-doc-warnings drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-fix-kernel-doc-warnings
-+++ a/drivers/rapidio/rio.c
-@@ -401,7 +401,7 @@ EXPORT_SYMBOL_GPL(rio_release_inb_pwrite
- /**
-  * rio_map_inb_region -- Map inbound memory region.
-  * @mport: Master port.
-- * @lstart: physical address of memory region to be mapped
-+ * @local: physical address of memory region to be mapped
-  * @rbase: RIO base address assigned to this window
-  * @size: Size of the memory region
-  * @rflags: Flags for mapping.
-diff -puN include/linux/rio.h~rapidio-fix-kernel-doc-warnings include/linux/rio.h
---- a/include/linux/rio.h~rapidio-fix-kernel-doc-warnings
-+++ a/include/linux/rio.h
-@@ -275,9 +275,11 @@ struct rio_id_table {
-  * struct rio_net - RIO network info
-  * @node: Node in global list of RIO networks
-  * @devices: List of devices in this network
-+ * @switches: List of switches in this netowrk
-  * @mports: List of master ports accessing this network
-  * @hport: Default port for accessing this network
-  * @id: RIO network ID
-+ * @destid_table: destID allocation table
-  */
- struct rio_net {
- 	struct list_head node;	/* node in list of networks */
+diff -puN arch/tile/mm/hugetlbpage.c~mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix arch/tile/mm/hugetlbpage.c
+--- a/arch/tile/mm/hugetlbpage.c~mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix
++++ a/arch/tile/mm/hugetlbpage.c
+@@ -253,7 +253,7 @@ static unsigned long hugetlb_get_unmappe
+ 	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
+ 	info.length = len;
+ 	info.low_limit = PAGE_SIZE;
+-	info.high_limit = mm->mmap_base;
++	info.high_limit = current->mm->mmap_base;
+ 	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
+ 	info.align_offset = 0;
+ 	addr = vm_unmapped_area(&info);
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-rapidio-fix-kernel-doc-warnings.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix.patch
-mm-fix-slabc-kernel-doc-warnings.patch
-printk-boot_delay-should-only-affect-output.patch
+linux-next-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+swapfile-fix-name-leak-in-swapoff-fix.patch
+cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+irq-tsk-comm-is-an-array.patch
+drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch
+mm.patch
+mm-introduce-mm_find_pmd-fix.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
+slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
+mmvmscan-only-evict-file-pages-when-we-have-plenty-fix.patch
+slub-slub-specific-propagation-changes-fix.patch
+dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch
+mm-check-rb_subtree_gap-correctness-fix.patch
+mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
+mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
+mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
+mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
+mm-use-vm_unmapped_area-on-arm-architecture-fix-fix.patch
+mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc32-architecture-fix.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
+mm-adjust-address_space_operationsmigratepage-return-code-fix.patch
+mm-introduce-a-common-interface-for-balloon-pages-mobility-fix.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix.patch
+bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
+mm-export-a-function-to-get-vm-committed-memory-fix.patch
+mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch
+drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+maintainers-add-joe-to-checkpatch-maintainers.patch
+binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
+rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
+hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
+procfs-add-vmflags-field-in-smaps-output-v4.patch
+procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
+ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
+ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
+ipc-convert-prepare_copy-from-macro-to-function-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
