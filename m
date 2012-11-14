@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch added to -mm tree
-Date: Wed, 14 Nov 2012 11:41:58 -0800
-Message-ID: <20121114194159.76BFF5C0050@hpza9.eem.corp.google.com>
+Subject: + memory_hotplug-handle-empty-zone-when-online_movable-online_kernel.patch added to -mm tree
+Date: Wed, 14 Nov 2012 11:42:02 -0800
+Message-ID: <20121114194203.A05FB5C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:38678 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752003Ab2KNTmD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Nov 2012 14:42:03 -0500
-Received: by mail-lb0-f202.google.com with SMTP id i15so65028lbo.1
-        for <mm-commits@vger.kernel.org>; Wed, 14 Nov 2012 11:42:01 -0800 (PST)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:37354 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752003Ab2KNTmI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Nov 2012 14:42:08 -0500
+Received: by mail-la0-f74.google.com with SMTP id v3so61466lag.1
+        for <mm-commits@vger.kernel.org>; Wed, 14 Nov 2012 11:42:06 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, laijs@cn.fujitsu.com, wency@cn.fujitsu.com
+Cc: laijs@cn.fujitsu.com, greg@kroah.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, minchan.kim@gmail.com, rientjes@google.com, rusty@rustcorp.com.au, wency@cn.fujitsu.com, yinghai@kernel.org
 
 
 The patch titled
-     Subject: mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix
+     Subject: memory_hotplug: handle empty zone when online_movable/online_kernel
 has been added to the -mm tree.  Its filename is
-     mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch
+     memory_hotplug-handle-empty-zone-when-online_movable-online_kernel.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,117 +33,136 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix
+From: Lai Jiangshan <laijs@cn.fujitsu.com>
+Subject: memory_hotplug: handle empty zone when online_movable/online_kernel
 
-use min_t, cleanups
+Make online_movable/online_kernel can empty a zone or can move memory to a
+empty zone.
 
+Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Jiang Liu <jiang.liu@huawei.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |   20 ++++++++++++--------
- mm/memory_hotplug.c   |    1 -
- 2 files changed, 12 insertions(+), 9 deletions(-)
+ mm/memory_hotplug.c |   51 +++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 45 insertions(+), 6 deletions(-)
 
-diff -puN drivers/base/memory.c~mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix drivers/base/memory.c
---- a/drivers/base/memory.c~mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix
-+++ a/drivers/base/memory.c
-@@ -341,14 +341,18 @@ store_mem_state(struct device *dev,
- 
- 	mem = container_of(dev, struct memory_block, dev);
- 
--	if (!strncmp(buf, "online_kernel", min((int)count, 13)))
--		ret = memory_block_change_state(mem, MEM_ONLINE, MEM_OFFLINE, ONLINE_KERNEL);
--	else if (!strncmp(buf, "online_movable", min((int)count, 14)))
--		ret = memory_block_change_state(mem, MEM_ONLINE, MEM_OFFLINE, ONLINE_MOVABLE);
--	else if (!strncmp(buf, "online", min((int)count, 6)))
--		ret = memory_block_change_state(mem, MEM_ONLINE, MEM_OFFLINE, ONLINE_KEEP);
--	else if(!strncmp(buf, "offline", min((int)count, 7)))
--		ret = memory_block_change_state(mem, MEM_OFFLINE, MEM_ONLINE, -1);
-+	if (!strncmp(buf, "online_kernel", min_t(int, count, 13)))
-+		ret = memory_block_change_state(mem, MEM_ONLINE,
-+						MEM_OFFLINE, ONLINE_KERNEL);
-+	else if (!strncmp(buf, "online_movable", min_t(int, count, 14)))
-+		ret = memory_block_change_state(mem, MEM_ONLINE,
-+						MEM_OFFLINE, ONLINE_MOVABLE);
-+	else if (!strncmp(buf, "online", min_t(int, count, 6)))
-+		ret = memory_block_change_state(mem, MEM_ONLINE,
-+						MEM_OFFLINE, ONLINE_KEEP);
-+	else if(!strncmp(buf, "offline", min_t(int, count, 7)))
-+		ret = memory_block_change_state(mem, MEM_OFFLINE,
-+						MEM_ONLINE, -1);
- 
- 	if (ret)
- 		return ret;
-diff -puN mm/memory_hotplug.c~mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix
+diff -puN mm/memory_hotplug.c~memory_hotplug-handle-empty-zone-when-online_movable-online_kernel mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory_hotplug-handle-empty-zone-when-online_movable-online_kernel
 +++ a/mm/memory_hotplug.c
-@@ -224,7 +224,6 @@ static void grow_zone_span(struct zone *
- static void resize_zone(struct zone *zone, unsigned long start_pfn,
- 		unsigned long end_pfn)
+@@ -226,8 +226,17 @@ static void resize_zone(struct zone *zon
  {
--
  	zone_span_writelock(zone);
  
- 	zone->zone_start_pfn = start_pfn;
+-	zone->zone_start_pfn = start_pfn;
+-	zone->spanned_pages = end_pfn - start_pfn;
++	if (end_pfn - start_pfn) {
++		zone->zone_start_pfn = start_pfn;
++		zone->spanned_pages = end_pfn - start_pfn;
++	} else {
++		/*
++		 * make it consist as free_area_init_core(),
++		 * if spanned_pages = 0, then keep start_pfn = 0
++		 */
++		zone->zone_start_pfn = 0;
++		zone->spanned_pages = 0;
++	}
+ 
+ 	zone_span_writeunlock(zone);
+ }
+@@ -243,10 +252,19 @@ static void fix_zone_id(struct zone *zon
+ 		set_page_links(pfn_to_page(pfn), zid, nid, pfn);
+ }
+ 
+-static int move_pfn_range_left(struct zone *z1, struct zone *z2,
++static int __meminit move_pfn_range_left(struct zone *z1, struct zone *z2,
+ 		unsigned long start_pfn, unsigned long end_pfn)
+ {
++	int ret;
+ 	unsigned long flags;
++	unsigned long z1_start_pfn;
++
++	if (!z1->wait_table) {
++		ret = init_currently_empty_zone(z1, start_pfn,
++			end_pfn - start_pfn, MEMMAP_HOTPLUG);
++		if (ret)
++			return ret;
++	}
+ 
+ 	pgdat_resize_lock(z1->zone_pgdat, &flags);
+ 
+@@ -260,7 +278,13 @@ static int move_pfn_range_left(struct zo
+ 	if (end_pfn <= z2->zone_start_pfn)
+ 		goto out_fail;
+ 
+-	resize_zone(z1, z1->zone_start_pfn, end_pfn);
++	/* use start_pfn for z1's start_pfn if z1 is empty */
++	if (z1->spanned_pages)
++		z1_start_pfn = z1->zone_start_pfn;
++	else
++		z1_start_pfn = start_pfn;
++
++	resize_zone(z1, z1_start_pfn, end_pfn);
+ 	resize_zone(z2, end_pfn, z2->zone_start_pfn + z2->spanned_pages);
+ 
+ 	pgdat_resize_unlock(z1->zone_pgdat, &flags);
+@@ -273,10 +297,19 @@ out_fail:
+ 	return -1;
+ }
+ 
+-static int move_pfn_range_right(struct zone *z1, struct zone *z2,
++static int __meminit move_pfn_range_right(struct zone *z1, struct zone *z2,
+ 		unsigned long start_pfn, unsigned long end_pfn)
+ {
++	int ret;
+ 	unsigned long flags;
++	unsigned long z2_end_pfn;
++
++	if (!z2->wait_table) {
++		ret = init_currently_empty_zone(z2, start_pfn,
++			end_pfn - start_pfn, MEMMAP_HOTPLUG);
++		if (ret)
++			return ret;
++	}
+ 
+ 	pgdat_resize_lock(z1->zone_pgdat, &flags);
+ 
+@@ -290,8 +323,14 @@ static int move_pfn_range_right(struct z
+ 	if (start_pfn >= z1->zone_start_pfn + z1->spanned_pages)
+ 		goto out_fail;
+ 
++	/* use end_pfn for z2's end_pfn if z2 is empty */
++	if (z2->spanned_pages)
++		z2_end_pfn = z2->zone_start_pfn + z2->spanned_pages;
++	else
++		z2_end_pfn = end_pfn;
++
+ 	resize_zone(z1, z1->zone_start_pfn, start_pfn);
+-	resize_zone(z2, start_pfn, z2->zone_start_pfn + z2->spanned_pages);
++	resize_zone(z2, start_pfn, z2_end_pfn);
+ 
+ 	pgdat_resize_unlock(z1->zone_pgdat, &flags);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from laijs@cn.fujitsu.com are
 
 linux-next.patch
-linux-next-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-irq-tsk-comm-is-an-array.patch
-drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch
-mm.patch
-mm-introduce-mm_find_pmd-fix.patch
-memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
+memory_hotplug-fix-possible-incorrect-node_states.patch
 slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
-mmvmscan-only-evict-file-pages-when-we-have-plenty-fix.patch
-slub-slub-specific-propagation-changes-fix.patch
-dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch
-mm-check-rb_subtree_gap-correctness-fix.patch
-mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
-mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
-mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
-mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
-mm-adjust-address_space_operationsmigratepage-return-code-fix.patch
-mm-introduce-a-common-interface-for-balloon-pages-mobility-fix.patch
-virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
-bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
-mm-export-a-function-to-get-vm-committed-memory-fix.patch
+drivers-base-nodec-cleanup-node_state_attr.patch
+mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory.patch
 mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch
-drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
-rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
-hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
-procfs-add-vmflags-field-in-smaps-output-v4.patch
-procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
-ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
-ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
-ipc-convert-prepare_copy-from-macro-to-function-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+memory_hotplug-handle-empty-zone-when-online_movable-online_kernel.patch
+memory_hotplug-ensure-every-online-node-has-normal-memory.patch
 
