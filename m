@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fat-notify-when-discard-is-not-supported.patch added to -mm tree
-Date: Tue, 13 Nov 2012 15:55:28 -0800
-Message-ID: <20121113235529.216FE5C0060@hpza9.eem.corp.google.com>
+Subject: + mm-dmapoolc-fix-null-dev-in-dma_pool_create.patch added to -mm tree
+Date: Tue, 13 Nov 2012 17:00:18 -0800
+Message-ID: <20121114010019.2F5A1100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f202.google.com ([209.85.215.202]:50787 "EHLO
-	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755987Ab2KMXzb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Nov 2012 18:55:31 -0500
-Received: by mail-ea0-f202.google.com with SMTP id f11so226702eaa.1
-        for <mm-commits@vger.kernel.org>; Tue, 13 Nov 2012 15:55:30 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:35994 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756052Ab2KNBAU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Nov 2012 20:00:20 -0500
+Received: by mail-qc0-f202.google.com with SMTP id s25so931931qcq.1
+        for <mm-commits@vger.kernel.org>; Tue, 13 Nov 2012 17:00:19 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linkinjeon@gmail.com, amit.sahrawat83@gmail.com, hirofumi@mail.parknet.co.jp
+Cc: xi.wang@gmail.com, rientjes@google.com
 
 
 The patch titled
-     Subject: fat: notify when discard is not supported
+     Subject: mm/dmapool.c: fix null dev in dma_pool_create()
 has been added to the -mm tree.  Its filename is
-     fat-notify-when-discard-is-not-supported.patch
+     mm-dmapoolc-fix-null-dev-in-dma_pool_create.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,54 +33,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Namjae Jeon <linkinjeon@gmail.com>
-Subject: fat: notify when discard is not supported
+From: Xi Wang <xi.wang@gmail.com>
+Subject: mm/dmapool.c: fix null dev in dma_pool_create()
 
-Change fatfs so that a warning is emitted when an attempt is made to mount
-a filesystem with the unsupported `discard' option.
+A few drivers invoke dma_pool_create() with a null dev.  Note that dev is
+dereferenced in dev_to_node(dev), causing a null pointer dereference.
 
-ext4 aready does this: http://patchwork.ozlabs.org/patch/192668/
+A long term solution is to disallow null dev.  Once the drivers are fixed,
+we can simplify the core code here.  For now we add WARN_ON(!dev) to
+notify the driver maintainers and avoid the null pointer dereference.
 
-Signed-off-by: Namjae Jeon <linkinjeon@gmail.com>
-Signed-off-by: Amit Sahrawat <amit.sahrawat83@gmail.com>
-Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Signed-off-by: Xi Wang <xi.wang@gmail.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/inode.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ mm/dmapool.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/fat/inode.c~fat-notify-when-discard-is-not-supported fs/fat/inode.c
---- a/fs/fat/inode.c~fat-notify-when-discard-is-not-supported
-+++ a/fs/fat/inode.c
-@@ -26,6 +26,7 @@
- #include <linux/writeback.h>
- #include <linux/log2.h>
- #include <linux/hash.h>
-+#include <linux/blkdev.h>
- #include <asm/unaligned.h>
- #include "fat.h"
+diff -puN mm/dmapool.c~mm-dmapoolc-fix-null-dev-in-dma_pool_create mm/dmapool.c
+--- a/mm/dmapool.c~mm-dmapoolc-fix-null-dev-in-dma_pool_create
++++ a/mm/dmapool.c
+@@ -133,6 +133,7 @@ struct dma_pool *dma_pool_create(const c
+ {
+ 	struct dma_pool *retval;
+ 	size_t allocation;
++	int node;
  
-@@ -1431,6 +1432,14 @@ int fat_fill_super(struct super_block *s
- 		goto out_fail;
+ 	if (align == 0) {
+ 		align = 1;
+@@ -157,7 +158,9 @@ struct dma_pool *dma_pool_create(const c
+ 		return NULL;
  	}
  
-+	if (sbi->options.discard) {
-+		struct request_queue *q = bdev_get_queue(sb->s_bdev);
-+		if (!blk_queue_discard(q))
-+			fat_msg(sb, KERN_WARNING,
-+					"mounting with \"discard\" option, but "
-+					"the device does not support discard");
-+	}
+-	retval = kmalloc_node(sizeof(*retval), GFP_KERNEL, dev_to_node(dev));
++	node = WARN_ON(!dev) ? -1 : dev_to_node(dev);
 +
- 	return 0;
++	retval = kmalloc_node(sizeof(*retval), GFP_KERNEL, node);
+ 	if (!retval)
+ 		return retval;
  
- out_invalid:
 _
 
-Patches currently in -mm which might be from linkinjeon@gmail.com are
+Patches currently in -mm which might be from xi.wang@gmail.com are
 
 linux-next.patch
-writeback-remove-nr_pages_dirtied-arg-from-balance_dirty_pages_ratelimited_nr.patch
-fat-notify-when-discard-is-not-supported.patch
+mm-dmapoolc-fix-null-dev-in-dma_pool_create.patch
 
