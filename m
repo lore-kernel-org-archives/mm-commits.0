@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-spear-use-devm_-routines-fix.patch added to -mm tree
-Date: Wed, 14 Nov 2012 13:54:18 -0800
-Message-ID: <20121114215419.06B295C0063@hpza9.eem.corp.google.com>
+Subject: + drivers-of-fdtc-re-use-kernels-kbasename-fix.patch added to -mm tree
+Date: Wed, 14 Nov 2012 14:00:14 -0800
+Message-ID: <20121114220015.44D38100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:55342 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932381Ab2KNVyV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Nov 2012 16:54:21 -0500
-Received: by mail-ee0-f74.google.com with SMTP id t10so66854eei.1
-        for <mm-commits@vger.kernel.org>; Wed, 14 Nov 2012 13:54:19 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:42384 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1423259Ab2KNWAQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Nov 2012 17:00:16 -0500
+Received: by mail-ye0-f202.google.com with SMTP id r11so101601yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 14 Nov 2012 14:00:15 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: viresh.kumar@linaro.org
+Cc: grant.likely@secretlab.ca, andriy.shevchenko@linux.intel.com, rob.herring@calxeda.com, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: rtc-rtc-spear-use-devm_-routines-fix
+     Subject: drivers-of-fdtc-re-use-kernels-kbasename-fix
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-spear-use-devm_-routines-fix.patch
+     drivers-of-fdtc-re-use-kernels-kbasename-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,51 +33,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: rtc-rtc-spear-use-devm_-routines-fix
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: drivers-of-fdtc-re-use-kernels-kbasename-fix
 
+drivers/of/fdt.c: In function 'of_scan_flat_dt':
+drivers/of/fdt.c:490:10: warning: assignment discards 'const' qualifier from pointer target type [enabled by default]
 
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-spear.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ drivers/of/fdt.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-spear.c~rtc-rtc-spear-use-devm_-routines-fix drivers/rtc/rtc-spear.c
---- a/drivers/rtc/rtc-spear.c~rtc-rtc-spear-use-devm_-routines-fix
-+++ a/drivers/rtc/rtc-spear.c
-@@ -363,11 +363,6 @@ static int __devinit spear_rtc_probe(str
- 		dev_err(&pdev->dev, "no resource defined\n");
- 		return -EBUSY;
- 	}
--	if (!devm_request_mem_region(&pdev->dev, res->start, resource_size(res),
--				pdev->name)) {
--		dev_err(&pdev->dev, "rtc region already claimed\n");
--		return -EBUSY;
--	}
+diff -puN drivers/of/fdt.c~drivers-of-fdtc-re-use-kernels-kbasename-fix drivers/of/fdt.c
+--- a/drivers/of/fdt.c~drivers-of-fdtc-re-use-kernels-kbasename-fix
++++ a/drivers/of/fdt.c
+@@ -460,7 +460,7 @@ int __init of_scan_flat_dt(int (*it)(uns
  
- 	config = devm_kzalloc(&pdev->dev, sizeof(*config), GFP_KERNEL);
- 	if (!config) {
-@@ -390,10 +385,9 @@ static int __devinit spear_rtc_probe(str
- 		return status;
- 	}
+ 	do {
+ 		u32 tag = be32_to_cpup((__be32 *)p);
+-		char *pathp;
++		const char *pathp;
  
--	config->ioaddr = devm_ioremap(&pdev->dev, res->start,
--			resource_size(res));
-+	config->ioaddr = devm_request_and_ioremap(&pdev->dev, res);
- 	if (!config->ioaddr) {
--		dev_err(&pdev->dev, "ioremap fail\n");
-+		dev_err(&pdev->dev, "request-ioremap fail\n");
- 		return -ENOMEM;
- 	}
- 
+ 		p += 4;
+ 		if (tag == OF_DT_END_NODE) {
 _
 
-Patches currently in -mm which might be from viresh.kumar@linaro.org are
+Patches currently in -mm which might be from grant.likely@secretlab.ca are
 
 linux-next.patch
-rtc-rtc-spear-use-devm_-routines.patch
-rtc-rtc-spear-use-devm_-routines-fix.patch
-rtc-rtc-spear-add-clk_unprepare-support.patch
-rtc-rtc-spear-provide-flag-for-no-support-of-uie-mode.patch
+drivers-of-fdtc-re-use-kernels-kbasename.patch
+drivers-of-fdtc-re-use-kernels-kbasename-fix.patch
+rtc-omap-kicker-mechanism-support.patch
+arm-davinci-remove-rtc-kicker-release.patch
+rtc-omap-dt-support.patch
+rtc-omap-depend-on-am33xx.patch
+rtc-omap-add-runtime-pm-support.patch
+rtc-imxdi-support-for-imx53.patch
+rtc-imxdi-add-devicetree-support.patch
+arm-mach-imx-support-for-dryice-rtc-in-imx53.patch
 
