@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-fix-compiler-warning.patch added to -mm tree
-Date: Wed, 14 Nov 2012 14:42:50 -0800
-Message-ID: <20121114224251.3354220004E@hpza10.eem.corp.google.com>
+Subject: + rapidio-fix-kernel-doc-warnings.patch added to -mm tree
+Date: Wed, 14 Nov 2012 14:44:49 -0800
+Message-ID: <20121114224449.AA9C7100049@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:54971 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933178Ab2KNWmy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Nov 2012 17:42:54 -0500
-Received: by mail-lb0-f202.google.com with SMTP id i15so71529lbo.1
-        for <mm-commits@vger.kernel.org>; Wed, 14 Nov 2012 14:42:52 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:35630 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932997Ab2KNWou (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Nov 2012 17:44:50 -0500
+Received: by mail-ye0-f202.google.com with SMTP id r11so106098yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 14 Nov 2012 14:44:50 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: thierry.reding@avionic-design.de, mgorman@suse.de, minchan@kernel.org, riel@redhat.com
+Cc: rdunlap@infradead.org, alexandre.bounine@idt.com, mporter@kernel.crashing.org
 
 
 The patch titled
-     Subject: mm: compaction: Fix compiler warning
+     Subject: rapidio: fix kernel-doc warnings
 has been added to the -mm tree.  Its filename is
-     mm-compaction-fix-compiler-warning.patch
+     rapidio-fix-kernel-doc-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,154 +33,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Thierry Reding <thierry.reding@avionic-design.de>
-Subject: mm: compaction: Fix compiler warning
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: rapidio: fix kernel-doc warnings
 
-compact_capture_page() is only used if compaction is enabled so it should
-be moved into the corresponding #ifdef.
+Fix rapidio kernel-doc warnings:
 
-Signed-off-by: Thierry Reding <thierry.reding@avionic-design.de>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Minchan Kim <minchan@kernel.org>
+Warning(drivers/rapidio/rio.c:415): No description found for parameter 'local'
+Warning(drivers/rapidio/rio.c:415): Excess function parameter 'lstart' description in 'rio_map_inb_region'
+Warning(include/linux/rio.h:290): No description found for parameter 'switches'
+Warning(include/linux/rio.h:290): No description found for parameter 'destid_table'
+
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Acked-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |  108 +++++++++++++++++++++++-----------------------
- 1 file changed, 54 insertions(+), 54 deletions(-)
+ drivers/rapidio/rio.c |    2 +-
+ include/linux/rio.h   |    2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/compaction.c~mm-compaction-fix-compiler-warning mm/compaction.c
---- a/mm/compaction.c~mm-compaction-fix-compiler-warning
-+++ a/mm/compaction.c
-@@ -215,60 +215,6 @@ static bool suitable_migration_target(st
- 	return false;
- }
- 
--static void compact_capture_page(struct compact_control *cc)
--{
--	unsigned long flags;
--	int mtype, mtype_low, mtype_high;
--
--	if (!cc->page || *cc->page)
--		return;
--
--	/*
--	 * For MIGRATE_MOVABLE allocations we capture a suitable page ASAP
--	 * regardless of the migratetype of the freelist is is captured from.
--	 * This is fine because the order for a high-order MIGRATE_MOVABLE
--	 * allocation is typically at least a pageblock size and overall
--	 * fragmentation is not impaired. Other allocation types must
--	 * capture pages from their own migratelist because otherwise they
--	 * could pollute other pageblocks like MIGRATE_MOVABLE with
--	 * difficult to move pages and making fragmentation worse overall.
--	 */
--	if (cc->migratetype == MIGRATE_MOVABLE) {
--		mtype_low = 0;
--		mtype_high = MIGRATE_PCPTYPES;
--	} else {
--		mtype_low = cc->migratetype;
--		mtype_high = cc->migratetype + 1;
--	}
--
--	/* Speculatively examine the free lists without zone lock */
--	for (mtype = mtype_low; mtype < mtype_high; mtype++) {
--		int order;
--		for (order = cc->order; order < MAX_ORDER; order++) {
--			struct page *page;
--			struct free_area *area;
--			area = &(cc->zone->free_area[order]);
--			if (list_empty(&area->free_list[mtype]))
--				continue;
--
--			/* Take the lock and attempt capture of the page */
--			if (!compact_trylock_irqsave(&cc->zone->lock, &flags, cc))
--				return;
--			if (!list_empty(&area->free_list[mtype])) {
--				page = list_entry(area->free_list[mtype].next,
--							struct page, lru);
--				if (capture_free_page(page, cc->order, mtype)) {
--					spin_unlock_irqrestore(&cc->zone->lock,
--									flags);
--					*cc->page = page;
--					return;
--				}
--			}
--			spin_unlock_irqrestore(&cc->zone->lock, flags);
--		}
--	}
--}
--
- /*
-  * Isolate free pages onto a private freelist. Caller must hold zone->lock.
-  * If @strict is true, will abort returning 0 on any invalid PFNs or non-free
-@@ -945,6 +891,60 @@ unsigned long compaction_suitable(struct
- 	return COMPACT_CONTINUE;
- }
- 
-+static void compact_capture_page(struct compact_control *cc)
-+{
-+	unsigned long flags;
-+	int mtype, mtype_low, mtype_high;
-+
-+	if (!cc->page || *cc->page)
-+		return;
-+
-+	/*
-+	 * For MIGRATE_MOVABLE allocations we capture a suitable page ASAP
-+	 * regardless of the migratetype of the freelist is is captured from.
-+	 * This is fine because the order for a high-order MIGRATE_MOVABLE
-+	 * allocation is typically at least a pageblock size and overall
-+	 * fragmentation is not impaired. Other allocation types must
-+	 * capture pages from their own migratelist because otherwise they
-+	 * could pollute other pageblocks like MIGRATE_MOVABLE with
-+	 * difficult to move pages and making fragmentation worse overall.
-+	 */
-+	if (cc->migratetype == MIGRATE_MOVABLE) {
-+		mtype_low = 0;
-+		mtype_high = MIGRATE_PCPTYPES;
-+	} else {
-+		mtype_low = cc->migratetype;
-+		mtype_high = cc->migratetype + 1;
-+	}
-+
-+	/* Speculatively examine the free lists without zone lock */
-+	for (mtype = mtype_low; mtype < mtype_high; mtype++) {
-+		int order;
-+		for (order = cc->order; order < MAX_ORDER; order++) {
-+			struct page *page;
-+			struct free_area *area;
-+			area = &(cc->zone->free_area[order]);
-+			if (list_empty(&area->free_list[mtype]))
-+				continue;
-+
-+			/* Take the lock and attempt capture of the page */
-+			if (!compact_trylock_irqsave(&cc->zone->lock, &flags, cc))
-+				return;
-+			if (!list_empty(&area->free_list[mtype])) {
-+				page = list_entry(area->free_list[mtype].next,
-+							struct page, lru);
-+				if (capture_free_page(page, cc->order, mtype)) {
-+					spin_unlock_irqrestore(&cc->zone->lock,
-+									flags);
-+					*cc->page = page;
-+					return;
-+				}
-+			}
-+			spin_unlock_irqrestore(&cc->zone->lock, flags);
-+		}
-+	}
-+}
-+
- static int compact_zone(struct zone *zone, struct compact_control *cc)
- {
- 	int ret;
+diff -puN drivers/rapidio/rio.c~rapidio-fix-kernel-doc-warnings drivers/rapidio/rio.c
+--- a/drivers/rapidio/rio.c~rapidio-fix-kernel-doc-warnings
++++ a/drivers/rapidio/rio.c
+@@ -401,7 +401,7 @@ EXPORT_SYMBOL_GPL(rio_release_inb_pwrite
+ /**
+  * rio_map_inb_region -- Map inbound memory region.
+  * @mport: Master port.
+- * @lstart: physical address of memory region to be mapped
++ * @local: physical address of memory region to be mapped
+  * @rbase: RIO base address assigned to this window
+  * @size: Size of the memory region
+  * @rflags: Flags for mapping.
+diff -puN include/linux/rio.h~rapidio-fix-kernel-doc-warnings include/linux/rio.h
+--- a/include/linux/rio.h~rapidio-fix-kernel-doc-warnings
++++ a/include/linux/rio.h
+@@ -275,9 +275,11 @@ struct rio_id_table {
+  * struct rio_net - RIO network info
+  * @node: Node in global list of RIO networks
+  * @devices: List of devices in this network
++ * @switches: List of switches in this netowrk
+  * @mports: List of master ports accessing this network
+  * @hport: Default port for accessing this network
+  * @id: RIO network ID
++ * @destid_table: destID allocation table
+  */
+ struct rio_net {
+ 	struct list_head node;	/* node in list of networks */
 _
 
-Patches currently in -mm which might be from thierry.reding@avionic-design.de are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
 linux-next.patch
-mm-compaction-fix-compiler-warning.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
-drivers-video-backlight-lp855x_blc-remove-unnecessary-mutex-code.patch
+rapidio-fix-kernel-doc-warnings.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix.patch
+mm-fix-slabc-kernel-doc-warnings.patch
+printk-boot_delay-should-only-affect-output.patch
 
