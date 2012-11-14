@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + swapfile-fix-name-leak-in-swapoff.patch added to -mm tree
-Date: Wed, 14 Nov 2012 12:00:16 -0800
-Message-ID: <20121114200017.CACDA5C0050@hpza9.eem.corp.google.com>
+Subject: + swapfile-fix-name-leak-in-swapoff-fix.patch added to -mm tree
+Date: Wed, 14 Nov 2012 12:00:21 -0800
+Message-ID: <20121114200021.D8E155C0050@hpza9.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail-wi0-f202.google.com ([209.85.212.202]:62667 "EHLO
 	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161099Ab2KNUAU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Nov 2012 15:00:20 -0500
+	with ESMTP id S932448Ab2KNUAX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Nov 2012 15:00:23 -0500
 Received: by mail-wi0-f202.google.com with SMTP id hm14so62712wib.1
-        for <mm-commits@vger.kernel.org>; Wed, 14 Nov 2012 12:00:19 -0800 (PST)
+        for <mm-commits@vger.kernel.org>; Wed, 14 Nov 2012 12:00:23 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xtfeng@gmail.com, dannyfeng@tencent.com, jlayton@redhat.com, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org, dannyfeng@tencent.com, jlayton@redhat.com, viro@zeniv.linux.org.uk, xtfeng@gmail.com
 
 
 The patch titled
-     Subject: swapfile: fix name leak in swapoff
+     Subject: swapfile-fix-name-leak-in-swapoff-fix
 has been added to the -mm tree.  Its filename is
-     swapfile-fix-name-leak-in-swapoff.patch
+     swapfile-fix-name-leak-in-swapoff-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +33,100 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xiaotian Feng <xtfeng@gmail.com>
-Subject: swapfile: fix name leak in swapoff
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: swapfile-fix-name-leak-in-swapoff-fix
 
-There's a name leak introduced by 91a27b2 ("vfs: define struct filename
-and have getname() return it").  Add the missing putname.
-
-Signed-off-by: Xiaotian Feng <dannyfeng@tencent.com>
-Reviewed-by: Jeff Layton <jlayton@redhat.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Jeff Layton <jlayton@redhat.com>
+Cc: Xiaotian Feng <dannyfeng@tencent.com>
+Cc: Xiaotian Feng <xtfeng@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/swapfile.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN mm/swapfile.c~swapfile-fix-name-leak-in-swapoff mm/swapfile.c
---- a/mm/swapfile.c~swapfile-fix-name-leak-in-swapoff
+diff -puN mm/swapfile.c~swapfile-fix-name-leak-in-swapoff-fix mm/swapfile.c
+--- a/mm/swapfile.c~swapfile-fix-name-leak-in-swapoff-fix
 +++ a/mm/swapfile.c
-@@ -1608,6 +1608,8 @@ SYSCALL_DEFINE1(swapoff, const char __us
+@@ -1494,9 +1494,8 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 	BUG_ON(!current->mm);
+ 
+ 	pathname = getname(specialfile);
+-	err = PTR_ERR(pathname);
+ 	if (IS_ERR(pathname))
+-		goto out;
++		return PTR_ERR(pathname);
+ 
+ 	victim = file_open_name(pathname, O_RDWR|O_LARGEFILE, 0);
+ 	err = PTR_ERR(victim);
+@@ -1608,8 +1607,7 @@ SYSCALL_DEFINE1(swapoff, const char __us
  out_dput:
  	filp_close(victim, NULL);
  out:
-+	if (pathname && !IS_ERR(pathname))
-+		putname(pathname);
+-	if (pathname && !IS_ERR(pathname))
+-		putname(pathname);
++	putname(pathname);
  	return err;
  }
  
 _
 
-Patches currently in -mm which might be from xtfeng@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-swapfile-fix-name-leak-in-swapoff.patch
+linux-next-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
 swapfile-fix-name-leak-in-swapoff-fix.patch
-tasklet-ignore-disabled-tasklet-in-tasklet_action.patch
+cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+irq-tsk-comm-is-an-array.patch
+drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch
+mm.patch
+mm-introduce-mm_find_pmd-fix.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
+slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
+mmvmscan-only-evict-file-pages-when-we-have-plenty-fix.patch
+slub-slub-specific-propagation-changes-fix.patch
+dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch
+mm-check-rb_subtree_gap-correctness-fix.patch
+mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
+mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
+mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
+mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
+mm-adjust-address_space_operationsmigratepage-return-code-fix.patch
+mm-introduce-a-common-interface-for-balloon-pages-mobility-fix.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
+bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
+mm-export-a-function-to-get-vm-committed-memory-fix.patch
+mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch
+drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
+rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
+hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
+procfs-add-vmflags-field-in-smaps-output-v4.patch
+procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
+ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
+ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
+ipc-convert-prepare_copy-from-macro-to-function-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
