@@ -1,129 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix.patch removed from -mm tree
-Date: Thu, 15 Nov 2012 11:55:30 -0800
-Message-ID: <20121115195530.EC04C100048@wpzn3.hot.corp.google.com>
+Subject: [to-be-updated] mm-redefine-address_spaceassoc_mapping.patch removed from -mm tree
+Date: Thu, 15 Nov 2012 11:57:11 -0800
+Message-ID: <20121115195711.C982C100049@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:59556 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1768870Ab2KOTzc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 14:55:32 -0500
-Received: by mail-vc0-f202.google.com with SMTP id fy27so214211vcb.1
-        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 11:55:31 -0800 (PST)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:36603 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1768751Ab2KOT5N (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 14:57:13 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z15so215328ghb.1
+        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 11:57:12 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aquini@redhat.com, yongjun_wei@trendmicro.com.cn, mm-commits@vger.kernel.org
+To: aquini@redhat.com, andi@firstfloor.org, konrad.wilk@oracle.com, mel@csn.ul.ie, minchan@kernel.org, mst@redhat.com, riel@redhat.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix
+     Subject: mm: redefine address_space.assoc_mapping
 has been removed from the -mm tree.  Its filename was
-     virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix.patch
+     mm-redefine-address_spaceassoc_mapping.patch
 
-This patch was dropped because it was folded into virtio_balloon-introduce-migration-primitives-to-balloon-pages.patch
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix
+From: Rafael Aquini <aquini@redhat.com>
+Subject: mm: redefine address_space.assoc_mapping
 
-drivers/virtio/virtio_balloon.c: In function 'fill_balloon':
-drivers/virtio/virtio_balloon.c:142:4: warning: format '%zu' expects argument of type 'size_t', but argument 3 has type 'long unsigned int' [-Wformat]
+Overhaul struct address_space.assoc_mapping renaming it to
+address_space.private_data and its type is redefined to void*.  By this
+approach we consistently name the .private_* elements from struct
+address_space as well as allow extended usage for address_space
+association with other data structures through ->private_data.
 
-The type of PAGE_SIZE is different on different architectures (or at
-least, it used to be).  Make things predictable.
+Also, all users of old ->assoc_mapping element are converted to reflect
+its new name and type change.
 
-Cc: Rafael Aquini <aquini@redhat.com>
-Cc: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Signed-off-by: Rafael Aquini <aquini@redhat.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/virtio/virtio_balloon.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/buffer.c        |   12 ++++++------
+ fs/gfs2/glock.c    |    2 +-
+ fs/inode.c         |    2 +-
+ fs/nilfs2/page.c   |    2 +-
+ include/linux/fs.h |    2 +-
+ 5 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/virtio/virtio_balloon.c~virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix drivers/virtio/virtio_balloon.c
---- a/drivers/virtio/virtio_balloon.c~virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix
-+++ a/drivers/virtio/virtio_balloon.c
-@@ -34,7 +34,7 @@
-  * multiple balloon pages.  All memory counters in this driver are in balloon
-  * page units.
+diff -puN fs/buffer.c~mm-redefine-address_spaceassoc_mapping fs/buffer.c
+--- a/fs/buffer.c~mm-redefine-address_spaceassoc_mapping
++++ a/fs/buffer.c
+@@ -555,7 +555,7 @@ void emergency_thaw_all(void)
   */
--#define VIRTIO_BALLOON_PAGES_PER_PAGE (PAGE_SIZE >> VIRTIO_BALLOON_PFN_SHIFT)
-+#define VIRTIO_BALLOON_PAGES_PER_PAGE (unsigned)(PAGE_SIZE >> VIRTIO_BALLOON_PFN_SHIFT)
- #define VIRTIO_BALLOON_ARRAY_PFNS_MAX 256
+ int sync_mapping_buffers(struct address_space *mapping)
+ {
+-	struct address_space *buffer_mapping = mapping->assoc_mapping;
++	struct address_space *buffer_mapping = mapping->private_data;
  
- struct virtio_balloon
-@@ -140,7 +140,7 @@ static void fill_balloon(struct virtio_b
+ 	if (buffer_mapping == NULL || list_empty(&mapping->private_list))
+ 		return 0;
+@@ -588,10 +588,10 @@ void mark_buffer_dirty_inode(struct buff
+ 	struct address_space *buffer_mapping = bh->b_page->mapping;
  
- 		if (!page) {
- 			dev_info_ratelimited(&vb->vdev->dev,
--					   "Out of puff! Can't get %zu pages\n",
-+					   "Out of puff! Can't get %u pages\n",
- 					   VIRTIO_BALLOON_PAGES_PER_PAGE);
- 			/* Sleep for at least 1/5 of a second before retry. */
- 			msleep(200);
+ 	mark_buffer_dirty(bh);
+-	if (!mapping->assoc_mapping) {
+-		mapping->assoc_mapping = buffer_mapping;
++	if (!mapping->private_data) {
++		mapping->private_data = buffer_mapping;
+ 	} else {
+-		BUG_ON(mapping->assoc_mapping != buffer_mapping);
++		BUG_ON(mapping->private_data != buffer_mapping);
+ 	}
+ 	if (!bh->b_assoc_map) {
+ 		spin_lock(&buffer_mapping->private_lock);
+@@ -788,7 +788,7 @@ void invalidate_inode_buffers(struct ino
+ 	if (inode_has_buffers(inode)) {
+ 		struct address_space *mapping = &inode->i_data;
+ 		struct list_head *list = &mapping->private_list;
+-		struct address_space *buffer_mapping = mapping->assoc_mapping;
++		struct address_space *buffer_mapping = mapping->private_data;
+ 
+ 		spin_lock(&buffer_mapping->private_lock);
+ 		while (!list_empty(list))
+@@ -811,7 +811,7 @@ int remove_inode_buffers(struct inode *i
+ 	if (inode_has_buffers(inode)) {
+ 		struct address_space *mapping = &inode->i_data;
+ 		struct list_head *list = &mapping->private_list;
+-		struct address_space *buffer_mapping = mapping->assoc_mapping;
++		struct address_space *buffer_mapping = mapping->private_data;
+ 
+ 		spin_lock(&buffer_mapping->private_lock);
+ 		while (!list_empty(list)) {
+diff -puN fs/gfs2/glock.c~mm-redefine-address_spaceassoc_mapping fs/gfs2/glock.c
+--- a/fs/gfs2/glock.c~mm-redefine-address_spaceassoc_mapping
++++ a/fs/gfs2/glock.c
+@@ -766,7 +766,7 @@ int gfs2_glock_get(struct gfs2_sbd *sdp,
+ 		mapping->host = s->s_bdev->bd_inode;
+ 		mapping->flags = 0;
+ 		mapping_set_gfp_mask(mapping, GFP_NOFS);
+-		mapping->assoc_mapping = NULL;
++		mapping->private_data = NULL;
+ 		mapping->backing_dev_info = s->s_bdi;
+ 		mapping->writeback_index = 0;
+ 	}
+diff -puN fs/inode.c~mm-redefine-address_spaceassoc_mapping fs/inode.c
+--- a/fs/inode.c~mm-redefine-address_spaceassoc_mapping
++++ a/fs/inode.c
+@@ -165,7 +165,7 @@ int inode_init_always(struct super_block
+ 	mapping->host = inode;
+ 	mapping->flags = 0;
+ 	mapping_set_gfp_mask(mapping, GFP_HIGHUSER_MOVABLE);
+-	mapping->assoc_mapping = NULL;
++	mapping->private_data = NULL;
+ 	mapping->backing_dev_info = &default_backing_dev_info;
+ 	mapping->writeback_index = 0;
+ 
+diff -puN fs/nilfs2/page.c~mm-redefine-address_spaceassoc_mapping fs/nilfs2/page.c
+--- a/fs/nilfs2/page.c~mm-redefine-address_spaceassoc_mapping
++++ a/fs/nilfs2/page.c
+@@ -431,7 +431,7 @@ void nilfs_mapping_init(struct address_s
+ 	mapping->host = inode;
+ 	mapping->flags = 0;
+ 	mapping_set_gfp_mask(mapping, GFP_NOFS);
+-	mapping->assoc_mapping = NULL;
++	mapping->private_data = NULL;
+ 	mapping->backing_dev_info = bdi;
+ 	mapping->a_ops = &empty_aops;
+ }
+diff -puN include/linux/fs.h~mm-redefine-address_spaceassoc_mapping include/linux/fs.h
+--- a/include/linux/fs.h~mm-redefine-address_spaceassoc_mapping
++++ a/include/linux/fs.h
+@@ -418,7 +418,7 @@ struct address_space {
+ 	struct backing_dev_info *backing_dev_info; /* device readahead, etc */
+ 	spinlock_t		private_lock;	/* for use by the address_space */
+ 	struct list_head	private_list;	/* ditto */
+-	struct address_space	*assoc_mapping;	/* ditto */
++	void			*private_data;	/* ditto */
+ } __attribute__((aligned(sizeof(long))));
+ 	/*
+ 	 * On most architectures that alignment is already the case; but
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from aquini@redhat.com are
 
-swapfile-fix-name-leak-in-swapoff-fix.patch
-linux-next.patch
-linux-next-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-revert-mm-fix-up-zone-present-pages.patch
-cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-irq-tsk-comm-is-an-array.patch
-drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch
-mm.patch
-mm-introduce-mm_find_pmd-fix.patch
-memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
-slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
-mmvmscan-only-evict-file-pages-when-we-have-plenty-fix.patch
-slub-slub-specific-propagation-changes-fix.patch
-dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch
-mm-check-rb_subtree_gap-correctness-fix.patch
-mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
-mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
-mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
-mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
-mm-use-vm_unmapped_area-on-arm-architecture-fix-fix.patch
-mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc32-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc32-architecture-fix-fix.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
-arch-sparc-kernel-sys_sparc_64c-s-colour-color.patch
 mm-introduce-a-common-interface-for-balloon-pages-mobility.patch
+mm-introduce-compaction-and-migration-for-ballooned-pages.patch
 virtio_balloon-introduce-migration-primitives-to-balloon-pages.patch
-bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
-mm-export-a-function-to-get-vm-committed-memory-fix.patch
-mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch
-drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-maintainers-add-joe-to-checkpatch-maintainers.patch
-binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
-rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
-hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
-procfs-add-vmflags-field-in-smaps-output-v4.patch
-procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
-ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
-ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
-ipc-convert-prepare_copy-from-macro-to-function-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mm-introduce-putback_movable_pages.patch
+mm-add-vm-event-counters-for-balloon-pages-compaction.patch
 
