@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-redefine-address_spaceassoc_mapping.patch added to -mm tree
-Date: Thu, 15 Nov 2012 12:15:18 -0800
-Message-ID: <20121115201519.66886100047@wpzn3.hot.corp.google.com>
+Subject: + virtio_balloon-introduce-migration-primitives-to-balloon-pages.patch added to -mm tree
+Date: Thu, 15 Nov 2012 12:15:29 -0800
+Message-ID: <20121115201530.5E3D1100048@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:34889 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1768798Ab2KOUPV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 15:15:21 -0500
-Received: by mail-yh0-f74.google.com with SMTP id 10so217836yhl.1
-        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 12:15:20 -0800 (PST)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:34692 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1768798Ab2KOUPb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 15:15:31 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z15so217308ghb.1
+        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 12:15:31 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: aquini@redhat.com, andi@firstfloor.org, konrad.wilk@oracle.com, mel@csn.ul.i
 
 
 The patch titled
-     Subject: mm: redefine address_space.assoc_mapping
+     Subject: virtio_balloon: introduce migration primitives to balloon pages
 has been added to the -mm tree.  Its filename is
-     mm-redefine-address_spaceassoc_mapping.patch
+     virtio_balloon-introduce-migration-primitives-to-balloon-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,20 +34,26 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rafael Aquini <aquini@redhat.com>
-Subject: mm: redefine address_space.assoc_mapping
+Subject: virtio_balloon: introduce migration primitives to balloon pages
 
-Overhaul struct address_space.assoc_mapping renaming it to
-address_space.private_data and its type is redefined to void*.  By this
-approach we consistently name the .private_* elements from struct
-address_space as well as allow extended usage for address_space
-association with other data structures through ->private_data.
+Memory fragmentation introduced by ballooning might reduce significantly
+the number of 2MB contiguous memory blocks that can be used within a guest,
+thus imposing performance penalties associated with the reduced number of
+transparent huge pages that could be used by the guest workload.
 
-Also, all users of old ->assoc_mapping element are converted to reflect
-its new name and type change (->private_data).
+Besides making balloon pages movable at allocation time and introducing
+the necessary primitives to perform balloon page migration/compaction,
+this patch also introduces the following locking scheme, in order to
+enhance the syncronization methods for accessing elements of struct
+virtio_balloon, thus providing protection against concurrent access
+introduced by parallel memory migration threads.
+
+ - balloon_lock (mutex) : synchronizes the access demand to elements of
+                          struct virtio_balloon and its queue operations;
 
 Signed-off-by: Rafael Aquini <aquini@redhat.com>
+Acked-by: Michael S. Tsirkin <mst@redhat.com>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: Andi Kleen <andi@firstfloor.org>
@@ -56,105 +62,273 @@ Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c        |   12 ++++++------
- fs/gfs2/glock.c    |    2 +-
- fs/inode.c         |    2 +-
- fs/nilfs2/page.c   |    2 +-
- include/linux/fs.h |    2 +-
- 5 files changed, 10 insertions(+), 10 deletions(-)
+ drivers/virtio/virtio_balloon.c |  139 +++++++++++++++++++++++++++---
+ 1 file changed, 127 insertions(+), 12 deletions(-)
 
-diff -puN fs/buffer.c~mm-redefine-address_spaceassoc_mapping fs/buffer.c
---- a/fs/buffer.c~mm-redefine-address_spaceassoc_mapping
-+++ a/fs/buffer.c
-@@ -555,7 +555,7 @@ void emergency_thaw_all(void)
+diff -puN drivers/virtio/virtio_balloon.c~virtio_balloon-introduce-migration-primitives-to-balloon-pages drivers/virtio/virtio_balloon.c
+--- a/drivers/virtio/virtio_balloon.c~virtio_balloon-introduce-migration-primitives-to-balloon-pages
++++ a/drivers/virtio/virtio_balloon.c
+@@ -27,6 +27,7 @@
+ #include <linux/delay.h>
+ #include <linux/slab.h>
+ #include <linux/module.h>
++#include <linux/balloon_compaction.h>
+ 
+ /*
+  * Balloon device works in 4K page units.  So each page is pointed to by
+@@ -34,6 +35,7 @@
+  * page units.
   */
- int sync_mapping_buffers(struct address_space *mapping)
+ #define VIRTIO_BALLOON_PAGES_PER_PAGE (PAGE_SIZE >> VIRTIO_BALLOON_PFN_SHIFT)
++#define VIRTIO_BALLOON_ARRAY_PFNS_MAX 256
+ 
+ struct virtio_balloon
  {
--	struct address_space *buffer_mapping = mapping->assoc_mapping;
-+	struct address_space *buffer_mapping = mapping->private_data;
- 
- 	if (buffer_mapping == NULL || list_empty(&mapping->private_list))
- 		return 0;
-@@ -588,10 +588,10 @@ void mark_buffer_dirty_inode(struct buff
- 	struct address_space *buffer_mapping = bh->b_page->mapping;
- 
- 	mark_buffer_dirty(bh);
--	if (!mapping->assoc_mapping) {
--		mapping->assoc_mapping = buffer_mapping;
-+	if (!mapping->private_data) {
-+		mapping->private_data = buffer_mapping;
- 	} else {
--		BUG_ON(mapping->assoc_mapping != buffer_mapping);
-+		BUG_ON(mapping->private_data != buffer_mapping);
- 	}
- 	if (!bh->b_assoc_map) {
- 		spin_lock(&buffer_mapping->private_lock);
-@@ -788,7 +788,7 @@ void invalidate_inode_buffers(struct ino
- 	if (inode_has_buffers(inode)) {
- 		struct address_space *mapping = &inode->i_data;
- 		struct list_head *list = &mapping->private_list;
--		struct address_space *buffer_mapping = mapping->assoc_mapping;
-+		struct address_space *buffer_mapping = mapping->private_data;
- 
- 		spin_lock(&buffer_mapping->private_lock);
- 		while (!list_empty(list))
-@@ -811,7 +811,7 @@ int remove_inode_buffers(struct inode *i
- 	if (inode_has_buffers(inode)) {
- 		struct address_space *mapping = &inode->i_data;
- 		struct list_head *list = &mapping->private_list;
--		struct address_space *buffer_mapping = mapping->assoc_mapping;
-+		struct address_space *buffer_mapping = mapping->private_data;
- 
- 		spin_lock(&buffer_mapping->private_lock);
- 		while (!list_empty(list)) {
-diff -puN fs/gfs2/glock.c~mm-redefine-address_spaceassoc_mapping fs/gfs2/glock.c
---- a/fs/gfs2/glock.c~mm-redefine-address_spaceassoc_mapping
-+++ a/fs/gfs2/glock.c
-@@ -766,7 +766,7 @@ int gfs2_glock_get(struct gfs2_sbd *sdp,
- 		mapping->host = s->s_bdev->bd_inode;
- 		mapping->flags = 0;
- 		mapping_set_gfp_mask(mapping, GFP_NOFS);
--		mapping->assoc_mapping = NULL;
-+		mapping->private_data = NULL;
- 		mapping->backing_dev_info = s->s_bdi;
- 		mapping->writeback_index = 0;
- 	}
-diff -puN fs/inode.c~mm-redefine-address_spaceassoc_mapping fs/inode.c
---- a/fs/inode.c~mm-redefine-address_spaceassoc_mapping
-+++ a/fs/inode.c
-@@ -165,7 +165,7 @@ int inode_init_always(struct super_block
- 	mapping->host = inode;
- 	mapping->flags = 0;
- 	mapping_set_gfp_mask(mapping, GFP_HIGHUSER_MOVABLE);
--	mapping->assoc_mapping = NULL;
-+	mapping->private_data = NULL;
- 	mapping->backing_dev_info = &default_backing_dev_info;
- 	mapping->writeback_index = 0;
- 
-diff -puN fs/nilfs2/page.c~mm-redefine-address_spaceassoc_mapping fs/nilfs2/page.c
---- a/fs/nilfs2/page.c~mm-redefine-address_spaceassoc_mapping
-+++ a/fs/nilfs2/page.c
-@@ -431,7 +431,7 @@ void nilfs_mapping_init(struct address_s
- 	mapping->host = inode;
- 	mapping->flags = 0;
- 	mapping_set_gfp_mask(mapping, GFP_NOFS);
--	mapping->assoc_mapping = NULL;
-+	mapping->private_data = NULL;
- 	mapping->backing_dev_info = bdi;
- 	mapping->a_ops = &empty_aops;
- }
-diff -puN include/linux/fs.h~mm-redefine-address_spaceassoc_mapping include/linux/fs.h
---- a/include/linux/fs.h~mm-redefine-address_spaceassoc_mapping
-+++ a/include/linux/fs.h
-@@ -418,7 +418,7 @@ struct address_space {
- 	struct backing_dev_info *backing_dev_info; /* device readahead, etc */
- 	spinlock_t		private_lock;	/* for use by the address_space */
- 	struct list_head	private_list;	/* ditto */
--	struct address_space	*assoc_mapping;	/* ditto */
-+	void			*private_data;	/* ditto */
- } __attribute__((aligned(sizeof(long))));
+@@ -52,15 +54,19 @@ struct virtio_balloon
+ 	/* Number of balloon pages we've told the Host we're not using. */
+ 	unsigned int num_pages;
  	/*
- 	 * On most architectures that alignment is already the case; but
+-	 * The pages we've told the Host we're not using.
++	 * The pages we've told the Host we're not using are enqueued
++	 * at vb_dev_info->pages list.
+ 	 * Each page on this list adds VIRTIO_BALLOON_PAGES_PER_PAGE
+ 	 * to num_pages above.
+ 	 */
+-	struct list_head pages;
++	struct balloon_dev_info *vb_dev_info;
++
++	/* Synchronize access/update to this struct virtio_balloon elements */
++	struct mutex balloon_lock;
+ 
+ 	/* The array of pfns we tell the Host about. */
+ 	unsigned int num_pfns;
+-	u32 pfns[256];
++	u32 pfns[VIRTIO_BALLOON_ARRAY_PFNS_MAX];
+ 
+ 	/* Memory statistics */
+ 	int need_stats_update;
+@@ -122,17 +128,20 @@ static void set_page_pfns(u32 pfns[], st
+ 
+ static void fill_balloon(struct virtio_balloon *vb, size_t num)
+ {
++	struct balloon_dev_info *vb_dev_info = vb->vb_dev_info;
++
+ 	/* We can only do one array worth at a time. */
+ 	num = min(num, ARRAY_SIZE(vb->pfns));
+ 
++	mutex_lock(&vb->balloon_lock);
+ 	for (vb->num_pfns = 0; vb->num_pfns < num;
+ 	     vb->num_pfns += VIRTIO_BALLOON_PAGES_PER_PAGE) {
+-		struct page *page = alloc_page(GFP_HIGHUSER | __GFP_NORETRY |
+-					__GFP_NOMEMALLOC | __GFP_NOWARN);
++		struct page *page = balloon_page_enqueue(vb_dev_info);
++
+ 		if (!page) {
+ 			dev_info_ratelimited(&vb->vdev->dev,
+ 					     "Out of puff! Can't get %zu pages\n",
+-					     num);
++					     VIRTIO_BALLOON_PAGES_PER_PAGE);
+ 			/* Sleep for at least 1/5 of a second before retry. */
+ 			msleep(200);
+ 			break;
+@@ -140,7 +149,6 @@ static void fill_balloon(struct virtio_b
+ 		set_page_pfns(vb->pfns + vb->num_pfns, page);
+ 		vb->num_pages += VIRTIO_BALLOON_PAGES_PER_PAGE;
+ 		totalram_pages--;
+-		list_add(&page->lru, &vb->pages);
+ 	}
+ 
+ 	/* Didn't get any?  Oh well. */
+@@ -148,6 +156,7 @@ static void fill_balloon(struct virtio_b
+ 		return;
+ 
+ 	tell_host(vb, vb->inflate_vq);
++	mutex_unlock(&vb->balloon_lock);
+ }
+ 
+ static void release_pages_by_pfn(const u32 pfns[], unsigned int num)
+@@ -156,7 +165,7 @@ static void release_pages_by_pfn(const u
+ 
+ 	/* Find pfns pointing at start of each page, get pages and free them. */
+ 	for (i = 0; i < num; i += VIRTIO_BALLOON_PAGES_PER_PAGE) {
+-		__free_page(balloon_pfn_to_page(pfns[i]));
++		balloon_page_free(balloon_pfn_to_page(pfns[i]));
+ 		totalram_pages++;
+ 	}
+ }
+@@ -164,14 +173,17 @@ static void release_pages_by_pfn(const u
+ static void leak_balloon(struct virtio_balloon *vb, size_t num)
+ {
+ 	struct page *page;
++	struct balloon_dev_info *vb_dev_info = vb->vb_dev_info;
+ 
+ 	/* We can only do one array worth at a time. */
+ 	num = min(num, ARRAY_SIZE(vb->pfns));
+ 
++	mutex_lock(&vb->balloon_lock);
+ 	for (vb->num_pfns = 0; vb->num_pfns < num;
+ 	     vb->num_pfns += VIRTIO_BALLOON_PAGES_PER_PAGE) {
+-		page = list_first_entry(&vb->pages, struct page, lru);
+-		list_del(&page->lru);
++		page = balloon_page_dequeue(vb_dev_info);
++		if (!page)
++			break;
+ 		set_page_pfns(vb->pfns + vb->num_pfns, page);
+ 		vb->num_pages -= VIRTIO_BALLOON_PAGES_PER_PAGE;
+ 	}
+@@ -182,6 +194,7 @@ static void leak_balloon(struct virtio_b
+ 	 * is true, we *have* to do it in this order
+ 	 */
+ 	tell_host(vb, vb->deflate_vq);
++	mutex_unlock(&vb->balloon_lock);
+ 	release_pages_by_pfn(vb->pfns, vb->num_pfns);
+ }
+ 
+@@ -338,9 +351,84 @@ static int init_vqs(struct virtio_balloo
+ 	return 0;
+ }
+ 
++static const struct address_space_operations virtio_balloon_aops;
++#ifdef CONFIG_BALLOON_COMPACTION
++/*
++ * virtballoon_migratepage - perform the balloon page migration on behalf of
++ *			     a compation thread.     (called under page lock)
++ * @mapping: the page->mapping which will be assigned to the new migrated page.
++ * @newpage: page that will replace the isolated page after migration finishes.
++ * @page   : the isolated (old) page that is about to be migrated to newpage.
++ * @mode   : compaction mode -- not used for balloon page migration.
++ *
++ * After a ballooned page gets isolated by compaction procedures, this is the
++ * function that performs the page migration on behalf of a compaction thread
++ * The page migration for virtio balloon is done in a simple swap fashion which
++ * follows these two macro steps:
++ *  1) insert newpage into vb->pages list and update the host about it;
++ *  2) update the host about the old page removed from vb->pages list;
++ *
++ * This function preforms the balloon page migration task.
++ * Called through balloon_mapping->a_ops->migratepage
++ */
++int virtballoon_migratepage(struct address_space *mapping,
++		struct page *newpage, struct page *page, enum migrate_mode mode)
++{
++	struct balloon_dev_info *vb_dev_info = balloon_page_device(page);
++	struct virtio_balloon *vb;
++	unsigned long flags;
++
++	BUG_ON(!vb_dev_info);
++
++	vb = vb_dev_info->balloon_device;
++
++	/*
++	 * In order to avoid lock contention while migrating pages concurrently
++	 * to leak_balloon() or fill_balloon() we just give up the balloon_lock
++	 * this turn, as it is easier to retry the page migration later.
++	 * This also prevents fill_balloon() getting stuck into a mutex
++	 * recursion in the case it ends up triggering memory compaction
++	 * while it is attempting to inflate the ballon.
++	 */
++	if (!mutex_trylock(&vb->balloon_lock))
++		return -EAGAIN;
++
++	/* balloon's page migration 1st step  -- inflate "newpage" */
++	spin_lock_irqsave(&vb_dev_info->pages_lock, flags);
++	balloon_page_insert(newpage, mapping, &vb_dev_info->pages);
++	vb_dev_info->isolated_pages--;
++	spin_unlock_irqrestore(&vb_dev_info->pages_lock, flags);
++	vb->num_pfns = VIRTIO_BALLOON_PAGES_PER_PAGE;
++	set_page_pfns(vb->pfns, newpage);
++	tell_host(vb, vb->inflate_vq);
++
++	/*
++	 * balloon's page migration 2nd step -- deflate "page"
++	 *
++	 * It's safe to delete page->lru here because this page is at
++	 * an isolated migration list, and this step is expected to happen here
++	 */
++	balloon_page_delete(page);
++	vb->num_pfns = VIRTIO_BALLOON_PAGES_PER_PAGE;
++	set_page_pfns(vb->pfns, page);
++	tell_host(vb, vb->deflate_vq);
++
++	mutex_unlock(&vb->balloon_lock);
++
++	return MIGRATEPAGE_BALLOON_SUCCESS;
++}
++
++/* define the balloon_mapping->a_ops callback to allow balloon page migration */
++static const struct address_space_operations virtio_balloon_aops = {
++			.migratepage = virtballoon_migratepage,
++};
++#endif /* CONFIG_BALLOON_COMPACTION */
++
+ static int virtballoon_probe(struct virtio_device *vdev)
+ {
+ 	struct virtio_balloon *vb;
++	struct address_space *vb_mapping;
++	struct balloon_dev_info *vb_devinfo;
+ 	int err;
+ 
+ 	vdev->priv = vb = kmalloc(sizeof(*vb), GFP_KERNEL);
+@@ -349,16 +437,37 @@ static int virtballoon_probe(struct virt
+ 		goto out;
+ 	}
+ 
+-	INIT_LIST_HEAD(&vb->pages);
+ 	vb->num_pages = 0;
++	mutex_init(&vb->balloon_lock);
+ 	init_waitqueue_head(&vb->config_change);
+ 	init_waitqueue_head(&vb->acked);
+ 	vb->vdev = vdev;
+ 	vb->need_stats_update = 0;
+ 
++	vb_devinfo = balloon_devinfo_alloc(vb);
++	if (IS_ERR(vb_devinfo)) {
++		err = PTR_ERR(vb_devinfo);
++		goto out_free_vb;
++	}
++
++	vb_mapping = balloon_mapping_alloc(vb_devinfo,
++					   (balloon_compaction_check()) ?
++					   &virtio_balloon_aops : NULL);
++	if (IS_ERR(vb_mapping)) {
++		/*
++		 * IS_ERR(vb_mapping) && PTR_ERR(vb_mapping) == -EOPNOTSUPP
++		 * This means !CONFIG_BALLOON_COMPACTION, otherwise we get off.
++		 */
++		err = PTR_ERR(vb_mapping);
++		if (err != -EOPNOTSUPP)
++			goto out_free_vb_devinfo;
++	}
++
++	vb->vb_dev_info = vb_devinfo;
++
+ 	err = init_vqs(vb);
+ 	if (err)
+-		goto out_free_vb;
++		goto out_free_vb_mapping;
+ 
+ 	vb->thread = kthread_run(balloon, vb, "vballoon");
+ 	if (IS_ERR(vb->thread)) {
+@@ -370,6 +479,10 @@ static int virtballoon_probe(struct virt
+ 
+ out_del_vqs:
+ 	vdev->config->del_vqs(vdev);
++out_free_vb_mapping:
++	balloon_mapping_free(vb_mapping);
++out_free_vb_devinfo:
++	balloon_devinfo_free(vb_devinfo);
+ out_free_vb:
+ 	kfree(vb);
+ out:
+@@ -395,6 +508,8 @@ static void __devexit virtballoon_remove
+ 
+ 	kthread_stop(vb->thread);
+ 	remove_common(vb);
++	balloon_mapping_free(vb->vb_dev_info->mapping);
++	balloon_devinfo_free(vb->vb_dev_info);
+ 	kfree(vb);
+ }
+ 
 _
 
 Patches currently in -mm which might be from aquini@redhat.com are
