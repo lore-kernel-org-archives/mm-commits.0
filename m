@@ -1,125 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] mm-export-a-function-to-get-vm-committed-memory-fix.patch removed from -mm tree
-Date: Thu, 15 Nov 2012 14:33:32 -0800
-Message-ID: <20121115223333.222512001BD@hpza10.eem.corp.google.com>
+Subject: + thp-copy_huge_pmd-copy-huge-zero-page-v6-fix.patch added to -mm tree
+Date: Thu, 15 Nov 2012 14:38:51 -0800
+Message-ID: <20121115223851.9ECFD1000CB@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:48099 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750712Ab2KOWdf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 17:33:35 -0500
-Received: by mail-fa0-f74.google.com with SMTP id w1so141544fad.1
-        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 14:33:34 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:43029 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750733Ab2KOWix (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 17:38:53 -0500
+Received: by mail-yh0-f74.google.com with SMTP id 10so236116yhl.1
+        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 14:38:52 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kys@microsoft.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rientjes@google.com, kirill.shutemov@linux.intel.com
 
 
 The patch titled
-     Subject: mm-export-a-function-to-get-vm-committed-memory-fix
-has been removed from the -mm tree.  Its filename was
-     mm-export-a-function-to-get-vm-committed-memory-fix.patch
+     Subject: thp: copy_huge_pmd(): copy huge zero page v6 fix
+has been added to the -mm tree.  Its filename is
+     thp-copy_huge_pmd-copy-huge-zero-page-v6-fix.patch
 
-This patch was dropped because it was folded into mm-export-a-function-to-get-vm-committed-memory.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-export-a-function-to-get-vm-committed-memory-fix
+From: David Rientjes <rientjes@google.com>
+Subject: thp: copy_huge_pmd(): copy huge zero page v6 fix
 
-coding-style tweak
+Fix comment
 
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c  |    1 -
- mm/nommu.c |    1 -
- 2 files changed, 2 deletions(-)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/mmap.c~mm-export-a-function-to-get-vm-committed-memory-fix mm/mmap.c
---- a/mm/mmap.c~mm-export-a-function-to-get-vm-committed-memory-fix
-+++ a/mm/mmap.c
-@@ -97,7 +97,6 @@ struct percpu_counter vm_committed_as __
-  * Several metrics drive this policy engine including the guest reported
-  * memory commitment.
-  */
--
- unsigned long vm_memory_committed(void)
- {
- 	return percpu_counter_read_positive(&vm_committed_as);
-diff -puN mm/nommu.c~mm-export-a-function-to-get-vm-committed-memory-fix mm/nommu.c
---- a/mm/nommu.c~mm-export-a-function-to-get-vm-committed-memory-fix
-+++ a/mm/nommu.c
-@@ -74,7 +74,6 @@ atomic_long_t mmap_pages_allocated;
-  * Several metrics drive this policy engine including the guest reported
-  * memory commitment.
-  */
--
- unsigned long vm_memory_committed(void)
- {
- 	return percpu_counter_read_positive(&vm_committed_as);
+diff -puN mm/huge_memory.c~thp-copy_huge_pmd-copy-huge-zero-page-v6-fix mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-copy_huge_pmd-copy-huge-zero-page-v6-fix
++++ a/mm/huge_memory.c
+@@ -948,7 +948,7 @@ int copy_huge_pmd(struct mm_struct *dst_
+ 		goto out_unlock;
+ 	}
+ 	/*
+-	 * mm->pagetable lock is enough to be sure that huge zero pmd is not
++	 * mm->page_table_lock is enough to be sure that huge zero pmd is not
+ 	 * under splitting since we don't split the page itself, only pmd to
+ 	 * a page table.
+ 	 */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rientjes@google.com are
 
-swapfile-fix-name-leak-in-swapoff-fix.patch
+mm-fix-build-warning-for-uninitialized-value.patch
+memcg-oom-fix-totalpages-calculation-for-memoryswappiness==0.patch
+memcg-oom-fix-totalpages-calculation-for-memoryswappiness==0-fix.patch
+mips-arc-fix-build-failure.patch
+mm-highmem-dont-treat-pkmap_addrlast_pkmap-as-a-highmem-address.patch
 mm-export-a-function-to-get-vm-committed-memory.patch
 linux-next.patch
-linux-next-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
 revert-mm-fix-up-zone-present-pages.patch
-cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
 irq-tsk-comm-is-an-array.patch
-drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch
-mm.patch
-mm-introduce-mm_find_pmd-fix.patch
+mm-memcg-make-mem_cgroup_out_of_memory-static.patch
+mm-use-is_enabledconfig_numa-instead-of-numa_build.patch
+mm-use-is_enabledconfig_compaction-instead-of-compaction_build.patch
+thp-clean-up-__collapse_huge_page_isolate.patch
+memory-hotplug-suppress-device-memoryx-does-not-have-a-release-function-warning.patch
+memory-hotplug-skip-hwpoisoned-page-when-offlining-pages.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory.patch
 memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
+memory-hotplug-auto-offline-page_cgroup-when-onlining-memory-block-failed.patch
+memory-hotplug-fix-nr_free_pages-mismatch.patch
+numa-convert-static-memory-to-dynamically-allocated-memory-for-per-node-device.patch
+memory-hotplug-suppress-device-nodex-does-not-have-a-release-function-warning.patch
+memory-hotplug-mm-sparsec-clear-the-memory-to-store-struct-page.patch
+memory-hotplug-allocate-zones-pcp-before-onlining-pages.patch
+memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix.patch
+memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix-2.patch
+memory_hotplug-fix-possible-incorrect-node_states.patch
 slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
-mmvmscan-only-evict-file-pages-when-we-have-plenty-fix.patch
+mm-oom-allow-exiting-threads-to-have-access-to-memory-reserves.patch
+memcg-make-it-possible-to-use-the-stock-for-more-than-one-page.patch
+memcg-reclaim-when-more-than-one-page-needed.patch
+memcg-change-defines-to-an-enum.patch
+memcg-kmem-accounting-basic-infrastructure.patch
+mm-add-a-__gfp_kmemcg-flag.patch
+memcg-kmem-controller-infrastructure.patch
+memcg-kmem-controller-infrastructure-replace-__always_inline-with-plain-inline.patch
+mm-allocate-kernel-pages-to-the-right-memcg.patch
+res_counter-return-amount-of-charges-after-res_counter_uncharge.patch
+memcg-kmem-accounting-lifecycle-management.patch
+memcg-use-static-branches-when-code-not-in-use.patch
+memcg-allow-a-memcg-with-kmem-charges-to-be-destructed.patch
+memcg-execute-the-whole-memcg-freeing-in-free_worker.patch
+fork-protect-architectures-where-thread_size-=-page_size-against-fork-bombs.patch
+memcg-add-documentation-about-the-kmem-controller.patch
+slab-slub-struct-memcg_params.patch
+slab-annotate-on-slab-caches-nodelist-locks.patch
+slab-slub-consider-a-memcg-parameter-in-kmem_create_cache.patch
+memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears.patch
+memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears-simplify-ida-initialization.patch
+memcg-infrastructure-to-match-an-allocation-to-the-right-cache.patch
+memcg-skip-memcg-kmem-allocations-in-specified-code-regions.patch
+memcg-skip-memcg-kmem-allocations-in-specified-code-regions-remove-test-for-current-mm-in-memcg_stop-resume_kmem_account.patch
+slb-always-get-the-cache-from-its-page-in-kmem_cache_free.patch
+slb-allocate-objects-from-memcg-cache.patch
+memcg-destroy-memcg-caches.patch
+memcg-destroy-memcg-caches-move-include-of-workqueueh-to-top-of-slabh-file.patch
+memcg-slb-track-all-the-memcg-children-of-a-kmem_cache.patch
+memcg-slb-shrink-dead-caches.patch
+memcg-slb-shrink-dead-caches-get-rid-of-once-per-second-cache-shrinking-for-dead-memcgs.patch
+memcg-aggregate-memcg-cache-values-in-slabinfo.patch
+slab-propagate-tunable-values.patch
+slub-slub-specific-propagation-changes.patch
 slub-slub-specific-propagation-changes-fix.patch
-dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix.patch
+kmem-add-slab-specific-documentation-about-the-kmem-controller.patch
+memcg-add-comments-clarifying-aspects-of-cache-attribute-propagation.patch
+slub-drop-mutex-before-deleting-sysfs-entry.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix.patch
 mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch
-mm-check-rb_subtree_gap-correctness-fix.patch
-mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
-mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
-mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
-mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
-mm-use-vm_unmapped_area-on-arm-architecture-fix-fix.patch
-mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc32-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc32-architecture-fix-fix.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
-arch-sparc-kernel-sys_sparc_64c-s-colour-color.patch
-bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
-mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch
-drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-maintainers-add-joe-to-checkpatch-maintainers.patch
-binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
-rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
-hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
-procfs-add-vmflags-field-in-smaps-output-v4.patch
-procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
-ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
-ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
-ipc-convert-prepare_copy-from-macro-to-function-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mm-mempolicy-remove-duplicate-code.patch
+mm-cleanup-register_node.patch
+mm-oom-change-type-of-oom_score_adj-to-short.patch
+mm-oom-fix-race-when-specifying-a-thread-as-the-oom-origin.patch
+drivers-base-nodec-cleanup-node_state_attr.patch
+mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory.patch
+memory_hotplug-handle-empty-zone-when-online_movable-online_kernel.patch
+memory_hotplug-ensure-every-online-node-has-normal-memory.patch
+thp-huge-zero-page-basic-preparation.patch
+thp-huge-zero-page-basic-preparation-v6.patch
+thp-zap_huge_pmd-zap-huge-zero-pmd.patch
+thp-copy_huge_pmd-copy-huge-zero-page.patch
+thp-copy_huge_pmd-copy-huge-zero-page-v6.patch
 thp-copy_huge_pmd-copy-huge-zero-page-v6-fix.patch
+thp-do_huge_pmd_wp_page-handle-huge-zero-page.patch
+thp-do_huge_pmd_wp_page-handle-huge-zero-page-v6.patch
+thp-change_huge_pmd-keep-huge-zero-page-write-protected.patch
+thp-change-split_huge_page_pmd-interface.patch
+thp-change-split_huge_page_pmd-interface-v6.patch
+thp-implement-splitting-pmd-for-huge-zero-page.patch
+thp-implement-splitting-pmd-for-huge-zero-page-v6.patch
+thp-setup-huge-zero-page-on-non-write-page-fault.patch
+thp-lazy-huge-zero-page-allocation.patch
+thp-implement-refcounting-for-huge-zero-page.patch
+thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events.patch
+thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6.patch
+thp-introduce-sysfs-knob-to-disable-huge-zero-page.patch
+mm-dmapoolc-fix-null-dev-in-dma_pool_create.patch
 
