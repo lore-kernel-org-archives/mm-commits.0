@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + thp-implement-splitting-pmd-for-huge-zero-page-v6.patch added to -mm tree
-Date: Thu, 15 Nov 2012 12:49:37 -0800
-Message-ID: <20121115204938.98EB320004E@hpza10.eem.corp.google.com>
+Subject: + thp-introduce-sysfs-knob-to-disable-huge-zero-page.patch added to -mm tree
+Date: Thu, 15 Nov 2012 12:49:47 -0800
+Message-ID: <20121115204948.494E4100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f202.google.com ([209.85.215.202]:58875 "EHLO
-	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751283Ab2KOVu3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 16:50:29 -0500
-Received: by mail-ea0-f202.google.com with SMTP id f11so139694eaa.1
-        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 13:50:26 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:39517 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751764Ab2KOVzQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 16:55:16 -0500
+Received: by mail-vc0-f202.google.com with SMTP id fy27so229703vcb.1
+        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 13:55:15 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: kirill.shutemov@linux.intel.com, aarcange@redhat.com, ak@linux.intel.com, hp
 
 
 The patch titled
-     Subject: thp-implement-splitting-pmd-for-huge-zero-page-v6
+     Subject: thp: introduce sysfs knob to disable huge zero page
 has been added to the -mm tree.  Its filename is
-     thp-implement-splitting-pmd-for-huge-zero-page-v6.patch
+     thp-introduce-sysfs-knob-to-disable-huge-zero-page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp-implement-splitting-pmd-for-huge-zero-page-v6
+Subject: thp: introduce sysfs knob to disable huge zero page
 
-We can't split huge zero page itself (and it's bug if we try), but we
-can split the pmd which points to it.
+By default kernel tries to use huge zero page on read page fault.  It's
+possible to disable huge zero page by writing 0 or enable it back by
+writing 1:
 
-On splitting the pmd we create a table with all ptes set to normal zero
-page.
+echo 0 >/sys/kernel/mm/transparent_hugepage/khugepaged/use_zero_page
+echo 1 >/sys/kernel/mm/transparent_hugepage/khugepaged/use_zero_page
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -51,61 +52,101 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ Documentation/vm/transhuge.txt |    7 +++++++
+ include/linux/huge_mm.h        |    4 ++++
+ mm/huge_memory.c               |   21 +++++++++++++++++++--
+ 3 files changed, 30 insertions(+), 2 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-implement-splitting-pmd-for-huge-zero-page-v6 mm/huge_memory.c
---- a/mm/huge_memory.c~thp-implement-splitting-pmd-for-huge-zero-page-v6
+diff -puN Documentation/vm/transhuge.txt~thp-introduce-sysfs-knob-to-disable-huge-zero-page Documentation/vm/transhuge.txt
+--- a/Documentation/vm/transhuge.txt~thp-introduce-sysfs-knob-to-disable-huge-zero-page
++++ a/Documentation/vm/transhuge.txt
+@@ -116,6 +116,13 @@ echo always >/sys/kernel/mm/transparent_
+ echo madvise >/sys/kernel/mm/transparent_hugepage/defrag
+ echo never >/sys/kernel/mm/transparent_hugepage/defrag
+ 
++By default kernel tries to use huge zero page on read page fault.
++It's possible to disable huge zero page by writing 0 or enable it
++back by writing 1:
++
++echo 0 >/sys/kernel/mm/transparent_hugepage/khugepaged/use_zero_page
++echo 1 >/sys/kernel/mm/transparent_hugepage/khugepaged/use_zero_page
++
+ khugepaged will be automatically started when
+ transparent_hugepage/enabled is set to "always" or "madvise, and it'll
+ be automatically shutdown if it's set to "never".
+diff -puN include/linux/huge_mm.h~thp-introduce-sysfs-knob-to-disable-huge-zero-page include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~thp-introduce-sysfs-knob-to-disable-huge-zero-page
++++ a/include/linux/huge_mm.h
+@@ -39,6 +39,7 @@ enum transparent_hugepage_flag {
+ 	TRANSPARENT_HUGEPAGE_DEFRAG_FLAG,
+ 	TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG,
+ 	TRANSPARENT_HUGEPAGE_DEFRAG_KHUGEPAGED_FLAG,
++	TRANSPARENT_HUGEPAGE_USE_ZERO_PAGE_FLAG,
+ #ifdef CONFIG_DEBUG_VM
+ 	TRANSPARENT_HUGEPAGE_DEBUG_COW_FLAG,
+ #endif
+@@ -78,6 +79,9 @@ extern bool is_vma_temporary_stack(struc
+ 	 (transparent_hugepage_flags &					\
+ 	  (1<<TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG) &&		\
+ 	  (__vma)->vm_flags & VM_HUGEPAGE))
++#define transparent_hugepage_use_zero_page()				\
++	(transparent_hugepage_flags &					\
++	 (1<<TRANSPARENT_HUGEPAGE_USE_ZERO_PAGE_FLAG))
+ #ifdef CONFIG_DEBUG_VM
+ #define transparent_hugepage_debug_cow()				\
+ 	(transparent_hugepage_flags &					\
+diff -puN mm/huge_memory.c~thp-introduce-sysfs-knob-to-disable-huge-zero-page mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-introduce-sysfs-knob-to-disable-huge-zero-page
 +++ a/mm/huge_memory.c
-@@ -2625,6 +2625,7 @@ static int khugepaged(void *none)
- static void __split_huge_zero_page_pmd(struct vm_area_struct *vma,
- 		unsigned long haddr, pmd_t *pmd)
- {
-+	struct mm_struct *mm = vma->vm_mm;
- 	pgtable_t pgtable;
- 	pmd_t _pmd;
- 	int i;
-@@ -2632,8 +2633,8 @@ static void __split_huge_zero_page_pmd(s
- 	pmdp_clear_flush(vma, haddr, pmd);
- 	/* leave pmd empty until pte is filled */
+@@ -40,7 +40,8 @@ unsigned long transparent_hugepage_flags
+ 	(1<<TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG)|
+ #endif
+ 	(1<<TRANSPARENT_HUGEPAGE_DEFRAG_FLAG)|
+-	(1<<TRANSPARENT_HUGEPAGE_DEFRAG_KHUGEPAGED_FLAG);
++	(1<<TRANSPARENT_HUGEPAGE_DEFRAG_KHUGEPAGED_FLAG)|
++	(1<<TRANSPARENT_HUGEPAGE_USE_ZERO_PAGE_FLAG);
  
--	pgtable = get_pmd_huge_pte(vma->vm_mm);
--	pmd_populate(vma->vm_mm, &_pmd, pgtable);
-+	pgtable = pgtable_trans_huge_withdraw(mm);
-+	pmd_populate(mm, &_pmd, pgtable);
+ /* default scan 8*512 pte (or vmas) every 30 second */
+ static unsigned int khugepaged_pages_to_scan __read_mostly = HPAGE_PMD_NR*8;
+@@ -358,6 +359,20 @@ static ssize_t defrag_store(struct kobje
+ static struct kobj_attribute defrag_attr =
+ 	__ATTR(defrag, 0644, defrag_show, defrag_store);
  
- 	for (i = 0; i < HPAGE_PMD_NR; i++, haddr += PAGE_SIZE) {
- 		pte_t *pte, entry;
-@@ -2641,18 +2642,17 @@ static void __split_huge_zero_page_pmd(s
- 		entry = pte_mkspecial(entry);
- 		pte = pte_offset_map(&_pmd, haddr);
- 		VM_BUG_ON(!pte_none(*pte));
--		set_pte_at(vma->vm_mm, haddr, pte, entry);
-+		set_pte_at(mm, haddr, pte, entry);
- 		pte_unmap(pte);
- 	}
- 	smp_wmb(); /* make pte visible before pmd */
--	pmd_populate(vma->vm_mm, pmd, pgtable);
-+	pmd_populate(mm, pmd, pgtable);
- }
- 
- void __split_huge_page_pmd(struct vm_area_struct *vma, unsigned long address,
- 		pmd_t *pmd)
- {
- 	struct page *page;
--	struct mm_struct *mm = vma->vm_mm;
- 	unsigned long haddr = address & HPAGE_PMD_MASK;
- 	struct mm_struct *mm = vma->vm_mm;
- 	unsigned long mmun_start;	/* For mmu_notifiers */
-@@ -2661,7 +2661,7 @@ void __split_huge_page_pmd(struct vm_are
- 	BUG_ON(vma->vm_start > haddr || vma->vm_end < haddr + HPAGE_PMD_SIZE);
- 
- 	mmun_start = haddr;
--	mmun_end   = address + HPAGE_PMD_SIZE;
-+	mmun_end   = haddr + HPAGE_PMD_SIZE;
- 	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
- 	spin_lock(&mm->page_table_lock);
- 	if (unlikely(!pmd_trans_huge(*pmd))) {
++static ssize_t use_zero_page_show(struct kobject *kobj,
++		struct kobj_attribute *attr, char *buf)
++{
++	return single_flag_show(kobj, attr, buf,
++				TRANSPARENT_HUGEPAGE_USE_ZERO_PAGE_FLAG);
++}
++static ssize_t use_zero_page_store(struct kobject *kobj,
++		struct kobj_attribute *attr, const char *buf, size_t count)
++{
++	return single_flag_store(kobj, attr, buf, count,
++				 TRANSPARENT_HUGEPAGE_USE_ZERO_PAGE_FLAG);
++}
++static struct kobj_attribute use_zero_page_attr =
++	__ATTR(use_zero_page, 0644, use_zero_page_show, use_zero_page_store);
+ #ifdef CONFIG_DEBUG_VM
+ static ssize_t debug_cow_show(struct kobject *kobj,
+ 				struct kobj_attribute *attr, char *buf)
+@@ -379,6 +394,7 @@ static struct kobj_attribute debug_cow_a
+ static struct attribute *hugepage_attr[] = {
+ 	&enabled_attr.attr,
+ 	&defrag_attr.attr,
++	&use_zero_page_attr.attr,
+ #ifdef CONFIG_DEBUG_VM
+ 	&debug_cow_attr.attr,
+ #endif
+@@ -780,7 +796,8 @@ int do_huge_pmd_anonymous_page(struct mm
+ 			return VM_FAULT_OOM;
+ 		if (unlikely(khugepaged_enter(vma)))
+ 			return VM_FAULT_OOM;
+-		if (!(flags & FAULT_FLAG_WRITE)) {
++		if (!(flags & FAULT_FLAG_WRITE) &&
++				transparent_hugepage_use_zero_page()) {
+ 			pgtable_t pgtable;
+ 			unsigned long zero_pfn;
+ 			pgtable = pte_alloc_one(mm, haddr);
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
