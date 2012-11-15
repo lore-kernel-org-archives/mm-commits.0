@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-slb-shrink-dead-caches-get-rid-of-once-per-second-cache-shrinking-for-dead-memcgs.patch added to -mm tree
-Date: Wed, 14 Nov 2012 16:59:11 -0800
-Message-ID: <20121115005912.C99925C0050@hpza9.eem.corp.google.com>
+Subject: + memcg-add-comments-clarifying-aspects-of-cache-attribute-propagation.patch added to -mm tree
+Date: Wed, 14 Nov 2012 16:59:20 -0800
+Message-ID: <20121115005920.84ADD100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:45582 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946014Ab2KOA7P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Nov 2012 19:59:15 -0500
-Received: by mail-bk0-f74.google.com with SMTP id jm19so71598bkc.1
-        for <mm-commits@vger.kernel.org>; Wed, 14 Nov 2012 16:59:14 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:61647 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932984Ab2KOA7V (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Nov 2012 19:59:21 -0500
+Received: by mail-ye0-f202.google.com with SMTP id r11so122266yen.1
+        for <mm-commits@vger.kernel.org>; Wed, 14 Nov 2012 16:59:21 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: glommer@parallels.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, m
 
 
 The patch titled
-     Subject: memcg: get rid of once-per-second cache shrinking for dead memcgs
+     Subject: memcg: add comments clarifying aspects of cache attribute propagation
 has been added to the -mm tree.  Its filename is
-     memcg-slb-shrink-dead-caches-get-rid-of-once-per-second-cache-shrinking-for-dead-memcgs.patch
+     memcg-add-comments-clarifying-aspects-of-cache-attribute-propagation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Glauber Costa <glommer@parallels.com>
-Subject: memcg: get rid of once-per-second cache shrinking for dead memcgs
+Subject: memcg: add comments clarifying aspects of cache attribute propagation
 
-The idea is to synchronously do it, leaving it up to the shrinking
-facilities in vmscan.c and/or others.  Not actively retrying shrinking may
-leave the caches alive for more time, but it will remove the ugly wakeups.
- One would argue that if the caches have free objects but are not being
-shrunk, it is because we don't need that memory yet.
+This patch clarifies two aspects of cache attribute propagation.
+
+First, the expected context for the for_each_memcg_cache macro in
+memcontrol.h.  The usages already in the codebase are safe.  In mm/slub.c,
+it is trivially safe because the lock is acquired right before the loop. 
+In mm/slab.c, it is less so: the lock is acquired by an outer function a
+few steps back in the stack, so a VM_BUG_ON() is added to make sure it is
+indeed safe.
+
+A comment is also added to detail why we are returning the value of the
+parent cache and ignoring the children's when we propagate the attributes.
 
 Signed-off-by: Glauber Costa <glommer@parallels.com>
 Cc: Michal Hocko <mhocko@suse.cz>
@@ -50,88 +56,71 @@ Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |    2 +-
- mm/memcontrol.c      |   17 +++++++----------
- 2 files changed, 8 insertions(+), 11 deletions(-)
+ include/linux/memcontrol.h |    6 ++++++
+ mm/slab.c                  |    1 +
+ mm/slub.c                  |   21 +++++++++++++++++----
+ 3 files changed, 24 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/slab.h~memcg-slb-shrink-dead-caches-get-rid-of-once-per-second-cache-shrinking-for-dead-memcgs include/linux/slab.h
---- a/include/linux/slab.h~memcg-slb-shrink-dead-caches-get-rid-of-once-per-second-cache-shrinking-for-dead-memcgs
-+++ a/include/linux/slab.h
-@@ -213,7 +213,7 @@ struct memcg_cache_params {
- 			struct kmem_cache *root_cache;
- 			bool dead;
- 			atomic_t nr_pages;
--			struct delayed_work destroy;
-+			struct work_struct destroy;
- 		};
- 	};
- };
-diff -puN mm/memcontrol.c~memcg-slb-shrink-dead-caches-get-rid-of-once-per-second-cache-shrinking-for-dead-memcgs mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-slb-shrink-dead-caches-get-rid-of-once-per-second-cache-shrinking-for-dead-memcgs
-+++ a/mm/memcontrol.c
-@@ -3076,9 +3076,8 @@ static void kmem_cache_destroy_work_func
- {
- 	struct kmem_cache *cachep;
- 	struct memcg_cache_params *p;
--	struct delayed_work *dw = to_delayed_work(w);
+diff -puN include/linux/memcontrol.h~memcg-add-comments-clarifying-aspects-of-cache-attribute-propagation include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-add-comments-clarifying-aspects-of-cache-attribute-propagation
++++ a/include/linux/memcontrol.h
+@@ -415,6 +415,12 @@ static inline void sock_release_memcg(st
+ extern struct static_key memcg_kmem_enabled_key;
  
--	p = container_of(dw, struct memcg_cache_params, destroy);
-+	p = container_of(w, struct memcg_cache_params, destroy);
+ extern int memcg_limited_groups_array_size;
++
++/*
++ * Helper macro to loop through all memcg-specific caches. Callers must still
++ * check if the cache is valid (it is either valid or NULL).
++ * the slab_mutex must be held when looping through those caches
++ */
+ #define for_each_memcg_cache_index(_idx)	\
+ 	for ((_idx) = 0; i < memcg_limited_groups_array_size; (_idx)++)
  
- 	cachep = memcg_params_to_cache(p);
+diff -puN mm/slab.c~memcg-add-comments-clarifying-aspects-of-cache-attribute-propagation mm/slab.c
+--- a/mm/slab.c~memcg-add-comments-clarifying-aspects-of-cache-attribute-propagation
++++ a/mm/slab.c
+@@ -4154,6 +4154,7 @@ static int do_tune_cpucache(struct kmem_
+ 	if ((ret < 0) || !is_root_cache(cachep))
+ 		return ret;
  
-@@ -3102,8 +3101,6 @@ static void kmem_cache_destroy_work_func
- 		kmem_cache_shrink(cachep);
- 		if (atomic_read(&cachep->memcg_params->nr_pages) == 0)
- 			return;
--		/* Once per minute should be good enough. */
--		schedule_delayed_work(&cachep->memcg_params->destroy, 60 * HZ);
- 	} else
- 		kmem_cache_destroy(cachep);
- }
-@@ -3126,18 +3123,18 @@ void mem_cgroup_destroy_cache(struct kme
- 	 * kmem_cache_shrink is enough to shake all the remaining objects and
- 	 * get the page count to 0. In this case, we'll deadlock if we try to
- 	 * cancel the work (the worker runs with an internal lock held, which
--	 * is the same lock we would hold for cancel_delayed_work_sync().)
-+	 * is the same lock we would hold for cancel_work_sync().)
- 	 *
- 	 * Since we can't possibly know who got us here, just refrain from
- 	 * running if there is already work pending
- 	 */
--	if (delayed_work_pending(&cachep->memcg_params->destroy))
-+	if (work_pending(&cachep->memcg_params->destroy))
- 		return;
- 	/*
- 	 * We have to defer the actual destroying to a workqueue, because
- 	 * we might currently be in a context that cannot sleep.
- 	 */
--	schedule_delayed_work(&cachep->memcg_params->destroy, 0);
-+	schedule_work(&cachep->memcg_params->destroy);
- }
++	VM_BUG_ON(!mutex_is_locked(&slab_mutex));
+ 	for_each_memcg_cache_index(i) {
+ 		c = cache_from_memcg(cachep, i);
+ 		if (c)
+diff -puN mm/slub.c~memcg-add-comments-clarifying-aspects-of-cache-attribute-propagation mm/slub.c
+--- a/mm/slub.c~memcg-add-comments-clarifying-aspects-of-cache-attribute-propagation
++++ a/mm/slub.c
+@@ -5191,12 +5191,25 @@ static ssize_t slab_attr_store(struct ko
+ 		if (s->max_attr_size < len)
+ 			s->max_attr_size = len;
  
- static char *memcg_cache_name(struct mem_cgroup *memcg, struct kmem_cache *s)
-@@ -3261,7 +3258,7 @@ void kmem_cache_destroy_memcg_children(s
- 		 * set, so flip it down to guarantee we are in control.
- 		 */
- 		c->memcg_params->dead = false;
--		cancel_delayed_work_sync(&c->memcg_params->destroy);
-+		cancel_work_sync(&c->memcg_params->destroy);
- 		kmem_cache_destroy(c);
- 	}
- 	mutex_unlock(&set_limit_mutex);
-@@ -3285,9 +3282,9 @@ static void mem_cgroup_destroy_all_cache
- 	list_for_each_entry(params, &memcg->memcg_slab_caches, list) {
- 		cachep = memcg_params_to_cache(params);
- 		cachep->memcg_params->dead = true;
--		INIT_DELAYED_WORK(&cachep->memcg_params->destroy,
-+		INIT_WORK(&cachep->memcg_params->destroy,
- 				  kmem_cache_destroy_work_func);
--		schedule_delayed_work(&cachep->memcg_params->destroy, 0);
-+		schedule_work(&cachep->memcg_params->destroy);
- 	}
- 	mutex_unlock(&memcg->slab_caches_mutex);
- }
++		/*
++		 * This is a best effort propagation, so this function's return
++		 * value will be determined by the parent cache only. This is
++		 * basically because not all attributes will have a well
++		 * defined semantics for rollbacks - most of the actions will
++		 * have permanent effects.
++		 *
++		 * Returning the error value of any of the children that fail
++		 * is not 100 % defined, in the sense that users seeing the
++		 * error code won't be able to know anything about the state of
++		 * the cache.
++		 *
++		 * Only returning the error code for the parent cache at least
++		 * has well defined semantics. The cache being written to
++		 * directly either failed or succeeded, in which case we loop
++		 * through the descendants with best-effort propagation.
++		 */
+ 		for_each_memcg_cache_index(i) {
+ 			struct kmem_cache *c = cache_from_memcg(s, i);
+-			/*
+-			 * This function's return value is determined by the
+-			 * parent cache only
+-			 */
+ 			if (c)
+ 				attribute->store(c, buf, len);
+ 		}
 _
 
 Patches currently in -mm which might be from glommer@parallels.com are
