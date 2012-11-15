@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + thp-copy_huge_pmd-copy-huge-zero-page-v6.patch added to -mm tree
-Date: Thu, 15 Nov 2012 12:49:27 -0800
-Message-ID: <20121115204928.3D15C100048@wpzn3.hot.corp.google.com>
+Subject: + thp-change-split_huge_page_pmd-interface-v6.patch added to -mm tree
+Date: Thu, 15 Nov 2012 12:49:34 -0800
+Message-ID: <20121115204935.457FE100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:39768 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750906Ab2KOVoi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 16:44:38 -0500
-Received: by mail-vb0-f74.google.com with SMTP id s24so228638vbi.1
-        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 13:44:37 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:64652 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751007Ab2KOVoy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 16:44:54 -0500
+Received: by mail-ye0-f202.google.com with SMTP id r11so229751yen.1
+        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 13:44:54 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: kirill.shutemov@linux.intel.com, aarcange@redhat.com, ak@linux.intel.com, hp
 
 
 The patch titled
-     Subject: thp-copy_huge_pmd-copy-huge-zero-page-v6
+     Subject: thp-change-split_huge_page_pmd-interface-v6
 has been added to the -mm tree.  Its filename is
-     thp-copy_huge_pmd-copy-huge-zero-page-v6.patch
+     thp-change-split_huge_page_pmd-interface-v6.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp-copy_huge_pmd-copy-huge-zero-page-v6
+Subject: thp-change-split_huge_page_pmd-interface-v6
 
-It's easy to copy huge zero page. Just set destination pmd to huge zero
-page.
+Pass vma instead of mm and add address parameter.
 
-It's safe to copy huge zero page since we have none yet :-p
+In most cases we already have vma on the stack. We provides
+split_huge_page_pmd_mm() for few cases when we have mm, but not vma.
+
+This change is preparation to huge zero pmd splitting implementation.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -50,24 +52,57 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ Documentation/vm/transhuge.txt |    4 ++--
+ mm/huge_memory.c               |    7 ++++---
+ 2 files changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-copy_huge_pmd-copy-huge-zero-page-v6 mm/huge_memory.c
---- a/mm/huge_memory.c~thp-copy_huge_pmd-copy-huge-zero-page-v6
+diff -puN Documentation/vm/transhuge.txt~thp-change-split_huge_page_pmd-interface-v6 Documentation/vm/transhuge.txt
+--- a/Documentation/vm/transhuge.txt~thp-change-split_huge_page_pmd-interface-v6
++++ a/Documentation/vm/transhuge.txt
+@@ -276,7 +276,7 @@ unaffected. libhugetlbfs will also work 
+ == Graceful fallback ==
+ 
+ Code walking pagetables but unware about huge pmds can simply call
+-split_huge_page_pmd(vma, pmd, addr) where the pmd is the one returned by
++split_huge_page_pmd(vma, addr, pmd) where the pmd is the one returned by
+ pmd_offset. It's trivial to make the code transparent hugepage aware
+ by just grepping for "pmd_offset" and adding split_huge_page_pmd where
+ missing after pmd_offset returns the pmd. Thanks to the graceful
+@@ -299,7 +299,7 @@ diff --git a/mm/mremap.c b/mm/mremap.c
+ 		return NULL;
+ 
+ 	pmd = pmd_offset(pud, addr);
+-+	split_huge_page_pmd(vma, pmd, addr);
+++	split_huge_page_pmd(vma, addr, pmd);
+ 	if (pmd_none_or_clear_bad(pmd))
+ 		return NULL;
+ 
+diff -puN mm/huge_memory.c~thp-change-split_huge_page_pmd-interface-v6 mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-change-split_huge_page_pmd-interface-v6
 +++ a/mm/huge_memory.c
-@@ -947,6 +947,11 @@ int copy_huge_pmd(struct mm_struct *dst_
- 		pte_free(dst_mm, pgtable);
- 		goto out_unlock;
+@@ -2626,18 +2626,19 @@ void __split_huge_page_pmd(struct vm_are
+ {
+ 	struct page *page;
+ 	unsigned long haddr = address & HPAGE_PMD_MASK;
++	struct mm_struct *mm = vma->vm_mm;
+ 
+ 	BUG_ON(vma->vm_start > haddr || vma->vm_end < haddr + HPAGE_PMD_SIZE);
+ 
+-	spin_lock(&vma->vm_mm->page_table_lock);
++	spin_lock(&mm->page_table_lock);
+ 	if (unlikely(!pmd_trans_huge(*pmd))) {
+-		spin_unlock(&vma->vm_mm->page_table_lock);
++		spin_unlock(&mm->page_table_lock);
+ 		return;
  	}
-+	/*
-+	 * mm->pagetable lock is enough to be sure that huge zero pmd is not
-+	 * under splitting since we don't split the page itself, only pmd to
-+	 * a page table.
-+	 */
- 	if (is_huge_zero_pmd(pmd)) {
- 		set_huge_zero_page(pgtable, dst_mm, vma, addr, dst_pmd);
- 		ret = 0;
+ 	page = pmd_page(*pmd);
+ 	VM_BUG_ON(!page_count(page));
+ 	get_page(page);
+-	spin_unlock(&vma->vm_mm->page_table_lock);
++	spin_unlock(&mm->page_table_lock);
+ 
+ 	split_huge_page(page);
+ 
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
