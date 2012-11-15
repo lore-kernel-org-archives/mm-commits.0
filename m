@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + thp-change-split_huge_page_pmd-interface-v6.patch added to -mm tree
-Date: Thu, 15 Nov 2012 12:49:34 -0800
-Message-ID: <20121115204935.457FE100047@wpzn3.hot.corp.google.com>
+Subject: + thp-implement-splitting-pmd-for-huge-zero-page-v6.patch added to -mm tree
+Date: Thu, 15 Nov 2012 12:49:37 -0800
+Message-ID: <20121115204938.98EB320004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:64652 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751007Ab2KOVoy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 16:44:54 -0500
-Received: by mail-ye0-f202.google.com with SMTP id r11so229751yen.1
-        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 13:44:54 -0800 (PST)
+Received: from mail-ea0-f202.google.com ([209.85.215.202]:58875 "EHLO
+	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751283Ab2KOVu3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 16:50:29 -0500
+Received: by mail-ea0-f202.google.com with SMTP id f11so139694eaa.1
+        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 13:50:26 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: kirill.shutemov@linux.intel.com, aarcange@redhat.com, ak@linux.intel.com, hp
 
 
 The patch titled
-     Subject: thp-change-split_huge_page_pmd-interface-v6
+     Subject: thp-implement-splitting-pmd-for-huge-zero-page-v6
 has been added to the -mm tree.  Its filename is
-     thp-change-split_huge_page_pmd-interface-v6.patch
+     thp-implement-splitting-pmd-for-huge-zero-page-v6.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp-change-split_huge_page_pmd-interface-v6
+Subject: thp-implement-splitting-pmd-for-huge-zero-page-v6
 
-Pass vma instead of mm and add address parameter.
+We can't split huge zero page itself (and it's bug if we try), but we
+can split the pmd which points to it.
 
-In most cases we already have vma on the stack. We provides
-split_huge_page_pmd_mm() for few cases when we have mm, but not vma.
-
-This change is preparation to huge zero pmd splitting implementation.
+On splitting the pmd we create a table with all ptes set to normal zero
+page.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -52,57 +51,61 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/transhuge.txt |    4 ++--
- mm/huge_memory.c               |    7 ++++---
- 2 files changed, 6 insertions(+), 5 deletions(-)
+ mm/huge_memory.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN Documentation/vm/transhuge.txt~thp-change-split_huge_page_pmd-interface-v6 Documentation/vm/transhuge.txt
---- a/Documentation/vm/transhuge.txt~thp-change-split_huge_page_pmd-interface-v6
-+++ a/Documentation/vm/transhuge.txt
-@@ -276,7 +276,7 @@ unaffected. libhugetlbfs will also work 
- == Graceful fallback ==
- 
- Code walking pagetables but unware about huge pmds can simply call
--split_huge_page_pmd(vma, pmd, addr) where the pmd is the one returned by
-+split_huge_page_pmd(vma, addr, pmd) where the pmd is the one returned by
- pmd_offset. It's trivial to make the code transparent hugepage aware
- by just grepping for "pmd_offset" and adding split_huge_page_pmd where
- missing after pmd_offset returns the pmd. Thanks to the graceful
-@@ -299,7 +299,7 @@ diff --git a/mm/mremap.c b/mm/mremap.c
- 		return NULL;
- 
- 	pmd = pmd_offset(pud, addr);
--+	split_huge_page_pmd(vma, pmd, addr);
-++	split_huge_page_pmd(vma, addr, pmd);
- 	if (pmd_none_or_clear_bad(pmd))
- 		return NULL;
- 
-diff -puN mm/huge_memory.c~thp-change-split_huge_page_pmd-interface-v6 mm/huge_memory.c
---- a/mm/huge_memory.c~thp-change-split_huge_page_pmd-interface-v6
+diff -puN mm/huge_memory.c~thp-implement-splitting-pmd-for-huge-zero-page-v6 mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-implement-splitting-pmd-for-huge-zero-page-v6
 +++ a/mm/huge_memory.c
-@@ -2626,18 +2626,19 @@ void __split_huge_page_pmd(struct vm_are
+@@ -2625,6 +2625,7 @@ static int khugepaged(void *none)
+ static void __split_huge_zero_page_pmd(struct vm_area_struct *vma,
+ 		unsigned long haddr, pmd_t *pmd)
+ {
++	struct mm_struct *mm = vma->vm_mm;
+ 	pgtable_t pgtable;
+ 	pmd_t _pmd;
+ 	int i;
+@@ -2632,8 +2633,8 @@ static void __split_huge_zero_page_pmd(s
+ 	pmdp_clear_flush(vma, haddr, pmd);
+ 	/* leave pmd empty until pte is filled */
+ 
+-	pgtable = get_pmd_huge_pte(vma->vm_mm);
+-	pmd_populate(vma->vm_mm, &_pmd, pgtable);
++	pgtable = pgtable_trans_huge_withdraw(mm);
++	pmd_populate(mm, &_pmd, pgtable);
+ 
+ 	for (i = 0; i < HPAGE_PMD_NR; i++, haddr += PAGE_SIZE) {
+ 		pte_t *pte, entry;
+@@ -2641,18 +2642,17 @@ static void __split_huge_zero_page_pmd(s
+ 		entry = pte_mkspecial(entry);
+ 		pte = pte_offset_map(&_pmd, haddr);
+ 		VM_BUG_ON(!pte_none(*pte));
+-		set_pte_at(vma->vm_mm, haddr, pte, entry);
++		set_pte_at(mm, haddr, pte, entry);
+ 		pte_unmap(pte);
+ 	}
+ 	smp_wmb(); /* make pte visible before pmd */
+-	pmd_populate(vma->vm_mm, pmd, pgtable);
++	pmd_populate(mm, pmd, pgtable);
+ }
+ 
+ void __split_huge_page_pmd(struct vm_area_struct *vma, unsigned long address,
+ 		pmd_t *pmd)
  {
  	struct page *page;
+-	struct mm_struct *mm = vma->vm_mm;
  	unsigned long haddr = address & HPAGE_PMD_MASK;
-+	struct mm_struct *mm = vma->vm_mm;
- 
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	unsigned long mmun_start;	/* For mmu_notifiers */
+@@ -2661,7 +2661,7 @@ void __split_huge_page_pmd(struct vm_are
  	BUG_ON(vma->vm_start > haddr || vma->vm_end < haddr + HPAGE_PMD_SIZE);
  
--	spin_lock(&vma->vm_mm->page_table_lock);
-+	spin_lock(&mm->page_table_lock);
+ 	mmun_start = haddr;
+-	mmun_end   = address + HPAGE_PMD_SIZE;
++	mmun_end   = haddr + HPAGE_PMD_SIZE;
+ 	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
+ 	spin_lock(&mm->page_table_lock);
  	if (unlikely(!pmd_trans_huge(*pmd))) {
--		spin_unlock(&vma->vm_mm->page_table_lock);
-+		spin_unlock(&mm->page_table_lock);
- 		return;
- 	}
- 	page = pmd_page(*pmd);
- 	VM_BUG_ON(!page_count(page));
- 	get_page(page);
--	spin_unlock(&vma->vm_mm->page_table_lock);
-+	spin_unlock(&mm->page_table_lock);
- 
- 	split_huge_page(page);
- 
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
