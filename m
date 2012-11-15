@@ -1,63 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] mm-introduce-a-common-interface-for-balloon-pages-mobility-fix.patch removed from -mm tree
-Date: Thu, 15 Nov 2012 11:54:21 -0800
-Message-ID: <20121115195422.2A0EE200059@hpza10.eem.corp.google.com>
+Subject: [folded-dropped] virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch removed from -mm tree
+Date: Thu, 15 Nov 2012 11:55:27 -0800
+Message-ID: <20121115195527.D0379100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:64370 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1423636Ab2KOTyZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 14:54:25 -0500
-Received: by mail-wi0-f202.google.com with SMTP id hm14so136172wib.1
-        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 11:54:24 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:62907 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1768746Ab2KOTz3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 14:55:29 -0500
+Received: by mail-gg0-f202.google.com with SMTP id i4so215297ggm.1
+        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 11:55:28 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andi@firstfloor.org, aquini@redhat.com, konrad.wilk@oracle.com, mel@csn.ul.ie, minchan@kernel.org, mst@redhat.com, riel@redhat.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aquini@redhat.com, yongjun_wei@trendmicro.com.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-introduce-a-common-interface-for-balloon-pages-mobility-fix
+     Subject: virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix
 has been removed from the -mm tree.  Its filename was
-     mm-introduce-a-common-interface-for-balloon-pages-mobility-fix.patch
+     virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
 
-This patch was dropped because it was folded into mm-introduce-a-common-interface-for-balloon-pages-mobility.patch
+This patch was dropped because it was folded into virtio_balloon-introduce-migration-primitives-to-balloon-pages.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-introduce-a-common-interface-for-balloon-pages-mobility-fix
+Subject: virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix
 
-fix build with CONFIG_BALLOON_COMPACTION=n
+avoid having multiple return points in fill_balloon()
 
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Minchan Kim <minchan@kernel.org>
+Cc: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 Cc: Rafael Aquini <aquini@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/balloon_compaction.h |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/virtio/virtio_balloon.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/balloon_compaction.h~mm-introduce-a-common-interface-for-balloon-pages-mobility-fix include/linux/balloon_compaction.h
---- a/include/linux/balloon_compaction.h~mm-introduce-a-common-interface-for-balloon-pages-mobility-fix
-+++ a/include/linux/balloon_compaction.h
-@@ -207,10 +207,8 @@ static inline gfp_t balloon_mapping_gfp_
- 	return GFP_HIGHUSER;
+diff -puN drivers/virtio/virtio_balloon.c~virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix drivers/virtio/virtio_balloon.c
+--- a/drivers/virtio/virtio_balloon.c~virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix
++++ a/drivers/virtio/virtio_balloon.c
+@@ -151,13 +151,9 @@ static void fill_balloon(struct virtio_b
+ 		totalram_pages--;
+ 	}
+ 
+-	/* Didn't get any?  Oh well. */
+-	if (vb->num_pfns == 0) {
+-		mutex_unlock(&vb->balloon_lock);
+-		return;
+-	}
+-
+-	tell_host(vb, vb->inflate_vq);
++	/* Did we get any? */
++	if (vb->num_pfns != 0)
++		tell_host(vb, vb->inflate_vq);
+ 	mutex_unlock(&vb->balloon_lock);
  }
  
--static inline void balloon_event_count(enum vm_event_item item)
--{
--	return;
--}
-+/* A macro, to avoid generating references to the undefined COMPACTBALLOON* */
-+#define balloon_event_count(item) do { } while (0)
- 
- static inline bool balloon_compaction_check(void)
- {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,7 +95,7 @@ mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix.patch
 mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
 arch-sparc-kernel-sys_sparc_64c-s-colour-color.patch
 mm-introduce-a-common-interface-for-balloon-pages-mobility.patch
-virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages.patch
 virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix.patch
 bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
 mm-export-a-function-to-get-vm-committed-memory-fix.patch
