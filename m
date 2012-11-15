@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6.patch added to -mm tree
-Date: Thu, 15 Nov 2012 12:49:43 -0800
-Message-ID: <20121115204944.BA98120004E@hpza10.eem.corp.google.com>
+Subject: + thp-copy_huge_pmd-copy-huge-zero-page-v6.patch added to -mm tree
+Date: Thu, 15 Nov 2012 12:49:27 -0800
+Message-ID: <20121115204928.3D15C100048@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:55178 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750906Ab2KOVnk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 16:43:40 -0500
-Received: by mail-wg0-f74.google.com with SMTP id dt14so140140wgb.1
-        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 13:43:39 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:39768 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750906Ab2KOVoi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 16:44:38 -0500
+Received: by mail-vb0-f74.google.com with SMTP id s24so228638vbi.1
+        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 13:44:37 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: kirill.shutemov@linux.intel.com, aarcange@redhat.com, ak@linux.intel.com, hp
 
 
 The patch titled
-     Subject: thp, vmstat: implement HZP_ALLOC and HZP_ALLOC_FAILED events
+     Subject: thp-copy_huge_pmd-copy-huge-zero-page-v6
 has been added to the -mm tree.  Its filename is
-     thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6.patch
+     thp-copy_huge_pmd-copy-huge-zero-page-v6.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp, vmstat: implement HZP_ALLOC and HZP_ALLOC_FAILED events
+Subject: thp-copy_huge_pmd-copy-huge-zero-page-v6
 
-hzp_alloc is incremented every time a huge zero page is successfully
-	allocated. It includes allocations which where dropped due
-	race with other allocation. Note, it doesn't count every map
-	of the huge zero page, only its allocation.
+It's easy to copy huge zero page. Just set destination pmd to huge zero
+page.
 
-hzp_alloc_failed is incremented if kernel fails to allocate huge zero
-	page and falls back to using small pages.
+It's safe to copy huge zero page since we have none yet :-p
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -53,79 +50,24 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/transhuge.txt |   12 ++++++------
- include/linux/vm_event_item.h  |    4 ++--
- mm/huge_memory.c               |    4 ++--
- mm/vmstat.c                    |    4 ++--
- 4 files changed, 12 insertions(+), 12 deletions(-)
+ mm/huge_memory.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN Documentation/vm/transhuge.txt~thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6 Documentation/vm/transhuge.txt
---- a/Documentation/vm/transhuge.txt~thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6
-+++ a/Documentation/vm/transhuge.txt
-@@ -197,13 +197,13 @@ thp_split is incremented every time a hu
- 	pages. This can happen for a variety of reasons but a common
- 	reason is that a huge page is old and is being reclaimed.
- 
--hzp_alloc is incremented every time a huge zero page is successfully
--	allocated. It includes allocations which where dropped due
--	race with other allocation. Note, it doesn't count every map
--	of the huge zero page, only its allocation.
-+thp_zero_page_alloc is incremented every time a huge zero page is
-+	successfully allocated. It includes allocations which where
-+	dropped due race with other allocation. Note, it doesn't count
-+	every map of the huge zero page, only its allocation.
- 
--hzp_alloc_failed is incremented if kernel fails to allocate huge zero
--	page and falls back to using small pages.
-+thp_zero_page_alloc_failed is incremented if kernel fails to allocate
-+	huge zero page and falls back to using small pages.
- 
- As the system ages, allocating huge pages may be expensive as the
- system uses memory compaction to copy data around memory to free a
-diff -puN include/linux/vm_event_item.h~thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6 include/linux/vm_event_item.h
---- a/include/linux/vm_event_item.h~thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6
-+++ a/include/linux/vm_event_item.h
-@@ -63,8 +63,8 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		THP_COLLAPSE_ALLOC,
- 		THP_COLLAPSE_ALLOC_FAILED,
- 		THP_SPLIT,
--		HZP_ALLOC,
--		HZP_ALLOC_FAILED,
-+		THP_ZERO_PAGE_ALLOC,
-+		THP_ZERO_PAGE_ALLOC_FAILED,
- #endif
- 		NR_VM_EVENT_ITEMS
- };
-diff -puN mm/huge_memory.c~thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6 mm/huge_memory.c
---- a/mm/huge_memory.c~thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6
+diff -puN mm/huge_memory.c~thp-copy_huge_pmd-copy-huge-zero-page-v6 mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-copy_huge_pmd-copy-huge-zero-page-v6
 +++ a/mm/huge_memory.c
-@@ -186,10 +186,10 @@ retry:
- 	zero_page = alloc_pages((GFP_TRANSHUGE | __GFP_ZERO) & ~__GFP_MOVABLE,
- 			HPAGE_PMD_ORDER);
- 	if (!zero_page) {
--		count_vm_event(HZP_ALLOC_FAILED);
-+		count_vm_event(THP_ZERO_PAGE_ALLOC_FAILED);
- 		return 0;
+@@ -947,6 +947,11 @@ int copy_huge_pmd(struct mm_struct *dst_
+ 		pte_free(dst_mm, pgtable);
+ 		goto out_unlock;
  	}
--	count_vm_event(HZP_ALLOC);
-+	count_vm_event(THP_ZERO_PAGE_ALLOC);
- 	preempt_disable();
- 	if (cmpxchg(&huge_zero_pfn, 0, page_to_pfn(zero_page))) {
- 		preempt_enable();
-diff -puN mm/vmstat.c~thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6 mm/vmstat.c
---- a/mm/vmstat.c~thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6
-+++ a/mm/vmstat.c
-@@ -808,8 +808,8 @@ const char * const vmstat_text[] = {
- 	"thp_collapse_alloc",
- 	"thp_collapse_alloc_failed",
- 	"thp_split",
--	"hzp_alloc",
--	"hzp_alloc_failed",
-+	"thp_zero_page_alloc",
-+	"thp_zero_page_alloc_failed",
- #endif
- 
- #endif /* CONFIG_VM_EVENTS_COUNTERS */
++	/*
++	 * mm->pagetable lock is enough to be sure that huge zero pmd is not
++	 * under splitting since we don't split the page itself, only pmd to
++	 * a page table.
++	 */
+ 	if (is_huge_zero_pmd(pmd)) {
+ 		set_huge_zero_page(pgtable, dst_mm, vma, addr, dst_pmd);
+ 		ret = 0;
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
