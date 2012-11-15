@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-kmem-controller-infrastructure-replace-__always_inline-with-plain-inline.patch added to -mm tree
-Date: Wed, 14 Nov 2012 16:58:45 -0800
-Message-ID: <20121115005846.1E79D100047@wpzn3.hot.corp.google.com>
+Subject: + memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears-simplify-ida-initialization.patch added to -mm tree
+Date: Wed, 14 Nov 2012 16:58:56 -0800
+Message-ID: <20121115005857.1D181100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:33938 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946032Ab2KOA6r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Nov 2012 19:58:47 -0500
-Received: by mail-yh0-f74.google.com with SMTP id 10so121781yhl.1
-        for <mm-commits@vger.kernel.org>; Wed, 14 Nov 2012 16:58:46 -0800 (PST)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:57947 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1946032Ab2KOA66 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Nov 2012 19:58:58 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z15so121642ghb.1
+        for <mm-commits@vger.kernel.org>; Wed, 14 Nov 2012 16:58:58 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: glommer@parallels.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, m
 
 
 The patch titled
-     Subject: memcg: replace __always_inline with plain inline
+     Subject: memcg: simplify ida initialization
 has been added to the -mm tree.  Its filename is
-     memcg-kmem-controller-infrastructure-replace-__always_inline-with-plain-inline.patch
+     memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears-simplify-ida-initialization.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,19 +34,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Glauber Costa <glommer@parallels.com>
-Subject: memcg: replace __always_inline with plain inline
+Subject: memcg: simplify ida initialization
 
-Following the pattern found in the allocators, where we do our best to the
-fast paths function-call free, all the externally visible functions for
-kmemcg were marked __always_inline.
-
-It is fair to say, however, that this should be up to the compiler.  We
-will still keep as much of the flag testing as we can in memcontrol.h to
-give the compiler the option to inline it, but won't force it.
-
-I tested this with 4.7.2, it will inline all three functions anyway when
-compiling with -O2, and will refrain from it when compiling with -Os. 
-This seems like a good behavior.
+As suggested by akpm, change the manual initialization of our kmem
+index to DEFINE_IDA()
 
 Signed-off-by: Glauber Costa <glommer@parallels.com>
 Cc: Michal Hocko <mhocko@suse.cz>
@@ -56,39 +47,31 @@ Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-kmem-controller-infrastructure-replace-__always_inline-with-plain-inline include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-kmem-controller-infrastructure-replace-__always_inline-with-plain-inline
-+++ a/include/linux/memcontrol.h
-@@ -444,7 +444,7 @@ void __memcg_kmem_uncharge_pages(struct 
-  * We return true automatically if this allocation is not to be accounted to
-  * any memcg.
+diff -puN mm/memcontrol.c~memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears-simplify-ida-initialization mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears-simplify-ida-initialization
++++ a/mm/memcontrol.c
+@@ -569,7 +569,7 @@ static void disarm_sock_keys(struct mem_
+  * memcg_limited_groups_array_size.  It will double each time we have to
+  * increase it.
   */
--static __always_inline bool
-+static inline bool
- memcg_kmem_newpage_charge(gfp_t gfp, struct mem_cgroup **memcg, int order)
- {
- 	if (!memcg_kmem_enabled())
-@@ -476,7 +476,7 @@ memcg_kmem_newpage_charge(gfp_t gfp, str
-  *
-  * there is no need to specify memcg here, since it is embedded in page_cgroup
-  */
--static __always_inline void
-+static inline void
- memcg_kmem_uncharge_pages(struct page *page, int order)
- {
- 	if (memcg_kmem_enabled())
-@@ -494,7 +494,7 @@ memcg_kmem_uncharge_pages(struct page *p
-  * charges. Otherwise, it will commit the memcg given by @memcg to the
-  * corresponding page_cgroup.
-  */
--static __always_inline void
-+static inline void
- memcg_kmem_commit_charge(struct page *page, struct mem_cgroup *memcg, int order)
- {
- 	if (memcg_kmem_enabled() && memcg)
+-static struct ida kmem_limited_groups;
++static DEFINE_IDA(kmem_limited_groups);
+ static int memcg_limited_groups_array_size;
+ /*
+  * MIN_SIZE is different than 1, because we would like to avoid going through
+@@ -5250,9 +5250,6 @@ static int memcg_init_kmem(struct mem_cg
+ 	if (ret)
+ 		return ret;
+ 
+-	if (mem_cgroup_is_root(memcg))
+-		ida_init(&kmem_limited_groups);
+-
+ 	return mem_cgroup_sockets_init(memcg, ss);
+ };
+ 
 _
 
 Patches currently in -mm which might be from glommer@parallels.com are
