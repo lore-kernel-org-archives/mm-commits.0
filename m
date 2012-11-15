@@ -1,149 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] mm-introduce-a-common-interface-for-balloon-pages-mobility-fix-fix-fix.patch removed from -mm tree
-Date: Thu, 15 Nov 2012 11:54:29 -0800
-Message-ID: <20121115195429.EF9AE100047@wpzn3.hot.corp.google.com>
+Subject: [folded-dropped] mm-introduce-a-common-interface-for-balloon-pages-mobility-fix.patch removed from -mm tree
+Date: Thu, 15 Nov 2012 11:54:21 -0800
+Message-ID: <20121115195422.2A0EE200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:54185 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1423636Ab2KOTyb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 14:54:31 -0500
-Received: by mail-qc0-f202.google.com with SMTP id s25so214154qcq.1
-        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 11:54:31 -0800 (PST)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:64370 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1423636Ab2KOTyZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 14:54:25 -0500
+Received: by mail-wi0-f202.google.com with SMTP id hm14so136172wib.1
+        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 11:54:24 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, aquini@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andi@firstfloor.org, aquini@redhat.com, konrad.wilk@oracle.com, mel@csn.ul.ie, minchan@kernel.org, mst@redhat.com, riel@redhat.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-introduce-a-common-interface-for-balloon-pages-mobility-fix-fix-fix
+     Subject: mm-introduce-a-common-interface-for-balloon-pages-mobility-fix
 has been removed from the -mm tree.  Its filename was
-     mm-introduce-a-common-interface-for-balloon-pages-mobility-fix-fix-fix.patch
+     mm-introduce-a-common-interface-for-balloon-pages-mobility-fix.patch
 
 This patch was dropped because it was folded into mm-introduce-a-common-interface-for-balloon-pages-mobility.patch
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm-introduce-a-common-interface-for-balloon-pages-mobility-fix-fix-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-introduce-a-common-interface-for-balloon-pages-mobility-fix
 
-Fixes build failure from "mm: introduce a common interface for balloon
-pages mobility":
+fix build with CONFIG_BALLOON_COMPACTION=n
 
-mm/balloon_compaction.c: In function 'balloon_page_putback':
-mm/balloon_compaction.c:243: error: implicit declaration of function '__WARN'
-
-Generic code calls WARN_ON(), not __WARN() directly.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Rafael Aquini <aquini@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/balloon_compaction.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/balloon_compaction.h |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN mm/balloon_compaction.c~mm-introduce-a-common-interface-for-balloon-pages-mobility-fix-fix-fix mm/balloon_compaction.c
---- a/mm/balloon_compaction.c~mm-introduce-a-common-interface-for-balloon-pages-mobility-fix-fix-fix
-+++ a/mm/balloon_compaction.c
-@@ -238,7 +238,7 @@ void balloon_page_putback(struct page *p
- 		__putback_balloon_page(page);
- 		put_page(page);
- 	} else {
--		__WARN();
-+		WARN_ON(1);
- 		dump_page(page);
- 	}
- 	unlock_page(page);
+diff -puN include/linux/balloon_compaction.h~mm-introduce-a-common-interface-for-balloon-pages-mobility-fix include/linux/balloon_compaction.h
+--- a/include/linux/balloon_compaction.h~mm-introduce-a-common-interface-for-balloon-pages-mobility-fix
++++ a/include/linux/balloon_compaction.h
+@@ -207,10 +207,8 @@ static inline gfp_t balloon_mapping_gfp_
+ 	return GFP_HIGHUSER;
+ }
+ 
+-static inline void balloon_event_count(enum vm_event_item item)
+-{
+-	return;
+-}
++/* A macro, to avoid generating references to the undefined COMPACTBALLOON* */
++#define balloon_event_count(item) do { } while (0)
+ 
+ static inline bool balloon_compaction_check(void)
+ {
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-fix-build-warning-for-uninitialized-value.patch
-memcg-oom-fix-totalpages-calculation-for-memoryswappiness==0.patch
-memcg-oom-fix-totalpages-calculation-for-memoryswappiness==0-fix.patch
-mips-arc-fix-build-failure.patch
+swapfile-fix-name-leak-in-swapoff-fix.patch
 linux-next.patch
+linux-next-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
 revert-mm-fix-up-zone-present-pages.patch
+cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
 irq-tsk-comm-is-an-array.patch
-mm-memcg-make-mem_cgroup_out_of_memory-static.patch
-mm-use-is_enabledconfig_numa-instead-of-numa_build.patch
-mm-use-is_enabledconfig_compaction-instead-of-compaction_build.patch
-thp-clean-up-__collapse_huge_page_isolate.patch
-memory-hotplug-suppress-device-memoryx-does-not-have-a-release-function-warning.patch
-memory-hotplug-skip-hwpoisoned-page-when-offlining-pages.patch
-memory-hotplug-update-mce_bad_pages-when-removing-the-memory.patch
+drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch
+mm.patch
+mm-introduce-mm_find_pmd-fix.patch
 memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
-memory-hotplug-auto-offline-page_cgroup-when-onlining-memory-block-failed.patch
-memory-hotplug-fix-nr_free_pages-mismatch.patch
-numa-convert-static-memory-to-dynamically-allocated-memory-for-per-node-device.patch
-memory-hotplug-suppress-device-nodex-does-not-have-a-release-function-warning.patch
-memory-hotplug-mm-sparsec-clear-the-memory-to-store-struct-page.patch
-memory-hotplug-allocate-zones-pcp-before-onlining-pages.patch
-memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix.patch
-memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix-2.patch
-memory_hotplug-fix-possible-incorrect-node_states.patch
 slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
-mm-oom-allow-exiting-threads-to-have-access-to-memory-reserves.patch
-memcg-make-it-possible-to-use-the-stock-for-more-than-one-page.patch
-memcg-reclaim-when-more-than-one-page-needed.patch
-memcg-change-defines-to-an-enum.patch
-memcg-kmem-accounting-basic-infrastructure.patch
-mm-add-a-__gfp_kmemcg-flag.patch
-memcg-kmem-controller-infrastructure.patch
-memcg-kmem-controller-infrastructure-replace-__always_inline-with-plain-inline.patch
-mm-allocate-kernel-pages-to-the-right-memcg.patch
-res_counter-return-amount-of-charges-after-res_counter_uncharge.patch
-memcg-kmem-accounting-lifecycle-management.patch
-memcg-use-static-branches-when-code-not-in-use.patch
-memcg-allow-a-memcg-with-kmem-charges-to-be-destructed.patch
-memcg-execute-the-whole-memcg-freeing-in-free_worker.patch
-fork-protect-architectures-where-thread_size-=-page_size-against-fork-bombs.patch
-memcg-add-documentation-about-the-kmem-controller.patch
-slab-slub-struct-memcg_params.patch
-slab-annotate-on-slab-caches-nodelist-locks.patch
-slab-slub-consider-a-memcg-parameter-in-kmem_create_cache.patch
-memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears.patch
-memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears-simplify-ida-initialization.patch
-memcg-infrastructure-to-match-an-allocation-to-the-right-cache.patch
-memcg-skip-memcg-kmem-allocations-in-specified-code-regions.patch
-memcg-skip-memcg-kmem-allocations-in-specified-code-regions-remove-test-for-current-mm-in-memcg_stop-resume_kmem_account.patch
-slb-always-get-the-cache-from-its-page-in-kmem_cache_free.patch
-slb-allocate-objects-from-memcg-cache.patch
-memcg-destroy-memcg-caches.patch
-memcg-destroy-memcg-caches-move-include-of-workqueueh-to-top-of-slabh-file.patch
-memcg-slb-track-all-the-memcg-children-of-a-kmem_cache.patch
-memcg-slb-shrink-dead-caches.patch
-memcg-slb-shrink-dead-caches-get-rid-of-once-per-second-cache-shrinking-for-dead-memcgs.patch
-memcg-aggregate-memcg-cache-values-in-slabinfo.patch
-slab-propagate-tunable-values.patch
-slub-slub-specific-propagation-changes.patch
+mmvmscan-only-evict-file-pages-when-we-have-plenty-fix.patch
 slub-slub-specific-propagation-changes-fix.patch
-kmem-add-slab-specific-documentation-about-the-kmem-controller.patch
-memcg-add-comments-clarifying-aspects-of-cache-attribute-propagation.patch
-slub-drop-mutex-before-deleting-sysfs-entry.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix.patch
+dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix.patch
 mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch
-mm-mempolicy-remove-duplicate-code.patch
+mm-check-rb_subtree_gap-correctness-fix.patch
+mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
+mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
+mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
+mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
+mm-use-vm_unmapped_area-on-arm-architecture-fix-fix.patch
+mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc32-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc32-architecture-fix-fix.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
+arch-sparc-kernel-sys_sparc_64c-s-colour-color.patch
 mm-introduce-a-common-interface-for-balloon-pages-mobility.patch
-mm-cleanup-register_node.patch
-mm-oom-change-type-of-oom_score_adj-to-short.patch
-mm-oom-fix-race-when-specifying-a-thread-as-the-oom-origin.patch
-mm-export-a-function-to-get-vm-committed-memory.patch
-drivers-base-nodec-cleanup-node_state_attr.patch
-mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory.patch
-memory_hotplug-handle-empty-zone-when-online_movable-online_kernel.patch
-memory_hotplug-ensure-every-online-node-has-normal-memory.patch
-thp-huge-zero-page-basic-preparation.patch
-thp-zap_huge_pmd-zap-huge-zero-pmd.patch
-thp-copy_huge_pmd-copy-huge-zero-page.patch
-thp-do_huge_pmd_wp_page-handle-huge-zero-page.patch
-thp-change_huge_pmd-keep-huge-zero-page-write-protected.patch
-thp-change-split_huge_page_pmd-interface.patch
-thp-implement-splitting-pmd-for-huge-zero-page.patch
-thp-setup-huge-zero-page-on-non-write-page-fault.patch
-thp-lazy-huge-zero-page-allocation.patch
-thp-implement-refcounting-for-huge-zero-page.patch
-thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events.patch
-mm-dmapoolc-fix-null-dev-in-dma_pool_create.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix.patch
+bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
+mm-export-a-function-to-get-vm-committed-memory-fix.patch
+mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch
+drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+maintainers-add-joe-to-checkpatch-maintainers.patch
+binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
+rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
+hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
+procfs-add-vmflags-field-in-smaps-output-v4.patch
+procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
+ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
+ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
+ipc-convert-prepare_copy-from-macro-to-function-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
