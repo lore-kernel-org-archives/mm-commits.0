@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-skip-memcg-kmem-allocations-in-specified-code-regions-remove-test-for-current-mm-in-memcg_stop-resume_kmem_account.patch added to -mm tree
-Date: Wed, 14 Nov 2012 16:59:01 -0800
-Message-ID: <20121115005902.998A320004E@hpza10.eem.corp.google.com>
+Subject: + memcg-destroy-memcg-caches-move-include-of-workqueueh-to-top-of-slabh-file.patch added to -mm tree
+Date: Wed, 14 Nov 2012 16:59:07 -0800
+Message-ID: <20121115005908.3BCCC100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:60409 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946032Ab2KOA7G (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Nov 2012 19:59:06 -0500
-Received: by mail-wg0-f74.google.com with SMTP id dt14so72330wgb.1
-        for <mm-commits@vger.kernel.org>; Wed, 14 Nov 2012 16:59:04 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:33221 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1946014Ab2KOA7J (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Nov 2012 19:59:09 -0500
+Received: by mail-qc0-f202.google.com with SMTP id s25so120746qcq.1
+        for <mm-commits@vger.kernel.org>; Wed, 14 Nov 2012 16:59:08 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: glommer@parallels.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, m
 
 
 The patch titled
-     Subject: memcg: remove test for current->mm in memcg_stop/resume_kmem_account
+     Subject: move include of workqueue.h to top of slab.h file
 has been added to the -mm tree.  Its filename is
-     memcg-skip-memcg-kmem-allocations-in-specified-code-regions-remove-test-for-current-mm-in-memcg_stop-resume_kmem_account.patch
+     memcg-destroy-memcg-caches-move-include-of-workqueueh-to-top-of-slabh-file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,21 +34,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Glauber Costa <glommer@parallels.com>
-Subject: memcg: remove test for current->mm in memcg_stop/resume_kmem_account
+Subject: move include of workqueue.h to top of slab.h file
 
-The original reason for the existence of this test, was that
-memcg_kmem_cache_create could be called from either softirq context (where
-memcg_stop/resume_account is not needed), or process context, (where
-memcg_stop/resume_account is needed).  Just skipping it in-function was
-the cleanest way to merge both behaviors.  The reason for that is that we
-would try to create caches right away through memcg_kmem_cache_create if
-the context would allow us to.
-
-However, the final version of the code that merged did not have this
-behavior and we always queue up new cache creation.  Thus, instead of a
-comment explaining why current->mm test is needed, my proposal in this
-patch is to remove memcg_stop/resume_account from the worker thread and
-make sure all callers have a valid mm context.
+Suggested by akpm. I originally decided to put it closer to the use of
+the work struct, but let's move it to top.
 
 Signed-off-by: Glauber Costa <glommer@parallels.com>
 Cc: Michal Hocko <mhocko@suse.cz>
@@ -58,44 +47,30 @@ Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   12 ++----------
- 1 file changed, 2 insertions(+), 10 deletions(-)
+ include/linux/slab.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-skip-memcg-kmem-allocations-in-specified-code-regions-remove-test-for-current-mm-in-memcg_stop-resume_kmem_account mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-skip-memcg-kmem-allocations-in-specified-code-regions-remove-test-for-current-mm-in-memcg_stop-resume_kmem_account
-+++ a/mm/memcontrol.c
-@@ -3047,17 +3047,13 @@ out:
-  */
- static inline void memcg_stop_kmem_account(void)
- {
--	if (!current->mm)
--		return;
--
-+	VM_BUG_ON(!current->mm);
- 	current->memcg_kmem_skip_account++;
- }
+diff -puN include/linux/slab.h~memcg-destroy-memcg-caches-move-include-of-workqueueh-to-top-of-slabh-file include/linux/slab.h
+--- a/include/linux/slab.h~memcg-destroy-memcg-caches-move-include-of-workqueueh-to-top-of-slabh-file
++++ a/include/linux/slab.h
+@@ -11,6 +11,8 @@
  
- static inline void memcg_resume_kmem_account(void)
- {
--	if (!current->mm)
--		return;
--
-+	VM_BUG_ON(!current->mm);
- 	current->memcg_kmem_skip_account--;
- }
+ #include <linux/gfp.h>
+ #include <linux/types.h>
++#include <linux/workqueue.h>
++
  
-@@ -3119,11 +3115,7 @@ static struct kmem_cache *memcg_create_k
- 	if (new_cachep)
- 		goto out;
- 
--	/* Don't block progress to enqueue caches for internal infrastructure */
--	memcg_stop_kmem_account();
- 	new_cachep = kmem_cache_dup(memcg, cachep);
--	memcg_resume_kmem_account();
+ /*
+  * Flags to pass to kmem_cache_create().
+@@ -179,8 +181,6 @@ void kmem_cache_free(struct kmem_cache *
+ #ifndef ARCH_SLAB_MINALIGN
+ #define ARCH_SLAB_MINALIGN __alignof__(unsigned long long)
+ #endif
 -
- 	if (new_cachep == NULL) {
- 		new_cachep = cachep;
- 		goto out;
+-#include <linux/workqueue.h>
+ /*
+  * This is the main placeholder for memcg-related information in kmem caches.
+  * struct kmem_cache will hold a pointer to it, so the memory cost while
 _
 
 Patches currently in -mm which might be from glommer@parallels.com are
