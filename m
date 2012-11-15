@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-introduce-putback_movable_pages.patch added to -mm tree
-Date: Thu, 15 Nov 2012 12:15:33 -0800
-Message-ID: <20121115201534.56C6F100047@wpzn3.hot.corp.google.com>
+Subject: + mm-introduce-compaction-and-migration-for-ballooned-pages.patch added to -mm tree
+Date: Thu, 15 Nov 2012 12:15:26 -0800
+Message-ID: <20121115201527.6227E100048@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:35588 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1768798Ab2KOUPf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 15:15:35 -0500
-Received: by mail-qc0-f202.google.com with SMTP id s25so216537qcq.1
-        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 12:15:35 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:48740 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1768798Ab2KOUP2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 15:15:28 -0500
+Received: by mail-ye0-f202.google.com with SMTP id r11so219113yen.1
+        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 12:15:28 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: aquini@redhat.com, andi@firstfloor.org, konrad.wilk@oracle.com, mel@csn.ul.i
 
 
 The patch titled
-     Subject: mm: introduce putback_movable_pages()
+     Subject: mm: introduce compaction and migration for ballooned pages
 has been added to the -mm tree.  Its filename is
-     mm-introduce-putback_movable_pages.patch
+     mm-introduce-compaction-and-migration-for-ballooned-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,119 +34,151 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rafael Aquini <aquini@redhat.com>
-Subject: mm: introduce putback_movable_pages()
+Subject: mm: introduce compaction and migration for ballooned pages
 
-The PATCH "mm: introduce compaction and migration for virtio ballooned pages"
-hacks around putback_lru_pages() in order to allow ballooned pages to be
-re-inserted on balloon page list as if a ballooned page was like a LRU page.
+Memory fragmentation introduced by ballooning might reduce significantly
+the number of 2MB contiguous memory blocks that can be used within a guest,
+thus imposing performance penalties associated with the reduced number of
+transparent huge pages that could be used by the guest workload.
 
-As ballooned pages are not legitimate LRU pages, this patch introduces
-putback_movable_pages() to properly cope with cases where the isolated
-pageset contains ballooned pages and LRU pages, thus fixing the mentioned
-inelegant hack around putback_lru_pages().
+This patch introduces the helper functions as well as the necessary changes
+to teach compaction and migration bits how to cope with pages which are
+part of a guest memory balloon, in order to make them movable by memory
+compaction procedures.
 
 Signed-off-by: Rafael Aquini <aquini@redhat.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: Andi Kleen <andi@firstfloor.org>
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |    2 ++
- mm/compaction.c         |    6 +++---
- mm/migrate.c            |   20 ++++++++++++++++++++
- mm/page_alloc.c         |    2 +-
- 4 files changed, 26 insertions(+), 4 deletions(-)
+ mm/compaction.c |   21 +++++++++++++++++++--
+ mm/migrate.c    |   34 ++++++++++++++++++++++++++++++++--
+ 2 files changed, 51 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/migrate.h~mm-introduce-putback_movable_pages include/linux/migrate.h
---- a/include/linux/migrate.h~mm-introduce-putback_movable_pages
-+++ a/include/linux/migrate.h
-@@ -27,6 +27,7 @@ typedef struct page *new_page_t(struct p
- #ifdef CONFIG_MIGRATION
- 
- extern void putback_lru_pages(struct list_head *l);
-+extern void putback_movable_pages(struct list_head *l);
- extern int migrate_page(struct address_space *,
- 			struct page *, struct page *, enum migrate_mode);
- extern int migrate_pages(struct list_head *l, new_page_t x,
-@@ -51,6 +52,7 @@ extern int migrate_misplaced_page(struct
- #else
- 
- static inline void putback_lru_pages(struct list_head *l) {}
-+static inline void putback_movable_pages(struct list_head *l) {}
- static inline int migrate_pages(struct list_head *l, new_page_t x,
- 		unsigned long private, bool offlining,
- 		enum migrate_mode mode) { return -ENOSYS; }
-diff -puN mm/compaction.c~mm-introduce-putback_movable_pages mm/compaction.c
---- a/mm/compaction.c~mm-introduce-putback_movable_pages
+diff -puN mm/compaction.c~mm-introduce-compaction-and-migration-for-ballooned-pages mm/compaction.c
+--- a/mm/compaction.c~mm-introduce-compaction-and-migration-for-ballooned-pages
 +++ a/mm/compaction.c
-@@ -995,7 +995,7 @@ static int compact_zone(struct zone *zon
- 		switch (isolate_migratepages(zone, cc)) {
- 		case ISOLATE_ABORT:
- 			ret = COMPACT_PARTIAL;
--			putback_lru_pages(&cc->migratepages);
-+			putback_movable_pages(&cc->migratepages);
- 			cc->nr_migratepages = 0;
- 			goto out;
- 		case ISOLATE_NONE:
-@@ -1018,9 +1018,9 @@ static int compact_zone(struct zone *zon
- 		trace_mm_compaction_migratepages(nr_migrate - nr_remaining,
- 						nr_remaining);
+@@ -14,6 +14,7 @@
+ #include <linux/backing-dev.h>
+ #include <linux/sysctl.h>
+ #include <linux/sysfs.h>
++#include <linux/balloon_compaction.h>
+ #include "internal.h"
  
--		/* Release LRU pages not migrated */
-+		/* Release isolated pages not migrated */
- 		if (err) {
--			putback_lru_pages(&cc->migratepages);
-+			putback_movable_pages(&cc->migratepages);
- 			cc->nr_migratepages = 0;
- 			if (err == -ENOMEM) {
- 				ret = COMPACT_PARTIAL;
-diff -puN mm/migrate.c~mm-introduce-putback_movable_pages mm/migrate.c
---- a/mm/migrate.c~mm-introduce-putback_movable_pages
+ #if defined CONFIG_COMPACTION || defined CONFIG_CMA
+@@ -565,9 +566,24 @@ isolate_migratepages_range(struct zone *
+ 			goto next_pageblock;
+ 		}
+ 
+-		/* Check may be lockless but that's ok as we recheck later */
+-		if (!PageLRU(page))
++		/*
++		 * Check may be lockless but that's ok as we recheck later.
++		 * It's possible to migrate LRU pages and balloon pages
++		 * Skip any other type of page
++		 */
++		if (!PageLRU(page)) {
++			if (unlikely(balloon_page_movable(page))) {
++				if (locked && balloon_page_isolate(page)) {
++					/* Successfully isolated */
++					cc->finished_update_migrate = true;
++					list_add(&page->lru, migratelist);
++					cc->nr_migratepages++;
++					nr_isolated++;
++					goto check_compact_cluster;
++				}
++			}
+ 			continue;
++		}
+ 
+ 		/*
+ 		 * PageLRU is set. lru_lock normally excludes isolation
+@@ -621,6 +637,7 @@ isolate_migratepages_range(struct zone *
+ 		cc->nr_migratepages++;
+ 		nr_isolated++;
+ 
++check_compact_cluster:
+ 		/* Avoid isolating too much */
+ 		if (cc->nr_migratepages == COMPACT_CLUSTER_MAX) {
+ 			++low_pfn;
+diff -puN mm/migrate.c~mm-introduce-compaction-and-migration-for-ballooned-pages mm/migrate.c
+--- a/mm/migrate.c~mm-introduce-compaction-and-migration-for-ballooned-pages
 +++ a/mm/migrate.c
-@@ -80,6 +80,26 @@ void putback_lru_pages(struct list_head 
+@@ -35,6 +35,7 @@
+ #include <linux/hugetlb.h>
+ #include <linux/hugetlb_cgroup.h>
+ #include <linux/gfp.h>
++#include <linux/balloon_compaction.h>
+ 
+ #include <asm/tlbflush.h>
+ 
+@@ -79,7 +80,10 @@ void putback_lru_pages(struct list_head 
  		list_del(&page->lru);
  		dec_zone_page_state(page, NR_ISOLATED_ANON +
  				page_is_file_cache(page));
+-		putback_lru_page(page);
++		if (unlikely(balloon_page_movable(page)))
++			balloon_page_putback(page);
++		else
 +			putback_lru_page(page);
-+	}
-+}
-+
-+/*
-+ * Put previously isolated pages back onto the appropriate lists
-+ * from where they were once taken off for compaction/migration.
-+ *
-+ * This function shall be used instead of putback_lru_pages(),
-+ * whenever the isolated pageset has been built by isolate_migratepages_range()
-+ */
-+void putback_movable_pages(struct list_head *l)
-+{
-+	struct page *page;
-+	struct page *page2;
-+
-+	list_for_each_entry_safe(page, page2, l, lru) {
-+		list_del(&page->lru);
-+		dec_zone_page_state(page, NR_ISOLATED_ANON +
-+				page_is_file_cache(page));
- 		if (unlikely(balloon_page_movable(page)))
- 			balloon_page_putback(page);
- 		else
-diff -puN mm/page_alloc.c~mm-introduce-putback_movable_pages mm/page_alloc.c
---- a/mm/page_alloc.c~mm-introduce-putback_movable_pages
-+++ a/mm/page_alloc.c
-@@ -5797,7 +5797,7 @@ static int __alloc_contig_migrate_range(
- 				    0, false, MIGRATE_SYNC);
  	}
- 
--	putback_lru_pages(&cc->migratepages);
-+	putback_movable_pages(&cc->migratepages);
- 	return ret > 0 ? 0 : ret;
  }
  
+@@ -778,6 +782,18 @@ static int __unmap_and_move(struct page 
+ 		}
+ 	}
+ 
++	if (unlikely(balloon_page_movable(page))) {
++		/*
++		 * A ballooned page does not need any special attention from
++		 * physical to virtual reverse mapping procedures.
++		 * Skip any attempt to unmap PTEs or to remap swap cache,
++		 * in order to avoid burning cycles at rmap level, and perform
++		 * the page migration right away (proteced by page lock).
++		 */
++		rc = balloon_page_migrate(newpage, page, mode);
++		goto uncharge;
++	}
++
+ 	/*
+ 	 * Corner case handling:
+ 	 * 1. When a new swap-cache page is read into, it is added to the LRU
+@@ -814,7 +830,9 @@ skip_unmap:
+ 		put_anon_vma(anon_vma);
+ 
+ uncharge:
+-	mem_cgroup_end_migration(mem, page, newpage, rc == MIGRATEPAGE_SUCCESS);
++	mem_cgroup_end_migration(mem, page, newpage,
++				 (rc == MIGRATEPAGE_SUCCESS ||
++				  rc == MIGRATEPAGE_BALLOON_SUCCESS));
+ unlock:
+ 	unlock_page(page);
+ out:
+@@ -846,6 +864,18 @@ static int unmap_and_move(new_page_t get
+ 			goto out;
+ 
+ 	rc = __unmap_and_move(page, newpage, force, offlining, mode);
++
++	if (unlikely(rc == MIGRATEPAGE_BALLOON_SUCCESS)) {
++		/*
++		 * A ballooned page has been migrated already.
++		 * Now, it's the time to wrap-up counters,
++		 * handle the page back to Buddy and return.
++		 */
++		dec_zone_page_state(page, NR_ISOLATED_ANON +
++				    page_is_file_cache(page));
++		balloon_page_free(page);
++		return MIGRATEPAGE_SUCCESS;
++	}
+ out:
+ 	if (rc != -EAGAIN) {
+ 		/*
 _
 
 Patches currently in -mm which might be from aquini@redhat.com are
