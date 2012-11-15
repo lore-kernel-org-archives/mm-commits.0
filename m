@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + arch-sparc-kernel-sys_sparc_64c-s-colour-color.patch added to -mm tree
-Date: Wed, 14 Nov 2012 15:09:33 -0800
-Message-ID: <20121114230934.069C65C0050@hpza9.eem.corp.google.com>
+Subject: + memcg-kmem-controller-infrastructure-replace-__always_inline-with-plain-inline.patch added to -mm tree
+Date: Wed, 14 Nov 2012 16:58:45 -0800
+Message-ID: <20121115005846.1E79D100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:61047 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1423427Ab2KNXJg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Nov 2012 18:09:36 -0500
-Received: by mail-wi0-f202.google.com with SMTP id hm14so69237wib.1
-        for <mm-commits@vger.kernel.org>; Wed, 14 Nov 2012 15:09:35 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:33938 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1946032Ab2KOA6r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Nov 2012 19:58:47 -0500
+Received: by mail-yh0-f74.google.com with SMTP id 10so121781yhl.1
+        for <mm-commits@vger.kernel.org>; Wed, 14 Nov 2012 16:58:46 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, walken@google.com
+Cc: glommer@parallels.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, rientjes@google.com
 
 
 The patch titled
-     Subject: arch/sparc/kernel/sys_sparc_64.c: s/COLOUR/COLOR/
+     Subject: memcg: replace __always_inline with plain inline
 has been added to the -mm tree.  Its filename is
-     arch-sparc-kernel-sys_sparc_64c-s-colour-color.patch
+     memcg-kmem-controller-infrastructure-replace-__always_inline-with-plain-inline.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,112 +33,102 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arch/sparc/kernel/sys_sparc_64.c: s/COLOUR/COLOR/
+From: Glauber Costa <glommer@parallels.com>
+Subject: memcg: replace __always_inline with plain inline
 
-Consistently spell this word across arch/sparc/mm and arch/sparc/kernel
+Following the pattern found in the allocators, where we do our best to the
+fast paths function-call free, all the externally visible functions for
+kmemcg were marked __always_inline.
 
-Cc: David Miller <davem@davemloft.net>
-Cc: Michel Lespinasse <walken@google.com>
+It is fair to say, however, that this should be up to the compiler.  We
+will still keep as much of the flag testing as we can in memcontrol.h to
+give the compiler the option to inline it, but won't force it.
+
+I tested this with 4.7.2, it will inline all three functions anyway when
+compiling with -O2, and will refrain from it when compiling with -Os. 
+This seems like a good behavior.
+
+Signed-off-by: Glauber Costa <glommer@parallels.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/kernel/sys_sparc_64.c |    6 +++---
+ include/linux/memcontrol.h |    6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/sparc/kernel/sys_sparc_64.c~arch-sparc-kernel-sys_sparc_64c-s-colour-color arch/sparc/kernel/sys_sparc_64.c
---- a/arch/sparc/kernel/sys_sparc_64.c~arch-sparc-kernel-sys_sparc_64c-s-colour-color
-+++ a/arch/sparc/kernel/sys_sparc_64.c
-@@ -75,7 +75,7 @@ static inline int invalid_64bit_range(un
-  *    the spitfire/niagara VA-hole.
+diff -puN include/linux/memcontrol.h~memcg-kmem-controller-infrastructure-replace-__always_inline-with-plain-inline include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-kmem-controller-infrastructure-replace-__always_inline-with-plain-inline
++++ a/include/linux/memcontrol.h
+@@ -444,7 +444,7 @@ void __memcg_kmem_uncharge_pages(struct 
+  * We return true automatically if this allocation is not to be accounted to
+  * any memcg.
   */
- 
--static inline unsigned long COLOUR_ALIGN(unsigned long addr,
-+static inline unsigned long COLOR_ALIGN(unsigned long addr,
- 					 unsigned long pgoff)
+-static __always_inline bool
++static inline bool
+ memcg_kmem_newpage_charge(gfp_t gfp, struct mem_cgroup **memcg, int order)
  {
- 	unsigned long base = (addr+SHMLBA-1)&~(SHMLBA-1);
-@@ -113,7 +113,7 @@ unsigned long arch_get_unmapped_area(str
- 
- 	if (addr) {
- 		if (do_color_align)
--			addr = COLOUR_ALIGN(addr, pgoff);
-+			addr = COLOR_ALIGN(addr, pgoff);
- 		else
- 			addr = PAGE_ALIGN(addr);
- 
-@@ -176,7 +176,7 @@ arch_get_unmapped_area_topdown(struct fi
- 	/* requesting a specific address */
- 	if (addr) {
- 		if (do_color_align)
--			addr = COLOUR_ALIGN(addr, pgoff);
-+			addr = COLOR_ALIGN(addr, pgoff);
- 		else
- 			addr = PAGE_ALIGN(addr);
- 
+ 	if (!memcg_kmem_enabled())
+@@ -476,7 +476,7 @@ memcg_kmem_newpage_charge(gfp_t gfp, str
+  *
+  * there is no need to specify memcg here, since it is embedded in page_cgroup
+  */
+-static __always_inline void
++static inline void
+ memcg_kmem_uncharge_pages(struct page *page, int order)
+ {
+ 	if (memcg_kmem_enabled())
+@@ -494,7 +494,7 @@ memcg_kmem_uncharge_pages(struct page *p
+  * charges. Otherwise, it will commit the memcg given by @memcg to the
+  * corresponding page_cgroup.
+  */
+-static __always_inline void
++static inline void
+ memcg_kmem_commit_charge(struct page *page, struct mem_cgroup *memcg, int order)
+ {
+ 	if (memcg_kmem_enabled() && memcg)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from glommer@parallels.com are
 
 linux-next.patch
-linux-next-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-swapfile-fix-name-leak-in-swapoff-fix.patch
-cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-irq-tsk-comm-is-an-array.patch
-drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch
-mm.patch
-mm-introduce-mm_find_pmd-fix.patch
-memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
-slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
-mmvmscan-only-evict-file-pages-when-we-have-plenty-fix.patch
+memcg-make-it-possible-to-use-the-stock-for-more-than-one-page.patch
+memcg-reclaim-when-more-than-one-page-needed.patch
+memcg-change-defines-to-an-enum.patch
+memcg-kmem-accounting-basic-infrastructure.patch
+mm-add-a-__gfp_kmemcg-flag.patch
+memcg-kmem-controller-infrastructure.patch
+memcg-kmem-controller-infrastructure-replace-__always_inline-with-plain-inline.patch
+mm-allocate-kernel-pages-to-the-right-memcg.patch
+res_counter-return-amount-of-charges-after-res_counter_uncharge.patch
+memcg-kmem-accounting-lifecycle-management.patch
+memcg-use-static-branches-when-code-not-in-use.patch
+memcg-allow-a-memcg-with-kmem-charges-to-be-destructed.patch
+memcg-execute-the-whole-memcg-freeing-in-free_worker.patch
+fork-protect-architectures-where-thread_size-=-page_size-against-fork-bombs.patch
+memcg-add-documentation-about-the-kmem-controller.patch
+slab-slub-struct-memcg_params.patch
+slab-annotate-on-slab-caches-nodelist-locks.patch
+slab-slub-consider-a-memcg-parameter-in-kmem_create_cache.patch
+memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears.patch
+memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears-simplify-ida-initialization.patch
+memcg-infrastructure-to-match-an-allocation-to-the-right-cache.patch
+memcg-skip-memcg-kmem-allocations-in-specified-code-regions.patch
+memcg-skip-memcg-kmem-allocations-in-specified-code-regions-remove-test-for-current-mm-in-memcg_stop-resume_kmem_account.patch
+slb-always-get-the-cache-from-its-page-in-kmem_cache_free.patch
+slb-allocate-objects-from-memcg-cache.patch
+memcg-destroy-memcg-caches.patch
+memcg-destroy-memcg-caches-move-include-of-workqueueh-to-top-of-slabh-file.patch
+memcg-slb-track-all-the-memcg-children-of-a-kmem_cache.patch
+memcg-slb-shrink-dead-caches.patch
+memcg-slb-shrink-dead-caches-get-rid-of-once-per-second-cache-shrinking-for-dead-memcgs.patch
+memcg-aggregate-memcg-cache-values-in-slabinfo.patch
+slab-propagate-tunable-values.patch
+slub-slub-specific-propagation-changes.patch
 slub-slub-specific-propagation-changes-fix.patch
-dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch
-mm-check-rb_subtree_gap-correctness-fix.patch
-mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
-mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
-mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
-mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
-mm-use-vm_unmapped_area-on-arm-architecture-fix-fix.patch
-mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc32-architecture-fix.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
-arch-sparc-kernel-sys_sparc_64c-s-colour-color.patch
-mm-adjust-address_space_operationsmigratepage-return-code-fix.patch
-mm-introduce-a-common-interface-for-balloon-pages-mobility-fix.patch
-virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
-virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix.patch
-bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
-mm-export-a-function-to-get-vm-committed-memory-fix.patch
-mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch
-drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-maintainers-add-joe-to-checkpatch-maintainers.patch
-binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
-rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
-hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
-procfs-add-vmflags-field-in-smaps-output-v4.patch
-procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
-ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
-ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
-ipc-convert-prepare_copy-from-macro-to-function-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+kmem-add-slab-specific-documentation-about-the-kmem-controller.patch
+memcg-add-comments-clarifying-aspects-of-cache-attribute-propagation.patch
+slub-drop-mutex-before-deleting-sysfs-entry.patch
 
