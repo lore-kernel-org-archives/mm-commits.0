@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + thp-huge-zero-page-basic-preparation-v6.patch added to -mm tree
-Date: Thu, 15 Nov 2012 12:49:22 -0800
-Message-ID: <20121115204923.B471020004E@hpza10.eem.corp.google.com>
+Subject: + documentation-sysctl-kerneltxt-document-proc-sys-shmall.patch added to -mm tree
+Date: Thu, 15 Nov 2012 13:38:21 -0800
+Message-ID: <20121115213821.B31C91000FF@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:35852 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750710Ab2KOVTD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 16:19:03 -0500
-Received: by mail-bk0-f74.google.com with SMTP id je9so1458bkc.1
-        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 13:19:01 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:57410 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750906Ab2KOViX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 16:38:23 -0500
+Received: by mail-gg0-f202.google.com with SMTP id i4so227419ggm.1
+        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 13:38:22 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kirill.shutemov@linux.intel.com, aarcange@redhat.com, ak@linux.intel.com, hpa@linux.intel.com, mel@csn.ul.ie, rientjes@google.com
+Cc: clopez@igalia.com, Larry.Finger@lwfinger.net, mitsuo.hayasaka.hu@hitachi.com, nhorman@tuxdriver.com, rob@landley.net, tj@kernel.org
 
 
 The patch titled
-     Subject: thp-huge-zero-page-basic-preparation-v6
+     Subject: Documentation/sysctl/kernel.txt: document /proc/sys/shmall
 has been added to the -mm tree.  Its filename is
-     thp-huge-zero-page-basic-preparation-v6.patch
+     documentation-sysctl-kerneltxt-document-proc-sys-shmall.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,68 +33,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp-huge-zero-page-basic-preparation-v6
+From: Carlos Alberto Lopez Perez <clopez@igalia.com>
+Subject: Documentation/sysctl/kernel.txt: document /proc/sys/shmall
 
-Huge zero page (hzp) is a non-movable huge page (2M on x86-64) filled
-with zeros.
-
-For now let's allocate the page on hugepage_init(). We'll switch to lazy
-allocation later.
-
-We are not going to map the huge zero page until we can handle it
-properly on all code paths.
-
-is_huge_zero_{pfn,pmd}() functions will be used by following patches to
-check whether the pfn/pmd is huge zero page.
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: "H. Peter Anvin" <hpa@linux.intel.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Carlos Alberto Lopez Perez <clopez@igalia.com>
+Cc: Rob Landley <rob@landley.net>
+Cc: Larry Finger <Larry.Finger@lwfinger.net>
+Cc: Neil Horman <nhorman@tuxdriver.com>
+Cc: Mitsuo Hayasaka <mitsuo.hayasaka.hu@hitachi.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/sysctl/kernel.txt |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN mm/huge_memory.c~thp-huge-zero-page-basic-preparation-v6 mm/huge_memory.c
---- a/mm/huge_memory.c~thp-huge-zero-page-basic-preparation-v6
-+++ a/mm/huge_memory.c
-@@ -161,7 +161,7 @@ static int start_khugepaged(void)
- 	return err;
- }
+diff -puN Documentation/sysctl/kernel.txt~documentation-sysctl-kerneltxt-document-proc-sys-shmall Documentation/sysctl/kernel.txt
+--- a/Documentation/sysctl/kernel.txt~documentation-sysctl-kerneltxt-document-proc-sys-shmall
++++ a/Documentation/sysctl/kernel.txt
+@@ -561,6 +561,19 @@ are doing anyway :)
  
--static int init_huge_zero_page(void)
-+static int __init init_huge_zero_page(void)
- {
- 	struct page *hpage;
+ ==============================================================
  
++shmall:
++
++This parameter sets the total amount of shared memory pages that
++can be used system wide. Hence, SHMALL should always be at least
++ceil(shmmax/PAGE_SIZE).
++
++If you are not sure what the default PAGE_SIZE is on your Linux
++system, you can run the following command:
++
++# getconf PAGE_SIZE
++
++==============================================================
++
+ shmmax:
+ 
+ This value can be used to query and set the run time limit
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from clopez@igalia.com are
 
-linux-next.patch
-mm-use-is_enabledconfig_numa-instead-of-numa_build.patch
-mm-use-is_enabledconfig_compaction-instead-of-compaction_build.patch
-thp-huge-zero-page-basic-preparation.patch
-thp-huge-zero-page-basic-preparation-v6.patch
-thp-zap_huge_pmd-zap-huge-zero-pmd.patch
-thp-copy_huge_pmd-copy-huge-zero-page.patch
-thp-copy_huge_pmd-copy-huge-zero-page-v6.patch
-thp-do_huge_pmd_wp_page-handle-huge-zero-page.patch
-thp-do_huge_pmd_wp_page-handle-huge-zero-page-v6.patch
-thp-change_huge_pmd-keep-huge-zero-page-write-protected.patch
-thp-change-split_huge_page_pmd-interface.patch
-thp-change-split_huge_page_pmd-interface-v6.patch
-thp-implement-splitting-pmd-for-huge-zero-page.patch
-thp-implement-splitting-pmd-for-huge-zero-page-v6.patch
-thp-setup-huge-zero-page-on-non-write-page-fault.patch
-thp-lazy-huge-zero-page-allocation.patch
-thp-implement-refcounting-for-huge-zero-page.patch
-thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events.patch
-thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6.patch
-thp-introduce-sysfs-knob-to-disable-huge-zero-page.patch
+documentation-sysctl-kerneltxt-document-proc-sys-shmall.patch
 
