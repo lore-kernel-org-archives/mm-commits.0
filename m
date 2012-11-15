@@ -1,135 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] mm-export-a-function-to-get-vm-committed-memory.patch removed from -mm tree
-Date: Thu, 15 Nov 2012 14:29:33 -0800
-Message-ID: <20121115222934.6F3CA2000BA@hpza10.eem.corp.google.com>
+Subject: [folded-dropped] mm-export-a-function-to-get-vm-committed-memory-fix.patch removed from -mm tree
+Date: Thu, 15 Nov 2012 14:33:32 -0800
+Message-ID: <20121115223333.222512001BD@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:45063 "EHLO
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:48099 "EHLO
 	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750832Ab2KOW3h (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 17:29:37 -0500
-Received: by mail-fa0-f74.google.com with SMTP id w1so141430fad.1
-        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 14:29:36 -0800 (PST)
+	with ESMTP id S1750712Ab2KOWdf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 17:33:35 -0500
+Received: by mail-fa0-f74.google.com with SMTP id w1so141544fad.1
+        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 14:33:34 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kys@microsoft.com, dan.magenheimer@oracle.com, greg@kroah.com, jeremy@goop.org, konrad.wilk@oracle.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kys@microsoft.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: export a function to get vm committed memory
+     Subject: mm-export-a-function-to-get-vm-committed-memory-fix
 has been removed from the -mm tree.  Its filename was
-     mm-export-a-function-to-get-vm-committed-memory.patch
+     mm-export-a-function-to-get-vm-committed-memory-fix.patch
 
-This patch was dropped because it was folded into mm-highmem-dont-treat-pkmap_addrlast_pkmap-as-a-highmem-address.patch
+This patch was dropped because it was folded into mm-export-a-function-to-get-vm-committed-memory.patch
 
 ------------------------------------------------------
-From: "K. Y. Srinivasan" <kys@microsoft.com>
-Subject: mm: export a function to get vm committed memory
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-export-a-function-to-get-vm-committed-memory-fix
 
-It will be useful to be able to access global memory commitment from
-device drivers.  On the Hyper-V platform, the host has a policy engine to
-balance the available physical memory amongst all competing virtual
-machines hosted on a given node.  This policy engine is driven by a number
-of metrics including the memory commitment reported by the guests.  The
-balloon driver for Linux on Hyper-V will use this function to retrieve
-guest memory commitment.  This function is also used in Xen self
-ballooning code.
+coding-style tweak
 
-Signed-off-by: K. Y. Srinivasan <kys@microsoft.com>
-Cc: Greg KH <greg@kroah.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: Dan Magenheimer <dan.magenheimer@oracle.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: "K. Y. Srinivasan" <kys@microsoft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/xen/xen-selfballoon.c |    2 +-
- include/linux/mman.h          |    2 ++
- mm/mmap.c                     |   15 +++++++++++++++
- mm/nommu.c                    |   16 ++++++++++++++++
- 4 files changed, 34 insertions(+), 1 deletion(-)
+ mm/mmap.c  |    1 -
+ mm/nommu.c |    1 -
+ 2 files changed, 2 deletions(-)
 
-diff -puN drivers/xen/xen-selfballoon.c~mm-export-a-function-to-get-vm-committed-memory drivers/xen/xen-selfballoon.c
---- a/drivers/xen/xen-selfballoon.c~mm-export-a-function-to-get-vm-committed-memory
-+++ a/drivers/xen/xen-selfballoon.c
-@@ -222,7 +222,7 @@ static void selfballoon_process(struct w
- 	if (xen_selfballooning_enabled) {
- 		cur_pages = totalram_pages;
- 		tgt_pages = cur_pages; /* default is no change */
--		goal_pages = percpu_counter_read_positive(&vm_committed_as) +
-+		goal_pages = vm_memory_committed() +
- 				totalreserve_pages +
- 				MB2PAGES(selfballoon_reserved_mb);
- #ifdef CONFIG_FRONTSWAP
-diff -puN include/linux/mman.h~mm-export-a-function-to-get-vm-committed-memory include/linux/mman.h
---- a/include/linux/mman.h~mm-export-a-function-to-get-vm-committed-memory
-+++ a/include/linux/mman.h
-@@ -11,6 +11,8 @@ extern int sysctl_overcommit_memory;
- extern int sysctl_overcommit_ratio;
- extern struct percpu_counter vm_committed_as;
- 
-+unsigned long vm_memory_committed(void);
-+
- static inline void vm_acct_memory(long pages)
- {
- 	percpu_counter_add(&vm_committed_as, pages);
-diff -puN mm/mmap.c~mm-export-a-function-to-get-vm-committed-memory mm/mmap.c
---- a/mm/mmap.c~mm-export-a-function-to-get-vm-committed-memory
+diff -puN mm/mmap.c~mm-export-a-function-to-get-vm-committed-memory-fix mm/mmap.c
+--- a/mm/mmap.c~mm-export-a-function-to-get-vm-committed-memory-fix
 +++ a/mm/mmap.c
-@@ -90,6 +90,21 @@ int sysctl_max_map_count __read_mostly =
- struct percpu_counter vm_committed_as ____cacheline_aligned_in_smp;
- 
- /*
-+ * The global memory commitment made in the system can be a metric
-+ * that can be used to drive ballooning decisions when Linux is hosted
-+ * as a guest. On Hyper-V, the host implements a policy engine for dynamically
-+ * balancing memory across competing virtual machines that are hosted.
-+ * Several metrics drive this policy engine including the guest reported
-+ * memory commitment.
-+ */
-+
-+unsigned long vm_memory_committed(void)
-+{
-+	return percpu_counter_read_positive(&vm_committed_as);
-+}
-+EXPORT_SYMBOL_GPL(vm_memory_committed);
-+
-+/*
-  * Check that a process has enough memory to allocate a new virtual
-  * mapping. 0 means there is enough memory for the allocation to
-  * succeed and -ENOMEM implies there is not.
-diff -puN mm/nommu.c~mm-export-a-function-to-get-vm-committed-memory mm/nommu.c
---- a/mm/nommu.c~mm-export-a-function-to-get-vm-committed-memory
+@@ -97,7 +97,6 @@ struct percpu_counter vm_committed_as __
+  * Several metrics drive this policy engine including the guest reported
+  * memory commitment.
+  */
+-
+ unsigned long vm_memory_committed(void)
+ {
+ 	return percpu_counter_read_positive(&vm_committed_as);
+diff -puN mm/nommu.c~mm-export-a-function-to-get-vm-committed-memory-fix mm/nommu.c
+--- a/mm/nommu.c~mm-export-a-function-to-get-vm-committed-memory-fix
 +++ a/mm/nommu.c
-@@ -66,6 +66,22 @@ int heap_stack_gap = 0;
- 
- atomic_long_t mmap_pages_allocated;
- 
-+/*
-+ * The global memory commitment made in the system can be a metric
-+ * that can be used to drive ballooning decisions when Linux is hosted
-+ * as a guest. On Hyper-V, the host implements a policy engine for dynamically
-+ * balancing memory across competing virtual machines that are hosted.
-+ * Several metrics drive this policy engine including the guest reported
-+ * memory commitment.
-+ */
-+
-+unsigned long vm_memory_committed(void)
-+{
-+	return percpu_counter_read_positive(&vm_committed_as);
-+}
-+
-+EXPORT_SYMBOL_GPL(vm_memory_committed);
-+
- EXPORT_SYMBOL(mem_map);
- EXPORT_SYMBOL(num_physpages);
- 
+@@ -74,7 +74,6 @@ atomic_long_t mmap_pages_allocated;
+  * Several metrics drive this policy engine including the guest reported
+  * memory commitment.
+  */
+-
+ unsigned long vm_memory_committed(void)
+ {
+ 	return percpu_counter_read_positive(&vm_committed_as);
 _
 
-Patches currently in -mm which might be from kys@microsoft.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-highmem-dont-treat-pkmap_addrlast_pkmap-as-a-highmem-address.patch
-mm-export-a-function-to-get-vm-committed-memory-fix.patch
+swapfile-fix-name-leak-in-swapoff-fix.patch
+mm-export-a-function-to-get-vm-committed-memory.patch
 linux-next.patch
+linux-next-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+revert-mm-fix-up-zone-present-pages.patch
+cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+irq-tsk-comm-is-an-array.patch
+drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch
+mm.patch
+mm-introduce-mm_find_pmd-fix.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
+slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
+mmvmscan-only-evict-file-pages-when-we-have-plenty-fix.patch
+slub-slub-specific-propagation-changes-fix.patch
+dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch
+mm-check-rb_subtree_gap-correctness-fix.patch
+mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
+mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
+mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
+mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
+mm-use-vm_unmapped_area-on-arm-architecture-fix-fix.patch
+mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc32-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc32-architecture-fix-fix.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
+arch-sparc-kernel-sys_sparc_64c-s-colour-color.patch
+bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
+mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch
+drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+maintainers-add-joe-to-checkpatch-maintainers.patch
+binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
+rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
+hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
+procfs-add-vmflags-field-in-smaps-output-v4.patch
+procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
+ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
+ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
+ipc-convert-prepare_copy-from-macro-to-function-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+thp-copy_huge_pmd-copy-huge-zero-page-v6-fix.patch
 
