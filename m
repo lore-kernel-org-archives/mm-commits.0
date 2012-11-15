@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + thp-introduce-sysfs-knob-to-disable-huge-zero-page.patch added to -mm tree
-Date: Thu, 15 Nov 2012 12:49:47 -0800
-Message-ID: <20121115204948.494E4100047@wpzn3.hot.corp.google.com>
+Subject: + mm-highmem-dont-treat-pkmap_addrlast_pkmap-as-a-highmem-address.patch added to -mm tree
+Date: Thu, 15 Nov 2012 14:19:29 -0800
+Message-ID: <20121115221929.960AF1001CA@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:39517 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751764Ab2KOVzQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 16:55:16 -0500
-Received: by mail-vc0-f202.google.com with SMTP id fy27so229703vcb.1
-        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 13:55:15 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:46811 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750729Ab2KOWTa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 17:19:30 -0500
+Received: by mail-qc0-f202.google.com with SMTP id s25so232440qcq.1
+        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 14:19:30 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kirill.shutemov@linux.intel.com, aarcange@redhat.com, ak@linux.intel.com, hpa@linux.intel.com, mel@csn.ul.ie, rientjes@google.com
+Cc: will.deacon@arm.com, mgorman@suse.de
 
 
 The patch titled
-     Subject: thp: introduce sysfs knob to disable huge zero page
+     Subject: mm: highmem: don't treat PKMAP_ADDR(LAST_PKMAP) as a highmem address
 has been added to the -mm tree.  Its filename is
-     thp-introduce-sysfs-knob-to-disable-huge-zero-page.patch
+     mm-highmem-dont-treat-pkmap_addrlast_pkmap-as-a-highmem-address.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,143 +33,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: introduce sysfs knob to disable huge zero page
+From: Will Deacon <will.deacon@arm.com>
+Subject: mm: highmem: don't treat PKMAP_ADDR(LAST_PKMAP) as a highmem address
 
-By default kernel tries to use huge zero page on read page fault.  It's
-possible to disable huge zero page by writing 0 or enable it back by
-writing 1:
+kmap_to_page returns the corresponding struct page for a virtual address
+of an arbitrary mapping.  This works by checking whether the address falls
+in the pkmap region and using the pkmap page tables instead of the linear
+mapping if appropriate.
 
-echo 0 >/sys/kernel/mm/transparent_hugepage/khugepaged/use_zero_page
-echo 1 >/sys/kernel/mm/transparent_hugepage/khugepaged/use_zero_page
+Unfortunately, the bounds checking means that PKMAP_ADDR(LAST_PKMAP) is
+incorrectly treated as a highmem address and we can end up walking off the
+end of pkmap_page_table and subsequently passing junk to pte_page.
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: "H. Peter Anvin" <hpa@linux.intel.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: David Rientjes <rientjes@google.com>
+This patch fixes the bound check to stay within the pkmap tables.
+
+Signed-off-by: Will Deacon <will.deacon@arm.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/transhuge.txt |    7 +++++++
- include/linux/huge_mm.h        |    4 ++++
- mm/huge_memory.c               |   21 +++++++++++++++++++--
- 3 files changed, 30 insertions(+), 2 deletions(-)
+ mm/highmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/vm/transhuge.txt~thp-introduce-sysfs-knob-to-disable-huge-zero-page Documentation/vm/transhuge.txt
---- a/Documentation/vm/transhuge.txt~thp-introduce-sysfs-knob-to-disable-huge-zero-page
-+++ a/Documentation/vm/transhuge.txt
-@@ -116,6 +116,13 @@ echo always >/sys/kernel/mm/transparent_
- echo madvise >/sys/kernel/mm/transparent_hugepage/defrag
- echo never >/sys/kernel/mm/transparent_hugepage/defrag
+diff -puN mm/highmem.c~mm-highmem-dont-treat-pkmap_addrlast_pkmap-as-a-highmem-address mm/highmem.c
+--- a/mm/highmem.c~mm-highmem-dont-treat-pkmap_addrlast_pkmap-as-a-highmem-address
++++ a/mm/highmem.c
+@@ -98,7 +98,7 @@ struct page *kmap_to_page(void *vaddr)
+ {
+ 	unsigned long addr = (unsigned long)vaddr;
  
-+By default kernel tries to use huge zero page on read page fault.
-+It's possible to disable huge zero page by writing 0 or enable it
-+back by writing 1:
-+
-+echo 0 >/sys/kernel/mm/transparent_hugepage/khugepaged/use_zero_page
-+echo 1 >/sys/kernel/mm/transparent_hugepage/khugepaged/use_zero_page
-+
- khugepaged will be automatically started when
- transparent_hugepage/enabled is set to "always" or "madvise, and it'll
- be automatically shutdown if it's set to "never".
-diff -puN include/linux/huge_mm.h~thp-introduce-sysfs-knob-to-disable-huge-zero-page include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~thp-introduce-sysfs-knob-to-disable-huge-zero-page
-+++ a/include/linux/huge_mm.h
-@@ -39,6 +39,7 @@ enum transparent_hugepage_flag {
- 	TRANSPARENT_HUGEPAGE_DEFRAG_FLAG,
- 	TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG,
- 	TRANSPARENT_HUGEPAGE_DEFRAG_KHUGEPAGED_FLAG,
-+	TRANSPARENT_HUGEPAGE_USE_ZERO_PAGE_FLAG,
- #ifdef CONFIG_DEBUG_VM
- 	TRANSPARENT_HUGEPAGE_DEBUG_COW_FLAG,
- #endif
-@@ -78,6 +79,9 @@ extern bool is_vma_temporary_stack(struc
- 	 (transparent_hugepage_flags &					\
- 	  (1<<TRANSPARENT_HUGEPAGE_DEFRAG_REQ_MADV_FLAG) &&		\
- 	  (__vma)->vm_flags & VM_HUGEPAGE))
-+#define transparent_hugepage_use_zero_page()				\
-+	(transparent_hugepage_flags &					\
-+	 (1<<TRANSPARENT_HUGEPAGE_USE_ZERO_PAGE_FLAG))
- #ifdef CONFIG_DEBUG_VM
- #define transparent_hugepage_debug_cow()				\
- 	(transparent_hugepage_flags &					\
-diff -puN mm/huge_memory.c~thp-introduce-sysfs-knob-to-disable-huge-zero-page mm/huge_memory.c
---- a/mm/huge_memory.c~thp-introduce-sysfs-knob-to-disable-huge-zero-page
-+++ a/mm/huge_memory.c
-@@ -40,7 +40,8 @@ unsigned long transparent_hugepage_flags
- 	(1<<TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG)|
- #endif
- 	(1<<TRANSPARENT_HUGEPAGE_DEFRAG_FLAG)|
--	(1<<TRANSPARENT_HUGEPAGE_DEFRAG_KHUGEPAGED_FLAG);
-+	(1<<TRANSPARENT_HUGEPAGE_DEFRAG_KHUGEPAGED_FLAG)|
-+	(1<<TRANSPARENT_HUGEPAGE_USE_ZERO_PAGE_FLAG);
- 
- /* default scan 8*512 pte (or vmas) every 30 second */
- static unsigned int khugepaged_pages_to_scan __read_mostly = HPAGE_PMD_NR*8;
-@@ -358,6 +359,20 @@ static ssize_t defrag_store(struct kobje
- static struct kobj_attribute defrag_attr =
- 	__ATTR(defrag, 0644, defrag_show, defrag_store);
- 
-+static ssize_t use_zero_page_show(struct kobject *kobj,
-+		struct kobj_attribute *attr, char *buf)
-+{
-+	return single_flag_show(kobj, attr, buf,
-+				TRANSPARENT_HUGEPAGE_USE_ZERO_PAGE_FLAG);
-+}
-+static ssize_t use_zero_page_store(struct kobject *kobj,
-+		struct kobj_attribute *attr, const char *buf, size_t count)
-+{
-+	return single_flag_store(kobj, attr, buf, count,
-+				 TRANSPARENT_HUGEPAGE_USE_ZERO_PAGE_FLAG);
-+}
-+static struct kobj_attribute use_zero_page_attr =
-+	__ATTR(use_zero_page, 0644, use_zero_page_show, use_zero_page_store);
- #ifdef CONFIG_DEBUG_VM
- static ssize_t debug_cow_show(struct kobject *kobj,
- 				struct kobj_attribute *attr, char *buf)
-@@ -379,6 +394,7 @@ static struct kobj_attribute debug_cow_a
- static struct attribute *hugepage_attr[] = {
- 	&enabled_attr.attr,
- 	&defrag_attr.attr,
-+	&use_zero_page_attr.attr,
- #ifdef CONFIG_DEBUG_VM
- 	&debug_cow_attr.attr,
- #endif
-@@ -780,7 +796,8 @@ int do_huge_pmd_anonymous_page(struct mm
- 			return VM_FAULT_OOM;
- 		if (unlikely(khugepaged_enter(vma)))
- 			return VM_FAULT_OOM;
--		if (!(flags & FAULT_FLAG_WRITE)) {
-+		if (!(flags & FAULT_FLAG_WRITE) &&
-+				transparent_hugepage_use_zero_page()) {
- 			pgtable_t pgtable;
- 			unsigned long zero_pfn;
- 			pgtable = pte_alloc_one(mm, haddr);
+-	if (addr >= PKMAP_ADDR(0) && addr <= PKMAP_ADDR(LAST_PKMAP)) {
++	if (addr >= PKMAP_ADDR(0) && addr < PKMAP_ADDR(LAST_PKMAP)) {
+ 		int i = (addr - PKMAP_ADDR(0)) >> PAGE_SHIFT;
+ 		return pte_page(pkmap_page_table[i]);
+ 	}
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from will.deacon@arm.com are
 
+mm-highmem-dont-treat-pkmap_addrlast_pkmap-as-a-highmem-address.patch
 linux-next.patch
-mm-use-is_enabledconfig_numa-instead-of-numa_build.patch
-mm-use-is_enabledconfig_compaction-instead-of-compaction_build.patch
-thp-huge-zero-page-basic-preparation.patch
-thp-huge-zero-page-basic-preparation-v6.patch
-thp-zap_huge_pmd-zap-huge-zero-pmd.patch
-thp-copy_huge_pmd-copy-huge-zero-page.patch
-thp-copy_huge_pmd-copy-huge-zero-page-v6.patch
-thp-do_huge_pmd_wp_page-handle-huge-zero-page.patch
-thp-do_huge_pmd_wp_page-handle-huge-zero-page-v6.patch
-thp-change_huge_pmd-keep-huge-zero-page-write-protected.patch
-thp-change-split_huge_page_pmd-interface.patch
-thp-change-split_huge_page_pmd-interface-v6.patch
-thp-implement-splitting-pmd-for-huge-zero-page.patch
-thp-implement-splitting-pmd-for-huge-zero-page-v6.patch
-thp-setup-huge-zero-page-on-non-write-page-fault.patch
-thp-lazy-huge-zero-page-allocation.patch
-thp-implement-refcounting-for-huge-zero-page.patch
-thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events.patch
-thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6.patch
-thp-introduce-sysfs-knob-to-disable-huge-zero-page.patch
+mm-thp-set-the-accessed-flag-for-old-pages-on-access-fault.patch
 
