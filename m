@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears-simplify-ida-initialization.patch added to -mm tree
-Date: Wed, 14 Nov 2012 16:58:56 -0800
-Message-ID: <20121115005857.1D181100047@wpzn3.hot.corp.google.com>
+Subject: + memcg-skip-memcg-kmem-allocations-in-specified-code-regions-remove-test-for-current-mm-in-memcg_stop-resume_kmem_account.patch added to -mm tree
+Date: Wed, 14 Nov 2012 16:59:01 -0800
+Message-ID: <20121115005902.998A320004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:57947 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946032Ab2KOA66 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Nov 2012 19:58:58 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z15so121642ghb.1
-        for <mm-commits@vger.kernel.org>; Wed, 14 Nov 2012 16:58:58 -0800 (PST)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:60409 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1946032Ab2KOA7G (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Nov 2012 19:59:06 -0500
+Received: by mail-wg0-f74.google.com with SMTP id dt14so72330wgb.1
+        for <mm-commits@vger.kernel.org>; Wed, 14 Nov 2012 16:59:04 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: glommer@parallels.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, m
 
 
 The patch titled
-     Subject: memcg: simplify ida initialization
+     Subject: memcg: remove test for current->mm in memcg_stop/resume_kmem_account
 has been added to the -mm tree.  Its filename is
-     memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears-simplify-ida-initialization.patch
+     memcg-skip-memcg-kmem-allocations-in-specified-code-regions-remove-test-for-current-mm-in-memcg_stop-resume_kmem_account.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,21 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Glauber Costa <glommer@parallels.com>
-Subject: memcg: simplify ida initialization
+Subject: memcg: remove test for current->mm in memcg_stop/resume_kmem_account
 
-As suggested by akpm, change the manual initialization of our kmem
-index to DEFINE_IDA()
+The original reason for the existence of this test, was that
+memcg_kmem_cache_create could be called from either softirq context (where
+memcg_stop/resume_account is not needed), or process context, (where
+memcg_stop/resume_account is needed).  Just skipping it in-function was
+the cleanest way to merge both behaviors.  The reason for that is that we
+would try to create caches right away through memcg_kmem_cache_create if
+the context would allow us to.
+
+However, the final version of the code that merged did not have this
+behavior and we always queue up new cache creation.  Thus, instead of a
+comment explaining why current->mm test is needed, my proposal in this
+patch is to remove memcg_stop/resume_account from the worker thread and
+make sure all callers have a valid mm context.
 
 Signed-off-by: Glauber Costa <glommer@parallels.com>
 Cc: Michal Hocko <mhocko@suse.cz>
@@ -47,31 +58,44 @@ Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ mm/memcontrol.c |   12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears-simplify-ida-initialization mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears-simplify-ida-initialization
+diff -puN mm/memcontrol.c~memcg-skip-memcg-kmem-allocations-in-specified-code-regions-remove-test-for-current-mm-in-memcg_stop-resume_kmem_account mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-skip-memcg-kmem-allocations-in-specified-code-regions-remove-test-for-current-mm-in-memcg_stop-resume_kmem_account
 +++ a/mm/memcontrol.c
-@@ -569,7 +569,7 @@ static void disarm_sock_keys(struct mem_
-  * memcg_limited_groups_array_size.  It will double each time we have to
-  * increase it.
+@@ -3047,17 +3047,13 @@ out:
   */
--static struct ida kmem_limited_groups;
-+static DEFINE_IDA(kmem_limited_groups);
- static int memcg_limited_groups_array_size;
- /*
-  * MIN_SIZE is different than 1, because we would like to avoid going through
-@@ -5250,9 +5250,6 @@ static int memcg_init_kmem(struct mem_cg
- 	if (ret)
- 		return ret;
- 
--	if (mem_cgroup_is_root(memcg))
--		ida_init(&kmem_limited_groups);
+ static inline void memcg_stop_kmem_account(void)
+ {
+-	if (!current->mm)
+-		return;
 -
- 	return mem_cgroup_sockets_init(memcg, ss);
- };
++	VM_BUG_ON(!current->mm);
+ 	current->memcg_kmem_skip_account++;
+ }
  
+ static inline void memcg_resume_kmem_account(void)
+ {
+-	if (!current->mm)
+-		return;
+-
++	VM_BUG_ON(!current->mm);
+ 	current->memcg_kmem_skip_account--;
+ }
+ 
+@@ -3119,11 +3115,7 @@ static struct kmem_cache *memcg_create_k
+ 	if (new_cachep)
+ 		goto out;
+ 
+-	/* Don't block progress to enqueue caches for internal infrastructure */
+-	memcg_stop_kmem_account();
+ 	new_cachep = kmem_cache_dup(memcg, cachep);
+-	memcg_resume_kmem_account();
+-
+ 	if (new_cachep == NULL) {
+ 		new_cachep = cachep;
+ 		goto out;
 _
 
 Patches currently in -mm which might be from glommer@parallels.com are
