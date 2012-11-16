@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + tmpfs-fix-shmem_getpage_gfp-vm_bug_on-fix.patch added to -mm tree
-Date: Fri, 16 Nov 2012 11:54:09 -0800
-Message-ID: <20121116195410.07F85200057@hpza10.eem.corp.google.com>
+Subject: + virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix.patch added to -mm tree
+Date: Fri, 16 Nov 2012 12:37:19 -0800
+Message-ID: <20121116203720.A487720004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:65207 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751044Ab2KPTyM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Nov 2012 14:54:12 -0500
-Received: by mail-ee0-f74.google.com with SMTP id t10so202824eei.1
-        for <mm-commits@vger.kernel.org>; Fri, 16 Nov 2012 11:54:11 -0800 (PST)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:49379 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751712Ab2KPUhW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Nov 2012 15:37:22 -0500
+Received: by mail-fa0-f74.google.com with SMTP id w1so203029fad.1
+        for <mm-commits@vger.kernel.org>; Fri, 16 Nov 2012 12:37:21 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hughd@google.com, davej@redhat.com, hannes@cmpxchg.com
+Cc: yongjun_wei@trendmicro.com.cn
 
 
 The patch titled
-     Subject: tmpfs: fix shmem_getpage_gfp VM_BUG_ON fix
+     Subject: virtio: balloon: fix missing unlock on error in fill_balloon()
 has been added to the -mm tree.  Its filename is
-     tmpfs-fix-shmem_getpage_gfp-vm_bug_on-fix.patch
+     virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,79 +33,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: tmpfs: fix shmem_getpage_gfp VM_BUG_ON fix
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Subject: virtio: balloon: fix missing unlock on error in fill_balloon()
 
-We're still hoping to hear back from Dave Jones, but either way, please
-fold this patch into the earlier fix for 3.7 and -stable.
+Add the missing unlock before return from function fill_balloon()
+in the error handling case.
 
-Remove its VM_BUG_ON: because either it's as I believe, a tautology
-which cannot happen, and does not assert what I'd intended when I put
-it in,and would even be wrong if it did (a non-NULL entry can validly
-materialize there); or Dave actually hit it on his updated kernel,
-in which case more research will be needed, but for upstream we
-do not want a user to BUG there.
+Introduced by 9864a8 ("virtio_balloon: introduce migration primitives to
+balloon pages").
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Dave Jones <davej@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.com>
+dpatch engine is used to auto generate this patch.
+(https://github.com/weiyj/dpatch)
+
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/virtio/virtio_balloon.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/shmem.c~tmpfs-fix-shmem_getpage_gfp-vm_bug_on-fix mm/shmem.c
---- a/mm/shmem.c~tmpfs-fix-shmem_getpage_gfp-vm_bug_on-fix
-+++ a/mm/shmem.c
-@@ -1157,10 +1157,8 @@ repeat:
- 			 * Reset swap.val? No, leave it so "failed" goes back to
- 			 * "repeat": reading a hole and writing should succeed.
- 			 */
--			if (error) {
--				VM_BUG_ON(error != -ENOENT);
-+			if (error)
- 				delete_from_swap_cache(page);
--			}
- 		}
- 		if (error)
- 			goto failed;
+diff -puN drivers/virtio/virtio_balloon.c~virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix drivers/virtio/virtio_balloon.c
+--- a/drivers/virtio/virtio_balloon.c~virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix
++++ a/drivers/virtio/virtio_balloon.c
+@@ -152,8 +152,10 @@ static void fill_balloon(struct virtio_b
+ 	}
+ 
+ 	/* Didn't get any?  Oh well. */
+-	if (vb->num_pfns == 0)
++	if (vb->num_pfns == 0) {
++		mutex_unlock(&vb->balloon_lock);
+ 		return;
++	}
+ 
+ 	tell_host(vb, vb->inflate_vq);
+ 	mutex_unlock(&vb->balloon_lock);
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from yongjun_wei@trendmicro.com.cn are
 
-memcg-fix-hotplugged-memory-zone-oops.patch
+origin.patch
 linux-next.patch
-tmpfs-fix-shmem_getpage_gfp-vm_bug_on.patch
-tmpfs-fix-shmem_getpage_gfp-vm_bug_on-fix.patch
-tmpfs-change-final-i_blocks-bug-to-warning.patch
-mm-add-comment-on-storage-key-dirty-bit-semantics.patch
-mm-refactor-reinsert-of-swap_info-in-sys_swapoff.patch
-mm-do-not-call-frontswap_init-during-swapoff.patch
-mm-augment-vma-rbtree-with-rb_subtree_gap.patch
-mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-inserting-new-vma.patch
-mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-removing-vma.patch
-mm-augment-vma-rbtree-with-rb_subtree_gap--debug-code-to-verify-rb_subtree_gap-updates-are-safe.patch
-mm-check-rb_subtree_gap-correctness.patch
-mm-check-rb_subtree_gap-correctness-fix.patch
-mm-rearrange-vm_area_struct-for-fewer-cache-misses.patch
-mm-vm_unmapped_area-lookup-function.patch
-mm-use-vm_unmapped_area-on-x86_64-architecture.patch
-mm-fix-cache-coloring-on-x86_64-architecture.patch
-mm-use-vm_unmapped_area-in-hugetlbfs.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
-mm-use-vm_unmapped_area-on-mips-architecture.patch
-mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
-mm-use-vm_unmapped_area-on-arm-architecture.patch
-mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sh-architecture.patch
-mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc32-architecture.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture.patch
-mm-use-vm_unmapped_area-on-sparc64-architecture.patch
-mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-sparc64-architecture.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix.patch
+procfs-use-kbasename-fix.patch
+rtc-avoid-calling-platform_device_put-twice-in-test_init.patch
+rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
 
