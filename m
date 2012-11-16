@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + vmstat-use-n_memory-instead-n_high_memory.patch added to -mm tree
-Date: Thu, 15 Nov 2012 16:35:03 -0800
-Message-ID: <20121116003504.8C831200059@hpza10.eem.corp.google.com>
+Subject: + kthread-use-n_memory-instead-n_high_memory.patch added to -mm tree
+Date: Thu, 15 Nov 2012 16:35:08 -0800
+Message-ID: <20121116003509.AFCE220004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:44297 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751050Ab2KPAfI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 19:35:08 -0500
-Received: by mail-lb0-f202.google.com with SMTP id i15so147939lbo.1
-        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 16:35:06 -0800 (PST)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:48430 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751050Ab2KPAfM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 19:35:12 -0500
+Received: by mail-fa0-f74.google.com with SMTP id w1so144733fad.1
+        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 16:35:11 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: laijs@cn.fujitsu.com, cl@linux.com, dhillf@gmail.com, linfeng@cn.fujitsu.com
 
 
 The patch titled
-     Subject: vmstat: use N_MEMORY instead N_HIGH_MEMORY
+     Subject: kthread: use N_MEMORY instead N_HIGH_MEMORY
 has been added to the -mm tree.  Its filename is
-     vmstat-use-n_memory-instead-n_high_memory.patch
+     kthread-use-n_memory-instead-n_high_memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Lai Jiangshan <laijs@cn.fujitsu.com>
-Subject: vmstat: use N_MEMORY instead N_HIGH_MEMORY
+Subject: kthread: use N_MEMORY instead N_HIGH_MEMORY
 
 N_HIGH_MEMORY stands for the nodes that has normal or high memory.
 N_MEMORY stands for the nodes that has any memory.
@@ -43,38 +43,29 @@ The code here need to handle with the nodes which have memory, we should
 use N_MEMORY instead.
 
 Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-Acked-by: Christoph Lameter <cl@linux.com>
 Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Christoph Lameter <cl@linux.com>
 Cc: Hillf Danton <dhillf@gmail.com>
 Cc: Lin Feng <linfeng@cn.fujitsu.com>
 Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/kthread.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmstat.c~vmstat-use-n_memory-instead-n_high_memory mm/vmstat.c
---- a/mm/vmstat.c~vmstat-use-n_memory-instead-n_high_memory
-+++ a/mm/vmstat.c
-@@ -939,7 +939,7 @@ static int pagetypeinfo_show(struct seq_
- 	pg_data_t *pgdat = (pg_data_t *)arg;
+diff -puN kernel/kthread.c~kthread-use-n_memory-instead-n_high_memory kernel/kthread.c
+--- a/kernel/kthread.c~kthread-use-n_memory-instead-n_high_memory
++++ a/kernel/kthread.c
+@@ -428,7 +428,7 @@ int kthreadd(void *unused)
+ 	set_task_comm(tsk, "kthreadd");
+ 	ignore_signals(tsk);
+ 	set_cpus_allowed_ptr(tsk, cpu_all_mask);
+-	set_mems_allowed(node_states[N_HIGH_MEMORY]);
++	set_mems_allowed(node_states[N_MEMORY]);
  
- 	/* check memoryless node */
--	if (!node_state(pgdat->node_id, N_HIGH_MEMORY))
-+	if (!node_state(pgdat->node_id, N_MEMORY))
- 		return 0;
+ 	current->flags |= PF_NOFREEZE;
  
- 	seq_printf(m, "Page block order: %d\n", pageblock_order);
-@@ -1301,7 +1301,7 @@ static int unusable_show(struct seq_file
- 	pg_data_t *pgdat = (pg_data_t *)arg;
- 
- 	/* check memoryless node */
--	if (!node_state(pgdat->node_id, N_HIGH_MEMORY))
-+	if (!node_state(pgdat->node_id, N_MEMORY))
- 		return 0;
- 
- 	walk_zones_in_node(m, pgdat, unusable_show_print);
 _
 
 Patches currently in -mm which might be from laijs@cn.fujitsu.com are
