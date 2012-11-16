@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + fs-eventfd-add-procfs-fdinfo-helper.patch added to -mm tree
-Date: Fri, 16 Nov 2012 15:56:37 -0800
-Message-ID: <20121116235637.735B2100047@wpzn3.hot.corp.google.com>
+Subject: + fs-epoll-add-procfs-fdinfo-helper-v2.patch added to -mm tree
+Date: Fri, 16 Nov 2012 15:56:41 -0800
+Message-ID: <20121116235641.DB32220004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:49082 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753693Ab2KPX4j (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Nov 2012 18:56:39 -0500
-Received: by mail-yh0-f74.google.com with SMTP id 10so365973yhl.1
-        for <mm-commits@vger.kernel.org>; Fri, 16 Nov 2012 15:56:39 -0800 (PST)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:58379 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753651Ab2KPX4q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Nov 2012 18:56:46 -0500
+Received: by mail-bk0-f74.google.com with SMTP id je9so71608bkc.1
+        for <mm-commits@vger.kernel.org>; Fri, 16 Nov 2012 15:56:44 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: gorcunov@openvz.org, adobriyan@gmail.com, aneesh.kumar@linux.vnet.ibm.com, a
 
 
 The patch titled
-     Subject: fs, eventfd: add procfs fdinfo helper
+     Subject: fs, epoll: add procfs fdinfo helper
 has been added to the -mm tree.  Its filename is
-     fs-eventfd-add-procfs-fdinfo-helper.patch
+     fs-epoll-add-procfs-fdinfo-helper-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Cyrill Gorcunov <gorcunov@openvz.org>
-Subject: fs, eventfd: add procfs fdinfo helper
+Subject: fs, epoll: add procfs fdinfo helper
 
-This allows us to print out raw counter value.  The /proc/pid/fdinfo/fd
-output is
+This allows us to print out eventpoll target file descriptor, events and
+data, the /proc/pid/fdinfo/fd consists of
 
  | pos:	0
- | flags:	04002
- | eventfd-count:               5a
+ | flags:	02
+ | tfd:        5 events:       1d data: ffffffffffffffff enabled: 1
+
+[avagin@: fix for unitialized ret variable]
 
 Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
 Acked-by: Pavel Emelyanov <xemul@parallels.com>
@@ -59,47 +61,57 @@ Cc: Tvrtko Ursulin <tvrtko.ursulin@onelan.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventfd.c |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ fs/eventpoll.c |   29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
 
-diff -puN fs/eventfd.c~fs-eventfd-add-procfs-fdinfo-helper fs/eventfd.c
---- a/fs/eventfd.c~fs-eventfd-add-procfs-fdinfo-helper
-+++ a/fs/eventfd.c
-@@ -19,6 +19,8 @@
- #include <linux/export.h>
- #include <linux/kref.h>
- #include <linux/eventfd.h>
+diff -puN fs/eventpoll.c~fs-epoll-add-procfs-fdinfo-helper-v2 fs/eventpoll.c
+--- a/fs/eventpoll.c~fs-epoll-add-procfs-fdinfo-helper-v2
++++ a/fs/eventpoll.c
+@@ -38,6 +38,8 @@
+ #include <asm/io.h>
+ #include <asm/mman.h>
+ #include <linux/atomic.h>
 +#include <linux/proc_fs.h>
 +#include <linux/seq_file.h>
  
- struct eventfd_ctx {
- 	struct kref kref;
-@@ -284,7 +286,25 @@ static ssize_t eventfd_write(struct file
- 	return res;
+ /*
+  * LOCKING:
+@@ -813,8 +815,35 @@ static unsigned int ep_eventpoll_poll(st
+ 	return pollflags != -1 ? pollflags : 0;
  }
  
 +#ifdef CONFIG_PROC_FS
-+static int eventfd_show_fdinfo(struct seq_file *m, struct file *f)
++static int ep_show_fdinfo(struct seq_file *m, struct file *f)
 +{
-+	struct eventfd_ctx *ctx = f->private_data;
-+	int ret;
++	struct eventpoll *ep = f->private_data;
++	struct rb_node *rbp;
++	int ret = 0;
 +
-+	spin_lock_irq(&ctx->wqh.lock);
-+	ret = seq_printf(m, "eventfd-count: %16llx\n",
-+			 (unsigned long long)ctx->count);
-+	spin_unlock_irq(&ctx->wqh.lock);
++	mutex_lock(&ep->mtx);
++	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
++		struct epitem *epi = rb_entry(rbp, struct epitem, rbn);
++
++		ret = seq_printf(m, "tfd: %8d events: %8x data: %16llx enabled: %d\n",
++				 epi->ffd.fd, epi->event.events,
++				 (long long)epi->event.data,
++				 ep_is_linked(&epi->rdllink));
++		if (ret)
++			break;
++	}
++	mutex_unlock(&ep->mtx);
 +
 +	return ret;
 +}
 +#endif
 +
- static const struct file_operations eventfd_fops = {
+ /* File callbacks that implement the eventpoll file behaviour */
+ static const struct file_operations eventpoll_fops = {
 +#ifdef CONFIG_PROC_FS
-+	.show_fdinfo	= eventfd_show_fdinfo,
++	.show_fdinfo	= ep_show_fdinfo,
 +#endif
- 	.release	= eventfd_release,
- 	.poll		= eventfd_poll,
- 	.read		= eventfd_read,
+ 	.release	= ep_eventpoll_release,
+ 	.poll		= ep_eventpoll_poll,
+ 	.llseek		= noop_llseek,
 _
 
 Patches currently in -mm which might be from gorcunov@openvz.org are
