@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch added to -mm tree
-Date: Fri, 16 Nov 2012 14:04:45 -0800
-Message-ID: <20121116220445.EB31E10004A@wpzn3.hot.corp.google.com>
+Subject: + drivers-video-backlight-pandora_blc-change-twl4030_module_pwm0-to-twl_module_pwm.patch added to -mm tree
+Date: Fri, 16 Nov 2012 14:07:00 -0800
+Message-ID: <20121116220700.A8D7C100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:42337 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753419Ab2KPWEs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Nov 2012 17:04:48 -0500
-Received: by mail-gg0-f202.google.com with SMTP id i4so354802ggm.1
-        for <mm-commits@vger.kernel.org>; Fri, 16 Nov 2012 14:04:47 -0800 (PST)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:37290 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753419Ab2KPWHB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Nov 2012 17:07:01 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z10so90172ghb.1
+        for <mm-commits@vger.kernel.org>; Fri, 16 Nov 2012 14:07:01 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeff.liu@oracle.com, aedilger@gmail.com, akpm@linux-foundation.org, alan@linux.intel.com, arnn@arndb.de, drepper@redhat.com, gregkh@linuxfoundation.org, jakub@redhat.com, james.l.morris@oracle.com, john.sobecki@oracle.com, keescook@chromium.org, tytso@mit.edu, viro@zeniv.linux.org.uk
+Cc: peter.ujfalusi@ti.com, FlorianSchandinat@gmx.de, jg1.han@samsung.com, notasas@gmail.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: binfmt_elf.c: use get_random_int() to fix entropy depleting
+     Subject: drivers/video/backlight/pandora_bl.c: change TWL4030_MODULE_PWM0 to TWL_MODULE_PWM
 has been added to the -mm tree.  Its filename is
-     binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+     drivers-video-backlight-pandora_blc-change-twl4030_module_pwm0-to-twl_module_pwm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,104 +33,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jeff Liu <jeff.liu@oracle.com>
-Subject: binfmt_elf.c: use get_random_int() to fix entropy depleting
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: drivers/video/backlight/pandora_bl.c: change TWL4030_MODULE_PWM0 to TWL_MODULE_PWM
 
-Entropy is quickly depleted under normal operations like ls(1), cat(1),
-etc...  between 2.6.30 to current mainline, for instance:
+TWL_MODULE_PWM is defined as:
+#define TWL_MODULE_PWM		TWL4030_MODULE_PWM0
 
-$ cat /proc/sys/kernel/random/entropy_avail
-3428
-$ cat /proc/sys/kernel/random/entropy_avail
-2911
-$cat /proc/sys/kernel/random/entropy_avail
-2620
+Use the common module ID define here which will facilitate the upcoming
+twl-core cleanup.
 
-We observed this problem has been occurring since 2.6.30 with
-fs/binfmt_elf.c: create_elf_tables()->get_random_bytes(), introduced by
-f06295b44c296c8f ("ELF: implement AT_RANDOM for glibc PRNG seeding").
-
-/*
- * Generate 16 random bytes for userspace PRNG seeding.
- */
-get_random_bytes(k_rand_bytes, sizeof(k_rand_bytes));
-
-The patch introduces a wrapper around get_random_int() which has lower
-overhead than calling get_random_bytes() directly.
-
-With this patch applied:
-$ cat /proc/sys/kernel/random/entropy_avail
-2731
-$ cat /proc/sys/kernel/random/entropy_avail
-2802
-$ cat /proc/sys/kernel/random/entropy_avail
-2878
-
-Analyzed by John Sobecki.
-
-Signed-off-by: Jie Liu <jeff.liu@oracle.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andreas Dilger <aedilger@gmail.com>
-Cc: Alan Cox <alan@linux.intel.com>
-Cc: Arnd Bergmann <arnn@arndb.de>
-Cc: John Sobecki <john.sobecki@oracle.com>
-Cc: James Morris <james.l.morris@oracle.com>
-Cc: Jakub Jelinek <jakub@redhat.com>
-Cc: Ted Ts'o <tytso@mit.edu>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Ulrich Drepper <drepper@redhat.com>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Acked-by: Jingoo Han <jg1.han@samsung.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: Grazvydas Ignotas <notasas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |   21 ++++++++++++++++++++-
- 1 file changed, 20 insertions(+), 1 deletion(-)
+ drivers/video/backlight/pandora_bl.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN fs/binfmt_elf.c~binfmt_elfc-use-get_random_int-to-fix-entropy-depleting fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~binfmt_elfc-use-get_random_int-to-fix-entropy-depleting
-+++ a/fs/binfmt_elf.c
-@@ -139,6 +139,25 @@ static int padzero(unsigned long elf_bss
- #define ELF_BASE_PLATFORM NULL
- #endif
+diff -puN drivers/video/backlight/pandora_bl.c~drivers-video-backlight-pandora_blc-change-twl4030_module_pwm0-to-twl_module_pwm drivers/video/backlight/pandora_bl.c
+--- a/drivers/video/backlight/pandora_bl.c~drivers-video-backlight-pandora_blc-change-twl4030_module_pwm0-to-twl_module_pwm
++++ a/drivers/video/backlight/pandora_bl.c
+@@ -71,8 +71,7 @@ static int pandora_backlight_update_stat
+ 		 * set PWM duty cycle to max. TPS61161 seems to use this
+ 		 * to calibrate it's PWM sensitivity when it starts.
+ 		 */
+-		twl_i2c_write_u8(TWL4030_MODULE_PWM0, MAX_VALUE,
+-					TWL_PWM0_OFF);
++		twl_i2c_write_u8(TWL_MODULE_PWM, MAX_VALUE, TWL_PWM0_OFF);
  
-+/*
-+ * Use get_random_int() to implement AT_RANDOM while avoiding depletion
-+ * of the entropy pool.
-+ */
-+static void get_atrandom_bytes(unsigned char *buf, size_t nbytes)
-+{
-+	unsigned char *p = buf;
-+
-+	while (nbytes) {
-+		unsigned int random_variable;
-+		size_t chunk = min(nbytes, sizeof(random_variable));
-+
-+		random_variable = get_random_int();
-+		memcpy(p, &random_variable, chunk);
-+		p += chunk;
-+		nbytes -= chunk;
-+	}
-+}
-+
- static int
- create_elf_tables(struct linux_binprm *bprm, struct elfhdr *exec,
- 		unsigned long load_addr, unsigned long interp_load_addr)
-@@ -200,7 +219,7 @@ create_elf_tables(struct linux_binprm *b
- 	/*
- 	 * Generate 16 random bytes for userspace PRNG seeding.
- 	 */
--	get_random_bytes(k_rand_bytes, sizeof(k_rand_bytes));
-+	get_atrandom_bytes(k_rand_bytes, sizeof(k_rand_bytes));
- 	u_rand_bytes = (elf_addr_t __user *)
- 		       STACK_ALLOC(p, sizeof(k_rand_bytes));
- 	if (__copy_to_user(u_rand_bytes, k_rand_bytes, sizeof(k_rand_bytes)))
+ 		/* first enable clock, then PWM0 out */
+ 		twl_i2c_read_u8(TWL4030_MODULE_INTBR, &r, TWL_INTBR_GPBR1);
+@@ -90,8 +89,7 @@ static int pandora_backlight_update_stat
+ 		usleep_range(2000, 10000);
+ 	}
+ 
+-	twl_i2c_write_u8(TWL4030_MODULE_PWM0, MIN_VALUE + brightness,
+-				TWL_PWM0_OFF);
++	twl_i2c_write_u8(TWL_MODULE_PWM, MIN_VALUE + brightness, TWL_PWM0_OFF);
+ 
+ done:
+ 	if (brightness != 0)
+@@ -132,7 +130,7 @@ static int pandora_backlight_probe(struc
+ 	platform_set_drvdata(pdev, bl);
+ 
+ 	/* 64 cycle period, ON position 0 */
+-	twl_i2c_write_u8(TWL4030_MODULE_PWM0, 0x80, TWL_PWM0_ON);
++	twl_i2c_write_u8(TWL_MODULE_PWM, 0x80, TWL_PWM0_ON);
+ 
+ 	bl->props.state |= PANDORABL_WAS_OFF;
+ 	bl->props.brightness = MAX_USER_VALUE;
 _
 
-Patches currently in -mm which might be from jeff.liu@oracle.com are
+Patches currently in -mm which might be from peter.ujfalusi@ti.com are
 
+origin.patch
 linux-next.patch
-documentation-cgroups-memorytxt-s-mem_cgroup_charge-mem_cgroup_change_common.patch
-mm-vmscanc-try_to_freeze-returns-boolean.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+drivers-video-backlight-pandora_blc-change-twl4030_module_pwm0-to-twl_module_pwm.patch
 
