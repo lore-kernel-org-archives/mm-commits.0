@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers.patch added to -mm tree
-Date: Fri, 16 Nov 2012 15:56:33 -0800
-Message-ID: <20121116235634.60D93100047@wpzn3.hot.corp.google.com>
+Subject: + fs-eventfd-add-procfs-fdinfo-helper.patch added to -mm tree
+Date: Fri, 16 Nov 2012 15:56:37 -0800
+Message-ID: <20121116235637.735B2100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:63410 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753553Ab2KPX4g (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Nov 2012 18:56:36 -0500
-Received: by mail-gg0-f202.google.com with SMTP id i4so364523ggm.1
-        for <mm-commits@vger.kernel.org>; Fri, 16 Nov 2012 15:56:35 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:49082 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753693Ab2KPX4j (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Nov 2012 18:56:39 -0500
+Received: by mail-yh0-f74.google.com with SMTP id 10so365973yhl.1
+        for <mm-commits@vger.kernel.org>; Fri, 16 Nov 2012 15:56:39 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: gorcunov@openvz.org, adobriyan@gmail.com, aneesh.kumar@linux.vnet.ibm.com, a
 
 
 The patch titled
-     Subject: procfs: add ability to plug in auxiliary fdinfo providers
+     Subject: fs, eventfd: add procfs fdinfo helper
 has been added to the -mm tree.  Its filename is
-     procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers.patch
+     fs-eventfd-add-procfs-fdinfo-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,17 +34,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Cyrill Gorcunov <gorcunov@openvz.org>
-Subject: procfs: add ability to plug in auxiliary fdinfo providers
+Subject: fs, eventfd: add procfs fdinfo helper
 
-This patch brings ability to print out auxiliary data associated
-with file in procfs interface /proc/pid/fdinfo/fd.
+This allows us to print out raw counter value.  The /proc/pid/fdinfo/fd
+output is
 
-In particular further patches make eventfd, evenpoll, signalfd
-and fsnotify to print additional information complete enough
-to restore these objects after checkpoint.
-
-To simplify the code we add show_fdinfo callback inside
-struct file_operations (as Al and Pavel are proposing).
+ | pos:	0
+ | flags:	04002
+ | eventfd-count:               5a
 
 Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
 Acked-by: Pavel Emelyanov <xemul@parallels.com>
@@ -62,43 +59,63 @@ Cc: Tvrtko Ursulin <tvrtko.ursulin@onelan.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/fd.c       |    2 ++
- include/linux/fs.h |    4 ++--
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ fs/eventfd.c |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff -puN fs/proc/fd.c~procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers fs/proc/fd.c
---- a/fs/proc/fd.c~procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers
-+++ a/fs/proc/fd.c
-@@ -50,6 +50,8 @@ static int seq_show(struct seq_file *m, 
- 	if (!ret) {
-                 seq_printf(m, "pos:\t%lli\nflags:\t0%o\n",
- 			   (long long)file->f_pos, f_flags);
-+		if (file->f_op->show_fdinfo)
-+			ret = file->f_op->show_fdinfo(m, file);
- 		fput(file);
- 	}
+diff -puN fs/eventfd.c~fs-eventfd-add-procfs-fdinfo-helper fs/eventfd.c
+--- a/fs/eventfd.c~fs-eventfd-add-procfs-fdinfo-helper
++++ a/fs/eventfd.c
+@@ -19,6 +19,8 @@
+ #include <linux/export.h>
+ #include <linux/kref.h>
+ #include <linux/eventfd.h>
++#include <linux/proc_fs.h>
++#include <linux/seq_file.h>
  
-diff -puN include/linux/fs.h~procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers include/linux/fs.h
---- a/include/linux/fs.h~procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers
-+++ a/include/linux/fs.h
-@@ -44,6 +44,7 @@ struct vm_area_struct;
- struct vfsmount;
- struct cred;
- struct swap_info_struct;
-+struct seq_file;
+ struct eventfd_ctx {
+ 	struct kref kref;
+@@ -284,7 +286,25 @@ static ssize_t eventfd_write(struct file
+ 	return res;
+ }
  
- extern void __init inode_init(void);
- extern void __init inode_init_early(void);
-@@ -1545,6 +1546,7 @@ struct file_operations {
- 	int (*setlease)(struct file *, long, struct file_lock **);
- 	long (*fallocate)(struct file *file, int mode, loff_t offset,
- 			  loff_t len);
-+	int (*show_fdinfo)(struct seq_file *m, struct file *f);
- };
- 
- struct inode_operations {
-@@ -1580,8 +1582,6 @@ struct inode_operations {
- 			   umode_t create_mode, int *opened);
- } ____cacheline_aligned;
- 
--struct seq_file;
++#ifdef CONFIG_PROC_FS
++static int eventfd_show_fdinfo(struct seq_file *m, struct file *f)
++{
++	struct eventfd_ctx *ctx = f->private_data;
++	int ret;
++
++	spin_lock_irq(&ctx->wqh.lock);
++	ret = seq_printf(m, "eventfd-count: %16llx\n",
++			 (unsigned long long)ctx->count);
++	spin_unlock_irq(&ctx->wqh.lock);
++
++	return ret;
++}
++#endif
++
+ static const struct file_operations eventfd_fops = {
++#ifdef CONFIG_PROC_FS
++	.show_fdinfo	= eventfd_show_fdinfo,
++#endif
+ 	.release	= eventfd_release,
+ 	.poll		= eventfd_poll,
+ 	.read		= eventfd_read,
+_
+
+Patches currently in -mm which might be from gorcunov@openvz.org are
+
+linux-next.patch
+proc-check-vma-vm_file-before-dereferencing.patch
+procfs-add-vmflags-field-in-smaps-output-v4.patch
+procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
+proc-pid-status-add-seccomp-field.patch
+tools-testing-selftests-kcmp-kcmp_testc-print-reason-for-failure-in-kcmp_test.patch
+procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers.patch
+fs-eventfd-add-procfs-fdinfo-helper.patch
+fs-epoll-add-procfs-fdinfo-helper-v2.patch
+fdinfo-show-sigmask-for-signalfd-fd-v3.patch
+fs-exportfs-escape-nil-dereference-if-no-s_export_op-present.patch
+fs-exportfs-add-exportfs_encode_inode_fh-helper.patch
+fs-notify-add-procfs-fdinfo-helper-v6.patch
+fs-notify-add-procfs-fdinfo-helper-v6-fix.patch
+
