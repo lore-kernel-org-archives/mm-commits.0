@@ -1,76 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-add-of_find_backlight_by_node-function-fix.patch added to -mm tree
-Date: Fri, 16 Nov 2012 13:16:59 -0800
-Message-ID: <20121116211700.A8A7B20004E@hpza10.eem.corp.google.com>
+Subject: [withdrawn] maintainers-add-joe-to-checkpatch-maintainers.patch removed from -mm tree
+Date: Fri, 16 Nov 2012 13:57:28 -0800
+Message-ID: <20121116215729.40531100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:63184 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753625Ab2KPVRE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Nov 2012 16:17:04 -0500
-Received: by mail-wg0-f74.google.com with SMTP id dt14so204711wgb.1
-        for <mm-commits@vger.kernel.org>; Fri, 16 Nov 2012 13:17:02 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:43789 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753268Ab2KPV5a (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Nov 2012 16:57:30 -0500
+Received: by mail-yh0-f74.google.com with SMTP id 10so355398yhl.1
+        for <mm-commits@vger.kernel.org>; Fri, 16 Nov 2012 13:57:29 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jg1.han@samsung.com, thierry.reding@avionic-design.de
+To: akpm@linux-foundation.org, apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight-add-of_find_backlight_by_node-function-fix
-has been added to the -mm tree.  Its filename is
-     backlight-add-of_find_backlight_by_node-function-fix.patch
+     Subject: MAINTAINERS: add Joe to checkpatch maintainers
+has been removed from the -mm tree.  Its filename was
+     maintainers-add-joe-to-checkpatch-maintainers.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: backlight-add-of_find_backlight_by_node-function-fix
+Subject: MAINTAINERS: add Joe to checkpatch maintainers
 
-Don't use IS_ENABLED(CONFIG_OF)
-
-Cc: Jingoo Han <jg1.han@samsung.com>
-Cc: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/backlight.c |    2 +-
- include/linux/backlight.h           |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/video/backlight/backlight.c~backlight-add-of_find_backlight_by_node-function-fix drivers/video/backlight/backlight.c
---- a/drivers/video/backlight/backlight.c~backlight-add-of_find_backlight_by_node-function-fix
-+++ a/drivers/video/backlight/backlight.c
-@@ -370,7 +370,7 @@ void backlight_device_unregister(struct 
- }
- EXPORT_SYMBOL(backlight_device_unregister);
+diff -puN MAINTAINERS~maintainers-add-joe-to-checkpatch-maintainers MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-joe-to-checkpatch-maintainers
++++ a/MAINTAINERS
+@@ -1887,6 +1887,7 @@ F:	drivers/misc/*
  
--#if IS_ENABLED(CONFIG_OF)
-+#ifdef CONFIG_OF
- static int of_parent_match(struct device *dev, void *data)
- {
- 	return dev->parent && dev->parent->of_node == data;
-diff -puN include/linux/backlight.h~backlight-add-of_find_backlight_by_node-function-fix include/linux/backlight.h
---- a/include/linux/backlight.h~backlight-add-of_find_backlight_by_node-function-fix
-+++ a/include/linux/backlight.h
-@@ -134,7 +134,7 @@ struct generic_bl_info {
- 	void (*kick_battery)(void);
- };
+ CHECKPATCH
+ M:	Andy Whitcroft <apw@canonical.com>
++M:	Joe Perches <joe@perches.com>
+ S:	Supported
+ F:	scripts/checkpatch.pl
  
--#if IS_ENABLED(CONFIG_OF)
-+#ifdef CONFIG_OF
- struct backlight_device *of_find_backlight_by_node(struct device_node *node);
- #else
- static inline struct backlight_device *
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -121,7 +95,6 @@ drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
 backlight-add-of_find_backlight_by_node-function-fix.patch
 drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
 drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-maintainers-add-joe-to-checkpatch-maintainers.patch
 binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
 rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
 hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
