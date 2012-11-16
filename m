@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch added to -mm tree
-Date: Fri, 16 Nov 2012 12:37:22 -0800
-Message-ID: <20121116203723.87B0420004E@hpza10.eem.corp.google.com>
+Subject: + virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix.patch added to -mm tree
+Date: Fri, 16 Nov 2012 12:37:26 -0800
+Message-ID: <20121116203727.05E35100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f74.google.com ([209.85.215.74]:42833 "EHLO
-	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751712Ab2KPUh0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Nov 2012 15:37:26 -0500
-Received: by mail-la0-f74.google.com with SMTP id v3so202640lag.1
-        for <mm-commits@vger.kernel.org>; Fri, 16 Nov 2012 12:37:24 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:55082 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753484Ab2KPUh2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Nov 2012 15:37:28 -0500
+Received: by mail-vb0-f74.google.com with SMTP id s24so345812vbi.1
+        for <mm-commits@vger.kernel.org>; Fri, 16 Nov 2012 12:37:27 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akpm@linux-foundation.org, aquini@redhat.com, yongjun_wei@trendmicro.com.cn
 
 
 The patch titled
-     Subject: virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix
+     Subject: virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix
 has been added to the -mm tree.  Its filename is
-     virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
+     virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix
+Subject: virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix
 
-avoid having multiple return points in fill_balloon()
+drivers/virtio/virtio_balloon.c: In function 'fill_balloon':
+drivers/virtio/virtio_balloon.c:142:4: warning: format '%zu' expects argument of type 'size_t', but argument 3 has type 'long unsigned int' [-Wformat]
 
-Cc: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+The type of PAGE_SIZE is different on different architectures (or at
+least, it used to be).  Make things predictable.
+
 Cc: Rafael Aquini <aquini@redhat.com>
+Cc: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/virtio/virtio_balloon.c |   10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ drivers/virtio/virtio_balloon.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/virtio/virtio_balloon.c~virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix drivers/virtio/virtio_balloon.c
---- a/drivers/virtio/virtio_balloon.c~virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix
+diff -puN drivers/virtio/virtio_balloon.c~virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix drivers/virtio/virtio_balloon.c
+--- a/drivers/virtio/virtio_balloon.c~virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix
 +++ a/drivers/virtio/virtio_balloon.c
-@@ -151,13 +151,9 @@ static void fill_balloon(struct virtio_b
- 		totalram_pages--;
- 	}
+@@ -34,7 +34,7 @@
+  * multiple balloon pages.  All memory counters in this driver are in balloon
+  * page units.
+  */
+-#define VIRTIO_BALLOON_PAGES_PER_PAGE (PAGE_SIZE >> VIRTIO_BALLOON_PFN_SHIFT)
++#define VIRTIO_BALLOON_PAGES_PER_PAGE (unsigned)(PAGE_SIZE >> VIRTIO_BALLOON_PFN_SHIFT)
+ #define VIRTIO_BALLOON_ARRAY_PFNS_MAX 256
  
--	/* Didn't get any?  Oh well. */
--	if (vb->num_pfns == 0) {
--		mutex_unlock(&vb->balloon_lock);
--		return;
--	}
--
--	tell_host(vb, vb->inflate_vq);
-+	/* Did we get any? */
-+	if (vb->num_pfns != 0)
-+		tell_host(vb, vb->inflate_vq);
- 	mutex_unlock(&vb->balloon_lock);
- }
+ struct virtio_balloon
+@@ -140,7 +140,7 @@ static void fill_balloon(struct virtio_b
  
+ 		if (!page) {
+ 			dev_info_ratelimited(&vb->vdev->dev,
+-					     "Out of puff! Can't get %zu pages\n",
++					   "Out of puff! Can't get %u pages\n",
+ 					     VIRTIO_BALLOON_PAGES_PER_PAGE);
+ 			/* Sleep for at least 1/5 of a second before retry. */
+ 			msleep(200);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
