@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-usb-gadget-amd5536udcc-avoid-calling-dma_pool_create-with-null-dev.patch added to -mm tree
-Date: Thu, 15 Nov 2012 15:15:17 -0800
-Message-ID: <20121115231517.B02FC100047@wpzn3.hot.corp.google.com>
+Subject: + node_states-introduce-n_memory.patch added to -mm tree
+Date: Thu, 15 Nov 2012 16:34:19 -0800
+Message-ID: <20121116003420.5C76120004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:35465 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750792Ab2KOXPT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 18:15:19 -0500
-Received: by mail-vc0-f202.google.com with SMTP id fy27so239048vcb.1
-        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 15:15:18 -0800 (PST)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:36884 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750784Ab2KPAeX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 19:34:23 -0500
+Received: by mail-bk0-f74.google.com with SMTP id je9so7360bkc.1
+        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 16:34:22 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xi.wang@gmail.com, balbi@ti.com, greg@kroah.com
+Cc: laijs@cn.fujitsu.com, cl@linux.com, dhillf@gmail.com, linfeng@cn.fujitsu.com, rientjes@google.com, wency@cn.fujitsu.com
 
 
 The patch titled
-     Subject: drivers/usb/gadget/amd5536udc.c: avoid calling dma_pool_create() with NULL dev
+     Subject: mm: node_states: introduce N_MEMORY
 has been added to the -mm tree.  Its filename is
-     drivers-usb-gadget-amd5536udcc-avoid-calling-dma_pool_create-with-null-dev.patch
+     node_states-introduce-n_memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,65 +33,117 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xi Wang <xi.wang@gmail.com>
-Subject: drivers/usb/gadget/amd5536udc.c: avoid calling dma_pool_create() with NULL dev
+From: Lai Jiangshan <laijs@cn.fujitsu.com>
+Subject: mm: node_states: introduce N_MEMORY
 
-Calling dma_pool_create() with dev==NULL will oops on a NUMA machine. 
-Rather than changing dma_pool_create() we wish to disallow passing
-dev==NULL.  This requires fixing up the small number of drivers which are
-passing in dev==NULL.
+We have N_NORMAL_MEMORY for standing for the nodes that have normal memory
+with zone_type <= ZONE_NORMAL.
 
-Use &dev->pdev->dev instead of NULL.
+And we have N_HIGH_MEMORY for standing for the nodes that have normal or
+high memory.
 
-Signed-off-by: Xi Wang <xi.wang@gmail.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Greg KH <greg@kroah.com>
+But we don't have any word to stand for the nodes that have *any* memory.
+
+And we have N_CPU but without N_MEMORY.
+
+Current code reuse the N_HIGH_MEMORY for this purpose because any node
+which has memory must have high memory or normal memory currently.
+
+A)	But this reusing is bad for *readability*. Because the name
+	N_HIGH_MEMORY just stands for high or normal:
+
+A.example 1)
+	mem_cgroup_nr_lru_pages():
+		for_each_node_state(nid, N_HIGH_MEMORY)
+
+	The user will be confused(why this function just counts for high or
+	normal memory node? does it counts for ZONE_MOVABLE's lru pages?)
+	until someone else tell them N_HIGH_MEMORY is reused to stand for
+	nodes that have any memory.
+
+A.cont) If we introduce N_MEMORY, we can reduce this confusing
+	AND make the code more clearly:
+
+A.example 2) mm/page_cgroup.c use N_HIGH_MEMORY twice:
+
+	One is in page_cgroup_init(void):
+		for_each_node_state(nid, N_HIGH_MEMORY) {
+
+	It means if the node have memory, we will allocate page_cgroup map for
+	the node. We should use N_MEMORY instead here to gaim more clearly.
+
+	The second using is in alloc_page_cgroup():
+		if (node_state(nid, N_HIGH_MEMORY))
+			addr = vzalloc_node(size, nid);
+
+	It means if the node has high or normal memory that can be allocated
+	from kernel. We should keep N_HIGH_MEMORY here, and it will be better
+	if the "any memory" semantic of N_HIGH_MEMORY is removed.
+
+B)	This reusing is out-dated if we introduce MOVABLE-dedicated node.
+	The MOVABLE-dedicated node should not appear in
+	node_stats[N_HIGH_MEMORY] nor node_stats[N_NORMAL_MEMORY],
+	because MOVABLE-dedicated node has no high or normal memory.
+
+	In x86_64, N_HIGH_MEMORY=N_NORMAL_MEMORY, if a MOVABLE-dedicated node
+	is in node_stats[N_HIGH_MEMORY], it is also means it is in
+	node_stats[N_NORMAL_MEMORY], it causes SLUB wrong.
+
+	The slub uses
+		for_each_node_state(nid, N_NORMAL_MEMORY)
+	and creates kmem_cache_node for MOVABLE-dedicated node and cause problem.
+
+In one word, we need a N_MEMORY.  We just intrude it as an alias to
+N_HIGH_MEMORY and fix all im-proper usages of N_HIGH_MEMORY in late
+patches.
+
+Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
+Acked-by: Christoph Lameter <cl@linux.com>
+Acked-by: Hillf Danton <dhillf@gmail.com>
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Lin Feng <linfeng@cn.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/amd5536udc.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ include/linux/nodemask.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/usb/gadget/amd5536udc.c~usb-amd5536udc-avoid-calling-dma_pool_create-with-null-dev drivers/usb/gadget/amd5536udc.c
---- a/drivers/usb/gadget/amd5536udc.c~usb-amd5536udc-avoid-calling-dma_pool_create-with-null-dev
-+++ a/drivers/usb/gadget/amd5536udc.c
-@@ -3133,7 +3133,7 @@ static int init_dma_pools(struct udc *de
- 	}
- 
- 	/* DMA setup */
--	dev->data_requests = dma_pool_create("data_requests", NULL,
-+	dev->data_requests = dma_pool_create("data_requests", &dev->pdev->dev,
- 		sizeof(struct udc_data_dma), 0, 0);
- 	if (!dev->data_requests) {
- 		DBG(dev, "can't get request data pool\n");
-@@ -3145,7 +3145,7 @@ static int init_dma_pools(struct udc *de
- 	dev->ep[UDC_EP0IN_IX].dma = &dev->regs->ctl;
- 
- 	/* dma desc for setup data */
--	dev->stp_requests = dma_pool_create("setup requests", NULL,
-+	dev->stp_requests = dma_pool_create("setup requests", &dev->pdev->dev,
- 		sizeof(struct udc_stp_dma), 0, 0);
- 	if (!dev->stp_requests) {
- 		DBG(dev, "can't get stp request pool\n");
-@@ -3266,6 +3266,12 @@ static int udc_pci_probe(
- 	pci_set_master(pdev);
- 	pci_try_set_mwi(pdev);
- 
-+	dev->phys_addr = resource;
-+	dev->irq = pdev->irq;
-+	dev->pdev = pdev;
-+	dev->gadget.dev.parent = &pdev->dev;
-+	dev->gadget.dev.dma_mask = pdev->dev.dma_mask;
-+
- 	/* init dma pools */
- 	if (use_dma) {
- 		retval = init_dma_pools(dev);
-@@ -3273,12 +3279,6 @@ static int udc_pci_probe(
- 			goto finished;
- 	}
- 
--	dev->phys_addr = resource;
--	dev->irq = pdev->irq;
--	dev->pdev = pdev;
--	dev->gadget.dev.parent = &pdev->dev;
--	dev->gadget.dev.dma_mask = pdev->dev.dma_mask;
+diff -puN include/linux/nodemask.h~node_states-introduce-n_memory include/linux/nodemask.h
+--- a/include/linux/nodemask.h~node_states-introduce-n_memory
++++ a/include/linux/nodemask.h
+@@ -380,6 +380,7 @@ enum node_states {
+ #else
+ 	N_HIGH_MEMORY = N_NORMAL_MEMORY,
+ #endif
++	N_MEMORY = N_HIGH_MEMORY,
+ 	N_CPU,		/* The node has one or more cpus */
+ 	NR_NODE_STATES
+ };
+_
+
+Patches currently in -mm which might be from laijs@cn.fujitsu.com are
+
+linux-next.patch
+memory_hotplug-fix-possible-incorrect-node_states.patch
+slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
+drivers-base-nodec-cleanup-node_state_attr.patch
+mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory.patch
+mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch
+memory_hotplug-handle-empty-zone-when-online_movable-online_kernel.patch
+memory_hotplug-ensure-every-online-node-has-normal-memory.patch
+node_states-introduce-n_memory.patch
+cpuset-use-n_memory-instead-n_high_memory.patch
+procfs-use-n_memory-instead-n_high_memory.patch
+memcontrol-use-n_memory-instead-n_high_memory.patch
+oom-use-n_memory-instead-n_high_memory.patch
+mmmigrate-use-n_memory-instead-n_high_memory.patch
+mempolicy-use-n_memory-instead-n_high_memory.patch
+hugetlb-use-n_memory-instead-n_high_memory.patch
+vmstat-use-n_memory-instead-n_high_memory.patch
+kthread-use-n_memory-instead-n_high_memory.patch
+init-use-n_memory-instead-n_high_memory.patch
+vmscan-use-n_memory-instead-n_high_memory.patch
+page_alloc-use-n_memory-instead-n_high_memory-change-the-node_states-initialization.patch
+hotplug-update-nodemasks-management.patch
+
