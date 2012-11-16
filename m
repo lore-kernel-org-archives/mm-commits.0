@@ -1,113 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] maintainers-add-joe-to-checkpatch-maintainers.patch removed from -mm tree
-Date: Fri, 16 Nov 2012 13:57:28 -0800
-Message-ID: <20121116215729.40531100047@wpzn3.hot.corp.google.com>
+Subject: + mm-use-vm_unmapped_area-on-sh-architecture-fix2.patch added to -mm tree
+Date: Fri, 16 Nov 2012 14:00:17 -0800
+Message-ID: <20121116220017.E8AF520004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:43789 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753268Ab2KPV5a (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Nov 2012 16:57:30 -0500
-Received: by mail-yh0-f74.google.com with SMTP id 10so355398yhl.1
-        for <mm-commits@vger.kernel.org>; Fri, 16 Nov 2012 13:57:29 -0800 (PST)
+Received: from mail-ea0-f202.google.com ([209.85.215.202]:51351 "EHLO
+	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753330Ab2KPWAU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Nov 2012 17:00:20 -0500
+Received: by mail-ea0-f202.google.com with SMTP id f11so205332eaa.1
+        for <mm-commits@vger.kernel.org>; Fri, 16 Nov 2012 14:00:18 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: walken@google.com
 
 
 The patch titled
-     Subject: MAINTAINERS: add Joe to checkpatch maintainers
-has been removed from the -mm tree.  Its filename was
-     maintainers-add-joe-to-checkpatch-maintainers.patch
+     Subject: mm-use-vm_unmapped_area-on-sh-architecture-fix2
+has been added to the -mm tree.  Its filename is
+     mm-use-vm_unmapped_area-on-sh-architecture-fix2.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: MAINTAINERS: add Joe to checkpatch maintainers
+From: Michel Lespinasse <walken@google.com>
+Subject: mm-use-vm_unmapped_area-on-sh-architecture-fix2
 
-Cc: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@canonical.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ mm/mmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-add-joe-to-checkpatch-maintainers MAINTAINERS
---- a/MAINTAINERS~maintainers-add-joe-to-checkpatch-maintainers
-+++ a/MAINTAINERS
-@@ -1887,6 +1887,7 @@ F:	drivers/misc/*
- 
- CHECKPATCH
- M:	Andy Whitcroft <apw@canonical.com>
-+M:	Joe Perches <joe@perches.com>
- S:	Supported
- F:	scripts/checkpatch.pl
- 
+diff -puN mm/mmap.c~mm-use-vm_unmapped_area-on-sh-architecture-fix2 mm/mmap.c
+--- a/mm/mmap.c~mm-use-vm_unmapped_area-on-sh-architecture-fix2
++++ a/mm/mmap.c
+@@ -2071,7 +2071,7 @@ int expand_upwards(struct vm_area_struct
+ 				if (vma->vm_next)
+ 					vma_gap_update(vma->vm_next);
+ 				else
+-					mm->highest_vm_end = address;
++					vma->vm_mm->highest_vm_end = address;
+ 				perf_event_mmap(vma);
+ 			}
+ 		}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from walken@google.com are
 
-swapfile-fix-name-leak-in-swapoff-fix.patch
-mm-export-a-function-to-get-vm-committed-memory.patch
-revert-mm-fix-up-zone-present-pages.patch
+mm-add-anon_vma_lock-to-validate_mm.patch
 linux-next.patch
-linux-next-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-irq-tsk-comm-is-an-array.patch
-drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch
-mm.patch
-mm-introduce-mm_find_pmd-fix.patch
-memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
-slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
-mmvmscan-only-evict-file-pages-when-we-have-plenty-fix.patch
-slub-slub-specific-propagation-changes-fix.patch
-dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch
+mm-augment-vma-rbtree-with-rb_subtree_gap.patch
+mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-inserting-new-vma.patch
+mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-removing-vma.patch
+mm-augment-vma-rbtree-with-rb_subtree_gap--debug-code-to-verify-rb_subtree_gap-updates-are-safe.patch
+mm-check-rb_subtree_gap-correctness.patch
 mm-check-rb_subtree_gap-correctness-fix.patch
+mm-rearrange-vm_area_struct-for-fewer-cache-misses.patch
 mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
+mm-vm_unmapped_area-lookup-function.patch
 mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
+mm-use-vm_unmapped_area-on-x86_64-architecture.patch
+mm-fix-cache-coloring-on-x86_64-architecture.patch
+mm-use-vm_unmapped_area-in-hugetlbfs.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture.patch
 mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
+mm-use-vm_unmapped_area-on-mips-architecture.patch
 mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
+mm-use-vm_unmapped_area-on-arm-architecture.patch
 mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
 mm-use-vm_unmapped_area-on-arm-architecture-fix-fix.patch
+mm-use-vm_unmapped_area-on-sh-architecture.patch
 mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sh-architecture-fix2.patch
+mm-use-vm_unmapped_area-on-sparc32-architecture.patch
 mm-use-vm_unmapped_area-on-sparc32-architecture-fix.patch
 mm-use-vm_unmapped_area-on-sparc32-architecture-fix-fix.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture.patch
 mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc64-architecture.patch
 mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc64-architecture-fix-fix.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-sparc64-architecture.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-sparc64-architecture-fix.patch
 arch-sparc-kernel-sys_sparc_64c-s-colour-color.patch
-virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
-virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix.patch
-bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
-mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch
-drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
-backlight-add-of_find_backlight_by_node-function-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
-rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
-hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
-procfs-add-vmflags-field-in-smaps-output-v4.patch
-procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
-ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
-ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
-ipc-convert-prepare_copy-from-macro-to-function-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+2.patch
+random32-rename-random32-to-prandom.patch
+prandom-introduce-prandom_bytes-and-prandom_bytes_state.patch
+bnx2x-use-prandom_bytes.patch
+mtd-nandsim-use-prandom_bytes.patch
+ubifs-use-prandom_bytes.patch
+mtd-mtd_nandecctest-use-prandom_bytes-instead-of-get_random_bytes.patch
+mtd-mtd_oobtest-convert-to-use-prandom-library.patch
+mtd-mtd_pagetest-convert-to-use-prandom-library.patch
+mtd-mtd_speedtest-use-prandom_bytes.patch
+mtd-mtd_subpagetest-convert-to-use-prandom-library.patch
+mtd-mtd_stresstest-use-prandom_bytes.patch
 
