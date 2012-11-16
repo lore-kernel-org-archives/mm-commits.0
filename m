@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-warn_on_once-if-f_op-mmap-change-vmas-start-address.patch added to -mm tree
-Date: Fri, 16 Nov 2012 15:35:50 -0800
-Message-ID: <20121116233551.161AF200057@hpza10.eem.corp.google.com>
+Subject: + procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers.patch added to -mm tree
+Date: Fri, 16 Nov 2012 15:56:33 -0800
+Message-ID: <20121116235634.60D93100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f74.google.com ([209.85.215.74]:63294 "EHLO
-	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753776Ab2KPXfx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Nov 2012 18:35:53 -0500
-Received: by mail-la0-f74.google.com with SMTP id v3so207707lag.1
-        for <mm-commits@vger.kernel.org>; Fri, 16 Nov 2012 15:35:52 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:63410 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753553Ab2KPX4g (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Nov 2012 18:56:36 -0500
+Received: by mail-gg0-f202.google.com with SMTP id i4so364523ggm.1
+        for <mm-commits@vger.kernel.org>; Fri, 16 Nov 2012 15:56:35 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: js1304@gmail.com
+Cc: gorcunov@openvz.org, adobriyan@gmail.com, aneesh.kumar@linux.vnet.ibm.com, avagin@openvz.org, bfields@fieldses.org, jbottomley@parallels.com, matt.helsley@gmail.com, oleg@redhat.com, tvrtko.ursulin@onelan.co.uk, viro@ZenIV.linux.org.uk, xemul@parallels.com
 
 
 The patch titled
-     Subject: mm: WARN_ON_ONCE if f_op->mmap() change vma's start address
+     Subject: procfs: add ability to plug in auxiliary fdinfo providers
 has been added to the -mm tree.  Its filename is
-     mm-warn_on_once-if-f_op-mmap-change-vmas-start-address.patch
+     procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,86 +33,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <js1304@gmail.com>
-Subject: mm: WARN_ON_ONCE if f_op->mmap() change vma's start address
+From: Cyrill Gorcunov <gorcunov@openvz.org>
+Subject: procfs: add ability to plug in auxiliary fdinfo providers
 
-During reviewing the source code, I found a comment which mention that
-after f_op->mmap(), vma's start address can be changed.  I didn't verify
-that it is really possible, because there are so many f_op->mmap()
-implementation.  But if there are some mmap() which change vma's start
-address, it is possible error situation, because we already prepare prev
-vma, rb_link and rb_parent and these are related to original address.
+This patch brings ability to print out auxiliary data associated
+with file in procfs interface /proc/pid/fdinfo/fd.
 
-So add WARN_ON_ONCE for finding that this situtation really happens.
+In particular further patches make eventfd, evenpoll, signalfd
+and fsnotify to print additional information complete enough
+to restore these objects after checkpoint.
 
-Signed-off-by: Joonsoo Kim <js1304@gmail.com>
+To simplify the code we add show_fdinfo callback inside
+struct file_operations (as Al and Pavel are proposing).
+
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Acked-by: Pavel Emelyanov <xemul@parallels.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Andrey Vagin <avagin@openvz.org>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: James Bottomley <jbottomley@parallels.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Matthew Helsley <matt.helsley@gmail.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Tvrtko Ursulin <tvrtko.ursulin@onelan.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/proc/fd.c       |    2 ++
+ include/linux/fs.h |    4 ++--
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/mmap.c~mm-warn_on_once-if-f_op-mmap-change-vmas-start-address mm/mmap.c
---- a/mm/mmap.c~mm-warn_on_once-if-f_op-mmap-change-vmas-start-address
-+++ a/mm/mmap.c
-@@ -1488,7 +1488,11 @@ munmap_back:
- 		 *
- 		 * Answer: Yes, several device drivers can do it in their
- 		 *         f_op->mmap method. -DaveM
-+		 * Bug: If addr is changed, prev, rb_link, rb_parent should
-+		 *      be updated for vma_link()
- 		 */
-+		WARN_ON_ONCE(addr != vma->vm_start);
-+
- 		addr = vma->vm_start;
- 		pgoff = vma->vm_pgoff;
- 		vm_flags = vma->vm_flags;
-_
-
-Patches currently in -mm which might be from js1304@gmail.com are
-
-linux-next.patch
-mm-highmem-use-pkmap_nr-to-calculate-an-index-of-pkmap.patch
-mm-highmem-remove-useless-pool_lock.patch
-mm-highmem-remove-page_address_pool-list.patch
-mm-highmem-remove-page_address_pool-list-v2.patch
-mm-highmem-makes-flush_all_zero_pkmaps-return-index-of-last-flushed-entry.patch
-mm-highmem-makes-flush_all_zero_pkmaps-return-index-of-last-flushed-entry-v2.patch
-mm-highmem-get-virtual-address-of-the-page-using-pkmap_addr.patch
-memcg-make-it-possible-to-use-the-stock-for-more-than-one-page.patch
-memcg-reclaim-when-more-than-one-page-needed.patch
-memcg-change-defines-to-an-enum.patch
-memcg-kmem-accounting-basic-infrastructure.patch
-mm-add-a-__gfp_kmemcg-flag.patch
-memcg-kmem-controller-infrastructure.patch
-mm-allocate-kernel-pages-to-the-right-memcg.patch
-res_counter-return-amount-of-charges-after-res_counter_uncharge.patch
-memcg-kmem-accounting-lifecycle-management.patch
-memcg-use-static-branches-when-code-not-in-use.patch
-memcg-allow-a-memcg-with-kmem-charges-to-be-destructed.patch
-memcg-execute-the-whole-memcg-freeing-in-free_worker.patch
-fork-protect-architectures-where-thread_size-=-page_size-against-fork-bombs.patch
-memcg-add-documentation-about-the-kmem-controller.patch
-slab-slub-struct-memcg_params.patch
-slab-annotate-on-slab-caches-nodelist-locks.patch
-slab-slub-consider-a-memcg-parameter-in-kmem_create_cache.patch
-memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears.patch
-memcg-infrastructure-to-match-an-allocation-to-the-right-cache.patch
-memcg-skip-memcg-kmem-allocations-in-specified-code-regions.patch
-slb-always-get-the-cache-from-its-page-in-kmem_cache_free.patch
-slb-allocate-objects-from-memcg-cache.patch
-memcg-destroy-memcg-caches.patch
-memcg-slb-track-all-the-memcg-children-of-a-kmem_cache.patch
-memcg-slb-shrink-dead-caches.patch
-memcg-aggregate-memcg-cache-values-in-slabinfo.patch
-slab-propagate-tunable-values.patch
-slub-slub-specific-propagation-changes.patch
-slub-slub-specific-propagation-changes-fix.patch
-kmem-add-slab-specific-documentation-about-the-kmem-controller.patch
-bootmem-remove-not-implemented-function-call-bootmem_arch_preferred_node.patch
-avr32-kconfig-remove-have_arch_bootmem.patch
-bootmem-remove-alloc_arch_preferred_bootmem.patch
-bootmem-fix-wrong-call-parameter-for-free_bootmem.patch
-bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
-mm-warn_on_once-if-f_op-mmap-change-vmas-start-address.patch
-
+diff -puN fs/proc/fd.c~procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers fs/proc/fd.c
+--- a/fs/proc/fd.c~procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers
++++ a/fs/proc/fd.c
+@@ -50,6 +50,8 @@ static int seq_show(struct seq_file *m, 
+ 	if (!ret) {
+                 seq_printf(m, "pos:\t%lli\nflags:\t0%o\n",
+ 			   (long long)file->f_pos, f_flags);
++		if (file->f_op->show_fdinfo)
++			ret = file->f_op->show_fdinfo(m, file);
+ 		fput(file);
+ 	}
+ 
+diff -puN include/linux/fs.h~procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers include/linux/fs.h
+--- a/include/linux/fs.h~procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers
++++ a/include/linux/fs.h
+@@ -44,6 +44,7 @@ struct vm_area_struct;
+ struct vfsmount;
+ struct cred;
+ struct swap_info_struct;
++struct seq_file;
+ 
+ extern void __init inode_init(void);
+ extern void __init inode_init_early(void);
+@@ -1545,6 +1546,7 @@ struct file_operations {
+ 	int (*setlease)(struct file *, long, struct file_lock **);
+ 	long (*fallocate)(struct file *file, int mode, loff_t offset,
+ 			  loff_t len);
++	int (*show_fdinfo)(struct seq_file *m, struct file *f);
+ };
+ 
+ struct inode_operations {
+@@ -1580,8 +1582,6 @@ struct inode_operations {
+ 			   umode_t create_mode, int *opened);
+ } ____cacheline_aligned;
+ 
+-struct seq_file;
