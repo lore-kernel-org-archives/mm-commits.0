@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + fs-exportfs-escape-nil-dereference-if-no-s_export_op-present.patch added to -mm tree
-Date: Fri, 16 Nov 2012 15:56:51 -0800
-Message-ID: <20121116235651.7268C100047@wpzn3.hot.corp.google.com>
+Subject: + fs-exportfs-add-exportfs_encode_inode_fh-helper.patch added to -mm tree
+Date: Fri, 16 Nov 2012 15:56:54 -0800
+Message-ID: <20121116235654.DD2CB200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:63410 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753750Ab2KPX4w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Nov 2012 18:56:52 -0500
-Received: by mail-gg0-f202.google.com with SMTP id i4so364523ggm.1
-        for <mm-commits@vger.kernel.org>; Fri, 16 Nov 2012 15:56:52 -0800 (PST)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:58379 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753647Ab2KPX45 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Nov 2012 18:56:57 -0500
+Received: by mail-bk0-f74.google.com with SMTP id je9so71608bkc.1
+        for <mm-commits@vger.kernel.org>; Fri, 16 Nov 2012 15:56:57 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: gorcunov@openvz.org, adobriyan@gmail.com, aneesh.kumar@linux.vnet.ibm.com, a
 
 
 The patch titled
-     Subject: fs, exportfs: escape nil dereference if no s_export_op present
+     Subject: fs, exportfs: add exportfs_encode_inode_fh() helper
 has been added to the -mm tree.  Its filename is
-     fs-exportfs-escape-nil-dereference-if-no-s_export_op-present.patch
+     fs-exportfs-add-exportfs_encode_inode_fh-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Cyrill Gorcunov <gorcunov@openvz.org>
-Subject: fs, exportfs: escape nil dereference if no s_export_op present
+Subject: fs, exportfs: add exportfs_encode_inode_fh() helper
 
-This routine will be used to generate a file handle in fdinfo output for
-inotify subsystem, where if no s_export_op present the general
-export_encode_fh should be used.  Thus add a test if s_export_op present
-inside exportfs_encode_fh itself.
+We will need this helper in the next patch to provide a file handle for
+inotify marks in /proc/pid/fdinfo output.
+
+The patch is rather providing the way to use inodes directly when dentry
+is not available (like in case of inotify system).
 
 Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
 Acked-by: Pavel Emelyanov <xemul@parallels.com>
@@ -57,21 +58,61 @@ Cc: Tvrtko Ursulin <tvrtko.ursulin@onelan.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exportfs/expfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/exportfs/expfs.c      |   19 ++++++++++++++-----
+ include/linux/exportfs.h |    2 ++
+ 2 files changed, 16 insertions(+), 5 deletions(-)
 
-diff -puN fs/exportfs/expfs.c~fs-exportfs-escape-nil-dereference-if-no-s_export_op-present fs/exportfs/expfs.c
---- a/fs/exportfs/expfs.c~fs-exportfs-escape-nil-dereference-if-no-s_export_op-present
+diff -puN fs/exportfs/expfs.c~fs-exportfs-add-exportfs_encode_inode_fh-helper fs/exportfs/expfs.c
+--- a/fs/exportfs/expfs.c~fs-exportfs-add-exportfs_encode_inode_fh-helper
 +++ a/fs/exportfs/expfs.c
-@@ -357,7 +357,7 @@ int exportfs_encode_fh(struct dentry *de
+@@ -341,10 +341,21 @@ static int export_encode_fh(struct inode
+ 	return type;
+ }
+ 
++int exportfs_encode_inode_fh(struct inode *inode, struct fid *fid,
++			     int *max_len, struct inode *parent)
++{
++	const struct export_operations *nop = inode->i_sb->s_export_op;
++
++	if (nop && nop->encode_fh)
++		return nop->encode_fh(inode, fid->raw, max_len, parent);
++
++	return export_encode_fh(inode, fid, max_len, parent);
++}
++EXPORT_SYMBOL_GPL(exportfs_encode_inode_fh);
++
+ int exportfs_encode_fh(struct dentry *dentry, struct fid *fid, int *max_len,
+ 		int connectable)
+ {
+-	const struct export_operations *nop = dentry->d_sb->s_export_op;
+ 	int error;
+ 	struct dentry *p = NULL;
+ 	struct inode *inode = dentry->d_inode, *parent = NULL;
+@@ -357,10 +368,8 @@ int exportfs_encode_fh(struct dentry *de
  		 */
  		parent = p->d_inode;
  	}
--	if (nop->encode_fh)
-+	if (nop && nop->encode_fh)
- 		error = nop->encode_fh(inode, fid->raw, max_len, parent);
- 	else
- 		error = export_encode_fh(inode, fid, max_len, parent);
+-	if (nop && nop->encode_fh)
+-		error = nop->encode_fh(inode, fid->raw, max_len, parent);
+-	else
+-		error = export_encode_fh(inode, fid, max_len, parent);
++
++	error = exportfs_encode_inode_fh(inode, fid, max_len, parent);
+ 	dput(p);
+ 
+ 	return error;
+diff -puN include/linux/exportfs.h~fs-exportfs-add-exportfs_encode_inode_fh-helper include/linux/exportfs.h
+--- a/include/linux/exportfs.h~fs-exportfs-add-exportfs_encode_inode_fh-helper
++++ a/include/linux/exportfs.h
+@@ -182,6 +182,8 @@ struct export_operations {
+ 	int (*commit_metadata)(struct inode *inode);
+ };
+ 
++extern int exportfs_encode_inode_fh(struct inode *inode, struct fid *fid,
++				    int *max_len, struct inode *parent);
+ extern int exportfs_encode_fh(struct dentry *dentry, struct fid *fid,
+ 	int *max_len, int connectable);
+ extern struct dentry *exportfs_decode_fh(struct vfsmount *mnt, struct fid *fid,
 _
 
 Patches currently in -mm which might be from gorcunov@openvz.org are
