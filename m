@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-augment-vma-rbtree-with-rb_subtree_gap-fix.patch added to -mm tree
-Date: Fri, 16 Nov 2012 14:02:32 -0800
-Message-ID: <20121116220232.79D93100047@wpzn3.hot.corp.google.com>
+Subject: + binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch added to -mm tree
+Date: Fri, 16 Nov 2012 14:04:45 -0800
+Message-ID: <20121116220445.EB31E10004A@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:57687 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753330Ab2KPWCd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Nov 2012 17:02:33 -0500
-Received: by mail-vb0-f74.google.com with SMTP id s24so355478vbi.1
-        for <mm-commits@vger.kernel.org>; Fri, 16 Nov 2012 14:02:32 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:42337 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753419Ab2KPWEs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Nov 2012 17:04:48 -0500
+Received: by mail-gg0-f202.google.com with SMTP id i4so354802ggm.1
+        for <mm-commits@vger.kernel.org>; Fri, 16 Nov 2012 14:04:47 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: walken@google.com
+Cc: jeff.liu@oracle.com, aedilger@gmail.com, akpm@linux-foundation.org, alan@linux.intel.com, arnn@arndb.de, drepper@redhat.com, gregkh@linuxfoundation.org, jakub@redhat.com, james.l.morris@oracle.com, john.sobecki@oracle.com, keescook@chromium.org, tytso@mit.edu, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: mm-augment-vma-rbtree-with-rb_subtree_gap-fix
+     Subject: binfmt_elf.c: use get_random_int() to fix entropy depleting
 has been added to the -mm tree.  Its filename is
-     mm-augment-vma-rbtree-with-rb_subtree_gap-fix.patch
+     binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,78 +33,104 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michel Lespinasse <walken@google.com>
-Subject: mm-augment-vma-rbtree-with-rb_subtree_gap-fix
+From: Jeff Liu <jeff.liu@oracle.com>
+Subject: binfmt_elf.c: use get_random_int() to fix entropy depleting
 
+Entropy is quickly depleted under normal operations like ls(1), cat(1),
+etc...  between 2.6.30 to current mainline, for instance:
 
+$ cat /proc/sys/kernel/random/entropy_avail
+3428
+$ cat /proc/sys/kernel/random/entropy_avail
+2911
+$cat /proc/sys/kernel/random/entropy_avail
+2620
+
+We observed this problem has been occurring since 2.6.30 with
+fs/binfmt_elf.c: create_elf_tables()->get_random_bytes(), introduced by
+f06295b44c296c8f ("ELF: implement AT_RANDOM for glibc PRNG seeding").
+
+/*
+ * Generate 16 random bytes for userspace PRNG seeding.
+ */
+get_random_bytes(k_rand_bytes, sizeof(k_rand_bytes));
+
+The patch introduces a wrapper around get_random_int() which has lower
+overhead than calling get_random_bytes() directly.
+
+With this patch applied:
+$ cat /proc/sys/kernel/random/entropy_avail
+2731
+$ cat /proc/sys/kernel/random/entropy_avail
+2802
+$ cat /proc/sys/kernel/random/entropy_avail
+2878
+
+Analyzed by John Sobecki.
+
+Signed-off-by: Jie Liu <jeff.liu@oracle.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andreas Dilger <aedilger@gmail.com>
+Cc: Alan Cox <alan@linux.intel.com>
+Cc: Arnd Bergmann <arnn@arndb.de>
+Cc: John Sobecki <john.sobecki@oracle.com>
+Cc: James Morris <james.l.morris@oracle.com>
+Cc: Jakub Jelinek <jakub@redhat.com>
+Cc: Ted Ts'o <tytso@mit.edu>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/binfmt_elf.c |   21 ++++++++++++++++++++-
+ 1 file changed, 20 insertions(+), 1 deletion(-)
 
-diff -puN mm/mmap.c~mm-augment-vma-rbtree-with-rb_subtree_gap-fix mm/mmap.c
---- a/mm/mmap.c~mm-augment-vma-rbtree-with-rb_subtree_gap-fix
-+++ a/mm/mmap.c
-@@ -1914,7 +1914,7 @@ int expand_upwards(struct vm_area_struct
- 				if (vma->vm_next)
- 					vma_gap_update(vma->vm_next);
- 				else
--					mm->highest_vm_end = address;
-+					vma->vm_mm->highest_vm_end = address;
- 				perf_event_mmap(vma);
- 			}
- 		}
+diff -puN fs/binfmt_elf.c~binfmt_elfc-use-get_random_int-to-fix-entropy-depleting fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~binfmt_elfc-use-get_random_int-to-fix-entropy-depleting
++++ a/fs/binfmt_elf.c
+@@ -139,6 +139,25 @@ static int padzero(unsigned long elf_bss
+ #define ELF_BASE_PLATFORM NULL
+ #endif
+ 
++/*
++ * Use get_random_int() to implement AT_RANDOM while avoiding depletion
++ * of the entropy pool.
++ */
++static void get_atrandom_bytes(unsigned char *buf, size_t nbytes)
++{
++	unsigned char *p = buf;
++
++	while (nbytes) {
++		unsigned int random_variable;
++		size_t chunk = min(nbytes, sizeof(random_variable));
++
++		random_variable = get_random_int();
++		memcpy(p, &random_variable, chunk);
++		p += chunk;
++		nbytes -= chunk;
++	}
++}
++
+ static int
+ create_elf_tables(struct linux_binprm *bprm, struct elfhdr *exec,
+ 		unsigned long load_addr, unsigned long interp_load_addr)
+@@ -200,7 +219,7 @@ create_elf_tables(struct linux_binprm *b
+ 	/*
+ 	 * Generate 16 random bytes for userspace PRNG seeding.
+ 	 */
+-	get_random_bytes(k_rand_bytes, sizeof(k_rand_bytes));
++	get_atrandom_bytes(k_rand_bytes, sizeof(k_rand_bytes));
+ 	u_rand_bytes = (elf_addr_t __user *)
+ 		       STACK_ALLOC(p, sizeof(k_rand_bytes));
+ 	if (__copy_to_user(u_rand_bytes, k_rand_bytes, sizeof(k_rand_bytes)))
 _
 
-Patches currently in -mm which might be from walken@google.com are
+Patches currently in -mm which might be from jeff.liu@oracle.com are
 
-mm-add-anon_vma_lock-to-validate_mm.patch
 linux-next.patch
-mm-augment-vma-rbtree-with-rb_subtree_gap.patch
-mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-inserting-new-vma.patch
-mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-removing-vma.patch
-mm-augment-vma-rbtree-with-rb_subtree_gap--debug-code-to-verify-rb_subtree_gap-updates-are-safe.patch
-mm-augment-vma-rbtree-with-rb_subtree_gap-fix.patch
-mm-check-rb_subtree_gap-correctness.patch
-mm-check-rb_subtree_gap-correctness-fix.patch
-mm-rearrange-vm_area_struct-for-fewer-cache-misses.patch
-mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
-mm-vm_unmapped_area-lookup-function.patch
-mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
-mm-use-vm_unmapped_area-on-x86_64-architecture.patch
-mm-fix-cache-coloring-on-x86_64-architecture.patch
-mm-use-vm_unmapped_area-in-hugetlbfs.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
-mm-use-vm_unmapped_area-on-mips-architecture.patch
-mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
-mm-use-vm_unmapped_area-on-arm-architecture.patch
-mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
-mm-use-vm_unmapped_area-on-arm-architecture-fix-fix.patch
-mm-use-vm_unmapped_area-on-sh-architecture.patch
-mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc32-architecture.patch
-mm-use-vm_unmapped_area-on-sparc32-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc32-architecture-fix-fix.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc64-architecture.patch
-mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc64-architecture-fix-fix.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-sparc64-architecture.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-sparc64-architecture-fix.patch
-arch-sparc-kernel-sys_sparc_64c-s-colour-color.patch
-2.patch
-random32-rename-random32-to-prandom.patch
-prandom-introduce-prandom_bytes-and-prandom_bytes_state.patch
-bnx2x-use-prandom_bytes.patch
-mtd-nandsim-use-prandom_bytes.patch
-ubifs-use-prandom_bytes.patch
-mtd-mtd_nandecctest-use-prandom_bytes-instead-of-get_random_bytes.patch
-mtd-mtd_oobtest-convert-to-use-prandom-library.patch
-mtd-mtd_pagetest-convert-to-use-prandom-library.patch
-mtd-mtd_speedtest-use-prandom_bytes.patch
-mtd-mtd_subpagetest-convert-to-use-prandom-library.patch
-mtd-mtd_stresstest-use-prandom_bytes.patch
+documentation-cgroups-memorytxt-s-mem_cgroup_charge-mem_cgroup_change_common.patch
+mm-vmscanc-try_to_freeze-returns-boolean.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
 
