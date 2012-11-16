@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + init-use-n_memory-instead-n_high_memory.patch added to -mm tree
-Date: Thu, 15 Nov 2012 16:35:13 -0800
-Message-ID: <20121116003514.1E61F100048@wpzn3.hot.corp.google.com>
+Subject: + mempolicy-use-n_memory-instead-n_high_memory.patch added to -mm tree
+Date: Thu, 15 Nov 2012 16:34:55 -0800
+Message-ID: <20121116003456.10EC2100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:34118 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751050Ab2KPAfP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 19:35:15 -0500
-Received: by mail-ye0-f202.google.com with SMTP id r11so248809yen.1
-        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 16:35:14 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:43409 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751024Ab2KPAe5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 19:34:57 -0500
+Received: by mail-qa0-f74.google.com with SMTP id g40so256249qab.1
+        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 16:34:56 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: laijs@cn.fujitsu.com, cl@linux.com, dhillf@gmail.com, linfeng@cn.fujitsu.com
 
 
 The patch titled
-     Subject: init: use N_MEMORY instead N_HIGH_MEMORY
+     Subject: mempolicy: use N_MEMORY instead N_HIGH_MEMORY
 has been added to the -mm tree.  Its filename is
-     init-use-n_memory-instead-n_high_memory.patch
+     mempolicy-use-n_memory-instead-n_high_memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Lai Jiangshan <laijs@cn.fujitsu.com>
-Subject: init: use N_MEMORY instead N_HIGH_MEMORY
+Subject: mempolicy: use N_MEMORY instead N_HIGH_MEMORY
 
 N_HIGH_MEMORY stands for the nodes that has normal or high memory.
 N_MEMORY stands for the nodes that has any memory.
@@ -51,21 +51,60 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mempolicy.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN init/main.c~init-use-n_memory-instead-n_high_memory init/main.c
---- a/init/main.c~init-use-n_memory-instead-n_high_memory
-+++ a/init/main.c
-@@ -857,7 +857,7 @@ static void __init kernel_init_freeable(
- 	/*
- 	 * init can allocate pages on any node
+diff -puN mm/mempolicy.c~mempolicy-use-n_memory-instead-n_high_memory mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-use-n_memory-instead-n_high_memory
++++ a/mm/mempolicy.c
+@@ -212,9 +212,9 @@ static int mpol_set_nodemask(struct memp
+ 	/* if mode is MPOL_DEFAULT, pol is NULL. This is right. */
+ 	if (pol == NULL)
+ 		return 0;
+-	/* Check N_HIGH_MEMORY */
++	/* Check N_MEMORY */
+ 	nodes_and(nsc->mask1,
+-		  cpuset_current_mems_allowed, node_states[N_HIGH_MEMORY]);
++		  cpuset_current_mems_allowed, node_states[N_MEMORY]);
+ 
+ 	VM_BUG_ON(!nodes);
+ 	if (pol->mode == MPOL_PREFERRED && nodes_empty(*nodes))
+@@ -1407,7 +1407,7 @@ SYSCALL_DEFINE4(migrate_pages, pid_t, pi
+ 		goto out_put;
+ 	}
+ 
+-	if (!nodes_subset(*new, node_states[N_HIGH_MEMORY])) {
++	if (!nodes_subset(*new, node_states[N_MEMORY])) {
+ 		err = -EINVAL;
+ 		goto out_put;
+ 	}
+@@ -2506,7 +2506,7 @@ void __init numa_policy_init(void)
+ 	 * fall back to the largest node if they're all smaller.
  	 */
--	set_mems_allowed(node_states[N_HIGH_MEMORY]);
-+	set_mems_allowed(node_states[N_MEMORY]);
- 	/*
- 	 * init can run on any cpu.
- 	 */
+ 	nodes_clear(interleave_nodes);
+-	for_each_node_state(nid, N_HIGH_MEMORY) {
++	for_each_node_state(nid, N_MEMORY) {
+ 		unsigned long total_pages = node_present_pages(nid);
+ 
+ 		/* Preserve the largest node */
+@@ -2587,7 +2587,7 @@ int mpol_parse_str(char *str, struct mem
+ 		*nodelist++ = '\0';
+ 		if (nodelist_parse(nodelist, nodes))
+ 			goto out;
+-		if (!nodes_subset(nodes, node_states[N_HIGH_MEMORY]))
++		if (!nodes_subset(nodes, node_states[N_MEMORY]))
+ 			goto out;
+ 	} else
+ 		nodes_clear(nodes);
+@@ -2621,7 +2621,7 @@ int mpol_parse_str(char *str, struct mem
+ 		 * Default to online nodes with memory if no nodelist
+ 		 */
+ 		if (!nodelist)
+-			nodes = node_states[N_HIGH_MEMORY];
++			nodes = node_states[N_MEMORY];
+ 		break;
+ 	case MPOL_LOCAL:
+ 		/*
 _
 
 Patches currently in -mm which might be from laijs@cn.fujitsu.com are
