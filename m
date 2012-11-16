@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + uprobes-use-percpu_rw_semaphore-to-fix-register-unregister-vs-dup_mmap-race.patch added to -mm tree
-Date: Fri, 16 Nov 2012 15:22:27 -0800
-Message-ID: <20121116232228.3896520004E@hpza10.eem.corp.google.com>
+Subject: + mm-warn_on_once-if-f_op-mmap-change-vmas-start-address.patch added to -mm tree
+Date: Fri, 16 Nov 2012 15:35:50 -0800
+Message-ID: <20121116233551.161AF200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:62554 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753653Ab2KPXWb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Nov 2012 18:22:31 -0500
-Received: by mail-wg0-f74.google.com with SMTP id dt14so208122wgb.1
-        for <mm-commits@vger.kernel.org>; Fri, 16 Nov 2012 15:22:30 -0800 (PST)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:63294 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753776Ab2KPXfx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Nov 2012 18:35:53 -0500
+Received: by mail-la0-f74.google.com with SMTP id v3so207707lag.1
+        for <mm-commits@vger.kernel.org>; Fri, 16 Nov 2012 15:35:52 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, ananth@in.ibm.com, anton@redhat.com, mingo@elte.hu, peterz@infradead.org, srikar@linux.vnet.ibm.com, tj@kernel.org
+Cc: js1304@gmail.com
 
 
 The patch titled
-     Subject: uprobes: use percpu_rw_semaphore to fix register/unregister vs dup_mmap() race
+     Subject: mm: WARN_ON_ONCE if f_op->mmap() change vma's start address
 has been added to the -mm tree.  Its filename is
-     uprobes-use-percpu_rw_semaphore-to-fix-register-unregister-vs-dup_mmap-race.patch
+     mm-warn_on_once-if-f_op-mmap-change-vmas-start-address.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,168 +33,86 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: uprobes: use percpu_rw_semaphore to fix register/unregister vs dup_mmap() race
+From: Joonsoo Kim <js1304@gmail.com>
+Subject: mm: WARN_ON_ONCE if f_op->mmap() change vma's start address
 
-This was always racy, but 268720903f87 ("uprobes: Rework
-register_for_each_vma() to make it O(n)") should be blamed anyway, it made
-everything worse and I didn't notice.
+During reviewing the source code, I found a comment which mention that
+after f_op->mmap(), vma's start address can be changed.  I didn't verify
+that it is really possible, because there are so many f_op->mmap()
+implementation.  But if there are some mmap() which change vma's start
+address, it is possible error situation, because we already prepare prev
+vma, rb_link and rb_parent and these are related to original address.
 
-register/unregister call build_map_info() and then do install/remove
-breakpoint for every mm which mmaps inode/offset.  This can obviously race
-with fork()->dup_mmap() in between and we can miss the child.
+So add WARN_ON_ONCE for finding that this situtation really happens.
 
-uprobe_register() could be easily fixed but unregister is much worse, the
-new mm inherits "int3" from parent and there is no way to detect this if
-uprobe goes away.
-
-So this patch simply adds percpu_down_read/up_read around dup_mmap(), and
-percpu_down_write/up_write into register_for_each_vma().
-
-This adds 2 new hooks into dup_mmap() but we can kill uprobe_dup_mmap()
-and fold it into uprobe_end_dup_mmap().
-
-Reported-by: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Anton Arapov <anton@redhat.com>
-Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: Joonsoo Kim <js1304@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/uprobes.h |    8 ++++++++
- kernel/events/uprobes.c |   26 +++++++++++++++++++++++---
- kernel/fork.c           |    2 ++
- 3 files changed, 33 insertions(+), 3 deletions(-)
+ mm/mmap.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN include/linux/uprobes.h~uprobes-use-percpu_rw_semaphore-to-fix-register-unregister-vs-dup_mmap-race include/linux/uprobes.h
---- a/include/linux/uprobes.h~uprobes-use-percpu_rw_semaphore-to-fix-register-unregister-vs-dup_mmap-race
-+++ a/include/linux/uprobes.h
-@@ -97,6 +97,8 @@ extern int uprobe_register(struct inode 
- extern void uprobe_unregister(struct inode *inode, loff_t offset, struct uprobe_consumer *uc);
- extern int uprobe_mmap(struct vm_area_struct *vma);
- extern void uprobe_munmap(struct vm_area_struct *vma, unsigned long start, unsigned long end);
-+extern void uprobe_start_dup_mmap(void);
-+extern void uprobe_end_dup_mmap(void);
- extern void uprobe_dup_mmap(struct mm_struct *oldmm, struct mm_struct *newmm);
- extern void uprobe_free_utask(struct task_struct *t);
- extern void uprobe_copy_process(struct task_struct *t);
-@@ -129,6 +131,12 @@ static inline void
- uprobe_munmap(struct vm_area_struct *vma, unsigned long start, unsigned long end)
- {
- }
-+static inline void uprobe_start_dup_mmap(void)
-+{
-+}
-+static inline void uprobe_end_dup_mmap(void)
-+{
-+}
- static inline void
- uprobe_dup_mmap(struct mm_struct *oldmm, struct mm_struct *newmm)
- {
-diff -puN kernel/events/uprobes.c~uprobes-use-percpu_rw_semaphore-to-fix-register-unregister-vs-dup_mmap-race kernel/events/uprobes.c
---- a/kernel/events/uprobes.c~uprobes-use-percpu_rw_semaphore-to-fix-register-unregister-vs-dup_mmap-race
-+++ a/kernel/events/uprobes.c
-@@ -33,6 +33,7 @@
- #include <linux/ptrace.h>	/* user_enable_single_step */
- #include <linux/kdebug.h>	/* notifier mechanism */
- #include "../../mm/internal.h"	/* munlock_vma_page */
-+#include <linux/percpu-rwsem.h>
- 
- #include <linux/uprobes.h>
- 
-@@ -71,6 +72,8 @@ static struct mutex uprobes_mutex[UPROBE
- static struct mutex uprobes_mmap_mutex[UPROBES_HASH_SZ];
- #define uprobes_mmap_hash(v)	(&uprobes_mmap_mutex[((unsigned long)(v)) % UPROBES_HASH_SZ])
- 
-+static struct percpu_rw_semaphore dup_mmap_sem;
+diff -puN mm/mmap.c~mm-warn_on_once-if-f_op-mmap-change-vmas-start-address mm/mmap.c
+--- a/mm/mmap.c~mm-warn_on_once-if-f_op-mmap-change-vmas-start-address
++++ a/mm/mmap.c
+@@ -1488,7 +1488,11 @@ munmap_back:
+ 		 *
+ 		 * Answer: Yes, several device drivers can do it in their
+ 		 *         f_op->mmap method. -DaveM
++		 * Bug: If addr is changed, prev, rb_link, rb_parent should
++		 *      be updated for vma_link()
+ 		 */
++		WARN_ON_ONCE(addr != vma->vm_start);
 +
- /*
-  * uprobe_events allows us to skip the uprobe_mmap if there are no uprobe
-  * events active at this time.  Probably a fine grained per inode count is
-@@ -766,10 +769,13 @@ static int register_for_each_vma(struct 
- 	struct map_info *info;
- 	int err = 0;
- 
-+	percpu_down_write(&dup_mmap_sem);
- 	info = build_map_info(uprobe->inode->i_mapping,
- 					uprobe->offset, is_register);
--	if (IS_ERR(info))
--		return PTR_ERR(info);
-+	if (IS_ERR(info)) {
-+		err = PTR_ERR(info);
-+		goto out;
-+	}
- 
- 	while (info) {
- 		struct mm_struct *mm = info->mm;
-@@ -799,7 +805,8 @@ static int register_for_each_vma(struct 
- 		mmput(mm);
- 		info = free_map_info(info);
- 	}
--
-+ out:
-+	percpu_up_write(&dup_mmap_sem);
- 	return err;
- }
- 
-@@ -1131,6 +1138,16 @@ void uprobe_clear_state(struct mm_struct
- 	kfree(area);
- }
- 
-+void uprobe_start_dup_mmap(void)
-+{
-+	percpu_down_read(&dup_mmap_sem);
-+}
-+
-+void uprobe_end_dup_mmap(void)
-+{
-+	percpu_up_read(&dup_mmap_sem);
-+}
-+
- void uprobe_dup_mmap(struct mm_struct *oldmm, struct mm_struct *newmm)
- {
- 	newmm->uprobes_state.xol_area = NULL;
-@@ -1604,6 +1621,9 @@ static int __init init_uprobes(void)
- 		mutex_init(&uprobes_mmap_mutex[i]);
- 	}
- 
-+	if (percpu_init_rwsem(&dup_mmap_sem))
-+		return -ENOMEM;
-+
- 	return register_die_notifier(&uprobe_exception_nb);
- }
- module_init(init_uprobes);
-diff -puN kernel/fork.c~uprobes-use-percpu_rw_semaphore-to-fix-register-unregister-vs-dup_mmap-race kernel/fork.c
---- a/kernel/fork.c~uprobes-use-percpu_rw_semaphore-to-fix-register-unregister-vs-dup_mmap-race
-+++ a/kernel/fork.c
-@@ -352,6 +352,7 @@ static int dup_mmap(struct mm_struct *mm
- 	unsigned long charge;
- 	struct mempolicy *pol;
- 
-+	uprobe_start_dup_mmap();
- 	down_write(&oldmm->mmap_sem);
- 	flush_cache_dup_mm(oldmm);
- 	uprobe_dup_mmap(oldmm, mm);
-@@ -469,6 +470,7 @@ out:
- 	up_write(&mm->mmap_sem);
- 	flush_tlb_mm(oldmm);
- 	up_write(&oldmm->mmap_sem);
-+	uprobe_end_dup_mmap();
- 	return retval;
- fail_nomem_anon_vma_fork:
- 	mpol_put(pol);
+ 		addr = vma->vm_start;
+ 		pgoff = vma->vm_pgoff;
+ 		vm_flags = vma->vm_flags;
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from js1304@gmail.com are
 
 linux-next.patch
-mm-oom-change-type-of-oom_score_adj-to-short.patch
-mm-oom-fix-race-when-specifying-a-thread-as-the-oom-origin.patch
-percpu_rw_semaphore-reimplement-to-not-block-the-readers-unnecessarily.patch
-percpu_rw_semaphore-reimplement-to-not-block-the-readers-unnecessari-lyfix.patch
-uprobes-use-percpu_rw_semaphore-to-fix-register-unregister-vs-dup_mmap-race.patch
+mm-highmem-use-pkmap_nr-to-calculate-an-index-of-pkmap.patch
+mm-highmem-remove-useless-pool_lock.patch
+mm-highmem-remove-page_address_pool-list.patch
+mm-highmem-remove-page_address_pool-list-v2.patch
+mm-highmem-makes-flush_all_zero_pkmaps-return-index-of-last-flushed-entry.patch
+mm-highmem-makes-flush_all_zero_pkmaps-return-index-of-last-flushed-entry-v2.patch
+mm-highmem-get-virtual-address-of-the-page-using-pkmap_addr.patch
+memcg-make-it-possible-to-use-the-stock-for-more-than-one-page.patch
+memcg-reclaim-when-more-than-one-page-needed.patch
+memcg-change-defines-to-an-enum.patch
+memcg-kmem-accounting-basic-infrastructure.patch
+mm-add-a-__gfp_kmemcg-flag.patch
+memcg-kmem-controller-infrastructure.patch
+mm-allocate-kernel-pages-to-the-right-memcg.patch
+res_counter-return-amount-of-charges-after-res_counter_uncharge.patch
+memcg-kmem-accounting-lifecycle-management.patch
+memcg-use-static-branches-when-code-not-in-use.patch
+memcg-allow-a-memcg-with-kmem-charges-to-be-destructed.patch
+memcg-execute-the-whole-memcg-freeing-in-free_worker.patch
+fork-protect-architectures-where-thread_size-=-page_size-against-fork-bombs.patch
+memcg-add-documentation-about-the-kmem-controller.patch
+slab-slub-struct-memcg_params.patch
+slab-annotate-on-slab-caches-nodelist-locks.patch
+slab-slub-consider-a-memcg-parameter-in-kmem_create_cache.patch
+memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears.patch
+memcg-infrastructure-to-match-an-allocation-to-the-right-cache.patch
+memcg-skip-memcg-kmem-allocations-in-specified-code-regions.patch
+slb-always-get-the-cache-from-its-page-in-kmem_cache_free.patch
+slb-allocate-objects-from-memcg-cache.patch
+memcg-destroy-memcg-caches.patch
+memcg-slb-track-all-the-memcg-children-of-a-kmem_cache.patch
+memcg-slb-shrink-dead-caches.patch
+memcg-aggregate-memcg-cache-values-in-slabinfo.patch
+slab-propagate-tunable-values.patch
+slub-slub-specific-propagation-changes.patch
+slub-slub-specific-propagation-changes-fix.patch
+kmem-add-slab-specific-documentation-about-the-kmem-controller.patch
+bootmem-remove-not-implemented-function-call-bootmem_arch_preferred_node.patch
+avr32-kconfig-remove-have_arch_bootmem.patch
+bootmem-remove-alloc_arch_preferred_bootmem.patch
+bootmem-fix-wrong-call-parameter-for-free_bootmem.patch
+bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
+mm-warn_on_once-if-f_op-mmap-change-vmas-start-address.patch
 
