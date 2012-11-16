@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + page_alloc-use-n_memory-instead-n_high_memory-change-the-node_states-initialization.patch added to -mm tree
-Date: Thu, 15 Nov 2012 16:35:21 -0800
-Message-ID: <20121116003522.4A122100047@wpzn3.hot.corp.google.com>
+Subject: + revert-mm-remove-__gfp_no_kswapd.patch added to -mm tree
+Date: Fri, 16 Nov 2012 11:51:32 -0800
+Message-ID: <20121116195133.B2D37100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:65079 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751050Ab2KPAfX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Nov 2012 19:35:23 -0500
-Received: by mail-vb0-f74.google.com with SMTP id s24so247855vbi.1
-        for <mm-commits@vger.kernel.org>; Thu, 15 Nov 2012 16:35:23 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:57245 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751680Ab2KPTvf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Nov 2012 14:51:35 -0500
+Received: by mail-gg0-f202.google.com with SMTP id i4so340305ggm.1
+        for <mm-commits@vger.kernel.org>; Fri, 16 Nov 2012 11:51:35 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: laijs@cn.fujitsu.com, cl@linux.com, dhillf@gmail.com, linfeng@cn.fujitsu.com, rientjes@google.com, wency@cn.fujitsu.com
+Cc: mgorman@suse.de, Valdis.Kletnieks@vt.edu, jirislaby@gmail.com, rcj@linux.vnet.ibm.com, riel@redhat.com, sjenning@linux.vnet.ibm.com, zkabelac@redhat.com
 
 
 The patch titled
-     Subject: page_alloc: use N_MEMORY instead N_HIGH_MEMORY change the node_states initialization
+     Subject: Revert "mm: remove __GFP_NO_KSWAPD"
 has been added to the -mm tree.  Its filename is
-     page_alloc-use-n_memory-instead-n_high_memory-change-the-node_states-initialization.patch
+     revert-mm-remove-__gfp_no_kswapd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,192 +33,173 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Lai Jiangshan <laijs@cn.fujitsu.com>
-Subject: page_alloc: use N_MEMORY instead N_HIGH_MEMORY change the node_states initialization
+From: Mel Gorman <mgorman@suse.de>
+Subject: Revert "mm: remove __GFP_NO_KSWAPD"
 
-N_HIGH_MEMORY stands for the nodes that has normal or high memory.
-N_MEMORY stands for the nodes that has any memory.
+With "mm: vmscan: scale number of pages reclaimed by reclaim/compaction
+based on failures" reverted, Zdenek Kabelac reported the following
 
-The code here need to handle with the nodes which have memory, we should
-use N_MEMORY instead.
+	Hmm,  so it's just took longer to hit the problem and observe
+	kswapd0 spinning on my CPU again - it's not as endless like before -
+	but still it easily eats minutes - it helps to	turn off  Firefox
+	or TB  (memory hungry apps) so kswapd0 stops soon - and restart
+	those apps again.  (And I still have like >1GB of cached memory)
 
-Since we introduced N_MEMORY, we update the initialization of node_states.
+	kswapd0         R  running task        0    30      2 0x00000000
+	 ffff8801331efae8 0000000000000082 0000000000000018 0000000000000246
+	 ffff880135b9a340 ffff8801331effd8 ffff8801331effd8 ffff8801331effd8
+	 ffff880055dfa340 ffff880135b9a340 00000000331efad8 ffff8801331ee000
+	Call Trace:
+	 [<ffffffff81555bf2>] preempt_schedule+0x42/0x60
+	 [<ffffffff81557a95>] _raw_spin_unlock+0x55/0x60
+	 [<ffffffff81192971>] put_super+0x31/0x40
+	 [<ffffffff81192a42>] drop_super+0x22/0x30
+	 [<ffffffff81193b89>] prune_super+0x149/0x1b0
+	 [<ffffffff81141e2a>] shrink_slab+0xba/0x510
 
-Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-Signed-off-by: Lin Feng <linfeng@cn.fujitsu.com>
-Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: David Rientjes <rientjes@google.com>
+The sysrq+m indicates the system has no swap so it'll never reclaim
+anonymous pages as part of reclaim/compaction. That is one part of the
+problem but not the root cause as file-backed pages could also be reclaimed.
+
+The likely underlying problem is that kswapd is woken up or kept awake
+for each THP allocation request in the page allocator slow path.
+
+If compaction fails for the requesting process then compaction will be
+deferred for a time and direct reclaim is avoided. However, if there
+are a storm of THP requests that are simply rejected, it will still
+be the the case that kswapd is awake for a prolonged period of time
+as pgdat->kswapd_max_order is updated each time. This is noticed by
+the main kswapd() loop and it will not call kswapd_try_to_sleep().
+Instead it will loopp, shrinking a small number of pages and calling
+shrink_slab() on each iteration.
+
+The temptation is to supply a patch that checks if kswapd was woken for
+THP and if so ignore pgdat->kswapd_max_order but it'll be a hack and not
+backed up by proper testing. As 3.7 is very close to release and this is
+not a bug we should release with, a safer path is to revert "mm: remove
+__GFP_NO_KSWAPD" for now and revisit it with the view to ironing out the
+balance_pgdat() logic in general.
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Cc: Zdenek Kabelac <zkabelac@redhat.com>
+Cc: Seth Jennings <sjenning@linux.vnet.ibm.com>
+Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Robert Jennings <rcj@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |    4 +++-
- mm/page_alloc.c       |   40 ++++++++++++++++++++++------------------
- 2 files changed, 25 insertions(+), 19 deletions(-)
+ drivers/mtd/mtdcore.c           |    6 ++++--
+ include/linux/gfp.h             |    5 ++++-
+ include/trace/events/gfpflags.h |    1 +
+ mm/page_alloc.c                 |    7 ++++---
+ 4 files changed, 13 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86/mm/init_64.c~page_alloc-use-n_memory-instead-n_high_memory-change-the-node_states-initialization arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~page_alloc-use-n_memory-instead-n_high_memory-change-the-node_states-initialization
-+++ a/arch/x86/mm/init_64.c
-@@ -630,7 +630,9 @@ void __init paging_init(void)
- 	 *	 numa support is not compiled in, and later node_set_state
- 	 *	 will not set it back.
- 	 */
--	node_clear_state(0, N_NORMAL_MEMORY);
-+	node_clear_state(0, N_MEMORY);
-+	if (N_MEMORY != N_NORMAL_MEMORY)
-+		node_clear_state(0, N_NORMAL_MEMORY);
- 
- 	zone_sizes_init();
- }
-diff -puN mm/page_alloc.c~page_alloc-use-n_memory-instead-n_high_memory-change-the-node_states-initialization mm/page_alloc.c
---- a/mm/page_alloc.c~page_alloc-use-n_memory-instead-n_high_memory-change-the-node_states-initialization
-+++ a/mm/page_alloc.c
-@@ -1695,7 +1695,7 @@ bool zone_watermark_ok_safe(struct zone 
+diff -puN drivers/mtd/mtdcore.c~revert-mm-remove-__gfp_no_kswapd drivers/mtd/mtdcore.c
+--- a/drivers/mtd/mtdcore.c~revert-mm-remove-__gfp_no_kswapd
++++ a/drivers/mtd/mtdcore.c
+@@ -1077,7 +1077,8 @@ EXPORT_SYMBOL_GPL(mtd_writev);
+  * until the request succeeds or until the allocation size falls below
+  * the system page size. This attempts to make sure it does not adversely
+  * impact system performance, so when allocating more than one page, we
+- * ask the memory allocator to avoid re-trying.
++ * ask the memory allocator to avoid re-trying, swapping, writing back
++ * or performing I/O.
   *
-  * If the zonelist cache is present in the passed in zonelist, then
-  * returns a pointer to the allowed node mask (either the current
-- * tasks mems_allowed, or node_states[N_HIGH_MEMORY].)
-+ * tasks mems_allowed, or node_states[N_MEMORY].)
-  *
-  * If the zonelist cache is not available for this zonelist, does
-  * nothing and returns NULL.
-@@ -1724,7 +1724,7 @@ static nodemask_t *zlc_setup(struct zone
- 
- 	allowednodes = !in_interrupt() && (alloc_flags & ALLOC_CPUSET) ?
- 					&cpuset_current_mems_allowed :
--					&node_states[N_HIGH_MEMORY];
-+					&node_states[N_MEMORY];
- 	return allowednodes;
- }
- 
-@@ -3272,7 +3272,7 @@ static int find_next_best_node(int node,
- 		return node;
- 	}
- 
--	for_each_node_state(n, N_HIGH_MEMORY) {
-+	for_each_node_state(n, N_MEMORY) {
- 
- 		/* Don't want a node to appear more than once */
- 		if (node_isset(n, *used_node_mask))
-@@ -3414,7 +3414,7 @@ static int default_zonelist_order(void)
-  	 * local memory, NODE_ORDER may be suitable.
-          */
- 	average_size = total_size /
--				(nodes_weight(node_states[N_HIGH_MEMORY]) + 1);
-+				(nodes_weight(node_states[N_MEMORY]) + 1);
- 	for_each_online_node(nid) {
- 		low_kmem_size = 0;
- 		total_size = 0;
-@@ -4768,7 +4768,7 @@ unsigned long __init find_min_pfn_with_a
- /*
-  * early_calculate_totalpages()
-  * Sum pages in active regions for movable zone.
-- * Populate N_HIGH_MEMORY for calculating usable_nodes.
-+ * Populate N_MEMORY for calculating usable_nodes.
+  * Note, this function also makes sure that the allocated buffer is aligned to
+  * the MTD device's min. I/O unit, i.e. the "mtd->writesize" value.
+@@ -1091,7 +1092,8 @@ EXPORT_SYMBOL_GPL(mtd_writev);
   */
- static unsigned long __init early_calculate_totalpages(void)
+ void *mtd_kmalloc_up_to(const struct mtd_info *mtd, size_t *size)
  {
-@@ -4781,7 +4781,7 @@ static unsigned long __init early_calcul
+-	gfp_t flags = __GFP_NOWARN | __GFP_WAIT | __GFP_NORETRY;
++	gfp_t flags = __GFP_NOWARN | __GFP_WAIT |
++		       __GFP_NORETRY | __GFP_NO_KSWAPD;
+ 	size_t min_alloc = max_t(size_t, mtd->writesize, PAGE_SIZE);
+ 	void *kbuf;
  
- 		totalpages += pages;
- 		if (pages)
--			node_set_state(nid, N_HIGH_MEMORY);
-+			node_set_state(nid, N_MEMORY);
- 	}
-   	return totalpages;
- }
-@@ -4798,9 +4798,9 @@ static void __init find_zone_movable_pfn
- 	unsigned long usable_startpfn;
- 	unsigned long kernelcore_node, kernelcore_remaining;
- 	/* save the state before borrow the nodemask */
--	nodemask_t saved_node_state = node_states[N_HIGH_MEMORY];
-+	nodemask_t saved_node_state = node_states[N_MEMORY];
- 	unsigned long totalpages = early_calculate_totalpages();
--	int usable_nodes = nodes_weight(node_states[N_HIGH_MEMORY]);
-+	int usable_nodes = nodes_weight(node_states[N_MEMORY]);
+diff -puN include/linux/gfp.h~revert-mm-remove-__gfp_no_kswapd include/linux/gfp.h
+--- a/include/linux/gfp.h~revert-mm-remove-__gfp_no_kswapd
++++ a/include/linux/gfp.h
+@@ -31,6 +31,7 @@ struct vm_area_struct;
+ #define ___GFP_THISNODE		0x40000u
+ #define ___GFP_RECLAIMABLE	0x80000u
+ #define ___GFP_NOTRACK		0x200000u
++#define ___GFP_NO_KSWAPD	0x400000u
+ #define ___GFP_OTHER_NODE	0x800000u
+ #define ___GFP_WRITE		0x1000000u
+ 
+@@ -85,6 +86,7 @@ struct vm_area_struct;
+ #define __GFP_RECLAIMABLE ((__force gfp_t)___GFP_RECLAIMABLE) /* Page is reclaimable */
+ #define __GFP_NOTRACK	((__force gfp_t)___GFP_NOTRACK)  /* Don't track with kmemcheck */
+ 
++#define __GFP_NO_KSWAPD	((__force gfp_t)___GFP_NO_KSWAPD)
+ #define __GFP_OTHER_NODE ((__force gfp_t)___GFP_OTHER_NODE) /* On behalf of other node */
+ #define __GFP_WRITE	((__force gfp_t)___GFP_WRITE)	/* Allocator intends to dirty page */
+ 
+@@ -114,7 +116,8 @@ struct vm_area_struct;
+ 				 __GFP_MOVABLE)
+ #define GFP_IOFS	(__GFP_IO | __GFP_FS)
+ #define GFP_TRANSHUGE	(GFP_HIGHUSER_MOVABLE | __GFP_COMP | \
+-			 __GFP_NOMEMALLOC | __GFP_NORETRY | __GFP_NOWARN)
++			 __GFP_NOMEMALLOC | __GFP_NORETRY | __GFP_NOWARN | \
++			 __GFP_NO_KSWAPD)
+ 
+ #ifdef CONFIG_NUMA
+ #define GFP_THISNODE	(__GFP_THISNODE | __GFP_NOWARN | __GFP_NORETRY)
+diff -puN include/trace/events/gfpflags.h~revert-mm-remove-__gfp_no_kswapd include/trace/events/gfpflags.h
+--- a/include/trace/events/gfpflags.h~revert-mm-remove-__gfp_no_kswapd
++++ a/include/trace/events/gfpflags.h
+@@ -36,6 +36,7 @@
+ 	{(unsigned long)__GFP_RECLAIMABLE,	"GFP_RECLAIMABLE"},	\
+ 	{(unsigned long)__GFP_MOVABLE,		"GFP_MOVABLE"},		\
+ 	{(unsigned long)__GFP_NOTRACK,		"GFP_NOTRACK"},		\
++	{(unsigned long)__GFP_NO_KSWAPD,	"GFP_NO_KSWAPD"},	\
+ 	{(unsigned long)__GFP_OTHER_NODE,	"GFP_OTHER_NODE"}	\
+ 	) : "GFP_NOWAIT"
+ 
+diff -puN mm/page_alloc.c~revert-mm-remove-__gfp_no_kswapd mm/page_alloc.c
+--- a/mm/page_alloc.c~revert-mm-remove-__gfp_no_kswapd
++++ a/mm/page_alloc.c
+@@ -2416,8 +2416,9 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ 		goto nopage;
+ 
+ restart:
+-	wake_all_kswapd(order, zonelist, high_zoneidx,
+-					zone_idx(preferred_zone));
++	if (!(gfp_mask & __GFP_NO_KSWAPD))
++		wake_all_kswapd(order, zonelist, high_zoneidx,
++						zone_idx(preferred_zone));
  
  	/*
- 	 * If movablecore was specified, calculate what size of
-@@ -4835,7 +4835,7 @@ static void __init find_zone_movable_pfn
- restart:
- 	/* Spread kernelcore memory as evenly as possible throughout nodes */
- 	kernelcore_node = required_kernelcore / usable_nodes;
--	for_each_node_state(nid, N_HIGH_MEMORY) {
-+	for_each_node_state(nid, N_MEMORY) {
- 		unsigned long start_pfn, end_pfn;
+ 	 * OK, we're below the kswapd watermark and have kicked background
+@@ -2494,7 +2495,7 @@ rebalance:
+ 	 * system then fail the allocation instead of entering direct reclaim.
+ 	 */
+ 	if ((deferred_compaction || contended_compaction) &&
+-	    (gfp_mask & (__GFP_MOVABLE|__GFP_REPEAT)) == __GFP_MOVABLE)
++						(gfp_mask & __GFP_NO_KSWAPD))
+ 		goto nopage;
  
- 		/*
-@@ -4927,23 +4927,27 @@ restart:
- 
- out:
- 	/* restore the node_state */
--	node_states[N_HIGH_MEMORY] = saved_node_state;
-+	node_states[N_MEMORY] = saved_node_state;
- }
- 
--/* Any regular memory on that node ? */
--static void __init check_for_regular_memory(pg_data_t *pgdat)
-+/* Any regular or high memory on that node ? */
-+static void check_for_memory(pg_data_t *pgdat, int nid)
- {
--#ifdef CONFIG_HIGHMEM
- 	enum zone_type zone_type;
- 
--	for (zone_type = 0; zone_type <= ZONE_NORMAL; zone_type++) {
-+	if (N_MEMORY == N_NORMAL_MEMORY)
-+		return;
-+
-+	for (zone_type = 0; zone_type <= ZONE_MOVABLE - 1; zone_type++) {
- 		struct zone *zone = &pgdat->node_zones[zone_type];
- 		if (zone->present_pages) {
--			node_set_state(zone_to_nid(zone), N_NORMAL_MEMORY);
-+			node_set_state(nid, N_HIGH_MEMORY);
-+			if (N_NORMAL_MEMORY != N_HIGH_MEMORY &&
-+			    zone_type <= ZONE_NORMAL)
-+				node_set_state(nid, N_NORMAL_MEMORY);
- 			break;
- 		}
- 	}
--#endif
- }
- 
- /**
-@@ -5026,8 +5030,8 @@ void __init free_area_init_nodes(unsigne
- 
- 		/* Any memory on that node */
- 		if (pgdat->node_present_pages)
--			node_set_state(nid, N_HIGH_MEMORY);
--		check_for_regular_memory(pgdat);
-+			node_set_state(nid, N_MEMORY);
-+		check_for_memory(pgdat, nid);
- 	}
- }
- 
+ 	/* Try direct reclaim and then allocating */
 _
 
-Patches currently in -mm which might be from laijs@cn.fujitsu.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
+mm-revert-mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures.patch
+mm-highmem-dont-treat-pkmap_addrlast_pkmap-as-a-highmem-address.patch
 linux-next.patch
+revert-mm-remove-__gfp_no_kswapd.patch
 memory_hotplug-fix-possible-incorrect-node_states.patch
 slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
-drivers-base-nodec-cleanup-node_state_attr.patch
+mm-add-comment-on-storage-key-dirty-bit-semantics.patch
+mm-refactor-reinsert-of-swap_info-in-sys_swapoff.patch
+mm-do-not-call-frontswap_init-during-swapoff.patch
+mm-memmap_init_zone-performance-improvement.patch
+mm-allocate-kernel-pages-to-the-right-memcg.patch
 mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory.patch
-mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch
 memory_hotplug-handle-empty-zone-when-online_movable-online_kernel.patch
 memory_hotplug-ensure-every-online-node-has-normal-memory.patch
-node_states-introduce-n_memory.patch
-cpuset-use-n_memory-instead-n_high_memory.patch
-procfs-use-n_memory-instead-n_high_memory.patch
-memcontrol-use-n_memory-instead-n_high_memory.patch
-oom-use-n_memory-instead-n_high_memory.patch
-mmmigrate-use-n_memory-instead-n_high_memory.patch
-mempolicy-use-n_memory-instead-n_high_memory.patch
-hugetlb-use-n_memory-instead-n_high_memory.patch
-vmstat-use-n_memory-instead-n_high_memory.patch
-kthread-use-n_memory-instead-n_high_memory.patch
-init-use-n_memory-instead-n_high_memory.patch
-vmscan-use-n_memory-instead-n_high_memory.patch
-page_alloc-use-n_memory-instead-n_high_memory-change-the-node_states-initialization.patch
-hotplug-update-nodemasks-management.patch
+mm-compaction-fix-compiler-warning.patch
 
