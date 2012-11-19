@@ -1,159 +1,182 @@
 From: akpm@linux-foundation.org
-Subject: + percpu_rw_semaphore-add-the-lockdep-annotations.patch added to -mm tree
-Date: Mon, 19 Nov 2012 15:06:06 -0800
-Message-ID: <20121119230607.B712E20004E@hpza10.eem.corp.google.com>
+Subject: [obsolete] uprobes-use-percpu_rw_semaphore-to-fix-register-unregister-vs-dup_mmap-race.patch removed from -mm tree
+Date: Mon, 19 Nov 2012 15:06:19 -0800
+Message-ID: <20121119230619.8CE88100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:61221 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753240Ab2KSXGM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Nov 2012 18:06:12 -0500
-Received: by mail-ee0-f74.google.com with SMTP id t10so357318eei.1
-        for <mm-commits@vger.kernel.org>; Mon, 19 Nov 2012 15:06:09 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:47215 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753240Ab2KSXGV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Nov 2012 18:06:21 -0500
+Received: by mail-vb0-f74.google.com with SMTP id s24so617990vbi.1
+        for <mm-commits@vger.kernel.org>; Mon, 19 Nov 2012 15:06:20 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, anton@redhat.com, mingo@elte.hu, mmarek@suse.cz, mpatocka@redhat.com, paulmck@linux.vnet.ibm.com, peterz@infradead.org, srikar@linux.vnet.ibm.com, torvalds@linux-foundation.org
+To: oleg@redhat.com, ananth@in.ibm.com, anton@redhat.com, mingo@elte.hu, peterz@infradead.org, srikar@linux.vnet.ibm.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: percpu_rw_semaphore: add lockdep annotations
-has been added to the -mm tree.  Its filename is
-     percpu_rw_semaphore-add-the-lockdep-annotations.patch
+     Subject: uprobes: use percpu_rw_semaphore to fix register/unregister vs dup_mmap() race
+has been removed from the -mm tree.  Its filename was
+     uprobes-use-percpu_rw_semaphore-to-fix-register-unregister-vs-dup_mmap-race.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: percpu_rw_semaphore: add lockdep annotations
+Subject: uprobes: use percpu_rw_semaphore to fix register/unregister vs dup_mmap() race
 
-Add lockdep annotations.  Not only this can help to find the potential
-problems, we do not want the false warnings if, say, the task takes two
-different percpu_rw_semaphore's for reading.  IOW, at least ->rw_sem
-should not use a single class.
+This was always racy, but 268720903f87 ("uprobes: Rework
+register_for_each_vma() to make it O(n)") should be blamed anyway, it made
+everything worse and I didn't notice.
 
-This patch exposes this internal lock to lockdep so that it represents the
-whole percpu_rw_semaphore.  This way we do not need to add another "fake"
-->lockdep_map and lock_class_key.  More importantly, this also makes the
-output from lockdep much more understandable if it finds the problem.
+register/unregister call build_map_info() and then do install/remove
+breakpoint for every mm which mmaps inode/offset.  This can obviously race
+with fork()->dup_mmap() in between and we can miss the child.
 
-In short, with this patch from lockdep pov percpu_down_read() and
-percpu_up_read() acquire/release ->rw_sem for reading, this matches the
-actual semantics.  This abuses __up_read() but I hope this is fine and in
-fact I'd like to have down_read_no_lockdep() as well,
-percpu_down_read_recursive_readers() will need it.
+uprobe_register() could be easily fixed but unregister is much worse, the
+new mm inherits "int3" from parent and there is no way to detect this if
+uprobe goes away.
 
+So this patch simply adds percpu_down_read/up_read around dup_mmap(), and
+percpu_down_write/up_write into register_for_each_vma().
+
+This adds 2 new hooks into dup_mmap() but we can kill uprobe_dup_mmap()
+and fold it into uprobe_end_dup_mmap().
+
+Reported-by: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Anton Arapov <anton@redhat.com>
+Acked-by: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Michal Marek <mmarek@suse.cz>
-Cc: Mikulas Patocka <mpatocka@redhat.com>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
+Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Anton Arapov <anton@redhat.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/percpu-rwsem.h |   10 +++++++++-
- lib/percpu-rwsem.c           |   21 +++++++++++++++++----
- 2 files changed, 26 insertions(+), 5 deletions(-)
+ include/linux/uprobes.h |    8 ++++++++
+ kernel/events/uprobes.c |   26 +++++++++++++++++++++++---
+ kernel/fork.c           |    2 ++
+ 3 files changed, 33 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/percpu-rwsem.h~percpu_rw_semaphore-add-the-lockdep-annotations include/linux/percpu-rwsem.h
---- a/include/linux/percpu-rwsem.h~percpu_rw_semaphore-add-the-lockdep-annotations
-+++ a/include/linux/percpu-rwsem.h
-@@ -5,6 +5,7 @@
- #include <linux/rwsem.h>
- #include <linux/percpu.h>
- #include <linux/wait.h>
-+#include <linux/lockdep.h>
+diff -puN include/linux/uprobes.h~uprobes-use-percpu_rw_semaphore-to-fix-register-unregister-vs-dup_mmap-race include/linux/uprobes.h
+--- a/include/linux/uprobes.h~uprobes-use-percpu_rw_semaphore-to-fix-register-unregister-vs-dup_mmap-race
++++ a/include/linux/uprobes.h
+@@ -97,6 +97,8 @@ extern int uprobe_register(struct inode 
+ extern void uprobe_unregister(struct inode *inode, loff_t offset, struct uprobe_consumer *uc);
+ extern int uprobe_mmap(struct vm_area_struct *vma);
+ extern void uprobe_munmap(struct vm_area_struct *vma, unsigned long start, unsigned long end);
++extern void uprobe_start_dup_mmap(void);
++extern void uprobe_end_dup_mmap(void);
+ extern void uprobe_dup_mmap(struct mm_struct *oldmm, struct mm_struct *newmm);
+ extern void uprobe_free_utask(struct task_struct *t);
+ extern void uprobe_copy_process(struct task_struct *t);
+@@ -129,6 +131,12 @@ static inline void
+ uprobe_munmap(struct vm_area_struct *vma, unsigned long start, unsigned long end)
+ {
+ }
++static inline void uprobe_start_dup_mmap(void)
++{
++}
++static inline void uprobe_end_dup_mmap(void)
++{
++}
+ static inline void
+ uprobe_dup_mmap(struct mm_struct *oldmm, struct mm_struct *newmm)
+ {
+diff -puN kernel/events/uprobes.c~uprobes-use-percpu_rw_semaphore-to-fix-register-unregister-vs-dup_mmap-race kernel/events/uprobes.c
+--- a/kernel/events/uprobes.c~uprobes-use-percpu_rw_semaphore-to-fix-register-unregister-vs-dup_mmap-race
++++ a/kernel/events/uprobes.c
+@@ -33,6 +33,7 @@
+ #include <linux/ptrace.h>	/* user_enable_single_step */
+ #include <linux/kdebug.h>	/* notifier mechanism */
+ #include "../../mm/internal.h"	/* munlock_vma_page */
++#include <linux/percpu-rwsem.h>
  
- struct percpu_rw_semaphore {
- 	unsigned int __percpu	*fast_read_ctr;
-@@ -20,7 +21,14 @@ extern void percpu_up_read(struct percpu
- extern void percpu_down_write(struct percpu_rw_semaphore *);
- extern void percpu_up_write(struct percpu_rw_semaphore *);
+ #include <linux/uprobes.h>
  
--extern int percpu_init_rwsem(struct percpu_rw_semaphore *);
-+extern int __percpu_init_rwsem(struct percpu_rw_semaphore *,
-+				const char *, struct lock_class_key *);
- extern void percpu_free_rwsem(struct percpu_rw_semaphore *);
+@@ -71,6 +72,8 @@ static struct mutex uprobes_mutex[UPROBE
+ static struct mutex uprobes_mmap_mutex[UPROBES_HASH_SZ];
+ #define uprobes_mmap_hash(v)	(&uprobes_mmap_mutex[((unsigned long)(v)) % UPROBES_HASH_SZ])
  
-+#define percpu_init_rwsem(brw)	\
-+({								\
-+	static struct lock_class_key rwsem_key;			\
-+	__percpu_init_rwsem(brw, #brw, &rwsem_key);		\
-+})
++static struct percpu_rw_semaphore dup_mmap_sem;
 +
- #endif
-diff -puN lib/percpu-rwsem.c~percpu_rw_semaphore-add-the-lockdep-annotations lib/percpu-rwsem.c
---- a/lib/percpu-rwsem.c~percpu_rw_semaphore-add-the-lockdep-annotations
-+++ a/lib/percpu-rwsem.c
-@@ -2,18 +2,21 @@
- #include <linux/rwsem.h>
- #include <linux/percpu.h>
- #include <linux/wait.h>
-+#include <linux/lockdep.h>
- #include <linux/percpu-rwsem.h>
- #include <linux/rcupdate.h>
- #include <linux/sched.h>
- #include <linux/errno.h>
- 
--int percpu_init_rwsem(struct percpu_rw_semaphore *brw)
-+int __percpu_init_rwsem(struct percpu_rw_semaphore *brw,
-+			const char *name, struct lock_class_key *rwsem_key)
- {
- 	brw->fast_read_ctr = alloc_percpu(int);
- 	if (unlikely(!brw->fast_read_ctr))
- 		return -ENOMEM;
- 
--	init_rwsem(&brw->rw_sem);
-+	/* ->rw_sem represents the whole percpu_rw_semaphore for lockdep */
-+	__init_rwsem(&brw->rw_sem, name, rwsem_key);
- 	atomic_set(&brw->write_ctr, 0);
- 	atomic_set(&brw->slow_read_ctr, 0);
- 	init_waitqueue_head(&brw->write_waitq);
-@@ -66,19 +69,29 @@ static bool update_fast_ctr(struct percp
  /*
-  * Like the normal down_read() this is not recursive, the writer can
-  * come after the first percpu_down_read() and create the deadlock.
-+ *
-+ * Note: returns with lock_is_held(brw->rw_sem) == T for lockdep,
-+ * percpu_up_read() does rwsem_release(). This pairs with the usage
-+ * of ->rw_sem in percpu_down/up_write().
-  */
- void percpu_down_read(struct percpu_rw_semaphore *brw)
- {
--	if (likely(update_fast_ctr(brw, +1)))
-+	might_sleep();
-+	if (likely(update_fast_ctr(brw, +1))) {
-+		rwsem_acquire_read(&brw->rw_sem.dep_map, 0, 0, _RET_IP_);
- 		return;
+  * uprobe_events allows us to skip the uprobe_mmap if there are no uprobe
+  * events active at this time.  Probably a fine grained per inode count is
+@@ -766,10 +769,13 @@ static int register_for_each_vma(struct 
+ 	struct map_info *info;
+ 	int err = 0;
+ 
++	percpu_down_write(&dup_mmap_sem);
+ 	info = build_map_info(uprobe->inode->i_mapping,
+ 					uprobe->offset, is_register);
+-	if (IS_ERR(info))
+-		return PTR_ERR(info);
++	if (IS_ERR(info)) {
++		err = PTR_ERR(info);
++		goto out;
 +	}
  
- 	down_read(&brw->rw_sem);
- 	atomic_inc(&brw->slow_read_ctr);
--	up_read(&brw->rw_sem);
-+	/* avoid up_read()->rwsem_release() */
-+	__up_read(&brw->rw_sem);
+ 	while (info) {
+ 		struct mm_struct *mm = info->mm;
+@@ -799,7 +805,8 @@ static int register_for_each_vma(struct 
+ 		mmput(mm);
+ 		info = free_map_info(info);
+ 	}
+-
++ out:
++	percpu_up_write(&dup_mmap_sem);
+ 	return err;
  }
  
- void percpu_up_read(struct percpu_rw_semaphore *brw)
- {
-+	rwsem_release(&brw->rw_sem.dep_map, 1, _RET_IP_);
-+
- 	if (likely(update_fast_ctr(brw, -1)))
- 		return;
+@@ -1131,6 +1138,16 @@ void uprobe_clear_state(struct mm_struct
+ 	kfree(area);
+ }
  
++void uprobe_start_dup_mmap(void)
++{
++	percpu_down_read(&dup_mmap_sem);
++}
++
++void uprobe_end_dup_mmap(void)
++{
++	percpu_up_read(&dup_mmap_sem);
++}
++
+ void uprobe_dup_mmap(struct mm_struct *oldmm, struct mm_struct *newmm)
+ {
+ 	newmm->uprobes_state.xol_area = NULL;
+@@ -1604,6 +1621,9 @@ static int __init init_uprobes(void)
+ 		mutex_init(&uprobes_mmap_mutex[i]);
+ 	}
+ 
++	if (percpu_init_rwsem(&dup_mmap_sem))
++		return -ENOMEM;
++
+ 	return register_die_notifier(&uprobe_exception_nb);
+ }
+ module_init(init_uprobes);
+diff -puN kernel/fork.c~uprobes-use-percpu_rw_semaphore-to-fix-register-unregister-vs-dup_mmap-race kernel/fork.c
+--- a/kernel/fork.c~uprobes-use-percpu_rw_semaphore-to-fix-register-unregister-vs-dup_mmap-race
++++ a/kernel/fork.c
+@@ -352,6 +352,7 @@ static int dup_mmap(struct mm_struct *mm
+ 	unsigned long charge;
+ 	struct mempolicy *pol;
+ 
++	uprobe_start_dup_mmap();
+ 	down_write(&oldmm->mmap_sem);
+ 	flush_cache_dup_mm(oldmm);
+ 	uprobe_dup_mmap(oldmm, mm);
+@@ -469,6 +470,7 @@ out:
+ 	up_write(&mm->mmap_sem);
+ 	flush_tlb_mm(oldmm);
+ 	up_write(&oldmm->mmap_sem);
++	uprobe_end_dup_mmap();
+ 	return retval;
+ fail_nomem_anon_vma_fork:
+ 	mpol_put(pol);
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
@@ -166,7 +189,6 @@ percpu_rw_semaphore-reimplement-to-not-block-the-readers-unnecessari-lyfix.patch
 percpu_rw_semaphore-kill-writer_mutex-add-write_ctr.patch
 percpu_rw_semaphore-add-the-lockdep-annotations.patch
 percpu_rw_semaphore-introduce-config_percpu_rwsem.patch
-uprobes-use-percpu_rw_semaphore-to-fix-register-unregister-vs-dup_mmap-race.patch
 ptrace-introduce-ptrace_o_exitkill.patch
 procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers.patch
 fs-eventfd-add-procfs-fdinfo-helper.patch
