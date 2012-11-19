@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-bugh-fix-sparse-warning-related-to-build_bug_on_invalid.patch added to -mm tree
-Date: Mon, 19 Nov 2012 13:30:29 -0800
-Message-ID: <20121119213029.BBFDC82004A@wpzn4.hot.corp.google.com>
+Subject: + pidns-remove-unused-is_container_init.patch added to -mm tree
+Date: Mon, 19 Nov 2012 13:32:27 -0800
+Message-ID: <20121119213228.1C6EB20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:43349 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751851Ab2KSVaa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Nov 2012 16:30:30 -0500
-Received: by mail-yh0-f74.google.com with SMTP id 10so607890yhl.1
-        for <mm-commits@vger.kernel.org>; Mon, 19 Nov 2012 13:30:30 -0800 (PST)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:36739 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752114Ab2KSVca (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Nov 2012 16:32:30 -0500
+Received: by mail-wi0-f202.google.com with SMTP id cb5so25836wib.1
+        for <mm-commits@vger.kernel.org>; Mon, 19 Nov 2012 13:32:29 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tushar.behera@linaro.org, khlebnikov@openvz.org
+Cc: gaofeng@cn.fujitsu.com, dhowells@redhat.com, ebiederm@xmission.com, jmorris@namei.org, serge.hallyn@canonical.com
 
 
 The patch titled
-     Subject: include/linux/bug.h: fix sparse warning related to BUILD_BUG_ON_INVALID
+     Subject: pidns: remove unused is_container_init()
 has been added to the -mm tree.  Its filename is
-     include-linux-bugh-fix-sparse-warning-related-to-build_bug_on_invalid.patch
+     pidns-remove-unused-is_container_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,41 +33,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tushar Behera <tushar.behera@linaro.org>
-Subject: include/linux/bug.h: fix sparse warning related to BUILD_BUG_ON_INVALID
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: pidns: remove unused is_container_init()
 
-commit baf05aa9271b ("bug: introduce BUILD_BUG_ON_INVALID() macro")
-introduces this macro only when _CHECKER_ is not defined.  Define a silent
-macro in the else condition to fix following sparse warning.
+since commit 1cdcbec1a3 ("CRED: Neuter sys_capset()") is_container_init()
+has no callers.
 
-mm/filemap.c:395:9: error: undefined identifier 'BUILD_BUG_ON_INVALID'
-mm/filemap.c:396:9: error: undefined identifier 'BUILD_BUG_ON_INVALID'
-mm/filemap.c:397:9: error: undefined identifier 'BUILD_BUG_ON_INVALID'
-include/linux/mm.h:419:9: error: undefined identifier 'BUILD_BUG_ON_INVALID'
-include/linux/mm.h:419:9: error: not a function <noident>
-
-Signed-off-by: Tushar Behera <tushar.behera@linaro.org>
-Acked-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+Cc: David Howells <dhowells@redhat.com>
+Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bug.h |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/sched.h |    6 ------
+ kernel/pid.c          |   15 ---------------
+ 2 files changed, 21 deletions(-)
 
-diff -puN include/linux/bug.h~include-linux-bugh-fix-sparse-warning-related-to-build_bug_on_invalid include/linux/bug.h
---- a/include/linux/bug.h~include-linux-bugh-fix-sparse-warning-related-to-build_bug_on_invalid
-+++ a/include/linux/bug.h
-@@ -15,6 +15,7 @@ struct pt_regs;
- #define BUILD_BUG_ON_NOT_POWER_OF_2(n)
- #define BUILD_BUG_ON_ZERO(e) (0)
- #define BUILD_BUG_ON_NULL(e) ((void*)0)
-+#define BUILD_BUG_ON_INVALID(e) (0)
- #define BUILD_BUG_ON(condition)
- #define BUILD_BUG() (0)
- #else /* __CHECKER__ */
-_
-
-Patches currently in -mm which might be from tushar.behera@linaro.org are
-
-include-linux-bugh-fix-sparse-warning-related-to-build_bug_on_invalid.patch
-
+diff -puN include/linux/sched.h~pidns-remove-unused-is_container_init include/linux/sched.h
+--- a/include/linux/sched.h~pidns-remove-unused-is_container_init
++++ a/include/linux/sched.h
+@@ -1769,12 +1769,6 @@ static inline int is_global_init(struct 
+ 	return tsk->pid == 1;
+ }
+ 
+-/*
+- * is_container_init:
+- * check whether in the task is init in its own pid namespace.
+- */
+-extern int is_container_init(struct task_struct *tsk);
+-
+ extern struct pid *cad_pid;
+ 
+ extern void free_task(struct task_struct *tsk);
+diff -puN kernel/pid.c~pidns-remove-unused-is_container_init kernel/pid.c
+--- a/kernel/pid.c~pidns-remove-unused-is_container_init
++++ a/kernel/pid.c
+@@ -81,21 +81,6 @@ struct pid_namespace init_pid_ns = {
+ };
+ EXPORT_SYMBOL_GPL(init_pid_ns);
+ 
+-int is_container_init(struct task_struct *tsk)
+-{
+-	int ret = 0;
+-	struct pid *pid;
+-
+-	rcu_read_lock();
+-	pid = task_pid(tsk);
+-	if (pid != NULL && pid->numbers[pid->level].nr == 1)
+-		ret = 1;
+-	rcu_read_unlock();
+-
+-	return ret;
+-}
+-EXPORT_SYMBOL(is_container_init);
