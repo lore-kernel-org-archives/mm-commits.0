@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fs-notify-add-procfs-fdinfo-helper-v6-fix.patch added to -mm tree
-Date: Fri, 16 Nov 2012 15:57:04 -0800
-Message-ID: <20121116235705.C485E20004E@hpza10.eem.corp.google.com>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Mon, 19 Nov 2012 12:19:28 -0800
+Message-ID: <20121119201930.450D5200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:33209 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753671Ab2KPX5J (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Nov 2012 18:57:09 -0500
-Received: by mail-we0-f202.google.com with SMTP id x43so210031wey.1
-        for <mm-commits@vger.kernel.org>; Fri, 16 Nov 2012 15:57:08 -0800 (PST)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:54349 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754690Ab2KSUTd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Nov 2012 15:19:33 -0500
+Received: by mail-fa0-f74.google.com with SMTP id t1so132224fae.1
+        for <mm-commits@vger.kernel.org>; Mon, 19 Nov 2012 12:19:32 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adobriyan@gmail.com, aneesh.kumar@linux.vnet.ibm.com, avagin@openvz.org, bfields@fieldses.org, gorcunov@openvz.org, jbottomley@parallels.com, matt.helsley@gmail.com, oleg@redhat.com, tvrtko.ursulin@onelan.co.uk, viro@ZenIV.linux.org.uk, xemul@parallels.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: fs-notify-add-procfs-fdinfo-helper-v6-fix
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     fs-notify-add-procfs-fdinfo-helper-v6-fix.patch
+     linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,86 +34,272 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs-notify-add-procfs-fdinfo-helper-v6-fix
+Subject: linux-next-git-rejects
 
-rationalize output formatting
-
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Andrey Vagin <avagin@openvz.org>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: James Bottomley <jbottomley@parallels.com>
-Cc: Matthew Helsley <matt.helsley@gmail.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Tvrtko Ursulin <tvrtko.ursulin@onelan.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/fdinfo.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ arch/arm/mach-highbank/system.c                       |    4 -
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c            |    4 -
+ arch/s390/include/asm/topology.h                      |    8 ---
+ arch/s390/kernel/topology.c                           |   22 ----------
+ drivers/net/wireless/brcm80211/brcmfmac/wl_cfg80211.c |    4 -
+ drivers/usb/early/ehci-dbgp.c                         |    8 ---
+ drivers/usb/musb/ux500.c                              |    4 -
+ fs/pstore/platform.c                                  |    4 -
+ include/linux/clk-provider.h                          |    5 --
+ mm/memcontrol.c                                       |   10 ----
+ sound/soc/codecs/wm5102.c                             |   10 ----
+ 11 files changed, 83 deletions(-)
 
-diff -puN fs/notify/fdinfo.c~fs-notify-add-procfs-fdinfo-helper-v6-fix fs/notify/fdinfo.c
---- a/fs/notify/fdinfo.c~fs-notify-add-procfs-fdinfo-helper-v6-fix
-+++ a/fs/notify/fdinfo.c
-@@ -50,7 +50,7 @@ static int show_mark_fhandle(struct seq_
- 	f.handle.handle_bytes = sizeof(f.pad);
- 	size = f.handle.handle_bytes >> 2;
+diff -puN arch/arm/mach-highbank/system.c~linux-next-git-rejects arch/arm/mach-highbank/system.c
+--- a/arch/arm/mach-highbank/system.c~linux-next-git-rejects
++++ a/arch/arm/mach-highbank/system.c
+@@ -26,10 +26,6 @@ void highbank_restart(char mode, const c
+ 	else
+ 		hignbank_set_pwr_soft_reset();
  
--	ret = exportfs_encode_inode_fh(inode, (struct fid *)f.handle.f_handle, &size,  0);
-+	ret = exportfs_encode_inode_fh(inode, (struct fid *)f.handle.f_handle, &size, 0);
- 	if ((ret == 255) || (ret == -ENOSPC)) {
- 		WARN_ONCE(1, "Can't encode file handler for inotify: %d\n", ret);
- 		return 0;
-@@ -59,7 +59,7 @@ static int show_mark_fhandle(struct seq_
- 	f.handle.handle_type = ret;
- 	f.handle.handle_bytes = size * sizeof(u32);
+-<<<<<<< HEAD
+-	scu_power_mode(scu_base_addr, SCU_PM_POWEROFF);
+-=======
+->>>>>>> linux-next/akpm-base
+ 	while (1)
+ 		cpu_do_idle();
+ }
+diff -puN arch/arm/mach-omap2/omap_hwmod_44xx_data.c~linux-next-git-rejects arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c~linux-next-git-rejects
++++ a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -21,14 +21,10 @@
+ #include <linux/io.h>
+ #include <linux/platform_data/gpio-omap.h>
+ #include <linux/power/smartreflex.h>
+-<<<<<<< HEAD
+-#include <linux/platform_data/omap_ocp2scp.h>
+-=======
+ #include <linux/i2c-omap.h>
+ #include <linux/platform_data/omap_ocp2scp.h>
  
--	ret = seq_printf(m, "fhandle-bytes: %8x fhandle-type: %8x f_handle: ",
-+	ret = seq_printf(m, "fhandle-bytes:%x fhandle-type:%x f_handle:",
- 			 f.handle.handle_bytes, f.handle.handle_type);
+ #include <plat-omap/dma-omap.h>
+->>>>>>> linux-next/akpm-base
  
- 	for (i = 0; i < f.handle.handle_bytes; i++)
-@@ -86,8 +86,8 @@ static int inotify_fdinfo(struct seq_fil
- 	inode_mark = container_of(mark, struct inotify_inode_mark, fsn_mark);
- 	inode = igrab(mark->i.inode);
- 	if (inode) {
--		ret = seq_printf(m, "inotify wd: %8d ino: %16lx sdev: %8x "
--				 "mask: %8x ignored_mask: %8x ",
-+		ret = seq_printf(m, "inotify-wd:%x ino:%lx sdev:%x "
-+				 "mask:%x ignored_mask:%x ",
- 				 inode_mark->wd, inode->i_ino,
- 				 inode->i_sb->s_dev,
- 				 mark->mask, mark->ignored_mask);
-@@ -120,15 +120,16 @@ static int fanotify_fdinfo(struct seq_fi
- 		inode = igrab(mark->i.inode);
- 		if (!inode)
- 			goto out;
--		ret = seq_printf(m, "fanotify ino: %16lx sdev: %8x "
--				 "mask: %8x ignored_mask: %8x\n",
-+		ret = seq_printf(m, "fanotify-ino:%x sdev:%x "
-+				 "mask:%x ignored_mask:%x\n",
- 				 inode->i_ino, inode->i_sb->s_dev,
- 				 mark->mask, mark->ignored_mask);
- 		iput(inode);
- 	} else if (mark->flags & FSNOTIFY_MARK_FLAG_VFSMOUNT) {
- 		struct mount *mnt = real_mount(mark->m.mnt);
+ #include <linux/platform_data/spi-omap2-mcspi.h>
+ #include <linux/platform_data/asoc-ti-mcbsp.h>
+diff -puN arch/s390/include/asm/topology.h~linux-next-git-rejects arch/s390/include/asm/topology.h
+--- a/arch/s390/include/asm/topology.h~linux-next-git-rejects
++++ a/arch/s390/include/asm/topology.h
+@@ -8,13 +8,6 @@ struct cpu;
  
--		ret = seq_printf(m, "fanotify mnt_id: %8x mask: %8x ignored_mask: %8x\n",
-+		ret = seq_printf(m, "fanotify-mnt_id:%x mask:%x "
-+				 "ignored_mask:%x\n",
- 				 mnt->mnt_id, mark->mask, mark->ignored_mask);
+ #ifdef CONFIG_SCHED_BOOK
+ 
+-<<<<<<< HEAD
+-extern unsigned char cpu_socket_id[NR_CPUS];
+-#define topology_physical_package_id(cpu) (cpu_socket_id[cpu])
+-
+-extern unsigned char cpu_core_id[NR_CPUS];
+-extern cpumask_t cpu_core_map[NR_CPUS];
+-=======
+ struct cpu_topology_s390 {
+ 	unsigned short core_id;
+ 	unsigned short socket_id;
+@@ -32,7 +25,6 @@ extern struct cpu_topology_s390 cpu_topo
+ #define topology_book_cpumask(cpu)		(&cpu_topology[cpu].book_mask)
+ 
+ #define mc_capable() 1
+->>>>>>> linux-next/akpm-base
+ 
+ static inline const struct cpumask *cpu_coregroup_mask(int cpu)
+ {
+diff -puN arch/s390/kernel/topology.c~linux-next-git-rejects arch/s390/kernel/topology.c
+--- a/arch/s390/kernel/topology.c~linux-next-git-rejects
++++ a/arch/s390/kernel/topology.c
+@@ -33,15 +33,8 @@ static void set_topology_timer(void);
+ static void topology_work_fn(struct work_struct *work);
+ static struct sysinfo_15_1_x *tl_info;
+ 
+-<<<<<<< HEAD
+-static struct mask_info core_info;
+-cpumask_t cpu_core_map[NR_CPUS];
+-unsigned char cpu_core_id[NR_CPUS];
+-unsigned char cpu_socket_id[NR_CPUS];
+-=======
+ static int topology_enabled = 1;
+ static DECLARE_WORK(topology_work, topology_work_fn);
+->>>>>>> linux-next/akpm-base
+ 
+ /* topology_lock protects the socket and book linked lists */
+ static DEFINE_SPINLOCK(topology_lock);
+@@ -77,20 +70,6 @@ static struct mask_info *add_cpus_to_mas
+ 
+ 		rcpu = TOPOLOGY_CPU_BITS - 1 - cpu + tl_cpu->origin;
+ 		lcpu = smp_find_processor_id(rcpu);
+-<<<<<<< HEAD
+-		if (lcpu >= 0) {
+-			cpumask_set_cpu(lcpu, &book->mask);
+-			cpu_book_id[lcpu] = book->id;
+-			cpumask_set_cpu(lcpu, &core->mask);
+-			cpu_core_id[lcpu] = rcpu;
+-			if (one_core_per_cpu) {
+-				cpu_socket_id[lcpu] = rcpu;
+-				core = core->next;
+-			} else {
+-				cpu_socket_id[lcpu] = core->id;
+-			}
+-			smp_cpu_set_polarization(lcpu, tl_cpu->pp);
+-=======
+ 		if (lcpu < 0)
+ 			continue;
+ 		cpumask_set_cpu(lcpu, &book->mask);
+@@ -102,7 +81,6 @@ static struct mask_info *add_cpus_to_mas
+ 			socket = socket->next;
+ 		} else {
+ 			cpu_topology[lcpu].socket_id = socket->id;
+->>>>>>> linux-next/akpm-base
+ 		}
+ 		smp_cpu_set_polarization(lcpu, tl_cpu->pp);
  	}
- out:
+diff -puN drivers/net/wireless/brcm80211/brcmfmac/wl_cfg80211.c~linux-next-git-rejects drivers/net/wireless/brcm80211/brcmfmac/wl_cfg80211.c
+--- a/drivers/net/wireless/brcm80211/brcmfmac/wl_cfg80211.c~linux-next-git-rejects
++++ a/drivers/net/wireless/brcm80211/brcmfmac/wl_cfg80211.c
+@@ -3754,10 +3754,6 @@ static s32 brcmf_mode_to_nl80211_iftype(
+ 
+ static void brcmf_wiphy_pno_params(struct wiphy *wiphy)
+ {
+-<<<<<<< HEAD
+-#ifndef CONFIG_BRCMISCAN
+-=======
+->>>>>>> linux-next/akpm-base
+ 	/* scheduled scan settings */
+ 	wiphy->max_sched_scan_ssids = BRCMF_PNO_MAX_PFN_COUNT;
+ 	wiphy->max_match_sets = BRCMF_PNO_MAX_PFN_COUNT;
+diff -puN drivers/usb/early/ehci-dbgp.c~linux-next-git-rejects drivers/usb/early/ehci-dbgp.c
+--- a/drivers/usb/early/ehci-dbgp.c~linux-next-git-rejects
++++ a/drivers/usb/early/ehci-dbgp.c
+@@ -974,11 +974,7 @@ struct console early_dbgp_console = {
+ 	.index =	-1,
+ };
+ 
+-<<<<<<< HEAD
+-#if IS_ENABLED(CONFIG_USB_EHCI_HCD)
+-=======
+ #if IS_ENABLED(CONFIG_USB)
+->>>>>>> linux-next/akpm-base
+ int dbgp_reset_prep(struct usb_hcd *hcd)
+ {
+ 	int ret = xen_dbgp_reset_prep(hcd);
+@@ -1012,11 +1008,7 @@ int dbgp_external_startup(struct usb_hcd
+ 	return xen_dbgp_external_startup(hcd) ?: _dbgp_external_startup();
+ }
+ EXPORT_SYMBOL_GPL(dbgp_external_startup);
+-<<<<<<< HEAD
+-#endif /* USB_EHCI_HCD */
+-=======
+ #endif /* USB */
+->>>>>>> linux-next/akpm-base
+ 
+ #ifdef CONFIG_KGDB
+ 
+diff -puN drivers/usb/musb/ux500.c~linux-next-git-rejects drivers/usb/musb/ux500.c
+--- a/drivers/usb/musb/ux500.c~linux-next-git-rejects
++++ a/drivers/usb/musb/ux500.c
+@@ -87,10 +87,6 @@ static int __devinit ux500_probe(struct 
+ 	struct platform_device		*musb;
+ 	struct ux500_glue		*glue;
+ 	struct clk			*clk;
+-<<<<<<< HEAD
+-	int				musbid;
+-=======
+->>>>>>> linux-next/akpm-base
+ 	int				ret = -ENOMEM;
+ 
+ 	glue = kzalloc(sizeof(*glue), GFP_KERNEL);
+diff -puN fs/pstore/platform.c~linux-next-git-rejects fs/pstore/platform.c
+--- a/fs/pstore/platform.c~linux-next-git-rejects
++++ a/fs/pstore/platform.c
+@@ -173,11 +173,7 @@ static void pstore_console_write(struct 
+ 			spin_lock_irqsave(&psinfo->buf_lock, flags);
+ 		}
+ 		memcpy(psinfo->buf, s, c);
+-<<<<<<< HEAD
+-		psinfo->write(PSTORE_TYPE_CONSOLE, 0, &id, 0, c, psinfo);
+-=======
+ 		psinfo->write(PSTORE_TYPE_CONSOLE, 0, NULL, 0, 0, c, psinfo);
+->>>>>>> linux-next/akpm-base
+ 		spin_unlock_irqrestore(&psinfo->buf_lock, flags);
+ 		s += c;
+ 		c = e - s;
+diff -puN include/linux/clk-provider.h~linux-next-git-rejects include/linux/clk-provider.h
+--- a/include/linux/clk-provider.h~linux-next-git-rejects
++++ a/include/linux/clk-provider.h
+@@ -341,13 +341,8 @@ const char *__clk_get_name(struct clk *c
+ struct clk_hw *__clk_get_hw(struct clk *clk);
+ u8 __clk_get_num_parents(struct clk *clk);
+ struct clk *__clk_get_parent(struct clk *clk);
+-<<<<<<< HEAD
+-int __clk_get_enable_count(struct clk *clk);
+-int __clk_get_prepare_count(struct clk *clk);
+-=======
+ inline unsigned int __clk_get_enable_count(struct clk *clk);
+ inline unsigned int __clk_get_prepare_count(struct clk *clk);
+->>>>>>> linux-next/akpm-base
+ unsigned long __clk_get_rate(struct clk *clk);
+ unsigned long __clk_get_flags(struct clk *clk);
+ bool __clk_is_enabled(struct clk *clk);
+diff -puN mm/memcontrol.c~linux-next-git-rejects mm/memcontrol.c
+--- a/mm/memcontrol.c~linux-next-git-rejects
++++ a/mm/memcontrol.c
+@@ -3720,13 +3720,9 @@ unsigned long mem_cgroup_soft_limit_recl
+ static void mem_cgroup_force_empty_list(struct mem_cgroup *memcg,
+ 				int node, int zid, enum lru_list lru)
+ {
+-<<<<<<< HEAD
+ 	struct lruvec *lruvec;
+-	unsigned long flags, loop;
+-=======
+ 	struct mem_cgroup_per_zone *mz;
+ 	unsigned long flags;
+->>>>>>> linux-next/akpm-base
+ 	struct list_head *list;
+ 	struct page *busy;
+ 	struct zone *zone;
+@@ -3735,12 +3731,6 @@ static void mem_cgroup_force_empty_list(
+ 	lruvec = mem_cgroup_zone_lruvec(zone, memcg);
+ 	list = &lruvec->lists[lru];
+ 
+-<<<<<<< HEAD
+-	loop = mem_cgroup_get_lru_size(lruvec, lru);
+-	/* give some margin against EBUSY etc...*/
+-	loop += 256;
+-=======
+->>>>>>> linux-next/akpm-base
+ 	busy = NULL;
+ 	do {
+ 		struct page_cgroup *pc;
+diff -puN sound/soc/codecs/wm5102.c~linux-next-git-rejects sound/soc/codecs/wm5102.c
+--- a/sound/soc/codecs/wm5102.c~linux-next-git-rejects
++++ a/sound/soc/codecs/wm5102.c
+@@ -43,16 +43,6 @@ static DECLARE_TLV_DB_SCALE(eq_tlv, -120
+ static DECLARE_TLV_DB_SCALE(digital_tlv, -6400, 50, 0);
+ static DECLARE_TLV_DB_SCALE(noise_tlv, 0, 600, 0);
+ 
+-<<<<<<< HEAD
+-=======
+-static const struct wm_adsp_region wm5102_dsp1_regions[] = {
+-	{ .type = WMFW_ADSP2_PM, .base = 0x100000 },
+-	{ .type = WMFW_ADSP2_ZM, .base = 0x180000 },
+-	{ .type = WMFW_ADSP2_XM, .base = 0x190000 },
+-	{ .type = WMFW_ADSP2_YM, .base = 0x1a0000 },
+-};
+-
+->>>>>>> linux-next/akpm-base
+ static const struct reg_default wm5102_sysclk_reva_patch[] = {
+ 	{ 0x3000, 0x2225 },
+ 	{ 0x3001, 0x3a03 },
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-swapfile-fix-name-leak-in-swapoff.patch
-revert-mm-fix-up-zone-present-pages.patch
 linux-next.patch
+linux-next-git-rejects.patch
 linux-next-rejects.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
