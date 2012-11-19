@@ -1,149 +1,190 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-add-anon_vma_lock-to-validate_mm.patch removed from -mm tree
-Date: Mon, 19 Nov 2012 12:21:25 -0800
-Message-ID: <20121119202125.812D4100049@wpzn3.hot.corp.google.com>
+Subject: [merged] mm-fix-build-warning-for-uninitialized-value.patch removed from -mm tree
+Date: Mon, 19 Nov 2012 12:21:28 -0800
+Message-ID: <20121119202129.183E3200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:55242 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754186Ab2KSUV0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Nov 2012 15:21:26 -0500
-Received: by mail-vb0-f74.google.com with SMTP id s24so598267vbi.1
-        for <mm-commits@vger.kernel.org>; Mon, 19 Nov 2012 12:21:26 -0800 (PST)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:33610 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754186Ab2KSUVb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Nov 2012 15:21:31 -0500
+Received: by mail-fa0-f74.google.com with SMTP id t1so132353fae.1
+        for <mm-commits@vger.kernel.org>; Mon, 19 Nov 2012 12:21:30 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: walken@google.com, lliubbo@gmail.com, riel@redhat.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add anon_vma_lock to validate_mm()
+     Subject: mm: fix build warning for uninitialized value
 has been removed from the -mm tree.  Its filename was
-     mm-add-anon_vma_lock-to-validate_mm.patch
+     mm-fix-build-warning-for-uninitialized-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michel Lespinasse <walken@google.com>
-Subject: mm: add anon_vma_lock to validate_mm()
+From: David Rientjes <rientjes@google.com>
+Subject: mm: fix build warning for uninitialized value
 
-Iterating over the vma->anon_vma_chain without anon_vma_lock may cause
-NULL ptr deref in anon_vma_interval_tree_verify(), because the node in the
-chain might have been removed.
+do_wp_page() sets mmun_called if mmun_start and mmun_end were initialized
+and, if so, may call mmu_notifier_invalidate_range_end() with these
+values.  This doesn't prevent gcc from emitting a build warning though:
 
-[ 1523.657950] BUG: unable to handle kernel paging request at fffffffffffffff0
-[ 1523.660022] IP: [<ffffffff8122c29c>] anon_vma_interval_tree_verify+0xc/0xa0
-[ 1523.660022] PGD 4e28067 PUD 4e29067 PMD 0
-[ 1523.675725] Oops: 0000 [#1] PREEMPT SMP DEBUG_PAGEALLOC
-[ 1523.750066] CPU 0
-[ 1523.750066] Pid: 9050, comm: trinity-child64 Tainted: G        W    3.7.0-rc2-next-20121025-sasha-00001-g673f98e-dirty #77
-[ 1523.750066] RIP: 0010:[<ffffffff8122c29c>]  [<ffffffff8122c29c>] anon_vma_interval_tree_verify+0xc/0xa0
-[ 1523.750066] RSP: 0018:ffff880045f81d48  EFLAGS: 00010296
-[ 1523.750066] RAX: 0000000000000000 RBX: fffffffffffffff0 RCX: 0000000000000000
-[ 1523.750066] RDX: 0000000000000000 RSI: 0000000000000001 RDI: fffffffffffffff0
-[ 1523.750066] RBP: ffff880045f81d58 R08: 0000000000000000 R09: 0000000000000f14
-[ 1523.750066] R10: 0000000000000f12 R11: 0000000000000000 R12: ffff8800096c8d70
-[ 1523.750066] R13: ffff8800096c8d00 R14: 0000000000000000 R15: ffff8800095b45e0
-[ 1523.750066] FS:  00007f7a923f3700(0000) GS:ffff880013600000(0000) knlGS:0000000000000000
-[ 1523.750066] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[ 1523.750066] CR2: fffffffffffffff0 CR3: 000000000969d000 CR4: 00000000000406f0
-[ 1523.750066] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[ 1523.750066] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-[ 1523.750066] Process trinity-child64 (pid: 9050, threadinfo ffff880045f80000, task ffff880048eb0000)
-[ 1523.750066] Stack:
-[ 1523.750066]  ffff88000d7533f0 fffffffffffffff0 ffff880045f81da8 ffffffff812361d8
-[ 1523.750066]  ffff880045f81d98 ffff880048ee9000 ffff8800095b4580 ffff8800095b4580
-[ 1523.750066]  ffff88001d1cdb00 ffff8800095b45f0 ffff880022a4d630 ffff8800095b45e0
-[ 1523.750066] Call Trace:
-[ 1523.750066]  [<ffffffff812361d8>] validate_mm+0x58/0x1e0
-[ 1523.750066]  [<ffffffff81236aa5>] vma_adjust+0x635/0x6b0
-[ 1523.750066]  [<ffffffff81236c81>] __split_vma.isra.22+0x161/0x220
-[ 1523.750066]  [<ffffffff81237934>] split_vma+0x24/0x30
-[ 1523.750066]  [<ffffffff8122ce6a>] sys_madvise+0x5da/0x7b0
-[ 1523.750066]  [<ffffffff811cd14c>] ? rcu_eqs_exit+0x9c/0xb0
-[ 1523.750066]  [<ffffffff811802cd>] ? trace_hardirqs_on+0xd/0x10
-[ 1523.750066]  [<ffffffff83aee198>] tracesys+0xe1/0xe6
-[ 1523.750066] Code: 4c 09 ff 48 39 ce 77 9e f3 c3 0f 1f 44 00 00 31 c0 c3 66 66 66 66 2e 0f 1f 84 00 00 00 00 00 55 48 89 e5 53
-48 89 fb 48 83 ec 08 <48> 8b 17 48 8b 8a 90 00 00 00 48 39 4f 40 74 34 80 3d f7 1f 5c
-[ 1523.750066] RIP  [<ffffffff8122c29c>] anon_vma_interval_tree_verify+0xc/0xa0
-[ 1523.750066]  RSP <ffff880045f81d48>
-[ 1523.750066] CR2: fffffffffffffff0
-[ 1523.750066] ---[ end trace e35e5fa49072faf9 ]---
+mm/memory.c: In function `do_wp_page':
+mm/memory.c:2530: warning: `mmun_start' may be used uninitialized in this function
+mm/memory.c:2531: warning: `mmun_end' may be used uninitialized in this function
 
-Figured out by Bob Liu.
+It's much easier to initialize the variables to impossible values and do a
+simple comparison to determine if they were initialized to remove the bool
+entirely.
 
-Reported-by: Sasha Levin <sasha.levin@oracle.com>
-Cc: Bob Liu <lliubbo@gmail.com>
-Signed-off-by: Michel Lespinasse <walken@google.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/memory.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN mm/mmap.c~mm-add-anon_vma_lock-to-validate_mm mm/mmap.c
---- a/mm/mmap.c~mm-add-anon_vma_lock-to-validate_mm
-+++ a/mm/mmap.c
-@@ -334,8 +334,10 @@ void validate_mm(struct mm_struct *mm)
- 	struct vm_area_struct *vma = mm->mmap;
- 	while (vma) {
- 		struct anon_vma_chain *avc;
-+		vma_lock_anon_vma(vma);
- 		list_for_each_entry(avc, &vma->anon_vma_chain, same_vma)
- 			anon_vma_interval_tree_verify(avc);
-+		vma_unlock_anon_vma(vma);
- 		vma = vma->vm_next;
- 		i++;
- 	}
+diff -puN mm/memory.c~mm-fix-build-warning-for-uninitialized-value mm/memory.c
+--- a/mm/memory.c~mm-fix-build-warning-for-uninitialized-value
++++ a/mm/memory.c
+@@ -2527,9 +2527,8 @@ static int do_wp_page(struct mm_struct *
+ 	int ret = 0;
+ 	int page_mkwrite = 0;
+ 	struct page *dirty_page = NULL;
+-	unsigned long mmun_start;	/* For mmu_notifiers */
+-	unsigned long mmun_end;		/* For mmu_notifiers */
+-	bool mmun_called = false;	/* For mmu_notifiers */
++	unsigned long mmun_start = 0;	/* For mmu_notifiers */
++	unsigned long mmun_end = 0;	/* For mmu_notifiers */
+ 
+ 	old_page = vm_normal_page(vma, address, orig_pte);
+ 	if (!old_page) {
+@@ -2708,8 +2707,7 @@ gotten:
+ 		goto oom_free_new;
+ 
+ 	mmun_start  = address & PAGE_MASK;
+-	mmun_end    = (address & PAGE_MASK) + PAGE_SIZE;
+-	mmun_called = true;
++	mmun_end    = mmun_start + PAGE_SIZE;
+ 	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
+ 
+ 	/*
+@@ -2778,7 +2776,7 @@ gotten:
+ 		page_cache_release(new_page);
+ unlock:
+ 	pte_unmap_unlock(page_table, ptl);
+-	if (mmun_called)
++	if (mmun_end > mmun_start)
+ 		mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
+ 	if (old_page) {
+ 		/*
 _
 
-Patches currently in -mm which might be from walken@google.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 linux-next.patch
-mm-augment-vma-rbtree-with-rb_subtree_gap.patch
-mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-inserting-new-vma.patch
-mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-removing-vma.patch
-mm-augment-vma-rbtree-with-rb_subtree_gap--debug-code-to-verify-rb_subtree_gap-updates-are-safe.patch
-mm-augment-vma-rbtree-with-rb_subtree_gap-fix.patch
-mm-check-rb_subtree_gap-correctness.patch
-mm-check-rb_subtree_gap-correctness-fix.patch
-mm-rearrange-vm_area_struct-for-fewer-cache-misses.patch
-mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
-mm-vm_unmapped_area-lookup-function.patch
-mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
-mm-use-vm_unmapped_area-on-x86_64-architecture.patch
-mm-fix-cache-coloring-on-x86_64-architecture.patch
-mm-use-vm_unmapped_area-in-hugetlbfs.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
-mm-use-vm_unmapped_area-on-mips-architecture.patch
-mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
-mm-use-vm_unmapped_area-on-arm-architecture.patch
-mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
-mm-use-vm_unmapped_area-on-arm-architecture-fix-fix.patch
-mm-use-vm_unmapped_area-on-sh-architecture.patch
-mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sh-architecture-fix2.patch
-mm-use-vm_unmapped_area-on-sparc32-architecture.patch
-mm-use-vm_unmapped_area-on-sparc32-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc32-architecture-fix-fix.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc64-architecture.patch
-mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc64-architecture-fix-fix.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-sparc64-architecture.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-sparc64-architecture-fix.patch
-arch-sparc-kernel-sys_sparc_64c-s-colour-color.patch
-random32-rename-random32-to-prandom.patch
-prandom-introduce-prandom_bytes-and-prandom_bytes_state.patch
-bnx2x-use-prandom_bytes.patch
-mtd-nandsim-use-prandom_bytes.patch
-ubifs-use-prandom_bytes.patch
-mtd-mtd_nandecctest-use-prandom_bytes-instead-of-get_random_bytes.patch
-mtd-mtd_oobtest-convert-to-use-prandom-library.patch
-mtd-mtd_pagetest-convert-to-use-prandom-library.patch
-mtd-mtd_speedtest-use-prandom_bytes.patch
-mtd-mtd_subpagetest-convert-to-use-prandom-library.patch
-mtd-mtd_stresstest-use-prandom_bytes.patch
+mm-export-a-function-to-get-vm-committed-memory.patch
+irq-tsk-comm-is-an-array.patch
+mm-memcg-make-mem_cgroup_out_of_memory-static.patch
+mm-use-is_enabledconfig_numa-instead-of-numa_build.patch
+mm-use-is_enabledconfig_compaction-instead-of-compaction_build.patch
+thp-clean-up-__collapse_huge_page_isolate.patch
+memory-hotplug-suppress-device-memoryx-does-not-have-a-release-function-warning.patch
+memory-hotplug-skip-hwpoisoned-page-when-offlining-pages.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
+memory-hotplug-auto-offline-page_cgroup-when-onlining-memory-block-failed.patch
+memory-hotplug-fix-nr_free_pages-mismatch.patch
+numa-convert-static-memory-to-dynamically-allocated-memory-for-per-node-device.patch
+memory-hotplug-suppress-device-nodex-does-not-have-a-release-function-warning.patch
+memory-hotplug-mm-sparsec-clear-the-memory-to-store-struct-page.patch
+memory-hotplug-allocate-zones-pcp-before-onlining-pages.patch
+memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix.patch
+memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix-2.patch
+memory_hotplug-fix-possible-incorrect-node_states.patch
+slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
+mm-oom-allow-exiting-threads-to-have-access-to-memory-reserves.patch
+memcg-make-it-possible-to-use-the-stock-for-more-than-one-page.patch
+memcg-reclaim-when-more-than-one-page-needed.patch
+memcg-change-defines-to-an-enum.patch
+memcg-kmem-accounting-basic-infrastructure.patch
+mm-add-a-__gfp_kmemcg-flag.patch
+memcg-kmem-controller-infrastructure.patch
+memcg-kmem-controller-infrastructure-replace-__always_inline-with-plain-inline.patch
+mm-allocate-kernel-pages-to-the-right-memcg.patch
+res_counter-return-amount-of-charges-after-res_counter_uncharge.patch
+memcg-kmem-accounting-lifecycle-management.patch
+memcg-use-static-branches-when-code-not-in-use.patch
+memcg-allow-a-memcg-with-kmem-charges-to-be-destructed.patch
+memcg-execute-the-whole-memcg-freeing-in-free_worker.patch
+fork-protect-architectures-where-thread_size-=-page_size-against-fork-bombs.patch
+memcg-add-documentation-about-the-kmem-controller.patch
+slab-slub-struct-memcg_params.patch
+slab-annotate-on-slab-caches-nodelist-locks.patch
+slab-slub-consider-a-memcg-parameter-in-kmem_create_cache.patch
+memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears.patch
+memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears-simplify-ida-initialization.patch
+memcg-infrastructure-to-match-an-allocation-to-the-right-cache.patch
+memcg-skip-memcg-kmem-allocations-in-specified-code-regions.patch
+memcg-skip-memcg-kmem-allocations-in-specified-code-regions-remove-test-for-current-mm-in-memcg_stop-resume_kmem_account.patch
+slb-always-get-the-cache-from-its-page-in-kmem_cache_free.patch
+slb-allocate-objects-from-memcg-cache.patch
+memcg-destroy-memcg-caches.patch
+memcg-destroy-memcg-caches-move-include-of-workqueueh-to-top-of-slabh-file.patch
+memcg-slb-track-all-the-memcg-children-of-a-kmem_cache.patch
+memcg-slb-shrink-dead-caches.patch
+memcg-slb-shrink-dead-caches-get-rid-of-once-per-second-cache-shrinking-for-dead-memcgs.patch
+memcg-aggregate-memcg-cache-values-in-slabinfo.patch
+slab-propagate-tunable-values.patch
+slub-slub-specific-propagation-changes.patch
+slub-slub-specific-propagation-changes-fix.patch
+kmem-add-slab-specific-documentation-about-the-kmem-controller.patch
+memcg-add-comments-clarifying-aspects-of-cache-attribute-propagation.patch
+slub-drop-mutex-before-deleting-sysfs-entry.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch
+mm-mempolicy-remove-duplicate-code.patch
+mm-cleanup-register_node.patch
+mm-oom-change-type-of-oom_score_adj-to-short.patch
+mm-oom-fix-race-when-specifying-a-thread-as-the-oom-origin.patch
+drivers-base-nodec-cleanup-node_state_attr.patch
+mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory.patch
+memory_hotplug-handle-empty-zone-when-online_movable-online_kernel.patch
+memory_hotplug-ensure-every-online-node-has-normal-memory.patch
+thp-huge-zero-page-basic-preparation.patch
+thp-huge-zero-page-basic-preparation-v6.patch
+thp-zap_huge_pmd-zap-huge-zero-pmd.patch
+thp-copy_huge_pmd-copy-huge-zero-page.patch
+thp-copy_huge_pmd-copy-huge-zero-page-v6.patch
+thp-copy_huge_pmd-copy-huge-zero-page-v6-fix.patch
+thp-do_huge_pmd_wp_page-handle-huge-zero-page.patch
+thp-do_huge_pmd_wp_page-handle-huge-zero-page-v6.patch
+thp-change_huge_pmd-keep-huge-zero-page-write-protected.patch
+thp-change-split_huge_page_pmd-interface.patch
+thp-change-split_huge_page_pmd-interface-v6.patch
+thp-implement-splitting-pmd-for-huge-zero-page.patch
+thp-implement-splitting-pmd-for-huge-zero-page-v6.patch
+thp-setup-huge-zero-page-on-non-write-page-fault.patch
+thp-lazy-huge-zero-page-allocation.patch
+thp-implement-refcounting-for-huge-zero-page.patch
+thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events.patch
+thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6.patch
+thp-introduce-sysfs-knob-to-disable-huge-zero-page.patch
+node_states-introduce-n_memory.patch
+cpuset-use-n_memory-instead-n_high_memory.patch
+procfs-use-n_memory-instead-n_high_memory.patch
+memcontrol-use-n_memory-instead-n_high_memory.patch
+oom-use-n_memory-instead-n_high_memory.patch
+mmmigrate-use-n_memory-instead-n_high_memory.patch
+mempolicy-use-n_memory-instead-n_high_memory.patch
+hugetlb-use-n_memory-instead-n_high_memory.patch
+vmstat-use-n_memory-instead-n_high_memory.patch
+kthread-use-n_memory-instead-n_high_memory.patch
+init-use-n_memory-instead-n_high_memory.patch
+vmscan-use-n_memory-instead-n_high_memory.patch
+page_alloc-use-n_memory-instead-n_high_memory-change-the-node_states-initialization.patch
+hotplug-update-nodemasks-management.patch
+mm-dmapoolc-fix-null-dev-in-dma_pool_create.patch
 
