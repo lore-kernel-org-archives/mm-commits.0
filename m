@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + pidns-remove-unused-is_container_init.patch added to -mm tree
-Date: Mon, 19 Nov 2012 13:32:27 -0800
-Message-ID: <20121119213228.1C6EB20004E@hpza10.eem.corp.google.com>
+Subject: + maintainers-add-entry-for-davinci-video-drivers.patch added to -mm tree
+Date: Mon, 19 Nov 2012 13:36:56 -0800
+Message-ID: <20121119213657.1057E200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:36739 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752114Ab2KSVca (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Nov 2012 16:32:30 -0500
-Received: by mail-wi0-f202.google.com with SMTP id cb5so25836wib.1
-        for <mm-commits@vger.kernel.org>; Mon, 19 Nov 2012 13:32:29 -0800 (PST)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:60113 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752160Ab2KSVg7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Nov 2012 16:36:59 -0500
+Received: by mail-bk0-f74.google.com with SMTP id je9so216516bkc.1
+        for <mm-commits@vger.kernel.org>; Mon, 19 Nov 2012 13:36:58 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gaofeng@cn.fujitsu.com, dhowells@redhat.com, ebiederm@xmission.com, jmorris@namei.org, serge.hallyn@canonical.com
+Cc: prabhakar.lad@ti.com, manjunath.hadli@ti.com, mchehab@redhat.com
 
 
 The patch titled
-     Subject: pidns: remove unused is_container_init()
+     Subject: MAINTAINERS: add entry for Davinci video drivers
 has been added to the -mm tree.  Its filename is
-     pidns-remove-unused-is_container_init.patch
+     maintainers-add-entry-for-davinci-video-drivers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,58 +33,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Gao feng <gaofeng@cn.fujitsu.com>
-Subject: pidns: remove unused is_container_init()
+From: Lad, Prabhakar <prabhakar.lad@ti.com>
+Subject: MAINTAINERS: add entry for Davinci video drivers
 
-since commit 1cdcbec1a3 ("CRED: Neuter sys_capset()") is_container_init()
-has no callers.
+Add an entry in MAINTAINERS file for TI Davinci media drivers.
 
-Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
-Cc: David Howells <dhowells@redhat.com>
-Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    6 ------
- kernel/pid.c          |   15 ---------------
- 2 files changed, 21 deletions(-)
+ MAINTAINERS |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN include/linux/sched.h~pidns-remove-unused-is_container_init include/linux/sched.h
---- a/include/linux/sched.h~pidns-remove-unused-is_container_init
-+++ a/include/linux/sched.h
-@@ -1769,12 +1769,6 @@ static inline int is_global_init(struct 
- 	return tsk->pid == 1;
- }
+diff -puN MAINTAINERS~maintainers-add-entry-for-davinci-video-drivers MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-entry-for-davinci-video-drivers
++++ a/MAINTAINERS
+@@ -6627,6 +6627,18 @@ S:	Supported
+ F:	arch/arm/mach-davinci
+ F:	drivers/i2c/busses/i2c-davinci.c
  
--/*
-- * is_container_init:
-- * check whether in the task is init in its own pid namespace.
-- */
--extern int is_container_init(struct task_struct *tsk);
--
- extern struct pid *cad_pid;
- 
- extern void free_task(struct task_struct *tsk);
-diff -puN kernel/pid.c~pidns-remove-unused-is_container_init kernel/pid.c
---- a/kernel/pid.c~pidns-remove-unused-is_container_init
-+++ a/kernel/pid.c
-@@ -81,21 +81,6 @@ struct pid_namespace init_pid_ns = {
- };
- EXPORT_SYMBOL_GPL(init_pid_ns);
- 
--int is_container_init(struct task_struct *tsk)
--{
--	int ret = 0;
--	struct pid *pid;
--
--	rcu_read_lock();
--	pid = task_pid(tsk);
--	if (pid != NULL && pid->numbers[pid->level].nr == 1)
--		ret = 1;
--	rcu_read_unlock();
--
--	return ret;
--}
--EXPORT_SYMBOL(is_container_init);
++TI DAVINCI SERIES MEDIA DRIVER
++M:	Manjunath Hadli <manjunath.hadli@ti.com>
++M:	Prabhakar Lad <prabhakar.lad@ti.com>
++L:	linux-media@vger.kernel.org
++L:	davinci-linux-open-source@linux.davincidsp.com (moderated for non-subscribers)
++W:	http://linuxtv.org/
++Q:	http://patchwork.linuxtv.org/project/linux-media/list/
++T:	git git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git
++S:	Supported
++F:	drivers/media/platform/davinci/
++F:	include/media/davinci/
++
+ SIS 190 ETHERNET DRIVER
+ M:	Francois Romieu <romieu@fr.zoreil.com>
+ L:	netdev@vger.kernel.org
+_
+
+Patches currently in -mm which might be from prabhakar.lad@ti.com are
+
+maintainers-add-entry-for-davinci-video-drivers.patch
+
