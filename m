@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-introduce-ptrace_o_exitkill.patch added to -mm tree
-Date: Mon, 19 Nov 2012 14:53:23 -0800
-Message-ID: <20121119225323.A7D7B82004A@wpzn4.hot.corp.google.com>
+Subject: + percpu_rw_semaphore-kill-writer_mutex-add-write_ctr.patch added to -mm tree
+Date: Mon, 19 Nov 2012 15:06:02 -0800
+Message-ID: <20121119230603.095BA200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:65198 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751252Ab2KSWx0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Nov 2012 17:53:26 -0500
-Received: by mail-vb0-f74.google.com with SMTP id s24so616719vbi.1
-        for <mm-commits@vger.kernel.org>; Mon, 19 Nov 2012 14:53:24 -0800 (PST)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:43110 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753240Ab2KSXGG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Nov 2012 18:06:06 -0500
+Received: by mail-la0-f74.google.com with SMTP id v3so355210lag.1
+        for <mm-commits@vger.kernel.org>; Mon, 19 Nov 2012 15:06:05 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@redhat.com, dhowells@redhat.com, dvlasenk@redhat.com, ebiederm@xmission.com, mtk.manpages@gmail.com, scarybeasts@gmail.com, serge.hallyn@canonical.com, u3557@miso.sublimeip.com
+Cc: oleg@redhat.com, anton@redhat.com, mingo@elte.hu, mmarek@suse.cz, mpatocka@redhat.com, paulmck@linux.vnet.ibm.com, peterz@infradead.org, srikar@linux.vnet.ibm.com, torvalds@linux-foundation.org
 
 
 The patch titled
-     Subject: ptrace: introduce PTRACE_O_EXITKILL
+     Subject: percpu_rw_semaphore: kill ->writer_mutex, add ->write_ctr
 has been added to the -mm tree.  Its filename is
-     ptrace-introduce-ptrace_o_exitkill.patch
+     percpu_rw_semaphore-kill-writer_mutex-add-write_ctr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,77 +34,169 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: ptrace: introduce PTRACE_O_EXITKILL
+Subject: percpu_rw_semaphore: kill ->writer_mutex, add ->write_ctr
 
-Ptrace jailers want to be sure that the tracee can never escape
-from the control. However if the tracer dies unexpectedly the
-tracee continues to run in potentially unsafe mode.
+percpu_rw_semaphore->writer_mutex was only added to simplify the initial
+rewrite, the only thing it protects is clear_fast_ctr() which otherwise
+could be called by multiple writers.  ->rw_sem is enough to serialize the
+writers.
 
-Add the new ptrace option PTRACE_O_EXITKILL. If the tracer exits
-it sends SIGKILL to every tracee which has this bit set.
+Kill this mutex and add "atomic_t write_ctr" instead.  The writers
+increment/decrement this counter, the readers check it is zero instead of
+mutex_is_locked().
 
-Note that the new option is not equal to the last-option << 1.  Because
-currently all options have an event, and the new one starts the eventless
-group.  It uses the random 20 bit, so we have the room for 12 more events,
-but we can also add the new eventless options below this one.
+Move atomic_add(clear_fast_ctr(), slow_read_ctr) under down_write() to
+avoid the race with other writers.  This is a bit sub-optimal, only the
+first writer needs this and we do not need to exclude the readers at this
+stage.  But this is simple, we do not want another internal lock until we
+add more features.
+
+And this speeds up the write-contended case.  Before this patch the racing
+writers sleep in synchronize_sched() sequentially, with this patch
+multiple synchronize_sched's can "overlap" with each other.  Note: we can
+do more optimizations, this is only the first step.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Suggested-by: Amnon Shiloh <u3557@miso.sublimeip.com>
-Tested-by: Amnon Shiloh <u3557@miso.sublimeip.com>
-Cc: Denys Vlasenko <dvlasenk@redhat.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Serge Hallyn <serge.hallyn@canonical.com>
-Cc: Chris Evans <scarybeasts@gmail.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Anton Arapov <anton@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Michal Marek <mmarek@suse.cz>
+Cc: Mikulas Patocka <mpatocka@redhat.com>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ptrace.h      |    2 ++
- include/uapi/linux/ptrace.h |    5 ++++-
- kernel/ptrace.c             |    3 +++
- 3 files changed, 9 insertions(+), 1 deletion(-)
+ include/linux/percpu-rwsem.h |    4 +--
+ lib/percpu-rwsem.c           |   34 +++++++++++++++------------------
+ 2 files changed, 18 insertions(+), 20 deletions(-)
 
-diff -puN include/linux/ptrace.h~ptrace-introduce-ptrace_o_exitkill include/linux/ptrace.h
---- a/include/linux/ptrace.h~ptrace-introduce-ptrace_o_exitkill
-+++ a/include/linux/ptrace.h
-@@ -32,6 +32,8 @@
- #define PT_TRACE_EXIT		PT_EVENT_FLAG(PTRACE_EVENT_EXIT)
- #define PT_TRACE_SECCOMP	PT_EVENT_FLAG(PTRACE_EVENT_SECCOMP)
+diff -puN include/linux/percpu-rwsem.h~percpu_rw_semaphore-kill-writer_mutex-add-write_ctr include/linux/percpu-rwsem.h
+--- a/include/linux/percpu-rwsem.h~percpu_rw_semaphore-kill-writer_mutex-add-write_ctr
++++ a/include/linux/percpu-rwsem.h
+@@ -1,14 +1,14 @@
+ #ifndef _LINUX_PERCPU_RWSEM_H
+ #define _LINUX_PERCPU_RWSEM_H
  
-+#define PT_EXITKILL		(PTRACE_O_EXITKILL << PT_OPT_FLAG_SHIFT)
-+
- /* single stepping state bits (used on ARM and PA-RISC) */
- #define PT_SINGLESTEP_BIT	31
- #define PT_SINGLESTEP		(1<<PT_SINGLESTEP_BIT)
-diff -puN include/uapi/linux/ptrace.h~ptrace-introduce-ptrace_o_exitkill include/uapi/linux/ptrace.h
---- a/include/uapi/linux/ptrace.h~ptrace-introduce-ptrace_o_exitkill
-+++ a/include/uapi/linux/ptrace.h
-@@ -73,7 +73,10 @@
- #define PTRACE_O_TRACEEXIT	(1 << PTRACE_EVENT_EXIT)
- #define PTRACE_O_TRACESECCOMP	(1 << PTRACE_EVENT_SECCOMP)
+-#include <linux/mutex.h>
++#include <linux/atomic.h>
+ #include <linux/rwsem.h>
+ #include <linux/percpu.h>
+ #include <linux/wait.h>
  
--#define PTRACE_O_MASK		0x000000ff
-+/* eventless options */
-+#define PTRACE_O_EXITKILL	(1 << 20)
-+
-+#define PTRACE_O_MASK		(0x000000ff | PTRACE_O_EXITKILL)
+ struct percpu_rw_semaphore {
+ 	unsigned int __percpu	*fast_read_ctr;
+-	struct mutex		writer_mutex;
++	atomic_t		write_ctr;
+ 	struct rw_semaphore	rw_sem;
+ 	atomic_t		slow_read_ctr;
+ 	wait_queue_head_t	write_waitq;
+diff -puN lib/percpu-rwsem.c~percpu_rw_semaphore-kill-writer_mutex-add-write_ctr lib/percpu-rwsem.c
+--- a/lib/percpu-rwsem.c~percpu_rw_semaphore-kill-writer_mutex-add-write_ctr
++++ a/lib/percpu-rwsem.c
+@@ -1,4 +1,4 @@
+-#include <linux/mutex.h>
++#include <linux/atomic.h>
+ #include <linux/rwsem.h>
+ #include <linux/percpu.h>
+ #include <linux/wait.h>
+@@ -13,8 +13,8 @@ int percpu_init_rwsem(struct percpu_rw_s
+ 	if (unlikely(!brw->fast_read_ctr))
+ 		return -ENOMEM;
  
- #include <asm/ptrace.h>
+-	mutex_init(&brw->writer_mutex);
+ 	init_rwsem(&brw->rw_sem);
++	atomic_set(&brw->write_ctr, 0);
+ 	atomic_set(&brw->slow_read_ctr, 0);
+ 	init_waitqueue_head(&brw->write_waitq);
+ 	return 0;
+@@ -28,7 +28,7 @@ void percpu_free_rwsem(struct percpu_rw_
  
-diff -puN kernel/ptrace.c~ptrace-introduce-ptrace_o_exitkill kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace-introduce-ptrace_o_exitkill
-+++ a/kernel/ptrace.c
-@@ -457,6 +457,9 @@ void exit_ptrace(struct task_struct *tra
- 		return;
+ /*
+  * This is the fast-path for down_read/up_read, it only needs to ensure
+- * there is no pending writer (!mutex_is_locked() check) and inc/dec the
++ * there is no pending writer (atomic_read(write_ctr) == 0) and inc/dec the
+  * fast per-cpu counter. The writer uses synchronize_sched() to serialize
+  * with the preempt-disabled section below.
+  *
+@@ -44,7 +44,7 @@ void percpu_free_rwsem(struct percpu_rw_
+  * If this helper fails the callers rely on the normal rw_semaphore and
+  * atomic_dec_and_test(), so in this case we have the necessary barriers.
+  *
+- * But if it succeeds we do not have any barriers, mutex_is_locked() or
++ * But if it succeeds we do not have any barriers, atomic_read(write_ctr) or
+  * __this_cpu_add() below can be reordered with any LOAD/STORE done by the
+  * reader inside the critical section. See the comments in down_write and
+  * up_write below.
+@@ -54,7 +54,7 @@ static bool update_fast_ctr(struct percp
+ 	bool success = false;
  
- 	list_for_each_entry_safe(p, n, &tracer->ptraced, ptrace_entry) {
-+		if (unlikely(p->ptrace & PT_EXITKILL))
-+			send_sig_info(SIGKILL, SEND_SIG_FORCED, p);
-+
- 		if (__ptrace_detach(tracer, p))
- 			list_add(&p->ptrace_entry, &ptrace_dead);
+ 	preempt_disable();
+-	if (likely(!mutex_is_locked(&brw->writer_mutex))) {
++	if (likely(!atomic_read(&brw->write_ctr))) {
+ 		__this_cpu_add(*brw->fast_read_ctr, val);
+ 		success = true;
  	}
+@@ -101,9 +101,8 @@ static int clear_fast_ctr(struct percpu_
+ }
+ 
+ /*
+- * A writer takes ->writer_mutex to exclude other writers and to force the
+- * readers to switch to the slow mode, note the mutex_is_locked() check in
+- * update_fast_ctr().
++ * A writer increments ->write_ctr to force the readers to switch to the
++ * slow mode, note the atomic_read() check in update_fast_ctr().
+  *
+  * After that the readers can only inc/dec the slow ->slow_read_ctr counter,
+  * ->fast_read_ctr is stable. Once the writer moves its sum into the slow
+@@ -114,11 +113,10 @@ static int clear_fast_ctr(struct percpu_
+  */
+ void percpu_down_write(struct percpu_rw_semaphore *brw)
+ {
+-	/* also blocks update_fast_ctr() which checks mutex_is_locked() */
+-	mutex_lock(&brw->writer_mutex);
+-
++	/* tell update_fast_ctr() there is a pending writer */
++	atomic_inc(&brw->write_ctr);
+ 	/*
+-	 * 1. Ensures mutex_is_locked() is visible to any down_read/up_read
++	 * 1. Ensures that write_ctr != 0 is visible to any down_read/up_read
+ 	 *    so that update_fast_ctr() can't succeed.
+ 	 *
+ 	 * 2. Ensures we see the result of every previous this_cpu_add() in
+@@ -130,25 +128,25 @@ void percpu_down_write(struct percpu_rw_
+ 	 */
+ 	synchronize_sched();
+ 
++	/* exclude other writers, and block the new readers completely */
++	down_write(&brw->rw_sem);
++
+ 	/* nobody can use fast_read_ctr, move its sum into slow_read_ctr */
+ 	atomic_add(clear_fast_ctr(brw), &brw->slow_read_ctr);
+ 
+-	/* block the new readers completely */
+-	down_write(&brw->rw_sem);
+-
+ 	/* wait for all readers to complete their percpu_up_read() */
+ 	wait_event(brw->write_waitq, !atomic_read(&brw->slow_read_ctr));
+ }
+ 
+ void percpu_up_write(struct percpu_rw_semaphore *brw)
+ {
+-	/* allow the new readers, but only the slow-path */
++	/* release the lock, but the readers can't use the fast-path */
+ 	up_write(&brw->rw_sem);
+-
+ 	/*
+ 	 * Insert the barrier before the next fast-path in down_read,
+ 	 * see W_R case in the comment above update_fast_ctr().
+ 	 */
+ 	synchronize_sched();
+-	mutex_unlock(&brw->writer_mutex);
++	/* the last writer unblocks update_fast_ctr() */
++	atomic_dec(&brw->write_ctr);
+ }
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
@@ -114,6 +206,9 @@ mm-oom-change-type-of-oom_score_adj-to-short.patch
 mm-oom-fix-race-when-specifying-a-thread-as-the-oom-origin.patch
 percpu_rw_semaphore-reimplement-to-not-block-the-readers-unnecessarily.patch
 percpu_rw_semaphore-reimplement-to-not-block-the-readers-unnecessari-lyfix.patch
+percpu_rw_semaphore-kill-writer_mutex-add-write_ctr.patch
+percpu_rw_semaphore-add-the-lockdep-annotations.patch
+percpu_rw_semaphore-introduce-config_percpu_rwsem.patch
 uprobes-use-percpu_rw_semaphore-to-fix-register-unregister-vs-dup_mmap-race.patch
 ptrace-introduce-ptrace_o_exitkill.patch
 procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers.patch
