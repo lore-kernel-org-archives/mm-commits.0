@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + percpu_rw_semaphore-kill-writer_mutex-add-write_ctr.patch added to -mm tree
-Date: Mon, 19 Nov 2012 15:06:02 -0800
-Message-ID: <20121119230603.095BA200057@hpza10.eem.corp.google.com>
+Subject: + percpu_rw_semaphore-introduce-config_percpu_rwsem.patch added to -mm tree
+Date: Mon, 19 Nov 2012 15:06:11 -0800
+Message-ID: <20121119230612.C734A200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f74.google.com ([209.85.215.74]:43110 "EHLO
-	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753240Ab2KSXGG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Nov 2012 18:06:06 -0500
-Received: by mail-la0-f74.google.com with SMTP id v3so355210lag.1
-        for <mm-commits@vger.kernel.org>; Mon, 19 Nov 2012 15:06:05 -0800 (PST)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:61690 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753240Ab2KSXGQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Nov 2012 18:06:16 -0500
+Received: by mail-wi0-f202.google.com with SMTP id cb5so28703wib.1
+        for <mm-commits@vger.kernel.org>; Mon, 19 Nov 2012 15:06:14 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: oleg@redhat.com, anton@redhat.com, mingo@elte.hu, mmarek@suse.cz, mpatocka@r
 
 
 The patch titled
-     Subject: percpu_rw_semaphore: kill ->writer_mutex, add ->write_ctr
+     Subject: percpu_rw_semaphore: introduce CONFIG_PERCPU_RWSEM
 has been added to the -mm tree.  Its filename is
-     percpu_rw_semaphore-kill-writer_mutex-add-write_ctr.patch
+     percpu_rw_semaphore-introduce-config_percpu_rwsem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,27 +34,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: percpu_rw_semaphore: kill ->writer_mutex, add ->write_ctr
+Subject: percpu_rw_semaphore: introduce CONFIG_PERCPU_RWSEM
 
-percpu_rw_semaphore->writer_mutex was only added to simplify the initial
-rewrite, the only thing it protects is clear_fast_ctr() which otherwise
-could be called by multiple writers.  ->rw_sem is enough to serialize the
-writers.
-
-Kill this mutex and add "atomic_t write_ctr" instead.  The writers
-increment/decrement this counter, the readers check it is zero instead of
-mutex_is_locked().
-
-Move atomic_add(clear_fast_ctr(), slow_read_ctr) under down_write() to
-avoid the race with other writers.  This is a bit sub-optimal, only the
-first writer needs this and we do not need to exclude the readers at this
-stage.  But this is simple, we do not want another internal lock until we
-add more features.
-
-And this speeds up the write-contended case.  Before this patch the racing
-writers sleep in synchronize_sched() sequentially, with this patch
-multiple synchronize_sched's can "overlap" with each other.  Note: we can
-do more optimizations, this is only the first step.
+Currently only block_dev and uprobes use percpu_rw_semaphore,
+add the config option selected by BLOCK || UPROBES.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Anton Arapov <anton@redhat.com>
@@ -68,135 +51,67 @@ Cc: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/percpu-rwsem.h |    4 +--
- lib/percpu-rwsem.c           |   34 +++++++++++++++------------------
- 2 files changed, 18 insertions(+), 20 deletions(-)
+ arch/Kconfig  |    1 +
+ block/Kconfig |    1 +
+ lib/Kconfig   |    3 +++
+ lib/Makefile  |    3 ++-
+ 4 files changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/percpu-rwsem.h~percpu_rw_semaphore-kill-writer_mutex-add-write_ctr include/linux/percpu-rwsem.h
---- a/include/linux/percpu-rwsem.h~percpu_rw_semaphore-kill-writer_mutex-add-write_ctr
-+++ a/include/linux/percpu-rwsem.h
-@@ -1,14 +1,14 @@
- #ifndef _LINUX_PERCPU_RWSEM_H
- #define _LINUX_PERCPU_RWSEM_H
+diff -puN arch/Kconfig~percpu_rw_semaphore-introduce-config_percpu_rwsem arch/Kconfig
+--- a/arch/Kconfig~percpu_rw_semaphore-introduce-config_percpu_rwsem
++++ a/arch/Kconfig
+@@ -80,6 +80,7 @@ config UPROBES
+ 	bool "Transparent user-space probes (EXPERIMENTAL)"
+ 	depends on UPROBE_EVENT && PERF_EVENTS
+ 	default n
++	select PERCPU_RWSEM
+ 	help
+ 	  Uprobes is the user-space counterpart to kprobes: they
+ 	  enable instrumentation applications (such as 'perf probe')
+diff -puN block/Kconfig~percpu_rw_semaphore-introduce-config_percpu_rwsem block/Kconfig
+--- a/block/Kconfig~percpu_rw_semaphore-introduce-config_percpu_rwsem
++++ a/block/Kconfig
+@@ -4,6 +4,7 @@
+ menuconfig BLOCK
+        bool "Enable the block layer" if EXPERT
+        default y
++       select PERCPU_RWSEM
+        help
+ 	 Provide block layer support for the kernel.
  
--#include <linux/mutex.h>
-+#include <linux/atomic.h>
- #include <linux/rwsem.h>
- #include <linux/percpu.h>
- #include <linux/wait.h>
+diff -puN lib/Kconfig~percpu_rw_semaphore-introduce-config_percpu_rwsem lib/Kconfig
+--- a/lib/Kconfig~percpu_rw_semaphore-introduce-config_percpu_rwsem
++++ a/lib/Kconfig
+@@ -42,6 +42,9 @@ config GENERIC_IO
+ config STMP_DEVICE
+ 	bool
  
- struct percpu_rw_semaphore {
- 	unsigned int __percpu	*fast_read_ctr;
--	struct mutex		writer_mutex;
-+	atomic_t		write_ctr;
- 	struct rw_semaphore	rw_sem;
- 	atomic_t		slow_read_ctr;
- 	wait_queue_head_t	write_waitq;
-diff -puN lib/percpu-rwsem.c~percpu_rw_semaphore-kill-writer_mutex-add-write_ctr lib/percpu-rwsem.c
---- a/lib/percpu-rwsem.c~percpu_rw_semaphore-kill-writer_mutex-add-write_ctr
-+++ a/lib/percpu-rwsem.c
-@@ -1,4 +1,4 @@
--#include <linux/mutex.h>
-+#include <linux/atomic.h>
- #include <linux/rwsem.h>
- #include <linux/percpu.h>
- #include <linux/wait.h>
-@@ -13,8 +13,8 @@ int percpu_init_rwsem(struct percpu_rw_s
- 	if (unlikely(!brw->fast_read_ctr))
- 		return -ENOMEM;
- 
--	mutex_init(&brw->writer_mutex);
- 	init_rwsem(&brw->rw_sem);
-+	atomic_set(&brw->write_ctr, 0);
- 	atomic_set(&brw->slow_read_ctr, 0);
- 	init_waitqueue_head(&brw->write_waitq);
- 	return 0;
-@@ -28,7 +28,7 @@ void percpu_free_rwsem(struct percpu_rw_
- 
- /*
-  * This is the fast-path for down_read/up_read, it only needs to ensure
-- * there is no pending writer (!mutex_is_locked() check) and inc/dec the
-+ * there is no pending writer (atomic_read(write_ctr) == 0) and inc/dec the
-  * fast per-cpu counter. The writer uses synchronize_sched() to serialize
-  * with the preempt-disabled section below.
-  *
-@@ -44,7 +44,7 @@ void percpu_free_rwsem(struct percpu_rw_
-  * If this helper fails the callers rely on the normal rw_semaphore and
-  * atomic_dec_and_test(), so in this case we have the necessary barriers.
-  *
-- * But if it succeeds we do not have any barriers, mutex_is_locked() or
-+ * But if it succeeds we do not have any barriers, atomic_read(write_ctr) or
-  * __this_cpu_add() below can be reordered with any LOAD/STORE done by the
-  * reader inside the critical section. See the comments in down_write and
-  * up_write below.
-@@ -54,7 +54,7 @@ static bool update_fast_ctr(struct percp
- 	bool success = false;
- 
- 	preempt_disable();
--	if (likely(!mutex_is_locked(&brw->writer_mutex))) {
-+	if (likely(!atomic_read(&brw->write_ctr))) {
- 		__this_cpu_add(*brw->fast_read_ctr, val);
- 		success = true;
- 	}
-@@ -101,9 +101,8 @@ static int clear_fast_ctr(struct percpu_
- }
- 
- /*
-- * A writer takes ->writer_mutex to exclude other writers and to force the
-- * readers to switch to the slow mode, note the mutex_is_locked() check in
-- * update_fast_ctr().
-+ * A writer increments ->write_ctr to force the readers to switch to the
-+ * slow mode, note the atomic_read() check in update_fast_ctr().
-  *
-  * After that the readers can only inc/dec the slow ->slow_read_ctr counter,
-  * ->fast_read_ctr is stable. Once the writer moves its sum into the slow
-@@ -114,11 +113,10 @@ static int clear_fast_ctr(struct percpu_
-  */
- void percpu_down_write(struct percpu_rw_semaphore *brw)
- {
--	/* also blocks update_fast_ctr() which checks mutex_is_locked() */
--	mutex_lock(&brw->writer_mutex);
--
-+	/* tell update_fast_ctr() there is a pending writer */
-+	atomic_inc(&brw->write_ctr);
- 	/*
--	 * 1. Ensures mutex_is_locked() is visible to any down_read/up_read
-+	 * 1. Ensures that write_ctr != 0 is visible to any down_read/up_read
- 	 *    so that update_fast_ctr() can't succeed.
- 	 *
- 	 * 2. Ensures we see the result of every previous this_cpu_add() in
-@@ -130,25 +128,25 @@ void percpu_down_write(struct percpu_rw_
- 	 */
- 	synchronize_sched();
- 
-+	/* exclude other writers, and block the new readers completely */
-+	down_write(&brw->rw_sem);
++config PERCPU_RWSEM
++	boolean
 +
- 	/* nobody can use fast_read_ctr, move its sum into slow_read_ctr */
- 	atomic_add(clear_fast_ctr(brw), &brw->slow_read_ctr);
+ config CRC_CCITT
+ 	tristate "CRC-CCITT functions"
+ 	help
+diff -puN lib/Makefile~percpu_rw_semaphore-introduce-config_percpu_rwsem lib/Makefile
+--- a/lib/Makefile~percpu_rw_semaphore-introduce-config_percpu_rwsem
++++ a/lib/Makefile
+@@ -12,7 +12,7 @@ lib-y := ctype.o string.o vsprintf.o cmd
+ 	 idr.o int_sqrt.o extable.o \
+ 	 sha1.o md5.o irq_regs.o reciprocal_div.o argv_split.o \
+ 	 proportions.o flex_proportions.o prio_heap.o ratelimit.o show_mem.o \
+-	 is_single_threaded.o plist.o decompress.o earlycpio.o percpu-rwsem.o
++	 is_single_threaded.o plist.o decompress.o earlycpio.o
  
--	/* block the new readers completely */
--	down_write(&brw->rw_sem);
--
- 	/* wait for all readers to complete their percpu_up_read() */
- 	wait_event(brw->write_waitq, !atomic_read(&brw->slow_read_ctr));
- }
+ lib-$(CONFIG_MMU) += ioremap.o
+ lib-$(CONFIG_SMP) += cpumask.o
+@@ -40,6 +40,7 @@ obj-$(CONFIG_DEBUG_LOCKING_API_SELFTESTS
+ obj-$(CONFIG_DEBUG_SPINLOCK) += spinlock_debug.o
+ lib-$(CONFIG_RWSEM_GENERIC_SPINLOCK) += rwsem-spinlock.o
+ lib-$(CONFIG_RWSEM_XCHGADD_ALGORITHM) += rwsem.o
++lib-$(CONFIG_PERCPU_RWSEM) += percpu-rwsem.o
  
- void percpu_up_write(struct percpu_rw_semaphore *brw)
- {
--	/* allow the new readers, but only the slow-path */
-+	/* release the lock, but the readers can't use the fast-path */
- 	up_write(&brw->rw_sem);
--
- 	/*
- 	 * Insert the barrier before the next fast-path in down_read,
- 	 * see W_R case in the comment above update_fast_ctr().
- 	 */
- 	synchronize_sched();
--	mutex_unlock(&brw->writer_mutex);
-+	/* the last writer unblocks update_fast_ctr() */
-+	atomic_dec(&brw->write_ctr);
- }
+ CFLAGS_hweight.o = $(subst $(quote),,$(CONFIG_ARCH_HWEIGHT_CFLAGS))
+ obj-$(CONFIG_GENERIC_HWEIGHT) += hweight.o
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
