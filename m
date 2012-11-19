@@ -1,124 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-oom-fix-totalpages-calculation-for-memoryswappiness==0.patch removed from -mm tree
-Date: Mon, 19 Nov 2012 12:21:32 -0800
-Message-ID: <20121119202132.C3D0B100047@wpzn3.hot.corp.google.com>
+Subject: [merged] mips-arc-fix-build-failure.patch removed from -mm tree
+Date: Mon, 19 Nov 2012 12:21:36 -0800
+Message-ID: <20121119202136.AE58882004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:51731 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754186Ab2KSUVe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Nov 2012 15:21:34 -0500
-Received: by mail-yh0-f74.google.com with SMTP id 10so599754yhl.1
-        for <mm-commits@vger.kernel.org>; Mon, 19 Nov 2012 12:21:34 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:60392 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754186Ab2KSUVh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Nov 2012 15:21:37 -0500
+Received: by mail-gg0-f202.google.com with SMTP id i4so595656ggm.1
+        for <mm-commits@vger.kernel.org>; Mon, 19 Nov 2012 12:21:37 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: rientjes@google.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: oom: fix totalpages calculation for memory.swappiness==0
+     Subject: mips, arc: fix build failure
 has been removed from the -mm tree.  Its filename was
-     memcg-oom-fix-totalpages-calculation-for-memoryswappiness==0.patch
+     mips-arc-fix-build-failure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg: oom: fix totalpages calculation for memory.swappiness==0
+From: David Rientjes <rientjes@google.com>
+Subject: mips, arc: fix build failure
 
-oom_badness() takes a totalpages argument which says how many pages are
-available and it uses it as a base for the score calculation.  The value
-is calculated by mem_cgroup_get_limit which considers both limit and
-total_swap_pages (resp.  memsw portion of it).
+Using a cross-compiler to fix another issue, the following build error
+occurred for mips defconfig:
 
-This is usually correct but since fe35004f ("mm: avoid swapping out with
-swappiness==0") we do not swap when swappiness is 0 which means that we
-cannot really use up all the totalpages pages.  This in turn confuses oom
-score calculation if the memcg limit is much smaller than the available
-swap because the used memory (capped by the limit) is negligible comparing
-to totalpages so the resulting score is too small if adj!=0 (typically
-task with CAP_SYS_ADMIN or non zero oom_score_adj).  A wrong process might
-be selected as result.
+arch/mips/fw/arc/misc.c: In function 'ArcHalt':
+arch/mips/fw/arc/misc.c:25:2: error: implicit declaration of function 'local_irq_disable'
 
-The problem can be worked around by checking mem_cgroup_swappiness==0 and
-not considering swap at all in such a case.
+Fix it up by including irqflags.h.
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memory.txt |    4 ++++
- mm/memcontrol.c                  |   21 +++++++++++++++------
- 2 files changed, 19 insertions(+), 6 deletions(-)
+ arch/mips/fw/arc/misc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN Documentation/cgroups/memory.txt~memcg-oom-fix-totalpages-calculation-for-memoryswappiness==0 Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~memcg-oom-fix-totalpages-calculation-for-memoryswappiness==0
-+++ a/Documentation/cgroups/memory.txt
-@@ -466,6 +466,10 @@ Note:
- 5.3 swappiness
+diff -puN arch/mips/fw/arc/misc.c~mips-arc-fix-build-failure arch/mips/fw/arc/misc.c
+--- a/arch/mips/fw/arc/misc.c~mips-arc-fix-build-failure
++++ a/arch/mips/fw/arc/misc.c
+@@ -11,6 +11,7 @@
+  */
+ #include <linux/init.h>
+ #include <linux/kernel.h>
++#include <linux/irqflags.h>
  
- Similar to /proc/sys/vm/swappiness, but affecting a hierarchy of groups only.
-+Please note that unlike the global swappiness, memcg knob set to 0
-+really prevents from any swapping even if there is a swap storage
-+available. This might lead to memcg OOM killer if there are no file
-+pages to reclaim.
+ #include <asm/bcache.h>
  
- Following cgroups' swappiness can't be changed.
- - root cgroup (uses /proc/sys/vm/swappiness).
-diff -puN mm/memcontrol.c~memcg-oom-fix-totalpages-calculation-for-memoryswappiness==0 mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-oom-fix-totalpages-calculation-for-memoryswappiness==0
-+++ a/mm/memcontrol.c
-@@ -1452,17 +1452,26 @@ static int mem_cgroup_count_children(str
- static u64 mem_cgroup_get_limit(struct mem_cgroup *memcg)
- {
- 	u64 limit;
--	u64 memsw;
- 
- 	limit = res_counter_read_u64(&memcg->res, RES_LIMIT);
--	limit += total_swap_pages << PAGE_SHIFT;
- 
--	memsw = res_counter_read_u64(&memcg->memsw, RES_LIMIT);
- 	/*
--	 * If memsw is finite and limits the amount of swap space available
--	 * to this memcg, return that limit.
-+	 * Do not consider swap space if we cannot swap due to swappiness
- 	 */
--	return min(limit, memsw);
-+	if (mem_cgroup_swappiness(memcg)) {
-+		u64 memsw;
-+
-+		limit += total_swap_pages << PAGE_SHIFT;
-+		memsw = res_counter_read_u64(&memcg->memsw, RES_LIMIT);
-+
-+		/*
-+		 * If memsw is finite and limits the amount of swap space
-+		 * available to this memcg, return that limit.
-+		 */
-+		limit = min(limit, memsw);
-+	}
-+
-+	return limit;
- }
- 
- void mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask,
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from rientjes@google.com are
 
 linux-next.patch
+mm-export-a-function-to-get-vm-committed-memory.patch
+irq-tsk-comm-is-an-array.patch
 mm-memcg-make-mem_cgroup_out_of_memory-static.patch
+mm-use-is_enabledconfig_numa-instead-of-numa_build.patch
+mm-use-is_enabledconfig_compaction-instead-of-compaction_build.patch
 thp-clean-up-__collapse_huge_page_isolate.patch
-thp-clean-up-__collapse_huge_page_isolate-v2.patch
-mm-introduce-mm_find_pmd.patch
-mm-introduce-mm_find_pmd-fix.patch
-thp-introduce-hugepage_vma_check.patch
-thp-cleanup-introduce-mk_huge_pmd.patch
+memory-hotplug-suppress-device-memoryx-does-not-have-a-release-function-warning.patch
+memory-hotplug-skip-hwpoisoned-page-when-offlining-pages.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
+memory-hotplug-auto-offline-page_cgroup-when-onlining-memory-block-failed.patch
+memory-hotplug-fix-nr_free_pages-mismatch.patch
+numa-convert-static-memory-to-dynamically-allocated-memory-for-per-node-device.patch
+memory-hotplug-suppress-device-nodex-does-not-have-a-release-function-warning.patch
+memory-hotplug-mm-sparsec-clear-the-memory-to-store-struct-page.patch
+memory-hotplug-allocate-zones-pcp-before-onlining-pages.patch
 memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix.patch
+memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix-2.patch
+memory_hotplug-fix-possible-incorrect-node_states.patch
+slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
+mm-oom-allow-exiting-threads-to-have-access-to-memory-reserves.patch
 memcg-make-it-possible-to-use-the-stock-for-more-than-one-page.patch
 memcg-reclaim-when-more-than-one-page-needed.patch
 memcg-change-defines-to-an-enum.patch
@@ -156,9 +116,49 @@ slub-slub-specific-propagation-changes-fix.patch
 kmem-add-slab-specific-documentation-about-the-kmem-controller.patch
 memcg-add-comments-clarifying-aspects-of-cache-attribute-propagation.patch
 slub-drop-mutex-before-deleting-sysfs-entry.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch
+mm-mempolicy-remove-duplicate-code.patch
+mm-cleanup-register_node.patch
 mm-oom-change-type-of-oom_score_adj-to-short.patch
 mm-oom-fix-race-when-specifying-a-thread-as-the-oom-origin.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
-mm-memblock-reduce-overhead-in-binary-search.patch
+drivers-base-nodec-cleanup-node_state_attr.patch
+mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory.patch
+memory_hotplug-handle-empty-zone-when-online_movable-online_kernel.patch
+memory_hotplug-ensure-every-online-node-has-normal-memory.patch
+thp-huge-zero-page-basic-preparation.patch
+thp-huge-zero-page-basic-preparation-v6.patch
+thp-zap_huge_pmd-zap-huge-zero-pmd.patch
+thp-copy_huge_pmd-copy-huge-zero-page.patch
+thp-copy_huge_pmd-copy-huge-zero-page-v6.patch
+thp-copy_huge_pmd-copy-huge-zero-page-v6-fix.patch
+thp-do_huge_pmd_wp_page-handle-huge-zero-page.patch
+thp-do_huge_pmd_wp_page-handle-huge-zero-page-v6.patch
+thp-change_huge_pmd-keep-huge-zero-page-write-protected.patch
+thp-change-split_huge_page_pmd-interface.patch
+thp-change-split_huge_page_pmd-interface-v6.patch
+thp-implement-splitting-pmd-for-huge-zero-page.patch
+thp-implement-splitting-pmd-for-huge-zero-page-v6.patch
+thp-setup-huge-zero-page-on-non-write-page-fault.patch
+thp-lazy-huge-zero-page-allocation.patch
+thp-implement-refcounting-for-huge-zero-page.patch
+thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events.patch
+thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6.patch
+thp-introduce-sysfs-knob-to-disable-huge-zero-page.patch
+node_states-introduce-n_memory.patch
+cpuset-use-n_memory-instead-n_high_memory.patch
+procfs-use-n_memory-instead-n_high_memory.patch
+memcontrol-use-n_memory-instead-n_high_memory.patch
+oom-use-n_memory-instead-n_high_memory.patch
+mmmigrate-use-n_memory-instead-n_high_memory.patch
+mempolicy-use-n_memory-instead-n_high_memory.patch
+hugetlb-use-n_memory-instead-n_high_memory.patch
+vmstat-use-n_memory-instead-n_high_memory.patch
+kthread-use-n_memory-instead-n_high_memory.patch
+init-use-n_memory-instead-n_high_memory.patch
+vmscan-use-n_memory-instead-n_high_memory.patch
+page_alloc-use-n_memory-instead-n_high_memory-change-the-node_states-initialization.patch
+hotplug-update-nodemasks-management.patch
+mm-dmapoolc-fix-null-dev-in-dma_pool_create.patch
 
