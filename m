@@ -1,103 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-revert-mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures.patch removed from -mm tree
-Date: Mon, 19 Nov 2012 12:21:51 -0800
-Message-ID: <20121119202152.4B0E420004E@hpza10.eem.corp.google.com>
+Subject: [merged] tmpfs-change-final-i_blocks-bug-to-warning.patch removed from -mm tree
+Date: Mon, 19 Nov 2012 12:22:04 -0800
+Message-ID: <20121119202205.2D92120004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:43073 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754186Ab2KSUVz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Nov 2012 15:21:55 -0500
-Received: by mail-bk0-f74.google.com with SMTP id je9so213826bkc.1
-        for <mm-commits@vger.kernel.org>; Mon, 19 Nov 2012 12:21:54 -0800 (PST)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:42462 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754814Ab2KSUWH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Nov 2012 15:22:07 -0500
+Received: by mail-wi0-f202.google.com with SMTP id cb5so23289wib.1
+        for <mm-commits@vger.kernel.org>; Mon, 19 Nov 2012 12:22:06 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, Valdis.Kletnieks@vt.edu, jirislaby@gmail.com, johannes.hirte@fem.tu-ilmenau.de, jslaby@suse.cz, riel@redhat.com, zkabelac@redhat.com, mm-commits@vger.kernel.org
+To: hughd@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: revert "mm: vmscan: scale number of pages reclaimed by reclaim/compaction based on failures"
+     Subject: tmpfs: change final i_blocks BUG to WARNING
 has been removed from the -mm tree.  Its filename was
-     mm-revert-mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures.patch
+     tmpfs-change-final-i_blocks-bug-to-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: revert "mm: vmscan: scale number of pages reclaimed by reclaim/compaction based on failures"
+From: Hugh Dickins <hughd@google.com>
+Subject: tmpfs: change final i_blocks BUG to WARNING
 
-Jiri Slaby reported the following:
+Under a particular load on one machine, I have hit shmem_evict_inode()'s
+BUG_ON(inode->i_blocks), enough times to narrow it down to a particular
+race between swapout and eviction.
 
-	(It's an effective revert of "mm: vmscan: scale number of pages
-	reclaimed by reclaim/compaction based on failures".) Given kswapd
-	had hours of runtime in ps/top output yesterday in the morning
-	and after the revert it's now 2 minutes in sum for the last 24h,
-	I would say, it's gone.
+It comes from the "if (freed > 0)" asymmetry in shmem_recalc_inode(), and
+the lack of coherent locking between mapping's nrpages and shmem's swapped
+count.  There's a window in shmem_writepage(), between lowering nrpages in
+shmem_delete_from_page_cache() and then raising swapped count, when the
+freed count appears to be +1 when it should be 0, and then the asymmetry
+stops it from being corrected with -1 before hitting the BUG.
 
-The intention of the patch in question was to compensate for the loss of
-lumpy reclaim.  Part of the reason lumpy reclaim worked is because it
-aggressively reclaimed pages and this patch was meant to be a sane
-compromise.
+One answer is coherent locking: using tree_lock throughout, without
+info->lock; reasonable, but the raw_spin_lock in percpu_counter_add() on
+used_blocks makes that messier than expected.  Another answer may be a
+further effort to eliminate the weird shmem_recalc_inode() altogether, but
+previous attempts at that failed.
 
-When compaction fails, it gets deferred and both compaction and
-reclaim/compaction is deferred avoid excessive reclaim.  However, since
-commit c6543459 ("mm: remove __GFP_NO_KSWAPD"), kswapd is woken up each
-time and continues reclaiming which was not taken into account when the
-patch was developed.
+So far undecided, but for now change the BUG_ON to WARN_ON: in usual
+circumstances it remains a useful consistency check.
 
-Attempts to address the problem ended up just changing the shape of the
-problem instead of fixing it.  The release window gets closer and while a
-THP allocation failing is not a major problem, kswapd chewing up a lot of
-CPU is.  This patch reverts "mm: vmscan: scale number of pages reclaimed
-by reclaim/compaction based on failures" and will be revisited in the
-future.
-
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: Zdenek Kabelac <zkabelac@redhat.com>
-Tested-by: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
-Cc: Jiri Slaby <jirislaby@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Jiri Slaby <jslaby@suse.cz>
-Cc: Johannes Hirte <johannes.hirte@fem.tu-ilmenau.de>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   25 -------------------------
- 1 file changed, 25 deletions(-)
+ mm/shmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-revert-mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures mm/vmscan.c
---- a/mm/vmscan.c~mm-revert-mm-vmscan-scale-number-of-pages-reclaimed-by-reclaim-compaction-based-on-failures
-+++ a/mm/vmscan.c
-@@ -1760,28 +1760,6 @@ static bool in_reclaim_compaction(struct
- 	return false;
- }
+diff -puN mm/shmem.c~tmpfs-change-final-i_blocks-bug-to-warning mm/shmem.c
+--- a/mm/shmem.c~tmpfs-change-final-i_blocks-bug-to-warning
++++ a/mm/shmem.c
+@@ -643,7 +643,7 @@ static void shmem_evict_inode(struct ino
+ 		kfree(info->symlink);
  
--#ifdef CONFIG_COMPACTION
--/*
-- * If compaction is deferred for sc->order then scale the number of pages
-- * reclaimed based on the number of consecutive allocation failures
-- */
--static unsigned long scale_for_compaction(unsigned long pages_for_compaction,
--			struct lruvec *lruvec, struct scan_control *sc)
--{
--	struct zone *zone = lruvec_zone(lruvec);
--
--	if (zone->compact_order_failed <= sc->order)
--		pages_for_compaction <<= zone->compact_defer_shift;
--	return pages_for_compaction;
--}
--#else
--static unsigned long scale_for_compaction(unsigned long pages_for_compaction,
--			struct lruvec *lruvec, struct scan_control *sc)
--{
--	return pages_for_compaction;
--}
--#endif
--
- /*
-  * Reclaim/compaction is used for high-order allocation requests. It reclaims
-  * order-0 pages before compacting the zone. should_continue_reclaim() returns
-@@ -1829,9 +1807,6 @@ static inline bool should_continue_recla
- 	 * inactive lists are large enough, continue reclaiming
- 	 */
- 	pages_for_compaction = (2UL << sc->order);
+ 	simple_xattrs_free(&info->xattrs);
+-	BUG_ON(inode->i_blocks);
++	WARN_ON(inode->i_blocks);
+ 	shmem_free_inode(inode->i_sb);
+ 	clear_inode(inode);
+ }
+_
+
+Patches currently in -mm which might be from hughd@google.com are
+
+linux-next.patch
+mm-add-comment-on-storage-key-dirty-bit-semantics.patch
+mm-refactor-reinsert-of-swap_info-in-sys_swapoff.patch
+mm-do-not-call-frontswap_init-during-swapoff.patch
+mm-augment-vma-rbtree-with-rb_subtree_gap.patch
+mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-inserting-new-vma.patch
+mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-removing-vma.patch
+mm-augment-vma-rbtree-with-rb_subtree_gap--debug-code-to-verify-rb_subtree_gap-updates-are-safe.patch
+mm-check-rb_subtree_gap-correctness.patch
+mm-check-rb_subtree_gap-correctness-fix.patch
+mm-rearrange-vm_area_struct-for-fewer-cache-misses.patch
+mm-vm_unmapped_area-lookup-function.patch
+mm-use-vm_unmapped_area-on-x86_64-architecture.patch
+mm-fix-cache-coloring-on-x86_64-architecture.patch
+mm-use-vm_unmapped_area-in-hugetlbfs.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
+mm-use-vm_unmapped_area-on-mips-architecture.patch
+mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
+mm-use-vm_unmapped_area-on-arm-architecture.patch
+mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sh-architecture.patch
+mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc32-architecture.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture.patch
+mm-use-vm_unmapped_area-on-sparc64-architecture.patch
+mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-sparc64-architecture.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+
