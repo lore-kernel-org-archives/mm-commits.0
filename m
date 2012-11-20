@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + thp-setup-huge-zero-page-on-non-write-page-fault-fix.patch added to -mm tree
-Date: Tue, 20 Nov 2012 13:59:17 -0800
-Message-ID: <20121120215917.ADAF382004A@wpzn4.hot.corp.google.com>
+Subject: + thp-fix-update_mmu_cache_pmd-calls.patch added to -mm tree
+Date: Tue, 20 Nov 2012 14:48:06 -0800
+Message-ID: <20121120224807.4647C200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:56445 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751466Ab2KTV7T (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Nov 2012 16:59:19 -0500
-Received: by mail-qa0-f74.google.com with SMTP id g40so195270qab.1
-        for <mm-commits@vger.kernel.org>; Tue, 20 Nov 2012 13:59:18 -0800 (PST)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:52981 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753142Ab2KTWsJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Nov 2012 17:48:09 -0500
+Received: by mail-wi0-f202.google.com with SMTP id cb5so101180wib.1
+        for <mm-commits@vger.kernel.org>; Tue, 20 Nov 2012 14:48:08 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kirill.shutemov@linux.intel.com, aarcange@redhat.com, ak@linux.intel.com, hpa@linux.intel.com, mel@csn.ul.ie, rientjes@google.com
+Cc: kirill.shutemov@linux.intel.com, aarcange@redhat.com, mingo@elte.hu, xiaoguangrong@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: thp-setup-huge-zero-page-on-non-write-page-fault-fix
+     Subject: thp: fix update_mmu_cache_pmd() calls
 has been added to the -mm tree.  Its filename is
-     thp-setup-huge-zero-page-on-non-write-page-fault-fix.patch
+     thp-fix-update_mmu_cache_pmd-calls.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,57 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp-setup-huge-zero-page-on-non-write-page-fault-fix
+Subject: thp: fix update_mmu_cache_pmd() calls
 
+update_mmu_cache_pmd() takes pointer to pmd_t as third, not pmd_t.
+
+mm/huge_memory.c: In function 'do_huge_pmd_numa_page':
+mm/huge_memory.c:825:2: error: incompatible type for argument 3 of 'update_mmu_cache_pmd'
+In file included from include/linux/mm.h:44:0,
+                 from mm/huge_memory.c:8:
+arch/mips/include/asm/pgtable.h:385:20: note: expected 'struct pmd_t *' but argument is of type 'pmd_t'
+mm/huge_memory.c:895:2: error: incompatible type for argument 3 of 'update_mmu_cache_pmd'
+In file included from include/linux/mm.h:44:0,
+                 from mm/huge_memory.c:8:
+arch/mips/include/asm/pgtable.h:385:20: note: expected 'struct pmd_t *' but argument is of type 'pmd_t'
+
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: "H. Peter Anvin" <hpa@linux.intel.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-setup-huge-zero-page-on-non-write-page-fault-fix mm/huge_memory.c
---- a/mm/huge_memory.c~thp-setup-huge-zero-page-on-non-write-page-fault-fix
+diff -puN mm/huge_memory.c~thp-fix-update_mmu_cache_pmd-calls mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-fix-update_mmu_cache_pmd-calls
 +++ a/mm/huge_memory.c
-@@ -738,7 +738,7 @@ int do_huge_pmd_anonymous_page(struct mm
- 			pgtable_t pgtable;
- 			pgtable = pte_alloc_one(mm, haddr);
- 			if (unlikely(!pgtable))
--				goto out;
-+				return VM_FAULT_OOM;
- 			spin_lock(&mm->page_table_lock);
- 			set_huge_zero_page(pgtable, mm, vma, haddr, pmd);
- 			spin_unlock(&mm->page_table_lock);
+@@ -773,7 +773,7 @@ fixup:
+ 	/* change back to regular protection */
+ 	entry = pmd_modify(entry, vma->vm_page_prot);
+ 	set_pmd_at(mm, haddr, pmd, entry);
+-	update_mmu_cache_pmd(vma, address, entry);
++	update_mmu_cache_pmd(vma, address, &entry);
+ 
+ unlock:
+ 	spin_unlock(&mm->page_table_lock);
+@@ -843,7 +843,7 @@ migrate:
+ 	page_add_new_anon_rmap(new_page, vma, haddr);
+ 
+ 	set_pmd_at(mm, haddr, pmd, entry);
+-	update_mmu_cache_pmd(vma, address, entry);
++	update_mmu_cache_pmd(vma, address, &entry);
+ 	page_remove_rmap(page);
+ 	spin_unlock(&mm->page_table_lock);
+ 
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
 linux-next.patch
+thp-fix-update_mmu_cache_pmd-calls.patch
 mm-use-is_enabledconfig_numa-instead-of-numa_build.patch
 mm-use-is_enabledconfig_compaction-instead-of-compaction_build.patch
 thp-huge-zero-page-basic-preparation.patch
