@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-tps65910c-rename-irq-to-match-device.patch added to -mm tree
-Date: Tue, 20 Nov 2012 12:27:27 -0800
-Message-ID: <20121120202727.A2A4D100047@wpzn3.hot.corp.google.com>
+Subject: + checkpatch-allow-control-over-line-length-warning-default-remains-80.patch added to -mm tree
+Date: Tue, 20 Nov 2012 13:28:31 -0800
+Message-ID: <20121120212832.1236B20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:57714 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752966Ab2KTU12 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Nov 2012 15:27:28 -0500
-Received: by mail-gg0-f202.google.com with SMTP id i4so728663ggm.1
-        for <mm-commits@vger.kernel.org>; Tue, 20 Nov 2012 12:27:28 -0800 (PST)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:33920 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753345Ab2KTV2e (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Nov 2012 16:28:34 -0500
+Received: by mail-wg0-f74.google.com with SMTP id dt14so427613wgb.1
+        for <mm-commits@vger.kernel.org>; Tue, 20 Nov 2012 13:28:33 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sivaramn@nvidia.com, a.zummo@towertech.it
+Cc: joe@perches.com, apw@canonical.com, const@makelinux.com
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-tps65910.c: rename irq to match device
+     Subject: checkpatch: allow control over line length warning, default remains 80
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-tps65910c-rename-irq-to-match-device.patch
+     checkpatch-allow-control-over-line-length-warning-default-remains-80.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,34 +33,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sivaram Nair <sivaramn@nvidia.com>
-Subject: drivers/rtc/rtc-tps65910.c: rename irq to match device
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: allow control over line length warning, default remains 80
 
-A cosmetic change to rename the irq name to match the device name.
+Some projects might want a longer line length so allow a command line
+--max-line-length=n control over the long line warnings.  The default line
+length is 80.
 
-Signed-off-by: Sivaram Nair <sivaramn@nvidia.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Constantine Shulyupin <const@makelinux.com>
+Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-tps65910.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-tps65910.c~drivers-rtc-rtc-tps65910c-rename-irq-to-match-device drivers/rtc/rtc-tps65910.c
---- a/drivers/rtc/rtc-tps65910.c~drivers-rtc-rtc-tps65910c-rename-irq-to-match-device
-+++ a/drivers/rtc/rtc-tps65910.c
-@@ -261,7 +261,7 @@ static int __devinit tps65910_rtc_probe(
+diff -puN scripts/checkpatch.pl~checkpatch-allow-control-over-line-length-warning-default-remains-80 scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-allow-control-over-line-length-warning-default-remains-80
++++ a/scripts/checkpatch.pl
+@@ -33,6 +33,7 @@ my %ignore_type = ();
+ my @ignore = ();
+ my $help = 0;
+ my $configuration_file = ".checkpatch.conf";
++my $max_line_length = 80;
  
- 	ret = devm_request_threaded_irq(&pdev->dev, irq, NULL,
- 		tps65910_rtc_interrupt, IRQF_TRIGGER_LOW,
--		"rtc-tps65910", &pdev->dev);
-+		dev_name(&pdev->dev), &pdev->dev);
- 	if (ret < 0) {
- 		dev_err(&pdev->dev, "IRQ is not free.\n");
- 		return ret;
+ sub help {
+ 	my ($exitcode) = @_;
+@@ -51,6 +52,7 @@ Options:
+   -f, --file                 treat FILE as regular source file
+   --subjective, --strict     enable more subjective tests
+   --ignore TYPE(,TYPE2...)   ignore various comma separated message types
++  --max-line-length=n        set the maximum line length, if exceeded, warn
+   --show-types               show the message "types" in the output
+   --root=PATH                PATH to the kernel tree root
+   --no-summary               suppress the per-file summary
+@@ -107,6 +109,7 @@ GetOptions(
+ 	'strict!'	=> \$check,
+ 	'ignore=s'	=> \@ignore,
+ 	'show-types!'	=> \$show_types,
++	'max-line-length=i' => \$max_line_length,
+ 	'root=s'	=> \$root,
+ 	'summary!'	=> \$summary,
+ 	'mailback!'	=> \$mailback,
+@@ -1760,15 +1763,15 @@ sub process {
+ # check we are in a valid source file if not then ignore this hunk
+ 		next if ($realfile !~ /\.(h|c|s|S|pl|sh)$/);
+ 
+-#80 column limit
++#line length limit
+ 		if ($line =~ /^\+/ && $prevrawline !~ /\/\*\*/ &&
+ 		    $rawline !~ /^.\s*\*\s*\@$Ident\s/ &&
+ 		    !($line =~ /^\+\s*$logFunctions\s*\(\s*(?:(KERN_\S+\s*|[^"]*))?"[X\t]*"\s*(?:|,|\)\s*;)\s*$/ ||
+ 		    $line =~ /^\+\s*"[^"]*"\s*(?:\s*|,|\)\s*;)\s*$/) &&
+-		    $length > 80)
++		    $length > $max_line_length)
+ 		{
+ 			WARN("LONG_LINE",
+-			     "line over 80 characters\n" . $herecurr);
++			     "line over $max_line_length characters\n" . $herecurr);
+ 		}
+ 
+ # Check for user-visible strings broken across lines, which breaks the ability
 _
 
-Patches currently in -mm which might be from sivaramn@nvidia.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-drivers-rtc-rtc-tps65910c-rename-irq-to-match-device.patch
+linux-next.patch
+printk-boot_delay-should-only-affect-output.patch
+checkpatch-warn-on-unnecessary-line-continuations.patch
+checkpatch-warn-about-using-config_experimental.patch
+checkpatch-remove-reference-to-feature-removal-scheduletxt.patch
+checkpatch-consolidate-if-foo-barfoo-checks-and-add-debugfs_remove.patch
+checkpatch-allow-control-over-line-length-warning-default-remains-80.patch
+kstrto-add-documentation.patch
+simple_strto-annotate-function-as-obsolete.patch
 
