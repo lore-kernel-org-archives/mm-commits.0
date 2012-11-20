@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-oom-ensure-sysrqf-always-passes-valid-zonelist.patch added to -mm tree
-Date: Tue, 20 Nov 2012 15:16:58 -0800
-Message-ID: <20121120231659.3303D100047@wpzn3.hot.corp.google.com>
+Subject: + mm-oom-cleanup-pagefault-oom-handler.patch added to -mm tree
+Date: Tue, 20 Nov 2012 15:17:01 -0800
+Message-ID: <20121120231702.D8884200069@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:56581 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752161Ab2KTXRA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Nov 2012 18:17:00 -0500
-Received: by mail-yh0-f74.google.com with SMTP id 10so757336yhl.1
-        for <mm-commits@vger.kernel.org>; Tue, 20 Nov 2012 15:17:00 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:59318 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752161Ab2KTXRF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Nov 2012 18:17:05 -0500
+Received: by mail-ee0-f74.google.com with SMTP id t10so430859eei.1
+        for <mm-commits@vger.kernel.org>; Tue, 20 Nov 2012 15:17:04 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, gregkh@linuxfoundation.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
+Cc: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz
 
 
 The patch titled
-     Subject: mm, oom: ensure sysrq+f always passes valid zonelist
+     Subject: mm, oom: cleanup pagefault oom handler
 has been added to the -mm tree.  Its filename is
-     mm-oom-ensure-sysrqf-always-passes-valid-zonelist.patch
+     mm-oom-cleanup-pagefault-oom-handler.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,93 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Rientjes <rientjes@google.com>
-Subject: mm, oom: ensure sysrq+f always passes valid zonelist
+Subject: mm, oom: cleanup pagefault oom handler
 
-With hotpluggable and memoryless nodes, it's possible that node 0 will not
-be online, so use the first online node's zonelist rather than hardcoding
-node 0 to pass a zonelist with all zones to the oom killer.
+To lock the entire system from parallel oom killing, it's possible to pass
+in a zonelist with all zones rather than using for_each_populated_zone()
+for the iteration.  This obsoletes try_set_system_oom() and
+clear_system_oom() so that they can be removed.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Reviewed-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/sysrq.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/oom_kill.c |   49 ++++++------------------------------------------
+ 1 file changed, 7 insertions(+), 42 deletions(-)
 
-diff -puN drivers/tty/sysrq.c~mm-oom-ensure-sysrqf-always-passes-valid-zonelist drivers/tty/sysrq.c
---- a/drivers/tty/sysrq.c~mm-oom-ensure-sysrqf-always-passes-valid-zonelist
-+++ a/drivers/tty/sysrq.c
-@@ -346,7 +346,8 @@ static struct sysrq_key_op sysrq_term_op
- 
- static void moom_callback(struct work_struct *ignored)
- {
--	out_of_memory(node_zonelist(0, GFP_KERNEL), GFP_KERNEL, 0, NULL, true);
-+	out_of_memory(node_zonelist(first_online_node, GFP_KERNEL), GFP_KERNEL,
-+		      0, NULL, true);
+diff -puN mm/oom_kill.c~mm-oom-cleanup-pagefault-oom-handler mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-cleanup-pagefault-oom-handler
++++ a/mm/oom_kill.c
+@@ -591,43 +591,6 @@ void clear_zonelist_oom(struct zonelist 
+ 	spin_unlock(&zone_scan_lock);
  }
  
- static DECLARE_WORK(moom_work, moom_callback);
+-/*
+- * Try to acquire the oom killer lock for all system zones.  Returns zero if a
+- * parallel oom killing is taking place, otherwise locks all zones and returns
+- * non-zero.
+- */
+-static int try_set_system_oom(void)
+-{
+-	struct zone *zone;
+-	int ret = 1;
+-
+-	spin_lock(&zone_scan_lock);
+-	for_each_populated_zone(zone)
+-		if (zone_is_oom_locked(zone)) {
+-			ret = 0;
+-			goto out;
+-		}
+-	for_each_populated_zone(zone)
+-		zone_set_flag(zone, ZONE_OOM_LOCKED);
+-out:
+-	spin_unlock(&zone_scan_lock);
+-	return ret;
+-}
+-
+-/*
+- * Clears ZONE_OOM_LOCKED for all system zones so that failed allocation
+- * attempts or page faults may now recall the oom killer, if necessary.
+- */
+-static void clear_system_oom(void)
+-{
+-	struct zone *zone;
+-
+-	spin_lock(&zone_scan_lock);
+-	for_each_populated_zone(zone)
+-		zone_clear_flag(zone, ZONE_OOM_LOCKED);
+-	spin_unlock(&zone_scan_lock);
+-}
+-
+ /**
+  * out_of_memory - kill the "best" process when we run out of memory
+  * @zonelist: zonelist pointer
+@@ -708,15 +671,17 @@ out:
+ 
+ /*
+  * The pagefault handler calls here because it is out of memory, so kill a
+- * memory-hogging task.  If a populated zone has ZONE_OOM_LOCKED set, a parallel
+- * oom killing is already in progress so do nothing.  If a task is found with
+- * TIF_MEMDIE set, it has been killed so do nothing and allow it to exit.
++ * memory-hogging task.  If any populated zone has ZONE_OOM_LOCKED set, a
++ * parallel oom killing is already in progress so do nothing.
+  */
+ void pagefault_out_of_memory(void)
+ {
+-	if (try_set_system_oom()) {
++	struct zonelist *zonelist = node_zonelist(first_online_node,
++						  GFP_KERNEL);
++
++	if (try_set_zonelist_oom(zonelist, GFP_KERNEL)) {
+ 		out_of_memory(NULL, 0, 0, NULL, false);
+-		clear_system_oom();
++		clear_zonelist_oom(zonelist, GFP_KERNEL);
+ 	}
+ 	schedule_timeout_killable(1);
+ }
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
