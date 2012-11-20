@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fs-notify-add-procfs-fdinfo-helper-v7.patch added to -mm tree
-Date: Mon, 19 Nov 2012 16:49:43 -0800
-Message-ID: <20121120004943.E9AA282004A@wpzn4.hot.corp.google.com>
+Subject: + drivers-video-add-support-for-the-solomon-ssd1307-oled-controller.patch added to -mm tree
+Date: Tue, 20 Nov 2012 11:44:07 -0800
+Message-ID: <20121120194409.6BDC0200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:46572 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753049Ab2KTAtp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Nov 2012 19:49:45 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so360480ghb.1
-        for <mm-commits@vger.kernel.org>; Mon, 19 Nov 2012 16:49:45 -0800 (PST)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:34552 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751122Ab2KTToM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Nov 2012 14:44:12 -0500
+Received: by mail-bk0-f74.google.com with SMTP id je9so285172bkc.1
+        for <mm-commits@vger.kernel.org>; Tue, 20 Nov 2012 11:44:11 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gorcunov@openvz.org, adobriyan@gmail.com, aneesh.kumar@linux.vnet.ibm.com, avagin@openvz.org, bfields@fieldses.org, jbottomley@parallels.com, matt.helsley@gmail.com, oleg@redhat.com, tvrtko.ursulin@onelan.co.uk, viro@ZenIV.linux.org.uk, xemul@parallels.com
+Cc: maxime.ripard@free-electrons.com, FlorianSchandinat@gmx.de, brian@crystalfontz.com, gregkh@linux-foundation.org, thomas@free-electrons.com
 
 
 The patch titled
-     Subject: fs, notify: add procfs fdinfo helper
+     Subject: drivers/video: add support for the Solomon SSD1307 OLED Controller
 has been added to the -mm tree.  Its filename is
-     fs-notify-add-procfs-fdinfo-helper-v7.patch
+     drivers-video-add-support-for-the-solomon-ssd1307-oled-controller.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,312 +33,498 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Cyrill Gorcunov <gorcunov@openvz.org>
-Subject: fs, notify: add procfs fdinfo helper
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+Subject: drivers/video: add support for the Solomon SSD1307 OLED Controller
 
-This allow us to print out fsnotify details such as watchee inode, device,
-mask and optionally a file handle.
+Add support for the Solomon SSD1307 OLED controller found on the
+Crystalfontz CFA10036 board.
 
-For inotify objects if kernel compiled with exportfs support the output
-will be
+This controller can drive a display with a resolution up to 128x39 and can
+operate over I2C or SPI.
 
- | pos:	0
- | flags:	02000000
- | inotify wd:3 ino:9e7e sdev:800013 mask:800afce ignored_mask:0 fhandle-bytes:8 fhandle-type:1 f_handle:7e9e0000640d1b6d
- | inotify wd:2 ino:a111 sdev:800013 mask:800afce ignored_mask:0 fhandle-bytes:8 fhandle-type:1 f_handle:11a1000020542153
- | inotify wd:1 ino:6b149 sdev:800013 mask:800afce ignored_mask:0 fhandle-bytes:8 fhandle-type:1 f_handle:49b1060023552153
+The current driver has only been tested on the CFA-10036, that is using
+this controller over I2C to driver a 96x16 OLED screen.
 
-If kernel compiled without exportfs support, the file handle
-won't be provided but inode and device only.
-
- | pos:	0
- | flags:	02000000
- | inotify wd:3 ino:9e7e sdev:800013 mask:800afce ignored_mask:0
- | inotify wd:2 ino:a111 sdev:800013 mask:800afce ignored_mask:0
- | inotify wd:1 ino:6b149 sdev:800013 mask:800afce ignored_mask:0
-
-For fanotify the output is like
-
- | pos:	0
- | flags:	02
- | fanotify ino:68f71 sdev:800013 mask:1 ignored_mask:40000000
-
- | pos:	0
- | flags:	02
- | fanotify mnt_id:13 mask:1 ignored_mask:40000000
-
-To minimize impact on general fsnotify code the new functionality
-is gathered in fs/notify/fdinfo.c file.
-
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Acked-by: Pavel Emelyanov <xemul@parallels.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Andrey Vagin <avagin@openvz.org>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: James Bottomley <jbottomley@parallels.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Matthew Helsley <matt.helsley@gmail.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Tvrtko Ursulin <tvrtko.ursulin@onelan.co.uk>
+Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Brian Lilly <brian@crystalfontz.com>
+Cc: Greg KH <gregkh@linux-foundation.org>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: Thomas Petazzoni <thomas@free-electrons.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/Makefile                 |    2 
- fs/notify/fanotify/fanotify_user.c |    2 
- fs/notify/fdinfo.c                 |  153 +++++++++++++++++++++++++++
- fs/notify/fdinfo.h                 |   22 +++
- fs/notify/inotify/inotify_user.c   |    2 
- 5 files changed, 180 insertions(+), 1 deletion(-)
+ Documentation/devicetree/bindings/video/ssd1307fb.txt |   24 
+ drivers/video/Kconfig                                 |   15 
+ drivers/video/Makefile                                |    1 
+ drivers/video/ssd1307fb.c                             |  396 ++++++++++
+ 4 files changed, 436 insertions(+)
 
-diff -puN fs/notify/Makefile~fs-notify-add-procfs-fdinfo-helper-v7 fs/notify/Makefile
---- a/fs/notify/Makefile~fs-notify-add-procfs-fdinfo-helper-v7
-+++ a/fs/notify/Makefile
-@@ -1,5 +1,5 @@
- obj-$(CONFIG_FSNOTIFY)		+= fsnotify.o notification.o group.o inode_mark.o \
--				   mark.o vfsmount_mark.o
-+				   mark.o vfsmount_mark.o fdinfo.o
- 
- obj-y			+= dnotify/
- obj-y			+= inotify/
-diff -puN fs/notify/fanotify/fanotify_user.c~fs-notify-add-procfs-fdinfo-helper-v7 fs/notify/fanotify/fanotify_user.c
---- a/fs/notify/fanotify/fanotify_user.c~fs-notify-add-procfs-fdinfo-helper-v7
-+++ a/fs/notify/fanotify/fanotify_user.c
-@@ -17,6 +17,7 @@
- #include <asm/ioctls.h>
- 
- #include "../../mount.h"
-+#include "../fdinfo.h"
- 
- #define FANOTIFY_DEFAULT_MAX_EVENTS	16384
- #define FANOTIFY_DEFAULT_MAX_MARKS	8192
-@@ -432,6 +433,7 @@ static long fanotify_ioctl(struct file *
- }
- 
- static const struct file_operations fanotify_fops = {
-+	.show_fdinfo	= fanotify_show_fdinfo,
- 	.poll		= fanotify_poll,
- 	.read		= fanotify_read,
- 	.write		= fanotify_write,
-diff -puN /dev/null fs/notify/fdinfo.c
+diff -puN /dev/null Documentation/devicetree/bindings/video/ssd1307fb.txt
 --- /dev/null
-+++ a/fs/notify/fdinfo.c
-@@ -0,0 +1,153 @@
-+#include <linux/file.h>
-+#include <linux/fs.h>
-+#include <linux/fsnotify_backend.h>
-+#include <linux/idr.h>
-+#include <linux/init.h>
-+#include <linux/inotify.h>
++++ a/Documentation/devicetree/bindings/video/ssd1307fb.txt
+@@ -0,0 +1,24 @@
++* Solomon SSD1307 Framebuffer Driver
++
++Required properties:
++  - compatible: Should be "solomon,ssd1307fb-<bus>". The only supported bus for
++    now is i2c.
++  - reg: Should contain address of the controller on the I2C bus. Most likely
++         0x3c or 0x3d
++  - pwm: Should contain the pwm to use according to the OF device tree PWM
++         specification [0]
++  - reset-gpios: Should contain the GPIO used to reset the OLED display
++
++Optional properties:
++  - reset-active-low: Is the reset gpio is active on physical low?
++
++[0]: Documentation/devicetree/bindings/pwm/pwm.txt
++
++Examples:
++ssd1307: oled@3c {
++        compatible = "solomon,ssd1307fb-i2c";
++        reg = <0x3c>;
++        pwms = <&pwm 4 3000>;
++        reset-gpios = <&gpio2 7>;
++        reset-active-low;
++};
+diff -puN drivers/video/Kconfig~drivers-video-add-support-for-the-solomon-ssd1307-oled-controller drivers/video/Kconfig
+--- a/drivers/video/Kconfig~drivers-video-add-support-for-the-solomon-ssd1307-oled-controller
++++ a/drivers/video/Kconfig
+@@ -2444,4 +2444,19 @@ config FB_SH_MOBILE_MERAM
+ 	  Up to 4 memory channels can be configured, allowing 4 RGB or
+ 	  2 YCbCr framebuffers to be configured.
+ 
++config FB_SSD1307
++	tristate "Solomon SSD1307 framebuffer support"
++	depends on FB && I2C
++	depends on OF
++	depends on GENERIC_GPIO
++	select FB_SYS_FOPS
++	select FB_SYS_FILLRECT
++	select FB_SYS_COPYAREA
++	select FB_SYS_IMAGEBLIT
++	select FB_DEFERRED_IO
++	select PWM
++	help
++	  This driver implements support for the Solomon SSD1307
++	  OLED controller over I2C.
++
+ endmenu
+diff -puN drivers/video/Makefile~drivers-video-add-support-for-the-solomon-ssd1307-oled-controller drivers/video/Makefile
+--- a/drivers/video/Makefile~drivers-video-add-support-for-the-solomon-ssd1307-oled-controller
++++ a/drivers/video/Makefile
+@@ -161,6 +161,7 @@ obj-$(CONFIG_FB_BFIN_7393)        += bfi
+ obj-$(CONFIG_FB_MX3)		  += mx3fb.o
+ obj-$(CONFIG_FB_DA8XX)		  += da8xx-fb.o
+ obj-$(CONFIG_FB_MXS)		  += mxsfb.o
++obj-$(CONFIG_FB_SSD1307)	  += ssd1307fb.o
+ 
+ # the test framebuffer is last
+ obj-$(CONFIG_FB_VIRTUAL)          += vfb.o
+diff -puN /dev/null drivers/video/ssd1307fb.c
+--- /dev/null
++++ a/drivers/video/ssd1307fb.c
+@@ -0,0 +1,396 @@
++/*
++ * Driver for the Solomon SSD1307 OLED controler
++ *
++ * Copyright 2012 Free Electrons
++ *
++ * Licensed under the GPLv2 or later.
++ */
++
++#include <linux/module.h>
 +#include <linux/kernel.h>
-+#include <linux/namei.h>
-+#include <linux/sched.h>
-+#include <linux/types.h>
-+#include <linux/seq_file.h>
-+#include <linux/proc_fs.h>
-+#include <linux/exportfs.h>
++#include <linux/i2c.h>
++#include <linux/fb.h>
++#include <linux/uaccess.h>
++#include <linux/of_device.h>
++#include <linux/of_gpio.h>
++#include <linux/pwm.h>
++#include <linux/delay.h>
 +
-+#include "inotify/inotify.h"
-+#include "../fs/mount.h"
++#define SSD1307FB_WIDTH			96
++#define SSD1307FB_HEIGHT		16
 +
-+#if defined(CONFIG_PROC_FS)
++#define SSD1307FB_DATA			0x40
++#define SSD1307FB_COMMAND		0x80
 +
-+#if defined(CONFIG_INOTIFY_USER) || defined(CONFIG_FANOTIFY)
++#define SSD1307FB_CONTRAST		0x81
++#define SSD1307FB_SEG_REMAP_ON		0xa1
++#define SSD1307FB_DISPLAY_OFF		0xae
++#define SSD1307FB_DISPLAY_ON		0xaf
++#define SSD1307FB_START_PAGE_ADDRESS	0xb0
 +
-+static int show_fdinfo(struct seq_file *m, struct file *f,
-+		       int (*show)(struct seq_file *m, struct fsnotify_mark *mark))
++struct ssd1307fb_par {
++	struct i2c_client *client;
++	struct fb_info *info;
++	struct pwm_device *pwm;
++	u32 pwm_period;
++	int reset;
++};
++
++static struct fb_fix_screeninfo ssd1307fb_fix __devinitdata = {
++	.id		= "Solomon SSD1307",
++	.type		= FB_TYPE_PACKED_PIXELS,
++	.visual		= FB_VISUAL_MONO10,
++	.xpanstep	= 0,
++	.ypanstep	= 0,
++	.ywrapstep	= 0,
++	.line_length	= SSD1307FB_WIDTH / 8,
++	.accel		= FB_ACCEL_NONE,
++};
++
++static struct fb_var_screeninfo ssd1307fb_var __devinitdata = {
++	.xres		= SSD1307FB_WIDTH,
++	.yres		= SSD1307FB_HEIGHT,
++	.xres_virtual	= SSD1307FB_WIDTH,
++	.yres_virtual	= SSD1307FB_HEIGHT,
++	.bits_per_pixel	= 1,
++};
++
++static int ssd1307fb_write_array(struct i2c_client *client, u8 type, u8* cmd, u32 len)
 +{
-+	struct fsnotify_group *group = f->private_data;
-+	struct fsnotify_mark *mark;
++	u8 *buf;
 +	int ret = 0;
 +
-+	spin_lock(&group->mark_lock);
-+	list_for_each_entry(mark, &group->marks_list, g_list) {
-+		ret = show(m, mark);
-+		if (ret)
-+			break;
++	buf = kzalloc(len + 1, GFP_KERNEL);
++	if (!buf) {
++		dev_err(&client->dev, "Couldn't allocate sending buffer.\n");
++		return -ENOMEM;
 +	}
-+	spin_unlock(&group->mark_lock);
++
++	buf[0] = type;
++	memcpy(buf + 1, cmd, len);
++
++	ret = i2c_master_send(client, buf, len + 1);
++	if (ret != len + 1) {
++		dev_err(&client->dev, "Couldn't send I2C command.\n");
++		goto error;
++	}
++
++error:
++	kfree(buf);
 +	return ret;
 +}
 +
-+#ifdef CONFIG_INOTIFY_USER
-+
-+#if defined(CONFIG_EXPORTFS)
-+static int show_mark_fhandle(struct seq_file *m, struct inode *inode)
++static inline int ssd1307fb_write_cmd_array(struct i2c_client *client, u8* cmd, u32 len)
 +{
-+	struct {
-+		struct file_handle handle;
-+		u8 pad[64];
-+	} f;
-+	int size, ret, i;
++	return ssd1307fb_write_array(client, SSD1307FB_COMMAND, cmd, len);
++}
 +
-+	f.handle.handle_bytes = sizeof(f.pad);
-+	size = f.handle.handle_bytes >> 2;
++static inline int ssd1307fb_write_cmd(struct i2c_client *client, u8 cmd)
++{
++	return ssd1307fb_write_cmd_array(client, &cmd, 1);
++}
 +
-+	ret = exportfs_encode_inode_fh(inode, (struct fid *)f.handle.f_handle, &size, 0);
-+	if ((ret == 255) || (ret == -ENOSPC)) {
-+		WARN_ONCE(1, "Can't encode file handler for inotify: %d\n", ret);
-+		return 0;
++static inline int ssd1307fb_write_data_array(struct i2c_client *client, u8* cmd, u32 len)
++{
++	return ssd1307fb_write_array(client, SSD1307FB_DATA, cmd, len);
++}
++
++static inline int ssd1307fb_write_data(struct i2c_client *client, u8 data)
++{
++	return ssd1307fb_write_data_array(client, &data, 1);
++}
++
++static void ssd1307fb_update_display(struct ssd1307fb_par *par)
++{
++	u8 *vmem = par->info->screen_base;
++	int i, j, k;
++
++	/*
++	 * The screen is divided in pages, each having a height of 8
++	 * pixels, and the width of the screen. When sending a byte of
++	 * data to the controller, it gives the 8 bits for the current
++	 * column. I.e, the first byte are the 8 bits of the first
++	 * column, then the 8 bits for the second column, etc.
++	 *
++	 *
++	 * Representation of the screen, assuming it is 5 bits
++	 * wide. Each letter-number combination is a bit that controls
++	 * one pixel.
++	 *
++	 * A0 A1 A2 A3 A4
++	 * B0 B1 B2 B3 B4
++	 * C0 C1 C2 C3 C4
++	 * D0 D1 D2 D3 D4
++	 * E0 E1 E2 E3 E4
++	 * F0 F1 F2 F3 F4
++	 * G0 G1 G2 G3 G4
++	 * H0 H1 H2 H3 H4
++	 *
++	 * If you want to update this screen, you need to send 5 bytes:
++	 *  (1) A0 B0 C0 D0 E0 F0 G0 H0
++	 *  (2) A1 B1 C1 D1 E1 F1 G1 H1
++	 *  (3) A2 B2 C2 D2 E2 F2 G2 H2
++	 *  (4) A3 B3 C3 D3 E3 F3 G3 H3
++	 *  (5) A4 B4 C4 D4 E4 F4 G4 H4
++	 */
++
++	for (i = 0; i < (SSD1307FB_HEIGHT / 8); i++) {
++		ssd1307fb_write_cmd(par->client, SSD1307FB_START_PAGE_ADDRESS + (i + 1));
++		ssd1307fb_write_cmd(par->client, 0x00);
++		ssd1307fb_write_cmd(par->client, 0x10);
++
++		for (j = 0; j < SSD1307FB_WIDTH; j++) {
++			u8 buf = 0;
++			for (k = 0; k < 8; k++) {
++				u32 page_length = SSD1307FB_WIDTH * i;
++				u32 index = page_length + (SSD1307FB_WIDTH * k + j) / 8;
++				u8 byte = *(vmem + index);
++				u8 bit = byte & (1 << (7 - (j % 8)));
++				bit = bit >> (7 - (j % 8));
++				buf |= bit << k;
++			}
++			ssd1307fb_write_data(par->client, buf);
++		}
++	}
++}
++
++
++static ssize_t ssd1307fb_write(struct fb_info *info, const char __user *buf,
++		size_t count, loff_t *ppos)
++{
++	struct ssd1307fb_par *par = info->par;
++	unsigned long total_size;
++	unsigned long p = *ppos;
++	u8 __iomem *dst;
++
++	total_size = info->fix.smem_len;
++
++	if (p > total_size)
++		return -EINVAL;
++
++	if (count + p > total_size)
++		count = total_size - p;
++
++	if (!count)
++		return -EINVAL;
++
++	dst = (void __force *) (info->screen_base + p);
++
++	if (copy_from_user(dst, buf, count))
++		return -EFAULT;
++
++	ssd1307fb_update_display(par);
++
++	*ppos += count;
++
++	return count;
++}
++
++static void ssd1307fb_fillrect(struct fb_info *info, const struct fb_fillrect *rect)
++{
++	struct ssd1307fb_par *par = info->par;
++	sys_fillrect(info, rect);
++	ssd1307fb_update_display(par);
++}
++
++static void ssd1307fb_copyarea(struct fb_info *info, const struct fb_copyarea *area)
++{
++	struct ssd1307fb_par *par = info->par;
++	sys_copyarea(info, area);
++	ssd1307fb_update_display(par);
++}
++
++static void ssd1307fb_imageblit(struct fb_info *info, const struct fb_image *image)
++{
++	struct ssd1307fb_par *par = info->par;
++	sys_imageblit(info, image);
++	ssd1307fb_update_display(par);
++}
++
++static struct fb_ops ssd1307fb_ops = {
++	.owner		= THIS_MODULE,
++	.fb_read	= fb_sys_read,
++	.fb_write	= ssd1307fb_write,
++	.fb_fillrect	= ssd1307fb_fillrect,
++	.fb_copyarea	= ssd1307fb_copyarea,
++	.fb_imageblit	= ssd1307fb_imageblit,
++};
++
++static void ssd1307fb_deferred_io(struct fb_info *info,
++				struct list_head *pagelist)
++{
++	ssd1307fb_update_display(info->par);
++}
++
++static struct fb_deferred_io ssd1307fb_defio = {
++	.delay		= HZ,
++	.deferred_io	= ssd1307fb_deferred_io,
++};
++
++static int __devinit ssd1307fb_probe(struct i2c_client *client, const struct i2c_device_id *id)
++{
++	struct fb_info *info;
++	u32 vmem_size = SSD1307FB_WIDTH * SSD1307FB_HEIGHT / 8;
++	struct ssd1307fb_par *par;
++	u8 *vmem;
++	int ret;
++
++	if (!client->dev.of_node) {
++		dev_err(&client->dev, "No device tree data found!\n");
++		return -EINVAL;
 +	}
 +
-+	f.handle.handle_type = ret;
-+	f.handle.handle_bytes = size * sizeof(u32);
++	info = framebuffer_alloc(sizeof(struct ssd1307fb_par), &client->dev);
++	if (!info) {
++		dev_err(&client->dev, "Couldn't allocate framebuffer.\n");
++		return -ENOMEM;
++	}
 +
-+	ret = seq_printf(m, "fhandle-bytes:%x fhandle-type:%x f_handle:",
-+			 f.handle.handle_bytes, f.handle.handle_type);
++	vmem = devm_kzalloc(&client->dev, vmem_size, GFP_KERNEL);
++	if (!vmem) {
++		dev_err(&client->dev, "Couldn't allocate graphical memory.\n");
++		ret = -ENOMEM;
++		goto fb_alloc_error;
++	}
 +
-+	for (i = 0; i < f.handle.handle_bytes; i++)
-+		ret |= seq_printf(m, "%02x", (int)f.handle.f_handle[i]);
++	info->fbops = &ssd1307fb_ops;
++	info->fix = ssd1307fb_fix;
++	info->fbdefio = &ssd1307fb_defio;
 +
++	info->var = ssd1307fb_var;
++	info->var.red.length = 1;
++	info->var.red.offset = 0;
++	info->var.green.length = 1;
++	info->var.green.offset = 0;
++	info->var.blue.length = 1;
++	info->var.blue.offset = 0;
++
++	info->screen_base = (u8 __force __iomem *)vmem;
++	info->fix.smem_start = (unsigned long)vmem;
++	info->fix.smem_len = vmem_size;
++
++	fb_deferred_io_init(info);
++
++	par = info->par;
++	par->info = info;
++	par->client = client;
++
++	par->reset = of_get_named_gpio(client->dev.of_node,
++					 "reset-gpios", 0);
++	if (!gpio_is_valid(par->reset)) {
++		ret = -EINVAL;
++		goto reset_oled_error;
++	}
++
++	ret = devm_gpio_request_one(&client->dev, par->reset,
++				    GPIOF_OUT_INIT_HIGH,
++				    "oled-reset");
++	if (ret) {
++		dev_err(&client->dev,
++			"failed to request gpio %d: %d\n",
++			par->reset, ret);
++		goto reset_oled_error;
++	}
++
++	par->pwm = pwm_get(&client->dev, NULL);
++	if (IS_ERR(par->pwm)) {
++		dev_err(&client->dev, "Could not get PWM from device tree!\n");
++		ret = PTR_ERR(par->pwm);
++		goto pwm_error;
++	}
++
++	par->pwm_period = pwm_get_period(par->pwm);
++
++	dev_dbg(&client->dev, "Using PWM%d with a %dns period.\n", par->pwm->pwm, par->pwm_period);
++
++	ret = register_framebuffer(info);
++	if (ret) {
++		dev_err(&client->dev, "Couldn't register the framebuffer\n");
++		goto fbreg_error;
++	}
++
++	i2c_set_clientdata(client, info);
++
++	/* Reset the screen */
++	gpio_set_value(par->reset, 0);
++	udelay(4);
++	gpio_set_value(par->reset, 1);
++	udelay(4);
++
++	/* Enable the PWM */
++	pwm_config(par->pwm, par->pwm_period / 2, par->pwm_period);
++	pwm_enable(par->pwm);
++
++	/* Map column 127 of the OLED to segment 0 */
++	ret = ssd1307fb_write_cmd(client, SSD1307FB_SEG_REMAP_ON);
++	if (ret < 0) {
++		dev_err(&client->dev, "Couldn't remap the screen.\n");
++		goto remap_error;
++	}
++
++	/* Turn on the display */
++	ret = ssd1307fb_write_cmd(client, SSD1307FB_DISPLAY_ON);
++	if (ret < 0) {
++		dev_err(&client->dev, "Couldn't turn the display on.\n");
++		goto remap_error;
++	}
++
++	dev_info(&client->dev, "fb%d: %s framebuffer device registered, using %d bytes of video memory\n", info->node, info->fix.id, vmem_size);
++
++	return 0;
++
++remap_error:
++	unregister_framebuffer(info);
++	pwm_disable(par->pwm);
++fbreg_error:
++	pwm_put(par->pwm);
++pwm_error:
++reset_oled_error:
++	fb_deferred_io_cleanup(info);
++fb_alloc_error:
++	framebuffer_release(info);
 +	return ret;
 +}
-+#else
-+static int show_mark_fhandle(struct seq_file *m, struct inode *inode)
++
++static int __devexit ssd1307fb_remove(struct i2c_client *client)
 +{
++	struct fb_info *info = i2c_get_clientdata(client);
++	struct ssd1307fb_par *par = info->par;
++
++	unregister_framebuffer(info);
++	pwm_disable(par->pwm);
++	pwm_put(par->pwm);
++	fb_deferred_io_cleanup(info);
++	framebuffer_release(info);
++
 +	return 0;
 +}
-+#endif
 +
-+static int inotify_fdinfo(struct seq_file *m, struct fsnotify_mark *mark)
-+{
-+	struct inotify_inode_mark *inode_mark;
-+	struct inode *inode;
-+	int ret = 0;
++static const struct i2c_device_id ssd1307fb_i2c_id[] = {
++	{ "ssd1307fb", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, ssd1307fb_i2c_id);
 +
-+	if (!(mark->flags & (FSNOTIFY_MARK_FLAG_ALIVE | FSNOTIFY_MARK_FLAG_INODE)))
-+		return 0;
++static const struct of_device_id ssd1307fb_of_match[] = {
++	{ .compatible = "solomon,ssd1307fb-i2c" },
++	{},
++};
++MODULE_DEVICE_TABLE(of, ssd1307fb_of_match);
 +
-+	inode_mark = container_of(mark, struct inotify_inode_mark, fsn_mark);
-+	inode = igrab(mark->i.inode);
-+	if (inode) {
-+		ret = seq_printf(m, "inotify-wd:%x ino:%lx sdev:%x "
-+				 "mask:%x ignored_mask:%x ",
-+				 inode_mark->wd, inode->i_ino,
-+				 inode->i_sb->s_dev,
-+				 mark->mask, mark->ignored_mask);
-+		ret |= show_mark_fhandle(m, inode);
-+		ret |= seq_putc(m, '\n');
-+		iput(inode);
-+	}
++static struct i2c_driver ssd1307fb_driver = {
++	.probe = ssd1307fb_probe,
++	.remove = __devexit_p(ssd1307fb_remove),
++	.id_table = ssd1307fb_i2c_id,
++	.driver = {
++		.name = "ssd1307fb",
++		.of_match_table = of_match_ptr(ssd1307fb_of_match),
++		.owner = THIS_MODULE,
++	},
++};
 +
-+	return ret;
-+}
++module_i2c_driver(ssd1307fb_driver);
 +
-+int inotify_show_fdinfo(struct seq_file *m, struct file *f)
-+{
-+	return show_fdinfo(m, f, inotify_fdinfo);
-+}
-+
-+#endif /* CONFIG_INOTIFY_USER */
-+
-+#ifdef CONFIG_FANOTIFY
-+
-+static int fanotify_fdinfo(struct seq_file *m, struct fsnotify_mark *mark)
-+{
-+	struct inode *inode;
-+	int ret = 0;
-+
-+	if (!(mark->flags & FSNOTIFY_MARK_FLAG_ALIVE))
-+		return 0;
-+
-+	if (mark->flags & FSNOTIFY_MARK_FLAG_INODE) {
-+		inode = igrab(mark->i.inode);
-+		if (!inode)
-+			goto out;
-+		ret = seq_printf(m, "fanotify ino:%lx sdev:%x "
-+				 "mask:%x ignored_mask:%x\n",
-+				 inode->i_ino, inode->i_sb->s_dev,
-+				 mark->mask, mark->ignored_mask);
-+		iput(inode);
-+	} else if (mark->flags & FSNOTIFY_MARK_FLAG_VFSMOUNT) {
-+		struct mount *mnt = real_mount(mark->m.mnt);
-+
-+		ret = seq_printf(m, "fanotify mnt_id:%x mask:%x "
-+				 "ignored_mask:%x\n",
-+				 mnt->mnt_id, mark->mask, mark->ignored_mask);
-+	}
-+out:
-+	return ret;
-+}
-+
-+int fanotify_show_fdinfo(struct seq_file *m, struct file *f)
-+{
-+	return show_fdinfo(m, f, fanotify_fdinfo);
-+}
-+
-+#endif /* CONFIG_FANOTIFY */
-+
-+#endif /* CONFIG_INOTIFY_USER || CONFIG_FANOTIFY */
-+
-+#else /* CONFIG_PROC_FS */
-+
-+#define inotify_show_fdinfo	NULL
-+#define fanotify_show_fdinfo	NULL
-+
-+#endif /* CONFIG_PROC_FS */
-diff -puN /dev/null fs/notify/fdinfo.h
---- /dev/null
-+++ a/fs/notify/fdinfo.h
-@@ -0,0 +1,22 @@
-+#ifndef __FSNOTIFY_FDINFO_H__
-+#define __FSNOTIFY_FDINFO_H__
-+
-+#include <linux/errno.h>
-+#include <linux/proc_fs.h>
-+
-+struct seq_file;
-+struct file;
-+
-+#ifdef CONFIG_PROC_FS
-+
-+#ifdef CONFIG_INOTIFY_USER
-+extern int inotify_show_fdinfo(struct seq_file *m, struct file *f);
-+#endif
-+
-+#ifdef CONFIG_FANOTIFY
-+extern int fanotify_show_fdinfo(struct seq_file *m, struct file *f);
-+#endif
-+
-+#endif /* CONFIG_PROC_FS */
-+
-+#endif /* __FSNOTIFY_FDINFO_H__ */
-diff -puN fs/notify/inotify/inotify_user.c~fs-notify-add-procfs-fdinfo-helper-v7 fs/notify/inotify/inotify_user.c
---- a/fs/notify/inotify/inotify_user.c~fs-notify-add-procfs-fdinfo-helper-v7
-+++ a/fs/notify/inotify/inotify_user.c
-@@ -40,6 +40,7 @@
- #include <linux/wait.h>
- 
- #include "inotify.h"
-+#include "../fdinfo.h"
- 
- #include <asm/ioctls.h>
- 
-@@ -329,6 +330,7 @@ static long inotify_ioctl(struct file *f
- }
- 
- static const struct file_operations inotify_fops = {
-+	.show_fdinfo	= inotify_show_fdinfo,
- 	.poll		= inotify_poll,
- 	.read		= inotify_read,
- 	.fasync		= fsnotify_fasync,
++MODULE_DESCRIPTION("FB driver for the Solomon SSD1307 OLED controler");
++MODULE_AUTHOR("Maxime Ripard <maxime.ripard@free-electrons.com>");
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from gorcunov@openvz.org are
+Patches currently in -mm which might be from maxime.ripard@free-electrons.com are
 
 linux-next.patch
-proc-check-vma-vm_file-before-dereferencing.patch
-procfs-add-vmflags-field-in-smaps-output-v4.patch
-procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
-proc-pid-status-add-seccomp-field.patch
-tools-testing-selftests-kcmp-kcmp_testc-print-reason-for-failure-in-kcmp_test.patch
-procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers.patch
-fs-eventfd-add-procfs-fdinfo-helper.patch
-fs-epoll-add-procfs-fdinfo-helper-v2.patch
-fdinfo-show-sigmask-for-signalfd-fd-v3.patch
-fs-exportfs-escape-nil-dereference-if-no-s_export_op-present.patch
-fs-exportfs-add-exportfs_encode_inode_fh-helper.patch
-fs-notify-add-procfs-fdinfo-helper-v7.patch
+drivers-video-add-support-for-the-solomon-ssd1307-oled-controller.patch
 
