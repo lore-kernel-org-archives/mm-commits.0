@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + coccinelle-add-api-d_find_aliascocci.patch added to -mm tree
-Date: Tue, 20 Nov 2012 15:21:26 -0800
-Message-ID: <20121120232127.12AE9200057@hpza10.eem.corp.google.com>
+Subject: + ceph-fix-dentry-reference-leak-in-ceph_encode_fh.patch added to -mm tree
+Date: Tue, 20 Nov 2012 15:22:12 -0800
+Message-ID: <20121120232213.0600920004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:33359 "EHLO
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:46101 "EHLO
 	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751754Ab2KTXVa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Nov 2012 18:21:30 -0500
-Received: by mail-wg0-f74.google.com with SMTP id dt14so431030wgb.1
-        for <mm-commits@vger.kernel.org>; Tue, 20 Nov 2012 15:21:28 -0800 (PST)
+	with ESMTP id S1751754Ab2KTXWP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Nov 2012 18:22:15 -0500
+Received: by mail-wg0-f74.google.com with SMTP id dt14so431047wgb.1
+        for <mm-commits@vger.kernel.org>; Tue, 20 Nov 2012 15:22:14 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tipecaml@gmail.com, Gilles.Muller@lip6.fr, Julia.Lawall@lip6.fr, nicolas.palix@imag.fr
+Cc: tipecaml@gmail.com, sage@inktank.com
 
 
 The patch titled
-     Subject: Coccinelle: Add api/d_find_alias.cocci.
+     Subject: ceph: fix dentry reference leak in ceph_encode_fh()
 has been added to the -mm tree.  Its filename is
-     coccinelle-add-api-d_find_aliascocci.patch
+     ceph-fix-dentry-reference-leak-in-ceph_encode_fh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,108 +34,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Cyril Roelandt <tipecaml@gmail.com>
-Subject: Coccinelle: Add api/d_find_alias.cocci.
+Subject: ceph: fix dentry reference leak in ceph_encode_fh()
 
-Ensure that calls to d_find_alias() have a corresponding dput().
+dput() was not called in the error path.
 
 Signed-off-by: Cyril Roelandt <tipecaml@gmail.com>
-Cc: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: Gilles Muller <Gilles.Muller@lip6.fr>
-Cc: Nicolas Palix <nicolas.palix@imag.fr>
+Cc: Sage Weil <sage@inktank.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/coccinelle/api/d_find_alias.cocci |   80 ++++++++++++++++++++
- 1 file changed, 80 insertions(+)
+ fs/ceph/export.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN /dev/null scripts/coccinelle/api/d_find_alias.cocci
---- /dev/null
-+++ a/scripts/coccinelle/api/d_find_alias.cocci
-@@ -0,0 +1,80 @@
-+/// Make sure calls to d_find_alias() have a corresponding call to dput().
-+//
-+// Keywords: d_find_alias, dput
-+//
-+// Confidence: Moderate
-+// URL: http://coccinelle.lip6.fr/
-+// Options: -include_headers
+diff -puN fs/ceph/export.c~ceph-fix-dentry-reference-leak-in-ceph_encode_fh fs/ceph/export.c
+--- a/fs/ceph/export.c~ceph-fix-dentry-reference-leak-in-ceph_encode_fh
++++ a/fs/ceph/export.c
+@@ -56,13 +56,15 @@ static int ceph_encode_fh(struct inode *
+ 	struct ceph_nfs_confh *cfh = (void *)rawfh;
+ 	int connected_handle_length = sizeof(*cfh)/4;
+ 	int handle_length = sizeof(*fh)/4;
+-	struct dentry *dentry = d_find_alias(inode);
++	struct dentry *dentry;
+ 	struct dentry *parent;
+ 
+ 	/* don't re-export snaps */
+ 	if (ceph_snap(inode) != CEPH_NOSNAP)
+ 		return -EINVAL;
+ 
++	dentry = d_find_alias(inode);
 +
-+virtual context
-+virtual org
-+virtual patch
-+virtual report
-+
-+@r exists@
-+local idexpression struct dentry *dent;
-+expression E, E1;
-+statement S1, S2;
-+position p1, p2;
-+@@
-+(
-+	if (!(dent@p1 = d_find_alias(...))) S1
-+|
-+	dent@p1 = d_find_alias(...)
-+)
-+
-+<...when != dput(dent)
-+    when != if (...) { <+... dput(dent) ...+> }
-+    when != true !dent || ...
-+    when != dent = E
-+    when != E = dent
-+if (!dent || ...) S2
-+...>
-+(
-+	return <+...dent...+>;
-+|
-+	return @p2 ...;
-+|
-+	dent@p2 = E1;
-+|
-+	E1 = dent;
-+)
-+
-+@depends on context@
-+local idexpression struct dentry *r.dent;
-+position r.p1,r.p2;
-+@@
-+* dent@p1 = ...
-+  ...
-+(
-+* return@p2 ...;
-+|
-+* dent@p2
-+)
-+
-+
-+@script:python depends on org@
-+p1 << r.p1;
-+p2 << r.p2;
-+@@
-+cocci.print_main("Missing call to dput()",p1)
-+cocci.print_secs("",p2)
-+
-+@depends on patch@
-+local idexpression struct dentry *r.dent;
-+position r.p2;
-+@@
-+(
-++ dput(dent);
-+  return @p2 ...;
-+|
-++ dput(dent);
-+  dent@p2 = ...;
-+)
-+
-+@script:python depends on report@
-+p1 << r.p1;
-+p2 << r.p2;
-+@@
-+msg = "Missing call to dput() at line %s."
-+coccilib.report.print_report(p1[0], msg % (p2[0].line))
+ 	/* if we found an alias, generate a connectable fh */
+ 	if (*max_len >= connected_handle_length && dentry) {
+ 		dout("encode_fh %p connectable\n", dentry);
 _
 
 Patches currently in -mm which might be from tipecaml@gmail.com are
 
-coccinelle-add-api-d_find_aliascocci.patch
 ceph-fix-dentry-reference-leak-in-ceph_encode_fh.patch
+coccinelle-add-api-d_find_aliascocci.patch
 
