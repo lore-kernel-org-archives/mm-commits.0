@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + thp-fix-update_mmu_cache_pmd-calls.patch added to -mm tree
-Date: Tue, 20 Nov 2012 14:48:06 -0800
-Message-ID: <20121120224807.4647C200059@hpza10.eem.corp.google.com>
+Subject: + x86-convert-update_mmu_cache-and-update_mmu_cache_pmd-to-functions.patch added to -mm tree
+Date: Tue, 20 Nov 2012 14:49:10 -0800
+Message-ID: <20121120224910.C552C100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:52981 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753142Ab2KTWsJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Nov 2012 17:48:09 -0500
-Received: by mail-wi0-f202.google.com with SMTP id cb5so101180wib.1
-        for <mm-commits@vger.kernel.org>; Tue, 20 Nov 2012 14:48:08 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:38273 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753142Ab2KTWtM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Nov 2012 17:49:12 -0500
+Received: by mail-qc0-f202.google.com with SMTP id s25so746323qcq.1
+        for <mm-commits@vger.kernel.org>; Tue, 20 Nov 2012 14:49:11 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kirill.shutemov@linux.intel.com, aarcange@redhat.com, mingo@elte.hu, xiaoguangrong@linux.vnet.ibm.com
+Cc: kirill.shutemov@linux.intel.com, hpa@zytor.com, mingo@redhat.com, rientjes@google.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: thp: fix update_mmu_cache_pmd() calls
+     Subject: x86: convert update_mmu_cache() and update_mmu_cache_pmd() to functions
 has been added to the -mm tree.  Its filename is
-     thp-fix-update_mmu_cache_pmd-calls.patch
+     x86-convert-update_mmu_cache-and-update_mmu_cache_pmd-to-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,84 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: fix update_mmu_cache_pmd() calls
+Subject: x86: convert update_mmu_cache() and update_mmu_cache_pmd() to functions
 
-update_mmu_cache_pmd() takes pointer to pmd_t as third, not pmd_t.
 
-mm/huge_memory.c: In function 'do_huge_pmd_numa_page':
-mm/huge_memory.c:825:2: error: incompatible type for argument 3 of 'update_mmu_cache_pmd'
-In file included from include/linux/mm.h:44:0,
-                 from mm/huge_memory.c:8:
-arch/mips/include/asm/pgtable.h:385:20: note: expected 'struct pmd_t *' but argument is of type 'pmd_t'
-mm/huge_memory.c:895:2: error: incompatible type for argument 3 of 'update_mmu_cache_pmd'
-In file included from include/linux/mm.h:44:0,
-                 from mm/huge_memory.c:8:
-arch/mips/include/asm/pgtable.h:385:20: note: expected 'struct pmd_t *' but argument is of type 'pmd_t'
+Converting macros to functions unhide type problems before changes will
+be integrated and trigger problems on other architectures.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/include/asm/pgtable.h    |   12 ++++++++++++
+ arch/x86/include/asm/pgtable_32.h |    7 -------
+ arch/x86/include/asm/pgtable_64.h |    3 ---
+ 3 files changed, 12 insertions(+), 10 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-fix-update_mmu_cache_pmd-calls mm/huge_memory.c
---- a/mm/huge_memory.c~thp-fix-update_mmu_cache_pmd-calls
-+++ a/mm/huge_memory.c
-@@ -773,7 +773,7 @@ fixup:
- 	/* change back to regular protection */
- 	entry = pmd_modify(entry, vma->vm_page_prot);
- 	set_pmd_at(mm, haddr, pmd, entry);
--	update_mmu_cache_pmd(vma, address, entry);
-+	update_mmu_cache_pmd(vma, address, &entry);
+diff -puN arch/x86/include/asm/pgtable.h~x86-convert-update_mmu_cache-and-update_mmu_cache_pmd-to-functions arch/x86/include/asm/pgtable.h
+--- a/arch/x86/include/asm/pgtable.h~x86-convert-update_mmu_cache-and-update_mmu_cache_pmd-to-functions
++++ a/arch/x86/include/asm/pgtable.h
+@@ -775,6 +775,18 @@ static inline void clone_pgd_range(pgd_t
+        memcpy(dst, src, count * sizeof(pgd_t));
+ }
  
- unlock:
- 	spin_unlock(&mm->page_table_lock);
-@@ -843,7 +843,7 @@ migrate:
- 	page_add_new_anon_rmap(new_page, vma, haddr);
++/*
++ * The x86 doesn't have any external MMU info: the kernel page
++ * tables contain all the necessary information.
++ */
++static inline void update_mmu_cache(struct vm_area_struct *vma,
++		unsigned long addr, pte_t *ptep)
++{
++}
++static inline void update_mmu_cache_pmd(struct vm_area_struct *vma,
++		unsigned long addr, pmd_t *pmd)
++{
++}
  
- 	set_pmd_at(mm, haddr, pmd, entry);
--	update_mmu_cache_pmd(vma, address, entry);
-+	update_mmu_cache_pmd(vma, address, &entry);
- 	page_remove_rmap(page);
- 	spin_unlock(&mm->page_table_lock);
+ #include <asm-generic/pgtable.h>
+ #endif	/* __ASSEMBLY__ */
+diff -puN arch/x86/include/asm/pgtable_32.h~x86-convert-update_mmu_cache-and-update_mmu_cache_pmd-to-functions arch/x86/include/asm/pgtable_32.h
+--- a/arch/x86/include/asm/pgtable_32.h~x86-convert-update_mmu_cache-and-update_mmu_cache_pmd-to-functions
++++ a/arch/x86/include/asm/pgtable_32.h
+@@ -66,13 +66,6 @@ do {						\
+ 	__flush_tlb_one((vaddr));		\
+ } while (0)
  
+-/*
+- * The i386 doesn't have any external MMU info: the kernel page
+- * tables contain all the necessary information.
+- */
+-#define update_mmu_cache(vma, address, ptep) do { } while (0)
+-#define update_mmu_cache_pmd(vma, address, pmd) do { } while (0)
+-
+ #endif /* !__ASSEMBLY__ */
+ 
+ /*
+diff -puN arch/x86/include/asm/pgtable_64.h~x86-convert-update_mmu_cache-and-update_mmu_cache_pmd-to-functions arch/x86/include/asm/pgtable_64.h
+--- a/arch/x86/include/asm/pgtable_64.h~x86-convert-update_mmu_cache-and-update_mmu_cache_pmd-to-functions
++++ a/arch/x86/include/asm/pgtable_64.h
+@@ -142,9 +142,6 @@ static inline int pgd_large(pgd_t pgd) {
+ #define pte_offset_map(dir, address) pte_offset_kernel((dir), (address))
+ #define pte_unmap(pte) ((void)(pte))/* NOP */
+ 
+-#define update_mmu_cache(vma, address, ptep) do { } while (0)
+-#define update_mmu_cache_pmd(vma, address, pmd) do { } while (0)
+-
+ /* Encode and de-code a swap entry */
+ #if _PAGE_BIT_FILE < _PAGE_BIT_PROTNONE
+ #define SWP_TYPE_BITS (_PAGE_BIT_FILE - _PAGE_BIT_PRESENT - 1)
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
 linux-next.patch
 thp-fix-update_mmu_cache_pmd-calls.patch
+x86-convert-update_mmu_cache-and-update_mmu_cache_pmd-to-functions.patch
 mm-use-is_enabledconfig_numa-instead-of-numa_build.patch
 mm-use-is_enabledconfig_compaction-instead-of-compaction_build.patch
 thp-huge-zero-page-basic-preparation.patch
