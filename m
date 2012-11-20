@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-oom-cleanup-pagefault-oom-handler.patch added to -mm tree
-Date: Tue, 20 Nov 2012 15:17:01 -0800
-Message-ID: <20121120231702.D8884200069@hpza10.eem.corp.google.com>
+Subject: + mm-oom-remove-redundant-sleep-in-pagefault-oom-handler.patch added to -mm tree
+Date: Tue, 20 Nov 2012 15:17:05 -0800
+Message-ID: <20121120231706.39737100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:59318 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752161Ab2KTXRF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Nov 2012 18:17:05 -0500
-Received: by mail-ee0-f74.google.com with SMTP id t10so430859eei.1
-        for <mm-commits@vger.kernel.org>; Tue, 20 Nov 2012 15:17:04 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:49473 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752161Ab2KTXRI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Nov 2012 18:17:08 -0500
+Received: by mail-vb0-f74.google.com with SMTP id s24so755454vbi.1
+        for <mm-commits@vger.kernel.org>; Tue, 20 Nov 2012 15:17:06 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fuji
 
 
 The patch titled
-     Subject: mm, oom: cleanup pagefault oom handler
+     Subject: mm, oom: remove redundant sleep in pagefault oom handler
 has been added to the -mm tree.  Its filename is
-     mm-oom-cleanup-pagefault-oom-handler.patch
+     mm-oom-remove-redundant-sleep-in-pagefault-oom-handler.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,92 +34,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Rientjes <rientjes@google.com>
-Subject: mm, oom: cleanup pagefault oom handler
+Subject: mm, oom: remove redundant sleep in pagefault oom handler
 
-To lock the entire system from parallel oom killing, it's possible to pass
-in a zonelist with all zones rather than using for_each_populated_zone()
-for the iteration.  This obsoletes try_set_system_oom() and
-clear_system_oom() so that they can be removed.
+out_of_memory() will already cause current to schedule if it has not been
+killed, so doing it again in pagefault_out_of_memory() is redundant. 
+Remove it.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Reviewed-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   49 ++++++------------------------------------------
- 1 file changed, 7 insertions(+), 42 deletions(-)
+ mm/oom_kill.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/oom_kill.c~mm-oom-cleanup-pagefault-oom-handler mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-cleanup-pagefault-oom-handler
+diff -puN mm/oom_kill.c~mm-oom-remove-redundant-sleep-in-pagefault-oom-handler mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-remove-redundant-sleep-in-pagefault-oom-handler
 +++ a/mm/oom_kill.c
-@@ -591,43 +591,6 @@ void clear_zonelist_oom(struct zonelist 
- 	spin_unlock(&zone_scan_lock);
- }
- 
--/*
-- * Try to acquire the oom killer lock for all system zones.  Returns zero if a
-- * parallel oom killing is taking place, otherwise locks all zones and returns
-- * non-zero.
-- */
--static int try_set_system_oom(void)
--{
--	struct zone *zone;
--	int ret = 1;
--
--	spin_lock(&zone_scan_lock);
--	for_each_populated_zone(zone)
--		if (zone_is_oom_locked(zone)) {
--			ret = 0;
--			goto out;
--		}
--	for_each_populated_zone(zone)
--		zone_set_flag(zone, ZONE_OOM_LOCKED);
--out:
--	spin_unlock(&zone_scan_lock);
--	return ret;
--}
--
--/*
-- * Clears ZONE_OOM_LOCKED for all system zones so that failed allocation
-- * attempts or page faults may now recall the oom killer, if necessary.
-- */
--static void clear_system_oom(void)
--{
--	struct zone *zone;
--
--	spin_lock(&zone_scan_lock);
--	for_each_populated_zone(zone)
--		zone_clear_flag(zone, ZONE_OOM_LOCKED);
--	spin_unlock(&zone_scan_lock);
--}
--
- /**
-  * out_of_memory - kill the "best" process when we run out of memory
-  * @zonelist: zonelist pointer
-@@ -708,15 +671,17 @@ out:
- 
- /*
-  * The pagefault handler calls here because it is out of memory, so kill a
-- * memory-hogging task.  If a populated zone has ZONE_OOM_LOCKED set, a parallel
-- * oom killing is already in progress so do nothing.  If a task is found with
-- * TIF_MEMDIE set, it has been killed so do nothing and allow it to exit.
-+ * memory-hogging task.  If any populated zone has ZONE_OOM_LOCKED set, a
-+ * parallel oom killing is already in progress so do nothing.
-  */
- void pagefault_out_of_memory(void)
- {
--	if (try_set_system_oom()) {
-+	struct zonelist *zonelist = node_zonelist(first_online_node,
-+						  GFP_KERNEL);
-+
-+	if (try_set_zonelist_oom(zonelist, GFP_KERNEL)) {
+@@ -683,5 +683,4 @@ void pagefault_out_of_memory(void)
  		out_of_memory(NULL, 0, 0, NULL, false);
--		clear_system_oom();
-+		clear_zonelist_oom(zonelist, GFP_KERNEL);
+ 		clear_zonelist_oom(zonelist, GFP_KERNEL);
  	}
- 	schedule_timeout_killable(1);
+-	schedule_timeout_killable(1);
  }
 _
 
