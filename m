@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-oom-remove-redundant-sleep-in-pagefault-oom-handler.patch added to -mm tree
-Date: Tue, 20 Nov 2012 15:17:05 -0800
-Message-ID: <20121120231706.39737100047@wpzn3.hot.corp.google.com>
+Subject: + mm-oom-remove-statically-defined-arch-functions-of-same-name.patch added to -mm tree
+Date: Tue, 20 Nov 2012 15:17:08 -0800
+Message-ID: <20121120231709.59D7F100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:49473 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752161Ab2KTXRI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Nov 2012 18:17:08 -0500
-Received: by mail-vb0-f74.google.com with SMTP id s24so755454vbi.1
-        for <mm-commits@vger.kernel.org>; Tue, 20 Nov 2012 15:17:06 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:59325 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752161Ab2KTXRL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Nov 2012 18:17:11 -0500
+Received: by mail-qc0-f202.google.com with SMTP id s25so750340qcq.1
+        for <mm-commits@vger.kernel.org>; Tue, 20 Nov 2012 15:17:10 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz
+Cc: rientjes@google.com, benh@kernel.crashing.org, hpa@zytor.com, kamezawa.hiroyu@jp.fujitsu.com, lethal@linux-sh.org, mhocko@suse.cz, mingo@redhat.com, paulus@samba.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: mm, oom: remove redundant sleep in pagefault oom handler
+     Subject: mm, oom: remove statically defined arch functions of same name
 has been added to the -mm tree.  Its filename is
-     mm-oom-remove-redundant-sleep-in-pagefault-oom-handler.patch
+     mm-oom-remove-statically-defined-arch-functions-of-same-name.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,151 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Rientjes <rientjes@google.com>
-Subject: mm, oom: remove redundant sleep in pagefault oom handler
+Subject: mm, oom: remove statically defined arch functions of same name
 
-out_of_memory() will already cause current to schedule if it has not been
-killed, so doing it again in pagefault_out_of_memory() is redundant. 
-Remove it.
+out_of_memory() is a globally defined function to call the oom killer. 
+x86, sh, and powerpc all use a function of the same name within file scope
+in their respective fault.c unnecessarily.  Inline the functions into the
+pagefault handlers to clean the code up.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/powerpc/mm/fault.c |   27 ++++++++++++---------------
+ arch/sh/mm/fault.c      |   19 +++++++------------
+ arch/x86/mm/fault.c     |   23 ++++++++---------------
+ 3 files changed, 27 insertions(+), 42 deletions(-)
 
-diff -puN mm/oom_kill.c~mm-oom-remove-redundant-sleep-in-pagefault-oom-handler mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-remove-redundant-sleep-in-pagefault-oom-handler
-+++ a/mm/oom_kill.c
-@@ -683,5 +683,4 @@ void pagefault_out_of_memory(void)
- 		out_of_memory(NULL, 0, 0, NULL, false);
- 		clear_zonelist_oom(zonelist, GFP_KERNEL);
- 	}
--	schedule_timeout_killable(1);
+diff -puN arch/powerpc/mm/fault.c~mm-oom-remove-statically-defined-arch-functions-of-same-name arch/powerpc/mm/fault.c
+--- a/arch/powerpc/mm/fault.c~mm-oom-remove-statically-defined-arch-functions-of-same-name
++++ a/arch/powerpc/mm/fault.c
+@@ -113,19 +113,6 @@ static int store_updates_sp(struct pt_re
+ #define MM_FAULT_CONTINUE	-1
+ #define MM_FAULT_ERR(sig)	(sig)
+ 
+-static int out_of_memory(struct pt_regs *regs)
+-{
+-	/*
+-	 * We ran out of memory, or some other thing happened to us that made
+-	 * us unable to handle the page fault gracefully.
+-	 */
+-	up_read(&current->mm->mmap_sem);
+-	if (!user_mode(regs))
+-		return MM_FAULT_ERR(SIGKILL);
+-	pagefault_out_of_memory();
+-	return MM_FAULT_RETURN;
+-}
+-
+ static int do_sigbus(struct pt_regs *regs, unsigned long address)
+ {
+ 	siginfo_t info;
+@@ -169,8 +156,18 @@ static int mm_fault_error(struct pt_regs
+ 		return MM_FAULT_CONTINUE;
+ 
+ 	/* Out of memory */
+-	if (fault & VM_FAULT_OOM)
+-		return out_of_memory(regs);
++	if (fault & VM_FAULT_OOM) {
++		up_read(&current->mm->mmap_sem);
++
++		/*
++		 * We ran out of memory, or some other thing happened to us that
++		 * made us unable to handle the page fault gracefully.
++		 */
++		if (!user_mode(regs))
++			return MM_FAULT_ERR(SIGKILL);
++		pagefault_out_of_memory();
++		return MM_FAULT_RETURN;
++	}
+ 
+ 	/* Bus error. x86 handles HWPOISON here, we'll add this if/when
+ 	 * we support the feature in HW
+diff -puN arch/sh/mm/fault.c~mm-oom-remove-statically-defined-arch-functions-of-same-name arch/sh/mm/fault.c
+--- a/arch/sh/mm/fault.c~mm-oom-remove-statically-defined-arch-functions-of-same-name
++++ a/arch/sh/mm/fault.c
+@@ -301,17 +301,6 @@ bad_area_access_error(struct pt_regs *re
+ 	__bad_area(regs, error_code, address, SEGV_ACCERR);
  }
+ 
+-static void out_of_memory(void)
+-{
+-	/*
+-	 * We ran out of memory, call the OOM killer, and return the userspace
+-	 * (which will retry the fault, or kill us if we got oom-killed):
+-	 */
+-	up_read(&current->mm->mmap_sem);
+-
+-	pagefault_out_of_memory();
+-}
+-
+ static void
+ do_sigbus(struct pt_regs *regs, unsigned long error_code, unsigned long address)
+ {
+@@ -353,8 +342,14 @@ mm_fault_error(struct pt_regs *regs, uns
+ 			no_context(regs, error_code, address);
+ 			return 1;
+ 		}
++		up_read(&current->mm->mmap_sem);
+ 
+-		out_of_memory();
++		/*
++		 * We ran out of memory, call the OOM killer, and return the
++		 * userspace (which will retry the fault, or kill us if we got
++		 * oom-killed):
++		 */
++		pagefault_out_of_memory();
+ 	} else {
+ 		if (fault & VM_FAULT_SIGBUS)
+ 			do_sigbus(regs, error_code, address);
+diff -puN arch/x86/mm/fault.c~mm-oom-remove-statically-defined-arch-functions-of-same-name arch/x86/mm/fault.c
+--- a/arch/x86/mm/fault.c~mm-oom-remove-statically-defined-arch-functions-of-same-name
++++ a/arch/x86/mm/fault.c
+@@ -803,20 +803,6 @@ bad_area_access_error(struct pt_regs *re
+ 	__bad_area(regs, error_code, address, SEGV_ACCERR);
+ }
+ 
+-/* TODO: fixup for "mm-invoke-oom-killer-from-page-fault.patch" */
+-static void
+-out_of_memory(struct pt_regs *regs, unsigned long error_code,
+-	      unsigned long address)
+-{
+-	/*
+-	 * We ran out of memory, call the OOM killer, and return the userspace
+-	 * (which will retry the fault, or kill us if we got oom-killed):
+-	 */
+-	up_read(&current->mm->mmap_sem);
+-
+-	pagefault_out_of_memory();
+-}
+-
+ static void
+ do_sigbus(struct pt_regs *regs, unsigned long error_code, unsigned long address,
+ 	  unsigned int fault)
+@@ -879,7 +865,14 @@ mm_fault_error(struct pt_regs *regs, uns
+ 			return 1;
+ 		}
+ 
+-		out_of_memory(regs, error_code, address);
++		up_read(&current->mm->mmap_sem);
++
++		/*
++		 * We ran out of memory, call the OOM killer, and return the
++		 * userspace (which will retry the fault, or kill us if we got
++		 * oom-killed):
++		 */
++		pagefault_out_of_memory();
+ 	} else {
+ 		if (fault & (VM_FAULT_SIGBUS|VM_FAULT_HWPOISON|
+ 			     VM_FAULT_HWPOISON_LARGE))
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
