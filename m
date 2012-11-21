@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + futex-avoid-wake_futex-for-a-pi-futex_q-fix.patch added to -mm tree
-Date: Wed, 21 Nov 2012 14:35:42 -0800
-Message-ID: <20121121223543.42D4C1001E0@wpzn3.hot.corp.google.com>
+Subject: + mm-introduce-new-field-managed_pages-to-struct-zone-fix.patch added to -mm tree
+Date: Wed, 21 Nov 2012 14:04:11 -0800
+Message-ID: <20121121220412.6060020007C@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:37488 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757296Ab2KVTsz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Nov 2012 14:48:55 -0500
-Received: by mail-yh0-f74.google.com with SMTP id 10so983576yhl.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Nov 2012 11:48:55 -0800 (PST)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:41918 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030271Ab2KVTxs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Nov 2012 14:53:48 -0500
+Received: by mail-bk0-f74.google.com with SMTP id je9so430632bkc.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Nov 2012 11:53:47 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davej@redat.com, dvhart@linux.intel.com, jkacur@redhat.com, mingo@elte.hu, peterz@infradead.org, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, jiang.liu@huawei.com, liuj97@gmail.com
 
 
 The patch titled
-     Subject: futex-avoid-wake_futex-for-a-pi-futex_q-fix
+     Subject: mm-introduce-new-field-managed_pages-to-struct-zone-fix
 has been added to the -mm tree.  Its filename is
-     futex-avoid-wake_futex-for-a-pi-futex_q-fix.patch
+     mm-introduce-new-field-managed_pages-to-struct-zone-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,64 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: futex-avoid-wake_futex-for-a-pi-futex_q-fix
+Subject: mm-introduce-new-field-managed_pages-to-struct-zone-fix
 
-tidy up the WARN()
+small comment tweaks
 
-Cc: Darren Hart <dvhart@linux.intel.com>
-Cc: Dave Jones <davej@redat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: John Kacur <jkacur@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: stable@vger.kernel.org
+Cc: Jiang Liu <jiang.liu@huawei.com>
+Cc: Jiang Liu <liuj97@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/futex.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ include/linux/mmzone.h |    8 ++++----
+ mm/page_alloc.c        |    2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN kernel/futex.c~futex-avoid-wake_futex-for-a-pi-futex_q-fix kernel/futex.c
---- a/kernel/futex.c~futex-avoid-wake_futex-for-a-pi-futex_q-fix
-+++ a/kernel/futex.c
-@@ -843,10 +843,8 @@ static void wake_futex(struct futex_q *q
- {
- 	struct task_struct *p = q->task;
- 
--	if (q->pi_state || q->rt_waiter) {
--		WARN(1, "%s: refusing to wake PI futex\n", __FUNCTION__);
-+	if (WARN(q->pi_state || q->rt_waiter, "refusing to wake PI futex\n"))
- 		return;
--	}
+diff -puN include/linux/mmzone.h~mm-introduce-new-field-managed_pages-to-struct-zone-fix include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-introduce-new-field-managed_pages-to-struct-zone-fix
++++ a/include/linux/mmzone.h
+@@ -451,7 +451,7 @@ struct zone {
  
  	/*
- 	 * We set q->lock_ptr = NULL _before_ we wake up the task. If
+ 	 * spanned_pages is the total pages spanned by the zone, including
+-	 * holes, which is calcualted as:
++	 * holes, which is calculated as:
+ 	 * 	spanned_pages = zone_end_pfn - zone_start_pfn;
+ 	 *
+ 	 * present_pages is physical pages existing within the zone, which
+@@ -469,9 +469,9 @@ struct zone {
+ 	 * by page allocator and vm scanner to calculate all kinds of watermarks
+ 	 * and thresholds.
+ 	 *
+-	 * Lock Rules:
++	 * Locking rules:
+ 	 *
+-	 * zone_start_pfn, spanned_pages are protected by span_seqlock.
++	 * zone_start_pfn and spanned_pages are protected by span_seqlock.
+ 	 * It is a seqlock because it has to be read outside of zone->lock,
+ 	 * and it is done in the main allocator path.  But, it is written
+ 	 * quite infrequently.
+@@ -480,7 +480,7 @@ struct zone {
+ 	 * frequently read in proximity to zone->lock.  It's good to
+ 	 * give them a chance of being in the same cacheline.
+ 	 *
+-	 * Writing access to present_pages and managed_pages at runtime should
++	 * Write access to present_pages and managed_pages at runtime should
+ 	 * be protected by lock_memory_hotplug()/unlock_memory_hotplug().
+ 	 * Any reader who can't tolerant drift of present_pages and
+ 	 * managed_pages should hold memory hotplug lock to get a stable value.
+diff -puN mm/page_alloc.c~mm-introduce-new-field-managed_pages-to-struct-zone-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-introduce-new-field-managed_pages-to-struct-zone-fix
++++ a/mm/page_alloc.c
+@@ -738,7 +738,7 @@ static void __free_pages_ok(struct page 
+  * Read access to zone->managed_pages is safe because it's unsigned long,
+  * but we still need to serialize writers. Currently all callers of
+  * __free_pages_bootmem() except put_page_bootmem() should only be used
+- * at boot time. So for shorter boot time, we have shift the burden to
++ * at boot time. So for shorter boot time, we shift the burden to
+  * put_page_bootmem() to serialize writers.
+  */
+ void __meminit __free_pages_bootmem(struct page *page, unsigned int order)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,7 +101,6 @@ linux-next.patch
 linux-next-git-rejects.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
-futex-avoid-wake_futex-for-a-pi-futex_q-fix.patch
 mm-export-a-function-to-get-vm-committed-memory.patch
 cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
