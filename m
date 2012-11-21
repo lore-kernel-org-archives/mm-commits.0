@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-incorrect-nr_free_pages-accounting-appears-like-memory-leak.patch added to -mm tree
-Date: Wed, 21 Nov 2012 12:24:00 -0800
-Message-ID: <20121121202400.BE123820612@wpzn4.hot.corp.google.com>
+Subject: + mm-cma-skip-watermarks-check-for-already-isolated-blocks-in-split_free_page-fix-fix.patch added to -mm tree
+Date: Wed, 21 Nov 2012 12:44:06 -0800
+Message-ID: <20121121204407.4EC26820807@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:47182 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756319Ab2KUUYB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Nov 2012 15:24:01 -0500
-Received: by mail-ye0-f202.google.com with SMTP id m11so210619yen.1
-        for <mm-commits@vger.kernel.org>; Wed, 21 Nov 2012 12:24:01 -0800 (PST)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:42580 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964810Ab2KUUoJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Nov 2012 15:44:09 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z10so601600ghb.1
+        for <mm-commits@vger.kernel.org>; Wed, 21 Nov 2012 12:44:09 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dave@linux.vnet.ibm.com, mgorman@suse.de, sukijaki@gmail.com
+Cc: akpm@linux-foundation.org, arnd@arndb.de, b.zolnierkie@samsung.com, dave@linux.vnet.ibm.com, kyungmin.park@samsung.com, m.szyprowski@samsung.com, mel@csn.ul.ie, mina86@mina86.com, minchan@kernel.org
 
 
 The patch titled
-     Subject: mm: fix incorrect NR_FREE_PAGES accounting (appears like memory leak)
+     Subject: mm-cma-skip-watermarks-check-for-already-isolated-blocks-in-split_free_page-fix-fix
 has been added to the -mm tree.  Its filename is
-     mm-fix-incorrect-nr_free_pages-accounting-appears-like-memory-leak.patch
+     mm-cma-skip-watermarks-check-for-already-isolated-blocks-in-split_free_page-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,78 +33,109 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dave Hansen <dave@linux.vnet.ibm.com>
-Subject: mm: fix incorrect NR_FREE_PAGES accounting (appears like memory leak)
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-cma-skip-watermarks-check-for-already-isolated-blocks-in-split_free_page-fix-fix
 
-There have been some 3.7-rc reports of vm issues, including some
-kswapd bugs and, more importantly, some memory "leaks":
+Propagate
+mm-fix-incorrect-nr_free_pages-accounting-appears-like-memory-leak.patch
+through mm-cma-skip-watermarks-check-for-already-isolated-blocks-in-split_free_page.patch
 
-	http://www.spinics.net/lists/linux-mm/msg46187.html
-	https://bugzilla.kernel.org/show_bug.cgi?id=50181
-
-The post-3.6 commit 1fb3f8ca ("mm: compaction: capture a suitable
-high-order page immediately when it is made available") took
-split_free_page() and reused it for the compaction code.  It does
-something curious with capture_free_page() (previously known as
-split_free_page()):
-
-int capture_free_page(struct page *page, int alloc_order,
-...
-        __mod_zone_page_state(zone, NR_FREE_PAGES, -(1UL << order));
-
--       /* Split into individual pages */
--       set_page_refcounted(page);
--       split_page(page, order);
-+       if (alloc_order != order)
-+               expand(zone, page, alloc_order, order,
-+                       &zone->free_area[order], migratetype);
-
-Note that expand() puts the pages _back_ in the allocator, but it does not
-bump NR_FREE_PAGES.  We "return" 'alloc_order' worth of pages, but we
-accounted for removing 'order' in the __mod_zone_page_state() call.  For
-the old split_page()-style use (order==alloc_order) the bug will not
-trigger.  But, when called from the compaction code where we occasionally
-get a larger page out of the buddy allocator than we need, we will run in
-to this.
-
-This patch simply changes the NR_FREE_PAGES manipulation to the correct
-'alloc_order' instead of 'order'.
-
-I've been able to repeatedly trigger this in my testing environment.  The
-amount "leaked" very closely tracks the imbalance I see in buddy pages vs.
- NR_FREE_PAGES.  I have confirmed that this patch fixes the imbalance
-
-Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Reported-by: Milos Jakovljevic <sukijaki@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  mm/page_alloc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-fix-incorrect-nr_free_pages-accounting-appears-like-memory-leak mm/page_alloc.c
---- a/mm/page_alloc.c~mm-fix-incorrect-nr_free_pages-accounting-appears-like-memory-leak
+diff -puN mm/page_alloc.c~mm-cma-skip-watermarks-check-for-already-isolated-blocks-in-split_free_page-fix-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-cma-skip-watermarks-check-for-already-isolated-blocks-in-split_free_page-fix-fix
 +++ a/mm/page_alloc.c
-@@ -1405,7 +1405,7 @@ int capture_free_page(struct page *page,
+@@ -1401,7 +1401,7 @@ int capture_free_page(struct page *page,
+ 		if (!zone_watermark_ok(zone, 0, watermark, 0, 0))
+ 			return 0;
  
- 	mt = get_pageblock_migratetype(page);
- 	if (unlikely(mt != MIGRATE_ISOLATE))
 -		__mod_zone_freepage_state(zone, -(1UL << order), mt);
 +		__mod_zone_freepage_state(zone, -(1UL << alloc_order), mt);
+ 	}
  
- 	if (alloc_order != order)
- 		expand(zone, page, alloc_order, order,
+ 	/* Remove page from free list */
 _
 
-Patches currently in -mm which might be from dave@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-fix-incorrect-nr_free_pages-accounting-appears-like-memory-leak.patch
-memory-hotplug-update-mce_bad_pages-when-removing-the-memory.patch
+origin.patch
+linux-next.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-vmscan-check-for-fatal-signals-iff-the-process-was-throttled-fix.patch
+mm-export-a-function-to-get-vm-committed-memory.patch
+cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+drivers-video-add-support-for-the-solomon-ssd1307-oled-controller-checkpatch-fixes.patch
+irq-tsk-comm-is-an-array.patch
+drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch
+mm.patch
+mm-introduce-mm_find_pmd-fix.patch
 memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
-memory-hotplug-auto-offline-page_cgroup-when-onlining-memory-block-failed.patch
-memory-hotplug-fix-nr_free_pages-mismatch.patch
-memory-hotplug-mm-sparsec-clear-the-memory-to-store-struct-page.patch
-memory-hotplug-allocate-zones-pcp-before-onlining-pages.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
+slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
+mmvmscan-only-evict-file-pages-when-we-have-plenty-fix.patch
+slub-slub-specific-propagation-changes-fix.patch
+dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch
+mm-check-rb_subtree_gap-correctness-fix.patch
+mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
+mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
+mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
+mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
+mm-use-vm_unmapped_area-on-arm-architecture-fix-fix.patch
+mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc32-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc32-architecture-fix-fix.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
+arch-sparc-kernel-sys_sparc_64c-s-colour-color.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix.patch
+mm-cma-skip-watermarks-check-for-already-isolated-blocks-in-split_free_page-fix-fix.patch
+bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
+mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch
+mm-add-a-reminder-comment-for-__gfp_bits_shift.patch
+numa-add-config_movable_node-for-movable-dedicated-node-fix.patch
+drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
+backlight-add-of_find_backlight_by_node-function-fix.patch
+backlight-88pm860x_bl-remove-an-unnecessary-line-continuation-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+firmware-remove-last-vestiges-of-dabusb.patch
+binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
+hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
+procfs-add-vmflags-field-in-smaps-output-v4.patch
+procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
+ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
+ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
+ipc-convert-prepare_copy-from-macro-to-function-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
