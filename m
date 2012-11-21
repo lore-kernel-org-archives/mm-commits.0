@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + futex-avoid-wake_futex-for-a-pi-futex_q.patch added to -mm tree
-Date: Wed, 21 Nov 2012 14:35:39 -0800
-Message-ID: <20121121223540.41D211001E0@wpzn3.hot.corp.google.com>
+Subject: + writeback-put-unused-inodes-to-lru-after-writeback-completion.patch added to -mm tree
+Date: Wed, 21 Nov 2012 13:51:30 -0800
+Message-ID: <20121121215131.40E39200076@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:33652 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965248Ab2KVT41 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Nov 2012 14:56:27 -0500
-Received: by mail-qa0-f74.google.com with SMTP id g40so140411qab.1
-        for <mm-commits@vger.kernel.org>; Thu, 22 Nov 2012 11:56:26 -0800 (PST)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:61450 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965120Ab2KVUDF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Nov 2012 15:03:05 -0500
+Received: by mail-wg0-f74.google.com with SMTP id dt14so569593wgb.1
+        for <mm-commits@vger.kernel.org>; Thu, 22 Nov 2012 12:03:03 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dvhart@linux.intel.com, davej@redat.com, jkacur@redhat.com, mingo@elte.hu, peterz@infradead.org, stable@vger.kernel.org, tglx@linutronix.de
+Cc: jack@suse.cz, david@fromorbit.com, fengguang.wu@intel.com, hirofumi@mail.parknet.co.jp, stable@vger.kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: futex: avoid wake_futex() for a PI futex_q
+     Subject: writeback: put unused inodes to LRU after writeback completion
 has been added to the -mm tree.  Its filename is
-     futex-avoid-wake_futex-for-a-pi-futex_q.patch
+     writeback-put-unused-inodes-to-lru-after-writeback-completion.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,104 +33,120 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Darren Hart <dvhart@linux.intel.com>
-Subject: futex: avoid wake_futex() for a PI futex_q
+From: Jan Kara <jack@suse.cz>
+Subject: writeback: put unused inodes to LRU after writeback completion
 
-Dave Jones reported a bug with futex_lock_pi() that his trinity test
-exposed.  Sometime between queue_me() and taking the q.lock_ptr, the
-lock_ptr became NULL, resulting in a crash.
+Commit 169ebd90 ("writeback: Avoid iput() from flusher thread") removed
+iget-iput pair from inode writeback.  As a side effect, inodes that are
+dirty during iput_final() call won't be ever added to inode LRU
+(iput_final() doesn't add dirty inodes to LRU and later when the inode is
+cleaned there's noone to add the inode there).  Thus inodes are
+effectively unreclaimable until someone looks them up again.
 
-While futex_wake() is careful to not call wake_futex() on futex_q's with a
-pi_state or an rt_waiter (which are either waiting for a futex_unlock_pi()
-or a PI futex_requeue()), futex_wake_op() and futex_requeue() do not
-perform the same test.
+Practical effect of this bug is limited by the fact that inodes are pinned
+by a dentry for long enough that the inode gets cleaned.  But still the
+bug can have nasty consequences leading up to OOM conditions under certain
+circumstances.  Following can easily reproduce the problem:
 
-Update futex_wake_op() and futex_requeue() to test for q.pi_state and
-q.rt_waiter and abort with -EINVAL if detected.  To ensure any future
-breakage is caught, add a WARN() to wake_futex() if the same condition is
-true.
+for (( i = 0; i < 1000; i++ )); do
+  mkdir $i
+  for (( j = 0; j < 1000; j++ )); do
+    touch $i/$j
+    echo 2 > /proc/sys/vm/drop_caches
+  done
+done
 
-This fix has seen 3 hours of testing with "trinity -c futex" on an x86_64
-VM with 4 CPUS.
+then one needs to run 'sync; ls -lR' to make inodes reclaimable again.
 
-Signed-off-by: Darren Hart <dvhart@linux.intel.com>
-Reported-by: Dave Jones <davej@redat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: John Kacur <jkacur@redhat.com>
-Cc: <stable@vger.kernel.org>
+We fix the issue by inserting unused clean inodes into the LRU after
+writeback finishes in inode_sync_complete().
+
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reported-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: <stable@vger.kernel.org>		[3.5+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/futex.c |   20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+ fs/fs-writeback.c |    2 ++
+ fs/inode.c        |   16 ++++++++++++++--
+ fs/internal.h     |    1 +
+ 3 files changed, 17 insertions(+), 2 deletions(-)
 
-diff -puN kernel/futex.c~futex-avoid-wake_futex-for-a-pi-futex_q kernel/futex.c
---- a/kernel/futex.c~futex-avoid-wake_futex-for-a-pi-futex_q
-+++ a/kernel/futex.c
-@@ -843,6 +843,11 @@ static void wake_futex(struct futex_q *q
+diff -puN fs/fs-writeback.c~writeback-put-unused-inodes-to-lru-after-writeback-completion fs/fs-writeback.c
+--- a/fs/fs-writeback.c~writeback-put-unused-inodes-to-lru-after-writeback-completion
++++ a/fs/fs-writeback.c
+@@ -228,6 +228,8 @@ static void requeue_io(struct inode *ino
+ static void inode_sync_complete(struct inode *inode)
  {
- 	struct task_struct *p = q->task;
+ 	inode->i_state &= ~I_SYNC;
++	/* If inode is clean an unused, put it into LRU now... */
++	inode_add_lru(inode);
+ 	/* Waiters must see I_SYNC cleared before being woken up */
+ 	smp_mb();
+ 	wake_up_bit(&inode->i_state, __I_SYNC);
+diff -puN fs/inode.c~writeback-put-unused-inodes-to-lru-after-writeback-completion fs/inode.c
+--- a/fs/inode.c~writeback-put-unused-inodes-to-lru-after-writeback-completion
++++ a/fs/inode.c
+@@ -408,6 +408,19 @@ static void inode_lru_list_add(struct in
+ 	spin_unlock(&inode->i_sb->s_inode_lru_lock);
+ }
  
-+	if (q->pi_state || q->rt_waiter) {
-+		WARN(1, "%s: refusing to wake PI futex\n", __FUNCTION__);
-+		return;
-+	}
++/*
++ * Add inode to LRU if needed (inode is unused and clean).
++ *
++ * Needs inode->i_lock held.
++ */
++void inode_add_lru(struct inode *inode)
++{
++	if (!(inode->i_state & (I_DIRTY | I_SYNC | I_FREEING | I_WILL_FREE)) &&
++	    !atomic_read(&inode->i_count) && inode->i_sb->s_flags & MS_ACTIVE)
++		inode_lru_list_add(inode);
++}
 +
- 	/*
- 	 * We set q->lock_ptr = NULL _before_ we wake up the task. If
- 	 * a non-futex wake up happens on another CPU then the task
-@@ -1078,6 +1083,10 @@ retry_private:
++
+ static void inode_lru_list_del(struct inode *inode)
+ {
+ 	spin_lock(&inode->i_sb->s_inode_lru_lock);
+@@ -1390,8 +1403,7 @@ static void iput_final(struct inode *ino
  
- 	plist_for_each_entry_safe(this, next, head, list) {
- 		if (match_futex (&this->key, &key1)) {
-+			if (this->pi_state || this->rt_waiter) {
-+				ret = -EINVAL;
-+				goto out_unlock;
-+			}
- 			wake_futex(this);
- 			if (++ret >= nr_wake)
- 				break;
-@@ -1090,6 +1099,10 @@ retry_private:
- 		op_ret = 0;
- 		plist_for_each_entry_safe(this, next, head, list) {
- 			if (match_futex (&this->key, &key2)) {
-+				if (this->pi_state || this->rt_waiter) {
-+					ret = -EINVAL;
-+					goto out_unlock;
-+				}
- 				wake_futex(this);
- 				if (++op_ret >= nr_wake2)
- 					break;
-@@ -1098,6 +1111,7 @@ retry_private:
- 		ret += op_ret;
+ 	if (!drop && (sb->s_flags & MS_ACTIVE)) {
+ 		inode->i_state |= I_REFERENCED;
+-		if (!(inode->i_state & (I_DIRTY|I_SYNC)))
+-			inode_lru_list_add(inode);
++		inode_add_lru(inode);
+ 		spin_unlock(&inode->i_lock);
+ 		return;
  	}
+diff -puN fs/internal.h~writeback-put-unused-inodes-to-lru-after-writeback-completion fs/internal.h
+--- a/fs/internal.h~writeback-put-unused-inodes-to-lru-after-writeback-completion
++++ a/fs/internal.h
+@@ -110,6 +110,7 @@ extern int open_check_o_direct(struct fi
+  * inode.c
+  */
+ extern spinlock_t inode_sb_list_lock;
++extern void inode_add_lru(struct inode *inode);
  
-+out_unlock:
- 	double_unlock_hb(hb1, hb2);
- out_put_keys:
- 	put_futex_key(&key2);
-@@ -1387,9 +1401,13 @@ retry_private:
- 		/*
- 		 * FUTEX_WAIT_REQEUE_PI and FUTEX_CMP_REQUEUE_PI should always
- 		 * be paired with each other and no other futex ops.
-+		 *
-+		 * We should never be requeueing a futex_q with a pi_state,
-+		 * which is awaiting a futex_unlock_pi().
- 		 */
- 		if ((requeue_pi && !this->rt_waiter) ||
--		    (!requeue_pi && this->rt_waiter)) {
-+		    (!requeue_pi && this->rt_waiter) ||
-+		    this->pi_state) {
- 			ret = -EINVAL;
- 			break;
- 		}
+ /*
+  * fs-writeback.c
 _
 
-Patches currently in -mm which might be from dvhart@linux.intel.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
+origin.patch
 linux-next.patch
-futex-avoid-wake_futex-for-a-pi-futex_q.patch
-futex-avoid-wake_futex-for-a-pi-futex_q-fix.patch
+writeback-put-unused-inodes-to-lru-after-writeback-completion.patch
+fs-change-return-values-from-eacces-to-eperm.patch
+mm-add-comment-on-storage-key-dirty-bit-semantics.patch
+mm-print-out-information-of-file-affected-by-memory-error.patch
+hfsplus-avoid-crash-on-failed-block-map-free.patch
+hfsplus-add-on-disk-layout-declarations-related-to-attributes-tree.patch
+hfsplus-add-functionality-of-manipulating-by-records-in-attributes-tree.patch
+hfsplus-rework-functionality-of-getting-setting-and-deleting-of-extended-attributes.patch
+hfsplus-add-support-of-manipulation-by-attributes-file.patch
+fat-provide-option-for-setting-timezone-offset.patch
+fat-fix-mount-option-parsing.patch
 
