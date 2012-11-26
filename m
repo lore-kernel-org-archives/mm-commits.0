@@ -1,92 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: [merged] selinux-fix-sel_netnode_insert-suspicious-rcu-dereference.patch removed from -mm tree
-Date: Mon, 26 Nov 2012 14:21:16 -0800
-Message-ID: <20121126222117.89046200057@hpza10.eem.corp.google.com>
+Subject: [merged] mm-export-a-function-to-get-vm-committed-memory.patch removed from -mm tree
+Date: Mon, 26 Nov 2012 14:21:25 -0800
+Message-ID: <20121126222126.35354200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:36992 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756712Ab2KZWVU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Nov 2012 17:21:20 -0500
-Received: by mail-we0-f202.google.com with SMTP id t57so350670wey.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Nov 2012 14:21:19 -0800 (PST)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:43181 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757321Ab2KZWV3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Nov 2012 17:21:29 -0500
+Received: by mail-bk0-f74.google.com with SMTP id je9so675079bkc.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Nov 2012 14:21:27 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davej@redhat.com, eparis@parisplace.org, jmorris@namei.org, paul@paul-moore.com, paulmck@linux.vnet.ibm.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: kys@microsoft.com, dan.magenheimer@oracle.com, greg@kroah.com, jeremy@goop.org, konrad.wilk@oracle.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selinux: fix sel_netnode_insert() suspicious rcu dereference
+     Subject: mm: export a function to get vm committed memory
 has been removed from the -mm tree.  Its filename was
-     selinux-fix-sel_netnode_insert-suspicious-rcu-dereference.patch
+     mm-export-a-function-to-get-vm-committed-memory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dave Jones <davej@redhat.com>
-Subject: selinux: fix sel_netnode_insert() suspicious rcu dereference
+From: "K. Y. Srinivasan" <kys@microsoft.com>
+Subject: mm: export a function to get vm committed memory
 
-===============================
-[ INFO: suspicious RCU usage. ]
-3.5.0-rc1+ #63 Not tainted
--------------------------------
-security/selinux/netnode.c:178 suspicious rcu_dereference_check() usage!
+It will be useful to be able to access global memory commitment from
+device drivers.  On the Hyper-V platform, the host has a policy engine to
+balance the available physical memory amongst all competing virtual
+machines hosted on a given node.  This policy engine is driven by a number
+of metrics including the memory commitment reported by the guests.  The
+balloon driver for Linux on Hyper-V will use this function to retrieve
+guest memory commitment.  This function is also used in Xen self
+ballooning code.
 
-other info that might help us debug this:
-
-
-rcu_scheduler_active = 1, debug_locks = 0
-1 lock held by trinity-child1/8750:
- #0:  (sel_netnode_lock){+.....}, at: [<ffffffff812d8f8a>] sel_netnode_sid+0x16a/0x3e0
-
-stack backtrace:
-Pid: 8750, comm: trinity-child1 Not tainted 3.5.0-rc1+ #63
-Call Trace:
- [<ffffffff810cec2d>] lockdep_rcu_suspicious+0xfd/0x130
- [<ffffffff812d91d1>] sel_netnode_sid+0x3b1/0x3e0
- [<ffffffff812d8e20>] ? sel_netnode_find+0x1a0/0x1a0
- [<ffffffff812d24a6>] selinux_socket_bind+0xf6/0x2c0
- [<ffffffff810cd1dd>] ? trace_hardirqs_off+0xd/0x10
- [<ffffffff810cdb55>] ? lock_release_holdtime.part.9+0x15/0x1a0
- [<ffffffff81093841>] ? lock_hrtimer_base+0x31/0x60
- [<ffffffff812c9536>] security_socket_bind+0x16/0x20
- [<ffffffff815550ca>] sys_bind+0x7a/0x100
- [<ffffffff816c03d5>] ? sysret_check+0x22/0x5d
- [<ffffffff810d392d>] ? trace_hardirqs_on_caller+0x10d/0x1a0
- [<ffffffff8133b09e>] ? trace_hardirqs_on_thunk+0x3a/0x3f
- [<ffffffff816c03a9>] system_call_fastpath+0x16/0x1b
-
-This patch below does what Paul McKenney suggested in the previous thread.
-
-Signed-off-by: Dave Jones <davej@redhat.com>
-Reviewed-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Acked-by: Paul Moore <paul@paul-moore.com>
-Cc: Eric Paris <eparis@parisplace.org>
-Cc: James Morris <jmorris@namei.org>
-Cc: <stable@vger.kernel.org>
+[akpm@linux-foundation.org: coding-style tweak]
+Signed-off-by: K. Y. Srinivasan <kys@microsoft.com>
+Cc: Greg KH <greg@kroah.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Dan Magenheimer <dan.magenheimer@oracle.com>
+Acked-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/selinux/netnode.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/xen/xen-selfballoon.c |    2 +-
+ include/linux/mman.h          |    2 ++
+ mm/mmap.c                     |   14 ++++++++++++++
+ mm/nommu.c                    |   15 +++++++++++++++
+ 4 files changed, 32 insertions(+), 1 deletion(-)
 
-diff -puN security/selinux/netnode.c~selinux-fix-sel_netnode_insert-suspicious-rcu-dereference security/selinux/netnode.c
---- a/security/selinux/netnode.c~selinux-fix-sel_netnode_insert-suspicious-rcu-dereference
-+++ a/security/selinux/netnode.c
-@@ -174,7 +174,8 @@ static void sel_netnode_insert(struct se
- 	if (sel_netnode_hash[idx].size == SEL_NETNODE_HASH_BKT_LIMIT) {
- 		struct sel_netnode *tail;
- 		tail = list_entry(
--			rcu_dereference(sel_netnode_hash[idx].list.prev),
-+			rcu_dereference_protected(sel_netnode_hash[idx].list.prev,
-+						  lockdep_is_held(&sel_netnode_lock)),
- 			struct sel_netnode, list);
- 		list_del_rcu(&tail->list);
- 		kfree_rcu(tail, rcu);
+diff -puN drivers/xen/xen-selfballoon.c~mm-export-a-function-to-get-vm-committed-memory drivers/xen/xen-selfballoon.c
+--- a/drivers/xen/xen-selfballoon.c~mm-export-a-function-to-get-vm-committed-memory
++++ a/drivers/xen/xen-selfballoon.c
+@@ -222,7 +222,7 @@ static void selfballoon_process(struct w
+ 	if (xen_selfballooning_enabled) {
+ 		cur_pages = totalram_pages;
+ 		tgt_pages = cur_pages; /* default is no change */
+-		goal_pages = percpu_counter_read_positive(&vm_committed_as) +
++		goal_pages = vm_memory_committed() +
+ 				totalreserve_pages +
+ 				MB2PAGES(selfballoon_reserved_mb);
+ #ifdef CONFIG_FRONTSWAP
+diff -puN include/linux/mman.h~mm-export-a-function-to-get-vm-committed-memory include/linux/mman.h
+--- a/include/linux/mman.h~mm-export-a-function-to-get-vm-committed-memory
++++ a/include/linux/mman.h
+@@ -11,6 +11,8 @@ extern int sysctl_overcommit_memory;
+ extern int sysctl_overcommit_ratio;
+ extern struct percpu_counter vm_committed_as;
+ 
++unsigned long vm_memory_committed(void);
++
+ static inline void vm_acct_memory(long pages)
+ {
+ 	percpu_counter_add(&vm_committed_as, pages);
+diff -puN mm/mmap.c~mm-export-a-function-to-get-vm-committed-memory mm/mmap.c
+--- a/mm/mmap.c~mm-export-a-function-to-get-vm-committed-memory
++++ a/mm/mmap.c
+@@ -89,6 +89,20 @@ int sysctl_max_map_count __read_mostly =
+ struct percpu_counter vm_committed_as ____cacheline_aligned_in_smp;
+ 
+ /*
++ * The global memory commitment made in the system can be a metric
++ * that can be used to drive ballooning decisions when Linux is hosted
++ * as a guest. On Hyper-V, the host implements a policy engine for dynamically
++ * balancing memory across competing virtual machines that are hosted.
++ * Several metrics drive this policy engine including the guest reported
++ * memory commitment.
++ */
++unsigned long vm_memory_committed(void)
++{
++	return percpu_counter_read_positive(&vm_committed_as);
++}
++EXPORT_SYMBOL_GPL(vm_memory_committed);
++
++/*
+  * Check that a process has enough memory to allocate a new virtual
+  * mapping. 0 means there is enough memory for the allocation to
+  * succeed and -ENOMEM implies there is not.
+diff -puN mm/nommu.c~mm-export-a-function-to-get-vm-committed-memory mm/nommu.c
+--- a/mm/nommu.c~mm-export-a-function-to-get-vm-committed-memory
++++ a/mm/nommu.c
+@@ -66,6 +66,21 @@ int heap_stack_gap = 0;
+ 
+ atomic_long_t mmap_pages_allocated;
+ 
++/*
++ * The global memory commitment made in the system can be a metric
++ * that can be used to drive ballooning decisions when Linux is hosted
++ * as a guest. On Hyper-V, the host implements a policy engine for dynamically
++ * balancing memory across competing virtual machines that are hosted.
++ * Several metrics drive this policy engine including the guest reported
++ * memory commitment.
++ */
++unsigned long vm_memory_committed(void)
++{
++	return percpu_counter_read_positive(&vm_committed_as);
++}
++
++EXPORT_SYMBOL_GPL(vm_memory_committed);
++
+ EXPORT_SYMBOL(mem_map);
+ EXPORT_SYMBOL(num_physpages);
+ 
 _
 
-Patches currently in -mm which might be from davej@redhat.com are
+Patches currently in -mm which might be from kys@microsoft.com are
 
 linux-next.patch
-tools-testing-selftests-kcmp-kcmp_testc-print-reason-for-failure-in-kcmp_test.patch
 
