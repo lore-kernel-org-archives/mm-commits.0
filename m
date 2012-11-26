@@ -1,100 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-fix-incorrect-nr_free_pages-accounting-appears-like-memory-leak.patch removed from -mm tree
-Date: Mon, 26 Nov 2012 14:21:21 -0800
-Message-ID: <20121126222122.38EAC200057@hpza10.eem.corp.google.com>
+Subject: [merged] fs-debugsfs-remove-unnecessary-inode-i_private-initialization.patch removed from -mm tree
+Date: Mon, 26 Nov 2012 14:21:30 -0800
+Message-ID: <20121126222131.14775200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:54525 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756712Ab2KZWVY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Nov 2012 17:21:24 -0500
-Received: by mail-fa0-f74.google.com with SMTP id t1so592279fae.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Nov 2012 14:21:23 -0800 (PST)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:52176 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757313Ab2KZWVd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Nov 2012 17:21:33 -0500
+Received: by mail-wi0-f202.google.com with SMTP id cb5so330096wib.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Nov 2012 14:21:32 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@linux.vnet.ibm.com, mgorman@suse.de, sukijaki@gmail.com, mm-commits@vger.kernel.org
+To: clouds.yan@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix incorrect NR_FREE_PAGES accounting (appears like memory leak)
+     Subject: fs/debugsfs: remove unnecessary inode->i_private initialization
 has been removed from the -mm tree.  Its filename was
-     mm-fix-incorrect-nr_free_pages-accounting-appears-like-memory-leak.patch
+     fs-debugsfs-remove-unnecessary-inode-i_private-initialization.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dave Hansen <dave@linux.vnet.ibm.com>
-Subject: mm: fix incorrect NR_FREE_PAGES accounting (appears like memory leak)
+From: Yan Hong <clouds.yan@gmail.com>
+Subject: fs/debugsfs: remove unnecessary inode->i_private initialization
 
-There have been some 3.7-rc reports of vm issues, including some
-kswapd bugs and, more importantly, some memory "leaks":
+inode->i_private is promised to be NULL on allocation, no need to set it
+explicitly.
 
-	http://www.spinics.net/lists/linux-mm/msg46187.html
-	https://bugzilla.kernel.org/show_bug.cgi?id=50181
-
-The post-3.6 commit 1fb3f8ca ("mm: compaction: capture a suitable
-high-order page immediately when it is made available") took
-split_free_page() and reused it for the compaction code.  It does
-something curious with capture_free_page() (previously known as
-split_free_page()):
-
-int capture_free_page(struct page *page, int alloc_order,
-...
-        __mod_zone_page_state(zone, NR_FREE_PAGES, -(1UL << order));
-
--       /* Split into individual pages */
--       set_page_refcounted(page);
--       split_page(page, order);
-+       if (alloc_order != order)
-+               expand(zone, page, alloc_order, order,
-+                       &zone->free_area[order], migratetype);
-
-Note that expand() puts the pages _back_ in the allocator, but it does not
-bump NR_FREE_PAGES.  We "return" 'alloc_order' worth of pages, but we
-accounted for removing 'order' in the __mod_zone_page_state() call.  For
-the old split_page()-style use (order==alloc_order) the bug will not
-trigger.  But, when called from the compaction code where we occasionally
-get a larger page out of the buddy allocator than we need, we will run in
-to this.
-
-This patch simply changes the NR_FREE_PAGES manipulation to the correct
-'alloc_order' instead of 'order'.
-
-I've been able to repeatedly trigger this in my testing environment.  The
-amount "leaked" very closely tracks the imbalance I see in buddy pages vs.
- NR_FREE_PAGES.  I have confirmed that this patch fixes the imbalance
-
-Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Reported-by: Milos Jakovljevic <sukijaki@gmail.com>
+Signed-off-by: Yan Hong <clouds.yan@gmail.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/debugfs/inode.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-fix-incorrect-nr_free_pages-accounting-appears-like-memory-leak mm/page_alloc.c
---- a/mm/page_alloc.c~mm-fix-incorrect-nr_free_pages-accounting-appears-like-memory-leak
-+++ a/mm/page_alloc.c
-@@ -1405,7 +1405,7 @@ int capture_free_page(struct page *page,
+diff -puN fs/debugfs/inode.c~fs-debugsfs-remove-unnecessary-inode-i_private-initialization fs/debugfs/inode.c
+--- a/fs/debugfs/inode.c~fs-debugsfs-remove-unnecessary-inode-i_private-initialization
++++ a/fs/debugfs/inode.c
+@@ -59,7 +59,6 @@ static struct inode *debugfs_get_inode(s
+ 		case S_IFDIR:
+ 			inode->i_op = &simple_dir_inode_operations;
+ 			inode->i_fop = &simple_dir_operations;
+-			inode->i_private = NULL;
  
- 	mt = get_pageblock_migratetype(page);
- 	if (unlikely(mt != MIGRATE_ISOLATE))
--		__mod_zone_freepage_state(zone, -(1UL << order), mt);
-+		__mod_zone_freepage_state(zone, -(1UL << alloc_order), mt);
- 
- 	if (alloc_order != order)
- 		expand(zone, page, alloc_order, order,
+ 			/* directory inodes start off with i_nlink == 2
+ 			 * (for "." entry) */
 _
 
-Patches currently in -mm which might be from dave@linux.vnet.ibm.com are
+Patches currently in -mm which might be from clouds.yan@gmail.com are
 
-memory-hotplug-update-mce_bad_pages-when-removing-the-memory.patch
-memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
-memory-hotplug-auto-offline-page_cgroup-when-onlining-memory-block-failed.patch
-memory-hotplug-fix-nr_free_pages-mismatch.patch
-memory-hotplug-mm-sparsec-clear-the-memory-to-store-struct-page.patch
-memory-hotplug-allocate-zones-pcp-before-onlining-pages.patch
-mm-cma-skip-watermarks-check-for-already-isolated-blocks-in-split_free_page-fix-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
+linux-next.patch
+fs-block_devc-need-not-to-check-inode-i_bdev-in-bd_forget.patch
 
