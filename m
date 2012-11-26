@@ -1,132 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-export-a-function-to-get-vm-committed-memory.patch removed from -mm tree
-Date: Mon, 26 Nov 2012 14:21:25 -0800
-Message-ID: <20121126222126.35354200057@hpza10.eem.corp.google.com>
+Subject: [merged] mm-fix-incorrect-nr_free_pages-accounting-appears-like-memory-leak.patch removed from -mm tree
+Date: Mon, 26 Nov 2012 14:21:21 -0800
+Message-ID: <20121126222122.38EAC200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:43181 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757321Ab2KZWV3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Nov 2012 17:21:29 -0500
-Received: by mail-bk0-f74.google.com with SMTP id je9so675079bkc.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Nov 2012 14:21:27 -0800 (PST)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:54525 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756712Ab2KZWVY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Nov 2012 17:21:24 -0500
+Received: by mail-fa0-f74.google.com with SMTP id t1so592279fae.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Nov 2012 14:21:23 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kys@microsoft.com, dan.magenheimer@oracle.com, greg@kroah.com, jeremy@goop.org, konrad.wilk@oracle.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: dave@linux.vnet.ibm.com, mgorman@suse.de, sukijaki@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: export a function to get vm committed memory
+     Subject: mm: fix incorrect NR_FREE_PAGES accounting (appears like memory leak)
 has been removed from the -mm tree.  Its filename was
-     mm-export-a-function-to-get-vm-committed-memory.patch
+     mm-fix-incorrect-nr_free_pages-accounting-appears-like-memory-leak.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "K. Y. Srinivasan" <kys@microsoft.com>
-Subject: mm: export a function to get vm committed memory
+From: Dave Hansen <dave@linux.vnet.ibm.com>
+Subject: mm: fix incorrect NR_FREE_PAGES accounting (appears like memory leak)
 
-It will be useful to be able to access global memory commitment from
-device drivers.  On the Hyper-V platform, the host has a policy engine to
-balance the available physical memory amongst all competing virtual
-machines hosted on a given node.  This policy engine is driven by a number
-of metrics including the memory commitment reported by the guests.  The
-balloon driver for Linux on Hyper-V will use this function to retrieve
-guest memory commitment.  This function is also used in Xen self
-ballooning code.
+There have been some 3.7-rc reports of vm issues, including some
+kswapd bugs and, more importantly, some memory "leaks":
 
-[akpm@linux-foundation.org: coding-style tweak]
-Signed-off-by: K. Y. Srinivasan <kys@microsoft.com>
-Cc: Greg KH <greg@kroah.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: Dan Magenheimer <dan.magenheimer@oracle.com>
-Acked-by: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+	http://www.spinics.net/lists/linux-mm/msg46187.html
+	https://bugzilla.kernel.org/show_bug.cgi?id=50181
+
+The post-3.6 commit 1fb3f8ca ("mm: compaction: capture a suitable
+high-order page immediately when it is made available") took
+split_free_page() and reused it for the compaction code.  It does
+something curious with capture_free_page() (previously known as
+split_free_page()):
+
+int capture_free_page(struct page *page, int alloc_order,
+...
+        __mod_zone_page_state(zone, NR_FREE_PAGES, -(1UL << order));
+
+-       /* Split into individual pages */
+-       set_page_refcounted(page);
+-       split_page(page, order);
++       if (alloc_order != order)
++               expand(zone, page, alloc_order, order,
++                       &zone->free_area[order], migratetype);
+
+Note that expand() puts the pages _back_ in the allocator, but it does not
+bump NR_FREE_PAGES.  We "return" 'alloc_order' worth of pages, but we
+accounted for removing 'order' in the __mod_zone_page_state() call.  For
+the old split_page()-style use (order==alloc_order) the bug will not
+trigger.  But, when called from the compaction code where we occasionally
+get a larger page out of the buddy allocator than we need, we will run in
+to this.
+
+This patch simply changes the NR_FREE_PAGES manipulation to the correct
+'alloc_order' instead of 'order'.
+
+I've been able to repeatedly trigger this in my testing environment.  The
+amount "leaked" very closely tracks the imbalance I see in buddy pages vs.
+ NR_FREE_PAGES.  I have confirmed that this patch fixes the imbalance
+
+Signed-off-by: Dave Hansen <dave@linux.vnet.ibm.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Reported-by: Milos Jakovljevic <sukijaki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/xen/xen-selfballoon.c |    2 +-
- include/linux/mman.h          |    2 ++
- mm/mmap.c                     |   14 ++++++++++++++
- mm/nommu.c                    |   15 +++++++++++++++
- 4 files changed, 32 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/xen/xen-selfballoon.c~mm-export-a-function-to-get-vm-committed-memory drivers/xen/xen-selfballoon.c
---- a/drivers/xen/xen-selfballoon.c~mm-export-a-function-to-get-vm-committed-memory
-+++ a/drivers/xen/xen-selfballoon.c
-@@ -222,7 +222,7 @@ static void selfballoon_process(struct w
- 	if (xen_selfballooning_enabled) {
- 		cur_pages = totalram_pages;
- 		tgt_pages = cur_pages; /* default is no change */
--		goal_pages = percpu_counter_read_positive(&vm_committed_as) +
-+		goal_pages = vm_memory_committed() +
- 				totalreserve_pages +
- 				MB2PAGES(selfballoon_reserved_mb);
- #ifdef CONFIG_FRONTSWAP
-diff -puN include/linux/mman.h~mm-export-a-function-to-get-vm-committed-memory include/linux/mman.h
---- a/include/linux/mman.h~mm-export-a-function-to-get-vm-committed-memory
-+++ a/include/linux/mman.h
-@@ -11,6 +11,8 @@ extern int sysctl_overcommit_memory;
- extern int sysctl_overcommit_ratio;
- extern struct percpu_counter vm_committed_as;
+diff -puN mm/page_alloc.c~mm-fix-incorrect-nr_free_pages-accounting-appears-like-memory-leak mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-fix-incorrect-nr_free_pages-accounting-appears-like-memory-leak
++++ a/mm/page_alloc.c
+@@ -1405,7 +1405,7 @@ int capture_free_page(struct page *page,
  
-+unsigned long vm_memory_committed(void);
-+
- static inline void vm_acct_memory(long pages)
- {
- 	percpu_counter_add(&vm_committed_as, pages);
-diff -puN mm/mmap.c~mm-export-a-function-to-get-vm-committed-memory mm/mmap.c
---- a/mm/mmap.c~mm-export-a-function-to-get-vm-committed-memory
-+++ a/mm/mmap.c
-@@ -89,6 +89,20 @@ int sysctl_max_map_count __read_mostly =
- struct percpu_counter vm_committed_as ____cacheline_aligned_in_smp;
+ 	mt = get_pageblock_migratetype(page);
+ 	if (unlikely(mt != MIGRATE_ISOLATE))
+-		__mod_zone_freepage_state(zone, -(1UL << order), mt);
++		__mod_zone_freepage_state(zone, -(1UL << alloc_order), mt);
  
- /*
-+ * The global memory commitment made in the system can be a metric
-+ * that can be used to drive ballooning decisions when Linux is hosted
-+ * as a guest. On Hyper-V, the host implements a policy engine for dynamically
-+ * balancing memory across competing virtual machines that are hosted.
-+ * Several metrics drive this policy engine including the guest reported
-+ * memory commitment.
-+ */
-+unsigned long vm_memory_committed(void)
-+{
-+	return percpu_counter_read_positive(&vm_committed_as);
-+}
-+EXPORT_SYMBOL_GPL(vm_memory_committed);
-+
-+/*
-  * Check that a process has enough memory to allocate a new virtual
-  * mapping. 0 means there is enough memory for the allocation to
-  * succeed and -ENOMEM implies there is not.
-diff -puN mm/nommu.c~mm-export-a-function-to-get-vm-committed-memory mm/nommu.c
---- a/mm/nommu.c~mm-export-a-function-to-get-vm-committed-memory
-+++ a/mm/nommu.c
-@@ -66,6 +66,21 @@ int heap_stack_gap = 0;
- 
- atomic_long_t mmap_pages_allocated;
- 
-+/*
-+ * The global memory commitment made in the system can be a metric
-+ * that can be used to drive ballooning decisions when Linux is hosted
-+ * as a guest. On Hyper-V, the host implements a policy engine for dynamically
-+ * balancing memory across competing virtual machines that are hosted.
-+ * Several metrics drive this policy engine including the guest reported
-+ * memory commitment.
-+ */
-+unsigned long vm_memory_committed(void)
-+{
-+	return percpu_counter_read_positive(&vm_committed_as);
-+}
-+
-+EXPORT_SYMBOL_GPL(vm_memory_committed);
-+
- EXPORT_SYMBOL(mem_map);
- EXPORT_SYMBOL(num_physpages);
- 
+ 	if (alloc_order != order)
+ 		expand(zone, page, alloc_order, order,
 _
 
-Patches currently in -mm which might be from kys@microsoft.com are
+Patches currently in -mm which might be from dave@linux.vnet.ibm.com are
 
-linux-next.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
+memory-hotplug-auto-offline-page_cgroup-when-onlining-memory-block-failed.patch
+memory-hotplug-fix-nr_free_pages-mismatch.patch
+memory-hotplug-mm-sparsec-clear-the-memory-to-store-struct-page.patch
+memory-hotplug-allocate-zones-pcp-before-onlining-pages.patch
+mm-cma-skip-watermarks-check-for-already-isolated-blocks-in-split_free_page-fix-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
 
