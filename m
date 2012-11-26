@@ -1,57 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-debugsfs-remove-unnecessary-inode-i_private-initialization.patch removed from -mm tree
-Date: Mon, 26 Nov 2012 14:21:30 -0800
-Message-ID: <20121126222131.14775200057@hpza10.eem.corp.google.com>
+Subject: [merged] drm-radeon-use-hweight32.patch removed from -mm tree
+Date: Mon, 26 Nov 2012 14:21:34 -0800
+Message-ID: <20121126222135.1B523200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:52176 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757313Ab2KZWVd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Nov 2012 17:21:33 -0500
-Received: by mail-wi0-f202.google.com with SMTP id cb5so330096wib.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Nov 2012 14:21:32 -0800 (PST)
+Received: from mail-ea0-f202.google.com ([209.85.215.202]:57468 "EHLO
+	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757313Ab2KZWVi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Nov 2012 17:21:38 -0500
+Received: by mail-ea0-f202.google.com with SMTP id j12so490597eaa.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Nov 2012 14:21:36 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clouds.yan@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, airlied@linux.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/debugsfs: remove unnecessary inode->i_private initialization
+     Subject: drm/radeon: use hweight32()
 has been removed from the -mm tree.  Its filename was
-     fs-debugsfs-remove-unnecessary-inode-i_private-initialization.patch
+     drm-radeon-use-hweight32.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yan Hong <clouds.yan@gmail.com>
-Subject: fs/debugsfs: remove unnecessary inode->i_private initialization
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: drm/radeon: use hweight32()
 
-inode->i_private is promised to be NULL on allocation, no need to set it
-explicitly.
+Use hweight32() instead of counting for each bit.
 
-Signed-off-by: Yan Hong <clouds.yan@gmail.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: David Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/debugfs/inode.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/gpu/drm/radeon/r600.c    |    8 +-------
+ drivers/gpu/drm/radeon/r600_cp.c |    7 +------
+ 2 files changed, 2 insertions(+), 13 deletions(-)
 
-diff -puN fs/debugfs/inode.c~fs-debugsfs-remove-unnecessary-inode-i_private-initialization fs/debugfs/inode.c
---- a/fs/debugfs/inode.c~fs-debugsfs-remove-unnecessary-inode-i_private-initialization
-+++ a/fs/debugfs/inode.c
-@@ -59,7 +59,6 @@ static struct inode *debugfs_get_inode(s
- 		case S_IFDIR:
- 			inode->i_op = &simple_dir_inode_operations;
- 			inode->i_fop = &simple_dir_operations;
--			inode->i_private = NULL;
+diff -puN drivers/gpu/drm/radeon/r600.c~drm-radeon-use-hweight32 drivers/gpu/drm/radeon/r600.c
+--- a/drivers/gpu/drm/radeon/r600.c~drm-radeon-use-hweight32
++++ a/drivers/gpu/drm/radeon/r600.c
+@@ -1424,13 +1424,7 @@ u32 r6xx_remap_render_backend(struct rad
  
- 			/* directory inodes start off with i_nlink == 2
- 			 * (for "." entry) */
+ int r600_count_pipe_bits(uint32_t val)
+ {
+-	int i, ret = 0;
+-
+-	for (i = 0; i < 32; i++) {
+-		ret += val & 1;
+-		val >>= 1;
+-	}
+-	return ret;
++	return hweight32(val);
+ }
+ 
+ static void r600_gpu_init(struct radeon_device *rdev)
+diff -puN drivers/gpu/drm/radeon/r600_cp.c~drm-radeon-use-hweight32 drivers/gpu/drm/radeon/r600_cp.c
+--- a/drivers/gpu/drm/radeon/r600_cp.c~drm-radeon-use-hweight32
++++ a/drivers/gpu/drm/radeon/r600_cp.c
+@@ -721,12 +721,7 @@ static u32 r600_get_tile_pipe_to_backend
+ 
+ static int r600_count_pipe_bits(uint32_t val)
+ {
+-	int i, ret = 0;
+-	for (i = 0; i < 32; i++) {
+-		ret += val & 1;
+-		val >>= 1;
+-	}
+-	return ret;
++	return hweight32(val);
+ }
+ 
+ static void r600_gfx_init(struct drm_device *dev,
 _
 
-Patches currently in -mm which might be from clouds.yan@gmail.com are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 linux-next.patch
-fs-block_devc-need-not-to-check-inode-i_bdev-in-bd_forget.patch
+random32-rename-random32-to-prandom.patch
+prandom-introduce-prandom_bytes-and-prandom_bytes_state.patch
+bnx2x-use-prandom_bytes.patch
+mtd-nandsim-use-prandom_bytes.patch
+ubifs-use-prandom_bytes.patch
+mtd-mtd_nandecctest-use-prandom_bytes-instead-of-get_random_bytes.patch
+mtd-mtd_oobtest-convert-to-use-prandom-library.patch
+mtd-mtd_pagetest-convert-to-use-prandom-library.patch
+mtd-mtd_speedtest-use-prandom_bytes.patch
+mtd-mtd_subpagetest-convert-to-use-prandom-library.patch
+mtd-mtd_stresstest-use-prandom_bytes.patch
 
