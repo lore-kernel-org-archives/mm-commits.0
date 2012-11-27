@@ -1,129 +1,200 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] futex-avoid-wake_futex-for-a-pi-futex_q-fix.patch removed from -mm tree
-Date: Mon, 26 Nov 2012 16:24:30 -0800
-Message-ID: <20121127002431.C5A2620004E@hpza10.eem.corp.google.com>
+Subject: [to-be-updated] hfsplus-add-on-disk-layout-declarations-related-to-attributes-tree.patch removed from -mm tree
+Date: Mon, 26 Nov 2012 16:45:03 -0800
+Message-ID: <20121127004504.5257A100049@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:37001 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932247Ab2K0AYf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Nov 2012 19:24:35 -0500
-Received: by mail-lb0-f202.google.com with SMTP id i15so816995lbo.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Nov 2012 16:24:33 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:54218 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757366Ab2K0ApF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Nov 2012 19:45:05 -0500
+Received: by mail-qa0-f74.google.com with SMTP id g40so552449qab.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Nov 2012 16:45:05 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davej@redat.com, dvhart@linux.intel.com, jkacur@redhat.com, mingo@elte.hu, peterz@infradead.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: slava@dubeyko.com, hch@lst.de, htl10@users.sourceforge.net, jack@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: futex-avoid-wake_futex-for-a-pi-futex_q-fix
+     Subject: hfsplus: add on-disk layout declarations related to attributes tree
 has been removed from the -mm tree.  Its filename was
-     futex-avoid-wake_futex-for-a-pi-futex_q-fix.patch
+     hfsplus-add-on-disk-layout-declarations-related-to-attributes-tree.patch
 
-This patch was dropped because it was folded into futex-avoid-wake_futex-for-a-pi-futex_q.patch
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: futex-avoid-wake_futex-for-a-pi-futex_q-fix
+From: Vyacheslav Dubeyko <slava@dubeyko.com>
+Subject: hfsplus: add on-disk layout declarations related to attributes tree
 
-tidy up the WARN()
+Current mainline implementation of hfsplus file system driver treats as
+extended attributes only two fields (fdType and fdCreator) of user_info
+field in file description record (struct hfsplus_cat_file).  It is
+possible to get or set only these two fields as extended attributes.  But
+HFS+ treats as com.apple.FinderInfo extended attribute an union of
+user_info and finder_info fields as for file (struct hfsplus_cat_file) as
+for folder (struct hfsplus_cat_folder).  Moreover, current mainline
+implementation of hfsplus file system driver doesn't support special
+metadata file - attributes tree.
 
-Cc: Darren Hart <dvhart@linux.intel.com>
-Cc: Dave Jones <davej@redat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: John Kacur <jkacur@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: stable@vger.kernel.org
+Mac OS X 10.4 and later support extended attributes by making use of the
+HFS+ filesystem Attributes file B*-tree feature which allows for named
+forks.  Mac OS X supports only inline extended attributes, limiting their
+size to 3802 bytes.  Any regular file may have a list of extended
+attributes.  HFS+ supports an arbitrary number of named forks.  Each
+attribute is denoted by a name and the associated data.  The name is a
+null-terminated Unicode string.  It is possible to list, to get, to set,
+and to remove extended attributes from files or directories.
+
+It exists some peculiarity during getting of extended attributes list by
+means of getfattr utility.  The getfattr utility expects prefix "user."
+before any extended attribute's name.  So, it ignores any names that don't
+contained such prefix.  Such behavior of getfattr utility results in
+unexpected empty output of extended attributes list even in the case when
+file (or folder) contains extended attributes.  It needs to use empty
+string as regular expression pattern for names matching (getfattr
+--match="").  
+
+For support of extended attributes in HFS+:
+
+1. It was added necessary on-disk layout declarations related to
+   Attributes tree into hfsplus_raw.h file.
+
+2. It was added attributes.c file with implementation of functionality
+   of manipulation by records in Attributes tree.
+
+3. It was reworked hfsplus_listxattr, hfsplus_getxattr,
+   hfsplus_setxattr functions in ioctl.c.  Moreover, it was added
+   hfsplus_removexattr method.
+
+
+This patch:
+
+Add all neccessary on-disk layout declarations related to attributes
+file.
+
+Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
+Reported-by: Hin-Tak Leung <htl10@users.sourceforge.net>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Jan Kara <jack@suse.cz>
+Tested-by: Hin-Tak Leung <htl10@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/futex.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ fs/hfsplus/hfsplus_raw.h |   72 ++++++++++++++++++++++++++++++++++---
+ 1 file changed, 67 insertions(+), 5 deletions(-)
 
-diff -puN kernel/futex.c~futex-avoid-wake_futex-for-a-pi-futex_q-fix kernel/futex.c
---- a/kernel/futex.c~futex-avoid-wake_futex-for-a-pi-futex_q-fix
-+++ a/kernel/futex.c
-@@ -843,10 +843,8 @@ static void wake_futex(struct futex_q *q
- {
- 	struct task_struct *p = q->task;
+diff -puN fs/hfsplus/hfsplus_raw.h~hfsplus-add-on-disk-layout-declarations-related-to-attributes-tree fs/hfsplus/hfsplus_raw.h
+--- a/fs/hfsplus/hfsplus_raw.h~hfsplus-add-on-disk-layout-declarations-related-to-attributes-tree
++++ a/fs/hfsplus/hfsplus_raw.h
+@@ -52,13 +52,21 @@
+ typedef __be32 hfsplus_cnid;
+ typedef __be16 hfsplus_unichr;
  
--	if (q->pi_state || q->rt_waiter) {
--		WARN(1, "%s: refusing to wake PI futex\n", __FUNCTION__);
-+	if (WARN(q->pi_state || q->rt_waiter, "refusing to wake PI futex\n"))
- 		return;
--	}
++#define HFSPLUS_MAX_STRLEN 255
++#define HFSPLUS_ATTR_MAX_STRLEN 127
++
++#define HFSPLUS_STRING(name, max_len)		\
++struct hfsplus_##name {				\
++	__be16 length;				\
++	hfsplus_unichr unicode[max_len];	\
++} __packed;					\
++
+ /* A "string" as used in filenames, etc. */
+-struct hfsplus_unistr {
+-	__be16 length;
+-	hfsplus_unichr unicode[255];
+-} __packed;
++HFSPLUS_STRING(unistr, HFSPLUS_MAX_STRLEN)
  
- 	/*
- 	 * We set q->lock_ptr = NULL _before_ we wake up the task. If
+-#define HFSPLUS_MAX_STRLEN 255
++/* A "string" is used in attributes file
++   for name of extended attribute */
++HFSPLUS_STRING(attr_unistr, HFSPLUS_ATTR_MAX_STRLEN)
+ 
+ /* POSIX permissions */
+ struct hfsplus_perm {
+@@ -291,6 +299,8 @@ struct hfsplus_cat_file {
+ /* File attribute bits */
+ #define HFSPLUS_FILE_LOCKED		0x0001
+ #define HFSPLUS_FILE_THREAD_EXISTS	0x0002
++#define HFSPLUS_XATTR_EXISTS		0x0004
++#define HFSPLUS_ACL_EXISTS		0x0008
+ 
+ /* HFS+ catalog thread (part of a cat_entry) */
+ struct hfsplus_cat_thread {
+@@ -327,11 +337,63 @@ struct hfsplus_ext_key {
+ 
+ #define HFSPLUS_EXT_KEYLEN	sizeof(struct hfsplus_ext_key)
+ 
++#define HFSPLUS_XATTR_FINDER_INFO_NAME "com.apple.FinderInfo"
++#define HFSPLUS_XATTR_ACL_NAME "com.apple.system.Security"
++
++#define HFSPLUS_ATTR_INLINE_DATA 0x10
++#define HFSPLUS_ATTR_FORK_DATA   0x20
++#define HFSPLUS_ATTR_EXTENTS     0x30
++
++/* HFS+ attributes tree key */
++struct hfsplus_attr_key {
++	__be16 key_len;
++	__be16 pad;
++	hfsplus_cnid cnid;
++	__be32 start_block;
++	struct hfsplus_attr_unistr key_name;
++} __packed;
++
++#define HFSPLUS_ATTR_KEYLEN	sizeof(struct hfsplus_attr_key)
++
++/* HFS+ fork data attribute */
++struct hfsplus_attr_fork_data {
++	__be32 record_type;
++	__be32 reserved;
++	struct hfsplus_fork_raw the_fork;
++} __packed;
++
++/* HFS+ extension attribute */
++struct hfsplus_attr_extents {
++	__be32 record_type;
++	__be32 reserved;
++	struct hfsplus_extent extents;
++} __packed;
++
++#define HFSPLUS_MAX_INLINE_DATA_SIZE 3802
++
++/* HFS+ attribute inline data */
++struct hfsplus_attr_inline_data {
++	__be32 record_type;
++	__be32 reserved1;
++	u8 reserved2[6];
++	__be16 length;
++	u8 raw_bytes[HFSPLUS_MAX_INLINE_DATA_SIZE];
++} __packed;
++
++/* A data record in the attributes tree */
++typedef union {
++	__be32 record_type;
++	struct hfsplus_attr_fork_data fork_data;
++	struct hfsplus_attr_extents extents;
++	struct hfsplus_attr_inline_data inline_data;
++} __packed hfsplus_attr_entry;
++
+ /* HFS+ generic BTree key */
+ typedef union {
+ 	__be16 key_len;
+ 	struct hfsplus_cat_key cat;
+ 	struct hfsplus_ext_key ext;
++	struct hfsplus_attr_key attr;
+ } __packed hfsplus_btree_key;
+ 
+ #endif
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from slava@dubeyko.com are
 
-futex-avoid-wake_futex-for-a-pi-futex_q.patch
-linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-drivers-video-add-support-for-the-solomon-ssd1307-oled-controller-checkpatch-fixes.patch
-irq-tsk-comm-is-an-array.patch
-drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch
-mm.patch
-mm-introduce-mm_find_pmd-fix.patch
-memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
-slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
-mmvmscan-only-evict-file-pages-when-we-have-plenty-fix.patch
-slub-slub-specific-propagation-changes-fix.patch
-dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch
-mm-check-rb_subtree_gap-correctness-fix.patch
-mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
-mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
-mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
-mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
-mm-use-vm_unmapped_area-on-arm-architecture-fix-fix.patch
-mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc32-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc32-architecture-fix-fix.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
-arch-sparc-kernel-sys_sparc_64c-s-colour-color.patch
-virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
-virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix.patch
-mm-cma-skip-watermarks-check-for-already-isolated-blocks-in-split_free_page-fix-fix.patch
-bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
-mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch
-mm-add-a-reminder-comment-for-__gfp_bits_shift.patch
-numa-add-config_movable_node-for-movable-dedicated-node-fix.patch
-mm-introduce-new-field-managed_pages-to-struct-zone-fix.patch
-drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
-backlight-add-of_find_backlight_by_node-function-fix.patch
-backlight-88pm860x_bl-remove-an-unnecessary-line-continuation-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
+hfsplus-avoid-crash-on-failed-block-map-free.patch
+hfsplus-add-functionality-of-manipulating-by-records-in-attributes-tree.patch
+hfsplus-rework-functionality-of-getting-setting-and-deleting-of-extended-attributes.patch
+hfsplus-add-support-of-manipulation-by-attributes-file.patch
 hfsplus-add-support-of-manipulation-by-attributes-file-checkpatch-fixes.patch
-procfs-add-vmflags-field-in-smaps-output-v4.patch
-procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
-ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
-ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
-ipc-convert-prepare_copy-from-macro-to-function-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+hfsplus-code-style-fixes-reworked-support-of-extended-attributes.patch
 
