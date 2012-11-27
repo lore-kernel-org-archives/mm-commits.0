@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + hfsplus-add-functionality-of-manipulating-by-records-in-attributes-tree.patch added to -mm tree
-Date: Mon, 26 Nov 2012 16:50:20 -0800
-Message-ID: <20121127005021.6D318200057@hpza10.eem.corp.google.com>
+Subject: + hfsplus-rework-functionality-of-getting-setting-and-deleting-of-extended-attributes.patch added to -mm tree
+Date: Mon, 26 Nov 2012 16:50:41 -0800
+Message-ID: <20121127005042.3BCEC82004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:42516 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757561Ab2K0AuY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Nov 2012 19:50:24 -0500
-Received: by mail-fa0-f74.google.com with SMTP id t1so596952fae.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Nov 2012 16:50:23 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:55768 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757657Ab2K0Aun (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Nov 2012 19:50:43 -0500
+Received: by mail-qc0-f202.google.com with SMTP id s25so1385205qcq.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Nov 2012 16:50:42 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: slava@dubeyko.com, hch@lst.de, htl10@users.sourceforge.net, jack@suse.cz, vi
 
 
 The patch titled
-     Subject: hfsplus: add functionality of manipulating by records in attributes tree
+     Subject: hfsplus: rework functionality of getting, setting and deleting of extended attributes
 has been added to the -mm tree.  Its filename is
-     hfsplus-add-functionality-of-manipulating-by-records-in-attributes-tree.patch
+     hfsplus-rework-functionality-of-getting-setting-and-deleting-of-extended-attributes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,9 +34,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vyacheslav Dubeyko <slava@dubeyko.com>
-Subject: hfsplus: add functionality of manipulating by records in attributes tree
+Subject: hfsplus: rework functionality of getting, setting and deleting of extended attributes
 
-Add functionality of manipulating by records in attributes tree.
+Rework functionality of getting, setting and deleting of extended attributes.
 
 Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
 Reported-by: Hin-Tak Leung <htl10@users.sourceforge.net>
@@ -46,412 +46,1031 @@ Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/attributes.c |  399 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 399 insertions(+)
+ fs/hfsplus/xattr.c          |  708 ++++++++++++++++++++++++++++++++++
+ fs/hfsplus/xattr.h          |   60 ++
+ fs/hfsplus/xattr_security.c |  104 ++++
+ fs/hfsplus/xattr_trusted.c  |   63 +++
+ fs/hfsplus/xattr_user.c     |   63 +++
+ 5 files changed, 998 insertions(+)
 
-diff -puN /dev/null fs/hfsplus/attributes.c
+diff -puN /dev/null fs/hfsplus/xattr.c
 --- /dev/null
-+++ a/fs/hfsplus/attributes.c
-@@ -0,0 +1,399 @@
++++ a/fs/hfsplus/xattr.c
+@@ -0,0 +1,708 @@
 +/*
-+ * linux/fs/hfsplus/attributes.c
++ * linux/fs/hfsplus/xattr.c
 + *
 + * Vyacheslav Dubeyko <slava@dubeyko.com>
 + *
-+ * Handling of records in attributes tree
++ * Logic of processing extended attributes
 + */
 +
 +#include "hfsplus_fs.h"
-+#include "hfsplus_raw.h"
++#include "xattr.h"
 +
-+static struct kmem_cache *hfsplus_attr_tree_cachep;
++const struct xattr_handler *hfsplus_xattr_handlers[] = {
++	&hfsplus_xattr_osx_handler,
++	&hfsplus_xattr_user_handler,
++	&hfsplus_xattr_trusted_handler,
++	&hfsplus_xattr_security_handler,
++	NULL
++};
 +
-+int hfsplus_create_attr_tree_cache(void)
++static int strcmp_xattr_finder_info(const char *name)
 +{
-+	if (hfsplus_attr_tree_cachep)
-+		return -EEXIST;
-+
-+	hfsplus_attr_tree_cachep =
-+		kmem_cache_create("hfsplus_attr_cache",
-+			sizeof(hfsplus_attr_entry), 0,
-+			SLAB_HWCACHE_ALIGN, NULL);
-+	if (!hfsplus_attr_tree_cachep)
-+		return -ENOMEM;
-+
-+	return 0;
-+}
-+
-+void hfsplus_destroy_attr_tree_cache(void)
-+{
-+	kmem_cache_destroy(hfsplus_attr_tree_cachep);
-+}
-+
-+int hfsplus_attr_bin_cmp_key(const hfsplus_btree_key *k1,
-+				const hfsplus_btree_key *k2)
-+{
-+	__be32 k1_cnid, k2_cnid;
-+
-+	k1_cnid = k1->attr.cnid;
-+	k2_cnid = k2->attr.cnid;
-+	if (k1_cnid != k2_cnid)
-+		return be32_to_cpu(k1_cnid) < be32_to_cpu(k2_cnid) ? -1 : 1;
-+
-+	return hfsplus_strcmp(
-+			(const struct hfsplus_unistr *)&k1->attr.key_name,
-+			(const struct hfsplus_unistr *)&k2->attr.key_name);
-+}
-+
-+int hfsplus_attr_build_key(struct super_block *sb, hfsplus_btree_key *key,
-+			u32 cnid, const char *name)
-+{
-+	int len;
-+
-+	memset(key, 0, sizeof(struct hfsplus_attr_key));
-+	key->attr.cnid = cpu_to_be32(cnid);
 +	if (name) {
-+		len = strlen(name);
-+		if (len > HFSPLUS_ATTR_MAX_STRLEN) {
-+			printk(KERN_ERR "hfs: invalid xattr name's length\n");
-+			return -EINVAL;
-+		}
-+		hfsplus_asc2uni(sb,
-+				(struct hfsplus_unistr *)&key->attr.key_name,
-+				HFSPLUS_ATTR_MAX_STRLEN, name, len);
-+		len = be16_to_cpu(key->attr.key_name.length);
-+	} else {
-+		key->attr.key_name.length = 0;
-+		len = 0;
++		return strncmp(name, HFSPLUS_XATTR_FINDER_INFO_NAME,
++				sizeof(HFSPLUS_XATTR_FINDER_INFO_NAME));
 +	}
-+
-+	/* The length of the key, as stored in key_len field, does not include
-+	 * the size of the key_len field itself.
-+	 * So, offsetof(hfsplus_attr_key, key_name) is a trick because
-+	 * it takes into consideration key_len field (__be16) of
-+	 * hfsplus_attr_key structure instead of length field (__be16) of
-+	 * hfsplus_attr_unistr structure.
-+	 */
-+	key->key_len =
-+		cpu_to_be16(offsetof(struct hfsplus_attr_key, key_name) +
-+				2 * len);
-+
-+	return 0;
++	return -1;
 +}
 +
-+void hfsplus_attr_build_key_uni(hfsplus_btree_key *key,
-+					u32 cnid,
-+					struct hfsplus_attr_unistr *name)
++static int strcmp_xattr_acl(const char *name)
 +{
-+	int ustrlen;
-+
-+	memset(key, 0, sizeof(struct hfsplus_attr_key));
-+	ustrlen = be16_to_cpu(name->length);
-+	key->attr.cnid = cpu_to_be32(cnid);
-+	key->attr.key_name.length = cpu_to_be16(ustrlen);
-+	ustrlen *= 2;
-+	memcpy(key->attr.key_name.unicode, name->unicode, ustrlen);
-+
-+	/* The length of the key, as stored in key_len field, does not include
-+	 * the size of the key_len field itself.
-+	 * So, offsetof(hfsplus_attr_key, key_name) is a trick because
-+	 * it takes into consideration key_len field (__be16) of
-+	 * hfsplus_attr_key structure instead of length field (__be16) of
-+	 * hfsplus_attr_unistr structure.
-+	 */
-+	key->key_len =
-+		cpu_to_be16(offsetof(struct hfsplus_attr_key, key_name) +
-+				ustrlen);
-+}
-+
-+hfsplus_attr_entry *hfsplus_alloc_attr_entry(void)
-+{
-+	return kmem_cache_alloc(hfsplus_attr_tree_cachep, GFP_KERNEL);
-+}
-+
-+void hfsplus_destroy_attr_entry(hfsplus_attr_entry *entry)
-+{
-+	if (entry)
-+		kmem_cache_free(hfsplus_attr_tree_cachep, entry);
-+}
-+
-+#define HFSPLUS_INVALID_ATTR_RECORD -1
-+
-+static int hfsplus_attr_build_record(hfsplus_attr_entry *entry, int record_type,
-+				u32 cnid, const void *value, size_t size)
-+{
-+	if (record_type == HFSPLUS_ATTR_FORK_DATA) {
-+		/*
-+		 * Mac OS X supports only inline data attributes.
-+		 * Do nothing
-+		 */
-+		memset(entry, 0, sizeof(*entry));
-+		return sizeof(struct hfsplus_attr_fork_data);
-+	} else if (record_type == HFSPLUS_ATTR_EXTENTS) {
-+		/*
-+		 * Mac OS X supports only inline data attributes.
-+		 * Do nothing.
-+		 */
-+		memset(entry, 0, sizeof(*entry));
-+		return sizeof(struct hfsplus_attr_extents);
-+	} else if (record_type == HFSPLUS_ATTR_INLINE_DATA) {
-+		u16 len;
-+
-+		memset(entry, 0, sizeof(struct hfsplus_attr_inline_data));
-+		entry->inline_data.record_type = cpu_to_be32(record_type);
-+		if (size <= HFSPLUS_MAX_INLINE_DATA_SIZE)
-+			len = size;
-+		else
-+			return HFSPLUS_INVALID_ATTR_RECORD;
-+		entry->inline_data.length = cpu_to_be16(len);
-+		memcpy(entry->inline_data.raw_bytes, value, len);
-+		/*
-+		 * Align len on two-byte boundary.
-+		 * It needs to add pad byte if we have odd len.
-+		 */
-+		len = round_up(len, 2);
-+		return offsetof(struct hfsplus_attr_inline_data, raw_bytes) +
-+					len;
-+	} else /* invalid input */
-+		memset(entry, 0, sizeof(*entry));
-+
-+	return HFSPLUS_INVALID_ATTR_RECORD;
-+}
-+
-+int hfsplus_find_attr(struct super_block *sb, u32 cnid,
-+			const char *name, struct hfs_find_data *fd)
-+{
-+	int err = 0;
-+
-+	dprint(DBG_ATTR_MOD, "find_attr: %s,%d\n", name ? name : NULL, cnid);
-+
-+	if (!HFSPLUS_SB(sb)->attr_tree) {
-+		printk(KERN_ERR "hfs: attributes file doesn't exist\n");
-+		return -EINVAL;
-+	}
-+
 +	if (name) {
-+		err = hfsplus_attr_build_key(sb, fd->search_key, cnid, name);
-+		if (err)
-+			goto failed_find_attr;
-+		err = hfs_brec_find(fd, hfs_find_rec_by_key);
-+		if (err)
-+			goto failed_find_attr;
-+	} else {
-+		err = hfsplus_attr_build_key(sb, fd->search_key, cnid, NULL);
-+		if (err)
-+			goto failed_find_attr;
-+		err = hfs_brec_find(fd, hfs_find_1st_rec_by_cnid);
-+		if (err)
-+			goto failed_find_attr;
++		return strncmp(name, HFSPLUS_XATTR_ACL_NAME,
++				sizeof(HFSPLUS_XATTR_ACL_NAME));
 +	}
-+
-+failed_find_attr:
-+	return err;
++	return -1;
 +}
 +
-+int hfsplus_attr_exists(struct inode *inode, const char *name)
++static inline int is_known_namespace(const char *name)
 +{
-+	int err = 0;
-+	struct super_block *sb = inode->i_sb;
-+	struct hfs_find_data fd;
++	if (strncmp(name, XATTR_SYSTEM_PREFIX, XATTR_SYSTEM_PREFIX_LEN) &&
++	    strncmp(name, XATTR_USER_PREFIX, XATTR_USER_PREFIX_LEN) &&
++	    strncmp(name, XATTR_SECURITY_PREFIX, XATTR_SECURITY_PREFIX_LEN) &&
++	    strncmp(name, XATTR_TRUSTED_PREFIX, XATTR_TRUSTED_PREFIX_LEN))
++		return false;
 +
-+	if (!HFSPLUS_SB(sb)->attr_tree)
++	return true;
++}
++
++static int can_set_xattr(struct inode *inode, const char *name,
++				const void *value, size_t value_len)
++{
++	if (!strncmp(name, XATTR_SYSTEM_PREFIX, XATTR_SYSTEM_PREFIX_LEN))
++		return -EOPNOTSUPP; /* TODO: implement ACL support */
++
++	if (!strncmp(name, XATTR_MAC_OSX_PREFIX, XATTR_MAC_OSX_PREFIX_LEN)) {
++		/*
++		 * This makes sure that we aren't trying to set an
++		 * attribute in a different namespace by prefixing it
++		 * with "osx."
++		 */
++		if (is_known_namespace(name + XATTR_MAC_OSX_PREFIX_LEN))
++			return -EOPNOTSUPP;
++
 +		return 0;
-+
-+	err = hfs_find_init(HFSPLUS_SB(sb)->attr_tree, &fd);
-+	if (err)
-+		return 0;
-+
-+	err = hfsplus_find_attr(sb, inode->i_ino, name, &fd);
-+	if (err)
-+		goto attr_not_found;
-+
-+	hfs_find_exit(&fd);
-+	return 1;
-+
-+attr_not_found:
-+	hfs_find_exit(&fd);
-+	return 0;
-+}
-+
-+int hfsplus_create_attr(struct inode *inode,
-+				const char *name,
-+				const void *value, size_t size)
-+{
-+	struct super_block *sb = inode->i_sb;
-+	struct hfs_find_data fd;
-+	hfsplus_attr_entry *entry_ptr;
-+	int entry_size;
-+	int err;
-+
-+	dprint(DBG_ATTR_MOD, "create_attr: %s,%ld\n",
-+		name ? name : NULL, inode->i_ino);
-+
-+	if (!HFSPLUS_SB(sb)->attr_tree) {
-+		printk(KERN_ERR "hfs: attributes file doesn't exist\n");
-+		return -EINVAL;
 +	}
 +
-+	entry_ptr = hfsplus_alloc_attr_entry();
-+	if (!entry_ptr)
-+		return -ENOMEM;
-+
-+	err = hfs_find_init(HFSPLUS_SB(sb)->attr_tree, &fd);
-+	if (err)
-+		goto failed_init_create_attr;
-+
-+	if (name) {
-+		err = hfsplus_attr_build_key(sb, fd.search_key,
-+						inode->i_ino, name);
-+		if (err)
-+			goto failed_create_attr;
-+	} else {
-+		err = -EINVAL;
-+		goto failed_create_attr;
-+	}
-+
-+	/* Mac OS X supports only inline data attributes. */
-+	entry_size = hfsplus_attr_build_record(entry_ptr,
-+					HFSPLUS_ATTR_INLINE_DATA,
-+					inode->i_ino,
-+					value, size);
-+	if (entry_size == HFSPLUS_INVALID_ATTR_RECORD) {
-+		err = -EINVAL;
-+		goto failed_create_attr;
-+	}
-+
-+	err = hfs_brec_find(&fd, hfs_find_rec_by_key);
-+	if (err != -ENOENT) {
-+		if (!err)
-+			err = -EEXIST;
-+		goto failed_create_attr;
-+	}
-+
-+	err = hfs_brec_insert(&fd, entry_ptr, entry_size);
-+	if (err)
-+		goto failed_create_attr;
-+
-+	hfsplus_mark_inode_dirty(inode, HFSPLUS_I_ATTR_DIRTY);
-+
-+failed_create_attr:
-+	hfs_find_exit(&fd);
-+
-+failed_init_create_attr:
-+	hfsplus_destroy_attr_entry(entry_ptr);
-+	return err;
-+}
-+
-+static int __hfsplus_delete_attr(struct inode *inode, u32 cnid,
-+					struct hfs_find_data *fd)
-+{
-+	int err = 0;
-+	__be32 found_cnid, record_type;
-+
-+	hfs_bnode_read(fd->bnode, &found_cnid,
-+			fd->keyoffset +
-+			offsetof(struct hfsplus_attr_key, cnid),
-+			sizeof(__be32));
-+	if (cnid != be32_to_cpu(found_cnid))
-+		return -ENOENT;
-+
-+	hfs_bnode_read(fd->bnode, &record_type,
-+			fd->entryoffset, sizeof(record_type));
-+
-+	switch (be32_to_cpu(record_type)) {
-+	case HFSPLUS_ATTR_INLINE_DATA:
-+		/* All is OK. Do nothing. */
-+		break;
-+	case HFSPLUS_ATTR_FORK_DATA:
-+	case HFSPLUS_ATTR_EXTENTS:
-+		printk(KERN_ERR "hfs: only inline data xattr are supported\n");
++	/*
++	 * Don't allow setting an attribute in an unknown namespace.
++	 */
++	if (strncmp(name, XATTR_TRUSTED_PREFIX, XATTR_TRUSTED_PREFIX_LEN) &&
++	    strncmp(name, XATTR_SECURITY_PREFIX, XATTR_SECURITY_PREFIX_LEN) &&
++	    strncmp(name, XATTR_USER_PREFIX, XATTR_USER_PREFIX_LEN))
 +		return -EOPNOTSUPP;
-+	default:
-+		printk(KERN_ERR "hfs: invalid extended attribute record\n");
-+		return -ENOENT;
-+	}
 +
-+	err = hfs_brec_remove(fd);
++	return 0;
++}
++
++int __hfsplus_setxattr(struct inode *inode, const char *name,
++			const void *value, size_t size, int flags)
++{
++	int err = 0;
++	struct hfs_find_data cat_fd;
++	hfsplus_cat_entry entry;
++	u16 cat_entry_flags, cat_entry_type;
++	u16 folder_finderinfo_len = sizeof(struct DInfo) +
++					sizeof(struct DXInfo);
++	u16 file_finderinfo_len = sizeof(struct FInfo) +
++					sizeof(struct FXInfo);
++
++	if ((!S_ISREG(inode->i_mode) &&
++			!S_ISDIR(inode->i_mode)) ||
++				HFSPLUS_IS_RSRC(inode))
++		return -EOPNOTSUPP;
++
++	err = can_set_xattr(inode, name, value, size);
 +	if (err)
 +		return err;
 +
-+	hfsplus_mark_inode_dirty(inode, HFSPLUS_I_ATTR_DIRTY);
++	if (strncmp(name, XATTR_MAC_OSX_PREFIX,
++				XATTR_MAC_OSX_PREFIX_LEN) == 0)
++		name += XATTR_MAC_OSX_PREFIX_LEN;
++
++	if (value == NULL) {
++		value = "";
++		size = 0;
++	}
++
++	err = hfs_find_init(HFSPLUS_SB(inode->i_sb)->cat_tree, &cat_fd);
++	if (err) {
++		printk(KERN_ERR "hfs: can't init xattr find struct\n");
++		return err;
++	}
++
++	err = hfsplus_find_cat(inode->i_sb, inode->i_ino, &cat_fd);
++	if (err) {
++		printk(KERN_ERR "hfs: catalog searching failed\n");
++		goto end_setxattr;
++	}
++
++	if (!strcmp_xattr_finder_info(name)) {
++		if (flags & XATTR_CREATE) {
++			printk(KERN_ERR "hfs: xattr exists yet\n");
++			err = -EOPNOTSUPP;
++			goto end_setxattr;
++		}
++		hfs_bnode_read(cat_fd.bnode, &entry, cat_fd.entryoffset,
++					sizeof(hfsplus_cat_entry));
++		if (be16_to_cpu(entry.type) == HFSPLUS_FOLDER) {
++			if (size == folder_finderinfo_len) {
++				memcpy(&entry.folder.user_info, value,
++						folder_finderinfo_len);
++				hfs_bnode_write(cat_fd.bnode, &entry,
++					cat_fd.entryoffset,
++					sizeof(struct hfsplus_cat_folder));
++				hfsplus_mark_inode_dirty(inode,
++						HFSPLUS_I_CAT_DIRTY);
++			} else {
++				err = -ERANGE;
++				goto end_setxattr;
++			}
++		} else if (be16_to_cpu(entry.type) == HFSPLUS_FILE) {
++			if (size == file_finderinfo_len) {
++				memcpy(&entry.file.user_info, value,
++						file_finderinfo_len);
++				hfs_bnode_write(cat_fd.bnode, &entry,
++					cat_fd.entryoffset,
++					sizeof(struct hfsplus_cat_file));
++				hfsplus_mark_inode_dirty(inode,
++						HFSPLUS_I_CAT_DIRTY);
++			} else {
++				err = -ERANGE;
++				goto end_setxattr;
++			}
++		} else {
++			err = -EOPNOTSUPP;
++			goto end_setxattr;
++		}
++		goto end_setxattr;
++	}
++
++	if (!HFSPLUS_SB(inode->i_sb)->attr_tree) {
++		err = -EOPNOTSUPP;
++		goto end_setxattr;
++	}
++
++	if (hfsplus_attr_exists(inode, name)) {
++		if (flags & XATTR_CREATE) {
++			printk(KERN_ERR "hfs: xattr exists yet\n");
++			err = -EOPNOTSUPP;
++			goto end_setxattr;
++		}
++		err = hfsplus_delete_attr(inode, name);
++		if (err)
++			goto end_setxattr;
++		err = hfsplus_create_attr(inode, name, value, size);
++		if (err)
++			goto end_setxattr;
++	} else {
++		if (flags & XATTR_REPLACE) {
++			printk(KERN_ERR "hfs: cannot replace xattr\n");
++			err = -EOPNOTSUPP;
++			goto end_setxattr;
++		}
++		err = hfsplus_create_attr(inode, name, value, size);
++		if (err)
++			goto end_setxattr;
++	}
++
++	cat_entry_type = hfs_bnode_read_u16(cat_fd.bnode, cat_fd.entryoffset);
++	if (cat_entry_type == HFSPLUS_FOLDER) {
++		cat_entry_flags = hfs_bnode_read_u16(cat_fd.bnode,
++				    cat_fd.entryoffset +
++				    offsetof(struct hfsplus_cat_folder, flags));
++		cat_entry_flags |= HFSPLUS_XATTR_EXISTS;
++		if (!strcmp_xattr_acl(name))
++			cat_entry_flags |= HFSPLUS_ACL_EXISTS;
++		hfs_bnode_write_u16(cat_fd.bnode, cat_fd.entryoffset +
++				offsetof(struct hfsplus_cat_folder, flags),
++				cat_entry_flags);
++		hfsplus_mark_inode_dirty(inode, HFSPLUS_I_CAT_DIRTY);
++	} else if (cat_entry_type == HFSPLUS_FILE) {
++		cat_entry_flags = hfs_bnode_read_u16(cat_fd.bnode,
++				    cat_fd.entryoffset +
++				    offsetof(struct hfsplus_cat_file, flags));
++		cat_entry_flags |= HFSPLUS_XATTR_EXISTS;
++		if (!strcmp_xattr_acl(name))
++			cat_entry_flags |= HFSPLUS_ACL_EXISTS;
++		hfs_bnode_write_u16(cat_fd.bnode, cat_fd.entryoffset +
++				    offsetof(struct hfsplus_cat_file, flags),
++				    cat_entry_flags);
++		hfsplus_mark_inode_dirty(inode, HFSPLUS_I_CAT_DIRTY);
++	} else {
++		printk(KERN_ERR "hfs: invalid catalog entry type\n");
++		err = -EIO;
++		goto end_setxattr;
++	}
++
++end_setxattr:
++	hfs_find_exit(&cat_fd);
 +	return err;
 +}
 +
-+int hfsplus_delete_attr(struct inode *inode, const char *name)
++static inline int is_osx_xattr(const char *xattr_name)
 +{
-+	int err = 0;
-+	struct super_block *sb = inode->i_sb;
++	return !is_known_namespace(xattr_name);
++}
++
++static int name_len(const char *xattr_name, int xattr_name_len)
++{
++	int len = xattr_name_len + 1;
++
++	if (is_osx_xattr(xattr_name))
++		len += XATTR_MAC_OSX_PREFIX_LEN;
++
++	return len;
++}
++
++static int copy_name(char *buffer, const char *xattr_name, int name_len)
++{
++	int len = name_len;
++	int offset = 0;
++
++	if (is_osx_xattr(xattr_name)) {
++		strncpy(buffer, XATTR_MAC_OSX_PREFIX, XATTR_MAC_OSX_PREFIX_LEN);
++		offset += XATTR_MAC_OSX_PREFIX_LEN;
++		len += XATTR_MAC_OSX_PREFIX_LEN;
++	}
++
++	strncpy(buffer + offset, xattr_name, name_len);
++	memset(buffer + offset + name_len, 0, 1);
++	len += 1;
++
++	return len;
++}
++
++static ssize_t hfsplus_getxattr_finder_info(struct dentry *dentry,
++						void *value, size_t size)
++{
++	ssize_t res = 0;
++	struct inode *inode = dentry->d_inode;
 +	struct hfs_find_data fd;
++	u16 entry_type;
++	u16 folder_rec_len = sizeof(struct DInfo) + sizeof(struct DXInfo);
++	u16 file_rec_len = sizeof(struct FInfo) + sizeof(struct FXInfo);
++	u16 record_len = max(folder_rec_len, file_rec_len);
++	u8 folder_finder_info[sizeof(struct DInfo) + sizeof(struct DXInfo)];
++	u8 file_finder_info[sizeof(struct FInfo) + sizeof(struct FXInfo)];
 +
-+	dprint(DBG_ATTR_MOD, "delete_attr: %s,%ld\n",
-+		name ? name : NULL, inode->i_ino);
++	if (size >= record_len) {
++		res = hfs_find_init(HFSPLUS_SB(inode->i_sb)->cat_tree, &fd);
++		if (res) {
++			printk(KERN_ERR "hfs: can't init xattr find struct\n");
++			return res;
++		}
++		res = hfsplus_find_cat(inode->i_sb, inode->i_ino, &fd);
++		if (res)
++			goto end_getxattr_finder_info;
++		entry_type = hfs_bnode_read_u16(fd.bnode, fd.entryoffset);
 +
-+	if (!HFSPLUS_SB(sb)->attr_tree) {
-+		printk(KERN_ERR "hfs: attributes file doesn't exist\n");
-+		return -EINVAL;
++		if (entry_type == HFSPLUS_FOLDER) {
++			hfs_bnode_read(fd.bnode, folder_finder_info,
++				fd.entryoffset +
++				offsetof(struct hfsplus_cat_folder, user_info),
++				folder_rec_len);
++			memcpy(value, folder_finder_info, folder_rec_len);
++			res = folder_rec_len;
++		} else if (entry_type == HFSPLUS_FILE) {
++			hfs_bnode_read(fd.bnode, file_finder_info,
++				fd.entryoffset +
++				offsetof(struct hfsplus_cat_file, user_info),
++				file_rec_len);
++			memcpy(value, file_finder_info, file_rec_len);
++			res = file_rec_len;
++		} else {
++			res = -EOPNOTSUPP;
++			goto end_getxattr_finder_info;
++		}
++	} else
++		res = size ? -ERANGE : record_len;
++
++end_getxattr_finder_info:
++	if (size >= record_len)
++		hfs_find_exit(&fd);
++	return res;
++}
++
++ssize_t hfsplus_getxattr(struct dentry *dentry, const char *name,
++			 void *value, size_t size)
++{
++	struct inode *inode = dentry->d_inode;
++	struct hfs_find_data fd;
++	hfsplus_attr_entry *entry;
++	u32 record_type;
++	u16 record_length = 0;
++	ssize_t res = 0;
++
++	if ((!S_ISREG(inode->i_mode) &&
++			!S_ISDIR(inode->i_mode)) ||
++				HFSPLUS_IS_RSRC(inode))
++		return -EOPNOTSUPP;
++
++	if (strncmp(name, XATTR_MAC_OSX_PREFIX,
++				XATTR_MAC_OSX_PREFIX_LEN) == 0) {
++		/* skip "osx." prefix */
++		name += XATTR_MAC_OSX_PREFIX_LEN;
++		/*
++		 * Don't allow retrieving properly prefixed attributes
++		 * by prepending them with "osx."
++		 */
++		if (is_known_namespace(name))
++			return -EOPNOTSUPP;
 +	}
 +
-+	err = hfs_find_init(HFSPLUS_SB(sb)->attr_tree, &fd);
-+	if (err)
-+		return err;
++	if (!strcmp_xattr_finder_info(name))
++		return hfsplus_getxattr_finder_info(dentry, value, size);
 +
-+	if (name) {
-+		err = hfsplus_attr_build_key(sb, fd.search_key,
-+						inode->i_ino, name);
-+		if (err)
++	if (!HFSPLUS_SB(inode->i_sb)->attr_tree)
++		return -EOPNOTSUPP;
++
++	entry = hfsplus_alloc_attr_entry();
++	if (!entry) {
++		printk(KERN_ERR "hfs: can't allocate xattr entry\n");
++		return -ENOMEM;
++	}
++
++	res = hfs_find_init(HFSPLUS_SB(inode->i_sb)->attr_tree, &fd);
++	if (res) {
++		printk(KERN_ERR "hfs: can't init xattr find struct\n");
++		goto failed_getxattr_init;
++	}
++
++	res = hfsplus_find_attr(inode->i_sb, inode->i_ino, name, &fd);
++	if (res) {
++		if (res == -ENOENT)
++			res = -ENODATA;
++		else
++			printk(KERN_ERR "hfs: xattr searching failed\n");
++		goto out;
++	}
++
++	hfs_bnode_read(fd.bnode, &record_type,
++			fd.entryoffset, sizeof(record_type));
++	record_type = be32_to_cpu(record_type);
++	if (record_type == HFSPLUS_ATTR_INLINE_DATA) {
++		record_length = hfs_bnode_read_u16(fd.bnode,
++				fd.entryoffset +
++				offsetof(struct hfsplus_attr_inline_data,
++				length));
++		if (record_length > HFSPLUS_MAX_INLINE_DATA_SIZE) {
++			printk(KERN_ERR "hfs: invalid xattr record size\n");
++			res = -EIO;
 +			goto out;
++		}
++	} else if (record_type == HFSPLUS_ATTR_FORK_DATA ||
++			record_type == HFSPLUS_ATTR_EXTENTS) {
++		printk(KERN_ERR "hfs: only inline data xattr are supported\n");
++		res = -EOPNOTSUPP;
++		goto out;
 +	} else {
-+		printk(KERN_ERR "hfs: invalid extended attribute name\n");
-+		err = -EINVAL;
++		printk(KERN_ERR "hfs: invalid xattr record\n");
++		res = -EIO;
 +		goto out;
 +	}
 +
-+	err = hfs_brec_find(&fd, hfs_find_rec_by_key);
-+	if (err)
-+		goto out;
++	if (size) {
++		hfs_bnode_read(fd.bnode, entry, fd.entryoffset,
++				offsetof(struct hfsplus_attr_inline_data,
++					raw_bytes) + record_length);
++	}
 +
-+	err = __hfsplus_delete_attr(inode, inode->i_ino, &fd);
-+	if (err)
-+		goto out;
++	if (size >= record_length) {
++		memcpy(value, entry->inline_data.raw_bytes, record_length);
++		res = record_length;
++	} else
++		res = size ? -ERANGE : record_length;
 +
 +out:
 +	hfs_find_exit(&fd);
-+	return err;
++
++failed_getxattr_init:
++	hfsplus_destroy_attr_entry(entry);
++	return res;
 +}
 +
-+int hfsplus_delete_all_attrs(struct inode *dir, u32 cnid)
++static inline int can_list(const char *xattr_name)
 +{
-+	int err = 0;
++	if (!xattr_name)
++		return 0;
++
++	return strncmp(xattr_name, XATTR_TRUSTED_PREFIX,
++			XATTR_TRUSTED_PREFIX_LEN) ||
++				capable(CAP_SYS_ADMIN);
++}
++
++static ssize_t hfsplus_listxattr_finder_info(struct dentry *dentry,
++						char *buffer, size_t size)
++{
++	ssize_t res = 0;
++	struct inode *inode = dentry->d_inode;
 +	struct hfs_find_data fd;
++	u16 entry_type;
++	u8 folder_finder_info[sizeof(struct DInfo) + sizeof(struct DXInfo)];
++	u8 file_finder_info[sizeof(struct FInfo) + sizeof(struct FXInfo)];
++	unsigned long len, found_bit;
++	int xattr_name_len, symbols_count;
 +
-+	dprint(DBG_ATTR_MOD, "delete_all_attrs: %d\n", cnid);
-+
-+	if (!HFSPLUS_SB(dir->i_sb)->attr_tree) {
-+		printk(KERN_ERR "hfs: attributes file doesn't exist\n");
-+		return -EINVAL;
++	res = hfs_find_init(HFSPLUS_SB(inode->i_sb)->cat_tree, &fd);
++	if (res) {
++		printk(KERN_ERR "hfs: can't init xattr find struct\n");
++		return res;
 +	}
 +
-+	err = hfs_find_init(HFSPLUS_SB(dir->i_sb)->attr_tree, &fd);
++	res = hfsplus_find_cat(inode->i_sb, inode->i_ino, &fd);
++	if (res)
++		goto end_listxattr_finder_info;
++
++	entry_type = hfs_bnode_read_u16(fd.bnode, fd.entryoffset);
++	if (entry_type == HFSPLUS_FOLDER) {
++		len = sizeof(struct DInfo) + sizeof(struct DXInfo);
++		hfs_bnode_read(fd.bnode, folder_finder_info,
++				fd.entryoffset +
++				offsetof(struct hfsplus_cat_folder, user_info),
++				len);
++		found_bit = find_first_bit((void *)folder_finder_info, len*8);
++	} else if (entry_type == HFSPLUS_FILE) {
++		len = sizeof(struct FInfo) + sizeof(struct FXInfo);
++		hfs_bnode_read(fd.bnode, file_finder_info,
++				fd.entryoffset +
++				offsetof(struct hfsplus_cat_file, user_info),
++				len);
++		found_bit = find_first_bit((void *)file_finder_info, len*8);
++	} else {
++		res = -EOPNOTSUPP;
++		goto end_listxattr_finder_info;
++	}
++
++	if (found_bit >= (len*8))
++		res = 0;
++	else {
++		symbols_count = sizeof(HFSPLUS_XATTR_FINDER_INFO_NAME) - 1;
++		xattr_name_len =
++			name_len(HFSPLUS_XATTR_FINDER_INFO_NAME, symbols_count);
++		if (!buffer || !size) {
++			if (can_list(HFSPLUS_XATTR_FINDER_INFO_NAME))
++				res = xattr_name_len;
++		} else if (can_list(HFSPLUS_XATTR_FINDER_INFO_NAME)) {
++			if (size < xattr_name_len)
++				res = -ERANGE;
++			else {
++				res = copy_name(buffer,
++						HFSPLUS_XATTR_FINDER_INFO_NAME,
++						symbols_count);
++			}
++		}
++	}
++
++end_listxattr_finder_info:
++	hfs_find_exit(&fd);
++
++	return res;
++}
++
++ssize_t hfsplus_listxattr(struct dentry *dentry, char *buffer, size_t size)
++{
++	ssize_t err;
++	ssize_t res = 0;
++	struct inode *inode = dentry->d_inode;
++	struct hfs_find_data fd;
++	u16 key_len = 0;
++	struct hfsplus_attr_key attr_key;
++	char strbuf[HFSPLUS_ATTR_MAX_STRLEN +
++			XATTR_MAC_OSX_PREFIX_LEN + 1] = {0};
++	int xattr_name_len;
++
++	if ((!S_ISREG(inode->i_mode) &&
++			!S_ISDIR(inode->i_mode)) ||
++				HFSPLUS_IS_RSRC(inode))
++		return -EOPNOTSUPP;
++
++	res = hfsplus_listxattr_finder_info(dentry, buffer, size);
++	if (res < 0)
++		return res;
++	else if (!HFSPLUS_SB(inode->i_sb)->attr_tree)
++		return (res == 0) ? -EOPNOTSUPP : res;
++
++	err = hfs_find_init(HFSPLUS_SB(inode->i_sb)->attr_tree, &fd);
++	if (err) {
++		printk(KERN_ERR "hfs: can't init xattr find struct\n");
++		return err;
++	}
++
++	err = hfsplus_find_attr(inode->i_sb, inode->i_ino, NULL, &fd);
++	if (err) {
++		if (err == -ENOENT) {
++			if (res == 0)
++				res = -ENODATA;
++			goto end_listxattr;
++		} else {
++			res = err;
++			goto end_listxattr;
++		}
++	}
++
++	for (;;) {
++		key_len = hfs_bnode_read_u16(fd.bnode, fd.keyoffset);
++		if (key_len == 0 || key_len > fd.tree->max_key_len) {
++			printk(KERN_ERR "hfs: invalid xattr key length: %d\n",
++							key_len);
++			res = -EIO;
++			goto end_listxattr;
++		}
++
++		hfs_bnode_read(fd.bnode, &attr_key,
++				fd.keyoffset, key_len + sizeof(key_len));
++
++		if (be32_to_cpu(attr_key.cnid) != inode->i_ino)
++			goto end_listxattr;
++
++		xattr_name_len = HFSPLUS_ATTR_MAX_STRLEN;
++		if (hfsplus_uni2asc(inode->i_sb,
++			(const struct hfsplus_unistr *)&fd.key->attr.key_name,
++					strbuf, &xattr_name_len)) {
++			printk(KERN_ERR "hfs: unicode conversion failed\n");
++			res = -EIO;
++			goto end_listxattr;
++		}
++
++		if (!buffer || !size) {
++			if (can_list(strbuf))
++				res += name_len(strbuf, xattr_name_len);
++		} else if (can_list(strbuf)) {
++			if (size < (res + name_len(strbuf, xattr_name_len))) {
++				res = -ERANGE;
++				goto end_listxattr;
++			} else
++				res += copy_name(buffer + res,
++						strbuf, xattr_name_len);
++		}
++
++		if (hfs_brec_goto(&fd, 1))
++			goto end_listxattr;
++	}
++
++end_listxattr:
++	hfs_find_exit(&fd);
++	return res;
++}
++
++int hfsplus_removexattr(struct dentry *dentry, const char *name)
++{
++	int err = 0;
++	struct inode *inode = dentry->d_inode;
++	struct hfs_find_data cat_fd;
++	u16 flags;
++	u16 cat_entry_type;
++	int is_xattr_acl_deleted = 0;
++	int is_all_xattrs_deleted = 0;
++
++	if ((!S_ISREG(inode->i_mode) &&
++			!S_ISDIR(inode->i_mode)) ||
++				HFSPLUS_IS_RSRC(inode))
++		return -EOPNOTSUPP;
++
++	if (!HFSPLUS_SB(inode->i_sb)->attr_tree)
++		return -EOPNOTSUPP;
++
++	err = can_set_xattr(inode, name, NULL, 0);
 +	if (err)
 +		return err;
 +
-+	for (;;) {
-+		err = hfsplus_find_attr(dir->i_sb, cnid, NULL, &fd);
-+		if (err) {
-+			if (err != -ENOENT)
-+				printk(KERN_ERR "hfs: xattr search failed.\n");
-+			goto end_delete_all;
-+		}
++	if (strncmp(name, XATTR_MAC_OSX_PREFIX,
++				XATTR_MAC_OSX_PREFIX_LEN) == 0)
++		name += XATTR_MAC_OSX_PREFIX_LEN;
 +
-+		err = __hfsplus_delete_attr(dir, cnid, &fd);
-+		if (err)
-+			goto end_delete_all;
++	if (!strcmp_xattr_finder_info(name))
++		return -EOPNOTSUPP;
++
++	err = hfs_find_init(HFSPLUS_SB(inode->i_sb)->cat_tree, &cat_fd);
++	if (err) {
++		printk(KERN_ERR "hfs: can't init xattr find struct\n");
++		return err;
 +	}
 +
-+end_delete_all:
-+	hfs_find_exit(&fd);
++	err = hfsplus_find_cat(inode->i_sb, inode->i_ino, &cat_fd);
++	if (err) {
++		printk(KERN_ERR "hfs: catalog searching failed\n");
++		goto end_removexattr;
++	}
++
++	err = hfsplus_delete_attr(inode, name);
++	if (err)
++		goto end_removexattr;
++
++	is_xattr_acl_deleted = !strcmp_xattr_acl(name);
++	is_all_xattrs_deleted = !hfsplus_attr_exists(inode, NULL);
++
++	if (!is_xattr_acl_deleted && !is_all_xattrs_deleted)
++		goto end_removexattr;
++
++	cat_entry_type = hfs_bnode_read_u16(cat_fd.bnode, cat_fd.entryoffset);
++
++	if (cat_entry_type == HFSPLUS_FOLDER) {
++		flags = hfs_bnode_read_u16(cat_fd.bnode, cat_fd.entryoffset +
++				offsetof(struct hfsplus_cat_folder, flags));
++		if (is_xattr_acl_deleted)
++			flags &= ~HFSPLUS_ACL_EXISTS;
++		if (is_all_xattrs_deleted)
++			flags &= ~HFSPLUS_XATTR_EXISTS;
++		hfs_bnode_write_u16(cat_fd.bnode, cat_fd.entryoffset +
++				offsetof(struct hfsplus_cat_folder, flags),
++				flags);
++		hfsplus_mark_inode_dirty(inode, HFSPLUS_I_CAT_DIRTY);
++	} else if (cat_entry_type == HFSPLUS_FILE) {
++		flags = hfs_bnode_read_u16(cat_fd.bnode, cat_fd.entryoffset +
++				offsetof(struct hfsplus_cat_file, flags));
++		if (is_xattr_acl_deleted)
++			flags &= ~HFSPLUS_ACL_EXISTS;
++		if (is_all_xattrs_deleted)
++			flags &= ~HFSPLUS_XATTR_EXISTS;
++		hfs_bnode_write_u16(cat_fd.bnode, cat_fd.entryoffset +
++				offsetof(struct hfsplus_cat_file, flags),
++				flags);
++		hfsplus_mark_inode_dirty(inode, HFSPLUS_I_CAT_DIRTY);
++	} else {
++		printk(KERN_ERR "hfs: invalid catalog entry type\n");
++		err = -EIO;
++		goto end_removexattr;
++	}
++
++end_removexattr:
++	hfs_find_exit(&cat_fd);
 +	return err;
 +}
++
++static int hfsplus_osx_getxattr(struct dentry *dentry, const char *name,
++					void *buffer, size_t size, int type)
++{
++	char xattr_name[HFSPLUS_ATTR_MAX_STRLEN +
++				XATTR_MAC_OSX_PREFIX_LEN + 1] = {0};
++	size_t len = strlen(name);
++
++	if (!strcmp(name, ""))
++		return -EINVAL;
++
++	if (len > HFSPLUS_ATTR_MAX_STRLEN)
++		return -EOPNOTSUPP;
++
++	strcpy(xattr_name, XATTR_MAC_OSX_PREFIX);
++	strcpy(xattr_name + XATTR_MAC_OSX_PREFIX_LEN, name);
++
++	return hfsplus_getxattr(dentry, xattr_name, buffer, size);
++}
++
++static int hfsplus_osx_setxattr(struct dentry *dentry, const char *name,
++		const void *buffer, size_t size, int flags, int type)
++{
++	char xattr_name[HFSPLUS_ATTR_MAX_STRLEN +
++				XATTR_MAC_OSX_PREFIX_LEN + 1] = {0};
++	size_t len = strlen(name);
++
++	if (!strcmp(name, ""))
++		return -EINVAL;
++
++	if (len > HFSPLUS_ATTR_MAX_STRLEN)
++		return -EOPNOTSUPP;
++
++	strcpy(xattr_name, XATTR_MAC_OSX_PREFIX);
++	strcpy(xattr_name + XATTR_MAC_OSX_PREFIX_LEN, name);
++
++	return hfsplus_setxattr(dentry, xattr_name, buffer, size, flags);
++}
++
++static size_t hfsplus_osx_listxattr(struct dentry *dentry, char *list,
++		size_t list_size, const char *name, size_t name_len, int type)
++{
++	/*
++	 * This method is not used.
++	 * It is used hfsplus_listxattr() instead of generic_listxattr().
++	 */
++	return -EOPNOTSUPP;
++}
++
++const struct xattr_handler hfsplus_xattr_osx_handler = {
++	.prefix	= XATTR_MAC_OSX_PREFIX,
++	.list	= hfsplus_osx_listxattr,
++	.get	= hfsplus_osx_getxattr,
++	.set	= hfsplus_osx_setxattr,
++};
+diff -puN /dev/null fs/hfsplus/xattr.h
+--- /dev/null
++++ a/fs/hfsplus/xattr.h
+@@ -0,0 +1,60 @@
++/*
++ * linux/fs/hfsplus/xattr.h
++ *
++ * Vyacheslav Dubeyko <slava@dubeyko.com>
++ *
++ * Logic of processing extended attributes
++ */
++
++#ifndef _LINUX_HFSPLUS_XATTR_H
++#define _LINUX_HFSPLUS_XATTR_H
++
++#include <linux/xattr.h>
++
++extern const struct xattr_handler hfsplus_xattr_osx_handler;
++extern const struct xattr_handler hfsplus_xattr_user_handler;
++extern const struct xattr_handler hfsplus_xattr_trusted_handler;
++/*extern const struct xattr_handler hfsplus_xattr_acl_access_handler;*/
++/*extern const struct xattr_handler hfsplus_xattr_acl_default_handler;*/
++extern const struct xattr_handler hfsplus_xattr_security_handler;
++
++extern const struct xattr_handler *hfsplus_xattr_handlers[];
++
++int __hfsplus_setxattr(struct inode *inode, const char *name,
++			const void *value, size_t size, int flags);
++
++static inline int hfsplus_setxattr(struct dentry *dentry, const char *name,
++			const void *value, size_t size, int flags)
++{
++	return __hfsplus_setxattr(dentry->d_inode, name, value, size, flags);
++}
++
++ssize_t hfsplus_getxattr(struct dentry *dentry, const char *name,
++			void *value, size_t size);
++
++ssize_t hfsplus_listxattr(struct dentry *dentry, char *buffer, size_t size);
++
++int hfsplus_removexattr(struct dentry *dentry, const char *name);
++
++int hfsplus_init_security(struct inode *inode, struct inode *dir,
++				const struct qstr *qstr);
++
++static inline int hfsplus_init_acl(struct inode *inode, struct inode *dir)
++{
++	/*TODO: implement*/
++	return 0;
++}
++
++static inline int hfsplus_init_inode_security(struct inode *inode,
++						struct inode *dir,
++						const struct qstr *qstr)
++{
++	int err;
++
++	err = hfsplus_init_acl(inode, dir);
++	if (!err)
++		err = hfsplus_init_security(inode, dir, qstr);
++	return err;
++}
++
++#endif
+diff -puN /dev/null fs/hfsplus/xattr_security.c
+--- /dev/null
++++ a/fs/hfsplus/xattr_security.c
+@@ -0,0 +1,104 @@
++/*
++ * linux/fs/hfsplus/xattr_trusted.c
++ *
++ * Vyacheslav Dubeyko <slava@dubeyko.com>
++ *
++ * Handler for storing security labels as extended attributes.
++ */
++
++#include <linux/security.h>
++#include "hfsplus_fs.h"
++#include "xattr.h"
++
++static int hfsplus_security_getxattr(struct dentry *dentry, const char *name,
++					void *buffer, size_t size, int type)
++{
++	char xattr_name[HFSPLUS_ATTR_MAX_STRLEN + 1] = {0};
++	size_t len = strlen(name);
++
++	if (!strcmp(name, ""))
++		return -EINVAL;
++
++	if (len + XATTR_SECURITY_PREFIX_LEN > HFSPLUS_ATTR_MAX_STRLEN)
++		return -EOPNOTSUPP;
++
++	strcpy(xattr_name, XATTR_SECURITY_PREFIX);
++	strcpy(xattr_name + XATTR_SECURITY_PREFIX_LEN, name);
++
++	return hfsplus_getxattr(dentry, xattr_name, buffer, size);
++}
++
++static int hfsplus_security_setxattr(struct dentry *dentry, const char *name,
++		const void *buffer, size_t size, int flags, int type)
++{
++	char xattr_name[HFSPLUS_ATTR_MAX_STRLEN + 1] = {0};
++	size_t len = strlen(name);
++
++	if (!strcmp(name, ""))
++		return -EINVAL;
++
++	if (len + XATTR_SECURITY_PREFIX_LEN > HFSPLUS_ATTR_MAX_STRLEN)
++		return -EOPNOTSUPP;
++
++	strcpy(xattr_name, XATTR_SECURITY_PREFIX);
++	strcpy(xattr_name + XATTR_SECURITY_PREFIX_LEN, name);
++
++	return hfsplus_setxattr(dentry, xattr_name, buffer, size, flags);
++}
++
++static size_t hfsplus_security_listxattr(struct dentry *dentry, char *list,
++		size_t list_size, const char *name, size_t name_len, int type)
++{
++	/*
++	 * This method is not used.
++	 * It is used hfsplus_listxattr() instead of generic_listxattr().
++	 */
++	return -EOPNOTSUPP;
++}
++
++static int hfsplus_initxattrs(struct inode *inode,
++				const struct xattr *xattr_array,
++				void *fs_info)
++{
++	const struct xattr *xattr;
++	char xattr_name[HFSPLUS_ATTR_MAX_STRLEN + 1] = {0};
++	size_t xattr_name_len;
++	int err = 0;
++
++	for (xattr = xattr_array; xattr->name != NULL; xattr++) {
++		xattr_name_len = strlen(xattr->name);
++
++		if (xattr_name_len == 0)
++			continue;
++
++		if (xattr_name_len + XATTR_SECURITY_PREFIX_LEN >
++				HFSPLUS_ATTR_MAX_STRLEN)
++			return -EOPNOTSUPP;
++
++		strcpy(xattr_name, XATTR_SECURITY_PREFIX);
++		strcpy(xattr_name +
++			XATTR_SECURITY_PREFIX_LEN, xattr->name);
++		memset(xattr_name +
++			XATTR_SECURITY_PREFIX_LEN + xattr_name_len, 0, 1);
++
++		err = __hfsplus_setxattr(inode, xattr_name,
++					xattr->value, xattr->value_len, 0);
++		if (err)
++			break;
++	}
++	return err;
++}
++
++int hfsplus_init_security(struct inode *inode, struct inode *dir,
++				const struct qstr *qstr)
++{
++	return security_inode_init_security(inode, dir, qstr,
++					&hfsplus_initxattrs, NULL);
++}
++
++const struct xattr_handler hfsplus_xattr_security_handler = {
++	.prefix	= XATTR_SECURITY_PREFIX,
++	.list	= hfsplus_security_listxattr,
++	.get	= hfsplus_security_getxattr,
++	.set	= hfsplus_security_setxattr,
++};
+diff -puN /dev/null fs/hfsplus/xattr_trusted.c
+--- /dev/null
++++ a/fs/hfsplus/xattr_trusted.c
+@@ -0,0 +1,63 @@
++/*
++ * linux/fs/hfsplus/xattr_trusted.c
++ *
++ * Vyacheslav Dubeyko <slava@dubeyko.com>
++ *
++ * Handler for trusted extended attributes.
++ */
++
++#include "hfsplus_fs.h"
++#include "xattr.h"
++
++static int hfsplus_trusted_getxattr(struct dentry *dentry, const char *name,
++					void *buffer, size_t size, int type)
++{
++	char xattr_name[HFSPLUS_ATTR_MAX_STRLEN + 1] = {0};
++	size_t len = strlen(name);
++
++	if (!strcmp(name, ""))
++		return -EINVAL;
++
++	if (len + XATTR_TRUSTED_PREFIX_LEN > HFSPLUS_ATTR_MAX_STRLEN)
++		return -EOPNOTSUPP;
++
++	strcpy(xattr_name, XATTR_TRUSTED_PREFIX);
++	strcpy(xattr_name + XATTR_TRUSTED_PREFIX_LEN, name);
++
++	return hfsplus_getxattr(dentry, xattr_name, buffer, size);
++}
++
++static int hfsplus_trusted_setxattr(struct dentry *dentry, const char *name,
++		const void *buffer, size_t size, int flags, int type)
++{
++	char xattr_name[HFSPLUS_ATTR_MAX_STRLEN + 1] = {0};
++	size_t len = strlen(name);
++
++	if (!strcmp(name, ""))
++		return -EINVAL;
++
++	if (len + XATTR_TRUSTED_PREFIX_LEN > HFSPLUS_ATTR_MAX_STRLEN)
++		return -EOPNOTSUPP;
++
++	strcpy(xattr_name, XATTR_TRUSTED_PREFIX);
++	strcpy(xattr_name + XATTR_TRUSTED_PREFIX_LEN, name);
++
++	return hfsplus_setxattr(dentry, xattr_name, buffer, size, flags);
++}
++
++static size_t hfsplus_trusted_listxattr(struct dentry *dentry, char *list,
++		size_t list_size, const char *name, size_t name_len, int type)
++{
++	/*
++	 * This method is not used.
++	 * It is used hfsplus_listxattr() instead of generic_listxattr().
++	 */
++	return -EOPNOTSUPP;
++}
++
++const struct xattr_handler hfsplus_xattr_trusted_handler = {
++	.prefix	= XATTR_TRUSTED_PREFIX,
++	.list	= hfsplus_trusted_listxattr,
++	.get	= hfsplus_trusted_getxattr,
++	.set	= hfsplus_trusted_setxattr,
++};
+diff -puN /dev/null fs/hfsplus/xattr_user.c
+--- /dev/null
++++ a/fs/hfsplus/xattr_user.c
+@@ -0,0 +1,63 @@
++/*
++ * linux/fs/hfsplus/xattr_user.c
++ *
++ * Vyacheslav Dubeyko <slava@dubeyko.com>
++ *
++ * Handler for user extended attributes.
++ */
++
++#include "hfsplus_fs.h"
++#include "xattr.h"
++
++static int hfsplus_user_getxattr(struct dentry *dentry, const char *name,
++					void *buffer, size_t size, int type)
++{
++	char xattr_name[HFSPLUS_ATTR_MAX_STRLEN + 1] = {0};
++	size_t len = strlen(name);
++
++	if (!strcmp(name, ""))
++		return -EINVAL;
++
++	if (len + XATTR_USER_PREFIX_LEN > HFSPLUS_ATTR_MAX_STRLEN)
++		return -EOPNOTSUPP;
++
++	strcpy(xattr_name, XATTR_USER_PREFIX);
++	strcpy(xattr_name + XATTR_USER_PREFIX_LEN, name);
++
++	return hfsplus_getxattr(dentry, xattr_name, buffer, size);
++}
++
++static int hfsplus_user_setxattr(struct dentry *dentry, const char *name,
++		const void *buffer, size_t size, int flags, int type)
++{
++	char xattr_name[HFSPLUS_ATTR_MAX_STRLEN + 1] = {0};
++	size_t len = strlen(name);
++
++	if (!strcmp(name, ""))
++		return -EINVAL;
++
++	if (len + XATTR_USER_PREFIX_LEN > HFSPLUS_ATTR_MAX_STRLEN)
++		return -EOPNOTSUPP;
++
++	strcpy(xattr_name, XATTR_USER_PREFIX);
++	strcpy(xattr_name + XATTR_USER_PREFIX_LEN, name);
++
++	return hfsplus_setxattr(dentry, xattr_name, buffer, size, flags);
++}
++
++static size_t hfsplus_user_listxattr(struct dentry *dentry, char *list,
++		size_t list_size, const char *name, size_t name_len, int type)
++{
++	/*
++	 * This method is not used.
++	 * It is used hfsplus_listxattr() instead of generic_listxattr().
++	 */
++	return -EOPNOTSUPP;
++}
++
++const struct xattr_handler hfsplus_xattr_user_handler = {
++	.prefix	= XATTR_USER_PREFIX,
++	.list	= hfsplus_user_listxattr,
++	.get	= hfsplus_user_getxattr,
++	.set	= hfsplus_user_setxattr,
++};
 _
 
 Patches currently in -mm which might be from slava@dubeyko.com are
