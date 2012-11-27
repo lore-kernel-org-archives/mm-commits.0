@@ -1,125 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmemmap-fix-wrong-use-of-virt_to_page.patch added to -mm tree
-Date: Tue, 27 Nov 2012 11:49:16 -0800
-Message-ID: <20121127194916.BF679100047__40347.7140739144$1354045777$gmane$org@wpzn3.hot.corp.google.com>
+Subject: [folded-merged] cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch removed from -mm tree
+Date: Tue, 27 Nov 2012 11:59:23 -0800
+Message-ID: <20121127195923.F125482004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:61726 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755430Ab2K0TtS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Nov 2012 14:49:18 -0500
-Received: by mail-gg0-f202.google.com with SMTP id k1so397307ggn.1
-        for <mm-commits@vger.kernel.org>; Tue, 27 Nov 2012 11:49:17 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:54780 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752039Ab2K0T7Z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Nov 2012 14:59:25 -0500
+Received: by mail-qc0-f202.google.com with SMTP id s25so1507747qcq.1
+        for <mm-commits@vger.kernel.org>; Tue, 27 Nov 2012 11:59:24 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: wujianguo@huawei.com, hannes@cmpxchg.org, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, mhocko@suse.cz, stable@vger.kernel.org, wency@cn.fujitsu.com
+To: akpm@linux-foundation.org, hpa@zytor.com, len.brown@intel.com, mingo@redhat.com, pavel@ucw.cz, rjw@sisk.pl, tglx@linutronix.de, wency@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmemmap: fix wrong use of virt_to_page
-has been added to the -mm tree.  Its filename is
-     mm-vmemmap-fix-wrong-use-of-virt_to_page.patch
+     Subject: cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix
+has been removed from the -mm tree.  Its filename was
+     cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved.patch
 
 ------------------------------------------------------
-From: Jianguo Wu <wujianguo@huawei.com>
-Subject: mm/vmemmap: fix wrong use of virt_to_page
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix
 
-I enable CONFIG_DEBUG_VIRTUAL and CONFIG_SPARSEMEM_VMEMMAP, when doing
-memory hotremove, there is a kernel BUG at arch/x86/mm/physaddr.c:20.
+make acpi_unmap_lsapic __ref
 
-It is caused by free_section_usemap()->virt_to_page(), virt_to_page() is
-only used for kernel direct mapping address, but sparse-vmemmap uses
-vmemmap address, so it is going wrong here.
-
-[  517.727381] ------------[ cut here ]------------
-[  517.728851] kernel BUG at arch/x86/mm/physaddr.c:20!
-[  517.728851] invalid opcode: 0000 [#1] SMP
-[  517.740170] Modules linked in: acpihp_drv acpihp_slot edd cpufreq_conservativ
-e cpufreq_userspace cpufreq_powersave acpi_cpufreq mperf fuse vfat fat loop dm_m
-od coretemp kvm crc32c_intel ipv6 ixgbe igb iTCO_wdt i7core_edac edac_core pcspk
-r iTCO_vendor_support ioatdma microcode joydev sr_mod i2c_i801 dca lpc_ich mfd_c
-ore mdio tpm_tis i2c_core hid_generic tpm cdrom sg tpm_bios rtc_cmos button ext3
- jbd mbcache usbhid hid uhci_hcd ehci_hcd usbcore usb_common sd_mod crc_t10dif p
-rocessor thermal_sys hwmon scsi_dh_alua scsi_dh_hp_sw scsi_dh_rdac scsi_dh_emc s
-csi_dh ata_generic ata_piix libata megaraid_sas scsi_mod
-[  517.740170] CPU 39
-[  517.740170] Pid: 6454, comm: sh Not tainted 3.7.0-rc1-acpihp-final+ #45 QCI Q
-SSC-S4R/QSSC-S4R
-[  517.740170] RIP: 0010:[<ffffffff8103c908>]  [<ffffffff8103c908>] __phys_addr+
-0x88/0x90
-[  517.740170] RSP: 0018:ffff8804440d7c08  EFLAGS: 00010006
-[  517.740170] RAX: 0000000000000006 RBX: ffffea0012000000 RCX: 000000000000002c
-
-[  517.740170] RDX: 0000620012000000 RSI: 0000000000000000 RDI: ffffea0012000000
-
-[  517.740170] RBP: ffff8804440d7c08 R08: 0070000000000400 R09: 0000000000488000
-
-[  517.740170] R10: 0000000000000091 R11: 0000000000000001 R12: ffff88047fb87800
-
-[  517.740170] R13: ffffea0000000000 R14: ffff88047ffb3440 R15: 0000000000480000
-
-[  517.740170] FS:  00007f0462b49700(0000) GS:ffff8804570c0000(0000) knlGS:00000
-00000000000
-[  517.740170] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-[  517.740170] CR2: 00007f006dc5fd14 CR3: 0000000440e85000 CR4: 00000000000007e0
-
-[  517.740170] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-
-[  517.896799] DR3: 0000000000000000 DR6
-
-Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
-Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Reviewd-by: Wen Congyang <wency@cn.fujitsu.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
-Cc: <stable@vger.kernel.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Wen Congyang <wency@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ arch/x86/kernel/acpi/boot.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/sparse.c~mm-vmemmap-fix-wrong-use-of-virt_to_page mm/sparse.c
---- a/mm/sparse.c~mm-vmemmap-fix-wrong-use-of-virt_to_page
-+++ a/mm/sparse.c
-@@ -617,7 +617,7 @@ static void __kfree_section_memmap(struc
- {
- 	return; /* XXX: Not implemented yet */
+diff -puN arch/x86/kernel/acpi/boot.c~cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix arch/x86/kernel/acpi/boot.c
+--- a/arch/x86/kernel/acpi/boot.c~cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix
++++ a/arch/x86/kernel/acpi/boot.c
+@@ -695,7 +695,7 @@ int __ref acpi_map_lsapic(acpi_handle ha
  }
--static void free_map_bootmem(struct page *page, unsigned long nr_pages)
-+static void free_map_bootmem(struct page *memmap, unsigned long nr_pages)
+ EXPORT_SYMBOL(acpi_map_lsapic);
+ 
+-int acpi_unmap_lsapic(int cpu)
++int __ref acpi_unmap_lsapic(int cpu)
  {
- }
- #else
-@@ -657,10 +657,11 @@ static void __kfree_section_memmap(struc
- 			   get_order(sizeof(struct page) * nr_pages));
- }
- 
--static void free_map_bootmem(struct page *page, unsigned long nr_pages)
-+static void free_map_bootmem(struct page *memmap, unsigned long nr_pages)
- {
- 	unsigned long maps_section_nr, removing_section_nr, i;
- 	unsigned long magic;
-+	struct page *page = virt_to_page(memmap);
- 
- 	for (i = 0; i < nr_pages; i++, page++) {
- 		magic = (unsigned long) page->lru.next;
-@@ -709,13 +710,10 @@ static void free_section_usemap(struct p
- 	 */
- 
- 	if (memmap) {
--		struct page *memmap_page;
--		memmap_page = virt_to_page(memmap);
+ #ifdef CONFIG_ACPI_NUMA
+ 	set_apicid_to_node(per_cpu(x86_cpu_to_apicid, cpu), NUMA_NO_NODE);
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+linux-next.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+drivers-video-add-support-for-the-solomon-ssd1307-oled-controller-checkpatch-fixes.patch
+irq-tsk-comm-is-an-array.patch
+drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch
+mm.patch
+mm-introduce-mm_find_pmd-fix.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
+slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
+mmvmscan-only-evict-file-pages-when-we-have-plenty-fix.patch
+slub-slub-specific-propagation-changes-fix.patch
+dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch
+mm-check-rb_subtree_gap-correctness-fix.patch
+mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
+mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
+mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
+mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
+mm-use-vm_unmapped_area-on-arm-architecture-fix-fix.patch
+mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc32-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc32-architecture-fix-fix.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
+arch-sparc-kernel-sys_sparc_64c-s-colour-color.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix.patch
+mm-cma-skip-watermarks-check-for-already-isolated-blocks-in-split_free_page-fix-fix.patch
+bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
+mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch
+thp-implement-splitting-pmd-for-huge-zero-page-fix.patch
+mm-add-a-reminder-comment-for-__gfp_bits_shift.patch
+numa-add-config_movable_node-for-movable-dedicated-node-fix.patch
+mm-introduce-new-field-managed_pages-to-struct-zone-fix.patch
+drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
+backlight-add-of_find_backlight_by_node-function-fix.patch
+backlight-88pm860x_bl-remove-an-unnecessary-line-continuation-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes-checkpatch-fixes.patch
+procfs-add-vmflags-field-in-smaps-output-v4.patch
+procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
+ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
+ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
+ipc-convert-prepare_copy-from-macro-to-function-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+fs-notify-add-procfs-fdinfo-helper-v7-fix.patch
+scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+
