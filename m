@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fs-bufferc-remove-redundant-initialization-in-alloc_page_buffers.patch added to -mm tree
-Date: Tue, 27 Nov 2012 15:08:41 -0800
-Message-ID: <20121127230842.A109420004E@hpza10.eem.corp.google.com>
+Subject: + checkpatch-add-strict-messages-for-blank-lines-around-braces.patch added to -mm tree
+Date: Tue, 27 Nov 2012 15:19:51 -0800
+Message-ID: <20121127231951.A479882004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:42937 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753397Ab2K0XIo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Nov 2012 18:08:44 -0500
-Received: by mail-wi0-f202.google.com with SMTP id cb5so413550wib.1
-        for <mm-commits@vger.kernel.org>; Tue, 27 Nov 2012 15:08:43 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:41459 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755474Ab2K0XTw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Nov 2012 18:19:52 -0500
+Received: by mail-qc0-f202.google.com with SMTP id s25so1535923qcq.1
+        for <mm-commits@vger.kernel.org>; Tue, 27 Nov 2012 15:19:52 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clouds.yan@gmail.com
+Cc: joe@perches.com, apw@canonical.com
 
 
 The patch titled
-     Subject: fs/buffer.c: remove redundant initialization in alloc_page_buffers()
+     Subject: checkpatch: Add --strict messages for blank lines around braces
 has been added to the -mm tree.  Its filename is
-     fs-bufferc-remove-redundant-initialization-in-alloc_page_buffers.patch
+     checkpatch-add-strict-messages-for-blank-lines-around-braces.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,42 +33,68 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yan Hong <clouds.yan@gmail.com>
-Subject: fs/buffer.c: remove redundant initialization in alloc_page_buffers()
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: Add --strict messages for blank lines around braces
 
-buffer_head comes from kmem_cache_zalloc(), no need to zero its fields.
+Blank lines around braces are not unnecessary.  Emit a message on the use
+of these blank lines only when using --strict.
 
-Signed-off-by: Yan Hong <clouds.yan@gmail.com>
+int foo(int bar)
+{
+
+	something or other....
+
+}
+
+is generally written in the kernel as:
+
+int foo(int bar)
+{
+	something or other...
+}
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |    3 ---
- 1 file changed, 3 deletions(-)
+ scripts/checkpatch.pl |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN fs/buffer.c~fs-bufferc-remove-redundant-initialization-in-alloc_page_buffers fs/buffer.c
---- a/fs/buffer.c~fs-bufferc-remove-redundant-initialization-in-alloc_page_buffers
-+++ a/fs/buffer.c
-@@ -849,13 +849,10 @@ try_again:
- 		if (!bh)
- 			goto no_grow;
+diff -puN scripts/checkpatch.pl~checkpatch-add-strict-messages-for-blank-lines-around-braces scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-strict-messages-for-blank-lines-around-braces
++++ a/scripts/checkpatch.pl
+@@ -3189,6 +3189,16 @@ sub process {
+ 			}
+ 		}
  
--		bh->b_bdev = NULL;
- 		bh->b_this_page = head;
- 		bh->b_blocknr = -1;
- 		head = bh;
- 
--		bh->b_state = 0;
--		atomic_set(&bh->b_count, 0);
- 		bh->b_size = size;
- 
- 		/* Link the buffer to its page */
++# check for unnecessary blank lines around braces
++		if (($line =~ /^..*}\s*$/ && $prevline =~ /^.\s*$/)) {
++			CHK("BRACES",
++			    "Blank lines aren't necessary before a close brace '}'\n" . $hereprev);
++		}
++		if (($line =~ /^.\s*$/ && $prevline =~ /^..*{\s*$/)) {
++			CHK("BRACES",
++			    "Blank lines aren't necessary after an open brace '{'\n" . $hereprev);
++		}
++
+ # no volatiles please
+ 		my $asm_volatile = qr{\b(__asm__|asm)\s+(__volatile__|volatile)\b};
+ 		if ($line =~ /\bvolatile\b/ && $line !~ /$asm_volatile/) {
 _
 
-Patches currently in -mm which might be from clouds.yan@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 linux-next.patch
-fs-block_devc-need-not-to-check-inode-i_bdev-in-bd_forget.patch
-writeback-fix-a-typo-in-comment.patch
-fs-bufferc-do-not-inline-exported-function.patch
-fs-bufferc-remove-redundant-initialization-in-alloc_page_buffers.patch
+printk-boot_delay-should-only-affect-output.patch
+maintainers-chinese-maintainers-mailing-list-is-subscribers-only.patch
+checkpatch-warn-on-unnecessary-line-continuations.patch
+checkpatch-warn-about-using-config_experimental.patch
+checkpatch-remove-reference-to-feature-removal-scheduletxt.patch
+checkpatch-consolidate-if-foo-barfoo-checks-and-add-debugfs_remove.patch
+checkpatch-allow-control-over-line-length-warning-default-remains-80.patch
+checkpatch-extend-line-continuation-test.patch
+checkpatch-add-strict-messages-for-blank-lines-around-braces.patch
+kstrto-add-documentation.patch
+simple_strto-annotate-function-as-obsolete.patch
 
