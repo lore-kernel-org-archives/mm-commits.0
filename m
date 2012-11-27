@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fs-notify-add-procfs-fdinfo-helper-v7-fix-fix.patch added to -mm tree
-Date: Tue, 27 Nov 2012 11:41:49 -0800
-Message-ID: <20121127194149.B601282004A@wpzn4.hot.corp.google.com>
+Subject: + mm-vmemmap-fix-wrong-use-of-virt_to_page.patch added to -mm tree
+Date: Tue, 27 Nov 2012 11:49:16 -0800
+Message-ID: <20121127194916.BF679100047__40347.7140739144$1354045777$gmane$org@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:53738 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752879Ab2K0Tlu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Nov 2012 14:41:50 -0500
-Received: by mail-ye0-f202.google.com with SMTP id m11so863653yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 27 Nov 2012 11:41:50 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:61726 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755430Ab2K0TtS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Nov 2012 14:49:18 -0500
+Received: by mail-gg0-f202.google.com with SMTP id k1so397307ggn.1
+        for <mm-commits@vger.kernel.org>; Tue, 27 Nov 2012 11:49:17 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: gorcunov@openvz.org, fengguang.wu@intel.com
+Cc: wujianguo@huawei.com, hannes@cmpxchg.org, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, mhocko@suse.cz, stable@vger.kernel.org, wency@cn.fujitsu.com
 
 
 The patch titled
-     Subject: fs, notify: Move bare fdinfo helpers to a header
+     Subject: mm/vmemmap: fix wrong use of virt_to_page
 has been added to the -mm tree.  Its filename is
-     fs-notify-add-procfs-fdinfo-helper-v7-fix-fix.patch
+     mm-vmemmap-fix-wrong-use-of-virt_to_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,68 +33,93 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Cyrill Gorcunov <gorcunov@openvz.org>
-Subject: fs, notify: Move bare fdinfo helpers to a header
+From: Jianguo Wu <wujianguo@huawei.com>
+Subject: mm/vmemmap: fix wrong use of virt_to_page
 
-Otherwise if the kernel gets build without procfs support
-we will have build error
+I enable CONFIG_DEBUG_VIRTUAL and CONFIG_SPARSEMEM_VMEMMAP, when doing
+memory hotremove, there is a kernel BUG at arch/x86/mm/physaddr.c:20.
 
- | fs/notify/inotify/inotify_user.c:333:17: error: 'inotify_show_fdinfo' undeclared here (not in a function)
+It is caused by free_section_usemap()->virt_to_page(), virt_to_page() is
+only used for kernel direct mapping address, but sparse-vmemmap uses
+vmemmap address, so it is going wrong here.
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+[  517.727381] ------------[ cut here ]------------
+[  517.728851] kernel BUG at arch/x86/mm/physaddr.c:20!
+[  517.728851] invalid opcode: 0000 [#1] SMP
+[  517.740170] Modules linked in: acpihp_drv acpihp_slot edd cpufreq_conservativ
+e cpufreq_userspace cpufreq_powersave acpi_cpufreq mperf fuse vfat fat loop dm_m
+od coretemp kvm crc32c_intel ipv6 ixgbe igb iTCO_wdt i7core_edac edac_core pcspk
+r iTCO_vendor_support ioatdma microcode joydev sr_mod i2c_i801 dca lpc_ich mfd_c
+ore mdio tpm_tis i2c_core hid_generic tpm cdrom sg tpm_bios rtc_cmos button ext3
+ jbd mbcache usbhid hid uhci_hcd ehci_hcd usbcore usb_common sd_mod crc_t10dif p
+rocessor thermal_sys hwmon scsi_dh_alua scsi_dh_hp_sw scsi_dh_rdac scsi_dh_emc s
+csi_dh ata_generic ata_piix libata megaraid_sas scsi_mod
+[  517.740170] CPU 39
+[  517.740170] Pid: 6454, comm: sh Not tainted 3.7.0-rc1-acpihp-final+ #45 QCI Q
+SSC-S4R/QSSC-S4R
+[  517.740170] RIP: 0010:[<ffffffff8103c908>]  [<ffffffff8103c908>] __phys_addr+
+0x88/0x90
+[  517.740170] RSP: 0018:ffff8804440d7c08  EFLAGS: 00010006
+[  517.740170] RAX: 0000000000000006 RBX: ffffea0012000000 RCX: 000000000000002c
+
+[  517.740170] RDX: 0000620012000000 RSI: 0000000000000000 RDI: ffffea0012000000
+
+[  517.740170] RBP: ffff8804440d7c08 R08: 0070000000000400 R09: 0000000000488000
+
+[  517.740170] R10: 0000000000000091 R11: 0000000000000001 R12: ffff88047fb87800
+
+[  517.740170] R13: ffffea0000000000 R14: ffff88047ffb3440 R15: 0000000000480000
+
+[  517.740170] FS:  00007f0462b49700(0000) GS:ffff8804570c0000(0000) knlGS:00000
+00000000000
+[  517.740170] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+[  517.740170] CR2: 00007f006dc5fd14 CR3: 0000000440e85000 CR4: 00000000000007e0
+
+[  517.740170] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+
+[  517.896799] DR3: 0000000000000000 DR6
+
+Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Reviewd-by: Wen Congyang <wency@cn.fujitsu.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/fdinfo.c |    5 -----
- fs/notify/fdinfo.h |    5 +++++
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ mm/sparse.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN fs/notify/fdinfo.c~fs-notify-add-procfs-fdinfo-helper-v7-fix-fix fs/notify/fdinfo.c
---- a/fs/notify/fdinfo.c~fs-notify-add-procfs-fdinfo-helper-v7-fix-fix
-+++ a/fs/notify/fdinfo.c
-@@ -145,9 +145,4 @@ int fanotify_show_fdinfo(struct seq_file
+diff -puN mm/sparse.c~mm-vmemmap-fix-wrong-use-of-virt_to_page mm/sparse.c
+--- a/mm/sparse.c~mm-vmemmap-fix-wrong-use-of-virt_to_page
++++ a/mm/sparse.c
+@@ -617,7 +617,7 @@ static void __kfree_section_memmap(struc
+ {
+ 	return; /* XXX: Not implemented yet */
+ }
+-static void free_map_bootmem(struct page *page, unsigned long nr_pages)
++static void free_map_bootmem(struct page *memmap, unsigned long nr_pages)
+ {
+ }
+ #else
+@@ -657,10 +657,11 @@ static void __kfree_section_memmap(struc
+ 			   get_order(sizeof(struct page) * nr_pages));
+ }
  
- #endif /* CONFIG_INOTIFY_USER || CONFIG_FANOTIFY */
+-static void free_map_bootmem(struct page *page, unsigned long nr_pages)
++static void free_map_bootmem(struct page *memmap, unsigned long nr_pages)
+ {
+ 	unsigned long maps_section_nr, removing_section_nr, i;
+ 	unsigned long magic;
++	struct page *page = virt_to_page(memmap);
  
--#else /* CONFIG_PROC_FS */
--
--#define inotify_show_fdinfo	NULL
--#define fanotify_show_fdinfo	NULL
--
- #endif /* CONFIG_PROC_FS */
-diff -puN fs/notify/fdinfo.h~fs-notify-add-procfs-fdinfo-helper-v7-fix-fix fs/notify/fdinfo.h
---- a/fs/notify/fdinfo.h~fs-notify-add-procfs-fdinfo-helper-v7-fix-fix
-+++ a/fs/notify/fdinfo.h
-@@ -17,6 +17,11 @@ extern int inotify_show_fdinfo(struct se
- extern int fanotify_show_fdinfo(struct seq_file *m, struct file *f);
- #endif
+ 	for (i = 0; i < nr_pages; i++, page++) {
+ 		magic = (unsigned long) page->lru.next;
+@@ -709,13 +710,10 @@ static void free_section_usemap(struct p
+ 	 */
  
-+#else /* CONFIG_PROC_FS */
-+
-+#define inotify_show_fdinfo	NULL
-+#define fanotify_show_fdinfo	NULL
-+
- #endif /* CONFIG_PROC_FS */
- 
- #endif /* __FSNOTIFY_FDINFO_H__ */
-_
-
-Patches currently in -mm which might be from gorcunov@openvz.org are
-
-origin.patch
-linux-next.patch
-procfs-add-vmflags-field-in-smaps-output-v4.patch
-procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
-proc-pid-status-add-seccomp-field.patch
-tools-testing-selftests-kcmp-kcmp_testc-print-reason-for-failure-in-kcmp_test.patch
-procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers.patch
-fs-eventfd-add-procfs-fdinfo-helper.patch
-fs-epoll-add-procfs-fdinfo-helper-v2.patch
-fdinfo-show-sigmask-for-signalfd-fd-v3.patch
-fs-exportfs-escape-nil-dereference-if-no-s_export_op-present.patch
-fs-exportfs-add-exportfs_encode_inode_fh-helper.patch
-fs-notify-add-procfs-fdinfo-helper-v7.patch
-fs-notify-add-procfs-fdinfo-helper-v7-fix-fix.patch
-fs-notify-add-procfs-fdinfo-helper-v7-fix.patch
-
+ 	if (memmap) {
+-		struct page *memmap_page;
+-		memmap_page = virt_to_page(memmap);
