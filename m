@@ -1,232 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] mm-highmem-makes-flush_all_zero_pkmaps-return-index-of-last-flushed-entry.patch removed from -mm tree
-Date: Tue, 27 Nov 2012 11:11:21 -0800
-Message-ID: <20121127191122.3627A100047@wpzn3.hot.corp.google.com>
+Subject: + thp-implement-splitting-pmd-for-huge-zero-page-fix.patch added to -mm tree
+Date: Tue, 27 Nov 2012 11:34:18 -0800
+Message-ID: <20121127193419.7714F100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:65091 "EHLO
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:34999 "EHLO
 	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755368Ab2K0TLX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Nov 2012 14:11:23 -0500
-Received: by mail-qc0-f202.google.com with SMTP id s25so1500515qcq.1
-        for <mm-commits@vger.kernel.org>; Tue, 27 Nov 2012 11:11:22 -0800 (PST)
+	with ESMTP id S1752545Ab2K0TeU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Nov 2012 14:34:20 -0500
+Received: by mail-qc0-f202.google.com with SMTP id s25so1503788qcq.1
+        for <mm-commits@vger.kernel.org>; Tue, 27 Nov 2012 11:34:20 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: js1304@gmail.com, a.p.zijlstra@chello.nl, mel@csn.ul.ie, minchan@kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, fengguang.wu@intel.com, kirill.shutemov@linux.intel.com
 
 
 The patch titled
-     Subject: mm, highmem: makes flush_all_zero_pkmaps() return index of last flushed entry
-has been removed from the -mm tree.  Its filename was
-     mm-highmem-makes-flush_all_zero_pkmaps-return-index-of-last-flushed-entry.patch
+     Subject: thp-implement-splitting-pmd-for-huge-zero-page-fix
+has been added to the -mm tree.  Its filename is
+     thp-implement-splitting-pmd-for-huge-zero-page-fix.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <js1304@gmail.com>
-Subject: mm, highmem: makes flush_all_zero_pkmaps() return index of last flushed entry
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: thp-implement-splitting-pmd-for-huge-zero-page-fix
 
-In current code, after flush_all_zero_pkmaps() is invoked we re-iterate
-all pkmaps.  This can be optimized if flush_all_zero_pkmaps() returns an
-index of flushed entry.  With this index, we can immediately map highmem
-page to virtual address represented by index.  So change return type of
-flush_all_zero_pkmaps() and return index of last flushed entry.
+fix build error
 
-Additionally, update last_pkmap_nr to this index.  It is certain that
-entry which is below this index is occupied by other mapping, therefore
-updating last_pkmap_nr to this index is reasonable optimization.
-
-Signed-off-by: Joonsoo Kim <js1304@gmail.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/highmem.h |    1 
- mm/highmem.c            |   75 ++++++++++++++++++++++----------------
- 2 files changed, 45 insertions(+), 31 deletions(-)
+ mm/huge_memory.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/linux/highmem.h~mm-highmem-makes-flush_all_zero_pkmaps-return-index-of-last-flushed-entry include/linux/highmem.h
---- a/include/linux/highmem.h~mm-highmem-makes-flush_all_zero_pkmaps-return-index-of-last-flushed-entry
-+++ a/include/linux/highmem.h
-@@ -32,6 +32,7 @@ static inline void invalidate_kernel_vma
+diff -puN mm/huge_memory.c~thp-implement-splitting-pmd-for-huge-zero-page-fix mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-implement-splitting-pmd-for-huge-zero-page-fix
++++ a/mm/huge_memory.c
+@@ -2672,7 +2672,6 @@ void __split_huge_page_pmd(struct vm_are
+ 	struct page *page;
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	unsigned long haddr = address & HPAGE_PMD_MASK;
+-	struct mm_struct *mm = vma->vm_mm;
+ 	unsigned long mmun_start;	/* For mmu_notifiers */
+ 	unsigned long mmun_end;		/* For mmu_notifiers */
  
- #ifdef CONFIG_HIGHMEM
- #include <asm/highmem.h>
-+#define PKMAP_INVALID_INDEX (LAST_PKMAP)
- 
- /* declarations for linux/mm/highmem.c */
- unsigned int nr_free_highpages(void);
-diff -puN mm/highmem.c~mm-highmem-makes-flush_all_zero_pkmaps-return-index-of-last-flushed-entry mm/highmem.c
---- a/mm/highmem.c~mm-highmem-makes-flush_all_zero_pkmaps-return-index-of-last-flushed-entry
-+++ a/mm/highmem.c
-@@ -107,10 +107,10 @@ struct page *kmap_to_page(void *vaddr)
- }
- EXPORT_SYMBOL(kmap_to_page);
- 
--static void flush_all_zero_pkmaps(void)
-+static unsigned int flush_all_zero_pkmaps(void)
- {
- 	int i;
--	int need_flush = 0;
-+	unsigned int index = PKMAP_INVALID_INDEX;
- 
- 	flush_cache_kmaps();
- 
-@@ -142,10 +142,13 @@ static void flush_all_zero_pkmaps(void)
- 			  &pkmap_page_table[i]);
- 
- 		set_page_address(page, NULL);
--		need_flush = 1;
-+		if (index == PKMAP_INVALID_INDEX)
-+			index = i;
- 	}
--	if (need_flush)
-+	if (index != PKMAP_INVALID_INDEX)
- 		flush_tlb_kernel_range(PKMAP_ADDR(0), PKMAP_ADDR(LAST_PKMAP));
-+
-+	return index;
- }
- 
- /**
-@@ -153,14 +156,19 @@ static void flush_all_zero_pkmaps(void)
-  */
- void kmap_flush_unused(void)
- {
-+	unsigned int index;
-+
- 	lock_kmap();
--	flush_all_zero_pkmaps();
-+	index = flush_all_zero_pkmaps();
-+	if (index != PKMAP_INVALID_INDEX && (index < last_pkmap_nr))
-+		last_pkmap_nr = index;
- 	unlock_kmap();
- }
- 
- static inline unsigned long map_new_virtual(struct page *page)
- {
- 	unsigned long vaddr;
-+	unsigned int index = PKMAP_INVALID_INDEX;
- 	int count;
- 
- start:
-@@ -169,40 +177,45 @@ start:
- 	for (;;) {
- 		last_pkmap_nr = (last_pkmap_nr + 1) & LAST_PKMAP_MASK;
- 		if (!last_pkmap_nr) {
--			flush_all_zero_pkmaps();
--			count = LAST_PKMAP;
-+			index = flush_all_zero_pkmaps();
-+			break;
- 		}
--		if (!pkmap_count[last_pkmap_nr])
-+		if (!pkmap_count[last_pkmap_nr]) {
-+			index = last_pkmap_nr;
- 			break;	/* Found a usable entry */
--		if (--count)
--			continue;
-+		}
-+		if (--count == 0)
-+			break;
-+	}
- 
--		/*
--		 * Sleep for somebody else to unmap their entries
--		 */
--		{
--			DECLARE_WAITQUEUE(wait, current);
-+	/*
-+	 * Sleep for somebody else to unmap their entries
-+	 */
-+	if (index == PKMAP_INVALID_INDEX) {
-+		DECLARE_WAITQUEUE(wait, current);
- 
--			__set_current_state(TASK_UNINTERRUPTIBLE);
--			add_wait_queue(&pkmap_map_wait, &wait);
--			unlock_kmap();
--			schedule();
--			remove_wait_queue(&pkmap_map_wait, &wait);
--			lock_kmap();
--
--			/* Somebody else might have mapped it while we slept */
--			if (page_address(page))
--				return (unsigned long)page_address(page);
-+		__set_current_state(TASK_UNINTERRUPTIBLE);
-+		add_wait_queue(&pkmap_map_wait, &wait);
-+		unlock_kmap();
-+		schedule();
-+		remove_wait_queue(&pkmap_map_wait, &wait);
-+		lock_kmap();
-+
-+		/* Somebody else might have mapped it while we slept */
-+		vaddr = (unsigned long)page_address(page);
-+		if (vaddr)
-+			return vaddr;
- 
--			/* Re-start */
--			goto start;
--		}
-+		/* Re-start */
-+		goto start;
- 	}
--	vaddr = PKMAP_ADDR(last_pkmap_nr);
-+
-+	vaddr = PKMAP_ADDR(index);
- 	set_pte_at(&init_mm, vaddr,
--		   &(pkmap_page_table[last_pkmap_nr]), mk_pte(page, kmap_prot));
-+		   &(pkmap_page_table[index]), mk_pte(page, kmap_prot));
- 
--	pkmap_count[last_pkmap_nr] = 1;
-+	pkmap_count[index] = 1;
-+	last_pkmap_nr = index;
- 	set_page_address(page, (void *)vaddr);
- 
- 	return vaddr;
 _
 
-Patches currently in -mm which might be from js1304@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-mm-highmem-use-pkmap_nr-to-calculate-an-index-of-pkmap.patch
-mm-highmem-remove-useless-pool_lock.patch
-mm-highmem-remove-page_address_pool-list.patch
-mm-highmem-remove-page_address_pool-list-v2.patch
-mm-highmem-get-virtual-address-of-the-page-using-pkmap_addr.patch
-memcg-make-it-possible-to-use-the-stock-for-more-than-one-page.patch
-memcg-reclaim-when-more-than-one-page-needed.patch
-memcg-change-defines-to-an-enum.patch
-memcg-kmem-accounting-basic-infrastructure.patch
-mm-add-a-__gfp_kmemcg-flag.patch
-memcg-kmem-controller-infrastructure.patch
-mm-allocate-kernel-pages-to-the-right-memcg.patch
-res_counter-return-amount-of-charges-after-res_counter_uncharge.patch
-memcg-kmem-accounting-lifecycle-management.patch
-memcg-use-static-branches-when-code-not-in-use.patch
-memcg-allow-a-memcg-with-kmem-charges-to-be-destructed.patch
-memcg-execute-the-whole-memcg-freeing-in-free_worker.patch
-fork-protect-architectures-where-thread_size-=-page_size-against-fork-bombs.patch
-memcg-add-documentation-about-the-kmem-controller.patch
-slab-slub-struct-memcg_params.patch
-slab-annotate-on-slab-caches-nodelist-locks.patch
-slab-slub-consider-a-memcg-parameter-in-kmem_create_cache.patch
-memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears.patch
-memcg-infrastructure-to-match-an-allocation-to-the-right-cache.patch
-memcg-skip-memcg-kmem-allocations-in-specified-code-regions.patch
-slb-always-get-the-cache-from-its-page-in-kmem_cache_free.patch
-slb-allocate-objects-from-memcg-cache.patch
-memcg-destroy-memcg-caches.patch
-memcg-slb-track-all-the-memcg-children-of-a-kmem_cache.patch
-memcg-slb-shrink-dead-caches.patch
-memcg-aggregate-memcg-cache-values-in-slabinfo.patch
-slab-propagate-tunable-values.patch
-slub-slub-specific-propagation-changes.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+cpu_hotplug-unmap-cpu2node-when-the-cpu-is-hotremoved-fix.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+drivers-video-add-support-for-the-solomon-ssd1307-oled-controller-checkpatch-fixes.patch
+irq-tsk-comm-is-an-array.patch
+drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch
+mm.patch
+mm-introduce-mm_find_pmd-fix.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
+slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
+mmvmscan-only-evict-file-pages-when-we-have-plenty-fix.patch
 slub-slub-specific-propagation-changes-fix.patch
-kmem-add-slab-specific-documentation-about-the-kmem-controller.patch
-bootmem-remove-not-implemented-function-call-bootmem_arch_preferred_node.patch
-avr32-kconfig-remove-have_arch_bootmem.patch
-bootmem-remove-alloc_arch_preferred_bootmem.patch
-bootmem-fix-wrong-call-parameter-for-free_bootmem.patch
+dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch
+mm-check-rb_subtree_gap-correctness-fix.patch
+mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
+mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
+mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
+mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
+mm-use-vm_unmapped_area-on-arm-architecture-fix-fix.patch
+mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc32-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc32-architecture-fix-fix.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
+arch-sparc-kernel-sys_sparc_64c-s-colour-color.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix.patch
+mm-cma-skip-watermarks-check-for-already-isolated-blocks-in-split_free_page-fix-fix.patch
 bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
-mm-warn_on_once-if-f_op-mmap-change-vmas-start-address.patch
+mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch
+thp-implement-splitting-pmd-for-huge-zero-page-fix.patch
+mm-add-a-reminder-comment-for-__gfp_bits_shift.patch
+numa-add-config_movable_node-for-movable-dedicated-node-fix.patch
+mm-introduce-new-field-managed_pages-to-struct-zone-fix.patch
+drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
+backlight-add-of_find_backlight_by_node-function-fix.patch
+backlight-88pm860x_bl-remove-an-unnecessary-line-continuation-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes-checkpatch-fixes.patch
+procfs-add-vmflags-field-in-smaps-output-v4.patch
+procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
+ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
+ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
+ipc-convert-prepare_copy-from-macro-to-function-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+fs-notify-add-procfs-fdinfo-helper-v7-fix.patch
+scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
