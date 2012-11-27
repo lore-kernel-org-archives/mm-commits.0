@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-add-nxp-pcf8523-support.patch added to -mm tree
-Date: Tue, 27 Nov 2012 13:36:56 -0800
-Message-ID: <20121127213656.8077F100047@wpzn3.hot.corp.google.com>
+Subject: + mm-soft-offline-split-thp-at-the-beginning-of-soft_offline_page.patch added to -mm tree
+Date: Tue, 27 Nov 2012 13:55:23 -0800
+Message-ID: <20121127215523.A7A4582004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:57206 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752812Ab2K0Vg5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Nov 2012 16:36:57 -0500
-Received: by mail-vb0-f74.google.com with SMTP id s24so1530439vbi.1
-        for <mm-commits@vger.kernel.org>; Tue, 27 Nov 2012 13:36:57 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:34699 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753217Ab2K0VzZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Nov 2012 16:55:25 -0500
+Received: by mail-qa0-f74.google.com with SMTP id g40so693241qab.1
+        for <mm-commits@vger.kernel.org>; Tue, 27 Nov 2012 13:55:24 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: thierry.reding@avionic-design.de, a.zummo@towertech.it
+Cc: n-horiguchi@ah.jp.nec.com, andi.kleen@intel.com, andi@firstfloor.org, fengguang.wu@intel.com, stable@vger.kernel.org, tony.luck@intel.com
 
 
 The patch titled
-     Subject: rtc: add NXP PCF8523 support
+     Subject: mm: soft offline: split thp at the beginning of soft_offline_page()
 has been added to the -mm tree.  Its filename is
-     rtc-add-nxp-pcf8523-support.patch
+     mm-soft-offline-split-thp-at-the-beginning-of-soft_offline_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,375 +33,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Thierry Reding <thierry.reding@avionic-design.de>
-Subject: rtc: add NXP PCF8523 support
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: soft offline: split thp at the beginning of soft_offline_page()
 
-Add an RTC driver for PCF8523 chips by NXP Semiconductors.  No support is
-currently provided for the alarm and interrupt functions.  Only the time
-and date functionality is implemented.
+When we try to soft-offline a thp tail page, put_page() is called on the
+tail page unthinkingly and VM_BUG_ON is triggered in put_compound_page(). 
+This patch splits thp before going into the main body of soft-offlining.
 
-Signed-off-by: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Andi Kleen <andi.kleen@intel.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig       |    9 +
- drivers/rtc/Makefile      |    1 
- drivers/rtc/rtc-pcf8523.c |  307 ++++++++++++++++++++++++++++++++++++
- 3 files changed, 317 insertions(+)
+ mm/memory-failure.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/rtc/Kconfig~rtc-add-nxp-pcf8523-support drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-add-nxp-pcf8523-support
-+++ a/drivers/rtc/Kconfig
-@@ -269,6 +269,15 @@ config RTC_DRV_X1205
- 	  This driver can also be built as a module. If so, the module
- 	  will be called rtc-x1205.
+diff -puN mm/memory-failure.c~mm-soft-offline-split-thp-at-the-beginning-of-soft_offline_page mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-soft-offline-split-thp-at-the-beginning-of-soft_offline_page
++++ a/mm/memory-failure.c
+@@ -1476,9 +1476,17 @@ int soft_offline_page(struct page *page,
+ {
+ 	int ret;
+ 	unsigned long pfn = page_to_pfn(page);
++	struct page *hpage = compound_trans_head(page);
  
-+config RTC_DRV_PCF8523
-+	tristate "NXP PCF8523"
-+	help
-+	  If you say yes here you get support for the NXP PCF8523 RTC
-+	  chips.
-+
-+	  This driver can also be built as a module. If so, the module
-+	  will be called rtc-pcf8523.
-+
- config RTC_DRV_PCF8563
- 	tristate "Philips PCF8563/Epson RTC8564"
- 	help
-diff -puN drivers/rtc/Makefile~rtc-add-nxp-pcf8523-support drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-add-nxp-pcf8523-support
-+++ a/drivers/rtc/Makefile
-@@ -76,6 +76,7 @@ obj-$(CONFIG_RTC_DRV_MV)	+= rtc-mv.o
- obj-$(CONFIG_RTC_DRV_NUC900)	+= rtc-nuc900.o
- obj-$(CONFIG_RTC_DRV_OMAP)	+= rtc-omap.o
- obj-$(CONFIG_RTC_DRV_PCAP)	+= rtc-pcap.o
-+obj-$(CONFIG_RTC_DRV_PCF8523)	+= rtc-pcf8523.o
- obj-$(CONFIG_RTC_DRV_PCF8563)	+= rtc-pcf8563.o
- obj-$(CONFIG_RTC_DRV_PCF8583)	+= rtc-pcf8583.o
- obj-$(CONFIG_RTC_DRV_PCF2123)	+= rtc-pcf2123.o
-diff -puN /dev/null drivers/rtc/rtc-pcf8523.c
---- /dev/null
-+++ a/drivers/rtc/rtc-pcf8523.c
-@@ -0,0 +1,307 @@
-+/*
-+ * Copyright (C) 2012 Avionic Design GmbH
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/bcd.h>
-+#include <linux/i2c.h>
-+#include <linux/module.h>
-+#include <linux/rtc.h>
-+#include <linux/of.h>
-+
-+#define DRIVER_NAME "rtc-pcf8523"
-+
-+#define REG_CONTROL1 0x00
-+#define REG_CONTROL1_CAP_SEL (1 << 7)
-+#define REG_CONTROL1_STOP    (1 << 5)
-+
-+#define REG_CONTROL3 0x02
-+#define REG_CONTROL3_PM_BLD (1 << 7) /* battery low detection disabled */
-+#define REG_CONTROL3_PM_VDD (1 << 6) /* switch-over disabled */
-+#define REG_CONTROL3_PM_DSM (1 << 5) /* direct switching mode */
-+#define REG_CONTROL3_PM_MASK 0xe0
-+
-+#define REG_SECONDS  0x03
-+#define REG_SECONDS_OS (1 << 7)
-+
-+#define REG_MINUTES  0x04
-+#define REG_HOURS    0x05
-+#define REG_DAYS     0x06
-+#define REG_WEEKDAYS 0x07
-+#define REG_MONTHS   0x08
-+#define REG_YEARS    0x09
-+
-+struct pcf8523 {
-+	struct rtc_device *rtc;
-+};
-+
-+static int pcf8523_read(struct i2c_client *client, u8 reg, u8 *valuep)
-+{
-+	struct i2c_msg msgs[2];
-+	u8 value = 0;
-+	int err;
-+
-+	msgs[0].addr = client->addr;
-+	msgs[0].flags = 0;
-+	msgs[0].len = sizeof(reg);
-+	msgs[0].buf = &reg;
-+
-+	msgs[1].addr = client->addr;
-+	msgs[1].flags = I2C_M_RD;
-+	msgs[1].len = sizeof(value);
-+	msgs[1].buf = &value;
-+
-+	err = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
-+	if (err < 0)
-+		return err;
-+
-+	*valuep = value;
-+
-+	return 0;
-+}
-+
-+static int pcf8523_write(struct i2c_client *client, u8 reg, u8 value)
-+{
-+	u8 buffer[2] = { reg, value };
-+	struct i2c_msg msg;
-+	int err;
-+
-+	msg.addr = client->addr;
-+	msg.flags = 0;
-+	msg.len = sizeof(buffer);
-+	msg.buf = buffer;
-+
-+	err = i2c_transfer(client->adapter, &msg, 1);
-+	if (err < 0)
-+		return err;
-+
-+	return 0;
-+}
-+
-+static int pcf8523_select_capacitance(struct i2c_client *client, bool high)
-+{
-+	u8 value;
-+	int err;
-+
-+	err = pcf8523_read(client, REG_CONTROL1, &value);
-+	if (err < 0)
-+		return err;
-+
-+	if (!high)
-+		value &= ~REG_CONTROL1_CAP_SEL;
-+	else
-+		value |= REG_CONTROL1_CAP_SEL;
-+
-+	err = pcf8523_write(client, REG_CONTROL1, value);
-+	if (err < 0)
-+		return err;
-+
-+	return err;
-+}
-+
-+static int pcf8523_set_pm(struct i2c_client *client, u8 pm)
-+{
-+	u8 value;
-+	int err;
-+
-+	err = pcf8523_read(client, REG_CONTROL3, &value);
-+	if (err < 0)
-+		return err;
-+
-+	value = (value & ~REG_CONTROL3_PM_MASK) | pm;
-+
-+	err = pcf8523_write(client, REG_CONTROL3, value);
-+	if (err < 0)
-+		return err;
-+
-+	return 0;
-+}
-+
-+static int pcf8523_stop_rtc(struct i2c_client *client)
-+{
-+	u8 value;
-+	int err;
-+
-+	err = pcf8523_read(client, REG_CONTROL1, &value);
-+	if (err < 0)
-+		return err;
-+
-+	value |= REG_CONTROL1_STOP;
-+
-+	err = pcf8523_write(client, REG_CONTROL1, value);
-+	if (err < 0)
-+		return err;
-+
-+	return 0;
-+}
-+
-+static int pcf8523_start_rtc(struct i2c_client *client)
-+{
-+	u8 value;
-+	int err;
-+
-+	err = pcf8523_read(client, REG_CONTROL1, &value);
-+	if (err < 0)
-+		return err;
-+
-+	value &= ~REG_CONTROL1_STOP;
-+
-+	err = pcf8523_write(client, REG_CONTROL1, value);
-+	if (err < 0)
-+		return err;
-+
-+	return 0;
-+}
-+
-+static int pcf8523_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	u8 start = REG_SECONDS, regs[7];
-+	struct i2c_msg msgs[2];
-+	int err;
-+
-+	msgs[0].addr = client->addr;
-+	msgs[0].flags = 0;
-+	msgs[0].len = 1;
-+	msgs[0].buf = &start;
-+
-+	msgs[1].addr = client->addr;
-+	msgs[1].flags = I2C_M_RD;
-+	msgs[1].len = sizeof(regs);
-+	msgs[1].buf = regs;
-+
-+	err = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
-+	if (err < 0)
-+		return err;
-+
-+	if (regs[0] & REG_SECONDS_OS) {
-+		dev_dbg(dev, "clock integrity is not guaranteed\n");
-+
-+		/* try to clear the flag */
-+		regs[0] &= ~REG_SECONDS_OS;
-+
-+		err = pcf8523_write(client, REG_SECONDS, regs[0]);
-+		if (err < 0)
-+			return err;
+ 	if (PageHuge(page))
+ 		return soft_offline_huge_page(page, flags);
++	if (PageTransHuge(hpage)) {
++		if (PageAnon(hpage) && unlikely(split_huge_page(hpage))) {
++			pr_info("soft offline: %#lx: failed to split THP\n",
++				pfn);
++			return -EBUSY;
++		}
 +	}
-+
-+	tm->tm_sec = bcd2bin(regs[0] & 0x7f);
-+	tm->tm_min = bcd2bin(regs[1] & 0x7f);
-+	tm->tm_hour = bcd2bin(regs[2] & 0x3f);
-+	tm->tm_mday = bcd2bin(regs[3] & 0x3f);
-+	tm->tm_wday = regs[4] & 0x7;
-+	tm->tm_mon = bcd2bin(regs[5] & 0x1f);
-+	tm->tm_year = bcd2bin(regs[6]) + 100;
-+
-+	return rtc_valid_tm(tm);
-+}
-+
-+static int pcf8523_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct i2c_msg msg;
-+	u8 regs[8];
-+	int err;
-+
-+	err = pcf8523_stop_rtc(client);
-+	if (err < 0)
-+		return err;
-+
-+	regs[0] = REG_SECONDS;
-+	regs[1] = bin2bcd(tm->tm_sec);
-+	regs[2] = bin2bcd(tm->tm_min);
-+	regs[3] = bin2bcd(tm->tm_hour);
-+	regs[4] = bin2bcd(tm->tm_mday);
-+	regs[5] = tm->tm_wday;
-+	regs[6] = bin2bcd(tm->tm_mon);
-+	regs[7] = bin2bcd(tm->tm_year - 100);
-+
-+	msg.addr = client->addr;
-+	msg.flags = 0;
-+	msg.len = sizeof(regs);
-+	msg.buf = regs;
-+
-+	err = i2c_transfer(client->adapter, &msg, 1);
-+	if (err < 0)
-+		return err;
-+
-+	return pcf8523_start_rtc(client);
-+}
-+
-+static const struct rtc_class_ops pcf8523_rtc_ops = {
-+	.read_time = pcf8523_rtc_read_time,
-+	.set_time = pcf8523_rtc_set_time,
-+};
-+
-+static int pcf8523_probe(struct i2c_client *client,
-+			 const struct i2c_device_id *id)
-+{
-+	struct pcf8523 *pcf;
-+	int err;
-+
-+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
-+		return -ENODEV;
-+
-+	pcf = devm_kzalloc(&client->dev, sizeof(*pcf), GFP_KERNEL);
-+	if (!pcf)
-+		return -ENOMEM;
-+
-+	err = pcf8523_select_capacitance(client, true);
-+	if (err < 0)
-+		return err;
-+
-+	err = pcf8523_set_pm(client, 0);
-+	if (err < 0)
-+		return err;
-+
-+	pcf->rtc = rtc_device_register(DRIVER_NAME, &client->dev,
-+				       &pcf8523_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(pcf->rtc))
-+		return PTR_ERR(pcf->rtc);
-+
-+	i2c_set_clientdata(client, pcf);
-+
-+	return 0;
-+}
-+
-+static int pcf8523_remove(struct i2c_client *client)
-+{
-+	struct pcf8523 *pcf = i2c_get_clientdata(client);
-+
-+	rtc_device_unregister(pcf->rtc);
-+
-+	return 0;
-+}
-+
-+static const struct i2c_device_id pcf8523_id[] = {
-+	{ "pcf8523", 0 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(i2c, pcf8523_id);
-+
-+#ifdef CONFIG_OF
-+static const struct of_device_id pcf8523_of_match[] = {
-+	{ .compatible = "nxp,pcf8523" },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(of, pcf8523_of_match);
-+#endif
-+
-+static struct i2c_driver pcf8523_driver = {
-+	.driver = {
-+		.name = DRIVER_NAME,
-+		.owner = THIS_MODULE,
-+		.of_match_table = of_match_ptr(pcf8523_of_match),
-+	},
-+	.probe = pcf8523_probe,
-+	.remove = pcf8523_remove,
-+	.id_table = pcf8523_id,
-+};
-+module_i2c_driver(pcf8523_driver);
-+
-+MODULE_AUTHOR("Thierry Reding <thierry.reding@avionic-design.de>");
-+MODULE_DESCRIPTION("NXP PCF8523 RTC driver");
-+MODULE_LICENSE("GPL v2");
+ 
+ 	ret = get_any_page(page, pfn, flags);
+ 	if (ret < 0)
 _
 
-Patches currently in -mm which might be from thierry.reding@avionic-design.de are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-linux-next.patch
-mm-compaction-fix-compiler-warning.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
-drivers-video-backlight-lp855x_blc-remove-unnecessary-mutex-code.patch
-backlight-add-of_find_backlight_by_node-function.patch
-backlight-add-of_find_backlight_by_node-function-fix.patch
-backlight-add-of_find_backlight_by_node-function-fix-2.patch
-rtc-add-nxp-pcf8523-support.patch
+mm-soft-offline-split-thp-at-the-beginning-of-soft_offline_page.patch
+hwpoison-fix-action_result-to-print-out-dirty-clean.patch
+mm-print-out-information-of-file-affected-by-memory-error.patch
 
