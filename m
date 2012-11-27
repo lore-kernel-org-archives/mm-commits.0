@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-davinci-use-devm_kzalloc.patch added to -mm tree
-Date: Tue, 27 Nov 2012 12:33:16 -0800
-Message-ID: <20121127203317.573E282004A@wpzn4.hot.corp.google.com>
+Subject: + mqueue-selftests-print-failure-status-instead-of-cause-make-error.patch added to -mm tree
+Date: Tue, 27 Nov 2012 12:41:49 -0800
+Message-ID: <20121127204149.96310100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:49154 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756183Ab2K0UdU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Nov 2012 15:33:20 -0500
-Received: by mail-qa0-f74.google.com with SMTP id g40so680425qab.1
-        for <mm-commits@vger.kernel.org>; Tue, 27 Nov 2012 12:33:17 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:59800 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755822Ab2K0Ulu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Nov 2012 15:41:50 -0500
+Received: by mail-gg0-f202.google.com with SMTP id k1so405148ggn.1
+        for <mm-commits@vger.kernel.org>; Tue, 27 Nov 2012 12:41:50 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: devendra.aaru@gmail.com, a.zummo@towertech.it, miguel.aguilar@ridgerun.com
+Cc: dyoung@redhat.com, penberg@kernel.org
 
 
 The patch titled
-     Subject: rtc: rtc-davinci: use devm_kzalloc()
+     Subject: mqueue selftests: print failure status instead of cause make error
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-davinci-use-devm_kzalloc.patch
+     mqueue-selftests-print-failure-status-instead-of-cause-make-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,73 +33,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Devendra Naga <devendra.aaru@gmail.com>
-Subject: rtc: rtc-davinci: use devm_kzalloc()
+From: Dave Young <dyoung@redhat.com>
+Subject: mqueue selftests: print failure status instead of cause make error
 
-Use devm_kzalloc() and remove the error path free and the unload free as
-devm functions take care of freeing resources.
+Original behavior:
+  bash-4.1$ make -C mqueue run_tests
+  make: Entering directory `/home/dave/git/linux-2.6/tools/testing/selftests/mqueue'
+  ./mq_open_tests /test1
+  Not running as root, but almost all tests require root in order to modify
+  system settings.  Exiting.
+  make: *** [run_tests] Error 1
+  make: Leaving directory `/home/dave/git/linux-2.6/tools/testing/selftests/mqueue'
 
-Signed-off-by: Devendra Naga <devendra.aaru@gmail.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Miguel Aguilar <miguel.aguilar@ridgerun.com>
+After applying the patch:
+  bash-4.1$ make -C mqueue run_tests
+  make: Entering directory `/home/dave/git/linux-2.6/tools/testing/selftests/mqueue'
+  Not running as root, but almost all tests require root in order to modify
+  system settings.  Exiting.
+  mq_open_tests: [FAIL]
+  Not running as root, but almost all tests require root in order to modify
+  system settings.  Exiting.
+  mq_perf_tests: [FAIL]
+  make: Leaving directory `/home/dave/git/linux-2.6/tools/testing/selftests/mqueue'
+
+Signed-off-by: Dave Young <dyoung@redhat.com>
+Reviewed-by: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-davinci.c |   16 ++++------------
- 1 file changed, 4 insertions(+), 12 deletions(-)
+ tools/testing/selftests/mqueue/Makefile |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-davinci.c~rtc-rtc-davinci-use-devm_kzalloc drivers/rtc/rtc-davinci.c
---- a/drivers/rtc/rtc-davinci.c~rtc-rtc-davinci-use-devm_kzalloc
-+++ a/drivers/rtc/rtc-davinci.c
-@@ -485,7 +485,7 @@ static int __init davinci_rtc_probe(stru
- 	struct resource *res, *mem;
- 	int ret = 0;
+diff -puN tools/testing/selftests/mqueue/Makefile~mqueue-selftests-print-failure-status-instead-of-cause-make-error tools/testing/selftests/mqueue/Makefile
+--- a/tools/testing/selftests/mqueue/Makefile~mqueue-selftests-print-failure-status-instead-of-cause-make-error
++++ a/tools/testing/selftests/mqueue/Makefile
+@@ -3,8 +3,8 @@ all:
+ 	gcc -O2 -lrt -lpthread -lpopt -o mq_perf_tests mq_perf_tests.c
  
--	davinci_rtc = kzalloc(sizeof(struct davinci_rtc), GFP_KERNEL);
-+	davinci_rtc = devm_kzalloc(&pdev->dev, sizeof(struct davinci_rtc), GFP_KERNEL);
- 	if (!davinci_rtc) {
- 		dev_dbg(dev, "could not allocate memory for private data\n");
- 		return -ENOMEM;
-@@ -494,15 +494,13 @@ static int __init davinci_rtc_probe(stru
- 	davinci_rtc->irq = platform_get_irq(pdev, 0);
- 	if (davinci_rtc->irq < 0) {
- 		dev_err(dev, "no RTC irq\n");
--		ret = davinci_rtc->irq;
--		goto fail1;
-+		return davinci_rtc->irq;
- 	}
+ run_tests:
+-	./mq_open_tests /test1
+-	./mq_perf_tests
++	@./mq_open_tests /test1 || echo "mq_open_tests: [FAIL]"
++	@./mq_perf_tests || echo "mq_perf_tests: [FAIL]"
  
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!res) {
- 		dev_err(dev, "no mem resource\n");
--		ret = -EINVAL;
--		goto fail1;
-+		return -EINVAL;
- 	}
- 
- 	davinci_rtc->pbase = res->start;
-@@ -513,8 +511,7 @@ static int __init davinci_rtc_probe(stru
- 	if (!mem) {
- 		dev_err(dev, "RTC registers at %08x are not free\n",
- 			davinci_rtc->pbase);
--		ret = -EBUSY;
--		goto fail1;
-+		return -EBUSY;
- 	}
- 
- 	davinci_rtc->base = ioremap(davinci_rtc->pbase, davinci_rtc->base_size);
-@@ -567,9 +564,6 @@ fail3:
- 	iounmap(davinci_rtc->base);
- fail2:
- 	release_mem_region(davinci_rtc->pbase, davinci_rtc->base_size);
--fail1:
--	kfree(davinci_rtc);
--
- 	return ret;
- }
- 
-@@ -590,8 +584,6 @@ static int __devexit davinci_rtc_remove(
- 
- 	platform_set_drvdata(pdev, NULL);
- 
--	kfree(davinci_rtc);
+ clean:
+ 	rm -f mq_open_tests mq_perf_tests
+_
+
+Patches currently in -mm which might be from dyoung@redhat.com are
+
+vm-selftests-print-failure-status-instead-of-cause-make-error.patch
+mqueue-selftests-print-failure-status-instead-of-cause-make-error.patch
+cpu-hotplug-selftests-print-failure-status-instead-of-cause-make-error.patch
+mem-hotplug-selftests-print-failure-status-instead-of-cause-make-error.patch
+kcmp-selftests-make-run_tests-fix.patch
+kcmp-selftests-print-fail-status-instead-of-cause-make-error.patch
+breakpoint-selftests-print-failure-status-instead-of-cause-make-error.patch
+
