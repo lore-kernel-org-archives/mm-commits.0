@@ -1,95 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-highmem-makes-flush_all_zero_pkmaps-return-index-of-last-flushed-entry-v2.patch removed from -mm tree
-Date: Tue, 27 Nov 2012 11:06:23 -0800
-Message-ID: <20121127190624.A2523100047@wpzn3.hot.corp.google.com>
+Subject: [withdrawn] mm-highmem-makes-flush_all_zero_pkmaps-return-index-of-last-flushed-entry.patch removed from -mm tree
+Date: Tue, 27 Nov 2012 11:11:21 -0800
+Message-ID: <20121127191122.3627A100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:58745 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754123Ab2K0TG2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Nov 2012 14:06:28 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so973946vcd.1
-        for <mm-commits@vger.kernel.org>; Tue, 27 Nov 2012 11:06:27 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:65091 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755368Ab2K0TLX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Nov 2012 14:11:23 -0500
+Received: by mail-qc0-f202.google.com with SMTP id s25so1500515qcq.1
+        for <mm-commits@vger.kernel.org>; Tue, 27 Nov 2012 11:11:22 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: js1304@gmail.com, a.p.zijlstra@chello.nl, mel@csn.ul.ie, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-highmem-makes-flush_all_zero_pkmaps-return-index-of-last-flushed-entry-v2
+     Subject: mm, highmem: makes flush_all_zero_pkmaps() return index of last flushed entry
 has been removed from the -mm tree.  Its filename was
-     mm-highmem-makes-flush_all_zero_pkmaps-return-index-of-last-flushed-entry-v2.patch
+     mm-highmem-makes-flush_all_zero_pkmaps-return-index-of-last-flushed-entry.patch
 
-This patch was dropped because it was folded into mm-highmem-makes-flush_all_zero_pkmaps-return-index-of-last-flushed-entry.patch
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
 From: Joonsoo Kim <js1304@gmail.com>
-Subject: mm-highmem-makes-flush_all_zero_pkmaps-return-index-of-last-flushed-entry-v2
+Subject: mm, highmem: makes flush_all_zero_pkmaps() return index of last flushed entry
 
-In current code, after flush_all_zero_pkmaps() is invoked,
-then re-iterate all pkmaps. It can be optimized if flush_all_zero_pkmaps()
-return index of first flushed entry. With this index,
-we can immediately map highmem page to virtual address represented by index.
-So change return type of flush_all_zero_pkmaps()
-and return index of first flushed entry.
+In current code, after flush_all_zero_pkmaps() is invoked we re-iterate
+all pkmaps.  This can be optimized if flush_all_zero_pkmaps() returns an
+index of flushed entry.  With this index, we can immediately map highmem
+page to virtual address represented by index.  So change return type of
+flush_all_zero_pkmaps() and return index of last flushed entry.
 
-Additionally, update last_pkmap_nr to this index.
-It is certain that entry which is below this index is occupied by other mapping,
-therefore updating last_pkmap_nr to this index is reasonable optimization.
+Additionally, update last_pkmap_nr to this index.  It is certain that
+entry which is below this index is occupied by other mapping, therefore
+updating last_pkmap_nr to this index is reasonable optimization.
 
 Signed-off-by: Joonsoo Kim <js1304@gmail.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Minchan Kim <minchan@kernel.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/highmem.h |    2 +-
- mm/highmem.c            |   24 +++++++++++++++---------
- 2 files changed, 16 insertions(+), 10 deletions(-)
+ include/linux/highmem.h |    1 
+ mm/highmem.c            |   75 ++++++++++++++++++++++----------------
+ 2 files changed, 45 insertions(+), 31 deletions(-)
 
-diff -puN include/linux/highmem.h~mm-highmem-makes-flush_all_zero_pkmaps-return-index-of-last-flushed-entry-v2 include/linux/highmem.h
---- a/include/linux/highmem.h~mm-highmem-makes-flush_all_zero_pkmaps-return-index-of-last-flushed-entry-v2
+diff -puN include/linux/highmem.h~mm-highmem-makes-flush_all_zero_pkmaps-return-index-of-last-flushed-entry include/linux/highmem.h
+--- a/include/linux/highmem.h~mm-highmem-makes-flush_all_zero_pkmaps-return-index-of-last-flushed-entry
 +++ a/include/linux/highmem.h
-@@ -32,7 +32,7 @@ static inline void invalidate_kernel_vma
+@@ -32,6 +32,7 @@ static inline void invalidate_kernel_vma
  
  #ifdef CONFIG_HIGHMEM
  #include <asm/highmem.h>
--#define PKMAP_INDEX_INVAL (-1)
 +#define PKMAP_INVALID_INDEX (LAST_PKMAP)
  
  /* declarations for linux/mm/highmem.c */
  unsigned int nr_free_highpages(void);
-diff -puN mm/highmem.c~mm-highmem-makes-flush_all_zero_pkmaps-return-index-of-last-flushed-entry-v2 mm/highmem.c
---- a/mm/highmem.c~mm-highmem-makes-flush_all_zero_pkmaps-return-index-of-last-flushed-entry-v2
+diff -puN mm/highmem.c~mm-highmem-makes-flush_all_zero_pkmaps-return-index-of-last-flushed-entry mm/highmem.c
+--- a/mm/highmem.c~mm-highmem-makes-flush_all_zero_pkmaps-return-index-of-last-flushed-entry
 +++ a/mm/highmem.c
 @@ -107,10 +107,10 @@ struct page *kmap_to_page(void *vaddr)
  }
  EXPORT_SYMBOL(kmap_to_page);
  
--static int flush_all_zero_pkmaps(void)
+-static void flush_all_zero_pkmaps(void)
 +static unsigned int flush_all_zero_pkmaps(void)
  {
  	int i;
--	int index = PKMAP_INDEX_INVAL;
+-	int need_flush = 0;
 +	unsigned int index = PKMAP_INVALID_INDEX;
  
  	flush_cache_kmaps();
  
-@@ -142,9 +142,10 @@ static int flush_all_zero_pkmaps(void)
+@@ -142,10 +142,13 @@ static void flush_all_zero_pkmaps(void)
  			  &pkmap_page_table[i]);
  
  		set_page_address(page, NULL);
--		index = i;
+-		need_flush = 1;
 +		if (index == PKMAP_INVALID_INDEX)
 +			index = i;
  	}
--	if (index != PKMAP_INDEX_INVAL)
+-	if (need_flush)
 +	if (index != PKMAP_INVALID_INDEX)
  		flush_tlb_kernel_range(PKMAP_ADDR(0), PKMAP_ADDR(LAST_PKMAP));
++
++	return index;
+ }
  
- 	return index;
-@@ -155,15 +156,19 @@ static int flush_all_zero_pkmaps(void)
+ /**
+@@ -153,14 +156,19 @@ static void flush_all_zero_pkmaps(void)
   */
  void kmap_flush_unused(void)
  {
@@ -106,46 +107,82 @@ diff -puN mm/highmem.c~mm-highmem-makes-flush_all_zero_pkmaps-return-index-of-la
  static inline unsigned long map_new_virtual(struct page *page)
  {
  	unsigned long vaddr;
--	int index = PKMAP_INDEX_INVAL;
 +	unsigned int index = PKMAP_INVALID_INDEX;
  	int count;
  
  start:
-@@ -173,8 +178,7 @@ start:
+@@ -169,40 +177,45 @@ start:
+ 	for (;;) {
  		last_pkmap_nr = (last_pkmap_nr + 1) & LAST_PKMAP_MASK;
  		if (!last_pkmap_nr) {
- 			index = flush_all_zero_pkmaps();
--			if (index != PKMAP_INDEX_INVAL)
--				break; /* Found a usable entry */
+-			flush_all_zero_pkmaps();
+-			count = LAST_PKMAP;
++			index = flush_all_zero_pkmaps();
 +			break;
  		}
- 		if (!pkmap_count[last_pkmap_nr]) {
- 			index = last_pkmap_nr;
-@@ -187,7 +191,7 @@ start:
- 	/*
- 	 * Sleep for somebody else to unmap their entries
- 	 */
--	if (index == PKMAP_INDEX_INVAL) {
+-		if (!pkmap_count[last_pkmap_nr])
++		if (!pkmap_count[last_pkmap_nr]) {
++			index = last_pkmap_nr;
+ 			break;	/* Found a usable entry */
+-		if (--count)
+-			continue;
++		}
++		if (--count == 0)
++			break;
++	}
+ 
+-		/*
+-		 * Sleep for somebody else to unmap their entries
+-		 */
+-		{
+-			DECLARE_WAITQUEUE(wait, current);
++	/*
++	 * Sleep for somebody else to unmap their entries
++	 */
 +	if (index == PKMAP_INVALID_INDEX) {
- 		DECLARE_WAITQUEUE(wait, current);
++		DECLARE_WAITQUEUE(wait, current);
  
- 		__set_current_state(TASK_UNINTERRUPTIBLE);
-@@ -211,6 +215,7 @@ start:
- 		   &(pkmap_page_table[index]), mk_pte(page, kmap_prot));
+-			__set_current_state(TASK_UNINTERRUPTIBLE);
+-			add_wait_queue(&pkmap_map_wait, &wait);
+-			unlock_kmap();
+-			schedule();
+-			remove_wait_queue(&pkmap_map_wait, &wait);
+-			lock_kmap();
+-
+-			/* Somebody else might have mapped it while we slept */
+-			if (page_address(page))
+-				return (unsigned long)page_address(page);
++		__set_current_state(TASK_UNINTERRUPTIBLE);
++		add_wait_queue(&pkmap_map_wait, &wait);
++		unlock_kmap();
++		schedule();
++		remove_wait_queue(&pkmap_map_wait, &wait);
++		lock_kmap();
++
++		/* Somebody else might have mapped it while we slept */
++		vaddr = (unsigned long)page_address(page);
++		if (vaddr)
++			return vaddr;
  
- 	pkmap_count[index] = 1;
+-			/* Re-start */
+-			goto start;
+-		}
++		/* Re-start */
++		goto start;
+ 	}
+-	vaddr = PKMAP_ADDR(last_pkmap_nr);
++
++	vaddr = PKMAP_ADDR(index);
+ 	set_pte_at(&init_mm, vaddr,
+-		   &(pkmap_page_table[last_pkmap_nr]), mk_pte(page, kmap_prot));
++		   &(pkmap_page_table[index]), mk_pte(page, kmap_prot));
+ 
+-	pkmap_count[last_pkmap_nr] = 1;
++	pkmap_count[index] = 1;
 +	last_pkmap_nr = index;
  	set_page_address(page, (void *)vaddr);
  
  	return vaddr;
-@@ -332,6 +337,7 @@ struct page_address_map {
- 	void *virtual;
- 	struct list_head list;
- };
-+
- static struct page_address_map page_address_maps[LAST_PKMAP];
- 
- /*
 _
 
 Patches currently in -mm which might be from js1304@gmail.com are
@@ -155,7 +192,6 @@ mm-highmem-use-pkmap_nr-to-calculate-an-index-of-pkmap.patch
 mm-highmem-remove-useless-pool_lock.patch
 mm-highmem-remove-page_address_pool-list.patch
 mm-highmem-remove-page_address_pool-list-v2.patch
-mm-highmem-makes-flush_all_zero_pkmaps-return-index-of-last-flushed-entry.patch
 mm-highmem-get-virtual-address-of-the-page-using-pkmap_addr.patch
 memcg-make-it-possible-to-use-the-stock-for-more-than-one-page.patch
 memcg-reclaim-when-more-than-one-page-needed.patch
