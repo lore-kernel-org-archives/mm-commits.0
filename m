@@ -1,80 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch added to -mm tree
-Date: Mon, 26 Nov 2012 15:47:15 -0800
-Message-ID: <20121126234715.99198820050@wpzn4.hot.corp.google.com>
+Subject: [folded-merged] futex-avoid-wake_futex-for-a-pi-futex_q-fix.patch removed from -mm tree
+Date: Mon, 26 Nov 2012 16:24:30 -0800
+Message-ID: <20121127002431.C5A2620004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:56822 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754842Ab2KZXrQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Nov 2012 18:47:16 -0500
-Received: by mail-gg0-f202.google.com with SMTP id k1so268844ggn.1
-        for <mm-commits@vger.kernel.org>; Mon, 26 Nov 2012 15:47:16 -0800 (PST)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:37001 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932247Ab2K0AYf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Nov 2012 19:24:35 -0500
+Received: by mail-lb0-f202.google.com with SMTP id i15so816995lbo.1
+        for <mm-commits@vger.kernel.org>; Mon, 26 Nov 2012 16:24:33 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, greg@kroah.com
+To: akpm@linux-foundation.org, davej@redat.com, dvhart@linux.intel.com, jkacur@redhat.com, mingo@elte.hu, peterz@infradead.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/tty/serial/serial_core.c: clean up HIGH_BITS_OFFSET usage
-has been added to the -mm tree.  Its filename is
-     drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch
+     Subject: futex-avoid-wake_futex-for-a-pi-futex_q-fix
+has been removed from the -mm tree.  Its filename was
+     futex-avoid-wake_futex-for-a-pi-futex_q-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into futex-avoid-wake_futex-for-a-pi-futex_q.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/tty/serial/serial_core.c: clean up HIGH_BITS_OFFSET usage
+Subject: futex-avoid-wake_futex-for-a-pi-futex_q-fix
 
-serial_core.c usually does
+tidy up the WARN()
 
-	if (HIGH_BITS_OFFSET)
-		expr-involving-HIGH_BITS_OFFSET()
-
-at least to avoid generating useless code on 32-bit machines, where
-HIGH_BITS_OFFSET is zero.  Do that in uart_get_attr_port().
-
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Darren Hart <dvhart@linux.intel.com>
+Cc: Dave Jones <davej@redat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: John Kacur <jkacur@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: stable@vger.kernel.org
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/serial/serial_core.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ kernel/futex.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/tty/serial/serial_core.c~drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift drivers/tty/serial/serial_core.c
---- a/drivers/tty/serial/serial_core.c~drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift
-+++ a/drivers/tty/serial/serial_core.c
-@@ -2413,9 +2413,13 @@ static ssize_t uart_get_attr_port(struct
+diff -puN kernel/futex.c~futex-avoid-wake_futex-for-a-pi-futex_q-fix kernel/futex.c
+--- a/kernel/futex.c~futex-avoid-wake_futex-for-a-pi-futex_q-fix
++++ a/kernel/futex.c
+@@ -843,10 +843,8 @@ static void wake_futex(struct futex_q *q
  {
- 	struct serial_struct tmp;
- 	struct tty_port *port = dev_get_drvdata(dev);
-+	unsigned long ioaddr;
+ 	struct task_struct *p = q->task;
  
- 	uart_get_info(port, &tmp);
--	return snprintf(buf, PAGE_SIZE, "0x%lX\n", (unsigned long)(tmp.port | (((unsigned long)tmp.port_high) << HIGH_BITS_OFFSET)));
-+	ioaddr = tmp.port;
-+	if (HIGH_BITS_OFFSET)
-+		ioaddr |= (unsigned long)tmp.port_high << HIGH_BITS_OFFSET;
-+	return snprintf(buf, PAGE_SIZE, "0x%lX\n", ioaddr);
- }
+-	if (q->pi_state || q->rt_waiter) {
+-		WARN(1, "%s: refusing to wake PI futex\n", __FUNCTION__);
++	if (WARN(q->pi_state || q->rt_waiter, "refusing to wake PI futex\n"))
+ 		return;
+-	}
  
- static ssize_t uart_get_attr_irq(struct device *dev,
+ 	/*
+ 	 * We set q->lock_ptr = NULL _before_ we wake up the task. If
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-futex-avoid-wake_futex-for-a-pi-futex_q-fix.patch
+futex-avoid-wake_futex-for-a-pi-futex_q.patch
 linux-next.patch
 linux-next-git-rejects.patch
 i-need-old-gcc.patch
