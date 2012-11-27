@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + fs-notify-add-procfs-fdinfo-helper-v7-dont-forget-to-provide-fhandle-for-inode-fanotify.patch added to -mm tree
-Date: Tue, 27 Nov 2012 14:48:16 -0800
-Message-ID: <20121127224816.D48AD20004E@hpza10.eem.corp.google.com>
+Subject: + fs-epoll-add-procfs-fdinfo-helper-v2-fs-epoll-drop-enabled-field-from-fdinfo-output.patch added to -mm tree
+Date: Tue, 27 Nov 2012 14:48:03 -0800
+Message-ID: <20121127224804.03A7920004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:64822 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755198Ab2K0WsU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Nov 2012 17:48:20 -0500
-Received: by mail-ee0-f74.google.com with SMTP id t10so897781eei.1
-        for <mm-commits@vger.kernel.org>; Tue, 27 Nov 2012 14:48:19 -0800 (PST)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:35545 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755198Ab2K0WsI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Nov 2012 17:48:08 -0500
+Received: by mail-wi0-f202.google.com with SMTP id cb5so412813wib.1
+        for <mm-commits@vger.kernel.org>; Tue, 27 Nov 2012 14:48:06 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: gorcunov@openvz.org, adobriyan@gmail.com, aneesh.kumar@linux.vnet.ibm.com, a
 
 
 The patch titled
-     Subject: fs, notify: don't forget to provide fhandle for inode fanotify
+     Subject: fs, epoll: drop enabled field from fdinfo output
 has been added to the -mm tree.  Its filename is
-     fs-notify-add-procfs-fdinfo-helper-v7-dont-forget-to-provide-fhandle-for-inode-fanotify.patch
+     fs-epoll-add-procfs-fdinfo-helper-v2-fs-epoll-drop-enabled-field-from-fdinfo-output.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Cyrill Gorcunov <gorcunov@openvz.org>
-Subject: fs, notify: don't forget to provide fhandle for inode fanotify
+Subject: fs, epoll: drop enabled field from fdinfo output
 
-For inode based fanotify I missed to add fhandle output. This patch
-brings it in.
-
- | pos:	0
- | flags:	02
- | fanotify ino:2 sdev:800013 mask:1 ignored_mask:40000000 fhandle-bytes:8 fhandle-type:1 f_handle:0200000000000000
+Once EPOLL_CTL_DISABLE get merged into mainline I'll bring "enabled" field
+back.  Plain check for rdllink is not enough here and should be extended,
+thus to not confuse the readers drop it for a while.
 
 Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
 Cc: Pavel Emelyanov <xemul@parallels.com>
@@ -59,43 +56,25 @@ Cc: Tvrtko Ursulin <tvrtko.ursulin@onelan.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/fdinfo.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ fs/eventpoll.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN fs/notify/fdinfo.c~fs-notify-add-procfs-fdinfo-helper-v7-dont-forget-to-provide-fhandle-for-inode-fanotify fs/notify/fdinfo.c
---- a/fs/notify/fdinfo.c~fs-notify-add-procfs-fdinfo-helper-v7-dont-forget-to-provide-fhandle-for-inode-fanotify
-+++ a/fs/notify/fdinfo.c
-@@ -36,8 +36,6 @@ static int show_fdinfo(struct seq_file *
- 	return ret;
- }
+diff -puN fs/eventpoll.c~fs-epoll-add-procfs-fdinfo-helper-v2-fs-epoll-drop-enabled-field-from-fdinfo-output fs/eventpoll.c
+--- a/fs/eventpoll.c~fs-epoll-add-procfs-fdinfo-helper-v2-fs-epoll-drop-enabled-field-from-fdinfo-output
++++ a/fs/eventpoll.c
+@@ -826,10 +826,9 @@ static int ep_show_fdinfo(struct seq_fil
+ 	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
+ 		struct epitem *epi = rb_entry(rbp, struct epitem, rbn);
  
--#ifdef CONFIG_INOTIFY_USER
--
- #if defined(CONFIG_EXPORTFS)
- static int show_mark_fhandle(struct seq_file *m, struct inode *inode)
- {
-@@ -74,6 +72,8 @@ static int show_mark_fhandle(struct seq_
- }
- #endif
- 
-+#ifdef CONFIG_INOTIFY_USER
-+
- static int inotify_fdinfo(struct seq_file *m, struct fsnotify_mark *mark)
- {
- 	struct inotify_inode_mark *inode_mark;
-@@ -121,9 +121,11 @@ static int fanotify_fdinfo(struct seq_fi
- 		if (!inode)
- 			goto out;
- 		ret = seq_printf(m, "fanotify ino:%lx sdev:%x "
--				 "mask:%x ignored_mask:%x\n",
-+				 "mask:%x ignored_mask:%x ",
- 				 inode->i_ino, inode->i_sb->s_dev,
- 				 mark->mask, mark->ignored_mask);
-+		ret |= show_mark_fhandle(m, inode);
-+		ret |= seq_putc(m, '\n');
- 		iput(inode);
- 	} else if (mark->flags & FSNOTIFY_MARK_FLAG_VFSMOUNT) {
- 		struct mount *mnt = real_mount(mark->m.mnt);
+-		ret = seq_printf(m, "tfd: %8d events: %8x data: %16llx enabled: %d\n",
++		ret = seq_printf(m, "tfd: %8d events: %8x data: %16llx\n",
+ 				 epi->ffd.fd, epi->event.events,
+-				 (long long)epi->event.data,
+-				 ep_is_linked(&epi->rdllink));
++				 (long long)epi->event.data);
+ 		if (ret)
+ 			break;
+ 	}
 _
 
 Patches currently in -mm which might be from gorcunov@openvz.org are
