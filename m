@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + aoe-make-error-messages-more-specific-in-static-minor-allocation.patch added to -mm tree
-Date: Wed, 28 Nov 2012 15:42:31 -0800
-Message-ID: <20121128234232.014DC20004E@hpza10.eem.corp.google.com>
+Subject: + aoe-copy-fallback-timing-information-on-destination-failover.patch added to -mm tree
+Date: Wed, 28 Nov 2012 15:42:15 -0800
+Message-ID: <20121128234216.3D668820050@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:50207 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754709Ab2K1Xme (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Nov 2012 18:42:34 -0500
-Received: by mail-lb0-f202.google.com with SMTP id i15so979245lbo.1
-        for <mm-commits@vger.kernel.org>; Wed, 28 Nov 2012 15:42:33 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:61592 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756134Ab2K1XmR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Nov 2012 18:42:17 -0500
+Received: by mail-gg0-f202.google.com with SMTP id k1so582143ggn.1
+        for <mm-commits@vger.kernel.org>; Wed, 28 Nov 2012 15:42:16 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: ecashin@coraid.com
 
 
 The patch titled
-     Subject: aoe: make error messages more specific in static minor allocation
+     Subject: aoe: copy fallback timing information on destination failover
 has been added to the -mm tree.  Its filename is
-     aoe-make-error-messages-more-specific-in-static-minor-allocation.patch
+     aoe-copy-fallback-timing-information-on-destination-failover.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ed Cashin <ecashin@coraid.com>
-Subject: aoe: make error messages more specific in static minor allocation
+Subject: aoe: copy fallback timing information on destination failover
 
-For some special-purpose systems where udev isn't present, static
-allocation of minor numbers is desirable.  This update distinguishes
-different failure scenarios, to help the user understand what went wrong.
+commit f3b8e07af7744cbb ("aoe: commands in retransmit queue use new
+destination on failure") omits the copying of the coarse-grained time when
+an AoE command was sent during the failover from one destination MAC
+address on the AoE target to another.
+
+The coarse-grained timing is only used when the system time changes or an
+unlikely length of time has passed since the sending of the AoE command. 
+Users will not be impacted unless their system clock is very inaccurate or
+something unusual (e.g., 10 GbE link reset) happens during the period when
+the aoe driver is handling the failure of a port on the AoE target.  Being
+effected will mean that an AoE target could be considered "down" too
+eagerly.
 
 Signed-off-by: Ed Cashin <ecashin@coraid.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoedev.c |   31 ++++++++++++++++++++-----------
- 1 file changed, 20 insertions(+), 11 deletions(-)
+ drivers/block/aoe/aoecmd.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/block/aoe/aoedev.c~aoe-make-error-messages-more-specific-in-static-minor-allocation drivers/block/aoe/aoedev.c
---- a/drivers/block/aoe/aoedev.c~aoe-make-error-messages-more-specific-in-static-minor-allocation
-+++ a/drivers/block/aoe/aoedev.c
-@@ -69,25 +69,34 @@ minor_get_static(ulong *sysminor, ulong 
- 		NPERSHELF = 16,
- 	};
- 
-+	if (aoemin >= NPERSHELF) {
-+		pr_err("aoe: %s %d slots per shelf\n",
-+			"static minor device numbers support only",
-+			NPERSHELF);
-+		error = -1;
-+		goto out;
-+	}
-+
- 	n = aoemaj * NPERSHELF + aoemin;
--	if (aoemin >= NPERSHELF || n >= N_DEVS) {
-+	if (n >= N_DEVS) {
- 		pr_err("aoe: %s with e%ld.%d\n",
- 			"cannot use static minor device numbers",
- 			aoemaj, aoemin);
- 		error = -1;
--	} else {
--		spin_lock_irqsave(&used_minors_lock, flags);
--		if (test_bit(n, used_minors)) {
--			pr_err("aoe: %s %lu\n",
--				"existing device already has static minor number",
--				n);
--			error = -1;
--		} else
--			set_bit(n, used_minors);
--		spin_unlock_irqrestore(&used_minors_lock, flags);
-+		goto out;
- 	}
- 
-+	spin_lock_irqsave(&used_minors_lock, flags);
-+	if (test_bit(n, used_minors)) {
-+		pr_err("aoe: %s %lu\n",
-+			"existing device already has static minor number",
-+			n);
-+		error = -1;
-+	} else
-+		set_bit(n, used_minors);
-+	spin_unlock_irqrestore(&used_minors_lock, flags);
- 	*sysminor = n;
-+out:
- 	return error;
- }
- 
+diff -puN drivers/block/aoe/aoecmd.c~aoe-copy-fallback-timing-information-on-destination-failover drivers/block/aoe/aoecmd.c
+--- a/drivers/block/aoe/aoecmd.c~aoe-copy-fallback-timing-information-on-destination-failover
++++ a/drivers/block/aoe/aoecmd.c
+@@ -581,6 +581,7 @@ reassign_frame(struct list_head *pos)
+ 	nf->waited = 0;
+ 	nf->waited_total = f->waited_total;
+ 	nf->sent = f->sent;
++	nf->sent_jiffs = f->sent_jiffs;
+ 	f->skb = skb;
+ 	aoe_freetframe(f);
+ 	f->t->nout--;
 _
 
 Patches currently in -mm which might be from ecashin@coraid.com are
