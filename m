@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + loop-limit-the-number-of-requests-in-the-bio-list.patch added to -mm tree
-Date: Tue, 27 Nov 2012 15:27:52 -0800
-Message-ID: <20121127232752.D693E200057@hpza10.eem.corp.google.com>
+Subject: + mm-introduce-a-common-interface-for-balloon-pages-mobility-mm-fix-balloon_page_movable-page-flags-check.patch added to -mm tree
+Date: Tue, 27 Nov 2012 16:06:44 -0800
+Message-ID: <20121128000644.E4B94820055@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f74.google.com ([209.85.215.74]:47082 "EHLO
-	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754728Ab2K0X14 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Nov 2012 18:27:56 -0500
-Received: by mail-la0-f74.google.com with SMTP id v3so892973lag.1
-        for <mm-commits@vger.kernel.org>; Tue, 27 Nov 2012 15:27:54 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:58005 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752428Ab2K1AGq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Nov 2012 19:06:46 -0500
+Received: by mail-gg0-f202.google.com with SMTP id k1so425867ggn.1
+        for <mm-commits@vger.kernel.org>; Tue, 27 Nov 2012 16:06:45 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lczerner@redhat.com, a.p.zijlstra@chello.nl, axboe@kernel.dk, david@fromorbit.com, dhowells@redhat.com, jmoyer@redhat.com, mingo@elte.hu, neilb@suse.de
+Cc: aquini@redhat.com, andi@firstfloor.org, konrad.wilk@oracle.com, levinsasha928@gmail.com, mel@csn.ul.ie, minchan@kernel.org, mst@redhat.com, riel@redhat.com, rusty@rustcorp.com.au
 
 
 The patch titled
-     Subject: loop: limit the number of requests in the bio list
+     Subject: mm: fix balloon_page_movable() page->flags check
 has been added to the -mm tree.  Its filename is
-     loop-limit-the-number-of-requests-in-the-bio-list.patch
+     mm-introduce-a-common-interface-for-balloon-pages-mobility-mm-fix-balloon_page_movable-page-flags-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,114 +33,84 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Lukas Czerner <lczerner@redhat.com>
-Subject: loop: limit the number of requests in the bio list
+From: Rafael Aquini <aquini@redhat.com>
+Subject: mm: fix balloon_page_movable() page->flags check
 
-Currently there is no limit on the number of requests in the loop bio
-list.  This can lead into some nasty situations when the caller spawns
-tons of bio requests taking huge amount of memory.  This is even more
-obvious with discard where blkdev_issue_discard() will submit all bios for
-the range and wait for them to finish afterwards.  On really big loop
-devices and slow backing file system this can lead to OOM situation as
-reported by Dave Chinner.
+Fix the following crash by fixing and enhancing the way page->flags are
+tested to identify a ballooned page.
 
-With this patch we will wait in loop_make_request() if the number of bios
-in the loop bio list would exceed 'nr_congestion_on'.  We'll wake up the
-process as we process the bios form the list.  Some threshold hysteresis
-is in place to avoid high frequency oscillation.
+BUG: unable to handle kernel NULL pointer dereference at 0000000000000194
+IP: [<ffffffff8122b354>] isolate_migratepages_range+0x344/0x7b0
 
-Signed-off-by: Lukas Czerner <lczerner@redhat.com>
-Reported-by: Dave Chinner <david@fromorbit.com>
-Cc: Neil Brown <neilb@suse.de>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Jens Axboe <axboe@kernel.dk>
-Acked-by: Jeff Moyer <jmoyer@redhat.com>
+The NULL pointer deref was taking place because balloon_page_movable()
+page->flags tests were incomplete and we ended up inadvertently poking at
+private pages.
+
+Signed-off-by: Rafael Aquini <aquini@redhat.com>
+Reported-by: Sasha Levin <levinsasha928@gmail.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/loop.c |   10 ++++++++++
- include/linux/loop.h |    3 +++
- 2 files changed, 13 insertions(+)
+ include/linux/balloon_compaction.h |   21 +++++++++++++++++++--
+ 1 file changed, 19 insertions(+), 2 deletions(-)
 
-diff -puN drivers/block/loop.c~loop-limit-the-number-of-requests-in-the-bio-list drivers/block/loop.c
---- a/drivers/block/loop.c~loop-limit-the-number-of-requests-in-the-bio-list
-+++ a/drivers/block/loop.c
-@@ -463,6 +463,7 @@ out:
-  */
- static void loop_add_bio(struct loop_device *lo, struct bio *bio)
- {
-+	lo->lo_bio_count++;
- 	bio_list_add(&lo->lo_bio_list, bio);
+diff -puN include/linux/balloon_compaction.h~mm-introduce-a-common-interface-for-balloon-pages-mobility-mm-fix-balloon_page_movable-page-flags-check include/linux/balloon_compaction.h
+--- a/include/linux/balloon_compaction.h~mm-introduce-a-common-interface-for-balloon-pages-mobility-mm-fix-balloon_page_movable-page-flags-check
++++ a/include/linux/balloon_compaction.h
+@@ -107,6 +107,23 @@ static inline void balloon_mapping_free(
  }
  
-@@ -471,6 +472,7 @@ static void loop_add_bio(struct loop_dev
+ /*
++ * __balloon_page_flags - helper to perform balloon @page ->flags tests.
++ *
++ * As balloon pages are got from Buddy, and we do not play with page->flags
++ * at driver level (exception made when we get the page lock for compaction),
++ * therefore we can safely identify a ballooned page by checking if the
++ * NR_PAGEFLAGS rightmost bits from the page->flags are all cleared.
++ * This approach also helps on skipping ballooned pages that are locked for
++ * compaction or release, thus mitigating their racy check at
++ * balloon_page_movable()
++ */
++#define BALLOON_PAGE_FLAGS_MASK       ((1UL << NR_PAGEFLAGS) - 1)
++static inline bool __balloon_page_flags(struct page *page)
++{
++	return page->flags & BALLOON_PAGE_FLAGS_MASK ? false : true;
++}
++
++/*
+  * __is_movable_balloon_page - helper to perform @page mapping->flags tests
   */
- static struct bio *loop_get_bio(struct loop_device *lo)
- {
-+	lo->lo_bio_count--;
- 	return bio_list_pop(&lo->lo_bio_list);
- }
+ static inline bool __is_movable_balloon_page(struct page *page)
+@@ -135,8 +152,8 @@ static inline bool balloon_page_movable(
+ 	 * Before dereferencing and testing mapping->flags, lets make sure
+ 	 * this is not a page that uses ->mapping in a different way
+ 	 */
+-	if (!PageSlab(page) && !PageSwapCache(page) && !PageAnon(page) &&
+-	    !page_mapped(page))
++	if (__balloon_page_flags(page) && !page_mapped(page) &&
++	    page_count(page) == 1)
+ 		return __is_movable_balloon_page(page);
  
-@@ -489,6 +491,10 @@ static void loop_make_request(struct req
- 		goto out;
- 	if (unlikely(rw == WRITE && (lo->lo_flags & LO_FLAGS_READ_ONLY)))
- 		goto out;
-+	if (lo->lo_bio_count >= q->nr_congestion_on)
-+		wait_event_lock_irq(lo->lo_req_wait,
-+				    lo->lo_bio_count < q->nr_congestion_off,
-+				    lo->lo_lock);
- 	loop_add_bio(lo, old_bio);
- 	wake_up(&lo->lo_event);
- 	spin_unlock_irq(&lo->lo_lock);
-@@ -546,6 +552,8 @@ static int loop_thread(void *data)
- 			continue;
- 		spin_lock_irq(&lo->lo_lock);
- 		bio = loop_get_bio(lo);
-+		if (lo->lo_bio_count < lo->lo_queue->nr_congestion_off)
-+			wake_up(&lo->lo_req_wait);
- 		spin_unlock_irq(&lo->lo_lock);
- 
- 		BUG_ON(!bio);
-@@ -873,6 +881,7 @@ static int loop_set_fd(struct loop_devic
- 	lo->transfer = transfer_none;
- 	lo->ioctl = NULL;
- 	lo->lo_sizelimit = 0;
-+	lo->lo_bio_count = 0;
- 	lo->old_gfp_mask = mapping_gfp_mask(mapping);
- 	mapping_set_gfp_mask(mapping, lo->old_gfp_mask & ~(__GFP_IO|__GFP_FS));
- 
-@@ -1673,6 +1682,7 @@ static int loop_add(struct loop_device *
- 	lo->lo_number		= i;
- 	lo->lo_thread		= NULL;
- 	init_waitqueue_head(&lo->lo_event);
-+	init_waitqueue_head(&lo->lo_req_wait);
- 	spin_lock_init(&lo->lo_lock);
- 	disk->major		= LOOP_MAJOR;
- 	disk->first_minor	= i << part_shift;
-diff -puN include/linux/loop.h~loop-limit-the-number-of-requests-in-the-bio-list include/linux/loop.h
---- a/include/linux/loop.h~loop-limit-the-number-of-requests-in-the-bio-list
-+++ a/include/linux/loop.h
-@@ -53,10 +53,13 @@ struct loop_device {
- 
- 	spinlock_t		lo_lock;
- 	struct bio_list		lo_bio_list;
-+	unsigned int		lo_bio_count;
- 	int			lo_state;
- 	struct mutex		lo_ctl_mutex;
- 	struct task_struct	*lo_thread;
- 	wait_queue_head_t	lo_event;
-+	/* wait queue for incoming requests */
-+	wait_queue_head_t	lo_req_wait;
- 
- 	struct request_queue	*lo_queue;
- 	struct gendisk		*lo_disk;
+ 	return false;
 _
 
-Patches currently in -mm which might be from lczerner@redhat.com are
+Patches currently in -mm which might be from aquini@redhat.com are
 
-linux-next.patch
-wait-add-wait_event_lock_irq-interface.patch
-loop-limit-the-number-of-requests-in-the-bio-list.patch
+mm-adjust-address_space_operationsmigratepage-return-code.patch
+mm-redefine-address_spaceassoc_mapping.patch
+mm-introduce-a-common-interface-for-balloon-pages-mobility.patch
+mm-introduce-a-common-interface-for-balloon-pages-mobility-mm-fix-balloon_page_movable-page-flags-check.patch
+mm-introduce-compaction-and-migration-for-ballooned-pages.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix.patch
+mm-introduce-putback_movable_pages.patch
+mm-add-vm-event-counters-for-balloon-pages-compaction.patch
 
