@@ -1,116 +1,188 @@
 From: akpm@linux-foundation.org
-Subject: + mm-introduce-a-common-interface-for-balloon-pages-mobility-mm-fix-balloon_page_movable-page-flags-check.patch added to -mm tree
-Date: Tue, 27 Nov 2012 16:06:44 -0800
-Message-ID: <20121128000644.E4B94820055@wpzn4.hot.corp.google.com>
+Subject: [failures] tasklet-ignore-disabled-tasklet-in-tasklet_action.patch removed from -mm tree
+Date: Wed, 28 Nov 2012 14:23:31 -0800
+Message-ID: <20121128222333.001A7100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:58005 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752428Ab2K1AGq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Nov 2012 19:06:46 -0500
-Received: by mail-gg0-f202.google.com with SMTP id k1so425867ggn.1
-        for <mm-commits@vger.kernel.org>; Tue, 27 Nov 2012 16:06:45 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:55890 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755909Ab2K1WXf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Nov 2012 17:23:35 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so1158514vcd.1
+        for <mm-commits@vger.kernel.org>; Wed, 28 Nov 2012 14:23:34 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: aquini@redhat.com, andi@firstfloor.org, konrad.wilk@oracle.com, levinsasha928@gmail.com, mel@csn.ul.ie, minchan@kernel.org, mst@redhat.com, riel@redhat.com, rusty@rustcorp.com.au
+To: xtfeng@gmail.com, dannyfeng@tencent.com, eric.dumazet@gmail.com, mingo@elte.hu, peter@hurleysoftware.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix balloon_page_movable() page->flags check
-has been added to the -mm tree.  Its filename is
-     mm-introduce-a-common-interface-for-balloon-pages-mobility-mm-fix-balloon_page_movable-page-flags-check.patch
+     Subject: tasklet: ignore disabled tasklet in tasklet_action()
+has been removed from the -mm tree.  Its filename was
+     tasklet-ignore-disabled-tasklet-in-tasklet_action.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Rafael Aquini <aquini@redhat.com>
-Subject: mm: fix balloon_page_movable() page->flags check
+From: Xiaotian Feng <xtfeng@gmail.com>
+Subject: tasklet: ignore disabled tasklet in tasklet_action()
 
-Fix the following crash by fixing and enhancing the way page->flags are
-tested to identify a ballooned page.
+We met a ksoftirqd 100% issue, the perf top shows kernel is busy with
+tasklet_action(), but no actual action is shown.  From dumped kernel,
+there's only one disabled tasklet on the tasklet_vec.
 
-BUG: unable to handle kernel NULL pointer dereference at 0000000000000194
-IP: [<ffffffff8122b354>] isolate_migratepages_range+0x344/0x7b0
+tasklet_action might be handled after tasklet is disabled, this will make
+disabled tasklet stayed on tasklet_vec.  tasklet_action will not handle
+disabled tasklet, but place it on the tail of tasklet_vec, still raise
+softirq for this tasklet.  Things will become worse if device driver uses
+tasklet_disable on its device remove/close code.  The disabled tasklet
+will stay on the vec, frequently __raise_softirq_off() and make ksoftirqd
+wakeup even if no tasklets need to be handled.
 
-The NULL pointer deref was taking place because balloon_page_movable()
-page->flags tests were incomplete and we ended up inadvertently poking at
-private pages.
+This patch introduced a new TASKLET_STATE_HI bit to indicate HI_SOFTIRQ,
+in tasklet_action(), simply ignore the disabled tasklet and don't raise
+the softirq nr.  In my previous patch, I remove tasklet_hi_enable() since
+it is the same as tasklet_enable().  So only tasklet_enable() needs to be
+modified, if tasklet state is changed from disable to enable, use
+__tasklet_schedule() to put it on the right vec.
 
-Signed-off-by: Rafael Aquini <aquini@redhat.com>
-Reported-by: Sasha Levin <levinsasha928@gmail.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Xiaotian Feng <dannyfeng@tencent.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: Peter Hurley <peter@hurleysoftware.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/balloon_compaction.h |   21 +++++++++++++++++++--
- 1 file changed, 19 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/jme.c |   12 ++++++------
+ include/linux/interrupt.h  |   18 ++++++++++--------
+ kernel/softirq.c           |    9 +++++----
+ 3 files changed, 21 insertions(+), 18 deletions(-)
 
-diff -puN include/linux/balloon_compaction.h~mm-introduce-a-common-interface-for-balloon-pages-mobility-mm-fix-balloon_page_movable-page-flags-check include/linux/balloon_compaction.h
---- a/include/linux/balloon_compaction.h~mm-introduce-a-common-interface-for-balloon-pages-mobility-mm-fix-balloon_page_movable-page-flags-check
-+++ a/include/linux/balloon_compaction.h
-@@ -107,6 +107,23 @@ static inline void balloon_mapping_free(
+diff -puN drivers/net/ethernet/jme.c~tasklet-ignore-disabled-tasklet-in-tasklet_action drivers/net/ethernet/jme.c
+--- a/drivers/net/ethernet/jme.c~tasklet-ignore-disabled-tasklet-in-tasklet_action
++++ a/drivers/net/ethernet/jme.c
+@@ -1364,8 +1364,8 @@ err_out_free_rx_resources:
+ 	jme_free_rx_resources(jme);
+ out_enable_tasklet:
+ 	tasklet_enable(&jme->txclean_task);
+-	tasklet_hi_enable(&jme->rxclean_task);
+-	tasklet_hi_enable(&jme->rxempty_task);
++	tasklet_enable(&jme->rxclean_task);
++	tasklet_enable(&jme->rxempty_task);
+ out:
+ 	atomic_inc(&jme->link_changing);
+ }
+@@ -2379,8 +2379,8 @@ static inline void jme_resume_rx(struct 
+ 	if (test_bit(JME_FLAG_POLL, &jme->flags)) {
+ 		JME_NAPI_ENABLE(jme);
+ 	} else {
+-		tasklet_hi_enable(&jme->rxclean_task);
+-		tasklet_hi_enable(&jme->rxempty_task);
++		tasklet_enable(&jme->rxclean_task);
++		tasklet_enable(&jme->rxempty_task);
+ 	}
+ 	dpi->cur		= PCC_P1;
+ 	dpi->attempt		= PCC_P1;
+@@ -3264,8 +3264,8 @@ jme_suspend(struct device *dev)
+ 	}
+ 
+ 	tasklet_enable(&jme->txclean_task);
+-	tasklet_hi_enable(&jme->rxclean_task);
+-	tasklet_hi_enable(&jme->rxempty_task);
++	tasklet_enable(&jme->rxclean_task);
++	tasklet_enable(&jme->rxempty_task);
+ 
+ 	jme_powersave_phy(jme);
+ 
+diff -puN include/linux/interrupt.h~tasklet-ignore-disabled-tasklet-in-tasklet_action include/linux/interrupt.h
+--- a/include/linux/interrupt.h~tasklet-ignore-disabled-tasklet-in-tasklet_action
++++ a/include/linux/interrupt.h
+@@ -521,7 +521,8 @@ struct tasklet_struct name = { NULL, 0, 
+ enum
+ {
+ 	TASKLET_STATE_SCHED,	/* Tasklet is scheduled for execution */
+-	TASKLET_STATE_RUN	/* Tasklet is running (SMP only) */
++	TASKLET_STATE_RUN,	/* Tasklet is running (SMP only) */
++	TASKLET_STATE_HI	/* Tasklet is HI_SOFTIRQ */
+ };
+ 
+ #ifdef CONFIG_SMP
+@@ -593,13 +594,14 @@ static inline void tasklet_disable(struc
+ static inline void tasklet_enable(struct tasklet_struct *t)
+ {
+ 	smp_mb__before_atomic_dec();
+-	atomic_dec(&t->count);
+-}
+-
+-static inline void tasklet_hi_enable(struct tasklet_struct *t)
+-{
+-	smp_mb__before_atomic_dec();
+-	atomic_dec(&t->count);
++	if (atomic_dec_and_test(&t->count)) {
++		if (!test_bit(TASKLET_STATE_SCHED, &t->state))
++			return;
++		if (test_bit(TASKLET_STATE_HI, &t->state))
++			__tasklet_hi_schedule(t);
++		else
++			__tasklet_schedule(t);
++	}
  }
  
- /*
-+ * __balloon_page_flags - helper to perform balloon @page ->flags tests.
-+ *
-+ * As balloon pages are got from Buddy, and we do not play with page->flags
-+ * at driver level (exception made when we get the page lock for compaction),
-+ * therefore we can safely identify a ballooned page by checking if the
-+ * NR_PAGEFLAGS rightmost bits from the page->flags are all cleared.
-+ * This approach also helps on skipping ballooned pages that are locked for
-+ * compaction or release, thus mitigating their racy check at
-+ * balloon_page_movable()
-+ */
-+#define BALLOON_PAGE_FLAGS_MASK       ((1UL << NR_PAGEFLAGS) - 1)
-+static inline bool __balloon_page_flags(struct page *page)
-+{
-+	return page->flags & BALLOON_PAGE_FLAGS_MASK ? false : true;
-+}
-+
-+/*
-  * __is_movable_balloon_page - helper to perform @page mapping->flags tests
-  */
- static inline bool __is_movable_balloon_page(struct page *page)
-@@ -135,8 +152,8 @@ static inline bool balloon_page_movable(
- 	 * Before dereferencing and testing mapping->flags, lets make sure
- 	 * this is not a page that uses ->mapping in a different way
- 	 */
--	if (!PageSlab(page) && !PageSwapCache(page) && !PageAnon(page) &&
--	    !page_mapped(page))
-+	if (__balloon_page_flags(page) && !page_mapped(page) &&
-+	    page_count(page) == 1)
- 		return __is_movable_balloon_page(page);
+ extern void tasklet_kill(struct tasklet_struct *t);
+diff -puN kernel/softirq.c~tasklet-ignore-disabled-tasklet-in-tasklet_action kernel/softirq.c
+--- a/kernel/softirq.c~tasklet-ignore-disabled-tasklet-in-tasklet_action
++++ a/kernel/softirq.c
+@@ -417,6 +417,7 @@ void __tasklet_schedule(struct tasklet_s
+ 	*__this_cpu_read(tasklet_vec.tail) = t;
+ 	__this_cpu_write(tasklet_vec.tail, &(t->next));
+ 	raise_softirq_irqoff(TASKLET_SOFTIRQ);
++	clear_bit(TASKLET_STATE_HI, &t->state);
+ 	local_irq_restore(flags);
+ }
  
- 	return false;
+@@ -431,6 +432,7 @@ void __tasklet_hi_schedule(struct taskle
+ 	*__this_cpu_read(tasklet_hi_vec.tail) = t;
+ 	__this_cpu_write(tasklet_hi_vec.tail,  &(t->next));
+ 	raise_softirq_irqoff(HI_SOFTIRQ);
++	set_bit(TASKLET_STATE_HI, &t->state);
+ 	local_irq_restore(flags);
+ }
+ 
+@@ -442,6 +444,7 @@ void __tasklet_hi_schedule_first(struct 
+ 
+ 	t->next = __this_cpu_read(tasklet_hi_vec.head);
+ 	__this_cpu_write(tasklet_hi_vec.head, t);
++	set_bit(TASKLET_STATE_HI, &t->state);
+ 	__raise_softirq_irqoff(HI_SOFTIRQ);
+ }
+ 
+@@ -467,10 +470,9 @@ static void tasklet_action(struct softir
+ 				if (!test_and_clear_bit(TASKLET_STATE_SCHED, &t->state))
+ 					BUG();
+ 				t->func(t->data);
+-				tasklet_unlock(t);
+-				continue;
+ 			}
+ 			tasklet_unlock(t);
++			continue;
+ 		}
+ 
+ 		local_irq_disable();
+@@ -502,10 +504,9 @@ static void tasklet_hi_action(struct sof
+ 				if (!test_and_clear_bit(TASKLET_STATE_SCHED, &t->state))
+ 					BUG();
+ 				t->func(t->data);
+-				tasklet_unlock(t);
+-				continue;
+ 			}
+ 			tasklet_unlock(t);
++			continue;
+ 		}
+ 
+ 		local_irq_disable();
 _
 
-Patches currently in -mm which might be from aquini@redhat.com are
+Patches currently in -mm which might be from xtfeng@gmail.com are
 
-mm-adjust-address_space_operationsmigratepage-return-code.patch
-mm-redefine-address_spaceassoc_mapping.patch
-mm-introduce-a-common-interface-for-balloon-pages-mobility.patch
-mm-introduce-a-common-interface-for-balloon-pages-mobility-mm-fix-balloon_page_movable-page-flags-check.patch
-mm-introduce-compaction-and-migration-for-ballooned-pages.patch
-virtio_balloon-introduce-migration-primitives-to-balloon-pages.patch
-virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
-virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix.patch
-mm-introduce-putback_movable_pages.patch
-mm-add-vm-event-counters-for-balloon-pages-compaction.patch
+linux-next.patch
 
