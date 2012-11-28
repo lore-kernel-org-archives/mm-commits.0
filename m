@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + aoe-initialize-sysminor-to-avoid-compiler-warning.patch added to -mm tree
-Date: Wed, 28 Nov 2012 15:42:34 -0800
-Message-ID: <20121128234235.482CB820050@wpzn4.hot.corp.google.com>
+Subject: + aoe-cleanup-correct-comment-for-aoetgt-nout.patch added to -mm tree
+Date: Wed, 28 Nov 2012 15:42:23 -0800
+Message-ID: <20121128234224.83EDB20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:50793 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754709Ab2K1Xmg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Nov 2012 18:42:36 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so1170971vcd.1
-        for <mm-commits@vger.kernel.org>; Wed, 28 Nov 2012 15:42:35 -0800 (PST)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:56886 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932136Ab2K1Xm0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Nov 2012 18:42:26 -0500
+Received: by mail-wi0-f202.google.com with SMTP id cb5so498313wib.1
+        for <mm-commits@vger.kernel.org>; Wed, 28 Nov 2012 15:42:25 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: ecashin@coraid.com
 
 
 The patch titled
-     Subject: aoe: initialize sysminor to avoid compiler warning
+     Subject: aoe: cleanup: correct comment for aoetgt nout
 has been added to the -mm tree.  Its filename is
-     aoe-initialize-sysminor-to-avoid-compiler-warning.patch
+     aoe-cleanup-correct-comment-for-aoetgt-nout.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ed Cashin <ecashin@coraid.com>
-Subject: aoe: initialize sysminor to avoid compiler warning
+Subject: aoe: cleanup: correct comment for aoetgt nout
 
-Because the minor_get and related functions use the return values for
-errors, the compiler doesn't know that sysminor will always either 1) be
-initialized in aoedev_by_aoeaddr by the call to minor_get, or 2) be unused
-as the "goto out" is executed.
-
-This patch avoids the compiler warning.
+A misplaced comment was attached to the nout member of the aoetgt.  This
+change corrects the comment.
 
 Signed-off-by: Ed Cashin <ecashin@coraid.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoedev.c |    2 +-
+ drivers/block/aoe/aoe.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/aoe/aoedev.c~aoe-initialize-sysminor-to-avoid-compiler-warning drivers/block/aoe/aoedev.c
---- a/drivers/block/aoe/aoedev.c~aoe-initialize-sysminor-to-avoid-compiler-warning
-+++ a/drivers/block/aoe/aoedev.c
-@@ -383,7 +383,7 @@ aoedev_by_aoeaddr(ulong maj, int min, in
- 	struct aoedev *d;
- 	int i;
- 	ulong flags;
--	ulong sysminor;
-+	ulong sysminor = 0;
- 
- 	spin_lock_irqsave(&devlist_lock, flags);
- 
+diff -puN drivers/block/aoe/aoe.h~aoe-cleanup-correct-comment-for-aoetgt-nout drivers/block/aoe/aoe.h
+--- a/drivers/block/aoe/aoe.h~aoe-cleanup-correct-comment-for-aoetgt-nout
++++ a/drivers/block/aoe/aoe.h
+@@ -133,7 +133,7 @@ struct aoetgt {
+ 	struct list_head ffree;			/* list of free frames */
+ 	struct aoeif ifs[NAOEIFS];
+ 	struct aoeif *ifp;	/* current aoeif in use */
+-	ushort nout;		/* value of nout when skb was sent */
++	ushort nout;		/* number of AoE commands outstanding */
+ 	ushort maxout;		/* current value for max outstanding */
+ 	ushort next_cwnd;	/* incr maxout after decrementing to zero */
+ 	ushort ssthresh;	/* slow start threshold */
 _
 
 Patches currently in -mm which might be from ecashin@coraid.com are
