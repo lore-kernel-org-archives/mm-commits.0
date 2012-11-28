@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + hfsplus-rework-functionality-of-getting-setting-and-deleting-of-extended-attributes-fix.patch added to -mm tree
-Date: Wed, 28 Nov 2012 15:21:42 -0800
-Message-ID: <20121128232143.307F920004E@hpza10.eem.corp.google.com>
+Subject: + rtc-add-nxp-pcf8523-support-v2.patch added to -mm tree
+Date: Wed, 28 Nov 2012 15:34:52 -0800
+Message-ID: <20121128233458.81DDA20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:48758 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753272Ab2K1XV5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Nov 2012 18:21:57 -0500
-Received: by mail-wi0-f202.google.com with SMTP id cb5so497545wib.1
-        for <mm-commits@vger.kernel.org>; Wed, 28 Nov 2012 15:21:45 -0800 (PST)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:44145 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753115Ab2K1XfA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Nov 2012 18:35:00 -0500
+Received: by mail-fa0-f74.google.com with SMTP id t1so724683fae.1
+        for <mm-commits@vger.kernel.org>; Wed, 28 Nov 2012 15:34:59 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: slava@dubeyko.com, fengguang.wu@intel.com, hch@lst.de, htl10@users.sourceforge.net, jack@suse.cz, viro@zeniv.linux.org.uk
+Cc: thierry.reding@avionic-design.de, a.zummo@towertech.it
 
 
 The patch titled
-     Subject: hfsplus-rework-functionality-of-getting-setting-and-deleting-of-extended-attributes-fix
+     Subject: rtc-add-nxp-pcf8523-support-v2
 has been added to the -mm tree.  Its filename is
-     hfsplus-rework-functionality-of-getting-setting-and-deleting-of-extended-attributes-fix.patch
+     rtc-add-nxp-pcf8523-support-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,58 +33,83 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vyacheslav Dubeyko <slava@dubeyko.com>
-Subject: hfsplus-rework-functionality-of-getting-setting-and-deleting-of-extended-attributes-fix
+From: Thierry Reding <thierry.reding@avionic-design.de>
+Subject: rtc-add-nxp-pcf8523-support-v2
 
-Fix warning in [next:akpm 357/436] fs/hfsplus/xattr.c:363:23: sparse: cast to restricted __be32.
+Changes in v2:
+- return an error if the OS flag cannot be cleared
+- add comment as to why we clear the OS flag
+- restart RTC if setting the time fails
 
-Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Hin-Tak Leung <htl10@users.sourceforge.net>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jan Kara <jack@suse.cz>
+Signed-off-by: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/xattr.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-pcf8523.c |   25 ++++++++++++++++++++++---
+ 1 file changed, 22 insertions(+), 3 deletions(-)
 
-diff -puN fs/hfsplus/xattr.c~hfsplus-rework-functionality-of-getting-setting-and-deleting-of-extended-attributes-fix fs/hfsplus/xattr.c
---- a/fs/hfsplus/xattr.c~hfsplus-rework-functionality-of-getting-setting-and-deleting-of-extended-attributes-fix
-+++ a/fs/hfsplus/xattr.c
-@@ -310,6 +310,7 @@ ssize_t hfsplus_getxattr(struct dentry *
- 	struct inode *inode = dentry->d_inode;
- 	struct hfs_find_data fd;
- 	hfsplus_attr_entry *entry;
-+	__be32 xattr_record_type;
- 	u32 record_type;
- 	u16 record_length = 0;
- 	ssize_t res = 0;
-@@ -358,9 +359,9 @@ ssize_t hfsplus_getxattr(struct dentry *
- 		goto out;
+diff -puN drivers/rtc/rtc-pcf8523.c~rtc-add-nxp-pcf8523-support-v2 drivers/rtc/rtc-pcf8523.c
+--- a/drivers/rtc/rtc-pcf8523.c~rtc-add-nxp-pcf8523-support-v2
++++ a/drivers/rtc/rtc-pcf8523.c
+@@ -178,14 +178,26 @@ static int pcf8523_rtc_read_time(struct 
+ 		return err;
+ 
+ 	if (regs[0] & REG_SECONDS_OS) {
+-		dev_dbg(dev, "clock integrity is not guaranteed\n");
++		/*
++		 * If the oscillator was stopped, try to clear the flag. Upon
++		 * power-up the flag is always set, but if we cannot clear it
++		 * the oscillator isn't running properly for some reason. The
++		 * sensible thing therefore is to return an error, signalling
++		 * that the clock cannot be assumed to be correct.
++		 */
+ 
+-		/* try to clear the flag */
+ 		regs[0] &= ~REG_SECONDS_OS;
+ 
+ 		err = pcf8523_write(client, REG_SECONDS, regs[0]);
+ 		if (err < 0)
+ 			return err;
++
++		err = pcf8523_read(client, REG_SECONDS, &regs[0]);
++		if (err < 0)
++			return err;
++
++		if (regs[0] & REG_SECONDS_OS)
++			return -EAGAIN;
  	}
  
--	hfs_bnode_read(fd.bnode, &record_type,
--			fd.entryoffset, sizeof(record_type));
--	record_type = be32_to_cpu(record_type);
-+	hfs_bnode_read(fd.bnode, &xattr_record_type,
-+			fd.entryoffset, sizeof(xattr_record_type));
-+	record_type = be32_to_cpu(xattr_record_type);
- 	if (record_type == HFSPLUS_ATTR_INLINE_DATA) {
- 		record_length = hfs_bnode_read_u16(fd.bnode,
- 				fd.entryoffset +
+ 	tm->tm_sec = bcd2bin(regs[0] & 0x7f);
+@@ -225,8 +237,15 @@ static int pcf8523_rtc_set_time(struct d
+ 	msg.buf = regs;
+ 
+ 	err = i2c_transfer(client->adapter, &msg, 1);
+-	if (err < 0)
++	if (err < 0) {
++		/*
++		 * If the time cannot be set, restart the RTC anyway. Note
++		 * that errors are ignored if the RTC cannot be started so
++		 * that we have a chance to propagate the original error.
++		 */
++		pcf8523_start_rtc(client);
+ 		return err;
++	}
+ 
+ 	return pcf8523_start_rtc(client);
+ }
 _
 
-Patches currently in -mm which might be from slava@dubeyko.com are
+Patches currently in -mm which might be from thierry.reding@avionic-design.de are
 
-hfsplus-avoid-crash-on-failed-block-map-free.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes-checkpatch-fixes.patch
-hfsplus-add-on-disk-layout-declarations-related-to-attributes-tree.patch
-hfsplus-add-functionality-of-manipulating-by-records-in-attributes-tree.patch
-hfsplus-rework-functionality-of-getting-setting-and-deleting-of-extended-attributes.patch
-hfsplus-rework-functionality-of-getting-setting-and-deleting-of-extended-attributes-fix.patch
-hfsplus-add-support-of-manipulation-by-attributes-file.patch
-hfsplus-rework-processing-errors-in-hfsplus_free_extents.patch
+linux-next.patch
+mm-compaction-fix-compiler-warning.patch
+drivers-video-backlight-lp855x_blc-use-generic-pwm-functions.patch
+drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
+drivers-video-backlight-lp855x_blc-remove-unnecessary-mutex-code.patch
+backlight-add-of_find_backlight_by_node-function.patch
+backlight-add-of_find_backlight_by_node-function-fix.patch
+backlight-add-of_find_backlight_by_node-function-fix-2.patch
+rtc-add-nxp-pcf8523-support.patch
+rtc-add-nxp-pcf8523-support-v2.patch
 
