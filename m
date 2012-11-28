@@ -1,188 +1,185 @@
 From: akpm@linux-foundation.org
-Subject: [failures] tasklet-ignore-disabled-tasklet-in-tasklet_action.patch removed from -mm tree
-Date: Wed, 28 Nov 2012 14:23:31 -0800
-Message-ID: <20121128222333.001A7100047@wpzn3.hot.corp.google.com>
+Subject: + mm-introduce-a-common-interface-for-balloon-pages-mobility-fix.patch added to -mm tree
+Date: Wed, 28 Nov 2012 14:26:02 -0800
+Message-ID: <20121128222602.A111F10004A@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:55890 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755909Ab2K1WXf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Nov 2012 17:23:35 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so1158514vcd.1
-        for <mm-commits@vger.kernel.org>; Wed, 28 Nov 2012 14:23:34 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:58458 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755909Ab2K1W0D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Nov 2012 17:26:03 -0500
+Received: by mail-qc0-f202.google.com with SMTP id s25so1679916qcq.1
+        for <mm-commits@vger.kernel.org>; Wed, 28 Nov 2012 14:26:03 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xtfeng@gmail.com, dannyfeng@tencent.com, eric.dumazet@gmail.com, mingo@elte.hu, peter@hurleysoftware.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rientjes@google.com, aquini@redhat.com, mhocko@suse.cz
 
 
 The patch titled
-     Subject: tasklet: ignore disabled tasklet in tasklet_action()
-has been removed from the -mm tree.  Its filename was
-     tasklet-ignore-disabled-tasklet-in-tasklet_action.patch
+     Subject: mm: introduce a common interface for balloon pages mobility fix
+has been added to the -mm tree.  Its filename is
+     mm-introduce-a-common-interface-for-balloon-pages-mobility-fix.patch
 
-This patch was dropped because it had testing failures
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Xiaotian Feng <xtfeng@gmail.com>
-Subject: tasklet: ignore disabled tasklet in tasklet_action()
+From: David Rientjes <rientjes@google.com>
+Subject: mm: introduce a common interface for balloon pages mobility fix
 
-We met a ksoftirqd 100% issue, the perf top shows kernel is busy with
-tasklet_action(), but no actual action is shown.  From dumped kernel,
-there's only one disabled tasklet on the tasklet_vec.
+It's useful to keep memory defragmented so that all high-order page
+allocations have a chance to succeed, not simply transparent hugepages. 
+Thus, allow balloon compaction for any system with memory compaction
+enabled, which is the defconfig.
 
-tasklet_action might be handled after tasklet is disabled, this will make
-disabled tasklet stayed on tasklet_vec.  tasklet_action will not handle
-disabled tasklet, but place it on the tail of tasklet_vec, still raise
-softirq for this tasklet.  Things will become worse if device driver uses
-tasklet_disable on its device remove/close code.  The disabled tasklet
-will stay on the vec, frequently __raise_softirq_off() and make ksoftirqd
-wakeup even if no tasklets need to be handled.
-
-This patch introduced a new TASKLET_STATE_HI bit to indicate HI_SOFTIRQ,
-in tasklet_action(), simply ignore the disabled tasklet and don't raise
-the softirq nr.  In my previous patch, I remove tasklet_hi_enable() since
-it is the same as tasklet_enable().  So only tasklet_enable() needs to be
-modified, if tasklet state is changed from disable to enable, use
-__tasklet_schedule() to put it on the right vec.
-
-Signed-off-by: Xiaotian Feng <dannyfeng@tencent.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Peter Hurley <peter@hurleysoftware.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Rafael Aquini <aquini@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/jme.c |   12 ++++++------
- include/linux/interrupt.h  |   18 ++++++++++--------
- kernel/softirq.c           |    9 +++++----
- 3 files changed, 21 insertions(+), 18 deletions(-)
+ mm/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/ethernet/jme.c~tasklet-ignore-disabled-tasklet-in-tasklet_action drivers/net/ethernet/jme.c
---- a/drivers/net/ethernet/jme.c~tasklet-ignore-disabled-tasklet-in-tasklet_action
-+++ a/drivers/net/ethernet/jme.c
-@@ -1364,8 +1364,8 @@ err_out_free_rx_resources:
- 	jme_free_rx_resources(jme);
- out_enable_tasklet:
- 	tasklet_enable(&jme->txclean_task);
--	tasklet_hi_enable(&jme->rxclean_task);
--	tasklet_hi_enable(&jme->rxempty_task);
-+	tasklet_enable(&jme->rxclean_task);
-+	tasklet_enable(&jme->rxempty_task);
- out:
- 	atomic_inc(&jme->link_changing);
- }
-@@ -2379,8 +2379,8 @@ static inline void jme_resume_rx(struct 
- 	if (test_bit(JME_FLAG_POLL, &jme->flags)) {
- 		JME_NAPI_ENABLE(jme);
- 	} else {
--		tasklet_hi_enable(&jme->rxclean_task);
--		tasklet_hi_enable(&jme->rxempty_task);
-+		tasklet_enable(&jme->rxclean_task);
-+		tasklet_enable(&jme->rxempty_task);
- 	}
- 	dpi->cur		= PCC_P1;
- 	dpi->attempt		= PCC_P1;
-@@ -3264,8 +3264,8 @@ jme_suspend(struct device *dev)
- 	}
- 
- 	tasklet_enable(&jme->txclean_task);
--	tasklet_hi_enable(&jme->rxclean_task);
--	tasklet_hi_enable(&jme->rxempty_task);
-+	tasklet_enable(&jme->rxclean_task);
-+	tasklet_enable(&jme->rxempty_task);
- 
- 	jme_powersave_phy(jme);
- 
-diff -puN include/linux/interrupt.h~tasklet-ignore-disabled-tasklet-in-tasklet_action include/linux/interrupt.h
---- a/include/linux/interrupt.h~tasklet-ignore-disabled-tasklet-in-tasklet_action
-+++ a/include/linux/interrupt.h
-@@ -521,7 +521,8 @@ struct tasklet_struct name = { NULL, 0, 
- enum
- {
- 	TASKLET_STATE_SCHED,	/* Tasklet is scheduled for execution */
--	TASKLET_STATE_RUN	/* Tasklet is running (SMP only) */
-+	TASKLET_STATE_RUN,	/* Tasklet is running (SMP only) */
-+	TASKLET_STATE_HI	/* Tasklet is HI_SOFTIRQ */
- };
- 
- #ifdef CONFIG_SMP
-@@ -593,13 +594,14 @@ static inline void tasklet_disable(struc
- static inline void tasklet_enable(struct tasklet_struct *t)
- {
- 	smp_mb__before_atomic_dec();
--	atomic_dec(&t->count);
--}
--
--static inline void tasklet_hi_enable(struct tasklet_struct *t)
--{
--	smp_mb__before_atomic_dec();
--	atomic_dec(&t->count);
-+	if (atomic_dec_and_test(&t->count)) {
-+		if (!test_bit(TASKLET_STATE_SCHED, &t->state))
-+			return;
-+		if (test_bit(TASKLET_STATE_HI, &t->state))
-+			__tasklet_hi_schedule(t);
-+		else
-+			__tasklet_schedule(t);
-+	}
- }
- 
- extern void tasklet_kill(struct tasklet_struct *t);
-diff -puN kernel/softirq.c~tasklet-ignore-disabled-tasklet-in-tasklet_action kernel/softirq.c
---- a/kernel/softirq.c~tasklet-ignore-disabled-tasklet-in-tasklet_action
-+++ a/kernel/softirq.c
-@@ -417,6 +417,7 @@ void __tasklet_schedule(struct tasklet_s
- 	*__this_cpu_read(tasklet_vec.tail) = t;
- 	__this_cpu_write(tasklet_vec.tail, &(t->next));
- 	raise_softirq_irqoff(TASKLET_SOFTIRQ);
-+	clear_bit(TASKLET_STATE_HI, &t->state);
- 	local_irq_restore(flags);
- }
- 
-@@ -431,6 +432,7 @@ void __tasklet_hi_schedule(struct taskle
- 	*__this_cpu_read(tasklet_hi_vec.tail) = t;
- 	__this_cpu_write(tasklet_hi_vec.tail,  &(t->next));
- 	raise_softirq_irqoff(HI_SOFTIRQ);
-+	set_bit(TASKLET_STATE_HI, &t->state);
- 	local_irq_restore(flags);
- }
- 
-@@ -442,6 +444,7 @@ void __tasklet_hi_schedule_first(struct 
- 
- 	t->next = __this_cpu_read(tasklet_hi_vec.head);
- 	__this_cpu_write(tasklet_hi_vec.head, t);
-+	set_bit(TASKLET_STATE_HI, &t->state);
- 	__raise_softirq_irqoff(HI_SOFTIRQ);
- }
- 
-@@ -467,10 +470,9 @@ static void tasklet_action(struct softir
- 				if (!test_and_clear_bit(TASKLET_STATE_SCHED, &t->state))
- 					BUG();
- 				t->func(t->data);
--				tasklet_unlock(t);
--				continue;
- 			}
- 			tasklet_unlock(t);
-+			continue;
- 		}
- 
- 		local_irq_disable();
-@@ -502,10 +504,9 @@ static void tasklet_hi_action(struct sof
- 				if (!test_and_clear_bit(TASKLET_STATE_SCHED, &t->state))
- 					BUG();
- 				t->func(t->data);
--				tasklet_unlock(t);
--				continue;
- 			}
- 			tasklet_unlock(t);
-+			continue;
- 		}
- 
- 		local_irq_disable();
+diff -puN mm/Kconfig~mm-introduce-a-common-interface-for-balloon-pages-mobility-fix mm/Kconfig
+--- a/mm/Kconfig~mm-introduce-a-common-interface-for-balloon-pages-mobility-fix
++++ a/mm/Kconfig
+@@ -192,7 +192,7 @@ config SPLIT_PTLOCK_CPUS
+ config BALLOON_COMPACTION
+ 	bool "Allow for balloon memory compaction/migration"
+ 	def_bool y
+-	depends on TRANSPARENT_HUGEPAGE && VIRTIO_BALLOON
++	depends on COMPACTION && VIRTIO_BALLOON
+ 	help
+ 	  Memory fragmentation introduced by ballooning might reduce
+ 	  significantly the number of 2MB contiguous memory blocks that can be
 _
 
-Patches currently in -mm which might be from xtfeng@gmail.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
+origin.patch
 linux-next.patch
+x86-convert-update_mmu_cache-and-update_mmu_cache_pmd-to-functions.patch
+x86-fix-the-argument-passed-to-sync_global_pgds.patch
+irq-tsk-comm-is-an-array.patch
+mm-memcg-make-mem_cgroup_out_of_memory-static.patch
+mm-use-is_enabledconfig_numa-instead-of-numa_build.patch
+mm-use-is_enabledconfig_compaction-instead-of-compaction_build.patch
+thp-clean-up-__collapse_huge_page_isolate.patch
+memory-hotplug-suppress-device-memoryx-does-not-have-a-release-function-warning.patch
+memory-hotplug-skip-hwpoisoned-page-when-offlining-pages.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
+memory-hotplug-auto-offline-page_cgroup-when-onlining-memory-block-failed.patch
+memory-hotplug-fix-nr_free_pages-mismatch.patch
+numa-convert-static-memory-to-dynamically-allocated-memory-for-per-node-device.patch
+memory-hotplug-suppress-device-nodex-does-not-have-a-release-function-warning.patch
+memory-hotplug-mm-sparsec-clear-the-memory-to-store-struct-page.patch
+memory-hotplug-allocate-zones-pcp-before-onlining-pages.patch
+memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix.patch
+memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix-2.patch
+memory_hotplug-fix-possible-incorrect-node_states.patch
+slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
+mm-oom-allow-exiting-threads-to-have-access-to-memory-reserves.patch
+memcg-make-it-possible-to-use-the-stock-for-more-than-one-page.patch
+memcg-reclaim-when-more-than-one-page-needed.patch
+memcg-change-defines-to-an-enum.patch
+memcg-kmem-accounting-basic-infrastructure.patch
+mm-add-a-__gfp_kmemcg-flag.patch
+memcg-kmem-controller-infrastructure.patch
+memcg-kmem-controller-infrastructure-replace-__always_inline-with-plain-inline.patch
+mm-allocate-kernel-pages-to-the-right-memcg.patch
+res_counter-return-amount-of-charges-after-res_counter_uncharge.patch
+memcg-kmem-accounting-lifecycle-management.patch
+memcg-use-static-branches-when-code-not-in-use.patch
+memcg-allow-a-memcg-with-kmem-charges-to-be-destructed.patch
+memcg-execute-the-whole-memcg-freeing-in-free_worker.patch
+fork-protect-architectures-where-thread_size-=-page_size-against-fork-bombs.patch
+memcg-add-documentation-about-the-kmem-controller.patch
+slab-slub-struct-memcg_params.patch
+slab-annotate-on-slab-caches-nodelist-locks.patch
+slab-slub-consider-a-memcg-parameter-in-kmem_create_cache.patch
+memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears.patch
+memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears-simplify-ida-initialization.patch
+memcg-infrastructure-to-match-an-allocation-to-the-right-cache.patch
+memcg-skip-memcg-kmem-allocations-in-specified-code-regions.patch
+memcg-skip-memcg-kmem-allocations-in-specified-code-regions-remove-test-for-current-mm-in-memcg_stop-resume_kmem_account.patch
+slb-always-get-the-cache-from-its-page-in-kmem_cache_free.patch
+slb-allocate-objects-from-memcg-cache.patch
+memcg-destroy-memcg-caches.patch
+memcg-destroy-memcg-caches-move-include-of-workqueueh-to-top-of-slabh-file.patch
+memcg-slb-track-all-the-memcg-children-of-a-kmem_cache.patch
+memcg-slb-shrink-dead-caches.patch
+memcg-slb-shrink-dead-caches-get-rid-of-once-per-second-cache-shrinking-for-dead-memcgs.patch
+memcg-aggregate-memcg-cache-values-in-slabinfo.patch
+slab-propagate-tunable-values.patch
+slub-slub-specific-propagation-changes.patch
+slub-slub-specific-propagation-changes-fix.patch
+kmem-add-slab-specific-documentation-about-the-kmem-controller.patch
+memcg-add-comments-clarifying-aspects-of-cache-attribute-propagation.patch
+slub-drop-mutex-before-deleting-sysfs-entry.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch
+mm-introduce-a-common-interface-for-balloon-pages-mobility-fix.patch
+mm-mempolicy-remove-duplicate-code.patch
+mm-cleanup-register_node.patch
+mm-oom-change-type-of-oom_score_adj-to-short.patch
+mm-oom-fix-race-when-specifying-a-thread-as-the-oom-origin.patch
+drivers-base-nodec-cleanup-node_state_attr.patch
+mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory.patch
+memory_hotplug-handle-empty-zone-when-online_movable-online_kernel.patch
+memory_hotplug-ensure-every-online-node-has-normal-memory.patch
+thp-huge-zero-page-basic-preparation.patch
+thp-huge-zero-page-basic-preparation-v6.patch
+thp-zap_huge_pmd-zap-huge-zero-pmd.patch
+thp-copy_huge_pmd-copy-huge-zero-page.patch
+thp-copy_huge_pmd-copy-huge-zero-page-v6.patch
+thp-copy_huge_pmd-copy-huge-zero-page-v6-fix.patch
+thp-do_huge_pmd_wp_page-handle-huge-zero-page.patch
+thp-do_huge_pmd_wp_page-handle-huge-zero-page-v6.patch
+thp-change_huge_pmd-keep-huge-zero-page-write-protected.patch
+thp-change-split_huge_page_pmd-interface.patch
+thp-change-split_huge_page_pmd-interface-v6.patch
+thp-implement-splitting-pmd-for-huge-zero-page.patch
+thp-implement-splitting-pmd-for-huge-zero-page-v6.patch
+thp-setup-huge-zero-page-on-non-write-page-fault.patch
+thp-setup-huge-zero-page-on-non-write-page-fault-fix.patch
+thp-lazy-huge-zero-page-allocation.patch
+thp-implement-refcounting-for-huge-zero-page.patch
+thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events.patch
+thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6.patch
+thp-introduce-sysfs-knob-to-disable-huge-zero-page.patch
+node_states-introduce-n_memory.patch
+cpuset-use-n_memory-instead-n_high_memory.patch
+procfs-use-n_memory-instead-n_high_memory.patch
+memcontrol-use-n_memory-instead-n_high_memory.patch
+oom-use-n_memory-instead-n_high_memory.patch
+mmmigrate-use-n_memory-instead-n_high_memory.patch
+mempolicy-use-n_memory-instead-n_high_memory.patch
+hugetlb-use-n_memory-instead-n_high_memory.patch
+vmstat-use-n_memory-instead-n_high_memory.patch
+kthread-use-n_memory-instead-n_high_memory.patch
+init-use-n_memory-instead-n_high_memory.patch
+vmscan-use-n_memory-instead-n_high_memory.patch
+page_alloc-use-n_memory-instead-n_high_memory-change-the-node_states-initialization.patch
+hotplug-update-nodemasks-management.patch
+mm-memcg-avoid-unnecessary-function-call-when-memcg-is-disabled.patch
+numa-add-config_movable_node-for-movable-dedicated-node.patch
+numa-add-config_movable_node-for-movable-dedicated-node-fix.patch
+memory_hotplug-allow-online-offline-memory-to-result-movable-node.patch
+mm-oom-cleanup-pagefault-oom-handler.patch
+mm-oom-remove-redundant-sleep-in-pagefault-oom-handler.patch
+mm-oom-remove-statically-defined-arch-functions-of-same-name.patch
+mm-introduce-new-field-managed_pages-to-struct-zone.patch
+mm-dmapoolc-fix-null-dev-in-dma_pool_create.patch
 
