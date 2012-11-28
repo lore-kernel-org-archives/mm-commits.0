@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + aoe-copy-fallback-timing-information-on-destination-failover.patch added to -mm tree
-Date: Wed, 28 Nov 2012 15:42:15 -0800
-Message-ID: <20121128234216.3D668820050@wpzn4.hot.corp.google.com>
+Subject: + aoe-return-real-minor-number-for-static-minors.patch added to -mm tree
+Date: Wed, 28 Nov 2012 15:42:37 -0800
+Message-ID: <20121128234238.7D1A8100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:61592 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756134Ab2K1XmR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Nov 2012 18:42:17 -0500
-Received: by mail-gg0-f202.google.com with SMTP id k1so582143ggn.1
-        for <mm-commits@vger.kernel.org>; Wed, 28 Nov 2012 15:42:16 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:37669 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932295Ab2K1Xmj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Nov 2012 18:42:39 -0500
+Received: by mail-vb0-f74.google.com with SMTP id s24so1705598vbi.1
+        for <mm-commits@vger.kernel.org>; Wed, 28 Nov 2012 15:42:39 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: ecashin@coraid.com
 
 
 The patch titled
-     Subject: aoe: copy fallback timing information on destination failover
+     Subject: aoe: return real minor number for static minors
 has been added to the -mm tree.  Its filename is
-     aoe-copy-fallback-timing-information-on-destination-failover.patch
+     aoe-return-real-minor-number-for-static-minors.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ed Cashin <ecashin@coraid.com>
-Subject: aoe: copy fallback timing information on destination failover
+Subject: aoe: return real minor number for static minors
 
-commit f3b8e07af7744cbb ("aoe: commands in retransmit queue use new
-destination on failure") omits the copying of the coarse-grained time when
-an AoE command was sent during the failover from one destination MAC
-address on the AoE target to another.
+The value returned by the static minor device number number allocator is
+the real minor number, so it must be multiplied by the supported number of
+partitions per aoedev.
 
-The coarse-grained timing is only used when the system time changes or an
-unlikely length of time has passed since the sending of the AoE command. 
-Users will not be impacted unless their system clock is very inaccurate or
-something unusual (e.g., 10 GbE link reset) happens during the period when
-the aoe driver is handling the failure of a port on the AoE target.  Being
-effected will mean that an AoE target could be considered "down" too
-eagerly.
+Without this fix the support for systems without udev is incomplete, and
+the few users of aoe on such systems will have surprising results when
+device nodes names do not match the AoE target.
 
 Signed-off-by: Ed Cashin <ecashin@coraid.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoecmd.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/block/aoe/aoedev.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/aoe/aoecmd.c~aoe-copy-fallback-timing-information-on-destination-failover drivers/block/aoe/aoecmd.c
---- a/drivers/block/aoe/aoecmd.c~aoe-copy-fallback-timing-information-on-destination-failover
-+++ a/drivers/block/aoe/aoecmd.c
-@@ -581,6 +581,7 @@ reassign_frame(struct list_head *pos)
- 	nf->waited = 0;
- 	nf->waited_total = f->waited_total;
- 	nf->sent = f->sent;
-+	nf->sent_jiffs = f->sent_jiffs;
- 	f->skb = skb;
- 	aoe_freetframe(f);
- 	f->t->nout--;
+diff -puN drivers/block/aoe/aoedev.c~aoe-return-real-minor-number-for-static-minors drivers/block/aoe/aoedev.c
+--- a/drivers/block/aoe/aoedev.c~aoe-return-real-minor-number-for-static-minors
++++ a/drivers/block/aoe/aoedev.c
+@@ -95,7 +95,7 @@ minor_get_static(ulong *sysminor, ulong 
+ 	} else
+ 		set_bit(n, used_minors);
+ 	spin_unlock_irqrestore(&used_minors_lock, flags);
+-	*sysminor = n;
++	*sysminor = n * AOE_PARTITIONS;
+ out:
+ 	return error;
+ }
 _
 
 Patches currently in -mm which might be from ecashin@coraid.com are
