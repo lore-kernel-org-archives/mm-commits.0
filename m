@@ -1,52 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-avoid-waking-kswapd-for-thp-allocations-when-compaction-is-deferred-or-contended-fix.patch removed from -mm tree
-Date: Thu, 29 Nov 2012 13:52:37 -0800
-Message-ID: <20121129215237.C0799100047@wpzn3.hot.corp.google.com>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Thu, 29 Nov 2012 14:36:45 -0800
+Message-ID: <20121129223645.C076D100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ia0-f202.google.com ([209.85.210.202]:48581 "EHLO
-	mail-ia0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755263Ab2K2Vwl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Nov 2012 16:52:41 -0500
-Received: by mail-ia0-f202.google.com with SMTP id k10so3289602iag.1
-        for <mm-commits@vger.kernel.org>; Thu, 29 Nov 2012 13:52:40 -0800 (PST)
+Received: from mail-oa0-f74.google.com ([209.85.219.74]:46093 "EHLO
+	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752157Ab2K2Wgu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Nov 2012 17:36:50 -0500
+Received: by mail-oa0-f74.google.com with SMTP id k14so3301164oag.1
+        for <mm-commits@vger.kernel.org>; Thu, 29 Nov 2012 14:36:49 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mgorman@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-avoid-waking-kswapd-for-thp-allocations-when-compaction-is-deferred-or-contended-fix
+     Subject: linux-next-git-rejects
 has been removed from the -mm tree.  Its filename was
-     mm-avoid-waking-kswapd-for-thp-allocations-when-compaction-is-deferred-or-contended-fix.patch
+     linux-next-git-rejects.patch
 
-This patch was dropped because it was folded into mm-avoid-waking-kswapd-for-thp-allocations-when-compaction-is-deferred-or-contended.patch
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-avoid-waking-kswapd-for-thp-allocations-when-compaction-is-deferred-or-contended-fix
+Subject: linux-next-git-rejects
 
-fix typo in comment
-
-Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/mips/cavium-octeon/setup.c |    8 --------
+ drivers/mfd/twl-core.c          |    5 -----
+ 2 files changed, 13 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-avoid-waking-kswapd-for-thp-allocations-when-compaction-is-deferred-or-contended-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-avoid-waking-kswapd-for-thp-allocations-when-compaction-is-deferred-or-contended-fix
-+++ a/mm/page_alloc.c
-@@ -2501,7 +2501,7 @@ rebalance:
- 	if (is_thp_alloc(gfp_mask, order)) {
- 		/*
- 		 * If compaction is deferred for high-order allocations, it is
--		 * because sync compaction recently failed. In this is the case
-+		 * because sync compaction recently failed. If this is the case
- 		 * and the caller requested a movable allocation that does not
- 		 * heavily disrupt the system then fail the allocation instead
- 		 * of entering direct reclaim.
+diff -puN arch/mips/cavium-octeon/setup.c~linux-next-git-rejects arch/mips/cavium-octeon/setup.c
+--- a/arch/mips/cavium-octeon/setup.c~linux-next-git-rejects
++++ a/arch/mips/cavium-octeon/setup.c
+@@ -914,13 +914,6 @@ void __init plat_mem_setup(void)
+ 	cvmx_bootmem_lock();
+ 	while ((boot_mem_map.nr_map < BOOT_MEM_MAP_MAX)
+ 		&& (total < MAX_MEMORY)) {
+-		memory = cvmx_bootmem_phy_alloc(mem_alloc_size,
+-						__pa_symbol(&__init_end), -1,
+-						0x100000,
+-						CVMX_BOOTMEM_FLAG_NO_LOCKING);
+-<<<<<<< HEAD
+-=======
+-
+ #elif defined(CONFIG_HIGHMEM)
+ 		memory = cvmx_bootmem_phy_alloc(mem_alloc_size, 0, 1ull << 31,
+ 						0x100000,
+@@ -930,7 +923,6 @@ void __init plat_mem_setup(void)
+ 						0x100000,
+ 						CVMX_BOOTMEM_FLAG_NO_LOCKING);
+ #endif
+->>>>>>> 8571489... MIPS: Octeon: Add kexec and kdump support
+ 		if (memory >= 0) {
+ 			u64 size = mem_alloc_size;
+ #ifdef CONFIG_KEXEC
+diff -puN drivers/mfd/twl-core.c~linux-next-git-rejects drivers/mfd/twl-core.c
+--- a/drivers/mfd/twl-core.c~linux-next-git-rejects
++++ a/drivers/mfd/twl-core.c
+@@ -665,10 +665,6 @@ add_children(struct twl4030_platform_dat
+ 			return PTR_ERR(child);
+ 	}
+ 
+-<<<<<<< HEAD
+-	if (IS_ENABLED(CONFIG_PWM_TWL6030) && twl_class_is_6030()) {
+-		child = add_child(SUB_CHIP_ID1, "twl6030-pwm", NULL, 0,
+-=======
+ 	if (IS_ENABLED(CONFIG_PWM_TWL)) {
+ 		child = add_child(SUB_CHIP_ID1, "twl-pwm", NULL, 0,
+ 				  false, 0, 0);
+@@ -678,7 +674,6 @@ add_children(struct twl4030_platform_dat
+ 
+ 	if (IS_ENABLED(CONFIG_PWM_TWL_LED)) {
+ 		child = add_child(SUB_CHIP_ID1, "twl-pwmled", NULL, 0,
+->>>>>>> linux-next/akpm-base
+ 				  false, 0, 0);
+ 		if (IS_ERR(child))
+ 			return PTR_ERR(child);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -55,7 +88,6 @@ origin.patch
 revert-revert-mm-remove-__gfp_no_kswapd.patch
 mm-avoid-waking-kswapd-for-thp-allocations-when-compaction-is-deferred-or-contended.patch
 linux-next.patch
-linux-next-git-rejects.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
@@ -98,6 +130,7 @@ mm-add-a-reminder-comment-for-__gfp_bits_shift.patch
 numa-add-config_movable_node-for-movable-dedicated-node-fix.patch
 mm-introduce-new-field-managed_pages-to-struct-zone-fix.patch
 mm-provide-more-accurate-estimation-of-pages-occupied-by-memmap-fix.patch
+tmpfs-support-seek_data-and-seek_hole-reprise.patch
 drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
 swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
 scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
