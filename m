@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-avoid-waking-kswapd-for-thp-allocations-when-compaction-is-deferred-or-contended-fix.patch added to -mm tree
-Date: Wed, 28 Nov 2012 16:15:48 -0800
-Message-ID: <20121129001549.96ADF20004E@hpza10.eem.corp.google.com>
+Subject: + mm-use-is_enabledconfig_compaction-instead-of-compaction_build-fix.patch added to -mm tree
+Date: Wed, 28 Nov 2012 16:01:08 -0800
+Message-ID: <20121129005111.88536820050@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:56930 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751866Ab2K2APw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Nov 2012 19:15:52 -0500
-Received: by mail-fa0-f74.google.com with SMTP id t1so725867fae.1
-        for <mm-commits@vger.kernel.org>; Wed, 28 Nov 2012 16:15:50 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:64564 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932414Ab2K2AvO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Nov 2012 19:51:14 -0500
+Received: by mail-gg0-f202.google.com with SMTP id k1so592643ggn.1
+        for <mm-commits@vger.kernel.org>; Wed, 28 Nov 2012 16:51:13 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mgorman@suse.de
+Cc: akpm@linux-foundation.org, kirill.shutemov@linux.intel.com
 
 
 The patch titled
-     Subject: mm-avoid-waking-kswapd-for-thp-allocations-when-compaction-is-deferred-or-contended-fix
+     Subject: mm-use-is_enabledconfig_compaction-instead-of-compaction_build-fix
 has been added to the -mm tree.  Its filename is
-     mm-avoid-waking-kswapd-for-thp-allocations-when-compaction-is-deferred-or-contended-fix.patch
+     mm-use-is_enabledconfig_compaction-instead-of-compaction_build-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-avoid-waking-kswapd-for-thp-allocations-when-compaction-is-deferred-or-contended-fix
+Subject: mm-use-is_enabledconfig_compaction-instead-of-compaction_build-fix
 
-fix typo in comment
-
-Cc: Mel Gorman <mgorman@suse.de>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-avoid-waking-kswapd-for-thp-allocations-when-compaction-is-deferred-or-contended-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-avoid-waking-kswapd-for-thp-allocations-when-compaction-is-deferred-or-contended-fix
-+++ a/mm/page_alloc.c
-@@ -2501,7 +2501,7 @@ rebalance:
- 	if (is_thp_alloc(gfp_mask, order)) {
- 		/*
- 		 * If compaction is deferred for high-order allocations, it is
--		 * because sync compaction recently failed. In this is the case
-+		 * because sync compaction recently failed. If this is the case
- 		 * and the caller requested a movable allocation that does not
- 		 * heavily disrupt the system then fail the allocation instead
- 		 * of entering direct reclaim.
+diff -puN mm/vmscan.c~mm-use-is_enabledconfig_compaction-instead-of-compaction_build-fix mm/vmscan.c
+--- a/mm/vmscan.c~mm-use-is_enabledconfig_compaction-instead-of-compaction_build-fix
++++ a/mm/vmscan.c
+@@ -2421,7 +2421,8 @@ static bool zone_balanced(struct zone *z
+ 				    balance_gap, classzone_idx, 0))
+ 		return false;
+ 
+-	if (COMPACTION_BUILD && order && !compaction_suitable(zone, order))
++	if (IS_ENABLED(CONFIG_COMPACTION) && order &&
++			!compaction_suitable(zone, order))
+ 		return false;
+ 
+ 	return true;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,6 +73,7 @@ drivers-video-add-support-for-the-solomon-ssd1307-oled-controller-checkpatch-fix
 irq-tsk-comm-is-an-array.patch
 drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch
 mm.patch
+mm-use-is_enabledconfig_compaction-instead-of-compaction_build-fix.patch
 mm-introduce-mm_find_pmd-fix.patch
 memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
 slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
