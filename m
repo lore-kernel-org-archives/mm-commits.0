@@ -1,160 +1,218 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Thu, 29 Nov 2012 14:36:45 -0800
-Message-ID: <20121129223645.C076D100047@wpzn3.hot.corp.google.com>
+Subject: + tmpfs-support-seek_data-and-seek_hole-reprise.patch added to -mm tree
+Date: Thu, 29 Nov 2012 14:38:33 -0800
+Message-ID: <20121129223833.ED316100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f74.google.com ([209.85.219.74]:46093 "EHLO
+Received: from mail-oa0-f74.google.com ([209.85.219.74]:34233 "EHLO
 	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752157Ab2K2Wgu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Nov 2012 17:36:50 -0500
-Received: by mail-oa0-f74.google.com with SMTP id k14so3301164oag.1
-        for <mm-commits@vger.kernel.org>; Thu, 29 Nov 2012 14:36:49 -0800 (PST)
+	with ESMTP id S1752545Ab2K2Wig (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Nov 2012 17:38:36 -0500
+Received: by mail-oa0-f74.google.com with SMTP id k14so3301491oag.1
+        for <mm-commits@vger.kernel.org>; Thu, 29 Nov 2012 14:38:36 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: hughd@google.com, adilger@dilger.ca, andi@firstfloor.org, chris.mason@fusionio.com, david@fromorbit.com, eggert@cs.ucla.edu, hch@infradead.org, jaegeuk.hanse@gmail.com, jeff.liu@oracle.com, josef@redhat.com, marco.stornelli@gmail.com, sunil.mushran@oracle.com, tytso@mit.edu, wenqing.lz@taobao.com
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: tmpfs: support SEEK_DATA and SEEK_HOLE (reprise)
+has been added to the -mm tree.  Its filename is
+     tmpfs-support-seek_data-and-seek_hole-reprise.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Hugh Dickins <hughd@google.com>
+Subject: tmpfs: support SEEK_DATA and SEEK_HOLE (reprise)
 
+Revert 3.5's f21f8062201f ("tmpfs: revert SEEK_DATA and SEEK_HOLE") to
+reinstate 4fb5ef089b28 ("tmpfs: support SEEK_DATA and SEEK_HOLE"), with
+the intervening additional arg to generic_file_llseek_size().
+
+In 3.8, ext4 is expected to join btrfs, ocfs2 and xfs with proper
+SEEK_DATA and SEEK_HOLE support; and a good case has now been made for it
+on tmpfs, so let's join the party.
+
+It's quite easy for tmpfs to scan the radix_tree to support llseek's new
+SEEK_DATA and SEEK_HOLE options: so add them while the minutiae are still
+on my mind (in particular, the !PageUptodate-ness of pages fallocated but
+still unwritten).
+
+[akpm@linux-foundation.org: fix warning with CONFIG_TMPFS=n]
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Jaegeuk Hanse <jaegeuk.hanse@gmail.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Zheng Liu <wenqing.lz@taobao.com>
+Cc: Jeff liu <jeff.liu@oracle.com>
+Cc: Paul Eggert <eggert@cs.ucla.edu>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Josef Bacik <josef@redhat.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Andreas Dilger <adilger@dilger.ca>
+Cc: Marco Stornelli <marco.stornelli@gmail.com>
+Cc: Chris Mason <chris.mason@fusionio.com>
+Cc: Sunil Mushran <sunil.mushran@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/cavium-octeon/setup.c |    8 --------
- drivers/mfd/twl-core.c          |    5 -----
- 2 files changed, 13 deletions(-)
+ mm/shmem.c |   92 ++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 91 insertions(+), 1 deletion(-)
 
-diff -puN arch/mips/cavium-octeon/setup.c~linux-next-git-rejects arch/mips/cavium-octeon/setup.c
---- a/arch/mips/cavium-octeon/setup.c~linux-next-git-rejects
-+++ a/arch/mips/cavium-octeon/setup.c
-@@ -914,13 +914,6 @@ void __init plat_mem_setup(void)
- 	cvmx_bootmem_lock();
- 	while ((boot_mem_map.nr_map < BOOT_MEM_MAP_MAX)
- 		&& (total < MAX_MEMORY)) {
--		memory = cvmx_bootmem_phy_alloc(mem_alloc_size,
--						__pa_symbol(&__init_end), -1,
--						0x100000,
--						CVMX_BOOTMEM_FLAG_NO_LOCKING);
--<<<<<<< HEAD
--=======
--
- #elif defined(CONFIG_HIGHMEM)
- 		memory = cvmx_bootmem_phy_alloc(mem_alloc_size, 0, 1ull << 31,
- 						0x100000,
-@@ -930,7 +923,6 @@ void __init plat_mem_setup(void)
- 						0x100000,
- 						CVMX_BOOTMEM_FLAG_NO_LOCKING);
- #endif
-->>>>>>> 8571489... MIPS: Octeon: Add kexec and kdump support
- 		if (memory >= 0) {
- 			u64 size = mem_alloc_size;
- #ifdef CONFIG_KEXEC
-diff -puN drivers/mfd/twl-core.c~linux-next-git-rejects drivers/mfd/twl-core.c
---- a/drivers/mfd/twl-core.c~linux-next-git-rejects
-+++ a/drivers/mfd/twl-core.c
-@@ -665,10 +665,6 @@ add_children(struct twl4030_platform_dat
- 			return PTR_ERR(child);
- 	}
+diff -puN mm/shmem.c~tmpfs-support-seek_data-and-seek_hole-reprise mm/shmem.c
+--- a/mm/shmem.c~tmpfs-support-seek_data-and-seek_hole-reprise
++++ a/mm/shmem.c
+@@ -1709,6 +1709,96 @@ static ssize_t shmem_file_splice_read(st
+ 	return error;
+ }
  
--<<<<<<< HEAD
--	if (IS_ENABLED(CONFIG_PWM_TWL6030) && twl_class_is_6030()) {
--		child = add_child(SUB_CHIP_ID1, "twl6030-pwm", NULL, 0,
--=======
- 	if (IS_ENABLED(CONFIG_PWM_TWL)) {
- 		child = add_child(SUB_CHIP_ID1, "twl-pwm", NULL, 0,
- 				  false, 0, 0);
-@@ -678,7 +674,6 @@ add_children(struct twl4030_platform_dat
- 
- 	if (IS_ENABLED(CONFIG_PWM_TWL_LED)) {
- 		child = add_child(SUB_CHIP_ID1, "twl-pwmled", NULL, 0,
-->>>>>>> linux-next/akpm-base
- 				  false, 0, 0);
- 		if (IS_ERR(child))
- 			return PTR_ERR(child);
++/*
++ * llseek SEEK_DATA or SEEK_HOLE through the radix_tree.
++ */
++static pgoff_t shmem_seek_hole_data(struct address_space *mapping,
++				    pgoff_t index, pgoff_t end, int origin)
++{
++	struct page *page;
++	struct pagevec pvec;
++	pgoff_t indices[PAGEVEC_SIZE];
++	bool done = false;
++	int i;
++
++	pagevec_init(&pvec, 0);
++	pvec.nr = 1;		/* start small: we may be there already */
++	while (!done) {
++		pvec.nr = shmem_find_get_pages_and_swap(mapping, index,
++					pvec.nr, pvec.pages, indices);
++		if (!pvec.nr) {
++			if (origin == SEEK_DATA)
++				index = end;
++			break;
++		}
++		for (i = 0; i < pvec.nr; i++, index++) {
++			if (index < indices[i]) {
++				if (origin == SEEK_HOLE) {
++					done = true;
++					break;
++				}
++				index = indices[i];
++			}
++			page = pvec.pages[i];
++			if (page && !radix_tree_exceptional_entry(page)) {
++				if (!PageUptodate(page))
++					page = NULL;
++			}
++			if (index >= end ||
++			    (page && origin == SEEK_DATA) ||
++			    (!page && origin == SEEK_HOLE)) {
++				done = true;
++				break;
++			}
++		}
++		shmem_deswap_pagevec(&pvec);
++		pagevec_release(&pvec);
++		pvec.nr = PAGEVEC_SIZE;
++		cond_resched();
++	}
++	return index;
++}
++
++static loff_t shmem_file_llseek(struct file *file, loff_t offset, int origin)
++{
++	struct address_space *mapping = file->f_mapping;
++	struct inode *inode = mapping->host;
++	pgoff_t start, end;
++	loff_t new_offset;
++
++	if (origin != SEEK_DATA && origin != SEEK_HOLE)
++		return generic_file_llseek_size(file, offset, origin,
++					MAX_LFS_FILESIZE, i_size_read(inode));
++	mutex_lock(&inode->i_mutex);
++	/* We're holding i_mutex so we can access i_size directly */
++
++	if (offset < 0)
++		offset = -EINVAL;
++	else if (offset >= inode->i_size)
++		offset = -ENXIO;
++	else {
++		start = offset >> PAGE_CACHE_SHIFT;
++		end = (inode->i_size + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
++		new_offset = shmem_seek_hole_data(mapping, start, end, origin);
++		new_offset <<= PAGE_CACHE_SHIFT;
++		if (new_offset > offset) {
++			if (new_offset < inode->i_size)
++				offset = new_offset;
++			else if (origin == SEEK_DATA)
++				offset = -ENXIO;
++			else
++				offset = inode->i_size;
++		}
++	}
++
++	if (offset >= 0 && offset != file->f_pos) {
++		file->f_pos = offset;
++		file->f_version = 0;
++	}
++	mutex_unlock(&inode->i_mutex);
++	return offset;
++}
++
+ static long shmem_fallocate(struct file *file, int mode, loff_t offset,
+ 							 loff_t len)
+ {
+@@ -2580,7 +2670,7 @@ static const struct address_space_operat
+ static const struct file_operations shmem_file_operations = {
+ 	.mmap		= shmem_mmap,
+ #ifdef CONFIG_TMPFS
+-	.llseek		= generic_file_llseek,
++	.llseek		= shmem_file_llseek,
+ 	.read		= do_sync_read,
+ 	.write		= do_sync_write,
+ 	.aio_read	= shmem_file_aio_read,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hughd@google.com are
 
-origin.patch
-revert-revert-mm-remove-__gfp_no_kswapd.patch
-mm-avoid-waking-kswapd-for-thp-allocations-when-compaction-is-deferred-or-contended.patch
 linux-next.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-drivers-video-add-support-for-the-solomon-ssd1307-oled-controller-checkpatch-fixes.patch
-irq-tsk-comm-is-an-array.patch
-drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch
-mm.patch
-mm-use-is_enabledconfig_compaction-instead-of-compaction_build-fix.patch
-mm-introduce-mm_find_pmd-fix.patch
-memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
-slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
-mmvmscan-only-evict-file-pages-when-we-have-plenty-fix.patch
-slub-slub-specific-propagation-changes-fix.patch
-dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch
+mm-add-comment-on-storage-key-dirty-bit-semantics.patch
+mm-refactor-reinsert-of-swap_info-in-sys_swapoff.patch
+mm-do-not-call-frontswap_init-during-swapoff.patch
+mm-augment-vma-rbtree-with-rb_subtree_gap.patch
+mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-inserting-new-vma.patch
+mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-removing-vma.patch
+mm-augment-vma-rbtree-with-rb_subtree_gap--debug-code-to-verify-rb_subtree_gap-updates-are-safe.patch
+mm-check-rb_subtree_gap-correctness.patch
 mm-check-rb_subtree_gap-correctness-fix.patch
-mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
-mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
+mm-rearrange-vm_area_struct-for-fewer-cache-misses.patch
+mm-vm_unmapped_area-lookup-function.patch
+mm-use-vm_unmapped_area-on-x86_64-architecture.patch
+mm-fix-cache-coloring-on-x86_64-architecture.patch
+mm-use-vm_unmapped_area-in-hugetlbfs.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture.patch
 mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
+mm-use-vm_unmapped_area-on-mips-architecture.patch
 mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
+mm-use-vm_unmapped_area-on-arm-architecture.patch
 mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
-mm-use-vm_unmapped_area-on-arm-architecture-fix-fix.patch
+mm-use-vm_unmapped_area-on-sh-architecture.patch
 mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc32-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc32-architecture-fix-fix.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc32-architecture.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture.patch
+mm-use-vm_unmapped_area-on-sparc64-architecture.patch
 mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
-arch-sparc-kernel-sys_sparc_64c-s-colour-color.patch
-mm-introduce-a-common-interface-for-balloon-pages-mobility-mm-fix-balloon_page_movable-page-flags-check-fix.patch
-virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
-virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix.patch
-mm-cma-skip-watermarks-check-for-already-isolated-blocks-in-split_free_page-fix-fix.patch
-bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
-mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch
-thp-implement-splitting-pmd-for-huge-zero-page-fix.patch
-mm-add-a-reminder-comment-for-__gfp_bits_shift.patch
-numa-add-config_movable_node-for-movable-dedicated-node-fix.patch
-mm-introduce-new-field-managed_pages-to-struct-zone-fix.patch
-mm-provide-more-accurate-estimation-of-pages-occupied-by-memmap-fix.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-sparc64-architecture.patch
+mm-trace-filemap-add-and-del.patch
 tmpfs-support-seek_data-and-seek_hole-reprise.patch
-drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
 swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
-backlight-add-of_find_backlight_by_node-function-fix.patch
-backlight-88pm860x_bl-remove-an-unnecessary-line-continuation-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes-checkpatch-fixes.patch
-procfs-add-vmflags-field-in-smaps-output-v4.patch
-procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
-ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
-ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
-ipc-convert-prepare_copy-from-macro-to-function-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-docs-add-documentation-about-proc-pid-fdinfo-fd-output-fix.patch
-fs-notify-add-procfs-fdinfo-helper-v7-fix.patch
-scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
