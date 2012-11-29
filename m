@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + wait-add-wait_event_lock_irq-interface-fix.patch added to -mm tree
-Date: Thu, 29 Nov 2012 15:22:01 -0800
-Message-ID: <20121129232202.2A0D0200063@hpza10.eem.corp.google.com>
+Subject: + corentin-has-moved.patch added to -mm tree
+Date: Thu, 29 Nov 2012 15:40:33 -0800
+Message-ID: <20121129234034.09A2620004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:37937 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752776Ab2K2XWF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Nov 2012 18:22:05 -0500
-Received: by mail-wi0-f202.google.com with SMTP id cb5so578504wib.1
-        for <mm-commits@vger.kernel.org>; Thu, 29 Nov 2012 15:22:03 -0800 (PST)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:36791 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751303Ab2K2Xkg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Nov 2012 18:40:36 -0500
+Received: by mail-lb0-f202.google.com with SMTP id i15so1725lbo.1
+        for <mm-commits@vger.kernel.org>; Thu, 29 Nov 2012 15:40:35 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lars.ellenberg@linbit.com, lczerner@redhat.com
+Cc: corentin.chary@gmail.com, mjg59@srcf.ucam.org
 
 
 The patch titled
-     Subject: drbd: fix merge clash: wait_event_lock_irq() is now defined in wait.h
+     Subject: Corentin has moved
 has been added to the -mm tree.  Its filename is
-     wait-add-wait_event_lock_irq-interface-fix.patch
+     corentin-has-moved.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,69 +33,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Lars Ellenberg <lars.ellenberg@linbit.com>
-Subject: drbd: fix merge clash: wait_event_lock_irq() is now defined in wait.h
+From: Corentin Chary <corentin.chary@gmail.com>
+Subject: Corentin has moved
 
-Signed-off-by: Lars Ellenberg <lars.ellenberg@linbit.com>
-Cc: Lukas Czerner <lczerner@redhat.com>
+Signed-off-by: Corentin Chary <corentin.chary@gmail.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/drbd/drbd_int.h   |   27 ---------------------------
- drivers/block/drbd/drbd_state.c |    3 +--
- 2 files changed, 1 insertion(+), 29 deletions(-)
+ MAINTAINERS                        |    4 ++--
+ drivers/platform/x86/asus-nb-wmi.c |    2 +-
+ drivers/platform/x86/asus-wmi.c    |    2 +-
+ drivers/platform/x86/eeepc-wmi.c   |    2 +-
+ 4 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/block/drbd/drbd_int.h~wait-add-wait_event_lock_irq-interface-fix drivers/block/drbd/drbd_int.h
---- a/drivers/block/drbd/drbd_int.h~wait-add-wait_event_lock_irq-interface-fix
-+++ a/drivers/block/drbd/drbd_int.h
-@@ -2334,30 +2334,3 @@ static inline void drbd_md_flush(struct 
- }
+diff -puN MAINTAINERS~corentin-has-moved MAINTAINERS
+--- a/MAINTAINERS~corentin-has-moved
++++ a/MAINTAINERS
+@@ -1278,7 +1278,7 @@ F:	Documentation/hwmon/asc7621
+ F:	drivers/hwmon/asc7621.c
  
- #endif
--
--/* This is defined in drivers/md/md.h as well. Should go into wait.h */
--#define __wait_event_lock_irq(wq, condition, lock, cmd) 		\
--do {									\
--	wait_queue_t __wait;						\
--	init_waitqueue_entry(&__wait, current);				\
--									\
--	add_wait_queue(&wq, &__wait);					\
--	for (;;) {							\
--		set_current_state(TASK_UNINTERRUPTIBLE);		\
--		if (condition)						\
--			break;						\
--		spin_unlock_irq(&lock);					\
--		cmd;							\
--		schedule();						\
--		spin_lock_irq(&lock);					\
--	}								\
--	current->state = TASK_RUNNING;					\
--	remove_wait_queue(&wq, &__wait);				\
--} while (0)
--
--#define wait_event_lock_irq(wq, condition, lock, cmd) 			\
--do {									\
--	if (condition)	 						\
--		break;							\
--	__wait_event_lock_irq(wq, condition, lock, cmd);		\
--} while (0)
-diff -puN drivers/block/drbd/drbd_state.c~wait-add-wait_event_lock_irq-interface-fix drivers/block/drbd/drbd_state.c
---- a/drivers/block/drbd/drbd_state.c~wait-add-wait_event_lock_irq-interface-fix
-+++ a/drivers/block/drbd/drbd_state.c
-@@ -1800,8 +1800,7 @@ _conn_request_state(struct drbd_tconn *t
- 		spin_lock_irq(&tconn->req_lock);
- 		wait_event_lock_irq(tconn->ping_wait,
- 				(rv = _conn_rq_cond(tconn, mask, val)),
--				tconn->req_lock,
--				);
-+				tconn->req_lock);
- 		clear_bit(CONN_WD_ST_CHG_REQ, &tconn->flags);
- 		if (rv < SS_SUCCESS)
- 			goto abort;
+ ASUS NOTEBOOKS AND EEEPC ACPI/WMI EXTRAS DRIVERS
+-M:	Corentin Chary <corentincj@iksaif.net>
++M:	Corentin Chary <corentin.chary@gmail.com>
+ L:	acpi4asus-user@lists.sourceforge.net
+ L:	platform-driver-x86@vger.kernel.org
+ W:	http://acpi4asus.sf.net
+@@ -6469,7 +6469,7 @@ F:	drivers/media/pci/saa7146/
+ F:	include/media/saa7146*
+ 
+ SAMSUNG LAPTOP DRIVER
+-M:	Corentin Chary <corentincj@iksaif.net>
++M:	Corentin Chary <corentin.chary@gmail.com>
+ L:	platform-driver-x86@vger.kernel.org
+ S:	Maintained
+ F:	drivers/platform/x86/samsung-laptop.c
+diff -puN drivers/platform/x86/asus-nb-wmi.c~corentin-has-moved drivers/platform/x86/asus-nb-wmi.c
+--- a/drivers/platform/x86/asus-nb-wmi.c~corentin-has-moved
++++ a/drivers/platform/x86/asus-nb-wmi.c
+@@ -32,7 +32,7 @@
+ 
+ #define	ASUS_NB_WMI_FILE	"asus-nb-wmi"
+ 
+-MODULE_AUTHOR("Corentin Chary <corentincj@iksaif.net>");
++MODULE_AUTHOR("Corentin Chary <corentin.chary@gmail.com>");
+ MODULE_DESCRIPTION("Asus Notebooks WMI Hotkey Driver");
+ MODULE_LICENSE("GPL");
+ 
+diff -puN drivers/platform/x86/asus-wmi.c~corentin-has-moved drivers/platform/x86/asus-wmi.c
+--- a/drivers/platform/x86/asus-wmi.c~corentin-has-moved
++++ a/drivers/platform/x86/asus-wmi.c
+@@ -51,7 +51,7 @@
+ 
+ #include "asus-wmi.h"
+ 
+-MODULE_AUTHOR("Corentin Chary <corentincj@iksaif.net>, "
++MODULE_AUTHOR("Corentin Chary <corentin.chary@gmail.com>, "
+ 	      "Yong Wang <yong.y.wang@intel.com>");
+ MODULE_DESCRIPTION("Asus Generic WMI Driver");
+ MODULE_LICENSE("GPL");
+diff -puN drivers/platform/x86/eeepc-wmi.c~corentin-has-moved drivers/platform/x86/eeepc-wmi.c
+--- a/drivers/platform/x86/eeepc-wmi.c~corentin-has-moved
++++ a/drivers/platform/x86/eeepc-wmi.c
+@@ -39,7 +39,7 @@
+ 
+ #define	EEEPC_WMI_FILE	"eeepc-wmi"
+ 
+-MODULE_AUTHOR("Corentin Chary <corentincj@iksaif.net>");
++MODULE_AUTHOR("Corentin Chary <corentin.chary@gmail.com>");
+ MODULE_DESCRIPTION("Eee PC WMI Hotkey Driver");
+ MODULE_LICENSE("GPL");
+ 
 _
 
-Patches currently in -mm which might be from lars.ellenberg@linbit.com are
+Patches currently in -mm which might be from corentin.chary@gmail.com are
 
 linux-next.patch
-wait-add-wait_event_lock_irq-interface-fix.patch
+corentin-has-moved.patch
 
