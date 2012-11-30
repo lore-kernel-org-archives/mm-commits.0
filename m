@@ -1,75 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [merged] watchdog-using-u64-in-get_sample_period.patch removed from -mm tree
-Date: Fri, 30 Nov 2012 13:28:42 -0800
-Message-ID: <20121130212842.A1A83100048@wpzn3.hot.corp.google.com>
+Subject: [merged] futex-avoid-wake_futex-for-a-pi-futex_q.patch removed from -mm tree
+Date: Fri, 30 Nov 2012 13:28:45 -0800
+Message-ID: <20121130212845.C703C100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:51854 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751245Ab2K3V2o (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Nov 2012 16:28:44 -0500
-Received: by mail-gg0-f202.google.com with SMTP id k1so104104ggn.1
-        for <mm-commits@vger.kernel.org>; Fri, 30 Nov 2012 13:28:43 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:36659 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751592Ab2K3V2r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Nov 2012 16:28:47 -0500
+Received: by mail-ye0-f202.google.com with SMTP id l7so102776yen.1
+        for <mm-commits@vger.kernel.org>; Fri, 30 Nov 2012 13:28:46 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chuansheng.liu@intel.com, dzickus@redhat.com, mm-commits@vger.kernel.org
+To: dvhart@linux.intel.com, davej@redat.com, jkacur@redhat.com, mingo@elte.hu, peterz@infradead.org, stable@vger.kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog: using u64 in get_sample_period()
+     Subject: futex: avoid wake_futex() for a PI futex_q
 has been removed from the -mm tree.  Its filename was
-     watchdog-using-u64-in-get_sample_period.patch
+     futex-avoid-wake_futex-for-a-pi-futex_q.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Chuansheng Liu <chuansheng.liu@intel.com>
-Subject: watchdog: using u64 in get_sample_period()
+From: Darren Hart <dvhart@linux.intel.com>
+Subject: futex: avoid wake_futex() for a PI futex_q
 
-In get_sample_period(), unsigned long is not enough:
-watchdog_thresh * 2 * (NSEC_PER_SEC / 5)
+Dave Jones reported a bug with futex_lock_pi() that his trinity test
+exposed.  Sometime between queue_me() and taking the q.lock_ptr, the
+lock_ptr became NULL, resulting in a crash.
 
-case1: watchdog_thresh is 10 by default,
-the sample value will be: 0xEE6B 2800
+While futex_wake() is careful to not call wake_futex() on futex_q's with a
+pi_state or an rt_waiter (which are either waiting for a futex_unlock_pi()
+or a PI futex_requeue()), futex_wake_op() and futex_requeue() do not
+perform the same test.
 
-case2: set watchdog_thresh is 20,
-the sample value will be: 0x1 DCD6 5000
+Update futex_wake_op() and futex_requeue() to test for q.pi_state and
+q.rt_waiter and abort with -EINVAL if detected.  To ensure any future
+breakage is caught, add a WARN() to wake_futex() if the same condition is
+true.
 
-In case2, we need use u64 to express the sample period.  Otherwise,
-Changing the threshold thru proc often can not be successful.
+This fix has seen 3 hours of testing with "trinity -c futex" on an x86_64
+VM with 4 CPUS.
 
-Signed-off-by: liu chuansheng <chuansheng.liu@intel.com>
-Acked-by: Don Zickus <dzickus@redhat.com>
+[akpm@linux-foundation.org: tidy up the WARN()]
+Signed-off-by: Darren Hart <dvhart@linux.intel.com>
+Reported-by: Dave Jones <davej@redat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: John Kacur <jkacur@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/futex.c |   18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
 
-diff -puN kernel/watchdog.c~watchdog-using-u64-in-get_sample_period kernel/watchdog.c
---- a/kernel/watchdog.c~watchdog-using-u64-in-get_sample_period
-+++ a/kernel/watchdog.c
-@@ -116,7 +116,7 @@ static unsigned long get_timestamp(int t
- 	return cpu_clock(this_cpu) >> 30LL;  /* 2^30 ~= 10^9 */
- }
- 
--static unsigned long get_sample_period(void)
-+static u64 get_sample_period(void)
+diff -puN kernel/futex.c~futex-avoid-wake_futex-for-a-pi-futex_q kernel/futex.c
+--- a/kernel/futex.c~futex-avoid-wake_futex-for-a-pi-futex_q
++++ a/kernel/futex.c
+@@ -843,6 +843,9 @@ static void wake_futex(struct futex_q *q
  {
- 	/*
- 	 * convert watchdog_thresh from seconds to ns
-@@ -125,7 +125,7 @@ static unsigned long get_sample_period(v
- 	 * and hard thresholds) to increment before the
- 	 * hardlockup detector generates a warning
- 	 */
--	return get_softlockup_thresh() * (NSEC_PER_SEC / 5);
-+	return get_softlockup_thresh() * ((u64)NSEC_PER_SEC / 5);
- }
+ 	struct task_struct *p = q->task;
  
- /* Commands for resetting the watchdog */
++	if (WARN(q->pi_state || q->rt_waiter, "refusing to wake PI futex\n"))
++		return;
++
+ 	/*
+ 	 * We set q->lock_ptr = NULL _before_ we wake up the task. If
+ 	 * a non-futex wake up happens on another CPU then the task
+@@ -1078,6 +1081,10 @@ retry_private:
+ 
+ 	plist_for_each_entry_safe(this, next, head, list) {
+ 		if (match_futex (&this->key, &key1)) {
++			if (this->pi_state || this->rt_waiter) {
++				ret = -EINVAL;
++				goto out_unlock;
++			}
+ 			wake_futex(this);
+ 			if (++ret >= nr_wake)
+ 				break;
+@@ -1090,6 +1097,10 @@ retry_private:
+ 		op_ret = 0;
+ 		plist_for_each_entry_safe(this, next, head, list) {
+ 			if (match_futex (&this->key, &key2)) {
++				if (this->pi_state || this->rt_waiter) {
++					ret = -EINVAL;
++					goto out_unlock;
++				}
+ 				wake_futex(this);
+ 				if (++op_ret >= nr_wake2)
+ 					break;
+@@ -1098,6 +1109,7 @@ retry_private:
+ 		ret += op_ret;
+ 	}
+ 
++out_unlock:
+ 	double_unlock_hb(hb1, hb2);
+ out_put_keys:
+ 	put_futex_key(&key2);
+@@ -1387,9 +1399,13 @@ retry_private:
+ 		/*
+ 		 * FUTEX_WAIT_REQEUE_PI and FUTEX_CMP_REQUEUE_PI should always
+ 		 * be paired with each other and no other futex ops.
++		 *
++		 * We should never be requeueing a futex_q with a pi_state,
++		 * which is awaiting a futex_unlock_pi().
+ 		 */
+ 		if ((requeue_pi && !this->rt_waiter) ||
+-		    (!requeue_pi && this->rt_waiter)) {
++		    (!requeue_pi && this->rt_waiter) ||
++		    this->pi_state) {
+ 			ret = -EINVAL;
+ 			break;
+ 		}
 _
 
-Patches currently in -mm which might be from chuansheng.liu@intel.com are
+Patches currently in -mm which might be from dvhart@linux.intel.com are
 
 origin.patch
 linux-next.patch
