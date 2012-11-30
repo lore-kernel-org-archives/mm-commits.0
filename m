@@ -1,139 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch removed from -mm tree
-Date: Fri, 30 Nov 2012 13:28:52 -0800
-Message-ID: <20121130212853.147DC20004E@hpza10.eem.corp.google.com>
+Subject: [merged] mm-vmemmap-fix-wrong-use-of-virt_to_page.patch removed from -mm tree
+Date: Fri, 30 Nov 2012 13:28:59 -0800
+Message-ID: <20121130212900.4254320004E__40856.311567086$1354310960$gmane$org@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:39365 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752085Ab2K3V2z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Nov 2012 16:28:55 -0500
-Received: by mail-wi0-f202.google.com with SMTP id hn17so65060wib.1
-        for <mm-commits@vger.kernel.org>; Fri, 30 Nov 2012 13:28:54 -0800 (PST)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:39772 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752421Ab2K3V3E (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Nov 2012 16:29:04 -0500
+Received: by mail-wg0-f74.google.com with SMTP id dt14so64539wgb.1
+        for <mm-commits@vger.kernel.org>; Fri, 30 Nov 2012 13:29:02 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, greg@kroah.com, mm-commits@vger.kernel.org
+To: wujianguo@huawei.com, hannes@cmpxchg.org, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, mhocko@suse.cz, stable@vger.kernel.org, wency@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/tty/serial/serial_core.c: clean up HIGH_BITS_OFFSET usage
+     Subject: mm/vmemmap: fix wrong use of virt_to_page
 has been removed from the -mm tree.  Its filename was
-     drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch
+     mm-vmemmap-fix-wrong-use-of-virt_to_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/tty/serial/serial_core.c: clean up HIGH_BITS_OFFSET usage
+From: Jianguo Wu <wujianguo@huawei.com>
+Subject: mm/vmemmap: fix wrong use of virt_to_page
 
-serial_core.c usually does
+I enable CONFIG_DEBUG_VIRTUAL and CONFIG_SPARSEMEM_VMEMMAP, when doing
+memory hotremove, there is a kernel BUG at arch/x86/mm/physaddr.c:20.
 
-	if (HIGH_BITS_OFFSET)
-		expr-involving-HIGH_BITS_OFFSET()
+It is caused by free_section_usemap()->virt_to_page(), virt_to_page() is
+only used for kernel direct mapping address, but sparse-vmemmap uses
+vmemmap address, so it is going wrong here.
 
-at least to avoid generating useless code on 32-bit machines, where
-HIGH_BITS_OFFSET is zero.  Do that in uart_get_attr_port().
+[  517.727381] ------------[ cut here ]------------
+[  517.728851] kernel BUG at arch/x86/mm/physaddr.c:20!
+[  517.728851] invalid opcode: 0000 [#1] SMP
+[  517.740170] Modules linked in: acpihp_drv acpihp_slot edd cpufreq_conservativ
+e cpufreq_userspace cpufreq_powersave acpi_cpufreq mperf fuse vfat fat loop dm_m
+od coretemp kvm crc32c_intel ipv6 ixgbe igb iTCO_wdt i7core_edac edac_core pcspk
+r iTCO_vendor_support ioatdma microcode joydev sr_mod i2c_i801 dca lpc_ich mfd_c
+ore mdio tpm_tis i2c_core hid_generic tpm cdrom sg tpm_bios rtc_cmos button ext3
+ jbd mbcache usbhid hid uhci_hcd ehci_hcd usbcore usb_common sd_mod crc_t10dif p
+rocessor thermal_sys hwmon scsi_dh_alua scsi_dh_hp_sw scsi_dh_rdac scsi_dh_emc s
+csi_dh ata_generic ata_piix libata megaraid_sas scsi_mod
+[  517.740170] CPU 39
+[  517.740170] Pid: 6454, comm: sh Not tainted 3.7.0-rc1-acpihp-final+ #45 QCI Q
+SSC-S4R/QSSC-S4R
+[  517.740170] RIP: 0010:[<ffffffff8103c908>]  [<ffffffff8103c908>] __phys_addr+
+0x88/0x90
+[  517.740170] RSP: 0018:ffff8804440d7c08  EFLAGS: 00010006
+[  517.740170] RAX: 0000000000000006 RBX: ffffea0012000000 RCX: 000000000000002c
 
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+[  517.740170] RDX: 0000620012000000 RSI: 0000000000000000 RDI: ffffea0012000000
+
+[  517.740170] RBP: ffff8804440d7c08 R08: 0070000000000400 R09: 0000000000488000
+
+[  517.740170] R10: 0000000000000091 R11: 0000000000000001 R12: ffff88047fb87800
+
+[  517.740170] R13: ffffea0000000000 R14: ffff88047ffb3440 R15: 0000000000480000
+
+[  517.740170] FS:  00007f0462b49700(0000) GS:ffff8804570c0000(0000) knlGS:00000
+00000000000
+[  517.740170] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+[  517.740170] CR2: 00007f006dc5fd14 CR3: 0000000440e85000 CR4: 00000000000007e0
+
+[  517.740170] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+
+[  517.896799] DR3: 0000000000000000 DR6
+
+Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Reviewd-by: Wen Congyang <wency@cn.fujitsu.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/serial/serial_core.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/sparse.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN drivers/tty/serial/serial_core.c~drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift drivers/tty/serial/serial_core.c
---- a/drivers/tty/serial/serial_core.c~drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift
-+++ a/drivers/tty/serial/serial_core.c
-@@ -2413,9 +2413,13 @@ static ssize_t uart_get_attr_port(struct
+diff -puN mm/sparse.c~mm-vmemmap-fix-wrong-use-of-virt_to_page mm/sparse.c
+--- a/mm/sparse.c~mm-vmemmap-fix-wrong-use-of-virt_to_page
++++ a/mm/sparse.c
+@@ -617,7 +617,7 @@ static void __kfree_section_memmap(struc
  {
- 	struct serial_struct tmp;
- 	struct tty_port *port = dev_get_drvdata(dev);
-+	unsigned long ioaddr;
- 
- 	uart_get_info(port, &tmp);
--	return snprintf(buf, PAGE_SIZE, "0x%lX\n", (unsigned long)(tmp.port | (((unsigned long)tmp.port_high) << HIGH_BITS_OFFSET)));
-+	ioaddr = tmp.port;
-+	if (HIGH_BITS_OFFSET)
-+		ioaddr |= (unsigned long)tmp.port_high << HIGH_BITS_OFFSET;
-+	return snprintf(buf, PAGE_SIZE, "0x%lX\n", ioaddr);
+ 	return; /* XXX: Not implemented yet */
+ }
+-static void free_map_bootmem(struct page *page, unsigned long nr_pages)
++static void free_map_bootmem(struct page *memmap, unsigned long nr_pages)
+ {
+ }
+ #else
+@@ -658,10 +658,11 @@ static void __kfree_section_memmap(struc
+ 			   get_order(sizeof(struct page) * nr_pages));
  }
  
- static ssize_t uart_get_attr_irq(struct device *dev,
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-drivers-video-add-support-for-the-solomon-ssd1307-oled-controller-checkpatch-fixes.patch
-irq-tsk-comm-is-an-array.patch
-mm.patch
-mm-use-is_enabledconfig_compaction-instead-of-compaction_build-fix.patch
-mm-introduce-mm_find_pmd-fix.patch
-memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
-slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
-mmvmscan-only-evict-file-pages-when-we-have-plenty-fix.patch
-slub-slub-specific-propagation-changes-fix.patch
-dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch
-mm-check-rb_subtree_gap-correctness-fix.patch
-mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
-mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
-mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
-mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
-mm-use-vm_unmapped_area-on-arm-architecture-fix-fix.patch
-mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc32-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc32-architecture-fix-fix.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
-arch-sparc-kernel-sys_sparc_64c-s-colour-color.patch
-mm-introduce-a-common-interface-for-balloon-pages-mobility-mm-fix-balloon_page_movable-page-flags-check-fix.patch
-virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
-virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix.patch
-mm-cma-skip-watermarks-check-for-already-isolated-blocks-in-split_free_page-fix-fix.patch
-bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
-mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch
-thp-implement-splitting-pmd-for-huge-zero-page-fix.patch
-mm-add-a-reminder-comment-for-__gfp_bits_shift.patch
-numa-add-config_movable_node-for-movable-dedicated-node-fix.patch
-mm-introduce-new-field-managed_pages-to-struct-zone-fix.patch
-mm-provide-more-accurate-estimation-of-pages-occupied-by-memmap-fix.patch
-tmpfs-support-seek_data-and-seek_hole-reprise.patch
-drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-lseek-the-whence-argument-is-called-whence.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
-backlight-add-of_find_backlight_by_node-function-fix.patch
-backlight-88pm860x_bl-remove-an-unnecessary-line-continuation-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes-checkpatch-fixes.patch
-procfs-add-vmflags-field-in-smaps-output-v4.patch
-procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
-ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
-ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
-ipc-convert-prepare_copy-from-macro-to-function-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-docs-add-documentation-about-proc-pid-fdinfo-fd-output-fix.patch
-fs-notify-add-procfs-fdinfo-helper-v7-fix.patch
-scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-
+-static void free_map_bootmem(struct page *page, unsigned long nr_pages)
++static void free_map_bootmem(struct page *memmap, unsigned long nr_pages)
+ {
+ 	unsigned long maps_section_nr, removing_section_nr, i;
+ 	unsigned long magic;
++	struct page *page = virt_to_page(memmap);
+ 
+ 	for (i = 0; i < nr_pages; i++, page++) {
+ 		magic = (unsigned long) page->lru.next;
+@@ -710,13 +711,10 @@ static void free_section_usemap(struct p
+ 	 */
+ 
+ 	if (memmap) {
+-		struct page *memmap_page;
+-		memmap_page = virt_to_page(memmap);
