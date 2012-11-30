@@ -1,93 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-tps65910c-fix-invalid-pointer-access-on-_remove.patch removed from -mm tree
-Date: Fri, 30 Nov 2012 13:29:18 -0800
-Message-ID: <20121130212918.C7D1F100047__18217.4094873064$1354310979$gmane$org@wpzn3.hot.corp.google.com>
+Subject: + wait-add-wait_event_lock_irq-interface-v3.patch added to -mm tree
+Date: Fri, 30 Nov 2012 13:44:58 -0800
+Message-ID: <20121130214458.AA49082004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:63217 "EHLO
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:63433 "EHLO
 	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751214Ab2K3V3T (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Nov 2012 16:29:19 -0500
-Received: by mail-gg0-f202.google.com with SMTP id k1so104168ggn.1
-        for <mm-commits@vger.kernel.org>; Fri, 30 Nov 2012 13:29:19 -0800 (PST)
+	with ESMTP id S1751417Ab2K3Vo7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Nov 2012 16:44:59 -0500
+Received: by mail-gg0-f202.google.com with SMTP id k1so105829ggn.1
+        for <mm-commits@vger.kernel.org>; Fri, 30 Nov 2012 13:44:59 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Milo.Kim@ti.com, milo.kim@ti.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: lczerner@redhat.com, axboe@kernel.dk, jmoyer@redhat.com, neilb@suse.de
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-tps65910.c: fix invalid pointer access on _remove()
-has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-tps65910c-fix-invalid-pointer-access-on-_remove.patch
+     Subject: wait: add wait_event_lock_irq() interface
+has been added to the -mm tree.  Its filename is
+     wait-add-wait_event_lock_irq-interface-v3.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kim, Milo" <Milo.Kim@ti.com>
-Subject: drivers/rtc/rtc-tps65910.c: fix invalid pointer access on _remove()
+From: Lukas Czerner <lczerner@redhat.com>
+Subject: wait: add wait_event_lock_irq() interface
 
-The tps65910_rtc data is registered as the platform driver data in
-_probe(= ).  Therefore the tps65910_rtc should be used on unregistering
-the rtc device.  And device pointer should be retrieved from the
-platform_device structure.
+v3: swap cmd and schedule so we call cmd before schedule
 
-This patch fixes the below oops:
-
- Unable to handle kernel NULL pointer dereference at virtual address 000000=
-08
- Modules linked in: rtc_tps65910(-)
- CPU: 0    Not tainted  (3.7.0-rc7-next-20121128-g6b1f974-dirty #7)
- PC is at tps65910_rtc_alarm_irq_enable+0x20/0x2c [rtc_tps65910]
- LR is at tps65910_rtc_alarm_irq_enable+0x10/0x2c [rtc_tps65910]
- [<bf000044>] (tps65910_rtc_alarm_irq_enable+0x20/0x2c [rtc_tps65910]) from
-   [<bf0004d4>] (tps65910_rtc_remove+0x18/0x28 [rtc_)
- [<bf0004d4>] (tps65910_rtc_remove+0x18/0x28 [rtc_tps65910]) from
-   [<c034e700>] (platform_drv_remove+0x18/0x1c)
- [<c034e700>] (platform_drv_remove+0x18/0x1c) from
-   [<c034ceec>] (__device_release_driver+0x70/0xcc)
- [<c034ceec>] (__device_release_driver+0x70/0xcc) from
-   [<c034d608>] (driver_detach+0xb4/0xb8)
- [<c034d608>] (driver_detach+0xb4/0xb8) from
-   [<c034cc24>] (bus_remove_driver+0x7c/0xc0)
- [<c034cc24>] (bus_remove_driver+0x7c/0xc0) from
-   [<c00a045c>] (sys_delete_module+0x148/0x21c)
- [<c00a045c>] (sys_delete_module+0x148/0x21c) from
-   [<c0013c60>] (ret_fast_syscall+0x0/0x3c)
-
-Signed-off-by: Milo(Woogyom) Kim <milo.kim@ti.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Lukas Czerner <lczerner@redhat.com>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-tps65910.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/wait.h |   18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
 
-diff -puN drivers/rtc/rtc-tps65910.c~drivers-rtc-rtc-tps65910c-fix-invalid-pointer-access-on-_remove drivers/rtc/rtc-tps65910.c
---- a/drivers/rtc/rtc-tps65910.c~drivers-rtc-rtc-tps65910c-fix-invalid-pointer-access-on-_remove
-+++ a/drivers/rtc/rtc-tps65910.c
-@@ -288,11 +288,11 @@ static int __devinit tps65910_rtc_probe(
- static int __devexit tps65910_rtc_remove(struct platform_device *pdev)
- {
- 	/* leave rtc running, but disable irqs */
--	struct rtc_device *rtc = platform_get_drvdata(pdev);
-+	struct tps65910_rtc *tps_rtc = platform_get_drvdata(pdev);
- 
--	tps65910_rtc_alarm_irq_enable(&rtc->dev, 0);
-+	tps65910_rtc_alarm_irq_enable(&pdev->dev, 0);
- 
--	rtc_device_unregister(rtc);
-+	rtc_device_unregister(tps_rtc->rtc);
- 	return 0;
- }
- 
+diff -puN include/linux/wait.h~wait-add-wait_event_lock_irq-interface-v3 include/linux/wait.h
+--- a/include/linux/wait.h~wait-add-wait_event_lock_irq-interface-v3
++++ a/include/linux/wait.h
+@@ -555,14 +555,13 @@ do {									\
+ do {									\
+ 	DEFINE_WAIT(__wait);						\
+ 									\
+-	cmd;								\
+ 	for (;;) {							\
+ 		prepare_to_wait(&wq, &__wait, TASK_UNINTERRUPTIBLE);	\
+ 		if (condition)						\
+ 			break;						\
+ 		spin_unlock_irq(&lock);					\
+-		schedule();						\
+ 		cmd;							\
++		schedule();						\
+ 		spin_lock_irq(&lock);					\
+ 	}								\
+ 	finish_wait(&wq, &__wait);					\
+@@ -575,8 +574,8 @@ do {									\
+  *			     taken.
+  * @wq: the waitqueue to wait on
+  * @condition: a C expression for the event to wait for
+- * @lock: a locked spinlock_t, which will be released before schedule()
+- *	  and cmd reacquired afterwards.
++ * @lock: a locked spinlock_t, which will be released before cmd
++ *	  and schedule() and reacquired afterwards.
+  * @cmd: a command which is invoked outside the critical section before
+  *	 sleep
+  *
+@@ -588,7 +587,7 @@ do {									\
+  * change the result of the wait condition.
+  *
+  * This is supposed to be called while holding the lock. The lock is
+- * dropped before going to sleep and invoking the cmd and is reacquired
++ * dropped before invoking the cmd and going to sleep and is reacquired
+  * afterwards.
+  */
+ #define wait_event_lock_irq_cmd(wq, condition, lock, cmd)		\
+@@ -631,7 +630,6 @@ do {									\
+ do {									\
+ 	DEFINE_WAIT(__wait);						\
+ 									\
+-	cmd;								\
+ 	for (;;) {							\
+ 		prepare_to_wait(&wq, &__wait, TASK_INTERRUPTIBLE);	\
+ 		if (condition)						\
+@@ -641,8 +639,8 @@ do {									\
+ 			break;						\
+ 		}							\
+ 		spin_unlock_irq(&lock);					\
+-		schedule();						\
+ 		cmd;							\
++		schedule();						\
+ 		spin_lock_irq(&lock);					\
+ 	}								\
+ 	finish_wait(&wq, &__wait);					\
+@@ -654,8 +652,8 @@ do {									\
+  *		be called with the lock taken.
+  * @wq: the waitqueue to wait on
+  * @condition: a C expression for the event to wait for
+- * @lock: a locked spinlock_t, which will be released before schedule()
+- *	  and cmd reacquired afterwards.
++ * @lock: a locked spinlock_t, which will be released before cmd and
++ *	  schedule() and reacquired afterwards.
+  * @cmd: a command which is invoked outside the critical section before
+  *	 sleep
+  *
+@@ -667,7 +665,7 @@ do {									\
+  * change the result of the wait condition.
+  *
+  * This is supposed to be called while holding the lock. The lock is
+- * dropped before going to sleep and invoking the cmd and is reacquired
++ * dropped before invoking the cmd and going to sleep and is reacquired
+  * afterwards.
+  *
+  * The macro will return -ERESTARTSYS if it was interrupted by a signal
 _
 
-Patches currently in -mm which might be from Milo.Kim@ti.com are
+Patches currently in -mm which might be from lczerner@redhat.com are
 
-origin.patch
 linux-next.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
-drivers-video-backlight-lp855x_blc-remove-unnecessary-mutex-code.patch
-drivers-rtc-rtc-tps65910c-enable-rtc-power-domain-on-initialization.patch
+wait-add-wait_event_lock_irq-interface.patch
+wait-add-wait_event_lock_irq-interface-fix.patch
+wait-add-wait_event_lock_irq-interface-v3.patch
+loop-limit-the-number-of-requests-in-the-bio-list.patch
 
