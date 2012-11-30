@@ -1,66 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [merged] include-linux-bugh-fix-sparse-warning-related-to-build_bug_on_invalid.patch removed from -mm tree
-Date: Fri, 30 Nov 2012 13:28:17 -0800
-Message-ID: <20121130212818.5B0FC20004E@hpza10.eem.corp.google.com>
+Subject: [merged] proc-check-vma-vm_file-before-dereferencing.patch removed from -mm tree
+Date: Fri, 30 Nov 2012 13:28:24 -0800
+Message-ID: <20121130212824.AAED5100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:34593 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750888Ab2K3V2V (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Nov 2012 16:28:21 -0500
-Received: by mail-lb0-f202.google.com with SMTP id i15so71429lbo.1
-        for <mm-commits@vger.kernel.org>; Fri, 30 Nov 2012 13:28:19 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:63186 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750888Ab2K3V2Z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Nov 2012 16:28:25 -0500
+Received: by mail-qc0-f202.google.com with SMTP id s25so103672qcq.1
+        for <mm-commits@vger.kernel.org>; Fri, 30 Nov 2012 13:28:25 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tushar.behera@linaro.org, khlebnikov@openvz.org, mm-commits@vger.kernel.org
+To: skinsbursky@parallels.com, gorcunov@openvz.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/bug.h: fix sparse warning related to BUILD_BUG_ON_INVALID
+     Subject: proc: check vma->vm_file before dereferencing
 has been removed from the -mm tree.  Its filename was
-     include-linux-bugh-fix-sparse-warning-related-to-build_bug_on_invalid.patch
+     proc-check-vma-vm_file-before-dereferencing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tushar Behera <tushar.behera@linaro.org>
-Subject: include/linux/bug.h: fix sparse warning related to BUILD_BUG_ON_INVALID
+From: Stanislav Kinsbursky <skinsbursky@parallels.com>
+Subject: proc: check vma->vm_file before dereferencing
 
-commit baf05aa9271b ("bug: introduce BUILD_BUG_ON_INVALID() macro")
-introduces this macro only when _CHECKER_ is not defined.  Define a silent
-macro in the else condition to fix following sparse warning.
+7b540d0646ce ("proc_map_files_readdir(): don't bother with grabbing
+files") switched proc_map_files_readdir() to use @f_mode directly instead
+of grabbing @file reference, but same time the test for @vm_file presence
+was lost leading to nil dereference.  The patch brings the test back.
 
-mm/filemap.c:395:9: error: undefined identifier 'BUILD_BUG_ON_INVALID'
-mm/filemap.c:396:9: error: undefined identifier 'BUILD_BUG_ON_INVALID'
-mm/filemap.c:397:9: error: undefined identifier 'BUILD_BUG_ON_INVALID'
-include/linux/mm.h:419:9: error: undefined identifier 'BUILD_BUG_ON_INVALID'
-include/linux/mm.h:419:9: error: not a function <noident>
+The all proc_map_files feature is CONFIG_CHECKPOINT_RESTORE wrapped (which
+is set to 'n' by default) so the bug doesn't affect regular kernels.
 
-Signed-off-by: Tushar Behera <tushar.behera@linaro.org>
-Acked-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+The regression is 3.7-rc1 only as far as I can tell.
+
+[gorcunov@openvz.org: provided changelog]
+Signed-off-by: Stanislav Kinsbursky <skinsbursky@parallels.com>
+Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bug.h |    1 +
- 1 file changed, 1 insertion(+)
+ fs/proc/base.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/bug.h~include-linux-bugh-fix-sparse-warning-related-to-build_bug_on_invalid include/linux/bug.h
---- a/include/linux/bug.h~include-linux-bugh-fix-sparse-warning-related-to-build_bug_on_invalid
-+++ a/include/linux/bug.h
-@@ -15,6 +15,7 @@ struct pt_regs;
- #define BUILD_BUG_ON_NOT_POWER_OF_2(n)
- #define BUILD_BUG_ON_ZERO(e) (0)
- #define BUILD_BUG_ON_NULL(e) ((void*)0)
-+#define BUILD_BUG_ON_INVALID(e) (0)
- #define BUILD_BUG_ON(condition)
- #define BUILD_BUG() (0)
- #else /* __CHECKER__ */
+diff -puN fs/proc/base.c~proc-check-vma-vm_file-before-dereferencing fs/proc/base.c
+--- a/fs/proc/base.c~proc-check-vma-vm_file-before-dereferencing
++++ a/fs/proc/base.c
+@@ -1877,8 +1877,9 @@ static struct dentry *proc_map_files_loo
+ 	if (!vma)
+ 		goto out_no_vma;
+ 
+-	result = proc_map_files_instantiate(dir, dentry, task,
+-			(void *)(unsigned long)vma->vm_file->f_mode);
++	if (vma->vm_file)
++		result = proc_map_files_instantiate(dir, dentry, task,
++				(void *)(unsigned long)vma->vm_file->f_mode);
+ 
+ out_no_vma:
+ 	up_read(&mm->mmap_sem);
 _
 
-Patches currently in -mm which might be from tushar.behera@linaro.org are
+Patches currently in -mm which might be from skinsbursky@parallels.com are
 
 origin.patch
 linux-next.patch
-drivers-rtc-rtc-s3cc-remove-unnecessary-err_nores-label.patch
-drivers-rtc-rtc-s3cc-convert-to-use-devm_-api.patch
+ipc-remove-forced-assignment-of-selected-message.patch
+ipc-add-sysctl-to-specify-desired-next-object-id.patch
+ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
+ipc-add-sysctl-to-specify-desired-next-object-id-wrap-new-sysctls-for-criu-inside-config_checkpoint_restore.patch
+ipc-add-sysctl-to-specify-desired-next-object-id-documentation-update-sysctl-kerneltxt.patch
+ipc-message-queue-receive-cleanup.patch
+ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
+ipc-message-queue-copy-feature-introduced.patch
+ipc-message-queue-copy-feature-introduced-remove-redundant-msg_copy-check.patch
+ipc-message-queue-copy-feature-introduced-cleanup-do_msgrcv-aroung-msg_copy-feature.patch
+selftests-ipc-message-queue-copy-feature-test.patch
+selftests-ipc-message-queue-copy-feature-test-update.patch
+ipc-simplify-free_copy-call.patch
+ipc-convert-prepare_copy-from-macro-to-function.patch
+ipc-convert-prepare_copy-from-macro-to-function-fix.patch
+ipc-simplify-message-copying.patch
+ipc-add-more-comments-to-message-copying-related-code.patch
 
