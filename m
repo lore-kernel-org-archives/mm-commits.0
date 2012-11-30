@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-do-not-check-for-mm-in-mem_cgroup_count_vm_event-disabled.patch added to -mm tree
-Date: Thu, 29 Nov 2012 16:32:20 -0800
-Message-ID: <20121130003220.CF72110004A@wpzn3.hot.corp.google.com>
+Subject: + backlight-corgi_lcd-use-gpio_set_value_cansleep-for-akita-machines-to-avoid-warn_on-trigger.patch added to -mm tree
+Date: Thu, 29 Nov 2012 17:37:49 -0800
+Message-ID: <20121130013750.08B4982004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ia0-f202.google.com ([209.85.210.202]:62409 "EHLO
+Received: from mail-ia0-f202.google.com ([209.85.210.202]:57183 "EHLO
 	mail-ia0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751303Ab2K3AcW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Nov 2012 19:32:22 -0500
-Received: by mail-ia0-f202.google.com with SMTP id k10so3323723iag.1
-        for <mm-commits@vger.kernel.org>; Thu, 29 Nov 2012 16:32:21 -0800 (PST)
+	with ESMTP id S1752787Ab2K3Bhv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Nov 2012 20:37:51 -0500
+Received: by mail-ia0-f202.google.com with SMTP id k10so3336281iag.1
+        for <mm-commits@vger.kernel.org>; Thu, 29 Nov 2012 17:37:51 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhocko@suse.cz, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, rientjes@google.com, yinghan@google.com
+Cc: dromede@gmail.com, FlorianSchandinat@gmx.de, grant.likely@secretlab.ca, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: memcg: do not check for mm in mem_cgroup_count_vm_event
+     Subject: backlight: corgi_lcd: use gpio_set_value_cansleep() for akita machines to avoid WARN_ON trigger
 has been added to the -mm tree.  Its filename is
-     memcg-do-not-check-for-mm-in-mem_cgroup_count_vm_event-disabled.patch
+     backlight-corgi_lcd-use-gpio_set_value_cansleep-for-akita-machines-to-avoid-warn_on-trigger.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,105 +33,109 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg: do not check for mm in mem_cgroup_count_vm_event
+From: Marko Katic <dromede.gmail.com>
+Subject: backlight: corgi_lcd: use gpio_set_value_cansleep() for akita machines to avoid WARN_ON trigger
 
-mm given to mem_cgroup_count_vm_event() cannot be NULL because the
-function is either called from the page fault path or vma->vm_mm is used. 
-So the check can be dropped.
+Changing backlight intensity on an Akita (Sharp Zaurus C-1000) will always
+trigger a WARN_ON:
 
-The check was introduced by 456f998e (memcg: add the pagefault count into
-memcg stats) because the originally proposed patch used current->mm for
-shmem but this has been changed to vma->vm_mm later on without the check
-being removed (thanks to Hugh for this recollection).
+WARNING: at drivers/gpio/gpiolib.c:1672 __gpio_set_value+0x38/0xa4()
+Modules linked in:
+Backtrace:
+[<c000c0ac>] (dump_backtrace+0x0/0x110) from [<c02c8278>] (dump_stack+0x18/0x1c)
+ r6:c0158fc8 r5:00000009 r4:00000000 r3:c03d4f70
+[<c02c8260>] (dump_stack+0x0/0x1c) from [<c0019194>] (warn_slowpath_common+0x54/0x6c)
+[<c0019140>] (warn_slowpath_common+0x0/0x6c) from [<c00191d0>] (warn_slowpath_null+0x24/0x2c)
+ r8:c38d5c00 r7:c03f82c0 r6:00000000 r5:000000d0 r4:c384e4fc
+r3:00000009
+[<c00191ac>] (warn_slowpath_null+0x0/0x2c) from [<c0158fc8>] (__gpio_set_value+0x38/0xa4)
+[<c0158f90>] (__gpio_set_value+0x0/0xa4) from [<c0169b4c>] (corgi_bl_set_intensity+0x44/0x74)
+ r7:c3933418 r6:c3933400 r5:c392cdf0 r4:0000002f
+[<c0169b08>] (corgi_bl_set_intensity+0x0/0x74) from [<c0169c1c>] (corgi_bl_update_status+0x5c/0x64)
+ r5:c03d31f0 r4:c3933400
+[<c0169bc0>] (corgi_bl_update_status+0x0/0x64) from [<c02c3a68>] (corgi_lcd_probe+0x1a8/0x258)
+ r4:c392cdf0 r3:c0169bc0
+[<c02c38c0>] (corgi_lcd_probe+0x0/0x258) from [<c01da7a4>] (spi_drv_probe+0x20/0x24)
+ r8:00000052 r7:c0192d9c r6:c03da6e8 r5:c38d5c34 r4:c38d5c00
+[<c01da784>] (spi_drv_probe+0x0/0x24) from [<c0192c44>] (driver_probe_device+0xb0/0x208)
+[<c0192b94>] (driver_probe_device+0x0/0x208) from [<c0192e0c>] (__driver_attach+0x70/0x94)
+ r6:c03da6e8 r5:c38d5c34 r4:c38d5c00 r3:00000000
+[<c0192d9c>] (__driver_attach+0x0/0x94) from [<c0191268>] (bus_for_each_dev+0x54/0x90)
+ r6:c03da6e8 r5:c3827e80 r4:00000000 r3:00000000
+[<c0191214>] (bus_for_each_dev+0x0/0x90) from [<c01927a4>] (driver_attach+0x20/0x28)
+ r7:00000000 r6:c03e29ec r5:c3932980 r4:c03da6e8
+[<c0192784>] (driver_attach+0x0/0x28) from [<c0192340>] (bus_add_driver+0xd4/0x22c)
+[<c019226c>] (bus_add_driver+0x0/0x22c) from [<c019335c>] (driver_register+0xa4/0x134)
+ r8:00000052 r7:c03ea900 r6:c03c32ac r5:c03bdfc8 r4:c03da6e8
+[<c01932b8>] (driver_register+0x0/0x134) from [<c01db7ec>] (spi_register_driver+0x4c/0x60)
+[<c01db7a0>] (spi_register_driver+0x0/0x60) from [<c03b3ce0>] (corgi_lcd_driver_init+0x14/0x1c)
+[<c03b3ccc>] (corgi_lcd_driver_init+0x0/0x1c) from [<c000868c>] (do_one_initcall+0x9c/0x174)
+[<c00085f0>] (do_one_initcall+0x0/0x174) from [<c02c1b94>] (kernel_init+0xf4/0x2a8)
+[<c02c1aa0>] (kernel_init+0x0/0x2a8) from [<c0009270>] (ret_from_fork+0x14/0x24)
+---[ end trace a863a63f242ee38c ]---
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Ying Han <yinghan@google.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Akita machines have backlight controls hooked to a gpio expander chip,
+max7310.  The driver that controls the max7310 sets the cansleep flag and
+the corgi_lcd driver only uses plain gpio_set_value calls for changing
+backlight controls.  This triggers the WARN_ON on akita machines.
+
+Akita is the only exception in this case since other users of corgi_bl
+access backlight gpio controls through a different gpio expander which
+does not set the cansleep flag.
+
+Fix this by conditionally using gpio_set_value_cansleep() when changing
+backlight intensity on akita machines.
+
+Signed-off-by: Marko Katic <dromede@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/backlight/corgi_lcd.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-do-not-check-for-mm-in-mem_cgroup_count_vm_event-disabled include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-do-not-check-for-mm-in-mem_cgroup_count_vm_event-disabled
-+++ a/include/linux/memcontrol.h
-@@ -188,7 +188,7 @@ void __mem_cgroup_count_vm_event(struct 
- static inline void mem_cgroup_count_vm_event(struct mm_struct *mm,
- 					     enum vm_event_item idx)
- {
--	if (mem_cgroup_disabled() || !mm)
-+	if (mem_cgroup_disabled())
- 		return;
- 	__mem_cgroup_count_vm_event(mm, idx);
- }
+diff -puN drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-use-gpio_set_value_cansleep-for-akita-machines-to-avoid-warn_on-trigger drivers/video/backlight/corgi_lcd.c
+--- a/drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-use-gpio_set_value_cansleep-for-akita-machines-to-avoid-warn_on-trigger
++++ a/drivers/video/backlight/corgi_lcd.c
+@@ -26,7 +26,7 @@
+ #include <linux/spi/corgi_lcd.h>
+ #include <linux/slab.h>
+ #include <asm/mach/sharpsl_param.h>
+-
++#include <asm/mach-types.h>
+ #define POWER_IS_ON(pwr)	((pwr) <= FB_BLANK_NORMAL)
+ 
+ /* Register Addresses */
+@@ -408,11 +408,19 @@ static int corgi_bl_set_intensity(struct
+ 	/* Bit 5 via GPIO_BACKLIGHT_CONT */
+ 	cont = !!(intensity & 0x20) ^ lcd->gpio_backlight_cont_inverted;
+ 
+-	if (gpio_is_valid(lcd->gpio_backlight_cont))
+-		gpio_set_value(lcd->gpio_backlight_cont, cont);
++	if (gpio_is_valid(lcd->gpio_backlight_cont)) {
++		if (machine_is_akita())
++			gpio_set_value_cansleep(lcd->gpio_backlight_cont, cont);
++		else
++			gpio_set_value(lcd->gpio_backlight_cont, cont);
++	}
+ 
+-	if (gpio_is_valid(lcd->gpio_backlight_on))
+-		gpio_set_value(lcd->gpio_backlight_on, intensity);
++	if (gpio_is_valid(lcd->gpio_backlight_on)) {
++		if (machine_is_akita())
++			gpio_set_value_cansleep(lcd->gpio_backlight_on, intensity);
++		else
++			gpio_set_value(lcd->gpio_backlight_on, intensity);
++	}
+ 
+ 	if (lcd->kick_battery)
+ 		lcd->kick_battery();
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from dromede@gmail.com are
 
-mm-vmemmap-fix-wrong-use-of-virt_to_page.patch
 linux-next.patch
-mm-memcg-make-mem_cgroup_out_of_memory-static.patch
-thp-clean-up-__collapse_huge_page_isolate.patch
-thp-clean-up-__collapse_huge_page_isolate-v2.patch
-mm-introduce-mm_find_pmd.patch
-mm-introduce-mm_find_pmd-fix.patch
-thp-introduce-hugepage_vma_check.patch
-thp-cleanup-introduce-mk_huge_pmd.patch
-memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix.patch
-memcg-make-it-possible-to-use-the-stock-for-more-than-one-page.patch
-memcg-reclaim-when-more-than-one-page-needed.patch
-memcg-change-defines-to-an-enum.patch
-memcg-kmem-accounting-basic-infrastructure.patch
-mm-add-a-__gfp_kmemcg-flag.patch
-memcg-kmem-controller-infrastructure.patch
-memcg-kmem-controller-infrastructure-replace-__always_inline-with-plain-inline.patch
-mm-allocate-kernel-pages-to-the-right-memcg.patch
-res_counter-return-amount-of-charges-after-res_counter_uncharge.patch
-memcg-kmem-accounting-lifecycle-management.patch
-memcg-use-static-branches-when-code-not-in-use.patch
-memcg-allow-a-memcg-with-kmem-charges-to-be-destructed.patch
-memcg-execute-the-whole-memcg-freeing-in-free_worker.patch
-fork-protect-architectures-where-thread_size-=-page_size-against-fork-bombs.patch
-memcg-add-documentation-about-the-kmem-controller.patch
-slab-slub-struct-memcg_params.patch
-slab-annotate-on-slab-caches-nodelist-locks.patch
-slab-slub-consider-a-memcg-parameter-in-kmem_create_cache.patch
-memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears.patch
-memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears-simplify-ida-initialization.patch
-memcg-infrastructure-to-match-an-allocation-to-the-right-cache.patch
-memcg-skip-memcg-kmem-allocations-in-specified-code-regions.patch
-memcg-skip-memcg-kmem-allocations-in-specified-code-regions-remove-test-for-current-mm-in-memcg_stop-resume_kmem_account.patch
-slb-always-get-the-cache-from-its-page-in-kmem_cache_free.patch
-slb-allocate-objects-from-memcg-cache.patch
-memcg-destroy-memcg-caches.patch
-memcg-destroy-memcg-caches-move-include-of-workqueueh-to-top-of-slabh-file.patch
-memcg-slb-track-all-the-memcg-children-of-a-kmem_cache.patch
-memcg-slb-shrink-dead-caches.patch
-memcg-slb-shrink-dead-caches-get-rid-of-once-per-second-cache-shrinking-for-dead-memcgs.patch
-memcg-aggregate-memcg-cache-values-in-slabinfo.patch
-slab-propagate-tunable-values.patch
-slub-slub-specific-propagation-changes.patch
-slub-slub-specific-propagation-changes-fix.patch
-kmem-add-slab-specific-documentation-about-the-kmem-controller.patch
-memcg-add-comments-clarifying-aspects-of-cache-attribute-propagation.patch
-slub-drop-mutex-before-deleting-sysfs-entry.patch
-mm-introduce-a-common-interface-for-balloon-pages-mobility-fix.patch
-mm-oom-change-type-of-oom_score_adj-to-short.patch
-mm-oom-fix-race-when-specifying-a-thread-as-the-oom-origin.patch
-mm-memcg-avoid-unnecessary-function-call-when-memcg-is-disabled.patch
-mm-oom-cleanup-pagefault-oom-handler.patch
-mm-oom-remove-redundant-sleep-in-pagefault-oom-handler.patch
-mm-oom-remove-statically-defined-arch-functions-of-same-name.patch
-mm-introduce-new-field-managed_pages-to-struct-zone.patch
-mm-provide-more-accurate-estimation-of-pages-occupied-by-memmap.patch
-mm-provide-more-accurate-estimation-of-pages-occupied-by-memmap-fix.patch
-memcg-do-not-check-for-mm-in-mem_cgroup_count_vm_event-disabled.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
-mm-memblock-reduce-overhead-in-binary-search.patch
+backlight-corgi_lcd-use-gpio_set_value_cansleep-for-akita-machines-to-avoid-warn_on-trigger.patch
 
