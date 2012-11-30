@@ -1,80 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-compaction-fix-return-value-of-capture_free_page.patch removed from -mm tree
-Date: Fri, 30 Nov 2012 13:28:56 -0800
-Message-ID: <20121130212856.9CCFA100047@wpzn3.hot.corp.google.com>
+Subject: [merged] drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch removed from -mm tree
+Date: Fri, 30 Nov 2012 13:28:52 -0800
+Message-ID: <20121130212853.147DC20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:55005 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752217Ab2K3V26 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Nov 2012 16:28:58 -0500
-Received: by mail-vb0-f74.google.com with SMTP id s24so1990593vbi.1
-        for <mm-commits@vger.kernel.org>; Fri, 30 Nov 2012 13:28:57 -0800 (PST)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:39365 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752085Ab2K3V2z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Nov 2012 16:28:55 -0500
+Received: by mail-wi0-f202.google.com with SMTP id hn17so65060wib.1
+        for <mm-commits@vger.kernel.org>; Fri, 30 Nov 2012 13:28:54 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, dave@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: compaction: fix return value of capture_free_page()
+     Subject: drivers/tty/serial/serial_core.c: clean up HIGH_BITS_OFFSET usage
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-fix-return-value-of-capture_free_page.patch
+     drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: compaction: fix return value of capture_free_page()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/tty/serial/serial_core.c: clean up HIGH_BITS_OFFSET usage
 
-Commit ef6c5be6 ("fix incorrect NR_FREE_PAGES accounting (appears like
-memory leak)") fixes a NR_FREE_PAGE accounting leak but missed the return
-value which was also missed by this reviewer until today.  That return
-value is used by compaction when adding pages to a list of isolated free
-pages and without this follow-up fix, there is a risk of free list
-corruption.
+serial_core.c usually does
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+	if (HIGH_BITS_OFFSET)
+		expr-involving-HIGH_BITS_OFFSET()
+
+at least to avoid generating useless code on 32-bit machines, where
+HIGH_BITS_OFFSET is zero.  Do that in uart_get_attr_port().
+
+Cc: Greg KH <greg@kroah.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/tty/serial/serial_core.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-compaction-fix-return-value-of-capture_free_page mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-fix-return-value-of-capture_free_page
-+++ a/mm/page_alloc.c
-@@ -1422,7 +1422,7 @@ int capture_free_page(struct page *page,
- 		}
- 	}
+diff -puN drivers/tty/serial/serial_core.c~drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift drivers/tty/serial/serial_core.c
+--- a/drivers/tty/serial/serial_core.c~drivers-tty-serial-serial_corec-fix-uart_get_attr_port-shift
++++ a/drivers/tty/serial/serial_core.c
+@@ -2413,9 +2413,13 @@ static ssize_t uart_get_attr_port(struct
+ {
+ 	struct serial_struct tmp;
+ 	struct tty_port *port = dev_get_drvdata(dev);
++	unsigned long ioaddr;
  
--	return 1UL << order;
-+	return 1UL << alloc_order;
+ 	uart_get_info(port, &tmp);
+-	return snprintf(buf, PAGE_SIZE, "0x%lX\n", (unsigned long)(tmp.port | (((unsigned long)tmp.port_high) << HIGH_BITS_OFFSET)));
++	ioaddr = tmp.port;
++	if (HIGH_BITS_OFFSET)
++		ioaddr |= (unsigned long)tmp.port_high << HIGH_BITS_OFFSET;
++	return snprintf(buf, PAGE_SIZE, "0x%lX\n", ioaddr);
  }
  
- /*
+ static ssize_t uart_get_attr_irq(struct device *dev,
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-memory_hotplug-fix-possible-incorrect-node_states.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+drivers-video-add-support-for-the-solomon-ssd1307-oled-controller-checkpatch-fixes.patch
+irq-tsk-comm-is-an-array.patch
+mm.patch
+mm-use-is_enabledconfig_compaction-instead-of-compaction_build-fix.patch
+mm-introduce-mm_find_pmd-fix.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
 slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
-mm-add-comment-on-storage-key-dirty-bit-semantics.patch
-mm-refactor-reinsert-of-swap_info-in-sys_swapoff.patch
-mm-do-not-call-frontswap_init-during-swapoff.patch
-mm-memmap_init_zone-performance-improvement.patch
-mm-allocate-kernel-pages-to-the-right-memcg.patch
-mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory.patch
-memory_hotplug-handle-empty-zone-when-online_movable-online_kernel.patch
-memory_hotplug-ensure-every-online-node-has-normal-memory.patch
-mm-compaction-fix-compiler-warning.patch
+mmvmscan-only-evict-file-pages-when-we-have-plenty-fix.patch
+slub-slub-specific-propagation-changes-fix.patch
+dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch
+mm-check-rb_subtree_gap-correctness-fix.patch
+mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
+mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
+mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
+mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
+mm-use-vm_unmapped_area-on-arm-architecture-fix-fix.patch
+mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc32-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc32-architecture-fix-fix.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
+arch-sparc-kernel-sys_sparc_64c-s-colour-color.patch
+mm-introduce-a-common-interface-for-balloon-pages-mobility-mm-fix-balloon_page_movable-page-flags-check-fix.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix.patch
+mm-cma-skip-watermarks-check-for-already-isolated-blocks-in-split_free_page-fix-fix.patch
+bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
+mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch
+thp-implement-splitting-pmd-for-huge-zero-page-fix.patch
 mm-add-a-reminder-comment-for-__gfp_bits_shift.patch
-numa-add-config_movable_node-for-movable-dedicated-node.patch
 numa-add-config_movable_node-for-movable-dedicated-node-fix.patch
-memory_hotplug-allow-online-offline-memory-to-result-movable-node.patch
-mm-introduce-new-field-managed_pages-to-struct-zone.patch
-mm-provide-more-accurate-estimation-of-pages-occupied-by-memmap.patch
+mm-introduce-new-field-managed_pages-to-struct-zone-fix.patch
 mm-provide-more-accurate-estimation-of-pages-occupied-by-memmap-fix.patch
+tmpfs-support-seek_data-and-seek_hole-reprise.patch
+drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+lseek-the-whence-argument-is-called-whence.patch
+drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
+backlight-add-of_find_backlight_by_node-function-fix.patch
+backlight-88pm860x_bl-remove-an-unnecessary-line-continuation-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes-checkpatch-fixes.patch
+procfs-add-vmflags-field-in-smaps-output-v4.patch
+procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
+ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
+ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
+ipc-convert-prepare_copy-from-macro-to-function-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+docs-add-documentation-about-proc-pid-fdinfo-fd-output-fix.patch
+fs-notify-add-procfs-fdinfo-helper-v7-fix.patch
+scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
