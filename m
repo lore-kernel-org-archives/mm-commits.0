@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + wait-add-wait_event_lock_irq-interface-v3.patch added to -mm tree
-Date: Fri, 30 Nov 2012 13:44:58 -0800
-Message-ID: <20121130214458.AA49082004A@wpzn4.hot.corp.google.com>
+Subject: + hfsplus-rework-processing-of-hfs_btree_write-returned-error.patch added to -mm tree
+Date: Fri, 30 Nov 2012 13:56:26 -0800
+Message-ID: <20121130215627.3C90482004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:63433 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751417Ab2K3Vo7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Nov 2012 16:44:59 -0500
-Received: by mail-gg0-f202.google.com with SMTP id k1so105829ggn.1
-        for <mm-commits@vger.kernel.org>; Fri, 30 Nov 2012 13:44:59 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:64131 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755733Ab2K3V42 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Nov 2012 16:56:28 -0500
+Received: by mail-ye0-f202.google.com with SMTP id l7so106832yen.1
+        for <mm-commits@vger.kernel.org>; Fri, 30 Nov 2012 13:56:28 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lczerner@redhat.com, axboe@kernel.dk, jmoyer@redhat.com, neilb@suse.de
+Cc: slava@dubeyko.com, hch@infradead.org, htl10@users.sourceforge.net, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: wait: add wait_event_lock_irq() interface
+     Subject: hfsplus: rework processing of hfs_btree_write() returned error
 has been added to the -mm tree.  Its filename is
-     wait-add-wait_event_lock_irq-interface-v3.patch
+     hfsplus-rework-processing-of-hfs_btree_write-returned-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,105 +33,109 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Lukas Czerner <lczerner@redhat.com>
-Subject: wait: add wait_event_lock_irq() interface
+From: Vyacheslav Dubeyko <slava@dubeyko.com>
+Subject: hfsplus: rework processing of hfs_btree_write() returned error
 
-v3: swap cmd and schedule so we call cmd before schedule
+Add to hfs_btree_write() a return of -EIO on failure of b-tree node
+searching.  Also add logic ofor processing errors from hfs_btree_write()
+in hfsplus_system_write_inode() with a message about b-tree writing
+failure.
 
-Signed-off-by: Lukas Czerner <lczerner@redhat.com>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Hin-Tak Leung <htl10@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/wait.h |   18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+ fs/hfsplus/btree.c      |    5 +++--
+ fs/hfsplus/hfsplus_fs.h |    2 +-
+ fs/hfsplus/super.c      |   12 ++++++++++--
+ 3 files changed, 14 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/wait.h~wait-add-wait_event_lock_irq-interface-v3 include/linux/wait.h
---- a/include/linux/wait.h~wait-add-wait_event_lock_irq-interface-v3
-+++ a/include/linux/wait.h
-@@ -555,14 +555,13 @@ do {									\
- do {									\
- 	DEFINE_WAIT(__wait);						\
- 									\
--	cmd;								\
- 	for (;;) {							\
- 		prepare_to_wait(&wq, &__wait, TASK_UNINTERRUPTIBLE);	\
- 		if (condition)						\
- 			break;						\
- 		spin_unlock_irq(&lock);					\
--		schedule();						\
- 		cmd;							\
-+		schedule();						\
- 		spin_lock_irq(&lock);					\
- 	}								\
- 	finish_wait(&wq, &__wait);					\
-@@ -575,8 +574,8 @@ do {									\
-  *			     taken.
-  * @wq: the waitqueue to wait on
-  * @condition: a C expression for the event to wait for
-- * @lock: a locked spinlock_t, which will be released before schedule()
-- *	  and cmd reacquired afterwards.
-+ * @lock: a locked spinlock_t, which will be released before cmd
-+ *	  and schedule() and reacquired afterwards.
-  * @cmd: a command which is invoked outside the critical section before
-  *	 sleep
-  *
-@@ -588,7 +587,7 @@ do {									\
-  * change the result of the wait condition.
-  *
-  * This is supposed to be called while holding the lock. The lock is
-- * dropped before going to sleep and invoking the cmd and is reacquired
-+ * dropped before invoking the cmd and going to sleep and is reacquired
-  * afterwards.
-  */
- #define wait_event_lock_irq_cmd(wq, condition, lock, cmd)		\
-@@ -631,7 +630,6 @@ do {									\
- do {									\
- 	DEFINE_WAIT(__wait);						\
- 									\
--	cmd;								\
- 	for (;;) {							\
- 		prepare_to_wait(&wq, &__wait, TASK_INTERRUPTIBLE);	\
- 		if (condition)						\
-@@ -641,8 +639,8 @@ do {									\
- 			break;						\
- 		}							\
- 		spin_unlock_irq(&lock);					\
--		schedule();						\
- 		cmd;							\
-+		schedule();						\
- 		spin_lock_irq(&lock);					\
- 	}								\
- 	finish_wait(&wq, &__wait);					\
-@@ -654,8 +652,8 @@ do {									\
-  *		be called with the lock taken.
-  * @wq: the waitqueue to wait on
-  * @condition: a C expression for the event to wait for
-- * @lock: a locked spinlock_t, which will be released before schedule()
-- *	  and cmd reacquired afterwards.
-+ * @lock: a locked spinlock_t, which will be released before cmd and
-+ *	  schedule() and reacquired afterwards.
-  * @cmd: a command which is invoked outside the critical section before
-  *	 sleep
-  *
-@@ -667,7 +665,7 @@ do {									\
-  * change the result of the wait condition.
-  *
-  * This is supposed to be called while holding the lock. The lock is
-- * dropped before going to sleep and invoking the cmd and is reacquired
-+ * dropped before invoking the cmd and going to sleep and is reacquired
-  * afterwards.
-  *
-  * The macro will return -ERESTARTSYS if it was interrupted by a signal
+diff -puN fs/hfsplus/btree.c~hfsplus-rework-processing-of-hfs_btree_write-returned-error fs/hfsplus/btree.c
+--- a/fs/hfsplus/btree.c~hfsplus-rework-processing-of-hfs_btree_write-returned-error
++++ a/fs/hfsplus/btree.c
+@@ -167,7 +167,7 @@ void hfs_btree_close(struct hfs_btree *t
+ 	kfree(tree);
+ }
+ 
+-void hfs_btree_write(struct hfs_btree *tree)
++int hfs_btree_write(struct hfs_btree *tree)
+ {
+ 	struct hfs_btree_header_rec *head;
+ 	struct hfs_bnode *node;
+@@ -176,7 +176,7 @@ void hfs_btree_write(struct hfs_btree *t
+ 	node = hfs_bnode_find(tree, 0);
+ 	if (IS_ERR(node))
+ 		/* panic? */
+-		return;
++		return -EIO;
+ 	/* Load the header */
+ 	page = node->page[0];
+ 	head = (struct hfs_btree_header_rec *)(kmap(page) +
+@@ -194,6 +194,7 @@ void hfs_btree_write(struct hfs_btree *t
+ 	kunmap(page);
+ 	set_page_dirty(page);
+ 	hfs_bnode_put(node);
++	return 0;
+ }
+ 
+ static struct hfs_bnode *hfs_bmap_new_bmap(struct hfs_bnode *prev, u32 idx)
+diff -puN fs/hfsplus/hfsplus_fs.h~hfsplus-rework-processing-of-hfs_btree_write-returned-error fs/hfsplus/hfsplus_fs.h
+--- a/fs/hfsplus/hfsplus_fs.h~hfsplus-rework-processing-of-hfs_btree_write-returned-error
++++ a/fs/hfsplus/hfsplus_fs.h
+@@ -367,7 +367,7 @@ int hfsplus_block_free(struct super_bloc
+ /* btree.c */
+ struct hfs_btree *hfs_btree_open(struct super_block *, u32);
+ void hfs_btree_close(struct hfs_btree *);
+-void hfs_btree_write(struct hfs_btree *);
++int hfs_btree_write(struct hfs_btree *);
+ struct hfs_bnode *hfs_bmap_alloc(struct hfs_btree *);
+ void hfs_bmap_free(struct hfs_bnode *);
+ 
+diff -puN fs/hfsplus/super.c~hfsplus-rework-processing-of-hfs_btree_write-returned-error fs/hfsplus/super.c
+--- a/fs/hfsplus/super.c~hfsplus-rework-processing-of-hfs_btree_write-returned-error
++++ a/fs/hfsplus/super.c
+@@ -100,6 +100,7 @@ static int hfsplus_system_write_inode(st
+ 	struct hfsplus_vh *vhdr = sbi->s_vhdr;
+ 	struct hfsplus_fork_raw *fork;
+ 	struct hfs_btree *tree = NULL;
++	int err;
+ 
+ 	switch (inode->i_ino) {
+ 	case HFSPLUS_EXT_CNID:
+@@ -129,8 +130,15 @@ static int hfsplus_system_write_inode(st
+ 		hfsplus_mark_mdb_dirty(inode->i_sb);
+ 	}
+ 	hfsplus_inode_write_fork(inode, fork);
+-	if (tree)
+-		hfs_btree_write(tree);
++	if (tree) {
++		err = hfs_btree_write(tree);
++		if (err) {
++			printk(KERN_ERR "hfs: unable to write b-tree\n");
++			dprint(DBG_INODE, "hfsplus_system_write_inode: %lu\n",
++				inode->i_ino);
++			return err;
++		}
++	}
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from lczerner@redhat.com are
+Patches currently in -mm which might be from slava@dubeyko.com are
 
-linux-next.patch
-wait-add-wait_event_lock_irq-interface.patch
-wait-add-wait_event_lock_irq-interface-fix.patch
-wait-add-wait_event_lock_irq-interface-v3.patch
-loop-limit-the-number-of-requests-in-the-bio-list.patch
+hfsplus-avoid-crash-on-failed-block-map-free.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes-checkpatch-fixes.patch
+hfsplus-add-on-disk-layout-declarations-related-to-attributes-tree.patch
+hfsplus-add-functionality-of-manipulating-by-records-in-attributes-tree.patch
+hfsplus-rework-functionality-of-getting-setting-and-deleting-of-extended-attributes.patch
+hfsplus-rework-functionality-of-getting-setting-and-deleting-of-extended-attributes-fix.patch
+hfsplus-add-support-of-manipulation-by-attributes-file.patch
+hfsplus-rework-processing-errors-in-hfsplus_free_extents.patch
+hfsplus-rework-processing-of-hfs_btree_write-returned-error.patch
+hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix.patch
 
