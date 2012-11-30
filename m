@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix.patch added to -mm tree
-Date: Fri, 30 Nov 2012 13:56:29 -0800
-Message-ID: <20121130215630.2A50D100047@wpzn3.hot.corp.google.com>
+Subject: + thp-avoid-race-on-multiple-parallel-page-faults-to-the-same-page.patch added to -mm tree
+Date: Fri, 30 Nov 2012 14:09:55 -0800
+Message-ID: <20121130220955.A8AEC82004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:55818 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755737Ab2K3V4d (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Nov 2012 16:56:33 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so20313vcd.1
-        for <mm-commits@vger.kernel.org>; Fri, 30 Nov 2012 13:56:31 -0800 (PST)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:54787 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751028Ab2K3WJ4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Nov 2012 17:09:56 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z10so109458ghb.1
+        for <mm-commits@vger.kernel.org>; Fri, 30 Nov 2012 14:09:56 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hch@infradead.org, htl10@users.sourceforge.net, slava@dubeyko.com, viro@zeniv.linux.org.uk
+Cc: kirill.shutemov@linux.intel.com, aarcange@redhat.com, jslaby@suse.cz, lliubbo@gmail.com, rientjes@google.com
 
 
 The patch titled
-     Subject: hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix
+     Subject: thp: avoid race on multiple parallel page faults to the same page
 has been added to the -mm tree.  Its filename is
-     hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix.patch
+     thp-avoid-race-on-multiple-parallel-page-faults-to-the-same-page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,120 +33,161 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: thp: avoid race on multiple parallel page faults to the same page
 
-reduce scope of `err', print errno on error
+pmd value is stable only with mm->page_table_lock taken. After taking
+the lock we need to check that nobody modified the pmd before changing it.
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Hin-Tak Leung <htl10@users.sourceforge.net>
-Cc: Vyacheslav Dubeyko <slava@dubeyko.com>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Jiri Slaby <jslaby@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Bob Liu <lliubbo@gmail.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/super.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/huge_memory.c |   29 ++++++++++++++++++++++++-----
+ 1 file changed, 24 insertions(+), 5 deletions(-)
 
-diff -puN fs/hfsplus/super.c~hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix fs/hfsplus/super.c
---- a/fs/hfsplus/super.c~hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix
-+++ a/fs/hfsplus/super.c
-@@ -100,7 +100,6 @@ static int hfsplus_system_write_inode(st
- 	struct hfsplus_vh *vhdr = sbi->s_vhdr;
- 	struct hfsplus_fork_raw *fork;
- 	struct hfs_btree *tree = NULL;
--	int err;
+diff -puN mm/huge_memory.c~thp-avoid-race-on-multiple-parallel-page-faults-to-the-same-page mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-avoid-race-on-multiple-parallel-page-faults-to-the-same-page
++++ a/mm/huge_memory.c
+@@ -770,17 +770,20 @@ static inline struct page *alloc_hugepag
+ }
+ #endif
  
- 	switch (inode->i_ino) {
- 	case HFSPLUS_EXT_CNID:
-@@ -131,9 +130,10 @@ static int hfsplus_system_write_inode(st
+-static void set_huge_zero_page(pgtable_t pgtable, struct mm_struct *mm,
++static bool set_huge_zero_page(pgtable_t pgtable, struct mm_struct *mm,
+ 		struct vm_area_struct *vma, unsigned long haddr, pmd_t *pmd,
+ 		unsigned long zero_pfn)
+ {
+ 	pmd_t entry;
++	if (!pmd_none(*pmd))
++		return false;
+ 	entry = pfn_pmd(zero_pfn, vma->vm_page_prot);
+ 	entry = pmd_wrprotect(entry);
+ 	entry = pmd_mkhuge(entry);
+ 	set_pmd_at(mm, haddr, pmd, entry);
+ 	pgtable_trans_huge_deposit(mm, pgtable);
+ 	mm->nr_ptes++;
++	return true;
+ }
+ 
+ int do_huge_pmd_anonymous_page(struct mm_struct *mm, struct vm_area_struct *vma,
+@@ -800,6 +803,7 @@ int do_huge_pmd_anonymous_page(struct mm
+ 				transparent_hugepage_use_zero_page()) {
+ 			pgtable_t pgtable;
+ 			unsigned long zero_pfn;
++			bool set;
+ 			pgtable = pte_alloc_one(mm, haddr);
+ 			if (unlikely(!pgtable))
+ 				return VM_FAULT_OOM;
+@@ -810,9 +814,13 @@ int do_huge_pmd_anonymous_page(struct mm
+ 				goto out;
+ 			}
+ 			spin_lock(&mm->page_table_lock);
+-			set_huge_zero_page(pgtable, mm, vma, haddr, pmd,
++			set = set_huge_zero_page(pgtable, mm, vma, haddr, pmd,
+ 					zero_pfn);
+ 			spin_unlock(&mm->page_table_lock);
++			if (!set) {
++				pte_free(mm, pgtable);
++				put_huge_zero_page();
++			}
+ 			return 0;
+ 		}
+ 		page = alloc_hugepage_vma(transparent_hugepage_defrag(vma),
+@@ -1046,14 +1054,16 @@ int copy_huge_pmd(struct mm_struct *dst_
+ 	 */
+ 	if (is_huge_zero_pmd(pmd)) {
+ 		unsigned long zero_pfn;
++		bool set;
+ 		/*
+ 		 * get_huge_zero_page() will never allocate a new page here,
+ 		 * since we already have a zero page to copy. It just takes a
+ 		 * reference.
+ 		 */
+ 		zero_pfn = get_huge_zero_page();
+-		set_huge_zero_page(pgtable, dst_mm, vma, addr, dst_pmd,
++		set = set_huge_zero_page(pgtable, dst_mm, vma, addr, dst_pmd,
+ 				zero_pfn);
++		BUG_ON(!set); /* unexpected !pmd_none(dst_pmd) */
+ 		ret = 0;
+ 		goto out_unlock;
  	}
- 	hfsplus_inode_write_fork(inode, fork);
- 	if (tree) {
--		err = hfs_btree_write(tree);
-+		int err = hfs_btree_write(tree);
- 		if (err) {
--			printk(KERN_ERR "hfs: unable to write b-tree\n");
-+			printk(KERN_ERR "hfs: unable to write b-tree: %d\n",
-+				err);
- 			dprint(DBG_INODE, "hfsplus_system_write_inode: %lu\n",
- 				inode->i_ino);
- 			return err;
+@@ -1110,7 +1120,7 @@ unlock:
+ 
+ static int do_huge_pmd_wp_zero_page_fallback(struct mm_struct *mm,
+ 		struct vm_area_struct *vma, unsigned long address,
+-		pmd_t *pmd, unsigned long haddr)
++		pmd_t *pmd, pmd_t orig_pmd, unsigned long haddr)
+ {
+ 	pgtable_t pgtable;
+ 	pmd_t _pmd;
+@@ -1139,6 +1149,9 @@ static int do_huge_pmd_wp_zero_page_fall
+ 	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
+ 
+ 	spin_lock(&mm->page_table_lock);
++	if (unlikely(!pmd_same(*pmd, orig_pmd)))
++		goto out_free_page;
++
+ 	pmdp_clear_flush(vma, haddr, pmd);
+ 	/* leave pmd empty until pte is filled */
+ 
+@@ -1170,6 +1183,12 @@ static int do_huge_pmd_wp_zero_page_fall
+ 	ret |= VM_FAULT_WRITE;
+ out:
+ 	return ret;
++out_free_page:
++	spin_unlock(&mm->page_table_lock);
++	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
++	mem_cgroup_uncharge_page(page);
++	put_page(page);
++	goto out;
+ }
+ 
+ static int do_huge_pmd_wp_page_fallback(struct mm_struct *mm,
+@@ -1317,7 +1336,7 @@ alloc:
+ 		count_vm_event(THP_FAULT_FALLBACK);
+ 		if (is_huge_zero_pmd(orig_pmd)) {
+ 			ret = do_huge_pmd_wp_zero_page_fallback(mm, vma,
+-					address, pmd, haddr);
++					address, pmd, orig_pmd, haddr);
+ 		} else {
+ 			ret = do_huge_pmd_wp_page_fallback(mm, vma, address,
+ 					pmd, orig_pmd, page, haddr);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-drivers-video-add-support-for-the-solomon-ssd1307-oled-controller-checkpatch-fixes.patch
-irq-tsk-comm-is-an-array.patch
-mm.patch
+thp-fix-update_mmu_cache_pmd-calls.patch
+x86-convert-update_mmu_cache-and-update_mmu_cache_pmd-to-functions.patch
+mm-use-is_enabledconfig_numa-instead-of-numa_build.patch
+mm-use-is_enabledconfig_compaction-instead-of-compaction_build.patch
 mm-use-is_enabledconfig_compaction-instead-of-compaction_build-fix.patch
-mm-introduce-mm_find_pmd-fix.patch
-memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
-slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
-mmvmscan-only-evict-file-pages-when-we-have-plenty-fix.patch
-slub-slub-specific-propagation-changes-fix.patch
-dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch
-mm-check-rb_subtree_gap-correctness-fix.patch
-mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
-mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
-mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
-mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
-mm-use-vm_unmapped_area-on-arm-architecture-fix-fix.patch
-mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc32-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc32-architecture-fix-fix.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
-arch-sparc-kernel-sys_sparc_64c-s-colour-color.patch
-mm-introduce-a-common-interface-for-balloon-pages-mobility-mm-fix-balloon_page_movable-page-flags-check-fix.patch
-virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
-virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix.patch
-mm-cma-skip-watermarks-check-for-already-isolated-blocks-in-split_free_page-fix-fix.patch
-bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
-mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch
+thp-huge-zero-page-basic-preparation.patch
+thp-huge-zero-page-basic-preparation-v6.patch
+thp-zap_huge_pmd-zap-huge-zero-pmd.patch
+thp-copy_huge_pmd-copy-huge-zero-page.patch
+thp-copy_huge_pmd-copy-huge-zero-page-v6.patch
+thp-copy_huge_pmd-copy-huge-zero-page-v6-fix.patch
+thp-do_huge_pmd_wp_page-handle-huge-zero-page.patch
+thp-do_huge_pmd_wp_page-handle-huge-zero-page-v6.patch
+thp-do_huge_pmd_wp_page-handle-huge-zero-page-thp-fix-anononymous-page-accounting-in-fallback-path-for-cow-of-hzp.patch
+thp-change_huge_pmd-keep-huge-zero-page-write-protected.patch
+thp-change-split_huge_page_pmd-interface.patch
+thp-change-split_huge_page_pmd-interface-v6.patch
+thp-implement-splitting-pmd-for-huge-zero-page.patch
 thp-implement-splitting-pmd-for-huge-zero-page-fix.patch
-mm-add-a-reminder-comment-for-__gfp_bits_shift.patch
-numa-add-config_movable_node-for-movable-dedicated-node-fix.patch
-mm-introduce-new-field-managed_pages-to-struct-zone-fix.patch
-mm-provide-more-accurate-estimation-of-pages-occupied-by-memmap-fix.patch
-tmpfs-support-seek_data-and-seek_hole-reprise.patch
-drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-lseek-the-whence-argument-is-called-whence.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
-backlight-add-of_find_backlight_by_node-function-fix.patch
-backlight-88pm860x_bl-remove-an-unnecessary-line-continuation-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes-checkpatch-fixes.patch
-hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix.patch
-procfs-add-vmflags-field-in-smaps-output-v4.patch
-procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
-ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
-ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
-ipc-convert-prepare_copy-from-macro-to-function-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-docs-add-documentation-about-proc-pid-fdinfo-fd-output-fix.patch
-fs-notify-add-procfs-fdinfo-helper-v7-fix.patch
-scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+thp-implement-splitting-pmd-for-huge-zero-page-v6.patch
+thp-setup-huge-zero-page-on-non-write-page-fault.patch
+thp-setup-huge-zero-page-on-non-write-page-fault-fix.patch
+thp-lazy-huge-zero-page-allocation.patch
+thp-implement-refcounting-for-huge-zero-page.patch
+thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events.patch
+thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6.patch
+thp-introduce-sysfs-knob-to-disable-huge-zero-page.patch
+thp-avoid-race-on-multiple-parallel-page-faults-to-the-same-page.patch
 
