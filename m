@@ -1,183 +1,227 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmscan-fix-endless-loop-in-kswapd-balancing.patch removed from -mm tree
-Date: Fri, 30 Nov 2012 13:29:04 -0800
-Message-ID: <20121130212904.CFD00100047@wpzn3.hot.corp.google.com>
+Subject: [merged] revert-revert-mm-remove-__gfp_no_kswapd.patch removed from -mm tree
+Date: Fri, 30 Nov 2012 13:29:07 -0800
+Message-ID: <20121130212907.CFAF0100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:58593 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752421Ab2K3V3H (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Nov 2012 16:29:07 -0500
-Received: by mail-yh0-f74.google.com with SMTP id 10so1996449yhl.1
-        for <mm-commits@vger.kernel.org>; Fri, 30 Nov 2012 13:29:06 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:55005 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752217Ab2K3V3J (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Nov 2012 16:29:09 -0500
+Received: by mail-vb0-f74.google.com with SMTP id s24so1990593vbi.1
+        for <mm-commits@vger.kernel.org>; Fri, 30 Nov 2012 13:29:08 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, johannes.hirte@fem.tu-ilmenau.de, linux@horizon.com, mel@csn.ul.ie, riel@redhat.com, stable@vger.kernel.org, tracek@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, Valdis.Kletnieks@vt.edu, jirislaby@gmail.com, mgorman@suse.de, rcj@linux.vnet.ibm.com, riel@redhat.com, sjenning@linux.vnet.ibm.com, zkabelac@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: fix endless loop in kswapd balancing
+     Subject: revert "Revert "mm: remove __GFP_NO_KSWAPD""
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-fix-endless-loop-in-kswapd-balancing.patch
+     revert-revert-mm-remove-__gfp_no_kswapd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: vmscan: fix endless loop in kswapd balancing
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: revert "Revert "mm: remove __GFP_NO_KSWAPD""
 
-Kswapd does not in all places have the same criteria for a balanced zone. 
-Zones are only being reclaimed when their high watermark is breached, but
-compaction checks loop over the zonelist again when the zone does not meet
-the low watermark plus two times the size of the allocation.  This gets
-kswapd stuck in an endless loop over a small zone, like the DMA zone,
-where the high watermark is smaller than the compaction requirement.
+It apepars that this patch was innocent, and we hope that "mm: avoid
+waking kswapd for THP allocations when compaction is deferred or
+contended" will fix the final kswapd-spinning cause.
 
-Add a function, zone_balanced(), that checks the watermark, and, for
-higher order allocations, if compaction has enough free memory.  Then use
-it uniformly to check for balanced zones.
-
-This makes sure that when the compaction watermark is not met, at least
-reclaim happens and progress is made - or the zone is declared
-unreclaimable at some point and skipped entirely.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: George Spelvin <linux@horizon.com>
-Reported-by: Johannes Hirte <johannes.hirte@fem.tu-ilmenau.de>
-Reported-by: Tomas Racek <tracek@redhat.com>
-Tested-by: Johannes Hirte <johannes.hirte@fem.tu-ilmenau.de>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: <stable@vger.kernel.org>
+Cc: Zdenek Kabelac <zkabelac@redhat.com>
+Cc: Seth Jennings <sjenning@linux.vnet.ibm.com>
+Cc: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Robert Jennings <rcj@linux.vnet.ibm.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   27 ++++++++++++++++++---------
- 1 file changed, 18 insertions(+), 9 deletions(-)
+ drivers/mtd/mtdcore.c           |    6 ++----
+ include/linux/gfp.h             |   13 +++++--------
+ include/trace/events/gfpflags.h |    1 -
+ mm/page_alloc.c                 |    7 +++----
+ 4 files changed, 10 insertions(+), 17 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-fix-endless-loop-in-kswapd-balancing mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-fix-endless-loop-in-kswapd-balancing
-+++ a/mm/vmscan.c
-@@ -2414,6 +2414,19 @@ static void age_active_anon(struct zone 
- 	} while (memcg);
- }
+diff -puN drivers/mtd/mtdcore.c~revert-revert-mm-remove-__gfp_no_kswapd drivers/mtd/mtdcore.c
+--- a/drivers/mtd/mtdcore.c~revert-revert-mm-remove-__gfp_no_kswapd
++++ a/drivers/mtd/mtdcore.c
+@@ -1077,8 +1077,7 @@ EXPORT_SYMBOL_GPL(mtd_writev);
+  * until the request succeeds or until the allocation size falls below
+  * the system page size. This attempts to make sure it does not adversely
+  * impact system performance, so when allocating more than one page, we
+- * ask the memory allocator to avoid re-trying, swapping, writing back
+- * or performing I/O.
++ * ask the memory allocator to avoid re-trying.
+  *
+  * Note, this function also makes sure that the allocated buffer is aligned to
+  * the MTD device's min. I/O unit, i.e. the "mtd->writesize" value.
+@@ -1092,8 +1091,7 @@ EXPORT_SYMBOL_GPL(mtd_writev);
+  */
+ void *mtd_kmalloc_up_to(const struct mtd_info *mtd, size_t *size)
+ {
+-	gfp_t flags = __GFP_NOWARN | __GFP_WAIT |
+-		       __GFP_NORETRY | __GFP_NO_KSWAPD;
++	gfp_t flags = __GFP_NOWARN | __GFP_WAIT | __GFP_NORETRY;
+ 	size_t min_alloc = max_t(size_t, mtd->writesize, PAGE_SIZE);
+ 	void *kbuf;
  
-+static bool zone_balanced(struct zone *zone, int order,
-+			  unsigned long balance_gap, int classzone_idx)
-+{
-+	if (!zone_watermark_ok_safe(zone, order, high_wmark_pages(zone) +
-+				    balance_gap, classzone_idx, 0))
-+		return false;
-+
-+	if (COMPACTION_BUILD && order && !compaction_suitable(zone, order))
-+		return false;
-+
-+	return true;
-+}
-+
+diff -puN include/linux/gfp.h~revert-revert-mm-remove-__gfp_no_kswapd include/linux/gfp.h
+--- a/include/linux/gfp.h~revert-revert-mm-remove-__gfp_no_kswapd
++++ a/include/linux/gfp.h
+@@ -30,10 +30,9 @@ struct vm_area_struct;
+ #define ___GFP_HARDWALL		0x20000u
+ #define ___GFP_THISNODE		0x40000u
+ #define ___GFP_RECLAIMABLE	0x80000u
+-#define ___GFP_NOTRACK		0x200000u
+-#define ___GFP_NO_KSWAPD	0x400000u
+-#define ___GFP_OTHER_NODE	0x800000u
+-#define ___GFP_WRITE		0x1000000u
++#define ___GFP_NOTRACK		0x100000u
++#define ___GFP_OTHER_NODE	0x200000u
++#define ___GFP_WRITE		0x400000u
+ 
  /*
-  * pgdat_balanced is used when checking if a node is balanced for high-order
-  * allocations. Only zones that meet watermarks and are in a zone allowed
-@@ -2492,8 +2505,7 @@ static bool prepare_kswapd_sleep(pg_data
- 			continue;
- 		}
+  * GFP bitmasks..
+@@ -86,7 +85,6 @@ struct vm_area_struct;
+ #define __GFP_RECLAIMABLE ((__force gfp_t)___GFP_RECLAIMABLE) /* Page is reclaimable */
+ #define __GFP_NOTRACK	((__force gfp_t)___GFP_NOTRACK)  /* Don't track with kmemcheck */
  
--		if (!zone_watermark_ok_safe(zone, order, high_wmark_pages(zone),
--							i, 0))
-+		if (!zone_balanced(zone, order, 0, i))
- 			all_zones_ok = false;
- 		else
- 			balanced += zone->present_pages;
-@@ -2602,8 +2614,7 @@ loop_again:
- 				break;
- 			}
+-#define __GFP_NO_KSWAPD	((__force gfp_t)___GFP_NO_KSWAPD)
+ #define __GFP_OTHER_NODE ((__force gfp_t)___GFP_OTHER_NODE) /* On behalf of other node */
+ #define __GFP_WRITE	((__force gfp_t)___GFP_WRITE)	/* Allocator intends to dirty page */
  
--			if (!zone_watermark_ok_safe(zone, order,
--					high_wmark_pages(zone), 0, 0)) {
-+			if (!zone_balanced(zone, order, 0, 0)) {
- 				end_zone = i;
- 				break;
- 			} else {
-@@ -2679,9 +2690,8 @@ loop_again:
- 				testorder = 0;
+@@ -96,7 +94,7 @@ struct vm_area_struct;
+  */
+ #define __GFP_NOTRACK_FALSE_POSITIVE (__GFP_NOTRACK)
  
- 			if ((buffer_heads_over_limit && is_highmem_idx(i)) ||
--				    !zone_watermark_ok_safe(zone, testorder,
--					high_wmark_pages(zone) + balance_gap,
--					end_zone, 0)) {
-+			    !zone_balanced(zone, testorder,
-+					   balance_gap, end_zone)) {
- 				shrink_zone(zone, &sc);
+-#define __GFP_BITS_SHIFT 25	/* Room for N __GFP_FOO bits */
++#define __GFP_BITS_SHIFT 23	/* Room for N __GFP_FOO bits */
+ #define __GFP_BITS_MASK ((__force gfp_t)((1 << __GFP_BITS_SHIFT) - 1))
  
- 				reclaim_state->reclaimed_slab = 0;
-@@ -2708,8 +2718,7 @@ loop_again:
- 				continue;
- 			}
+ /* This equals 0, but use constants in case they ever change */
+@@ -116,8 +114,7 @@ struct vm_area_struct;
+ 				 __GFP_MOVABLE)
+ #define GFP_IOFS	(__GFP_IO | __GFP_FS)
+ #define GFP_TRANSHUGE	(GFP_HIGHUSER_MOVABLE | __GFP_COMP | \
+-			 __GFP_NOMEMALLOC | __GFP_NORETRY | __GFP_NOWARN | \
+-			 __GFP_NO_KSWAPD)
++			 __GFP_NOMEMALLOC | __GFP_NORETRY | __GFP_NOWARN)
  
--			if (!zone_watermark_ok_safe(zone, testorder,
--					high_wmark_pages(zone), end_zone, 0)) {
-+			if (!zone_balanced(zone, testorder, 0, end_zone)) {
- 				all_zones_ok = 0;
- 				/*
- 				 * We are still under min water mark.  This
+ #ifdef CONFIG_NUMA
+ #define GFP_THISNODE	(__GFP_THISNODE | __GFP_NOWARN | __GFP_NORETRY)
+diff -puN include/trace/events/gfpflags.h~revert-revert-mm-remove-__gfp_no_kswapd include/trace/events/gfpflags.h
+--- a/include/trace/events/gfpflags.h~revert-revert-mm-remove-__gfp_no_kswapd
++++ a/include/trace/events/gfpflags.h
+@@ -36,7 +36,6 @@
+ 	{(unsigned long)__GFP_RECLAIMABLE,	"GFP_RECLAIMABLE"},	\
+ 	{(unsigned long)__GFP_MOVABLE,		"GFP_MOVABLE"},		\
+ 	{(unsigned long)__GFP_NOTRACK,		"GFP_NOTRACK"},		\
+-	{(unsigned long)__GFP_NO_KSWAPD,	"GFP_NO_KSWAPD"},	\
+ 	{(unsigned long)__GFP_OTHER_NODE,	"GFP_OTHER_NODE"}	\
+ 	) : "GFP_NOWAIT"
+ 
+diff -puN mm/page_alloc.c~revert-revert-mm-remove-__gfp_no_kswapd mm/page_alloc.c
+--- a/mm/page_alloc.c~revert-revert-mm-remove-__gfp_no_kswapd
++++ a/mm/page_alloc.c
+@@ -2416,9 +2416,8 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ 		goto nopage;
+ 
+ restart:
+-	if (!(gfp_mask & __GFP_NO_KSWAPD))
+-		wake_all_kswapd(order, zonelist, high_zoneidx,
+-						zone_idx(preferred_zone));
++	wake_all_kswapd(order, zonelist, high_zoneidx,
++					zone_idx(preferred_zone));
+ 
+ 	/*
+ 	 * OK, we're below the kswapd watermark and have kicked background
+@@ -2495,7 +2494,7 @@ rebalance:
+ 	 * system then fail the allocation instead of entering direct reclaim.
+ 	 */
+ 	if ((deferred_compaction || contended_compaction) &&
+-						(gfp_mask & __GFP_NO_KSWAPD))
++	    (gfp_mask & (__GFP_MOVABLE|__GFP_REPEAT)) == __GFP_MOVABLE)
+ 		goto nopage;
+ 
+ 	/* Try direct reclaim and then allocating */
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-mm-slab-remove-duplicate-check.patch
-mmvmscan-only-evict-file-pages-when-we-have-plenty.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+drivers-video-add-support-for-the-solomon-ssd1307-oled-controller-checkpatch-fixes.patch
+irq-tsk-comm-is-an-array.patch
+mm.patch
+mm-use-is_enabledconfig_compaction-instead-of-compaction_build-fix.patch
+mm-introduce-mm_find_pmd-fix.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
+slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
 mmvmscan-only-evict-file-pages-when-we-have-plenty-fix.patch
-mm-refactor-reinsert-of-swap_info-in-sys_swapoff.patch
-mm-do-not-call-frontswap_init-during-swapoff.patch
-mm-thp-set-the-accessed-flag-for-old-pages-on-access-fault.patch
-mm-memmap_init_zone-performance-improvement.patch
-memcg-make-it-possible-to-use-the-stock-for-more-than-one-page.patch
-memcg-reclaim-when-more-than-one-page-needed.patch
-memcg-change-defines-to-an-enum.patch
-memcg-kmem-accounting-basic-infrastructure.patch
-mm-add-a-__gfp_kmemcg-flag.patch
-memcg-kmem-controller-infrastructure.patch
-memcg-kmem-controller-infrastructure-replace-__always_inline-with-plain-inline.patch
-mm-allocate-kernel-pages-to-the-right-memcg.patch
-res_counter-return-amount-of-charges-after-res_counter_uncharge.patch
-memcg-kmem-accounting-lifecycle-management.patch
-memcg-use-static-branches-when-code-not-in-use.patch
-memcg-allow-a-memcg-with-kmem-charges-to-be-destructed.patch
-memcg-execute-the-whole-memcg-freeing-in-free_worker.patch
-fork-protect-architectures-where-thread_size-=-page_size-against-fork-bombs.patch
-memcg-add-documentation-about-the-kmem-controller.patch
-slab-slub-struct-memcg_params.patch
-slab-annotate-on-slab-caches-nodelist-locks.patch
-slab-slub-consider-a-memcg-parameter-in-kmem_create_cache.patch
-memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears.patch
-memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears-simplify-ida-initialization.patch
-memcg-infrastructure-to-match-an-allocation-to-the-right-cache.patch
-memcg-skip-memcg-kmem-allocations-in-specified-code-regions.patch
-memcg-skip-memcg-kmem-allocations-in-specified-code-regions-remove-test-for-current-mm-in-memcg_stop-resume_kmem_account.patch
-slb-always-get-the-cache-from-its-page-in-kmem_cache_free.patch
-slb-allocate-objects-from-memcg-cache.patch
-memcg-destroy-memcg-caches.patch
-memcg-destroy-memcg-caches-move-include-of-workqueueh-to-top-of-slabh-file.patch
-memcg-slb-track-all-the-memcg-children-of-a-kmem_cache.patch
-memcg-slb-shrink-dead-caches.patch
-memcg-slb-shrink-dead-caches-get-rid-of-once-per-second-cache-shrinking-for-dead-memcgs.patch
-memcg-aggregate-memcg-cache-values-in-slabinfo.patch
-slab-propagate-tunable-values.patch
-slub-slub-specific-propagation-changes.patch
 slub-slub-specific-propagation-changes-fix.patch
-kmem-add-slab-specific-documentation-about-the-kmem-controller.patch
-memcg-add-comments-clarifying-aspects-of-cache-attribute-propagation.patch
-slub-drop-mutex-before-deleting-sysfs-entry.patch
-bootmem-remove-not-implemented-function-call-bootmem_arch_preferred_node.patch
-avr32-kconfig-remove-have_arch_bootmem.patch
-bootmem-remove-alloc_arch_preferred_bootmem.patch
-bootmem-fix-wrong-call-parameter-for-free_bootmem.patch
+dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch
+mm-check-rb_subtree_gap-correctness-fix.patch
+mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
+mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
+mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
+mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
+mm-use-vm_unmapped_area-on-arm-architecture-fix-fix.patch
+mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc32-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc32-architecture-fix-fix.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
+arch-sparc-kernel-sys_sparc_64c-s-colour-color.patch
+mm-introduce-a-common-interface-for-balloon-pages-mobility-mm-fix-balloon_page_movable-page-flags-check-fix.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix.patch
+mm-cma-skip-watermarks-check-for-already-isolated-blocks-in-split_free_page-fix-fix.patch
 bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
-mm-memcg-avoid-unnecessary-function-call-when-memcg-is-disabled.patch
-mm-introduce-new-field-managed_pages-to-struct-zone.patch
-mm-provide-more-accurate-estimation-of-pages-occupied-by-memmap.patch
+mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch
+thp-implement-splitting-pmd-for-huge-zero-page-fix.patch
+mm-add-a-reminder-comment-for-__gfp_bits_shift.patch
+numa-add-config_movable_node-for-movable-dedicated-node-fix.patch
+mm-introduce-new-field-managed_pages-to-struct-zone-fix.patch
 mm-provide-more-accurate-estimation-of-pages-occupied-by-memmap-fix.patch
-memcg-do-not-check-for-mm-in-mem_cgroup_count_vm_event-disabled.patch
+tmpfs-support-seek_data-and-seek_hole-reprise.patch
+drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+lseek-the-whence-argument-is-called-whence.patch
+drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
+backlight-add-of_find_backlight_by_node-function-fix.patch
+backlight-88pm860x_bl-remove-an-unnecessary-line-continuation-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes-checkpatch-fixes.patch
+procfs-add-vmflags-field-in-smaps-output-v4.patch
+procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
+ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
+ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
+ipc-convert-prepare_copy-from-macro-to-function-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+docs-add-documentation-about-proc-pid-fdinfo-fd-output-fix.patch
+fs-notify-add-procfs-fdinfo-helper-v7-fix.patch
+scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
