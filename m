@@ -1,115 +1,183 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmemmap-fix-wrong-use-of-virt_to_page.patch removed from -mm tree
-Date: Fri, 30 Nov 2012 13:28:59 -0800
-Message-ID: <20121130212900.4254320004E__40856.311567086$1354310960$gmane$org@hpza10.eem.corp.google.com>
+Subject: [merged] mm-vmscan-fix-endless-loop-in-kswapd-balancing.patch removed from -mm tree
+Date: Fri, 30 Nov 2012 13:29:04 -0800
+Message-ID: <20121130212904.CFD00100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:39772 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752421Ab2K3V3E (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Nov 2012 16:29:04 -0500
-Received: by mail-wg0-f74.google.com with SMTP id dt14so64539wgb.1
-        for <mm-commits@vger.kernel.org>; Fri, 30 Nov 2012 13:29:02 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:58593 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752421Ab2K3V3H (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Nov 2012 16:29:07 -0500
+Received: by mail-yh0-f74.google.com with SMTP id 10so1996449yhl.1
+        for <mm-commits@vger.kernel.org>; Fri, 30 Nov 2012 13:29:06 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wujianguo@huawei.com, hannes@cmpxchg.org, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, mhocko@suse.cz, stable@vger.kernel.org, wency@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, johannes.hirte@fem.tu-ilmenau.de, linux@horizon.com, mel@csn.ul.ie, riel@redhat.com, stable@vger.kernel.org, tracek@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmemmap: fix wrong use of virt_to_page
+     Subject: mm: vmscan: fix endless loop in kswapd balancing
 has been removed from the -mm tree.  Its filename was
-     mm-vmemmap-fix-wrong-use-of-virt_to_page.patch
+     mm-vmscan-fix-endless-loop-in-kswapd-balancing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jianguo Wu <wujianguo@huawei.com>
-Subject: mm/vmemmap: fix wrong use of virt_to_page
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: vmscan: fix endless loop in kswapd balancing
 
-I enable CONFIG_DEBUG_VIRTUAL and CONFIG_SPARSEMEM_VMEMMAP, when doing
-memory hotremove, there is a kernel BUG at arch/x86/mm/physaddr.c:20.
+Kswapd does not in all places have the same criteria for a balanced zone. 
+Zones are only being reclaimed when their high watermark is breached, but
+compaction checks loop over the zonelist again when the zone does not meet
+the low watermark plus two times the size of the allocation.  This gets
+kswapd stuck in an endless loop over a small zone, like the DMA zone,
+where the high watermark is smaller than the compaction requirement.
 
-It is caused by free_section_usemap()->virt_to_page(), virt_to_page() is
-only used for kernel direct mapping address, but sparse-vmemmap uses
-vmemmap address, so it is going wrong here.
+Add a function, zone_balanced(), that checks the watermark, and, for
+higher order allocations, if compaction has enough free memory.  Then use
+it uniformly to check for balanced zones.
 
-[  517.727381] ------------[ cut here ]------------
-[  517.728851] kernel BUG at arch/x86/mm/physaddr.c:20!
-[  517.728851] invalid opcode: 0000 [#1] SMP
-[  517.740170] Modules linked in: acpihp_drv acpihp_slot edd cpufreq_conservativ
-e cpufreq_userspace cpufreq_powersave acpi_cpufreq mperf fuse vfat fat loop dm_m
-od coretemp kvm crc32c_intel ipv6 ixgbe igb iTCO_wdt i7core_edac edac_core pcspk
-r iTCO_vendor_support ioatdma microcode joydev sr_mod i2c_i801 dca lpc_ich mfd_c
-ore mdio tpm_tis i2c_core hid_generic tpm cdrom sg tpm_bios rtc_cmos button ext3
- jbd mbcache usbhid hid uhci_hcd ehci_hcd usbcore usb_common sd_mod crc_t10dif p
-rocessor thermal_sys hwmon scsi_dh_alua scsi_dh_hp_sw scsi_dh_rdac scsi_dh_emc s
-csi_dh ata_generic ata_piix libata megaraid_sas scsi_mod
-[  517.740170] CPU 39
-[  517.740170] Pid: 6454, comm: sh Not tainted 3.7.0-rc1-acpihp-final+ #45 QCI Q
-SSC-S4R/QSSC-S4R
-[  517.740170] RIP: 0010:[<ffffffff8103c908>]  [<ffffffff8103c908>] __phys_addr+
-0x88/0x90
-[  517.740170] RSP: 0018:ffff8804440d7c08  EFLAGS: 00010006
-[  517.740170] RAX: 0000000000000006 RBX: ffffea0012000000 RCX: 000000000000002c
+This makes sure that when the compaction watermark is not met, at least
+reclaim happens and progress is made - or the zone is declared
+unreclaimable at some point and skipped entirely.
 
-[  517.740170] RDX: 0000620012000000 RSI: 0000000000000000 RDI: ffffea0012000000
-
-[  517.740170] RBP: ffff8804440d7c08 R08: 0070000000000400 R09: 0000000000488000
-
-[  517.740170] R10: 0000000000000091 R11: 0000000000000001 R12: ffff88047fb87800
-
-[  517.740170] R13: ffffea0000000000 R14: ffff88047ffb3440 R15: 0000000000480000
-
-[  517.740170] FS:  00007f0462b49700(0000) GS:ffff8804570c0000(0000) knlGS:00000
-00000000000
-[  517.740170] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-[  517.740170] CR2: 00007f006dc5fd14 CR3: 0000000440e85000 CR4: 00000000000007e0
-
-[  517.740170] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-
-[  517.896799] DR3: 0000000000000000 DR6
-
-Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
-Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Reviewd-by: Wen Congyang <wency@cn.fujitsu.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: George Spelvin <linux@horizon.com>
+Reported-by: Johannes Hirte <johannes.hirte@fem.tu-ilmenau.de>
+Reported-by: Tomas Racek <tracek@redhat.com>
+Tested-by: Johannes Hirte <johannes.hirte@fem.tu-ilmenau.de>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ mm/vmscan.c |   27 ++++++++++++++++++---------
+ 1 file changed, 18 insertions(+), 9 deletions(-)
 
-diff -puN mm/sparse.c~mm-vmemmap-fix-wrong-use-of-virt_to_page mm/sparse.c
---- a/mm/sparse.c~mm-vmemmap-fix-wrong-use-of-virt_to_page
-+++ a/mm/sparse.c
-@@ -617,7 +617,7 @@ static void __kfree_section_memmap(struc
- {
- 	return; /* XXX: Not implemented yet */
- }
--static void free_map_bootmem(struct page *page, unsigned long nr_pages)
-+static void free_map_bootmem(struct page *memmap, unsigned long nr_pages)
- {
- }
- #else
-@@ -658,10 +658,11 @@ static void __kfree_section_memmap(struc
- 			   get_order(sizeof(struct page) * nr_pages));
+diff -puN mm/vmscan.c~mm-vmscan-fix-endless-loop-in-kswapd-balancing mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-fix-endless-loop-in-kswapd-balancing
++++ a/mm/vmscan.c
+@@ -2414,6 +2414,19 @@ static void age_active_anon(struct zone 
+ 	} while (memcg);
  }
  
--static void free_map_bootmem(struct page *page, unsigned long nr_pages)
-+static void free_map_bootmem(struct page *memmap, unsigned long nr_pages)
- {
- 	unsigned long maps_section_nr, removing_section_nr, i;
- 	unsigned long magic;
-+	struct page *page = virt_to_page(memmap);
++static bool zone_balanced(struct zone *zone, int order,
++			  unsigned long balance_gap, int classzone_idx)
++{
++	if (!zone_watermark_ok_safe(zone, order, high_wmark_pages(zone) +
++				    balance_gap, classzone_idx, 0))
++		return false;
++
++	if (COMPACTION_BUILD && order && !compaction_suitable(zone, order))
++		return false;
++
++	return true;
++}
++
+ /*
+  * pgdat_balanced is used when checking if a node is balanced for high-order
+  * allocations. Only zones that meet watermarks and are in a zone allowed
+@@ -2492,8 +2505,7 @@ static bool prepare_kswapd_sleep(pg_data
+ 			continue;
+ 		}
  
- 	for (i = 0; i < nr_pages; i++, page++) {
- 		magic = (unsigned long) page->lru.next;
-@@ -710,13 +711,10 @@ static void free_section_usemap(struct p
- 	 */
+-		if (!zone_watermark_ok_safe(zone, order, high_wmark_pages(zone),
+-							i, 0))
++		if (!zone_balanced(zone, order, 0, i))
+ 			all_zones_ok = false;
+ 		else
+ 			balanced += zone->present_pages;
+@@ -2602,8 +2614,7 @@ loop_again:
+ 				break;
+ 			}
  
- 	if (memmap) {
--		struct page *memmap_page;
--		memmap_page = virt_to_page(memmap);
+-			if (!zone_watermark_ok_safe(zone, order,
+-					high_wmark_pages(zone), 0, 0)) {
++			if (!zone_balanced(zone, order, 0, 0)) {
+ 				end_zone = i;
+ 				break;
+ 			} else {
+@@ -2679,9 +2690,8 @@ loop_again:
+ 				testorder = 0;
+ 
+ 			if ((buffer_heads_over_limit && is_highmem_idx(i)) ||
+-				    !zone_watermark_ok_safe(zone, testorder,
+-					high_wmark_pages(zone) + balance_gap,
+-					end_zone, 0)) {
++			    !zone_balanced(zone, testorder,
++					   balance_gap, end_zone)) {
+ 				shrink_zone(zone, &sc);
+ 
+ 				reclaim_state->reclaimed_slab = 0;
+@@ -2708,8 +2718,7 @@ loop_again:
+ 				continue;
+ 			}
+ 
+-			if (!zone_watermark_ok_safe(zone, testorder,
+-					high_wmark_pages(zone), end_zone, 0)) {
++			if (!zone_balanced(zone, testorder, 0, end_zone)) {
+ 				all_zones_ok = 0;
+ 				/*
+ 				 * We are still under min water mark.  This
+_
+
+Patches currently in -mm which might be from hannes@cmpxchg.org are
+
+origin.patch
+linux-next.patch
+mm-slab-remove-duplicate-check.patch
+mmvmscan-only-evict-file-pages-when-we-have-plenty.patch
+mmvmscan-only-evict-file-pages-when-we-have-plenty-fix.patch
+mm-refactor-reinsert-of-swap_info-in-sys_swapoff.patch
+mm-do-not-call-frontswap_init-during-swapoff.patch
+mm-thp-set-the-accessed-flag-for-old-pages-on-access-fault.patch
+mm-memmap_init_zone-performance-improvement.patch
+memcg-make-it-possible-to-use-the-stock-for-more-than-one-page.patch
+memcg-reclaim-when-more-than-one-page-needed.patch
+memcg-change-defines-to-an-enum.patch
+memcg-kmem-accounting-basic-infrastructure.patch
+mm-add-a-__gfp_kmemcg-flag.patch
+memcg-kmem-controller-infrastructure.patch
+memcg-kmem-controller-infrastructure-replace-__always_inline-with-plain-inline.patch
+mm-allocate-kernel-pages-to-the-right-memcg.patch
+res_counter-return-amount-of-charges-after-res_counter_uncharge.patch
+memcg-kmem-accounting-lifecycle-management.patch
+memcg-use-static-branches-when-code-not-in-use.patch
+memcg-allow-a-memcg-with-kmem-charges-to-be-destructed.patch
+memcg-execute-the-whole-memcg-freeing-in-free_worker.patch
+fork-protect-architectures-where-thread_size-=-page_size-against-fork-bombs.patch
+memcg-add-documentation-about-the-kmem-controller.patch
+slab-slub-struct-memcg_params.patch
+slab-annotate-on-slab-caches-nodelist-locks.patch
+slab-slub-consider-a-memcg-parameter-in-kmem_create_cache.patch
+memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears.patch
+memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears-simplify-ida-initialization.patch
+memcg-infrastructure-to-match-an-allocation-to-the-right-cache.patch
+memcg-skip-memcg-kmem-allocations-in-specified-code-regions.patch
+memcg-skip-memcg-kmem-allocations-in-specified-code-regions-remove-test-for-current-mm-in-memcg_stop-resume_kmem_account.patch
+slb-always-get-the-cache-from-its-page-in-kmem_cache_free.patch
+slb-allocate-objects-from-memcg-cache.patch
+memcg-destroy-memcg-caches.patch
+memcg-destroy-memcg-caches-move-include-of-workqueueh-to-top-of-slabh-file.patch
+memcg-slb-track-all-the-memcg-children-of-a-kmem_cache.patch
+memcg-slb-shrink-dead-caches.patch
+memcg-slb-shrink-dead-caches-get-rid-of-once-per-second-cache-shrinking-for-dead-memcgs.patch
+memcg-aggregate-memcg-cache-values-in-slabinfo.patch
+slab-propagate-tunable-values.patch
+slub-slub-specific-propagation-changes.patch
+slub-slub-specific-propagation-changes-fix.patch
+kmem-add-slab-specific-documentation-about-the-kmem-controller.patch
+memcg-add-comments-clarifying-aspects-of-cache-attribute-propagation.patch
+slub-drop-mutex-before-deleting-sysfs-entry.patch
+bootmem-remove-not-implemented-function-call-bootmem_arch_preferred_node.patch
+avr32-kconfig-remove-have_arch_bootmem.patch
+bootmem-remove-alloc_arch_preferred_bootmem.patch
+bootmem-fix-wrong-call-parameter-for-free_bootmem.patch
+bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
+mm-memcg-avoid-unnecessary-function-call-when-memcg-is-disabled.patch
+mm-introduce-new-field-managed_pages-to-struct-zone.patch
+mm-provide-more-accurate-estimation-of-pages-occupied-by-memmap.patch
+mm-provide-more-accurate-estimation-of-pages-occupied-by-memmap-fix.patch
+memcg-do-not-check-for-mm-in-mem_cgroup_count_vm_event-disabled.patch
+
