@@ -1,124 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] futex-avoid-wake_futex-for-a-pi-futex_q.patch removed from -mm tree
-Date: Fri, 30 Nov 2012 13:28:45 -0800
-Message-ID: <20121130212845.C703C100047@wpzn3.hot.corp.google.com>
+Subject: [merged] maintainers-add-entry-for-davinci-video-drivers.patch removed from -mm tree
+Date: Fri, 30 Nov 2012 13:28:48 -0800
+Message-ID: <20121130212849.0E4A720004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:36659 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751592Ab2K3V2r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Nov 2012 16:28:47 -0500
-Received: by mail-ye0-f202.google.com with SMTP id l7so102776yen.1
-        for <mm-commits@vger.kernel.org>; Fri, 30 Nov 2012 13:28:46 -0800 (PST)
+Received: from mail-ea0-f202.google.com ([209.85.215.202]:61726 "EHLO
+	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751245Ab2K3V2u (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Nov 2012 16:28:50 -0500
+Received: by mail-ea0-f202.google.com with SMTP id j12so64992eaa.1
+        for <mm-commits@vger.kernel.org>; Fri, 30 Nov 2012 13:28:50 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dvhart@linux.intel.com, davej@redat.com, jkacur@redhat.com, mingo@elte.hu, peterz@infradead.org, stable@vger.kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: prabhakar.lad@ti.com, manjunath.hadli@ti.com, mchehab@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: futex: avoid wake_futex() for a PI futex_q
+     Subject: MAINTAINERS: add entry for Davinci video drivers
 has been removed from the -mm tree.  Its filename was
-     futex-avoid-wake_futex-for-a-pi-futex_q.patch
+     maintainers-add-entry-for-davinci-video-drivers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Darren Hart <dvhart@linux.intel.com>
-Subject: futex: avoid wake_futex() for a PI futex_q
+From: Lad, Prabhakar <prabhakar.lad@ti.com>
+Subject: MAINTAINERS: add entry for Davinci video drivers
 
-Dave Jones reported a bug with futex_lock_pi() that his trinity test
-exposed.  Sometime between queue_me() and taking the q.lock_ptr, the
-lock_ptr became NULL, resulting in a crash.
+Add an entry in MAINTAINERS file for TI Davinci media drivers.
 
-While futex_wake() is careful to not call wake_futex() on futex_q's with a
-pi_state or an rt_waiter (which are either waiting for a futex_unlock_pi()
-or a PI futex_requeue()), futex_wake_op() and futex_requeue() do not
-perform the same test.
-
-Update futex_wake_op() and futex_requeue() to test for q.pi_state and
-q.rt_waiter and abort with -EINVAL if detected.  To ensure any future
-breakage is caught, add a WARN() to wake_futex() if the same condition is
-true.
-
-This fix has seen 3 hours of testing with "trinity -c futex" on an x86_64
-VM with 4 CPUS.
-
-[akpm@linux-foundation.org: tidy up the WARN()]
-Signed-off-by: Darren Hart <dvhart@linux.intel.com>
-Reported-by: Dave Jones <davej@redat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: John Kacur <jkacur@redhat.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/futex.c |   18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+ MAINTAINERS |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN kernel/futex.c~futex-avoid-wake_futex-for-a-pi-futex_q kernel/futex.c
---- a/kernel/futex.c~futex-avoid-wake_futex-for-a-pi-futex_q
-+++ a/kernel/futex.c
-@@ -843,6 +843,9 @@ static void wake_futex(struct futex_q *q
- {
- 	struct task_struct *p = q->task;
+diff -puN MAINTAINERS~maintainers-add-entry-for-davinci-video-drivers MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-entry-for-davinci-video-drivers
++++ a/MAINTAINERS
+@@ -6627,6 +6627,18 @@ S:	Supported
+ F:	arch/arm/mach-davinci
+ F:	drivers/i2c/busses/i2c-davinci.c
  
-+	if (WARN(q->pi_state || q->rt_waiter, "refusing to wake PI futex\n"))
-+		return;
++TI DAVINCI SERIES MEDIA DRIVER
++M:	Manjunath Hadli <manjunath.hadli@ti.com>
++M:	Prabhakar Lad <prabhakar.lad@ti.com>
++L:	linux-media@vger.kernel.org
++L:	davinci-linux-open-source@linux.davincidsp.com (moderated for non-subscribers)
++W:	http://linuxtv.org/
++Q:	http://patchwork.linuxtv.org/project/linux-media/list/
++T:	git git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git
++S:	Supported
++F:	drivers/media/platform/davinci/
++F:	include/media/davinci/
 +
- 	/*
- 	 * We set q->lock_ptr = NULL _before_ we wake up the task. If
- 	 * a non-futex wake up happens on another CPU then the task
-@@ -1078,6 +1081,10 @@ retry_private:
- 
- 	plist_for_each_entry_safe(this, next, head, list) {
- 		if (match_futex (&this->key, &key1)) {
-+			if (this->pi_state || this->rt_waiter) {
-+				ret = -EINVAL;
-+				goto out_unlock;
-+			}
- 			wake_futex(this);
- 			if (++ret >= nr_wake)
- 				break;
-@@ -1090,6 +1097,10 @@ retry_private:
- 		op_ret = 0;
- 		plist_for_each_entry_safe(this, next, head, list) {
- 			if (match_futex (&this->key, &key2)) {
-+				if (this->pi_state || this->rt_waiter) {
-+					ret = -EINVAL;
-+					goto out_unlock;
-+				}
- 				wake_futex(this);
- 				if (++op_ret >= nr_wake2)
- 					break;
-@@ -1098,6 +1109,7 @@ retry_private:
- 		ret += op_ret;
- 	}
- 
-+out_unlock:
- 	double_unlock_hb(hb1, hb2);
- out_put_keys:
- 	put_futex_key(&key2);
-@@ -1387,9 +1399,13 @@ retry_private:
- 		/*
- 		 * FUTEX_WAIT_REQEUE_PI and FUTEX_CMP_REQUEUE_PI should always
- 		 * be paired with each other and no other futex ops.
-+		 *
-+		 * We should never be requeueing a futex_q with a pi_state,
-+		 * which is awaiting a futex_unlock_pi().
- 		 */
- 		if ((requeue_pi && !this->rt_waiter) ||
--		    (!requeue_pi && this->rt_waiter)) {
-+		    (!requeue_pi && this->rt_waiter) ||
-+		    this->pi_state) {
- 			ret = -EINVAL;
- 			break;
- 		}
+ SIS 190 ETHERNET DRIVER
+ M:	Francois Romieu <romieu@fr.zoreil.com>
+ L:	netdev@vger.kernel.org
 _
 
-Patches currently in -mm which might be from dvhart@linux.intel.com are
+Patches currently in -mm which might be from prabhakar.lad@ti.com are
 
-origin.patch
 linux-next.patch
 
