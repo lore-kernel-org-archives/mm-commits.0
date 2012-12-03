@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + thp-change_huge_pmd-make-sure-we-dont-try-to-make-a-page-writable.patch added to -mm tree
-Date: Mon, 03 Dec 2012 15:36:08 -0800
-Message-ID: <20121203233608.CB88582004A@wpzn4.hot.corp.google.com>
+Subject: + memcg-debugging-facility-to-access-dangling-memcgs-fix.patch added to -mm tree
+Date: Mon, 03 Dec 2012 15:44:34 -0800
+Message-ID: <20121203234435.4CE0682004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:40184 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751193Ab2LCXgK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Dec 2012 18:36:10 -0500
-Received: by mail-vb0-f74.google.com with SMTP id s24so301581vbi.1
-        for <mm-commits@vger.kernel.org>; Mon, 03 Dec 2012 15:36:09 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:51826 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751236Ab2LCXog (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Dec 2012 18:44:36 -0500
+Received: by mail-ye0-f202.google.com with SMTP id l7so420488yen.1
+        for <mm-commits@vger.kernel.org>; Mon, 03 Dec 2012 15:44:35 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kirill.shutemov@linux.intel.com, aarcange@redhat.com, ak@linux.intel.com, hpa@linux.intel.com, mel@csn.ul.ie, rientjes@google.com
+Cc: akpm@linux-foundation.org, glommer@parallels.com
 
 
 The patch titled
-     Subject: thp: change_huge_pmd(): make sure we don't try to make a page writable
+     Subject: memcg-debugging-facility-to-access-dangling-memcgs-fix
 has been added to the -mm tree.  Its filename is
-     thp-change_huge_pmd-make-sure-we-dont-try-to-make-a-page-writable.patch
+     memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,67 +33,116 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: change_huge_pmd(): make sure we don't try to make a page writable
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg-debugging-facility-to-access-dangling-memcgs-fix
 
-mprotect core never tries to make page writable using change_huge_pmd(). 
-Let's add an assert that the assumption is true.  It's important to be
-sure we will not make huge zero page writable.
+fix up Kconfig text
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: "H. Peter Anvin" <hpa@linux.intel.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: David Rientjes <rientjes@google.com>
+Cc: Glauber Costa <glommer@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    1 +
- 1 file changed, 1 insertion(+)
+ init/Kconfig |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-change_huge_pmd-make-sure-we-dont-try-to-make-a-page-writable mm/huge_memory.c
---- a/mm/huge_memory.c~thp-change_huge_pmd-make-sure-we-dont-try-to-make-a-page-writable
-+++ a/mm/huge_memory.c
-@@ -1434,6 +1434,7 @@ int change_huge_pmd(struct vm_area_struc
- 		pmd_t entry;
- 		entry = pmdp_get_and_clear(mm, addr, pmd);
- 		entry = pmd_modify(entry, newprot);
-+		BUG_ON(pmd_write(entry));
- 		set_pmd_at(mm, addr, pmd, entry);
- 		spin_unlock(&vma->vm_mm->page_table_lock);
- 		ret = 1;
+diff -puN init/Kconfig~memcg-debugging-facility-to-access-dangling-memcgs-fix init/Kconfig
+--- a/init/Kconfig~memcg-debugging-facility-to-access-dangling-memcgs-fix
++++ a/init/Kconfig
+@@ -897,14 +897,14 @@ config MEMCG_KMEM
+ 	  will ever exhaust kernel resources alone.
+ 
+ config MEMCG_DEBUG_ASYNC_DESTROY
+-	bool "Memory Resource Controller Debug assynchronous object destruction"
++	bool "Memory Resource Controller Debug asynchronous object destruction"
+ 	depends on MEMCG_KMEM || MEMCG_SWAP
+ 	default n
+ 	help
+-	  When a memcg is destroyed, the memory
+-	  consumed by it may not be immediately freed. This is because when some
+-	  extensions are used, such as swap or kernel memory, objects can
+-	  outlive the group and hold a reference to it.
++	  When a memcg is destroyed, the memory consumed by it may not be
++	  immediately freed. This is because when some extensions are used, such
++	  as swap or kernel memory, objects can outlive the group and hold a
++	  reference to it.
+ 
+ 	  If this is the case, the dangling_memcgs file will show information
+ 	  about what are the memcgs still alive, and which references are still
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-thp-fix-update_mmu_cache_pmd-calls.patch
-x86-convert-update_mmu_cache-and-update_mmu_cache_pmd-to-functions.patch
-mm-use-is_enabledconfig_numa-instead-of-numa_build.patch
-mm-use-is_enabledconfig_compaction-instead-of-compaction_build.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+drivers-video-add-support-for-the-solomon-ssd1307-oled-controller-checkpatch-fixes.patch
+irq-tsk-comm-is-an-array.patch
+mm.patch
 mm-use-is_enabledconfig_compaction-instead-of-compaction_build-fix.patch
-thp-huge-zero-page-basic-preparation.patch
-thp-huge-zero-page-basic-preparation-v6.patch
-thp-zap_huge_pmd-zap-huge-zero-pmd.patch
-thp-copy_huge_pmd-copy-huge-zero-page.patch
-thp-copy_huge_pmd-copy-huge-zero-page-v6.patch
-thp-copy_huge_pmd-copy-huge-zero-page-v6-fix.patch
-thp-do_huge_pmd_wp_page-handle-huge-zero-page.patch
-thp-do_huge_pmd_wp_page-handle-huge-zero-page-v6.patch
-thp-do_huge_pmd_wp_page-handle-huge-zero-page-thp-fix-anononymous-page-accounting-in-fallback-path-for-cow-of-hzp.patch
-thp-change_huge_pmd-make-sure-we-dont-try-to-make-a-page-writable.patch
-thp-change-split_huge_page_pmd-interface.patch
-thp-change-split_huge_page_pmd-interface-v6.patch
-thp-implement-splitting-pmd-for-huge-zero-page.patch
+mm-introduce-mm_find_pmd-fix.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
+slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
+mmvmscan-only-evict-file-pages-when-we-have-plenty-fix.patch
+slub-slub-specific-propagation-changes-fix.patch
+dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch
+mm-check-rb_subtree_gap-correctness-fix.patch
+mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
+mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
+mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
+mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
+mm-use-vm_unmapped_area-on-arm-architecture-fix-fix.patch
+mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc32-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc32-architecture-fix-fix.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
+arch-sparc-kernel-sys_sparc_64c-s-colour-color.patch
+mm-introduce-a-common-interface-for-balloon-pages-mobility-mm-fix-balloon_page_movable-page-flags-check-fix.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix.patch
+mm-cma-skip-watermarks-check-for-already-isolated-blocks-in-split_free_page-fix-fix.patch
+bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
+mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch
 thp-implement-splitting-pmd-for-huge-zero-page-fix.patch
-thp-implement-splitting-pmd-for-huge-zero-page-v6.patch
-thp-setup-huge-zero-page-on-non-write-page-fault.patch
-thp-setup-huge-zero-page-on-non-write-page-fault-fix.patch
-thp-lazy-huge-zero-page-allocation.patch
-thp-implement-refcounting-for-huge-zero-page.patch
-thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events.patch
-thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6.patch
-thp-introduce-sysfs-knob-to-disable-huge-zero-page.patch
-thp-avoid-race-on-multiple-parallel-page-faults-to-the-same-page.patch
+mm-add-a-reminder-comment-for-__gfp_bits_shift.patch
+numa-add-config_movable_node-for-movable-dedicated-node-fix.patch
+mm-introduce-new-field-managed_pages-to-struct-zone-fix.patch
+mm-provide-more-accurate-estimation-of-pages-occupied-by-memmap-fix.patch
+tmpfs-support-seek_data-and-seek_hole-reprise.patch
+drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+lseek-the-whence-argument-is-called-whence.patch
+drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
+backlight-add-of_find_backlight_by_node-function-fix.patch
+backlight-88pm860x_bl-remove-an-unnecessary-line-continuation-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes-checkpatch-fixes.patch
+hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix.patch
+procfs-add-vmflags-field-in-smaps-output-v4.patch
+procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
+ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
+ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
+ipc-convert-prepare_copy-from-macro-to-function-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+docs-add-documentation-about-proc-pid-fdinfo-fd-output-fix.patch
+fs-notify-add-procfs-fdinfo-helper-v7-fix.patch
+scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
