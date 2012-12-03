@@ -1,120 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [merged] wait-add-wait_event_lock_irq-interface-v3.patch removed from -mm tree
-Date: Mon, 03 Dec 2012 14:01:47 -0800
-Message-ID: <20121203220147.ABA63100047@wpzn3.hot.corp.google.com>
+Subject: [merged] loop-limit-the-number-of-requests-in-the-bio-list.patch removed from -mm tree
+Date: Mon, 03 Dec 2012 14:01:50 -0800
+Message-ID: <20121203220150.CE553100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:42895 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751008Ab2LCWBt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Dec 2012 17:01:49 -0500
-Received: by mail-vb0-f74.google.com with SMTP id s24so290461vbi.1
-        for <mm-commits@vger.kernel.org>; Mon, 03 Dec 2012 14:01:48 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:59477 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751008Ab2LCWBw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Dec 2012 17:01:52 -0500
+Received: by mail-gg0-f202.google.com with SMTP id k1so407010ggn.1
+        for <mm-commits@vger.kernel.org>; Mon, 03 Dec 2012 14:01:51 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lczerner@redhat.com, axboe@kernel.dk, jmoyer@redhat.com, neilb@suse.de, mm-commits@vger.kernel.org
+To: lczerner@redhat.com, a.p.zijlstra@chello.nl, axboe@kernel.dk, david@fromorbit.com, dhowells@redhat.com, jmoyer@redhat.com, mingo@elte.hu, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: wait: add wait_event_lock_irq() interface
+     Subject: loop: limit the number of requests in the bio list
 has been removed from the -mm tree.  Its filename was
-     wait-add-wait_event_lock_irq-interface-v3.patch
+     loop-limit-the-number-of-requests-in-the-bio-list.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Lukas Czerner <lczerner@redhat.com>
-Subject: wait: add wait_event_lock_irq() interface
+Subject: loop: limit the number of requests in the bio list
 
-v3: swap cmd and schedule so we call cmd before schedule
+Currently there is no limit on the number of requests in the loop bio
+list.  This can lead into some nasty situations when the caller spawns
+tons of bio requests taking huge amount of memory.  This is even more
+obvious with discard where blkdev_issue_discard() will submit all bios for
+the range and wait for them to finish afterwards.  On really big loop
+devices and slow backing file system this can lead to OOM situation as
+reported by Dave Chinner.
+
+With this patch we will wait in loop_make_request() if the number of bios
+in the loop bio list would exceed 'nr_congestion_on'.  We'll wake up the
+process as we process the bios form the list.  Some threshold hysteresis
+is in place to avoid high frequency oscillation.
 
 Signed-off-by: Lukas Czerner <lczerner@redhat.com>
+Reported-by: Dave Chinner <david@fromorbit.com>
 Cc: Neil Brown <neilb@suse.de>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Jeff Moyer <jmoyer@redhat.com>
+Acked-by: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/wait.h |   18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+ drivers/block/loop.c |   10 ++++++++++
+ include/linux/loop.h |    3 +++
+ 2 files changed, 13 insertions(+)
 
-diff -puN include/linux/wait.h~wait-add-wait_event_lock_irq-interface-v3 include/linux/wait.h
---- a/include/linux/wait.h~wait-add-wait_event_lock_irq-interface-v3
-+++ a/include/linux/wait.h
-@@ -555,14 +555,13 @@ do {									\
- do {									\
- 	DEFINE_WAIT(__wait);						\
- 									\
--	cmd;								\
- 	for (;;) {							\
- 		prepare_to_wait(&wq, &__wait, TASK_UNINTERRUPTIBLE);	\
- 		if (condition)						\
- 			break;						\
- 		spin_unlock_irq(&lock);					\
--		schedule();						\
- 		cmd;							\
-+		schedule();						\
- 		spin_lock_irq(&lock);					\
- 	}								\
- 	finish_wait(&wq, &__wait);					\
-@@ -575,8 +574,8 @@ do {									\
-  *			     taken.
-  * @wq: the waitqueue to wait on
-  * @condition: a C expression for the event to wait for
-- * @lock: a locked spinlock_t, which will be released before schedule()
-- *	  and cmd reacquired afterwards.
-+ * @lock: a locked spinlock_t, which will be released before cmd
-+ *	  and schedule() and reacquired afterwards.
-  * @cmd: a command which is invoked outside the critical section before
-  *	 sleep
-  *
-@@ -588,7 +587,7 @@ do {									\
-  * change the result of the wait condition.
-  *
-  * This is supposed to be called while holding the lock. The lock is
-- * dropped before going to sleep and invoking the cmd and is reacquired
-+ * dropped before invoking the cmd and going to sleep and is reacquired
-  * afterwards.
+diff -puN drivers/block/loop.c~loop-limit-the-number-of-requests-in-the-bio-list drivers/block/loop.c
+--- a/drivers/block/loop.c~loop-limit-the-number-of-requests-in-the-bio-list
++++ a/drivers/block/loop.c
+@@ -463,6 +463,7 @@ out:
   */
- #define wait_event_lock_irq_cmd(wq, condition, lock, cmd)		\
-@@ -631,7 +630,6 @@ do {									\
- do {									\
- 	DEFINE_WAIT(__wait);						\
- 									\
--	cmd;								\
- 	for (;;) {							\
- 		prepare_to_wait(&wq, &__wait, TASK_INTERRUPTIBLE);	\
- 		if (condition)						\
-@@ -641,8 +639,8 @@ do {									\
- 			break;						\
- 		}							\
- 		spin_unlock_irq(&lock);					\
--		schedule();						\
- 		cmd;							\
-+		schedule();						\
- 		spin_lock_irq(&lock);					\
- 	}								\
- 	finish_wait(&wq, &__wait);					\
-@@ -654,8 +652,8 @@ do {									\
-  *		be called with the lock taken.
-  * @wq: the waitqueue to wait on
-  * @condition: a C expression for the event to wait for
-- * @lock: a locked spinlock_t, which will be released before schedule()
-- *	  and cmd reacquired afterwards.
-+ * @lock: a locked spinlock_t, which will be released before cmd and
-+ *	  schedule() and reacquired afterwards.
-  * @cmd: a command which is invoked outside the critical section before
-  *	 sleep
-  *
-@@ -667,7 +665,7 @@ do {									\
-  * change the result of the wait condition.
-  *
-  * This is supposed to be called while holding the lock. The lock is
-- * dropped before going to sleep and invoking the cmd and is reacquired
-+ * dropped before invoking the cmd and going to sleep and is reacquired
-  * afterwards.
-  *
-  * The macro will return -ERESTARTSYS if it was interrupted by a signal
+ static void loop_add_bio(struct loop_device *lo, struct bio *bio)
+ {
++	lo->lo_bio_count++;
+ 	bio_list_add(&lo->lo_bio_list, bio);
+ }
+ 
+@@ -471,6 +472,7 @@ static void loop_add_bio(struct loop_dev
+  */
+ static struct bio *loop_get_bio(struct loop_device *lo)
+ {
++	lo->lo_bio_count--;
+ 	return bio_list_pop(&lo->lo_bio_list);
+ }
+ 
+@@ -489,6 +491,10 @@ static void loop_make_request(struct req
+ 		goto out;
+ 	if (unlikely(rw == WRITE && (lo->lo_flags & LO_FLAGS_READ_ONLY)))
+ 		goto out;
++	if (lo->lo_bio_count >= q->nr_congestion_on)
++		wait_event_lock_irq(lo->lo_req_wait,
++				    lo->lo_bio_count < q->nr_congestion_off,
++				    lo->lo_lock);
+ 	loop_add_bio(lo, old_bio);
+ 	wake_up(&lo->lo_event);
+ 	spin_unlock_irq(&lo->lo_lock);
+@@ -546,6 +552,8 @@ static int loop_thread(void *data)
+ 			continue;
+ 		spin_lock_irq(&lo->lo_lock);
+ 		bio = loop_get_bio(lo);
++		if (lo->lo_bio_count < lo->lo_queue->nr_congestion_off)
++			wake_up(&lo->lo_req_wait);
+ 		spin_unlock_irq(&lo->lo_lock);
+ 
+ 		BUG_ON(!bio);
+@@ -873,6 +881,7 @@ static int loop_set_fd(struct loop_devic
+ 	lo->transfer = transfer_none;
+ 	lo->ioctl = NULL;
+ 	lo->lo_sizelimit = 0;
++	lo->lo_bio_count = 0;
+ 	lo->old_gfp_mask = mapping_gfp_mask(mapping);
+ 	mapping_set_gfp_mask(mapping, lo->old_gfp_mask & ~(__GFP_IO|__GFP_FS));
+ 
+@@ -1673,6 +1682,7 @@ static int loop_add(struct loop_device *
+ 	lo->lo_number		= i;
+ 	lo->lo_thread		= NULL;
+ 	init_waitqueue_head(&lo->lo_event);
++	init_waitqueue_head(&lo->lo_req_wait);
+ 	spin_lock_init(&lo->lo_lock);
+ 	disk->major		= LOOP_MAJOR;
+ 	disk->first_minor	= i << part_shift;
+diff -puN include/linux/loop.h~loop-limit-the-number-of-requests-in-the-bio-list include/linux/loop.h
+--- a/include/linux/loop.h~loop-limit-the-number-of-requests-in-the-bio-list
++++ a/include/linux/loop.h
+@@ -53,10 +53,13 @@ struct loop_device {
+ 
+ 	spinlock_t		lo_lock;
+ 	struct bio_list		lo_bio_list;
++	unsigned int		lo_bio_count;
+ 	int			lo_state;
+ 	struct mutex		lo_ctl_mutex;
+ 	struct task_struct	*lo_thread;
+ 	wait_queue_head_t	lo_event;
++	/* wait queue for incoming requests */
++	wait_queue_head_t	lo_req_wait;
+ 
+ 	struct request_queue	*lo_queue;
+ 	struct gendisk		*lo_disk;
 _
 
 Patches currently in -mm which might be from lczerner@redhat.com are
