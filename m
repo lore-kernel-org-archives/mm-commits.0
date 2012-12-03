@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-debugging-facility-to-access-dangling-memcgs-fix.patch added to -mm tree
-Date: Mon, 03 Dec 2012 15:44:34 -0800
-Message-ID: <20121203234435.4CE0682004A@wpzn4.hot.corp.google.com>
+Subject: + memcg-debugging-facility-to-access-dangling-memcgs.patch added to -mm tree
+Date: Mon, 03 Dec 2012 15:44:31 -0800
+Message-ID: <20121203234431.8F6D182004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:51826 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751236Ab2LCXog (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Dec 2012 18:44:36 -0500
-Received: by mail-ye0-f202.google.com with SMTP id l7so420488yen.1
-        for <mm-commits@vger.kernel.org>; Mon, 03 Dec 2012 15:44:35 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:60574 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751644Ab2LCXod (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Dec 2012 18:44:33 -0500
+Received: by mail-gg0-f202.google.com with SMTP id k1so418800ggn.1
+        for <mm-commits@vger.kernel.org>; Mon, 03 Dec 2012 15:44:32 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, glommer@parallels.com
+Cc: glommer@parallels.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz
 
 
 The patch titled
-     Subject: memcg-debugging-facility-to-access-dangling-memcgs-fix
+     Subject: memcg: debugging facility to access dangling memcgs
 has been added to the -mm tree.  Its filename is
-     memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+     memcg-debugging-facility-to-access-dangling-memcgs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,116 +33,373 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memcg-debugging-facility-to-access-dangling-memcgs-fix
+From: Glauber Costa <glommer@parallels.com>
+Subject: memcg: debugging facility to access dangling memcgs
 
-fix up Kconfig text
+If memcg is tracking anything other than plain user memory (swap, tcp buf
+mem, or slab memory), it is possible - and normal - that a reference will
+be held by the group after it is dead.  Still, for developers, it would be
+extremely useful to be able to query about those states during debugging.
 
-Cc: Glauber Costa <glommer@parallels.com>
+This patch provides a debugging facility in the root memcg, so we can
+inspect which memcgs still have pending objects, and what is the cause of
+this state.
+
+Signed-off-by: Glauber Costa <glommer@parallels.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ Documentation/cgroups/memory.txt |   16 ++
+ init/Kconfig                     |   17 ++
+ mm/memcontrol.c                  |  192 +++++++++++++++++++++++++++--
+ 3 files changed, 218 insertions(+), 7 deletions(-)
 
-diff -puN init/Kconfig~memcg-debugging-facility-to-access-dangling-memcgs-fix init/Kconfig
---- a/init/Kconfig~memcg-debugging-facility-to-access-dangling-memcgs-fix
+diff -puN Documentation/cgroups/memory.txt~memcg-debugging-facility-to-access-dangling-memcgs Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~memcg-debugging-facility-to-access-dangling-memcgs
++++ a/Documentation/cgroups/memory.txt
+@@ -70,6 +70,7 @@ Brief summary of control files.
+  memory.move_charge_at_immigrate # set/show controls of moving charges
+  memory.oom_control		 # set/show oom controls.
+  memory.numa_stat		 # show the number of memory usage per numa node
++ memory.dangling_memcgs          # show debugging information about dangling groups
+ 
+  memory.kmem.limit_in_bytes      # set/show hard limit for kernel memory
+  memory.kmem.usage_in_bytes      # show current kernel memory allocation
+@@ -577,6 +578,21 @@ unevictable=<total anon pages> N0=<node 
+ 
+ And we have total = file + anon + unevictable.
+ 
++5.7 dangling_memcgs
++
++This file will only be ever present in the root cgroup, if the option
++CONFIG_MEMCG_DEBUG_ASYNC_DESTROY is set. When a memcg is destroyed, the memory
++consumed by it may not be immediately freed. This is because when some
++extensions are used, such as swap or kernel memory, objects can outlive the
++group and hold a reference to it.
++
++If this is the case, the dangling_memcgs file will show information about what
++are the memcgs still alive, and which references are still preventing it to be
++freed. There is nothing wrong with that, but it is very useful when debugging,
++to know where this memory is being held. This is a developer-oriented debugging
++facility only, and no guarantees of interface stability will be given. The file
++is read-only, and has the sole purpose of displaying information.
++
+ 6. Hierarchy support
+ 
+ The memory controller supports a deep hierarchy and hierarchical accounting.
+diff -puN init/Kconfig~memcg-debugging-facility-to-access-dangling-memcgs init/Kconfig
+--- a/init/Kconfig~memcg-debugging-facility-to-access-dangling-memcgs
 +++ a/init/Kconfig
-@@ -897,14 +897,14 @@ config MEMCG_KMEM
+@@ -896,6 +896,23 @@ config MEMCG_KMEM
+ 	  the kmem extension can use it to guarantee that no group of processes
  	  will ever exhaust kernel resources alone.
  
- config MEMCG_DEBUG_ASYNC_DESTROY
--	bool "Memory Resource Controller Debug assynchronous object destruction"
-+	bool "Memory Resource Controller Debug asynchronous object destruction"
- 	depends on MEMCG_KMEM || MEMCG_SWAP
- 	default n
- 	help
--	  When a memcg is destroyed, the memory
--	  consumed by it may not be immediately freed. This is because when some
--	  extensions are used, such as swap or kernel memory, objects can
--	  outlive the group and hold a reference to it.
-+	  When a memcg is destroyed, the memory consumed by it may not be
-+	  immediately freed. This is because when some extensions are used, such
-+	  as swap or kernel memory, objects can outlive the group and hold a
-+	  reference to it.
++config MEMCG_DEBUG_ASYNC_DESTROY
++	bool "Memory Resource Controller Debug assynchronous object destruction"
++	depends on MEMCG_KMEM || MEMCG_SWAP
++	default n
++	help
++	  When a memcg is destroyed, the memory
++	  consumed by it may not be immediately freed. This is because when some
++	  extensions are used, such as swap or kernel memory, objects can
++	  outlive the group and hold a reference to it.
++
++	  If this is the case, the dangling_memcgs file will show information
++	  about what are the memcgs still alive, and which references are still
++	  preventing it to be freed. There is nothing wrong with that, but it is
++	  very useful when debugging, to know where this memory is being held.
++	  This is a developer-oriented debugging facility only, and no
++	  guarantees of interface stability will be given.
++
+ config CGROUP_HUGETLB
+ 	bool "HugeTLB Resource Controller for Control Groups"
+ 	depends on RESOURCE_COUNTERS && HUGETLB_PAGE
+diff -puN mm/memcontrol.c~memcg-debugging-facility-to-access-dangling-memcgs mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-debugging-facility-to-access-dangling-memcgs
++++ a/mm/memcontrol.c
+@@ -313,14 +313,31 @@ struct mem_cgroup {
+ 	/* thresholds for mem+swap usage. RCU-protected */
+ 	struct mem_cgroup_thresholds memsw_thresholds;
  
- 	  If this is the case, the dangling_memcgs file will show information
- 	  about what are the memcgs still alive, and which references are still
+-	/* For oom notifier event fd */
+-	struct list_head oom_notify;
++	union {
++		/* For oom notifier event fd */
++		struct list_head oom_notify;
++		/*
++		 * we can only trigger an oom event if the memcg is alive.
++		 * so we will reuse this field to hook the memcg in the list
++		 * of dead memcgs.
++		 */
++		struct list_head dead;
++	};
+ 
+-	/*
+-	 * Should we move charges of a task when a task is moved into this
+-	 * mem_cgroup ? And what type of charges should we move ?
+-	 */
+-	unsigned long 	move_charge_at_immigrate;
++	union {
++		/*
++		 * Should we move charges of a task when a task is moved into
++		 * this mem_cgroup ? And what type of charges should we move ?
++		 */
++		unsigned long move_charge_at_immigrate;
++
++		/*
++		 * We are no longer concerned about moving charges after memcg
++		 * is dead. So we will fill this up with its name, to aid
++		 * debugging.
++		 */
++		char *memcg_name;
++	};
+ 	/*
+ 	 * set > 0 if pages under this cgroup are moving to other cgroup.
+ 	 */
+@@ -351,6 +368,55 @@ struct mem_cgroup {
+ #endif
+ };
+ 
++#ifdef CONFIG_MEMCG_DEBUG_ASYNC_DESTROY
++static LIST_HEAD(dangling_memcgs);
++static DEFINE_MUTEX(dangling_memcgs_mutex);
++
++static inline void memcg_dangling_free(struct mem_cgroup *memcg)
++{
++	mutex_lock(&dangling_memcgs_mutex);
++	list_del(&memcg->dead);
++	mutex_unlock(&dangling_memcgs_mutex);
++	free_pages((unsigned long)memcg->memcg_name, 0);
++}
++
++static inline void memcg_dangling_add(struct mem_cgroup *memcg)
++{
++	/*
++	 * cgroup.c will do page-sized allocations most of the time,
++	 * so we'll just follow the pattern. Also, __get_free_pages
++	 * is a better interface than kmalloc for us here, because
++	 * we'd like this memory to be always billed to the root cgroup,
++	 * not to the process removing the memcg. While kmalloc would
++	 * require us to wrap it into memcg_stop/resume_kmem_account,
++	 * with __get_free_pages we just don't pass the memcg flag.
++	 */
++	memcg->memcg_name = (char *)__get_free_pages(GFP_KERNEL, 0);
++
++	/*
++	 * we will, in general, just ignore failures. No need to go crazy,
++	 * being this just a debugging interface. It is nice to copy a memcg
++	 * name over, but if we (unlikely) can't, just the address will do
++	 */
++	if (!memcg->memcg_name)
++		goto add_list;
++
++	if (cgroup_path(memcg->css.cgroup, memcg->memcg_name, PAGE_SIZE) < 0) {
++		free_pages((unsigned long)memcg->memcg_name, 0);
++		memcg->memcg_name = NULL;
++	}
++
++add_list:
++	INIT_LIST_HEAD(&memcg->dead);
++	mutex_lock(&dangling_memcgs_mutex);
++	list_add(&memcg->dead, &dangling_memcgs);
++	mutex_unlock(&dangling_memcgs_mutex);
++}
++#else
++static inline void memcg_dangling_free(struct mem_cgroup *memcg) {}
++static inline void memcg_dangling_add(struct mem_cgroup *memcg) {}
++#endif
++
+ /* internal only representation about the status of kmem accounting. */
+ enum {
+ 	KMEM_ACCOUNTED_ACTIVE = 0, /* accounted by this cgroup itself */
+@@ -4890,6 +4956,107 @@ static ssize_t mem_cgroup_read(struct cg
+ 	return simple_read_from_buffer(buf, nbytes, ppos, str, len);
+ }
+ 
++#ifdef CONFIG_MEMCG_DEBUG_ASYNC_DESTROY
++static void
++mem_cgroup_dangling_swap(struct mem_cgroup *memcg, struct seq_file *m)
++{
++#ifdef CONFIG_MEMCG_SWAP
++	u64 kmem;
++	u64 memsw;
++
++	/*
++	 * kmem will also propagate here, so we are only interested in the
++	 * difference.  See comment in mem_cgroup_reparent_charges for details.
++	 *
++	 * We could save this value for later consumption by kmem reports, but
++	 * there is not a lot of problem if the figures differ slightly.
++	 */
++	kmem = res_counter_read_u64(&memcg->kmem, RES_USAGE);
++	memsw = res_counter_read_u64(&memcg->memsw, RES_USAGE) - kmem;
++	seq_printf(m, "\t%llu swap bytes\n", memsw);
++#endif
++}
++
++
++static void
++mem_cgroup_dangling_tcp(struct mem_cgroup *memcg, struct seq_file *m)
++{
++#if defined(CONFIG_INET) && defined(CONFIG_MEMCG_KMEM)
++	struct tcp_memcontrol *tcp = &memcg->tcp_mem;
++	s64 tcp_socks;
++	u64 tcp_bytes;
++
++	tcp_socks = percpu_counter_sum_positive(&tcp->tcp_sockets_allocated);
++	tcp_bytes = res_counter_read_u64(&tcp->tcp_memory_allocated, RES_USAGE);
++	seq_printf(m, "\t%llu tcp bytes", tcp_bytes);
++	/*
++	 * if tcp_bytes == 0, tcp_socks != 0 is a bug. One more reason to print
++	 * it!
++	 */
++	if (tcp_bytes || tcp_socks)
++		seq_printf(m, ", in %lld sockets", tcp_socks);
++	seq_printf(m, "\n");
++
++#endif
++}
++
++static void
++mem_cgroup_dangling_kmem(struct mem_cgroup *memcg, struct seq_file *m)
++{
++#ifdef CONFIG_MEMCG_KMEM
++	u64 kmem;
++	struct memcg_cache_params *params;
++
++	kmem = res_counter_read_u64(&memcg->kmem, RES_USAGE);
++	seq_printf(m, "\t%llu kmem bytes", kmem);
++
++	/* list below may not be initialized, so not even try */
++	if (!kmem)
++		return;
++
++	seq_printf(m, " in caches");
++	mutex_lock(&memcg->slab_caches_mutex);
++	list_for_each_entry(params, &memcg->memcg_slab_caches, list) {
++			struct kmem_cache *s = memcg_params_to_cache(params);
++
++		seq_printf(m, " %s", s->name);
++	}
++	mutex_unlock(&memcg->slab_caches_mutex);
++	seq_printf(m, "\n");
++#endif
++}
++
++/*
++ * After a memcg is destroyed, it may still be kept around in memory.
++ * Currently, the two main reasons for it are swap entries, and kernel memory.
++ * Because they will be freed assynchronously, they will pin the memcg structure
++ * and its resources until the last reference goes away.
++ *
++ * This root-only file will show information about which users
++ */
++static int mem_cgroup_dangling_read(struct cgroup *cont, struct cftype *cft,
++					struct seq_file *m)
++{
++	struct mem_cgroup *memcg;
++
++	mutex_lock(&dangling_memcgs_mutex);
++
++	list_for_each_entry(memcg, &dangling_memcgs, dead) {
++		if (memcg->memcg_name)
++			seq_printf(m, "%s:\n", memcg->memcg_name);
++		else
++			seq_printf(m, "%p (name lost):\n", memcg);
++
++		mem_cgroup_dangling_swap(memcg, m);
++		mem_cgroup_dangling_tcp(memcg, m);
++		mem_cgroup_dangling_kmem(memcg, m);
++	}
++
++	mutex_unlock(&dangling_memcgs_mutex);
++	return 0;
++}
++#endif
++
+ static int memcg_update_kmem_limit(struct cgroup *cont, u64 val)
+ {
+ 	int ret = -EINVAL;
+@@ -5853,6 +6020,14 @@ static struct cftype mem_cgroup_files[] 
+ 	},
+ #endif
+ #endif
++
++#ifdef CONFIG_MEMCG_DEBUG_ASYNC_DESTROY
++	{
++		.name = "dangling_memcgs",
++		.read_seq_string = mem_cgroup_dangling_read,
++		.flags = CFTYPE_ONLY_ON_ROOT,
++	},
++#endif
+ 	{ },	/* terminate */
+ };
+ 
+@@ -5972,6 +6147,8 @@ static void free_work(struct work_struct
+ 	struct mem_cgroup *memcg;
+ 
+ 	memcg = container_of(work, struct mem_cgroup, work_freeing);
++
++	memcg_dangling_free(memcg);
+ 	__mem_cgroup_free(memcg);
+ }
+ 
+@@ -6161,6 +6338,7 @@ static void mem_cgroup_css_free(struct c
+ 
+ 	kmem_cgroup_destroy(memcg);
+ 
++	memcg_dangling_add(memcg);
+ 	mem_cgroup_put(memcg);
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from glommer@parallels.com are
 
 linux-next.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-drivers-video-add-support-for-the-solomon-ssd1307-oled-controller-checkpatch-fixes.patch
-irq-tsk-comm-is-an-array.patch
-mm.patch
-mm-use-is_enabledconfig_compaction-instead-of-compaction_build-fix.patch
-mm-introduce-mm_find_pmd-fix.patch
-memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
-slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
-mmvmscan-only-evict-file-pages-when-we-have-plenty-fix.patch
+memcg-make-it-possible-to-use-the-stock-for-more-than-one-page.patch
+memcg-reclaim-when-more-than-one-page-needed.patch
+memcg-change-defines-to-an-enum.patch
+memcg-kmem-accounting-basic-infrastructure.patch
+mm-add-a-__gfp_kmemcg-flag.patch
+memcg-kmem-controller-infrastructure.patch
+memcg-kmem-controller-infrastructure-replace-__always_inline-with-plain-inline.patch
+mm-allocate-kernel-pages-to-the-right-memcg.patch
+res_counter-return-amount-of-charges-after-res_counter_uncharge.patch
+memcg-kmem-accounting-lifecycle-management.patch
+memcg-use-static-branches-when-code-not-in-use.patch
+memcg-allow-a-memcg-with-kmem-charges-to-be-destructed.patch
+memcg-execute-the-whole-memcg-freeing-in-free_worker.patch
+fork-protect-architectures-where-thread_size-=-page_size-against-fork-bombs.patch
+memcg-add-documentation-about-the-kmem-controller.patch
+slab-slub-struct-memcg_params.patch
+slab-annotate-on-slab-caches-nodelist-locks.patch
+slab-slub-consider-a-memcg-parameter-in-kmem_create_cache.patch
+memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears.patch
+memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears-simplify-ida-initialization.patch
+memcg-infrastructure-to-match-an-allocation-to-the-right-cache.patch
+memcg-skip-memcg-kmem-allocations-in-specified-code-regions.patch
+memcg-skip-memcg-kmem-allocations-in-specified-code-regions-remove-test-for-current-mm-in-memcg_stop-resume_kmem_account.patch
+slb-always-get-the-cache-from-its-page-in-kmem_cache_free.patch
+slb-allocate-objects-from-memcg-cache.patch
+memcg-destroy-memcg-caches.patch
+memcg-destroy-memcg-caches-move-include-of-workqueueh-to-top-of-slabh-file.patch
+memcg-slb-track-all-the-memcg-children-of-a-kmem_cache.patch
+memcg-slb-shrink-dead-caches.patch
+memcg-slb-shrink-dead-caches-get-rid-of-once-per-second-cache-shrinking-for-dead-memcgs.patch
+memcg-aggregate-memcg-cache-values-in-slabinfo.patch
+slab-propagate-tunable-values.patch
+slub-slub-specific-propagation-changes.patch
 slub-slub-specific-propagation-changes-fix.patch
-dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch
-mm-check-rb_subtree_gap-correctness-fix.patch
-mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
-mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
-mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
-mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
-mm-use-vm_unmapped_area-on-arm-architecture-fix-fix.patch
-mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc32-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc32-architecture-fix-fix.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
-arch-sparc-kernel-sys_sparc_64c-s-colour-color.patch
-mm-introduce-a-common-interface-for-balloon-pages-mobility-mm-fix-balloon_page_movable-page-flags-check-fix.patch
-virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
-virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix.patch
-mm-cma-skip-watermarks-check-for-already-isolated-blocks-in-split_free_page-fix-fix.patch
-bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
-mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch
-thp-implement-splitting-pmd-for-huge-zero-page-fix.patch
+kmem-add-slab-specific-documentation-about-the-kmem-controller.patch
+memcg-add-comments-clarifying-aspects-of-cache-attribute-propagation.patch
+slub-drop-mutex-before-deleting-sysfs-entry.patch
+res_counter-delete-res_counter_write.patch
 mm-add-a-reminder-comment-for-__gfp_bits_shift.patch
-numa-add-config_movable_node-for-movable-dedicated-node-fix.patch
-mm-introduce-new-field-managed_pages-to-struct-zone-fix.patch
-mm-provide-more-accurate-estimation-of-pages-occupied-by-memmap-fix.patch
-tmpfs-support-seek_data-and-seek_hole-reprise.patch
-drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+mm-memcg-avoid-unnecessary-function-call-when-memcg-is-disabled.patch
+memcg-debugging-facility-to-access-dangling-memcgs.patch
 memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-lseek-the-whence-argument-is-called-whence.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
-backlight-add-of_find_backlight_by_node-function-fix.patch
-backlight-88pm860x_bl-remove-an-unnecessary-line-continuation-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes-checkpatch-fixes.patch
-hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix.patch
-procfs-add-vmflags-field-in-smaps-output-v4.patch
-procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
-ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
-ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
-ipc-convert-prepare_copy-from-macro-to-function-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-docs-add-documentation-about-proc-pid-fdinfo-fd-output-fix.patch
-fs-notify-add-procfs-fdinfo-helper-v7-fix.patch
-scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
