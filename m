@@ -1,134 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged] loop-limit-the-number-of-requests-in-the-bio-list.patch removed from -mm tree
-Date: Mon, 03 Dec 2012 14:01:50 -0800
-Message-ID: <20121203220150.CE553100047@wpzn3.hot.corp.google.com>
+Subject: [withdrawn] thp-change_huge_pmd-keep-huge-zero-page-write-protected.patch removed from -mm tree
+Date: Mon, 03 Dec 2012 15:34:12 -0800
+Message-ID: <20121203233413.1F41620004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:59477 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751008Ab2LCWBw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Dec 2012 17:01:52 -0500
-Received: by mail-gg0-f202.google.com with SMTP id k1so407010ggn.1
-        for <mm-commits@vger.kernel.org>; Mon, 03 Dec 2012 14:01:51 -0800 (PST)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:33400 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751193Ab2LCXeQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Dec 2012 18:34:16 -0500
+Received: by mail-la0-f74.google.com with SMTP id v3so241052lag.1
+        for <mm-commits@vger.kernel.org>; Mon, 03 Dec 2012 15:34:14 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lczerner@redhat.com, a.p.zijlstra@chello.nl, axboe@kernel.dk, david@fromorbit.com, dhowells@redhat.com, jmoyer@redhat.com, mingo@elte.hu, neilb@suse.de, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, ak@linux.intel.com, hpa@linux.intel.com, mel@csn.ul.ie, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: loop: limit the number of requests in the bio list
+     Subject: thp: change_huge_pmd(): keep huge zero page write-protected
 has been removed from the -mm tree.  Its filename was
-     loop-limit-the-number-of-requests-in-the-bio-list.patch
+     thp-change_huge_pmd-keep-huge-zero-page-write-protected.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Lukas Czerner <lczerner@redhat.com>
-Subject: loop: limit the number of requests in the bio list
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: thp: change_huge_pmd(): keep huge zero page write-protected
 
-Currently there is no limit on the number of requests in the loop bio
-list.  This can lead into some nasty situations when the caller spawns
-tons of bio requests taking huge amount of memory.  This is even more
-obvious with discard where blkdev_issue_discard() will submit all bios for
-the range and wait for them to finish afterwards.  On really big loop
-devices and slow backing file system this can lead to OOM situation as
-reported by Dave Chinner.
+We want to get page fault on write attempt to huge zero page, so let's
+keep it write-protected.
 
-With this patch we will wait in loop_make_request() if the number of bios
-in the loop bio list would exceed 'nr_congestion_on'.  We'll wake up the
-process as we process the bios form the list.  Some threshold hysteresis
-is in place to avoid high frequency oscillation.
-
-Signed-off-by: Lukas Czerner <lczerner@redhat.com>
-Reported-by: Dave Chinner <david@fromorbit.com>
-Cc: Neil Brown <neilb@suse.de>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Jens Axboe <axboe@kernel.dk>
-Acked-by: Jeff Moyer <jmoyer@redhat.com>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: "H. Peter Anvin" <hpa@linux.intel.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/loop.c |   10 ++++++++++
- include/linux/loop.h |    3 +++
- 2 files changed, 13 insertions(+)
+ mm/huge_memory.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/block/loop.c~loop-limit-the-number-of-requests-in-the-bio-list drivers/block/loop.c
---- a/drivers/block/loop.c~loop-limit-the-number-of-requests-in-the-bio-list
-+++ a/drivers/block/loop.c
-@@ -463,6 +463,7 @@ out:
-  */
- static void loop_add_bio(struct loop_device *lo, struct bio *bio)
- {
-+	lo->lo_bio_count++;
- 	bio_list_add(&lo->lo_bio_list, bio);
- }
- 
-@@ -471,6 +472,7 @@ static void loop_add_bio(struct loop_dev
-  */
- static struct bio *loop_get_bio(struct loop_device *lo)
- {
-+	lo->lo_bio_count--;
- 	return bio_list_pop(&lo->lo_bio_list);
- }
- 
-@@ -489,6 +491,10 @@ static void loop_make_request(struct req
- 		goto out;
- 	if (unlikely(rw == WRITE && (lo->lo_flags & LO_FLAGS_READ_ONLY)))
- 		goto out;
-+	if (lo->lo_bio_count >= q->nr_congestion_on)
-+		wait_event_lock_irq(lo->lo_req_wait,
-+				    lo->lo_bio_count < q->nr_congestion_off,
-+				    lo->lo_lock);
- 	loop_add_bio(lo, old_bio);
- 	wake_up(&lo->lo_event);
- 	spin_unlock_irq(&lo->lo_lock);
-@@ -546,6 +552,8 @@ static int loop_thread(void *data)
- 			continue;
- 		spin_lock_irq(&lo->lo_lock);
- 		bio = loop_get_bio(lo);
-+		if (lo->lo_bio_count < lo->lo_queue->nr_congestion_off)
-+			wake_up(&lo->lo_req_wait);
- 		spin_unlock_irq(&lo->lo_lock);
- 
- 		BUG_ON(!bio);
-@@ -873,6 +881,7 @@ static int loop_set_fd(struct loop_devic
- 	lo->transfer = transfer_none;
- 	lo->ioctl = NULL;
- 	lo->lo_sizelimit = 0;
-+	lo->lo_bio_count = 0;
- 	lo->old_gfp_mask = mapping_gfp_mask(mapping);
- 	mapping_set_gfp_mask(mapping, lo->old_gfp_mask & ~(__GFP_IO|__GFP_FS));
- 
-@@ -1673,6 +1682,7 @@ static int loop_add(struct loop_device *
- 	lo->lo_number		= i;
- 	lo->lo_thread		= NULL;
- 	init_waitqueue_head(&lo->lo_event);
-+	init_waitqueue_head(&lo->lo_req_wait);
- 	spin_lock_init(&lo->lo_lock);
- 	disk->major		= LOOP_MAJOR;
- 	disk->first_minor	= i << part_shift;
-diff -puN include/linux/loop.h~loop-limit-the-number-of-requests-in-the-bio-list include/linux/loop.h
---- a/include/linux/loop.h~loop-limit-the-number-of-requests-in-the-bio-list
-+++ a/include/linux/loop.h
-@@ -53,10 +53,13 @@ struct loop_device {
- 
- 	spinlock_t		lo_lock;
- 	struct bio_list		lo_bio_list;
-+	unsigned int		lo_bio_count;
- 	int			lo_state;
- 	struct mutex		lo_ctl_mutex;
- 	struct task_struct	*lo_thread;
- 	wait_queue_head_t	lo_event;
-+	/* wait queue for incoming requests */
-+	wait_queue_head_t	lo_req_wait;
- 
- 	struct request_queue	*lo_queue;
- 	struct gendisk		*lo_disk;
+diff -puN mm/huge_memory.c~thp-change_huge_pmd-keep-huge-zero-page-write-protected mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-change_huge_pmd-keep-huge-zero-page-write-protected
++++ a/mm/huge_memory.c
+@@ -1433,6 +1433,8 @@ int change_huge_pmd(struct vm_area_struc
+ 		pmd_t entry;
+ 		entry = pmdp_get_and_clear(mm, addr, pmd);
+ 		entry = pmd_modify(entry, newprot);
++		if (is_huge_zero_pmd(entry))
++			entry = pmd_wrprotect(entry);
+ 		set_pmd_at(mm, addr, pmd, entry);
+ 		spin_unlock(&vma->vm_mm->page_table_lock);
+ 		ret = 1;
 _
 
-Patches currently in -mm which might be from lczerner@redhat.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
 linux-next.patch
+thp-fix-update_mmu_cache_pmd-calls.patch
+x86-convert-update_mmu_cache-and-update_mmu_cache_pmd-to-functions.patch
+mm-use-is_enabledconfig_numa-instead-of-numa_build.patch
+mm-use-is_enabledconfig_compaction-instead-of-compaction_build.patch
+mm-use-is_enabledconfig_compaction-instead-of-compaction_build-fix.patch
+thp-huge-zero-page-basic-preparation.patch
+thp-huge-zero-page-basic-preparation-v6.patch
+thp-zap_huge_pmd-zap-huge-zero-pmd.patch
+thp-copy_huge_pmd-copy-huge-zero-page.patch
+thp-copy_huge_pmd-copy-huge-zero-page-v6.patch
+thp-copy_huge_pmd-copy-huge-zero-page-v6-fix.patch
+thp-do_huge_pmd_wp_page-handle-huge-zero-page.patch
+thp-do_huge_pmd_wp_page-handle-huge-zero-page-v6.patch
+thp-do_huge_pmd_wp_page-handle-huge-zero-page-thp-fix-anononymous-page-accounting-in-fallback-path-for-cow-of-hzp.patch
+thp-change-split_huge_page_pmd-interface.patch
+thp-change-split_huge_page_pmd-interface-v6.patch
+thp-implement-splitting-pmd-for-huge-zero-page.patch
+thp-implement-splitting-pmd-for-huge-zero-page-fix.patch
+thp-implement-splitting-pmd-for-huge-zero-page-v6.patch
+thp-setup-huge-zero-page-on-non-write-page-fault.patch
+thp-setup-huge-zero-page-on-non-write-page-fault-fix.patch
+thp-lazy-huge-zero-page-allocation.patch
+thp-implement-refcounting-for-huge-zero-page.patch
+thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events.patch
+thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6.patch
+thp-introduce-sysfs-knob-to-disable-huge-zero-page.patch
+thp-avoid-race-on-multiple-parallel-page-faults-to-the-same-page.patch
 
