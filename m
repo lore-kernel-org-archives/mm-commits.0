@@ -1,33 +1,44 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] thp-change_huge_pmd-keep-huge-zero-page-write-protected.patch removed from -mm tree
-Date: Mon, 03 Dec 2012 15:34:12 -0800
-Message-ID: <20121203233413.1F41620004E@hpza10.eem.corp.google.com>
+Subject: + thp-change_huge_pmd-make-sure-we-dont-try-to-make-a-page-writable.patch added to -mm tree
+Date: Mon, 03 Dec 2012 15:36:08 -0800
+Message-ID: <20121203233608.CB88582004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f74.google.com ([209.85.215.74]:33400 "EHLO
-	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751193Ab2LCXeQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Dec 2012 18:34:16 -0500
-Received: by mail-la0-f74.google.com with SMTP id v3so241052lag.1
-        for <mm-commits@vger.kernel.org>; Mon, 03 Dec 2012 15:34:14 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:40184 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751193Ab2LCXgK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Dec 2012 18:36:10 -0500
+Received: by mail-vb0-f74.google.com with SMTP id s24so301581vbi.1
+        for <mm-commits@vger.kernel.org>; Mon, 03 Dec 2012 15:36:09 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, ak@linux.intel.com, hpa@linux.intel.com, mel@csn.ul.ie, rientjes@google.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: kirill.shutemov@linux.intel.com, aarcange@redhat.com, ak@linux.intel.com, hpa@linux.intel.com, mel@csn.ul.ie, rientjes@google.com
 
 
 The patch titled
-     Subject: thp: change_huge_pmd(): keep huge zero page write-protected
-has been removed from the -mm tree.  Its filename was
-     thp-change_huge_pmd-keep-huge-zero-page-write-protected.patch
+     Subject: thp: change_huge_pmd(): make sure we don't try to make a page writable
+has been added to the -mm tree.  Its filename is
+     thp-change_huge_pmd-make-sure-we-dont-try-to-make-a-page-writable.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: change_huge_pmd(): keep huge zero page write-protected
+Subject: thp: change_huge_pmd(): make sure we don't try to make a page writable
 
-We want to get page fault on write attempt to huge zero page, so let's
-keep it write-protected.
+mprotect core never tries to make page writable using change_huge_pmd(). 
+Let's add an assert that the assumption is true.  It's important to be
+sure we will not make huge zero page writable.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -38,18 +49,17 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/huge_memory.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/huge_memory.c~thp-change_huge_pmd-keep-huge-zero-page-write-protected mm/huge_memory.c
---- a/mm/huge_memory.c~thp-change_huge_pmd-keep-huge-zero-page-write-protected
+diff -puN mm/huge_memory.c~thp-change_huge_pmd-make-sure-we-dont-try-to-make-a-page-writable mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-change_huge_pmd-make-sure-we-dont-try-to-make-a-page-writable
 +++ a/mm/huge_memory.c
-@@ -1433,6 +1433,8 @@ int change_huge_pmd(struct vm_area_struc
+@@ -1434,6 +1434,7 @@ int change_huge_pmd(struct vm_area_struc
  		pmd_t entry;
  		entry = pmdp_get_and_clear(mm, addr, pmd);
  		entry = pmd_modify(entry, newprot);
-+		if (is_huge_zero_pmd(entry))
-+			entry = pmd_wrprotect(entry);
++		BUG_ON(pmd_write(entry));
  		set_pmd_at(mm, addr, pmd, entry);
  		spin_unlock(&vma->vm_mm->page_table_lock);
  		ret = 1;
@@ -72,6 +82,7 @@ thp-copy_huge_pmd-copy-huge-zero-page-v6-fix.patch
 thp-do_huge_pmd_wp_page-handle-huge-zero-page.patch
 thp-do_huge_pmd_wp_page-handle-huge-zero-page-v6.patch
 thp-do_huge_pmd_wp_page-handle-huge-zero-page-thp-fix-anononymous-page-accounting-in-fallback-path-for-cow-of-hzp.patch
+thp-change_huge_pmd-make-sure-we-dont-try-to-make-a-page-writable.patch
 thp-change-split_huge_page_pmd-interface.patch
 thp-change-split_huge_page_pmd-interface-v6.patch
 thp-implement-splitting-pmd-for-huge-zero-page.patch
