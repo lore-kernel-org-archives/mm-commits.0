@@ -1,137 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: + fs-notify-add-procfs-fdinfo-helper-v7-fs-fanotify-ddd-missing-pieces-in-fdinfo-for-ability-to-call-fanotify_init.patch added to -mm tree
-Date: Tue, 04 Dec 2012 14:20:41 -0800
-Message-ID: <20121204222042.025B082004A@wpzn4.hot.corp.google.com>
+Subject: [to-be-updated] backlight-corgi_lcd-use-gpio_set_value_cansleep-for-akita-machines-to-avoid-warn_on-trigger.patch removed from -mm tree
+Date: Tue, 04 Dec 2012 14:56:08 -0800
+Message-ID: <20121204225608.7398F100E15@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:59213 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752157Ab2LDWUn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2012 17:20:43 -0500
-Received: by mail-yh0-f74.google.com with SMTP id 10so437887yhl.1
-        for <mm-commits@vger.kernel.org>; Tue, 04 Dec 2012 14:20:43 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:63747 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751444Ab2LDW4K (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2012 17:56:10 -0500
+Received: by mail-qc0-f202.google.com with SMTP id s25so551207qcq.1
+        for <mm-commits@vger.kernel.org>; Tue, 04 Dec 2012 14:56:09 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: gorcunov@openvz.org, adobriyan@gmail.com, aneesh.kumar@linux.vnet.ibm.com, avagin@openvz.org, bfields@fieldses.org, jbottomley@parallels.com, matt.helsley@gmail.com, oleg@redhat.com, tvrtko.ursulin@onelan.co.uk, viro@ZenIV.linux.org.uk, xemul@parallels.com
+To: dromede@gmail.com, FlorianSchandinat@gmx.de, grant.likely@secretlab.ca, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs, fanotify: ddd missing pieces in fdinfo for ability to call fanotify_init
-has been added to the -mm tree.  Its filename is
-     fs-notify-add-procfs-fdinfo-helper-v7-fs-fanotify-ddd-missing-pieces-in-fdinfo-for-ability-to-call-fanotify_init.patch
+     Subject: backlight: corgi_lcd: use gpio_set_value_cansleep() for akita machines to avoid WARN_ON trigger
+has been removed from the -mm tree.  Its filename was
+     backlight-corgi_lcd-use-gpio_set_value_cansleep-for-akita-machines-to-avoid-warn_on-trigger.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Cyrill Gorcunov <gorcunov@openvz.org>
-Subject: fs, fanotify: ddd missing pieces in fdinfo for ability to call fanotify_init
+From: Marko Katic <dromede.gmail.com>
+Subject: backlight: corgi_lcd: use gpio_set_value_cansleep() for akita machines to avoid WARN_ON trigger
 
-While restoring fanotify objects I discovered that the minimum information
-we provide now is enough to restore notification marks but still a bit
-incomplete for fanotify_init system call (the @flags and @event-flags are
-unknown).  This patch adds missing bits into fdinfo output.
+Changing backlight intensity on an Akita (Sharp Zaurus C-1000) will always
+trigger a WARN_ON:
 
-An example of output is below
+WARNING: at drivers/gpio/gpiolib.c:1672 __gpio_set_value+0x38/0xa4()
+Modules linked in:
+Backtrace:
+[<c000c0ac>] (dump_backtrace+0x0/0x110) from [<c02c8278>] (dump_stack+0x18/0x1c)
+ r6:c0158fc8 r5:00000009 r4:00000000 r3:c03d4f70
+[<c02c8260>] (dump_stack+0x0/0x1c) from [<c0019194>] (warn_slowpath_common+0x54/0x6c)
+[<c0019140>] (warn_slowpath_common+0x0/0x6c) from [<c00191d0>] (warn_slowpath_null+0x24/0x2c)
+ r8:c38d5c00 r7:c03f82c0 r6:00000000 r5:000000d0 r4:c384e4fc
+r3:00000009
+[<c00191ac>] (warn_slowpath_null+0x0/0x2c) from [<c0158fc8>] (__gpio_set_value+0x38/0xa4)
+[<c0158f90>] (__gpio_set_value+0x0/0xa4) from [<c0169b4c>] (corgi_bl_set_intensity+0x44/0x74)
+ r7:c3933418 r6:c3933400 r5:c392cdf0 r4:0000002f
+[<c0169b08>] (corgi_bl_set_intensity+0x0/0x74) from [<c0169c1c>] (corgi_bl_update_status+0x5c/0x64)
+ r5:c03d31f0 r4:c3933400
+[<c0169bc0>] (corgi_bl_update_status+0x0/0x64) from [<c02c3a68>] (corgi_lcd_probe+0x1a8/0x258)
+ r4:c392cdf0 r3:c0169bc0
+[<c02c38c0>] (corgi_lcd_probe+0x0/0x258) from [<c01da7a4>] (spi_drv_probe+0x20/0x24)
+ r8:00000052 r7:c0192d9c r6:c03da6e8 r5:c38d5c34 r4:c38d5c00
+[<c01da784>] (spi_drv_probe+0x0/0x24) from [<c0192c44>] (driver_probe_device+0xb0/0x208)
+[<c0192b94>] (driver_probe_device+0x0/0x208) from [<c0192e0c>] (__driver_attach+0x70/0x94)
+ r6:c03da6e8 r5:c38d5c34 r4:c38d5c00 r3:00000000
+[<c0192d9c>] (__driver_attach+0x0/0x94) from [<c0191268>] (bus_for_each_dev+0x54/0x90)
+ r6:c03da6e8 r5:c3827e80 r4:00000000 r3:00000000
+[<c0191214>] (bus_for_each_dev+0x0/0x90) from [<c01927a4>] (driver_attach+0x20/0x28)
+ r7:00000000 r6:c03e29ec r5:c3932980 r4:c03da6e8
+[<c0192784>] (driver_attach+0x0/0x28) from [<c0192340>] (bus_add_driver+0xd4/0x22c)
+[<c019226c>] (bus_add_driver+0x0/0x22c) from [<c019335c>] (driver_register+0xa4/0x134)
+ r8:00000052 r7:c03ea900 r6:c03c32ac r5:c03bdfc8 r4:c03da6e8
+[<c01932b8>] (driver_register+0x0/0x134) from [<c01db7ec>] (spi_register_driver+0x4c/0x60)
+[<c01db7a0>] (spi_register_driver+0x0/0x60) from [<c03b3ce0>] (corgi_lcd_driver_init+0x14/0x1c)
+[<c03b3ccc>] (corgi_lcd_driver_init+0x0/0x1c) from [<c000868c>] (do_one_initcall+0x9c/0x174)
+[<c00085f0>] (do_one_initcall+0x0/0x174) from [<c02c1b94>] (kernel_init+0xf4/0x2a8)
+[<c02c1aa0>] (kernel_init+0x0/0x2a8) from [<c0009270>] (ret_from_fork+0x14/0x24)
+---[ end trace a863a63f242ee38c ]---
 
- | pos:	0
- | flags:	04002
- | fanotify flags:10 event-flags:0
- | fanotify mnt_id:12 mask:3b ignored_mask:0
- | fanotify ino:50205 sdev:800013 mask:3b ignored_mask:40000000 fhandle-bytes:8 fhandle-type:1 f_handle:05020500fb1d47e7
+Akita machines have backlight controls hooked to a gpio expander chip,
+max7310.  The driver that controls the max7310 sets the cansleep flag and
+the corgi_lcd driver only uses plain gpio_set_value calls for changing
+backlight controls.  This triggers the WARN_ON on akita machines.
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Andrey Vagin <avagin@openvz.org>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: James Bottomley <jbottomley@parallels.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Matthew Helsley <matt.helsley@gmail.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Tvrtko Ursulin <tvrtko.ursulin@onelan.co.uk>
+Akita is the only exception in this case since other users of corgi_bl
+access backlight gpio controls through a different gpio expander which
+does not set the cansleep flag.
+
+Fix this by conditionally using gpio_set_value_cansleep() when changing
+backlight intensity on akita machines.
+
+Signed-off-by: Marko Katic <dromede@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/fdinfo.c |   25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+ drivers/video/backlight/corgi_lcd.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN fs/notify/fdinfo.c~fs-notify-add-procfs-fdinfo-helper-v7-fs-fanotify-ddd-missing-pieces-in-fdinfo-for-ability-to-call-fanotify_init fs/notify/fdinfo.c
---- a/fs/notify/fdinfo.c~fs-notify-add-procfs-fdinfo-helper-v7-fs-fanotify-ddd-missing-pieces-in-fdinfo-for-ability-to-call-fanotify_init
-+++ a/fs/notify/fdinfo.c
-@@ -4,6 +4,7 @@
- #include <linux/idr.h>
- #include <linux/init.h>
- #include <linux/inotify.h>
-+#include <linux/fanotify.h>
- #include <linux/kernel.h>
- #include <linux/namei.h>
- #include <linux/sched.h>
-@@ -140,6 +141,30 @@ out:
+diff -puN drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-use-gpio_set_value_cansleep-for-akita-machines-to-avoid-warn_on-trigger drivers/video/backlight/corgi_lcd.c
+--- a/drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-use-gpio_set_value_cansleep-for-akita-machines-to-avoid-warn_on-trigger
++++ a/drivers/video/backlight/corgi_lcd.c
+@@ -26,7 +26,7 @@
+ #include <linux/spi/corgi_lcd.h>
+ #include <linux/slab.h>
+ #include <asm/mach/sharpsl_param.h>
+-
++#include <asm/mach-types.h>
+ #define POWER_IS_ON(pwr)	((pwr) <= FB_BLANK_NORMAL)
  
- int fanotify_show_fdinfo(struct seq_file *m, struct file *f)
- {
-+	struct fsnotify_group *group = f->private_data;
-+	unsigned int flags = 0;
-+
-+	switch (group->priority) {
-+	case FS_PRIO_0:
-+		flags |= FAN_CLASS_NOTIF;
-+		break;
-+	case FS_PRIO_1:
-+		flags |= FAN_CLASS_CONTENT;
-+		break;
-+	case FS_PRIO_2:
-+		flags |= FAN_CLASS_PRE_CONTENT;
-+		break;
+ /* Register Addresses */
+@@ -408,11 +408,19 @@ static int corgi_bl_set_intensity(struct
+ 	/* Bit 5 via GPIO_BACKLIGHT_CONT */
+ 	cont = !!(intensity & 0x20) ^ lcd->gpio_backlight_cont_inverted;
+ 
+-	if (gpio_is_valid(lcd->gpio_backlight_cont))
+-		gpio_set_value(lcd->gpio_backlight_cont, cont);
++	if (gpio_is_valid(lcd->gpio_backlight_cont)) {
++		if (machine_is_akita())
++			gpio_set_value_cansleep(lcd->gpio_backlight_cont, cont);
++		else
++			gpio_set_value(lcd->gpio_backlight_cont, cont);
 +	}
-+
-+	if (group->max_events == UINT_MAX)
-+		flags |= FAN_UNLIMITED_QUEUE;
-+
-+	if (group->fanotify_data.max_marks == UINT_MAX)
-+		flags |= FAN_UNLIMITED_MARKS;
-+
-+	seq_printf(m, "fanotify flags:%x event-flags:%x\n",
-+		   flags, group->fanotify_data.f_flags);
-+
- 	return show_fdinfo(m, f, fanotify_fdinfo);
- }
  
+-	if (gpio_is_valid(lcd->gpio_backlight_on))
+-		gpio_set_value(lcd->gpio_backlight_on, intensity);
++	if (gpio_is_valid(lcd->gpio_backlight_on)) {
++		if (machine_is_akita())
++			gpio_set_value_cansleep(lcd->gpio_backlight_on, intensity);
++		else
++			gpio_set_value(lcd->gpio_backlight_on, intensity);
++	}
+ 
+ 	if (lcd->kick_battery)
+ 		lcd->kick_battery();
 _
 
-Patches currently in -mm which might be from gorcunov@openvz.org are
+Patches currently in -mm which might be from dromede@gmail.com are
 
 linux-next.patch
-procfs-add-vmflags-field-in-smaps-output-v4.patch
-procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
-proc-pid-status-add-seccomp-field.patch
-kcmp-selftests-make-run_tests-fix.patch
-kcmp-selftests-print-fail-status-instead-of-cause-make-error.patch
-tools-testing-selftests-kcmp-kcmp_testc-print-reason-for-failure-in-kcmp_test.patch
-procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers.patch
-fs-eventfd-add-procfs-fdinfo-helper.patch
-fs-epoll-add-procfs-fdinfo-helper-v2.patch
-fs-epoll-add-procfs-fdinfo-helper-v2-fs-epoll-drop-enabled-field-from-fdinfo-output.patch
-fdinfo-show-sigmask-for-signalfd-fd-v3.patch
-fs-exportfs-escape-nil-dereference-if-no-s_export_op-present.patch
-fs-exportfs-add-exportfs_encode_inode_fh-helper.patch
-fs-notify-add-procfs-fdinfo-helper-v7.patch
-fs-notify-add-procfs-fdinfo-helper-v7-fix-fix.patch
-fs-notify-add-procfs-fdinfo-helper-v7-add-missing-space-after-prefix.patch
-fs-notify-add-procfs-fdinfo-helper-v7-dont-forget-to-provide-fhandle-for-inode-fanotify.patch
-fs-notify-add-procfs-fdinfo-helper-v7-fs-fanotify-ddd-missing-pieces-in-fdinfo-for-ability-to-call-fanotify_init.patch
-docs-add-documentation-about-proc-pid-fdinfo-fd-output.patch
-docs-add-documentation-about-proc-pid-fdinfo-fd-output-fix.patch
-fs-notify-add-procfs-fdinfo-helper-v7-fix.patch
+backlight-corgi_lcd-use-gpio_set_value_cansleep-to-avoid-warn_on.patch
 
