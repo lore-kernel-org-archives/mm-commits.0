@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + aoe-allow-comma-separator-in-aoe_iflist-value.patch added to -mm tree
-Date: Tue, 04 Dec 2012 15:48:53 -0800
-Message-ID: <20121204234854.1E68410004A@wpzn3.hot.corp.google.com>
+Subject: + aoe-identify-source-of-runt-aoe-packets.patch added to -mm tree
+Date: Tue, 04 Dec 2012 15:48:55 -0800
+Message-ID: <20121204234856.7D727200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:59300 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751807Ab2LDXs4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2012 18:48:56 -0500
-Received: by mail-qc0-f202.google.com with SMTP id s25so556465qcq.1
-        for <mm-commits@vger.kernel.org>; Tue, 04 Dec 2012 15:48:54 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:40931 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751807Ab2LDXs6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2012 18:48:58 -0500
+Received: by mail-ee0-f74.google.com with SMTP id t10so327373eei.1
+        for <mm-commits@vger.kernel.org>; Tue, 04 Dec 2012 15:48:57 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: ecashin@coraid.com, axboe@kernel.dk
 
 
 The patch titled
-     Subject: aoe: allow comma separator in aoe_iflist value
+     Subject: aoe: identify source of runt AoE packets
 has been added to the -mm tree.  Its filename is
-     aoe-allow-comma-separator-in-aoe_iflist-value.patch
+     aoe-identify-source-of-runt-aoe-packets.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,49 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ed Cashin <ecashin@coraid.com>
-Subject: aoe: allow comma separator in aoe_iflist value
+Subject: aoe: identify source of runt AoE packets
 
-By default, the aoe driver uses any ethernet interface for AoE, but the
-aoe_iflist module parameter provides a convenient way to limit AoE traffic
-to a specific list of local network interfaces.
+This change only affects experimental AoE storage networks.
 
-This change allows a list to be specified using the comma character as a
-separator.  For example,
-
-  modprobe aoe aoe_iflist=eth2,eth3
-
-Before, it was inconvenient to get the quoting right in shell scripts when
-setting aoe_iflist to have more than one network interface.
+It modifies the console message about runt packets detected so that the
+AoE major and minor addresses of the AoE target that generated the runt
+are mentioned.
 
 Signed-off-by: Ed Cashin <ecashin@coraid.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoe.h    |    2 +-
- drivers/block/aoe/aoenet.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/block/aoe/aoecmd.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN drivers/block/aoe/aoe.h~aoe-allow-comma-separator-in-aoe_iflist-value drivers/block/aoe/aoe.h
---- a/drivers/block/aoe/aoe.h~aoe-allow-comma-separator-in-aoe_iflist-value
-+++ a/drivers/block/aoe/aoe.h
-@@ -11,7 +11,7 @@
- #define AOE_PARTITIONS (16)
- #endif
- 
--#define WHITESPACE " \t\v\f\n"
-+#define WHITESPACE " \t\v\f\n,"
- 
- enum {
- 	AOECMD_ATA,
-diff -puN drivers/block/aoe/aoenet.c~aoe-allow-comma-separator-in-aoe_iflist-value drivers/block/aoe/aoenet.c
---- a/drivers/block/aoe/aoenet.c~aoe-allow-comma-separator-in-aoe_iflist-value
-+++ a/drivers/block/aoe/aoenet.c
-@@ -31,7 +31,7 @@ enum {
- 
- static char aoe_iflist[IFLISTSZ];
- module_param_string(aoe_iflist, aoe_iflist, IFLISTSZ, 0600);
--MODULE_PARM_DESC(aoe_iflist, "aoe_iflist=\"dev1 [dev2 ...]\"");
-+MODULE_PARM_DESC(aoe_iflist, "aoe_iflist=dev1[,dev2...]");
- 
- static wait_queue_head_t txwq;
- static struct ktstate kts;
+diff -puN drivers/block/aoe/aoecmd.c~aoe-identify-source-of-runt-aoe-packets drivers/block/aoe/aoecmd.c
+--- a/drivers/block/aoe/aoecmd.c~aoe-identify-source-of-runt-aoe-packets
++++ a/drivers/block/aoe/aoecmd.c
+@@ -1217,8 +1217,10 @@ noskb:		if (buf)
+ 	case ATA_CMD_PIO_READ:
+ 	case ATA_CMD_PIO_READ_EXT:
+ 		if (skb->len < n) {
+-			pr_err("aoe: runt data size in read.  skb->len=%d need=%ld\n",
+-				skb->len, n);
++			pr_err("%s e%ld.%d.  skb->len=%d need=%ld\n",
++				"aoe: runt data size in read from",
++				(long) d->aoemajor, d->aoeminor,
++			       skb->len, n);
+ 			clear_bit(BIO_UPTODATE, &buf->bio->bi_flags);
+ 			break;
+ 		}
+@@ -1233,7 +1235,9 @@ noskb:		if (buf)
+ 		break;
+ 	case ATA_CMD_ID_ATA:
+ 		if (skb->len < 512) {
+-			pr_info("aoe: runt data size in ataid.  skb->len=%d\n",
++			pr_info("%s e%ld.%d.  skb->len=%d need=512\n",
++				"aoe: runt data size in ataid from",
++				(long) d->aoemajor, d->aoeminor,
+ 				skb->len);
+ 			break;
+ 		}
 _
 
 Patches currently in -mm which might be from ecashin@coraid.com are
