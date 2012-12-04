@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + sendfile-allows-bypassing-of-notifier-events.patch added to -mm tree
-Date: Mon, 03 Dec 2012 16:01:45 -0800
-Message-ID: <20121204000146.0762D200057@hpza10.eem.corp.google.com>
+Subject: + block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch added to -mm tree
+Date: Mon, 03 Dec 2012 16:06:58 -0800
+Message-ID: <20121204000659.1BF8B20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f74.google.com ([209.85.215.74]:33859 "EHLO
-	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751179Ab2LDABt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Dec 2012 19:01:49 -0500
-Received: by mail-la0-f74.google.com with SMTP id v3so241945lag.1
-        for <mm-commits@vger.kernel.org>; Mon, 03 Dec 2012 16:01:47 -0800 (PST)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:37935 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751448Ab2LDAHC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Dec 2012 19:07:02 -0500
+Received: by mail-wg0-f74.google.com with SMTP id dt14so243087wgb.1
+        for <mm-commits@vger.kernel.org>; Mon, 03 Dec 2012 16:07:00 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: swolchok@umich.edu, alan@linux.intel.com, axboe@kernel.dk, david@fromorbit.com
+Cc: johunt@akamai.com, axboe@kernel.dk, kay.sievers@vrfy.org, tj@kernel.org, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: sendfile: allows bypassing of notifier events
+     Subject: block: restore /proc/partitions to not display non-partitionable removable devices
 has been added to the -mm tree.  Its filename is
-     sendfile-allows-bypassing-of-notifier-events.patch
+     block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +33,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Scott Wolchok <swolchok@umich.edu>
-Subject: sendfile: allows bypassing of notifier events
+From: Josh Hunt <johunt@akamai.com>
+Subject: block: restore /proc/partitions to not display non-partitionable removable devices
 
-do_sendfile() in fs/read_write.c does not call the fsnotify functions,
-unlike its neighbors.  This manifests as a lack of inotify ACCESS events
-when a file is sent using sendfile(2).
+We found with newer kernels we started seeing the cdrom device showing
+up in /proc/partitions, but it was not there before.
 
-Addresses https://bugzilla.kernel.org/show_bug.cgi?id=12812
+Looking into this I found that commit d27769ec ("block: add
+GENHD_FL_NO_PART_SCAN") introduces this change in behavior.  It's not
+clear to me from the commit's changelog if this change was intentional or
+not.  This comment still remains: /* Don't show non-partitionable
+removeable devices or empty devices */ so I've decided to send a patch to
+restore the behavior of not printing unpartitionable removable devices.
 
-Signed-off-by: Alan Cox <alan@linux.intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
+Signed-off-by: Josh Hunt <johunt@akamai.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
 Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/read_write.c |    2 ++
- 1 file changed, 2 insertions(+)
+ block/genhd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/read_write.c~sendfile-allows-bypassing-of-notifier-events fs/read_write.c
---- a/fs/read_write.c~sendfile-allows-bypassing-of-notifier-events
-+++ a/fs/read_write.c
-@@ -935,6 +935,8 @@ ssize_t do_sendfile(int out_fd, int in_f
- 	if (retval > 0) {
- 		add_rchar(current, retval);
- 		add_wchar(current, retval);
-+		fsnotify_access(in.file);
-+		fsnotify_access(out.file);
- 	}
+diff -puN block/genhd.c~block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices block/genhd.c
+--- a/block/genhd.c~block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices
++++ a/block/genhd.c
+@@ -845,7 +845,7 @@ static int show_partition(struct seq_fil
+ 	char buf[BDEVNAME_SIZE];
  
- 	inc_syscr(current);
+ 	/* Don't show non-partitionable removeable devices or empty devices */
+-	if (!get_capacity(sgp) || (!disk_max_parts(sgp) &&
++	if (!get_capacity(sgp) || (!(disk_max_parts(sgp) > 1) &&
+ 				   (sgp->flags & GENHD_FL_REMOVABLE)))
+ 		return 0;
+ 	if (sgp->flags & GENHD_FL_SUPPRESS_PARTITION_INFO)
 _
 
-Patches currently in -mm which might be from swolchok@umich.edu are
+Patches currently in -mm which might be from johunt@akamai.com are
 
-sendfile-allows-bypassing-of-notifier-events.patch
+linux-next.patch
+block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
 
