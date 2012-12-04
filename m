@@ -1,33 +1,43 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] backlight-corgi_lcd-use-gpio_set_value_cansleep-for-akita-machines-to-avoid-warn_on-trigger.patch removed from -mm tree
-Date: Tue, 04 Dec 2012 14:56:08 -0800
-Message-ID: <20121204225608.7398F100E15@wpzn3.hot.corp.google.com>
+Subject: + backlight-corgi_lcd-use-gpio_set_value_cansleep-to-avoid-warn_on.patch added to -mm tree
+Date: Tue, 04 Dec 2012 14:58:38 -0800
+Message-ID: <20121204225839.43772200404@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:63747 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751444Ab2LDW4K (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2012 17:56:10 -0500
-Received: by mail-qc0-f202.google.com with SMTP id s25so551207qcq.1
-        for <mm-commits@vger.kernel.org>; Tue, 04 Dec 2012 14:56:09 -0800 (PST)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:55769 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752359Ab2LDW6m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2012 17:58:42 -0500
+Received: by mail-la0-f74.google.com with SMTP id v3so320633lag.1
+        for <mm-commits@vger.kernel.org>; Tue, 04 Dec 2012 14:58:40 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dromede@gmail.com, FlorianSchandinat@gmx.de, grant.likely@secretlab.ca, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: dromede@gmail.com, grant.likely@secretlab.ca, jg1.han@samsung.com
 
 
 The patch titled
-     Subject: backlight: corgi_lcd: use gpio_set_value_cansleep() for akita machines to avoid WARN_ON trigger
-has been removed from the -mm tree.  Its filename was
-     backlight-corgi_lcd-use-gpio_set_value_cansleep-for-akita-machines-to-avoid-warn_on-trigger.patch
+     Subject: backlight: corgi_lcd: use gpio_set_value_cansleep() to avoid WARN_ON
+has been added to the -mm tree.  Its filename is
+     backlight-corgi_lcd-use-gpio_set_value_cansleep-to-avoid-warn_on.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Marko Katic <dromede.gmail.com>
-Subject: backlight: corgi_lcd: use gpio_set_value_cansleep() for akita machines to avoid WARN_ON trigger
+From: Marko Katic <dromede@gmail.com>
+Subject: backlight: corgi_lcd: use gpio_set_value_cansleep() to avoid WARN_ON
 
-Changing backlight intensity on an Akita (Sharp Zaurus C-1000) will always
-trigger a WARN_ON:
+Changing backlight intensity on an Akita (Sharp Zaurus C-1000)
+triggers WARN_ON message:
 
 WARNING: at drivers/gpio/gpiolib.c:1672 __gpio_set_value+0x38/0xa4()
 Modules linked in:
@@ -65,47 +75,36 @@ r3:00000009
 ---[ end trace a863a63f242ee38c ]---
 
 Akita machines have backlight controls hooked to a gpio expander chip,
-max7310.  The driver that controls the max7310 sets the cansleep flag and
-the corgi_lcd driver only uses plain gpio_set_value calls for changing
-backlight controls.  This triggers the WARN_ON on akita machines.
+max7310. In this case, pca953x_gpio_set_value() can be called to control
+gpio, and pca953x_setup_gpio() sets can_sleep flag. Therefore,
+gpio_set_value_cansleep() should be used in order to avoid WARN_ON on
+akita machines.
 
-Akita is the only exception in this case since other users of corgi_bl
-access backlight gpio controls through a different gpio expander which
-does not set the cansleep flag.
+Akita is the only exception in this case since other users of corgi_lcd
+access backlight gpio controls through a different gpio expander such as
+max7310 which does not set the can_sleep flag.
 
-Fix this by conditionally using gpio_set_value_cansleep() when changing
-backlight intensity on akita machines.
-
+[jg1.han@samsung.com: used gpio_cansleep()]
 Signed-off-by: Marko Katic <dromede@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Cc: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/corgi_lcd.c |   18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ drivers/video/backlight/corgi_lcd.c |   17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-use-gpio_set_value_cansleep-for-akita-machines-to-avoid-warn_on-trigger drivers/video/backlight/corgi_lcd.c
---- a/drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-use-gpio_set_value_cansleep-for-akita-machines-to-avoid-warn_on-trigger
+diff -puN drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-use-gpio_set_value_cansleep-to-avoid-warn_on drivers/video/backlight/corgi_lcd.c
+--- a/drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-use-gpio_set_value_cansleep-to-avoid-warn_on
 +++ a/drivers/video/backlight/corgi_lcd.c
-@@ -26,7 +26,7 @@
- #include <linux/spi/corgi_lcd.h>
- #include <linux/slab.h>
- #include <asm/mach/sharpsl_param.h>
--
-+#include <asm/mach-types.h>
- #define POWER_IS_ON(pwr)	((pwr) <= FB_BLANK_NORMAL)
- 
- /* Register Addresses */
-@@ -408,11 +408,19 @@ static int corgi_bl_set_intensity(struct
+@@ -408,11 +408,20 @@ static int corgi_bl_set_intensity(struct
  	/* Bit 5 via GPIO_BACKLIGHT_CONT */
  	cont = !!(intensity & 0x20) ^ lcd->gpio_backlight_cont_inverted;
  
 -	if (gpio_is_valid(lcd->gpio_backlight_cont))
 -		gpio_set_value(lcd->gpio_backlight_cont, cont);
 +	if (gpio_is_valid(lcd->gpio_backlight_cont)) {
-+		if (machine_is_akita())
++		if (gpio_cansleep(lcd->gpio_backlight_cont))
 +			gpio_set_value_cansleep(lcd->gpio_backlight_cont, cont);
 +		else
 +			gpio_set_value(lcd->gpio_backlight_cont, cont);
@@ -114,8 +113,9 @@ diff -puN drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-use-gpio_set_v
 -	if (gpio_is_valid(lcd->gpio_backlight_on))
 -		gpio_set_value(lcd->gpio_backlight_on, intensity);
 +	if (gpio_is_valid(lcd->gpio_backlight_on)) {
-+		if (machine_is_akita())
-+			gpio_set_value_cansleep(lcd->gpio_backlight_on, intensity);
++		if (gpio_cansleep(lcd->gpio_backlight_on))
++			gpio_set_value_cansleep(lcd->gpio_backlight_on,
++						intensity);
 +		else
 +			gpio_set_value(lcd->gpio_backlight_on, intensity);
 +	}
