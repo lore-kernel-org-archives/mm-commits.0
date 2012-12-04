@@ -1,70 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: + block-prevent-race-cleanup-fix.patch added to -mm tree
-Date: Mon, 03 Dec 2012 16:23:02 -0800
-Message-ID: <20121204002303.86D2E200059@hpza10.eem.corp.google.com>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Tue, 04 Dec 2012 11:28:13 -0800
+Message-ID: <20121204192815.8510A200325@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:40537 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751532Ab2LDAXG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Dec 2012 19:23:06 -0500
-Received: by mail-wg0-f74.google.com with SMTP id dt14so243520wgb.1
-        for <mm-commits@vger.kernel.org>; Mon, 03 Dec 2012 16:23:04 -0800 (PST)
+Received: from mail-ea0-f202.google.com ([209.85.215.202]:32902 "EHLO
+	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751835Ab2LDT2S (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2012 14:28:18 -0500
+Received: by mail-ea0-f202.google.com with SMTP id j12so312331eaa.1
+        for <mm-commits@vger.kernel.org>; Tue, 04 Dec 2012 11:28:17 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, axboe@kernel.dk, dbasehore@chromium.org, msb@chromium.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: block-prevent-race-cleanup-fix
-has been added to the -mm tree.  Its filename is
-     block-prevent-race-cleanup-fix.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: block-prevent-race-cleanup-fix
+Subject: linux-next-git-rejects
 
-fix spello in comment
-
-Cc: Derek Basehore <dbasehore@chromium.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Mandeep Singh Baines <msb@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/genhd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/edac/i82975x_edac.c |   26 --------------------------
+ 1 file changed, 26 deletions(-)
 
-diff -puN block/genhd.c~block-prevent-race-cleanup-fix block/genhd.c
---- a/block/genhd.c~block-prevent-race-cleanup-fix
-+++ a/block/genhd.c
-@@ -1591,7 +1591,7 @@ unsigned int disk_clear_events(struct ge
- }
+diff -puN drivers/edac/i82975x_edac.c~linux-next-git-rejects drivers/edac/i82975x_edac.c
+--- a/drivers/edac/i82975x_edac.c~linux-next-git-rejects
++++ a/drivers/edac/i82975x_edac.c
+@@ -439,23 +439,11 @@ static void i82975x_init_csrows(struct m
+ 				struct i82975x_pvt *pvt,
+ 				struct pci_dev *pdev)
+ {
+-<<<<<<< HEAD
+-	struct csrow_info *csrow;
+-	unsigned long last_cumul_size;
+-	u8 value;
+-	u32 cumul_size, nr_pages;
+-	int index, chan;
+-	struct dimm_info *dimm;
+-	enum dev_type dtype;
+-
+-	last_cumul_size = 0;
+-=======
+ 	struct dimm_info	*dimm;
+ 	struct mem_range	*range;
+ 	u8			boundary;
+ 	u32			initial_page = 0, last_page;
+ 	int			row, chan;
+->>>>>>> linux-next/akpm-base
  
- /*
-- * Seperate this part out so that a different pointer for clearing_ptr can be
-+ * Separate this part out so that a different pointer for clearing_ptr can be
-  * passed in for disk_clear_events.
-  */
- static void disk_events_workfn(struct work_struct *work)
+ 	/*
+ 	 * This chipset provides 3 address modes:
+@@ -471,19 +459,6 @@ static void i82975x_init_csrows(struct m
+ 		/*
+ 		 * On symetric mode, both channels start from address 0
+ 		 */
+-<<<<<<< HEAD
+-		dtype = i82975x_dram_type(mch_window, index);
+-		for (chan = 0; chan < csrow->nr_channels; chan++) {
+-			dimm = mci->csrows[index]->channels[chan]->dimm;
+-
+-			dimm->nr_pages = nr_pages / csrow->nr_channels;
+-
+-			snprintf(csrow->channels[chan]->dimm->label, EDAC_MC_LABEL_LEN, "DIMM %c%d",
+-				 (chan == 0) ? 'A' : 'B',
+-				 index);
+-			dimm->grain = 1 << 7;	/* 128Byte cache-line resolution */
+-			dimm->dtype = i82975x_dram_type(mch_window, index);
+-=======
+ 		if (pvt->is_symetric)
+ 			initial_page = 0;
+ 
+@@ -523,7 +498,6 @@ static void i82975x_init_csrows(struct m
+ 			snprintf(dimm->label,
+ 				 EDAC_MC_LABEL_LEN, "DIMM %c%d",
+ 				 (chan == 0) ? 'A' : 'B', row);
+->>>>>>> linux-next/akpm-base
+ 			dimm->mtype = MEM_DDR2; /* I82975x supports only DDR2 */
+ 			dimm->edac_mode = EDAC_SECDED; /* only supported */
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
