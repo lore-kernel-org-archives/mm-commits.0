@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + block-remove-deadlock-in-disk_clear_events.patch added to -mm tree
-Date: Mon, 03 Dec 2012 16:22:52 -0800
-Message-ID: <20121204002253.7CEE320004E@hpza10.eem.corp.google.com>
+Subject: + block-remove-deadlock-in-disk_clear_events-fix.patch added to -mm tree
+Date: Mon, 03 Dec 2012 16:22:56 -0800
+Message-ID: <20121204002257.36A17820050@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f202.google.com ([209.85.215.202]:42061 "EHLO
-	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751502Ab2LDAW4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Dec 2012 19:22:56 -0500
-Received: by mail-ea0-f202.google.com with SMTP id j12so242677eaa.1
-        for <mm-commits@vger.kernel.org>; Mon, 03 Dec 2012 16:22:54 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:53218 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751502Ab2LDAW6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Dec 2012 19:22:58 -0500
+Received: by mail-yh0-f74.google.com with SMTP id 10so307246yhl.1
+        for <mm-commits@vger.kernel.org>; Mon, 03 Dec 2012 16:22:57 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dbasehore@chromium.org, axboe@kernel.dk, msb@chromium.org
+Cc: akpm@linux-foundation.org, axboe@kernel.dk, dbasehore@chromium.org, msb@chromium.org
 
 
 The patch titled
-     Subject: block: remove deadlock in disk_clear_events
+     Subject: block-remove-deadlock-in-disk_clear_events-fix
 has been added to the -mm tree.  Its filename is
-     block-remove-deadlock-in-disk_clear_events.patch
+     block-remove-deadlock-in-disk_clear_events-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,52 +33,113 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Derek Basehore <dbasehore@chromium.org>
-Subject: block: remove deadlock in disk_clear_events
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: block-remove-deadlock-in-disk_clear_events-fix
 
-In disk_clear_events(), do not put work on system_nrt_freezable_wq. 
-Instead, put it on system_nrt_wq.
+fix up comment
 
-There is a race between probing a usb and suspending the device.  Since
-probing a usb calls disk_clear_events, which puts work on a frozen
-workqueue, probing cannot finish after the workqueue is frozen.  However,
-suspending cannot finish until the usb probe is finished, so we get a
-deadlock.
-
-Signed-off-by: Derek Basehore <dbasehore@chromium.org>
-Reviewed-by: Mandeep Singh Baines <msb@chromium.org>
+Cc: Derek Basehore <dbasehore@chromium.org>
 Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Mandeep Singh Baines <msb@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/genhd.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ block/genhd.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN block/genhd.c~block-remove-deadlock-in-disk_clear_events block/genhd.c
---- a/block/genhd.c~block-remove-deadlock-in-disk_clear_events
+diff -puN block/genhd.c~block-remove-deadlock-in-disk_clear_events-fix block/genhd.c
+--- a/block/genhd.c~block-remove-deadlock-in-disk_clear_events-fix
 +++ a/block/genhd.c
-@@ -1565,7 +1565,13 @@ unsigned int disk_clear_events(struct ge
+@@ -1565,9 +1565,10 @@ unsigned int disk_clear_events(struct ge
  
  	/* uncondtionally schedule event check and wait for it to finish */
  	disk_block_events(disk);
--	queue_delayed_work(system_freezable_wq, &ev->dwork, 0);
-+	/* We need to put the work on system_nrt_wq here since there is a
-+	 * deadlock that happens while probing a usb device while suspending. If
-+	 * we put work on a freezable worqueue here, a usb probe will wait here
-+	 * until the workqueue is unfrozen during suspend. Since suspend waits
-+	 * on all probes to complete, we have a deadlock
-+	 */
-+	queue_delayed_work(system_nrt_wq, &ev->dwork, 0);
- 	flush_delayed_work(&ev->dwork);
- 	__disk_unblock_events(disk, false);
- 
+-	/* We need to put the work on system_nrt_wq here since there is a
++	/*
++	 * We need to put the work on system_nrt_wq here since there is a
+ 	 * deadlock that happens while probing a usb device while suspending. If
+-	 * we put work on a freezable worqueue here, a usb probe will wait here
++	 * we put work on a freezable workqueue here, a usb probe will wait here
+ 	 * until the workqueue is unfrozen during suspend. Since suspend waits
+ 	 * on all probes to complete, we have a deadlock
+ 	 */
 _
 
-Patches currently in -mm which might be from dbasehore@chromium.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-block-remove-deadlock-in-disk_clear_events.patch
+linux-next-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+drivers-video-add-support-for-the-solomon-ssd1307-oled-controller-checkpatch-fixes.patch
+irq-tsk-comm-is-an-array.patch
 block-remove-deadlock-in-disk_clear_events-fix.patch
-block-prevent-race-cleanup.patch
 block-prevent-race-cleanup-fix.patch
+mm.patch
+mm-use-is_enabledconfig_compaction-instead-of-compaction_build-fix.patch
+mm-introduce-mm_find_pmd-fix.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory-fix.patch
+slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
+mmvmscan-only-evict-file-pages-when-we-have-plenty-fix.patch
+slub-slub-specific-propagation-changes-fix.patch
+dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch
+mm-check-rb_subtree_gap-correctness-fix.patch
+mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
+mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
+mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
+mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
+mm-use-vm_unmapped_area-on-arm-architecture-fix-fix.patch
+mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc32-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc32-architecture-fix-fix.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
+arch-sparc-kernel-sys_sparc_64c-s-colour-color.patch
+mm-introduce-a-common-interface-for-balloon-pages-mobility-mm-fix-balloon_page_movable-page-flags-check-fix.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix.patch
+mm-cma-skip-watermarks-check-for-already-isolated-blocks-in-split_free_page-fix-fix.patch
+bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
+mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch
+thp-implement-splitting-pmd-for-huge-zero-page-fix.patch
+mm-add-a-reminder-comment-for-__gfp_bits_shift.patch
+numa-add-config_movable_node-for-movable-dedicated-node-fix.patch
+mm-introduce-new-field-managed_pages-to-struct-zone-fix.patch
+mm-provide-more-accurate-estimation-of-pages-occupied-by-memmap-fix.patch
+tmpfs-support-seek_data-and-seek_hole-reprise.patch
+drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+lseek-the-whence-argument-is-called-whence.patch
+drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
+backlight-add-of_find_backlight_by_node-function-fix.patch
+backlight-88pm860x_bl-remove-an-unnecessary-line-continuation-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes-checkpatch-fixes.patch
+hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix.patch
+procfs-add-vmflags-field-in-smaps-output-v4.patch
+procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
+ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
+ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
+ipc-convert-prepare_copy-from-macro-to-function-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+docs-add-documentation-about-proc-pid-fdinfo-fd-output-fix.patch
+fs-notify-add-procfs-fdinfo-helper-v7-fix.patch
+scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
