@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + frv-properly-use-the-declarations-provided-by-asm-sectionsh.patch added to -mm tree
-Date: Tue, 04 Dec 2012 13:07:33 -0800
-Message-ID: <20121204210734.A395420005C@hpza10.eem.corp.google.com>
+Subject: + frv-fix-use-of-extinct-_sbss-and-_ebss-in-debug-code.patch added to -mm tree
+Date: Tue, 04 Dec 2012 13:07:29 -0800
+Message-ID: <20121204210730.C22AB200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:45737 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751701Ab2LDVHg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2012 16:07:36 -0500
-Received: by mail-wi0-f202.google.com with SMTP id hn17so87633wib.1
-        for <mm-commits@vger.kernel.org>; Tue, 04 Dec 2012 13:07:35 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:40717 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751701Ab2LDVHd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2012 16:07:33 -0500
+Received: by mail-ee0-f74.google.com with SMTP id t10so321239eei.1
+        for <mm-commits@vger.kernel.org>; Tue, 04 Dec 2012 13:07:31 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: geert@linux-m68k.org, dhowells@redhat.com
 
 
 The patch titled
-     Subject: frv: properly use the declarations provided by <asm/sections.h>
+     Subject: frv: fix use of extinct _sbss and _ebss in debug code
 has been added to the -mm tree.  Its filename is
-     frv-properly-use-the-declarations-provided-by-asm-sectionsh.patch
+     frv-fix-use-of-extinct-_sbss-and-_ebss-in-debug-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: frv: properly use the declarations provided by <asm/sections.h>
+Subject: frv: fix use of extinct _sbss and _ebss in debug code
 
-  - Remove the superfluous address-of ('&') operators,
-  - Remove the unneeded casts, use %p to format pointers instead.
+Nowadays it should probably use __bss_start and __bss_stop
 
 Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/setup.c |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ arch/frv/kernel/setup.c |    2 +-
+ arch/frv/mm/init.c      |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/frv/kernel/setup.c~frv-properly-use-the-declarations-provided-by-asm-sectionsh arch/frv/kernel/setup.c
---- a/arch/frv/kernel/setup.c~frv-properly-use-the-declarations-provided-by-asm-sectionsh
+diff -puN arch/frv/kernel/setup.c~frv-fix-use-of-extinct-_sbss-and-_ebss-in-debug-code arch/frv/kernel/setup.c
+--- a/arch/frv/kernel/setup.c~frv-fix-use-of-extinct-_sbss-and-_ebss-in-debug-code
 +++ a/arch/frv/kernel/setup.c
-@@ -804,9 +804,9 @@ void __init setup_arch(char **cmdline_p)
- 
- 	BUG_ON(memory_start == memory_end);
- 
--	init_mm.start_code = (unsigned long) &_stext;
--	init_mm.end_code = (unsigned long) &_etext;
--	init_mm.end_data = (unsigned long) &_edata;
-+	init_mm.start_code = (unsigned long) _stext;
-+	init_mm.end_code = (unsigned long) _etext;
-+	init_mm.end_data = (unsigned long) _edata;
- #if 0 /* DAVIDM - don't set brk just incase someone decides to use it */
- 	init_mm.brk = (unsigned long) &_end;
- #else
-@@ -814,10 +814,8 @@ void __init setup_arch(char **cmdline_p)
- #endif
- 
- #ifdef DEBUG
--	printk("KERNEL -> TEXT=0x%06x-0x%06x DATA=0x%06x-0x%06x BSS=0x%06x-0x%06x\n",
--	       (int) &_stext, (int) &_etext,
--	       (int) &_sdata, (int) &_edata,
--	       (int) &__bss_start, (int) &__bss_stop);
-+	printk("KERNEL -> TEXT=0x%p-0x%p DATA=0x%p-0x%p BSS=0x%p-0x%p\n",
-+	       _stext, _etext, _sdata, _edata, __bss_start, __bss_stop);
+@@ -817,7 +817,7 @@ void __init setup_arch(char **cmdline_p)
+ 	printk("KERNEL -> TEXT=0x%06x-0x%06x DATA=0x%06x-0x%06x BSS=0x%06x-0x%06x\n",
+ 	       (int) &_stext, (int) &_etext,
+ 	       (int) &_sdata, (int) &_edata,
+-	       (int) &_sbss, (int) &_ebss);
++	       (int) &__bss_start, (int) &__bss_stop);
  #endif
  
  #ifdef CONFIG_VT
+diff -puN arch/frv/mm/init.c~frv-fix-use-of-extinct-_sbss-and-_ebss-in-debug-code arch/frv/mm/init.c
+--- a/arch/frv/mm/init.c~frv-fix-use-of-extinct-_sbss-and-_ebss-in-debug-code
++++ a/arch/frv/mm/init.c
+@@ -146,7 +146,7 @@ void __init mem_init(void)
+ 
+ #else
+ 	codek = (_etext - _stext) >> 10;
+-	datak = 0; //(_ebss - _sdata) >> 10;
++	datak = 0; //(__bss_stop - _sdata) >> 10;
+ #endif
+ 
+ 	tmp = nr_free_pages() << PAGE_SHIFT;
 _
 
 Patches currently in -mm which might be from geert@linux-m68k.org are
