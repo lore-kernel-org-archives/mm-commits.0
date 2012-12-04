@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + aoe-identify-source-of-runt-aoe-packets.patch added to -mm tree
-Date: Tue, 04 Dec 2012 15:48:55 -0800
-Message-ID: <20121204234856.7D727200059@hpza10.eem.corp.google.com>
+Subject: + aoe-update-internal-version-number-to-81.patch added to -mm tree
+Date: Tue, 04 Dec 2012 15:48:58 -0800
+Message-ID: <20121204234859.87435200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:40931 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751807Ab2LDXs6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2012 18:48:58 -0500
-Received: by mail-ee0-f74.google.com with SMTP id t10so327373eei.1
-        for <mm-commits@vger.kernel.org>; Tue, 04 Dec 2012 15:48:57 -0800 (PST)
+Received: from mail-ea0-f202.google.com ([209.85.215.202]:61656 "EHLO
+	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751807Ab2LDXtB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2012 18:49:01 -0500
+Received: by mail-ea0-f202.google.com with SMTP id j12so322781eaa.1
+        for <mm-commits@vger.kernel.org>; Tue, 04 Dec 2012 15:49:00 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: ecashin@coraid.com, axboe@kernel.dk
 
 
 The patch titled
-     Subject: aoe: identify source of runt AoE packets
+     Subject: aoe: update internal version number to 81
 has been added to the -mm tree.  Its filename is
-     aoe-identify-source-of-runt-aoe-packets.patch
+     aoe-update-internal-version-number-to-81.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ed Cashin <ecashin@coraid.com>
-Subject: aoe: identify source of runt AoE packets
+Subject: aoe: update internal version number to 81
 
-This change only affects experimental AoE storage networks.
-
-It modifies the console message about runt packets detected so that the
-AoE major and minor addresses of the AoE target that generated the runt
-are mentioned.
+This version number is printed to the console on module initialization and
+is available in sysfs, which is where the userland aoe-version tool looks
+for it.
 
 Signed-off-by: Ed Cashin <ecashin@coraid.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoecmd.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ drivers/block/aoe/aoe.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/block/aoe/aoecmd.c~aoe-identify-source-of-runt-aoe-packets drivers/block/aoe/aoecmd.c
---- a/drivers/block/aoe/aoecmd.c~aoe-identify-source-of-runt-aoe-packets
-+++ a/drivers/block/aoe/aoecmd.c
-@@ -1217,8 +1217,10 @@ noskb:		if (buf)
- 	case ATA_CMD_PIO_READ:
- 	case ATA_CMD_PIO_READ_EXT:
- 		if (skb->len < n) {
--			pr_err("aoe: runt data size in read.  skb->len=%d need=%ld\n",
--				skb->len, n);
-+			pr_err("%s e%ld.%d.  skb->len=%d need=%ld\n",
-+				"aoe: runt data size in read from",
-+				(long) d->aoemajor, d->aoeminor,
-+			       skb->len, n);
- 			clear_bit(BIO_UPTODATE, &buf->bio->bi_flags);
- 			break;
- 		}
-@@ -1233,7 +1235,9 @@ noskb:		if (buf)
- 		break;
- 	case ATA_CMD_ID_ATA:
- 		if (skb->len < 512) {
--			pr_info("aoe: runt data size in ataid.  skb->len=%d\n",
-+			pr_info("%s e%ld.%d.  skb->len=%d need=512\n",
-+				"aoe: runt data size in ataid from",
-+				(long) d->aoemajor, d->aoeminor,
- 				skb->len);
- 			break;
- 		}
+diff -puN drivers/block/aoe/aoe.h~aoe-update-internal-version-number-to-81 drivers/block/aoe/aoe.h
+--- a/drivers/block/aoe/aoe.h~aoe-update-internal-version-number-to-81
++++ a/drivers/block/aoe/aoe.h
+@@ -1,6 +1,5 @@
+-
+ /* Copyright (c) 2012 Coraid, Inc.  See COPYING for GPL terms. */
+-#define VERSION "64+"
++#define VERSION "81"
+ #define AOE_MAJOR 152
+ #define DEVICE_NAME "aoe"
+ 
 _
 
 Patches currently in -mm which might be from ecashin@coraid.com are
