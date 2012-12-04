@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + hfsplus-add-error-message-for-the-case-of-failure-of-sync-fs-in-delayed_sync_fs-method.patch added to -mm tree
-Date: Tue, 04 Dec 2012 13:11:59 -0800
-Message-ID: <20121204211159.AD97E8200A0@wpzn4.hot.corp.google.com>
+Subject: + hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix-fix.patch added to -mm tree
+Date: Tue, 04 Dec 2012 13:41:56 -0800
+Message-ID: <20121204214156.AB07982004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:59957 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751943Ab2LDVMA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2012 16:12:00 -0500
-Received: by mail-ye0-f202.google.com with SMTP id l7so544847yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 04 Dec 2012 13:12:00 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:45135 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752767Ab2LDVl6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2012 16:41:58 -0500
+Received: by mail-vb0-f74.google.com with SMTP id s24so428439vbi.1
+        for <mm-commits@vger.kernel.org>; Tue, 04 Dec 2012 13:41:57 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: slava@dubeyko.com, hch@infradead.org, htl10@users.sourceforge.net, viro@zeniv.linux.org.uk
+Cc: slava@dubeyko.com, htl10@users.sourceforge.net
 
 
 The patch titled
-     Subject: hfsplus: add error message for the case of failure of sync fs in delayed_sync_fs() method
+     Subject: hfsplus: make error message in hfsplus_system_write_inode() more compact and detailed
 has been added to the -mm tree.  Its filename is
-     hfsplus-add-error-message-for-the-case-of-failure-of-sync-fs-in-delayed_sync_fs-method.patch
+     hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vyacheslav Dubeyko <slava@dubeyko.com>
-Subject: hfsplus: add error message for the case of failure of sync fs in delayed_sync_fs() method
+Subject: hfsplus: make error message in hfsplus_system_write_inode() more compact and detailed
 
-Add an error message for the case of failure of sync fs in
-delayed_sync_fs() method.
+Join printk and dprint in one printk error message in the case of b-tree
+write error in hfsplus_system_write_inode() method.
 
 Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Hin-Tak Leung <htl10@users.sourceforge.net>
+Acked-by: Hin-Tak Leung <htl10@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/super.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ fs/hfsplus/super.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN fs/hfsplus/super.c~hfsplus-add-error-message-for-the-case-of-failure-of-sync-fs-in-delayed_sync_fs-method fs/hfsplus/super.c
---- a/fs/hfsplus/super.c~hfsplus-add-error-message-for-the-case-of-failure-of-sync-fs-in-delayed_sync_fs-method
+diff -puN fs/hfsplus/super.c~hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix-fix fs/hfsplus/super.c
+--- a/fs/hfsplus/super.c~hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix-fix
 +++ a/fs/hfsplus/super.c
-@@ -242,6 +242,7 @@ out:
- 
- static void delayed_sync_fs(struct work_struct *work)
- {
-+	int err;
- 	struct hfsplus_sb_info *sbi;
- 
- 	sbi = container_of(work, struct hfsplus_sb_info, sync_work.work);
-@@ -250,7 +251,9 @@ static void delayed_sync_fs(struct work_
- 	sbi->work_queued = 0;
- 	spin_unlock(&sbi->work_lock);
- 
--	hfsplus_sync_fs(sbi->alloc_file->i_sb, 1);
-+	err = hfsplus_sync_fs(sbi->alloc_file->i_sb, 1);
-+	if (err)
-+		printk(KERN_ERR "hfs: delayed sync fs err %d\n", err);
- }
- 
- void hfsplus_mark_mdb_dirty(struct super_block *sb)
+@@ -132,10 +132,8 @@ static int hfsplus_system_write_inode(st
+ 	if (tree) {
+ 		int err = hfs_btree_write(tree);
+ 		if (err) {
+-			printk(KERN_ERR "hfs: unable to write b-tree: %d\n",
+-				err);
+-			dprint(DBG_INODE, "hfsplus_system_write_inode: %lu\n",
+-				inode->i_ino);
++			printk(KERN_ERR "hfs: b-tree write err: %d, ino %lu\n",
++					err, inode->i_ino);
+ 			return err;
+ 		}
+ 	}
 _
 
 Patches currently in -mm which might be from slava@dubeyko.com are
@@ -86,5 +78,6 @@ hfsplus-add-support-of-manipulation-by-attributes-file.patch
 hfsplus-rework-processing-errors-in-hfsplus_free_extents.patch
 hfsplus-rework-processing-of-hfs_btree_write-returned-error.patch
 hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix.patch
+hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix-fix.patch
 hfsplus-add-error-message-for-the-case-of-failure-of-sync-fs-in-delayed_sync_fs-method.patch
 
