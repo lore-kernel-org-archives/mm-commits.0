@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + aoe-allow-user-to-disable-target-failure-timeout.patch added to -mm tree
-Date: Tue, 04 Dec 2012 15:48:49 -0800
-Message-ID: <20121204234850.9CB65200059@hpza10.eem.corp.google.com>
+Subject: + aoe-allow-comma-separator-in-aoe_iflist-value.patch added to -mm tree
+Date: Tue, 04 Dec 2012 15:48:53 -0800
+Message-ID: <20121204234854.1E68410004A@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:59625 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751807Ab2LDXsx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2012 18:48:53 -0500
-Received: by mail-wg0-f74.google.com with SMTP id dt14so323554wgb.1
-        for <mm-commits@vger.kernel.org>; Tue, 04 Dec 2012 15:48:51 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:59300 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751807Ab2LDXs4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2012 18:48:56 -0500
+Received: by mail-qc0-f202.google.com with SMTP id s25so556465qcq.1
+        for <mm-commits@vger.kernel.org>; Tue, 04 Dec 2012 15:48:54 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: ecashin@coraid.com, axboe@kernel.dk
 
 
 The patch titled
-     Subject: aoe: allow user to disable target failure timeout
+     Subject: aoe: allow comma separator in aoe_iflist value
 has been added to the -mm tree.  Its filename is
-     aoe-allow-user-to-disable-target-failure-timeout.patch
+     aoe-allow-comma-separator-in-aoe_iflist-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,53 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ed Cashin <ecashin@coraid.com>
-Subject: aoe: allow user to disable target failure timeout
+Subject: aoe: allow comma separator in aoe_iflist value
 
-With this change, the aoe driver treats the value zero as special for the
-aoe_deadsecs module parameter.  Normally, this value specifies the number
-of seconds during which the driver will continue to attempt retransmits to
-an unresponsive AoE target.  After aoe_deadsecs has elapsed, the aoe
-driver marks the aoe device as "down" and fails all I/O.
+By default, the aoe driver uses any ethernet interface for AoE, but the
+aoe_iflist module parameter provides a convenient way to limit AoE traffic
+to a specific list of local network interfaces.
 
-The new meaning of an aoe_deadsecs of zero is for the driver to retransmit
-commands indefinitely.
+This change allows a list to be specified using the comma character as a
+separator.  For example,
+
+  modprobe aoe aoe_iflist=eth2,eth3
+
+Before, it was inconvenient to get the quoting right in shell scripts when
+setting aoe_iflist to have more than one network interface.
 
 Signed-off-by: Ed Cashin <ecashin@coraid.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/aoe/aoe.txt  |    4 +++-
- drivers/block/aoe/aoecmd.c |    4 +++-
- 2 files changed, 6 insertions(+), 2 deletions(-)
+ drivers/block/aoe/aoe.h    |    2 +-
+ drivers/block/aoe/aoenet.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/aoe/aoe.txt~aoe-allow-user-to-disable-target-failure-timeout Documentation/aoe/aoe.txt
---- a/Documentation/aoe/aoe.txt~aoe-allow-user-to-disable-target-failure-timeout
-+++ a/Documentation/aoe/aoe.txt
-@@ -125,7 +125,9 @@ DRIVER OPTIONS
-   The aoe_deadsecs module parameter determines the maximum number of
-   seconds that the driver will wait for an AoE device to provide a
-   response to an AoE command.  After aoe_deadsecs seconds have
--  elapsed, the AoE device will be marked as "down".
-+  elapsed, the AoE device will be marked as "down".  A value of zero
-+  is supported for testing purposes and makes the aoe driver keep
-+  trying AoE commands forever.
+diff -puN drivers/block/aoe/aoe.h~aoe-allow-comma-separator-in-aoe_iflist-value drivers/block/aoe/aoe.h
+--- a/drivers/block/aoe/aoe.h~aoe-allow-comma-separator-in-aoe_iflist-value
++++ a/drivers/block/aoe/aoe.h
+@@ -11,7 +11,7 @@
+ #define AOE_PARTITIONS (16)
+ #endif
  
-   The aoe_maxout module parameter has a default of 128.  This is the
-   maximum number of unresponded packets that will be sent to an AoE
-diff -puN drivers/block/aoe/aoecmd.c~aoe-allow-user-to-disable-target-failure-timeout drivers/block/aoe/aoecmd.c
---- a/drivers/block/aoe/aoecmd.c~aoe-allow-user-to-disable-target-failure-timeout
-+++ a/drivers/block/aoe/aoecmd.c
-@@ -812,7 +812,9 @@ rexmit_timer(ulong vp)
- 		since = tsince_hr(f);
- 		n = f->waited_total + since;
- 		n /= USEC_PER_SEC;
--		if (n > aoe_deadsecs && !(f->flags & FFL_PROBE)) {
-+		if (aoe_deadsecs
-+		&& n > aoe_deadsecs
-+		&& !(f->flags & FFL_PROBE)) {
- 			/* Waited too long.  Device failure.
- 			 * Hang all frames on first hash bucket for downdev
- 			 * to clean up.
+-#define WHITESPACE " \t\v\f\n"
++#define WHITESPACE " \t\v\f\n,"
+ 
+ enum {
+ 	AOECMD_ATA,
+diff -puN drivers/block/aoe/aoenet.c~aoe-allow-comma-separator-in-aoe_iflist-value drivers/block/aoe/aoenet.c
+--- a/drivers/block/aoe/aoenet.c~aoe-allow-comma-separator-in-aoe_iflist-value
++++ a/drivers/block/aoe/aoenet.c
+@@ -31,7 +31,7 @@ enum {
+ 
+ static char aoe_iflist[IFLISTSZ];
+ module_param_string(aoe_iflist, aoe_iflist, IFLISTSZ, 0600);
+-MODULE_PARM_DESC(aoe_iflist, "aoe_iflist=\"dev1 [dev2 ...]\"");
++MODULE_PARM_DESC(aoe_iflist, "aoe_iflist=dev1[,dev2...]");
+ 
+ static wait_queue_head_t txwq;
+ static struct ktstate kts;
 _
 
 Patches currently in -mm which might be from ecashin@coraid.com are
