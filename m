@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + aoe-avoid-races-between-device-destruction-and-discovery.patch added to -mm tree
-Date: Tue, 04 Dec 2012 15:48:41 -0800
-Message-ID: <20121204234842.AB2CE20005C@hpza10.eem.corp.google.com>
+Subject: + aoe-use-dynamic-number-of-remote-ports-for-aoe-storage-target.patch added to -mm tree
+Date: Tue, 04 Dec 2012 15:48:45 -0800
+Message-ID: <20121204234846.A0C65200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f202.google.com ([209.85.215.202]:61656 "EHLO
-	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751807Ab2LDXsp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2012 18:48:45 -0500
-Received: by mail-ea0-f202.google.com with SMTP id j12so322781eaa.1
-        for <mm-commits@vger.kernel.org>; Tue, 04 Dec 2012 15:48:43 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:40931 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751807Ab2LDXss (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Dec 2012 18:48:48 -0500
+Received: by mail-ee0-f74.google.com with SMTP id t10so327373eei.1
+        for <mm-commits@vger.kernel.org>; Tue, 04 Dec 2012 15:48:47 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: ecashin@coraid.com, axboe@kernel.dk
 
 
 The patch titled
-     Subject: aoe: avoid races between device destruction and discovery
+     Subject: aoe: use dynamic number of remote ports for AoE storage target
 has been added to the -mm tree.  Its filename is
-     aoe-avoid-races-between-device-destruction-and-discovery.patch
+     aoe-use-dynamic-number-of-remote-ports-for-aoe-storage-target.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,375 +34,219 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ed Cashin <ecashin@coraid.com>
-Subject: aoe: avoid races between device destruction and discovery
+Subject: aoe: use dynamic number of remote ports for AoE storage target
 
-This change avoids a race that could result in a NULL pointer derference
-following a WARNing from kobject_add_internal, "don't try to register
-things with the same name in the same directory."
+Many AoE targets have four or fewer network ports, but some existing
+storage devices have many, and the AoE protocol sets no limit.
 
-The problem was found with a test that forgets and discovers an
-aoe device in a loop:
-
-  while test ! -r /tmp/stop; do
-	aoe-flush -a
-	aoe-discover
-  done
-
-The race was between aoedev_flush taking aoedevs out of the devlist,
-allowing a new discovery of the same AoE target to take place before the
-driver gets around to calling sysfs_remove_group.  Fixing that one
-revealed another race between do_open and add_disk, and this patch avoids
-that, too.
-
-The fix required some care, because for flushing (forgetting) an aoedev,
-some of the steps must be performed under lock and some must be able to
-sleep.  Also, for discovering a new aoedev, some steps might sleep.
-
-The check for a bad aoedev pointer remains from a time when about half of
-this patch was done, and it was possible for the
-bdev->bd_disk->private_data to become corrupted.  The check should be
-removed eventually, but it is not expected to add significant overhead,
-occurring in the aoeblk_open routine.
+This patch allows the use of more than eight remote MAC addresses per AoE
+target, while reducing the amount of memory used by the aoe driver in
+cases where there are many AoE targets with fewer than eight MAC addresses
+each.
 
 Signed-off-by: Ed Cashin <ecashin@coraid.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoe.h    |    7 +
- drivers/block/aoe/aoeblk.c |   36 +++++++
- drivers/block/aoe/aoedev.c |  166 ++++++++++++++++++++++-------------
- 3 files changed, 146 insertions(+), 63 deletions(-)
+ drivers/block/aoe/aoe.h    |    6 ++--
+ drivers/block/aoe/aoeblk.c |    2 -
+ drivers/block/aoe/aoecmd.c |   50 ++++++++++++++++++++++++-----------
+ drivers/block/aoe/aoedev.c |   12 +++++++-
+ 4 files changed, 49 insertions(+), 21 deletions(-)
 
-diff -puN drivers/block/aoe/aoe.h~aoe-avoid-races-between-device-destruction-and-discovery drivers/block/aoe/aoe.h
---- a/drivers/block/aoe/aoe.h~aoe-avoid-races-between-device-destruction-and-discovery
+diff -puN drivers/block/aoe/aoe.h~aoe-use-dynamic-number-of-remote-ports-for-aoe-storage-target drivers/block/aoe/aoe.h
+--- a/drivers/block/aoe/aoe.h~aoe-use-dynamic-number-of-remote-ports-for-aoe-storage-target
 +++ a/drivers/block/aoe/aoe.h
-@@ -74,8 +74,11 @@ enum {
- 	DEVFL_TKILL = (1<<1),	/* flag for timer to know when to kill self */
- 	DEVFL_EXT = (1<<2),	/* device accepts lba48 commands */
- 	DEVFL_GDALLOC = (1<<3),	/* need to alloc gendisk */
--	DEVFL_KICKME = (1<<4),	/* slow polling network card catch */
--	DEVFL_NEWSIZE = (1<<5),	/* need to update dev size in block layer */
-+	DEVFL_GD_NOW = (1<<4),	/* allocating gendisk */
-+	DEVFL_KICKME = (1<<5),	/* slow polling network card catch */
-+	DEVFL_NEWSIZE = (1<<6),	/* need to update dev size in block layer */
-+	DEVFL_FREEING = (1<<7),	/* set when device is being cleaned up */
-+	DEVFL_FREED = (1<<8),	/* device has been cleaned up */
- };
- 
+@@ -84,7 +84,7 @@ enum {
  enum {
-diff -puN drivers/block/aoe/aoeblk.c~aoe-avoid-races-between-device-destruction-and-discovery drivers/block/aoe/aoeblk.c
---- a/drivers/block/aoe/aoeblk.c~aoe-avoid-races-between-device-destruction-and-discovery
+ 	DEFAULTBCNT = 2 * 512,	/* 2 sectors */
+ 	MIN_BUFS = 16,
+-	NTARGETS = 8,
++	NTARGETS = 4,
+ 	NAOEIFS = 8,
+ 	NSKBPOOLMAX = 256,
+ 	NFACTIVE = 61,
+@@ -185,9 +185,9 @@ struct aoedev {
+ 	ulong maxbcnt;
+ 	struct list_head factive[NFACTIVE];	/* hash of active frames */
+ 	struct list_head rexmitq; /* deferred retransmissions */
+-	struct aoetgt *targets[NTARGETS];
++	struct aoetgt **targets;
++	ulong ntargets;		/* number of allocated aoetgt pointers */
+ 	struct aoetgt **tgt;	/* target in use when working */
+-	ulong ntargets;
+ 	ulong kicked;
+ 	char ident[512];
+ };
+diff -puN drivers/block/aoe/aoeblk.c~aoe-use-dynamic-number-of-remote-ports-for-aoe-storage-target drivers/block/aoe/aoeblk.c
+--- a/drivers/block/aoe/aoeblk.c~aoe-use-dynamic-number-of-remote-ports-for-aoe-storage-target
 +++ a/drivers/block/aoe/aoeblk.c
-@@ -147,9 +147,18 @@ aoeblk_open(struct block_device *bdev, f
- 	struct aoedev *d = bdev->bd_disk->private_data;
- 	ulong flags;
+@@ -67,7 +67,7 @@ static ssize_t aoedisk_show_netif(struct
+ 	nd = nds;
+ 	ne = nd + ARRAY_SIZE(nds);
+ 	t = d->targets;
+-	te = t + NTARGETS;
++	te = t + d->ntargets;
+ 	for (; t < te && *t; t++) {
+ 		ifp = (*t)->ifs;
+ 		e = ifp + NAOEIFS;
+diff -puN drivers/block/aoe/aoecmd.c~aoe-use-dynamic-number-of-remote-ports-for-aoe-storage-target drivers/block/aoe/aoecmd.c
+--- a/drivers/block/aoe/aoecmd.c~aoe-use-dynamic-number-of-remote-ports-for-aoe-storage-target
++++ a/drivers/block/aoe/aoecmd.c
+@@ -242,14 +242,14 @@ newframe(struct aoedev *d)
+ 	int use_tainted;
+ 	int has_untainted;
  
-+	if (!virt_addr_valid(d)) {
-+		pr_crit("aoe: invalid device pointer in %s\n",
-+			__func__);
-+		WARN_ON(1);
-+		return -ENODEV;
-+	}
-+	if (!(d->flags & DEVFL_UP) || d->flags & DEVFL_TKILL)
-+		return -ENODEV;
-+
- 	mutex_lock(&aoeblk_mutex);
- 	spin_lock_irqsave(&d->lock, flags);
--	if (d->flags & DEVFL_UP) {
-+	if (d->flags & DEVFL_UP && !(d->flags & DEVFL_TKILL)) {
- 		d->nopen++;
- 		spin_unlock_irqrestore(&d->lock, flags);
- 		mutex_unlock(&aoeblk_mutex);
-@@ -259,6 +268,18 @@ aoeblk_gdalloc(void *vp)
- 	struct request_queue *q;
- 	enum { KB = 1024, MB = KB * KB, READ_AHEAD = 2 * MB, };
- 	ulong flags;
-+	int late = 0;
-+
-+	spin_lock_irqsave(&d->lock, flags);
-+	if (d->flags & DEVFL_GDALLOC
-+	&& !(d->flags & DEVFL_TKILL)
-+	&& !(d->flags & DEVFL_GD_NOW))
-+		d->flags |= DEVFL_GD_NOW;
-+	else
-+		late = 1;
-+	spin_unlock_irqrestore(&d->lock, flags);
-+	if (late)
-+		return;
- 
- 	gd = alloc_disk(AOE_PARTITIONS);
- 	if (gd == NULL) {
-@@ -282,6 +303,11 @@ aoeblk_gdalloc(void *vp)
+-	if (d->targets[0] == NULL) {	/* shouldn't happen, but I'm paranoid */
++	if (!d->targets || !d->targets[0]) {
+ 		printk(KERN_ERR "aoe: NULL TARGETS!\n");
+ 		return NULL;
  	}
+ 	tt = d->tgt;	/* last used target */
+ 	for (use_tainted = 0, has_untainted = 0;;) {
+ 		tt++;
+-		if (tt >= &d->targets[NTARGETS] || !*tt)
++		if (tt >= &d->targets[d->ntargets] || !*tt)
+ 			tt = d->targets;
+ 		t = *tt;
+ 		if (!t->taint) {
+@@ -1104,7 +1104,7 @@ gettgt(struct aoedev *d, char *addr)
+ 	struct aoetgt **t, **e;
  
- 	spin_lock_irqsave(&d->lock, flags);
-+	WARN_ON(!(d->flags & DEVFL_GD_NOW));
-+	WARN_ON(!(d->flags & DEVFL_GDALLOC));
-+	WARN_ON(d->flags & DEVFL_TKILL);
-+	WARN_ON(d->gd);
-+	WARN_ON(d->flags & DEVFL_UP);
- 	blk_queue_max_hw_sectors(q, BLK_DEF_MAX_SECTORS);
- 	q->backing_dev_info.name = "aoe";
- 	q->backing_dev_info.ra_pages = READ_AHEAD / PAGE_CACHE_SIZE;
-@@ -306,6 +332,11 @@ aoeblk_gdalloc(void *vp)
- 
- 	add_disk(gd);
- 	aoedisk_add_sysfs(d);
-+
-+	spin_lock_irqsave(&d->lock, flags);
-+	WARN_ON(!(d->flags & DEVFL_GD_NOW));
-+	d->flags &= ~DEVFL_GD_NOW;
-+	spin_unlock_irqrestore(&d->lock, flags);
- 	return;
- 
- err_mempool:
-@@ -314,7 +345,8 @@ err_disk:
- 	put_disk(gd);
- err:
- 	spin_lock_irqsave(&d->lock, flags);
--	d->flags &= ~DEVFL_GDALLOC;
-+	d->flags &= ~DEVFL_GD_NOW;
-+	schedule_work(&d->work);
- 	spin_unlock_irqrestore(&d->lock, flags);
- }
- 
-diff -puN drivers/block/aoe/aoedev.c~aoe-avoid-races-between-device-destruction-and-discovery drivers/block/aoe/aoedev.c
---- a/drivers/block/aoe/aoedev.c~aoe-avoid-races-between-device-destruction-and-discovery
-+++ a/drivers/block/aoe/aoedev.c
-@@ -15,7 +15,6 @@
- #include "aoe.h"
- 
- static void dummy_timer(ulong);
--static void aoedev_freedev(struct aoedev *);
- static void freetgt(struct aoedev *d, struct aoetgt *t);
- static void skbpoolfree(struct aoedev *d);
- 
-@@ -236,29 +235,6 @@ aoedev_downdev(struct aoedev *d)
- 		set_capacity(d->gd, 0);
- }
- 
--static void
--aoedev_freedev(struct aoedev *d)
--{
--	struct aoetgt **t, **e;
--
--	cancel_work_sync(&d->work);
--	if (d->gd) {
--		aoedisk_rm_sysfs(d);
--		del_gendisk(d->gd);
--		put_disk(d->gd);
--		blk_cleanup_queue(d->blkq);
--	}
--	t = d->targets;
+ 	t = d->targets;
 -	e = t + NTARGETS;
--	for (; t < e && *t; t++)
--		freetgt(d, *t);
--	if (d->bufpool)
--		mempool_destroy(d->bufpool);
--	skbpoolfree(d);
--	minor_free(d->sysminor);
--	kfree(d);
--}
--
- /* return whether the user asked for this particular
-  * device to be flushed
-  */
-@@ -283,17 +259,62 @@ user_req(char *s, size_t slen, struct ao
- 	return !strncmp(s, p, lim);
++	e = t + d->ntargets;
+ 	for (; t < e && *t; t++)
+ 		if (memcmp((*t)->addr, addr, sizeof((*t)->addr)) == 0)
+ 			return *t;
+@@ -1479,28 +1479,44 @@ aoecmd_ata_id(struct aoedev *d)
+ 	return skb;
  }
  
--int
--aoedev_flush(const char __user *str, size_t cnt)
-+static void
-+freedev(struct aoedev *d)
++static struct aoetgt **
++grow_targets(struct aoedev *d)
 +{
-+	struct aoetgt **t, **e;
-+	int freeing = 0;
-+	unsigned long flags;
++	ulong oldn, newn;
++	struct aoetgt **tt;
 +
-+	spin_lock_irqsave(&d->lock, flags);
-+	if (d->flags & DEVFL_TKILL
-+	&& !(d->flags & DEVFL_FREEING)) {
-+		d->flags |= DEVFL_FREEING;
-+		freeing = 1;
-+	}
-+	spin_unlock_irqrestore(&d->lock, flags);
-+	if (!freeing)
-+		return;
++	oldn = d->ntargets;
++	newn = oldn * 2;
++	tt = kcalloc(newn, sizeof(*d->targets), GFP_ATOMIC);
++	if (!tt)
++		return NULL;
++	memmove(tt, d->targets, sizeof(*d->targets) * oldn);
++	d->tgt = tt + (d->tgt - d->targets);
++	kfree(d->targets);
++	d->targets = tt;
++	d->ntargets = newn;
 +
-+	del_timer_sync(&d->timer);
-+	if (d->gd) {
-+		aoedisk_rm_sysfs(d);
-+		del_gendisk(d->gd);
-+		put_disk(d->gd);
-+		blk_cleanup_queue(d->blkq);
-+	}
-+	t = d->targets;
-+	e = t + NTARGETS;
-+	for (; t < e && *t; t++)
-+		freetgt(d, *t);
-+	if (d->bufpool)
-+		mempool_destroy(d->bufpool);
-+	skbpoolfree(d);
-+	minor_free(d->sysminor);
-+
-+	spin_lock_irqsave(&d->lock, flags);
-+	d->flags |= DEVFL_FREED;
-+	spin_unlock_irqrestore(&d->lock, flags);
++	return &d->targets[oldn];
 +}
 +
-+enum flush_parms {
-+	NOT_EXITING = 0,
-+	EXITING = 1,
-+};
-+
-+static int
-+flush(const char __user *str, size_t cnt, int exiting)
+ static struct aoetgt *
+ addtgt(struct aoedev *d, char *addr, ulong nframes)
  {
- 	ulong flags;
- 	struct aoedev *d, **dd;
--	struct aoedev *rmd = NULL;
- 	char buf[16];
- 	int all = 0;
- 	int specified = 0;	/* flush a specific device */
-+	unsigned int skipflags;
+ 	struct aoetgt *t, **tt, **te;
  
--	if (cnt >= 3) {
-+	skipflags = DEVFL_GDALLOC | DEVFL_NEWSIZE | DEVFL_TKILL;
-+
-+	if (!exiting && cnt >= 3) {
- 		if (cnt > sizeof buf)
- 			cnt = sizeof buf;
- 		if (copy_from_user(buf, str, cnt))
-@@ -303,39 +324,71 @@ aoedev_flush(const char __user *str, siz
- 			specified = 1;
+ 	tt = d->targets;
+-	te = tt + NTARGETS;
++	te = tt + d->ntargets;
+ 	for (; tt < te && *tt; tt++)
+ 		;
+ 
+ 	if (tt == te) {
+-		printk(KERN_INFO
+-			"aoe: device addtgt failure; too many targets\n");
+-		return NULL;
++		tt = grow_targets(d);
++		if (!tt)
++			goto nomem;
  	}
+ 	t = kzalloc(sizeof(*t), GFP_ATOMIC);
+-	if (!t) {
+-		printk(KERN_INFO "aoe: cannot allocate memory to add target\n");
+-		return NULL;
+-	}
+-
+-	d->ntargets++;
++	if (!t)
++		goto nomem;
+ 	t->nframes = nframes;
+ 	t->d = d;
+ 	memcpy(t->addr, addr, sizeof t->addr);
+@@ -1509,6 +1525,10 @@ addtgt(struct aoedev *d, char *addr, ulo
+ 	t->maxout = t->nframes / 2;
+ 	INIT_LIST_HEAD(&t->ffree);
+ 	return *tt = t;
++
++ nomem:
++	pr_info("aoe: cannot allocate memory to add target\n");
++	return NULL;
+ }
  
-+	flush_scheduled_work();
-+	/* pass one: without sleeping, do aoedev_downdev */
- 	spin_lock_irqsave(&devlist_lock, flags);
--	dd = &devlist;
--	while ((d = *dd)) {
-+	for (d = devlist; d; d = d->next) {
- 		spin_lock(&d->lock);
--		if (specified) {
-+		if (exiting) {
-+			/* unconditionally take each device down */
-+		} else if (specified) {
- 			if (!user_req(buf, cnt, d))
--				goto skip;
-+				goto cont;
- 		} else if ((!all && (d->flags & DEVFL_UP))
--		|| (d->flags & (DEVFL_GDALLOC|DEVFL_NEWSIZE))
-+		|| d->flags & skipflags
- 		|| d->nopen
- 		|| d->ref)
--			goto skip;
-+			goto cont;
+ static void
+@@ -1518,7 +1538,7 @@ setdbcnt(struct aoedev *d)
+ 	int bcnt = 0;
  
--		*dd = d->next;
- 		aoedev_downdev(d);
- 		d->flags |= DEVFL_TKILL;
-+cont:
+ 	t = d->targets;
+-	e = t + NTARGETS;
++	e = t + d->ntargets;
+ 	for (; t < e && *t; t++)
+ 		if (bcnt == 0 || bcnt > (*t)->minbcnt)
+ 			bcnt = (*t)->minbcnt;
+@@ -1662,7 +1682,7 @@ aoecmd_cleanslate(struct aoedev *d)
+ 	d->maxbcnt = 0;
+ 
+ 	t = d->targets;
+-	te = t + NTARGETS;
++	te = t + d->ntargets;
+ 	for (; t < te && *t; t++)
+ 		aoecmd_wreset(*t);
+ }
+diff -puN drivers/block/aoe/aoedev.c~aoe-use-dynamic-number-of-remote-ports-for-aoe-storage-target drivers/block/aoe/aoedev.c
+--- a/drivers/block/aoe/aoedev.c~aoe-use-dynamic-number-of-remote-ports-for-aoe-storage-target
++++ a/drivers/block/aoe/aoedev.c
+@@ -214,7 +214,7 @@ aoedev_downdev(struct aoedev *d)
+ 
+ 	/* reset window dressings */
+ 	tt = d->targets;
+-	te = tt + NTARGETS;
++	te = tt + d->ntargets;
+ 	for (; tt < te && (t = *tt); tt++) {
+ 		aoecmd_wreset(t);
+ 		t->nout = 0;
+@@ -284,7 +284,7 @@ freedev(struct aoedev *d)
+ 		blk_cleanup_queue(d->blkq);
+ 	}
+ 	t = d->targets;
+-	e = t + NTARGETS;
++	e = t + d->ntargets;
+ 	for (; t < e && *t; t++)
+ 		freetgt(d, *t);
+ 	if (d->bufpool)
+@@ -376,6 +376,8 @@ restart:
+ 			dd = &d->next;
+ 		}
  		spin_unlock(&d->lock);
--		d->next = rmd;
--		rmd = d;
--		continue;
--skip:
--		spin_unlock(&d->lock);
--		dd = &d->next;
++		if (doomed)
++			kfree(doomed->targets);
+ 		kfree(doomed);
  	}
  	spin_unlock_irqrestore(&devlist_lock, flags);
--	while ((d = rmd)) {
--		rmd = d->next;
--		del_timer_sync(&d->timer);
--		aoedev_freedev(d);	/* must be able to sleep */
-+
-+	/* pass two: call freedev, which might sleep,
-+	 * for aoedevs marked with DEVFL_TKILL
-+	 */
-+restart:
-+	spin_lock_irqsave(&devlist_lock, flags);
-+	for (d = devlist; d; d = d->next) {
-+		spin_lock(&d->lock);
-+		if (d->flags & DEVFL_TKILL
-+		&& !(d->flags & DEVFL_FREEING)) {
-+			spin_unlock(&d->lock);
-+			spin_unlock_irqrestore(&devlist_lock, flags);
-+			freedev(d);
-+			goto restart;
-+		}
-+		spin_unlock(&d->lock);
+@@ -456,6 +458,12 @@ aoedev_by_aoeaddr(ulong maj, int min, in
+ 	d = kcalloc(1, sizeof *d, GFP_ATOMIC);
+ 	if (!d)
+ 		goto out;
++	d->targets = kcalloc(NTARGETS, sizeof(*d->targets), GFP_ATOMIC);
++	if (!d->targets) {
++		kfree(d);
++		goto out;
 +	}
-+
-+	/* pass three: remove aoedevs marked with DEVFL_FREED */
-+	for (dd = &devlist, d = *dd; d; d = *dd) {
-+		struct aoedev *doomed = NULL;
-+
-+		spin_lock(&d->lock);
-+		if (d->flags & DEVFL_FREED) {
-+			*dd = d->next;
-+			doomed = d;
-+		} else {
-+			dd = &d->next;
-+		}
-+		spin_unlock(&d->lock);
-+		kfree(doomed);
- 	}
-+	spin_unlock_irqrestore(&devlist_lock, flags);
-+
- 	return 0;
- }
- 
-+int
-+aoedev_flush(const char __user *str, size_t cnt)
-+{
-+	return flush(str, cnt, NOT_EXITING);
-+}
-+
- /* This has been confirmed to occur once with Tms=3*1000 due to the
-  * driver changing link and not processing its transmit ring.  The
-  * problem is hard enough to solve by returning an error that I'm
-@@ -388,7 +441,14 @@ aoedev_by_aoeaddr(ulong maj, int min, in
- 
- 	for (d=devlist; d; d=d->next)
- 		if (d->aoemajor == maj && d->aoeminor == min) {
-+			spin_lock(&d->lock);
-+			if (d->flags & DEVFL_TKILL) {
-+				spin_unlock(&d->lock);
-+				d = NULL;
-+				goto out;
-+			}
- 			d->ref++;
-+			spin_unlock(&d->lock);
- 			break;
- 		}
- 	if (d || !do_alloc || minor_get(&sysminor, maj, min) < 0)
-@@ -448,21 +508,9 @@ freetgt(struct aoedev *d, struct aoetgt 
- void
- aoedev_exit(void)
- {
--	struct aoedev *d;
--	ulong flags;
--
-+	flush_scheduled_work();
- 	aoe_flush_iocq();
--	while ((d = devlist)) {
--		devlist = d->next;
--
--		spin_lock_irqsave(&d->lock, flags);
--		aoedev_downdev(d);
--		d->flags |= DEVFL_TKILL;
--		spin_unlock_irqrestore(&d->lock, flags);
--
--		del_timer_sync(&d->timer);
--		aoedev_freedev(d);
--	}
-+	flush(NULL, 0, EXITING);
- }
- 
- int __init
++	d->ntargets = NTARGETS;
+ 	INIT_WORK(&d->work, aoecmd_sleepwork);
+ 	spin_lock_init(&d->lock);
+ 	skb_queue_head_init(&d->skbpool);
 _
 
 Patches currently in -mm which might be from ecashin@coraid.com are
