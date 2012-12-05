@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + tmpfs-fix-shared-mempolicy-leak.patch added to -mm tree
-Date: Wed, 05 Dec 2012 14:53:42 -0800
-Message-ID: <20121205225343.27501200057@hpza10.eem.corp.google.com>
+Subject: + mm-mempolicy-introduce-spinlock-to-read-shared-policy-tree.patch added to -mm tree
+Date: Wed, 05 Dec 2012 14:58:53 -0800
+Message-ID: <20121205225854.3D5E5200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:43280 "EHLO
+Received: from mail-we0-f202.google.com ([74.125.82.202]:58337 "EHLO
 	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751930Ab2LEWxq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Dec 2012 17:53:46 -0500
-Received: by mail-we0-f202.google.com with SMTP id t57so400014wey.1
-        for <mm-commits@vger.kernel.org>; Wed, 05 Dec 2012 14:53:44 -0800 (PST)
+	with ESMTP id S1754440Ab2LEW64 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Dec 2012 17:58:56 -0500
+Received: by mail-we0-f202.google.com with SMTP id t57so400194wey.1
+        for <mm-commits@vger.kernel.org>; Wed, 05 Dec 2012 14:58:55 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mgorman@suse.de, hughd@google.com, stable@vger.kernel.org, tt.rantala@gmail.com
+Cc: a.p.zijlstra@chello.nl, levinsasha928@gmail.com, mingo@elte.hu, rientjes@google.com
 
 
 The patch titled
-     Subject: tmpfs: fix shared mempolicy leak
+     Subject: mm, mempolicy: introduce spinlock to read shared policy tree
 has been added to the -mm tree.  Its filename is
-     tmpfs-fix-shared-mempolicy-leak.patch
+     mm-mempolicy-introduce-spinlock-to-read-shared-policy-tree.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,180 +33,149 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: tmpfs: fix shared mempolicy leak
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: mm, mempolicy: introduce spinlock to read shared policy tree
 
-This fixes a regression in 3.7-rc, which has since gone into stable.
+Sasha was fuzzing with trinity and reported the following problem:
 
-Commit 00442ad04a5e ("mempolicy: fix a memory corruption by refcount
-imbalance in alloc_pages_vma()") changed get_vma_policy() to raise the
-refcount on a shmem shared mempolicy; whereas shmem_alloc_page() went on
-expecting alloc_page_vma() to drop the refcount it had acquired.  This
-deserves a rework: but for now fix the leak in shmem_alloc_page().
+BUG: sleeping function called from invalid context at kernel/mutex.c:269
+in_atomic(): 1, irqs_disabled(): 0, pid: 6361, name: trinity-main
+2 locks held by trinity-main/6361:
+ #0:  (&mm->mmap_sem){++++++}, at: [<ffffffff810aa314>] __do_page_fault+0x1e4/0x4f0
+ #1:  (&(&mm->page_table_lock)->rlock){+.+...}, at: [<ffffffff8122f017>] handle_pte_fault+0x3f7/0x6a0
+Pid: 6361, comm: trinity-main Tainted: G        W 3.7.0-rc2-next-20121024-sasha-00001-gd95ef01-dirty #74
+Call Trace:
+ [<ffffffff8114e393>] __might_sleep+0x1c3/0x1e0
+ [<ffffffff83ae5209>] mutex_lock_nested+0x29/0x50
+ [<ffffffff8124fc3e>] mpol_shared_policy_lookup+0x2e/0x90
+ [<ffffffff81219ebe>] shmem_get_policy+0x2e/0x30
+ [<ffffffff8124e99a>] get_vma_policy+0x5a/0xa0
+ [<ffffffff8124fce1>] mpol_misplaced+0x41/0x1d0
+ [<ffffffff8122f085>] handle_pte_fault+0x465/0x6a0
 
-Hugh: shmem_swapin() did not need a fix, but surely it's clearer to use
-the same refcounting there as in shmem_alloc_page(), delete its onstack
-mempolicy, and the strange mpol_cond_copy() and __mpol_cond_copy() - those
-were invented to let swapin_readahead() make an unknown number of calls to
-alloc_pages_vma() with one mempolicy; but since 00442ad04a5e,
-alloc_pages_vma() has kept refcount in balance, so now no problem.
+do_numa_page() calls the new mpol_misplaced() function introduced by
+"sched, numa, mm: Add the scanning page fault machinery" in the page fault
+patch while holding mm->page_table_lock and then
+mpol_shared_policy_lookup() ends up trying to take the shared policy
+mutex.
 
-Reported-and-tested-by: Tommi Rantala <tt.rantala@gmail.com>
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Tested-by: Tommi Rantala <tt.rantala@gmail.com>
-Cc: <stable@vger.kernel.org>
+The fix is to protect the shared policy tree with both a spinlock and
+mutex; both must be held to modify the tree, but only one is required to
+read the tree.  This allows sp_lookup() to grab the spinlock for read.
+
+[rientjes@google.com: wrote changelog]
+Reported-by: Sasha Levin <levinsasha928@gmail.com>
+Tested-by: Sasha Levin <levinsasha928@gmail.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempolicy.h |   16 ----------------
- mm/mempolicy.c            |   22 ----------------------
- mm/shmem.c                |   26 ++++++++++++++++----------
- 3 files changed, 16 insertions(+), 48 deletions(-)
+ include/linux/mempolicy.h |    1 +
+ mm/mempolicy.c            |   23 ++++++++++++++++++-----
+ 2 files changed, 19 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/mempolicy.h~tmpfs-fix-shared-mempolicy-leak include/linux/mempolicy.h
---- a/include/linux/mempolicy.h~tmpfs-fix-shared-mempolicy-leak
+diff -puN include/linux/mempolicy.h~mm-mempolicy-introduce-spinlock-to-read-shared-policy-tree include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~mm-mempolicy-introduce-spinlock-to-read-shared-policy-tree
 +++ a/include/linux/mempolicy.h
-@@ -82,16 +82,6 @@ static inline void mpol_cond_put(struct 
- 		__mpol_put(pol);
- }
+@@ -123,6 +123,7 @@ struct sp_node {
  
--extern struct mempolicy *__mpol_cond_copy(struct mempolicy *tompol,
--					  struct mempolicy *frompol);
--static inline struct mempolicy *mpol_cond_copy(struct mempolicy *tompol,
--						struct mempolicy *frompol)
--{
--	if (!frompol)
--		return frompol;
--	return __mpol_cond_copy(tompol, frompol);
--}
--
- extern struct mempolicy *__mpol_dup(struct mempolicy *pol);
- static inline struct mempolicy *mpol_dup(struct mempolicy *pol)
- {
-@@ -215,12 +205,6 @@ static inline void mpol_cond_put(struct 
- {
- }
+ struct shared_policy {
+ 	struct rb_root root;
++	spinlock_t lock;
+ 	struct mutex mutex;
+ };
  
--static inline struct mempolicy *mpol_cond_copy(struct mempolicy *to,
--						struct mempolicy *from)
--{
--	return from;
--}
--
- static inline void mpol_get(struct mempolicy *pol)
- {
- }
-diff -puN mm/mempolicy.c~tmpfs-fix-shared-mempolicy-leak mm/mempolicy.c
---- a/mm/mempolicy.c~tmpfs-fix-shared-mempolicy-leak
+diff -puN mm/mempolicy.c~mm-mempolicy-introduce-spinlock-to-read-shared-policy-tree mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicy-introduce-spinlock-to-read-shared-policy-tree
 +++ a/mm/mempolicy.c
-@@ -2037,28 +2037,6 @@ struct mempolicy *__mpol_dup(struct memp
- 	return new;
+@@ -2086,12 +2086,20 @@ bool __mpol_equal(struct mempolicy *a, s
+  *
+  * Remember policies even when nobody has shared memory mapped.
+  * The policies are kept in Red-Black tree linked from the inode.
+- * They are protected by the sp->lock spinlock, which should be held
+- * for any accesses to the tree.
++ *
++ * The rb-tree is locked using both a mutex and a spinlock. Every modification
++ * to the tree must hold both the mutex and the spinlock, lookups can hold
++ * either to observe a stable tree.
++ *
++ * In particular, sp_insert() and sp_delete() take the spinlock, whereas
++ * sp_lookup() doesn't, this so users have choice.
++ *
++ * shared_policy_replace() and mpol_free_shared_policy() take the mutex
++ * and call sp_insert(), sp_delete().
+  */
+ 
+ /* lookup first element intersecting start-end */
+-/* Caller holds sp->mutex */
++/* Caller holds either sp->lock and/or sp->mutex */
+ static struct sp_node *
+ sp_lookup(struct shared_policy *sp, unsigned long start, unsigned long end)
+ {
+@@ -2130,6 +2138,7 @@ static void sp_insert(struct shared_poli
+ 	struct rb_node *parent = NULL;
+ 	struct sp_node *nd;
+ 
++	spin_lock(&sp->lock);
+ 	while (*p) {
+ 		parent = *p;
+ 		nd = rb_entry(parent, struct sp_node, nd);
+@@ -2142,6 +2151,7 @@ static void sp_insert(struct shared_poli
+ 	}
+ 	rb_link_node(&new->nd, parent, p);
+ 	rb_insert_color(&new->nd, &sp->root);
++	spin_unlock(&sp->lock);
+ 	pr_debug("inserting %lx-%lx: %d\n", new->start, new->end,
+ 		 new->policy ? new->policy->mode : 0);
+ }
+@@ -2155,13 +2165,13 @@ mpol_shared_policy_lookup(struct shared_
+ 
+ 	if (!sp->root.rb_node)
+ 		return NULL;
+-	mutex_lock(&sp->mutex);
++	spin_lock(&sp->lock);
+ 	sn = sp_lookup(sp, idx, idx+1);
+ 	if (sn) {
+ 		mpol_get(sn->policy);
+ 		pol = sn->policy;
+ 	}
+-	mutex_unlock(&sp->mutex);
++	spin_unlock(&sp->lock);
+ 	return pol;
  }
  
--/*
-- * If *frompol needs [has] an extra ref, copy *frompol to *tompol ,
-- * eliminate the * MPOL_F_* flags that require conditional ref and
-- * [NOTE!!!] drop the extra ref.  Not safe to reference *frompol directly
-- * after return.  Use the returned value.
-- *
-- * Allows use of a mempolicy for, e.g., multiple allocations with a single
-- * policy lookup, even if the policy needs/has extra ref on lookup.
-- * shmem_readahead needs this.
-- */
--struct mempolicy *__mpol_cond_copy(struct mempolicy *tompol,
--						struct mempolicy *frompol)
--{
--	if (!mpol_needs_cond_ref(frompol))
--		return frompol;
--
--	*tompol = *frompol;
--	tompol->flags &= ~MPOL_F_SHARED;	/* copy doesn't need unref */
--	__mpol_put(frompol);
--	return tompol;
--}
--
- /* Slow path of a mempolicy comparison */
- bool __mpol_equal(struct mempolicy *a, struct mempolicy *b)
+@@ -2319,8 +2329,10 @@ out_keep_page:
+ static void sp_delete(struct shared_policy *sp, struct sp_node *n)
  {
-diff -puN mm/shmem.c~tmpfs-fix-shared-mempolicy-leak mm/shmem.c
---- a/mm/shmem.c~tmpfs-fix-shared-mempolicy-leak
-+++ a/mm/shmem.c
-@@ -910,25 +910,29 @@ static struct mempolicy *shmem_get_sbmpo
- static struct page *shmem_swapin(swp_entry_t swap, gfp_t gfp,
- 			struct shmem_inode_info *info, pgoff_t index)
- {
--	struct mempolicy mpol, *spol;
- 	struct vm_area_struct pvma;
--
--	spol = mpol_cond_copy(&mpol,
--			mpol_shared_policy_lookup(&info->policy, index));
-+	struct page *page;
- 
- 	/* Create a pseudo vma that just contains the policy */
- 	pvma.vm_start = 0;
- 	/* Bias interleave by inode number to distribute better across nodes */
- 	pvma.vm_pgoff = index + info->vfs_inode.i_ino;
- 	pvma.vm_ops = NULL;
--	pvma.vm_policy = spol;
--	return swapin_readahead(swap, gfp, &pvma, 0);
-+	pvma.vm_policy = mpol_shared_policy_lookup(&info->policy, index);
-+
-+	page = swapin_readahead(swap, gfp, &pvma, 0);
-+
-+	/* Drop reference taken by mpol_shared_policy_lookup() */
-+	mpol_cond_put(pvma.vm_policy);
-+
-+	return page;
+ 	pr_debug("deleting %lx-l%lx\n", n->start, n->end);
++	spin_lock(&sp->lock);
+ 	rb_erase(&n->nd, &sp->root);
+ 	sp_free(n);
++	spin_unlock(&sp->lock);
  }
  
- static struct page *shmem_alloc_page(gfp_t gfp,
- 			struct shmem_inode_info *info, pgoff_t index)
- {
- 	struct vm_area_struct pvma;
-+	struct page *page;
+ static struct sp_node *sp_alloc(unsigned long start, unsigned long end,
+@@ -2405,6 +2417,7 @@ void mpol_shared_policy_init(struct shar
+ 	int ret;
  
- 	/* Create a pseudo vma that just contains the policy */
- 	pvma.vm_start = 0;
-@@ -937,10 +941,12 @@ static struct page *shmem_alloc_page(gfp
- 	pvma.vm_ops = NULL;
- 	pvma.vm_policy = mpol_shared_policy_lookup(&info->policy, index);
+ 	sp->root = RB_ROOT;		/* empty tree == default mempolicy */
++	spin_lock_init(&sp->lock);
+ 	mutex_init(&sp->mutex);
  
--	/*
--	 * alloc_page_vma() will drop the shared policy reference
--	 */
--	return alloc_page_vma(gfp, &pvma, 0);
-+	page = alloc_page_vma(gfp, &pvma, 0);
-+
-+	/* Drop reference taken by mpol_shared_policy_lookup() */
-+	mpol_cond_put(pvma.vm_policy);
-+
-+	return page;
- }
- #else /* !CONFIG_NUMA */
- #ifdef CONFIG_TMPFS
+ 	if (mpol) {
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
-tmpfs-fix-shared-mempolicy-leak.patch
 linux-next.patch
-memory_hotplug-fix-possible-incorrect-node_states.patch
-slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
-mm-add-comment-on-storage-key-dirty-bit-semantics.patch
-mm-refactor-reinsert-of-swap_info-in-sys_swapoff.patch
-mm-do-not-call-frontswap_init-during-swapoff.patch
-mm-memmap_init_zone-performance-improvement.patch
-mm-allocate-kernel-pages-to-the-right-memcg.patch
-mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory.patch
-memory_hotplug-handle-empty-zone-when-online_movable-online_kernel.patch
-memory_hotplug-ensure-every-online-node-has-normal-memory.patch
-mm-compaction-fix-compiler-warning.patch
-mm-add-a-reminder-comment-for-__gfp_bits_shift.patch
-numa-add-config_movable_node-for-movable-dedicated-node.patch
-numa-add-config_movable_node-for-movable-dedicated-node-fix.patch
-memory_hotplug-allow-online-offline-memory-to-result-movable-node.patch
-mm-introduce-new-field-managed_pages-to-struct-zone.patch
-mm-provide-more-accurate-estimation-of-pages-occupied-by-memmap.patch
-mm-provide-more-accurate-estimation-of-pages-occupied-by-memmap-fix.patch
+mm-mempolicy-introduce-spinlock-to-read-shared-policy-tree.patch
+mm-highmem-use-pkmap_nr-to-calculate-an-index-of-pkmap.patch
+mm-highmem-remove-useless-pool_lock.patch
+mm-highmem-remove-page_address_pool-list.patch
+mm-highmem-remove-page_address_pool-list-v2.patch
+mm-highmem-get-virtual-address-of-the-page-using-pkmap_addr.patch
+procfs-add-vmflags-field-in-smaps-output-v4.patch
+procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
+ipc-semc-alternatives-to-preempt_disable.patch
 
