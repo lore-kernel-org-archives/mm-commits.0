@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + hwpoison-hugetlbfs-fix-warning-on-freeing-hwpoisoned-hugepage.patch added to -mm tree
-Date: Thu, 06 Dec 2012 14:40:15 -0800
-Message-ID: <20121206224016.CC3FF20004E@hpza10.eem.corp.google.com>
+Subject: + hwpoison-hugetlbfs-fix-rss-counter-warning.patch added to -mm tree
+Date: Thu, 06 Dec 2012 14:40:24 -0800
+Message-ID: <20121206224025.13C8B100048@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:37130 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751128Ab2LFWkU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Dec 2012 17:40:20 -0500
-Received: by mail-bk0-f74.google.com with SMTP id je9so474400bkc.1
-        for <mm-commits@vger.kernel.org>; Thu, 06 Dec 2012 14:40:18 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:33106 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754077Ab2LFWk0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Dec 2012 17:40:26 -0500
+Received: by mail-vb0-f74.google.com with SMTP id s24so700796vbi.1
+        for <mm-commits@vger.kernel.org>; Thu, 06 Dec 2012 14:40:25 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: n-horiguchi@ah.jp.nec.com, andi.kleen@intel.com, aneesh.kumar@linux.vnet.ibm
 
 
 The patch titled
-     Subject: hwpoison, hugetlbfs: fix warning on freeing hwpoisoned hugepage
+     Subject: hwpoison, hugetlbfs: fix RSS-counter warning
 has been added to the -mm tree.  Its filename is
-     hwpoison-hugetlbfs-fix-warning-on-freeing-hwpoisoned-hugepage.patch
+     hwpoison-hugetlbfs-fix-rss-counter-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,17 +34,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: hwpoison, hugetlbfs: fix warning on freeing hwpoisoned hugepage
+Subject: hwpoison, hugetlbfs: fix RSS-counter warning
 
-Fix the warning from __list_del_entry() which is triggered when a process
-tries to do free_huge_page() for a hwpoisoned hugepage.
-
-Originally, page->lru of hugetlbfs head page was dangling when the
-hugepage was in use.  This behavior has changed by commit 0edaecfab218d7
-("hugetlb: add a list for tracking in-use HugeTLB pages"), where hugepages
-in use are linked to hugepage_activelist.  HWpoisoned hugepages should not
-be charged to any process, so we introduce another list to link hwpoisoned
-hugepages.
+Memory error handling on hugepages can break a RSS counter, which emits a
+message like "Bad rss-counter state mm:ffff88040abecac0 idx:1 val:-1". 
+This is because PageAnon returns true for hugepage (this behavior is
+necessary for reverse mapping to work on hugetlbfs).
 
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Andi Kleen <andi.kleen@intel.com>
@@ -54,43 +49,23 @@ Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    3 +++
- mm/hugetlb.c            |    3 ++-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ mm/rmap.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/hugetlb.h~hwpoison-hugetlbfs-fix-warning-on-freeing-hwpoisoned-hugepage include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hwpoison-hugetlbfs-fix-warning-on-freeing-hwpoisoned-hugepage
-+++ a/include/linux/hugetlb.h
-@@ -237,6 +237,9 @@ struct hstate {
- 	unsigned long nr_overcommit_huge_pages;
- 	struct list_head hugepage_activelist;
- 	struct list_head hugepage_freelists[MAX_NUMNODES];
-+#ifdef CONFIG_MEMORY_FAILURE
-+	struct list_head hugepage_hwpoisonedlist;
-+#endif
- 	unsigned int nr_huge_pages_node[MAX_NUMNODES];
- 	unsigned int free_huge_pages_node[MAX_NUMNODES];
- 	unsigned int surplus_huge_pages_node[MAX_NUMNODES];
-diff -puN mm/hugetlb.c~hwpoison-hugetlbfs-fix-warning-on-freeing-hwpoisoned-hugepage mm/hugetlb.c
---- a/mm/hugetlb.c~hwpoison-hugetlbfs-fix-warning-on-freeing-hwpoisoned-hugepage
-+++ a/mm/hugetlb.c
-@@ -1939,6 +1939,7 @@ void __init hugetlb_add_hstate(unsigned 
- 	for (i = 0; i < MAX_NUMNODES; ++i)
- 		INIT_LIST_HEAD(&h->hugepage_freelists[i]);
- 	INIT_LIST_HEAD(&h->hugepage_activelist);
-+	INIT_LIST_HEAD(&h->hugepage_hwpoisonedlist);
- 	h->next_nid_to_alloc = first_node(node_states[N_MEMORY]);
- 	h->next_nid_to_free = first_node(node_states[N_MEMORY]);
- 	snprintf(h->name, HSTATE_NAME_LEN, "hugepages-%lukB",
-@@ -3176,7 +3177,7 @@ int dequeue_hwpoisoned_huge_page(struct 
+diff -puN mm/rmap.c~hwpoison-hugetlbfs-fix-rss-counter-warning mm/rmap.c
+--- a/mm/rmap.c~hwpoison-hugetlbfs-fix-rss-counter-warning
++++ a/mm/rmap.c
+@@ -1249,7 +1249,9 @@ int try_to_unmap_one(struct page *page, 
+ 	update_hiwater_rss(mm);
  
- 	spin_lock(&hugetlb_lock);
- 	if (is_hugepage_on_freelist(hpage)) {
--		list_del(&hpage->lru);
-+		list_move(&hpage->lru, &h->hugepage_hwpoisonedlist);
- 		set_page_refcounted(hpage);
- 		h->free_huge_pages--;
- 		h->free_huge_pages_node[nid]--;
+ 	if (PageHWPoison(page) && !(flags & TTU_IGNORE_HWPOISON)) {
+-		if (PageAnon(page))
++		if (PageHuge(page))
++			;
++		else if (PageAnon(page))
+ 			dec_mm_counter(mm, MM_ANONPAGES);
+ 		else
+ 			dec_mm_counter(mm, MM_FILEPAGES);
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
