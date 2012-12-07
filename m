@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + hwpoison-hugetlbfs-fix-warning-on-freeing-hwpoisoned-hugepage.patch added to -mm tree
-Date: Fri, 07 Dec 2012 14:29:26 -0800
-Message-ID: <20121207222927.65D50100047@wpzn3.hot.corp.google.com>
+Subject: + aoe-fix-use-after-free-in-aoedev_by_aoeaddr.patch added to -mm tree
+Date: Fri, 07 Dec 2012 15:36:05 -0800
+Message-ID: <20121207233606.B599782004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:34242 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751693Ab2LGW33 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2012 17:29:29 -0500
-Received: by mail-qa0-f74.google.com with SMTP id r4so118187qaq.1
-        for <mm-commits@vger.kernel.org>; Fri, 07 Dec 2012 14:29:28 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:62529 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753921Ab2LGXgN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2012 18:36:13 -0500
+Received: by mail-qc0-f202.google.com with SMTP id s25so110608qcq.1
+        for <mm-commits@vger.kernel.org>; Fri, 07 Dec 2012 15:36:13 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: n-horiguchi@ah.jp.nec.com, andi.kleen@intel.com, aneesh.kumar@linux.vnet.ibm.com, fengguang.wu@intel.com, tony.luck@intel.com
+Cc: dan.carpenter@oracle.com, ecashin@coraid.com
 
 
 The patch titled
-     Subject: mm/hugetlb.c: fix warning on freeing hwpoisoned hugepage
+     Subject: aoe: fix use after free in aoedev_by_aoeaddr()
 has been added to the -mm tree.  Its filename is
-     hwpoison-hugetlbfs-fix-warning-on-freeing-hwpoisoned-hugepage.patch
+     aoe-fix-use-after-free-in-aoedev_by_aoeaddr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +33,36 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm/hugetlb.c: fix warning on freeing hwpoisoned hugepage
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: aoe: fix use after free in aoedev_by_aoeaddr()
 
-Fix the warning from __list_del_entry() which is triggered when a process
-tries to do free_huge_page() for a hwpoisoned hugepage.
+We should return NULL on failure instead of returning a freed pointer.
 
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Andi Kleen <andi.kleen@intel.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Ed Cashin <ecashin@coraid.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ drivers/block/aoe/aoedev.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/hugetlb.c~hwpoison-hugetlbfs-fix-warning-on-freeing-hwpoisoned-hugepage mm/hugetlb.c
---- a/mm/hugetlb.c~hwpoison-hugetlbfs-fix-warning-on-freeing-hwpoisoned-hugepage
-+++ a/mm/hugetlb.c
-@@ -3178,7 +3178,13 @@ int dequeue_hwpoisoned_huge_page(struct 
- 
- 	spin_lock(&hugetlb_lock);
- 	if (is_hugepage_on_freelist(hpage)) {
--		list_del(&hpage->lru);
-+		/*
-+		 * Hwpoisoned hugepage isn't linked to activelist or freelist,
-+		 * but dangling hpage->lru can trigger list-debug warnings
-+		 * (this happens when we call unpoison_memory() on it),
-+		 * so let it point to itself with list_del_init().
-+		 */
-+		list_del_init(&hpage->lru);
- 		set_page_refcounted(hpage);
- 		h->free_huge_pages--;
- 		h->free_huge_pages_node[nid]--;
+diff -puN drivers/block/aoe/aoedev.c~aoe-fix-use-after-free-in-aoedev_by_aoeaddr drivers/block/aoe/aoedev.c
+--- a/drivers/block/aoe/aoedev.c~aoe-fix-use-after-free-in-aoedev_by_aoeaddr
++++ a/drivers/block/aoe/aoedev.c
+@@ -461,6 +461,7 @@ aoedev_by_aoeaddr(ulong maj, int min, in
+ 	d->targets = kcalloc(NTARGETS, sizeof(*d->targets), GFP_ATOMIC);
+ 	if (!d->targets) {
+ 		kfree(d);
++		d = NULL;
+ 		goto out;
+ 	}
+ 	d->ntargets = NTARGETS;
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
-hwpoison-fix-action_result-to-print-out-dirty-clean.patch
-mm-print-out-information-of-file-affected-by-memory-error.patch
-hwpoison-hugetlbfs-fix-bad-pmd-warning-in-unmapping-hwpoisoned-hugepage.patch
-hwpoison-hugetlbfs-fix-rss-counter-warning.patch
-hwpoison-hugetlbfs-fix-rss-counter-warning-fix.patch
-hwpoison-hugetlbfs-fix-rss-counter-warning-fix-fix.patch
-hwpoison-hugetlbfs-fix-warning-on-freeing-hwpoisoned-hugepage.patch
+origin.patch
+linux-next.patch
+aoe-print-warning-regarding-a-common-reason-for-dropped-transmits-fix.patch
+aoe-fix-use-after-free-in-aoedev_by_aoeaddr.patch
 
