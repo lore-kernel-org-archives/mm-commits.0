@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + asm-generic-mm-pgtable-consolidate-zero-page-helpers.patch added to -mm tree
-Date: Fri, 07 Dec 2012 12:43:59 -0800
-Message-ID: <20121207204359.A907682004A@wpzn4.hot.corp.google.com>
+Subject: + fs-fanotify-add-mflags-field-to-fanotify-output.patch added to -mm tree
+Date: Fri, 07 Dec 2012 13:05:16 -0800
+Message-ID: <20121207210517.CE5F3200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:39843 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1424123Ab2LGUoA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2012 15:44:00 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so94249vcd.1
-        for <mm-commits@vger.kernel.org>; Fri, 07 Dec 2012 12:44:00 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:44837 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1424337Ab2LGVFW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2012 16:05:22 -0500
+Received: by mail-ee0-f74.google.com with SMTP id t10so58625eei.1
+        for <mm-commits@vger.kernel.org>; Fri, 07 Dec 2012 13:05:20 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kirill.shutemov@linux.intel.com
+Cc: gorcunov@openvz.org, adobriyan@gmail.com, aneesh.kumar@linux.vnet.ibm.com, avagin@openvz.org, bfields@fieldses.org, jbottomley@parallels.com, matt.helsley@gmail.com, oleg@redhat.com, tvrtko.ursulin@onelan.co.uk, viro@ZenIV.linux.org.uk, xemul@parallels.com
 
 
 The patch titled
-     Subject: asm-generic, mm: pgtable: consolidate zero page helpers
+     Subject: fs, fanotify: add @mflags field to fanotify output
 has been added to the -mm tree.  Its filename is
-     asm-generic-mm-pgtable-consolidate-zero-page-helpers.patch
+     fs-fanotify-add-mflags-field-to-fanotify-output.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,169 +33,105 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: asm-generic, mm: pgtable: consolidate zero page helpers
+From: Cyrill Gorcunov <gorcunov@openvz.org>
+Subject: fs, fanotify: add @mflags field to fanotify output
 
-We have two different implementation of is_zero_pfn() and my_zero_pfn()
-helpers: for architectures with and without zero page coloring.
+The kernel keeps FAN_MARK_IGNORED_SURV_MODIFY bit separately from
+fsnotify_mark::mask|ignored_mask thus put it in @mflags (mark flags) field
+so the user-space reader will be able to detect if such bit were used on
+mark creation procedure.
 
-Let's consolidate them in <asm-generic/pgtable.h>.
+ | pos:	0
+ | flags:	04002
+ | fanotify flags:10 event-flags:0
+ | fanotify mnt_id:12 mflags:40 mask:38 ignored_mask:40000003
+ | fanotify ino:4f969 sdev:800013 mflags:0 mask:3b ignored_mask:40000000 fhandle-bytes:8 fhandle-type:1 f_handle:69f90400c275b5b4
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Andrey Vagin <avagin@openvz.org>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: James Bottomley <jbottomley@parallels.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Matthew Helsley <matt.helsley@gmail.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Tvrtko Ursulin <tvrtko.ursulin@onelan.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/pgtable.h |   11 +----------
- arch/s390/include/asm/pgtable.h |   11 +----------
- include/asm-generic/pgtable.h   |   26 ++++++++++++++++++++++++++
- include/linux/mm.h              |    8 --------
- mm/memory.c                     |    7 -------
- 5 files changed, 28 insertions(+), 35 deletions(-)
+ fs/notify/fdinfo.c |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN arch/mips/include/asm/pgtable.h~asm-generic-mm-pgtable-consolidate-zero-page-helpers arch/mips/include/asm/pgtable.h
---- a/arch/mips/include/asm/pgtable.h~asm-generic-mm-pgtable-consolidate-zero-page-helpers
-+++ a/arch/mips/include/asm/pgtable.h
-@@ -77,16 +77,7 @@ extern unsigned long zero_page_mask;
+diff -puN fs/notify/fdinfo.c~fs-fanotify-add-mflags-field-to-fanotify-output fs/notify/fdinfo.c
+--- a/fs/notify/fdinfo.c~fs-fanotify-add-mflags-field-to-fanotify-output
++++ a/fs/notify/fdinfo.c
+@@ -111,29 +111,33 @@ int inotify_show_fdinfo(struct seq_file 
  
- #define ZERO_PAGE(vaddr) \
- 	(virt_to_page((void *)(empty_zero_page + (((unsigned long)(vaddr)) & zero_page_mask))))
--
--#define is_zero_pfn is_zero_pfn
--static inline int is_zero_pfn(unsigned long pfn)
--{
--	extern unsigned long zero_pfn;
--	unsigned long offset_from_zero_pfn = pfn - zero_pfn;
--	return offset_from_zero_pfn <= (zero_page_mask >> PAGE_SHIFT);
--}
--
--#define my_zero_pfn(addr)	page_to_pfn(ZERO_PAGE(addr))
-+#define __HAVE_COLOR_ZERO_PAGE
+ static int fanotify_fdinfo(struct seq_file *m, struct fsnotify_mark *mark)
+ {
++	unsigned int mflags = 0;
+ 	struct inode *inode;
+ 	int ret = 0;
  
- extern void paging_init(void);
+ 	if (!(mark->flags & FSNOTIFY_MARK_FLAG_ALIVE))
+ 		return 0;
  
-diff -puN arch/s390/include/asm/pgtable.h~asm-generic-mm-pgtable-consolidate-zero-page-helpers arch/s390/include/asm/pgtable.h
---- a/arch/s390/include/asm/pgtable.h~asm-generic-mm-pgtable-consolidate-zero-page-helpers
-+++ a/arch/s390/include/asm/pgtable.h
-@@ -54,16 +54,7 @@ extern unsigned long zero_page_mask;
- #define ZERO_PAGE(vaddr) \
- 	(virt_to_page((void *)(empty_zero_page + \
- 	 (((unsigned long)(vaddr)) &zero_page_mask))))
--
--#define is_zero_pfn is_zero_pfn
--static inline int is_zero_pfn(unsigned long pfn)
--{
--	extern unsigned long zero_pfn;
--	unsigned long offset_from_zero_pfn = pfn - zero_pfn;
--	return offset_from_zero_pfn <= (zero_page_mask >> PAGE_SHIFT);
--}
--
--#define my_zero_pfn(addr)	page_to_pfn(ZERO_PAGE(addr))
-+#define __HAVE_COLOR_ZERO_PAGE
- 
- #endif /* !__ASSEMBLY__ */
- 
-diff -puN include/asm-generic/pgtable.h~asm-generic-mm-pgtable-consolidate-zero-page-helpers include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~asm-generic-mm-pgtable-consolidate-zero-page-helpers
-+++ a/include/asm-generic/pgtable.h
-@@ -453,6 +453,32 @@ extern void untrack_pfn(struct vm_area_s
- 			unsigned long size);
- #endif
- 
-+#ifdef __HAVE_COLOR_ZERO_PAGE
-+static inline int is_zero_pfn(unsigned long pfn)
-+{
-+	extern unsigned long zero_pfn;
-+	unsigned long offset_from_zero_pfn = pfn - zero_pfn;
-+	return offset_from_zero_pfn <= (zero_page_mask >> PAGE_SHIFT);
-+}
++	if (mark->flags & FSNOTIFY_MARK_FLAG_IGNORED_SURV_MODIFY)
++		mflags |= FAN_MARK_IGNORED_SURV_MODIFY;
 +
-+static inline unsigned long my_zero_pfn(unsigned long addr)
-+{
-+	return page_to_pfn(ZERO_PAGE(addr));
-+}
-+#else
-+static inline int is_zero_pfn(unsigned long pfn)
-+{
-+	extern unsigned long zero_pfn;
-+	return pfn == zero_pfn;
-+}
-+
-+static inline unsigned long my_zero_pfn(unsigned long addr)
-+{
-+	extern unsigned long zero_pfn;
-+	return zero_pfn;
-+}
-+#endif
-+
- #ifdef CONFIG_MMU
+ 	if (mark->flags & FSNOTIFY_MARK_FLAG_INODE) {
+ 		inode = igrab(mark->i.inode);
+ 		if (!inode)
+ 			goto out;
+ 		ret = seq_printf(m, "fanotify ino:%lx sdev:%x "
+-				 "mask:%x ignored_mask:%x ",
++				 "mflags:%x mask:%x ignored_mask:%x ",
+ 				 inode->i_ino, inode->i_sb->s_dev,
+-				 mark->mask, mark->ignored_mask);
++				 mflags, mark->mask, mark->ignored_mask);
+ 		ret |= show_mark_fhandle(m, inode);
+ 		ret |= seq_putc(m, '\n');
+ 		iput(inode);
+ 	} else if (mark->flags & FSNOTIFY_MARK_FLAG_VFSMOUNT) {
+ 		struct mount *mnt = real_mount(mark->m.mnt);
  
- #ifndef CONFIG_TRANSPARENT_HUGEPAGE
-diff -puN include/linux/mm.h~asm-generic-mm-pgtable-consolidate-zero-page-helpers include/linux/mm.h
---- a/include/linux/mm.h~asm-generic-mm-pgtable-consolidate-zero-page-helpers
-+++ a/include/linux/mm.h
-@@ -516,14 +516,6 @@ static inline pte_t maybe_mkwrite(pte_t 
- }
- #endif
- 
--#ifndef my_zero_pfn
--static inline unsigned long my_zero_pfn(unsigned long addr)
--{
--	extern unsigned long zero_pfn;
--	return zero_pfn;
--}
--#endif
--
- /*
-  * Multiple processes may "see" the same page. E.g. for untouched
-  * mappings of /dev/null, all processes see the same page full of
-diff -puN mm/memory.c~asm-generic-mm-pgtable-consolidate-zero-page-helpers mm/memory.c
---- a/mm/memory.c~asm-generic-mm-pgtable-consolidate-zero-page-helpers
-+++ a/mm/memory.c
-@@ -724,13 +724,6 @@ static inline bool is_cow_mapping(vm_fla
- 	return (flags & (VM_SHARED | VM_MAYWRITE)) == VM_MAYWRITE;
- }
- 
--#ifndef is_zero_pfn
--static inline int is_zero_pfn(unsigned long pfn)
--{
--	return pfn == zero_pfn;
--}
--#endif
--
- /*
-  * vm_normal_page -- This function gets the "struct page" associated with a pte.
-  *
+-		ret = seq_printf(m, "fanotify mnt_id:%x mask:%x "
+-				 "ignored_mask:%x\n",
+-				 mnt->mnt_id, mark->mask, mark->ignored_mask);
++		ret = seq_printf(m, "fanotify mnt_id:%x mflags:%x mask:%x "
++				 "ignored_mask:%x\n", mnt->mnt_id, mflags,
++				 mark->mask, mark->ignored_mask);
+ 	}
+ out:
+ 	return ret;
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from gorcunov@openvz.org are
 
 linux-next.patch
-thp-fix-update_mmu_cache_pmd-calls.patch
-x86-convert-update_mmu_cache-and-update_mmu_cache_pmd-to-functions.patch
-mm-use-is_enabledconfig_numa-instead-of-numa_build.patch
-mm-use-is_enabledconfig_compaction-instead-of-compaction_build.patch
-thp-huge-zero-page-basic-preparation.patch
-thp-huge-zero-page-basic-preparation-v6.patch
-thp-zap_huge_pmd-zap-huge-zero-pmd.patch
-thp-copy_huge_pmd-copy-huge-zero-page.patch
-thp-copy_huge_pmd-copy-huge-zero-page-v6.patch
-thp-copy_huge_pmd-copy-huge-zero-page-v6-fix.patch
-thp-do_huge_pmd_wp_page-handle-huge-zero-page.patch
-thp-do_huge_pmd_wp_page-handle-huge-zero-page-v6.patch
-thp-do_huge_pmd_wp_page-handle-huge-zero-page-thp-fix-anononymous-page-accounting-in-fallback-path-for-cow-of-hzp.patch
-thp-change_huge_pmd-make-sure-we-dont-try-to-make-a-page-writable.patch
-thp-change-split_huge_page_pmd-interface.patch
-thp-change-split_huge_page_pmd-interface-v6.patch
-thp-implement-splitting-pmd-for-huge-zero-page.patch
-thp-implement-splitting-pmd-for-huge-zero-page-fix.patch
-thp-implement-splitting-pmd-for-huge-zero-page-v6.patch
-thp-setup-huge-zero-page-on-non-write-page-fault.patch
-thp-setup-huge-zero-page-on-non-write-page-fault-fix.patch
-thp-lazy-huge-zero-page-allocation.patch
-thp-implement-refcounting-for-huge-zero-page.patch
-thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events.patch
-thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6.patch
-thp-introduce-sysfs-knob-to-disable-huge-zero-page.patch
-thp-avoid-race-on-multiple-parallel-page-faults-to-the-same-page.patch
-asm-generic-mm-pgtable-consolidate-zero-page-helpers.patch
+procfs-add-vmflags-field-in-smaps-output-v4.patch
+procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
+proc-pid-status-add-seccomp-field.patch
+kcmp-selftests-make-run_tests-fix.patch
+kcmp-selftests-print-fail-status-instead-of-cause-make-error.patch
+tools-testing-selftests-kcmp-kcmp_testc-print-reason-for-failure-in-kcmp_test.patch
+procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers.patch
+fs-eventfd-add-procfs-fdinfo-helper.patch
+fs-epoll-add-procfs-fdinfo-helper-v2.patch
+fs-epoll-add-procfs-fdinfo-helper-v2-fs-epoll-drop-enabled-field-from-fdinfo-output.patch
+fdinfo-show-sigmask-for-signalfd-fd-v3.patch
+fs-exportfs-escape-nil-dereference-if-no-s_export_op-present.patch
+fs-exportfs-add-exportfs_encode_inode_fh-helper.patch
+fs-notify-add-procfs-fdinfo-helper-v7.patch
+fs-notify-add-procfs-fdinfo-helper-v7-fix-fix.patch
+fs-notify-add-procfs-fdinfo-helper-v7-add-missing-space-after-prefix.patch
+fs-notify-add-procfs-fdinfo-helper-v7-dont-forget-to-provide-fhandle-for-inode-fanotify.patch
+fs-notify-add-procfs-fdinfo-helper-v7-fs-fanotify-ddd-missing-pieces-in-fdinfo-for-ability-to-call-fanotify_init.patch
+docs-add-documentation-about-proc-pid-fdinfo-fd-output.patch
+docs-add-documentation-about-proc-pid-fdinfo-fd-output-fix.patch
+fs-fanotify-add-mflags-field-to-fanotify-output.patch
+docs-update-documentation-about-proc-pid-fdinfo-fd-fanotify-output.patch
+fs-notify-add-procfs-fdinfo-helper-v7-fix.patch
 
