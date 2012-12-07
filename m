@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + fs-fanotify-add-mflags-field-to-fanotify-output.patch added to -mm tree
-Date: Fri, 07 Dec 2012 13:05:16 -0800
-Message-ID: <20121207210517.CE5F3200057@hpza10.eem.corp.google.com>
+Subject: + docs-update-documentation-about-proc-pid-fdinfo-fd-fanotify-output.patch added to -mm tree
+Date: Fri, 07 Dec 2012 13:05:21 -0800
+Message-ID: <20121207210522.99FE620004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:44837 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1424337Ab2LGVFW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2012 16:05:22 -0500
-Received: by mail-ee0-f74.google.com with SMTP id t10so58625eei.1
-        for <mm-commits@vger.kernel.org>; Fri, 07 Dec 2012 13:05:20 -0800 (PST)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:34922 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1424337Ab2LGVF0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Dec 2012 16:05:26 -0500
+Received: by mail-fa0-f74.google.com with SMTP id t1so58060fae.1
+        for <mm-commits@vger.kernel.org>; Fri, 07 Dec 2012 13:05:25 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: gorcunov@openvz.org, adobriyan@gmail.com, aneesh.kumar@linux.vnet.ibm.com, a
 
 
 The patch titled
-     Subject: fs, fanotify: add @mflags field to fanotify output
+     Subject: docs: update documentation about /proc/<pid>/fdinfo/<fd> fanotify output
 has been added to the -mm tree.  Its filename is
-     fs-fanotify-add-mflags-field-to-fanotify-output.patch
+     docs-update-documentation-about-proc-pid-fdinfo-fd-fanotify-output.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,18 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Cyrill Gorcunov <gorcunov@openvz.org>
-Subject: fs, fanotify: add @mflags field to fanotify output
-
-The kernel keeps FAN_MARK_IGNORED_SURV_MODIFY bit separately from
-fsnotify_mark::mask|ignored_mask thus put it in @mflags (mark flags) field
-so the user-space reader will be able to detect if such bit were used on
-mark creation procedure.
-
- | pos:	0
- | flags:	04002
- | fanotify flags:10 event-flags:0
- | fanotify mnt_id:12 mflags:40 mask:38 ignored_mask:40000003
- | fanotify ino:4f969 sdev:800013 mflags:0 mask:3b ignored_mask:40000000 fhandle-bytes:8 fhandle-type:1 f_handle:69f90400c275b5b4
+Subject: docs: update documentation about /proc/<pid>/fdinfo/<fd> fanotify output
 
 Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
 Cc: Pavel Emelyanov <xemul@parallels.com>
@@ -55,57 +44,58 @@ Cc: Al Viro <viro@ZenIV.linux.org.uk>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: James Bottomley <jbottomley@parallels.com>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Matthew Helsley <matt.helsley@gmail.com>
 Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Tvrtko Ursulin <tvrtko.ursulin@onelan.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/fdinfo.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ Documentation/filesystems/proc.txt |   26 ++++++++++++++++----------
+ 1 file changed, 16 insertions(+), 10 deletions(-)
 
-diff -puN fs/notify/fdinfo.c~fs-fanotify-add-mflags-field-to-fanotify-output fs/notify/fdinfo.c
---- a/fs/notify/fdinfo.c~fs-fanotify-add-mflags-field-to-fanotify-output
-+++ a/fs/notify/fdinfo.c
-@@ -111,29 +111,33 @@ int inotify_show_fdinfo(struct seq_file 
+diff -puN Documentation/filesystems/proc.txt~docs-update-documentation-about-proc-pid-fdinfo-fd-fanotify-output Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~docs-update-documentation-about-proc-pid-fdinfo-fd-fanotify-output
++++ a/Documentation/filesystems/proc.txt
+@@ -1698,21 +1698,27 @@ pair provide additional information part
+ 	If the kernel is built without exportfs support the file handle won't be
+ 	printed out.
  
- static int fanotify_fdinfo(struct seq_file *m, struct fsnotify_mark *mark)
- {
-+	unsigned int mflags = 0;
- 	struct inode *inode;
- 	int ret = 0;
+-	For fanotify files the format is
++	If there is no inotify mark attached yet the 'inotify' line will be omitted.
  
- 	if (!(mark->flags & FSNOTIFY_MARK_FLAG_ALIVE))
- 		return 0;
+-	pos:	0
+-	flags:	02
+-	fanotify ino:2 sdev:800013 mask:1 ignored_mask:40000000 fhandle-bytes:8 fhandle-type:1 f_handle:0200000000000000
+-
+-	or
++	For fanotify files the format is
  
-+	if (mark->flags & FSNOTIFY_MARK_FLAG_IGNORED_SURV_MODIFY)
-+		mflags |= FAN_MARK_IGNORED_SURV_MODIFY;
+ 	pos:	0
+ 	flags:	02
+-	fanotify mnt_id:13 mask:1 ignored_mask:40000000
++	fanotify flags:10 event-flags:0
++	fanotify mnt_id:12 mflags:40 mask:38 ignored_mask:40000003
++	fanotify ino:4f969 sdev:800013 mflags:0 mask:3b ignored_mask:40000000 fhandle-bytes:8 fhandle-type:1 f_handle:69f90400c275b5b4
 +
- 	if (mark->flags & FSNOTIFY_MARK_FLAG_INODE) {
- 		inode = igrab(mark->i.inode);
- 		if (!inode)
- 			goto out;
- 		ret = seq_printf(m, "fanotify ino:%lx sdev:%x "
--				 "mask:%x ignored_mask:%x ",
-+				 "mflags:%x mask:%x ignored_mask:%x ",
- 				 inode->i_ino, inode->i_sb->s_dev,
--				 mark->mask, mark->ignored_mask);
-+				 mflags, mark->mask, mark->ignored_mask);
- 		ret |= show_mark_fhandle(m, inode);
- 		ret |= seq_putc(m, '\n');
- 		iput(inode);
- 	} else if (mark->flags & FSNOTIFY_MARK_FLAG_VFSMOUNT) {
- 		struct mount *mnt = real_mount(mark->m.mnt);
++	where fanotify 'flags' and 'event-flags' are values used in fanotify_init
++	call, 'mnt_id' is the mount point identifier, 'mflags' is the value of
++	flags associated with mark which are tracked separately from events
++	mask. 'ino', 'sdev' are target inode and device, 'mask' is the events
++	mask and 'ignored_mask' is the mask of events which are to be ignored.
++	All in hex format. Incorporation of 'mflags', 'mask' and 'ignored_mask'
++	does provide information about flags and mask used in fanotify_mark
++	call [see fsnotify manpage for details].
  
--		ret = seq_printf(m, "fanotify mnt_id:%x mask:%x "
--				 "ignored_mask:%x\n",
--				 mnt->mnt_id, mark->mask, mark->ignored_mask);
-+		ret = seq_printf(m, "fanotify mnt_id:%x mflags:%x mask:%x "
-+				 "ignored_mask:%x\n", mnt->mnt_id, mflags,
-+				 mark->mask, mark->ignored_mask);
- 	}
- out:
- 	return ret;
+-	where 'ino', 'sdev' are target inode and device, 'mnt_id' is the mount
+-	point identifier, 'mask' is the events mask used and 'ignored_mask' is
+-	the mask of events which are to be ignored. All in hex format.
++	While the first three lines are mandatory and always printed, the rest is
++	optional and may be omitted if no marks created yet.
+ 
+ 
+ ------------------------------------------------------------------------------
 _
 
 Patches currently in -mm which might be from gorcunov@openvz.org are
