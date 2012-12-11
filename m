@@ -1,74 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-use-vm_unmapped_area-on-sh-architecture-fix2.patch removed from -mm tree
-Date: Tue, 11 Dec 2012 15:48:05 -0800
-Message-ID: <20121211234805.D1A7C100047@wpzn3.hot.corp.google.com>
+Subject: [folded-merged] mm-use-vm_unmapped_area-on-sparc32-architecture-fix.patch removed from -mm tree
+Date: Tue, 11 Dec 2012 15:48:22 -0800
+Message-ID: <20121211234823.A7FFA200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:53339 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753276Ab2LKXsG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Dec 2012 18:48:06 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so6952ghb.1
-        for <mm-commits@vger.kernel.org>; Tue, 11 Dec 2012 15:48:06 -0800 (PST)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:55915 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753276Ab2LKXs0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Dec 2012 18:48:26 -0500
+Received: by mail-bk0-f74.google.com with SMTP id je9so1925bkc.1
+        for <mm-commits@vger.kernel.org>; Tue, 11 Dec 2012 15:48:25 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: walken@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, walken@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-use-vm_unmapped_area-on-sh-architecture-fix2
+     Subject: mm-use-vm_unmapped_area-on-sparc32-architecture-fix
 has been removed from the -mm tree.  Its filename was
-     mm-use-vm_unmapped_area-on-sh-architecture-fix2.patch
+     mm-use-vm_unmapped_area-on-sparc32-architecture-fix.patch
 
-This patch was dropped because it was folded into mm-use-vm_unmapped_area-on-sh-architecture.patch
+This patch was dropped because it was folded into mm-use-vm_unmapped_area-on-sparc32-architecture.patch
 
 ------------------------------------------------------
-From: Michel Lespinasse <walken@google.com>
-Subject: mm-use-vm_unmapped_area-on-sh-architecture-fix2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-use-vm_unmapped_area-on-sparc32-architecture-fix
 
+arch/sparc/kernel/sys_sparc_32.c: In function 'arch_get_unmapped_area':
+arch/sparc/kernel/sys_sparc_32.c:41:26: error: unused variable 'vmm' [-Werror=unused-variable]
 
-
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Michel Lespinasse <walken@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/mm/mmap.c |    1 -
+ arch/sparc/kernel/sys_sparc_32.c |    1 -
  1 file changed, 1 deletion(-)
 
-diff -puN arch/sh/mm/mmap.c~mm-use-vm_unmapped_area-on-sh-architecture-fix2 arch/sh/mm/mmap.c
---- a/arch/sh/mm/mmap.c~mm-use-vm_unmapped_area-on-sh-architecture-fix2
-+++ a/arch/sh/mm/mmap.c
-@@ -35,7 +35,6 @@ unsigned long arch_get_unmapped_area(str
+diff -puN arch/sparc/kernel/sys_sparc_32.c~mm-use-vm_unmapped_area-on-sparc32-architecture-fix arch/sparc/kernel/sys_sparc_32.c
+--- a/arch/sparc/kernel/sys_sparc_32.c~mm-use-vm_unmapped_area-on-sparc32-architecture-fix
++++ a/arch/sparc/kernel/sys_sparc_32.c
+@@ -38,7 +38,6 @@ asmlinkage unsigned long sys_getpagesize
+ 
+ unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr, unsigned long len, unsigned long pgoff, unsigned long flags)
  {
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma;
--	unsigned long start_addr;
- 	int do_colour_align;
+-	struct vm_area_struct * vmm;
  	struct vm_unmapped_area_info info;
  
+ 	if (flags & MAP_FIXED) {
 _
 
-Patches currently in -mm which might be from walken@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-augment-vma-rbtree-with-rb_subtree_gap.patch
+mm-introduce-mm_find_pmd.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory.patch
+slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
+mmvmscan-only-evict-file-pages-when-we-have-plenty.patch
+dmapool-make-dmapool_debug-detect-corruption-of-free-marker.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7.patch
 mm-check-rb_subtree_gap-correctness.patch
 mm-rearrange-vm_area_struct-for-fewer-cache-misses.patch
 mm-vm_unmapped_area-lookup-function.patch
-mm-use-vm_unmapped_area-on-x86_64-architecture.patch
-mm-fix-cache-coloring-on-x86_64-architecture.patch
-mm-use-vm_unmapped_area-in-hugetlbfs.patch
 mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture.patch
 mm-use-vm_unmapped_area-on-mips-architecture.patch
 mm-use-vm_unmapped_area-on-arm-architecture.patch
 mm-use-vm_unmapped_area-on-sh-architecture.patch
 mm-use-vm_unmapped_area-on-sparc32-architecture.patch
-mm-use-vm_unmapped_area-on-sparc32-architecture-fix.patch
 mm-use-vm_unmapped_area-on-sparc32-architecture-fix-fix.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture.patch
 mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc64-architecture.patch
 mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
-mm-use-vm_unmapped_area-on-sparc64-architecture-fix-fix.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-sparc64-architecture.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-sparc64-architecture-fix.patch
 arch-sparc-kernel-sys_sparc_64c-s-colour-color.patch
+mm-introduce-a-common-interface-for-balloon-pages-mobility-mm-fix-balloon_page_movable-page-flags-check-fix.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix.patch
+mm-cma-skip-watermarks-check-for-already-isolated-blocks-in-split_free_page-fix-fix.patch
+bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
+mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch
 
