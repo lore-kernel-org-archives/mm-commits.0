@@ -1,54 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-use-vm_unmapped_area-on-sparc32-architecture-fix-fix.patch removed from -mm tree
-Date: Tue, 11 Dec 2012 15:48:27 -0800
-Message-ID: <20121211234827.EDEAC100048@wpzn3.hot.corp.google.com>
+Subject: [folded-merged] mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix.patch removed from -mm tree
+Date: Tue, 11 Dec 2012 15:49:05 -0800
+Message-ID: <20121211234906.38363100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:61389 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753276Ab2LKXs3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Dec 2012 18:48:29 -0500
-Received: by mail-vb0-f74.google.com with SMTP id s24so6759vbi.1
-        for <mm-commits@vger.kernel.org>; Tue, 11 Dec 2012 15:48:28 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:62894 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753276Ab2LKXtH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Dec 2012 18:49:07 -0500
+Received: by mail-yh0-f74.google.com with SMTP id 10so6701yhl.1
+        for <mm-commits@vger.kernel.org>; Tue, 11 Dec 2012 15:49:06 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, sfr@canb.auug.org.au, walken@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, walken@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-use-vm_unmapped_area-on-sparc32-architecture-fix-fix
+     Subject: mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix
 has been removed from the -mm tree.  Its filename was
-     mm-use-vm_unmapped_area-on-sparc32-architecture-fix-fix.patch
+     mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix.patch
 
-This patch was dropped because it was folded into mm-use-vm_unmapped_area-on-sparc32-architecture.patch
+This patch was dropped because it was folded into mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-use-vm_unmapped_area-on-sparc32-architecture-fix-fix
+Subject: mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix
 
-remove now-unused COLOUR_ALIGN()
-
-Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Michel Lespinasse <walken@google.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/kernel/sys_sparc_32.c |    2 --
- 1 file changed, 2 deletions(-)
+ arch/tile/mm/hugetlbpage.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/sparc/kernel/sys_sparc_32.c~mm-use-vm_unmapped_area-on-sparc32-architecture-fix-fix arch/sparc/kernel/sys_sparc_32.c
---- a/arch/sparc/kernel/sys_sparc_32.c~mm-use-vm_unmapped_area-on-sparc32-architecture-fix-fix
-+++ a/arch/sparc/kernel/sys_sparc_32.c
-@@ -34,8 +34,6 @@ asmlinkage unsigned long sys_getpagesize
- 	return PAGE_SIZE; /* Possibly older binaries want 8192 on sun4's? */
- }
- 
--#define COLOUR_ALIGN(addr)      (((addr)+SHMLBA-1)&~(SHMLBA-1))
--
- unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr, unsigned long len, unsigned long pgoff, unsigned long flags)
- {
- 	struct vm_unmapped_area_info info;
+diff -puN arch/tile/mm/hugetlbpage.c~mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix arch/tile/mm/hugetlbpage.c
+--- a/arch/tile/mm/hugetlbpage.c~mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix
++++ a/arch/tile/mm/hugetlbpage.c
+@@ -253,7 +253,7 @@ static unsigned long hugetlb_get_unmappe
+ 	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
+ 	info.length = len;
+ 	info.low_limit = PAGE_SIZE;
+-	info.high_limit = mm->mmap_base;
++	info.high_limit = current->mm->mmap_base;
+ 	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
+ 	info.align_offset = 0;
+ 	addr = vm_unmapped_area(&info);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -67,7 +63,7 @@ mm-use-vm_unmapped_area-on-mips-architecture.patch
 mm-use-vm_unmapped_area-on-arm-architecture.patch
 mm-use-vm_unmapped_area-on-sh-architecture.patch
 mm-use-vm_unmapped_area-on-sparc32-architecture.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture.patch
 mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
 arch-sparc-kernel-sys_sparc_64c-s-colour-color.patch
 mm-introduce-a-common-interface-for-balloon-pages-mobility-mm-fix-balloon_page_movable-page-flags-check-fix.patch
