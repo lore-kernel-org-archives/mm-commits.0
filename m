@@ -1,174 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix.patch removed from -mm tree
-Date: Tue, 11 Dec 2012 15:43:03 -0800
-Message-ID: <20121211234304.5739D100047@wpzn3.hot.corp.google.com>
+Subject: [folded-merged] mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix.patch removed from -mm tree
+Date: Tue, 11 Dec 2012 15:43:00 -0800
+Message-ID: <20121211234301.01BD0100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:38014 "EHLO
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:48315 "EHLO
 	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753496Ab2LKXnF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Dec 2012 18:43:05 -0500
-Received: by mail-gg0-f202.google.com with SMTP id k1so6382ggn.1
-        for <mm-commits@vger.kernel.org>; Tue, 11 Dec 2012 15:43:04 -0800 (PST)
+	with ESMTP id S1753496Ab2LKXnD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Dec 2012 18:43:03 -0500
+Received: by mail-gg0-f202.google.com with SMTP id k1so6375ggn.1
+        for <mm-commits@vger.kernel.org>; Tue, 11 Dec 2012 15:43:01 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, ak@linux.intel.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: rientjes@google.com, ak@linux.intel.com, rdunlap@infradead.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MM: Support more pagesizes for MAP_HUGETLB/SHM_HUGETLB v7 fix fix fix fix
+     Subject: MM: Support more pagesizes for MAP_HUGETLB/SHM_HUGETLB v7 fix fix fix
 has been removed from the -mm tree.  Its filename was
-     mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix.patch
+     mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix.patch
 
 This patch was dropped because it was folded into mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7.patch
 
 ------------------------------------------------------
 From: David Rientjes <rientjes@google.com>
-Subject: MM: Support more pagesizes for MAP_HUGETLB/SHM_HUGETLB v7 fix fix fix fix
+Subject: MM: Support more pagesizes for MAP_HUGETLB/SHM_HUGETLB v7 fix fix fix
 
-Move the definitions of MAP_HUGE_SHIFT and MAP_HUGE_MASK to mman-common.h
-and fixup the architectures which do not use that file to fix the
-following build failure:
+On Fri, 9 Nov 2012, Randy Dunlap wrote:
+
+> on x86_64:
+>
+> In file included from mm/mprotect.c:13:0:
+> include/linux/shm.h:57:20: error: redefinition of 'do_shmat'
+> include/linux/shm.h:57:20: note: previous definition of 'do_shmat' was here
+> include/linux/shm.h:63:19: error: redefinition of 'is_file_shm_hugepages'
+> include/linux/shm.h:63:19: note: previous definition of 'is_file_shm_hugepages' was here
+> include/linux/shm.h:67:20: error: redefinition of 'exit_shm'
+> include/linux/shm.h:67:20: note: previous definition of 'exit_shm' was here
+>
+> In file included from include/linux/hugetlb.h:16:0,
+>                  from mm/mmap.c:23:
+> include/linux/shm.h:57:20: error: redefinition of 'do_shmat'
+> include/linux/shm.h:57:20: note: previous definition of 'do_shmat' was here
+> include/linux/shm.h:63:19: error: redefinition of 'is_file_shm_hugepages'
+> include/linux/shm.h:63:19: note: previous definition of 'is_file_shm_hugepages' was here
+> include/linux/shm.h:67:20: error: redefinition of 'exit_shm'
+> include/linux/shm.h:67:20: note: previous definition of 'exit_shm' was here
+> make[2]: *** [mm/mprotect.o] Error 1
+>
+
+This is an elusive one, I couldn't reproduce it with master.  This appears
+to only happen on the akpm branch, correct?
+
+It happens because of e37c64a9751a ("mm: support more pagesizes for
+MAP_HUGETLB/SHM_HUGETLB") adds a spurious "#endif" to include/linux/shm.h
+and gets reverted in master by 359078d82a20 ("Revert "mm: support more
+pagesizes for MAP_HUGETLB/SHM_HUGETLB"") because of another build failure
+that Stephen reports on November 8:
 
 mm/mmap.c: In function 'SYSC_mmap_pgoff':
 mm/mmap.c:1271:15: error: 'MAP_HUGE_SHIFT' undeclared (first use in this function)
 mm/mmap.c:1271:15: note: each undeclared identifier is reported only once for each function it appears in
 mm/mmap.c:1271:33: error: 'MAP_HUGE_MASK' undeclared (first use in this function)
 
-Tested on alpha, hppa, ia64, mips, powerpc, sparc, and x86.
+I think the best bet would be to merge the following in -mm and then let
+Stephen revert it in master again if his build error persists for powerpc:
+
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix
+
+Fix the build:
+
+include/linux/shm.h:57:20: error: redefinition of 'do_shmat'
+include/linux/shm.h:57:20: note: previous definition of 'do_shmat' was here
+include/linux/shm.h:63:19: error: redefinition of 'is_file_shm_hugepages'
+include/linux/shm.h:63:19: note: previous definition of 'is_file_shm_hugepages' was here
+include/linux/shm.h:67:20: error: redefinition of 'exit_shm'
+include/linux/shm.h:67:20: note: previous definition of 'exit_shm' was here
 
 Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/mman.h          |   11 +++++++++++
- arch/mips/include/uapi/asm/mman.h      |   11 +++++++++++
- arch/parisc/include/uapi/asm/mman.h    |   11 +++++++++++
- arch/xtensa/include/uapi/asm/mman.h    |   11 +++++++++++
- include/uapi/asm-generic/mman-common.h |   11 +++++++++++
- include/uapi/asm-generic/mman.h        |   13 +------------
- 6 files changed, 56 insertions(+), 12 deletions(-)
+ include/linux/shm.h |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN arch/alpha/include/asm/mman.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix arch/alpha/include/asm/mman.h
---- a/arch/alpha/include/asm/mman.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix
-+++ a/arch/alpha/include/asm/mman.h
-@@ -63,4 +63,15 @@
- /* compatibility flags */
- #define MAP_FILE	0
+diff -puN include/linux/shm.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix include/linux/shm.h
+--- a/include/linux/shm.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix
++++ a/include/linux/shm.h
+@@ -23,8 +23,6 @@ struct shmid_kernel /* private to the ke
+ 	struct task_struct	*shm_creator;
+ };
  
-+/*
-+ * When MAP_HUGETLB is set bits [26:31] encode the log2 of the huge page size.
-+ * This gives us 6 bits, which is enough until someone invents 128 bit address
-+ * spaces.
-+ *
-+ * Assume these are all power of twos.
-+ * When 0 use the default page size.
-+ */  
-+#define MAP_HUGE_SHIFT	26
-+#define MAP_HUGE_MASK	0x3f
-+
- #endif /* __ALPHA_MMAN_H__ */
-diff -puN arch/mips/include/uapi/asm/mman.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix arch/mips/include/uapi/asm/mman.h
---- a/arch/mips/include/uapi/asm/mman.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix
-+++ a/arch/mips/include/uapi/asm/mman.h
-@@ -87,4 +87,15 @@
- /* compatibility flags */
- #define MAP_FILE	0
- 
-+/*
-+ * When MAP_HUGETLB is set bits [26:31] encode the log2 of the huge page size.
-+ * This gives us 6 bits, which is enough until someone invents 128 bit address
-+ * spaces.
-+ *
-+ * Assume these are all power of twos.
-+ * When 0 use the default page size.
-+ */  
-+#define MAP_HUGE_SHIFT	26
-+#define MAP_HUGE_MASK	0x3f
-+
- #endif /* _ASM_MMAN_H */
-diff -puN arch/parisc/include/uapi/asm/mman.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix arch/parisc/include/uapi/asm/mman.h
---- a/arch/parisc/include/uapi/asm/mman.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix
-+++ a/arch/parisc/include/uapi/asm/mman.h
-@@ -70,4 +70,15 @@
- #define MAP_FILE	0
- #define MAP_VARIABLE	0
- 
-+/*
-+ * When MAP_HUGETLB is set bits [26:31] encode the log2 of the huge page size.
-+ * This gives us 6 bits, which is enough until someone invents 128 bit address
-+ * spaces.
-+ *
-+ * Assume these are all power of twos.
-+ * When 0 use the default page size.
-+ */  
-+#define MAP_HUGE_SHIFT	26
-+#define MAP_HUGE_MASK	0x3f
-+
- #endif /* __PARISC_MMAN_H__ */
-diff -puN arch/xtensa/include/uapi/asm/mman.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix arch/xtensa/include/uapi/asm/mman.h
---- a/arch/xtensa/include/uapi/asm/mman.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix
-+++ a/arch/xtensa/include/uapi/asm/mman.h
-@@ -93,4 +93,15 @@
- /* compatibility flags */
- #define MAP_FILE	0
- 
-+/*
-+ * When MAP_HUGETLB is set bits [26:31] encode the log2 of the huge page size.
-+ * This gives us 6 bits, which is enough until someone invents 128 bit address
-+ * spaces.
-+ *
-+ * Assume these are all power of twos.
-+ * When 0 use the default page size.
-+ */  
-+#define MAP_HUGE_SHIFT	26
-+#define MAP_HUGE_MASK	0x3f
-+
- #endif /* _XTENSA_MMAN_H */
-diff -puN include/uapi/asm-generic/mman-common.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix include/uapi/asm-generic/mman-common.h
---- a/include/uapi/asm-generic/mman-common.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix
-+++ a/include/uapi/asm-generic/mman-common.h
-@@ -55,4 +55,15 @@
- /* compatibility flags */
- #define MAP_FILE	0
- 
-+/*
-+ * When MAP_HUGETLB is set bits [26:31] encode the log2 of the huge page size.
-+ * This gives us 6 bits, which is enough until someone invents 128 bit address
-+ * spaces.
-+ *
-+ * Assume these are all power of twos.
-+ * When 0 use the default page size.
-+ */
-+#define MAP_HUGE_SHIFT	26
-+#define MAP_HUGE_MASK	0x3f
-+
- #endif /* __ASM_GENERIC_MMAN_COMMON_H */
-diff -puN include/uapi/asm-generic/mman.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix include/uapi/asm-generic/mman.h
---- a/include/uapi/asm-generic/mman.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix
-+++ a/include/uapi/asm-generic/mman.h
-@@ -13,18 +13,7 @@
- #define MAP_STACK	0x20000		/* give out an address that is best suited for process/thread stacks */
- #define MAP_HUGETLB	0x40000		/* create a huge page mapping */
- 
--/* Bits [26:31] are reserved */
+-#endif
 -
--/*
-- * When MAP_HUGETLB is set bits [26:31] encode the log2 of the huge page size.
-- * This gives us 6 bits, which is enough until someone invents 128 bit address
-- * spaces.
-- *
-- * Assume these are all power of twos.
-- * When 0 use the default page size.
-- */
--#define MAP_HUGE_SHIFT  26
--#define MAP_HUGE_MASK   0x3f
-+/* Bits [26:31] are reserved, see mman-common.h for MAP_HUGETLB usage */
+ /* shm_mode upper byte flags */
+ #define	SHM_DEST	01000	/* segment will be destroyed on last detach */
+ #define SHM_LOCKED      02000   /* segment will not be swapped */
+@@ -46,8 +44,6 @@ struct shmid_kernel /* private to the ke
+ #define SHM_HUGE_2MB    (21 << SHM_HUGE_SHIFT)
+ #define SHM_HUGE_1GB    (30 << SHM_HUGE_SHIFT)
  
- #define MCL_CURRENT	1		/* lock all current mappings */
- #define MCL_FUTURE	2		/* lock all future mappings */
+-#ifdef __KERNEL__
+-
+ #ifdef CONFIG_SYSVIPC
+ long do_shmat(int shmid, char __user *shmaddr, int shmflg, unsigned long *addr,
+ 	      unsigned long shmlba);
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
@@ -190,6 +129,7 @@ memory_hotplug-fix-possible-incorrect-node_states.patch
 slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
 mm-oom-allow-exiting-threads-to-have-access-to-memory-reserves.patch
 mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix.patch
 mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch
 mm-introduce-a-common-interface-for-balloon-pages-mobility-fix.patch
 mm-mempolicy-remove-duplicate-code.patch
