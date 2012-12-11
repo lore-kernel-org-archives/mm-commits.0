@@ -1,63 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-highmem-remove-page_address_pool-list-v2.patch removed from -mm tree
-Date: Tue, 11 Dec 2012 15:42:06 -0800
-Message-ID: <20121211234207.60F9A200057@hpza10.eem.corp.google.com>
+Subject: [folded-merged] dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch removed from -mm tree
+Date: Tue, 11 Dec 2012 15:42:27 -0800
+Message-ID: <20121211234228.496F382004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:65149 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753276Ab2LKXmK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Dec 2012 18:42:10 -0500
-Received: by mail-lb0-f202.google.com with SMTP id s4so2815lbc.1
-        for <mm-commits@vger.kernel.org>; Tue, 11 Dec 2012 15:42:08 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:32883 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754006Ab2LKXm3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Dec 2012 18:42:29 -0500
+Received: by mail-qa0-f74.google.com with SMTP id r4so10149qaq.1
+        for <mm-commits@vger.kernel.org>; Tue, 11 Dec 2012 15:42:28 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: js1304@gmail.com, a.p.zijlstra@chello.nl, mel@csn.ul.ie, minchan@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, matthieu.castet@parrot.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-highmem-remove-page_address_pool-list-v2
+     Subject: dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix
 has been removed from the -mm tree.  Its filename was
-     mm-highmem-remove-page_address_pool-list-v2.patch
+     dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix.patch
 
-This patch was dropped because it was folded into mm-highmem-remove-page_address_pool-list.patch
+This patch was dropped because it was folded into dmapool-make-dmapool_debug-detect-corruption-of-free-marker.patch
 
 ------------------------------------------------------
-From: Joonsoo Kim <js1304@gmail.com>
-Subject: mm-highmem-remove-page_address_pool-list-v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix
 
-Signed-off-by: Joonsoo Kim <js1304@gmail.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Minchan Kim <minchan@kernel.org>
+tidy code, fix comment, use sizeof(page->offset), use pr_err()
+
+Cc: Matthieu Castet <matthieu.castet@parrot.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/highmem.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/dmapool.c |   35 ++++++++++++++++++-----------------
+ 1 file changed, 18 insertions(+), 17 deletions(-)
 
-diff -puN mm/highmem.c~mm-highmem-remove-page_address_pool-list-v2 mm/highmem.c
---- a/mm/highmem.c~mm-highmem-remove-page_address_pool-list-v2
-+++ a/mm/highmem.c
-@@ -324,6 +324,7 @@ struct page_address_map {
- 	void *virtual;
- 	struct list_head list;
- };
+diff -puN mm/dmapool.c~dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix mm/dmapool.c
+--- a/mm/dmapool.c~dmapool-make-dmapool_debug-detect-corruption-of-free-marker-fix
++++ a/mm/dmapool.c
+@@ -336,23 +336,24 @@ void *dma_pool_alloc(struct dma_pool *po
+ 		int i;
+ 		u8 *data = retval;
+ 		/* page->offset is stored in first 4 bytes */
+-		for (i = sizeof(int); i < pool->size; i++) {
+-			if (data[i] != POOL_POISON_FREED) {
+-				if (pool->dev)
+-					dev_err(pool->dev,
+-							"dma_pool_alloc %s, %p (corruped)\n",
+-							pool->name, retval);
+-				else
+-					printk(KERN_ERR
+-							"dma_pool_alloc %s, %p (corruped)\n",
+-							pool->name, retval);
+-
+-				/* we dump the first 4 bytes even if there are not
+-				   POOL_POISON_FREED */
+-				print_hex_dump(KERN_ERR, "", DUMP_PREFIX_OFFSET, 16, 1,
+-						data, pool->size, 1);
+-				break;
+-			}
++		for (i = sizeof(page->offset); i < pool->size; i++) {
++			if (data[i] == POOL_POISON_FREED)
++				continue;
++			if (pool->dev)
++				dev_err(pool->dev,
++					"dma_pool_alloc %s, %p (corruped)\n",
++					pool->name, retval);
++			else
++				pr_err("dma_pool_alloc %s, %p (corruped)\n",
++					pool->name, retval);
 +
- static struct page_address_map page_address_maps[LAST_PKMAP];
- 
- /*
++			/*
++			 * Dump the first 4 bytes even if they are not
++			 * POOL_POISON_FREED
++			 */
++			print_hex_dump(KERN_ERR, "", DUMP_PREFIX_OFFSET, 16, 1,
++					data, pool->size, 1);
++			break;
+ 		}
+ 	}
+ 	memset(retval, POOL_POISON_ALLOCATED, pool->size);
 _
 
-Patches currently in -mm which might be from js1304@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-highmem-use-pkmap_nr-to-calculate-an-index-of-pkmap.patch
-mm-highmem-remove-useless-pool_lock.patch
-mm-highmem-remove-page_address_pool-list.patch
-mm-highmem-get-virtual-address-of-the-page-using-pkmap_addr.patch
-bootmem-remove-not-implemented-function-call-bootmem_arch_preferred_node.patch
-avr32-kconfig-remove-have_arch_bootmem.patch
-bootmem-remove-alloc_arch_preferred_bootmem.patch
-bootmem-fix-wrong-call-parameter-for-free_bootmem.patch
+mm-introduce-mm_find_pmd.patch
+memory-hotplug-update-mce_bad_pages-when-removing-the-memory.patch
+slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
+mmvmscan-only-evict-file-pages-when-we-have-plenty.patch
+dmapool-make-dmapool_debug-detect-corruption-of-free-marker.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix.patch
+mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch
+mm-check-rb_subtree_gap-correctness-fix.patch
+mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
+mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
+mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
+mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
+mm-use-vm_unmapped_area-on-arm-architecture-fix-fix.patch
+mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc32-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc32-architecture-fix-fix.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
+arch-sparc-kernel-sys_sparc_64c-s-colour-color.patch
+mm-introduce-a-common-interface-for-balloon-pages-mobility-mm-fix-balloon_page_movable-page-flags-check-fix.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
+virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix.patch
+mm-cma-skip-watermarks-check-for-already-isolated-blocks-in-split_free_page-fix-fix.patch
 bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
+mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch
 
