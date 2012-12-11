@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memoryc-remove-unused-code-from-do_wp_page.patch added to -mm tree
-Date: Tue, 11 Dec 2012 13:36:56 -0800
-Message-ID: <20121211213658.447F4100052@wpzn3.hot.corp.google.com>
+Subject: + lib-rbtree_testc-fix-uninitialized-variable-warning.patch added to -mm tree
+Date: Tue, 11 Dec 2012 13:50:50 -0800
+Message-ID: <20121211215051.02DA0200061@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:53065 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753389Ab2LKVhB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Dec 2012 16:37:01 -0500
-Received: by mail-qc0-f202.google.com with SMTP id s25so526622qcq.1
-        for <mm-commits@vger.kernel.org>; Tue, 11 Dec 2012 13:37:00 -0800 (PST)
+Received: from mail-ea0-f202.google.com ([209.85.215.202]:41618 "EHLO
+	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754923Ab2LKVux (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Dec 2012 16:50:53 -0500
+Received: by mail-ea0-f202.google.com with SMTP id j12so280008eaa.1
+        for <mm-commits@vger.kernel.org>; Tue, 11 Dec 2012 13:50:52 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dingel@linux.vnet.ibm.com
+Cc: dinggnu@gmail.com, walken@google.com
 
 
 The patch titled
-     Subject: mm/memory.c: remove unused code from do_wp_page()
+     Subject: lib/rbtree_test.c: fix uninitialized variable warning
 has been added to the -mm tree.  Its filename is
-     mm-memoryc-remove-unused-code-from-do_wp_page.patch
+     lib-rbtree_testc-fix-uninitialized-variable-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,37 +33,36 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dominik Dingel <dingel@linux.vnet.ibm.com>
-Subject: mm/memory.c: remove unused code from do_wp_page()
+From: Cong Ding <dinggnu@gmail.com>
+Subject: lib/rbtree_test.c: fix uninitialized variable warning
 
-page_mkwrite is initalized with zero and only set once, from that point
-exists no way to get to the oom or oom_free_new labels.
+lib/rbtree_test.c: In function `check':
+lib/rbtree_test.c:121: warning: `blacks' may be used uninitialized in this function
 
-Signed-off-by: Dominik Dingel <dingel@linux.vnet.ibm.com>
+Signed-off-by: Cong Ding <dinggnu@gmail.com>
+Cc: Michel Lespinasse <walken@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    4 ----
- 1 file changed, 4 deletions(-)
+ lib/rbtree_test.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memory.c~mm-memoryc-remove-unused-code-from-do_wp_page mm/memory.c
---- a/mm/memory.c~mm-memoryc-remove-unused-code-from-do_wp_page
-+++ a/mm/memory.c
-@@ -2781,10 +2781,6 @@ oom_free_new:
- 	page_cache_release(new_page);
- oom:
- 	if (old_page) {
--		if (page_mkwrite) {
--			unlock_page(old_page);
--			page_cache_release(old_page);
--		}
- 		page_cache_release(old_page);
- 	}
- 	return VM_FAULT_OOM;
+diff -puN lib/rbtree_test.c~lib-rbtree_testc-fix-uninitialized-variable-warning lib/rbtree_test.c
+--- a/lib/rbtree_test.c~lib-rbtree_testc-fix-uninitialized-variable-warning
++++ a/lib/rbtree_test.c
+@@ -118,7 +118,7 @@ static void check(int nr_nodes)
+ {
+ 	struct rb_node *rb;
+ 	int count = 0;
+-	int blacks;
++	int blacks = 0;
+ 	u32 prev_key = 0;
+ 
+ 	for (rb = rb_first(&root); rb; rb = rb_next(rb)) {
 _
 
-Patches currently in -mm which might be from dingel@linux.vnet.ibm.com are
+Patches currently in -mm which might be from dinggnu@gmail.com are
 
-mm-memoryc-remove-unused-code-from-do_wp_page.patch
-mm-memoryc-remove-unused-code-from-do_wp_page-fix.patch
+linux-next.patch
+lib-rbtree_testc-fix-uninitialized-variable-warning.patch
 
