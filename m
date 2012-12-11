@@ -1,144 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 11 Dec 2012 15:43:07 -0800
-Message-ID: <20121211234308.3A94E100047@wpzn3.hot.corp.google.com>
+Subject: [folded-merged] mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-inserting-new-vma.patch removed from -mm tree
+Date: Tue, 11 Dec 2012 15:44:28 -0800
+Message-ID: <20121211234429.A4E6F20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:48161 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753496Ab2LKXnJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Dec 2012 18:43:09 -0500
-Received: by mail-gg0-f202.google.com with SMTP id k1so6391ggn.1
-        for <mm-commits@vger.kernel.org>; Tue, 11 Dec 2012 15:43:08 -0800 (PST)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:64024 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753616Ab2LKXoc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Dec 2012 18:44:32 -0500
+Received: by mail-bk0-f74.google.com with SMTP id je9so1843bkc.1
+        for <mm-commits@vger.kernel.org>; Tue, 11 Dec 2012 15:44:31 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: walken@google.com, hughd@google.com, riel@redhat.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes
+     Subject: mm: ensure safe rb_subtree_gap update when inserting new VMA
 has been removed from the -mm tree.  Its filename was
-     mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes.patch
+     mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-inserting-new-vma.patch
 
-This patch was dropped because it was folded into mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7.patch
+This patch was dropped because it was folded into mm-augment-vma-rbtree-with-rb_subtree_gap.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes
+From: Michel Lespinasse <walken@google.com>
+Subject: mm: ensure safe rb_subtree_gap update when inserting new VMA
 
-ERROR: trailing whitespace
-#43: FILE: arch/alpha/include/asm/mman.h:73:
-+ */  $
+Using the trinity fuzzer, Sasha Levin uncovered a case where
+rb_subtree_gap wasn't correctly updated.
 
-ERROR: trailing whitespace
-#62: FILE: arch/mips/include/uapi/asm/mman.h:97:
-+ */  $
+Digging into this, the root cause was that vma insertions and removals
+require both an rbtree insert or erase operation (which may trigger tree
+rotations), and an update of the next vma's gap (which does not change the
+tree topology, but may require iterating on the node's ancestors to
+propagate the update).  The rbtree rotations caused the rb_subtree_gap
+values to be updated in some of the internal nodes, but without upstream
+propagation.  Then the subsequent update on the next vma didn't iterate as
+high up the tree as it should have, as it stopped as soon as it hit one of
+the internal nodes that had been updated as part of a tree rotation.
 
-ERROR: trailing whitespace
-#81: FILE: arch/parisc/include/uapi/asm/mman.h:80:
-+ */  $
+The fix is to impose that all rb_subtree_gap values must be up to date
+before any rbtree insertion or erase, with the possible exception that the
+node being erased doesn't need to have an up to date rb_subtree_gap.
 
-ERROR: trailing whitespace
-#100: FILE: arch/xtensa/include/uapi/asm/mman.h:103:
-+ */  $
+This change: during vma insertion, make sure to update the rb_subtree_gap
+values for both the current and next vmas prior to rebalancing the rbtree
+to account for the just-inserted vma.
 
-total: 4 errors, 0 warnings, 94 lines checked
+(Thanks to Sasha Levin for uncovering the problem and to Hugh Dickins
+for coming up with a simpler test case)
 
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: David Rientjes <rientjes@google.com>
+Reported-by: Sasha Levin <sasha.levin@oracle.com>
+Signed-off-by: Michel Lespinasse <walken@google.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/mman.h       |    2 +-
- arch/mips/include/uapi/asm/mman.h   |    2 +-
- arch/parisc/include/uapi/asm/mman.h |    2 +-
- arch/xtensa/include/uapi/asm/mman.h |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ mm/mmap.c |   27 +++++++++++++++------------
+ 1 file changed, 15 insertions(+), 12 deletions(-)
 
-diff -puN arch/alpha/include/asm/mman.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes arch/alpha/include/asm/mman.h
---- a/arch/alpha/include/asm/mman.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes
-+++ a/arch/alpha/include/asm/mman.h
-@@ -70,7 +70,7 @@
-  *
-  * Assume these are all power of twos.
-  * When 0 use the default page size.
-- */  
-+ */
- #define MAP_HUGE_SHIFT	26
- #define MAP_HUGE_MASK	0x3f
+diff -puN mm/mmap.c~mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-inserting-new-vma mm/mmap.c
+--- a/mm/mmap.c~mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-inserting-new-vma
++++ a/mm/mmap.c
+@@ -353,17 +353,7 @@ static void vma_gap_update(struct vm_are
+ static inline void vma_rb_insert(struct vm_area_struct *vma,
+ 				 struct rb_root *root)
+ {
+-	/*
+-	 * vma->vm_prev wasn't known when we followed the rbtree to find the
+-	 * correct insertion point for that vma. As a result, we could not
+-	 * update the vma vm_rb parents rb_subtree_gap values on the way down.
+-	 * So, we first insert the vma with a zero rb_subtree_gap value
+-	 * (to be consistent with what we did on the way down), and then
+-	 * immediately update the gap to the correct value.
+-	 */
+-	vma->rb_subtree_gap = 0;
+ 	rb_insert_augmented(&vma->vm_rb, root, &vma_gap_callbacks);
+-	vma_gap_update(vma);
+ }
  
-diff -puN arch/mips/include/uapi/asm/mman.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes arch/mips/include/uapi/asm/mman.h
---- a/arch/mips/include/uapi/asm/mman.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes
-+++ a/arch/mips/include/uapi/asm/mman.h
-@@ -94,7 +94,7 @@
-  *
-  * Assume these are all power of twos.
-  * When 0 use the default page size.
-- */  
-+ */
- #define MAP_HUGE_SHIFT	26
- #define MAP_HUGE_MASK	0x3f
+ static void vma_rb_erase(struct vm_area_struct *vma, struct rb_root *root)
+@@ -500,12 +490,25 @@ static int find_vma_links(struct mm_stru
+ void __vma_link_rb(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		struct rb_node **rb_link, struct rb_node *rb_parent)
+ {
+-	rb_link_node(&vma->vm_rb, rb_parent, rb_link);
+-	vma_rb_insert(vma, &mm->mm_rb);
++	/* Update tracking information for the gap following the new vma. */
+ 	if (vma->vm_next)
+ 		vma_gap_update(vma->vm_next);
+ 	else
+ 		mm->highest_vm_end = vma->vm_end;
++
++	/*
++	 * vma->vm_prev wasn't known when we followed the rbtree to find the
++	 * correct insertion point for that vma. As a result, we could not
++	 * update the vma vm_rb parents rb_subtree_gap values on the way down.
++	 * So, we first insert the vma with a zero rb_subtree_gap value
++	 * (to be consistent with what we did on the way down), and then
++	 * immediately update the gap to the correct value. Finally we
++	 * rebalance the rbtree after all augmented values have been set.
++	 */
++	rb_link_node(&vma->vm_rb, rb_parent, rb_link);
++	vma->rb_subtree_gap = 0;
++	vma_gap_update(vma);
++	vma_rb_insert(vma, &mm->mm_rb);
+ }
  
-diff -puN arch/parisc/include/uapi/asm/mman.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes arch/parisc/include/uapi/asm/mman.h
---- a/arch/parisc/include/uapi/asm/mman.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes
-+++ a/arch/parisc/include/uapi/asm/mman.h
-@@ -77,7 +77,7 @@
-  *
-  * Assume these are all power of twos.
-  * When 0 use the default page size.
-- */  
-+ */
- #define MAP_HUGE_SHIFT	26
- #define MAP_HUGE_MASK	0x3f
- 
-diff -puN arch/xtensa/include/uapi/asm/mman.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes arch/xtensa/include/uapi/asm/mman.h
---- a/arch/xtensa/include/uapi/asm/mman.h~mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7-fix-fix-fix-fix-checkpatch-fixes
-+++ a/arch/xtensa/include/uapi/asm/mman.h
-@@ -100,7 +100,7 @@
-  *
-  * Assume these are all power of twos.
-  * When 0 use the default page size.
-- */  
-+ */
- #define MAP_HUGE_SHIFT	26
- #define MAP_HUGE_MASK	0x3f
- 
+ static void __vma_link_file(struct vm_area_struct *vma)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from walken@google.com are
 
-mm-introduce-mm_find_pmd.patch
-memory-hotplug-update-mce_bad_pages-when-removing-the-memory.patch
-slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
-mmvmscan-only-evict-file-pages-when-we-have-plenty.patch
-dmapool-make-dmapool_debug-detect-corruption-of-free-marker.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7.patch
+mm-augment-vma-rbtree-with-rb_subtree_gap.patch
+mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-removing-vma.patch
+mm-augment-vma-rbtree-with-rb_subtree_gap--debug-code-to-verify-rb_subtree_gap-updates-are-safe.patch
+mm-augment-vma-rbtree-with-rb_subtree_gap-fix.patch
+mm-check-rb_subtree_gap-correctness.patch
 mm-check-rb_subtree_gap-correctness-fix.patch
+mm-rearrange-vm_area_struct-for-fewer-cache-misses.patch
 mm-rearrange-vm_area_struct-for-fewer-cache-misses-checkpatch-fixes.patch
+mm-vm_unmapped_area-lookup-function.patch
 mm-vm_unmapped_area-lookup-function-checkpatch-fixes.patch
+mm-use-vm_unmapped_area-on-x86_64-architecture.patch
+mm-fix-cache-coloring-on-x86_64-architecture.patch
+mm-use-vm_unmapped_area-in-hugetlbfs.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture.patch
 mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture-fix.patch
+mm-use-vm_unmapped_area-on-mips-architecture.patch
 mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
+mm-use-vm_unmapped_area-on-arm-architecture.patch
 mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
 mm-use-vm_unmapped_area-on-arm-architecture-fix-fix.patch
+mm-use-vm_unmapped_area-on-sh-architecture.patch
 mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sh-architecture-fix2.patch
+mm-use-vm_unmapped_area-on-sparc32-architecture.patch
 mm-use-vm_unmapped_area-on-sparc32-architecture-fix.patch
 mm-use-vm_unmapped_area-on-sparc32-architecture-fix-fix.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture.patch
 mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc64-architecture.patch
 mm-use-vm_unmapped_area-on-sparc64-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sparc64-architecture-fix-fix.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-sparc64-architecture.patch
+mm-use-vm_unmapped_area-in-hugetlbfs-on-sparc64-architecture-fix.patch
 arch-sparc-kernel-sys_sparc_64c-s-colour-color.patch
-mm-introduce-a-common-interface-for-balloon-pages-mobility-mm-fix-balloon_page_movable-page-flags-check-fix.patch
-virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix.patch
-virtio_balloon-introduce-migration-primitives-to-balloon-pages-fix-fix-fix.patch
-mm-cma-skip-watermarks-check-for-already-isolated-blocks-in-split_free_page-fix-fix.patch
-bootmem-fix-wrong-call-parameter-for-free_bootmem-fix.patch
-mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch
 
