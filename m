@@ -1,49 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-use-vm_unmapped_area-on-arm-architecture-fix-fix.patch removed from -mm tree
-Date: Tue, 11 Dec 2012 15:47:32 -0800
-Message-ID: <20121211234733.8110520004E@hpza10.eem.corp.google.com>
+Subject: [folded-merged] mm-use-vm_unmapped_area-on-sh-architecture-fix.patch removed from -mm tree
+Date: Tue, 11 Dec 2012 15:48:01 -0800
+Message-ID: <20121211234802.1DA7D820050@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f74.google.com ([209.85.215.74]:49250 "EHLO
-	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753496Ab2LKXrg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Dec 2012 18:47:36 -0500
-Received: by mail-la0-f74.google.com with SMTP id v3so1782lag.1
-        for <mm-commits@vger.kernel.org>; Tue, 11 Dec 2012 15:47:34 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:54378 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753276Ab2LKXsD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Dec 2012 18:48:03 -0500
+Received: by mail-qc0-f202.google.com with SMTP id s25so6724qcq.1
+        for <mm-commits@vger.kernel.org>; Tue, 11 Dec 2012 15:48:03 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, walken@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cmetcalf@tilera.com, davem@davemloft.net, hpa@zytor.com, hughd@google.com, lethal@linux-sh.org, linux@arm.linux.org.uk, mingo@elte.hu, ralf@linux-mips.org, riel@redhat.com, tglx@linutronix.de, walken@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-use-vm_unmapped_area-on-arm-architecture-fix-fix
+     Subject: mm-use-vm_unmapped_area-on-sh-architecture-fix
 has been removed from the -mm tree.  Its filename was
-     mm-use-vm_unmapped_area-on-arm-architecture-fix-fix.patch
+     mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
 
-This patch was dropped because it was folded into mm-use-vm_unmapped_area-on-arm-architecture.patch
+This patch was dropped because it was folded into mm-use-vm_unmapped_area-on-sh-architecture.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-use-vm_unmapped_area-on-arm-architecture-fix-fix
+Subject: mm-use-vm_unmapped_area-on-sh-architecture-fix
 
+remove now-unused COLOUR_ALIGN_DOWN()
+
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Michel Lespinasse <walken@google.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/mmap.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/sh/mm/mmap.c |   12 ------------
+ 1 file changed, 12 deletions(-)
 
-diff -puN arch/arm/mm/mmap.c~mm-use-vm_unmapped_area-on-arm-architecture-fix-fix arch/arm/mm/mmap.c
---- a/arch/arm/mm/mmap.c~mm-use-vm_unmapped_area-on-arm-architecture-fix-fix
-+++ a/arch/arm/mm/mmap.c
-@@ -57,7 +57,6 @@ arch_get_unmapped_area(struct file *filp
+diff -puN arch/sh/mm/mmap.c~mm-use-vm_unmapped_area-on-sh-architecture-fix arch/sh/mm/mmap.c
+--- a/arch/sh/mm/mmap.c~mm-use-vm_unmapped_area-on-sh-architecture-fix
++++ a/arch/sh/mm/mmap.c
+@@ -30,18 +30,6 @@ static inline unsigned long COLOUR_ALIGN
+ 	return base + off;
+ }
+ 
+-static inline unsigned long COLOUR_ALIGN_DOWN(unsigned long addr,
+-					      unsigned long pgoff)
+-{
+-	unsigned long base = addr & ~shm_align_mask;
+-	unsigned long off = (pgoff << PAGE_SHIFT) & shm_align_mask;
+-
+-	if (base + off <= addr)
+-		return base + off;
+-
+-	return base - off;
+-}
+-
+ unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr,
+ 	unsigned long len, unsigned long pgoff, unsigned long flags)
  {
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma;
--	unsigned long start_addr;
- 	int do_align = 0;
- 	int aliasing = cache_is_vipt_aliasing();
- 	struct vm_unmapped_area_info info;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -60,7 +83,7 @@ mm-vm_unmapped_area-lookup-function.patch
 mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture.patch
 mm-use-vm_unmapped_area-on-mips-architecture.patch
 mm-use-vm_unmapped_area-on-arm-architecture.patch
-mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
+mm-use-vm_unmapped_area-on-sh-architecture.patch
 mm-use-vm_unmapped_area-on-sparc32-architecture-fix.patch
 mm-use-vm_unmapped_area-on-sparc32-architecture-fix-fix.patch
 mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture-fix.patch
