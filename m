@@ -1,77 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] memory-hotplug-fix-nr_free_pages-mismatch-fix.patch removed from -mm tree
-Date: Tue, 11 Dec 2012 15:39:41 -0800
-Message-ID: <20121211233942.9F2C620004E@hpza10.eem.corp.google.com>
+Subject: [folded-merged] memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix.patch removed from -mm tree
+Date: Tue, 11 Dec 2012 15:40:16 -0800
+Message-ID: <20121211234016.C1D1E82004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:44702 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753759Ab2LKXjp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Dec 2012 18:39:45 -0500
-Received: by mail-we0-f202.google.com with SMTP id t57so1684wey.1
-        for <mm-commits@vger.kernel.org>; Tue, 11 Dec 2012 15:39:43 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:58250 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753526Ab2LKXkR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Dec 2012 18:40:17 -0500
+Received: by mail-yh0-f74.google.com with SMTP id 10so6005yhl.1
+        for <mm-commits@vger.kernel.org>; Tue, 11 Dec 2012 15:40:17 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wency@cn.fujitsu.com, wujianguo106@gmail.com, mm-commits@vger.kernel.org
+To: mhocko@suse.cz, rientjes@google.com, wency@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory-hotplug: fix NR_FREE_PAGES mismatch's fix
+     Subject: mm: make zone_pcp_reset independent of MEMORY_HOTREMOVE
 has been removed from the -mm tree.  Its filename was
-     memory-hotplug-fix-nr_free_pages-mismatch-fix.patch
+     memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix.patch
 
-This patch was dropped because it was folded into memory-hotplug-fix-nr_free_pages-mismatch.patch
+This patch was dropped because it was folded into memory-hotplug-allocate-zones-pcp-before-onlining-pages.patch
 
 ------------------------------------------------------
-From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: memory-hotplug: fix NR_FREE_PAGES mismatch's fix
+From: Michal Hocko <mhocko@suse.cz>
+Subject: mm: make zone_pcp_reset independent of MEMORY_HOTREMOVE
 
-When a page is freed and put into pcp list, get_freepage_migratetype()
-doesn't return MIGRATE_ISOLATE even if this pageblock is isolated.
-So we should use get_freepage_migratetype() instead of mt to check
-whether it is isolated.
+340175b7 (mm/hotplug: free zone->pageset when a zone becomes empty)
+introduced zone_pcp_reset and hided it inside CONFIG_MEMORY_HOTREMOVE.
+Since "memory-hotplug: allocate zone's pcp before onlining pages" the
+function is also called from online_pages which is defined outside
+CONFIG_MEMORY_HOTREMOVE which causes a linkage error.
 
-Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
-Reported-by: Jianguo Wu <wujianguo106@gmail.com>
+The function, although not used outside of MEMORY_{HOTPLUT,HOTREMOVE},
+seems like universal enough so let's keep it at its current location
+and only remove the HOTREMOVE guard.
+
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Reviewed-by: Wen Congyang <wency@cn.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  mm/page_alloc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~memory-hotplug-fix-nr_free_pages-mismatch-fix mm/page_alloc.c
---- a/mm/page_alloc.c~memory-hotplug-fix-nr_free_pages-mismatch-fix
+diff -puN mm/page_alloc.c~memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix
 +++ a/mm/page_alloc.c
-@@ -666,7 +666,7 @@ static void free_pcppages_bulk(struct zo
- 			/* MIGRATE_MOVABLE list may include MIGRATE_RESERVEs */
- 			__free_one_page(page, zone, 0, mt);
- 			trace_mm_page_pcpu_drain(page, 0, mt);
--			if (likely(mt != MIGRATE_ISOLATE)) {
-+			if (likely(get_pageblock_migratetype(page) != MIGRATE_ISOLATE)) {
- 				__mod_zone_page_state(zone, NR_FREE_PAGES, 1);
- 				if (is_migrate_cma(mt))
- 					__mod_zone_page_state(zone, NR_FREE_CMA_PAGES, 1);
+@@ -5998,7 +5998,6 @@ void __meminit zone_pcp_update(struct zo
+ }
+ #endif
+ 
+-#ifdef CONFIG_MEMORY_HOTREMOVE
+ void zone_pcp_reset(struct zone *zone)
+ {
+ 	unsigned long flags;
+@@ -6018,6 +6017,7 @@ void zone_pcp_reset(struct zone *zone)
+ 	local_irq_restore(flags);
+ }
+ 
++#ifdef CONFIG_MEMORY_HOTREMOVE
+ /*
+  * All pages in the range must be isolated before calling this.
+  */
 _
 
-Patches currently in -mm which might be from wency@cn.fujitsu.com are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
-memory-hotplug-suppress-device-memoryx-does-not-have-a-release-function-warning.patch
-memory-hotplug-skip-hwpoisoned-page-when-offlining-pages.patch
-memory-hotplug-update-mce_bad_pages-when-removing-the-memory.patch
-memory-hotplug-auto-offline-page_cgroup-when-onlining-memory-block-failed.patch
-memory-hotplug-fix-nr_free_pages-mismatch.patch
-numa-convert-static-memory-to-dynamically-allocated-memory-for-per-node-device.patch
-memory-hotplug-suppress-device-nodex-does-not-have-a-release-function-warning.patch
-memory-hotplug-mm-sparsec-clear-the-memory-to-store-struct-page.patch
+mm-memcg-make-mem_cgroup_out_of_memory-static.patch
+thp-clean-up-__collapse_huge_page_isolate.patch
+mm-introduce-mm_find_pmd.patch
+thp-introduce-hugepage_vma_check.patch
+thp-cleanup-introduce-mk_huge_pmd.patch
 memory-hotplug-allocate-zones-pcp-before-onlining-pages.patch
-memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix.patch
-memory-hotplug-allocate-zones-pcp-before-onlining-pages-fix-2.patch
-memory_hotplug-fix-possible-incorrect-node_states.patch
-slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
-mm-memory_hotplugc-update-start_pfn-in-zone-and-pg_data-when-spanned_pages-==-0.patch
-drivers-base-nodec-cleanup-node_state_attr.patch
-mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory.patch
-mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch
-memory_hotplug-handle-empty-zone-when-online_movable-online_kernel.patch
-memory_hotplug-ensure-every-online-node-has-normal-memory.patch
+mm-introduce-a-common-interface-for-balloon-pages-mobility-fix.patch
+mm-oom-change-type-of-oom_score_adj-to-short.patch
+mm-oom-fix-race-when-specifying-a-thread-as-the-oom-origin.patch
 
