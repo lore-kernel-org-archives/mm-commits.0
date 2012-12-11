@@ -1,55 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-inserting-new-vma.patch removed from -mm tree
-Date: Tue, 11 Dec 2012 15:44:28 -0800
-Message-ID: <20121211234429.A4E6F20004E@hpza10.eem.corp.google.com>
+Subject: [folded-merged] mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-removing-vma.patch removed from -mm tree
+Date: Tue, 11 Dec 2012 15:44:33 -0800
+Message-ID: <20121211234434.274DE10004A@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:64024 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753616Ab2LKXoc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Dec 2012 18:44:32 -0500
-Received: by mail-bk0-f74.google.com with SMTP id je9so1843bkc.1
-        for <mm-commits@vger.kernel.org>; Tue, 11 Dec 2012 15:44:31 -0800 (PST)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:42426 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753616Ab2LKXof (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Dec 2012 18:44:35 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z10so6671ghb.1
+        for <mm-commits@vger.kernel.org>; Tue, 11 Dec 2012 15:44:34 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: walken@google.com, hughd@google.com, riel@redhat.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: ensure safe rb_subtree_gap update when inserting new VMA
+     Subject: mm: ensure safe rb_subtree_gap update when removing VMA
 has been removed from the -mm tree.  Its filename was
-     mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-inserting-new-vma.patch
+     mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-removing-vma.patch
 
 This patch was dropped because it was folded into mm-augment-vma-rbtree-with-rb_subtree_gap.patch
 
 ------------------------------------------------------
 From: Michel Lespinasse <walken@google.com>
-Subject: mm: ensure safe rb_subtree_gap update when inserting new VMA
+Subject: mm: ensure safe rb_subtree_gap update when removing VMA
 
 Using the trinity fuzzer, Sasha Levin uncovered a case where
 rb_subtree_gap wasn't correctly updated.
 
 Digging into this, the root cause was that vma insertions and removals
-require both an rbtree insert or erase operation (which may trigger tree
-rotations), and an update of the next vma's gap (which does not change the
-tree topology, but may require iterating on the node's ancestors to
-propagate the update).  The rbtree rotations caused the rb_subtree_gap
-values to be updated in some of the internal nodes, but without upstream
-propagation.  Then the subsequent update on the next vma didn't iterate as
-high up the tree as it should have, as it stopped as soon as it hit one of
-the internal nodes that had been updated as part of a tree rotation.
+require both an rbtree insert or erase operation (which may trigger
+tree rotations), and an update of the next vma's gap (which does not
+change the tree topology, but may require iterating on the node's
+ancestors to propagate the update). The rbtree rotations caused the
+rb_subtree_gap values to be updated in some of the internal nodes, but
+without upstream propagation. Then the subsequent update on the next
+vma didn't iterate as high up the tree as it should have, as it
+stopped as soon as it hit one of the internal nodes that had been
+updated as part of a tree rotation.
 
 The fix is to impose that all rb_subtree_gap values must be up to date
-before any rbtree insertion or erase, with the possible exception that the
-node being erased doesn't need to have an up to date rb_subtree_gap.
+before any rbtree insertion or erase, with the possible exception that
+the node being erased doesn't need to have an up to date rb_subtree_gap.
 
-This change: during vma insertion, make sure to update the rb_subtree_gap
-values for both the current and next vmas prior to rebalancing the rbtree
-to account for the just-inserted vma.
+This change: during VMA removal, remove VMA from the rbtree before we
+remove it from the linked list. The implication is the next vma's
+rb_subtree_gap value becomes stale when next->vm_prev is updated,
+and we want to make sure vma_rb_erase() runs before there are any
+such stale rb_subtree_gap values in the rbtree.
 
-(Thanks to Sasha Levin for uncovering the problem and to Hugh Dickins
-for coming up with a simpler test case)
+(I don't know of a reproduceable test case for this particular issue)
 
+Signed-off-by: Michel Lespinasse <walken@google.com>
 Reported-by: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Michel Lespinasse <walken@google.com>
 Reviewed-by: Rik van Riel <riel@redhat.com>
@@ -57,64 +60,33 @@ Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   27 +++++++++++++++------------
- 1 file changed, 15 insertions(+), 12 deletions(-)
+ mm/mmap.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/mmap.c~mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-inserting-new-vma mm/mmap.c
---- a/mm/mmap.c~mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-inserting-new-vma
+diff -puN mm/mmap.c~mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-removing-vma mm/mmap.c
+--- a/mm/mmap.c~mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-removing-vma
 +++ a/mm/mmap.c
-@@ -353,17 +353,7 @@ static void vma_gap_update(struct vm_are
- static inline void vma_rb_insert(struct vm_area_struct *vma,
- 				 struct rb_root *root)
+@@ -584,12 +584,12 @@ static inline void
+ __vma_unlink(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		struct vm_area_struct *prev)
  {
--	/*
--	 * vma->vm_prev wasn't known when we followed the rbtree to find the
--	 * correct insertion point for that vma. As a result, we could not
--	 * update the vma vm_rb parents rb_subtree_gap values on the way down.
--	 * So, we first insert the vma with a zero rb_subtree_gap value
--	 * (to be consistent with what we did on the way down), and then
--	 * immediately update the gap to the correct value.
--	 */
--	vma->rb_subtree_gap = 0;
- 	rb_insert_augmented(&vma->vm_rb, root, &vma_gap_callbacks);
--	vma_gap_update(vma);
- }
+-	struct vm_area_struct *next = vma->vm_next;
++	struct vm_area_struct *next;
  
- static void vma_rb_erase(struct vm_area_struct *vma, struct rb_root *root)
-@@ -500,12 +490,25 @@ static int find_vma_links(struct mm_stru
- void __vma_link_rb(struct mm_struct *mm, struct vm_area_struct *vma,
- 		struct rb_node **rb_link, struct rb_node *rb_parent)
- {
--	rb_link_node(&vma->vm_rb, rb_parent, rb_link);
--	vma_rb_insert(vma, &mm->mm_rb);
-+	/* Update tracking information for the gap following the new vma. */
- 	if (vma->vm_next)
- 		vma_gap_update(vma->vm_next);
- 	else
- 		mm->highest_vm_end = vma->vm_end;
-+
-+	/*
-+	 * vma->vm_prev wasn't known when we followed the rbtree to find the
-+	 * correct insertion point for that vma. As a result, we could not
-+	 * update the vma vm_rb parents rb_subtree_gap values on the way down.
-+	 * So, we first insert the vma with a zero rb_subtree_gap value
-+	 * (to be consistent with what we did on the way down), and then
-+	 * immediately update the gap to the correct value. Finally we
-+	 * rebalance the rbtree after all augmented values have been set.
-+	 */
-+	rb_link_node(&vma->vm_rb, rb_parent, rb_link);
-+	vma->rb_subtree_gap = 0;
-+	vma_gap_update(vma);
-+	vma_rb_insert(vma, &mm->mm_rb);
+-	prev->vm_next = next;
++	vma_rb_erase(vma, &mm->mm_rb);
++	prev->vm_next = next = vma->vm_next;
+ 	if (next)
+ 		next->vm_prev = prev;
+-	vma_rb_erase(vma, &mm->mm_rb);
+ 	if (mm->mmap_cache == vma)
+ 		mm->mmap_cache = prev;
  }
- 
- static void __vma_link_file(struct vm_area_struct *vma)
 _
 
 Patches currently in -mm which might be from walken@google.com are
 
 mm-augment-vma-rbtree-with-rb_subtree_gap.patch
-mm-augment-vma-rbtree-with-rb_subtree_gap-ensure-safe-rb_subtree_gap-update-when-removing-vma.patch
 mm-augment-vma-rbtree-with-rb_subtree_gap--debug-code-to-verify-rb_subtree_gap-updates-are-safe.patch
 mm-augment-vma-rbtree-with-rb_subtree_gap-fix.patch
 mm-check-rb_subtree_gap-correctness.patch
