@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-use-vm_unmapped_area-on-mips-architecture-fix.patch removed from -mm tree
-Date: Tue, 11 Dec 2012 15:46:59 -0800
-Message-ID: <20121211234700.9001720004E@hpza10.eem.corp.google.com>
+Subject: [folded-merged] mm-use-vm_unmapped_area-on-arm-architecture-fix.patch removed from -mm tree
+Date: Tue, 11 Dec 2012 15:47:23 -0800
+Message-ID: <20121211234723.DD9AC100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:54478 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753276Ab2LKXrE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Dec 2012 18:47:04 -0500
-Received: by mail-wg0-f74.google.com with SMTP id dt14so1953wgb.1
-        for <mm-commits@vger.kernel.org>; Tue, 11 Dec 2012 15:47:03 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:58784 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753496Ab2LKXrZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Dec 2012 18:47:25 -0500
+Received: by mail-ye0-f202.google.com with SMTP id l7so6941yen.1
+        for <mm-commits@vger.kernel.org>; Tue, 11 Dec 2012 15:47:25 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, cmetcalf@tilera.com, davem@davemloft.net, hpa@zytor.com, hughd@google.com, lethal@linux-sh.org, linux@arm.linux.org.uk, mingo@elte.hu, ralf@linux-mips.org, riel@redhat.com, tglx@linutronix.de, walken@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-use-vm_unmapped_area-on-mips-architecture-fix
+     Subject: mm-use-vm_unmapped_area-on-arm-architecture-fix
 has been removed from the -mm tree.  Its filename was
-     mm-use-vm_unmapped_area-on-mips-architecture-fix.patch
+     mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
 
-This patch was dropped because it was folded into mm-use-vm_unmapped_area-on-mips-architecture.patch
+This patch was dropped because it was folded into mm-use-vm_unmapped_area-on-arm-architecture.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-use-vm_unmapped_area-on-mips-architecture-fix
+Subject: mm-use-vm_unmapped_area-on-arm-architecture-fix
 
 remove now-unused COLOUR_ALIGN_DOWN()
 
@@ -42,21 +42,21 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/mm/mmap.c |   12 ------------
+ arch/arm/mm/mmap.c |   12 ------------
  1 file changed, 12 deletions(-)
 
-diff -puN arch/mips/mm/mmap.c~mm-use-vm_unmapped_area-on-mips-architecture-fix arch/mips/mm/mmap.c
---- a/arch/mips/mm/mmap.c~mm-use-vm_unmapped_area-on-mips-architecture-fix
-+++ a/arch/mips/mm/mmap.c
-@@ -45,18 +45,6 @@ static unsigned long mmap_base(unsigned 
- 	return PAGE_ALIGN(TASK_SIZE - gap - rnd);
- }
+diff -puN arch/arm/mm/mmap.c~mm-use-vm_unmapped_area-on-arm-architecture-fix arch/arm/mm/mmap.c
+--- a/arch/arm/mm/mmap.c~mm-use-vm_unmapped_area-on-arm-architecture-fix
++++ a/arch/arm/mm/mmap.c
+@@ -11,18 +11,6 @@
+ #include <linux/random.h>
+ #include <asm/cachetype.h>
  
 -static inline unsigned long COLOUR_ALIGN_DOWN(unsigned long addr,
 -					      unsigned long pgoff)
 -{
--	unsigned long base = addr & ~shm_align_mask;
--	unsigned long off = (pgoff << PAGE_SHIFT) & shm_align_mask;
+-	unsigned long base = addr & ~(SHMLBA-1);
+-	unsigned long off = (pgoff << PAGE_SHIFT) & (SHMLBA-1);
 -
 -	if (base + off <= addr)
 -		return base + off;
@@ -64,9 +64,9 @@ diff -puN arch/mips/mm/mmap.c~mm-use-vm_unmapped_area-on-mips-architecture-fix a
 -	return base - off;
 -}
 -
- #define COLOUR_ALIGN(addr, pgoff)				\
- 	((((addr) + shm_align_mask) & ~shm_align_mask) +	\
- 	 (((pgoff) << PAGE_SHIFT) & shm_align_mask))
+ #define COLOUR_ALIGN(addr,pgoff)		\
+ 	((((addr)+SHMLBA-1)&~(SHMLBA-1)) +	\
+ 	 (((pgoff)<<PAGE_SHIFT) & (SHMLBA-1)))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -82,7 +82,7 @@ mm-rearrange-vm_area_struct-for-fewer-cache-misses.patch
 mm-vm_unmapped_area-lookup-function.patch
 mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture.patch
 mm-use-vm_unmapped_area-on-mips-architecture.patch
-mm-use-vm_unmapped_area-on-arm-architecture-fix.patch
+mm-use-vm_unmapped_area-on-arm-architecture.patch
 mm-use-vm_unmapped_area-on-arm-architecture-fix-fix.patch
 mm-use-vm_unmapped_area-on-sh-architecture-fix.patch
 mm-use-vm_unmapped_area-on-sparc32-architecture-fix.patch
