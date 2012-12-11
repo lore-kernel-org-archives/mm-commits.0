@@ -1,75 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: + mm-bootmemc-remove-unused-wrapper-function-reserve_bootmem_generic.patch added to -mm tree
-Date: Tue, 11 Dec 2012 13:58:00 -0800
-Message-ID: <20121211215801.13BDF20004E@hpza10.eem.corp.google.com>
+Subject: [folded-merged] thp-clean-up-__collapse_huge_page_isolate-v2.patch removed from -mm tree
+Date: Tue, 11 Dec 2012 15:38:17 -0800
+Message-ID: <20121211233819.6283C100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:47479 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754957Ab2LKV6G (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Dec 2012 16:58:06 -0500
-Received: by mail-wi0-f202.google.com with SMTP id hn17so220944wib.1
-        for <mm-commits@vger.kernel.org>; Tue, 11 Dec 2012 13:58:02 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:40382 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755202Ab2LKXiU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Dec 2012 18:38:20 -0500
+Received: by mail-yh0-f74.google.com with SMTP id 10so5827yhl.1
+        for <mm-commits@vger.kernel.org>; Tue, 11 Dec 2012 15:38:20 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: linfeng@cn.fujitsu.com, hannes@cmpxchg.org, yinghai@kernel.org
+To: lliubbo@gmail.com, aarcange@redhat.com, mhocko@suse.cz, minchan.kim@gmail.com, nizhan.chen@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/bootmem.c: remove unused wrapper function reserve_bootmem_generic()
-has been added to the -mm tree.  Its filename is
-     mm-bootmemc-remove-unused-wrapper-function-reserve_bootmem_generic.patch
+     Subject: thp-clean-up-__collapse_huge_page_isolate v2
+has been removed from the -mm tree.  Its filename was
+     thp-clean-up-__collapse_huge_page_isolate-v2.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into thp-clean-up-__collapse_huge_page_isolate.patch
 
 ------------------------------------------------------
-From: Lin Feng <linfeng@cn.fujitsu.com>
-Subject: mm/bootmem.c: remove unused wrapper function reserve_bootmem_generic()
+From: Bob Liu <lliubbo@gmail.com>
+Subject: thp-clean-up-__collapse_huge_page_isolate v2
 
-reserve_bootmem_generic() has no caller,
+mv label out of condition.
 
-Signed-off-by: Lin Feng <linfeng@cn.fujitsu.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Yinghai Lu <yinghai@kernel.org>
+Signed-off-by: Bob Liu <lliubbo@gmail.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Minchan Kim <minchan.kim@gmail.com>
+Cc: Ni zhan Chen <nizhan.chen@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bootmem.h |    3 ---
- mm/bootmem.c            |    6 ------
- 2 files changed, 9 deletions(-)
+ mm/huge_memory.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/bootmem.h~mm-bootmemc-remove-unused-wrapper-function-reserve_bootmem_generic include/linux/bootmem.h
---- a/include/linux/bootmem.h~mm-bootmemc-remove-unused-wrapper-function-reserve_bootmem_generic
-+++ a/include/linux/bootmem.h
-@@ -137,9 +137,6 @@ extern void *__alloc_bootmem_low_node(pg
- #define alloc_bootmem_low_pages_node(pgdat, x) \
- 	__alloc_bootmem_low_node(pgdat, x, PAGE_SIZE, 0)
- 
--extern int reserve_bootmem_generic(unsigned long addr, unsigned long size,
--				   int flags);
--
- #ifdef CONFIG_HAVE_ARCH_ALLOC_REMAP
- extern void *alloc_remap(int nid, unsigned long size);
- #else
-diff -puN mm/bootmem.c~mm-bootmemc-remove-unused-wrapper-function-reserve_bootmem_generic mm/bootmem.c
---- a/mm/bootmem.c~mm-bootmemc-remove-unused-wrapper-function-reserve_bootmem_generic
-+++ a/mm/bootmem.c
-@@ -460,12 +460,6 @@ int __init reserve_bootmem(unsigned long
- 	return mark_bootmem(start, end, 1, flags);
+diff -puN mm/huge_memory.c~thp-clean-up-__collapse_huge_page_isolate-v2 mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-clean-up-__collapse_huge_page_isolate-v2
++++ a/mm/huge_memory.c
+@@ -1871,7 +1871,7 @@ static int __collapse_huge_page_isolate(
+ {
+ 	struct page *page;
+ 	pte_t *_pte;
+-	int referenced = 0, isolated = 1, none = 0;
++	int referenced = 0, none = 0;
+ 	for (_pte = pte; _pte < pte+HPAGE_PMD_NR;
+ 	     _pte++, address += PAGE_SIZE) {
+ 		pte_t pteval = *_pte;
+@@ -1920,12 +1920,11 @@ static int __collapse_huge_page_isolate(
+ 		    mmu_notifier_test_young(vma->vm_mm, address))
+ 			referenced = 1;
+ 	}
+-	if (unlikely(!referenced)) {
++	if (likely(referenced))
++		return 1;
+ out:
+-		release_pte_pages(pte, _pte);
+-		isolated = 0;
+-	}
+-	return isolated;
++	release_pte_pages(pte, _pte);
++	return 0;
  }
  
--int __weak __init reserve_bootmem_generic(unsigned long phys, unsigned long len,
--				   int flags)
--{
--	return reserve_bootmem(phys, len, flags);
--}
+ static void __collapse_huge_page_copy(pte_t *pte, struct page *page,
+_
+
+Patches currently in -mm which might be from lliubbo@gmail.com are
+
+thp-clean-up-__collapse_huge_page_isolate.patch
+mm-introduce-mm_find_pmd.patch
+mm-introduce-mm_find_pmd-fix.patch
+thp-introduce-hugepage_vma_check.patch
+thp-cleanup-introduce-mk_huge_pmd.patch
+
