@@ -1,178 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-introduce-compaction-and-migration-for-ballooned-pages.patch removed from -mm tree
-Date: Wed, 12 Dec 2012 12:00:33 -0800
-Message-ID: <20121212200034.BA879200059@hpza10.eem.corp.google.com>
+Subject: [merged] arch-sparc-kernel-sys_sparc_64c-s-colour-color.patch removed from -mm tree
+Date: Wed, 12 Dec 2012 12:00:16 -0800
+Message-ID: <20121212200017.0C86220004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f73.google.com ([209.85.215.73]:62192 "EHLO
-	mail-la0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754212Ab2LLUHk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 15:07:40 -0500
-Received: by mail-la0-f73.google.com with SMTP id d3so65759lah.4
-        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 12:07:38 -0800 (PST)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:48325 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754212Ab2LLUHv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 15:07:51 -0500
+Received: by mail-lb0-f202.google.com with SMTP id s4so65665lbc.3
+        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 12:07:49 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aquini@redhat.com, andi@firstfloor.org, konrad.wilk@oracle.com, mel@csn.ul.ie, minchan@kernel.org, mst@redhat.com, riel@redhat.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, walken@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: introduce compaction and migration for ballooned pages
+     Subject: arch/sparc/kernel/sys_sparc_64.c: s/COLOUR/COLOR/
 has been removed from the -mm tree.  Its filename was
-     mm-introduce-compaction-and-migration-for-ballooned-pages.patch
+     arch-sparc-kernel-sys_sparc_64c-s-colour-color.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rafael Aquini <aquini@redhat.com>
-Subject: mm: introduce compaction and migration for ballooned pages
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: arch/sparc/kernel/sys_sparc_64.c: s/COLOUR/COLOR/
 
-Memory fragmentation introduced by ballooning might reduce significantly
-the number of 2MB contiguous memory blocks that can be used within a guest,
-thus imposing performance penalties associated with the reduced number of
-transparent huge pages that could be used by the guest workload.
+Consistently spell this word across arch/sparc/mm and arch/sparc/kernel.
 
-This patch introduces the helper functions as well as the necessary changes
-to teach compaction and migration bits how to cope with pages which are
-part of a guest memory balloon, in order to make them movable by memory
-compaction procedures.
-
-Signed-off-by: Rafael Aquini <aquini@redhat.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Minchan Kim <minchan@kernel.org>
+Acked-by: David Miller <davem@davemloft.net>
+Cc: Michel Lespinasse <walken@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   21 +++++++++++++++++++--
- mm/migrate.c    |   34 ++++++++++++++++++++++++++++++++--
- 2 files changed, 51 insertions(+), 4 deletions(-)
+ arch/sparc/kernel/sys_sparc_64.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/compaction.c~mm-introduce-compaction-and-migration-for-ballooned-pages mm/compaction.c
---- a/mm/compaction.c~mm-introduce-compaction-and-migration-for-ballooned-pages
-+++ a/mm/compaction.c
-@@ -14,6 +14,7 @@
- #include <linux/backing-dev.h>
- #include <linux/sysctl.h>
- #include <linux/sysfs.h>
-+#include <linux/balloon_compaction.h>
- #include "internal.h"
+diff -puN arch/sparc/kernel/sys_sparc_64.c~arch-sparc-kernel-sys_sparc_64c-s-colour-color arch/sparc/kernel/sys_sparc_64.c
+--- a/arch/sparc/kernel/sys_sparc_64.c~arch-sparc-kernel-sys_sparc_64c-s-colour-color
++++ a/arch/sparc/kernel/sys_sparc_64.c
+@@ -75,7 +75,7 @@ static inline int invalid_64bit_range(un
+  *    the spitfire/niagara VA-hole.
+  */
  
- #if defined CONFIG_COMPACTION || defined CONFIG_CMA
-@@ -565,9 +566,24 @@ isolate_migratepages_range(struct zone *
- 			goto next_pageblock;
- 		}
+-static inline unsigned long COLOUR_ALIGN(unsigned long addr,
++static inline unsigned long COLOR_ALIGN(unsigned long addr,
+ 					 unsigned long pgoff)
+ {
+ 	unsigned long base = (addr+SHMLBA-1)&~(SHMLBA-1);
+@@ -113,7 +113,7 @@ unsigned long arch_get_unmapped_area(str
  
--		/* Check may be lockless but that's ok as we recheck later */
--		if (!PageLRU(page))
-+		/*
-+		 * Check may be lockless but that's ok as we recheck later.
-+		 * It's possible to migrate LRU pages and balloon pages
-+		 * Skip any other type of page
-+		 */
-+		if (!PageLRU(page)) {
-+			if (unlikely(balloon_page_movable(page))) {
-+				if (locked && balloon_page_isolate(page)) {
-+					/* Successfully isolated */
-+					cc->finished_update_migrate = true;
-+					list_add(&page->lru, migratelist);
-+					cc->nr_migratepages++;
-+					nr_isolated++;
-+					goto check_compact_cluster;
-+				}
-+			}
- 			continue;
-+		}
+ 	if (addr) {
+ 		if (do_color_align)
+-			addr = COLOUR_ALIGN(addr, pgoff);
++			addr = COLOR_ALIGN(addr, pgoff);
+ 		else
+ 			addr = PAGE_ALIGN(addr);
  
- 		/*
- 		 * PageLRU is set. lru_lock normally excludes isolation
-@@ -621,6 +637,7 @@ isolate_migratepages_range(struct zone *
- 		cc->nr_migratepages++;
- 		nr_isolated++;
+@@ -176,7 +176,7 @@ arch_get_unmapped_area_topdown(struct fi
+ 	/* requesting a specific address */
+ 	if (addr) {
+ 		if (do_color_align)
+-			addr = COLOUR_ALIGN(addr, pgoff);
++			addr = COLOR_ALIGN(addr, pgoff);
+ 		else
+ 			addr = PAGE_ALIGN(addr);
  
-+check_compact_cluster:
- 		/* Avoid isolating too much */
- 		if (cc->nr_migratepages == COMPACT_CLUSTER_MAX) {
- 			++low_pfn;
-diff -puN mm/migrate.c~mm-introduce-compaction-and-migration-for-ballooned-pages mm/migrate.c
---- a/mm/migrate.c~mm-introduce-compaction-and-migration-for-ballooned-pages
-+++ a/mm/migrate.c
-@@ -35,6 +35,7 @@
- #include <linux/hugetlb.h>
- #include <linux/hugetlb_cgroup.h>
- #include <linux/gfp.h>
-+#include <linux/balloon_compaction.h>
- 
- #include <asm/tlbflush.h>
- 
-@@ -79,7 +80,10 @@ void putback_lru_pages(struct list_head 
- 		list_del(&page->lru);
- 		dec_zone_page_state(page, NR_ISOLATED_ANON +
- 				page_is_file_cache(page));
--		putback_lru_page(page);
-+		if (unlikely(balloon_page_movable(page)))
-+			balloon_page_putback(page);
-+		else
-+			putback_lru_page(page);
- 	}
- }
- 
-@@ -768,6 +772,18 @@ static int __unmap_and_move(struct page 
- 		}
- 	}
- 
-+	if (unlikely(balloon_page_movable(page))) {
-+		/*
-+		 * A ballooned page does not need any special attention from
-+		 * physical to virtual reverse mapping procedures.
-+		 * Skip any attempt to unmap PTEs or to remap swap cache,
-+		 * in order to avoid burning cycles at rmap level, and perform
-+		 * the page migration right away (proteced by page lock).
-+		 */
-+		rc = balloon_page_migrate(newpage, page, mode);
-+		goto uncharge;
-+	}
-+
- 	/*
- 	 * Corner case handling:
- 	 * 1. When a new swap-cache page is read into, it is added to the LRU
-@@ -804,7 +820,9 @@ skip_unmap:
- 		put_anon_vma(anon_vma);
- 
- uncharge:
--	mem_cgroup_end_migration(mem, page, newpage, rc == MIGRATEPAGE_SUCCESS);
-+	mem_cgroup_end_migration(mem, page, newpage,
-+				 (rc == MIGRATEPAGE_SUCCESS ||
-+				  rc == MIGRATEPAGE_BALLOON_SUCCESS));
- unlock:
- 	unlock_page(page);
- out:
-@@ -836,6 +854,18 @@ static int unmap_and_move(new_page_t get
- 			goto out;
- 
- 	rc = __unmap_and_move(page, newpage, force, offlining, mode);
-+
-+	if (unlikely(rc == MIGRATEPAGE_BALLOON_SUCCESS)) {
-+		/*
-+		 * A ballooned page has been migrated already.
-+		 * Now, it's the time to wrap-up counters,
-+		 * handle the page back to Buddy and return.
-+		 */
-+		dec_zone_page_state(page, NR_ISOLATED_ANON +
-+				    page_is_file_cache(page));
-+		balloon_page_free(page);
-+		return MIGRATEPAGE_SUCCESS;
-+	}
- out:
- 	if (rc != -EAGAIN) {
- 		/*
 _
 
-Patches currently in -mm which might be from aquini@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-add-vm-event-counters-for-balloon-pages-compaction.patch
+thp-implement-splitting-pmd-for-huge-zero-page-fix.patch
+mm-add-a-reminder-comment-for-__gfp_bits_shift.patch
+numa-add-config_movable_node-for-movable-dedicated-node-fix.patch
+mm-introduce-new-field-managed_pages-to-struct-zone-fix.patch
+mm-provide-more-accurate-estimation-of-pages-occupied-by-memmap-fix.patch
+tmpfs-support-seek_data-and-seek_hole-reprise.patch
+hwpoison-hugetlbfs-fix-rss-counter-warning-fix.patch
+hwpoison-hugetlbfs-fix-rss-counter-warning-fix-fix.patch
+mm-memoryc-remove-unused-code-from-do_wp_page-fix.patch
+linux-next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+drivers-video-add-support-for-the-solomon-ssd1307-oled-controller.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
+irq-tsk-comm-is-an-array.patch
+block-remove-deadlock-in-disk_clear_events-fix.patch
+block-prevent-race-cleanup-fix.patch
+mm.patch
+drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+lseek-the-whence-argument-is-called-whence.patch
+drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
+backlight-add-of_find_backlight_by_node-function-fix.patch
+backlight-88pm860x_bl-remove-an-unnecessary-line-continuation-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes-checkpatch-fixes.patch
+hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix.patch
+procfs-add-vmflags-field-in-smaps-output-v4.patch
+procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
+ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
+ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
+ipc-convert-prepare_copy-from-macro-to-function-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+docs-add-documentation-about-proc-pid-fdinfo-fd-output-fix.patch
+fs-notify-add-procfs-fdinfo-helper-v7-fix.patch
+scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
