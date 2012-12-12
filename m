@@ -1,106 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch removed from -mm tree
-Date: Tue, 11 Dec 2012 15:54:34 -0800
-Message-ID: <20121211235435.814A420004E@hpza10.eem.corp.google.com>
+Subject: + thp-implement-refcounting-for-huge-zero-page-fix.patch added to -mm tree
+Date: Wed, 12 Dec 2012 11:48:21 -0800
+Message-ID: <20121212194822.AD5EB20005C@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:50755 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753978Ab2LKXyi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Dec 2012 18:54:38 -0500
-Received: by mail-wi0-f202.google.com with SMTP id hn17so2152wib.1
-        for <mm-commits@vger.kernel.org>; Tue, 11 Dec 2012 15:54:36 -0800 (PST)
+Received: from mail-ea0-f201.google.com ([209.85.215.201]:61499 "EHLO
+	mail-ea0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754358Ab2LLTs0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 14:48:26 -0500
+Received: by mail-ea0-f201.google.com with SMTP id b14so64944eaa.4
+        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 11:48:24 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, laijs@cn.fujitsu.com, wency@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: lliubbo@gmail.com, kirill.shutemov@linux.intel.com
 
 
 The patch titled
-     Subject: mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix
-has been removed from the -mm tree.  Its filename was
-     mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix.patch
+     Subject: huge_memory: fix huge zero page refcount
+has been added to the -mm tree.  Its filename is
+     thp-implement-refcounting-for-huge-zero-page-fix.patch
 
-This patch was dropped because it was folded into mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix
+From: Bob Liu <lliubbo@gmail.com>
+Subject: huge_memory: fix huge zero page refcount
 
-use min_t, cleanups
+It seems patch "[PATCH v5 10/11] thp: implement refcounting for huge zero
+page" was merged wrong into your tree.
 
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
+In Kirill's patch, put_huge_zero_page() is called in
+do_huge_pmd_wp_zero_page_fallback().
+But in linux-next and linux-mmotm.git, it's called in
+do_huge_pmd_wp_page_fallback().
+
+That's wrong and make below BUG triggered again:
+
+[ 1384.485993] ------------[ cut here ]------------
+[ 1384.486031] kernel BUG at mm/huge_memory.c:213!
+[ 1384.486055] invalid opcode: 0000 [#1] PREEMPT SMP
+.....
+3.7.0-rc8+ #53 Dell Inc. OptiPlex 760                 /0M860N
+[ 1384.486473] EIP: 0060:[<c114d9d8>] EFLAGS: 00010202 CPU: 1
+[ 1384.486504] EIP is at put_huge_zero_page+0x18/0x20
+[ 1384.486528] EAX: 00000001 EBX: 00000008 ECX: 00000000 EDX: ed5c4000
+[ 1384.486556] ESI: b5a00000 EDI: ed7af000 EBP: ed5c5e8c ESP: ed5c5e8c
+[ 1384.486585]  DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068
+[ 1384.486611] CR0: 8005003b CR2: b59ffba8 CR3: 2e79a000 CR4: 000427f0
+[ 1384.486639] DR0: 00000000 DR1: 00000000 DR2: 00000000 DR3: 00000000
+[ 1384.486668] DR6: ffff0ff0 DR7: 00000400
+[ 1384.486687] Process gnome-terminal (pid: 12714, ti=ed5c4000 task=ebd59a60
+task.ti=ed5c4000)
+[ 1384.486724] Stack:
+[ 1384.486735]  ed5c5eec c1151329 092fb067 80000000 eaf9eca8 ed7ae800 ed7ae800
+2c6f9000
+[ 1384.486786]  00000000 f5ff16e8 f251d378 00000163 b5a00000 f4622000 b5800000
+f251d340
+[ 1384.486836]  ec7b6c60 80000000 092fb067 2c6f9067 00000000 c74000c5 80000000
+eaf9ed60
+[ 1384.486887] Call Trace:
+[ 1384.486902]  [<c1151329>] do_huge_pmd_wp_page+0x949/0xb60
+[ 1384.486929]  [<c1128aff>] handle_mm_fault+0x14f/0x330
+[ 1384.486956]  [<c1804810>] ? __do_page_fault+0x550/0x550
+[ 1384.486981]  [<c180440d>] __do_page_fault+0x14d/0x550
+[ 1384.487005]  [<c180481d>] ? do_page_fault+0xd/0x10
+[ 1384.487030]  [<c1801cdf>] ? error_code+0x67/0x6c
+[ 1384.487054]  [<c180007b>] ? __schedule+0x66b/0x7c0
+[ 1384.487080]  [<c12ea155>] ? __put_user_4+0x11/0x18
+[ 1384.487104]  [<c1804810>] ? __do_page_fault+0x550/0x550
+[ 1384.487130]  [<c180481d>] do_page_fault+0xd/0x10
+[ 1384.487153]  [<c1801cdf>] error_code+0x67/0x6c
+[ 1384.487176]  [<c1800000>] ? __schedule+0x5f0/0x7c0
+
+Signed-off-by: Bob Liu <lliubbo@gmail.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |   20 ++++++++++++--------
- mm/memory_hotplug.c   |    1 -
- 2 files changed, 12 insertions(+), 9 deletions(-)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/base/memory.c~mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix drivers/base/memory.c
---- a/drivers/base/memory.c~mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix
-+++ a/drivers/base/memory.c
-@@ -341,14 +341,18 @@ store_mem_state(struct device *dev,
+diff -puN mm/huge_memory.c~thp-implement-refcounting-for-huge-zero-page-fix mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-implement-refcounting-for-huge-zero-page-fix
++++ a/mm/huge_memory.c
+@@ -982,6 +982,7 @@ static int do_huge_pmd_wp_zero_page_fall
+ 	smp_wmb(); /* make pte visible before pmd */
+ 	pmd_populate(mm, pmd, pgtable);
+ 	spin_unlock(&mm->page_table_lock);
++	put_huge_zero_page();
+ 	inc_mm_counter(mm, MM_ANONPAGES);
  
- 	mem = container_of(dev, struct memory_block, dev);
+ 	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
+@@ -1071,7 +1072,6 @@ static int do_huge_pmd_wp_page_fallback(
+ 	pmd_populate(mm, pmd, pgtable);
+ 	page_remove_rmap(page);
+ 	spin_unlock(&mm->page_table_lock);
+-	put_huge_zero_page();
  
--	if (!strncmp(buf, "online_kernel", min((int)count, 13)))
--		ret = memory_block_change_state(mem, MEM_ONLINE, MEM_OFFLINE, ONLINE_KERNEL);
--	else if (!strncmp(buf, "online_movable", min((int)count, 14)))
--		ret = memory_block_change_state(mem, MEM_ONLINE, MEM_OFFLINE, ONLINE_MOVABLE);
--	else if (!strncmp(buf, "online", min((int)count, 6)))
--		ret = memory_block_change_state(mem, MEM_ONLINE, MEM_OFFLINE, ONLINE_KEEP);
--	else if(!strncmp(buf, "offline", min((int)count, 7)))
--		ret = memory_block_change_state(mem, MEM_OFFLINE, MEM_ONLINE, -1);
-+	if (!strncmp(buf, "online_kernel", min_t(int, count, 13)))
-+		ret = memory_block_change_state(mem, MEM_ONLINE,
-+						MEM_OFFLINE, ONLINE_KERNEL);
-+	else if (!strncmp(buf, "online_movable", min_t(int, count, 14)))
-+		ret = memory_block_change_state(mem, MEM_ONLINE,
-+						MEM_OFFLINE, ONLINE_MOVABLE);
-+	else if (!strncmp(buf, "online", min_t(int, count, 6)))
-+		ret = memory_block_change_state(mem, MEM_ONLINE,
-+						MEM_OFFLINE, ONLINE_KEEP);
-+	else if(!strncmp(buf, "offline", min_t(int, count, 7)))
-+		ret = memory_block_change_state(mem, MEM_OFFLINE,
-+						MEM_ONLINE, -1);
+ 	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
  
- 	if (ret)
- 		return ret;
-diff -puN mm/memory_hotplug.c~mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory-fix
-+++ a/mm/memory_hotplug.c
-@@ -217,7 +217,6 @@ static void grow_zone_span(struct zone *
- static void resize_zone(struct zone *zone, unsigned long start_pfn,
- 		unsigned long end_pfn)
- {
--
- 	zone_span_writelock(zone);
- 
- 	zone->zone_start_pfn = start_pfn;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lliubbo@gmail.com are
 
-mm-introduce-mm_find_pmd.patch
-memory-hotplug-update-mce_bad_pages-when-removing-the-memory.patch
-slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
-mmvmscan-only-evict-file-pages-when-we-have-plenty.patch
-dmapool-make-dmapool_debug-detect-corruption-of-free-marker.patch
-mm-support-more-pagesizes-for-map_hugetlb-shm_hugetlb-v7.patch
-mm-check-rb_subtree_gap-correctness.patch
-mm-rearrange-vm_area_struct-for-fewer-cache-misses.patch
-mm-vm_unmapped_area-lookup-function.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-i386-architecture.patch
-mm-use-vm_unmapped_area-on-mips-architecture.patch
-mm-use-vm_unmapped_area-on-arm-architecture.patch
-mm-use-vm_unmapped_area-on-sh-architecture.patch
-mm-use-vm_unmapped_area-on-sparc32-architecture.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture.patch
-mm-use-vm_unmapped_area-on-sparc64-architecture.patch
-arch-sparc-kernel-sys_sparc_64c-s-colour-color.patch
-mm-introduce-a-common-interface-for-balloon-pages-mobility.patch
-virtio_balloon-introduce-migration-primitives-to-balloon-pages.patch
-bootmem-fix-wrong-call-parameter-for-free_bootmem.patch
-mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory.patch
+origin.patch
+thp-implement-refcounting-for-huge-zero-page-fix.patch
+thp-avoid-race-on-multiple-parallel-page-faults-to-the-same-page.patch
+hotplug-update-nodemasks-management-fix.patch
+linux-next.patch
 
