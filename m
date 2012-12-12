@@ -1,326 +1,168 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memory_hotplug-fix-possible-incorrect-node_states.patch removed from -mm tree
-Date: Wed, 12 Dec 2012 11:58:01 -0800
-Message-ID: <20121212195801.D648D820050@wpzn4.hot.corp.google.com>
+Subject: [to-be-updated] mm-trace-filemap-add-and-del.patch removed from -mm tree
+Date: Wed, 12 Dec 2012 11:51:31 -0800
+Message-ID: <20121212195131.C7868100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:46528 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754645Ab2LLT6D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 14:58:03 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so117206vcd.5
-        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 11:58:02 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:44468 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754645Ab2LLT6L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 14:58:11 -0500
+Received: by mail-yh0-f74.google.com with SMTP id 10so118622yhl.1
+        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 11:58:10 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: laijs@cn.fujitsu.com, gregkh@suse.de, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, kay.sievers@vrfy.org, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, minchan.kim@gmail.com, rientjes@google.com, rob@landley.net, wency@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: robert.jarzmik@free.fr, david@fromorbit.com, fweisbec@gmail.com, hughd@google.com, mingo@redhat.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory_hotplug: fix possible incorrect node_states[N_NORMAL_MEMORY]
+     Subject: mm: trace filemap add and del
 has been removed from the -mm tree.  Its filename was
-     memory_hotplug-fix-possible-incorrect-node_states.patch
+     mm-trace-filemap-add-and-del.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Lai Jiangshan <laijs@cn.fujitsu.com>
-Subject: memory_hotplug: fix possible incorrect node_states[N_NORMAL_MEMORY]
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: mm: trace filemap add and del
 
-Currently memory_hotplug only manages the node_states[N_HIGH_MEMORY], it
-forgets to manage node_states[N_NORMAL_MEMORY].  This may cause
-node_states[N_NORMAL_MEMORY] to become incorrect.
+Use the events API to trace filemap loading and unloading of file pieces
+into the page cache.
 
-Example, if a node is empty before online, and we online a memory which is
-in ZONE_NORMAL.  And after online, node_states[N_HIGH_MEMORY] is correct,
-but node_states[N_NORMAL_MEMORY] is incorrect, the online code doesn't set
-the new online node to node_states[N_NORMAL_MEMORY].
+This patch aims at tracing the eviction reload cycle of executable and
+shared libraries pages in a memory constrained environment.
 
-The same thing will happen when offlining (the offline code doesn't clear
-the node from node_states[N_NORMAL_MEMORY] when needed).  Some memory
-managment code depends node_states[N_NORMAL_MEMORY], so we have to fix up
-the node_states[N_NORMAL_MEMORY].
+The typical usage is to spot a specific device and inode (for example
+/lib/libc.so) to see the eviction cycles, and find out if frequently used
+code is rather spread across many pages (bad) or coallesced (good).
 
-We add node_states_check_changes_online() and
-node_states_check_changes_offline() to detect whether
-node_states[N_HIGH_MEMORY] and node_states[N_NORMAL_MEMORY] are changed
-while hotpluging.
-
-Also add @status_change_nid_normal to struct memory_notify, thus the
-memory hotplug callbacks know whether the node_states[N_NORMAL_MEMORY] are
-changed.  (We can add a @flags and reuse @status_change_nid instead of
-introducing @status_change_nid_normal, but it will add much more
-complexity in memory hotplug callback in every subsystem.  So introducing
-@status_change_nid_normal is better and it doesn't change the sematics of
-@status_change_nid)
-
-Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Rob Landley <rob@landley.net>
-Cc: Jiang Liu <jiang.liu@huawei.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Ingo Molnar <mingo@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/memory-hotplug.txt |    5 -
- include/linux/memory.h           |    1 
- mm/memory_hotplug.c              |  136 +++++++++++++++++++++++++----
- 3 files changed, 125 insertions(+), 17 deletions(-)
+ include/trace/events/filemap.h |   79 +++++++++++++++++++++++++++++++
+ mm/filemap.c                   |    5 +
+ 2 files changed, 84 insertions(+)
 
-diff -puN Documentation/memory-hotplug.txt~memory_hotplug-fix-possible-incorrect-node_states Documentation/memory-hotplug.txt
---- a/Documentation/memory-hotplug.txt~memory_hotplug-fix-possible-incorrect-node_states
-+++ a/Documentation/memory-hotplug.txt
-@@ -377,15 +377,18 @@ The third argument is passed by pointer 
- struct memory_notify {
-        unsigned long start_pfn;
-        unsigned long nr_pages;
-+       int status_change_nid_normal;
-        int status_change_nid;
- }
+diff -puN /dev/null include/trace/events/filemap.h
+--- /dev/null
++++ a/include/trace/events/filemap.h
+@@ -0,0 +1,79 @@
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM filemap
++
++#if !defined(_TRACE_FILEMAP_H) || defined(TRACE_HEADER_MULTI_READ)
++#define _TRACE_FILEMAP_H
++
++#include <linux/types.h>
++#include <linux/tracepoint.h>
++#include <linux/mm.h>
++#include <linux/memcontrol.h>
++#include <linux/device.h>
++#include <linux/kdev_t.h>
++
++TRACE_EVENT(mm_filemap_delete_from_page_cache,
++
++	TP_PROTO(struct page *page),
++
++	TP_ARGS(page),
++
++	TP_STRUCT__entry(
++		__field(struct page *, page)
++		__field(unsigned long, i_ino)
++		__field(unsigned long, index)
++		__field(dev_t, s_dev)
++	),
++
++	TP_fast_assign(
++		__entry->page = page;
++		__entry->i_ino = page->mapping->host->i_ino;
++		__entry->index = page->index;
++		if (page->mapping->host->i_sb)
++			__entry->s_dev = page->mapping->host->i_sb->s_dev;
++		else
++			__entry->s_dev = page->mapping->host->i_rdev;
++	),
++
++	TP_printk("dev %d:%d ino %lx page=%p pfn=%lu ofs=%lu",
++		MAJOR(__entry->s_dev), MINOR(__entry->s_dev),
++		__entry->i_ino,
++		__entry->page,
++		page_to_pfn(__entry->page),
++		__entry->index << PAGE_SHIFT)
++);
++
++TRACE_EVENT(mm_filemap_add_to_page_cache,
++
++	TP_PROTO(struct page *page),
++
++	TP_ARGS(page),
++
++	TP_STRUCT__entry(
++		__field(struct page *, page)
++		__field(unsigned long, i_ino)
++		__field(unsigned long, index)
++		__field(dev_t, s_dev)
++	),
++
++	TP_fast_assign(
++		__entry->page = page;
++		__entry->i_ino = page->mapping->host->i_ino;
++		__entry->index = page->index;
++		if (page->mapping->host->i_sb)
++			__entry->s_dev = page->mapping->host->i_sb->s_dev;
++		else
++			__entry->s_dev = page->mapping->host->i_rdev;
++	),
++
++	TP_printk("dev %d:%d ino %lx page=%p pfn=%lu ofs=%lu",
++		MAJOR(__entry->s_dev), MINOR(__entry->s_dev),
++		__entry->i_ino,
++		__entry->page,
++		page_to_pfn(__entry->page),
++		__entry->index << PAGE_SHIFT)
++);
++
++#endif /* _TRACE_FILEMAP_H */
++
++/* This part must be outside protection */
++#include <trace/define_trace.h>
+diff -puN mm/filemap.c~mm-trace-filemap-add-and-del mm/filemap.c
+--- a/mm/filemap.c~mm-trace-filemap-add-and-del
++++ a/mm/filemap.c
+@@ -35,6 +35,9 @@
+ #include <linux/cleancache.h>
+ #include "internal.h"
  
- start_pfn is start_pfn of online/offline memory.
- nr_pages is # of pages of online/offline memory.
-+status_change_nid_normal is set node id when N_NORMAL_MEMORY of nodemask
-+is (will be) set/clear, if this is -1, then nodemask status is not changed.
- status_change_nid is set node id when N_HIGH_MEMORY of nodemask is (will be)
- set/clear. It means a new(memoryless) node gets new memory by online and a
- node loses all memory. If this is -1, then nodemask status is not changed.
--If status_changed_nid >= 0, callback should create/discard structures for the
-+If status_changed_nid* >= 0, callback should create/discard structures for the
- node if necessary.
- 
- --------------
-diff -puN include/linux/memory.h~memory_hotplug-fix-possible-incorrect-node_states include/linux/memory.h
---- a/include/linux/memory.h~memory_hotplug-fix-possible-incorrect-node_states
-+++ a/include/linux/memory.h
-@@ -53,6 +53,7 @@ int arch_get_memory_phys_device(unsigned
- struct memory_notify {
- 	unsigned long start_pfn;
- 	unsigned long nr_pages;
-+	int status_change_nid_normal;
- 	int status_change_nid;
- };
- 
-diff -puN mm/memory_hotplug.c~memory_hotplug-fix-possible-incorrect-node_states mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory_hotplug-fix-possible-incorrect-node_states
-+++ a/mm/memory_hotplug.c
-@@ -460,6 +460,53 @@ static int online_pages_range(unsigned l
- 	return 0;
- }
- 
-+/* check which state of node_states will be changed when online memory */
-+static void node_states_check_changes_online(unsigned long nr_pages,
-+	struct zone *zone, struct memory_notify *arg)
-+{
-+	int nid = zone_to_nid(zone);
-+	enum zone_type zone_last = ZONE_NORMAL;
++#define CREATE_TRACE_POINTS
++#include <trace/events/filemap.h>
 +
-+	/*
-+	 * If we have HIGHMEM, node_states[N_NORMAL_MEMORY] contains nodes
-+	 * which have 0...ZONE_NORMAL, set zone_last to ZONE_NORMAL.
-+	 *
-+	 * If we don't have HIGHMEM, node_states[N_NORMAL_MEMORY] contains nodes
-+	 * which have 0...ZONE_MOVABLE, set zone_last to ZONE_MOVABLE.
-+	 */
-+	if (N_HIGH_MEMORY == N_NORMAL_MEMORY)
-+		zone_last = ZONE_MOVABLE;
-+
-+	/*
-+	 * if the memory to be online is in a zone of 0...zone_last, and
-+	 * the zones of 0...zone_last don't have memory before online, we will
-+	 * need to set the node to node_states[N_NORMAL_MEMORY] after
-+	 * the memory is online.
-+	 */
-+	if (zone_idx(zone) <= zone_last && !node_state(nid, N_NORMAL_MEMORY))
-+		arg->status_change_nid_normal = nid;
-+	else
-+		arg->status_change_nid_normal = -1;
-+
-+	/*
-+	 * if the node don't have memory befor online, we will need to
-+	 * set the node to node_states[N_HIGH_MEMORY] after the memory
-+	 * is online.
-+	 */
-+	if (!node_state(nid, N_HIGH_MEMORY))
-+		arg->status_change_nid = nid;
-+	else
-+		arg->status_change_nid = -1;
-+}
-+
-+static void node_states_set_node(int node, struct memory_notify *arg)
-+{
-+	if (arg->status_change_nid_normal >= 0)
-+		node_set_state(node, N_NORMAL_MEMORY);
-+
-+	node_set_state(node, N_HIGH_MEMORY);
-+}
-+
- 
- int __ref online_pages(unsigned long pfn, unsigned long nr_pages)
+ /*
+  * FIXME: remove all knowledge of the buffer layer from the core VM
+  */
+@@ -113,6 +116,7 @@ void __delete_from_page_cache(struct pag
  {
-@@ -471,13 +518,18 @@ int __ref online_pages(unsigned long pfn
- 	struct memory_notify arg;
+ 	struct address_space *mapping = page->mapping;
  
- 	lock_memory_hotplug();
-+	/*
-+	 * This doesn't need a lock to do pfn_to_page().
-+	 * The section can't be removed here because of the
-+	 * memory_block->state_mutex.
-+	 */
-+	zone = page_zone(pfn_to_page(pfn));
-+
- 	arg.start_pfn = pfn;
- 	arg.nr_pages = nr_pages;
--	arg.status_change_nid = -1;
-+	node_states_check_changes_online(nr_pages, zone, &arg);
- 
- 	nid = page_to_nid(pfn_to_page(pfn));
--	if (node_present_pages(nid) == 0)
--		arg.status_change_nid = nid;
- 
- 	ret = memory_notify(MEM_GOING_ONLINE, &arg);
- 	ret = notifier_to_errno(ret);
-@@ -487,12 +539,6 @@ int __ref online_pages(unsigned long pfn
- 		return ret;
- 	}
++	trace_mm_filemap_delete_from_page_cache(page);
  	/*
--	 * This doesn't need a lock to do pfn_to_page().
--	 * The section can't be removed here because of the
--	 * memory_block->state_mutex.
--	 */
--	zone = page_zone(pfn_to_page(pfn));
--	/*
- 	 * If this zone is not populated, then it is not in zonelist.
- 	 * This means the page allocator ignores this zone.
- 	 * So, zonelist must be updated after online.
-@@ -521,7 +567,7 @@ int __ref online_pages(unsigned long pfn
- 	zone->present_pages += onlined_pages;
- 	zone->zone_pgdat->node_present_pages += onlined_pages;
- 	if (onlined_pages) {
--		node_set_state(zone_to_nid(zone), N_HIGH_MEMORY);
-+		node_states_set_node(zone_to_nid(zone), &arg);
- 		if (need_zonelists_rebuild)
- 			build_all_zonelists(NULL, NULL);
- 		else
-@@ -871,6 +917,67 @@ check_pages_isolated(unsigned long start
- 	return offlined;
- }
- 
-+/* check which state of node_states will be changed when offline memory */
-+static void node_states_check_changes_offline(unsigned long nr_pages,
-+		struct zone *zone, struct memory_notify *arg)
-+{
-+	struct pglist_data *pgdat = zone->zone_pgdat;
-+	unsigned long present_pages = 0;
-+	enum zone_type zt, zone_last = ZONE_NORMAL;
-+
-+	/*
-+	 * If we have HIGHMEM, node_states[N_NORMAL_MEMORY] contains nodes
-+	 * which have 0...ZONE_NORMAL, set zone_last to ZONE_NORMAL.
-+	 *
-+	 * If we don't have HIGHMEM, node_states[N_NORMAL_MEMORY] contains nodes
-+	 * which have 0...ZONE_MOVABLE, set zone_last to ZONE_MOVABLE.
-+	 */
-+	if (N_HIGH_MEMORY == N_NORMAL_MEMORY)
-+		zone_last = ZONE_MOVABLE;
-+
-+	/*
-+	 * check whether node_states[N_NORMAL_MEMORY] will be changed.
-+	 * If the memory to be offline is in a zone of 0...zone_last,
-+	 * and it is the last present memory, 0...zone_last will
-+	 * become empty after offline , thus we can determind we will
-+	 * need to clear the node from node_states[N_NORMAL_MEMORY].
-+	 */
-+	for (zt = 0; zt <= zone_last; zt++)
-+		present_pages += pgdat->node_zones[zt].present_pages;
-+	if (zone_idx(zone) <= zone_last && nr_pages >= present_pages)
-+		arg->status_change_nid_normal = zone_to_nid(zone);
-+	else
-+		arg->status_change_nid_normal = -1;
-+
-+	/*
-+	 * node_states[N_HIGH_MEMORY] contains nodes which have 0...ZONE_MOVABLE
-+	 */
-+	zone_last = ZONE_MOVABLE;
-+
-+	/*
-+	 * check whether node_states[N_HIGH_MEMORY] will be changed
-+	 * If we try to offline the last present @nr_pages from the node,
-+	 * we can determind we will need to clear the node from
-+	 * node_states[N_HIGH_MEMORY].
-+	 */
-+	for (; zt <= zone_last; zt++)
-+		present_pages += pgdat->node_zones[zt].present_pages;
-+	if (nr_pages >= present_pages)
-+		arg->status_change_nid = zone_to_nid(zone);
-+	else
-+		arg->status_change_nid = -1;
-+}
-+
-+static void node_states_clear_node(int node, struct memory_notify *arg)
-+{
-+	if (arg->status_change_nid_normal >= 0)
-+		node_clear_state(node, N_NORMAL_MEMORY);
-+
-+	if ((N_HIGH_MEMORY != N_NORMAL_MEMORY) &&
-+	    (arg->status_change_nid >= 0))
-+		node_clear_state(node, N_HIGH_MEMORY);
-+}
-+
- static int __ref __offline_pages(unsigned long start_pfn,
- 		  unsigned long end_pfn, unsigned long timeout)
- {
-@@ -905,9 +1012,7 @@ static int __ref __offline_pages(unsigne
- 
- 	arg.start_pfn = start_pfn;
- 	arg.nr_pages = nr_pages;
--	arg.status_change_nid = -1;
--	if (nr_pages >= node_present_pages(node))
--		arg.status_change_nid = node;
-+	node_states_check_changes_offline(nr_pages, zone, &arg);
- 
- 	ret = memory_notify(MEM_GOING_OFFLINE, &arg);
- 	ret = notifier_to_errno(ret);
-@@ -980,10 +1085,9 @@ repeat:
- 	} else
- 		zone_pcp_update(zone);
- 
--	if (!node_present_pages(node)) {
--		node_clear_state(node, N_HIGH_MEMORY);
-+	node_states_clear_node(node, &arg);
-+	if (arg.status_change_nid >= 0)
- 		kswapd_stop(node);
--	}
- 
- 	vm_total_pages = nr_free_pagecache_pages();
- 	writeback_set_ratelimit();
+ 	 * if we're uptodate, flush out into the cleancache, otherwise
+ 	 * invalidate any existing cleancache entries.  We can't leave
+@@ -463,6 +467,7 @@ int add_to_page_cache_locked(struct page
+ 		if (likely(!error)) {
+ 			mapping->nrpages++;
+ 			__inc_zone_page_state(page, NR_FILE_PAGES);
++			trace_mm_filemap_add_to_page_cache(page);
+ 			spin_unlock_irq(&mapping->tree_lock);
+ 		} else {
+ 			page->mapping = NULL;
 _
 
-Patches currently in -mm which might be from laijs@cn.fujitsu.com are
+Patches currently in -mm which might be from robert.jarzmik@free.fr are
 
-origin.patch
-node_states-introduce-n_memory.patch
-cpuset-use-n_memory-instead-n_high_memory.patch
-procfs-use-n_memory-instead-n_high_memory.patch
-memcontrol-use-n_memory-instead-n_high_memory.patch
-oom-use-n_memory-instead-n_high_memory.patch
-mmmigrate-use-n_memory-instead-n_high_memory.patch
-mempolicy-use-n_memory-instead-n_high_memory.patch
-hugetlb-use-n_memory-instead-n_high_memory.patch
-vmstat-use-n_memory-instead-n_high_memory.patch
-kthread-use-n_memory-instead-n_high_memory.patch
-init-use-n_memory-instead-n_high_memory.patch
-vmscan-use-n_memory-instead-n_high_memory.patch
-page_alloc-use-n_memory-instead-n_high_memory-change-the-node_states-initialization.patch
-hotplug-update-nodemasks-management.patch
-hotplug-update-nodemasks-management-fix.patch
-numa-add-config_movable_node-for-movable-dedicated-node.patch
-numa-add-config_movable_node-for-movable-dedicated-node-fix.patch
-memory_hotplug-allow-online-offline-memory-to-result-movable-node.patch
-linux-next.patch
 
