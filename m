@@ -1,114 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch removed from -mm tree
-Date: Wed, 12 Dec 2012 11:58:05 -0800
-Message-ID: <20121212195806.1CFAF100047@wpzn3.hot.corp.google.com>
+Subject: [merged] mm-add-comment-on-storage-key-dirty-bit-semantics.patch removed from -mm tree
+Date: Wed, 12 Dec 2012 11:58:14 -0800
+Message-ID: <20121212195814.B336082004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:62454 "EHLO
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:57526 "EHLO
 	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754645Ab2LLT6H (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 14:58:07 -0500
-Received: by mail-gg0-f202.google.com with SMTP id k1so116516ggn.3
-        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 11:58:07 -0800 (PST)
+	with ESMTP id S1754645Ab2LLT6P (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 14:58:15 -0500
+Received: by mail-gg0-f202.google.com with SMTP id k1so117835ggn.1
+        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 11:58:15 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: laijs@cn.fujitsu.com, akpm@linux-foundation.org, cl@linux.com, gregkh@suse.de, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, kay.sievers@vrfy.org, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, minchan.kim@gmail.com, penberg@kernel.org, rientjes@google.com, rob@landley.net, wency@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, hughd@google.com, mgorman@suse.de, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub, hotplug: ignore unrelated node's hot-adding and hot-removing
+     Subject: mm: add comment on storage key dirty bit semantics
 has been removed from the -mm tree.  Its filename was
-     slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing.patch
+     mm-add-comment-on-storage-key-dirty-bit-semantics.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Lai Jiangshan <laijs@cn.fujitsu.com>
-Subject: slub, hotplug: ignore unrelated node's hot-adding and hot-removing
+From: Jan Kara <jack@suse.cz>
+Subject: mm: add comment on storage key dirty bit semantics
 
-SLUB only focuses on the nodes which have normal memory and it ignores the
-other node's hot-adding and hot-removing.
+Add comments that dirty bit in storage key gets set whenever page content
+is changed.  Hopefully if someone will use this function, he'll have a
+look at one of the two places where we comment on this.
 
-Aka: if some memory of a node which has no onlined memory is online, but
-this new memory onlined is not normal memory (for example, highmem), we
-should not allocate kmem_cache_node for SLUB.
-
-And if the last normal memory is offlined, but the node still has memory,
-we should remove kmem_cache_node for that node.  (The current code delays
-it when all of the memory is offlined)
-
-So we only do something when marg->status_change_nid_normal > 0. 
-marg->status_change_nid is not suitable here.
-
-The same problem doesn't exist in SLAB, because SLAB allocates kmem_list3
-for every node even the node don't have normal memory, SLAB tolerates
-kmem_list3 on alien nodes.  SLUB only focuses on the nodes which have
-normal memory, it don't tolerate alien kmem_cache_node.  The patch makes
-SLUB become self-compatible and avoids WARNs and BUGs in rare conditions.
-
-Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Rob Landley <rob@landley.net>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Jiang Liu <jiang.liu@huawei.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Cc: Mel Gorman <mgorman@suse.de>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/s390/include/asm/page.h |    3 +++
+ mm/rmap.c                    |    8 +++++---
+ 2 files changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN mm/slub.c~slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing mm/slub.c
---- a/mm/slub.c~slub-hotplug-ignore-unrelated-nodes-hot-adding-and-hot-removing
-+++ a/mm/slub.c
-@@ -3573,7 +3573,7 @@ static void slab_mem_offline_callback(vo
- 	struct memory_notify *marg = arg;
- 	int offline_node;
- 
--	offline_node = marg->status_change_nid;
-+	offline_node = marg->status_change_nid_normal;
- 
- 	/*
- 	 * If the node still has available memory. we need kmem_cache_node
-@@ -3606,7 +3606,7 @@ static int slab_mem_going_online_callbac
- 	struct kmem_cache_node *n;
- 	struct kmem_cache *s;
- 	struct memory_notify *marg = arg;
--	int nid = marg->status_change_nid;
-+	int nid = marg->status_change_nid_normal;
- 	int ret = 0;
- 
- 	/*
+diff -puN arch/s390/include/asm/page.h~mm-add-comment-on-storage-key-dirty-bit-semantics arch/s390/include/asm/page.h
+--- a/arch/s390/include/asm/page.h~mm-add-comment-on-storage-key-dirty-bit-semantics
++++ a/arch/s390/include/asm/page.h
+@@ -158,6 +158,9 @@ static inline int page_reset_referenced(
+  * race against modification of the referenced bit. This function
+  * should therefore only be called if it is not mapped in any
+  * address space.
++ *
++ * Note that the bit gets set whenever page content is changed. That means
++ * also when the page is modified by DMA or from inside the kernel.
+  */
+ #define __HAVE_ARCH_PAGE_TEST_AND_CLEAR_DIRTY
+ static inline int page_test_and_clear_dirty(unsigned long pfn, int mapped)
+diff -puN mm/rmap.c~mm-add-comment-on-storage-key-dirty-bit-semantics mm/rmap.c
+--- a/mm/rmap.c~mm-add-comment-on-storage-key-dirty-bit-semantics
++++ a/mm/rmap.c
+@@ -1151,9 +1151,11 @@ void page_remove_rmap(struct page *page)
+ 	 * containing the swap entry, but page not yet written to swap.
+ 	 *
+ 	 * And we can skip it on file pages, so long as the filesystem
+-	 * participates in dirty tracking; but need to catch shm and tmpfs
+-	 * and ramfs pages which have been modified since creation by read
+-	 * fault.
++	 * participates in dirty tracking (note that this is not only an
++	 * optimization but also solves problems caused by dirty flag in
++	 * storage key getting set by a write from inside kernel); but need to
++	 * catch shm and tmpfs and ramfs pages which have been modified since
++	 * creation by read fault.
+ 	 *
+ 	 * Note that mapping must be decided above, before decrementing
+ 	 * mapcount (which luckily provides a barrier): once page is unmapped,
 _
 
-Patches currently in -mm which might be from laijs@cn.fujitsu.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
-node_states-introduce-n_memory.patch
-cpuset-use-n_memory-instead-n_high_memory.patch
-procfs-use-n_memory-instead-n_high_memory.patch
-memcontrol-use-n_memory-instead-n_high_memory.patch
-oom-use-n_memory-instead-n_high_memory.patch
-mmmigrate-use-n_memory-instead-n_high_memory.patch
-mempolicy-use-n_memory-instead-n_high_memory.patch
-hugetlb-use-n_memory-instead-n_high_memory.patch
-vmstat-use-n_memory-instead-n_high_memory.patch
-kthread-use-n_memory-instead-n_high_memory.patch
-init-use-n_memory-instead-n_high_memory.patch
-vmscan-use-n_memory-instead-n_high_memory.patch
-page_alloc-use-n_memory-instead-n_high_memory-change-the-node_states-initialization.patch
-hotplug-update-nodemasks-management.patch
-hotplug-update-nodemasks-management-fix.patch
-numa-add-config_movable_node-for-movable-dedicated-node.patch
-numa-add-config_movable_node-for-movable-dedicated-node-fix.patch
-memory_hotplug-allow-online-offline-memory-to-result-movable-node.patch
 linux-next.patch
+fs-change-return-values-from-eacces-to-eperm.patch
+mm-print-out-information-of-file-affected-by-memory-error.patch
+maintainers-remove-include-linux-ext3.patch
+hfsplus-avoid-crash-on-failed-block-map-free.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+hfsplus-add-on-disk-layout-declarations-related-to-attributes-tree.patch
+hfsplus-add-functionality-of-manipulating-by-records-in-attributes-tree.patch
+hfsplus-rework-functionality-of-getting-setting-and-deleting-of-extended-attributes.patch
+hfsplus-rework-functionality-of-getting-setting-and-deleting-of-extended-attributes-fix.patch
+hfsplus-add-support-of-manipulation-by-attributes-file.patch
+fat-provide-option-for-setting-timezone-offset.patch
+fat-fix-mount-option-parsing.patch
 
