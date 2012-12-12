@@ -1,56 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-highmem-use-pkmap_nr-to-calculate-an-index-of-pkmap.patch removed from -mm tree
-Date: Wed, 12 Dec 2012 11:58:26 -0800
-Message-ID: <20121212195826.AA88C100047@wpzn3.hot.corp.google.com>
+Subject: [merged] mm-highmem-remove-useless-pool_lock.patch removed from -mm tree
+Date: Wed, 12 Dec 2012 11:58:29 -0800
+Message-ID: <20121212195829.B6BD2100052@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:59230 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754645Ab2LLT61 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 14:58:27 -0500
-Received: by mail-yh0-f73.google.com with SMTP id 47so116541yhr.2
-        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 11:58:27 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:64672 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754645Ab2LLT6b (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 14:58:31 -0500
+Received: by mail-vb0-f74.google.com with SMTP id s24so116658vbi.5
+        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 11:58:30 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: js1304@gmail.com, a.p.zijlstra@chello.nl, mel@csn.ul.ie, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, highmem: use PKMAP_NR() to calculate an index of pkmap
+     Subject: mm, highmem: remove useless pool_lock
 has been removed from the -mm tree.  Its filename was
-     mm-highmem-use-pkmap_nr-to-calculate-an-index-of-pkmap.patch
+     mm-highmem-remove-useless-pool_lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joonsoo Kim <js1304@gmail.com>
-Subject: mm, highmem: use PKMAP_NR() to calculate an index of pkmap
+Subject: mm, highmem: remove useless pool_lock
 
-To calculate an index of pkmap, using PKMAP_NR() is more understandable
-and maintainable, so change it.
+The pool_lock protects the page_address_pool from concurrent access.  But,
+access to the page_address_pool is already protected by kmap_lock.  So
+remove it.
 
 Signed-off-by: Joonsoo Kim <js1304@gmail.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: Minchan Kim <minchan@kernel.org>
+Reviewed-by: Minchan Kin <minchan@kernel.org>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/highmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/highmem.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN mm/highmem.c~mm-highmem-use-pkmap_nr-to-calculate-an-index-of-pkmap mm/highmem.c
---- a/mm/highmem.c~mm-highmem-use-pkmap_nr-to-calculate-an-index-of-pkmap
+diff -puN mm/highmem.c~mm-highmem-remove-useless-pool_lock mm/highmem.c
+--- a/mm/highmem.c~mm-highmem-remove-useless-pool_lock
 +++ a/mm/highmem.c
-@@ -99,7 +99,7 @@ struct page *kmap_to_page(void *vaddr)
- 	unsigned long addr = (unsigned long)vaddr;
+@@ -328,7 +328,6 @@ struct page_address_map {
+  * page_address_map freelist, allocated from page_address_maps.
+  */
+ static struct list_head page_address_pool;	/* freelist */
+-static spinlock_t pool_lock;			/* protects page_address_pool */
  
- 	if (addr >= PKMAP_ADDR(0) && addr < PKMAP_ADDR(LAST_PKMAP)) {
--		int i = (addr - PKMAP_ADDR(0)) >> PAGE_SHIFT;
-+		int i = PKMAP_NR(addr);
- 		return pte_page(pkmap_page_table[i]);
+ /*
+  * Hash table bucket
+@@ -395,11 +394,9 @@ void set_page_address(struct page *page,
+ 	if (virtual) {		/* Add */
+ 		BUG_ON(list_empty(&page_address_pool));
+ 
+-		spin_lock_irqsave(&pool_lock, flags);
+ 		pam = list_entry(page_address_pool.next,
+ 				struct page_address_map, list);
+ 		list_del(&pam->list);
+-		spin_unlock_irqrestore(&pool_lock, flags);
+ 
+ 		pam->page = page;
+ 		pam->virtual = virtual;
+@@ -413,9 +410,7 @@ void set_page_address(struct page *page,
+ 			if (pam->page == page) {
+ 				list_del(&pam->list);
+ 				spin_unlock_irqrestore(&pas->lock, flags);
+-				spin_lock_irqsave(&pool_lock, flags);
+ 				list_add_tail(&pam->list, &page_address_pool);
+-				spin_unlock_irqrestore(&pool_lock, flags);
+ 				goto done;
+ 			}
+ 		}
+@@ -438,7 +433,6 @@ void __init page_address_init(void)
+ 		INIT_LIST_HEAD(&page_address_htable[i].lh);
+ 		spin_lock_init(&page_address_htable[i].lock);
  	}
+-	spin_lock_init(&pool_lock);
+ }
  
+ #endif	/* defined(CONFIG_HIGHMEM) && !defined(WANT_PAGE_VIRTUAL) */
 _
 
 Patches currently in -mm which might be from js1304@gmail.com are
