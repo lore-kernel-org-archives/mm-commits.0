@@ -1,339 +1,250 @@
 From: akpm@linux-foundation.org
-Subject: [merged] selftests-add-a-test-program-for-variable-huge-page-sizes-in-mmap-shmget.patch removed from -mm tree
-Date: Wed, 12 Dec 2012 11:59:00 -0800
-Message-ID: <20121212195900.BAC5682004A@wpzn4.hot.corp.google.com>
+Subject: [merged] mm-use-vm_unmapped_area-on-sh-architecture.patch removed from -mm tree
+Date: Wed, 12 Dec 2012 11:59:51 -0800
+Message-ID: <20121212195952.8DC1C20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:51274 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754645Ab2LLUEx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 15:04:53 -0500
-Received: by mail-vb0-f73.google.com with SMTP id l1so118365vba.4
-        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 12:04:52 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:34415 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755153Ab2LLUE6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 15:04:58 -0500
+Received: by mail-ee0-f74.google.com with SMTP id t10so65110eei.5
+        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 12:04:57 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@linux.intel.com, mm-commits@vger.kernel.org
+To: walken@google.com, cmetcalf@tilera.com, davem@davemloft.net, hpa@zytor.com, hughd@google.com, lethal@linux-sh.org, linux@arm.linux.org.uk, mingo@elte.hu, ralf@linux-mips.org, riel@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: add a test program for variable huge page sizes in mmap/shmget
+     Subject: mm: use vm_unmapped_area() on sh architecture
 has been removed from the -mm tree.  Its filename was
-     selftests-add-a-test-program-for-variable-huge-page-sizes-in-mmap-shmget.patch
+     mm-use-vm_unmapped_area-on-sh-architecture.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andi Kleen <ak@linux.intel.com>
-Subject: selftests: add a test program for variable huge page sizes in mmap/shmget
+From: Michel Lespinasse <walken@google.com>
+Subject: mm: use vm_unmapped_area() on sh architecture
 
-Also remove -Wextra because gcc-4.6 emits lots of irritating
-signed/unsigned comparison warnings.
+Update the sh arch_get_unmapped_area[_topdown] functions to make use of
+vm_unmapped_area() instead of implementing a brute force search.
 
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
+[akpm@linux-foundation.org: remove now-unused COLOUR_ALIGN_DOWN()]
+Signed-off-by: Michel Lespinasse <walken@google.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/Makefile    |    4 
- tools/testing/selftests/vm/thuge-gen.c |  254 +++++++++++++++++++++++
- 2 files changed, 256 insertions(+), 2 deletions(-)
+ arch/sh/mm/mmap.c |  137 +++++++-------------------------------------
+ 1 file changed, 23 insertions(+), 114 deletions(-)
 
-diff -puN tools/testing/selftests/vm/Makefile~selftests-add-a-test-program-for-variable-huge-page-sizes-in-mmap-shmget tools/testing/selftests/vm/Makefile
---- a/tools/testing/selftests/vm/Makefile~selftests-add-a-test-program-for-variable-huge-page-sizes-in-mmap-shmget
-+++ a/tools/testing/selftests/vm/Makefile
-@@ -1,9 +1,9 @@
- # Makefile for vm selftests
+diff -puN arch/sh/mm/mmap.c~mm-use-vm_unmapped_area-on-sh-architecture arch/sh/mm/mmap.c
+--- a/arch/sh/mm/mmap.c~mm-use-vm_unmapped_area-on-sh-architecture
++++ a/arch/sh/mm/mmap.c
+@@ -30,25 +30,13 @@ static inline unsigned long COLOUR_ALIGN
+ 	return base + off;
+ }
  
- CC = $(CROSS_COMPILE)gcc
--CFLAGS = -Wall -Wextra
-+CFLAGS = -Wall
+-static inline unsigned long COLOUR_ALIGN_DOWN(unsigned long addr,
+-					      unsigned long pgoff)
+-{
+-	unsigned long base = addr & ~shm_align_mask;
+-	unsigned long off = (pgoff << PAGE_SHIFT) & shm_align_mask;
+-
+-	if (base + off <= addr)
+-		return base + off;
+-
+-	return base - off;
+-}
+-
+ unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr,
+ 	unsigned long len, unsigned long pgoff, unsigned long flags)
+ {
+ 	struct mm_struct *mm = current->mm;
+ 	struct vm_area_struct *vma;
+-	unsigned long start_addr;
+ 	int do_colour_align;
++	struct vm_unmapped_area_info info;
  
--all: hugepage-mmap hugepage-shm  map_hugetlb
-+all: hugepage-mmap hugepage-shm  map_hugetlb thuge-gen
- %: %.c
- 	$(CC) $(CFLAGS) -o $@ $^
+ 	if (flags & MAP_FIXED) {
+ 		/* We do not accept a shared mapping if it would violate
+@@ -79,47 +67,13 @@ unsigned long arch_get_unmapped_area(str
+ 			return addr;
+ 	}
  
-diff -puN /dev/null tools/testing/selftests/vm/thuge-gen.c
---- /dev/null
-+++ a/tools/testing/selftests/vm/thuge-gen.c
-@@ -0,0 +1,254 @@
-+/* Test selecting other page sizes for mmap/shmget.
-+
-+   Before running this huge pages for each huge page size must have been
-+   reserved.
-+   For large pages beyond MAX_ORDER (like 1GB on x86) boot options must be used.
-+   Also shmmax must be increased.
-+   And you need to run as root to work around some weird permissions in shm.
-+   And nothing using huge pages should run in parallel.
-+   When the program aborts you may need to clean up the shm segments with
-+   ipcrm -m by hand, like this
-+   sudo ipcs | awk '$1 == "0x00000000" {print $2}' | xargs -n1 sudo ipcrm -m
-+   (warning this will remove all if someone else uses them) */
-+
-+#define _GNU_SOURCE 1
-+#include <sys/mman.h>
-+#include <stdlib.h>
-+#include <stdio.h>
-+#include <sys/ipc.h>
-+#include <sys/shm.h>
-+#include <sys/stat.h>
-+#include <glob.h>
-+#include <assert.h>
-+#include <unistd.h>
-+#include <stdarg.h>
-+#include <string.h>
-+
-+#define err(x) perror(x), exit(1)
-+
-+#define MAP_HUGE_2MB    (21 << MAP_HUGE_SHIFT)
-+#define MAP_HUGE_1GB    (30 << MAP_HUGE_SHIFT)
-+#define MAP_HUGE_SHIFT  26
-+#define MAP_HUGE_MASK   0x3f
-+#define MAP_HUGETLB	0x40000
-+
-+#define SHM_HUGETLB     04000   /* segment will use huge TLB pages */
-+#define SHM_HUGE_SHIFT  26
-+#define SHM_HUGE_MASK   0x3f
-+#define SHM_HUGE_2MB    (21 << SHM_HUGE_SHIFT)
-+#define SHM_HUGE_1GB    (30 << SHM_HUGE_SHIFT)
-+
-+#define NUM_PAGESIZES   5
-+
-+#define NUM_PAGES 4
-+
-+#define Dprintf(fmt...) // printf(fmt)
-+
-+unsigned long page_sizes[NUM_PAGESIZES];
-+int num_page_sizes;
-+
-+int ilog2(unsigned long v)
-+{
-+	int l = 0;
-+	while ((1UL << l) < v)
-+		l++;
-+	return l;
-+}
-+
-+void find_pagesizes(void)
-+{
-+	glob_t g;
-+	int i;
-+	glob("/sys/kernel/mm/hugepages/hugepages-*kB", 0, NULL, &g);
-+	assert(g.gl_pathc <= NUM_PAGESIZES);
-+	for (i = 0; i < g.gl_pathc; i++) {
-+		sscanf(g.gl_pathv[i], "/sys/kernel/mm/hugepages/hugepages-%lukB",
-+				&page_sizes[i]);
-+		page_sizes[i] <<= 10;
-+		printf("Found %luMB\n", page_sizes[i] >> 20);
+-	if (len > mm->cached_hole_size) {
+-		start_addr = addr = mm->free_area_cache;
+-	} else {
+-	        mm->cached_hole_size = 0;
+-		start_addr = addr = TASK_UNMAPPED_BASE;
+-	}
+-
+-full_search:
+-	if (do_colour_align)
+-		addr = COLOUR_ALIGN(addr, pgoff);
+-	else
+-		addr = PAGE_ALIGN(mm->free_area_cache);
+-
+-	for (vma = find_vma(mm, addr); ; vma = vma->vm_next) {
+-		/* At this point:  (!vma || addr < vma->vm_end). */
+-		if (unlikely(TASK_SIZE - len < addr)) {
+-			/*
+-			 * Start a new search - just in case we missed
+-			 * some holes.
+-			 */
+-			if (start_addr != TASK_UNMAPPED_BASE) {
+-				start_addr = addr = TASK_UNMAPPED_BASE;
+-				mm->cached_hole_size = 0;
+-				goto full_search;
+-			}
+-			return -ENOMEM;
+-		}
+-		if (likely(!vma || addr + len <= vma->vm_start)) {
+-			/*
+-			 * Remember the place where we stopped the search:
+-			 */
+-			mm->free_area_cache = addr + len;
+-			return addr;
+-		}
+-		if (addr + mm->cached_hole_size < vma->vm_start)
+-		        mm->cached_hole_size = vma->vm_start - addr;
+-
+-		addr = vma->vm_end;
+-		if (do_colour_align)
+-			addr = COLOUR_ALIGN(addr, pgoff);
+-	}
++	info.flags = 0;
++	info.length = len;
++	info.low_limit = TASK_UNMAPPED_BASE;
++	info.high_limit = TASK_SIZE;
++	info.align_mask = do_colour_align ? (PAGE_MASK & shm_align_mask) : 0;
++	info.align_offset = pgoff << PAGE_SHIFT;
++	return vm_unmapped_area(&info);
+ }
+ 
+ unsigned long
+@@ -131,6 +85,7 @@ arch_get_unmapped_area_topdown(struct fi
+ 	struct mm_struct *mm = current->mm;
+ 	unsigned long addr = addr0;
+ 	int do_colour_align;
++	struct vm_unmapped_area_info info;
+ 
+ 	if (flags & MAP_FIXED) {
+ 		/* We do not accept a shared mapping if it would violate
+@@ -162,73 +117,27 @@ arch_get_unmapped_area_topdown(struct fi
+ 			return addr;
+ 	}
+ 
+-	/* check if free_area_cache is useful for us */
+-	if (len <= mm->cached_hole_size) {
+-	        mm->cached_hole_size = 0;
+-		mm->free_area_cache = mm->mmap_base;
+-	}
+-
+-	/* either no address requested or can't fit in requested address hole */
+-	addr = mm->free_area_cache;
+-	if (do_colour_align) {
+-		unsigned long base = COLOUR_ALIGN_DOWN(addr-len, pgoff);
++	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
++	info.length = len;
++	info.low_limit = PAGE_SIZE;
++	info.high_limit = mm->mmap_base;
++	info.align_mask = do_colour_align ? (PAGE_MASK & shm_align_mask) : 0;
++	info.align_offset = pgoff << PAGE_SHIFT;
++	addr = vm_unmapped_area(&info);
+ 
+-		addr = base + len;
+-	}
+-
+-	/* make sure it can fit in the remaining address space */
+-	if (likely(addr > len)) {
+-		vma = find_vma(mm, addr-len);
+-		if (!vma || addr <= vma->vm_start) {
+-			/* remember the address as a hint for next time */
+-			return (mm->free_area_cache = addr-len);
+-		}
+-	}
+-
+-	if (unlikely(mm->mmap_base < len))
+-		goto bottomup;
+-
+-	addr = mm->mmap_base-len;
+-	if (do_colour_align)
+-		addr = COLOUR_ALIGN_DOWN(addr, pgoff);
+-
+-	do {
+-		/*
+-		 * Lookup failure means no vma is above this address,
+-		 * else if new region fits below vma->vm_start,
+-		 * return with success:
+-		 */
+-		vma = find_vma(mm, addr);
+-		if (likely(!vma || addr+len <= vma->vm_start)) {
+-			/* remember the address as a hint for next time */
+-			return (mm->free_area_cache = addr);
+-		}
+-
+-		/* remember the largest hole we saw so far */
+-		if (addr + mm->cached_hole_size < vma->vm_start)
+-		        mm->cached_hole_size = vma->vm_start - addr;
+-
+-		/* try just below the current vma->vm_start */
+-		addr = vma->vm_start-len;
+-		if (do_colour_align)
+-			addr = COLOUR_ALIGN_DOWN(addr, pgoff);
+-	} while (likely(len < vma->vm_start));
+-
+-bottomup:
+ 	/*
+ 	 * A failed mmap() very likely causes application failure,
+ 	 * so fall back to the bottom-up function here. This scenario
+ 	 * can happen with large stack limits and large mmap()
+ 	 * allocations.
+ 	 */
+-	mm->cached_hole_size = ~0UL;
+-	mm->free_area_cache = TASK_UNMAPPED_BASE;
+-	addr = arch_get_unmapped_area(filp, addr0, len, pgoff, flags);
+-	/*
+-	 * Restore the topdown base:
+-	 */
+-	mm->free_area_cache = mm->mmap_base;
+-	mm->cached_hole_size = ~0UL;
++	if (addr & ~PAGE_MASK) {
++		VM_BUG_ON(addr != -ENOMEM);
++		info.flags = 0;
++		info.low_limit = TASK_UNMAPPED_BASE;
++		info.high_limit = TASK_SIZE;
++		addr = vm_unmapped_area(&info);
 +	}
-+	num_page_sizes = g.gl_pathc;
-+	globfree(&g);
-+}
-+
-+unsigned long default_huge_page_size(void)
-+{
-+	unsigned long hps = 0;
-+	char *line = NULL;
-+	size_t linelen = 0;
-+	FILE *f = fopen("/proc/meminfo", "r");
-+	if (!f)
-+		return 0;
-+	while (getline(&line, &linelen, f) > 0) {
-+		if (sscanf(line, "Hugepagesize:       %lu kB", &hps) == 1) {
-+			hps <<= 10;
-+			break;
-+		}
-+	}
-+	free(line);
-+	return hps;
-+}
-+
-+void show(unsigned long ps)
-+{
-+	char buf[100];
-+	if (ps == getpagesize())
-+		return;
-+	printf("%luMB: ", ps >> 20);
-+	fflush(stdout);
-+	snprintf(buf, sizeof buf,
-+		"cat /sys/kernel/mm/hugepages/hugepages-%lukB/free_hugepages",
-+		ps >> 10);
-+	system(buf);
-+}
-+
-+unsigned long read_sysfs(int warn, char *fmt, ...)
-+{
-+	char *line = NULL;
-+	size_t linelen = 0;
-+	char buf[100];
-+	FILE *f;
-+	va_list ap;
-+	unsigned long val = 0;
-+
-+	va_start(ap, fmt);
-+	vsnprintf(buf, sizeof buf, fmt, ap);
-+	va_end(ap);
-+
-+	f = fopen(buf, "r");
-+	if (!f) {
-+		if (warn)
-+			printf("missing %s\n", buf);
-+		return 0;
-+	}
-+	if (getline(&line, &linelen, f) > 0) {
-+		sscanf(line, "%lu", &val);
-+	}
-+	fclose(f);
-+	free(line);
-+	return val;
-+}
-+
-+unsigned long read_free(unsigned long ps)
-+{
-+	return read_sysfs(ps != getpagesize(),
-+			"/sys/kernel/mm/hugepages/hugepages-%lukB/free_hugepages",
-+			ps >> 10);
-+}
-+
-+void test_mmap(unsigned long size, unsigned flags)
-+{
-+	char *map;
-+	unsigned long before, after;
-+	int err;
-+
-+	before = read_free(size);
-+	map = mmap(NULL, size*NUM_PAGES, PROT_READ|PROT_WRITE,
-+			MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|flags, 0, 0);
-+
-+	if (map == (char *)-1) err("mmap");
-+	memset(map, 0xff, size*NUM_PAGES);
-+	after = read_free(size);
-+	Dprintf("before %lu after %lu diff %ld size %lu\n",
-+		before, after, before - after, size);
-+	assert(size == getpagesize() || (before - after) == NUM_PAGES);
-+	show(size);
-+	err = munmap(map, size);
-+	assert(!err);
-+}
-+
-+void test_shmget(unsigned long size, unsigned flags)
-+{
-+	int id;
-+	unsigned long before, after;
-+	int err;
-+
-+	before = read_free(size);
-+	id = shmget(IPC_PRIVATE, size * NUM_PAGES, IPC_CREAT|0600|flags);
-+	if (id < 0) err("shmget");
-+
-+	struct shm_info i;
-+	if (shmctl(id, SHM_INFO, (void *)&i) < 0) err("shmctl");
-+	Dprintf("alloc %lu res %lu\n", i.shm_tot, i.shm_rss);
-+
-+
-+	Dprintf("id %d\n", id);
-+	char *map = shmat(id, NULL, 0600);
-+	if (map == (char*)-1) err("shmat");
-+
-+	shmctl(id, IPC_RMID, NULL);
-+
-+	memset(map, 0xff, size*NUM_PAGES);
-+	after = read_free(size);
-+
-+	Dprintf("before %lu after %lu diff %ld size %lu\n",
-+		before, after, before - after, size);
-+	assert(size == getpagesize() || (before - after) == NUM_PAGES);
-+	show(size);
-+	err = shmdt(map);
-+	assert(!err);
-+}
-+
-+void sanity_checks(void)
-+{
-+	int i;
-+	unsigned long largest = getpagesize();
-+
-+	for (i = 0; i < num_page_sizes; i++) {
-+		if (page_sizes[i] > largest)
-+			largest = page_sizes[i];
-+
-+		if (read_free(page_sizes[i]) < NUM_PAGES) {
-+			printf("Not enough huge pages for page size %lu MB, need %u\n",
-+				page_sizes[i] >> 20,
-+				NUM_PAGES);
-+			exit(0);
-+		}
-+	}
-+
-+	if (read_sysfs(0, "/proc/sys/kernel/shmmax") < NUM_PAGES * largest) {
-+		printf("Please do echo %lu > /proc/sys/kernel/shmmax", largest * NUM_PAGES);
-+		exit(0);
-+	}
-+
-+#if defined(__x86_64__)
-+	if (largest != 1U<<30) {
-+		printf("No GB pages available on x86-64\n"
-+		       "Please boot with hugepagesz=1G hugepages=%d\n", NUM_PAGES);
-+		exit(0);
-+	}
-+#endif
-+}
-+
-+int main(void)
-+{
-+	int i;
-+	unsigned default_hps = default_huge_page_size();
-+
-+	find_pagesizes();
-+
-+	sanity_checks();
-+
-+	for (i = 0; i < num_page_sizes; i++) {
-+		unsigned long ps = page_sizes[i];
-+		int arg = ilog2(ps) << MAP_HUGE_SHIFT;
-+		printf("Testing %luMB mmap with shift %x\n", ps >> 20, arg);
-+		test_mmap(ps, MAP_HUGETLB | arg);
-+	}
-+	printf("Testing default huge mmap\n");
-+	test_mmap(default_hps, SHM_HUGETLB);
-+
-+	puts("Testing non-huge shmget");
-+	test_shmget(getpagesize(), 0);
-+
-+	for (i = 0; i < num_page_sizes; i++) {
-+		unsigned long ps = page_sizes[i];
-+		int arg = ilog2(ps) << SHM_HUGE_SHIFT;
-+		printf("Testing %luMB shmget with shift %x\n", ps >> 20, arg);
-+		test_shmget(ps, SHM_HUGETLB | arg);
-+	}
-+	puts("default huge shmget");
-+	test_shmget(default_hps, SHM_HUGETLB);
-+
-+	return 0;
-+}
+ 
+ 	return addr;
+ }
 _
 
-Patches currently in -mm which might be from ak@linux.intel.com are
+Patches currently in -mm which might be from walken@google.com are
 
 origin.patch
-thp-huge-zero-page-basic-preparation.patch
-thp-huge-zero-page-basic-preparation-v6.patch
-thp-zap_huge_pmd-zap-huge-zero-pmd.patch
-thp-copy_huge_pmd-copy-huge-zero-page.patch
-thp-copy_huge_pmd-copy-huge-zero-page-v6.patch
-thp-do_huge_pmd_wp_page-handle-huge-zero-page.patch
-thp-do_huge_pmd_wp_page-handle-huge-zero-page-v6.patch
-thp-change_huge_pmd-make-sure-we-dont-try-to-make-a-page-writable.patch
-thp-change-split_huge_page_pmd-interface.patch
-thp-change-split_huge_page_pmd-interface-v6.patch
-thp-implement-splitting-pmd-for-huge-zero-page.patch
-thp-implement-splitting-pmd-for-huge-zero-page-v6.patch
-thp-setup-huge-zero-page-on-non-write-page-fault.patch
-thp-setup-huge-zero-page-on-non-write-page-fault-fix.patch
-thp-lazy-huge-zero-page-allocation.patch
-thp-implement-refcounting-for-huge-zero-page.patch
-thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events.patch
-thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6.patch
-thp-introduce-sysfs-knob-to-disable-huge-zero-page.patch
+mm-protect-against-concurrent-vma-expansion.patch
 linux-next.patch
-mm-print-out-information-of-file-affected-by-memory-error.patch
+lib-rbtree_testc-fix-uninitialized-variable-warning.patch
+random32-rename-random32-to-prandom.patch
+prandom-introduce-prandom_bytes-and-prandom_bytes_state.patch
+bnx2x-use-prandom_bytes.patch
+mtd-nandsim-use-prandom_bytes.patch
+ubifs-use-prandom_bytes.patch
+mtd-mtd_nandecctest-use-prandom_bytes-instead-of-get_random_bytes.patch
+mtd-mtd_oobtest-convert-to-use-prandom-library.patch
+mtd-mtd_pagetest-convert-to-use-prandom-library.patch
+mtd-mtd_speedtest-use-prandom_bytes.patch
+mtd-mtd_subpagetest-convert-to-use-prandom-library.patch
+mtd-mtd_stresstest-use-prandom_bytes.patch
 
