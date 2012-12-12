@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-rejects.patch added to -mm tree
-Date: Wed, 12 Dec 2012 14:20:59 -0800
-Message-ID: <20121212222100.7E084200059@hpza10.eem.corp.google.com>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Wed, 12 Dec 2012 14:31:32 -0800
+Message-ID: <20121212223132.F2CAF200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:37252 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754245Ab2LLWVC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 17:21:02 -0500
-Received: by mail-wg0-f74.google.com with SMTP id dt14so69099wgb.5
-        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 14:21:01 -0800 (PST)
+Received: from mail-ea0-f201.google.com ([209.85.215.201]:51384 "EHLO
+	mail-ea0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754245Ab2LLWbf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 17:31:35 -0500
+Received: by mail-ea0-f201.google.com with SMTP id b14so68891eaa.0
+        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 14:31:33 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: linux-next-rejects
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     linux-next-rejects.patch
+     linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,109 +34,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+Subject: linux-next-git-rejects
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   13 ++++++++++++-
- mm/mprotect.c    |   32 ++++++++++++++++++++++++++------
- 2 files changed, 38 insertions(+), 7 deletions(-)
+ arch/arm64/kernel/sys_compat.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN mm/huge_memory.c~linux-next-rejects mm/huge_memory.c
---- a/mm/huge_memory.c~linux-next-rejects
-+++ a/mm/huge_memory.c
-@@ -16,6 +16,7 @@
- #include <linux/mm_inline.h>
- #include <linux/kthread.h>
- #include <linux/khugepaged.h>
-+#include <linux/migrate.h>
- #include <linux/freezer.h>
- #include <linux/mman.h>
- #include <linux/pagemap.h>
-@@ -1462,7 +1463,17 @@ int change_huge_pmd(struct vm_area_struc
- 	if (__pmd_trans_huge_lock(pmd, vma) == 1) {
- 		pmd_t entry;
- 		entry = pmdp_get_and_clear(mm, addr, pmd);
--		entry = pmd_modify(entry, newprot);
-+		if (!prot_numa)
-+			entry = pmd_modify(entry, newprot);
-+		else {
-+			struct page *page = pmd_page(*pmd);
-+
-+			/* only check non-shared pages */
-+			if (page_mapcount(page) == 1 &&
-+			    !pmd_numa(*pmd)) {
-+				entry = pmd_mknuma(entry);
-+			}
-+		}
- 		BUG_ON(pmd_write(entry));
- 		set_pmd_at(mm, addr, pmd, entry);
- 		spin_unlock(&vma->vm_mm->page_table_lock);
-diff -puN mm/mprotect.c~linux-next-rejects mm/mprotect.c
---- a/mm/mprotect.c~linux-next-rejects
-+++ a/mm/mprotect.c
-@@ -127,20 +127,39 @@ static inline unsigned long change_pmd_r
- 		if (pmd_trans_huge(*pmd)) {
- 			if (next - addr != HPAGE_PMD_SIZE)
- 				split_huge_page_pmd(vma, addr, pmd);
--			else if (change_huge_pmd(vma, pmd, addr, newprot))
-+			else if (change_huge_pmd(vma, pmd, addr, newprot, prot_numa)) {
-+				pages += HPAGE_PMD_NR;
- 				continue;
-+			}
- 			/* fall through */
- 		}
- 		if (pmd_none_or_clear_bad(pmd))
- 			continue;
--		change_pte_range(vma->vm_mm, pmd, addr, next, newprot,
--				 dirty_accountable);
-+		pages += change_pte_range(vma, pmd, addr, next, newprot,
-+				 dirty_accountable, prot_numa, &all_same_node);
-+
-+#ifdef CONFIG_NUMA_BALANCING
-+		/*
-+		 * If we are changing protections for NUMA hinting faults then
-+		 * set pmd_numa if the examined pages were all on the same
-+		 * node. This allows a regular PMD to be handled as one fault
-+		 * and effectively batches the taking of the PTL
-+		 */
-+		if (prot_numa && all_same_node && 0) {
-+			struct mm_struct *mm = vma->vm_mm;
-+
-+			spin_lock(&mm->page_table_lock);
-+			set_pmd_at(mm, addr & PMD_MASK, pmd, pmd_mknuma(*pmd));
-+			spin_unlock(&mm->page_table_lock);
-+		}
-+#endif
- 	} while (pmd++, addr = next, addr != end);
-+	return pages;
- }
+diff -puN arch/arm64/kernel/sys_compat.c~linux-next-git-rejects arch/arm64/kernel/sys_compat.c
+--- a/arch/arm64/kernel/sys_compat.c~linux-next-git-rejects
++++ a/arch/arm64/kernel/sys_compat.c
+@@ -28,7 +28,6 @@
+ #include <asm/cacheflush.h>
+ #include <asm/unistd32.h>
  
--static inline void change_pud_range(struct vm_area_struct *vma, pgd_t *pgd,
-+static inline unsigned long change_pud_range(struct vm_area_struct *vma, pgd_t *pgd,
- 		unsigned long addr, unsigned long end, pgprot_t newprot,
--		int dirty_accountable)
-+		int dirty_accountable, int prot_numa)
+-<<<<<<< HEAD
+ asmlinkage int compat_sys_fork(void)
  {
- 	pud_t *pud;
- 	unsigned long next;
-@@ -163,6 +182,7 @@ static void change_protection(struct vm_
- 	pgd_t *pgd;
- 	unsigned long next;
- 	unsigned long start = addr;
-+	unsigned long pages = 0;
- 
- 	BUG_ON(addr >= end);
- 	pgd = pgd_offset(mm, addr);
-@@ -182,7 +202,7 @@ static void change_protection(struct vm_
- 	return pages;
+ 	return do_fork(SIGCHLD, 0, current_pt_regs(), 0, NULL, NULL);
+@@ -40,8 +39,6 @@ asmlinkage int compat_sys_vfork(void)
+ 		       current_pt_regs(), 0, NULL, NULL);
  }
  
--unsigned long change_protection(struct vm_area_struct *vma, unsigned long start,
-+static unsigned long change_protection_range(struct vm_area_struct *vma,
- 		       unsigned long end, pgprot_t newprot,
- 		       int dirty_accountable, int prot_numa)
+-=======
+->>>>>>> linux-next/akpm-base
+ asmlinkage int compat_sys_sched_rr_get_interval(compat_pid_t pid,
+ 						struct compat_timespec __user *interval)
  {
 _
 
@@ -153,16 +77,18 @@ hwpoison-hugetlbfs-fix-rss-counter-warning.patch
 mm-memoryc-remove-unused-code-from-do_wp_page.patch
 linux-next.patch
 linux-next-rejects.patch
+linux-next-git-rejects.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-drivers-video-add-support-for-the-solomon-ssd1307-oled-controller.patch
 fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
 irq-tsk-comm-is-an-array.patch
 block-remove-deadlock-in-disk_clear_events-fix.patch
 block-prevent-race-cleanup-fix.patch
 mm.patch
+slub-slub-specific-propagation-changes-fix.patch
+mm-mprotectc-coding-style-cleanups.patch
 drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
 swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
 memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
