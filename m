@@ -1,232 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture.patch removed from -mm tree
-Date: Wed, 12 Dec 2012 12:00:02 -0800
-Message-ID: <20121212200003.4C384820055@wpzn4.hot.corp.google.com>
+Subject: [merged] drivers-base-nodec-cleanup-node_state_attr.patch removed from -mm tree
+Date: Wed, 12 Dec 2012 12:01:28 -0800
+Message-ID: <20121212200128.9C30E100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:49300 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754212Ab2LLUIL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 15:08:11 -0500
-Received: by mail-ye0-f202.google.com with SMTP id l7so118865yen.5
-        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 12:08:11 -0800 (PST)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:40108 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754629Ab2LLUIQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 15:08:16 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z10so119710ghb.1
+        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 12:08:16 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: walken@google.com, cmetcalf@tilera.com, davem@davemloft.net, hpa@zytor.com, hughd@google.com, lethal@linux-sh.org, linux@arm.linux.org.uk, mingo@elte.hu, ralf@linux-mips.org, riel@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: laijs@cn.fujitsu.com, rientjes@google.com, wency@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use vm_unmapped_area() in hugetlbfs on tile architecture
+     Subject: drivers/base/node.c: cleanup node_state_attr[]
 has been removed from the -mm tree.  Its filename was
-     mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture.patch
+     drivers-base-nodec-cleanup-node_state_attr.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michel Lespinasse <walken@google.com>
-Subject: mm: use vm_unmapped_area() in hugetlbfs on tile architecture
+From: Lai Jiangshan <laijs@cn.fujitsu.com>
+Subject: drivers/base/node.c: cleanup node_state_attr[]
 
-Update the tile hugetlb_get_unmapped_area function to make use of
-vm_unmapped_area() instead of implementing a brute force search.
+use [index] = init_value
+use N_xxxxx instead of hardcode.
 
-[akpm@linux-foundation.org: fix build]
-Signed-off-by: Michel Lespinasse <walken@google.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Chris Metcalf <cmetcalf@tilera.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Make it more readability and easier to add new state.
+
+Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/tile/mm/hugetlbpage.c |  137 ++++++-----------------------------
- 1 file changed, 24 insertions(+), 113 deletions(-)
+ drivers/base/node.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN arch/tile/mm/hugetlbpage.c~mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture arch/tile/mm/hugetlbpage.c
---- a/arch/tile/mm/hugetlbpage.c~mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture
-+++ a/arch/tile/mm/hugetlbpage.c
-@@ -231,42 +231,15 @@ static unsigned long hugetlb_get_unmappe
- 		unsigned long pgoff, unsigned long flags)
- {
- 	struct hstate *h = hstate_file(file);
--	struct mm_struct *mm = current->mm;
--	struct vm_area_struct *vma;
--	unsigned long start_addr;
-+	struct vm_unmapped_area_info info;
+diff -puN drivers/base/node.c~drivers-base-nodec-cleanup-node_state_attr drivers/base/node.c
+--- a/drivers/base/node.c~drivers-base-nodec-cleanup-node_state_attr
++++ a/drivers/base/node.c
+@@ -638,23 +638,23 @@ static ssize_t show_node_state(struct de
+ 	{ __ATTR(name, 0444, show_node_state, NULL), state }
  
--	if (len > mm->cached_hole_size) {
--		start_addr = mm->free_area_cache;
--	} else {
--		start_addr = TASK_UNMAPPED_BASE;
--		mm->cached_hole_size = 0;
--	}
--
--full_search:
--	addr = ALIGN(start_addr, huge_page_size(h));
--
--	for (vma = find_vma(mm, addr); ; vma = vma->vm_next) {
--		/* At this point:  (!vma || addr < vma->vm_end). */
--		if (TASK_SIZE - len < addr) {
--			/*
--			 * Start a new search - just in case we missed
--			 * some holes.
--			 */
--			if (start_addr != TASK_UNMAPPED_BASE) {
--				start_addr = TASK_UNMAPPED_BASE;
--				mm->cached_hole_size = 0;
--				goto full_search;
--			}
--			return -ENOMEM;
--		}
--		if (!vma || addr + len <= vma->vm_start) {
--			mm->free_area_cache = addr + len;
--			return addr;
--		}
--		if (addr + mm->cached_hole_size < vma->vm_start)
--			mm->cached_hole_size = vma->vm_start - addr;
--		addr = ALIGN(vma->vm_end, huge_page_size(h));
--	}
-+	info.flags = 0;
-+	info.length = len;
-+	info.low_limit = TASK_UNMAPPED_BASE;
-+	info.high_limit = TASK_SIZE;
-+	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
-+	info.align_offset = 0;
-+	return vm_unmapped_area(&info);
- }
+ static struct node_attr node_state_attr[] = {
+-	_NODE_ATTR(possible, N_POSSIBLE),
+-	_NODE_ATTR(online, N_ONLINE),
+-	_NODE_ATTR(has_normal_memory, N_NORMAL_MEMORY),
+-	_NODE_ATTR(has_cpu, N_CPU),
++	[N_POSSIBLE] = _NODE_ATTR(possible, N_POSSIBLE),
++	[N_ONLINE] = _NODE_ATTR(online, N_ONLINE),
++	[N_NORMAL_MEMORY] = _NODE_ATTR(has_normal_memory, N_NORMAL_MEMORY),
+ #ifdef CONFIG_HIGHMEM
+-	_NODE_ATTR(has_high_memory, N_HIGH_MEMORY),
++	[N_HIGH_MEMORY] = _NODE_ATTR(has_high_memory, N_HIGH_MEMORY),
+ #endif
++	[N_CPU] = _NODE_ATTR(has_cpu, N_CPU),
+ };
  
- static unsigned long hugetlb_get_unmapped_area_topdown(struct file *file,
-@@ -274,92 +247,30 @@ static unsigned long hugetlb_get_unmappe
- 		unsigned long pgoff, unsigned long flags)
- {
- 	struct hstate *h = hstate_file(file);
--	struct mm_struct *mm = current->mm;
--	struct vm_area_struct *vma, *prev_vma;
--	unsigned long base = mm->mmap_base, addr = addr0;
--	unsigned long largest_hole = mm->cached_hole_size;
--	int first_time = 1;
--
--	/* don't allow allocations above current base */
--	if (mm->free_area_cache > base)
--		mm->free_area_cache = base;
--
--	if (len <= largest_hole) {
--		largest_hole = 0;
--		mm->free_area_cache  = base;
--	}
--try_again:
--	/* make sure it can fit in the remaining address space */
--	if (mm->free_area_cache < len)
--		goto fail;
--
--	/* either no address requested or can't fit in requested address hole */
--	addr = (mm->free_area_cache - len) & huge_page_mask(h);
--	do {
--		/*
--		 * Lookup failure means no vma is above this address,
--		 * i.e. return with success:
--		 */
--		vma = find_vma_prev(mm, addr, &prev_vma);
--		if (!vma) {
--			return addr;
--			break;
--		}
--
--		/*
--		 * new region fits between prev_vma->vm_end and
--		 * vma->vm_start, use it:
--		 */
--		if (addr + len <= vma->vm_start &&
--			    (!prev_vma || (addr >= prev_vma->vm_end))) {
--			/* remember the address as a hint for next time */
--			mm->cached_hole_size = largest_hole;
--			mm->free_area_cache = addr;
--			return addr;
--		} else {
--			/* pull free_area_cache down to the first hole */
--			if (mm->free_area_cache == vma->vm_end) {
--				mm->free_area_cache = vma->vm_start;
--				mm->cached_hole_size = largest_hole;
--			}
--		}
-+	struct vm_unmapped_area_info info;
-+	unsigned long addr;
+ static struct attribute *node_state_attrs[] = {
+-	&node_state_attr[0].attr.attr,
+-	&node_state_attr[1].attr.attr,
+-	&node_state_attr[2].attr.attr,
+-	&node_state_attr[3].attr.attr,
++	&node_state_attr[N_POSSIBLE].attr.attr,
++	&node_state_attr[N_ONLINE].attr.attr,
++	&node_state_attr[N_NORMAL_MEMORY].attr.attr,
+ #ifdef CONFIG_HIGHMEM
+-	&node_state_attr[4].attr.attr,
++	&node_state_attr[N_HIGH_MEMORY].attr.attr,
+ #endif
++	&node_state_attr[N_CPU].attr.attr,
+ 	NULL
+ };
  
--		/* remember the largest hole we saw so far */
--		if (addr + largest_hole < vma->vm_start)
--			largest_hole = vma->vm_start - addr;
-+	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
-+	info.length = len;
-+	info.low_limit = PAGE_SIZE;
-+	info.high_limit = current->mm->mmap_base;
-+	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
-+	info.align_offset = 0;
-+	addr = vm_unmapped_area(&info);
- 
--		/* try just below the current vma->vm_start */
--		addr = (vma->vm_start - len) & huge_page_mask(h);
--
--	} while (len <= vma->vm_start);
--
--fail:
--	/*
--	 * if hint left us with no space for the requested
--	 * mapping then try again:
--	 */
--	if (first_time) {
--		mm->free_area_cache = base;
--		largest_hole = 0;
--		first_time = 0;
--		goto try_again;
--	}
- 	/*
- 	 * A failed mmap() very likely causes application failure,
- 	 * so fall back to the bottom-up function here. This scenario
- 	 * can happen with large stack limits and large mmap()
- 	 * allocations.
- 	 */
--	mm->free_area_cache = TASK_UNMAPPED_BASE;
--	mm->cached_hole_size = ~0UL;
--	addr = hugetlb_get_unmapped_area_bottomup(file, addr0,
--			len, pgoff, flags);
--
--	/*
--	 * Restore the topdown base:
--	 */
--	mm->free_area_cache = base;
--	mm->cached_hole_size = ~0UL;
-+	if (addr & ~PAGE_MASK) {
-+		VM_BUG_ON(addr != -ENOMEM);
-+		info.flags = 0;
-+		info.low_limit = TASK_UNMAPPED_BASE;
-+		info.high_limit = TASK_SIZE;
-+		addr = vm_unmapped_area(&info);
-+	}
- 
- 	return addr;
- }
 _
 
-Patches currently in -mm which might be from walken@google.com are
+Patches currently in -mm which might be from laijs@cn.fujitsu.com are
 
 origin.patch
-mm-protect-against-concurrent-vma-expansion.patch
+node_states-introduce-n_memory.patch
+cpuset-use-n_memory-instead-n_high_memory.patch
+procfs-use-n_memory-instead-n_high_memory.patch
+memcontrol-use-n_memory-instead-n_high_memory.patch
+oom-use-n_memory-instead-n_high_memory.patch
+mmmigrate-use-n_memory-instead-n_high_memory.patch
+mempolicy-use-n_memory-instead-n_high_memory.patch
+hugetlb-use-n_memory-instead-n_high_memory.patch
+vmstat-use-n_memory-instead-n_high_memory.patch
+kthread-use-n_memory-instead-n_high_memory.patch
+init-use-n_memory-instead-n_high_memory.patch
+vmscan-use-n_memory-instead-n_high_memory.patch
+page_alloc-use-n_memory-instead-n_high_memory-change-the-node_states-initialization.patch
+hotplug-update-nodemasks-management.patch
+hotplug-update-nodemasks-management-fix.patch
+numa-add-config_movable_node-for-movable-dedicated-node.patch
+numa-add-config_movable_node-for-movable-dedicated-node-fix.patch
+memory_hotplug-allow-online-offline-memory-to-result-movable-node.patch
 linux-next.patch
-lib-rbtree_testc-fix-uninitialized-variable-warning.patch
-random32-rename-random32-to-prandom.patch
-prandom-introduce-prandom_bytes-and-prandom_bytes_state.patch
-bnx2x-use-prandom_bytes.patch
-mtd-nandsim-use-prandom_bytes.patch
-ubifs-use-prandom_bytes.patch
-mtd-mtd_nandecctest-use-prandom_bytes-instead-of-get_random_bytes.patch
-mtd-mtd_oobtest-convert-to-use-prandom-library.patch
-mtd-mtd_pagetest-convert-to-use-prandom-library.patch
-mtd-mtd_speedtest-use-prandom_bytes.patch
-mtd-mtd_subpagetest-convert-to-use-prandom-library.patch
-mtd-mtd_stresstest-use-prandom_bytes.patch
 
