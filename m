@@ -1,104 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-base-nodec-cleanup-node_state_attr.patch removed from -mm tree
-Date: Wed, 12 Dec 2012 12:01:28 -0800
-Message-ID: <20121212200128.9C30E100047@wpzn3.hot.corp.google.com>
+Subject: [merged] mm-cma-skip-watermarks-check-for-already-isolated-blocks-in-split_free_page.patch removed from -mm tree
+Date: Wed, 12 Dec 2012 12:01:03 -0800
+Message-ID: <20121212200108.CE431100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:40108 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754629Ab2LLUIQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 15:08:16 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so119710ghb.1
-        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 12:08:16 -0800 (PST)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:48103 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755049Ab2LLUJB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 15:09:01 -0500
+Received: by mail-ye0-f201.google.com with SMTP id r11so118941yen.0
+        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 12:09:01 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: laijs@cn.fujitsu.com, rientjes@google.com, wency@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: m.szyprowski@samsung.com, arnd@arndb.de, b.zolnierkie@samsung.com, kyungmin.park@samsung.com, mel@csn.ul.ie, mina86@mina86.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/base/node.c: cleanup node_state_attr[]
+     Subject: mm: cma: skip watermarks check for already isolated blocks in split_free_page()
 has been removed from the -mm tree.  Its filename was
-     drivers-base-nodec-cleanup-node_state_attr.patch
+     mm-cma-skip-watermarks-check-for-already-isolated-blocks-in-split_free_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Lai Jiangshan <laijs@cn.fujitsu.com>
-Subject: drivers/base/node.c: cleanup node_state_attr[]
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: mm: cma: skip watermarks check for already isolated blocks in split_free_page()
 
-use [index] = init_value
-use N_xxxxx instead of hardcode.
+Since commit 2139cbe627b8 ("cma: fix counting of isolated pages") free
+pages in isolated pageblocks are not accounted to NR_FREE_PAGES counters,
+so watermarks check is not required if one operates on a free page in
+isolated pageblock.
 
-Make it more readability and easier to add new state.
-
-Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
-Acked-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Acked-by: Michal Nazarewicz <mina86@mina86.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ mm/page_alloc.c |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN drivers/base/node.c~drivers-base-nodec-cleanup-node_state_attr drivers/base/node.c
---- a/drivers/base/node.c~drivers-base-nodec-cleanup-node_state_attr
-+++ a/drivers/base/node.c
-@@ -638,23 +638,23 @@ static ssize_t show_node_state(struct de
- 	{ __ATTR(name, 0444, show_node_state, NULL), state }
+diff -puN mm/page_alloc.c~mm-cma-skip-watermarks-check-for-already-isolated-blocks-in-split_free_page mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-cma-skip-watermarks-check-for-already-isolated-blocks-in-split_free_page
++++ a/mm/page_alloc.c
+@@ -1394,21 +1394,22 @@ int capture_free_page(struct page *page,
  
- static struct node_attr node_state_attr[] = {
--	_NODE_ATTR(possible, N_POSSIBLE),
--	_NODE_ATTR(online, N_ONLINE),
--	_NODE_ATTR(has_normal_memory, N_NORMAL_MEMORY),
--	_NODE_ATTR(has_cpu, N_CPU),
-+	[N_POSSIBLE] = _NODE_ATTR(possible, N_POSSIBLE),
-+	[N_ONLINE] = _NODE_ATTR(online, N_ONLINE),
-+	[N_NORMAL_MEMORY] = _NODE_ATTR(has_normal_memory, N_NORMAL_MEMORY),
- #ifdef CONFIG_HIGHMEM
--	_NODE_ATTR(has_high_memory, N_HIGH_MEMORY),
-+	[N_HIGH_MEMORY] = _NODE_ATTR(has_high_memory, N_HIGH_MEMORY),
- #endif
-+	[N_CPU] = _NODE_ATTR(has_cpu, N_CPU),
- };
+ 	zone = page_zone(page);
+ 	order = page_order(page);
++	mt = get_pageblock_migratetype(page);
  
- static struct attribute *node_state_attrs[] = {
--	&node_state_attr[0].attr.attr,
--	&node_state_attr[1].attr.attr,
--	&node_state_attr[2].attr.attr,
--	&node_state_attr[3].attr.attr,
-+	&node_state_attr[N_POSSIBLE].attr.attr,
-+	&node_state_attr[N_ONLINE].attr.attr,
-+	&node_state_attr[N_NORMAL_MEMORY].attr.attr,
- #ifdef CONFIG_HIGHMEM
--	&node_state_attr[4].attr.attr,
-+	&node_state_attr[N_HIGH_MEMORY].attr.attr,
- #endif
-+	&node_state_attr[N_CPU].attr.attr,
- 	NULL
- };
+-	/* Obey watermarks as if the page was being allocated */
+-	watermark = low_wmark_pages(zone) + (1 << order);
+-	if (!zone_watermark_ok(zone, 0, watermark, 0, 0))
+-		return 0;
++	if (mt != MIGRATE_ISOLATE) {
++		/* Obey watermarks as if the page was being allocated */
++		watermark = low_wmark_pages(zone) + (1 << order);
++		if (!zone_watermark_ok(zone, 0, watermark, 0, 0))
++			return 0;
++
++		__mod_zone_freepage_state(zone, -(1UL << alloc_order), mt);
++	}
  
-_
-
-Patches currently in -mm which might be from laijs@cn.fujitsu.com are
-
-origin.patch
-node_states-introduce-n_memory.patch
-cpuset-use-n_memory-instead-n_high_memory.patch
-procfs-use-n_memory-instead-n_high_memory.patch
-memcontrol-use-n_memory-instead-n_high_memory.patch
-oom-use-n_memory-instead-n_high_memory.patch
-mmmigrate-use-n_memory-instead-n_high_memory.patch
-mempolicy-use-n_memory-instead-n_high_memory.patch
-hugetlb-use-n_memory-instead-n_high_memory.patch
-vmstat-use-n_memory-instead-n_high_memory.patch
-kthread-use-n_memory-instead-n_high_memory.patch
-init-use-n_memory-instead-n_high_memory.patch
-vmscan-use-n_memory-instead-n_high_memory.patch
-page_alloc-use-n_memory-instead-n_high_memory-change-the-node_states-initialization.patch
-hotplug-update-nodemasks-management.patch
-hotplug-update-nodemasks-management-fix.patch
-numa-add-config_movable_node-for-movable-dedicated-node.patch
-numa-add-config_movable_node-for-movable-dedicated-node-fix.patch
-memory_hotplug-allow-online-offline-memory-to-result-movable-node.patch
-linux-next.patch
-
+ 	/* Remove page from free list */
+ 	list_del(&page->lru);
+ 	zone->free_area[order].nr_free--;
+ 	rmv_page_order(page);
+ 
+-	mt = get_pageblock_migratetype(page);
+-	if (unlikely(mt != MIGRATE_ISOLATE))
+-		__mod_zone_freepage_state(zone, -(1UL << alloc_order), mt);
