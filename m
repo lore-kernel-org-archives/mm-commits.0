@@ -1,74 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-lp855x-backlight-driver-entry.patch added to -mm tree
-Date: Wed, 12 Dec 2012 13:12:22 -0800
-Message-ID: <20121212211223.06E00200059@hpza10.eem.corp.google.com>
+Subject: [folded-merged] thp-huge-zero-page-basic-preparation-v6.patch removed from -mm tree
+Date: Wed, 12 Dec 2012 13:34:07 -0800
+Message-ID: <20121212213407.B287A100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f201.google.com ([209.85.215.201]:37726 "EHLO
-	mail-ea0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754169Ab2LLVMZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 16:12:25 -0500
-Received: by mail-ea0-f201.google.com with SMTP id b14so67939eaa.4
-        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 13:12:24 -0800 (PST)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:43492 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755124Ab2LLVeJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 16:34:09 -0500
+Received: by mail-gh0-f201.google.com with SMTP id z19so128845ghb.0
+        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 13:34:08 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: Milo.Kim@ti.com, milo.kim@ti.com, rpurdie@rpsys.net
+To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, ak@linux.intel.com, hpa@linux.intel.com, mel@csn.ul.ie, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add LP855x backlight driver entry
-has been added to the -mm tree.  Its filename is
-     maintainers-add-lp855x-backlight-driver-entry.patch
+     Subject: thp-huge-zero-page-basic-preparation-v6
+has been removed from the -mm tree.  Its filename was
+     thp-huge-zero-page-basic-preparation-v6.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into thp-huge-zero-page-basic-preparation.patch
 
 ------------------------------------------------------
-From: "Kim, Milo" <Milo.Kim@ti.com>
-Subject: MAINTAINERS: add LP855x backlight driver entry
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: thp-huge-zero-page-basic-preparation-v6
 
-Signed-off-by: Milo(Woogyom) Kim <milo.kim@ti.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Huge zero page (hzp) is a non-movable huge page (2M on x86-64) filled
+with zeros.
+
+For now let's allocate the page on hugepage_init(). We'll switch to lazy
+allocation later.
+
+We are not going to map the huge zero page until we can handle it
+properly on all code paths.
+
+is_huge_zero_{pfn,pmd}() functions will be used by following patches to
+check whether the pfn/pmd is huge zero page.
+
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: "H. Peter Anvin" <hpa@linux.intel.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-add-lp855x-backlight-driver-entry MAINTAINERS
---- a/MAINTAINERS~maintainers-add-lp855x-backlight-driver-entry
-+++ a/MAINTAINERS
-@@ -7308,6 +7308,13 @@ S:	Maintained
- F:	sound/soc/codecs/lm49453*
- F:	sound/soc/codecs/isabelle*
+diff -puN mm/huge_memory.c~thp-huge-zero-page-basic-preparation-v6 mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-huge-zero-page-basic-preparation-v6
++++ a/mm/huge_memory.c
+@@ -161,7 +161,7 @@ static int start_khugepaged(void)
+ 	return err;
+ }
  
-+TI LP855x BACKLIGHT DRIVER
-+M:	Milo Kim <milo.kim@ti.com>
-+S:	Maintained
-+F:	Documentation/backlight/lp855x-driver.txt
-+F:	drivers/video/backlight/lp855x_bl.c
-+F:	include/linux/platform_data/lp855x.h
-+
- TI TWL4030 SERIES SOC CODEC DRIVER
- M:	Peter Ujfalusi <peter.ujfalusi@ti.com>
- L:	alsa-devel@alsa-project.org (moderated for non-subscribers)
+-static int init_huge_zero_page(void)
++static int __init init_huge_zero_page(void)
+ {
+ 	struct page *hpage;
+ 
 _
 
-Patches currently in -mm which might be from Milo.Kim@ti.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-linux-next.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
-drivers-video-backlight-lp855x_blc-remove-unnecessary-mutex-code.patch
-maintainers-add-lp855x-backlight-driver-entry.patch
-drivers-rtc-rtc-tps65910c-enable-rtc-power-domain-on-initialization.patch
+origin.patch
+thp-huge-zero-page-basic-preparation.patch
+thp-zap_huge_pmd-zap-huge-zero-pmd.patch
+thp-copy_huge_pmd-copy-huge-zero-page.patch
+thp-copy_huge_pmd-copy-huge-zero-page-v6.patch
+thp-copy_huge_pmd-copy-huge-zero-page-v6-fix.patch
+thp-do_huge_pmd_wp_page-handle-huge-zero-page.patch
+thp-do_huge_pmd_wp_page-handle-huge-zero-page-v6.patch
+thp-do_huge_pmd_wp_page-handle-huge-zero-page-thp-fix-anononymous-page-accounting-in-fallback-path-for-cow-of-hzp.patch
+thp-change_huge_pmd-make-sure-we-dont-try-to-make-a-page-writable.patch
+thp-change-split_huge_page_pmd-interface.patch
+thp-change-split_huge_page_pmd-interface-v6.patch
+thp-implement-splitting-pmd-for-huge-zero-page.patch
+thp-implement-splitting-pmd-for-huge-zero-page-fix.patch
+thp-implement-splitting-pmd-for-huge-zero-page-v6.patch
+thp-setup-huge-zero-page-on-non-write-page-fault.patch
+thp-setup-huge-zero-page-on-non-write-page-fault-fix.patch
+thp-lazy-huge-zero-page-allocation.patch
+thp-implement-refcounting-for-huge-zero-page.patch
+thp-implement-refcounting-for-huge-zero-page-fix.patch
+thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events.patch
+thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6.patch
+thp-introduce-sysfs-knob-to-disable-huge-zero-page.patch
+thp-avoid-race-on-multiple-parallel-page-faults-to-the-same-page.patch
+asm-generic-mm-pgtable-consolidate-zero-page-helpers.patch
 
