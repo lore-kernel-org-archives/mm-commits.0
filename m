@@ -1,99 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memory-hotplug-mm-sparsec-clear-the-memory-to-store-struct-page.patch removed from -mm tree
-Date: Wed, 12 Dec 2012 11:57:50 -0800
-Message-ID: <20121212195751.929BF20004E@hpza10.eem.corp.google.com>
+Subject: [merged] memory-hotplug-allocate-zones-pcp-before-onlining-pages.patch removed from -mm tree
+Date: Wed, 12 Dec 2012 11:57:55 -0800
+Message-ID: <20121212195756.88EA520004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:65257 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754763Ab2LLT5z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 14:57:55 -0500
-Received: by mail-lb0-f202.google.com with SMTP id s4so66419lbc.1
-        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 11:57:53 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:40873 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754645Ab2LLT6B (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 14:58:01 -0500
+Received: by mail-ee0-f74.google.com with SMTP id t10so65681eei.1
+        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 11:57:59 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wency@cn.fujitsu.com, dave@linux.vnet.ibm.com, isimatu.yasuaki@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, liuj97@gmail.com, minchan.kim@gmail.com, rientjes@google.com, vasilis.liaskovitis@profitbricks.com, mm-commits@vger.kernel.org
+To: wency@cn.fujitsu.com, benh@kernel.crashing.org, cl@linux.com, dave@linux.vnet.ibm.com, isimatu.yasuaki@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, len.brown@intel.com, liuj97@gmail.com, mel@csn.ul.ie, mhocko@suse.cz, minchan.kim@gmail.com, paulus@samba.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory-hotplug, mm/sparse.c: clear the memory to store struct page
+     Subject: memory-hotplug: allocate zone's pcp before onlining pages
 has been removed from the -mm tree.  Its filename was
-     memory-hotplug-mm-sparsec-clear-the-memory-to-store-struct-page.patch
+     memory-hotplug-allocate-zones-pcp-before-onlining-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: memory-hotplug, mm/sparse.c: clear the memory to store struct page
+Subject: memory-hotplug: allocate zone's pcp before onlining pages
 
-If sparse memory vmemmap is enabled, we can't free the memory to store
-struct page when a memory device is hotremoved, because we may store
-struct page in the memory to manage the memory which doesn't belong to
-this memory device.  When we hotadded this memory device again, we will
-reuse this memory to store struct page, and struct page may contain some
-obsolete information, and we will get bad-page state:
+We use __free_page() to put a page to buddy system when onlining pages. 
+__free_page() will store NR_FREE_PAGES in zone's pcp.vm_stat_diff, so we
+should allocate zone's pcp before onlining pages, otherwise we will lose
+some free pages.
 
-[   59.611278] init_memory_mapping: [mem 0x80000000-0x9fffffff]
-[   59.637836] Built 2 zonelists in Node order, mobility grouping on.  Total pages: 547617
-[   59.638739] Policy zone: Normal
-[   59.650840] BUG: Bad page state in process bash  pfn:9b6dc
-[   59.651124] page:ffffea0002200020 count:0 mapcount:0 mapping:          (null) index:0xfdfdfdfdfdfdfdfd
-[   59.651494] page flags: 0x2fdfdfdfd5df9fd(locked|referenced|uptodate|dirty|lru|active|slab|owner_priv_1|private|private_2|writeback|head|tail|swapcache|reclaim|swapbacked|unevictable|uncached|compound_lock)
-[   59.653604] Modules linked in: netconsole acpiphp pci_hotplug acpi_memhotplug loop kvm_amd kvm microcode tpm_tis tpm tpm_bios evdev psmouse serio_raw i2c_piix4 i2c_core parport_pc parport processor button thermal_sys ext3 jbd mbcache sg sr_mod cdrom ata_generic virtio_net ata_piix virtio_blk libata virtio_pci virtio_ring virtio scsi_mod
-[   59.656998] Pid: 988, comm: bash Not tainted 3.6.0-rc7-guest #12
-[   59.657172] Call Trace:
-[   59.657275]  [<ffffffff810e9b30>] ? bad_page+0xb0/0x100
-[   59.657434]  [<ffffffff810ea4c3>] ? free_pages_prepare+0xb3/0x100
-[   59.657610]  [<ffffffff810ea668>] ? free_hot_cold_page+0x48/0x1a0
-[   59.657787]  [<ffffffff8112cc08>] ? online_pages_range+0x68/0xa0
-[   59.657961]  [<ffffffff8112cba0>] ? __online_page_increment_counters+0x10/0x10
-[   59.658162]  [<ffffffff81045561>] ? walk_system_ram_range+0x101/0x110
-[   59.658346]  [<ffffffff814c4f95>] ? online_pages+0x1a5/0x2b0
-[   59.658515]  [<ffffffff8135663d>] ? __memory_block_change_state+0x20d/0x270
-[   59.658710]  [<ffffffff81356756>] ? store_mem_state+0xb6/0xf0
-[   59.658878]  [<ffffffff8119e482>] ? sysfs_write_file+0xd2/0x160
-[   59.659052]  [<ffffffff8113769a>] ? vfs_write+0xaa/0x160
-[   59.659212]  [<ffffffff81137977>] ? sys_write+0x47/0x90
-[   59.659371]  [<ffffffff814e2f25>] ? async_page_fault+0x25/0x30
-[   59.659543]  [<ffffffff814ea239>] ? system_call_fastpath+0x16/0x1b
-[   59.659720] Disabling lock debugging due to kernel taint
-
-This patch clears the memory to store struct page to avoid unexpected error.
-
+[mhocko@suse.cz: make zone_pcp_reset independent of MEMORY_HOTREMOVE]
 Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Jiang Liu <liuj97@gmail.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Christoph Lameter <cl@linux.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Reported-by: Vasilis Liaskovitis <vasilis.liaskovitis@profitbricks.com>
 Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/memory_hotplug.c |    8 ++++++--
+ mm/page_alloc.c     |    2 +-
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN mm/sparse.c~memory-hotplug-mm-sparsec-clear-the-memory-to-store-struct-page mm/sparse.c
---- a/mm/sparse.c~memory-hotplug-mm-sparsec-clear-the-memory-to-store-struct-page
-+++ a/mm/sparse.c
-@@ -638,7 +638,6 @@ static struct page *__kmalloc_section_me
- got_map_page:
- 	ret = (struct page *)pfn_to_kaddr(page_to_pfn(page));
- got_map_ptr:
--	memset(ret, 0, memmap_size);
+diff -puN mm/memory_hotplug.c~memory-hotplug-allocate-zones-pcp-before-onlining-pages mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-allocate-zones-pcp-before-onlining-pages
++++ a/mm/memory_hotplug.c
+@@ -498,12 +498,16 @@ int __ref online_pages(unsigned long pfn
+ 	 * So, zonelist must be updated after online.
+ 	 */
+ 	mutex_lock(&zonelists_mutex);
+-	if (!populated_zone(zone))
++	if (!populated_zone(zone)) {
+ 		need_zonelists_rebuild = 1;
++		build_all_zonelists(NULL, zone);
++	}
  
- 	return ret;
- }
-@@ -758,6 +757,8 @@ int __meminit sparse_add_one_section(str
- 		goto out;
+ 	ret = walk_system_ram_range(pfn, nr_pages, &onlined_pages,
+ 		online_pages_range);
+ 	if (ret) {
++		if (need_zonelists_rebuild)
++			zone_pcp_reset(zone);
+ 		mutex_unlock(&zonelists_mutex);
+ 		printk(KERN_DEBUG "online_pages [mem %#010llx-%#010llx] failed\n",
+ 		       (unsigned long long) pfn << PAGE_SHIFT,
+@@ -519,7 +523,7 @@ int __ref online_pages(unsigned long pfn
+ 	if (onlined_pages) {
+ 		node_set_state(zone_to_nid(zone), N_HIGH_MEMORY);
+ 		if (need_zonelists_rebuild)
+-			build_all_zonelists(NULL, zone);
++			build_all_zonelists(NULL, NULL);
+ 		else
+ 			zone_pcp_update(zone);
  	}
+diff -puN mm/page_alloc.c~memory-hotplug-allocate-zones-pcp-before-onlining-pages mm/page_alloc.c
+--- a/mm/page_alloc.c~memory-hotplug-allocate-zones-pcp-before-onlining-pages
++++ a/mm/page_alloc.c
+@@ -5983,7 +5983,6 @@ void __meminit zone_pcp_update(struct zo
+ }
+ #endif
  
-+	memset(memmap, 0, sizeof(struct page) * nr_pages);
-+
- 	ms->section_mem_map |= SECTION_MARKED_PRESENT;
+-#ifdef CONFIG_MEMORY_HOTREMOVE
+ void zone_pcp_reset(struct zone *zone)
+ {
+ 	unsigned long flags;
+@@ -6003,6 +6002,7 @@ void zone_pcp_reset(struct zone *zone)
+ 	local_irq_restore(flags);
+ }
  
- 	ret = sparse_init_one_section(ms, section_nr, memmap, usemap);
++#ifdef CONFIG_MEMORY_HOTREMOVE
+ /*
+  * All pages in the range must be isolated before calling this.
+  */
 _
 
 Patches currently in -mm which might be from wency@cn.fujitsu.com are
