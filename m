@@ -1,259 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-use-vm_unmapped_area-on-sparc64-architecture.patch removed from -mm tree
-Date: Wed, 12 Dec 2012 12:00:06 -0800
-Message-ID: <20121212200007.514BA200063@hpza10.eem.corp.google.com>
+Subject: [merged] mm-redefine-address_spaceassoc_mapping.patch removed from -mm tree
+Date: Wed, 12 Dec 2012 12:00:23 -0800
+Message-ID: <20121212200024.96764200061@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:35667 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755067Ab2LLUGR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 15:06:17 -0500
-Received: by mail-wi0-f202.google.com with SMTP id hn17so65893wib.1
-        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 12:06:15 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:45804 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755130Ab2LLUGb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 15:06:31 -0500
+Received: by mail-ee0-f74.google.com with SMTP id t10so65809eei.3
+        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 12:06:30 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: walken@google.com, cmetcalf@tilera.com, davem@davemloft.net, hpa@zytor.com, hughd@google.com, lethal@linux-sh.org, linux@arm.linux.org.uk, mingo@elte.hu, ralf@linux-mips.org, riel@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: aquini@redhat.com, andi@firstfloor.org, konrad.wilk@oracle.com, mel@csn.ul.ie, minchan@kernel.org, mst@redhat.com, riel@redhat.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use vm_unmapped_area() on sparc64 architecture
+     Subject: mm: redefine address_space.assoc_mapping
 has been removed from the -mm tree.  Its filename was
-     mm-use-vm_unmapped_area-on-sparc64-architecture.patch
+     mm-redefine-address_spaceassoc_mapping.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michel Lespinasse <walken@google.com>
-Subject: mm: use vm_unmapped_area() on sparc64 architecture
+From: Rafael Aquini <aquini@redhat.com>
+Subject: mm: redefine address_space.assoc_mapping
 
-Update the sparc64 arch_get_unmapped_area[_topdown] functions to make use
-of vm_unmapped_area() instead of implementing a brute force search.
+Overhaul struct address_space.assoc_mapping renaming it to
+address_space.private_data and its type is redefined to void*.  By this
+approach we consistently name the .private_* elements from struct
+address_space as well as allow extended usage for address_space
+association with other data structures through ->private_data.
 
-[akpm@linux-foundation.org: remove now-unused COLOUR_ALIGN_DOWN()]
-Signed-off-by: Michel Lespinasse <walken@google.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Chris Metcalf <cmetcalf@tilera.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Also, all users of old ->assoc_mapping element are converted to reflect
+its new name and type change (->private_data).
+
+Signed-off-by: Rafael Aquini <aquini@redhat.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/kernel/sys_sparc_64.c |  144 ++++++-----------------------
- 1 file changed, 30 insertions(+), 114 deletions(-)
+ fs/buffer.c        |   12 ++++++------
+ fs/gfs2/glock.c    |    2 +-
+ fs/inode.c         |    2 +-
+ fs/nilfs2/page.c   |    2 +-
+ include/linux/fs.h |    2 +-
+ 5 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN arch/sparc/kernel/sys_sparc_64.c~mm-use-vm_unmapped_area-on-sparc64-architecture arch/sparc/kernel/sys_sparc_64.c
---- a/arch/sparc/kernel/sys_sparc_64.c~mm-use-vm_unmapped_area-on-sparc64-architecture
-+++ a/arch/sparc/kernel/sys_sparc_64.c
-@@ -84,24 +84,13 @@ static inline unsigned long COLOUR_ALIGN
- 	return base + off;
- }
- 
--static inline unsigned long COLOUR_ALIGN_DOWN(unsigned long addr,
--					      unsigned long pgoff)
--{
--	unsigned long base = addr & ~(SHMLBA-1);
--	unsigned long off = (pgoff<<PAGE_SHIFT) & (SHMLBA-1);
--
--	if (base + off <= addr)
--		return base + off;
--	return base - off;
--}
--
- unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr, unsigned long len, unsigned long pgoff, unsigned long flags)
+diff -puN fs/buffer.c~mm-redefine-address_spaceassoc_mapping fs/buffer.c
+--- a/fs/buffer.c~mm-redefine-address_spaceassoc_mapping
++++ a/fs/buffer.c
+@@ -555,7 +555,7 @@ void emergency_thaw_all(void)
+  */
+ int sync_mapping_buffers(struct address_space *mapping)
  {
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct * vma;
- 	unsigned long task_size = TASK_SIZE;
--	unsigned long start_addr;
- 	int do_color_align;
-+	struct vm_unmapped_area_info info;
+-	struct address_space *buffer_mapping = mapping->assoc_mapping;
++	struct address_space *buffer_mapping = mapping->private_data;
  
- 	if (flags & MAP_FIXED) {
- 		/* We do not accept a shared mapping if it would violate
-@@ -134,50 +123,22 @@ unsigned long arch_get_unmapped_area(str
- 			return addr;
+ 	if (buffer_mapping == NULL || list_empty(&mapping->private_list))
+ 		return 0;
+@@ -588,10 +588,10 @@ void mark_buffer_dirty_inode(struct buff
+ 	struct address_space *buffer_mapping = bh->b_page->mapping;
+ 
+ 	mark_buffer_dirty(bh);
+-	if (!mapping->assoc_mapping) {
+-		mapping->assoc_mapping = buffer_mapping;
++	if (!mapping->private_data) {
++		mapping->private_data = buffer_mapping;
+ 	} else {
+-		BUG_ON(mapping->assoc_mapping != buffer_mapping);
++		BUG_ON(mapping->private_data != buffer_mapping);
  	}
+ 	if (!bh->b_assoc_map) {
+ 		spin_lock(&buffer_mapping->private_lock);
+@@ -788,7 +788,7 @@ void invalidate_inode_buffers(struct ino
+ 	if (inode_has_buffers(inode)) {
+ 		struct address_space *mapping = &inode->i_data;
+ 		struct list_head *list = &mapping->private_list;
+-		struct address_space *buffer_mapping = mapping->assoc_mapping;
++		struct address_space *buffer_mapping = mapping->private_data;
  
--	if (len > mm->cached_hole_size) {
--	        start_addr = addr = mm->free_area_cache;
--	} else {
--	        start_addr = addr = TASK_UNMAPPED_BASE;
--	        mm->cached_hole_size = 0;
-+	info.flags = 0;
-+	info.length = len;
-+	info.low_limit = TASK_UNMAPPED_BASE;
-+	info.high_limit = min(task_size, VA_EXCLUDE_START);
-+	info.align_mask = do_color_align ? (PAGE_MASK & (SHMLBA - 1)) : 0;
-+	info.align_offset = pgoff << PAGE_SHIFT;
-+	addr = vm_unmapped_area(&info);
-+
-+	if ((addr & ~PAGE_MASK) && task_size > VA_EXCLUDE_END) {
-+		VM_BUG_ON(addr != -ENOMEM);
-+		info.low_limit = VA_EXCLUDE_END;
-+		info.high_limit = task_size;
-+		addr = vm_unmapped_area(&info);
+ 		spin_lock(&buffer_mapping->private_lock);
+ 		while (!list_empty(list))
+@@ -811,7 +811,7 @@ int remove_inode_buffers(struct inode *i
+ 	if (inode_has_buffers(inode)) {
+ 		struct address_space *mapping = &inode->i_data;
+ 		struct list_head *list = &mapping->private_list;
+-		struct address_space *buffer_mapping = mapping->assoc_mapping;
++		struct address_space *buffer_mapping = mapping->private_data;
+ 
+ 		spin_lock(&buffer_mapping->private_lock);
+ 		while (!list_empty(list)) {
+diff -puN fs/gfs2/glock.c~mm-redefine-address_spaceassoc_mapping fs/gfs2/glock.c
+--- a/fs/gfs2/glock.c~mm-redefine-address_spaceassoc_mapping
++++ a/fs/gfs2/glock.c
+@@ -768,7 +768,7 @@ int gfs2_glock_get(struct gfs2_sbd *sdp,
+ 		mapping->host = s->s_bdev->bd_inode;
+ 		mapping->flags = 0;
+ 		mapping_set_gfp_mask(mapping, GFP_NOFS);
+-		mapping->assoc_mapping = NULL;
++		mapping->private_data = NULL;
+ 		mapping->backing_dev_info = s->s_bdi;
+ 		mapping->writeback_index = 0;
  	}
+diff -puN fs/inode.c~mm-redefine-address_spaceassoc_mapping fs/inode.c
+--- a/fs/inode.c~mm-redefine-address_spaceassoc_mapping
++++ a/fs/inode.c
+@@ -165,7 +165,7 @@ int inode_init_always(struct super_block
+ 	mapping->host = inode;
+ 	mapping->flags = 0;
+ 	mapping_set_gfp_mask(mapping, GFP_HIGHUSER_MOVABLE);
+-	mapping->assoc_mapping = NULL;
++	mapping->private_data = NULL;
+ 	mapping->backing_dev_info = &default_backing_dev_info;
+ 	mapping->writeback_index = 0;
  
--	task_size -= len;
--
--full_search:
--	if (do_color_align)
--		addr = COLOUR_ALIGN(addr, pgoff);
--	else
--		addr = PAGE_ALIGN(addr);
--
--	for (vma = find_vma(mm, addr); ; vma = vma->vm_next) {
--		/* At this point:  (!vma || addr < vma->vm_end). */
--		if (addr < VA_EXCLUDE_START &&
--		    (addr + len) >= VA_EXCLUDE_START) {
--			addr = VA_EXCLUDE_END;
--			vma = find_vma(mm, VA_EXCLUDE_END);
--		}
--		if (unlikely(task_size < addr)) {
--			if (start_addr != TASK_UNMAPPED_BASE) {
--				start_addr = addr = TASK_UNMAPPED_BASE;
--				mm->cached_hole_size = 0;
--				goto full_search;
--			}
--			return -ENOMEM;
--		}
--		if (likely(!vma || addr + len <= vma->vm_start)) {
--			/*
--			 * Remember the place where we stopped the search:
--			 */
--			mm->free_area_cache = addr + len;
--			return addr;
--		}
--		if (addr + mm->cached_hole_size < vma->vm_start)
--		        mm->cached_hole_size = vma->vm_start - addr;
--
--		addr = vma->vm_end;
--		if (do_color_align)
--			addr = COLOUR_ALIGN(addr, pgoff);
--	}
-+	return addr;
+diff -puN fs/nilfs2/page.c~mm-redefine-address_spaceassoc_mapping fs/nilfs2/page.c
+--- a/fs/nilfs2/page.c~mm-redefine-address_spaceassoc_mapping
++++ a/fs/nilfs2/page.c
+@@ -431,7 +431,7 @@ void nilfs_mapping_init(struct address_s
+ 	mapping->host = inode;
+ 	mapping->flags = 0;
+ 	mapping_set_gfp_mask(mapping, GFP_NOFS);
+-	mapping->assoc_mapping = NULL;
++	mapping->private_data = NULL;
+ 	mapping->backing_dev_info = bdi;
+ 	mapping->a_ops = &empty_aops;
  }
- 
- unsigned long
-@@ -190,6 +151,7 @@ arch_get_unmapped_area_topdown(struct fi
- 	unsigned long task_size = STACK_TOP32;
- 	unsigned long addr = addr0;
- 	int do_color_align;
-+	struct vm_unmapped_area_info info;
- 
- 	/* This should only ever run for 32-bit processes.  */
- 	BUG_ON(!test_thread_flag(TIF_32BIT));
-@@ -224,73 +186,27 @@ arch_get_unmapped_area_topdown(struct fi
- 			return addr;
- 	}
- 
--	/* check if free_area_cache is useful for us */
--	if (len <= mm->cached_hole_size) {
-- 	        mm->cached_hole_size = 0;
-- 		mm->free_area_cache = mm->mmap_base;
-- 	}
--
--	/* either no address requested or can't fit in requested address hole */
--	addr = mm->free_area_cache;
--	if (do_color_align) {
--		unsigned long base = COLOUR_ALIGN_DOWN(addr-len, pgoff);
--
--		addr = base + len;
--	}
--
--	/* make sure it can fit in the remaining address space */
--	if (likely(addr > len)) {
--		vma = find_vma(mm, addr-len);
--		if (!vma || addr <= vma->vm_start) {
--			/* remember the address as a hint for next time */
--			return (mm->free_area_cache = addr-len);
--		}
--	}
--
--	if (unlikely(mm->mmap_base < len))
--		goto bottomup;
--
--	addr = mm->mmap_base-len;
--	if (do_color_align)
--		addr = COLOUR_ALIGN_DOWN(addr, pgoff);
--
--	do {
--		/*
--		 * Lookup failure means no vma is above this address,
--		 * else if new region fits below vma->vm_start,
--		 * return with success:
--		 */
--		vma = find_vma(mm, addr);
--		if (likely(!vma || addr+len <= vma->vm_start)) {
--			/* remember the address as a hint for next time */
--			return (mm->free_area_cache = addr);
--		}
--
-- 		/* remember the largest hole we saw so far */
-- 		if (addr + mm->cached_hole_size < vma->vm_start)
-- 		        mm->cached_hole_size = vma->vm_start - addr;
--
--		/* try just below the current vma->vm_start */
--		addr = vma->vm_start-len;
--		if (do_color_align)
--			addr = COLOUR_ALIGN_DOWN(addr, pgoff);
--	} while (likely(len < vma->vm_start));
-+	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
-+	info.length = len;
-+	info.low_limit = PAGE_SIZE;
-+	info.high_limit = mm->mmap_base;
-+	info.align_mask = do_color_align ? (PAGE_MASK & (SHMLBA - 1)) : 0;
-+	info.align_offset = pgoff << PAGE_SHIFT;
-+	addr = vm_unmapped_area(&info);
- 
--bottomup:
+diff -puN include/linux/fs.h~mm-redefine-address_spaceassoc_mapping include/linux/fs.h
+--- a/include/linux/fs.h~mm-redefine-address_spaceassoc_mapping
++++ a/include/linux/fs.h
+@@ -418,7 +418,7 @@ struct address_space {
+ 	struct backing_dev_info *backing_dev_info; /* device readahead, etc */
+ 	spinlock_t		private_lock;	/* for use by the address_space */
+ 	struct list_head	private_list;	/* ditto */
+-	struct address_space	*assoc_mapping;	/* ditto */
++	void			*private_data;	/* ditto */
+ } __attribute__((aligned(sizeof(long))));
  	/*
- 	 * A failed mmap() very likely causes application failure,
- 	 * so fall back to the bottom-up function here. This scenario
- 	 * can happen with large stack limits and large mmap()
- 	 * allocations.
- 	 */
--	mm->cached_hole_size = ~0UL;
--  	mm->free_area_cache = TASK_UNMAPPED_BASE;
--	addr = arch_get_unmapped_area(filp, addr0, len, pgoff, flags);
--	/*
--	 * Restore the topdown base:
--	 */
--	mm->free_area_cache = mm->mmap_base;
--	mm->cached_hole_size = ~0UL;
-+	if (addr & ~PAGE_MASK) {
-+		VM_BUG_ON(addr != -ENOMEM);
-+		info.flags = 0;
-+		info.low_limit = TASK_UNMAPPED_BASE;
-+		info.high_limit = STACK_TOP32;
-+		addr = vm_unmapped_area(&info);
-+	}
- 
- 	return addr;
- }
+ 	 * On most architectures that alignment is already the case; but
 _
 
-Patches currently in -mm which might be from walken@google.com are
+Patches currently in -mm which might be from aquini@redhat.com are
 
 origin.patch
-mm-protect-against-concurrent-vma-expansion.patch
-linux-next.patch
-lib-rbtree_testc-fix-uninitialized-variable-warning.patch
-random32-rename-random32-to-prandom.patch
-prandom-introduce-prandom_bytes-and-prandom_bytes_state.patch
-bnx2x-use-prandom_bytes.patch
-mtd-nandsim-use-prandom_bytes.patch
-ubifs-use-prandom_bytes.patch
-mtd-mtd_nandecctest-use-prandom_bytes-instead-of-get_random_bytes.patch
-mtd-mtd_oobtest-convert-to-use-prandom-library.patch
-mtd-mtd_pagetest-convert-to-use-prandom-library.patch
-mtd-mtd_speedtest-use-prandom_bytes.patch
-mtd-mtd_subpagetest-convert-to-use-prandom-library.patch
-mtd-mtd_stresstest-use-prandom_bytes.patch
+mm-add-vm-event-counters-for-balloon-pages-compaction.patch
 
