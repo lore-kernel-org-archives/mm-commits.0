@@ -1,148 +1,339 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-show-migration-types-in-show_mem.patch removed from -mm tree
-Date: Wed, 12 Dec 2012 11:56:53 -0800
-Message-ID: <20121212195653.E1EE982004A@wpzn4.hot.corp.google.com>
+Subject: [merged] selftests-add-a-test-program-for-variable-huge-page-sizes-in-mmap-shmget.patch removed from -mm tree
+Date: Wed, 12 Dec 2012 11:59:00 -0800
+Message-ID: <20121212195900.BAC5682004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:37884 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754645Ab2LLUEg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 15:04:36 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so117336ghb.3
-        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 12:04:36 -0800 (PST)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:51274 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754645Ab2LLUEx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 15:04:53 -0500
+Received: by mail-vb0-f73.google.com with SMTP id l1so118365vba.4
+        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 12:04:52 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rabin.vincent@stericsson.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: ak@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: show migration types in show_mem
+     Subject: selftests: add a test program for variable huge page sizes in mmap/shmget
 has been removed from the -mm tree.  Its filename was
-     mm-show-migration-types-in-show_mem.patch
+     selftests-add-a-test-program-for-variable-huge-page-sizes-in-mmap-shmget.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rabin Vincent <rabin.vincent@stericsson.com>
-Subject: mm: show migration types in show_mem
+From: Andi Kleen <ak@linux.intel.com>
+Subject: selftests: add a test program for variable huge page sizes in mmap/shmget
 
-This is useful to diagnose the reason for page allocation failure for
-cases where there appear to be several free pages.
+Also remove -Wextra because gcc-4.6 emits lots of irritating
+signed/unsigned comparison warnings.
 
-Example, with this alloc_pages(GFP_ATOMIC) failure:
-
- swapper/0: page allocation failure: order:0, mode:0x0
- ...
- Mem-info:
- Normal per-cpu:
- CPU    0: hi:   90, btch:  15 usd:  48
- CPU    1: hi:   90, btch:  15 usd:  21
- active_anon:0 inactive_anon:0 isolated_anon:0
-  active_file:0 inactive_file:84 isolated_file:0
-  unevictable:0 dirty:0 writeback:0 unstable:0
-  free:4026 slab_reclaimable:75 slab_unreclaimable:484
-  mapped:0 shmem:0 pagetables:0 bounce:0
- Normal free:16104kB min:2296kB low:2868kB high:3444kB active_anon:0kB
- inactive_anon:0kB active_file:0kB inactive_file:336kB unevictable:0kB
- isolated(anon):0kB isolated(file):0kB present:331776kB mlocked:0kB
- dirty:0kB writeback:0kB mapped:0kB shmem:0kB slab_reclaimable:300kB
- slab_unreclaimable:1936kB kernel_stack:328kB pagetables:0kB unstable:0kB
- bounce:0kB writeback_tmp:0kB pages_scanned:0 all_unreclaimable? no
- lowmem_reserve[]: 0 0
-
-Before the patch, it's hard (for me, at least) to say why all these free
-chunks weren't considered for allocation:
-
- Normal: 0*4kB 0*8kB 0*16kB 0*32kB 0*64kB 0*128kB 1*256kB 1*512kB
- 1*1024kB 1*2048kB 3*4096kB = 16128kB
-
-After the patch, it's obvious that the reason is that all of these are
-in the MIGRATE_CMA (C) freelist:
-
- Normal: 0*4kB 0*8kB 0*16kB 0*32kB 0*64kB 0*128kB 1*256kB (C) 1*512kB
- (C) 1*1024kB (C) 1*2048kB (C) 3*4096kB (C) = 16128kB
-
-Signed-off-by: Rabin Vincent <rabin.vincent@stericsson.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   42 ++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 40 insertions(+), 2 deletions(-)
+ tools/testing/selftests/vm/Makefile    |    4 
+ tools/testing/selftests/vm/thuge-gen.c |  254 +++++++++++++++++++++++
+ 2 files changed, 256 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-show-migration-types-in-show_mem mm/page_alloc.c
---- a/mm/page_alloc.c~mm-show-migration-types-in-show_mem
-+++ a/mm/page_alloc.c
-@@ -2877,6 +2877,31 @@ out:
+diff -puN tools/testing/selftests/vm/Makefile~selftests-add-a-test-program-for-variable-huge-page-sizes-in-mmap-shmget tools/testing/selftests/vm/Makefile
+--- a/tools/testing/selftests/vm/Makefile~selftests-add-a-test-program-for-variable-huge-page-sizes-in-mmap-shmget
++++ a/tools/testing/selftests/vm/Makefile
+@@ -1,9 +1,9 @@
+ # Makefile for vm selftests
  
- #define K(x) ((x) << (PAGE_SHIFT-10))
+ CC = $(CROSS_COMPILE)gcc
+-CFLAGS = -Wall -Wextra
++CFLAGS = -Wall
  
-+static void show_migration_types(unsigned char type)
+-all: hugepage-mmap hugepage-shm  map_hugetlb
++all: hugepage-mmap hugepage-shm  map_hugetlb thuge-gen
+ %: %.c
+ 	$(CC) $(CFLAGS) -o $@ $^
+ 
+diff -puN /dev/null tools/testing/selftests/vm/thuge-gen.c
+--- /dev/null
++++ a/tools/testing/selftests/vm/thuge-gen.c
+@@ -0,0 +1,254 @@
++/* Test selecting other page sizes for mmap/shmget.
++
++   Before running this huge pages for each huge page size must have been
++   reserved.
++   For large pages beyond MAX_ORDER (like 1GB on x86) boot options must be used.
++   Also shmmax must be increased.
++   And you need to run as root to work around some weird permissions in shm.
++   And nothing using huge pages should run in parallel.
++   When the program aborts you may need to clean up the shm segments with
++   ipcrm -m by hand, like this
++   sudo ipcs | awk '$1 == "0x00000000" {print $2}' | xargs -n1 sudo ipcrm -m
++   (warning this will remove all if someone else uses them) */
++
++#define _GNU_SOURCE 1
++#include <sys/mman.h>
++#include <stdlib.h>
++#include <stdio.h>
++#include <sys/ipc.h>
++#include <sys/shm.h>
++#include <sys/stat.h>
++#include <glob.h>
++#include <assert.h>
++#include <unistd.h>
++#include <stdarg.h>
++#include <string.h>
++
++#define err(x) perror(x), exit(1)
++
++#define MAP_HUGE_2MB    (21 << MAP_HUGE_SHIFT)
++#define MAP_HUGE_1GB    (30 << MAP_HUGE_SHIFT)
++#define MAP_HUGE_SHIFT  26
++#define MAP_HUGE_MASK   0x3f
++#define MAP_HUGETLB	0x40000
++
++#define SHM_HUGETLB     04000   /* segment will use huge TLB pages */
++#define SHM_HUGE_SHIFT  26
++#define SHM_HUGE_MASK   0x3f
++#define SHM_HUGE_2MB    (21 << SHM_HUGE_SHIFT)
++#define SHM_HUGE_1GB    (30 << SHM_HUGE_SHIFT)
++
++#define NUM_PAGESIZES   5
++
++#define NUM_PAGES 4
++
++#define Dprintf(fmt...) // printf(fmt)
++
++unsigned long page_sizes[NUM_PAGESIZES];
++int num_page_sizes;
++
++int ilog2(unsigned long v)
 +{
-+	static const char types[MIGRATE_TYPES] = {
-+		[MIGRATE_UNMOVABLE]	= 'U',
-+		[MIGRATE_RECLAIMABLE]	= 'E',
-+		[MIGRATE_MOVABLE]	= 'M',
-+		[MIGRATE_RESERVE]	= 'R',
-+#ifdef CONFIG_CMA
-+		[MIGRATE_CMA]		= 'C',
-+#endif
-+		[MIGRATE_ISOLATE]	= 'I',
-+	};
-+	char tmp[MIGRATE_TYPES + 1];
-+	char *p = tmp;
-+	int i;
-+
-+	for (i = 0; i < MIGRATE_TYPES; i++) {
-+		if (type & (1 << i))
-+			*p++ = types[i];
-+	}
-+
-+	*p = '\0';
-+	printk("(%s) ", tmp);
++	int l = 0;
++	while ((1UL << l) < v)
++		l++;
++	return l;
 +}
 +
- /*
-  * Show free area list (used inside shift_scroll-lock stuff)
-  * We also calculate the percentage fragmentation. We do this by counting the
-@@ -3005,6 +3030,7 @@ void show_free_areas(unsigned int filter
- 
- 	for_each_populated_zone(zone) {
-  		unsigned long nr[MAX_ORDER], flags, order, total = 0;
-+		unsigned char types[MAX_ORDER];
- 
- 		if (skip_free_areas_node(filter, zone_to_nid(zone)))
- 			continue;
-@@ -3013,12 +3039,24 @@ void show_free_areas(unsigned int filter
- 
- 		spin_lock_irqsave(&zone->lock, flags);
- 		for (order = 0; order < MAX_ORDER; order++) {
--			nr[order] = zone->free_area[order].nr_free;
-+			struct free_area *area = &zone->free_area[order];
-+			int type;
++void find_pagesizes(void)
++{
++	glob_t g;
++	int i;
++	glob("/sys/kernel/mm/hugepages/hugepages-*kB", 0, NULL, &g);
++	assert(g.gl_pathc <= NUM_PAGESIZES);
++	for (i = 0; i < g.gl_pathc; i++) {
++		sscanf(g.gl_pathv[i], "/sys/kernel/mm/hugepages/hugepages-%lukB",
++				&page_sizes[i]);
++		page_sizes[i] <<= 10;
++		printf("Found %luMB\n", page_sizes[i] >> 20);
++	}
++	num_page_sizes = g.gl_pathc;
++	globfree(&g);
++}
 +
-+			nr[order] = area->nr_free;
- 			total += nr[order] << order;
-+
-+			types[order] = 0;
-+			for (type = 0; type < MIGRATE_TYPES; type++) {
-+				if (!list_empty(&area->free_list[type]))
-+					types[order] |= 1 << type;
-+			}
- 		}
- 		spin_unlock_irqrestore(&zone->lock, flags);
--		for (order = 0; order < MAX_ORDER; order++)
-+		for (order = 0; order < MAX_ORDER; order++) {
- 			printk("%lu*%lukB ", nr[order], K(1UL) << order);
-+			if (nr[order])
-+				show_migration_types(types[order]);
++unsigned long default_huge_page_size(void)
++{
++	unsigned long hps = 0;
++	char *line = NULL;
++	size_t linelen = 0;
++	FILE *f = fopen("/proc/meminfo", "r");
++	if (!f)
++		return 0;
++	while (getline(&line, &linelen, f) > 0) {
++		if (sscanf(line, "Hugepagesize:       %lu kB", &hps) == 1) {
++			hps <<= 10;
++			break;
 +		}
- 		printk("= %lukB\n", K(total));
- 	}
- 
++	}
++	free(line);
++	return hps;
++}
++
++void show(unsigned long ps)
++{
++	char buf[100];
++	if (ps == getpagesize())
++		return;
++	printf("%luMB: ", ps >> 20);
++	fflush(stdout);
++	snprintf(buf, sizeof buf,
++		"cat /sys/kernel/mm/hugepages/hugepages-%lukB/free_hugepages",
++		ps >> 10);
++	system(buf);
++}
++
++unsigned long read_sysfs(int warn, char *fmt, ...)
++{
++	char *line = NULL;
++	size_t linelen = 0;
++	char buf[100];
++	FILE *f;
++	va_list ap;
++	unsigned long val = 0;
++
++	va_start(ap, fmt);
++	vsnprintf(buf, sizeof buf, fmt, ap);
++	va_end(ap);
++
++	f = fopen(buf, "r");
++	if (!f) {
++		if (warn)
++			printf("missing %s\n", buf);
++		return 0;
++	}
++	if (getline(&line, &linelen, f) > 0) {
++		sscanf(line, "%lu", &val);
++	}
++	fclose(f);
++	free(line);
++	return val;
++}
++
++unsigned long read_free(unsigned long ps)
++{
++	return read_sysfs(ps != getpagesize(),
++			"/sys/kernel/mm/hugepages/hugepages-%lukB/free_hugepages",
++			ps >> 10);
++}
++
++void test_mmap(unsigned long size, unsigned flags)
++{
++	char *map;
++	unsigned long before, after;
++	int err;
++
++	before = read_free(size);
++	map = mmap(NULL, size*NUM_PAGES, PROT_READ|PROT_WRITE,
++			MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|flags, 0, 0);
++
++	if (map == (char *)-1) err("mmap");
++	memset(map, 0xff, size*NUM_PAGES);
++	after = read_free(size);
++	Dprintf("before %lu after %lu diff %ld size %lu\n",
++		before, after, before - after, size);
++	assert(size == getpagesize() || (before - after) == NUM_PAGES);
++	show(size);
++	err = munmap(map, size);
++	assert(!err);
++}
++
++void test_shmget(unsigned long size, unsigned flags)
++{
++	int id;
++	unsigned long before, after;
++	int err;
++
++	before = read_free(size);
++	id = shmget(IPC_PRIVATE, size * NUM_PAGES, IPC_CREAT|0600|flags);
++	if (id < 0) err("shmget");
++
++	struct shm_info i;
++	if (shmctl(id, SHM_INFO, (void *)&i) < 0) err("shmctl");
++	Dprintf("alloc %lu res %lu\n", i.shm_tot, i.shm_rss);
++
++
++	Dprintf("id %d\n", id);
++	char *map = shmat(id, NULL, 0600);
++	if (map == (char*)-1) err("shmat");
++
++	shmctl(id, IPC_RMID, NULL);
++
++	memset(map, 0xff, size*NUM_PAGES);
++	after = read_free(size);
++
++	Dprintf("before %lu after %lu diff %ld size %lu\n",
++		before, after, before - after, size);
++	assert(size == getpagesize() || (before - after) == NUM_PAGES);
++	show(size);
++	err = shmdt(map);
++	assert(!err);
++}
++
++void sanity_checks(void)
++{
++	int i;
++	unsigned long largest = getpagesize();
++
++	for (i = 0; i < num_page_sizes; i++) {
++		if (page_sizes[i] > largest)
++			largest = page_sizes[i];
++
++		if (read_free(page_sizes[i]) < NUM_PAGES) {
++			printf("Not enough huge pages for page size %lu MB, need %u\n",
++				page_sizes[i] >> 20,
++				NUM_PAGES);
++			exit(0);
++		}
++	}
++
++	if (read_sysfs(0, "/proc/sys/kernel/shmmax") < NUM_PAGES * largest) {
++		printf("Please do echo %lu > /proc/sys/kernel/shmmax", largest * NUM_PAGES);
++		exit(0);
++	}
++
++#if defined(__x86_64__)
++	if (largest != 1U<<30) {
++		printf("No GB pages available on x86-64\n"
++		       "Please boot with hugepagesz=1G hugepages=%d\n", NUM_PAGES);
++		exit(0);
++	}
++#endif
++}
++
++int main(void)
++{
++	int i;
++	unsigned default_hps = default_huge_page_size();
++
++	find_pagesizes();
++
++	sanity_checks();
++
++	for (i = 0; i < num_page_sizes; i++) {
++		unsigned long ps = page_sizes[i];
++		int arg = ilog2(ps) << MAP_HUGE_SHIFT;
++		printf("Testing %luMB mmap with shift %x\n", ps >> 20, arg);
++		test_mmap(ps, MAP_HUGETLB | arg);
++	}
++	printf("Testing default huge mmap\n");
++	test_mmap(default_hps, SHM_HUGETLB);
++
++	puts("Testing non-huge shmget");
++	test_shmget(getpagesize(), 0);
++
++	for (i = 0; i < num_page_sizes; i++) {
++		unsigned long ps = page_sizes[i];
++		int arg = ilog2(ps) << SHM_HUGE_SHIFT;
++		printf("Testing %luMB shmget with shift %x\n", ps >> 20, arg);
++		test_shmget(ps, SHM_HUGETLB | arg);
++	}
++	puts("default huge shmget");
++	test_shmget(default_hps, SHM_HUGETLB);
++
++	return 0;
++}
 _
 
-Patches currently in -mm which might be from rabin.vincent@stericsson.com are
+Patches currently in -mm which might be from ak@linux.intel.com are
 
 origin.patch
+thp-huge-zero-page-basic-preparation.patch
+thp-huge-zero-page-basic-preparation-v6.patch
+thp-zap_huge_pmd-zap-huge-zero-pmd.patch
+thp-copy_huge_pmd-copy-huge-zero-page.patch
+thp-copy_huge_pmd-copy-huge-zero-page-v6.patch
+thp-do_huge_pmd_wp_page-handle-huge-zero-page.patch
+thp-do_huge_pmd_wp_page-handle-huge-zero-page-v6.patch
+thp-change_huge_pmd-make-sure-we-dont-try-to-make-a-page-writable.patch
+thp-change-split_huge_page_pmd-interface.patch
+thp-change-split_huge_page_pmd-interface-v6.patch
+thp-implement-splitting-pmd-for-huge-zero-page.patch
+thp-implement-splitting-pmd-for-huge-zero-page-v6.patch
+thp-setup-huge-zero-page-on-non-write-page-fault.patch
+thp-setup-huge-zero-page-on-non-write-page-fault-fix.patch
+thp-lazy-huge-zero-page-allocation.patch
+thp-implement-refcounting-for-huge-zero-page.patch
+thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events.patch
+thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6.patch
+thp-introduce-sysfs-knob-to-disable-huge-zero-page.patch
+linux-next.patch
+mm-print-out-information-of-file-affected-by-memory-error.patch
 
