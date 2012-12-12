@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-s3c-use-of_match_ptr-macro.patch added to -mm tree
-Date: Wed, 12 Dec 2012 12:51:47 -0800
-Message-ID: <20121212205148.0F480200063@hpza10.eem.corp.google.com>
+Subject: + documentation-abi-sys-devices-system-node.patch added to -mm tree
+Date: Wed, 12 Dec 2012 12:56:55 -0800
+Message-ID: <20121212205655.95CB582004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:36921 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754349Ab2LLUvu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 15:51:50 -0500
-Received: by mail-wi0-f202.google.com with SMTP id hn17so66687wib.5
-        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 12:51:48 -0800 (PST)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:36042 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755982Ab2LLU44 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 15:56:56 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z10so126289ghb.1
+        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 12:56:56 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sachin.kamat@linaro.org
+Cc: davidlohr.bueso@hp.com, gregkh@linuxfoundation.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-s3c: use of_match_ptr() macro
+     Subject: Documentation: ABI: /sys/devices/system/node/
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-s3c-use-of_match_ptr-macro.patch
+     documentation-abi-sys-devices-system-node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,47 +33,132 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/rtc/rtc-s3c: use of_match_ptr() macro
+From: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Subject: Documentation: ABI: /sys/devices/system/node/
 
-This eliminates having an #ifdef returning NULL for the case when OF is
-disabled.
+Describe NUMA node sysfs files/attributes.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Note that for the specific dates and contacts I couldn't find,
+I left it as default for Oct 2002 and linux-mm.
+
+Signed-off-by: Davidlohr Bueso <davidlohr.bueso@hp.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-s3c.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ Documentation/ABI/stable/sysfs-devices-node |   96 +++++++++++++++++-
+ 1 file changed, 95 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-s3c.c~drivers-rtc-rtc-s3c-use-of_match_ptr-macro drivers/rtc/rtc-s3c.c
---- a/drivers/rtc/rtc-s3c.c~drivers-rtc-rtc-s3c-use-of_match_ptr-macro
-+++ a/drivers/rtc/rtc-s3c.c
-@@ -695,8 +695,6 @@ static const struct of_device_id s3c_rtc
- 	{},
- };
- MODULE_DEVICE_TABLE(of, s3c_rtc_dt_match);
--#else
--#define s3c_rtc_dt_match NULL
- #endif
- 
- static struct platform_device_id s3c_rtc_driver_ids[] = {
-@@ -727,7 +725,7 @@ static struct platform_driver s3c_rtc_dr
- 	.driver		= {
- 		.name	= "s3c-rtc",
- 		.owner	= THIS_MODULE,
--		.of_match_table	= s3c_rtc_dt_match,
-+		.of_match_table	= of_match_ptr(s3c_rtc_dt_match),
- 	},
- };
- 
+diff -puN Documentation/ABI/stable/sysfs-devices-node~documentation-abi-sys-devices-system-node Documentation/ABI/stable/sysfs-devices-node
+--- a/Documentation/ABI/stable/sysfs-devices-node~documentation-abi-sys-devices-system-node
++++ a/Documentation/ABI/stable/sysfs-devices-node
+@@ -1,7 +1,101 @@
++What:		/sys/devices/system/node/possible
++Date:		October 2002
++Contact:	Linux Memory Management list <linux-mm@kvack.org>
++Description:
++		Nodes that could be possibly become online at some point.
++
++What:		/sys/devices/system/node/online
++Date:		October 2002
++Contact:	Linux Memory Management list <linux-mm@kvack.org>
++Description:
++		Nodes that are online.
++
++What:		/sys/devices/system/node/has_normal_memory
++Date:		October 2002
++Contact:	Linux Memory Management list <linux-mm@kvack.org>
++Description:
++		Nodes that have regular memory.
++
++What:		/sys/devices/system/node/has_cpu
++Date:		October 2002
++Contact:	Linux Memory Management list <linux-mm@kvack.org>
++Description:
++		Nodes that have one or more CPUs.
++
++What:		/sys/devices/system/node/has_high_memory
++Date:		October 2002
++Contact:	Linux Memory Management list <linux-mm@kvack.org>
++Description:
++		Nodes that have regular or high memory.
++		Depends on CONFIG_HIGHMEM.
++
+ What:		/sys/devices/system/node/nodeX
+ Date:		October 2002
+ Contact:	Linux Memory Management list <linux-mm@kvack.org>
+ Description:
+ 		When CONFIG_NUMA is enabled, this is a directory containing
+ 		information on node X such as what CPUs are local to the
+-		node.
++		node. Each file is detailed next.
++
++What:		/sys/devices/system/node/nodeX/cpumap
++Date:		October 2002
++Contact:	Linux Memory Management list <linux-mm@kvack.org>
++Description:
++		The node's cpumap.
++
++What:		/sys/devices/system/node/nodeX/cpulist
++Date:		October 2002
++Contact:	Linux Memory Management list <linux-mm@kvack.org>
++Description:
++		The CPUs associated to the node.
++
++What:		/sys/devices/system/node/nodeX/meminfo
++Date:		October 2002
++Contact:	Linux Memory Management list <linux-mm@kvack.org>
++Description:
++		Provides information about the node's distribution and memory
++		utilization. Similar to /proc/meminfo, see Documentation/filesystems/proc.txt
++
++What:		/sys/devices/system/node/nodeX/numastat
++Date:		October 2002
++Contact:	Linux Memory Management list <linux-mm@kvack.org>
++Description:
++		The node's hit/miss statistics, in units of pages.
++		See Documentation/numastat.txt
++
++What:		/sys/devices/system/node/nodeX/distance
++Date:		October 2002
++Contact:	Linux Memory Management list <linux-mm@kvack.org>
++Description:
++		Distance between the node and all the other nodes
++		in the system.
++
++What:		/sys/devices/system/node/nodeX/vmstat
++Date:		October 2002
++Contact:	Linux Memory Management list <linux-mm@kvack.org>
++Description:
++		The node's zoned virtual memory statistics.
++		This is a superset of numastat.
++
++What:		/sys/devices/system/node/nodeX/compact
++Date:		February 2010
++Contact:	Mel Gorman <mel@csn.ul.ie>
++Description:
++		When this file is written to, all memory within that node
++		will be compacted. When it completes, memory will be freed
++		into blocks which have as many contiguous pages as possible
++
++What:		/sys/devices/system/node/nodeX/scan_unevictable_pages
++Date:		October 2008
++Contact:	Lee Schermerhorn <lee.schermerhorn@hp.com>
++Description:
++		When set, it triggers scanning the node's unevictable lists
++		and move any pages that have become evictable onto the respective
++		zone's inactive list. See mm/vmscan.c
++
++What:		/sys/devices/system/node/nodeX/hugepages/hugepages-<size>/
++Date:		December 2009
++Contact:	Lee Schermerhorn <lee.schermerhorn@hp.com>
++Description:
++		The node's huge page size control/query attributes.
++		See Documentation/vm/hugetlbpage.txt
+\ No newline at end of file
 _
 
-Patches currently in -mm which might be from sachin.kamat@linaro.org are
+Patches currently in -mm which might be from davidlohr.bueso@hp.com are
 
-origin.patch
-linux-next.patch
-drivers-video-console-softcursorc-remove-redundant-null-check-before-kfree.patch
-rtc-remove-unused-code-from-rtc-devc.patch
-drivers-rtc-rtc-s3c-use-of_match_ptr-macro.patch
+documentation-abi-sys-devices-system-node.patch
 
