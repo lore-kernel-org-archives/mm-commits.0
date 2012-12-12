@@ -1,250 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-use-vm_unmapped_area-on-sh-architecture.patch removed from -mm tree
-Date: Wed, 12 Dec 2012 11:59:51 -0800
-Message-ID: <20121212195952.8DC1C20004E@hpza10.eem.corp.google.com>
+Subject: [merged] mm-memcg-make-mem_cgroup_out_of_memory-static.patch removed from -mm tree
+Date: Wed, 12 Dec 2012 11:56:56 -0800
+Message-ID: <20121212195656.B407A82004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:34415 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755153Ab2LLUE6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 15:04:58 -0500
-Received: by mail-ee0-f74.google.com with SMTP id t10so65110eei.5
-        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 12:04:57 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:40072 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755167Ab2LLUFE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 15:05:04 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so120479vcd.1
+        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 12:05:03 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: walken@google.com, cmetcalf@tilera.com, davem@davemloft.net, hpa@zytor.com, hughd@google.com, lethal@linux-sh.org, linux@arm.linux.org.uk, mingo@elte.hu, ralf@linux-mips.org, riel@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use vm_unmapped_area() on sh architecture
+     Subject: mm, memcg: make mem_cgroup_out_of_memory() static
 has been removed from the -mm tree.  Its filename was
-     mm-use-vm_unmapped_area-on-sh-architecture.patch
+     mm-memcg-make-mem_cgroup_out_of_memory-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michel Lespinasse <walken@google.com>
-Subject: mm: use vm_unmapped_area() on sh architecture
+From: David Rientjes <rientjes@google.com>
+Subject: mm, memcg: make mem_cgroup_out_of_memory() static
 
-Update the sh arch_get_unmapped_area[_topdown] functions to make use of
-vm_unmapped_area() instead of implementing a brute force search.
+mem_cgroup_out_of_memory() is only referenced from within file scope, so
+it can be marked static.
 
-[akpm@linux-foundation.org: remove now-unused COLOUR_ALIGN_DOWN()]
-Signed-off-by: Michel Lespinasse <walken@google.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Chris Metcalf <cmetcalf@tilera.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/mm/mmap.c |  137 +++++++-------------------------------------
- 1 file changed, 23 insertions(+), 114 deletions(-)
+ include/linux/oom.h |    2 --
+ mm/memcontrol.c     |    4 ++--
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN arch/sh/mm/mmap.c~mm-use-vm_unmapped_area-on-sh-architecture arch/sh/mm/mmap.c
---- a/arch/sh/mm/mmap.c~mm-use-vm_unmapped_area-on-sh-architecture
-+++ a/arch/sh/mm/mmap.c
-@@ -30,25 +30,13 @@ static inline unsigned long COLOUR_ALIGN
- 	return base + off;
+diff -puN include/linux/oom.h~mm-memcg-make-mem_cgroup_out_of_memory-static include/linux/oom.h
+--- a/include/linux/oom.h~mm-memcg-make-mem_cgroup_out_of_memory-static
++++ a/include/linux/oom.h
+@@ -49,8 +49,6 @@ extern void check_panic_on_oom(enum oom_
+ extern enum oom_scan_t oom_scan_process_thread(struct task_struct *task,
+ 		unsigned long totalpages, const nodemask_t *nodemask,
+ 		bool force_kill);
+-extern void mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask,
+-				     int order);
+ 
+ extern void out_of_memory(struct zonelist *zonelist, gfp_t gfp_mask,
+ 		int order, nodemask_t *mask, bool force_kill);
+diff -puN mm/memcontrol.c~mm-memcg-make-mem_cgroup_out_of_memory-static mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-make-mem_cgroup_out_of_memory-static
++++ a/mm/memcontrol.c
+@@ -1498,8 +1498,8 @@ static u64 mem_cgroup_get_limit(struct m
+ 	return limit;
  }
  
--static inline unsigned long COLOUR_ALIGN_DOWN(unsigned long addr,
--					      unsigned long pgoff)
--{
--	unsigned long base = addr & ~shm_align_mask;
--	unsigned long off = (pgoff << PAGE_SHIFT) & shm_align_mask;
--
--	if (base + off <= addr)
--		return base + off;
--
--	return base - off;
--}
--
- unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr,
- 	unsigned long len, unsigned long pgoff, unsigned long flags)
+-void mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask,
+-			      int order)
++static void mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask,
++				     int order)
  {
- 	struct mm_struct *mm = current->mm;
- 	struct vm_area_struct *vma;
--	unsigned long start_addr;
- 	int do_colour_align;
-+	struct vm_unmapped_area_info info;
- 
- 	if (flags & MAP_FIXED) {
- 		/* We do not accept a shared mapping if it would violate
-@@ -79,47 +67,13 @@ unsigned long arch_get_unmapped_area(str
- 			return addr;
- 	}
- 
--	if (len > mm->cached_hole_size) {
--		start_addr = addr = mm->free_area_cache;
--	} else {
--	        mm->cached_hole_size = 0;
--		start_addr = addr = TASK_UNMAPPED_BASE;
--	}
--
--full_search:
--	if (do_colour_align)
--		addr = COLOUR_ALIGN(addr, pgoff);
--	else
--		addr = PAGE_ALIGN(mm->free_area_cache);
--
--	for (vma = find_vma(mm, addr); ; vma = vma->vm_next) {
--		/* At this point:  (!vma || addr < vma->vm_end). */
--		if (unlikely(TASK_SIZE - len < addr)) {
--			/*
--			 * Start a new search - just in case we missed
--			 * some holes.
--			 */
--			if (start_addr != TASK_UNMAPPED_BASE) {
--				start_addr = addr = TASK_UNMAPPED_BASE;
--				mm->cached_hole_size = 0;
--				goto full_search;
--			}
--			return -ENOMEM;
--		}
--		if (likely(!vma || addr + len <= vma->vm_start)) {
--			/*
--			 * Remember the place where we stopped the search:
--			 */
--			mm->free_area_cache = addr + len;
--			return addr;
--		}
--		if (addr + mm->cached_hole_size < vma->vm_start)
--		        mm->cached_hole_size = vma->vm_start - addr;
--
--		addr = vma->vm_end;
--		if (do_colour_align)
--			addr = COLOUR_ALIGN(addr, pgoff);
--	}
-+	info.flags = 0;
-+	info.length = len;
-+	info.low_limit = TASK_UNMAPPED_BASE;
-+	info.high_limit = TASK_SIZE;
-+	info.align_mask = do_colour_align ? (PAGE_MASK & shm_align_mask) : 0;
-+	info.align_offset = pgoff << PAGE_SHIFT;
-+	return vm_unmapped_area(&info);
- }
- 
- unsigned long
-@@ -131,6 +85,7 @@ arch_get_unmapped_area_topdown(struct fi
- 	struct mm_struct *mm = current->mm;
- 	unsigned long addr = addr0;
- 	int do_colour_align;
-+	struct vm_unmapped_area_info info;
- 
- 	if (flags & MAP_FIXED) {
- 		/* We do not accept a shared mapping if it would violate
-@@ -162,73 +117,27 @@ arch_get_unmapped_area_topdown(struct fi
- 			return addr;
- 	}
- 
--	/* check if free_area_cache is useful for us */
--	if (len <= mm->cached_hole_size) {
--	        mm->cached_hole_size = 0;
--		mm->free_area_cache = mm->mmap_base;
--	}
--
--	/* either no address requested or can't fit in requested address hole */
--	addr = mm->free_area_cache;
--	if (do_colour_align) {
--		unsigned long base = COLOUR_ALIGN_DOWN(addr-len, pgoff);
-+	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
-+	info.length = len;
-+	info.low_limit = PAGE_SIZE;
-+	info.high_limit = mm->mmap_base;
-+	info.align_mask = do_colour_align ? (PAGE_MASK & shm_align_mask) : 0;
-+	info.align_offset = pgoff << PAGE_SHIFT;
-+	addr = vm_unmapped_area(&info);
- 
--		addr = base + len;
--	}
--
--	/* make sure it can fit in the remaining address space */
--	if (likely(addr > len)) {
--		vma = find_vma(mm, addr-len);
--		if (!vma || addr <= vma->vm_start) {
--			/* remember the address as a hint for next time */
--			return (mm->free_area_cache = addr-len);
--		}
--	}
--
--	if (unlikely(mm->mmap_base < len))
--		goto bottomup;
--
--	addr = mm->mmap_base-len;
--	if (do_colour_align)
--		addr = COLOUR_ALIGN_DOWN(addr, pgoff);
--
--	do {
--		/*
--		 * Lookup failure means no vma is above this address,
--		 * else if new region fits below vma->vm_start,
--		 * return with success:
--		 */
--		vma = find_vma(mm, addr);
--		if (likely(!vma || addr+len <= vma->vm_start)) {
--			/* remember the address as a hint for next time */
--			return (mm->free_area_cache = addr);
--		}
--
--		/* remember the largest hole we saw so far */
--		if (addr + mm->cached_hole_size < vma->vm_start)
--		        mm->cached_hole_size = vma->vm_start - addr;
--
--		/* try just below the current vma->vm_start */
--		addr = vma->vm_start-len;
--		if (do_colour_align)
--			addr = COLOUR_ALIGN_DOWN(addr, pgoff);
--	} while (likely(len < vma->vm_start));
--
--bottomup:
- 	/*
- 	 * A failed mmap() very likely causes application failure,
- 	 * so fall back to the bottom-up function here. This scenario
- 	 * can happen with large stack limits and large mmap()
- 	 * allocations.
- 	 */
--	mm->cached_hole_size = ~0UL;
--	mm->free_area_cache = TASK_UNMAPPED_BASE;
--	addr = arch_get_unmapped_area(filp, addr0, len, pgoff, flags);
--	/*
--	 * Restore the topdown base:
--	 */
--	mm->free_area_cache = mm->mmap_base;
--	mm->cached_hole_size = ~0UL;
-+	if (addr & ~PAGE_MASK) {
-+		VM_BUG_ON(addr != -ENOMEM);
-+		info.flags = 0;
-+		info.low_limit = TASK_UNMAPPED_BASE;
-+		info.high_limit = TASK_SIZE;
-+		addr = vm_unmapped_area(&info);
-+	}
- 
- 	return addr;
- }
+ 	struct mem_cgroup *iter;
+ 	unsigned long chosen_points = 0;
 _
 
-Patches currently in -mm which might be from walken@google.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-mm-protect-against-concurrent-vma-expansion.patch
+thp-huge-zero-page-basic-preparation.patch
+thp-huge-zero-page-basic-preparation-v6.patch
+thp-zap_huge_pmd-zap-huge-zero-pmd.patch
+thp-copy_huge_pmd-copy-huge-zero-page.patch
+thp-copy_huge_pmd-copy-huge-zero-page-v6.patch
+thp-copy_huge_pmd-copy-huge-zero-page-v6-fix.patch
+thp-do_huge_pmd_wp_page-handle-huge-zero-page.patch
+thp-do_huge_pmd_wp_page-handle-huge-zero-page-v6.patch
+thp-change_huge_pmd-make-sure-we-dont-try-to-make-a-page-writable.patch
+thp-change-split_huge_page_pmd-interface.patch
+thp-change-split_huge_page_pmd-interface-v6.patch
+thp-implement-splitting-pmd-for-huge-zero-page.patch
+thp-implement-splitting-pmd-for-huge-zero-page-v6.patch
+thp-setup-huge-zero-page-on-non-write-page-fault.patch
+thp-setup-huge-zero-page-on-non-write-page-fault-fix.patch
+thp-lazy-huge-zero-page-allocation.patch
+thp-implement-refcounting-for-huge-zero-page.patch
+thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events.patch
+thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6.patch
+thp-introduce-sysfs-knob-to-disable-huge-zero-page.patch
+thp-avoid-race-on-multiple-parallel-page-faults-to-the-same-page.patch
+node_states-introduce-n_memory.patch
+cpuset-use-n_memory-instead-n_high_memory.patch
+procfs-use-n_memory-instead-n_high_memory.patch
+memcontrol-use-n_memory-instead-n_high_memory.patch
+oom-use-n_memory-instead-n_high_memory.patch
+mmmigrate-use-n_memory-instead-n_high_memory.patch
+mempolicy-use-n_memory-instead-n_high_memory.patch
+hugetlb-use-n_memory-instead-n_high_memory.patch
+vmstat-use-n_memory-instead-n_high_memory.patch
+kthread-use-n_memory-instead-n_high_memory.patch
+init-use-n_memory-instead-n_high_memory.patch
+vmscan-use-n_memory-instead-n_high_memory.patch
+page_alloc-use-n_memory-instead-n_high_memory-change-the-node_states-initialization.patch
+hotplug-update-nodemasks-management.patch
+hotplug-update-nodemasks-management-fix.patch
+mm-memcg-avoid-unnecessary-function-call-when-memcg-is-disabled.patch
+mm-memcg-avoid-unnecessary-function-call-when-memcg-is-disabled-fix.patch
+numa-add-config_movable_node-for-movable-dedicated-node.patch
+numa-add-config_movable_node-for-movable-dedicated-node-fix.patch
+memory_hotplug-allow-online-offline-memory-to-result-movable-node.patch
+mm-oom-cleanup-pagefault-oom-handler.patch
+mm-oom-remove-redundant-sleep-in-pagefault-oom-handler.patch
+mm-oom-remove-statically-defined-arch-functions-of-same-name.patch
+mm-introduce-new-field-managed_pages-to-struct-zone.patch
+mm-provide-more-accurate-estimation-of-pages-occupied-by-memmap.patch
+mm-provide-more-accurate-estimation-of-pages-occupied-by-memmap-fix.patch
+memcg-do-not-check-for-mm-in-mem_cgroup_count_vm_event-disabled.patch
 linux-next.patch
-lib-rbtree_testc-fix-uninitialized-variable-warning.patch
-random32-rename-random32-to-prandom.patch
-prandom-introduce-prandom_bytes-and-prandom_bytes_state.patch
-bnx2x-use-prandom_bytes.patch
-mtd-nandsim-use-prandom_bytes.patch
-ubifs-use-prandom_bytes.patch
-mtd-mtd_nandecctest-use-prandom_bytes-instead-of-get_random_bytes.patch
-mtd-mtd_oobtest-convert-to-use-prandom-library.patch
-mtd-mtd_pagetest-convert-to-use-prandom-library.patch
-mtd-mtd_speedtest-use-prandom_bytes.patch
-mtd-mtd_subpagetest-convert-to-use-prandom-library.patch
-mtd-mtd_stresstest-use-prandom_bytes.patch
+x86-convert-update_mmu_cache-and-update_mmu_cache_pmd-to-functions.patch
+x86-fix-the-argument-passed-to-sync_global_pgds.patch
+irq-tsk-comm-is-an-array.patch
+mm-mempolicy-introduce-spinlock-to-read-shared-policy-tree.patch
+mm-dmapoolc-fix-null-dev-in-dma_pool_create.patch
 
