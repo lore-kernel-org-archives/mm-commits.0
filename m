@@ -1,146 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-introduce-putback_movable_pages.patch removed from -mm tree
-Date: Wed, 12 Dec 2012 12:00:43 -0800
-Message-ID: <20121212200044.1DCCC82004A@wpzn4.hot.corp.google.com>
+Subject: [merged] mm-mempolicy-remove-duplicate-code.patch removed from -mm tree
+Date: Wed, 12 Dec 2012 12:00:49 -0800
+Message-ID: <20121212200050.3078E200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:53323 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754212Ab2LLUAp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 15:00:45 -0500
-Received: by mail-qa0-f74.google.com with SMTP id r4so121924qaq.1
-        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 12:00:44 -0800 (PST)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:43331 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754212Ab2LLUAw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 15:00:52 -0500
+Received: by mail-bk0-f74.google.com with SMTP id je9so64439bkc.3
+        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 12:00:51 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aquini@redhat.com, andi@firstfloor.org, konrad.wilk@oracle.com, mel@csn.ul.ie, minchan@kernel.org, mst@redhat.com, riel@redhat.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: rientjes@google.com, kosaki.motohiro@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: introduce putback_movable_pages()
+     Subject: mm, mempolicy: remove duplicate code
 has been removed from the -mm tree.  Its filename was
-     mm-introduce-putback_movable_pages.patch
+     mm-mempolicy-remove-duplicate-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rafael Aquini <aquini@redhat.com>
-Subject: mm: introduce putback_movable_pages()
+From: David Rientjes <rientjes@google.com>
+Subject: mm, mempolicy: remove duplicate code
 
-The PATCH "mm: introduce compaction and migration for virtio ballooned pages"
-hacks around putback_lru_pages() in order to allow ballooned pages to be
-re-inserted on balloon page list as if a ballooned page was like a LRU page.
+Remove some duplicate code and simplify alloc_pages_vma().  No functional
+change.
 
-As ballooned pages are not legitimate LRU pages, this patch introduces
-putback_movable_pages() to properly cope with cases where the isolated
-pageset contains ballooned pages and LRU pages, thus fixing the mentioned
-inelegant hack around putback_lru_pages().
-
-Signed-off-by: Rafael Aquini <aquini@redhat.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Minchan Kim <minchan@kernel.org>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |    2 ++
- mm/compaction.c         |    6 +++---
- mm/migrate.c            |   20 ++++++++++++++++++++
- mm/page_alloc.c         |    2 +-
- 4 files changed, 26 insertions(+), 4 deletions(-)
+ mm/mempolicy.c |   21 ++++-----------------
+ 1 file changed, 4 insertions(+), 17 deletions(-)
 
-diff -puN include/linux/migrate.h~mm-introduce-putback_movable_pages include/linux/migrate.h
---- a/include/linux/migrate.h~mm-introduce-putback_movable_pages
-+++ a/include/linux/migrate.h
-@@ -27,6 +27,7 @@ typedef struct page *new_page_t(struct p
- #ifdef CONFIG_MIGRATION
+diff -puN mm/mempolicy.c~mm-mempolicy-remove-duplicate-code mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicy-remove-duplicate-code
++++ a/mm/mempolicy.c
+@@ -1907,7 +1907,6 @@ alloc_pages_vma(gfp_t gfp, int order, st
+ 		unsigned long addr, int node)
+ {
+ 	struct mempolicy *pol;
+-	struct zonelist *zl;
+ 	struct page *page;
+ 	unsigned int cpuset_mems_cookie;
  
- extern void putback_lru_pages(struct list_head *l);
-+extern void putback_movable_pages(struct list_head *l);
- extern int migrate_page(struct address_space *,
- 			struct page *, struct page *, enum migrate_mode);
- extern int migrate_pages(struct list_head *l, new_page_t x,
-@@ -50,6 +51,7 @@ extern int migrate_huge_page_move_mappin
- #else
+@@ -1926,23 +1925,11 @@ retry_cpuset:
  
- static inline void putback_lru_pages(struct list_head *l) {}
-+static inline void putback_movable_pages(struct list_head *l) {}
- static inline int migrate_pages(struct list_head *l, new_page_t x,
- 		unsigned long private, bool offlining,
- 		enum migrate_mode mode) { return -ENOSYS; }
-diff -puN mm/compaction.c~mm-introduce-putback_movable_pages mm/compaction.c
---- a/mm/compaction.c~mm-introduce-putback_movable_pages
-+++ a/mm/compaction.c
-@@ -1003,7 +1003,7 @@ static int compact_zone(struct zone *zon
- 		switch (isolate_migratepages(zone, cc)) {
- 		case ISOLATE_ABORT:
- 			ret = COMPACT_PARTIAL;
--			putback_lru_pages(&cc->migratepages);
-+			putback_movable_pages(&cc->migratepages);
- 			cc->nr_migratepages = 0;
- 			goto out;
- 		case ISOLATE_NONE:
-@@ -1026,9 +1026,9 @@ static int compact_zone(struct zone *zon
- 		trace_mm_compaction_migratepages(nr_migrate - nr_remaining,
- 						nr_remaining);
- 
--		/* Release LRU pages not migrated */
-+		/* Release isolated pages not migrated */
- 		if (err) {
--			putback_lru_pages(&cc->migratepages);
-+			putback_movable_pages(&cc->migratepages);
- 			cc->nr_migratepages = 0;
- 			if (err == -ENOMEM) {
- 				ret = COMPACT_PARTIAL;
-diff -puN mm/migrate.c~mm-introduce-putback_movable_pages mm/migrate.c
---- a/mm/migrate.c~mm-introduce-putback_movable_pages
-+++ a/mm/migrate.c
-@@ -80,6 +80,26 @@ void putback_lru_pages(struct list_head 
- 		list_del(&page->lru);
- 		dec_zone_page_state(page, NR_ISOLATED_ANON +
- 				page_is_file_cache(page));
-+			putback_lru_page(page);
-+	}
-+}
-+
-+/*
-+ * Put previously isolated pages back onto the appropriate lists
-+ * from where they were once taken off for compaction/migration.
-+ *
-+ * This function shall be used instead of putback_lru_pages(),
-+ * whenever the isolated pageset has been built by isolate_migratepages_range()
-+ */
-+void putback_movable_pages(struct list_head *l)
-+{
-+	struct page *page;
-+	struct page *page2;
-+
-+	list_for_each_entry_safe(page, page2, l, lru) {
-+		list_del(&page->lru);
-+		dec_zone_page_state(page, NR_ISOLATED_ANON +
-+				page_is_file_cache(page));
- 		if (unlikely(balloon_page_movable(page)))
- 			balloon_page_putback(page);
- 		else
-diff -puN mm/page_alloc.c~mm-introduce-putback_movable_pages mm/page_alloc.c
---- a/mm/page_alloc.c~mm-introduce-putback_movable_pages
-+++ a/mm/page_alloc.c
-@@ -5761,7 +5761,7 @@ static int __alloc_contig_migrate_range(
- 				    0, false, MIGRATE_SYNC);
+ 		return page;
  	}
- 
--	putback_lru_pages(&cc->migratepages);
-+	putback_movable_pages(&cc->migratepages);
- 	return ret > 0 ? 0 : ret;
- }
- 
+-	zl = policy_zonelist(gfp, pol, node);
+-	if (unlikely(mpol_needs_cond_ref(pol))) {
+-		/*
+-		 * slow path: ref counted shared policy
+-		 */
+-		struct page *page =  __alloc_pages_nodemask(gfp, order,
+-						zl, policy_nodemask(gfp, pol));
+-		__mpol_put(pol);
+-		if (unlikely(!put_mems_allowed(cpuset_mems_cookie) && !page))
+-			goto retry_cpuset;
+-		return page;
+-	}
+-	/*
+-	 * fast path:  default or task policy
+-	 */
+-	page = __alloc_pages_nodemask(gfp, order, zl,
++	page = __alloc_pages_nodemask(gfp, order,
++				      policy_zonelist(gfp, pol, node),
+ 				      policy_nodemask(gfp, pol));
++	if (unlikely(mpol_needs_cond_ref(pol)))
++		__mpol_put(pol);
+ 	if (unlikely(!put_mems_allowed(cpuset_mems_cookie) && !page))
+ 		goto retry_cpuset;
+ 	return page;
 _
 
-Patches currently in -mm which might be from aquini@redhat.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-mm-add-vm-event-counters-for-balloon-pages-compaction.patch
+thp-huge-zero-page-basic-preparation.patch
+thp-huge-zero-page-basic-preparation-v6.patch
+thp-zap_huge_pmd-zap-huge-zero-pmd.patch
+thp-copy_huge_pmd-copy-huge-zero-page.patch
+thp-copy_huge_pmd-copy-huge-zero-page-v6.patch
+thp-copy_huge_pmd-copy-huge-zero-page-v6-fix.patch
+thp-do_huge_pmd_wp_page-handle-huge-zero-page.patch
+thp-do_huge_pmd_wp_page-handle-huge-zero-page-v6.patch
+thp-change_huge_pmd-make-sure-we-dont-try-to-make-a-page-writable.patch
+thp-change-split_huge_page_pmd-interface.patch
+thp-change-split_huge_page_pmd-interface-v6.patch
+thp-implement-splitting-pmd-for-huge-zero-page.patch
+thp-implement-splitting-pmd-for-huge-zero-page-v6.patch
+thp-setup-huge-zero-page-on-non-write-page-fault.patch
+thp-setup-huge-zero-page-on-non-write-page-fault-fix.patch
+thp-lazy-huge-zero-page-allocation.patch
+thp-implement-refcounting-for-huge-zero-page.patch
+thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events.patch
+thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6.patch
+thp-introduce-sysfs-knob-to-disable-huge-zero-page.patch
+thp-avoid-race-on-multiple-parallel-page-faults-to-the-same-page.patch
+node_states-introduce-n_memory.patch
+cpuset-use-n_memory-instead-n_high_memory.patch
+procfs-use-n_memory-instead-n_high_memory.patch
+memcontrol-use-n_memory-instead-n_high_memory.patch
+oom-use-n_memory-instead-n_high_memory.patch
+mmmigrate-use-n_memory-instead-n_high_memory.patch
+mempolicy-use-n_memory-instead-n_high_memory.patch
+hugetlb-use-n_memory-instead-n_high_memory.patch
+vmstat-use-n_memory-instead-n_high_memory.patch
+kthread-use-n_memory-instead-n_high_memory.patch
+init-use-n_memory-instead-n_high_memory.patch
+vmscan-use-n_memory-instead-n_high_memory.patch
+page_alloc-use-n_memory-instead-n_high_memory-change-the-node_states-initialization.patch
+hotplug-update-nodemasks-management.patch
+hotplug-update-nodemasks-management-fix.patch
+mm-memcg-avoid-unnecessary-function-call-when-memcg-is-disabled.patch
+mm-memcg-avoid-unnecessary-function-call-when-memcg-is-disabled-fix.patch
+numa-add-config_movable_node-for-movable-dedicated-node.patch
+numa-add-config_movable_node-for-movable-dedicated-node-fix.patch
+memory_hotplug-allow-online-offline-memory-to-result-movable-node.patch
+mm-oom-cleanup-pagefault-oom-handler.patch
+mm-oom-remove-redundant-sleep-in-pagefault-oom-handler.patch
+mm-oom-remove-statically-defined-arch-functions-of-same-name.patch
+mm-introduce-new-field-managed_pages-to-struct-zone.patch
+mm-provide-more-accurate-estimation-of-pages-occupied-by-memmap.patch
+mm-provide-more-accurate-estimation-of-pages-occupied-by-memmap-fix.patch
+memcg-do-not-check-for-mm-in-mem_cgroup_count_vm_event-disabled.patch
+linux-next.patch
+x86-convert-update_mmu_cache-and-update_mmu_cache_pmd-to-functions.patch
+x86-fix-the-argument-passed-to-sync_global_pgds.patch
+irq-tsk-comm-is-an-array.patch
+mm-mempolicy-introduce-spinlock-to-read-shared-policy-tree.patch
+mm-dmapoolc-fix-null-dev-in-dma_pool_create.patch
 
