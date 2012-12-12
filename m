@@ -1,229 +1,338 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-use-vm_unmapped_area-in-hugetlbfs-on-sparc64-architecture.patch removed from -mm tree
-Date: Wed, 12 Dec 2012 12:00:12 -0800
-Message-ID: <20121212200012.DCC5582004A@wpzn4.hot.corp.google.com>
+Subject: [merged] virtio_balloon-introduce-migration-primitives-to-balloon-pages.patch removed from -mm tree
+Date: Wed, 12 Dec 2012 12:00:38 -0800
+Message-ID: <20121212200039.B3CF8200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:61834 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755061Ab2LLUGf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 15:06:35 -0500
-Received: by mail-qa0-f73.google.com with SMTP id a19so122597qad.4
-        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 12:06:34 -0800 (PST)
+Received: from mail-wi0-f201.google.com ([209.85.212.201]:34464 "EHLO
+	mail-wi0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754212Ab2LLUHM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 15:07:12 -0500
+Received: by mail-wi0-f201.google.com with SMTP id hm2so65256wib.2
+        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 12:07:10 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: walken@google.com, cmetcalf@tilera.com, davem@davemloft.net, hpa@zytor.com, hughd@google.com, lethal@linux-sh.org, linux@arm.linux.org.uk, mingo@elte.hu, ralf@linux-mips.org, riel@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: aquini@redhat.com, andi@firstfloor.org, konrad.wilk@oracle.com, mel@csn.ul.ie, minchan@kernel.org, mst@redhat.com, riel@redhat.com, rusty@rustcorp.com.au, yongjun_wei@trendmicro.com.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use vm_unmapped_area() in hugetlbfs on sparc64 architecture
+     Subject: virtio_balloon: introduce migration primitives to balloon pages
 has been removed from the -mm tree.  Its filename was
-     mm-use-vm_unmapped_area-in-hugetlbfs-on-sparc64-architecture.patch
+     virtio_balloon-introduce-migration-primitives-to-balloon-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michel Lespinasse <walken@google.com>
-Subject: mm: use vm_unmapped_area() in hugetlbfs on sparc64 architecture
+From: Rafael Aquini <aquini@redhat.com>
+Subject: virtio_balloon: introduce migration primitives to balloon pages
 
-Update the sparc64 hugetlb_get_unmapped_area function to make use of
-vm_unmapped_area() instead of implementing a brute force search.
+Memory fragmentation introduced by ballooning might reduce significantly
+the number of 2MB contiguous memory blocks that can be used within a guest,
+thus imposing performance penalties associated with the reduced number of
+transparent huge pages that could be used by the guest workload.
 
-Signed-off-by: Michel Lespinasse <walken@google.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Chris Metcalf <cmetcalf@tilera.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Besides making balloon pages movable at allocation time and introducing
+the necessary primitives to perform balloon page migration/compaction,
+this patch also introduces the following locking scheme, in order to
+enhance the syncronization methods for accessing elements of struct
+virtio_balloon, thus providing protection against concurrent access
+introduced by parallel memory migration threads.
+
+ - balloon_lock (mutex) : synchronizes the access demand to elements of
+                          struct virtio_balloon and its queue operations;
+
+[yongjun_wei@trendmicro.com.cn: fix missing unlock on error in fill_balloon()]
+[akpm@linux-foundation.org: avoid having multiple return points in fill_balloon()]
+[akpm@linux-foundation.org: fix printk warning]Signed-off-by: Rafael Aquini <aquini@redhat.com>
+Acked-by: Michael S. Tsirkin <mst@redhat.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/mm/hugetlbpage.c |  124 ++++++++--------------------------
- 1 file changed, 30 insertions(+), 94 deletions(-)
+ drivers/virtio/virtio_balloon.c |  151 ++++++++++++++++++++++++++----
+ 1 file changed, 132 insertions(+), 19 deletions(-)
 
-diff -puN arch/sparc/mm/hugetlbpage.c~mm-use-vm_unmapped_area-in-hugetlbfs-on-sparc64-architecture arch/sparc/mm/hugetlbpage.c
---- a/arch/sparc/mm/hugetlbpage.c~mm-use-vm_unmapped_area-in-hugetlbfs-on-sparc64-architecture
-+++ a/arch/sparc/mm/hugetlbpage.c
-@@ -30,55 +30,28 @@ static unsigned long hugetlb_get_unmappe
- 							unsigned long pgoff,
- 							unsigned long flags)
+diff -puN drivers/virtio/virtio_balloon.c~virtio_balloon-introduce-migration-primitives-to-balloon-pages drivers/virtio/virtio_balloon.c
+--- a/drivers/virtio/virtio_balloon.c~virtio_balloon-introduce-migration-primitives-to-balloon-pages
++++ a/drivers/virtio/virtio_balloon.c
+@@ -27,13 +27,15 @@
+ #include <linux/delay.h>
+ #include <linux/slab.h>
+ #include <linux/module.h>
++#include <linux/balloon_compaction.h>
+ 
+ /*
+  * Balloon device works in 4K page units.  So each page is pointed to by
+  * multiple balloon pages.  All memory counters in this driver are in balloon
+  * page units.
+  */
+-#define VIRTIO_BALLOON_PAGES_PER_PAGE (PAGE_SIZE >> VIRTIO_BALLOON_PFN_SHIFT)
++#define VIRTIO_BALLOON_PAGES_PER_PAGE (unsigned)(PAGE_SIZE >> VIRTIO_BALLOON_PFN_SHIFT)
++#define VIRTIO_BALLOON_ARRAY_PFNS_MAX 256
+ 
+ struct virtio_balloon
  {
--	struct mm_struct *mm = current->mm;
--	struct vm_area_struct * vma;
- 	unsigned long task_size = TASK_SIZE;
--	unsigned long start_addr;
-+	struct vm_unmapped_area_info info;
- 
- 	if (test_thread_flag(TIF_32BIT))
- 		task_size = STACK_TOP32;
--	if (unlikely(len >= VA_EXCLUDE_START))
--		return -ENOMEM;
- 
--	if (len > mm->cached_hole_size) {
--	        start_addr = addr = mm->free_area_cache;
--	} else {
--	        start_addr = addr = TASK_UNMAPPED_BASE;
--	        mm->cached_hole_size = 0;
-+	info.flags = 0;
-+	info.length = len;
-+	info.low_limit = TASK_UNMAPPED_BASE;
-+	info.high_limit = min(task_size, VA_EXCLUDE_START);
-+	info.align_mask = PAGE_MASK & ~HPAGE_MASK;
-+	info.align_offset = 0;
-+	addr = vm_unmapped_area(&info);
+@@ -52,15 +54,19 @@ struct virtio_balloon
+ 	/* Number of balloon pages we've told the Host we're not using. */
+ 	unsigned int num_pages;
+ 	/*
+-	 * The pages we've told the Host we're not using.
++	 * The pages we've told the Host we're not using are enqueued
++	 * at vb_dev_info->pages list.
+ 	 * Each page on this list adds VIRTIO_BALLOON_PAGES_PER_PAGE
+ 	 * to num_pages above.
+ 	 */
+-	struct list_head pages;
++	struct balloon_dev_info *vb_dev_info;
 +
-+	if ((addr & ~PAGE_MASK) && task_size > VA_EXCLUDE_END) {
-+		VM_BUG_ON(addr != -ENOMEM);
-+		info.low_limit = VA_EXCLUDE_END;
-+		info.high_limit = task_size;
-+		addr = vm_unmapped_area(&info);
++	/* Synchronize access/update to this struct virtio_balloon elements */
++	struct mutex balloon_lock;
+ 
+ 	/* The array of pfns we tell the Host about. */
+ 	unsigned int num_pfns;
+-	u32 pfns[256];
++	u32 pfns[VIRTIO_BALLOON_ARRAY_PFNS_MAX];
+ 
+ 	/* Memory statistics */
+ 	int need_stats_update;
+@@ -122,18 +128,21 @@ static void set_page_pfns(u32 pfns[], st
+ 
+ static void fill_balloon(struct virtio_balloon *vb, size_t num)
+ {
++	struct balloon_dev_info *vb_dev_info = vb->vb_dev_info;
++
+ 	/* We can only do one array worth at a time. */
+ 	num = min(num, ARRAY_SIZE(vb->pfns));
+ 
++	mutex_lock(&vb->balloon_lock);
+ 	for (vb->num_pfns = 0; vb->num_pfns < num;
+ 	     vb->num_pfns += VIRTIO_BALLOON_PAGES_PER_PAGE) {
+-		struct page *page = alloc_page(GFP_HIGHUSER | __GFP_NORETRY |
+-					__GFP_NOMEMALLOC | __GFP_NOWARN);
++		struct page *page = balloon_page_enqueue(vb_dev_info);
++
+ 		if (!page) {
+ 			if (printk_ratelimit())
+ 				dev_printk(KERN_INFO, &vb->vdev->dev,
+-					   "Out of puff! Can't get %zu pages\n",
+-					   num);
++					   "Out of puff! Can't get %u pages\n",
++					   VIRTIO_BALLOON_PAGES_PER_PAGE);
+ 			/* Sleep for at least 1/5 of a second before retry. */
+ 			msleep(200);
+ 			break;
+@@ -141,14 +150,12 @@ static void fill_balloon(struct virtio_b
+ 		set_page_pfns(vb->pfns + vb->num_pfns, page);
+ 		vb->num_pages += VIRTIO_BALLOON_PAGES_PER_PAGE;
+ 		totalram_pages--;
+-		list_add(&page->lru, &vb->pages);
  	}
  
--	task_size -= len;
+-	/* Didn't get any?  Oh well. */
+-	if (vb->num_pfns == 0)
+-		return;
 -
--full_search:
--	addr = ALIGN(addr, HPAGE_SIZE);
--
--	for (vma = find_vma(mm, addr); ; vma = vma->vm_next) {
--		/* At this point:  (!vma || addr < vma->vm_end). */
--		if (addr < VA_EXCLUDE_START &&
--		    (addr + len) >= VA_EXCLUDE_START) {
--			addr = VA_EXCLUDE_END;
--			vma = find_vma(mm, VA_EXCLUDE_END);
--		}
--		if (unlikely(task_size < addr)) {
--			if (start_addr != TASK_UNMAPPED_BASE) {
--				start_addr = addr = TASK_UNMAPPED_BASE;
--				mm->cached_hole_size = 0;
--				goto full_search;
--			}
--			return -ENOMEM;
--		}
--		if (likely(!vma || addr + len <= vma->vm_start)) {
--			/*
--			 * Remember the place where we stopped the search:
--			 */
--			mm->free_area_cache = addr + len;
--			return addr;
--		}
--		if (addr + mm->cached_hole_size < vma->vm_start)
--		        mm->cached_hole_size = vma->vm_start - addr;
--
--		addr = ALIGN(vma->vm_end, HPAGE_SIZE);
--	}
-+	return addr;
+-	tell_host(vb, vb->inflate_vq);
++	/* Did we get any? */
++	if (vb->num_pfns != 0)
++		tell_host(vb, vb->inflate_vq);
++	mutex_unlock(&vb->balloon_lock);
  }
  
- static unsigned long
-@@ -87,71 +60,34 @@ hugetlb_get_unmapped_area_topdown(struct
- 				  const unsigned long pgoff,
- 				  const unsigned long flags)
+ static void release_pages_by_pfn(const u32 pfns[], unsigned int num)
+@@ -157,7 +164,7 @@ static void release_pages_by_pfn(const u
+ 
+ 	/* Find pfns pointing at start of each page, get pages and free them. */
+ 	for (i = 0; i < num; i += VIRTIO_BALLOON_PAGES_PER_PAGE) {
+-		__free_page(balloon_pfn_to_page(pfns[i]));
++		balloon_page_free(balloon_pfn_to_page(pfns[i]));
+ 		totalram_pages++;
+ 	}
+ }
+@@ -165,14 +172,17 @@ static void release_pages_by_pfn(const u
+ static void leak_balloon(struct virtio_balloon *vb, size_t num)
  {
--	struct vm_area_struct *vma;
- 	struct mm_struct *mm = current->mm;
- 	unsigned long addr = addr0;
-+	struct vm_unmapped_area_info info;
+ 	struct page *page;
++	struct balloon_dev_info *vb_dev_info = vb->vb_dev_info;
  
- 	/* This should only ever run for 32-bit processes.  */
- 	BUG_ON(!test_thread_flag(TIF_32BIT));
+ 	/* We can only do one array worth at a time. */
+ 	num = min(num, ARRAY_SIZE(vb->pfns));
  
--	/* check if free_area_cache is useful for us */
--	if (len <= mm->cached_hole_size) {
-- 	        mm->cached_hole_size = 0;
-- 		mm->free_area_cache = mm->mmap_base;
-- 	}
--
--	/* either no address requested or can't fit in requested address hole */
--	addr = mm->free_area_cache & HPAGE_MASK;
--
--	/* make sure it can fit in the remaining address space */
--	if (likely(addr > len)) {
--		vma = find_vma(mm, addr-len);
--		if (!vma || addr <= vma->vm_start) {
--			/* remember the address as a hint for next time */
--			return (mm->free_area_cache = addr-len);
--		}
--	}
--
--	if (unlikely(mm->mmap_base < len))
--		goto bottomup;
-+	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
-+	info.length = len;
-+	info.low_limit = PAGE_SIZE;
-+	info.high_limit = mm->mmap_base;
-+	info.align_mask = PAGE_MASK & ~HPAGE_MASK;
-+	info.align_offset = 0;
-+	addr = vm_unmapped_area(&info);
- 
--	addr = (mm->mmap_base-len) & HPAGE_MASK;
--
--	do {
--		/*
--		 * Lookup failure means no vma is above this address,
--		 * else if new region fits below vma->vm_start,
--		 * return with success:
--		 */
--		vma = find_vma(mm, addr);
--		if (likely(!vma || addr+len <= vma->vm_start)) {
--			/* remember the address as a hint for next time */
--			return (mm->free_area_cache = addr);
--		}
--
-- 		/* remember the largest hole we saw so far */
-- 		if (addr + mm->cached_hole_size < vma->vm_start)
-- 		        mm->cached_hole_size = vma->vm_start - addr;
--
--		/* try just below the current vma->vm_start */
--		addr = (vma->vm_start-len) & HPAGE_MASK;
--	} while (likely(len < vma->vm_start));
--
--bottomup:
- 	/*
- 	 * A failed mmap() very likely causes application failure,
- 	 * so fall back to the bottom-up function here. This scenario
- 	 * can happen with large stack limits and large mmap()
- 	 * allocations.
++	mutex_lock(&vb->balloon_lock);
+ 	for (vb->num_pfns = 0; vb->num_pfns < num;
+ 	     vb->num_pfns += VIRTIO_BALLOON_PAGES_PER_PAGE) {
+-		page = list_first_entry(&vb->pages, struct page, lru);
+-		list_del(&page->lru);
++		page = balloon_page_dequeue(vb_dev_info);
++		if (!page)
++			break;
+ 		set_page_pfns(vb->pfns + vb->num_pfns, page);
+ 		vb->num_pages -= VIRTIO_BALLOON_PAGES_PER_PAGE;
+ 	}
+@@ -183,6 +193,7 @@ static void leak_balloon(struct virtio_b
+ 	 * is true, we *have* to do it in this order
  	 */
--	mm->cached_hole_size = ~0UL;
--  	mm->free_area_cache = TASK_UNMAPPED_BASE;
--	addr = arch_get_unmapped_area(filp, addr0, len, pgoff, flags);
--	/*
--	 * Restore the topdown base:
--	 */
--	mm->free_area_cache = mm->mmap_base;
--	mm->cached_hole_size = ~0UL;
-+	if (addr & ~PAGE_MASK) {
-+		VM_BUG_ON(addr != -ENOMEM);
-+		info.flags = 0;
-+		info.low_limit = TASK_UNMAPPED_BASE;
-+		info.high_limit = STACK_TOP32;
-+		addr = vm_unmapped_area(&info);
-+	}
- 
- 	return addr;
+ 	tell_host(vb, vb->deflate_vq);
++	mutex_unlock(&vb->balloon_lock);
+ 	release_pages_by_pfn(vb->pfns, vb->num_pfns);
  }
+ 
+@@ -339,9 +350,84 @@ static int init_vqs(struct virtio_balloo
+ 	return 0;
+ }
+ 
++static const struct address_space_operations virtio_balloon_aops;
++#ifdef CONFIG_BALLOON_COMPACTION
++/*
++ * virtballoon_migratepage - perform the balloon page migration on behalf of
++ *			     a compation thread.     (called under page lock)
++ * @mapping: the page->mapping which will be assigned to the new migrated page.
++ * @newpage: page that will replace the isolated page after migration finishes.
++ * @page   : the isolated (old) page that is about to be migrated to newpage.
++ * @mode   : compaction mode -- not used for balloon page migration.
++ *
++ * After a ballooned page gets isolated by compaction procedures, this is the
++ * function that performs the page migration on behalf of a compaction thread
++ * The page migration for virtio balloon is done in a simple swap fashion which
++ * follows these two macro steps:
++ *  1) insert newpage into vb->pages list and update the host about it;
++ *  2) update the host about the old page removed from vb->pages list;
++ *
++ * This function preforms the balloon page migration task.
++ * Called through balloon_mapping->a_ops->migratepage
++ */
++int virtballoon_migratepage(struct address_space *mapping,
++		struct page *newpage, struct page *page, enum migrate_mode mode)
++{
++	struct balloon_dev_info *vb_dev_info = balloon_page_device(page);
++	struct virtio_balloon *vb;
++	unsigned long flags;
++
++	BUG_ON(!vb_dev_info);
++
++	vb = vb_dev_info->balloon_device;
++
++	/*
++	 * In order to avoid lock contention while migrating pages concurrently
++	 * to leak_balloon() or fill_balloon() we just give up the balloon_lock
++	 * this turn, as it is easier to retry the page migration later.
++	 * This also prevents fill_balloon() getting stuck into a mutex
++	 * recursion in the case it ends up triggering memory compaction
++	 * while it is attempting to inflate the ballon.
++	 */
++	if (!mutex_trylock(&vb->balloon_lock))
++		return -EAGAIN;
++
++	/* balloon's page migration 1st step  -- inflate "newpage" */
++	spin_lock_irqsave(&vb_dev_info->pages_lock, flags);
++	balloon_page_insert(newpage, mapping, &vb_dev_info->pages);
++	vb_dev_info->isolated_pages--;
++	spin_unlock_irqrestore(&vb_dev_info->pages_lock, flags);
++	vb->num_pfns = VIRTIO_BALLOON_PAGES_PER_PAGE;
++	set_page_pfns(vb->pfns, newpage);
++	tell_host(vb, vb->inflate_vq);
++
++	/*
++	 * balloon's page migration 2nd step -- deflate "page"
++	 *
++	 * It's safe to delete page->lru here because this page is at
++	 * an isolated migration list, and this step is expected to happen here
++	 */
++	balloon_page_delete(page);
++	vb->num_pfns = VIRTIO_BALLOON_PAGES_PER_PAGE;
++	set_page_pfns(vb->pfns, page);
++	tell_host(vb, vb->deflate_vq);
++
++	mutex_unlock(&vb->balloon_lock);
++
++	return MIGRATEPAGE_BALLOON_SUCCESS;
++}
++
++/* define the balloon_mapping->a_ops callback to allow balloon page migration */
++static const struct address_space_operations virtio_balloon_aops = {
++			.migratepage = virtballoon_migratepage,
++};
++#endif /* CONFIG_BALLOON_COMPACTION */
++
+ static int virtballoon_probe(struct virtio_device *vdev)
+ {
+ 	struct virtio_balloon *vb;
++	struct address_space *vb_mapping;
++	struct balloon_dev_info *vb_devinfo;
+ 	int err;
+ 
+ 	vdev->priv = vb = kmalloc(sizeof(*vb), GFP_KERNEL);
+@@ -350,16 +436,37 @@ static int virtballoon_probe(struct virt
+ 		goto out;
+ 	}
+ 
+-	INIT_LIST_HEAD(&vb->pages);
+ 	vb->num_pages = 0;
++	mutex_init(&vb->balloon_lock);
+ 	init_waitqueue_head(&vb->config_change);
+ 	init_waitqueue_head(&vb->acked);
+ 	vb->vdev = vdev;
+ 	vb->need_stats_update = 0;
+ 
++	vb_devinfo = balloon_devinfo_alloc(vb);
++	if (IS_ERR(vb_devinfo)) {
++		err = PTR_ERR(vb_devinfo);
++		goto out_free_vb;
++	}
++
++	vb_mapping = balloon_mapping_alloc(vb_devinfo,
++					   (balloon_compaction_check()) ?
++					   &virtio_balloon_aops : NULL);
++	if (IS_ERR(vb_mapping)) {
++		/*
++		 * IS_ERR(vb_mapping) && PTR_ERR(vb_mapping) == -EOPNOTSUPP
++		 * This means !CONFIG_BALLOON_COMPACTION, otherwise we get off.
++		 */
++		err = PTR_ERR(vb_mapping);
++		if (err != -EOPNOTSUPP)
++			goto out_free_vb_devinfo;
++	}
++
++	vb->vb_dev_info = vb_devinfo;
++
+ 	err = init_vqs(vb);
+ 	if (err)
+-		goto out_free_vb;
++		goto out_free_vb_mapping;
+ 
+ 	vb->thread = kthread_run(balloon, vb, "vballoon");
+ 	if (IS_ERR(vb->thread)) {
+@@ -371,6 +478,10 @@ static int virtballoon_probe(struct virt
+ 
+ out_del_vqs:
+ 	vdev->config->del_vqs(vdev);
++out_free_vb_mapping:
++	balloon_mapping_free(vb_mapping);
++out_free_vb_devinfo:
++	balloon_devinfo_free(vb_devinfo);
+ out_free_vb:
+ 	kfree(vb);
+ out:
+@@ -396,6 +507,8 @@ static void __devexit virtballoon_remove
+ 
+ 	kthread_stop(vb->thread);
+ 	remove_common(vb);
++	balloon_mapping_free(vb->vb_dev_info->mapping);
++	balloon_devinfo_free(vb->vb_dev_info);
+ 	kfree(vb);
+ }
+ 
 _
 
-Patches currently in -mm which might be from walken@google.com are
+Patches currently in -mm which might be from aquini@redhat.com are
 
 origin.patch
-mm-protect-against-concurrent-vma-expansion.patch
-linux-next.patch
-lib-rbtree_testc-fix-uninitialized-variable-warning.patch
-random32-rename-random32-to-prandom.patch
-prandom-introduce-prandom_bytes-and-prandom_bytes_state.patch
-bnx2x-use-prandom_bytes.patch
-mtd-nandsim-use-prandom_bytes.patch
-ubifs-use-prandom_bytes.patch
-mtd-mtd_nandecctest-use-prandom_bytes-instead-of-get_random_bytes.patch
-mtd-mtd_oobtest-convert-to-use-prandom-library.patch
-mtd-mtd_pagetest-convert-to-use-prandom-library.patch
-mtd-mtd_speedtest-use-prandom_bytes.patch
-mtd-mtd_subpagetest-convert-to-use-prandom-library.patch
-mtd-mtd_stresstest-use-prandom_bytes.patch
+mm-add-vm-event-counters-for-balloon-pages-compaction.patch
 
