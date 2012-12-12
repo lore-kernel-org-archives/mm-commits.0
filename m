@@ -1,65 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] documentation-cgroups-memorytxt-s-mem_cgroup_charge-mem_cgroup_change_common.patch removed from -mm tree
-Date: Wed, 12 Dec 2012 11:58:41 -0800
-Message-ID: <20121212195842.2569E200059@hpza10.eem.corp.google.com>
+Subject: [merged] mm-highmem-get-virtual-address-of-the-page-using-pkmap_addr.patch removed from -mm tree
+Date: Wed, 12 Dec 2012 11:58:35 -0800
+Message-ID: <20121212195835.C1E0582004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:37002 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754645Ab2LLT6o (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 14:58:44 -0500
-Received: by mail-ee0-f74.google.com with SMTP id t10so64881eei.5
-        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 11:58:43 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:35261 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754645Ab2LLT6h (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 14:58:37 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so117278vcd.5
+        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 11:58:36 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeff.liu@oracle.com, yinghan@google.com, mm-commits@vger.kernel.org
+To: js1304@gmail.com, a.p.zijlstra@chello.nl, mel@csn.ul.ie, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation/cgroups/memory.txt: s/mem_cgroup_charge/mem_cgroup_change_common/
+     Subject: mm, highmem: get virtual address of the page using PKMAP_ADDR()
 has been removed from the -mm tree.  Its filename was
-     documentation-cgroups-memorytxt-s-mem_cgroup_charge-mem_cgroup_change_common.patch
+     mm-highmem-get-virtual-address-of-the-page-using-pkmap_addr.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jeff Liu <jeff.liu@oracle.com>
-Subject: Documentation/cgroups/memory.txt: s/mem_cgroup_charge/mem_cgroup_change_common/
+From: Joonsoo Kim <js1304@gmail.com>
+Subject: mm, highmem: get virtual address of the page using PKMAP_ADDR()
 
-mem_cgroup_charge_common() is invoked as the entry point for cgroup limits
-charge rather than mem_cgroup_charge(), as the later has been removed for
-years.  Update the cgroup/memory.txt to reflect this change.
+In flush_all_zero_pkmaps(), we have an index of the pkmap associated with
+the page.  Using this index, we can simply get virtual address of the
+page.  So change it.
 
-Signed-off-by: Jie Liu <jeff.liu@oracle.com>
-Cc: Ying Han <yinghan@google.com>
+Signed-off-by: Joonsoo Kim <js1304@gmail.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Reviewed-by: Minchan Kim <minchan@kernel.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memory.txt |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/highmem.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN Documentation/cgroups/memory.txt~documentation-cgroups-memorytxt-s-mem_cgroup_charge-mem_cgroup_change_common Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~documentation-cgroups-memorytxt-s-mem_cgroup_charge-mem_cgroup_change_common
-+++ a/Documentation/cgroups/memory.txt
-@@ -144,9 +144,9 @@ Figure 1 shows the important aspects of 
- 3. Each page has a pointer to the page_cgroup, which in turn knows the
-    cgroup it belongs to
+diff -puN mm/highmem.c~mm-highmem-get-virtual-address-of-the-page-using-pkmap_addr mm/highmem.c
+--- a/mm/highmem.c~mm-highmem-get-virtual-address-of-the-page-using-pkmap_addr
++++ a/mm/highmem.c
+@@ -137,8 +137,7 @@ static void flush_all_zero_pkmaps(void)
+ 		 * So no dangers, even with speculative execution.
+ 		 */
+ 		page = pte_page(pkmap_page_table[i]);
+-		pte_clear(&init_mm, (unsigned long)page_address(page),
+-			  &pkmap_page_table[i]);
++		pte_clear(&init_mm, PKMAP_ADDR(i), &pkmap_page_table[i]);
  
--The accounting is done as follows: mem_cgroup_charge() is invoked to set up
--the necessary data structures and check if the cgroup that is being charged
--is over its limit. If it is, then reclaim is invoked on the cgroup.
-+The accounting is done as follows: mem_cgroup_charge_common() is invoked to
-+set up the necessary data structures and check if the cgroup that is being
-+charged is over its limit. If it is, then reclaim is invoked on the cgroup.
- More details can be found in the reclaim section of this document.
- If everything goes well, a page meta-data-structure called page_cgroup is
- updated. page_cgroup has its own LRU on cgroup.
+ 		set_page_address(page, NULL);
+ 		need_flush = 1;
 _
 
-Patches currently in -mm which might be from jeff.liu@oracle.com are
+Patches currently in -mm which might be from js1304@gmail.com are
 
 origin.patch
-tmpfs-support-seek_data-and-seek_hole-reprise.patch
+bootmem-remove-not-implemented-function-call-bootmem_arch_preferred_node.patch
+bootmem-remove-alloc_arch_preferred_bootmem.patch
+mm-warn_on_once-if-f_op-mmap-change-vmas-start-address.patch
 linux-next.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
 
