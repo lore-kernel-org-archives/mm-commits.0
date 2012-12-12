@@ -1,59 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmscanc-try_to_freeze-returns-boolean.patch removed from -mm tree
-Date: Wed, 12 Dec 2012 12:00:46 -0800
-Message-ID: <20121212200047.07ADA820050@wpzn4.hot.corp.google.com>
+Subject: [merged] mm-introduce-putback_movable_pages.patch removed from -mm tree
+Date: Wed, 12 Dec 2012 12:00:43 -0800
+Message-ID: <20121212200044.1DCCC82004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:46538 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754212Ab2LLUAr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 15:00:47 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so118273vcd.3
-        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 12:00:47 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:53323 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754212Ab2LLUAp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 15:00:45 -0500
+Received: by mail-qa0-f74.google.com with SMTP id r4so121924qaq.1
+        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 12:00:44 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeff.liu@oracle.com, mm-commits@vger.kernel.org
+To: aquini@redhat.com, andi@firstfloor.org, konrad.wilk@oracle.com, mel@csn.ul.ie, minchan@kernel.org, mst@redhat.com, riel@redhat.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan.c: try_to_freeze() returns boolean
+     Subject: mm: introduce putback_movable_pages()
 has been removed from the -mm tree.  Its filename was
-     mm-vmscanc-try_to_freeze-returns-boolean.patch
+     mm-introduce-putback_movable_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jeff Liu <jeff.liu@oracle.com>
-Subject: mm/vmscan.c: try_to_freeze() returns boolean
+From: Rafael Aquini <aquini@redhat.com>
+Subject: mm: introduce putback_movable_pages()
 
-kswapd()->try_to_freeze() is defined to return a boolean, so it's better
-to use a bool to hold its return value.
+The PATCH "mm: introduce compaction and migration for virtio ballooned pages"
+hacks around putback_lru_pages() in order to allow ballooned pages to be
+re-inserted on balloon page list as if a ballooned page was like a LRU page.
 
-Signed-off-by: Jie Liu <jeff.liu@oracle.com>
+As ballooned pages are not legitimate LRU pages, this patch introduces
+putback_movable_pages() to properly cope with cases where the isolated
+pageset contains ballooned pages and LRU pages, thus fixing the mentioned
+inelegant hack around putback_lru_pages().
+
+Signed-off-by: Rafael Aquini <aquini@redhat.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/migrate.h |    2 ++
+ mm/compaction.c         |    6 +++---
+ mm/migrate.c            |   20 ++++++++++++++++++++
+ mm/page_alloc.c         |    2 +-
+ 4 files changed, 26 insertions(+), 4 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscanc-try_to_freeze-returns-boolean mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscanc-try_to_freeze-returns-boolean
-+++ a/mm/vmscan.c
-@@ -2963,7 +2963,7 @@ static int kswapd(void *p)
- 	classzone_idx = new_classzone_idx = pgdat->nr_zones - 1;
- 	balanced_classzone_idx = classzone_idx;
- 	for ( ; ; ) {
--		int ret;
-+		bool ret;
+diff -puN include/linux/migrate.h~mm-introduce-putback_movable_pages include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-introduce-putback_movable_pages
++++ a/include/linux/migrate.h
+@@ -27,6 +27,7 @@ typedef struct page *new_page_t(struct p
+ #ifdef CONFIG_MIGRATION
  
- 		/*
- 		 * If the last balance_pgdat was unsuccessful it's unlikely a
+ extern void putback_lru_pages(struct list_head *l);
++extern void putback_movable_pages(struct list_head *l);
+ extern int migrate_page(struct address_space *,
+ 			struct page *, struct page *, enum migrate_mode);
+ extern int migrate_pages(struct list_head *l, new_page_t x,
+@@ -50,6 +51,7 @@ extern int migrate_huge_page_move_mappin
+ #else
+ 
+ static inline void putback_lru_pages(struct list_head *l) {}
++static inline void putback_movable_pages(struct list_head *l) {}
+ static inline int migrate_pages(struct list_head *l, new_page_t x,
+ 		unsigned long private, bool offlining,
+ 		enum migrate_mode mode) { return -ENOSYS; }
+diff -puN mm/compaction.c~mm-introduce-putback_movable_pages mm/compaction.c
+--- a/mm/compaction.c~mm-introduce-putback_movable_pages
++++ a/mm/compaction.c
+@@ -1003,7 +1003,7 @@ static int compact_zone(struct zone *zon
+ 		switch (isolate_migratepages(zone, cc)) {
+ 		case ISOLATE_ABORT:
+ 			ret = COMPACT_PARTIAL;
+-			putback_lru_pages(&cc->migratepages);
++			putback_movable_pages(&cc->migratepages);
+ 			cc->nr_migratepages = 0;
+ 			goto out;
+ 		case ISOLATE_NONE:
+@@ -1026,9 +1026,9 @@ static int compact_zone(struct zone *zon
+ 		trace_mm_compaction_migratepages(nr_migrate - nr_remaining,
+ 						nr_remaining);
+ 
+-		/* Release LRU pages not migrated */
++		/* Release isolated pages not migrated */
+ 		if (err) {
+-			putback_lru_pages(&cc->migratepages);
++			putback_movable_pages(&cc->migratepages);
+ 			cc->nr_migratepages = 0;
+ 			if (err == -ENOMEM) {
+ 				ret = COMPACT_PARTIAL;
+diff -puN mm/migrate.c~mm-introduce-putback_movable_pages mm/migrate.c
+--- a/mm/migrate.c~mm-introduce-putback_movable_pages
++++ a/mm/migrate.c
+@@ -80,6 +80,26 @@ void putback_lru_pages(struct list_head 
+ 		list_del(&page->lru);
+ 		dec_zone_page_state(page, NR_ISOLATED_ANON +
+ 				page_is_file_cache(page));
++			putback_lru_page(page);
++	}
++}
++
++/*
++ * Put previously isolated pages back onto the appropriate lists
++ * from where they were once taken off for compaction/migration.
++ *
++ * This function shall be used instead of putback_lru_pages(),
++ * whenever the isolated pageset has been built by isolate_migratepages_range()
++ */
++void putback_movable_pages(struct list_head *l)
++{
++	struct page *page;
++	struct page *page2;
++
++	list_for_each_entry_safe(page, page2, l, lru) {
++		list_del(&page->lru);
++		dec_zone_page_state(page, NR_ISOLATED_ANON +
++				page_is_file_cache(page));
+ 		if (unlikely(balloon_page_movable(page)))
+ 			balloon_page_putback(page);
+ 		else
+diff -puN mm/page_alloc.c~mm-introduce-putback_movable_pages mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-introduce-putback_movable_pages
++++ a/mm/page_alloc.c
+@@ -5761,7 +5761,7 @@ static int __alloc_contig_migrate_range(
+ 				    0, false, MIGRATE_SYNC);
+ 	}
+ 
+-	putback_lru_pages(&cc->migratepages);
++	putback_movable_pages(&cc->migratepages);
+ 	return ret > 0 ? 0 : ret;
+ }
+ 
 _
 
-Patches currently in -mm which might be from jeff.liu@oracle.com are
+Patches currently in -mm which might be from aquini@redhat.com are
 
 origin.patch
-tmpfs-support-seek_data-and-seek_hole-reprise.patch
-linux-next.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+mm-add-vm-event-counters-for-balloon-pages-compaction.patch
 
