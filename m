@@ -1,182 +1,362 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-oom-allow-exiting-threads-to-have-access-to-memory-reserves.patch removed from -mm tree
-Date: Wed, 12 Dec 2012 11:58:46 -0800
-Message-ID: <20121212195846.9610382004A@wpzn4.hot.corp.google.com>
+Subject: [merged] mm-augment-vma-rbtree-with-rb_subtree_gap.patch removed from -mm tree
+Date: Wed, 12 Dec 2012 11:59:03 -0800
+Message-ID: <20121212195904.81CAD200063@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:60233 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754645Ab2LLT6r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 14:58:47 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so117301vcd.5
-        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 11:58:47 -0800 (PST)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:47556 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755011Ab2LLT7I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 14:59:08 -0500
+Received: by mail-la0-f74.google.com with SMTP id v3so64462lag.3
+        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 11:59:06 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, kosaki.motohiro@jp.fujitsu.com, minchan@kernel.org, semenzato@google.com, mm-commits@vger.kernel.org
+To: walken@google.com, cmetcalf@tilera.com, davem@davemloft.net, hpa@zytor.com, hughd@google.com, lethal@linux-sh.org, linux@arm.linux.org.uk, mingo@elte.hu, ralf@linux-mips.org, riel@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, oom: allow exiting threads to have access to memory reserves
+     Subject: mm: augment vma rbtree with rb_subtree_gap
 has been removed from the -mm tree.  Its filename was
-     mm-oom-allow-exiting-threads-to-have-access-to-memory-reserves.patch
+     mm-augment-vma-rbtree-with-rb_subtree_gap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, oom: allow exiting threads to have access to memory reserves
+From: Michel Lespinasse <walken@google.com>
+Subject: mm: augment vma rbtree with rb_subtree_gap
 
-Exiting threads, those with PF_EXITING set, can pagefault and require
-memory before they can make forward progress.  This happens, for instance,
-when a process must fault task->robust_list, a userspace structure, before
-detaching its memory.
+Define vma->rb_subtree_gap as the largest gap between any vma in the
+subtree rooted at that vma, and their predecessor.  Or, for a recursive
+definition, vma->rb_subtree_gap is the max of:
 
-These threads also aren't guaranteed to get access to memory reserves
-unless oom killed or killed from userspace.  The oom killer won't grant
-memory reserves if other threads are also exiting other than current and
-stalling at the same point.  This prevents needlessly killing processes
-when others are already exiting.
+- vma->vm_start - vma->vm_prev->vm_end
+- rb_subtree_gap fields of the vmas pointed by vma->rb.rb_left and
+  vma->rb.rb_right
 
-Instead of special casing all the possible situations between PF_EXITING
-getting set and a thread detaching its mm where it may allocate memory,
-which probably wouldn't get updated when a change is made to the exit
-path, the solution is to give all exiting threads access to memory
-reserves if they call the oom killer.  This allows them to quickly
-allocate, detach its mm, and free the memory it represents.
+This will allow get_unmapped_area_* to find a free area of the right size
+in O(log(N)) time, instead of potentially having to do a linear walk
+across all the VMAs.
 
-Summary of Luigi's bug report:
+Also define mm->highest_vm_end as the vm_end field of the highest vma, so
+that we can easily check if the following gap is suitable.
 
-: He had an oom condition where threads were faulting on task->robust_list
-: and repeatedly called the oom killer but it would defer killing a thread
-: because it saw other PF_EXITING threads.  This can happen anytime we need
-: to allocate memory after setting PF_EXITING and before detaching our mm;
-: if there are other threads in the same state then the oom killer won't do
-: anything unless one of them happens to be killed from userspace.
-: 
-: So instead of only deferring for PF_EXITING and !task->robust_list, it's
-: better to just give them access to memory reserves to prevent a potential
-: livelock so that any other faults that may be introduced in the future in
-: the exit path don't cause the same problem (and hopefully we don't allow
-: too many of those!).
+This does have the potential to make unmapping VMAs more expensive,
+especially for processes with very large numbers of VMAs, where the VMA
+rbtree can grow quite deep.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Tested-by: Luigi Semenzato <semenzato@google.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Michel Lespinasse <walken@google.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   31 +++++++++----------------------
- 1 file changed, 9 insertions(+), 22 deletions(-)
+ include/linux/mm_types.h |    9 ++
+ mm/mmap.c                |  143 ++++++++++++++++++++++++++++++++++---
+ 2 files changed, 141 insertions(+), 11 deletions(-)
 
-diff -puN mm/oom_kill.c~mm-oom-allow-exiting-threads-to-have-access-to-memory-reserves mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-allow-exiting-threads-to-have-access-to-memory-reserves
-+++ a/mm/oom_kill.c
-@@ -310,26 +310,13 @@ enum oom_scan_t oom_scan_process_thread(
- 	if (!task->mm)
- 		return OOM_SCAN_CONTINUE;
- 
--	if (task->flags & PF_EXITING) {
-+	if (task->flags & PF_EXITING && !force_kill) {
- 		/*
--		 * If task is current and is in the process of releasing memory,
--		 * allow the "kill" to set TIF_MEMDIE, which will allow it to
--		 * access memory reserves.  Otherwise, it may stall forever.
--		 *
--		 * The iteration isn't broken here, however, in case other
--		 * threads are found to have already been oom killed.
-+		 * If this task is not being ptraced on exit, then wait for it
-+		 * to finish before killing some other task unnecessarily.
- 		 */
--		if (task == current)
--			return OOM_SCAN_SELECT;
--		else if (!force_kill) {
--			/*
--			 * If this task is not being ptraced on exit, then wait
--			 * for it to finish before killing some other task
--			 * unnecessarily.
--			 */
--			if (!(task->group_leader->ptrace & PT_TRACE_EXIT))
--				return OOM_SCAN_ABORT;
--		}
-+		if (!(task->group_leader->ptrace & PT_TRACE_EXIT))
-+			return OOM_SCAN_ABORT;
- 	}
- 	return OOM_SCAN_OK;
- }
-@@ -706,11 +693,11 @@ void out_of_memory(struct zonelist *zone
- 		return;
+diff -puN include/linux/mm_types.h~mm-augment-vma-rbtree-with-rb_subtree_gap include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-augment-vma-rbtree-with-rb_subtree_gap
++++ a/include/linux/mm_types.h
+@@ -238,6 +238,14 @@ struct vm_area_struct {
+ 	struct rb_node vm_rb;
  
  	/*
--	 * If current has a pending SIGKILL, then automatically select it.  The
--	 * goal is to allow it to allocate so that it may quickly exit and free
--	 * its memory.
-+	 * If current has a pending SIGKILL or is exiting, then automatically
-+	 * select it.  The goal is to allow it to allocate so that it may
-+	 * quickly exit and free its memory.
- 	 */
--	if (fatal_signal_pending(current)) {
-+	if (fatal_signal_pending(current) || current->flags & PF_EXITING) {
- 		set_thread_flag(TIF_MEMDIE);
- 		return;
++	 * Largest free memory gap in bytes to the left of this VMA.
++	 * Either between this VMA and vma->vm_prev, or between one of the
++	 * VMAs below us in the VMA rbtree and its ->vm_prev. This helps
++	 * get_unmapped_area find a free area of the right size.
++	 */
++	unsigned long rb_subtree_gap;
++
++	/*
+ 	 * For areas with an address space and backing store,
+ 	 * linkage into the address_space->i_mmap interval tree, or
+ 	 * linkage of vma in the address_space->i_mmap_nonlinear list.
+@@ -322,6 +330,7 @@ struct mm_struct {
+ 	unsigned long task_size;		/* size of task vm space */
+ 	unsigned long cached_hole_size; 	/* if non-zero, the largest hole below free_area_cache */
+ 	unsigned long free_area_cache;		/* first hole of size cached_hole_size or larger */
++	unsigned long highest_vm_end;		/* highest vma end address */
+ 	pgd_t * pgd;
+ 	atomic_t mm_users;			/* How many users with user space? */
+ 	atomic_t mm_count;			/* How many references to "struct mm_struct" (users count as 1) */
+diff -puN mm/mmap.c~mm-augment-vma-rbtree-with-rb_subtree_gap mm/mmap.c
+--- a/mm/mmap.c~mm-augment-vma-rbtree-with-rb_subtree_gap
++++ a/mm/mmap.c
+@@ -31,6 +31,7 @@
+ #include <linux/audit.h>
+ #include <linux/khugepaged.h>
+ #include <linux/uprobes.h>
++#include <linux/rbtree_augmented.h>
+ 
+ #include <asm/uaccess.h>
+ #include <asm/cacheflush.h>
+@@ -297,6 +298,27 @@ out:
+ 	return retval;
+ }
+ 
++static long vma_compute_subtree_gap(struct vm_area_struct *vma)
++{
++	unsigned long max, subtree_gap;
++	max = vma->vm_start;
++	if (vma->vm_prev)
++		max -= vma->vm_prev->vm_end;
++	if (vma->vm_rb.rb_left) {
++		subtree_gap = rb_entry(vma->vm_rb.rb_left,
++				struct vm_area_struct, vm_rb)->rb_subtree_gap;
++		if (subtree_gap > max)
++			max = subtree_gap;
++	}
++	if (vma->vm_rb.rb_right) {
++		subtree_gap = rb_entry(vma->vm_rb.rb_right,
++				struct vm_area_struct, vm_rb)->rb_subtree_gap;
++		if (subtree_gap > max)
++			max = subtree_gap;
++	}
++	return max;
++}
++
+ #ifdef CONFIG_DEBUG_VM_RB
+ static int browse_rb(struct rb_root *root)
+ {
+@@ -327,6 +349,18 @@ static int browse_rb(struct rb_root *roo
+ 	return i;
+ }
+ 
++static void validate_mm_rb(struct rb_root *root, struct vm_area_struct *ignore)
++{
++	struct rb_node *nd;
++
++	for (nd = rb_first(root); nd; nd = rb_next(nd)) {
++		struct vm_area_struct *vma;
++		vma = rb_entry(nd, struct vm_area_struct, vm_rb);
++		BUG_ON(vma != ignore &&
++		       vma->rb_subtree_gap != vma_compute_subtree_gap(vma));
++	}
++}
++
+ void validate_mm(struct mm_struct *mm)
+ {
+ 	int bug = 0;
+@@ -349,9 +383,52 @@ void validate_mm(struct mm_struct *mm)
+ 	BUG_ON(bug);
+ }
+ #else
++#define validate_mm_rb(root, ignore) do { } while (0)
+ #define validate_mm(mm) do { } while (0)
+ #endif
+ 
++RB_DECLARE_CALLBACKS(static, vma_gap_callbacks, struct vm_area_struct, vm_rb,
++		     unsigned long, rb_subtree_gap, vma_compute_subtree_gap)
++
++/*
++ * Update augmented rbtree rb_subtree_gap values after vma->vm_start or
++ * vma->vm_prev->vm_end values changed, without modifying the vma's position
++ * in the rbtree.
++ */
++static void vma_gap_update(struct vm_area_struct *vma)
++{
++	/*
++	 * As it turns out, RB_DECLARE_CALLBACKS() already created a callback
++	 * function that does exacltly what we want.
++	 */
++	vma_gap_callbacks_propagate(&vma->vm_rb, NULL);
++}
++
++static inline void vma_rb_insert(struct vm_area_struct *vma,
++				 struct rb_root *root)
++{
++	/* All rb_subtree_gap values must be consistent prior to insertion */
++	validate_mm_rb(root, NULL);
++
++	rb_insert_augmented(&vma->vm_rb, root, &vma_gap_callbacks);
++}
++
++static void vma_rb_erase(struct vm_area_struct *vma, struct rb_root *root)
++{
++	/*
++	 * All rb_subtree_gap values must be consistent prior to erase,
++	 * with the possible exception of the vma being erased.
++	 */
++	validate_mm_rb(root, vma);
++
++	/*
++	 * Note rb_erase_augmented is a fairly large inline function,
++	 * so make sure we instantiate it only once with our desired
++	 * augmented rbtree callbacks.
++	 */
++	rb_erase_augmented(&vma->vm_rb, root, &vma_gap_callbacks);
++}
++
+ /*
+  * vma has some anon_vma assigned, and is already inserted on that
+  * anon_vma's interval trees.
+@@ -421,8 +498,25 @@ static int find_vma_links(struct mm_stru
+ void __vma_link_rb(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		struct rb_node **rb_link, struct rb_node *rb_parent)
+ {
++	/* Update tracking information for the gap following the new vma. */
++	if (vma->vm_next)
++		vma_gap_update(vma->vm_next);
++	else
++		mm->highest_vm_end = vma->vm_end;
++
++	/*
++	 * vma->vm_prev wasn't known when we followed the rbtree to find the
++	 * correct insertion point for that vma. As a result, we could not
++	 * update the vma vm_rb parents rb_subtree_gap values on the way down.
++	 * So, we first insert the vma with a zero rb_subtree_gap value
++	 * (to be consistent with what we did on the way down), and then
++	 * immediately update the gap to the correct value. Finally we
++	 * rebalance the rbtree after all augmented values have been set.
++	 */
+ 	rb_link_node(&vma->vm_rb, rb_parent, rb_link);
+-	rb_insert_color(&vma->vm_rb, &mm->mm_rb);
++	vma->rb_subtree_gap = 0;
++	vma_gap_update(vma);
++	vma_rb_insert(vma, &mm->mm_rb);
+ }
+ 
+ static void __vma_link_file(struct vm_area_struct *vma)
+@@ -498,12 +592,12 @@ static inline void
+ __vma_unlink(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		struct vm_area_struct *prev)
+ {
+-	struct vm_area_struct *next = vma->vm_next;
++	struct vm_area_struct *next;
+ 
+-	prev->vm_next = next;
++	vma_rb_erase(vma, &mm->mm_rb);
++	prev->vm_next = next = vma->vm_next;
+ 	if (next)
+ 		next->vm_prev = prev;
+-	rb_erase(&vma->vm_rb, &mm->mm_rb);
+ 	if (mm->mmap_cache == vma)
+ 		mm->mmap_cache = prev;
+ }
+@@ -525,6 +619,7 @@ int vma_adjust(struct vm_area_struct *vm
+ 	struct rb_root *root = NULL;
+ 	struct anon_vma *anon_vma = NULL;
+ 	struct file *file = vma->vm_file;
++	bool start_changed = false, end_changed = false;
+ 	long adjust_next = 0;
+ 	int remove_next = 0;
+ 
+@@ -615,8 +710,14 @@ again:			remove_next = 1 + (end > next->
+ 			vma_interval_tree_remove(next, root);
  	}
+ 
+-	vma->vm_start = start;
+-	vma->vm_end = end;
++	if (start != vma->vm_start) {
++		vma->vm_start = start;
++		start_changed = true;
++	}
++	if (end != vma->vm_end) {
++		vma->vm_end = end;
++		end_changed = true;
++	}
+ 	vma->vm_pgoff = pgoff;
+ 	if (adjust_next) {
+ 		next->vm_start += adjust_next << PAGE_SHIFT;
+@@ -645,6 +746,15 @@ again:			remove_next = 1 + (end > next->
+ 		 * (it may either follow vma or precede it).
+ 		 */
+ 		__insert_vm_struct(mm, insert);
++	} else {
++		if (start_changed)
++			vma_gap_update(vma);
++		if (end_changed) {
++			if (!next)
++				mm->highest_vm_end = end;
++			else if (!adjust_next)
++				vma_gap_update(next);
++		}
+ 	}
+ 
+ 	if (anon_vma) {
+@@ -678,10 +788,13 @@ again:			remove_next = 1 + (end > next->
+ 		 * we must remove another next too. It would clutter
+ 		 * up the code too much to do both in one go.
+ 		 */
+-		if (remove_next == 2) {
+-			next = vma->vm_next;
++		next = vma->vm_next;
++		if (remove_next == 2)
+ 			goto again;
+-		}
++		else if (next)
++			vma_gap_update(next);
++		else
++			mm->highest_vm_end = end;
+ 	}
+ 	if (insert && file)
+ 		uprobe_mmap(insert);
+@@ -1784,6 +1897,10 @@ int expand_upwards(struct vm_area_struct
+ 				anon_vma_interval_tree_pre_update_vma(vma);
+ 				vma->vm_end = address;
+ 				anon_vma_interval_tree_post_update_vma(vma);
++				if (vma->vm_next)
++					vma_gap_update(vma->vm_next);
++				else
++					vma->vm_mm->highest_vm_end = address;
+ 				perf_event_mmap(vma);
+ 			}
+ 		}
+@@ -1838,6 +1955,7 @@ int expand_downwards(struct vm_area_stru
+ 				vma->vm_start = address;
+ 				vma->vm_pgoff -= grow;
+ 				anon_vma_interval_tree_post_update_vma(vma);
++				vma_gap_update(vma);
+ 				perf_event_mmap(vma);
+ 			}
+ 		}
+@@ -1960,14 +2078,17 @@ detach_vmas_to_be_unmapped(struct mm_str
+ 	insertion_point = (prev ? &prev->vm_next : &mm->mmap);
+ 	vma->vm_prev = NULL;
+ 	do {
+-		rb_erase(&vma->vm_rb, &mm->mm_rb);
++		vma_rb_erase(vma, &mm->mm_rb);
+ 		mm->map_count--;
+ 		tail_vma = vma;
+ 		vma = vma->vm_next;
+ 	} while (vma && vma->vm_start < end);
+ 	*insertion_point = vma;
+-	if (vma)
++	if (vma) {
+ 		vma->vm_prev = prev;
++		vma_gap_update(vma);
++	} else
++		mm->highest_vm_end = prev ? prev->vm_end : 0;
+ 	tail_vma->vm_next = NULL;
+ 	if (mm->unmap_area == arch_unmap_area)
+ 		addr = prev ? prev->vm_end : mm->mmap_base;
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from walken@google.com are
 
 origin.patch
-thp-huge-zero-page-basic-preparation.patch
-thp-huge-zero-page-basic-preparation-v6.patch
-thp-zap_huge_pmd-zap-huge-zero-pmd.patch
-thp-copy_huge_pmd-copy-huge-zero-page.patch
-thp-copy_huge_pmd-copy-huge-zero-page-v6.patch
-thp-copy_huge_pmd-copy-huge-zero-page-v6-fix.patch
-thp-do_huge_pmd_wp_page-handle-huge-zero-page.patch
-thp-do_huge_pmd_wp_page-handle-huge-zero-page-v6.patch
-thp-change_huge_pmd-make-sure-we-dont-try-to-make-a-page-writable.patch
-thp-change-split_huge_page_pmd-interface.patch
-thp-change-split_huge_page_pmd-interface-v6.patch
-thp-implement-splitting-pmd-for-huge-zero-page.patch
-thp-implement-splitting-pmd-for-huge-zero-page-v6.patch
-thp-setup-huge-zero-page-on-non-write-page-fault.patch
-thp-setup-huge-zero-page-on-non-write-page-fault-fix.patch
-thp-lazy-huge-zero-page-allocation.patch
-thp-implement-refcounting-for-huge-zero-page.patch
-thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events.patch
-thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6.patch
-thp-introduce-sysfs-knob-to-disable-huge-zero-page.patch
-thp-avoid-race-on-multiple-parallel-page-faults-to-the-same-page.patch
-node_states-introduce-n_memory.patch
-cpuset-use-n_memory-instead-n_high_memory.patch
-procfs-use-n_memory-instead-n_high_memory.patch
-memcontrol-use-n_memory-instead-n_high_memory.patch
-oom-use-n_memory-instead-n_high_memory.patch
-mmmigrate-use-n_memory-instead-n_high_memory.patch
-mempolicy-use-n_memory-instead-n_high_memory.patch
-hugetlb-use-n_memory-instead-n_high_memory.patch
-vmstat-use-n_memory-instead-n_high_memory.patch
-kthread-use-n_memory-instead-n_high_memory.patch
-init-use-n_memory-instead-n_high_memory.patch
-vmscan-use-n_memory-instead-n_high_memory.patch
-page_alloc-use-n_memory-instead-n_high_memory-change-the-node_states-initialization.patch
-hotplug-update-nodemasks-management.patch
-hotplug-update-nodemasks-management-fix.patch
-mm-memcg-avoid-unnecessary-function-call-when-memcg-is-disabled.patch
-mm-memcg-avoid-unnecessary-function-call-when-memcg-is-disabled-fix.patch
-numa-add-config_movable_node-for-movable-dedicated-node.patch
-numa-add-config_movable_node-for-movable-dedicated-node-fix.patch
-memory_hotplug-allow-online-offline-memory-to-result-movable-node.patch
-mm-oom-cleanup-pagefault-oom-handler.patch
-mm-oom-remove-redundant-sleep-in-pagefault-oom-handler.patch
-mm-oom-remove-statically-defined-arch-functions-of-same-name.patch
-mm-introduce-new-field-managed_pages-to-struct-zone.patch
-mm-provide-more-accurate-estimation-of-pages-occupied-by-memmap.patch
-mm-provide-more-accurate-estimation-of-pages-occupied-by-memmap-fix.patch
-memcg-do-not-check-for-mm-in-mem_cgroup_count_vm_event-disabled.patch
+mm-protect-against-concurrent-vma-expansion.patch
 linux-next.patch
-x86-convert-update_mmu_cache-and-update_mmu_cache_pmd-to-functions.patch
-x86-fix-the-argument-passed-to-sync_global_pgds.patch
-irq-tsk-comm-is-an-array.patch
-mm-mempolicy-introduce-spinlock-to-read-shared-policy-tree.patch
-mm-dmapoolc-fix-null-dev-in-dma_pool_create.patch
+lib-rbtree_testc-fix-uninitialized-variable-warning.patch
+random32-rename-random32-to-prandom.patch
+prandom-introduce-prandom_bytes-and-prandom_bytes_state.patch
+bnx2x-use-prandom_bytes.patch
+mtd-nandsim-use-prandom_bytes.patch
+ubifs-use-prandom_bytes.patch
+mtd-mtd_nandecctest-use-prandom_bytes-instead-of-get_random_bytes.patch
+mtd-mtd_oobtest-convert-to-use-prandom-library.patch
+mtd-mtd_pagetest-convert-to-use-prandom-library.patch
+mtd-mtd_speedtest-use-prandom_bytes.patch
+mtd-mtd_subpagetest-convert-to-use-prandom-library.patch
+mtd-mtd_stresstest-use-prandom_bytes.patch
 
