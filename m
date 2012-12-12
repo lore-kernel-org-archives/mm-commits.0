@@ -1,121 +1,522 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Wed, 12 Dec 2012 14:31:32 -0800
-Message-ID: <20121212223132.F2CAF200057@hpza10.eem.corp.google.com>
+Subject: [merged] drivers-video-add-support-for-the-solomon-ssd1307-oled-controller.patch removed from -mm tree
+Date: Wed, 12 Dec 2012 14:32:36 -0800
+Message-ID: <20121212223237.CA89A200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f201.google.com ([209.85.215.201]:51384 "EHLO
-	mail-ea0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754245Ab2LLWbf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 17:31:35 -0500
-Received: by mail-ea0-f201.google.com with SMTP id b14so68891eaa.0
-        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 14:31:33 -0800 (PST)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:41808 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754245Ab2LLWcl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 17:32:41 -0500
+Received: by mail-lb0-f202.google.com with SMTP id s4so70427lbc.5
+        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 14:32:39 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: maxime.ripard@free-electrons.com, FlorianSchandinat@gmx.de, brian@crystalfontz.com, gregkh@linux-foundation.org, thomas@free-electrons.com, tomi.valkeinen@ti.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: drivers/video: add support for the Solomon SSD1307 OLED Controller
+has been removed from the -mm tree.  Its filename was
+     drivers-video-add-support-for-the-solomon-ssd1307-oled-controller.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+Subject: drivers/video: add support for the Solomon SSD1307 OLED Controller
 
+Add support for the Solomon SSD1307 OLED controller found on the
+Crystalfontz CFA10036 board.
+
+This controller can drive a display with a resolution up to 128x39 and can
+operate over I2C or SPI.
+
+The current driver has only been tested on the CFA-10036, that is using
+this controller over I2C to driver a 96x16 OLED screen.
+
+[akpm@linux-foundation.org: checkpatch fixes]
+Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Brian Lilly <brian@crystalfontz.com>
+Cc: Greg KH <gregkh@linux-foundation.org>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: Thomas Petazzoni <thomas@free-electrons.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kernel/sys_compat.c |    3 ---
- 1 file changed, 3 deletions(-)
+ Documentation/devicetree/bindings/video/ssd1307fb.txt |   24 
+ drivers/video/Kconfig                                 |   15 
+ drivers/video/Makefile                                |    1 
+ drivers/video/ssd1307fb.c                             |  396 ++++++++++
+ 4 files changed, 436 insertions(+)
 
-diff -puN arch/arm64/kernel/sys_compat.c~linux-next-git-rejects arch/arm64/kernel/sys_compat.c
---- a/arch/arm64/kernel/sys_compat.c~linux-next-git-rejects
-+++ a/arch/arm64/kernel/sys_compat.c
-@@ -28,7 +28,6 @@
- #include <asm/cacheflush.h>
- #include <asm/unistd32.h>
+diff -puN /dev/null Documentation/devicetree/bindings/video/ssd1307fb.txt
+--- /dev/null
++++ a/Documentation/devicetree/bindings/video/ssd1307fb.txt
+@@ -0,0 +1,24 @@
++* Solomon SSD1307 Framebuffer Driver
++
++Required properties:
++  - compatible: Should be "solomon,ssd1307fb-<bus>". The only supported bus for
++    now is i2c.
++  - reg: Should contain address of the controller on the I2C bus. Most likely
++         0x3c or 0x3d
++  - pwm: Should contain the pwm to use according to the OF device tree PWM
++         specification [0]
++  - reset-gpios: Should contain the GPIO used to reset the OLED display
++
++Optional properties:
++  - reset-active-low: Is the reset gpio is active on physical low?
++
++[0]: Documentation/devicetree/bindings/pwm/pwm.txt
++
++Examples:
++ssd1307: oled@3c {
++        compatible = "solomon,ssd1307fb-i2c";
++        reg = <0x3c>;
++        pwms = <&pwm 4 3000>;
++        reset-gpios = <&gpio2 7>;
++        reset-active-low;
++};
+diff -puN drivers/video/Kconfig~drivers-video-add-support-for-the-solomon-ssd1307-oled-controller drivers/video/Kconfig
+--- a/drivers/video/Kconfig~drivers-video-add-support-for-the-solomon-ssd1307-oled-controller
++++ a/drivers/video/Kconfig
+@@ -2444,4 +2444,19 @@ config FB_SH_MOBILE_MERAM
+ 	  Up to 4 memory channels can be configured, allowing 4 RGB or
+ 	  2 YCbCr framebuffers to be configured.
  
--<<<<<<< HEAD
- asmlinkage int compat_sys_fork(void)
- {
- 	return do_fork(SIGCHLD, 0, current_pt_regs(), 0, NULL, NULL);
-@@ -40,8 +39,6 @@ asmlinkage int compat_sys_vfork(void)
- 		       current_pt_regs(), 0, NULL, NULL);
- }
++config FB_SSD1307
++	tristate "Solomon SSD1307 framebuffer support"
++	depends on FB && I2C
++	depends on OF
++	depends on GENERIC_GPIO
++	select FB_SYS_FOPS
++	select FB_SYS_FILLRECT
++	select FB_SYS_COPYAREA
++	select FB_SYS_IMAGEBLIT
++	select FB_DEFERRED_IO
++	select PWM
++	help
++	  This driver implements support for the Solomon SSD1307
++	  OLED controller over I2C.
++
+ endmenu
+diff -puN drivers/video/Makefile~drivers-video-add-support-for-the-solomon-ssd1307-oled-controller drivers/video/Makefile
+--- a/drivers/video/Makefile~drivers-video-add-support-for-the-solomon-ssd1307-oled-controller
++++ a/drivers/video/Makefile
+@@ -161,6 +161,7 @@ obj-$(CONFIG_FB_BFIN_7393)        += bfi
+ obj-$(CONFIG_FB_MX3)		  += mx3fb.o
+ obj-$(CONFIG_FB_DA8XX)		  += da8xx-fb.o
+ obj-$(CONFIG_FB_MXS)		  += mxsfb.o
++obj-$(CONFIG_FB_SSD1307)	  += ssd1307fb.o
  
--=======
-->>>>>>> linux-next/akpm-base
- asmlinkage int compat_sys_sched_rr_get_interval(compat_pid_t pid,
- 						struct compat_timespec __user *interval)
- {
+ # the test framebuffer is last
+ obj-$(CONFIG_FB_VIRTUAL)          += vfb.o
+diff -puN /dev/null drivers/video/ssd1307fb.c
+--- /dev/null
++++ a/drivers/video/ssd1307fb.c
+@@ -0,0 +1,396 @@
++/*
++ * Driver for the Solomon SSD1307 OLED controler
++ *
++ * Copyright 2012 Free Electrons
++ *
++ * Licensed under the GPLv2 or later.
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/i2c.h>
++#include <linux/fb.h>
++#include <linux/uaccess.h>
++#include <linux/of_device.h>
++#include <linux/of_gpio.h>
++#include <linux/pwm.h>
++#include <linux/delay.h>
++
++#define SSD1307FB_WIDTH			96
++#define SSD1307FB_HEIGHT		16
++
++#define SSD1307FB_DATA			0x40
++#define SSD1307FB_COMMAND		0x80
++
++#define SSD1307FB_CONTRAST		0x81
++#define SSD1307FB_SEG_REMAP_ON		0xa1
++#define SSD1307FB_DISPLAY_OFF		0xae
++#define SSD1307FB_DISPLAY_ON		0xaf
++#define SSD1307FB_START_PAGE_ADDRESS	0xb0
++
++struct ssd1307fb_par {
++	struct i2c_client *client;
++	struct fb_info *info;
++	struct pwm_device *pwm;
++	u32 pwm_period;
++	int reset;
++};
++
++static struct fb_fix_screeninfo ssd1307fb_fix __devinitdata = {
++	.id		= "Solomon SSD1307",
++	.type		= FB_TYPE_PACKED_PIXELS,
++	.visual		= FB_VISUAL_MONO10,
++	.xpanstep	= 0,
++	.ypanstep	= 0,
++	.ywrapstep	= 0,
++	.line_length	= SSD1307FB_WIDTH / 8,
++	.accel		= FB_ACCEL_NONE,
++};
++
++static struct fb_var_screeninfo ssd1307fb_var __devinitdata = {
++	.xres		= SSD1307FB_WIDTH,
++	.yres		= SSD1307FB_HEIGHT,
++	.xres_virtual	= SSD1307FB_WIDTH,
++	.yres_virtual	= SSD1307FB_HEIGHT,
++	.bits_per_pixel	= 1,
++};
++
++static int ssd1307fb_write_array(struct i2c_client *client, u8 type, u8 *cmd, u32 len)
++{
++	u8 *buf;
++	int ret = 0;
++
++	buf = kzalloc(len + 1, GFP_KERNEL);
++	if (!buf) {
++		dev_err(&client->dev, "Couldn't allocate sending buffer.\n");
++		return -ENOMEM;
++	}
++
++	buf[0] = type;
++	memcpy(buf + 1, cmd, len);
++
++	ret = i2c_master_send(client, buf, len + 1);
++	if (ret != len + 1) {
++		dev_err(&client->dev, "Couldn't send I2C command.\n");
++		goto error;
++	}
++
++error:
++	kfree(buf);
++	return ret;
++}
++
++static inline int ssd1307fb_write_cmd_array(struct i2c_client *client, u8 *cmd, u32 len)
++{
++	return ssd1307fb_write_array(client, SSD1307FB_COMMAND, cmd, len);
++}
++
++static inline int ssd1307fb_write_cmd(struct i2c_client *client, u8 cmd)
++{
++	return ssd1307fb_write_cmd_array(client, &cmd, 1);
++}
++
++static inline int ssd1307fb_write_data_array(struct i2c_client *client, u8 *cmd, u32 len)
++{
++	return ssd1307fb_write_array(client, SSD1307FB_DATA, cmd, len);
++}
++
++static inline int ssd1307fb_write_data(struct i2c_client *client, u8 data)
++{
++	return ssd1307fb_write_data_array(client, &data, 1);
++}
++
++static void ssd1307fb_update_display(struct ssd1307fb_par *par)
++{
++	u8 *vmem = par->info->screen_base;
++	int i, j, k;
++
++	/*
++	 * The screen is divided in pages, each having a height of 8
++	 * pixels, and the width of the screen. When sending a byte of
++	 * data to the controller, it gives the 8 bits for the current
++	 * column. I.e, the first byte are the 8 bits of the first
++	 * column, then the 8 bits for the second column, etc.
++	 *
++	 *
++	 * Representation of the screen, assuming it is 5 bits
++	 * wide. Each letter-number combination is a bit that controls
++	 * one pixel.
++	 *
++	 * A0 A1 A2 A3 A4
++	 * B0 B1 B2 B3 B4
++	 * C0 C1 C2 C3 C4
++	 * D0 D1 D2 D3 D4
++	 * E0 E1 E2 E3 E4
++	 * F0 F1 F2 F3 F4
++	 * G0 G1 G2 G3 G4
++	 * H0 H1 H2 H3 H4
++	 *
++	 * If you want to update this screen, you need to send 5 bytes:
++	 *  (1) A0 B0 C0 D0 E0 F0 G0 H0
++	 *  (2) A1 B1 C1 D1 E1 F1 G1 H1
++	 *  (3) A2 B2 C2 D2 E2 F2 G2 H2
++	 *  (4) A3 B3 C3 D3 E3 F3 G3 H3
++	 *  (5) A4 B4 C4 D4 E4 F4 G4 H4
++	 */
++
++	for (i = 0; i < (SSD1307FB_HEIGHT / 8); i++) {
++		ssd1307fb_write_cmd(par->client, SSD1307FB_START_PAGE_ADDRESS + (i + 1));
++		ssd1307fb_write_cmd(par->client, 0x00);
++		ssd1307fb_write_cmd(par->client, 0x10);
++
++		for (j = 0; j < SSD1307FB_WIDTH; j++) {
++			u8 buf = 0;
++			for (k = 0; k < 8; k++) {
++				u32 page_length = SSD1307FB_WIDTH * i;
++				u32 index = page_length + (SSD1307FB_WIDTH * k + j) / 8;
++				u8 byte = *(vmem + index);
++				u8 bit = byte & (1 << (7 - (j % 8)));
++				bit = bit >> (7 - (j % 8));
++				buf |= bit << k;
++			}
++			ssd1307fb_write_data(par->client, buf);
++		}
++	}
++}
++
++
++static ssize_t ssd1307fb_write(struct fb_info *info, const char __user *buf,
++		size_t count, loff_t *ppos)
++{
++	struct ssd1307fb_par *par = info->par;
++	unsigned long total_size;
++	unsigned long p = *ppos;
++	u8 __iomem *dst;
++
++	total_size = info->fix.smem_len;
++
++	if (p > total_size)
++		return -EINVAL;
++
++	if (count + p > total_size)
++		count = total_size - p;
++
++	if (!count)
++		return -EINVAL;
++
++	dst = (void __force *) (info->screen_base + p);
++
++	if (copy_from_user(dst, buf, count))
++		return -EFAULT;
++
++	ssd1307fb_update_display(par);
++
++	*ppos += count;
++
++	return count;
++}
++
++static void ssd1307fb_fillrect(struct fb_info *info, const struct fb_fillrect *rect)
++{
++	struct ssd1307fb_par *par = info->par;
++	sys_fillrect(info, rect);
++	ssd1307fb_update_display(par);
++}
++
++static void ssd1307fb_copyarea(struct fb_info *info, const struct fb_copyarea *area)
++{
++	struct ssd1307fb_par *par = info->par;
++	sys_copyarea(info, area);
++	ssd1307fb_update_display(par);
++}
++
++static void ssd1307fb_imageblit(struct fb_info *info, const struct fb_image *image)
++{
++	struct ssd1307fb_par *par = info->par;
++	sys_imageblit(info, image);
++	ssd1307fb_update_display(par);
++}
++
++static struct fb_ops ssd1307fb_ops = {
++	.owner		= THIS_MODULE,
++	.fb_read	= fb_sys_read,
++	.fb_write	= ssd1307fb_write,
++	.fb_fillrect	= ssd1307fb_fillrect,
++	.fb_copyarea	= ssd1307fb_copyarea,
++	.fb_imageblit	= ssd1307fb_imageblit,
++};
++
++static void ssd1307fb_deferred_io(struct fb_info *info,
++				struct list_head *pagelist)
++{
++	ssd1307fb_update_display(info->par);
++}
++
++static struct fb_deferred_io ssd1307fb_defio = {
++	.delay		= HZ,
++	.deferred_io	= ssd1307fb_deferred_io,
++};
++
++static int __devinit ssd1307fb_probe(struct i2c_client *client, const struct i2c_device_id *id)
++{
++	struct fb_info *info;
++	u32 vmem_size = SSD1307FB_WIDTH * SSD1307FB_HEIGHT / 8;
++	struct ssd1307fb_par *par;
++	u8 *vmem;
++	int ret;
++
++	if (!client->dev.of_node) {
++		dev_err(&client->dev, "No device tree data found!\n");
++		return -EINVAL;
++	}
++
++	info = framebuffer_alloc(sizeof(struct ssd1307fb_par), &client->dev);
++	if (!info) {
++		dev_err(&client->dev, "Couldn't allocate framebuffer.\n");
++		return -ENOMEM;
++	}
++
++	vmem = devm_kzalloc(&client->dev, vmem_size, GFP_KERNEL);
++	if (!vmem) {
++		dev_err(&client->dev, "Couldn't allocate graphical memory.\n");
++		ret = -ENOMEM;
++		goto fb_alloc_error;
++	}
++
++	info->fbops = &ssd1307fb_ops;
++	info->fix = ssd1307fb_fix;
++	info->fbdefio = &ssd1307fb_defio;
++
++	info->var = ssd1307fb_var;
++	info->var.red.length = 1;
++	info->var.red.offset = 0;
++	info->var.green.length = 1;
++	info->var.green.offset = 0;
++	info->var.blue.length = 1;
++	info->var.blue.offset = 0;
++
++	info->screen_base = (u8 __force __iomem *)vmem;
++	info->fix.smem_start = (unsigned long)vmem;
++	info->fix.smem_len = vmem_size;
++
++	fb_deferred_io_init(info);
++
++	par = info->par;
++	par->info = info;
++	par->client = client;
++
++	par->reset = of_get_named_gpio(client->dev.of_node,
++					 "reset-gpios", 0);
++	if (!gpio_is_valid(par->reset)) {
++		ret = -EINVAL;
++		goto reset_oled_error;
++	}
++
++	ret = devm_gpio_request_one(&client->dev, par->reset,
++				    GPIOF_OUT_INIT_HIGH,
++				    "oled-reset");
++	if (ret) {
++		dev_err(&client->dev,
++			"failed to request gpio %d: %d\n",
++			par->reset, ret);
++		goto reset_oled_error;
++	}
++
++	par->pwm = pwm_get(&client->dev, NULL);
++	if (IS_ERR(par->pwm)) {
++		dev_err(&client->dev, "Could not get PWM from device tree!\n");
++		ret = PTR_ERR(par->pwm);
++		goto pwm_error;
++	}
++
++	par->pwm_period = pwm_get_period(par->pwm);
++
++	dev_dbg(&client->dev, "Using PWM%d with a %dns period.\n", par->pwm->pwm, par->pwm_period);
++
++	ret = register_framebuffer(info);
++	if (ret) {
++		dev_err(&client->dev, "Couldn't register the framebuffer\n");
++		goto fbreg_error;
++	}
++
++	i2c_set_clientdata(client, info);
++
++	/* Reset the screen */
++	gpio_set_value(par->reset, 0);
++	udelay(4);
++	gpio_set_value(par->reset, 1);
++	udelay(4);
++
++	/* Enable the PWM */
++	pwm_config(par->pwm, par->pwm_period / 2, par->pwm_period);
++	pwm_enable(par->pwm);
++
++	/* Map column 127 of the OLED to segment 0 */
++	ret = ssd1307fb_write_cmd(client, SSD1307FB_SEG_REMAP_ON);
++	if (ret < 0) {
++		dev_err(&client->dev, "Couldn't remap the screen.\n");
++		goto remap_error;
++	}
++
++	/* Turn on the display */
++	ret = ssd1307fb_write_cmd(client, SSD1307FB_DISPLAY_ON);
++	if (ret < 0) {
++		dev_err(&client->dev, "Couldn't turn the display on.\n");
++		goto remap_error;
++	}
++
++	dev_info(&client->dev, "fb%d: %s framebuffer device registered, using %d bytes of video memory\n", info->node, info->fix.id, vmem_size);
++
++	return 0;
++
++remap_error:
++	unregister_framebuffer(info);
++	pwm_disable(par->pwm);
++fbreg_error:
++	pwm_put(par->pwm);
++pwm_error:
++reset_oled_error:
++	fb_deferred_io_cleanup(info);
++fb_alloc_error:
++	framebuffer_release(info);
++	return ret;
++}
++
++static int __devexit ssd1307fb_remove(struct i2c_client *client)
++{
++	struct fb_info *info = i2c_get_clientdata(client);
++	struct ssd1307fb_par *par = info->par;
++
++	unregister_framebuffer(info);
++	pwm_disable(par->pwm);
++	pwm_put(par->pwm);
++	fb_deferred_io_cleanup(info);
++	framebuffer_release(info);
++
++	return 0;
++}
++
++static const struct i2c_device_id ssd1307fb_i2c_id[] = {
++	{ "ssd1307fb", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, ssd1307fb_i2c_id);
++
++static const struct of_device_id ssd1307fb_of_match[] = {
++	{ .compatible = "solomon,ssd1307fb-i2c" },
++	{},
++};
++MODULE_DEVICE_TABLE(of, ssd1307fb_of_match);
++
++static struct i2c_driver ssd1307fb_driver = {
++	.probe = ssd1307fb_probe,
++	.remove = __devexit_p(ssd1307fb_remove),
++	.id_table = ssd1307fb_i2c_id,
++	.driver = {
++		.name = "ssd1307fb",
++		.of_match_table = of_match_ptr(ssd1307fb_of_match),
++		.owner = THIS_MODULE,
++	},
++};
++
++module_i2c_driver(ssd1307fb_driver);
++
++MODULE_DESCRIPTION("FB driver for the Solomon SSD1307 OLED controler");
++MODULE_AUTHOR("Maxime Ripard <maxime.ripard@free-electrons.com>");
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from maxime.ripard@free-electrons.com are
 
 origin.patch
-thp-implement-splitting-pmd-for-huge-zero-page.patch
-mm-add-a-reminder-comment-for-__gfp_bits_shift.patch
-numa-add-config_movable_node-for-movable-dedicated-node.patch
-mm-introduce-new-field-managed_pages-to-struct-zone.patch
-mm-provide-more-accurate-estimation-of-pages-occupied-by-memmap.patch
-tmpfs-support-seek_data-and-seek_hole-reprise.patch
-hwpoison-hugetlbfs-fix-rss-counter-warning.patch
-mm-memoryc-remove-unused-code-from-do_wp_page.patch
 linux-next.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
-irq-tsk-comm-is-an-array.patch
-block-remove-deadlock-in-disk_clear_events-fix.patch
-block-prevent-race-cleanup-fix.patch
-mm.patch
-slub-slub-specific-propagation-changes-fix.patch
-mm-mprotectc-coding-style-cleanups.patch
-drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-lseek-the-whence-argument-is-called-whence.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
-backlight-add-of_find_backlight_by_node-function-fix.patch
-backlight-88pm860x_bl-remove-an-unnecessary-line-continuation-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes-checkpatch-fixes.patch
-hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix.patch
-procfs-add-vmflags-field-in-smaps-output-v4.patch
-procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
-ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
-ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
-ipc-convert-prepare_copy-from-macro-to-function-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-docs-add-documentation-about-proc-pid-fdinfo-fd-output-fix.patch
-fs-notify-add-procfs-fdinfo-helper-v7-fix.patch
-scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
