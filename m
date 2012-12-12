@@ -1,400 +1,232 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory.patch removed from -mm tree
-Date: Wed, 12 Dec 2012 12:01:31 -0800
-Message-ID: <20121212200132.11DDA82004A@wpzn4.hot.corp.google.com>
+Subject: [merged] mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture.patch removed from -mm tree
+Date: Wed, 12 Dec 2012 12:00:02 -0800
+Message-ID: <20121212200003.4C384820055@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:39179 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754629Ab2LLUIL (ORCPT
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:49300 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754212Ab2LLUIL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 15:08:11 -0500
-Received: by mail-yh0-f74.google.com with SMTP id 10so117227yhl.5
+Received: by mail-ye0-f202.google.com with SMTP id l7so118865yen.5
         for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 12:08:11 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: laijs@cn.fujitsu.com, greg@kroah.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, minchan.kim@gmail.com, rientjes@google.com, rusty@rustcorp.com.au, wency@cn.fujitsu.com, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: walken@google.com, cmetcalf@tilera.com, davem@davemloft.net, hpa@zytor.com, hughd@google.com, lethal@linux-sh.org, linux@arm.linux.org.uk, mingo@elte.hu, ralf@linux-mips.org, riel@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, memory-hotplug: dynamic configure movable memory and portion memory
+     Subject: mm: use vm_unmapped_area() in hugetlbfs on tile architecture
 has been removed from the -mm tree.  Its filename was
-     mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory.patch
+     mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Lai Jiangshan <laijs@cn.fujitsu.com>
-Subject: mm, memory-hotplug: dynamic configure movable memory and portion memory
+From: Michel Lespinasse <walken@google.com>
+Subject: mm: use vm_unmapped_area() in hugetlbfs on tile architecture
 
-Add online_movable and online_kernel for logic memory hotplug.  This is
-the dynamic version of "movablecore" & "kernelcore".
+Update the tile hugetlb_get_unmapped_area function to make use of
+vm_unmapped_area() instead of implementing a brute force search.
 
-We have the same reason to introduce it as to introduce "movablecore" &
-"kernelcore".  It has the same motive as "movablecore" & "kernelcore", but
-it is dynamic/running-time:
-
-o We can configure memory as kernelcore or movablecore after boot.
-
-  Userspace workload is increased, we need more hugepage, we can't use
-  "online_movable" to add memory and allow the system use more
-  THP(transparent-huge-page), vice-verse when kernel workload is increase.
-
-  Also help for virtualization to dynamic configure host/guest's memory,
-  to save/(reduce waste) memory.
-
-  Memory capacity on Demand
-
-o When a new node is physically online after boot, we need to use
-  "online_movable" or "online_kernel" to configure/portion it as we
-  expected when we logic-online it.
-
-  This configuration also helps for physically-memory-migrate.
-
-o all benefit as the same as existed "movablecore" & "kernelcore".
-
-o Preparing for movable-node, which is very important for power-saving,
-  hardware partitioning and high-available-system(hardware fault
-  management).
-
-(Note, we don't introduce movable-node here.)
-
-Action behavior:
-When a memoryblock/memorysection is onlined by "online_movable", the kernel
-will not have directly reference to the page of the memoryblock,
-thus we can remove that memory any time when needed.
-
-When it is online by "online_kernel", the kernel can use it.
-When it is online by "online", the zone type doesn't changed.
-
-Current constraints:
-Only the memoryblock which is adjacent to the ZONE_MOVABLE
-can be online from ZONE_NORMAL to ZONE_MOVABLE.
-
-[akpm@linux-foundation.org: use min_t, cleanups]
-Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Jiang Liu <jiang.liu@huawei.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Greg KH <greg@kroah.com>
+[akpm@linux-foundation.org: fix build]
+Signed-off-by: Michel Lespinasse <walken@google.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/memory-hotplug.txt |   14 +++-
- drivers/base/memory.c            |   33 ++++++---
- include/linux/memory_hotplug.h   |   13 +++
- mm/memory_hotplug.c              |  100 ++++++++++++++++++++++++++++-
- 4 files changed, 146 insertions(+), 14 deletions(-)
+ arch/tile/mm/hugetlbpage.c |  137 ++++++-----------------------------
+ 1 file changed, 24 insertions(+), 113 deletions(-)
 
-diff -puN Documentation/memory-hotplug.txt~mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory Documentation/memory-hotplug.txt
---- a/Documentation/memory-hotplug.txt~mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory
-+++ a/Documentation/memory-hotplug.txt
-@@ -161,7 +161,8 @@ a recent addition and not present on old
- 		    in the memory block.
- 'state'           : read-write
-                     at read:  contains online/offline state of memory.
--                    at write: user can specify "online", "offline" command
-+                    at write: user can specify "online_kernel",
-+                    "online_movable", "online", "offline" command
-                     which will be performed on al sections in the block.
- 'phys_device'     : read-only: designed to show the name of physical memory
-                     device.  This is not well implemented now.
-@@ -255,6 +256,17 @@ For onlining, you have to write "online"
- 
- % echo online > /sys/devices/system/memory/memoryXXX/state
- 
-+This onlining will not change the ZONE type of the target memory section,
-+If the memory section is in ZONE_NORMAL, you can change it to ZONE_MOVABLE:
-+
-+% echo online_movable > /sys/devices/system/memory/memoryXXX/state
-+(NOTE: current limit: this memory section must be adjacent to ZONE_MOVABLE)
-+
-+And if the memory section is in ZONE_MOVABLE, you can change it to ZONE_NORMAL:
-+
-+% echo online_kernel > /sys/devices/system/memory/memoryXXX/state
-+(NOTE: current limit: this memory section must be adjacent to ZONE_NORMAL)
-+
- After this, section memoryXXX's state will be 'online' and the amount of
- available memory will be increased.
- 
-diff -puN drivers/base/memory.c~mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory drivers/base/memory.c
---- a/drivers/base/memory.c~mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory
-+++ a/drivers/base/memory.c
-@@ -254,7 +254,7 @@ static bool pages_correctly_reserved(uns
-  * OK to have direct references to sparsemem variables in here.
-  */
- static int
--memory_block_action(unsigned long phys_index, unsigned long action)
-+memory_block_action(unsigned long phys_index, unsigned long action, int online_type)
+diff -puN arch/tile/mm/hugetlbpage.c~mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture arch/tile/mm/hugetlbpage.c
+--- a/arch/tile/mm/hugetlbpage.c~mm-use-vm_unmapped_area-in-hugetlbfs-on-tile-architecture
++++ a/arch/tile/mm/hugetlbpage.c
+@@ -231,42 +231,15 @@ static unsigned long hugetlb_get_unmappe
+ 		unsigned long pgoff, unsigned long flags)
  {
- 	unsigned long start_pfn;
- 	unsigned long nr_pages = PAGES_PER_SECTION * sections_per_block;
-@@ -269,7 +269,7 @@ memory_block_action(unsigned long phys_i
- 			if (!pages_correctly_reserved(start_pfn, nr_pages))
- 				return -EBUSY;
+ 	struct hstate *h = hstate_file(file);
+-	struct mm_struct *mm = current->mm;
+-	struct vm_area_struct *vma;
+-	unsigned long start_addr;
++	struct vm_unmapped_area_info info;
  
--			ret = online_pages(start_pfn, nr_pages);
-+			ret = online_pages(start_pfn, nr_pages, online_type);
- 			break;
- 		case MEM_OFFLINE:
- 			ret = offline_pages(start_pfn, nr_pages);
-@@ -284,7 +284,8 @@ memory_block_action(unsigned long phys_i
+-	if (len > mm->cached_hole_size) {
+-		start_addr = mm->free_area_cache;
+-	} else {
+-		start_addr = TASK_UNMAPPED_BASE;
+-		mm->cached_hole_size = 0;
+-	}
+-
+-full_search:
+-	addr = ALIGN(start_addr, huge_page_size(h));
+-
+-	for (vma = find_vma(mm, addr); ; vma = vma->vm_next) {
+-		/* At this point:  (!vma || addr < vma->vm_end). */
+-		if (TASK_SIZE - len < addr) {
+-			/*
+-			 * Start a new search - just in case we missed
+-			 * some holes.
+-			 */
+-			if (start_addr != TASK_UNMAPPED_BASE) {
+-				start_addr = TASK_UNMAPPED_BASE;
+-				mm->cached_hole_size = 0;
+-				goto full_search;
+-			}
+-			return -ENOMEM;
+-		}
+-		if (!vma || addr + len <= vma->vm_start) {
+-			mm->free_area_cache = addr + len;
+-			return addr;
+-		}
+-		if (addr + mm->cached_hole_size < vma->vm_start)
+-			mm->cached_hole_size = vma->vm_start - addr;
+-		addr = ALIGN(vma->vm_end, huge_page_size(h));
+-	}
++	info.flags = 0;
++	info.length = len;
++	info.low_limit = TASK_UNMAPPED_BASE;
++	info.high_limit = TASK_SIZE;
++	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
++	info.align_offset = 0;
++	return vm_unmapped_area(&info);
  }
  
- static int __memory_block_change_state(struct memory_block *mem,
--		unsigned long to_state, unsigned long from_state_req)
-+		unsigned long to_state, unsigned long from_state_req,
-+		int online_type)
+ static unsigned long hugetlb_get_unmapped_area_topdown(struct file *file,
+@@ -274,92 +247,30 @@ static unsigned long hugetlb_get_unmappe
+ 		unsigned long pgoff, unsigned long flags)
  {
- 	int ret = 0;
+ 	struct hstate *h = hstate_file(file);
+-	struct mm_struct *mm = current->mm;
+-	struct vm_area_struct *vma, *prev_vma;
+-	unsigned long base = mm->mmap_base, addr = addr0;
+-	unsigned long largest_hole = mm->cached_hole_size;
+-	int first_time = 1;
+-
+-	/* don't allow allocations above current base */
+-	if (mm->free_area_cache > base)
+-		mm->free_area_cache = base;
+-
+-	if (len <= largest_hole) {
+-		largest_hole = 0;
+-		mm->free_area_cache  = base;
+-	}
+-try_again:
+-	/* make sure it can fit in the remaining address space */
+-	if (mm->free_area_cache < len)
+-		goto fail;
+-
+-	/* either no address requested or can't fit in requested address hole */
+-	addr = (mm->free_area_cache - len) & huge_page_mask(h);
+-	do {
+-		/*
+-		 * Lookup failure means no vma is above this address,
+-		 * i.e. return with success:
+-		 */
+-		vma = find_vma_prev(mm, addr, &prev_vma);
+-		if (!vma) {
+-			return addr;
+-			break;
+-		}
+-
+-		/*
+-		 * new region fits between prev_vma->vm_end and
+-		 * vma->vm_start, use it:
+-		 */
+-		if (addr + len <= vma->vm_start &&
+-			    (!prev_vma || (addr >= prev_vma->vm_end))) {
+-			/* remember the address as a hint for next time */
+-			mm->cached_hole_size = largest_hole;
+-			mm->free_area_cache = addr;
+-			return addr;
+-		} else {
+-			/* pull free_area_cache down to the first hole */
+-			if (mm->free_area_cache == vma->vm_end) {
+-				mm->free_area_cache = vma->vm_start;
+-				mm->cached_hole_size = largest_hole;
+-			}
+-		}
++	struct vm_unmapped_area_info info;
++	unsigned long addr;
  
-@@ -296,7 +297,7 @@ static int __memory_block_change_state(s
- 	if (to_state == MEM_OFFLINE)
- 		mem->state = MEM_GOING_OFFLINE;
+-		/* remember the largest hole we saw so far */
+-		if (addr + largest_hole < vma->vm_start)
+-			largest_hole = vma->vm_start - addr;
++	info.flags = VM_UNMAPPED_AREA_TOPDOWN;
++	info.length = len;
++	info.low_limit = PAGE_SIZE;
++	info.high_limit = current->mm->mmap_base;
++	info.align_mask = PAGE_MASK & ~huge_page_mask(h);
++	info.align_offset = 0;
++	addr = vm_unmapped_area(&info);
  
--	ret = memory_block_action(mem->start_section_nr, to_state);
-+	ret = memory_block_action(mem->start_section_nr, to_state, online_type);
- 
- 	if (ret) {
- 		mem->state = from_state_req;
-@@ -319,12 +320,14 @@ out:
- }
- 
- static int memory_block_change_state(struct memory_block *mem,
--		unsigned long to_state, unsigned long from_state_req)
-+		unsigned long to_state, unsigned long from_state_req,
-+		int online_type)
- {
- 	int ret;
- 
- 	mutex_lock(&mem->state_mutex);
--	ret = __memory_block_change_state(mem, to_state, from_state_req);
-+	ret = __memory_block_change_state(mem, to_state, from_state_req,
-+					  online_type);
- 	mutex_unlock(&mem->state_mutex);
- 
- 	return ret;
-@@ -338,10 +341,18 @@ store_mem_state(struct device *dev,
- 
- 	mem = container_of(dev, struct memory_block, dev);
- 
--	if (!strncmp(buf, "online", min((int)count, 6)))
--		ret = memory_block_change_state(mem, MEM_ONLINE, MEM_OFFLINE);
--	else if(!strncmp(buf, "offline", min((int)count, 7)))
--		ret = memory_block_change_state(mem, MEM_OFFLINE, MEM_ONLINE);
-+	if (!strncmp(buf, "online_kernel", min_t(int, count, 13)))
-+		ret = memory_block_change_state(mem, MEM_ONLINE,
-+						MEM_OFFLINE, ONLINE_KERNEL);
-+	else if (!strncmp(buf, "online_movable", min_t(int, count, 14)))
-+		ret = memory_block_change_state(mem, MEM_ONLINE,
-+						MEM_OFFLINE, ONLINE_MOVABLE);
-+	else if (!strncmp(buf, "online", min_t(int, count, 6)))
-+		ret = memory_block_change_state(mem, MEM_ONLINE,
-+						MEM_OFFLINE, ONLINE_KEEP);
-+	else if(!strncmp(buf, "offline", min_t(int, count, 7)))
-+		ret = memory_block_change_state(mem, MEM_OFFLINE,
-+						MEM_ONLINE, -1);
- 
- 	if (ret)
- 		return ret;
-@@ -676,7 +687,7 @@ int offline_memory_block(struct memory_b
- 
- 	mutex_lock(&mem->state_mutex);
- 	if (mem->state != MEM_OFFLINE)
--		ret = __memory_block_change_state(mem, MEM_OFFLINE, MEM_ONLINE);
-+		ret = __memory_block_change_state(mem, MEM_OFFLINE, MEM_ONLINE, -1);
- 	mutex_unlock(&mem->state_mutex);
- 
- 	return ret;
-diff -puN include/linux/memory_hotplug.h~mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory include/linux/memory_hotplug.h
---- a/include/linux/memory_hotplug.h~mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory
-+++ a/include/linux/memory_hotplug.h
-@@ -26,6 +26,13 @@ enum {
- 	MEMORY_HOTPLUG_MAX_BOOTMEM_TYPE = NODE_INFO,
- };
- 
-+/* Types for control the zone type of onlined memory */
-+enum {
-+	ONLINE_KEEP,
-+	ONLINE_KERNEL,
-+	ONLINE_MOVABLE,
-+};
-+
- /*
-  * pgdat resizing functions
-  */
-@@ -46,6 +53,10 @@ void pgdat_resize_init(struct pglist_dat
- }
- /*
-  * Zone resizing functions
-+ *
-+ * Note: any attempt to resize a zone should has pgdat_resize_lock()
-+ * zone_span_writelock() both held. This ensure the size of a zone
-+ * can't be changed while pgdat_resize_lock() held.
-  */
- static inline unsigned zone_span_seqbegin(struct zone *zone)
- {
-@@ -71,7 +82,7 @@ extern int zone_grow_free_lists(struct z
- extern int zone_grow_waitqueues(struct zone *zone, unsigned long nr_pages);
- extern int add_one_highpage(struct page *page, int pfn, int bad_ppro);
- /* VM interface that may be used by firmware interface */
--extern int online_pages(unsigned long, unsigned long);
-+extern int online_pages(unsigned long, unsigned long, int);
- extern void __offline_isolated_pages(unsigned long, unsigned long);
- 
- typedef void (*online_page_callback_t)(struct page *page);
-diff -puN mm/memory_hotplug.c~mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory-hotplug-dynamic-configure-movable-memory-and-portion-memory
-+++ a/mm/memory_hotplug.c
-@@ -214,6 +214,88 @@ static void grow_zone_span(struct zone *
- 	zone_span_writeunlock(zone);
- }
- 
-+static void resize_zone(struct zone *zone, unsigned long start_pfn,
-+		unsigned long end_pfn)
-+{
-+	zone_span_writelock(zone);
-+
-+	zone->zone_start_pfn = start_pfn;
-+	zone->spanned_pages = end_pfn - start_pfn;
-+
-+	zone_span_writeunlock(zone);
-+}
-+
-+static void fix_zone_id(struct zone *zone, unsigned long start_pfn,
-+		unsigned long end_pfn)
-+{
-+	enum zone_type zid = zone_idx(zone);
-+	int nid = zone->zone_pgdat->node_id;
-+	unsigned long pfn;
-+
-+	for (pfn = start_pfn; pfn < end_pfn; pfn++)
-+		set_page_links(pfn_to_page(pfn), zid, nid, pfn);
-+}
-+
-+static int move_pfn_range_left(struct zone *z1, struct zone *z2,
-+		unsigned long start_pfn, unsigned long end_pfn)
-+{
-+	unsigned long flags;
-+
-+	pgdat_resize_lock(z1->zone_pgdat, &flags);
-+
-+	/* can't move pfns which are higher than @z2 */
-+	if (end_pfn > z2->zone_start_pfn + z2->spanned_pages)
-+		goto out_fail;
-+	/* the move out part mast at the left most of @z2 */
-+	if (start_pfn > z2->zone_start_pfn)
-+		goto out_fail;
-+	/* must included/overlap */
-+	if (end_pfn <= z2->zone_start_pfn)
-+		goto out_fail;
-+
-+	resize_zone(z1, z1->zone_start_pfn, end_pfn);
-+	resize_zone(z2, end_pfn, z2->zone_start_pfn + z2->spanned_pages);
-+
-+	pgdat_resize_unlock(z1->zone_pgdat, &flags);
-+
-+	fix_zone_id(z1, start_pfn, end_pfn);
-+
-+	return 0;
-+out_fail:
-+	pgdat_resize_unlock(z1->zone_pgdat, &flags);
-+	return -1;
-+}
-+
-+static int move_pfn_range_right(struct zone *z1, struct zone *z2,
-+		unsigned long start_pfn, unsigned long end_pfn)
-+{
-+	unsigned long flags;
-+
-+	pgdat_resize_lock(z1->zone_pgdat, &flags);
-+
-+	/* can't move pfns which are lower than @z1 */
-+	if (z1->zone_start_pfn > start_pfn)
-+		goto out_fail;
-+	/* the move out part mast at the right most of @z1 */
-+	if (z1->zone_start_pfn + z1->spanned_pages >  end_pfn)
-+		goto out_fail;
-+	/* must included/overlap */
-+	if (start_pfn >= z1->zone_start_pfn + z1->spanned_pages)
-+		goto out_fail;
-+
-+	resize_zone(z1, z1->zone_start_pfn, start_pfn);
-+	resize_zone(z2, start_pfn, z2->zone_start_pfn + z2->spanned_pages);
-+
-+	pgdat_resize_unlock(z1->zone_pgdat, &flags);
-+
-+	fix_zone_id(z2, start_pfn, end_pfn);
-+
-+	return 0;
-+out_fail:
-+	pgdat_resize_unlock(z1->zone_pgdat, &flags);
-+	return -1;
-+}
-+
- static void grow_pgdat_span(struct pglist_data *pgdat, unsigned long start_pfn,
- 			    unsigned long end_pfn)
- {
-@@ -508,7 +590,7 @@ static void node_states_set_node(int nod
- }
- 
- 
--int __ref online_pages(unsigned long pfn, unsigned long nr_pages)
-+int __ref online_pages(unsigned long pfn, unsigned long nr_pages, int online_type)
- {
- 	unsigned long onlined_pages = 0;
- 	struct zone *zone;
-@@ -525,6 +607,22 @@ int __ref online_pages(unsigned long pfn
+-		/* try just below the current vma->vm_start */
+-		addr = (vma->vm_start - len) & huge_page_mask(h);
+-
+-	} while (len <= vma->vm_start);
+-
+-fail:
+-	/*
+-	 * if hint left us with no space for the requested
+-	 * mapping then try again:
+-	 */
+-	if (first_time) {
+-		mm->free_area_cache = base;
+-		largest_hole = 0;
+-		first_time = 0;
+-		goto try_again;
+-	}
+ 	/*
+ 	 * A failed mmap() very likely causes application failure,
+ 	 * so fall back to the bottom-up function here. This scenario
+ 	 * can happen with large stack limits and large mmap()
+ 	 * allocations.
  	 */
- 	zone = page_zone(pfn_to_page(pfn));
+-	mm->free_area_cache = TASK_UNMAPPED_BASE;
+-	mm->cached_hole_size = ~0UL;
+-	addr = hugetlb_get_unmapped_area_bottomup(file, addr0,
+-			len, pgoff, flags);
+-
+-	/*
+-	 * Restore the topdown base:
+-	 */
+-	mm->free_area_cache = base;
+-	mm->cached_hole_size = ~0UL;
++	if (addr & ~PAGE_MASK) {
++		VM_BUG_ON(addr != -ENOMEM);
++		info.flags = 0;
++		info.low_limit = TASK_UNMAPPED_BASE;
++		info.high_limit = TASK_SIZE;
++		addr = vm_unmapped_area(&info);
++	}
  
-+	if (online_type == ONLINE_KERNEL && zone_idx(zone) == ZONE_MOVABLE) {
-+		if (move_pfn_range_left(zone - 1, zone, pfn, pfn + nr_pages)) {
-+			unlock_memory_hotplug();
-+			return -1;
-+		}
-+	}
-+	if (online_type == ONLINE_MOVABLE && zone_idx(zone) == ZONE_MOVABLE - 1) {
-+		if (move_pfn_range_right(zone, zone + 1, pfn, pfn + nr_pages)) {
-+			unlock_memory_hotplug();
-+			return -1;
-+		}
-+	}
-+
-+	/* Previous code may changed the zone of the pfn range */
-+	zone = page_zone(pfn_to_page(pfn));
-+
- 	arg.start_pfn = pfn;
- 	arg.nr_pages = nr_pages;
- 	node_states_check_changes_online(nr_pages, zone, &arg);
+ 	return addr;
+ }
 _
 
-Patches currently in -mm which might be from laijs@cn.fujitsu.com are
+Patches currently in -mm which might be from walken@google.com are
 
 origin.patch
-node_states-introduce-n_memory.patch
-cpuset-use-n_memory-instead-n_high_memory.patch
-procfs-use-n_memory-instead-n_high_memory.patch
-memcontrol-use-n_memory-instead-n_high_memory.patch
-oom-use-n_memory-instead-n_high_memory.patch
-mmmigrate-use-n_memory-instead-n_high_memory.patch
-mempolicy-use-n_memory-instead-n_high_memory.patch
-hugetlb-use-n_memory-instead-n_high_memory.patch
-vmstat-use-n_memory-instead-n_high_memory.patch
-kthread-use-n_memory-instead-n_high_memory.patch
-init-use-n_memory-instead-n_high_memory.patch
-vmscan-use-n_memory-instead-n_high_memory.patch
-page_alloc-use-n_memory-instead-n_high_memory-change-the-node_states-initialization.patch
-hotplug-update-nodemasks-management.patch
-hotplug-update-nodemasks-management-fix.patch
-numa-add-config_movable_node-for-movable-dedicated-node.patch
-numa-add-config_movable_node-for-movable-dedicated-node-fix.patch
-memory_hotplug-allow-online-offline-memory-to-result-movable-node.patch
+mm-protect-against-concurrent-vma-expansion.patch
 linux-next.patch
+lib-rbtree_testc-fix-uninitialized-variable-warning.patch
+random32-rename-random32-to-prandom.patch
+prandom-introduce-prandom_bytes-and-prandom_bytes_state.patch
+bnx2x-use-prandom_bytes.patch
+mtd-nandsim-use-prandom_bytes.patch
+ubifs-use-prandom_bytes.patch
+mtd-mtd_nandecctest-use-prandom_bytes-instead-of-get_random_bytes.patch
+mtd-mtd_oobtest-convert-to-use-prandom-library.patch
+mtd-mtd_pagetest-convert-to-use-prandom-library.patch
+mtd-mtd_speedtest-use-prandom_bytes.patch
+mtd-mtd_subpagetest-convert-to-use-prandom-library.patch
+mtd-mtd_stresstest-use-prandom_bytes.patch
 
