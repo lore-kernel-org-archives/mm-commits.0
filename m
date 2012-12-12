@@ -1,104 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] thp-do_huge_pmd_wp_page-handle-huge-zero-page-v6.patch removed from -mm tree
-Date: Wed, 12 Dec 2012 13:35:40 -0800
-Message-ID: <20121212213541.7C14E20004E@hpza10.eem.corp.google.com>
+Subject: [folded-merged] thp-change-split_huge_page_pmd-interface-v6.patch removed from -mm tree
+Date: Wed, 12 Dec 2012 13:36:18 -0800
+Message-ID: <20121212213619.397DB20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:48052 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755227Ab2LLVfo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 16:35:44 -0500
-Received: by mail-wg0-f74.google.com with SMTP id dt14so68265wgb.1
-        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 13:35:43 -0800 (PST)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:60047 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754383Ab2LLVgX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 16:36:23 -0500
+Received: by mail-lb0-f202.google.com with SMTP id s4so69691lbc.1
+        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 13:36:22 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, ak@linux.intel.com, hpa@linux.intel.com, mel@csn.ul.ie, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp-do_huge_pmd_wp_page-handle-huge-zero-page-v6
+     Subject: thp-change-split_huge_page_pmd-interface-v6
 has been removed from the -mm tree.  Its filename was
-     thp-do_huge_pmd_wp_page-handle-huge-zero-page-v6.patch
+     thp-change-split_huge_page_pmd-interface-v6.patch
 
-This patch was dropped because it was folded into thp-do_huge_pmd_wp_page-handle-huge-zero-page.patch
+This patch was dropped because it was folded into thp-change-split_huge_page_pmd-interface.patch
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp-do_huge_pmd_wp_page-handle-huge-zero-page-v6
+Subject: thp-change-split_huge_page_pmd-interface-v6
 
-On write access to huge zero page we alloc a new huge page and clear it.
+Pass vma instead of mm and add address parameter.
 
-If ENOMEM, graceful fallback: we create a new pmd table and set pte
-around fault address to newly allocated normal (4k) page. All other ptes
-in the pmd set to normal zero page.
+In most cases we already have vma on the stack. We provides
+split_huge_page_pmd_mm() for few cases when we have mm, but not vma.
+
+This change is preparation to huge zero pmd splitting implementation.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: "H. Peter Anvin" <hpa@linux.intel.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
-Acked-by: David Rientjes <rientjes@google.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   24 ++----------------------
- 1 file changed, 2 insertions(+), 22 deletions(-)
+ Documentation/vm/transhuge.txt |    4 ++--
+ mm/huge_memory.c               |    7 ++++---
+ 2 files changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-do_huge_pmd_wp_page-handle-huge-zero-page-v6 mm/huge_memory.c
---- a/mm/huge_memory.c~thp-do_huge_pmd_wp_page-handle-huge-zero-page-v6
+diff -puN Documentation/vm/transhuge.txt~thp-change-split_huge_page_pmd-interface-v6 Documentation/vm/transhuge.txt
+--- a/Documentation/vm/transhuge.txt~thp-change-split_huge_page_pmd-interface-v6
++++ a/Documentation/vm/transhuge.txt
+@@ -276,7 +276,7 @@ unaffected. libhugetlbfs will also work 
+ == Graceful fallback ==
+ 
+ Code walking pagetables but unware about huge pmds can simply call
+-split_huge_page_pmd(vma, pmd, addr) where the pmd is the one returned by
++split_huge_page_pmd(vma, addr, pmd) where the pmd is the one returned by
+ pmd_offset. It's trivial to make the code transparent hugepage aware
+ by just grepping for "pmd_offset" and adding split_huge_page_pmd where
+ missing after pmd_offset returns the pmd. Thanks to the graceful
+@@ -299,7 +299,7 @@ diff --git a/mm/mremap.c b/mm/mremap.c
+ 		return NULL;
+ 
+ 	pmd = pmd_offset(pud, addr);
+-+	split_huge_page_pmd(vma, pmd, addr);
+++	split_huge_page_pmd(vma, addr, pmd);
+ 	if (pmd_none_or_clear_bad(pmd))
+ 		return NULL;
+ 
+diff -puN mm/huge_memory.c~thp-change-split_huge_page_pmd-interface-v6 mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-change-split_huge_page_pmd-interface-v6
 +++ a/mm/huge_memory.c
-@@ -1019,25 +1019,6 @@ unlock:
- 	spin_unlock(&mm->page_table_lock);
- }
+@@ -2644,18 +2644,19 @@ void __split_huge_page_pmd(struct vm_are
+ {
+ 	struct page *page;
+ 	unsigned long haddr = address & HPAGE_PMD_MASK;
++	struct mm_struct *mm = vma->vm_mm;
  
--/* no "address" argument so destroys page coloring of some arch */
--pgtable_t get_pmd_huge_pte(struct mm_struct *mm)
--{
--	pgtable_t pgtable;
--
--	assert_spin_locked(&mm->page_table_lock);
--
--	/* FIFO */
--	pgtable = mm->pmd_huge_pte;
--	if (list_empty(&pgtable->lru))
--		mm->pmd_huge_pte = NULL;
--	else {
--		mm->pmd_huge_pte = list_entry(pgtable->lru.next,
--					      struct page, lru);
--		list_del(&pgtable->lru);
--	}
--	return pgtable;
--}
--
- static int do_huge_pmd_wp_zero_page_fallback(struct mm_struct *mm,
- 		struct vm_area_struct *vma, unsigned long address,
- 		pmd_t *pmd, unsigned long haddr)
-@@ -1072,7 +1053,7 @@ static int do_huge_pmd_wp_zero_page_fall
- 	pmdp_clear_flush(vma, haddr, pmd);
- 	/* leave pmd empty until pte is filled */
+ 	BUG_ON(vma->vm_start > haddr || vma->vm_end < haddr + HPAGE_PMD_SIZE);
  
--	pgtable = get_pmd_huge_pte(mm);
-+	pgtable = pgtable_trans_huge_withdraw(mm);
- 	pmd_populate(mm, &_pmd, pgtable);
+-	spin_lock(&vma->vm_mm->page_table_lock);
++	spin_lock(&mm->page_table_lock);
+ 	if (unlikely(!pmd_trans_huge(*pmd))) {
+-		spin_unlock(&vma->vm_mm->page_table_lock);
++		spin_unlock(&mm->page_table_lock);
+ 		return;
+ 	}
+ 	page = pmd_page(*pmd);
+ 	VM_BUG_ON(!page_count(page));
+ 	get_page(page);
+-	spin_unlock(&vma->vm_mm->page_table_lock);
++	spin_unlock(&mm->page_table_lock);
  
- 	for (i = 0; i < HPAGE_PMD_NR; i++, haddr += PAGE_SIZE) {
-@@ -1287,7 +1268,6 @@ alloc:
- 		goto out_mn;
- 	} else {
- 		pmd_t entry;
--
- 		entry = mk_huge_pmd(new_page, vma);
- 		pmdp_clear_flush(vma, haddr, pmd);
- 		page_add_new_anon_rmap(new_page, vma, haddr);
-@@ -1295,7 +1275,7 @@ alloc:
- 		update_mmu_cache_pmd(vma, address, pmd);
- 		if (is_huge_zero_pmd(orig_pmd))
- 			add_mm_counter(mm, MM_ANONPAGES, HPAGE_PMD_NR);
--		if (page) {
-+		else {
- 			VM_BUG_ON(!PageHead(page));
- 			page_remove_rmap(page);
- 			put_page(page);
+ 	split_huge_page(page);
+ 
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
@@ -108,10 +102,8 @@ thp-huge-zero-page-basic-preparation.patch
 thp-zap_huge_pmd-zap-huge-zero-pmd.patch
 thp-copy_huge_pmd-copy-huge-zero-page.patch
 thp-do_huge_pmd_wp_page-handle-huge-zero-page.patch
-thp-do_huge_pmd_wp_page-handle-huge-zero-page-thp-fix-anononymous-page-accounting-in-fallback-path-for-cow-of-hzp.patch
 thp-change_huge_pmd-make-sure-we-dont-try-to-make-a-page-writable.patch
 thp-change-split_huge_page_pmd-interface.patch
-thp-change-split_huge_page_pmd-interface-v6.patch
 thp-implement-splitting-pmd-for-huge-zero-page.patch
 thp-implement-splitting-pmd-for-huge-zero-page-fix.patch
 thp-implement-splitting-pmd-for-huge-zero-page-v6.patch
