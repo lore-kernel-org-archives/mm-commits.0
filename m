@@ -1,110 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] thp-implement-refcounting-for-huge-zero-page-fix.patch removed from -mm tree
-Date: Wed, 12 Dec 2012 13:37:32 -0800
-Message-ID: <20121212213733.8B0DB20004E@hpza10.eem.corp.google.com>
+Subject: [folded-merged] thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6.patch removed from -mm tree
+Date: Wed, 12 Dec 2012 13:38:01 -0800
+Message-ID: <20121212213801.8E2E882004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f73.google.com ([74.125.83.73]:37725 "EHLO
-	mail-ee0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754515Ab2LLVhf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 16:37:35 -0500
-Received: by mail-ee0-f73.google.com with SMTP id c50so69453eek.4
-        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 13:37:34 -0800 (PST)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:39789 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755134Ab2LLViD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 16:38:03 -0500
+Received: by mail-gh0-f201.google.com with SMTP id z19so130672ghb.4
+        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 13:38:02 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lliubbo@gmail.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, ak@linux.intel.com, hpa@linux.intel.com, mel@csn.ul.ie, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: huge_memory: fix huge zero page refcount
+     Subject: thp, vmstat: implement HZP_ALLOC and HZP_ALLOC_FAILED events
 has been removed from the -mm tree.  Its filename was
-     thp-implement-refcounting-for-huge-zero-page-fix.patch
+     thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6.patch
 
-This patch was dropped because it was folded into thp-implement-refcounting-for-huge-zero-page.patch
+This patch was dropped because it was folded into thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events.patch
 
 ------------------------------------------------------
-From: Bob Liu <lliubbo@gmail.com>
-Subject: huge_memory: fix huge zero page refcount
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: thp, vmstat: implement HZP_ALLOC and HZP_ALLOC_FAILED events
 
-It seems patch "[PATCH v5 10/11] thp: implement refcounting for huge zero
-page" was merged wrong into your tree.
+hzp_alloc is incremented every time a huge zero page is successfully
+	allocated. It includes allocations which where dropped due
+	race with other allocation. Note, it doesn't count every map
+	of the huge zero page, only its allocation.
 
-In Kirill's patch, put_huge_zero_page() is called in
-do_huge_pmd_wp_zero_page_fallback().
-But in linux-next and linux-mmotm.git, it's called in
-do_huge_pmd_wp_page_fallback().
+hzp_alloc_failed is incremented if kernel fails to allocate huge zero
+	page and falls back to using small pages.
 
-That's wrong and make below BUG triggered again:
-
-[ 1384.485993] ------------[ cut here ]------------
-[ 1384.486031] kernel BUG at mm/huge_memory.c:213!
-[ 1384.486055] invalid opcode: 0000 [#1] PREEMPT SMP
-.....
-3.7.0-rc8+ #53 Dell Inc. OptiPlex 760                 /0M860N
-[ 1384.486473] EIP: 0060:[<c114d9d8>] EFLAGS: 00010202 CPU: 1
-[ 1384.486504] EIP is at put_huge_zero_page+0x18/0x20
-[ 1384.486528] EAX: 00000001 EBX: 00000008 ECX: 00000000 EDX: ed5c4000
-[ 1384.486556] ESI: b5a00000 EDI: ed7af000 EBP: ed5c5e8c ESP: ed5c5e8c
-[ 1384.486585]  DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068
-[ 1384.486611] CR0: 8005003b CR2: b59ffba8 CR3: 2e79a000 CR4: 000427f0
-[ 1384.486639] DR0: 00000000 DR1: 00000000 DR2: 00000000 DR3: 00000000
-[ 1384.486668] DR6: ffff0ff0 DR7: 00000400
-[ 1384.486687] Process gnome-terminal (pid: 12714, ti=ed5c4000 task=ebd59a60
-task.ti=ed5c4000)
-[ 1384.486724] Stack:
-[ 1384.486735]  ed5c5eec c1151329 092fb067 80000000 eaf9eca8 ed7ae800 ed7ae800
-2c6f9000
-[ 1384.486786]  00000000 f5ff16e8 f251d378 00000163 b5a00000 f4622000 b5800000
-f251d340
-[ 1384.486836]  ec7b6c60 80000000 092fb067 2c6f9067 00000000 c74000c5 80000000
-eaf9ed60
-[ 1384.486887] Call Trace:
-[ 1384.486902]  [<c1151329>] do_huge_pmd_wp_page+0x949/0xb60
-[ 1384.486929]  [<c1128aff>] handle_mm_fault+0x14f/0x330
-[ 1384.486956]  [<c1804810>] ? __do_page_fault+0x550/0x550
-[ 1384.486981]  [<c180440d>] __do_page_fault+0x14d/0x550
-[ 1384.487005]  [<c180481d>] ? do_page_fault+0xd/0x10
-[ 1384.487030]  [<c1801cdf>] ? error_code+0x67/0x6c
-[ 1384.487054]  [<c180007b>] ? __schedule+0x66b/0x7c0
-[ 1384.487080]  [<c12ea155>] ? __put_user_4+0x11/0x18
-[ 1384.487104]  [<c1804810>] ? __do_page_fault+0x550/0x550
-[ 1384.487130]  [<c180481d>] do_page_fault+0xd/0x10
-[ 1384.487153]  [<c1801cdf>] error_code+0x67/0x6c
-[ 1384.487176]  [<c1800000>] ? __schedule+0x5f0/0x7c0
-
-Signed-off-by: Bob Liu <lliubbo@gmail.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: "H. Peter Anvin" <hpa@linux.intel.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/vm/transhuge.txt |   12 ++++++------
+ include/linux/vm_event_item.h  |    4 ++--
+ mm/huge_memory.c               |    4 ++--
+ mm/vmstat.c                    |    4 ++--
+ 4 files changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-implement-refcounting-for-huge-zero-page-fix mm/huge_memory.c
---- a/mm/huge_memory.c~thp-implement-refcounting-for-huge-zero-page-fix
+diff -puN Documentation/vm/transhuge.txt~thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6 Documentation/vm/transhuge.txt
+--- a/Documentation/vm/transhuge.txt~thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6
++++ a/Documentation/vm/transhuge.txt
+@@ -197,13 +197,13 @@ thp_split is incremented every time a hu
+ 	pages. This can happen for a variety of reasons but a common
+ 	reason is that a huge page is old and is being reclaimed.
+ 
+-hzp_alloc is incremented every time a huge zero page is successfully
+-	allocated. It includes allocations which where dropped due
+-	race with other allocation. Note, it doesn't count every map
+-	of the huge zero page, only its allocation.
++thp_zero_page_alloc is incremented every time a huge zero page is
++	successfully allocated. It includes allocations which where
++	dropped due race with other allocation. Note, it doesn't count
++	every map of the huge zero page, only its allocation.
+ 
+-hzp_alloc_failed is incremented if kernel fails to allocate huge zero
+-	page and falls back to using small pages.
++thp_zero_page_alloc_failed is incremented if kernel fails to allocate
++	huge zero page and falls back to using small pages.
+ 
+ As the system ages, allocating huge pages may be expensive as the
+ system uses memory compaction to copy data around memory to free a
+diff -puN include/linux/vm_event_item.h~thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6 include/linux/vm_event_item.h
+--- a/include/linux/vm_event_item.h~thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6
++++ a/include/linux/vm_event_item.h
+@@ -63,8 +63,8 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		THP_COLLAPSE_ALLOC,
+ 		THP_COLLAPSE_ALLOC_FAILED,
+ 		THP_SPLIT,
+-		HZP_ALLOC,
+-		HZP_ALLOC_FAILED,
++		THP_ZERO_PAGE_ALLOC,
++		THP_ZERO_PAGE_ALLOC_FAILED,
+ #endif
+ 		NR_VM_EVENT_ITEMS
+ };
+diff -puN mm/huge_memory.c~thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6 mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6
 +++ a/mm/huge_memory.c
-@@ -982,6 +982,7 @@ static int do_huge_pmd_wp_zero_page_fall
- 	smp_wmb(); /* make pte visible before pmd */
- 	pmd_populate(mm, pmd, pgtable);
- 	spin_unlock(&mm->page_table_lock);
-+	put_huge_zero_page();
- 	inc_mm_counter(mm, MM_ANONPAGES);
+@@ -186,10 +186,10 @@ retry:
+ 	zero_page = alloc_pages((GFP_TRANSHUGE | __GFP_ZERO) & ~__GFP_MOVABLE,
+ 			HPAGE_PMD_ORDER);
+ 	if (!zero_page) {
+-		count_vm_event(HZP_ALLOC_FAILED);
++		count_vm_event(THP_ZERO_PAGE_ALLOC_FAILED);
+ 		return 0;
+ 	}
+-	count_vm_event(HZP_ALLOC);
++	count_vm_event(THP_ZERO_PAGE_ALLOC);
+ 	preempt_disable();
+ 	if (cmpxchg(&huge_zero_pfn, 0, page_to_pfn(zero_page))) {
+ 		preempt_enable();
+diff -puN mm/vmstat.c~thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6 mm/vmstat.c
+--- a/mm/vmstat.c~thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events-v6
++++ a/mm/vmstat.c
+@@ -808,8 +808,8 @@ const char * const vmstat_text[] = {
+ 	"thp_collapse_alloc",
+ 	"thp_collapse_alloc_failed",
+ 	"thp_split",
+-	"hzp_alloc",
+-	"hzp_alloc_failed",
++	"thp_zero_page_alloc",
++	"thp_zero_page_alloc_failed",
+ #endif
  
- 	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
-@@ -1071,7 +1072,6 @@ static int do_huge_pmd_wp_page_fallback(
- 	pmd_populate(mm, pmd, pgtable);
- 	page_remove_rmap(page);
- 	spin_unlock(&mm->page_table_lock);
--	put_huge_zero_page();
- 
- 	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
- 
+ #endif /* CONFIG_VM_EVENTS_COUNTERS */
 _
 
-Patches currently in -mm which might be from lliubbo@gmail.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
 origin.patch
+thp-huge-zero-page-basic-preparation.patch
+thp-zap_huge_pmd-zap-huge-zero-pmd.patch
+thp-copy_huge_pmd-copy-huge-zero-page.patch
+thp-do_huge_pmd_wp_page-handle-huge-zero-page.patch
+thp-change_huge_pmd-make-sure-we-dont-try-to-make-a-page-writable.patch
+thp-change-split_huge_page_pmd-interface.patch
+thp-implement-splitting-pmd-for-huge-zero-page.patch
+thp-setup-huge-zero-page-on-non-write-page-fault.patch
+thp-lazy-huge-zero-page-allocation.patch
 thp-implement-refcounting-for-huge-zero-page.patch
+thp-vmstat-implement-hzp_alloc-and-hzp_alloc_failed-events.patch
+thp-introduce-sysfs-knob-to-disable-huge-zero-page.patch
 thp-avoid-race-on-multiple-parallel-page-faults-to-the-same-page.patch
-hotplug-update-nodemasks-management-fix.patch
+asm-generic-mm-pgtable-consolidate-zero-page-helpers.patch
 
