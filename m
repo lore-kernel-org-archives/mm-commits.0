@@ -1,91 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hwpoison-fix-action_result-to-print-out-dirty-clean.patch removed from -mm tree
-Date: Wed, 12 Dec 2012 11:58:52 -0800
-Message-ID: <20121212195852.CA37D82004A@wpzn4.hot.corp.google.com>
+Subject: [merged] mm-do-not-call-frontswap_init-during-swapoff.patch removed from -mm tree
+Date: Wed, 12 Dec 2012 11:58:23 -0800
+Message-ID: <20121212195823.CA40C82004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:61479 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755149Ab2LLUEE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 15:04:04 -0500
-Received: by mail-qa0-f73.google.com with SMTP id a19so120511qad.2
-        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 12:04:03 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:51520 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754602Ab2LLUE1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 15:04:27 -0500
+Received: by mail-gg0-f202.google.com with SMTP id k1so118697ggn.1
+        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 12:04:26 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, ak@linux.intel.com, j-nomura@ce.jp.nec.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: cesarb@cesarb.net, dan.magenheimer@oracle.com, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, konrad.wilk@oracle.com, mgorman@suse.de, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hwpoison: fix action_result() to print out dirty/clean
+     Subject: mm: do not call frontswap_init() during swapoff
 has been removed from the -mm tree.  Its filename was
-     hwpoison-fix-action_result-to-print-out-dirty-clean.patch
+     mm-do-not-call-frontswap_init-during-swapoff.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm: hwpoison: fix action_result() to print out dirty/clean
+From: Cesar Eduardo Barros <cesarb@cesarb.net>
+Subject: mm: do not call frontswap_init() during swapoff
 
-action_result() fails to print out "dirty" even if an error occurred on a
-dirty pagecache, because when we check PageDirty in action_result() it was
-cleared after page isolation even if it's dirty before error handling. 
-This can break some applications that monitor this message, so should be
-fixed.
+The call to frontswap_init() was added within enable_swap_info(), which
+was called not only during sys_swapon, but also to reinsert the swap_info
+into the swap_list in case of failure of try_to_unuse() within
+sys_swapoff.  This means that frontswap_init() might be called more than
+once for the same swap area.
 
-There are several callers of action_result() except page_action(), but
-either of them are not for LRU pages but for free pages or kernel pages,
-so we don't have to consider dirty or not for them.
+While as far as I could see no frontswap implementation has any problem
+with it (and in fact, all the ones I found ignore the parameter passed to
+frontswap_init), this could change in the future.
 
-Note that PG_dirty can be set outside page locks as described in commit
-6746aff74da29 ("HWPOISON: shmem: call set_page_dirty() with locked page"),
-so this patch does not completely closes the race window, but just narrows
-it.
+To prevent future problems, move the call to frontswap_init() to outside
+the code shared between sys_swapon and sys_swapoff.
 
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Reviewed-by: Andi Kleen <ak@linux.intel.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: "Jun'ichi Nomura" <j-nomura@ce.jp.nec.com>
+Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Acked-by: Dan Magenheimer <dan.magenheimer@oracle.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ mm/swapfile.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memory-failure.c~hwpoison-fix-action_result-to-print-out-dirty-clean mm/memory-failure.c
---- a/mm/memory-failure.c~hwpoison-fix-action_result-to-print-out-dirty-clean
-+++ a/mm/memory-failure.c
-@@ -781,16 +781,16 @@ static struct page_state {
- 	{ compound,	compound,	"huge",		me_huge_page },
- #endif
+diff -puN mm/swapfile.c~mm-do-not-call-frontswap_init-during-swapoff mm/swapfile.c
+--- a/mm/swapfile.c~mm-do-not-call-frontswap_init-during-swapoff
++++ a/mm/swapfile.c
+@@ -1471,7 +1471,6 @@ static void _enable_swap_info(struct swa
+ 		swap_list.head = swap_list.next = p->type;
+ 	else
+ 		swap_info[prev]->next = p->type;
+-	frontswap_init(p->type);
+ }
  
--	{ sc|dirty,	sc|dirty,	"swapcache",	me_swapcache_dirty },
--	{ sc|dirty,	sc,		"swapcache",	me_swapcache_clean },
-+	{ sc|dirty,	sc|dirty,	"dirty swapcache",	me_swapcache_dirty },
-+	{ sc|dirty,	sc,		"clean swapcache",	me_swapcache_clean },
- 
--	{ unevict|dirty, unevict|dirty,	"unevictable LRU", me_pagecache_dirty},
--	{ unevict,	unevict,	"unevictable LRU", me_pagecache_clean},
-+	{ unevict|dirty, unevict|dirty,	"dirty unevictable LRU", me_pagecache_dirty },
-+	{ unevict,	unevict,	"clean unevictable LRU", me_pagecache_clean },
- 
--	{ mlock|dirty,	mlock|dirty,	"mlocked LRU",	me_pagecache_dirty },
--	{ mlock,	mlock,		"mlocked LRU",	me_pagecache_clean },
-+	{ mlock|dirty,	mlock|dirty,	"dirty mlocked LRU",	me_pagecache_dirty },
-+	{ mlock,	mlock,		"clean mlocked LRU",	me_pagecache_clean },
- 
--	{ lru|dirty,	lru|dirty,	"LRU",		me_pagecache_dirty },
-+	{ lru|dirty,	lru|dirty,	"dirty LRU",	me_pagecache_dirty },
- 	{ lru|dirty,	lru,		"clean LRU",	me_pagecache_clean },
- 
- 	/*
-@@ -812,14 +812,14 @@ static struct page_state {
- #undef slab
- #undef reserved
- 
-+/*
-+ * "Dirty/Clean" indication is not 100% accurate due to the possibility of
-+ * setting PG_dirty outside page lock. See also comment above set_page_dirty().
-+ */
- static void action_result(unsigned long pfn, char *msg, int result)
+ static void enable_swap_info(struct swap_info_struct *p, int prio,
+@@ -1480,6 +1479,7 @@ static void enable_swap_info(struct swap
  {
--	struct page *page = pfn_to_page(pfn);
+ 	spin_lock(&swap_lock);
+ 	_enable_swap_info(p, prio, swap_map, frontswap_map);
++	frontswap_init(p->type);
+ 	spin_unlock(&swap_lock);
+ }
+ 
+_
+
+Patches currently in -mm which might be from cesarb@cesarb.net are
+
+origin.patch
+linux-next.patch
+maintainers-remove-include-linux-ext3.patch
+
