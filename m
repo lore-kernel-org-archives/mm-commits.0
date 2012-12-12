@@ -1,67 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] thp-huge-zero-page-basic-preparation-v6.patch removed from -mm tree
-Date: Wed, 12 Dec 2012 13:34:07 -0800
-Message-ID: <20121212213407.B287A100047@wpzn3.hot.corp.google.com>
+Subject: [folded-merged] thp-copy_huge_pmd-copy-huge-zero-page-v6.patch removed from -mm tree
+Date: Wed, 12 Dec 2012 13:34:39 -0800
+Message-ID: <20121212213440.696A8100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:43492 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755124Ab2LLVeJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 16:34:09 -0500
-Received: by mail-gh0-f201.google.com with SMTP id z19so128845ghb.0
-        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 13:34:08 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:59151 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754962Ab2LLVel (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 16:34:41 -0500
+Received: by mail-gg0-f202.google.com with SMTP id k1so128505ggn.5
+        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 13:34:41 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, ak@linux.intel.com, hpa@linux.intel.com, mel@csn.ul.ie, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp-huge-zero-page-basic-preparation-v6
+     Subject: thp-copy_huge_pmd-copy-huge-zero-page-v6
 has been removed from the -mm tree.  Its filename was
-     thp-huge-zero-page-basic-preparation-v6.patch
+     thp-copy_huge_pmd-copy-huge-zero-page-v6.patch
 
-This patch was dropped because it was folded into thp-huge-zero-page-basic-preparation.patch
+This patch was dropped because it was folded into thp-copy_huge_pmd-copy-huge-zero-page.patch
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp-huge-zero-page-basic-preparation-v6
+Subject: thp-copy_huge_pmd-copy-huge-zero-page-v6
 
-Huge zero page (hzp) is a non-movable huge page (2M on x86-64) filled
-with zeros.
+It's easy to copy huge zero page. Just set destination pmd to huge zero
+page.
 
-For now let's allocate the page on hugepage_init(). We'll switch to lazy
-allocation later.
-
-We are not going to map the huge zero page until we can handle it
-properly on all code paths.
-
-is_huge_zero_{pfn,pmd}() functions will be used by following patches to
-check whether the pfn/pmd is huge zero page.
+It's safe to copy huge zero page since we have none yet :-p
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: David Rientjes <rientjes@google.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: "H. Peter Anvin" <hpa@linux.intel.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN mm/huge_memory.c~thp-huge-zero-page-basic-preparation-v6 mm/huge_memory.c
---- a/mm/huge_memory.c~thp-huge-zero-page-basic-preparation-v6
+diff -puN mm/huge_memory.c~thp-copy_huge_pmd-copy-huge-zero-page-v6 mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-copy_huge_pmd-copy-huge-zero-page-v6
 +++ a/mm/huge_memory.c
-@@ -161,7 +161,7 @@ static int start_khugepaged(void)
- 	return err;
- }
- 
--static int init_huge_zero_page(void)
-+static int __init init_huge_zero_page(void)
- {
- 	struct page *hpage;
- 
+@@ -958,6 +958,11 @@ int copy_huge_pmd(struct mm_struct *dst_
+ 		pte_free(dst_mm, pgtable);
+ 		goto out_unlock;
+ 	}
++	/*
++	 * mm->pagetable lock is enough to be sure that huge zero pmd is not
++	 * under splitting since we don't split the page itself, only pmd to
++	 * a page table.
++	 */
+ 	if (is_huge_zero_pmd(pmd)) {
+ 		set_huge_zero_page(pgtable, dst_mm, vma, addr, dst_pmd);
+ 		ret = 0;
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
@@ -70,7 +66,6 @@ origin.patch
 thp-huge-zero-page-basic-preparation.patch
 thp-zap_huge_pmd-zap-huge-zero-pmd.patch
 thp-copy_huge_pmd-copy-huge-zero-page.patch
-thp-copy_huge_pmd-copy-huge-zero-page-v6.patch
 thp-copy_huge_pmd-copy-huge-zero-page-v6-fix.patch
 thp-do_huge_pmd_wp_page-handle-huge-zero-page.patch
 thp-do_huge_pmd_wp_page-handle-huge-zero-page-v6.patch
