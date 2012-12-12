@@ -1,103 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-cleanup-introduce-mk_huge_pmd.patch removed from -mm tree
-Date: Wed, 12 Dec 2012 11:57:17 -0800
-Message-ID: <20121212195717.C693F82004A@wpzn4.hot.corp.google.com>
+Subject: [merged] memory-hotplug-suppress-device-memoryx-does-not-have-a-release-function-warning.patch removed from -mm tree
+Date: Wed, 12 Dec 2012 11:57:20 -0800
+Message-ID: <20121212195720.E3C7B100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:46245 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754645Ab2LLT5S (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 14:57:18 -0500
-Received: by mail-yh0-f74.google.com with SMTP id 10so115750yhl.5
-        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 11:57:18 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:59153 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754645Ab2LLT5W (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 14:57:22 -0500
+Received: by mail-gg0-f202.google.com with SMTP id k1so117716ggn.1
+        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 11:57:21 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lliubbo@gmail.com, aarcange@redhat.com, mhocko@suse.cz, minchan.kim@gmail.com, nizhan.chen@gmail.com, mm-commits@vger.kernel.org
+To: isimatu.yasuaki@jp.fujitsu.com, greg@kroah.com, kosaki.motohiro@jp.fujitsu.com, liuj97@gmail.com, minchan.kim@gmail.com, rientjes@google.com, wency@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: cleanup: introduce mk_huge_pmd()
+     Subject: memory hotplug: suppress "Device memoryX does not have a release() function" warning
 has been removed from the -mm tree.  Its filename was
-     thp-cleanup-introduce-mk_huge_pmd.patch
+     memory-hotplug-suppress-device-memoryx-does-not-have-a-release-function-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Bob Liu <lliubbo@gmail.com>
-Subject: thp: cleanup: introduce mk_huge_pmd()
+From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Subject: memory hotplug: suppress "Device memoryX does not have a release() function" warning
 
-Introduce mk_huge_pmd() to simplify the code
+When calling remove_memory_block(), the function shows following message
+at device_release().
 
-Signed-off-by: Bob Liu <lliubbo@gmail.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+"Device 'memory528' does not have a release() function, it is broken and
+must be fixed."
+
+The reason is memory_block's device struct does not have a release()
+function.
+
+So the patch registers memory_block_release() to the device's release()
+function for suppressing the warning message.  Additionally, the patch
+moves kfree(mem) into the release function since the release function is
+prepared as a means to free a memory_block struct.
+
+Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Jiang Liu <liuj97@gmail.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Ni zhan Chen <nizhan.chen@gmail.com>
+Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ drivers/base/memory.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN mm/huge_memory.c~thp-cleanup-introduce-mk_huge_pmd mm/huge_memory.c
---- a/mm/huge_memory.c~thp-cleanup-introduce-mk_huge_pmd
-+++ a/mm/huge_memory.c
-@@ -606,6 +606,15 @@ static inline pmd_t maybe_pmd_mkwrite(pm
- 	return pmd;
+diff -puN drivers/base/memory.c~memory-hotplug-suppress-device-memoryx-does-not-have-a-release-function-warning drivers/base/memory.c
+--- a/drivers/base/memory.c~memory-hotplug-suppress-device-memoryx-does-not-have-a-release-function-warning
++++ a/drivers/base/memory.c
+@@ -70,6 +70,13 @@ void unregister_memory_isolate_notifier(
  }
+ EXPORT_SYMBOL(unregister_memory_isolate_notifier);
  
-+static inline pmd_t mk_huge_pmd(struct page *page, struct vm_area_struct *vma)
++static void memory_block_release(struct device *dev)
 +{
-+	pmd_t entry;
-+	entry = mk_pmd(page, vma->vm_page_prot);
-+	entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
-+	entry = pmd_mkhuge(entry);
-+	return entry;
++	struct memory_block *mem = container_of(dev, struct memory_block, dev);
++
++	kfree(mem);
 +}
 +
- static int __do_huge_pmd_anonymous_page(struct mm_struct *mm,
- 					struct vm_area_struct *vma,
- 					unsigned long haddr, pmd_t *pmd,
-@@ -629,9 +638,7 @@ static int __do_huge_pmd_anonymous_page(
- 		pte_free(mm, pgtable);
- 	} else {
- 		pmd_t entry;
--		entry = mk_pmd(page, vma->vm_page_prot);
--		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
--		entry = pmd_mkhuge(entry);
-+		entry = mk_huge_pmd(page, vma);
- 		/*
- 		 * The spinlocking to take the lru_lock inside
- 		 * page_add_new_anon_rmap() acts as a full memory
-@@ -951,9 +958,7 @@ int do_huge_pmd_wp_page(struct mm_struct
- 	} else {
- 		pmd_t entry;
- 		VM_BUG_ON(!PageHead(page));
--		entry = mk_pmd(new_page, vma->vm_page_prot);
--		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
--		entry = pmd_mkhuge(entry);
-+		entry = mk_huge_pmd(new_page, vma);
- 		pmdp_clear_flush(vma, haddr, pmd);
- 		page_add_new_anon_rmap(new_page, vma, haddr);
- 		set_pmd_at(mm, haddr, pmd, entry);
-@@ -2000,9 +2005,7 @@ static void collapse_huge_page(struct mm
- 	__SetPageUptodate(new_page);
- 	pgtable = pmd_pgtable(_pmd);
+ /*
+  * register_memory - Setup a sysfs device for a memory block
+  */
+@@ -80,6 +87,7 @@ int register_memory(struct memory_block 
  
--	_pmd = mk_pmd(new_page, vma->vm_page_prot);
--	_pmd = maybe_pmd_mkwrite(pmd_mkdirty(_pmd), vma);
--	_pmd = pmd_mkhuge(_pmd);
-+	_pmd = mk_huge_pmd(new_page, vma);
+ 	memory->dev.bus = &memory_subsys;
+ 	memory->dev.id = memory->start_section_nr / sections_per_block;
++	memory->dev.release = memory_block_release;
  
- 	/*
- 	 * spin_lock() below is not the equivalent of smp_wmb(), so
+ 	error = device_register(&memory->dev);
+ 	return error;
+@@ -635,7 +643,6 @@ int remove_memory_block(unsigned long no
+ 		mem_remove_simple_file(mem, phys_device);
+ 		mem_remove_simple_file(mem, removable);
+ 		unregister_memory(mem);
+-		kfree(mem);
+ 	} else
+ 		kobject_put(&mem->dev.kobj);
+ 
 _
 
-Patches currently in -mm which might be from lliubbo@gmail.com are
+Patches currently in -mm which might be from isimatu.yasuaki@jp.fujitsu.com are
 
 origin.patch
-thp-implement-refcounting-for-huge-zero-page-fix.patch
-thp-avoid-race-on-multiple-parallel-page-faults-to-the-same-page.patch
-hotplug-update-nodemasks-management-fix.patch
+numa-add-config_movable_node-for-movable-dedicated-node.patch
+numa-add-config_movable_node-for-movable-dedicated-node-fix.patch
+memory_hotplug-allow-online-offline-memory-to-result-movable-node.patch
 linux-next.patch
+x86-fix-the-argument-passed-to-sync_global_pgds.patch
+x86-make-mem=-option-to-work-for-efi-platform.patch
 
