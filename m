@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-abi-sys-devices-system-node.patch added to -mm tree
-Date: Wed, 12 Dec 2012 12:56:55 -0800
-Message-ID: <20121212205655.95CB582004A@wpzn4.hot.corp.google.com>
+Subject: + checkpatch-add-strict-test-for-switch-default-missing-break.patch added to -mm tree
+Date: Wed, 12 Dec 2012 12:58:03 -0800
+Message-ID: <20121212205804.1B750200061@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:36042 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755982Ab2LLU44 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 15:56:56 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so126289ghb.1
-        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 12:56:56 -0800 (PST)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:42962 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932169Ab2LLU6G (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Dec 2012 15:58:06 -0500
+Received: by mail-we0-f202.google.com with SMTP id t57so66833wey.1
+        for <mm-commits@vger.kernel.org>; Wed, 12 Dec 2012 12:58:05 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davidlohr.bueso@hp.com, gregkh@linuxfoundation.org
+Cc: joe@perches.com, apw@canonical.com, peter.senna@gmail.com
 
 
 The patch titled
-     Subject: Documentation: ABI: /sys/devices/system/node/
+     Subject: checkpatch: add --strict test for switch/default missing break
 has been added to the -mm tree.  Its filename is
-     documentation-abi-sys-devices-system-node.patch
+     checkpatch-add-strict-test-for-switch-default-missing-break.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,132 +33,71 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Subject: Documentation: ABI: /sys/devices/system/node/
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: add --strict test for switch/default missing break
 
-Describe NUMA node sysfs files/attributes.
+switch default case is sometimes written as "default:;".  This can cause
+new cases added below the default to be defective.
 
-Note that for the specific dates and contacts I couldn't find,
-I left it as default for Oct 2002 and linux-mm.
+Suggest adding a break; after empty default cases to avoid fallthrough
+defects.
 
-Signed-off-by: Davidlohr Bueso <davidlohr.bueso@hp.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Fixed indentation in the other semicolon test above it.
+
+Suggested-by: Peter Senna Tschudin <peter.senna@gmail.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/stable/sysfs-devices-node |   96 +++++++++++++++++-
- 1 file changed, 95 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |   18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/ABI/stable/sysfs-devices-node~documentation-abi-sys-devices-system-node Documentation/ABI/stable/sysfs-devices-node
---- a/Documentation/ABI/stable/sysfs-devices-node~documentation-abi-sys-devices-system-node
-+++ a/Documentation/ABI/stable/sysfs-devices-node
-@@ -1,7 +1,101 @@
-+What:		/sys/devices/system/node/possible
-+Date:		October 2002
-+Contact:	Linux Memory Management list <linux-mm@kvack.org>
-+Description:
-+		Nodes that could be possibly become online at some point.
+diff -puN scripts/checkpatch.pl~checkpatch-add-strict-test-for-switch-default-missing-break scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-strict-test-for-switch-default-missing-break
++++ a/scripts/checkpatch.pl
+@@ -3450,8 +3450,22 @@ sub process {
+ 
+ # check for multiple semicolons
+ 		if ($line =~ /;\s*;\s*$/) {
+-		    WARN("ONE_SEMICOLON",
+-			 "Statements terminations use 1 semicolon\n" . $herecurr);
++			WARN("ONE_SEMICOLON",
++			     "Statements terminations use 1 semicolon\n" . $herecurr);
++		}
 +
-+What:		/sys/devices/system/node/online
-+Date:		October 2002
-+Contact:	Linux Memory Management list <linux-mm@kvack.org>
-+Description:
-+		Nodes that are online.
-+
-+What:		/sys/devices/system/node/has_normal_memory
-+Date:		October 2002
-+Contact:	Linux Memory Management list <linux-mm@kvack.org>
-+Description:
-+		Nodes that have regular memory.
-+
-+What:		/sys/devices/system/node/has_cpu
-+Date:		October 2002
-+Contact:	Linux Memory Management list <linux-mm@kvack.org>
-+Description:
-+		Nodes that have one or more CPUs.
-+
-+What:		/sys/devices/system/node/has_high_memory
-+Date:		October 2002
-+Contact:	Linux Memory Management list <linux-mm@kvack.org>
-+Description:
-+		Nodes that have regular or high memory.
-+		Depends on CONFIG_HIGHMEM.
-+
- What:		/sys/devices/system/node/nodeX
- Date:		October 2002
- Contact:	Linux Memory Management list <linux-mm@kvack.org>
- Description:
- 		When CONFIG_NUMA is enabled, this is a directory containing
- 		information on node X such as what CPUs are local to the
--		node.
-+		node. Each file is detailed next.
-+
-+What:		/sys/devices/system/node/nodeX/cpumap
-+Date:		October 2002
-+Contact:	Linux Memory Management list <linux-mm@kvack.org>
-+Description:
-+		The node's cpumap.
-+
-+What:		/sys/devices/system/node/nodeX/cpulist
-+Date:		October 2002
-+Contact:	Linux Memory Management list <linux-mm@kvack.org>
-+Description:
-+		The CPUs associated to the node.
-+
-+What:		/sys/devices/system/node/nodeX/meminfo
-+Date:		October 2002
-+Contact:	Linux Memory Management list <linux-mm@kvack.org>
-+Description:
-+		Provides information about the node's distribution and memory
-+		utilization. Similar to /proc/meminfo, see Documentation/filesystems/proc.txt
-+
-+What:		/sys/devices/system/node/nodeX/numastat
-+Date:		October 2002
-+Contact:	Linux Memory Management list <linux-mm@kvack.org>
-+Description:
-+		The node's hit/miss statistics, in units of pages.
-+		See Documentation/numastat.txt
-+
-+What:		/sys/devices/system/node/nodeX/distance
-+Date:		October 2002
-+Contact:	Linux Memory Management list <linux-mm@kvack.org>
-+Description:
-+		Distance between the node and all the other nodes
-+		in the system.
-+
-+What:		/sys/devices/system/node/nodeX/vmstat
-+Date:		October 2002
-+Contact:	Linux Memory Management list <linux-mm@kvack.org>
-+Description:
-+		The node's zoned virtual memory statistics.
-+		This is a superset of numastat.
-+
-+What:		/sys/devices/system/node/nodeX/compact
-+Date:		February 2010
-+Contact:	Mel Gorman <mel@csn.ul.ie>
-+Description:
-+		When this file is written to, all memory within that node
-+		will be compacted. When it completes, memory will be freed
-+		into blocks which have as many contiguous pages as possible
-+
-+What:		/sys/devices/system/node/nodeX/scan_unevictable_pages
-+Date:		October 2008
-+Contact:	Lee Schermerhorn <lee.schermerhorn@hp.com>
-+Description:
-+		When set, it triggers scanning the node's unevictable lists
-+		and move any pages that have become evictable onto the respective
-+		zone's inactive list. See mm/vmscan.c
-+
-+What:		/sys/devices/system/node/nodeX/hugepages/hugepages-<size>/
-+Date:		December 2009
-+Contact:	Lee Schermerhorn <lee.schermerhorn@hp.com>
-+Description:
-+		The node's huge page size control/query attributes.
-+		See Documentation/vm/hugetlbpage.txt
-\ No newline at end of file
++# check for switch/default statements without a break;
++		if ($^V && $^V ge 5.10.0 &&
++		    defined $stat &&
++		    $stat =~ /^\+[$;\s]*(?:case[$;\s]+\w+[$;\s]*:[$;\s]*|)*[$;\s]*\bdefault[$;\s]*:[$;\s]*;/g) {
++			my $ctx = '';
++			my $herectx = $here . "\n";
++			my $cnt = statement_rawlines($stat);
++			for (my $n = 0; $n < $cnt; $n++) {
++				$herectx .= raw_line($linenr, $n) . "\n";
++			}
++			WARN("DEFAULT_NO_BREAK",
++			     "switch default: should use break\n" . $herectx);
+ 		}
+ 
+ # check for gcc specific __FUNCTION__
 _
 
-Patches currently in -mm which might be from davidlohr.bueso@hp.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-documentation-abi-sys-devices-system-node.patch
+origin.patch
+linux-next.patch
+printk-boot_delay-should-only-affect-output.patch
+maintainers-chinese-maintainers-mailing-list-is-subscribers-only.patch
+checkpatch-warn-on-unnecessary-line-continuations.patch
+checkpatch-warn-about-using-config_experimental.patch
+checkpatch-remove-reference-to-feature-removal-scheduletxt.patch
+checkpatch-consolidate-if-foo-barfoo-checks-and-add-debugfs_remove.patch
+checkpatch-allow-control-over-line-length-warning-default-remains-80.patch
+checkpatch-extend-line-continuation-test.patch
+checkpatch-add-strict-messages-for-blank-lines-around-braces.patch
+checkpatch-warn-when-declaring-struct-spinlock-foo.patch
+checkpatch-add-strict-test-for-switch-default-missing-break.patch
+kstrto-add-documentation.patch
+simple_strto-annotate-function-as-obsolete.patch
 
