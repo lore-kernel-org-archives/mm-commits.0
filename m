@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + musb-tusb6010-use-ioreadwrite_rep-accessors.patch added to -mm tree
-Date: Thu, 13 Dec 2012 14:46:43 -0800
-Message-ID: <20121213224644.783D9200057@hpza10.eem.corp.google.com>
+Subject: + dmatest-implement-two-helpers-to-unmap-dma-memory.patch added to -mm tree
+Date: Thu, 13 Dec 2012 15:34:56 -0800
+Message-ID: <20121213233458.34F60100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:61669 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755604Ab2LMWqr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Dec 2012 17:46:47 -0500
-Received: by mail-bk0-f74.google.com with SMTP id je9so142333bkc.1
-        for <mm-commits@vger.kernel.org>; Thu, 13 Dec 2012 14:46:46 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:39081 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753482Ab2LMXe7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Dec 2012 18:34:59 -0500
+Received: by mail-qa0-f74.google.com with SMTP id r4so20397qaq.1
+        for <mm-commits@vger.kernel.org>; Thu, 13 Dec 2012 15:34:58 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matthew@mattleach.net, arnd@arndb.de, balbi@ti.com, benh@kernel.crashing.org, greg@kroah.com, will.deacon@arm.com
+Cc: andriy.shevchenko@linux.intel.com, vinod.koul@intel.com, viresh.kumar@linaro.org
 
 
 The patch titled
-     Subject: musb: tusb6010: use io{read,write}*_rep accessors
+     Subject: dmatest: implement two helpers to unmap dma memory
 has been added to the -mm tree.  Its filename is
-     musb-tusb6010-use-ioreadwrite_rep-accessors.patch
+     dmatest-implement-two-helpers-to-unmap-dma-memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,64 +33,84 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Matthew Leach <matthew@mattleach.net>
-Subject: musb: tusb6010: use io{read,write}*_rep accessors
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: dmatest: implement two helpers to unmap dma memory
 
-The {read,write}s{b,w,l} operations are not defined by all architectures
-and are being removed from the asm-generic/io.h interface.
+The unmap_src() and unmap_dst() will be used later as well.
 
-This patch replaces the usage of these string functions in the tusb6010
-accessors with io{read,write}{8,16,32}_rep calls instead.
-
-Signed-off-by: Matthew Leach <matthew@mattleach.net>
-Signed-off-by: Will Deacon <will.deacon@arm.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Ben Herrenschmidt <benh@kernel.crashing.org>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: Vinod Koul <vinod.koul@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/musb/tusb6010.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/dma/dmatest.c |   27 +++++++++++++++++----------
+ 1 file changed, 17 insertions(+), 10 deletions(-)
 
-diff -puN drivers/usb/musb/tusb6010.c~musb-tusb6010-use-ioreadwrite_rep-accessors drivers/usb/musb/tusb6010.c
---- a/drivers/usb/musb/tusb6010.c~musb-tusb6010-use-ioreadwrite_rep-accessors
-+++ a/drivers/usb/musb/tusb6010.c
-@@ -22,6 +22,7 @@
- #include <linux/prefetch.h>
- #include <linux/usb.h>
- #include <linux/irq.h>
-+#include <linux/io.h>
- #include <linux/platform_device.h>
- #include <linux/dma-mapping.h>
- #include <linux/usb/nop-usb-xceiv.h>
-@@ -198,7 +199,7 @@ void musb_write_fifo(struct musb_hw_ep *
- 		/* Best case is 32bit-aligned destination address */
- 		if ((0x02 & (unsigned long) buf) == 0) {
- 			if (len >= 4) {
--				writesl(fifo, buf, len >> 2);
-+				iowrite32_rep(fifo, buf, len >> 2);
- 				buf += (len & ~0x03);
- 				len &= 0x03;
- 			}
-@@ -245,7 +246,7 @@ void musb_read_fifo(struct musb_hw_ep *h
- 		/* Best case is 32bit-aligned destination address */
- 		if ((0x02 & (unsigned long) buf) == 0) {
- 			if (len >= 4) {
--				readsl(fifo, buf, len >> 2);
-+				ioread32_rep(fifo, buf, len >> 2);
- 				buf += (len & ~0x03);
- 				len &= 0x03;
- 			}
+diff -puN drivers/dma/dmatest.c~dmatest-implement-two-helpers-to-unmap-dma-memory drivers/dma/dmatest.c
+--- a/drivers/dma/dmatest.c~dmatest-implement-two-helpers-to-unmap-dma-memory
++++ a/drivers/dma/dmatest.c
+@@ -235,6 +235,20 @@ static unsigned int min_odd(unsigned int
+ 	return val % 2 ? val : val - 1;
+ }
+ 
++static inline void unmap_src(struct device *dev, dma_addr_t *addr, size_t len,
++			     unsigned int count)
++{
++	while (count--)
++		dma_unmap_single(dev, addr[count], len, DMA_TO_DEVICE);
++}
++
++static inline void unmap_dst(struct device *dev, dma_addr_t *addr, size_t len,
++			     unsigned int count)
++{
++	while (count--)
++		dma_unmap_single(dev, addr[count], len, DMA_BIDIRECTIONAL);
++}
++
+ /*
+  * This function repeatedly tests DMA transfers of various lengths and
+  * offsets for a given operation type until it is told to exit by
+@@ -393,13 +407,8 @@ static int dmatest_func(void *data)
+ 		}
+ 
+ 		if (!tx) {
+-			for (i = 0; i < src_cnt; i++)
+-				dma_unmap_single(dev->dev, dma_srcs[i], len,
+-						 DMA_TO_DEVICE);
+-			for (i = 0; i < dst_cnt; i++)
+-				dma_unmap_single(dev->dev, dma_dsts[i],
+-						 test_buf_size,
+-						 DMA_BIDIRECTIONAL);
++			unmap_src(dev->dev, dma_srcs, len, src_cnt);
++			unmap_dst(dev->dev, dma_dsts, test_buf_size, dst_cnt);
+ 			pr_warning("%s: #%u: prep error with src_off=0x%x "
+ 					"dst_off=0x%x len=0x%x\n",
+ 					thread_name, total_tests - 1,
+@@ -453,9 +462,7 @@ static int dmatest_func(void *data)
+ 		}
+ 
+ 		/* Unmap by myself (see DMA_COMPL_SKIP_DEST_UNMAP above) */
+-		for (i = 0; i < dst_cnt; i++)
+-			dma_unmap_single(dev->dev, dma_dsts[i], test_buf_size,
+-					 DMA_BIDIRECTIONAL);
++		unmap_dst(dev->dev, dma_dsts, test_buf_size, dst_cnt);
+ 
+ 		error_count = 0;
+ 
 _
 
-Patches currently in -mm which might be from matthew@mattleach.net are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
 origin.patch
 linux-next.patch
-include-linux-inith-use-the-stringify-operator-for-the-__define_initcall-macro.patch
-mtd-nand-gpio-use-ioreadwrite_rep-accessors.patch
-musb-tusb6010-use-ioreadwrite_rep-accessors.patch
-usb-musb-use-ioreadwrite_rep-accessors.patch
+dmatest-implement-two-helpers-to-unmap-dma-memory.patch
+dmatest-check-for-dma-mapping-error.patch
+string-introduce-helper-to-get-base-file-name-from-given-path.patch
+lib-dynamic_debug-use-kbasename.patch
+mm-use-kbasename.patch
+procfs-use-kbasename.patch
+procfs-use-kbasename-fix.patch
+trace-use-kbasename.patch
+drivers-of-fdtc-re-use-kernels-kbasename.patch
 
