@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-adjust-for-uapi-firewire.patch added to -mm tree
-Date: Thu, 13 Dec 2012 13:53:41 -0800
-Message-ID: <20121213215341.F005D200057@hpza10.eem.corp.google.com>
+Subject: + kconfig-fix-irq-subsystem-menu.patch added to -mm tree
+Date: Thu, 13 Dec 2012 14:31:18 -0800
+Message-ID: <20121213223118.9E216100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:53769 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753415Ab2LMVxo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Dec 2012 16:53:44 -0500
-Received: by mail-wi0-f202.google.com with SMTP id hn17so2045wib.1
-        for <mm-commits@vger.kernel.org>; Thu, 13 Dec 2012 13:53:42 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:60599 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755117Ab2LMWbU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Dec 2012 17:31:20 -0500
+Received: by mail-qc0-f202.google.com with SMTP id s25so276160qcq.1
+        for <mm-commits@vger.kernel.org>; Thu, 13 Dec 2012 14:31:19 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stefanr@s5r6.in-berlin.de
+Cc: set.mailinglist@gmail.com, grant.likely@secretlab.ca, tglx@linutronix.de
 
 
 The patch titled
-     Subject: MAINTAINERS: adjust for UAPI: firewire
+     Subject: Kconfig: fix Irq Subsystem menu
 has been added to the -mm tree.  Its filename is
-     maintainers-adjust-for-uapi-firewire.patch
+     kconfig-fix-irq-subsystem-menu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,34 +33,52 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Subject: MAINTAINERS: adjust for UAPI: firewire
+From: Paul Thompson <set.mailinglist@gmail.com>
+Subject: Kconfig: fix Irq Subsystem menu
 
-Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
+In menuconfig, General setup -> Irq subsystem contains two possible
+menu-items.  Sometimes, neither menu-item exists.  This patch prevents the
+Irq susystem menu from appearing at all unless it will contain at least
+one menu-item, preventing a confusing, empty menu.
+
+Cc: Paul Thompson <set.mailinglist@gmail.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ kernel/irq/Kconfig |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-adjust-for-uapi-firewire MAINTAINERS
---- a/MAINTAINERS~maintainers-adjust-for-uapi-firewire
-+++ a/MAINTAINERS
-@@ -3129,7 +3129,8 @@ W:	http://ieee1394.wiki.kernel.org/
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/ieee1394/linux1394.git
- S:	Maintained
- F:	drivers/firewire/
--F:	include/linux/firewire*.h
-+F:	include/linux/firewire.h
-+F:	include/uapi/linux/firewire*.h
- F:	tools/firewire/
+diff -puN kernel/irq/Kconfig~kconfig-fix-irq-subsystem-menu kernel/irq/Kconfig
+--- a/kernel/irq/Kconfig~kconfig-fix-irq-subsystem-menu
++++ a/kernel/irq/Kconfig
+@@ -3,7 +3,6 @@ config HAVE_GENERIC_HARDIRQS
+ 	bool
  
- FIRMWARE LOADER (request_firmware)
-_
-
-Patches currently in -mm which might be from stefanr@s5r6.in-berlin.de are
-
-origin.patch
-linux-next.patch
-maintainers-adjust-for-uapi-firewire.patch
-
+ if HAVE_GENERIC_HARDIRQS
+-menu "IRQ subsystem"
+ #
+ # Interrupt subsystem related configuration options
+ #
+@@ -56,6 +55,13 @@ config GENERIC_IRQ_CHIP
+ config IRQ_DOMAIN
+ 	bool
+ 
++# Support forced irq threading
++config IRQ_FORCED_THREADING
++       bool
++
++menu "IRQ subsystem"
++	depends on ( IRQ_DOMAIN && DEBUG_FS ) || MAY_HAVE_SPARSE_IRQ
++
+ config IRQ_DOMAIN_DEBUG
+ 	bool "Expose hardware/virtual IRQ mapping via debugfs"
+ 	depends on IRQ_DOMAIN && DEBUG_FS
+@@ -66,10 +72,6 @@ config IRQ_DOMAIN_DEBUG
+ 
+ 	  If you don't know what this means you don't need it.
+ 
+-# Support forced irq threading
+-config IRQ_FORCED_THREADING
+-       bool
