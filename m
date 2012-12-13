@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch added to -mm tree
-Date: Thu, 13 Dec 2012 13:04:16 -0800
-Message-ID: <20121213210418.906C2100048@wpzn3.hot.corp.google.com>
+Subject: + rtc-da9055-rtc-driver.patch added to -mm tree
+Date: Thu, 13 Dec 2012 13:39:46 -0800
+Message-ID: <20121213213947.11384200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:38487 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755607Ab2LMVEV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Dec 2012 16:04:21 -0500
-Received: by mail-ye0-f202.google.com with SMTP id l7so266441yen.1
-        for <mm-commits@vger.kernel.org>; Thu, 13 Dec 2012 13:04:20 -0800 (PST)
+Received: from mail-ea0-f202.google.com ([209.85.215.202]:56676 "EHLO
+	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756153Ab2LMVjt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Dec 2012 16:39:49 -0500
+Received: by mail-ea0-f202.google.com with SMTP id j12so139735eaa.1
+        for <mm-commits@vger.kernel.org>; Thu, 13 Dec 2012 13:39:48 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, FlorianSchandinat@gmx.de, alan@linux.intel.com, sfr@canb.auug.org.au
+Cc: ashish.jangam@kpitcummins.com, dchen@diasemi.com, sameo@linux.intel.com
 
 
 The patch titled
-     Subject: fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2
+     Subject: rtc: DA9055 RTC driver
 has been added to the -mm tree.  Its filename is
-     fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
+     rtc-da9055-rtc-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,88 +33,479 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2
+From: Ashish Jangam <ashish.jangam@kpitcummins.com>
+Subject: rtc: DA9055 RTC driver
 
-export do_take_over_console()
+A driver for the DA9055 PMIC.  This has a dependency upon the DA9055 MFD
+core.
 
-Cc: Alan Cox <alan@linux.intel.com>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Functionally tested on Samsung SMDKV6410.
+
+Signed-off-by: David Dajun Chen <dchen@diasemi.com>
+Signed-off-by: Ashish Jangam <ashish.jangam@kpitcummins.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/vt/vt.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/rtc/Kconfig      |   10 
+ drivers/rtc/Makefile     |    1 
+ drivers/rtc/rtc-da9055.c |  413 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 424 insertions(+)
 
-diff -puN drivers/tty/vt/vt.c~fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2 drivers/tty/vt/vt.c
---- a/drivers/tty/vt/vt.c~fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2
-+++ a/drivers/tty/vt/vt.c
-@@ -3662,6 +3662,8 @@ int do_take_over_console(const struct co
+diff -puN drivers/rtc/Kconfig~rtc-da9055-rtc-driver drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-da9055-rtc-driver
++++ a/drivers/rtc/Kconfig
+@@ -609,6 +609,16 @@ config RTC_DRV_DA9052
+ 	  Say y here to support the RTC driver for Dialog Semiconductor
+ 	  DA9052-BC and DA9053-AA/Bx PMICs.
  
- 	return err;
- }
-+EXPORT_SYMBOL_GPL(do_take_over_console);
++config RTC_DRV_DA9055
++	tristate "Dialog Semiconductor DA9055 RTC"
++	depends on MFD_DA9055
++	help
++	  If you say yes here you will get support for the
++	  RTC of the Dialog DA9055 PMIC.
 +
- /*
-  *	If we support more console drivers, this function is used
-  *	when a driver wants to take over some existing consoles
++	  This driver can also be built as a module. If so, the module
++	  will be called rtc-da9055
++
+ config RTC_DRV_EFI
+ 	tristate "EFI RTC"
+ 	depends on IA64
+diff -puN drivers/rtc/Makefile~rtc-da9055-rtc-driver drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-da9055-rtc-driver
++++ a/drivers/rtc/Makefile
+@@ -29,6 +29,7 @@ obj-$(CONFIG_RTC_DRV_BQ4802)	+= rtc-bq48
+ obj-$(CONFIG_RTC_DRV_CMOS)	+= rtc-cmos.o
+ obj-$(CONFIG_RTC_DRV_COH901331)	+= rtc-coh901331.o
+ obj-$(CONFIG_RTC_DRV_DA9052)	+= rtc-da9052.o
++obj-$(CONFIG_RTC_DRV_DA9055)	+= rtc-da9055.o
+ obj-$(CONFIG_RTC_DRV_DAVINCI)	+= rtc-davinci.o
+ obj-$(CONFIG_RTC_DRV_DM355EVM)	+= rtc-dm355evm.o
+ obj-$(CONFIG_RTC_DRV_VRTC)	+= rtc-mrst.o
+diff -puN /dev/null drivers/rtc/rtc-da9055.c
+--- /dev/null
++++ a/drivers/rtc/rtc-da9055.c
+@@ -0,0 +1,413 @@
++/*
++ * Real time clock driver for DA9055
++ *
++ * Copyright(c) 2012 Dialog Semiconductor Ltd.
++ *
++ * Author: Dajun Dajun Chen <dajun.chen@diasemi.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ */
++
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/rtc.h>
++
++#include <linux/mfd/da9055/core.h>
++#include <linux/mfd/da9055/reg.h>
++#include <linux/mfd/da9055/pdata.h>
++
++struct da9055_rtc {
++	struct rtc_device *rtc;
++	struct da9055 *da9055;
++	int alarm_enable;
++};
++
++static int da9055_rtc_enable_alarm(struct da9055_rtc *rtc, bool enable)
++{
++	int ret;
++	if (enable) {
++		ret = da9055_reg_update(rtc->da9055, DA9055_REG_ALARM_Y,
++					DA9055_RTC_ALM_EN,
++					DA9055_RTC_ALM_EN);
++		if (ret != 0)
++			dev_err(rtc->da9055->dev, "Failed to enable ALM: %d\n",
++				ret);
++		rtc->alarm_enable = 1;
++	} else {
++		ret = da9055_reg_update(rtc->da9055, DA9055_REG_ALARM_Y,
++					DA9055_RTC_ALM_EN, 0);
++		if (ret != 0)
++			dev_err(rtc->da9055->dev,
++				"Failed to disable ALM: %d\n", ret);
++		rtc->alarm_enable = 0;
++	}
++	return ret;
++}
++
++static irqreturn_t da9055_rtc_alm_irq(int irq, void *data)
++{
++	struct da9055_rtc *rtc = data;
++
++	da9055_rtc_enable_alarm(rtc, 0);
++	rtc_update_irq(rtc->rtc, 1, RTC_IRQF | RTC_AF);
++
++	return IRQ_HANDLED;
++}
++
++static int da9055_read_alarm(struct da9055 *da9055, struct rtc_time *rtc_tm)
++{
++	int ret;
++	uint8_t v[5];
++
++	ret = da9055_group_read(da9055, DA9055_REG_ALARM_MI, 5, v);
++	if (ret != 0) {
++		dev_err(da9055->dev, "Failed to group read ALM: %d\n", ret);
++		return ret;
++	}
++
++	rtc_tm->tm_year = (v[4] & DA9055_RTC_ALM_YEAR) + 100;
++	rtc_tm->tm_mon  = (v[3] & DA9055_RTC_ALM_MONTH) - 1;
++	rtc_tm->tm_mday = v[2] & DA9055_RTC_ALM_DAY;
++	rtc_tm->tm_hour = v[1] & DA9055_RTC_ALM_HOUR;
++	rtc_tm->tm_min  = v[0] & DA9055_RTC_ALM_MIN;
++
++	return rtc_valid_tm(rtc_tm);
++}
++
++static int da9055_set_alarm(struct da9055 *da9055, struct rtc_time *rtc_tm)
++{
++	int ret;
++	uint8_t v[2];
++
++	rtc_tm->tm_year -= 100;
++	rtc_tm->tm_mon += 1;
++
++	ret = da9055_reg_update(da9055, DA9055_REG_ALARM_MI,
++				DA9055_RTC_ALM_MIN, rtc_tm->tm_min);
++	if (ret != 0) {
++		dev_err(da9055->dev, "Failed to write ALRM MIN: %d\n", ret);
++		return ret;
++	}
++
++	v[0] = rtc_tm->tm_hour;
++	v[1] = rtc_tm->tm_mday;
++
++	ret = da9055_group_write(da9055, DA9055_REG_ALARM_H, 2, v);
++	if (ret < 0)
++		return ret;
++
++	ret = da9055_reg_update(da9055, DA9055_REG_ALARM_MO,
++				DA9055_RTC_ALM_MONTH, rtc_tm->tm_mon);
++	if (ret < 0)
++		dev_err(da9055->dev, "Failed to write ALM Month:%d\n", ret);
++
++	ret = da9055_reg_update(da9055, DA9055_REG_ALARM_Y,
++				DA9055_RTC_ALM_YEAR, rtc_tm->tm_year);
++	if (ret < 0)
++		dev_err(da9055->dev, "Failed to write ALM Year:%d\n", ret);
++
++	return ret;
++}
++
++static int da9055_rtc_get_alarm_status(struct da9055 *da9055)
++{
++	int ret;
++
++	ret = da9055_reg_read(da9055, DA9055_REG_ALARM_Y);
++	if (ret < 0) {
++		dev_err(da9055->dev, "Failed to read ALM: %d\n", ret);
++		return ret;
++	}
++	ret &= DA9055_RTC_ALM_EN;
++	return (ret > 0) ? 1 : 0;
++}
++
++static int da9055_rtc_read_time(struct device *dev, struct rtc_time *rtc_tm)
++{
++	struct da9055_rtc *rtc = dev_get_drvdata(dev);
++	uint8_t v[6];
++	int ret;
++
++	ret = da9055_reg_read(rtc->da9055, DA9055_REG_COUNT_S);
++	if (ret < 0)
++		return ret;
++
++	/*
++	 * Registers are only valid when RTC_READ
++	 * status bit is asserted
++	 */
++	if (!(ret & DA9055_RTC_READ))
++		return -EBUSY;
++
++	ret = da9055_group_read(rtc->da9055, DA9055_REG_COUNT_S, 6, v);
++	if (ret < 0) {
++		dev_err(rtc->da9055->dev, "Failed to read RTC time : %d\n",
++			ret);
++		return ret;
++	}
++
++	rtc_tm->tm_year = (v[5] & DA9055_RTC_YEAR) + 100;
++	rtc_tm->tm_mon  = (v[4] & DA9055_RTC_MONTH) - 1;
++	rtc_tm->tm_mday = v[3] & DA9055_RTC_DAY;
++	rtc_tm->tm_hour = v[2] & DA9055_RTC_HOUR;
++	rtc_tm->tm_min  = v[1] & DA9055_RTC_MIN;
++	rtc_tm->tm_sec  = v[0] & DA9055_RTC_SEC;
++
++	return rtc_valid_tm(rtc_tm);
++}
++
++static int da9055_rtc_set_time(struct device *dev, struct rtc_time *tm)
++{
++	struct da9055_rtc *rtc;
++	uint8_t v[6];
++
++	rtc = dev_get_drvdata(dev);
++
++	v[0] = tm->tm_sec;
++	v[1] = tm->tm_min;
++	v[2] = tm->tm_hour;
++	v[3] = tm->tm_mday;
++	v[4] = tm->tm_mon + 1;
++	v[5] = tm->tm_year - 100;
++
++	return da9055_group_write(rtc->da9055, DA9055_REG_COUNT_S, 6, v);
++}
++
++static int da9055_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
++{
++	int ret;
++	struct rtc_time *tm = &alrm->time;
++	struct da9055_rtc *rtc = dev_get_drvdata(dev);
++
++	ret = da9055_read_alarm(rtc->da9055, tm);
++
++	if (ret)
++		return ret;
++
++	alrm->enabled = da9055_rtc_get_alarm_status(rtc->da9055);
++
++	return 0;
++}
++
++static int da9055_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
++{
++	int ret;
++	struct rtc_time *tm = &alrm->time;
++	struct da9055_rtc *rtc = dev_get_drvdata(dev);
++
++	ret = da9055_rtc_enable_alarm(rtc, 0);
++	if (ret < 0)
++		return ret;
++
++	ret = da9055_set_alarm(rtc->da9055, tm);
++	if (ret)
++		return ret;
++
++	ret = da9055_rtc_enable_alarm(rtc, 1);
++
++	return ret;
++}
++
++static int da9055_rtc_alarm_irq_enable(struct device *dev, unsigned int enabled)
++{
++	struct da9055_rtc *rtc = dev_get_drvdata(dev);
++
++	return da9055_rtc_enable_alarm(rtc, enabled);
++}
++
++static const struct rtc_class_ops da9055_rtc_ops = {
++	.read_time	= da9055_rtc_read_time,
++	.set_time	= da9055_rtc_set_time,
++	.read_alarm	= da9055_rtc_read_alarm,
++	.set_alarm	= da9055_rtc_set_alarm,
++	.alarm_irq_enable = da9055_rtc_alarm_irq_enable,
++};
++
++static int __init da9055_rtc_device_init(struct da9055 *da9055,
++					struct da9055_pdata *pdata)
++{
++	int ret;
++
++	/* Enable RTC and the internal Crystal */
++	ret = da9055_reg_update(da9055, DA9055_REG_CONTROL_B,
++				DA9055_RTC_EN, DA9055_RTC_EN);
++	if (ret < 0)
++		return ret;
++	ret = da9055_reg_update(da9055, DA9055_REG_EN_32K,
++				DA9055_CRYSTAL_EN, DA9055_CRYSTAL_EN);
++	if (ret < 0)
++		return ret;
++
++	/* Enable RTC in Power Down mode */
++	ret = da9055_reg_update(da9055, DA9055_REG_CONTROL_B,
++				DA9055_RTC_MODE_PD, DA9055_RTC_MODE_PD);
++	if (ret < 0)
++		return ret;
++
++	/* Enable RTC in Reset mode */
++	if (pdata && pdata->reset_enable) {
++		ret = da9055_reg_update(da9055, DA9055_REG_CONTROL_B,
++					DA9055_RTC_MODE_SD,
++					DA9055_RTC_MODE_SD <<
++					DA9055_RTC_MODE_SD_SHIFT);
++		if (ret < 0)
++			return ret;
++	}
++
++	/* Disable the RTC TICK ALM */
++	ret = da9055_reg_update(da9055, DA9055_REG_ALARM_MO,
++				DA9055_RTC_TICK_WAKE_MASK, 0);
++	if (ret < 0)
++		return ret;
++
++	return 0;
++}
++
++static int __devinit da9055_rtc_probe(struct platform_device *pdev)
++{
++	struct da9055_rtc *rtc;
++	struct da9055_pdata *pdata = NULL;
++	int ret, alm_irq;
++
++	rtc = devm_kzalloc(&pdev->dev, sizeof(struct da9055_rtc), GFP_KERNEL);
++	if (!rtc)
++		return -ENOMEM;
++
++	rtc->da9055 = dev_get_drvdata(pdev->dev.parent);
++	pdata = rtc->da9055->dev->platform_data;
++	platform_set_drvdata(pdev, rtc);
++
++	ret = da9055_rtc_device_init(rtc->da9055, pdata);
++	if (ret < 0)
++		goto err_rtc;
++
++	ret = da9055_reg_read(rtc->da9055, DA9055_REG_ALARM_Y);
++	if (ret < 0)
++		goto err_rtc;
++
++	if (ret & DA9055_RTC_ALM_EN)
++		rtc->alarm_enable = 1;
++
++	device_init_wakeup(&pdev->dev, 1);
++
++	rtc->rtc = rtc_device_register(pdev->name, &pdev->dev,
++					&da9055_rtc_ops, THIS_MODULE);
++	if (IS_ERR(rtc->rtc)) {
++		ret = PTR_ERR(rtc->rtc);
++		goto err_rtc;
++	}
++
++	alm_irq = platform_get_irq_byname(pdev, "ALM");
++	alm_irq = regmap_irq_get_virq(rtc->da9055->irq_data, alm_irq);
++	ret = devm_request_threaded_irq(&pdev->dev, alm_irq, NULL,
++					da9055_rtc_alm_irq,
++					IRQF_TRIGGER_HIGH | IRQF_ONESHOT,
++					"ALM", rtc);
++	if (ret != 0)
++		dev_err(rtc->da9055->dev, "irq registration failed: %d\n", ret);
++
++err_rtc:
++	return ret;
++
++}
++
++static int __devexit da9055_rtc_remove(struct platform_device *pdev)
++{
++	struct da9055_rtc *rtc = pdev->dev.platform_data;
++
++	rtc_device_unregister(rtc->rtc);
++	platform_set_drvdata(pdev, NULL);
++
++	return 0;
++}
++
++#ifdef CONFIG_PM
++/* Turn off the alarm if it should not be a wake source. */
++static int da9055_rtc_suspend(struct device *dev)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct da9055_rtc *rtc = dev_get_drvdata(&pdev->dev);
++	int ret;
++
++	if (!device_may_wakeup(&pdev->dev)) {
++		/* Disable the ALM IRQ */
++		ret = da9055_rtc_enable_alarm(rtc, 0);
++		if (ret < 0)
++			dev_err(&pdev->dev, "Failed to disable RTC ALM\n");
++	}
++
++	return 0;
++}
++
++/* Enable the alarm if it should be enabled (in case it was disabled to
++ * prevent use as a wake source).
++ */
++static int da9055_rtc_resume(struct device *dev)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct da9055_rtc *rtc = dev_get_drvdata(&pdev->dev);
++	int ret;
++
++	if (!device_may_wakeup(&pdev->dev)) {
++		if (rtc->alarm_enable) {
++			ret = da9055_rtc_enable_alarm(rtc, 1);
++			if (ret < 0)
++				dev_err(&pdev->dev,
++					"Failed to restart RTC ALM\n");
++		}
++	}
++
++	return 0;
++}
++
++/* Unconditionally disable the alarm */
++static int da9055_rtc_freeze(struct device *dev)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct da9055_rtc *rtc = dev_get_drvdata(&pdev->dev);
++	int ret;
++
++	ret = da9055_rtc_enable_alarm(rtc, 0);
++	if (ret < 0)
++		dev_err(&pdev->dev, "Failed to freeze RTC ALMs\n");
++
++	return 0;
++
++}
++#else
++#define da9055_rtc_suspend NULL
++#define da9055_rtc_resume NULL
++#define da9055_rtc_freeze NULL
++#endif
++
++static const struct dev_pm_ops da9055_rtc_pm_ops = {
++	.suspend = da9055_rtc_suspend,
++	.resume = da9055_rtc_resume,
++
++	.freeze = da9055_rtc_freeze,
++	.thaw = da9055_rtc_resume,
++	.restore = da9055_rtc_resume,
++
++	.poweroff = da9055_rtc_suspend,
++};
++
++static struct platform_driver da9055_rtc_driver = {
++	.probe  = da9055_rtc_probe,
++	.remove = __devexit_p(da9055_rtc_remove),
++	.driver = {
++		.name   = "da9055-rtc",
++		.owner  = THIS_MODULE,
++		.pm = &da9055_rtc_pm_ops,
++	},
++};
++
++module_platform_driver(da9055_rtc_driver);
++
++MODULE_AUTHOR("David Dajun Chen <dchen@diasemi.com>");
++MODULE_DESCRIPTION("RTC driver for Dialog DA9055 PMIC");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:da9055-rtc");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ashish.jangam@kpitcummins.com are
 
 origin.patch
-thp-implement-splitting-pmd-for-huge-zero-page.patch
-mm-add-a-reminder-comment-for-__gfp_bits_shift.patch
-numa-add-config_movable_node-for-movable-dedicated-node.patch
-mm-introduce-new-field-managed_pages-to-struct-zone.patch
-mm-provide-more-accurate-estimation-of-pages-occupied-by-memmap.patch
-tmpfs-support-seek_data-and-seek_hole-reprise.patch
-hwpoison-hugetlbfs-fix-rss-counter-warning.patch
-mm-memoryc-remove-unused-code-from-do_wp_page.patch
 linux-next.patch
-linux-next-rejects.patch
-linux-next-rejects-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
-irq-tsk-comm-is-an-array.patch
-block-remove-deadlock-in-disk_clear_events-fix.patch
-block-prevent-race-cleanup-fix.patch
-mm.patch
-memcg-kmem-accounting-basic-infrastructure-fix.patch
-slub-slub-specific-propagation-changes-fix.patch
-mm-mprotectc-coding-style-cleanups.patch
-drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-lseek-the-whence-argument-is-called-whence.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
-backlight-add-of_find_backlight_by_node-function-fix.patch
-backlight-88pm860x_bl-remove-an-unnecessary-line-continuation-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes-checkpatch-fixes.patch
-hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix.patch
-procfs-add-vmflags-field-in-smaps-output-v4.patch
-procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
-ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
-ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
-ipc-convert-prepare_copy-from-macro-to-function-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-docs-add-documentation-about-proc-pid-fdinfo-fd-output-fix.patch
-fs-notify-add-procfs-fdinfo-helper-v7-fix.patch
-scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+drivers-video-backlight-da9052_blc-add-missing-const.patch
+rtc-da9055-rtc-driver.patch
 
