@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + dmatest-implement-two-helpers-to-unmap-dma-memory.patch added to -mm tree
-Date: Thu, 13 Dec 2012 15:34:56 -0800
-Message-ID: <20121213233458.34F60100047@wpzn3.hot.corp.google.com>
+Subject: + dmatest-check-for-dma-mapping-error.patch added to -mm tree
+Date: Thu, 13 Dec 2012 15:35:00 -0800
+Message-ID: <20121213233501.7AC4B200061@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:39081 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753482Ab2LMXe7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Dec 2012 18:34:59 -0500
-Received: by mail-qa0-f74.google.com with SMTP id r4so20397qaq.1
-        for <mm-commits@vger.kernel.org>; Thu, 13 Dec 2012 15:34:58 -0800 (PST)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:52284 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755730Ab2LMXfD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Dec 2012 18:35:03 -0500
+Received: by mail-wi0-f202.google.com with SMTP id hn17so5146wib.1
+        for <mm-commits@vger.kernel.org>; Thu, 13 Dec 2012 15:35:02 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: andriy.shevchenko@linux.intel.com, vinod.koul@intel.com, viresh.kumar@linaro
 
 
 The patch titled
-     Subject: dmatest: implement two helpers to unmap dma memory
+     Subject: dmatest: check for dma mapping error
 has been added to the -mm tree.  Its filename is
-     dmatest-implement-two-helpers-to-unmap-dma-memory.patch
+     dmatest-check-for-dma-mapping-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,9 +34,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: dmatest: implement two helpers to unmap dma memory
+Subject: dmatest: check for dma mapping error
 
-The unmap_src() and unmap_dst() will be used later as well.
+We get a warning if CONFIG_DMA_API_DEBUG=y
+
+[   28.150631] WARNING: at lib/dma-debug.c:933 check_unmap+0x5d6/0x6ac()
+[   28.157058] dw_dmac dw_dmac.0: DMA-API: device driver failed to check map error[device address=0x0000000035698305] [size=14365 bytes] [mapped as single]
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Reviewed-by: Viresh Kumar <viresh.kumar@linaro.org>
@@ -44,73 +47,42 @@ Cc: Vinod Koul <vinod.koul@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/dmatest.c |   27 +++++++++++++++++----------
- 1 file changed, 17 insertions(+), 10 deletions(-)
+ drivers/dma/dmatest.c |   22 +++++++++++++++++++++-
+ 1 file changed, 21 insertions(+), 1 deletion(-)
 
-diff -puN drivers/dma/dmatest.c~dmatest-implement-two-helpers-to-unmap-dma-memory drivers/dma/dmatest.c
---- a/drivers/dma/dmatest.c~dmatest-implement-two-helpers-to-unmap-dma-memory
+diff -puN drivers/dma/dmatest.c~dmatest-check-for-dma-mapping-error drivers/dma/dmatest.c
+--- a/drivers/dma/dmatest.c~dmatest-check-for-dma-mapping-error
 +++ a/drivers/dma/dmatest.c
-@@ -235,6 +235,20 @@ static unsigned int min_odd(unsigned int
- 	return val % 2 ? val : val - 1;
- }
+@@ -377,15 +377,35 @@ static int dmatest_func(void *data)
  
-+static inline void unmap_src(struct device *dev, dma_addr_t *addr, size_t len,
-+			     unsigned int count)
-+{
-+	while (count--)
-+		dma_unmap_single(dev, addr[count], len, DMA_TO_DEVICE);
-+}
-+
-+static inline void unmap_dst(struct device *dev, dma_addr_t *addr, size_t len,
-+			     unsigned int count)
-+{
-+	while (count--)
-+		dma_unmap_single(dev, addr[count], len, DMA_BIDIRECTIONAL);
-+}
-+
- /*
-  * This function repeatedly tests DMA transfers of various lengths and
-  * offsets for a given operation type until it is told to exit by
-@@ -393,13 +407,8 @@ static int dmatest_func(void *data)
+ 			dma_srcs[i] = dma_map_single(dev->dev, buf, len,
+ 						     DMA_TO_DEVICE);
++			ret = dma_mapping_error(dev->dev, dma_srcs[i]);
++			if (ret) {
++				unmap_src(dev->dev, dma_srcs, len, i);
++				pr_warn("%s: #%u: mapping error %d with "
++					"src_off=0x%x len=0x%x\n",
++					thread_name, total_tests - 1, ret,
++					src_off, len);
++				failed_tests++;
++				continue;
++			}
+ 		}
+ 		/* map with DMA_BIDIRECTIONAL to force writeback/invalidate */
+ 		for (i = 0; i < dst_cnt; i++) {
+ 			dma_dsts[i] = dma_map_single(dev->dev, thread->dsts[i],
+ 						     test_buf_size,
+ 						     DMA_BIDIRECTIONAL);
++			ret = dma_mapping_error(dev->dev, dma_dsts[i]);
++			if (ret) {
++				unmap_src(dev->dev, dma_srcs, len, src_cnt);
++				unmap_dst(dev->dev, dma_dsts, test_buf_size, i);
++				pr_warn("%s: #%u: mapping error %d with "
++					"dst_off=0x%x len=0x%x\n",
++					thread_name, total_tests - 1, ret,
++					dst_off, test_buf_size);
++				failed_tests++;
++				continue;
++			}
  		}
  
- 		if (!tx) {
--			for (i = 0; i < src_cnt; i++)
--				dma_unmap_single(dev->dev, dma_srcs[i], len,
--						 DMA_TO_DEVICE);
--			for (i = 0; i < dst_cnt; i++)
--				dma_unmap_single(dev->dev, dma_dsts[i],
--						 test_buf_size,
--						 DMA_BIDIRECTIONAL);
-+			unmap_src(dev->dev, dma_srcs, len, src_cnt);
-+			unmap_dst(dev->dev, dma_dsts, test_buf_size, dst_cnt);
- 			pr_warning("%s: #%u: prep error with src_off=0x%x "
- 					"dst_off=0x%x len=0x%x\n",
- 					thread_name, total_tests - 1,
-@@ -453,9 +462,7 @@ static int dmatest_func(void *data)
- 		}
- 
- 		/* Unmap by myself (see DMA_COMPL_SKIP_DEST_UNMAP above) */
--		for (i = 0; i < dst_cnt; i++)
--			dma_unmap_single(dev->dev, dma_dsts[i], test_buf_size,
--					 DMA_BIDIRECTIONAL);
-+		unmap_dst(dev->dev, dma_dsts, test_buf_size, dst_cnt);
- 
- 		error_count = 0;
- 
-_
-
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
-
-origin.patch
-linux-next.patch
-dmatest-implement-two-helpers-to-unmap-dma-memory.patch
-dmatest-check-for-dma-mapping-error.patch
-string-introduce-helper-to-get-base-file-name-from-given-path.patch
-lib-dynamic_debug-use-kbasename.patch
-mm-use-kbasename.patch
-procfs-use-kbasename.patch
-procfs-use-kbasename-fix.patch
-trace-use-kbasename.patch
-drivers-of-fdtc-re-use-kernels-kbasename.patch
-
