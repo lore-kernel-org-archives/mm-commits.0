@@ -1,116 +1,174 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-oom-cleanup-pagefault-oom-handler.patch removed from -mm tree
-Date: Fri, 14 Dec 2012 15:29:21 -0800
-Message-ID: <20121214232921.AD6E6100047@wpzn3.hot.corp.google.com>
+Subject: [merged] mm-oom-remove-statically-defined-arch-functions-of-same-name.patch removed from -mm tree
+Date: Fri, 14 Dec 2012 15:29:27 -0800
+Message-ID: <20121214232928.4DBC5200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:36366 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932668Ab2LNX3W (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Dec 2012 18:29:22 -0500
-Received: by mail-gg0-f202.google.com with SMTP id k1so408587ggn.1
-        for <mm-commits@vger.kernel.org>; Fri, 14 Dec 2012 15:29:22 -0800 (PST)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:56640 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932729Ab2LNX3c (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Dec 2012 18:29:32 -0500
+Received: by mail-la0-f74.google.com with SMTP id v3so207388lag.1
+        for <mm-commits@vger.kernel.org>; Fri, 14 Dec 2012 15:29:30 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: rientjes@google.com, benh@kernel.crashing.org, hpa@zytor.com, kamezawa.hiroyu@jp.fujitsu.com, lethal@linux-sh.org, mhocko@suse.cz, mingo@redhat.com, paulus@samba.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, oom: cleanup pagefault oom handler
+     Subject: mm, oom: remove statically defined arch functions of same name
 has been removed from the -mm tree.  Its filename was
-     mm-oom-cleanup-pagefault-oom-handler.patch
+     mm-oom-remove-statically-defined-arch-functions-of-same-name.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: David Rientjes <rientjes@google.com>
-Subject: mm, oom: cleanup pagefault oom handler
+Subject: mm, oom: remove statically defined arch functions of same name
 
-To lock the entire system from parallel oom killing, it's possible to pass
-in a zonelist with all zones rather than using for_each_populated_zone()
-for the iteration.  This obsoletes try_set_system_oom() and
-clear_system_oom() so that they can be removed.
+out_of_memory() is a globally defined function to call the oom killer. 
+x86, sh, and powerpc all use a function of the same name within file scope
+in their respective fault.c unnecessarily.  Inline the functions into the
+pagefault handlers to clean the code up.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   49 ++++++------------------------------------------
- 1 file changed, 7 insertions(+), 42 deletions(-)
+ arch/powerpc/mm/fault.c |   27 ++++++++++++---------------
+ arch/sh/mm/fault.c      |   19 +++++++------------
+ arch/x86/mm/fault.c     |   23 ++++++++---------------
+ 3 files changed, 27 insertions(+), 42 deletions(-)
 
-diff -puN mm/oom_kill.c~mm-oom-cleanup-pagefault-oom-handler mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-cleanup-pagefault-oom-handler
-+++ a/mm/oom_kill.c
-@@ -591,43 +591,6 @@ void clear_zonelist_oom(struct zonelist 
- 	spin_unlock(&zone_scan_lock);
- }
+diff -puN arch/powerpc/mm/fault.c~mm-oom-remove-statically-defined-arch-functions-of-same-name arch/powerpc/mm/fault.c
+--- a/arch/powerpc/mm/fault.c~mm-oom-remove-statically-defined-arch-functions-of-same-name
++++ a/arch/powerpc/mm/fault.c
+@@ -113,19 +113,6 @@ static int store_updates_sp(struct pt_re
+ #define MM_FAULT_CONTINUE	-1
+ #define MM_FAULT_ERR(sig)	(sig)
  
--/*
-- * Try to acquire the oom killer lock for all system zones.  Returns zero if a
-- * parallel oom killing is taking place, otherwise locks all zones and returns
-- * non-zero.
-- */
--static int try_set_system_oom(void)
+-static int out_of_memory(struct pt_regs *regs)
 -{
--	struct zone *zone;
--	int ret = 1;
--
--	spin_lock(&zone_scan_lock);
--	for_each_populated_zone(zone)
--		if (zone_is_oom_locked(zone)) {
--			ret = 0;
--			goto out;
--		}
--	for_each_populated_zone(zone)
--		zone_set_flag(zone, ZONE_OOM_LOCKED);
--out:
--	spin_unlock(&zone_scan_lock);
--	return ret;
+-	/*
+-	 * We ran out of memory, or some other thing happened to us that made
+-	 * us unable to handle the page fault gracefully.
+-	 */
+-	up_read(&current->mm->mmap_sem);
+-	if (!user_mode(regs))
+-		return MM_FAULT_ERR(SIGKILL);
+-	pagefault_out_of_memory();
+-	return MM_FAULT_RETURN;
 -}
 -
--/*
-- * Clears ZONE_OOM_LOCKED for all system zones so that failed allocation
-- * attempts or page faults may now recall the oom killer, if necessary.
-- */
--static void clear_system_oom(void)
--{
--	struct zone *zone;
--
--	spin_lock(&zone_scan_lock);
--	for_each_populated_zone(zone)
--		zone_clear_flag(zone, ZONE_OOM_LOCKED);
--	spin_unlock(&zone_scan_lock);
--}
--
- /**
-  * out_of_memory - kill the "best" process when we run out of memory
-  * @zonelist: zonelist pointer
-@@ -708,15 +671,17 @@ out:
- 
- /*
-  * The pagefault handler calls here because it is out of memory, so kill a
-- * memory-hogging task.  If a populated zone has ZONE_OOM_LOCKED set, a parallel
-- * oom killing is already in progress so do nothing.  If a task is found with
-- * TIF_MEMDIE set, it has been killed so do nothing and allow it to exit.
-+ * memory-hogging task.  If any populated zone has ZONE_OOM_LOCKED set, a
-+ * parallel oom killing is already in progress so do nothing.
-  */
- void pagefault_out_of_memory(void)
+ static int do_sigbus(struct pt_regs *regs, unsigned long address)
  {
--	if (try_set_system_oom()) {
-+	struct zonelist *zonelist = node_zonelist(first_online_node,
-+						  GFP_KERNEL);
+ 	siginfo_t info;
+@@ -169,8 +156,18 @@ static int mm_fault_error(struct pt_regs
+ 		return MM_FAULT_CONTINUE;
+ 
+ 	/* Out of memory */
+-	if (fault & VM_FAULT_OOM)
+-		return out_of_memory(regs);
++	if (fault & VM_FAULT_OOM) {
++		up_read(&current->mm->mmap_sem);
 +
-+	if (try_set_zonelist_oom(zonelist, GFP_KERNEL)) {
- 		out_of_memory(NULL, 0, 0, NULL, false);
--		clear_system_oom();
-+		clear_zonelist_oom(zonelist, GFP_KERNEL);
- 	}
- 	schedule_timeout_killable(1);
++		/*
++		 * We ran out of memory, or some other thing happened to us that
++		 * made us unable to handle the page fault gracefully.
++		 */
++		if (!user_mode(regs))
++			return MM_FAULT_ERR(SIGKILL);
++		pagefault_out_of_memory();
++		return MM_FAULT_RETURN;
++	}
+ 
+ 	/* Bus error. x86 handles HWPOISON here, we'll add this if/when
+ 	 * we support the feature in HW
+diff -puN arch/sh/mm/fault.c~mm-oom-remove-statically-defined-arch-functions-of-same-name arch/sh/mm/fault.c
+--- a/arch/sh/mm/fault.c~mm-oom-remove-statically-defined-arch-functions-of-same-name
++++ a/arch/sh/mm/fault.c
+@@ -301,17 +301,6 @@ bad_area_access_error(struct pt_regs *re
+ 	__bad_area(regs, error_code, address, SEGV_ACCERR);
  }
+ 
+-static void out_of_memory(void)
+-{
+-	/*
+-	 * We ran out of memory, call the OOM killer, and return the userspace
+-	 * (which will retry the fault, or kill us if we got oom-killed):
+-	 */
+-	up_read(&current->mm->mmap_sem);
+-
+-	pagefault_out_of_memory();
+-}
+-
+ static void
+ do_sigbus(struct pt_regs *regs, unsigned long error_code, unsigned long address)
+ {
+@@ -353,8 +342,14 @@ mm_fault_error(struct pt_regs *regs, uns
+ 			no_context(regs, error_code, address);
+ 			return 1;
+ 		}
++		up_read(&current->mm->mmap_sem);
+ 
+-		out_of_memory();
++		/*
++		 * We ran out of memory, call the OOM killer, and return the
++		 * userspace (which will retry the fault, or kill us if we got
++		 * oom-killed):
++		 */
++		pagefault_out_of_memory();
+ 	} else {
+ 		if (fault & VM_FAULT_SIGBUS)
+ 			do_sigbus(regs, error_code, address);
+diff -puN arch/x86/mm/fault.c~mm-oom-remove-statically-defined-arch-functions-of-same-name arch/x86/mm/fault.c
+--- a/arch/x86/mm/fault.c~mm-oom-remove-statically-defined-arch-functions-of-same-name
++++ a/arch/x86/mm/fault.c
+@@ -803,20 +803,6 @@ bad_area_access_error(struct pt_regs *re
+ 	__bad_area(regs, error_code, address, SEGV_ACCERR);
+ }
+ 
+-/* TODO: fixup for "mm-invoke-oom-killer-from-page-fault.patch" */
+-static void
+-out_of_memory(struct pt_regs *regs, unsigned long error_code,
+-	      unsigned long address)
+-{
+-	/*
+-	 * We ran out of memory, call the OOM killer, and return the userspace
+-	 * (which will retry the fault, or kill us if we got oom-killed):
+-	 */
+-	up_read(&current->mm->mmap_sem);
+-
+-	pagefault_out_of_memory();
+-}
+-
+ static void
+ do_sigbus(struct pt_regs *regs, unsigned long error_code, unsigned long address,
+ 	  unsigned int fault)
+@@ -879,7 +865,14 @@ mm_fault_error(struct pt_regs *regs, uns
+ 			return 1;
+ 		}
+ 
+-		out_of_memory(regs, error_code, address);
++		up_read(&current->mm->mmap_sem);
++
++		/*
++		 * We ran out of memory, call the OOM killer, and return the
++		 * userspace (which will retry the fault, or kill us if we got
++		 * oom-killed):
++		 */
++		pagefault_out_of_memory();
+ 	} else {
+ 		if (fault & (VM_FAULT_SIGBUS|VM_FAULT_HWPOISON|
+ 			     VM_FAULT_HWPOISON_LARGE))
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
