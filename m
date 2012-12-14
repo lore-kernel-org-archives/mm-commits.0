@@ -1,182 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tmpfs-support-seek_data-and-seek_hole-reprise.patch removed from -mm tree
-Date: Fri, 14 Dec 2012 15:29:54 -0800
-Message-ID: <20121214232955.9D92E200059@hpza10.eem.corp.google.com>
+Subject: [merged] memcg-do-not-check-for-mm-in-mem_cgroup_count_vm_event-disabled.patch removed from -mm tree
+Date: Fri, 14 Dec 2012 15:30:00 -0800
+Message-ID: <20121214233000.DE019820062@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:41837 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932552Ab2LNX37 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Dec 2012 18:29:59 -0500
-Received: by mail-ee0-f74.google.com with SMTP id t10so208770eei.1
-        for <mm-commits@vger.kernel.org>; Fri, 14 Dec 2012 15:29:58 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:52777 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932552Ab2LNXaB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Dec 2012 18:30:01 -0500
+Received: by mail-yh0-f74.google.com with SMTP id 10so409401yhl.1
+        for <mm-commits@vger.kernel.org>; Fri, 14 Dec 2012 15:30:01 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, adilger@dilger.ca, andi@firstfloor.org, chris.mason@fusionio.com, david@fromorbit.com, eggert@cs.ucla.edu, hch@infradead.org, jaegeuk.hanse@gmail.com, jeff.liu@oracle.com, josef@redhat.com, marco.stornelli@gmail.com, sunil.mushran@oracle.com, tytso@mit.edu, wenqing.lz@taobao.com, mm-commits@vger.kernel.org
+To: mhocko@suse.cz, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, rientjes@google.com, yinghan@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tmpfs: support SEEK_DATA and SEEK_HOLE (reprise)
+     Subject: memcg: do not check for mm in __mem_cgroup_count_vm_event
 has been removed from the -mm tree.  Its filename was
-     tmpfs-support-seek_data-and-seek_hole-reprise.patch
+     memcg-do-not-check-for-mm-in-mem_cgroup_count_vm_event-disabled.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: tmpfs: support SEEK_DATA and SEEK_HOLE (reprise)
+From: Michal Hocko <mhocko@suse.cz>
+Subject: memcg: do not check for mm in __mem_cgroup_count_vm_event
 
-Revert 3.5's f21f8062201f ("tmpfs: revert SEEK_DATA and SEEK_HOLE") to
-reinstate 4fb5ef089b28 ("tmpfs: support SEEK_DATA and SEEK_HOLE"), with
-the intervening additional arg to generic_file_llseek_size().
+The mm given to __mem_cgroup_count_vm_event() cannot be NULL because the
+function is either called from the page fault path or vma->vm_mm is used. 
+So the check can be dropped.
 
-In 3.8, ext4 is expected to join btrfs, ocfs2 and xfs with proper
-SEEK_DATA and SEEK_HOLE support; and a good case has now been made for it
-on tmpfs, so let's join the party.
+The check was introduced by 456f998e (memcg: add the pagefault count into
+memcg stats) because the originally proposed patch used current->mm for
+shmem but this has been changed to vma->vm_mm later on without the check
+being removed (thanks to Hugh for this recollection).
 
-It's quite easy for tmpfs to scan the radix_tree to support llseek's new
-SEEK_DATA and SEEK_HOLE options: so add them while the minutiae are still
-on my mind (in particular, the !PageUptodate-ness of pages fallocated but
-still unwritten).
-
-[akpm@linux-foundation.org: fix warning with CONFIG_TMPFS=n]
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jaegeuk Hanse <jaegeuk.hanse@gmail.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Zheng Liu <wenqing.lz@taobao.com>
-Cc: Jeff liu <jeff.liu@oracle.com>
-Cc: Paul Eggert <eggert@cs.ucla.edu>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Josef Bacik <josef@redhat.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Andreas Dilger <adilger@dilger.ca>
-Cc: Marco Stornelli <marco.stornelli@gmail.com>
-Cc: Chris Mason <chris.mason@fusionio.com>
-Cc: Sunil Mushran <sunil.mushran@oracle.com>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ying Han <yinghan@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   92 ++++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 91 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN mm/shmem.c~tmpfs-support-seek_data-and-seek_hole-reprise mm/shmem.c
---- a/mm/shmem.c~tmpfs-support-seek_data-and-seek_hole-reprise
-+++ a/mm/shmem.c
-@@ -1715,6 +1715,96 @@ static ssize_t shmem_file_splice_read(st
- 	return error;
- }
- 
-+/*
-+ * llseek SEEK_DATA or SEEK_HOLE through the radix_tree.
-+ */
-+static pgoff_t shmem_seek_hole_data(struct address_space *mapping,
-+				    pgoff_t index, pgoff_t end, int origin)
-+{
-+	struct page *page;
-+	struct pagevec pvec;
-+	pgoff_t indices[PAGEVEC_SIZE];
-+	bool done = false;
-+	int i;
-+
-+	pagevec_init(&pvec, 0);
-+	pvec.nr = 1;		/* start small: we may be there already */
-+	while (!done) {
-+		pvec.nr = shmem_find_get_pages_and_swap(mapping, index,
-+					pvec.nr, pvec.pages, indices);
-+		if (!pvec.nr) {
-+			if (origin == SEEK_DATA)
-+				index = end;
-+			break;
-+		}
-+		for (i = 0; i < pvec.nr; i++, index++) {
-+			if (index < indices[i]) {
-+				if (origin == SEEK_HOLE) {
-+					done = true;
-+					break;
-+				}
-+				index = indices[i];
-+			}
-+			page = pvec.pages[i];
-+			if (page && !radix_tree_exceptional_entry(page)) {
-+				if (!PageUptodate(page))
-+					page = NULL;
-+			}
-+			if (index >= end ||
-+			    (page && origin == SEEK_DATA) ||
-+			    (!page && origin == SEEK_HOLE)) {
-+				done = true;
-+				break;
-+			}
-+		}
-+		shmem_deswap_pagevec(&pvec);
-+		pagevec_release(&pvec);
-+		pvec.nr = PAGEVEC_SIZE;
-+		cond_resched();
-+	}
-+	return index;
-+}
-+
-+static loff_t shmem_file_llseek(struct file *file, loff_t offset, int origin)
-+{
-+	struct address_space *mapping = file->f_mapping;
-+	struct inode *inode = mapping->host;
-+	pgoff_t start, end;
-+	loff_t new_offset;
-+
-+	if (origin != SEEK_DATA && origin != SEEK_HOLE)
-+		return generic_file_llseek_size(file, offset, origin,
-+					MAX_LFS_FILESIZE, i_size_read(inode));
-+	mutex_lock(&inode->i_mutex);
-+	/* We're holding i_mutex so we can access i_size directly */
-+
-+	if (offset < 0)
-+		offset = -EINVAL;
-+	else if (offset >= inode->i_size)
-+		offset = -ENXIO;
-+	else {
-+		start = offset >> PAGE_CACHE_SHIFT;
-+		end = (inode->i_size + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
-+		new_offset = shmem_seek_hole_data(mapping, start, end, origin);
-+		new_offset <<= PAGE_CACHE_SHIFT;
-+		if (new_offset > offset) {
-+			if (new_offset < inode->i_size)
-+				offset = new_offset;
-+			else if (origin == SEEK_DATA)
-+				offset = -ENXIO;
-+			else
-+				offset = inode->i_size;
-+		}
-+	}
-+
-+	if (offset >= 0 && offset != file->f_pos) {
-+		file->f_pos = offset;
-+		file->f_version = 0;
-+	}
-+	mutex_unlock(&inode->i_mutex);
-+	return offset;
-+}
-+
- static long shmem_fallocate(struct file *file, int mode, loff_t offset,
- 							 loff_t len)
+diff -puN mm/memcontrol.c~memcg-do-not-check-for-mm-in-mem_cgroup_count_vm_event-disabled mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-do-not-check-for-mm-in-mem_cgroup_count_vm_event-disabled
++++ a/mm/memcontrol.c
+@@ -1021,9 +1021,6 @@ void __mem_cgroup_count_vm_event(struct 
  {
-@@ -2586,7 +2676,7 @@ static const struct address_space_operat
- static const struct file_operations shmem_file_operations = {
- 	.mmap		= shmem_mmap,
- #ifdef CONFIG_TMPFS
--	.llseek		= generic_file_llseek,
-+	.llseek		= shmem_file_llseek,
- 	.read		= do_sync_read,
- 	.write		= do_sync_write,
- 	.aio_read	= shmem_file_aio_read,
+ 	struct mem_cgroup *memcg;
+ 
+-	if (!mm)
+-		return;
+-
+ 	rcu_read_lock();
+ 	memcg = mem_cgroup_from_task(rcu_dereference(mm->owner));
+ 	if (unlikely(!memcg))
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
 origin.patch
-linux-next.patch
-ksm-numa-awareness-sysfs-knob.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-lseek-the-whence-argument-is-called-whence.patch
+memcg-make-it-possible-to-use-the-stock-for-more-than-one-page.patch
+memcg-reclaim-when-more-than-one-page-needed.patch
+memcg-change-defines-to-an-enum.patch
+memcg-kmem-accounting-basic-infrastructure.patch
+memcg-kmem-accounting-basic-infrastructure-fix.patch
+mm-add-a-__gfp_kmemcg-flag.patch
+memcg-kmem-controller-infrastructure.patch
+memcg-kmem-controller-infrastructure-replace-__always_inline-with-plain-inline.patch
+mm-allocate-kernel-pages-to-the-right-memcg.patch
+res_counter-return-amount-of-charges-after-res_counter_uncharge.patch
+memcg-kmem-accounting-lifecycle-management.patch
+memcg-use-static-branches-when-code-not-in-use.patch
+memcg-allow-a-memcg-with-kmem-charges-to-be-destructed.patch
+memcg-execute-the-whole-memcg-freeing-in-free_worker.patch
+fork-protect-architectures-where-thread_size-=-page_size-against-fork-bombs.patch
+memcg-add-documentation-about-the-kmem-controller.patch
+slab-slub-struct-memcg_params.patch
+slab-annotate-on-slab-caches-nodelist-locks.patch
+slab-slub-consider-a-memcg-parameter-in-kmem_create_cache.patch
+memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears.patch
+memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears-simplify-ida-initialization.patch
+memcg-infrastructure-to-match-an-allocation-to-the-right-cache.patch
+memcg-skip-memcg-kmem-allocations-in-specified-code-regions.patch
+memcg-skip-memcg-kmem-allocations-in-specified-code-regions-remove-test-for-current-mm-in-memcg_stop-resume_kmem_account.patch
+slb-always-get-the-cache-from-its-page-in-kmem_cache_free.patch
+slb-allocate-objects-from-memcg-cache.patch
+memcg-destroy-memcg-caches.patch
+memcg-destroy-memcg-caches-move-include-of-workqueueh-to-top-of-slabh-file.patch
+memcg-slb-track-all-the-memcg-children-of-a-kmem_cache.patch
+memcg-slb-shrink-dead-caches.patch
+memcg-slb-shrink-dead-caches-get-rid-of-once-per-second-cache-shrinking-for-dead-memcgs.patch
+memcg-aggregate-memcg-cache-values-in-slabinfo.patch
+slab-propagate-tunable-values.patch
+slub-slub-specific-propagation-changes.patch
+slub-slub-specific-propagation-changes-fix.patch
+kmem-add-slab-specific-documentation-about-the-kmem-controller.patch
+memcg-add-comments-clarifying-aspects-of-cache-attribute-propagation.patch
+slub-drop-mutex-before-deleting-sysfs-entry.patch
+mm-hugetlb-create-hugetlb-cgroup-file-in-hugetlb_init.patch
+mm-hugetlb-create-hugetlb-cgroup-file-in-hugetlb_init-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
+mm-memblock-reduce-overhead-in-binary-search.patch
+memcg-debugging-facility-to-access-dangling-memcgs.patch
 
