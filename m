@@ -1,112 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-do-not-check-for-mm-in-mem_cgroup_count_vm_event-disabled.patch removed from -mm tree
-Date: Fri, 14 Dec 2012 15:30:00 -0800
-Message-ID: <20121214233000.DE019820062@wpzn4.hot.corp.google.com>
+Subject: [merged] mm-protect-against-concurrent-vma-expansion.patch removed from -mm tree
+Date: Fri, 14 Dec 2012 15:30:03 -0800
+Message-ID: <20121214233004.77199200076@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:52777 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932552Ab2LNXaB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Dec 2012 18:30:01 -0500
-Received: by mail-yh0-f74.google.com with SMTP id 10so409401yhl.1
-        for <mm-commits@vger.kernel.org>; Fri, 14 Dec 2012 15:30:01 -0800 (PST)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:50052 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932552Ab2LNXaH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Dec 2012 18:30:07 -0500
+Received: by mail-bk0-f74.google.com with SMTP id je9so209026bkc.1
+        for <mm-commits@vger.kernel.org>; Fri, 14 Dec 2012 15:30:05 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, rientjes@google.com, yinghan@google.com, mm-commits@vger.kernel.org
+To: walken@google.com, hughd@google.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: do not check for mm in __mem_cgroup_count_vm_event
+     Subject: mm: protect against concurrent vma expansion
 has been removed from the -mm tree.  Its filename was
-     memcg-do-not-check-for-mm-in-mem_cgroup_count_vm_event-disabled.patch
+     mm-protect-against-concurrent-vma-expansion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg: do not check for mm in __mem_cgroup_count_vm_event
+From: Michel Lespinasse <walken@google.com>
+Subject: mm: protect against concurrent vma expansion
 
-The mm given to __mem_cgroup_count_vm_event() cannot be NULL because the
-function is either called from the page fault path or vma->vm_mm is used. 
-So the check can be dropped.
+expand_stack() runs with a shared mmap_sem lock.  Because of this, there
+could be multiple concurrent stack expansions in the same mm, which may
+cause problems in the vma gap update code.
 
-The check was introduced by 456f998e (memcg: add the pagefault count into
-memcg stats) because the originally proposed patch used current->mm for
-shmem but this has been changed to vma->vm_mm later on without the check
-being removed (thanks to Hugh for this recollection).
+I propose to solve this by taking the mm->page_table_lock around such vma
+expansions, in order to avoid the concurrency issue.  We only have to
+worry about concurrent expand_stack() calls here, since we hold a shared
+mmap_sem lock and all vma modificaitons other than expand_stack() are done
+under an exclusive mmap_sem lock.
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
+I previously tried to achieve the same effect by making sure all growable
+vmas in a given mm would share the same anon_vma, which we already lock
+here.  However this turned out to be difficult - all of the schemes I
+tried for refcounting the growable anon_vma and clearing turned out ugly. 
+So, I'm now proposing only the minimal fix.
+
+The overhead of taking the page table lock during stack expansion is
+expected to be small: glibc doesn't use expandable stacks for the threads
+it creates, so having multiple growable stacks is actually uncommon and we
+don't expect the page table lock to get bounced between threads.
+
+Signed-off-by: Michel Lespinasse <walken@google.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Ying Han <yinghan@google.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/mmap.c |   28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
-diff -puN mm/memcontrol.c~memcg-do-not-check-for-mm-in-mem_cgroup_count_vm_event-disabled mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-do-not-check-for-mm-in-mem_cgroup_count_vm_event-disabled
-+++ a/mm/memcontrol.c
-@@ -1021,9 +1021,6 @@ void __mem_cgroup_count_vm_event(struct 
- {
- 	struct mem_cgroup *memcg;
- 
--	if (!mm)
--		return;
--
- 	rcu_read_lock();
- 	memcg = mem_cgroup_from_task(rcu_dereference(mm->owner));
- 	if (unlikely(!memcg))
+diff -puN mm/mmap.c~mm-protect-against-concurrent-vma-expansion mm/mmap.c
+--- a/mm/mmap.c~mm-protect-against-concurrent-vma-expansion
++++ a/mm/mmap.c
+@@ -2069,6 +2069,18 @@ int expand_upwards(struct vm_area_struct
+ 		if (vma->vm_pgoff + (size >> PAGE_SHIFT) >= vma->vm_pgoff) {
+ 			error = acct_stack_growth(vma, size, grow);
+ 			if (!error) {
++				/*
++				 * vma_gap_update() doesn't support concurrent
++				 * updates, but we only hold a shared mmap_sem
++				 * lock here, so we need to protect against
++				 * concurrent vma expansions.
++				 * vma_lock_anon_vma() doesn't help here, as
++				 * we don't guarantee that all growable vmas
++				 * in a mm share the same root anon vma.
++				 * So, we reuse mm->page_table_lock to guard
++				 * against concurrent vma expansions.
++				 */
++				spin_lock(&vma->vm_mm->page_table_lock);
+ 				anon_vma_interval_tree_pre_update_vma(vma);
+ 				vma->vm_end = address;
+ 				anon_vma_interval_tree_post_update_vma(vma);
+@@ -2076,6 +2088,8 @@ int expand_upwards(struct vm_area_struct
+ 					vma_gap_update(vma->vm_next);
+ 				else
+ 					vma->vm_mm->highest_vm_end = address;
++				spin_unlock(&vma->vm_mm->page_table_lock);
++
+ 				perf_event_mmap(vma);
+ 			}
+ 		}
+@@ -2126,11 +2140,25 @@ int expand_downwards(struct vm_area_stru
+ 		if (grow <= vma->vm_pgoff) {
+ 			error = acct_stack_growth(vma, size, grow);
+ 			if (!error) {
++				/*
++				 * vma_gap_update() doesn't support concurrent
++				 * updates, but we only hold a shared mmap_sem
++				 * lock here, so we need to protect against
++				 * concurrent vma expansions.
++				 * vma_lock_anon_vma() doesn't help here, as
++				 * we don't guarantee that all growable vmas
++				 * in a mm share the same root anon vma.
++				 * So, we reuse mm->page_table_lock to guard
++				 * against concurrent vma expansions.
++				 */
++				spin_lock(&vma->vm_mm->page_table_lock);
+ 				anon_vma_interval_tree_pre_update_vma(vma);
+ 				vma->vm_start = address;
+ 				vma->vm_pgoff -= grow;
+ 				anon_vma_interval_tree_post_update_vma(vma);
+ 				vma_gap_update(vma);
++				spin_unlock(&vma->vm_mm->page_table_lock);
++
+ 				perf_event_mmap(vma);
+ 			}
+ 		}
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from walken@google.com are
 
 origin.patch
-memcg-make-it-possible-to-use-the-stock-for-more-than-one-page.patch
-memcg-reclaim-when-more-than-one-page-needed.patch
-memcg-change-defines-to-an-enum.patch
-memcg-kmem-accounting-basic-infrastructure.patch
-memcg-kmem-accounting-basic-infrastructure-fix.patch
-mm-add-a-__gfp_kmemcg-flag.patch
-memcg-kmem-controller-infrastructure.patch
-memcg-kmem-controller-infrastructure-replace-__always_inline-with-plain-inline.patch
-mm-allocate-kernel-pages-to-the-right-memcg.patch
-res_counter-return-amount-of-charges-after-res_counter_uncharge.patch
-memcg-kmem-accounting-lifecycle-management.patch
-memcg-use-static-branches-when-code-not-in-use.patch
-memcg-allow-a-memcg-with-kmem-charges-to-be-destructed.patch
-memcg-execute-the-whole-memcg-freeing-in-free_worker.patch
-fork-protect-architectures-where-thread_size-=-page_size-against-fork-bombs.patch
-memcg-add-documentation-about-the-kmem-controller.patch
-slab-slub-struct-memcg_params.patch
-slab-annotate-on-slab-caches-nodelist-locks.patch
-slab-slub-consider-a-memcg-parameter-in-kmem_create_cache.patch
-memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears.patch
-memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears-simplify-ida-initialization.patch
-memcg-infrastructure-to-match-an-allocation-to-the-right-cache.patch
-memcg-skip-memcg-kmem-allocations-in-specified-code-regions.patch
-memcg-skip-memcg-kmem-allocations-in-specified-code-regions-remove-test-for-current-mm-in-memcg_stop-resume_kmem_account.patch
-slb-always-get-the-cache-from-its-page-in-kmem_cache_free.patch
-slb-allocate-objects-from-memcg-cache.patch
-memcg-destroy-memcg-caches.patch
-memcg-destroy-memcg-caches-move-include-of-workqueueh-to-top-of-slabh-file.patch
-memcg-slb-track-all-the-memcg-children-of-a-kmem_cache.patch
-memcg-slb-shrink-dead-caches.patch
-memcg-slb-shrink-dead-caches-get-rid-of-once-per-second-cache-shrinking-for-dead-memcgs.patch
-memcg-aggregate-memcg-cache-values-in-slabinfo.patch
-slab-propagate-tunable-values.patch
-slub-slub-specific-propagation-changes.patch
-slub-slub-specific-propagation-changes-fix.patch
-kmem-add-slab-specific-documentation-about-the-kmem-controller.patch
-memcg-add-comments-clarifying-aspects-of-cache-attribute-propagation.patch
-slub-drop-mutex-before-deleting-sysfs-entry.patch
-mm-hugetlb-create-hugetlb-cgroup-file-in-hugetlb_init.patch
-mm-hugetlb-create-hugetlb-cgroup-file-in-hugetlb_init-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
-mm-memblock-reduce-overhead-in-binary-search.patch
-memcg-debugging-facility-to-access-dangling-memcgs.patch
+linux-next.patch
+lib-rbtree_testc-fix-uninitialized-variable-warning.patch
+random32-rename-random32-to-prandom.patch
+prandom-introduce-prandom_bytes-and-prandom_bytes_state.patch
+bnx2x-use-prandom_bytes.patch
+mtd-nandsim-use-prandom_bytes.patch
+ubifs-use-prandom_bytes.patch
+mtd-mtd_nandecctest-use-prandom_bytes-instead-of-get_random_bytes.patch
+mtd-mtd_oobtest-convert-to-use-prandom-library.patch
+mtd-mtd_pagetest-convert-to-use-prandom-library.patch
+mtd-mtd_speedtest-use-prandom_bytes.patch
+mtd-mtd_subpagetest-convert-to-use-prandom-library.patch
+mtd-mtd_stresstest-use-prandom_bytes.patch
 
