@@ -1,194 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: [merged] page_alloc-use-n_memory-instead-n_high_memory-change-the-node_states-initialization.patch removed from -mm tree
-Date: Fri, 14 Dec 2012 15:28:47 -0800
-Message-ID: <20121214232848.3D5A0200086@hpza10.eem.corp.google.com>
+Subject: [merged] res_counter-delete-res_counter_write.patch removed from -mm tree
+Date: Fri, 14 Dec 2012 15:28:57 -0800
+Message-ID: <20121214232857.BC12982004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:37905 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932723Ab2LNX2v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Dec 2012 18:28:51 -0500
-Received: by mail-wg0-f74.google.com with SMTP id dt14so208166wgb.1
-        for <mm-commits@vger.kernel.org>; Fri, 14 Dec 2012 15:28:50 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:55139 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932668Ab2LNX27 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Dec 2012 18:28:59 -0500
+Received: by mail-yh0-f74.google.com with SMTP id 10so409283yhl.1
+        for <mm-commits@vger.kernel.org>; Fri, 14 Dec 2012 15:28:58 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: laijs@cn.fujitsu.com, cl@linux.com, dhillf@gmail.com, linfeng@cn.fujitsu.com, rientjes@google.com, wency@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: gthelen@google.com, fweisbec@redhat.com, glommer@parallels.com, kamezawa.hiroyu@jp.fujitsu.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: page_alloc: use N_MEMORY instead N_HIGH_MEMORY change the node_states initialization
+     Subject: res_counter: delete res_counter_write()
 has been removed from the -mm tree.  Its filename was
-     page_alloc-use-n_memory-instead-n_high_memory-change-the-node_states-initialization.patch
+     res_counter-delete-res_counter_write.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Lai Jiangshan <laijs@cn.fujitsu.com>
-Subject: page_alloc: use N_MEMORY instead N_HIGH_MEMORY change the node_states initialization
+From: Greg Thelen <gthelen@google.com>
+Subject: res_counter: delete res_counter_write()
 
-N_HIGH_MEMORY stands for the nodes that has normal or high memory.
-N_MEMORY stands for the nodes that has any memory.
+Since 628f423553 ("memcg: limit change shrink usage") both
+res_counter_write() and write_strategy_fn have been unused.  This patch
+deletes them both.
 
-The code here need to handle with the nodes which have memory, we should
-use N_MEMORY instead.
-
-Since we introduced N_MEMORY, we update the initialization of node_states.
-
-Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-Signed-off-by: Lin Feng <linfeng@cn.fujitsu.com>
-Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Cc: Glauber Costa <glommer@parallels.com>
+Cc: Tejun Heo <tj@kernel.org>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Frederic Weisbecker <fweisbec@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init_64.c |    4 +++-
- mm/page_alloc.c       |   40 ++++++++++++++++++++++------------------
- 2 files changed, 25 insertions(+), 19 deletions(-)
+ include/linux/res_counter.h |    5 -----
+ kernel/res_counter.c        |   22 ----------------------
+ 2 files changed, 27 deletions(-)
 
-diff -puN arch/x86/mm/init_64.c~page_alloc-use-n_memory-instead-n_high_memory-change-the-node_states-initialization arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~page_alloc-use-n_memory-instead-n_high_memory-change-the-node_states-initialization
-+++ a/arch/x86/mm/init_64.c
-@@ -630,7 +630,9 @@ void __init paging_init(void)
- 	 *	 numa support is not compiled in, and later node_set_state
- 	 *	 will not set it back.
- 	 */
--	node_clear_state(0, N_NORMAL_MEMORY);
-+	node_clear_state(0, N_MEMORY);
-+	if (N_MEMORY != N_NORMAL_MEMORY)
-+		node_clear_state(0, N_NORMAL_MEMORY);
+diff -puN include/linux/res_counter.h~res_counter-delete-res_counter_write include/linux/res_counter.h
+--- a/include/linux/res_counter.h~res_counter-delete-res_counter_write
++++ a/include/linux/res_counter.h
+@@ -74,14 +74,9 @@ ssize_t res_counter_read(struct res_coun
+ 		const char __user *buf, size_t nbytes, loff_t *pos,
+ 		int (*read_strategy)(unsigned long long val, char *s));
  
- 	zone_sizes_init();
- }
-diff -puN mm/page_alloc.c~page_alloc-use-n_memory-instead-n_high_memory-change-the-node_states-initialization mm/page_alloc.c
---- a/mm/page_alloc.c~page_alloc-use-n_memory-instead-n_high_memory-change-the-node_states-initialization
-+++ a/mm/page_alloc.c
-@@ -1695,7 +1695,7 @@ bool zone_watermark_ok_safe(struct zone 
-  *
-  * If the zonelist cache is present in the passed in zonelist, then
-  * returns a pointer to the allowed node mask (either the current
-- * tasks mems_allowed, or node_states[N_HIGH_MEMORY].)
-+ * tasks mems_allowed, or node_states[N_MEMORY].)
-  *
-  * If the zonelist cache is not available for this zonelist, does
-  * nothing and returns NULL.
-@@ -1724,7 +1724,7 @@ static nodemask_t *zlc_setup(struct zone
+-typedef int (*write_strategy_fn)(const char *buf, unsigned long long *val);
+-
+ int res_counter_memparse_write_strategy(const char *buf,
+ 					unsigned long long *res);
  
- 	allowednodes = !in_interrupt() && (alloc_flags & ALLOC_CPUSET) ?
- 					&cpuset_current_mems_allowed :
--					&node_states[N_HIGH_MEMORY];
-+					&node_states[N_MEMORY];
- 	return allowednodes;
- }
- 
-@@ -3238,7 +3238,7 @@ static int find_next_best_node(int node,
- 		return node;
- 	}
- 
--	for_each_node_state(n, N_HIGH_MEMORY) {
-+	for_each_node_state(n, N_MEMORY) {
- 
- 		/* Don't want a node to appear more than once */
- 		if (node_isset(n, *used_node_mask))
-@@ -3380,7 +3380,7 @@ static int default_zonelist_order(void)
-  	 * local memory, NODE_ORDER may be suitable.
-          */
- 	average_size = total_size /
--				(nodes_weight(node_states[N_HIGH_MEMORY]) + 1);
-+				(nodes_weight(node_states[N_MEMORY]) + 1);
- 	for_each_online_node(nid) {
- 		low_kmem_size = 0;
- 		total_size = 0;
-@@ -4731,7 +4731,7 @@ unsigned long __init find_min_pfn_with_a
+-int res_counter_write(struct res_counter *counter, int member,
+-		      const char *buffer, write_strategy_fn write_strategy);
+-
  /*
-  * early_calculate_totalpages()
-  * Sum pages in active regions for movable zone.
-- * Populate N_HIGH_MEMORY for calculating usable_nodes.
-+ * Populate N_MEMORY for calculating usable_nodes.
+  * the field descriptors. one for each member of res_counter
   */
- static unsigned long __init early_calculate_totalpages(void)
- {
-@@ -4744,7 +4744,7 @@ static unsigned long __init early_calcul
- 
- 		totalpages += pages;
- 		if (pages)
--			node_set_state(nid, N_HIGH_MEMORY);
-+			node_set_state(nid, N_MEMORY);
- 	}
-   	return totalpages;
+diff -puN kernel/res_counter.c~res_counter-delete-res_counter_write kernel/res_counter.c
+--- a/kernel/res_counter.c~res_counter-delete-res_counter_write
++++ a/kernel/res_counter.c
+@@ -192,25 +192,3 @@ int res_counter_memparse_write_strategy(
+ 	*res = PAGE_ALIGN(*res);
+ 	return 0;
  }
-@@ -4761,9 +4761,9 @@ static void __init find_zone_movable_pfn
- 	unsigned long usable_startpfn;
- 	unsigned long kernelcore_node, kernelcore_remaining;
- 	/* save the state before borrow the nodemask */
--	nodemask_t saved_node_state = node_states[N_HIGH_MEMORY];
-+	nodemask_t saved_node_state = node_states[N_MEMORY];
- 	unsigned long totalpages = early_calculate_totalpages();
--	int usable_nodes = nodes_weight(node_states[N_HIGH_MEMORY]);
-+	int usable_nodes = nodes_weight(node_states[N_MEMORY]);
- 
- 	/*
- 	 * If movablecore was specified, calculate what size of
-@@ -4798,7 +4798,7 @@ static void __init find_zone_movable_pfn
- restart:
- 	/* Spread kernelcore memory as evenly as possible throughout nodes */
- 	kernelcore_node = required_kernelcore / usable_nodes;
--	for_each_node_state(nid, N_HIGH_MEMORY) {
-+	for_each_node_state(nid, N_MEMORY) {
- 		unsigned long start_pfn, end_pfn;
- 
- 		/*
-@@ -4890,23 +4890,27 @@ restart:
- 
- out:
- 	/* restore the node_state */
--	node_states[N_HIGH_MEMORY] = saved_node_state;
-+	node_states[N_MEMORY] = saved_node_state;
- }
- 
--/* Any regular memory on that node ? */
--static void __init check_for_regular_memory(pg_data_t *pgdat)
-+/* Any regular or high memory on that node ? */
-+static void check_for_memory(pg_data_t *pgdat, int nid)
- {
--#ifdef CONFIG_HIGHMEM
- 	enum zone_type zone_type;
- 
--	for (zone_type = 0; zone_type <= ZONE_NORMAL; zone_type++) {
-+	if (N_MEMORY == N_NORMAL_MEMORY)
-+		return;
-+
-+	for (zone_type = 0; zone_type <= ZONE_MOVABLE - 1; zone_type++) {
- 		struct zone *zone = &pgdat->node_zones[zone_type];
- 		if (zone->present_pages) {
--			node_set_state(zone_to_nid(zone), N_NORMAL_MEMORY);
-+			node_set_state(nid, N_HIGH_MEMORY);
-+			if (N_NORMAL_MEMORY != N_HIGH_MEMORY &&
-+			    zone_type <= ZONE_NORMAL)
-+				node_set_state(nid, N_NORMAL_MEMORY);
- 			break;
- 		}
- 	}
--#endif
- }
- 
- /**
-@@ -4989,8 +4993,8 @@ void __init free_area_init_nodes(unsigne
- 
- 		/* Any memory on that node */
- 		if (pgdat->node_present_pages)
--			node_set_state(nid, N_HIGH_MEMORY);
--		check_for_regular_memory(pgdat);
-+			node_set_state(nid, N_MEMORY);
-+		check_for_memory(pgdat, nid);
- 	}
- }
- 
+-
+-int res_counter_write(struct res_counter *counter, int member,
+-		      const char *buf, write_strategy_fn write_strategy)
+-{
+-	char *end;
+-	unsigned long flags;
+-	unsigned long long tmp, *val;
+-
+-	if (write_strategy) {
+-		if (write_strategy(buf, &tmp))
+-			return -EINVAL;
+-	} else {
+-		tmp = simple_strtoull(buf, &end, 10);
+-		if (*end != '\0')
+-			return -EINVAL;
+-	}
+-	spin_lock_irqsave(&counter->lock, flags);
+-	val = res_counter_member(counter, member);
+-	*val = tmp;
+-	spin_unlock_irqrestore(&counter->lock, flags);
+-	return 0;
+-}
 _
 
-Patches currently in -mm which might be from laijs@cn.fujitsu.com are
+Patches currently in -mm which might be from gthelen@google.com are
 
 origin.patch
-linux-next.patch
+memcg-make-it-possible-to-use-the-stock-for-more-than-one-page.patch
+memcg-reclaim-when-more-than-one-page-needed.patch
+memcg-change-defines-to-an-enum.patch
+memcg-kmem-accounting-basic-infrastructure.patch
+memcg-kmem-accounting-basic-infrastructure-fix.patch
+mm-add-a-__gfp_kmemcg-flag.patch
+memcg-kmem-controller-infrastructure.patch
+mm-allocate-kernel-pages-to-the-right-memcg.patch
+res_counter-return-amount-of-charges-after-res_counter_uncharge.patch
+memcg-kmem-accounting-lifecycle-management.patch
+memcg-use-static-branches-when-code-not-in-use.patch
+memcg-allow-a-memcg-with-kmem-charges-to-be-destructed.patch
+memcg-execute-the-whole-memcg-freeing-in-free_worker.patch
+fork-protect-architectures-where-thread_size-=-page_size-against-fork-bombs.patch
+memcg-add-documentation-about-the-kmem-controller.patch
+slab-slub-struct-memcg_params.patch
+slab-annotate-on-slab-caches-nodelist-locks.patch
+slab-slub-consider-a-memcg-parameter-in-kmem_create_cache.patch
+memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears.patch
+memcg-infrastructure-to-match-an-allocation-to-the-right-cache.patch
+memcg-skip-memcg-kmem-allocations-in-specified-code-regions.patch
+slb-always-get-the-cache-from-its-page-in-kmem_cache_free.patch
+slb-allocate-objects-from-memcg-cache.patch
+memcg-destroy-memcg-caches.patch
+memcg-slb-track-all-the-memcg-children-of-a-kmem_cache.patch
+memcg-slb-shrink-dead-caches.patch
+memcg-aggregate-memcg-cache-values-in-slabinfo.patch
+slab-propagate-tunable-values.patch
+slub-slub-specific-propagation-changes.patch
+slub-slub-specific-propagation-changes-fix.patch
+kmem-add-slab-specific-documentation-about-the-kmem-controller.patch
 
