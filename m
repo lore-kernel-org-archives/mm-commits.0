@@ -1,36 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: [merged] bootmem-remove-alloc_arch_preferred_bootmem.patch removed from -mm tree
-Date: Fri, 14 Dec 2012 15:26:52 -0800
-Message-ID: <20121214232653.44A2B200083@hpza10.eem.corp.google.com>
+Subject: [merged] bootmem-remove-not-implemented-function-call-bootmem_arch_preferred_node.patch removed from -mm tree
+Date: Fri, 14 Dec 2012 15:26:48 -0800
+Message-ID: <20121214232649.107DE200086@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f202.google.com ([209.85.215.202]:56912 "EHLO
-	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756779Ab2LNX05 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Dec 2012 18:26:57 -0500
-Received: by mail-ea0-f202.google.com with SMTP id j12so208085eaa.1
-        for <mm-commits@vger.kernel.org>; Fri, 14 Dec 2012 15:26:55 -0800 (PST)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:43599 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753848Ab2LNX0w (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Dec 2012 18:26:52 -0500
+Received: by mail-fa0-f74.google.com with SMTP id t1so208329fae.1
+        for <mm-commits@vger.kernel.org>; Fri, 14 Dec 2012 15:26:50 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: js1304@gmail.com, benh@kernel.crashing.org, egtvedt@samfundet.no, fujita.tomonori@lab.ntt.co.jp, hannes@cmpxchg.org, hskinnemoen@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: bootmem: remove alloc_arch_preferred_bootmem()
+     Subject: bootmem: remove not implemented function call, bootmem_arch_preferred_node()
 has been removed from the -mm tree.  Its filename was
-     bootmem-remove-alloc_arch_preferred_bootmem.patch
+     bootmem-remove-not-implemented-function-call-bootmem_arch_preferred_node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joonsoo Kim <js1304@gmail.com>
-Subject: bootmem: remove alloc_arch_preferred_bootmem()
+Subject: bootmem: remove not implemented function call, bootmem_arch_preferred_node()
 
-The name of this function is not suitable, and removing the function and
-open-coding it into each call sites makes the code more understandable.
-
-Additionally, we shouldn't do an allocation from bootmem when
-slab_is_available(), so directly return kmalloc()'s return value.
+There is no implementation of bootmem_arch_preferred_node() and a call to
+this function will cause a compilation error.  So remove it.
 
 Signed-off-by: Joonsoo Kim <js1304@gmail.com>
 Cc: Haavard Skinnemoen <hskinnemoen@gmail.com>
@@ -41,54 +38,31 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |   20 ++++----------------
- 1 file changed, 4 insertions(+), 16 deletions(-)
+ mm/bootmem.c |   12 ------------
+ 1 file changed, 12 deletions(-)
 
-diff -puN mm/bootmem.c~bootmem-remove-alloc_arch_preferred_bootmem mm/bootmem.c
---- a/mm/bootmem.c~bootmem-remove-alloc_arch_preferred_bootmem
+diff -puN mm/bootmem.c~bootmem-remove-not-implemented-function-call-bootmem_arch_preferred_node mm/bootmem.c
+--- a/mm/bootmem.c~bootmem-remove-not-implemented-function-call-bootmem_arch_preferred_node
 +++ a/mm/bootmem.c
-@@ -575,15 +575,6 @@ find_block:
+@@ -581,18 +581,6 @@ static void * __init alloc_arch_preferre
+ {
+ 	if (WARN_ON_ONCE(slab_is_available()))
+ 		return kzalloc(size, GFP_NOWAIT);
+-
+-#ifdef CONFIG_HAVE_ARCH_BOOTMEM
+-	{
+-		bootmem_data_t *p_bdata;
+-
+-		p_bdata = bootmem_arch_preferred_node(bdata, size, align,
+-							goal, limit);
+-		if (p_bdata)
+-			return alloc_bootmem_bdata(p_bdata, size, align,
+-							goal, limit);
+-	}
+-#endif
  	return NULL;
  }
  
--static void * __init alloc_arch_preferred_bootmem(bootmem_data_t *bdata,
--					unsigned long size, unsigned long align,
--					unsigned long goal, unsigned long limit)
--{
--	if (WARN_ON_ONCE(slab_is_available()))
--		return kzalloc(size, GFP_NOWAIT);
--	return NULL;
--}
--
- static void * __init alloc_bootmem_core(unsigned long size,
- 					unsigned long align,
- 					unsigned long goal,
-@@ -592,9 +583,8 @@ static void * __init alloc_bootmem_core(
- 	bootmem_data_t *bdata;
- 	void *region;
- 
--	region = alloc_arch_preferred_bootmem(NULL, size, align, goal, limit);
--	if (region)
--		return region;
-+	if (WARN_ON_ONCE(slab_is_available()))
-+		return kzalloc(size, GFP_NOWAIT);
- 
- 	list_for_each_entry(bdata, &bdata_list, list) {
- 		if (goal && bdata->node_low_pfn <= PFN_DOWN(goal))
-@@ -692,11 +682,9 @@ void * __init ___alloc_bootmem_node_nopa
- {
- 	void *ptr;
- 
-+	if (WARN_ON_ONCE(slab_is_available()))
-+		return kzalloc(size, GFP_NOWAIT);
- again:
--	ptr = alloc_arch_preferred_bootmem(pgdat->bdata, size,
--					   align, goal, limit);
--	if (ptr)
--		return ptr;
- 
- 	/* do not panic in alloc_bootmem_bdata() */
- 	if (limit && goal + size > limit)
 _
 
 Patches currently in -mm which might be from js1304@gmail.com are
