@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix.patch added to -mm tree
-Date: Fri, 14 Dec 2012 13:49:28 -0800
-Message-ID: <20121214214929.2352F82004A@wpzn4.hot.corp.google.com>
+Subject: + core_pattern-set-core-helpers-root-and-namespace-to-crashing-process.patch added to -mm tree
+Date: Fri, 14 Dec 2012 13:49:23 -0800
+Message-ID: <20121214214925.3F95E100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:33702 "EHLO
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:42401 "EHLO
 	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932303Ab2LNVta (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Dec 2012 16:49:30 -0500
-Received: by mail-vb0-f74.google.com with SMTP id s24so399063vbi.1
-        for <mm-commits@vger.kernel.org>; Fri, 14 Dec 2012 13:49:29 -0800 (PST)
+	with ESMTP id S932376Ab2LNVt1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Dec 2012 16:49:27 -0500
+Received: by mail-vb0-f74.google.com with SMTP id s24so399059vbi.1
+        for <mm-commits@vger.kernel.org>; Fri, 14 Dec 2012 13:49:26 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, berrange@redhat.com, nhorman@tuxdriver.com, serge.hallyn@canonical.com, viro@zeniv.linux.org.uk
+Cc: nhorman@tuxdriver.com, berrange@redhat.com, serge.hallyn@canonical.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix
+     Subject: core_pattern: set core helpers root and namespace to crashing process
 has been added to the -mm tree.  Its filename is
-     core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix.patch
+     core_pattern-set-core-helpers-root-and-namespace-to-crashing-process.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,107 +33,134 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix
+From: Neil Horman <nhorman@tuxdriver.com>
+Subject: core_pattern: set core helpers root and namespace to crashing process
 
-fix doc typo, simplify format_corename()
+As it is currently implemented, redirection of core dumps to a pipe reader
+should be executed such that the reader runs in the namespace of the
+crashing process, and it currently does not.  This is the only sane way to
+deal with namespaces properly it seems to me, and this patch implements
+that functionality.
 
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+There's one problem I currently see with it, and that is that I'm not sure
+we can change the current behavior of how the root fs is set for the pipe
+reader, lest we break some user space expectations.  As such I've made the
+switching of namespaces configurable based on the addition of an extra '|'
+token in the core_pattern sysctl.  1 '|' indicates a pipe using the global
+namespace, while 2 '|' indicates that the namespace and root of the
+crashing process should be used.
+
+I've tested this using both settings for the new sysctl, and it works well.
+
+For the sake of history, this was discussed before:
+http://www.spinics.net/lists/linux-containers/msg21531.html
+
+It seems there was some modicum of consensus as to how this should work, but
+there was no action taken on it.
+
+Signed-off-by: Neil Horman <nhorman@tuxdriver.com>
+Reported-by: Daniel Berrange <berrange@redhat.com>
 Cc: Daniel Berrange <berrange@redhat.com>
-Cc: Neil Horman <nhorman@tuxdriver.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Serge Hallyn <serge.hallyn@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/kernel.txt |    2 +-
- fs/coredump.c                   |   10 ++++------
- 2 files changed, 5 insertions(+), 7 deletions(-)
+ Documentation/sysctl/kernel.txt |    7 ++++++-
+ fs/coredump.c                   |   23 +++++++++++++++++++++++
+ include/linux/binfmts.h         |    2 ++
+ 3 files changed, 31 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/sysctl/kernel.txt~core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix Documentation/sysctl/kernel.txt
---- a/Documentation/sysctl/kernel.txt~core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix
+diff -puN Documentation/sysctl/kernel.txt~core_pattern-set-core-helpers-root-and-namespace-to-crashing-process Documentation/sysctl/kernel.txt
+--- a/Documentation/sysctl/kernel.txt~core_pattern-set-core-helpers-root-and-namespace-to-crashing-process
 +++ a/Documentation/sysctl/kernel.txt
-@@ -194,7 +194,7 @@ core_pattern is used to specify a core d
-   written to the standard input of that program instead of to a file.  Note that
-   when using |, the core pipe reader that is executed will be run in the global
-   namespace and root filesystem.  If two | tokens (i.e. ||) are supplied as the
--  first two characters of the core_pattern sysctl, the kernel will preform the
-+  first two characters of the core_pattern sysctl, the kernel will perform the
-   same pipe operation, but the core pipe reader will be executed using the
-   namespace and root fs of the crashing process.
+@@ -191,7 +191,12 @@ core_pattern is used to specify a core d
+ 	%<OTHER> both are dropped
+ . If the first character of the pattern is a '|', the kernel will treat
+   the rest of the pattern as a command to run.  The core dump will be
+-  written to the standard input of that program instead of to a file.
++  written to the standard input of that program instead of to a file.  Note that
++  when using |, the core pipe reader that is executed will be run in the global
++  namespace and root filesystem.  If two | tokens (i.e. ||) are supplied as the
++  first two characters of the core_pattern sysctl, the kernel will preform the
++  same pipe operation, but the core pipe reader will be executed using the
++  namespace and root fs of the crashing process.
  
-diff -puN fs/coredump.c~core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix fs/coredump.c
---- a/fs/coredump.c~core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix
+ ==============================================================
+ 
+diff -puN fs/coredump.c~core_pattern-set-core-helpers-root-and-namespace-to-crashing-process fs/coredump.c
+--- a/fs/coredump.c~core_pattern-set-core-helpers-root-and-namespace-to-crashing-process
 +++ a/fs/coredump.c
-@@ -164,16 +164,14 @@ static int format_corename(struct core_n
+@@ -164,6 +164,18 @@ static int format_corename(struct core_n
  	if (!cn->corename)
  		return -ENOMEM;
  
--	if (ispipe) {
-+	if (ispipe && pat_ptr[1] == '|') {
- 		/*
-- 		 * If we have 2 | tokens at the head of core_pattern, it
-+ 		 * We have 2 | tokens at the head of core_pattern which
-  		 * indicates we are a pipe and the reader should inherit the
-  		 * namespaces of the crashing process
-  		 */
--		cprm->switch_ns = (*(pat_ptr+1) == '|') ? true : false;
--		if (cprm->switch_ns)
--			/* Advance pat_ptr so as not to mess up corename */
--			pat_ptr++;
-+		cprm->switch_ns = true;
-+		pat_ptr++;
- 	}
- 
++	if (ispipe) {
++		/*
++ 		 * If we have 2 | tokens at the head of core_pattern, it
++ 		 * indicates we are a pipe and the reader should inherit the
++ 		 * namespaces of the crashing process
++ 		 */
++		cprm->switch_ns = (*(pat_ptr+1) == '|') ? true : false;
++		if (cprm->switch_ns)
++			/* Advance pat_ptr so as not to mess up corename */
++			pat_ptr++;
++	}
++
  	/* Repeat as long as we have more pattern to process and more output
+ 	   space */
+ 	while (*pat_ptr) {
+@@ -443,6 +455,7 @@ static void wait_for_dump_helpers(struct
+ static int umh_pipe_setup(struct subprocess_info *info, struct cred *new)
+ {
+ 	struct file *files[2];
++	struct path root;
+ 	struct coredump_params *cp = (struct coredump_params *)info->data;
+ 	int err = create_pipe_files(files, 0);
+ 	if (err)
+@@ -455,6 +468,14 @@ static int umh_pipe_setup(struct subproc
+ 	/* and disallow core files too */
+ 	current->signal->rlim[RLIMIT_CORE] = (struct rlimit){1, 1};
+ 
++
++	if (cp->switch_ns) {
++		get_fs_root(cp->cprocess->fs, &root);
++		set_fs_root(current->fs, &root);
++		switch_task_namespaces(current, cp->cprocess->nsproxy);
++	}
++
++
+ 	return err;
+ }
+ 
+@@ -476,6 +497,8 @@ void do_coredump(siginfo_t *siginfo)
+ 		.siginfo = siginfo,
+ 		.regs = signal_pt_regs(),
+ 		.limit = rlimit(RLIMIT_CORE),
++		.cprocess = current,
++		.switch_ns = false,
+ 		/*
+ 		 * We must use the same mm->flags while dumping core to avoid
+ 		 * inconsistency of bit flags, since this flag is not protected
+diff -puN include/linux/binfmts.h~core_pattern-set-core-helpers-root-and-namespace-to-crashing-process include/linux/binfmts.h
+--- a/include/linux/binfmts.h~core_pattern-set-core-helpers-root-and-namespace-to-crashing-process
++++ a/include/linux/binfmts.h
+@@ -61,6 +61,8 @@ struct coredump_params {
+ 	siginfo_t *siginfo;
+ 	struct pt_regs *regs;
+ 	struct file *file;
++	struct task_struct *cprocess;
++	bool switch_ns;
+ 	unsigned long limit;
+ 	unsigned long mm_flags;
+ };
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from nhorman@tuxdriver.com are
 
 origin.patch
 linux-next.patch
-linux-next-rejects-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
-irq-tsk-comm-is-an-array.patch
-block-remove-deadlock-in-disk_clear_events-fix.patch
-block-prevent-race-cleanup-fix.patch
-mm.patch
-memcg-kmem-accounting-basic-infrastructure-fix.patch
-slub-slub-specific-propagation-changes-fix.patch
-mm-mprotectc-coding-style-cleanups.patch
-mm-hugetlb-create-hugetlb-cgroup-file-in-hugetlb_init-fix.patch
-drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-lseek-the-whence-argument-is-called-whence.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
-backlight-add-of_find_backlight_by_node-function-fix.patch
-backlight-88pm860x_bl-remove-an-unnecessary-line-continuation-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes-checkpatch-fixes.patch
-hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix.patch
+core_pattern-set-core-helpers-root-and-namespace-to-crashing-process.patch
 core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix.patch
-procfs-add-vmflags-field-in-smaps-output-v4.patch
-procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
-ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
-ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
-ipc-convert-prepare_copy-from-macro-to-function-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-docs-add-documentation-about-proc-pid-fdinfo-fd-output-fix.patch
-fs-notify-add-procfs-fdinfo-helper-v7-fix.patch
-scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+documentation-sysctl-kerneltxt-document-proc-sys-shmall.patch
 
