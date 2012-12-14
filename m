@@ -1,39 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-setup-huge-zero-page-on-non-write-page-fault.patch removed from -mm tree
-Date: Fri, 14 Dec 2012 15:27:29 -0800
-Message-ID: <20121214232730.1A48182004A@wpzn4.hot.corp.google.com>
+Subject: [merged] thp-lazy-huge-zero-page-allocation.patch removed from -mm tree
+Date: Fri, 14 Dec 2012 15:27:32 -0800
+Message-ID: <20121214232733.2099982004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:44580 "EHLO
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:41849 "EHLO
 	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932418Ab2LNX1b (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Dec 2012 18:27:31 -0500
-Received: by mail-qa0-f74.google.com with SMTP id r4so145555qaq.1
-        for <mm-commits@vger.kernel.org>; Fri, 14 Dec 2012 15:27:30 -0800 (PST)
+	with ESMTP id S932566Ab2LNX1e (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Dec 2012 18:27:34 -0500
+Received: by mail-qa0-f74.google.com with SMTP id r4so145560qaq.1
+        for <mm-commits@vger.kernel.org>; Fri, 14 Dec 2012 15:27:33 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, ak@linux.intel.com, hpa@linux.intel.com, mel@csn.ul.ie, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: setup huge zero page on non-write page fault
+     Subject: thp: lazy huge zero page allocation
 has been removed from the -mm tree.  Its filename was
-     thp-setup-huge-zero-page-on-non-write-page-fault.patch
+     thp-lazy-huge-zero-page-allocation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: setup huge zero page on non-write page fault
+Subject: thp: lazy huge zero page allocation
 
-All code paths seems covered. Now we can map huge zero page on read page
-fault.
+Instead of allocating huge zero page on hugepage_init() we can postpone it
+until first huge zero page map. It saves memory if THP is not in use.
 
-We setup it in do_huge_pmd_anonymous_page() if area around fault address
-is suitable for THP and we've got read page fault.
-
-If we fail to setup huge zero page (ENOMEM) we fallback to
-handle_pte_fault() as we normally do in THP.
+cmpxchg() is used to avoid race on huge_zero_pfn initialization.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -44,29 +40,72 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ mm/huge_memory.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-setup-huge-zero-page-on-non-write-page-fault mm/huge_memory.c
---- a/mm/huge_memory.c~thp-setup-huge-zero-page-on-non-write-page-fault
+diff -puN mm/huge_memory.c~thp-lazy-huge-zero-page-allocation mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-lazy-huge-zero-page-allocation
 +++ a/mm/huge_memory.c
-@@ -733,6 +733,16 @@ int do_huge_pmd_anonymous_page(struct mm
+@@ -160,22 +160,24 @@ static int start_khugepaged(void)
+ 	return err;
+ }
+ 
+-static int __init init_huge_zero_page(void)
++static int init_huge_zero_pfn(void)
+ {
+ 	struct page *hpage;
++	unsigned long pfn;
+ 
+ 	hpage = alloc_pages((GFP_TRANSHUGE | __GFP_ZERO) & ~__GFP_MOVABLE,
+ 			HPAGE_PMD_ORDER);
+ 	if (!hpage)
+ 		return -ENOMEM;
+-
+-	huge_zero_pfn = page_to_pfn(hpage);
++	pfn = page_to_pfn(hpage);
++	if (cmpxchg(&huge_zero_pfn, 0, pfn))
++		__free_page(hpage);
+ 	return 0;
+ }
+ 
+ static inline bool is_huge_zero_pfn(unsigned long pfn)
+ {
+-	return pfn == huge_zero_pfn;
++	return huge_zero_pfn && pfn == huge_zero_pfn;
+ }
+ 
+ static inline bool is_huge_zero_pmd(pmd_t pmd)
+@@ -564,10 +566,6 @@ static int __init hugepage_init(void)
+ 	if (err)
+ 		return err;
+ 
+-	err = init_huge_zero_page();
+-	if (err)
+-		goto out;
+-
+ 	err = khugepaged_slab_init();
+ 	if (err)
+ 		goto out;
+@@ -590,8 +588,6 @@ static int __init hugepage_init(void)
+ 
+ 	return 0;
+ out:
+-	if (huge_zero_pfn)
+-		__free_page(pfn_to_page(huge_zero_pfn));
+ 	hugepage_exit_sysfs(hugepage_kobj);
+ 	return err;
+ }
+@@ -735,6 +731,10 @@ int do_huge_pmd_anonymous_page(struct mm
  			return VM_FAULT_OOM;
- 		if (unlikely(khugepaged_enter(vma)))
- 			return VM_FAULT_OOM;
-+		if (!(flags & FAULT_FLAG_WRITE)) {
-+			pgtable_t pgtable;
-+			pgtable = pte_alloc_one(mm, haddr);
-+			if (unlikely(!pgtable))
-+				return VM_FAULT_OOM;
-+			spin_lock(&mm->page_table_lock);
-+			set_huge_zero_page(pgtable, mm, vma, haddr, pmd);
-+			spin_unlock(&mm->page_table_lock);
-+			return 0;
-+		}
- 		page = alloc_hugepage_vma(transparent_hugepage_defrag(vma),
- 					  vma, haddr, numa_node_id(), 0);
- 		if (unlikely(!page)) {
+ 		if (!(flags & FAULT_FLAG_WRITE)) {
+ 			pgtable_t pgtable;
++			if (unlikely(!huge_zero_pfn && init_huge_zero_pfn())) {
++				count_vm_event(THP_FAULT_FALLBACK);
++				goto out;
++			}
+ 			pgtable = pte_alloc_one(mm, haddr);
+ 			if (unlikely(!pgtable))
+ 				return VM_FAULT_OOM;
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
