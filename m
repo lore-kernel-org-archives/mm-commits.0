@@ -1,128 +1,227 @@
 From: akpm@linux-foundation.org
-Subject: [merged] res_counter-delete-res_counter_write.patch removed from -mm tree
-Date: Fri, 14 Dec 2012 15:28:57 -0800
-Message-ID: <20121214232857.BC12982004A@wpzn4.hot.corp.google.com>
+Subject: [merged] hotplug-update-nodemasks-management.patch removed from -mm tree
+Date: Fri, 14 Dec 2012 15:28:52 -0800
+Message-ID: <20121214232853.381B2200083@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:55139 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932668Ab2LNX27 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Dec 2012 18:28:59 -0500
-Received: by mail-yh0-f74.google.com with SMTP id 10so409283yhl.1
-        for <mm-commits@vger.kernel.org>; Fri, 14 Dec 2012 15:28:58 -0800 (PST)
+Received: from mail-ea0-f202.google.com ([209.85.215.202]:64202 "EHLO
+	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932668Ab2LNX24 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Dec 2012 18:28:56 -0500
+Received: by mail-ea0-f202.google.com with SMTP id j12so208162eaa.1
+        for <mm-commits@vger.kernel.org>; Fri, 14 Dec 2012 15:28:55 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gthelen@google.com, fweisbec@redhat.com, glommer@parallels.com, kamezawa.hiroyu@jp.fujitsu.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: laijs@cn.fujitsu.com, cl@linux.com, dhillf@gmail.com, linfeng@cn.fujitsu.com, lliubbo@gmail.com, rientjes@google.com, wency@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: res_counter: delete res_counter_write()
+     Subject: hotplug: update nodemasks management
 has been removed from the -mm tree.  Its filename was
-     res_counter-delete-res_counter_write.patch
+     hotplug-update-nodemasks-management.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Greg Thelen <gthelen@google.com>
-Subject: res_counter: delete res_counter_write()
+From: Lai Jiangshan <laijs@cn.fujitsu.com>
+Subject: hotplug: update nodemasks management
 
-Since 628f423553 ("memcg: limit change shrink usage") both
-res_counter_write() and write_strategy_fn have been unused.  This patch
-deletes them both.
+Update nodemasks management for N_MEMORY.
 
-Signed-off-by: Greg Thelen <gthelen@google.com>
-Cc: Glauber Costa <glommer@parallels.com>
-Cc: Tejun Heo <tj@kernel.org>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Frederic Weisbecker <fweisbec@redhat.com>
+[lliubbo@gmail.com: fix build]
+Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
+Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Hillf Danton <dhillf@gmail.com>
+Cc: Lin Feng <linfeng@cn.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Bob Liu <lliubbo@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/res_counter.h |    5 -----
- kernel/res_counter.c        |   22 ----------------------
- 2 files changed, 27 deletions(-)
+ Documentation/memory-hotplug.txt |    5 +
+ include/linux/memory.h           |    1 
+ mm/memory_hotplug.c              |   87 ++++++++++++++++++++++++-----
+ 3 files changed, 77 insertions(+), 16 deletions(-)
 
-diff -puN include/linux/res_counter.h~res_counter-delete-res_counter_write include/linux/res_counter.h
---- a/include/linux/res_counter.h~res_counter-delete-res_counter_write
-+++ a/include/linux/res_counter.h
-@@ -74,14 +74,9 @@ ssize_t res_counter_read(struct res_coun
- 		const char __user *buf, size_t nbytes, loff_t *pos,
- 		int (*read_strategy)(unsigned long long val, char *s));
- 
--typedef int (*write_strategy_fn)(const char *buf, unsigned long long *val);
--
- int res_counter_memparse_write_strategy(const char *buf,
- 					unsigned long long *res);
- 
--int res_counter_write(struct res_counter *counter, int member,
--		      const char *buffer, write_strategy_fn write_strategy);
--
- /*
-  * the field descriptors. one for each member of res_counter
-  */
-diff -puN kernel/res_counter.c~res_counter-delete-res_counter_write kernel/res_counter.c
---- a/kernel/res_counter.c~res_counter-delete-res_counter_write
-+++ a/kernel/res_counter.c
-@@ -192,25 +192,3 @@ int res_counter_memparse_write_strategy(
- 	*res = PAGE_ALIGN(*res);
- 	return 0;
+diff -puN Documentation/memory-hotplug.txt~hotplug-update-nodemasks-management Documentation/memory-hotplug.txt
+--- a/Documentation/memory-hotplug.txt~hotplug-update-nodemasks-management
++++ a/Documentation/memory-hotplug.txt
+@@ -390,6 +390,7 @@ struct memory_notify {
+        unsigned long start_pfn;
+        unsigned long nr_pages;
+        int status_change_nid_normal;
++       int status_change_nid_high;
+        int status_change_nid;
  }
--
--int res_counter_write(struct res_counter *counter, int member,
--		      const char *buf, write_strategy_fn write_strategy)
--{
--	char *end;
--	unsigned long flags;
--	unsigned long long tmp, *val;
--
--	if (write_strategy) {
--		if (write_strategy(buf, &tmp))
--			return -EINVAL;
--	} else {
--		tmp = simple_strtoull(buf, &end, 10);
--		if (*end != '\0')
--			return -EINVAL;
--	}
--	spin_lock_irqsave(&counter->lock, flags);
--	val = res_counter_member(counter, member);
--	*val = tmp;
--	spin_unlock_irqrestore(&counter->lock, flags);
--	return 0;
--}
+ 
+@@ -397,7 +398,9 @@ start_pfn is start_pfn of online/offline
+ nr_pages is # of pages of online/offline memory.
+ status_change_nid_normal is set node id when N_NORMAL_MEMORY of nodemask
+ is (will be) set/clear, if this is -1, then nodemask status is not changed.
+-status_change_nid is set node id when N_HIGH_MEMORY of nodemask is (will be)
++status_change_nid_high is set node id when N_HIGH_MEMORY of nodemask
++is (will be) set/clear, if this is -1, then nodemask status is not changed.
++status_change_nid is set node id when N_MEMORY of nodemask is (will be)
+ set/clear. It means a new(memoryless) node gets new memory by online and a
+ node loses all memory. If this is -1, then nodemask status is not changed.
+ If status_changed_nid* >= 0, callback should create/discard structures for the
+diff -puN include/linux/memory.h~hotplug-update-nodemasks-management include/linux/memory.h
+--- a/include/linux/memory.h~hotplug-update-nodemasks-management
++++ a/include/linux/memory.h
+@@ -54,6 +54,7 @@ struct memory_notify {
+ 	unsigned long start_pfn;
+ 	unsigned long nr_pages;
+ 	int status_change_nid_normal;
++	int status_change_nid_high;
+ 	int status_change_nid;
+ };
+ 
+diff -puN mm/memory_hotplug.c~hotplug-update-nodemasks-management mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~hotplug-update-nodemasks-management
++++ a/mm/memory_hotplug.c
+@@ -595,13 +595,15 @@ static void node_states_check_changes_on
+ 	enum zone_type zone_last = ZONE_NORMAL;
+ 
+ 	/*
+-	 * If we have HIGHMEM, node_states[N_NORMAL_MEMORY] contains nodes
+-	 * which have 0...ZONE_NORMAL, set zone_last to ZONE_NORMAL.
++	 * If we have HIGHMEM or movable node, node_states[N_NORMAL_MEMORY]
++	 * contains nodes which have zones of 0...ZONE_NORMAL,
++	 * set zone_last to ZONE_NORMAL.
+ 	 *
+-	 * If we don't have HIGHMEM, node_states[N_NORMAL_MEMORY] contains nodes
+-	 * which have 0...ZONE_MOVABLE, set zone_last to ZONE_MOVABLE.
++	 * If we don't have HIGHMEM nor movable node,
++	 * node_states[N_NORMAL_MEMORY] contains nodes which have zones of
++	 * 0...ZONE_MOVABLE, set zone_last to ZONE_MOVABLE.
+ 	 */
+-	if (N_HIGH_MEMORY == N_NORMAL_MEMORY)
++	if (N_MEMORY == N_NORMAL_MEMORY)
+ 		zone_last = ZONE_MOVABLE;
+ 
+ 	/*
+@@ -615,12 +617,34 @@ static void node_states_check_changes_on
+ 	else
+ 		arg->status_change_nid_normal = -1;
+ 
++#ifdef CONFIG_HIGHMEM
++	/*
++	 * If we have movable node, node_states[N_HIGH_MEMORY]
++	 * contains nodes which have zones of 0...ZONE_HIGHMEM,
++	 * set zone_last to ZONE_HIGHMEM.
++	 *
++	 * If we don't have movable node, node_states[N_NORMAL_MEMORY]
++	 * contains nodes which have zones of 0...ZONE_MOVABLE,
++	 * set zone_last to ZONE_MOVABLE.
++	 */
++	zone_last = ZONE_HIGHMEM;
++	if (N_MEMORY == N_HIGH_MEMORY)
++		zone_last = ZONE_MOVABLE;
++
++	if (zone_idx(zone) <= zone_last && !node_state(nid, N_HIGH_MEMORY))
++		arg->status_change_nid_high = nid;
++	else
++		arg->status_change_nid_high = -1;
++#else
++	arg->status_change_nid_high = arg->status_change_nid_normal;
++#endif
++
+ 	/*
+ 	 * if the node don't have memory befor online, we will need to
+-	 * set the node to node_states[N_HIGH_MEMORY] after the memory
++	 * set the node to node_states[N_MEMORY] after the memory
+ 	 * is online.
+ 	 */
+-	if (!node_state(nid, N_HIGH_MEMORY))
++	if (!node_state(nid, N_MEMORY))
+ 		arg->status_change_nid = nid;
+ 	else
+ 		arg->status_change_nid = -1;
+@@ -631,7 +655,10 @@ static void node_states_set_node(int nod
+ 	if (arg->status_change_nid_normal >= 0)
+ 		node_set_state(node, N_NORMAL_MEMORY);
+ 
+-	node_set_state(node, N_HIGH_MEMORY);
++	if (arg->status_change_nid_high >= 0)
++		node_set_state(node, N_HIGH_MEMORY);
++
++	node_set_state(node, N_MEMORY);
+ }
+ 
+ 
+@@ -1099,13 +1126,15 @@ static void node_states_check_changes_of
+ 	enum zone_type zt, zone_last = ZONE_NORMAL;
+ 
+ 	/*
+-	 * If we have HIGHMEM, node_states[N_NORMAL_MEMORY] contains nodes
+-	 * which have 0...ZONE_NORMAL, set zone_last to ZONE_NORMAL.
++	 * If we have HIGHMEM or movable node, node_states[N_NORMAL_MEMORY]
++	 * contains nodes which have zones of 0...ZONE_NORMAL,
++	 * set zone_last to ZONE_NORMAL.
+ 	 *
+-	 * If we don't have HIGHMEM, node_states[N_NORMAL_MEMORY] contains nodes
+-	 * which have 0...ZONE_MOVABLE, set zone_last to ZONE_MOVABLE.
++	 * If we don't have HIGHMEM nor movable node,
++	 * node_states[N_NORMAL_MEMORY] contains nodes which have zones of
++	 * 0...ZONE_MOVABLE, set zone_last to ZONE_MOVABLE.
+ 	 */
+-	if (N_HIGH_MEMORY == N_NORMAL_MEMORY)
++	if (N_MEMORY == N_NORMAL_MEMORY)
+ 		zone_last = ZONE_MOVABLE;
+ 
+ 	/*
+@@ -1122,6 +1151,30 @@ static void node_states_check_changes_of
+ 	else
+ 		arg->status_change_nid_normal = -1;
+ 
++#ifdef CONFIG_HIGHMEM
++	/*
++	 * If we have movable node, node_states[N_HIGH_MEMORY]
++	 * contains nodes which have zones of 0...ZONE_HIGHMEM,
++	 * set zone_last to ZONE_HIGHMEM.
++	 *
++	 * If we don't have movable node, node_states[N_NORMAL_MEMORY]
++	 * contains nodes which have zones of 0...ZONE_MOVABLE,
++	 * set zone_last to ZONE_MOVABLE.
++	 */
++	zone_last = ZONE_HIGHMEM;
++	if (N_MEMORY == N_HIGH_MEMORY)
++		zone_last = ZONE_MOVABLE;
++
++	for (; zt <= zone_last; zt++)
++		present_pages += pgdat->node_zones[zt].present_pages;
++	if (zone_idx(zone) <= zone_last && nr_pages >= present_pages)
++		arg->status_change_nid_high = zone_to_nid(zone);
++	else
++		arg->status_change_nid_high = -1;
++#else
++	arg->status_change_nid_high = arg->status_change_nid_normal;
++#endif
++
+ 	/*
+ 	 * node_states[N_HIGH_MEMORY] contains nodes which have 0...ZONE_MOVABLE
+ 	 */
+@@ -1146,9 +1199,13 @@ static void node_states_clear_node(int n
+ 	if (arg->status_change_nid_normal >= 0)
+ 		node_clear_state(node, N_NORMAL_MEMORY);
+ 
+-	if ((N_HIGH_MEMORY != N_NORMAL_MEMORY) &&
+-	    (arg->status_change_nid >= 0))
++	if ((N_MEMORY != N_NORMAL_MEMORY) &&
++	    (arg->status_change_nid_high >= 0))
+ 		node_clear_state(node, N_HIGH_MEMORY);
++
++	if ((N_MEMORY != N_HIGH_MEMORY) &&
++	    (arg->status_change_nid >= 0))
++		node_clear_state(node, N_MEMORY);
+ }
+ 
+ static int __ref __offline_pages(unsigned long start_pfn,
 _
 
-Patches currently in -mm which might be from gthelen@google.com are
+Patches currently in -mm which might be from laijs@cn.fujitsu.com are
 
 origin.patch
-memcg-make-it-possible-to-use-the-stock-for-more-than-one-page.patch
-memcg-reclaim-when-more-than-one-page-needed.patch
-memcg-change-defines-to-an-enum.patch
-memcg-kmem-accounting-basic-infrastructure.patch
-memcg-kmem-accounting-basic-infrastructure-fix.patch
-mm-add-a-__gfp_kmemcg-flag.patch
-memcg-kmem-controller-infrastructure.patch
-mm-allocate-kernel-pages-to-the-right-memcg.patch
-res_counter-return-amount-of-charges-after-res_counter_uncharge.patch
-memcg-kmem-accounting-lifecycle-management.patch
-memcg-use-static-branches-when-code-not-in-use.patch
-memcg-allow-a-memcg-with-kmem-charges-to-be-destructed.patch
-memcg-execute-the-whole-memcg-freeing-in-free_worker.patch
-fork-protect-architectures-where-thread_size-=-page_size-against-fork-bombs.patch
-memcg-add-documentation-about-the-kmem-controller.patch
-slab-slub-struct-memcg_params.patch
-slab-annotate-on-slab-caches-nodelist-locks.patch
-slab-slub-consider-a-memcg-parameter-in-kmem_create_cache.patch
-memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears.patch
-memcg-infrastructure-to-match-an-allocation-to-the-right-cache.patch
-memcg-skip-memcg-kmem-allocations-in-specified-code-regions.patch
-slb-always-get-the-cache-from-its-page-in-kmem_cache_free.patch
-slb-allocate-objects-from-memcg-cache.patch
-memcg-destroy-memcg-caches.patch
-memcg-slb-track-all-the-memcg-children-of-a-kmem_cache.patch
-memcg-slb-shrink-dead-caches.patch
-memcg-aggregate-memcg-cache-values-in-slabinfo.patch
-slab-propagate-tunable-values.patch
-slub-slub-specific-propagation-changes.patch
-slub-slub-specific-propagation-changes-fix.patch
-kmem-add-slab-specific-documentation-about-the-kmem-controller.patch
+linux-next.patch
 
