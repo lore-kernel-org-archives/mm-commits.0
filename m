@@ -1,415 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-introduce-new-field-managed_pages-to-struct-zone.patch removed from -mm tree
-Date: Fri, 14 Dec 2012 15:29:32 -0800
-Message-ID: <20121214232933.652A8200057@hpza10.eem.corp.google.com>
+Subject: [merged] mm-provide-more-accurate-estimation-of-pages-occupied-by-memmap.patch removed from -mm tree
+Date: Fri, 14 Dec 2012 15:29:48 -0800
+Message-ID: <20121214232949.A5DA5200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:38796 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932729Ab2LNX3h (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Dec 2012 18:29:37 -0500
-Received: by mail-wi0-f202.google.com with SMTP id hn17so70242wib.1
-        for <mm-commits@vger.kernel.org>; Fri, 14 Dec 2012 15:29:36 -0800 (PST)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:44703 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932532Ab2LNX3y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Dec 2012 18:29:54 -0500
+Received: by mail-lb0-f202.google.com with SMTP id s4so209731lbc.1
+        for <mm-commits@vger.kernel.org>; Fri, 14 Dec 2012 15:29:52 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: liuj97@gmail.com, chris2553@googlemail.com, hannes@cmpxchg.org, jiang.liu@huawei.com, kamezawa.hiroyu@jp.fujitsu.com, maciej.rutecki@gmail.com, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, rientjes@google.com, rjw@sisk.pl, wency@cn.fujitsu.com, wujianguo@huawei.com, mm-commits@vger.kernel.org
+To: liuj97@gmail.com, chris2553@googlemail.com, dave@linux.vnet.ibm.com, hannes@cmpxchg.org, jiang.liu@huawei.com, kamezawa.hiroyu@jp.fujitsu.com, maciej.rutecki@gmail.com, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, rientjes@google.com, rjw@sisk.pl, wency@cn.fujitsu.com, wujianguo@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: introduce new field "managed_pages" to struct zone
+     Subject: mm: provide more accurate estimation of pages occupied by memmap
 has been removed from the -mm tree.  Its filename was
-     mm-introduce-new-field-managed_pages-to-struct-zone.patch
+     mm-provide-more-accurate-estimation-of-pages-occupied-by-memmap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jiang Liu <liuj97@gmail.com>
-Subject: mm: introduce new field "managed_pages" to struct zone
+Subject: mm: provide more accurate estimation of pages occupied by memmap
 
-Currently a zone's present_pages is calcuated as below, which is
-inaccurate and may cause trouble to memory hotplug.
+If SPARSEMEM is enabled, it won't build page structures for non-existing
+pages (holes) within a zone, so provide a more accurate estimation of
+pages occupied by memmap if there are bigger holes within the zone.
 
-	spanned_pages - absent_pages - memmap_pages - dma_reserve.
+And pages for highmem zones' memmap will be allocated from lowmem, so
+charge nr_kernel_pages for that.
 
-During fixing bugs caused by inaccurate zone->present_pages, we found
-zone->present_pages has been abused.  The field zone->present_pages may
-have different meanings in different contexts:
-
-1) pages existing in a zone.
-2) pages managed by the buddy system.
-
-For more discussions about the issue, please refer to:
-http://lkml.org/lkml/2012/11/5/866
-https://patchwork.kernel.org/patch/1346751/
-
-This patchset tries to introduce a new field named "managed_pages" to
-struct zone, which counts "pages managed by the buddy system".  And revert
-zone->present_pages to count "physical pages existing in a zone", which
-also keep in consistence with pgdat->node_present_pages.
-
-We will set an initial value for zone->managed_pages in function
-free_area_init_core() and will adjust it later if the initial value is
-inaccurate.
-
-For DMA/normal zones, the initial value is set to:
-
-	(spanned_pages - absent_pages - memmap_pages - dma_reserve)
-
-Later zone->managed_pages will be adjusted to the accurate value when the
-bootmem allocator frees all free pages to the buddy system in function
-free_all_bootmem_node() and free_all_bootmem().
-
-The bootmem allocator doesn't touch highmem pages, so highmem zones'
-managed_pages is set to the accurate value "spanned_pages - absent_pages"
-in function free_area_init_core() and won't be updated anymore.
-
-This patch also adds a new field "managed_pages" to /proc/zoneinfo
-and sysrq showmem.
-
-[akpm@linux-foundation.org: small comment tweaks]
+[akpm@linux-foundation.org: mark calc_memmap_size __paging_init]
 Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
 Cc: Wen Congyang <wency@cn.fujitsu.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Maciej Rutecki <maciej.rutecki@gmail.com>
-Tested-by: Chris Clayton <chris2553@googlemail.com>
+Cc: Chris Clayton <chris2553@googlemail.com>
 Cc: "Rafael J . Wysocki" <rjw@sisk.pl>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Jianguo Wu <wujianguo@huawei.com>
+Tested-by: Jianguo Wu <wujianguo@huawei.com>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   41 ++++++++++++++++++++++++++++++------
- mm/bootmem.c           |   21 ++++++++++++++++++
- mm/memory_hotplug.c    |   10 ++++++++
- mm/nobootmem.c         |   22 +++++++++++++++++++
- mm/page_alloc.c        |   44 ++++++++++++++++++++++++++-------------
- mm/vmstat.c            |    6 +++--
- 6 files changed, 121 insertions(+), 23 deletions(-)
+ mm/page_alloc.c |   26 ++++++++++++++++++++++++--
+ 1 file changed, 24 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-introduce-new-field-managed_pages-to-struct-zone include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-introduce-new-field-managed_pages-to-struct-zone
-+++ a/include/linux/mmzone.h
-@@ -460,17 +460,44 @@ struct zone {
- 	unsigned long		zone_start_pfn;
- 
- 	/*
--	 * zone_start_pfn, spanned_pages and present_pages are all
--	 * protected by span_seqlock.  It is a seqlock because it has
--	 * to be read outside of zone->lock, and it is done in the main
--	 * allocator path.  But, it is written quite infrequently.
-+	 * spanned_pages is the total pages spanned by the zone, including
-+	 * holes, which is calculated as:
-+	 * 	spanned_pages = zone_end_pfn - zone_start_pfn;
- 	 *
--	 * The lock is declared along with zone->lock because it is
-+	 * present_pages is physical pages existing within the zone, which
-+	 * is calculated as:
-+	 *	present_pages = spanned_pages - absent_pages(pags in holes);
-+	 *
-+	 * managed_pages is present pages managed by the buddy system, which
-+	 * is calculated as (reserved_pages includes pages allocated by the
-+	 * bootmem allocator):
-+	 *	managed_pages = present_pages - reserved_pages;
-+	 *
-+	 * So present_pages may be used by memory hotplug or memory power
-+	 * management logic to figure out unmanaged pages by checking
-+	 * (present_pages - managed_pages). And managed_pages should be used
-+	 * by page allocator and vm scanner to calculate all kinds of watermarks
-+	 * and thresholds.
-+	 *
-+	 * Locking rules:
-+	 *
-+	 * zone_start_pfn and spanned_pages are protected by span_seqlock.
-+	 * It is a seqlock because it has to be read outside of zone->lock,
-+	 * and it is done in the main allocator path.  But, it is written
-+	 * quite infrequently.
-+	 *
-+	 * The span_seq lock is declared along with zone->lock because it is
- 	 * frequently read in proximity to zone->lock.  It's good to
- 	 * give them a chance of being in the same cacheline.
-+	 *
-+	 * Write access to present_pages and managed_pages at runtime should
-+	 * be protected by lock_memory_hotplug()/unlock_memory_hotplug().
-+	 * Any reader who can't tolerant drift of present_pages and
-+	 * managed_pages should hold memory hotplug lock to get a stable value.
- 	 */
--	unsigned long		spanned_pages;	/* total size, including holes */
--	unsigned long		present_pages;	/* amount of memory (excluding holes) */
-+	unsigned long		spanned_pages;
-+	unsigned long		present_pages;
-+	unsigned long		managed_pages;
- 
- 	/*
- 	 * rarely used fields:
-diff -puN mm/bootmem.c~mm-introduce-new-field-managed_pages-to-struct-zone mm/bootmem.c
---- a/mm/bootmem.c~mm-introduce-new-field-managed_pages-to-struct-zone
-+++ a/mm/bootmem.c
-@@ -229,6 +229,22 @@ static unsigned long __init free_all_boo
- 	return count;
- }
- 
-+static void reset_node_lowmem_managed_pages(pg_data_t *pgdat)
-+{
-+	struct zone *z;
-+
-+	/*
-+	 * In free_area_init_core(), highmem zone's managed_pages is set to
-+	 * present_pages, and bootmem allocator doesn't allocate from highmem
-+	 * zones. So there's no need to recalculate managed_pages because all
-+	 * highmem pages will be managed by the buddy system. Here highmem
-+	 * zone also includes highmem movable zone.
-+	 */
-+	for (z = pgdat->node_zones; z < pgdat->node_zones + MAX_NR_ZONES; z++)
-+		if (!is_highmem(z))
-+			z->managed_pages = 0;
-+}
-+
- /**
-  * free_all_bootmem_node - release a node's free pages to the buddy allocator
-  * @pgdat: node to be released
-@@ -238,6 +254,7 @@ static unsigned long __init free_all_boo
- unsigned long __init free_all_bootmem_node(pg_data_t *pgdat)
- {
- 	register_page_bootmem_info_node(pgdat);
-+	reset_node_lowmem_managed_pages(pgdat);
- 	return free_all_bootmem_core(pgdat->bdata);
- }
- 
-@@ -250,6 +267,10 @@ unsigned long __init free_all_bootmem(vo
- {
- 	unsigned long total_pages = 0;
- 	bootmem_data_t *bdata;
-+	struct pglist_data *pgdat;
-+
-+	for_each_online_pgdat(pgdat)
-+		reset_node_lowmem_managed_pages(pgdat);
- 
- 	list_for_each_entry(bdata, &bdata_list, list)
- 		total_pages += free_all_bootmem_core(bdata);
-diff -puN mm/memory_hotplug.c~mm-introduce-new-field-managed_pages-to-struct-zone mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-introduce-new-field-managed_pages-to-struct-zone
-+++ a/mm/memory_hotplug.c
-@@ -106,6 +106,7 @@ static void get_page_bootmem(unsigned lo
- void __ref put_page_bootmem(struct page *page)
- {
- 	unsigned long type;
-+	static DEFINE_MUTEX(ppb_lock);
- 
- 	type = (unsigned long) page->lru.next;
- 	BUG_ON(type < MEMORY_HOTPLUG_MIN_BOOTMEM_TYPE ||
-@@ -115,7 +116,14 @@ void __ref put_page_bootmem(struct page 
- 		ClearPagePrivate(page);
- 		set_page_private(page, 0);
- 		INIT_LIST_HEAD(&page->lru);
-+
-+		/*
-+		 * Please refer to comment for __free_pages_bootmem()
-+		 * for why we serialize here.
-+		 */
-+		mutex_lock(&ppb_lock);
- 		__free_pages_bootmem(page, 0);
-+		mutex_unlock(&ppb_lock);
- 	}
- 
- }
-@@ -748,6 +756,7 @@ int __ref online_pages(unsigned long pfn
- 		return ret;
- 	}
- 
-+	zone->managed_pages += onlined_pages;
- 	zone->present_pages += onlined_pages;
- 	zone->zone_pgdat->node_present_pages += onlined_pages;
- 	if (onlined_pages) {
-@@ -1321,6 +1330,7 @@ repeat:
- 	/* reset pagetype flags and makes migrate type to be MOVABLE */
- 	undo_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
- 	/* removal success */
-+	zone->managed_pages -= offlined_pages;
- 	zone->present_pages -= offlined_pages;
- 	zone->zone_pgdat->node_present_pages -= offlined_pages;
- 	totalram_pages -= offlined_pages;
-diff -puN mm/nobootmem.c~mm-introduce-new-field-managed_pages-to-struct-zone mm/nobootmem.c
---- a/mm/nobootmem.c~mm-introduce-new-field-managed_pages-to-struct-zone
-+++ a/mm/nobootmem.c
-@@ -137,6 +137,22 @@ unsigned long __init free_low_memory_cor
- 	return count;
- }
- 
-+static void reset_node_lowmem_managed_pages(pg_data_t *pgdat)
-+{
-+	struct zone *z;
-+
-+	/*
-+	 * In free_area_init_core(), highmem zone's managed_pages is set to
-+	 * present_pages, and bootmem allocator doesn't allocate from highmem
-+	 * zones. So there's no need to recalculate managed_pages because all
-+	 * highmem pages will be managed by the buddy system. Here highmem
-+	 * zone also includes highmem movable zone.
-+	 */
-+	for (z = pgdat->node_zones; z < pgdat->node_zones + MAX_NR_ZONES; z++)
-+		if (!is_highmem(z))
-+			z->managed_pages = 0;
-+}
-+
- /**
-  * free_all_bootmem_node - release a node's free pages to the buddy allocator
-  * @pgdat: node to be released
-@@ -146,6 +162,7 @@ unsigned long __init free_low_memory_cor
- unsigned long __init free_all_bootmem_node(pg_data_t *pgdat)
- {
- 	register_page_bootmem_info_node(pgdat);
-+	reset_node_lowmem_managed_pages(pgdat);
- 
- 	/* free_low_memory_core_early(MAX_NUMNODES) will be called later */
- 	return 0;
-@@ -158,6 +175,11 @@ unsigned long __init free_all_bootmem_no
-  */
- unsigned long __init free_all_bootmem(void)
- {
-+	struct pglist_data *pgdat;
-+
-+	for_each_online_pgdat(pgdat)
-+		reset_node_lowmem_managed_pages(pgdat);
-+
- 	/*
- 	 * We need to use MAX_NUMNODES instead of NODE_DATA(0)->node_id
- 	 *  because in some case like Node0 doesn't have RAM installed
-diff -puN mm/page_alloc.c~mm-introduce-new-field-managed_pages-to-struct-zone mm/page_alloc.c
---- a/mm/page_alloc.c~mm-introduce-new-field-managed_pages-to-struct-zone
+diff -puN mm/page_alloc.c~mm-provide-more-accurate-estimation-of-pages-occupied-by-memmap mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-provide-more-accurate-estimation-of-pages-occupied-by-memmap
 +++ a/mm/page_alloc.c
-@@ -735,6 +735,13 @@ static void __free_pages_ok(struct page 
- 	local_irq_restore(flags);
- }
+@@ -4489,6 +4489,26 @@ void __init set_pageblock_order(void)
  
-+/*
-+ * Read access to zone->managed_pages is safe because it's unsigned long,
-+ * but we still need to serialize writers. Currently all callers of
-+ * __free_pages_bootmem() except put_page_bootmem() should only be used
-+ * at boot time. So for shorter boot time, we shift the burden to
-+ * put_page_bootmem() to serialize writers.
-+ */
- void __meminit __free_pages_bootmem(struct page *page, unsigned int order)
- {
- 	unsigned int nr_pages = 1 << order;
-@@ -750,6 +757,7 @@ void __meminit __free_pages_bootmem(stru
- 		set_page_count(p, 0);
- 	}
+ #endif /* CONFIG_HUGETLB_PAGE_SIZE_VARIABLE */
  
-+	page_zone(page)->managed_pages += 1 << order;
- 	set_page_refcounted(page);
- 	__free_pages(page, order);
- }
-@@ -2984,6 +2992,7 @@ void show_free_areas(unsigned int filter
- 			" isolated(anon):%lukB"
- 			" isolated(file):%lukB"
- 			" present:%lukB"
-+			" managed:%lukB"
- 			" mlocked:%lukB"
- 			" dirty:%lukB"
- 			" writeback:%lukB"
-@@ -3013,6 +3022,7 @@ void show_free_areas(unsigned int filter
- 			K(zone_page_state(zone, NR_ISOLATED_ANON)),
- 			K(zone_page_state(zone, NR_ISOLATED_FILE)),
- 			K(zone->present_pages),
-+			K(zone->managed_pages),
- 			K(zone_page_state(zone, NR_MLOCK)),
- 			K(zone_page_state(zone, NR_FILE_DIRTY)),
- 			K(zone_page_state(zone, NR_WRITEBACK)),
-@@ -4502,48 +4512,54 @@ static void __paginginit free_area_init_
- 
- 	for (j = 0; j < MAX_NR_ZONES; j++) {
- 		struct zone *zone = pgdat->node_zones + j;
--		unsigned long size, realsize, memmap_pages;
-+		unsigned long size, realsize, freesize, memmap_pages;
- 
- 		size = zone_spanned_pages_in_node(nid, j, zones_size);
--		realsize = size - zone_absent_pages_in_node(nid, j,
-+		realsize = freesize = size - zone_absent_pages_in_node(nid, j,
- 								zholes_size);
- 
- 		/*
--		 * Adjust realsize so that it accounts for how much memory
-+		 * Adjust freesize so that it accounts for how much memory
++static unsigned long __paginginit calc_memmap_size(unsigned long spanned_pages,
++						   unsigned long present_pages)
++{
++	unsigned long pages = spanned_pages;
++
++	/*
++	 * Provide a more accurate estimation if there are holes within
++	 * the zone and SPARSEMEM is in use. If there are holes within the
++	 * zone, each populated memory region may cost us one or two extra
++	 * memmap pages due to alignment because memmap pages for each
++	 * populated regions may not naturally algined on page boundary.
++	 * So the (present_pages >> 4) heuristic is a tradeoff for that.
++	 */
++	if (spanned_pages > present_pages + (present_pages >> 4) &&
++	    IS_ENABLED(CONFIG_SPARSEMEM))
++		pages = present_pages;
++
++	return PAGE_ALIGN(pages * sizeof(struct page)) >> PAGE_SHIFT;
++}
++
+ /*
+  * Set up the zone data structures:
+  *   - mark all pages reserved
+@@ -4523,8 +4543,7 @@ static void __paginginit free_area_init_
  		 * is used by this zone for memmap. This affects the watermark
  		 * and per-cpu initialisations
  		 */
- 		memmap_pages =
- 			PAGE_ALIGN(size * sizeof(struct page)) >> PAGE_SHIFT;
--		if (realsize >= memmap_pages) {
--			realsize -= memmap_pages;
-+		if (freesize >= memmap_pages) {
-+			freesize -= memmap_pages;
+-		memmap_pages =
+-			PAGE_ALIGN(size * sizeof(struct page)) >> PAGE_SHIFT;
++		memmap_pages = calc_memmap_size(size, realsize);
+ 		if (freesize >= memmap_pages) {
+ 			freesize -= memmap_pages;
  			if (memmap_pages)
- 				printk(KERN_DEBUG
- 				       "  %s zone: %lu pages used for memmap\n",
- 				       zone_names[j], memmap_pages);
- 		} else
- 			printk(KERN_WARNING
--				"  %s zone: %lu pages exceeds realsize %lu\n",
--				zone_names[j], memmap_pages, realsize);
-+				"  %s zone: %lu pages exceeds freesize %lu\n",
-+				zone_names[j], memmap_pages, freesize);
- 
- 		/* Account for reserved pages */
--		if (j == 0 && realsize > dma_reserve) {
--			realsize -= dma_reserve;
-+		if (j == 0 && freesize > dma_reserve) {
-+			freesize -= dma_reserve;
- 			printk(KERN_DEBUG "  %s zone: %lu pages reserved\n",
- 					zone_names[0], dma_reserve);
- 		}
+@@ -4545,6 +4564,9 @@ static void __paginginit free_area_init_
  
  		if (!is_highmem_idx(j))
--			nr_kernel_pages += realsize;
--		nr_all_pages += realsize;
-+			nr_kernel_pages += freesize;
-+		nr_all_pages += freesize;
+ 			nr_kernel_pages += freesize;
++		/* Charge for highmem memmap if there are enough kernel pages */
++		else if (nr_kernel_pages > memmap_pages * 2)
++			nr_kernel_pages -= memmap_pages;
+ 		nr_all_pages += freesize;
  
  		zone->spanned_pages = size;
--		zone->present_pages = realsize;
-+		zone->present_pages = freesize;
-+		/*
-+		 * Set an approximate value for lowmem here, it will be adjusted
-+		 * when the bootmem allocator frees pages into the buddy system.
-+		 * And all highmem pages will be managed by the buddy system.
-+		 */
-+		zone->managed_pages = is_highmem_idx(j) ? realsize : freesize;
- #ifdef CONFIG_NUMA
- 		zone->node = nid;
--		zone->min_unmapped_pages = (realsize*sysctl_min_unmapped_ratio)
-+		zone->min_unmapped_pages = (freesize*sysctl_min_unmapped_ratio)
- 						/ 100;
--		zone->min_slab_pages = (realsize * sysctl_min_slab_ratio) / 100;
-+		zone->min_slab_pages = (freesize * sysctl_min_slab_ratio) / 100;
- #endif
- 		zone->name = zone_names[j];
- 		spin_lock_init(&zone->lock);
-diff -puN mm/vmstat.c~mm-introduce-new-field-managed_pages-to-struct-zone mm/vmstat.c
---- a/mm/vmstat.c~mm-introduce-new-field-managed_pages-to-struct-zone
-+++ a/mm/vmstat.c
-@@ -994,14 +994,16 @@ static void zoneinfo_show_print(struct s
- 		   "\n        high     %lu"
- 		   "\n        scanned  %lu"
- 		   "\n        spanned  %lu"
--		   "\n        present  %lu",
-+		   "\n        present  %lu"
-+		   "\n        managed  %lu",
- 		   zone_page_state(zone, NR_FREE_PAGES),
- 		   min_wmark_pages(zone),
- 		   low_wmark_pages(zone),
- 		   high_wmark_pages(zone),
- 		   zone->pages_scanned,
- 		   zone->spanned_pages,
--		   zone->present_pages);
-+		   zone->present_pages,
-+		   zone->managed_pages);
- 
- 	for (i = 0; i < NR_VM_ZONE_STAT_ITEMS; i++)
- 		seq_printf(m, "\n    %-12s %lu", vmstat_text[i],
 _
 
 Patches currently in -mm which might be from liuj97@gmail.com are
