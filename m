@@ -1,136 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: + core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 14 Dec 2012 14:08:50 -0800
-Message-ID: <20121214220851.4BA58100047@wpzn3.hot.corp.google.com>
+Subject: [merged] bootmem-remove-alloc_arch_preferred_bootmem.patch removed from -mm tree
+Date: Fri, 14 Dec 2012 15:26:52 -0800
+Message-ID: <20121214232653.44A2B200083@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:52420 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755435Ab2LNWIw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Dec 2012 17:08:52 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so401609ghb.1
-        for <mm-commits@vger.kernel.org>; Fri, 14 Dec 2012 14:08:51 -0800 (PST)
+Received: from mail-ea0-f202.google.com ([209.85.215.202]:56912 "EHLO
+	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756779Ab2LNX05 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Dec 2012 18:26:57 -0500
+Received: by mail-ea0-f202.google.com with SMTP id j12so208085eaa.1
+        for <mm-commits@vger.kernel.org>; Fri, 14 Dec 2012 15:26:55 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, nhorman@tuxdriver.com
+To: js1304@gmail.com, benh@kernel.crashing.org, egtvedt@samfundet.no, fujita.tomonori@lab.ntt.co.jp, hannes@cmpxchg.org, hskinnemoen@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix-checkpatch-fixes.patch
+     Subject: bootmem: remove alloc_arch_preferred_bootmem()
+has been removed from the -mm tree.  Its filename was
+     bootmem-remove-alloc_arch_preferred_bootmem.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix-checkpatch-fixes
+From: Joonsoo Kim <js1304@gmail.com>
+Subject: bootmem: remove alloc_arch_preferred_bootmem()
 
-ERROR: code indent should use tabs where possible
-#40: FILE: fs/coredump.c:169:
-+ ^I^I * We have 2 | tokens at the head of core_pattern which$
+The name of this function is not suitable, and removing the function and
+open-coding it into each call sites makes the code more understandable.
 
-WARNING: please, no space before tabs
-#40: FILE: fs/coredump.c:169:
-+ ^I^I * We have 2 | tokens at the head of core_pattern which$
+Additionally, we shouldn't do an allocation from bootmem when
+slab_is_available(), so directly return kmalloc()'s return value.
 
-total: 1 errors, 1 warnings, 28 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Neil Horman <nhorman@tuxdriver.com>
+Signed-off-by: Joonsoo Kim <js1304@gmail.com>
+Cc: Haavard Skinnemoen <hskinnemoen@gmail.com>
+Cc: Hans-Christian Egtvedt <egtvedt@samfundet.no>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/bootmem.c |   20 ++++----------------
+ 1 file changed, 4 insertions(+), 16 deletions(-)
 
-diff -puN fs/coredump.c~core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix-checkpatch-fixes fs/coredump.c
---- a/fs/coredump.c~core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix-checkpatch-fixes
-+++ a/fs/coredump.c
-@@ -166,10 +166,10 @@ static int format_corename(struct core_n
+diff -puN mm/bootmem.c~bootmem-remove-alloc_arch_preferred_bootmem mm/bootmem.c
+--- a/mm/bootmem.c~bootmem-remove-alloc_arch_preferred_bootmem
++++ a/mm/bootmem.c
+@@ -575,15 +575,6 @@ find_block:
+ 	return NULL;
+ }
  
- 	if (ispipe && pat_ptr[1] == '|') {
- 		/*
-- 		 * We have 2 | tokens at the head of core_pattern which
-- 		 * indicates we are a pipe and the reader should inherit the
-- 		 * namespaces of the crashing process
-- 		 */
-+		 * We have 2 | tokens at the head of core_pattern which
-+		 * indicates we are a pipe and the reader should inherit the
-+		 * namespaces of the crashing process
-+		 */
- 		cprm->switch_ns = true;
- 		pat_ptr++;
- 	}
+-static void * __init alloc_arch_preferred_bootmem(bootmem_data_t *bdata,
+-					unsigned long size, unsigned long align,
+-					unsigned long goal, unsigned long limit)
+-{
+-	if (WARN_ON_ONCE(slab_is_available()))
+-		return kzalloc(size, GFP_NOWAIT);
+-	return NULL;
+-}
+-
+ static void * __init alloc_bootmem_core(unsigned long size,
+ 					unsigned long align,
+ 					unsigned long goal,
+@@ -592,9 +583,8 @@ static void * __init alloc_bootmem_core(
+ 	bootmem_data_t *bdata;
+ 	void *region;
+ 
+-	region = alloc_arch_preferred_bootmem(NULL, size, align, goal, limit);
+-	if (region)
+-		return region;
++	if (WARN_ON_ONCE(slab_is_available()))
++		return kzalloc(size, GFP_NOWAIT);
+ 
+ 	list_for_each_entry(bdata, &bdata_list, list) {
+ 		if (goal && bdata->node_low_pfn <= PFN_DOWN(goal))
+@@ -692,11 +682,9 @@ void * __init ___alloc_bootmem_node_nopa
+ {
+ 	void *ptr;
+ 
++	if (WARN_ON_ONCE(slab_is_available()))
++		return kzalloc(size, GFP_NOWAIT);
+ again:
+-	ptr = alloc_arch_preferred_bootmem(pgdat->bdata, size,
+-					   align, goal, limit);
+-	if (ptr)
+-		return ptr;
+ 
+ 	/* do not panic in alloc_bootmem_bdata() */
+ 	if (limit && goal + size > limit)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from js1304@gmail.com are
 
 origin.patch
 linux-next.patch
-linux-next-rejects-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
-irq-tsk-comm-is-an-array.patch
-block-remove-deadlock-in-disk_clear_events-fix.patch
-block-prevent-race-cleanup-fix.patch
-mm.patch
+memcg-make-it-possible-to-use-the-stock-for-more-than-one-page.patch
+memcg-reclaim-when-more-than-one-page-needed.patch
+memcg-change-defines-to-an-enum.patch
+memcg-kmem-accounting-basic-infrastructure.patch
 memcg-kmem-accounting-basic-infrastructure-fix.patch
+mm-add-a-__gfp_kmemcg-flag.patch
+memcg-kmem-controller-infrastructure.patch
+mm-allocate-kernel-pages-to-the-right-memcg.patch
+res_counter-return-amount-of-charges-after-res_counter_uncharge.patch
+memcg-kmem-accounting-lifecycle-management.patch
+memcg-use-static-branches-when-code-not-in-use.patch
+memcg-allow-a-memcg-with-kmem-charges-to-be-destructed.patch
+memcg-execute-the-whole-memcg-freeing-in-free_worker.patch
+fork-protect-architectures-where-thread_size-=-page_size-against-fork-bombs.patch
+memcg-add-documentation-about-the-kmem-controller.patch
+slab-slub-struct-memcg_params.patch
+slab-annotate-on-slab-caches-nodelist-locks.patch
+slab-slub-consider-a-memcg-parameter-in-kmem_create_cache.patch
+memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears.patch
+memcg-infrastructure-to-match-an-allocation-to-the-right-cache.patch
+memcg-skip-memcg-kmem-allocations-in-specified-code-regions.patch
+slb-always-get-the-cache-from-its-page-in-kmem_cache_free.patch
+slb-allocate-objects-from-memcg-cache.patch
+memcg-destroy-memcg-caches.patch
+memcg-slb-track-all-the-memcg-children-of-a-kmem_cache.patch
+memcg-slb-shrink-dead-caches.patch
+memcg-aggregate-memcg-cache-values-in-slabinfo.patch
+slab-propagate-tunable-values.patch
+slub-slub-specific-propagation-changes.patch
 slub-slub-specific-propagation-changes-fix.patch
-mm-mprotectc-coding-style-cleanups.patch
-mm-hugetlb-create-hugetlb-cgroup-file-in-hugetlb_init-fix.patch
-drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-lseek-the-whence-argument-is-called-whence.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
-backlight-add-of_find_backlight_by_node-function-fix.patch
-backlight-88pm860x_bl-remove-an-unnecessary-line-continuation-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes-checkpatch-fixes.patch
-hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix.patch
-core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix.patch
-core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix-checkpatch-fixes.patch
-procfs-add-vmflags-field-in-smaps-output-v4.patch
-procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
-ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
-ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
-ipc-convert-prepare_copy-from-macro-to-function-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-docs-add-documentation-about-proc-pid-fdinfo-fd-output-fix.patch
-fs-notify-add-procfs-fdinfo-helper-v7-fix.patch
-scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+kmem-add-slab-specific-documentation-about-the-kmem-controller.patch
 
