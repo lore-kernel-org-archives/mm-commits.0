@@ -1,227 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hotplug-update-nodemasks-management.patch removed from -mm tree
-Date: Fri, 14 Dec 2012 15:28:52 -0800
-Message-ID: <20121214232853.381B2200083@hpza10.eem.corp.google.com>
+Subject: [merged] mm-add-a-reminder-comment-for-__gfp_bits_shift.patch removed from -mm tree
+Date: Fri, 14 Dec 2012 15:29:03 -0800
+Message-ID: <20121214232904.1E308200069@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f202.google.com ([209.85.215.202]:64202 "EHLO
-	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932668Ab2LNX24 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Dec 2012 18:28:56 -0500
-Received: by mail-ea0-f202.google.com with SMTP id j12so208162eaa.1
-        for <mm-commits@vger.kernel.org>; Fri, 14 Dec 2012 15:28:55 -0800 (PST)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:46948 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932668Ab2LNX3G (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Dec 2012 18:29:06 -0500
+Received: by mail-bk0-f74.google.com with SMTP id je9so208987bkc.1
+        for <mm-commits@vger.kernel.org>; Fri, 14 Dec 2012 15:29:05 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: laijs@cn.fujitsu.com, cl@linux.com, dhillf@gmail.com, linfeng@cn.fujitsu.com, lliubbo@gmail.com, rientjes@google.com, wency@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, glommer@parallels.com, mgorman@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hotplug: update nodemasks management
+     Subject: mm: add a reminder comment for __GFP_BITS_SHIFT
 has been removed from the -mm tree.  Its filename was
-     hotplug-update-nodemasks-management.patch
+     mm-add-a-reminder-comment-for-__gfp_bits_shift.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Lai Jiangshan <laijs@cn.fujitsu.com>
-Subject: hotplug: update nodemasks management
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: add a reminder comment for __GFP_BITS_SHIFT
 
-Update nodemasks management for N_MEMORY.
-
-[lliubbo@gmail.com: fix build]
-Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: Lin Feng <linfeng@cn.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
-Signed-off-by: Bob Liu <lliubbo@gmail.com>
+Cc: Glauber Costa <glommer@parallels.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/memory-hotplug.txt |    5 +
- include/linux/memory.h           |    1 
- mm/memory_hotplug.c              |   87 ++++++++++++++++++++++++-----
- 3 files changed, 77 insertions(+), 16 deletions(-)
+ include/linux/gfp.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN Documentation/memory-hotplug.txt~hotplug-update-nodemasks-management Documentation/memory-hotplug.txt
---- a/Documentation/memory-hotplug.txt~hotplug-update-nodemasks-management
-+++ a/Documentation/memory-hotplug.txt
-@@ -390,6 +390,7 @@ struct memory_notify {
-        unsigned long start_pfn;
-        unsigned long nr_pages;
-        int status_change_nid_normal;
-+       int status_change_nid_high;
-        int status_change_nid;
- }
+diff -puN include/linux/gfp.h~mm-add-a-reminder-comment-for-__gfp_bits_shift include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-add-a-reminder-comment-for-__gfp_bits_shift
++++ a/include/linux/gfp.h
+@@ -34,6 +34,7 @@ struct vm_area_struct;
+ #define ___GFP_NO_KSWAPD	0x400000u
+ #define ___GFP_OTHER_NODE	0x800000u
+ #define ___GFP_WRITE		0x1000000u
++/* If the above are modified, __GFP_BITS_SHIFT may need updating */
  
-@@ -397,7 +398,9 @@ start_pfn is start_pfn of online/offline
- nr_pages is # of pages of online/offline memory.
- status_change_nid_normal is set node id when N_NORMAL_MEMORY of nodemask
- is (will be) set/clear, if this is -1, then nodemask status is not changed.
--status_change_nid is set node id when N_HIGH_MEMORY of nodemask is (will be)
-+status_change_nid_high is set node id when N_HIGH_MEMORY of nodemask
-+is (will be) set/clear, if this is -1, then nodemask status is not changed.
-+status_change_nid is set node id when N_MEMORY of nodemask is (will be)
- set/clear. It means a new(memoryless) node gets new memory by online and a
- node loses all memory. If this is -1, then nodemask status is not changed.
- If status_changed_nid* >= 0, callback should create/discard structures for the
-diff -puN include/linux/memory.h~hotplug-update-nodemasks-management include/linux/memory.h
---- a/include/linux/memory.h~hotplug-update-nodemasks-management
-+++ a/include/linux/memory.h
-@@ -54,6 +54,7 @@ struct memory_notify {
- 	unsigned long start_pfn;
- 	unsigned long nr_pages;
- 	int status_change_nid_normal;
-+	int status_change_nid_high;
- 	int status_change_nid;
- };
- 
-diff -puN mm/memory_hotplug.c~hotplug-update-nodemasks-management mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~hotplug-update-nodemasks-management
-+++ a/mm/memory_hotplug.c
-@@ -595,13 +595,15 @@ static void node_states_check_changes_on
- 	enum zone_type zone_last = ZONE_NORMAL;
- 
- 	/*
--	 * If we have HIGHMEM, node_states[N_NORMAL_MEMORY] contains nodes
--	 * which have 0...ZONE_NORMAL, set zone_last to ZONE_NORMAL.
-+	 * If we have HIGHMEM or movable node, node_states[N_NORMAL_MEMORY]
-+	 * contains nodes which have zones of 0...ZONE_NORMAL,
-+	 * set zone_last to ZONE_NORMAL.
- 	 *
--	 * If we don't have HIGHMEM, node_states[N_NORMAL_MEMORY] contains nodes
--	 * which have 0...ZONE_MOVABLE, set zone_last to ZONE_MOVABLE.
-+	 * If we don't have HIGHMEM nor movable node,
-+	 * node_states[N_NORMAL_MEMORY] contains nodes which have zones of
-+	 * 0...ZONE_MOVABLE, set zone_last to ZONE_MOVABLE.
- 	 */
--	if (N_HIGH_MEMORY == N_NORMAL_MEMORY)
-+	if (N_MEMORY == N_NORMAL_MEMORY)
- 		zone_last = ZONE_MOVABLE;
- 
- 	/*
-@@ -615,12 +617,34 @@ static void node_states_check_changes_on
- 	else
- 		arg->status_change_nid_normal = -1;
- 
-+#ifdef CONFIG_HIGHMEM
-+	/*
-+	 * If we have movable node, node_states[N_HIGH_MEMORY]
-+	 * contains nodes which have zones of 0...ZONE_HIGHMEM,
-+	 * set zone_last to ZONE_HIGHMEM.
-+	 *
-+	 * If we don't have movable node, node_states[N_NORMAL_MEMORY]
-+	 * contains nodes which have zones of 0...ZONE_MOVABLE,
-+	 * set zone_last to ZONE_MOVABLE.
-+	 */
-+	zone_last = ZONE_HIGHMEM;
-+	if (N_MEMORY == N_HIGH_MEMORY)
-+		zone_last = ZONE_MOVABLE;
-+
-+	if (zone_idx(zone) <= zone_last && !node_state(nid, N_HIGH_MEMORY))
-+		arg->status_change_nid_high = nid;
-+	else
-+		arg->status_change_nid_high = -1;
-+#else
-+	arg->status_change_nid_high = arg->status_change_nid_normal;
-+#endif
-+
- 	/*
- 	 * if the node don't have memory befor online, we will need to
--	 * set the node to node_states[N_HIGH_MEMORY] after the memory
-+	 * set the node to node_states[N_MEMORY] after the memory
- 	 * is online.
- 	 */
--	if (!node_state(nid, N_HIGH_MEMORY))
-+	if (!node_state(nid, N_MEMORY))
- 		arg->status_change_nid = nid;
- 	else
- 		arg->status_change_nid = -1;
-@@ -631,7 +655,10 @@ static void node_states_set_node(int nod
- 	if (arg->status_change_nid_normal >= 0)
- 		node_set_state(node, N_NORMAL_MEMORY);
- 
--	node_set_state(node, N_HIGH_MEMORY);
-+	if (arg->status_change_nid_high >= 0)
-+		node_set_state(node, N_HIGH_MEMORY);
-+
-+	node_set_state(node, N_MEMORY);
- }
- 
- 
-@@ -1099,13 +1126,15 @@ static void node_states_check_changes_of
- 	enum zone_type zt, zone_last = ZONE_NORMAL;
- 
- 	/*
--	 * If we have HIGHMEM, node_states[N_NORMAL_MEMORY] contains nodes
--	 * which have 0...ZONE_NORMAL, set zone_last to ZONE_NORMAL.
-+	 * If we have HIGHMEM or movable node, node_states[N_NORMAL_MEMORY]
-+	 * contains nodes which have zones of 0...ZONE_NORMAL,
-+	 * set zone_last to ZONE_NORMAL.
- 	 *
--	 * If we don't have HIGHMEM, node_states[N_NORMAL_MEMORY] contains nodes
--	 * which have 0...ZONE_MOVABLE, set zone_last to ZONE_MOVABLE.
-+	 * If we don't have HIGHMEM nor movable node,
-+	 * node_states[N_NORMAL_MEMORY] contains nodes which have zones of
-+	 * 0...ZONE_MOVABLE, set zone_last to ZONE_MOVABLE.
- 	 */
--	if (N_HIGH_MEMORY == N_NORMAL_MEMORY)
-+	if (N_MEMORY == N_NORMAL_MEMORY)
- 		zone_last = ZONE_MOVABLE;
- 
- 	/*
-@@ -1122,6 +1151,30 @@ static void node_states_check_changes_of
- 	else
- 		arg->status_change_nid_normal = -1;
- 
-+#ifdef CONFIG_HIGHMEM
-+	/*
-+	 * If we have movable node, node_states[N_HIGH_MEMORY]
-+	 * contains nodes which have zones of 0...ZONE_HIGHMEM,
-+	 * set zone_last to ZONE_HIGHMEM.
-+	 *
-+	 * If we don't have movable node, node_states[N_NORMAL_MEMORY]
-+	 * contains nodes which have zones of 0...ZONE_MOVABLE,
-+	 * set zone_last to ZONE_MOVABLE.
-+	 */
-+	zone_last = ZONE_HIGHMEM;
-+	if (N_MEMORY == N_HIGH_MEMORY)
-+		zone_last = ZONE_MOVABLE;
-+
-+	for (; zt <= zone_last; zt++)
-+		present_pages += pgdat->node_zones[zt].present_pages;
-+	if (zone_idx(zone) <= zone_last && nr_pages >= present_pages)
-+		arg->status_change_nid_high = zone_to_nid(zone);
-+	else
-+		arg->status_change_nid_high = -1;
-+#else
-+	arg->status_change_nid_high = arg->status_change_nid_normal;
-+#endif
-+
- 	/*
- 	 * node_states[N_HIGH_MEMORY] contains nodes which have 0...ZONE_MOVABLE
- 	 */
-@@ -1146,9 +1199,13 @@ static void node_states_clear_node(int n
- 	if (arg->status_change_nid_normal >= 0)
- 		node_clear_state(node, N_NORMAL_MEMORY);
- 
--	if ((N_HIGH_MEMORY != N_NORMAL_MEMORY) &&
--	    (arg->status_change_nid >= 0))
-+	if ((N_MEMORY != N_NORMAL_MEMORY) &&
-+	    (arg->status_change_nid_high >= 0))
- 		node_clear_state(node, N_HIGH_MEMORY);
-+
-+	if ((N_MEMORY != N_HIGH_MEMORY) &&
-+	    (arg->status_change_nid >= 0))
-+		node_clear_state(node, N_MEMORY);
- }
- 
- static int __ref __offline_pages(unsigned long start_pfn,
+ /*
+  * GFP bitmasks..
 _
 
-Patches currently in -mm which might be from laijs@cn.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
+linux-next-rejects-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
+irq-tsk-comm-is-an-array.patch
+block-remove-deadlock-in-disk_clear_events-fix.patch
+block-prevent-race-cleanup-fix.patch
+mm.patch
+memcg-kmem-accounting-basic-infrastructure-fix.patch
+slub-slub-specific-propagation-changes-fix.patch
+mm-mprotectc-coding-style-cleanups.patch
+mm-hugetlb-create-hugetlb-cgroup-file-in-hugetlb_init-fix.patch
+drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+lseek-the-whence-argument-is-called-whence.patch
+drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
+backlight-add-of_find_backlight_by_node-function-fix.patch
+backlight-88pm860x_bl-remove-an-unnecessary-line-continuation-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes-checkpatch-fixes.patch
+hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix.patch
+core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix.patch
+core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix-checkpatch-fixes.patch
+procfs-add-vmflags-field-in-smaps-output-v4.patch
+procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
+ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
+ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
+ipc-convert-prepare_copy-from-macro-to-function-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+docs-add-documentation-about-proc-pid-fdinfo-fd-output-fix.patch
+fs-notify-add-procfs-fdinfo-helper-v7-fix.patch
+scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
