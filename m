@@ -1,133 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
-Date: Fri, 14 Dec 2012 13:35:05 -0800
-Message-ID: <20121214213507.95BF0200059@hpza10.eem.corp.google.com>
+Subject: + core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix.patch added to -mm tree
+Date: Fri, 14 Dec 2012 13:49:28 -0800
+Message-ID: <20121214214929.2352F82004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:55711 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932311Ab2LNVfN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Dec 2012 16:35:13 -0500
-Received: by mail-fa0-f74.google.com with SMTP id t1so205294fae.1
-        for <mm-commits@vger.kernel.org>; Fri, 14 Dec 2012 13:35:11 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:33702 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932303Ab2LNVta (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Dec 2012 16:49:30 -0500
+Received: by mail-vb0-f74.google.com with SMTP id s24so399063vbi.1
+        for <mm-commits@vger.kernel.org>; Fri, 14 Dec 2012 13:49:29 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, berrange@redhat.com, nhorman@tuxdriver.com, serge.hallyn@canonical.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     Subject: linux-next-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-rejects.patch
+     Subject: core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix
+has been added to the -mm tree.  Its filename is
+     core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+Subject: core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix
 
+fix doc typo, simplify format_corename()
+
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Daniel Berrange <berrange@redhat.com>
+Cc: Neil Horman <nhorman@tuxdriver.com>
+Cc: Serge Hallyn <serge.hallyn@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   13 ++++++++++++-
- mm/mprotect.c    |   32 ++++++++++++++++++++++++++------
- 2 files changed, 38 insertions(+), 7 deletions(-)
+ Documentation/sysctl/kernel.txt |    2 +-
+ fs/coredump.c                   |   10 ++++------
+ 2 files changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN mm/huge_memory.c~linux-next-rejects mm/huge_memory.c
---- a/mm/huge_memory.c~linux-next-rejects
-+++ a/mm/huge_memory.c
-@@ -16,6 +16,7 @@
- #include <linux/mm_inline.h>
- #include <linux/kthread.h>
- #include <linux/khugepaged.h>
-+#include <linux/migrate.h>
- #include <linux/freezer.h>
- #include <linux/mman.h>
- #include <linux/pagemap.h>
-@@ -1462,7 +1463,17 @@ int change_huge_pmd(struct vm_area_struc
- 	if (__pmd_trans_huge_lock(pmd, vma) == 1) {
- 		pmd_t entry;
- 		entry = pmdp_get_and_clear(mm, addr, pmd);
--		entry = pmd_modify(entry, newprot);
-+		if (!prot_numa)
-+			entry = pmd_modify(entry, newprot);
-+		else {
-+			struct page *page = pmd_page(*pmd);
-+
-+			/* only check non-shared pages */
-+			if (page_mapcount(page) == 1 &&
-+			    !pmd_numa(*pmd)) {
-+				entry = pmd_mknuma(entry);
-+			}
-+		}
- 		BUG_ON(pmd_write(entry));
- 		set_pmd_at(mm, addr, pmd, entry);
- 		spin_unlock(&vma->vm_mm->page_table_lock);
-diff -puN mm/mprotect.c~linux-next-rejects mm/mprotect.c
---- a/mm/mprotect.c~linux-next-rejects
-+++ a/mm/mprotect.c
-@@ -127,20 +127,39 @@ static inline unsigned long change_pmd_r
- 		if (pmd_trans_huge(*pmd)) {
- 			if (next - addr != HPAGE_PMD_SIZE)
- 				split_huge_page_pmd(vma, addr, pmd);
--			else if (change_huge_pmd(vma, pmd, addr, newprot))
-+			else if (change_huge_pmd(vma, pmd, addr, newprot, prot_numa)) {
-+				pages += HPAGE_PMD_NR;
- 				continue;
-+			}
- 			/* fall through */
- 		}
- 		if (pmd_none_or_clear_bad(pmd))
- 			continue;
--		change_pte_range(vma->vm_mm, pmd, addr, next, newprot,
--				 dirty_accountable);
-+		pages += change_pte_range(vma, pmd, addr, next, newprot,
-+				 dirty_accountable, prot_numa, &all_same_node);
-+
-+#ifdef CONFIG_NUMA_BALANCING
-+		/*
-+		 * If we are changing protections for NUMA hinting faults then
-+		 * set pmd_numa if the examined pages were all on the same
-+		 * node. This allows a regular PMD to be handled as one fault
-+		 * and effectively batches the taking of the PTL
-+		 */
-+		if (prot_numa && all_same_node && 0) {
-+			struct mm_struct *mm = vma->vm_mm;
-+
-+			spin_lock(&mm->page_table_lock);
-+			set_pmd_at(mm, addr & PMD_MASK, pmd, pmd_mknuma(*pmd));
-+			spin_unlock(&mm->page_table_lock);
-+		}
-+#endif
- 	} while (pmd++, addr = next, addr != end);
-+	return pages;
- }
+diff -puN Documentation/sysctl/kernel.txt~core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix Documentation/sysctl/kernel.txt
+--- a/Documentation/sysctl/kernel.txt~core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix
++++ a/Documentation/sysctl/kernel.txt
+@@ -194,7 +194,7 @@ core_pattern is used to specify a core d
+   written to the standard input of that program instead of to a file.  Note that
+   when using |, the core pipe reader that is executed will be run in the global
+   namespace and root filesystem.  If two | tokens (i.e. ||) are supplied as the
+-  first two characters of the core_pattern sysctl, the kernel will preform the
++  first two characters of the core_pattern sysctl, the kernel will perform the
+   same pipe operation, but the core pipe reader will be executed using the
+   namespace and root fs of the crashing process.
  
--static inline void change_pud_range(struct vm_area_struct *vma, pgd_t *pgd,
-+static inline unsigned long change_pud_range(struct vm_area_struct *vma, pgd_t *pgd,
- 		unsigned long addr, unsigned long end, pgprot_t newprot,
--		int dirty_accountable)
-+		int dirty_accountable, int prot_numa)
- {
- 	pud_t *pud;
- 	unsigned long next;
-@@ -163,6 +182,7 @@ static void change_protection(struct vm_
- 	pgd_t *pgd;
- 	unsigned long next;
- 	unsigned long start = addr;
-+	unsigned long pages = 0;
+diff -puN fs/coredump.c~core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix fs/coredump.c
+--- a/fs/coredump.c~core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix
++++ a/fs/coredump.c
+@@ -164,16 +164,14 @@ static int format_corename(struct core_n
+ 	if (!cn->corename)
+ 		return -ENOMEM;
  
- 	BUG_ON(addr >= end);
- 	pgd = pgd_offset(mm, addr);
-@@ -182,7 +202,7 @@ static void change_protection(struct vm_
- 	return pages;
- }
+-	if (ispipe) {
++	if (ispipe && pat_ptr[1] == '|') {
+ 		/*
+- 		 * If we have 2 | tokens at the head of core_pattern, it
++ 		 * We have 2 | tokens at the head of core_pattern which
+  		 * indicates we are a pipe and the reader should inherit the
+  		 * namespaces of the crashing process
+  		 */
+-		cprm->switch_ns = (*(pat_ptr+1) == '|') ? true : false;
+-		if (cprm->switch_ns)
+-			/* Advance pat_ptr so as not to mess up corename */
+-			pat_ptr++;
++		cprm->switch_ns = true;
++		pat_ptr++;
+ 	}
  
--unsigned long change_protection(struct vm_area_struct *vma, unsigned long start,
-+static unsigned long change_protection_range(struct vm_area_struct *vma,
- 		       unsigned long end, pgprot_t newprot,
- 		       int dirty_accountable, int prot_numa)
- {
+ 	/* Repeat as long as we have more pattern to process and more output
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -164,7 +121,7 @@ binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
 rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
 hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes-checkpatch-fixes.patch
 hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix.patch
-core_pattern-set-core-helpers-root-and-namespace-to-crashing-process.patch
+core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix.patch
 procfs-add-vmflags-field-in-smaps-output-v4.patch
 procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
 ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
