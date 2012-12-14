@@ -1,88 +1,182 @@
 From: akpm@linux-foundation.org
-Subject: + dmatest-check-for-dma-mapping-error.patch added to -mm tree
-Date: Thu, 13 Dec 2012 15:35:00 -0800
-Message-ID: <20121213233501.7AC4B200061@hpza10.eem.corp.google.com>
+Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
+Date: Fri, 14 Dec 2012 13:35:05 -0800
+Message-ID: <20121214213507.95BF0200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:52284 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755730Ab2LMXfD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Dec 2012 18:35:03 -0500
-Received: by mail-wi0-f202.google.com with SMTP id hn17so5146wib.1
-        for <mm-commits@vger.kernel.org>; Thu, 13 Dec 2012 15:35:02 -0800 (PST)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:55711 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932311Ab2LNVfN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Dec 2012 16:35:13 -0500
+Received: by mail-fa0-f74.google.com with SMTP id t1so205294fae.1
+        for <mm-commits@vger.kernel.org>; Fri, 14 Dec 2012 13:35:11 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: andriy.shevchenko@linux.intel.com, vinod.koul@intel.com, viresh.kumar@linaro.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dmatest: check for dma mapping error
-has been added to the -mm tree.  Its filename is
-     dmatest-check-for-dma-mapping-error.patch
+     Subject: linux-next-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: dmatest: check for dma mapping error
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-rejects
 
-We get a warning if CONFIG_DMA_API_DEBUG=y
-
-[   28.150631] WARNING: at lib/dma-debug.c:933 check_unmap+0x5d6/0x6ac()
-[   28.157058] dw_dmac dw_dmac.0: DMA-API: device driver failed to check map error[device address=0x0000000035698305] [size=14365 bytes] [mapped as single]
-
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: Vinod Koul <vinod.koul@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/dmatest.c |   22 +++++++++++++++++++++-
- 1 file changed, 21 insertions(+), 1 deletion(-)
+ mm/huge_memory.c |   13 ++++++++++++-
+ mm/mprotect.c    |   32 ++++++++++++++++++++++++++------
+ 2 files changed, 38 insertions(+), 7 deletions(-)
 
-diff -puN drivers/dma/dmatest.c~dmatest-check-for-dma-mapping-error drivers/dma/dmatest.c
---- a/drivers/dma/dmatest.c~dmatest-check-for-dma-mapping-error
-+++ a/drivers/dma/dmatest.c
-@@ -377,15 +377,35 @@ static int dmatest_func(void *data)
- 
- 			dma_srcs[i] = dma_map_single(dev->dev, buf, len,
- 						     DMA_TO_DEVICE);
-+			ret = dma_mapping_error(dev->dev, dma_srcs[i]);
-+			if (ret) {
-+				unmap_src(dev->dev, dma_srcs, len, i);
-+				pr_warn("%s: #%u: mapping error %d with "
-+					"src_off=0x%x len=0x%x\n",
-+					thread_name, total_tests - 1, ret,
-+					src_off, len);
-+				failed_tests++;
-+				continue;
+diff -puN mm/huge_memory.c~linux-next-rejects mm/huge_memory.c
+--- a/mm/huge_memory.c~linux-next-rejects
++++ a/mm/huge_memory.c
+@@ -16,6 +16,7 @@
+ #include <linux/mm_inline.h>
+ #include <linux/kthread.h>
+ #include <linux/khugepaged.h>
++#include <linux/migrate.h>
+ #include <linux/freezer.h>
+ #include <linux/mman.h>
+ #include <linux/pagemap.h>
+@@ -1462,7 +1463,17 @@ int change_huge_pmd(struct vm_area_struc
+ 	if (__pmd_trans_huge_lock(pmd, vma) == 1) {
+ 		pmd_t entry;
+ 		entry = pmdp_get_and_clear(mm, addr, pmd);
+-		entry = pmd_modify(entry, newprot);
++		if (!prot_numa)
++			entry = pmd_modify(entry, newprot);
++		else {
++			struct page *page = pmd_page(*pmd);
++
++			/* only check non-shared pages */
++			if (page_mapcount(page) == 1 &&
++			    !pmd_numa(*pmd)) {
++				entry = pmd_mknuma(entry);
 +			}
- 		}
- 		/* map with DMA_BIDIRECTIONAL to force writeback/invalidate */
- 		for (i = 0; i < dst_cnt; i++) {
- 			dma_dsts[i] = dma_map_single(dev->dev, thread->dsts[i],
- 						     test_buf_size,
- 						     DMA_BIDIRECTIONAL);
-+			ret = dma_mapping_error(dev->dev, dma_dsts[i]);
-+			if (ret) {
-+				unmap_src(dev->dev, dma_srcs, len, src_cnt);
-+				unmap_dst(dev->dev, dma_dsts, test_buf_size, i);
-+				pr_warn("%s: #%u: mapping error %d with "
-+					"dst_off=0x%x len=0x%x\n",
-+					thread_name, total_tests - 1, ret,
-+					dst_off, test_buf_size);
-+				failed_tests++;
-+				continue;
++		}
+ 		BUG_ON(pmd_write(entry));
+ 		set_pmd_at(mm, addr, pmd, entry);
+ 		spin_unlock(&vma->vm_mm->page_table_lock);
+diff -puN mm/mprotect.c~linux-next-rejects mm/mprotect.c
+--- a/mm/mprotect.c~linux-next-rejects
++++ a/mm/mprotect.c
+@@ -127,20 +127,39 @@ static inline unsigned long change_pmd_r
+ 		if (pmd_trans_huge(*pmd)) {
+ 			if (next - addr != HPAGE_PMD_SIZE)
+ 				split_huge_page_pmd(vma, addr, pmd);
+-			else if (change_huge_pmd(vma, pmd, addr, newprot))
++			else if (change_huge_pmd(vma, pmd, addr, newprot, prot_numa)) {
++				pages += HPAGE_PMD_NR;
+ 				continue;
 +			}
+ 			/* fall through */
  		}
+ 		if (pmd_none_or_clear_bad(pmd))
+ 			continue;
+-		change_pte_range(vma->vm_mm, pmd, addr, next, newprot,
+-				 dirty_accountable);
++		pages += change_pte_range(vma, pmd, addr, next, newprot,
++				 dirty_accountable, prot_numa, &all_same_node);
++
++#ifdef CONFIG_NUMA_BALANCING
++		/*
++		 * If we are changing protections for NUMA hinting faults then
++		 * set pmd_numa if the examined pages were all on the same
++		 * node. This allows a regular PMD to be handled as one fault
++		 * and effectively batches the taking of the PTL
++		 */
++		if (prot_numa && all_same_node && 0) {
++			struct mm_struct *mm = vma->vm_mm;
++
++			spin_lock(&mm->page_table_lock);
++			set_pmd_at(mm, addr & PMD_MASK, pmd, pmd_mknuma(*pmd));
++			spin_unlock(&mm->page_table_lock);
++		}
++#endif
+ 	} while (pmd++, addr = next, addr != end);
++	return pages;
+ }
  
+-static inline void change_pud_range(struct vm_area_struct *vma, pgd_t *pgd,
++static inline unsigned long change_pud_range(struct vm_area_struct *vma, pgd_t *pgd,
+ 		unsigned long addr, unsigned long end, pgprot_t newprot,
+-		int dirty_accountable)
++		int dirty_accountable, int prot_numa)
+ {
+ 	pud_t *pud;
+ 	unsigned long next;
+@@ -163,6 +182,7 @@ static void change_protection(struct vm_
+ 	pgd_t *pgd;
+ 	unsigned long next;
+ 	unsigned long start = addr;
++	unsigned long pages = 0;
+ 
+ 	BUG_ON(addr >= end);
+ 	pgd = pgd_offset(mm, addr);
+@@ -182,7 +202,7 @@ static void change_protection(struct vm_
+ 	return pages;
+ }
+ 
+-unsigned long change_protection(struct vm_area_struct *vma, unsigned long start,
++static unsigned long change_protection_range(struct vm_area_struct *vma,
+ 		       unsigned long end, pgprot_t newprot,
+ 		       int dirty_accountable, int prot_numa)
+ {
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+linux-next.patch
+linux-next-rejects-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
+irq-tsk-comm-is-an-array.patch
+block-remove-deadlock-in-disk_clear_events-fix.patch
+block-prevent-race-cleanup-fix.patch
+mm.patch
+memcg-kmem-accounting-basic-infrastructure-fix.patch
+slub-slub-specific-propagation-changes-fix.patch
+mm-mprotectc-coding-style-cleanups.patch
+mm-hugetlb-create-hugetlb-cgroup-file-in-hugetlb_init-fix.patch
+drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+lseek-the-whence-argument-is-called-whence.patch
+drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
+backlight-add-of_find_backlight_by_node-function-fix.patch
+backlight-88pm860x_bl-remove-an-unnecessary-line-continuation-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes-checkpatch-fixes.patch
+hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix.patch
+core_pattern-set-core-helpers-root-and-namespace-to-crashing-process.patch
+procfs-add-vmflags-field-in-smaps-output-v4.patch
+procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
+ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
+ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
+ipc-convert-prepare_copy-from-macro-to-function-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+docs-add-documentation-about-proc-pid-fdinfo-fd-output-fix.patch
+fs-notify-add-procfs-fdinfo-helper-v7-fix.patch
+scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+
