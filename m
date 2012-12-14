@@ -1,100 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-add-a-reminder-comment-for-__gfp_bits_shift.patch removed from -mm tree
-Date: Fri, 14 Dec 2012 15:29:03 -0800
-Message-ID: <20121214232904.1E308200069@hpza10.eem.corp.google.com>
+Subject: [merged] mm-memcg-avoid-unnecessary-function-call-when-memcg-is-disabled.patch removed from -mm tree
+Date: Fri, 14 Dec 2012 15:29:07 -0800
+Message-ID: <20121214232908.3FC92200063@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:46948 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932668Ab2LNX3G (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Dec 2012 18:29:06 -0500
-Received: by mail-bk0-f74.google.com with SMTP id je9so208987bkc.1
-        for <mm-commits@vger.kernel.org>; Fri, 14 Dec 2012 15:29:05 -0800 (PST)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:41259 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932668Ab2LNX3L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Dec 2012 18:29:11 -0500
+Received: by mail-fa0-f74.google.com with SMTP id t1so208420fae.1
+        for <mm-commits@vger.kernel.org>; Fri, 14 Dec 2012 15:29:09 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, glommer@parallels.com, mgorman@suse.de, mm-commits@vger.kernel.org
+To: rientjes@google.com, glommer@parallels.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add a reminder comment for __GFP_BITS_SHIFT
+     Subject: mm, memcg: avoid unnecessary function call when memcg is disabled
 has been removed from the -mm tree.  Its filename was
-     mm-add-a-reminder-comment-for-__gfp_bits_shift.patch
+     mm-memcg-avoid-unnecessary-function-call-when-memcg-is-disabled.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm: add a reminder comment for __GFP_BITS_SHIFT
+From: David Rientjes <rientjes@google.com>
+Subject: mm, memcg: avoid unnecessary function call when memcg is disabled
 
-Cc: Glauber Costa <glommer@parallels.com>
-Cc: Mel Gorman <mgorman@suse.de>
+While profiling numa/core v16 with cgroup_disable=memory on the command
+line, I noticed mem_cgroup_count_vm_event() still showed up as high as
+0.60% in perftop.
+
+This occurs because the function is called extremely often even when memcg
+is disabled.
+
+To fix this, inline the check for mem_cgroup_disabled() so we avoid the
+unnecessary function call if memcg is disabled.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Glauber Costa <glommer@parallels.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/memcontrol.h |    9 ++++++++-
+ mm/memcontrol.c            |    6 ++++--
+ 2 files changed, 12 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/gfp.h~mm-add-a-reminder-comment-for-__gfp_bits_shift include/linux/gfp.h
---- a/include/linux/gfp.h~mm-add-a-reminder-comment-for-__gfp_bits_shift
-+++ a/include/linux/gfp.h
-@@ -34,6 +34,7 @@ struct vm_area_struct;
- #define ___GFP_NO_KSWAPD	0x400000u
- #define ___GFP_OTHER_NODE	0x800000u
- #define ___GFP_WRITE		0x1000000u
-+/* If the above are modified, __GFP_BITS_SHIFT may need updating */
+diff -puN include/linux/memcontrol.h~mm-memcg-avoid-unnecessary-function-call-when-memcg-is-disabled include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-memcg-avoid-unnecessary-function-call-when-memcg-is-disabled
++++ a/include/linux/memcontrol.h
+@@ -181,7 +181,14 @@ unsigned long mem_cgroup_soft_limit_recl
+ 						gfp_t gfp_mask,
+ 						unsigned long *total_scanned);
  
- /*
-  * GFP bitmasks..
+-void mem_cgroup_count_vm_event(struct mm_struct *mm, enum vm_event_item idx);
++void __mem_cgroup_count_vm_event(struct mm_struct *mm, enum vm_event_item idx);
++static inline void mem_cgroup_count_vm_event(struct mm_struct *mm,
++					     enum vm_event_item idx)
++{
++	if (mem_cgroup_disabled())
++		return;
++	__mem_cgroup_count_vm_event(mm, idx);
++}
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ void mem_cgroup_split_huge_fixup(struct page *head);
+ #endif
+diff -puN mm/memcontrol.c~mm-memcg-avoid-unnecessary-function-call-when-memcg-is-disabled mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcg-avoid-unnecessary-function-call-when-memcg-is-disabled
++++ a/mm/memcontrol.c
+@@ -59,6 +59,8 @@
+ #include <trace/events/vmscan.h>
+ 
+ struct cgroup_subsys mem_cgroup_subsys __read_mostly;
++EXPORT_SYMBOL(mem_cgroup_subsys);
++
+ #define MEM_CGROUP_RECLAIM_RETRIES	5
+ static struct mem_cgroup *root_mem_cgroup __read_mostly;
+ 
+@@ -1015,7 +1017,7 @@ void mem_cgroup_iter_break(struct mem_cg
+ 	     iter != NULL;				\
+ 	     iter = mem_cgroup_iter(NULL, iter, NULL))
+ 
+-void mem_cgroup_count_vm_event(struct mm_struct *mm, enum vm_event_item idx)
++void __mem_cgroup_count_vm_event(struct mm_struct *mm, enum vm_event_item idx)
+ {
+ 	struct mem_cgroup *memcg;
+ 
+@@ -1040,7 +1042,7 @@ void mem_cgroup_count_vm_event(struct mm
+ out:
+ 	rcu_read_unlock();
+ }
+-EXPORT_SYMBOL(mem_cgroup_count_vm_event);
++EXPORT_SYMBOL(__mem_cgroup_count_vm_event);
+ 
+ /**
+  * mem_cgroup_zone_lruvec - get the lru list vector for a zone and memcg
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
 linux-next.patch
-linux-next-rejects-git-rejects.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
+x86-convert-update_mmu_cache-and-update_mmu_cache_pmd-to-functions.patch
+x86-fix-the-argument-passed-to-sync_global_pgds.patch
 irq-tsk-comm-is-an-array.patch
-block-remove-deadlock-in-disk_clear_events-fix.patch
-block-prevent-race-cleanup-fix.patch
-mm.patch
+mm-mempolicy-introduce-spinlock-to-read-shared-policy-tree.patch
+memcg-make-it-possible-to-use-the-stock-for-more-than-one-page.patch
+memcg-reclaim-when-more-than-one-page-needed.patch
+memcg-change-defines-to-an-enum.patch
+memcg-kmem-accounting-basic-infrastructure.patch
 memcg-kmem-accounting-basic-infrastructure-fix.patch
+mm-add-a-__gfp_kmemcg-flag.patch
+memcg-kmem-controller-infrastructure.patch
+memcg-kmem-controller-infrastructure-replace-__always_inline-with-plain-inline.patch
+mm-allocate-kernel-pages-to-the-right-memcg.patch
+res_counter-return-amount-of-charges-after-res_counter_uncharge.patch
+memcg-kmem-accounting-lifecycle-management.patch
+memcg-use-static-branches-when-code-not-in-use.patch
+memcg-allow-a-memcg-with-kmem-charges-to-be-destructed.patch
+memcg-execute-the-whole-memcg-freeing-in-free_worker.patch
+fork-protect-architectures-where-thread_size-=-page_size-against-fork-bombs.patch
+memcg-add-documentation-about-the-kmem-controller.patch
+slab-slub-struct-memcg_params.patch
+slab-annotate-on-slab-caches-nodelist-locks.patch
+slab-slub-consider-a-memcg-parameter-in-kmem_create_cache.patch
+memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears.patch
+memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears-simplify-ida-initialization.patch
+memcg-infrastructure-to-match-an-allocation-to-the-right-cache.patch
+memcg-skip-memcg-kmem-allocations-in-specified-code-regions.patch
+memcg-skip-memcg-kmem-allocations-in-specified-code-regions-remove-test-for-current-mm-in-memcg_stop-resume_kmem_account.patch
+slb-always-get-the-cache-from-its-page-in-kmem_cache_free.patch
+slb-allocate-objects-from-memcg-cache.patch
+memcg-destroy-memcg-caches.patch
+memcg-destroy-memcg-caches-move-include-of-workqueueh-to-top-of-slabh-file.patch
+memcg-slb-track-all-the-memcg-children-of-a-kmem_cache.patch
+memcg-slb-shrink-dead-caches.patch
+memcg-slb-shrink-dead-caches-get-rid-of-once-per-second-cache-shrinking-for-dead-memcgs.patch
+memcg-aggregate-memcg-cache-values-in-slabinfo.patch
+slab-propagate-tunable-values.patch
+slub-slub-specific-propagation-changes.patch
 slub-slub-specific-propagation-changes-fix.patch
-mm-mprotectc-coding-style-cleanups.patch
-mm-hugetlb-create-hugetlb-cgroup-file-in-hugetlb_init-fix.patch
-drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
-swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-lseek-the-whence-argument-is-called-whence.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
-backlight-add-of_find_backlight_by_node-function-fix.patch
-backlight-88pm860x_bl-remove-an-unnecessary-line-continuation-fix.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
-binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes-checkpatch-fixes.patch
-hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix.patch
-core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix.patch
-core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix-checkpatch-fixes.patch
-procfs-add-vmflags-field-in-smaps-output-v4.patch
-procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
-ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
-ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
-ipc-convert-prepare_copy-from-macro-to-function-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-docs-add-documentation-about-proc-pid-fdinfo-fd-output-fix.patch
-fs-notify-add-procfs-fdinfo-helper-v7-fix.patch
-scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+kmem-add-slab-specific-documentation-about-the-kmem-controller.patch
+memcg-add-comments-clarifying-aspects-of-cache-attribute-propagation.patch
+slub-drop-mutex-before-deleting-sysfs-entry.patch
+ksm-numa-awareness-sysfs-knob.patch
+mm-dmapoolc-fix-null-dev-in-dma_pool_create.patch
 
