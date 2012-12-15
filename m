@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-document-and-enable-config_movable_node.patch added to -mm tree
-Date: Fri, 14 Dec 2012 16:34:11 -0800
-Message-ID: <20121215003413.1AFC0200057@hpza10.eem.corp.google.com>
+Subject: + memory-hotplug-document-and-enable-config_movable_node-fix.patch added to -mm tree
+Date: Fri, 14 Dec 2012 16:34:16 -0800
+Message-ID: <20121215003417.AF491200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:45271 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756820Ab2LOAeP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Dec 2012 19:34:15 -0500
-Received: by mail-wi0-f202.google.com with SMTP id hn17so71824wib.1
-        for <mm-commits@vger.kernel.org>; Fri, 14 Dec 2012 16:34:14 -0800 (PST)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:54753 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756820Ab2LOAeU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Dec 2012 19:34:20 -0500
+Received: by mail-bk0-f74.google.com with SMTP id je9so210620bkc.1
+        for <mm-commits@vger.kernel.org>; Fri, 14 Dec 2012 16:34:19 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tangchen@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, laijs@cn.fujitsu.com, mingo@elte.hu, wency@cn.fujitsu.com
+Cc: akpm@linux-foundation.org, isimatu.yasuaki@jp.fujitsu.com, laijs@cn.fujitsu.com, mingo@elte.hu, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com
 
 
 The patch titled
-     Subject: memory-hotplug: document and enable CONFIG_MOVABLE_NODE
+     Subject: memory-hotplug-document-and-enable-config_movable_node-fix
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-document-and-enable-config_movable_node.patch
+     memory-hotplug-document-and-enable-config_movable_node-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,54 +33,96 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: memory-hotplug: document and enable CONFIG_MOVABLE_NODE
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memory-hotplug-document-and-enable-config_movable_node-fix
 
-Add help info for CONFIG_MOVABLE_NODE and permit its selection.
+tweak help text
 
-This option allows the user to online all memory of a node as movable
-memory.  So that the whole node can be hotplugged.  Users who don't use
-the hotplug feature are also fine with this option on since they won't
-online memory as movable.
-
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ mm/Kconfig |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN mm/Kconfig~memory-hotplug-document-and-enable-config_movable_node mm/Kconfig
---- a/mm/Kconfig~memory-hotplug-document-and-enable-config_movable_node
+diff -puN mm/Kconfig~memory-hotplug-document-and-enable-config_movable_node-fix mm/Kconfig
+--- a/mm/Kconfig~memory-hotplug-document-and-enable-config_movable_node-fix
 +++ a/mm/Kconfig
-@@ -149,7 +149,17 @@ config MOVABLE_NODE
- 	depends on NO_BOOTMEM
- 	depends on X86_64
+@@ -151,12 +151,13 @@ config MOVABLE_NODE
  	depends on NUMA
--	depends on BROKEN
-+	default n
-+	help
-+	  Allow a node to have only movable memory. Pages used by kernel, such
-+	  as direct mapping pages can not be migrated. So the corresponding
-+	  memory device can not be hotpluged. This option allows users to
-+	  online all the memory of a node as movable memory so that the whole
-+	  node can be hotpluged. Users who don't use hotplug feature are fine
-+	  with this option on since they don't online memory as movable.
-+
-+	  Say Y here if you want to hotplug a whole node.
-+	  Say N here if you want kernel to use memory on all nodes evenly.
+ 	default n
+ 	help
+-	  Allow a node to have only movable memory. Pages used by kernel, such
+-	  as direct mapping pages can not be migrated. So the corresponding
+-	  memory device can not be hotpluged. This option allows users to
++	  Allow a node to have only movable memory.  Pages used by the kernel,
++	  such as direct mapping pages cannot be migrated.  So the corresponding
++	  memory device cannot be hotplugged.  This option allows users to
+ 	  online all the memory of a node as movable memory so that the whole
+-	  node can be hotpluged. Users who don't use hotplug feature are fine
+-	  with this option on since they don't online memory as movable.
++	  node can be hotplugged.  Users who don't use the memory hotplug
++	  feature are fine with this option on since they don't online memory
++	  as movable.
  
- # eventually, we can have this option just 'select SPARSEMEM'
- config MEMORY_HOTPLUG
+ 	  Say Y here if you want to hotplug a whole node.
+ 	  Say N here if you want kernel to use memory on all nodes evenly.
 _
 
-Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-memory-hotplug-document-and-enable-config_movable_node.patch
+linux-next.patch
+linux-next-rejects-git-rejects.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
+irq-tsk-comm-is-an-array.patch
+block-remove-deadlock-in-disk_clear_events-fix.patch
+block-prevent-race-cleanup-fix.patch
+mm.patch
 memory-hotplug-document-and-enable-config_movable_node-fix.patch
+memcg-kmem-accounting-basic-infrastructure-fix.patch
+slub-slub-specific-propagation-changes-fix.patch
+mm-mprotectc-coding-style-cleanups.patch
+mm-hugetlb-create-hugetlb-cgroup-file-in-hugetlb_init-fix.patch
+mm-hugetlb-create-hugetlb-cgroup-file-in-hugetlb_init-fix-2.patch
+drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead-fix.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+lseek-the-whence-argument-is-called-whence.patch
+drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
+backlight-add-of_find_backlight_by_node-function-fix.patch
+backlight-88pm860x_bl-remove-an-unnecessary-line-continuation-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes-checkpatch-fixes.patch
+hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix.patch
+core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix.patch
+core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix-checkpatch-fixes.patch
+procfs-add-vmflags-field-in-smaps-output-v4.patch
+procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
+ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
+ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
+ipc-convert-prepare_copy-from-macro-to-function-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+docs-add-documentation-about-proc-pid-fdinfo-fd-output-fix.patch
+fs-notify-add-procfs-fdinfo-helper-v7-fix.patch
+scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
