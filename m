@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-document-and-enable-config_movable_node-fix.patch added to -mm tree
-Date: Fri, 14 Dec 2012 16:34:16 -0800
-Message-ID: <20121215003417.AF491200057@hpza10.eem.corp.google.com>
+Subject: + make-my-i386-build-work.patch added to -mm tree
+Date: Fri, 14 Dec 2012 17:07:08 -0800
+Message-ID: <20121215010708.F328B82004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:54753 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756820Ab2LOAeU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Dec 2012 19:34:20 -0500
-Received: by mail-bk0-f74.google.com with SMTP id je9so210620bkc.1
-        for <mm-commits@vger.kernel.org>; Fri, 14 Dec 2012 16:34:19 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:37062 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932151Ab2LOBHK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Dec 2012 20:07:10 -0500
+Received: by mail-gg0-f202.google.com with SMTP id k1so415992ggn.1
+        for <mm-commits@vger.kernel.org>; Fri, 14 Dec 2012 17:07:09 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, isimatu.yasuaki@jp.fujitsu.com, laijs@cn.fujitsu.com, mingo@elte.hu, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com
+Cc: akpm@linux-foundation.org, bfields@redhat.com, bjschuma@netapp.com
 
 
 The patch titled
-     Subject: memory-hotplug-document-and-enable-config_movable_node-fix
+     Subject: make my i386 build work
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-document-and-enable-config_movable_node-fix.patch
+     make-my-i386-build-work.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memory-hotplug-document-and-enable-config_movable_node-fix
+Subject: make my i386 build work
 
-tweak help text
+How long is this to take?
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Bryan Schumaker <bjschuma@netapp.com>
+Cc: J. Bruce Fields <bfields@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ fs/nfsd/fault_inject.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/Kconfig~memory-hotplug-document-and-enable-config_movable_node-fix mm/Kconfig
---- a/mm/Kconfig~memory-hotplug-document-and-enable-config_movable_node-fix
-+++ a/mm/Kconfig
-@@ -151,12 +151,13 @@ config MOVABLE_NODE
- 	depends on NUMA
- 	default n
- 	help
--	  Allow a node to have only movable memory. Pages used by kernel, such
--	  as direct mapping pages can not be migrated. So the corresponding
--	  memory device can not be hotpluged. This option allows users to
-+	  Allow a node to have only movable memory.  Pages used by the kernel,
-+	  such as direct mapping pages cannot be migrated.  So the corresponding
-+	  memory device cannot be hotplugged.  This option allows users to
- 	  online all the memory of a node as movable memory so that the whole
--	  node can be hotpluged. Users who don't use hotplug feature are fine
--	  with this option on since they don't online memory as movable.
-+	  node can be hotplugged.  Users who don't use the memory hotplug
-+	  feature are fine with this option on since they don't online memory
-+	  as movable.
+diff -puN fs/nfsd/fault_inject.c~make-my-i386-build-work fs/nfsd/fault_inject.c
+--- a/fs/nfsd/fault_inject.c~make-my-i386-build-work
++++ a/fs/nfsd/fault_inject.c
+@@ -127,8 +127,9 @@ static ssize_t fault_inject_write(struct
+ 	struct sockaddr_storage sa;
+ 	u64 val;
  
- 	  Say Y here if you want to hotplug a whole node.
- 	  Say N here if you want kernel to use memory on all nodes evenly.
+-	if (copy_from_user(write_buf, buf, size))
+-		return -EFAULT;
++return len;
++//	if (copy_from_user(write_buf, buf, size))
++//		return -EFAULT;
+ 	write_buf[size] = '\0';
+ 
+ 	size = rpc_pton(net, write_buf, size, (struct sockaddr *)&sa, sizeof(sa));
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,6 +68,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 linux-next.patch
 linux-next-rejects-git-rejects.patch
+make-my-i386-build-work.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
