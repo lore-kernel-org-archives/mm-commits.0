@@ -1,100 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] rtc-add-nxp-pcf8523-support-v2.patch removed from -mm tree
-Date: Mon, 17 Dec 2012 15:46:47 -0800
-Message-ID: <20121217234648.36D31200059@hpza10.eem.corp.google.com>
+Subject: [folded-merged] procfs-add-vmflags-field-in-smaps-output-v4-fix.patch removed from -mm tree
+Date: Mon, 17 Dec 2012 15:47:11 -0800
+Message-ID: <20121217234712.453F282004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:59166 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752646Ab2LQXqu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Dec 2012 18:46:50 -0500
-Received: by mail-ee0-f74.google.com with SMTP id t10so354950eei.1
-        for <mm-commits@vger.kernel.org>; Mon, 17 Dec 2012 15:46:49 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:53908 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752646Ab2LQXrO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Dec 2012 18:47:14 -0500
+Received: by mail-yh0-f74.google.com with SMTP id 10so714810yhl.5
+        for <mm-commits@vger.kernel.org>; Mon, 17 Dec 2012 15:47:14 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: thierry.reding@avionic-design.de, a.zummo@towertech.it, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, gorcunov@openvz.org, sfr@canb.auug.org.au, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc-add-nxp-pcf8523-support-v2
+     Subject: procfs-add-vmflags-field-in-smaps-output-v4-fix
 has been removed from the -mm tree.  Its filename was
-     rtc-add-nxp-pcf8523-support-v2.patch
+     procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
 
-This patch was dropped because it was folded into rtc-add-nxp-pcf8523-support.patch
+This patch was dropped because it was folded into procfs-add-vmflags-field-in-smaps-output-v4.patch
 
 ------------------------------------------------------
-From: Thierry Reding <thierry.reding@avionic-design.de>
-Subject: rtc-add-nxp-pcf8523-support-v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: procfs-add-vmflags-field-in-smaps-output-v4-fix
 
-Changes in v2:
-- return an error if the OS flag cannot be cleared
-- add comment as to why we clear the OS flag
-- restart RTC if setting the time fails
+remove unneeded brakes per sfr, avoid using bloaty for_each_set_bit()
 
-Signed-off-by: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf8523.c |   25 ++++++++++++++++++++++---
- 1 file changed, 22 insertions(+), 3 deletions(-)
+ fs/proc/task_mmu.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-pcf8523.c~rtc-add-nxp-pcf8523-support-v2 drivers/rtc/rtc-pcf8523.c
---- a/drivers/rtc/rtc-pcf8523.c~rtc-add-nxp-pcf8523-support-v2
-+++ a/drivers/rtc/rtc-pcf8523.c
-@@ -178,14 +178,26 @@ static int pcf8523_rtc_read_time(struct 
- 		return err;
+diff -puN fs/proc/task_mmu.c~procfs-add-vmflags-field-in-smaps-output-v4-fix fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~procfs-add-vmflags-field-in-smaps-output-v4-fix
++++ a/fs/proc/task_mmu.c
+@@ -535,7 +535,7 @@ static void show_smap_vma_flags(struct s
+ 		/*
+ 		 * In case if we meet a flag we don't know about.
+ 		 */
+-		[0 ... (BITS_PER_LONG-1)] = { "??" },
++		[0 ... (BITS_PER_LONG-1)] = "??",
  
- 	if (regs[0] & REG_SECONDS_OS) {
--		dev_dbg(dev, "clock integrity is not guaranteed\n");
-+		/*
-+		 * If the oscillator was stopped, try to clear the flag. Upon
-+		 * power-up the flag is always set, but if we cannot clear it
-+		 * the oscillator isn't running properly for some reason. The
-+		 * sensible thing therefore is to return an error, signalling
-+		 * that the clock cannot be assumed to be correct.
-+		 */
+ 		[ilog2(VM_READ)]	= "rd",
+ 		[ilog2(VM_WRITE)]	= "wr",
+@@ -568,10 +568,11 @@ static void show_smap_vma_flags(struct s
+ 	size_t i;
  
--		/* try to clear the flag */
- 		regs[0] &= ~REG_SECONDS_OS;
- 
- 		err = pcf8523_write(client, REG_SECONDS, regs[0]);
- 		if (err < 0)
- 			return err;
-+
-+		err = pcf8523_read(client, REG_SECONDS, &regs[0]);
-+		if (err < 0)
-+			return err;
-+
-+		if (regs[0] & REG_SECONDS_OS)
-+			return -EAGAIN;
+ 	seq_puts(m, "VmFlags: ");
+-	for_each_set_bit(i, &vma->vm_flags, BITS_PER_LONG) {
+-		seq_printf(m, "%c%c ",
+-			   mnemonics[i][0],
+-			   mnemonics[i][1]);
++	for (i = 0; i < BITS_PER_LONG; i++) {
++		if (vma->vm_flags & (1UL << i)) {
++			seq_printf(m, "%c%c ",
++				   mnemonics[i][0], mnemonics[i][1]);
++		}
  	}
- 
- 	tm->tm_sec = bcd2bin(regs[0] & 0x7f);
-@@ -225,8 +237,15 @@ static int pcf8523_rtc_set_time(struct d
- 	msg.buf = regs;
- 
- 	err = i2c_transfer(client->adapter, &msg, 1);
--	if (err < 0)
-+	if (err < 0) {
-+		/*
-+		 * If the time cannot be set, restart the RTC anyway. Note
-+		 * that errors are ignored if the RTC cannot be started so
-+		 * that we have a chance to propagate the original error.
-+		 */
-+		pcf8523_start_rtc(client);
- 		return err;
-+	}
- 
- 	return pcf8523_start_rtc(client);
+ 	seq_putc(m, '\n');
  }
 _
 
-Patches currently in -mm which might be from thierry.reding@avionic-design.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+create-non-empty-arch-x86-include-uapi-asm-files.patch
+mm-memoryc-suppress-warning.patch
+lseek-the-whence-argument-is-called-whence.patch
 drivers-video-backlight-lp855x_blc-use-generic-pwm-functions.patch
-drivers-video-backlight-lp855x_blc-remove-unnecessary-mutex-code.patch
 backlight-add-of_find_backlight_by_node-function.patch
-rtc-add-nxp-pcf8523-support.patch
+backlight-88pm860x_bl-remove-an-unnecessary-line-continuation.patch
+binfmt_elf-fix-corner-case-kfree-of-uninitialized-data.patch
+rtc-avoid-calling-platform_device_put-twice-in-test_init.patch
+procfs-add-vmflags-field-in-smaps-output-v4.patch
+docs-add-documentation-about-proc-pid-fdinfo-fd-output-fix.patch
+scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
 
