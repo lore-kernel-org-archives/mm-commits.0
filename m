@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + create-non-empty-arch-x86-include-uapi-asm-files.patch added to -mm tree
-Date: Mon, 17 Dec 2012 14:17:15 -0800
-Message-ID: <20121217230748.6ADDB200057@hpza10.eem.corp.google.com>
+Subject: + mm-memoryc-suppress-warning.patch added to -mm tree
+Date: Mon, 17 Dec 2012 14:17:22 -0800
+Message-ID: <20121217230752.B2C96200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:38955 "EHLO
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:54560 "EHLO
 	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751077Ab2LQXHv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Dec 2012 18:07:51 -0500
-Received: by mail-wg0-f74.google.com with SMTP id dt14so351360wgb.3
-        for <mm-commits@vger.kernel.org>; Mon, 17 Dec 2012 15:07:50 -0800 (PST)
+	with ESMTP id S1751077Ab2LQXHz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Dec 2012 18:07:55 -0500
+Received: by mail-wg0-f74.google.com with SMTP id dt14so368081wgb.5
+        for <mm-commits@vger.kernel.org>; Mon, 17 Dec 2012 15:07:53 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, arnd@arndb.de, davej@redhat.com, dhowells@redhat.com, mtk.manpages@gmail.com, paulmck@linux.vnet.ibm.com, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, mgorman@suse.de
 
 
 The patch titled
-     Subject: create non-empty arch/x86/include/uapi/asm/ files
+     Subject: mm/memory.c: suppress warning
 has been added to the -mm tree.  Its filename is
-     create-non-empty-arch-x86-include-uapi-asm-files.patch
+     mm-memoryc-suppress-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: create non-empty arch/x86/include/uapi/asm/ files
+Subject: mm/memory.c: suppress warning
 
-patch(1) doesn't create zero-length files, so my kernel didn't compile.
+mm/memory.c: In function 'do_pmd_numa_page':
+mm/memory.c:3594: warning: no return statement in function returning non-void
 
-Put something in these files so patch(1) actually creates them.
+gcc-4.4.4 screws this up.
 
-Cc: David Howells <dhowells@redhat.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Dave Jones <davej@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/uapi/asm/hw_breakpoint.h |    1 +
- arch/x86/include/uapi/asm/setup.h         |    1 +
- 2 files changed, 2 insertions(+)
+ mm/memory.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN /dev/null arch/x86/include/uapi/asm/hw_breakpoint.h
---- /dev/null
-+++ a/arch/x86/include/uapi/asm/hw_breakpoint.h
-@@ -0,0 +1 @@
-+/* */
-diff -puN /dev/null arch/x86/include/uapi/asm/setup.h
---- /dev/null
-+++ a/arch/x86/include/uapi/asm/setup.h
-@@ -0,0 +1 @@
-+/* */
+diff -puN mm/memory.c~mm-memoryc-suppress-warning mm/memory.c
+--- a/mm/memory.c~mm-memoryc-suppress-warning
++++ a/mm/memory.c
+@@ -3591,6 +3591,7 @@ static int do_pmd_numa_page(struct mm_st
+ 		     unsigned long addr, pmd_t *pmdp)
+ {
+ 	BUG();
++	return 0;
+ }
+ #endif /* CONFIG_NUMA_BALANCING */
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
