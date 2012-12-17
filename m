@@ -1,97 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] aoe-print-warning-regarding-a-common-reason-for-dropped-transmits-fix.patch removed from -mm tree
-Date: Mon, 17 Dec 2012 15:47:48 -0800
-Message-ID: <20121217234749.5B3C620004E@hpza10.eem.corp.google.com>
+Subject: [folded-merged] fs-epoll-add-procfs-fdinfo-helper-v2-fs-epoll-drop-enabled-field-from-fdinfo-output.patch removed from -mm tree
+Date: Mon, 17 Dec 2012 15:48:39 -0800
+Message-ID: <20121217234839.DB5FE20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f202.google.com ([209.85.215.202]:44393 "EHLO
-	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752646Ab2LQXrv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Dec 2012 18:47:51 -0500
-Received: by mail-ea0-f202.google.com with SMTP id j12so354646eaa.1
-        for <mm-commits@vger.kernel.org>; Mon, 17 Dec 2012 15:47:50 -0800 (PST)
+Received: from mail-ee0-f73.google.com ([74.125.83.73]:49511 "EHLO
+	mail-ee0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753552Ab2LQXsn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Dec 2012 18:48:43 -0500
+Received: by mail-ee0-f73.google.com with SMTP id c50so350198eek.2
+        for <mm-commits@vger.kernel.org>; Mon, 17 Dec 2012 15:48:42 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ecashin@coraid.com, dan.carpenter@oracle.com, mm-commits@vger.kernel.org
+To: gorcunov@openvz.org, adobriyan@gmail.com, aneesh.kumar@linux.vnet.ibm.com, avagin@openvz.org, bfields@fieldses.org, jbottomley@parallels.com, matt.helsley@gmail.com, oleg@redhat.com, tvrtko.ursulin@onelan.co.uk, viro@ZenIV.linux.org.uk, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: aoe: avoid using skb member after dev_queue_xmit
+     Subject: fs, epoll: drop enabled field from fdinfo output
 has been removed from the -mm tree.  Its filename was
-     aoe-print-warning-regarding-a-common-reason-for-dropped-transmits-fix.patch
+     fs-epoll-add-procfs-fdinfo-helper-v2-fs-epoll-drop-enabled-field-from-fdinfo-output.patch
 
-This patch was dropped because it was folded into aoe-print-warning-regarding-a-common-reason-for-dropped-transmits.patch
+This patch was dropped because it was folded into fs-epoll-add-procfs-fdinfo-helper-v2.patch
 
 ------------------------------------------------------
-From: Ed Cashin <ecashin@coraid.com>
-Subject: aoe: avoid using skb member after dev_queue_xmit
+From: Cyrill Gorcunov <gorcunov@openvz.org>
+Subject: fs, epoll: drop enabled field from fdinfo output
 
-After calling dev_queue_xmit it is no longer safe to access the
-members of the skb.
+Once EPOLL_CTL_DISABLE get merged into mainline I'll bring "enabled" field
+back.  Plain check for rdllink is not enough here and should be extended,
+thus to not confuse the readers drop it for a while.
 
-Signed-off-by: Ed Cashin <ecashin@coraid.com>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Andrey Vagin <avagin@openvz.org>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: James Bottomley <jbottomley@parallels.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Matthew Helsley <matt.helsley@gmail.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Tvrtko Ursulin <tvrtko.ursulin@onelan.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoenet.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/eventpoll.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/block/aoe/aoenet.c~aoe-print-warning-regarding-a-common-reason-for-dropped-transmits-fix drivers/block/aoe/aoenet.c
---- a/drivers/block/aoe/aoenet.c~aoe-print-warning-regarding-a-common-reason-for-dropped-transmits-fix
-+++ a/drivers/block/aoe/aoenet.c
-@@ -55,12 +55,14 @@ static int
- tx(void) __must_hold(&txlock)
- {
- 	struct sk_buff *skb;
-+	struct net_device *ifp;
+diff -puN fs/eventpoll.c~fs-epoll-add-procfs-fdinfo-helper-v2-fs-epoll-drop-enabled-field-from-fdinfo-output fs/eventpoll.c
+--- a/fs/eventpoll.c~fs-epoll-add-procfs-fdinfo-helper-v2-fs-epoll-drop-enabled-field-from-fdinfo-output
++++ a/fs/eventpoll.c
+@@ -826,10 +826,9 @@ static int ep_show_fdinfo(struct seq_fil
+ 	for (rbp = rb_first(&ep->rbr); rbp; rbp = rb_next(rbp)) {
+ 		struct epitem *epi = rb_entry(rbp, struct epitem, rbn);
  
- 	while ((skb = skb_dequeue(&skbtxq))) {
- 		spin_unlock_irq(&txlock);
-+		ifp = skb->dev;
- 		if (dev_queue_xmit(skb) == NET_XMIT_DROP && net_ratelimit())
- 			pr_warn("aoe: packet could not be sent on %s.  %s\n",
--				skb->dev ? skb->dev->name : "netif",
-+				ifp ? ifp->name : "netif",
- 				"consider increasing tx_queue_len");
- 		spin_lock_irq(&txlock);
+-		ret = seq_printf(m, "tfd: %8d events: %8x data: %16llx enabled: %d\n",
++		ret = seq_printf(m, "tfd: %8d events: %8x data: %16llx\n",
+ 				 epi->ffd.fd, epi->event.events,
+-				 (long long)epi->event.data,
+-				 ep_is_linked(&epi->rdllink));
++				 (long long)epi->event.data);
+ 		if (ret)
+ 			break;
  	}
 _
 
-Patches currently in -mm which might be from ecashin@coraid.com are
+Patches currently in -mm which might be from gorcunov@openvz.org are
 
-linux-compilerh-add-__must_hold-macro-for-functions-called-with-a-lock-held.patch
-documentation-sparsetxt-document-context-annotations-for-lock-checking.patch
-aoe-describe-the-behavior-of-the-err-character-device.patch
-aoe-print-warning-regarding-a-common-reason-for-dropped-transmits.patch
-aoe-update-cap-on-outstanding-commands-based-on-config-query-response.patch
-aoe-support-the-forgetting-flushing-of-a-user-specified-aoe-target.patch
-aoe-support-larger-i-o-requests-via-aoe_maxsectors-module-param.patch
-aoe-payload-sysfs-file-exports-per-aoe-command-data-transfer-size.patch
-aoe-cleanup-remove-unused-ata_scnt-function.patch
-aoe-whitespace-cleanup.patch
-aoe-update-driver-internal-version-number-to-60.patch
-aoe-provide-ata-identify-device-content-to-user-on-request.patch
-aoe-improve-network-congestion-handling.patch
-aoe-err-device-include-mac-addresses-for-unexpected-responses.patch
-aoe-manipulate-aoedev-network-stats-under-lock.patch
-aoe-use-high-resolution-rtts-with-fallback-to-low-res.patch
-aoe-commands-in-retransmit-queue-use-new-destination-on-failure.patch
-aoe-update-driver-internal-version-to-64.patch
-aoe-copy-fallback-timing-information-on-destination-failover.patch
-aoe-remove-vestigial-request-queue-allocation.patch
-aoe-increase-default-cap-on-outstanding-aoe-commands-in-the-network.patch
-aoe-cleanup-correct-comment-for-aoetgt-nout.patch
-aoe-remove-call-to-request-handler-from-i-o-completion.patch
-aoe-make-error-messages-more-specific-in-static-minor-allocation.patch
-aoe-initialize-sysminor-to-avoid-compiler-warning.patch
-aoe-return-real-minor-number-for-static-minors.patch
-aoe-improve-handling-of-misbehaving-network-paths.patch
-aoe-avoid-races-between-device-destruction-and-discovery.patch
-aoe-use-dynamic-number-of-remote-ports-for-aoe-storage-target.patch
-aoe-allow-user-to-disable-target-failure-timeout.patch
-aoe-allow-comma-separator-in-aoe_iflist-value.patch
-aoe-identify-source-of-runt-aoe-packets.patch
-aoe-update-internal-version-number-to-81.patch
-aoe-fix-use-after-free-in-aoedev_by_aoeaddr.patch
+origin.patch
+procfs-add-vmflags-field-in-smaps-output-v4.patch
+proc-pid-status-add-seccomp-field.patch
+kcmp-selftests-make-run_tests-fix.patch
+kcmp-selftests-print-fail-status-instead-of-cause-make-error.patch
+tools-testing-selftests-kcmp-kcmp_testc-print-reason-for-failure-in-kcmp_test.patch
+procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers.patch
+fs-eventfd-add-procfs-fdinfo-helper.patch
+fs-epoll-add-procfs-fdinfo-helper-v2.patch
+fdinfo-show-sigmask-for-signalfd-fd-v3.patch
+fs-exportfs-escape-nil-dereference-if-no-s_export_op-present.patch
+fs-exportfs-add-exportfs_encode_inode_fh-helper.patch
+fs-notify-add-procfs-fdinfo-helper-v7.patch
+fs-notify-add-procfs-fdinfo-helper-v7-fix-fix.patch
+fs-notify-add-procfs-fdinfo-helper-v7-add-missing-space-after-prefix.patch
+fs-notify-add-procfs-fdinfo-helper-v7-dont-forget-to-provide-fhandle-for-inode-fanotify.patch
+fs-notify-add-procfs-fdinfo-helper-v7-fs-fanotify-ddd-missing-pieces-in-fdinfo-for-ability-to-call-fanotify_init.patch
+docs-add-documentation-about-proc-pid-fdinfo-fd-output.patch
+docs-add-documentation-about-proc-pid-fdinfo-fd-output-fix.patch
+fs-fanotify-add-mflags-field-to-fanotify-output.patch
+docs-update-documentation-about-proc-pid-fdinfo-fd-fanotify-output.patch
 
