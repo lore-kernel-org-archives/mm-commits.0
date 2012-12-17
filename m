@@ -1,106 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] docs-add-documentation-about-proc-pid-fdinfo-fd-output-fix.patch removed from -mm tree
-Date: Mon, 17 Dec 2012 15:51:22 -0800
-Message-ID: <20121217235123.31BB082004A@wpzn4.hot.corp.google.com>
+Subject: [folded-merged] scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch removed from -mm tree
+Date: Mon, 17 Dec 2012 15:52:07 -0800
+Message-ID: <20121217235208.4680982004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:62814 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751077Ab2LQXvY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Dec 2012 18:51:24 -0500
-Received: by mail-qa0-f74.google.com with SMTP id r4so31098qaq.3
-        for <mm-commits@vger.kernel.org>; Mon, 17 Dec 2012 15:51:24 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:35201 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751831Ab2LQX7e (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Dec 2012 18:59:34 -0500
+Received: by mail-vb0-f74.google.com with SMTP id s24so721616vbi.1
+        for <mm-commits@vger.kernel.org>; Mon, 17 Dec 2012 15:59:32 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adobriyan@gmail.com, aneesh.kumar@linux.vnet.ibm.com, avagin@openvz.org, bfields@fieldses.org, gorcunov@openvz.org, jbottomley@parallels.com, matt.helsley@gmail.com, oleg@redhat.com, tvrtko.ursulin@onelan.co.uk, viro@ZenIV.linux.org.uk, xemul@parallels.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, axboe@kernel.dk, maximlevitsky@gmail.com, nbowler@elliptictech.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: docs-add-documentation-about-proc-pid-fdinfo-fd-output-fix
+     Subject: scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix
 has been removed from the -mm tree.  Its filename was
-     docs-add-documentation-about-proc-pid-fdinfo-fd-output-fix.patch
+     scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
 
-This patch was dropped because it was folded into docs-add-documentation-about-proc-pid-fdinfo-fd-output.patch
+This patch was dropped because it was folded into scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: docs-add-documentation-about-proc-pid-fdinfo-fd-output-fix
+Subject: scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix
 
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Andrey Vagin <avagin@openvz.org>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: James Bottomley <jbottomley@parallels.com>
-Cc: Matthew Helsley <matt.helsley@gmail.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Tvrtko Ursulin <tvrtko.ursulin@onelan.co.uk>
+s/E2BIG/EINVAL/
+
+Cc: Nick Bowler <nbowler@elliptictech.com>
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |   21 +++++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
+ lib/scatterlist.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/filesystems/proc.txt~docs-add-documentation-about-proc-pid-fdinfo-fd-output-fix Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~docs-add-documentation-about-proc-pid-fdinfo-fd-output-fix
-+++ a/Documentation/filesystems/proc.txt
-@@ -1639,7 +1639,7 @@ if precise results are needed.
- This file provides information associated with an opened file. The regular
- files have at least two fields -- 'pos' and 'flags'. The 'pos' represents
- the current offset of the opened file in decimal form [see lseek(2) for
--details] and the 'flags' denotes octal O_xxx mask the file has been
-+details] and 'flags' denotes the octal O_xxx mask the file has been
- created with [see open(2) for details].
+diff -puN lib/scatterlist.c~scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix lib/scatterlist.c
+--- a/lib/scatterlist.c~scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix
++++ a/lib/scatterlist.c
+@@ -249,7 +249,7 @@ int __sg_alloc_table(struct sg_table *ta
  
- A typical output is
-@@ -1648,7 +1648,7 @@ A typical output is
- 	flags:	0100002
+ #ifndef ARCH_HAS_SG_CHAIN
+ 	if (WARN_ON_ONCE(nents > max_ents))
+-		return -E2BIG;
++		return -EINVAL;
+ #endif
  
- The files such as eventfd, fsnotify, signalfd, epoll among the regular pos/flags
--pair provide additional information peculiar to the objects they represent.
-+pair provide additional information particular to the objects they represent.
- 
- 	Eventfd files
- 	~~~~~~~~~~~~~
-@@ -1687,17 +1687,18 @@ pair provide additional information pecu
- 
- 	where 'wd' is a watch descriptor in decimal form, ie a target file
- 	descriptor number, 'ino' and 'sdev' are inode and device where the
--	target file lays on and the 'mask' is the mask of events, all in hex
-+	target file resides and the 'mask' is the mask of events, all in hex
- 	form [see inotify(7) for more details].
- 
--	In case if the kernel built with exportfs the path to the target file
--	is encoded as a file handle. The file handle provided by three fields
--	'fhandle-bytes', 'fhandle-type' and 'f_handle', all in hex format.
-+	If the kernel was built with exportfs support, the path to the target
-+	file is encoded as a file handle.  The file handle is provided by three
-+	fields 'fhandle-bytes', 'fhandle-type' and 'f_handle', all in hex
-+	format.
- 
- 	If the kernel is built without exportfs support the file handle won't be
- 	printed out.
- 
--	For fanotify files the format is the following
-+	For fanotify files the format is
- 
- 	pos:	0
- 	flags:	02
-@@ -1709,9 +1710,9 @@ pair provide additional information pecu
- 	flags:	02
- 	fanotify mnt_id:13 mask:1 ignored_mask:40000000
- 
--	where 'ino', 'sdev' are target inode and device, 'mnt_id' is the mount point identifier,
--	'mask' is the events mask used and 'ignored_mask' is the mask of events which are
--	to be ignored. All written in hex format.
-+	where 'ino', 'sdev' are target inode and device, 'mnt_id' is the mount
-+	point identifier, 'mask' is the events mask used and 'ignored_mask' is
-+	the mask of events which are to be ignored. All in hex format.
- 
- 
- ------------------------------------------------------------------------------
+ 	memset(table, 0, sizeof(*table));
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -116,5 +65,5 @@ binfmt_elf-fix-corner-case-kfree-of-uninitialized-data.patch
 rtc-avoid-calling-platform_device_put-twice-in-test_init.patch
 procfs-add-vmflags-field-in-smaps-output-v4.patch
 docs-add-documentation-about-proc-pid-fdinfo-fd-output.patch
-scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
+scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error.patch
 
