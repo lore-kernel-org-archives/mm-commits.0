@@ -1,74 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch removed from -mm tree
-Date: Mon, 17 Dec 2012 15:42:39 -0800
-Message-ID: <20121217234240.F249E200057@hpza10.eem.corp.google.com>
+Subject: [folded-merged] fs-notify-add-procfs-fdinfo-helper-v7-fix-fix.patch removed from -mm tree
+Date: Mon, 17 Dec 2012 15:49:39 -0800
+Message-ID: <20121217234940.A5AD2200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f201.google.com ([209.85.217.201]:49772 "EHLO
-	mail-lb0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753683Ab2LQXtL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Dec 2012 18:49:11 -0500
-Received: by mail-lb0-f201.google.com with SMTP id m4so6140lbo.4
-        for <mm-commits@vger.kernel.org>; Mon, 17 Dec 2012 15:49:10 -0800 (PST)
+Received: from mail-wg0-f73.google.com ([74.125.82.73]:64374 "EHLO
+	mail-wg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753330Ab2LQXtn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Dec 2012 18:49:43 -0500
+Received: by mail-wg0-f73.google.com with SMTP id dt12so366183wgb.4
+        for <mm-commits@vger.kernel.org>; Mon, 17 Dec 2012 15:49:41 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Milo.Kim@ti.com, bryan.wu@canonical.com, milo.kim@ti.com, rpurdie@rpsys.net, thierry.reding@avionic-design.de, mm-commits@vger.kernel.org
+To: gorcunov@openvz.org, fengguang.wu@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix
+     Subject: fs, notify: Move bare fdinfo helpers to a header
 has been removed from the -mm tree.  Its filename was
-     drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix.patch
+     fs-notify-add-procfs-fdinfo-helper-v7-fix-fix.patch
 
-This patch was dropped because it was folded into drivers-video-backlight-lp855x_blc-use-generic-pwm-functions.patch
+This patch was dropped because it was folded into fs-notify-add-procfs-fdinfo-helper-v7.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix
+From: Cyrill Gorcunov <gorcunov@openvz.org>
+Subject: fs, notify: Move bare fdinfo helpers to a header
 
-coding-style simplification, per Thierry
+Otherwise if the kernel gets build without procfs support
+we will have build error
 
-Cc: "Kim, Milo" <Milo.Kim@ti.com>
-Cc: Bryan Wu <bryan.wu@canonical.com>
-Cc: Milo(Woogyom) Kim <milo.kim@ti.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Thierry Reding <thierry.reding@avionic-design.de>
+ | fs/notify/inotify/inotify_user.c:333:17: error: 'inotify_show_fdinfo' undeclared here (not in a function)
+
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/lp855x_bl.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ fs/notify/fdinfo.c |    5 -----
+ fs/notify/fdinfo.h |    5 +++++
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/video/backlight/lp855x_bl.c~drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix drivers/video/backlight/lp855x_bl.c
---- a/drivers/video/backlight/lp855x_bl.c~drivers-video-backlight-lp855x_blc-use-generic-pwm-functions-fix
-+++ a/drivers/video/backlight/lp855x_bl.c
-@@ -139,7 +139,10 @@ static void lp855x_pwm_ctrl(struct lp855
- 	}
+diff -puN fs/notify/fdinfo.c~fs-notify-add-procfs-fdinfo-helper-v7-fix-fix fs/notify/fdinfo.c
+--- a/fs/notify/fdinfo.c~fs-notify-add-procfs-fdinfo-helper-v7-fix-fix
++++ a/fs/notify/fdinfo.c
+@@ -145,9 +145,4 @@ int fanotify_show_fdinfo(struct seq_file
  
- 	pwm_config(lp->pwm, duty, period);
--	duty == 0 ? pwm_disable(lp->pwm) : pwm_enable(lp->pwm);
-+	if (duty)
-+		pwm_enable(lp->pwm);
-+	else
-+		pwm_disable(lp->pwm);
- }
+ #endif /* CONFIG_INOTIFY_USER || CONFIG_FANOTIFY */
  
- static int lp855x_bl_update_status(struct backlight_device *bl)
+-#else /* CONFIG_PROC_FS */
+-
+-#define inotify_show_fdinfo	NULL
+-#define fanotify_show_fdinfo	NULL
+-
+ #endif /* CONFIG_PROC_FS */
+diff -puN fs/notify/fdinfo.h~fs-notify-add-procfs-fdinfo-helper-v7-fix-fix fs/notify/fdinfo.h
+--- a/fs/notify/fdinfo.h~fs-notify-add-procfs-fdinfo-helper-v7-fix-fix
++++ a/fs/notify/fdinfo.h
+@@ -17,6 +17,11 @@ extern int inotify_show_fdinfo(struct se
+ extern int fanotify_show_fdinfo(struct seq_file *m, struct file *f);
+ #endif
+ 
++#else /* CONFIG_PROC_FS */
++
++#define inotify_show_fdinfo	NULL
++#define fanotify_show_fdinfo	NULL
++
+ #endif /* CONFIG_PROC_FS */
+ 
+ #endif /* __FSNOTIFY_FDINFO_H__ */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from gorcunov@openvz.org are
 
 origin.patch
-create-non-empty-arch-x86-include-uapi-asm-files.patch
-mm-memoryc-suppress-warning.patch
-lseek-the-whence-argument-is-called-whence.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions.patch
-backlight-add-of_find_backlight_by_node-function-fix.patch
-backlight-88pm860x_bl-remove-an-unnecessary-line-continuation-fix.patch
-binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
-rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
 procfs-add-vmflags-field-in-smaps-output-v4.patch
-procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
+proc-pid-status-add-seccomp-field.patch
+kcmp-selftests-make-run_tests-fix.patch
+kcmp-selftests-print-fail-status-instead-of-cause-make-error.patch
+tools-testing-selftests-kcmp-kcmp_testc-print-reason-for-failure-in-kcmp_test.patch
+procfs-add-ability-to-plug-in-auxiliary-fdinfo-providers.patch
+fs-eventfd-add-procfs-fdinfo-helper.patch
+fs-epoll-add-procfs-fdinfo-helper-v2.patch
+fs-exportfs-escape-nil-dereference-if-no-s_export_op-present.patch
+fs-exportfs-add-exportfs_encode_inode_fh-helper.patch
+fs-notify-add-procfs-fdinfo-helper-v7.patch
+fs-notify-add-procfs-fdinfo-helper-v7-add-missing-space-after-prefix.patch
+fs-notify-add-procfs-fdinfo-helper-v7-dont-forget-to-provide-fhandle-for-inode-fanotify.patch
+fs-notify-add-procfs-fdinfo-helper-v7-fs-fanotify-ddd-missing-pieces-in-fdinfo-for-ability-to-call-fanotify_init.patch
+docs-add-documentation-about-proc-pid-fdinfo-fd-output.patch
 docs-add-documentation-about-proc-pid-fdinfo-fd-output-fix.patch
-scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
+fs-fanotify-add-mflags-field-to-fanotify-output.patch
+docs-update-documentation-about-proc-pid-fdinfo-fd-fanotify-output.patch
 
