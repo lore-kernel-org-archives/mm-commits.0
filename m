@@ -1,81 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] backlight-add-of_find_backlight_by_node-function-fix.patch removed from -mm tree
-Date: Mon, 17 Dec 2012 15:43:16 -0800
-Message-ID: <20121217234316.A98F0100047@wpzn3.hot.corp.google.com>
+Subject: [folded-merged] backlight-add-of_find_backlight_by_node-function-fix-2.patch removed from -mm tree
+Date: Mon, 17 Dec 2012 15:43:19 -0800
+Message-ID: <20121217234320.5E3D4200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:33521 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751253Ab2LQXnR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Dec 2012 18:43:17 -0500
-Received: by mail-qc0-f202.google.com with SMTP id s25so713673qcq.5
-        for <mm-commits@vger.kernel.org>; Mon, 17 Dec 2012 15:43:17 -0800 (PST)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:61355 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752286Ab2LQXnX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Dec 2012 18:43:23 -0500
+Received: by mail-wi0-f202.google.com with SMTP id hn17so214699wib.3
+        for <mm-commits@vger.kernel.org>; Mon, 17 Dec 2012 15:43:21 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jg1.han@samsung.com, thierry.reding@avionic-design.de, mm-commits@vger.kernel.org
+To: thierry.reding@avionic-design.de, grant.likely@secretlab.ca, jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight-add-of_find_backlight_by_node-function-fix
+     Subject: backlight-add-of_find_backlight_by_node-function-fix-2
 has been removed from the -mm tree.  Its filename was
-     backlight-add-of_find_backlight_by_node-function-fix.patch
+     backlight-add-of_find_backlight_by_node-function-fix-2.patch
 
 This patch was dropped because it was folded into backlight-add-of_find_backlight_by_node-function.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: backlight-add-of_find_backlight_by_node-function-fix
+From: Thierry Reding <thierry.reding@avionic-design.de>
+Subject: backlight-add-of_find_backlight_by_node-function-fix-2
 
-Don't use IS_ENABLED(CONFIG_OF)
-
-Cc: Jingoo Han <jg1.han@samsung.com>
-Cc: Thierry Reding <thierry.reding@avionic-design.de>
+Signed-off-by: Thierry Reding <thierry.reding@avionic-design.de>
+Reviewed-by: Grant Likely <grant.likely@secretlab.ca>
+Acked-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/backlight.c |    2 +-
- include/linux/backlight.h           |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/backlight/backlight.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN drivers/video/backlight/backlight.c~backlight-add-of_find_backlight_by_node-function-fix drivers/video/backlight/backlight.c
---- a/drivers/video/backlight/backlight.c~backlight-add-of_find_backlight_by_node-function-fix
+diff -puN drivers/video/backlight/backlight.c~backlight-add-of_find_backlight_by_node-function-fix-2 drivers/video/backlight/backlight.c
+--- a/drivers/video/backlight/backlight.c~backlight-add-of_find_backlight_by_node-function-fix-2
 +++ a/drivers/video/backlight/backlight.c
-@@ -370,7 +370,7 @@ void backlight_device_unregister(struct 
- }
- EXPORT_SYMBOL(backlight_device_unregister);
- 
--#if IS_ENABLED(CONFIG_OF)
-+#ifdef CONFIG_OF
- static int of_parent_match(struct device *dev, void *data)
- {
+@@ -376,6 +376,18 @@ static int of_parent_match(struct device
  	return dev->parent && dev->parent->of_node == data;
-diff -puN include/linux/backlight.h~backlight-add-of_find_backlight_by_node-function-fix include/linux/backlight.h
---- a/include/linux/backlight.h~backlight-add-of_find_backlight_by_node-function-fix
-+++ a/include/linux/backlight.h
-@@ -134,7 +134,7 @@ struct generic_bl_info {
- 	void (*kick_battery)(void);
- };
+ }
  
--#if IS_ENABLED(CONFIG_OF)
-+#ifdef CONFIG_OF
- struct backlight_device *of_find_backlight_by_node(struct device_node *node);
- #else
- static inline struct backlight_device *
++/**
++ * of_find_backlight_by_node() - find backlight device by device-tree node
++ * @node: device-tree node of the backlight device
++ *
++ * Returns a pointer to the backlight device corresponding to the given DT
++ * node or NULL if no such backlight device exists or if the device hasn't
++ * been probed yet.
++ *
++ * This function obtains a reference on the backlight device and it is the
++ * caller's responsibility to drop the reference by calling put_device() on
++ * the backlight device's .dev field.
++ */
+ struct backlight_device *of_find_backlight_by_node(struct device_node *node)
+ {
+ 	struct device *dev;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from thierry.reding@avionic-design.de are
 
 origin.patch
-create-non-empty-arch-x86-include-uapi-asm-files.patch
-mm-memoryc-suppress-warning.patch
-lseek-the-whence-argument-is-called-whence.patch
 drivers-video-backlight-lp855x_blc-use-generic-pwm-functions.patch
+drivers-video-backlight-lp855x_blc-remove-unnecessary-mutex-code.patch
 backlight-add-of_find_backlight_by_node-function.patch
-backlight-88pm860x_bl-remove-an-unnecessary-line-continuation-fix.patch
-binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
-rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
-procfs-add-vmflags-field-in-smaps-output-v4.patch
-procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
-docs-add-documentation-about-proc-pid-fdinfo-fd-output-fix.patch
-scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
+rtc-add-nxp-pcf8523-support.patch
+rtc-add-nxp-pcf8523-support-v2.patch
 
