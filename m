@@ -1,68 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] backlight-88pm860x_bl-remove-an-unnecessary-line-continuation-fix.patch removed from -mm tree
-Date: Mon, 17 Dec 2012 15:44:08 -0800
-Message-ID: <20121217234409.0C82820004E@hpza10.eem.corp.google.com>
+Subject: [folded-merged] procfs-use-kbasename-fix.patch removed from -mm tree
+Date: Mon, 17 Dec 2012 15:44:37 -0800
+Message-ID: <20121217234437.D11EF20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:50136 "EHLO
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:52667 "EHLO
 	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752646Ab2LQXoL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Dec 2012 18:44:11 -0500
-Received: by mail-bk0-f74.google.com with SMTP id je9so352237bkc.3
-        for <mm-commits@vger.kernel.org>; Mon, 17 Dec 2012 15:44:10 -0800 (PST)
+	with ESMTP id S1750942Ab2LQXok (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Dec 2012 18:44:40 -0500
+Received: by mail-bk0-f74.google.com with SMTP id je9so352251bkc.3
+        for <mm-commits@vger.kernel.org>; Mon, 17 Dec 2012 15:44:38 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jg1.han@samsung.com, mm-commits@vger.kernel.org
+To: yongjun_wei@trendmicro.com.cn, andriy.shevchenko@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight-88pm860x_bl-remove-an-unnecessary-line-continuation-fix
+     Subject: proc_devtree: remove duplicated include from proc_devtree.c
 has been removed from the -mm tree.  Its filename was
-     backlight-88pm860x_bl-remove-an-unnecessary-line-continuation-fix.patch
+     procfs-use-kbasename-fix.patch
 
-This patch was dropped because it was folded into backlight-88pm860x_bl-remove-an-unnecessary-line-continuation.patch
+This patch was dropped because it was folded into procfs-use-kbasename.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: backlight-88pm860x_bl-remove-an-unnecessary-line-continuation-fix
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Subject: proc_devtree: remove duplicated include from proc_devtree.c
 
-remove newline
+Remove duplicated include.
 
-Cc: Jingoo Han <jg1.han@samsung.com>
+dpatch engine is used to auto generate this patch.
+(https://github.com/weiyj/dpatch)
+
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/88pm860x_bl.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/proc/proc_devtree.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/video/backlight/88pm860x_bl.c~backlight-88pm860x_bl-remove-an-unnecessary-line-continuation-fix drivers/video/backlight/88pm860x_bl.c
---- a/drivers/video/backlight/88pm860x_bl.c~backlight-88pm860x_bl-remove-an-unnecessary-line-continuation-fix
-+++ a/drivers/video/backlight/88pm860x_bl.c
-@@ -228,8 +228,7 @@ static int pm860x_backlight_probe(struct
- 	sprintf(name, "backlight-%d", pdev->id);
- 	data->port = pdev->id;
- 	data->chip = chip;
--	data->i2c = (chip->id == CHIP_PM8606) ? chip->client
--			: chip->companion;
-+	data->i2c = (chip->id == CHIP_PM8606) ? chip->client : chip->companion;
- 	data->current_brightness = MAX_BRIGHTNESS;
- 	if (pm860x_backlight_dt_init(pdev, data, name)) {
- 		if (pdata) {
+diff -puN fs/proc/proc_devtree.c~procfs-use-kbasename-fix fs/proc/proc_devtree.c
+--- a/fs/proc/proc_devtree.c~procfs-use-kbasename-fix
++++ a/fs/proc/proc_devtree.c
+@@ -13,7 +13,6 @@
+ #include <linux/of.h>
+ #include <linux/module.h>
+ #include <linux/slab.h>
+-#include <linux/string.h>
+ #include <asm/prom.h>
+ #include <asm/uaccess.h>
+ #include "internal.h"
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from yongjun_wei@trendmicro.com.cn are
 
 origin.patch
-create-non-empty-arch-x86-include-uapi-asm-files.patch
-mm-memoryc-suppress-warning.patch
-lseek-the-whence-argument-is-called-whence.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions.patch
-backlight-add-of_find_backlight_by_node-function.patch
-backlight-88pm860x_bl-remove-an-unnecessary-line-continuation.patch
-binfmt_elf-fix-corner-case-kfree-of-uninitialized-data-checkpatch-fixes.patch
+procfs-use-kbasename.patch
+rtc-avoid-calling-platform_device_put-twice-in-test_init.patch
 rtc-avoid-calling-platform_device_put-twice-in-test_init-fix.patch
-procfs-add-vmflags-field-in-smaps-output-v4.patch
-procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
-docs-add-documentation-about-proc-pid-fdinfo-fd-output-fix.patch
-scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
 
