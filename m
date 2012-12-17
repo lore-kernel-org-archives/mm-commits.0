@@ -1,60 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] aoe-print-warning-regarding-a-common-reason-for-dropped-transmits-v2.patch removed from -mm tree
-Date: Mon, 17 Dec 2012 15:47:44 -0800
-Message-ID: <20121217234745.4F58F200057@hpza10.eem.corp.google.com>
+Subject: [folded-merged] aoe-print-warning-regarding-a-common-reason-for-dropped-transmits-fix.patch removed from -mm tree
+Date: Mon, 17 Dec 2012 15:47:48 -0800
+Message-ID: <20121217234749.5B3C620004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:64402 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752646Ab2LQXrr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Dec 2012 18:47:47 -0500
-Received: by mail-ee0-f74.google.com with SMTP id t10so354973eei.1
-        for <mm-commits@vger.kernel.org>; Mon, 17 Dec 2012 15:47:46 -0800 (PST)
+Received: from mail-ea0-f202.google.com ([209.85.215.202]:44393 "EHLO
+	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752646Ab2LQXrv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Dec 2012 18:47:51 -0500
+Received: by mail-ea0-f202.google.com with SMTP id j12so354646eaa.1
+        for <mm-commits@vger.kernel.org>; Mon, 17 Dec 2012 15:47:50 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ecashin@coraid.com, mm-commits@vger.kernel.org
+To: ecashin@coraid.com, dan.carpenter@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: aoe-print-warning-regarding-a-common-reason-for-dropped-transmits-v2
+     Subject: aoe: avoid using skb member after dev_queue_xmit
 has been removed from the -mm tree.  Its filename was
-     aoe-print-warning-regarding-a-common-reason-for-dropped-transmits-v2.patch
+     aoe-print-warning-regarding-a-common-reason-for-dropped-transmits-fix.patch
 
 This patch was dropped because it was folded into aoe-print-warning-regarding-a-common-reason-for-dropped-transmits.patch
 
 ------------------------------------------------------
 From: Ed Cashin <ecashin@coraid.com>
-Subject: aoe-print-warning-regarding-a-common-reason-for-dropped-transmits-v2
+Subject: aoe: avoid using skb member after dev_queue_xmit
 
-Dropped transmits are not common, but when they do occur, increasing
-the transmit queue length often helps.
+After calling dev_queue_xmit it is no longer safe to access the
+members of the skb.
 
 Signed-off-by: Ed Cashin <ecashin@coraid.com>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoenet.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ drivers/block/aoe/aoenet.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/block/aoe/aoenet.c~aoe-print-warning-regarding-a-common-reason-for-dropped-transmits-v2 drivers/block/aoe/aoenet.c
---- a/drivers/block/aoe/aoenet.c~aoe-print-warning-regarding-a-common-reason-for-dropped-transmits-v2
+diff -puN drivers/block/aoe/aoenet.c~aoe-print-warning-regarding-a-common-reason-for-dropped-transmits-fix drivers/block/aoe/aoenet.c
+--- a/drivers/block/aoe/aoenet.c~aoe-print-warning-regarding-a-common-reason-for-dropped-transmits-fix
 +++ a/drivers/block/aoe/aoenet.c
-@@ -50,13 +50,9 @@ __setup("aoe_iflist=", aoe_iflist_setup)
- static spinlock_t txlock;
- static struct sk_buff_head skbtxq;
- 
--/* enters with txlock held
-- *
-- * Use __must_hold(&txlock) for sparse when upcoming patch adds it to
-- * compiler.h.
-- */
-+/* enters with txlock held */
- static int
--tx(void)
-+tx(void) __must_hold(&txlock)
+@@ -55,12 +55,14 @@ static int
+ tx(void) __must_hold(&txlock)
  {
  	struct sk_buff *skb;
++	struct net_device *ifp;
  
+ 	while ((skb = skb_dequeue(&skbtxq))) {
+ 		spin_unlock_irq(&txlock);
++		ifp = skb->dev;
+ 		if (dev_queue_xmit(skb) == NET_XMIT_DROP && net_ratelimit())
+ 			pr_warn("aoe: packet could not be sent on %s.  %s\n",
+-				skb->dev ? skb->dev->name : "netif",
++				ifp ? ifp->name : "netif",
+ 				"consider increasing tx_queue_len");
+ 		spin_lock_irq(&txlock);
+ 	}
 _
 
 Patches currently in -mm which might be from ecashin@coraid.com are
@@ -63,7 +64,6 @@ linux-compilerh-add-__must_hold-macro-for-functions-called-with-a-lock-held.patc
 documentation-sparsetxt-document-context-annotations-for-lock-checking.patch
 aoe-describe-the-behavior-of-the-err-character-device.patch
 aoe-print-warning-regarding-a-common-reason-for-dropped-transmits.patch
-aoe-print-warning-regarding-a-common-reason-for-dropped-transmits-fix.patch
 aoe-update-cap-on-outstanding-commands-based-on-config-query-response.patch
 aoe-support-the-forgetting-flushing-of-a-user-specified-aoe-target.patch
 aoe-support-larger-i-o-requests-via-aoe_maxsectors-module-param.patch
