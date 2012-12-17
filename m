@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-add-support-for-floating-point-constants.patch added to -mm tree
-Date: Mon, 17 Dec 2012 13:51:13 -0800
-Message-ID: <20121217215114.A4C8C200057@hpza10.eem.corp.google.com>
+Subject: + checkpatch-warn-on-camelcase-variable-names.patch added to -mm tree
+Date: Mon, 17 Dec 2012 13:51:17 -0800
+Message-ID: <20121217215118.187D882004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f74.google.com ([209.85.215.74]:64639 "EHLO
-	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753130Ab2LQVvR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Dec 2012 16:51:17 -0500
-Received: by mail-la0-f74.google.com with SMTP id v3so350147lag.1
-        for <mm-commits@vger.kernel.org>; Mon, 17 Dec 2012 13:51:15 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:35870 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753130Ab2LQVvT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Dec 2012 16:51:19 -0500
+Received: by mail-vb0-f74.google.com with SMTP id s24so702093vbi.1
+        for <mm-commits@vger.kernel.org>; Mon, 17 Dec 2012 13:51:18 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: joe@perches.com, apw@canonical.com
 
 
 The patch titled
-     Subject: checkpatch: add support for floating point constants
+     Subject: checkpatch: warn on CamelCase variable names
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-support-for-floating-point-constants.patch
+     checkpatch-warn-on-camelcase-variable-names.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,55 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add support for floating point constants
+Subject: checkpatch: warn on CamelCase variable names
 
-Even though the kernel doesn't support using floating point constants,
-add a regex for them.
-
-Support forms like: 0x123p1, 123e-1, 1.23, 1.5e23f
+Store the camelcase variables in a hash and only emit a warning on the
+first use of each new variable.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |   19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-support-for-floating-point-constants scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-support-for-floating-point-constants
+diff -puN scripts/checkpatch.pl~checkpatch-warn-on-camelcase-variable-names scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-warn-on-camelcase-variable-names
 +++ a/scripts/checkpatch.pl
-@@ -230,7 +230,11 @@ our $Inline	= qr{inline|__always_inline|
- our $Member	= qr{->$Ident|\.$Ident|\[[^]]*\]};
- our $Lval	= qr{$Ident(?:$Member)*};
+@@ -1398,6 +1398,8 @@ sub process {
+ 	my %suppress_export;
+ 	my $suppress_statement = 0;
  
--our $Constant	= qr{(?i:(?:0x[0-9a-f]+|[0-9]+)[ul]*)};
-+our $Float_hex	= qr{(?i:0x[0-9a-f]+p-?[0-9]+[fl]?)};
-+our $Float_dec	= qr{(?i:((?:[0-9]+\.[0-9]*|[0-9]*\.[0-9]+)(?:e-?[0-9]+)?[fl]?))};
-+our $Float_int	= qr{(?i:[0-9]+e-?[0-9]+[fl]?)};
-+our $Float	= qr{$Float_hex|$Float_dec|$Float_int};
-+our $Constant	= qr{(?:$Float|(?i:(?:0x[0-9a-f]+|[0-9]+)[ul]*))};
- our $Assignment	= qr{(?:\*\=|/=|%=|\+=|-=|<<=|>>=|&=|\^=|\|=|=)};
- our $Compare    = qr{<=|>=|==|!=|<|>};
- our $Operators	= qr{
++	my %camelcase = ();
++
+ 	# Pre-scan the patch sanitizing the lines.
+ 	# Pre-scan the patch looking for any __setup documentation.
+ 	#
+@@ -2905,12 +2907,17 @@ sub process {
+ 			}
+ 		}
+ 
+-#studly caps, commented out until figure out how to distinguish between use of existing and adding new
+-#		if (($line=~/[\w_][a-z\d]+[A-Z]/) and !($line=~/print/)) {
+-#		    print "No studly caps, use _\n";
+-#		    print "$herecurr";
+-#		    $clean = 0;
+-#		}
++#CamelCase
++		while ($line =~ m{($Constant|$Lval)}g) {
++			my $var = $1;
++			if ($var !~ /$Constant/ &&
++			    $var =~ /[A-Z]\w*[a-z]|[a-z]\w*[A-Z]/ &&
++			    !defined $camelcase{$var}) {
++				$camelcase{$var} = 1;
++				WARN("CAMELCASE",
++				     "Avoid CamelCase: <$var>\n" . $herecurr);
++			}
++		}
+ 
+ #no spaces allowed after \ in define
+ 		if ($line=~/\#\s*define.*\\\s$/) {
 _
 
 Patches currently in -mm which might be from joe@perches.com are
