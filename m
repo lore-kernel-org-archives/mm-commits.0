@@ -1,85 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] procfs-add-vmflags-field-in-smaps-output-v4-fix.patch removed from -mm tree
-Date: Mon, 17 Dec 2012 15:47:11 -0800
-Message-ID: <20121217234712.453F282004A@wpzn4.hot.corp.google.com>
+Subject: [folded-merged] aoe-print-warning-regarding-a-common-reason-for-dropped-transmits-v2.patch removed from -mm tree
+Date: Mon, 17 Dec 2012 15:47:44 -0800
+Message-ID: <20121217234745.4F58F200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:53908 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752646Ab2LQXrO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Dec 2012 18:47:14 -0500
-Received: by mail-yh0-f74.google.com with SMTP id 10so714810yhl.5
-        for <mm-commits@vger.kernel.org>; Mon, 17 Dec 2012 15:47:14 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:64402 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752646Ab2LQXrr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Dec 2012 18:47:47 -0500
+Received: by mail-ee0-f74.google.com with SMTP id t10so354973eei.1
+        for <mm-commits@vger.kernel.org>; Mon, 17 Dec 2012 15:47:46 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, gorcunov@openvz.org, sfr@canb.auug.org.au, xemul@parallels.com, mm-commits@vger.kernel.org
+To: ecashin@coraid.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: procfs-add-vmflags-field-in-smaps-output-v4-fix
+     Subject: aoe-print-warning-regarding-a-common-reason-for-dropped-transmits-v2
 has been removed from the -mm tree.  Its filename was
-     procfs-add-vmflags-field-in-smaps-output-v4-fix.patch
+     aoe-print-warning-regarding-a-common-reason-for-dropped-transmits-v2.patch
 
-This patch was dropped because it was folded into procfs-add-vmflags-field-in-smaps-output-v4.patch
+This patch was dropped because it was folded into aoe-print-warning-regarding-a-common-reason-for-dropped-transmits.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: procfs-add-vmflags-field-in-smaps-output-v4-fix
+From: Ed Cashin <ecashin@coraid.com>
+Subject: aoe-print-warning-regarding-a-common-reason-for-dropped-transmits-v2
 
-remove unneeded brakes per sfr, avoid using bloaty for_each_set_bit()
+Dropped transmits are not common, but when they do occur, increasing
+the transmit queue length often helps.
 
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Ed Cashin <ecashin@coraid.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ drivers/block/aoe/aoenet.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~procfs-add-vmflags-field-in-smaps-output-v4-fix fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~procfs-add-vmflags-field-in-smaps-output-v4-fix
-+++ a/fs/proc/task_mmu.c
-@@ -535,7 +535,7 @@ static void show_smap_vma_flags(struct s
- 		/*
- 		 * In case if we meet a flag we don't know about.
- 		 */
--		[0 ... (BITS_PER_LONG-1)] = { "??" },
-+		[0 ... (BITS_PER_LONG-1)] = "??",
+diff -puN drivers/block/aoe/aoenet.c~aoe-print-warning-regarding-a-common-reason-for-dropped-transmits-v2 drivers/block/aoe/aoenet.c
+--- a/drivers/block/aoe/aoenet.c~aoe-print-warning-regarding-a-common-reason-for-dropped-transmits-v2
++++ a/drivers/block/aoe/aoenet.c
+@@ -50,13 +50,9 @@ __setup("aoe_iflist=", aoe_iflist_setup)
+ static spinlock_t txlock;
+ static struct sk_buff_head skbtxq;
  
- 		[ilog2(VM_READ)]	= "rd",
- 		[ilog2(VM_WRITE)]	= "wr",
-@@ -568,10 +568,11 @@ static void show_smap_vma_flags(struct s
- 	size_t i;
+-/* enters with txlock held
+- *
+- * Use __must_hold(&txlock) for sparse when upcoming patch adds it to
+- * compiler.h.
+- */
++/* enters with txlock held */
+ static int
+-tx(void)
++tx(void) __must_hold(&txlock)
+ {
+ 	struct sk_buff *skb;
  
- 	seq_puts(m, "VmFlags: ");
--	for_each_set_bit(i, &vma->vm_flags, BITS_PER_LONG) {
--		seq_printf(m, "%c%c ",
--			   mnemonics[i][0],
--			   mnemonics[i][1]);
-+	for (i = 0; i < BITS_PER_LONG; i++) {
-+		if (vma->vm_flags & (1UL << i)) {
-+			seq_printf(m, "%c%c ",
-+				   mnemonics[i][0], mnemonics[i][1]);
-+		}
- 	}
- 	seq_putc(m, '\n');
- }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ecashin@coraid.com are
 
-origin.patch
-create-non-empty-arch-x86-include-uapi-asm-files.patch
-mm-memoryc-suppress-warning.patch
-lseek-the-whence-argument-is-called-whence.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions.patch
-backlight-add-of_find_backlight_by_node-function.patch
-backlight-88pm860x_bl-remove-an-unnecessary-line-continuation.patch
-binfmt_elf-fix-corner-case-kfree-of-uninitialized-data.patch
-rtc-avoid-calling-platform_device_put-twice-in-test_init.patch
-procfs-add-vmflags-field-in-smaps-output-v4.patch
-docs-add-documentation-about-proc-pid-fdinfo-fd-output-fix.patch
-scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
+linux-compilerh-add-__must_hold-macro-for-functions-called-with-a-lock-held.patch
+documentation-sparsetxt-document-context-annotations-for-lock-checking.patch
+aoe-describe-the-behavior-of-the-err-character-device.patch
+aoe-print-warning-regarding-a-common-reason-for-dropped-transmits.patch
+aoe-print-warning-regarding-a-common-reason-for-dropped-transmits-fix.patch
+aoe-update-cap-on-outstanding-commands-based-on-config-query-response.patch
+aoe-support-the-forgetting-flushing-of-a-user-specified-aoe-target.patch
+aoe-support-larger-i-o-requests-via-aoe_maxsectors-module-param.patch
+aoe-payload-sysfs-file-exports-per-aoe-command-data-transfer-size.patch
+aoe-cleanup-remove-unused-ata_scnt-function.patch
+aoe-whitespace-cleanup.patch
+aoe-update-driver-internal-version-number-to-60.patch
+aoe-provide-ata-identify-device-content-to-user-on-request.patch
+aoe-improve-network-congestion-handling.patch
+aoe-err-device-include-mac-addresses-for-unexpected-responses.patch
+aoe-manipulate-aoedev-network-stats-under-lock.patch
+aoe-use-high-resolution-rtts-with-fallback-to-low-res.patch
+aoe-commands-in-retransmit-queue-use-new-destination-on-failure.patch
+aoe-update-driver-internal-version-to-64.patch
+aoe-copy-fallback-timing-information-on-destination-failover.patch
+aoe-remove-vestigial-request-queue-allocation.patch
+aoe-increase-default-cap-on-outstanding-aoe-commands-in-the-network.patch
+aoe-cleanup-correct-comment-for-aoetgt-nout.patch
+aoe-remove-call-to-request-handler-from-i-o-completion.patch
+aoe-make-error-messages-more-specific-in-static-minor-allocation.patch
+aoe-initialize-sysminor-to-avoid-compiler-warning.patch
+aoe-return-real-minor-number-for-static-minors.patch
+aoe-improve-handling-of-misbehaving-network-paths.patch
+aoe-avoid-races-between-device-destruction-and-discovery.patch
+aoe-use-dynamic-number-of-remote-ports-for-aoe-storage-target.patch
+aoe-allow-user-to-disable-target-failure-timeout.patch
+aoe-allow-comma-separator-in-aoe_iflist-value.patch
+aoe-identify-source-of-runt-aoe-packets.patch
+aoe-update-internal-version-number-to-81.patch
+aoe-fix-use-after-free-in-aoedev_by_aoeaddr.patch
 
