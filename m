@@ -1,66 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged] linux-compilerh-add-__must_hold-macro-for-functions-called-with-a-lock-held.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 12:09:28 -0800
-Message-ID: <20121218200928.9C903100048@wpzn3.hot.corp.google.com>
+Subject: [merged] documentation-sparsetxt-document-context-annotations-for-lock-checking.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 12:09:31 -0800
+Message-ID: <20121218200932.1AAFF20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:33006 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755249Ab2LRUJ3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:09:29 -0500
-Received: by mail-gg0-f202.google.com with SMTP id k1so126076ggn.1
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:09:29 -0800 (PST)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:61315 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755249Ab2LRUJe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:09:34 -0500
+Received: by mail-lb0-f202.google.com with SMTP id s4so70208lbc.5
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:09:33 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: josh@joshtriplett.org, ecashin@coraid.com, mm-commits@vger.kernel.org
+To: ecashin@coraid.com, josh@joshtriplett.org, sparse@chrisli.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux/compiler.h: add __must_hold macro for functions called with a lock held
+     Subject: Documentation/sparse.txt: document context annotations for lock checking
 has been removed from the -mm tree.  Its filename was
-     linux-compilerh-add-__must_hold-macro-for-functions-called-with-a-lock-held.patch
+     documentation-sparsetxt-document-context-annotations-for-lock-checking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Josh Triplett <josh@joshtriplett.org>
-Subject: linux/compiler.h: add __must_hold macro for functions called with a lock held
+From: Ed Cashin <ecashin@coraid.com>
+Subject: Documentation/sparse.txt: document context annotations for lock checking
 
-linux/compiler.h has macros to denote functions that acquire or release
-locks, but not to denote functions called with a lock held that return
-with the lock still held.  Add a __must_hold macro to cover that case.
+The context feature of sparse is used with the Linux kernel sources to
+check for imbalanced uses of locks.  Document the annotations defined in
+include/linux/compiler.h that tell sparse what to expect when a lock is
+held on function entry, exit, or both.
 
-Signed-off-by: Josh Triplett <josh@joshtriplett.org>
-Reported-by: Ed Cashin <ecashin@coraid.com>
-Tested-by: Ed Cashin <ecashin@coraid.com>
+Signed-off-by: Ed Cashin <ecashin@coraid.com>
+Reviewed-by: Josh Triplett <josh@joshtriplett.org>
+Acked-by: Christopher Li <sparse@chrisli.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler.h |    2 ++
- 1 file changed, 2 insertions(+)
+ Documentation/sparse.txt |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff -puN include/linux/compiler.h~linux-compilerh-add-__must_hold-macro-for-functions-called-with-a-lock-held include/linux/compiler.h
---- a/include/linux/compiler.h~linux-compilerh-add-__must_hold-macro-for-functions-called-with-a-lock-held
-+++ a/include/linux/compiler.h
-@@ -10,6 +10,7 @@
- # define __force	__attribute__((force))
- # define __nocast	__attribute__((nocast))
- # define __iomem	__attribute__((noderef, address_space(2)))
-+# define __must_hold(x)	__attribute__((context(x,1,1)))
- # define __acquires(x)	__attribute__((context(x,0,1)))
- # define __releases(x)	__attribute__((context(x,1,0)))
- # define __acquire(x)	__context__(x,1)
-@@ -33,6 +34,7 @@ extern void __chk_io_ptr(const volatile 
- # define __chk_user_ptr(x) (void)0
- # define __chk_io_ptr(x) (void)0
- # define __builtin_warning(x, y...) (1)
-+# define __must_hold(x)
- # define __acquires(x)
- # define __releases(x)
- # define __acquire(x) (void)0
+diff -puN Documentation/sparse.txt~documentation-sparsetxt-document-context-annotations-for-lock-checking Documentation/sparse.txt
+--- a/Documentation/sparse.txt~documentation-sparsetxt-document-context-annotations-for-lock-checking
++++ a/Documentation/sparse.txt
+@@ -49,6 +49,24 @@ be generated without __CHECK_ENDIAN__.
+ __bitwise - noisy stuff; in particular, __le*/__be* are that.  We really
+ don't want to drown in noise unless we'd explicitly asked for it.
+ 
++Using sparse for lock checking
++~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++
++The following macros are undefined for gcc and defined during a sparse
++run to use the "context" tracking feature of sparse, applied to
++locking.  These annotations tell sparse when a lock is held, with
++regard to the annotated function's entry and exit.
++
++__must_hold - The specified lock is held on function entry and exit.
++
++__acquires - The specified lock is held on function exit, but not entry.
++
++__releases - The specified lock is held on function entry, but not exit.
++
++If the function enters and exits without the lock held, acquiring and
++releasing the lock inside the function in a balanced way, no
++annotation is needed.  The tree annotations above are for cases where
++sparse would otherwise report a context imbalance.
+ 
+ Getting sparse
+ ~~~~~~~~~~~~~~
 _
 
-Patches currently in -mm which might be from josh@joshtriplett.org are
+Patches currently in -mm which might be from ecashin@coraid.com are
 
 origin.patch
+linux-next.patch
 
