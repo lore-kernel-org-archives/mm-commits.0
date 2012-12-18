@@ -1,61 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-notify-inode_markc-make-fsnotify_find_inode_mark_locked-static.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 12:02:56 -0800
-Message-ID: <20121218200257.2AA3020004E@hpza10.eem.corp.google.com>
+Subject: [merged] musb-tusb6010-use-ioreadwrite_rep-accessors.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 12:03:06 -0800
+Message-ID: <20121218200307.343EE200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:54913 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753636Ab2LRUC7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:02:59 -0500
-Received: by mail-lb0-f202.google.com with SMTP id s4so69635lbc.1
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:02:58 -0800 (PST)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:57983 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753636Ab2LRUDK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:03:10 -0500
+Received: by mail-la0-f74.google.com with SMTP id v3so63369lag.1
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:03:09 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tushar.behera@linaro.org, eparis@redhat.com, mm-commits@vger.kernel.org
+To: matthew@mattleach.net, arnd@arndb.de, balbi@ti.com, benh@kernel.crashing.org, greg@kroah.com, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/notify/inode_mark.c: make fsnotify_find_inode_mark_locked() static
+     Subject: musb: tusb6010: use io{read,write}*_rep accessors
 has been removed from the -mm tree.  Its filename was
-     fs-notify-inode_markc-make-fsnotify_find_inode_mark_locked-static.patch
+     musb-tusb6010-use-ioreadwrite_rep-accessors.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tushar Behera <tushar.behera@linaro.org>
-Subject: fs/notify/inode_mark.c: make fsnotify_find_inode_mark_locked() static
+From: Matthew Leach <matthew@mattleach.net>
+Subject: musb: tusb6010: use io{read,write}*_rep accessors
 
-Fixes following sparse warning.
-fs/notify/inode_mark.c:127:22: warning: symbol
-'fsnotify_find_inode_mark_locked' was not declared. Should it be static?
+The {read,write}s{b,w,l} operations are not defined by all architectures
+and are being removed from the asm-generic/io.h interface.
 
-Signed-off-by: Tushar Behera <tushar.behera@linaro.org>
-Cc: Eric Paris <eparis@redhat.com>
+This patch replaces the usage of these string functions in the tusb6010
+accessors with io{read,write}{8,16,32}_rep calls instead.
+
+Signed-off-by: Matthew Leach <matthew@mattleach.net>
+Signed-off-by: Will Deacon <will.deacon@arm.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Ben Herrenschmidt <benh@kernel.crashing.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/inode_mark.c |    5 +++--
+ drivers/usb/musb/tusb6010.c |    5 +++--
  1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/notify/inode_mark.c~fs-notify-inode_markc-make-fsnotify_find_inode_mark_locked-static fs/notify/inode_mark.c
---- a/fs/notify/inode_mark.c~fs-notify-inode_markc-make-fsnotify_find_inode_mark_locked-static
-+++ a/fs/notify/inode_mark.c
-@@ -116,8 +116,9 @@ void fsnotify_clear_inode_marks_by_group
-  * given a group and inode, find the mark associated with that combination.
-  * if found take a reference to that mark and return it, else return NULL
-  */
--struct fsnotify_mark *fsnotify_find_inode_mark_locked(struct fsnotify_group *group,
--						      struct inode *inode)
-+static struct fsnotify_mark *fsnotify_find_inode_mark_locked(
-+		struct fsnotify_group *group,
-+		struct inode *inode)
- {
- 	struct fsnotify_mark *mark;
- 	struct hlist_node *pos;
+diff -puN drivers/usb/musb/tusb6010.c~musb-tusb6010-use-ioreadwrite_rep-accessors drivers/usb/musb/tusb6010.c
+--- a/drivers/usb/musb/tusb6010.c~musb-tusb6010-use-ioreadwrite_rep-accessors
++++ a/drivers/usb/musb/tusb6010.c
+@@ -22,6 +22,7 @@
+ #include <linux/prefetch.h>
+ #include <linux/usb.h>
+ #include <linux/irq.h>
++#include <linux/io.h>
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/usb/nop-usb-xceiv.h>
+@@ -198,7 +199,7 @@ void musb_write_fifo(struct musb_hw_ep *
+ 		/* Best case is 32bit-aligned destination address */
+ 		if ((0x02 & (unsigned long) buf) == 0) {
+ 			if (len >= 4) {
+-				writesl(fifo, buf, len >> 2);
++				iowrite32_rep(fifo, buf, len >> 2);
+ 				buf += (len & ~0x03);
+ 				len &= 0x03;
+ 			}
+@@ -245,7 +246,7 @@ void musb_read_fifo(struct musb_hw_ep *h
+ 		/* Best case is 32bit-aligned destination address */
+ 		if ((0x02 & (unsigned long) buf) == 0) {
+ 			if (len >= 4) {
+-				readsl(fifo, buf, len >> 2);
++				ioread32_rep(fifo, buf, len >> 2);
+ 				buf += (len & ~0x03);
+ 				len &= 0x03;
+ 			}
 _
 
-Patches currently in -mm which might be from tushar.behera@linaro.org are
+Patches currently in -mm which might be from matthew@mattleach.net are
 
 origin.patch
 linux-next.patch
