@@ -1,66 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] memory-hotplug-document-and-enable-config_movable_node-fix.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 14:12:51 -0800
-Message-ID: <20121218221252.86C0020004E@hpza10.eem.corp.google.com>
+Subject: [folded-dropped] memcg-kmem-accounting-basic-infrastructure-fix.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 14:13:16 -0800
+Message-ID: <20121218221317.3D176200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f73.google.com ([74.125.82.73]:63817 "EHLO
-	mail-wg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753764Ab2LRWMz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 17:12:55 -0500
-Received: by mail-wg0-f73.google.com with SMTP id dt12so67612wgb.2
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 14:12:54 -0800 (PST)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:51568 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753764Ab2LRWNW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 17:13:22 -0500
+Received: by mail-la0-f74.google.com with SMTP id v3so67856lag.5
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 14:13:20 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, isimatu.yasuaki@jp.fujitsu.com, laijs@cn.fujitsu.com, mingo@elte.hu, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cl@linux.com, fweisbec@redhat.com, glommer@parallels.com, gthelen@google.com, hannes@cmpxchg.org, js1304@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mhocko@suse.cz, penberg@cs.helsinki.fi, riel@redhat.com, rientjes@google.com, suleiman@google.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory-hotplug-document-and-enable-config_movable_node-fix
+     Subject: slab-slub-struct-memcg_params-fix
 has been removed from the -mm tree.  Its filename was
-     memory-hotplug-document-and-enable-config_movable_node-fix.patch
+     memcg-kmem-accounting-basic-infrastructure-fix.patch
 
-This patch was dropped because it was folded into memory-hotplug-document-and-enable-config_movable_node.patch
+This patch was dropped because it was folded into memcg-kmem-accounting-basic-infrastructure.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memory-hotplug-document-and-enable-config_movable_node-fix
+Subject: slab-slub-struct-memcg_params-fix
 
-tweak help text
+MEMCG_MMEM only works with slab and slub
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Frederic Weisbecker <fweisbec@redhat.com>
+Cc: Glauber Costa <glommer@parallels.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: JoonSoo Kim <js1304@gmail.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Suleiman Souhlal <suleiman@google.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ init/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/Kconfig~memory-hotplug-document-and-enable-config_movable_node-fix mm/Kconfig
---- a/mm/Kconfig~memory-hotplug-document-and-enable-config_movable_node-fix
-+++ a/mm/Kconfig
-@@ -151,12 +151,13 @@ config MOVABLE_NODE
- 	depends on NUMA
+diff -puN init/Kconfig~memcg-kmem-accounting-basic-infrastructure-fix init/Kconfig
+--- a/init/Kconfig~memcg-kmem-accounting-basic-infrastructure-fix
++++ a/init/Kconfig
+@@ -882,6 +882,7 @@ config MEMCG_SWAP_ENABLED
+ config MEMCG_KMEM
+ 	bool "Memory Resource Controller Kernel Memory accounting (EXPERIMENTAL)"
+ 	depends on MEMCG && EXPERIMENTAL
++	depends on SLUB || SLAB
  	default n
  	help
--	  Allow a node to have only movable memory. Pages used by kernel, such
--	  as direct mapping pages can not be migrated. So the corresponding
--	  memory device can not be hotpluged. This option allows users to
-+	  Allow a node to have only movable memory.  Pages used by the kernel,
-+	  such as direct mapping pages cannot be migrated.  So the corresponding
-+	  memory device cannot be hotplugged.  This option allows users to
- 	  online all the memory of a node as movable memory so that the whole
--	  node can be hotpluged. Users who don't use hotplug feature are fine
--	  with this option on since they don't online memory as movable.
-+	  node can be hotplugged.  Users who don't use the memory hotplug
-+	  feature are fine with this option on since they don't online memory
-+	  as movable.
- 
- 	  Say Y here if you want to hotplug a whole node.
- 	  Say N here if you want kernel to use memory on all nodes evenly.
+ 	  The Kernel Memory extension for Memory Resource Controller can limit
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,7 +67,7 @@ origin.patch
 arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
 irq-tsk-comm-is-an-array.patch
 memory-hotplug-document-and-enable-config_movable_node.patch
-memcg-kmem-accounting-basic-infrastructure-fix.patch
+memcg-kmem-accounting-basic-infrastructure.patch
 slub-slub-specific-propagation-changes-fix.patch
 mm-mprotectc-coding-style-cleanups.patch
 mm-hugetlb-create-hugetlb-cgroup-file-in-hugetlb_init-fix.patch
