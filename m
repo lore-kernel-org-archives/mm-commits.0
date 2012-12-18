@@ -1,84 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-video-backlight-pandora_blc-change-twl4030_module_pwm0-to-twl_module_pwm.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 12:05:36 -0800
-Message-ID: <20121218200536.B95F082004A@wpzn4.hot.corp.google.com>
+Subject: [merged] backlight-lcd-return-enxio-when-ops-functions-cannot-be-called.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 12:05:42 -0800
+Message-ID: <20121218200542.A38BC100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:38243 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754844Ab2LRUFh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:05:37 -0500
-Received: by mail-qa0-f73.google.com with SMTP id a19so157541qad.2
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:05:37 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:50032 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754844Ab2LRUFn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:05:43 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so125522vcd.1
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:05:43 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: peter.ujfalusi@ti.com, FlorianSchandinat@gmx.de, jg1.han@samsung.com, notasas@gmail.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: jg1.han@samsung.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/video/backlight/pandora_bl.c: change TWL4030_MODULE_PWM0 to TWL_MODULE_PWM
+     Subject: drivers/video/backlight/lcd.c: return ENXIO when ops functions cannot be called
 has been removed from the -mm tree.  Its filename was
-     drivers-video-backlight-pandora_blc-change-twl4030_module_pwm0-to-twl_module_pwm.patch
+     backlight-lcd-return-enxio-when-ops-functions-cannot-be-called.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Subject: drivers/video/backlight/pandora_bl.c: change TWL4030_MODULE_PWM0 to TWL_MODULE_PWM
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: drivers/video/backlight/lcd.c: return ENXIO when ops functions cannot be called
 
-TWL_MODULE_PWM is defined as:
-#define TWL_MODULE_PWM		TWL4030_MODULE_PWM0
+Previously, when ops functions cannot be called, lcd_show_contrast() and
+lcd_store_contrast() returned 0, instead of ENXIO.
 
-Use the common module ID define here which will facilitate the upcoming
-twl-core cleanup.
+Thus, in this case, a local variable 'rc' for return value should be
+initialized as ENXIO, after kstrtoul() is called.
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Acked-by: Jingoo Han <jg1.han@samsung.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Grazvydas Ignotas <notasas@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/pandora_bl.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ drivers/video/backlight/lcd.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/backlight/pandora_bl.c~drivers-video-backlight-pandora_blc-change-twl4030_module_pwm0-to-twl_module_pwm drivers/video/backlight/pandora_bl.c
---- a/drivers/video/backlight/pandora_bl.c~drivers-video-backlight-pandora_blc-change-twl4030_module_pwm0-to-twl_module_pwm
-+++ a/drivers/video/backlight/pandora_bl.c
-@@ -71,8 +71,7 @@ static int pandora_backlight_update_stat
- 		 * set PWM duty cycle to max. TPS61161 seems to use this
- 		 * to calibrate it's PWM sensitivity when it starts.
- 		 */
--		twl_i2c_write_u8(TWL4030_MODULE_PWM0, MAX_VALUE,
--					TWL_PWM0_OFF);
-+		twl_i2c_write_u8(TWL_MODULE_PWM, MAX_VALUE, TWL_PWM0_OFF);
+diff -puN drivers/video/backlight/lcd.c~backlight-lcd-return-enxio-when-ops-functions-cannot-be-called drivers/video/backlight/lcd.c
+--- a/drivers/video/backlight/lcd.c~backlight-lcd-return-enxio-when-ops-functions-cannot-be-called
++++ a/drivers/video/backlight/lcd.c
+@@ -108,7 +108,7 @@ static ssize_t lcd_show_power(struct dev
+ static ssize_t lcd_store_power(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t count)
+ {
+-	int rc = -ENXIO;
++	int rc;
+ 	struct lcd_device *ld = to_lcd_device(dev);
+ 	unsigned long power;
  
- 		/* first enable clock, then PWM0 out */
- 		twl_i2c_read_u8(TWL4030_MODULE_INTBR, &r, TWL_INTBR_GPBR1);
-@@ -90,8 +89,7 @@ static int pandora_backlight_update_stat
- 		usleep_range(2000, 10000);
- 	}
+@@ -116,6 +116,8 @@ static ssize_t lcd_store_power(struct de
+ 	if (rc)
+ 		return rc;
  
--	twl_i2c_write_u8(TWL4030_MODULE_PWM0, MIN_VALUE + brightness,
--				TWL_PWM0_OFF);
-+	twl_i2c_write_u8(TWL_MODULE_PWM, MIN_VALUE + brightness, TWL_PWM0_OFF);
++	rc = -ENXIO;
++
+ 	mutex_lock(&ld->ops_lock);
+ 	if (ld->ops && ld->ops->set_power) {
+ 		pr_debug("set power to %lu\n", power);
+@@ -144,7 +146,7 @@ static ssize_t lcd_show_contrast(struct 
+ static ssize_t lcd_store_contrast(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t count)
+ {
+-	int rc = -ENXIO;
++	int rc;
+ 	struct lcd_device *ld = to_lcd_device(dev);
+ 	unsigned long contrast;
  
- done:
- 	if (brightness != 0)
-@@ -132,7 +130,7 @@ static int pandora_backlight_probe(struc
- 	platform_set_drvdata(pdev, bl);
+@@ -152,6 +154,8 @@ static ssize_t lcd_store_contrast(struct
+ 	if (rc)
+ 		return rc;
  
- 	/* 64 cycle period, ON position 0 */
--	twl_i2c_write_u8(TWL4030_MODULE_PWM0, 0x80, TWL_PWM0_ON);
-+	twl_i2c_write_u8(TWL_MODULE_PWM, 0x80, TWL_PWM0_ON);
- 
- 	bl->props.state |= PANDORABL_WAS_OFF;
- 	bl->props.brightness = MAX_USER_VALUE;
++	rc = -ENXIO;
++
+ 	mutex_lock(&ld->ops_lock);
+ 	if (ld->ops && ld->ops->set_contrast) {
+ 		pr_debug("set contrast to %lu\n", contrast);
 _
 
-Patches currently in -mm which might be from peter.ujfalusi@ti.com are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
 origin.patch
-linux-next.patch
+backlight-locomolcd-fix-checkpatch-error-and-warning.patch
 
