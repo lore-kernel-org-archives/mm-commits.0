@@ -1,83 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-warn-about-using-config_experimental.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 12:06:41 -0800
-Message-ID: <20121218200642.8A35A200059@hpza10.eem.corp.google.com>
+Subject: [merged] checkpatch-remove-reference-to-feature-removal-scheduletxt.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 12:06:46 -0800
+Message-ID: <20121218200647.2021120004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:47445 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754989Ab2LRUGp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:06:45 -0500
-Received: by mail-we0-f202.google.com with SMTP id t57so63487wey.1
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:06:43 -0800 (PST)
+Received: from mail-ea0-f202.google.com ([209.85.215.202]:55989 "EHLO
+	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754921Ab2LRUGt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:06:49 -0500
+Received: by mail-ea0-f202.google.com with SMTP id j12so63438eaa.1
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:06:48 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
+To: boyu.mt@taobao.com, apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: warn about using CONFIG_EXPERIMENTAL
+     Subject: checkpatch: remove reference to feature-removal-schedule.txt
 has been removed from the -mm tree.  Its filename was
-     checkpatch-warn-about-using-config_experimental.patch
+     checkpatch-remove-reference-to-feature-removal-scheduletxt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: checkpatch: warn about using CONFIG_EXPERIMENTAL
+From: Tao Ma <boyu.mt@taobao.com>
+Subject: checkpatch: remove reference to feature-removal-schedule.txt
 
-This config item has not carried much meaning for a while now and is
-almost always enabled by default.  As agreed during the Linux kernel
-summit, it is being removed.  This will discourage future addition of
-CONFIG_EXPERIMENTAL while it is being phased out.
+In 9c0ece069, Linus removes feature-removal-schedule.txt from
+Documentation, but there is still some reference to this file.  So remove
+them.
 
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Andy Whitcroft <apw@canonical.com>
+Signed-off-by: Tao Ma <boyu.mt@taobao.com>
+Acked-by: Andy Whitcroft <apw@canonical.com>
 Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ scripts/checkpatch.pl |   37 -------------------------------------
+ 1 file changed, 37 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-warn-about-using-config_experimental scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-warn-about-using-config_experimental
+diff -puN scripts/checkpatch.pl~checkpatch-remove-reference-to-feature-removal-scheduletxt scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-remove-reference-to-feature-removal-scheduletxt
 +++ a/scripts/checkpatch.pl
-@@ -1757,6 +1757,13 @@ sub process {
- 			#print "is_start<$is_start> is_end<$is_end> length<$length>\n";
+@@ -352,27 +352,6 @@ sub deparenthesize {
+ 
+ $chk_signoff = 0 if ($file);
+ 
+-my @dep_includes = ();
+-my @dep_functions = ();
+-my $removal = "Documentation/feature-removal-schedule.txt";
+-if ($tree && -f "$root/$removal") {
+-	open(my $REMOVE, '<', "$root/$removal") ||
+-				die "$P: $removal: open failed - $!\n";
+-	while (<$REMOVE>) {
+-		if (/^Check:\s+(.*\S)/) {
+-			for my $entry (split(/[, ]+/, $1)) {
+-				if ($entry =~ m@include/(.*)@) {
+-					push(@dep_includes, $1);
+-
+-				} elsif ($entry !~ m@/@) {
+-					push(@dep_functions, $entry);
+-				}
+-			}
+-		}
+-	}
+-	close($REMOVE);
+-}
+-
+ my @rawlines = ();
+ my @lines = ();
+ my $vname;
+@@ -3205,22 +3184,6 @@ sub process {
+ 			}
  		}
  
-+# discourage the addition of CONFIG_EXPERIMENTAL in Kconfig.
-+		if ($realfile =~ /Kconfig/ &&
-+		    $line =~ /.\s*depends on\s+.*\bEXPERIMENTAL\b/) {
-+			WARN("CONFIG_EXPERIMENTAL",
-+			     "Use of CONFIG_EXPERIMENTAL is deprecated. For alternatives, see https://lkml.org/lkml/2012/10/23/580\n");
-+		}
-+
- 		if (($realfile =~ /Makefile.*/ || $realfile =~ /Kbuild.*/) &&
- 		    ($line =~ /\+(EXTRA_[A-Z]+FLAGS).*/)) {
- 			my $flag = $1;
-@@ -1912,6 +1919,12 @@ sub process {
- # check we are in a valid C source file if not then ignore this hunk
- 		next if ($realfile !~ /\.(h|c)$/);
- 
-+# discourage the addition of CONFIG_EXPERIMENTAL in #if(def).
-+		if ($line =~ /^\+\s*\#\s*if.*\bCONFIG_EXPERIMENTAL\b/) {
-+			WARN("CONFIG_EXPERIMENTAL",
-+			     "Use of CONFIG_EXPERIMENTAL is deprecated. For alternatives, see https://lkml.org/lkml/2012/10/23/580\n");
-+		}
-+
- # check for RCS/CVS revision markers
- 		if ($rawline =~ /^\+.*\$(Revision|Log|Id)(?:\$|)/) {
- 			WARN("CVS_KEYWORD",
-_
-
-Patches currently in -mm which might be from keescook@chromium.org are
-
-origin.patch
-linux-next.patch
-audit-create-explicit-audit_seccomp-event-type.patch
-audit-catch-possible-null-audit-buffers.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-exec-do-not-leave-bprm-interp-on-stack.patch
-
+-# don't include deprecated include files (uses RAW line)
+-		for my $inc (@dep_includes) {
+-			if ($rawline =~ m@^.\s*\#\s*include\s*\<$inc>@) {
+-				ERROR("DEPRECATED_INCLUDE",
+-				      "Don't use <$inc>: see Documentation/feature-removal-schedule.txt\n" . $herecurr);
+-			}
+-		}
+-
+-# don't use deprecated functions
+-		for my $func (@dep_functions) {
+-			if ($line =~ /\b$func\b/) {
+-				ERROR("DEPRECATED_FUNCTION",
+-				      "Don't use $func(): see Documentation/feature-removal-schedule.txt\n" . $herecurr);
+-			}
+-		}
