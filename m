@@ -1,91 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-remove-reference-to-feature-removal-scheduletxt.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 12:06:46 -0800
-Message-ID: <20121218200647.2021120004E@hpza10.eem.corp.google.com>
+Subject: [merged] checkpatch-consolidate-if-foo-barfoo-checks-and-add-debugfs_remove.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 12:06:50 -0800
+Message-ID: <20121218200651.2088420004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f202.google.com ([209.85.215.202]:55989 "EHLO
-	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754921Ab2LRUGt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:06:49 -0500
-Received: by mail-ea0-f202.google.com with SMTP id j12so63438eaa.1
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:06:48 -0800 (PST)
+Received: from mail-la0-f73.google.com ([209.85.215.73]:61758 "EHLO
+	mail-la0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754947Ab2LRUGx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:06:53 -0500
+Received: by mail-la0-f73.google.com with SMTP id d3so63468lah.2
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:06:52 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: boyu.mt@taobao.com, apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
+To: apw@canonical.com, const@MakeLinux.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: remove reference to feature-removal-schedule.txt
+     Subject: checkpatch: consolidate if (foo) bar(foo) checks and add debugfs_remove
 has been removed from the -mm tree.  Its filename was
-     checkpatch-remove-reference-to-feature-removal-scheduletxt.patch
+     checkpatch-consolidate-if-foo-barfoo-checks-and-add-debugfs_remove.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tao Ma <boyu.mt@taobao.com>
-Subject: checkpatch: remove reference to feature-removal-schedule.txt
+From: Andy Whitcroft <apw@canonical.com>
+Subject: checkpatch: consolidate if (foo) bar(foo) checks and add debugfs_remove
 
-In 9c0ece069, Linus removes feature-removal-schedule.txt from
-Documentation, but there is still some reference to this file.  So remove
-them.
+Consolidate the if (foo) bar(foo) detectors into a single check.  Add
+debugfs_remove and family.
 
-Signed-off-by: Tao Ma <boyu.mt@taobao.com>
-Acked-by: Andy Whitcroft <apw@canonical.com>
+Based on a patch by Constantine Shulyupin.
+
+Signed-off-by: Andy Whitcroft <apw@canonical.com>
+Cc: Constantine Shulyupin <const@MakeLinux.com>.
 Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   37 -------------------------------------
- 1 file changed, 37 deletions(-)
+ scripts/checkpatch.pl |   20 ++++++--------------
+ 1 file changed, 6 insertions(+), 14 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-remove-reference-to-feature-removal-scheduletxt scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-remove-reference-to-feature-removal-scheduletxt
+diff -puN scripts/checkpatch.pl~checkpatch-consolidate-if-foo-barfoo-checks-and-add-debugfs_remove scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-consolidate-if-foo-barfoo-checks-and-add-debugfs_remove
 +++ a/scripts/checkpatch.pl
-@@ -352,27 +352,6 @@ sub deparenthesize {
+@@ -3198,20 +3198,12 @@ sub process {
+ 				$herecurr);
+ 		}
  
- $chk_signoff = 0 if ($file);
- 
--my @dep_includes = ();
--my @dep_functions = ();
--my $removal = "Documentation/feature-removal-schedule.txt";
--if ($tree && -f "$root/$removal") {
--	open(my $REMOVE, '<', "$root/$removal") ||
--				die "$P: $removal: open failed - $!\n";
--	while (<$REMOVE>) {
--		if (/^Check:\s+(.*\S)/) {
--			for my $entry (split(/[, ]+/, $1)) {
--				if ($entry =~ m@include/(.*)@) {
--					push(@dep_includes, $1);
--
--				} elsif ($entry !~ m@/@) {
--					push(@dep_functions, $entry);
--				}
+-# check for needless kfree() checks
+-		if ($prevline =~ /\bif\s*\(([^\)]*)\)/) {
+-			my $expr = $1;
+-			if ($line =~ /\bkfree\(\Q$expr\E\);/) {
+-				WARN("NEEDLESS_KFREE",
+-				     "kfree(NULL) is safe this check is probably not required\n" . $hereprev);
 -			}
 -		}
--	}
--	close($REMOVE);
--}
--
- my @rawlines = ();
- my @lines = ();
- my $vname;
-@@ -3205,22 +3184,6 @@ sub process {
+-# check for needless usb_free_urb() checks
+-		if ($prevline =~ /\bif\s*\(([^\)]*)\)/) {
+-			my $expr = $1;
+-			if ($line =~ /\busb_free_urb\(\Q$expr\E\);/) {
+-				WARN("NEEDLESS_USB_FREE_URB",
+-				     "usb_free_urb(NULL) is safe this check is probably not required\n" . $hereprev);
++# check for needless "if (<foo>) fn(<foo>)" uses
++		if ($prevline =~ /\bif\s*\(\s*($Lval)\s*\)/) {
++			my $expr = '\s*\(\s*' . quotemeta($1) . '\s*\)\s*;';
++			if ($line =~ /\b(kfree|usb_free_urb|debugfs_remove(?:_recursive)?)$expr/) {
++				WARN('NEEDLESS_IF',
++				     "$1(NULL) is safe this check is probably not required\n" . $hereprev);
  			}
  		}
  
--# don't include deprecated include files (uses RAW line)
--		for my $inc (@dep_includes) {
--			if ($rawline =~ m@^.\s*\#\s*include\s*\<$inc>@) {
--				ERROR("DEPRECATED_INCLUDE",
--				      "Don't use <$inc>: see Documentation/feature-removal-schedule.txt\n" . $herecurr);
--			}
--		}
--
--# don't use deprecated functions
--		for my $func (@dep_functions) {
--			if ($line =~ /\b$func\b/) {
--				ERROR("DEPRECATED_FUNCTION",
--				      "Don't use $func(): see Documentation/feature-removal-schedule.txt\n" . $herecurr);
--			}
--		}
+_
+
+Patches currently in -mm which might be from apw@canonical.com are
+
+origin.patch
+
