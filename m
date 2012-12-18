@@ -1,84 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] drivers-video-backlight-ep93xx_blc-fix-section-mismatch.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 11:37:01 -0800
-Message-ID: <20121218193703.69862200059@hpza10.eem.corp.google.com>
+Subject: + sgi-xp-handle-non-fatal-traps.patch added to -mm tree
+Date: Tue, 18 Dec 2012 12:01:30 -0800
+Message-ID: <20121218200132.A082020004E__22713.5374247611$1355860924$gmane$org@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f73.google.com ([74.125.82.73]:48920 "EHLO
-	mail-wg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752299Ab2LRThH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 14:37:07 -0500
-Received: by mail-wg0-f73.google.com with SMTP id dt12so62275wgb.0
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 11:37:05 -0800 (PST)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:33757 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754536Ab2LRUBf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:01:35 -0500
+Received: by mail-lb0-f202.google.com with SMTP id s4so69588lbc.1
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:01:34 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jg1.han@samsung.com, hsweeten@visionengravers.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: holt@sgi.com, mingo@elte.hu, stable@vger.kernel.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: drivers/video/backlight/ep93xx_bl.c: fix section mismatch
-has been removed from the -mm tree.  Its filename was
-     drivers-video-backlight-ep93xx_blc-fix-section-mismatch.patch
+     Subject: SGI-XP: handle non-fatal traps
+has been added to the -mm tree.  Its filename is
+     sgi-xp-handle-non-fatal-traps.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: drivers/video/backlight/ep93xx_bl.c: fix section mismatch
+From: Robin Holt <holt@sgi.com>
+Subject: SGI-XP: handle non-fatal traps
 
-Fix section mismatch warning as below:
+We found a user code which was raising a divide-by-zero trap.  That trap
+would lead to XPC connections between system-partitions being torn down
+due to the die_chain notifier callouts it received.
 
-WARNING: drivers/video/backlight/built-in.o(.data+0x110): Section mismatch in reference from the variable ep93xxbl_driver to the
-function .init.text:ep93xxbl_probe()
-The variable ep93xxbl_driver references
-the function __init ep93xxbl_probe()
-If the reference is valid then annotate the
-variable with __init* or __refdata (see linux/init.h) or name the variable:
-*_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console
+This also revealed a different issue where multiple callers into
+xpc_die_deactivate() would all attempt to do the disconnect in parallel
+which would sometimes lock up but often overwhelm the console on very
+large machines as each would print at least one line of output at the end
+of the deactivate.
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Cc: H Hartley Sweeten <hsweeten@visionengravers.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+I reviewed all the users of the die_chain notifier and changed the code to
+ignore the notifier callouts for reasons which will not actually lead to a
+system to continue on to call die().
+
+Signed-off-by: Robin Holt <holt@sgi.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/ep93xx_bl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/misc/sgi-xp/xpc_main.c |   32 +++++++++++++++++++++++++++++--
+ 1 file changed, 30 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/backlight/ep93xx_bl.c~drivers-video-backlight-ep93xx_blc-fix-section-mismatch drivers/video/backlight/ep93xx_bl.c
---- a/drivers/video/backlight/ep93xx_bl.c~drivers-video-backlight-ep93xx_blc-fix-section-mismatch
-+++ a/drivers/video/backlight/ep93xx_bl.c
-@@ -60,7 +60,7 @@ static const struct backlight_ops ep93xx
- 	.get_brightness	= ep93xxbl_get_brightness,
- };
+diff -puN drivers/misc/sgi-xp/xpc_main.c~sgi-xp-handle-non-fatal-traps drivers/misc/sgi-xp/xpc_main.c
+--- a/drivers/misc/sgi-xp/xpc_main.c~sgi-xp-handle-non-fatal-traps
++++ a/drivers/misc/sgi-xp/xpc_main.c
+@@ -53,6 +53,8 @@
+ #include <linux/kthread.h>
+ #include "xpc.h"
  
--static int __init ep93xxbl_probe(struct platform_device *dev)
-+static int __devinit ep93xxbl_probe(struct platform_device *dev)
- {
- 	struct ep93xxbl *ep93xxbl;
- 	struct backlight_device *bl;
-@@ -106,7 +106,7 @@ static int __init ep93xxbl_probe(struct 
- 	return 0;
++#include <asm/traps.h>
++
+ /* define two XPC debug device structures to be used with dev_dbg() et al */
+ 
+ struct device_driver xpc_dbg_name = {
+@@ -1079,6 +1081,9 @@ xpc_system_reboot(struct notifier_block 
+ 	return NOTIFY_DONE;
  }
  
--static int ep93xxbl_remove(struct platform_device *dev)
-+static int __devexit ep93xxbl_remove(struct platform_device *dev)
- {
- 	struct backlight_device *bl = platform_get_drvdata(dev);
++/* Used to only allow one cpu to complete disconnect */
++static unsigned int xpc_die_disconnecting;
++
+ /*
+  * Notify other partitions to deactivate from us by first disengaging from all
+  * references to our memory.
+@@ -1092,6 +1097,9 @@ xpc_die_deactivate(void)
+ 	long keep_waiting;
+ 	long wait_to_print;
  
++	if (cmpxchg(&xpc_die_disconnecting, 0, 1))
++		return;
++
+ 	/* keep xpc_hb_checker thread from doing anything (just in case) */
+ 	xpc_exiting = 1;
+ 
+@@ -1159,7 +1167,7 @@ xpc_die_deactivate(void)
+  * about the lack of a heartbeat.
+  */
+ static int
+-xpc_system_die(struct notifier_block *nb, unsigned long event, void *unused)
++xpc_system_die(struct notifier_block *nb, unsigned long event, void *_die_args)
+ {
+ #ifdef CONFIG_IA64		/* !!! temporary kludge */
+ 	switch (event) {
+@@ -1191,7 +1199,27 @@ xpc_system_die(struct notifier_block *nb
+ 		break;
+ 	}
+ #else
+-	xpc_die_deactivate();
++	struct die_args *die_args = _die_args;
++
++	switch (event) {
++	case DIE_TRAP:
++		if (die_args->trapnr == X86_TRAP_DF)
++			xpc_die_deactivate();
++
++		if (((die_args->trapnr == X86_TRAP_MF) ||
++		     (die_args->trapnr == X86_TRAP_XF)) &&
++		    !user_mode_vm(die_args->regs))
++			xpc_die_deactivate();
++
++		break;
++	case DIE_INT3:
++	case DIE_DEBUG:
++		break;
++	case DIE_OOPS:
++	case DIE_GPF:
++	default:
++		xpc_die_deactivate();
++	}
+ #endif
+ 
+ 	return NOTIFY_DONE;
 _
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from holt@sgi.com are
 
-origin.patch
-backlight-locomolcd-fix-checkpatch-error-and-warning.patch
-drivers-video-backlight-hp680_blc-add-missing-__devexit-macros-for-remove.patch
-drivers-video-backlight-ili9320c-add-missing-__devexit-macros-for-remove.patch
-backlight-add-of_find_backlight_by_node-function.patch
-drivers-video-backlight-pandora_blc-change-twl4030_module_pwm0-to-twl_module_pwm.patch
-backlight-88pm860x_bl-remove-an-unnecessary-line-continuation.patch
-backlight-lcd-return-enxio-when-ops-functions-cannot-be-called.patch
-drivers-video-backlight-lms283gf05c-use-gpiof_init-flags-when-using-devm_gpio_request_one.patch
-backlight-corgi_lcd-use-gpio_set_value_cansleep-to-avoid-warn_on.patch
-checkpatch-extend-line-continuation-test.patch
+sgi-xp-handle-non-fatal-traps.patch
+sgi-xp-handle-non-fatal-traps-fix.patch
 
