@@ -1,115 +1,223 @@
 From: akpm@linux-foundation.org
-Subject: + mm-cma-warn-if-freed-memory-is-still-in-use-fix.patch added to -mm tree
-Date: Tue, 18 Dec 2012 15:29:53 -0800
-Message-ID: <20121218232954.92E02200057@hpza10.eem.corp.google.com>
+Subject: [to-be-updated] swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 15:40:25 -0800
+Message-ID: <20121218234026.1DE67200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f202.google.com ([209.85.215.202]:35212 "EHLO
-	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753683Ab2LRX35 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 18:29:57 -0500
-Received: by mail-ea0-f202.google.com with SMTP id j12so70024eaa.1
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 15:29:56 -0800 (PST)
+Received: from mail-wi0-f201.google.com ([209.85.212.201]:49913 "EHLO
+	mail-wi0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753932Ab2LRXk3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 18:40:29 -0500
+Received: by mail-wi0-f201.google.com with SMTP id hm2so70236wib.2
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 15:40:28 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, kyungmin.park@samsung.com, m.szyprowski@samsung.com, mina86@mina86.com
+To: shli@kernel.org, fengguang.wu@intel.com, hughd@google.com, khlebnikov@openvz.org, minchan@kernel.org, riel@redhat.com, shli@fusionio.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-cma-warn-if-freed-memory-is-still-in-use-fix
-has been added to the -mm tree.  Its filename is
-     mm-cma-warn-if-freed-memory-is-still-in-use-fix.patch
+     Subject: swap: add a simple detector for inappropriate swapin readahead
+has been removed from the -mm tree.  Its filename was
+     swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm-cma-warn-if-freed-memory-is-still-in-use-fix
+From: Shaohua Li <shli@kernel.org>
+Subject: swap: add a simple detector for inappropriate swapin readahead
 
-Support sparsemem.
+The swapin readahead does a blind readahead whether or not the swapin is
+sequential.  This is ok for harddisk because large reads have relatively
+small costs and if the readahead pages are unneeded they can be reclaimed
+easily.  But for SSD devices large reads are more expensive than small
+one.  If readahead pages are unneeded, reading them in caused significant
+overhead
 
-(And prevent "count" overflow if nr_pages cannot fit in signed type.)
+This patch addes a simple random read detection similar to file mmap
+readahead.  If a random read is detected, swapin readahead will be
+skipped.  This improves a lot for a swap workload with random IO in a fast
+SSD.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
+I run anonymous mmap write micro benchmark, which will triger swapin/swapout.
+
+			runtime changes with patch
+randwrite harddisk	-38.7%
+seqwrite harddisk	-1.1%
+randwrite SSD		-46.9%
+seqwrite SSD		+0.3%
+
+For both harddisk and SSD, the randwrite swap workload run time is reduced
+significantly.  Sequential write swap workload hasn't chanage.
+
+Interestingly, the randwrite harddisk test is improved too.  This might be
+because swapin readahead needs to allocate extra memory, which further
+tights memory pressure, so more swapout/swapin.
+
+[akpm@linux-foundation.org: tweak code comment]
+Signed-off-by: Shaohua Li <shli@fusionio.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ include/linux/rmap.h |    3 ++
+ mm/internal.h        |   48 +++++++++++++++++++++++++++++++++++++++++
+ mm/memory.c          |    3 +-
+ mm/rmap.c            |    3 ++
+ mm/shmem.c           |    2 -
+ mm/swap_state.c      |    6 +++++
+ 6 files changed, 63 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-cma-warn-if-freed-memory-is-still-in-use-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-cma-warn-if-freed-memory-is-still-in-use-fix
-+++ a/mm/page_alloc.c
-@@ -5981,9 +5981,11 @@ done:
+diff -puN include/linux/rmap.h~swap-add-a-simple-detector-for-inappropriate-swapin-readahead include/linux/rmap.h
+--- a/include/linux/rmap.h~swap-add-a-simple-detector-for-inappropriate-swapin-readahead
++++ a/include/linux/rmap.h
+@@ -35,6 +35,9 @@ struct anon_vma {
+ 	 * anon_vma if they are the last user on release
+ 	 */
+ 	atomic_t refcount;
++#ifdef CONFIG_SWAP
++	atomic_t swapra_miss;
++#endif
  
- void free_contig_range(unsigned long pfn, unsigned nr_pages)
- {
--	struct page *page = pfn_to_page(pfn);
--	int count = 0;
--	for (; nr_pages--; page++) {
-+	unsigned int count = 0;
+ 	/*
+ 	 * NOTE: the LSB of the rb_root.rb_node is set by
+diff -puN mm/internal.h~swap-add-a-simple-detector-for-inappropriate-swapin-readahead mm/internal.h
+--- a/mm/internal.h~swap-add-a-simple-detector-for-inappropriate-swapin-readahead
++++ a/mm/internal.h
+@@ -12,6 +12,7 @@
+ #define __MM_INTERNAL_H
+ 
+ #include <linux/mm.h>
++#include <linux/rmap.h>
+ 
+ void free_pgtables(struct mmu_gather *tlb, struct vm_area_struct *start_vma,
+ 		unsigned long floor, unsigned long ceiling);
+@@ -375,4 +376,51 @@ unsigned long reclaim_clean_pages_from_l
+ #define ALLOC_CPUSET		0x40 /* check for correct cpuset */
+ #define ALLOC_CMA		0x80 /* allow allocations from CMA areas */
+ 
++/*
++ * Unnecessary readahead harms performance, especially for SSD devices, where
++ * large reads are significantly more expensive than small ones.
++ * These implements simple swap random access detection. In swap page fault: if
++ * the page is found in swapcache, decrease a counter in the vma, otherwise we
++ * need to perform sync swapin and the counter is increased.  Optionally swapin
++ * will perform readahead if the counter is below a threshold.
++ */
++#ifdef CONFIG_SWAP
++#define SWAPRA_MISS_THRESHOLD  (100)
++#define SWAPRA_MAX_MISS ((SWAPRA_MISS_THRESHOLD) * 10)
++static inline void swap_cache_hit(struct vm_area_struct *vma)
++{
++	if (vma && vma->anon_vma)
++		atomic_dec_if_positive(&vma->anon_vma->swapra_miss);
++}
 +
-+	for (; nr_pages--; pfn++) {
-+		struct page *page = pfn_to_page(pfn);
++static inline void swap_cache_miss(struct vm_area_struct *vma)
++{
++	if (!vma || !vma->anon_vma)
++		return;
++	if (atomic_read(&vma->anon_vma->swapra_miss) < SWAPRA_MAX_MISS)
++		atomic_inc(&vma->anon_vma->swapra_miss);
++}
 +
- 		count += page_count(page) != 1;
- 		__free_page(page);
- 	}
++static inline int swap_cache_skip_readahead(struct vm_area_struct *vma)
++{
++	if (!vma || !vma->anon_vma)
++		return 0;
++	return atomic_read(&vma->anon_vma->swapra_miss) >
++		SWAPRA_MISS_THRESHOLD;
++}
++#else
++static inline void swap_cache_hit(struct vm_area_struct *vma)
++{
++}
++
++static inline void swap_cache_miss(struct vm_area_struct *vma)
++{
++}
++
++static inline int swap_cache_skip_readahead(struct vm_area_struct *vma)
++{
++	return 0;
++}
++#endif	/* CONFIG_SWAP */
++
+ #endif	/* __MM_INTERNAL_H */
+diff -puN mm/memory.c~swap-add-a-simple-detector-for-inappropriate-swapin-readahead mm/memory.c
+--- a/mm/memory.c~swap-add-a-simple-detector-for-inappropriate-swapin-readahead
++++ a/mm/memory.c
+@@ -2967,7 +2967,8 @@ static int do_swap_page(struct mm_struct
+ 		ret = VM_FAULT_HWPOISON;
+ 		delayacct_clear_flag(DELAYACCT_PF_SWAPIN);
+ 		goto out_release;
+-	}
++	} else if (!(flags & FAULT_FLAG_TRIED))
++		swap_cache_hit(vma);
+ 
+ 	locked = lock_page_or_retry(page, mm, flags);
+ 
+diff -puN mm/rmap.c~swap-add-a-simple-detector-for-inappropriate-swapin-readahead mm/rmap.c
+--- a/mm/rmap.c~swap-add-a-simple-detector-for-inappropriate-swapin-readahead
++++ a/mm/rmap.c
+@@ -367,6 +367,9 @@ static void anon_vma_ctor(void *data)
+ 
+ 	init_rwsem(&anon_vma->rwsem);
+ 	atomic_set(&anon_vma->refcount, 0);
++#ifdef CONFIG_SWAP
++	atomic_set(&anon_vma->swapra_miss, 0);
++#endif
+ 	anon_vma->rb_root = RB_ROOT;
+ }
+ 
+diff -puN mm/shmem.c~swap-add-a-simple-detector-for-inappropriate-swapin-readahead mm/shmem.c
+--- a/mm/shmem.c~swap-add-a-simple-detector-for-inappropriate-swapin-readahead
++++ a/mm/shmem.c
+@@ -919,7 +919,7 @@ static struct page *shmem_swapin(swp_ent
+ 	pvma.vm_pgoff = index + info->vfs_inode.i_ino;
+ 	pvma.vm_ops = NULL;
+ 	pvma.vm_policy = mpol_shared_policy_lookup(&info->policy, index);
+-
++	pvma.anon_vma = NULL;
+ 	page = swapin_readahead(swap, gfp, &pvma, 0);
+ 
+ 	/* Drop reference taken by mpol_shared_policy_lookup() */
+diff -puN mm/swap_state.c~swap-add-a-simple-detector-for-inappropriate-swapin-readahead mm/swap_state.c
+--- a/mm/swap_state.c~swap-add-a-simple-detector-for-inappropriate-swapin-readahead
++++ a/mm/swap_state.c
+@@ -20,6 +20,7 @@
+ #include <linux/page_cgroup.h>
+ 
+ #include <asm/pgtable.h>
++#include "internal.h"
+ 
+ /*
+  * swapper_space is a fiction, retained to simplify the path through
+@@ -379,6 +380,10 @@ struct page *swapin_readahead(swp_entry_
+ 	unsigned long mask = (1UL << page_cluster) - 1;
+ 	struct blk_plug plug;
+ 
++	swap_cache_miss(vma);
++	if (swap_cache_skip_readahead(vma))
++		goto skip;
++
+ 	/* Read a page_cluster sized and aligned cluster around offset. */
+ 	start_offset = offset & ~mask;
+ 	end_offset = offset | mask;
+@@ -397,5 +402,6 @@ struct page *swapin_readahead(swp_entry_
+ 	blk_finish_plug(&plug);
+ 
+ 	lru_add_drain();	/* Push any new pages onto the LRU now */
++skip:
+ 	return read_swap_cache_async(entry, gfp_mask, vma, addr);
+ }
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from shli@kernel.org are
 
 origin.patch
-irq-tsk-comm-is-an-array.patch
-memcg-make-it-possible-to-use-the-stock-for-more-than-one-page.patch
-memcg-reclaim-when-more-than-one-page-needed.patch
-memcg-change-defines-to-an-enum.patch
-memcg-kmem-accounting-basic-infrastructure.patch
-mm-add-a-__gfp_kmemcg-flag.patch
-memcg-kmem-controller-infrastructure.patch
-mm-allocate-kernel-pages-to-the-right-memcg.patch
-res_counter-return-amount-of-charges-after-res_counter_uncharge.patch
-memcg-kmem-accounting-lifecycle-management.patch
-memcg-use-static-branches-when-code-not-in-use.patch
-memcg-allow-a-memcg-with-kmem-charges-to-be-destructed.patch
-memcg-execute-the-whole-memcg-freeing-in-free_worker.patch
-fork-protect-architectures-where-thread_size-=-page_size-against-fork-bombs.patch
-memcg-add-documentation-about-the-kmem-controller.patch
-slab-slub-struct-memcg_params.patch
-slab-annotate-on-slab-caches-nodelist-locks.patch
-slab-slub-consider-a-memcg-parameter-in-kmem_create_cache.patch
-memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears.patch
-memcg-infrastructure-to-match-an-allocation-to-the-right-cache.patch
-memcg-skip-memcg-kmem-allocations-in-specified-code-regions.patch
-slb-always-get-the-cache-from-its-page-in-kmem_cache_free.patch
-slb-allocate-objects-from-memcg-cache.patch
-memcg-destroy-memcg-caches.patch
-memcg-slb-track-all-the-memcg-children-of-a-kmem_cache.patch
-memcg-slb-shrink-dead-caches.patch
-memcg-aggregate-memcg-cache-values-in-slabinfo.patch
-slab-propagate-tunable-values.patch
-slub-slub-specific-propagation-changes.patch
-kmem-add-slab-specific-documentation-about-the-kmem-controller.patch
-memcg-add-comments-clarifying-aspects-of-cache-attribute-propagation.patch
-slub-drop-mutex-before-deleting-sysfs-entry.patch
-ksm-numa-awareness-sysfs-knob.patch
 linux-next.patch
-x86-convert-update_mmu_cache-and-update_mmu_cache_pmd-to-functions.patch
-x86-fix-the-argument-passed-to-sync_global_pgds.patch
-mm-mempolicy-introduce-spinlock-to-read-shared-policy-tree.patch
-mm-cma-warn-if-freed-memory-is-still-in-use-fix.patch
-mm-dmapoolc-fix-null-dev-in-dma_pool_create.patch
 
