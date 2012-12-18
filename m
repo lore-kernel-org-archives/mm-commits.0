@@ -1,69 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch removed from -mm tree
-Date: Mon, 17 Dec 2012 15:52:07 -0800
-Message-ID: <20121217235208.4680982004A@wpzn4.hot.corp.google.com>
+Subject: [obsolete] drivers-video-backlight-ili9320c-add-missing-__devexit-macros-for-remove.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 11:37:11 -0800
+Message-ID: <20121218193712.4411B100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:35201 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751831Ab2LQX7e (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Dec 2012 18:59:34 -0500
-Received: by mail-vb0-f74.google.com with SMTP id s24so721616vbi.1
-        for <mm-commits@vger.kernel.org>; Mon, 17 Dec 2012 15:59:32 -0800 (PST)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:36698 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751233Ab2LRThN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 14:37:13 -0500
+Received: by mail-vc0-f201.google.com with SMTP id p1so120563vcq.4
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 11:37:12 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, axboe@kernel.dk, maximlevitsky@gmail.com, nbowler@elliptictech.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: jg1.han@samsung.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix
+     Subject: drivers/video/backlight/ili9320.c: add missing __devexit macros for remove
 has been removed from the -mm tree.  Its filename was
-     scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix.patch
+     drivers-video-backlight-ili9320c-add-missing-__devexit-macros-for-remove.patch
 
-This patch was dropped because it was folded into scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error.patch
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: drivers/video/backlight/ili9320.c: add missing __devexit macros for remove
 
-s/E2BIG/EINVAL/
+The __devexit macros is added to remove function.  The macros moves the
+remove function to devexit sections.
 
-Cc: Nick Bowler <nbowler@elliptictech.com>
-Cc: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/scatterlist.c |    2 +-
+ drivers/video/backlight/ili9320.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/scatterlist.c~scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix lib/scatterlist.c
---- a/lib/scatterlist.c~scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error-fix
-+++ a/lib/scatterlist.c
-@@ -249,7 +249,7 @@ int __sg_alloc_table(struct sg_table *ta
+diff -puN drivers/video/backlight/ili9320.c~drivers-video-backlight-ili9320c-add-missing-__devexit-macros-for-remove drivers/video/backlight/ili9320.c
+--- a/drivers/video/backlight/ili9320.c~drivers-video-backlight-ili9320c-add-missing-__devexit-macros-for-remove
++++ a/drivers/video/backlight/ili9320.c
+@@ -260,7 +260,7 @@ int ili9320_probe_spi(struct spi_device 
+ }
+ EXPORT_SYMBOL_GPL(ili9320_probe_spi);
  
- #ifndef ARCH_HAS_SG_CHAIN
- 	if (WARN_ON_ONCE(nents > max_ents))
--		return -E2BIG;
-+		return -EINVAL;
- #endif
+-int ili9320_remove(struct ili9320 *ili)
++int __devexit ili9320_remove(struct ili9320 *ili)
+ {
+ 	ili9320_power(ili, FB_BLANK_POWERDOWN);
  
- 	memset(table, 0, sizeof(*table));
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
 origin.patch
-create-non-empty-arch-x86-include-uapi-asm-files.patch
-mm-memoryc-suppress-warning.patch
-lseek-the-whence-argument-is-called-whence.patch
-drivers-video-backlight-lp855x_blc-use-generic-pwm-functions.patch
+backlight-locomolcd-fix-checkpatch-error-and-warning.patch
 backlight-add-of_find_backlight_by_node-function.patch
+drivers-video-backlight-pandora_blc-change-twl4030_module_pwm0-to-twl_module_pwm.patch
 backlight-88pm860x_bl-remove-an-unnecessary-line-continuation.patch
-binfmt_elf-fix-corner-case-kfree-of-uninitialized-data.patch
-rtc-avoid-calling-platform_device_put-twice-in-test_init.patch
-procfs-add-vmflags-field-in-smaps-output-v4.patch
-docs-add-documentation-about-proc-pid-fdinfo-fd-output.patch
-scatterlist-dont-bug-when-we-can-trivially-return-a-proper-error.patch
+backlight-lcd-return-enxio-when-ops-functions-cannot-be-called.patch
+drivers-video-backlight-lms283gf05c-use-gpiof_init-flags-when-using-devm_gpio_request_one.patch
+backlight-corgi_lcd-use-gpio_set_value_cansleep-to-avoid-warn_on.patch
+checkpatch-extend-line-continuation-test.patch
 
