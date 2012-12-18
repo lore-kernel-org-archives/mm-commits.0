@@ -1,113 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [merged] printk-boot_delay-should-only-affect-output.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 12:03:26 -0800
-Message-ID: <20121218200326.9AD6E82004A@wpzn4.hot.corp.google.com>
+Subject: [merged] dmatest-implement-two-helpers-to-unmap-dma-memory.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 12:03:18 -0800
+Message-ID: <20121218200319.300A1200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:59613 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754676Ab2LRUD1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:03:27 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so125167vcd.1
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:03:27 -0800 (PST)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:59211 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753636Ab2LRUDV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:03:21 -0500
+Received: by mail-lb0-f202.google.com with SMTP id s4so69474lbc.3
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:03:20 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: acooks@gmail.com, joe@perches.com, rdunlap@infradead.org, mm-commits@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, vinod.koul@intel.com, viresh.kumar@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk: boot_delay should only affect output
+     Subject: dmatest: implement two helpers to unmap dma memory
 has been removed from the -mm tree.  Its filename was
-     printk-boot_delay-should-only-affect-output.patch
+     dmatest-implement-two-helpers-to-unmap-dma-memory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Cooks <acooks@gmail.com>
-Subject: printk: boot_delay should only affect output
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: dmatest: implement two helpers to unmap dma memory
 
-The boot_delay parameter affects all printk(), even if the log level
-prevents visible output from the call.  It results in delays greater than
-the user intended without purpose.
+The unmap_src() and unmap_dst() will be used later as well.
 
-This patch changes the behaviour of boot_delay to only delay output.
-
-Signed-off-by: Andrew Cooks <acooks@gmail.com>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Joe Perches <joe@perches.com>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: Vinod Koul <vinod.koul@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk.c |   40 +++++++++++++++++++++-------------------
- 1 file changed, 21 insertions(+), 19 deletions(-)
+ drivers/dma/dmatest.c |   27 +++++++++++++++++----------
+ 1 file changed, 17 insertions(+), 10 deletions(-)
 
-diff -puN kernel/printk.c~printk-boot_delay-should-only-affect-output kernel/printk.c
---- a/kernel/printk.c~printk-boot_delay-should-only-affect-output
-+++ a/kernel/printk.c
-@@ -747,6 +747,21 @@ void __init setup_log_buf(int early)
- 		free, (free * 100) / __LOG_BUF_LEN);
+diff -puN drivers/dma/dmatest.c~dmatest-implement-two-helpers-to-unmap-dma-memory drivers/dma/dmatest.c
+--- a/drivers/dma/dmatest.c~dmatest-implement-two-helpers-to-unmap-dma-memory
++++ a/drivers/dma/dmatest.c
+@@ -228,6 +228,20 @@ static void dmatest_callback(void *arg)
+ 	wake_up_all(done->wait);
  }
  
-+static bool __read_mostly ignore_loglevel;
-+
-+static int __init ignore_loglevel_setup(char *str)
++static inline void unmap_src(struct device *dev, dma_addr_t *addr, size_t len,
++			     unsigned int count)
 +{
-+	ignore_loglevel = 1;
-+	printk(KERN_INFO "debug: ignoring loglevel setting.\n");
-+
-+	return 0;
++	while (count--)
++		dma_unmap_single(dev, addr[count], len, DMA_TO_DEVICE);
 +}
 +
-+early_param("ignore_loglevel", ignore_loglevel_setup);
-+module_param(ignore_loglevel, bool, S_IRUGO | S_IWUSR);
-+MODULE_PARM_DESC(ignore_loglevel, "ignore loglevel setting, to"
-+	"print all kernel messages to the console.");
++static inline void unmap_dst(struct device *dev, dma_addr_t *addr, size_t len,
++			     unsigned int count)
++{
++	while (count--)
++		dma_unmap_single(dev, addr[count], len, DMA_BIDIRECTIONAL);
++}
 +
- #ifdef CONFIG_BOOT_PRINTK_DELAY
+ /*
+  * This function repeatedly tests DMA transfers of various lengths and
+  * offsets for a given operation type until it is told to exit by
+@@ -383,13 +397,8 @@ static int dmatest_func(void *data)
+ 		}
  
- static int boot_delay; /* msecs delay after each printk during bootup */
-@@ -770,13 +785,15 @@ static int __init boot_delay_setup(char 
- }
- __setup("boot_delay=", boot_delay_setup);
+ 		if (!tx) {
+-			for (i = 0; i < src_cnt; i++)
+-				dma_unmap_single(dev->dev, dma_srcs[i], len,
+-						 DMA_TO_DEVICE);
+-			for (i = 0; i < dst_cnt; i++)
+-				dma_unmap_single(dev->dev, dma_dsts[i],
+-						 test_buf_size,
+-						 DMA_BIDIRECTIONAL);
++			unmap_src(dev->dev, dma_srcs, len, src_cnt);
++			unmap_dst(dev->dev, dma_dsts, test_buf_size, dst_cnt);
+ 			pr_warning("%s: #%u: prep error with src_off=0x%x "
+ 					"dst_off=0x%x len=0x%x\n",
+ 					thread_name, total_tests - 1,
+@@ -443,9 +452,7 @@ static int dmatest_func(void *data)
+ 		}
  
--static void boot_delay_msec(void)
-+static void boot_delay_msec(int level)
- {
- 	unsigned long long k;
- 	unsigned long timeout;
+ 		/* Unmap by myself (see DMA_COMPL_SKIP_DEST_UNMAP above) */
+-		for (i = 0; i < dst_cnt; i++)
+-			dma_unmap_single(dev->dev, dma_dsts[i], test_buf_size,
+-					 DMA_BIDIRECTIONAL);
++		unmap_dst(dev->dev, dma_dsts, test_buf_size, dst_cnt);
  
--	if (boot_delay == 0 || system_state != SYSTEM_BOOTING)
-+	if ((boot_delay == 0 || system_state != SYSTEM_BOOTING)
-+		|| (level >= console_loglevel && !ignore_loglevel)) {
- 		return;
-+	}
+ 		error_count = 0;
  
- 	k = (unsigned long long)loops_per_msec * boot_delay;
- 
-@@ -795,7 +812,7 @@ static void boot_delay_msec(void)
- 	}
- }
- #else
--static inline void boot_delay_msec(void)
-+static inline void boot_delay_msec(int level)
- {
- }
- #endif
-@@ -1238,21 +1255,6 @@ SYSCALL_DEFINE3(syslog, int, type, char 
- 	return do_syslog(type, buf, len, SYSLOG_FROM_CALL);
- }
- 
--static bool __read_mostly ignore_loglevel;
--
--static int __init ignore_loglevel_setup(char *str)
--{
--	ignore_loglevel = 1;
--	printk(KERN_INFO "debug: ignoring loglevel setting.\n");
--
--	return 0;
--}
--
--early_param("ignore_loglevel", ignore_loglevel_setup);
--module_param(ignore_loglevel, bool, S_IRUGO | S_IWUSR);
--MODULE_PARM_DESC(ignore_loglevel, "ignore loglevel setting, to"
--	"print all kernel messages to the console.");
+_
+
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+
+origin.patch
+linux-next.patch
+
