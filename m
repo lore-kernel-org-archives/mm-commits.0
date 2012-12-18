@@ -1,61 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-rejects.patch added to -mm tree
-Date: Tue, 18 Dec 2012 14:06:00 -0800
-Message-ID: <20121218220600.7F699100047@wpzn3.hot.corp.google.com>
+Subject: [folded-dropped] core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 14:06:26 -0800
+Message-ID: <20121218220626.B4D5B82004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:38738 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754499Ab2LRWGB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 17:06:01 -0500
-Received: by mail-ye0-f201.google.com with SMTP id r11so144131yen.4
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 14:06:00 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:46366 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754071Ab2LRWG1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 17:06:27 -0500
+Received: by mail-yh0-f74.google.com with SMTP id 10so143791yhl.3
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 14:06:27 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, berrange@redhat.com, ebiederm@xmission.com, nhorman@tuxdriver.com, serge.hallyn@canonical.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-rejects.patch
+     Subject: core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix
+has been removed from the -mm tree.  Its filename was
+     core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into core_pattern-set-core-helpers-root-and-namespace-to-crashing-process.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+Subject: core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix
 
+fix doc typo, simplify format_corename()
+
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Daniel Berrange <berrange@redhat.com>
+Cc: Neil Horman <nhorman@tuxdriver.com>
+Cc: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/sysctl/kernel.txt |    2 +-
+ fs/coredump.c                   |   10 ++++------
+ 2 files changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN init/Kconfig~linux-next-rejects init/Kconfig
---- a/init/Kconfig~linux-next-rejects
-+++ a/init/Kconfig
-@@ -849,8 +849,8 @@ config MEMCG_SWAP_ENABLED
- 	  select this option (if, for some reason, they need to disable it
- 	  then swapaccount=0 does the trick).
- config MEMCG_KMEM
--	bool "Memory Resource Controller Kernel Memory accounting (EXPERIMENTAL)"
--	depends on MEMCG && EXPERIMENTAL
-+	bool "Memory Resource Controller Kernel Memory accounting"
-+	depends on MEMCG
- 	depends on SLUB || SLAB
- 	help
- 	  The Kernel Memory extension for Memory Resource Controller can limit
+diff -puN Documentation/sysctl/kernel.txt~core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix Documentation/sysctl/kernel.txt
+--- a/Documentation/sysctl/kernel.txt~core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix
++++ a/Documentation/sysctl/kernel.txt
+@@ -194,7 +194,7 @@ core_pattern is used to specify a core d
+   written to the standard input of that program instead of to a file.  Note that
+   when using |, the core pipe reader that is executed will be run in the global
+   namespace and root filesystem.  If two | tokens (i.e. ||) are supplied as the
+-  first two characters of the core_pattern sysctl, the kernel will preform the
++  first two characters of the core_pattern sysctl, the kernel will perform the
+   same pipe operation, but the core pipe reader will be executed using the
+   namespace and root fs of the crashing process.
+ 
+diff -puN fs/coredump.c~core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix fs/coredump.c
+--- a/fs/coredump.c~core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix
++++ a/fs/coredump.c
+@@ -164,16 +164,14 @@ static int format_corename(struct core_n
+ 	if (!cn->corename)
+ 		return -ENOMEM;
+ 
+-	if (ispipe) {
++	if (ispipe && pat_ptr[1] == '|') {
+ 		/*
+- 		 * If we have 2 | tokens at the head of core_pattern, it
++ 		 * We have 2 | tokens at the head of core_pattern which
+  		 * indicates we are a pipe and the reader should inherit the
+  		 * namespaces of the crashing process
+  		 */
+-		cprm->switch_ns = (*(pat_ptr+1) == '|') ? true : false;
+-		if (cprm->switch_ns)
+-			/* Advance pat_ptr so as not to mess up corename */
+-			pat_ptr++;
++		cprm->switch_ns = true;
++		pat_ptr++;
+ 	}
+ 
+ 	/* Repeat as long as we have more pattern to process and more output
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -92,7 +112,7 @@ drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch
 binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
 hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes-checkpatch-fixes.patch
 hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix.patch
-core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix.patch
+core_pattern-set-core-helpers-root-and-namespace-to-crashing-process.patch
 core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix-checkpatch-fixes.patch
 ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
 ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
