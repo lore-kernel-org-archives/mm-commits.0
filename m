@@ -1,55 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] sendfile-allows-bypassing-of-notifier-events-fix.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 15:17:10 -0800
-Message-ID: <20121218231711.9463420004E@hpza10.eem.corp.google.com>
+Subject: [folded-merged] drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 15:18:55 -0800
+Message-ID: <20121218231856.2F8A520004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:37082 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751367Ab2LRXRO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 18:17:14 -0500
-Received: by mail-bk0-f74.google.com with SMTP id je9so69470bkc.3
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 15:17:13 -0800 (PST)
+Received: from mail-fa0-f73.google.com ([209.85.161.73]:65122 "EHLO
+	mail-fa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754433Ab2LRXS7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 18:18:59 -0500
+Received: by mail-fa0-f73.google.com with SMTP id v1so69371fav.0
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 15:18:57 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@linux.intel.com, axboe@kernel.dk, david@fromorbit.com, swolchok@umich.edu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, joe.jin@oracle.com, khali@linux-fr.org, zhenzhong.duan@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sendfile-allows-bypassing-of-notifier-events-fix
+     Subject: drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix
 has been removed from the -mm tree.  Its filename was
-     sendfile-allows-bypassing-of-notifier-events-fix.patch
+     drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
 
-This patch was dropped because it was folded into sendfile-allows-bypassing-of-notifier-events.patch
+This patch was dropped because it was folded into drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: sendfile-allows-bypassing-of-notifier-events-fix
+Subject: drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix
 
-Use fsnotify_modify(out.file), not fsnotify_access(), per Dave.
+tweak code comment
 
-Cc: Alan Cox <alan@linux.intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Scott Wolchok <swolchok@umich.edu>
+Cc: Feng Jin <joe.jin@oracle.com>
+Cc: Jean Delvare <khali@linux-fr.org>
+Cc: Zhenzhong Duan <zhenzhong.duan@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/read_write.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/firmware/dmi_scan.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN fs/read_write.c~sendfile-allows-bypassing-of-notifier-events-fix fs/read_write.c
---- a/fs/read_write.c~sendfile-allows-bypassing-of-notifier-events-fix
-+++ a/fs/read_write.c
-@@ -936,7 +936,7 @@ ssize_t do_sendfile(int out_fd, int in_f
- 		add_rchar(current, retval);
- 		add_wchar(current, retval);
- 		fsnotify_access(in.file);
--		fsnotify_access(out.file);
-+		fsnotify_modify(out.file);
- 	}
+diff -puN drivers/firmware/dmi_scan.c~drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix drivers/firmware/dmi_scan.c
+--- a/drivers/firmware/dmi_scan.c~drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix
++++ a/drivers/firmware/dmi_scan.c
+@@ -16,7 +16,7 @@
+  */
+ static char dmi_empty_string[] = "        ";
  
- 	inc_syscr(current);
+-static u16  __initdata dmi_ver;
++static u16 __initdata dmi_ver;
+ /*
+  * Catch too early calls to dmi_check_system():
+  */
+@@ -176,11 +176,10 @@ static void __init dmi_save_uuid(const s
+ 		return;
+ 
+ 	/*
+-	 * As of version 2.6 of the SMBIOS specification, the first 3
+-	 * fields of the UUID are supposed to be encoded on little-endian.
+-	 * The specification says that this is the defacto standard,
+-	 * update kernel code to match dmidecode data.
+-	*/
++	 * As of version 2.6 of the SMBIOS specification, the first 3 fields of
++	 * the UUID are supposed to be little-endian encoded.  The specification
++	 * says that this is the defacto standard.
++	 */
+ 	if (dmi_ver >= 0x0206)
+ 		sprintf(s, "%pUL", d);
+ 	else
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,7 +96,7 @@ swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
 memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
 scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
 sendfile-allows-bypassing-of-notifier-events.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid.patch
 drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
 binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
 hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
