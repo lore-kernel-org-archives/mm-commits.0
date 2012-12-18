@@ -1,156 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] exec-use-eloop-for-max-recursion-depth.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 12:09:22 -0800
-Message-ID: <20121218200922.B15FD100047@wpzn3.hot.corp.google.com>
+Subject: [merged] pidns-remove-unused-is_container_init.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 12:09:25 -0800
+Message-ID: <20121218200925.ABABC82004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:50465 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755249Ab2LRUJY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:09:24 -0500
-Received: by mail-vb0-f74.google.com with SMTP id s24so126108vbi.1
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:09:23 -0800 (PST)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:53948 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755249Ab2LRUJ0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:09:26 -0500
+Received: by mail-ye0-f201.google.com with SMTP id r11so126065yen.2
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:09:26 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, me@halfdog.net, ppandit@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: gaofeng@cn.fujitsu.com, dhowells@redhat.com, ebiederm@xmission.com, jmorris@namei.org, serge.hallyn@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: exec: use -ELOOP for max recursion depth
+     Subject: pidns: remove unused is_container_init()
 has been removed from the -mm tree.  Its filename was
-     exec-use-eloop-for-max-recursion-depth.patch
+     pidns-remove-unused-is_container_init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: exec: use -ELOOP for max recursion depth
+From: Gao feng <gaofeng@cn.fujitsu.com>
+Subject: pidns: remove unused is_container_init()
 
-To avoid an explosion of request_module calls on a chain of abusive
-scripts, fail maximum recursion with -ELOOP instead of -ENOEXEC. As soon
-as maximum recursion depth is hit, the error will fail all the way back
-up the chain, aborting immediately.
+Since commit 1cdcbec1a3 ("CRED: Neuter sys_capset()") is_container_init()
+has no callers.
 
-This also has the side-effect of stopping the user's shell from attempting
-to reexecute the top-level file as a shell script. As seen in the
-dash source:
-
-        if (cmd != path_bshell && errno == ENOEXEC) {
-                *argv-- = cmd;
-                *argv = cmd = path_bshell;
-                goto repeat;
-        }
-
-The above logic was designed for running scripts automatically that lacked
-the "#!" header, not to re-try failed recursion. On a legitimate -ENOEXEC,
-things continue to behave as the shell expects.
-
-Additionally, when tracking recursion, the binfmt handlers should not be
-involved. The recursion being tracked is the depth of calls through
-search_binary_handler(), so that function should be exclusively responsible
-for tracking the depth.
-
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: halfdog <me@halfdog.net>
-Cc: P J P <ppandit@redhat.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Gao feng <gaofeng@cn.fujitsu.com>
+Cc: David Howells <dhowells@redhat.com>
+Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_em86.c        |    1 -
- fs/binfmt_misc.c        |    6 ------
- fs/binfmt_script.c      |    4 +---
- fs/exec.c               |   10 +++++-----
- include/linux/binfmts.h |    2 --
- 5 files changed, 6 insertions(+), 17 deletions(-)
+ include/linux/sched.h |    6 ------
+ kernel/pid.c          |   15 ---------------
+ 2 files changed, 21 deletions(-)
 
-diff -puN fs/binfmt_em86.c~exec-use-eloop-for-max-recursion-depth fs/binfmt_em86.c
---- a/fs/binfmt_em86.c~exec-use-eloop-for-max-recursion-depth
-+++ a/fs/binfmt_em86.c
-@@ -42,7 +42,6 @@ static int load_em86(struct linux_binprm
- 			return -ENOEXEC;
- 	}
+diff -puN include/linux/sched.h~pidns-remove-unused-is_container_init include/linux/sched.h
+--- a/include/linux/sched.h~pidns-remove-unused-is_container_init
++++ a/include/linux/sched.h
+@@ -1778,12 +1778,6 @@ static inline int is_global_init(struct 
+ 	return tsk->pid == 1;
+ }
  
--	bprm->recursion_depth++; /* Well, the bang-shell is implicit... */
- 	allow_write_access(bprm->file);
- 	fput(bprm->file);
- 	bprm->file = NULL;
-diff -puN fs/binfmt_misc.c~exec-use-eloop-for-max-recursion-depth fs/binfmt_misc.c
---- a/fs/binfmt_misc.c~exec-use-eloop-for-max-recursion-depth
-+++ a/fs/binfmt_misc.c
-@@ -117,10 +117,6 @@ static int load_misc_binary(struct linux
- 	if (!enabled)
- 		goto _ret;
- 
--	retval = -ENOEXEC;
--	if (bprm->recursion_depth > BINPRM_MAX_RECURSION)
--		goto _ret;
+-/*
+- * is_container_init:
+- * check whether in the task is init in its own pid namespace.
+- */
+-extern int is_container_init(struct task_struct *tsk);
 -
- 	/* to keep locking time low, we copy the interpreter string */
- 	read_lock(&entries_lock);
- 	fmt = check_file(bprm);
-@@ -197,8 +193,6 @@ static int load_misc_binary(struct linux
- 	if (retval < 0)
- 		goto _error;
+ extern struct pid *cad_pid;
  
--	bprm->recursion_depth++;
+ extern void free_task(struct task_struct *tsk);
+diff -puN kernel/pid.c~pidns-remove-unused-is_container_init kernel/pid.c
+--- a/kernel/pid.c~pidns-remove-unused-is_container_init
++++ a/kernel/pid.c
+@@ -81,21 +81,6 @@ struct pid_namespace init_pid_ns = {
+ };
+ EXPORT_SYMBOL_GPL(init_pid_ns);
+ 
+-int is_container_init(struct task_struct *tsk)
+-{
+-	int ret = 0;
+-	struct pid *pid;
 -
- 	retval = search_binary_handler(bprm);
- 	if (retval < 0)
- 		goto _error;
-diff -puN fs/binfmt_script.c~exec-use-eloop-for-max-recursion-depth fs/binfmt_script.c
---- a/fs/binfmt_script.c~exec-use-eloop-for-max-recursion-depth
-+++ a/fs/binfmt_script.c
-@@ -22,15 +22,13 @@ static int load_script(struct linux_binp
- 	char interp[BINPRM_BUF_SIZE];
- 	int retval;
- 
--	if ((bprm->buf[0] != '#') || (bprm->buf[1] != '!') ||
--	    (bprm->recursion_depth > BINPRM_MAX_RECURSION))
-+	if ((bprm->buf[0] != '#') || (bprm->buf[1] != '!'))
- 		return -ENOEXEC;
- 	/*
- 	 * This section does the #! interpretation.
- 	 * Sorta complicated, but hopefully it will work.  -TYT
- 	 */
- 
--	bprm->recursion_depth++;
- 	allow_write_access(bprm->file);
- 	fput(bprm->file);
- 	bprm->file = NULL;
-diff -puN fs/exec.c~exec-use-eloop-for-max-recursion-depth fs/exec.c
---- a/fs/exec.c~exec-use-eloop-for-max-recursion-depth
-+++ a/fs/exec.c
-@@ -1356,6 +1356,10 @@ int search_binary_handler(struct linux_b
- 	struct linux_binfmt *fmt;
- 	pid_t old_pid, old_vpid;
- 
-+	/* This allows 4 levels of binfmt rewrites before failing hard. */
-+	if (depth > 5)
-+		return -ELOOP;
-+
- 	retval = security_bprm_check(bprm);
- 	if (retval)
- 		return retval;
-@@ -1380,12 +1384,8 @@ int search_binary_handler(struct linux_b
- 			if (!try_module_get(fmt->module))
- 				continue;
- 			read_unlock(&binfmt_lock);
-+			bprm->recursion_depth = depth + 1;
- 			retval = fn(bprm);
--			/*
--			 * Restore the depth counter to its starting value
--			 * in this call, so we don't have to rely on every
--			 * load_binary function to restore it on return.
--			 */
- 			bprm->recursion_depth = depth;
- 			if (retval >= 0) {
- 				if (depth == 0) {
-diff -puN include/linux/binfmts.h~exec-use-eloop-for-max-recursion-depth include/linux/binfmts.h
---- a/include/linux/binfmts.h~exec-use-eloop-for-max-recursion-depth
-+++ a/include/linux/binfmts.h
-@@ -54,8 +54,6 @@ struct linux_binprm {
- #define BINPRM_FLAGS_EXECFD_BIT 1
- #define BINPRM_FLAGS_EXECFD (1 << BINPRM_FLAGS_EXECFD_BIT)
- 
--#define BINPRM_MAX_RECURSION 4
+-	rcu_read_lock();
+-	pid = task_pid(tsk);
+-	if (pid != NULL && pid->numbers[pid->level].nr == 1)
+-		ret = 1;
+-	rcu_read_unlock();
+-
+-	return ret;
+-}
+-EXPORT_SYMBOL(is_container_init);
