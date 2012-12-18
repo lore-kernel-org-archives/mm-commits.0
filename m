@@ -1,81 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 14:06:26 -0800
-Message-ID: <20121218220626.B4D5B82004A@wpzn4.hot.corp.google.com>
+Subject: [folded-dropped] core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 14:06:32 -0800
+Message-ID: <20121218220633.17A0C200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:46366 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754071Ab2LRWG1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 17:06:27 -0500
-Received: by mail-yh0-f74.google.com with SMTP id 10so143791yhl.3
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 14:06:27 -0800 (PST)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:65235 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754071Ab2LRWGf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 17:06:35 -0500
+Received: by mail-bk0-f74.google.com with SMTP id je9so67474bkc.1
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 14:06:34 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, berrange@redhat.com, ebiederm@xmission.com, nhorman@tuxdriver.com, serge.hallyn@canonical.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, nhorman@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix
+     Subject: core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix.patch
+     core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix-checkpatch-fixes.patch
 
 This patch was dropped because it was folded into core_pattern-set-core-helpers-root-and-namespace-to-crashing-process.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix
+Subject: core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix-checkpatch-fixes
 
-fix doc typo, simplify format_corename()
+ERROR: code indent should use tabs where possible
+#40: FILE: fs/coredump.c:169:
++ ^I^I * We have 2 | tokens at the head of core_pattern which$
 
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Daniel Berrange <berrange@redhat.com>
+WARNING: please, no space before tabs
+#40: FILE: fs/coredump.c:169:
++ ^I^I * We have 2 | tokens at the head of core_pattern which$
+
+total: 1 errors, 1 warnings, 28 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Neil Horman <nhorman@tuxdriver.com>
-Cc: Serge Hallyn <serge.hallyn@canonical.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/kernel.txt |    2 +-
- fs/coredump.c                   |   10 ++++------
- 2 files changed, 5 insertions(+), 7 deletions(-)
+ fs/coredump.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/sysctl/kernel.txt~core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix Documentation/sysctl/kernel.txt
---- a/Documentation/sysctl/kernel.txt~core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix
-+++ a/Documentation/sysctl/kernel.txt
-@@ -194,7 +194,7 @@ core_pattern is used to specify a core d
-   written to the standard input of that program instead of to a file.  Note that
-   when using |, the core pipe reader that is executed will be run in the global
-   namespace and root filesystem.  If two | tokens (i.e. ||) are supplied as the
--  first two characters of the core_pattern sysctl, the kernel will preform the
-+  first two characters of the core_pattern sysctl, the kernel will perform the
-   same pipe operation, but the core pipe reader will be executed using the
-   namespace and root fs of the crashing process.
- 
-diff -puN fs/coredump.c~core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix fs/coredump.c
---- a/fs/coredump.c~core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix
+diff -puN fs/coredump.c~core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix-checkpatch-fixes fs/coredump.c
+--- a/fs/coredump.c~core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix-checkpatch-fixes
 +++ a/fs/coredump.c
-@@ -164,16 +164,14 @@ static int format_corename(struct core_n
- 	if (!cn->corename)
- 		return -ENOMEM;
+@@ -166,10 +166,10 @@ static int format_corename(struct core_n
  
--	if (ispipe) {
-+	if (ispipe && pat_ptr[1] == '|') {
+ 	if (ispipe && pat_ptr[1] == '|') {
  		/*
-- 		 * If we have 2 | tokens at the head of core_pattern, it
-+ 		 * We have 2 | tokens at the head of core_pattern which
-  		 * indicates we are a pipe and the reader should inherit the
-  		 * namespaces of the crashing process
-  		 */
--		cprm->switch_ns = (*(pat_ptr+1) == '|') ? true : false;
--		if (cprm->switch_ns)
--			/* Advance pat_ptr so as not to mess up corename */
--			pat_ptr++;
-+		cprm->switch_ns = true;
-+		pat_ptr++;
+- 		 * We have 2 | tokens at the head of core_pattern which
+- 		 * indicates we are a pipe and the reader should inherit the
+- 		 * namespaces of the crashing process
+- 		 */
++		 * We have 2 | tokens at the head of core_pattern which
++		 * indicates we are a pipe and the reader should inherit the
++		 * namespaces of the crashing process
++		 */
+ 		cprm->switch_ns = true;
+ 		pat_ptr++;
  	}
- 
- 	/* Repeat as long as we have more pattern to process and more output
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -113,7 +108,6 @@ binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
 hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes-checkpatch-fixes.patch
 hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix.patch
 core_pattern-set-core-helpers-root-and-namespace-to-crashing-process.patch
-core_pattern-set-core-helpers-root-and-namespace-to-crashing-process-fix-checkpatch-fixes.patch
 ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
 ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
 ipc-convert-prepare_copy-from-macro-to-function-fix.patch
