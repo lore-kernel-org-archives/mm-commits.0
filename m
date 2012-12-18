@@ -1,163 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] include-linux-inith-use-the-stringify-operator-for-the-__define_initcall-macro.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 12:02:36 -0800
-Message-ID: <20121218200236.AFF10100047@wpzn3.hot.corp.google.com>
+Subject: [merged] kernel-remove-reference-to-feature-removal-scheduletxt.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 12:02:42 -0800
+Message-ID: <20121218200243.18E5E20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:58431 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751357Ab2LRUCi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:02:38 -0500
-Received: by mail-qc0-f201.google.com with SMTP id a6so125258qch.0
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:02:37 -0800 (PST)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:59806 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751357Ab2LRUCp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:02:45 -0500
+Received: by mail-fa0-f74.google.com with SMTP id t1so63042fae.5
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:02:44 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthew@mattleach.net, benh@kernel.crashing.org, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: boyu.mt@taobao.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/init.h: use the stringify operator for the __define_initcall macro
+     Subject: kernel: remove reference to feature-removal-schedule.txt
 has been removed from the -mm tree.  Its filename was
-     include-linux-inith-use-the-stringify-operator-for-the-__define_initcall-macro.patch
+     kernel-remove-reference-to-feature-removal-scheduletxt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Matthew Leach <matthew@mattleach.net>
-Subject: include/linux/init.h: use the stringify operator for the __define_initcall macro
+From: Tao Ma <boyu.mt@taobao.com>
+Subject: kernel: remove reference to feature-removal-schedule.txt
 
-Currently the __define_initcall() macro takes three arguments, fn, id and
-level.  The level argument is exactly the same as the id argument but
-wrapped in quotes.  To overcome this need to specify three arguments to
-the __define_initcall macro, where one argument is the stringification of
-another, we can just use the stringification macro instead.
+In 9c0ece069, Linus removed feature-removal-schedule.txt from Documentation,
+but there is still some reference to this file. So remove them.
 
-Signed-off-by: Matthew Leach <matthew@mattleach.net>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Tao Ma <boyu.mt@taobao.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/machdep.h |   34 ++++++++++++------------
- include/linux/init.h               |   38 +++++++++++++--------------
- 2 files changed, 36 insertions(+), 36 deletions(-)
+ kernel/cgroup.c |    1 -
+ kernel/module.c |    3 ---
+ 2 files changed, 4 deletions(-)
 
-diff -puN arch/powerpc/include/asm/machdep.h~include-linux-inith-use-the-stringify-operator-for-the-__define_initcall-macro arch/powerpc/include/asm/machdep.h
---- a/arch/powerpc/include/asm/machdep.h~include-linux-inith-use-the-stringify-operator-for-the-__define_initcall-macro
-+++ a/arch/powerpc/include/asm/machdep.h
-@@ -320,28 +320,28 @@ static inline void log_error(char *buf, 
- 		ppc_md.log_error(buf, err_type, fatal);
- }
+diff -puN kernel/cgroup.c~kernel-remove-reference-to-feature-removal-scheduletxt kernel/cgroup.c
+--- a/kernel/cgroup.c~kernel-remove-reference-to-feature-removal-scheduletxt
++++ a/kernel/cgroup.c
+@@ -1333,7 +1333,6 @@ static int cgroup_remount(struct super_b
+ 	if (ret)
+ 		goto out_unlock;
  
--#define __define_machine_initcall(mach,level,fn,id) \
-+#define __define_machine_initcall(mach, fn, id) \
- 	static int __init __machine_initcall_##mach##_##fn(void) { \
- 		if (machine_is(mach)) return fn(); \
- 		return 0; \
- 	} \
--	__define_initcall(level,__machine_initcall_##mach##_##fn,id);
-+	__define_initcall(__machine_initcall_##mach##_##fn, id);
- 
--#define machine_core_initcall(mach,fn)		__define_machine_initcall(mach,"1",fn,1)
--#define machine_core_initcall_sync(mach,fn)	__define_machine_initcall(mach,"1s",fn,1s)
--#define machine_postcore_initcall(mach,fn)	__define_machine_initcall(mach,"2",fn,2)
--#define machine_postcore_initcall_sync(mach,fn)	__define_machine_initcall(mach,"2s",fn,2s)
--#define machine_arch_initcall(mach,fn)		__define_machine_initcall(mach,"3",fn,3)
--#define machine_arch_initcall_sync(mach,fn)	__define_machine_initcall(mach,"3s",fn,3s)
--#define machine_subsys_initcall(mach,fn)	__define_machine_initcall(mach,"4",fn,4)
--#define machine_subsys_initcall_sync(mach,fn)	__define_machine_initcall(mach,"4s",fn,4s)
--#define machine_fs_initcall(mach,fn)		__define_machine_initcall(mach,"5",fn,5)
--#define machine_fs_initcall_sync(mach,fn)	__define_machine_initcall(mach,"5s",fn,5s)
--#define machine_rootfs_initcall(mach,fn)	__define_machine_initcall(mach,"rootfs",fn,rootfs)
--#define machine_device_initcall(mach,fn)	__define_machine_initcall(mach,"6",fn,6)
--#define machine_device_initcall_sync(mach,fn)	__define_machine_initcall(mach,"6s",fn,6s)
--#define machine_late_initcall(mach,fn)		__define_machine_initcall(mach,"7",fn,7)
--#define machine_late_initcall_sync(mach,fn)	__define_machine_initcall(mach,"7s",fn,7s)
-+#define machine_core_initcall(mach, fn)		__define_machine_initcall(mach, fn, 1)
-+#define machine_core_initcall_sync(mach, fn)	__define_machine_initcall(mach, fn, 1s)
-+#define machine_postcore_initcall(mach, fn)	__define_machine_initcall(mach, fn, 2)
-+#define machine_postcore_initcall_sync(mach, fn)	__define_machine_initcall(mach, fn, 2s)
-+#define machine_arch_initcall(mach, fn)		__define_machine_initcall(mach, fn, 3)
-+#define machine_arch_initcall_sync(mach, fn)	__define_machine_initcall(mach, fn, 3s)
-+#define machine_subsys_initcall(mach, fn)	__define_machine_initcall(mach, fn, 4)
-+#define machine_subsys_initcall_sync(mach, fn)	__define_machine_initcall(mach, fn, 4s)
-+#define machine_fs_initcall(mach, fn)		__define_machine_initcall(mach, fn, 5)
-+#define machine_fs_initcall_sync(mach, fn)	__define_machine_initcall(mach, fn, 5s)
-+#define machine_rootfs_initcall(mach, fn)	__define_machine_initcall(mach, fn, rootfs)
-+#define machine_device_initcall(mach, fn)	__define_machine_initcall(mach, fn, 6)
-+#define machine_device_initcall_sync(mach, fn)	__define_machine_initcall(mach, fn, 6s)
-+#define machine_late_initcall(mach, fn)		__define_machine_initcall(mach, fn, 7)
-+#define machine_late_initcall_sync(mach, fn)	__define_machine_initcall(mach, fn, 7s)
- 
- #endif /* __KERNEL__ */
- #endif /* _ASM_POWERPC_MACHDEP_H */
-diff -puN include/linux/init.h~include-linux-inith-use-the-stringify-operator-for-the-__define_initcall-macro include/linux/init.h
---- a/include/linux/init.h~include-linux-inith-use-the-stringify-operator-for-the-__define_initcall-macro
-+++ a/include/linux/init.h
-@@ -182,16 +182,16 @@ extern bool initcall_debug;
-  * can point at the same handler without causing duplicate-symbol build errors.
-  */
- 
--#define __define_initcall(level,fn,id) \
-+#define __define_initcall(fn, id) \
- 	static initcall_t __initcall_##fn##id __used \
--	__attribute__((__section__(".initcall" level ".init"))) = fn
-+	__attribute__((__section__(".initcall" #id ".init"))) = fn
- 
- /*
-  * Early initcalls run before initializing SMP.
-  *
-  * Only for built-in code, not modules.
-  */
--#define early_initcall(fn)		__define_initcall("early",fn,early)
-+#define early_initcall(fn)		__define_initcall(fn, early)
- 
- /*
-  * A "pure" initcall has no dependencies on anything else, and purely
-@@ -200,23 +200,23 @@ extern bool initcall_debug;
-  * This only exists for built-in code, not for modules.
-  * Keep main.c:initcall_level_names[] in sync.
-  */
--#define pure_initcall(fn)		__define_initcall("0",fn,0)
-+#define pure_initcall(fn)		__define_initcall(fn, 0)
- 
--#define core_initcall(fn)		__define_initcall("1",fn,1)
--#define core_initcall_sync(fn)		__define_initcall("1s",fn,1s)
--#define postcore_initcall(fn)		__define_initcall("2",fn,2)
--#define postcore_initcall_sync(fn)	__define_initcall("2s",fn,2s)
--#define arch_initcall(fn)		__define_initcall("3",fn,3)
--#define arch_initcall_sync(fn)		__define_initcall("3s",fn,3s)
--#define subsys_initcall(fn)		__define_initcall("4",fn,4)
--#define subsys_initcall_sync(fn)	__define_initcall("4s",fn,4s)
--#define fs_initcall(fn)			__define_initcall("5",fn,5)
--#define fs_initcall_sync(fn)		__define_initcall("5s",fn,5s)
--#define rootfs_initcall(fn)		__define_initcall("rootfs",fn,rootfs)
--#define device_initcall(fn)		__define_initcall("6",fn,6)
--#define device_initcall_sync(fn)	__define_initcall("6s",fn,6s)
--#define late_initcall(fn)		__define_initcall("7",fn,7)
--#define late_initcall_sync(fn)		__define_initcall("7s",fn,7s)
-+#define core_initcall(fn)		__define_initcall(fn, 1)
-+#define core_initcall_sync(fn)		__define_initcall(fn, 1s)
-+#define postcore_initcall(fn)		__define_initcall(fn, 2)
-+#define postcore_initcall_sync(fn)	__define_initcall(fn, 2s)
-+#define arch_initcall(fn)		__define_initcall(fn, 3)
-+#define arch_initcall_sync(fn)		__define_initcall(fn, 3s)
-+#define subsys_initcall(fn)		__define_initcall(fn, 4)
-+#define subsys_initcall_sync(fn)	__define_initcall(fn, 4s)
-+#define fs_initcall(fn)			__define_initcall(fn, 5)
-+#define fs_initcall_sync(fn)		__define_initcall(fn, 5s)
-+#define rootfs_initcall(fn)		__define_initcall(fn, rootfs)
-+#define device_initcall(fn)		__define_initcall(fn, 6)
-+#define device_initcall_sync(fn)	__define_initcall(fn, 6s)
-+#define late_initcall(fn)		__define_initcall(fn, 7)
-+#define late_initcall_sync(fn)		__define_initcall(fn, 7s)
- 
- #define __initcall(fn) device_initcall(fn)
+-	/* See feature-removal-schedule.txt */
+ 	if (opts.subsys_mask != root->actual_subsys_mask || opts.release_agent)
+ 		pr_warning("cgroup: option changes via remount are deprecated (pid=%d comm=%s)\n",
+ 			   task_tgid_nr(current), current->comm);
+diff -puN kernel/module.c~kernel-remove-reference-to-feature-removal-scheduletxt kernel/module.c
+--- a/kernel/module.c~kernel-remove-reference-to-feature-removal-scheduletxt
++++ a/kernel/module.c
+@@ -372,9 +372,6 @@ static bool check_symbol(const struct sy
+ 			printk(KERN_WARNING "Symbol %s is being used "
+ 			       "by a non-GPL module, which will not "
+ 			       "be allowed in the future\n", fsa->name);
+-			printk(KERN_WARNING "Please see the file "
+-			       "Documentation/feature-removal-schedule.txt "
+-			       "in the kernel source tree for more details.\n");
+ 		}
+ 	}
  
 _
 
-Patches currently in -mm which might be from matthew@mattleach.net are
+Patches currently in -mm which might be from boyu.mt@taobao.com are
 
 origin.patch
-linux-next.patch
 
