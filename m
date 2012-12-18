@@ -1,80 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-add-strict-messages-for-blank-lines-around-braces.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 12:10:13 -0800
-Message-ID: <20121218201013.AF83E100047@wpzn3.hot.corp.google.com>
+Subject: [merged] aoe-manipulate-aoedev-network-stats-under-lock.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 12:10:20 -0800
+Message-ID: <20121218201021.10D98200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:32941 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755270Ab2LRUKO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:10:14 -0500
-Received: by mail-vb0-f74.google.com with SMTP id s24so126216vbi.1
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:10:14 -0800 (PST)
+Received: from mail-ee0-f73.google.com ([74.125.83.73]:65442 "EHLO
+	mail-ee0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755270Ab2LRUKX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:10:23 -0500
+Received: by mail-ee0-f73.google.com with SMTP id c50so63478eek.0
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:10:21 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, apw@canonical.com, mm-commits@vger.kernel.org
+To: ecashin@coraid.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: Add --strict messages for blank lines around braces
+     Subject: aoe: manipulate aoedev network stats under lock
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-strict-messages-for-blank-lines-around-braces.patch
+     aoe-manipulate-aoedev-network-stats-under-lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: Add --strict messages for blank lines around braces
+From: Ed Cashin <ecashin@coraid.com>
+Subject: aoe: manipulate aoedev network stats under lock
 
-Blank lines around braces are not unnecessary.  Emit a message on the use
-of these blank lines only when using --strict.
+With this bugfix in place the calculation of the criterion for "lateness"
+is performed under lock.  Without the lock, there is a chance that one of
+the non-atomic operations performed on the round trip time statistics
+could be incomplete, such that an incorrect lateness criterion would be
+calculated.
 
-int foo(int bar)
-{
+Without this change, the effect of the bug would be rare unecessary but
+benign retransmissions.
 
-	something or other....
-
-}
-
-is generally written in the kernel as:
-
-int foo(int bar)
-{
-	something or other...
-}
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@canonical.com>
+Signed-off-by: Ed Cashin <ecashin@coraid.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/block/aoe/aoecmd.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-strict-messages-for-blank-lines-around-braces scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-strict-messages-for-blank-lines-around-braces
-+++ a/scripts/checkpatch.pl
-@@ -3189,6 +3189,16 @@ sub process {
- 			}
- 		}
+diff -puN drivers/block/aoe/aoecmd.c~aoe-manipulate-aoedev-network-stats-under-lock drivers/block/aoe/aoecmd.c
+--- a/drivers/block/aoe/aoecmd.c~aoe-manipulate-aoedev-network-stats-under-lock
++++ a/drivers/block/aoe/aoecmd.c
+@@ -603,14 +603,14 @@ rexmit_timer(ulong vp)
  
-+# check for unnecessary blank lines around braces
-+		if (($line =~ /^..*}\s*$/ && $prevline =~ /^.\s*$/)) {
-+			CHK("BRACES",
-+			    "Blank lines aren't necessary before a close brace '}'\n" . $hereprev);
-+		}
-+		if (($line =~ /^.\s*$/ && $prevline =~ /^..*{\s*$/)) {
-+			CHK("BRACES",
-+			    "Blank lines aren't necessary after an open brace '{'\n" . $hereprev);
-+		}
+ 	d = (struct aoedev *) vp;
+ 
++	spin_lock_irqsave(&d->lock, flags);
 +
- # no volatiles please
- 		my $asm_volatile = qr{\b(__asm__|asm)\s+(__volatile__|volatile)\b};
- 		if ($line =~ /\bvolatile\b/ && $line !~ /$asm_volatile/) {
-_
-
-Patches currently in -mm which might be from joe@perches.com are
-
-origin.patch
-linux-next.patch
-
+ 	/* timeout based on observed timings and variations */
+ 	timeout = 2 * d->rttavg >> RTTSCALE;
+ 	timeout += 8 * d->rttdev >> RTTDSCALE;
+ 	if (timeout == 0)
+ 		timeout = 1;
+ 
+-	spin_lock_irqsave(&d->lock, flags);
