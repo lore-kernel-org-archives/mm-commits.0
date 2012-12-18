@@ -1,81 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: [merged] musb-tusb6010-use-ioreadwrite_rep-accessors.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 12:03:06 -0800
-Message-ID: <20121218200307.343EE200059@hpza10.eem.corp.google.com>
+Subject: [merged] asm-generic-io-dont-perform-swab-during-inout-string-functions.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 12:03:03 -0800
+Message-ID: <20121218200303.9FB6382004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f74.google.com ([209.85.215.74]:57983 "EHLO
-	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753636Ab2LRUDK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:03:10 -0500
-Received: by mail-la0-f74.google.com with SMTP id v3so63369lag.1
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:03:09 -0800 (PST)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:45931 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753636Ab2LRUDE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:03:04 -0500
+Received: by mail-qc0-f201.google.com with SMTP id a6so125227qch.2
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:03:04 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthew@mattleach.net, arnd@arndb.de, balbi@ti.com, benh@kernel.crashing.org, greg@kroah.com, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: will.deacon@arm.com, arnd@arndb.de, benh@kernel.crashing.org, vapier@gentoo.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: musb: tusb6010: use io{read,write}*_rep accessors
+     Subject: asm-generic: io: don't perform swab during {in,out} string functions
 has been removed from the -mm tree.  Its filename was
-     musb-tusb6010-use-ioreadwrite_rep-accessors.patch
+     asm-generic-io-dont-perform-swab-during-inout-string-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Matthew Leach <matthew@mattleach.net>
-Subject: musb: tusb6010: use io{read,write}*_rep accessors
+From: Will Deacon <will.deacon@arm.com>
+Subject: asm-generic: io: don't perform swab during {in,out} string functions
 
-The {read,write}s{b,w,l} operations are not defined by all architectures
-and are being removed from the asm-generic/io.h interface.
+The {in,out}s{b,w,l} functions are designed to operate on a stream of
+bytes and therefore should not perform any byte-swapping, regardless of
+the CPU byte order.
 
-This patch replaces the usage of these string functions in the tusb6010
-accessors with io{read,write}{8,16,32}_rep calls instead.
+This patch fixes the generic IO header so that {in,out}s{b,w,l} call the
+__raw_{read,write} functions directly rather than going via the
+endian-correcting accessors.
 
-Signed-off-by: Matthew Leach <matthew@mattleach.net>
 Signed-off-by: Will Deacon <will.deacon@arm.com>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Ben Herrenschmidt <benh@kernel.crashing.org>
-Cc: Greg KH <greg@kroah.com>
+Cc: Mike Frysinger <vapier@gentoo.org>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Ben Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/musb/tusb6010.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/asm-generic/io.h |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/usb/musb/tusb6010.c~musb-tusb6010-use-ioreadwrite_rep-accessors drivers/usb/musb/tusb6010.c
---- a/drivers/usb/musb/tusb6010.c~musb-tusb6010-use-ioreadwrite_rep-accessors
-+++ a/drivers/usb/musb/tusb6010.c
-@@ -22,6 +22,7 @@
- #include <linux/prefetch.h>
- #include <linux/usb.h>
- #include <linux/irq.h>
-+#include <linux/io.h>
- #include <linux/platform_device.h>
- #include <linux/dma-mapping.h>
- #include <linux/usb/nop-usb-xceiv.h>
-@@ -198,7 +199,7 @@ void musb_write_fifo(struct musb_hw_ep *
- 		/* Best case is 32bit-aligned destination address */
- 		if ((0x02 & (unsigned long) buf) == 0) {
- 			if (len >= 4) {
--				writesl(fifo, buf, len >> 2);
-+				iowrite32_rep(fifo, buf, len >> 2);
- 				buf += (len & ~0x03);
- 				len &= 0x03;
- 			}
-@@ -245,7 +246,7 @@ void musb_read_fifo(struct musb_hw_ep *h
- 		/* Best case is 32bit-aligned destination address */
- 		if ((0x02 & (unsigned long) buf) == 0) {
- 			if (len >= 4) {
--				readsl(fifo, buf, len >> 2);
-+				ioread32_rep(fifo, buf, len >> 2);
- 				buf += (len & ~0x03);
- 				len &= 0x03;
- 			}
+diff -puN include/asm-generic/io.h~asm-generic-io-dont-perform-swab-during-inout-string-functions include/asm-generic/io.h
+--- a/include/asm-generic/io.h~asm-generic-io-dont-perform-swab-during-inout-string-functions
++++ a/include/asm-generic/io.h
+@@ -154,7 +154,7 @@ static inline void insb(unsigned long ad
+ 	if (count) {
+ 		u8 *buf = buffer;
+ 		do {
+-			u8 x = inb(addr);
++			u8 x = __raw_readb(addr + PCI_IOBASE);
+ 			*buf++ = x;
+ 		} while (--count);
+ 	}
+@@ -167,7 +167,7 @@ static inline void insw(unsigned long ad
+ 	if (count) {
+ 		u16 *buf = buffer;
+ 		do {
+-			u16 x = inw(addr);
++			u16 x = __raw_readw(addr + PCI_IOBASE);
+ 			*buf++ = x;
+ 		} while (--count);
+ 	}
+@@ -180,7 +180,7 @@ static inline void insl(unsigned long ad
+ 	if (count) {
+ 		u32 *buf = buffer;
+ 		do {
+-			u32 x = inl(addr);
++			u32 x = __raw_readl(addr + PCI_IOBASE);
+ 			*buf++ = x;
+ 		} while (--count);
+ 	}
+@@ -193,7 +193,7 @@ static inline void outsb(unsigned long a
+ 	if (count) {
+ 		const u8 *buf = buffer;
+ 		do {
+-			outb(*buf++, addr);
++			__raw_writeb(*buf++, addr + PCI_IOBASE);
+ 		} while (--count);
+ 	}
+ }
+@@ -205,7 +205,7 @@ static inline void outsw(unsigned long a
+ 	if (count) {
+ 		const u16 *buf = buffer;
+ 		do {
+-			outw(*buf++, addr);
++			__raw_writew(*buf++, addr + PCI_IOBASE);
+ 		} while (--count);
+ 	}
+ }
+@@ -217,7 +217,7 @@ static inline void outsl(unsigned long a
+ 	if (count) {
+ 		const u32 *buf = buffer;
+ 		do {
+-			outl(*buf++, addr);
++			__raw_writel(*buf++, addr + PCI_IOBASE);
+ 		} while (--count);
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from matthew@mattleach.net are
+Patches currently in -mm which might be from will.deacon@arm.com are
 
 origin.patch
 linux-next.patch
