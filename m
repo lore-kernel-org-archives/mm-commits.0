@@ -1,77 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [merged] backlight-tdo24m-fix-checkpatch-warning.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 12:04:40 -0800
-Message-ID: <20121218200441.19A4820004E@hpza10.eem.corp.google.com>
+Subject: [merged] backlight-lms283gf05-use-devm_gpio_request_one.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 12:04:50 -0800
+Message-ID: <20121218200450.BA01F100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f73.google.com ([209.85.215.73]:51921 "EHLO
-	mail-la0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753636Ab2LRUEn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:04:43 -0500
-Received: by mail-la0-f73.google.com with SMTP id d3so63383lah.2
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:04:42 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:61799 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753636Ab2LRUEv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:04:51 -0500
+Received: by mail-ye0-f202.google.com with SMTP id l7so125509yen.3
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:04:51 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jg1.han@samsung.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: jg1.han@samsung.com, marex@denx.de, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight: tdo24m: fix checkpatch warning
+     Subject: backlight: lms283gf05: use devm_gpio_request_one
 has been removed from the -mm tree.  Its filename was
-     backlight-tdo24m-fix-checkpatch-warning.patch
+     backlight-lms283gf05-use-devm_gpio_request_one.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: tdo24m: fix checkpatch warning
+Subject: backlight: lms283gf05: use devm_gpio_request_one
 
-This patch fixes the checkpatch warning as below:
-
-WARNING: please, no space before tabs
+By using devm_gpio_request_one it is possible to set the direction
+and initial value in one shot. Thus, using devm_gpio_request_one
+can make the code simpler.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
+Acked-by: Marek Vasut <marex@denx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/tdo24m.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/video/backlight/lms283gf05.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN drivers/video/backlight/tdo24m.c~backlight-tdo24m-fix-checkpatch-warning drivers/video/backlight/tdo24m.c
---- a/drivers/video/backlight/tdo24m.c~backlight-tdo24m-fix-checkpatch-warning
-+++ a/drivers/video/backlight/tdo24m.c
-@@ -2,7 +2,7 @@
-  * tdo24m - SPI-based drivers for Toppoly TDO24M series LCD panels
-  *
-  * Copyright (C) 2008 Marvell International Ltd.
-- * 	Eric Miao <eric.miao@marvell.com>
-+ *	Eric Miao <eric.miao@marvell.com>
-  *
-  *  This program is free software; you can redistribute it and/or modify
-  *  it under the terms of the GNU General Public License version 2 as
-@@ -90,7 +90,7 @@ static uint32_t lcd_qvga_pass_through_td
- };
+diff -puN drivers/video/backlight/lms283gf05.c~backlight-lms283gf05-use-devm_gpio_request_one drivers/video/backlight/lms283gf05.c
+--- a/drivers/video/backlight/lms283gf05.c~backlight-lms283gf05-use-devm_gpio_request_one
++++ a/drivers/video/backlight/lms283gf05.c
+@@ -158,13 +158,9 @@ static int lms283gf05_probe(struct spi_d
+ 	int ret = 0;
  
- static uint32_t lcd_vga_transfer_tdo24m[] = {
--	CMD1(0xcf, 0x02), 	/* Blanking period control (1) */
-+	CMD1(0xcf, 0x02),	/* Blanking period control (1) */
- 	CMD2(0xd0, 0x08, 0x04),	/* Blanking period control (2) */
- 	CMD1(0xd1, 0x01),	/* CKV timing control on/off */
- 	CMD2(0xd2, 0x14, 0x00),	/* CKV 1,2 timing control */
-@@ -132,7 +132,7 @@ static uint32_t lcd_qvga_pass_through_td
- };
- 
- static uint32_t lcd_vga_transfer_tdo35s[] = {
--	CMD1(0xcf, 0x02), 	/* Blanking period control (1) */
-+	CMD1(0xcf, 0x02),	/* Blanking period control (1) */
- 	CMD2(0xd0, 0x08, 0x04),	/* Blanking period control (2) */
- 	CMD1(0xd1, 0x01),	/* CKV timing control on/off */
- 	CMD2(0xd2, 0x00, 0x1e),	/* CKV 1,2 timing control */
-_
-
-Patches currently in -mm which might be from jg1.han@samsung.com are
-
-origin.patch
-backlight-locomolcd-fix-checkpatch-error-and-warning.patch
-
+ 	if (pdata != NULL) {
+-		ret = devm_gpio_request(&spi->dev, pdata->reset_gpio,
+-					"LMS285GF05 RESET");
+-		if (ret)
+-			return ret;
