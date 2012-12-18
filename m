@@ -1,121 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [merged] watchdog-store-the-watchdog-sample-period-as-a-variable.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 12:03:14 -0800
-Message-ID: <20121218200315.6489F20004E@hpza10.eem.corp.google.com>
+Subject: [merged] printk-boot_delay-should-only-affect-output.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 12:03:26 -0800
+Message-ID: <20121218200326.9AD6E82004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:35916 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753636Ab2LRUDS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:03:18 -0500
-Received: by mail-lb0-f202.google.com with SMTP id s4so69472lbc.3
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:03:16 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:59613 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754676Ab2LRUD1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:03:27 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so125167vcd.1
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:03:27 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chuansheng.liu@intel.com, dzickus@redhat.com, mm-commits@vger.kernel.org
+To: acooks@gmail.com, joe@perches.com, rdunlap@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog: store the watchdog sample period as a variable
+     Subject: printk: boot_delay should only affect output
 has been removed from the -mm tree.  Its filename was
-     watchdog-store-the-watchdog-sample-period-as-a-variable.patch
+     printk-boot_delay-should-only-affect-output.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Chuansheng Liu <chuansheng.liu@intel.com>
-Subject: watchdog: store the watchdog sample period as a variable
+From: Andrew Cooks <acooks@gmail.com>
+Subject: printk: boot_delay should only affect output
 
-Currently getting the sample period is always thru a complex
-calculation: get_softlockup_thresh() * ((u64)NSEC_PER_SEC / 5).
+The boot_delay parameter affects all printk(), even if the log level
+prevents visible output from the call.  It results in delays greater than
+the user intended without purpose.
 
-We can store the sample period as a variable, and set it as __read_mostly
-type.
+This patch changes the behaviour of boot_delay to only delay output.
 
-Signed-off-by: liu chuansheng <chuansheng.liu@intel.com>
-Cc: Don Zickus <dzickus@redhat.com>
+Signed-off-by: Andrew Cooks <acooks@gmail.com>
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ kernel/printk.c |   40 +++++++++++++++++++++-------------------
+ 1 file changed, 21 insertions(+), 19 deletions(-)
 
-diff -puN kernel/watchdog.c~watchdog-store-the-watchdog-sample-period-as-a-variable kernel/watchdog.c
---- a/kernel/watchdog.c~watchdog-store-the-watchdog-sample-period-as-a-variable
-+++ a/kernel/watchdog.c
-@@ -31,6 +31,7 @@
- int watchdog_enabled = 1;
- int __read_mostly watchdog_thresh = 10;
- static int __read_mostly watchdog_disabled;
-+static u64 __read_mostly sample_period;
- 
- static DEFINE_PER_CPU(unsigned long, watchdog_touch_ts);
- static DEFINE_PER_CPU(struct task_struct *, softlockup_watchdog);
-@@ -116,7 +117,7 @@ static unsigned long get_timestamp(int t
- 	return cpu_clock(this_cpu) >> 30LL;  /* 2^30 ~= 10^9 */
+diff -puN kernel/printk.c~printk-boot_delay-should-only-affect-output kernel/printk.c
+--- a/kernel/printk.c~printk-boot_delay-should-only-affect-output
++++ a/kernel/printk.c
+@@ -747,6 +747,21 @@ void __init setup_log_buf(int early)
+ 		free, (free * 100) / __LOG_BUF_LEN);
  }
  
--static u64 get_sample_period(void)
-+static void set_sample_period(void)
++static bool __read_mostly ignore_loglevel;
++
++static int __init ignore_loglevel_setup(char *str)
++{
++	ignore_loglevel = 1;
++	printk(KERN_INFO "debug: ignoring loglevel setting.\n");
++
++	return 0;
++}
++
++early_param("ignore_loglevel", ignore_loglevel_setup);
++module_param(ignore_loglevel, bool, S_IRUGO | S_IWUSR);
++MODULE_PARM_DESC(ignore_loglevel, "ignore loglevel setting, to"
++	"print all kernel messages to the console.");
++
+ #ifdef CONFIG_BOOT_PRINTK_DELAY
+ 
+ static int boot_delay; /* msecs delay after each printk during bootup */
+@@ -770,13 +785,15 @@ static int __init boot_delay_setup(char 
+ }
+ __setup("boot_delay=", boot_delay_setup);
+ 
+-static void boot_delay_msec(void)
++static void boot_delay_msec(int level)
  {
- 	/*
- 	 * convert watchdog_thresh from seconds to ns
-@@ -125,7 +126,7 @@ static u64 get_sample_period(void)
- 	 * and hard thresholds) to increment before the
- 	 * hardlockup detector generates a warning
- 	 */
--	return get_softlockup_thresh() * ((u64)NSEC_PER_SEC / 5);
-+	sample_period = get_softlockup_thresh() * ((u64)NSEC_PER_SEC / 5);
+ 	unsigned long long k;
+ 	unsigned long timeout;
+ 
+-	if (boot_delay == 0 || system_state != SYSTEM_BOOTING)
++	if ((boot_delay == 0 || system_state != SYSTEM_BOOTING)
++		|| (level >= console_loglevel && !ignore_loglevel)) {
+ 		return;
++	}
+ 
+ 	k = (unsigned long long)loops_per_msec * boot_delay;
+ 
+@@ -795,7 +812,7 @@ static void boot_delay_msec(void)
+ 	}
+ }
+ #else
+-static inline void boot_delay_msec(void)
++static inline void boot_delay_msec(int level)
+ {
+ }
+ #endif
+@@ -1238,21 +1255,6 @@ SYSCALL_DEFINE3(syslog, int, type, char 
+ 	return do_syslog(type, buf, len, SYSLOG_FROM_CALL);
  }
  
- /* Commands for resetting the watchdog */
-@@ -275,7 +276,7 @@ static enum hrtimer_restart watchdog_tim
- 	wake_up_process(__this_cpu_read(softlockup_watchdog));
- 
- 	/* .. and repeat */
--	hrtimer_forward_now(hrtimer, ns_to_ktime(get_sample_period()));
-+	hrtimer_forward_now(hrtimer, ns_to_ktime(sample_period));
- 
- 	if (touch_ts == 0) {
- 		if (unlikely(__this_cpu_read(softlockup_touch_sync))) {
-@@ -356,7 +357,7 @@ static void watchdog_enable(unsigned int
- 	hrtimer->function = watchdog_timer_fn;
- 
- 	/* done here because hrtimer_start can only pin to smp_processor_id() */
--	hrtimer_start(hrtimer, ns_to_ktime(get_sample_period()),
-+	hrtimer_start(hrtimer, ns_to_ktime(sample_period),
- 		      HRTIMER_MODE_REL_PINNED);
- 
- 	/* initialize timestamp */
-@@ -386,7 +387,7 @@ static int watchdog_should_run(unsigned 
- /*
-  * The watchdog thread function - touches the timestamp.
-  *
-- * It only runs once every get_sample_period() seconds (4 seconds by
-+ * It only runs once every sample_period seconds (4 seconds by
-  * default) to reset the softlockup timestamp. If this gets delayed
-  * for more than 2*watchdog_thresh seconds then the debug-printout
-  * triggers in watchdog_timer_fn().
-@@ -519,6 +520,7 @@ int proc_dowatchdog(struct ctl_table *ta
- 	if (ret || !write)
- 		return ret;
- 
-+	set_sample_period();
- 	if (watchdog_enabled && watchdog_thresh)
- 		watchdog_enable_all_cpus();
- 	else
-@@ -540,6 +542,7 @@ static struct smp_hotplug_thread watchdo
- 
- void __init lockup_detector_init(void)
- {
-+	set_sample_period();
- 	if (smpboot_register_percpu_thread(&watchdog_threads)) {
- 		pr_err("Failed to create watchdog threads, disabled\n");
- 		watchdog_disabled = -ENODEV;
-_
-
-Patches currently in -mm which might be from chuansheng.liu@intel.com are
-
-origin.patch
-linux-next.patch
-
+-static bool __read_mostly ignore_loglevel;
+-
+-static int __init ignore_loglevel_setup(char *str)
+-{
+-	ignore_loglevel = 1;
+-	printk(KERN_INFO "debug: ignoring loglevel setting.\n");
+-
+-	return 0;
+-}
+-
+-early_param("ignore_loglevel", ignore_loglevel_setup);
+-module_param(ignore_loglevel, bool, S_IRUGO | S_IWUSR);
+-MODULE_PARM_DESC(ignore_loglevel, "ignore loglevel setting, to"
+-	"print all kernel messages to the console.");
