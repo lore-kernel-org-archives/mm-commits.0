@@ -1,56 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] procfs-use-kbasename.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 12:06:07 -0800
-Message-ID: <20121218200607.F1E17200057@hpza10.eem.corp.google.com>
+Subject: [merged] mm-use-kbasename.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 12:06:03 -0800
+Message-ID: <20121218200604.0E38220004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:62877 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753636Ab2LRUGK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:06:10 -0500
-Received: by mail-we0-f202.google.com with SMTP id t57so63426wey.5
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:06:09 -0800 (PST)
+Received: from mail-ee0-f73.google.com ([74.125.83.73]:47408 "EHLO
+	mail-ee0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753636Ab2LRUGG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:06:06 -0500
+Received: by mail-ee0-f73.google.com with SMTP id c50so63294eek.4
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:06:04 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, yongjun_wei@trendmicro.com.cn, mm-commits@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: procfs: use kbasename()
+     Subject: mm: use kbasename()
 has been removed from the -mm tree.  Its filename was
-     procfs-use-kbasename.patch
+     mm-use-kbasename.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: procfs: use kbasename()
+Subject: mm: use kbasename()
 
-[yongjun_wei@trendmicro.com.cn: remove duplicated include]
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_devtree.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ mm/memory.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN fs/proc/proc_devtree.c~procfs-use-kbasename fs/proc/proc_devtree.c
---- a/fs/proc/proc_devtree.c~procfs-use-kbasename
-+++ a/fs/proc/proc_devtree.c
-@@ -195,11 +195,7 @@ void proc_device_tree_add_node(struct de
- 	set_node_proc_entry(np, de);
- 	for (child = NULL; (child = of_get_next_child(np, child));) {
- 		/* Use everything after the last slash, or the full name */
--		p = strrchr(child->full_name, '/');
--		if (!p)
--			p = child->full_name;
--		else
--			++p;
-+		p = kbasename(child->full_name);
+diff -puN mm/memory.c~mm-use-kbasename mm/memory.c
+--- a/mm/memory.c~mm-use-kbasename
++++ a/mm/memory.c
+@@ -58,6 +58,7 @@
+ #include <linux/elf.h>
+ #include <linux/gfp.h>
+ #include <linux/migrate.h>
++#include <linux/string.h>
  
- 		if (duplicate_name(de, p))
- 			p = fixup_name(np, de, p);
+ #include <asm/io.h>
+ #include <asm/pgalloc.h>
+@@ -4118,15 +4119,12 @@ void print_vma_addr(char *prefix, unsign
+ 		struct file *f = vma->vm_file;
+ 		char *buf = (char *)__get_free_page(GFP_KERNEL);
+ 		if (buf) {
+-			char *p, *s;
++			char *p;
+ 
+ 			p = d_path(&f->f_path, buf, PAGE_SIZE);
+ 			if (IS_ERR(p))
+ 				p = "?";
+-			s = strrchr(p, '/');
+-			if (s)
+-				p = s+1;
+-			printk("%s%s[%lx+%lx]", prefix, p,
++			printk("%s%s[%lx+%lx]", prefix, kbasename(p),
+ 					vma->vm_start,
+ 					vma->vm_end - vma->vm_start);
+ 			free_page((unsigned long)buf);
 _
 
 Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
