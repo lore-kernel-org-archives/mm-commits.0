@@ -1,59 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-add-lp855x-backlight-driver-entry.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 12:05:52 -0800
-Message-ID: <20121218200553.6102320004E@hpza10.eem.corp.google.com>
+Subject: [merged] string-introduce-helper-to-get-base-file-name-from-given-path.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 12:05:56 -0800
+Message-ID: <20121218200556.D8666820050@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f201.google.com ([209.85.217.201]:63529 "EHLO
-	mail-lb0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754844Ab2LRUF4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:05:56 -0500
-Received: by mail-lb0-f201.google.com with SMTP id m4so69592lbo.2
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:05:54 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:64686 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754844Ab2LRUF6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:05:58 -0500
+Received: by mail-vb0-f74.google.com with SMTP id s24so125696vbi.1
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:05:57 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Milo.Kim@ti.com, milo.kim@ti.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, fweisbec@gmail.com, gregkh@linuxfoundation.org, jbaron@redhat.com, rostedt@goodmis.org, yamanetoshi@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add LP855x backlight driver entry
+     Subject: string: introduce helper to get base file name from given path
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-lp855x-backlight-driver-entry.patch
+     string-introduce-helper-to-get-base-file-name-from-given-path.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kim, Milo" <Milo.Kim@ti.com>
-Subject: MAINTAINERS: add LP855x backlight driver entry
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: string: introduce helper to get base file name from given path
 
-Signed-off-by: Milo(Woogyom) Kim <milo.kim@ti.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+There are several places in the kernel that use functionality like
+basename(3) with the exception: in case of '/foo/bar/' we expect to get an
+empty string.  Let's do it common helper for them.
+
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Jason Baron <jbaron@redhat.com>
+Cc: YAMANE Toshiaki <yamanetoshi@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    7 +++++++
- 1 file changed, 7 insertions(+)
+ include/linux/string.h |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN MAINTAINERS~maintainers-add-lp855x-backlight-driver-entry MAINTAINERS
---- a/MAINTAINERS~maintainers-add-lp855x-backlight-driver-entry
-+++ a/MAINTAINERS
-@@ -7545,6 +7545,13 @@ S:	Maintained
- F:	sound/soc/codecs/lm49453*
- F:	sound/soc/codecs/isabelle*
+diff -puN include/linux/string.h~string-introduce-helper-to-get-base-file-name-from-given-path include/linux/string.h
+--- a/include/linux/string.h~string-introduce-helper-to-get-base-file-name-from-given-path
++++ a/include/linux/string.h
+@@ -143,4 +143,15 @@ static inline bool strstarts(const char 
  
-+TI LP855x BACKLIGHT DRIVER
-+M:	Milo Kim <milo.kim@ti.com>
-+S:	Maintained
-+F:	Documentation/backlight/lp855x-driver.txt
-+F:	drivers/video/backlight/lp855x_bl.c
-+F:	include/linux/platform_data/lp855x.h
+ extern size_t memweight(const void *ptr, size_t bytes);
+ 
++/**
++ * kbasename - return the last part of a pathname.
++ *
++ * @path: path to extract the filename from.
++ */
++static inline const char *kbasename(const char *path)
++{
++	const char *tail = strrchr(path, '/');
++	return tail ? tail + 1 : path;
++}
 +
- TI TWL4030 SERIES SOC CODEC DRIVER
- M:	Peter Ujfalusi <peter.ujfalusi@ti.com>
- L:	alsa-devel@alsa-project.org (moderated for non-subscribers)
+ #endif /* _LINUX_STRING_H_ */
 _
 
-Patches currently in -mm which might be from Milo.Kim@ti.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
 origin.patch
+linux-next.patch
 
