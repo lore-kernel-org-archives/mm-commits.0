@@ -1,85 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ubifs-use-prandom_bytes.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 12:11:57 -0800
-Message-ID: <20121218201157.CCD8E100048@wpzn3.hot.corp.google.com>
+Subject: [merged] vm-selftests-print-failure-status-instead-of-cause-make-error.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 12:12:01 -0800
+Message-ID: <20121218201202.B04C9200061@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:32862 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755317Ab2LRUL7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:11:59 -0500
-Received: by mail-qa0-f73.google.com with SMTP id a19so159299qad.4
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:11:58 -0800 (PST)
+Received: from mail-wi0-f201.google.com ([209.85.212.201]:49409 "EHLO
+	mail-wi0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755317Ab2LRUMF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:12:05 -0500
+Received: by mail-wi0-f201.google.com with SMTP id hm2so63478wib.0
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:12:03 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, adrian.hunter@intel.com, david.laight@aculab.com, dedekind1@gmail.com, dwmw2@infradead.org, eilong@broadcom.com, robert.w.love@intel.com, tytso@mit.edu, valdis.kletnieks@vt.edu, walken@google.com, mm-commits@vger.kernel.org
+To: dyoung@redhat.com, penberg@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ubifs: use prandom_bytes
+     Subject: vm selftests: print failure status instead of cause make error
 has been removed from the -mm tree.  Its filename was
-     ubifs-use-prandom_bytes.patch
+     vm-selftests-print-failure-status-instead-of-cause-make-error.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: ubifs: use prandom_bytes
+From: Dave Young <dyoung@redhat.com>
+Subject: vm selftests: print failure status instead of cause make error
 
-This also converts filling memory loop to use memset.
+  bash-4.1$ make -C vm run_tests
+  make: Entering directory `/home/dave/git/linux-2.6/tools/testing/selftests/vm'
+  /bin/sh ./run_vmtests
+  ./run_vmtests: line 24: /proc/sys/vm/nr_hugepages: Permission denied
+  Please run this test as root
+  make: *** [run_tests] Error 1
+  make: Leaving directory `/home/dave/git/linux-2.6/tools/testing/selftests/vm'
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Artem Bityutskiy <dedekind1@gmail.com>
-Cc: Adrian Hunter <adrian.hunter@intel.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: David Laight <david.laight@aculab.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Eilon Greenstein <eilong@broadcom.com>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Robert Love <robert.w.love@intel.com>
-Cc: Valdis Kletnieks <valdis.kletnieks@vt.edu>
+After applying the patch:
+  bash-4.1$ make -C vm run_tests
+  make: Entering directory `/home/dave/git/linux-2.6/tools/testing/selftests/vm'
+  ./run_vmtests: line 24: /proc/sys/vm/nr_hugepages: Permission denied
+  Please run this test as root
+  vmtests: [FAIL]
+  make: Leaving directory `/home/dave/git/linux-2.6/tools/testing/selftests/vm'
+
+Signed-off-by: Dave Young <dyoung@redhat.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ubifs/debug.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ tools/testing/selftests/vm/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ubifs/debug.c~ubifs-use-prandom_bytes fs/ubifs/debug.c
---- a/fs/ubifs/debug.c~ubifs-use-prandom_bytes
-+++ a/fs/ubifs/debug.c
-@@ -2560,7 +2560,7 @@ static int power_cut_emulated(struct ubi
- static int corrupt_data(const struct ubifs_info *c, const void *buf,
- 			unsigned int len)
- {
--	unsigned int from, to, i, ffs = chance(1, 2);
-+	unsigned int from, to, ffs = chance(1, 2);
- 	unsigned char *p = (void *)buf;
+diff -puN tools/testing/selftests/vm/Makefile~vm-selftests-print-failure-status-instead-of-cause-make-error tools/testing/selftests/vm/Makefile
+--- a/tools/testing/selftests/vm/Makefile~vm-selftests-print-failure-status-instead-of-cause-make-error
++++ a/tools/testing/selftests/vm/Makefile
+@@ -8,7 +8,7 @@ all: hugepage-mmap hugepage-shm  map_hug
+ 	$(CC) $(CFLAGS) -o $@ $^
  
- 	from = random32() % (len + 1);
-@@ -2571,11 +2571,9 @@ static int corrupt_data(const struct ubi
- 		   ffs ? "0xFFs" : "random data");
+ run_tests: all
+-	/bin/sh ./run_vmtests
++	@/bin/sh ./run_vmtests || echo "vmtests: [FAIL]"
  
- 	if (ffs)
--		for (i = from; i < to; i++)
--			p[i] = 0xFF;
-+		memset(p + from, 0xFF, to - from);
- 	else
--		for (i = from; i < to; i++)
--			p[i] = random32() % 0x100;
-+		prandom_bytes(p + from, to - from);
- 
- 	return to;
- }
+ clean:
+ 	$(RM) hugepage-mmap hugepage-shm  map_hugetlb
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from dyoung@redhat.com are
 
 origin.patch
-linux-next.patch
-mtd-mtd_nandecctest-use-prandom_bytes-instead-of-get_random_bytes.patch
-mtd-mtd_oobtest-convert-to-use-prandom-library.patch
-mtd-mtd_pagetest-convert-to-use-prandom-library.patch
-mtd-mtd_speedtest-use-prandom_bytes.patch
-mtd-mtd_subpagetest-convert-to-use-prandom-library.patch
-mtd-mtd_stresstest-use-prandom_bytes.patch
 
