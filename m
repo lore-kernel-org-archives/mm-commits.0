@@ -1,199 +1,179 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sscanf-dont-ignore-field-widths-for-numeric-conversions.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 12:06:18 -0800
-Message-ID: <20121218200618.ADA7482004A@wpzn4.hot.corp.google.com>
+Subject: [merged] percpu_rw_semaphore-kill-writer_mutex-add-write_ctr.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 12:06:25 -0800
+Message-ID: <20121218200625.CB05682004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:54743 "EHLO
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:59079 "EHLO
 	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754994Ab2LRUGU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:06:20 -0500
-Received: by mail-vc0-f201.google.com with SMTP id p1so125522vcq.4
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:06:19 -0800 (PST)
+	with ESMTP id S1755021Ab2LRUG1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:06:27 -0500
+Received: by mail-vc0-f201.google.com with SMTP id p1so125541vcq.4
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:06:26 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: JBeulich@suse.com, adobriyan@gmail.com, jbeulich@suse.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, anton@redhat.com, mingo@elte.hu, mmarek@suse.cz, mpatocka@redhat.com, paulmck@linux.vnet.ibm.com, peterz@infradead.org, srikar@linux.vnet.ibm.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sscanf: don't ignore field widths for numeric conversions
+     Subject: percpu_rw_semaphore: kill ->writer_mutex, add ->write_ctr
 has been removed from the -mm tree.  Its filename was
-     sscanf-dont-ignore-field-widths-for-numeric-conversions.patch
+     percpu_rw_semaphore-kill-writer_mutex-add-write_ctr.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Jan Beulich" <JBeulich@suse.com>
-Subject: sscanf: don't ignore field widths for numeric conversions
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: percpu_rw_semaphore: kill ->writer_mutex, add ->write_ctr
 
-This is another step towards better standard conformance.  Rather than
-adding a local buffer to store the specified portion of the string (with
-the need to enforce an arbitrary maximum supported width to limit the
-buffer size), do a maximum width conversion and then drop as much of it as
-is necessary to meet the caller's request.
+percpu_rw_semaphore->writer_mutex was only added to simplify the initial
+rewrite, the only thing it protects is clear_fast_ctr() which otherwise
+could be called by multiple writers.  ->rw_sem is enough to serialize the
+writers.
 
-Also fail on negative field widths.
+Kill this mutex and add "atomic_t write_ctr" instead.  The writers
+increment/decrement this counter, the readers check it is zero instead of
+mutex_is_locked().
 
-Uses the deprecated simple_strto*() functions because kstrtoXX() fail on
-non-zero terminated strings.
+Move atomic_add(clear_fast_ctr(), slow_read_ctr) under down_write() to
+avoid the race with other writers.  This is a bit sub-optimal, only the
+first writer needs this and we do not need to exclude the readers at this
+stage.  But this is simple, we do not want another internal lock until we
+add more features.
 
-Signed-off-by: Jan Beulich <jbeulich@suse.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+And this speeds up the write-contended case.  Before this patch the racing
+writers sleep in synchronize_sched_expedited() sequentially, with this
+patch multiple synchronize_sched_expedited's can "overlap" with each
+other.  Note: we can do more optimizations, this is only the first step.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Anton Arapov <anton@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Michal Marek <mmarek@suse.cz>
+Cc: Mikulas Patocka <mpatocka@redhat.com>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Srikar Dronamraju <srikar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |   96 +++++++++++++++++++++++++----------------------
- 1 file changed, 53 insertions(+), 43 deletions(-)
+ include/linux/percpu-rwsem.h |    4 +--
+ lib/percpu-rwsem.c           |   34 +++++++++++++++------------------
+ 2 files changed, 18 insertions(+), 20 deletions(-)
 
-diff -puN lib/vsprintf.c~sscanf-dont-ignore-field-widths-for-numeric-conversions lib/vsprintf.c
---- a/lib/vsprintf.c~sscanf-dont-ignore-field-widths-for-numeric-conversions
-+++ a/lib/vsprintf.c
-@@ -23,12 +23,12 @@
- #include <linux/ctype.h>
- #include <linux/kernel.h>
- #include <linux/kallsyms.h>
-+#include <linux/math64.h>
- #include <linux/uaccess.h>
- #include <linux/ioport.h>
- #include <net/addrconf.h>
+diff -puN include/linux/percpu-rwsem.h~percpu_rw_semaphore-kill-writer_mutex-add-write_ctr include/linux/percpu-rwsem.h
+--- a/include/linux/percpu-rwsem.h~percpu_rw_semaphore-kill-writer_mutex-add-write_ctr
++++ a/include/linux/percpu-rwsem.h
+@@ -1,14 +1,14 @@
+ #ifndef _LINUX_PERCPU_RWSEM_H
+ #define _LINUX_PERCPU_RWSEM_H
  
- #include <asm/page.h>		/* for PAGE_SIZE */
--#include <asm/div64.h>
- #include <asm/sections.h>	/* for dereference_function_descriptor() */
+-#include <linux/mutex.h>
++#include <linux/atomic.h>
+ #include <linux/rwsem.h>
+ #include <linux/percpu.h>
+ #include <linux/wait.h>
  
- #include "kstrtox.h"
-@@ -2016,7 +2016,11 @@ int vsscanf(const char *buf, const char 
- 	char digit;
- 	int num = 0;
- 	u8 qualifier;
--	u8 base;
-+	unsigned int base;
-+	union {
-+		long long s;
-+		unsigned long long u;
-+	} val;
- 	s16 field_width;
- 	bool is_sign;
+ struct percpu_rw_semaphore {
+ 	unsigned int __percpu	*fast_read_ctr;
+-	struct mutex		writer_mutex;
++	atomic_t		write_ctr;
+ 	struct rw_semaphore	rw_sem;
+ 	atomic_t		slow_read_ctr;
+ 	wait_queue_head_t	write_waitq;
+diff -puN lib/percpu-rwsem.c~percpu_rw_semaphore-kill-writer_mutex-add-write_ctr lib/percpu-rwsem.c
+--- a/lib/percpu-rwsem.c~percpu_rw_semaphore-kill-writer_mutex-add-write_ctr
++++ a/lib/percpu-rwsem.c
+@@ -1,4 +1,4 @@
+-#include <linux/mutex.h>
++#include <linux/atomic.h>
+ #include <linux/rwsem.h>
+ #include <linux/percpu.h>
+ #include <linux/wait.h>
+@@ -13,8 +13,8 @@ int percpu_init_rwsem(struct percpu_rw_s
+ 	if (unlikely(!brw->fast_read_ctr))
+ 		return -ENOMEM;
  
-@@ -2056,8 +2060,11 @@ int vsscanf(const char *buf, const char 
+-	mutex_init(&brw->writer_mutex);
+ 	init_rwsem(&brw->rw_sem);
++	atomic_set(&brw->write_ctr, 0);
+ 	atomic_set(&brw->slow_read_ctr, 0);
+ 	init_waitqueue_head(&brw->write_waitq);
+ 	return 0;
+@@ -28,7 +28,7 @@ void percpu_free_rwsem(struct percpu_rw_
  
- 		/* get field width */
- 		field_width = -1;
--		if (isdigit(*fmt))
-+		if (isdigit(*fmt)) {
- 			field_width = skip_atoi(&fmt);
-+			if (field_width <= 0)
-+				break;
-+		}
+ /*
+  * This is the fast-path for down_read/up_read, it only needs to ensure
+- * there is no pending writer (!mutex_is_locked() check) and inc/dec the
++ * there is no pending writer (atomic_read(write_ctr) == 0) and inc/dec the
+  * fast per-cpu counter. The writer uses synchronize_sched_expedited() to
+  * serialize with the preempt-disabled section below.
+  *
+@@ -44,7 +44,7 @@ void percpu_free_rwsem(struct percpu_rw_
+  * If this helper fails the callers rely on the normal rw_semaphore and
+  * atomic_dec_and_test(), so in this case we have the necessary barriers.
+  *
+- * But if it succeeds we do not have any barriers, mutex_is_locked() or
++ * But if it succeeds we do not have any barriers, atomic_read(write_ctr) or
+  * __this_cpu_add() below can be reordered with any LOAD/STORE done by the
+  * reader inside the critical section. See the comments in down_write and
+  * up_write below.
+@@ -54,7 +54,7 @@ static bool update_fast_ctr(struct percp
+ 	bool success = false;
  
- 		/* get conversion qualifier */
- 		qualifier = -1;
-@@ -2157,58 +2164,61 @@ int vsscanf(const char *buf, const char 
- 		    || (base == 0 && !isdigit(digit)))
- 			break;
+ 	preempt_disable();
+-	if (likely(!mutex_is_locked(&brw->writer_mutex))) {
++	if (likely(!atomic_read(&brw->write_ctr))) {
+ 		__this_cpu_add(*brw->fast_read_ctr, val);
+ 		success = true;
+ 	}
+@@ -101,9 +101,8 @@ static int clear_fast_ctr(struct percpu_
+ }
  
-+		if (is_sign)
-+			val.s = qualifier != 'L' ?
-+				simple_strtol(str, &next, base) :
-+				simple_strtoll(str, &next, base);
-+		else
-+			val.u = qualifier != 'L' ?
-+				simple_strtoul(str, &next, base) :
-+				simple_strtoull(str, &next, base);
+ /*
+- * A writer takes ->writer_mutex to exclude other writers and to force the
+- * readers to switch to the slow mode, note the mutex_is_locked() check in
+- * update_fast_ctr().
++ * A writer increments ->write_ctr to force the readers to switch to the
++ * slow mode, note the atomic_read() check in update_fast_ctr().
+  *
+  * After that the readers can only inc/dec the slow ->slow_read_ctr counter,
+  * ->fast_read_ctr is stable. Once the writer moves its sum into the slow
+@@ -114,11 +113,10 @@ static int clear_fast_ctr(struct percpu_
+  */
+ void percpu_down_write(struct percpu_rw_semaphore *brw)
+ {
+-	/* also blocks update_fast_ctr() which checks mutex_is_locked() */
+-	mutex_lock(&brw->writer_mutex);
+-
++	/* tell update_fast_ctr() there is a pending writer */
++	atomic_inc(&brw->write_ctr);
+ 	/*
+-	 * 1. Ensures mutex_is_locked() is visible to any down_read/up_read
++	 * 1. Ensures that write_ctr != 0 is visible to any down_read/up_read
+ 	 *    so that update_fast_ctr() can't succeed.
+ 	 *
+ 	 * 2. Ensures we see the result of every previous this_cpu_add() in
+@@ -130,25 +128,25 @@ void percpu_down_write(struct percpu_rw_
+ 	 */
+ 	synchronize_sched_expedited();
+ 
++	/* exclude other writers, and block the new readers completely */
++	down_write(&brw->rw_sem);
 +
-+		if (field_width > 0 && next - str > field_width) {
-+			if (base == 0)
-+				_parse_integer_fixup_radix(str, &base);
-+			while (next - str > field_width) {
-+				if (is_sign)
-+					val.s = div_s64(val.s, base);
-+				else
-+					val.u = div_u64(val.u, base);
-+				--next;
-+			}
-+		}
-+
- 		switch (qualifier) {
- 		case 'H':	/* that's 'hh' in format */
--			if (is_sign) {
--				signed char *s = (signed char *)va_arg(args, signed char *);
--				*s = (signed char)simple_strtol(str, &next, base);
--			} else {
--				unsigned char *s = (unsigned char *)va_arg(args, unsigned char *);
--				*s = (unsigned char)simple_strtoul(str, &next, base);
--			}
-+			if (is_sign)
-+				*va_arg(args, signed char *) = val.s;
-+			else
-+				*va_arg(args, unsigned char *) = val.u;
- 			break;
- 		case 'h':
--			if (is_sign) {
--				short *s = (short *)va_arg(args, short *);
--				*s = (short)simple_strtol(str, &next, base);
--			} else {
--				unsigned short *s = (unsigned short *)va_arg(args, unsigned short *);
--				*s = (unsigned short)simple_strtoul(str, &next, base);
--			}
-+			if (is_sign)
-+				*va_arg(args, short *) = val.s;
-+			else
-+				*va_arg(args, unsigned short *) = val.u;
- 			break;
- 		case 'l':
--			if (is_sign) {
--				long *l = (long *)va_arg(args, long *);
--				*l = simple_strtol(str, &next, base);
--			} else {
--				unsigned long *l = (unsigned long *)va_arg(args, unsigned long *);
--				*l = simple_strtoul(str, &next, base);
--			}
-+			if (is_sign)
-+				*va_arg(args, long *) = val.s;
-+			else
-+				*va_arg(args, unsigned long *) = val.u;
- 			break;
- 		case 'L':
--			if (is_sign) {
--				long long *l = (long long *)va_arg(args, long long *);
--				*l = simple_strtoll(str, &next, base);
--			} else {
--				unsigned long long *l = (unsigned long long *)va_arg(args, unsigned long long *);
--				*l = simple_strtoull(str, &next, base);
--			}
-+			if (is_sign)
-+				*va_arg(args, long long *) = val.s;
-+			else
-+				*va_arg(args, unsigned long long *) = val.u;
- 			break;
- 		case 'Z':
- 		case 'z':
--		{
--			size_t *s = (size_t *)va_arg(args, size_t *);
--			*s = (size_t)simple_strtoul(str, &next, base);
--		}
--		break;
-+			*va_arg(args, size_t *) = val.u;
-+			break;
- 		default:
--			if (is_sign) {
--				int *i = (int *)va_arg(args, int *);
--				*i = (int)simple_strtol(str, &next, base);
--			} else {
--				unsigned int *i = (unsigned int *)va_arg(args, unsigned int*);
--				*i = (unsigned int)simple_strtoul(str, &next, base);
--			}
-+			if (is_sign)
-+				*va_arg(args, int *) = val.s;
-+			else
-+				*va_arg(args, unsigned int *) = val.u;
- 			break;
- 		}
- 		num++;
-_
-
-Patches currently in -mm which might be from JBeulich@suse.com are
-
-origin.patch
-linux-next.patch
-
+ 	/* nobody can use fast_read_ctr, move its sum into slow_read_ctr */
+ 	atomic_add(clear_fast_ctr(brw), &brw->slow_read_ctr);
+ 
+-	/* block the new readers completely */
+-	down_write(&brw->rw_sem);
+-
+ 	/* wait for all readers to complete their percpu_up_read() */
+ 	wait_event(brw->write_waitq, !atomic_read(&brw->slow_read_ctr));
+ }
+ 
+ void percpu_up_write(struct percpu_rw_semaphore *brw)
+ {
+-	/* allow the new readers, but only the slow-path */
++	/* release the lock, but the readers can't use the fast-path */
+ 	up_write(&brw->rw_sem);
