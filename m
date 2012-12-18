@@ -1,84 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] memcg-kmem-controller-infrastructure-replace-__always_inline-with-plain-inline.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 14:13:46 -0800
-Message-ID: <20121218221347.2877E200059@hpza10.eem.corp.google.com>
+Subject: [folded-dropped] memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears-simplify-ida-initialization.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 14:14:08 -0800
+Message-ID: <20121218221408.EFCA920004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:57866 "EHLO
+Received: from mail-we0-f202.google.com ([74.125.82.202]:58641 "EHLO
 	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753764Ab2LRWNu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 17:13:50 -0500
-Received: by mail-we0-f202.google.com with SMTP id t57so67893wey.1
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 14:13:48 -0800 (PST)
+	with ESMTP id S1753764Ab2LRWOL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 17:14:11 -0500
+Received: by mail-we0-f202.google.com with SMTP id t57so67868wey.5
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 14:14:10 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: glommer@parallels.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: replace __always_inline with plain inline
+     Subject: memcg: simplify ida initialization
 has been removed from the -mm tree.  Its filename was
-     memcg-kmem-controller-infrastructure-replace-__always_inline-with-plain-inline.patch
+     memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears-simplify-ida-initialization.patch
 
-This patch was dropped because it was folded into memcg-kmem-controller-infrastructure.patch
+This patch was dropped because it was folded into memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears.patch
 
 ------------------------------------------------------
 From: Glauber Costa <glommer@parallels.com>
-Subject: memcg: replace __always_inline with plain inline
+Subject: memcg: simplify ida initialization
 
-Following the pattern found in the allocators, where we do our best to the
-fast paths function-call free, all the externally visible functions for
-kmemcg were marked __always_inline.
-
-It is fair to say, however, that this should be up to the compiler.  We
-will still keep as much of the flag testing as we can in memcontrol.h to
-give the compiler the option to inline it, but won't force it.
-
-I tested this with 4.7.2, it will inline all three functions anyway when
-compiling with -O2, and will refrain from it when compiling with -Os. 
-This seems like a good behavior.
+As suggested by akpm, change the manual initialization of our kmem
+index to DEFINE_IDA()
 
 Signed-off-by: Glauber Costa <glommer@parallels.com>
 Cc: Michal Hocko <mhocko@suse.cz>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-kmem-controller-infrastructure-replace-__always_inline-with-plain-inline include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-kmem-controller-infrastructure-replace-__always_inline-with-plain-inline
-+++ a/include/linux/memcontrol.h
-@@ -451,7 +451,7 @@ void __memcg_kmem_uncharge_pages(struct 
-  * We return true automatically if this allocation is not to be accounted to
-  * any memcg.
+diff -puN mm/memcontrol.c~memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears-simplify-ida-initialization mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears-simplify-ida-initialization
++++ a/mm/memcontrol.c
+@@ -571,7 +571,7 @@ static void disarm_sock_keys(struct mem_
+  * memcg_limited_groups_array_size.  It will double each time we have to
+  * increase it.
   */
--static __always_inline bool
-+static inline bool
- memcg_kmem_newpage_charge(gfp_t gfp, struct mem_cgroup **memcg, int order)
- {
- 	if (!memcg_kmem_enabled())
-@@ -483,7 +483,7 @@ memcg_kmem_newpage_charge(gfp_t gfp, str
-  *
-  * there is no need to specify memcg here, since it is embedded in page_cgroup
-  */
--static __always_inline void
-+static inline void
- memcg_kmem_uncharge_pages(struct page *page, int order)
- {
- 	if (memcg_kmem_enabled())
-@@ -501,7 +501,7 @@ memcg_kmem_uncharge_pages(struct page *p
-  * charges. Otherwise, it will commit the memcg given by @memcg to the
-  * corresponding page_cgroup.
-  */
--static __always_inline void
-+static inline void
- memcg_kmem_commit_charge(struct page *page, struct mem_cgroup *memcg, int order)
- {
- 	if (memcg_kmem_enabled() && memcg)
+-static struct ida kmem_limited_groups;
++static DEFINE_IDA(kmem_limited_groups);
+ static int memcg_limited_groups_array_size;
+ /*
+  * MIN_SIZE is different than 1, because we would like to avoid going through
+@@ -5252,9 +5252,6 @@ static int memcg_init_kmem(struct mem_cg
+ 	if (ret)
+ 		return ret;
+ 
+-	if (mem_cgroup_is_root(memcg))
+-		ida_init(&kmem_limited_groups);
+-
+ 	return mem_cgroup_sockets_init(memcg, ss);
+ };
+ 
 _
 
 Patches currently in -mm which might be from glommer@parallels.com are
@@ -102,7 +85,6 @@ slab-slub-struct-memcg_params.patch
 slab-annotate-on-slab-caches-nodelist-locks.patch
 slab-slub-consider-a-memcg-parameter-in-kmem_create_cache.patch
 memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears.patch
-memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears-simplify-ida-initialization.patch
 memcg-infrastructure-to-match-an-allocation-to-the-right-cache.patch
 memcg-skip-memcg-kmem-allocations-in-specified-code-regions.patch
 memcg-skip-memcg-kmem-allocations-in-specified-code-regions-remove-test-for-current-mm-in-memcg_stop-resume_kmem_account.patch
