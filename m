@@ -1,58 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-video-backlight-lm3639_blc-fix-up-world-writable-sysfs-file.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 12:05:30 -0800
-Message-ID: <20121218200530.AAFB782004A@wpzn4.hot.corp.google.com>
+Subject: [merged] backlight-88pm860x_bl-remove-an-unnecessary-line-continuation.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 12:05:39 -0800
+Message-ID: <20121218200539.9E15E82004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:63873 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753636Ab2LRUFb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:05:31 -0500
-Received: by mail-qa0-f73.google.com with SMTP id a19so158565qad.4
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:05:31 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:46685 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754844Ab2LRUFk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:05:40 -0500
+Received: by mail-ye0-f202.google.com with SMTP id l7so125641yen.3
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:05:39 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: axel.lin@ingics.com, gshark.jeong@gmail.com, mm-commits@vger.kernel.org
+To: jg1.han@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/video/backlight/lm3639_bl.c: fix up world writable sysfs file
+     Subject: backlight: 88pm860x_bl: remove an unnecessary line continuation
 has been removed from the -mm tree.  Its filename was
-     drivers-video-backlight-lm3639_blc-fix-up-world-writable-sysfs-file.patch
+     backlight-88pm860x_bl-remove-an-unnecessary-line-continuation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Axel Lin <axel.lin@ingics.com>
-Subject: drivers/video/backlight/lm3639_bl.c: fix up world writable sysfs file
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: backlight: 88pm860x_bl: remove an unnecessary line continuation
 
-We don't need the sysfs file to be world writable or group writable.
-This file is write-only, change it to S_IWUSR (0200).
+Remove an unnecessary line continuation in pm860x_backlight_probe(). 
+Also, a checkpatch warning is fixed as below:
 
-Signed-off-by: Axel Lin <axel.lin@ingics.com>
-Acked-by: "G.Shark Jeong" <gshark.jeong@gmail.com>
+WARNING: Avoid unnecessary line continuations
+
+[akpm@linux-foundation.org: remove newline]
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/lm3639_bl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/backlight/88pm860x_bl.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/video/backlight/lm3639_bl.c~drivers-video-backlight-lm3639_blc-fix-up-world-writable-sysfs-file drivers/video/backlight/lm3639_bl.c
---- a/drivers/video/backlight/lm3639_bl.c~drivers-video-backlight-lm3639_blc-fix-up-world-writable-sysfs-file
-+++ a/drivers/video/backlight/lm3639_bl.c
-@@ -214,7 +214,7 @@ out_input:
- 
- }
- 
--static DEVICE_ATTR(bled_mode, 0666, NULL, lm3639_bled_mode_store);
-+static DEVICE_ATTR(bled_mode, S_IWUSR, NULL, lm3639_bled_mode_store);
- 
- /* torch */
- static void lm3639_torch_brightness_set(struct led_classdev *cdev,
+diff -puN drivers/video/backlight/88pm860x_bl.c~backlight-88pm860x_bl-remove-an-unnecessary-line-continuation drivers/video/backlight/88pm860x_bl.c
+--- a/drivers/video/backlight/88pm860x_bl.c~backlight-88pm860x_bl-remove-an-unnecessary-line-continuation
++++ a/drivers/video/backlight/88pm860x_bl.c
+@@ -228,8 +228,7 @@ static int pm860x_backlight_probe(struct
+ 	sprintf(name, "backlight-%d", pdev->id);
+ 	data->port = pdev->id;
+ 	data->chip = chip;
+-	data->i2c = (chip->id == CHIP_PM8606) ? chip->client	\
+-			: chip->companion;
++	data->i2c = (chip->id == CHIP_PM8606) ? chip->client : chip->companion;
+ 	data->current_brightness = MAX_BRIGHTNESS;
+ 	if (pm860x_backlight_dt_init(pdev, data, name)) {
+ 		if (pdata) {
 _
 
-Patches currently in -mm which might be from axel.lin@ingics.com are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
 origin.patch
-linux-next.patch
+backlight-locomolcd-fix-checkpatch-error-and-warning.patch
 
