@@ -1,109 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-pid-status-add-seccomp-field.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 12:09:14 -0800
-Message-ID: <20121218200915.2AAED20004E@hpza10.eem.corp.google.com>
+Subject: [merged] proc-pid-status-show-all-supplementary-groups.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 12:09:18 -0800
+Message-ID: <20121218200919.0FF0020004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:59070 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755249Ab2LRUJS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:09:18 -0500
-Received: by mail-lb0-f202.google.com with SMTP id s4so70201lbc.5
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:09:16 -0800 (PST)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:64685 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755252Ab2LRUJV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:09:21 -0500
+Received: by mail-wi0-f202.google.com with SMTP id hn17so63362wib.5
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:09:20 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, aarcange@redhat.com, gorcunov@openvz.org, jmorris@namei.org, serge.hallyn@ubuntu.com, mm-commits@vger.kernel.org
+To: artem.bityutskiy@linux.intel.com, keescook@chromium.org, serge.hallyn@ubuntu.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: /proc/pid/status: add "Seccomp" field
+     Subject: proc: pid/status: show all supplementary groups
 has been removed from the -mm tree.  Its filename was
-     proc-pid-status-add-seccomp-field.patch
+     proc-pid-status-show-all-supplementary-groups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: /proc/pid/status: add "Seccomp" field
+From: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+Subject: proc: pid/status: show all supplementary groups
 
-It is currently impossible to examine the state of seccomp for a given
-process.  While attaching with gdb and attempting "call
-prctl(PR_GET_SECCOMP,...)" will work with some situations, it is not
-reliable.  If the process is in seccomp mode 1, this query will kill the
-process (prctl not allowed), if the process is in mode 2 with prctl not
-allowed, it will similarly be killed, and in weird cases, if prctl is
-filtered to return errno 0, it can look like seccomp is disabled.
+We display a list of supplementary group for each process in
+/proc/<pid>/status.  However, we show only the first 32 groups, not all of
+them.
 
-When reviewing the state of running processes, there should be a way to
-externally examine the seccomp mode.  ("Did this build of Chrome end up
-using seccomp?" "Did my distro ship ssh with seccomp enabled?")
+Although this is rare, but sometimes processes do have more than 32
+supplementary groups, and this kernel limitation breaks user-space apps
+that rely on the group list in /proc/<pid>/status.
 
-This adds the "Seccomp" line to /proc/$pid/status.
+Number 32 comes from the internal NGROUPS_SMALL macro which defines the
+length for the internal kernel "small" groups buffer.  There is no
+apparent reason to limit to this value.
 
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reviewed-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: James Morris <jmorris@namei.org>
+This patch removes the 32 groups printing limit.
+
+The Linux kernel limits the amount of supplementary groups by NGROUPS_MAX,
+which is currently set to 65536.  And this is the maximum count of groups
+we may possibly print.
+
+Signed-off-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
 Acked-by: Serge E. Hallyn <serge.hallyn@ubuntu.com>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    2 ++
- fs/proc/array.c                    |    8 ++++++++
- 2 files changed, 10 insertions(+)
+ fs/proc/array.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/filesystems/proc.txt~proc-pid-status-add-seccomp-field Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~proc-pid-status-add-seccomp-field
-+++ a/Documentation/filesystems/proc.txt
-@@ -181,6 +181,7 @@ read the file /proc/PID/status:
-   CapPrm: 0000000000000000
-   CapEff: 0000000000000000
-   CapBnd: ffffffffffffffff
-+  Seccomp:        0
-   voluntary_ctxt_switches:        0
-   nonvoluntary_ctxt_switches:     1
- 
-@@ -237,6 +238,7 @@ Table 1-2: Contents of the status files 
-  CapPrm                      bitmap of permitted capabilities
-  CapEff                      bitmap of effective capabilities
-  CapBnd                      bitmap of capabilities bounding set
-+ Seccomp                     seccomp mode, like prctl(PR_GET_SECCOMP, ...)
-  Cpus_allowed                mask of CPUs on which this process may run
-  Cpus_allowed_list           Same as previous, but in "list format"
-  Mems_allowed                mask of memory nodes allowed to this process
-diff -puN fs/proc/array.c~proc-pid-status-add-seccomp-field fs/proc/array.c
---- a/fs/proc/array.c~proc-pid-status-add-seccomp-field
+diff -puN fs/proc/array.c~proc-pid-status-show-all-supplementary-groups fs/proc/array.c
+--- a/fs/proc/array.c~proc-pid-status-show-all-supplementary-groups
 +++ a/fs/proc/array.c
-@@ -336,6 +336,13 @@ static inline void task_cap(struct seq_f
- 	render_cap_t(m, "CapBnd:\t", &cap_bset);
- }
+@@ -212,7 +212,7 @@ static inline void task_state(struct seq
+ 	group_info = cred->group_info;
+ 	task_unlock(p);
  
-+static inline void task_seccomp(struct seq_file *m, struct task_struct *p)
-+{
-+#ifdef CONFIG_SECCOMP
-+	seq_printf(m, "Seccomp:\t%d\n", p->seccomp.mode);
-+#endif
-+}
-+
- static inline void task_context_switch_counts(struct seq_file *m,
- 						struct task_struct *p)
- {
-@@ -369,6 +376,7 @@ int proc_pid_status(struct seq_file *m, 
- 	}
- 	task_sig(m, task);
- 	task_cap(m, task);
-+	task_seccomp(m, task);
- 	task_cpus_allowed(m, task);
- 	cpuset_task_status_allowed(m, task);
- 	task_context_switch_counts(m, task);
+-	for (g = 0; g < min(group_info->ngroups, NGROUPS_SMALL); g++)
++	for (g = 0; g < group_info->ngroups; g++)
+ 		seq_printf(m, "%d ",
+ 			   from_kgid_munged(user_ns, GROUP_AT(group_info, g)));
+ 	put_cred(cred);
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from artem.bityutskiy@linux.intel.com are
 
 origin.patch
 linux-next.patch
-audit-create-explicit-audit_seccomp-event-type.patch
-audit-catch-possible-null-audit-buffers.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-exec-do-not-leave-bprm-interp-on-stack.patch
 
