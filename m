@@ -1,65 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [merged] backlight-da903x_bl-use-dev_get_drvdata-instead-of-platform_get_drvdata.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 12:03:49 -0800
-Message-ID: <20121218200350.33B4E20004E@hpza10.eem.corp.google.com>
+Subject: [merged] backlight-88pm860x_bl-fix-checkpatch-warning.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 12:03:53 -0800
+Message-ID: <20121218200353.A423D82004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f201.google.com ([74.125.82.201]:59713 "EHLO
-	mail-we0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753636Ab2LRUDw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:03:52 -0500
-Received: by mail-we0-f201.google.com with SMTP id t11so63380wey.4
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:03:51 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:64282 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753636Ab2LRUDy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:03:54 -0500
+Received: by mail-ye0-f202.google.com with SMTP id l7so125245yen.5
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:03:54 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jg1.han@samsung.com, mike@compulab.co.il, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: jg1.han@samsung.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight: da903x_bl: use dev_get_drvdata() instead of platform_get_drvdata()
+     Subject: backlight: 88pm860x_bl: fix checkpatch warning
 has been removed from the -mm tree.  Its filename was
-     backlight-da903x_bl-use-dev_get_drvdata-instead-of-platform_get_drvdata.patch
+     backlight-88pm860x_bl-fix-checkpatch-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: da903x_bl: use dev_get_drvdata() instead of platform_get_drvdata()
+Subject: backlight: 88pm860x_bl: fix checkpatch warning
 
-dev_get_drvdata() can be used instead of platform_get_drvdata()
-to make the code smaller.
+This patch fixes the checkpatch warning as below:
+
+WARNING: quoted string split across lines
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Mike Rapoport <mike@compulab.co.il>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/da903x_bl.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/video/backlight/88pm860x_bl.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/backlight/da903x_bl.c~backlight-da903x_bl-use-dev_get_drvdata-instead-of-platform_get_drvdata drivers/video/backlight/da903x_bl.c
---- a/drivers/video/backlight/da903x_bl.c~backlight-da903x_bl-use-dev_get_drvdata-instead-of-platform_get_drvdata
-+++ a/drivers/video/backlight/da903x_bl.c
-@@ -164,15 +164,14 @@ static int da903x_backlight_remove(struc
- #ifdef CONFIG_PM
- static int da903x_backlight_suspend(struct device *dev)
- {
--	struct platform_device *pdev = to_platform_device(dev);
--	struct backlight_device *bl = platform_get_drvdata(pdev);
-+	struct backlight_device *bl = dev_get_drvdata(dev);
-+
- 	return da903x_backlight_set(bl, 0);
+diff -puN drivers/video/backlight/88pm860x_bl.c~backlight-88pm860x_bl-fix-checkpatch-warning drivers/video/backlight/88pm860x_bl.c
+--- a/drivers/video/backlight/88pm860x_bl.c~backlight-88pm860x_bl-fix-checkpatch-warning
++++ a/drivers/video/backlight/88pm860x_bl.c
+@@ -117,8 +117,8 @@ static int pm860x_backlight_set(struct b
+ 	data->current_brightness = value;
+ 	return 0;
+ out:
+-	dev_dbg(chip->dev, "set brightness %d failure with return "
+-		"value:%d\n", value, ret);
++	dev_dbg(chip->dev, "set brightness %d failure with return value: %d\n",
++		value, ret);
+ 	return ret;
  }
  
- static int da903x_backlight_resume(struct device *dev)
- {
--	struct platform_device *pdev = to_platform_device(dev);
--	struct backlight_device *bl = platform_get_drvdata(pdev);
-+	struct backlight_device *bl = dev_get_drvdata(dev);
- 
- 	backlight_update_status(bl);
- 	return 0;
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
