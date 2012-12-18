@@ -1,53 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] aoe-describe-the-behavior-of-the-err-character-device.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 12:09:35 -0800
-Message-ID: <20121218200935.95AFE100048@wpzn3.hot.corp.google.com>
+Subject: [merged] aoe-print-warning-regarding-a-common-reason-for-dropped-transmits.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 12:09:38 -0800
+Message-ID: <20121218200939.1B414200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:56211 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755262Ab2LRUJg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:09:36 -0500
-Received: by mail-yh0-f74.google.com with SMTP id 10so125562yhl.3
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:09:36 -0800 (PST)
+Received: from mail-wi0-f201.google.com ([209.85.212.201]:59048 "EHLO
+	mail-wi0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755262Ab2LRUJl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:09:41 -0500
+Received: by mail-wi0-f201.google.com with SMTP id hm2so63391wib.4
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:09:40 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ecashin@coraid.com, mm-commits@vger.kernel.org
+To: ecashin@coraid.com, dan.carpenter@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: aoe: describe the behavior of the "err" character device
+     Subject: aoe: print warning regarding a common reason for dropped transmits
 has been removed from the -mm tree.  Its filename was
-     aoe-describe-the-behavior-of-the-err-character-device.patch
+     aoe-print-warning-regarding-a-common-reason-for-dropped-transmits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Ed Cashin <ecashin@coraid.com>
-Subject: aoe: describe the behavior of the "err" character device
+Subject: aoe: print warning regarding a common reason for dropped transmits
+
+Dropped transmits are not common, but when they do occur, increasing
+the transmit queue length often helps.
 
 Signed-off-by: Ed Cashin <ecashin@coraid.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoechr.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/block/aoe/aoenet.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN drivers/block/aoe/aoechr.c~aoe-describe-the-behavior-of-the-err-character-device drivers/block/aoe/aoechr.c
---- a/drivers/block/aoe/aoechr.c~aoe-describe-the-behavior-of-the-err-character-device
-+++ a/drivers/block/aoe/aoechr.c
-@@ -39,6 +39,11 @@ struct ErrMsg {
- };
+diff -puN drivers/block/aoe/aoenet.c~aoe-print-warning-regarding-a-common-reason-for-dropped-transmits drivers/block/aoe/aoenet.c
+--- a/drivers/block/aoe/aoenet.c~aoe-print-warning-regarding-a-common-reason-for-dropped-transmits
++++ a/drivers/block/aoe/aoenet.c
+@@ -52,13 +52,18 @@ static struct sk_buff_head skbtxq;
  
- static DEFINE_MUTEX(aoechr_mutex);
-+
-+/* A ring buffer of error messages, to be read through
-+ * "/dev/etherd/err".  When no messages are present,
-+ * readers will block waiting for messages to appear.
-+ */
- static struct ErrMsg emsgs[NMSG];
- static int emsgs_head_idx, emsgs_tail_idx;
- static struct completion emsgs_comp;
+ /* enters with txlock held */
+ static int
+-tx(void)
++tx(void) __must_hold(&txlock)
+ {
+ 	struct sk_buff *skb;
++	struct net_device *ifp;
+ 
+ 	while ((skb = skb_dequeue(&skbtxq))) {
+ 		spin_unlock_irq(&txlock);
+-		dev_queue_xmit(skb);
++		ifp = skb->dev;
++		if (dev_queue_xmit(skb) == NET_XMIT_DROP && net_ratelimit())
++			pr_warn("aoe: packet could not be sent on %s.  %s\n",
++				ifp ? ifp->name : "netif",
++				"consider increasing tx_queue_len");
+ 		spin_lock_irq(&txlock);
+ 	}
+ 	return 0;
 _
 
 Patches currently in -mm which might be from ecashin@coraid.com are
