@@ -1,57 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-warn-when-declaring-struct-spinlock-foo.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 12:06:57 -0800
-Message-ID: <20121218200657.B8DB8100047@wpzn3.hot.corp.google.com>
+Subject: [merged] checkpatch-add-strict-test-for-switch-default-missing-break.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 12:07:00 -0800
+Message-ID: <20121218200700.BA11282004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:50713 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755039Ab2LRUG6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:06:58 -0500
-Received: by mail-yh0-f74.google.com with SMTP id 10so125277yhl.3
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:06:58 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:55620 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754978Ab2LRUHB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:07:01 -0500
+Received: by mail-qc0-f202.google.com with SMTP id s25so125705qcq.5
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:07:01 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mcgrof@do-not-panic.com, mm-commits@vger.kernel.org
+To: joe@perches.com, apw@canonical.com, peter.senna@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: warn when declaring "struct spinlock foo;"
+     Subject: checkpatch: add --strict test for switch/default missing break
 has been removed from the -mm tree.  Its filename was
-     checkpatch-warn-when-declaring-struct-spinlock-foo.patch
+     checkpatch-add-strict-test-for-switch-default-missing-break.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: warn when declaring "struct spinlock foo;"
+Subject: checkpatch: add --strict test for switch/default missing break
 
-spinlock_t should always be used.
+switch default case is sometimes written as "default:;".  This can cause
+new cases added below the default to be defective.
 
+Suggest adding a break; after empty default cases to avoid fallthrough
+defects.
+
+Fixed indentation in the other semicolon test above it.
+
+Suggested-by: Peter Senna Tschudin <peter.senna@gmail.com>
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 ++++++
- 1 file changed, 6 insertions(+)
+ scripts/checkpatch.pl |   18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-warn-when-declaring-struct-spinlock-foo scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-warn-when-declaring-struct-spinlock-foo
+diff -puN scripts/checkpatch.pl~checkpatch-add-strict-test-for-switch-default-missing-break scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-strict-test-for-switch-default-missing-break
 +++ a/scripts/checkpatch.pl
-@@ -3336,6 +3336,12 @@ sub process {
- 			     "Avoid line continuations in quoted strings\n" . $herecurr);
- 		}
+@@ -3448,8 +3448,22 @@ sub process {
  
-+# check for struct spinlock declarations
-+		if ($line =~ /^.\s*\bstruct\s+spinlock\s+\w+\s*;/) {
-+			WARN("USE_SPINLOCK_T",
-+			     "struct spinlock should be spinlock_t\n" . $herecurr);
+ # check for multiple semicolons
+ 		if ($line =~ /;\s*;\s*$/) {
+-		    WARN("ONE_SEMICOLON",
+-			 "Statements terminations use 1 semicolon\n" . $herecurr);
++			WARN("ONE_SEMICOLON",
++			     "Statements terminations use 1 semicolon\n" . $herecurr);
 +		}
 +
- # Check for misused memsets
- 		if ($^V && $^V ge 5.10.0 &&
- 		    defined $stat &&
++# check for switch/default statements without a break;
++		if ($^V && $^V ge 5.10.0 &&
++		    defined $stat &&
++		    $stat =~ /^\+[$;\s]*(?:case[$;\s]+\w+[$;\s]*:[$;\s]*|)*[$;\s]*\bdefault[$;\s]*:[$;\s]*;/g) {
++			my $ctx = '';
++			my $herectx = $here . "\n";
++			my $cnt = statement_rawlines($stat);
++			for (my $n = 0; $n < $cnt; $n++) {
++				$herectx .= raw_line($linenr, $n) . "\n";
++			}
++			WARN("DEFAULT_NO_BREAK",
++			     "switch default: should use break\n" . $herectx);
+ 		}
+ 
+ # check for gcc specific __FUNCTION__
 _
 
 Patches currently in -mm which might be from joe@perches.com are
