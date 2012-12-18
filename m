@@ -1,67 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 14:43:09 -0800
-Message-ID: <20121218224309.81647100047@wpzn3.hot.corp.google.com>
+Subject: [folded-merged] ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 14:48:49 -0800
+Message-ID: <20121218224849.ED8B5200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:41856 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751228Ab2LRWnK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 17:43:10 -0500
-Received: by mail-ye0-f202.google.com with SMTP id l7so148380yen.5
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 14:43:10 -0800 (PST)
+Received: from mail-wg0-f73.google.com ([74.125.82.73]:46037 "EHLO
+	mail-wg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751367Ab2LRWsw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 17:48:52 -0500
+Received: by mail-wg0-f73.google.com with SMTP id dt12so68670wgb.2
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 14:48:51 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hch@infradead.org, htl10@users.sourceforge.net, slava@dubeyko.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, skinsbursky@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix
+     Subject: ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix.patch
+     ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into hfsplus-rework-processing-of-hfs_btree_write-returned-error.patch
+This patch was dropped because it was folded into ipc-add-sysctl-to-specify-desired-next-object-id.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix
+Subject: ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes
 
-reduce scope of `err', print errno on error
+ERROR: space required before the open parenthesis '('
+#123: FILE: ipc/util.c:285:
++		if(ids->seq > ids->seq_max)
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Hin-Tak Leung <htl10@users.sourceforge.net>
-Cc: Vyacheslav Dubeyko <slava@dubeyko.com>
+total: 1 errors, 0 warnings, 94 lines checked
+
+./patches/ipc-add-sysctl-to-specify-desired-next-object-id.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Stanislav Kinsbursky <skinsbursky@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/super.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ ipc/util.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/hfsplus/super.c~hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix fs/hfsplus/super.c
---- a/fs/hfsplus/super.c~hfsplus-rework-processing-of-hfs_btree_write-returned-error-fix
-+++ a/fs/hfsplus/super.c
-@@ -100,7 +100,6 @@ static int hfsplus_system_write_inode(st
- 	struct hfsplus_vh *vhdr = sbi->s_vhdr;
- 	struct hfsplus_fork_raw *fork;
- 	struct hfs_btree *tree = NULL;
--	int err;
+diff -puN ipc/util.c~ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes ipc/util.c
+--- a/ipc/util.c~ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes
++++ a/ipc/util.c
+@@ -282,7 +282,7 @@ int ipc_addid(struct ipc_ids* ids, struc
  
- 	switch (inode->i_ino) {
- 	case HFSPLUS_EXT_CNID:
-@@ -131,9 +130,10 @@ static int hfsplus_system_write_inode(st
- 	}
- 	hfsplus_inode_write_fork(inode, fork);
- 	if (tree) {
--		err = hfs_btree_write(tree);
-+		int err = hfs_btree_write(tree);
- 		if (err) {
--			printk(KERN_ERR "hfs: unable to write b-tree\n");
-+			printk(KERN_ERR "hfs: unable to write b-tree: %d\n",
-+				err);
- 			dprint(DBG_INODE, "hfsplus_system_write_inode: %lu\n",
- 				inode->i_ino);
- 			return err;
+ 	if (next_id < 0) {
+ 		new->seq = ids->seq++;
+-		if(ids->seq > ids->seq_max)
++		if (ids->seq > ids->seq_max)
+ 			ids->seq = 0;
+ 	} else {
+ 		new->seq = ipcid_to_seqx(next_id);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,7 +93,7 @@ drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch
 binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
 hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
 hfsplus-rework-processing-of-hfs_btree_write-returned-error.patch
-ipc-add-sysctl-to-specify-desired-next-object-id-checkpatch-fixes.patch
+ipc-add-sysctl-to-specify-desired-next-object-id.patch
 ipc-message-queue-receive-cleanup-checkpatch-fixes.patch
 ipc-convert-prepare_copy-from-macro-to-function-fix.patch
 dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
