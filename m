@@ -1,36 +1,26 @@
 From: akpm@linux-foundation.org
-Subject: + sendfile-allows-bypassing-of-notifier-events-fix.patch added to -mm tree
-Date: Tue, 18 Dec 2012 15:17:00 -0800
-Message-ID: <20121218231701.91414200059@hpza10.eem.corp.google.com>
+Subject: [folded-merged] sendfile-allows-bypassing-of-notifier-events-fix.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 15:17:10 -0800
+Message-ID: <20121218231711.9463420004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f74.google.com ([209.85.215.74]:51872 "EHLO
-	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751367Ab2LRXRF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 18:17:05 -0500
-Received: by mail-la0-f74.google.com with SMTP id v3so69633lag.5
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 15:17:03 -0800 (PST)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:37082 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751367Ab2LRXRO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 18:17:14 -0500
+Received: by mail-bk0-f74.google.com with SMTP id je9so69470bkc.3
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 15:17:13 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@linux.intel.com, axboe@kernel.dk, david@fromorbit.com, swolchok@umich.edu
+To: akpm@linux-foundation.org, alan@linux.intel.com, axboe@kernel.dk, david@fromorbit.com, swolchok@umich.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
      Subject: sendfile-allows-bypassing-of-notifier-events-fix
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      sendfile-allows-bypassing-of-notifier-events-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into sendfile-allows-bypassing-of-notifier-events.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
@@ -90,7 +80,7 @@ drop_caches-add-some-documentation-and-info-messsge.patch
 swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
 memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
 scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-sendfile-allows-bypassing-of-notifier-events-fix.patch
+sendfile-allows-bypassing-of-notifier-events.patch
 drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
 drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
 binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
