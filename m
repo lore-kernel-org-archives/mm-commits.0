@@ -1,55 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] backlight-platform_lcd-fix-checkpatch-error.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 12:04:37 -0800
-Message-ID: <20121218200437.9A2EF100047@wpzn3.hot.corp.google.com>
+Subject: [merged] backlight-tdo24m-fix-checkpatch-warning.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 12:04:40 -0800
+Message-ID: <20121218200441.19A4820004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:38622 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753636Ab2LRUEi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:04:38 -0500
-Received: by mail-qa0-f73.google.com with SMTP id a19so158404qad.4
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:04:38 -0800 (PST)
+Received: from mail-la0-f73.google.com ([209.85.215.73]:51921 "EHLO
+	mail-la0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753636Ab2LRUEn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:04:43 -0500
+Received: by mail-la0-f73.google.com with SMTP id d3so63383lah.2
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:04:42 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jg1.han@samsung.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight: platform_lcd: fix checkpatch error
+     Subject: backlight: tdo24m: fix checkpatch warning
 has been removed from the -mm tree.  Its filename was
-     backlight-platform_lcd-fix-checkpatch-error.patch
+     backlight-tdo24m-fix-checkpatch-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: platform_lcd: fix checkpatch error
+Subject: backlight: tdo24m: fix checkpatch warning
 
-This patch fixes the checkpatch error as below:
+This patch fixes the checkpatch warning as below:
 
-ERROR: spaces prohibited around that ':' (ctx:WxW)
+WARNING: please, no space before tabs
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/platform_lcd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/backlight/tdo24m.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/backlight/platform_lcd.c~backlight-platform_lcd-fix-checkpatch-error drivers/video/backlight/platform_lcd.c
---- a/drivers/video/backlight/platform_lcd.c~backlight-platform_lcd-fix-checkpatch-error
-+++ a/drivers/video/backlight/platform_lcd.c
-@@ -27,7 +27,7 @@ struct platform_lcd {
- 	struct plat_lcd_data	*pdata;
- 
- 	unsigned int		 power;
--	unsigned int		 suspended : 1;
-+	unsigned int		 suspended:1;
+diff -puN drivers/video/backlight/tdo24m.c~backlight-tdo24m-fix-checkpatch-warning drivers/video/backlight/tdo24m.c
+--- a/drivers/video/backlight/tdo24m.c~backlight-tdo24m-fix-checkpatch-warning
++++ a/drivers/video/backlight/tdo24m.c
+@@ -2,7 +2,7 @@
+  * tdo24m - SPI-based drivers for Toppoly TDO24M series LCD panels
+  *
+  * Copyright (C) 2008 Marvell International Ltd.
+- * 	Eric Miao <eric.miao@marvell.com>
++ *	Eric Miao <eric.miao@marvell.com>
+  *
+  *  This program is free software; you can redistribute it and/or modify
+  *  it under the terms of the GNU General Public License version 2 as
+@@ -90,7 +90,7 @@ static uint32_t lcd_qvga_pass_through_td
  };
  
- static inline struct platform_lcd *to_our_lcd(struct lcd_device *lcd)
+ static uint32_t lcd_vga_transfer_tdo24m[] = {
+-	CMD1(0xcf, 0x02), 	/* Blanking period control (1) */
++	CMD1(0xcf, 0x02),	/* Blanking period control (1) */
+ 	CMD2(0xd0, 0x08, 0x04),	/* Blanking period control (2) */
+ 	CMD1(0xd1, 0x01),	/* CKV timing control on/off */
+ 	CMD2(0xd2, 0x14, 0x00),	/* CKV 1,2 timing control */
+@@ -132,7 +132,7 @@ static uint32_t lcd_qvga_pass_through_td
+ };
+ 
+ static uint32_t lcd_vga_transfer_tdo35s[] = {
+-	CMD1(0xcf, 0x02), 	/* Blanking period control (1) */
++	CMD1(0xcf, 0x02),	/* Blanking period control (1) */
+ 	CMD2(0xd0, 0x08, 0x04),	/* Blanking period control (2) */
+ 	CMD1(0xd1, 0x01),	/* CKV timing control on/off */
+ 	CMD2(0xd2, 0x00, 0x1e),	/* CKV 1,2 timing control */
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
