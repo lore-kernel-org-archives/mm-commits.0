@@ -1,75 +1,156 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-pid-status-show-all-supplementary-groups.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 12:09:18 -0800
-Message-ID: <20121218200919.0FF0020004E@hpza10.eem.corp.google.com>
+Subject: [merged] exec-use-eloop-for-max-recursion-depth.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 12:09:22 -0800
+Message-ID: <20121218200922.B15FD100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:64685 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755252Ab2LRUJV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:09:21 -0500
-Received: by mail-wi0-f202.google.com with SMTP id hn17so63362wib.5
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:09:20 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:50465 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755249Ab2LRUJY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:09:24 -0500
+Received: by mail-vb0-f74.google.com with SMTP id s24so126108vbi.1
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:09:23 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: artem.bityutskiy@linux.intel.com, keescook@chromium.org, serge.hallyn@ubuntu.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: keescook@chromium.org, me@halfdog.net, ppandit@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: pid/status: show all supplementary groups
+     Subject: exec: use -ELOOP for max recursion depth
 has been removed from the -mm tree.  Its filename was
-     proc-pid-status-show-all-supplementary-groups.patch
+     exec-use-eloop-for-max-recursion-depth.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-Subject: proc: pid/status: show all supplementary groups
+From: Kees Cook <keescook@chromium.org>
+Subject: exec: use -ELOOP for max recursion depth
 
-We display a list of supplementary group for each process in
-/proc/<pid>/status.  However, we show only the first 32 groups, not all of
-them.
+To avoid an explosion of request_module calls on a chain of abusive
+scripts, fail maximum recursion with -ELOOP instead of -ENOEXEC. As soon
+as maximum recursion depth is hit, the error will fail all the way back
+up the chain, aborting immediately.
 
-Although this is rare, but sometimes processes do have more than 32
-supplementary groups, and this kernel limitation breaks user-space apps
-that rely on the group list in /proc/<pid>/status.
+This also has the side-effect of stopping the user's shell from attempting
+to reexecute the top-level file as a shell script. As seen in the
+dash source:
 
-Number 32 comes from the internal NGROUPS_SMALL macro which defines the
-length for the internal kernel "small" groups buffer.  There is no
-apparent reason to limit to this value.
+        if (cmd != path_bshell && errno == ENOEXEC) {
+                *argv-- = cmd;
+                *argv = cmd = path_bshell;
+                goto repeat;
+        }
 
-This patch removes the 32 groups printing limit.
+The above logic was designed for running scripts automatically that lacked
+the "#!" header, not to re-try failed recursion. On a legitimate -ENOEXEC,
+things continue to behave as the shell expects.
 
-The Linux kernel limits the amount of supplementary groups by NGROUPS_MAX,
-which is currently set to 65536.  And this is the maximum count of groups
-we may possibly print.
+Additionally, when tracking recursion, the binfmt handlers should not be
+involved. The recursion being tracked is the depth of calls through
+search_binary_handler(), so that function should be exclusively responsible
+for tracking the depth.
 
-Signed-off-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-Acked-by: Serge E. Hallyn <serge.hallyn@ubuntu.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: halfdog <me@halfdog.net>
+Cc: P J P <ppandit@redhat.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/binfmt_em86.c        |    1 -
+ fs/binfmt_misc.c        |    6 ------
+ fs/binfmt_script.c      |    4 +---
+ fs/exec.c               |   10 +++++-----
+ include/linux/binfmts.h |    2 --
+ 5 files changed, 6 insertions(+), 17 deletions(-)
 
-diff -puN fs/proc/array.c~proc-pid-status-show-all-supplementary-groups fs/proc/array.c
---- a/fs/proc/array.c~proc-pid-status-show-all-supplementary-groups
-+++ a/fs/proc/array.c
-@@ -212,7 +212,7 @@ static inline void task_state(struct seq
- 	group_info = cred->group_info;
- 	task_unlock(p);
+diff -puN fs/binfmt_em86.c~exec-use-eloop-for-max-recursion-depth fs/binfmt_em86.c
+--- a/fs/binfmt_em86.c~exec-use-eloop-for-max-recursion-depth
++++ a/fs/binfmt_em86.c
+@@ -42,7 +42,6 @@ static int load_em86(struct linux_binprm
+ 			return -ENOEXEC;
+ 	}
  
--	for (g = 0; g < min(group_info->ngroups, NGROUPS_SMALL); g++)
-+	for (g = 0; g < group_info->ngroups; g++)
- 		seq_printf(m, "%d ",
- 			   from_kgid_munged(user_ns, GROUP_AT(group_info, g)));
- 	put_cred(cred);
-_
-
-Patches currently in -mm which might be from artem.bityutskiy@linux.intel.com are
-
-origin.patch
-linux-next.patch
-
+-	bprm->recursion_depth++; /* Well, the bang-shell is implicit... */
+ 	allow_write_access(bprm->file);
+ 	fput(bprm->file);
+ 	bprm->file = NULL;
+diff -puN fs/binfmt_misc.c~exec-use-eloop-for-max-recursion-depth fs/binfmt_misc.c
+--- a/fs/binfmt_misc.c~exec-use-eloop-for-max-recursion-depth
++++ a/fs/binfmt_misc.c
+@@ -117,10 +117,6 @@ static int load_misc_binary(struct linux
+ 	if (!enabled)
+ 		goto _ret;
+ 
+-	retval = -ENOEXEC;
+-	if (bprm->recursion_depth > BINPRM_MAX_RECURSION)
+-		goto _ret;
+-
+ 	/* to keep locking time low, we copy the interpreter string */
+ 	read_lock(&entries_lock);
+ 	fmt = check_file(bprm);
+@@ -197,8 +193,6 @@ static int load_misc_binary(struct linux
+ 	if (retval < 0)
+ 		goto _error;
+ 
+-	bprm->recursion_depth++;
+-
+ 	retval = search_binary_handler(bprm);
+ 	if (retval < 0)
+ 		goto _error;
+diff -puN fs/binfmt_script.c~exec-use-eloop-for-max-recursion-depth fs/binfmt_script.c
+--- a/fs/binfmt_script.c~exec-use-eloop-for-max-recursion-depth
++++ a/fs/binfmt_script.c
+@@ -22,15 +22,13 @@ static int load_script(struct linux_binp
+ 	char interp[BINPRM_BUF_SIZE];
+ 	int retval;
+ 
+-	if ((bprm->buf[0] != '#') || (bprm->buf[1] != '!') ||
+-	    (bprm->recursion_depth > BINPRM_MAX_RECURSION))
++	if ((bprm->buf[0] != '#') || (bprm->buf[1] != '!'))
+ 		return -ENOEXEC;
+ 	/*
+ 	 * This section does the #! interpretation.
+ 	 * Sorta complicated, but hopefully it will work.  -TYT
+ 	 */
+ 
+-	bprm->recursion_depth++;
+ 	allow_write_access(bprm->file);
+ 	fput(bprm->file);
+ 	bprm->file = NULL;
+diff -puN fs/exec.c~exec-use-eloop-for-max-recursion-depth fs/exec.c
+--- a/fs/exec.c~exec-use-eloop-for-max-recursion-depth
++++ a/fs/exec.c
+@@ -1356,6 +1356,10 @@ int search_binary_handler(struct linux_b
+ 	struct linux_binfmt *fmt;
+ 	pid_t old_pid, old_vpid;
+ 
++	/* This allows 4 levels of binfmt rewrites before failing hard. */
++	if (depth > 5)
++		return -ELOOP;
++
+ 	retval = security_bprm_check(bprm);
+ 	if (retval)
+ 		return retval;
+@@ -1380,12 +1384,8 @@ int search_binary_handler(struct linux_b
+ 			if (!try_module_get(fmt->module))
+ 				continue;
+ 			read_unlock(&binfmt_lock);
++			bprm->recursion_depth = depth + 1;
+ 			retval = fn(bprm);
+-			/*
+-			 * Restore the depth counter to its starting value
+-			 * in this call, so we don't have to rely on every
+-			 * load_binary function to restore it on return.
+-			 */
+ 			bprm->recursion_depth = depth;
+ 			if (retval >= 0) {
+ 				if (depth == 0) {
+diff -puN include/linux/binfmts.h~exec-use-eloop-for-max-recursion-depth include/linux/binfmts.h
+--- a/include/linux/binfmts.h~exec-use-eloop-for-max-recursion-depth
++++ a/include/linux/binfmts.h
+@@ -54,8 +54,6 @@ struct linux_binprm {
+ #define BINPRM_FLAGS_EXECFD_BIT 1
+ #define BINPRM_FLAGS_EXECFD (1 << BINPRM_FLAGS_EXECFD_BIT)
+ 
+-#define BINPRM_MAX_RECURSION 4
