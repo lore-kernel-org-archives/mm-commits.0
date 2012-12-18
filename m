@@ -1,33 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-omap-dt-support.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 12:07:26 -0800
-Message-ID: <20121218200727.3928D20004E@hpza10.eem.corp.google.com>
+Subject: [merged] rtc-omap-add-runtime-pm-support.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 12:07:34 -0800
+Message-ID: <20121218200734.C4E5B82004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f73.google.com ([74.125.82.73]:54623 "EHLO
-	mail-wg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755078Ab2LRUHa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:07:30 -0500
-Received: by mail-wg0-f73.google.com with SMTP id dt12so63314wgb.0
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:07:29 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:37204 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755092Ab2LRUHg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:07:36 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so125759vcd.1
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:07:35 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: afzal@ti.com, a.zummo@towertech.it, grant.likely@secretlab.ca, hvaibhav@ti.com, khilman@ti.com, linux@arm.linux.org.uk, nsekhar@ti.com, zonque@gmail.com, mm-commits@vger.kernel.org
+To: hvaibhav@ti.com, a.zummo@towertech.it, afzal@ti.com, grant.likely@secretlab.ca, khilman@ti.com, linux@arm.linux.org.uk, nsekhar@ti.com, zonque@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: omap: dt support
+     Subject: rtc: omap: add runtime pm support
 has been removed from the -mm tree.  Its filename was
-     rtc-omap-dt-support.patch
+     rtc-omap-add-runtime-pm-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Afzal Mohammed <afzal@ti.com>
-Subject: rtc: omap: dt support
+From: Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: rtc: omap: add runtime pm support
 
-Enhance rtc-omap driver with DT capability
+OMAP1 RTC driver is used in multiple devices like, OMAPL138 and AM33XX. 
+Driver currently doesn't handle any clocks, which may be right for OMAP1
+architecture but in case of AM33XX, the clock/module needs to be enabled
+in order to access the registers.
 
+So convert this driver to runtime pm, which internally handles rest.
+
+[afzal@ti.com: handle error path]
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
 Signed-off-by: Afzal Mohammed <afzal@ti.com>
 Acked-by: Sekhar Nori <nsekhar@ti.com>
 Cc: Grant Likely <grant.likely@secretlab.ca>
@@ -40,89 +47,73 @@ Cc: Vaibhav Hiremath <hvaibhav@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/devicetree/bindings/rtc/rtc-omap.txt |   17 ++++++++++
- drivers/rtc/rtc-omap.c                             |   18 +++++++++++
- 2 files changed, 35 insertions(+)
+ drivers/rtc/rtc-omap.c |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff -puN /dev/null Documentation/devicetree/bindings/rtc/rtc-omap.txt
---- /dev/null
-+++ a/Documentation/devicetree/bindings/rtc/rtc-omap.txt
-@@ -0,0 +1,17 @@
-+TI Real Time Clock
-+
-+Required properties:
-+- compatible: "ti,da830-rtc"
-+- reg: Address range of rtc register set
-+- interrupts: rtc timer, alarm interrupts in order
-+- interrupt-parent: phandle for the interrupt controller
-+
-+Example:
-+
-+rtc@1c23000 {
-+	compatible = "ti,da830-rtc";
-+	reg = <0x23000 0x1000>;
-+	interrupts = <19
-+		      19>;
-+	interrupt-parent = <&intc>;
-+};
-diff -puN drivers/rtc/rtc-omap.c~rtc-omap-dt-support drivers/rtc/rtc-omap.c
---- a/drivers/rtc/rtc-omap.c~rtc-omap-dt-support
+diff -puN drivers/rtc/rtc-omap.c~rtc-omap-add-runtime-pm-support drivers/rtc/rtc-omap.c
+--- a/drivers/rtc/rtc-omap.c~rtc-omap-add-runtime-pm-support
 +++ a/drivers/rtc/rtc-omap.c
-@@ -20,6 +20,8 @@
- #include <linux/rtc.h>
- #include <linux/bcd.h>
+@@ -22,6 +22,7 @@
  #include <linux/platform_device.h>
-+#include <linux/of.h>
-+#include <linux/of_device.h>
+ #include <linux/of.h>
+ #include <linux/of_device.h>
++#include <linux/pm_runtime.h>
  
  #include <asm/io.h>
  
-@@ -298,6 +300,8 @@ static struct rtc_class_ops omap_rtc_ops
- static int omap_rtc_alarm;
- static int omap_rtc_timer;
+@@ -364,6 +365,10 @@ static int __init omap_rtc_probe(struct 
+ 		goto fail;
+ 	}
  
-+#define	OMAP_RTC_DATA_DA830_IDX	1
++	/* Enable the clock/module so that we can access the registers */
++	pm_runtime_enable(&pdev->dev);
++	pm_runtime_get_sync(&pdev->dev);
 +
- static struct platform_device_id omap_rtc_devtype[] = {
- 	{
- 		.name	= DRIVER_NAME,
-@@ -309,12 +313,25 @@ static struct platform_device_id omap_rt
- };
- MODULE_DEVICE_TABLE(platform, omap_rtc_devtype);
+ 	id_entry = platform_get_device_id(pdev);
+ 	if (id_entry && (id_entry->driver_data & OMAP_RTC_HAS_KICKER)) {
+ 		rtc_writel(KICK0_VALUE, OMAP_RTC_KICK0_REG);
+@@ -448,6 +453,8 @@ fail1:
+ fail0:
+ 	if (id_entry && (id_entry->driver_data & OMAP_RTC_HAS_KICKER))
+ 		rtc_writel(0, OMAP_RTC_KICK0_REG);
++	pm_runtime_put_sync(&pdev->dev);
++	pm_runtime_disable(&pdev->dev);
+ 	iounmap(rtc_base);
+ fail:
+ 	release_mem_region(mem->start, resource_size(mem));
+@@ -474,6 +481,11 @@ static int __exit omap_rtc_remove(struct
+ 	rtc_device_unregister(rtc);
+ 	if (id_entry && (id_entry->driver_data & OMAP_RTC_HAS_KICKER))
+ 		rtc_writel(0, OMAP_RTC_KICK0_REG);
++
++	/* Disable the clock/module */
++	pm_runtime_put_sync(&pdev->dev);
++	pm_runtime_disable(&pdev->dev);
++
+ 	iounmap(rtc_base);
+ 	release_mem_region(mem->start, resource_size(mem));
+ 	return 0;
+@@ -496,11 +508,17 @@ static int omap_rtc_suspend(struct platf
+ 	else
+ 		rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
  
-+static const struct of_device_id omap_rtc_of_match[] = {
-+	{	.compatible	= "ti,da830-rtc",
-+		.data		= &omap_rtc_devtype[OMAP_RTC_DATA_DA830_IDX],
-+	},
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, omap_rtc_of_match);
++	/* Disable the clock/module */
++	pm_runtime_put_sync(&pdev->dev);
 +
- static int __init omap_rtc_probe(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+ static int omap_rtc_resume(struct platform_device *pdev)
  {
- 	struct resource		*res, *mem;
- 	struct rtc_device	*rtc;
- 	u8			reg, new_ctrl;
- 	const struct platform_device_id *id_entry;
-+	const struct of_device_id *of_id;
++	/* Enable the clock/module so that we can access the registers */
++	pm_runtime_get_sync(&pdev->dev);
 +
-+	of_id = of_match_device(omap_rtc_of_match, &pdev->dev);
-+	if (of_id)
-+		pdev->id_entry = of_id->data;
- 
- 	omap_rtc_timer = platform_get_irq(pdev, 0);
- 	if (omap_rtc_timer <= 0) {
-@@ -510,6 +527,7 @@ static struct platform_driver omap_rtc_d
- 	.driver		= {
- 		.name	= DRIVER_NAME,
- 		.owner	= THIS_MODULE,
-+		.of_match_table = of_match_ptr(omap_rtc_of_match),
- 	},
- 	.id_table	= omap_rtc_devtype,
- };
+ 	if (device_may_wakeup(&pdev->dev))
+ 		disable_irq_wake(omap_rtc_alarm);
+ 	else
 _
 
-Patches currently in -mm which might be from afzal@ti.com are
+Patches currently in -mm which might be from hvaibhav@ti.com are
 
 origin.patch
 
