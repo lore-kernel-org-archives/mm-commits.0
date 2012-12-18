@@ -1,114 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: [merged] backlight-ili9320-fix-checkpatch-error-and-warning.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 12:04:15 -0800
-Message-ID: <20121218200416.27E3F20004E@hpza10.eem.corp.google.com>
+Subject: [merged] backlight-jornada720-fix-checkpatch-error-and-warning.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 12:04:19 -0800
+Message-ID: <20121218200419.D3BE1100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f201.google.com ([209.85.215.201]:45117 "EHLO
-	mail-ea0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753636Ab2LRUES (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:04:18 -0500
-Received: by mail-ea0-f201.google.com with SMTP id b14so63366eaa.0
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:04:17 -0800 (PST)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:64736 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753636Ab2LRUEV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:04:21 -0500
+Received: by mail-yh0-f73.google.com with SMTP id 47so125654yhr.0
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:04:20 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jg1.han@samsung.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight: ili9320: fix checkpatch error and warning
+     Subject: backlight: jornada720: fix checkpatch error and warning
 has been removed from the -mm tree.  Its filename was
-     backlight-ili9320-fix-checkpatch-error-and-warning.patch
+     backlight-jornada720-fix-checkpatch-error-and-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: ili9320: fix checkpatch error and warning
+Subject: backlight: jornada720: fix checkpatch error and warning
 
 This patch fixes the checkpatch error and warning as below:
 
-WARNING: please, no space before tabs
-WARNING: please, no spaces at the start of a line
-WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable
-WARNING: braces {} are not necessary for single statement blocks
-ERROR: code indent should use tabs where possible
+WARNING: line over 80 characters
+ERROR: return is not a function, parentheses are not required
+
+Also, long comments are fixed for the preferred style.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/ili9320.c |   12 ++----------
- 1 file changed, 2 insertions(+), 10 deletions(-)
+ drivers/video/backlight/jornada720_bl.c  |   34 ++++++++++++---------
+ drivers/video/backlight/jornada720_lcd.c |    3 +
+ 2 files changed, 23 insertions(+), 14 deletions(-)
 
-diff -puN drivers/video/backlight/ili9320.c~backlight-ili9320-fix-checkpatch-error-and-warning drivers/video/backlight/ili9320.c
---- a/drivers/video/backlight/ili9320.c~backlight-ili9320-fix-checkpatch-error-and-warning
-+++ a/drivers/video/backlight/ili9320.c
-@@ -45,7 +45,7 @@ static inline int ili9320_write_spi(stru
- 	/* second message is the data to transfer */
+diff -puN drivers/video/backlight/jornada720_bl.c~backlight-jornada720-fix-checkpatch-error-and-warning drivers/video/backlight/jornada720_bl.c
+--- a/drivers/video/backlight/jornada720_bl.c~backlight-jornada720-fix-checkpatch-error-and-warning
++++ a/drivers/video/backlight/jornada720_bl.c
+@@ -48,7 +48,7 @@ static int jornada_bl_get_brightness(str
  
- 	data[0] = spi->id | ILI9320_SPI_DATA  | ILI9320_SPI_WRITE;
-- 	data[1] = value >> 8;
-+	data[1] = value >> 8;
- 	data[2] = value;
+ 	jornada_ssp_end();
  
- 	return spi_sync(spi->dev, &spi->message);
-@@ -56,7 +56,6 @@ int ili9320_write(struct ili9320 *ili, u
- 	dev_dbg(ili->dev, "write: reg=%02x, val=%04x\n", reg, value);
- 	return ili->write(ili, reg, value);
+-	return (BL_MAX_BRIGHT - ret);
++	return BL_MAX_BRIGHT - ret;
  }
--
- EXPORT_SYMBOL_GPL(ili9320_write);
  
- int ili9320_write_regs(struct ili9320 *ili,
-@@ -74,7 +73,6 @@ int ili9320_write_regs(struct ili9320 *i
+ static int jornada_bl_update_status(struct backlight_device *bd)
+@@ -58,7 +58,8 @@ static int jornada_bl_update_status(stru
+ 	jornada_ssp_start();
  
- 	return 0;
- }
--
- EXPORT_SYMBOL_GPL(ili9320_write_regs);
+ 	/* If backlight is off then really turn it off */
+-	if ((bd->props.power != FB_BLANK_UNBLANK) || (bd->props.fb_blank != FB_BLANK_UNBLANK)) {
++	if ((bd->props.power != FB_BLANK_UNBLANK) ||
++		(bd->props.fb_blank != FB_BLANK_UNBLANK)) {
+ 		ret = jornada_ssp_byte(BRIGHTNESSOFF);
+ 		if (ret != TXDUMMY) {
+ 			pr_info("brightness off timeout\n");
+@@ -77,18 +78,23 @@ static int jornada_bl_update_status(stru
+ 			goto out;
+ 		}
  
- static void ili9320_reset(struct ili9320 *lcd)
-@@ -260,7 +258,6 @@ int ili9320_probe_spi(struct spi_device 
+-		/* at this point we expect that the mcu has accepted
+-		   our command and is waiting for our new value
+-		   please note that maximum brightness is 255,
+-		   but due to physical layout it is equal to 0, so we simply
+-		   invert the value (MAX VALUE - NEW VALUE). */
+-		if (jornada_ssp_byte(BL_MAX_BRIGHT - bd->props.brightness) != TXDUMMY) {
++		/*
++		 * at this point we expect that the mcu has accepted
++		 * our command and is waiting for our new value
++		 * please note that maximum brightness is 255,
++		 * but due to physical layout it is equal to 0, so we simply
++		 * invert the value (MAX VALUE - NEW VALUE).
++		 */
++		if (jornada_ssp_byte(BL_MAX_BRIGHT - bd->props.brightness)
++			!= TXDUMMY) {
+ 			pr_err("set brightness failed\n");
+ 			ret = -ETIMEDOUT;
+ 		}
  
- 	return ret;
- }
--
- EXPORT_SYMBOL_GPL(ili9320_probe_spi);
+-		/* If infact we get an TXDUMMY as output we are happy and dont
+-		   make any further comments about it */
++		/*
++		 * If infact we get an TXDUMMY as output we are happy and dont
++		 * make any further comments about it
++		 */
+ out:
+ 	jornada_ssp_end();
  
- int ili9320_remove(struct ili9320 *ili)
-@@ -271,7 +268,6 @@ int ili9320_remove(struct ili9320 *ili)
+@@ -121,9 +127,11 @@ static int jornada_bl_probe(struct platf
  
- 	return 0;
- }
--
- EXPORT_SYMBOL_GPL(ili9320_remove);
+ 	bd->props.power = FB_BLANK_UNBLANK;
+ 	bd->props.brightness = BL_DEF_BRIGHT;
+-	/* note. make sure max brightness is set otherwise
+-	   you will get seemingly non-related errors when
+-	   trying to change brightness */
++	/*
++	 * note. make sure max brightness is set otherwise
++	 * you will get seemingly non-related errors when
++	 * trying to change brightness
++	 */
+ 	jornada_bl_update_status(bd);
  
- #ifdef CONFIG_PM
-@@ -296,20 +292,17 @@ int ili9320_suspend(struct ili9320 *lcd,
+ 	platform_set_drvdata(pdev, bd);
+diff -puN drivers/video/backlight/jornada720_lcd.c~backlight-jornada720-fix-checkpatch-error-and-warning drivers/video/backlight/jornada720_lcd.c
+--- a/drivers/video/backlight/jornada720_lcd.c~backlight-jornada720-fix-checkpatch-error-and-warning
++++ a/drivers/video/backlight/jornada720_lcd.c
+@@ -101,7 +101,8 @@ static int jornada_lcd_probe(struct plat
+ 	struct lcd_device *lcd_device;
+ 	int ret;
  
- 	return 0;
- }
--
- EXPORT_SYMBOL_GPL(ili9320_suspend);
+-	lcd_device = lcd_device_register(S1D_DEVICENAME, &pdev->dev, NULL, &jornada_lcd_props);
++	lcd_device = lcd_device_register(S1D_DEVICENAME, &pdev->dev, NULL,
++					&jornada_lcd_props);
  
- int ili9320_resume(struct ili9320 *lcd)
- {
- 	dev_info(lcd->dev, "resuming from power state %d\n", lcd->power);
- 
--	if (lcd->platdata->suspend == ILI9320_SUSPEND_DEEP) {
-+	if (lcd->platdata->suspend == ILI9320_SUSPEND_DEEP)
- 		ili9320_write(lcd, ILI9320_POWER1, 0x00);
--	}
- 
- 	return ili9320_power(lcd, FB_BLANK_UNBLANK);
- }
--
- EXPORT_SYMBOL_GPL(ili9320_resume);
- #endif
- 
-@@ -318,7 +311,6 @@ void ili9320_shutdown(struct ili9320 *lc
- {
- 	ili9320_power(lcd, FB_BLANK_POWERDOWN);
- }
+ 	if (IS_ERR(lcd_device)) {
+ 		ret = PTR_ERR(lcd_device);
+_
+
+Patches currently in -mm which might be from jg1.han@samsung.com are
+
+origin.patch
+backlight-locomolcd-fix-checkpatch-error-and-warning.patch
+
