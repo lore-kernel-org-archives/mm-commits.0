@@ -1,80 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] backlight-tosa-use-devm_gpio_request_one.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 12:04:53 -0800
-Message-ID: <20121218200454.2232C20004E@hpza10.eem.corp.google.com>
+Subject: [merged] drivers-video-backlight-lp855x_blc-remove-unnecessary-mutex-code.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 12:05:01 -0800
+Message-ID: <20121218200502.39D2620005C@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f74.google.com ([209.85.215.74]:58925 "EHLO
-	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753636Ab2LRUE4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:04:56 -0500
-Received: by mail-la0-f74.google.com with SMTP id v3so63377lag.5
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:04:55 -0800 (PST)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:53489 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753636Ab2LRUFF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:05:05 -0500
+Received: by mail-lb0-f202.google.com with SMTP id s4so69700lbc.1
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:05:03 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jg1.han@samsung.com, dbaryshkov@gmail.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: Milo.Kim@ti.com, bryan.wu@canonical.com, milo.kim@ti.com, rpurdie@rpsys.net, thierry.reding@avionic-design.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight: tosa: use devm_gpio_request_one
+     Subject: drivers/video/backlight/lp855x_bl.c: remove unnecessary mutex code
 has been removed from the -mm tree.  Its filename was
-     backlight-tosa-use-devm_gpio_request_one.patch
+     drivers-video-backlight-lp855x_blc-remove-unnecessary-mutex-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: tosa: use devm_gpio_request_one
+From: "Kim, Milo" <Milo.Kim@ti.com>
+Subject: drivers/video/backlight/lp855x_bl.c: remove unnecessary mutex code
 
-By using devm_gpio_request_one it is possible to set the direction and
-initial value in one shot.  Thus, using devm_gpio_request_one can make the
-code simpler.
+The mutex for accessing lp855x registers is used in case of the user-space
+interaction.  When the brightness is changed via sysfs, the mutex is
+required.  But the backlight class device already provides it.  Thus, the
+lp855x mutex is unnecessary.
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Signed-off-by: Milo(Woogyom) Kim <milo.kim@ti.com>
+Cc: Thierry Reding <thierry.reding@avionic-design.de>
 Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Dmitry Baryshkov <dbaryshkov@gmail.com>
+Cc: Bryan Wu <bryan.wu@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/tosa_bl.c  |    6 ++----
- drivers/video/backlight/tosa_lcd.c |    8 ++------
- 2 files changed, 4 insertions(+), 10 deletions(-)
+ drivers/video/backlight/lp855x_bl.c |   14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
 
-diff -puN drivers/video/backlight/tosa_bl.c~backlight-tosa-use-devm_gpio_request_one drivers/video/backlight/tosa_bl.c
---- a/drivers/video/backlight/tosa_bl.c~backlight-tosa-use-devm_gpio_request_one
-+++ a/drivers/video/backlight/tosa_bl.c
-@@ -93,14 +93,12 @@ static int tosa_bl_probe(struct i2c_clie
- 	data->comadj = sharpsl_param.comadj == -1 ?
- 			COMADJ_DEFAULT : sharpsl_param.comadj;
+diff -puN drivers/video/backlight/lp855x_bl.c~drivers-video-backlight-lp855x_blc-remove-unnecessary-mutex-code drivers/video/backlight/lp855x_bl.c
+--- a/drivers/video/backlight/lp855x_bl.c~drivers-video-backlight-lp855x_blc-remove-unnecessary-mutex-code
++++ a/drivers/video/backlight/lp855x_bl.c
+@@ -35,7 +35,6 @@ struct lp855x {
+ 	struct i2c_client *client;
+ 	struct backlight_device *bl;
+ 	struct device *dev;
+-	struct mutex xfer_lock;
+ 	struct lp855x_platform_data *pdata;
+ 	struct pwm_device *pwm;
+ };
+@@ -44,14 +43,11 @@ static int lp855x_read_byte(struct lp855
+ {
+ 	int ret;
  
--	ret = devm_gpio_request(&client->dev, TOSA_GPIO_BL_C20MA, "backlight");
-+	ret = devm_gpio_request_one(&client->dev, TOSA_GPIO_BL_C20MA,
-+				GPIOF_OUT_INIT_LOW, "backlight");
- 	if (ret) {
- 		dev_dbg(&data->bl->dev, "Unable to request gpio!\n");
+-	mutex_lock(&lp->xfer_lock);
+ 	ret = i2c_smbus_read_byte_data(lp->client, reg);
+ 	if (ret < 0) {
+-		mutex_unlock(&lp->xfer_lock);
+ 		dev_err(lp->dev, "failed to read 0x%.2x\n", reg);
  		return ret;
  	}
--	ret = gpio_direction_output(TOSA_GPIO_BL_C20MA, 0);
--	if (ret)
--		return ret;
+-	mutex_unlock(&lp->xfer_lock);
  
- 	i2c_set_clientdata(client, data);
- 	data->i2c = client;
-diff -puN drivers/video/backlight/tosa_lcd.c~backlight-tosa-use-devm_gpio_request_one drivers/video/backlight/tosa_lcd.c
---- a/drivers/video/backlight/tosa_lcd.c~backlight-tosa-use-devm_gpio_request_one
-+++ a/drivers/video/backlight/tosa_lcd.c
-@@ -195,17 +195,13 @@ static int tosa_lcd_probe(struct spi_dev
- 	data->spi = spi;
- 	dev_set_drvdata(&spi->dev, data);
+ 	*data = (u8)ret;
+ 	return 0;
+@@ -59,13 +55,7 @@ static int lp855x_read_byte(struct lp855
  
--	ret = devm_gpio_request(&spi->dev, TOSA_GPIO_TG_ON, "tg #pwr");
-+	ret = devm_gpio_request_one(&spi->dev, TOSA_GPIO_TG_ON,
-+				GPIOF_OUT_INIT_LOW, "tg #pwr");
- 	if (ret < 0)
- 		goto err_gpio_tg;
+ static int lp855x_write_byte(struct lp855x *lp, u8 reg, u8 data)
+ {
+-	int ret;
+-
+-	mutex_lock(&lp->xfer_lock);
+-	ret = i2c_smbus_write_byte_data(lp->client, reg, data);
+-	mutex_unlock(&lp->xfer_lock);
+-
+-	return ret;
++	return i2c_smbus_write_byte_data(lp->client, reg, data);
+ }
  
- 	mdelay(60);
+ static bool lp855x_is_valid_rom_area(struct lp855x *lp, u8 addr)
+@@ -281,8 +271,6 @@ static int lp855x_probe(struct i2c_clien
+ 	lp->chip_id = id->driver_data;
+ 	i2c_set_clientdata(cl, lp);
  
--	ret = gpio_direction_output(TOSA_GPIO_TG_ON, 0);
--	if (ret < 0)
--		goto err_gpio_tg;
+-	mutex_init(&lp->xfer_lock);
