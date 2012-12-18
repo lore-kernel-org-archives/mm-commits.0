@@ -1,202 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-video-backlight-lp855x_blc-use-generic-pwm-functions.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 12:04:57 -0800
-Message-ID: <20121218200458.2F75020004E@hpza10.eem.corp.google.com>
+Subject: [merged] backlight-tosa-use-devm_gpio_request_one.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 12:04:53 -0800
+Message-ID: <20121218200454.2232C20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f201.google.com ([209.85.215.201]:33850 "EHLO
-	mail-ea0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753636Ab2LRUFB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:05:01 -0500
-Received: by mail-ea0-f201.google.com with SMTP id b14so63381eaa.4
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:04:59 -0800 (PST)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:58925 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753636Ab2LRUE4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:04:56 -0500
+Received: by mail-la0-f74.google.com with SMTP id v3so63377lag.5
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:04:55 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Milo.Kim@ti.com, bryan.wu@canonical.com, milo.kim@ti.com, rpurdie@rpsys.net, thierry.reding@avionic-design.de, mm-commits@vger.kernel.org
+To: jg1.han@samsung.com, dbaryshkov@gmail.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/video/backlight/lp855x_bl.c: use generic PWM functions
+     Subject: backlight: tosa: use devm_gpio_request_one
 has been removed from the -mm tree.  Its filename was
-     drivers-video-backlight-lp855x_blc-use-generic-pwm-functions.patch
+     backlight-tosa-use-devm_gpio_request_one.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kim, Milo" <Milo.Kim@ti.com>
-Subject: drivers/video/backlight/lp855x_bl.c: use generic PWM functions
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: backlight: tosa: use devm_gpio_request_one
 
-The LP855x family devices support the PWM input for the backlight control.
- Period of the PWM is configurable in the platform side.  Platform
-specific functions are unnecessary anymore because generic PWM functions
-are used inside the driver.
+By using devm_gpio_request_one it is possible to set the direction and
+initial value in one shot.  Thus, using devm_gpio_request_one can make the
+code simpler.
 
-(PWM input mode)
-To set the brightness, new lp855x_pwm_ctrl() is used.
-If a PWM device is not allocated, devm_pwm_get() is called.
-The PWM consumer name is from the chip name such as 'lp8550' and 'lp8556'.
-To get the brightness value, no additional handling is required.
-Just the value of 'props.brightness' is returned.
-
-If the PWM driver is not ready while initializing the LP855x driver, it's
-OK.  The PWM device can be retrieved later, when the brightness value is
-changed.
-
-Documentation is updated with an example.
-
-[akpm@linux-foundation.org: coding-style simplification, per Thierry]
-Signed-off-by: Milo(Woogyom) Kim <milo.kim@ti.com>
-Cc: Thierry Reding <thierry.reding@avionic-design.de>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Bryan Wu <bryan.wu@canonical.com>
+Cc: Dmitry Baryshkov <dbaryshkov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/backlight/lp855x-driver.txt |   10 +----
- drivers/video/backlight/lp855x_bl.c       |   37 ++++++++++++++------
- include/linux/platform_data/lp855x.h      |    9 +---
- 3 files changed, 30 insertions(+), 26 deletions(-)
+ drivers/video/backlight/tosa_bl.c  |    6 ++----
+ drivers/video/backlight/tosa_lcd.c |    8 ++------
+ 2 files changed, 4 insertions(+), 10 deletions(-)
 
-diff -puN Documentation/backlight/lp855x-driver.txt~drivers-video-backlight-lp855x_blc-use-generic-pwm-functions Documentation/backlight/lp855x-driver.txt
---- a/Documentation/backlight/lp855x-driver.txt~drivers-video-backlight-lp855x_blc-use-generic-pwm-functions
-+++ a/Documentation/backlight/lp855x-driver.txt
-@@ -35,11 +35,8 @@ For supporting platform specific data, t
- * mode : Brightness control mode. PWM or register based.
- * device_control : Value of DEVICE CONTROL register.
- * initial_brightness : Initial value of backlight brightness.
--* pwm_data : Platform specific pwm generation functions.
-+* period_ns : Platform specific PWM period value. unit is nano.
- 	     Only valid when brightness is pwm input mode.
--	     Functions should be implemented by PWM driver.
--	     - pwm_set_intensity() : set duty of PWM
--	     - pwm_get_intensity() : get current duty of PWM
- * load_new_rom_data :
- 	0 : use default configuration data
- 	1 : update values of eeprom or eprom registers on loading driver
-@@ -71,8 +68,5 @@ static struct lp855x_platform_data lp855
- 	.mode = PWM_BASED,
- 	.device_control = PWM_CONFIG(LP8556),
- 	.initial_brightness = INITIAL_BRT,
--	.pwm_data = {
--		     .pwm_set_intensity = platform_pwm_set_intensity,
--		     .pwm_get_intensity = platform_pwm_get_intensity,
--		     },
-+	.period_ns = 1000000,
- };
-diff -puN drivers/video/backlight/lp855x_bl.c~drivers-video-backlight-lp855x_blc-use-generic-pwm-functions drivers/video/backlight/lp855x_bl.c
---- a/drivers/video/backlight/lp855x_bl.c~drivers-video-backlight-lp855x_blc-use-generic-pwm-functions
-+++ a/drivers/video/backlight/lp855x_bl.c
-@@ -15,6 +15,7 @@
- #include <linux/backlight.h>
- #include <linux/err.h>
- #include <linux/platform_data/lp855x.h>
-+#include <linux/pwm.h>
+diff -puN drivers/video/backlight/tosa_bl.c~backlight-tosa-use-devm_gpio_request_one drivers/video/backlight/tosa_bl.c
+--- a/drivers/video/backlight/tosa_bl.c~backlight-tosa-use-devm_gpio_request_one
++++ a/drivers/video/backlight/tosa_bl.c
+@@ -93,14 +93,12 @@ static int tosa_bl_probe(struct i2c_clie
+ 	data->comadj = sharpsl_param.comadj == -1 ?
+ 			COMADJ_DEFAULT : sharpsl_param.comadj;
  
- /* Registers */
- #define BRIGHTNESS_CTRL		0x00
-@@ -36,6 +37,7 @@ struct lp855x {
- 	struct device *dev;
- 	struct mutex xfer_lock;
- 	struct lp855x_platform_data *pdata;
-+	struct pwm_device *pwm;
- };
+-	ret = devm_gpio_request(&client->dev, TOSA_GPIO_BL_C20MA, "backlight");
++	ret = devm_gpio_request_one(&client->dev, TOSA_GPIO_BL_C20MA,
++				GPIOF_OUT_INIT_LOW, "backlight");
+ 	if (ret) {
+ 		dev_dbg(&data->bl->dev, "Unable to request gpio!\n");
+ 		return ret;
+ 	}
+-	ret = gpio_direction_output(TOSA_GPIO_BL_C20MA, 0);
+-	if (ret)
+-		return ret;
  
- static int lp855x_read_byte(struct lp855x *lp, u8 reg, u8 *data)
-@@ -121,6 +123,28 @@ static int lp855x_init_registers(struct 
- 	return ret;
- }
+ 	i2c_set_clientdata(client, data);
+ 	data->i2c = client;
+diff -puN drivers/video/backlight/tosa_lcd.c~backlight-tosa-use-devm_gpio_request_one drivers/video/backlight/tosa_lcd.c
+--- a/drivers/video/backlight/tosa_lcd.c~backlight-tosa-use-devm_gpio_request_one
++++ a/drivers/video/backlight/tosa_lcd.c
+@@ -195,17 +195,13 @@ static int tosa_lcd_probe(struct spi_dev
+ 	data->spi = spi;
+ 	dev_set_drvdata(&spi->dev, data);
  
-+static void lp855x_pwm_ctrl(struct lp855x *lp, int br, int max_br)
-+{
-+	unsigned int period = lp->pdata->period_ns;
-+	unsigned int duty = br * period / max_br;
-+	struct pwm_device *pwm;
-+
-+	/* request pwm device with the consumer name */
-+	if (!lp->pwm) {
-+		pwm = devm_pwm_get(lp->dev, lp->chipname);
-+		if (IS_ERR(pwm))
-+			return;
-+
-+		lp->pwm = pwm;
-+	}
-+
-+	pwm_config(lp->pwm, duty, period);
-+	if (duty)
-+		pwm_enable(lp->pwm);
-+	else
-+		pwm_disable(lp->pwm);
-+}
-+
- static int lp855x_bl_update_status(struct backlight_device *bl)
- {
- 	struct lp855x *lp = bl_get_data(bl);
-@@ -130,12 +154,10 @@ static int lp855x_bl_update_status(struc
- 		bl->props.brightness = 0;
+-	ret = devm_gpio_request(&spi->dev, TOSA_GPIO_TG_ON, "tg #pwr");
++	ret = devm_gpio_request_one(&spi->dev, TOSA_GPIO_TG_ON,
++				GPIOF_OUT_INIT_LOW, "tg #pwr");
+ 	if (ret < 0)
+ 		goto err_gpio_tg;
  
- 	if (mode == PWM_BASED) {
--		struct lp855x_pwm_data *pd = &lp->pdata->pwm_data;
- 		int br = bl->props.brightness;
- 		int max_br = bl->props.max_brightness;
+ 	mdelay(60);
  
--		if (pd->pwm_set_intensity)
--			pd->pwm_set_intensity(br, max_br);
-+		lp855x_pwm_ctrl(lp, br, max_br);
- 
- 	} else if (mode == REGISTER_BASED) {
- 		u8 val = bl->props.brightness;
-@@ -150,14 +172,7 @@ static int lp855x_bl_get_brightness(stru
- 	struct lp855x *lp = bl_get_data(bl);
- 	enum lp855x_brightness_ctrl_mode mode = lp->pdata->mode;
- 
--	if (mode == PWM_BASED) {
--		struct lp855x_pwm_data *pd = &lp->pdata->pwm_data;
--		int max_br = bl->props.max_brightness;
--
--		if (pd->pwm_get_intensity)
--			bl->props.brightness = pd->pwm_get_intensity(max_br);
--
--	} else if (mode == REGISTER_BASED) {
-+	if (mode == REGISTER_BASED) {
- 		u8 val = 0;
- 
- 		lp855x_read_byte(lp, BRIGHTNESS_CTRL, &val);
-diff -puN include/linux/platform_data/lp855x.h~drivers-video-backlight-lp855x_blc-use-generic-pwm-functions include/linux/platform_data/lp855x.h
---- a/include/linux/platform_data/lp855x.h~drivers-video-backlight-lp855x_blc-use-generic-pwm-functions
-+++ a/include/linux/platform_data/lp855x.h
-@@ -89,11 +89,6 @@ enum lp8556_brightness_source {
- 	LP8556_COMBINED2,	/* pwm + i2c after the shaper block */
- };
- 
--struct lp855x_pwm_data {
--	void (*pwm_set_intensity) (int brightness, int max_brightness);
--	int (*pwm_get_intensity) (int max_brightness);
--};
--
- struct lp855x_rom_data {
- 	u8 addr;
- 	u8 val;
-@@ -105,7 +100,7 @@ struct lp855x_rom_data {
-  * @mode : brightness control by pwm or lp855x register
-  * @device_control : value of DEVICE CONTROL register
-  * @initial_brightness : initial value of backlight brightness
-- * @pwm_data : platform specific pwm generation functions.
-+ * @period_ns : platform specific pwm period value. unit is nano.
- 		Only valid when mode is PWM_BASED.
-  * @load_new_rom_data :
- 	0 : use default configuration data
-@@ -118,7 +113,7 @@ struct lp855x_platform_data {
- 	enum lp855x_brightness_ctrl_mode mode;
- 	u8 device_control;
- 	int initial_brightness;
--	struct lp855x_pwm_data pwm_data;
-+	unsigned int period_ns;
- 	u8 load_new_rom_data;
- 	int size_program;
- 	struct lp855x_rom_data *rom_data;
-_
-
-Patches currently in -mm which might be from Milo.Kim@ti.com are
-
-origin.patch
-
+-	ret = gpio_direction_output(TOSA_GPIO_TG_ON, 0);
+-	if (ret < 0)
+-		goto err_gpio_tg;
