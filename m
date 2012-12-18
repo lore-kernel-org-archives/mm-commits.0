@@ -1,82 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-warn-on-camelcase-variable-names.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 12:07:11 -0800
-Message-ID: <20121218200712.14C97200057@hpza10.eem.corp.google.com>
+Subject: [merged] binfmt_elf-fix-corner-case-kfree-of-uninitialized-data.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 12:07:15 -0800
+Message-ID: <20121218200715.98C78820050@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f201.google.com ([209.85.217.201]:63036 "EHLO
-	mail-lb0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755049Ab2LRUHO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:07:14 -0500
-Received: by mail-lb0-f201.google.com with SMTP id m4so69641lbo.2
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:07:13 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:55596 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755053Ab2LRUHR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:07:17 -0500
+Received: by mail-qa0-f74.google.com with SMTP id r4so158336qaq.3
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:07:15 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, apw@canonical.com, mm-commits@vger.kernel.org
+To: alan@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: warn on CamelCase variable names
+     Subject: binfmt_elf: fix corner case kfree of uninitialized data
 has been removed from the -mm tree.  Its filename was
-     checkpatch-warn-on-camelcase-variable-names.patch
+     binfmt_elf-fix-corner-case-kfree-of-uninitialized-data.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: warn on CamelCase variable names
+From: Alan Cox <alan@linux.intel.com>
+Subject: binfmt_elf: fix corner case kfree of uninitialized data
 
-Store the camelcase variables in a hash and only emit a warning on the
-first use of each new variable.
+If elf_core_dump() is called and fill_note_info() fails in the kmalloc()
+then it returns 0 but has not yet initialised all the needed fields.  As a
+result we do a kfree(randomness) after correctly skipping the thread data.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@canonical.com>
+[akpm@linux-foundation.org: checkpatch fixes]
+Signed-off-by: Alan Cox <alan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   19 +++++++++++++------
- 1 file changed, 13 insertions(+), 6 deletions(-)
+ fs/binfmt_elf.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-warn-on-camelcase-variable-names scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-warn-on-camelcase-variable-names
-+++ a/scripts/checkpatch.pl
-@@ -1398,6 +1398,8 @@ sub process {
- 	my %suppress_export;
- 	my $suppress_statement = 0;
+diff -puN fs/binfmt_elf.c~binfmt_elf-fix-corner-case-kfree-of-uninitialized-data fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~binfmt_elf-fix-corner-case-kfree-of-uninitialized-data
++++ a/fs/binfmt_elf.c
+@@ -1601,8 +1601,10 @@ static int fill_note_info(struct elfhdr 
+ 	info->thread = NULL;
  
-+	my %camelcase = ();
-+
- 	# Pre-scan the patch sanitizing the lines.
- 	# Pre-scan the patch looking for any __setup documentation.
- 	#
-@@ -2905,12 +2907,17 @@ sub process {
- 			}
- 		}
+ 	psinfo = kmalloc(sizeof(*psinfo), GFP_KERNEL);
+-	if (psinfo == NULL)
++	if (psinfo == NULL) {
++		info->psinfo.data = NULL; /* So we don't free this wrongly */
+ 		return 0;
++	}
  
--#studly caps, commented out until figure out how to distinguish between use of existing and adding new
--#		if (($line=~/[\w_][a-z\d]+[A-Z]/) and !($line=~/print/)) {
--#		    print "No studly caps, use _\n";
--#		    print "$herecurr";
--#		    $clean = 0;
--#		}
-+#CamelCase
-+		while ($line =~ m{($Constant|$Lval)}g) {
-+			my $var = $1;
-+			if ($var !~ /$Constant/ &&
-+			    $var =~ /[A-Z]\w*[a-z]|[a-z]\w*[A-Z]/ &&
-+			    !defined $camelcase{$var}) {
-+				$camelcase{$var} = 1;
-+				WARN("CAMELCASE",
-+				     "Avoid CamelCase: <$var>\n" . $herecurr);
-+			}
-+		}
+ 	fill_note(&info->psinfo, "CORE", NT_PRPSINFO, sizeof(*psinfo), psinfo);
  
- #no spaces allowed after \ in define
- 		if ($line=~/\#\s*define.*\\\s$/) {
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from alan@linux.intel.com are
 
 origin.patch
 linux-next.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
+irq-tsk-comm-is-an-array.patch
+drivers-message-fusion-mptscsihc-missing-break.patch
+sendfile-allows-bypassing-of-notifier-events.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+hfsplus-avoid-crash-on-failed-block-map-free.patch
+fork-unshare-remove-dead-code.patch
 
