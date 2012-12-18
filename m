@@ -1,76 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [folded-dropped] memcg-kmem-accounting-basic-infrastructure-fix.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 14:13:16 -0800
-Message-ID: <20121218221317.3D176200057@hpza10.eem.corp.google.com>
+Subject: [folded-dropped] memcg-kmem-controller-infrastructure-replace-__always_inline-with-plain-inline.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 14:13:46 -0800
+Message-ID: <20121218221347.2877E200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f74.google.com ([209.85.215.74]:51568 "EHLO
-	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753764Ab2LRWNW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 17:13:22 -0500
-Received: by mail-la0-f74.google.com with SMTP id v3so67856lag.5
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 14:13:20 -0800 (PST)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:57866 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753764Ab2LRWNu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 17:13:50 -0500
+Received: by mail-we0-f202.google.com with SMTP id t57so67893wey.1
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 14:13:48 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cl@linux.com, fweisbec@redhat.com, glommer@parallels.com, gthelen@google.com, hannes@cmpxchg.org, js1304@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mhocko@suse.cz, penberg@cs.helsinki.fi, riel@redhat.com, rientjes@google.com, suleiman@google.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: glommer@parallels.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab-slub-struct-memcg_params-fix
+     Subject: memcg: replace __always_inline with plain inline
 has been removed from the -mm tree.  Its filename was
-     memcg-kmem-accounting-basic-infrastructure-fix.patch
+     memcg-kmem-controller-infrastructure-replace-__always_inline-with-plain-inline.patch
 
-This patch was dropped because it was folded into memcg-kmem-accounting-basic-infrastructure.patch
+This patch was dropped because it was folded into memcg-kmem-controller-infrastructure.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: slab-slub-struct-memcg_params-fix
+From: Glauber Costa <glommer@parallels.com>
+Subject: memcg: replace __always_inline with plain inline
 
-MEMCG_MMEM only works with slab and slub
+Following the pattern found in the allocators, where we do our best to the
+fast paths function-call free, all the externally visible functions for
+kmemcg were marked __always_inline.
 
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Frederic Weisbecker <fweisbec@redhat.com>
-Cc: Glauber Costa <glommer@parallels.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: JoonSoo Kim <js1304@gmail.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+It is fair to say, however, that this should be up to the compiler.  We
+will still keep as much of the flag testing as we can in memcontrol.h to
+give the compiler the option to inline it, but won't force it.
+
+I tested this with 4.7.2, it will inline all three functions anyway when
+compiling with -O2, and will refrain from it when compiling with -Os. 
+This seems like a good behavior.
+
+Signed-off-by: Glauber Costa <glommer@parallels.com>
 Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Suleiman Souhlal <suleiman@google.com>
-Cc: Tejun Heo <tj@kernel.org>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/memcontrol.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN init/Kconfig~memcg-kmem-accounting-basic-infrastructure-fix init/Kconfig
---- a/init/Kconfig~memcg-kmem-accounting-basic-infrastructure-fix
-+++ a/init/Kconfig
-@@ -882,6 +882,7 @@ config MEMCG_SWAP_ENABLED
- config MEMCG_KMEM
- 	bool "Memory Resource Controller Kernel Memory accounting (EXPERIMENTAL)"
- 	depends on MEMCG && EXPERIMENTAL
-+	depends on SLUB || SLAB
- 	default n
- 	help
- 	  The Kernel Memory extension for Memory Resource Controller can limit
+diff -puN include/linux/memcontrol.h~memcg-kmem-controller-infrastructure-replace-__always_inline-with-plain-inline include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-kmem-controller-infrastructure-replace-__always_inline-with-plain-inline
++++ a/include/linux/memcontrol.h
+@@ -451,7 +451,7 @@ void __memcg_kmem_uncharge_pages(struct 
+  * We return true automatically if this allocation is not to be accounted to
+  * any memcg.
+  */
+-static __always_inline bool
++static inline bool
+ memcg_kmem_newpage_charge(gfp_t gfp, struct mem_cgroup **memcg, int order)
+ {
+ 	if (!memcg_kmem_enabled())
+@@ -483,7 +483,7 @@ memcg_kmem_newpage_charge(gfp_t gfp, str
+  *
+  * there is no need to specify memcg here, since it is embedded in page_cgroup
+  */
+-static __always_inline void
++static inline void
+ memcg_kmem_uncharge_pages(struct page *page, int order)
+ {
+ 	if (memcg_kmem_enabled())
+@@ -501,7 +501,7 @@ memcg_kmem_uncharge_pages(struct page *p
+  * charges. Otherwise, it will commit the memcg given by @memcg to the
+  * corresponding page_cgroup.
+  */
+-static __always_inline void
++static inline void
+ memcg_kmem_commit_charge(struct page *page, struct mem_cgroup *memcg, int order)
+ {
+ 	if (memcg_kmem_enabled() && memcg)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from glommer@parallels.com are
 
 origin.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-irq-tsk-comm-is-an-array.patch
-memory-hotplug-document-and-enable-config_movable_node.patch
+memcg-make-it-possible-to-use-the-stock-for-more-than-one-page.patch
+memcg-reclaim-when-more-than-one-page-needed.patch
+memcg-change-defines-to-an-enum.patch
 memcg-kmem-accounting-basic-infrastructure.patch
+mm-add-a-__gfp_kmemcg-flag.patch
+memcg-kmem-controller-infrastructure.patch
+mm-allocate-kernel-pages-to-the-right-memcg.patch
+res_counter-return-amount-of-charges-after-res_counter_uncharge.patch
+memcg-kmem-accounting-lifecycle-management.patch
+memcg-use-static-branches-when-code-not-in-use.patch
+memcg-allow-a-memcg-with-kmem-charges-to-be-destructed.patch
+memcg-execute-the-whole-memcg-freeing-in-free_worker.patch
+fork-protect-architectures-where-thread_size-=-page_size-against-fork-bombs.patch
+memcg-add-documentation-about-the-kmem-controller.patch
+slab-slub-struct-memcg_params.patch
+slab-annotate-on-slab-caches-nodelist-locks.patch
+slab-slub-consider-a-memcg-parameter-in-kmem_create_cache.patch
+memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears.patch
+memcg-allocate-memory-for-memcg-caches-whenever-a-new-memcg-appears-simplify-ida-initialization.patch
+memcg-infrastructure-to-match-an-allocation-to-the-right-cache.patch
+memcg-skip-memcg-kmem-allocations-in-specified-code-regions.patch
+memcg-skip-memcg-kmem-allocations-in-specified-code-regions-remove-test-for-current-mm-in-memcg_stop-resume_kmem_account.patch
+slb-always-get-the-cache-from-its-page-in-kmem_cache_free.patch
+slb-allocate-objects-from-memcg-cache.patch
+memcg-destroy-memcg-caches.patch
+memcg-destroy-memcg-caches-move-include-of-workqueueh-to-top-of-slabh-file.patch
+memcg-slb-track-all-the-memcg-children-of-a-kmem_cache.patch
+memcg-slb-shrink-dead-caches.patch
+memcg-slb-shrink-dead-caches-get-rid-of-once-per-second-cache-shrinking-for-dead-memcgs.patch
+memcg-aggregate-memcg-cache-values-in-slabinfo.patch
+slab-propagate-tunable-values.patch
+slub-slub-specific-propagation-changes.patch
 slub-slub-specific-propagation-changes-fix.patch
-mm-mprotectc-coding-style-cleanups.patch
-mm-hugetlb-create-hugetlb-cgroup-file-in-hugetlb_init-fix.patch
-mm-hugetlb-create-hugetlb-cgroup-file-in-hugetlb_init-fix-2.patch
-mm-avoid-possible-deadlock-caused-by-too_many_isolated-fix.patch
+kmem-add-slab-specific-documentation-about-the-kmem-controller.patch
+memcg-add-comments-clarifying-aspects-of-cache-attribute-propagation.patch
+slub-drop-mutex-before-deleting-sysfs-entry.patch
 
