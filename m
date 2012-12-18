@@ -1,126 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged] aoe-support-the-forgetting-flushing-of-a-user-specified-aoe-target.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 12:09:45 -0800
-Message-ID: <20121218200945.A34F082004A@wpzn4.hot.corp.google.com>
+Subject: [merged] aoe-support-larger-i-o-requests-via-aoe_maxsectors-module-param.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 12:09:48 -0800
+Message-ID: <20121218200949.1BB0620004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:54693 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755262Ab2LRUJq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:09:46 -0500
-Received: by mail-vb0-f74.google.com with SMTP id s24so126077vbi.3
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:09:46 -0800 (PST)
+Received: from mail-la0-f73.google.com ([209.85.215.73]:39038 "EHLO
+	mail-la0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755262Ab2LRUJv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:09:51 -0500
+Received: by mail-la0-f73.google.com with SMTP id d3so63557lah.4
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:09:50 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ecashin@coraid.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: aoe: support the forgetting (flushing) of a user-specified AoE target
+     Subject: aoe: support larger I/O requests via aoe_maxsectors module param
 has been removed from the -mm tree.  Its filename was
-     aoe-support-the-forgetting-flushing-of-a-user-specified-aoe-target.patch
+     aoe-support-larger-i-o-requests-via-aoe_maxsectors-module-param.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Ed Cashin <ecashin@coraid.com>
-Subject: aoe: support the forgetting (flushing) of a user-specified AoE target
+Subject: aoe: support larger I/O requests via aoe_maxsectors module param
 
-Users sometimes want to cause the aoe driver to forget a particular
-previously discovered device when it is no longer online.  The aoetools
-provide an "aoe-flush" command that users run to perform this
-administrative task.  The changes below provide the support needed in the
-driver.
+The GPFS filesystem is an example of an aoe user that requires the aoe
+driver to support I/O request sizes larger than the default.  Most users
+will not need large I/O request sizes, because they would need to be split
+up into multiple AoE commands anyway.
 
 Signed-off-by: Ed Cashin <ecashin@coraid.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoedev.c |   44 ++++++++++++++++++++++++++++++-----
- 1 file changed, 38 insertions(+), 6 deletions(-)
+ drivers/block/aoe/aoeblk.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN drivers/block/aoe/aoedev.c~aoe-support-the-forgetting-flushing-of-a-user-specified-aoe-target drivers/block/aoe/aoedev.c
---- a/drivers/block/aoe/aoedev.c~aoe-support-the-forgetting-flushing-of-a-user-specified-aoe-target
-+++ a/drivers/block/aoe/aoedev.c
-@@ -241,6 +241,30 @@ aoedev_freedev(struct aoedev *d)
- 	kfree(d);
- }
+diff -puN drivers/block/aoe/aoeblk.c~aoe-support-larger-i-o-requests-via-aoe_maxsectors-module-param drivers/block/aoe/aoeblk.c
+--- a/drivers/block/aoe/aoeblk.c~aoe-support-larger-i-o-requests-via-aoe_maxsectors-module-param
++++ a/drivers/block/aoe/aoeblk.c
+@@ -16,11 +16,18 @@
+ #include <linux/netdevice.h>
+ #include <linux/mutex.h>
+ #include <linux/export.h>
++#include <linux/moduleparam.h>
+ #include "aoe.h"
  
-+/* return whether the user asked for this particular
-+ * device to be flushed
-+ */
-+static int
-+user_req(char *s, size_t slen, struct aoedev *d)
-+{
-+	char *p;
-+	size_t lim;
+ static DEFINE_MUTEX(aoeblk_mutex);
+ static struct kmem_cache *buf_pool_cache;
+ 
++/* GPFS needs a larger value than the default. */
++static int aoe_maxsectors;
++module_param(aoe_maxsectors, int, 0644);
++MODULE_PARM_DESC(aoe_maxsectors,
++	"When nonzero, set the maximum number of sectors per I/O request");
 +
-+	if (!d->gd)
-+		return 0;
-+	p = strrchr(d->gd->disk_name, '/');
-+	if (!p)
-+		p = d->gd->disk_name;
-+	else
-+		p += 1;
-+	lim = sizeof(d->gd->disk_name);
-+	lim -= p - d->gd->disk_name;
-+	if (slen < lim)
-+		lim = slen;
-+
-+	return !strncmp(s, p, lim);
-+}
-+
- int
- aoedev_flush(const char __user *str, size_t cnt)
+ static ssize_t aoedisk_show_state(struct device *dev,
+ 				  struct device_attribute *attr, char *page)
  {
-@@ -249,6 +273,7 @@ aoedev_flush(const char __user *str, siz
- 	struct aoedev *rmd = NULL;
- 	char buf[16];
- 	int all = 0;
-+	int specified = 0;	/* flush a specific device */
- 
- 	if (cnt >= 3) {
- 		if (cnt > sizeof buf)
-@@ -256,26 +281,33 @@ aoedev_flush(const char __user *str, siz
- 		if (copy_from_user(buf, str, cnt))
- 			return -EFAULT;
- 		all = !strncmp(buf, "all", 3);
-+		if (!all)
-+			specified = 1;
- 	}
- 
- 	spin_lock_irqsave(&devlist_lock, flags);
- 	dd = &devlist;
- 	while ((d = *dd)) {
- 		spin_lock(&d->lock);
--		if ((!all && (d->flags & DEVFL_UP))
-+		if (specified) {
-+			if (!user_req(buf, cnt, d))
-+				goto skip;
-+		} else if ((!all && (d->flags & DEVFL_UP))
- 		|| (d->flags & (DEVFL_GDALLOC|DEVFL_NEWSIZE))
- 		|| d->nopen
--		|| d->ref) {
--			spin_unlock(&d->lock);
--			dd = &d->next;
--			continue;
--		}
-+		|| d->ref)
-+			goto skip;
-+
- 		*dd = d->next;
- 		aoedev_downdev(d);
- 		d->flags |= DEVFL_TKILL;
- 		spin_unlock(&d->lock);
- 		d->next = rmd;
- 		rmd = d;
-+		continue;
-+skip:
-+		spin_unlock(&d->lock);
-+		dd = &d->next;
- 	}
- 	spin_unlock_irqrestore(&devlist_lock, flags);
- 	while ((d = rmd)) {
+@@ -248,6 +255,8 @@ aoeblk_gdalloc(void *vp)
+ 	d->blkq = gd->queue = q;
+ 	q->queuedata = d;
+ 	d->gd = gd;
++	if (aoe_maxsectors)
++		blk_queue_max_hw_sectors(q, aoe_maxsectors);
+ 	gd->major = AOE_MAJOR;
+ 	gd->first_minor = d->sysminor;
+ 	gd->fops = &aoe_bdops;
 _
 
 Patches currently in -mm which might be from ecashin@coraid.com are
