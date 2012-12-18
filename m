@@ -1,61 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] block-prevent-race-cleanup-fix.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 12:26:51 -0800
-Message-ID: <20121218202651.BF030100047@wpzn3.hot.corp.google.com>
+Subject: [merged] vfs-increment-iversion-when-a-file-is-truncated.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 12:51:06 -0800
+Message-ID: <20121218205107.3BCDE200167@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:57541 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753743Ab2LRU0x (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:26:53 -0500
-Received: by mail-vb0-f73.google.com with SMTP id l1so128467vba.0
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:26:52 -0800 (PST)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:36935 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755398Ab2LRUvK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:51:10 -0500
+Received: by mail-lb0-f202.google.com with SMTP id s4so71127lbc.3
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:51:08 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, axboe@kernel.dk, dbasehore@chromium.org, msb@chromium.org, mm-commits@vger.kernel.org
+To: dmitry.kasatkin@intel.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, zohar@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: block-prevent-race-cleanup-fix
+     Subject: vfs: increment iversion when a file is truncated
 has been removed from the -mm tree.  Its filename was
-     block-prevent-race-cleanup-fix.patch
+     vfs-increment-iversion-when-a-file-is-truncated.patch
 
-This patch was dropped because it was folded into block-prevent-race-cleanup.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: block-prevent-race-cleanup-fix
+From: Dmitry Kasatkin <dmitry.kasatkin@intel.com>
+Subject: vfs: increment iversion when a file is truncated
 
-fix spello in comment
+When a file is truncated with truncate()/ftruncate() and then closed,
+iversion is not updated.  This patch uses ATTR_SIZE flag as an indication
+to increment iversion.
 
-Cc: Derek Basehore <dbasehore@chromium.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Mandeep Singh Baines <msb@chromium.org>
+Mimi said:
+
+On fput(), i_version is used to detect and flag files that have changed
+and need to be re-measured in the IMA measurement policy.  When a file
+is truncated with truncate()/ftruncate() and then closed, i_version is
+not updated.  As a result, although the file has changed, it will not be
+re-measured and added to the IMA measurement list on subsequent access.
+
+Signed-off-by: Dmitry Kasatkin <dmitry.kasatkin@intel.com>
+Acked-by: Mimi Zohar <zohar@us.ibm.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/genhd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/attr.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN block/genhd.c~block-prevent-race-cleanup-fix block/genhd.c
---- a/block/genhd.c~block-prevent-race-cleanup-fix
-+++ a/block/genhd.c
-@@ -1591,7 +1591,7 @@ unsigned int disk_clear_events(struct ge
- }
+diff -puN fs/attr.c~vfs-increment-iversion-when-a-file-is-truncated fs/attr.c
+--- a/fs/attr.c~vfs-increment-iversion-when-a-file-is-truncated
++++ a/fs/attr.c
+@@ -187,6 +187,11 @@ int notify_change(struct dentry * dentry
+ 			inode_inc_iversion(inode);
+ 	}
  
- /*
-- * Seperate this part out so that a different pointer for clearing_ptr can be
-+ * Separate this part out so that a different pointer for clearing_ptr can be
-  * passed in for disk_clear_events.
-  */
- static void disk_events_workfn(struct work_struct *work)
++	if ((ia_valid & ATTR_SIZE) && IS_I_VERSION(inode)) {
++		if (attr->ia_size != inode->i_size)
++			inode_inc_iversion(inode);
++	}
++
+ 	if ((ia_valid & ATTR_MODE)) {
+ 		umode_t amode = attr->ia_mode;
+ 		/* Flag setting protected by i_mutex */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dmitry.kasatkin@intel.com are
 
 origin.patch
-arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
-irq-tsk-comm-is-an-array.patch
-block-remove-deadlock-in-disk_clear_events.patch
-block-prevent-race-cleanup.patch
 
