@@ -1,68 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] mm-memblock-reduce-overhead-in-binary-search.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 15:11:50 -0800
-Message-ID: <20121218231151.AB092200057@hpza10.eem.corp.google.com>
+Subject: [folded-merged] drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 15:12:22 -0800
+Message-ID: <20121218231223.0BBA482004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f73.google.com ([74.125.83.73]:35979 "EHLO
-	mail-ee0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751367Ab2LRXLy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 18:11:54 -0500
-Received: by mail-ee0-f73.google.com with SMTP id c50so69448eek.0
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 15:11:53 -0800 (PST)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:44982 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751367Ab2LRXMY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 18:12:24 -0500
+Received: by mail-qa0-f73.google.com with SMTP id a19so185640qad.4
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 15:12:23 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: liwanp@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, minchan@kernel.org, shangw@linux.vnet.ibm.com, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memblock: reduce overhead in binary search
+     Subject: drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-memblock-reduce-overhead-in-binary-search.patch
+     drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into drop_caches-add-some-documentation-and-info-messsge.patch
 
 ------------------------------------------------------
-From: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Subject: mm/memblock: reduce overhead in binary search
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes
 
-When checking that the indicated address belongs to the memory region, the
-memory regions are checked one by one through a binary search, which will
-be time consuming.
+WARNING: Prefer netdev_notice(netdev, ... then dev_notice(dev, ... then pr_notice(...  to printk(KERN_NOTICE ...
+#112: FILE: fs/drop_caches.c:61:
++		printk(KERN_NOTICE "%s (%d): dropped kernel caches: %d\n",
 
-If the indicated address isn't in the memory region, then we needn't do
-the time-consuming search.  Add a check on the indicated address for that
-purpose.
+WARNING: line over 80 characters
+#113: FILE: fs/drop_caches.c:62:
++			current->comm, task_pid_nr(current), sysctl_drop_caches);
 
-Signed-off-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+total: 0 errors, 2 warnings, 53 lines checked
+
+./patches/drop_caches-add-some-documentation-and-info-messsge.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Michal Hocko <mhocko@suse.cz>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Gavin Shan <shangw@linux.vnet.ibm.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/drop_caches.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memblock.c~mm-memblock-reduce-overhead-in-binary-search mm/memblock.c
---- a/mm/memblock.c~mm-memblock-reduce-overhead-in-binary-search
-+++ a/mm/memblock.c
-@@ -889,6 +889,11 @@ int __init memblock_is_reserved(phys_add
- 
- int __init_memblock memblock_is_memory(phys_addr_t addr)
- {
-+
-+	if (unlikely(addr < memblock_start_of_DRAM() ||
-+		addr >= memblock_end_of_DRAM()))
-+		return 0;
-+
- 	return memblock_search(&memblock.memory, addr) != -1;
- }
- 
+diff -puN fs/drop_caches.c~drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes fs/drop_caches.c
+--- a/fs/drop_caches.c~drop_caches-add-some-documentation-and-info-messsge-checkpatch-fixes
++++ a/fs/drop_caches.c
+@@ -59,7 +59,7 @@ int drop_caches_sysctl_handler(ctl_table
+ 		return ret;
+ 	if (write) {
+ 		printk(KERN_NOTICE "%s (%d): dropped kernel caches: %d\n",
+-			current->comm, task_pid_nr(current), sysctl_drop_caches);
++		       current->comm, task_pid_nr(current), sysctl_drop_caches);
+ 		if (sysctl_drop_caches & 1)
+ 			iterate_supers(drop_pagecache_sb, NULL);
+ 		if (sysctl_drop_caches & 2)
 _
 
-Patches currently in -mm which might be from liwanp@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch
+irq-tsk-comm-is-an-array.patch
+memory-hotplug-document-and-enable-config_movable_node.patch
+memcg-kmem-accounting-basic-infrastructure.patch
+slub-slub-specific-propagation-changes.patch
+mm-mprotectc-coding-style-cleanups.patch
+mm-hugetlb-create-hugetlb-cgroup-file-in-hugetlb_init.patch
+mm-avoid-possible-deadlock-caused-by-too_many_isolated.patch
+linux-next.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+make-my-i386-build-work.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+sgi-xp-handle-non-fatal-traps-fix.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
+block-remove-deadlock-in-disk_clear_events.patch
+block-prevent-race-cleanup.patch
+mm.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid-fix.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+hfsplus-rework-processing-of-hfs_btree_write-returned-error.patch
+ipc-add-sysctl-to-specify-desired-next-object-id.patch
+ipc-message-queue-receive-cleanup.patch
+ipc-convert-prepare_copy-from-macro-to-function.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+fs-notify-add-procfs-fdinfo-helper-v7-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
