@@ -1,51 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-dynamic_debug-use-kbasename.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 12:05:59 -0800
-Message-ID: <20121218200600.0B4A420004E@hpza10.eem.corp.google.com>
+Subject: [merged] procfs-use-kbasename.patch removed from -mm tree
+Date: Tue, 18 Dec 2012 12:06:07 -0800
+Message-ID: <20121218200607.F1E17200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:40736 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754890Ab2LRUGC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:06:02 -0500
-Received: by mail-bk0-f74.google.com with SMTP id je9so63271bkc.1
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:06:01 -0800 (PST)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:62877 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753636Ab2LRUGK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 15:06:10 -0500
+Received: by mail-we0-f202.google.com with SMTP id t57so63426wey.5
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 12:06:09 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, jbaron@redhat.com, mm-commits@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, yongjun_wei@trendmicro.com.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: dynamic_debug: use kbasename()
+     Subject: procfs: use kbasename()
 has been removed from the -mm tree.  Its filename was
-     lib-dynamic_debug-use-kbasename.patch
+     procfs-use-kbasename.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: lib: dynamic_debug: use kbasename()
+Subject: procfs: use kbasename()
 
-Remove the custom implementation of the functionality similar to kbasename().
-
+[yongjun_wei@trendmicro.com.cn: remove duplicated include]
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Jason Baron <jbaron@redhat.com>
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/dynamic_debug.c |    9 +--------
- 1 file changed, 1 insertion(+), 8 deletions(-)
+ fs/proc/proc_devtree.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN lib/dynamic_debug.c~lib-dynamic_debug-use-kbasename lib/dynamic_debug.c
---- a/lib/dynamic_debug.c~lib-dynamic_debug-use-kbasename
-+++ a/lib/dynamic_debug.c
-@@ -62,13 +62,6 @@ static LIST_HEAD(ddebug_tables);
- static int verbose = 0;
- module_param(verbose, int, 0644);
+diff -puN fs/proc/proc_devtree.c~procfs-use-kbasename fs/proc/proc_devtree.c
+--- a/fs/proc/proc_devtree.c~procfs-use-kbasename
++++ a/fs/proc/proc_devtree.c
+@@ -195,11 +195,7 @@ void proc_device_tree_add_node(struct de
+ 	set_node_proc_entry(np, de);
+ 	for (child = NULL; (child = of_get_next_child(np, child));) {
+ 		/* Use everything after the last slash, or the full name */
+-		p = strrchr(child->full_name, '/');
+-		if (!p)
+-			p = child->full_name;
+-		else
+-			++p;
++		p = kbasename(child->full_name);
  
--/* Return the last part of a pathname */
--static inline const char *basename(const char *path)
--{
--	const char *tail = strrchr(path, '/');
--	return tail ? tail+1 : path;
--}
+ 		if (duplicate_name(de, p))
+ 			p = fixup_name(np, de, p);
+_
+
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+
+origin.patch
+linux-next.patch
+
