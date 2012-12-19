@@ -1,65 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-slab-remove-duplicate-check.patch removed from -mm tree
-Date: Wed, 19 Dec 2012 12:39:46 -0800
-Message-ID: <20121219203947.2A389200057@hpza10.eem.corp.google.com>
+Subject: [merged] drivers-message-fusion-mptscsihc-missing-break.patch removed from -mm tree
+Date: Wed, 19 Dec 2012 12:39:42 -0800
+Message-ID: <20121219203943.1957C20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f73.google.com ([74.125.82.73]:64695 "EHLO
-	mail-wg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753435Ab2LSUjt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Dec 2012 15:39:49 -0500
-Received: by mail-wg0-f73.google.com with SMTP id dt12so133944wgb.2
-        for <mm-commits@vger.kernel.org>; Wed, 19 Dec 2012 12:39:48 -0800 (PST)
+Received: from mail-wi0-f201.google.com ([209.85.212.201]:45481 "EHLO
+	mail-wi0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753435Ab2LSUjp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Dec 2012 15:39:45 -0500
+Received: by mail-wi0-f201.google.com with SMTP id hm2so133905wib.0
+        for <mm-commits@vger.kernel.org>; Wed, 19 Dec 2012 12:39:44 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shangw@linux.vnet.ibm.com, hannes@cmpxchg.org, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
+To: alan@linux.intel.com, James.Bottomley@HansenPartnership.com, kashyap.desai@lsi.com, nagalakshmi.nandigama@lsi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc.c: remove duplicate check
+     Subject: drivers/message/fusion/mptscsih.c: missing break
 has been removed from the -mm tree.  Its filename was
-     mm-slab-remove-duplicate-check.patch
+     drivers-message-fusion-mptscsihc-missing-break.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Gavin Shan <shangw@linux.vnet.ibm.com>
-Subject: mm/page_alloc.c: remove duplicate check
+From: Alan Cox <alan@linux.intel.com>
+Subject: drivers/message/fusion/mptscsih.c: missing break
 
-While allocating pages using buddy allocator, the compound page is
-probably split up to free pages.  Under these circumstances, the compound
-page should be destroyed by destroy_compound_page().  However, there is a
-duplicate check to judge if the page is compound.
+This happens to do the right thing in all cases on fibre channel but not on
+other media types
 
-Remove the duplicate check since the compound_order() returns 0 when the
-page doesn't have PG_head set in destroy_compound_page().  That is to say,
-destroy_compound_page() needn't check PageHead().
-
-Signed-off-by: Gavin Shan <shangw@linux.vnet.ibm.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Nagalakshmi Nandigama <nagalakshmi.nandigama@lsi.com>
+Cc: Kashyap Desai <kashyap.desai@lsi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/message/fusion/mptscsih.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/page_alloc.c~mm-slab-remove-duplicate-check mm/page_alloc.c
---- a/mm/page_alloc.c~mm-slab-remove-duplicate-check
-+++ a/mm/page_alloc.c
-@@ -371,8 +371,7 @@ static int destroy_compound_page(struct 
- 	int nr_pages = 1 << order;
- 	int bad = 0;
+diff -puN drivers/message/fusion/mptscsih.c~drivers-message-fusion-mptscsihc-missing-break drivers/message/fusion/mptscsih.c
+--- a/drivers/message/fusion/mptscsih.c~drivers-message-fusion-mptscsihc-missing-break
++++ a/drivers/message/fusion/mptscsih.c
+@@ -792,6 +792,7 @@ mptscsih_io_done(MPT_ADAPTER *ioc, MPT_F
+ 			 * than an unsolicited DID_ABORT.
+ 			 */
+ 			sc->result = DID_RESET << 16;
++			break;
  
--	if (unlikely(compound_order(page) != order) ||
--	    unlikely(!PageHead(page))) {
-+	if (unlikely(compound_order(page) != order)) {
- 		bad_page(page);
- 		bad++;
- 	}
+ 		case MPI_IOCSTATUS_SCSI_EXT_TERMINATED:		/* 0x004C */
+ 			if (ioc->bus_type == FC)
 _
 
-Patches currently in -mm which might be from shangw@linux.vnet.ibm.com are
+Patches currently in -mm which might be from alan@linux.intel.com are
 
 origin.patch
+linux-next.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
+sendfile-allows-bypassing-of-notifier-events.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+hfsplus-avoid-crash-on-failed-block-map-free.patch
+fork-unshare-remove-dead-code.patch
 
