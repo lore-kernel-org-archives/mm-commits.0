@@ -1,223 +1,165 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch removed from -mm tree
-Date: Tue, 18 Dec 2012 15:40:25 -0800
-Message-ID: <20121218234026.1DE67200059@hpza10.eem.corp.google.com>
+Subject: + drivers-rtc-dump-small-buffers-via-%ph.patch added to -mm tree
+Date: Tue, 18 Dec 2012 16:08:57 -0800
+Message-ID: <20121219000857.92258820050@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f201.google.com ([209.85.212.201]:49913 "EHLO
-	mail-wi0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753932Ab2LRXk3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 18:40:29 -0500
-Received: by mail-wi0-f201.google.com with SMTP id hm2so70236wib.2
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 15:40:28 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:40389 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754773Ab2LSAI6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 19:08:58 -0500
+Received: by mail-qc0-f202.google.com with SMTP id s25so159431qcq.1
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 16:08:58 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shli@kernel.org, fengguang.wu@intel.com, hughd@google.com, khlebnikov@openvz.org, minchan@kernel.org, riel@redhat.com, shli@fusionio.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: andriy.shevchenko@linux.intel.com
 
 
 The patch titled
-     Subject: swap: add a simple detector for inappropriate swapin readahead
-has been removed from the -mm tree.  Its filename was
-     swap-add-a-simple-detector-for-inappropriate-swapin-readahead.patch
+     Subject: drivers/rtc: dump small buffers via %*ph
+has been added to the -mm tree.  Its filename is
+     drivers-rtc-dump-small-buffers-via-%ph.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Shaohua Li <shli@kernel.org>
-Subject: swap: add a simple detector for inappropriate swapin readahead
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: drivers/rtc: dump small buffers via %*ph
 
-The swapin readahead does a blind readahead whether or not the swapin is
-sequential.  This is ok for harddisk because large reads have relatively
-small costs and if the readahead pages are unneeded they can be reclaimed
-easily.  But for SSD devices large reads are more expensive than small
-one.  If readahead pages are unneeded, reading them in caused significant
-overhead
-
-This patch addes a simple random read detection similar to file mmap
-readahead.  If a random read is detected, swapin readahead will be
-skipped.  This improves a lot for a swap workload with random IO in a fast
-SSD.
-
-I run anonymous mmap write micro benchmark, which will triger swapin/swapout.
-
-			runtime changes with patch
-randwrite harddisk	-38.7%
-seqwrite harddisk	-1.1%
-randwrite SSD		-46.9%
-seqwrite SSD		+0.3%
-
-For both harddisk and SSD, the randwrite swap workload run time is reduced
-significantly.  Sequential write swap workload hasn't chanage.
-
-Interestingly, the randwrite harddisk test is improved too.  This might be
-because swapin readahead needs to allocate extra memory, which further
-tights memory pressure, so more swapout/swapin.
-
-[akpm@linux-foundation.org: tweak code comment]
-Signed-off-by: Shaohua Li <shli@fusionio.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    3 ++
- mm/internal.h        |   48 +++++++++++++++++++++++++++++++++++++++++
- mm/memory.c          |    3 +-
- mm/rmap.c            |    3 ++
- mm/shmem.c           |    2 -
- mm/swap_state.c      |    6 +++++
- 6 files changed, 63 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-ds1305.c |    8 ++------
+ drivers/rtc/rtc-ds1307.c |   11 ++---------
+ drivers/rtc/rtc-fm3130.c |   33 ++++-----------------------------
+ 3 files changed, 8 insertions(+), 44 deletions(-)
 
-diff -puN include/linux/rmap.h~swap-add-a-simple-detector-for-inappropriate-swapin-readahead include/linux/rmap.h
---- a/include/linux/rmap.h~swap-add-a-simple-detector-for-inappropriate-swapin-readahead
-+++ a/include/linux/rmap.h
-@@ -35,6 +35,9 @@ struct anon_vma {
- 	 * anon_vma if they are the last user on release
- 	 */
- 	atomic_t refcount;
-+#ifdef CONFIG_SWAP
-+	atomic_t swapra_miss;
-+#endif
+diff -puN drivers/rtc/rtc-ds1305.c~drivers-rtc-dump-small-buffers-via-%ph drivers/rtc/rtc-ds1305.c
+--- a/drivers/rtc/rtc-ds1305.c~drivers-rtc-dump-small-buffers-via-%ph
++++ a/drivers/rtc/rtc-ds1305.c
+@@ -635,9 +635,7 @@ static int __devinit ds1305_probe(struct
+ 		goto fail0;
+ 	}
  
- 	/*
- 	 * NOTE: the LSB of the rb_root.rb_node is set by
-diff -puN mm/internal.h~swap-add-a-simple-detector-for-inappropriate-swapin-readahead mm/internal.h
---- a/mm/internal.h~swap-add-a-simple-detector-for-inappropriate-swapin-readahead
-+++ a/mm/internal.h
-@@ -12,6 +12,7 @@
- #define __MM_INTERNAL_H
+-	dev_dbg(&spi->dev, "ctrl %s: %02x %02x %02x\n",
+-			"read", ds1305->ctrl[0],
+-			ds1305->ctrl[1], ds1305->ctrl[2]);
++	dev_dbg(&spi->dev, "ctrl %s: %3ph\n", "read", ds1305->ctrl);
  
- #include <linux/mm.h>
-+#include <linux/rmap.h>
+ 	/* Sanity check register values ... partially compensating for the
+ 	 * fact that SPI has no device handshake.  A pullup on MISO would
+@@ -723,9 +721,7 @@ static int __devinit ds1305_probe(struct
+ 			goto fail0;
+ 		}
  
- void free_pgtables(struct mmu_gather *tlb, struct vm_area_struct *start_vma,
- 		unsigned long floor, unsigned long ceiling);
-@@ -375,4 +376,51 @@ unsigned long reclaim_clean_pages_from_l
- #define ALLOC_CPUSET		0x40 /* check for correct cpuset */
- #define ALLOC_CMA		0x80 /* allow allocations from CMA areas */
+-		dev_dbg(&spi->dev, "ctrl %s: %02x %02x %02x\n",
+-				"write", ds1305->ctrl[0],
+-				ds1305->ctrl[1], ds1305->ctrl[2]);
++		dev_dbg(&spi->dev, "ctrl %s: %3ph\n", "write", ds1305->ctrl);
+ 	}
  
-+/*
-+ * Unnecessary readahead harms performance, especially for SSD devices, where
-+ * large reads are significantly more expensive than small ones.
-+ * These implements simple swap random access detection. In swap page fault: if
-+ * the page is found in swapcache, decrease a counter in the vma, otherwise we
-+ * need to perform sync swapin and the counter is increased.  Optionally swapin
-+ * will perform readahead if the counter is below a threshold.
-+ */
-+#ifdef CONFIG_SWAP
-+#define SWAPRA_MISS_THRESHOLD  (100)
-+#define SWAPRA_MAX_MISS ((SWAPRA_MISS_THRESHOLD) * 10)
-+static inline void swap_cache_hit(struct vm_area_struct *vma)
-+{
-+	if (vma && vma->anon_vma)
-+		atomic_dec_if_positive(&vma->anon_vma->swapra_miss);
-+}
-+
-+static inline void swap_cache_miss(struct vm_area_struct *vma)
-+{
-+	if (!vma || !vma->anon_vma)
-+		return;
-+	if (atomic_read(&vma->anon_vma->swapra_miss) < SWAPRA_MAX_MISS)
-+		atomic_inc(&vma->anon_vma->swapra_miss);
-+}
-+
-+static inline int swap_cache_skip_readahead(struct vm_area_struct *vma)
-+{
-+	if (!vma || !vma->anon_vma)
-+		return 0;
-+	return atomic_read(&vma->anon_vma->swapra_miss) >
-+		SWAPRA_MISS_THRESHOLD;
-+}
-+#else
-+static inline void swap_cache_hit(struct vm_area_struct *vma)
-+{
-+}
-+
-+static inline void swap_cache_miss(struct vm_area_struct *vma)
-+{
-+}
-+
-+static inline int swap_cache_skip_readahead(struct vm_area_struct *vma)
-+{
-+	return 0;
-+}
-+#endif	/* CONFIG_SWAP */
-+
- #endif	/* __MM_INTERNAL_H */
-diff -puN mm/memory.c~swap-add-a-simple-detector-for-inappropriate-swapin-readahead mm/memory.c
---- a/mm/memory.c~swap-add-a-simple-detector-for-inappropriate-swapin-readahead
-+++ a/mm/memory.c
-@@ -2967,7 +2967,8 @@ static int do_swap_page(struct mm_struct
- 		ret = VM_FAULT_HWPOISON;
- 		delayacct_clear_flag(DELAYACCT_PF_SWAPIN);
- 		goto out_release;
--	}
-+	} else if (!(flags & FAULT_FLAG_TRIED))
-+		swap_cache_hit(vma);
+ 	/* see if non-Linux software set up AM/PM mode */
+diff -puN drivers/rtc/rtc-ds1307.c~drivers-rtc-dump-small-buffers-via-%ph drivers/rtc/rtc-ds1307.c
+--- a/drivers/rtc/rtc-ds1307.c~drivers-rtc-dump-small-buffers-via-%ph
++++ a/drivers/rtc/rtc-ds1307.c
+@@ -322,12 +322,7 @@ static int ds1307_get_time(struct device
+ 		return -EIO;
+ 	}
  
- 	locked = lock_page_or_retry(page, mm, flags);
+-	dev_dbg(dev, "%s: %02x %02x %02x %02x %02x %02x %02x\n",
+-			"read",
+-			ds1307->regs[0], ds1307->regs[1],
+-			ds1307->regs[2], ds1307->regs[3],
+-			ds1307->regs[4], ds1307->regs[5],
+-			ds1307->regs[6]);
++	dev_dbg(dev, "%s: %7ph\n", "read", ds1307->regs);
  
-diff -puN mm/rmap.c~swap-add-a-simple-detector-for-inappropriate-swapin-readahead mm/rmap.c
---- a/mm/rmap.c~swap-add-a-simple-detector-for-inappropriate-swapin-readahead
-+++ a/mm/rmap.c
-@@ -367,6 +367,9 @@ static void anon_vma_ctor(void *data)
+ 	t->tm_sec = bcd2bin(ds1307->regs[DS1307_REG_SECS] & 0x7f);
+ 	t->tm_min = bcd2bin(ds1307->regs[DS1307_REG_MIN] & 0x7f);
+@@ -398,9 +393,7 @@ static int ds1307_set_time(struct device
+ 		break;
+ 	}
  
- 	init_rwsem(&anon_vma->rwsem);
- 	atomic_set(&anon_vma->refcount, 0);
-+#ifdef CONFIG_SWAP
-+	atomic_set(&anon_vma->swapra_miss, 0);
-+#endif
- 	anon_vma->rb_root = RB_ROOT;
- }
+-	dev_dbg(dev, "%s: %02x %02x %02x %02x %02x %02x %02x\n",
+-		"write", buf[0], buf[1], buf[2], buf[3],
+-		buf[4], buf[5], buf[6]);
++	dev_dbg(dev, "%s: %7ph\n", "write", buf);
  
-diff -puN mm/shmem.c~swap-add-a-simple-detector-for-inappropriate-swapin-readahead mm/shmem.c
---- a/mm/shmem.c~swap-add-a-simple-detector-for-inappropriate-swapin-readahead
-+++ a/mm/shmem.c
-@@ -919,7 +919,7 @@ static struct page *shmem_swapin(swp_ent
- 	pvma.vm_pgoff = index + info->vfs_inode.i_ino;
- 	pvma.vm_ops = NULL;
- 	pvma.vm_policy = mpol_shared_policy_lookup(&info->policy, index);
--
-+	pvma.anon_vma = NULL;
- 	page = swapin_readahead(swap, gfp, &pvma, 0);
+ 	result = ds1307->write_block_data(ds1307->client,
+ 		ds1307->offset, 7, buf);
+diff -puN drivers/rtc/rtc-fm3130.c~drivers-rtc-dump-small-buffers-via-%ph drivers/rtc/rtc-fm3130.c
+--- a/drivers/rtc/rtc-fm3130.c~drivers-rtc-dump-small-buffers-via-%ph
++++ a/drivers/rtc/rtc-fm3130.c
+@@ -116,17 +116,7 @@ static int fm3130_get_time(struct device
  
- 	/* Drop reference taken by mpol_shared_policy_lookup() */
-diff -puN mm/swap_state.c~swap-add-a-simple-detector-for-inappropriate-swapin-readahead mm/swap_state.c
---- a/mm/swap_state.c~swap-add-a-simple-detector-for-inappropriate-swapin-readahead
-+++ a/mm/swap_state.c
-@@ -20,6 +20,7 @@
- #include <linux/page_cgroup.h>
+ 	fm3130_rtc_mode(dev, FM3130_MODE_NORMAL);
  
- #include <asm/pgtable.h>
-+#include "internal.h"
+-	dev_dbg(dev, "%s: %02x %02x %02x %02x %02x %02x %02x %02x"
+-			"%02x %02x %02x %02x %02x %02x %02x\n",
+-			"read",
+-			fm3130->regs[0], fm3130->regs[1],
+-			fm3130->regs[2], fm3130->regs[3],
+-			fm3130->regs[4], fm3130->regs[5],
+-			fm3130->regs[6], fm3130->regs[7],
+-			fm3130->regs[8], fm3130->regs[9],
+-			fm3130->regs[0xa], fm3130->regs[0xb],
+-			fm3130->regs[0xc], fm3130->regs[0xd],
+-			fm3130->regs[0xe]);
++	dev_dbg(dev, "%s: %15ph\n", "read", fm3130->regs);
  
- /*
-  * swapper_space is a fiction, retained to simplify the path through
-@@ -379,6 +380,10 @@ struct page *swapin_readahead(swp_entry_
- 	unsigned long mask = (1UL << page_cluster) - 1;
- 	struct blk_plug plug;
+ 	t->tm_sec = bcd2bin(fm3130->regs[FM3130_RTC_SECONDS] & 0x7f);
+ 	t->tm_min = bcd2bin(fm3130->regs[FM3130_RTC_MINUTES] & 0x7f);
+@@ -175,12 +165,7 @@ static int fm3130_set_time(struct device
+ 	tmp = t->tm_year - 100;
+ 	buf[FM3130_RTC_YEARS] = bin2bcd(tmp);
  
-+	swap_cache_miss(vma);
-+	if (swap_cache_skip_readahead(vma))
-+		goto skip;
-+
- 	/* Read a page_cluster sized and aligned cluster around offset. */
- 	start_offset = offset & ~mask;
- 	end_offset = offset | mask;
-@@ -397,5 +402,6 @@ struct page *swapin_readahead(swp_entry_
- 	blk_finish_plug(&plug);
+-	dev_dbg(dev, "%s: %02x %02x %02x %02x %02x %02x %02x"
+-		"%02x %02x %02x %02x %02x %02x %02x %02x\n",
+-		"write", buf[0], buf[1], buf[2], buf[3],
+-		buf[4], buf[5], buf[6], buf[7],
+-		buf[8], buf[9], buf[0xa], buf[0xb],
+-		buf[0xc], buf[0xd], buf[0xe]);
++	dev_dbg(dev, "%s: %15ph\n", "write", buf);
  
- 	lru_add_drain();	/* Push any new pages onto the LRU now */
-+skip:
- 	return read_swap_cache_async(entry, gfp_mask, vma, addr);
- }
+ 	fm3130_rtc_mode(dev, FM3130_MODE_WRITE);
+ 
+@@ -517,18 +502,8 @@ bad_alarm:
+ bad_clock:
+ 
+ 	if (!fm3130->data_valid || !fm3130->alarm_valid)
+-		dev_dbg(&client->dev,
+-				"%s: %02x %02x %02x %02x %02x %02x %02x %02x"
+-				"%02x %02x %02x %02x %02x %02x %02x\n",
+-			"bogus registers",
+-			fm3130->regs[0], fm3130->regs[1],
+-			fm3130->regs[2], fm3130->regs[3],
+-			fm3130->regs[4], fm3130->regs[5],
+-			fm3130->regs[6], fm3130->regs[7],
+-			fm3130->regs[8], fm3130->regs[9],
+-			fm3130->regs[0xa], fm3130->regs[0xb],
+-			fm3130->regs[0xc], fm3130->regs[0xd],
+-			fm3130->regs[0xe]);
++		dev_dbg(&client->dev, "%s: %15ph\n", "bogus registers",
++			fm3130->regs);
+ 
+ 	/* We won't bail out here because we just got invalid data.
+ 	   Time setting from u-boot doesn't work anyway */
 _
 
-Patches currently in -mm which might be from shli@kernel.org are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
 origin.patch
 linux-next.patch
+drivers-rtc-dump-small-buffers-via-%ph.patch
 
