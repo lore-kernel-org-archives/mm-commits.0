@@ -1,37 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-aggregate-memcg-cache-values-in-slabinfo.patch removed from -mm tree
-Date: Wed, 19 Dec 2012 12:42:04 -0800
-Message-ID: <20121219204205.03EFF82004A@wpzn4.hot.corp.google.com>
+Subject: [merged] slab-propagate-tunable-values.patch removed from -mm tree
+Date: Wed, 19 Dec 2012 12:42:08 -0800
+Message-ID: <20121219204209.230F982004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:41754 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755308Ab2LSUmH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Dec 2012 15:42:07 -0500
-Received: by mail-qc0-f202.google.com with SMTP id s25so278218qcq.3
-        for <mm-commits@vger.kernel.org>; Wed, 19 Dec 2012 12:42:06 -0800 (PST)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:59598 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755308Ab2LSUmK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Dec 2012 15:42:10 -0500
+Received: by mail-yh0-f73.google.com with SMTP id 47so278260yhr.0
+        for <mm-commits@vger.kernel.org>; Wed, 19 Dec 2012 12:42:10 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: glommer@parallels.com, cl@linux.com, fweisbec@redhat.com, gthelen@google.com, hannes@cmpxchg.org, js1304@gmail.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mhocko@suse.cz, penberg@cs.helsinki.fi, riel@redhat.com, rientjes@google.com, suleiman@google.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: aggregate memcg cache values in slabinfo
+     Subject: slab: propagate tunable values
 has been removed from the -mm tree.  Its filename was
-     memcg-aggregate-memcg-cache-values-in-slabinfo.patch
+     slab-propagate-tunable-values.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Glauber Costa <glommer@parallels.com>
-Subject: memcg: aggregate memcg cache values in slabinfo
+Subject: slab: propagate tunable values
 
-When we create caches in memcgs, we need to display their usage
-information somewhere.  We'll adopt a scheme similar to /proc/meminfo,
-with aggregate totals shown in the global file, and per-group information
-stored in the group itself.
+SLAB allows us to tune a particular cache behavior with tunables.  When
+creating a new memcg cache copy, we'd like to preserve any tunables the
+parent cache already had.
 
-For the time being, only reads are allowed in the per-group cache.
+This could be done by an explicit call to do_tune_cpucache() after the
+cache is created.  But this is not very convenient now that the caches are
+created from common code, since this function is SLAB-specific.
+
+Another method of doing that is taking advantage of the fact that
+do_tune_cpucache() is always called from enable_cpucache(), which is
+called at cache initialization.  We can just preset the values, and then
+things work as expected.
+
+It can also happen that a root cache has its tunables updated during
+normal system operation.  In this case, we will propagate the change to
+all caches that are already active.
+
+This change will require us to move the assignment of root_cache in
+memcg_params a bit earlier.  We need this to be already set - which
+memcg_kmem_register_cache will do - when we reach __kmem_cache_create()
 
 Signed-off-by: Glauber Costa <glommer@parallels.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -50,225 +64,226 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    8 ++++++
- include/linux/slab.h       |    4 +++
- mm/memcontrol.c            |   30 +++++++++++++++++++++++
- mm/slab.h                  |   27 +++++++++++++++++++++
- mm/slab_common.c           |   44 +++++++++++++++++++++++++++++++----
- 5 files changed, 108 insertions(+), 5 deletions(-)
+ include/linux/memcontrol.h |    8 +++---
+ include/linux/slab.h       |    2 -
+ mm/memcontrol.c            |   10 ++++---
+ mm/slab.c                  |   44 ++++++++++++++++++++++++++++++++---
+ mm/slab.h                  |   12 +++++++++
+ mm/slab_common.c           |    7 +++--
+ 6 files changed, 69 insertions(+), 14 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-aggregate-memcg-cache-values-in-slabinfo include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-aggregate-memcg-cache-values-in-slabinfo
+diff -puN include/linux/memcontrol.h~slab-propagate-tunable-values include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~slab-propagate-tunable-values
 +++ a/include/linux/memcontrol.h
-@@ -420,6 +420,11 @@ static inline void sock_release_memcg(st
+@@ -448,7 +448,8 @@ void __memcg_kmem_commit_charge(struct p
+ void __memcg_kmem_uncharge_pages(struct page *page, int order);
  
- #ifdef CONFIG_MEMCG_KMEM
- extern struct static_key memcg_kmem_enabled_key;
-+
-+extern int memcg_limited_groups_array_size;
-+#define for_each_memcg_cache_index(_idx)	\
-+	for ((_idx) = 0; i < memcg_limited_groups_array_size; (_idx)++)
-+
- static inline bool memcg_kmem_enabled(void)
- {
- 	return static_key_false(&memcg_kmem_enabled_key);
-@@ -557,6 +562,9 @@ memcg_kmem_get_cache(struct kmem_cache *
- 	return __memcg_kmem_get_cache(cachep, gfp);
+ int memcg_cache_id(struct mem_cgroup *memcg);
+-int memcg_register_cache(struct mem_cgroup *memcg, struct kmem_cache *s);
++int memcg_register_cache(struct mem_cgroup *memcg, struct kmem_cache *s,
++			 struct kmem_cache *root_cache);
+ void memcg_release_cache(struct kmem_cache *cachep);
+ void memcg_cache_list_add(struct mem_cgroup *memcg, struct kmem_cache *cachep);
+ 
+@@ -590,8 +591,9 @@ static inline int memcg_cache_id(struct 
+ 	return -1;
  }
- #else
-+#define for_each_memcg_cache_index(_idx)	\
-+	for (; NULL; )
-+
- static inline bool memcg_kmem_enabled(void)
+ 
+-static inline int memcg_register_cache(struct mem_cgroup *memcg,
+-				       struct kmem_cache *s)
++static inline int
++memcg_register_cache(struct mem_cgroup *memcg, struct kmem_cache *s,
++		     struct kmem_cache *root_cache)
  {
- 	return false;
-diff -puN include/linux/slab.h~memcg-aggregate-memcg-cache-values-in-slabinfo include/linux/slab.h
---- a/include/linux/slab.h~memcg-aggregate-memcg-cache-values-in-slabinfo
+ 	return 0;
+ }
+diff -puN include/linux/slab.h~slab-propagate-tunable-values include/linux/slab.h
+--- a/include/linux/slab.h~slab-propagate-tunable-values
 +++ a/include/linux/slab.h
-@@ -220,6 +220,10 @@ struct memcg_cache_params {
- 
- int memcg_update_all_caches(int num_memcgs);
- 
-+struct seq_file;
-+int cache_show(struct kmem_cache *s, struct seq_file *m);
-+void print_slabinfo_header(struct seq_file *m);
-+
- /*
-  * Common kmalloc functions provided by all allocators
-  */
-diff -puN mm/memcontrol.c~memcg-aggregate-memcg-cache-values-in-slabinfo mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-aggregate-memcg-cache-values-in-slabinfo
+@@ -130,7 +130,7 @@ struct kmem_cache *kmem_cache_create(con
+ 			void (*)(void *));
+ struct kmem_cache *
+ kmem_cache_create_memcg(struct mem_cgroup *, const char *, size_t, size_t,
+-			unsigned long, void (*)(void *));
++			unsigned long, void (*)(void *), struct kmem_cache *);
+ void kmem_cache_destroy(struct kmem_cache *);
+ int kmem_cache_shrink(struct kmem_cache *);
+ void kmem_cache_free(struct kmem_cache *, void *);
+diff -puN mm/memcontrol.c~slab-propagate-tunable-values mm/memcontrol.c
+--- a/mm/memcontrol.c~slab-propagate-tunable-values
 +++ a/mm/memcontrol.c
-@@ -572,7 +572,8 @@ static void disarm_sock_keys(struct mem_
-  * increase it.
-  */
- static DEFINE_IDA(kmem_limited_groups);
--static int memcg_limited_groups_array_size;
-+int memcg_limited_groups_array_size;
-+
- /*
-  * MIN_SIZE is different than 1, because we would like to avoid going through
-  * the alloc/free process all the time. In a small machine, 4 kmem-limited
-@@ -2794,6 +2795,27 @@ static struct kmem_cache *memcg_params_t
- 	return cachep->memcg_params->memcg_caches[memcg_cache_id(p->memcg)];
+@@ -3012,7 +3012,8 @@ int memcg_update_cache_size(struct kmem_
+ 	return 0;
  }
  
-+#ifdef CONFIG_SLABINFO
-+static int mem_cgroup_slabinfo_read(struct cgroup *cont, struct cftype *cft,
-+					struct seq_file *m)
-+{
-+	struct mem_cgroup *memcg = mem_cgroup_from_cont(cont);
-+	struct memcg_cache_params *params;
-+
-+	if (!memcg_can_account_kmem(memcg))
-+		return -EIO;
-+
-+	print_slabinfo_header(m);
-+
-+	mutex_lock(&memcg->slab_caches_mutex);
-+	list_for_each_entry(params, &memcg->memcg_slab_caches, list)
-+		cache_show(memcg_params_to_cache(params), m);
-+	mutex_unlock(&memcg->slab_caches_mutex);
-+
-+	return 0;
-+}
-+#endif
-+
- static int memcg_charge_kmem(struct mem_cgroup *memcg, gfp_t gfp, u64 size)
+-int memcg_register_cache(struct mem_cgroup *memcg, struct kmem_cache *s)
++int memcg_register_cache(struct mem_cgroup *memcg, struct kmem_cache *s,
++			 struct kmem_cache *root_cache)
  {
- 	struct res_counter *fail_res;
-@@ -5822,6 +5844,12 @@ static struct cftype mem_cgroup_files[] 
- 		.trigger = mem_cgroup_reset,
- 		.read = mem_cgroup_read,
- 	},
-+#ifdef CONFIG_SLABINFO
-+	{
-+		.name = "kmem.slabinfo",
-+		.read_seq_string = mem_cgroup_slabinfo_read,
-+	},
-+#endif
+ 	size_t size = sizeof(struct memcg_cache_params);
+ 
+@@ -3026,8 +3027,10 @@ int memcg_register_cache(struct mem_cgro
+ 	if (!s->memcg_params)
+ 		return -ENOMEM;
+ 
+-	if (memcg)
++	if (memcg) {
+ 		s->memcg_params->memcg = memcg;
++		s->memcg_params->root_cache = root_cache;
++	}
+ 	return 0;
+ }
+ 
+@@ -3186,7 +3189,7 @@ static struct kmem_cache *kmem_cache_dup
+ 		return NULL;
+ 
+ 	new = kmem_cache_create_memcg(memcg, name, s->object_size, s->align,
+-				      (s->flags & ~SLAB_PANIC), s->ctor);
++				      (s->flags & ~SLAB_PANIC), s->ctor, s);
+ 
+ 	if (new)
+ 		new->allocflags |= __GFP_KMEMCG;
+@@ -3226,7 +3229,6 @@ static struct kmem_cache *memcg_create_k
+ 	}
+ 
+ 	mem_cgroup_get(memcg);
+-	new_cachep->memcg_params->root_cache = cachep;
+ 	atomic_set(&new_cachep->memcg_params->nr_pages , 0);
+ 
+ 	cachep->memcg_params->memcg_caches[idx] = new_cachep;
+diff -puN mm/slab.c~slab-propagate-tunable-values mm/slab.c
+--- a/mm/slab.c~slab-propagate-tunable-values
++++ a/mm/slab.c
+@@ -4041,7 +4041,7 @@ static void do_ccupdate_local(void *info
+ }
+ 
+ /* Always called with the slab_mutex held */
+-static int do_tune_cpucache(struct kmem_cache *cachep, int limit,
++static int __do_tune_cpucache(struct kmem_cache *cachep, int limit,
+ 				int batchcount, int shared, gfp_t gfp)
+ {
+ 	struct ccupdate_struct *new;
+@@ -4084,12 +4084,48 @@ static int do_tune_cpucache(struct kmem_
+ 	return alloc_kmemlist(cachep, gfp);
+ }
+ 
++static int do_tune_cpucache(struct kmem_cache *cachep, int limit,
++				int batchcount, int shared, gfp_t gfp)
++{
++	int ret;
++	struct kmem_cache *c = NULL;
++	int i = 0;
++
++	ret = __do_tune_cpucache(cachep, limit, batchcount, shared, gfp);
++
++	if (slab_state < FULL)
++		return ret;
++
++	if ((ret < 0) || !is_root_cache(cachep))
++		return ret;
++
++	for_each_memcg_cache_index(i) {
++		c = cache_from_memcg(cachep, i);
++		if (c)
++			/* return value determined by the parent cache only */
++			__do_tune_cpucache(c, limit, batchcount, shared, gfp);
++	}
++
++	return ret;
++}
++
+ /* Called with slab_mutex held always */
+ static int enable_cpucache(struct kmem_cache *cachep, gfp_t gfp)
+ {
+ 	int err;
+-	int limit, shared;
++	int limit = 0;
++	int shared = 0;
++	int batchcount = 0;
++
++	if (!is_root_cache(cachep)) {
++		struct kmem_cache *root = memcg_root_cache(cachep);
++		limit = root->limit;
++		shared = root->shared;
++		batchcount = root->batchcount;
++	}
+ 
++	if (limit && shared && batchcount)
++		goto skip_setup;
+ 	/*
+ 	 * The head array serves three purposes:
+ 	 * - create a LIFO ordering, i.e. return objects that are cache-warm
+@@ -4131,7 +4167,9 @@ static int enable_cpucache(struct kmem_c
+ 	if (limit > 32)
+ 		limit = 32;
  #endif
- 	{ },	/* terminate */
- };
-diff -puN mm/slab.h~memcg-aggregate-memcg-cache-values-in-slabinfo mm/slab.h
---- a/mm/slab.h~memcg-aggregate-memcg-cache-values-in-slabinfo
+-	err = do_tune_cpucache(cachep, limit, (limit + 1) / 2, shared, gfp);
++	batchcount = (limit + 1) / 2;
++skip_setup:
++	err = do_tune_cpucache(cachep, limit, batchcount, shared, gfp);
+ 	if (err)
+ 		printk(KERN_ERR "enable_cpucache failed for %s, error %d.\n",
+ 		       cachep->name, -err);
+diff -puN mm/slab.h~slab-propagate-tunable-values mm/slab.h
+--- a/mm/slab.h~slab-propagate-tunable-values
 +++ a/mm/slab.h
-@@ -138,6 +138,23 @@ static inline bool slab_equal_or_root(st
- 	return (p == s) ||
- 		(s->memcg_params && (p == s->memcg_params->root_cache));
+@@ -155,6 +155,13 @@ static inline struct kmem_cache *cache_f
+ {
+ 	return s->memcg_params->memcg_caches[idx];
  }
 +
-+/*
-+ * We use suffixes to the name in memcg because we can't have caches
-+ * created in the system with the same name. But when we print them
-+ * locally, better refer to them with the base name
-+ */
-+static inline const char *cache_name(struct kmem_cache *s)
++static inline struct kmem_cache *memcg_root_cache(struct kmem_cache *s)
 +{
-+	if (!is_root_cache(s))
-+		return s->memcg_params->root_cache->name;
-+	return s->name;
-+}
-+
-+static inline struct kmem_cache *cache_from_memcg(struct kmem_cache *s, int idx)
-+{
-+	return s->memcg_params->memcg_caches[idx];
++	if (is_root_cache(s))
++		return s;
++	return s->memcg_params->root_cache;
 +}
  #else
  static inline bool is_root_cache(struct kmem_cache *s)
  {
-@@ -163,6 +180,16 @@ static inline bool slab_equal_or_root(st
+@@ -190,6 +197,11 @@ static inline struct kmem_cache *cache_f
  {
- 	return true;
+ 	return NULL;
  }
 +
-+static inline const char *cache_name(struct kmem_cache *s)
++static inline struct kmem_cache *memcg_root_cache(struct kmem_cache *s)
 +{
-+	return s->name;
-+}
-+
-+static inline struct kmem_cache *cache_from_memcg(struct kmem_cache *s, int idx)
-+{
-+	return NULL;
++	return s;
 +}
  #endif
  
  static inline struct kmem_cache *cache_from_obj(struct kmem_cache *s, void *x)
-diff -puN mm/slab_common.c~memcg-aggregate-memcg-cache-values-in-slabinfo mm/slab_common.c
---- a/mm/slab_common.c~memcg-aggregate-memcg-cache-values-in-slabinfo
+diff -puN mm/slab_common.c~slab-propagate-tunable-values mm/slab_common.c
+--- a/mm/slab_common.c~slab-propagate-tunable-values
 +++ a/mm/slab_common.c
-@@ -322,7 +322,7 @@ struct kmem_cache *__init create_kmalloc
+@@ -164,7 +164,8 @@ unsigned long calculate_alignment(unsign
  
- 
- #ifdef CONFIG_SLABINFO
--static void print_slabinfo_header(struct seq_file *m)
-+void print_slabinfo_header(struct seq_file *m)
+ struct kmem_cache *
+ kmem_cache_create_memcg(struct mem_cgroup *memcg, const char *name, size_t size,
+-			size_t align, unsigned long flags, void (*ctor)(void *))
++			size_t align, unsigned long flags, void (*ctor)(void *),
++			struct kmem_cache *parent_cache)
  {
- 	/*
- 	 * Output format version, so at least we can change it
-@@ -366,16 +366,43 @@ static void s_stop(struct seq_file *m, v
- 	mutex_unlock(&slab_mutex);
- }
+ 	struct kmem_cache *s = NULL;
+ 	int err = 0;
+@@ -193,7 +194,7 @@ kmem_cache_create_memcg(struct mem_cgrou
+ 		s->align = calculate_alignment(flags, align, size);
+ 		s->ctor = ctor;
  
--static int s_show(struct seq_file *m, void *p)
-+static void
-+memcg_accumulate_slabinfo(struct kmem_cache *s, struct slabinfo *info)
-+{
-+	struct kmem_cache *c;
-+	struct slabinfo sinfo;
-+	int i;
-+
-+	if (!is_root_cache(s))
-+		return;
-+
-+	for_each_memcg_cache_index(i) {
-+		c = cache_from_memcg(s, i);
-+		if (!c)
-+			continue;
-+
-+		memset(&sinfo, 0, sizeof(sinfo));
-+		get_slabinfo(c, &sinfo);
-+
-+		info->active_slabs += sinfo.active_slabs;
-+		info->num_slabs += sinfo.num_slabs;
-+		info->shared_avail += sinfo.shared_avail;
-+		info->active_objs += sinfo.active_objs;
-+		info->num_objs += sinfo.num_objs;
-+	}
-+}
-+
-+int cache_show(struct kmem_cache *s, struct seq_file *m)
+-		if (memcg_register_cache(memcg, s)) {
++		if (memcg_register_cache(memcg, s, parent_cache)) {
+ 			kmem_cache_free(kmem_cache, s);
+ 			err = -ENOMEM;
+ 			goto out_locked;
+@@ -243,7 +244,7 @@ struct kmem_cache *
+ kmem_cache_create(const char *name, size_t size, size_t align,
+ 		  unsigned long flags, void (*ctor)(void *))
  {
--	struct kmem_cache *s = list_entry(p, struct kmem_cache, list);
- 	struct slabinfo sinfo;
- 
- 	memset(&sinfo, 0, sizeof(sinfo));
- 	get_slabinfo(s, &sinfo);
- 
-+	memcg_accumulate_slabinfo(s, &sinfo);
-+
- 	seq_printf(m, "%-17s %6lu %6lu %6u %4u %4d",
--		   s->name, sinfo.active_objs, sinfo.num_objs, s->size,
-+		   cache_name(s), sinfo.active_objs, sinfo.num_objs, s->size,
- 		   sinfo.objects_per_slab, (1 << sinfo.cache_order));
- 
- 	seq_printf(m, " : tunables %4u %4u %4u",
-@@ -387,6 +414,15 @@ static int s_show(struct seq_file *m, vo
- 	return 0;
+-	return kmem_cache_create_memcg(NULL, name, size, align, flags, ctor);
++	return kmem_cache_create_memcg(NULL, name, size, align, flags, ctor, NULL);
  }
+ EXPORT_SYMBOL(kmem_cache_create);
  
-+static int s_show(struct seq_file *m, void *p)
-+{
-+	struct kmem_cache *s = list_entry(p, struct kmem_cache, list);
-+
-+	if (!is_root_cache(s))
-+		return 0;
-+	return cache_show(s, m);
-+}
-+
- /*
-  * slabinfo_op - iterator that generates /proc/slabinfo
-  *
 _
 
 Patches currently in -mm which might be from glommer@parallels.com are
