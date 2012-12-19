@@ -1,104 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-avoid-possible-deadlock-caused-by-too_many_isolated.patch removed from -mm tree
-Date: Wed, 19 Dec 2012 12:42:56 -0800
-Message-ID: <20121219204256.D6A50100047@wpzn3.hot.corp.google.com>
+Subject: [merged] fs-notify-add-procfs-fdinfo-helper-v7-fix.patch removed from -mm tree
+Date: Wed, 19 Dec 2012 12:42:59 -0800
+Message-ID: <20121219204300.4CE6F200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:35748 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755351Ab2LSUm6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Dec 2012 15:42:58 -0500
-Received: by mail-yh0-f73.google.com with SMTP id 47so277821yhr.2
-        for <mm-commits@vger.kernel.org>; Wed, 19 Dec 2012 12:42:57 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:43611 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755351Ab2LSUnE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Dec 2012 15:43:04 -0500
+Received: by mail-ee0-f74.google.com with SMTP id t10so134037eei.5
+        for <mm-commits@vger.kernel.org>; Wed, 19 Dec 2012 12:43:02 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, hannes@cmpxchg.org, just.for.lkml@googlemail.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, neilb@suse.de, riel@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, adobriyan@gmail.com, aneesh.kumar@linux.vnet.ibm.com, avagin@openvz.org, bfields@fieldses.org, gorcunov@openvz.org, jbottomley@parallels.com, matt.helsley@gmail.com, oleg@redhat.com, tvrtko.ursulin@onelan.co.uk, viro@ZenIV.linux.org.uk, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan.c: avoid possible deadlock caused by too_many_isolated()
+     Subject: fs-notify-add-procfs-fdinfo-helper-v7-fix
 has been removed from the -mm tree.  Its filename was
-     mm-avoid-possible-deadlock-caused-by-too_many_isolated.patch
+     fs-notify-add-procfs-fdinfo-helper-v7-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: mm/vmscan.c: avoid possible deadlock caused by too_many_isolated()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs-notify-add-procfs-fdinfo-helper-v7-fix
 
-Neil found that if too_many_isolated() returns true while performing
-direct reclaim we can end up waiting for other threads to complete their
-direct reclaim.  If those threads are allowed to enter the FS or IO to
-free memory, but this thread is not, then it is possible that those
-threads will be waiting on this thread and so we get a circular deadlock.
+s/mark_lock/mark_mutex/
 
-some task enters direct reclaim with GFP_KERNEL
-  => too_many_isolated() false
-    => vmscan and run into dirty pages
-      => pageout()
-        => take some FS lock
-	  => fs/block code does GFP_NOIO allocation
-	    => enter direct reclaim again
-	      => too_many_isolated() true
-		  => waiting for others to progress, however the other
-		     tasks may be circular waiting for the FS lock..
-
-The fix is to let !__GFP_IO and !__GFP_FS direct reclaims enjoy higher
-priority than normal ones, by lowering the throttle threshold for the
-latter.
-
-Allowing ~1/8 isolated pages in normal is large enough.  For example, for
-a 1GB LRU list, that's ~128MB isolated pages, or 1k blocked tasks (each
-isolates 32 4KB pages), or 64 blocked tasks per logical CPU (assuming 16
-logical CPUs per NUMA node).  So it's not likely some CPU goes idle
-waiting (when it could make progress) because of this limit: there are
-much more sleeping reclaim tasks than the number of CPU, so the task may
-well be blocked by some low level queue/lock anyway.
-
-Now !GFP_IOFS reclaims won't be waiting for GFP_IOFS reclaims to progress.
- They will be blocked only when there are too many concurrent !GFP_IOFS
-reclaims, however that's very unlikely because the IO-less direct reclaims
-is able to progress much more faster, and they won't deadlock each other. 
-The threshold is raised high enough for them, so that there can be
-sufficient parallel progress of !GFP_IOFS reclaims.
-
-[akpm@linux-foundation.org: tweak comment]
-Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Torsten Kaiser <just.for.lkml@googlemail.com>
-Tested-by: NeilBrown <neilb@suse.de>
-Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
-Acked-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Andrey Vagin <avagin@openvz.org>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: James Bottomley <jbottomley@parallels.com>
+Cc: Matthew Helsley <matt.helsley@gmail.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Tvrtko Ursulin <tvrtko.ursulin@onelan.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ fs/notify/fdinfo.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~mm-avoid-possible-deadlock-caused-by-too_many_isolated mm/vmscan.c
---- a/mm/vmscan.c~mm-avoid-possible-deadlock-caused-by-too_many_isolated
-+++ a/mm/vmscan.c
-@@ -1202,6 +1202,14 @@ static int too_many_isolated(struct zone
- 		isolated = zone_page_state(zone, NR_ISOLATED_ANON);
- 	}
+diff -puN fs/notify/fdinfo.c~fs-notify-add-procfs-fdinfo-helper-v7-fix fs/notify/fdinfo.c
+--- a/fs/notify/fdinfo.c~fs-notify-add-procfs-fdinfo-helper-v7-fix
++++ a/fs/notify/fdinfo.c
+@@ -27,13 +27,13 @@ static int show_fdinfo(struct seq_file *
+ 	struct fsnotify_mark *mark;
+ 	int ret = 0;
  
-+	/*
-+	 * GFP_NOIO/GFP_NOFS callers are allowed to isolate more pages, so they
-+	 * won't get blocked by normal direct-reclaimers, forming a circular
-+	 * deadlock.
-+	 */
-+	if ((sc->gfp_mask & GFP_IOFS) == GFP_IOFS)
-+		inactive >>= 3;
-+
- 	return isolated > inactive;
+-	spin_lock(&group->mark_lock);
++	mutex_lock(&group->mark_mutex);
+ 	list_for_each_entry(mark, &group->marks_list, g_list) {
+ 		ret = show(m, mark);
+ 		if (ret)
+ 			break;
+ 	}
+-	spin_unlock(&group->mark_lock);
++	mutex_unlock(&group->mark_mutex);
+ 	return ret;
  }
  
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
+linux-next-rejects.patch
+make-my-i386-build-work.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists.patch
+sgi-xp-handle-non-fatal-traps-fix.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
+block-remove-deadlock-in-disk_clear_events.patch
+block-prevent-race-cleanup.patch
+mm.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+sendfile-allows-bypassing-of-notifier-events.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix-fix.patch
+rtc-max77686-add-maxim-77686-driver-fix.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+hfsplus-rework-processing-of-hfs_btree_write-returned-error.patch
+ipc-add-sysctl-to-specify-desired-next-object-id.patch
+ipc-message-queue-receive-cleanup.patch
+ipc-convert-prepare_copy-from-macro-to-function.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
