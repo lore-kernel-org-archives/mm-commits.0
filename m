@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-pcf8523-add-low-battery-voltage-support-fix.patch added to -mm tree
-Date: Wed, 19 Dec 2012 14:04:27 -0800
-Message-ID: <20121219220428.90A6E20004E@hpza10.eem.corp.google.com>
+Subject: + mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch added to -mm tree
+Date: Wed, 19 Dec 2012 14:12:29 -0800
+Message-ID: <20121219221230.3F1ED82004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:40204 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751056Ab2LSWEb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Dec 2012 17:04:31 -0500
-Received: by mail-wi0-f202.google.com with SMTP id hn17so136772wib.5
-        for <mm-commits@vger.kernel.org>; Wed, 19 Dec 2012 14:04:30 -0800 (PST)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:47270 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751742Ab2LSWMb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Dec 2012 17:12:31 -0500
+Received: by mail-ye0-f201.google.com with SMTP id r11so292011yen.0
+        for <mm-commits@vger.kernel.org>; Wed, 19 Dec 2012 14:12:30 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jesper.nilsson@axis.com, thierry.reding@avionic-design.de
+Cc: akpm@linux-foundation.org, handai.szj@taobao.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, rientjes@google.com
 
 
 The patch titled
-     Subject: rtc-pcf8523-add-low-battery-voltage-support-fix
+     Subject: mm/memcontrol.c: convert printk(KERN_FOO) to pr_foo()
 has been added to the -mm tree.  Its filename is
-     rtc-pcf8523-add-low-battery-voltage-support-fix.patch
+     mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,65 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: rtc-pcf8523-add-low-battery-voltage-support-fix
+Subject: mm/memcontrol.c: convert printk(KERN_FOO) to pr_foo()
 
-omit pcf8563_rtc_ioctl() if CONFIG_RTC_INTF_DEV=n
-
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
-Cc: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: Sha Zhengju <handai.szj@taobao.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf8523.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/memcontrol.c |   15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN drivers/rtc/rtc-pcf8523.c~rtc-pcf8523-add-low-battery-voltage-support-fix drivers/rtc/rtc-pcf8523.c
---- a/drivers/rtc/rtc-pcf8523.c~rtc-pcf8523-add-low-battery-voltage-support-fix
-+++ a/drivers/rtc/rtc-pcf8523.c
-@@ -251,6 +251,7 @@ static int pcf8523_rtc_set_time(struct d
- 	return pcf8523_start_rtc(client);
- }
+diff -puN mm/memcontrol.c~mm-memcontrolc-convert-printkkern_foo-to-pr_foo mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrolc-convert-printkkern_foo-to-pr_foo
++++ a/mm/memcontrol.c
+@@ -1574,7 +1574,7 @@ void mem_cgroup_print_oom_info(struct me
+ 	}
+ 	rcu_read_unlock();
  
-+#ifdef CONFIG_RTC_INTF_DEV
- static int pcf8523_rtc_ioctl(struct device *dev, unsigned int cmd,
- 			     unsigned long arg)
- {
-@@ -275,6 +276,9 @@ static int pcf8523_rtc_ioctl(struct devi
- 		return -ENOIOCTLCMD;
+-	printk(KERN_INFO "Task in %s killed", memcg_name);
++	pr_info("Task in %s killed", memcg_name);
+ 
+ 	rcu_read_lock();
+ 	ret = cgroup_path(mem_cgrp, memcg_name, PATH_MAX);
+@@ -1587,19 +1587,18 @@ void mem_cgroup_print_oom_info(struct me
+ 	/*
+ 	 * Continues from above, so we don't need an KERN_ level
+ 	 */
+-	printk(KERN_CONT " as a result of limit of %s\n", memcg_name);
++	pr_cont(" as a result of limit of %s\n", memcg_name);
+ done:
+ 
+-	printk(KERN_INFO "memory: usage %llukB, limit %llukB, failcnt %llu\n",
++	pr_info("memory: usage %llukB, limit %llukB, failcnt %llu\n",
+ 		res_counter_read_u64(&memcg->res, RES_USAGE) >> 10,
+ 		res_counter_read_u64(&memcg->res, RES_LIMIT) >> 10,
+ 		res_counter_read_u64(&memcg->res, RES_FAILCNT));
+-	printk(KERN_INFO "memory+swap: usage %llukB, limit %llukB, "
+-		"failcnt %llu\n",
++	pr_info("memory+swap: usage %llukB, limit %llukB, failcnt %llu\n",
+ 		res_counter_read_u64(&memcg->memsw, RES_USAGE) >> 10,
+ 		res_counter_read_u64(&memcg->memsw, RES_LIMIT) >> 10,
+ 		res_counter_read_u64(&memcg->memsw, RES_FAILCNT));
+-	printk(KERN_INFO "kmem: usage %llukB, limit %llukB, failcnt %llu\n",
++	pr_info("kmem: usage %llukB, limit %llukB, failcnt %llu\n",
+ 		res_counter_read_u64(&memcg->kmem, RES_USAGE) >> 10,
+ 		res_counter_read_u64(&memcg->kmem, RES_LIMIT) >> 10,
+ 		res_counter_read_u64(&memcg->kmem, RES_FAILCNT));
+@@ -4424,8 +4423,8 @@ void mem_cgroup_print_bad_page(struct pa
+ 
+ 	pc = lookup_page_cgroup_used(page);
+ 	if (pc) {
+-		printk(KERN_ALERT "pc:%p pc->flags:%lx pc->mem_cgroup:%p\n",
+-		       pc, pc->flags, pc->mem_cgroup);
++		pr_alert("pc:%p pc->flags:%lx pc->mem_cgroup:%p\n",
++			 pc, pc->flags, pc->mem_cgroup);
  	}
  }
-+#else
-+#define pcf8523_rtc_ioctl NULL
-+#endif
- 
- static const struct rtc_class_ops pcf8523_rtc_ops = {
- 	.read_time = pcf8523_rtc_read_time,
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,6 +113,7 @@ fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
 block-remove-deadlock-in-disk_clear_events.patch
 block-prevent-race-cleanup.patch
 mm.patch
+mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
 drop_caches-add-some-documentation-and-info-messsge.patch
 memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
 scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
