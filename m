@@ -1,94 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] h8300-select-generic-atomic64_t-support.patch removed from -mm tree
-Date: Wed, 19 Dec 2012 12:39:39 -0800
-Message-ID: <20121219203939.B8B8282004A@wpzn4.hot.corp.google.com>
+Subject: [merged] mm-slab-remove-duplicate-check.patch removed from -mm tree
+Date: Wed, 19 Dec 2012 12:39:46 -0800
+Message-ID: <20121219203947.2A389200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:48354 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755251Ab2LSUjk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Dec 2012 15:39:40 -0500
-Received: by mail-gg0-f202.google.com with SMTP id k1so277698ggn.3
-        for <mm-commits@vger.kernel.org>; Wed, 19 Dec 2012 12:39:40 -0800 (PST)
+Received: from mail-wg0-f73.google.com ([74.125.82.73]:64695 "EHLO
+	mail-wg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753435Ab2LSUjt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Dec 2012 15:39:49 -0500
+Received: by mail-wg0-f73.google.com with SMTP id dt12so133944wgb.2
+        for <mm-commits@vger.kernel.org>; Wed, 19 Dec 2012 12:39:48 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, ebiederm@xmission.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
+To: shangw@linux.vnet.ibm.com, hannes@cmpxchg.org, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: h8300: select generic atomic64_t support
+     Subject: mm/page_alloc.c: remove duplicate check
 has been removed from the -mm tree.  Its filename was
-     h8300-select-generic-atomic64_t-support.patch
+     mm-slab-remove-duplicate-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: h8300: select generic atomic64_t support
+From: Gavin Shan <shangw@linux.vnet.ibm.com>
+Subject: mm/page_alloc.c: remove duplicate check
 
-Rationales from Eric:
+While allocating pages using buddy allocator, the compound page is
+probably split up to free pages.  Under these circumstances, the compound
+page should be destroyed by destroy_compound_page().  However, there is a
+duplicate check to judge if the page is compound.
 
-So I just looked a little deeper and it appears architectures that do
-not support atomic64_t are broken.
+Remove the duplicate check since the compound_order() returns 0 when the
+page doesn't have PG_head set in destroy_compound_page().  That is to say,
+destroy_compound_page() needn't check PageHead().
 
-The generic atomic64 support came in 2009 to support the perf subsystem
-with the expectation that all architectures would implement atomic64
-support.
-
-Furthermore upon inspection of the kernel atomic64_t is used in a fair
-number of places beyond the performance counters:
-
-block/blk-cgroup.c
-drivers/acpi/apei/
-drivers/block/rbd.c
-drivers/crypto/nx/nx.h
-drivers/gpu/drm/radeon/radeon.h
-drivers/infiniband/hw/ipath/
-drivers/infiniband/hw/qib/
-drivers/staging/octeon/
-fs/xfs/
-include/linux/perf_event.h
-include/net/netfilter/nf_conntrack_acct.h
-kernel/events/
-kernel/trace/
-net/mac80211/key.h
-net/rds/
-
-The block control group, infiniband, xfs, crypto, 802.11, netfilter. 
-Nothing quite so fundamental as fs/namespace.c but definitely in
-multiplatform-code that should work, and is already broken on those
-architecutres.
-
-Looking at the implementation of atomic64_add_return in lib/atomic64.c the
-code looks as efficient as these kinds of things get.
-
-Which leads me to the conclusion that we need atomic64 support on all
-architectures.
-
-Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Signed-off-by: Gavin Shan <shangw@linux.vnet.ibm.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ mm/page_alloc.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/h8300/Kconfig~h8300-select-generic-atomic64_t-support arch/h8300/Kconfig
---- a/arch/h8300/Kconfig~h8300-select-generic-atomic64_t-support
-+++ a/arch/h8300/Kconfig
-@@ -3,6 +3,7 @@ config H8300
- 	default y
- 	select HAVE_IDE
- 	select HAVE_GENERIC_HARDIRQS
-+	select GENERIC_ATOMIC64
- 	select HAVE_UID16
- 	select ARCH_WANT_IPC_PARSE_VERSION
- 	select GENERIC_IRQ_SHOW
+diff -puN mm/page_alloc.c~mm-slab-remove-duplicate-check mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-slab-remove-duplicate-check
++++ a/mm/page_alloc.c
+@@ -371,8 +371,7 @@ static int destroy_compound_page(struct 
+ 	int nr_pages = 1 << order;
+ 	int bad = 0;
+ 
+-	if (unlikely(compound_order(page) != order) ||
+-	    unlikely(!PageHead(page))) {
++	if (unlikely(compound_order(page) != order)) {
+ 		bad_page(page);
+ 		bad++;
+ 	}
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from shangw@linux.vnet.ibm.com are
 
 origin.patch
-linux-next.patch
 
