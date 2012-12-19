@@ -1,57 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-kmemleakc-remove-obsolete-simple_strtoul.patch removed from -mm tree
-Date: Wed, 19 Dec 2012 12:42:49 -0800
-Message-ID: <20121219204250.059E720005C@hpza10.eem.corp.google.com>
+Subject: [merged] vmscan-comment-too_many_isolated.patch removed from -mm tree
+Date: Wed, 19 Dec 2012 12:42:53 -0800
+Message-ID: <20121219204253.99520100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:42938 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755351Ab2LSUmw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Dec 2012 15:42:52 -0500
-Received: by mail-lb0-f202.google.com with SMTP id s4so140200lbc.3
-        for <mm-commits@vger.kernel.org>; Wed, 19 Dec 2012 12:42:51 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:61559 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755351Ab2LSUmz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Dec 2012 15:42:55 -0500
+Received: by mail-vb0-f74.google.com with SMTP id s24so278091vbi.1
+        for <mm-commits@vger.kernel.org>; Wed, 19 Dec 2012 12:42:55 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: abhi.c.pawar@gmail.com, catalin.marinas@arm.com, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, minchan.kim@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/kmemleak.c: remove obsolete simple_strtoul
+     Subject: vmscan: comment too_many_isolated()
 has been removed from the -mm tree.  Its filename was
-     mm-kmemleakc-remove-obsolete-simple_strtoul.patch
+     vmscan-comment-too_many_isolated.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Abhijit Pawar <abhi.c.pawar@gmail.com>
-Subject: mm/kmemleak.c: remove obsolete simple_strtoul
+From: Fengguang Wu <fengguang.wu@intel.com>
+Subject: vmscan: comment too_many_isolated()
 
-Replace the obsolete simple_strtoul() with kstrtoul().
+Comment "Why it's doing so" rather than "What it does" as proposed by
+Andrew Morton.
 
-Signed-off-by: Abhijit Pawar <abhi.c.pawar@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Reviewed-by: Minchan Kim <minchan.kim@gmail.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/vmscan.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN mm/kmemleak.c~mm-kmemleakc-remove-obsolete-simple_strtoul mm/kmemleak.c
---- a/mm/kmemleak.c~mm-kmemleakc-remove-obsolete-simple_strtoul
-+++ a/mm/kmemleak.c
-@@ -1556,7 +1556,8 @@ static int dump_str_object_info(const ch
- 	struct kmemleak_object *object;
- 	unsigned long addr;
+diff -puN mm/vmscan.c~vmscan-comment-too_many_isolated mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-comment-too_many_isolated
++++ a/mm/vmscan.c
+@@ -1177,7 +1177,11 @@ int isolate_lru_page(struct page *page)
+ }
  
--	addr= simple_strtoul(str, NULL, 0);
-+	if (kstrtoul(str, 0, &addr))
-+		return -EINVAL;
- 	object = find_and_get_object(addr, 0);
- 	if (!object) {
- 		pr_info("Unknown object at 0x%08lx\n", addr);
+ /*
+- * Are there way too many processes in the direct reclaim path already?
++ * A direct reclaimer may isolate SWAP_CLUSTER_MAX pages from the LRU list and
++ * then get resheduled. When there are massive number of tasks doing page
++ * allocation, such sleeping direct reclaimers may keep piling up on each CPU,
++ * the LRU list will go small and be scanned faster than necessary, leading to
++ * unnecessary swapping, thrashing and OOM.
+  */
+ static int too_many_isolated(struct zone *zone, int file,
+ 		struct scan_control *sc)
 _
 
-Patches currently in -mm which might be from abhi.c.pawar@gmail.com are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
 origin.patch
+linux-next.patch
 
