@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-dump-small-buffers-via-%ph.patch added to -mm tree
-Date: Tue, 18 Dec 2012 16:08:57 -0800
-Message-ID: <20121219000857.92258820050@wpzn4.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-pxac-fix-alarm-not-match-issue.patch added to -mm tree
+Date: Tue, 18 Dec 2012 16:11:48 -0800
+Message-ID: <20121219001149.4C1D3100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:40389 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754773Ab2LSAI6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 19:08:58 -0500
-Received: by mail-qc0-f202.google.com with SMTP id s25so159431qcq.1
-        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 16:08:58 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:42698 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754717Ab2LSALu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Dec 2012 19:11:50 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so159172vcd.5
+        for <mm-commits@vger.kernel.org>; Tue, 18 Dec 2012 16:11:49 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: andriy.shevchenko@linux.intel.com
+Cc: liangs@marvell.com
 
 
 The patch titled
-     Subject: drivers/rtc: dump small buffers via %*ph
+     Subject: drivers/rtc/rtc-pxa.c: fix alarm not match issue
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-dump-small-buffers-via-%ph.patch
+     drivers-rtc-rtc-pxac-fix-alarm-not-match-issue.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,133 +33,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: drivers/rtc: dump small buffers via %*ph
+From: Leo Song <liangs@marvell.com>
+Subject: drivers/rtc/rtc-pxa.c: fix alarm not match issue
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Fix pxa rtc alarm issue by setting week of month and day of week in
+rdar/rdcr or it would not match.
+
+Signed-off-by: Leo Song <liangs@marvell.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1305.c |    8 ++------
- drivers/rtc/rtc-ds1307.c |   11 ++---------
- drivers/rtc/rtc-fm3130.c |   33 ++++-----------------------------
- 3 files changed, 8 insertions(+), 44 deletions(-)
+ drivers/rtc/rtc-pxa.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-ds1305.c~drivers-rtc-dump-small-buffers-via-%ph drivers/rtc/rtc-ds1305.c
---- a/drivers/rtc/rtc-ds1305.c~drivers-rtc-dump-small-buffers-via-%ph
-+++ a/drivers/rtc/rtc-ds1305.c
-@@ -635,9 +635,7 @@ static int __devinit ds1305_probe(struct
- 		goto fail0;
- 	}
+diff -puN drivers/rtc/rtc-pxa.c~drivers-rtc-rtc-pxac-fix-alarm-not-match-issue drivers/rtc/rtc-pxa.c
+--- a/drivers/rtc/rtc-pxa.c~drivers-rtc-rtc-pxac-fix-alarm-not-match-issue
++++ a/drivers/rtc/rtc-pxa.c
+@@ -62,6 +62,10 @@
+ #define RYxR_MONTH_S	5
+ #define RYxR_MONTH_MASK	(0xf << RYxR_MONTH_S)
+ #define RYxR_DAY_MASK	0x1f
++#define RDxR_WOM_S     20
++#define RDxR_WOM_MASK  (0x7 << RDxR_WOM_S)
++#define RDxR_DOW_S     17
++#define RDxR_DOW_MASK  (0x7 << RDxR_DOW_S)
+ #define RDxR_HOUR_S	12
+ #define RDxR_HOUR_MASK	(0x1f << RDxR_HOUR_S)
+ #define RDxR_MIN_S	6
+@@ -91,6 +95,7 @@ struct pxa_rtc {
+ 	spinlock_t		lock;		/* Protects this structure */
+ };
  
--	dev_dbg(&spi->dev, "ctrl %s: %02x %02x %02x\n",
--			"read", ds1305->ctrl[0],
--			ds1305->ctrl[1], ds1305->ctrl[2]);
-+	dev_dbg(&spi->dev, "ctrl %s: %3ph\n", "read", ds1305->ctrl);
++
+ static u32 ryxr_calc(struct rtc_time *tm)
+ {
+ 	return ((tm->tm_year + 1900) << RYxR_YEAR_S)
+@@ -100,7 +105,10 @@ static u32 ryxr_calc(struct rtc_time *tm
  
- 	/* Sanity check register values ... partially compensating for the
- 	 * fact that SPI has no device handshake.  A pullup on MISO would
-@@ -723,9 +721,7 @@ static int __devinit ds1305_probe(struct
- 			goto fail0;
- 		}
+ static u32 rdxr_calc(struct rtc_time *tm)
+ {
+-	return (tm->tm_hour << RDxR_HOUR_S) | (tm->tm_min << RDxR_MIN_S)
++	return ((((tm->tm_mday + 6) / 7) << RDxR_WOM_S) & RDxR_WOM_MASK)
++		| (((tm->tm_wday + 1) << RDxR_DOW_S) & RDxR_DOW_MASK)
++		| (tm->tm_hour << RDxR_HOUR_S)
++		| (tm->tm_min << RDxR_MIN_S)
+ 		| tm->tm_sec;
+ }
  
--		dev_dbg(&spi->dev, "ctrl %s: %02x %02x %02x\n",
--				"write", ds1305->ctrl[0],
--				ds1305->ctrl[1], ds1305->ctrl[2]);
-+		dev_dbg(&spi->dev, "ctrl %s: %3ph\n", "write", ds1305->ctrl);
- 	}
- 
- 	/* see if non-Linux software set up AM/PM mode */
-diff -puN drivers/rtc/rtc-ds1307.c~drivers-rtc-dump-small-buffers-via-%ph drivers/rtc/rtc-ds1307.c
---- a/drivers/rtc/rtc-ds1307.c~drivers-rtc-dump-small-buffers-via-%ph
-+++ a/drivers/rtc/rtc-ds1307.c
-@@ -322,12 +322,7 @@ static int ds1307_get_time(struct device
- 		return -EIO;
- 	}
- 
--	dev_dbg(dev, "%s: %02x %02x %02x %02x %02x %02x %02x\n",
--			"read",
--			ds1307->regs[0], ds1307->regs[1],
--			ds1307->regs[2], ds1307->regs[3],
--			ds1307->regs[4], ds1307->regs[5],
--			ds1307->regs[6]);
-+	dev_dbg(dev, "%s: %7ph\n", "read", ds1307->regs);
- 
- 	t->tm_sec = bcd2bin(ds1307->regs[DS1307_REG_SECS] & 0x7f);
- 	t->tm_min = bcd2bin(ds1307->regs[DS1307_REG_MIN] & 0x7f);
-@@ -398,9 +393,7 @@ static int ds1307_set_time(struct device
- 		break;
- 	}
- 
--	dev_dbg(dev, "%s: %02x %02x %02x %02x %02x %02x %02x\n",
--		"write", buf[0], buf[1], buf[2], buf[3],
--		buf[4], buf[5], buf[6]);
-+	dev_dbg(dev, "%s: %7ph\n", "write", buf);
- 
- 	result = ds1307->write_block_data(ds1307->client,
- 		ds1307->offset, 7, buf);
-diff -puN drivers/rtc/rtc-fm3130.c~drivers-rtc-dump-small-buffers-via-%ph drivers/rtc/rtc-fm3130.c
---- a/drivers/rtc/rtc-fm3130.c~drivers-rtc-dump-small-buffers-via-%ph
-+++ a/drivers/rtc/rtc-fm3130.c
-@@ -116,17 +116,7 @@ static int fm3130_get_time(struct device
- 
- 	fm3130_rtc_mode(dev, FM3130_MODE_NORMAL);
- 
--	dev_dbg(dev, "%s: %02x %02x %02x %02x %02x %02x %02x %02x"
--			"%02x %02x %02x %02x %02x %02x %02x\n",
--			"read",
--			fm3130->regs[0], fm3130->regs[1],
--			fm3130->regs[2], fm3130->regs[3],
--			fm3130->regs[4], fm3130->regs[5],
--			fm3130->regs[6], fm3130->regs[7],
--			fm3130->regs[8], fm3130->regs[9],
--			fm3130->regs[0xa], fm3130->regs[0xb],
--			fm3130->regs[0xc], fm3130->regs[0xd],
--			fm3130->regs[0xe]);
-+	dev_dbg(dev, "%s: %15ph\n", "read", fm3130->regs);
- 
- 	t->tm_sec = bcd2bin(fm3130->regs[FM3130_RTC_SECONDS] & 0x7f);
- 	t->tm_min = bcd2bin(fm3130->regs[FM3130_RTC_MINUTES] & 0x7f);
-@@ -175,12 +165,7 @@ static int fm3130_set_time(struct device
- 	tmp = t->tm_year - 100;
- 	buf[FM3130_RTC_YEARS] = bin2bcd(tmp);
- 
--	dev_dbg(dev, "%s: %02x %02x %02x %02x %02x %02x %02x"
--		"%02x %02x %02x %02x %02x %02x %02x %02x\n",
--		"write", buf[0], buf[1], buf[2], buf[3],
--		buf[4], buf[5], buf[6], buf[7],
--		buf[8], buf[9], buf[0xa], buf[0xb],
--		buf[0xc], buf[0xd], buf[0xe]);
-+	dev_dbg(dev, "%s: %15ph\n", "write", buf);
- 
- 	fm3130_rtc_mode(dev, FM3130_MODE_WRITE);
- 
-@@ -517,18 +502,8 @@ bad_alarm:
- bad_clock:
- 
- 	if (!fm3130->data_valid || !fm3130->alarm_valid)
--		dev_dbg(&client->dev,
--				"%s: %02x %02x %02x %02x %02x %02x %02x %02x"
--				"%02x %02x %02x %02x %02x %02x %02x\n",
--			"bogus registers",
--			fm3130->regs[0], fm3130->regs[1],
--			fm3130->regs[2], fm3130->regs[3],
--			fm3130->regs[4], fm3130->regs[5],
--			fm3130->regs[6], fm3130->regs[7],
--			fm3130->regs[8], fm3130->regs[9],
--			fm3130->regs[0xa], fm3130->regs[0xb],
--			fm3130->regs[0xc], fm3130->regs[0xd],
--			fm3130->regs[0xe]);
-+		dev_dbg(&client->dev, "%s: %15ph\n", "bogus registers",
-+			fm3130->regs);
- 
- 	/* We won't bail out here because we just got invalid data.
- 	   Time setting from u-boot doesn't work anyway */
+@@ -109,6 +117,7 @@ static void tm_calc(u32 rycr, u32 rdcr, 
+ 	tm->tm_year = ((rycr & RYxR_YEAR_MASK) >> RYxR_YEAR_S) - 1900;
+ 	tm->tm_mon = (((rycr & RYxR_MONTH_MASK) >> RYxR_MONTH_S)) - 1;
+ 	tm->tm_mday = (rycr & RYxR_DAY_MASK);
++	tm->tm_wday = ((rycr & RDxR_DOW_MASK) >> RDxR_DOW_S) - 1;
+ 	tm->tm_hour = (rdcr & RDxR_HOUR_MASK) >> RDxR_HOUR_S;
+ 	tm->tm_min = (rdcr & RDxR_MIN_MASK) >> RDxR_MIN_S;
+ 	tm->tm_sec = rdcr & RDxR_SEC_MASK;
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from liangs@marvell.com are
 
-origin.patch
-linux-next.patch
-drivers-rtc-dump-small-buffers-via-%ph.patch
+drivers-rtc-rtc-pxac-fix-alarm-not-match-issue.patch
+drivers-rtc-rtc-pxac-fix-alarm-cant-wake-up-system-issue.patch
+drivers-rtc-rtc-pxac-fix-set-time-sync-time-issue.patch
 
