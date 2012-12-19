@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally.patch added to -mm tree
-Date: Wed, 19 Dec 2012 15:12:50 -0800
-Message-ID: <20121219231251.865ED100048@wpzn3.hot.corp.google.com>
+Subject: + drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch added to -mm tree
+Date: Wed, 19 Dec 2012 15:12:54 -0800
+Message-ID: <20121219231255.A4FC020005C@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:54710 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751948Ab2LSXMx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Dec 2012 18:12:53 -0500
-Received: by mail-vb0-f74.google.com with SMTP id s24so299102vbi.5
-        for <mm-commits@vger.kernel.org>; Wed, 19 Dec 2012 15:12:52 -0800 (PST)
+Received: from mail-we0-f201.google.com ([74.125.82.201]:59376 "EHLO
+	mail-we0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750859Ab2LSXM6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Dec 2012 18:12:58 -0500
+Received: by mail-we0-f201.google.com with SMTP id t11so138811wey.0
+        for <mm-commits@vger.kernel.org>; Wed, 19 Dec 2012 15:12:57 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dae@velatum.com, arnd@arndb.de, greg@kroah.com
+Cc: akpm@linux-foundation.org, arnd@arndb.de, dae@velatum.com, greg@kroah.com
 
 
 The patch titled
-     Subject: drivers/char/misc.c:misc_register(): do not loop on misc_list unconditionally
+     Subject: drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix
 has been added to the -mm tree.  Its filename is
-     drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally.patch
+     drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,55 +33,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Dae S. Kim" <dae@velatum.com>
-Subject: drivers/char/misc.c:misc_register(): do not loop on misc_list unconditionally
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix
 
-If the minor number is assigned dynamically, there is no need to search
-for misc->minor in misc_list, since misc->minor == MISC_DYNAMIC_MINOR.
+reduce scope of local `c'
 
-Signed-off-by: Dae S. Kim <dae@velatum.com>
+Cc: "Dae S. Kim" <dae@velatum.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Dae S. Kim <dae@velatum.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/misc.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ drivers/char/misc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/misc.c~drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally drivers/char/misc.c
---- a/drivers/char/misc.c~drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally
+diff -puN drivers/char/misc.c~drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix drivers/char/misc.c
+--- a/drivers/char/misc.c~drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix
 +++ a/drivers/char/misc.c
-@@ -190,12 +190,6 @@ int misc_register(struct miscdevice * mi
- 	INIT_LIST_HEAD(&misc->list);
+@@ -183,7 +183,6 @@ static const struct file_operations misc
+  
+ int misc_register(struct miscdevice * misc)
+ {
+-	struct miscdevice *c;
+ 	dev_t dev;
+ 	int err = 0;
  
- 	mutex_lock(&misc_mtx);
--	list_for_each_entry(c, &misc_list, list) {
--		if (c->minor == misc->minor) {
--			mutex_unlock(&misc_mtx);
--			return -EBUSY;
--		}
--	}
- 
- 	if (misc->minor == MISC_DYNAMIC_MINOR) {
- 		int i = find_first_zero_bit(misc_minors, DYNAMIC_MINORS);
-@@ -205,6 +199,13 @@ int misc_register(struct miscdevice * mi
- 		}
+@@ -200,6 +199,8 @@ int misc_register(struct miscdevice * mi
  		misc->minor = DYNAMIC_MINORS - i - 1;
  		set_bit(i, misc_minors);
-+	} else {
-+		list_for_each_entry(c, &misc_list, list) {
-+			if (c->minor == misc->minor) {
-+				mutex_unlock(&misc_mtx);
-+				return -EBUSY;
-+			}
-+		}
- 	}
- 
- 	dev = MKDEV(MISC_MAJOR, misc->minor);
+ 	} else {
++		struct miscdevice *c;
++
+ 		list_for_each_entry(c, &misc_list, list) {
+ 			if (c->minor == misc->minor) {
+ 				mutex_unlock(&misc_mtx);
 _
 
-Patches currently in -mm which might be from dae@velatum.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally.patch
+origin.patch
+linux-next.patch
+linux-next-rejects.patch
+make-my-i386-build-work.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists.patch
+hfsplus-rework-processing-of-hfs_btree_write-returned-error.patch
+revert-rtc-recycle-id-when-unloading-a-rtc-driver.patch
+sgi-xp-handle-non-fatal-traps-fix.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
+block-remove-deadlock-in-disk_clear_events.patch
+block-prevent-race-cleanup.patch
+mm.patch
+mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
+mm-hugetlbc-convert-to-pr_foo.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+sendfile-allows-bypassing-of-notifier-events.patch
+backlight-add-lms501kf03-lcd-driver-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix-fix.patch
+rtc-max77686-add-maxim-77686-driver-fix.patch
+rtc-pcf8523-add-low-battery-voltage-support-fix.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+ipc-add-sysctl-to-specify-desired-next-object-id.patch
+ipc-message-queue-receive-cleanup.patch
+ipc-convert-prepare_copy-from-macro-to-function.patch
 drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
