@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch added to -mm tree
-Date: Wed, 19 Dec 2012 15:12:54 -0800
-Message-ID: <20121219231255.A4FC020005C@hpza10.eem.corp.google.com>
+Subject: + cma-make-putback_lru_pages-call-conditional.patch added to -mm tree
+Date: Wed, 19 Dec 2012 15:27:51 -0800
+Message-ID: <20121219232752.07AE882004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f201.google.com ([74.125.82.201]:59376 "EHLO
-	mail-we0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750859Ab2LSXM6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Dec 2012 18:12:58 -0500
-Received: by mail-we0-f201.google.com with SMTP id t11so138811wey.0
-        for <mm-commits@vger.kernel.org>; Wed, 19 Dec 2012 15:12:57 -0800 (PST)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:32870 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752055Ab2LSX1x (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Dec 2012 18:27:53 -0500
+Received: by mail-ye0-f201.google.com with SMTP id r11so301046yen.2
+        for <mm-commits@vger.kernel.org>; Wed, 19 Dec 2012 15:27:52 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, arnd@arndb.de, dae@velatum.com, greg@kroah.com
+Cc: srinivas.pandruvada@linux.intel.com, mina86@mina86.com
 
 
 The patch titled
-     Subject: drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix
+     Subject: CMA: make putback_lru_pages() call conditional
 has been added to the -mm tree.  Its filename is
-     drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
+     cma-make-putback_lru_pages-call-conditional.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,82 +33,25 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix
+From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: CMA: make putback_lru_pages() call conditional
 
-reduce scope of local `c'
+As per documentation and other places calling putback_lru_pages(),
+putback_lru_pages() is called on error only.  Make the CMA code behave
+consistently.
 
-Cc: "Dae S. Kim" <dae@velatum.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Dae S. Kim <dae@velatum.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Acked-by: Michal Nazarewicz <mina86@mina86.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/misc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/misc.c~drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix drivers/char/misc.c
---- a/drivers/char/misc.c~drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix
-+++ a/drivers/char/misc.c
-@@ -183,7 +183,6 @@ static const struct file_operations misc
-  
- int misc_register(struct miscdevice * misc)
- {
--	struct miscdevice *c;
- 	dev_t dev;
- 	int err = 0;
- 
-@@ -200,6 +199,8 @@ int misc_register(struct miscdevice * mi
- 		misc->minor = DYNAMIC_MINORS - i - 1;
- 		set_bit(i, misc_minors);
- 	} else {
-+		struct miscdevice *c;
-+
- 		list_for_each_entry(c, &misc_list, list) {
- 			if (c->minor == misc->minor) {
- 				mutex_unlock(&misc_mtx);
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-linux-next.patch
-linux-next-rejects.patch
-make-my-i386-build-work.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists.patch
-hfsplus-rework-processing-of-hfs_btree_write-returned-error.patch
-revert-rtc-recycle-id-when-unloading-a-rtc-driver.patch
-sgi-xp-handle-non-fatal-traps-fix.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
-block-remove-deadlock-in-disk_clear_events.patch
-block-prevent-race-cleanup.patch
-mm.patch
-mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
-mm-hugetlbc-convert-to-pr_foo.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-sendfile-allows-bypassing-of-notifier-events.patch
-backlight-add-lms501kf03-lcd-driver-fix.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix-fix.patch
-rtc-max77686-add-maxim-77686-driver-fix.patch
-rtc-pcf8523-add-low-battery-voltage-support-fix.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
-ipc-add-sysctl-to-specify-desired-next-object-id.patch
-ipc-message-queue-receive-cleanup.patch
-ipc-convert-prepare_copy-from-macro-to-function.patch
-drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-
+diff -puN mm/page_alloc.c~cma-make-putback_lru_pages-call-conditional mm/page_alloc.c
+--- a/mm/page_alloc.c~cma-make-putback_lru_pages-call-conditional
++++ a/mm/page_alloc.c
+@@ -5817,8 +5817,8 @@ static int __alloc_contig_migrate_range(
+ 				    0, false, MIGRATE_SYNC,
+ 				    MR_CMA);
+ 	}
