@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-warn-on-uapi-includes-that-include-uapi.patch added to -mm tree
-Date: Wed, 19 Dec 2012 14:43:54 -0800
-Message-ID: <20121219224354.A3B7C82004A@wpzn4.hot.corp.google.com>
+Subject: + memcg-dont-register-hotcpu-notifier-from-css_alloc.patch added to -mm tree
+Date: Wed, 19 Dec 2012 14:57:11 -0800
+Message-ID: <20121219225712.6AF2B20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:63158 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750933Ab2LSWnz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Dec 2012 17:43:55 -0500
-Received: by mail-ye0-f201.google.com with SMTP id r11so295538yen.0
-        for <mm-commits@vger.kernel.org>; Wed, 19 Dec 2012 14:43:55 -0800 (PST)
+Received: from mail-wg0-f73.google.com ([74.125.82.73]:50236 "EHLO
+	mail-wg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751195Ab2LSW5P (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Dec 2012 17:57:15 -0500
+Received: by mail-wg0-f73.google.com with SMTP id dt12so138438wgb.0
+        for <mm-commits@vger.kernel.org>; Wed, 19 Dec 2012 14:57:13 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, apw@canonical.com, dhowells@redhat.com
+Cc: tj@kernel.org, fengguang.wu@intel.com, mhocko@suse.cz
 
 
 The patch titled
-     Subject: checkpatch: warn on uapi #includes that #include <uapi/...
+     Subject: memcg: don't register hotcpu notifier from ->css_alloc()
 has been added to the -mm tree.  Its filename is
-     checkpatch-warn-on-uapi-includes-that-include-uapi.patch
+     memcg-dont-register-hotcpu-notifier-from-css_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,45 +33,152 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: warn on uapi #includes that #include <uapi/...
+From: Tejun Heo <tj@kernel.org>
+Subject: memcg: don't register hotcpu notifier from ->css_alloc()
 
-Avoid specifying internal uapi #include paths with uapi/...  as userspace
-should not use and never see that.
+648bb56d07 ("cgroup: lock cgroup_mutex in cgroup_init_subsys()") made
+cgroup_init_subsys() grab cgroup_mutex before invoking ->css_alloc() for
+the root css.  Because memcg registers hotcpu notifier from ->css_alloc()
+for the root css, this introduced circular locking dependency between
+cgroup_mutex and cpu hotplug.
 
-Neaten message line wrapping above.
+Fix it by moving hotcpu notifier registration to a subsys initcall.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: David Howells <dhowells@redhat.com>
-Acked-by: Andy Whitcroft <apw@canonical.com>
+  ======================================================
+  [ INFO: possible circular locking dependency detected ]
+  3.7.0-rc4-work+ #42 Not tainted
+  -------------------------------------------------------
+  bash/645 is trying to acquire lock:
+   (cgroup_mutex){+.+.+.}, at: [<ffffffff8110c5b7>] cgroup_lock+0x17/0x20
+
+  but task is already holding lock:
+   (cpu_hotplug.lock){+.+.+.}, at: [<ffffffff8109300f>] cpu_hotplug_begin+0x2f/0x60
+
+  which lock already depends on the new lock.
+
+  the existing dependency chain (in reverse order) is:
+
+ -> #1 (cpu_hotplug.lock){+.+.+.}:
+         [<ffffffff810f8357>] lock_acquire+0x97/0x1e0
+         [<ffffffff81be4701>] mutex_lock_nested+0x61/0x3b0
+         [<ffffffff810930fc>] get_online_cpus+0x3c/0x60
+         [<ffffffff811152fb>] rebuild_sched_domains_locked+0x1b/0x70
+         [<ffffffff81116718>] cpuset_write_resmask+0x298/0x2c0
+         [<ffffffff8110f70f>] cgroup_file_write+0x1ef/0x300
+         [<ffffffff811c3b78>] vfs_write+0xa8/0x160
+         [<ffffffff811c3e82>] sys_write+0x52/0xa0
+         [<ffffffff81be89c2>] system_call_fastpath+0x16/0x1b
+
+ -> #0 (cgroup_mutex){+.+.+.}:
+         [<ffffffff810f74de>] __lock_acquire+0x14ce/0x1d20
+         [<ffffffff810f8357>] lock_acquire+0x97/0x1e0
+         [<ffffffff81be4701>] mutex_lock_nested+0x61/0x3b0
+         [<ffffffff8110c5b7>] cgroup_lock+0x17/0x20
+         [<ffffffff81116deb>] cpuset_handle_hotplug+0x1b/0x560
+         [<ffffffff8111744e>] cpuset_update_active_cpus+0xe/0x10
+         [<ffffffff810d0587>] cpuset_cpu_inactive+0x47/0x50
+         [<ffffffff810c1476>] notifier_call_chain+0x66/0x150
+         [<ffffffff810c156e>] __raw_notifier_call_chain+0xe/0x10
+         [<ffffffff81092fa0>] __cpu_notify+0x20/0x40
+         [<ffffffff81b9827e>] _cpu_down+0x7e/0x2f0
+         [<ffffffff81b98526>] cpu_down+0x36/0x50
+         [<ffffffff81b9c12d>] store_online+0x5d/0xe0
+         [<ffffffff816b6ef8>] dev_attr_store+0x18/0x30
+         [<ffffffff8123bb50>] sysfs_write_file+0xe0/0x150
+         [<ffffffff811c3b78>] vfs_write+0xa8/0x160
+         [<ffffffff811c3e82>] sys_write+0x52/0xa0
+         [<ffffffff81be89c2>] system_call_fastpath+0x16/0x1b
+  other info that might help us debug this:
+
+   Possible unsafe locking scenario:
+
+         CPU0                    CPU1
+         ----                    ----
+    lock(cpu_hotplug.lock);
+                                 lock(cgroup_mutex);
+                                 lock(cpu_hotplug.lock);
+    lock(cgroup_mutex);
+
+   *** DEADLOCK ***
+
+  5 locks held by bash/645:
+   #0:  (&buffer->mutex){+.+.+.}, at: [<ffffffff8123bab8>] sysfs_write_file+0x48/0x150
+   #1:  (s_active#42){.+.+.+}, at: [<ffffffff8123bb38>] sysfs_write_file+0xc8/0x150
+   #2:  (x86_cpu_hotplug_driver_mutex){+.+...}, at: [<ffffffff81079277>] cpu_hotplug_driver_lock+0x1
++7/0x20
+   #3:  (cpu_add_remove_lock){+.+.+.}, at: [<ffffffff81093157>] cpu_maps_update_begin+0x17/0x20
+   #4:  (cpu_hotplug.lock){+.+.+.}, at: [<ffffffff8109300f>] cpu_hotplug_begin+0x2f/0x60
+
+  stack backtrace:
+  Pid: 645, comm: bash Not tainted 3.7.0-rc4-work+ #42
+  Call Trace:
+   [<ffffffff81bdadfd>] print_circular_bug+0x28e/0x29f
+   [<ffffffff810f74de>] __lock_acquire+0x14ce/0x1d20
+   [<ffffffff810f8357>] lock_acquire+0x97/0x1e0
+   [<ffffffff81be4701>] mutex_lock_nested+0x61/0x3b0
+   [<ffffffff8110c5b7>] cgroup_lock+0x17/0x20
+   [<ffffffff81116deb>] cpuset_handle_hotplug+0x1b/0x560
+   [<ffffffff8111744e>] cpuset_update_active_cpus+0xe/0x10
+   [<ffffffff810d0587>] cpuset_cpu_inactive+0x47/0x50
+   [<ffffffff810c1476>] notifier_call_chain+0x66/0x150
+   [<ffffffff810c156e>] __raw_notifier_call_chain+0xe/0x10
+   [<ffffffff81092fa0>] __cpu_notify+0x20/0x40
+   [<ffffffff81b9827e>] _cpu_down+0x7e/0x2f0
+   [<ffffffff81b98526>] cpu_down+0x36/0x50
+   [<ffffffff81b9c12d>] store_online+0x5d/0xe0
+   [<ffffffff816b6ef8>] dev_attr_store+0x18/0x30
+   [<ffffffff8123bb50>] sysfs_write_file+0xe0/0x150
+   [<ffffffff811c3b78>] vfs_write+0xa8/0x160
+   [<ffffffff811c3e82>] sys_write+0x52/0xa0
+   [<ffffffff81be89c2>] system_call_fastpath+0x16/0x1b
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-warn-on-uapi-includes-that-include-uapi scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-warn-on-uapi-includes-that-include-uapi
-+++ a/scripts/checkpatch.pl
-@@ -2226,8 +2226,11 @@ sub process {
- 			my $path = $1;
- 			if ($path =~ m{//}) {
- 				ERROR("MALFORMED_INCLUDE",
--				      "malformed #include filename\n" .
--					$herecurr);
-+				      "malformed #include filename\n" . $herecurr);
-+			}
-+			if ($path =~ "^uapi/" && $realfile =~ m@\binclude/uapi/@) {
-+				ERROR("UAPI_INCLUDE",
-+				      "No #include in ...include/uapi/... should use a uapi/ path prefix\n" . $herecurr);
- 			}
+diff -puN mm/memcontrol.c~memcg-dont-register-hotcpu-notifier-from-css_alloc mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-dont-register-hotcpu-notifier-from-css_alloc
++++ a/mm/memcontrol.c
+@@ -6090,7 +6090,6 @@ mem_cgroup_css_alloc(struct cgroup *cont
+ 						&per_cpu(memcg_stock, cpu);
+ 			INIT_WORK(&stock->work, drain_local_stock);
  		}
+-		hotcpu_notifier(memcg_cpu_hotplug_callback, 0);
+ 	} else {
+ 		parent = mem_cgroup_from_cont(cont->parent);
+ 		memcg->use_hierarchy = parent->use_hierarchy;
+@@ -6756,6 +6755,19 @@ struct cgroup_subsys mem_cgroup_subsys =
+ 	.use_id = 1,
+ };
  
++/*
++ * The rest of init is performed during ->css_alloc() for root css which
++ * happens before initcalls.  hotcpu_notifier() can't be done together as
++ * it would introduce circular locking by adding cgroup_lock -> cpu hotplug
++ * dependency.  Do it from a subsys_initcall().
++ */
++static int __init mem_cgroup_init(void)
++{
++	hotcpu_notifier(memcg_cpu_hotplug_callback, 0);
++	return 0;
++}
++subsys_initcall(mem_cgroup_init);
++
+ #ifdef CONFIG_MEMCG_SWAP
+ static int __init enable_swap_account(char *s)
+ {
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from tj@kernel.org are
 
 origin.patch
 linux-next.patch
-checkpatch-warn-on-uapi-includes-that-include-uapi.patch
+memcg-dont-register-hotcpu-notifier-from-css_alloc.patch
+block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+documentation-sysctl-kerneltxt-document-proc-sys-shmall.patch
 
