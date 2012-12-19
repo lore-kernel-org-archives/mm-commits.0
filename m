@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-dont-register-hotcpu-notifier-from-css_alloc.patch added to -mm tree
-Date: Wed, 19 Dec 2012 14:57:11 -0800
-Message-ID: <20121219225712.6AF2B20004E@hpza10.eem.corp.google.com>
+Subject: + mm-fix-zone_watermark_ok_safe-accounting-of-isolated-pages.patch added to -mm tree
+Date: Wed, 19 Dec 2012 15:01:06 -0800
+Message-ID: <20121219230106.BC63082004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f73.google.com ([74.125.82.73]:50236 "EHLO
-	mail-wg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751195Ab2LSW5P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Dec 2012 17:57:15 -0500
-Received: by mail-wg0-f73.google.com with SMTP id dt12so138438wgb.0
-        for <mm-commits@vger.kernel.org>; Wed, 19 Dec 2012 14:57:13 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:58349 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751060Ab2LSXBI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Dec 2012 18:01:08 -0500
+Received: by mail-qa0-f74.google.com with SMTP id r4so329581qaq.5
+        for <mm-commits@vger.kernel.org>; Wed, 19 Dec 2012 15:01:07 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, fengguang.wu@intel.com, mhocko@suse.cz
+Cc: b.zolnierkie@samsung.com, aaditya.kumar.30@gmail.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, kyungmin.park@samsung.com, m.szyprowski@samsung.com, mgorman@suse.de, mhocko@suse.cz, mina86@mina86.com, minchan@kernel.org, t.stanislaws@samsung.com
 
 
 The patch titled
-     Subject: memcg: don't register hotcpu notifier from ->css_alloc()
+     Subject: mm: fix zone_watermark_ok_safe() accounting of isolated pages
 has been added to the -mm tree.  Its filename is
-     memcg-dont-register-hotcpu-notifier-from-css_alloc.patch
+     mm-fix-zone_watermark_ok_safe-accounting-of-isolated-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,152 +33,166 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tejun Heo <tj@kernel.org>
-Subject: memcg: don't register hotcpu notifier from ->css_alloc()
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: mm: fix zone_watermark_ok_safe() accounting of isolated pages
 
-648bb56d07 ("cgroup: lock cgroup_mutex in cgroup_init_subsys()") made
-cgroup_init_subsys() grab cgroup_mutex before invoking ->css_alloc() for
-the root css.  Because memcg registers hotcpu notifier from ->css_alloc()
-for the root css, this introduced circular locking dependency between
-cgroup_mutex and cpu hotplug.
+In kernel v3.6 commit 702d1a6e07 ("memory-hotplug: fix kswapd looping
+forever problem") added isolated pageblocks counter (nr_pageblock_isolate
+in struct zone) and used it to adjust free pages counter in
+zone_watermark_ok_safe() to prevent kswapd looping forever problem.
 
-Fix it by moving hotcpu notifier registration to a subsys initcall.
+In kernel v3.7 commit 2139cbe627b8 ("cma: fix counting of isolated pages")
+fixed accounting of isolated pages in global free pages counter.  It made
+previous zone_watermark_ok_safe() fix unnecessary and potentially harmful
+(cause now isolated pages may be accounted twice making free pages counter
+incorrect).
 
-  ======================================================
-  [ INFO: possible circular locking dependency detected ]
-  3.7.0-rc4-work+ #42 Not tainted
-  -------------------------------------------------------
-  bash/645 is trying to acquire lock:
-   (cgroup_mutex){+.+.+.}, at: [<ffffffff8110c5b7>] cgroup_lock+0x17/0x20
+This patch removes special isolated pageblocks counter altogether which
+fixes zone_watermark_ok_safe() free pages check.
 
-  but task is already holding lock:
-   (cpu_hotplug.lock){+.+.+.}, at: [<ffffffff8109300f>] cpu_hotplug_begin+0x2f/0x60
-
-  which lock already depends on the new lock.
-
-  the existing dependency chain (in reverse order) is:
-
- -> #1 (cpu_hotplug.lock){+.+.+.}:
-         [<ffffffff810f8357>] lock_acquire+0x97/0x1e0
-         [<ffffffff81be4701>] mutex_lock_nested+0x61/0x3b0
-         [<ffffffff810930fc>] get_online_cpus+0x3c/0x60
-         [<ffffffff811152fb>] rebuild_sched_domains_locked+0x1b/0x70
-         [<ffffffff81116718>] cpuset_write_resmask+0x298/0x2c0
-         [<ffffffff8110f70f>] cgroup_file_write+0x1ef/0x300
-         [<ffffffff811c3b78>] vfs_write+0xa8/0x160
-         [<ffffffff811c3e82>] sys_write+0x52/0xa0
-         [<ffffffff81be89c2>] system_call_fastpath+0x16/0x1b
-
- -> #0 (cgroup_mutex){+.+.+.}:
-         [<ffffffff810f74de>] __lock_acquire+0x14ce/0x1d20
-         [<ffffffff810f8357>] lock_acquire+0x97/0x1e0
-         [<ffffffff81be4701>] mutex_lock_nested+0x61/0x3b0
-         [<ffffffff8110c5b7>] cgroup_lock+0x17/0x20
-         [<ffffffff81116deb>] cpuset_handle_hotplug+0x1b/0x560
-         [<ffffffff8111744e>] cpuset_update_active_cpus+0xe/0x10
-         [<ffffffff810d0587>] cpuset_cpu_inactive+0x47/0x50
-         [<ffffffff810c1476>] notifier_call_chain+0x66/0x150
-         [<ffffffff810c156e>] __raw_notifier_call_chain+0xe/0x10
-         [<ffffffff81092fa0>] __cpu_notify+0x20/0x40
-         [<ffffffff81b9827e>] _cpu_down+0x7e/0x2f0
-         [<ffffffff81b98526>] cpu_down+0x36/0x50
-         [<ffffffff81b9c12d>] store_online+0x5d/0xe0
-         [<ffffffff816b6ef8>] dev_attr_store+0x18/0x30
-         [<ffffffff8123bb50>] sysfs_write_file+0xe0/0x150
-         [<ffffffff811c3b78>] vfs_write+0xa8/0x160
-         [<ffffffff811c3e82>] sys_write+0x52/0xa0
-         [<ffffffff81be89c2>] system_call_fastpath+0x16/0x1b
-  other info that might help us debug this:
-
-   Possible unsafe locking scenario:
-
-         CPU0                    CPU1
-         ----                    ----
-    lock(cpu_hotplug.lock);
-                                 lock(cgroup_mutex);
-                                 lock(cpu_hotplug.lock);
-    lock(cgroup_mutex);
-
-   *** DEADLOCK ***
-
-  5 locks held by bash/645:
-   #0:  (&buffer->mutex){+.+.+.}, at: [<ffffffff8123bab8>] sysfs_write_file+0x48/0x150
-   #1:  (s_active#42){.+.+.+}, at: [<ffffffff8123bb38>] sysfs_write_file+0xc8/0x150
-   #2:  (x86_cpu_hotplug_driver_mutex){+.+...}, at: [<ffffffff81079277>] cpu_hotplug_driver_lock+0x1
-+7/0x20
-   #3:  (cpu_add_remove_lock){+.+.+.}, at: [<ffffffff81093157>] cpu_maps_update_begin+0x17/0x20
-   #4:  (cpu_hotplug.lock){+.+.+.}, at: [<ffffffff8109300f>] cpu_hotplug_begin+0x2f/0x60
-
-  stack backtrace:
-  Pid: 645, comm: bash Not tainted 3.7.0-rc4-work+ #42
-  Call Trace:
-   [<ffffffff81bdadfd>] print_circular_bug+0x28e/0x29f
-   [<ffffffff810f74de>] __lock_acquire+0x14ce/0x1d20
-   [<ffffffff810f8357>] lock_acquire+0x97/0x1e0
-   [<ffffffff81be4701>] mutex_lock_nested+0x61/0x3b0
-   [<ffffffff8110c5b7>] cgroup_lock+0x17/0x20
-   [<ffffffff81116deb>] cpuset_handle_hotplug+0x1b/0x560
-   [<ffffffff8111744e>] cpuset_update_active_cpus+0xe/0x10
-   [<ffffffff810d0587>] cpuset_cpu_inactive+0x47/0x50
-   [<ffffffff810c1476>] notifier_call_chain+0x66/0x150
-   [<ffffffff810c156e>] __raw_notifier_call_chain+0xe/0x10
-   [<ffffffff81092fa0>] __cpu_notify+0x20/0x40
-   [<ffffffff81b9827e>] _cpu_down+0x7e/0x2f0
-   [<ffffffff81b98526>] cpu_down+0x36/0x50
-   [<ffffffff81b9c12d>] store_online+0x5d/0xe0
-   [<ffffffff816b6ef8>] dev_attr_store+0x18/0x30
-   [<ffffffff8123bb50>] sysfs_write_file+0xe0/0x150
-   [<ffffffff811c3b78>] vfs_write+0xa8/0x160
-   [<ffffffff811c3e82>] sys_write+0x52/0xa0
-   [<ffffffff81be89c2>] system_call_fastpath+0x16/0x1b
-
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
+Reported-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Aaditya Kumar <aaditya.kumar.30@gmail.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ include/linux/mmzone.h |    8 --------
+ mm/page_alloc.c        |   27 ---------------------------
+ mm/page_isolation.c    |   26 ++------------------------
+ 3 files changed, 2 insertions(+), 59 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-dont-register-hotcpu-notifier-from-css_alloc mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-dont-register-hotcpu-notifier-from-css_alloc
-+++ a/mm/memcontrol.c
-@@ -6090,7 +6090,6 @@ mem_cgroup_css_alloc(struct cgroup *cont
- 						&per_cpu(memcg_stock, cpu);
- 			INIT_WORK(&stock->work, drain_local_stock);
- 		}
--		hotcpu_notifier(memcg_cpu_hotplug_callback, 0);
- 	} else {
- 		parent = mem_cgroup_from_cont(cont->parent);
- 		memcg->use_hierarchy = parent->use_hierarchy;
-@@ -6756,6 +6755,19 @@ struct cgroup_subsys mem_cgroup_subsys =
- 	.use_id = 1,
- };
+diff -puN include/linux/mmzone.h~mm-fix-zone_watermark_ok_safe-accounting-of-isolated-pages include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-fix-zone_watermark_ok_safe-accounting-of-isolated-pages
++++ a/include/linux/mmzone.h
+@@ -503,14 +503,6 @@ struct zone {
+ 	 * rarely used fields:
+ 	 */
+ 	const char		*name;
+-#ifdef CONFIG_MEMORY_ISOLATION
+-	/*
+-	 * the number of MIGRATE_ISOLATE *pageblock*.
+-	 * We need this for free page counting. Look at zone_watermark_ok_safe.
+-	 * It's protected by zone->lock
+-	 */
+-	int		nr_pageblock_isolate;
+-#endif
+ } ____cacheline_internodealigned_in_smp;
  
-+/*
-+ * The rest of init is performed during ->css_alloc() for root css which
-+ * happens before initcalls.  hotcpu_notifier() can't be done together as
-+ * it would introduce circular locking by adding cgroup_lock -> cpu hotplug
-+ * dependency.  Do it from a subsys_initcall().
-+ */
-+static int __init mem_cgroup_init(void)
-+{
-+	hotcpu_notifier(memcg_cpu_hotplug_callback, 0);
-+	return 0;
-+}
-+subsys_initcall(mem_cgroup_init);
-+
- #ifdef CONFIG_MEMCG_SWAP
- static int __init enable_swap_account(char *s)
+ typedef enum {
+diff -puN mm/page_alloc.c~mm-fix-zone_watermark_ok_safe-accounting-of-isolated-pages mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-fix-zone_watermark_ok_safe-accounting-of-isolated-pages
++++ a/mm/page_alloc.c
+@@ -221,11 +221,6 @@ EXPORT_SYMBOL(nr_online_nodes);
+ 
+ int page_group_by_mobility_disabled __read_mostly;
+ 
+-/*
+- * NOTE:
+- * Don't use set_pageblock_migratetype(page, MIGRATE_ISOLATE) directly.
+- * Instead, use {un}set_pageblock_isolate.
+- */
+ void set_pageblock_migratetype(struct page *page, int migratetype)
  {
+ 
+@@ -1655,20 +1650,6 @@ static bool __zone_watermark_ok(struct z
+ 	return true;
+ }
+ 
+-#ifdef CONFIG_MEMORY_ISOLATION
+-static inline unsigned long nr_zone_isolate_freepages(struct zone *zone)
+-{
+-	if (unlikely(zone->nr_pageblock_isolate))
+-		return zone->nr_pageblock_isolate * pageblock_nr_pages;
+-	return 0;
+-}
+-#else
+-static inline unsigned long nr_zone_isolate_freepages(struct zone *zone)
+-{
+-	return 0;
+-}
+-#endif
+-
+ bool zone_watermark_ok(struct zone *z, int order, unsigned long mark,
+ 		      int classzone_idx, int alloc_flags)
+ {
+@@ -1684,14 +1665,6 @@ bool zone_watermark_ok_safe(struct zone 
+ 	if (z->percpu_drift_mark && free_pages < z->percpu_drift_mark)
+ 		free_pages = zone_page_state_snapshot(z, NR_FREE_PAGES);
+ 
+-	/*
+-	 * If the zone has MIGRATE_ISOLATE type free pages, we should consider
+-	 * it.  nr_zone_isolate_freepages is never accurate so kswapd might not
+-	 * sleep although it could do so.  But this is more desirable for memory
+-	 * hotplug than sleeping which can cause a livelock in the direct
+-	 * reclaim path.
+-	 */
+-	free_pages -= nr_zone_isolate_freepages(z);
+ 	return __zone_watermark_ok(z, order, mark, classzone_idx, alloc_flags,
+ 								free_pages);
+ }
+diff -puN mm/page_isolation.c~mm-fix-zone_watermark_ok_safe-accounting-of-isolated-pages mm/page_isolation.c
+--- a/mm/page_isolation.c~mm-fix-zone_watermark_ok_safe-accounting-of-isolated-pages
++++ a/mm/page_isolation.c
+@@ -8,28 +8,6 @@
+ #include <linux/memory.h>
+ #include "internal.h"
+ 
+-/* called while holding zone->lock */
+-static void set_pageblock_isolate(struct page *page)
+-{
+-	if (get_pageblock_migratetype(page) == MIGRATE_ISOLATE)
+-		return;
+-
+-	set_pageblock_migratetype(page, MIGRATE_ISOLATE);
+-	page_zone(page)->nr_pageblock_isolate++;
+-}
+-
+-/* called while holding zone->lock */
+-static void restore_pageblock_isolate(struct page *page, int migratetype)
+-{
+-	struct zone *zone = page_zone(page);
+-	if (WARN_ON(get_pageblock_migratetype(page) != MIGRATE_ISOLATE))
+-		return;
+-
+-	BUG_ON(zone->nr_pageblock_isolate <= 0);
+-	set_pageblock_migratetype(page, migratetype);
+-	zone->nr_pageblock_isolate--;
+-}
+-
+ int set_migratetype_isolate(struct page *page, bool skip_hwpoisoned_pages)
+ {
+ 	struct zone *zone;
+@@ -80,7 +58,7 @@ out:
+ 		unsigned long nr_pages;
+ 		int migratetype = get_pageblock_migratetype(page);
+ 
+-		set_pageblock_isolate(page);
++		set_pageblock_migratetype(page, MIGRATE_ISOLATE);
+ 		nr_pages = move_freepages_block(zone, page, MIGRATE_ISOLATE);
+ 
+ 		__mod_zone_freepage_state(zone, -nr_pages, migratetype);
+@@ -103,7 +81,7 @@ void unset_migratetype_isolate(struct pa
+ 		goto out;
+ 	nr_pages = move_freepages_block(zone, page, migratetype);
+ 	__mod_zone_freepage_state(zone, nr_pages, migratetype);
+-	restore_pageblock_isolate(page, migratetype);
++	set_pageblock_migratetype(page, migratetype);
+ out:
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+ }
 _
 
-Patches currently in -mm which might be from tj@kernel.org are
+Patches currently in -mm which might be from b.zolnierkie@samsung.com are
 
 origin.patch
-linux-next.patch
-memcg-dont-register-hotcpu-notifier-from-css_alloc.patch
-block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-documentation-sysctl-kerneltxt-document-proc-sys-shmall.patch
+mm-fix-zone_watermark_ok_safe-accounting-of-isolated-pages.patch
 
