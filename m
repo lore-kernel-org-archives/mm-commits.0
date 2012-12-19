@@ -1,102 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Wed, 19 Dec 2012 12:38:25 -0800
-Message-ID: <20121219203826.370FA200057@hpza10.eem.corp.google.com>
+Subject: [merged] arch-x86-platform-iris-irisc-register-a-platform-device-and-a-platform-driver.patch removed from -mm tree
+Date: Wed, 19 Dec 2012 12:39:23 -0800
+Message-ID: <20121219203924.1E977200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:61056 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752080Ab2LSUi2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Dec 2012 15:38:28 -0500
-Received: by mail-bk0-f74.google.com with SMTP id je9so133692bkc.5
-        for <mm-commits@vger.kernel.org>; Wed, 19 Dec 2012 12:38:27 -0800 (PST)
+Received: from mail-ea0-f201.google.com ([209.85.215.201]:48357 "EHLO
+	mail-ea0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751805Ab2LSUj0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Dec 2012 15:39:26 -0500
+Received: by mail-ea0-f201.google.com with SMTP id b14so134029eaa.2
+        for <mm-commits@vger.kernel.org>; Wed, 19 Dec 2012 12:39:25 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: Sebastien.Hinderer@ens-lyon.org, lenb@kernel.org, mjg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: arch/x86/platform/iris/iris.c: register a platform device=
+ and a platform driver
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     arch-x86-platform-iris-irisc-register-a-platform-device-and-a-plat=
+form-driver.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+=46rom: Sh=E9rab <Sebastien.Hinderer@ens-lyon.org>
+Subject: arch/x86/platform/iris/iris.c: register a platform device and =
+a platform driver
 
+This makes the iris driver use the platform API, so it is properly expo=
+sed
+in /sys.
+
+[akpm@linux-foundation.org: remove commented-out code, add missing spac=
+e to printk, clean up code layout]
+Signed-off-by: Sh=E9rab <Sebastien.Hinderer@ens-lyon.org>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Matthew Garrett <mjg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/dmatest.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ arch/x86/platform/iris/iris.c |   67 +++++++++++++++++++++++++++-----
+ 1 file changed, 57 insertions(+), 10 deletions(-)
 
-diff -puN drivers/mfd/sta2x11-mfd.c~linux-next-git-rejects drivers/mfd/sta2x11-mfd.c
-diff -puN net/dns_resolver/dns_key.c~linux-next-git-rejects net/dns_resolver/dns_key.c
-diff -puN drivers/dma/dmatest.c~linux-next-git-rejects drivers/dma/dmatest.c
---- a/drivers/dma/dmatest.c~linux-next-git-rejects
-+++ a/drivers/dma/dmatest.c
-@@ -228,7 +228,6 @@ static void dmatest_callback(void *arg)
- 	wake_up_all(done->wait);
+diff -puN arch/x86/platform/iris/iris.c~arch-x86-platform-iris-irisc-re=
+gister-a-platform-device-and-a-platform-driver arch/x86/platform/iris/i=
+ris.c
+--- a/arch/x86/platform/iris/iris.c~arch-x86-platform-iris-irisc-regist=
+er-a-platform-device-and-a-platform-driver
++++ a/arch/x86/platform/iris/iris.c
+@@ -23,6 +23,7 @@
+=20
+ #include <linux/moduleparam.h>
+ #include <linux/module.h>
++#include <linux/platform_device.h>
+ #include <linux/kernel.h>
+ #include <linux/errno.h>
+ #include <linux/delay.h>
+@@ -62,29 +63,75 @@ static void iris_power_off(void)
+  * by reading its input port and seeing whether the read value is
+  * meaningful.
+  */
+-static int iris_init(void)
++static int iris_probe(struct platform_device *pdev)
+ {
+-	unsigned char status;
+-	if (force !=3D 1) {
+-		printk(KERN_ERR "The force parameter has not been set to 1 so the Ir=
+is poweroff handler will not be installed.\n");
+-		return -ENODEV;
+-	}
+-	status =3D inb(IRIS_GIO_INPUT);
++	unsigned char status =3D inb(IRIS_GIO_INPUT);
+ 	if (status =3D=3D IRIS_GIO_NODEV) {
+-		printk(KERN_ERR "This machine does not seem to be an Iris. Power_off=
+ handler not installed.\n");
++		printk(KERN_ERR "This machine does not seem to be an Iris. "
++			"Power off handler not installed.\n");
+ 		return -ENODEV;
+ 	}
+ 	old_pm_power_off =3D pm_power_off;
+ 	pm_power_off =3D &iris_power_off;
+ 	printk(KERN_INFO "Iris power_off handler installed.\n");
+-
+ 	return 0;
  }
- 
--<<<<<<< HEAD
- static inline void unmap_src(struct device *dev, dma_addr_t *addr, size_t len,
- 			     unsigned int count)
+=20
+-static void iris_exit(void)
++static int iris_remove(struct platform_device *pdev)
  {
-@@ -241,13 +240,13 @@ static inline void unmap_dst(struct devi
- {
- 	while (count--)
- 		dma_unmap_single(dev, addr[count], len, DMA_BIDIRECTIONAL);
--=======
+ 	pm_power_off =3D old_pm_power_off;
+ 	printk(KERN_INFO "Iris power_off handler uninstalled.\n");
++	return 0;
 +}
 +
- static unsigned int min_odd(unsigned int x, unsigned int y)
- {
- 	unsigned int val = min(x, y);
- 
- 	return val % 2 ? val : val - 1;
-->>>>>>> linux-next/akpm-base
++static struct platform_driver iris_driver =3D {
++	.driver		=3D {
++		.name   =3D "iris",
++		.owner  =3D THIS_MODULE,
++	},
++	.probe          =3D iris_probe,
++	.remove         =3D iris_remove,
++};
++
++static struct resource iris_resources[] =3D {
++	{
++		.start  =3D IRIS_GIO_BASE,
++		.end    =3D IRIS_GIO_OUTPUT,
++		.flags  =3D IORESOURCE_IO,
++		.name   =3D "address"
++	}
++};
++
++static struct platform_device *iris_device;
++
++static int iris_init(void)
++{
++	int ret;
++	if (force !=3D 1) {
++		printk(KERN_ERR "The force parameter has not been set to 1."
++			" The Iris poweroff handler will not be installed.\n");
++		return -ENODEV;
++	}
++	ret =3D platform_driver_register(&iris_driver);
++	if (ret < 0) {
++		printk(KERN_ERR "Failed to register iris platform driver: %d\n",
++			ret);
++		return ret;
++	}
++	iris_device =3D platform_device_register_simple("iris", (-1),
++				iris_resources, ARRAY_SIZE(iris_resources));
++	if (IS_ERR(iris_device)) {
++		printk(KERN_ERR "Failed to register iris platform device\n");
++		platform_driver_unregister(&iris_driver);
++		return PTR_ERR(iris_device);
++	}
++	return 0;
++}
++
++static void iris_exit(void)
++{
++	platform_device_unregister(iris_device);
++	platform_driver_unregister(&iris_driver);
  }
- 
- /*
+=20
+ module_init(iris_init);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from Sebastien.Hinderer@ens-lyo=
+n.org are
 
 origin.patch
-linux-next.patch
-linux-next-rejects.patch
-make-my-i386-build-work.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists.patch
-sgi-xp-handle-non-fatal-traps-fix.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
-block-remove-deadlock-in-disk_clear_events.patch
-block-prevent-race-cleanup.patch
-mm.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-sendfile-allows-bypassing-of-notifier-events.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix-fix.patch
-rtc-max77686-add-maxim-77686-driver-fix.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
-hfsplus-rework-processing-of-hfs_btree_write-returned-error.patch
-ipc-add-sysctl-to-specify-desired-next-object-id.patch
-ipc-message-queue-receive-cleanup.patch
-ipc-convert-prepare_copy-from-macro-to-function.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-fs-notify-add-procfs-fdinfo-helper-v7-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
