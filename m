@@ -1,162 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-mprotectc-coding-style-cleanups.patch removed from -mm tree
-Date: Wed, 19 Dec 2012 12:42:37 -0800
-Message-ID: <20121219204238.0E6E8200057@hpza10.eem.corp.google.com>
+Subject: [merged] mm-hugetlb-create-hugetlb-cgroup-file-in-hugetlb_init.patch removed from -mm tree
+Date: Wed, 19 Dec 2012 12:42:41 -0800
+Message-ID: <20121219204242.263FB200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:58173 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755326Ab2LSUmk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Dec 2012 15:42:40 -0500
-Received: by mail-wi0-f202.google.com with SMTP id hn17so133961wib.5
-        for <mm-commits@vger.kernel.org>; Wed, 19 Dec 2012 12:42:39 -0800 (PST)
+Received: from mail-bk0-f73.google.com ([209.85.214.73]:61534 "EHLO
+	mail-bk0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755351Ab2LSUmp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Dec 2012 15:42:45 -0500
+Received: by mail-bk0-f73.google.com with SMTP id jf3so133912bkc.0
+        for <mm-commits@vger.kernel.org>; Wed, 19 Dec 2012 12:42:43 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: wujianguo@huawei.com, aneesh.kumar@linux.vnet.ibm.com, jiang.liu@huawei.com, mhocko@suse.cz, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mprotect.c: coding-style cleanups
+     Subject: mm/hugetlb: create hugetlb cgroup file in hugetlb_init
 has been removed from the -mm tree.  Its filename was
-     mm-mprotectc-coding-style-cleanups.patch
+     mm-hugetlb-create-hugetlb-cgroup-file-in-hugetlb_init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/mprotect.c: coding-style cleanups
+From: Jianguo Wu <wujianguo@huawei.com>
+Subject: mm/hugetlb: create hugetlb cgroup file in hugetlb_init
 
-A few gremlins have recently crept in.
+Build kernel with CONFIG_HUGETLBFS=y,CONFIG_HUGETLB_PAGE=y and
+CONFIG_CGROUP_HUGETLB=y, then specify hugepagesz=xx boot option, system
+will fail to boot.
 
+This failure is caused by following code path:
+setup_hugepagesz
+	hugetlb_add_hstate
+		hugetlb_cgroup_file_init
+			cgroup_add_cftypes
+				kzalloc <--slab is *not available* yet
+
+For this path, slab is not available yet, so memory allocated will be
+failed, and cause WARN_ON() in hugetlb_cgroup_file_init().
+
+So I move hugetlb_cgroup_file_init() into hugetlb_init().
+
+[akpm@linux-foundation.org: tweak coding-style, remove pointless __init on inlined function]
+[akpm@linux-foundation.org: fix warning]
+Signed-off-by: Jianguo Wu <wujianguo@huawei.com>
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |   30 ++++++++++++++++--------------
- 1 file changed, 16 insertions(+), 14 deletions(-)
+ include/linux/hugetlb_cgroup.h |    5 ++---
+ mm/hugetlb.c                   |   11 +----------
+ mm/hugetlb_cgroup.c            |   19 +++++++++++++++++--
+ 3 files changed, 20 insertions(+), 15 deletions(-)
 
-diff -puN mm/mprotect.c~mm-mprotectc-coding-style-cleanups mm/mprotect.c
---- a/mm/mprotect.c~mm-mprotectc-coding-style-cleanups
-+++ a/mm/mprotect.c
-@@ -114,7 +114,7 @@ static unsigned long change_pte_range(st
+diff -puN include/linux/hugetlb_cgroup.h~mm-hugetlb-create-hugetlb-cgroup-file-in-hugetlb_init include/linux/hugetlb_cgroup.h
+--- a/include/linux/hugetlb_cgroup.h~mm-hugetlb-create-hugetlb-cgroup-file-in-hugetlb_init
++++ a/include/linux/hugetlb_cgroup.h
+@@ -62,7 +62,7 @@ extern void hugetlb_cgroup_uncharge_page
+ 					 struct page *page);
+ extern void hugetlb_cgroup_uncharge_cgroup(int idx, unsigned long nr_pages,
+ 					   struct hugetlb_cgroup *h_cg);
+-extern int hugetlb_cgroup_file_init(int idx) __init;
++extern void hugetlb_cgroup_file_init(void) __init;
+ extern void hugetlb_cgroup_migrate(struct page *oldhpage,
+ 				   struct page *newhpage);
  
- #ifdef CONFIG_NUMA_BALANCING
- static inline void change_pmd_protnuma(struct mm_struct *mm, unsigned long addr,
--		pmd_t *pmd)
-+				       pmd_t *pmd)
- {
- 	spin_lock(&mm->page_table_lock);
- 	set_pmd_at(mm, addr & PMD_MASK, pmd, pmd_mknuma(*pmd));
-@@ -122,15 +122,15 @@ static inline void change_pmd_protnuma(s
- }
- #else
- static inline void change_pmd_protnuma(struct mm_struct *mm, unsigned long addr,
--		pmd_t *pmd)
-+				       pmd_t *pmd)
- {
- 	BUG();
- }
- #endif /* CONFIG_NUMA_BALANCING */
- 
--static inline unsigned long change_pmd_range(struct vm_area_struct *vma, pud_t *pud,
--		unsigned long addr, unsigned long end, pgprot_t newprot,
--		int dirty_accountable, int prot_numa)
-+static inline unsigned long change_pmd_range(struct vm_area_struct *vma,
-+		pud_t *pud, unsigned long addr, unsigned long end,
-+		pgprot_t newprot, int dirty_accountable, int prot_numa)
- {
- 	pmd_t *pmd;
- 	unsigned long next;
-@@ -143,7 +143,8 @@ static inline unsigned long change_pmd_r
- 		if (pmd_trans_huge(*pmd)) {
- 			if (next - addr != HPAGE_PMD_SIZE)
- 				split_huge_page_pmd(vma, addr, pmd);
--			else if (change_huge_pmd(vma, pmd, addr, newprot, prot_numa)) {
-+			else if (change_huge_pmd(vma, pmd, addr, newprot,
-+						 prot_numa)) {
- 				pages += HPAGE_PMD_NR;
- 				continue;
- 			}
-@@ -167,9 +168,9 @@ static inline unsigned long change_pmd_r
- 	return pages;
+@@ -111,9 +111,8 @@ hugetlb_cgroup_uncharge_cgroup(int idx, 
+ 	return;
  }
  
--static inline unsigned long change_pud_range(struct vm_area_struct *vma, pgd_t *pgd,
--		unsigned long addr, unsigned long end, pgprot_t newprot,
--		int dirty_accountable, int prot_numa)
-+static inline unsigned long change_pud_range(struct vm_area_struct *vma,
-+		pgd_t *pgd, unsigned long addr, unsigned long end,
-+		pgprot_t newprot, int dirty_accountable, int prot_numa)
+-static inline int __init hugetlb_cgroup_file_init(int idx)
++static inline void hugetlb_cgroup_file_init(void)
  {
- 	pud_t *pud;
- 	unsigned long next;
-@@ -304,7 +305,8 @@ success:
- 		dirty_accountable = 1;
- 	}
+-	return 0;
+ }
  
--	change_protection(vma, start, end, vma->vm_page_prot, dirty_accountable, 0);
-+	change_protection(vma, start, end, vma->vm_page_prot,
-+			  dirty_accountable, 0);
+ static inline void hugetlb_cgroup_migrate(struct page *oldhpage,
+diff -puN mm/hugetlb.c~mm-hugetlb-create-hugetlb-cgroup-file-in-hugetlb_init mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-create-hugetlb-cgroup-file-in-hugetlb_init
++++ a/mm/hugetlb.c
+@@ -1906,14 +1906,12 @@ static int __init hugetlb_init(void)
+ 		default_hstate.max_huge_pages = default_hstate_max_huge_pages;
  
- 	vm_stat_account(mm, oldflags, vma->vm_file, -nrpages);
- 	vm_stat_account(mm, newflags, vma->vm_file, nrpages);
-@@ -361,8 +363,7 @@ SYSCALL_DEFINE3(mprotect, unsigned long,
- 		error = -EINVAL;
- 		if (!(vma->vm_flags & VM_GROWSDOWN))
- 			goto out;
--	}
--	else {
-+	} else {
- 		if (vma->vm_start > start)
- 			goto out;
- 		if (unlikely(grows & PROT_GROWSUP)) {
-@@ -378,9 +379,10 @@ SYSCALL_DEFINE3(mprotect, unsigned long,
- 	for (nstart = start ; ; ) {
- 		unsigned long newflags;
+ 	hugetlb_init_hstates();
+-
+ 	gather_bootmem_prealloc();
+-
+ 	report_hugepages();
  
--		/* Here we know that  vma->vm_start <= nstart < vma->vm_end. */
-+		/* Here we know that vma->vm_start <= nstart < vma->vm_end. */
+ 	hugetlb_sysfs_init();
+-
+ 	hugetlb_register_all_nodes();
++	hugetlb_cgroup_file_init();
  
--		newflags = vm_flags | (vma->vm_flags & ~(VM_READ | VM_WRITE | VM_EXEC));
-+		newflags = vm_flags;
-+		newflags |= (vma->vm_flags & ~(VM_READ | VM_WRITE | VM_EXEC));
+ 	return 0;
+ }
+@@ -1943,13 +1941,6 @@ void __init hugetlb_add_hstate(unsigned 
+ 	h->next_nid_to_free = first_node(node_states[N_MEMORY]);
+ 	snprintf(h->name, HSTATE_NAME_LEN, "hugepages-%lukB",
+ 					huge_page_size(h)/1024);
+-	/*
+-	 * Add cgroup control files only if the huge page consists
+-	 * of more than two normal pages. This is because we use
+-	 * page[2].lru.next for storing cgoup details.
+-	 */
+-	if (order >= HUGETLB_CGROUP_MIN_ORDER)
+-		hugetlb_cgroup_file_init(hugetlb_max_hstate - 1);
  
- 		/* newflags >> 4 shift VM_MAY% in place of VM_% */
- 		if ((newflags & ~(newflags >> 4)) & (VM_READ | VM_WRITE | VM_EXEC)) {
+ 	parsed_hstate = h;
+ }
+diff -puN mm/hugetlb_cgroup.c~mm-hugetlb-create-hugetlb-cgroup-file-in-hugetlb_init mm/hugetlb_cgroup.c
+--- a/mm/hugetlb_cgroup.c~mm-hugetlb-create-hugetlb-cgroup-file-in-hugetlb_init
++++ a/mm/hugetlb_cgroup.c
+@@ -333,7 +333,7 @@ static char *mem_fmt(char *buf, int size
+ 	return buf;
+ }
+ 
+-int __init hugetlb_cgroup_file_init(int idx)
++static void __init __hugetlb_cgroup_file_init(int idx)
+ {
+ 	char buf[32];
+ 	struct cftype *cft;
+@@ -375,7 +375,22 @@ int __init hugetlb_cgroup_file_init(int 
+ 
+ 	WARN_ON(cgroup_add_cftypes(&hugetlb_subsys, h->cgroup_files));
+ 
+-	return 0;
++	return;
++}
++
++void __init hugetlb_cgroup_file_init(void)
++{
++	struct hstate *h;
++
++	for_each_hstate(h) {
++		/*
++		 * Add cgroup control files only if the huge page consists
++		 * of more than two normal pages. This is because we use
++		 * page[2].lru.next for storing cgroup details.
++		 */
++		if (huge_page_order(h) >= HUGETLB_CGROUP_MIN_ORDER)
++			__hugetlb_cgroup_file_init(hstate_index(h));
++	}
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wujianguo@huawei.com are
 
 origin.patch
-linux-next.patch
-linux-next-rejects.patch
-make-my-i386-build-work.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid.patch
-drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists.patch
-sgi-xp-handle-non-fatal-traps-fix.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
-block-remove-deadlock-in-disk_clear_events.patch
-block-prevent-race-cleanup.patch
-mm.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-sendfile-allows-bypassing-of-notifier-events.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix-fix.patch
-rtc-max77686-add-maxim-77686-driver-fix.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
-hfsplus-rework-processing-of-hfs_btree_write-returned-error.patch
-ipc-add-sysctl-to-specify-desired-next-object-id.patch
-ipc-message-queue-receive-cleanup.patch
-ipc-convert-prepare_copy-from-macro-to-function.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
