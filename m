@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-s6e63m0-remove-unnecessary-null-deference-check.patch added to -mm tree
-Date: Thu, 20 Dec 2012 12:35:54 -0800
-Message-ID: <20121220203555.42CDD100047@wpzn3.hot.corp.google.com>
+Subject: + backlight-s6e63m0-reorder-inclusions-of-linux-xxxh.patch added to -mm tree
+Date: Thu, 20 Dec 2012 12:36:03 -0800
+Message-ID: <20121220203603.EC8B582004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:35301 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751675Ab2LTUf4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Dec 2012 15:35:56 -0500
-Received: by mail-vb0-f74.google.com with SMTP id s24so406163vbi.3
-        for <mm-commits@vger.kernel.org>; Thu, 20 Dec 2012 12:35:55 -0800 (PST)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:58571 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751675Ab2LTUgE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Dec 2012 15:36:04 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z10so94848ghb.3
+        for <mm-commits@vger.kernel.org>; Thu, 20 Dec 2012 12:36:04 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: backlight: s6e63m0: remove unnecessary NULL deference check
+     Subject: backlight: s6e63m0: reorder inclusions of <linux/xxx.h>
 has been added to the -mm tree.  Its filename is
-     backlight-s6e63m0-remove-unnecessary-null-deference-check.patch
+     backlight-s6e63m0-reorder-inclusions-of-linux-xxxh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,114 +34,54 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: s6e63m0: remove unnecessary NULL deference check
+Subject: backlight: s6e63m0: reorder inclusions of <linux/xxx.h>
 
-Remove unnecessary NULL deference check, because it was already checked in
-s6e63m0_probe().  Also, POWER_IS_ON is replaced with
-s6e63m0_power_is_on().
+Reorder inclusions of <linux/xxx.h> for redability, according to
+alphabetical ordering.  Also, unnecessary header comments are removed.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/s6e63m0.c |   41 +++++++++-------------------
- 1 file changed, 14 insertions(+), 27 deletions(-)
+ drivers/video/backlight/s6e63m0.c |   19 +++++--------------
+ 1 file changed, 5 insertions(+), 14 deletions(-)
 
-diff -puN drivers/video/backlight/s6e63m0.c~backlight-s6e63m0-remove-unnecessary-null-deference-check drivers/video/backlight/s6e63m0.c
---- a/drivers/video/backlight/s6e63m0.c~backlight-s6e63m0-remove-unnecessary-null-deference-check
+diff -puN drivers/video/backlight/s6e63m0.c~backlight-s6e63m0-reorder-inclusions-of-linux-xxxh drivers/video/backlight/s6e63m0.c
+--- a/drivers/video/backlight/s6e63m0.c~backlight-s6e63m0-reorder-inclusions-of-linux-xxxh
 +++ a/drivers/video/backlight/s6e63m0.c
-@@ -43,8 +43,6 @@
- #define MIN_BRIGHTNESS		0
- #define MAX_BRIGHTNESS		10
+@@ -9,28 +9,19 @@
+  * under the terms of the GNU General Public License as published by the
+  * Free Software Foundation; either version 2 of the License, or (at your
+  * option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License along
+- * with this program; if not, write to the Free Software Foundation, Inc.,
+- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+  */
  
--#define POWER_IS_ON(pwr)	((pwr) <= FB_BLANK_NORMAL)
--
- struct s6e63m0 {
- 	struct device			*dev;
- 	struct spi_device		*spi;
-@@ -501,23 +499,19 @@ static int s6e63m0_ldi_disable(struct s6
- 	return ret;
- }
+-#include <linux/wait.h>
+-#include <linux/fb.h>
++#include <linux/backlight.h>
+ #include <linux/delay.h>
++#include <linux/fb.h>
+ #include <linux/gpio.h>
+-#include <linux/spi/spi.h>
+-#include <linux/irq.h>
+ #include <linux/interrupt.h>
++#include <linux/irq.h>
+ #include <linux/kernel.h>
+ #include <linux/lcd.h>
+-#include <linux/backlight.h>
+ #include <linux/module.h>
++#include <linux/spi/spi.h>
++#include <linux/wait.h>
  
-+static int s6e63m0_power_is_on(int power)
-+{
-+	return power <= FB_BLANK_NORMAL;
-+}
-+
- static int s6e63m0_power_on(struct s6e63m0 *lcd)
- {
- 	int ret = 0;
--	struct lcd_platform_data *pd = NULL;
--	struct backlight_device *bd = NULL;
-+	struct lcd_platform_data *pd;
-+	struct backlight_device *bd;
- 
- 	pd = lcd->lcd_pd;
--	if (!pd) {
--		dev_err(lcd->dev, "platform data is NULL.\n");
--		return -EFAULT;
--	}
--
- 	bd = lcd->bd;
--	if (!bd) {
--		dev_err(lcd->dev, "backlight device is NULL.\n");
--		return -EFAULT;
--	}
- 
- 	if (!pd->power_on) {
- 		dev_err(lcd->dev, "power_on is NULL.\n");
-@@ -559,14 +553,10 @@ static int s6e63m0_power_on(struct s6e63
- 
- static int s6e63m0_power_off(struct s6e63m0 *lcd)
- {
--	int ret = 0;
--	struct lcd_platform_data *pd = NULL;
-+	int ret;
-+	struct lcd_platform_data *pd;
- 
- 	pd = lcd->lcd_pd;
--	if (!pd) {
--		dev_err(lcd->dev, "platform data is NULL.\n");
--		return -EFAULT;
--	}
- 
- 	ret = s6e63m0_ldi_disable(lcd);
- 	if (ret) {
-@@ -576,11 +566,7 @@ static int s6e63m0_power_off(struct s6e6
- 
- 	msleep(pd->power_off_delay);
- 
--	if (!pd->power_on) {
--		dev_err(lcd->dev, "power_on is NULL.\n");
--		return -EFAULT;
--	} else
--		pd->power_on(lcd->ld, 0);
-+	pd->power_on(lcd->ld, 0);
- 
- 	return 0;
- }
-@@ -589,9 +575,9 @@ static int s6e63m0_power(struct s6e63m0 
- {
- 	int ret = 0;
- 
--	if (POWER_IS_ON(power) && !POWER_IS_ON(lcd->power))
-+	if (s6e63m0_power_is_on(power) && !s6e63m0_power_is_on(lcd->power))
- 		ret = s6e63m0_power_on(lcd);
--	else if (!POWER_IS_ON(power) && POWER_IS_ON(lcd->power))
-+	else if (!s6e63m0_power_is_on(power) && s6e63m0_power_is_on(lcd->power))
- 		ret = s6e63m0_power_off(lcd);
- 
- 	if (!ret)
-@@ -812,8 +798,9 @@ static int s6e63m0_probe(struct spi_devi
- 		lcd->power = FB_BLANK_POWERDOWN;
- 
- 		s6e63m0_power(lcd, FB_BLANK_UNBLANK);
--	} else
-+	} else {
- 		lcd->power = FB_BLANK_UNBLANK;
-+	}
- 
- 	dev_set_drvdata(&spi->dev, lcd);
+ #include "s6e63m0_gamma.h"
  
 _
 
@@ -162,4 +102,8 @@ backlight-s6e63m0-replace-efault-with-einval.patch
 backlight-s6e63m0-remove-redundant-variable-before_power.patch
 backlight-s6e63m0-reorder-inclusions-of-linux-xxxh.patch
 backlight-ams369fg06-use-sleep-instead-of-delay.patch
+backlight-ams369fg06-remove-unnecessary-null-deference-check.patch
+backlight-ams369fg06-replace-efault-with-einval.patch
+backlight-ams369fg06-remove-redundant-variable-before_power.patch
+backlight-ams369fg06-reorder-inclusions-of-linux-xxxh.patch
 
