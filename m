@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-ld9040-use-sleep-instead-of-delay.patch added to -mm tree
-Date: Thu, 20 Dec 2012 12:34:04 -0800
-Message-ID: <20121220203405.159FC82004A@wpzn4.hot.corp.google.com>
+Subject: + backlight-ld9040-replace-efault-with-einval.patch added to -mm tree
+Date: Thu, 20 Dec 2012 12:34:09 -0800
+Message-ID: <20121220203410.1623C100049@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:57326 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751036Ab2LTUeG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Dec 2012 15:34:06 -0500
-Received: by mail-gh0-f201.google.com with SMTP id z19so94687ghb.4
-        for <mm-commits@vger.kernel.org>; Thu, 20 Dec 2012 12:34:05 -0800 (PST)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:58764 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751036Ab2LTUeL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Dec 2012 15:34:11 -0500
+Received: by mail-yh0-f73.google.com with SMTP id 47so405862yhr.2
+        for <mm-commits@vger.kernel.org>; Thu, 20 Dec 2012 12:34:10 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: backlight: ld9040: use sleep instead of delay
+     Subject: backlight: ld9040: replace EFAULT with EINVAL
 has been added to the -mm tree.  Its filename is
-     backlight-ld9040-use-sleep-instead-of-delay.patch
+     backlight-ld9040-replace-efault-with-einval.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: ld9040: use sleep instead of delay
+Subject: backlight: ld9040: replace EFAULT with EINVAL
 
-Replace mdelay with msleep to remove the busy loop waiting.
+Replace EFAULT with EINVAL, because EFAULT tends to be for the invalid
+memory addresses.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/ld9040.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ drivers/video/backlight/ld9040.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/backlight/ld9040.c~backlight-ld9040-use-sleep-instead-of-delay drivers/video/backlight/ld9040.c
---- a/drivers/video/backlight/ld9040.c~backlight-ld9040-use-sleep-instead-of-delay
+diff -puN drivers/video/backlight/ld9040.c~backlight-ld9040-replace-efault-with-einval drivers/video/backlight/ld9040.c
+--- a/drivers/video/backlight/ld9040.c~backlight-ld9040-replace-efault-with-einval
 +++ a/drivers/video/backlight/ld9040.c
-@@ -78,7 +78,7 @@ static void ld9040_regulator_enable(stru
+@@ -583,7 +583,7 @@ static int ld9040_power_on(struct ld9040
  
- 		lcd->enabled = true;
- 	}
--	mdelay(pd->power_on_delay);
-+	msleep(pd->power_on_delay);
- out:
- 	mutex_unlock(&lcd->lock);
- }
-@@ -474,8 +474,9 @@ static int ld9040_panel_send_sequence(st
- 			ret = ld9040_spi_write(lcd, wbuf[i], wbuf[i+1]);
- 			if (ret)
- 				break;
--		} else
--			udelay(wbuf[i+1]*1000);
-+		} else {
-+			msleep(wbuf[i+1]);
-+		}
- 		i += 2;
- 	}
- 
-@@ -539,7 +540,7 @@ static int ld9040_ldi_init(struct ld9040
- 	for (i = 0; i < ARRAY_SIZE(init_seq); i++) {
- 		ret = ld9040_panel_send_sequence(lcd, init_seq[i]);
- 		/* workaround: minimum delay time for transferring CMD */
--		udelay(300);
-+		usleep_range(300, 310);
- 		if (ret)
- 			break;
- 	}
-@@ -584,7 +585,7 @@ static int ld9040_power_on(struct ld9040
- 		return -EFAULT;
+ 	if (!pd->reset) {
+ 		dev_err(lcd->dev, "reset is NULL.\n");
+-		return -EFAULT;
++		return -EINVAL;
  	} else {
  		pd->reset(lcd->ld);
--		mdelay(pd->reset_delay);
-+		msleep(pd->reset_delay);
+ 		msleep(pd->reset_delay);
+@@ -724,7 +724,7 @@ static int ld9040_probe(struct spi_devic
+ 	lcd->lcd_pd = spi->dev.platform_data;
+ 	if (!lcd->lcd_pd) {
+ 		dev_err(&spi->dev, "platform data is NULL.\n");
+-		return -EFAULT;
++		return -EINVAL;
  	}
  
- 	ret = ld9040_ldi_init(lcd);
-@@ -619,7 +620,7 @@ static int ld9040_power_off(struct ld904
- 		return -EIO;
- 	}
- 
--	mdelay(pd->power_off_delay);
-+	msleep(pd->power_off_delay);
- 
- 	/* lcd power off */
- 	ld9040_regulator_disable(lcd);
+ 	mutex_init(&lcd->lock);
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
