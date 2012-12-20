@@ -1,77 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch added to -mm tree
-Date: Wed, 19 Dec 2012 16:54:33 -0800
-Message-ID: <20121220005433.AD3E982004A@wpzn4.hot.corp.google.com>
+Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
+Date: Thu, 20 Dec 2012 12:12:10 -0800
+Message-ID: <20121220201211.D87D882004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:43237 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751274Ab2LTAyf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Dec 2012 19:54:35 -0500
-Received: by mail-ye0-f202.google.com with SMTP id l7so310217yen.5
-        for <mm-commits@vger.kernel.org>; Wed, 19 Dec 2012 16:54:34 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:58460 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751630Ab2LTUMM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Dec 2012 15:12:12 -0500
+Received: by mail-qa0-f74.google.com with SMTP id r4so436067qaq.3
+        for <mm-commits@vger.kernel.org>; Thu, 20 Dec 2012 12:12:12 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hannes@cmpxchg.org, hughd@google.com, mgorman@suse.de, mhocko@suse.cz, riel@redhat.com, satoru.moriya@hds.com, simon.jeons@gmail.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan.c:__zone_reclaim(): replace max_t() with max()
-has been added to the -mm tree.  Its filename is
-     mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
+     Subject: linux-next-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/vmscan.c:__zone_reclaim(): replace max_t() with max()
+Subject: linux-next-rejects
 
-"mm: vmscan: save work scanning (almost) empty LRU lists" made
-SWAP_CLUSTER_MAX an unsigned long.
-
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Satoru Moriya <satoru.moriya@hds.com>
-Cc: Simon Jeons <simon.jeons@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ init/Kconfig |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscanc-__zone_reclaim-replace-max_t-with-max mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscanc-__zone_reclaim-replace-max_t-with-max
-+++ a/mm/vmscan.c
-@@ -3348,8 +3348,7 @@ static int __zone_reclaim(struct zone *z
- 		.may_writepage = !!(zone_reclaim_mode & RECLAIM_WRITE),
- 		.may_unmap = !!(zone_reclaim_mode & RECLAIM_SWAP),
- 		.may_swap = 1,
--		.nr_to_reclaim = max_t(unsigned long, nr_pages,
--				       SWAP_CLUSTER_MAX),
-+		.nr_to_reclaim = max(nr_pages, SWAP_CLUSTER_MAX),
- 		.gfp_mask = gfp_mask,
- 		.order = order,
- 		.priority = ZONE_RECLAIM_PRIORITY,
+diff -puN init/Kconfig~linux-next-rejects init/Kconfig
+--- a/init/Kconfig~linux-next-rejects
++++ a/init/Kconfig
+@@ -849,15 +849,9 @@ config MEMCG_SWAP_ENABLED
+ 	  select this option (if, for some reason, they need to disable it
+ 	  then swapaccount=0 does the trick).
+ config MEMCG_KMEM
+-<<<<<<< HEAD
+-	bool "Memory Resource Controller Kernel Memory accounting (EXPERIMENTAL)"
+-	depends on MEMCG && EXPERIMENTAL
+-	depends on SLUB || SLAB
+-=======
+ 	bool "Memory Resource Controller Kernel Memory accounting"
+ 	depends on MEMCG
+-	default n
+->>>>>>> linux-next/akpm-base
++	depends on SLUB || SLAB
+ 	help
+ 	  The Kernel Memory extension for Memory Resource Controller can limit
+ 	  the amount of memory used by kernel objects in the system. Those are
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-linux-next-rejects.patch
 make-my-i386-build-work.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
@@ -89,7 +75,7 @@ block-prevent-race-cleanup.patch
 mm.patch
 mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
 mm-hugetlbc-convert-to-pr_foo.patch
-mm-page_allocc-__alloc_contig_migrate_range-cleanup.patch
+cma-make-putback_lru_pages-call-conditional-fix.patch
 mm-vmscan-clean-up-get_scan_count-fix.patch
 mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
 mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
