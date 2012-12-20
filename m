@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-ams369fg06-remove-unnecessary-null-deference-check.patch added to -mm tree
-Date: Thu, 20 Dec 2012 12:37:11 -0800
-Message-ID: <20121220203712.9602C200059@hpza10.eem.corp.google.com>
+Subject: + compaction-fix-build-error-in-cma-compaction.patch added to -mm tree
+Date: Thu, 20 Dec 2012 12:38:28 -0800
+Message-ID: <20121220203829.23D3120004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:48731 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751675Ab2LTUhP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Dec 2012 15:37:15 -0500
-Received: by mail-bk0-f74.google.com with SMTP id je9so207644bkc.5
-        for <mm-commits@vger.kernel.org>; Thu, 20 Dec 2012 12:37:13 -0800 (PST)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:57368 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751675Ab2LTUic (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Dec 2012 15:38:32 -0500
+Received: by mail-la0-f74.google.com with SMTP id v3so195110lag.3
+        for <mm-commits@vger.kernel.org>; Thu, 20 Dec 2012 12:38:30 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com
+Cc: minchan@kernel.org, m.szyprowski@samsung.com, mgorman@suse.de
 
 
 The patch titled
-     Subject: backlight: ams369fg06: remove unnecessary NULL deference check
+     Subject: compaction: fix build error in CMA && !COMPACTION
 has been added to the -mm tree.  Its filename is
-     backlight-ams369fg06-remove-unnecessary-null-deference-check.patch
+     compaction-fix-build-error-in-cma-compaction.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,115 +33,89 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: ams369fg06: remove unnecessary NULL deference check
+From: Minchan Kim <minchan@kernel.org>
+Subject: compaction: fix build error in CMA && !COMPACTION
 
-Remove unnecessary NULL deference check, because it was already checked in
-ams369fg06_probe().  Also, unnecessary parentheses are removed in
-ams369fg06_power_is_on().
+isolate_freepages_block() and isolate_migratepages_range() are used for
+CMA as well as compaction so it breaks build for CONFIG_CMA &&
+!CONFIG_COMPACTION.
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+This patch fixes it.
+
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/ams369fg06.c |   32 ++++++-------------------
- 1 file changed, 8 insertions(+), 24 deletions(-)
+ mm/compaction.c |   26 ++++++++++++++++++++------
+ 1 file changed, 20 insertions(+), 6 deletions(-)
 
-diff -puN drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-remove-unnecessary-null-deference-check drivers/video/backlight/ams369fg06.c
---- a/drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-remove-unnecessary-null-deference-check
-+++ a/drivers/video/backlight/ams369fg06.c
-@@ -314,26 +314,17 @@ static int ams369fg06_ldi_disable(struct
+diff -puN mm/compaction.c~compaction-fix-build-error-in-cma-compaction mm/compaction.c
+--- a/mm/compaction.c~compaction-fix-build-error-in-cma-compaction
++++ a/mm/compaction.c
+@@ -17,6 +17,21 @@
+ #include <linux/balloon_compaction.h>
+ #include "internal.h"
  
- static int ams369fg06_power_is_on(int power)
- {
--	return ((power) <= FB_BLANK_NORMAL);
-+	return power <= FB_BLANK_NORMAL;
- }
++#ifdef CONFIG_COMPACTION
++static inline void count_compact_event(enum vm_event_item item)
++{
++	count_vm_event(item);
++}
++
++static inline void count_compact_events(enum vm_event_item item, long delta)
++{
++	count_vm_events(item, delta);
++}
++#else
++#define count_compact_event(item)
++#define count_compact_events(item, delta)
++#endif
++
+ #if defined CONFIG_COMPACTION || defined CONFIG_CMA
  
- static int ams369fg06_power_on(struct ams369fg06 *lcd)
- {
- 	int ret = 0;
--	struct lcd_platform_data *pd = NULL;
--	struct backlight_device *bd = NULL;
-+	struct lcd_platform_data *pd;
-+	struct backlight_device *bd;
+ #define CREATE_TRACE_POINTS
+@@ -303,10 +318,9 @@ static unsigned long isolate_freepages_b
+ 	if (blockpfn == end_pfn)
+ 		update_pageblock_skip(cc, valid_page, total_isolated, false);
  
- 	pd = lcd->lcd_pd;
--	if (!pd) {
--		dev_err(lcd->dev, "platform data is NULL.\n");
--		return -EFAULT;
--	}
+-	count_vm_events(COMPACTFREE_SCANNED, nr_scanned);
++	count_compact_events(COMPACTFREE_SCANNED, nr_scanned);
+ 	if (total_isolated)
+-		count_vm_events(COMPACTISOLATED, total_isolated);
 -
- 	bd = lcd->bd;
--	if (!bd) {
--		dev_err(lcd->dev, "backlight device is NULL.\n");
--		return -EFAULT;
--	}
- 
- 	if (!pd->power_on) {
- 		dev_err(lcd->dev, "power_on is NULL.\n");
-@@ -375,14 +366,10 @@ static int ams369fg06_power_on(struct am
- 
- static int ams369fg06_power_off(struct ams369fg06 *lcd)
- {
--	int ret = 0;
--	struct lcd_platform_data *pd = NULL;
-+	int ret;
-+	struct lcd_platform_data *pd;
- 
- 	pd = lcd->lcd_pd;
--	if (!pd) {
--		dev_err(lcd->dev, "platform data is NULL\n");
--		return -EFAULT;
--	}
- 
- 	ret = ams369fg06_ldi_disable(lcd);
- 	if (ret) {
-@@ -392,11 +379,7 @@ static int ams369fg06_power_off(struct a
- 
- 	msleep(pd->power_off_delay);
- 
--	if (!pd->power_on) {
--		dev_err(lcd->dev, "power_on is NULL.\n");
--		return -EFAULT;
--	} else
--		pd->power_on(lcd->ld, 0);
-+	pd->power_on(lcd->ld, 0);
- 
- 	return 0;
++		count_compact_events(COMPACTISOLATED, total_isolated);
+ 	return total_isolated;
  }
-@@ -535,8 +518,9 @@ static int ams369fg06_probe(struct spi_d
- 		lcd->power = FB_BLANK_POWERDOWN;
  
- 		ams369fg06_power(lcd, FB_BLANK_UNBLANK);
--	} else
-+	} else {
- 		lcd->power = FB_BLANK_UNBLANK;
-+	}
+@@ -613,9 +627,9 @@ next_pageblock:
  
- 	dev_set_drvdata(&spi->dev, lcd);
+ 	trace_mm_compaction_isolate_migratepages(nr_scanned, nr_isolated);
  
+-	count_vm_events(COMPACTMIGRATE_SCANNED, nr_scanned);
++	count_compact_events(COMPACTMIGRATE_SCANNED, nr_scanned);
+ 	if (nr_isolated)
+-		count_vm_events(COMPACTISOLATED, nr_isolated);
++		count_compact_events(COMPACTISOLATED, nr_isolated);
+ 
+ 	return low_pfn;
+ }
+@@ -1110,7 +1124,7 @@ unsigned long try_to_compact_pages(struc
+ 	if (!order || !may_enter_fs || !may_perform_io)
+ 		return rc;
+ 
+-	count_vm_event(COMPACTSTALL);
++	count_compact_event(COMPACTSTALL);
+ 
+ #ifdef CONFIG_CMA
+ 	if (allocflags_to_migratetype(gfp_mask) == MIGRATE_MOVABLE)
 _
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
 origin.patch
-backlight-add-lms501kf03-lcd-driver.patch
-backlight-add-lms501kf03-lcd-driver-fix.patch
-backlight-ld9040-use-sleep-instead-of-delay.patch
-backlight-ld9040-remove-unnecessary-null-deference-check.patch
-backlight-ld9040-replace-efault-with-einval.patch
-backlight-ld9040-remove-redundant-return-variables.patch
-backlight-ld9040-reorder-inclusions-of-linux-xxxh.patch
-backlight-s6e63m0-use-lowercase-names-of-structs.patch
-backlight-s6e63m0-use-sleep-instead-of-delay.patch
-backlight-s6e63m0-remove-unnecessary-null-deference-check.patch
-backlight-s6e63m0-replace-efault-with-einval.patch
-backlight-s6e63m0-remove-redundant-variable-before_power.patch
-backlight-s6e63m0-reorder-inclusions-of-linux-xxxh.patch
-backlight-ams369fg06-use-sleep-instead-of-delay.patch
-backlight-ams369fg06-remove-unnecessary-null-deference-check.patch
-backlight-ams369fg06-replace-efault-with-einval.patch
-backlight-ams369fg06-remove-redundant-variable-before_power.patch
-backlight-ams369fg06-reorder-inclusions-of-linux-xxxh.patch
+compaction-fix-build-error-in-cma-compaction.patch
+mm-fix-zone_watermark_ok_safe-accounting-of-isolated-pages.patch
+mm-add-vm-event-counters-for-balloon-pages-compaction.patch
 
