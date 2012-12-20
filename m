@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + cma-use-unsigned-type-for-count-argument.patch added to -mm tree
-Date: Thu, 20 Dec 2012 15:37:04 -0800
-Message-ID: <20121220233705.3F6C882004A@wpzn4.hot.corp.google.com>
+Subject: + cma-use-unsigned-type-for-count-argument-fix.patch added to -mm tree
+Date: Thu, 20 Dec 2012 15:37:07 -0800
+Message-ID: <20121220233708.1A1B882004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:44220 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751555Ab2LTXhG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Dec 2012 18:37:06 -0500
-Received: by mail-vb0-f74.google.com with SMTP id s24so426043vbi.3
-        for <mm-commits@vger.kernel.org>; Thu, 20 Dec 2012 15:37:05 -0800 (PST)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:52870 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751352Ab2LTXhJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Dec 2012 18:37:09 -0500
+Received: by mail-vc0-f201.google.com with SMTP id p1so426158vcq.0
+        for <mm-commits@vger.kernel.org>; Thu, 20 Dec 2012 15:37:08 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mina86@mina86.com, rientjes@google.com, rmk@arm.linux.org.uk
+Cc: akpm@linux-foundation.org, mina86@mina86.com, rientjes@google.com, rmk@arm.linux.org.uk
 
 
 The patch titled
-     Subject: cma: use unsigned type for count argument
+     Subject: cma-use-unsigned-type-for-count-argument-fix
 has been added to the -mm tree.  Its filename is
-     cma-use-unsigned-type-for-count-argument.patch
+     cma-use-unsigned-type-for-count-argument-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,125 +33,162 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Nazarewicz <mina86@mina86.com>
-Subject: cma: use unsigned type for count argument
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: cma-use-unsigned-type-for-count-argument-fix
 
-Specifying negative size of buffer makes no sense and thus this commit
-changes the type of the count argument to unsigned.
+rename `i' to `idx', small cleanups
 
-Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/dma-mapping.c      |   12 ++++++------
- drivers/base/dma-contiguous.c  |    6 +++---
- include/linux/dma-contiguous.h |    8 ++++----
- 3 files changed, 13 insertions(+), 13 deletions(-)
+ arch/arm/mm/dma-mapping.c |   43 ++++++++++++++++++------------------
+ 1 file changed, 22 insertions(+), 21 deletions(-)
 
-diff -puN arch/arm/mm/dma-mapping.c~cma-use-unsigned-type-for-count-argument arch/arm/mm/dma-mapping.c
---- a/arch/arm/mm/dma-mapping.c~cma-use-unsigned-type-for-count-argument
+diff -puN arch/arm/mm/dma-mapping.c~cma-use-unsigned-type-for-count-argument-fix arch/arm/mm/dma-mapping.c
+--- a/arch/arm/mm/dma-mapping.c~cma-use-unsigned-type-for-count-argument-fix
 +++ a/arch/arm/mm/dma-mapping.c
-@@ -1038,9 +1038,9 @@ static struct page **__iommu_alloc_buffe
- 					  gfp_t gfp, struct dma_attrs *attrs)
- {
+@@ -1040,7 +1040,7 @@ static struct page **__iommu_alloc_buffe
  	struct page **pages;
--	int count = size >> PAGE_SHIFT;
--	int array_size = count * sizeof(struct page *);
--	int i = 0;
-+	unsigned int count = size >> PAGE_SHIFT;
-+	unsigned int array_size = count * sizeof(struct page *);
-+	unsigned int i = 0;
+ 	unsigned int count = size >> PAGE_SHIFT;
+ 	unsigned int array_size = count * sizeof(struct page *);
+-	unsigned int i = 0;
++	unsigned int idx = 0;
  
  	if (array_size <= PAGE_SIZE)
  		pages = kzalloc(array_size, gfp);
-@@ -1102,9 +1102,9 @@ error:
- static int __iommu_free_buffer(struct device *dev, struct page **pages,
- 			       size_t size, struct dma_attrs *attrs)
+@@ -1049,8 +1049,7 @@ static struct page **__iommu_alloc_buffe
+ 	if (!pages)
+ 		return NULL;
+ 
+-	if (dma_get_attr(DMA_ATTR_FORCE_CONTIGUOUS, attrs))
+-	{
++	if (dma_get_attr(DMA_ATTR_FORCE_CONTIGUOUS, attrs)) {
+ 		unsigned long order = get_order(size);
+ 		struct page *page;
+ 
+@@ -1060,38 +1059,39 @@ static struct page **__iommu_alloc_buffe
+ 
+ 		__dma_clear_buffer(page, size);
+ 
+-		for (i = 0; i < count; i++)
+-			pages[i] = page + i;
++		for (idx = 0; idx < count; idx++)
++			pages[i] = page + idx;
+ 
+ 		return pages;
+ 	}
+ 
+ 	while (count) {
+-		int j, order = __fls(count);
++		unsigned int j;
++		unnsigned int order = __fls(count);
+ 
+-		pages[i] = alloc_pages(gfp | __GFP_NOWARN, order);
+-		while (!pages[i] && order)
+-			pages[i] = alloc_pages(gfp | __GFP_NOWARN, --order);
+-		if (!pages[i])
++		pages[idx] = alloc_pages(gfp | __GFP_NOWARN, order);
++		while (!pages[idx] && order)
++			pages[idx] = alloc_pages(gfp | __GFP_NOWARN, --order);
++		if (!pages[idx])
+ 			goto error;
+ 
+ 		if (order) {
+-			split_page(pages[i], order);
++			split_page(pages[idx], order);
+ 			j = 1 << order;
+ 			while (--j)
+-				pages[i + j] = pages[i] + j;
++				pages[idx + j] = pages[idx] + j;
+ 		}
+ 
+-		__dma_clear_buffer(pages[i], PAGE_SIZE << order);
+-		i += 1 << order;
++		__dma_clear_buffer(pages[idx], PAGE_SIZE << order);
++		idx += 1 << order;
+ 		count -= 1 << order;
+ 	}
+ 
+ 	return pages;
+ error:
+-	while (i--)
+-		if (pages[i])
+-			__free_pages(pages[i], 0);
++	while (idx--)
++		if (pages[idx])
++			__free_pages(pages[idx], 0);
+ 	if (array_size <= PAGE_SIZE)
+ 		kfree(pages);
+ 	else
+@@ -1104,14 +1104,15 @@ static int __iommu_free_buffer(struct de
  {
--	int count = size >> PAGE_SHIFT;
--	int array_size = count * sizeof(struct page *);
--	int i;
-+	unsigned int count = size >> PAGE_SHIFT;
-+	unsigned int array_size = count * sizeof(struct page *);
-+	unsigned int i;
+ 	unsigned int count = size >> PAGE_SHIFT;
+ 	unsigned int array_size = count * sizeof(struct page *);
+-	unsigned int i;
  
  	if (dma_get_attr(DMA_ATTR_FORCE_CONTIGUOUS, attrs)) {
  		dma_release_from_contiguous(dev, pages[0], count);
-diff -puN drivers/base/dma-contiguous.c~cma-use-unsigned-type-for-count-argument drivers/base/dma-contiguous.c
---- a/drivers/base/dma-contiguous.c~cma-use-unsigned-type-for-count-argument
-+++ a/drivers/base/dma-contiguous.c
-@@ -303,7 +303,7 @@ err:
-  * global one. Requires architecture specific get_dev_cma_area() helper
-  * function.
-  */
--struct page *dma_alloc_from_contiguous(struct device *dev, int count,
-+struct page *dma_alloc_from_contiguous(struct device *dev, unsigned int count,
- 				       unsigned int align)
- {
- 	unsigned long mask, pfn, pageno, start = 0;
-@@ -317,7 +317,7 @@ struct page *dma_alloc_from_contiguous(s
- 	if (align > CONFIG_CMA_ALIGNMENT)
- 		align = CONFIG_CMA_ALIGNMENT;
+ 	} else {
+-		for (i = 0; i < count; i++)
+-			if (pages[i])
+-				__free_pages(pages[i], 0);
++		unsigned int idx;
++
++		for (idx = 0; idx < count; idx++)
++			if (pages[idx])
++				__free_pages(pages[idx], 0);
+ 	}
  
--	pr_debug("%s(cma %p, count %d, align %d)\n", __func__, (void *)cma,
-+	pr_debug("%s(cma %p, count %u, align %u)\n", __func__, (void *)cma,
- 		 count, align);
- 
- 	if (!count)
-@@ -364,7 +364,7 @@ struct page *dma_alloc_from_contiguous(s
-  * true otherwise.
-  */
- bool dma_release_from_contiguous(struct device *dev, struct page *pages,
--				 int count)
-+				 unsigned int count)
- {
- 	struct cma *cma = dev_get_cma_area(dev);
- 	unsigned long pfn;
-diff -puN include/linux/dma-contiguous.h~cma-use-unsigned-type-for-count-argument include/linux/dma-contiguous.h
---- a/include/linux/dma-contiguous.h~cma-use-unsigned-type-for-count-argument
-+++ a/include/linux/dma-contiguous.h
-@@ -71,10 +71,10 @@ void dma_contiguous_reserve(phys_addr_t 
- int dma_declare_contiguous(struct device *dev, phys_addr_t size,
- 			   phys_addr_t base, phys_addr_t limit);
- 
--struct page *dma_alloc_from_contiguous(struct device *dev, int count,
-+struct page *dma_alloc_from_contiguous(struct device *dev, unsigned int count,
- 				       unsigned int order);
- bool dma_release_from_contiguous(struct device *dev, struct page *pages,
--				 int count);
-+				 unsigned int count);
- 
- #else
- 
-@@ -90,7 +90,7 @@ int dma_declare_contiguous(struct device
- }
- 
- static inline
--struct page *dma_alloc_from_contiguous(struct device *dev, int count,
-+struct page *dma_alloc_from_contiguous(struct device *dev, unsigned int count,
- 				       unsigned int order)
- {
- 	return NULL;
-@@ -98,7 +98,7 @@ struct page *dma_alloc_from_contiguous(s
- 
- static inline
- bool dma_release_from_contiguous(struct device *dev, struct page *pages,
--				 int count)
-+				 unsigned int count)
- {
- 	return false;
- }
+ 	if (array_size <= PAGE_SIZE)
 _
 
-Patches currently in -mm which might be from mina86@mina86.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-cma-warn-if-freed-memory-is-still-in-use.patch
-mm-fix-zone_watermark_ok_safe-accounting-of-isolated-pages.patch
-cma-make-putback_lru_pages-call-conditional.patch
+compaction-fix-build-error-in-cma-compaction.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists.patch
+hfsplus-rework-processing-of-hfs_btree_write-returned-error.patch
+revert-rtc-recycle-id-when-unloading-a-rtc-driver.patch
+sgi-xp-handle-non-fatal-traps.patch
+sendfile-allows-bypassing-of-notifier-events.patch
+linux-next.patch
+linux-next-git-rejects.patch
+make-my-i386-build-work.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
+mm.patch
+mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
+mm-hugetlbc-convert-to-pr_foo.patch
 cma-make-putback_lru_pages-call-conditional-fix.patch
-cma-use-unsigned-type-for-count-argument.patch
+mm-vmscan-clean-up-get_scan_count-fix.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
+mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
+mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
 cma-use-unsigned-type-for-count-argument-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+backlight-add-lms501kf03-lcd-driver-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix-fix.patch
+rtc-max77686-add-maxim-77686-driver-fix.patch
+rtc-pcf8523-add-low-battery-voltage-support-fix.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+ipc-add-sysctl-to-specify-desired-next-object-id.patch
+ipc-message-queue-receive-cleanup.patch
+ipc-convert-prepare_copy-from-macro-to-function.patch
+drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
