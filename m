@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fat-fix-incorrect-function-comment.patch added to -mm tree
-Date: Thu, 20 Dec 2012 12:18:33 -0800
-Message-ID: <20121220201834.15926200059@hpza10.eem.corp.google.com>
+Subject: + mm-compaction-do-not-accidentally-skip-pageblocks-in-the-migrate-scanner.patch added to -mm tree
+Date: Thu, 20 Dec 2012 12:19:42 -0800
+Message-ID: <20121220201943.14CA2200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f201.google.com ([74.125.82.201]:52174 "EHLO
-	mail-we0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751234Ab2LTUSg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Dec 2012 15:18:36 -0500
-Received: by mail-we0-f201.google.com with SMTP id t11so207243wey.2
-        for <mm-commits@vger.kernel.org>; Thu, 20 Dec 2012 12:18:35 -0800 (PST)
+Received: from mail-la0-f73.google.com ([209.85.215.73]:39652 "EHLO
+	mail-la0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751036Ab2LTUTp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Dec 2012 15:19:45 -0500
+Received: by mail-la0-f73.google.com with SMTP id d3so194414lah.2
+        for <mm-commits@vger.kernel.org>; Thu, 20 Dec 2012 12:19:44 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cyberax82@gmail.com, hirofumi@mail.parknet.co.jp, linkinjeon@gmail.com
+Cc: mgorman@suse.de
 
 
 The patch titled
-     Subject: fat:fix incorrect function comment
+     Subject: mm: compaction: do not accidentally skip pageblocks in the migrate scanner
 has been added to the -mm tree.  Its filename is
-     fat-fix-incorrect-function-comment.patch
+     mm-compaction-do-not-accidentally-skip-pageblocks-in-the-migrate-scanner.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,76 +33,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ravishankar N <cyberax82@gmail.com>
-Subject: fat:fix incorrect function comment
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: compaction: do not accidentally skip pageblocks in the migrate scanner
 
-fat_search_long() returns 0 on success, -ENOENT/ENOMEM on failure.Change
-the function comment accordingly.
+Compaction uses the ALIGN macro incorrectly with the migrate scanner by
+adding pageblock_nr_pages to a PFN.  It happened to work when initially
+implemented as the starting PFN was also aligned but with caching restarts
+and isolating in smaller chunks this is no longer always true.
 
-While at it, fix some trivial typos.
+The impact is that the migrate scanner scans outside its current
+pageblock.  As pfn_valid() is still checked properly it does not cause any
+failure and the impact of the bug is that in some cases it will scan more
+than necessary when it crosses a page boundary but by no more than
+COMPACT_CLUSTER_MAX.  It is highly unlikely this is even measurable but
+it's still wrong so this patch addresses the problem.
 
-Signed-off-by: Ravishankar N <cyberax82@gmail.com>
-Signed-off-by: Namjae Jeon <linkinjeon@gmail.com>
-Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/dir.c   |    5 ++---
- fs/fat/inode.c |    2 +-
- fs/fat/misc.c  |    4 ++++
- 3 files changed, 7 insertions(+), 4 deletions(-)
+ mm/compaction.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN fs/fat/dir.c~fat-fix-incorrect-function-comment fs/fat/dir.c
---- a/fs/fat/dir.c~fat-fix-incorrect-function-comment
-+++ a/fs/fat/dir.c
-@@ -461,8 +461,7 @@ static int fat_parse_short(struct super_
- }
+diff -puN mm/compaction.c~mm-compaction-do-not-accidentally-skip-pageblocks-in-the-migrate-scanner mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-do-not-accidentally-skip-pageblocks-in-the-migrate-scanner
++++ a/mm/compaction.c
+@@ -597,8 +597,7 @@ check_compact_cluster:
+ 		continue;
  
- /*
-- * Return values: negative -> error, 0 -> not found, positive -> found,
-- * value is the total amount of slots, including the shortname entry.
-+ * Return values: negative -> error/not found, 0 -> found.
-  */
- int fat_search_long(struct inode *inode, const unsigned char *name,
- 		    int name_len, struct fat_slot_info *sinfo)
-@@ -1255,7 +1254,7 @@ int fat_add_entries(struct inode *dir, v
+ next_pageblock:
+-		low_pfn += pageblock_nr_pages;
+-		low_pfn = ALIGN(low_pfn, pageblock_nr_pages) - 1;
++		low_pfn = ALIGN(low_pfn + 1, pageblock_nr_pages) - 1;
+ 		last_pageblock_nr = pageblock_nr;
+ 	}
  
- 	sinfo->nr_slots = nr_slots;
+@@ -781,7 +780,7 @@ static isolate_migrate_t isolate_migrate
+ 	low_pfn = max(cc->migrate_pfn, zone->zone_start_pfn);
  
--	/* First stage: search free direcotry entries */
-+	/* First stage: search free directory entries */
- 	free_slots = nr_bhs = 0;
- 	bh = prev = NULL;
- 	pos = 0;
-diff -puN fs/fat/inode.c~fat-fix-incorrect-function-comment fs/fat/inode.c
---- a/fs/fat/inode.c~fat-fix-incorrect-function-comment
-+++ a/fs/fat/inode.c
-@@ -1344,7 +1344,7 @@ int fat_fill_super(struct super_block *s
- 	sbi->dir_entries = get_unaligned_le16(&b->dir_entries);
- 	if (sbi->dir_entries & (sbi->dir_per_block - 1)) {
- 		if (!silent)
--			fat_msg(sb, KERN_ERR, "bogus directroy-entries per block"
-+			fat_msg(sb, KERN_ERR, "bogus directory-entries per block"
- 			       " (%u)", sbi->dir_entries);
- 		brelse(bh);
- 		goto out_invalid;
-diff -puN fs/fat/misc.c~fat-fix-incorrect-function-comment fs/fat/misc.c
---- a/fs/fat/misc.c~fat-fix-incorrect-function-comment
-+++ a/fs/fat/misc.c
-@@ -135,6 +135,10 @@ int fat_chain_add(struct inode *inode, i
- 		}
- 		if (ret < 0)
- 			return ret;
-+		/*
-+		 * FIXME:Although we can add this cache, fat_cache_add() is
-+		 * assuming to be called after linear search with fat_cache_id.
-+		 */
- //		fat_cache_add(inode, new_fclus, new_dclus);
- 	} else {
- 		MSDOS_I(inode)->i_start = new_dclus;
+ 	/* Only scan within a pageblock boundary */
+-	end_pfn = ALIGN(low_pfn + pageblock_nr_pages, pageblock_nr_pages);
++	end_pfn = ALIGN(low_pfn + 1, pageblock_nr_pages);
+ 
+ 	/* Do not cross the free scanner or scan within a memory hole */
+ 	if (end_pfn > cc->free_pfn || !pfn_valid(low_pfn)) {
 _
 
-Patches currently in -mm which might be from cyberax82@gmail.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
-fat-fix-incorrect-function-comment.patch
+origin.patch
+linux-next.patch
+mm-cond_resched-in-tlb_flush_mmu-to-fix-soft-lockups-on-config_preempt.patch
+mm-fix-zone_watermark_ok_safe-accounting-of-isolated-pages.patch
+mm-memcg-only-evict-file-pages-when-we-have-plenty.patch
+mm-vmscan-save-work-scanning-almost-empty-lru-lists.patch
+mm-vmscan-clarify-how-swappiness-highest-priority-memcg-interact.patch
+mm-vmscan-improve-comment-on-low-page-cache-handling.patch
+mm-vmscan-clean-up-get_scan_count.patch
+mm-vmscan-clean-up-get_scan_count-fix.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
+mm-reduce-rmap-overhead-for-ex-ksm-page-copies-created-on-swap-faults.patch
+mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
+mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
+mm-compaction-do-not-accidentally-skip-pageblocks-in-the-migrate-scanner.patch
+mm-memmap_init_zone-performance-improvement.patch
 
