@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-ams369fg06-replace-efault-with-einval.patch added to -mm tree
-Date: Thu, 20 Dec 2012 12:37:14 -0800
-Message-ID: <20121220203715.1DD1B82004A@wpzn4.hot.corp.google.com>
+Subject: + backlight-ams369fg06-reorder-inclusions-of-linux-xxxh.patch added to -mm tree
+Date: Thu, 20 Dec 2012 12:37:19 -0800
+Message-ID: <20121220203720.8459320004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:59279 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751675Ab2LTUhR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Dec 2012 15:37:17 -0500
-Received: by mail-vb0-f74.google.com with SMTP id s24so406259vbi.3
-        for <mm-commits@vger.kernel.org>; Thu, 20 Dec 2012 12:37:15 -0800 (PST)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:38045 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751675Ab2LTUhW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Dec 2012 15:37:22 -0500
+Received: by mail-we0-f202.google.com with SMTP id t57so207976wey.1
+        for <mm-commits@vger.kernel.org>; Thu, 20 Dec 2012 12:37:21 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: backlight: ams369fg06: replace EFAULT with EINVAL
+     Subject: backlight: ams369fg06: reorder inclusions of <linux/xxx.h>
 has been added to the -mm tree.  Its filename is
-     backlight-ams369fg06-replace-efault-with-einval.patch
+     backlight-ams369fg06-reorder-inclusions-of-linux-xxxh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,52 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: ams369fg06: replace EFAULT with EINVAL
+Subject: backlight: ams369fg06: reorder inclusions of <linux/xxx.h>
 
-Replace EFAULT with EINVAL, because EFAULT tends to be for the invalid
-memory addresses.
+Reorder inclusions of <linux/xxx.h> for redability, according to
+alphabetical ordering.  Also, unnecessary header comments are removed.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/ams369fg06.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/video/backlight/ams369fg06.c |   19 +++++--------------
+ 1 file changed, 5 insertions(+), 14 deletions(-)
 
-diff -puN drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-replace-efault-with-einval drivers/video/backlight/ams369fg06.c
---- a/drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-replace-efault-with-einval
+diff -puN drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-reorder-inclusions-of-linux-xxxh drivers/video/backlight/ams369fg06.c
+--- a/drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-reorder-inclusions-of-linux-xxxh
 +++ a/drivers/video/backlight/ams369fg06.c
-@@ -328,7 +328,7 @@ static int ams369fg06_power_on(struct am
+@@ -10,25 +10,16 @@
+  * under the terms of the GNU General Public License as published by the
+  * Free Software Foundation; either version 2 of the License, or (at your
+  * option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License along
+- * with this program; if not, write to the Free Software Foundation, Inc.,
+- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+  */
  
- 	if (!pd->power_on) {
- 		dev_err(lcd->dev, "power_on is NULL.\n");
--		return -EFAULT;
-+		return -EINVAL;
- 	} else {
- 		pd->power_on(lcd->ld, 1);
- 		msleep(pd->power_on_delay);
-@@ -336,7 +336,7 @@ static int ams369fg06_power_on(struct am
+-#include <linux/wait.h>
+-#include <linux/module.h>
+-#include <linux/fb.h>
++#include <linux/backlight.h>
+ #include <linux/delay.h>
++#include <linux/fb.h>
+ #include <linux/gpio.h>
+-#include <linux/spi/spi.h>
+ #include <linux/lcd.h>
+-#include <linux/backlight.h>
++#include <linux/module.h>
++#include <linux/spi/spi.h>
++#include <linux/wait.h>
  
- 	if (!pd->reset) {
- 		dev_err(lcd->dev, "reset is NULL.\n");
--		return -EFAULT;
-+		return -EINVAL;
- 	} else {
- 		pd->reset(lcd->ld);
- 		msleep(pd->reset_delay);
-@@ -485,7 +485,7 @@ static int ams369fg06_probe(struct spi_d
- 	lcd->lcd_pd = spi->dev.platform_data;
- 	if (!lcd->lcd_pd) {
- 		dev_err(&spi->dev, "platform data is NULL\n");
--		return -EFAULT;
-+		return -EINVAL;
- 	}
- 
- 	ld = lcd_device_register("ams369fg06", &spi->dev, lcd,
+ #define SLEEPMSEC		0x1000
+ #define ENDDEF			0x2000
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
