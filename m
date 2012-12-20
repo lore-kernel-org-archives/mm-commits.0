@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-limit-mmu_gather-batching-to-fix-soft-lockups-on-config_preempt.patch added to -mm tree
-Date: Thu, 20 Dec 2012 14:41:02 -0800
-Message-ID: <20121220224103.432F220004E@hpza10.eem.corp.google.com>
+Subject: + cma-use-unsigned-type-for-count-argument.patch added to -mm tree
+Date: Thu, 20 Dec 2012 15:37:04 -0800
+Message-ID: <20121220233705.3F6C882004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:33540 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751416Ab2LTWlG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Dec 2012 17:41:06 -0500
-Received: by mail-fa0-f74.google.com with SMTP id t1so212176fae.1
-        for <mm-commits@vger.kernel.org>; Thu, 20 Dec 2012 14:41:04 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:44220 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751555Ab2LTXhG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Dec 2012 18:37:06 -0500
+Received: by mail-vb0-f74.google.com with SMTP id s24so426043vbi.3
+        for <mm-commits@vger.kernel.org>; Thu, 20 Dec 2012 15:37:05 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhocko@suse.cz, a.p.zijlstra@chello.nl, mgorman@suse.de, riel@redhat.com, stable@vger.kernel.org
+Cc: mina86@mina86.com, rientjes@google.com, rmk@arm.linux.org.uk
 
 
 The patch titled
-     Subject: mm: limit mmu_gather batching to fix soft lockups on !CONFIG_PREEMPT
+     Subject: cma: use unsigned type for count argument
 has been added to the -mm tree.  Its filename is
-     mm-limit-mmu_gather-batching-to-fix-soft-lockups-on-config_preempt.patch
+     cma-use-unsigned-type-for-count-argument.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,134 +33,125 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: mm: limit mmu_gather batching to fix soft lockups on !CONFIG_PREEMPT
+From: Michal Nazarewicz <mina86@mina86.com>
+Subject: cma: use unsigned type for count argument
 
-Since e303297 ("mm: extended batches for generic mmu_gather") we are
-batching pages to be freed until either tlb_next_batch cannot allocate a
-new batch or we are done.
+Specifying negative size of buffer makes no sense and thus this commit
+changes the type of the count argument to unsigned.
 
-This works just fine most of the time but we can get in troubles with
-non-preemptible kernel (CONFIG_PREEMPT_NONE or CONFIG_PREEMPT_VOLUNTARY)
-on large machines where too aggressive batching might lead to soft lockups
-during process exit path (exit_mmap) because there are no scheduling
-points down the free_pages_and_swap_cache path and so the freeing can take
-long enough to trigger the soft lockup.
-
-The lockup is harmless except when the system is setup to panic on
-softlockup which is not that unusual.
-
-The simplest way to work around this issue is to limit the maximum number
-of batches in a single mmu_gather.  10k of collected pages should be safe
-to prevent from soft lockups (we would have 2ms for one) even if they are
-all freed without an explicit scheduling point.
-
-This patch doesn't add any new explicit scheduling points because it
-relies on zap_pmd_range during page tables zapping which calls
-cond_resched per PMD.
-
-The following lockup has been reported for 3.0 kernel with a huge process
-(in order of hundreds gigs but I do know any more details).
-
-[65674.040540] BUG: soft lockup - CPU#56 stuck for 22s! [kernel:31053]
-[65674.040544] Modules linked in: af_packet nfs lockd fscache auth_rpcgss nfs_acl sunrpc mptctl mptbase autofs4 binfmt_misc dm_round_robin dm_multipath bonding cpufreq_conservative cpufreq_userspace cpufreq_powersave pcc_cpufreq mperf microcode fuse loop osst sg sd_mod crc_t10dif st qla2xxx scsi_transport_fc scsi_tgt netxen_nic i7core_edac iTCO_wdt joydev e1000e serio_raw pcspkr edac_core iTCO_vendor_support acpi_power_meter rtc_cmos hpwdt hpilo button container usbhid hid dm_mirror dm_region_hash dm_log linear uhci_hcd ehci_hcd usbcore usb_common scsi_dh_emc scsi_dh_alua scsi_dh_hp_sw scsi_dh_rdac scsi_dh dm_snapshot pcnet32 mii edd dm_mod raid1 ext3 mbcache jbd fan thermal processor thermal_sys hwmon cciss scsi_mod
-[65674.040602] Supported: Yes
-[65674.040604] CPU 56
-[65674.040639] Pid: 31053, comm: kernel Not tainted 3.0.31-0.9-default #1 HP ProLiant DL580 G7
-[65674.040643] RIP: 0010:[<ffffffff81443a88>]  [<ffffffff81443a88>] _raw_spin_unlock_irqrestore+0x8/0x10
-[65674.040656] RSP: 0018:ffff883ec1037af0  EFLAGS: 00000206
-[65674.040657] RAX: 0000000000000e00 RBX: ffffea01a0817e28 RCX: ffff88803ffd9e80
-[65674.040659] RDX: 0000000000000200 RSI: 0000000000000206 RDI: 0000000000000206
-[65674.040661] RBP: 0000000000000002 R08: 0000000000000001 R09: ffff887ec724a400
-[65674.040663] R10: 0000000000000000 R11: dead000000200200 R12: ffffffff8144c26e
-[65674.040665] R13: 0000000000000030 R14: 0000000000000297 R15: 000000000000000e
-[65674.040667] FS:  00007ed834282700(0000) GS:ffff88c03f200000(0000) knlGS:0000000000000000
-[65674.040669] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-[65674.040671] CR2: 000000000068b240 CR3: 0000003ec13c5000 CR4: 00000000000006e0
-[65674.040673] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[65674.040675] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-[65674.040678] Process kernel (pid: 31053, threadinfo ffff883ec1036000, task ffff883ebd5d4100)
-[65674.040680] Stack:
-[65674.042972]  ffffffff810fc935 ffff88a9f1e182b0 0000000000000206 0000000000000009
-[65674.042978]  0000000000000000 ffffea01a0817e60 ffffea0211d3a808 ffffea0211d3a840
-[65674.042983]  ffffea01a0827a28 ffffea01a0827a60 ffffea0288a598c0 ffffea0288a598f8
-[65674.042989] Call Trace:
-[65674.045765]  [<ffffffff810fc935>] release_pages+0xc5/0x260
-[65674.045779]  [<ffffffff811289dd>] free_pages_and_swap_cache+0x9d/0xc0
-[65674.045786]  [<ffffffff81115d6c>] tlb_flush_mmu+0x5c/0x80
-[65674.045791]  [<ffffffff8111628e>] tlb_finish_mmu+0xe/0x50
-[65674.045796]  [<ffffffff8111c65d>] exit_mmap+0xbd/0x120
-[65674.045805]  [<ffffffff810582d9>] mmput+0x49/0x120
-[65674.045813]  [<ffffffff8105cbb2>] exit_mm+0x122/0x160
-[65674.045818]  [<ffffffff8105e95a>] do_exit+0x17a/0x430
-[65674.045824]  [<ffffffff8105ec4d>] do_group_exit+0x3d/0xb0
-[65674.045831]  [<ffffffff8106f7c7>] get_signal_to_deliver+0x247/0x480
-[65674.045840]  [<ffffffff81002931>] do_signal+0x71/0x1b0
-[65674.045845]  [<ffffffff81002b08>] do_notify_resume+0x98/0xb0
-[65674.045853]  [<ffffffff8144bb60>] int_signal+0x12/0x17
-[65674.046737] DWARF2 unwinder stuck at int_signal+0x12/0x17
-
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Cc: <stable@vger.kernel.org>	[3.0+]
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/tlb.h |    9 +++++++++
- mm/memory.c               |    4 ++++
- 2 files changed, 13 insertions(+)
+ arch/arm/mm/dma-mapping.c      |   12 ++++++------
+ drivers/base/dma-contiguous.c  |    6 +++---
+ include/linux/dma-contiguous.h |    8 ++++----
+ 3 files changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN include/asm-generic/tlb.h~mm-limit-mmu_gather-batching-to-fix-soft-lockups-on-config_preempt include/asm-generic/tlb.h
---- a/include/asm-generic/tlb.h~mm-limit-mmu_gather-batching-to-fix-soft-lockups-on-config_preempt
-+++ a/include/asm-generic/tlb.h
-@@ -78,6 +78,14 @@ struct mmu_gather_batch {
- #define MAX_GATHER_BATCH	\
- 	((PAGE_SIZE - sizeof(struct mmu_gather_batch)) / sizeof(void *))
+diff -puN arch/arm/mm/dma-mapping.c~cma-use-unsigned-type-for-count-argument arch/arm/mm/dma-mapping.c
+--- a/arch/arm/mm/dma-mapping.c~cma-use-unsigned-type-for-count-argument
++++ a/arch/arm/mm/dma-mapping.c
+@@ -1038,9 +1038,9 @@ static struct page **__iommu_alloc_buffe
+ 					  gfp_t gfp, struct dma_attrs *attrs)
+ {
+ 	struct page **pages;
+-	int count = size >> PAGE_SHIFT;
+-	int array_size = count * sizeof(struct page *);
+-	int i = 0;
++	unsigned int count = size >> PAGE_SHIFT;
++	unsigned int array_size = count * sizeof(struct page *);
++	unsigned int i = 0;
  
-+/*
-+ * Limit the maximum number of mmu_gather batches to reduce a risk of soft
-+ * lockups for non-preemptible kernels on huge machines when a lot of memory
-+ * is zapped during unmapping.
-+ * 10K pages freed at once should be safe even without a preemption point.
-+ */
-+#define MAX_GATHER_BATCH_COUNT	(10000UL/MAX_GATHER_BATCH)
-+
- /* struct mmu_gather is an opaque type used by the mm code for passing around
-  * any data needed by arch specific code for tlb_remove_page.
+ 	if (array_size <= PAGE_SIZE)
+ 		pages = kzalloc(array_size, gfp);
+@@ -1102,9 +1102,9 @@ error:
+ static int __iommu_free_buffer(struct device *dev, struct page **pages,
+ 			       size_t size, struct dma_attrs *attrs)
+ {
+-	int count = size >> PAGE_SHIFT;
+-	int array_size = count * sizeof(struct page *);
+-	int i;
++	unsigned int count = size >> PAGE_SHIFT;
++	unsigned int array_size = count * sizeof(struct page *);
++	unsigned int i;
+ 
+ 	if (dma_get_attr(DMA_ATTR_FORCE_CONTIGUOUS, attrs)) {
+ 		dma_release_from_contiguous(dev, pages[0], count);
+diff -puN drivers/base/dma-contiguous.c~cma-use-unsigned-type-for-count-argument drivers/base/dma-contiguous.c
+--- a/drivers/base/dma-contiguous.c~cma-use-unsigned-type-for-count-argument
++++ a/drivers/base/dma-contiguous.c
+@@ -303,7 +303,7 @@ err:
+  * global one. Requires architecture specific get_dev_cma_area() helper
+  * function.
   */
-@@ -96,6 +104,7 @@ struct mmu_gather {
- 	struct mmu_gather_batch *active;
- 	struct mmu_gather_batch	local;
- 	struct page		*__pages[MMU_GATHER_BUNDLE];
-+	unsigned int		batch_count;
- };
+-struct page *dma_alloc_from_contiguous(struct device *dev, int count,
++struct page *dma_alloc_from_contiguous(struct device *dev, unsigned int count,
+ 				       unsigned int align)
+ {
+ 	unsigned long mask, pfn, pageno, start = 0;
+@@ -317,7 +317,7 @@ struct page *dma_alloc_from_contiguous(s
+ 	if (align > CONFIG_CMA_ALIGNMENT)
+ 		align = CONFIG_CMA_ALIGNMENT;
  
- #define HAVE_GENERIC_MMU_GATHER
-diff -puN mm/memory.c~mm-limit-mmu_gather-batching-to-fix-soft-lockups-on-config_preempt mm/memory.c
---- a/mm/memory.c~mm-limit-mmu_gather-batching-to-fix-soft-lockups-on-config_preempt
-+++ a/mm/memory.c
-@@ -184,10 +184,14 @@ static int tlb_next_batch(struct mmu_gat
- 		return 1;
- 	}
+-	pr_debug("%s(cma %p, count %d, align %d)\n", __func__, (void *)cma,
++	pr_debug("%s(cma %p, count %u, align %u)\n", __func__, (void *)cma,
+ 		 count, align);
  
-+	if (tlb->batch_count == MAX_GATHER_BATCH_COUNT)
-+		return 0;
-+
- 	batch = (void *)__get_free_pages(GFP_NOWAIT | __GFP_NOWARN, 0);
- 	if (!batch)
- 		return 0;
+ 	if (!count)
+@@ -364,7 +364,7 @@ struct page *dma_alloc_from_contiguous(s
+  * true otherwise.
+  */
+ bool dma_release_from_contiguous(struct device *dev, struct page *pages,
+-				 int count)
++				 unsigned int count)
+ {
+ 	struct cma *cma = dev_get_cma_area(dev);
+ 	unsigned long pfn;
+diff -puN include/linux/dma-contiguous.h~cma-use-unsigned-type-for-count-argument include/linux/dma-contiguous.h
+--- a/include/linux/dma-contiguous.h~cma-use-unsigned-type-for-count-argument
++++ a/include/linux/dma-contiguous.h
+@@ -71,10 +71,10 @@ void dma_contiguous_reserve(phys_addr_t 
+ int dma_declare_contiguous(struct device *dev, phys_addr_t size,
+ 			   phys_addr_t base, phys_addr_t limit);
  
-+	tlb->batch_count++;
- 	batch->next = NULL;
- 	batch->nr   = 0;
- 	batch->max  = MAX_GATHER_BATCH;
+-struct page *dma_alloc_from_contiguous(struct device *dev, int count,
++struct page *dma_alloc_from_contiguous(struct device *dev, unsigned int count,
+ 				       unsigned int order);
+ bool dma_release_from_contiguous(struct device *dev, struct page *pages,
+-				 int count);
++				 unsigned int count);
+ 
+ #else
+ 
+@@ -90,7 +90,7 @@ int dma_declare_contiguous(struct device
+ }
+ 
+ static inline
+-struct page *dma_alloc_from_contiguous(struct device *dev, int count,
++struct page *dma_alloc_from_contiguous(struct device *dev, unsigned int count,
+ 				       unsigned int order)
+ {
+ 	return NULL;
+@@ -98,7 +98,7 @@ struct page *dma_alloc_from_contiguous(s
+ 
+ static inline
+ bool dma_release_from_contiguous(struct device *dev, struct page *pages,
+-				 int count)
++				 unsigned int count)
+ {
+ 	return false;
+ }
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from mina86@mina86.com are
 
 origin.patch
-memcg-dont-register-hotcpu-notifier-from-css_alloc.patch
-mm-limit-mmu_gather-batching-to-fix-soft-lockups-on-config_preempt.patch
+mm-cma-warn-if-freed-memory-is-still-in-use.patch
+mm-fix-zone_watermark_ok_safe-accounting-of-isolated-pages.patch
+cma-make-putback_lru_pages-call-conditional.patch
+cma-make-putback_lru_pages-call-conditional-fix.patch
+cma-use-unsigned-type-for-count-argument.patch
+cma-use-unsigned-type-for-count-argument-fix.patch
 
