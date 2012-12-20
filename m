@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-ds2404-use-module_platform_driver-macro.patch added to -mm tree
-Date: Thu, 20 Dec 2012 15:55:03 -0800
-Message-ID: <20121220235503.F39F920005C@hpza10.eem.corp.google.com>
+Subject: + drivers-rtc-rtc-tegrac-convert-to-dt-driver.patch added to -mm tree
+Date: Thu, 20 Dec 2012 15:58:00 -0800
+Message-ID: <20121220235801.2025B20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:64948 "EHLO
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:53977 "EHLO
 	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750796Ab2LTXzG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Dec 2012 18:55:06 -0500
-Received: by mail-fa0-f74.google.com with SMTP id t1so214418fae.1
-        for <mm-commits@vger.kernel.org>; Thu, 20 Dec 2012 15:55:04 -0800 (PST)
+	with ESMTP id S1750796Ab2LTX6D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Dec 2012 18:58:03 -0500
+Received: by mail-fa0-f74.google.com with SMTP id t1so214481fae.3
+        for <mm-commits@vger.kernel.org>; Thu, 20 Dec 2012 15:58:02 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: srinivas.kandagatla@st.com
+Cc: josephl@nvidia.com, swarren@wwwdotorg.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-ds2404.c: use module_platform_driver macro
+     Subject: drivers/rtc/rtc-tegra.c: convert to DT driver
 has been added to the -mm tree.  Its filename is
-     rtc-ds2404-use-module_platform_driver-macro.patch
+     drivers-rtc-rtc-tegrac-convert-to-dt-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,32 +33,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Srinivas Kandagatla <srinivas.kandagatla@st.com>
-Subject: drivers/rtc/rtc-ds2404.c: use module_platform_driver macro
+From: Joseph Lo <josephl@nvidia.com>
+Subject: drivers/rtc/rtc-tegra.c: convert to DT driver
 
-Remove removes some code duplication by using module_platform_driver().
+After Kernel 3.7, the Tegra device will only support booting with DT.  The
+legacy Tegra RTC platform driver will not work anymore.  This patch
+convert the driver to support DT.
 
-Signed-off-by: Srinivas Kandagatla <srinivas.kandagatla@st.com>
+Signed-off-by: Joseph Lo <josephl@nvidia.com>
+Cc: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Joseph Lo <josephl@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds2404.c |   14 +-------------
- 1 file changed, 1 insertion(+), 13 deletions(-)
+ drivers/rtc/rtc-tegra.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/rtc/rtc-ds2404.c~rtc-ds2404-use-module_platform_driver-macro drivers/rtc/rtc-ds2404.c
---- a/drivers/rtc/rtc-ds2404.c~rtc-ds2404-use-module_platform_driver-macro
-+++ a/drivers/rtc/rtc-ds2404.c
-@@ -283,19 +283,7 @@ static struct platform_driver rtc_device
- 		.owner	= THIS_MODULE,
- 	},
+diff -puN drivers/rtc/rtc-tegra.c~drivers-rtc-rtc-tegrac-convert-to-dt-driver drivers/rtc/rtc-tegra.c
+--- a/drivers/rtc/rtc-tegra.c~drivers-rtc-rtc-tegrac-convert-to-dt-driver
++++ a/drivers/rtc/rtc-tegra.c
+@@ -303,6 +303,12 @@ static struct rtc_class_ops tegra_rtc_op
+ 	.alarm_irq_enable = tegra_rtc_alarm_irq_enable,
  };
--
--static __init int ds2404_init(void)
--{
--	return platform_driver_register(&rtc_device_driver);
--}
--
--static __exit void ds2404_exit(void)
--{
--	platform_driver_unregister(&rtc_device_driver);
--}
+ 
++static const struct of_device_id tegra_rtc_dt_match[] = {
++	{ .compatible = "nvidia,tegra20-rtc", },
++	{}
++};
++MODULE_DEVICE_TABLE(of, tegra_rtc_dt_match);
++
+ static int __devinit tegra_rtc_probe(struct platform_device *pdev)
+ {
+ 	struct tegra_rtc_info *info;
+@@ -440,6 +446,7 @@ static struct platform_driver tegra_rtc_
+ 	.driver		= {
+ 		.name	= "tegra_rtc",
+ 		.owner	= THIS_MODULE,
++		.of_match_table = tegra_rtc_dt_match,
+ 	},
+ #ifdef CONFIG_PM
+ 	.suspend	= tegra_rtc_suspend,
+_
+
+Patches currently in -mm which might be from josephl@nvidia.com are
+
+origin.patch
+drivers-rtc-rtc-tegrac-convert-to-dt-driver.patch
+
