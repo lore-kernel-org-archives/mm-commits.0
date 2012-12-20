@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-clean-up-get_scan_count.patch added to -mm tree
-Date: Wed, 19 Dec 2012 16:11:26 -0800
-Message-ID: <20121220001126.A1A5482004A@wpzn4.hot.corp.google.com>
+Subject: + mm-vmscan-compaction-works-against-zones-not-lruvecs.patch added to -mm tree
+Date: Wed, 19 Dec 2012 16:11:33 -0800
+Message-ID: <20121220001133.67DA182004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:43261 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751616Ab2LTAL2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Dec 2012 19:11:28 -0500
-Received: by mail-ye0-f201.google.com with SMTP id r11so305837yen.4
-        for <mm-commits@vger.kernel.org>; Wed, 19 Dec 2012 16:11:27 -0800 (PST)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:60485 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751234Ab2LTALf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Dec 2012 19:11:35 -0500
+Received: by mail-qc0-f201.google.com with SMTP id a6so306006qch.0
+        for <mm-commits@vger.kernel.org>; Wed, 19 Dec 2012 16:11:34 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: hannes@cmpxchg.org, hughd@google.com, mgorman@suse.de, mhocko@suse.cz, riel@
 
 
 The patch titled
-     Subject: mm: vmscan: clean up get_scan_count()
+     Subject: mm: vmscan: compaction works against zones, not lruvecs
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-clean-up-get_scan_count.patch
+     mm-vmscan-compaction-works-against-zones-not-lruvecs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,24 +34,24 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: vmscan: clean up get_scan_count()
+Subject: mm: vmscan: compaction works against zones, not lruvecs
 
-Reclaim pressure balance between anon and file pages is calculated through
-a tuple of numerators and a shared denominator.
+The restart logic for when reclaim operates back to back with compaction
+is currently applied on the lruvec level.  But this does not make sense,
+because the container of interest for compaction is a zone as a whole, not
+the zone pages that are part of a certain memory cgroup.
 
-Exceptional cases that want to force-scan anon or file pages configure the
-numerators and denominator such that one list is preferred, which is not
-necessarily the most obvious way:
+Negative impact is bounded.  For one, the code checks that the lruvec has
+enough reclaim candidates, so it does not risk getting stuck on a
+condition that can not be fulfilled.  And the unfairness of hammering on
+one particular memory cgroup to make progress in a zone will be amortized
+by the round robin manner in which reclaim goes through the memory
+cgroups.  Still, this can lead to unnecessary allocation latencies when
+the code elects to restart on a hard to reclaim or small group when there
+are other, more reclaimable groups in the zone.
 
-    fraction[0] = 1;
-    fraction[1] = 0;
-    denominator = 1;
-    goto out;
-
-Make this easier by making the force-scan cases explicit and use the
-fractionals only in case they are calculated from reclaim history.
-
-And bring the variable declarations/definitions in order.
+Move this logic to the zone level and restart reclaim for all memory
+cgroups in a zone when compaction requires more free pages from it.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Reviewed-by: Rik van Riel <riel@redhat.com>
@@ -63,140 +63,234 @@ Cc: Simon Jeons <simon.jeons@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   64 +++++++++++++++++++++++++++++++++-----------------
- 1 file changed, 43 insertions(+), 21 deletions(-)
+ mm/vmscan.c |  180 +++++++++++++++++++++++++-------------------------
+ 1 file changed, 92 insertions(+), 88 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-clean-up-get_scan_count mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-clean-up-get_scan_count
+diff -puN mm/vmscan.c~mm-vmscan-compaction-works-against-zones-not-lruvecs mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-compaction-works-against-zones-not-lruvecs
 +++ a/mm/vmscan.c
-@@ -1638,6 +1638,13 @@ static int vmscan_swappiness(struct scan
- 	return mem_cgroup_swappiness(sc->target_mem_cgroup);
+@@ -1822,6 +1822,59 @@ out:
+ 	}
  }
  
-+enum scan_balance {
-+	SCAN_EQUAL,
-+	SCAN_FRACT,
-+	SCAN_ANON,
-+	SCAN_FILE,
-+};
++/*
++ * This is a basic per-zone page freer.  Used by both kswapd and direct reclaim.
++ */
++static void shrink_lruvec(struct lruvec *lruvec, struct scan_control *sc)
++{
++	unsigned long nr[NR_LRU_LISTS];
++	unsigned long nr_to_scan;
++	enum lru_list lru;
++	unsigned long nr_reclaimed = 0;
++	unsigned long nr_to_reclaim = sc->nr_to_reclaim;
++	struct blk_plug plug;
 +
- /*
-  * Determine how aggressively the anon and file LRU lists should be
-  * scanned.  The relative value of each set of LRU lists is determined
-@@ -1650,14 +1657,15 @@ static int vmscan_swappiness(struct scan
- static void get_scan_count(struct lruvec *lruvec, struct scan_control *sc,
- 			   unsigned long *nr)
- {
--	unsigned long anon, file, free;
-+	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
-+	u64 fraction[2], uninitialized_var(denominator);
-+	struct zone *zone = lruvec_zone(lruvec);
- 	unsigned long anon_prio, file_prio;
-+	enum scan_balance scan_balance;
-+	unsigned long anon, file, free;
-+	bool force_scan = false;
- 	unsigned long ap, fp;
--	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
--	u64 fraction[2], denominator;
- 	enum lru_list lru;
--	bool force_scan = false;
--	struct zone *zone = lruvec_zone(lruvec);
- 
- 	/*
- 	 * If the zone or memcg is small, nr[l] can be 0.  This
-@@ -1676,9 +1684,7 @@ static void get_scan_count(struct lruvec
- 
- 	/* If we have no swap space, do not bother scanning anon pages. */
- 	if (!sc->may_swap || (nr_swap_pages <= 0)) {
--		fraction[0] = 0;
--		fraction[1] = 1;
--		denominator = 1;
-+		scan_balance = SCAN_FILE;
- 		goto out;
- 	}
- 
-@@ -1690,9 +1696,7 @@ static void get_scan_count(struct lruvec
- 	 * too expensive.
- 	 */
- 	if (!global_reclaim(sc) && !vmscan_swappiness(sc)) {
--		fraction[0] = 0;
--		fraction[1] = 1;
--		denominator = 1;
-+		scan_balance = SCAN_FILE;
- 		goto out;
- 	}
- 
-@@ -1702,9 +1706,7 @@ static void get_scan_count(struct lruvec
- 	 * (unless the swappiness setting disagrees with swapping).
- 	 */
- 	if (!sc->priority && vmscan_swappiness(sc)) {
--		fraction[0] = 1;
--		fraction[1] = 1;
--		denominator = 1;
-+		scan_balance = SCAN_EQUAL;
- 		goto out;
- 	}
- 
-@@ -1722,9 +1724,7 @@ static void get_scan_count(struct lruvec
- 	if (global_reclaim(sc)) {
- 		free = zone_page_state(zone, NR_FREE_PAGES);
- 		if (unlikely(file + free <= high_wmark_pages(zone))) {
--			fraction[0] = 1;
--			fraction[1] = 0;
--			denominator = 1;
-+			scan_balance = SCAN_ANON;
- 			goto out;
- 		}
- 	}
-@@ -1734,12 +1734,12 @@ static void get_scan_count(struct lruvec
- 	 * anything from the anonymous working set right now.
- 	 */
- 	if (!inactive_file_is_low(lruvec)) {
--		fraction[0] = 0;
--		fraction[1] = 1;
--		denominator = 1;
-+		scan_balance = SCAN_FILE;
- 		goto out;
- 	}
- 
-+	scan_balance = SCAN_FRACT;
++	get_scan_count(lruvec, sc, nr);
 +
- 	/*
- 	 * With swappiness at 100, anonymous and file have the same priority.
- 	 * This scanning priority is essentially the inverse of IO cost.
-@@ -1792,9 +1792,31 @@ out:
- 
- 		size = get_lru_size(lruvec, lru);
- 		scan = size >> sc->priority;
++	blk_start_plug(&plug);
++	while (nr[LRU_INACTIVE_ANON] || nr[LRU_ACTIVE_FILE] ||
++					nr[LRU_INACTIVE_FILE]) {
++		for_each_evictable_lru(lru) {
++			if (nr[lru]) {
++				nr_to_scan = min_t(unsigned long,
++						   nr[lru], SWAP_CLUSTER_MAX);
++				nr[lru] -= nr_to_scan;
 +
- 		if (!scan && force_scan)
- 			scan = min(size, SWAP_CLUSTER_MAX);
--		scan = div64_u64(scan * fraction[file], denominator);
-+
-+		switch (scan_balance) {
-+		case SCAN_EQUAL:
-+			/* Scan lists relative to size */
-+			break;
-+		case SCAN_FRACT:
-+			/*
-+			 * Scan types proportional to swappiness and
-+			 * their relative recent reclaim efficiency.
-+			 */
-+			scan = div64_u64(scan * fraction[file], denominator);
-+			break;
-+		case SCAN_FILE:
-+		case SCAN_ANON:
-+			/* Scan one type exclusively */
-+			if ((scan_balance == SCAN_FILE) != file)
-+				scan = 0;
-+			break;
-+		default:
-+			/* Look ma, no brain */
-+			BUG();
++				nr_reclaimed += shrink_list(lru, nr_to_scan,
++							    lruvec, sc);
++			}
 +		}
- 		nr[lru] = scan;
++		/*
++		 * On large memory systems, scan >> priority can become
++		 * really large. This is fine for the starting priority;
++		 * we want to put equal scanning pressure on each zone.
++		 * However, if the VM has a harder time of freeing pages,
++		 * with multiple processes reclaiming pages, the total
++		 * freeing target can get unreasonably large.
++		 */
++		if (nr_reclaimed >= nr_to_reclaim &&
++		    sc->priority < DEF_PRIORITY)
++			break;
++	}
++	blk_finish_plug(&plug);
++	sc->nr_reclaimed += nr_reclaimed;
++
++	/*
++	 * Even if we did not try to evict anon pages at all, we want to
++	 * rebalance the anon lru active/inactive ratio.
++	 */
++	if (inactive_anon_is_low(lruvec))
++		shrink_active_list(SWAP_CLUSTER_MAX, lruvec,
++				   sc, LRU_ACTIVE_ANON);
++
++	throttle_vm_writeout(sc->gfp_mask);
++}
++
+ /* Use reclaim/compaction for costly allocs or under memory pressure */
+ static bool in_reclaim_compaction(struct scan_control *sc)
+ {
+@@ -1840,7 +1893,7 @@ static bool in_reclaim_compaction(struct
+  * calls try_to_compact_zone() that it will have enough free pages to succeed.
+  * It will give up earlier than that if there is difficulty reclaiming pages.
+  */
+-static inline bool should_continue_reclaim(struct lruvec *lruvec,
++static inline bool should_continue_reclaim(struct zone *zone,
+ 					unsigned long nr_reclaimed,
+ 					unsigned long nr_scanned,
+ 					struct scan_control *sc)
+@@ -1880,15 +1933,15 @@ static inline bool should_continue_recla
+ 	 * inactive lists are large enough, continue reclaiming
+ 	 */
+ 	pages_for_compaction = (2UL << sc->order);
+-	inactive_lru_pages = get_lru_size(lruvec, LRU_INACTIVE_FILE);
++	inactive_lru_pages = zone_page_state(zone, NR_INACTIVE_FILE);
+ 	if (nr_swap_pages > 0)
+-		inactive_lru_pages += get_lru_size(lruvec, LRU_INACTIVE_ANON);
++		inactive_lru_pages += zone_page_state(zone, NR_INACTIVE_ANON);
+ 	if (sc->nr_reclaimed < pages_for_compaction &&
+ 			inactive_lru_pages > pages_for_compaction)
+ 		return true;
+ 
+ 	/* If compaction would go ahead or the allocation would succeed, stop */
+-	switch (compaction_suitable(lruvec_zone(lruvec), sc->order)) {
++	switch (compaction_suitable(zone, sc->order)) {
+ 	case COMPACT_PARTIAL:
+ 	case COMPACT_CONTINUE:
+ 		return false;
+@@ -1897,98 +1950,49 @@ static inline bool should_continue_recla
  	}
  }
+ 
+-/*
+- * This is a basic per-zone page freer.  Used by both kswapd and direct reclaim.
+- */
+-static void shrink_lruvec(struct lruvec *lruvec, struct scan_control *sc)
++static void shrink_zone(struct zone *zone, struct scan_control *sc)
+ {
+-	unsigned long nr[NR_LRU_LISTS];
+-	unsigned long nr_to_scan;
+-	enum lru_list lru;
+ 	unsigned long nr_reclaimed, nr_scanned;
+-	unsigned long nr_to_reclaim = sc->nr_to_reclaim;
+-	struct blk_plug plug;
+-
+-restart:
+-	nr_reclaimed = 0;
+-	nr_scanned = sc->nr_scanned;
+-	get_scan_count(lruvec, sc, nr);
+-
+-	blk_start_plug(&plug);
+-	while (nr[LRU_INACTIVE_ANON] || nr[LRU_ACTIVE_FILE] ||
+-					nr[LRU_INACTIVE_FILE]) {
+-		for_each_evictable_lru(lru) {
+-			if (nr[lru]) {
+-				nr_to_scan = min_t(unsigned long,
+-						   nr[lru], SWAP_CLUSTER_MAX);
+-				nr[lru] -= nr_to_scan;
+-
+-				nr_reclaimed += shrink_list(lru, nr_to_scan,
+-							    lruvec, sc);
+-			}
+-		}
+-		/*
+-		 * On large memory systems, scan >> priority can become
+-		 * really large. This is fine for the starting priority;
+-		 * we want to put equal scanning pressure on each zone.
+-		 * However, if the VM has a harder time of freeing pages,
+-		 * with multiple processes reclaiming pages, the total
+-		 * freeing target can get unreasonably large.
+-		 */
+-		if (nr_reclaimed >= nr_to_reclaim &&
+-		    sc->priority < DEF_PRIORITY)
+-			break;
+-	}
+-	blk_finish_plug(&plug);
+-	sc->nr_reclaimed += nr_reclaimed;
+ 
+-	/*
+-	 * Even if we did not try to evict anon pages at all, we want to
+-	 * rebalance the anon lru active/inactive ratio.
+-	 */
+-	if (inactive_anon_is_low(lruvec))
+-		shrink_active_list(SWAP_CLUSTER_MAX, lruvec,
+-				   sc, LRU_ACTIVE_ANON);
++	do {
++		struct mem_cgroup *root = sc->target_mem_cgroup;
++		struct mem_cgroup_reclaim_cookie reclaim = {
++			.zone = zone,
++			.priority = sc->priority,
++		};
++		struct mem_cgroup *memcg;
+ 
+-	/* reclaim/compaction might need reclaim to continue */
+-	if (should_continue_reclaim(lruvec, nr_reclaimed,
+-				    sc->nr_scanned - nr_scanned, sc))
+-		goto restart;
++		nr_reclaimed = sc->nr_reclaimed;
++		nr_scanned = sc->nr_scanned;
+ 
+-	throttle_vm_writeout(sc->gfp_mask);
+-}
+-
+-static void shrink_zone(struct zone *zone, struct scan_control *sc)
+-{
+-	struct mem_cgroup *root = sc->target_mem_cgroup;
+-	struct mem_cgroup_reclaim_cookie reclaim = {
+-		.zone = zone,
+-		.priority = sc->priority,
+-	};
+-	struct mem_cgroup *memcg;
++		memcg = mem_cgroup_iter(root, NULL, &reclaim);
++		do {
++			struct lruvec *lruvec;
+ 
+-	memcg = mem_cgroup_iter(root, NULL, &reclaim);
+-	do {
+-		struct lruvec *lruvec = mem_cgroup_zone_lruvec(zone, memcg);
++			lruvec = mem_cgroup_zone_lruvec(zone, memcg);
+ 
+-		shrink_lruvec(lruvec, sc);
++			shrink_lruvec(lruvec, sc);
+ 
+-		/*
+-		 * Limit reclaim has historically picked one memcg and
+-		 * scanned it with decreasing priority levels until
+-		 * nr_to_reclaim had been reclaimed.  This priority
+-		 * cycle is thus over after a single memcg.
+-		 *
+-		 * Direct reclaim and kswapd, on the other hand, have
+-		 * to scan all memory cgroups to fulfill the overall
+-		 * scan target for the zone.
+-		 */
+-		if (!global_reclaim(sc)) {
+-			mem_cgroup_iter_break(root, memcg);
+-			break;
+-		}
+-		memcg = mem_cgroup_iter(root, memcg, &reclaim);
+-	} while (memcg);
++			/*
++			 * Limit reclaim has historically picked one
++			 * memcg and scanned it with decreasing
++			 * priority levels until nr_to_reclaim had
++			 * been reclaimed.  This priority cycle is
++			 * thus over after a single memcg.
++			 *
++			 * Direct reclaim and kswapd, on the other
++			 * hand, have to scan all memory cgroups to
++			 * fulfill the overall scan target for the
++			 * zone.
++			 */
++			if (!global_reclaim(sc)) {
++				mem_cgroup_iter_break(root, memcg);
++				break;
++			}
++			memcg = mem_cgroup_iter(root, memcg, &reclaim);
++		} while (memcg);
++	} while (should_continue_reclaim(zone, sc->nr_reclaimed - nr_reclaimed,
++					 sc->nr_scanned - nr_scanned, sc));
+ }
+ 
+ /* Returns true if compaction should go ahead for a high-order request */
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
