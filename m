@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch added to -mm tree
-Date: Wed, 19 Dec 2012 16:11:37 -0800
-Message-ID: <20121220001138.1F76420004E@hpza10.eem.corp.google.com>
+Subject: + mm-vmscan-clean-up-get_scan_count-fix.patch added to -mm tree
+Date: Wed, 19 Dec 2012 16:11:29 -0800
+Message-ID: <20121220001130.24B5E100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f202.google.com ([209.85.215.202]:40279 "EHLO
-	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751885Ab2LTALl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Dec 2012 19:11:41 -0500
-Received: by mail-ea0-f202.google.com with SMTP id j12so140438eaa.5
-        for <mm-commits@vger.kernel.org>; Wed, 19 Dec 2012 16:11:40 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:57375 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751885Ab2LTALb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Dec 2012 19:11:31 -0500
+Received: by mail-vb0-f74.google.com with SMTP id s24so305587vbi.3
+        for <mm-commits@vger.kernel.org>; Wed, 19 Dec 2012 16:11:31 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akpm@linux-foundation.org, hannes@cmpxchg.org, hughd@google.com, mgorman@sus
 
 
 The patch titled
-     Subject: mm-vmscan-compaction-works-against-zones-not-lruvecs-fix
+     Subject: mm-vmscan-clean-up-get_scan_count-fix
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
+     mm-vmscan-clean-up-get_scan_count-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,9 +34,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vmscan-compaction-works-against-zones-not-lruvecs-fix
+Subject: mm-vmscan-clean-up-get_scan_count-fix
 
-no need for min_t
+avoid using unintialized_var()
 
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -48,22 +48,22 @@ Cc: Simon Jeons <simon.jeons@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/vmscan.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-compaction-works-against-zones-not-lruvecs-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-compaction-works-against-zones-not-lruvecs-fix
+diff -puN mm/vmscan.c~mm-vmscan-clean-up-get_scan_count-fix mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-clean-up-get_scan_count-fix
 +++ a/mm/vmscan.c
-@@ -1841,8 +1841,7 @@ static void shrink_lruvec(struct lruvec 
- 					nr[LRU_INACTIVE_FILE]) {
- 		for_each_evictable_lru(lru) {
- 			if (nr[lru]) {
--				nr_to_scan = min_t(unsigned long,
--						   nr[lru], SWAP_CLUSTER_MAX);
-+				nr_to_scan = min(nr[lru], SWAP_CLUSTER_MAX);
- 				nr[lru] -= nr_to_scan;
- 
- 				nr_reclaimed += shrink_list(lru, nr_to_scan,
+@@ -1658,7 +1658,8 @@ static void get_scan_count(struct lruvec
+ 			   unsigned long *nr)
+ {
+ 	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
+-	u64 fraction[2], uninitialized_var(denominator);
++	u64 fraction[2];
++	u64 denominator = 0;	/* gcc */
+ 	struct zone *zone = lruvec_zone(lruvec);
+ 	unsigned long anon_prio, file_prio;
+ 	enum scan_balance scan_balance;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
