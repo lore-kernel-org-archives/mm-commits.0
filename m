@@ -1,68 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-cma-warn-if-freed-memory-is-still-in-use-fix.patch removed from -mm tree
-Date: Thu, 20 Dec 2012 14:24:36 -0800
-Message-ID: <20121220222437.114E4100048@wpzn3.hot.corp.google.com>
+Subject: [folded-merged] sgi-xp-handle-non-fatal-traps-fix.patch removed from -mm tree
+Date: Thu, 20 Dec 2012 14:25:10 -0800
+Message-ID: <20121220222511.606F220004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:51124 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750983Ab2LTWYi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Dec 2012 17:24:38 -0500
-Received: by mail-qa0-f74.google.com with SMTP id r4so450882qaq.1
-        for <mm-commits@vger.kernel.org>; Thu, 20 Dec 2012 14:24:37 -0800 (PST)
+Received: from mail-wg0-f73.google.com ([74.125.82.73]:49214 "EHLO
+	mail-wg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751094Ab2LTWZO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Dec 2012 17:25:14 -0500
+Received: by mail-wg0-f73.google.com with SMTP id dt12so212093wgb.4
+        for <mm-commits@vger.kernel.org>; Thu, 20 Dec 2012 14:25:13 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, kyungmin.park@samsung.com, m.szyprowski@samsung.com, mina86@mina86.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, holt@sgi.com, mingo@elte.hu, stable@vger.kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-cma-warn-if-freed-memory-is-still-in-use-fix
+     Subject: sgi-xp-handle-non-fatal-traps-fix
 has been removed from the -mm tree.  Its filename was
-     mm-cma-warn-if-freed-memory-is-still-in-use-fix.patch
+     sgi-xp-handle-non-fatal-traps-fix.patch
 
-This patch was dropped because it was folded into mm-cma-warn-if-freed-memory-is-still-in-use.patch
+This patch was dropped because it was folded into sgi-xp-handle-non-fatal-traps.patch
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm-cma-warn-if-freed-memory-is-still-in-use-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sgi-xp-handle-non-fatal-traps-fix
 
-Support sparsemem.
-
-(And prevent "count" overflow if nr_pages cannot fit in signed type.)
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: <stable@vger.kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Robin Holt <holt@sgi.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ drivers/misc/sgi-xp/xpc_main.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-cma-warn-if-freed-memory-is-still-in-use-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-cma-warn-if-freed-memory-is-still-in-use-fix
-+++ a/mm/page_alloc.c
-@@ -5981,9 +5981,11 @@ done:
+diff -puN drivers/misc/sgi-xp/xpc_main.c~sgi-xp-handle-non-fatal-traps-fix drivers/misc/sgi-xp/xpc_main.c
+--- a/drivers/misc/sgi-xp/xpc_main.c~sgi-xp-handle-non-fatal-traps-fix
++++ a/drivers/misc/sgi-xp/xpc_main.c
+@@ -53,7 +53,9 @@
+ #include <linux/kthread.h>
+ #include "xpc.h"
  
- void free_contig_range(unsigned long pfn, unsigned nr_pages)
- {
--	struct page *page = pfn_to_page(pfn);
--	int count = 0;
--	for (; nr_pages--; page++) {
-+	unsigned int count = 0;
-+
-+	for (; nr_pages--; pfn++) {
-+		struct page *page = pfn_to_page(pfn);
-+
- 		count += page_count(page) != 1;
- 		__free_page(page);
- 	}
++#ifdef CONFIG_X86_64
+ #include <asm/traps.h>
++#endif
+ 
+ /* define two XPC debug device structures to be used with dev_dbg() et al */
+ 
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-cma-warn-if-freed-memory-is-still-in-use.patch
-mm-clean-up-transparent-hugepage-sysfs-error-messages.patch
+compaction-fix-build-error-in-cma-compaction.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists.patch
+hfsplus-rework-processing-of-hfs_btree_write-returned-error.patch
+revert-rtc-recycle-id-when-unloading-a-rtc-driver.patch
+sgi-xp-handle-non-fatal-traps.patch
+sendfile-allows-bypassing-of-notifier-events.patch
 
