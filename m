@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-s6e63m0-reorder-inclusions-of-linux-xxxh.patch added to -mm tree
-Date: Thu, 20 Dec 2012 12:36:03 -0800
-Message-ID: <20121220203603.EC8B582004A@wpzn4.hot.corp.google.com>
+Subject: + backlight-s6e63m0-remove-redundant-variable-before_power.patch added to -mm tree
+Date: Thu, 20 Dec 2012 12:36:00 -0800
+Message-ID: <20121220203601.39914100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:58571 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751675Ab2LTUgE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Dec 2012 15:36:04 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so94848ghb.3
-        for <mm-commits@vger.kernel.org>; Thu, 20 Dec 2012 12:36:04 -0800 (PST)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:63304 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751675Ab2LTUgC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Dec 2012 15:36:02 -0500
+Received: by mail-gg0-f201.google.com with SMTP id o6so406174ggm.2
+        for <mm-commits@vger.kernel.org>; Thu, 20 Dec 2012 12:36:01 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: backlight: s6e63m0: reorder inclusions of <linux/xxx.h>
+     Subject: backlight: s6e63m0: remove redundant variable 'before_power'
 has been added to the -mm tree.  Its filename is
-     backlight-s6e63m0-reorder-inclusions-of-linux-xxxh.patch
+     backlight-s6e63m0-remove-redundant-variable-before_power.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,71 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: s6e63m0: reorder inclusions of <linux/xxx.h>
+Subject: backlight: s6e63m0: remove redundant variable 'before_power'
 
-Reorder inclusions of <linux/xxx.h> for redability, according to
-alphabetical ordering.  Also, unnecessary header comments are removed.
+'before_power' was used to check the previous status when resume() is
+called.  However, FB_BLANK_POWERDOWN was used in suspend() all the time,
+so there is no need to check the previous status.  Also, redundant return
+variables are removed to reduce the code.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/s6e63m0.c |   19 +++++--------------
- 1 file changed, 5 insertions(+), 14 deletions(-)
+ drivers/video/backlight/s6e63m0.c |   24 +++---------------------
+ 1 file changed, 3 insertions(+), 21 deletions(-)
 
-diff -puN drivers/video/backlight/s6e63m0.c~backlight-s6e63m0-reorder-inclusions-of-linux-xxxh drivers/video/backlight/s6e63m0.c
---- a/drivers/video/backlight/s6e63m0.c~backlight-s6e63m0-reorder-inclusions-of-linux-xxxh
+diff -puN drivers/video/backlight/s6e63m0.c~backlight-s6e63m0-remove-redundant-variable-before_power drivers/video/backlight/s6e63m0.c
+--- a/drivers/video/backlight/s6e63m0.c~backlight-s6e63m0-remove-redundant-variable-before_power
 +++ a/drivers/video/backlight/s6e63m0.c
-@@ -9,28 +9,19 @@
-  * under the terms of the GNU General Public License as published by the
-  * Free Software Foundation; either version 2 of the License, or (at your
-  * option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License along
-- * with this program; if not, write to the Free Software Foundation, Inc.,
-- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-  */
+@@ -827,44 +827,26 @@ static int s6e63m0_remove(struct spi_dev
+ }
  
--#include <linux/wait.h>
--#include <linux/fb.h>
-+#include <linux/backlight.h>
- #include <linux/delay.h>
-+#include <linux/fb.h>
- #include <linux/gpio.h>
--#include <linux/spi/spi.h>
--#include <linux/irq.h>
- #include <linux/interrupt.h>
-+#include <linux/irq.h>
- #include <linux/kernel.h>
- #include <linux/lcd.h>
--#include <linux/backlight.h>
- #include <linux/module.h>
-+#include <linux/spi/spi.h>
-+#include <linux/wait.h>
+ #if defined(CONFIG_PM)
+-static unsigned int before_power;
+-
+ static int s6e63m0_suspend(struct spi_device *spi, pm_message_t mesg)
+ {
+-	int ret = 0;
+ 	struct s6e63m0 *lcd = dev_get_drvdata(&spi->dev);
  
- #include "s6e63m0_gamma.h"
+ 	dev_dbg(&spi->dev, "lcd->power = %d\n", lcd->power);
  
+-	before_power = lcd->power;
+-
+ 	/*
+ 	 * when lcd panel is suspend, lcd panel becomes off
+ 	 * regardless of status.
+ 	 */
+-	ret = s6e63m0_power(lcd, FB_BLANK_POWERDOWN);
+-
+-	return ret;
++	return s6e63m0_power(lcd, FB_BLANK_POWERDOWN);
+ }
+ 
+ static int s6e63m0_resume(struct spi_device *spi)
+ {
+-	int ret = 0;
+ 	struct s6e63m0 *lcd = dev_get_drvdata(&spi->dev);
+ 
+-	/*
+-	 * after suspended, if lcd panel status is FB_BLANK_UNBLANK
+-	 * (at that time, before_power is FB_BLANK_UNBLANK) then
+-	 * it changes that status to FB_BLANK_POWERDOWN to get lcd on.
+-	 */
+-	if (before_power == FB_BLANK_UNBLANK)
+-		lcd->power = FB_BLANK_POWERDOWN;
+-
+-	dev_dbg(&spi->dev, "before_power = %d\n", before_power);
+-
+-	ret = s6e63m0_power(lcd, before_power);
++	lcd->power = FB_BLANK_POWERDOWN;
+ 
+-	return ret;
++	return s6e63m0_power(lcd, FB_BLANK_UNBLANK);
+ }
+ #else
+ #define s6e63m0_suspend		NULL
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
@@ -104,6 +120,4 @@ backlight-s6e63m0-reorder-inclusions-of-linux-xxxh.patch
 backlight-ams369fg06-use-sleep-instead-of-delay.patch
 backlight-ams369fg06-remove-unnecessary-null-deference-check.patch
 backlight-ams369fg06-replace-efault-with-einval.patch
-backlight-ams369fg06-remove-redundant-variable-before_power.patch
-backlight-ams369fg06-reorder-inclusions-of-linux-xxxh.patch
 
