@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + compaction-fix-build-error-in-cma-compaction.patch added to -mm tree
-Date: Thu, 20 Dec 2012 12:38:28 -0800
-Message-ID: <20121220203829.23D3120004E@hpza10.eem.corp.google.com>
+Subject: + compaction-fix-build-error-in-cma-compaction-fix.patch added to -mm tree
+Date: Thu, 20 Dec 2012 12:39:19 -0800
+Message-ID: <20121220203920.038DC82004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f74.google.com ([209.85.215.74]:57368 "EHLO
-	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751675Ab2LTUic (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Dec 2012 15:38:32 -0500
-Received: by mail-la0-f74.google.com with SMTP id v3so195110lag.3
-        for <mm-commits@vger.kernel.org>; Thu, 20 Dec 2012 12:38:30 -0800 (PST)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:60343 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751675Ab2LTUjV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Dec 2012 15:39:21 -0500
+Received: by mail-qc0-f201.google.com with SMTP id a6so406528qch.2
+        for <mm-commits@vger.kernel.org>; Thu, 20 Dec 2012 12:39:20 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: minchan@kernel.org, m.szyprowski@samsung.com, mgorman@suse.de
+Cc: akpm@linux-foundation.org, m.szyprowski@samsung.com, mgorman@suse.de, minchan@kernel.org
 
 
 The patch titled
-     Subject: compaction: fix build error in CMA && !COMPACTION
+     Subject: compaction-fix-build-error-in-cma-compaction-fix
 has been added to the -mm tree.  Its filename is
-     compaction-fix-build-error-in-cma-compaction.patch
+     compaction-fix-build-error-in-cma-compaction-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,89 +33,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: compaction: fix build error in CMA && !COMPACTION
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: compaction-fix-build-error-in-cma-compaction-fix
 
-isolate_freepages_block() and isolate_migratepages_range() are used for
-CMA as well as compaction so it breaks build for CONFIG_CMA &&
-!CONFIG_COMPACTION.
+add "do { } while (0)", per Mel.
 
-This patch fixes it.
-
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Mel Gorman <mgorman@suse.de>
 Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   26 ++++++++++++++++++++------
- 1 file changed, 20 insertions(+), 6 deletions(-)
+ mm/compaction.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/compaction.c~compaction-fix-build-error-in-cma-compaction mm/compaction.c
---- a/mm/compaction.c~compaction-fix-build-error-in-cma-compaction
+diff -puN mm/compaction.c~compaction-fix-build-error-in-cma-compaction-fix mm/compaction.c
+--- a/mm/compaction.c~compaction-fix-build-error-in-cma-compaction-fix
 +++ a/mm/compaction.c
-@@ -17,6 +17,21 @@
- #include <linux/balloon_compaction.h>
- #include "internal.h"
+@@ -28,8 +28,8 @@ static inline void count_compact_events(
+ 	count_vm_events(item, delta);
+ }
+ #else
+-#define count_compact_event(item)
+-#define count_compact_events(item, delta)
++#define count_compact_event(item) do { } while (0)
++#define count_compact_events(item, delta) do { } while (0)
+ #endif
  
-+#ifdef CONFIG_COMPACTION
-+static inline void count_compact_event(enum vm_event_item item)
-+{
-+	count_vm_event(item);
-+}
-+
-+static inline void count_compact_events(enum vm_event_item item, long delta)
-+{
-+	count_vm_events(item, delta);
-+}
-+#else
-+#define count_compact_event(item)
-+#define count_compact_events(item, delta)
-+#endif
-+
  #if defined CONFIG_COMPACTION || defined CONFIG_CMA
- 
- #define CREATE_TRACE_POINTS
-@@ -303,10 +318,9 @@ static unsigned long isolate_freepages_b
- 	if (blockpfn == end_pfn)
- 		update_pageblock_skip(cc, valid_page, total_isolated, false);
- 
--	count_vm_events(COMPACTFREE_SCANNED, nr_scanned);
-+	count_compact_events(COMPACTFREE_SCANNED, nr_scanned);
- 	if (total_isolated)
--		count_vm_events(COMPACTISOLATED, total_isolated);
--
-+		count_compact_events(COMPACTISOLATED, total_isolated);
- 	return total_isolated;
- }
- 
-@@ -613,9 +627,9 @@ next_pageblock:
- 
- 	trace_mm_compaction_isolate_migratepages(nr_scanned, nr_isolated);
- 
--	count_vm_events(COMPACTMIGRATE_SCANNED, nr_scanned);
-+	count_compact_events(COMPACTMIGRATE_SCANNED, nr_scanned);
- 	if (nr_isolated)
--		count_vm_events(COMPACTISOLATED, nr_isolated);
-+		count_compact_events(COMPACTISOLATED, nr_isolated);
- 
- 	return low_pfn;
- }
-@@ -1110,7 +1124,7 @@ unsigned long try_to_compact_pages(struc
- 	if (!order || !may_enter_fs || !may_perform_io)
- 		return rc;
- 
--	count_vm_event(COMPACTSTALL);
-+	count_compact_event(COMPACTSTALL);
- 
- #ifdef CONFIG_CMA
- 	if (allocflags_to_migratetype(gfp_mask) == MIGRATE_MOVABLE)
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-compaction-fix-build-error-in-cma-compaction.patch
-mm-fix-zone_watermark_ok_safe-accounting-of-isolated-pages.patch
-mm-add-vm-event-counters-for-balloon-pages-compaction.patch
+linux-next.patch
+linux-next-git-rejects.patch
+make-my-i386-build-work.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+compaction-fix-build-error-in-cma-compaction-fix.patch
+drivers-firmware-dmi_scanc-check-dmi-version-when-get-system-uuid.patch
+drivers-firmware-dmi_scanc-fetch-dmi-version-from-smbios-if-it-exists.patch
+hfsplus-rework-processing-of-hfs_btree_write-returned-error.patch
+revert-rtc-recycle-id-when-unloading-a-rtc-driver.patch
+sgi-xp-handle-non-fatal-traps-fix.patch
+sendfile-allows-bypassing-of-notifier-events.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
+mm.patch
+mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
+mm-hugetlbc-convert-to-pr_foo.patch
+cma-make-putback_lru_pages-call-conditional-fix.patch
+mm-vmscan-clean-up-get_scan_count-fix.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
+mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
+mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+backlight-add-lms501kf03-lcd-driver-fix.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix-fix.patch
+rtc-max77686-add-maxim-77686-driver-fix.patch
+rtc-pcf8523-add-low-battery-voltage-support-fix.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+ipc-add-sysctl-to-specify-desired-next-object-id.patch
+ipc-message-queue-receive-cleanup.patch
+ipc-convert-prepare_copy-from-macro-to-function.patch
+drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
