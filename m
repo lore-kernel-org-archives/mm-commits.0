@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-remove-drivers-video-epson1355fbc.patch added to -mm tree
-Date: Fri, 21 Dec 2012 13:59:11 -0800
-Message-ID: <20121221215912.8FCAA20004E@hpza10.eem.corp.google.com>
+Subject: + maintainers-fix-plat-mxc-include-mach-imxfbh.patch added to -mm tree
+Date: Fri, 21 Dec 2012 13:59:15 -0800
+Message-ID: <20121221215916.8CC32200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:60283 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751647Ab2LUV7P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 16:59:15 -0500
-Received: by mail-ee0-f74.google.com with SMTP id t10so275335eei.1
-        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 13:59:13 -0800 (PST)
+Received: from mail-we0-f201.google.com ([74.125.82.201]:56479 "EHLO
+	mail-we0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752150Ab2LUV7S (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 16:59:18 -0500
+Received: by mail-we0-f201.google.com with SMTP id t11so275388wey.2
+        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 13:59:17 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cesarb@cesarb.net, ch@hpl.hp.com, ch@murgatroid.com
+Cc: cesarb@cesarb.net, s.hauer@pengutronix.de
 
 
 The patch titled
-     Subject: MAINTAINERS: remove drivers/video/epson1355fb.c
+     Subject: MAINTAINERS: fix .../plat-mxc/include/mach/imxfb.h
 has been added to the -mm tree.  Its filename is
-     maintainers-remove-drivers-video-epson1355fbc.patch
+     maintainers-fix-plat-mxc-include-mach-imxfbh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Cesar Eduardo Barros <cesarb@cesarb.net>
-Subject: MAINTAINERS: remove drivers/video/epson1355fb.c
+Subject: MAINTAINERS: fix .../plat-mxc/include/mach/imxfb.h
 
-This driver was removed by commit 1c3a918 ("ARM: clps711x: Remove board
-support for CEIVA").
+This file was moved to include/linux/platform_data/video-imxfb.h by
+commit 82906b1 ("ARM: imx: move platform_data definitions").
 
 Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
-Cc: Christopher Hoover <ch@murgatroid.com>
-Cc: Christopher Hoover <ch@hpl.hp.com>
+Acked-by: Sascha Hauer <s.hauer@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    6 ------
- 1 file changed, 6 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-remove-drivers-video-epson1355fbc MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-drivers-video-epson1355fbc
+diff -puN MAINTAINERS~maintainers-fix-plat-mxc-include-mach-imxfbh MAINTAINERS
+--- a/MAINTAINERS~maintainers-fix-plat-mxc-include-mach-imxfbh
 +++ a/MAINTAINERS
-@@ -2944,12 +2944,6 @@ M:	Maxim Levitsky <maximlevitsky@gmail.c
+@@ -3207,7 +3207,7 @@ M:	Sascha Hauer <kernel@pengutronix.de>
+ L:	linux-fbdev@vger.kernel.org
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
  S:	Maintained
- F:	drivers/media/rc/ene_ir.*
+-F:	arch/arm/plat-mxc/include/mach/imxfb.h
++F:	include/linux/platform_data/video-imxfb.h
+ F:	drivers/video/imxfb.c
  
--EPSON 1355 FRAMEBUFFER DRIVER
--M:	Christopher Hoover <ch@murgatroid.com>
--M:	Christopher Hoover <ch@hpl.hp.com>
--S:	Maintained
--F:	drivers/video/epson1355fb.c
--
- EPSON S1D13XXX FRAMEBUFFER DRIVER
- M:	Kristoffer Ericson <kristoffer.ericson@gmail.com>
- S:	Maintained
+ FREESCALE SOC FS_ENET DRIVER
 _
 
 Patches currently in -mm which might be from cesarb@cesarb.net are
