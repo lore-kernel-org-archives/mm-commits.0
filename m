@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-omap1-use-bl_get_data-instead-of-dev_get_drvdata.patch added to -mm tree
-Date: Fri, 21 Dec 2012 14:54:55 -0800
-Message-ID: <20121221225456.8292920004E@hpza10.eem.corp.google.com>
+Subject: + backlight-corgi_lcd-use-lcd_get_data-instead-of-dev_get_drvdata.patch added to -mm tree
+Date: Fri, 21 Dec 2012 14:54:58 -0800
+Message-ID: <20121221225459.1D6E9100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:64550 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750956Ab2LUWy6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 17:54:58 -0500
-Received: by mail-we0-f202.google.com with SMTP id t57so276896wey.3
-        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 14:54:57 -0800 (PST)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:35466 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751802Ab2LUWzA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 17:55:00 -0500
+Received: by mail-qc0-f201.google.com with SMTP id a6so530613qch.4
+        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 14:54:59 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: backlight: omap1: use bl_get_data instead of dev_get_drvdata
+     Subject: backlight: corgi_lcd: use lcd_get_data instead of dev_get_drvdata
 has been added to the -mm tree.  Its filename is
-     backlight-omap1-use-bl_get_data-instead-of-dev_get_drvdata.patch
+     backlight-corgi_lcd-use-lcd_get_data-instead-of-dev_get_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,67 +34,49 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: omap1: use bl_get_data instead of dev_get_drvdata
+Subject: backlight: corgi_lcd: use lcd_get_data instead of dev_get_drvdata
 
-Use the wrapper function for getting the driver data using
-backlight_device instead of using dev_get_drvdata with &bd->dev, so we can
-directly pass a struct backlight_device.
+Use the wrapper function for getting the driver data using lcd_device
+instead of using dev_get_drvdata with &ld->dev, so we can directly pass a
+struct lcd_device.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/omap1_bl.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/video/backlight/corgi_lcd.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/backlight/omap1_bl.c~backlight-omap1-use-bl_get_data-instead-of-dev_get_drvdata drivers/video/backlight/omap1_bl.c
---- a/drivers/video/backlight/omap1_bl.c~backlight-omap1-use-bl_get_data-instead-of-dev_get_drvdata
-+++ a/drivers/video/backlight/omap1_bl.c
-@@ -77,7 +77,7 @@ static void omapbl_blank(struct omap_bac
- static int omapbl_suspend(struct platform_device *pdev, pm_message_t state)
+diff -puN drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-use-lcd_get_data-instead-of-dev_get_drvdata drivers/video/backlight/corgi_lcd.c
+--- a/drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-use-lcd_get_data-instead-of-dev_get_drvdata
++++ a/drivers/video/backlight/corgi_lcd.c
+@@ -337,7 +337,7 @@ static void corgi_lcd_power_off(struct c
+ 
+ static int corgi_lcd_set_mode(struct lcd_device *ld, struct fb_videomode *m)
  {
- 	struct backlight_device *dev = platform_get_drvdata(pdev);
--	struct omap_backlight *bl = dev_get_drvdata(&dev->dev);
-+	struct omap_backlight *bl = bl_get_data(dev);
+-	struct corgi_lcd *lcd = dev_get_drvdata(&ld->dev);
++	struct corgi_lcd *lcd = lcd_get_data(ld);
+ 	int mode = CORGI_LCD_MODE_QVGA;
  
- 	omapbl_blank(bl, FB_BLANK_POWERDOWN);
- 	return 0;
-@@ -86,7 +86,7 @@ static int omapbl_suspend(struct platfor
- static int omapbl_resume(struct platform_device *pdev)
+ 	if (m->xres == 640 || m->xres == 480)
+@@ -364,7 +364,7 @@ static int corgi_lcd_set_mode(struct lcd
+ 
+ static int corgi_lcd_set_power(struct lcd_device *ld, int power)
  {
- 	struct backlight_device *dev = platform_get_drvdata(pdev);
--	struct omap_backlight *bl = dev_get_drvdata(&dev->dev);
-+	struct omap_backlight *bl = bl_get_data(dev);
+-	struct corgi_lcd *lcd = dev_get_drvdata(&ld->dev);
++	struct corgi_lcd *lcd = lcd_get_data(ld);
  
- 	omapbl_blank(bl, bl->powermode);
- 	return 0;
-@@ -98,7 +98,7 @@ static int omapbl_resume(struct platform
+ 	if (POWER_IS_ON(power) && !POWER_IS_ON(lcd->power))
+ 		corgi_lcd_power_on(lcd);
+@@ -378,7 +378,7 @@ static int corgi_lcd_set_power(struct lc
  
- static int omapbl_set_power(struct backlight_device *dev, int state)
+ static int corgi_lcd_get_power(struct lcd_device *ld)
  {
--	struct omap_backlight *bl = dev_get_drvdata(&dev->dev);
-+	struct omap_backlight *bl = bl_get_data(dev);
+-	struct corgi_lcd *lcd = dev_get_drvdata(&ld->dev);
++	struct corgi_lcd *lcd = lcd_get_data(ld);
  
- 	omapbl_blank(bl, state);
- 	bl->powermode = state;
-@@ -108,7 +108,7 @@ static int omapbl_set_power(struct backl
- 
- static int omapbl_update_status(struct backlight_device *dev)
- {
--	struct omap_backlight *bl = dev_get_drvdata(&dev->dev);
-+	struct omap_backlight *bl = bl_get_data(dev);
- 
- 	if (bl->current_intensity != dev->props.brightness) {
- 		if (bl->powermode == FB_BLANK_UNBLANK)
-@@ -124,7 +124,7 @@ static int omapbl_update_status(struct b
- 
- static int omapbl_get_intensity(struct backlight_device *dev)
- {
--	struct omap_backlight *bl = dev_get_drvdata(&dev->dev);
-+	struct omap_backlight *bl = bl_get_data(dev);
- 	return bl->current_intensity;
+ 	return lcd->power;
  }
- 
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
