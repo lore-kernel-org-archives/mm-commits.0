@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-remove-drivers-platform-msm.patch added to -mm tree
-Date: Fri, 21 Dec 2012 13:58:48 -0800
-Message-ID: <20121221215849.7584682004A@wpzn4.hot.corp.google.com>
+Subject: + maintainers-remove-arch-arm-plat-s5p.patch added to -mm tree
+Date: Fri, 21 Dec 2012 13:58:53 -0800
+Message-ID: <20121221215854.80C3020004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:53376 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751154Ab2LUV6u (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 16:58:50 -0500
-Received: by mail-gg0-f201.google.com with SMTP id o6so526220ggm.0
-        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 13:58:50 -0800 (PST)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:52654 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751647Ab2LUV65 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 16:58:57 -0500
+Received: by mail-la0-f74.google.com with SMTP id v3so262325lag.1
+        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 13:58:55 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cesarb@cesarb.net, bryanh@codeaurora.org, davidb@codeaurora.org, dwalker@fifo99.com, kheitke@codeaurora.org
+Cc: cesarb@cesarb.net, ben-linux@fluff.org, kgene.kim@samsung.com
 
 
 The patch titled
-     Subject: MAINTAINERS: remove drivers/platform/msm/
+     Subject: MAINTAINERS: remove arch/arm/plat-s5p/
 has been added to the -mm tree.  Its filename is
-     maintainers-remove-drivers-platform-msm.patch
+     maintainers-remove-arch-arm-plat-s5p.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,47 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Cesar Eduardo Barros <cesarb@cesarb.net>
-Subject: MAINTAINERS: remove drivers/platform/msm/
+Subject: MAINTAINERS: remove arch/arm/plat-s5p/
 
-Added by commit 8a5700c ("add drivers/platform/msm to MSM subsystem") in
-2011, but I could not find any trace of that directory being ever added to
-the repository.
+These files were merged into plat-samsung.
 
 Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
-Cc: Kenneth Heitke <kheitke@codeaurora.org>
-Acked-by: David Brown <davidb@codeaurora.org>
-Cc: Daniel Walker <dwalker@fifo99.com>
-Cc: Bryan Huntsman <bryanh@codeaurora.org>
+Cc: Ben Dooks <ben-linux@fluff.org>
+Acked-by: Kukjin Kim <kgene.kim@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 -
- 1 file changed, 1 deletion(-)
+ MAINTAINERS |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-remove-drivers-platform-msm MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-drivers-platform-msm
+diff -puN MAINTAINERS~maintainers-remove-arch-arm-plat-s5p MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-arch-arm-plat-s5p
 +++ a/MAINTAINERS
-@@ -1005,7 +1005,6 @@ F:	drivers/mmc/host/msm_sdcc.c
- F:	drivers/mmc/host/msm_sdcc.h
- F:	drivers/tty/serial/msm_serial.h
- F:	drivers/tty/serial/msm_serial.c
--F:	drivers/platform/msm/
- F:	drivers/*/pm8???-*
- F:	include/linux/mfd/pm8xxx/
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/davidb/linux-msm.git
+@@ -1092,7 +1092,6 @@ W:	http://www.fluff.org/ben/linux/
+ S:	Maintained
+ F:	arch/arm/plat-samsung/
+ F:	arch/arm/plat-s3c24xx/
+-F:	arch/arm/plat-s5p/
+ F:	arch/arm/mach-s3c24*/
+ F:	arch/arm/mach-s3c64xx/
+ F:	drivers/*/*s3c2410*
+@@ -1123,7 +1122,6 @@ M:	Sylwester Nawrocki <s.nawrocki@samsun
+ L:	linux-arm-kernel@lists.infradead.org
+ L:	linux-media@vger.kernel.org
+ S:	Maintained
+-F:	arch/arm/plat-s5p/dev-fimc*
+ F:	arch/arm/plat-samsung/include/plat/*fimc*
+ F:	drivers/media/platform/s5p-fimc/
+ 
+@@ -1134,7 +1132,7 @@ M:	Jeongtae Park <jtp.park@samsung.com>
+ L:	linux-arm-kernel@lists.infradead.org
+ L:	linux-media@vger.kernel.org
+ S:	Maintained
+-F:	arch/arm/plat-s5p/dev-mfc.c
++F:	arch/arm/plat-samsung/s5p-dev-mfc.c
+ F:	drivers/media/platform/s5p-mfc/
+ 
+ ARM/SAMSUNG S5P SERIES TV SUBSYSTEM SUPPORT
 _
 
 Patches currently in -mm which might be from cesarb@cesarb.net are
