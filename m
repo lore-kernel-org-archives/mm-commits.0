@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-remove-drivers-mmc-host-imxmmc.patch added to -mm tree
-Date: Fri, 21 Dec 2012 13:59:32 -0800
-Message-ID: <20121221215933.A6293200057@hpza10.eem.corp.google.com>
+Subject: + maintainers-remove-arch-lib-perf_eventc.patch added to -mm tree
+Date: Fri, 21 Dec 2012 13:59:37 -0800
+Message-ID: <20121221215937.6E77682004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f74.google.com ([74.125.83.74]:56556 "EHLO
-	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751952Ab2LUV7f (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 16:59:35 -0500
-Received: by mail-ee0-f74.google.com with SMTP id t10so275352eei.1
-        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 13:59:34 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:33863 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752011Ab2LUV7i (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 16:59:38 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so526390vcd.3
+        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 13:59:38 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cesarb@cesarb.net, pisa@cmp.felk.cvut.cz, s.hauer@pengutronix.de
+Cc: cesarb@cesarb.net, a.p.zijlstra@chello.nl, acme@ghostprotocols.net, mingo@redhat.com, paulus@samba.org
 
 
 The patch titled
-     Subject: MAINTAINERS: remove drivers/mmc/host/imxmmc.*
+     Subject: MAINTAINERS: remove arch/*/lib/perf_event*.c
 has been added to the -mm tree.  Its filename is
-     maintainers-remove-drivers-mmc-host-imxmmc.patch
+     maintainers-remove-arch-lib-perf_eventc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Cesar Eduardo Barros <cesarb@cesarb.net>
-Subject: MAINTAINERS: remove drivers/mmc/host/imxmmc.*
+Subject: MAINTAINERS: remove arch/*/lib/perf_event*.c
 
-This driver was removed by commit 6187fee ("mmc: remove imxmmc driver").
+This pattern only matched arch/frv/lib/perf_event.c, which was removed by
+commit e360adb ("irq_work: Add generic hardirq context callbacks").
 
 Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>
-Acked-by: Pavel Pisa <pisa@cmp.felk.cvut.cz>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Arnaldo Carvalho de Melo <acme@ghostprotocols.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    6 ------
- 1 file changed, 6 deletions(-)
+ MAINTAINERS |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-remove-drivers-mmc-host-imxmmc MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-drivers-mmc-host-imxmmc
+diff -puN MAINTAINERS~maintainers-remove-arch-lib-perf_eventc MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-arch-lib-perf_eventc
 +++ a/MAINTAINERS
-@@ -5053,12 +5053,6 @@ F:	Documentation/video4linux/meye.txt
- F:	drivers/media/pci/meye/
- F:	include/uapi/linux/meye.h
+@@ -5836,7 +5836,6 @@ F:	arch/*/kernel/perf_event*.c
+ F:	arch/*/kernel/*/perf_event*.c
+ F:	arch/*/kernel/*/*/perf_event*.c
+ F:	arch/*/include/asm/perf_event.h
+-F:	arch/*/lib/perf_event*.c
+ F:	arch/*/kernel/perf_callchain.c
+ F:	tools/perf/
  
--MOTOROLA IMX MMC/SD HOST CONTROLLER INTERFACE DRIVER
--M:	Pavel Pisa <ppisa@pikron.com>
--L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
--S:	Maintained
--F:	drivers/mmc/host/imxmmc.*
--
- MOXA SMARTIO/INDUSTIO/INTELLIO SERIAL CARD
- M:	Jiri Slaby <jirislaby@gmail.com>
- S:	Maintained
 _
 
 Patches currently in -mm which might be from cesarb@cesarb.net are
