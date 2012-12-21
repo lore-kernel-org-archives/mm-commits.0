@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-remove-arch-lib-perf_eventc.patch added to -mm tree
-Date: Fri, 21 Dec 2012 13:59:37 -0800
-Message-ID: <20121221215937.6E77682004A@wpzn4.hot.corp.google.com>
+Subject: + maintainers-remove-include-linux-of_pwmh.patch added to -mm tree
+Date: Fri, 21 Dec 2012 13:59:39 -0800
+Message-ID: <20121221215940.2780C820050@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:33863 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752011Ab2LUV7i (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 16:59:38 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so526390vcd.3
-        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 13:59:38 -0800 (PST)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:45049 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752010Ab2LUV7l (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 16:59:41 -0500
+Received: by mail-gh0-f201.google.com with SMTP id z19so214920ghb.4
+        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 13:59:40 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cesarb@cesarb.net, a.p.zijlstra@chello.nl, acme@ghostprotocols.net, mingo@redhat.com, paulus@samba.org
+Cc: cesarb@cesarb.net, thierry.reding@avionic-design.de
 
 
 The patch titled
-     Subject: MAINTAINERS: remove arch/*/lib/perf_event*.c
+     Subject: MAINTAINERS: remove include/linux/of_pwm.h
 has been added to the -mm tree.  Its filename is
-     maintainers-remove-arch-lib-perf_eventc.patch
+     maintainers-remove-include-linux-of_pwmh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Cesar Eduardo Barros <cesarb@cesarb.net>
-Subject: MAINTAINERS: remove arch/*/lib/perf_event*.c
+Subject: MAINTAINERS: remove include/linux/of_pwm.h
 
-This pattern only matched arch/frv/lib/perf_event.c, which was removed by
-commit e360adb ("irq_work: Add generic hardirq context callbacks").
+Added by commit 200efed ("pwm: Take over maintainership of the PWM
+subsystem"), but I could not find any trace of that file being ever added
+to the repository.
 
 Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Arnaldo Carvalho de Melo <acme@ghostprotocols.net>
+Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  MAINTAINERS |    1 -
  1 file changed, 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-remove-arch-lib-perf_eventc MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-arch-lib-perf_eventc
+diff -puN MAINTAINERS~maintainers-remove-include-linux-of_pwmh MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-include-linux-of_pwmh
 +++ a/MAINTAINERS
-@@ -5836,7 +5836,6 @@ F:	arch/*/kernel/perf_event*.c
- F:	arch/*/kernel/*/perf_event*.c
- F:	arch/*/kernel/*/*/perf_event*.c
- F:	arch/*/include/asm/perf_event.h
--F:	arch/*/lib/perf_event*.c
- F:	arch/*/kernel/perf_callchain.c
- F:	tools/perf/
- 
+@@ -6116,7 +6116,6 @@ T:	git git://gitorious.org/linux-pwm/lin
+ F:	Documentation/pwm.txt
+ F:	Documentation/devicetree/bindings/pwm/
+ F:	include/linux/pwm.h
+-F:	include/linux/of_pwm.h
+ F:	drivers/pwm/
+ F:	drivers/video/backlight/pwm_bl.c
+ F:	include/linux/pwm_backlight.h
 _
 
 Patches currently in -mm which might be from cesarb@cesarb.net are
