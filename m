@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-ams369fg06-use-bl_get_data-instead-of-dev_get_drvdata.patch added to -mm tree
-Date: Fri, 21 Dec 2012 14:54:49 -0800
-Message-ID: <20121221225450.1D27082004A@wpzn4.hot.corp.google.com>
+Subject: + backlight-tosa-use-bl_get_data-instead-of-dev_get_drvdata.patch added to -mm tree
+Date: Fri, 21 Dec 2012 14:54:53 -0800
+Message-ID: <20121221225454.15027100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:37264 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750956Ab2LUWyv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 17:54:51 -0500
-Received: by mail-qc0-f202.google.com with SMTP id s25so530639qcq.1
-        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 14:54:50 -0800 (PST)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:54617 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750956Ab2LUWyz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 17:54:55 -0500
+Received: by mail-vb0-f73.google.com with SMTP id l1so531040vba.0
+        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 14:54:54 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: backlight: ams369fg06: use bl_get_data instead of dev_get_drvdata
+     Subject: backlight: tosa: use bl_get_data instead of dev_get_drvdata
 has been added to the -mm tree.  Its filename is
-     backlight-ams369fg06-use-bl_get_data-instead-of-dev_get_drvdata.patch
+     backlight-tosa-use-bl_get_data-instead-of-dev_get_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: ams369fg06: use bl_get_data instead of dev_get_drvdata
+Subject: backlight: tosa: use bl_get_data instead of dev_get_drvdata
 
 Use the wrapper function for getting the driver data using
 backlight_device instead of using dev_get_drvdata with &bd->dev, so we can
@@ -44,21 +44,21 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/ams369fg06.c |    2 +-
+ drivers/video/backlight/tosa_bl.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-use-bl_get_data-instead-of-dev_get_drvdata drivers/video/backlight/ams369fg06.c
---- a/drivers/video/backlight/ams369fg06.c~backlight-ams369fg06-use-bl_get_data-instead-of-dev_get_drvdata
-+++ a/drivers/video/backlight/ams369fg06.c
-@@ -421,7 +421,7 @@ static int ams369fg06_set_brightness(str
+diff -puN drivers/video/backlight/tosa_bl.c~backlight-tosa-use-bl_get_data-instead-of-dev_get_drvdata drivers/video/backlight/tosa_bl.c
+--- a/drivers/video/backlight/tosa_bl.c~backlight-tosa-use-bl_get_data-instead-of-dev_get_drvdata
++++ a/drivers/video/backlight/tosa_bl.c
+@@ -54,7 +54,7 @@ static void tosa_bl_set_backlight(struct
+ static int tosa_bl_update_status(struct backlight_device *dev)
  {
- 	int ret = 0;
- 	int brightness = bd->props.brightness;
--	struct ams369fg06 *lcd = dev_get_drvdata(&bd->dev);
-+	struct ams369fg06 *lcd = bl_get_data(bd);
+ 	struct backlight_properties *props = &dev->props;
+-	struct tosa_bl_data *data = dev_get_drvdata(&dev->dev);
++	struct tosa_bl_data *data = bl_get_data(dev);
+ 	int power = max(props->power, props->fb_blank);
+ 	int brightness = props->brightness;
  
- 	if (brightness < MIN_BRIGHTNESS ||
- 		brightness > bd->props.max_brightness) {
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
