@@ -1,98 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fat-fix-incorrect-function-comment.patch removed from -mm tree
-Date: Fri, 21 Dec 2012 12:40:17 -0800
-Message-ID: <20121221204018.214DE200059@hpza10.eem.corp.google.com>
+Subject: [merged] sgi-xp-handle-non-fatal-traps.patch removed from -mm tree
+Date: Fri, 21 Dec 2012 12:40:25 -0800
+Message-ID: <20121221204025.ACD4082004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f73.google.com ([209.85.215.73]:49113 "EHLO
-	mail-la0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751789Ab2LUUkU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 15:40:20 -0500
-Received: by mail-la0-f73.google.com with SMTP id d3so259723lah.4
-        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 12:40:19 -0800 (PST)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:38230 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751927Ab2LUUk0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 15:40:26 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z10so205494ghb.3
+        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 12:40:26 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cyberax82@gmail.com, hirofumi@mail.parknet.co.jp, linkinjeon@gmail.com, mm-commits@vger.kernel.org
+To: holt@sgi.com, mingo@elte.hu, stable@vger.kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fat: fix incorrect function comment
+     Subject: SGI-XP: handle non-fatal traps
 has been removed from the -mm tree.  Its filename was
-     fat-fix-incorrect-function-comment.patch
+     sgi-xp-handle-non-fatal-traps.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ravishankar N <cyberax82@gmail.com>
-Subject: fat: fix incorrect function comment
+From: Robin Holt <holt@sgi.com>
+Subject: SGI-XP: handle non-fatal traps
 
-fat_search_long() returns 0 on success, -ENOENT/ENOMEM on failure.Change
-the function comment accordingly.
+We found a user code which was raising a divide-by-zero trap.  That trap
+would lead to XPC connections between system-partitions being torn down
+due to the die_chain notifier callouts it received.
 
-While at it, fix some trivial typos.
+This also revealed a different issue where multiple callers into
+xpc_die_deactivate() would all attempt to do the disconnect in parallel
+which would sometimes lock up but often overwhelm the console on very
+large machines as each would print at least one line of output at the end
+of the deactivate.
 
-Signed-off-by: Ravishankar N <cyberax82@gmail.com>
-Signed-off-by: Namjae Jeon <linkinjeon@gmail.com>
-Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+I reviewed all the users of the die_chain notifier and changed the code to
+ignore the notifier callouts for reasons which will not actually lead to a
+system to continue on to call die().
+
+[akpm@linux-foundation.org: fix ia64]
+Signed-off-by: Robin Holt <holt@sgi.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/dir.c   |    5 ++---
- fs/fat/inode.c |    2 +-
- fs/fat/misc.c  |    4 ++++
- 3 files changed, 7 insertions(+), 4 deletions(-)
+ drivers/misc/sgi-xp/xpc_main.c |   34 +++++++++++++++++++++++++++++--
+ 1 file changed, 32 insertions(+), 2 deletions(-)
 
-diff -puN fs/fat/dir.c~fat-fix-incorrect-function-comment fs/fat/dir.c
---- a/fs/fat/dir.c~fat-fix-incorrect-function-comment
-+++ a/fs/fat/dir.c
-@@ -461,8 +461,7 @@ static int fat_parse_short(struct super_
+diff -puN drivers/misc/sgi-xp/xpc_main.c~sgi-xp-handle-non-fatal-traps drivers/misc/sgi-xp/xpc_main.c
+--- a/drivers/misc/sgi-xp/xpc_main.c~sgi-xp-handle-non-fatal-traps
++++ a/drivers/misc/sgi-xp/xpc_main.c
+@@ -53,6 +53,10 @@
+ #include <linux/kthread.h>
+ #include "xpc.h"
+ 
++#ifdef CONFIG_X86_64
++#include <asm/traps.h>
++#endif
++
+ /* define two XPC debug device structures to be used with dev_dbg() et al */
+ 
+ struct device_driver xpc_dbg_name = {
+@@ -1079,6 +1083,9 @@ xpc_system_reboot(struct notifier_block 
+ 	return NOTIFY_DONE;
  }
  
++/* Used to only allow one cpu to complete disconnect */
++static unsigned int xpc_die_disconnecting;
++
  /*
-- * Return values: negative -> error, 0 -> not found, positive -> found,
-- * value is the total amount of slots, including the shortname entry.
-+ * Return values: negative -> error/not found, 0 -> found.
+  * Notify other partitions to deactivate from us by first disengaging from all
+  * references to our memory.
+@@ -1092,6 +1099,9 @@ xpc_die_deactivate(void)
+ 	long keep_waiting;
+ 	long wait_to_print;
+ 
++	if (cmpxchg(&xpc_die_disconnecting, 0, 1))
++		return;
++
+ 	/* keep xpc_hb_checker thread from doing anything (just in case) */
+ 	xpc_exiting = 1;
+ 
+@@ -1159,7 +1169,7 @@ xpc_die_deactivate(void)
+  * about the lack of a heartbeat.
   */
- int fat_search_long(struct inode *inode, const unsigned char *name,
- 		    int name_len, struct fat_slot_info *sinfo)
-@@ -1255,7 +1254,7 @@ int fat_add_entries(struct inode *dir, v
+ static int
+-xpc_system_die(struct notifier_block *nb, unsigned long event, void *unused)
++xpc_system_die(struct notifier_block *nb, unsigned long event, void *_die_args)
+ {
+ #ifdef CONFIG_IA64		/* !!! temporary kludge */
+ 	switch (event) {
+@@ -1191,7 +1201,27 @@ xpc_system_die(struct notifier_block *nb
+ 		break;
+ 	}
+ #else
+-	xpc_die_deactivate();
++	struct die_args *die_args = _die_args;
++
++	switch (event) {
++	case DIE_TRAP:
++		if (die_args->trapnr == X86_TRAP_DF)
++			xpc_die_deactivate();
++
++		if (((die_args->trapnr == X86_TRAP_MF) ||
++		     (die_args->trapnr == X86_TRAP_XF)) &&
++		    !user_mode_vm(die_args->regs))
++			xpc_die_deactivate();
++
++		break;
++	case DIE_INT3:
++	case DIE_DEBUG:
++		break;
++	case DIE_OOPS:
++	case DIE_GPF:
++	default:
++		xpc_die_deactivate();
++	}
+ #endif
  
- 	sinfo->nr_slots = nr_slots;
- 
--	/* First stage: search free direcotry entries */
-+	/* First stage: search free directory entries */
- 	free_slots = nr_bhs = 0;
- 	bh = prev = NULL;
- 	pos = 0;
-diff -puN fs/fat/inode.c~fat-fix-incorrect-function-comment fs/fat/inode.c
---- a/fs/fat/inode.c~fat-fix-incorrect-function-comment
-+++ a/fs/fat/inode.c
-@@ -1344,7 +1344,7 @@ int fat_fill_super(struct super_block *s
- 	sbi->dir_entries = get_unaligned_le16(&b->dir_entries);
- 	if (sbi->dir_entries & (sbi->dir_per_block - 1)) {
- 		if (!silent)
--			fat_msg(sb, KERN_ERR, "bogus directroy-entries per block"
-+			fat_msg(sb, KERN_ERR, "bogus directory-entries per block"
- 			       " (%u)", sbi->dir_entries);
- 		brelse(bh);
- 		goto out_invalid;
-diff -puN fs/fat/misc.c~fat-fix-incorrect-function-comment fs/fat/misc.c
---- a/fs/fat/misc.c~fat-fix-incorrect-function-comment
-+++ a/fs/fat/misc.c
-@@ -135,6 +135,10 @@ int fat_chain_add(struct inode *inode, i
- 		}
- 		if (ret < 0)
- 			return ret;
-+		/*
-+		 * FIXME:Although we can add this cache, fat_cache_add() is
-+		 * assuming to be called after linear search with fat_cache_id.
-+		 */
- //		fat_cache_add(inode, new_fclus, new_dclus);
- 	} else {
- 		MSDOS_I(inode)->i_start = new_dclus;
+ 	return NOTIFY_DONE;
 _
 
-Patches currently in -mm which might be from cyberax82@gmail.com are
+Patches currently in -mm which might be from holt@sgi.com are
 
 origin.patch
 
