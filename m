@@ -1,56 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-imx-dryice-must-include-linux-spinlockh.patch removed from -mm tree
-Date: Fri, 21 Dec 2012 12:39:31 -0800
-Message-ID: <20121221203931.9AD8882004A@wpzn4.hot.corp.google.com>
+Subject: [merged] kcmp-include-linux-ptraceh.patch removed from -mm tree
+Date: Fri, 21 Dec 2012 12:39:34 -0800
+Message-ID: <20121221203935.1A79120004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:33608 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751299Ab2LUUjc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 15:39:32 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so205420ghb.3
-        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 12:39:32 -0800 (PST)
+Received: from mail-wi0-f201.google.com ([209.85.212.201]:49510 "EHLO
+	mail-wi0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751299Ab2LUUjh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 15:39:37 -0500
+Received: by mail-wi0-f201.google.com with SMTP id hm2so272668wib.2
+        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 12:39:36 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khali@linux-fr.org, s.hauer@pengutronix.de, mm-commits@vger.kernel.org
+To: gorcunov@openvz.org, alekskartashov@parallels.com, heiko.carstens@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-imxdi.c: must include <linux/spinlock.h>
+     Subject: kcmp: include linux/ptrace.h
 has been removed from the -mm tree.  Its filename was
-     rtc-imx-dryice-must-include-linux-spinlockh.patch
+     kcmp-include-linux-ptraceh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jean Delvare <khali@linux-fr.org>
-Subject: drivers/rtc/rtc-imxdi.c: must include <linux/spinlock.h>
+From: Cyrill Gorcunov <gorcunov@openvz.org>
+Subject: kcmp: include linux/ptrace.h
 
-Add the missing header include for spinlocks, to avoid potential build
-failures on specific architectures or configurations.
+This makes it compile on s390. After all the ptrace_may_access
+(which we use this file) is declared exactly in linux/ptrace.h.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Acked-by: Sascha Hauer <s.hauer@pengutronix.de>
+This is preparatory work to wire this syscall up on all archs.
+
+Signed-off-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Signed-off-by: Alexander Kartashov <alekskartashov@parallels.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-imxdi.c |    1 +
+ kernel/kcmp.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/rtc/rtc-imxdi.c~rtc-imx-dryice-must-include-linux-spinlockh drivers/rtc/rtc-imxdi.c
---- a/drivers/rtc/rtc-imxdi.c~rtc-imx-dryice-must-include-linux-spinlockh
-+++ a/drivers/rtc/rtc-imxdi.c
-@@ -36,6 +36,7 @@
- #include <linux/platform_device.h>
- #include <linux/rtc.h>
- #include <linux/sched.h>
-+#include <linux/spinlock.h>
- #include <linux/workqueue.h>
- #include <linux/of.h>
- 
+diff -puN kernel/kcmp.c~kcmp-include-linux-ptraceh kernel/kcmp.c
+--- a/kernel/kcmp.c~kcmp-include-linux-ptraceh
++++ a/kernel/kcmp.c
+@@ -4,6 +4,7 @@
+ #include <linux/string.h>
+ #include <linux/random.h>
+ #include <linux/module.h>
++#include <linux/ptrace.h>
+ #include <linux/init.h>
+ #include <linux/errno.h>
+ #include <linux/cache.h>
 _
 
-Patches currently in -mm which might be from khali@linux-fr.org are
+Patches currently in -mm which might be from gorcunov@openvz.org are
 
 origin.patch
 linux-next.patch
