@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 21 Dec 2012 14:30:24 -0800
-Message-ID: <20121221223025.C240720004E@hpza10.eem.corp.google.com>
+Subject: + backlight-l4f00242t03-use-spi_get_drvdata-and-spi_set_drvdata.patch added to -mm tree
+Date: Fri, 21 Dec 2012 14:54:17 -0800
+Message-ID: <20121221225418.A6595200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f201.google.com ([209.85.212.201]:37060 "EHLO
-	mail-wi0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751318Ab2LUWa2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 17:30:28 -0500
-Received: by mail-wi0-f201.google.com with SMTP id hm2so276261wib.2
-        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 14:30:26 -0800 (PST)
+Received: from mail-wg0-f73.google.com ([74.125.82.73]:62944 "EHLO
+	mail-wg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750836Ab2LUWyU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 17:54:20 -0500
+Received: by mail-wg0-f73.google.com with SMTP id dt12so276949wgb.0
+        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 14:54:19 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Milo.Kim@ti.com
+Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: backlight-add-new-lp8788-backlight-driver-checkpatch-fixes
+     Subject: backlight: l4f00242t03: use spi_get_drvdata and spi_set_drvdata
 has been added to the -mm tree.  Its filename is
-     backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
+     backlight-l4f00242t03-use-spi_get_drvdata-and-spi_set_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,90 +33,112 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: backlight-add-new-lp8788-backlight-driver-checkpatch-fixes
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: backlight: l4f00242t03: use spi_get_drvdata and spi_set_drvdata
 
+Use the wrapper functions for getting and setting the driver data using
+spi_device instead of using dev_{get|set}_drvdata with &spi->dev, so we
+can directly pass a struct spi_device.
 
-WARNING: please write a paragraph that describes the config symbol fully
-#45: FILE: drivers/video/backlight/Kconfig:380:
-+config BACKLIGHT_LP8788
-
-ERROR: code indent should use tabs where possible
-#446: FILE: include/linux/mfd/lp8788.h:242:
-+^I^I            Only valid when bl_mode is LP8788_BL_COMB_PWM_BASED$
-
-total: 1 errors, 1 warnings, 403 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/backlight-add-new-lp8788-backlight-driver.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "Kim, Milo" <Milo.Kim@ti.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mfd/lp8788.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/backlight/l4f00242t03.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/mfd/lp8788.h~backlight-add-new-lp8788-backlight-driver-checkpatch-fixes include/linux/mfd/lp8788.h
---- a/include/linux/mfd/lp8788.h~backlight-add-new-lp8788-backlight-driver-checkpatch-fixes
-+++ a/include/linux/mfd/lp8788.h
-@@ -239,7 +239,7 @@ struct lp8788_charger_platform_data {
-  * @fall_time             : brightness ramp down step time
-  * @pwm_pol               : pwm polarity setting when bl_mode is pwm based
-  * @period_ns             : platform specific pwm period value. unit is nano.
--		            Only valid when bl_mode is LP8788_BL_COMB_PWM_BASED
-+			    Only valid when bl_mode is LP8788_BL_COMB_PWM_BASED
-  */
- struct lp8788_backlight_platform_data {
- 	char *name;
+diff -puN drivers/video/backlight/l4f00242t03.c~backlight-l4f00242t03-use-spi_get_drvdata-and-spi_set_drvdata drivers/video/backlight/l4f00242t03.c
+--- a/drivers/video/backlight/l4f00242t03.c~backlight-l4f00242t03-use-spi_get_drvdata-and-spi_set_drvdata
++++ a/drivers/video/backlight/l4f00242t03.c
+@@ -49,7 +49,7 @@ static void l4f00242t03_reset(unsigned i
+ static void l4f00242t03_lcd_init(struct spi_device *spi)
+ {
+ 	struct l4f00242t03_pdata *pdata = spi->dev.platform_data;
+-	struct l4f00242t03_priv *priv = dev_get_drvdata(&spi->dev);
++	struct l4f00242t03_priv *priv = spi_get_drvdata(spi);
+ 	const u16 cmd[] = { 0x36, param(0), 0x3A, param(0x60) };
+ 
+ 	dev_dbg(&spi->dev, "initializing LCD\n");
+@@ -70,7 +70,7 @@ static void l4f00242t03_lcd_init(struct 
+ static void l4f00242t03_lcd_powerdown(struct spi_device *spi)
+ {
+ 	struct l4f00242t03_pdata *pdata = spi->dev.platform_data;
+-	struct l4f00242t03_priv *priv = dev_get_drvdata(&spi->dev);
++	struct l4f00242t03_priv *priv = spi_get_drvdata(spi);
+ 
+ 	dev_dbg(&spi->dev, "Powering down LCD\n");
+ 
+@@ -168,7 +168,7 @@ static int l4f00242t03_probe(struct spi_
+ 		return -ENOMEM;
+ 	}
+ 
+-	dev_set_drvdata(&spi->dev, priv);
++	spi_set_drvdata(spi, priv);
+ 	spi->bits_per_word = 9;
+ 	spi_setup(spi);
+ 
+@@ -231,12 +231,12 @@ err1:
+ 
+ static int l4f00242t03_remove(struct spi_device *spi)
+ {
+-	struct l4f00242t03_priv *priv = dev_get_drvdata(&spi->dev);
++	struct l4f00242t03_priv *priv = spi_get_drvdata(spi);
+ 
+ 	l4f00242t03_lcd_power_set(priv->ld, FB_BLANK_POWERDOWN);
+ 	lcd_device_unregister(priv->ld);
+ 
+-	dev_set_drvdata(&spi->dev, NULL);
++	spi_set_drvdata(spi, NULL);
+ 
+ 	regulator_put(priv->io_reg);
+ 	regulator_put(priv->core_reg);
+@@ -246,7 +246,7 @@ static int l4f00242t03_remove(struct spi
+ 
+ static void l4f00242t03_shutdown(struct spi_device *spi)
+ {
+-	struct l4f00242t03_priv *priv = dev_get_drvdata(&spi->dev);
++	struct l4f00242t03_priv *priv = spi_get_drvdata(spi);
+ 
+ 	if (priv)
+ 		l4f00242t03_lcd_power_set(priv->ld, FB_BLANK_POWERDOWN);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
 origin.patch
-ipc-add-sysctl-to-specify-desired-next-object-id.patch
-ipc-message-queue-receive-cleanup.patch
-ipc-convert-prepare_copy-from-macro-to-function.patch
-rtc-add-rtc-driver-for-tps6586x-fix.patch
-linux-next.patch
-linux-next-git-rejects.patch
-make-my-i386-build-work.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
-mm.patch
-mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
-mm-hugetlbc-convert-to-pr_foo.patch
-cma-make-putback_lru_pages-call-conditional-fix.patch
-mm-vmscan-clean-up-get_scan_count-fix.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
-mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
-mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-cma-use-unsigned-type-for-count-argument-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+backlight-add-lms501kf03-lcd-driver.patch
 backlight-add-lms501kf03-lcd-driver-fix.patch
-backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix-fix.patch
-rtc-max77686-add-maxim-77686-driver-fix.patch
-rtc-pcf8523-add-low-battery-voltage-support-fix.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
-drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module-fix.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+backlight-ld9040-use-sleep-instead-of-delay.patch
+backlight-ld9040-remove-unnecessary-null-deference-check.patch
+backlight-ld9040-replace-efault-with-einval.patch
+backlight-ld9040-remove-redundant-return-variables.patch
+backlight-ld9040-reorder-inclusions-of-linux-xxxh.patch
+backlight-s6e63m0-use-lowercase-names-of-structs.patch
+backlight-s6e63m0-use-sleep-instead-of-delay.patch
+backlight-s6e63m0-remove-unnecessary-null-deference-check.patch
+backlight-s6e63m0-replace-efault-with-einval.patch
+backlight-s6e63m0-remove-redundant-variable-before_power.patch
+backlight-s6e63m0-reorder-inclusions-of-linux-xxxh.patch
+backlight-ams369fg06-use-sleep-instead-of-delay.patch
+backlight-ams369fg06-remove-unnecessary-null-deference-check.patch
+backlight-ams369fg06-replace-efault-with-einval.patch
+backlight-ams369fg06-remove-redundant-variable-before_power.patch
+backlight-ams369fg06-reorder-inclusions-of-linux-xxxh.patch
+backlight-l4f00242t03-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-ld9040-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-s6e63m0-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-ltv350qv-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-tdo24m-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-lms283gf05-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-ams369fg06-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-vgg2432a4-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-tosa-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-corgi_lcd-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-lms501kf03-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-aat2870-use-bl_get_data-instead-of-dev_get_drvdata.patch
+pwm_backlight-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-ams369fg06-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-corgi_lcd-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-tosa-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-omap1-use-bl_get_data-instead-of-dev_get_drvdata.patch
 
