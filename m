@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-remove-arch-x86-platform-mrst-pmu.patch added to -mm tree
-Date: Fri, 21 Dec 2012 13:59:25 -0800
-Message-ID: <20121221215926.98BAB20005C@hpza10.eem.corp.google.com>
+Subject: + maintainers-fix-documentation-mei.patch added to -mm tree
+Date: Fri, 21 Dec 2012 13:59:29 -0800
+Message-ID: <20121221215930.2D22B82004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f201.google.com ([209.85.212.201]:64538 "EHLO
-	mail-wi0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751647Ab2LUV73 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 16:59:29 -0500
-Received: by mail-wi0-f201.google.com with SMTP id hm2so275365wib.4
-        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 13:59:27 -0800 (PST)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:53503 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751647Ab2LUV7a (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 16:59:30 -0500
+Received: by mail-yh0-f73.google.com with SMTP id 47so526737yhr.0
+        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 13:59:30 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cesarb@cesarb.net, alan@linux.intel.com, len.brown@intel.com
+Cc: cesarb@cesarb.net, tomas.winkler@intel.com
 
 
 The patch titled
-     Subject: MAINTAINERS: remove arch/x86/platform/mrst/pmu.*
+     Subject: MAINTAINERS: fix Documentation/mei/
 has been added to the -mm tree.  Its filename is
-     maintainers-remove-arch-x86-platform-mrst-pmu.patch
+     maintainers-fix-documentation-mei.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Cesar Eduardo Barros <cesarb@cesarb.net>
-Subject: MAINTAINERS: remove arch/x86/platform/mrst/pmu.*
+Subject: MAINTAINERS: fix Documentation/mei/
 
-These files were removed by commit 1a8359e ("x86/mid: Remove Intel
-Moorestown").
+The documentation was moved to Documentation/misc-devices/mei/ instead.
 
 Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
-Cc: Alan Cox <alan@linux.intel.com>
-Cc: Len Brown <len.brown@intel.com>
+Acked-by: Tomas Winkler <tomas.winkler@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    6 ------
- 1 file changed, 6 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-remove-arch-x86-platform-mrst-pmu MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-arch-x86-platform-mrst-pmu
+diff -puN MAINTAINERS~maintainers-fix-documentation-mei MAINTAINERS
+--- a/MAINTAINERS~maintainers-fix-documentation-mei
 +++ a/MAINTAINERS
-@@ -4055,12 +4055,6 @@ F:	Documentation/networking/ixgbe.txt
- F:	Documentation/networking/ixgbevf.txt
- F:	drivers/net/ethernet/intel/
+@@ -4107,7 +4107,7 @@ L:	linux-kernel@vger.kernel.org
+ S:	Supported
+ F:	include/uapi/linux/mei.h
+ F:	drivers/misc/mei/*
+-F:	Documentation/mei/*
++F:	Documentation/misc-devices/mei/*
  
--INTEL MRST PMU DRIVER
--M:	Len Brown <len.brown@intel.com>
--L:	linux-pm@vger.kernel.org
--S:	Supported
--F:	arch/x86/platform/mrst/pmu.*
--
- INTEL PRO/WIRELESS 2100, 2200BG, 2915ABG NETWORK CONNECTION SUPPORT
- M:	Stanislav Yakovlev <stas.yakovlev@gmail.com>
- L:	linux-wireless@vger.kernel.org
+ IOC3 ETHERNET DRIVER
+ M:	Ralf Baechle <ralf@linux-mips.org>
 _
 
 Patches currently in -mm which might be from cesarb@cesarb.net are
