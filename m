@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-tosa-use-bl_get_data-instead-of-dev_get_drvdata.patch added to -mm tree
-Date: Fri, 21 Dec 2012 14:54:53 -0800
-Message-ID: <20121221225454.15027100047@wpzn3.hot.corp.google.com>
+Subject: + backlight-omap1-use-bl_get_data-instead-of-dev_get_drvdata.patch added to -mm tree
+Date: Fri, 21 Dec 2012 14:54:55 -0800
+Message-ID: <20121221225456.8292920004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:54617 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750956Ab2LUWyz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 17:54:55 -0500
-Received: by mail-vb0-f73.google.com with SMTP id l1so531040vba.0
-        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 14:54:54 -0800 (PST)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:64550 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750956Ab2LUWy6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 17:54:58 -0500
+Received: by mail-we0-f202.google.com with SMTP id t57so276896wey.3
+        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 14:54:57 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: backlight: tosa: use bl_get_data instead of dev_get_drvdata
+     Subject: backlight: omap1: use bl_get_data instead of dev_get_drvdata
 has been added to the -mm tree.  Its filename is
-     backlight-tosa-use-bl_get_data-instead-of-dev_get_drvdata.patch
+     backlight-omap1-use-bl_get_data-instead-of-dev_get_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: tosa: use bl_get_data instead of dev_get_drvdata
+Subject: backlight: omap1: use bl_get_data instead of dev_get_drvdata
 
 Use the wrapper function for getting the driver data using
 backlight_device instead of using dev_get_drvdata with &bd->dev, so we can
@@ -44,20 +44,56 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/tosa_bl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/backlight/omap1_bl.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/video/backlight/tosa_bl.c~backlight-tosa-use-bl_get_data-instead-of-dev_get_drvdata drivers/video/backlight/tosa_bl.c
---- a/drivers/video/backlight/tosa_bl.c~backlight-tosa-use-bl_get_data-instead-of-dev_get_drvdata
-+++ a/drivers/video/backlight/tosa_bl.c
-@@ -54,7 +54,7 @@ static void tosa_bl_set_backlight(struct
- static int tosa_bl_update_status(struct backlight_device *dev)
+diff -puN drivers/video/backlight/omap1_bl.c~backlight-omap1-use-bl_get_data-instead-of-dev_get_drvdata drivers/video/backlight/omap1_bl.c
+--- a/drivers/video/backlight/omap1_bl.c~backlight-omap1-use-bl_get_data-instead-of-dev_get_drvdata
++++ a/drivers/video/backlight/omap1_bl.c
+@@ -77,7 +77,7 @@ static void omapbl_blank(struct omap_bac
+ static int omapbl_suspend(struct platform_device *pdev, pm_message_t state)
  {
- 	struct backlight_properties *props = &dev->props;
--	struct tosa_bl_data *data = dev_get_drvdata(&dev->dev);
-+	struct tosa_bl_data *data = bl_get_data(dev);
- 	int power = max(props->power, props->fb_blank);
- 	int brightness = props->brightness;
+ 	struct backlight_device *dev = platform_get_drvdata(pdev);
+-	struct omap_backlight *bl = dev_get_drvdata(&dev->dev);
++	struct omap_backlight *bl = bl_get_data(dev);
+ 
+ 	omapbl_blank(bl, FB_BLANK_POWERDOWN);
+ 	return 0;
+@@ -86,7 +86,7 @@ static int omapbl_suspend(struct platfor
+ static int omapbl_resume(struct platform_device *pdev)
+ {
+ 	struct backlight_device *dev = platform_get_drvdata(pdev);
+-	struct omap_backlight *bl = dev_get_drvdata(&dev->dev);
++	struct omap_backlight *bl = bl_get_data(dev);
+ 
+ 	omapbl_blank(bl, bl->powermode);
+ 	return 0;
+@@ -98,7 +98,7 @@ static int omapbl_resume(struct platform
+ 
+ static int omapbl_set_power(struct backlight_device *dev, int state)
+ {
+-	struct omap_backlight *bl = dev_get_drvdata(&dev->dev);
++	struct omap_backlight *bl = bl_get_data(dev);
+ 
+ 	omapbl_blank(bl, state);
+ 	bl->powermode = state;
+@@ -108,7 +108,7 @@ static int omapbl_set_power(struct backl
+ 
+ static int omapbl_update_status(struct backlight_device *dev)
+ {
+-	struct omap_backlight *bl = dev_get_drvdata(&dev->dev);
++	struct omap_backlight *bl = bl_get_data(dev);
+ 
+ 	if (bl->current_intensity != dev->props.brightness) {
+ 		if (bl->powermode == FB_BLANK_UNBLANK)
+@@ -124,7 +124,7 @@ static int omapbl_update_status(struct b
+ 
+ static int omapbl_get_intensity(struct backlight_device *dev)
+ {
+-	struct omap_backlight *bl = dev_get_drvdata(&dev->dev);
++	struct omap_backlight *bl = bl_get_data(dev);
+ 	return bl->current_intensity;
+ }
  
 _
 
