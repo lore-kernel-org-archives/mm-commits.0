@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-fix-drivers-ieee802154.patch added to -mm tree
-Date: Fri, 21 Dec 2012 13:59:19 -0800
-Message-ID: <20121221215920.365DA82004A@wpzn4.hot.corp.google.com>
+Subject: + maintainers-remove-firmware-isci.patch added to -mm tree
+Date: Fri, 21 Dec 2012 13:59:22 -0800
+Message-ID: <20121221215923.62926100048@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:63903 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751647Ab2LUV7V (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 16:59:21 -0500
-Received: by mail-yh0-f73.google.com with SMTP id 47so526213yhr.2
-        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 13:59:20 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:33960 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751647Ab2LUV7Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 16:59:24 -0500
+Received: by mail-qc0-f202.google.com with SMTP id s25so526274qcq.5
+        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 13:59:24 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cesarb@cesarb.net, alex.bluesman.smirnov@gmail.com, dbaryshkov@gmail.com
+Cc: cesarb@cesarb.net, JBottomley@Parallels.com, ben@decadent.org.uk, dan.j.williams@intel.com, dave.jiang@intel.com, intel-linux-scu@intel.com, lukasz.dorau@intel.com, maciej.patelczyk@intel.com
 
 
 The patch titled
-     Subject: MAINTAINERS: fix drivers/ieee802154/
+     Subject: MAINTAINERS: remove firmware/isci/
 has been added to the -mm tree.  Its filename is
-     maintainers-fix-drivers-ieee802154.patch
+     maintainers-remove-firmware-isci.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Cesar Eduardo Barros <cesarb@cesarb.net>
-Subject: MAINTAINERS: fix drivers/ieee802154/
+Subject: MAINTAINERS: remove firmware/isci/
 
-This directory was moved to drivers/net/ieee802154/ by commit 31d178b
-("drivers/ieee802154: move ieee802154 drivers to net folder").
+This directory was removed by commit 7d99b3a ("isci, firmware: Remove isci
+fallback parameter blob and generator").
 
 Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
-Cc: Alexander Smirnov <alex.bluesman.smirnov@gmail.com>
-Cc: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
+Cc: Ben Hutchings <ben@decadent.org.uk>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: James Bottomley <JBottomley@Parallels.com>
+Cc: Intel SCU Linux support <intel-linux-scu@intel.com>
+Cc: Lukasz Dorau <lukasz.dorau@intel.com>
+Cc: Maciej Patelczyk <maciej.patelczyk@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-fix-drivers-ieee802154 MAINTAINERS
---- a/MAINTAINERS~maintainers-fix-drivers-ieee802154
+diff -puN MAINTAINERS~maintainers-remove-firmware-isci MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-firmware-isci
 +++ a/MAINTAINERS
-@@ -3868,7 +3868,7 @@ T:	git git://git.kernel.org/pub/scm/linu
- S:	Maintained
- F:	net/ieee802154/
- F:	net/mac802154/
--F:	drivers/ieee802154/
-+F:	drivers/net/ieee802154/
+@@ -3961,7 +3961,6 @@ L:	linux-scsi@vger.kernel.org
+ T:	git git://git.code.sf.net/p/intel-sas/isci
+ S:	Supported
+ F:	drivers/scsi/isci/
+-F:	firmware/isci/
  
- IGUANAWORKS USB IR TRANSCEIVER
- M:	Sean Young <sean@mess.org>
+ INTEL IDLE DRIVER
+ M:	Len Brown <lenb@kernel.org>
 _
 
 Patches currently in -mm which might be from cesarb@cesarb.net are
