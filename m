@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-corgi_lcd-use-spi_get_drvdata-and-spi_set_drvdata.patch added to -mm tree
-Date: Fri, 21 Dec 2012 14:54:40 -0800
-Message-ID: <20121221225441.15270100047@wpzn3.hot.corp.google.com>
+Subject: + backlight-lms501kf03-use-spi_get_drvdata-and-spi_set_drvdata.patch added to -mm tree
+Date: Fri, 21 Dec 2012 14:54:42 -0800
+Message-ID: <20121221225443.1F30582004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:38667 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:54740 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
 	with ESMTP id S1750956Ab2LUWyn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 17:54:43 -0500
-Received: by mail-vc0-f201.google.com with SMTP id p1so530710vcq.4
-        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 14:54:42 -0800 (PST)
+Received: by mail-ye0-f201.google.com with SMTP id r11so531035yen.4
+        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 14:54:43 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: backlight: corgi_lcd: use spi_get_drvdata and spi_set_drvdata
+     Subject: backlight: lms501kf03: use spi_get_drvdata and spi_set_drvdata
 has been added to the -mm tree.  Its filename is
-     backlight-corgi_lcd-use-spi_get_drvdata-and-spi_set_drvdata.patch
+     backlight-lms501kf03-use-spi_get_drvdata-and-spi_set_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: corgi_lcd: use spi_get_drvdata and spi_set_drvdata
+Subject: backlight: lms501kf03: use spi_get_drvdata and spi_set_drvdata
 
 Use the wrapper functions for getting and setting the driver data using
 spi_device instead of using dev_{get|set}_drvdata with &spi->dev, so we
@@ -44,48 +44,57 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/corgi_lcd.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/video/backlight/lms501kf03.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-use-spi_get_drvdata-and-spi_set_drvdata drivers/video/backlight/corgi_lcd.c
---- a/drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-use-spi_get_drvdata-and-spi_set_drvdata
-+++ a/drivers/video/backlight/corgi_lcd.c
-@@ -460,7 +460,7 @@ static const struct backlight_ops corgi_
- #ifdef CONFIG_PM
- static int corgi_lcd_suspend(struct spi_device *spi, pm_message_t state)
- {
--	struct corgi_lcd *lcd = dev_get_drvdata(&spi->dev);
-+	struct corgi_lcd *lcd = spi_get_drvdata(spi);
- 
- 	corgibl_flags |= CORGIBL_SUSPENDED;
- 	corgi_bl_set_intensity(lcd, 0);
-@@ -470,7 +470,7 @@ static int corgi_lcd_suspend(struct spi_
- 
- static int corgi_lcd_resume(struct spi_device *spi)
- {
--	struct corgi_lcd *lcd = dev_get_drvdata(&spi->dev);
-+	struct corgi_lcd *lcd = spi_get_drvdata(spi);
- 
- 	corgibl_flags &= ~CORGIBL_SUSPENDED;
- 	corgi_lcd_set_power(lcd->lcd_dev, FB_BLANK_UNBLANK);
-@@ -577,7 +577,7 @@ static int corgi_lcd_probe(struct spi_de
- 
- 	lcd->kick_battery = pdata->kick_battery;
+diff -puN drivers/video/backlight/lms501kf03.c~backlight-lms501kf03-use-spi_get_drvdata-and-spi_set_drvdata drivers/video/backlight/lms501kf03.c
+--- a/drivers/video/backlight/lms501kf03.c~backlight-lms501kf03-use-spi_get_drvdata-and-spi_set_drvdata
++++ a/drivers/video/backlight/lms501kf03.c
+@@ -370,7 +370,7 @@ static int lms501kf03_probe(struct spi_d
+ 		lcd->power = FB_BLANK_UNBLANK;
+ 	}
  
 -	dev_set_drvdata(&spi->dev, lcd);
 +	spi_set_drvdata(spi, lcd);
- 	corgi_lcd_set_power(lcd->lcd_dev, FB_BLANK_UNBLANK);
- 	backlight_update_status(lcd->bl_dev);
  
-@@ -594,7 +594,7 @@ err_unregister_lcd:
+ 	dev_info(&spi->dev, "lms501kf03 panel driver has been probed.\n");
  
- static int corgi_lcd_remove(struct spi_device *spi)
+@@ -379,7 +379,7 @@ static int lms501kf03_probe(struct spi_d
+ 
+ static int lms501kf03_remove(struct spi_device *spi)
  {
--	struct corgi_lcd *lcd = dev_get_drvdata(&spi->dev);
-+	struct corgi_lcd *lcd = spi_get_drvdata(spi);
+-	struct lms501kf03 *lcd = dev_get_drvdata(&spi->dev);
++	struct lms501kf03 *lcd = spi_get_drvdata(spi);
  
- 	lcd->bl_dev->props.power = FB_BLANK_UNBLANK;
- 	lcd->bl_dev->props.brightness = 0;
+ 	lms501kf03_power(lcd, FB_BLANK_POWERDOWN);
+ 	lcd_device_unregister(lcd->ld);
+@@ -391,7 +391,7 @@ static int lms501kf03_remove(struct spi_
+ 
+ static int lms501kf03_suspend(struct spi_device *spi, pm_message_t mesg)
+ {
+-	struct lms501kf03 *lcd = dev_get_drvdata(&spi->dev);
++	struct lms501kf03 *lcd = spi_get_drvdata(spi);
+ 
+ 	dev_dbg(&spi->dev, "lcd->power = %d\n", lcd->power);
+ 
+@@ -404,7 +404,7 @@ static int lms501kf03_suspend(struct spi
+ 
+ static int lms501kf03_resume(struct spi_device *spi)
+ {
+-	struct lms501kf03 *lcd = dev_get_drvdata(&spi->dev);
++	struct lms501kf03 *lcd = spi_get_drvdata(spi);
+ 
+ 	lcd->power = FB_BLANK_POWERDOWN;
+ 
+@@ -417,7 +417,7 @@ static int lms501kf03_resume(struct spi_
+ 
+ void lms501kf03_shutdown(struct spi_device *spi)
+ {
+-	struct lms501kf03 *lcd = dev_get_drvdata(&spi->dev);
++	struct lms501kf03 *lcd = spi_get_drvdata(spi);
+ 
+ 	lms501kf03_power(lcd, FB_BLANK_POWERDOWN);
+ }
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
