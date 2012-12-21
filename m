@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-remove-firmware-isci.patch added to -mm tree
-Date: Fri, 21 Dec 2012 13:59:22 -0800
-Message-ID: <20121221215923.62926100048@wpzn3.hot.corp.google.com>
+Subject: + maintainers-remove-arch-x86-platform-mrst-pmu.patch added to -mm tree
+Date: Fri, 21 Dec 2012 13:59:25 -0800
+Message-ID: <20121221215926.98BAB20005C@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:33960 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751647Ab2LUV7Y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 16:59:24 -0500
-Received: by mail-qc0-f202.google.com with SMTP id s25so526274qcq.5
-        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 13:59:24 -0800 (PST)
+Received: from mail-wi0-f201.google.com ([209.85.212.201]:64538 "EHLO
+	mail-wi0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751647Ab2LUV73 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 16:59:29 -0500
+Received: by mail-wi0-f201.google.com with SMTP id hm2so275365wib.4
+        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 13:59:27 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cesarb@cesarb.net, JBottomley@Parallels.com, ben@decadent.org.uk, dan.j.williams@intel.com, dave.jiang@intel.com, intel-linux-scu@intel.com, lukasz.dorau@intel.com, maciej.patelczyk@intel.com
+Cc: cesarb@cesarb.net, alan@linux.intel.com, len.brown@intel.com
 
 
 The patch titled
-     Subject: MAINTAINERS: remove firmware/isci/
+     Subject: MAINTAINERS: remove arch/x86/platform/mrst/pmu.*
 has been added to the -mm tree.  Its filename is
-     maintainers-remove-firmware-isci.patch
+     maintainers-remove-arch-x86-platform-mrst-pmu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Cesar Eduardo Barros <cesarb@cesarb.net>
-Subject: MAINTAINERS: remove firmware/isci/
+Subject: MAINTAINERS: remove arch/x86/platform/mrst/pmu.*
 
-This directory was removed by commit 7d99b3a ("isci, firmware: Remove isci
-fallback parameter blob and generator").
+These files were removed by commit 1a8359e ("x86/mid: Remove Intel
+Moorestown").
 
 Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
-Cc: Ben Hutchings <ben@decadent.org.uk>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: James Bottomley <JBottomley@Parallels.com>
-Cc: Intel SCU Linux support <intel-linux-scu@intel.com>
-Cc: Lukasz Dorau <lukasz.dorau@intel.com>
-Cc: Maciej Patelczyk <maciej.patelczyk@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Alan Cox <alan@linux.intel.com>
+Cc: Len Brown <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 -
- 1 file changed, 1 deletion(-)
+ MAINTAINERS |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-remove-firmware-isci MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-firmware-isci
+diff -puN MAINTAINERS~maintainers-remove-arch-x86-platform-mrst-pmu MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-arch-x86-platform-mrst-pmu
 +++ a/MAINTAINERS
-@@ -3961,7 +3961,6 @@ L:	linux-scsi@vger.kernel.org
- T:	git git://git.code.sf.net/p/intel-sas/isci
- S:	Supported
- F:	drivers/scsi/isci/
--F:	firmware/isci/
+@@ -4055,12 +4055,6 @@ F:	Documentation/networking/ixgbe.txt
+ F:	Documentation/networking/ixgbevf.txt
+ F:	drivers/net/ethernet/intel/
  
- INTEL IDLE DRIVER
- M:	Len Brown <lenb@kernel.org>
+-INTEL MRST PMU DRIVER
+-M:	Len Brown <len.brown@intel.com>
+-L:	linux-pm@vger.kernel.org
+-S:	Supported
+-F:	arch/x86/platform/mrst/pmu.*
+-
+ INTEL PRO/WIRELESS 2100, 2200BG, 2915ABG NETWORK CONNECTION SUPPORT
+ M:	Stanislav Yakovlev <stas.yakovlev@gmail.com>
+ L:	linux-wireless@vger.kernel.org
 _
 
 Patches currently in -mm which might be from cesarb@cesarb.net are
