@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-lms501kf03-use-spi_get_drvdata-and-spi_set_drvdata.patch added to -mm tree
-Date: Fri, 21 Dec 2012 14:54:42 -0800
-Message-ID: <20121221225443.1F30582004A@wpzn4.hot.corp.google.com>
+Subject: + backlight-aat2870-use-bl_get_data-instead-of-dev_get_drvdata.patch added to -mm tree
+Date: Fri, 21 Dec 2012 14:54:44 -0800
+Message-ID: <20121221225445.17B65100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:54740 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750956Ab2LUWyn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 17:54:43 -0500
-Received: by mail-ye0-f201.google.com with SMTP id r11so531035yen.4
-        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 14:54:43 -0800 (PST)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:42353 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750956Ab2LUWyq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 17:54:46 -0500
+Received: by mail-yh0-f73.google.com with SMTP id 47so530595yhr.2
+        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 14:54:45 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: backlight: lms501kf03: use spi_get_drvdata and spi_set_drvdata
+     Subject: backlight: aat2870: use bl_get_data instead of dev_get_drvdata
 has been added to the -mm tree.  Its filename is
-     backlight-lms501kf03-use-spi_get_drvdata-and-spi_set_drvdata.patch
+     backlight-aat2870-use-bl_get_data-instead-of-dev_get_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,67 +34,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: lms501kf03: use spi_get_drvdata and spi_set_drvdata
+Subject: backlight: aat2870: use bl_get_data instead of dev_get_drvdata
 
-Use the wrapper functions for getting and setting the driver data using
-spi_device instead of using dev_{get|set}_drvdata with &spi->dev, so we
-can directly pass a struct spi_device.
+Use the wrapper function for getting the driver data using
+backlight_device instead of using dev_get_drvdata with &bd->dev, so we can
+directly pass a struct backlight_device.
 
 Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/lms501kf03.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/video/backlight/aat2870_bl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/lms501kf03.c~backlight-lms501kf03-use-spi_get_drvdata-and-spi_set_drvdata drivers/video/backlight/lms501kf03.c
---- a/drivers/video/backlight/lms501kf03.c~backlight-lms501kf03-use-spi_get_drvdata-and-spi_set_drvdata
-+++ a/drivers/video/backlight/lms501kf03.c
-@@ -370,7 +370,7 @@ static int lms501kf03_probe(struct spi_d
- 		lcd->power = FB_BLANK_UNBLANK;
- 	}
+diff -puN drivers/video/backlight/aat2870_bl.c~backlight-aat2870-use-bl_get_data-instead-of-dev_get_drvdata drivers/video/backlight/aat2870_bl.c
+--- a/drivers/video/backlight/aat2870_bl.c~backlight-aat2870-use-bl_get_data-instead-of-dev_get_drvdata
++++ a/drivers/video/backlight/aat2870_bl.c
+@@ -74,7 +74,7 @@ static int aat2870_bl_get_brightness(str
  
--	dev_set_drvdata(&spi->dev, lcd);
-+	spi_set_drvdata(spi, lcd);
- 
- 	dev_info(&spi->dev, "lms501kf03 panel driver has been probed.\n");
- 
-@@ -379,7 +379,7 @@ static int lms501kf03_probe(struct spi_d
- 
- static int lms501kf03_remove(struct spi_device *spi)
+ static int aat2870_bl_update_status(struct backlight_device *bd)
  {
--	struct lms501kf03 *lcd = dev_get_drvdata(&spi->dev);
-+	struct lms501kf03 *lcd = spi_get_drvdata(spi);
- 
- 	lms501kf03_power(lcd, FB_BLANK_POWERDOWN);
- 	lcd_device_unregister(lcd->ld);
-@@ -391,7 +391,7 @@ static int lms501kf03_remove(struct spi_
- 
- static int lms501kf03_suspend(struct spi_device *spi, pm_message_t mesg)
- {
--	struct lms501kf03 *lcd = dev_get_drvdata(&spi->dev);
-+	struct lms501kf03 *lcd = spi_get_drvdata(spi);
- 
- 	dev_dbg(&spi->dev, "lcd->power = %d\n", lcd->power);
- 
-@@ -404,7 +404,7 @@ static int lms501kf03_suspend(struct spi
- 
- static int lms501kf03_resume(struct spi_device *spi)
- {
--	struct lms501kf03 *lcd = dev_get_drvdata(&spi->dev);
-+	struct lms501kf03 *lcd = spi_get_drvdata(spi);
- 
- 	lcd->power = FB_BLANK_POWERDOWN;
- 
-@@ -417,7 +417,7 @@ static int lms501kf03_resume(struct spi_
- 
- void lms501kf03_shutdown(struct spi_device *spi)
- {
--	struct lms501kf03 *lcd = dev_get_drvdata(&spi->dev);
-+	struct lms501kf03 *lcd = spi_get_drvdata(spi);
- 
- 	lms501kf03_power(lcd, FB_BLANK_POWERDOWN);
- }
+-	struct aat2870_bl_driver_data *aat2870_bl = dev_get_drvdata(&bd->dev);
++	struct aat2870_bl_driver_data *aat2870_bl = bl_get_data(bd);
+ 	struct aat2870_data *aat2870 =
+ 			dev_get_drvdata(aat2870_bl->pdev->dev.parent);
+ 	int brightness = bd->props.brightness;
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
