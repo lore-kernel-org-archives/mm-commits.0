@@ -1,62 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged] keys-fix-unreachable-code.patch removed from -mm tree
-Date: Fri, 21 Dec 2012 12:40:32 -0800
-Message-ID: <20121221204033.1A60720004E@hpza10.eem.corp.google.com>
+Subject: [merged] vfs-d_obtain_alias-needs-to-use-as-default-name.patch removed from -mm tree
+Date: Fri, 21 Dec 2012 12:40:39 -0800
+Message-ID: <20121221204040.44A1F20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f73.google.com ([209.85.214.73]:39329 "EHLO
-	mail-bk0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751927Ab2LUUkf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 15:40:35 -0500
-Received: by mail-bk0-f73.google.com with SMTP id jf3so272460bkc.0
-        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 12:40:34 -0800 (PST)
+Received: from mail-ea0-f201.google.com ([209.85.215.201]:42479 "EHLO
+	mail-ea0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751973Ab2LUUkm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 15:40:42 -0500
+Received: by mail-ea0-f201.google.com with SMTP id b14so272741eaa.2
+        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 12:40:41 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@linux.intel.com, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: neilb@suse.de, Trond.Myklebust@netapp.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: keys: fix unreachable code
+     Subject: vfs: d_obtain_alias() needs to use "/" as default name.
 has been removed from the -mm tree.  Its filename was
-     keys-fix-unreachable-code.patch
+     vfs-d_obtain_alias-needs-to-use-as-default-name.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alan Cox <alan@linux.intel.com>
-Subject: keys: fix unreachable code
+From: NeilBrown <neilb@suse.de>
+Subject: vfs: d_obtain_alias() needs to use "/" as default name.
 
-We set ret to NULL then test it. Remove the bogus test
+NFS appears to use d_obtain_alias() to create the root dentry rather than
+d_make_root.  This can cause 'prepend_path()' to complain that the root
+has a weird name if an NFS filesystem is lazily unmounted.  e.g.  if
+"/mnt" is an NFS mount then
 
-Signed-off-by: Alan Cox <alan@linux.intel.com>
-Signed-off-by: David Howells <dhowells@redhat.com>
+ { cd /mnt; umount -l /mnt ; ls -l /proc/self/cwd; }
+
+will cause a WARN message like
+   WARNING: at /home/git/linux/fs/dcache.c:2624 prepend_path+0x1d7/0x1e0()
+   ...
+   Root dentry has weird name <>
+
+to appear in kernel logs.
+
+So change d_obtain_alias() to use "/" rather than "" as the anonymous
+name.
+
+Signed-off-by: NeilBrown <neilb@suse.de>
+Cc: Trond Myklebust <Trond.Myklebust@netapp.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/keys/process_keys.c |    2 --
- 1 file changed, 2 deletions(-)
+ fs/dcache.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN security/keys/process_keys.c~keys-fix-unreachable-code security/keys/process_keys.c
---- a/security/keys/process_keys.c~keys-fix-unreachable-code
-+++ a/security/keys/process_keys.c
-@@ -367,8 +367,6 @@ key_ref_t search_my_process_keyrings(str
+diff -puN fs/dcache.c~vfs-d_obtain_alias-needs-to-use-as-default-name fs/dcache.c
+--- a/fs/dcache.c~vfs-d_obtain_alias-needs-to-use-as-default-name
++++ a/fs/dcache.c
+@@ -1583,7 +1583,7 @@ EXPORT_SYMBOL(d_find_any_alias);
+  */
+ struct dentry *d_obtain_alias(struct inode *inode)
+ {
+-	static const struct qstr anonstring = { .name = "" };
++	static const struct qstr anonstring = QSTR_INIT("/", 1);
+ 	struct dentry *tmp;
+ 	struct dentry *res;
  
- 		switch (PTR_ERR(key_ref)) {
- 		case -EAGAIN: /* no key */
--			if (ret)
--				break;
- 		case -ENOKEY: /* negative key */
- 			ret = key_ref;
- 			break;
 _
 
-Patches currently in -mm which might be from alan@linux.intel.com are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
 linux-next.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-fork-unshare-remove-dead-code.patch
 
