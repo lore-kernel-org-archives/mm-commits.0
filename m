@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-ld9040-use-spi_get_drvdata-and-spi_set_drvdata.patch added to -mm tree
-Date: Fri, 21 Dec 2012 14:54:20 -0800
-Message-ID: <20121221225421.2EDDE100047@wpzn3.hot.corp.google.com>
+Subject: + backlight-lms283gf05-use-spi_get_drvdata-and-spi_set_drvdata.patch added to -mm tree
+Date: Fri, 21 Dec 2012 14:54:30 -0800
+Message-ID: <20121221225431.1F32B100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:50339 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750956Ab2LUWyW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 17:54:22 -0500
-Received: by mail-qc0-f201.google.com with SMTP id a6so530752qch.0
-        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 14:54:21 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:36557 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750956Ab2LUWyc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 17:54:32 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so530713vcd.3
+        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 14:54:31 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: backlight: ld9040: use spi_get_drvdata and spi_set_drvdata
+     Subject: backlight: lms283gf05: use spi_get_drvdata and spi_set_drvdata
 has been added to the -mm tree.  Its filename is
-     backlight-ld9040-use-spi_get_drvdata-and-spi_set_drvdata.patch
+     backlight-lms283gf05-use-spi_get_drvdata-and-spi_set_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: ld9040: use spi_get_drvdata and spi_set_drvdata
+Subject: backlight: lms283gf05: use spi_get_drvdata and spi_set_drvdata
 
 Use the wrapper functions for getting and setting the driver data using
 spi_device instead of using dev_{get|set}_drvdata with &spi->dev, so we
@@ -44,57 +44,30 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/ld9040.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/video/backlight/lms283gf05.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/backlight/ld9040.c~backlight-ld9040-use-spi_get_drvdata-and-spi_set_drvdata drivers/video/backlight/ld9040.c
---- a/drivers/video/backlight/ld9040.c~backlight-ld9040-use-spi_get_drvdata-and-spi_set_drvdata
-+++ a/drivers/video/backlight/ld9040.c
-@@ -755,7 +755,7 @@ static int ld9040_probe(struct spi_devic
- 		lcd->power = FB_BLANK_UNBLANK;
- 	}
+diff -puN drivers/video/backlight/lms283gf05.c~backlight-lms283gf05-use-spi_get_drvdata-and-spi_set_drvdata drivers/video/backlight/lms283gf05.c
+--- a/drivers/video/backlight/lms283gf05.c~backlight-lms283gf05-use-spi_get_drvdata-and-spi_set_drvdata
++++ a/drivers/video/backlight/lms283gf05.c
+@@ -180,7 +180,7 @@ static int lms283gf05_probe(struct spi_d
+ 	st->spi = spi;
+ 	st->ld = ld;
  
--	dev_set_drvdata(&spi->dev, lcd);
-+	spi_set_drvdata(spi, lcd);
+-	dev_set_drvdata(&spi->dev, st);
++	spi_set_drvdata(spi, st);
  
- 	dev_info(&spi->dev, "ld9040 panel driver has been probed.\n");
- 	return 0;
-@@ -770,7 +770,7 @@ out_free_regulator:
+ 	/* kick in the LCD */
+ 	if (pdata)
+@@ -192,7 +192,7 @@ static int lms283gf05_probe(struct spi_d
  
- static int ld9040_remove(struct spi_device *spi)
+ static int lms283gf05_remove(struct spi_device *spi)
  {
--	struct ld9040 *lcd = dev_get_drvdata(&spi->dev);
-+	struct ld9040 *lcd = spi_get_drvdata(spi);
+-	struct lms283gf05_state *st = dev_get_drvdata(&spi->dev);
++	struct lms283gf05_state *st = spi_get_drvdata(spi);
  
- 	ld9040_power(lcd, FB_BLANK_POWERDOWN);
- 	backlight_device_unregister(lcd->bd);
-@@ -783,7 +783,7 @@ static int ld9040_remove(struct spi_devi
- #if defined(CONFIG_PM)
- static int ld9040_suspend(struct spi_device *spi, pm_message_t mesg)
- {
--	struct ld9040 *lcd = dev_get_drvdata(&spi->dev);
-+	struct ld9040 *lcd = spi_get_drvdata(spi);
+ 	lcd_device_unregister(st->ld);
  
- 	dev_dbg(&spi->dev, "lcd->power = %d\n", lcd->power);
- 
-@@ -796,7 +796,7 @@ static int ld9040_suspend(struct spi_dev
- 
- static int ld9040_resume(struct spi_device *spi)
- {
--	struct ld9040 *lcd = dev_get_drvdata(&spi->dev);
-+	struct ld9040 *lcd = spi_get_drvdata(spi);
- 
- 	lcd->power = FB_BLANK_POWERDOWN;
- 
-@@ -810,7 +810,7 @@ static int ld9040_resume(struct spi_devi
- /* Power down all displays on reboot, poweroff or halt. */
- static void ld9040_shutdown(struct spi_device *spi)
- {
--	struct ld9040 *lcd = dev_get_drvdata(&spi->dev);
-+	struct ld9040 *lcd = spi_get_drvdata(spi);
- 
- 	ld9040_power(lcd, FB_BLANK_POWERDOWN);
- }
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
@@ -135,4 +108,5 @@ backlight-ams369fg06-use-bl_get_data-instead-of-dev_get_drvdata.patch
 backlight-corgi_lcd-use-bl_get_data-instead-of-dev_get_drvdata.patch
 backlight-tosa-use-bl_get_data-instead-of-dev_get_drvdata.patch
 backlight-omap1-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-corgi_lcd-use-lcd_get_data-instead-of-dev_get_drvdata.patch
 
