@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-aat2870-use-bl_get_data-instead-of-dev_get_drvdata.patch added to -mm tree
-Date: Fri, 21 Dec 2012 14:54:44 -0800
-Message-ID: <20121221225445.17B65100047@wpzn3.hot.corp.google.com>
+Subject: + backlight-corgi_lcd-use-bl_get_data-instead-of-dev_get_drvdata.patch added to -mm tree
+Date: Fri, 21 Dec 2012 14:54:51 -0800
+Message-ID: <20121221225451.EB7CA100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:42353 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750956Ab2LUWyq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 17:54:46 -0500
-Received: by mail-yh0-f73.google.com with SMTP id 47so530595yhr.2
-        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 14:54:45 -0800 (PST)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:60559 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750956Ab2LUWyw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 17:54:52 -0500
+Received: by mail-ye0-f201.google.com with SMTP id r11so531212yen.0
+        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 14:54:52 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: backlight: aat2870: use bl_get_data instead of dev_get_drvdata
+     Subject: backlight: corgi_lcd: use bl_get_data instead of dev_get_drvdata
 has been added to the -mm tree.  Its filename is
-     backlight-aat2870-use-bl_get_data-instead-of-dev_get_drvdata.patch
+     backlight-corgi_lcd-use-bl_get_data-instead-of-dev_get_drvdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: aat2870: use bl_get_data instead of dev_get_drvdata
+Subject: backlight: corgi_lcd: use bl_get_data instead of dev_get_drvdata
 
 Use the wrapper function for getting the driver data using
 backlight_device instead of using dev_get_drvdata with &bd->dev, so we can
@@ -44,21 +44,30 @@ Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/aat2870_bl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/backlight/corgi_lcd.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/backlight/aat2870_bl.c~backlight-aat2870-use-bl_get_data-instead-of-dev_get_drvdata drivers/video/backlight/aat2870_bl.c
---- a/drivers/video/backlight/aat2870_bl.c~backlight-aat2870-use-bl_get_data-instead-of-dev_get_drvdata
-+++ a/drivers/video/backlight/aat2870_bl.c
-@@ -74,7 +74,7 @@ static int aat2870_bl_get_brightness(str
+diff -puN drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-use-bl_get_data-instead-of-dev_get_drvdata drivers/video/backlight/corgi_lcd.c
+--- a/drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-use-bl_get_data-instead-of-dev_get_drvdata
++++ a/drivers/video/backlight/corgi_lcd.c
+@@ -391,7 +391,7 @@ static struct lcd_ops corgi_lcd_ops = {
  
- static int aat2870_bl_update_status(struct backlight_device *bd)
+ static int corgi_bl_get_intensity(struct backlight_device *bd)
  {
--	struct aat2870_bl_driver_data *aat2870_bl = dev_get_drvdata(&bd->dev);
-+	struct aat2870_bl_driver_data *aat2870_bl = bl_get_data(bd);
- 	struct aat2870_data *aat2870 =
- 			dev_get_drvdata(aat2870_bl->pdev->dev.parent);
- 	int brightness = bd->props.brightness;
+-	struct corgi_lcd *lcd = dev_get_drvdata(&bd->dev);
++	struct corgi_lcd *lcd = bl_get_data(bd);
+ 
+ 	return lcd->intensity;
+ }
+@@ -423,7 +423,7 @@ static int corgi_bl_set_intensity(struct
+ 
+ static int corgi_bl_update_status(struct backlight_device *bd)
+ {
+-	struct corgi_lcd *lcd = dev_get_drvdata(&bd->dev);
++	struct corgi_lcd *lcd = bl_get_data(bd);
+ 	int intensity = bd->props.brightness;
+ 
+ 	if (bd->props.power != FB_BLANK_UNBLANK)
 _
 
 Patches currently in -mm which might be from jg1.han@samsung.com are
