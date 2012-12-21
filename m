@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-fix-documentation-mei.patch added to -mm tree
-Date: Fri, 21 Dec 2012 13:59:29 -0800
-Message-ID: <20121221215930.2D22B82004A@wpzn4.hot.corp.google.com>
+Subject: + maintainers-remove-drivers-mmc-host-imxmmc.patch added to -mm tree
+Date: Fri, 21 Dec 2012 13:59:32 -0800
+Message-ID: <20121221215933.A6293200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:53503 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751647Ab2LUV7a (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 16:59:30 -0500
-Received: by mail-yh0-f73.google.com with SMTP id 47so526737yhr.0
-        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 13:59:30 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:56556 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751952Ab2LUV7f (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 16:59:35 -0500
+Received: by mail-ee0-f74.google.com with SMTP id t10so275352eei.1
+        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 13:59:34 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cesarb@cesarb.net, tomas.winkler@intel.com
+Cc: cesarb@cesarb.net, pisa@cmp.felk.cvut.cz, s.hauer@pengutronix.de
 
 
 The patch titled
-     Subject: MAINTAINERS: fix Documentation/mei/
+     Subject: MAINTAINERS: remove drivers/mmc/host/imxmmc.*
 has been added to the -mm tree.  Its filename is
-     maintainers-fix-documentation-mei.patch
+     maintainers-remove-drivers-mmc-host-imxmmc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Cesar Eduardo Barros <cesarb@cesarb.net>
-Subject: MAINTAINERS: fix Documentation/mei/
+Subject: MAINTAINERS: remove drivers/mmc/host/imxmmc.*
 
-The documentation was moved to Documentation/misc-devices/mei/ instead.
+This driver was removed by commit 6187fee ("mmc: remove imxmmc driver").
 
 Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
-Acked-by: Tomas Winkler <tomas.winkler@intel.com>
+Cc: Sascha Hauer <s.hauer@pengutronix.de>
+Acked-by: Pavel Pisa <pisa@cmp.felk.cvut.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-fix-documentation-mei MAINTAINERS
---- a/MAINTAINERS~maintainers-fix-documentation-mei
+diff -puN MAINTAINERS~maintainers-remove-drivers-mmc-host-imxmmc MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-drivers-mmc-host-imxmmc
 +++ a/MAINTAINERS
-@@ -4107,7 +4107,7 @@ L:	linux-kernel@vger.kernel.org
- S:	Supported
- F:	include/uapi/linux/mei.h
- F:	drivers/misc/mei/*
--F:	Documentation/mei/*
-+F:	Documentation/misc-devices/mei/*
+@@ -5053,12 +5053,6 @@ F:	Documentation/video4linux/meye.txt
+ F:	drivers/media/pci/meye/
+ F:	include/uapi/linux/meye.h
  
- IOC3 ETHERNET DRIVER
- M:	Ralf Baechle <ralf@linux-mips.org>
+-MOTOROLA IMX MMC/SD HOST CONTROLLER INTERFACE DRIVER
+-M:	Pavel Pisa <ppisa@pikron.com>
+-L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+-S:	Maintained
+-F:	drivers/mmc/host/imxmmc.*
+-
+ MOXA SMARTIO/INDUSTIO/INTELLIO SERIAL CARD
+ M:	Jiri Slaby <jirislaby@gmail.com>
+ S:	Maintained
 _
 
 Patches currently in -mm which might be from cesarb@cesarb.net are
