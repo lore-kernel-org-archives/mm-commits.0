@@ -1,121 +1,194 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-corgi_lcd-use-lcd_get_data-instead-of-dev_get_drvdata.patch added to -mm tree
-Date: Fri, 21 Dec 2012 14:54:58 -0800
-Message-ID: <20121221225459.1D6E9100047@wpzn3.hot.corp.google.com>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Wed, 02 Jan 2013 12:07:00 -0800
+Message-ID: <20130102200702.EC60382004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:35466 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751802Ab2LUWzA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Dec 2012 17:55:00 -0500
-Received: by mail-qc0-f201.google.com with SMTP id a6so530613qch.4
-        for <mm-commits@vger.kernel.org>; Fri, 21 Dec 2012 14:54:59 -0800 (PST)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:42219 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752630Ab3ABUHF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jan 2013 15:07:05 -0500
+Received: by mail-vc0-f201.google.com with SMTP id p1so1536727vcq.2
+        for <mm-commits@vger.kernel.org>; Wed, 02 Jan 2013 12:07:04 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jg1.han@samsung.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: backlight: corgi_lcd: use lcd_get_data instead of dev_get_drvdata
-has been added to the -mm tree.  Its filename is
-     backlight-corgi_lcd-use-lcd_get_data-instead-of-dev_get_drvdata.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Jingoo Han <jg1.han@samsung.com>
-Subject: backlight: corgi_lcd: use lcd_get_data instead of dev_get_drvdata
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-Use the wrapper function for getting the driver data using lcd_device
-instead of using dev_get_drvdata with &ld->dev, so we can directly pass a
-struct lcd_device.
-
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/corgi_lcd.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/x86/Kconfig                     |    3 ---
+ drivers/md/dm-raid1.c                |    5 -----
+ drivers/md/dm-snap.c                 |   13 -------------
+ drivers/md/dm-thin.c                 |    4 ----
+ drivers/pinctrl/pinctrl-exynos5440.c |    4 ----
+ drivers/pinctrl/pinctrl-samsung.c    |    4 ----
+ 6 files changed, 33 deletions(-)
 
-diff -puN drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-use-lcd_get_data-instead-of-dev_get_drvdata drivers/video/backlight/corgi_lcd.c
---- a/drivers/video/backlight/corgi_lcd.c~backlight-corgi_lcd-use-lcd_get_data-instead-of-dev_get_drvdata
-+++ a/drivers/video/backlight/corgi_lcd.c
-@@ -337,7 +337,7 @@ static void corgi_lcd_power_off(struct c
+diff -puN arch/x86/Kconfig~linux-next-git-rejects arch/x86/Kconfig
+--- a/arch/x86/Kconfig~linux-next-git-rejects
++++ a/arch/x86/Kconfig
+@@ -112,10 +112,7 @@ config X86
+ 	select MODULES_USE_ELF_REL if X86_32
+ 	select MODULES_USE_ELF_RELA if X86_64
+ 	select CLONE_BACKWARDS if X86_32
+-<<<<<<< HEAD
+-=======
+ 	select ARCH_USE_BUILTIN_BSWAP
+->>>>>>> linux-next/akpm-base
+ 	select GENERIC_SIGALTSTACK
  
- static int corgi_lcd_set_mode(struct lcd_device *ld, struct fb_videomode *m)
+ config INSTRUCTION_DECODER
+diff -puN drivers/pinctrl/pinctrl-exynos5440.c~linux-next-git-rejects drivers/pinctrl/pinctrl-exynos5440.c
+--- a/drivers/pinctrl/pinctrl-exynos5440.c~linux-next-git-rejects
++++ a/drivers/pinctrl/pinctrl-exynos5440.c
+@@ -117,11 +117,7 @@ struct exynos5440_pinctrl_priv_data {
+ };
+ 
+ /* list of all possible config options supported */
+-<<<<<<< HEAD
+-static struct pin_config {
+-=======
+ static const struct pin_config {
+->>>>>>> linux-next/akpm-base
+ 	char		*prop_cfg;
+ 	unsigned int	cfg_type;
+ } pcfgs[] = {
+diff -puN drivers/pinctrl/pinctrl-samsung.c~linux-next-git-rejects drivers/pinctrl/pinctrl-samsung.c
+--- a/drivers/pinctrl/pinctrl-samsung.c~linux-next-git-rejects
++++ a/drivers/pinctrl/pinctrl-samsung.c
+@@ -37,11 +37,7 @@
+ #define FSUFFIX_LEN		sizeof(FUNCTION_SUFFIX)
+ 
+ /* list of all possible config options supported */
+-<<<<<<< HEAD
+-static struct pin_config {
+-=======
+ static const struct pin_config {
+->>>>>>> linux-next/akpm-base
+ 	char		*prop_cfg;
+ 	unsigned int	cfg_type;
+ } pcfgs[] = {
+diff -puN drivers/md/dm-raid1.c~linux-next-git-rejects drivers/md/dm-raid1.c
+--- a/drivers/md/dm-raid1.c~linux-next-git-rejects
++++ a/drivers/md/dm-raid1.c
+@@ -1183,15 +1183,10 @@ static int mirror_map(struct dm_target *
+ 	if (unlikely(!m))
+ 		return -EIO;
+ 
+-<<<<<<< HEAD
+-	dm_bio_record(&bio_record->details, bio);
+-	bio_record->m = m;
+-=======
+ 	read_record = mempool_alloc(ms->read_record_pool, GFP_NOIO);
+ 	dm_bio_record(&read_record->details, bio);
+ 	map_context->ptr = read_record;
+ 	read_record->m = m;
+->>>>>>> linux-next/akpm-base
+ 
+ 	map_bio(m, bio);
+ 
+diff -puN drivers/md/dm-snap.c~linux-next-git-rejects drivers/md/dm-snap.c
+--- a/drivers/md/dm-snap.c~linux-next-git-rejects
++++ a/drivers/md/dm-snap.c
+@@ -198,18 +198,8 @@ static void init_tracked_chunk(struct bi
+ 
+ static bool is_bio_tracked(struct bio *bio)
  {
--	struct corgi_lcd *lcd = dev_get_drvdata(&ld->dev);
-+	struct corgi_lcd *lcd = lcd_get_data(ld);
- 	int mode = CORGI_LCD_MODE_QVGA;
+-<<<<<<< HEAD
+-	struct dm_snap_tracked_chunk *c = dm_per_bio_data(bio, sizeof(struct dm_snap_tracked_chunk));
+-	return !hlist_unhashed(&c->node);
+-}
+-
+-static void track_chunk(struct dm_snapshot *s, struct bio *bio, chunk_t chunk)
+-{
+-	struct dm_snap_tracked_chunk *c = dm_per_bio_data(bio, sizeof(struct dm_snap_tracked_chunk));
+-=======
+ 	struct dm_snap_tracked_chunk *c = mempool_alloc(s->tracked_chunk_pool,
+ 							GFP_NOIO);
+->>>>>>> linux-next/akpm-base
  
- 	if (m->xres == 640 || m->xres == 480)
-@@ -364,7 +364,7 @@ static int corgi_lcd_set_mode(struct lcd
+ 	c->chunk = chunk;
  
- static int corgi_lcd_set_power(struct lcd_device *ld, int power)
- {
--	struct corgi_lcd *lcd = dev_get_drvdata(&ld->dev);
-+	struct corgi_lcd *lcd = lcd_get_data(ld);
+@@ -217,11 +207,8 @@ static void track_chunk(struct dm_snapsh
+ 	hlist_add_head(&c->node,
+ 		       &s->tracked_chunk_hash[DM_TRACKED_CHUNK_HASH(chunk)]);
+ 	spin_unlock_irq(&s->tracked_chunk_lock);
+-<<<<<<< HEAD
+-=======
  
- 	if (POWER_IS_ON(power) && !POWER_IS_ON(lcd->power))
- 		corgi_lcd_power_on(lcd);
-@@ -378,7 +378,7 @@ static int corgi_lcd_set_power(struct lc
- 
- static int corgi_lcd_get_power(struct lcd_device *ld)
- {
--	struct corgi_lcd *lcd = dev_get_drvdata(&ld->dev);
-+	struct corgi_lcd *lcd = lcd_get_data(ld);
- 
- 	return lcd->power;
+ 	return c;
+->>>>>>> linux-next/akpm-base
  }
+ 
+ static void stop_tracking_chunk(struct dm_snapshot *s, struct bio *bio)
+diff -puN drivers/md/dm-thin.c~linux-next-git-rejects drivers/md/dm-thin.c
+--- a/drivers/md/dm-thin.c~linux-next-git-rejects
++++ a/drivers/md/dm-thin.c
+@@ -374,11 +374,7 @@ static void inc_all_io_entry(struct pool
+ 	if (bio->bi_rw & REQ_DISCARD)
+ 		return;
+ 
+-<<<<<<< HEAD
+-	h = dm_per_bio_data(bio, sizeof(struct dm_thin_endio_hook));
+-=======
+ 	h = dm_get_mapinfo(bio)->ptr;
+->>>>>>> linux-next/akpm-base
+ 	h->all_io_entry = dm_deferred_entry_inc(pool->all_io_ds);
+ }
+ 
 _
 
-Patches currently in -mm which might be from jg1.han@samsung.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-backlight-add-lms501kf03-lcd-driver.patch
+ipc-add-sysctl-to-specify-desired-next-object-id.patch
+ipc-message-queue-receive-cleanup.patch
+ipc-convert-prepare_copy-from-macro-to-function.patch
+rtc-add-rtc-driver-for-tps6586x-fix.patch
+linux-next.patch
+make-my-i386-build-work.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
+mm.patch
+mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
+mm-hugetlbc-convert-to-pr_foo.patch
+cma-make-putback_lru_pages-call-conditional-fix.patch
+mm-vmscan-clean-up-get_scan_count-fix.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
+mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
+mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
+cma-use-unsigned-type-for-count-argument-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
 backlight-add-lms501kf03-lcd-driver-fix.patch
-backlight-ld9040-use-sleep-instead-of-delay.patch
-backlight-ld9040-remove-unnecessary-null-deference-check.patch
-backlight-ld9040-replace-efault-with-einval.patch
-backlight-ld9040-remove-redundant-return-variables.patch
-backlight-ld9040-reorder-inclusions-of-linux-xxxh.patch
-backlight-s6e63m0-use-lowercase-names-of-structs.patch
-backlight-s6e63m0-use-sleep-instead-of-delay.patch
-backlight-s6e63m0-remove-unnecessary-null-deference-check.patch
-backlight-s6e63m0-replace-efault-with-einval.patch
-backlight-s6e63m0-remove-redundant-variable-before_power.patch
-backlight-s6e63m0-reorder-inclusions-of-linux-xxxh.patch
-backlight-ams369fg06-use-sleep-instead-of-delay.patch
-backlight-ams369fg06-remove-unnecessary-null-deference-check.patch
-backlight-ams369fg06-replace-efault-with-einval.patch
-backlight-ams369fg06-remove-redundant-variable-before_power.patch
-backlight-ams369fg06-reorder-inclusions-of-linux-xxxh.patch
-backlight-l4f00242t03-use-spi_get_drvdata-and-spi_set_drvdata.patch
-backlight-ld9040-use-spi_get_drvdata-and-spi_set_drvdata.patch
-backlight-s6e63m0-use-spi_get_drvdata-and-spi_set_drvdata.patch
-backlight-ltv350qv-use-spi_get_drvdata-and-spi_set_drvdata.patch
-backlight-tdo24m-use-spi_get_drvdata-and-spi_set_drvdata.patch
-backlight-lms283gf05-use-spi_get_drvdata-and-spi_set_drvdata.patch
-backlight-ams369fg06-use-spi_get_drvdata-and-spi_set_drvdata.patch
-backlight-vgg2432a4-use-spi_get_drvdata-and-spi_set_drvdata.patch
-backlight-tosa-use-spi_get_drvdata-and-spi_set_drvdata.patch
-backlight-corgi_lcd-use-spi_get_drvdata-and-spi_set_drvdata.patch
-backlight-lms501kf03-use-spi_get_drvdata-and-spi_set_drvdata.patch
-backlight-aat2870-use-bl_get_data-instead-of-dev_get_drvdata.patch
-pwm_backlight-use-bl_get_data-instead-of-dev_get_drvdata.patch
-backlight-ams369fg06-use-bl_get_data-instead-of-dev_get_drvdata.patch
-backlight-corgi_lcd-use-bl_get_data-instead-of-dev_get_drvdata.patch
-backlight-tosa-use-bl_get_data-instead-of-dev_get_drvdata.patch
-backlight-omap1-use-bl_get_data-instead-of-dev_get_drvdata.patch
-backlight-corgi_lcd-use-lcd_get_data-instead-of-dev_get_drvdata.patch
+backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix-fix.patch
+rtc-max77686-add-maxim-77686-driver-fix.patch
+rtc-pcf8523-add-low-battery-voltage-support-fix.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module-fix.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
