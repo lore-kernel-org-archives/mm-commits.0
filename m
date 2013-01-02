@@ -1,83 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: + synchro-test-module-document-default-load-and-interval-values.patch added to -mm tree
-Date: Wed, 02 Jan 2013 14:34:25 -0800
-Message-ID: <20130102223426.83EA920004E@hpza10.eem.corp.google.com>
+Subject: [folded-merged] mutex-subsystem-synchro-test-module-fix.patch removed from -mm tree
+Date: Wed, 02 Jan 2013 14:36:48 -0800
+Message-ID: <20130102223648.7A57D100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f201.google.com ([209.85.215.201]:41278 "EHLO
-	mail-ea0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752743Ab3ABWe3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jan 2013 17:34:29 -0500
-Received: by mail-ea0-f201.google.com with SMTP id b14so909941eaa.2
-        for <mm-commits@vger.kernel.org>; Wed, 02 Jan 2013 14:34:27 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:41398 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752743Ab3ABWgt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jan 2013 17:36:49 -0500
+Received: by mail-gg0-f202.google.com with SMTP id k1so1554749ggn.1
+        for <mm-commits@vger.kernel.org>; Wed, 02 Jan 2013 14:36:49 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: walken@google.com, dhowells@redhat.com, riel@redhat.com
+To: akpm@linux-foundation.org, bunk@stusta.de, dhowells@redhat.com, mingo@elte.hu, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: synchro-test module: document default load and interval values
-has been added to the -mm tree.  Its filename is
-     synchro-test-module-document-default-load-and-interval-values.patch
+     Subject: mutex-subsystem-synchro-test-module-fix
+has been removed from the -mm tree.  Its filename was
+     mutex-subsystem-synchro-test-module-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mutex-subsystem-synchro-test-module.patch
 
 ------------------------------------------------------
-From: Michel Lespinasse <walken@google.com>
-Subject: synchro-test module: document default load and interval values
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mutex-subsystem-synchro-test-module-fix
 
-The synchro-test module default parameters are to keep the lock for 2uS
-and wait 2uS between release and the next attempted acquisition.  Having
-the documentation wrong on this point was quite confusing !
+remove smp_lock.h inclusion
 
-Signed-off-by: Michel Lespinasse <walken@google.com>
+Cc: Adrian Bunk <bunk@stusta.de>
 Cc: David Howells <dhowells@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/synchro-test.txt |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/synchro-test.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN Documentation/synchro-test.txt~synchro-test-module-document-default-load-and-interval-values Documentation/synchro-test.txt
---- a/Documentation/synchro-test.txt~synchro-test-module-document-default-load-and-interval-values
-+++ a/Documentation/synchro-test.txt
-@@ -42,12 +42,12 @@ The available arguments are:
- 
-  (*) load=N
- 
--	Each thread delays for N uS whilst holding the lock. The default is 0.
-+	Each thread delays for N uS whilst holding the lock. The default is 2.
- 
-  (*) interval=N
- 
- 	Each thread delays for N uS whilst not holding the lock. The default
--	is 0.
-+	is 2.
- 
-  (*) do_sched=1
- 
+diff -puN kernel/synchro-test.c~mutex-subsystem-synchro-test-module-fix kernel/synchro-test.c
+--- a/kernel/synchro-test.c~mutex-subsystem-synchro-test-module-fix
++++ a/kernel/synchro-test.c
+@@ -26,7 +26,6 @@
+ #include <linux/init.h>
+ #include <asm/atomic.h>
+ #include <linux/personality.h>
+-#include <linux/smp_lock.h>
+ #include <linux/delay.h>
+ #include <linux/timer.h>
+ #include <linux/completion.h>
 _
 
-Patches currently in -mm which might be from walken@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+ipc-add-sysctl-to-specify-desired-next-object-id.patch
+ipc-message-queue-receive-cleanup.patch
+ipc-convert-prepare_copy-from-macro-to-function.patch
+rtc-add-rtc-driver-for-tps6586x-fix.patch
 linux-next.patch
-mtd-mtd_nandecctest-use-prandom_bytes-instead-of-get_random_bytes.patch
-mtd-mtd_oobtest-convert-to-use-prandom-library.patch
-mtd-mtd_pagetest-convert-to-use-prandom-library.patch
-mtd-mtd_speedtest-use-prandom_bytes.patch
-mtd-mtd_subpagetest-convert-to-use-prandom-library.patch
-mtd-mtd_stresstest-use-prandom_bytes.patch
-synchro-test-module-add-spinlock-test.patch
-synchro-test-module-document-default-load-and-interval-values.patch
+make-my-i386-build-work.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
+bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
+i-need-old-gcc.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
+mm.patch
+mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
+mm-hugetlbc-convert-to-pr_foo.patch
+cma-make-putback_lru_pages-call-conditional-fix.patch
+mm-vmscan-clean-up-get_scan_count-fix.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
+mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
+mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+backlight-add-lms501kf03-lcd-driver-fix.patch
+backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix-fix.patch
+rtc-max77686-add-maxim-77686-driver-fix.patch
+rtc-pcf8523-add-low-battery-voltage-support-fix.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
