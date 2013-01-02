@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-vt8500c-correct-handling-of-cr_24h-bitfield.patch added to -mm tree
-Date: Wed, 02 Jan 2013 14:44:18 -0800
-Message-ID: <20130102224419.75C2120004E@hpza10.eem.corp.google.com>
+Subject: + printk-fix-incorrect-length-from-print_time-when-seconds-99999.patch added to -mm tree
+Date: Wed, 02 Jan 2013 15:29:42 -0800
+Message-ID: <20130102232943.2F08620004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f201.google.com ([74.125.82.201]:63133 "EHLO
-	mail-we0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752753Ab3ABWoV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jan 2013 17:44:21 -0500
-Received: by mail-we0-f201.google.com with SMTP id t11so909481wey.4
-        for <mm-commits@vger.kernel.org>; Wed, 02 Jan 2013 14:44:20 -0800 (PST)
+Received: from mail-fa0-f73.google.com ([209.85.161.73]:49900 "EHLO
+	mail-fa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752711Ab3ABX3q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jan 2013 18:29:46 -0500
+Received: by mail-fa0-f73.google.com with SMTP id v1so911281fav.0
+        for <mm-commits@vger.kernel.org>; Wed, 02 Jan 2013 15:29:44 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linux@prisktech.co.nz, froese@gmx.de, stable@vger.kernel.org
+Cc: roland@purestorage.com, gregkh@linuxfoundation.org, joe@perches.com, s.munaut@whatever-company.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-vt8500.c: correct handling of CR_24H bitfield
+     Subject: printk: fix incorrect length from print_time() when seconds > 99999
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-vt8500c-correct-handling-of-cr_24h-bitfield.patch
+     printk-fix-incorrect-length-from-print_time-when-seconds-99999.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,49 +33,71 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tony Prisk <linux@prisktech.co.nz>
-Subject: drivers/rtc/rtc-vt8500.c: correct handling of CR_24H bitfield
+From: Roland Dreier <roland@purestorage.com>
+Subject: printk: fix incorrect length from print_time() when seconds > 99999
 
-Control register bitfield for 12H/24H mode is handled incorrectly. 
-Setting CR_24H actually enables 12H mode.  This patch renames the define
-and changes the initialization code to correctly set 24H mode.
+print_prefix() passes a NULL buf to print_time() to get the length of the
+time prefix; when printk times are enabled, the current code just returns
+the constant 15, which matches the format "[%5lu.%06lu] " used to print
+the time value.  However, this is obviously incorrect when the whole
+seconds part of the time gets beyond 5 digits (100000 seconds is a bit
+more than a day of uptime).
 
-Signed-off-by: Tony Prisk <linux@prisktech.co.nz>
-Cc: Edgar Toernig <froese@gmx.de>
+The simple fix is to use snprintf(NULL, 0, ...) to calculate the actual
+length of the time prefix.  This could be micro-optimized but it seems
+better to have simpler, more readable code here.
+
+The bug leads to the syslog system call miscomputing which messages fit
+into the userspace buffer.  If there are enough messages to fill
+log_buf_len and some have a timestamp >= 100000, dmesg may fail with:
+
+    # dmesg
+    klogctl: Bad address
+
+When this happens, strace shows that the failure is indeed EFAULT due to
+the kernel mistakenly accessing past the end of dmesg's buffer, since
+dmesg asks the kernel how big a buffer it needs, allocates a bit more, and
+then gets an error when it asks the kernel to fill it:
+
+    syslog(0xa, 0, 0)                       = 1048576
+    mmap(NULL, 1052672, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7fa4d25d2000
+    syslog(0x3, 0x7fa4d25d2010, 0x100008)   = -1 EFAULT (Bad address)
+
+As far as I can see, the bug has been there as long as print_time(), which
+comes from 084681d14e42 ("printk: flush continuation lines immediately to
+console") in 3.5-rc5.
+
+Signed-off-by: Roland Dreier <roland@purestorage.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Joe Perches <joe@perches.com>
+Cc: Sylvain Munaut <s.munaut@whatever-company.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-vt8500.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/printk.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-vt8500.c~drivers-rtc-rtc-vt8500c-correct-handling-of-cr_24h-bitfield drivers/rtc/rtc-vt8500.c
---- a/drivers/rtc/rtc-vt8500.c~drivers-rtc-rtc-vt8500c-correct-handling-of-cr_24h-bitfield
-+++ a/drivers/rtc/rtc-vt8500.c
-@@ -70,7 +70,7 @@
- 				| ALARM_SEC_BIT)
+diff -puN kernel/printk.c~printk-fix-incorrect-length-from-print_time-when-seconds-99999 kernel/printk.c
+--- a/kernel/printk.c~printk-fix-incorrect-length-from-print_time-when-seconds-99999
++++ a/kernel/printk.c
+@@ -871,10 +871,11 @@ static size_t print_time(u64 ts, char *b
+ 	if (!printk_time)
+ 		return 0;
  
- #define VT8500_RTC_CR_ENABLE	(1 << 0)	/* Enable RTC */
--#define VT8500_RTC_CR_24H	(1 << 1)	/* 24h time format */
-+#define VT8500_RTC_CR_12H	(1 << 1)	/* 12h time format */
- #define VT8500_RTC_CR_SM_ENABLE	(1 << 2)	/* Enable periodic irqs */
- #define VT8500_RTC_CR_SM_SEC	(1 << 3)	/* 0: 1Hz/60, 1: 1Hz */
- #define VT8500_RTC_CR_CALIB	(1 << 4)	/* Enable calibration */
-@@ -247,7 +247,7 @@ static int __devinit vt8500_rtc_probe(st
- 	}
++	rem_nsec = do_div(ts, 1000000000);
++
+ 	if (!buf)
+-		return 15;
++		return snprintf(NULL, 0, "[%5lu.000000] ", (unsigned long)ts);
  
- 	/* Enable RTC and set it to 24-hour mode */
--	writel(VT8500_RTC_CR_ENABLE | VT8500_RTC_CR_24H,
-+	writel(VT8500_RTC_CR_ENABLE,
- 	       vt8500_rtc->regbase + VT8500_RTC_CR);
- 
- 	vt8500_rtc->rtc = rtc_device_register("vt8500-rtc", &pdev->dev,
+-	rem_nsec = do_div(ts, 1000000000);
+ 	return sprintf(buf, "[%5lu.%06lu] ",
+ 		       (unsigned long)ts, rem_nsec / 1000);
+ }
 _
 
-Patches currently in -mm which might be from linux@prisktech.co.nz are
+Patches currently in -mm which might be from roland@purestorage.com are
 
-maintainers-fix-drivers-rtc-rtc-vt8500c.patch
-drivers-rtc-rtc-vt8500c-correct-handling-of-cr_24h-bitfield.patch
-drivers-rtc-rtc-vt8500c-fix-handling-of-data-passed-in-struct-rtc_time.patch
-linux-next.patch
+printk-fix-incorrect-length-from-print_time-when-seconds-99999.patch
 
