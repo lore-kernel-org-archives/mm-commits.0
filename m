@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + compiler-gcc4h-reorder-macros-based-upon-gcc-ver.patch added to -mm tree
-Date: Wed, 02 Jan 2013 13:47:54 -0800
-Message-ID: <20130102214755.99FB2200059@hpza10.eem.corp.google.com>
+Subject: + compiler-gcc4h-bugh-remove-duplicate-macros.patch added to -mm tree
+Date: Wed, 02 Jan 2013 13:48:06 -0800
+Message-ID: <20130102214807.48F2A100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:49078 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752747Ab3ABVr6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jan 2013 16:47:58 -0500
-Received: by mail-fa0-f74.google.com with SMTP id t1so907488fae.5
-        for <mm-commits@vger.kernel.org>; Wed, 02 Jan 2013 13:47:57 -0800 (PST)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:63818 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752747Ab3ABVsJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jan 2013 16:48:09 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z10so1236985ghb.3
+        for <mm-commits@vger.kernel.org>; Wed, 02 Jan 2013 13:48:08 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: daniel.santos@pobox.com, ak@linux.intel.com, bp@alien8.de, joe@perches.com, 
 
 
 The patch titled
-     Subject: compiler-gcc4.h: Reorder macros based upon gcc ver
+     Subject: compiler{,-gcc4}.h, bug.h: Remove duplicate macros
 has been added to the -mm tree.  Its filename is
-     compiler-gcc4h-reorder-macros-based-upon-gcc-ver.patch
+     compiler-gcc4h-bugh-remove-duplicate-macros.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Daniel Santos <daniel.santos@pobox.com>
-Subject: compiler-gcc4.h: Reorder macros based upon gcc ver
+Subject: compiler{,-gcc4}.h, bug.h: Remove duplicate macros
 
-This helps to keep the file from getting confusing, removes one duplicate
-version check and should encourage future editors to put new macros where
-they belong.
+__linktime_error() does the same thing as __compiletime_error() and is
+only used in bug.h.  Since the macro defines a function attribute that
+will cause a failure at compile-time (not link-time), it makes more sense
+to keep __compiletime_error(), which is also neatly mated with
+__compiletime_warning().
 
 Signed-off-by: Daniel Santos <daniel.santos@pobox.com>
 Acked-by: David Rientjes <rientjes@google.com>
@@ -50,60 +52,48 @@ Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc4.h |   20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
+ include/linux/bug.h           |    2 +-
+ include/linux/compiler-gcc4.h |    2 --
+ include/linux/compiler.h      |    3 ---
+ 3 files changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN include/linux/compiler-gcc4.h~compiler-gcc4h-reorder-macros-based-upon-gcc-ver include/linux/compiler-gcc4.h
---- a/include/linux/compiler-gcc4.h~compiler-gcc4h-reorder-macros-based-upon-gcc-ver
+diff -puN include/linux/bug.h~compiler-gcc4h-bugh-remove-duplicate-macros include/linux/bug.h
+--- a/include/linux/bug.h~compiler-gcc4h-bugh-remove-duplicate-macros
++++ a/include/linux/bug.h
+@@ -74,7 +74,7 @@ extern int __build_bug_on_failed;
+ #define BUILD_BUG()						\
+ 	do {							\
+ 		extern void __build_bug_failed(void)		\
+-			__linktime_error("BUILD_BUG failed");	\
++			__compiletime_error("BUILD_BUG failed");\
+ 		__build_bug_failed();				\
+ 	} while (0)
+ 
+diff -puN include/linux/compiler-gcc4.h~compiler-gcc4h-bugh-remove-duplicate-macros include/linux/compiler-gcc4.h
+--- a/include/linux/compiler-gcc4.h~compiler-gcc4h-bugh-remove-duplicate-macros
 +++ a/include/linux/compiler-gcc4.h
-@@ -13,6 +13,10 @@
- #define __must_check 		__attribute__((warn_unused_result))
- #define __compiler_offsetof(a,b) __builtin_offsetof(a,b)
+@@ -33,8 +33,6 @@
+    the kernel context */
+ #define __cold			__attribute__((__cold__))
  
-+#if __GNUC_MINOR__ > 0
-+# define __compiletime_object_size(obj) __builtin_object_size(obj, 0)
-+#endif
-+
- #if __GNUC_MINOR__ >= 3
- /* Mark functions as cold. gcc will assume any path leading to a call
-    to them will be unlikely.  This means a lot of manual unlikely()s
-@@ -33,6 +37,12 @@
- 
+-#define __linktime_error(message) __attribute__((__error__(message)))
+-
  #define __UNIQUE_ID(prefix) __PASTE(__PASTE(__UNIQUE_ID_, prefix), __COUNTER__)
  
-+#ifndef __CHECKER__
-+# define __compiletime_warning(message) __attribute__((warning(message)))
-+# define __compiletime_error(message) __attribute__((error(message)))
-+#endif /* __CHECKER__ */
-+#endif /* __GNUC_MINOR__ >= 3 */
-+
- #if __GNUC_MINOR__ >= 5
- /*
-  * Mark a position in code as unreachable.  This can be used to
-@@ -48,8 +58,7 @@
- /* Mark a function definition as prohibited from being cloned. */
- #define __noclone	__attribute__((__noclone__))
- 
--#endif
--#endif
-+#endif /* __GNUC_MINOR__ >= 5 */
- 
- #if __GNUC_MINOR__ >= 6
- /*
-@@ -58,13 +67,6 @@
- #define __visible __attribute__((externally_visible))
+ #ifndef __CHECKER__
+diff -puN include/linux/compiler.h~compiler-gcc4h-bugh-remove-duplicate-macros include/linux/compiler.h
+--- a/include/linux/compiler.h~compiler-gcc4h-bugh-remove-duplicate-macros
++++ a/include/linux/compiler.h
+@@ -308,9 +308,6 @@ void ftrace_likely_update(struct ftrace_
+ #ifndef __compiletime_error
+ # define __compiletime_error(message)
  #endif
- 
--#if __GNUC_MINOR__ > 0
--#define __compiletime_object_size(obj) __builtin_object_size(obj, 0)
+-#ifndef __linktime_error
+-# define __linktime_error(message)
 -#endif
--#if __GNUC_MINOR__ >= 3 && !defined(__CHECKER__)
--#define __compiletime_warning(message) __attribute__((warning(message)))
--#define __compiletime_error(message) __attribute__((error(message)))
--#endif
- 
- #ifdef CONFIG_ARCH_USE_BUILTIN_BSWAP
- #if __GNUC_MINOR__ >= 4
+ /*
+  * Prevent the compiler from merging or refetching accesses.  The compiler
+  * is also forbidden from reordering successive instances of ACCESS_ONCE(),
 _
 
 Patches currently in -mm which might be from daniel.santos@pobox.com are
