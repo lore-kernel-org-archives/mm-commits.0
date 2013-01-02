@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + backlight-lm3649_backlight-remove-ret-=-eio-at-error-paths-of-probe.patch added to -mm tree
-Date: Wed, 02 Jan 2013 13:31:26 -0800
-Message-ID: <20130102213127.0FF1F20004E@hpza10.eem.corp.google.com>
+Subject: + compiler-gcch-add-gcc-recommended-gcc_version-macro.patch added to -mm tree
+Date: Wed, 02 Jan 2013 13:47:58 -0800
+Message-ID: <20130102214759.91CE720004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:53164 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752747Ab3ABVb3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jan 2013 16:31:29 -0500
-Received: by mail-wi0-f202.google.com with SMTP id hn17so907031wib.3
-        for <mm-commits@vger.kernel.org>; Wed, 02 Jan 2013 13:31:28 -0800 (PST)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:37720 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752747Ab3ABVsD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Jan 2013 16:48:03 -0500
+Received: by mail-we0-f202.google.com with SMTP id t57so907317wey.1
+        for <mm-commits@vger.kernel.org>; Wed, 02 Jan 2013 13:48:01 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: devendra.aaru@gmail.com, daniel.jeong@ti.com, gshark.jeong@gmail.com, jg1.han@samsung.com
+Cc: daniel.santos@pobox.com, ak@linux.intel.com, bp@alien8.de, joe@perches.com, josh@joshtriplett.org, paul.gortmaker@windriver.com, rientjes@google.com
 
 
 The patch titled
-     Subject: drivers/video/backlight/lm3639_bl.c: remove ret = -EIO at error paths of probe
+     Subject: compiler-gcc.h: Add gcc-recommended GCC_VERSION macro
 has been added to the -mm tree.  Its filename is
-     backlight-lm3649_backlight-remove-ret-=-eio-at-error-paths-of-probe.patch
+     compiler-gcch-add-gcc-recommended-gcc_version-macro.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,64 +33,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Devendra Naga <devendra.aaru@gmail.com>
-Subject: drivers/video/backlight/lm3639_bl.c: remove ret = -EIO at error paths of probe
+From: Daniel Santos <daniel.santos@pobox.com>
+Subject: compiler-gcc.h: Add gcc-recommended GCC_VERSION macro
 
-The APIs are returning correctly the err codes, no need to assign -EIO
-to the ret again.
+Throughout compiler*.h, many version checks are made.  These can be
+simplified by using the macro that gcc's documentation recommends. 
+However, my primary reason for adding this is that I need bug-check macros
+that are enabled at certain gcc versions and it's cleaner to use this
+macro than the tradition method:
 
-Signed-off-by: Devendra Naga <devendra.aaru@gmail.com>
-Acked-by: Daniel Jeong <daniel.jeong@ti.com>
-Cc: G.Shark Jeong <gshark.jeong@gmail.com>
-Acked-by: Jingoo Han <jg1.han@samsung.com>
+if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ => 2)
+
+If you add patch level, it gets this ugly:
+
+if __GNUC__ > 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ > 2 || \
+   __GNUC_MINOR__ == 2 __GNUC_PATCHLEVEL__ >= 1))
+
+As opposed to:
+
+if GCC_VERSION >= 40201
+
+While having separate headers for gcc 3 & 4 eliminates some of this
+verbosity, they can still be cleaned up by this.
+
+See also:
+http://gcc.gnu.org/onlinedocs/cpp/Common-Predefined-Macros.html
+
+Signed-off-by: Daniel Santos <daniel.santos@pobox.com>
+Acked-by: Borislav Petkov <bp@alien8.de>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Josh Triplett <josh@joshtriplett.org>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/lm3639_bl.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ include/linux/compiler-gcc.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/video/backlight/lm3639_bl.c~backlight-lm3649_backlight-remove-ret-=-eio-at-error-paths-of-probe drivers/video/backlight/lm3639_bl.c
---- a/drivers/video/backlight/lm3639_bl.c~backlight-lm3649_backlight-remove-ret-=-eio-at-error-paths-of-probe
-+++ a/drivers/video/backlight/lm3639_bl.c
-@@ -350,14 +350,13 @@ static int lm3639_probe(struct i2c_clien
- 				      &lm3639_bled_ops, &props);
- 	if (IS_ERR(pchip->bled)) {
- 		dev_err(&client->dev, "fail : backlight register\n");
--		ret = -EIO;
-+		ret = PTR_ERR(pchip->bled);
- 		goto err_out;
- 	}
+diff -puN include/linux/compiler-gcc.h~compiler-gcch-add-gcc-recommended-gcc_version-macro include/linux/compiler-gcc.h
+--- a/include/linux/compiler-gcc.h~compiler-gcch-add-gcc-recommended-gcc_version-macro
++++ a/include/linux/compiler-gcc.h
+@@ -5,6 +5,9 @@
+ /*
+  * Common definitions for all gcc versions go here.
+  */
++#define GCC_VERSION (__GNUC__ * 10000 \
++		   + __GNUC_MINOR__ * 100 \
++		   + __GNUC_PATCHLEVEL__)
  
- 	ret = device_create_file(&(pchip->bled->dev), &dev_attr_bled_mode);
- 	if (ret < 0) {
- 		dev_err(&client->dev, "failed : add sysfs entries\n");
--		ret = -EIO;
- 		goto err_bled_mode;
- 	}
  
-@@ -369,7 +368,6 @@ static int lm3639_probe(struct i2c_clien
- 				    &client->dev, &pchip->cdev_flash);
- 	if (ret < 0) {
- 		dev_err(&client->dev, "fail : flash register\n");
--		ret = -EIO;
- 		goto err_flash;
- 	}
- 
-@@ -381,7 +379,6 @@ static int lm3639_probe(struct i2c_clien
- 				    &client->dev, &pchip->cdev_torch);
- 	if (ret < 0) {
- 		dev_err(&client->dev, "fail : torch register\n");
--		ret = -EIO;
- 		goto err_torch;
- 	}
- 
+ /* Optimization barrier */
 _
 
-Patches currently in -mm which might be from devendra.aaru@gmail.com are
+Patches currently in -mm which might be from daniel.santos@pobox.com are
 
-backlight-add-lms501kf03-lcd-driver.patch
-backlight-add-lms501kf03-lcd-driver-fix.patch
-backlight-add-new-lp8788-backlight-driver.patch
-backlight-lm3649_backlight-remove-ret-=-eio-at-error-paths-of-probe.patch
-rtc-add-new-lp8788-rtc-driver.patch
+compiler-gcc4h-reorder-macros-based-upon-gcc-ver.patch
+compiler-gcch-add-gcc-recommended-gcc_version-macro.patch
+compiler-gcc34h-use-gcc_version-macro.patch
+compiler-gcc4h-bugh-remove-duplicate-macros.patch
+bugh-fix-build_bug_on-macro-in-__checker__.patch
+bugh-prevent-double-evaulation-of-in-build_bug_on.patch
+bugh-make-build_bug_on-generate-compile-time-error.patch
+compilerh-bugh-prevent-double-error-messages-with-build_bug_on.patch
+bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg.patch
 
