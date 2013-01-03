@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + generic-dynamic-per-cpu-refcounting.patch added to -mm tree
-Date: Thu, 03 Jan 2013 15:41:05 -0800
-Message-ID: <20130103234105.6F86782004A@wpzn4.hot.corp.google.com>
+Subject: + aio-use-xchg-instead-of-completion_lock.patch added to -mm tree
+Date: Thu, 03 Jan 2013 15:41:13 -0800
+Message-ID: <20130103234118.73DDF100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:42187 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754108Ab3ACXlH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jan 2013 18:41:07 -0500
-Received: by mail-qa0-f74.google.com with SMTP id r4so1724067qaq.1
-        for <mm-commits@vger.kernel.org>; Thu, 03 Jan 2013 15:41:06 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:49819 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754590Ab3ACXlU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jan 2013 18:41:20 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so1692776vcd.1
+        for <mm-commits@vger.kernel.org>; Thu, 03 Jan 2013 15:41:20 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: koverstreet@google.com, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.c
 
 
 The patch titled
-     Subject: generic dynamic per cpu refcounting
+     Subject: aio: use xchg() instead of completion_lock
 has been added to the -mm tree.  Its filename is
-     generic-dynamic-per-cpu-refcounting.patch
+     aio-use-xchg-instead-of-completion_lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,24 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kent Overstreet <koverstreet@google.com>
-Subject: generic dynamic per cpu refcounting
+Subject: aio: use xchg() instead of completion_lock
 
-This implements a refcount with similar semantics to
-atomic_get()/atomic_dec_and_test(), that starts out as just an atomic_t
-but dynamically switches to per cpu refcounting when the rate of gets/puts
-becomes too high.
+So, for sticking kiocb completions on the kioctx ringbuffer, we need a
+lock - it unfortunately can't be lockless.
 
-It also implements two stage shutdown, as we need it to tear down the
-percpu counts.  Before dropping the initial refcount, you must call
-percpu_ref_kill(); this puts the refcount in "shutting down mode" and
-switches back to a single atomic refcount with the appropriate barriers
-(synchronize_rcu()).
+When the kioctx is shared between threads on different cpus and the rate
+of completions is high, this lock sees quite a bit of contention - in
+terms of cacheline contention it's the hottest thing in the aio subsystem.
 
-It's also legal to call percpu_ref_kill() multiple times - it only returns
-true once, so callers don't have to reimplement shutdown synchronization.
+That means, with a regular spinlock, we're going to take a cache miss to
+grab the lock, then another cache miss when we touch the data the lock
+protects - if it's on the same cacheline as the lock, other cpus spinning
+on the lock are going to be pulling it out from under us as we're using
+it.
 
-For the sake of simplicity/efficiency, the heuristic is pretty simple - it
-just switches to percpu refcounting if there are more than x gets in one
-second (completely arbitrarily, 4096).
-
-It'd be more correct to count the number of cache misses or something else
-more profile driven, but doing so would require accessing the shared ref
-twice per get - by just counting the number of gets(), we can stick that
-counter in the high bits of the refcount and increment both with a single
-atomic64_add().  But I expect this'll be good enough in practice.
+So, we use an old trick to get rid of this second forced cache miss - make
+the data the lock protects be the lock itself, so we grab them both at
+once.
 
 Signed-off-by: Kent Overstreet <koverstreet@google.com>
 Cc: Zach Brown <zab@redhat.com>
@@ -77,224 +70,139 @@ Cc: Benjamin LaHaise <bcrl@kvack.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/percpu-refcount.h |   29 +++++
- lib/Makefile                    |    2 
- lib/percpu-refcount.c           |  164 ++++++++++++++++++++++++++++++
- 3 files changed, 194 insertions(+), 1 deletion(-)
+ fs/aio.c |   44 ++++++++++++++++++++------------------------
+ 1 file changed, 20 insertions(+), 24 deletions(-)
 
-diff -puN /dev/null include/linux/percpu-refcount.h
---- /dev/null
-+++ a/include/linux/percpu-refcount.h
-@@ -0,0 +1,29 @@
-+#ifndef _LINUX_PERCPU_REFCOUNT_H
-+#define _LINUX_PERCPU_REFCOUNT_H
-+
-+#include <linux/atomic.h>
-+#include <linux/percpu.h>
-+
-+struct percpu_ref {
-+	atomic64_t		count;
-+	unsigned __percpu	*pcpu_count;
-+};
-+
-+void percpu_ref_init(struct percpu_ref *ref);
-+void __percpu_ref_get(struct percpu_ref *ref, bool alloc);
-+int percpu_ref_put(struct percpu_ref *ref);
-+
-+int percpu_ref_kill(struct percpu_ref *ref);
-+int percpu_ref_dead(struct percpu_ref *ref);
-+
-+static inline void percpu_ref_get(struct percpu_ref *ref)
-+{
-+	__percpu_ref_get(ref, true);
-+}
-+
-+static inline void percpu_ref_get_noalloc(struct percpu_ref *ref)
-+{
-+	__percpu_ref_get(ref, false);
-+}
-+
-+#endif
-diff -puN lib/Makefile~generic-dynamic-per-cpu-refcounting lib/Makefile
---- a/lib/Makefile~generic-dynamic-per-cpu-refcounting
-+++ a/lib/Makefile
-@@ -13,7 +13,7 @@ lib-y := ctype.o string.o vsprintf.o cmd
- 	 sha1.o md5.o irq_regs.o reciprocal_div.o argv_split.o \
- 	 proportions.o flex_proportions.o prio_heap.o ratelimit.o show_mem.o \
- 	 is_single_threaded.o plist.o decompress.o kobject_uevent.o \
--	 earlycpio.o
-+	 earlycpio.o percpu-refcount.o
+diff -puN fs/aio.c~aio-use-xchg-instead-of-completion_lock fs/aio.c
+--- a/fs/aio.c~aio-use-xchg-instead-of-completion_lock
++++ a/fs/aio.c
+@@ -102,11 +102,11 @@ struct kioctx {
+ 	struct {
+ 		struct mutex	ring_lock;
+ 		wait_queue_head_t wait;
++		unsigned	shadow_tail;
+ 	} ____cacheline_aligned_in_smp;
  
- lib-$(CONFIG_MMU) += ioremap.o
- lib-$(CONFIG_SMP) += cpumask.o
-diff -puN /dev/null lib/percpu-refcount.c
---- /dev/null
-+++ a/lib/percpu-refcount.c
-@@ -0,0 +1,164 @@
-+#define pr_fmt(fmt) "%s: " fmt "\n", __func__
+ 	struct {
+ 		unsigned	tail;
+-		spinlock_t	completion_lock;
+ 	} ____cacheline_aligned_in_smp;
+ 
+ 	struct page		*internal_pages[AIO_RING_PAGES];
+@@ -308,9 +308,9 @@ static void free_ioctx(struct kioctx *ct
+ 	kunmap_atomic(ring);
+ 
+ 	while (atomic_read(&ctx->reqs_available) < ctx->nr) {
+-		wait_event(ctx->wait, head != ctx->tail);
++		wait_event(ctx->wait, head != ctx->shadow_tail);
+ 
+-		avail = (head < ctx->tail ? ctx->tail : ctx->nr) - head;
++		avail = (head < ctx->shadow_tail ? ctx->shadow_tail : ctx->nr) - head;
+ 
+ 		atomic_add(avail, &ctx->reqs_available);
+ 		head += avail;
+@@ -375,7 +375,6 @@ static struct kioctx *ioctx_alloc(unsign
+ 	rcu_read_unlock();
+ 
+ 	spin_lock_init(&ctx->ctx_lock);
+-	spin_lock_init(&ctx->completion_lock);
+ 	mutex_init(&ctx->ring_lock);
+ 	init_waitqueue_head(&ctx->wait);
+ 
+@@ -673,18 +672,19 @@ void aio_complete(struct kiocb *iocb, lo
+ 		 * free_ioctx()
+ 		 */
+ 		atomic_inc(&ctx->reqs_available);
++		smp_mb__after_atomic_inc();
+ 		/* Still need the wake_up in case free_ioctx is waiting */
+ 		goto put_rq;
+ 	}
+ 
+ 	/*
+-	 * Add a completion event to the ring buffer. Must be done holding
+-	 * ctx->ctx_lock to prevent other code from messing with the tail
+-	 * pointer since we might be called from irq context.
++	 * Add a completion event to the ring buffer; ctx->tail is both our lock
++	 * and the canonical version of the tail pointer.
+ 	 */
+-	spin_lock_irqsave(&ctx->completion_lock, flags);
++	local_irq_save(flags);
++	while ((tail = xchg(&ctx->tail, UINT_MAX)) == UINT_MAX)
++		cpu_relax();
+ 
+-	tail = ctx->tail;
+ 	pos = tail + AIO_EVENTS_OFFSET;
+ 
+ 	if (++tail >= ctx->nr)
+@@ -710,14 +710,18 @@ void aio_complete(struct kiocb *iocb, lo
+ 	 */
+ 	smp_wmb();	/* make event visible before updating tail */
+ 
+-	ctx->tail = tail;
++	ctx->shadow_tail = tail;
+ 
+ 	ring = kmap_atomic(ctx->ring_pages[0]);
+ 	ring->tail = tail;
+ 	kunmap_atomic(ring);
+ 	flush_dcache_page(ctx->ring_pages[0]);
+ 
+-	spin_unlock_irqrestore(&ctx->completion_lock, flags);
++	/* unlock, make new tail visible before checking waitlist */
++	smp_mb();
 +
-+#include <linux/kernel.h>
-+#include <linux/percpu-refcount.h>
-+#include <linux/rcupdate.h>
-+
-+#define PCPU_COUNT_BITS		50
-+#define PCPU_COUNT_MASK		((1LL << PCPU_COUNT_BITS) - 1)
-+
-+#define PCPU_STATUS_BITS	2
-+#define PCPU_STATUS_MASK	((1 << PCPU_STATUS_BITS) - 1)
-+
-+#define PCPU_REF_PTR		0
-+#define PCPU_REF_NONE		1
-+#define PCPU_REF_DYING		2
-+#define PCPU_REF_DEAD		3
-+
-+#define REF_STATUS(count)	((unsigned long) count & PCPU_STATUS_MASK)
-+
-+void percpu_ref_init(struct percpu_ref *ref)
-+{
-+	unsigned long now = jiffies;
-+
-+	atomic64_set(&ref->count, 1);
-+
-+	now <<= PCPU_STATUS_BITS;
-+	now |= PCPU_REF_NONE;
-+
-+	ref->pcpu_count = (void *) now;
-+}
-+
-+static void percpu_ref_alloc(struct percpu_ref *ref, unsigned __user *pcpu_count)
-+{
-+	unsigned __percpu *new;
-+	unsigned long last = (unsigned long) pcpu_count;
-+	unsigned long now = jiffies;
-+
-+	now <<= PCPU_STATUS_BITS;
-+	now |= PCPU_REF_NONE;
-+
-+	if (now - last <= HZ << PCPU_STATUS_BITS) {
-+		rcu_read_unlock();
-+		new = alloc_percpu(unsigned);
-+		rcu_read_lock();
-+
-+		if (!new)
-+			goto update_time;
-+
-+		BUG_ON(((unsigned long) new) & PCPU_STATUS_MASK);
-+
-+		if (cmpxchg(&ref->pcpu_count, pcpu_count, new) != pcpu_count)
-+			free_percpu(new);
-+		else
-+			pr_debug("created");
-+	} else {
-+update_time:	new = (void *) now;
-+		cmpxchg(&ref->pcpu_count, pcpu_count, new);
-+	}
-+}
-+
-+void __percpu_ref_get(struct percpu_ref *ref, bool alloc)
-+{
-+	unsigned __percpu *pcpu_count;
-+	uint64_t v;
-+
-+	pcpu_count = rcu_dereference(ref->pcpu_count);
-+
-+	if (REF_STATUS(pcpu_count) == PCPU_REF_PTR) {
-+		__this_cpu_inc(*pcpu_count);
-+	} else {
-+		v = atomic64_add_return(1 + (1ULL << PCPU_COUNT_BITS),
-+					&ref->count);
-+
-+		if (!(v >> PCPU_COUNT_BITS) &&
-+		    REF_STATUS(pcpu_count) == PCPU_REF_NONE && alloc)
-+			percpu_ref_alloc(ref, pcpu_count);
-+	}
-+}
-+
-+int percpu_ref_put(struct percpu_ref *ref)
-+{
-+	unsigned __percpu *pcpu_count;
-+	uint64_t v;
-+	int ret = 0;
-+
-+	rcu_read_lock();
-+
-+	pcpu_count = rcu_dereference(ref->pcpu_count);
-+
-+	switch (REF_STATUS(pcpu_count)) {
-+	case PCPU_REF_PTR:
-+		__this_cpu_dec(*pcpu_count);
-+		break;
-+	case PCPU_REF_NONE:
-+	case PCPU_REF_DYING:
-+		atomic64_dec(&ref->count);
-+		break;
-+	case PCPU_REF_DEAD:
-+		v = atomic64_dec_return(&ref->count);
-+		v &= PCPU_COUNT_MASK;
-+
-+		ret = v == 0;
-+		break;
-+	}
-+
-+	rcu_read_unlock();
-+
-+	return ret;
-+}
-+
-+int percpu_ref_kill(struct percpu_ref *ref)
-+{
-+	unsigned __percpu *old, *new, *pcpu_count = ref->pcpu_count;
-+	unsigned long status;
-+
-+	do {
-+		status = REF_STATUS(pcpu_count);
-+
-+		switch (status) {
-+		case PCPU_REF_PTR:
-+			new = (void *) PCPU_REF_DYING;
-+			break;
-+		case PCPU_REF_NONE:
-+			new = (void *) PCPU_REF_DEAD;
-+			break;
-+		case PCPU_REF_DYING:
-+		case PCPU_REF_DEAD:
-+			return 0;
-+		}
-+
-+		old = pcpu_count;
-+		pcpu_count = cmpxchg(&ref->pcpu_count, old, new);
-+	} while (pcpu_count != old);
-+
-+	if (status == PCPU_REF_PTR) {
-+		unsigned count = 0, cpu;
-+
-+		synchronize_rcu();
-+
-+		for_each_possible_cpu(cpu)
-+			count += *per_cpu_ptr(pcpu_count, cpu);
-+
-+		pr_debug("global %lli pcpu %i",
-+			 atomic64_read(&ref->count) & PCPU_COUNT_MASK,
-+			 (int) count);
-+
-+		atomic64_add((int) count, &ref->count);
-+		smp_wmb();
-+		/* Between setting global count and setting PCPU_REF_DEAD */
-+		ref->pcpu_count = (void *) PCPU_REF_DEAD;
-+
-+		free_percpu(pcpu_count);
-+	}
-+
-+	return 1;
-+}
-+
-+int percpu_ref_dead(struct percpu_ref *ref)
-+{
-+	unsigned status = REF_STATUS(ref->pcpu_count);
-+
-+	return status == PCPU_REF_DYING ||
-+		status == PCPU_REF_DEAD;
-+}
++	ctx->tail = tail;
++	local_irq_restore(flags);
+ 
+ 	pr_debug("added to ring %p at [%u]\n", iocb, tail);
+ 
+@@ -733,14 +737,6 @@ put_rq:
+ 	/* everything turned out well, dispose of the aiocb. */
+ 	aio_put_req(iocb);
+ 
+-	/*
+-	 * We have to order our ring_info tail store above and test
+-	 * of the wait list below outside the wait lock.  This is
+-	 * like in wake_up_bit() where clearing a bit has to be
+-	 * ordered with the unlocked test.
+-	 */
+-	smp_mb();
+-
+ 	if (waitqueue_active(&ctx->wait))
+ 		wake_up(&ctx->wait);
+ 
+@@ -768,19 +764,19 @@ static int aio_read_events_ring(struct k
+ 	head = ring->head;
+ 	kunmap_atomic(ring);
+ 
+-	pr_debug("h%u t%u m%u\n", head, ctx->tail, ctx->nr);
++	pr_debug("h%u t%u m%u\n", head, ctx->shadow_tail, ctx->nr);
+ 
+-	if (head == ctx->tail)
++	if (head == ctx->shadow_tail)
+ 		goto out;
+ 
+ 	__set_current_state(TASK_RUNNING);
+ 
+ 	while (ret < nr) {
+-		unsigned i = (head < ctx->tail ? ctx->tail : ctx->nr) - head;
++		unsigned i = (head < ctx->shadow_tail ? ctx->shadow_tail : ctx->nr) - head;
+ 		struct io_event *ev;
+ 		struct page *page;
+ 
+-		if (head == ctx->tail)
++		if (head == ctx->shadow_tail)
+ 			break;
+ 
+ 		i = min_t(int, i, nr - ret);
+@@ -810,7 +806,7 @@ static int aio_read_events_ring(struct k
+ 	kunmap_atomic(ring);
+ 	flush_dcache_page(ctx->ring_pages[0]);
+ 
+-	pr_debug("%d  h%u t%u\n", ret, head, ctx->tail);
++	pr_debug("%d  h%u t%u\n", ret, head, ctx->shadow_tail);
+ 
+ 	put_reqs_available(ctx, ret);
+ out:
 _
 
 Patches currently in -mm which might be from koverstreet@google.com are
