@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + aio-dprintk-pr_debug.patch added to -mm tree
-Date: Thu, 03 Jan 2013 15:39:47 -0800
-Message-ID: <20130103233948.57C8382004A@wpzn4.hot.corp.google.com>
+Subject: + aio-do-fget-after-aio_get_req.patch added to -mm tree
+Date: Thu, 03 Jan 2013 15:39:51 -0800
+Message-ID: <20130103233952.C076E200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:63973 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753559Ab3ACXju (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jan 2013 18:39:50 -0500
-Received: by mail-ye0-f202.google.com with SMTP id r9so844834yen.5
-        for <mm-commits@vger.kernel.org>; Thu, 03 Jan 2013 15:39:49 -0800 (PST)
+Received: from mail-we0-f201.google.com ([74.125.82.201]:37231 "EHLO
+	mail-we0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753559Ab3ACXj4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jan 2013 18:39:56 -0500
+Received: by mail-we0-f201.google.com with SMTP id t11so985742wey.4
+        for <mm-commits@vger.kernel.org>; Thu, 03 Jan 2013 15:39:55 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: koverstreet@google.com, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.c
 
 
 The patch titled
-     Subject: aio: dprintk() -> pr_debug()
+     Subject: aio: do fget() after aio_get_req()
 has been added to the -mm tree.  Its filename is
-     aio-dprintk-pr_debug.patch
+     aio-do-fget-after-aio_get_req.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kent Overstreet <koverstreet@google.com>
-Subject: aio: dprintk() -> pr_debug()
+Subject: aio: do fget() after aio_get_req()
+
+aio_get_req() will fail if we have the maximum number of requests
+outstanding, which depending on the application may not be uncommon.  So
+avoid doing an unnecessary fget().
 
 Signed-off-by: Kent Overstreet <koverstreet@google.com>
 Cc: Zach Brown <zab@redhat.com>
@@ -53,213 +57,72 @@ Cc: Benjamin LaHaise <bcrl@kvack.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |   57 ++++++++++++++++++++++-------------------------------
- 1 file changed, 24 insertions(+), 33 deletions(-)
+ fs/aio.c |   22 +++++++++-------------
+ 1 file changed, 9 insertions(+), 13 deletions(-)
 
-diff -puN fs/aio.c~aio-dprintk-pr_debug fs/aio.c
---- a/fs/aio.c~aio-dprintk-pr_debug
+diff -puN fs/aio.c~aio-do-fget-after-aio_get_req fs/aio.c
+--- a/fs/aio.c~aio-do-fget-after-aio_get_req
 +++ a/fs/aio.c
-@@ -8,6 +8,8 @@
-  *
-  *	See ../COPYING for licensing terms.
-  */
-+#define pr_fmt(fmt) "%s: " fmt, __func__
-+
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/errno.h>
-@@ -18,8 +20,6 @@
- #include <linux/backing-dev.h>
- #include <linux/uio.h>
+@@ -584,6 +584,8 @@ static inline void really_put_req(struct
+ {
+ 	assert_spin_locked(&ctx->ctx_lock);
  
--#define DEBUG 0
--
- #include <linux/sched.h>
- #include <linux/fs.h>
- #include <linux/file.h>
-@@ -39,12 +39,6 @@
- #include <asm/kmap_types.h>
- #include <asm/uaccess.h>
- 
--#if DEBUG > 1
--#define dprintk		printk
--#else
--#define dprintk(x...)	do { ; } while (0)
--#endif
--
- #define AIO_RING_MAGIC			0xa10a10a1
- #define AIO_RING_COMPAT_FEATURES	1
- #define AIO_RING_INCOMPAT_FEATURES	0
-@@ -124,7 +118,7 @@ static int __init aio_setup(void)
- 	kiocb_cachep = KMEM_CACHE(kiocb, SLAB_HWCACHE_ALIGN|SLAB_PANIC);
- 	kioctx_cachep = KMEM_CACHE(kioctx,SLAB_HWCACHE_ALIGN|SLAB_PANIC);
- 
--	pr_debug("aio_setup: sizeof(struct page) = %d\n", (int)sizeof(struct page));
-+	pr_debug("sizeof(struct page) = %zu\n", sizeof(struct page));
- 
- 	return 0;
- }
-@@ -178,7 +172,7 @@ static int aio_setup_ring(struct kioctx 
- 	}
- 
- 	info->mmap_size = nr_pages * PAGE_SIZE;
--	dprintk("attempting mmap of %lu bytes\n", info->mmap_size);
-+	pr_debug("attempting mmap of %lu bytes\n", info->mmap_size);
- 	down_write(&mm->mmap_sem);
- 	info->mmap_base = do_mmap_pgoff(NULL, 0, info->mmap_size, 
- 					PROT_READ|PROT_WRITE,
-@@ -190,7 +184,7 @@ static int aio_setup_ring(struct kioctx 
- 		return -EAGAIN;
- 	}
- 
--	dprintk("mmap address: 0x%08lx\n", info->mmap_base);
-+	pr_debug("mmap address: 0x%08lx\n", info->mmap_base);
- 	info->nr_pages = get_user_pages(current, mm, info->mmap_base, nr_pages,
- 					1, 0, info->ring_pages, NULL);
- 	up_write(&mm->mmap_sem);
-@@ -262,7 +256,7 @@ static void __put_ioctx(struct kioctx *c
- 		aio_nr -= nr_events;
- 		spin_unlock(&aio_nr_lock);
- 	}
--	pr_debug("__put_ioctx: freeing %p\n", ctx);
-+	pr_debug("freeing %p\n", ctx);
- 	call_rcu(&ctx->rcu_head, ctx_rcu_free);
- }
- 
-@@ -351,7 +345,7 @@ static struct kioctx *ioctx_alloc(unsign
- 	hlist_add_head_rcu(&ctx->list, &mm->ioctx_list);
- 	spin_unlock(&mm->ioctx_lock);
- 
--	dprintk("aio: allocated ioctx %p[%ld]: mm=%p mask=0x%x\n",
-+	pr_debug("allocated ioctx %p[%ld]: mm=%p mask=0x%x\n",
- 		ctx, ctx->user_id, mm, ctx->ring_info.nr);
- 	return ctx;
- 
-@@ -360,7 +354,7 @@ out_cleanup:
- 	aio_free_ring(ctx);
- out_freectx:
- 	kmem_cache_free(kioctx_cachep, ctx);
--	dprintk("aio: error allocating ioctx %d\n", err);
-+	pr_debug("error allocating ioctx %d\n", err);
- 	return ERR_PTR(err);
- }
- 
-@@ -608,8 +602,8 @@ static inline void really_put_req(struct
++	if (req->ki_filp)
++		fput(req->ki_filp);
+ 	if (req->ki_eventfd != NULL)
+ 		eventfd_ctx_put(req->ki_eventfd);
+ 	if (req->ki_dtor)
+@@ -602,9 +604,6 @@ static inline void really_put_req(struct
   */
  static void __aio_put_req(struct kioctx *ctx, struct kiocb *req)
  {
--	dprintk(KERN_DEBUG "aio_put(%p): f_count=%ld\n",
--		req, atomic_long_read(&req->ki_filp->f_count));
-+	pr_debug("(%p): f_count=%ld\n",
-+		 req, atomic_long_read(&req->ki_filp->f_count));
- 
+-	pr_debug("(%p): f_count=%ld\n",
+-		 req, atomic_long_read(&req->ki_filp->f_count));
+-
  	assert_spin_locked(&ctx->ctx_lock);
  
-@@ -720,9 +714,9 @@ void aio_complete(struct kiocb *iocb, lo
- 	event->res = res;
- 	event->res2 = res2;
+ 	req->ki_users--;
+@@ -615,8 +614,6 @@ static void __aio_put_req(struct kioctx 
+ 	req->ki_cancel = NULL;
+ 	req->ki_retry = NULL;
  
--	dprintk("aio_complete: %p[%lu]: %p: %p %Lx %lx %lx\n",
--		ctx, tail, iocb, iocb->ki_obj.user, iocb->ki_user_data,
--		res, res2);
-+	pr_debug("%p[%lu]: %p: %p %Lx %lx %lx\n",
-+		 ctx, tail, iocb, iocb->ki_obj.user, iocb->ki_user_data,
-+		 res, res2);
- 
- 	/* after flagging the request as done, we
- 	 * must never even look at it again
-@@ -778,9 +772,7 @@ static int aio_read_evt(struct kioctx *i
- 	int ret = 0;
- 
- 	ring = kmap_atomic(info->ring_pages[0]);
--	dprintk("in aio_read_evt h%lu t%lu m%lu\n",
--		 (unsigned long)ring->head, (unsigned long)ring->tail,
--		 (unsigned long)ring->nr);
-+	pr_debug("h%u t%u m%u\n", ring->head, ring->tail, ring->nr);
- 
- 	if (ring->head == ring->tail)
- 		goto out;
-@@ -801,8 +793,7 @@ static int aio_read_evt(struct kioctx *i
- 
- out:
- 	kunmap_atomic(ring);
--	dprintk("leaving aio_read_evt: %d  h%lu t%lu\n", ret,
--		 (unsigned long)ring->head, (unsigned long)ring->tail);
-+	pr_debug("%d  h%u t%u\n", ret, ring->head, ring->tail);
- 	return ret;
+-	fput(req->ki_filp);
+-	req->ki_filp = NULL;
+ 	really_put_req(ctx, req);
  }
  
-@@ -865,13 +856,13 @@ static int read_events(struct kioctx *ct
- 		if (unlikely(ret <= 0))
- 			break;
- 
--		dprintk("read event: %Lx %Lx %Lx %Lx\n",
--			ent.data, ent.obj, ent.res, ent.res2);
-+		pr_debug("%Lx %Lx %Lx %Lx\n",
-+			 ent.data, ent.obj, ent.res, ent.res2);
- 
- 		/* Could we split the check in two? */
- 		ret = -EFAULT;
- 		if (unlikely(copy_to_user(event, &ent, sizeof(ent)))) {
--			dprintk("aio: lost an event due to EFAULT.\n");
-+			pr_debug("lost an event due to EFAULT.\n");
- 			break;
- 		}
- 		ret = 0;
-@@ -934,7 +925,7 @@ static int read_events(struct kioctx *ct
- 
- 		ret = -EFAULT;
- 		if (unlikely(copy_to_user(event, &ent, sizeof(ent)))) {
--			dprintk("aio: lost an event due to EFAULT.\n");
-+			pr_debug("lost an event due to EFAULT.\n");
- 			break;
- 		}
- 
-@@ -965,7 +956,7 @@ static void io_destroy(struct kioctx *io
- 	hlist_del_rcu(&ioctx->list);
- 	spin_unlock(&mm->ioctx_lock);
- 
--	dprintk("aio_release(%p)\n", ioctx);
-+	pr_debug("(%p)\n", ioctx);
- 	if (likely(!was_dead))
- 		put_ioctx(ioctx);	/* twice for the list */
- 
-@@ -1258,7 +1249,7 @@ static ssize_t aio_setup_iocb(struct kio
- 			kiocb->ki_retry = aio_fsync;
- 		break;
- 	default:
--		dprintk("EINVAL: io_submit: no operation provided\n");
-+		pr_debug("EINVAL: no operation provided\n");
- 		ret = -EINVAL;
- 	}
- 
-@@ -1278,7 +1269,7 @@ static int io_submit_one(struct kioctx *
+@@ -1264,7 +1261,6 @@ static int io_submit_one(struct kioctx *
+ 			 bool compat)
+ {
+ 	struct kiocb *req;
+-	struct file *file;
+ 	ssize_t ret;
  
  	/* enforce forwards compatibility on users */
- 	if (unlikely(iocb->aio_reserved1 || iocb->aio_reserved2)) {
--		pr_debug("EINVAL: io_submit: reserve field set\n");
-+		pr_debug("EINVAL: reserve field set\n");
+@@ -1283,16 +1279,16 @@ static int io_submit_one(struct kioctx *
  		return -EINVAL;
  	}
  
-@@ -1319,7 +1310,7 @@ static int io_submit_one(struct kioctx *
- 
- 	ret = put_user(req->ki_key, &user_iocb->aio_key);
- 	if (unlikely(ret)) {
--		dprintk("EFAULT: aio_key\n");
-+		pr_debug("EFAULT: aio_key\n");
- 		goto out_put_req;
+-	file = fget(iocb->aio_fildes);
+-	if (unlikely(!file))
+-		return -EBADF;
+-
+ 	req = aio_get_req(ctx, batch);  /* returns with 2 references to req */
+-	if (unlikely(!req)) {
+-		fput(file);
++	if (unlikely(!req))
+ 		return -EAGAIN;
++
++	req->ki_filp = fget(iocb->aio_fildes);
++	if (unlikely(!req->ki_filp)) {
++		ret = -EBADF;
++		goto out_put_req;
  	}
- 
-@@ -1400,7 +1391,7 @@ long do_io_submit(aio_context_t ctx_id, 
- 
- 	ctx = lookup_ioctx(ctx_id);
- 	if (unlikely(!ctx)) {
--		pr_debug("EINVAL: io_submit: invalid context id\n");
-+		pr_debug("EINVAL: invalid context id\n");
- 		return -EINVAL;
- 	}
- 
+-	req->ki_filp = file;
++
+ 	if (iocb->aio_flags & IOCB_FLAG_RESFD) {
+ 		/*
+ 		 * If the IOCB_FLAG_RESFD flag of aio_flags is set, get an
 _
 
 Patches currently in -mm which might be from koverstreet@google.com are
