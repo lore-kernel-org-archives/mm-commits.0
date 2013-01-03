@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-old-aio-use_mm-comment.patch added to -mm tree
-Date: Thu, 03 Jan 2013 15:39:00 -0800
-Message-ID: <20130103233901.A69A420004E@hpza10.eem.corp.google.com>
+Subject: + aio-remove-dead-code-from-aioh.patch added to -mm tree
+Date: Thu, 03 Jan 2013 15:39:06 -0800
+Message-ID: <20130103233906.E5BB9200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f73.google.com ([74.125.82.73]:64176 "EHLO
-	mail-wg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753899Ab3ACXjG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jan 2013 18:39:06 -0500
-Received: by mail-wg0-f73.google.com with SMTP id dt12so985377wgb.2
-        for <mm-commits@vger.kernel.org>; Thu, 03 Jan 2013 15:39:04 -0800 (PST)
+Received: from mail-ee0-f74.google.com ([74.125.83.74]:37782 "EHLO
+	mail-ee0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753544Ab3ACXjL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jan 2013 18:39:11 -0500
+Received: by mail-ee0-f74.google.com with SMTP id t10so986222eei.5
+        for <mm-commits@vger.kernel.org>; Thu, 03 Jan 2013 15:39:09 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: zab@redhat.com, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.com, bcrl
 
 
 The patch titled
-     Subject: mm: remove old aio use_mm() comment
+     Subject: aio: remove dead code from aio.h
 has been added to the -mm tree.  Its filename is
-     mm-remove-old-aio-use_mm-comment.patch
+     aio-remove-dead-code-from-aioh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Zach Brown <zab@redhat.com>
-Subject: mm: remove old aio use_mm() comment
-
-use_mm() is used in more places than just aio.  There's no need to mention
-callers when describing the function.
+Subject: aio: remove dead code from aio.h
 
 Signed-off-by: Zach Brown <zab@redhat.com>
 Signed-off-by: Kent Overstreet <koverstreet@google.com>
-Cc: Zach Brown <zab@redhat.com>
 Cc: Felipe Balbi <balbi@ti.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Mark Fasheh <mfasheh@suse.com>
@@ -57,22 +53,66 @@ Cc: Benjamin LaHaise <bcrl@kvack.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmu_context.c |    3 ---
- 1 file changed, 3 deletions(-)
+ include/linux/aio.h |   24 ------------------------
+ 1 file changed, 24 deletions(-)
 
-diff -puN mm/mmu_context.c~mm-remove-old-aio-use_mm-comment mm/mmu_context.c
---- a/mm/mmu_context.c~mm-remove-old-aio-use_mm-comment
-+++ a/mm/mmu_context.c
-@@ -14,9 +14,6 @@
-  * use_mm
-  *	Makes the calling kernel thread take on the specified
-  *	mm context.
-- *	Called by the retry thread execute retries within the
-- *	iocb issuer's mm context, so that copy_from/to_user
-- *	operations work seamlessly for aio.
-  *	(Note: this routine is intended to be called only
-  *	from a kernel thread context)
-  */
+diff -puN include/linux/aio.h~aio-remove-dead-code-from-aioh include/linux/aio.h
+--- a/include/linux/aio.h~aio-remove-dead-code-from-aioh
++++ a/include/linux/aio.h
+@@ -9,44 +9,22 @@
+ 
+ #include <linux/atomic.h>
+ 
+-#define AIO_MAXSEGS		4
+-#define AIO_KIOGRP_NR_ATOMIC	8
+-
+ struct kioctx;
+ 
+-/* Notes on cancelling a kiocb:
+- *	If a kiocb is cancelled, aio_complete may return 0 to indicate 
+- *	that cancel has not yet disposed of the kiocb.  All cancel 
+- *	operations *must* call aio_put_req to dispose of the kiocb 
+- *	to guard against races with the completion code.
+- */
+-#define KIOCB_C_CANCELLED	0x01
+-#define KIOCB_C_COMPLETE	0x02
+-
+ #define KIOCB_SYNC_KEY		(~0U)
+ 
+ /* ki_flags bits */
+-/*
+- * This may be used for cancel/retry serialization in the future, but
+- * for now it's unused and we probably don't want modules to even
+- * think they can use it.
+- */
+-/* #define KIF_LOCKED		0 */
+ #define KIF_KICKED		1
+ #define KIF_CANCELLED		2
+ 
+-#define kiocbTryLock(iocb)	test_and_set_bit(KIF_LOCKED, &(iocb)->ki_flags)
+ #define kiocbTryKick(iocb)	test_and_set_bit(KIF_KICKED, &(iocb)->ki_flags)
+ 
+-#define kiocbSetLocked(iocb)	set_bit(KIF_LOCKED, &(iocb)->ki_flags)
+ #define kiocbSetKicked(iocb)	set_bit(KIF_KICKED, &(iocb)->ki_flags)
+ #define kiocbSetCancelled(iocb)	set_bit(KIF_CANCELLED, &(iocb)->ki_flags)
+ 
+-#define kiocbClearLocked(iocb)	clear_bit(KIF_LOCKED, &(iocb)->ki_flags)
+ #define kiocbClearKicked(iocb)	clear_bit(KIF_KICKED, &(iocb)->ki_flags)
+ #define kiocbClearCancelled(iocb)	clear_bit(KIF_CANCELLED, &(iocb)->ki_flags)
+ 
+-#define kiocbIsLocked(iocb)	test_bit(KIF_LOCKED, &(iocb)->ki_flags)
+ #define kiocbIsKicked(iocb)	test_bit(KIF_KICKED, &(iocb)->ki_flags)
+ #define kiocbIsCancelled(iocb)	test_bit(KIF_CANCELLED, &(iocb)->ki_flags)
+ 
+@@ -207,8 +185,6 @@ struct kioctx {
+ };
+ 
+ /* prototypes */
+-extern unsigned aio_max_size;
+-
+ #ifdef CONFIG_AIO
+ extern ssize_t wait_on_sync_kiocb(struct kiocb *iocb);
+ extern int aio_put_req(struct kiocb *iocb);
 _
 
 Patches currently in -mm which might be from zab@redhat.com are
