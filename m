@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + char-add-aio_readwrite-to-dev-nullzero.patch added to -mm tree
-Date: Thu, 03 Jan 2013 15:39:23 -0800
-Message-ID: <20130103233924.CB29A20004E@hpza10.eem.corp.google.com>
+Subject: + aio-kill-return-value-of-aio_complete.patch added to -mm tree
+Date: Thu, 03 Jan 2013 15:39:30 -0800
+Message-ID: <20130103233930.D56AE200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f73.google.com ([209.85.215.73]:62293 "EHLO
-	mail-la0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753544Ab3ACXj3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jan 2013 18:39:29 -0500
-Received: by mail-la0-f73.google.com with SMTP id fq13so394535lab.4
-        for <mm-commits@vger.kernel.org>; Thu, 03 Jan 2013 15:39:27 -0800 (PST)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:59571 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753544Ab3ACXjf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jan 2013 18:39:35 -0500
+Received: by mail-fa0-f74.google.com with SMTP id t1so985913fae.1
+        for <mm-commits@vger.kernel.org>; Thu, 03 Jan 2013 15:39:33 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zab@redhat.com, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.com, bcrl@kvack.org, gregkh@linuxfoundation.org, jlbec@evilplan.org, jmoyer@redhat.com, koverstreet@google.com, mfasheh@suse.com, rusty@rustcorp.com.au, sbradshaw@micron.com, smani@micron.com, viro@zeniv.linux.org.uk
+Cc: koverstreet@google.com, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.com, bcrl@kvack.org, gregkh@linuxfoundation.org, jlbec@evilplan.org, jmoyer@redhat.com, mfasheh@suse.com, rusty@rustcorp.com.au, sbradshaw@micron.com, smani@micron.com, viro@zeniv.linux.org.uk, zab@redhat.com
 
 
 The patch titled
-     Subject: char: add aio_{read,write} to /dev/{null,zero}
+     Subject: aio: kill return value of aio_complete()
 has been added to the -mm tree.  Its filename is
-     char-add-aio_readwrite-to-dev-nullzero.patch
+     aio-kill-return-value-of-aio_complete.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,14 +33,15 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zach Brown <zab@redhat.com>
-Subject: char: add aio_{read,write} to /dev/{null,zero}
+From: Kent Overstreet <koverstreet@google.com>
+Subject: aio: kill return value of aio_complete()
 
-These are handy for measuring the cost of the aio infrastructure with
-operations that do very little and complete immediately.
+Nothing used the return value, and it probably wasn't possible to use it
+safely for the locked versions (aio_complete(), aio_put_req()).  Just kill
+it.
 
-Signed-off-by: Zach Brown <zab@redhat.com>
 Signed-off-by: Kent Overstreet <koverstreet@google.com>
+Acked-by: Zach Brown <zab@redhat.com>
 Cc: Felipe Balbi <balbi@ti.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Mark Fasheh <mfasheh@suse.com>
@@ -56,85 +57,128 @@ Cc: Benjamin LaHaise <bcrl@kvack.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mem.c |   35 +++++++++++++++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
+ fs/aio.c            |   21 +++++++--------------
+ include/linux/aio.h |    8 ++++----
+ 2 files changed, 11 insertions(+), 18 deletions(-)
 
-diff -puN drivers/char/mem.c~char-add-aio_readwrite-to-dev-nullzero drivers/char/mem.c
---- a/drivers/char/mem.c~char-add-aio_readwrite-to-dev-nullzero
-+++ a/drivers/char/mem.c
-@@ -627,6 +627,18 @@ static ssize_t write_null(struct file *f
- 	return count;
+diff -puN fs/aio.c~aio-kill-return-value-of-aio_complete fs/aio.c
+--- a/fs/aio.c~aio-kill-return-value-of-aio_complete
++++ a/fs/aio.c
+@@ -528,7 +528,7 @@ static inline void really_put_req(struct
+ /* __aio_put_req
+  *	Returns true if this put was the last user of the request.
+  */
+-static int __aio_put_req(struct kioctx *ctx, struct kiocb *req)
++static void __aio_put_req(struct kioctx *ctx, struct kiocb *req)
+ {
+ 	dprintk(KERN_DEBUG "aio_put(%p): f_count=%ld\n",
+ 		req, atomic_long_read(&req->ki_filp->f_count));
+@@ -538,7 +538,7 @@ static int __aio_put_req(struct kioctx *
+ 	req->ki_users--;
+ 	BUG_ON(req->ki_users < 0);
+ 	if (likely(req->ki_users))
+-		return 0;
++		return;
+ 	list_del(&req->ki_list);		/* remove from active_reqs */
+ 	req->ki_cancel = NULL;
+ 	req->ki_retry = NULL;
+@@ -546,21 +546,18 @@ static int __aio_put_req(struct kioctx *
+ 	fput(req->ki_filp);
+ 	req->ki_filp = NULL;
+ 	really_put_req(ctx, req);
+-	return 1;
  }
  
-+static ssize_t aio_read_null(struct kiocb *iocb, const struct iovec *iov,
-+			     unsigned long nr_segs, loff_t pos)
-+{
-+	return 0;
-+}
-+
-+static ssize_t aio_write_null(struct kiocb *iocb, const struct iovec *iov,
-+			      unsigned long nr_segs, loff_t pos)
-+{
-+	return iov_length(iov, nr_segs);
-+}
-+
- static int pipe_to_null(struct pipe_inode_info *info, struct pipe_buffer *buf,
- 			struct splice_desc *sd)
+ /* aio_put_req
+  *	Returns true if this put was the last user of the kiocb,
+  *	false if the request is still in use.
+  */
+-int aio_put_req(struct kiocb *req)
++void aio_put_req(struct kiocb *req)
  {
-@@ -670,6 +682,24 @@ static ssize_t read_zero(struct file *fi
- 	return written ? written : -EFAULT;
+ 	struct kioctx *ctx = req->ki_ctx;
+-	int ret;
+ 	spin_lock_irq(&ctx->ctx_lock);
+-	ret = __aio_put_req(ctx, req);
++	__aio_put_req(ctx, req);
+ 	spin_unlock_irq(&ctx->ctx_lock);
+-	return ret;
  }
+ EXPORT_SYMBOL(aio_put_req);
  
-+static ssize_t aio_read_zero(struct kiocb *iocb, const struct iovec *iov,
-+			     unsigned long nr_segs, loff_t pos)
-+{
-+	size_t written = 0;
-+	unsigned long i;
-+	ssize_t ret;
-+
-+	for (i = 0; i < nr_segs; i++) {
-+		ret = read_zero(iocb->ki_filp, iov[i].iov_base, iov[i].iov_len,
-+				&pos);
-+		if (ret < 0)
-+			break;
-+		written += ret;
-+	}
-+
-+	return written ? written : -EFAULT;
-+}
-+
- static int mmap_zero(struct file *file, struct vm_area_struct *vma)
+@@ -591,10 +588,8 @@ static struct kioctx *lookup_ioctx(unsig
+ 
+ /* aio_complete
+  *	Called when the io request on the given iocb is complete.
+- *	Returns true if this is the last user of the request.  The 
+- *	only other user of the request can be the cancellation code.
+  */
+-int aio_complete(struct kiocb *iocb, long res, long res2)
++void aio_complete(struct kiocb *iocb, long res, long res2)
  {
- #ifndef CONFIG_MMU
-@@ -738,6 +768,7 @@ static int open_port(struct inode * inod
- #define full_lseek      null_lseek
- #define write_zero	write_null
- #define read_full       read_zero
-+#define aio_write_zero	aio_write_null
- #define open_mem	open_port
- #define open_kmem	open_mem
- #define open_oldmem	open_mem
-@@ -766,6 +797,8 @@ static const struct file_operations null
- 	.llseek		= null_lseek,
- 	.read		= read_null,
- 	.write		= write_null,
-+	.aio_read	= aio_read_null,
-+	.aio_write	= aio_write_null,
- 	.splice_write	= splice_write_null,
- };
+ 	struct kioctx	*ctx = iocb->ki_ctx;
+ 	struct aio_ring_info	*info;
+@@ -602,7 +597,6 @@ int aio_complete(struct kiocb *iocb, lon
+ 	struct io_event	*event;
+ 	unsigned long	flags;
+ 	unsigned long	tail;
+-	int		ret;
  
-@@ -782,6 +815,8 @@ static const struct file_operations zero
- 	.llseek		= zero_lseek,
- 	.read		= read_zero,
- 	.write		= write_zero,
-+	.aio_read	= aio_read_zero,
-+	.aio_write	= aio_write_zero,
- 	.mmap		= mmap_zero,
- };
+ 	/*
+ 	 * Special case handling for sync iocbs:
+@@ -616,7 +610,7 @@ int aio_complete(struct kiocb *iocb, lon
+ 		iocb->ki_user_data = res;
+ 		iocb->ki_users = 0;
+ 		wake_up_process(iocb->ki_obj.tsk);
+-		return 1;
++		return;
+ 	}
  
+ 	info = &ctx->ring_info;
+@@ -675,7 +669,7 @@ int aio_complete(struct kiocb *iocb, lon
+ 
+ put_rq:
+ 	/* everything turned out well, dispose of the aiocb. */
+-	ret = __aio_put_req(ctx, iocb);
++	__aio_put_req(ctx, iocb);
+ 
+ 	/*
+ 	 * We have to order our ring_info tail store above and test
+@@ -689,7 +683,6 @@ put_rq:
+ 		wake_up(&ctx->wait);
+ 
+ 	spin_unlock_irqrestore(&ctx->ctx_lock, flags);
+-	return ret;
+ }
+ EXPORT_SYMBOL(aio_complete);
+ 
+diff -puN include/linux/aio.h~aio-kill-return-value-of-aio_complete include/linux/aio.h
+--- a/include/linux/aio.h~aio-kill-return-value-of-aio_complete
++++ a/include/linux/aio.h
+@@ -167,16 +167,16 @@ struct kioctx {
+ /* prototypes */
+ #ifdef CONFIG_AIO
+ extern ssize_t wait_on_sync_kiocb(struct kiocb *iocb);
+-extern int aio_put_req(struct kiocb *iocb);
+-extern int aio_complete(struct kiocb *iocb, long res, long res2);
++extern void aio_put_req(struct kiocb *iocb);
++extern void aio_complete(struct kiocb *iocb, long res, long res2);
+ struct mm_struct;
+ extern void exit_aio(struct mm_struct *mm);
+ extern long do_io_submit(aio_context_t ctx_id, long nr,
+ 			 struct iocb __user *__user *iocbpp, bool compat);
+ #else
+ static inline ssize_t wait_on_sync_kiocb(struct kiocb *iocb) { return 0; }
+-static inline int aio_put_req(struct kiocb *iocb) { return 0; }
+-static inline int aio_complete(struct kiocb *iocb, long res, long res2) { return 0; }
++static inline void aio_put_req(struct kiocb *iocb) { }
++static inline void aio_complete(struct kiocb *iocb, long res, long res2) { }
+ struct mm_struct;
+ static inline void exit_aio(struct mm_struct *mm) { }
+ static inline long do_io_submit(aio_context_t ctx_id, long nr,
 _
 
-Patches currently in -mm which might be from zab@redhat.com are
+Patches currently in -mm which might be from koverstreet@google.com are
 
 mm-remove-old-aio-use_mm-comment.patch
 aio-remove-dead-code-from-aioh.patch
