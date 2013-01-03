@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mtip32xx-convert-to-batch-completion.patch added to -mm tree
-Date: Thu, 03 Jan 2013 15:41:51 -0800
-Message-ID: <20130103234157.D876F200057@hpza10.eem.corp.google.com>
+Subject: + aio-smoosh-struct-kiocb.patch added to -mm tree
+Date: Thu, 03 Jan 2013 15:42:02 -0800
+Message-ID: <20130103234203.3B77D82004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f202.google.com ([209.85.212.202]:41032 "EHLO
-	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753776Ab3ACXmC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jan 2013 18:42:02 -0500
-Received: by mail-wi0-f202.google.com with SMTP id hn17so986235wib.5
-        for <mm-commits@vger.kernel.org>; Thu, 03 Jan 2013 15:42:00 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:45702 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753776Ab3ACXmF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jan 2013 18:42:05 -0500
+Received: by mail-qa0-f74.google.com with SMTP id r4so1723403qaq.5
+        for <mm-commits@vger.kernel.org>; Thu, 03 Jan 2013 15:42:04 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: koverstreet@google.com, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.c
 
 
 The patch titled
-     Subject: mtip32xx: convert to batch completion
+     Subject: aio: smoosh struct kiocb
 has been added to the -mm tree.  Its filename is
-     mtip32xx-convert-to-batch-completion.patch
+     aio-smoosh-struct-kiocb.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kent Overstreet <koverstreet@google.com>
-Subject: mtip32xx: convert to batch completion
+Subject: aio: smoosh struct kiocb
+
+This patch squishes struct kiocb down to 160 bytes, from 208 previously -
+mainly, some of the fields aren't needed until after aio_complete() is
+called.
+
+Also, reorder the fields to reduce the amount of memory that has to be
+zeroed in aio_get_req(), and to keep members next to each other that are
+used in the same place.
 
 Signed-off-by: Kent Overstreet <koverstreet@google.com>
 Cc: Zach Brown <zab@redhat.com>
@@ -53,229 +61,145 @@ Cc: Benjamin LaHaise <bcrl@kvack.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/mtip32xx/mtip32xx.c |   68 ++++++++++++----------------
- drivers/block/mtip32xx/mtip32xx.h |    8 +--
- 2 files changed, 34 insertions(+), 42 deletions(-)
+ fs/aio.c            |   24 +++++++++-------
+ include/linux/aio.h |   61 ++++++++++++++++++++++--------------------
+ 2 files changed, 47 insertions(+), 38 deletions(-)
 
-diff -puN drivers/block/mtip32xx/mtip32xx.c~mtip32xx-convert-to-batch-completion drivers/block/mtip32xx/mtip32xx.c
---- a/drivers/block/mtip32xx/mtip32xx.c~mtip32xx-convert-to-batch-completion
-+++ a/drivers/block/mtip32xx/mtip32xx.c
-@@ -159,11 +159,9 @@ static void mtip_command_cleanup(struct 
- 			command = &port->commands[commandindex];
+diff -puN fs/aio.c~aio-smoosh-struct-kiocb fs/aio.c
+--- a/fs/aio.c~aio-smoosh-struct-kiocb
++++ a/fs/aio.c
+@@ -570,12 +570,13 @@ static inline struct kiocb *aio_get_req(
+ 	if (!get_reqs_available(ctx))
+ 		return NULL;
  
- 			if (atomic_read(&command->active)
--			    && (command->async_callback)) {
--				command->async_callback(command->async_data,
--					-ENODEV);
--				command->async_callback = NULL;
--				command->async_data = NULL;
-+			    && (command->bio)) {
-+				bio_endio(command->bio, -ENODEV);
-+				command->bio = NULL;
- 			}
+-	req = kmem_cache_alloc(kiocb_cachep, GFP_KERNEL|__GFP_ZERO);
++	req = kmem_cache_alloc(kiocb_cachep, GFP_KERNEL);
+ 	if (unlikely(!req))
+ 		goto out_put;
  
- 			dma_unmap_sg(&port->dd->pdev->dev,
-@@ -603,11 +601,9 @@ static void mtip_timeout_function(unsign
- 			writel(1 << bit, port->completed[group]);
+-	atomic_set(&req->ki_users, 1);
++	memset(req, 0, offsetof(struct kiocb, ki_ctx));
+ 	req->ki_ctx = ctx;
++	atomic_set(&req->ki_users, 1);
+ 	return req;
+ out_put:
+ 	put_reqs_available(ctx, 1);
+@@ -633,8 +634,8 @@ static inline unsigned kioctx_ring_put(s
+ 	ev_page = kmap_atomic(ctx->ring_pages[pos / AIO_EVENTS_PER_PAGE]);
+ 	event = ev_page + pos % AIO_EVENTS_PER_PAGE;
  
- 			/* Call the async completion callback. */
--			if (likely(command->async_callback))
--				command->async_callback(command->async_data,
--							 -EIO);
--			command->async_callback = NULL;
--			command->comp_func = NULL;
-+			if (likely(command->bio))
-+				bio_endio(command->bio, -EIO);
-+			command->bio = NULL;
+-	event->obj	= (u64) req->ki_obj.user;
+ 	event->data	= req->ki_user_data;
++	event->obj	= (u64) req->ki_obj.user;
+ 	event->res	= req->ki_res;
+ 	event->res2	= req->ki_res2;
  
- 			/* Unmap the DMA scatter list entries */
- 			dma_unmap_sg(&port->dd->pdev->dev,
-@@ -675,7 +671,8 @@ static void mtip_timeout_function(unsign
- static void mtip_async_complete(struct mtip_port *port,
- 				int tag,
- 				void *data,
--				int status)
-+				int status,
-+				struct batch_complete *batch)
- {
- 	struct mtip_cmd *command;
- 	struct driver_data *dd = data;
-@@ -692,11 +689,10 @@ static void mtip_async_complete(struct m
+@@ -1245,13 +1246,16 @@ static int io_submit_one(struct kioctx *
+ 		goto out_put_req;
  	}
  
- 	/* Upper layer callback */
--	if (likely(command->async_callback))
--		command->async_callback(command->async_data, cb_status);
-+	if (likely(command->bio))
-+		bio_endio_batch(command->bio, cb_status, batch);
- 
--	command->async_callback = NULL;
--	command->comp_func = NULL;
-+	command->bio = NULL;
- 
- 	/* Unmap the DMA scatter list entries */
- 	dma_unmap_sg(&dd->pdev->dev,
-@@ -729,24 +725,22 @@ static void mtip_async_complete(struct m
- static void mtip_completion(struct mtip_port *port,
- 			    int tag,
- 			    void *data,
--			    int status)
-+			    int status,
-+			    struct batch_complete *batch)
- {
--	struct mtip_cmd *command = &port->commands[tag];
- 	struct completion *waiting = data;
- 	if (unlikely(status == PORT_IRQ_TF_ERR))
- 		dev_warn(&port->dd->pdev->dev,
- 			"Internal command %d completed with TFE\n", tag);
- 
--	command->async_callback = NULL;
--	command->comp_func = NULL;
+-	req->ki_obj.user = user_iocb;
+-	req->ki_user_data = iocb->aio_data;
+-	req->ki_pos = iocb->aio_offset;
 -
- 	complete(waiting);
- }
- 
- static void mtip_null_completion(struct mtip_port *port,
- 			    int tag,
- 			    void *data,
--			    int status)
-+			    int status,
-+			    struct batch_complete *batch)
- {
- 	return;
- }
-@@ -792,7 +786,7 @@ static void mtip_handle_tfe(struct drive
- 		atomic_inc(&cmd->active); /* active > 1 indicates error */
- 		if (cmd->comp_data && cmd->comp_func) {
- 			cmd->comp_func(port, MTIP_TAG_INTERNAL,
--					cmd->comp_data, PORT_IRQ_TF_ERR);
-+					cmd->comp_data, PORT_IRQ_TF_ERR, NULL);
- 		}
- 		goto handle_tfe_exit;
- 	}
-@@ -825,7 +819,7 @@ static void mtip_handle_tfe(struct drive
- 				cmd->comp_func(port,
- 					 tag,
- 					 cmd->comp_data,
--					 0);
-+					 0, NULL);
- 			} else {
- 				dev_err(&port->dd->pdev->dev,
- 					"Missing completion func for tag %d",
-@@ -912,7 +906,7 @@ static void mtip_handle_tfe(struct drive
- 					if (cmd->comp_func) {
- 						cmd->comp_func(port, tag,
- 							cmd->comp_data,
--							-ENODATA);
-+							-ENODATA, NULL);
- 					}
- 					continue;
- 				}
-@@ -942,7 +936,7 @@ static void mtip_handle_tfe(struct drive
- 					port,
- 					tag,
- 					cmd->comp_data,
--					PORT_IRQ_TF_ERR);
-+					PORT_IRQ_TF_ERR, NULL);
- 			else
- 				dev_warn(&port->dd->pdev->dev,
- 					"Bad completion for tag %d\n",
-@@ -969,6 +963,9 @@ static inline void mtip_process_sdbf(str
- 	int group, tag, bit;
- 	u32 completed;
- 	struct mtip_cmd *command;
-+	struct batch_complete batch;
+-	req->ki_buf = (char __user *)(unsigned long)iocb->aio_buf;
+-	req->ki_left = req->ki_nbytes = iocb->aio_nbytes;
+-	req->ki_opcode = iocb->aio_lio_opcode;
++	req->ki_user_data	= iocb->aio_data;
++	req->ki_obj.user	= user_iocb;
 +
-+	batch_complete_init(&batch);
++	req->ki_opcode		= iocb->aio_lio_opcode;
++	req->ki_pos		= iocb->aio_offset;
++	req->ki_nbytes		= iocb->aio_nbytes;
++	req->ki_left		= iocb->aio_nbytes;
++	req->ki_buf		= (char __user *) iocb->aio_buf;
++	req->ki_nr_segs		= 0;
++	req->ki_cur_seg		= 0;
  
- 	/* walk all bits in all slot groups */
- 	for (group = 0; group < dd->slot_groups; group++) {
-@@ -997,7 +994,8 @@ static inline void mtip_process_sdbf(str
- 						port,
- 						tag,
- 						command->comp_data,
--						0);
-+						0,
-+						&batch);
- 				} else {
- 					dev_warn(&dd->pdev->dev,
- 						"Null completion "
-@@ -1007,12 +1005,14 @@ static inline void mtip_process_sdbf(str
- 					if (mtip_check_surprise_removal(
- 						dd->pdev)) {
- 						mtip_command_cleanup(dd);
--						return;
-+						goto out;
- 					}
- 				}
- 			}
- 		}
- 	}
-+out:
-+	batch_complete(&batch);
- }
+ 	ret = aio_run_iocb(req, compat);
+ 	if (ret)
+diff -puN include/linux/aio.h~aio-smoosh-struct-kiocb include/linux/aio.h
+--- a/include/linux/aio.h~aio-smoosh-struct-kiocb
++++ a/include/linux/aio.h
+@@ -20,45 +20,50 @@ struct batch_complete;
+ typedef int (kiocb_cancel_fn)(struct kiocb *, struct io_event *);
  
- /*
-@@ -1030,7 +1030,7 @@ static inline void mtip_process_legacy(s
- 			cmd->comp_func(port,
- 				MTIP_TAG_INTERNAL,
- 				cmd->comp_data,
--				0);
-+				0, NULL);
- 			return;
- 		}
- 	}
-@@ -2441,8 +2441,8 @@ static int mtip_hw_ioctl(struct driver_d
-  *	None
-  */
- static void mtip_hw_submit_io(struct driver_data *dd, sector_t sector,
--			      int nsect, int nents, int tag, void *callback,
--			      void *data, int dir)
-+			      int nsect, int nents, int tag,
-+			      struct bio *bio, int dir)
- {
- 	struct host_to_dev_fis	*fis;
- 	struct mtip_port *port = dd->port;
-@@ -2497,12 +2497,7 @@ static void mtip_hw_submit_io(struct dri
- 	command->comp_func = mtip_async_complete;
- 	command->direction = dma_dir;
+ struct kiocb {
+-	struct rb_node		ki_node;
++	struct list_head	ki_list;	/* the aio core uses this
++						 * for cancellation */
++	kiocb_cancel_fn		*ki_cancel;
++	void			(*ki_dtor)(struct kiocb *);
++	void			*private;
++	struct iovec		*ki_iovec;
++
++	/*
++	 * If the aio_resfd field of the userspace iocb is not zero,
++	 * this is the underlying eventfd context to deliver events to.
++	 */
++	struct eventfd_ctx	*ki_eventfd;
++	struct kioctx		*ki_ctx;	/* NULL for sync ops */
++	struct file		*ki_filp;
  
--	/*
--	 * Set the completion function and data for the command passed
--	 * from the upper layer.
--	 */
--	command->async_data = data;
--	command->async_callback = callback;
-+	command->bio = bio;
+ 	atomic_t		ki_users;
  
- 	/*
- 	 * To prevent this command from being issued
-@@ -3672,7 +3667,6 @@ static void mtip_make_request(struct req
- 				bio_sectors(bio),
- 				nents,
- 				tag,
--				bio_endio,
- 				bio,
- 				bio_data_dir(bio));
- 	} else
-diff -puN drivers/block/mtip32xx/mtip32xx.h~mtip32xx-convert-to-batch-completion drivers/block/mtip32xx/mtip32xx.h
---- a/drivers/block/mtip32xx/mtip32xx.h~mtip32xx-convert-to-batch-completion
-+++ a/drivers/block/mtip32xx/mtip32xx.h
-@@ -296,11 +296,9 @@ struct mtip_cmd {
- 	void (*comp_func)(struct mtip_port *port,
- 				int tag,
- 				void *data,
--				int status);
--	/* Additional callback function that may be called by comp_func() */
--	void (*async_callback)(void *data, int status);
+-	struct file		*ki_filp;
+-	struct kioctx		*ki_ctx;	/* NULL for sync ops */
+-	kiocb_cancel_fn		*ki_cancel;
+-	void			(*ki_dtor)(struct kiocb *);
++	/* State that we remember to be able to restart/retry  */
++	unsigned		ki_opcode;
+ 
++	__u64			ki_user_data;	/* user's data for completion */
+ 	union {
+ 		void __user		*user;
+ 		struct task_struct	*tsk;
+ 	} ki_obj;
+ 
+-	__u64			ki_user_data;	/* user's data for completion */
+-	long			ki_res;
+-	long			ki_res2;
 -
--	void *async_data; /* Addl. data passed to async_callback() */
-+				int status,
-+				struct batch_complete *batch);
-+	struct bio *bio;
+-	loff_t			ki_pos;
++	union {
++	struct {
++		loff_t		ki_pos;
++		size_t		ki_nbytes;	/* copy of iocb->aio_nbytes */
++		size_t		ki_left;	/* remaining bytes */
++		char __user	*ki_buf;	/* remaining iocb->aio_buf */
++		unsigned long	ki_nr_segs;
++		unsigned long	ki_cur_seg;
++	};
++
++	struct {
++		long		ki_res;
++		long		ki_res2;
++		struct rb_node	ki_node;
++	};
++	};
  
- 	int scatter_ents; /* Number of scatter list entries used */
+-	void			*private;
+-	/* State that we remember to be able to restart/retry  */
+-	unsigned short		ki_opcode;
+-	size_t			ki_nbytes; 	/* copy of iocb->aio_nbytes */
+-	char 			__user *ki_buf;	/* remaining iocb->aio_buf */
+-	size_t			ki_left; 	/* remaining bytes */
+ 	struct iovec		ki_inline_vec;	/* inline vector */
+- 	struct iovec		*ki_iovec;
+- 	unsigned long		ki_nr_segs;
+- 	unsigned long		ki_cur_seg;
+-
+-	struct list_head	ki_list;	/* the aio core uses this
+-						 * for cancellation */
+-
+-	/*
+-	 * If the aio_resfd field of the userspace iocb is not zero,
+-	 * this is the underlying eventfd context to deliver events to.
+-	 */
+-	struct eventfd_ctx	*ki_eventfd;
+ };
  
+ static inline bool is_sync_kiocb(struct kiocb *kiocb)
 _
 
 Patches currently in -mm which might be from koverstreet@google.com are
