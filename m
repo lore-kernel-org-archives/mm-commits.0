@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + aio-use-cancellation-list-lazily.patch added to -mm tree
-Date: Thu, 03 Jan 2013 15:40:26 -0800
-Message-ID: <20130103234027.B4D94200057@hpza10.eem.corp.google.com>
+Subject: + aio-change-reqs_active-to-include-unreaped-completions.patch added to -mm tree
+Date: Thu, 03 Jan 2013 15:40:32 -0800
+Message-ID: <20130103234033.67BA282004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ee0-f73.google.com ([74.125.83.73]:43797 "EHLO
-	mail-ee0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753731Ab3ACXkb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jan 2013 18:40:31 -0500
-Received: by mail-ee0-f73.google.com with SMTP id c50so986282eek.4
-        for <mm-commits@vger.kernel.org>; Thu, 03 Jan 2013 15:40:30 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:50711 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753559Ab3ACXkf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jan 2013 18:40:35 -0500
+Received: by mail-qa0-f74.google.com with SMTP id r4so1724019qaq.1
+        for <mm-commits@vger.kernel.org>; Thu, 03 Jan 2013 15:40:34 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: koverstreet@google.com, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.c
 
 
 The patch titled
-     Subject: aio: use cancellation list lazily
+     Subject: aio: change reqs_active to include unreaped completions
 has been added to the -mm tree.  Its filename is
-     aio-use-cancellation-list-lazily.patch
+     aio-change-reqs_active-to-include-unreaped-completions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kent Overstreet <koverstreet@google.com>
-Subject: aio: use cancellation list lazily
+Subject: aio: change reqs_active to include unreaped completions
 
-Cancelling kiocbs requires adding them to a per kioctx linked list, which
-is one of the few things we need to take the kioctx lock for in the fast
-path.  But most kiocbs can't be cancelled - so if we just do this lazily,
-we can avoid quite a bit of locking overhead.
+The aio code tries really hard to avoid having to deal with the completion
+ringbuffer overflowing.  To do that, it has to keep track of the number of
+outstanding kiocbs, and the number of completions currently in the
+ringbuffer - and it's got to check that every time we allocate a kiocb. 
+Ouch.
 
-While we're at it, instead of using a flag bit switch to using ki_cancel
-itself to indicate that a kiocb has been cancelled/completed.  This lets
-us get rid of ki_flags entirely.
+But - we can improve this quite a bit if we just change reqs_active to
+mean "number of outstanding requests and unreaped completions" - that
+means kiocb allocation doesn't have to look at the ringbuffer, which is a
+fairly significant win.
 
 Signed-off-by: Kent Overstreet <koverstreet@google.com>
 Cc: Zach Brown <zab@redhat.com>
@@ -62,290 +64,117 @@ Cc: Benjamin LaHaise <bcrl@kvack.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/inode.c |    3 -
- fs/aio.c                   |   97 ++++++++++++++++++-----------------
- include/linux/aio.h        |   16 ++---
- 3 files changed, 60 insertions(+), 56 deletions(-)
+ fs/aio.c |   38 +++++++++++++++++++++++++-------------
+ 1 file changed, 25 insertions(+), 13 deletions(-)
 
-diff -puN drivers/usb/gadget/inode.c~aio-use-cancellation-list-lazily drivers/usb/gadget/inode.c
---- a/drivers/usb/gadget/inode.c~aio-use-cancellation-list-lazily
-+++ a/drivers/usb/gadget/inode.c
-@@ -533,7 +533,6 @@ static int ep_aio_cancel(struct kiocb *i
- 	local_irq_disable();
- 	epdata = priv->epdata;
- 	// spin_lock(&epdata->dev->lock);
--	kiocbSetCancelled(iocb);
- 	if (likely(epdata && epdata->ep && priv->req))
- 		value = usb_ep_dequeue (epdata->ep, priv->req);
- 	else
-@@ -663,7 +662,7 @@ fail:
- 		goto fail;
- 	}
- 
--	iocb->ki_cancel = ep_aio_cancel;
-+	kiocb_set_cancel_fn(iocb, ep_aio_cancel);
- 	get_ep(epdata);
- 	priv->epdata = epdata;
- 	priv->actual = 0;
-diff -puN fs/aio.c~aio-use-cancellation-list-lazily fs/aio.c
---- a/fs/aio.c~aio-use-cancellation-list-lazily
+diff -puN fs/aio.c~aio-change-reqs_active-to-include-unreaped-completions fs/aio.c
+--- a/fs/aio.c~aio-change-reqs_active-to-include-unreaped-completions
 +++ a/fs/aio.c
-@@ -97,6 +97,8 @@ struct kioctx {
- 
- 	struct aio_ring_info	ring_info;
- 
-+	spinlock_t		completion_lock;
-+
- 	struct rcu_head		rcu_head;
- 	struct work_struct	rcu_work;
+@@ -71,12 +71,6 @@ struct aio_ring_info {
+ 	struct page		*internal_pages[AIO_RING_PAGES];
  };
-@@ -217,25 +219,40 @@ static int aio_setup_ring(struct kioctx 
- #define AIO_EVENTS_FIRST_PAGE	((PAGE_SIZE - sizeof(struct aio_ring)) / sizeof(struct io_event))
- #define AIO_EVENTS_OFFSET	(AIO_EVENTS_PER_PAGE - AIO_EVENTS_FIRST_PAGE)
  
-+void kiocb_set_cancel_fn(struct kiocb *req, kiocb_cancel_fn *cancel)
-+{
-+	if (!req->ki_list.next) {
-+		struct kioctx *ctx = req->ki_ctx;
-+		unsigned long flags;
-+
-+		spin_lock_irqsave(&ctx->ctx_lock, flags);
-+		list_add(&req->ki_list, &ctx->active_reqs);
-+		spin_unlock_irqrestore(&ctx->ctx_lock, flags);
-+	}
-+
-+	req->ki_cancel = cancel;
-+}
-+EXPORT_SYMBOL(kiocb_set_cancel_fn);
-+
- static int kiocb_cancel(struct kioctx *ctx, struct kiocb *kiocb,
- 			struct io_event *res)
- {
--	int (*cancel)(struct kiocb *, struct io_event *);
-+	kiocb_cancel_fn *cancel;
- 	int ret = -EINVAL;
- 
--	cancel = kiocb->ki_cancel;
--	kiocbSetCancelled(kiocb);
--	if (cancel) {
--		atomic_inc(&kiocb->ki_users);
--		spin_unlock_irq(&ctx->ctx_lock);
+-static inline unsigned aio_ring_avail(struct aio_ring_info *info,
+-					struct aio_ring *ring)
+-{
+-	return (ring->head + info->nr - 1 - ring->tail) % info->nr;
+-}
 -
--		memset(res, 0, sizeof(*res));
--		res->obj = (u64) kiocb->ki_obj.user;
--		res->data = kiocb->ki_user_data;
--		ret = cancel(kiocb, res);
-+	cancel = xchg(&kiocb->ki_cancel, KIOCB_CANCELLED);
-+	if (!cancel || cancel == KIOCB_CANCELLED)
-+		return ret;
-+
-+	atomic_inc(&kiocb->ki_users);
-+	spin_unlock_irq(&ctx->ctx_lock);
- 
--		spin_lock_irq(&ctx->ctx_lock);
--	}
-+	memset(res, 0, sizeof(*res));
-+	res->obj = (u64) kiocb->ki_obj.user;
-+	res->data = kiocb->ki_user_data;
-+	ret = cancel(kiocb, res);
-+
-+	spin_lock_irq(&ctx->ctx_lock);
- 
- 	return ret;
- }
-@@ -323,6 +340,7 @@ static struct kioctx *ioctx_alloc(unsign
- 	atomic_set(&ctx->users, 2);
- 	atomic_set(&ctx->dead, 0);
- 	spin_lock_init(&ctx->ctx_lock);
-+	spin_lock_init(&ctx->completion_lock);
- 	mutex_init(&ctx->ring_info.ring_lock);
- 	init_waitqueue_head(&ctx->wait);
- 
-@@ -465,20 +483,12 @@ static struct kiocb *__aio_get_req(struc
+ struct kioctx {
+ 	atomic_t		users;
+ 	atomic_t		dead;
+@@ -270,8 +264,11 @@ static void free_ioctx_rcu(struct rcu_he
+  */
+ static void free_ioctx(struct kioctx *ctx)
  {
- 	struct kiocb *req = NULL;
++	struct aio_ring_info *info = &ctx->ring_info;
++	struct aio_ring *ring;
+ 	struct io_event res;
+ 	struct kiocb *req;
++	unsigned head, avail;
  
--	req = kmem_cache_alloc(kiocb_cachep, GFP_KERNEL);
-+	req = kmem_cache_alloc(kiocb_cachep, GFP_KERNEL|__GFP_ZERO);
- 	if (unlikely(!req))
- 		return NULL;
- 
--	req->ki_flags = 0;
- 	atomic_set(&req->ki_users, 2);
--	req->ki_key = 0;
- 	req->ki_ctx = ctx;
--	req->ki_cancel = NULL;
--	req->ki_retry = NULL;
--	req->ki_dtor = NULL;
--	req->private = NULL;
--	req->ki_iovec = NULL;
--	req->ki_eventfd = NULL;
- 
- 	return req;
- }
-@@ -509,7 +519,6 @@ static void kiocb_batch_free(struct kioc
  	spin_lock_irq(&ctx->ctx_lock);
- 	list_for_each_entry_safe(req, n, &batch->head, ki_batch) {
- 		list_del(&req->ki_batch);
--		list_del(&req->ki_list);
- 		kmem_cache_free(kiocb_cachep, req);
- 		atomic_dec(&ctx->reqs_active);
- 	}
-@@ -555,10 +564,7 @@ static int kiocb_batch_refill(struct kio
- 	}
  
- 	batch->count -= allocated;
--	list_for_each_entry(req, &batch->head, ki_batch) {
--		list_add(&req->ki_list, &ctx->active_reqs);
--		atomic_inc(&ctx->reqs_active);
--	}
-+	atomic_add(allocated, &ctx->reqs_active);
+@@ -285,7 +282,21 @@ static void free_ioctx(struct kioctx *ct
  
- 	kunmap_atomic(ring);
  	spin_unlock_irq(&ctx->ctx_lock);
-@@ -649,25 +655,34 @@ void aio_complete(struct kiocb *iocb, lo
- 	info = &ctx->ring_info;
  
- 	/*
--	 * Add a completion event to the ring buffer. Must be done holding
--	 * ctx->ctx_lock to prevent other code from messing with the tail
--	 * pointer since we might be called from irq context.
--	 *
- 	 * Take rcu_read_lock() in case the kioctx is being destroyed, as we
- 	 * need to issue a wakeup after decrementing reqs_active.
- 	 */
- 	rcu_read_lock();
--	spin_lock_irqsave(&ctx->ctx_lock, flags);
- 
--	list_del(&iocb->ki_list); /* remove from active_reqs */
-+	if (iocb->ki_list.next) {
-+		unsigned long flags;
+-	wait_event(ctx->wait, !atomic_read(&ctx->reqs_active));
++	ring = kmap_atomic(info->ring_pages[0]);
++	head = ring->head;
++	kunmap_atomic(ring);
 +
-+		spin_lock_irqsave(&ctx->ctx_lock, flags);
-+		list_del(&iocb->ki_list);
-+		spin_unlock_irqrestore(&ctx->ctx_lock, flags);
++	while (atomic_read(&ctx->reqs_active) > 0) {
++		wait_event(ctx->wait, head != info->tail);
++
++		avail = (head < info->tail ? info->tail : info->nr) - head;
++
++		atomic_sub(avail, &ctx->reqs_active);
++		head += avail;
++		head %= info->nr;
 +	}
++
++	WARN_ON(atomic_read(&ctx->reqs_active) < 0);
  
- 	/*
- 	 * cancelled requests don't get events, userland was given one
+ 	aio_free_ring(ctx);
+ 
+@@ -534,7 +545,6 @@ static int kiocb_batch_refill(struct kio
+ 	unsigned short allocated, to_alloc;
+ 	long avail;
+ 	struct kiocb *req, *n;
+-	struct aio_ring *ring;
+ 
+ 	to_alloc = min(batch->count, KIOCB_BATCH_SIZE);
+ 	for (allocated = 0; allocated < to_alloc; allocated++) {
+@@ -549,9 +559,8 @@ static int kiocb_batch_refill(struct kio
+ 		goto out;
+ 
+ 	spin_lock_irq(&ctx->ctx_lock);
+-	ring = kmap_atomic(ctx->ring_info.ring_pages[0]);
+ 
+-	avail = aio_ring_avail(&ctx->ring_info, ring) - atomic_read(&ctx->reqs_active);
++	avail = ctx->ring_info.nr - atomic_read(&ctx->reqs_active);
+ 	BUG_ON(avail < 0);
+ 	if (avail < allocated) {
+ 		/* Trim back the number of requests. */
+@@ -566,7 +575,6 @@ static int kiocb_batch_refill(struct kio
+ 	batch->count -= allocated;
+ 	atomic_add(allocated, &ctx->reqs_active);
+ 
+-	kunmap_atomic(ring);
+ 	spin_unlock_irq(&ctx->ctx_lock);
+ 
+ out:
+@@ -673,8 +681,11 @@ void aio_complete(struct kiocb *iocb, lo
  	 * when the event got cancelled.
  	 */
--	if (kiocbIsCancelled(iocb))
-+	if (unlikely(xchg(&iocb->ki_cancel,
-+			  KIOCB_CANCELLED) == KIOCB_CANCELLED))
+ 	if (unlikely(xchg(&iocb->ki_cancel,
+-			  KIOCB_CANCELLED) == KIOCB_CANCELLED))
++			  KIOCB_CANCELLED) == KIOCB_CANCELLED)) {
++		atomic_dec(&ctx->reqs_active);
++		/* Still need the wake_up in case free_ioctx is waiting */
  		goto put_rq;
- 
-+	/*
-+	 * Add a completion event to the ring buffer. Must be done holding
-+	 * ctx->ctx_lock to prevent other code from messing with the tail
-+	 * pointer since we might be called from irq context.
-+	 */
-+	spin_lock_irqsave(&ctx->completion_lock, flags);
-+
- 	tail = info->tail;
- 	pos = tail + AIO_EVENTS_OFFSET;
- 
-@@ -701,6 +716,8 @@ void aio_complete(struct kiocb *iocb, lo
- 	kunmap_atomic(ring);
- 	flush_dcache_page(info->ring_pages[0]);
- 
-+	spin_unlock_irqrestore(&ctx->completion_lock, flags);
-+
- 	pr_debug("added to ring %p at [%u]\n", iocb, tail);
++	}
  
  	/*
-@@ -727,7 +744,6 @@ put_rq:
- 	if (waitqueue_active(&ctx->wait))
- 		wake_up(&ctx->wait);
+ 	 * Add a completion event to the ring buffer. Must be done holding
+@@ -731,7 +742,6 @@ void aio_complete(struct kiocb *iocb, lo
+ put_rq:
+ 	/* everything turned out well, dispose of the aiocb. */
+ 	aio_put_req(iocb);
+-	atomic_dec(&ctx->reqs_active);
  
--	spin_unlock_irqrestore(&ctx->ctx_lock, flags);
- 	rcu_read_unlock();
- }
- EXPORT_SYMBOL(aio_complete);
-@@ -1196,15 +1212,10 @@ static int io_submit_one(struct kioctx *
- 	req->ki_opcode = iocb->aio_lio_opcode;
+ 	/*
+ 	 * We have to order our ring_info tail store above and test
+@@ -812,6 +822,8 @@ static int aio_read_events_ring(struct k
+ 	flush_dcache_page(info->ring_pages[0]);
  
- 	ret = aio_setup_iocb(req, compat);
--
- 	if (ret)
- 		goto out_put_req;
+ 	pr_debug("%d  h%u t%u\n", ret, head, info->tail);
++
++	atomic_sub(ret, &ctx->reqs_active);
+ out:
+ 	mutex_unlock(&info->ring_lock);
  
--	if (unlikely(kiocbIsCancelled(req))) {
--		ret = -EINTR;
--	} else {
--		ret = req->ki_retry(req);
--	}
-+	ret = req->ki_retry(req);
- 	if (ret != -EIOCBQUEUED) {
- 		/*
- 		 * There's no easy way to restart the syscall since other AIO's
-@@ -1220,10 +1231,6 @@ static int io_submit_one(struct kioctx *
- 	return 0;
- 
- out_put_req:
--	spin_lock_irq(&ctx->ctx_lock);
--	list_del(&req->ki_list);
--	spin_unlock_irq(&ctx->ctx_lock);
--
- 	atomic_dec(&ctx->reqs_active);
- 	aio_put_req(req);	/* drop extra ref to req */
- 	aio_put_req(req);	/* drop i/o ref to req */
-diff -puN include/linux/aio.h~aio-use-cancellation-list-lazily include/linux/aio.h
---- a/include/linux/aio.h~aio-use-cancellation-list-lazily
-+++ a/include/linux/aio.h
-@@ -10,17 +10,13 @@
- #include <linux/atomic.h>
- 
- struct kioctx;
-+struct kiocb;
- 
- #define KIOCB_SYNC_KEY		(~0U)
- 
--/* ki_flags bits */
--#define KIF_CANCELLED		2
-+#define KIOCB_CANCELLED		((void *) (~0ULL))
- 
--#define kiocbSetCancelled(iocb)	set_bit(KIF_CANCELLED, &(iocb)->ki_flags)
--
--#define kiocbClearCancelled(iocb)	clear_bit(KIF_CANCELLED, &(iocb)->ki_flags)
--
--#define kiocbIsCancelled(iocb)	test_bit(KIF_CANCELLED, &(iocb)->ki_flags)
-+typedef int (kiocb_cancel_fn)(struct kiocb *, struct io_event *);
- 
- /* is there a better place to document function pointer methods? */
- /**
-@@ -48,13 +44,12 @@ struct kioctx;
-  * calls may result in undefined behaviour.
-  */
- struct kiocb {
--	unsigned long		ki_flags;
- 	atomic_t		ki_users;
- 	unsigned		ki_key;		/* id of this request */
- 
- 	struct file		*ki_filp;
- 	struct kioctx		*ki_ctx;	/* may be NULL for sync ops */
--	int			(*ki_cancel)(struct kiocb *, struct io_event *);
-+	kiocb_cancel_fn		*ki_cancel;
- 	ssize_t			(*ki_retry)(struct kiocb *);
- 	void			(*ki_dtor)(struct kiocb *);
- 
-@@ -112,6 +107,7 @@ struct mm_struct;
- extern void exit_aio(struct mm_struct *mm);
- extern long do_io_submit(aio_context_t ctx_id, long nr,
- 			 struct iocb __user *__user *iocbpp, bool compat);
-+void kiocb_set_cancel_fn(struct kiocb *req, kiocb_cancel_fn *cancel);
- #else
- static inline ssize_t wait_on_sync_kiocb(struct kiocb *iocb) { return 0; }
- static inline void aio_put_req(struct kiocb *iocb) { }
-@@ -121,6 +117,8 @@ static inline void exit_aio(struct mm_st
- static inline long do_io_submit(aio_context_t ctx_id, long nr,
- 				struct iocb __user * __user *iocbpp,
- 				bool compat) { return 0; }
-+static inline void kiocb_set_cancel_fn(struct kiocb *req,
-+				       kiocb_cancel_fn *cancel) { }
- #endif /* CONFIG_AIO */
- 
- static inline struct kiocb *list_kiocb(struct list_head *h)
 _
 
 Patches currently in -mm which might be from koverstreet@google.com are
