@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch added to -mm tree
-Date: Thu, 03 Jan 2013 15:40:50 -0800
-Message-ID: <20130103234051.58225100048@wpzn3.hot.corp.google.com>
+Subject: + aio-give-shared-kioctx-fields-their-own-cachelines.patch added to -mm tree
+Date: Thu, 03 Jan 2013 15:40:46 -0800
+Message-ID: <20130103234047.5E774100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:53767 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754732Ab3ACXkx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jan 2013 18:40:53 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so1381303ghb.1
-        for <mm-commits@vger.kernel.org>; Thu, 03 Jan 2013 15:40:52 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:46065 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754755Ab3ACXkt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jan 2013 18:40:49 -0500
+Received: by mail-qc0-f202.google.com with SMTP id s25so1694196qcq.3
+        for <mm-commits@vger.kernel.org>; Thu, 03 Jan 2013 15:40:48 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.com, bcrl@kvack.org, gregkh@linuxfoundation.org, jlbec@evilplan.org, jmoyer@redhat.com, koverstreet@google.com, mfasheh@suse.com, rusty@rustcorp.com.au, sbradshaw@micron.com, smani@micron.com, viro@zeniv.linux.org.uk, zab@redhat.com
+Cc: koverstreet@google.com, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.com, bcrl@kvack.org, gregkh@linuxfoundation.org, jlbec@evilplan.org, jmoyer@redhat.com, mfasheh@suse.com, rusty@rustcorp.com.au, sbradshaw@micron.com, smani@micron.com, viro@zeniv.linux.org.uk, zab@redhat.com
 
 
 The patch titled
-     Subject: aio-give-shared-kioctx-fields-their-own-cachelines-fix
+     Subject: aio: give shared kioctx fields their own cachelines
 has been added to the -mm tree.  Its filename is
-     aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+     aio-give-shared-kioctx-fields-their-own-cachelines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,10 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: aio-give-shared-kioctx-fields-their-own-cachelines-fix
+From: Kent Overstreet <koverstreet@google.com>
+Subject: aio: give shared kioctx fields their own cachelines
 
-make reqs_active __cacheline_aligned_in_smp
-
-Cc: Kent Overstreet <koverstreet@google.com>
+Signed-off-by: Kent Overstreet <koverstreet@google.com>
 Cc: Zach Brown <zab@redhat.com>
 Cc: Felipe Balbi <balbi@ti.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
@@ -55,66 +53,97 @@ Cc: Benjamin LaHaise <bcrl@kvack.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/aio.c |   27 +++++++++++++++------------
+ 1 file changed, 15 insertions(+), 12 deletions(-)
 
-diff -puN fs/aio.c~aio-give-shared-kioctx-fields-their-own-cachelines-fix fs/aio.c
---- a/fs/aio.c~aio-give-shared-kioctx-fields-their-own-cachelines-fix
+diff -puN fs/aio.c~aio-give-shared-kioctx-fields-their-own-cachelines fs/aio.c
+--- a/fs/aio.c~aio-give-shared-kioctx-fields-their-own-cachelines
 +++ a/fs/aio.c
-@@ -83,7 +83,7 @@ struct kioctx {
+@@ -67,13 +67,6 @@ struct kioctx {
+ 	unsigned long		user_id;
+ 	struct hlist_node	list;
+ 
+-	wait_queue_head_t	wait;
+-
+-	spinlock_t		ctx_lock;
+-
+-	atomic_t		reqs_active;
+-	struct list_head	active_reqs;	/* used for cancellation */
+-
+ 	unsigned		nr;
+ 
+ 	/* sys_io_setup currently limits this to an unsigned int */
+@@ -85,19 +78,29 @@ struct kioctx {
+ 	struct page		**ring_pages;
+ 	long			nr_pages;
+ 
++	struct rcu_head		rcu_head;
++	struct work_struct	rcu_work;
++
+ 	struct {
+-		struct mutex	ring_lock;
++		atomic_t	reqs_active;
+ 	} ____cacheline_aligned;
  
  	struct {
- 		atomic_t	reqs_active;
++		spinlock_t	ctx_lock;
++		struct list_head active_reqs;	/* used for cancellation */
++	} ____cacheline_aligned_in_smp;
++
++	struct {
++		struct mutex	ring_lock;
++		wait_queue_head_t wait;
++	} ____cacheline_aligned_in_smp;
++
++	struct {
+ 		unsigned	tail;
+ 		spinlock_t	completion_lock;
 -	} ____cacheline_aligned;
 +	} ____cacheline_aligned_in_smp;
  
- 	struct {
- 		spinlock_t	ctx_lock;
+ 	struct page		*internal_pages[AIO_RING_PAGES];
+-
+-	struct rcu_head		rcu_head;
+-	struct work_struct	rcu_work;
+ };
+ 
+ /*------ sysctl variables----*/
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from koverstreet@google.com are
 
-ipc-add-sysctl-to-specify-desired-next-object-id.patch
-ipc-message-queue-receive-cleanup.patch
-ipc-convert-prepare_copy-from-macro-to-function.patch
-rtc-add-rtc-driver-for-tps6586x-fix.patch
-rtc-add-rtc-driver-for-tps6586x-fix2.patch
-linux-next.patch
-make-my-i386-build-work.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
-bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
-i-need-old-gcc.patch
-lib-cpu_rmap-avoid-flushing-all-workqueues-fix.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-kernel-auditc-avoid-negative-sleep-durations.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
-mm.patch
-mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
-mm-hugetlbc-convert-to-pr_foo.patch
-cma-make-putback_lru_pages-call-conditional-fix.patch
-mm-vmscan-clean-up-get_scan_count-fix.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
-mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
-mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-backlight-add-lms501kf03-lcd-driver-fix.patch
-backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix-fix.patch
-rtc-max77686-add-maxim-77686-driver-fix.patch
-rtc-pcf8523-add-low-battery-voltage-support-fix.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
-drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+mm-remove-old-aio-use_mm-comment.patch
+aio-remove-dead-code-from-aioh.patch
+gadget-remove-only-user-of-aio-retry.patch
+aio-remove-retry-based-aio.patch
+char-add-aio_readwrite-to-dev-nullzero.patch
+aio-kill-return-value-of-aio_complete.patch
+aio-kiocb_cancel.patch
+aio-move-private-stuff-out-of-aioh.patch
+aio-dprintk-pr_debug.patch
+aio-do-fget-after-aio_get_req.patch
+aio-make-aio_put_req-lockless.patch
+aio-refcounting-cleanup.patch
+wait-add-wait_event_hrtimeout.patch
 wait-add-wait_event_hrtimeout-fix.patch
+aio-make-aio_read_evt-more-efficient-convert-to-hrtimers.patch
+aio-use-flush_dcache_page.patch
+aio-use-cancellation-list-lazily.patch
+aio-change-reqs_active-to-include-unreaped-completions.patch
+aio-kill-batch-allocation.patch
+aio-kill-struct-aio_ring_info.patch
+aio-give-shared-kioctx-fields-their-own-cachelines.patch
 aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+aio-reqs_active-reqs_available.patch
+aio-percpu-reqs_available.patch
+generic-dynamic-per-cpu-refcounting.patch
+aio-percpu-ioctx-refcount.patch
+aio-use-xchg-instead-of-completion_lock.patch
+aio-dont-include-aioh-in-schedh.patch
+aio-kill-ki_key.patch
+aio-kill-ki_retry.patch
+block-aio-batch-completion-for-bios-kiocbs.patch
+virtio-blk-convert-to-batch-completion.patch
+mtip32xx-convert-to-batch-completion.patch
+aio-smoosh-struct-kiocb.patch
 
