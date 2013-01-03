@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + aio-reqs_active-reqs_available.patch added to -mm tree
-Date: Thu, 03 Jan 2013 15:40:54 -0800
-Message-ID: <20130103234055.C60A920004E@hpza10.eem.corp.google.com>
+Subject: + generic-dynamic-per-cpu-refcounting.patch added to -mm tree
+Date: Thu, 03 Jan 2013 15:41:05 -0800
+Message-ID: <20130103234105.6F86782004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f73.google.com ([209.85.215.73]:45917 "EHLO
-	mail-la0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754732Ab3ACXlA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jan 2013 18:41:00 -0500
-Received: by mail-la0-f73.google.com with SMTP id fq13so394617lab.0
-        for <mm-commits@vger.kernel.org>; Thu, 03 Jan 2013 15:40:58 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:42187 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754108Ab3ACXlH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jan 2013 18:41:07 -0500
+Received: by mail-qa0-f74.google.com with SMTP id r4so1724067qaq.1
+        for <mm-commits@vger.kernel.org>; Thu, 03 Jan 2013 15:41:06 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: koverstreet@google.com, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.c
 
 
 The patch titled
-     Subject: aio: reqs_active -> reqs_available
+     Subject: generic dynamic per cpu refcounting
 has been added to the -mm tree.  Its filename is
-     aio-reqs_active-reqs_available.patch
+     generic-dynamic-per-cpu-refcounting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kent Overstreet <koverstreet@google.com>
-Subject: aio: reqs_active -> reqs_available
+Subject: generic dynamic per cpu refcounting
 
-The number of outstanding kiocbs is one of the few shared things left that
-has to be touched for every kiocb - it'd be nice to make it percpu.
+This implements a refcount with similar semantics to
+atomic_get()/atomic_dec_and_test(), that starts out as just an atomic_t
+but dynamically switches to per cpu refcounting when the rate of gets/puts
+becomes too high.
 
-We can make it per cpu by treating it like an allocation problem: we have
-a maximum number of kiocbs that can be outstanding (i.e.  slots) - then we
-just allocate and free slots, and we know how to write per cpu allocators.
+It also implements two stage shutdown, as we need it to tear down the
+percpu counts.  Before dropping the initial refcount, you must call
+percpu_ref_kill(); this puts the refcount in "shutting down mode" and
+switches back to a single atomic refcount with the appropriate barriers
+(synchronize_rcu()).
 
-So as prep work for that, we convert reqs_active to reqs_available.
+It's also legal to call percpu_ref_kill() multiple times - it only returns
+true once, so callers don't have to reimplement shutdown synchronization.
+
+For the sake of simplicity/efficiency, the heuristic is pretty simple - it
+just switches to percpu refcounting if there are more than x gets in one
+second (completely arbitrarily, 4096).
+
+It'd be more correct to count the number of cache misses or something else
+more profile driven, but doing so would require accessing the shared ref
+twice per get - by just counting the number of gets(), we can stick that
+counter in the high bits of the refcount and increment both with a single
+atomic64_add().  But I expect this'll be good enough in practice.
 
 Signed-off-by: Kent Overstreet <koverstreet@google.com>
 Cc: Zach Brown <zab@redhat.com>
@@ -62,119 +77,224 @@ Cc: Benjamin LaHaise <bcrl@kvack.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |   27 +++++++++++++--------------
- 1 file changed, 13 insertions(+), 14 deletions(-)
+ include/linux/percpu-refcount.h |   29 +++++
+ lib/Makefile                    |    2 
+ lib/percpu-refcount.c           |  164 ++++++++++++++++++++++++++++++
+ 3 files changed, 194 insertions(+), 1 deletion(-)
 
-diff -puN fs/aio.c~aio-reqs_active-reqs_available fs/aio.c
---- a/fs/aio.c~aio-reqs_active-reqs_available
-+++ a/fs/aio.c
-@@ -82,7 +82,7 @@ struct kioctx {
- 	struct work_struct	rcu_work;
- 
- 	struct {
--		atomic_t	reqs_active;
-+		atomic_t	reqs_available;
- 	} ____cacheline_aligned_in_smp;
- 
- 	struct {
-@@ -286,17 +286,17 @@ static void free_ioctx(struct kioctx *ct
- 	head = ring->head;
- 	kunmap_atomic(ring);
- 
--	while (atomic_read(&ctx->reqs_active) > 0) {
-+	while (atomic_read(&ctx->reqs_available) < ctx->nr) {
- 		wait_event(ctx->wait, head != ctx->tail);
- 
- 		avail = (head < ctx->tail ? ctx->tail : ctx->nr) - head;
- 
--		atomic_sub(avail, &ctx->reqs_active);
-+		atomic_add(avail, &ctx->reqs_available);
- 		head += avail;
- 		head %= ctx->nr;
- 	}
- 
--	WARN_ON(atomic_read(&ctx->reqs_active) < 0);
-+	WARN_ON(atomic_read(&ctx->reqs_available) > ctx->nr);
- 
- 	aio_free_ring(ctx);
- 
-@@ -360,6 +360,8 @@ static struct kioctx *ioctx_alloc(unsign
- 	if (aio_setup_ring(ctx) < 0)
- 		goto out_freectx;
- 
-+	atomic_set(&ctx->reqs_available, ctx->nr);
+diff -puN /dev/null include/linux/percpu-refcount.h
+--- /dev/null
++++ a/include/linux/percpu-refcount.h
+@@ -0,0 +1,29 @@
++#ifndef _LINUX_PERCPU_REFCOUNT_H
++#define _LINUX_PERCPU_REFCOUNT_H
 +
- 	/* limit the number of system wide aios */
- 	spin_lock(&aio_nr_lock);
- 	if (aio_nr + nr_events > aio_max_nr ||
-@@ -462,7 +464,7 @@ void exit_aio(struct mm_struct *mm)
- 				"exit_aio:ioctx still alive: %d %d %d\n",
- 				atomic_read(&ctx->users),
- 				atomic_read(&ctx->dead),
--				atomic_read(&ctx->reqs_active));
-+				atomic_read(&ctx->reqs_available));
- 		/*
- 		 * We don't need to bother with munmap() here -
- 		 * exit_mmap(mm) is coming and it'll unmap everything.
-@@ -494,12 +496,9 @@ static inline struct kiocb *aio_get_req(
- {
- 	struct kiocb *req;
++#include <linux/atomic.h>
++#include <linux/percpu.h>
++
++struct percpu_ref {
++	atomic64_t		count;
++	unsigned __percpu	*pcpu_count;
++};
++
++void percpu_ref_init(struct percpu_ref *ref);
++void __percpu_ref_get(struct percpu_ref *ref, bool alloc);
++int percpu_ref_put(struct percpu_ref *ref);
++
++int percpu_ref_kill(struct percpu_ref *ref);
++int percpu_ref_dead(struct percpu_ref *ref);
++
++static inline void percpu_ref_get(struct percpu_ref *ref)
++{
++	__percpu_ref_get(ref, true);
++}
++
++static inline void percpu_ref_get_noalloc(struct percpu_ref *ref)
++{
++	__percpu_ref_get(ref, false);
++}
++
++#endif
+diff -puN lib/Makefile~generic-dynamic-per-cpu-refcounting lib/Makefile
+--- a/lib/Makefile~generic-dynamic-per-cpu-refcounting
++++ a/lib/Makefile
+@@ -13,7 +13,7 @@ lib-y := ctype.o string.o vsprintf.o cmd
+ 	 sha1.o md5.o irq_regs.o reciprocal_div.o argv_split.o \
+ 	 proportions.o flex_proportions.o prio_heap.o ratelimit.o show_mem.o \
+ 	 is_single_threaded.o plist.o decompress.o kobject_uevent.o \
+-	 earlycpio.o
++	 earlycpio.o percpu-refcount.o
  
--	if (atomic_read(&ctx->reqs_active) >= ctx->nr)
-+	if (atomic_dec_if_positive(&ctx->reqs_available) <= 0)
- 		return NULL;
- 
--	if (atomic_inc_return(&ctx->reqs_active) > ctx->nr)
--		goto out_put;
--
- 	req = kmem_cache_alloc(kiocb_cachep, GFP_KERNEL|__GFP_ZERO);
- 	if (unlikely(!req))
- 		goto out_put;
-@@ -509,7 +508,7 @@ static inline struct kiocb *aio_get_req(
- 
- 	return req;
- out_put:
--	atomic_dec(&ctx->reqs_active);
-+	atomic_inc(&ctx->reqs_available);
- 	return NULL;
- }
- 
-@@ -580,7 +579,7 @@ void aio_complete(struct kiocb *iocb, lo
- 
- 	/*
- 	 * Take rcu_read_lock() in case the kioctx is being destroyed, as we
--	 * need to issue a wakeup after decrementing reqs_active.
-+	 * need to issue a wakeup after incrementing reqs_available.
- 	 */
- 	rcu_read_lock();
- 
-@@ -598,7 +597,7 @@ void aio_complete(struct kiocb *iocb, lo
- 	 */
- 	if (unlikely(xchg(&iocb->ki_cancel,
- 			  KIOCB_CANCELLED) == KIOCB_CANCELLED)) {
--		atomic_dec(&ctx->reqs_active);
-+		atomic_inc(&ctx->reqs_available);
- 		/* Still need the wake_up in case free_ioctx is waiting */
- 		goto put_rq;
- 	}
-@@ -738,7 +737,7 @@ static int aio_read_events_ring(struct k
- 
- 	pr_debug("%d  h%u t%u\n", ret, head, ctx->tail);
- 
--	atomic_sub(ret, &ctx->reqs_active);
-+	atomic_add(ret, &ctx->reqs_available);
- out:
- 	mutex_unlock(&ctx->ring_lock);
- 
-@@ -1157,7 +1156,7 @@ static int io_submit_one(struct kioctx *
- 	return 0;
- 
- out_put_req:
--	atomic_dec(&ctx->reqs_active);
-+	atomic_inc(&ctx->reqs_available);
- 	aio_put_req(req);	/* drop extra ref to req */
- 	aio_put_req(req);	/* drop i/o ref to req */
- 	return ret;
+ lib-$(CONFIG_MMU) += ioremap.o
+ lib-$(CONFIG_SMP) += cpumask.o
+diff -puN /dev/null lib/percpu-refcount.c
+--- /dev/null
++++ a/lib/percpu-refcount.c
+@@ -0,0 +1,164 @@
++#define pr_fmt(fmt) "%s: " fmt "\n", __func__
++
++#include <linux/kernel.h>
++#include <linux/percpu-refcount.h>
++#include <linux/rcupdate.h>
++
++#define PCPU_COUNT_BITS		50
++#define PCPU_COUNT_MASK		((1LL << PCPU_COUNT_BITS) - 1)
++
++#define PCPU_STATUS_BITS	2
++#define PCPU_STATUS_MASK	((1 << PCPU_STATUS_BITS) - 1)
++
++#define PCPU_REF_PTR		0
++#define PCPU_REF_NONE		1
++#define PCPU_REF_DYING		2
++#define PCPU_REF_DEAD		3
++
++#define REF_STATUS(count)	((unsigned long) count & PCPU_STATUS_MASK)
++
++void percpu_ref_init(struct percpu_ref *ref)
++{
++	unsigned long now = jiffies;
++
++	atomic64_set(&ref->count, 1);
++
++	now <<= PCPU_STATUS_BITS;
++	now |= PCPU_REF_NONE;
++
++	ref->pcpu_count = (void *) now;
++}
++
++static void percpu_ref_alloc(struct percpu_ref *ref, unsigned __user *pcpu_count)
++{
++	unsigned __percpu *new;
++	unsigned long last = (unsigned long) pcpu_count;
++	unsigned long now = jiffies;
++
++	now <<= PCPU_STATUS_BITS;
++	now |= PCPU_REF_NONE;
++
++	if (now - last <= HZ << PCPU_STATUS_BITS) {
++		rcu_read_unlock();
++		new = alloc_percpu(unsigned);
++		rcu_read_lock();
++
++		if (!new)
++			goto update_time;
++
++		BUG_ON(((unsigned long) new) & PCPU_STATUS_MASK);
++
++		if (cmpxchg(&ref->pcpu_count, pcpu_count, new) != pcpu_count)
++			free_percpu(new);
++		else
++			pr_debug("created");
++	} else {
++update_time:	new = (void *) now;
++		cmpxchg(&ref->pcpu_count, pcpu_count, new);
++	}
++}
++
++void __percpu_ref_get(struct percpu_ref *ref, bool alloc)
++{
++	unsigned __percpu *pcpu_count;
++	uint64_t v;
++
++	pcpu_count = rcu_dereference(ref->pcpu_count);
++
++	if (REF_STATUS(pcpu_count) == PCPU_REF_PTR) {
++		__this_cpu_inc(*pcpu_count);
++	} else {
++		v = atomic64_add_return(1 + (1ULL << PCPU_COUNT_BITS),
++					&ref->count);
++
++		if (!(v >> PCPU_COUNT_BITS) &&
++		    REF_STATUS(pcpu_count) == PCPU_REF_NONE && alloc)
++			percpu_ref_alloc(ref, pcpu_count);
++	}
++}
++
++int percpu_ref_put(struct percpu_ref *ref)
++{
++	unsigned __percpu *pcpu_count;
++	uint64_t v;
++	int ret = 0;
++
++	rcu_read_lock();
++
++	pcpu_count = rcu_dereference(ref->pcpu_count);
++
++	switch (REF_STATUS(pcpu_count)) {
++	case PCPU_REF_PTR:
++		__this_cpu_dec(*pcpu_count);
++		break;
++	case PCPU_REF_NONE:
++	case PCPU_REF_DYING:
++		atomic64_dec(&ref->count);
++		break;
++	case PCPU_REF_DEAD:
++		v = atomic64_dec_return(&ref->count);
++		v &= PCPU_COUNT_MASK;
++
++		ret = v == 0;
++		break;
++	}
++
++	rcu_read_unlock();
++
++	return ret;
++}
++
++int percpu_ref_kill(struct percpu_ref *ref)
++{
++	unsigned __percpu *old, *new, *pcpu_count = ref->pcpu_count;
++	unsigned long status;
++
++	do {
++		status = REF_STATUS(pcpu_count);
++
++		switch (status) {
++		case PCPU_REF_PTR:
++			new = (void *) PCPU_REF_DYING;
++			break;
++		case PCPU_REF_NONE:
++			new = (void *) PCPU_REF_DEAD;
++			break;
++		case PCPU_REF_DYING:
++		case PCPU_REF_DEAD:
++			return 0;
++		}
++
++		old = pcpu_count;
++		pcpu_count = cmpxchg(&ref->pcpu_count, old, new);
++	} while (pcpu_count != old);
++
++	if (status == PCPU_REF_PTR) {
++		unsigned count = 0, cpu;
++
++		synchronize_rcu();
++
++		for_each_possible_cpu(cpu)
++			count += *per_cpu_ptr(pcpu_count, cpu);
++
++		pr_debug("global %lli pcpu %i",
++			 atomic64_read(&ref->count) & PCPU_COUNT_MASK,
++			 (int) count);
++
++		atomic64_add((int) count, &ref->count);
++		smp_wmb();
++		/* Between setting global count and setting PCPU_REF_DEAD */
++		ref->pcpu_count = (void *) PCPU_REF_DEAD;
++
++		free_percpu(pcpu_count);
++	}
++
++	return 1;
++}
++
++int percpu_ref_dead(struct percpu_ref *ref)
++{
++	unsigned status = REF_STATUS(ref->pcpu_count);
++
++	return status == PCPU_REF_DYING ||
++		status == PCPU_REF_DEAD;
++}
 _
 
 Patches currently in -mm which might be from koverstreet@google.com are
