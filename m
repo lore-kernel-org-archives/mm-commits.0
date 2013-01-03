@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + wait-add-wait_event_hrtimeout.patch added to -mm tree
-Date: Thu, 03 Jan 2013 15:40:06 -0800
-Message-ID: <20130103234007.63191100049@wpzn3.hot.corp.google.com>
+Subject: + wait-add-wait_event_hrtimeout-fix.patch added to -mm tree
+Date: Thu, 03 Jan 2013 15:40:10 -0800
+Message-ID: <20130103234011.5A91B100048@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:40493 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753559Ab3ACXkJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jan 2013 18:40:09 -0500
-Received: by mail-gg0-f201.google.com with SMTP id o6so1692672ggm.0
-        for <mm-commits@vger.kernel.org>; Thu, 03 Jan 2013 15:40:08 -0800 (PST)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:44927 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753559Ab3ACXkN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Jan 2013 18:40:13 -0500
+Received: by mail-yh0-f73.google.com with SMTP id 47so1692714yhr.0
+        for <mm-commits@vger.kernel.org>; Thu, 03 Jan 2013 15:40:12 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: koverstreet@google.com, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.com, bcrl@kvack.org, gregkh@linuxfoundation.org, jlbec@evilplan.org, jmoyer@redhat.com, mfasheh@suse.com, mingo@elte.hu, rusty@rustcorp.com.au, sbradshaw@micron.com, smani@micron.com, tglx@linutronix.de, viro@zeniv.linux.org.uk, zab@redhat.com
+Cc: akpm@linux-foundation.org, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.com, bcrl@kvack.org, gregkh@linuxfoundation.org, jlbec@evilplan.org, jmoyer@redhat.com, koverstreet@google.com, mfasheh@suse.com, rusty@rustcorp.com.au, sbradshaw@micron.com, smani@micron.com, viro@zeniv.linux.org.uk, zab@redhat.com
 
 
 The patch titled
-     Subject: wait: add wait_event_hrtimeout()
+     Subject: wait-add-wait_event_hrtimeout-fix
 has been added to the -mm tree.  Its filename is
-     wait-add-wait_event_hrtimeout.patch
+     wait-add-wait_event_hrtimeout-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,19 +33,12 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kent Overstreet <koverstreet@google.com>
-Subject: wait: add wait_event_hrtimeout()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: wait-add-wait_event_hrtimeout-fix
 
-Analagous to wait_event_timeout() and friends, this adds
-wait_event_hrtimeout() and wait_event_interruptible_hrtimeout().
+fix description of `timeout' arg
 
-Note that unlike the versions that use regular timers, these don't return
-the amount of time remaining when they return - instead, they return 0 or
--ETIME if they timed out.
-
-Signed-off-by: Kent Overstreet <koverstreet@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Kent Overstreet <koverstreet@google.com>
 Cc: Zach Brown <zab@redhat.com>
 Cc: Felipe Balbi <balbi@ti.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
@@ -62,141 +55,75 @@ Cc: Benjamin LaHaise <bcrl@kvack.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/wait.h |   86 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 86 insertions(+)
+ include/linux/wait.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/wait.h~wait-add-wait_event_hrtimeout include/linux/wait.h
---- a/include/linux/wait.h~wait-add-wait_event_hrtimeout
+diff -puN include/linux/wait.h~wait-add-wait_event_hrtimeout-fix include/linux/wait.h
+--- a/include/linux/wait.h~wait-add-wait_event_hrtimeout-fix
 +++ a/include/linux/wait.h
-@@ -330,6 +330,92 @@ do {									\
- 	__ret;								\
- })
- 
-+#define __wait_event_hrtimeout(wq, condition, timeout, state)		\
-+({									\
-+	int __ret = 0;							\
-+	DEFINE_WAIT(__wait);						\
-+	struct hrtimer_sleeper __t;					\
-+									\
-+	hrtimer_init_on_stack(&__t.timer, CLOCK_MONOTONIC,		\
-+			      HRTIMER_MODE_REL);			\
-+	hrtimer_init_sleeper(&__t, current);				\
-+	if ((timeout).tv64 != KTIME_MAX)				\
-+		hrtimer_start_range_ns(&__t.timer, timeout,		\
-+				       current->timer_slack_ns,		\
-+				       HRTIMER_MODE_REL);		\
-+									\
-+	for (;;) {							\
-+		prepare_to_wait(&wq, &__wait, state);			\
-+		if (condition)						\
-+			break;						\
-+		if (state == TASK_INTERRUPTIBLE &&			\
-+		    signal_pending(current)) {				\
-+			__ret = -ERESTARTSYS;				\
-+			break;						\
-+		}							\
-+		if (!__t.task) {					\
-+			__ret = -ETIME;					\
-+			break;						\
-+		}							\
-+		schedule();						\
-+	}								\
-+									\
-+	hrtimer_cancel(&__t.timer);					\
-+	destroy_hrtimer_on_stack(&__t.timer);				\
-+	finish_wait(&wq, &__wait);					\
-+	__ret;								\
-+})
-+
-+/**
-+ * wait_event_hrtimeout - sleep until a condition gets true or a timeout elapses
-+ * @wq: the waitqueue to wait on
-+ * @condition: a C expression for the event to wait for
-+ * @timeout: timeout, in jiffies
-+ *
-+ * The process is put to sleep (TASK_UNINTERRUPTIBLE) until the
-+ * @condition evaluates to true or a signal is received.
-+ * The @condition is checked each time the waitqueue @wq is woken up.
-+ *
-+ * wake_up() has to be called after changing any variable that could
-+ * change the result of the wait condition.
-+ *
-+ * The function returns 0 if @condition became true, or -ETIME if the timeout
-+ * elapsed.
-+ */
-+#define wait_event_hrtimeout(wq, condition, timeout)			\
-+({									\
-+	int __ret = 0;							\
-+	if (!(condition))						\
-+		__ret = __wait_event_hrtimeout(wq, condition, timeout,	\
-+					       TASK_UNINTERRUPTIBLE);	\
-+	__ret;								\
-+})
-+
-+/**
-+ * wait_event_interruptible_hrtimeout - sleep until a condition gets true or a timeout elapses
-+ * @wq: the waitqueue to wait on
-+ * @condition: a C expression for the event to wait for
-+ * @timeout: timeout, in jiffies
-+ *
-+ * The process is put to sleep (TASK_INTERRUPTIBLE) until the
-+ * @condition evaluates to true or a signal is received.
-+ * The @condition is checked each time the waitqueue @wq is woken up.
-+ *
-+ * wake_up() has to be called after changing any variable that could
-+ * change the result of the wait condition.
-+ *
-+ * The function returns 0 if @condition became true, -ERESTARTSYS if it was
-+ * interrupted by a signal, or -ETIME if the timeout elapsed.
-+ */
-+#define wait_event_interruptible_hrtimeout(wq, condition, timeout)	\
-+({									\
-+	long __ret = 0;							\
-+	if (!(condition))						\
-+		__ret = __wait_event_hrtimeout(wq, condition, timeout,	\
-+					       TASK_INTERRUPTIBLE);	\
-+	__ret;								\
-+})
-+
- #define __wait_event_interruptible_exclusive(wq, condition, ret)	\
- do {									\
- 	DEFINE_WAIT(__wait);						\
+@@ -370,7 +370,7 @@ do {									\
+  * wait_event_hrtimeout - sleep until a condition gets true or a timeout elapses
+  * @wq: the waitqueue to wait on
+  * @condition: a C expression for the event to wait for
+- * @timeout: timeout, in jiffies
++ * @timeout: timeout, as a ktime_t
+  *
+  * The process is put to sleep (TASK_UNINTERRUPTIBLE) until the
+  * @condition evaluates to true or a signal is received.
+@@ -395,7 +395,7 @@ do {									\
+  * wait_event_interruptible_hrtimeout - sleep until a condition gets true or a timeout elapses
+  * @wq: the waitqueue to wait on
+  * @condition: a C expression for the event to wait for
+- * @timeout: timeout, in jiffies
++ * @timeout: timeout, as a ktime_t
+  *
+  * The process is put to sleep (TASK_INTERRUPTIBLE) until the
+  * @condition evaluates to true or a signal is received.
 _
 
-Patches currently in -mm which might be from koverstreet@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-remove-old-aio-use_mm-comment.patch
-aio-remove-dead-code-from-aioh.patch
-gadget-remove-only-user-of-aio-retry.patch
-aio-remove-retry-based-aio.patch
-char-add-aio_readwrite-to-dev-nullzero.patch
-aio-kill-return-value-of-aio_complete.patch
-aio-kiocb_cancel.patch
-aio-move-private-stuff-out-of-aioh.patch
-aio-dprintk-pr_debug.patch
-aio-do-fget-after-aio_get_req.patch
-aio-make-aio_put_req-lockless.patch
-aio-refcounting-cleanup.patch
-wait-add-wait_event_hrtimeout.patch
+ipc-add-sysctl-to-specify-desired-next-object-id.patch
+ipc-message-queue-receive-cleanup.patch
+ipc-convert-prepare_copy-from-macro-to-function.patch
+rtc-add-rtc-driver-for-tps6586x-fix.patch
+rtc-add-rtc-driver-for-tps6586x-fix2.patch
+linux-next.patch
+make-my-i386-build-work.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
+bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
+i-need-old-gcc.patch
+lib-cpu_rmap-avoid-flushing-all-workqueues-fix.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+kernel-auditc-avoid-negative-sleep-durations.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
+mm.patch
+mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
+mm-hugetlbc-convert-to-pr_foo.patch
+cma-make-putback_lru_pages-call-conditional-fix.patch
+mm-vmscan-clean-up-get_scan_count-fix.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
+mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
+mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+backlight-add-lms501kf03-lcd-driver-fix.patch
+backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix-fix.patch
+rtc-max77686-add-maxim-77686-driver-fix.patch
+rtc-pcf8523-add-low-battery-voltage-support-fix.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
 wait-add-wait_event_hrtimeout-fix.patch
-aio-make-aio_read_evt-more-efficient-convert-to-hrtimers.patch
-aio-use-flush_dcache_page.patch
-aio-use-cancellation-list-lazily.patch
-aio-change-reqs_active-to-include-unreaped-completions.patch
-aio-kill-batch-allocation.patch
-aio-kill-struct-aio_ring_info.patch
-aio-give-shared-kioctx-fields-their-own-cachelines.patch
 aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-aio-reqs_active-reqs_available.patch
-aio-percpu-reqs_available.patch
-generic-dynamic-per-cpu-refcounting.patch
-aio-percpu-ioctx-refcount.patch
-aio-use-xchg-instead-of-completion_lock.patch
-aio-dont-include-aioh-in-schedh.patch
-aio-kill-ki_key.patch
-aio-kill-ki_retry.patch
-block-aio-batch-completion-for-bios-kiocbs.patch
-virtio-blk-convert-to-batch-completion.patch
-mtip32xx-convert-to-batch-completion.patch
-aio-smoosh-struct-kiocb.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
