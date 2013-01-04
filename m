@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + block-aio-batch-completion-for-bios-kiocbs-fix.patch added to -mm tree
-Date: Fri, 04 Jan 2013 14:32:22 -0800
-Message-ID: <20130104223223.5B68E100049@wpzn3.hot.corp.google.com>
+Subject: + aio-dont-include-aioh-in-schedh-fix.patch added to -mm tree
+Date: Fri, 04 Jan 2013 14:32:16 -0800
+Message-ID: <20130104223217.4BF3F100049@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:32972 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755023Ab3ADWcY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jan 2013 17:32:24 -0500
-Received: by mail-ye0-f202.google.com with SMTP id r9so962734yen.3
-        for <mm-commits@vger.kernel.org>; Fri, 04 Jan 2013 14:32:24 -0800 (PST)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:46918 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754618Ab3ADWcT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jan 2013 17:32:19 -0500
+Received: by mail-yh0-f73.google.com with SMTP id 47so1810734yhr.0
+        for <mm-commits@vger.kernel.org>; Fri, 04 Jan 2013 14:32:18 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, koverstreet@google.com
+Cc: akpm@linux-foundation.org, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.com, bcrl@kvack.org, gregkh@linuxfoundation.org, jlbec@evilplan.org, jmoyer@redhat.com, koverstreet@google.com, mfasheh@suse.com, rusty@rustcorp.com.au, sbradshaw@micron.com, smani@micron.com, viro@zeniv.linux.org.uk, zab@redhat.com
 
 
 The patch titled
-     Subject: block-aio-batch-completion-for-bios-kiocbs-fix
+     Subject: aio-dont-include-aioh-in-schedh-fix
 has been added to the -mm tree.  Its filename is
-     block-aio-batch-completion-for-bios-kiocbs-fix.patch
+     aio-dont-include-aioh-in-schedh-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: block-aio-batch-completion-for-bios-kiocbs-fix
+Subject: aio-dont-include-aioh-in-schedh-fix
 
-fs/aio.c: In function 'kioctx_ring_put':
-fs/aio.c:636: warning: cast from pointer to integer of different size
-
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Asai Thambi S P <asamymuthupa@micron.com>
+Cc: Benjamin LaHaise <bcrl@kvack.org> 
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Kent Overstreet <koverstreet@google.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Sam Bradshaw <sbradshaw@micron.com>
+Cc: Selvan Mani <smani@micron.com>
+Cc: Zach Brown <zab@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/f2fs/data.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/aio.c~block-aio-batch-completion-for-bios-kiocbs-fix fs/aio.c
---- a/fs/aio.c~block-aio-batch-completion-for-bios-kiocbs-fix
-+++ a/fs/aio.c
-@@ -633,7 +633,7 @@ static inline unsigned kioctx_ring_put(s
- 	ev_page = kmap_atomic(ctx->ring_pages[pos / AIO_EVENTS_PER_PAGE]);
- 	event = ev_page + pos % AIO_EVENTS_PER_PAGE;
- 
--	event->obj	= (u64) req->ki_obj.user;
-+	event->obj	= (u64)(unsigned long)req->ki_obj.user;
- 	event->data	= req->ki_user_data;
- 	event->res	= req->ki_res;
- 	event->res2	= req->ki_res2;
+diff -puN fs/f2fs/data.c~aio-dont-include-aioh-in-schedh-fix fs/f2fs/data.c
+--- a/fs/f2fs/data.c~aio-dont-include-aioh-in-schedh-fix
++++ a/fs/f2fs/data.c
+@@ -12,6 +12,7 @@
+ #include <linux/f2fs_fs.h>
+ #include <linux/buffer_head.h>
+ #include <linux/mpage.h>
++#include <linux/aio.h>
+ #include <linux/writeback.h>
+ #include <linux/backing-dev.h>
+ #include <linux/blkdev.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
