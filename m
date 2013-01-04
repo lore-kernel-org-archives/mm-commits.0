@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + aio-dont-include-aioh-in-schedh-fix.patch added to -mm tree
-Date: Fri, 04 Jan 2013 13:26:35 -0800
-Message-ID: <20130104221731.47F3182004A@wpzn4.hot.corp.google.com>
+Subject: + aio-kiocb_cancel-fix.patch added to -mm tree
+Date: Fri, 04 Jan 2013 14:32:18 -0800
+Message-ID: <20130104223219.9830220004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:37511 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755117Ab3ADWRe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jan 2013 17:17:34 -0500
-Received: by mail-vc0-f201.google.com with SMTP id p1so1808620vcq.2
-        for <mm-commits@vger.kernel.org>; Fri, 04 Jan 2013 14:17:32 -0800 (PST)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:34213 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755023Ab3ADWcV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jan 2013 17:32:21 -0500
+Received: by mail-fa0-f74.google.com with SMTP id t1so1057546fae.5
+        for <mm-commits@vger.kernel.org>; Fri, 04 Jan 2013 14:32:20 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.com, bcrl@kvack.org, gregkh@linuxfoundation.org, jlbec@evilplan.org, jmoyer@redhat.com, koverstreet@google.com, mfasheh@suse.com, rusty@rustcorp.com.au, sbradshaw@micron.com, smani@micron.com, viro@zeniv.linux.org.uk, zab@redhat.com
+Cc: akpm@linux-foundation.org, koverstreet@google.com
 
 
 The patch titled
-     Subject: aio-dont-include-aioh-in-schedh-fix
+     Subject: aio-kiocb_cancel-fix
 has been added to the -mm tree.  Its filename is
-     aio-dont-include-aioh-in-schedh-fix.patch
+     aio-kiocb_cancel-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: aio-dont-include-aioh-in-schedh-fix
+Subject: aio-kiocb_cancel-fix
 
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Asai Thambi S P <asamymuthupa@micron.com>
-Cc: Benjamin LaHaise <bcrl@kvack.org> 
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jeff Moyer <jmoyer@redhat.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Joel Becker <jlbec@evilplan.org>
+i386:
+
+fs/aio.c: In function 'kiocb_cancel':
+fs/aio.c:233: warning: cast from pointer to integer of different size
+
 Cc: Kent Overstreet <koverstreet@google.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Sam Bradshaw <sbradshaw@micron.com>
-Cc: Selvan Mani <smani@micron.com>
-Cc: Zach Brown <zab@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/f2fs/data.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/aio.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/f2fs/data.c~aio-dont-include-aioh-in-schedh-fix fs/f2fs/data.c
---- a/fs/f2fs/data.c~aio-dont-include-aioh-in-schedh-fix
-+++ a/fs/f2fs/data.c
-@@ -12,6 +12,7 @@
- #include <linux/f2fs_fs.h>
- #include <linux/buffer_head.h>
- #include <linux/mpage.h>
-+#include <linux/aio.h>
- #include <linux/writeback.h>
- #include <linux/backing-dev.h>
- #include <linux/blkdev.h>
+diff -puN fs/aio.c~aio-kiocb_cancel-fix fs/aio.c
+--- a/fs/aio.c~aio-kiocb_cancel-fix
++++ a/fs/aio.c
+@@ -230,7 +230,7 @@ static int kiocb_cancel(struct kioctx *c
+ 		spin_unlock_irq(&ctx->ctx_lock);
+ 
+ 		memset(res, 0, sizeof(*res));
+-		res->obj = (u64) kiocb->ki_obj.user;
++		res->obj = (u64)(unsigned long)kiocb->ki_obj.user;
+ 		res->data = kiocb->ki_user_data;
+ 		ret = cancel(kiocb, res);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -108,10 +101,13 @@ rtc-pcf8523-add-low-battery-voltage-support-fix.patch
 hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
 drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
 dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+aio-kiocb_cancel-fix.patch
 wait-add-wait_event_hrtimeout-fix.patch
 aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
 generic-dynamic-per-cpu-refcounting-fix.patch
 aio-dont-include-aioh-in-schedh-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+aio-smoosh-struct-kiocb-fix.patch
 journal_add_journal_head-debug.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
