@@ -1,61 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] rtc-add-rtc-driver-for-tps6586x-fix.patch removed from -mm tree
-Date: Fri, 04 Jan 2013 15:20:25 -0800
-Message-ID: <20130104232026.94F2620004E@hpza10.eem.corp.google.com>
+Subject: [folded-merged] rtc-add-rtc-driver-for-tps6586x-fix2.patch removed from -mm tree
+Date: Fri, 04 Jan 2013 15:20:29 -0800
+Message-ID: <20130104232029.DAAA482004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:59021 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754749Ab3ADXU3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jan 2013 18:20:29 -0500
-Received: by mail-wg0-f74.google.com with SMTP id dt14so1059051wgb.1
-        for <mm-commits@vger.kernel.org>; Fri, 04 Jan 2013 15:20:27 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:37682 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754749Ab3ADXUa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jan 2013 18:20:30 -0500
+Received: by mail-yh0-f74.google.com with SMTP id w68so769375yhw.5
+        for <mm-commits@vger.kernel.org>; Fri, 04 Jan 2013 15:20:30 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ldewangan@nvidia.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ldewangan@nvidia.com, marvin24@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc-add-rtc-driver-for-tps6586x-fix
+     Subject: rtc-add-rtc-driver-for-tps6586x-fix2
 has been removed from the -mm tree.  Its filename was
-     rtc-add-rtc-driver-for-tps6586x-fix.patch
+     rtc-add-rtc-driver-for-tps6586x-fix2.patch
 
 This patch was dropped because it was folded into rtc-add-rtc-driver-for-tps6586x.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: rtc-add-rtc-driver-for-tps6586x-fix
+Subject: rtc-add-rtc-driver-for-tps6586x-fix2
 
-remove stray semicolons
+start epoch in 2009
 
 Cc: Laxman Dewangan <ldewangan@nvidia.com>
+Cc: Marc Dietrich <marvin24@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  drivers/rtc/rtc-tps6586x.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-tps6586x.c~rtc-add-rtc-driver-for-tps6586x-fix drivers/rtc/rtc-tps6586x.c
---- a/drivers/rtc/rtc-tps6586x.c~rtc-add-rtc-driver-for-tps6586x-fix
+diff -puN drivers/rtc/Kconfig~rtc-add-rtc-driver-for-tps6586x-fix2 drivers/rtc/Kconfig
+diff -puN drivers/rtc/Makefile~rtc-add-rtc-driver-for-tps6586x-fix2 drivers/rtc/Makefile
+diff -puN drivers/rtc/rtc-tps6586x.c~rtc-add-rtc-driver-for-tps6586x-fix2 drivers/rtc/rtc-tps6586x.c
+--- a/drivers/rtc/rtc-tps6586x.c~rtc-add-rtc-driver-for-tps6586x-fix2
 +++ a/drivers/rtc/rtc-tps6586x.c
-@@ -323,7 +323,7 @@ static int tps6586x_rtc_suspend(struct d
- 	if (device_may_wakeup(dev))
- 		enable_irq_wake(rtc->irq);
- 	return 0;
--};
-+}
+@@ -260,8 +260,8 @@ static int tps6586x_rtc_probe(struct pla
+ 	rtc->dev = &pdev->dev;
+ 	rtc->irq = platform_get_irq(pdev, 0);
  
- static int tps6586x_rtc_resume(struct device *dev)
- {
-@@ -332,7 +332,7 @@ static int tps6586x_rtc_resume(struct de
- 	if (device_may_wakeup(dev))
- 		disable_irq_wake(rtc->irq);
- 	return 0;
--};
-+}
- #endif
+-	/* Set epoch start as 00:00:00:01:01:2000 */
+-	rtc->epoch_start = mktime(2000, 1, 1, 0, 0, 0);
++	/* Set epoch start as 00:00:00:01:01:2009 */
++	rtc->epoch_start = mktime(2009, 1, 1, 0, 0, 0);
  
- static const struct dev_pm_ops tps6586x_pm_ops = {
+ 	/* 1 kHz tick mode, enable tick counting */
+ 	ret = tps6586x_update(tps_dev, RTC_CTRL,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -65,7 +61,6 @@ ipc-add-sysctl-to-specify-desired-next-object-id.patch
 ipc-message-queue-receive-cleanup.patch
 ipc-convert-prepare_copy-from-macro-to-function.patch
 rtc-add-rtc-driver-for-tps6586x.patch
-rtc-add-rtc-driver-for-tps6586x-fix2.patch
 linux-next.patch
 linux-next-git-rejects.patch
 make-my-i386-build-work.patch
