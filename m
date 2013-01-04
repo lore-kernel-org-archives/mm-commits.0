@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + generic-dynamic-per-cpu-refcounting-fix.patch added to -mm tree
-Date: Fri, 04 Jan 2013 13:10:41 -0800
-Message-ID: <20130104220139.2BF6A20004E@hpza10.eem.corp.google.com>
+Subject: + aio-dont-include-aioh-in-schedh-fix.patch added to -mm tree
+Date: Fri, 04 Jan 2013 13:26:35 -0800
+Message-ID: <20130104221731.47F3182004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f73.google.com ([74.125.82.73]:45854 "EHLO
-	mail-wg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755023Ab3ADWBm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jan 2013 17:01:42 -0500
-Received: by mail-wg0-f73.google.com with SMTP id dt12so1056143wgb.4
-        for <mm-commits@vger.kernel.org>; Fri, 04 Jan 2013 14:01:41 -0800 (PST)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:37511 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755117Ab3ADWRe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jan 2013 17:17:34 -0500
+Received: by mail-vc0-f201.google.com with SMTP id p1so1808620vcq.2
+        for <mm-commits@vger.kernel.org>; Fri, 04 Jan 2013 14:17:32 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, koverstreet@google.com
+Cc: akpm@linux-foundation.org, asamymuthupa@micron.com, axboe@kernel.dk, balbi@ti.com, bcrl@kvack.org, gregkh@linuxfoundation.org, jlbec@evilplan.org, jmoyer@redhat.com, koverstreet@google.com, mfasheh@suse.com, rusty@rustcorp.com.au, sbradshaw@micron.com, smani@micron.com, viro@zeniv.linux.org.uk, zab@redhat.com
 
 
 The patch titled
-     Subject: generic-dynamic-per-cpu-refcounting-fix
+     Subject: aio-dont-include-aioh-in-schedh-fix
 has been added to the -mm tree.  Its filename is
-     generic-dynamic-per-cpu-refcounting-fix.patch
+     aio-dont-include-aioh-in-schedh-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: generic-dynamic-per-cpu-refcounting-fix
+Subject: aio-dont-include-aioh-in-schedh-fix
 
-lib/percpu-refcount.c: In function 'percpu_ref_init':
-lib/percpu-refcount.c:22: error: 'jiffies' undeclared (first use in this function)
-lib/percpu-refcount.c:22: error: (Each undeclared identifier is reported only once
-lib/percpu-refcount.c:22: error: for each function it appears in.)
-lib/percpu-refcount.c: In function 'percpu_ref_alloc':
-lib/percpu-refcount.c:36: error: 'jiffies' undeclared (first use in this function)
-lib/percpu-refcount.c:41: error: 'HZ' undeclared (first use in this function)
-
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Asai Thambi S P <asamymuthupa@micron.com>
+Cc: Benjamin LaHaise <bcrl@kvack.org> 
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Kent Overstreet <koverstreet@google.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Sam Bradshaw <sbradshaw@micron.com>
+Cc: Selvan Mani <smani@micron.com>
+Cc: Zach Brown <zab@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/percpu-refcount.c |    1 +
+ fs/f2fs/data.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN lib/percpu-refcount.c~generic-dynamic-per-cpu-refcounting-fix lib/percpu-refcount.c
---- a/lib/percpu-refcount.c~generic-dynamic-per-cpu-refcounting-fix
-+++ a/lib/percpu-refcount.c
-@@ -1,6 +1,7 @@
- #define pr_fmt(fmt) "%s: " fmt "\n", __func__
- 
- #include <linux/kernel.h>
-+#include <linux/jiffies.h>
- #include <linux/percpu-refcount.h>
- #include <linux/rcupdate.h>
- 
+diff -puN fs/f2fs/data.c~aio-dont-include-aioh-in-schedh-fix fs/f2fs/data.c
+--- a/fs/f2fs/data.c~aio-dont-include-aioh-in-schedh-fix
++++ a/fs/f2fs/data.c
+@@ -12,6 +12,7 @@
+ #include <linux/f2fs_fs.h>
+ #include <linux/buffer_head.h>
+ #include <linux/mpage.h>
++#include <linux/aio.h>
+ #include <linux/writeback.h>
+ #include <linux/backing-dev.h>
+ #include <linux/blkdev.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,6 +111,7 @@ dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
 wait-add-wait_event_hrtimeout-fix.patch
 aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
 generic-dynamic-per-cpu-refcounting-fix.patch
+aio-dont-include-aioh-in-schedh-fix.patch
 journal_add_journal_head-debug.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
