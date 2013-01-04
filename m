@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + aio-dont-include-aioh-in-schedh-fix.patch added to -mm tree
-Date: Fri, 04 Jan 2013 14:32:16 -0800
-Message-ID: <20130104223217.4BF3F100049@wpzn3.hot.corp.google.com>
+Subject: + aio-smoosh-struct-kiocb-fix.patch added to -mm tree
+Date: Fri, 04 Jan 2013 14:32:21 -0800
+Message-ID: <20130104223221.7EC3210004D@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:46918 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754618Ab3ADWcT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jan 2013 17:32:19 -0500
-Received: by mail-yh0-f73.google.com with SMTP id 47so1810734yhr.0
-        for <mm-commits@vger.kernel.org>; Fri, 04 Jan 2013 14:32:18 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:38697 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755023Ab3ADWcX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jan 2013 17:32:23 -0500
+Received: by mail-gg0-f202.google.com with SMTP id k1so1810285ggn.3
+        for <mm-commits@vger.kernel.org>; Fri, 04 Jan 2013 14:32:22 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akpm@linux-foundation.org, asamymuthupa@micron.com, axboe@kernel.dk, balbi@t
 
 
 The patch titled
-     Subject: aio-dont-include-aioh-in-schedh-fix
+     Subject: aio-smoosh-struct-kiocb-fix
 has been added to the -mm tree.  Its filename is
-     aio-dont-include-aioh-in-schedh-fix.patch
+     aio-smoosh-struct-kiocb-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: aio-dont-include-aioh-in-schedh-fix
+Subject: aio-smoosh-struct-kiocb-fix
+
+fs/aio.c: In function 'io_submit_one':
+fs/aio.c:1256: warning: cast to pointer from integer of different size
 
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Asai Thambi S P <asamymuthupa@micron.com>
@@ -53,20 +56,21 @@ Cc: Zach Brown <zab@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/f2fs/data.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/aio.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/f2fs/data.c~aio-dont-include-aioh-in-schedh-fix fs/f2fs/data.c
---- a/fs/f2fs/data.c~aio-dont-include-aioh-in-schedh-fix
-+++ a/fs/f2fs/data.c
-@@ -12,6 +12,7 @@
- #include <linux/f2fs_fs.h>
- #include <linux/buffer_head.h>
- #include <linux/mpage.h>
-+#include <linux/aio.h>
- #include <linux/writeback.h>
- #include <linux/backing-dev.h>
- #include <linux/blkdev.h>
+diff -puN fs/aio.c~aio-smoosh-struct-kiocb-fix fs/aio.c
+--- a/fs/aio.c~aio-smoosh-struct-kiocb-fix
++++ a/fs/aio.c
+@@ -1253,7 +1253,7 @@ static int io_submit_one(struct kioctx *
+ 	req->ki_pos		= iocb->aio_offset;
+ 	req->ki_nbytes		= iocb->aio_nbytes;
+ 	req->ki_left		= iocb->aio_nbytes;
+-	req->ki_buf		= (char __user *) iocb->aio_buf;
++	req->ki_buf		= (char __user *)(unsigned long)iocb->aio_buf;
+ 	req->ki_nr_segs		= 0;
+ 	req->ki_cur_seg		= 0;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
