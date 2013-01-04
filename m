@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + aio-dont-include-aioh-in-schedh-fix-3.patch added to -mm tree
-Date: Fri, 04 Jan 2013 14:43:24 -0800
-Message-ID: <20130104233420.762BE20004E@hpza10.eem.corp.google.com>
+Subject: + drivers-rtc-rtc-da9055c-fix-cross-section-reference.patch added to -mm tree
+Date: Fri, 04 Jan 2013 15:43:14 -0800
+Message-ID: <20130104234315.0606320004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-bk0-f74.google.com ([209.85.214.74]:57092 "EHLO
-	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754749Ab3ADXeX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jan 2013 18:34:23 -0500
-Received: by mail-bk0-f74.google.com with SMTP id je9so1060864bkc.5
-        for <mm-commits@vger.kernel.org>; Fri, 04 Jan 2013 15:34:21 -0800 (PST)
+Received: from mail-la0-f73.google.com ([209.85.215.73]:42433 "EHLO
+	mail-la0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754749Ab3ADXnR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jan 2013 18:43:17 -0500
+Received: by mail-la0-f73.google.com with SMTP id fq13so469080lab.2
+        for <mm-commits@vger.kernel.org>; Fri, 04 Jan 2013 15:43:16 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, koverstreet@google.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     Subject: aio-dont-include-aioh-in-schedh-fix-3
+     Subject: drivers/rtc/rtc-da9055.c: fix cross-section reference
 has been added to the -mm tree.  Its filename is
-     aio-dont-include-aioh-in-schedh-fix-3.patch
+     drivers-rtc-rtc-da9055c-fix-cross-section-reference.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,26 +34,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: aio-dont-include-aioh-in-schedh-fix-3
+Subject: drivers/rtc/rtc-da9055.c: fix cross-section reference
 
-Cc: Kent Overstreet <koverstreet@google.com>
+WARNING: drivers/rtc/rtc-da9055.o(.text+0xa71): Section mismatch in reference from the function da9055_rtc_probe() to the function .init.text:da9055_rtc_device_init()
+
+
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/sg.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/rtc/rtc-da9055.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/sg.c~aio-dont-include-aioh-in-schedh-fix-3 drivers/scsi/sg.c
---- a/drivers/scsi/sg.c~aio-dont-include-aioh-in-schedh-fix-3
-+++ a/drivers/scsi/sg.c
-@@ -35,6 +35,7 @@ static int sg_version_num = 30534;	/* 2 
- #include <linux/sched.h>
- #include <linux/string.h>
- #include <linux/mm.h>
-+#include <linux/aio.h>
- #include <linux/errno.h>
- #include <linux/mtio.h>
- #include <linux/ioctl.h>
+diff -puN drivers/rtc/rtc-da9055.c~drivers-rtc-rtc-da9055c-fix-cross-section-reference drivers/rtc/rtc-da9055.c
+--- a/drivers/rtc/rtc-da9055.c~drivers-rtc-rtc-da9055c-fix-cross-section-reference
++++ a/drivers/rtc/rtc-da9055.c
+@@ -227,7 +227,7 @@ static const struct rtc_class_ops da9055
+ 	.alarm_irq_enable = da9055_rtc_alarm_irq_enable,
+ };
+ 
+-static int __init da9055_rtc_device_init(struct da9055 *da9055,
++static int da9055_rtc_device_init(struct da9055 *da9055,
+ 					struct da9055_pdata *pdata)
+ {
+ 	int ret;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -62,8 +67,7 @@ origin.patch
 ipc-add-sysctl-to-specify-desired-next-object-id.patch
 ipc-message-queue-receive-cleanup.patch
 ipc-convert-prepare_copy-from-macro-to-function.patch
-rtc-add-rtc-driver-for-tps6586x-fix.patch
-rtc-add-rtc-driver-for-tps6586x-fix2.patch
+rtc-add-rtc-driver-for-tps6586x.patch
 linux-next.patch
 linux-next-git-rejects.patch
 make-my-i386-build-work.patch
@@ -72,6 +76,7 @@ bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
 bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
 i-need-old-gcc.patch
 lib-cpu_rmap-avoid-flushing-all-workqueues-fix.patch
+drivers-rtc-rtc-da9055c-fix-cross-section-reference.patch
 arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
 kernel-auditc-avoid-negative-sleep-durations.patch
 fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
@@ -102,6 +107,7 @@ aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
 generic-dynamic-per-cpu-refcounting-fix.patch
 aio-dont-include-aioh-in-schedh-fix.patch
 aio-dont-include-aioh-in-schedh-fix-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3.patch
 block-aio-batch-completion-for-bios-kiocbs-fix.patch
 aio-smoosh-struct-kiocb-fix.patch
 journal_add_journal_head-debug.patch
@@ -109,5 +115,4 @@ kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
 
