@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + aio-kiocb_cancel-fix.patch added to -mm tree
-Date: Fri, 04 Jan 2013 14:32:18 -0800
-Message-ID: <20130104223219.9830220004E@hpza10.eem.corp.google.com>
+Subject: + block-aio-batch-completion-for-bios-kiocbs-fix.patch added to -mm tree
+Date: Fri, 04 Jan 2013 14:32:22 -0800
+Message-ID: <20130104223223.5B68E100049@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:34213 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755023Ab3ADWcV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jan 2013 17:32:21 -0500
-Received: by mail-fa0-f74.google.com with SMTP id t1so1057546fae.5
-        for <mm-commits@vger.kernel.org>; Fri, 04 Jan 2013 14:32:20 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:32972 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755023Ab3ADWcY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jan 2013 17:32:24 -0500
+Received: by mail-ye0-f202.google.com with SMTP id r9so962734yen.3
+        for <mm-commits@vger.kernel.org>; Fri, 04 Jan 2013 14:32:24 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akpm@linux-foundation.org, koverstreet@google.com
 
 
 The patch titled
-     Subject: aio-kiocb_cancel-fix
+     Subject: block-aio-batch-completion-for-bios-kiocbs-fix
 has been added to the -mm tree.  Its filename is
-     aio-kiocb_cancel-fix.patch
+     block-aio-batch-completion-for-bios-kiocbs-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: aio-kiocb_cancel-fix
+Subject: block-aio-batch-completion-for-bios-kiocbs-fix
 
-i386:
-
-fs/aio.c: In function 'kiocb_cancel':
-fs/aio.c:233: warning: cast from pointer to integer of different size
+fs/aio.c: In function 'kioctx_ring_put':
+fs/aio.c:636: warning: cast from pointer to integer of different size
 
 Cc: Kent Overstreet <koverstreet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -48,18 +46,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  fs/aio.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/aio.c~aio-kiocb_cancel-fix fs/aio.c
---- a/fs/aio.c~aio-kiocb_cancel-fix
+diff -puN fs/aio.c~block-aio-batch-completion-for-bios-kiocbs-fix fs/aio.c
+--- a/fs/aio.c~block-aio-batch-completion-for-bios-kiocbs-fix
 +++ a/fs/aio.c
-@@ -230,7 +230,7 @@ static int kiocb_cancel(struct kioctx *c
- 		spin_unlock_irq(&ctx->ctx_lock);
+@@ -633,7 +633,7 @@ static inline unsigned kioctx_ring_put(s
+ 	ev_page = kmap_atomic(ctx->ring_pages[pos / AIO_EVENTS_PER_PAGE]);
+ 	event = ev_page + pos % AIO_EVENTS_PER_PAGE;
  
- 		memset(res, 0, sizeof(*res));
--		res->obj = (u64) kiocb->ki_obj.user;
-+		res->obj = (u64)(unsigned long)kiocb->ki_obj.user;
- 		res->data = kiocb->ki_user_data;
- 		ret = cancel(kiocb, res);
- 
+-	event->obj	= (u64) req->ki_obj.user;
++	event->obj	= (u64)(unsigned long)req->ki_obj.user;
+ 	event->data	= req->ki_user_data;
+ 	event->res	= req->ki_res;
+ 	event->res2	= req->ki_res2;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
