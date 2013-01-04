@@ -1,57 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] rtc-add-rtc-driver-for-tps6586x-fix2.patch removed from -mm tree
-Date: Fri, 04 Jan 2013 15:20:29 -0800
-Message-ID: <20130104232029.DAAA482004A@wpzn4.hot.corp.google.com>
+Subject: + aio-dont-include-aioh-in-schedh-fix-3.patch added to -mm tree
+Date: Fri, 04 Jan 2013 14:43:24 -0800
+Message-ID: <20130104233420.762BE20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:37682 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754749Ab3ADXUa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jan 2013 18:20:30 -0500
-Received: by mail-yh0-f74.google.com with SMTP id w68so769375yhw.5
-        for <mm-commits@vger.kernel.org>; Fri, 04 Jan 2013 15:20:30 -0800 (PST)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:57092 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754749Ab3ADXeX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Jan 2013 18:34:23 -0500
+Received: by mail-bk0-f74.google.com with SMTP id je9so1060864bkc.5
+        for <mm-commits@vger.kernel.org>; Fri, 04 Jan 2013 15:34:21 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ldewangan@nvidia.com, marvin24@gmx.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, koverstreet@google.com
 
 
 The patch titled
-     Subject: rtc-add-rtc-driver-for-tps6586x-fix2
-has been removed from the -mm tree.  Its filename was
-     rtc-add-rtc-driver-for-tps6586x-fix2.patch
+     Subject: aio-dont-include-aioh-in-schedh-fix-3
+has been added to the -mm tree.  Its filename is
+     aio-dont-include-aioh-in-schedh-fix-3.patch
 
-This patch was dropped because it was folded into rtc-add-rtc-driver-for-tps6586x.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: rtc-add-rtc-driver-for-tps6586x-fix2
+Subject: aio-dont-include-aioh-in-schedh-fix-3
 
-start epoch in 2009
-
-Cc: Laxman Dewangan <ldewangan@nvidia.com>
-Cc: Marc Dietrich <marvin24@gmx.de>
+Cc: Kent Overstreet <koverstreet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-tps6586x.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/scsi/sg.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/rtc/Kconfig~rtc-add-rtc-driver-for-tps6586x-fix2 drivers/rtc/Kconfig
-diff -puN drivers/rtc/Makefile~rtc-add-rtc-driver-for-tps6586x-fix2 drivers/rtc/Makefile
-diff -puN drivers/rtc/rtc-tps6586x.c~rtc-add-rtc-driver-for-tps6586x-fix2 drivers/rtc/rtc-tps6586x.c
---- a/drivers/rtc/rtc-tps6586x.c~rtc-add-rtc-driver-for-tps6586x-fix2
-+++ a/drivers/rtc/rtc-tps6586x.c
-@@ -260,8 +260,8 @@ static int tps6586x_rtc_probe(struct pla
- 	rtc->dev = &pdev->dev;
- 	rtc->irq = platform_get_irq(pdev, 0);
- 
--	/* Set epoch start as 00:00:00:01:01:2000 */
--	rtc->epoch_start = mktime(2000, 1, 1, 0, 0, 0);
-+	/* Set epoch start as 00:00:00:01:01:2009 */
-+	rtc->epoch_start = mktime(2009, 1, 1, 0, 0, 0);
- 
- 	/* 1 kHz tick mode, enable tick counting */
- 	ret = tps6586x_update(tps_dev, RTC_CTRL,
+diff -puN drivers/scsi/sg.c~aio-dont-include-aioh-in-schedh-fix-3 drivers/scsi/sg.c
+--- a/drivers/scsi/sg.c~aio-dont-include-aioh-in-schedh-fix-3
++++ a/drivers/scsi/sg.c
+@@ -35,6 +35,7 @@ static int sg_version_num = 30534;	/* 2 
+ #include <linux/sched.h>
+ #include <linux/string.h>
+ #include <linux/mm.h>
++#include <linux/aio.h>
+ #include <linux/errno.h>
+ #include <linux/mtio.h>
+ #include <linux/ioctl.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -60,7 +62,8 @@ origin.patch
 ipc-add-sysctl-to-specify-desired-next-object-id.patch
 ipc-message-queue-receive-cleanup.patch
 ipc-convert-prepare_copy-from-macro-to-function.patch
-rtc-add-rtc-driver-for-tps6586x.patch
+rtc-add-rtc-driver-for-tps6586x-fix.patch
+rtc-add-rtc-driver-for-tps6586x-fix2.patch
 linux-next.patch
 linux-next-git-rejects.patch
 make-my-i386-build-work.patch
@@ -106,4 +109,5 @@ kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
 put_bh-debug.patch
+aio-dont-include-aioh-in-schedh-fix-3.patch
 
