@@ -1,180 +1,190 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-limit-mmu_gather-batching-to-fix-soft-lockups-on-config_preempt.patch removed from -mm tree
-Date: Mon, 07 Jan 2013 11:25:45 -0800
-Message-ID: <20130107192546.5CF48200057__24465.2635454715$1357586770$gmane$org@hpza10.eem.corp.google.com>
+Subject: [merged] mm-fix-zone_watermark_ok_safe-accounting-of-isolated-pages.patch removed from -mm tree
+Date: Mon, 07 Jan 2013 11:25:39 -0800
+Message-ID: <20130107192540.5E7A720004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:49110 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755314Ab3AGTZt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2013 14:25:49 -0500
-Received: by mail-we0-f202.google.com with SMTP id t57so1261184wey.5
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jan 2013 11:25:47 -0800 (PST)
+Received: from mail-we0-f201.google.com ([74.125.82.201]:50934 "EHLO
+	mail-we0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755207Ab3AGTZo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2013 14:25:44 -0500
+Received: by mail-we0-f201.google.com with SMTP id t11so1261148wey.0
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jan 2013 11:25:43 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, a.p.zijlstra@chello.nl, mgorman@suse.de, riel@redhat.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: b.zolnierkie@samsung.com, aaditya.kumar.30@gmail.com, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, kyungmin.park@samsung.com, m.szyprowski@samsung.com, mgorman@suse.de, mhocko@suse.cz, mina86@mina86.com, minchan@kernel.org, t.stanislaws@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: limit mmu_gather batching to fix soft lockups on !CONFIG_PREEMPT
+     Subject: mm: fix zone_watermark_ok_safe() accounting of isolated pages
 has been removed from the -mm tree.  Its filename was
-     mm-limit-mmu_gather-batching-to-fix-soft-lockups-on-config_preempt.patch
+     mm-fix-zone_watermark_ok_safe-accounting-of-isolated-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: mm: limit mmu_gather batching to fix soft lockups on !CONFIG_PREEMPT
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: mm: fix zone_watermark_ok_safe() accounting of isolated pages
 
-Since e303297 ("mm: extended batches for generic mmu_gather") we are
-batching pages to be freed until either tlb_next_batch cannot allocate a
-new batch or we are done.
+In kernel v3.6 commit 702d1a6e07 ("memory-hotplug: fix kswapd looping
+forever problem") added isolated pageblocks counter (nr_pageblock_isolate
+in struct zone) and used it to adjust free pages counter in
+zone_watermark_ok_safe() to prevent kswapd looping forever problem.
 
-This works just fine most of the time but we can get in troubles with
-non-preemptible kernel (CONFIG_PREEMPT_NONE or CONFIG_PREEMPT_VOLUNTARY)
-on large machines where too aggressive batching might lead to soft lockups
-during process exit path (exit_mmap) because there are no scheduling
-points down the free_pages_and_swap_cache path and so the freeing can take
-long enough to trigger the soft lockup.
+In kernel v3.7 commit 2139cbe627b8 ("cma: fix counting of isolated pages")
+fixed accounting of isolated pages in global free pages counter.  It made
+previous zone_watermark_ok_safe() fix unnecessary and potentially harmful
+(cause now isolated pages may be accounted twice making free pages counter
+incorrect).
 
-The lockup is harmless except when the system is setup to panic on
-softlockup which is not that unusual.
+This patch removes special isolated pageblocks counter altogether which
+fixes zone_watermark_ok_safe() free pages check.
 
-The simplest way to work around this issue is to limit the maximum number
-of batches in a single mmu_gather.  10k of collected pages should be safe
-to prevent from soft lockups (we would have 2ms for one) even if they are
-all freed without an explicit scheduling point.
-
-This patch doesn't add any new explicit scheduling points because it
-relies on zap_pmd_range during page tables zapping which calls
-cond_resched per PMD.
-
-The following lockup has been reported for 3.0 kernel with a huge process
-(in order of hundreds gigs but I do know any more details).
-
-[65674.040540] BUG: soft lockup - CPU#56 stuck for 22s! [kernel:31053]
-[65674.040544] Modules linked in: af_packet nfs lockd fscache auth_rpcgss nfs_acl sunrpc mptctl mptbase autofs4 binfmt_misc dm_round_robin dm_multipath bonding cpufreq_conservative cpufreq_userspace cpufreq_powersave pcc_cpufreq mperf microcode fuse loop osst sg sd_mod crc_t10dif st qla2xxx scsi_transport_fc scsi_tgt netxen_nic i7core_edac iTCO_wdt joydev e1000e serio_raw pcspkr edac_core iTCO_vendor_support acpi_power_meter rtc_cmos hpwdt hpilo button container usbhid hid dm_mirror dm_region_hash dm_log linear uhci_hcd ehci_hcd usbcore usb_common scsi_dh_emc scsi_dh_alua scsi_dh_hp_sw scsi_dh_rdac scsi_dh dm_snapshot pcnet32 mii edd dm_mod raid1 ext3 mbcache jbd fan thermal processor thermal_sys hwmon cciss scsi_mod
-[65674.040602] Supported: Yes
-[65674.040604] CPU 56
-[65674.040639] Pid: 31053, comm: kernel Not tainted 3.0.31-0.9-default #1 HP ProLiant DL580 G7
-[65674.040643] RIP: 0010:[<ffffffff81443a88>]  [<ffffffff81443a88>] _raw_spin_unlock_irqrestore+0x8/0x10
-[65674.040656] RSP: 0018:ffff883ec1037af0  EFLAGS: 00000206
-[65674.040657] RAX: 0000000000000e00 RBX: ffffea01a0817e28 RCX: ffff88803ffd9e80
-[65674.040659] RDX: 0000000000000200 RSI: 0000000000000206 RDI: 0000000000000206
-[65674.040661] RBP: 0000000000000002 R08: 0000000000000001 R09: ffff887ec724a400
-[65674.040663] R10: 0000000000000000 R11: dead000000200200 R12: ffffffff8144c26e
-[65674.040665] R13: 0000000000000030 R14: 0000000000000297 R15: 000000000000000e
-[65674.040667] FS:  00007ed834282700(0000) GS:ffff88c03f200000(0000) knlGS:0000000000000000
-[65674.040669] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-[65674.040671] CR2: 000000000068b240 CR3: 0000003ec13c5000 CR4: 00000000000006e0
-[65674.040673] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[65674.040675] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-[65674.040678] Process kernel (pid: 31053, threadinfo ffff883ec1036000, task ffff883ebd5d4100)
-[65674.040680] Stack:
-[65674.042972]  ffffffff810fc935 ffff88a9f1e182b0 0000000000000206 0000000000000009
-[65674.042978]  0000000000000000 ffffea01a0817e60 ffffea0211d3a808 ffffea0211d3a840
-[65674.042983]  ffffea01a0827a28 ffffea01a0827a60 ffffea0288a598c0 ffffea0288a598f8
-[65674.042989] Call Trace:
-[65674.045765]  [<ffffffff810fc935>] release_pages+0xc5/0x260
-[65674.045779]  [<ffffffff811289dd>] free_pages_and_swap_cache+0x9d/0xc0
-[65674.045786]  [<ffffffff81115d6c>] tlb_flush_mmu+0x5c/0x80
-[65674.045791]  [<ffffffff8111628e>] tlb_finish_mmu+0xe/0x50
-[65674.045796]  [<ffffffff8111c65d>] exit_mmap+0xbd/0x120
-[65674.045805]  [<ffffffff810582d9>] mmput+0x49/0x120
-[65674.045813]  [<ffffffff8105cbb2>] exit_mm+0x122/0x160
-[65674.045818]  [<ffffffff8105e95a>] do_exit+0x17a/0x430
-[65674.045824]  [<ffffffff8105ec4d>] do_group_exit+0x3d/0xb0
-[65674.045831]  [<ffffffff8106f7c7>] get_signal_to_deliver+0x247/0x480
-[65674.045840]  [<ffffffff81002931>] do_signal+0x71/0x1b0
-[65674.045845]  [<ffffffff81002b08>] do_notify_resume+0x98/0xb0
-[65674.045853]  [<ffffffff8144bb60>] int_signal+0x12/0x17
-[65674.046737] DWARF2 unwinder stuck at int_signal+0x12/0x17
-
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Cc: <stable@vger.kernel.org>	[3.0+]
+Reported-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Aaditya Kumar <aaditya.kumar.30@gmail.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/tlb.h |    9 +++++++++
- mm/memory.c               |    5 +++++
- 2 files changed, 14 insertions(+)
+ include/linux/mmzone.h |    8 --------
+ mm/page_alloc.c        |   27 ---------------------------
+ mm/page_isolation.c    |   26 ++------------------------
+ 3 files changed, 2 insertions(+), 59 deletions(-)
 
-diff -puN include/asm-generic/tlb.h~mm-limit-mmu_gather-batching-to-fix-soft-lockups-on-config_preempt include/asm-generic/tlb.h
---- a/include/asm-generic/tlb.h~mm-limit-mmu_gather-batching-to-fix-soft-lockups-on-config_preempt
-+++ a/include/asm-generic/tlb.h
-@@ -78,6 +78,14 @@ struct mmu_gather_batch {
- #define MAX_GATHER_BATCH	\
- 	((PAGE_SIZE - sizeof(struct mmu_gather_batch)) / sizeof(void *))
+diff -puN include/linux/mmzone.h~mm-fix-zone_watermark_ok_safe-accounting-of-isolated-pages include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-fix-zone_watermark_ok_safe-accounting-of-isolated-pages
++++ a/include/linux/mmzone.h
+@@ -503,14 +503,6 @@ struct zone {
+ 	 * rarely used fields:
+ 	 */
+ 	const char		*name;
+-#ifdef CONFIG_MEMORY_ISOLATION
+-	/*
+-	 * the number of MIGRATE_ISOLATE *pageblock*.
+-	 * We need this for free page counting. Look at zone_watermark_ok_safe.
+-	 * It's protected by zone->lock
+-	 */
+-	int		nr_pageblock_isolate;
+-#endif
+ } ____cacheline_internodealigned_in_smp;
  
-+/*
-+ * Limit the maximum number of mmu_gather batches to reduce a risk of soft
-+ * lockups for non-preemptible kernels on huge machines when a lot of memory
-+ * is zapped during unmapping.
-+ * 10K pages freed at once should be safe even without a preemption point.
-+ */
-+#define MAX_GATHER_BATCH_COUNT	(10000UL/MAX_GATHER_BATCH)
-+
- /* struct mmu_gather is an opaque type used by the mm code for passing around
-  * any data needed by arch specific code for tlb_remove_page.
-  */
-@@ -96,6 +104,7 @@ struct mmu_gather {
- 	struct mmu_gather_batch *active;
- 	struct mmu_gather_batch	local;
- 	struct page		*__pages[MMU_GATHER_BUNDLE];
-+	unsigned int		batch_count;
- };
+ typedef enum {
+diff -puN mm/page_alloc.c~mm-fix-zone_watermark_ok_safe-accounting-of-isolated-pages mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-fix-zone_watermark_ok_safe-accounting-of-isolated-pages
++++ a/mm/page_alloc.c
+@@ -221,11 +221,6 @@ EXPORT_SYMBOL(nr_online_nodes);
  
- #define HAVE_GENERIC_MMU_GATHER
-diff -puN mm/memory.c~mm-limit-mmu_gather-batching-to-fix-soft-lockups-on-config_preempt mm/memory.c
---- a/mm/memory.c~mm-limit-mmu_gather-batching-to-fix-soft-lockups-on-config_preempt
-+++ a/mm/memory.c
-@@ -184,10 +184,14 @@ static int tlb_next_batch(struct mmu_gat
- 		return 1;
- 	}
+ int page_group_by_mobility_disabled __read_mostly;
  
-+	if (tlb->batch_count == MAX_GATHER_BATCH_COUNT)
-+		return 0;
-+
- 	batch = (void *)__get_free_pages(GFP_NOWAIT | __GFP_NOWARN, 0);
- 	if (!batch)
- 		return 0;
+-/*
+- * NOTE:
+- * Don't use set_pageblock_migratetype(page, MIGRATE_ISOLATE) directly.
+- * Instead, use {un}set_pageblock_isolate.
+- */
+ void set_pageblock_migratetype(struct page *page, int migratetype)
+ {
  
-+	tlb->batch_count++;
- 	batch->next = NULL;
- 	batch->nr   = 0;
- 	batch->max  = MAX_GATHER_BATCH;
-@@ -216,6 +220,7 @@ void tlb_gather_mmu(struct mmu_gather *t
- 	tlb->local.nr   = 0;
- 	tlb->local.max  = ARRAY_SIZE(tlb->__pages);
- 	tlb->active     = &tlb->local;
-+	tlb->batch_count = 0;
+@@ -1655,20 +1650,6 @@ static bool __zone_watermark_ok(struct z
+ 	return true;
+ }
  
- #ifdef CONFIG_HAVE_RCU_TABLE_FREE
- 	tlb->batch = NULL;
+-#ifdef CONFIG_MEMORY_ISOLATION
+-static inline unsigned long nr_zone_isolate_freepages(struct zone *zone)
+-{
+-	if (unlikely(zone->nr_pageblock_isolate))
+-		return zone->nr_pageblock_isolate * pageblock_nr_pages;
+-	return 0;
+-}
+-#else
+-static inline unsigned long nr_zone_isolate_freepages(struct zone *zone)
+-{
+-	return 0;
+-}
+-#endif
+-
+ bool zone_watermark_ok(struct zone *z, int order, unsigned long mark,
+ 		      int classzone_idx, int alloc_flags)
+ {
+@@ -1684,14 +1665,6 @@ bool zone_watermark_ok_safe(struct zone 
+ 	if (z->percpu_drift_mark && free_pages < z->percpu_drift_mark)
+ 		free_pages = zone_page_state_snapshot(z, NR_FREE_PAGES);
+ 
+-	/*
+-	 * If the zone has MIGRATE_ISOLATE type free pages, we should consider
+-	 * it.  nr_zone_isolate_freepages is never accurate so kswapd might not
+-	 * sleep although it could do so.  But this is more desirable for memory
+-	 * hotplug than sleeping which can cause a livelock in the direct
+-	 * reclaim path.
+-	 */
+-	free_pages -= nr_zone_isolate_freepages(z);
+ 	return __zone_watermark_ok(z, order, mark, classzone_idx, alloc_flags,
+ 								free_pages);
+ }
+diff -puN mm/page_isolation.c~mm-fix-zone_watermark_ok_safe-accounting-of-isolated-pages mm/page_isolation.c
+--- a/mm/page_isolation.c~mm-fix-zone_watermark_ok_safe-accounting-of-isolated-pages
++++ a/mm/page_isolation.c
+@@ -8,28 +8,6 @@
+ #include <linux/memory.h>
+ #include "internal.h"
+ 
+-/* called while holding zone->lock */
+-static void set_pageblock_isolate(struct page *page)
+-{
+-	if (get_pageblock_migratetype(page) == MIGRATE_ISOLATE)
+-		return;
+-
+-	set_pageblock_migratetype(page, MIGRATE_ISOLATE);
+-	page_zone(page)->nr_pageblock_isolate++;
+-}
+-
+-/* called while holding zone->lock */
+-static void restore_pageblock_isolate(struct page *page, int migratetype)
+-{
+-	struct zone *zone = page_zone(page);
+-	if (WARN_ON(get_pageblock_migratetype(page) != MIGRATE_ISOLATE))
+-		return;
+-
+-	BUG_ON(zone->nr_pageblock_isolate <= 0);
+-	set_pageblock_migratetype(page, migratetype);
+-	zone->nr_pageblock_isolate--;
+-}
+-
+ int set_migratetype_isolate(struct page *page, bool skip_hwpoisoned_pages)
+ {
+ 	struct zone *zone;
+@@ -80,7 +58,7 @@ out:
+ 		unsigned long nr_pages;
+ 		int migratetype = get_pageblock_migratetype(page);
+ 
+-		set_pageblock_isolate(page);
++		set_pageblock_migratetype(page, MIGRATE_ISOLATE);
+ 		nr_pages = move_freepages_block(zone, page, MIGRATE_ISOLATE);
+ 
+ 		__mod_zone_freepage_state(zone, -nr_pages, migratetype);
+@@ -103,7 +81,7 @@ void unset_migratetype_isolate(struct pa
+ 		goto out;
+ 	nr_pages = move_freepages_block(zone, page, migratetype);
+ 	__mod_zone_freepage_state(zone, nr_pages, migratetype);
+-	restore_pageblock_isolate(page, migratetype);
++	set_pageblock_migratetype(page, migratetype);
+ out:
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+ }
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from b.zolnierkie@samsung.com are
 
 origin.patch
-memcg-oom-provide-more-precise-dump-info-while-memcg-oom-happening.patch
-mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
-mm-hugetlbc-convert-to-pr_foo.patch
-mm-memcg-only-evict-file-pages-when-we-have-plenty.patch
-mm-vmscan-save-work-scanning-almost-empty-lru-lists.patch
-mm-vmscan-clarify-how-swappiness-highest-priority-memcg-interact.patch
-mm-vmscan-improve-comment-on-low-page-cache-handling.patch
-mm-vmscan-clean-up-get_scan_count.patch
-mm-vmscan-clean-up-get_scan_count-fix.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
-mm-reduce-rmap-overhead-for-ex-ksm-page-copies-created-on-swap-faults.patch
-mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
-mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-mmksm-use-new-hashtable-implementation.patch
-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pages.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs.patch
+linux-next.patch
+cma-make-putback_lru_pages-call-conditional.patch
+cma-make-putback_lru_pages-call-conditional-fix.patch
 
