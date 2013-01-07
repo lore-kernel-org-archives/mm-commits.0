@@ -1,59 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-remove-firmware-isci.patch removed from -mm tree
-Date: Mon, 07 Jan 2013 11:26:29 -0800
-Message-ID: <20130107192629.C58C3820059@wpzn4.hot.corp.google.com>
+Subject: [merged] maintainers-remove-include-linux-of_pwmh.patch removed from -mm tree
+Date: Mon, 07 Jan 2013 11:26:47 -0800
+Message-ID: <20130107192647.9FD69100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:39705 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755375Ab3AGT0b (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2013 14:26:31 -0500
-Received: by mail-gg0-f202.google.com with SMTP id k1so2113990ggn.5
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jan 2013 11:26:30 -0800 (PST)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:60143 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755272Ab3AGT0s (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2013 14:26:48 -0500
+Received: by mail-yh0-f73.google.com with SMTP id 47so2113584yhr.2
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jan 2013 11:26:48 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cesarb@cesarb.net, JBottomley@Parallels.com, ben@decadent.org.uk, dan.j.williams@intel.com, dave.jiang@intel.com, intel-linux-scu@intel.com, lukasz.dorau@intel.com, maciej.patelczyk@intel.com, mm-commits@vger.kernel.org
+To: cesarb@cesarb.net, thierry.reding@avionic-design.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: remove firmware/isci/
+     Subject: MAINTAINERS: remove include/linux/of_pwm.h
 has been removed from the -mm tree.  Its filename was
-     maintainers-remove-firmware-isci.patch
+     maintainers-remove-include-linux-of_pwmh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Cesar Eduardo Barros <cesarb@cesarb.net>
-Subject: MAINTAINERS: remove firmware/isci/
+Subject: MAINTAINERS: remove include/linux/of_pwm.h
 
-This directory was removed by commit 7d99b3a ("isci, firmware: Remove isci
-fallback parameter blob and generator").
+Added by commit 200efed ("pwm: Take over maintainership of the PWM
+subsystem"), but I could not find any trace of that file being ever added
+to the repository.
 
 Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
-Cc: Ben Hutchings <ben@decadent.org.uk>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: James Bottomley <JBottomley@Parallels.com>
-Cc: Intel SCU Linux support <intel-linux-scu@intel.com>
-Cc: Lukasz Dorau <lukasz.dorau@intel.com>
-Cc: Maciej Patelczyk <maciej.patelczyk@intel.com>
-Cc: Dave Jiang <dave.jiang@intel.com>
+Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  MAINTAINERS |    1 -
  1 file changed, 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-remove-firmware-isci MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-firmware-isci
+diff -puN MAINTAINERS~maintainers-remove-include-linux-of_pwmh MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-include-linux-of_pwmh
 +++ a/MAINTAINERS
-@@ -3971,7 +3971,6 @@ L:	linux-scsi@vger.kernel.org
- T:	git git://git.code.sf.net/p/intel-sas/isci
- S:	Supported
- F:	drivers/scsi/isci/
--F:	firmware/isci/
- 
- INTEL IDLE DRIVER
- M:	Len Brown <lenb@kernel.org>
+@@ -6135,7 +6135,6 @@ T:	git git://gitorious.org/linux-pwm/lin
+ F:	Documentation/pwm.txt
+ F:	Documentation/devicetree/bindings/pwm/
+ F:	include/linux/pwm.h
+-F:	include/linux/of_pwm.h
+ F:	drivers/pwm/
+ F:	drivers/video/backlight/pwm_bl.c
+ F:	include/linux/pwm_backlight.h
 _
 
 Patches currently in -mm which might be from cesarb@cesarb.net are
