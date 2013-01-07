@@ -1,55 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-fix-drivers-ieee802154.patch removed from -mm tree
-Date: Mon, 07 Jan 2013 11:26:26 -0800
-Message-ID: <20130107192626.8FC72100048@wpzn3.hot.corp.google.com>
+Subject: [merged] maintainers-fix-documentation-mei.patch removed from -mm tree
+Date: Mon, 07 Jan 2013 11:26:36 -0800
+Message-ID: <20130107192637.25195200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:37252 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755375Ab3AGT01 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2013 14:26:27 -0500
-Received: by mail-gh0-f201.google.com with SMTP id z19so1802643ghb.0
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jan 2013 11:26:27 -0800 (PST)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:38694 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755272Ab3AGT0j (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2013 14:26:39 -0500
+Received: by mail-bk0-f74.google.com with SMTP id je9so1262050bkc.3
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jan 2013 11:26:38 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cesarb@cesarb.net, alex.bluesman.smirnov@gmail.com, dbaryshkov@gmail.com, mm-commits@vger.kernel.org
+To: cesarb@cesarb.net, tomas.winkler@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: fix drivers/ieee802154/
+     Subject: MAINTAINERS: fix Documentation/mei/
 has been removed from the -mm tree.  Its filename was
-     maintainers-fix-drivers-ieee802154.patch
+     maintainers-fix-documentation-mei.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Cesar Eduardo Barros <cesarb@cesarb.net>
-Subject: MAINTAINERS: fix drivers/ieee802154/
+Subject: MAINTAINERS: fix Documentation/mei/
 
-This directory was moved to drivers/net/ieee802154/ by commit 31d178b
-("drivers/ieee802154: move ieee802154 drivers to net folder").
+The documentation was moved to Documentation/misc-devices/mei/ instead.
 
 Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
-Cc: Alexander Smirnov <alex.bluesman.smirnov@gmail.com>
-Cc: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
+Acked-by: Tomas Winkler <tomas.winkler@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  MAINTAINERS |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-fix-drivers-ieee802154 MAINTAINERS
---- a/MAINTAINERS~maintainers-fix-drivers-ieee802154
+diff -puN MAINTAINERS~maintainers-fix-documentation-mei MAINTAINERS
+--- a/MAINTAINERS~maintainers-fix-documentation-mei
 +++ a/MAINTAINERS
-@@ -3878,7 +3878,7 @@ T:	git git://git.kernel.org/pub/scm/linu
- S:	Maintained
- F:	net/ieee802154/
- F:	net/mac802154/
--F:	drivers/ieee802154/
-+F:	drivers/net/ieee802154/
+@@ -4117,7 +4117,7 @@ L:	linux-kernel@vger.kernel.org
+ S:	Supported
+ F:	include/uapi/linux/mei.h
+ F:	drivers/misc/mei/*
+-F:	Documentation/mei/*
++F:	Documentation/misc-devices/mei/*
  
- IGUANAWORKS USB IR TRANSCEIVER
- M:	Sean Young <sean@mess.org>
+ IOC3 ETHERNET DRIVER
+ M:	Ralf Baechle <ralf@linux-mips.org>
 _
 
 Patches currently in -mm which might be from cesarb@cesarb.net are
