@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch added to -mm tree
-Date: Mon, 07 Jan 2013 12:29:07 -0800
-Message-ID: <20130107202908.A00CF20004E@hpza10.eem.corp.google.com>
+Subject: + block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch added to -mm tree
+Date: Mon, 07 Jan 2013 12:30:37 -0800
+Message-ID: <20130107203038.7BBA420004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:51512 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751844Ab3AGU3L (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2013 15:29:11 -0500
-Received: by mail-wg0-f74.google.com with SMTP id dt14so1264426wgb.3
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jan 2013 12:29:09 -0800 (PST)
+Received: from mail-ea0-f201.google.com ([209.85.215.201]:60346 "EHLO
+	mail-ea0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751739Ab3AGUal (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2013 15:30:41 -0500
+Received: by mail-ea0-f201.google.com with SMTP id b14so1265135eaa.4
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jan 2013 12:30:39 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akpm@linux-foundation.org, koverstreet@google.com
 
 
 The patch titled
-     Subject: block-aio-batch-completion-for-bios-kiocbs-fix-fix
+     Subject: block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix
 has been added to the -mm tree.  Its filename is
-     block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
+     block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: block-aio-batch-completion-for-bios-kiocbs-fix-fix
+Subject: block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix
 
-fs/aio.c needs bio.h, move bio_endio_batch() declaration somewhere rational
+fix warnings
 
 Cc: Kent Overstreet <koverstreet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c            |    1 +
- include/linux/bio.h |    4 ++--
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ include/linux/aio.h |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/aio.c~block-aio-batch-completion-for-bios-kiocbs-fix-fix fs/aio.c
---- a/fs/aio.c~block-aio-batch-completion-for-bios-kiocbs-fix-fix
-+++ a/fs/aio.c
-@@ -25,6 +25,7 @@
- #include <linux/file.h>
- #include <linux/mm.h>
- #include <linux/mman.h>
-+#include <linux/bio.h>
- #include <linux/mmu_context.h>
- #include <linux/percpu.h>
- #include <linux/slab.h>
-diff -puN include/linux/bio.h~block-aio-batch-completion-for-bios-kiocbs-fix-fix include/linux/bio.h
---- a/include/linux/bio.h~block-aio-batch-completion-for-bios-kiocbs-fix-fix
-+++ a/include/linux/bio.h
-@@ -241,8 +241,6 @@ static inline struct bio *bio_clone_kmal
+diff -puN include/linux/aio.h~block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix include/linux/aio.h
+--- a/include/linux/aio.h~block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix
++++ a/include/linux/aio.h
+@@ -94,7 +94,10 @@ static inline void aio_put_req(struct ki
  
- }
- 
--void bio_endio_batch(struct bio *bio, int error, struct batch_complete *batch);
--
- /**
-  * bio_endio - end I/O on a bio
-  * @bio:	bio
-@@ -552,6 +550,8 @@ struct batch_complete {
- 	struct rb_root		kiocb;
- };
- 
-+void bio_endio_batch(struct bio *bio, int error, struct batch_complete *batch);
-+
- static inline void batch_complete_init(struct batch_complete *batch)
- {
- 	bio_list_init(&batch->bio);
+ static inline void batch_complete_aio(struct batch_complete *batch) { }
+ static inline void aio_complete_batch(struct kiocb *iocb, long res, long res2,
+-				      struct batch_complete *batch) { return 0; }
++				      struct batch_complete *batch)
++{
++	return;
++}
+ struct mm_struct;
+ static inline void exit_aio(struct mm_struct *mm) { }
+ static inline long do_io_submit(aio_context_t ctx_id, long nr,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -128,6 +110,7 @@ aio-dont-include-aioh-in-schedh-fix-3.patch
 aio-kill-ki_retry-fix.patch
 block-aio-batch-completion-for-bios-kiocbs-fix.patch
 block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
 aio-smoosh-struct-kiocb-fix.patch
 journal_add_journal_head-debug.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
