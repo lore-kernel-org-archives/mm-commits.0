@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + lockdep-rwsem-provide-down_write_nest_lock.patch added to -mm tree
-Date: Mon, 07 Jan 2013 15:22:05 -0800
-Message-ID: <20130107232206.9189E200057@hpza10.eem.corp.google.com>
+Subject: + mm-mmap-annotate-vm_lock_anon_vma-locking-properly-for-lockdep.patch added to -mm tree
+Date: Mon, 07 Jan 2013 15:22:10 -0800
+Message-ID: <20130107232211.4A42F100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:40209 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752470Ab3AGXWJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2013 18:22:09 -0500
-Received: by mail-we0-f202.google.com with SMTP id t57so1272581wey.1
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jan 2013 15:22:08 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:48618 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754305Ab3AGXWN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2013 18:22:13 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so2151400vcd.3
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jan 2013 15:22:12 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jkosina@suse.cz, a.p.zijlstra@chello.nl, mel@csn.ul.ie, mingo@kernel.org, ri
 
 
 The patch titled
-     Subject: lockdep, rwsem: provide down_write_nest_lock()
+     Subject: mm: mmap: annotate vm_lock_anon_vma locking properly for lockdep
 has been added to the -mm tree.  Its filename is
-     lockdep-rwsem-provide-down_write_nest_lock.patch
+     mm-mmap-annotate-vm_lock_anon_vma-locking-properly-for-lockdep.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,76 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiri Kosina <jkosina@suse.cz>
-Subject: lockdep, rwsem: provide down_write_nest_lock()
+Subject: mm: mmap: annotate vm_lock_anon_vma locking properly for lockdep
 
-down_write_nest_lock() provides means to annotate locking scenario where
-an outer lock is guaranteed to serialize the order nested locks are being
-acquired.
+Commit 5a505085f04 ("mm/rmap: Convert the struct anon_vma::mutex to an
+rwsem") turned anon_vma mutex to rwsem.
 
-This is analogoue to already existing mutex_lock_nest_lock() and
-spin_lock_nest_lock().
+However, the properly annotated nested locking in mm_take_all_locks() has
+been converted from
+
+	mutex_lock_nest_lock(&anon_vma->root->mutex, &mm->mmap_sem);
+
+to
+
+	down_write(&anon_vma->root->rwsem);
+
+which is incomplete, and causes the false positive report from lockdep below.
+
+Annotate the fact that mmap_sem is used as an outter lock to serialize
+taking of all the anon_vma rwsems at once no matter the order, using the
+down_write_nest_lock() primitive.
+
+This patch fixes this lockdep report:
+
+ =============================================
+ [ INFO: possible recursive locking detected ]
+ 3.8.0-rc2-00036-g5f73896 #171 Not tainted
+ ---------------------------------------------
+ qemu-kvm/2315 is trying to acquire lock:
+  (&anon_vma->rwsem){+.+...}, at: [<ffffffff8115d549>] mm_take_all_locks+0x149/0x1b0
+
+ but task is already holding lock:
+  (&anon_vma->rwsem){+.+...}, at: [<ffffffff8115d549>] mm_take_all_locks+0x149/0x1b0
+
+ other info that might help us debug this:
+  Possible unsafe locking scenario:
+
+        CPU0
+        ----
+   lock(&anon_vma->rwsem);
+   lock(&anon_vma->rwsem);
+
+  *** DEADLOCK ***
+
+  May be due to missing lock nesting notation
+
+ 4 locks held by qemu-kvm/2315:
+  #0:  (&mm->mmap_sem){++++++}, at: [<ffffffff81177f1c>] do_mmu_notifier_register+0xfc/0x170
+  #1:  (mm_all_locks_mutex){+.+...}, at: [<ffffffff8115d436>] mm_take_all_locks+0x36/0x1b0
+  #2:  (&mapping->i_mmap_mutex){+.+...}, at: [<ffffffff8115d4c9>] mm_take_all_locks+0xc9/0x1b0
+  #3:  (&anon_vma->rwsem){+.+...}, at: [<ffffffff8115d549>] mm_take_all_locks+0x149/0x1b0
+
+ stack backtrace:
+ Pid: 2315, comm: qemu-kvm Not tainted 3.8.0-rc2-00036-g5f73896 #171
+ Call Trace:
+  [<ffffffff810afea2>] print_deadlock_bug+0xf2/0x100
+  [<ffffffff810b1a76>] validate_chain+0x4f6/0x720
+  [<ffffffff810b1ff9>] __lock_acquire+0x359/0x580
+  [<ffffffff810b0e7d>] ? trace_hardirqs_on_caller+0x12d/0x1b0
+  [<ffffffff810b2341>] lock_acquire+0x121/0x190
+  [<ffffffff8115d549>] ? mm_take_all_locks+0x149/0x1b0
+  [<ffffffff815a12bf>] down_write+0x3f/0x70
+  [<ffffffff8115d549>] ? mm_take_all_locks+0x149/0x1b0
+  [<ffffffff8115d549>] mm_take_all_locks+0x149/0x1b0
+  [<ffffffff81177e88>] do_mmu_notifier_register+0x68/0x170
+  [<ffffffff81177fae>] mmu_notifier_register+0xe/0x10
+  [<ffffffffa04bd6ab>] kvm_create_vm+0x22b/0x330 [kvm]
+  [<ffffffffa04bd8a8>] kvm_dev_ioctl+0xf8/0x1a0 [kvm]
+  [<ffffffff811a45bd>] do_vfs_ioctl+0x9d/0x350
+  [<ffffffff815ad215>] ? sysret_check+0x22/0x5d
+  [<ffffffff811a4901>] sys_ioctl+0x91/0xb0
+  [<ffffffff815ad1e9>] system_call_fastpath+0x16/0x1b
 
 Signed-off-by: Jiri Kosina <jkosina@suse.cz>
 Cc: Rik van Riel <riel@redhat.com>
@@ -51,73 +113,21 @@ Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/lockdep.h |    3 +++
- include/linux/rwsem.h   |    9 +++++++++
- kernel/rwsem.c          |   10 ++++++++++
- 3 files changed, 22 insertions(+)
+ mm/mmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/lockdep.h~lockdep-rwsem-provide-down_write_nest_lock include/linux/lockdep.h
---- a/include/linux/lockdep.h~lockdep-rwsem-provide-down_write_nest_lock
-+++ a/include/linux/lockdep.h
-@@ -524,14 +524,17 @@ static inline void print_irqtrace_events
- #ifdef CONFIG_DEBUG_LOCK_ALLOC
- # ifdef CONFIG_PROVE_LOCKING
- #  define rwsem_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 2, NULL, i)
-+#  define rwsem_acquire_nest(l, s, t, n, i)	lock_acquire(l, s, t, 0, 2, n, i)
- #  define rwsem_acquire_read(l, s, t, i)	lock_acquire(l, s, t, 1, 2, NULL, i)
- # else
- #  define rwsem_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 1, NULL, i)
-+#  define rwsem_acquire_nest(l, s, t, n, i)	lock_acquire(l, s, t, 0, 1, n, i)
- #  define rwsem_acquire_read(l, s, t, i)	lock_acquire(l, s, t, 1, 1, NULL, i)
- # endif
- # define rwsem_release(l, n, i)			lock_release(l, n, i)
- #else
- # define rwsem_acquire(l, s, t, i)		do { } while (0)
-+# define rwsem_acquire_nest(l, s, t, n, i)	do { } while (0)
- # define rwsem_acquire_read(l, s, t, i)		do { } while (0)
- # define rwsem_release(l, n, i)			do { } while (0)
- #endif
-diff -puN include/linux/rwsem.h~lockdep-rwsem-provide-down_write_nest_lock include/linux/rwsem.h
---- a/include/linux/rwsem.h~lockdep-rwsem-provide-down_write_nest_lock
-+++ a/include/linux/rwsem.h
-@@ -125,8 +125,17 @@ extern void downgrade_write(struct rw_se
-  */
- extern void down_read_nested(struct rw_semaphore *sem, int subclass);
- extern void down_write_nested(struct rw_semaphore *sem, int subclass);
-+extern void _down_write_nest_lock(struct rw_semaphore *sem, struct lockdep_map *nest_lock);
-+
-+# define down_write_nest_lock(sem, nest_lock)			\
-+do {								\
-+	typecheck(struct lockdep_map *, &(nest_lock)->dep_map);	\
-+	_down_write_nest_lock(sem, &(nest_lock)->dep_map);	\
-+} while (0);
-+
- #else
- # define down_read_nested(sem, subclass)		down_read(sem)
-+# define down_write_nest_lock(sem, nest_lock)	down_read(sem)
- # define down_write_nested(sem, subclass)	down_write(sem)
- #endif
- 
-diff -puN kernel/rwsem.c~lockdep-rwsem-provide-down_write_nest_lock kernel/rwsem.c
---- a/kernel/rwsem.c~lockdep-rwsem-provide-down_write_nest_lock
-+++ a/kernel/rwsem.c
-@@ -116,6 +116,16 @@ void down_read_nested(struct rw_semaphor
- 
- EXPORT_SYMBOL(down_read_nested);
- 
-+void _down_write_nest_lock(struct rw_semaphore *sem, struct lockdep_map *nest)
-+{
-+	might_sleep();
-+	rwsem_acquire_nest(&sem->dep_map, 0, 0, nest, _RET_IP_);
-+
-+	LOCK_CONTENDED(sem, __down_write_trylock, __down_write);
-+}
-+
-+EXPORT_SYMBOL(_down_write_nest_lock);
-+
- void down_write_nested(struct rw_semaphore *sem, int subclass)
- {
- 	might_sleep();
+diff -puN mm/mmap.c~mm-mmap-annotate-vm_lock_anon_vma-locking-properly-for-lockdep mm/mmap.c
+--- a/mm/mmap.c~mm-mmap-annotate-vm_lock_anon_vma-locking-properly-for-lockdep
++++ a/mm/mmap.c
+@@ -2886,7 +2886,7 @@ static void vm_lock_anon_vma(struct mm_s
+ 		 * The LSB of head.next can't change from under us
+ 		 * because we hold the mm_all_locks_mutex.
+ 		 */
+-		down_write(&anon_vma->root->rwsem);
++		down_write_nest_lock(&anon_vma->root->rwsem, &mm->mmap_sem);
+ 		/*
+ 		 * We can safely modify head.next after taking the
+ 		 * anon_vma->root->rwsem. If some other vma in this mm shares
 _
 
 Patches currently in -mm which might be from jkosina@suse.cz are
