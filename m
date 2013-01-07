@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch added to -mm tree
-Date: Mon, 07 Jan 2013 12:30:37 -0800
-Message-ID: <20130107203038.7BBA420004E@hpza10.eem.corp.google.com>
+Subject: + mm-memblock-fix-wrong-memmove-size-in-memblock_merge_regions.patch added to -mm tree
+Date: Mon, 07 Jan 2013 13:24:06 -0800
+Message-ID: <20130107212406.A2ED882004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f201.google.com ([209.85.215.201]:60346 "EHLO
-	mail-ea0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751739Ab3AGUal (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2013 15:30:41 -0500
-Received: by mail-ea0-f201.google.com with SMTP id b14so1265135eaa.4
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jan 2013 12:30:39 -0800 (PST)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:59061 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751564Ab3AGVYH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2013 16:24:07 -0500
+Received: by mail-gg0-f201.google.com with SMTP id o6so2133431ggm.2
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jan 2013 13:24:07 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, koverstreet@google.com
+Cc: linfeng@cn.fujitsu.com, liwanp@linux.vnet.ibm.com, tj@kernel.org
 
 
 The patch titled
-     Subject: block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix
+     Subject: mm: memblock: fix wrong memmove size in memblock_merge_regions()
 has been added to the -mm tree.  Its filename is
-     block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
+     mm-memblock-fix-wrong-memmove-size-in-memblock_merge_regions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,88 +33,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix
+From: Lin Feng <linfeng@cn.fujitsu.com>
+Subject: mm: memblock: fix wrong memmove size in memblock_merge_regions()
 
-fix warnings
+The memmove span covers from (next+1) to the end of the array, and the
+index of next is (i+1), so the index of (next+1) is (i+2).  So the size of
+remaining array elements is (type->cnt - (i + 2)).
 
-Cc: Kent Overstreet <koverstreet@google.com>
+Signed-off-by: Lin Feng <linfeng@cn.fujitsu.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Reviewed-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/aio.h |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/memblock.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/aio.h~block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix include/linux/aio.h
---- a/include/linux/aio.h~block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix
-+++ a/include/linux/aio.h
-@@ -94,7 +94,10 @@ static inline void aio_put_req(struct ki
+diff -puN mm/memblock.c~mm-memblock-fix-wrong-memmove-size-in-memblock_merge_regions mm/memblock.c
+--- a/mm/memblock.c~mm-memblock-fix-wrong-memmove-size-in-memblock_merge_regions
++++ a/mm/memblock.c
+@@ -314,7 +314,8 @@ static void __init_memblock memblock_mer
+ 		}
  
- static inline void batch_complete_aio(struct batch_complete *batch) { }
- static inline void aio_complete_batch(struct kiocb *iocb, long res, long res2,
--				      struct batch_complete *batch) { return 0; }
-+				      struct batch_complete *batch)
-+{
-+	return;
-+}
- struct mm_struct;
- static inline void exit_aio(struct mm_struct *mm) { }
- static inline long do_io_submit(aio_context_t ctx_id, long nr,
+ 		this->size += next->size;
+-		memmove(next, next + 1, (type->cnt - (i + 1)) * sizeof(*next));
++		/* move forward from next + 1, index of which is i + 2 */
++		memmove(next, next + 1, (type->cnt - (i + 2)) * sizeof(*next));
+ 		type->cnt--;
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from linfeng@cn.fujitsu.com are
 
-origin.patch
-linux-next.patch
-linux-next-git-rejects.patch
-make-my-i386-build-work.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
-bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
-i-need-old-gcc.patch
-lib-cpu_rmap-avoid-flushing-all-workqueues-fix.patch
-drivers-rtc-rtc-da9055c-fix-cross-section-reference.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-kernel-auditc-avoid-negative-sleep-durations.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
-mm.patch
-mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
-mm-hugetlbc-convert-to-pr_foo.patch
-cma-make-putback_lru_pages-call-conditional-fix.patch
-mm-vmscan-clean-up-get_scan_count-fix.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
-mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
-mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-backlight-add-lms501kf03-lcd-driver-fix.patch
-backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix-fix.patch
-rtc-max77686-add-maxim-77686-driver-fix.patch
-rtc-pcf8523-add-low-battery-voltage-support-fix.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
-drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-aio-smoosh-struct-kiocb-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mm-memblock-fix-wrong-memmove-size-in-memblock_merge_regions.patch
 
