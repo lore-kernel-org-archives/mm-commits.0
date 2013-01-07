@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
 Subject: + generic-dynamic-per-cpu-refcounting-fix-fix.patch added to -mm tree
-Date: Mon, 07 Jan 2013 12:23:07 -0800
-Message-ID: <20130107202308.4717282006F@wpzn4.hot.corp.google.com>
+Date: Mon, 07 Jan 2013 12:23:10 -0800
+Message-ID: <20130107202311.AA56D20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:53908 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751307Ab3AGUXJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2013 15:23:09 -0500
-Received: by mail-vb0-f74.google.com with SMTP id s24so2124502vbi.5
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jan 2013 12:23:08 -0800 (PST)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:56162 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752924Ab3AGUXO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2013 15:23:14 -0500
+Received: by mail-we0-f202.google.com with SMTP id t57so1264415wey.3
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jan 2013 12:23:13 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -49,14 +49,14 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 diff -puN include/linux/percpu-refcount.h~generic-dynamic-per-cpu-refcounting-fix-fix include/linux/percpu-refcount.h
 --- a/include/linux/percpu-refcount.h~generic-dynamic-per-cpu-refcounting-fix-fix
 +++ a/include/linux/percpu-refcount.h
-@@ -2,6 +2,7 @@
- #define _LINUX_PERCPU_REFCOUNT_H
+@@ -3,6 +3,7 @@
  
  #include <linux/atomic.h>
-+#include <linux/atomic64.h>
  #include <linux/percpu.h>
++#include <asm/atomic64.h>
  
  struct percpu_ref {
+ 	atomic64_t		count;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
