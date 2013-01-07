@@ -1,98 +1,354 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipc-simplify-free_copy-call.patch removed from -mm tree
-Date: Mon, 07 Jan 2013 11:25:23 -0800
-Message-ID: <20130107192523.BA59D82004A@wpzn4.hot.corp.google.com>
+Subject: [merged] selftests-ipc-message-queue-copy-feature-test.patch removed from -mm tree
+Date: Mon, 07 Jan 2013 11:25:17 -0800
+Message-ID: <20130107192518.8EC3920004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:38198 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755207Ab3AGTZY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2013 14:25:24 -0500
-Received: by mail-ye0-f202.google.com with SMTP id r9so1265832yen.3
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jan 2013 11:25:24 -0800 (PST)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:57879 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755207Ab3AGTZX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2013 14:25:23 -0500
+Received: by mail-la0-f74.google.com with SMTP id ej20so669820lab.5
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jan 2013 11:25:21 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: skinsbursky@parallels.com, ebiederm@xmission.com, jmorris@namei.org, mm-commits@vger.kernel.org
+To: skinsbursky@parallels.com, ebiederm@xmission.com, kosaki.motohiro@jp.fujitsu.com, mtk.manpages@gmail.com, serge.hallyn@canonical.com, viro@zeniv.linux.org.uk, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc: simplify free_copy() call
+     Subject: selftests: IPC message queue copy feature test
 has been removed from the -mm tree.  Its filename was
-     ipc-simplify-free_copy-call.patch
+     selftests-ipc-message-queue-copy-feature-test.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Stanislav Kinsbursky <skinsbursky@parallels.com>
-Subject: ipc: simplify free_copy() call
+Subject: selftests: IPC message queue copy feature test
 
-Passing and checking of msgflg to free_copy() is redundant.  This patch
-sets copy to NULL on declaration instead and checks for non-NULL in
-free_copy().
-
-Note: in case of copy allocation failure, error is returned immediately. 
-So no need to check for IS_ERR() in free_copy().
+This test can be used to check wheither kernel supports IPC message queue
+copy and restore features (required by CRIU project).
 
 Signed-off-by: Stanislav Kinsbursky <skinsbursky@parallels.com>
+Cc: Serge Hallyn <serge.hallyn@canonical.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: James Morris <jmorris@namei.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ include/linux/msg.h                  |    3 
+ ipc/compat.c                         |    3 
+ tools/testing/selftests/ipc/Makefile |   25 ++
+ tools/testing/selftests/ipc/msgque.c |  246 +++++++++++++++++++++++++
+ 4 files changed, 275 insertions(+), 2 deletions(-)
 
-diff -puN ipc/msg.c~ipc-simplify-free_copy-call ipc/msg.c
---- a/ipc/msg.c~ipc-simplify-free_copy-call
-+++ a/ipc/msg.c
-@@ -797,15 +797,17 @@ static inline struct msg_msg *prepare_co
- 	return copy;
- }
+diff -puN include/linux/msg.h~selftests-ipc-message-queue-copy-feature-test include/linux/msg.h
+--- a/include/linux/msg.h~selftests-ipc-message-queue-copy-feature-test
++++ a/include/linux/msg.h
+@@ -36,6 +36,7 @@ extern long do_msgsnd(int msqid, long mt
+ 			size_t msgsz, int msgflg);
+ extern long do_msgrcv(int msqid, void __user *buf, size_t bufsz, long msgtyp,
+ 		      int msgflg,
+-		      long (*msg_fill)(void __user *, struct msg_msg *, size_t));
++		      long (*msg_fill)(void __user *, struct msg_msg *,
++				       size_t));
  
--static inline void free_copy(int msgflg, struct msg_msg *copy)
-+static inline void free_copy(struct msg_msg *copy)
- {
--	if (msgflg & MSG_COPY)
-+	if (copy)
- 		free_msg(copy);
+ #endif /* _LINUX_MSG_H */
+diff -puN ipc/compat.c~selftests-ipc-message-queue-copy-feature-test ipc/compat.c
+--- a/ipc/compat.c~selftests-ipc-message-queue-copy-feature-test
++++ a/ipc/compat.c
+@@ -365,7 +365,8 @@ long compat_sys_msgrcv(int first, int se
+ 		uptr = compat_ptr(ipck.msgp);
+ 		msgtyp = ipck.msgtyp;
+ 	}
+-	return do_msgrcv(first, uptr, second, msgtyp, third, compat_do_msg_fill);
++	return do_msgrcv(first, uptr, second, msgtyp, third,
++			 compat_do_msg_fill);
  }
  #else
--#define free_copy(msgflg, copy)				do {} while (0)
- #define prepare_copy(buf, sz, msgflg, msgtyp, copy_nr)	ERR_PTR(-ENOSYS)
- #define fill_copy(copy_nr, msg_nr, msg, copy)		NULL
-+static inline void free_copy(struct msg_msg *copy)
+ long compat_sys_semctl(int semid, int semnum, int cmd, int arg)
+diff -puN /dev/null tools/testing/selftests/ipc/Makefile
+--- /dev/null
++++ a/tools/testing/selftests/ipc/Makefile
+@@ -0,0 +1,25 @@
++uname_M := $(shell uname -m 2>/dev/null || echo not)
++ARCH ?= $(shell echo $(uname_M) | sed -e s/i.86/i386/)
++ifeq ($(ARCH),i386)
++        ARCH := X86
++	CFLAGS := -DCONFIG_X86_32 -D__i386__
++endif
++ifeq ($(ARCH),x86_64)
++	ARCH := X86
++	CFLAGS := -DCONFIG_X86_64 -D__x86_64__
++endif
++
++CFLAGS += -I../../../../usr/include/
++
++all:
++ifeq ($(ARCH),X86)
++	gcc $(CFLAGS) msgque.c -o msgque_test
++else
++	echo "Not an x86 target, can't build msgque selftest"
++endif
++
++run_tests: all
++	./msgque_test
++
++clean:
++	rm -fr ./msgque_test
+diff -puN /dev/null tools/testing/selftests/ipc/msgque.c
+--- /dev/null
++++ a/tools/testing/selftests/ipc/msgque.c
+@@ -0,0 +1,246 @@
++#include <stdlib.h>
++#include <stdio.h>
++#include <string.h>
++#include <errno.h>
++#include <linux/msg.h>
++#include <fcntl.h>
++
++#define MAX_MSG_SIZE		32
++
++struct msg1 {
++	int msize;
++	long mtype;
++	char mtext[MAX_MSG_SIZE];
++};
++
++#define TEST_STRING "Test sysv5 msg"
++#define MSG_TYPE 1
++
++#define ANOTHER_TEST_STRING "Yet another test sysv5 msg"
++#define ANOTHER_MSG_TYPE 26538
++
++struct msgque_data {
++	key_t key;
++	int msq_id;
++	int qbytes;
++	int qnum;
++	int mode;
++	struct msg1 *messages;
++};
++
++int restore_queue(struct msgque_data *msgque)
 +{
++	int fd, ret, id, i;
++	char buf[32];
++
++	fd = open("/proc/sys/kernel/msg_next_id", O_WRONLY);
++	if (fd == -1) {
++		printf("Failed to open /proc/sys/kernel/msg_next_id\n");
++		return -errno;
++	}
++	sprintf(buf, "%d", msgque->msq_id);
++
++	ret = write(fd, buf, strlen(buf));
++	if (ret != strlen(buf)) {
++		printf("Failed to write to /proc/sys/kernel/msg_next_id\n");
++		return -errno;
++	}
++
++	id = msgget(msgque->key, msgque->mode | IPC_CREAT | IPC_EXCL);
++	if (id == -1) {
++		printf("Failed to create queue\n");
++		return -errno;
++	}
++
++	if (id != msgque->msq_id) {
++		printf("Restored queue has wrong id (%d instead of %d)\n",
++							id, msgque->msq_id);
++		ret = -EFAULT;
++		goto destroy;
++	}
++
++	for (i = 0; i < msgque->qnum; i++) {
++		if (msgsnd(msgque->msq_id, &msgque->messages[i].mtype,
++			   msgque->messages[i].msize, IPC_NOWAIT) != 0) {
++			printf("msgsnd failed (%m)\n");
++			ret = -errno;
++			goto destroy;
++		};
++	}
++	return 0;
++
++destroy:
++	if (msgctl(id, IPC_RMID, 0))
++		printf("Failed to destroy queue: %d\n", -errno);
++	return ret;
 +}
- #endif
- 
- long do_msgrcv(int msqid, void __user *buf, size_t bufsz, long msgtyp,
-@@ -816,7 +818,7 @@ long do_msgrcv(int msqid, void __user *b
- 	struct msg_msg *msg;
- 	int mode;
- 	struct ipc_namespace *ns;
--	struct msg_msg *copy;
-+	struct msg_msg *copy = NULL;
- 	unsigned long __maybe_unused copy_number;
- 
- 	if (msqid < 0 || (long) bufsz < 0)
-@@ -831,7 +833,7 @@ long do_msgrcv(int msqid, void __user *b
- 
- 	msq = msg_lock_check(ns, msqid);
- 	if (IS_ERR(msq)) {
--		free_copy(msgflg, copy);
-+		free_copy(copy);
- 		return PTR_ERR(msq);
- 	}
- 
-@@ -965,7 +967,7 @@ out_unlock:
- 		}
- 	}
- 	if (IS_ERR(msg)) {
--		free_copy(msgflg, copy);
-+		free_copy(copy);
- 		return PTR_ERR(msg);
- 	}
- 
++
++int check_and_destroy_queue(struct msgque_data *msgque)
++{
++	struct msg1 message;
++	int cnt = 0, ret;
++
++	while (1) {
++		ret = msgrcv(msgque->msq_id, &message.mtype, MAX_MSG_SIZE,
++				0, IPC_NOWAIT);
++		if (ret < 0) {
++			if (errno == ENOMSG)
++				break;
++			printf("Failed to read IPC message: %m\n");
++			ret = -errno;
++			goto err;
++		}
++		if (ret != msgque->messages[cnt].msize) {
++			printf("Wrong message size: %d (expected %d)\n", ret,
++						msgque->messages[cnt].msize);
++			ret = -EINVAL;
++			goto err;
++		}
++		if (message.mtype != msgque->messages[cnt].mtype) {
++			printf("Wrong message type\n");
++			ret = -EINVAL;
++			goto err;
++		}
++		if (memcmp(message.mtext, msgque->messages[cnt].mtext, ret)) {
++			printf("Wrong message content\n");
++			ret = -EINVAL;
++			goto err;
++		}
++		cnt++;
++	}
++
++	if (cnt != msgque->qnum) {
++		printf("Wrong message number\n");
++		ret = -EINVAL;
++		goto err;
++	}
++
++	ret = 0;
++err:
++	if (msgctl(msgque->msq_id, IPC_RMID, 0)) {
++		printf("Failed to destroy queue: %d\n", -errno);
++		return -errno;
++	}
++	return ret;
++}
++
++int dump_queue(struct msgque_data *msgque)
++{
++	struct msqid64_ds ds;
++	int kern_id;
++	int i, ret;
++
++	for (kern_id = 0; kern_id < 256; kern_id++) {
++		ret = msgctl(kern_id, MSG_STAT, &ds);
++		if (ret < 0) {
++			if (errno == -EINVAL)
++				continue;
++			printf("Failed to get stats for IPC queue with id %d\n",
++					kern_id);
++			return -errno;
++		}
++
++		if (ret == msgque->msq_id)
++			break;
++	}
++
++	msgque->messages = malloc(sizeof(struct msg1) * ds.msg_qnum);
++	if (msgque->messages == NULL) {
++		printf("Failed to get stats for IPC queue\n");
++		return -ENOMEM;
++	}
++
++	msgque->qnum = ds.msg_qnum;
++	msgque->mode = ds.msg_perm.mode;
++	msgque->qbytes = ds.msg_qbytes;
++
++	for (i = 0; i < msgque->qnum; i++) {
++		ret = msgrcv(msgque->msq_id, &msgque->messages[i].mtype,
++				MAX_MSG_SIZE, i, IPC_NOWAIT | MSG_COPY);
++		if (ret < 0) {
++			printf("Failed to copy IPC message: %m (%d)\n", errno);
++			return -errno;
++		}
++		msgque->messages[i].msize = ret;
++	}
++	return 0;
++}
++
++int fill_msgque(struct msgque_data *msgque)
++{
++	struct msg1 msgbuf;
++
++	msgbuf.mtype = MSG_TYPE;
++	memcpy(msgbuf.mtext, TEST_STRING, sizeof(TEST_STRING));
++	if (msgsnd(msgque->msq_id, &msgbuf.mtype, sizeof(TEST_STRING),
++				IPC_NOWAIT) != 0) {
++		printf("First message send failed (%m)\n");
++		return -errno;
++	};
++
++	msgbuf.mtype = ANOTHER_MSG_TYPE;
++	memcpy(msgbuf.mtext, ANOTHER_TEST_STRING, sizeof(ANOTHER_TEST_STRING));
++	if (msgsnd(msgque->msq_id, &msgbuf.mtype, sizeof(ANOTHER_TEST_STRING),
++				IPC_NOWAIT) != 0) {
++		printf("Second message send failed (%m)\n");
++		return -errno;
++	};
++	return 0;
++}
++
++int main(int argc, char **argv)
++{
++	int msg, pid, err;
++	struct msgque_data msgque;
++
++	msgque.key = ftok(argv[0], 822155650);
++	if (msgque.key == -1) {
++		printf("Can't make key\n");
++		return -errno;
++	}
++
++	msgque.msq_id = msgget(msgque.key, IPC_CREAT | IPC_EXCL | 0666);
++	if (msgque.msq_id == -1) {
++		printf("Can't create queue\n");
++		goto err_out;
++	}
++
++	err = fill_msgque(&msgque);
++	if (err) {
++		printf("Failed to fill queue\n");
++		goto err_destroy;
++	}
++
++	err = dump_queue(&msgque);
++	if (err) {
++		printf("Failed to dump queue\n");
++		goto err_destroy;
++	}
++
++	err = check_and_destroy_queue(&msgque);
++	if (err) {
++		printf("Failed to check and destroy queue\n");
++		goto err_out;
++	}
++
++	err = restore_queue(&msgque);
++	if (err) {
++		printf("Failed to restore queue\n");
++		goto err_destroy;
++	}
++
++	err = check_and_destroy_queue(&msgque);
++	if (err) {
++		printf("Failed to test queue\n");
++		goto err_out;
++	}
++	return 0;
++
++err_destroy:
++	if (msgctl(msgque.msq_id, IPC_RMID, 0)) {
++		printf("Failed to destroy queue: %d\n", -errno);
++		return -errno;
++	}
++err_out:
++	return err;
++}
 _
 
 Patches currently in -mm which might be from skinsbursky@parallels.com are
