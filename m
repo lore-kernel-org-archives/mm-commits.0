@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-add-rtc-driver-for-tps80031-tps80032.patch added to -mm tree
-Date: Mon, 07 Jan 2013 11:50:22 -0800
-Message-ID: <20130107195023.211EF20004E@hpza10.eem.corp.google.com>
+Subject: + mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch added to -mm tree
+Date: Mon, 07 Jan 2013 12:06:39 -0800
+Message-ID: <20130107200640.A7B6020004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f73.google.com ([209.85.215.73]:57564 "EHLO
-	mail-la0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755406Ab3AGTu0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2013 14:50:26 -0500
-Received: by mail-la0-f73.google.com with SMTP id fq13so671100lab.2
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jan 2013 11:50:24 -0800 (PST)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:42232 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751026Ab3AGUGn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2013 15:06:43 -0500
+Received: by mail-fa0-f74.google.com with SMTP id t1so1263655fae.5
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jan 2013 12:06:42 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ldewangan@nvidia.com, devendra.aaru@gmail.com
+Cc: akpm@linux-foundation.org, hughd@google.com, riel@redhat.com, shli@fusionio.com
 
 
 The patch titled
-     Subject: rtc: add RTC driver for TPS80031/TPS80032
+     Subject: mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix
 has been added to the -mm tree.  Its filename is
-     rtc-add-rtc-driver-for-tps80031-tps80032.patch
+     mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,412 +33,90 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Laxman Dewangan <ldewangan@nvidia.com>
-Subject: rtc: add RTC driver for TPS80031/TPS80032
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix
 
-Add an RTC driver for TPS80031/TPS80032 chips by TI.
-This driver supports:
-- Setting and getting time and date.
-- Setting and reading alarm time.
-- Alarm and interrupt functionlity.
+fix CONFIG_SWAP=n build
 
-Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
-Reviewed-by: Devendra Naga <devendra.aaru@gmail.com>
+Cc: Shaohua Li <shli@fusionio.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig        |    8 
- drivers/rtc/Makefile       |    1 
- drivers/rtc/rtc-tps80031.c |  349 +++++++++++++++++++++++++++++++++++
- 3 files changed, 358 insertions(+)
+ mm/madvise.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/rtc/Kconfig~rtc-add-rtc-driver-for-tps80031-tps80032 drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-add-rtc-driver-for-tps80031-tps80032
-+++ a/drivers/rtc/Kconfig
-@@ -386,6 +386,14 @@ config RTC_DRV_TPS65910
- 	  This driver can also be built as a module. If so, the module
- 	  will be called rtc-tps65910.
+diff -puN mm/madvise.c~mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix mm/madvise.c
+--- a/mm/madvise.c~mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix
++++ a/mm/madvise.c
+@@ -134,6 +134,7 @@ out:
+ 	return error;
+ }
  
-+config RTC_DRV_TPS80031
-+	tristate "TI TPS80031/TPS80032 RTC driver"
-+	depends on MFD_TPS80031
-+	help
-+	  TI Power Managment IC TPS80031 supports RTC functionality
-+	  along with alarm. This driver supports the RTC driver for
-+	  the TPS80031 RTC module.
-+
- config RTC_DRV_RC5T583
- 	tristate "RICOH 5T583 RTC driver"
- 	depends on MFD_RC5T583
-diff -puN drivers/rtc/Makefile~rtc-add-rtc-driver-for-tps80031-tps80032 drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-add-rtc-driver-for-tps80031-tps80032
-+++ a/drivers/rtc/Makefile
-@@ -115,6 +115,7 @@ obj-$(CONFIG_RTC_DRV_TILE)	+= rtc-tile.o
- obj-$(CONFIG_RTC_DRV_TWL4030)	+= rtc-twl.o
- obj-$(CONFIG_RTC_DRV_TPS6586X)	+= rtc-tps6586x.o
- obj-$(CONFIG_RTC_DRV_TPS65910)	+= rtc-tps65910.o
-+obj-$(CONFIG_RTC_DRV_TPS80031)	+= rtc-tps80031.o
- obj-$(CONFIG_RTC_DRV_TX4939)	+= rtc-tx4939.o
- obj-$(CONFIG_RTC_DRV_V3020)	+= rtc-v3020.o
- obj-$(CONFIG_RTC_DRV_VR41XX)	+= rtc-vr41xx.o
-diff -puN /dev/null drivers/rtc/rtc-tps80031.c
---- /dev/null
-+++ a/drivers/rtc/rtc-tps80031.c
-@@ -0,0 +1,349 @@
-+/*
-+ * rtc-tps80031.c -- TI TPS80031/TPS80032 RTC driver
-+ *
-+ * RTC driver for TI TPS80031/TPS80032 Fully Integrated
-+ * Power Management with Power Path and Battery Charger
-+ *
-+ * Copyright (c) 2012-2013, NVIDIA Corporation.
-+ *
-+ * Author: Laxman Dewangan <ldewangan@nvidia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any kind,
-+ * whether express or implied; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
-+ * 02111-1307, USA
-+ */
-+
-+#include <linux/bcd.h>
-+#include <linux/device.h>
-+#include <linux/err.h>
-+#include <linux/init.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/mfd/tps80031.h>
-+#include <linux/platform_device.h>
-+#include <linux/pm.h>
-+#include <linux/rtc.h>
-+#include <linux/slab.h>
-+
-+#define ENABLE_ALARM_INT			0x08
-+#define ALARM_INT_STATUS			0x40
-+
-+/**
-+ * Setting bit to 1 in STOP_RTC will run the RTC and
-+ * setting this bit to 0 will freeze RTC.
-+ */
-+#define STOP_RTC				0x1
-+
-+/* Power on reset Values of RTC registers */
-+#define TPS80031_RTC_POR_YEAR			0
-+#define TPS80031_RTC_POR_MONTH			1
-+#define TPS80031_RTC_POR_DAY			1
-+
-+/* Numbers of registers for time and alarms */
-+#define TPS80031_RTC_TIME_NUM_REGS		7
-+#define TPS80031_RTC_ALARM_NUM_REGS		6
-+
-+/**
-+ * PMU RTC have only 2 nibbles to store year information, so using an
-+ * offset of 100 to set the base year as 2000 for our driver.
-+ */
-+#define RTC_YEAR_OFFSET 100
-+
-+struct tps80031_rtc {
-+	struct rtc_device	*rtc;
-+	int			irq;
-+};
-+
-+static int tps80031_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	u8 buff[TPS80031_RTC_TIME_NUM_REGS];
-+	int ret;
-+
-+	ret = tps80031_reads(dev->parent, TPS80031_SLAVE_ID1,
-+			TPS80031_SECONDS_REG, TPS80031_RTC_TIME_NUM_REGS, buff);
-+	if (ret < 0) {
-+		dev_err(dev, "reading RTC_SECONDS_REG failed, err = %d\n", ret);
-+		return ret;
-+	}
-+
-+	tm->tm_sec = bcd2bin(buff[0]);
-+	tm->tm_min = bcd2bin(buff[1]);
-+	tm->tm_hour = bcd2bin(buff[2]);
-+	tm->tm_mday = bcd2bin(buff[3]);
-+	tm->tm_mon = bcd2bin(buff[4]) - 1;
-+	tm->tm_year = bcd2bin(buff[5]) + RTC_YEAR_OFFSET;
-+	tm->tm_wday = bcd2bin(buff[6]);
-+	return 0;
-+}
-+
-+static int tps80031_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+	u8 buff[7];
-+	int ret;
-+
-+	buff[0] = bin2bcd(tm->tm_sec);
-+	buff[1] = bin2bcd(tm->tm_min);
-+	buff[2] = bin2bcd(tm->tm_hour);
-+	buff[3] = bin2bcd(tm->tm_mday);
-+	buff[4] = bin2bcd(tm->tm_mon + 1);
-+	buff[5] = bin2bcd(tm->tm_year % RTC_YEAR_OFFSET);
-+	buff[6] = bin2bcd(tm->tm_wday);
-+
-+	/* Stop RTC while updating the RTC time registers */
-+	ret = tps80031_clr_bits(dev->parent, TPS80031_SLAVE_ID1,
-+				TPS80031_RTC_CTRL_REG, STOP_RTC);
-+	if (ret < 0) {
-+		dev_err(dev->parent, "Stop RTC failed, err = %d\n", ret);
-+		return ret;
-+	}
-+
-+	ret = tps80031_writes(dev->parent, TPS80031_SLAVE_ID1,
-+			TPS80031_SECONDS_REG,
-+			TPS80031_RTC_TIME_NUM_REGS, buff);
-+	if (ret < 0) {
-+		dev_err(dev, "writing RTC_SECONDS_REG failed, err %d\n", ret);
-+		return ret;
-+	}
-+
-+	ret = tps80031_set_bits(dev->parent, TPS80031_SLAVE_ID1,
-+				TPS80031_RTC_CTRL_REG, STOP_RTC);
-+	if (ret < 0)
-+		dev_err(dev->parent, "Start RTC failed, err = %d\n", ret);
-+	return ret;
-+}
-+
-+static int tps80031_rtc_alarm_irq_enable(struct device *dev,
-+					 unsigned int enable)
-+{
-+	int ret;
-+
-+	if (enable)
-+		ret = tps80031_set_bits(dev->parent, TPS80031_SLAVE_ID1,
-+				TPS80031_RTC_INTERRUPTS_REG, ENABLE_ALARM_INT);
-+	else
-+		ret = tps80031_clr_bits(dev->parent, TPS80031_SLAVE_ID1,
-+				TPS80031_RTC_INTERRUPTS_REG, ENABLE_ALARM_INT);
-+	if (ret < 0) {
-+		dev_err(dev, "Update on RTC_INT failed, err = %d\n", ret);
-+		return ret;
-+	}
-+	return 0;
-+}
-+
-+static int tps80031_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
-+{
-+	u8 buff[TPS80031_RTC_ALARM_NUM_REGS];
-+	int ret;
-+
-+	buff[0] = bin2bcd(alrm->time.tm_sec);
-+	buff[1] = bin2bcd(alrm->time.tm_min);
-+	buff[2] = bin2bcd(alrm->time.tm_hour);
-+	buff[3] = bin2bcd(alrm->time.tm_mday);
-+	buff[4] = bin2bcd(alrm->time.tm_mon + 1);
-+	buff[5] = bin2bcd(alrm->time.tm_year % RTC_YEAR_OFFSET);
-+	ret = tps80031_writes(dev->parent, TPS80031_SLAVE_ID1,
-+			TPS80031_ALARM_SECONDS_REG,
-+			TPS80031_RTC_ALARM_NUM_REGS, buff);
-+	if (ret < 0) {
-+		dev_err(dev, "Writing RTC_ALARM failed, err %d\n", ret);
-+		return ret;
-+	}
-+	return tps80031_rtc_alarm_irq_enable(dev, alrm->enabled);
-+}
-+
-+static int tps80031_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
-+{
-+	u8 buff[6];
-+	int ret;
-+
-+	ret = tps80031_reads(dev->parent, TPS80031_SLAVE_ID1,
-+			TPS80031_ALARM_SECONDS_REG,
-+			TPS80031_RTC_ALARM_NUM_REGS, buff);
-+	if (ret < 0) {
-+		dev_err(dev->parent,
-+			"reading RTC_ALARM failed, err = %d\n", ret);
-+		return ret;
-+	}
-+
-+	alrm->time.tm_sec = bcd2bin(buff[0]);
-+	alrm->time.tm_min = bcd2bin(buff[1]);
-+	alrm->time.tm_hour = bcd2bin(buff[2]);
-+	alrm->time.tm_mday = bcd2bin(buff[3]);
-+	alrm->time.tm_mon = bcd2bin(buff[4]) - 1;
-+	alrm->time.tm_year = bcd2bin(buff[5]) + RTC_YEAR_OFFSET;
-+	return 0;
-+}
-+
-+static int clear_alarm_int_status(struct device *dev, struct tps80031_rtc *rtc)
-+{
-+	int ret;
-+	u8 buf;
-+
-+	/**
-+	 * As per datasheet, A dummy read of this  RTC_STATUS_REG register
-+	 * is necessary before each I2C read in order to update the status
-+	 * register value.
-+	 */
-+	ret = tps80031_read(dev->parent, TPS80031_SLAVE_ID1,
-+				TPS80031_RTC_STATUS_REG, &buf);
-+	if (ret < 0) {
-+		dev_err(dev, "reading RTC_STATUS failed. err = %d\n", ret);
-+		return ret;
-+	}
-+
-+	/* clear Alarm status bits.*/
-+	ret = tps80031_set_bits(dev->parent, TPS80031_SLAVE_ID1,
-+			TPS80031_RTC_STATUS_REG, ALARM_INT_STATUS);
-+	if (ret < 0) {
-+		dev_err(dev, "clear Alarm INT failed, err = %d\n", ret);
-+		return ret;
-+	}
-+	return 0;
-+}
-+
-+static irqreturn_t tps80031_rtc_irq(int irq, void *data)
-+{
-+	struct device *dev = data;
-+	struct tps80031_rtc *rtc = dev_get_drvdata(dev);
-+	int ret;
-+
-+	ret = clear_alarm_int_status(dev, rtc);
-+	if (ret < 0)
-+		return ret;
-+
-+	rtc_update_irq(rtc->rtc, 1, RTC_IRQF | RTC_AF);
-+	return IRQ_HANDLED;
-+}
-+
-+static const struct rtc_class_ops tps80031_rtc_ops = {
-+	.read_time = tps80031_rtc_read_time,
-+	.set_time = tps80031_rtc_set_time,
-+	.set_alarm = tps80031_rtc_set_alarm,
-+	.read_alarm = tps80031_rtc_read_alarm,
-+	.alarm_irq_enable = tps80031_rtc_alarm_irq_enable,
-+};
-+
-+static int tps80031_rtc_probe(struct platform_device *pdev)
-+{
-+	struct tps80031_rtc *rtc;
-+	struct rtc_time tm;
-+	int ret;
-+
-+	rtc = devm_kzalloc(&pdev->dev, sizeof(*rtc), GFP_KERNEL);
-+	if (!rtc)
-+		return -ENOMEM;
-+
-+	rtc->irq = platform_get_irq(pdev, 0);
-+	platform_set_drvdata(pdev, rtc);
-+
-+	/* Start RTC */
-+	ret = tps80031_set_bits(pdev->dev.parent, TPS80031_SLAVE_ID1,
-+			TPS80031_RTC_CTRL_REG, STOP_RTC);
-+	if (ret < 0) {
-+		dev_err(&pdev->dev, "failed to start RTC. err = %d\n", ret);
-+		return ret;
-+	}
-+
-+	/* If RTC have POR values, set time 01:01:2000 */
-+	tps80031_rtc_read_time(&pdev->dev, &tm);
-+	if ((tm.tm_year == RTC_YEAR_OFFSET + TPS80031_RTC_POR_YEAR) &&
-+		(tm.tm_mon == (TPS80031_RTC_POR_MONTH - 1)) &&
-+		(tm.tm_mday == TPS80031_RTC_POR_DAY)) {
-+		tm.tm_year = 2000;
-+		tm.tm_mday = 1;
-+		tm.tm_mon = 0;
-+		ret = tps80031_rtc_set_time(&pdev->dev, &tm);
-+		if (ret < 0) {
-+			dev_err(&pdev->dev,
-+				"RTC set time failed, err = %d\n", ret);
-+			return ret;
-+		}
-+	}
-+
-+	/* Clear alarm intretupt status if it is there */
-+	ret = clear_alarm_int_status(&pdev->dev, rtc);
-+	if (ret < 0) {
-+		dev_err(&pdev->dev, "Clear alarm int failed, err = %d\n", ret);
-+		return ret;
-+	}
-+
-+	rtc->rtc = rtc_device_register(pdev->name, &pdev->dev,
-+			       &tps80031_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(rtc->rtc)) {
-+		ret = PTR_ERR(rtc->rtc);
-+		dev_err(&pdev->dev, "RTC registration failed, err %d\n", ret);
-+		return ret;
-+	}
-+
-+	ret = request_threaded_irq(rtc->irq, NULL, tps80031_rtc_irq,
-+			IRQF_ONESHOT | IRQF_EARLY_RESUME,
-+			dev_name(&pdev->dev), rtc);
-+	if (ret < 0) {
-+		dev_err(&pdev->dev, "request IRQ:%d failed, err = %d\n",
-+			 rtc->irq, ret);
-+		rtc_device_unregister(rtc->rtc);
-+		return ret;
-+	}
-+	device_set_wakeup_capable(&pdev->dev, 1);
-+	return 0;
-+}
-+
-+static int tps80031_rtc_remove(struct platform_device *pdev)
-+{
-+	struct tps80031_rtc *rtc = platform_get_drvdata(pdev);
-+
-+	free_irq(rtc->irq, rtc);
-+	rtc_device_unregister(rtc->rtc);
-+	return 0;
-+}
-+
-+#ifdef CONFIG_PM_SLEEP
-+static int tps80031_rtc_suspend(struct device *dev)
-+{
-+	struct tps80031_rtc *rtc = dev_get_drvdata(dev);
-+
-+	if (device_may_wakeup(dev))
-+		enable_irq_wake(rtc->irq);
-+	return 0;
-+}
-+
-+static int tps80031_rtc_resume(struct device *dev)
-+{
-+	struct tps80031_rtc *rtc = dev_get_drvdata(dev);
-+
-+	if (device_may_wakeup(dev))
-+		disable_irq_wake(rtc->irq);
-+	return 0;
-+};
-+#endif
-+
-+static const struct dev_pm_ops tps80031_pm_ops = {
-+	SET_SYSTEM_SLEEP_PM_OPS(tps80031_rtc_suspend, tps80031_rtc_resume)
-+};
-+
-+static struct platform_driver tps80031_rtc_driver = {
-+	.driver	= {
-+		.name	= "tps80031-rtc",
-+		.owner	= THIS_MODULE,
-+		.pm	= &tps80031_pm_ops,
-+	},
-+	.probe	= tps80031_rtc_probe,
-+	.remove	= tps80031_rtc_remove,
-+};
-+
-+module_platform_driver(tps80031_rtc_driver);
-+
-+MODULE_ALIAS("platform:tps80031-rtc");
-+MODULE_DESCRIPTION("TI TPS80031/TPS80032 RTC driver");
-+MODULE_AUTHOR("Laxman Dewangan <ldewangan@nvidia.com>");
-+MODULE_LICENSE("GPL v2");
++#ifdef CONFIG_SWAP
+ static int swapin_walk_pmd_entry(pmd_t *pmd, unsigned long start,
+ 	unsigned long end, struct mm_walk *walk)
+ {
+@@ -209,6 +210,7 @@ static void force_shm_swapin_readahead(s
+ 
+ 	lru_add_drain();	/* Push any new pages onto the LRU now */
+ }
++#endif		/* CONFIG_SWAP */
+ 
+ /*
+  * Schedule all required I/O operations.  Do not wait for completion.
 _
 
-Patches currently in -mm which might be from ldewangan@nvidia.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-rtc-add-rtc-driver-for-tps80031-tps80032.patch
+linux-next-git-rejects.patch
+make-my-i386-build-work.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
+bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
+i-need-old-gcc.patch
+lib-cpu_rmap-avoid-flushing-all-workqueues-fix.patch
+drivers-rtc-rtc-da9055c-fix-cross-section-reference.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+kernel-auditc-avoid-negative-sleep-durations.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
+mm.patch
+mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
+mm-hugetlbc-convert-to-pr_foo.patch
+cma-make-putback_lru_pages-call-conditional-fix.patch
+mm-vmscan-clean-up-get_scan_count-fix.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
+mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
+mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
+mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+backlight-add-lms501kf03-lcd-driver-fix.patch
+backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix-fix.patch
+rtc-max77686-add-maxim-77686-driver-fix.patch
+rtc-pcf8523-add-low-battery-voltage-support-fix.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+aio-kiocb_cancel-fix.patch
+wait-add-wait_event_hrtimeout-fix.patch
+aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+generic-dynamic-per-cpu-refcounting-fix.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-dont-include-aioh-in-schedh-fix-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+aio-smoosh-struct-kiocb-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
