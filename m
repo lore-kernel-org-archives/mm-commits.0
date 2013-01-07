@@ -1,58 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-fix-plat-mxc-include-mach-imxfbh.patch removed from -mm tree
-Date: Mon, 07 Jan 2013 11:26:22 -0800
-Message-ID: <20130107192623.0A250200057@hpza10.eem.corp.google.com>
+Subject: [merged] maintainers-remove-arch-x86-platform-mrst-pmu.patch removed from -mm tree
+Date: Mon, 07 Jan 2013 11:26:32 -0800
+Message-ID: <20130107192633.16976200059@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:46537 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755150Ab3AGT00 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2013 14:26:26 -0500
-Received: by mail-wg0-f74.google.com with SMTP id dt14so1261027wgb.5
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jan 2013 11:26:24 -0800 (PST)
+Received: from mail-la0-f74.google.com ([209.85.215.74]:45267 "EHLO
+	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753724Ab3AGT0f (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2013 14:26:35 -0500
+Received: by mail-la0-f74.google.com with SMTP id ej20so669820lab.3
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jan 2013 11:26:34 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cesarb@cesarb.net, s.hauer@pengutronix.de, mm-commits@vger.kernel.org
+To: cesarb@cesarb.net, alan@linux.intel.com, len.brown@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: fix .../plat-mxc/include/mach/imxfb.h
+     Subject: MAINTAINERS: remove arch/x86/platform/mrst/pmu.*
 has been removed from the -mm tree.  Its filename was
-     maintainers-fix-plat-mxc-include-mach-imxfbh.patch
+     maintainers-remove-arch-x86-platform-mrst-pmu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Cesar Eduardo Barros <cesarb@cesarb.net>
-Subject: MAINTAINERS: fix .../plat-mxc/include/mach/imxfb.h
+Subject: MAINTAINERS: remove arch/x86/platform/mrst/pmu.*
 
-This file was moved to include/linux/platform_data/video-imxfb.h by
-commit 82906b1 ("ARM: imx: move platform_data definitions").
+These files were removed by commit 1a8359e ("x86/mid: Remove Intel
+Moorestown").
 
 Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
-Acked-by: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Alan Cox <alan@linux.intel.com>
+Cc: Len Brown <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-fix-plat-mxc-include-mach-imxfbh MAINTAINERS
---- a/MAINTAINERS~maintainers-fix-plat-mxc-include-mach-imxfbh
+diff -puN MAINTAINERS~maintainers-remove-arch-x86-platform-mrst-pmu MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-arch-x86-platform-mrst-pmu
 +++ a/MAINTAINERS
-@@ -3207,7 +3207,7 @@ M:	Sascha Hauer <kernel@pengutronix.de>
- L:	linux-fbdev@vger.kernel.org
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- S:	Maintained
--F:	arch/arm/plat-mxc/include/mach/imxfb.h
-+F:	include/linux/platform_data/video-imxfb.h
- F:	drivers/video/imxfb.c
+@@ -4065,12 +4065,6 @@ F:	Documentation/networking/ixgbe.txt
+ F:	Documentation/networking/ixgbevf.txt
+ F:	drivers/net/ethernet/intel/
  
- FREESCALE SOC FS_ENET DRIVER
-_
-
-Patches currently in -mm which might be from cesarb@cesarb.net are
-
-origin.patch
-linux-next.patch
-
+-INTEL MRST PMU DRIVER
+-M:	Len Brown <len.brown@intel.com>
+-L:	linux-pm@vger.kernel.org
+-S:	Supported
+-F:	arch/x86/platform/mrst/pmu.*
