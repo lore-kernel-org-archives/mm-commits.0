@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix.patch added to -mm tree
-Date: Mon, 07 Jan 2013 15:11:52 -0800
-Message-ID: <20130107231152.82CA5100047@wpzn3.hot.corp.google.com>
+Subject: + lockdep-rwsem-provide-down_write_nest_lock.patch added to -mm tree
+Date: Mon, 07 Jan 2013 15:22:05 -0800
+Message-ID: <20130107232206.9189E200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:51004 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756051Ab3AGXLx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2013 18:11:53 -0500
-Received: by mail-gh0-f201.google.com with SMTP id z19so1838336ghb.0
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jan 2013 15:11:52 -0800 (PST)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:40209 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752470Ab3AGXWJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2013 18:22:09 -0500
+Received: by mail-we0-f202.google.com with SMTP id t57so1272581wey.1
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jan 2013 15:22:08 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: koverstreet@google.com
+Cc: jkosina@suse.cz, a.p.zijlstra@chello.nl, mel@csn.ul.ie, mingo@kernel.org, riel@redhat.com
 
 
 The patch titled
-     Subject: block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix
+     Subject: lockdep, rwsem: provide down_write_nest_lock()
 has been added to the -mm tree.  Its filename is
-     block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix.patch
+     lockdep-rwsem-provide-down_write_nest_lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,142 +33,96 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kent Overstreet <koverstreet@google.com>
-Subject: block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: lockdep, rwsem: provide down_write_nest_lock()
 
-Fix broken build when CONFIG_BLOCK=n by pulling common stuff out into a
-new header.
+down_write_nest_lock() provides means to annotate locking scenario where
+an outer lock is guaranteed to serialize the order nested locks are being
+acquired.
 
-Signed-off-by: Kent Overstreet <koverstreet@google.com>
+This is analogoue to already existing mutex_lock_nest_lock() and
+spin_lock_nest_lock().
+
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/aio.h            |    2 +-
- include/linux/batch_complete.h |   23 +++++++++++++++++++++++
- include/linux/bio.h            |   10 +---------
- 3 files changed, 25 insertions(+), 10 deletions(-)
+ include/linux/lockdep.h |    3 +++
+ include/linux/rwsem.h   |    9 +++++++++
+ kernel/rwsem.c          |   10 ++++++++++
+ 3 files changed, 22 insertions(+)
 
-diff -puN include/linux/aio.h~block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix include/linux/aio.h
---- a/include/linux/aio.h~block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix
-+++ a/include/linux/aio.h
-@@ -7,7 +7,7 @@
- #include <linux/uio.h>
- #include <linux/rcupdate.h>
- #include <linux/atomic.h>
--#include <linux/rbtree.h>
-+#include <linux/batch_complete.h>
- 
- struct kioctx;
- struct kiocb;
-diff -puN /dev/null include/linux/batch_complete.h
---- /dev/null
-+++ a/include/linux/batch_complete.h
-@@ -0,0 +1,23 @@
-+#ifndef _LINUX_BATCH_COMPLETE_H
-+#define _LINUX_BATCH_COMPLETE_H
-+
-+#include <linux/rbtree.h>
-+
-+/*
-+ * Common stuff to the aio and block code for batch completion. Everything
-+ * important is elsewhere:
-+ */
-+
-+struct bio;
-+
-+struct bio_list {
-+	struct bio *head;
-+	struct bio *tail;
-+};
-+
-+struct batch_complete {
-+	struct bio_list		bio;
-+	struct rb_root		kiocb;
-+};
-+
-+#endif
-diff -puN include/linux/bio.h~block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix include/linux/bio.h
---- a/include/linux/bio.h~block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix
-+++ a/include/linux/bio.h
-@@ -24,6 +24,7 @@
- #include <linux/mempool.h>
- #include <linux/ioprio.h>
- #include <linux/bug.h>
-+#include <linux/batch_complete.h>
- 
- #ifdef CONFIG_BLOCK
- 
-@@ -438,10 +439,6 @@ static inline bool bio_mergeable(struct 
-  * member of the bio.  The bio_list also caches the last list member to allow
-  * fast access to the tail.
+diff -puN include/linux/lockdep.h~lockdep-rwsem-provide-down_write_nest_lock include/linux/lockdep.h
+--- a/include/linux/lockdep.h~lockdep-rwsem-provide-down_write_nest_lock
++++ a/include/linux/lockdep.h
+@@ -524,14 +524,17 @@ static inline void print_irqtrace_events
+ #ifdef CONFIG_DEBUG_LOCK_ALLOC
+ # ifdef CONFIG_PROVE_LOCKING
+ #  define rwsem_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 2, NULL, i)
++#  define rwsem_acquire_nest(l, s, t, n, i)	lock_acquire(l, s, t, 0, 2, n, i)
+ #  define rwsem_acquire_read(l, s, t, i)	lock_acquire(l, s, t, 1, 2, NULL, i)
+ # else
+ #  define rwsem_acquire(l, s, t, i)		lock_acquire(l, s, t, 0, 1, NULL, i)
++#  define rwsem_acquire_nest(l, s, t, n, i)	lock_acquire(l, s, t, 0, 1, n, i)
+ #  define rwsem_acquire_read(l, s, t, i)	lock_acquire(l, s, t, 1, 1, NULL, i)
+ # endif
+ # define rwsem_release(l, n, i)			lock_release(l, n, i)
+ #else
+ # define rwsem_acquire(l, s, t, i)		do { } while (0)
++# define rwsem_acquire_nest(l, s, t, n, i)	do { } while (0)
+ # define rwsem_acquire_read(l, s, t, i)		do { } while (0)
+ # define rwsem_release(l, n, i)			do { } while (0)
+ #endif
+diff -puN include/linux/rwsem.h~lockdep-rwsem-provide-down_write_nest_lock include/linux/rwsem.h
+--- a/include/linux/rwsem.h~lockdep-rwsem-provide-down_write_nest_lock
++++ a/include/linux/rwsem.h
+@@ -125,8 +125,17 @@ extern void downgrade_write(struct rw_se
   */
--struct bio_list {
--	struct bio *head;
--	struct bio *tail;
--};
+ extern void down_read_nested(struct rw_semaphore *sem, int subclass);
+ extern void down_write_nested(struct rw_semaphore *sem, int subclass);
++extern void _down_write_nest_lock(struct rw_semaphore *sem, struct lockdep_map *nest_lock);
++
++# define down_write_nest_lock(sem, nest_lock)			\
++do {								\
++	typecheck(struct lockdep_map *, &(nest_lock)->dep_map);	\
++	_down_write_nest_lock(sem, &(nest_lock)->dep_map);	\
++} while (0);
++
+ #else
+ # define down_read_nested(sem, subclass)		down_read(sem)
++# define down_write_nest_lock(sem, nest_lock)	down_read(sem)
+ # define down_write_nested(sem, subclass)	down_write(sem)
+ #endif
  
- static inline int bio_list_empty(const struct bio_list *bl)
+diff -puN kernel/rwsem.c~lockdep-rwsem-provide-down_write_nest_lock kernel/rwsem.c
+--- a/kernel/rwsem.c~lockdep-rwsem-provide-down_write_nest_lock
++++ a/kernel/rwsem.c
+@@ -116,6 +116,16 @@ void down_read_nested(struct rw_semaphor
+ 
+ EXPORT_SYMBOL(down_read_nested);
+ 
++void _down_write_nest_lock(struct rw_semaphore *sem, struct lockdep_map *nest)
++{
++	might_sleep();
++	rwsem_acquire_nest(&sem->dep_map, 0, 0, nest, _RET_IP_);
++
++	LOCK_CONTENDED(sem, __down_write_trylock, __down_write);
++}
++
++EXPORT_SYMBOL(_down_write_nest_lock);
++
+ void down_write_nested(struct rw_semaphore *sem, int subclass)
  {
-@@ -545,11 +542,6 @@ static inline struct bio *bio_list_get(s
- 	return bio;
- }
- 
--struct batch_complete {
--	struct bio_list		bio;
--	struct rb_root		kiocb;
--};
--
- void bio_endio_batch(struct bio *bio, int error, struct batch_complete *batch);
- 
- static inline void batch_complete_init(struct batch_complete *batch)
+ 	might_sleep();
 _
 
-Patches currently in -mm which might be from koverstreet@google.com are
+Patches currently in -mm which might be from jkosina@suse.cz are
 
-mm-remove-old-aio-use_mm-comment.patch
-aio-remove-dead-code-from-aioh.patch
-gadget-remove-only-user-of-aio-retry.patch
-aio-remove-retry-based-aio.patch
-char-add-aio_readwrite-to-dev-nullzero.patch
-aio-kill-return-value-of-aio_complete.patch
-aio-kiocb_cancel.patch
-aio-kiocb_cancel-fix.patch
-aio-move-private-stuff-out-of-aioh.patch
-aio-dprintk-pr_debug.patch
-aio-do-fget-after-aio_get_req.patch
-aio-make-aio_put_req-lockless.patch
-aio-refcounting-cleanup.patch
-wait-add-wait_event_hrtimeout.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-make-aio_read_evt-more-efficient-convert-to-hrtimers.patch
-aio-use-flush_dcache_page.patch
-aio-use-cancellation-list-lazily.patch
-aio-change-reqs_active-to-include-unreaped-completions.patch
-aio-kill-batch-allocation.patch
-aio-kill-struct-aio_ring_info.patch
-aio-give-shared-kioctx-fields-their-own-cachelines.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-aio-reqs_active-reqs_available.patch
-aio-percpu-reqs_available.patch
-generic-dynamic-per-cpu-refcounting.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-fix-fix.patch
-aio-percpu-ioctx-refcount.patch
-aio-use-xchg-instead-of-completion_lock.patch
-aio-dont-include-aioh-in-schedh.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-kill-ki_key.patch
-aio-kill-ki_retry.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix.patch
-virtio-blk-convert-to-batch-completion.patch
-mtip32xx-convert-to-batch-completion.patch
-aio-smoosh-struct-kiocb.patch
-aio-smoosh-struct-kiocb-fix.patch
+linux-next.patch
+lockdep-rwsem-provide-down_write_nest_lock.patch
+mm-mmap-annotate-vm_lock_anon_vma-locking-properly-for-lockdep.patch
 
