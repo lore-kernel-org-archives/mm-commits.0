@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + generic-dynamic-per-cpu-refcounting-fix-fix.patch added to -mm tree
-Date: Mon, 07 Jan 2013 12:23:10 -0800
-Message-ID: <20130107202311.AA56D20004E@hpza10.eem.corp.google.com>
+Subject: + block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch added to -mm tree
+Date: Mon, 07 Jan 2013 12:29:07 -0800
+Message-ID: <20130107202908.A00CF20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:56162 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752924Ab3AGUXO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2013 15:23:14 -0500
-Received: by mail-we0-f202.google.com with SMTP id t57so1264415wey.3
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jan 2013 12:23:13 -0800 (PST)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:51512 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751844Ab3AGU3L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2013 15:29:11 -0500
+Received: by mail-wg0-f74.google.com with SMTP id dt14so1264426wgb.3
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jan 2013 12:29:09 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, fengguang.wu@intel.com, koverstreet@google.com
+Cc: akpm@linux-foundation.org, koverstreet@google.com
 
 
 The patch titled
-     Subject: generic-dynamic-per-cpu-refcounting-fix-fix
+     Subject: block-aio-batch-completion-for-bios-kiocbs-fix-fix
 has been added to the -mm tree.  Its filename is
-     generic-dynamic-per-cpu-refcounting-fix-fix.patch
+     block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,50 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: generic-dynamic-per-cpu-refcounting-fix-fix
+Subject: block-aio-batch-completion-for-bios-kiocbs-fix-fix
 
-include/linux/percpu-refcount.h needs atomic64.h
+fs/aio.c needs bio.h, move bio_endio_batch() declaration somewhere rational
 
 Cc: Kent Overstreet <koverstreet@google.com>
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/percpu-refcount.h |    1 +
- 1 file changed, 1 insertion(+)
+ fs/aio.c            |    1 +
+ include/linux/bio.h |    4 ++--
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/percpu-refcount.h~generic-dynamic-per-cpu-refcounting-fix-fix include/linux/percpu-refcount.h
---- a/include/linux/percpu-refcount.h~generic-dynamic-per-cpu-refcounting-fix-fix
-+++ a/include/linux/percpu-refcount.h
-@@ -3,6 +3,7 @@
- 
- #include <linux/atomic.h>
+diff -puN fs/aio.c~block-aio-batch-completion-for-bios-kiocbs-fix-fix fs/aio.c
+--- a/fs/aio.c~block-aio-batch-completion-for-bios-kiocbs-fix-fix
++++ a/fs/aio.c
+@@ -25,6 +25,7 @@
+ #include <linux/file.h>
+ #include <linux/mm.h>
+ #include <linux/mman.h>
++#include <linux/bio.h>
+ #include <linux/mmu_context.h>
  #include <linux/percpu.h>
-+#include <asm/atomic64.h>
+ #include <linux/slab.h>
+diff -puN include/linux/bio.h~block-aio-batch-completion-for-bios-kiocbs-fix-fix include/linux/bio.h
+--- a/include/linux/bio.h~block-aio-batch-completion-for-bios-kiocbs-fix-fix
++++ a/include/linux/bio.h
+@@ -241,8 +241,6 @@ static inline struct bio *bio_clone_kmal
  
- struct percpu_ref {
- 	atomic64_t		count;
+ }
+ 
+-void bio_endio_batch(struct bio *bio, int error, struct batch_complete *batch);
+-
+ /**
+  * bio_endio - end I/O on a bio
+  * @bio:	bio
+@@ -552,6 +550,8 @@ struct batch_complete {
+ 	struct rb_root		kiocb;
+ };
+ 
++void bio_endio_batch(struct bio *bio, int error, struct batch_complete *batch);
++
+ static inline void batch_complete_init(struct batch_complete *batch)
+ {
+ 	bio_list_init(&batch->bio);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,6 +127,7 @@ aio-dont-include-aioh-in-schedh-fix-fix.patch
 aio-dont-include-aioh-in-schedh-fix-3.patch
 aio-kill-ki_retry-fix.patch
 block-aio-batch-completion-for-bios-kiocbs-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
 aio-smoosh-struct-kiocb-fix.patch
 journal_add_journal_head-debug.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
