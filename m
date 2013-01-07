@@ -1,72 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-rtc-rtc-tegrac-convert-to-dt-driver.patch removed from -mm tree
-Date: Mon, 07 Jan 2013 11:24:55 -0800
-Message-ID: <20130107192456.E896520004E@hpza10.eem.corp.google.com>
+Subject: [merged] ipc-remove-forced-assignment-of-selected-message.patch removed from -mm tree
+Date: Mon, 07 Jan 2013 11:25:00 -0800
+Message-ID: <20130107192500.C81C2820059@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ea0-f202.google.com ([209.85.215.202]:59702 "EHLO
-	mail-ea0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751205Ab3AGTY7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2013 14:24:59 -0500
-Received: by mail-ea0-f202.google.com with SMTP id j12so1261586eaa.5
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jan 2013 11:24:58 -0800 (PST)
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:35822 "EHLO
+	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755074Ab3AGTZC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2013 14:25:02 -0500
+Received: by mail-qc0-f201.google.com with SMTP id a6so2115753qch.4
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jan 2013 11:25:01 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: josephl@nvidia.com, swarren@wwwdotorg.org, mm-commits@vger.kernel.org
+To: skinsbursky@parallels.com, ebiederm@xmission.com, kosaki.motohiro@jp.fujitsu.com, mtk.manpages@gmail.com, serge.hallyn@canonical.com, viro@zeniv.linux.org.uk, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-tegra.c: convert to DT driver
+     Subject: ipc: remove forced assignment of selected message
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-tegrac-convert-to-dt-driver.patch
+     ipc-remove-forced-assignment-of-selected-message.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joseph Lo <josephl@nvidia.com>
-Subject: drivers/rtc/rtc-tegra.c: convert to DT driver
+From: Stanislav Kinsbursky <skinsbursky@parallels.com>
+Subject: ipc: remove forced assignment of selected message
 
-After Kernel 3.7, the Tegra device will only support booting with DT.  The
-legacy Tegra RTC platform driver will not work anymore.  This patch
-convert the driver to support DT.
+This is a cleanup patch. The assignment is redundant.
 
-Signed-off-by: Joseph Lo <josephl@nvidia.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Joseph Lo <josephl@nvidia.com>
+Signed-off-by: Stanislav Kinsbursky <skinsbursky@parallels.com>
+Cc: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-tegra.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ ipc/msg.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-tegra.c~drivers-rtc-rtc-tegrac-convert-to-dt-driver drivers/rtc/rtc-tegra.c
---- a/drivers/rtc/rtc-tegra.c~drivers-rtc-rtc-tegrac-convert-to-dt-driver
-+++ a/drivers/rtc/rtc-tegra.c
-@@ -303,6 +303,12 @@ static struct rtc_class_ops tegra_rtc_op
- 	.alarm_irq_enable = tegra_rtc_alarm_irq_enable,
- };
- 
-+static const struct of_device_id tegra_rtc_dt_match[] = {
-+	{ .compatible = "nvidia,tegra20-rtc", },
-+	{}
-+};
-+MODULE_DEVICE_TABLE(of, tegra_rtc_dt_match);
-+
- static int tegra_rtc_probe(struct platform_device *pdev)
- {
- 	struct tegra_rtc_info *info;
-@@ -440,6 +446,7 @@ static struct platform_driver tegra_rtc_
- 	.driver		= {
- 		.name	= "tegra_rtc",
- 		.owner	= THIS_MODULE,
-+		.of_match_table = tegra_rtc_dt_match,
- 	},
- #ifdef CONFIG_PM
- 	.suspend	= tegra_rtc_suspend,
+diff -puN ipc/msg.c~ipc-remove-forced-assignment-of-selected-message ipc/msg.c
+--- a/ipc/msg.c~ipc-remove-forced-assignment-of-selected-message
++++ a/ipc/msg.c
+@@ -793,12 +793,9 @@ long do_msgrcv(int msqid, long *pmtype, 
+ 				msg = walk_msg;
+ 				if (mode == SEARCH_LESSEQUAL &&
+ 						walk_msg->m_type != 1) {
+-					msg = walk_msg;
+ 					msgtyp = walk_msg->m_type - 1;
+-				} else {
+-					msg = walk_msg;
++				} else
+ 					break;
+-				}
+ 			}
+ 			tmp = tmp->next;
+ 		}
 _
 
-Patches currently in -mm which might be from josephl@nvidia.com are
+Patches currently in -mm which might be from skinsbursky@parallels.com are
 
 origin.patch
-linux-next.patch
 
