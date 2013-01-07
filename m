@@ -1,35 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipc-message-queue-receive-cleanup.patch removed from -mm tree
-Date: Mon, 07 Jan 2013 11:25:08 -0800
-Message-ID: <20130107192509.31C23200059@hpza10.eem.corp.google.com>
+Subject: [merged] ipc-message-queue-copy-feature-introduced.patch removed from -mm tree
+Date: Mon, 07 Jan 2013 11:25:13 -0800
+Message-ID: <20130107192513.BA320100052@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:42521 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755074Ab3AGTZM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2013 14:25:12 -0500
-Received: by mail-fa0-f74.google.com with SMTP id t1so1261249fae.3
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jan 2013 11:25:11 -0800 (PST)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:53651 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755074Ab3AGTZP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2013 14:25:15 -0500
+Received: by mail-yh0-f73.google.com with SMTP id 47so2112869yhr.4
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jan 2013 11:25:15 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: skinsbursky@parallels.com, ebiederm@xmission.com, kosaki.motohiro@jp.fujitsu.com, mtk.manpages@gmail.com, serge.hallyn@canonical.com, viro@zeniv.linux.org.uk, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc: message queue receive cleanup
+     Subject: ipc: introduce message queue copy feature
 has been removed from the -mm tree.  Its filename was
-     ipc-message-queue-receive-cleanup.patch
+     ipc-message-queue-copy-feature-introduced.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Stanislav Kinsbursky <skinsbursky@parallels.com>
-Subject: ipc: message queue receive cleanup
+Subject: ipc: introduce message queue copy feature
 
-Move all message related manipulation into one function msg_fill(). 
-Actually, two functions because of the compat one.
+This patch is required for checkpoint/restore in userspace.
 
-[akpm@linux-foundation.org: checkpatch fixes]
+c/r requires some way to get all pending IPC messages without deleting
+them from the queue (checkpoint can fail and in this case tasks will be
+resumed, so queue have to be valid).
+
+To achive this, new operation flag MSG_COPY for sys_msgrcv() system call
+was introduced.  If this flag was specified, then mtype is interpreted as
+number of the message to copy.
+
+If MSG_COPY is set, then kernel will allocate dummy message with passed
+size, and then use new copy_msg() helper function to copy desired message
+(instead of unlinking it from the queue).
+
+Notes:
+
+1) Return -ENOSYS if MSG_COPY is specified, but
+   CONFIG_CHECKPOINT_RESTORE is not set.
+
 Signed-off-by: Stanislav Kinsbursky <skinsbursky@parallels.com>
 Cc: Serge Hallyn <serge.hallyn@canonical.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
@@ -40,182 +55,203 @@ Cc: Michael Kerrisk <mtk.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/msg.h |    5 ++--
- ipc/compat.c        |   45 +++++++++++++++++-------------------------
- ipc/msg.c           |   44 +++++++++++++++++++++--------------------
- 3 files changed, 45 insertions(+), 49 deletions(-)
+ include/uapi/linux/msg.h |    1 
+ ipc/msg.c                |   64 +++++++++++++++++++++++++++++++++++--
+ ipc/msgutil.c            |   38 +++++++++++++++++++++
+ ipc/util.h               |    1 
+ 4 files changed, 102 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/msg.h~ipc-message-queue-receive-cleanup include/linux/msg.h
---- a/include/linux/msg.h~ipc-message-queue-receive-cleanup
-+++ a/include/linux/msg.h
-@@ -34,7 +34,8 @@ struct msg_queue {
- /* Helper routines for sys_msgsnd and sys_msgrcv */
- extern long do_msgsnd(int msqid, long mtype, void __user *mtext,
- 			size_t msgsz, int msgflg);
--extern long do_msgrcv(int msqid, long *pmtype, void __user *mtext,
--			size_t msgsz, long msgtyp, int msgflg);
-+extern long do_msgrcv(int msqid, void __user *buf, size_t bufsz, long msgtyp,
-+		      int msgflg,
-+		      long (*msg_fill)(void __user *, struct msg_msg *, size_t));
+diff -puN include/uapi/linux/msg.h~ipc-message-queue-copy-feature-introduced include/uapi/linux/msg.h
+--- a/include/uapi/linux/msg.h~ipc-message-queue-copy-feature-introduced
++++ a/include/uapi/linux/msg.h
+@@ -10,6 +10,7 @@
+ /* msgrcv options */
+ #define MSG_NOERROR     010000  /* no error if message is too big */
+ #define MSG_EXCEPT      020000  /* recv any msg except of specified type.*/
++#define MSG_COPY        040000  /* copy (not remove) all queue messages */
  
- #endif /* _LINUX_MSG_H */
-diff -puN ipc/compat.c~ipc-message-queue-receive-cleanup ipc/compat.c
---- a/ipc/compat.c~ipc-message-queue-receive-cleanup
-+++ a/ipc/compat.c
-@@ -306,6 +306,20 @@ static long do_compat_semctl(int first, 
- 	return err;
- }
- 
-+long compat_do_msg_fill(void __user *dest, struct msg_msg *msg, size_t bufsz)
-+{
-+	struct compat_msgbuf __user *msgp = dest;
-+	size_t msgsz;
-+
-+	if (put_user(msg->m_type, &msgp->mtype))
-+		return -EFAULT;
-+
-+	msgsz = (bufsz > msg->m_ts) ? msg->m_ts : bufsz;
-+	if (store_msg(msgp->mtext, msg, msgsz))
-+		return -EFAULT;
-+	return msgsz;
-+}
-+
- #ifdef CONFIG_ARCH_WANT_OLD_COMPAT_IPC
- long compat_sys_semctl(int first, int second, int third, void __user *uptr)
- {
-@@ -337,10 +351,6 @@ long compat_sys_msgsnd(int first, int se
- long compat_sys_msgrcv(int first, int second, int msgtyp, int third,
- 			   int version, void __user *uptr)
- {
--	struct compat_msgbuf __user *up;
--	long type;
--	int err;
--
- 	if (first < 0)
- 		return -EINVAL;
- 	if (second < 0)
-@@ -348,23 +358,14 @@ long compat_sys_msgrcv(int first, int se
- 
- 	if (!version) {
- 		struct compat_ipc_kludge ipck;
--		err = -EINVAL;
- 		if (!uptr)
--			goto out;
--		err = -EFAULT;
-+			return -EINVAL;
- 		if (copy_from_user (&ipck, uptr, sizeof(ipck)))
--			goto out;
-+			return -EFAULT;
- 		uptr = compat_ptr(ipck.msgp);
- 		msgtyp = ipck.msgtyp;
- 	}
--	up = uptr;
--	err = do_msgrcv(first, &type, up->mtext, second, msgtyp, third);
--	if (err < 0)
--		goto out;
--	if (put_user(type, &up->mtype))
--		err = -EFAULT;
--out:
--	return err;
-+	return do_msgrcv(first, uptr, second, msgtyp, third, compat_do_msg_fill);
- }
- #else
- long compat_sys_semctl(int semid, int semnum, int cmd, int arg)
-@@ -385,16 +386,8 @@ long compat_sys_msgsnd(int msqid, struct
- long compat_sys_msgrcv(int msqid, struct compat_msgbuf __user *msgp,
- 		       compat_ssize_t msgsz, long msgtyp, int msgflg)
- {
--	long err, mtype;
--
--	err =  do_msgrcv(msqid, &mtype, msgp->mtext, (ssize_t)msgsz, msgtyp, msgflg);
--	if (err < 0)
--		goto out;
--
--	if (put_user(mtype, &msgp->mtype))
--		err = -EFAULT;
-- out:
--	return err;
-+	return do_msgrcv(msqid, msgp, (ssize_t)msgsz, msgtyp, msgflg,
-+			 compat_do_msg_fill);
- }
- #endif
- 
-diff -puN ipc/msg.c~ipc-message-queue-receive-cleanup ipc/msg.c
---- a/ipc/msg.c~ipc-message-queue-receive-cleanup
+ /* Obsolete, used only for backwards compatibility and libc5 compiles */
+ struct msqid_ds {
+diff -puN ipc/msg.c~ipc-message-queue-copy-feature-introduced ipc/msg.c
+--- a/ipc/msg.c~ipc-message-queue-copy-feature-introduced
 +++ a/ipc/msg.c
-@@ -755,15 +755,30 @@ static inline int convert_mode(long *msg
- 	return SEARCH_EQUAL;
+@@ -769,6 +769,45 @@ static long do_msg_fill(void __user *des
+ 	return msgsz;
  }
  
--long do_msgrcv(int msqid, long *pmtype, void __user *mtext,
--		size_t msgsz, long msgtyp, int msgflg)
-+static long do_msg_fill(void __user *dest, struct msg_msg *msg, size_t bufsz)
++#ifdef CONFIG_CHECKPOINT_RESTORE
++static inline struct msg_msg *fill_copy(unsigned long copy_nr,
++					unsigned long msg_nr,
++					struct msg_msg *msg,
++					struct msg_msg *copy)
 +{
-+	struct msgbuf __user *msgp = dest;
-+	size_t msgsz;
-+
-+	if (put_user(msg->m_type, &msgp->mtype))
-+		return -EFAULT;
-+
-+	msgsz = (bufsz > msg->m_ts) ? msg->m_ts : bufsz;
-+	if (store_msg(msgp->mtext, msg, msgsz))
-+		return -EFAULT;
-+	return msgsz;
++	if (copy_nr == msg_nr)
++		return copy_msg(msg, copy);
++	return NULL;
 +}
 +
-+long do_msgrcv(int msqid, void __user *buf, size_t bufsz, long msgtyp,
-+	       int msgflg,
-+	       long (*msg_handler)(void __user *, struct msg_msg *, size_t))
- {
- 	struct msg_queue *msq;
++static inline struct msg_msg *prepare_copy(void __user *buf, size_t bufsz,
++					   int msgflg, long *msgtyp,
++					   unsigned long *copy_number)
++{
++	struct msg_msg *copy;
++
++	*copy_number = *msgtyp;
++	*msgtyp = 0;
++	/*
++	 * Create dummy message to copy real message to.
++	 */
++	copy = load_msg(buf, bufsz);
++	if (!IS_ERR(copy))
++		copy->m_ts = bufsz;
++	return copy;
++}
++
++static inline void free_copy(int msgflg, struct msg_msg *copy)
++{
++	if (msgflg & MSG_COPY)
++		free_msg(copy);
++}
++#else
++#define free_copy(msgflg, copy)				do {} while (0)
++#define prepare_copy(buf, sz, msgflg, msgtyp, copy_nr)	ERR_PTR(-ENOSYS)
++#define fill_copy(copy_nr, msg_nr, msg, copy)		NULL
++#endif
++
+ long do_msgrcv(int msqid, void __user *buf, size_t bufsz, long msgtyp,
+ 	       int msgflg,
+ 	       long (*msg_handler)(void __user *, struct msg_msg *, size_t))
+@@ -777,19 +816,29 @@ long do_msgrcv(int msqid, void __user *b
  	struct msg_msg *msg;
  	int mode;
  	struct ipc_namespace *ns;
++	struct msg_msg *copy;
++	unsigned long __maybe_unused copy_number;
  
--	if (msqid < 0 || (long) msgsz < 0)
-+	if (msqid < 0 || (long) bufsz < 0)
+ 	if (msqid < 0 || (long) bufsz < 0)
  		return -EINVAL;
++	if (msgflg & MSG_COPY) {
++		copy = prepare_copy(buf, bufsz, msgflg, &msgtyp, &copy_number);
++		if (IS_ERR(copy))
++			return PTR_ERR(copy);
++	}
  	mode = convert_mode(&msgtyp, msgflg);
  	ns = current->nsproxy->ipc_ns;
-@@ -804,7 +819,7 @@ long do_msgrcv(int msqid, long *pmtype, 
- 			 * Found a suitable message.
- 			 * Unlink it from the queue.
- 			 */
--			if ((msgsz < msg->m_ts) && !(msgflg & MSG_NOERROR)) {
-+			if ((bufsz < msg->m_ts) && !(msgflg & MSG_NOERROR)) {
+ 
+ 	msq = msg_lock_check(ns, msqid);
+-	if (IS_ERR(msq))
++	if (IS_ERR(msq)) {
++		free_copy(msgflg, copy);
+ 		return PTR_ERR(msq);
++	}
+ 
+ 	for (;;) {
+ 		struct msg_receiver msr_d;
+ 		struct list_head *tmp;
++		long msg_counter = 0;
+ 
+ 		msg = ERR_PTR(-EACCES);
+ 		if (ipcperms(ns, &msq->q_perm, S_IRUGO))
+@@ -809,8 +858,15 @@ long do_msgrcv(int msqid, void __user *b
+ 				if (mode == SEARCH_LESSEQUAL &&
+ 						walk_msg->m_type != 1) {
+ 					msgtyp = walk_msg->m_type - 1;
++				} else if (msgflg & MSG_COPY) {
++					msg = fill_copy(copy_number,
++							msg_counter,
++							walk_msg, copy);
++					if (msg)
++						break;
+ 				} else
+ 					break;
++				msg_counter++;
+ 			}
+ 			tmp = tmp->next;
+ 		}
+@@ -823,6 +879,8 @@ long do_msgrcv(int msqid, void __user *b
  				msg = ERR_PTR(-E2BIG);
  				goto out_unlock;
  			}
-@@ -831,7 +846,7 @@ long do_msgrcv(int msqid, long *pmtype, 
- 		if (msgflg & MSG_NOERROR)
- 			msr_d.r_maxsize = INT_MAX;
- 		else
--			msr_d.r_maxsize = msgsz;
-+			msr_d.r_maxsize = bufsz;
- 		msr_d.r_msg = ERR_PTR(-EAGAIN);
- 		current->state = TASK_INTERRUPTIBLE;
- 		msg_unlock(msq);
-@@ -894,29 +909,16 @@ out_unlock:
- 	if (IS_ERR(msg))
++			if (msgflg & MSG_COPY)
++				goto out_unlock;
+ 			list_del(&msg->m_list);
+ 			msq->q_qnum--;
+ 			msq->q_rtime = get_seconds();
+@@ -906,8 +964,10 @@ out_unlock:
+ 			break;
+ 		}
+ 	}
+-	if (IS_ERR(msg))
++	if (IS_ERR(msg)) {
++		free_copy(msgflg, copy);
  		return PTR_ERR(msg);
++	}
  
--	msgsz = (msgsz > msg->m_ts) ? msg->m_ts : msgsz;
--	*pmtype = msg->m_type;
--	if (store_msg(mtext, msg, msgsz))
--		msgsz = -EFAULT;
--
-+	bufsz = msg_handler(buf, msg, bufsz);
+ 	bufsz = msg_handler(buf, msg, bufsz);
  	free_msg(msg);
- 
--	return msgsz;
-+	return bufsz;
+diff -puN ipc/msgutil.c~ipc-message-queue-copy-feature-introduced ipc/msgutil.c
+--- a/ipc/msgutil.c~ipc-message-queue-copy-feature-introduced
++++ a/ipc/msgutil.c
+@@ -102,7 +102,45 @@ out_err:
+ 	free_msg(msg);
+ 	return ERR_PTR(err);
  }
++#ifdef CONFIG_CHECKPOINT_RESTORE
++struct msg_msg *copy_msg(struct msg_msg *src, struct msg_msg *dst)
++{
++	struct msg_msgseg *dst_pseg, *src_pseg;
++	int len = src->m_ts;
++	int alen;
++
++	BUG_ON(dst == NULL);
++	if (src->m_ts > dst->m_ts)
++		return ERR_PTR(-EINVAL);
++
++	alen = len;
++	if (alen > DATALEN_MSG)
++		alen = DATALEN_MSG;
++
++	dst->next = NULL;
++	dst->security = NULL;
  
- SYSCALL_DEFINE5(msgrcv, int, msqid, struct msgbuf __user *, msgp, size_t, msgsz,
- 		long, msgtyp, int, msgflg)
++	memcpy(dst + 1, src + 1, alen);
++
++	len -= alen;
++	dst_pseg = dst->next;
++	src_pseg = src->next;
++	while (len > 0) {
++		alen = len;
++		if (alen > DATALEN_SEG)
++			alen = DATALEN_SEG;
++		memcpy(dst_pseg + 1, src_pseg + 1, alen);
++		dst_pseg = dst_pseg->next;
++		len -= alen;
++		src_pseg = src_pseg->next;
++	}
++
++	dst->m_type = src->m_type;
++	dst->m_ts = src->m_ts;
++
++	return dst;
++}
++#endif
+ int store_msg(void __user *dest, struct msg_msg *msg, int len)
  {
--	long err, mtype;
--
--	err =  do_msgrcv(msqid, &mtype, msgp->mtext, msgsz, msgtyp, msgflg);
--	if (err < 0)
--		goto out;
+ 	int alen;
+diff -puN ipc/util.h~ipc-message-queue-copy-feature-introduced ipc/util.h
+--- a/ipc/util.h~ipc-message-queue-copy-feature-introduced
++++ a/ipc/util.h
+@@ -140,6 +140,7 @@ int ipc_parse_version (int *cmd);
+ 
+ extern void free_msg(struct msg_msg *msg);
+ extern struct msg_msg *load_msg(const void __user *src, int len);
++extern struct msg_msg *copy_msg(struct msg_msg *src, struct msg_msg *dst);
+ extern int store_msg(void __user *dest, struct msg_msg *msg, int len);
+ 
+ extern void recompute_msgmni(struct ipc_namespace *);
+_
+
+Patches currently in -mm which might be from skinsbursky@parallels.com are
+
+origin.patch
+
