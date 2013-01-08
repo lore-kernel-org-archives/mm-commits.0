@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + aio-fix-aio_read_events_ring-types.patch added to -mm tree
-Date: Mon, 07 Jan 2013 17:01:02 -0800
-Message-ID: <20130108010102.EF402200B2E@hpza10.eem.corp.google.com>
+Subject: + aio-document-clarify-aio_read_events-and-shadow_tail.patch added to -mm tree
+Date: Tue, 08 Jan 2013 12:20:29 -0800
+Message-ID: <20130108202031.59F2582004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:34962 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753412Ab3AHBBF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2013 20:01:05 -0500
-Received: by mail-we0-f202.google.com with SMTP id t57so1276655wey.5
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jan 2013 17:01:03 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:33512 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751210Ab3AHUUc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2013 15:20:32 -0500
+Received: by mail-ye0-f202.google.com with SMTP id r9so123307yen.3
+        for <mm-commits@vger.kernel.org>; Tue, 08 Jan 2013 12:20:32 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: koverstreet@google.com
 
 
 The patch titled
-     Subject: aio: fix aio_read_events_ring() types
+     Subject: aio: document, clarify aio_read_events() and shadow_tail
 has been added to the -mm tree.  Its filename is
-     aio-fix-aio_read_events_ring-types.patch
+     aio-document-clarify-aio_read_events-and-shadow_tail.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,85 +34,80 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kent Overstreet <koverstreet@google.com>
-Subject: aio: fix aio_read_events_ring() types
+Subject: aio: document, clarify aio_read_events() and shadow_tail
 
 Signed-off-by: Kent Overstreet <koverstreet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |   24 +++++++++++++-----------
- 1 file changed, 13 insertions(+), 11 deletions(-)
+ fs/aio.c |   34 ++++++++++++++++++++++++++++------
+ 1 file changed, 28 insertions(+), 6 deletions(-)
 
-diff -puN fs/aio.c~aio-fix-aio_read_events_ring-types fs/aio.c
---- a/fs/aio.c~aio-fix-aio_read_events_ring-types
+diff -puN fs/aio.c~aio-document-clarify-aio_read_events-and-shadow_tail fs/aio.c
+--- a/fs/aio.c~aio-document-clarify-aio_read_events-and-shadow_tail
 +++ a/fs/aio.c
-@@ -838,12 +838,13 @@ EXPORT_SYMBOL(aio_complete_batch);
-  *	Pull an event off of the ioctx's event ring.  Returns the number of
-  *	events fetched
-  */
--static int aio_read_events_ring(struct kioctx *ctx,
--				struct io_event __user *event, long nr)
-+static long aio_read_events_ring(struct kioctx *ctx,
-+				 struct io_event __user *event, long nr)
- {
- 	struct aio_ring *ring;
- 	unsigned head, pos;
--	int ret = 0, copy_ret;
-+	long ret = 0;
-+	int copy_ret;
+@@ -103,6 +103,19 @@ struct kioctx {
+ 	struct {
+ 		struct mutex	ring_lock;
+ 		wait_queue_head_t wait;
++
++		/*
++		 * Copy of the real tail, that aio_complete uses - to reduce
++		 * cacheline bouncing. The real tail will tend to be much more
++		 * contended - since typically events are delivered one at a
++		 * time, and then aio_read_events() slurps them up a bunch at a
++		 * time - so it's helpful if aio_read_events() isn't also
++		 * contending for the tail. So, aio_complete() updates
++		 * shadow_tail whenever it updates tail.
++		 *
++		 * Also needed because tail is used as a hacky lock and isn't
++		 * always the real tail.
++		 */
+ 		unsigned	shadow_tail;
+ 	} ____cacheline_aligned_in_smp;
  
- 	if (!mutex_trylock(&ctx->ring_lock)) {
- 		__set_current_state(TASK_RUNNING);
-@@ -862,23 +863,24 @@ static int aio_read_events_ring(struct k
- 	__set_current_state(TASK_RUNNING);
+@@ -846,10 +859,7 @@ static long aio_read_events_ring(struct 
+ 	long ret = 0;
+ 	int copy_ret;
  
+-	if (!mutex_trylock(&ctx->ring_lock)) {
+-		__set_current_state(TASK_RUNNING);
+-		mutex_lock(&ctx->ring_lock);
+-	}
++	mutex_lock(&ctx->ring_lock);
+ 
+ 	ring = kmap_atomic(ctx->ring_pages[0]);
+ 	head = ring->head;
+@@ -860,8 +870,6 @@ static long aio_read_events_ring(struct 
+ 	if (head == ctx->shadow_tail)
+ 		goto out;
+ 
+-	__set_current_state(TASK_RUNNING);
+-
  	while (ret < nr) {
--		unsigned i = (head < ctx->shadow_tail ? ctx->shadow_tail : ctx->nr) - head;
-+		long avail = (head < ctx->shadow_tail
-+			      ? ctx->shadow_tail : ctx->nr) - head;
- 		struct io_event *ev;
- 		struct page *page;
- 
- 		if (head == ctx->shadow_tail)
- 			break;
- 
--		i = min_t(int, i, nr - ret);
--		i = min_t(int, i, AIO_EVENTS_PER_PAGE -
--			  ((head + AIO_EVENTS_OFFSET) % AIO_EVENTS_PER_PAGE));
-+		avail = min(avail, nr - ret);
-+		avail = min_t(long, avail, AIO_EVENTS_PER_PAGE -
-+			      ((head + AIO_EVENTS_OFFSET) % AIO_EVENTS_PER_PAGE));
- 
- 		pos = head + AIO_EVENTS_OFFSET;
- 		page = ctx->ring_pages[pos / AIO_EVENTS_PER_PAGE];
- 		pos %= AIO_EVENTS_PER_PAGE;
- 
- 		ev = kmap(page);
--		copy_ret = copy_to_user(event + ret, ev + pos, sizeof(*ev) * i);
-+		copy_ret = copy_to_user(event + ret, ev + pos, sizeof(*ev) * avail);
- 		kunmap(page);
- 
- 		if (unlikely(copy_ret)) {
-@@ -886,8 +888,8 @@ static int aio_read_events_ring(struct k
- 			goto out;
- 		}
- 
--		ret += i;
--		head += i;
-+		ret += avail;
-+		head += avail;
- 		head %= ctx->nr;
+ 		long avail = (head < ctx->shadow_tail
+ 			      ? ctx->shadow_tail : ctx->nr) - head;
+@@ -940,6 +948,20 @@ static long read_events(struct kioctx *c
+ 		until = timespec_to_ktime(ts);
  	}
  
-@@ -896,7 +898,7 @@ static int aio_read_events_ring(struct k
- 	kunmap_atomic(ring);
- 	flush_dcache_page(ctx->ring_pages[0]);
++	/*
++	 * Note that aio_read_events() is being called as the conditional - i.e.
++	 * we're calling it after prepare_to_wait() has set task state to
++	 * TASK_INTERRUPTIBLE.
++	 *
++	 * But aio_read_events() can block, and if it blocks it's going to flip
++	 * the task state back to TASK_RUNNING.
++	 *
++	 * This should be ok, provided it doesn't flip the state back to
++	 * TASK_RUNNING and return 0 too much - that causes us to spin. That
++	 * will only happen if the mutex_lock() call blocks, and we then find
++	 * the ringbuffer empty. So in practice we should be ok, but it's
++	 * something to be aware of when touching this code.
++	 */
+ 	wait_event_interruptible_hrtimeout(ctx->wait,
+ 			aio_read_events(ctx, min_nr, nr, event, &ret), until);
  
--	pr_debug("%d  h%u t%u\n", ret, head, ctx->shadow_tail);
-+	pr_debug("%li  h%u t%u\n", ret, head, ctx->shadow_tail);
- 
- 	put_reqs_available(ctx, ret);
- out:
 _
 
 Patches currently in -mm which might be from koverstreet@google.com are
@@ -165,4 +160,5 @@ mtip32xx-convert-to-batch-completion.patch
 aio-smoosh-struct-kiocb.patch
 aio-smoosh-struct-kiocb-fix.patch
 aio-fix-aio_read_events_ring-types.patch
+aio-document-clarify-aio_read_events-and-shadow_tail.patch
 
