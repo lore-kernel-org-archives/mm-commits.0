@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + profiling-remove-unused-timer-hook.patch added to -mm tree
-Date: Tue, 08 Jan 2013 14:57:17 -0800
-Message-ID: <20130108225717.D6BC2820085@wpzn4.hot.corp.google.com>
+Subject: + rtc-add-support-for-spi-rtc-rx4581.patch added to -mm tree
+Date: Tue, 08 Jan 2013 14:58:53 -0800
+Message-ID: <20130108225854.0B69820004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:55034 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753883Ab3AHW5V (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2013 17:57:21 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so147001vcd.3
-        for <mm-commits@vger.kernel.org>; Tue, 08 Jan 2013 14:57:19 -0800 (PST)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:46335 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754425Ab3AHW64 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2013 17:58:56 -0500
+Received: by mail-lb0-f202.google.com with SMTP id s4so79422lbc.1
+        for <mm-commits@vger.kernel.org>; Tue, 08 Jan 2013 14:58:55 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fweisbec@gmail.com, abogani@kernel.org, avi@redhat.com, cl@linux.com, cmetcalf@tilera.com, geoff@infradead.org, gilad@benyossef.com, hakanakkan@gmail.com, mingo@kernel.org, paul.gortmaker@windriver.com, paulmck@linux.vnet.ibm.com, peterz@infradead.org, rostedt@goodmis.org, tglx@linutronix.de
+Cc: torbenh@linutronix.de
 
 
 The patch titled
-     Subject: profiling: Remove unused timer hook
+     Subject: rtc: add support for spi rtc rx4581
 has been added to the -mm tree.  Its filename is
-     profiling-remove-unused-timer-hook.patch
+     rtc-add-support-for-spi-rtc-rx4581.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,101 +33,367 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Frederic Weisbecker <fweisbec@gmail.com>
-Subject: profiling: Remove unused timer hook
+From: Torben Hohn <torbenh@linutronix.de>
+Subject: rtc: add support for spi rtc rx4581
 
-The last remaining user was oprofile and its use has been removed a while
-ago by bc078e4eab65f ("oprofile: convert oprofile from timer_hook to
-hrtimer").
-
-There doesn't seem to be any upstream user of this hook for about two
-years now.  And I'm not even aware of any out of tree user.
-
-Let's remove it.
-
-Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Alessio Igor Bogani <abogani@kernel.org>
-Cc: Avi Kivity <avi@redhat.com>
-Cc: Chris Metcalf <cmetcalf@tilera.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Geoff Levand <geoff@infradead.org>
-Cc: Gilad Ben Yossef <gilad@benyossef.com>
-Cc: Hakan Akkan <hakanakkan@gmail.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Torben Hohn <torbenh@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/profile.h |   13 -------------
- kernel/profile.c        |   24 ------------------------
- 2 files changed, 37 deletions(-)
+ drivers/rtc/Kconfig      |    8 
+ drivers/rtc/Makefile     |    1 
+ drivers/rtc/rtc-rx4581.c |  313 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 322 insertions(+)
 
-diff -puN include/linux/profile.h~profiling-remove-unused-timer-hook include/linux/profile.h
---- a/include/linux/profile.h~profiling-remove-unused-timer-hook
-+++ a/include/linux/profile.h
-@@ -82,9 +82,6 @@ int task_handoff_unregister(struct notif
- int profile_event_register(enum profile_type, struct notifier_block * n);
- int profile_event_unregister(enum profile_type, struct notifier_block * n);
+diff -puN drivers/rtc/Kconfig~rtc-add-support-for-spi-rtc-rx4581 drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-add-support-for-spi-rtc-rx4581
++++ a/drivers/rtc/Kconfig
+@@ -551,6 +551,14 @@ config RTC_DRV_PCF2123
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-pcf2123.
  
--int register_timer_hook(int (*hook)(struct pt_regs *));
--void unregister_timer_hook(int (*hook)(struct pt_regs *));
--
- struct pt_regs;
++config RTC_DRV_RX4581
++	tristate "Epson RX-4581"
++	help
++	  If you say yes here you will get support for the Epson RX-4581.
++
++	  This driver can also be built as a module. If so the module
++	  will be called rtc-rx4581.
++
+ endif # SPI_MASTER
  
- #else
-@@ -135,16 +132,6 @@ static inline int profile_event_unregist
- #define profile_handoff_task(a) (0)
- #define profile_munmap(a) do { } while (0)
- 
--static inline int register_timer_hook(int (*hook)(struct pt_regs *))
--{
--	return -ENOSYS;
--}
--
--static inline void unregister_timer_hook(int (*hook)(struct pt_regs *))
--{
--	return;
--}
--
- #endif /* CONFIG_PROFILING */
- 
- #endif /* _LINUX_PROFILE_H */
-diff -puN kernel/profile.c~profiling-remove-unused-timer-hook kernel/profile.c
---- a/kernel/profile.c~profiling-remove-unused-timer-hook
-+++ a/kernel/profile.c
-@@ -37,9 +37,6 @@ struct profile_hit {
- #define NR_PROFILE_HIT		(PAGE_SIZE/sizeof(struct profile_hit))
- #define NR_PROFILE_GRP		(NR_PROFILE_HIT/PROFILE_GRPSZ)
- 
--/* Oprofile timer tick hook */
--static int (*timer_hook)(struct pt_regs *) __read_mostly;
--
- static atomic_t *prof_buffer;
- static unsigned long prof_len, prof_shift;
- 
-@@ -208,25 +205,6 @@ int profile_event_unregister(enum profil
- }
- EXPORT_SYMBOL_GPL(profile_event_unregister);
- 
--int register_timer_hook(int (*hook)(struct pt_regs *))
--{
--	if (timer_hook)
--		return -EBUSY;
--	timer_hook = hook;
--	return 0;
--}
--EXPORT_SYMBOL_GPL(register_timer_hook);
--
--void unregister_timer_hook(int (*hook)(struct pt_regs *))
--{
--	WARN_ON(hook != timer_hook);
--	timer_hook = NULL;
--	/* make sure all CPUs see the NULL hook */
--	synchronize_sched();  /* Allow ongoing interrupts to complete. */
--}
--EXPORT_SYMBOL_GPL(unregister_timer_hook);
--
+ comment "Platform RTC drivers"
+diff -puN drivers/rtc/Makefile~rtc-add-support-for-spi-rtc-rx4581 drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-add-support-for-spi-rtc-rx4581
++++ a/drivers/rtc/Makefile
+@@ -98,6 +98,7 @@ obj-$(CONFIG_RTC_DRV_RS5C313)	+= rtc-rs5
+ obj-$(CONFIG_RTC_DRV_RS5C348)	+= rtc-rs5c348.o
+ obj-$(CONFIG_RTC_DRV_RS5C372)	+= rtc-rs5c372.o
+ obj-$(CONFIG_RTC_DRV_RV3029C2)	+= rtc-rv3029c2.o
++obj-$(CONFIG_RTC_DRV_RX4581)	+= rtc-rx4581.o
+ obj-$(CONFIG_RTC_DRV_RX8025)	+= rtc-rx8025.o
+ obj-$(CONFIG_RTC_DRV_RX8581)	+= rtc-rx8581.o
+ obj-$(CONFIG_RTC_DRV_S35390A)	+= rtc-s35390a.o
+diff -puN /dev/null drivers/rtc/rtc-rx4581.c
+--- /dev/null
++++ a/drivers/rtc/rtc-rx4581.c
+@@ -0,0 +1,313 @@
++/* drivers/rtc/rtc-rx4581.c
++ *
++ * written by Torben Hohn <torbenh@linutronix.de>
++ *
++ * Based on:
++ * drivers/rtc/rtc-max6902.c
++ *
++ * Copyright (C) 2006 8D Technologies inc.
++ * Copyright (C) 2004 Compulab Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * Driver for MAX6902 spi RTC
++ *
++ * and based on:
++ * drivers/rtc/rtc-rx8581.c
++ *
++ * An I2C driver for the Epson RX8581 RTC
++ *
++ * Author: Martyn Welch <martyn.welch@ge.com>
++ * Copyright 2008 GE Intelligent Platforms Embedded Systems, Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * Based on: rtc-pcf8563.c (An I2C driver for the Philips PCF8563 RTC)
++ * Copyright 2005-06 Tower Technologies
++ *
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/platform_device.h>
++#include <linux/init.h>
++#include <linux/rtc.h>
++#include <linux/spi/spi.h>
++#include <linux/bcd.h>
++
++#define RX4581_REG_SC		0x00 /* Second in BCD */
++#define RX4581_REG_MN		0x01 /* Minute in BCD */
++#define RX4581_REG_HR		0x02 /* Hour in BCD */
++#define RX4581_REG_DW		0x03 /* Day of Week */
++#define RX4581_REG_DM		0x04 /* Day of Month in BCD */
++#define RX4581_REG_MO		0x05 /* Month in BCD */
++#define RX4581_REG_YR		0x06 /* Year in BCD */
++#define RX4581_REG_RAM		0x07 /* RAM */
++#define RX4581_REG_AMN		0x08 /* Alarm Min in BCD*/
++#define RX4581_REG_AHR		0x09 /* Alarm Hour in BCD */
++#define RX4581_REG_ADM		0x0A
++#define RX4581_REG_ADW		0x0A
++#define RX4581_REG_TMR0		0x0B
++#define RX4581_REG_TMR1		0x0C
++#define RX4581_REG_EXT		0x0D /* Extension Register */
++#define RX4581_REG_FLAG		0x0E /* Flag Register */
++#define RX4581_REG_CTRL		0x0F /* Control Register */
++
++
++/* Flag Register bit definitions */
++#define RX4581_FLAG_UF		0x20 /* Update */
++#define RX4581_FLAG_TF		0x10 /* Timer */
++#define RX4581_FLAG_AF		0x08 /* Alarm */
++#define RX4581_FLAG_VLF		0x02 /* Voltage Low */
++
++/* Control Register bit definitions */
++#define RX4581_CTRL_UIE		0x20 /* Update Interrupt Enable */
++#define RX4581_CTRL_TIE		0x10 /* Timer Interrupt Enable */
++#define RX4581_CTRL_AIE		0x08 /* Alarm Interrupt Enable */
++#define RX4581_CTRL_STOP	0x02 /* STOP bit */
++#define RX4581_CTRL_RESET	0x01 /* RESET bit */
++
++static int rx4581_set_reg(struct device *dev, unsigned char address,
++				unsigned char data)
++{
++	struct spi_device *spi = to_spi_device(dev);
++	unsigned char buf[2];
++
++	/* high nibble must be '0' to write */
++	buf[0] = address & 0x0f;
++	buf[1] = data;
++
++	return spi_write_then_read(spi, buf, 2, NULL, 0);
++}
++
++static int rx4581_get_reg(struct device *dev, unsigned char address,
++				unsigned char *data)
++{
++	struct spi_device *spi = to_spi_device(dev);
++
++	/* Set MSB to indicate read */
++	*data = address | 0x80;
++
++	return spi_write_then_read(spi, data, 1, data, 1);
++}
++
++/*
++ * In the routines that deal directly with the rx8581 hardware, we use
++ * rtc_time -- month 0-11, hour 0-23, yr = calendar year-epoch.
++ */
++static int rx4581_get_datetime(struct device *dev, struct rtc_time *tm)
++{
++	struct spi_device *spi = to_spi_device(dev);
++	unsigned char date[7];
++	unsigned char data, err;
++
++	/* First we ensure that the "update flag" is not set, we read the
++	 * time and date then re-read the "update flag". If the update flag
++	 * has been set, we know that the time has changed during the read so
++	 * we repeat the whole process again.
++	 */
++	err = rx4581_get_reg(dev, RX4581_REG_FLAG, &data);
++	if (err != 0) {
++		dev_err(dev, "Unable to read device flags\n");
++		return -EIO;
++	}
++
++	do {
++		/* If update flag set, clear it */
++		if (data & RX4581_FLAG_UF) {
++			err = rx4581_set_reg(dev,
++				RX4581_REG_FLAG, (data & ~RX4581_FLAG_UF));
++			if (err != 0) {
++				dev_err(dev, "Unable to write device "
++					"flags\n");
++				return -EIO;
++			}
++		}
++
++		/* Now read time and date */
++		date[0] = 0x80;
++		err = spi_write_then_read(spi, date, 1, date, 7);
++		if (err < 0) {
++			dev_err(dev, "Unable to read date\n");
++			return -EIO;
++		}
++
++		/* Check flag register */
++		err = rx4581_get_reg(dev, RX4581_REG_FLAG, &data);
++		if (err != 0) {
++			dev_err(dev, "Unable to read device flags\n");
++			return -EIO;
++		}
++	} while (data & RX4581_FLAG_UF);
++
++	if (data & RX4581_FLAG_VLF)
++		dev_info(dev,
++			"low voltage detected, date/time is not reliable.\n");
++
++	dev_dbg(dev,
++		"%s: raw data is sec=%02x, min=%02x, hr=%02x, "
++		"wday=%02x, mday=%02x, mon=%02x, year=%02x\n",
++		__func__,
++		date[0], date[1], date[2], date[3], date[4], date[5], date[6]);
++
++	tm->tm_sec = bcd2bin(date[RX4581_REG_SC] & 0x7F);
++	tm->tm_min = bcd2bin(date[RX4581_REG_MN] & 0x7F);
++	tm->tm_hour = bcd2bin(date[RX4581_REG_HR] & 0x3F); /* rtc hr 0-23 */
++	tm->tm_wday = ilog2(date[RX4581_REG_DW] & 0x7F);
++	tm->tm_mday = bcd2bin(date[RX4581_REG_DM] & 0x3F);
++	tm->tm_mon = bcd2bin(date[RX4581_REG_MO] & 0x1F) - 1; /* rtc mn 1-12 */
++	tm->tm_year = bcd2bin(date[RX4581_REG_YR]);
++	if (tm->tm_year < 70)
++		tm->tm_year += 100;	/* assume we are in 1970...2069 */
++
++
++	dev_dbg(dev, "%s: tm is secs=%d, mins=%d, hours=%d, "
++		"mday=%d, mon=%d, year=%d, wday=%d\n",
++		__func__,
++		tm->tm_sec, tm->tm_min, tm->tm_hour,
++		tm->tm_mday, tm->tm_mon, tm->tm_year, tm->tm_wday);
++
++	err = rtc_valid_tm(tm);
++	if (err < 0)
++		dev_err(dev, "retrieved date/time is not valid.\n");
++
++	return err;
++}
++
++static int rx4581_set_datetime(struct device *dev, struct rtc_time *tm)
++{
++	struct spi_device *spi = to_spi_device(dev);
++	int err;
++	unsigned char buf[8], data;
++
++	dev_dbg(dev, "%s: secs=%d, mins=%d, hours=%d, "
++		"mday=%d, mon=%d, year=%d, wday=%d\n",
++		__func__,
++		tm->tm_sec, tm->tm_min, tm->tm_hour,
++		tm->tm_mday, tm->tm_mon, tm->tm_year, tm->tm_wday);
++
++	buf[0] = 0x00;
++	/* hours, minutes and seconds */
++	buf[RX4581_REG_SC+1] = bin2bcd(tm->tm_sec);
++	buf[RX4581_REG_MN+1] = bin2bcd(tm->tm_min);
++	buf[RX4581_REG_HR+1] = bin2bcd(tm->tm_hour);
++
++	buf[RX4581_REG_DM+1] = bin2bcd(tm->tm_mday);
++
++	/* month, 1 - 12 */
++	buf[RX4581_REG_MO+1] = bin2bcd(tm->tm_mon + 1);
++
++	/* year and century */
++	buf[RX4581_REG_YR+1] = bin2bcd(tm->tm_year % 100);
++	buf[RX4581_REG_DW+1] = (0x1 << tm->tm_wday);
++
++	/* Stop the clock */
++	err = rx4581_get_reg(dev, RX4581_REG_CTRL, &data);
++	if (err != 0) {
++		dev_err(dev, "Unable to read control register\n");
++		return -EIO;
++	}
++
++	err = rx4581_set_reg(dev, RX4581_REG_CTRL,
++		(data | RX4581_CTRL_STOP));
++	if (err != 0) {
++		dev_err(dev, "Unable to write control register\n");
++		return -EIO;
++	}
++
++	/* write register's data */
++	err = spi_write_then_read(spi, buf, 8, NULL, 0);
++	if (err != 0) {
++		dev_err(dev, "Unable to write to date registers\n");
++		return -EIO;
++	}
++
++	/* get VLF and clear it */
++	err = rx4581_get_reg(dev, RX4581_REG_FLAG, &data);
++	if (err != 0) {
++		dev_err(dev, "Unable to read flag register\n");
++		return -EIO;
++	}
++
++	err = rx4581_set_reg(dev, RX4581_REG_FLAG,
++		(data & ~(RX4581_FLAG_VLF)));
++	if (err != 0) {
++		dev_err(dev, "Unable to write flag register\n");
++		return -EIO;
++	}
++
++	/* Restart the clock */
++	err = rx4581_get_reg(dev, RX4581_REG_CTRL, &data);
++	if (err != 0) {
++		dev_err(dev, "Unable to read control register\n");
++		return -EIO;
++	}
++
++	err = rx4581_set_reg(dev, RX4581_REG_CTRL,
++		(data & ~(RX4581_CTRL_STOP)));
++	if (err != 0) {
++		dev_err(dev, "Unable to write control register\n");
++		return -EIO;
++	}
++
++	return 0;
++}
++
++static const struct rtc_class_ops rx4581_rtc_ops = {
++	.read_time	= rx4581_get_datetime,
++	.set_time	= rx4581_set_datetime,
++};
++
++static int __devinit rx4581_probe(struct spi_device *spi)
++{
++	struct rtc_device *rtc;
++	unsigned char tmp;
++	int res;
++
++	res = rx4581_get_reg(&spi->dev, RX4581_REG_SC, &tmp);
++	if (res != 0)
++		return res;
++
++	rtc = rtc_device_register("rx4581",
++				&spi->dev, &rx4581_rtc_ops, THIS_MODULE);
++	if (IS_ERR(rtc))
++		return PTR_ERR(rtc);
++
++	dev_set_drvdata(&spi->dev, rtc);
++	return 0;
++}
++
++static int __devexit rx4581_remove(struct spi_device *spi)
++{
++	struct rtc_device *rtc = dev_get_drvdata(&spi->dev);
++
++	rtc_device_unregister(rtc);
++	return 0;
++}
++
++static const struct spi_device_id rx4581_id[] = {
++	{ "rx4581", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(spi, rx4581_id);
++
++static struct spi_driver rx4581_driver = {
++	.driver = {
++		.name	= "rtc-rx4581",
++		.owner	= THIS_MODULE,
++	},
++	.probe	= rx4581_probe,
++	.remove = __devexit_p(rx4581_remove),
++	.id_table = rx4581_id,
++};
++
++module_spi_driver(rx4581_driver);
++
++MODULE_DESCRIPTION ("rx4581 spi RTC driver");
++MODULE_AUTHOR ("Torben Hohn");
++MODULE_LICENSE ("GPL");
++MODULE_ALIAS("spi:rtc-rx4581");
+_
+
+Patches currently in -mm which might be from torbenh@linutronix.de are
+
+rtc-add-support-for-spi-rtc-rx4581.patch
+
