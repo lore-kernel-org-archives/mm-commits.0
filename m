@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + aio-document-clarify-aio_read_events-and-shadow_tail.patch added to -mm tree
-Date: Tue, 08 Jan 2013 12:20:29 -0800
-Message-ID: <20130108202031.59F2582004A@wpzn4.hot.corp.google.com>
+Subject: + generic-dynamic-per-cpu-refcounting-sparse-fixes.patch added to -mm tree
+Date: Tue, 08 Jan 2013 12:24:01 -0800
+Message-ID: <20130108202402.4227B100049@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:33512 "EHLO
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:38951 "EHLO
 	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751210Ab3AHUUc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2013 15:20:32 -0500
-Received: by mail-ye0-f202.google.com with SMTP id r9so123307yen.3
-        for <mm-commits@vger.kernel.org>; Tue, 08 Jan 2013 12:20:32 -0800 (PST)
+	with ESMTP id S1751066Ab3AHUYD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2013 15:24:03 -0500
+Received: by mail-ye0-f202.google.com with SMTP id r9so123770yen.1
+        for <mm-commits@vger.kernel.org>; Tue, 08 Jan 2013 12:24:02 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: koverstreet@google.com
 
 
 The patch titled
-     Subject: aio: document, clarify aio_read_events() and shadow_tail
+     Subject: percpu-refcount: sparse fixes
 has been added to the -mm tree.  Its filename is
-     aio-document-clarify-aio_read_events-and-shadow_tail.patch
+     generic-dynamic-per-cpu-refcounting-sparse-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,80 +34,173 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kent Overstreet <koverstreet@google.com>
-Subject: aio: document, clarify aio_read_events() and shadow_tail
+Subject: percpu-refcount: sparse fixes
+
+Here's some more fixes, the percpu refcount code is now sparse clean for
+me.  It's kind of ugly, but I'm not sure it's really any uglier than it
+was before.  Seem reasonable?
 
 Signed-off-by: Kent Overstreet <koverstreet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |   34 ++++++++++++++++++++++++++++------
- 1 file changed, 28 insertions(+), 6 deletions(-)
+ include/linux/percpu-refcount.h |    2 -
+ lib/percpu-refcount.c           |   51 +++++++++++++++---------------
+ 2 files changed, 28 insertions(+), 25 deletions(-)
 
-diff -puN fs/aio.c~aio-document-clarify-aio_read_events-and-shadow_tail fs/aio.c
---- a/fs/aio.c~aio-document-clarify-aio_read_events-and-shadow_tail
-+++ a/fs/aio.c
-@@ -103,6 +103,19 @@ struct kioctx {
- 	struct {
- 		struct mutex	ring_lock;
- 		wait_queue_head_t wait;
+diff -puN include/linux/percpu-refcount.h~generic-dynamic-per-cpu-refcounting-sparse-fixes include/linux/percpu-refcount.h
+--- a/include/linux/percpu-refcount.h~generic-dynamic-per-cpu-refcounting-sparse-fixes
++++ a/include/linux/percpu-refcount.h
+@@ -7,7 +7,7 @@
+ 
+ struct percpu_ref {
+ 	atomic64_t		count;
+-	unsigned __percpu	*pcpu_count;
++	unsigned long		pcpu_count;
+ };
+ 
+ void percpu_ref_init(struct percpu_ref *ref);
+diff -puN lib/percpu-refcount.c~generic-dynamic-per-cpu-refcounting-sparse-fixes lib/percpu-refcount.c
+--- a/lib/percpu-refcount.c~generic-dynamic-per-cpu-refcounting-sparse-fixes
++++ a/lib/percpu-refcount.c
+@@ -16,7 +16,7 @@
+ #define PCPU_REF_DYING		2
+ #define PCPU_REF_DEAD		3
+ 
+-#define REF_STATUS(count)	((unsigned long) count & PCPU_STATUS_MASK)
++#define REF_STATUS(count)	(count & PCPU_STATUS_MASK)
+ 
+ void percpu_ref_init(struct percpu_ref *ref)
+ {
+@@ -27,47 +27,47 @@ void percpu_ref_init(struct percpu_ref *
+ 	now <<= PCPU_STATUS_BITS;
+ 	now |= PCPU_REF_NONE;
+ 
+-	ref->pcpu_count = (void *) now;
++	ref->pcpu_count = now;
+ }
+ 
+-static void percpu_ref_alloc(struct percpu_ref *ref, unsigned __user *pcpu_count)
++static void percpu_ref_alloc(struct percpu_ref *ref, unsigned long pcpu_count)
+ {
+-	unsigned __percpu *new;
+-	unsigned long last = (unsigned long) pcpu_count;
+-	unsigned long now = jiffies;
++	unsigned long new, now = jiffies;
+ 
+ 	now <<= PCPU_STATUS_BITS;
+ 	now |= PCPU_REF_NONE;
+ 
+-	if (now - last <= HZ << PCPU_STATUS_BITS) {
++	if (now - pcpu_count <= HZ << PCPU_STATUS_BITS) {
+ 		rcu_read_unlock();
+-		new = alloc_percpu(unsigned);
++		new = (unsigned long) alloc_percpu(unsigned);
+ 		rcu_read_lock();
+ 
+ 		if (!new)
+ 			goto update_time;
+ 
+-		BUG_ON(((unsigned long) new) & PCPU_STATUS_MASK);
++		BUG_ON(new & PCPU_STATUS_MASK);
+ 
+ 		if (cmpxchg(&ref->pcpu_count, pcpu_count, new) != pcpu_count)
+-			free_percpu(new);
++			free_percpu((void __percpu *) new);
+ 		else
+ 			pr_debug("created");
+ 	} else {
+-update_time:	new = (void *) now;
++update_time:	new = now;
+ 		cmpxchg(&ref->pcpu_count, pcpu_count, new);
+ 	}
+ }
+ 
+ void __percpu_ref_get(struct percpu_ref *ref, bool alloc)
+ {
+-	unsigned __percpu *pcpu_count;
++	unsigned long pcpu_count;
+ 	uint64_t v;
+ 
+-	pcpu_count = rcu_dereference(ref->pcpu_count);
++	pcpu_count = ACCESS_ONCE(ref->pcpu_count);
+ 
+ 	if (REF_STATUS(pcpu_count) == PCPU_REF_PTR) {
+-		__this_cpu_inc(*pcpu_count);
++		/* for rcu - we're not using rcu_dereference() */
++		smp_read_barrier_depends();
++		__this_cpu_inc(*((unsigned __percpu *) pcpu_count));
+ 	} else {
+ 		v = atomic64_add_return(1 + (1ULL << PCPU_COUNT_BITS),
+ 					&ref->count);
+@@ -80,17 +80,19 @@ void __percpu_ref_get(struct percpu_ref 
+ 
+ int percpu_ref_put(struct percpu_ref *ref)
+ {
+-	unsigned __percpu *pcpu_count;
++	unsigned long pcpu_count;
+ 	uint64_t v;
+ 	int ret = 0;
+ 
+ 	rcu_read_lock();
+ 
+-	pcpu_count = rcu_dereference(ref->pcpu_count);
++	pcpu_count = ACCESS_ONCE(ref->pcpu_count);
+ 
+ 	switch (REF_STATUS(pcpu_count)) {
+ 	case PCPU_REF_PTR:
+-		__this_cpu_dec(*pcpu_count);
++		/* for rcu - we're not using rcu_dereference() */
++		smp_read_barrier_depends();
++		__this_cpu_dec(*((unsigned __percpu *) pcpu_count));
+ 		break;
+ 	case PCPU_REF_NONE:
+ 	case PCPU_REF_DYING:
+@@ -111,18 +113,19 @@ int percpu_ref_put(struct percpu_ref *re
+ 
+ int percpu_ref_kill(struct percpu_ref *ref)
+ {
+-	unsigned __percpu *old, *new, *pcpu_count = ref->pcpu_count;
+-	unsigned long status;
++	unsigned long old, new, status, pcpu_count;
 +
-+		/*
-+		 * Copy of the real tail, that aio_complete uses - to reduce
-+		 * cacheline bouncing. The real tail will tend to be much more
-+		 * contended - since typically events are delivered one at a
-+		 * time, and then aio_read_events() slurps them up a bunch at a
-+		 * time - so it's helpful if aio_read_events() isn't also
-+		 * contending for the tail. So, aio_complete() updates
-+		 * shadow_tail whenever it updates tail.
-+		 *
-+		 * Also needed because tail is used as a hacky lock and isn't
-+		 * always the real tail.
-+		 */
- 		unsigned	shadow_tail;
- 	} ____cacheline_aligned_in_smp;
++	pcpu_count = ACCESS_ONCE(ref->pcpu_count);
  
-@@ -846,10 +859,7 @@ static long aio_read_events_ring(struct 
- 	long ret = 0;
- 	int copy_ret;
+ 	do {
+ 		status = REF_STATUS(pcpu_count);
  
--	if (!mutex_trylock(&ctx->ring_lock)) {
--		__set_current_state(TASK_RUNNING);
--		mutex_lock(&ctx->ring_lock);
--	}
-+	mutex_lock(&ctx->ring_lock);
+ 		switch (status) {
+ 		case PCPU_REF_PTR:
+-			new = (void *) PCPU_REF_DYING;
++			new = PCPU_REF_DYING;
+ 			break;
+ 		case PCPU_REF_NONE:
+-			new = (void *) PCPU_REF_DEAD;
++			new = PCPU_REF_DEAD;
+ 			break;
+ 		case PCPU_REF_DYING:
+ 		case PCPU_REF_DEAD:
+@@ -139,7 +142,7 @@ int percpu_ref_kill(struct percpu_ref *r
+ 		synchronize_rcu();
  
- 	ring = kmap_atomic(ctx->ring_pages[0]);
- 	head = ring->head;
-@@ -860,8 +870,6 @@ static long aio_read_events_ring(struct 
- 	if (head == ctx->shadow_tail)
- 		goto out;
+ 		for_each_possible_cpu(cpu)
+-			count += *per_cpu_ptr(pcpu_count, cpu);
++			count += *per_cpu_ptr((unsigned __percpu *) pcpu_count, cpu);
  
--	__set_current_state(TASK_RUNNING);
--
- 	while (ret < nr) {
- 		long avail = (head < ctx->shadow_tail
- 			      ? ctx->shadow_tail : ctx->nr) - head;
-@@ -940,6 +948,20 @@ static long read_events(struct kioctx *c
- 		until = timespec_to_ktime(ts);
+ 		pr_debug("global %lli pcpu %i",
+ 			 atomic64_read(&ref->count) & PCPU_COUNT_MASK,
+@@ -148,9 +151,9 @@ int percpu_ref_kill(struct percpu_ref *r
+ 		atomic64_add((int) count, &ref->count);
+ 		smp_wmb();
+ 		/* Between setting global count and setting PCPU_REF_DEAD */
+-		ref->pcpu_count = (void *) PCPU_REF_DEAD;
++		ref->pcpu_count = PCPU_REF_DEAD;
+ 
+-		free_percpu(pcpu_count);
++		free_percpu((unsigned __percpu *) pcpu_count);
  	}
  
-+	/*
-+	 * Note that aio_read_events() is being called as the conditional - i.e.
-+	 * we're calling it after prepare_to_wait() has set task state to
-+	 * TASK_INTERRUPTIBLE.
-+	 *
-+	 * But aio_read_events() can block, and if it blocks it's going to flip
-+	 * the task state back to TASK_RUNNING.
-+	 *
-+	 * This should be ok, provided it doesn't flip the state back to
-+	 * TASK_RUNNING and return 0 too much - that causes us to spin. That
-+	 * will only happen if the mutex_lock() call blocks, and we then find
-+	 * the ringbuffer empty. So in practice we should be ok, but it's
-+	 * something to be aware of when touching this code.
-+	 */
- 	wait_event_interruptible_hrtimeout(ctx->wait,
- 			aio_read_events(ctx, min_nr, nr, event, &ret), until);
- 
+ 	return 1;
 _
 
 Patches currently in -mm which might be from koverstreet@google.com are
@@ -141,6 +234,8 @@ aio-percpu-reqs_available.patch
 generic-dynamic-per-cpu-refcounting.patch
 generic-dynamic-per-cpu-refcounting-fix.patch
 generic-dynamic-per-cpu-refcounting-fix-fix.patch
+generic-dynamic-per-cpu-refcounting-sparse-fixes.patch
+generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
 aio-percpu-ioctx-refcount.patch
 aio-use-xchg-instead-of-completion_lock.patch
 aio-dont-include-aioh-in-schedh.patch
