@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-avoid-calling-pgdat_balanced-needlessly.patch added to -mm tree
-Date: Tue, 08 Jan 2013 14:56:08 -0800
-Message-ID: <20130108225609.232A1200057@hpza10.eem.corp.google.com>
+Subject: + profiling-remove-unused-timer-hook.patch added to -mm tree
+Date: Tue, 08 Jan 2013 14:57:17 -0800
+Message-ID: <20130108225717.D6BC2820085@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:53306 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755099Ab3AHW4M (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2013 17:56:12 -0500
-Received: by mail-fa0-f74.google.com with SMTP id t1so70842fae.1
-        for <mm-commits@vger.kernel.org>; Tue, 08 Jan 2013 14:56:10 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:55034 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753883Ab3AHW5V (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2013 17:57:21 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so147001vcd.3
+        for <mm-commits@vger.kernel.org>; Tue, 08 Jan 2013 14:57:19 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zlatko.calusic@iskon.hr, hughd@google.com, mgorman@suse.de, minchan.kim@gmail.com
+Cc: fweisbec@gmail.com, abogani@kernel.org, avi@redhat.com, cl@linux.com, cmetcalf@tilera.com, geoff@infradead.org, gilad@benyossef.com, hakanakkan@gmail.com, mingo@kernel.org, paul.gortmaker@windriver.com, paulmck@linux.vnet.ibm.com, peterz@infradead.org, rostedt@goodmis.org, tglx@linutronix.de
 
 
 The patch titled
-     Subject: mm: avoid calling pgdat_balanced() needlessly
+     Subject: profiling: Remove unused timer hook
 has been added to the -mm tree.  Its filename is
-     mm-avoid-calling-pgdat_balanced-needlessly.patch
+     profiling-remove-unused-timer-hook.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,82 +33,101 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zlatko Calusic <zlatko.calusic@iskon.hr>
-Subject: mm: avoid calling pgdat_balanced() needlessly
+From: Frederic Weisbecker <fweisbec@gmail.com>
+Subject: profiling: Remove unused timer hook
 
-Now that balance_pgdat() is slightly tidied up, thanks to more capable
-pgdat_balanced(), it's become obvious that pgdat_balanced() is called to
-check the status, then break the loop if pgdat is balanced, just to be
-immediately called again.  The second call is completely unnecessary, of
-course.
+The last remaining user was oprofile and its use has been removed a while
+ago by bc078e4eab65f ("oprofile: convert oprofile from timer_hook to
+hrtimer").
 
-The patch introduces pgdat_is_balanced boolean, which helps resolve the
-above suboptimal behavior, with the added benefit of slightly better
-documenting one other place in the function where we jump and skip lots of
-code.
+There doesn't seem to be any upstream user of this hook for about two
+years now.  And I'm not even aware of any out of tree user.
 
-Signed-off-by: Zlatko Calusic <zlatko.calusic@iskon.hr>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
+Let's remove it.
+
+Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Alessio Igor Bogani <abogani@kernel.org>
+Cc: Avi Kivity <avi@redhat.com>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Geoff Levand <geoff@infradead.org>
+Cc: Gilad Ben Yossef <gilad@benyossef.com>
+Cc: Hakan Akkan <hakanakkan@gmail.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ include/linux/profile.h |   13 -------------
+ kernel/profile.c        |   24 ------------------------
+ 2 files changed, 37 deletions(-)
 
-diff -puN mm/vmscan.c~mm-avoid-calling-pgdat_balanced-needlessly mm/vmscan.c
---- a/mm/vmscan.c~mm-avoid-calling-pgdat_balanced-needlessly
-+++ a/mm/vmscan.c
-@@ -2627,6 +2627,7 @@ static bool prepare_kswapd_sleep(pg_data
- static unsigned long balance_pgdat(pg_data_t *pgdat, int order,
- 							int *classzone_idx)
- {
-+	bool pgdat_is_balanced = false;
- 	struct zone *unbalanced_zone;
- 	int i;
- 	int end_zone = 0;	/* Inclusive.  0 = ZONE_DMA */
-@@ -2701,8 +2702,11 @@ loop_again:
- 				zone_clear_flag(zone, ZONE_CONGESTED);
- 			}
- 		}
--		if (i < 0)
-+
-+		if (i < 0) {
-+			pgdat_is_balanced = true;
- 			goto out;
-+		}
+diff -puN include/linux/profile.h~profiling-remove-unused-timer-hook include/linux/profile.h
+--- a/include/linux/profile.h~profiling-remove-unused-timer-hook
++++ a/include/linux/profile.h
+@@ -82,9 +82,6 @@ int task_handoff_unregister(struct notif
+ int profile_event_register(enum profile_type, struct notifier_block * n);
+ int profile_event_unregister(enum profile_type, struct notifier_block * n);
  
- 		for (i = 0; i <= end_zone; i++) {
- 			struct zone *zone = pgdat->node_zones + i;
-@@ -2829,8 +2833,11 @@ loop_again:
- 				pfmemalloc_watermark_ok(pgdat))
- 			wake_up(&pgdat->pfmemalloc_wait);
+-int register_timer_hook(int (*hook)(struct pt_regs *));
+-void unregister_timer_hook(int (*hook)(struct pt_regs *));
+-
+ struct pt_regs;
  
--		if (pgdat_balanced(pgdat, order, *classzone_idx))
-+		if (pgdat_balanced(pgdat, order, *classzone_idx)) {
-+			pgdat_is_balanced = true;
- 			break;		/* kswapd: all done */
-+		}
-+
- 		/*
- 		 * OK, kswapd is getting into trouble.  Take a nap, then take
- 		 * another pass across the zones.
-@@ -2851,9 +2858,9 @@ loop_again:
- 		if (sc.nr_reclaimed >= SWAP_CLUSTER_MAX)
- 			break;
- 	} while (--sc.priority >= 0);
--out:
+ #else
+@@ -135,16 +132,6 @@ static inline int profile_event_unregist
+ #define profile_handoff_task(a) (0)
+ #define profile_munmap(a) do { } while (0)
  
--	if (!pgdat_balanced(pgdat, order, *classzone_idx)) {
-+out:
-+	if (!pgdat_is_balanced) {
- 		cond_resched();
+-static inline int register_timer_hook(int (*hook)(struct pt_regs *))
+-{
+-	return -ENOSYS;
+-}
+-
+-static inline void unregister_timer_hook(int (*hook)(struct pt_regs *))
+-{
+-	return;
+-}
+-
+ #endif /* CONFIG_PROFILING */
  
- 		try_to_freeze();
-_
-
-Patches currently in -mm which might be from zlatko.calusic@iskon.hr are
-
-mm-avoid-calling-pgdat_balanced-needlessly.patch
-
+ #endif /* _LINUX_PROFILE_H */
+diff -puN kernel/profile.c~profiling-remove-unused-timer-hook kernel/profile.c
+--- a/kernel/profile.c~profiling-remove-unused-timer-hook
++++ a/kernel/profile.c
+@@ -37,9 +37,6 @@ struct profile_hit {
+ #define NR_PROFILE_HIT		(PAGE_SIZE/sizeof(struct profile_hit))
+ #define NR_PROFILE_GRP		(NR_PROFILE_HIT/PROFILE_GRPSZ)
+ 
+-/* Oprofile timer tick hook */
+-static int (*timer_hook)(struct pt_regs *) __read_mostly;
+-
+ static atomic_t *prof_buffer;
+ static unsigned long prof_len, prof_shift;
+ 
+@@ -208,25 +205,6 @@ int profile_event_unregister(enum profil
+ }
+ EXPORT_SYMBOL_GPL(profile_event_unregister);
+ 
+-int register_timer_hook(int (*hook)(struct pt_regs *))
+-{
+-	if (timer_hook)
+-		return -EBUSY;
+-	timer_hook = hook;
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(register_timer_hook);
+-
+-void unregister_timer_hook(int (*hook)(struct pt_regs *))
+-{
+-	WARN_ON(hook != timer_hook);
+-	timer_hook = NULL;
+-	/* make sure all CPUs see the NULL hook */
+-	synchronize_sched();  /* Allow ongoing interrupts to complete. */
+-}
+-EXPORT_SYMBOL_GPL(unregister_timer_hook);
+-
