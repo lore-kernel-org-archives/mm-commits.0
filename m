@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + generic-dynamic-per-cpu-refcounting-doc-fix.patch added to -mm tree
-Date: Tue, 08 Jan 2013 12:28:13 -0800
-Message-ID: <20130108202814.142F2100047@wpzn3.hot.corp.google.com>
+Subject: + softirq-reduce-latencies.patch added to -mm tree
+Date: Tue, 08 Jan 2013 12:36:05 -0800
+Message-ID: <20130108203606.38119200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:47875 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751031Ab3AHU2P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2013 15:28:15 -0500
-Received: by mail-qa0-f74.google.com with SMTP id r4so20504qaq.1
-        for <mm-commits@vger.kernel.org>; Tue, 08 Jan 2013 12:28:14 -0800 (PST)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:54808 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751210Ab3AHUgJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2013 15:36:09 -0500
+Received: by mail-we0-f202.google.com with SMTP id t57so66220wey.3
+        for <mm-commits@vger.kernel.org>; Tue, 08 Jan 2013 12:36:08 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, koverstreet@google.com
+Cc: edumazet@google.com, bhutchings@solarflare.com, davem@davemloft.net, eric.dumazet@gmail.com, joe@perches.com, therbert@google.com
 
 
 The patch titled
-     Subject: generic-dynamic-per-cpu-refcounting-doc-fix
+     From: Eric Dumazet <eric.dumazet@gmail.com>
 has been added to the -mm tree.  Its filename is
-     generic-dynamic-per-cpu-refcounting-doc-fix.patch
+     softirq-reduce-latencies.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,108 +33,129 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: generic-dynamic-per-cpu-refcounting-doc-fix
+From: Eric Dumazet <edumazet@google.com>
 
-a little tidy
+In various network workloads, __do_softirq() latencies can be up
+to 20 ms if HZ=1000, and 200 ms if HZ=100.
 
-Cc: Kent Overstreet <koverstreet@google.com>
+This is because we iterate 10 times in the softirq dispatcher,
+and some actions can consume a lot of cycles.
+
+This patch changes the fallback to ksoftirqd condition to :
+
+- A time limit of 2 ms.
+- need_resched() being set on current task
+
+When one of this condition is met, we wakeup ksoftirqd for further
+softirq processing if we still have pending softirqs.
+
+Using need_resched() as the only condition can trigger RCU stalls,
+as we can keep BH disabled for too long.
+
+I ran several benchmarks and got no significant difference in
+throughput, but a very significant reduction of latencies (one order
+of magnitude) :
+
+In following bench, 200 antagonist "netperf -t TCP_RR" are started in
+background, using all available cpus.
+
+Then we start one "netperf -t TCP_RR", bound to the cpu handling the NIC
+IRQ (hard+soft)
+
+Before patch :
+
+# netperf -H 7.7.7.84 -t TCP_RR -T2,2 -- -k
+RT_LATENCY,MIN_LATENCY,MAX_LATENCY,P50_LATENCY,P90_LATENCY,P99_LATENCY,MEAN_LATENCY,STDDEV_LATENCY
+MIGRATED TCP REQUEST/RESPONSE TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET
+to 7.7.7.84 () port 0 AF_INET : first burst 0 : cpu bind
+RT_LATENCY=550110.424
+MIN_LATENCY=146858
+MAX_LATENCY=997109
+P50_LATENCY=305000
+P90_LATENCY=550000
+P99_LATENCY=710000
+MEAN_LATENCY=376989.12
+STDDEV_LATENCY=184046.92
+
+After patch :
+
+# netperf -H 7.7.7.84 -t TCP_RR -T2,2 -- -k
+RT_LATENCY,MIN_LATENCY,MAX_LATENCY,P50_LATENCY,P90_LATENCY,P99_LATENCY,MEAN_LATENCY,STDDEV_LATENCY
+MIGRATED TCP REQUEST/RESPONSE TEST from 0.0.0.0 (0.0.0.0) port 0 AF_INET
+to 7.7.7.84 () port 0 AF_INET : first burst 0 : cpu bind
+RT_LATENCY=40545.492
+MIN_LATENCY=9834
+MAX_LATENCY=78366
+P50_LATENCY=33583
+P90_LATENCY=59000
+P99_LATENCY=69000
+MEAN_LATENCY=38364.67
+STDDEV_LATENCY=12865.26
+
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Acked-by: David Miller <davem@davemloft.net>
+Cc: Tom Herbert <therbert@google.com>
+Cc: Ben Hutchings <bhutchings@solarflare.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/percpu-refcount.h |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ kernel/softirq.c |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/percpu-refcount.h~generic-dynamic-per-cpu-refcounting-doc-fix include/linux/percpu-refcount.h
---- a/include/linux/percpu-refcount.h~generic-dynamic-per-cpu-refcounting-doc-fix
-+++ a/include/linux/percpu-refcount.h
-@@ -21,19 +21,18 @@
-  * BACKGROUND:
+diff -puN kernel/softirq.c~softirq-reduce-latencies kernel/softirq.c
+--- a/kernel/softirq.c~softirq-reduce-latencies
++++ a/kernel/softirq.c
+@@ -195,21 +195,21 @@ void local_bh_enable_ip(unsigned long ip
+ EXPORT_SYMBOL(local_bh_enable_ip);
+ 
+ /*
+- * We restart softirq processing MAX_SOFTIRQ_RESTART times,
+- * and we fall back to softirqd after that.
++ * We restart softirq processing for at most 2 ms,
++ * and if need_resched() is not set.
   *
-  * Percpu refcounts are quite useful for performance, but if we blindly
-- * converted all refcounts to percpu counters we'd waste quite a bit of memory
-- * think about all the refcounts embedded in kobjects, files, etc. most of which
-- * aren't used much.
-- *
-- * These start out as simple atomic counters - a little bigger than a bare
-- * atomic_t, 16 bytes instead of 4 - but if we exceed some arbitrary number of
-- * gets in one second, we then switch to percpu counters.
-+ * converted all refcounts to percpu counters we'd waste quite a bit of memory.
-+ *
-+ * Think about all the refcounts embedded in kobjects, files, etc. most of which
-+ * aren't used much. These start out as simple atomic counters - a little bigger
-+ * than a bare atomic_t, 16 bytes instead of 4 - but if we exceed some arbitrary
-+ * number of gets in one second, we then switch to percpu counters.
-  *
-  * This heuristic isn't perfect because it'll fire if the refcount was only
-  * being used on one cpu; ideally we'd be able to count the number of cache
-  * misses on percpu_ref_get() or something similar, but that'd make the non
-  * percpu path significantly heavier/more complex. We can count the number of
-- * gets() without any extra atomic instructions, on arches that support
-+ * gets() without any extra atomic instructions on arches that support
-  * atomic64_t - simply by changing the atomic_inc() to atomic_add_return().
-  *
-  * USAGE:
+- * This number has been established via experimentation.
++ * These limits have been established via experimentation.
+  * The two things to balance is latency against fairness -
+  * we want to handle softirqs as soon as possible, but they
+  * should not be able to lock up the box.
+  */
+-#define MAX_SOFTIRQ_RESTART 10
++#define MAX_SOFTIRQ_TIME  max(1, (2*HZ/1000))
+ 
+ asmlinkage void __do_softirq(void)
+ {
+ 	struct softirq_action *h;
+ 	__u32 pending;
+-	int max_restart = MAX_SOFTIRQ_RESTART;
++	unsigned long end = jiffies + MAX_SOFTIRQ_TIME;
+ 	int cpu;
+ 	unsigned long old_flags = current->flags;
+ 
+@@ -264,11 +264,12 @@ restart:
+ 	local_irq_disable();
+ 
+ 	pending = local_softirq_pending();
+-	if (pending && --max_restart)
+-		goto restart;
++	if (pending) {
++		if (time_before(jiffies, end) && !need_resched())
++			goto restart;
+ 
+-	if (pending)
+ 		wakeup_softirqd();
++	}
+ 
+ 	lockdep_softirq_exit();
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from edumazet@google.com are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-make-my-i386-build-work.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
-bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
-i-need-old-gcc.patch
+lib-cpu_rmap-avoid-flushing-all-workqueues.patch
 lib-cpu_rmap-avoid-flushing-all-workqueues-fix.patch
-drivers-rtc-rtc-da9055c-fix-cross-section-reference.patch
-arch-mn10300-kconfig-select-config_generic_atomic64.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-kernel-auditc-avoid-negative-sleep-durations.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
-mm.patch
-mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
-mm-hugetlbc-convert-to-pr_foo.patch
-cma-make-putback_lru_pages-call-conditional-fix.patch
-mm-vmscan-clean-up-get_scan_count-fix.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
-mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
-mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
-mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-backlight-add-lms501kf03-lcd-driver-fix.patch
-backlight-add-lms501kf03-lcd-driver-fix-fix.patch
-backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix-fix.patch
-rtc-max77686-add-maxim-77686-driver-fix.patch
-rtc-pcf8523-add-low-battery-voltage-support-fix.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
-drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-fix-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-aio-smoosh-struct-kiocb-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+softirq-reduce-latencies.patch
 
