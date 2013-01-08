@@ -1,19 +1,19 @@
 From: akpm@linux-foundation.org
 Subject: + softirq-reduce-latencies.patch added to -mm tree
-Date: Tue, 08 Jan 2013 12:36:05 -0800
-Message-ID: <20130108203606.38119200057@hpza10.eem.corp.google.com>
+Date: Tue, 08 Jan 2013 12:36:27 -0800
+Message-ID: <20130108203628.095C6200061@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:54808 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751210Ab3AHUgJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2013 15:36:09 -0500
-Received: by mail-we0-f202.google.com with SMTP id t57so66220wey.3
-        for <mm-commits@vger.kernel.org>; Tue, 08 Jan 2013 12:36:08 -0800 (PST)
+Received: from mail-we0-f201.google.com ([74.125.82.201]:40722 "EHLO
+	mail-we0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751210Ab3AHUgb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2013 15:36:31 -0500
+Received: by mail-we0-f201.google.com with SMTP id t11so66204wey.4
+        for <mm-commits@vger.kernel.org>; Tue, 08 Jan 2013 12:36:30 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: edumazet@google.com, bhutchings@solarflare.com, davem@davemloft.net, eric.dumazet@gmail.com, joe@perches.com, therbert@google.com
+Cc: edumazet@google.com, bhutchings@solarflare.com, davem@davemloft.net, eric.dumazet@gmail.com, joe@perches.com, mingo@elte.hu, tglx@linutronix.de, therbert@google.com
 
 
 The patch titled
@@ -97,6 +97,8 @@ Acked-by: David Miller <davem@davemloft.net>
 Cc: Tom Herbert <therbert@google.com>
 Cc: Ben Hutchings <bhutchings@solarflare.com>
 Cc: Joe Perches <joe@perches.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
