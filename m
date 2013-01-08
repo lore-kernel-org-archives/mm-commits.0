@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + lockdep-rename-print_unlock_inbalance_bug-to-print_unlock_imbalance_bug.patch added to -mm tree
-Date: Tue, 08 Jan 2013 12:38:27 -0800
-Message-ID: <20130108203827.7DD02100048@wpzn3.hot.corp.google.com>
+Subject: + drivers-video-backlight-ld9040c-use-devm_regulator_bulk_get-api.patch added to -mm tree
+Date: Tue, 08 Jan 2013 12:40:31 -0800
+Message-ID: <20130108204032.0AA4682004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:56943 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751600Ab3AHUi2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2013 15:38:28 -0500
-Received: by mail-ye0-f201.google.com with SMTP id r11so125623yen.0
-        for <mm-commits@vger.kernel.org>; Tue, 08 Jan 2013 12:38:27 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:38028 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751258Ab3AHUkd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2013 15:40:33 -0500
+Received: by mail-yh0-f74.google.com with SMTP id w68so125500yhw.5
+        for <mm-commits@vger.kernel.org>; Tue, 08 Jan 2013 12:40:32 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: srivatsa.bhat@linux.vnet.ibm.com
+Cc: sachin.kamat@linaro.org, dh09.lee@samsung.com
 
 
 The patch titled
-     Subject: lockdep: Rename print_unlock_inbalance_bug() to print_unlock_imbalance_bug()
+     Subject: drivers/video/backlight/ld9040.c: use devm_regulator_bulk_get() API
 has been added to the -mm tree.  Its filename is
-     lockdep-rename-print_unlock_inbalance_bug-to-print_unlock_imbalance_bug.patch
+     drivers-video-backlight-ld9040c-use-devm_regulator_bulk_get-api.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,61 +33,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
-Subject: lockdep: Rename print_unlock_inbalance_bug() to print_unlock_imbalance_bug()
+From: Sachin Kamat <sachin.kamat@linaro.org>
+Subject: drivers/video/backlight/ld9040.c: use devm_regulator_bulk_get() API
 
-Fix the typo in the function name (s/inbalance/imbalance)
+devm_regulator_bulk_get is device managed and saves some cleanup
+and exit code.
 
-Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: Donghwa Lee <dh09.lee@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/lockdep.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/video/backlight/ld9040.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN kernel/lockdep.c~lockdep-rename-print_unlock_inbalance_bug-to-print_unlock_imbalance_bug kernel/lockdep.c
---- a/kernel/lockdep.c~lockdep-rename-print_unlock_inbalance_bug-to-print_unlock_imbalance_bug
-+++ a/kernel/lockdep.c
-@@ -3203,7 +3203,7 @@ static int __lock_acquire(struct lockdep
- }
+diff -puN drivers/video/backlight/ld9040.c~drivers-video-backlight-ld9040c-use-devm_regulator_bulk_get-api drivers/video/backlight/ld9040.c
+--- a/drivers/video/backlight/ld9040.c~drivers-video-backlight-ld9040c-use-devm_regulator_bulk_get-api
++++ a/drivers/video/backlight/ld9040.c
+@@ -710,17 +710,15 @@ static int ld9040_probe(struct spi_devic
  
- static int
--print_unlock_inbalance_bug(struct task_struct *curr, struct lockdep_map *lock,
-+print_unlock_imbalance_bug(struct task_struct *curr, struct lockdep_map *lock,
- 			   unsigned long ip)
- {
- 	if (!debug_locks_off())
-@@ -3246,7 +3246,7 @@ static int check_unlock(struct task_stru
- 		return 0;
+ 	mutex_init(&lcd->lock);
  
- 	if (curr->lockdep_depth <= 0)
--		return print_unlock_inbalance_bug(curr, lock, ip);
-+		return print_unlock_imbalance_bug(curr, lock, ip);
- 
- 	return 1;
- }
-@@ -3317,7 +3317,7 @@ __lock_set_class(struct lockdep_map *loc
- 			goto found_it;
- 		prev_hlock = hlock;
+-	ret = regulator_bulk_get(lcd->dev, ARRAY_SIZE(supplies), supplies);
++	ret = devm_regulator_bulk_get(lcd->dev, ARRAY_SIZE(supplies), supplies);
+ 	if (ret) {
+ 		dev_err(lcd->dev, "Failed to get regulators: %d\n", ret);
+ 		return ret;
  	}
--	return print_unlock_inbalance_bug(curr, lock, ip);
-+	return print_unlock_imbalance_bug(curr, lock, ip);
  
- found_it:
- 	lockdep_init_map(lock, name, key, 0);
-@@ -3384,7 +3384,7 @@ lock_release_non_nested(struct task_stru
- 			goto found_it;
- 		prev_hlock = hlock;
- 	}
--	return print_unlock_inbalance_bug(curr, lock, ip);
-+	return print_unlock_imbalance_bug(curr, lock, ip);
+ 	ld = lcd_device_register("ld9040", &spi->dev, lcd, &ld9040_lcd_ops);
+-	if (IS_ERR(ld)) {
+-		ret = PTR_ERR(ld);
+-		goto out_free_regulator;
+-	}
++	if (IS_ERR(ld))
++		return PTR_ERR(ld);
  
- found_it:
- 	if (hlock->instance == lock)
+ 	lcd->ld = ld;
+ 
+@@ -762,8 +760,6 @@ static int ld9040_probe(struct spi_devic
+ 
+ out_unregister_lcd:
+ 	lcd_device_unregister(lcd->ld);
+-out_free_regulator:
+-	regulator_bulk_free(ARRAY_SIZE(supplies), supplies);
+ 
+ 	return ret;
+ }
+@@ -775,7 +771,6 @@ static int ld9040_remove(struct spi_devi
+ 	ld9040_power(lcd, FB_BLANK_POWERDOWN);
+ 	backlight_device_unregister(lcd->bd);
+ 	lcd_device_unregister(lcd->ld);
+-	regulator_bulk_free(ARRAY_SIZE(supplies), supplies);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from srivatsa.bhat@linux.vnet.ibm.com are
+Patches currently in -mm which might be from sachin.kamat@linaro.org are
 
-origin.patch
-lockdep-rename-print_unlock_inbalance_bug-to-print_unlock_imbalance_bug.patch
+linux-next.patch
+backlight-add-lms501kf03-lcd-driver.patch
+drivers-video-backlight-ld9040c-use-devm_regulator_bulk_get-api.patch
+drivers-rtc-use-of_match_ptr-macro.patch
 
