@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-backlight-ld9040c-use-devm_regulator_bulk_get-api.patch added to -mm tree
-Date: Tue, 08 Jan 2013 12:40:31 -0800
-Message-ID: <20130108204032.0AA4682004A@wpzn4.hot.corp.google.com>
+Subject: + mm-swap-out-anonymous-page-regardless-of-laptop_mode.patch added to -mm tree
+Date: Tue, 08 Jan 2013 12:43:19 -0800
+Message-ID: <20130108204320.8B3E120004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:38028 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751258Ab3AHUkd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2013 15:40:33 -0500
-Received: by mail-yh0-f74.google.com with SMTP id w68so125500yhw.5
-        for <mm-commits@vger.kernel.org>; Tue, 08 Jan 2013 12:40:32 -0800 (PST)
+Received: from mail-we0-f202.google.com ([74.125.82.202]:33923 "EHLO
+	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751390Ab3AHUnZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2013 15:43:25 -0500
+Received: by mail-we0-f202.google.com with SMTP id t57so66526wey.1
+        for <mm-commits@vger.kernel.org>; Tue, 08 Jan 2013 12:43:24 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sachin.kamat@linaro.org, dh09.lee@samsung.com
+Cc: minchan@kernel.org, bfreed@google.com, dan.magenheimer@oracle.com, hannes@cmpxchg.org, hughd@google.com, mgorman@suse.de, riel@redhat.com, semenzato@google.com, sonnyrao@google.com
 
 
 The patch titled
-     Subject: drivers/video/backlight/ld9040.c: use devm_regulator_bulk_get() API
+     Subject: mm: swap out anonymous page regardless of laptop_mode
 has been added to the -mm tree.  Its filename is
-     drivers-video-backlight-ld9040c-use-devm_regulator_bulk_get-api.patch
+     mm-swap-out-anonymous-page-regardless-of-laptop_mode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,67 +33,88 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: drivers/video/backlight/ld9040.c: use devm_regulator_bulk_get() API
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: swap out anonymous page regardless of laptop_mode
 
-devm_regulator_bulk_get is device managed and saves some cleanup
-and exit code.
+Recently, Luigi reported there are lots of free swap space when OOM
+happens.  It's easily reproduced on zram-over-swap, where many instance of
+memory hogs are running and laptop_mode is enabled.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Donghwa Lee <dh09.lee@samsung.com>
+Luigi reported there was no problem when he disabled laptop_mode.  The
+problem when I investigate problem is following as.
+
+try_to_free_pages disable may_writepage if laptop_mode is enabled. 
+shrink_page_list adds lots of anon pages in swap cache by add_to_swap,
+which makes pages Dirty and rotate them to head of inactive LRU without
+pageout.  If it is repeated, inactive anon LRU is full of Dirty and
+SwapCache pages.
+
+In case of that, isolate_lru_pages fails because it try to isolate clean
+page due to may_writepage == 0.
+
+may_writepage could be 1 only if total_scanned is higher than
+writeback_threshold in do_try_to_free_pages but unfortunately, VM can't
+isolate anon pages from inactive anon lru list by above reason and we
+already reclaimed all file-backed pages.  So it ends up OOM killing.
+
+This patch makes may_writepage could be set when shrink_inactive_list
+encounters SwapCachePage from tail of inactive anon LRU.  What it means
+that anon LRU list is short and memory pressure is severe so it would be
+better to swap out that pages by sacrificing the power rather than OOM
+killing.
+
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Reported-by: Luigi Semenzato <semenzato@google.com>
+Cc: Dan Magenheimer <dan.magenheimer@oracle.com>
+Cc: Sonny Rao <sonnyrao@google.com>
+Cc: Bryan Freed <bfreed@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/backlight/ld9040.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ mm/vmscan.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/backlight/ld9040.c~drivers-video-backlight-ld9040c-use-devm_regulator_bulk_get-api drivers/video/backlight/ld9040.c
---- a/drivers/video/backlight/ld9040.c~drivers-video-backlight-ld9040c-use-devm_regulator_bulk_get-api
-+++ a/drivers/video/backlight/ld9040.c
-@@ -710,17 +710,15 @@ static int ld9040_probe(struct spi_devic
+diff -puN mm/vmscan.c~mm-swap-out-anonymous-page-regardless-of-laptop_mode mm/vmscan.c
+--- a/mm/vmscan.c~mm-swap-out-anonymous-page-regardless-of-laptop_mode
++++ a/mm/vmscan.c
+@@ -1102,7 +1102,7 @@ static unsigned long isolate_lru_pages(u
+ 		prefetchw_prev_lru_page(page, src, flags);
  
- 	mutex_init(&lcd->lock);
+ 		VM_BUG_ON(!PageLRU(page));
+-
++retry:
+ 		switch (__isolate_lru_page(page, mode)) {
+ 		case 0:
+ 			nr_pages = hpage_nr_pages(page);
+@@ -1112,6 +1112,17 @@ static unsigned long isolate_lru_pages(u
+ 			break;
  
--	ret = regulator_bulk_get(lcd->dev, ARRAY_SIZE(supplies), supplies);
-+	ret = devm_regulator_bulk_get(lcd->dev, ARRAY_SIZE(supplies), supplies);
- 	if (ret) {
- 		dev_err(lcd->dev, "Failed to get regulators: %d\n", ret);
- 		return ret;
- 	}
- 
- 	ld = lcd_device_register("ld9040", &spi->dev, lcd, &ld9040_lcd_ops);
--	if (IS_ERR(ld)) {
--		ret = PTR_ERR(ld);
--		goto out_free_regulator;
--	}
-+	if (IS_ERR(ld))
-+		return PTR_ERR(ld);
- 
- 	lcd->ld = ld;
- 
-@@ -762,8 +760,6 @@ static int ld9040_probe(struct spi_devic
- 
- out_unregister_lcd:
- 	lcd_device_unregister(lcd->ld);
--out_free_regulator:
--	regulator_bulk_free(ARRAY_SIZE(supplies), supplies);
- 
- 	return ret;
- }
-@@ -775,7 +771,6 @@ static int ld9040_remove(struct spi_devi
- 	ld9040_power(lcd, FB_BLANK_POWERDOWN);
- 	backlight_device_unregister(lcd->bd);
- 	lcd_device_unregister(lcd->ld);
--	regulator_bulk_free(ARRAY_SIZE(supplies), supplies);
- 
- 	return 0;
- }
+ 		case -EBUSY:
++			/*
++			 * If VM encounters PageSwapCache from inactive LRU,
++			 * it means we havd to swap out those pages regardless
++			 * of laptop_mode for preventing OOM kill.
++			 */
++			if ((mode & ISOLATE_CLEAN) && PageSwapCache(page) &&
++				!PageActive(page)) {
++				mode &= ~ISOLATE_CLEAN;
++				sc->may_writepage = 1;
++				goto retry;
++			}
+ 			/* else it is being freed elsewhere */
+ 			list_move(&page->lru, src);
+ 			continue;
 _
 
-Patches currently in -mm which might be from sachin.kamat@linaro.org are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-linux-next.patch
-backlight-add-lms501kf03-lcd-driver.patch
-drivers-video-backlight-ld9040c-use-devm_regulator_bulk_get-api.patch
-drivers-rtc-use-of_match_ptr-macro.patch
+origin.patch
+mm-compaction-fix-echo-1-compact_memory-return-error-issue.patch
+mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
+mm-swap-out-anonymous-page-regardless-of-laptop_mode.patch
+mm-add-vm-event-counters-for-balloon-pages-compaction.patch
 
