@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-mlockall-preserve-flags-other-than-vm_locked-in-def_flags.patch added to -mm tree
-Date: Tue, 08 Jan 2013 15:42:19 -0800
-Message-ID: <20130108234220.7D3CE82004A@wpzn4.hot.corp.google.com>
+Subject: + mm-use-mm_populate-when-adjusting-brk-with-mcl_future-in-effect.patch added to -mm tree
+Date: Tue, 08 Jan 2013 15:42:37 -0800
+Message-ID: <20130108234238.B420D20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:40866 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756753Ab3AHXmW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2013 18:42:22 -0500
-Received: by mail-gg0-f201.google.com with SMTP id o6so152534ggm.0
-        for <mm-commits@vger.kernel.org>; Tue, 08 Jan 2013 15:42:21 -0800 (PST)
+Received: from mail-lb0-f202.google.com ([209.85.217.202]:39045 "EHLO
+	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757164Ab3AHXmm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2013 18:42:42 -0500
+Received: by mail-lb0-f202.google.com with SMTP id s4so80703lbc.3
+        for <mm-commits@vger.kernel.org>; Tue, 08 Jan 2013 15:42:40 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: walken@google.com, dhowells@redhat.com, gregungerer@westnet.com.au, luto@ama
 
 
 The patch titled
-     Subject: mm: make mlockall preserve flags other than VM_LOCKED in def_flags
+     Subject: mm: use mm_populate() when adjusting brk with MCL_FUTURE in effect
 has been added to the -mm tree.  Its filename is
-     mm-make-mlockall-preserve-flags-other-than-vm_locked-in-def_flags.patch
+     mm-use-mm_populate-when-adjusting-brk-with-mcl_future-in-effect.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,96 +34,74 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michel Lespinasse <walken@google.com>
-Subject: mm: make mlockall preserve flags other than VM_LOCKED in def_flags
-
-We have many vma manipulation functions that are fast in the typical case,
-but can optionally be instructed to populate an unbounded number of ptes
-within the region they work on:
-
-- mmap with MAP_POPULATE or MAP_LOCKED flags;
-- remap_file_pages() with MAP_NONBLOCK not set or when working on a
-  VM_LOCKED vma;
-- mmap_region() and all its wrappers when mlock(MCL_FUTURE) is in effect;
-- brk() when mlock(MCL_FUTURE) is in effect.
-
-Current code handles these pte operations locally, while the sourrounding
-code has to hold the mmap_sem write side since it's manipulating vmas. 
-This means we're doing an unbounded amount of pte population work with
-mmap_sem held, and this causes problems as Andy Lutomirski reported (we've
-hit this at Google as well, though it's not entirely clear why people keep
-trying to use mlock(MCL_FUTURE) in the first place).
-
-I propose introducing a new mm_populate() function to do this pte
-population work after the mmap_sem has been released.  mm_populate() does
-need to acquire the mmap_sem read side, but critically, it doesn't need to
-hold it continuously for the entire duration of the operation - it can
-drop it whenever things take too long (such as when hitting disk for a
-file read) and re-acquire it later on.
-
-The following patches are included
-
-- Patches 1-2 fix some issues I noticed while working on the existing code.
-  If needed, they could potentially go in before the rest of the patches.
-
-- Patch 3 introduces the new mm_populate() function and changes
-  mmap_region() call sites to use it after they drop mmap_sem. This is
-  inspired from Andy Lutomirski's proposal and is built as an extension
-  of the work I had previously done for mlock() and mlockall() around
-  v2.6.38-rc1. I had tried doing something similar at the time but had
-  given up as there were so many do_mmap() call sites; the recent cleanups
-  by Linus and Viro are a tremendous help here.
-
-- Patches 4-6 convert some of the less-obvious places doing unbounded
-  pte populates to the new mm_populate() mechanism.
-
-- Patches 7-8 are code cleanups that are made possible by the
-  mm_populate() work. In particular, they remove more code than the
-  entire patch series added, which should be a good thing :)
-
-- Patch 9 is optional to this entire series. It only helps to deal more
-  nicely with racy userspace programs that might modify their mappings
-  while we're trying to populate them. It adds a new VM_POPULATE flag
-  on the mappings we do want to populate, so that if userspace replaces
-  them with mappings it doesn't want populated, mm_populate() won't
-  populate those replacement mappings.
-
-
-
-This patch:
-
-On most architectures, def_flags is either 0 or VM_LOCKED depending on
-whether mlockall(MCL_FUTURE) was called.  However, this is not an absolute
-rule as kvm support on s390 may set the VM_NOHUGEPAGE flag in def_flags. 
-We don't want mlockall to clear that.
+Subject: mm: use mm_populate() when adjusting brk with MCL_FUTURE in effect
 
 Signed-off-by: Michel Lespinasse <walken@google.com>
-Reviewed-by: Rik van Riel <riel@redhat.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Tested-by: Andy Lutomirski <luto@amacapital.net>
 Cc: Greg Ungerer <gregungerer@westnet.com.au>
 Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/mmap.c |   18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
-diff -puN mm/mlock.c~mm-make-mlockall-preserve-flags-other-than-vm_locked-in-def_flags mm/mlock.c
---- a/mm/mlock.c~mm-make-mlockall-preserve-flags-other-than-vm_locked-in-def_flags
-+++ a/mm/mlock.c
-@@ -517,10 +517,11 @@ SYSCALL_DEFINE2(munlock, unsigned long, 
- static int do_mlockall(int flags)
- {
- 	struct vm_area_struct * vma, * prev = NULL;
--	unsigned int def_flags = 0;
-+	unsigned int def_flags;
+diff -puN mm/mmap.c~mm-use-mm_populate-when-adjusting-brk-with-mcl_future-in-effect mm/mmap.c
+--- a/mm/mmap.c~mm-use-mm_populate-when-adjusting-brk-with-mcl_future-in-effect
++++ a/mm/mmap.c
+@@ -255,6 +255,7 @@ SYSCALL_DEFINE1(brk, unsigned long, brk)
+ 	unsigned long newbrk, oldbrk;
+ 	struct mm_struct *mm = current->mm;
+ 	unsigned long min_brk;
++	bool populate;
  
-+	def_flags = current->mm->def_flags & ~VM_LOCKED;
- 	if (flags & MCL_FUTURE)
--		def_flags = VM_LOCKED;
-+		def_flags |= VM_LOCKED;
- 	current->mm->def_flags = def_flags;
- 	if (flags == MCL_FUTURE)
+ 	down_write(&mm->mmap_sem);
+ 
+@@ -304,8 +305,15 @@ SYSCALL_DEFINE1(brk, unsigned long, brk)
+ 	/* Ok, looks good - let it rip. */
+ 	if (do_brk(oldbrk, newbrk-oldbrk) != oldbrk)
  		goto out;
++
+ set_brk:
+ 	mm->brk = brk;
++	populate = newbrk > oldbrk && (mm->def_flags & VM_LOCKED) != 0;
++	up_write(&mm->mmap_sem);
++	if (populate)
++		mm_populate(oldbrk, newbrk - oldbrk);
++	return brk;
++
+ out:
+ 	retval = mm->brk;
+ 	up_write(&mm->mmap_sem);
+@@ -2599,10 +2607,8 @@ static unsigned long do_brk(unsigned lon
+ out:
+ 	perf_event_mmap(vma);
+ 	mm->total_vm += len >> PAGE_SHIFT;
+-	if (flags & VM_LOCKED) {
+-		if (!mlock_vma_pages_range(vma, addr, addr + len))
+-			mm->locked_vm += (len >> PAGE_SHIFT);
+-	}
++	if (flags & VM_LOCKED)
++		mm->locked_vm += (len >> PAGE_SHIFT);
+ 	return addr;
+ }
+ 
+@@ -2610,10 +2616,14 @@ unsigned long vm_brk(unsigned long addr,
+ {
+ 	struct mm_struct *mm = current->mm;
+ 	unsigned long ret;
++	bool populate;
+ 
+ 	down_write(&mm->mmap_sem);
+ 	ret = do_brk(addr, len);
++	populate = ((mm->def_flags & VM_LOCKED) != 0);
+ 	up_write(&mm->mmap_sem);
++	if (populate)
++		mm_populate(addr, len);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(vm_brk);
 _
 
 Patches currently in -mm which might be from walken@google.com are
