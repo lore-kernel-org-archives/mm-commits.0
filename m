@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 08 Jan 2013 15:00:03 -0800
-Message-ID: <20130108230003.D5D1D820057@wpzn4.hot.corp.google.com>
+Subject: + mm-remap_file_pages-fixes.patch added to -mm tree
+Date: Tue, 08 Jan 2013 15:42:24 -0800
+Message-ID: <20130108234225.12E6720004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:61193 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755199Ab3AHXAF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2013 18:00:05 -0500
-Received: by mail-gg0-f201.google.com with SMTP id o6so147864ggm.2
-        for <mm-commits@vger.kernel.org>; Tue, 08 Jan 2013 15:00:04 -0800 (PST)
+Received: from mail-fa0-f73.google.com ([209.85.161.73]:58465 "EHLO
+	mail-fa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756753Ab3AHXm2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2013 18:42:28 -0500
+Received: by mail-fa0-f73.google.com with SMTP id v1so72222fav.0
+        for <mm-commits@vger.kernel.org>; Tue, 08 Jan 2013 15:42:26 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, torbenh@linutronix.de
+Cc: walken@google.com, dhowells@redhat.com, gregungerer@westnet.com.au, luto@amacapital.net, riel@redhat.com
 
 
 The patch titled
-     Subject: rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes
+     Subject: mm: remap_file_pages() fixes
 has been added to the -mm tree.  Its filename is
-     rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
+     mm-remap_file_pages-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,157 +33,147 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes
+From: Michel Lespinasse <walken@google.com>
+Subject: mm: remap_file_pages() fixes
 
-WARNING: quoted string split across lines
-#171: FILE: drivers/rtc/rtc-rx4581.c:126:
-+				dev_err(dev, "Unable to write device "
-+					"flags\n");
+Assorted small fixes. The first two are quite small:
 
-WARNING: quoted string split across lines
-#214: FILE: drivers/rtc/rtc-rx4581.c:169:
-+	dev_dbg(dev, "%s: tm is secs=%d, mins=%d, hours=%d, "
-+		"mday=%d, mon=%d, year=%d, wday=%d\n",
+- Move check for vma->vm_private_data && !(vma->vm_flags & VM_NONLINEAR)
+  within existing if (!(vma->vm_flags & VM_NONLINEAR)) block.
+  Purely cosmetic.
 
-WARNING: quoted string split across lines
-#233: FILE: drivers/rtc/rtc-rx4581.c:188:
-+	dev_dbg(dev, "%s: secs=%d, mins=%d, hours=%d, "
-+		"mday=%d, mon=%d, year=%d, wday=%d\n",
+- In the VM_LOCKED case, when dropping PG_Mlocked for the over-mapped
+  range, make sure we own the mmap_sem write lock around the
+  munlock_vma_pages_range call as this manipulates the vma's vm_flags.
 
-WARNING: Using __devinit is unnecessary
-#310: FILE: drivers/rtc/rtc-rx4581.c:265:
-+static int __devinit rx4581_probe(struct spi_device *spi)
+Last fix requires a longer explanation. remap_file_pages() can do its work
+either through VM_NONLINEAR manipulation or by creating extra vmas.
+These two cases were inconsistent with each other (and ultimately, both wrong)
+as to exactly when did they fault in the newly mapped file pages:
 
-WARNING: Using __devexit is unnecessary
-#329: FILE: drivers/rtc/rtc-rx4581.c:284:
-+static int __devexit rx4581_remove(struct spi_device *spi)
+- In the VM_NONLINEAR case, new file pages would be populated if
+  the MAP_NONBLOCK flag wasn't passed. If MAP_NONBLOCK was passed,
+  new file pages wouldn't be populated even if the vma is already
+  marked as VM_LOCKED.
 
-WARNING: space prohibited between function name and open parenthesis '('
-#355: FILE: drivers/rtc/rtc-rx4581.c:310:
-+MODULE_DESCRIPTION ("rx4581 spi RTC driver");
+- In the linear (emulated) case, the work is passed to the mmap_region()
+  function which would populate the pages if the vma is marked as
+  VM_LOCKED, and would not otherwise - regardless of the value of the
+  MAP_NONBLOCK flag, because MAP_POPULATE wasn't being passed to
+  mmap_region().
 
-WARNING: space prohibited between function name and open parenthesis '('
-#356: FILE: drivers/rtc/rtc-rx4581.c:311:
-+MODULE_AUTHOR ("Torben Hohn");
+The desired behavior is that we want the pages to be populated and locked
+if the vma is marked as VM_LOCKED, or to be populated if the MAP_NONBLOCK
+flag is not passed to remap_file_pages().
 
-WARNING: space prohibited between function name and open parenthesis '('
-#357: FILE: drivers/rtc/rtc-rx4581.c:312:
-+MODULE_LICENSE ("GPL");
-
-total: 0 errors, 8 warnings, 334 lines checked
-
-./patches/rtc-add-support-for-spi-rtc-rx4581.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Torben Hohn <torbenh@linutronix.de>
+Signed-off-by: Michel Lespinasse <walken@google.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Tested-by: Andy Lutomirski <luto@amacapital.net>
+Cc: Greg Ungerer <gregungerer@westnet.com.au>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rx4581.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/fremap.c |   22 ++++++++++++++--------
+ 1 file changed, 14 insertions(+), 8 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes drivers/rtc/Kconfig
-diff -puN drivers/rtc/Makefile~rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes drivers/rtc/Makefile
-diff -puN drivers/rtc/rtc-rx4581.c~rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes drivers/rtc/rtc-rx4581.c
---- a/drivers/rtc/rtc-rx4581.c~rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes
-+++ a/drivers/rtc/rtc-rx4581.c
-@@ -262,7 +262,7 @@ static const struct rtc_class_ops rx4581
- 	.set_time	= rx4581_set_datetime,
- };
+diff -puN mm/fremap.c~mm-remap_file_pages-fixes mm/fremap.c
+--- a/mm/fremap.c~mm-remap_file_pages-fixes
++++ a/mm/fremap.c
+@@ -160,15 +160,11 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
+ 	/*
+ 	 * Make sure the vma is shared, that it supports prefaulting,
+ 	 * and that the remapped range is valid and fully within
+-	 * the single existing vma.  vm_private_data is used as a
+-	 * swapout cursor in a VM_NONLINEAR vma.
++	 * the single existing vma.
+ 	 */
+ 	if (!vma || !(vma->vm_flags & VM_SHARED))
+ 		goto out;
  
--static int __devinit rx4581_probe(struct spi_device *spi)
-+static int rx4581_probe(struct spi_device *spi)
- {
- 	struct rtc_device *rtc;
- 	unsigned char tmp;
-@@ -281,7 +281,7 @@ static int __devinit rx4581_probe(struct
- 	return 0;
- }
+-	if (vma->vm_private_data && !(vma->vm_flags & VM_NONLINEAR))
+-		goto out;
+-
+ 	if (!vma->vm_ops || !vma->vm_ops->remap_pages)
+ 		goto out;
  
--static int __devexit rx4581_remove(struct spi_device *spi)
-+static int rx4581_remove(struct spi_device *spi)
- {
- 	struct rtc_device *rtc = dev_get_drvdata(&spi->dev);
+@@ -177,6 +173,13 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
  
-@@ -307,7 +307,7 @@ static struct spi_driver rx4581_driver =
+ 	/* Must set VM_NONLINEAR before any pages are populated. */
+ 	if (!(vma->vm_flags & VM_NONLINEAR)) {
++		/*
++		 * vm_private_data is used as a swapout cursor
++		 * in a VM_NONLINEAR vma.
++		 */
++		if (vma->vm_private_data)
++			goto out;
++
+ 		/* Don't need a nonlinear mapping, exit success */
+ 		if (pgoff == linear_page_index(vma, start)) {
+ 			err = 0;
+@@ -184,6 +187,7 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
+ 		}
  
- module_spi_driver(rx4581_driver);
+ 		if (!has_write_lock) {
++get_write_lock:
+ 			up_read(&mm->mmap_sem);
+ 			down_write(&mm->mmap_sem);
+ 			has_write_lock = 1;
+@@ -199,7 +203,7 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
+ 			unsigned long addr;
+ 			struct file *file = get_file(vma->vm_file);
  
--MODULE_DESCRIPTION ("rx4581 spi RTC driver");
--MODULE_AUTHOR ("Torben Hohn");
--MODULE_LICENSE ("GPL");
-+MODULE_DESCRIPTION("rx4581 spi RTC driver");
-+MODULE_AUTHOR("Torben Hohn");
-+MODULE_LICENSE("GPL");
- MODULE_ALIAS("spi:rtc-rx4581");
+-			flags &= MAP_NONBLOCK;
++			flags = (flags & MAP_NONBLOCK) | MAP_POPULATE;
+ 			addr = mmap_region(file, start, size,
+ 					flags, vma->vm_flags, pgoff);
+ 			fput(file);
+@@ -225,6 +229,8 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
+ 		 * drop PG_Mlocked flag for over-mapped range
+ 		 */
+ 		vm_flags_t saved_flags = vma->vm_flags;
++		if (!has_write_lock)
++			goto get_write_lock;
+ 		munlock_vma_pages_range(vma, start, start + size);
+ 		vma->vm_flags = saved_flags;
+ 	}
+@@ -232,13 +238,13 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
+ 	mmu_notifier_invalidate_range_start(mm, start, start + size);
+ 	err = vma->vm_ops->remap_pages(vma, start, size, pgoff);
+ 	mmu_notifier_invalidate_range_end(mm, start, start + size);
+-	if (!err && !(flags & MAP_NONBLOCK)) {
++	if (!err) {
+ 		if (vma->vm_flags & VM_LOCKED) {
+ 			/*
+ 			 * might be mapping previously unmapped range of file
+ 			 */
+ 			mlock_vma_pages_range(vma, start, start + size);
+-		} else {
++		} else if (!(flags & MAP_NONBLOCK)) {
+ 			if (unlikely(has_write_lock)) {
+ 				downgrade_write(&mm->mmap_sem);
+ 				has_write_lock = 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from walken@google.com are
 
-origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-make-my-i386-build-work.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
-bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
-i-need-old-gcc.patch
-lib-cpu_rmap-avoid-flushing-all-workqueues-fix.patch
-drivers-rtc-rtc-da9055c-fix-cross-section-reference.patch
-arch-mn10300-kconfig-select-config_generic_atomic64.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-kernel-auditc-avoid-negative-sleep-durations.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
-mm.patch
-mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
-mm-hugetlbc-convert-to-pr_foo.patch
-cma-make-putback_lru_pages-call-conditional-fix.patch
-mm-vmscan-clean-up-get_scan_count-fix.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
-mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
-mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
-mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-kernel-smpc-cleanups.patch
-backlight-add-lms501kf03-lcd-driver-fix.patch
-backlight-add-lms501kf03-lcd-driver-fix-fix.patch
-backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix-fix.patch
-rtc-max77686-add-maxim-77686-driver-fix.patch
-rtc-pcf8523-add-low-battery-voltage-support-fix.patch
-rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
-rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
-drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-fix-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-aio-smoosh-struct-kiocb-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-make-mlockall-preserve-flags-other-than-vm_locked-in-def_flags.patch
+mm-remap_file_pages-fixes.patch
+mm-introduce-mm_populate-for-populating-new-vmas.patch
+mm-use-mm_populate-for-blocking-remap_file_pages.patch
+mm-use-mm_populate-when-adjusting-brk-with-mcl_future-in-effect.patch
+mm-use-mm_populate-for-mremap-of-vm_locked-vmas.patch
+mm-remove-flags-argument-to-mmap_region.patch
+mm-remove-flags-argument-to-mmap_region-fix.patch
+mm-directly-use-__mlock_vma_pages_range-in-find_extend_vma.patch
+mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs.patch
+mm-make-do_mmap_pgoff-return-populate-as-a-size-in-bytes-not-as-a-bool.patch
+mtd-mtd_nandecctest-use-prandom_bytes-instead-of-get_random_bytes.patch
+mtd-mtd_oobtest-convert-to-use-prandom-library.patch
+mtd-mtd_pagetest-convert-to-use-prandom-library.patch
+mtd-mtd_speedtest-use-prandom_bytes.patch
+mtd-mtd_subpagetest-convert-to-use-prandom-library.patch
+mtd-mtd_stresstest-use-prandom_bytes.patch
 mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
