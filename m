@@ -1,120 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: + mm-swap-out-anonymous-page-regardless-of-laptop_mode.patch added to -mm tree
-Date: Tue, 08 Jan 2013 12:43:19 -0800
-Message-ID: <20130108204320.8B3E120004E@hpza10.eem.corp.google.com>
+Subject: [withdrawn] backlight-check-null-deference-of-name-when-device-is-registered.patch removed from -mm tree
+Date: Tue, 08 Jan 2013 12:43:47 -0800
+Message-ID: <20130108204347.D4F2582004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-we0-f202.google.com ([74.125.82.202]:33923 "EHLO
-	mail-we0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751390Ab3AHUnZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2013 15:43:25 -0500
-Received: by mail-we0-f202.google.com with SMTP id t57so66526wey.1
-        for <mm-commits@vger.kernel.org>; Tue, 08 Jan 2013 12:43:24 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:35257 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751851Ab3AHUnt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Jan 2013 15:43:49 -0500
+Received: by mail-vb0-f74.google.com with SMTP id s24so126027vbi.3
+        for <mm-commits@vger.kernel.org>; Tue, 08 Jan 2013 12:43:48 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: minchan@kernel.org, bfreed@google.com, dan.magenheimer@oracle.com, hannes@cmpxchg.org, hughd@google.com, mgorman@suse.de, riel@redhat.com, semenzato@google.com, sonnyrao@google.com
+To: jg1.han@samsung.com, devendra.aaru@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: swap out anonymous page regardless of laptop_mode
-has been added to the -mm tree.  Its filename is
-     mm-swap-out-anonymous-page-regardless-of-laptop_mode.patch
+     Subject: backlight: check null deference of name when device is registered
+has been removed from the -mm tree.  Its filename was
+     backlight-check-null-deference-of-name-when-device-is-registered.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: swap out anonymous page regardless of laptop_mode
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: backlight: check null deference of name when device is registered
 
-Recently, Luigi reported there are lots of free swap space when OOM
-happens.  It's easily reproduced on zram-over-swap, where many instance of
-memory hogs are running and laptop_mode is enabled.
+Check for a NULL name when the device is registered.  If the name is null,
+it will cause a kernel oops in dev_set_name().
 
-Luigi reported there was no problem when he disabled laptop_mode.  The
-problem when I investigate problem is following as.
-
-try_to_free_pages disable may_writepage if laptop_mode is enabled. 
-shrink_page_list adds lots of anon pages in swap cache by add_to_swap,
-which makes pages Dirty and rotate them to head of inactive LRU without
-pageout.  If it is repeated, inactive anon LRU is full of Dirty and
-SwapCache pages.
-
-In case of that, isolate_lru_pages fails because it try to isolate clean
-page due to may_writepage == 0.
-
-may_writepage could be 1 only if total_scanned is higher than
-writeback_threshold in do_try_to_free_pages but unfortunately, VM can't
-isolate anon pages from inactive anon lru list by above reason and we
-already reclaimed all file-backed pages.  So it ends up OOM killing.
-
-This patch makes may_writepage could be set when shrink_inactive_list
-encounters SwapCachePage from tail of inactive anon LRU.  What it means
-that anon LRU list is short and memory pressure is severe so it would be
-better to swap out that pages by sacrificing the power rather than OOM
-killing.
-
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reported-by: Luigi Semenzato <semenzato@google.com>
-Cc: Dan Magenheimer <dan.magenheimer@oracle.com>
-Cc: Sonny Rao <sonnyrao@google.com>
-Cc: Bryan Freed <bfreed@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Acked-by: Devendra Naga <devendra.aaru@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ drivers/video/backlight/backlight.c |    5 +++++
+ drivers/video/backlight/lcd.c       |    5 +++++
+ 2 files changed, 10 insertions(+)
 
-diff -puN mm/vmscan.c~mm-swap-out-anonymous-page-regardless-of-laptop_mode mm/vmscan.c
---- a/mm/vmscan.c~mm-swap-out-anonymous-page-regardless-of-laptop_mode
-+++ a/mm/vmscan.c
-@@ -1102,7 +1102,7 @@ static unsigned long isolate_lru_pages(u
- 		prefetchw_prev_lru_page(page, src, flags);
+diff -puN drivers/video/backlight/backlight.c~backlight-check-null-deference-of-name-when-device-is-registered drivers/video/backlight/backlight.c
+--- a/drivers/video/backlight/backlight.c~backlight-check-null-deference-of-name-when-device-is-registered
++++ a/drivers/video/backlight/backlight.c
+@@ -292,6 +292,11 @@ struct backlight_device *backlight_devic
+ 	struct backlight_device *new_bd;
+ 	int rc;
  
- 		VM_BUG_ON(!PageLRU(page));
--
-+retry:
- 		switch (__isolate_lru_page(page, mode)) {
- 		case 0:
- 			nr_pages = hpage_nr_pages(page);
-@@ -1112,6 +1112,17 @@ static unsigned long isolate_lru_pages(u
- 			break;
++	if (name == NULL) {
++		pr_err("backlight name is null\n");
++		return ERR_PTR(-EINVAL);
++	}
++
+ 	pr_debug("backlight_device_register: name=%s\n", name);
  
- 		case -EBUSY:
-+			/*
-+			 * If VM encounters PageSwapCache from inactive LRU,
-+			 * it means we havd to swap out those pages regardless
-+			 * of laptop_mode for preventing OOM kill.
-+			 */
-+			if ((mode & ISOLATE_CLEAN) && PageSwapCache(page) &&
-+				!PageActive(page)) {
-+				mode &= ~ISOLATE_CLEAN;
-+				sc->may_writepage = 1;
-+				goto retry;
-+			}
- 			/* else it is being freed elsewhere */
- 			list_move(&page->lru, src);
- 			continue;
+ 	new_bd = kzalloc(sizeof(struct backlight_device), GFP_KERNEL);
+diff -puN drivers/video/backlight/lcd.c~backlight-check-null-deference-of-name-when-device-is-registered drivers/video/backlight/lcd.c
+--- a/drivers/video/backlight/lcd.c~backlight-check-null-deference-of-name-when-device-is-registered
++++ a/drivers/video/backlight/lcd.c
+@@ -207,6 +207,11 @@ struct lcd_device *lcd_device_register(c
+ 	struct lcd_device *new_ld;
+ 	int rc;
+ 
++	if (name == NULL) {
++		pr_err("lcd name is null\n");
++		return ERR_PTR(-EINVAL);
++	}
++
+ 	pr_debug("lcd_device_register: name=%s\n", name);
+ 
+ 	new_ld = kzalloc(sizeof(struct lcd_device), GFP_KERNEL);
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
-origin.patch
-mm-compaction-fix-echo-1-compact_memory-return-error-issue.patch
-mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
-mm-swap-out-anonymous-page-regardless-of-laptop_mode.patch
-mm-add-vm-event-counters-for-balloon-pages-compaction.patch
+linux-next.patch
+backlight-add-lms501kf03-lcd-driver.patch
+backlight-add-lms501kf03-lcd-driver-fix.patch
+backlight-add-lms501kf03-lcd-driver-fix-fix.patch
+backlight-ld9040-use-sleep-instead-of-delay.patch
+backlight-ld9040-remove-unnecessary-null-deference-check.patch
+backlight-ld9040-replace-efault-with-einval.patch
+backlight-ld9040-remove-redundant-return-variables.patch
+backlight-ld9040-reorder-inclusions-of-linux-xxxh.patch
+backlight-s6e63m0-use-lowercase-names-of-structs.patch
+backlight-s6e63m0-use-sleep-instead-of-delay.patch
+backlight-s6e63m0-remove-unnecessary-null-deference-check.patch
+backlight-s6e63m0-replace-efault-with-einval.patch
+backlight-s6e63m0-remove-redundant-variable-before_power.patch
+backlight-s6e63m0-reorder-inclusions-of-linux-xxxh.patch
+backlight-ams369fg06-use-sleep-instead-of-delay.patch
+backlight-ams369fg06-remove-unnecessary-null-deference-check.patch
+backlight-ams369fg06-replace-efault-with-einval.patch
+backlight-ams369fg06-remove-redundant-variable-before_power.patch
+backlight-ams369fg06-reorder-inclusions-of-linux-xxxh.patch
+backlight-l4f00242t03-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-ld9040-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-s6e63m0-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-ltv350qv-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-tdo24m-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-lms283gf05-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-ams369fg06-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-vgg2432a4-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-tosa-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-corgi_lcd-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-lms501kf03-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-aat2870-use-bl_get_data-instead-of-dev_get_drvdata.patch
+pwm_backlight-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-ams369fg06-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-corgi_lcd-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-tosa-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-omap1-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-corgi_lcd-use-lcd_get_data-instead-of-dev_get_drvdata.patch
+backlight-lm3649_backlight-remove-ret-=-eio-at-error-paths-of-probe.patch
+drivers-video-backlight-l4f00242t03c-convert-to-devm_regulator_get.patch
 
