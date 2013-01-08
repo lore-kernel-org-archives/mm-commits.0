@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ipmi-add-options-to-disable-openfirmware-and-pci-scanning.patch added to -mm tree
-Date: Mon, 07 Jan 2013 15:44:18 -0800
-Message-ID: <20130107234419.97B532004C5@hpza10.eem.corp.google.com>
+Subject: + backlight-check-null-deference-of-name-when-device-is-registered.patch added to -mm tree
+Date: Mon, 07 Jan 2013 16:01:52 -0800
+Message-ID: <20130108000153.1471F20054A@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f73.google.com ([74.125.82.73]:52613 "EHLO
-	mail-wg0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753970Ab3AGXoW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2013 18:44:22 -0500
-Received: by mail-wg0-f73.google.com with SMTP id dt12so1273321wgb.2
-        for <mm-commits@vger.kernel.org>; Mon, 07 Jan 2013 15:44:20 -0800 (PST)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:57712 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754415Ab3AHABz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Jan 2013 19:01:55 -0500
+Received: by mail-bk0-f74.google.com with SMTP id je9so1275068bkc.3
+        for <mm-commits@vger.kernel.org>; Mon, 07 Jan 2013 16:01:54 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cminyard@mvista.com
+Cc: jg1.han@samsung.com, devendra.aaru@gmail.com
 
 
 The patch titled
-     Subject: ipmi: add options to disable openfirmware and PCI scanning
+     Subject: backlight: check null deference of name when device is registered
 has been added to the -mm tree.  Its filename is
-     ipmi-add-options-to-disable-openfirmware-and-pci-scanning.patch
+     backlight-check-null-deference-of-name-when-device-is-registered.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,146 +33,94 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Corey Minyard <cminyard@mvista.com>
-Subject: ipmi: add options to disable openfirmware and PCI scanning
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: backlight: check null deference of name when device is registered
 
-Add try...  parameters to disable pci and platform (openfirmware) device
-scanning for IPMI.  Also add docs for all the try...  parameters.
+Check for a NULL name when the device is registered.  If the name is null,
+it will cause a kernel oops in dev_set_name().
 
-Signed-off-by: Corey Minyard <cminyard@mvista.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Acked-by: Devendra Naga <devendra.aaru@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/IPMI.txt           |   18 +++++++++----
- drivers/char/ipmi/ipmi_si_intf.c |   38 +++++++++++++++++++++--------
- 2 files changed, 40 insertions(+), 16 deletions(-)
+ drivers/video/backlight/backlight.c |    5 +++++
+ drivers/video/backlight/lcd.c       |    5 +++++
+ 2 files changed, 10 insertions(+)
 
-diff -puN Documentation/IPMI.txt~ipmi-add-options-to-disable-openfirmware-and-pci-scanning Documentation/IPMI.txt
---- a/Documentation/IPMI.txt~ipmi-add-options-to-disable-openfirmware-and-pci-scanning
-+++ a/Documentation/IPMI.txt
-@@ -348,34 +348,40 @@ You can change this at module load time 
+diff -puN drivers/video/backlight/backlight.c~backlight-check-null-deference-of-name-when-device-is-registered drivers/video/backlight/backlight.c
+--- a/drivers/video/backlight/backlight.c~backlight-check-null-deference-of-name-when-device-is-registered
++++ a/drivers/video/backlight/backlight.c
+@@ -292,6 +292,11 @@ struct backlight_device *backlight_devic
+ 	struct backlight_device *new_bd;
+ 	int rc;
  
-   modprobe ipmi_si.o type=<type1>,<type2>....
-        ports=<port1>,<port2>... addrs=<addr1>,<addr2>...
--       irqs=<irq1>,<irq2>... trydefaults=[0|1]
-+       irqs=<irq1>,<irq2>...
-        regspacings=<sp1>,<sp2>,... regsizes=<size1>,<size2>,...
-        regshifts=<shift1>,<shift2>,...
-        slave_addrs=<addr1>,<addr2>,...
-        force_kipmid=<enable1>,<enable2>,...
-        kipmid_max_busy_us=<ustime1>,<ustime2>,...
-        unload_when_empty=[0|1]
-+       trydefaults=[0|1] trydmi=[0|1] tryacpi=[0|1]
-+       tryplatform=[0|1] trypci=[0|1]
- 
--Each of these except si_trydefaults is a list, the first item for the
-+Each of these except try... items is a list, the first item for the
- first interface, second item for the second interface, etc.
- 
- The si_type may be either "kcs", "smic", or "bt".  If you leave it blank, it
- defaults to "kcs".
- 
--If you specify si_addrs as non-zero for an interface, the driver will
-+If you specify addrs as non-zero for an interface, the driver will
- use the memory address given as the address of the device.  This
- overrides si_ports.
- 
--If you specify si_ports as non-zero for an interface, the driver will
-+If you specify ports as non-zero for an interface, the driver will
- use the I/O port given as the device address.
- 
--If you specify si_irqs as non-zero for an interface, the driver will
-+If you specify irqs as non-zero for an interface, the driver will
- attempt to use the given interrupt for the device.
- 
--si_trydefaults sets whether the standard IPMI interface at 0xca2 and
-+trydefaults sets whether the standard IPMI interface at 0xca2 and
- any interfaces specified by ACPE are tried.  By default, the driver
- tries it, set this value to zero to turn this off.
- 
-+The other try... items disable discovery by their corresponding
-+names.  These are all enabled by default, set them to zero to disable
-+them.  The tryplatform disables openfirmware.
-+
- The next three parameters have to do with register layout.  The
- registers used by the interfaces may not appear at successive
- locations and they may not be in 8-bit registers.  These parameters
-diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-add-options-to-disable-openfirmware-and-pci-scanning drivers/char/ipmi/ipmi_si_intf.c
---- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-add-options-to-disable-openfirmware-and-pci-scanning
-+++ a/drivers/char/ipmi/ipmi_si_intf.c
-@@ -1214,6 +1214,10 @@ static bool          si_tryacpi = 1;
- #ifdef CONFIG_DMI
- static bool          si_trydmi = 1;
- #endif
-+static bool          si_tryplatform = 1;
-+#ifdef CONFIG_PCI
-+static bool          si_trypci = 1;
-+#endif
- static bool          si_trydefaults = 1;
- static char          *si_type[SI_MAX_PARMS];
- #define MAX_SI_TYPE_STR 30
-@@ -1254,6 +1258,15 @@ module_param_named(trydmi, si_trydmi, bo
- MODULE_PARM_DESC(trydmi, "Setting this to zero will disable the"
- 		 " default scan of the interfaces identified via DMI");
- #endif
-+module_param_named(tryplatform, si_tryplatform, bool, 0);
-+MODULE_PARM_DESC(tryacpi, "Setting this to zero will disable the"
-+		 " default scan of the interfaces identified via platform"
-+		 " interfaces like openfirmware");
-+#ifdef CONFIG_PCI
-+module_param_named(trypci, si_trypci, bool, 0);
-+MODULE_PARM_DESC(tryacpi, "Setting this to zero will disable the"
-+		 " default scan of the interfaces identified via pci");
-+#endif
- module_param_named(trydefaults, si_trydefaults, bool, 0);
- MODULE_PARM_DESC(trydefaults, "Setting this to 'false' will disable the"
- 		 " default scan of the KCS and SMIC interface at the standard"
-@@ -3387,13 +3400,15 @@ static int init_ipmi_si(void)
- 		return 0;
- 	initialized = 1;
- 
--	rv = platform_driver_register(&ipmi_driver);
--	if (rv) {
--		printk(KERN_ERR PFX "Unable to register driver: %d\n", rv);
--		return rv;
-+	if (si_tryplatform) {
-+		rv = platform_driver_register(&ipmi_driver);
-+		if (rv) {
-+			printk(KERN_ERR PFX "Unable to register "
-+			       "driver: %d\n", rv);
-+			return rv;
-+		}
- 	}
- 
--
- 	/* Parse out the si_type string into its components. */
- 	str = si_type_str;
- 	if (*str != '\0') {
-@@ -3416,11 +3431,14 @@ static int init_ipmi_si(void)
- 		return 0;
- 
- #ifdef CONFIG_PCI
--	rv = pci_register_driver(&ipmi_pci_driver);
--	if (rv)
--		printk(KERN_ERR PFX "Unable to register PCI driver: %d\n", rv);
--	else
--		pci_registered = 1;
-+	if (si_trypci) {
-+		rv = pci_register_driver(&ipmi_pci_driver);
-+		if (rv)
-+			printk(KERN_ERR PFX "Unable to register "
-+			       "PCI driver: %d\n", rv);
-+		else
-+			pci_registered = 1;
++	if (name == NULL) {
++		pr_err("backlight name is null\n");
++		return ERR_PTR(-EINVAL);
 +	}
- #endif
++
+ 	pr_debug("backlight_device_register: name=%s\n", name);
  
- #ifdef CONFIG_ACPI
+ 	new_bd = kzalloc(sizeof(struct backlight_device), GFP_KERNEL);
+diff -puN drivers/video/backlight/lcd.c~backlight-check-null-deference-of-name-when-device-is-registered drivers/video/backlight/lcd.c
+--- a/drivers/video/backlight/lcd.c~backlight-check-null-deference-of-name-when-device-is-registered
++++ a/drivers/video/backlight/lcd.c
+@@ -207,6 +207,11 @@ struct lcd_device *lcd_device_register(c
+ 	struct lcd_device *new_ld;
+ 	int rc;
+ 
++	if (name == NULL) {
++		pr_err("lcd name is null\n");
++		return ERR_PTR(-EINVAL);
++	}
++
+ 	pr_debug("lcd_device_register: name=%s\n", name);
+ 
+ 	new_ld = kzalloc(sizeof(struct lcd_device), GFP_KERNEL);
 _
 
-Patches currently in -mm which might be from cminyard@mvista.com are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
-ipmi-remove-superfluous-kernel-userspace-explanation.patch
-ipmi-add-new-kernel-options-to-prevent-automatic-ipmi-init.patch
-ipmi-add-options-to-disable-openfirmware-and-pci-scanning.patch
+linux-next.patch
+backlight-add-lms501kf03-lcd-driver.patch
+backlight-add-lms501kf03-lcd-driver-fix.patch
+backlight-add-lms501kf03-lcd-driver-fix-fix.patch
+backlight-ld9040-use-sleep-instead-of-delay.patch
+backlight-ld9040-remove-unnecessary-null-deference-check.patch
+backlight-ld9040-replace-efault-with-einval.patch
+backlight-ld9040-remove-redundant-return-variables.patch
+backlight-ld9040-reorder-inclusions-of-linux-xxxh.patch
+backlight-s6e63m0-use-lowercase-names-of-structs.patch
+backlight-s6e63m0-use-sleep-instead-of-delay.patch
+backlight-s6e63m0-remove-unnecessary-null-deference-check.patch
+backlight-s6e63m0-replace-efault-with-einval.patch
+backlight-s6e63m0-remove-redundant-variable-before_power.patch
+backlight-s6e63m0-reorder-inclusions-of-linux-xxxh.patch
+backlight-ams369fg06-use-sleep-instead-of-delay.patch
+backlight-ams369fg06-remove-unnecessary-null-deference-check.patch
+backlight-ams369fg06-replace-efault-with-einval.patch
+backlight-ams369fg06-remove-redundant-variable-before_power.patch
+backlight-ams369fg06-reorder-inclusions-of-linux-xxxh.patch
+backlight-l4f00242t03-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-ld9040-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-s6e63m0-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-ltv350qv-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-tdo24m-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-lms283gf05-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-ams369fg06-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-vgg2432a4-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-tosa-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-corgi_lcd-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-lms501kf03-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-aat2870-use-bl_get_data-instead-of-dev_get_drvdata.patch
+pwm_backlight-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-ams369fg06-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-corgi_lcd-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-tosa-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-omap1-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-corgi_lcd-use-lcd_get_data-instead-of-dev_get_drvdata.patch
+backlight-lm3649_backlight-remove-ret-=-eio-at-error-paths-of-probe.patch
+drivers-video-backlight-l4f00242t03c-convert-to-devm_regulator_get.patch
+backlight-check-null-deference-of-name-when-device-is-registered.patch
 
