@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-remove-sys-firmware-memmap-x-sysfs.patch added to -mm tree
-Date: Wed, 09 Jan 2013 15:33:27 -0800
-Message-ID: <20130109233328.42C88100047@wpzn3.hot.corp.google.com>
+Subject: + memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch added to -mm tree
+Date: Wed, 09 Jan 2013 15:33:53 -0800
+Message-ID: <20130109233354.7FE6620004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:34121 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758217Ab3AIXda (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jan 2013 18:33:30 -0500
-Received: by mail-vb0-f74.google.com with SMTP id s24so317038vbi.3
-        for <mm-commits@vger.kernel.org>; Wed, 09 Jan 2013 15:33:29 -0800 (PST)
+Received: from mail-fa0-f73.google.com ([209.85.161.73]:55349 "EHLO
+	mail-fa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758018Ab3AIXd5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jan 2013 18:33:57 -0500
+Received: by mail-fa0-f73.google.com with SMTP id v1so145818fav.2
+        for <mm-commits@vger.kernel.org>; Wed, 09 Jan 2013 15:33:55 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: isimatu.yasuaki@jp.fujitsu.com, hpa@zytor.com, jiang.liu@huawei.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, laijs@cn.fujitsu.com, mingo@elte.hu, tangchen@cn.fujitsu.com, tglx@linutronix.de, wency@cn.fujitsu.com, wujianguo@huawei.com
+Cc: akpm@linux-foundation.org, tangchen@cn.fujitsu.com
 
 
 The patch titled
-     Subject: memory-hotplug: remove /sys/firmware/memmap/X sysfs
+     Subject: memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-remove-sys-firmware-memmap-x-sysfs.patch
+     memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,255 +33,94 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Subject: memory-hotplug: remove /sys/firmware/memmap/X sysfs
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix
 
-When (hot)adding memory into system, /sys/firmware/memmap/X/{end, start,
-type} sysfs files are created.  But there is no code to remove these
-files.  The patch implements the function to remove them.
+fix typo in comment
 
-Note: The code does not free firmware_map_entry which is allocated
-      by bootmem.  So the patch adds a memory leak.  But I think the
-      memory leak size is very small.  And it does not affect the system.
-
-Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
-Signed-off-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Reviewed-by: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Jiang Liu <jiang.liu@huawei.com>
-Cc: Jianguo Wu <wujianguo@huawei.com>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
 Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/memmap.c    |   96 ++++++++++++++++++++++++++++++++-
- include/linux/firmware-map.h |    6 ++
- mm/memory_hotplug.c          |    5 +
- 3 files changed, 104 insertions(+), 3 deletions(-)
+ arch/x86/mm/init_64.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/firmware/memmap.c~memory-hotplug-remove-sys-firmware-memmap-x-sysfs drivers/firmware/memmap.c
---- a/drivers/firmware/memmap.c~memory-hotplug-remove-sys-firmware-memmap-x-sysfs
-+++ a/drivers/firmware/memmap.c
-@@ -21,6 +21,7 @@
- #include <linux/types.h>
- #include <linux/bootmem.h>
- #include <linux/slab.h>
-+#include <linux/mm.h>
- 
- /*
-  * Data types ------------------------------------------------------------------
-@@ -79,7 +80,26 @@ static const struct sysfs_ops memmap_att
- 	.show = memmap_attr_show,
- };
- 
-+
-+static inline struct firmware_map_entry *
-+to_memmap_entry(struct kobject *kobj)
-+{
-+	return container_of(kobj, struct firmware_map_entry, kobj);
-+}
-+
-+static void release_firmware_map_entry(struct kobject *kobj)
-+{
-+	struct firmware_map_entry *entry = to_memmap_entry(kobj);
-+
-+	if (PageReserved(virt_to_page(entry)))
-+		/* There is no way to free memory allocated from bootmem */
-+		return;
-+
-+	kfree(entry);
-+}
-+
- static struct kobj_type memmap_ktype = {
-+	.release	= release_firmware_map_entry,
- 	.sysfs_ops	= &memmap_attr_ops,
- 	.default_attrs	= def_attrs,
- };
-@@ -94,6 +114,7 @@ static struct kobj_type memmap_ktype = {
-  * in firmware initialisation code in one single thread of execution.
-  */
- static LIST_HEAD(map_entries);
-+static DEFINE_SPINLOCK(map_entries_lock);
- 
- /**
-  * firmware_map_add_entry() - Does the real work to add a firmware memmap entry.
-@@ -118,11 +139,25 @@ static int firmware_map_add_entry(u64 st
- 	INIT_LIST_HEAD(&entry->list);
- 	kobject_init(&entry->kobj, &memmap_ktype);
- 
-+	spin_lock(&map_entries_lock);
- 	list_add_tail(&entry->list, &map_entries);
-+	spin_unlock(&map_entries_lock);
- 
- 	return 0;
- }
- 
-+/**
-+ * firmware_map_remove_entry() - Does the real work to remove a firmware
-+ * memmap entry.
-+ * @entry: removed entry.
-+ **/
-+static inline void firmware_map_remove_entry(struct firmware_map_entry *entry)
-+{
-+	spin_lock(&map_entries_lock);
-+	list_del(&entry->list);
-+	spin_unlock(&map_entries_lock);
-+}
-+
- /*
-  * Add memmap entry on sysfs
-  */
-@@ -144,6 +179,35 @@ static int add_sysfs_fw_map_entry(struct
- 	return 0;
- }
- 
-+/*
-+ * Remove memmap entry on sysfs
-+ */
-+static inline void remove_sysfs_fw_map_entry(struct firmware_map_entry *entry)
-+{
-+	kobject_put(&entry->kobj);
-+}
-+
-+/*
-+ * Search memmap entry
-+ */
-+
-+static struct firmware_map_entry * __meminit
-+firmware_map_find_entry(u64 start, u64 end, const char *type)
-+{
-+	struct firmware_map_entry *entry;
-+
-+	spin_lock(&map_entries_lock);
-+	list_for_each_entry(entry, &map_entries, list)
-+		if ((entry->start == start) && (entry->end == end) &&
-+		    (!strcmp(entry->type, type))) {
-+			spin_unlock(&map_entries_lock);
-+			return entry;
-+		}
-+
-+	spin_unlock(&map_entries_lock);
-+	return NULL;
-+}
-+
- /**
-  * firmware_map_add_hotplug() - Adds a firmware mapping entry when we do
-  * memory hotplug.
-@@ -196,6 +260,32 @@ int __init firmware_map_add_early(u64 st
- 	return firmware_map_add_entry(start, end, type, entry);
- }
- 
-+/**
-+ * firmware_map_remove() - remove a firmware mapping entry
-+ * @start: Start of the memory range.
-+ * @end:   End of the memory range.
-+ * @type:  Type of the memory range.
-+ *
-+ * removes a firmware mapping entry.
-+ *
-+ * Returns 0 on success, or -EINVAL if no entry.
-+ **/
-+int __meminit firmware_map_remove(u64 start, u64 end, const char *type)
-+{
-+	struct firmware_map_entry *entry;
-+
-+	entry = firmware_map_find_entry(start, end - 1, type);
-+	if (!entry)
-+		return -EINVAL;
-+
-+	firmware_map_remove_entry(entry);
-+
-+	/* remove the memmap entry */
-+	remove_sysfs_fw_map_entry(entry);
-+
-+	return 0;
-+}
-+
- /*
-  * Sysfs functions -------------------------------------------------------------
-  */
-@@ -217,8 +307,10 @@ static ssize_t type_show(struct firmware
- 	return snprintf(buf, PAGE_SIZE, "%s\n", entry->type);
- }
- 
--#define to_memmap_attr(_attr) container_of(_attr, struct memmap_attribute, attr)
--#define to_memmap_entry(obj) container_of(obj, struct firmware_map_entry, kobj)
-+static inline struct memmap_attribute *to_memmap_attr(struct attribute *attr)
-+{
-+	return container_of(attr, struct memmap_attribute, attr);
-+}
- 
- static ssize_t memmap_attr_show(struct kobject *kobj,
- 				struct attribute *attr, char *buf)
-diff -puN include/linux/firmware-map.h~memory-hotplug-remove-sys-firmware-memmap-x-sysfs include/linux/firmware-map.h
---- a/include/linux/firmware-map.h~memory-hotplug-remove-sys-firmware-memmap-x-sysfs
-+++ a/include/linux/firmware-map.h
-@@ -25,6 +25,7 @@
- 
- int firmware_map_add_early(u64 start, u64 end, const char *type);
- int firmware_map_add_hotplug(u64 start, u64 end, const char *type);
-+int firmware_map_remove(u64 start, u64 end, const char *type);
- 
- #else /* CONFIG_FIRMWARE_MEMMAP */
- 
-@@ -38,6 +39,11 @@ static inline int firmware_map_add_hotpl
- 	return 0;
- }
- 
-+static inline int firmware_map_remove(u64 start, u64 end, const char *type)
-+{
-+	return 0;
-+}
-+
- #endif /* CONFIG_FIRMWARE_MEMMAP */
- 
- #endif /* _LINUX_FIRMWARE_MAP_H */
-diff -puN mm/memory_hotplug.c~memory-hotplug-remove-sys-firmware-memmap-x-sysfs mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory-hotplug-remove-sys-firmware-memmap-x-sysfs
-+++ a/mm/memory_hotplug.c
-@@ -1460,7 +1460,7 @@ static int is_memblock_offlined_cb(struc
- 	return ret;
- }
- 
--int remove_memory(u64 start, u64 size)
-+int __ref remove_memory(u64 start, u64 size)
- {
- 	unsigned long start_pfn, end_pfn;
- 	int ret = 0;
-@@ -1510,6 +1510,9 @@ repeat:
- 		return ret;
- 	}
- 
-+	/* remove memmap entry */
-+	firmware_map_remove(start, start + size, "System RAM");
-+
- 	unlock_memory_hotplug();
- 
- 	return 0;
+diff -puN arch/x86/mm/init_64.c~memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix
++++ a/arch/x86/mm/init_64.c
+@@ -815,7 +815,7 @@ remove_pte_table(pte_t *pte_start, unsig
+ 		} else {
+ 			/*
+ 			 * If we are not removing the whole page, it means
+-			 * other ptes in this page are being used and we canot
++			 * other ptes in this page are being used and we cannot
+ 			 * remove them. So fill the unused ptes with 0xFD, and
+ 			 * remove the page when it is wholly filled with 0xFD.
+ 			 */
 _
 
-Patches currently in -mm which might be from isimatu.yasuaki@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-x86-fix-the-argument-passed-to-sync_global_pgds.patch
-x86-make-mem=-option-to-work-for-efi-platform.patch
-memory-hotplug-try-to-offline-the-memory-twice-to-avoid-dependence.patch
-memory-hotplug-check-whether-all-memory-blocks-are-offlined-or-not-when-removing-memory.patch
-memory-hotplug-remove-redundant-codes.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs.patch
-memory-hotplug-introduce-new-arch_remove_memory-for-removing-page-table.patch
-memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap.patch
-memory-hotplug-move-pgdat_resize_lock-into-sparse_remove_one_section.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove.patch
-memory-hotplug-remove-page-table-of-x86_64-architecture.patch
-memory-hotplug-remove-memmap-of-sparse-vmemmap.patch
-memory-hotplug-integrated-__remove_section-of-config_sparsemem_vmemmap.patch
-memory_hotplug-clear-zone-when-removing-the-memory.patch
-memory-hotplug-remove-sysfs-file-of-node.patch
-memory-hotplug-free-node_data-when-a-node-is-offlined.patch
-memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline.patch
+origin.patch
+linux-next.patch
+make-my-i386-build-work.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
+bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
+i-need-old-gcc.patch
+lib-cpu_rmap-avoid-flushing-all-workqueues-fix.patch
+drivers-rtc-rtc-da9055c-fix-cross-section-reference.patch
+arch-mn10300-kconfig-select-config_generic_atomic64.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+kernel-auditc-avoid-negative-sleep-durations.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
+mm.patch
+mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
+mm-hugetlbc-convert-to-pr_foo.patch
+cma-make-putback_lru_pages-call-conditional-fix.patch
+mm-vmscan-clean-up-get_scan_count-fix.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
+mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
+mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
+mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
+mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
+mm-remove-flags-argument-to-mmap_region-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
+memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+kernel-smpc-cleanups.patch
+backlight-add-lms501kf03-lcd-driver-fix.patch
+backlight-add-lms501kf03-lcd-driver-fix-fix.patch
+backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix-fix.patch
+rtc-max77686-add-maxim-77686-driver-fix.patch
+rtc-pcf8523-add-low-battery-voltage-support-fix.patch
+rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
+rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+aio-kiocb_cancel-fix.patch
+wait-add-wait_event_hrtimeout-fix.patch
+aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+generic-dynamic-per-cpu-refcounting-fix.patch
+generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
+generic-dynamic-per-cpu-refcounting-doc-fix.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-dont-include-aioh-in-schedh-fix-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3.patch
+aio-kill-ki_retry-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
+aio-smoosh-struct-kiocb-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
