@@ -1,25 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + lib-rbtreec-uninline-__rb_erase_color.patch added to -mm tree
-Date: Thu, 10 Jan 2013 13:43:48 -0800
-Message-ID: <20130110214350.B5BCB200057@hpza10.eem.corp.google.com>
+Subject: + maintainers-fix-arch-arm-plat-omap-include-plat-omap_hwmodh.patch added to -mm tree
+Date: Thu, 10 Jan 2013 13:46:54 -0800
+Message-ID: <20130110214654.9066C100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:49270 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753660Ab3AJVnx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Jan 2013 16:43:53 -0500
-Received: by mail-wg0-f74.google.com with SMTP id dt14so67069wgb.3
-        for <mm-commits@vger.kernel.org>; Thu, 10 Jan 2013 13:43:52 -0800 (PST)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:45380 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753247Ab3AJVq4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Jan 2013 16:46:56 -0500
+Received: by mail-vb0-f73.google.com with SMTP id l1so136278vba.2
+        for <mm-commits@vger.kernel.org>; Thu, 10 Jan 2013 13:46:55 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, fengguang.wu@intel.com, walken@google.com
+Cc: zhangyanfei@cn.fujitsu.com
 
 
 The patch titled
-     Subject: lib/rbtree.c: uninline __rb_erase_color()
+     Subject: MAINTAINERS: fix arch/arm/plat-omap/include/plat/omap_hwm=
+od.h
 has been added to the -mm tree.  Its filename is
-     lib-rbtreec-uninline-__rb_erase_color.patch
+     maintainers-fix-arch-arm-plat-omap-include-plat-omap_hwmodh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -27,104 +31,51 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib/rbtree.c: uninline __rb_erase_color()
+=46rom: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Subject: MAINTAINERS: fix arch/arm/plat-omap/include/plat/omap_hwmod.h
 
-include/linux/rbtree_augmented.h:123: warning: '__rb_erase_color' declared inline after being called
-include/linux/rbtree_augmented.h:123: warning: previous declaration of '__rb_erase_color' was here
+This file was moved to arch/arm/mach-omap2/omap=3D5Fhwmod.h by 2a296c8
+("ARM: OMAP: Make plat/omap=3D5Fhwmod.h local to mach-omap2").
 
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Michel Lespinasse <walken@google.com>
+Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/rbtree.c |    3 +--
+ MAINTAINERS |    3 +--
  1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN lib/rbtree.c~lib-rbtreec-uninline-__rb_erase_color lib/rbtree.c
---- a/lib/rbtree.c~lib-rbtreec-uninline-__rb_erase_color
-+++ a/lib/rbtree.c
-@@ -194,8 +194,7 @@ __rb_insert(struct rb_node *node, struct
- 	}
- }
- 
--__always_inline void
--__rb_erase_color(struct rb_node *parent, struct rb_root *root,
-+void __rb_erase_color(struct rb_node *parent, struct rb_root *root,
- 	void (*augment_rotate)(struct rb_node *old, struct rb_node *new))
- {
- 	struct rb_node *node = NULL, *sibling, *tmp1, *tmp2;
+diff -puN MAINTAINERS~maintainers-fix-arch-arm-plat-omap-include-plat-o=
+map_hwmodh MAINTAINERS
+--- a/MAINTAINERS~maintainers-fix-arch-arm-plat-omap-include-plat-omap_=
+hwmodh
++++ a/MAINTAINERS
+@@ -5679,8 +5679,7 @@ M:	Beno=C3=AEt Cousson <b-cousson@ti.com>
+ M:	Paul Walmsley <paul@pwsan.com>
+ L:	linux-omap@vger.kernel.org
+ S:	Maintained
+-F:	arch/arm/mach-omap2/omap_hwmod.c
+-F:	arch/arm/plat-omap/include/plat/omap_hwmod.h
++F:	arch/arm/mach-omap2/omap_hwmod.*
+=20
+ OMAP HWMOD DATA FOR OMAP4-BASED DEVICES
+ M:	Beno=C3=AEt Cousson <b-cousson@ti.com>
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com=
+ are
 
-linux-next.patch
-make-my-i386-build-work.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
-bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
-i-need-old-gcc.patch
-lib-cpu_rmap-avoid-flushing-all-workqueues-fix.patch
-drivers-rtc-rtc-da9055c-fix-cross-section-reference.patch
-arch-mn10300-kconfig-select-config_generic_atomic64.patch
-lib-rbtreec-uninline-__rb_erase_color.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-kernel-auditc-avoid-negative-sleep-durations.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
-mm.patch
-mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
-mm-hugetlbc-convert-to-pr_foo.patch
-cma-make-putback_lru_pages-call-conditional-fix.patch
-mm-vmscan-clean-up-get_scan_count-fix.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
-mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
-mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
-mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
-mm-remove-flags-argument-to-mmap_region-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
-memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
-mm-forcibly-swapout-when-we-are-out-of-page-cache-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-kernel-smpc-cleanups.patch
-backlight-add-lms501kf03-lcd-driver-fix.patch
-backlight-add-lms501kf03-lcd-driver-fix-fix.patch
-backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix-fix.patch
-rtc-max77686-add-maxim-77686-driver-fix.patch
-rtc-pcf8523-add-low-battery-voltage-support-fix.patch
-rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
-rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
-drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-aio-smoosh-struct-kiocb-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+maintainers-fix-arch-arm-plat-omap-include-plat-omap_hwmodh.patch
+maintainers-fix-a-status-pattern.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
