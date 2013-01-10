@@ -1,30 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-swap-out-anonymous-page-regardless-of-laptop_mode.patch removed from -mm tree
-Date: Wed, 09 Jan 2013 15:59:27 -0800
-Message-ID: <20130109235927.F1AD2200057@hpza10.eem.corp.google.com>
+Subject: + mm-prevent-addition-of-pages-to-swap-if-may_writepage-is-unset.patch added to -mm tree
+Date: Wed, 09 Jan 2013 16:26:15 -0800
+Message-ID: <20130110002616.5B47382004A__8922.67543026737$1357777607$gmane$org@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:36329 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932118Ab3AIX7b (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jan 2013 18:59:31 -0500
-Received: by mail-wg0-f74.google.com with SMTP id dt14so146929wgb.1
-        for <mm-commits@vger.kernel.org>; Wed, 09 Jan 2013 15:59:30 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:45493 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932321Ab3AJA0R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jan 2013 19:26:17 -0500
+Received: by mail-yh0-f74.google.com with SMTP id w68so323697yhw.1
+        for <mm-commits@vger.kernel.org>; Wed, 09 Jan 2013 16:26:17 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, bfreed@google.com, dan.magenheimer@oracle.com, hannes@cmpxchg.org, hughd@google.com, mgorman@suse.de, riel@redhat.com, semenzato@google.com, sonnyrao@google.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: minchan@kernel.org, bfreed@google.com, dan.magenheimer@oracle.com, hannes@cmpxchg.org, hughd@google.com, mel@csn.ul.ie, riel@redhat.com, semenzato@google.com, sonnyrao@google.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: swap out anonymous page regardless of laptop_mode
-has been removed from the -mm tree.  Its filename was
-     mm-swap-out-anonymous-page-regardless-of-laptop_mode.patch
+     Subject: mm: prevent addition of pages to swap if may_writepage is unset
+has been added to the -mm tree.  Its filename is
+     mm-prevent-addition-of-pages-to-swap-if-may_writepage-is-unset.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: mm: swap out anonymous page regardless of laptop_mode
+Subject: mm: prevent addition of pages to swap if may_writepage is unset
 
 Recently, Luigi reported there are lots of free swap space when OOM
 happens.  It's easily reproduced on zram-over-swap, where many instance of
@@ -42,16 +52,16 @@ SwapCache pages.
 In case of that, isolate_lru_pages fails because it try to isolate clean
 page due to may_writepage == 0.
 
-may_writepage could be 1 only if total_scanned is higher than
+The may_writepage could be 1 only if total_scanned is higher than
 writeback_threshold in do_try_to_free_pages but unfortunately, VM can't
 isolate anon pages from inactive anon lru list by above reason and we
 already reclaimed all file-backed pages.  So it ends up OOM killing.
 
-This patch makes may_writepage could be set when shrink_inactive_list
-encounters SwapCachePage from tail of inactive anon LRU.  What it means
-that anon LRU list is short and memory pressure is severe so it would be
-better to swap out that pages by sacrificing the power rather than OOM
-killing.
+This patch prevents unnecessary addition of a page to swap cache when
+may_writepage is unset so anoymous lru list isn't full of Dirty/Swapcache
+page.  So the VM can isolate pages from anon lru list, which ends up
+setting may_writepage to 1 and could swap out anon lru pages.  When OOM
+triggers, I confirmed swap space was full.
 
 Signed-off-by: Minchan Kim <minchan@kernel.org>
 Reported-by: Luigi Semenzato <semenzato@google.com>
@@ -60,44 +70,27 @@ Cc: Sonny Rao <sonnyrao@google.com>
 Cc: Bryan Freed <bfreed@google.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ mm/vmscan.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/vmscan.c~mm-swap-out-anonymous-page-regardless-of-laptop_mode mm/vmscan.c
---- a/mm/vmscan.c~mm-swap-out-anonymous-page-regardless-of-laptop_mode
+diff -puN mm/vmscan.c~mm-prevent-addition-of-pages-to-swap-if-may_writepage-is-unset mm/vmscan.c
+--- a/mm/vmscan.c~mm-prevent-addition-of-pages-to-swap-if-may_writepage-is-unset
 +++ a/mm/vmscan.c
-@@ -1102,7 +1102,7 @@ static unsigned long isolate_lru_pages(u
- 		prefetchw_prev_lru_page(page, src, flags);
- 
- 		VM_BUG_ON(!PageLRU(page));
--
-+retry:
- 		switch (__isolate_lru_page(page, mode)) {
- 		case 0:
- 			nr_pages = hpage_nr_pages(page);
-@@ -1112,6 +1112,17 @@ static unsigned long isolate_lru_pages(u
- 			break;
- 
- 		case -EBUSY:
-+			/*
-+			 * If VM encounters PageSwapCache from inactive LRU,
-+			 * it means we havd to swap out those pages regardless
-+			 * of laptop_mode for preventing OOM kill.
-+			 */
-+			if ((mode & ISOLATE_CLEAN) && PageSwapCache(page) &&
-+				!PageActive(page)) {
-+				mode &= ~ISOLATE_CLEAN;
-+				sc->may_writepage = 1;
-+				goto retry;
-+			}
- 			/* else it is being freed elsewhere */
- 			list_move(&page->lru, src);
- 			continue;
+@@ -780,6 +780,8 @@ static unsigned long shrink_page_list(st
+ 		if (PageAnon(page) && !PageSwapCache(page)) {
+ 			if (!(sc->gfp_mask & __GFP_IO))
+ 				goto keep_locked;
++			if (!sc->may_writepage)
++				goto keep_locked;
+ 			if (!add_to_swap(page))
+ 				goto activate_locked;
+ 			may_enter_fs = 1;
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
@@ -105,6 +98,9 @@ Patches currently in -mm which might be from minchan@kernel.org are
 origin.patch
 mm-compaction-fix-echo-1-compact_memory-return-error-issue.patch
 mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
+mm-prevent-addition-of-pages-to-swap-if-may_writepage-is-unset.patch
+mm-forcibly-swapout-when-we-are-out-of-page-cache.patch
+mm-forcibly-swapout-when-we-are-out-of-page-cache-fix.patch
 mm-add-vm-event-counters-for-balloon-pages-compaction.patch
 block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix.patch
 
