@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-forcibly-swapout-when-we-are-out-of-page-cache-fix.patch added to -mm tree
-Date: Wed, 09 Jan 2013 16:26:21 -0800
-Message-ID: <20130110002622.4162D82004A@wpzn4.hot.corp.google.com>
+Subject: + lib-rbtreec-uninline-__rb_erase_color.patch added to -mm tree
+Date: Thu, 10 Jan 2013 13:43:48 -0800
+Message-ID: <20130110214350.B5BCB200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:64172 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932321Ab3AJA0X (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Jan 2013 19:26:23 -0500
-Received: by mail-vb0-f74.google.com with SMTP id s24so323447vbi.5
-        for <mm-commits@vger.kernel.org>; Wed, 09 Jan 2013 16:26:23 -0800 (PST)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:49270 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753660Ab3AJVnx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Jan 2013 16:43:53 -0500
+Received: by mail-wg0-f74.google.com with SMTP id dt14so67069wgb.3
+        for <mm-commits@vger.kernel.org>; Thu, 10 Jan 2013 13:43:52 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bfreed@google.com, dan.magenheimer@oracle.com, hannes@cmpxchg.org, hughd@google.com, mel@csn.ul.ie, minchan@kernel.org, riel@redhat.com, semenzato@google.com, sonnyrao@google.com
+Cc: akpm@linux-foundation.org, fengguang.wu@intel.com, walken@google.com
 
 
 The patch titled
-     Subject: mm-forcibly-swapout-when-we-are-out-of-page-cache-fix
+     Subject: lib/rbtree.c: uninline __rb_erase_color()
 has been added to the -mm tree.  Its filename is
-     mm-forcibly-swapout-when-we-are-out-of-page-cache-fix.patch
+     lib-rbtreec-uninline-__rb_erase_color.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-forcibly-swapout-when-we-are-out-of-page-cache-fix
+Subject: lib/rbtree.c: uninline __rb_erase_color()
 
-tweak comment
+include/linux/rbtree_augmented.h:123: warning: '__rb_erase_color' declared inline after being called
+include/linux/rbtree_augmented.h:123: warning: previous declaration of '__rb_erase_color' was here
 
-Cc: Bryan Freed <bfreed@google.com>
-Cc: Dan Magenheimer <dan.magenheimer@oracle.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Luigi Semenzato <semenzato@google.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Sonny Rao <sonnyrao@google.com>
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Michel Lespinasse <walken@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ lib/rbtree.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~mm-forcibly-swapout-when-we-are-out-of-page-cache-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-forcibly-swapout-when-we-are-out-of-page-cache-fix
-+++ a/mm/vmscan.c
-@@ -1729,9 +1729,8 @@ static void get_scan_count(struct lruvec
- 		if (unlikely(file + free <= high_wmark_pages(zone))) {
- 			scan_balance = SCAN_ANON;
- 			/*
--			 * From now on, we have to swap out
--			 * for peventing OOM kill although
--			 * we sacrifice power consumption.
-+			 * Force writeout even in laptop mode, as consuming
-+			 * some more energy is preferable to declaring oom.
- 			 */
- 			sc->may_writepage = 1;
- 			goto out;
+diff -puN lib/rbtree.c~lib-rbtreec-uninline-__rb_erase_color lib/rbtree.c
+--- a/lib/rbtree.c~lib-rbtreec-uninline-__rb_erase_color
++++ a/lib/rbtree.c
+@@ -194,8 +194,7 @@ __rb_insert(struct rb_node *node, struct
+ 	}
+ }
+ 
+-__always_inline void
+-__rb_erase_color(struct rb_node *parent, struct rb_root *root,
++void __rb_erase_color(struct rb_node *parent, struct rb_root *root,
+ 	void (*augment_rotate)(struct rb_node *old, struct rb_node *new))
+ {
+ 	struct rb_node *node = NULL, *sibling, *tmp1, *tmp2;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
 linux-next.patch
 make-my-i386-build-work.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
@@ -82,6 +73,7 @@ i-need-old-gcc.patch
 lib-cpu_rmap-avoid-flushing-all-workqueues-fix.patch
 drivers-rtc-rtc-da9055c-fix-cross-section-reference.patch
 arch-mn10300-kconfig-select-config_generic_atomic64.patch
+lib-rbtreec-uninline-__rb_erase_color.patch
 arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
 kernel-auditc-avoid-negative-sleep-durations.patch
 fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
