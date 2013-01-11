@@ -1,118 +1,162 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] lib-rbtreec-uninline-__rb_erase_color.patch removed from -mm tree
-Date: Fri, 11 Jan 2013 13:24:26 -0800
-Message-ID: <20130111212428.264A8200061@hpza10.eem.corp.google.com>
+Subject: + lib-rbtreec-avoid-the-use-of-non-static-__always_inline.patch added to -mm tree
+Date: Fri, 11 Jan 2013 13:25:13 -0800
+Message-ID: <20130111212514.24EF820004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f74.google.com ([209.85.161.74]:47216 "EHLO
-	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754261Ab3AKVYb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Jan 2013 16:24:31 -0500
-Received: by mail-fa0-f74.google.com with SMTP id t1so133139fae.3
-        for <mm-commits@vger.kernel.org>; Fri, 11 Jan 2013 13:24:30 -0800 (PST)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:53477 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754261Ab3AKVZQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Jan 2013 16:25:16 -0500
+Received: by mail-wg0-f74.google.com with SMTP id dt14so133329wgb.5
+        for <mm-commits@vger.kernel.org>; Fri, 11 Jan 2013 13:25:15 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fengguang.wu@intel.com, walken@google.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: walken@google.com, fengguang.wu@intel.com
 
 
 The patch titled
-     Subject: lib/rbtree.c: uninline __rb_erase_color()
-has been removed from the -mm tree.  Its filename was
-     lib-rbtreec-uninline-__rb_erase_color.patch
+     Subject: lib/rbtree.c: avoid the use of non-static __always_inline
+has been added to the -mm tree.  Its filename is
+     lib-rbtreec-avoid-the-use-of-non-static-__always_inline.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib/rbtree.c: uninline __rb_erase_color()
+From: Michel Lespinasse <walken@google.com>
+Subject: lib/rbtree.c: avoid the use of non-static __always_inline
 
-include/linux/rbtree_augmented.h:123: warning: '__rb_erase_color' declared inline after being called
-include/linux/rbtree_augmented.h:123: warning: previous declaration of '__rb_erase_color' was here
+lib/rbtree.c declared __rb_erase_color() as __always_inline void, and then
+exported it with EXPORT_SYMBOL.  This was because __rb_erase_color() must
+be exported for augmented rbtree users, but it must also be inlined into
+rb_erase() so that the dummy callback can get optimized out of that call
+site.
 
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Michel Lespinasse <walken@google.com>
+(Actually with a modern compiler, none of the dummy callback functions
+should even be generated as separate text functions).
+
+The above usage is legal C, but it was unusual enough for some compilers
+to warn about it.  This change makes things more explicit, with a static
+__always_inline ____rb_erase_color function for use in rb_erase(), and a
+separate non-inline __rb_erase_color function for use in
+rb_erase_augmented call sites.
+
+Signed-off-by: Michel Lespinasse <walken@google.com>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/rbtree.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/linux/rbtree_augmented.h |   14 +++++++++++---
+ lib/rbtree.c                     |   20 +++++++++++++++++---
+ 2 files changed, 28 insertions(+), 6 deletions(-)
 
-diff -puN lib/rbtree.c~lib-rbtreec-uninline-__rb_erase_color lib/rbtree.c
---- a/lib/rbtree.c~lib-rbtreec-uninline-__rb_erase_color
+diff -puN include/linux/rbtree_augmented.h~lib-rbtreec-avoid-the-use-of-non-static-__always_inline include/linux/rbtree_augmented.h
+--- a/include/linux/rbtree_augmented.h~lib-rbtreec-avoid-the-use-of-non-static-__always_inline
++++ a/include/linux/rbtree_augmented.h
+@@ -123,9 +123,9 @@ __rb_change_child(struct rb_node *old, s
+ extern void __rb_erase_color(struct rb_node *parent, struct rb_root *root,
+ 	void (*augment_rotate)(struct rb_node *old, struct rb_node *new));
+ 
+-static __always_inline void
+-rb_erase_augmented(struct rb_node *node, struct rb_root *root,
+-		   const struct rb_augment_callbacks *augment)
++static __always_inline struct rb_node *
++__rb_erase_augmented(struct rb_node *node, struct rb_root *root,
++		     const struct rb_augment_callbacks *augment)
+ {
+ 	struct rb_node *child = node->rb_right, *tmp = node->rb_left;
+ 	struct rb_node *parent, *rebalance;
+@@ -217,6 +217,14 @@ rb_erase_augmented(struct rb_node *node,
+ 	}
+ 
+ 	augment->propagate(tmp, NULL);
++	return rebalance;
++}
++
++static __always_inline void
++rb_erase_augmented(struct rb_node *node, struct rb_root *root,
++		   const struct rb_augment_callbacks *augment)
++{
++	struct rb_node *rebalance = __rb_erase_augmented(node, root, augment);
+ 	if (rebalance)
+ 		__rb_erase_color(rebalance, root, augment->rotate);
+ }
+diff -puN lib/rbtree.c~lib-rbtreec-avoid-the-use-of-non-static-__always_inline lib/rbtree.c
+--- a/lib/rbtree.c~lib-rbtreec-avoid-the-use-of-non-static-__always_inline
 +++ a/lib/rbtree.c
-@@ -194,8 +194,7 @@ __rb_insert(struct rb_node *node, struct
+@@ -194,8 +194,12 @@ __rb_insert(struct rb_node *node, struct
  	}
  }
  
 -__always_inline void
 -__rb_erase_color(struct rb_node *parent, struct rb_root *root,
-+void __rb_erase_color(struct rb_node *parent, struct rb_root *root,
++/*
++ * Inline version for rb_erase() use - we want to be able to inline
++ * and eliminate the dummy_rotate callback there
++ */
++static __always_inline void
++____rb_erase_color(struct rb_node *parent, struct rb_root *root,
  	void (*augment_rotate)(struct rb_node *old, struct rb_node *new))
  {
  	struct rb_node *node = NULL, *sibling, *tmp1, *tmp2;
+@@ -355,6 +359,13 @@ __rb_erase_color(struct rb_node *parent,
+ 		}
+ 	}
+ }
++
++/* Non-inline version for rb_erase_augmented() use */
++void __rb_erase_color(struct rb_node *parent, struct rb_root *root,
++	void (*augment_rotate)(struct rb_node *old, struct rb_node *new))
++{
++	____rb_erase_color(parent, root, augment_rotate);
++}
+ EXPORT_SYMBOL(__rb_erase_color);
+ 
+ /*
+@@ -380,7 +391,10 @@ EXPORT_SYMBOL(rb_insert_color);
+ 
+ void rb_erase(struct rb_node *node, struct rb_root *root)
+ {
+-	rb_erase_augmented(node, root, &dummy_callbacks);
++	struct rb_node *rebalance;
++	rebalance = __rb_erase_augmented(node, root, &dummy_callbacks);
++	if (rebalance)
++		____rb_erase_color(rebalance, root, dummy_rotate);
+ }
+ EXPORT_SYMBOL(rb_erase);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from walken@google.com are
 
 linux-next.patch
-make-my-i386-build-work.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
-bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
-i-need-old-gcc.patch
-lib-cpu_rmap-avoid-flushing-all-workqueues-fix.patch
-drivers-rtc-rtc-da9055c-fix-cross-section-reference.patch
-arch-mn10300-kconfig-select-config_generic_atomic64.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
-kernel-auditc-avoid-negative-sleep-durations.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-mm.patch
-mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
-mm-hugetlbc-convert-to-pr_foo.patch
-cma-make-putback_lru_pages-call-conditional-fix.patch
-mm-vmscan-clean-up-get_scan_count-fix.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
-mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
-mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
-mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
+lib-rbtreec-avoid-the-use-of-non-static-__always_inline.patch
+mm-make-mlockall-preserve-flags-other-than-vm_locked-in-def_flags.patch
+mm-remap_file_pages-fixes.patch
+mm-introduce-mm_populate-for-populating-new-vmas.patch
+mm-use-mm_populate-for-blocking-remap_file_pages.patch
+mm-use-mm_populate-when-adjusting-brk-with-mcl_future-in-effect.patch
+mm-use-mm_populate-for-mremap-of-vm_locked-vmas.patch
+mm-remove-flags-argument-to-mmap_region.patch
 mm-remove-flags-argument-to-mmap_region-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
-memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-kernel-smpc-cleanups.patch
-backlight-add-lms501kf03-lcd-driver-fix.patch
-backlight-add-lms501kf03-lcd-driver-fix-fix.patch
-backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix-fix.patch
-rtc-max77686-add-maxim-77686-driver-fix.patch
-rtc-pcf8523-add-low-battery-voltage-support-fix.patch
-rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
-rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
-drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-aio-smoosh-struct-kiocb-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-directly-use-__mlock_vma_pages_range-in-find_extend_vma.patch
+mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs.patch
+mm-make-do_mmap_pgoff-return-populate-as-a-size-in-bytes-not-as-a-bool.patch
+mtd-mtd_nandecctest-use-prandom_bytes-instead-of-get_random_bytes.patch
+mtd-mtd_oobtest-convert-to-use-prandom-library.patch
+mtd-mtd_pagetest-convert-to-use-prandom-library.patch
+mtd-mtd_speedtest-use-prandom_bytes.patch
+mtd-mtd_subpagetest-convert-to-use-prandom-library.patch
+mtd-mtd_stresstest-use-prandom_bytes.patch
 mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
 
