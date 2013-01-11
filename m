@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-fsh-disable-preempt-when-acquire-i_size_seqcount-write-lock.patch added to -mm tree
-Date: Thu, 10 Jan 2013 14:38:59 -0800
-Message-ID: <20130110223859.96A41100048@wpzn3.hot.corp.google.com>
+Subject: + mmots-memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix.patch added to -mm tree
+Date: Fri, 11 Jan 2013 12:50:38 -0800
+Message-ID: <20130111205040.6AA3C20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:54910 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753528Ab3AJWjA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Jan 2013 17:39:00 -0500
-Received: by mail-yh0-f74.google.com with SMTP id w68so137688yhw.3
-        for <mm-commits@vger.kernel.org>; Thu, 10 Jan 2013 14:39:00 -0800 (PST)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:35063 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753385Ab3AKUun (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Jan 2013 15:50:43 -0500
+Received: by mail-wg0-f74.google.com with SMTP id dt14so132237wgb.3
+        for <mm-commits@vger.kernel.org>; Fri, 11 Jan 2013 12:50:41 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fan.du@windriver.com
+Cc: mhocko@suse.cz, linfeng@cn.fujitsu.com
 
 
 The patch titled
-     Subject: include/linux/fs.h: disable preempt when acquire i_size_seqcount write lock
+     Subject: mmots-memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix
 has been added to the -mm tree.  Its filename is
-     include-linux-fsh-disable-preempt-when-acquire-i_size_seqcount-write-lock.patch
+     mmots-memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,48 +33,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fan Du <fan.du@windriver.com>
-Subject: include/linux/fs.h: disable preempt when acquire i_size_seqcount write lock
+From: Michal Hocko <mhocko@suse.cz>
+Subject: mmots-memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix
 
-Two rt tasks bind to one CPU core.
+put register_page_bootmem_memmap inside CONFIG_MEMORY_HOTPLUG_SPARSE
 
-The higher priority rt task A preempts a lower priority rt task B which
-has already taken the write seq lock, and then the higher priority rt task
-A try to acquire read seq lock, it's doomed to lockup.
-
-rt task A with lower priority: call write
-i_size_write                                        rt task B with higher priority: call sync, and preempt task A
-  write_seqcount_begin(&inode->i_size_seqcount);    i_size_read
-  inode->i_size = i_size;                             read_seqcount_begin <-- lockup here...
-
-So disable preempt when acquiring every i_size_seqcount *write* lock will
-cure the problem.
-
-Signed-off-by: Fan Du <fan.du@windriver.com>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Tested-by: Lin Feng <linfeng@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |    2 ++
+ arch/x86/mm/init_64.c |    2 ++
  1 file changed, 2 insertions(+)
 
-diff -puN include/linux/fs.h~include-linux-fsh-disable-preempt-when-acquire-i_size_seqcount-write-lock include/linux/fs.h
---- a/include/linux/fs.h~include-linux-fsh-disable-preempt-when-acquire-i_size_seqcount-write-lock
-+++ a/include/linux/fs.h
-@@ -675,9 +675,11 @@ static inline loff_t i_size_read(const s
- static inline void i_size_write(struct inode *inode, loff_t i_size)
+diff -puN arch/x86/mm/init_64.c~mmots-memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~mmots-memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix
++++ a/arch/x86/mm/init_64.c
+@@ -1000,6 +1000,7 @@ vmemmap_populate(struct page *start_page
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_MEMORY_HOTPLUG_SPARSE
+ void register_page_bootmem_memmap(unsigned long section_nr,
+ 				  struct page *start_page, unsigned long size)
  {
- #if BITS_PER_LONG==32 && defined(CONFIG_SMP)
-+	preempt_disable();
- 	write_seqcount_begin(&inode->i_size_seqcount);
- 	inode->i_size = i_size;
- 	write_seqcount_end(&inode->i_size_seqcount);
-+	preempt_enable();
- #elif BITS_PER_LONG==32 && defined(CONFIG_PREEMPT)
- 	preempt_disable();
- 	inode->i_size = i_size;
+@@ -1057,6 +1058,7 @@ void register_page_bootmem_memmap(unsign
+ 		}
+ 	}
+ }
++#endif
+ 
+ void __meminit vmemmap_populate_print_last(void)
+ {
 _
 
-Patches currently in -mm which might be from fan.du@windriver.com are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
-include-linux-fsh-disable-preempt-when-acquire-i_size_seqcount-write-lock.patch
+linux-next.patch
+memcg-oom-provide-more-precise-dump-info-while-memcg-oom-happening.patch
+mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
+mm-hugetlbc-convert-to-pr_foo.patch
+mm-memcg-only-evict-file-pages-when-we-have-plenty.patch
+mm-vmscan-save-work-scanning-almost-empty-lru-lists.patch
+mm-vmscan-clarify-how-swappiness-highest-priority-memcg-interact.patch
+mm-vmscan-improve-comment-on-low-page-cache-handling.patch
+mm-vmscan-clean-up-get_scan_count.patch
+mm-vmscan-clean-up-get_scan_count-fix.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
+mm-reduce-rmap-overhead-for-ex-ksm-page-copies-created-on-swap-faults.patch
+mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
+mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
+mmksm-use-new-hashtable-implementation.patch
+memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pages.patch
+mmots-memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs.patch
 
