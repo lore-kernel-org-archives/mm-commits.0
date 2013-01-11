@@ -1,68 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-omar-had-moved.patch added to -mm tree
-Date: Fri, 11 Jan 2013 13:17:51 -0800
-Message-ID: <20130111211752.202A9200057@hpza10.eem.corp.google.com>
+Subject: [to-be-updated] lib-rbtreec-uninline-__rb_erase_color.patch removed from -mm tree
+Date: Fri, 11 Jan 2013 13:24:26 -0800
+Message-ID: <20130111212428.264A8200061@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wi0-f201.google.com ([209.85.212.201]:39219 "EHLO
-	mail-wi0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755021Ab3AKVRy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Jan 2013 16:17:54 -0500
-Received: by mail-wi0-f201.google.com with SMTP id hm2so8540wib.0
-        for <mm-commits@vger.kernel.org>; Fri, 11 Jan 2013 13:17:53 -0800 (PST)
+Received: from mail-fa0-f74.google.com ([209.85.161.74]:47216 "EHLO
+	mail-fa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754261Ab3AKVYb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Jan 2013 16:24:31 -0500
+Received: by mail-fa0-f74.google.com with SMTP id t1so133139fae.3
+        for <mm-commits@vger.kernel.org>; Fri, 11 Jan 2013 13:24:30 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: gang.chen@asianux.com, davem@davemloft.net, gregkh@linuxfoundation.org, omar.ramirez@copitl.com, omar.ramirez@ti.com
+To: akpm@linux-foundation.org, fengguang.wu@intel.com, walken@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: Omar had moved
-has been added to the -mm tree.  Its filename is
-     maintainers-omar-had-moved.patch
+     Subject: lib/rbtree.c: uninline __rb_erase_color()
+has been removed from the -mm tree.  Its filename was
+     lib-rbtreec-uninline-__rb_erase_color.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Chen Gang <gang.chen@asianux.com>
-Subject: MAINTAINERS: Omar had moved
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib/rbtree.c: uninline __rb_erase_color()
 
-Signed-off-by: Chen Gang <gang.chen@asianux.com>
-Cc: Omar Ramirez Luna <omar.ramirez@ti.com>
-Cc: Omar Ramirez Luna <omar.ramirez@copitl.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: Greg KH <gregkh@linuxfoundation.org>
+include/linux/rbtree_augmented.h:123: warning: '__rb_erase_color' declared inline after being called
+include/linux/rbtree_augmented.h:123: warning: previous declaration of '__rb_erase_color' was here
+
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Michel Lespinasse <walken@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/rbtree.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-omar-had-moved MAINTAINERS
---- a/MAINTAINERS~maintainers-omar-had-moved
-+++ a/MAINTAINERS
-@@ -7552,7 +7552,7 @@ S:	Odd Fixes
- F:	drivers/staging/speakup/
+diff -puN lib/rbtree.c~lib-rbtreec-uninline-__rb_erase_color lib/rbtree.c
+--- a/lib/rbtree.c~lib-rbtreec-uninline-__rb_erase_color
++++ a/lib/rbtree.c
+@@ -194,8 +194,7 @@ __rb_insert(struct rb_node *node, struct
+ 	}
+ }
  
- STAGING - TI DSP BRIDGE DRIVERS
--M:	Omar Ramirez Luna <omar.ramirez@ti.com>
-+M:	Omar Ramirez Luna <omar.ramirez@copitl.com>
- S:	Odd Fixes
- F:	drivers/staging/tidspbridge/
- 
+-__always_inline void
+-__rb_erase_color(struct rb_node *parent, struct rb_root *root,
++void __rb_erase_color(struct rb_node *parent, struct rb_root *root,
+ 	void (*augment_rotate)(struct rb_node *old, struct rb_node *new))
+ {
+ 	struct rb_node *node = NULL, *sibling, *tmp1, *tmp2;
 _
 
-Patches currently in -mm which might be from gang.chen@asianux.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 linux-next.patch
-maintainers-omar-had-moved.patch
+make-my-i386-build-work.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
+bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
+i-need-old-gcc.patch
+lib-cpu_rmap-avoid-flushing-all-workqueues-fix.patch
+drivers-rtc-rtc-da9055c-fix-cross-section-reference.patch
+arch-mn10300-kconfig-select-config_generic_atomic64.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover-fix-2.patch
+kernel-auditc-avoid-negative-sleep-durations.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+mm.patch
+mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
+mm-hugetlbc-convert-to-pr_foo.patch
+cma-make-putback_lru_pages-call-conditional-fix.patch
+mm-vmscan-clean-up-get_scan_count-fix.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
+mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
+mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
+mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
+mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
+mm-remove-flags-argument-to-mmap_region-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
+memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+kernel-smpc-cleanups.patch
+backlight-add-lms501kf03-lcd-driver-fix.patch
+backlight-add-lms501kf03-lcd-driver-fix-fix.patch
+backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix-fix.patch
+rtc-max77686-add-maxim-77686-driver-fix.patch
+rtc-pcf8523-add-low-battery-voltage-support-fix.patch
+rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
+rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+aio-kiocb_cancel-fix.patch
+wait-add-wait_event_hrtimeout-fix.patch
+aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+generic-dynamic-per-cpu-refcounting-fix.patch
+generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
+generic-dynamic-per-cpu-refcounting-doc-fix.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-dont-include-aioh-in-schedh-fix-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3.patch
+aio-kill-ki_retry-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
+aio-smoosh-struct-kiocb-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
