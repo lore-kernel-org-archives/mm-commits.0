@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-add-support-for-spi-rtc-rx4581-fix.patch added to -mm tree
-Date: Mon, 14 Jan 2013 14:42:03 -0800
-Message-ID: <20130114224203.A642082004A@wpzn4.hot.corp.google.com>
+Subject: + nilfs2-fix-fix-very-long-mount-time-issue.patch added to -mm tree
+Date: Mon, 14 Jan 2013 15:00:48 -0800
+Message-ID: <20130114230048.CE0AA100047__1544.91600483215$1358204479$gmane$org@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:35846 "EHLO
+Received: from mail-qc0-f201.google.com ([209.85.216.201]:59868 "EHLO
 	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756216Ab3ANWmF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Jan 2013 17:42:05 -0500
-Received: by mail-qc0-f201.google.com with SMTP id a6so557112qch.0
-        for <mm-commits@vger.kernel.org>; Mon, 14 Jan 2013 14:42:04 -0800 (PST)
+	with ESMTP id S1756118Ab3ANXAu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Jan 2013 18:00:50 -0500
+Received: by mail-qc0-f201.google.com with SMTP id a6so560100qch.0
+        for <mm-commits@vger.kernel.org>; Mon, 14 Jan 2013 15:00:49 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: torbenh@linutronix.de, dan.carpenter@oracle.com
+Cc: slava@dubeyko.com, konishi.ryusuke@lab.ntt.co.jp, splavgm@gmail.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc rx4581: change err type from unsigned char to int in get_datetime()
+     Subject: nilfs2: fix fix very long mount time issue
 has been added to the -mm tree.  Its filename is
-     rtc-add-support-for-spi-rtc-rx4581-fix.patch
+     nilfs2-fix-fix-very-long-mount-time-issue.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +33,86 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Torben Hohn <torbenh@linutronix.de>
-Subject: rtc rx4581: change err type from unsigned char to int in get_datetime()
+From: Vyacheslav Dubeyko <slava@dubeyko.com>
+Subject: nilfs2: fix fix very long mount time issue
 
-in response to these warnings posted by dan.carpenter@oracle.com:
+There exists a situation when GC can work in background alone without any
+other filesystem activity during significant time.  The
+nilfs_clean_segments() method calls nilfs_segctor_construct() that updates
+superblocks in the case of NILFS_SC_SUPER_ROOT and THE_NILFS_DISCONTINUED
+flags are set.  But when GC is working alone the nilfs_clean_segments() is
+called with unset THE_NILFS_DISCONTINUED flag.  As a result, the update of
+superblocks doesn't occurred all this time and in the case of SPOR
+superblocks keep very old values of last super root placement.
 
-New smatch warnings:
-drivers/rtc/rtc-rx4581.c:134 rx4581_get_datetime() warn: unsigned 'err' is never less than zero.
+SYMPTOMS:
 
-Old smatch warnings:
-drivers/rtc/rtc-rx4581.c:175 rx4581_get_datetime() warn: unsigned 'err' is never less than zero.
+Trying to mount a NILFS2 volume after SPOR in such environment ends with
+very long mounting time (it can achieve about several hours in some
+cases).
 
-Signed-off-by: Torben Hohn <torbenh@linutronix.de>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+REPRODUCING PATH:
+
+1. It needs to use external USB HDD, disable automount and doesn't
+   make any additional filesystem activity on the NILFS2 volume.
+
+2. Generate temporary file with size about 100 - 500 GB (for example,
+   dd if=/dev/zero of=<file_name> bs=1073741824 count=200).  The size of
+   file defines duration of GC working.
+
+3. Then it needs to delete file.
+
+4. Start GC manually by means of command "nilfs-clean -p 0".  When you
+   start GC by means of such way then, at the end, superblocks is updated
+   by once.  So, for simulation of SPOR, it needs to wait sometime (15 -
+   40 minutes) and simply switch off USB HDD manually.
+
+5. Switch on USB HDD again and try to mount NILFS2 volume.  As a
+   result, NILFS2 volume will mount during very long time.
+
+REPRODUCIBILITY: 100%
+
+FIX:
+
+This patch adds checking that superblocks need to update and set
+THE_NILFS_DISCONTINUED flag before nilfs_clean_segments() call.
+
+Reported-by: Sergey Alexandrov <splavgm@gmail.com>
+Signed-off-by: Vyacheslav Dubeyko <slava@dubeyko.com>
+Tested-by: Vyacheslav Dubeyko <slava@dubeyko.com>
+Acked-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Tested-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rx4581.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/nilfs2/ioctl.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-rx4581.c~rtc-add-support-for-spi-rtc-rx4581-fix drivers/rtc/rtc-rx4581.c
---- a/drivers/rtc/rtc-rx4581.c~rtc-add-support-for-spi-rtc-rx4581-fix
-+++ a/drivers/rtc/rtc-rx4581.c
-@@ -103,7 +103,8 @@ static int rx4581_get_datetime(struct de
- {
- 	struct spi_device *spi = to_spi_device(dev);
- 	unsigned char date[7];
--	unsigned char data, err;
-+	unsigned char data;
-+	int err;
+diff -puN fs/nilfs2/ioctl.c~nilfs2-fix-fix-very-long-mount-time-issue fs/nilfs2/ioctl.c
+--- a/fs/nilfs2/ioctl.c~nilfs2-fix-fix-very-long-mount-time-issue
++++ a/fs/nilfs2/ioctl.c
+@@ -664,8 +664,11 @@ static int nilfs_ioctl_clean_segments(st
+ 	if (ret < 0)
+ 		printk(KERN_ERR "NILFS: GC failed during preparation: "
+ 			"cannot read source blocks: err=%d\n", ret);
+-	else
++	else {
++		if (nilfs_sb_need_update(nilfs))
++			set_nilfs_discontinued(nilfs);
+ 		ret = nilfs_clean_segments(inode->i_sb, argv, kbufs);
++	}
  
- 	/* First we ensure that the "update flag" is not set, we read the
- 	 * time and date then re-read the "update flag". If the update flag
+ 	nilfs_remove_all_gcinodes(nilfs);
+ 	clear_nilfs_gc_running(nilfs);
 _
 
-Patches currently in -mm which might be from torbenh@linutronix.de are
+Patches currently in -mm which might be from slava@dubeyko.com are
 
-rtc-add-support-for-spi-rtc-rx4581.patch
-rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
-rtc-add-support-for-spi-rtc-rx4581-fix.patch
+nilfs2-fix-fix-very-long-mount-time-issue.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+hfsplus-add-on-disk-layout-declarations-related-to-attributes-tree.patch
+hfsplus-add-functionality-of-manipulating-by-records-in-attributes-tree.patch
+hfsplus-rework-functionality-of-getting-setting-and-deleting-of-extended-attributes.patch
+hfsplus-add-support-of-manipulation-by-attributes-file.patch
 
