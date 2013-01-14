@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + page_alloc-introduce-zone_movable_limit-to-keep-movable-limit-for-nodes.patch added to -mm tree
-Date: Mon, 14 Jan 2013 14:35:42 -0800
-Message-ID: <20130114223543.9D38320004E@hpza10.eem.corp.google.com>
+Subject: + page_alloc-bootmem-limit-with-movablecore_map.patch added to -mm tree
+Date: Mon, 14 Jan 2013 14:35:50 -0800
+Message-ID: <20130114223551.9D87720004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f73.google.com ([209.85.161.73]:36700 "EHLO
-	mail-fa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757254Ab3ANWfr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Jan 2013 17:35:47 -0500
-Received: by mail-fa0-f73.google.com with SMTP id v1so294887fav.0
-        for <mm-commits@vger.kernel.org>; Mon, 14 Jan 2013 14:35:46 -0800 (PST)
+Received: from mail-wi0-f201.google.com ([209.85.212.201]:47384 "EHLO
+	mail-wi0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758966Ab3ANWfz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Jan 2013 17:35:55 -0500
+Received: by mail-wi0-f201.google.com with SMTP id hm2so170514wib.0
+        for <mm-commits@vger.kernel.org>; Mon, 14 Jan 2013 14:35:54 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tangchen@cn.fujitsu.com, hpa@zytor.com, jiang.liu@huawei.com, laijs@cn.fujitsu.com, linfeng@cn.fujitsu.com, mel@csn.ul.ie, mingo@elte.hu, tglx@linutronix.de, wency@cn.fujitsu.com, wujianguo@huawei.com
+Cc: tangchen@cn.fujitsu.com, hpa@zytor.com, laijs@cn.fujitsu.com, linfeng@cn.fujitsu.com, mel@csn.ul.ie, mingo@elte.hu, tglx@linutronix.de, wency@cn.fujitsu.com, wujianguo@huawei.com
 
 
 The patch titled
-     Subject: page_alloc: introduce zone_movable_limit[] to keep movable limit for nodes
+     Subject: page_alloc: bootmem limit with movablecore_map
 has been added to the -mm tree.  Its filename is
-     page_alloc-introduce-zone_movable_limit-to-keep-movable-limit-for-nodes.patch
+     page_alloc-bootmem-limit-with-movablecore_map.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,20 +34,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: page_alloc: introduce zone_movable_limit[] to keep movable limit for nodes
+Subject: page_alloc: bootmem limit with movablecore_map
 
-Introduce a new array zone_movable_limit[] to store the ZONE_MOVABLE limit
-from movablecore_map boot option for all nodes.  The function
-sanitize_zone_movable_limit() will find out to which node the ranges in
-movable_map.map[] belongs, and calculates the low boundary of ZONE_MOVABLE
-for each node.
+Ensure the bootmem will not allocate memory from areas that may be
+ZONE_MOVABLE.  The map info is from movablecore_map boot option.
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Signed-off-by: Liu Jiang <jiang.liu@huawei.com>
 Reviewed-by: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Wu Jianguo <wujianguo@huawei.com>
 Reviewed-by: Lai Jiangshan <laijs@cn.fujitsu.com>
 Tested-by: Lin Feng <linfeng@cn.fujitsu.com>
+Cc: Wu Jianguo <wujianguo@huawei.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
@@ -55,126 +51,62 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   79 +++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 78 insertions(+), 1 deletion(-)
+ include/linux/memblock.h |    1 +
+ mm/memblock.c            |   18 +++++++++++++++++-
+ 2 files changed, 18 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~page_alloc-introduce-zone_movable_limit-to-keep-movable-limit-for-nodes mm/page_alloc.c
---- a/mm/page_alloc.c~page_alloc-introduce-zone_movable_limit-to-keep-movable-limit-for-nodes
-+++ a/mm/page_alloc.c
-@@ -209,6 +209,7 @@ static unsigned long __meminitdata arch_
- static unsigned long __initdata required_kernelcore;
- static unsigned long __initdata required_movablecore;
- static unsigned long __meminitdata zone_movable_pfn[MAX_NUMNODES];
-+static unsigned long __meminitdata zone_movable_limit[MAX_NUMNODES];
+diff -puN include/linux/memblock.h~page_alloc-bootmem-limit-with-movablecore_map include/linux/memblock.h
+--- a/include/linux/memblock.h~page_alloc-bootmem-limit-with-movablecore_map
++++ a/include/linux/memblock.h
+@@ -42,6 +42,7 @@ struct memblock {
  
- /* movable_zone is the "real" zone pages in ZONE_MOVABLE are taken from */
- int movable_zone;
-@@ -4370,6 +4371,77 @@ static unsigned long __meminit zone_abse
- 	return __absent_pages_in_range(nid, zone_start_pfn, zone_end_pfn);
- }
+ extern struct memblock memblock;
+ extern int memblock_debug;
++extern struct movablecore_map movablecore_map;
  
-+/**
-+ * sanitize_zone_movable_limit - Sanitize the zone_movable_limit array.
-+ *
-+ * zone_movable_limit is initialized as 0. This function will try to get
-+ * the first ZONE_MOVABLE pfn of each node from movablecore_map, and
-+ * assigne them to zone_movable_limit.
-+ * zone_movable_limit[nid] == 0 means no limit for the node.
-+ *
-+ * Note: Each range is represented as [start_pfn, end_pfn)
-+ */
-+static void __meminit sanitize_zone_movable_limit(void)
-+{
-+	int map_pos = 0, i, nid;
-+	unsigned long start_pfn, end_pfn;
-+
-+	if (!movablecore_map.nr_map)
-+		return;
-+
-+	/* Iterate all ranges from minimum to maximum */
-+	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid) {
-+		/*
-+		 * If we have found lowest pfn of ZONE_MOVABLE of the node
-+		 * specified by user, just go on to check next range.
-+		 */
-+		if (zone_movable_limit[nid])
-+			continue;
-+
-+#ifdef CONFIG_ZONE_DMA
-+		/* Skip DMA memory. */
-+		if (start_pfn < arch_zone_highest_possible_pfn[ZONE_DMA])
-+			start_pfn = arch_zone_highest_possible_pfn[ZONE_DMA];
-+#endif
-+
-+#ifdef CONFIG_ZONE_DMA32
-+		/* Skip DMA32 memory. */
-+		if (start_pfn < arch_zone_highest_possible_pfn[ZONE_DMA32])
-+			start_pfn = arch_zone_highest_possible_pfn[ZONE_DMA32];
-+#endif
-+
-+#ifdef CONFIG_HIGHMEM
-+		/* Skip lowmem if ZONE_MOVABLE is highmem. */
-+		if (zone_movable_is_highmem() &&
-+		    start_pfn < arch_zone_lowest_possible_pfn[ZONE_HIGHMEM])
-+			start_pfn = arch_zone_lowest_possible_pfn[ZONE_HIGHMEM];
-+#endif
-+
-+		if (start_pfn >= end_pfn)
-+			continue;
-+
-+		while (map_pos < movablecore_map.nr_map) {
-+			if (end_pfn <= movablecore_map.map[map_pos].start_pfn)
+ #define memblock_dbg(fmt, ...) \
+ 	if (memblock_debug) printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
+diff -puN mm/memblock.c~page_alloc-bootmem-limit-with-movablecore_map mm/memblock.c
+--- a/mm/memblock.c~page_alloc-bootmem-limit-with-movablecore_map
++++ a/mm/memblock.c
+@@ -101,6 +101,7 @@ phys_addr_t __init_memblock memblock_fin
+ {
+ 	phys_addr_t this_start, this_end, cand;
+ 	u64 i;
++	int curr = movablecore_map.nr_map - 1;
+ 
+ 	/* pump up @end */
+ 	if (end == MEMBLOCK_ALLOC_ACCESSIBLE)
+@@ -114,13 +115,28 @@ phys_addr_t __init_memblock memblock_fin
+ 		this_start = clamp(this_start, start, end);
+ 		this_end = clamp(this_end, start, end);
+ 
+-		if (this_end < size)
++restart:
++		if (this_end <= this_start || this_end < size)
+ 			continue;
+ 
++		for (; curr >= 0; curr--) {
++			if ((movablecore_map.map[curr].start_pfn << PAGE_SHIFT)
++			    < this_end)
 +				break;
-+
-+			if (start_pfn >= movablecore_map.map[map_pos].end_pfn) {
-+				map_pos++;
-+				continue;
-+			}
-+
-+			/*
-+			 * The start_pfn of ZONE_MOVABLE is either the minimum
-+			 * pfn specified by movablecore_map, or 0, which means
-+			 * the node has no ZONE_MOVABLE.
-+			 */
-+			zone_movable_limit[nid] = max(start_pfn,
-+					movablecore_map.map[map_pos].start_pfn);
-+
-+			break;
 +		}
-+	}
-+}
 +
- #else /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
- static inline unsigned long __meminit zone_spanned_pages_in_node(int nid,
- 					unsigned long zone_type,
-@@ -4388,6 +4460,10 @@ static inline unsigned long __meminit zo
- 	return zholes_size[zone_type];
+ 		cand = round_down(this_end - size, align);
++		if (curr >= 0 &&
++		    cand < movablecore_map.map[curr].end_pfn << PAGE_SHIFT) {
++			this_end = movablecore_map.map[curr].start_pfn
++				   << PAGE_SHIFT;
++			goto restart;
++		}
++
+ 		if (cand >= this_start)
+ 			return cand;
+ 	}
++
+ 	return 0;
  }
  
-+static void __meminit sanitize_zone_movable_limit(void)
-+{
-+}
-+
- #endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
- 
- static void __meminit calculate_node_totalpages(struct pglist_data *pgdat,
-@@ -4831,7 +4907,6 @@ static void __init find_zone_movable_pfn
- 		goto out;
- 
- 	/* usable_startpfn is the lowest possible pfn ZONE_MOVABLE can be at */
--	find_usable_zone_for_movable();
- 	usable_startpfn = arch_zone_lowest_possible_pfn[movable_zone];
- 
- restart:
-@@ -4990,6 +5065,8 @@ void __init free_area_init_nodes(unsigne
- 
- 	/* Find the PFNs that ZONE_MOVABLE begins at in each node */
- 	memset(zone_movable_pfn, 0, sizeof(zone_movable_pfn));
-+	find_usable_zone_for_movable();
-+	sanitize_zone_movable_limit();
- 	find_zone_movable_pfns_for_nodes();
- 
- 	/* Print out the zone ranges */
 _
 
 Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
