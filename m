@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-block-swim3c-fix-null-pointer-dereference.patch added to -mm tree
-Date: Mon, 14 Jan 2013 13:29:51 -0800
-Message-ID: <20130114212951.8D1DD100047@wpzn3.hot.corp.google.com>
+Subject: + include-asm-generic-pgtableh-fix-mips-build.patch added to -mm tree
+Date: Mon, 14 Jan 2013 13:38:37 -0800
+Message-ID: <20130114213838.1B3F820004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:36044 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751699Ab3ANV3w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Jan 2013 16:29:52 -0500
-Received: by mail-yh0-f74.google.com with SMTP id w68so545020yhw.1
-        for <mm-commits@vger.kernel.org>; Mon, 14 Jan 2013 13:29:52 -0800 (PST)
+Received: from mail-bk0-f73.google.com ([209.85.214.73]:52378 "EHLO
+	mail-bk0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757238Ab3ANVik (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Jan 2013 16:38:40 -0500
+Received: by mail-bk0-f73.google.com with SMTP id jf3so292871bkc.4
+        for <mm-commits@vger.kernel.org>; Mon, 14 Jan 2013 13:38:39 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dinggnu@gmail.com, axboe@kernel.dk
+Cc: kirill.shutemov@linux.intel.com, aaro.koskinen@iki.fi, kirill@shutemov.name, ralf@linux-mips.org
 
 
 The patch titled
-     Subject: drivers/block/swim3.c: fix null pointer dereference
+     Subject: include/asm-generic/pgtable.h: fix MIPS build
 has been added to the -mm tree.  Its filename is
-     drivers-block-swim3c-fix-null-pointer-dereference.patch
+     include-asm-generic-pgtableh-fix-mips-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,41 +33,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Cong Ding <dinggnu@gmail.com>
-Subject: drivers/block/swim3.c: fix null pointer dereference
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: include/asm-generic/pgtable.h: fix MIPS build
 
-The use of pointer fs should be after the null check.
+In file included from arch/mips/include/asm/pgtable.h:552,
+                 from include/linux/mm.h:44,
+                 from arch/mips/kernel/asm-offsets.c:14:
+include/asm-generic/pgtable.h: In function `my_zero_pfn':
+include/asm-generic/pgtable.h:466: error: implicit declaration of function page_to_section
 
-Signed-off-by: Cong Ding <dinggnu@gmail.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+Due header files inter-dependencies, the only way I see to fix it is
+convert my_zero_pfn() for __HAVE_COLOR_ZERO_PAGE to macros.
+
+Signed-off-by: Kirill A. Shutemov <kirill@shutemov.name>
+Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/swim3.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ include/asm-generic/pgtable.h |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/block/swim3.c~drivers-block-swim3c-fix-null-pointer-dereference drivers/block/swim3.c
---- a/drivers/block/swim3.c~drivers-block-swim3c-fix-null-pointer-dereference
-+++ a/drivers/block/swim3.c
-@@ -1090,10 +1090,13 @@ static const struct block_device_operati
- static void swim3_mb_event(struct macio_dev* mdev, int mb_state)
+diff -puN include/asm-generic/pgtable.h~include-asm-generic-pgtableh-fix-mips-build include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~include-asm-generic-pgtableh-fix-mips-build
++++ a/include/asm-generic/pgtable.h
+@@ -461,10 +461,8 @@ static inline int is_zero_pfn(unsigned l
+ 	return offset_from_zero_pfn <= (zero_page_mask >> PAGE_SHIFT);
+ }
+ 
+-static inline unsigned long my_zero_pfn(unsigned long addr)
+-{
+-	return page_to_pfn(ZERO_PAGE(addr));
+-}
++#define my_zero_pfn(addr)	page_to_pfn(ZERO_PAGE(addr))
++
+ #else
+ static inline int is_zero_pfn(unsigned long pfn)
  {
- 	struct floppy_state *fs = macio_get_drvdata(mdev);
--	struct swim3 __iomem *sw = fs->swim3;
-+	struct swim3 __iomem *sw;
- 
- 	if (!fs)
- 		return;
-+
-+	sw = fs->swim3;
-+
- 	if (mb_state != MB_FD)
- 		return;
- 
 _
 
-Patches currently in -mm which might be from dinggnu@gmail.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
+include-asm-generic-pgtableh-fix-mips-build.patch
 linux-next.patch
-drivers-block-swim3c-fix-null-pointer-dereference.patch
+x86-convert-update_mmu_cache-and-update_mmu_cache_pmd-to-functions.patch
+mm-huge_memory-use-new-hashtable-implementation.patch
 
