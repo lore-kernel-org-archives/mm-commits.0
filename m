@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-vt8500c-fix-year-field-in-vt8500_rtc_set_time.patch added to -mm tree
-Date: Tue, 15 Jan 2013 13:58:16 -0800
-Message-ID: <20130115215816.9513F31C1B2@corp2gmr1-1.hot.corp.google.com>
+Subject: + rtc-pl031-add-wake-up-support.patch added to -mm tree
+Date: Tue, 15 Jan 2013 13:58:46 -0800
+Message-ID: <20130115215846.89AB382004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:59142 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752720Ab3AOV6R (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Jan 2013 16:58:17 -0500
-Received: by mail-yh0-f73.google.com with SMTP id 47so81523yhr.2
-        for <mm-commits@vger.kernel.org>; Tue, 15 Jan 2013 13:58:17 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:36752 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751280Ab3AOV6r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Jan 2013 16:58:47 -0500
+Received: by mail-qa0-f74.google.com with SMTP id r4so93760qaq.1
+        for <mm-commits@vger.kernel.org>; Tue, 15 Jan 2013 13:58:47 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linux@prisktech.co.nz, a.zummo@towertech.it, froese@gmx.de
+Cc: rob.herring@calxeda.com, a.zummo@towertech.it, linus.walleij@linaro.org, srinidhi.kasagar@stericsson.com
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-vt8500.c: fix year field in vt8500_rtc_set_time()
+     Subject: drivers/rtc/rtc-pl031.c: add wakeup support
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-vt8500c-fix-year-field-in-vt8500_rtc_set_time.patch
+     rtc-pl031-add-wake-up-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +33,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tony Prisk <linux@prisktech.co.nz>
-Subject: drivers/rtc/rtc-vt8500.c: fix year field in vt8500_rtc_set_time()
+From: Rob Herring <rob.herring@calxeda.com>
+Subject: drivers/rtc/rtc-pl031.c: add wakeup support
 
-The year field is incorrectly masked when setting the date.  If the year
-is beyond 2099, the year field will be incorrectly updated in hardware.
+Mark the pl031 as wake-up capable so that rtcwake and suspend test can work.
 
-This patch masks the year field correctly.
-
-Signed-off-by: Edgar Toernig <froese@gmx.de>
-Signed-off-by: Tony Prisk <linux@prisktech.co.nz>
+Signed-off-by: Rob Herring <rob.herring@calxeda.com>
+Cc: Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-vt8500.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-pl031.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/rtc/rtc-vt8500.c~drivers-rtc-rtc-vt8500c-fix-year-field-in-vt8500_rtc_set_time drivers/rtc/rtc-vt8500.c
---- a/drivers/rtc/rtc-vt8500.c~drivers-rtc-rtc-vt8500c-fix-year-field-in-vt8500_rtc_set_time
-+++ a/drivers/rtc/rtc-vt8500.c
-@@ -137,7 +137,7 @@ static int vt8500_rtc_set_time(struct de
- 		return -EINVAL;
+diff -puN drivers/rtc/rtc-pl031.c~rtc-pl031-add-wake-up-support drivers/rtc/rtc-pl031.c
+--- a/drivers/rtc/rtc-pl031.c~rtc-pl031-add-wake-up-support
++++ a/drivers/rtc/rtc-pl031.c
+@@ -380,6 +380,8 @@ static int pl031_probe(struct amba_devic
+ 		goto out_no_irq;
  	}
  
--	writel((bin2bcd(tm->tm_year - 100) << DATE_YEAR_S)
-+	writel((bin2bcd(tm->tm_year % 100) << DATE_YEAR_S)
- 		| (bin2bcd(tm->tm_mon + 1) << DATE_MONTH_S)
- 		| (bin2bcd(tm->tm_mday))
- 		| ((tm->tm_year >= 200) << DATE_CENTURY_S),
++	device_init_wakeup(&adev->dev, 1);
++
+ 	return 0;
+ 
+ out_no_irq:
 _
 
-Patches currently in -mm which might be from linux@prisktech.co.nz are
+Patches currently in -mm which might be from rob.herring@calxeda.com are
 
+origin.patch
 linux-next.patch
-drivers-rtc-rtc-vt8500c-fix-year-field-in-vt8500_rtc_set_time.patch
+rtc-pl031-add-wake-up-support.patch
 
