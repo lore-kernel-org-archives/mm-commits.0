@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fb-yet-another-band-aid-for-fixing-lockdep-mess.patch added to -mm tree
-Date: Tue, 15 Jan 2013 12:29:30 -0800
-Message-ID: <20130115202931.B3F125A41D4@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-set-zone-present_pages-to-number-of-existing-pages-in-the-zone.patch added to -mm tree
+Date: Tue, 15 Jan 2013 13:18:14 -0800
+Message-ID: <20130115211814.6DBB65A4201@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:58227 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754976Ab3AOU3f (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Jan 2013 15:29:35 -0500
-Received: by mail-vb0-f74.google.com with SMTP id r6so67340vbi.3
-        for <mm-commits@vger.kernel.org>; Tue, 15 Jan 2013 12:29:33 -0800 (PST)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:52821 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755488Ab3AOVSQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Jan 2013 16:18:16 -0500
+Received: by mail-yh0-f73.google.com with SMTP id 47so74712yhr.2
+        for <mm-commits@vger.kernel.org>; Tue, 15 Jan 2013 13:18:15 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tiwai@suse.de, FlorianSchandinat@gmx.de, alan@linux.intel.com, jkosina@suse.cz, sedat.dilek@gmail.com
+Cc: liuj97@gmail.com, chris2553@googlemail.com, jiang.liu@huawei.com, kamezawa.hiroyu@jp.fujitsu.com, maciej.rutecki@gmail.com, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, rientjes@google.com, rjw@sisk.pl, wency@cn.fujitsu.com, wujianguo@huawei.com
 
 
 The patch titled
-     Subject: [PATCH] fb: Yet another band-aid for fixing lockdep mess
+     Subject: mm: set zone->present_pages to number of existing pages in the zone
 has been added to the -mm tree.  Its filename is
-     fb-yet-another-band-aid-for-fixing-lockdep-mess.patch
+     mm-set-zone-present_pages-to-number-of-existing-pages-in-the-zone.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,210 +33,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Takashi Iwai <tiwai@suse.de>
-Subject: [PATCH] fb: Yet another band-aid for fixing lockdep mess
+From: Jiang Liu <liuj97@gmail.com>
+Subject: mm: set zone->present_pages to number of existing pages in the zone
 
-I've still got lockdep warnings even after Alan's patch, and it seems that
-yet more band aids are required to paper over similar paths for
-unbind_con_driver() and unregister_con_driver().  After this hack, lockdep
-warnings are finally gone.
+Now all users of "number of pages managed by the buddy system" have been
+converted to use zone->managed_pages, so set zone->present_pages to what
+it should be:
 
-Signed-off-by: Takashi Iwai <tiwai@suse.de>
-Cc: Alan Cox <alan@linux.intel.com>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Sedat Dilek <sedat.dilek@gmail.com>
+	present_pages = spanned_pages - absent_pages;
+
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Jiang Liu <jiang.liu@huawei.com>
+Cc: Maciej Rutecki <maciej.rutecki@gmail.com>
+Cc: Chris Clayton <chris2553@googlemail.com>
+Cc: "Rafael J . Wysocki" <rjw@sisk.pl>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Jianguo Wu <wujianguo@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/vt/vt.c           |   43 ++++++++++++++++++++------------
- drivers/video/console/fbcon.c |    4 +-
- drivers/video/fbmem.c         |    4 ++
- include/linux/console.h       |    1 
- include/linux/vt_kern.h       |    2 +
- 5 files changed, 37 insertions(+), 17 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/tty/vt/vt.c~fb-yet-another-band-aid-for-fixing-lockdep-mess drivers/tty/vt/vt.c
---- a/drivers/tty/vt/vt.c~fb-yet-another-band-aid-for-fixing-lockdep-mess
-+++ a/drivers/tty/vt/vt.c
-@@ -3135,6 +3135,18 @@ static int con_is_graphics(const struct 
-  */
- int unbind_con_driver(const struct consw *csw, int first, int last, int deflt)
- {
-+	int retval;
-+
-+	console_lock();
-+	retval = do_unbind_con_driver(csw, first, last, deflt);
-+	console_unlock();
-+	return retval;
-+}
-+EXPORT_SYMBOL(unbind_con_driver);
-+
-+/* unlocked version of unbind_con_driver() */
-+int do_unbind_con_driver(const struct consw *csw, int first, int last, int deflt)
-+{
- 	struct module *owner = csw->owner;
- 	const struct consw *defcsw = NULL;
- 	struct con_driver *con_driver = NULL, *con_back = NULL;
-@@ -3143,7 +3155,7 @@ int unbind_con_driver(const struct consw
- 	if (!try_module_get(owner))
- 		return -ENODEV;
+diff -puN mm/page_alloc.c~mm-set-zone-present_pages-to-number-of-existing-pages-in-the-zone mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-set-zone-present_pages-to-number-of-existing-pages-in-the-zone
++++ a/mm/page_alloc.c
+@@ -4644,7 +4644,7 @@ static void __paginginit free_area_init_
+ 		nr_all_pages += freesize;
  
--	console_lock();
-+	WARN_CONSOLE_UNLOCKED();
- 
- 	/* check if driver is registered and if it is unbindable */
- 	for (i = 0; i < MAX_NR_CON_DRIVER; i++) {
-@@ -3156,10 +3168,8 @@ int unbind_con_driver(const struct consw
- 		}
- 	}
- 
--	if (retval) {
--		console_unlock();
-+	if (retval)
- 		goto err;
--	}
- 
- 	retval = -ENODEV;
- 
-@@ -3175,15 +3185,11 @@ int unbind_con_driver(const struct consw
- 		}
- 	}
- 
--	if (retval) {
--		console_unlock();
-+	if (retval)
- 		goto err;
--	}
- 
--	if (!con_is_bound(csw)) {
--		console_unlock();
-+	if (!con_is_bound(csw))
- 		goto err;
--	}
- 
- 	first = max(first, con_driver->first);
- 	last = min(last, con_driver->last);
-@@ -3212,13 +3218,12 @@ int unbind_con_driver(const struct consw
- 
- 	/* ignore return value, binding should not fail */
- 	do_bind_con_driver(defcsw, first, last, deflt);
--	console_unlock();
- err:
- 	module_put(owner);
- 	return retval;
- 
- }
--EXPORT_SYMBOL(unbind_con_driver);
-+EXPORT_SYMBOL_GPL(do_unbind_con_driver);
- 
- static int vt_bind(struct con_driver *con)
- {
-@@ -3605,9 +3610,18 @@ EXPORT_SYMBOL(register_con_driver);
-  */
- int unregister_con_driver(const struct consw *csw)
- {
--	int i, retval = -ENODEV;
-+	int retval;
- 
- 	console_lock();
-+	retval = do_unregister_con_driver(csw);
-+	console_unlock();
-+	return retval;
-+}
-+EXPORT_SYMBOL(unregister_con_driver);
-+
-+int do_unregister_con_driver(const struct consw *csw)
-+{
-+	int i, retval = -ENODEV;
- 
- 	/* cannot unregister a bound driver */
- 	if (con_is_bound(csw))
-@@ -3633,10 +3647,9 @@ int unregister_con_driver(const struct c
- 		}
- 	}
- err:
--	console_unlock();
- 	return retval;
- }
--EXPORT_SYMBOL(unregister_con_driver);
-+EXPORT_SYMBOL_GPL(do_unregister_con_driver);
- 
- /*
-  *	If we support more console drivers, this function is used
-diff -puN drivers/video/console/fbcon.c~fb-yet-another-band-aid-for-fixing-lockdep-mess drivers/video/console/fbcon.c
---- a/drivers/video/console/fbcon.c~fb-yet-another-band-aid-for-fixing-lockdep-mess
-+++ a/drivers/video/console/fbcon.c
-@@ -3004,7 +3004,7 @@ static int fbcon_unbind(void)
- {
- 	int ret;
- 
--	ret = unbind_con_driver(&fb_con, first_fb_vc, last_fb_vc,
-+	ret = do_unbind_con_driver(&fb_con, first_fb_vc, last_fb_vc,
- 				fbcon_is_default);
- 
- 	if (!ret)
-@@ -3077,7 +3077,7 @@ static int fbcon_fb_unregistered(struct 
- 		primary_device = -1;
- 
- 	if (!num_registered_fb)
--		unregister_con_driver(&fb_con);
-+		do_unregister_con_driver(&fb_con);
- 
- 	return 0;
- }
-diff -puN drivers/video/fbmem.c~fb-yet-another-band-aid-for-fixing-lockdep-mess drivers/video/fbmem.c
---- a/drivers/video/fbmem.c~fb-yet-another-band-aid-for-fixing-lockdep-mess
-+++ a/drivers/video/fbmem.c
-@@ -1668,8 +1668,10 @@ static int do_unregister_framebuffer(str
- 
- 	if (!lock_fb_info(fb_info))
- 		return -ENODEV;
-+	console_lock();
- 	event.info = fb_info;
- 	ret = fb_notifier_call_chain(FB_EVENT_FB_UNBIND, &event);
-+	console_unlock();
- 	unlock_fb_info(fb_info);
- 
- 	if (ret)
-@@ -1684,7 +1686,9 @@ static int do_unregister_framebuffer(str
- 	num_registered_fb--;
- 	fb_cleanup_device(fb_info);
- 	event.info = fb_info;
-+	console_lock();
- 	fb_notifier_call_chain(FB_EVENT_FB_UNREGISTERED, &event);
-+	console_unlock();
- 
- 	/* this may free fb info */
- 	put_fb_info(fb_info);
-diff -puN include/linux/console.h~fb-yet-another-band-aid-for-fixing-lockdep-mess include/linux/console.h
---- a/include/linux/console.h~fb-yet-another-band-aid-for-fixing-lockdep-mess
-+++ a/include/linux/console.h
-@@ -77,6 +77,7 @@ extern const struct consw prom_con;	/* S
- int con_is_bound(const struct consw *csw);
- int register_con_driver(const struct consw *csw, int first, int last);
- int unregister_con_driver(const struct consw *csw);
-+int do_unregister_con_driver(const struct consw *csw);
- int take_over_console(const struct consw *sw, int first, int last, int deflt);
- int do_take_over_console(const struct consw *sw, int first, int last, int deflt);
- void give_up_console(const struct consw *sw);
-diff -puN include/linux/vt_kern.h~fb-yet-another-band-aid-for-fixing-lockdep-mess include/linux/vt_kern.h
---- a/include/linux/vt_kern.h~fb-yet-another-band-aid-for-fixing-lockdep-mess
-+++ a/include/linux/vt_kern.h
-@@ -130,6 +130,8 @@ void vt_event_post(unsigned int event, u
- int vt_waitactive(int n);
- void change_console(struct vc_data *new_vc);
- void reset_vc(struct vc_data *vc);
-+extern int do_unbind_con_driver(const struct consw *csw, int first, int last,
-+			     int deflt);
- extern int unbind_con_driver(const struct consw *csw, int first, int last,
- 			     int deflt);
- int vty_init(const struct file_operations *console_fops);
+ 		zone->spanned_pages = size;
+-		zone->present_pages = freesize;
++		zone->present_pages = realsize;
+ 		/*
+ 		 * Set an approximate value for lowmem here, it will be adjusted
+ 		 * when the bootmem allocator frees pages into the buddy system.
 _
 
-Patches currently in -mm which might be from tiwai@suse.de are
+Patches currently in -mm which might be from liuj97@gmail.com are
 
-origin.patch
-linux-next.patch
-fb-yet-another-band-aid-for-fixing-lockdep-mess.patch
+x86-fix-the-argument-passed-to-sync_global_pgds.patch
+mm-use-zone-present_pages-instead-of-zone-managed_pages-where-appropriate.patch
+mm-set-zone-present_pages-to-number-of-existing-pages-in-the-zone.patch
+mm-increase-totalram_pages-when-free-pages-allocated-by-bootmem-allocator.patch
 
