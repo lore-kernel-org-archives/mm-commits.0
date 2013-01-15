@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-pl031-add-wake-up-support.patch added to -mm tree
-Date: Tue, 15 Jan 2013 13:58:46 -0800
-Message-ID: <20130115215846.89AB382004A@wpzn4.hot.corp.google.com>
+Subject: + mmotm-2013-01-11-15-47-trouble-starting-kvm.patch added to -mm tree
+Date: Tue, 15 Jan 2013 14:27:32 -0800
+Message-ID: <20130115222733.045DD200057@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:36752 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751280Ab3AOV6r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Jan 2013 16:58:47 -0500
-Received: by mail-qa0-f74.google.com with SMTP id r4so93760qaq.1
-        for <mm-commits@vger.kernel.org>; Tue, 15 Jan 2013 13:58:47 -0800 (PST)
+Received: from mail-bk0-f74.google.com ([209.85.214.74]:52028 "EHLO
+	mail-bk0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757127Ab3AOW1f (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Jan 2013 17:27:35 -0500
+Received: by mail-bk0-f74.google.com with SMTP id je9so44731bkc.1
+        for <mm-commits@vger.kernel.org>; Tue, 15 Jan 2013 14:27:33 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rob.herring@calxeda.com, a.zummo@towertech.it, linus.walleij@linaro.org, srinidhi.kasagar@stericsson.com
+Cc: jkosina@suse.cz
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-pl031.c: add wakeup support
+     Subject: lockdep, rwsem: fix down_write_nest_lock() if !CONFIG_DEBUG_LOCK_ALLOC
 has been added to the -mm tree.  Its filename is
-     rtc-pl031-add-wake-up-support.patch
+     mmotm-2013-01-11-15-47-trouble-starting-kvm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,38 +33,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rob Herring <rob.herring@calxeda.com>
-Subject: drivers/rtc/rtc-pl031.c: add wakeup support
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: lockdep, rwsem: fix down_write_nest_lock() if !CONFIG_DEBUG_LOCK_ALLOC
 
-Mark the pl031 as wake-up capable so that rtcwake and suspend test can work.
+Commit 1b963c81b1 ("lockdep, rwsem: provide down_write_nest_lock()")
+contains a bug in a codepath when CONFIG_DEBUG_LOCK_ALLOC is disabled,
+which causes down_read() to be called instead of down_write() by mistake
+on such configurations.  Fix that.
 
-Signed-off-by: Rob Herring <rob.herring@calxeda.com>
-Cc: Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pl031.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/rwsem.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-pl031.c~rtc-pl031-add-wake-up-support drivers/rtc/rtc-pl031.c
---- a/drivers/rtc/rtc-pl031.c~rtc-pl031-add-wake-up-support
-+++ a/drivers/rtc/rtc-pl031.c
-@@ -380,6 +380,8 @@ static int pl031_probe(struct amba_devic
- 		goto out_no_irq;
- 	}
+diff -puN include/linux/rwsem.h~mmotm-2013-01-11-15-47-trouble-starting-kvm include/linux/rwsem.h
+--- a/include/linux/rwsem.h~mmotm-2013-01-11-15-47-trouble-starting-kvm
++++ a/include/linux/rwsem.h
+@@ -135,7 +135,7 @@ do {								\
  
-+	device_init_wakeup(&adev->dev, 1);
-+
- 	return 0;
+ #else
+ # define down_read_nested(sem, subclass)		down_read(sem)
+-# define down_write_nest_lock(sem, nest_lock)	down_read(sem)
++# define down_write_nest_lock(sem, nest_lock)	down_write(sem)
+ # define down_write_nested(sem, subclass)	down_write(sem)
+ #endif
  
- out_no_irq:
 _
 
-Patches currently in -mm which might be from rob.herring@calxeda.com are
+Patches currently in -mm which might be from jkosina@suse.cz are
 
 origin.patch
+mmotm-2013-01-11-15-47-trouble-starting-kvm.patch
 linux-next.patch
-rtc-pl031-add-wake-up-support.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
+fb-yet-another-band-aid-for-fixing-lockdep-mess.patch
 
