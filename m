@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch added to -mm tree
-Date: Tue, 15 Jan 2013 13:25:17 -0800
-Message-ID: <20130115212518.5DA5920004E@hpza10.eem.corp.google.com>
+Subject: + memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix.patch added to -mm tree
+Date: Tue, 15 Jan 2013 13:37:55 -0800
+Message-ID: <20130115213756.2A0CA20004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-fa0-f73.google.com ([209.85.161.73]:42500 "EHLO
-	mail-fa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755179Ab3AOVZY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Jan 2013 16:25:24 -0500
-Received: by mail-fa0-f73.google.com with SMTP id v1so41877fav.4
-        for <mm-commits@vger.kernel.org>; Tue, 15 Jan 2013 13:25:20 -0800 (PST)
+Received: from mail-wi0-f202.google.com ([209.85.212.202]:49779 "EHLO
+	mail-wi0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756398Ab3AOVh7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Jan 2013 16:37:59 -0500
+Received: by mail-wi0-f202.google.com with SMTP id hn17so42234wib.5
+        for <mm-commits@vger.kernel.org>; Tue, 15 Jan 2013 13:37:57 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: tangchen@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.
 
 
 The patch titled
-     Subject: Bug fix: Hold spinlock across find|remove /sys/firmware/memmap/X operation.
+     Subject: Bug fix: Do not calculate direct mapping pages when freeing vmemmap pagetables.
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
+     memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,17 +34,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Bug fix: Hold spinlock across find|remove /sys/firmware/memmap/X operation.
+Subject: Bug fix: Do not calculate direct mapping pages when freeing vmemmap pagetables.
 
-It is unsafe to return an entry pointer and release the map_entries_lock. 
-So we should not hold the map_entries_lock separately in
-firmware_map_find_entry() and firmware_map_remove_entry().  Hold the
-map_entries_lock across find and remove /sys/firmware/memmap/X operation.
-
-And also, users of these two functions need to be careful to hold the lock
-when using these two functions.
-
-The suggestion is from Andrew Morton <akpm@linux-foundation.org>
+We only need to update direct_pages_count[level] when we freeing direct mapped
+pagetables.
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 Cc: Wen Congyang <wency@cn.fujitsu.com>
@@ -54,78 +47,78 @@ Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/memmap.c |   25 +++++++++++++++++--------
- 1 file changed, 17 insertions(+), 8 deletions(-)
+ arch/x86/mm/init_64.c |   17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
 
-diff -puN drivers/firmware/memmap.c~memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix drivers/firmware/memmap.c
---- a/drivers/firmware/memmap.c~memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix
-+++ a/drivers/firmware/memmap.c
-@@ -150,12 +150,12 @@ static int firmware_map_add_entry(u64 st
-  * firmware_map_remove_entry() - Does the real work to remove a firmware
-  * memmap entry.
-  * @entry: removed entry.
-+ *
-+ * The caller must hold map_entries_lock, and release it properly.
-  **/
- static inline void firmware_map_remove_entry(struct firmware_map_entry *entry)
- {
--	spin_lock(&map_entries_lock);
- 	list_del(&entry->list);
--	spin_unlock(&map_entries_lock);
- }
+diff -puN arch/x86/mm/init_64.c~memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix
++++ a/arch/x86/mm/init_64.c
+@@ -804,14 +804,13 @@ remove_pte_table(pte_t *pte_start, unsig
  
- /*
-@@ -188,23 +188,28 @@ static inline void remove_sysfs_fw_map_e
- }
+ 		if (IS_ALIGNED(addr, PAGE_SIZE) &&
+ 		    IS_ALIGNED(next, PAGE_SIZE)) {
+-			if (!direct) {
++			if (!direct)
+ 				free_pagetable(pte_page(*pte), 0);
+-				pages++;
+-			}
  
- /*
-- * Search memmap entry
-+ * firmware_map_find_entry: Search memmap entry.
-+ * @start: Start of the memory range.
-+ * @end:   End of the memory range (exclusive).
-+ * @type:  Type of the memory range.
-+ *
-+ * This function is to find the memmap entey of a given memory range.
-+ * The caller must hold map_entries_lock, and must not release the lock
-+ * until the processing of the returned entry has completed.
-+ *
-+ * Return pointer to the entry to be found on success, or NULL on failure.
-  */
--
- static struct firmware_map_entry * __meminit
- firmware_map_find_entry(u64 start, u64 end, const char *type)
- {
- 	struct firmware_map_entry *entry;
+ 			spin_lock(&init_mm.page_table_lock);
+ 			pte_clear(&init_mm, addr, pte);
+ 			spin_unlock(&init_mm.page_table_lock);
++			pages++;
+ 		} else {
+ 			/*
+ 			 * If we are not removing the whole page, it means
+@@ -824,11 +823,11 @@ remove_pte_table(pte_t *pte_start, unsig
  
--	spin_lock(&map_entries_lock);
- 	list_for_each_entry(entry, &map_entries, list)
- 		if ((entry->start == start) && (entry->end == end) &&
- 		    (!strcmp(entry->type, type))) {
--			spin_unlock(&map_entries_lock);
- 			return entry;
+ 			if (!memchr_inv(page_addr, PAGE_INUSE, PAGE_SIZE)) {
+ 				free_pagetable(pte_page(*pte), 0);
+-				pages++;
+ 
+ 				spin_lock(&init_mm.page_table_lock);
+ 				pte_clear(&init_mm, addr, pte);
+ 				spin_unlock(&init_mm.page_table_lock);
++				pages++;
+ 			}
  		}
+ 	}
+@@ -857,15 +856,14 @@ remove_pmd_table(pmd_t *pmd_start, unsig
+ 		if (pmd_large(*pmd)) {
+ 			if (IS_ALIGNED(addr, PMD_SIZE) &&
+ 			    IS_ALIGNED(next, PMD_SIZE)) {
+-				if (!direct) {
++				if (!direct)
+ 					free_pagetable(pmd_page(*pmd),
+ 						       get_order(PMD_SIZE));
+-					pages++;
+-				}
  
--	spin_unlock(&map_entries_lock);
- 	return NULL;
- }
+ 				spin_lock(&init_mm.page_table_lock);
+ 				pmd_clear(pmd);
+ 				spin_unlock(&init_mm.page_table_lock);
++				pages++;
+ 				continue;
+ 			}
  
-@@ -274,11 +279,15 @@ int __meminit firmware_map_remove(u64 st
- {
- 	struct firmware_map_entry *entry;
+@@ -914,15 +912,14 @@ remove_pud_table(pud_t *pud_start, unsig
+ 		if (pud_large(*pud)) {
+ 			if (IS_ALIGNED(addr, PUD_SIZE) &&
+ 			    IS_ALIGNED(next, PUD_SIZE)) {
+-				if (!direct) {
++				if (!direct)
+ 					free_pagetable(pud_page(*pud),
+ 						       get_order(PUD_SIZE));
+-					pages++;
+-				}
  
-+	spin_lock(&map_entries_lock);
- 	entry = firmware_map_find_entry(start, end - 1, type);
--	if (!entry)
-+	if (!entry) {
-+		spin_unlock(&map_entries_lock);
- 		return -EINVAL;
-+	}
+ 				spin_lock(&init_mm.page_table_lock);
+ 				pud_clear(pud);
+ 				spin_unlock(&init_mm.page_table_lock);
++				pages++;
+ 				continue;
+ 			}
  
- 	firmware_map_remove_entry(entry);
-+	spin_unlock(&map_entries_lock);
- 
- 	/* remove the memmap entry */
- 	remove_sysfs_fw_map_entry(entry);
 _
 
 Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
@@ -140,6 +133,7 @@ memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap.pa
 memory-hotplug-move-pgdat_resize_lock-into-sparse_remove_one_section.patch
 memory-hotplug-common-apis-to-support-page-tables-hot-remove.patch
 memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix.patch
 memory-hotplug-remove-page-table-of-x86_64-architecture.patch
 memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
 memory-hotplug-remove-memmap-of-sparse-vmemmap.patch
