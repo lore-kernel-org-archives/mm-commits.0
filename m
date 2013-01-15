@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + lockdep-rwsem-fix-down_write_nest_lock-if-config_debug_lock_alloc.patch added to -mm tree
-Date: Tue, 15 Jan 2013 14:27:44 -0800
-Message-ID: <20130115222745.0F9B0100047@wpzn3.hot.corp.google.com>
+Subject: + checkpatch-add-joe-to-maintainers.patch added to -mm tree
+Date: Tue, 15 Jan 2013 15:05:58 -0800
+Message-ID: <20130115230558.7BF6831C1DA@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:45780 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757013Ab3AOW1q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Jan 2013 17:27:46 -0500
-Received: by mail-qc0-f201.google.com with SMTP id a6so85126qch.2
-        for <mm-commits@vger.kernel.org>; Tue, 15 Jan 2013 14:27:45 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:50379 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934301Ab3AOXF7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Jan 2013 18:05:59 -0500
+Received: by mail-yh0-f74.google.com with SMTP id w68so90713yhw.1
+        for <mm-commits@vger.kernel.org>; Tue, 15 Jan 2013 15:05:59 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jkosina@suse.cz
+Cc: joe@perches.com, apw@shadowen.org
 
 
 The patch titled
-     Subject: lockdep, rwsem: fix down_write_nest_lock() if !CONFIG_DEBUG_LOCK_ALLOC
+     Subject: checkpatch: add Joe to MAINTAINERS
 has been added to the -mm tree.  Its filename is
-     lockdep-rwsem-fix-down_write_nest_lock-if-config_debug_lock_alloc.patch
+     checkpatch-add-joe-to-maintainers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,40 +33,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: lockdep, rwsem: fix down_write_nest_lock() if !CONFIG_DEBUG_LOCK_ALLOC
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: add Joe to MAINTAINERS
 
-Commit 1b963c81b1 ("lockdep, rwsem: provide down_write_nest_lock()")
-contains a bug in a codepath when CONFIG_DEBUG_LOCK_ALLOC is disabled,
-which causes down_read() to be called instead of down_write() by mistake
-on such configurations.  Fix that.
-
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rwsem.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/rwsem.h~lockdep-rwsem-fix-down_write_nest_lock-if-config_debug_lock_alloc include/linux/rwsem.h
---- a/include/linux/rwsem.h~lockdep-rwsem-fix-down_write_nest_lock-if-config_debug_lock_alloc
-+++ a/include/linux/rwsem.h
-@@ -135,7 +135,7 @@ do {								\
+diff -puN MAINTAINERS~checkpatch-add-joe-to-maintainers MAINTAINERS
+--- a/MAINTAINERS~checkpatch-add-joe-to-maintainers
++++ a/MAINTAINERS
+@@ -1935,7 +1935,8 @@ F:	drivers/misc/*
  
- #else
- # define down_read_nested(sem, subclass)		down_read(sem)
--# define down_write_nest_lock(sem, nest_lock)	down_read(sem)
-+# define down_write_nest_lock(sem, nest_lock)	down_write(sem)
- # define down_write_nested(sem, subclass)	down_write(sem)
- #endif
+ CHECKPATCH
+ M:	Andy Whitcroft <apw@canonical.com>
+-S:	Supported
++M:	Joe Perches <joe@perches.com>
++S:	Maintained
+ F:	scripts/checkpatch.pl
  
+ CHINESE DOCUMENTATION
 _
 
-Patches currently in -mm which might be from jkosina@suse.cz are
+Patches currently in -mm which might be from joe@perches.com are
 
-origin.patch
-lockdep-rwsem-fix-down_write_nest_lock-if-config_debug_lock_alloc.patch
 linux-next.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
-fb-yet-another-band-aid-for-fixing-lockdep-mess.patch
+compiler-gcc4h-reorder-macros-based-upon-gcc-ver.patch
+compiler-gcch-add-gcc-recommended-gcc_version-macro.patch
+compiler-gcc34h-use-gcc_version-macro.patch
+compiler-gcc4h-bugh-remove-duplicate-macros.patch
+bugh-fix-build_bug_on-macro-in-__checker__.patch
+bugh-prevent-double-evaulation-of-in-build_bug_on.patch
+bugh-make-build_bug_on-generate-compile-time-error.patch
+compilerh-bugh-prevent-double-error-messages-with-build_bug_on.patch
+bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg.patch
+get_maintainerpl-find-maintainers-for-removed-files.patch
+checkpatch-prefer-dev_level-to-dev_printkkern_level.patch
+checkpatch-warn-on-unnecessary-__devfoo-section-markings.patch
+checkpatch-add-joe-to-maintainers.patch
 
