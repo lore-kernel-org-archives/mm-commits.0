@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + debugging-keep-track-of-page-owners-fix-2-fix.patch added to -mm tree
-Date: Mon, 14 Jan 2013 16:34:48 -0800
-Message-ID: <20130115003449.86D2220004E@hpza10.eem.corp.google.com>
+Subject: + debugging-keep-track-of-page-owners-fix-2-fix-fix.patch added to -mm tree
+Date: Mon, 14 Jan 2013 16:36:56 -0800
+Message-ID: <20130115003657.3083382004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-wg0-f74.google.com ([74.125.82.74]:65178 "EHLO
-	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756309Ab3AOAew (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Jan 2013 19:34:52 -0500
-Received: by mail-wg0-f74.google.com with SMTP id dt14so299261wgb.1
-        for <mm-commits@vger.kernel.org>; Mon, 14 Jan 2013 16:34:50 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:51287 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756684Ab3AOAg6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Jan 2013 19:36:58 -0500
+Received: by mail-vb0-f74.google.com with SMTP id r6so485744vbi.3
+        for <mm-commits@vger.kernel.org>; Mon, 14 Jan 2013 16:36:57 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, minchan@kernel.org
+Cc: minchan@kernel.org, dave@linux.vnet.ibm.com, mina86@mina86.com
 
 
 The patch titled
-     Subject: debugging-keep-track-of-page-owners-fix-2-fix
+     Subject: Enhance read_block of page_owner.c
 has been added to the -mm tree.  Its filename is
-     debugging-keep-track-of-page-owners-fix-2-fix.patch
+     debugging-keep-track-of-page-owners-fix-2-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,98 +33,101 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: debugging-keep-track-of-page-owners-fix-2-fix
+From: Minchan Kim <minchan@kernel.org>
+Subject: Enhance read_block of page_owner.c
 
-Reduce scope of `val', fix coding style
+The read_block reads char one by one until meeting two newline.
+It's not good for the performance and current code isn't good shape
+for readability.
 
-Cc: Minchan Kim <minchan@kernel.org>
+This patch enhances speed and clean up.
+
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/page_owner.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ Documentation/page_owner.c |   35 +++++++++++++----------------------
+ 1 file changed, 13 insertions(+), 22 deletions(-)
 
-diff -puN Documentation/page_owner.c~debugging-keep-track-of-page-owners-fix-2-fix Documentation/page_owner.c
---- a/Documentation/page_owner.c~debugging-keep-track-of-page-owners-fix-2-fix
+diff -puN Documentation/page_owner.c~debugging-keep-track-of-page-owners-fix-2-fix-fix Documentation/page_owner.c
+--- a/Documentation/page_owner.c~debugging-keep-track-of-page-owners-fix-2-fix-fix
 +++ a/Documentation/page_owner.c
-@@ -32,12 +32,13 @@ int read_block(char *buf, FILE *fin)
- {
- 	int ret = 0;
- 	int hit = 0;
--	int val;
- 	char *curr = buf;
+@@ -28,27 +28,17 @@ static int max_size;
  
- 	for (;;) {
--		val = getc(fin);
--		if (val == EOF) return -1;
-+		int val = getc(fin);
+ struct block_list *block_head;
+ 
+-int read_block(char *buf, FILE *fin)
++int read_block(char *buf, int buf_size, FILE *fin)
+ {
+-	int ret = 0;
+-	int hit = 0;
+-	char *curr = buf;
+-
+-	for (;;) {
+-		int val = getc(fin);
+-
+-		if (val == EOF)
+-			return -1;
+-		*curr = val;
+-		ret++;
+-		if (*curr == '\n' && hit == 1)
+-			return ret - 1;
+-		else if (*curr == '\n')
+-			hit = 1;
+-		else
+-			hit = 0;
+-		curr++;
++	char *curr = buf, *const buf_end = buf + buf_size;
 +
-+		if (val == EOF)
-+			return -1;
- 		*curr = val;
- 		ret++;
- 		if (*curr == '\n' && hit == 1)
++	while (buf_end - curr > 1 && fgets(curr, buf_end - curr, fin)) {
++		if (*curr == '\n') /* empty line */
++			return curr - buf;
++		curr += strlen(curr);
+ 	}
++
++	return -1; /* EOF or no space left in buf. */
+ }
+ 
+ static int compare_txt(struct block_list *l1, struct block_list *l2)
+@@ -85,10 +75,12 @@ static void add_list(char *buf, int len)
+ 	}
+ }
+ 
++#define BUF_SIZE	1024
++
+ int main(int argc, char **argv)
+ {
+ 	FILE *fin, *fout;
+-	char buf[1024];
++	char buf[BUF_SIZE];
+ 	int ret, i, count;
+ 	struct block_list *list2;
+ 	struct stat st;
+@@ -107,11 +99,10 @@ int main(int argc, char **argv)
+ 	list = malloc(max_size * sizeof(*list));
+ 
+ 	for(;;) {
+-		ret = read_block(buf, fin);
++		ret = read_block(buf, BUF_SIZE, fin);
+ 		if (ret < 0)
+ 			break;
+ 
+-		buf[ret] = '\0';
+ 		add_list(buf, ret);
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from minchan@kernel.org are
 
 origin.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
-linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
-bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
-i-need-old-gcc.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-mm.patch
-mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
-mm-hugetlbc-convert-to-pr_foo.patch
-cma-make-putback_lru_pages-call-conditional-fix.patch
-mm-vmscan-clean-up-get_scan_count-fix.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
-mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
-mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
 mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
-mm-remove-flags-argument-to-mmap_region-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
-memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-kernel-smpc-cleanups.patch
-backlight-add-lms501kf03-lcd-driver-fix.patch
-backlight-add-lms501kf03-lcd-driver-fix-fix.patch
-backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix-fix.patch
-rtc-max77686-add-maxim-77686-driver-fix.patch
-rtc-pcf8523-add-low-battery-voltage-support-fix.patch
-rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
-rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
-drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-aio-smoosh-struct-kiocb-fix.patch
+mm-add-vm-event-counters-for-balloon-pages-compaction.patch
+mm-prevent-addition-of-pages-to-swap-if-may_writepage-is-unset.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix.patch
+debugging-keep-track-of-page-owners-fix-2.patch
 debugging-keep-track-of-page-owners-fix-2-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+debugging-keep-track-of-page-owners-fix-2-fix-fix.patch
 
