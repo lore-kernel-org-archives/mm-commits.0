@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + bug-fix-reuse-the-storage-of-sys-firmware-memmap-x-allocated-by-bootmem.patch added to -mm tree
-Date: Tue, 15 Jan 2013 13:44:32 -0800
-Message-ID: <20130115214433.D7D21200057@hpza10.eem.corp.google.com>
+Subject: + memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch added to -mm tree
+Date: Tue, 15 Jan 2013 13:44:55 -0800
+Message-ID: <20130115214455.AEC27820055@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-la0-f74.google.com ([209.85.215.74]:56094 "EHLO
-	mail-la0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756253Ab3AOVoh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Jan 2013 16:44:37 -0500
-Received: by mail-la0-f74.google.com with SMTP id ej20so42631lab.3
-        for <mm-commits@vger.kernel.org>; Tue, 15 Jan 2013 13:44:36 -0800 (PST)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:44026 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756361Ab3AOVo4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Jan 2013 16:44:56 -0500
+Received: by mail-gh0-f201.google.com with SMTP id z19so78784ghb.0
+        for <mm-commits@vger.kernel.org>; Tue, 15 Jan 2013 13:44:56 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -19,7 +19,7 @@ Cc: tangchen@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.
 The patch titled
      Subject: Bug fix: Reuse the storage of /sys/firmware/memmap/X/ allocated by bootmem.
 has been added to the -mm tree.  Its filename is
-     bug-fix-reuse-the-storage-of-sys-firmware-memmap-x-allocated-by-bootmem.patch
+     memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,8 +58,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  drivers/firmware/memmap.c |  103 ++++++++++++++++++++++++++++++------
  1 file changed, 88 insertions(+), 15 deletions(-)
 
-diff -puN drivers/firmware/memmap.c~bug-fix-reuse-the-storage-of-sys-firmware-memmap-x-allocated-by-bootmem drivers/firmware/memmap.c
---- a/drivers/firmware/memmap.c~bug-fix-reuse-the-storage-of-sys-firmware-memmap-x-allocated-by-bootmem
+diff -puN drivers/firmware/memmap.c~memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix drivers/firmware/memmap.c
+--- a/drivers/firmware/memmap.c~memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix
 +++ a/drivers/firmware/memmap.c
 @@ -53,6 +53,9 @@ static ssize_t start_show(struct firmwar
  static ssize_t end_show(struct firmware_map_entry *entry, char *buf);
@@ -235,7 +235,7 @@ memory-hotplug-remove-redundant-codes.patch
 memory-hotplug-remove-sys-firmware-memmap-x-sysfs.patch
 memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
 memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix.patch
-bug-fix-reuse-the-storage-of-sys-firmware-memmap-x-allocated-by-bootmem.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
 memory-hotplug-introduce-new-arch_remove_memory-for-removing-page-table.patch
 memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap.patch
 memory-hotplug-move-pgdat_resize_lock-into-sparse_remove_one_section.patch
