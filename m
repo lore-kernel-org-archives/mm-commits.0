@@ -1,348 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] jiffies-conversions-use-compile-time-constants-when-possible.patch removed from -mm tree
-Date: Mon, 14 Jan 2013 15:21:02 -0800
-Message-ID: <20130114232102.B92048202E6@wpzn4.hot.corp.google.com>
+Subject: + debugging-keep-track-of-page-owners-fix-2-fix.patch added to -mm tree
+Date: Mon, 14 Jan 2013 16:34:48 -0800
+Message-ID: <20130115003449.86D2220004E@hpza10.eem.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:54152 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757043Ab3ANXVE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Jan 2013 18:21:04 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so289143ghb.5
-        for <mm-commits@vger.kernel.org>; Mon, 14 Jan 2013 15:21:03 -0800 (PST)
+Received: from mail-wg0-f74.google.com ([74.125.82.74]:65178 "EHLO
+	mail-wg0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756309Ab3AOAew (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Jan 2013 19:34:52 -0500
+Received: by mail-wg0-f74.google.com with SMTP id dt14so299261wgb.1
+        for <mm-commits@vger.kernel.org>; Mon, 14 Jan 2013 16:34:50 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, koverstreet@google.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, minchan@kernel.org
 
 
 The patch titled
-     Subject: jiffies conversions: Use compile time constants when possible
-has been removed from the -mm tree.  Its filename was
-     jiffies-conversions-use-compile-time-constants-when-possible.patch
+     Subject: debugging-keep-track-of-page-owners-fix-2-fix
+has been added to the -mm tree.  Its filename is
+     debugging-keep-track-of-page-owners-fix-2-fix.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: jiffies conversions: Use compile time constants when possible
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: debugging-keep-track-of-page-owners-fix-2-fix
 
-Do the multiplications and divisions at compile time instead of runtime
-when the converted value is a constant.
+Reduce scope of `val', fix coding style
 
-Make the calculation functions static __always_inline to jiffies.h.
-
-Add #defines with __builtin_constant_p to test and use the static inline
-or the runtime functions as appropriate.
-
-Prefix the old exported symbols/functions with __
-
-(akpm: shaves 100 bytes from my allnoconfig vmlinux .text)
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Kent Overstreet <koverstreet@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/jiffies.h |  136 ++++++++++++++++++++++++++++++++++++--
- kernel/time.c           |  106 +++--------------------------
- 2 files changed, 144 insertions(+), 98 deletions(-)
+ Documentation/page_owner.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/jiffies.h~jiffies-conversions-use-compile-time-constants-when-possible include/linux/jiffies.h
---- a/include/linux/jiffies.h~jiffies-conversions-use-compile-time-constants-when-possible
-+++ a/include/linux/jiffies.h
-@@ -289,10 +289,138 @@ extern unsigned long preset_lpj;
- /*
-  * Convert various time units to each other:
-  */
--extern unsigned int jiffies_to_msecs(const unsigned long j);
--extern unsigned int jiffies_to_usecs(const unsigned long j);
--extern unsigned long msecs_to_jiffies(const unsigned int m);
--extern unsigned long usecs_to_jiffies(const unsigned int u);
-+
-+/*
-+ * Avoid unnecessary multiplications/divisions in the
-+ * two most common HZ cases:
-+ */
-+static __always_inline unsigned int
-+__inline_jiffies_to_msecs(const unsigned long j)
-+{
-+#if HZ <= MSEC_PER_SEC && !(MSEC_PER_SEC % HZ)
-+	return (MSEC_PER_SEC / HZ) * j;
-+#elif HZ > MSEC_PER_SEC && !(HZ % MSEC_PER_SEC)
-+	return (j + (HZ / MSEC_PER_SEC) - 1)/(HZ / MSEC_PER_SEC);
-+#else
-+# if BITS_PER_LONG == 32
-+	return (HZ_TO_MSEC_MUL32 * j) >> HZ_TO_MSEC_SHR32;
-+# else
-+	return (j * HZ_TO_MSEC_NUM) / HZ_TO_MSEC_DEN;
-+# endif
-+#endif
-+}
-+extern unsigned int __jiffies_to_msecs(const unsigned long j);
-+
-+#define jiffies_to_msecs(x)			\
-+	(__builtin_constant_p(x) ?		\
-+	 __inline_jiffies_to_msecs(x) :		\
-+	 __jiffies_to_msecs(x))
-+
-+static __always_inline unsigned int
-+__inline_jiffies_to_usecs(const unsigned long j)
-+{
-+#if HZ <= USEC_PER_SEC && !(USEC_PER_SEC % HZ)
-+	return (USEC_PER_SEC / HZ) * j;
-+#elif HZ > USEC_PER_SEC && !(HZ % USEC_PER_SEC)
-+	return (j + (HZ / USEC_PER_SEC) - 1)/(HZ / USEC_PER_SEC);
-+#else
-+# if BITS_PER_LONG == 32
-+	return (HZ_TO_USEC_MUL32 * j) >> HZ_TO_USEC_SHR32;
-+# else
-+	return (j * HZ_TO_USEC_NUM) / HZ_TO_USEC_DEN;
-+# endif
-+#endif
-+}
-+extern unsigned int __jiffies_to_usecs(const unsigned long j);
-+
-+#define jiffies_to_usecs(x)			\
-+	(__builtin_constant_p(x) ?		\
-+	 __inline_jiffies_to_usecs(x) :		\
-+	 __jiffies_to_usecs(x))
-+
-+/*
-+ * When we convert to jiffies then we interpret incoming values
-+ * the following way:
-+ *
-+ * - negative values mean 'infinite timeout' (MAX_JIFFY_OFFSET)
-+ *
-+ * - 'too large' values [that would result in larger than
-+ *   MAX_JIFFY_OFFSET values] mean 'infinite timeout' too.
-+ *
-+ * - all other values are converted to jiffies by either multiplying
-+ *   the input value by a factor or dividing it with a factor
-+ *
-+ * We must also be careful about 32-bit overflows.
-+ */
-+static __always_inline unsigned long
-+__inline_msecs_to_jiffies(const unsigned int m)
-+{
-+	/*
-+	 * Negative value, means infinite timeout:
-+	 */
-+	if ((int)m < 0)
-+		return MAX_JIFFY_OFFSET;
-+
-+#if HZ <= MSEC_PER_SEC && !(MSEC_PER_SEC % HZ)
-+	/*
-+	 * HZ is equal to or smaller than 1000, and 1000 is a nice
-+	 * round multiple of HZ, divide with the factor between them,
-+	 * but round upwards:
-+	 */
-+	return (m + (MSEC_PER_SEC / HZ) - 1) / (MSEC_PER_SEC / HZ);
-+#elif HZ > MSEC_PER_SEC && !(HZ % MSEC_PER_SEC)
-+	/*
-+	 * HZ is larger than 1000, and HZ is a nice round multiple of
-+	 * 1000 - simply multiply with the factor between them.
-+	 *
-+	 * But first make sure the multiplication result cannot
-+	 * overflow:
-+	 */
-+	if (m > jiffies_to_msecs(MAX_JIFFY_OFFSET))
-+		return MAX_JIFFY_OFFSET;
-+
-+	return m * (HZ / MSEC_PER_SEC);
-+#else
-+	/*
-+	 * Generic case - multiply, round and divide. But first
-+	 * check that if we are doing a net multiplication, that
-+	 * we wouldn't overflow:
-+	 */
-+	if (HZ > MSEC_PER_SEC && m > jiffies_to_msecs(MAX_JIFFY_OFFSET))
-+		return MAX_JIFFY_OFFSET;
-+
-+	return (MSEC_TO_HZ_MUL32 * m + MSEC_TO_HZ_ADJ32)
-+		>> MSEC_TO_HZ_SHR32;
-+#endif
-+}
-+extern unsigned long __msecs_to_jiffies(const unsigned int m);
-+
-+#define msecs_to_jiffies(x)			\
-+	(__builtin_constant_p(x) ?		\
-+	 __inline_msecs_to_jiffies(x) :		\
-+	 __msecs_to_jiffies(x))
-+
-+static __always_inline unsigned long
-+__inline_usecs_to_jiffies(const unsigned int u)
-+{
-+	if (u > jiffies_to_usecs(MAX_JIFFY_OFFSET))
-+		return MAX_JIFFY_OFFSET;
-+#if HZ <= USEC_PER_SEC && !(USEC_PER_SEC % HZ)
-+	return (u + (USEC_PER_SEC / HZ) - 1) / (USEC_PER_SEC / HZ);
-+#elif HZ > USEC_PER_SEC && !(HZ % USEC_PER_SEC)
-+	return u * (HZ / USEC_PER_SEC);
-+#else
-+	return (USEC_TO_HZ_MUL32 * u + USEC_TO_HZ_ADJ32)
-+		>> USEC_TO_HZ_SHR32;
-+#endif
-+}
-+extern unsigned long __usecs_to_jiffies(const unsigned int u);
-+
-+#define usecs_to_jiffies(x)			\
-+	(__builtin_constant_p(x) ?		\
-+	 __inline_usecs_to_jiffies(x) :		\
-+	 __usecs_to_jiffies(x))
-+
- extern unsigned long timespec_to_jiffies(const struct timespec *value);
- extern void jiffies_to_timespec(const unsigned long jiffies,
- 				struct timespec *value);
-diff -puN kernel/time.c~jiffies-conversions-use-compile-time-constants-when-possible kernel/time.c
---- a/kernel/time.c~jiffies-conversions-use-compile-time-constants-when-possible
-+++ a/kernel/time.c
-@@ -228,41 +228,18 @@ EXPORT_SYMBOL(current_fs_time);
- 
- /*
-  * Convert jiffies to milliseconds and back.
-- *
-- * Avoid unnecessary multiplications/divisions in the
-- * two most common HZ cases:
-  */
--unsigned int jiffies_to_msecs(const unsigned long j)
-+unsigned int __jiffies_to_msecs(const unsigned long j)
+diff -puN Documentation/page_owner.c~debugging-keep-track-of-page-owners-fix-2-fix Documentation/page_owner.c
+--- a/Documentation/page_owner.c~debugging-keep-track-of-page-owners-fix-2-fix
++++ a/Documentation/page_owner.c
+@@ -32,12 +32,13 @@ int read_block(char *buf, FILE *fin)
  {
--#if HZ <= MSEC_PER_SEC && !(MSEC_PER_SEC % HZ)
--	return (MSEC_PER_SEC / HZ) * j;
--#elif HZ > MSEC_PER_SEC && !(HZ % MSEC_PER_SEC)
--	return (j + (HZ / MSEC_PER_SEC) - 1)/(HZ / MSEC_PER_SEC);
--#else
--# if BITS_PER_LONG == 32
--	return (HZ_TO_MSEC_MUL32 * j) >> HZ_TO_MSEC_SHR32;
--# else
--	return (j * HZ_TO_MSEC_NUM) / HZ_TO_MSEC_DEN;
--# endif
--#endif
-+	return __inline_jiffies_to_msecs(j);
- }
--EXPORT_SYMBOL(jiffies_to_msecs);
-+EXPORT_SYMBOL(__jiffies_to_msecs);
+ 	int ret = 0;
+ 	int hit = 0;
+-	int val;
+ 	char *curr = buf;
  
--unsigned int jiffies_to_usecs(const unsigned long j)
-+unsigned int __jiffies_to_usecs(const unsigned long j)
- {
--#if HZ <= USEC_PER_SEC && !(USEC_PER_SEC % HZ)
--	return (USEC_PER_SEC / HZ) * j;
--#elif HZ > USEC_PER_SEC && !(HZ % USEC_PER_SEC)
--	return (j + (HZ / USEC_PER_SEC) - 1)/(HZ / USEC_PER_SEC);
--#else
--# if BITS_PER_LONG == 32
--	return (HZ_TO_USEC_MUL32 * j) >> HZ_TO_USEC_SHR32;
--# else
--	return (j * HZ_TO_USEC_NUM) / HZ_TO_USEC_DEN;
--# endif
--#endif
-+	return __inline_jiffies_to_usecs(j);
- }
--EXPORT_SYMBOL(jiffies_to_usecs);
-+EXPORT_SYMBOL(__jiffies_to_usecs);
- 
- /**
-  * timespec_trunc - Truncate timespec to a granularity
-@@ -411,76 +388,17 @@ struct timeval ns_to_timeval(const s64 n
- }
- EXPORT_SYMBOL(ns_to_timeval);
- 
--/*
-- * When we convert to jiffies then we interpret incoming values
-- * the following way:
-- *
-- * - negative values mean 'infinite timeout' (MAX_JIFFY_OFFSET)
-- *
-- * - 'too large' values [that would result in larger than
-- *   MAX_JIFFY_OFFSET values] mean 'infinite timeout' too.
-- *
-- * - all other values are converted to jiffies by either multiplying
-- *   the input value by a factor or dividing it with a factor
-- *
-- * We must also be careful about 32-bit overflows.
-- */
--unsigned long msecs_to_jiffies(const unsigned int m)
-+unsigned long __msecs_to_jiffies(const unsigned int m)
- {
--	/*
--	 * Negative value, means infinite timeout:
--	 */
--	if ((int)m < 0)
--		return MAX_JIFFY_OFFSET;
--
--#if HZ <= MSEC_PER_SEC && !(MSEC_PER_SEC % HZ)
--	/*
--	 * HZ is equal to or smaller than 1000, and 1000 is a nice
--	 * round multiple of HZ, divide with the factor between them,
--	 * but round upwards:
--	 */
--	return (m + (MSEC_PER_SEC / HZ) - 1) / (MSEC_PER_SEC / HZ);
--#elif HZ > MSEC_PER_SEC && !(HZ % MSEC_PER_SEC)
--	/*
--	 * HZ is larger than 1000, and HZ is a nice round multiple of
--	 * 1000 - simply multiply with the factor between them.
--	 *
--	 * But first make sure the multiplication result cannot
--	 * overflow:
--	 */
--	if (m > jiffies_to_msecs(MAX_JIFFY_OFFSET))
--		return MAX_JIFFY_OFFSET;
--
--	return m * (HZ / MSEC_PER_SEC);
--#else
--	/*
--	 * Generic case - multiply, round and divide. But first
--	 * check that if we are doing a net multiplication, that
--	 * we wouldn't overflow:
--	 */
--	if (HZ > MSEC_PER_SEC && m > jiffies_to_msecs(MAX_JIFFY_OFFSET))
--		return MAX_JIFFY_OFFSET;
--
--	return (MSEC_TO_HZ_MUL32 * m + MSEC_TO_HZ_ADJ32)
--		>> MSEC_TO_HZ_SHR32;
--#endif
-+	return __inline_msecs_to_jiffies(m);
- }
--EXPORT_SYMBOL(msecs_to_jiffies);
-+EXPORT_SYMBOL(__msecs_to_jiffies);
- 
--unsigned long usecs_to_jiffies(const unsigned int u)
-+unsigned long __usecs_to_jiffies(const unsigned int u)
- {
--	if (u > jiffies_to_usecs(MAX_JIFFY_OFFSET))
--		return MAX_JIFFY_OFFSET;
--#if HZ <= USEC_PER_SEC && !(USEC_PER_SEC % HZ)
--	return (u + (USEC_PER_SEC / HZ) - 1) / (USEC_PER_SEC / HZ);
--#elif HZ > USEC_PER_SEC && !(HZ % USEC_PER_SEC)
--	return u * (HZ / USEC_PER_SEC);
--#else
--	return (USEC_TO_HZ_MUL32 * u + USEC_TO_HZ_ADJ32)
--		>> USEC_TO_HZ_SHR32;
--#endif
-+	return __inline_usecs_to_jiffies(u);
- }
--EXPORT_SYMBOL(usecs_to_jiffies);
-+EXPORT_SYMBOL(__usecs_to_jiffies);
- 
- /*
-  * The TICK_NSEC - 1 rounds up the value to the next resolution.  Note
+ 	for (;;) {
+-		val = getc(fin);
+-		if (val == EOF) return -1;
++		int val = getc(fin);
++
++		if (val == EOF)
++			return -1;
+ 		*curr = val;
+ 		ret++;
+ 		if (*curr == '\n' && hit == 1)
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
 linux-next.patch
-compiler-gcc4h-reorder-macros-based-upon-gcc-ver.patch
-compiler-gcch-add-gcc-recommended-gcc_version-macro.patch
-compiler-gcc34h-use-gcc_version-macro.patch
-compiler-gcc4h-bugh-remove-duplicate-macros.patch
-bugh-fix-build_bug_on-macro-in-__checker__.patch
-bugh-prevent-double-evaulation-of-in-build_bug_on.patch
-bugh-make-build_bug_on-generate-compile-time-error.patch
-compilerh-bugh-prevent-double-error-messages-with-build_bug_on.patch
-bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg.patch
-get_maintainerpl-find-maintainers-for-removed-files.patch
-checkpatch-prefer-dev_level-to-dev_printkkern_level.patch
-checkpatch-warn-on-unnecessary-__devfoo-section-markings.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
+bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
+i-need-old-gcc.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+mm.patch
+mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
+mm-hugetlbc-convert-to-pr_foo.patch
+cma-make-putback_lru_pages-call-conditional-fix.patch
+mm-vmscan-clean-up-get_scan_count-fix.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
+mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
+mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
+mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
+mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
+mm-remove-flags-argument-to-mmap_region-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
+memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+kernel-smpc-cleanups.patch
+backlight-add-lms501kf03-lcd-driver-fix.patch
+backlight-add-lms501kf03-lcd-driver-fix-fix.patch
+backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix-fix.patch
+rtc-max77686-add-maxim-77686-driver-fix.patch
+rtc-pcf8523-add-low-battery-voltage-support-fix.patch
+rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
+rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+aio-kiocb_cancel-fix.patch
+wait-add-wait_event_hrtimeout-fix.patch
+aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+generic-dynamic-per-cpu-refcounting-fix.patch
+generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
+generic-dynamic-per-cpu-refcounting-doc-fix.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-dont-include-aioh-in-schedh-fix-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3.patch
+aio-kill-ki_retry-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
+aio-smoosh-struct-kiocb-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
