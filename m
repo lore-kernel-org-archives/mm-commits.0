@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-increase-totalram_pages-when-free-pages-allocated-by-bootmem-allocator.patch added to -mm tree
-Date: Tue, 15 Jan 2013 13:18:16 -0800
-Message-ID: <20130115211817.EAC88200057@hpza10.eem.corp.google.com>
+Subject: + drivers-base-cpuc-fix-typo-in-comment.patch added to -mm tree
+Date: Tue, 15 Jan 2013 13:18:41 -0800
+Message-ID: <20130115211841.87A3182004A@wpzn4.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-lb0-f202.google.com ([209.85.217.202]:38251 "EHLO
-	mail-lb0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755488Ab3AOVSW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Jan 2013 16:18:22 -0500
-Received: by mail-lb0-f202.google.com with SMTP id s4so53446lbc.3
-        for <mm-commits@vger.kernel.org>; Tue, 15 Jan 2013 13:18:21 -0800 (PST)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:63752 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756248Ab3AOVSm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Jan 2013 16:18:42 -0500
+Received: by mail-gh0-f201.google.com with SMTP id z19so74879ghb.2
+        for <mm-commits@vger.kernel.org>; Tue, 15 Jan 2013 13:18:42 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: liuj97@gmail.com, chris2553@googlemail.com, jiang.liu@huawei.com, kamezawa.hiroyu@jp.fujitsu.com, maciej.rutecki@gmail.com, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, rientjes@google.com, rjw@sisk.pl, wency@cn.fujitsu.com, wujianguo@huawei.com
+Cc: ralf@linux-mips.org
 
 
 The patch titled
-     Subject: mm: increase totalram_pages when free pages allocated by bootmem allocator
+     Subject: drivers/base/cpu.c: Fix typo in comment
 has been added to the -mm tree.  Its filename is
-     mm-increase-totalram_pages-when-free-pages-allocated-by-bootmem-allocator.patch
+     drivers-base-cpuc-fix-typo-in-comment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,48 +33,34 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jiang Liu <liuj97@gmail.com>
-Subject: mm: increase totalram_pages when free pages allocated by bootmem allocator
+From: Ralf Baechle <ralf@linux-mips.org>
+Subject: drivers/base/cpu.c: Fix typo in comment
 
-Function put_page_bootmem() is used to free pages allocated by bootmem
-allocator, so it should increase totalram_pages when freeing pages into
-the buddy system.
 
-Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Jiang Liu <jiang.liu@huawei.com>
-Cc: Maciej Rutecki <maciej.rutecki@gmail.com>
-Cc: Chris Clayton <chris2553@googlemail.com>
-Cc: "Rafael J . Wysocki" <rjw@sisk.pl>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Jianguo Wu <wujianguo@huawei.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/base/cpu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memory_hotplug.c~mm-increase-totalram_pages-when-free-pages-allocated-by-bootmem-allocator mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-increase-totalram_pages-when-free-pages-allocated-by-bootmem-allocator
-+++ a/mm/memory_hotplug.c
-@@ -124,6 +124,7 @@ void __ref put_page_bootmem(struct page 
- 		mutex_lock(&ppb_lock);
- 		__free_pages_bootmem(page, 0);
- 		mutex_unlock(&ppb_lock);
-+		totalram_pages++;
- 	}
- 
+diff -puN drivers/base/cpu.c~drivers-base-cpuc-fix-typo-in-comment drivers/base/cpu.c
+--- a/drivers/base/cpu.c~drivers-base-cpuc-fix-typo-in-comment
++++ a/drivers/base/cpu.c
+@@ -224,7 +224,7 @@ static void cpu_device_release(struct de
+ 	 * by the cpu device.
+ 	 *
+ 	 * Never copy this way of doing things, or you too will be made fun of
+-	 * on the linux-kerenl list, you have been warned.
++	 * on the linux-kernel list, you have been warned.
+ 	 */
  }
+ 
 _
 
-Patches currently in -mm which might be from liuj97@gmail.com are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
-x86-fix-the-argument-passed-to-sync_global_pgds.patch
-mm-use-zone-present_pages-instead-of-zone-managed_pages-where-appropriate.patch
-mm-set-zone-present_pages-to-number-of-existing-pages-in-the-zone.patch
-mm-increase-totalram_pages-when-free-pages-allocated-by-bootmem-allocator.patch
+include-asm-generic-pgtableh-fix-mips-build.patch
+linux-next.patch
+drivers-base-cpuc-fix-typo-in-comment.patch
 
