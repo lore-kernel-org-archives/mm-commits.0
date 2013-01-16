@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch added to -mm tree
-Date: Wed, 16 Jan 2013 13:56:57 -0800
-Message-ID: <20130116215657.E8A835A41D4@corp2gmr1-2.hot.corp.google.com>
+Subject: + sched-proc-sched_stat-fails-on-very-very-large-machines.patch added to -mm tree
+Date: Wed, 16 Jan 2013 13:56:54 -0800
+Message-ID: <20130116215655.2C60331C1B2@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:38329 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757765Ab3APV47 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Jan 2013 16:56:59 -0500
-Received: by mail-vb0-f73.google.com with SMTP id l1so226768vba.2
-        for <mm-commits@vger.kernel.org>; Wed, 16 Jan 2013 13:56:58 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:47936 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757761Ab3APV44 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Jan 2013 16:56:56 -0500
+Received: by mail-vb0-f74.google.com with SMTP id r6so133700vbi.3
+        for <mm-commits@vger.kernel.org>; Wed, 16 Jan 2013 13:56:55 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davej@redhat.com, mingo@redhat.com, nzimmer@sgi.com, peterz@infradead.org
+Cc: nzimmer@sgi.com, davej@redhat.com, mingo@redhat.com, peterz@infradead.org
 
 
 The patch titled
-     Subject: sched-proc-sched_stat-fails-on-very-very-large-machines-fix
+     Subject: sched: /proc/sched_stat fails on very very large machines
 has been added to the -mm tree.  Its filename is
-     sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
+     sched-proc-sched_stat-fails-on-very-very-large-machines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,99 +33,139 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: sched-proc-sched_stat-fails-on-very-very-large-machines-fix
+From: Nathan Zimmer <nzimmer@sgi.com>
+Subject: sched: /proc/sched_stat fails on very very large machines
 
-fix memleak
+On systems with 4096 cores doing a cat /proc/sched_stat fails.  We are
+trying to push all the data into a single kmalloc buffer.  The issue is on
+these very large machines all the data will not fit in 4mb.
 
-Cc: Dave Jones <davej@redhat.com>
+A better solution is to not use the single_open() mechanism but to provide
+our own seq_operations.
+
+The output should be identical to previous version and thus not need the
+version number.
+
+Signed-off-by: Nathan Zimmer <nzimmer@sgi.com>
+Reported-by: Dave Jones <davej@redhat.com>
 Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Nathan Zimmer <nzimmer@sgi.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched/stats.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/sched/stats.c |   73 +++++++++++++++++++++++++++++------------
+ 1 file changed, 53 insertions(+), 20 deletions(-)
 
-diff -puN kernel/sched/stats.c~sched-proc-sched_stat-fails-on-very-very-large-machines-fix kernel/sched/stats.c
---- a/kernel/sched/stats.c~sched-proc-sched_stat-fails-on-very-very-large-machines-fix
+diff -puN kernel/sched/stats.c~sched-proc-sched_stat-fails-on-very-very-large-machines kernel/sched/stats.c
+--- a/kernel/sched/stats.c~sched-proc-sched_stat-fails-on-very-very-large-machines
 +++ a/kernel/sched/stats.c
-@@ -76,8 +76,8 @@ static int show_schedstat(struct seq_fil
+@@ -21,9 +21,13 @@ static int show_schedstat(struct seq_fil
+ 	if (mask_str == NULL)
+ 		return -ENOMEM;
+ 
+-	seq_printf(seq, "version %d\n", SCHEDSTAT_VERSION);
+-	seq_printf(seq, "timestamp %lu\n", jiffies);
+-	for_each_online_cpu(cpu) {
++	if (v == (void *)1) {
++		seq_printf(seq, "version %d\n", SCHEDSTAT_VERSION);
++		seq_printf(seq, "timestamp %lu\n", jiffies);
++	} else {
++
++		cpu = (unsigned long)(v - 2);
++
+ 		struct rq *rq = cpu_rq(cpu);
+ #ifdef CONFIG_SMP
+ 		struct sched_domain *sd;
+@@ -72,35 +76,64 @@ static int show_schedstat(struct seq_fil
  		}
  		rcu_read_unlock();
  #endif
--		kfree(mask_str);
++		kfree(mask_str);
  	}
-+	kfree(mask_str);
+-	kfree(mask_str);
  	return 0;
  }
  
+-static int schedstat_open(struct inode *inode, struct file *file)
++static void *schedstat_start(struct seq_file *file, loff_t *offset)
+ {
+-	unsigned int size = PAGE_SIZE * (1 + num_online_cpus() / 32);
+-	char *buf = kmalloc(size, GFP_KERNEL);
+-	struct seq_file *m;
+-	int res;
++	unsigned long n = *offset;
+ 
+-	if (!buf)
+-		return -ENOMEM;
+-	res = single_open(file, show_schedstat, NULL);
+-	if (!res) {
+-		m = file->private_data;
+-		m->buf = buf;
+-		m->size = size;
+-	} else
+-		kfree(buf);
+-	return res;
++	if (n == 0)
++		return (void *) 1;
++
++	n--;
++
++	if (n > 0)
++		n = cpumask_next(n - 1, cpu_online_mask);
++	else
++		n = cpumask_first(cpu_online_mask);
++
++	*offset = n + 1;
++
++	if (n < nr_cpu_ids)
++		return (void *)(unsigned long)(n + 2);
++	return NULL;
++}
++
++static void *schedstat_next(struct seq_file *file, void *data, loff_t *offset)
++{
++	(*offset)++;
++	return schedstat_start(file, offset);
++}
++
++static void schedstat_stop(struct seq_file *file, void *data)
++{
++}
++
++static const struct seq_operations schedstat_sops = {
++	.start = schedstat_start,
++	.next  = schedstat_next,
++	.stop  = schedstat_stop,
++	.show  = show_schedstat,
++};
++
++static int schedstat_open(struct inode *inode, struct file *file)
++{
++	return seq_open(file, &schedstat_sops);
+ }
+ 
++static int schedstat_release(struct inode *inode, struct file *file)
++{
++	return 0;
++};
++
+ static const struct file_operations proc_schedstat_operations = {
+ 	.open    = schedstat_open,
+ 	.read    = seq_read,
+ 	.llseek  = seq_lseek,
+-	.release = single_release,
++	.release = schedstat_release,
+ };
+ 
+ static int __init proc_schedstat_init(void)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from nzimmer@sgi.com are
 
-origin.patch
-linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
-bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
-i-need-old-gcc.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines.patch
 sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines.patch
 sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
-mm.patch
-mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
-mm-hugetlbc-convert-to-pr_foo.patch
-cma-make-putback_lru_pages-call-conditional-fix.patch
-mm-vmscan-clean-up-get_scan_count-fix.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
-mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
-mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
-mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
-mm-remove-flags-argument-to-mmap_region-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
-memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-kernel-smpc-cleanups.patch
-backlight-add-lms501kf03-lcd-driver-fix.patch
-backlight-add-lms501kf03-lcd-driver-fix-fix.patch
-backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix-fix.patch
-rtc-max77686-add-maxim-77686-driver-fix.patch
-rtc-pcf8523-add-low-battery-voltage-support-fix.patch
-rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
-rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
-signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
-drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-aio-smoosh-struct-kiocb-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+timer_list-split-timer_list_show_tickdevices.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
 
