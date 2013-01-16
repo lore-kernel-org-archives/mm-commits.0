@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + signal-allow-to-send-any-siginfo-to-itself.patch added to -mm tree
-Date: Wed, 16 Jan 2013 12:37:49 -0800
-Message-ID: <20130116203752.1C034100047@wpzn3.hot.corp.google.com>
+Subject: + signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2.patch added to -mm tree
+Date: Wed, 16 Jan 2013 12:37:56 -0800
+Message-ID: <20130116203756.E4CE2100047@wpzn3.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:38051 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752781Ab3APUhy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Jan 2013 15:37:54 -0500
-Received: by mail-gh0-f201.google.com with SMTP id z19so214486ghb.2
-        for <mm-commits@vger.kernel.org>; Wed, 16 Jan 2013 12:37:53 -0800 (PST)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:41889 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755623Ab3APUh6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Jan 2013 15:37:58 -0500
+Received: by mail-yh0-f73.google.com with SMTP id 47so214826yhr.2
+        for <mm-commits@vger.kernel.org>; Wed, 16 Jan 2013 12:37:57 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: avagin@openvz.org, ebiederm@xmission.com, gorcunov@openvz.org, mtk.manpages@gmail.com, oleg@redhat.com, serge.hallyn@canonical.com, viro@zeniv.linux.org.uk, xemul@parallels.com
+Cc: avagin@openvz.org, dhowells@redhat.com, gorcunov@openvz.org, mtk.manpages@gmail.com, oleg@redhat.com, paulmck@linux.vnet.ibm.com, tglx@linutronix.de, viro@zeniv.linux.org.uk, xemul@parallels.com
 
 
 The patch titled
-     Subject: signal: allow to send any siginfo to itself
+     Subject: signalfd: add ability to return siginfo in a raw format
 has been added to the -mm tree.  Its filename is
-     signal-allow-to-send-any-siginfo-to-itself.patch
+     signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,19 +34,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Vagin <avagin@openvz.org>
-Subject: signal: allow to send any siginfo to itself
+Subject: signalfd: add ability to return siginfo in a raw format
 
-The kernel prevents sending of siginfo with positive si_code, because
-these codes are reserved for kernel.  I think we can allow a task to send
-such a siginfo to itself.  This operation should not be dangerous.
+signalfd should be called with the flag SFD_RAW for that.
 
-This functionality is required for restoring signals in
-checkpoint/restart.
+signalfd_siginfo is not full for siginfo with a negative si_code. 
+copy_siginfo_to_user() is copied a full siginfo to user-space, if si_code
+is negative.  signalfd_copyinfo() doesn't do that and can't be expanded,
+because it has not compatible format with siginfo_t.
+
+Another problem is that a constant __SI_* is removed from si_code.  It's
+not a problem for usual applications, because they expect a defined type
+of siginfo (internal logic).  When we want to dump pending signals, we
+can't predict a type of siginfo, so we should get it from kernel.
+
+The main idea of the raw format is that it should be enough for restoring
+exactly the same siginfo for the current process.
+
+This functionality is required for checkpointing pending signals.
 
 Signed-off-by: Andrey Vagin <avagin@openvz.org>
-Cc: Serge Hallyn <serge.hallyn@canonical.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Michael Kerrisk <mtk.manpages@gmail.com>
 Cc: Pavel Emelyanov <xemul@parallels.com>
 Cc: Cyrill Gorcunov <gorcunov@openvz.org>
@@ -55,38 +66,130 @@ Reviewed-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/signalfd.c                 |   64 +++++++++++++++++++++++++++++---
+ include/uapi/linux/signalfd.h |    1 
+ 2 files changed, 60 insertions(+), 5 deletions(-)
 
-diff -puN kernel/signal.c~signal-allow-to-send-any-siginfo-to-itself kernel/signal.c
---- a/kernel/signal.c~signal-allow-to-send-any-siginfo-to-itself
-+++ a/kernel/signal.c
-@@ -2993,7 +2993,8 @@ static int do_rt_sigqueueinfo(pid_t pid,
- 	/* Not even root can pretend to send signals from the kernel.
- 	 * Nor can they impersonate a kill()/tgkill(), which adds source info.
- 	 */
--	if (info->si_code >= 0 || info->si_code == SI_TKILL) {
-+	if ((info->si_code >= 0 || info->si_code == SI_TKILL) &&
-+	    (task_pid_vnr(current) != pid)) {
- 		/* We used to allow any < 0 si_code */
- 		WARN_ON_ONCE(info->si_code < 0);
- 		return -EPERM;
-@@ -3042,7 +3043,8 @@ static int do_rt_tgsigqueueinfo(pid_t tg
- 	/* Not even root can pretend to send signals from the kernel.
- 	 * Nor can they impersonate a kill()/tgkill(), which adds source info.
- 	 */
--	if (info->si_code >= 0 || info->si_code == SI_TKILL) {
-+	if (((info.si_code >= 0 || info.si_code == SI_TKILL)) &&
-+	    (task_pid_vnr(current) != pid)) {
- 		/* We used to allow any < 0 si_code */
- 		WARN_ON_ONCE(info->si_code < 0);
- 		return -EPERM;
-_
-
-Patches currently in -mm which might be from avagin@openvz.org are
-
-signal-allow-to-send-any-siginfo-to-itself.patch
-signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2.patch
-signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
-signalfd-add-ability-to-read-siginfo-s-without-dequeuing-signals-v4.patch
-
+diff -puN fs/signalfd.c~signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2 fs/signalfd.c
+--- a/fs/signalfd.c~signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2
++++ a/fs/signalfd.c
+@@ -30,6 +30,7 @@
+ #include <linux/signalfd.h>
+ #include <linux/syscalls.h>
+ #include <linux/proc_fs.h>
++#include <linux/compat.h>
+ 
+ void signalfd_cleanup(struct sighand_struct *sighand)
+ {
+@@ -74,6 +75,38 @@ static unsigned int signalfd_poll(struct
+ }
+ 
+ /*
++ * Copy a whole siginfo into users spaces.
++ * The main idea of this format is that it should be enough
++ * for restoring siginfo back into the kernel.
++ */
++static int signalfd_copy_raw_info(struct signalfd_siginfo __user *siginfo,
++					siginfo_t *kinfo)
++{
++	siginfo_t *uinfo = (siginfo_t *) siginfo;
++	int err;
++
++	BUILD_BUG_ON(sizeof(siginfo_t) != sizeof(struct signalfd_siginfo));
++
++	err = __clear_user(uinfo, sizeof(*uinfo));
++
++#ifdef CONFIG_COMPAT
++	if (unlikely(is_compat_task())) {
++		compat_siginfo_t *compat_uinfo = (compat_siginfo_t *) siginfo;
++
++		err |= copy_siginfo_to_user32(compat_uinfo, kinfo);
++		err |= put_user(kinfo->si_code, &compat_uinfo->si_code);
++
++		return err ? -EFAULT: sizeof(*compat_uinfo);
++	}
++#endif
++
++	err |= copy_siginfo_to_user(uinfo, kinfo);
++	err |= put_user(kinfo->si_code, &uinfo->si_code);
++
++	return err ? -EFAULT: sizeof(*uinfo);
++}
++
++/*
+  * Copied from copy_siginfo_to_user() in kernel/signal.c
+  */
+ static int signalfd_copyinfo(struct signalfd_siginfo __user *uinfo,
+@@ -205,6 +238,7 @@ static ssize_t signalfd_read(struct file
+ 	struct signalfd_ctx *ctx = file->private_data;
+ 	struct signalfd_siginfo __user *siginfo;
+ 	int nonblock = file->f_flags & O_NONBLOCK;
++	bool raw = file->f_flags & SFD_RAW;
+ 	ssize_t ret, total = 0;
+ 	siginfo_t info;
+ 
+@@ -217,7 +251,12 @@ static ssize_t signalfd_read(struct file
+ 		ret = signalfd_dequeue(ctx, &info, nonblock);
+ 		if (unlikely(ret <= 0))
+ 			break;
+-		ret = signalfd_copyinfo(siginfo, &info);
++
++		if (raw)
++			ret = signalfd_copy_raw_info(siginfo, &info);
++		else
++			ret = signalfd_copyinfo(siginfo, &info);
++
+ 		if (ret < 0)
+ 			break;
+ 		siginfo++;
+@@ -262,7 +301,7 @@ SYSCALL_DEFINE4(signalfd4, int, ufd, sig
+ 	BUILD_BUG_ON(SFD_CLOEXEC != O_CLOEXEC);
+ 	BUILD_BUG_ON(SFD_NONBLOCK != O_NONBLOCK);
+ 
+-	if (flags & ~(SFD_CLOEXEC | SFD_NONBLOCK))
++	if (flags & ~(SFD_CLOEXEC | SFD_NONBLOCK | SFD_RAW))
+ 		return -EINVAL;
+ 
+ 	if (sizemask != sizeof(sigset_t) ||
+@@ -272,20 +311,35 @@ SYSCALL_DEFINE4(signalfd4, int, ufd, sig
+ 	signotset(&sigmask);
+ 
+ 	if (ufd == -1) {
++		struct file *file;
+ 		ctx = kmalloc(sizeof(*ctx), GFP_KERNEL);
+ 		if (!ctx)
+ 			return -ENOMEM;
+ 
+ 		ctx->sigmask = sigmask;
+ 
++		ufd = get_unused_fd_flags(flags);
++		if (ufd < 0) {
++			kfree(ctx);
++			goto out;
++		}
++
+ 		/*
+ 		 * When we call this, the initialization must be complete, since
+ 		 * anon_inode_getfd() will install the fd.
+ 		 */
+-		ufd = anon_inode_getfd("[signalfd]", &signalfd_fops, ctx,
++		file = anon_inode_getfile("[signalfd]", &signalfd_fops, ctx,
+ 				       O_RDWR | (flags & (O_CLOEXEC | O_NONBLOCK)));
+-		if (ufd < 0)
++		if (IS_ERR(file)) {
++			put_unused_fd(ufd);
++			ufd = PTR_ERR(file);
+ 			kfree(ctx);
++			goto out;
++		}
++
++		file->f_flags |= flags & SFD_RAW;
++
++		fd_install(ufd, file);
+ 	} else {
+ 		struct fd f = fdget(ufd);
+ 		if (!f.file)
+@@ -302,7 +356,7 @@ SYSCALL_DEFINE4(signalfd4, int, ufd, sig
+ 		wake_up(&current->sighand->signalfd_wqh);
+ 		fdput(f);
+ 	}
