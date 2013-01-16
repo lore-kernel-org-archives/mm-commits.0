@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch added to -mm tree
-Date: Wed, 16 Jan 2013 14:12:55 -0800
-Message-ID: <20130116221256.1B7DE100047@wpzn3.hot.corp.google.com>
+Subject: + memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix.patch added to -mm tree
+Date: Wed, 16 Jan 2013 14:39:38 -0800
+Message-ID: <20130116223939.4E71131C1B2@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:42315 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756136Ab3APWM5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Jan 2013 17:12:57 -0500
-Received: by mail-ye0-f201.google.com with SMTP id r11so228980yen.4
-        for <mm-commits@vger.kernel.org>; Wed, 16 Jan 2013 14:12:56 -0800 (PST)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:49729 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757706Ab3APWjk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Jan 2013 17:39:40 -0500
+Received: by mail-gg0-f201.google.com with SMTP id o6so231222ggm.0
+        for <mm-commits@vger.kernel.org>; Wed, 16 Jan 2013 14:39:39 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, nzimmer@sgi.com
+Cc: linfeng@cn.fujitsu.com, mhocko@suse.cz
 
 
 The patch titled
-     Subject: timer_list-convert-timer-list-to-be-a-proper-seq_file-fix
+     Subject: memory-hotplug: introduce CONFIG_HAVE_BOOTMEM_INFO_NODE and revert register_page_bootmem_info_node() when platform not support
 has been added to the -mm tree.  Its filename is
-     timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
+     memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,95 +33,105 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: timer_list-convert-timer-list-to-be-a-proper-seq_file-fix
+From: Lin Feng <linfeng@cn.fujitsu.com>
+Subject: memory-hotplug: introduce CONFIG_HAVE_BOOTMEM_INFO_NODE and revert register_page_bootmem_info_node() when platform not support
 
-whitespace fixlet
+It's implemented by adding a new Kconfig option named
+CONFIG_HAVE_BOOTMEM_INFO_NODE, which will be automatically selected by
+memory-hotplug feature fully supported archs(currently only on x86_64).
 
-Cc: Nathan Zimmer <nzimmer@sgi.com>
+Signed-off-by: Lin Feng <linfeng@cn.fujitsu.com>
+Reported-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/timer_list.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/x86/mm/init_64.c          |    2 +-
+ include/linux/memory_hotplug.h |    6 ++++++
+ mm/Kconfig                     |    8 ++++++++
+ mm/memory_hotplug.c            |    2 ++
+ 4 files changed, 17 insertions(+), 1 deletion(-)
 
-diff -puN kernel/time/timer_list.c~timer_list-convert-timer-list-to-be-a-proper-seq_file-fix kernel/time/timer_list.c
---- a/kernel/time/timer_list.c~timer_list-convert-timer-list-to-be-a-proper-seq_file-fix
-+++ a/kernel/time/timer_list.c
-@@ -274,7 +274,6 @@ static int timer_list_show(struct seq_fi
+diff -puN arch/x86/mm/init_64.c~memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix
++++ a/arch/x86/mm/init_64.c
+@@ -1000,7 +1000,7 @@ vmemmap_populate(struct page *start_page
  	return 0;
  }
  
--
- static void *timer_list_start(struct seq_file *file, loff_t *offset)
+-#ifdef CONFIG_MEMORY_HOTPLUG_SPARSE
++#if defined(CONFIG_MEMORY_HOTPLUG_SPARSE) && defined(CONFIG_HAVE_BOOTMEM_INFO_NODE)
+ void register_page_bootmem_memmap(unsigned long section_nr,
+ 				  struct page *start_page, unsigned long size)
  {
- 	unsigned long n = *offset;
+diff -puN include/linux/memory_hotplug.h~memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix
++++ a/include/linux/memory_hotplug.h
+@@ -174,7 +174,13 @@ static inline void arch_refresh_nodedata
+ #endif /* CONFIG_NUMA */
+ #endif /* CONFIG_HAVE_ARCH_NODEDATA_EXTENSION */
+ 
++#ifdef CONFIG_HAVE_BOOTMEM_INFO_NODE
+ extern void register_page_bootmem_info_node(struct pglist_data *pgdat);
++#else
++static inline void register_page_bootmem_info_node(struct pglist_data *pgdat)
++{
++}
++#endif
+ extern void put_page_bootmem(struct page *page);
+ extern void get_page_bootmem(unsigned long ingo, struct page *page,
+ 			     unsigned long type);
+diff -puN mm/Kconfig~memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix mm/Kconfig
+--- a/mm/Kconfig~memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix
++++ a/mm/Kconfig
+@@ -162,10 +162,18 @@ config MOVABLE_NODE
+ 	  Say Y here if you want to hotplug a whole node.
+ 	  Say N here if you want kernel to use memory on all nodes evenly.
+ 
++#
++# Only be set on architectures that have completely implemented memory hotplug
++# feature. If you are not sure, don't touch it.
++#
++config HAVE_BOOTMEM_INFO_NODE
++	def_bool n
++
+ # eventually, we can have this option just 'select SPARSEMEM'
+ config MEMORY_HOTPLUG
+ 	bool "Allow for memory hot-add"
+ 	select MEMORY_ISOLATION
++	select HAVE_BOOTMEM_INFO_NODE if X86_64
+ 	depends on SPARSEMEM || X86_64_ACPI_NUMA
+ 	depends on HOTPLUG && ARCH_ENABLE_MEMORY_HOTPLUG
+ 	depends on (IA64 || X86 || PPC_BOOK3S_64 || SUPERH || S390)
+diff -puN mm/memory_hotplug.c~memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix
++++ a/mm/memory_hotplug.c
+@@ -188,6 +188,7 @@ static void register_page_bootmem_info_s
+ }
+ #endif
+ 
++#ifdef CONFIG_HAVE_BOOTMEM_INFO_NODE
+ void register_page_bootmem_info_node(struct pglist_data *pgdat)
+ {
+ 	unsigned long i, pfn, end_pfn, nr_pages;
+@@ -229,6 +230,7 @@ void register_page_bootmem_info_node(str
+ 			register_page_bootmem_info_section(pfn);
+ 	}
+ }
++#endif
+ 
+ static void grow_zone_span(struct zone *zone, unsigned long start_pfn,
+ 			   unsigned long end_pfn)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from linfeng@cn.fujitsu.com are
 
 origin.patch
-linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
-bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
-i-need-old-gcc.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
-mm.patch
-mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
-mm-hugetlbc-convert-to-pr_foo.patch
-cma-make-putback_lru_pages-call-conditional-fix.patch
-mm-vmscan-clean-up-get_scan_count-fix.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
-mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
-mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
-mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
-mm-remove-flags-argument-to-mmap_region-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
-memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-kernel-smpc-cleanups.patch
-backlight-add-lms501kf03-lcd-driver-fix.patch
-backlight-add-lms501kf03-lcd-driver-fix-fix.patch
-backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix-fix.patch
-rtc-max77686-add-maxim-77686-driver-fix.patch
-rtc-pcf8523-add-low-battery-voltage-support-fix.patch
-rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
-rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
-signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
-drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-aio-smoosh-struct-kiocb-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix.patch
+memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix.patch
+memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix-fix.patch
+memory-hotplug-remove-memmap-of-sparse-vmemmap-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter.patch
+page_alloc-introduce-zone_movable_limit-to-keep-movable-limit-for-nodes.patch
+page_alloc-make-movablecore_map-has-higher-priority.patch
+page_alloc-bootmem-limit-with-movablecore_map.patch
 
