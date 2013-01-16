@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch added to -mm tree
-Date: Wed, 16 Jan 2013 12:38:00 -0800
-Message-ID: <20130116203800.C3939100047@wpzn3.hot.corp.google.com>
+Subject: + sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch added to -mm tree
+Date: Wed, 16 Jan 2013 13:56:57 -0800
+Message-ID: <20130116215657.E8A835A41D4@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:56186 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755623Ab3APUiD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Jan 2013 15:38:03 -0500
-Received: by mail-qa0-f74.google.com with SMTP id r4so226921qaq.5
-        for <mm-commits@vger.kernel.org>; Wed, 16 Jan 2013 12:38:01 -0800 (PST)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:38329 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757765Ab3APV47 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Jan 2013 16:56:59 -0500
+Received: by mail-vb0-f73.google.com with SMTP id l1so226768vba.2
+        for <mm-commits@vger.kernel.org>; Wed, 16 Jan 2013 13:56:58 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, avagin@openvz.org, dhowells@redhat.com, gorcunov@openvz.org, mtk.manpages@gmail.com, oleg@redhat.com, paulmck@linux.vnet.ibm.com, tglx@linutronix.de, viro@zeniv.linux.org.uk, xemul@parallels.com
+Cc: akpm@linux-foundation.org, davej@redhat.com, mingo@redhat.com, nzimmer@sgi.com, peterz@infradead.org
 
 
 The patch titled
-     Subject: signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix
+     Subject: sched-proc-sched_stat-fails-on-very-very-large-machines-fix
 has been added to the -mm tree.  Its filename is
-     signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
+     sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,70 +34,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix
+Subject: sched-proc-sched_stat-fails-on-very-very-large-machines-fix
 
-fix __user annotations, tidy comments and code layout
+fix memleak
 
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andrey Vagin <avagin@openvz.org>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Nathan Zimmer <nzimmer@sgi.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/signalfd.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ kernel/sched/stats.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/signalfd.c~signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix fs/signalfd.c
---- a/fs/signalfd.c~signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix
-+++ a/fs/signalfd.c
-@@ -75,14 +75,14 @@ static unsigned int signalfd_poll(struct
- }
- 
- /*
-- * Copy a whole siginfo into users spaces.
-+ * Copy a whole siginfo into userspace.
-  * The main idea of this format is that it should be enough
-  * for restoring siginfo back into the kernel.
-  */
- static int signalfd_copy_raw_info(struct signalfd_siginfo __user *siginfo,
- 					siginfo_t *kinfo)
- {
--	siginfo_t *uinfo = (siginfo_t *) siginfo;
-+	siginfo_t __user *uinfo = (siginfo_t __user *)siginfo;
- 	int err;
- 
- 	BUILD_BUG_ON(sizeof(siginfo_t) != sizeof(struct signalfd_siginfo));
-@@ -91,19 +91,20 @@ static int signalfd_copy_raw_info(struct
- 
- #ifdef CONFIG_COMPAT
- 	if (unlikely(is_compat_task())) {
--		compat_siginfo_t *compat_uinfo = (compat_siginfo_t *) siginfo;
-+		compat_siginfo_t __user *compat_uinfo;
- 
-+		compat_uinfo = (compat_siginfo_t __user *)siginfo;
- 		err |= copy_siginfo_to_user32(compat_uinfo, kinfo);
- 		err |= put_user(kinfo->si_code, &compat_uinfo->si_code);
- 
--		return err ? -EFAULT: sizeof(*compat_uinfo);
-+		return err ? -EFAULT : sizeof(*compat_uinfo);
- 	}
+diff -puN kernel/sched/stats.c~sched-proc-sched_stat-fails-on-very-very-large-machines-fix kernel/sched/stats.c
+--- a/kernel/sched/stats.c~sched-proc-sched_stat-fails-on-very-very-large-machines-fix
++++ a/kernel/sched/stats.c
+@@ -76,8 +76,8 @@ static int show_schedstat(struct seq_fil
+ 		}
+ 		rcu_read_unlock();
  #endif
- 
- 	err |= copy_siginfo_to_user(uinfo, kinfo);
- 	err |= put_user(kinfo->si_code, &uinfo->si_code);
- 
--	return err ? -EFAULT: sizeof(*uinfo);
-+	return err ? -EFAULT : sizeof(*uinfo);
+-		kfree(mask_str);
+ 	}
++	kfree(mask_str);
+ 	return 0;
  }
  
- /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -110,6 +73,8 @@ bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.pa
 i-need-old-gcc.patch
 fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
 arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
 mm.patch
 mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
 mm-hugetlbc-convert-to-pr_foo.patch
