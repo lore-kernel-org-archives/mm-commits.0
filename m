@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Thu, 17 Jan 2013 12:49:53 -0800
-Message-ID: <20130117204954.93D2131C1F2@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-teach-mm-by-current-context-info-to-not-do-i-o-during-memory-allocation.patch added to -mm tree
+Date: Thu, 17 Jan 2013 13:57:43 -0800
+Message-ID: <20130117215743.D79C85A41EB@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f74.google.com ([209.85.219.74]:56285 "EHLO
-	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753390Ab3AQUt4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Jan 2013 15:49:56 -0500
-Received: by mail-oa0-f74.google.com with SMTP id k14so779694oag.3
-        for <mm-commits@vger.kernel.org>; Thu, 17 Jan 2013 12:49:56 -0800 (PST)
+Received: from mail-ia0-f202.google.com ([209.85.210.202]:43959 "EHLO
+	mail-ia0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756725Ab3AQV5q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Jan 2013 16:57:46 -0500
+Received: by mail-ia0-f202.google.com with SMTP id p22so211317iad.1
+        for <mm-commits@vger.kernel.org>; Thu, 17 Jan 2013 13:57:46 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: ming.lei@canonical.com, axboe@kernel.dk, davem@davemloft.net, david.decotigny@google.com, eric.dumazet@gmail.com, greg@kroah.com, jiri.kosina@suse.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mhocko@suse.cz, minchan@kernel.org, mingo@elte.hu, mingo@redhat.com, oneukum@suse.de, peterz@infradead.org, rjw@sisk.pl, stern@rowland.harvard.edu, therbert@google.com
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: mm: teach mm by current context info to not do I/O during memory allocation
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     mm-teach-mm-by-current-context-info-to-not-do-i-o-during-memory-allocation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,248 +33,213 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Ming Lei <ming.lei@canonical.com>
+Subject: mm: teach mm by current context info to not do I/O during memory allocation
 
+This patch introduces PF_MEMALLOC_NOIO on process flag('flags' field of
+'struct task_struct'), so that the flag can be set by one task to avoid
+doing I/O inside memory allocation in the task's context.
+
+The patch trys to solve one deadlock problem caused by block device, and
+the problem may happen at least in the below situations:
+
+- during block device runtime resume, if memory allocation with
+  GFP_KERNEL is called inside runtime resume callback of any one of its
+  ancestors(or the block device itself), the deadlock may be triggered
+  inside the memory allocation since it might not complete until the block
+  device becomes active and the involed page I/O finishes.  The situation
+  is pointed out first by Alan Stern.  It is not a good approach to
+  convert all GFP_KERNEL[1] in the path into GFP_NOIO because several
+  subsystems may be involved(for example, PCI, USB and SCSI may be
+  involved for usb mass stoarage device, network devices involved too in
+  the iSCSI case)
+
+- during block device runtime suspend, because runtime resume need to
+  wait for completion of concurrent runtime suspend.
+
+- during error handling of usb mass storage deivce, USB bus reset will
+  be put on the device, so there shouldn't have any memory allocation with
+  GFP_KERNEL during USB bus reset, otherwise the deadlock similar with
+  above may be triggered.  Unfortunately, any usb device may include one
+  mass storage interface in theory, so it requires all usb interface
+  drivers to handle the situation.  In fact, most usb drivers don't know
+  how to handle bus reset on the device and don't provide .pre_set() and
+  .post_reset() callback at all, so USB core has to unbind and bind driver
+  for these devices.  So it is still not practical to resort to GFP_NOIO
+  for solving the problem.
+
+Also the introduced solution can be used by block subsystem or block
+drivers too, for example, set the PF_MEMALLOC_NOIO flag before doing
+actual I/O transfer.
+
+It is not a good idea to convert all these GFP_KERNEL in the affected path
+into GFP_NOIO because these functions doing that may be implemented as
+library and will be called in many other contexts.
+
+In fact, memalloc_noio_flags() can convert some of current static GFP_NOIO
+allocation into GFP_KERNEL back in other non-affected contexts, at least
+almost all GFP_NOIO in USB subsystem can be converted into GFP_KERNEL
+after applying the approach and make allocation with GFP_NOIO only happen
+in runtime resume/bus reset/block I/O transfer contexts generally.
+
+[1], several GFP_KERNEL allocation examples in runtime resume path
+
+- pci subsystem
+acpi_os_allocate
+	<-acpi_ut_allocate
+		<-ACPI_ALLOCATE_ZEROED
+			<-acpi_evaluate_object
+				<-__acpi_bus_set_power
+					<-acpi_bus_set_power
+						<-acpi_pci_set_power_state
+							<-platform_pci_set_power_state
+								<-pci_platform_power_transition
+									<-__pci_complete_power_transition
+										<-pci_set_power_state
+											<-pci_restore_standard_config
+												<-pci_pm_runtime_resume
+- usb subsystem
+usb_get_status
+	<-finish_port_resume
+		<-usb_port_resume
+			<-generic_resume
+				<-usb_resume_device
+					<-usb_resume_both
+						<-usb_runtime_resume
+
+- some individual usb drivers
+usblp, uvc, gspca, most of dvb-usb-v2 media drivers, cpia2, az6007, ....
+
+That is just what I have found.  Unfortunately, this allocation can only
+be found by human being now, and there should be many not found since any
+function in the resume path(call tree) may allocate memory with
+GFP_KERNEL.
+
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Oliver Neukum <oneukum@suse.de>
+Cc: Jiri Kosina <jiri.kosina@suse.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Greg KH <greg@kroah.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: David Decotigny <david.decotigny@google.com>
+Cc: Tom Herbert <therbert@google.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/cio/chsc.c |   29 ----------
- fs/xfs/xfs_buf_item.c   |  106 --------------------------------------
- 2 files changed, 135 deletions(-)
+ include/linux/sched.h |   22 ++++++++++++++++++++++
+ mm/page_alloc.c       |    9 ++++++++-
+ mm/vmscan.c           |    4 ++--
+ 3 files changed, 32 insertions(+), 3 deletions(-)
 
-diff -puN drivers/s390/cio/chsc.c~linux-next-git-rejects drivers/s390/cio/chsc.c
---- a/drivers/s390/cio/chsc.c~linux-next-git-rejects
-+++ a/drivers/s390/cio/chsc.c
-@@ -492,32 +492,7 @@ static void chsc_process_event_informati
- 		if (chsc(sei))
- 			break;
+diff -puN include/linux/sched.h~mm-teach-mm-by-current-context-info-to-not-do-i-o-during-memory-allocation include/linux/sched.h
+--- a/include/linux/sched.h~mm-teach-mm-by-current-context-info-to-not-do-i-o-during-memory-allocation
++++ a/include/linux/sched.h
+@@ -51,6 +51,7 @@ struct sched_param {
+ #include <linux/cred.h>
+ #include <linux/llist.h>
+ #include <linux/uidgid.h>
++#include <linux/gfp.h>
  
--<<<<<<< HEAD
--		if (sei->response.code == 0x0001) {
--			CIO_CRW_EVENT(2, "chsc: sei successful\n");
--
--			/* Check if we might have lost some information. */
--			if (sei->u.nt0_area.flags & 0x40) {
--				CIO_CRW_EVENT(2, "chsc: event overflow\n");
--				css_schedule_eval_all();
--			}
--
--			switch (sei->nt) {
--			case 0:
--				chsc_process_sei_nt0(&sei->u.nt0_area);
--				break;
--			case 2:
--				chsc_process_sei_nt2(&sei->u.nt2_area);
--				break;
--			default:
--				CIO_CRW_EVENT(2, "chsc: unhandled nt=%d\n",
--					      sei->nt);
--				break;
--			}
--		} else {
--=======
- 		if (sei->response.code != 0x0001) {
-->>>>>>> linux-next/akpm-base
- 			CIO_CRW_EVENT(2, "chsc: sei failed (rc=%04x)\n",
- 				      sei->response.code);
- 			break;
-@@ -559,11 +534,7 @@ static void chsc_process_crw(struct crw 
- 		      crw0->erc, crw0->rsid);
+ #include <asm/processor.h>
  
- 	CIO_TRACE_EVENT(2, "prcss");
--<<<<<<< HEAD
--	__chsc_process_crw(sei, CHSC_SEI_NT0 | CHSC_SEI_NT2);
--=======
- 	chsc_process_event_information(sei, CHSC_SEI_NT0 | CHSC_SEI_NT2);
-->>>>>>> linux-next/akpm-base
- }
+@@ -1815,6 +1816,7 @@ extern void thread_group_cputime_adjuste
+ #define PF_FROZEN	0x00010000	/* frozen for system suspend */
+ #define PF_FSTRANS	0x00020000	/* inside a filesystem transaction */
+ #define PF_KSWAPD	0x00040000	/* I am kswapd */
++#define PF_MEMALLOC_NOIO 0x00080000	/* Allocating memory without IO involved */
+ #define PF_LESS_THROTTLE 0x00100000	/* Throttle me less: I clean memory */
+ #define PF_KTHREAD	0x00200000	/* I am a kernel thread */
+ #define PF_RANDOMIZE	0x00400000	/* randomize virtual address space */
+@@ -1852,6 +1854,26 @@ extern void thread_group_cputime_adjuste
+ #define tsk_used_math(p) ((p)->flags & PF_USED_MATH)
+ #define used_math() tsk_used_math(current)
  
- void chsc_chp_online(struct chp_id chpid)
-diff -puN fs/xfs/xfs_buf_item.c~linux-next-git-rejects fs/xfs/xfs_buf_item.c
---- a/fs/xfs/xfs_buf_item.c~linux-next-git-rejects
-+++ a/fs/xfs/xfs_buf_item.c
-@@ -37,112 +37,6 @@ static inline struct xfs_buf_log_item *B
- 	return container_of(lip, struct xfs_buf_log_item, bli_item);
- }
- 
--<<<<<<< HEAD
--
--#ifdef XFS_TRANS_DEBUG
--/*
-- * This function uses an alternate strategy for tracking the bytes
-- * that the user requests to be logged.  This can then be used
-- * in conjunction with the bli_orig array in the buf log item to
-- * catch bugs in our callers' code.
-- *
-- * We also double check the bits set in xfs_buf_item_log using a
-- * simple algorithm to check that every byte is accounted for.
-- */
--STATIC void
--xfs_buf_item_log_debug(
--	xfs_buf_log_item_t	*bip,
--	uint			first,
--	uint			last)
--{
--	uint	x;
--	uint	byte;
--	uint	nbytes;
--	uint	chunk_num;
--	uint	word_num;
--	uint	bit_num;
--	uint	bit_set;
--	uint	*wordp;
--
--	ASSERT(bip->bli_logged != NULL);
--	byte = first;
--	nbytes = last - first + 1;
--	bfset(bip->bli_logged, first, nbytes);
--	for (x = 0; x < nbytes; x++) {
--		chunk_num = byte >> XFS_BLF_SHIFT;
--		word_num = chunk_num >> BIT_TO_WORD_SHIFT;
--		bit_num = chunk_num & (NBWORD - 1);
--		wordp = &(bip->__bli_format.blf_data_map[word_num]);
--		bit_set = *wordp & (1 << bit_num);
--		ASSERT(bit_set);
--		byte++;
--	}
--}
--
--/*
-- * This function is called when we flush something into a buffer without
-- * logging it.  This happens for things like inodes which are logged
-- * separately from the buffer.
-- */
--void
--xfs_buf_item_flush_log_debug(
--	xfs_buf_t	*bp,
--	uint		first,
--	uint		last)
--{
--	xfs_buf_log_item_t	*bip = bp->b_fspriv;
--	uint			nbytes;
--
--	if (bip == NULL || (bip->bli_item.li_type != XFS_LI_BUF))
--		return;
--
--	ASSERT(bip->bli_logged != NULL);
--	nbytes = last - first + 1;
--	bfset(bip->bli_logged, first, nbytes);
--}
--
--/*
-- * This function is called to verify that our callers have logged
-- * all the bytes that they changed.
-- *
-- * It does this by comparing the original copy of the buffer stored in
-- * the buf log item's bli_orig array to the current copy of the buffer
-- * and ensuring that all bytes which mismatch are set in the bli_logged
-- * array of the buf log item.
-- */
--STATIC void
--xfs_buf_item_log_check(
--	xfs_buf_log_item_t	*bip)
--{
--	char		*orig;
--	char		*buffer;
--	int		x;
--	xfs_buf_t	*bp;
--
--	ASSERT(bip->bli_orig != NULL);
--	ASSERT(bip->bli_logged != NULL);
--
--	bp = bip->bli_buf;
--	ASSERT(bp->b_length > 0);
--	ASSERT(bp->b_addr != NULL);
--	orig = bip->bli_orig;
--	buffer = bp->b_addr;
--	for (x = 0; x < BBTOB(bp->b_length); x++) {
--		if (orig[x] != buffer[x] && !btst(bip->bli_logged, x)) {
--			xfs_emerg(bp->b_mount,
--				"%s: bip %x buffer %x orig %x index %d",
--				__func__, bip, bp, orig, x);
--			ASSERT(0);
--		}
--	}
--}
--#else
--#define		xfs_buf_item_log_debug(x,y,z)
--#define		xfs_buf_item_log_check(x)
--#endif
--
--=======
-->>>>>>> linux-next/akpm-base
- STATIC void	xfs_buf_do_callbacks(struct xfs_buf *bp);
- 
++/* __GFP_IO isn't allowed if PF_MEMALLOC_NOIO is set in current->flags */
++static inline gfp_t memalloc_noio_flags(gfp_t flags)
++{
++	if (unlikely(current->flags & PF_MEMALLOC_NOIO))
++		flags &= ~__GFP_IO;
++	return flags;
++}
++
++static inline unsigned int memalloc_noio_save(void)
++{
++	unsigned int flags = current->flags & PF_MEMALLOC_NOIO;
++	current->flags |= PF_MEMALLOC_NOIO;
++	return flags;
++}
++
++static inline void memalloc_noio_restore(unsigned int flags)
++{
++	current->flags = (current->flags & ~PF_MEMALLOC_NOIO) | flags;
++}
++
  /*
+  * task->jobctl flags
+  */
+diff -puN mm/page_alloc.c~mm-teach-mm-by-current-context-info-to-not-do-i-o-during-memory-allocation mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-teach-mm-by-current-context-info-to-not-do-i-o-during-memory-allocation
++++ a/mm/page_alloc.c
+@@ -2616,10 +2616,17 @@ retry_cpuset:
+ 	page = get_page_from_freelist(gfp_mask|__GFP_HARDWALL, nodemask, order,
+ 			zonelist, high_zoneidx, alloc_flags,
+ 			preferred_zone, migratetype);
+-	if (unlikely(!page))
++	if (unlikely(!page)) {
++		/*
++		 * Runtime PM, block IO and its error handling path
++		 * can deadlock because I/O on the device might not
++		 * complete.
++		 */
++		gfp_mask = memalloc_noio_flags(gfp_mask);
+ 		page = __alloc_pages_slowpath(gfp_mask, order,
+ 				zonelist, high_zoneidx, nodemask,
+ 				preferred_zone, migratetype);
++	}
+ 
+ 	trace_mm_page_alloc(page, order, gfp_mask, migratetype);
+ 
+diff -puN mm/vmscan.c~mm-teach-mm-by-current-context-info-to-not-do-i-o-during-memory-allocation mm/vmscan.c
+--- a/mm/vmscan.c~mm-teach-mm-by-current-context-info-to-not-do-i-o-during-memory-allocation
++++ a/mm/vmscan.c
+@@ -2352,7 +2352,7 @@ unsigned long try_to_free_pages(struct z
+ {
+ 	unsigned long nr_reclaimed;
+ 	struct scan_control sc = {
+-		.gfp_mask = gfp_mask,
++		.gfp_mask = (gfp_mask = memalloc_noio_flags(gfp_mask)),
+ 		.may_writepage = !laptop_mode,
+ 		.nr_to_reclaim = SWAP_CLUSTER_MAX,
+ 		.may_unmap = 1,
+@@ -3313,7 +3313,7 @@ static int __zone_reclaim(struct zone *z
+ 		.may_unmap = !!(zone_reclaim_mode & RECLAIM_SWAP),
+ 		.may_swap = 1,
+ 		.nr_to_reclaim = max(nr_pages, SWAP_CLUSTER_MAX),
+-		.gfp_mask = gfp_mask,
++		.gfp_mask = (gfp_mask = memalloc_noio_flags(gfp_mask)),
+ 		.order = order,
+ 		.priority = ZONE_RECLAIM_PRIORITY,
+ 	};
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ming.lei@canonical.com are
 
 origin.patch
 linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
-bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
-i-need-old-gcc.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
-mm.patch
-mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
-mm-hugetlbc-convert-to-pr_foo.patch
-cma-make-putback_lru_pages-call-conditional-fix.patch
-mm-vmscan-clean-up-get_scan_count-fix.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
-mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
-mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
-mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
-mm-remove-flags-argument-to-mmap_region-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
-memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix.patch
-memory-failure-do-code-refactor-of-soft_offline_page.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-kernel-smpc-cleanups.patch
-backlight-add-lms501kf03-lcd-driver-fix.patch
-backlight-add-lms501kf03-lcd-driver-fix-fix.patch
-backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix-fix.patch
-rtc-max77686-add-maxim-77686-driver-fix.patch
-rtc-pcf8523-add-low-battery-voltage-support-fix.patch
-rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
-rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
-signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
-drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-aio-smoosh-struct-kiocb-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-linux-next-git-rejects.patch
+mm-teach-mm-by-current-context-info-to-not-do-i-o-during-memory-allocation.patch
+pm-runtime-introduce-pm_runtime_set_memalloc_noio.patch
+block-genhdc-apply-pm_runtime_set_memalloc_noio-on-block-devices.patch
+net-core-apply-pm_runtime_set_memalloc_noio-on-network-devices.patch
+pm-runtime-force-memory-allocation-with-no-i-o-during-runtime-pm-callbcack.patch
+usb-forbid-memory-allocation-with-i-o-during-bus-reset.patch
 
