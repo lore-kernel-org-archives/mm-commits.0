@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix-fix-fix.patch added to -mm tree
-Date: Fri, 18 Jan 2013 13:41:25 -0800
-Message-ID: <20130118214125.D66345A41FB@corp2gmr1-2.hot.corp.google.com>
+Subject: + sched-proc-sched_stat-fails-on-very-very-large-machines-v2.patch added to -mm tree
+Date: Fri, 18 Jan 2013 13:44:25 -0800
+Message-ID: <20130118214425.A8EE931C22A@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f73.google.com ([209.85.219.73]:47600 "EHLO
-	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751128Ab3ARVl1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Jan 2013 16:41:27 -0500
-Received: by mail-oa0-f73.google.com with SMTP id n12so1026792oag.0
-        for <mm-commits@vger.kernel.org>; Fri, 18 Jan 2013 13:41:26 -0800 (PST)
+Received: from mail-ia0-f201.google.com ([209.85.210.201]:40636 "EHLO
+	mail-ia0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753288Ab3ARVo1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Jan 2013 16:44:27 -0500
+Received: by mail-ia0-f201.google.com with SMTP id t4so441650iag.2
+        for <mm-commits@vger.kernel.org>; Fri, 18 Jan 2013 13:44:26 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: linfeng@cn.fujitsu.com, mhocko@suse.cz
+Cc: nzimmer@sgi.com, davej@redhat.com, mingo@redhat.com, peterz@infradead.org
 
 
 The patch titled
-     Subject: memory-hotplug: mm/Kconfig: move auto selects from MEMORY_HOTPLUG to MEMORY_HOTREMOVE as needed
+     Subject: sched-proc-sched_stat-fails-on-very-very-large-machines-v2
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix-fix-fix.patch
+     sched-proc-sched_stat-fails-on-very-very-large-machines-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,57 +33,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Lin Feng <linfeng@cn.fujitsu.com>
-Subject: memory-hotplug: mm/Kconfig: move auto selects from MEMORY_HOTPLUG to MEMORY_HOTREMOVE as needed
+From: Nathan Zimmer <nzimmer@sgi.com>
+Subject: sched-proc-sched_stat-fails-on-very-very-large-machines-v2
 
-Since we have 2 config options called MEMORY_HOTPLUG and MEMORY_HOTREMOVE
-used for memory hot-add and hot-remove separately, and codes in function
-register_page_bootmem_info_node() are only used for collecting infomation
-for hot-remove(commit 04753278), so move it to MEMORY_HOTREMOVE.
+v2: Took Andrew's suggestion to add comments, fix memleak
 
-Besides page_isolation.c selected by MEMORY_ISOLATION under MEMORY_HOTPLUG
-is also such case, move it too.
-
-Signed-off-by: Lin Feng <linfeng@cn.fujitsu.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Nathan Zimmer <nzimmer@sgi.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Dave Jones <davej@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/sched/stats.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN mm/Kconfig~memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix-fix-fix mm/Kconfig
---- a/mm/Kconfig~memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix-fix-fix
-+++ a/mm/Kconfig
-@@ -172,8 +172,6 @@ config HAVE_BOOTMEM_INFO_NODE
- # eventually, we can have this option just 'select SPARSEMEM'
- config MEMORY_HOTPLUG
- 	bool "Allow for memory hot-add"
--	select MEMORY_ISOLATION
--	select HAVE_BOOTMEM_INFO_NODE if X86_64
- 	depends on SPARSEMEM || X86_64_ACPI_NUMA
- 	depends on HOTPLUG && ARCH_ENABLE_MEMORY_HOTPLUG
- 	depends on (IA64 || X86 || PPC_BOOK3S_64 || SUPERH || S390)
-@@ -184,6 +182,8 @@ config MEMORY_HOTPLUG_SPARSE
+diff -puN kernel/sched/stats.c~sched-proc-sched_stat-fails-on-very-very-large-machines-v2 kernel/sched/stats.c
+--- a/kernel/sched/stats.c~sched-proc-sched_stat-fails-on-very-very-large-machines-v2
++++ a/kernel/sched/stats.c
+@@ -81,6 +81,13 @@ static int show_schedstat(struct seq_fil
+ 	return 0;
+ }
  
- config MEMORY_HOTREMOVE
- 	bool "Allow for memory hot remove"
-+	select MEMORY_ISOLATION
-+	select HAVE_BOOTMEM_INFO_NODE if X86_64
- 	depends on MEMORY_HOTPLUG && ARCH_ENABLE_MEMORY_HOTREMOVE
- 	depends on MIGRATION
- 
++/*
++ * This itererator needs some explination.
++ * It returns 1 for the header position.
++ * This means 2 is cpu 0.
++ * In a hotplugged system some cpus, including cpu 0, may be missing so we have
++ * to use cpumask_* to iterate over the cpus.
++ */
+ static void *schedstat_start(struct seq_file *file, loff_t *offset)
+ {
+ 	unsigned long n = *offset;
 _
 
-Patches currently in -mm which might be from linfeng@cn.fujitsu.com are
+Patches currently in -mm which might be from nzimmer@sgi.com are
 
-memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix.patch
-memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix.patch
-memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix-fix.patch
-memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix-fix-fix.patch
-memory-hotplug-remove-memmap-of-sparse-vmemmap-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter.patch
-page_alloc-introduce-zone_movable_limit-to-keep-movable-limit-for-nodes.patch
-page_alloc-make-movablecore_map-has-higher-priority.patch
-page_alloc-bootmem-limit-with-movablecore_map.patch
+timer_list-split-timer_list_show_tickdevices.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-v2.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
 
