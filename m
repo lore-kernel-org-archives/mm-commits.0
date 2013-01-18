@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch added to -mm tree
-Date: Fri, 18 Jan 2013 13:47:12 -0800
-Message-ID: <20130118214713.4F73E31C129@corp2gmr1-1.hot.corp.google.com>
+Subject: + sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch added to -mm tree
+Date: Fri, 18 Jan 2013 13:48:07 -0800
+Message-ID: <20130118214808.2269131C05D@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f202.google.com ([209.85.223.202]:50461 "EHLO
-	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751092Ab3ARVrP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Jan 2013 16:47:15 -0500
-Received: by mail-ie0-f202.google.com with SMTP id s9so1027671iec.1
-        for <mm-commits@vger.kernel.org>; Fri, 18 Jan 2013 13:47:14 -0800 (PST)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:61514 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753252Ab3ARVsJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Jan 2013 16:48:09 -0500
+Received: by mail-ob0-f202.google.com with SMTP id wd20so1028764obb.5
+        for <mm-commits@vger.kernel.org>; Fri, 18 Jan 2013 13:48:09 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akpm@linux-foundation.org, davej@redhat.com, mingo@redhat.com, nzimmer@sgi.c
 
 
 The patch titled
-     Subject: sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix
+     Subject: sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix
 has been added to the -mm tree.  Its filename is
-     sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch
+     sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix
+Subject: sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix
 
 fix spello in comment
 
@@ -45,13 +45,13 @@ Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched/debug.c |    2 +-
+ kernel/sched/stats.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/sched/debug.c~sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix kernel/sched/debug.c
---- a/kernel/sched/debug.c~sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix
-+++ a/kernel/sched/debug.c
-@@ -414,7 +414,7 @@ void sysrq_sched_debug_show(void)
+diff -puN kernel/sched/stats.c~sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix kernel/sched/stats.c
+--- a/kernel/sched/stats.c~sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix
++++ a/kernel/sched/stats.c
+@@ -82,7 +82,7 @@ static int show_schedstat(struct seq_fil
  }
  
  /*
@@ -74,6 +74,7 @@ fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
 arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
 timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
 sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
 sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
 sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch
 mm.patch
