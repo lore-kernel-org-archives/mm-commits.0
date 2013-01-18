@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch added to -mm tree
-Date: Fri, 18 Jan 2013 14:13:39 -0800
-Message-ID: <20130118221340.390FC31C05D@corp2gmr1-1.hot.corp.google.com>
+Subject: + timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch added to -mm tree
+Date: Fri, 18 Jan 2013 13:40:10 -0800
+Message-ID: <20130118223126.AF4EE31C05D@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:36304 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754950Ab3ARWNl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Jan 2013 17:13:41 -0500
-Received: by mail-yh0-f73.google.com with SMTP id i57so194843yha.2
-        for <mm-commits@vger.kernel.org>; Fri, 18 Jan 2013 14:13:40 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:53559 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754787Ab3ARWb3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Jan 2013 17:31:29 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so309522vcd.5
+        for <mm-commits@vger.kernel.org>; Fri, 18 Jan 2013 14:31:28 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, koverstreet@google.com, minchan@kernel.org
+Cc: akpm@linux-foundation.org, davej@redhat.com, johnstul@us.ibm.com, nzimmer@sgi.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix
+     Subject: timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix
 has been added to the -mm tree.  Its filename is
-     block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
+     timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,53 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix
+Subject: timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix
 
-fix tracepoint in batch_complete()
+kernel/time/timer_list.c: In function 'timer_list_show':
+kernel/time/timer_list.c:262: warning: cast to pointer from integer of different size
+kernel/time/timer_list.c:267: warning: cast to pointer from integer of different size
+kernel/time/timer_list.c: In function 'timer_list_start':
+kernel/time/timer_list.c:297: warning: cast to pointer from integer of different size
 
-Cc: Kent Overstreet <koverstreet@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
+This code is revolting :(
+
+Cc: Dave Jones <davej@redhat.com>
+Cc: John Stultz <johnstul@us.ibm.com>
+Cc: Nathan Zimmer <nzimmer@sgi.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/bio.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/time/timer_list.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/bio.c~block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix fs/bio.c
---- a/fs/bio.c~block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix
-+++ a/fs/bio.c
-@@ -1426,6 +1426,8 @@ void bio_endio_batch(struct bio *bio, in
- 	if (error)
- 		bio->bi_error = error;
+diff -puN kernel/time/timer_list.c~timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix kernel/time/timer_list.c
+--- a/kernel/time/timer_list.c~timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix
++++ a/kernel/time/timer_list.c
+@@ -259,12 +259,12 @@ static int timer_list_show(struct seq_fi
+ 			   HRTIMER_MAX_CLOCK_BASES);
+ 		SEQ_printf(m, "now at %Ld nsecs\n", (unsigned long long)now);
+ 		SEQ_printf(m, "\n");
+-	} else if (v < (void *)(nr_cpu_ids + 2)) {
++	} else if (v < (void *)(unsigned long)(nr_cpu_ids + 2)) {
+ 		cpu = (unsigned long)(v - 2);
+ 		print_cpu(m, cpu, now);
+ 	}
+ #ifdef CONFIG_GENERIC_CLOCKEVENTS
+-	else if (v == (void *)nr_cpu_ids + 2) {
++	else if (v == (void *)(unsigned long)nr_cpu_ids + 2) {
+ 		timer_list_show_tickdevices_header(m);
+ 	} else {
+ 		cpu = (unsigned long)(v - 3 - nr_cpu_ids);
+@@ -306,7 +306,7 @@ static void *timer_list_start(struct seq
  
-+	trace_block_bio_complete(bio, error);
-+
- 	if (batch)
- 		bio_list_add(&batch->bio, bio);
- 	else
-@@ -1441,8 +1443,6 @@ void batch_complete(struct batch_complet
- 	while ((bio = bio_list_pop(&batch->bio)))
- 		__bio_endio(bio, batch);
+ #ifdef CONFIG_GENERIC_CLOCKEVENTS
+ 	if (n == nr_cpu_ids + 1)
+-		return (void *) (nr_cpu_ids + 2);
++		return (void *)(unsigned long)(nr_cpu_ids + 2);
  
--	trace_block_bio_complete(bio, error);
--
- 	batch_complete_aio(batch);
- }
- EXPORT_SYMBOL(batch_complete);
+ 	if (n < nr_cpu_ids * 2 + 2) {
+ 		n -= (nr_cpu_ids + 2);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,6 +95,7 @@ fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
 arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
 timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
 timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
 sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
 sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
 sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
