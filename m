@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + timer_list-convert-timer-list-to-be-a-proper-seq_file-v2.patch added to -mm tree
-Date: Fri, 18 Jan 2013 13:50:59 -0800
-Message-ID: <20130118215100.2BEA85A41FB@corp2gmr1-2.hot.corp.google.com>
+Subject: + timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch added to -mm tree
+Date: Fri, 18 Jan 2013 13:51:02 -0800
+Message-ID: <20130118215103.4CB2731C268@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f73.google.com ([209.85.212.73]:60161 "EHLO
-	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750761Ab3ARVvB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Jan 2013 16:51:01 -0500
-Received: by mail-vb0-f73.google.com with SMTP id l1so479945vba.4
-        for <mm-commits@vger.kernel.org>; Fri, 18 Jan 2013 13:51:00 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:65362 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753257Ab3ARVvE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Jan 2013 16:51:04 -0500
+Received: by mail-qc0-f202.google.com with SMTP id s25so480281qcq.5
+        for <mm-commits@vger.kernel.org>; Fri, 18 Jan 2013 13:51:03 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nzimmer@sgi.com, davej@redhat.com, johnstul@us.ibm.com, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, davej@redhat.com, johnstul@us.ibm.com, nzimmer@sgi.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: timer_list-convert-timer-list-to-be-a-proper-seq_file-v2
+     Subject: timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix
 has been added to the -mm tree.  Its filename is
-     timer_list-convert-timer-list-to-be-a-proper-seq_file-v2.patch
+     timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,59 +33,106 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nathan Zimmer <nzimmer@sgi.com>
-Subject: timer_list-convert-timer-list-to-be-a-proper-seq_file-v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix
 
-v2: Added comments on the iteration.
+fix up comment
 
-Signed-off-by: Nathan Zimmer <nzimmer@sgi.com>
-Cc: John Stultz <johnstul@us.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Dave Jones <davej@redhat.com>
+Cc: John Stultz <johnstul@us.ibm.com>
+Cc: Nathan Zimmer <nzimmer@sgi.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/timer_list.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ kernel/time/timer_list.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/time/timer_list.c~timer_list-convert-timer-list-to-be-a-proper-seq_file-v2 kernel/time/timer_list.c
---- a/kernel/time/timer_list.c~timer_list-convert-timer-list-to-be-a-proper-seq_file-v2
+diff -puN kernel/time/timer_list.c~timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix kernel/time/timer_list.c
+--- a/kernel/time/timer_list.c~timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix
 +++ a/kernel/time/timer_list.c
-@@ -274,6 +274,19 @@ static int timer_list_show(struct seq_fi
- 	return 0;
+@@ -275,8 +275,8 @@ static int timer_list_show(struct seq_fi
  }
  
-+/*
-+ * This itererator really needs some explination since it is offset and has
-+ * two passes one of which is controlled by a config option.
-+ * In a hotplugged system some cpus, including cpu 0, may be missing so we have
-+ * to use cpumask_* to iterate over the cpus.
-+ * For the first pass:
-+ * It returns 1 for the header position.
-+ * For cpu 0 it returns 2 and the final possible cpu would be nr_cpu_ids + 1.
-+ * On the second pass:
-+ * It returnes nr_cpu_ids + 1 for the second header position.
-+ * For cpu 0 it returns nr_cpu_ids + 2
-+ * The final possible cpu would be nr_cpu_ids + nr_cpu_ids + 2.
-+ */
- static void *timer_list_start(struct seq_file *file, loff_t *offset)
- {
- 	unsigned long n = *offset;
+ /*
+- * This itererator really needs some explination since it is offset and has
+- * two passes one of which is controlled by a config option.
++ * This itererator really needs some explnation since it is offset and has
++ * two passes, one of which is controlled by a config option.
+  * In a hotplugged system some cpus, including cpu 0, may be missing so we have
+  * to use cpumask_* to iterate over the cpus.
+  * For the first pass:
 _
 
-Patches currently in -mm which might be from nzimmer@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-timer_list-split-timer_list_show_tickdevices.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file.patch
+origin.patch
+linux-next.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
+bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
+i-need-old-gcc.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
 timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v2.patch
 timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines.patch
 sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-v2.patch
 sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines.patch
 sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines-v2.patch
 sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch
+mm.patch
+mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
+mm-hugetlbc-convert-to-pr_foo.patch
+cma-make-putback_lru_pages-call-conditional-fix.patch
+mm-vmscan-clean-up-get_scan_count-fix.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
+mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
+mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
+mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
+mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
+mm-remove-flags-argument-to-mmap_region-fix.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
+memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix.patch
+memory-failure-do-code-refactor-of-soft_offline_page.patch
+memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+kernel-smpc-cleanups.patch
+backlight-add-lms501kf03-lcd-driver-fix.patch
+backlight-add-lms501kf03-lcd-driver-fix-fix.patch
+backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix-fix.patch
+rtc-max77686-add-maxim-77686-driver-fix.patch
+rtc-pcf8523-add-low-battery-voltage-support-fix.patch
+rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
+rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
+drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+aio-kiocb_cancel-fix.patch
+wait-add-wait_event_hrtimeout-fix.patch
+aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+generic-dynamic-per-cpu-refcounting-fix.patch
+generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
+generic-dynamic-per-cpu-refcounting-doc-fix.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-dont-include-aioh-in-schedh-fix-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3.patch
+aio-kill-ki_retry-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
+aio-smoosh-struct-kiocb-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
