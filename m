@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + signal-allow-to-send-any-siginfo-to-itself-fix.patch added to -mm tree
-Date: Fri, 18 Jan 2013 14:08:33 -0800
-Message-ID: <20130118220834.43D3331C05D@corp2gmr1-1.hot.corp.google.com>
+Subject: + block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch added to -mm tree
+Date: Fri, 18 Jan 2013 14:13:39 -0800
+Message-ID: <20130118221340.390FC31C05D@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:38366 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755112Ab3ARWIf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Jan 2013 17:08:35 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so481842ghb.1
-        for <mm-commits@vger.kernel.org>; Fri, 18 Jan 2013 14:08:34 -0800 (PST)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:36304 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754950Ab3ARWNl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Jan 2013 17:13:41 -0500
+Received: by mail-yh0-f73.google.com with SMTP id i57so194843yha.2
+        for <mm-commits@vger.kernel.org>; Fri, 18 Jan 2013 14:13:40 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, avagin@openvz.org
+Cc: akpm@linux-foundation.org, koverstreet@google.com, minchan@kernel.org
 
 
 The patch titled
-     Subject: signal-allow-to-send-any-siginfo-to-itself-fix
+     Subject: block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix
 has been added to the -mm tree.  Its filename is
-     signal-allow-to-send-any-siginfo-to-itself-fix.patch
+     block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,27 +34,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: signal-allow-to-send-any-siginfo-to-itself-fix
+Subject: block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix
 
-Cc: Andrey Vagin <avagin@openvz.org>
+fix tracepoint in batch_complete()
+
+Cc: Kent Overstreet <koverstreet@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/bio.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/signal.c~signal-allow-to-send-any-siginfo-to-itself-fix kernel/signal.c
---- a/kernel/signal.c~signal-allow-to-send-any-siginfo-to-itself-fix
-+++ a/kernel/signal.c
-@@ -3043,7 +3043,7 @@ static int do_rt_tgsigqueueinfo(pid_t tg
- 	/* Not even root can pretend to send signals from the kernel.
- 	 * Nor can they impersonate a kill()/tgkill(), which adds source info.
- 	 */
--	if (((info.si_code >= 0 || info.si_code == SI_TKILL)) &&
-+	if (((info->si_code >= 0 || info->si_code == SI_TKILL)) &&
- 	    (task_pid_vnr(current) != pid)) {
- 		/* We used to allow any < 0 si_code */
- 		WARN_ON_ONCE(info->si_code < 0);
+diff -puN fs/bio.c~block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix fs/bio.c
+--- a/fs/bio.c~block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix
++++ a/fs/bio.c
+@@ -1426,6 +1426,8 @@ void bio_endio_batch(struct bio *bio, in
+ 	if (error)
+ 		bio->bi_error = error;
+ 
++	trace_block_bio_complete(bio, error);
++
+ 	if (batch)
+ 		bio_list_add(&batch->bio, bio);
+ 	else
+@@ -1441,8 +1443,6 @@ void batch_complete(struct batch_complet
+ 	while ((bio = bio_list_pop(&batch->bio)))
+ 		__bio_endio(bio, batch);
+ 
+-	trace_block_bio_complete(bio, error);
+-
+ 	batch_complete_aio(batch);
+ }
+ EXPORT_SYMBOL(batch_complete);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -122,6 +134,7 @@ aio-kill-ki_retry-fix.patch
 block-aio-batch-completion-for-bios-kiocbs-fix.patch
 block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
 block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
 aio-smoosh-struct-kiocb-fix.patch
 debugging-keep-track-of-page-owners-fix-2-fix.patch
 journal_add_journal_head-debug.patch
