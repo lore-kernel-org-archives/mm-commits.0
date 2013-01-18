@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch added to -mm tree
-Date: Fri, 18 Jan 2013 13:51:02 -0800
-Message-ID: <20130118215103.4CB2731C268@corp2gmr1-1.hot.corp.google.com>
+Subject: + signal-allow-to-send-any-siginfo-to-itself-fix.patch added to -mm tree
+Date: Fri, 18 Jan 2013 14:08:33 -0800
+Message-ID: <20130118220834.43D3331C05D@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:65362 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753257Ab3ARVvE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Jan 2013 16:51:04 -0500
-Received: by mail-qc0-f202.google.com with SMTP id s25so480281qcq.5
-        for <mm-commits@vger.kernel.org>; Fri, 18 Jan 2013 13:51:03 -0800 (PST)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:38366 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755112Ab3ARWIf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Jan 2013 17:08:35 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z10so481842ghb.1
+        for <mm-commits@vger.kernel.org>; Fri, 18 Jan 2013 14:08:34 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davej@redhat.com, johnstul@us.ibm.com, nzimmer@sgi.com, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, avagin@openvz.org
 
 
 The patch titled
-     Subject: timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix
+     Subject: signal-allow-to-send-any-siginfo-to-itself-fix
 has been added to the -mm tree.  Its filename is
-     timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
+     signal-allow-to-send-any-siginfo-to-itself-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,27 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix
+Subject: signal-allow-to-send-any-siginfo-to-itself-fix
 
-fix up comment
-
-Cc: Dave Jones <davej@redhat.com>
-Cc: John Stultz <johnstul@us.ibm.com>
-Cc: Nathan Zimmer <nzimmer@sgi.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andrey Vagin <avagin@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/timer_list.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/signal.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/time/timer_list.c~timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix kernel/time/timer_list.c
---- a/kernel/time/timer_list.c~timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix
-+++ a/kernel/time/timer_list.c
-@@ -275,8 +275,8 @@ static int timer_list_show(struct seq_fi
- }
- 
- /*
-- * This itererator really needs some explination since it is offset and has
-- * two passes one of which is controlled by a config option.
-+ * This itererator really needs some explnation since it is offset and has
-+ * two passes, one of which is controlled by a config option.
-  * In a hotplugged system some cpus, including cpu 0, may be missing so we have
-  * to use cpumask_* to iterate over the cpus.
-  * For the first pass:
+diff -puN kernel/signal.c~signal-allow-to-send-any-siginfo-to-itself-fix kernel/signal.c
+--- a/kernel/signal.c~signal-allow-to-send-any-siginfo-to-itself-fix
++++ a/kernel/signal.c
+@@ -3043,7 +3043,7 @@ static int do_rt_tgsigqueueinfo(pid_t tg
+ 	/* Not even root can pretend to send signals from the kernel.
+ 	 * Nor can they impersonate a kill()/tgkill(), which adds source info.
+ 	 */
+-	if (((info.si_code >= 0 || info.si_code == SI_TKILL)) &&
++	if (((info->si_code >= 0 || info->si_code == SI_TKILL)) &&
+ 	    (task_pid_vnr(current) != pid)) {
+ 		/* We used to allow any < 0 si_code */
+ 		WARN_ON_ONCE(info->si_code < 0);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -112,6 +105,7 @@ rtc-pcf8523-add-low-battery-voltage-support-fix.patch
 rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
 rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
 hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+signal-allow-to-send-any-siginfo-to-itself-fix.patch
 signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
 drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
 dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
