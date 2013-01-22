@@ -1,83 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ext3-ext4-ocfs2-remove-unused-macro-namei_ra_index.patch removed from -mm tree
-Date: Tue, 22 Jan 2013 13:23:17 -0800
-Message-ID: <20130122212317.AC25D31C1BF@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] include-asm-generic-pgtableh-fix-mips-build.patch removed from -mm tree
+Date: Tue, 22 Jan 2013 13:23:14 -0800
+Message-ID: <20130122212314.AEEE531C1BF@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:38202 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752620Ab3AVVXS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 16:23:18 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so860513ghb.1
-        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 13:23:18 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:46629 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752620Ab3AVVXQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 16:23:16 -0500
+Received: by mail-qc0-f202.google.com with SMTP id s25so228556qcq.1
+        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 13:23:15 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yan@linux.vnet.ibm.com, jack@suse.cz, mfasheh@suse.com, tytso@mit.edu, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, aaro.koskinen@iki.fi, david.daney@cavium.com, kirill@shutemov.name, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ext3, ext4, ocfs2: remove unused macro NAMEI_RA_INDEX
+     Subject: include/asm-generic/pgtable.h: fix MIPS build
 has been removed from the -mm tree.  Its filename was
-     ext3-ext4-ocfs2-remove-unused-macro-namei_ra_index.patch
+     include-asm-generic-pgtableh-fix-mips-build.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Guo Chao <yan@linux.vnet.ibm.com>
-Subject: ext3, ext4, ocfs2: remove unused macro NAMEI_RA_INDEX
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: include/asm-generic/pgtable.h: fix MIPS build
 
-This macro, initially introduced by ext2 in v0.99.15, does not have any
-users from the beginning.  It has been removed in later ext2 version but
-still remains in the code of ext3, ext4, ocfs2.  Remove this macro there.
+In file included from arch/mips/include/asm/pgtable.h:552,
+                 from include/linux/mm.h:44,
+                 from arch/mips/kernel/asm-offsets.c:14:
+include/asm-generic/pgtable.h: In function `my_zero_pfn':
+include/asm-generic/pgtable.h:466: error: implicit declaration of function page_to_section
 
-Signed-off-by: Guo Chao <yan@linux.vnet.ibm.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Due header files inter-dependencies, the only way I see to fix it is
+convert my_zero_pfn() for __HAVE_COLOR_ZERO_PAGE to macros.
+
+Signed-off-by: Kirill A. Shutemov <kirill@shutemov.name>
+Tested-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/namei.c |    1 -
- fs/ext4/namei.c |    1 -
- fs/ocfs2/dir.c  |    1 -
- 3 files changed, 3 deletions(-)
+ include/asm-generic/pgtable.h |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN fs/ext3/namei.c~ext3-ext4-ocfs2-remove-unused-macro-namei_ra_index fs/ext3/namei.c
---- a/fs/ext3/namei.c~ext3-ext4-ocfs2-remove-unused-macro-namei_ra_index
-+++ a/fs/ext3/namei.c
-@@ -36,7 +36,6 @@
- #define NAMEI_RA_CHUNKS  2
- #define NAMEI_RA_BLOCKS  4
- #define NAMEI_RA_SIZE        (NAMEI_RA_CHUNKS * NAMEI_RA_BLOCKS)
--#define NAMEI_RA_INDEX(c,b)  (((c) * NAMEI_RA_BLOCKS) + (b))
+diff -puN include/asm-generic/pgtable.h~include-asm-generic-pgtableh-fix-mips-build include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~include-asm-generic-pgtableh-fix-mips-build
++++ a/include/asm-generic/pgtable.h
+@@ -461,10 +461,8 @@ static inline int is_zero_pfn(unsigned l
+ 	return offset_from_zero_pfn <= (zero_page_mask >> PAGE_SHIFT);
+ }
  
- static struct buffer_head *ext3_append(handle_t *handle,
- 					struct inode *inode,
-diff -puN fs/ext4/namei.c~ext3-ext4-ocfs2-remove-unused-macro-namei_ra_index fs/ext4/namei.c
---- a/fs/ext4/namei.c~ext3-ext4-ocfs2-remove-unused-macro-namei_ra_index
-+++ a/fs/ext4/namei.c
-@@ -47,7 +47,6 @@
- #define NAMEI_RA_CHUNKS  2
- #define NAMEI_RA_BLOCKS  4
- #define NAMEI_RA_SIZE	     (NAMEI_RA_CHUNKS * NAMEI_RA_BLOCKS)
--#define NAMEI_RA_INDEX(c,b)  (((c) * NAMEI_RA_BLOCKS) + (b))
- 
- static struct buffer_head *ext4_append(handle_t *handle,
- 					struct inode *inode,
-diff -puN fs/ocfs2/dir.c~ext3-ext4-ocfs2-remove-unused-macro-namei_ra_index fs/ocfs2/dir.c
---- a/fs/ocfs2/dir.c~ext3-ext4-ocfs2-remove-unused-macro-namei_ra_index
-+++ a/fs/ocfs2/dir.c
-@@ -67,7 +67,6 @@
- #define NAMEI_RA_CHUNKS  2
- #define NAMEI_RA_BLOCKS  4
- #define NAMEI_RA_SIZE        (NAMEI_RA_CHUNKS * NAMEI_RA_BLOCKS)
--#define NAMEI_RA_INDEX(c,b)  (((c) * NAMEI_RA_BLOCKS) + (b))
- 
- static unsigned char ocfs2_filetype_table[] = {
- 	DT_UNKNOWN, DT_REG, DT_DIR, DT_CHR, DT_BLK, DT_FIFO, DT_SOCK, DT_LNK
+-static inline unsigned long my_zero_pfn(unsigned long addr)
+-{
+-	return page_to_pfn(ZERO_PAGE(addr));
+-}
++#define my_zero_pfn(addr)	page_to_pfn(ZERO_PAGE(addr))
++
+ #else
+ static inline int is_zero_pfn(unsigned long pfn)
+ {
 _
 
-Patches currently in -mm which might be from yan@linux.vnet.ibm.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
+thp-avoid-dumping-huge-zero-page.patch
 linux-next.patch
+x86-convert-update_mmu_cache-and-update_mmu_cache_pmd-to-functions.patch
+mm-huge_memory-use-new-hashtable-implementation.patch
 
