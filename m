@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + page_alloc-add-movable_memmap-kernel-parameter-rename-movablecore_map-to-movablemem_map.patch added to -mm tree
-Date: Tue, 22 Jan 2013 14:24:42 -0800
-Message-ID: <20130122222442.A912131C257@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-memblockc-use-config_have_memblock_node_map-to-protect-movablecore_map-in-memblock_overlaps_region.patch added to -mm tree
+Date: Tue, 22 Jan 2013 14:27:11 -0800
+Message-ID: <20130122222711.941195A42FA@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:59019 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752464Ab3AVWYo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 17:24:44 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so694880vcd.1
-        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 14:24:43 -0800 (PST)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:51702 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752537Ab3AVW1M (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 17:27:12 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z10so869239ghb.3
+        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 14:27:12 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tangchen@cn.fujitsu.com, hpa@zytor.com, laijs@cn.fujitsu.com, linfeng@cn.fujitsu.com, wency@cn.fujitsu.com
+Cc: tangchen@cn.fujitsu.com, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: Rename movablecore_map to movablemem_map.
+     Subject: mm/memblock.c: use CONFIG_HAVE_MEMBLOCK_NODE_MAP to protect movablecore_map in memblock_overlaps_region().
 has been added to the -mm tree.  Its filename is
-     page_alloc-add-movable_memmap-kernel-parameter-rename-movablecore_map-to-movablemem_map.patch
+     mm-memblockc-use-config_have_memblock_node_map-to-protect-movablecore_map-in-memblock_overlaps_region.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,246 +34,87 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Rename movablecore_map to movablemem_map.
+Subject: mm/memblock.c: use CONFIG_HAVE_MEMBLOCK_NODE_MAP to protect movablecore_map in memblock_overlaps_region().
 
-Since "core" could be confused with cpu cores, but here it is memory,
-so rename the boot option movablecore_map to movablemem_map.
+The definition of struct movablecore_map is protected by
+CONFIG_HAVE_MEMBLOCK_NODE_MAP but its use in memblock_overlaps_region() is
+not.  So add CONFIG_HAVE_MEMBLOCK_NODE_MAP to protect the use of
+movablecore_map in memblock_overlaps_region().
 
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Lin Feng <linfeng@cn.fujitsu.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    8 +-
- include/linux/mm.h                  |    8 +-
- mm/page_alloc.c                     |   78 +++++++++++++-------------
- 3 files changed, 47 insertions(+), 47 deletions(-)
+ include/linux/memblock.h |    1 +
+ mm/memblock.c            |   34 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 35 insertions(+)
 
-diff -puN Documentation/kernel-parameters.txt~page_alloc-add-movable_memmap-kernel-parameter-rename-movablecore_map-to-movablemem_map Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~page_alloc-add-movable_memmap-kernel-parameter-rename-movablecore_map-to-movablemem_map
-+++ a/Documentation/kernel-parameters.txt
-@@ -1637,7 +1637,7 @@ bytes respectively. Such letter suffixes
- 			that the amount of memory usable for all allocations
- 			is not too small.
- 
--	movablecore_map=nn[KMG]@ss[KMG]
-+	movablemem_map=nn[KMG]@ss[KMG]
- 			[KNL,X86,IA-64,PPC] This parameter is similar to
- 			memmap except it specifies the memory map of
- 			ZONE_MOVABLE.
-@@ -1647,11 +1647,11 @@ bytes respectively. Such letter suffixes
- 			ss to the end of the 1st node will be ZONE_MOVABLE,
- 			and all the rest nodes will only have ZONE_MOVABLE.
- 			If memmap is specified at the same time, the
--			movablecore_map will be limited within the memmap
-+			movablemem_map will be limited within the memmap
- 			areas. If kernelcore or movablecore is also specified,
--			movablecore_map will have higher priority to be
-+			movablemem_map will have higher priority to be
- 			satisfied. So the administrator should be careful that
--			the amount of movablecore_map areas are not too large.
-+			the amount of movablemem_map areas are not too large.
- 			Otherwise kernel won't have enough memory to start.
- 
- 	MTD_Partition=	[MTD]
-diff -puN include/linux/memblock.h~page_alloc-add-movable_memmap-kernel-parameter-rename-movablecore_map-to-movablemem_map include/linux/memblock.h
-diff -puN include/linux/mm.h~page_alloc-add-movable_memmap-kernel-parameter-rename-movablecore_map-to-movablemem_map include/linux/mm.h
---- a/include/linux/mm.h~page_alloc-add-movable_memmap-kernel-parameter-rename-movablecore_map-to-movablemem_map
-+++ a/include/linux/mm.h
-@@ -1359,15 +1359,15 @@ extern void free_bootmem_with_active_reg
- 						unsigned long max_low_pfn);
- extern void sparse_memory_present_with_active_regions(int nid);
- 
--#define MOVABLECORE_MAP_MAX MAX_NUMNODES
--struct movablecore_entry {
-+#define MOVABLEMEM_MAP_MAX MAX_NUMNODES
-+struct movablemem_entry {
- 	unsigned long start_pfn;    /* start pfn of memory segment */
- 	unsigned long end_pfn;      /* end pfn of memory segment (exclusive) */
- };
- 
--struct movablecore_map {
-+struct movablemem_map {
- 	int nr_map;
--	struct movablecore_entry map[MOVABLECORE_MAP_MAX];
-+	struct movablemem_entry map[MOVABLEMEM_MAP_MAX];
- };
- 
- #endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
-diff -puN mm/memblock.c~page_alloc-add-movable_memmap-kernel-parameter-rename-movablecore_map-to-movablemem_map mm/memblock.c
-diff -puN mm/page_alloc.c~page_alloc-add-movable_memmap-kernel-parameter-rename-movablecore_map-to-movablemem_map mm/page_alloc.c
---- a/mm/page_alloc.c~page_alloc-add-movable_memmap-kernel-parameter-rename-movablecore_map-to-movablemem_map
-+++ a/mm/page_alloc.c
-@@ -202,7 +202,7 @@ static unsigned long __meminitdata dma_r
+diff -puN include/linux/memblock.h~mm-memblockc-use-config_have_memblock_node_map-to-protect-movablecore_map-in-memblock_overlaps_region include/linux/memblock.h
+--- a/include/linux/memblock.h~mm-memblockc-use-config_have_memblock_node_map-to-protect-movablecore_map-in-memblock_overlaps_region
++++ a/include/linux/memblock.h
+@@ -60,6 +60,7 @@ int memblock_reserve(phys_addr_t base, p
+ void memblock_trim_memory(phys_addr_t align);
  
  #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
- /* Movable memory ranges, will also be used by memblock subsystem. */
--struct movablecore_map movablecore_map;
-+struct movablemem_map movablemem_map;
- 
- static unsigned long __meminitdata arch_zone_lowest_possible_pfn[MAX_NR_ZONES];
- static unsigned long __meminitdata arch_zone_highest_possible_pfn[MAX_NR_ZONES];
-@@ -5074,14 +5074,14 @@ early_param("kernelcore", cmdline_parse_
- early_param("movablecore", cmdline_parse_movablecore);
- 
- /**
-- * insert_movablecore_map - Insert a memory range in to movablecore_map.map.
-+ * insert_movablemem_map - Insert a memory range in to movablemem_map.map.
-  * @start_pfn:	start pfn of the range
-  * @end_pfn:	end pfn of the range
-  *
-  * This function will also merge the overlapped ranges, and sort the array
-  * by start_pfn in monotonic increasing order.
-  */
--static void __init insert_movablecore_map(unsigned long start_pfn,
-+static void __init insert_movablemem_map(unsigned long start_pfn,
- 					  unsigned long end_pfn)
- {
- 	int pos, overlap;
-@@ -5090,31 +5090,31 @@ static void __init insert_movablecore_ma
- 	 * pos will be at the 1st overlapped range, or the position
- 	 * where the element should be inserted.
- 	 */
--	for (pos = 0; pos < movablecore_map.nr_map; pos++)
--		if (start_pfn <= movablecore_map.map[pos].end_pfn)
-+	for (pos = 0; pos < movablemem_map.nr_map; pos++)
-+		if (start_pfn <= movablemem_map.map[pos].end_pfn)
- 			break;
- 
- 	/* If there is no overlapped range, just insert the element. */
--	if (pos == movablecore_map.nr_map ||
--	    end_pfn < movablecore_map.map[pos].start_pfn) {
-+	if (pos == movablemem_map.nr_map ||
-+	    end_pfn < movablemem_map.map[pos].start_pfn) {
- 		/*
- 		 * If pos is not the end of array, we need to move all
- 		 * the rest elements backward.
- 		 */
--		if (pos < movablecore_map.nr_map)
--			memmove(&movablecore_map.map[pos+1],
--				&movablecore_map.map[pos],
--				sizeof(struct movablecore_entry) *
--				(movablecore_map.nr_map - pos));
--		movablecore_map.map[pos].start_pfn = start_pfn;
--		movablecore_map.map[pos].end_pfn = end_pfn;
--		movablecore_map.nr_map++;
-+		if (pos < movablemem_map.nr_map)
-+			memmove(&movablemem_map.map[pos+1],
-+				&movablemem_map.map[pos],
-+				sizeof(struct movablemem_entry) *
-+				(movablemem_map.nr_map - pos));
-+		movablemem_map.map[pos].start_pfn = start_pfn;
-+		movablemem_map.map[pos].end_pfn = end_pfn;
-+		movablemem_map.nr_map++;
- 		return;
- 	}
- 
- 	/* overlap will be at the last overlapped range */
--	for (overlap = pos + 1; overlap < movablecore_map.nr_map; overlap++)
--		if (end_pfn < movablecore_map.map[overlap].start_pfn)
-+	for (overlap = pos + 1; overlap < movablemem_map.nr_map; overlap++)
-+		if (end_pfn < movablemem_map.map[overlap].start_pfn)
- 			break;
- 
- 	/*
-@@ -5122,29 +5122,29 @@ static void __init insert_movablecore_ma
- 	 * and move the rest elements forward.
- 	 */
- 	overlap--;
--	movablecore_map.map[pos].start_pfn = min(start_pfn,
--					movablecore_map.map[pos].start_pfn);
--	movablecore_map.map[pos].end_pfn = max(end_pfn,
--					movablecore_map.map[overlap].end_pfn);
--
--	if (pos != overlap && overlap + 1 != movablecore_map.nr_map)
--		memmove(&movablecore_map.map[pos+1],
--			&movablecore_map.map[overlap+1],
--			sizeof(struct movablecore_entry) *
--			(movablecore_map.nr_map - overlap - 1));
-+	movablemem_map.map[pos].start_pfn = min(start_pfn,
-+					movablemem_map.map[pos].start_pfn);
-+	movablemem_map.map[pos].end_pfn = max(end_pfn,
-+					movablemem_map.map[overlap].end_pfn);
 +
-+	if (pos != overlap && overlap + 1 != movablemem_map.nr_map)
-+		memmove(&movablemem_map.map[pos+1],
-+			&movablemem_map.map[overlap+1],
-+			sizeof(struct movablemem_entry) *
-+			(movablemem_map.nr_map - overlap - 1));
+ void __next_mem_pfn_range(int *idx, int nid, unsigned long *out_start_pfn,
+ 			  unsigned long *out_end_pfn, int *out_nid);
  
--	movablecore_map.nr_map -= overlap - pos;
-+	movablemem_map.nr_map -= overlap - pos;
+diff -puN mm/memblock.c~mm-memblockc-use-config_have_memblock_node_map-to-protect-movablecore_map-in-memblock_overlaps_region mm/memblock.c
+--- a/mm/memblock.c~mm-memblockc-use-config_have_memblock_node_map-to-protect-movablecore_map-in-memblock_overlaps_region
++++ a/mm/memblock.c
+@@ -92,9 +92,13 @@ static long __init_memblock memblock_ove
+  *
+  * Find @size free area aligned to @align in the specified range and node.
+  *
++ * If we have CONFIG_HAVE_MEMBLOCK_NODE_MAP defined, we need to check if the
++ * memory we found if not in hotpluggable ranges.
++ *
+  * RETURNS:
+  * Found address on success, %0 on failure.
+  */
++#ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+ phys_addr_t __init_memblock memblock_find_in_range_node(phys_addr_t start,
+ 					phys_addr_t end, phys_addr_t size,
+ 					phys_addr_t align, int nid)
+@@ -123,6 +127,36 @@ phys_addr_t __init_memblock memblock_fin
+ 	}
+ 	return 0;
  }
++#else /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
++phys_addr_t __init_memblock memblock_find_in_range_node(phys_addr_t start,
++					phys_addr_t end, phys_addr_t size,
++					phys_addr_t align, int nid)
++{
++	phys_addr_t this_start, this_end, cand;
++	u64 i;
++
++	/* pump up @end */
++	if (end == MEMBLOCK_ALLOC_ACCESSIBLE)
++		end = memblock.current_limit;
++
++	/* avoid allocating the first page */
++	start = max_t(phys_addr_t, start, PAGE_SIZE);
++	end = max(start, end);
++
++	for_each_free_mem_range_reverse(i, nid, &this_start, &this_end, NULL) {
++		this_start = clamp(this_start, start, end);
++		this_end = clamp(this_end, start, end);
++
++		if (this_end < size)
++			continue;
++
++		cand = round_down(this_end - size, align);
++		if (cand >= this_start)
++			return cand;
++	}
++	return 0;
++}
++#endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
  
  /**
-- * movablecore_map_add_region - Add a memory range into movablecore_map.
-+ * movablemem_map_add_region - Add a memory range into movablemem_map.
-  * @start:	physical start address of range
-  * @end:	physical end address of range
-  *
-  * This function transform the physical address into pfn, and then add the
-- * range into movablecore_map by calling insert_movablecore_map().
-+ * range into movablemem_map by calling insert_movablemem_map().
-  */
--static void __init movablecore_map_add_region(u64 start, u64 size)
-+static void __init movablemem_map_add_region(u64 start, u64 size)
- {
- 	unsigned long start_pfn, end_pfn;
- 
-@@ -5152,8 +5152,8 @@ static void __init movablecore_map_add_r
- 	if (start + size <= start)
- 		return;
- 
--	if (movablecore_map.nr_map >= ARRAY_SIZE(movablecore_map.map)) {
--		pr_err("movable_memory_map: too many entries;"
-+	if (movablemem_map.nr_map >= ARRAY_SIZE(movablemem_map.map)) {
-+		pr_err("movablemem_map: too many entries;"
- 			" ignoring [mem %#010llx-%#010llx]\n",
- 			(unsigned long long) start,
- 			(unsigned long long) (start + size - 1));
-@@ -5162,19 +5162,19 @@ static void __init movablecore_map_add_r
- 
- 	start_pfn = PFN_DOWN(start);
- 	end_pfn = PFN_UP(start + size);
--	insert_movablecore_map(start_pfn, end_pfn);
-+	insert_movablemem_map(start_pfn, end_pfn);
- }
- 
- /*
-- * cmdline_parse_movablecore_map - Parse boot option movablecore_map.
-+ * cmdline_parse_movablemem_map - Parse boot option movablemem_map.
-  * @p:	The boot option of the following format:
-- *	movablecore_map=nn[KMG]@ss[KMG]
-+ *	movablemem_map=nn[KMG]@ss[KMG]
-  *
-  * This option sets the memory range [ss, ss+nn) to be used as movable memory.
-  *
-  * Return: 0 on success or -EINVAL on failure.
-  */
--static int __init cmdline_parse_movablecore_map(char *p)
-+static int __init cmdline_parse_movablemem_map(char *p)
- {
- 	char *oldp;
- 	u64 start_at, mem_size;
-@@ -5193,13 +5193,13 @@ static int __init cmdline_parse_movablec
- 		if (p == oldp || *p != '\0')
- 			goto err;
- 
--		movablecore_map_add_region(start_at, mem_size);
-+		movablemem_map_add_region(start_at, mem_size);
- 		return 0;
- 	}
- err:
- 	return -EINVAL;
- }
--early_param("movablecore_map", cmdline_parse_movablecore_map);
-+early_param("movablemem_map", cmdline_parse_movablemem_map);
- 
- #endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
- 
+  * memblock_find_in_range - find free area in given range
 _
 
 Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
@@ -311,7 +152,7 @@ memory-hotplug-export-the-function-try_offline_node.patch
 cpu-hotplug-memory-hotplug-try-offline-the-node-when-hotremoving-a-cpu.patch
 cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node.patch
 sched-do-not-use-cpu_to_node-to-find-an-offlined-cpus-node.patch
-bug-fix-use-config_have_memblock_node_map-to-protect-movablecore_map-in-memblock_overlaps_region.patch
+mm-memblockc-use-config_have_memblock_node_map-to-protect-movablecore_map-in-memblock_overlaps_region.patch
 x86-get-pg_data_ts-memory-from-other-node.patch
 page_alloc-add-movable_memmap-kernel-parameter.patch
 page_alloc-add-movable_memmap-kernel-parameter-fix.patch
