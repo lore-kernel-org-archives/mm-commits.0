@@ -1,61 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lockdep-rwsem-fix-down_write_nest_lock-if-config_debug_lock_alloc.patch removed from -mm tree
-Date: Tue, 22 Jan 2013 13:23:08 -0800
-Message-ID: <20130122212309.0DE3131C1BF@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] ext3-ext4-ocfs2-remove-unused-macro-namei_ra_index.patch removed from -mm tree
+Date: Tue, 22 Jan 2013 13:23:17 -0800
+Message-ID: <20130122212317.AC25D31C1BF@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:59632 "EHLO
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:38202 "EHLO
 	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750813Ab3AVVXK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 16:23:10 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so860503ghb.1
-        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 13:23:09 -0800 (PST)
+	with ESMTP id S1752620Ab3AVVXS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 16:23:18 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z10so860513ghb.1
+        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 13:23:18 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jkosina@suse.cz, mm-commits@vger.kernel.org
+To: yan@linux.vnet.ibm.com, jack@suse.cz, mfasheh@suse.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lockdep, rwsem: fix down_write_nest_lock() if !CONFIG_DEBUG_LOCK_ALLOC
+     Subject: ext3, ext4, ocfs2: remove unused macro NAMEI_RA_INDEX
 has been removed from the -mm tree.  Its filename was
-     lockdep-rwsem-fix-down_write_nest_lock-if-config_debug_lock_alloc.patch
+     ext3-ext4-ocfs2-remove-unused-macro-namei_ra_index.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: lockdep, rwsem: fix down_write_nest_lock() if !CONFIG_DEBUG_LOCK_ALLOC
+From: Guo Chao <yan@linux.vnet.ibm.com>
+Subject: ext3, ext4, ocfs2: remove unused macro NAMEI_RA_INDEX
 
-Commit 1b963c81b1 ("lockdep, rwsem: provide down_write_nest_lock()")
-contains a bug in a codepath when CONFIG_DEBUG_LOCK_ALLOC is disabled,
-which causes down_read() to be called instead of down_write() by mistake
-on such configurations.  Fix that.
+This macro, initially introduced by ext2 in v0.99.15, does not have any
+users from the beginning.  It has been removed in later ext2 version but
+still remains in the code of ext3, ext4, ocfs2.  Remove this macro there.
 
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+Signed-off-by: Guo Chao <yan@linux.vnet.ibm.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rwsem.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ext3/namei.c |    1 -
+ fs/ext4/namei.c |    1 -
+ fs/ocfs2/dir.c  |    1 -
+ 3 files changed, 3 deletions(-)
 
-diff -puN include/linux/rwsem.h~lockdep-rwsem-fix-down_write_nest_lock-if-config_debug_lock_alloc include/linux/rwsem.h
---- a/include/linux/rwsem.h~lockdep-rwsem-fix-down_write_nest_lock-if-config_debug_lock_alloc
-+++ a/include/linux/rwsem.h
-@@ -135,7 +135,7 @@ do {								\
+diff -puN fs/ext3/namei.c~ext3-ext4-ocfs2-remove-unused-macro-namei_ra_index fs/ext3/namei.c
+--- a/fs/ext3/namei.c~ext3-ext4-ocfs2-remove-unused-macro-namei_ra_index
++++ a/fs/ext3/namei.c
+@@ -36,7 +36,6 @@
+ #define NAMEI_RA_CHUNKS  2
+ #define NAMEI_RA_BLOCKS  4
+ #define NAMEI_RA_SIZE        (NAMEI_RA_CHUNKS * NAMEI_RA_BLOCKS)
+-#define NAMEI_RA_INDEX(c,b)  (((c) * NAMEI_RA_BLOCKS) + (b))
  
- #else
- # define down_read_nested(sem, subclass)		down_read(sem)
--# define down_write_nest_lock(sem, nest_lock)	down_read(sem)
-+# define down_write_nest_lock(sem, nest_lock)	down_write(sem)
- # define down_write_nested(sem, subclass)	down_write(sem)
- #endif
+ static struct buffer_head *ext3_append(handle_t *handle,
+ 					struct inode *inode,
+diff -puN fs/ext4/namei.c~ext3-ext4-ocfs2-remove-unused-macro-namei_ra_index fs/ext4/namei.c
+--- a/fs/ext4/namei.c~ext3-ext4-ocfs2-remove-unused-macro-namei_ra_index
++++ a/fs/ext4/namei.c
+@@ -47,7 +47,6 @@
+ #define NAMEI_RA_CHUNKS  2
+ #define NAMEI_RA_BLOCKS  4
+ #define NAMEI_RA_SIZE	     (NAMEI_RA_CHUNKS * NAMEI_RA_BLOCKS)
+-#define NAMEI_RA_INDEX(c,b)  (((c) * NAMEI_RA_BLOCKS) + (b))
  
+ static struct buffer_head *ext4_append(handle_t *handle,
+ 					struct inode *inode,
+diff -puN fs/ocfs2/dir.c~ext3-ext4-ocfs2-remove-unused-macro-namei_ra_index fs/ocfs2/dir.c
+--- a/fs/ocfs2/dir.c~ext3-ext4-ocfs2-remove-unused-macro-namei_ra_index
++++ a/fs/ocfs2/dir.c
+@@ -67,7 +67,6 @@
+ #define NAMEI_RA_CHUNKS  2
+ #define NAMEI_RA_BLOCKS  4
+ #define NAMEI_RA_SIZE        (NAMEI_RA_CHUNKS * NAMEI_RA_BLOCKS)
+-#define NAMEI_RA_INDEX(c,b)  (((c) * NAMEI_RA_BLOCKS) + (b))
+ 
+ static unsigned char ocfs2_filetype_table[] = {
+ 	DT_UNKNOWN, DT_REG, DT_DIR, DT_CHR, DT_BLK, DT_FIFO, DT_SOCK, DT_LNK
 _
 
-Patches currently in -mm which might be from jkosina@suse.cz are
+Patches currently in -mm which might be from yan@linux.vnet.ibm.com are
 
 linux-next.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
-fb-yet-another-band-aid-for-fixing-lockdep-mess.patch
-usb-forbid-memory-allocation-with-i-o-during-bus-reset.patch
 
