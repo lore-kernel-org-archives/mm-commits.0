@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
 Subject: + swap-make-each-swap-partition-have-one-address_space.patch added to -mm tree
-Date: Tue, 22 Jan 2013 15:00:58 -0800
-Message-ID: <20130122230058.A689A5A41EB@corp2gmr1-2.hot.corp.google.com>
+Date: Tue, 22 Jan 2013 15:01:10 -0800
+Message-ID: <20130122230110.C9B185A41EB@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:41260 "EHLO
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:54285 "EHLO
 	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752892Ab3AVXA7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 18:00:59 -0500
-Received: by mail-gg0-f202.google.com with SMTP id l4so321738ggi.3
-        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 15:00:59 -0800 (PST)
+	with ESMTP id S1752892Ab3AVXBL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 18:01:11 -0500
+Received: by mail-gg0-f202.google.com with SMTP id l4so321754ggi.3
+        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 15:01:11 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -45,7 +45,7 @@ In my test with 3 SSD, this increases the swapout throughput 20%.
 
 Signed-off-by: Shaohua Li <shli@fusionio.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Rik van Riel <riel@redhat.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
