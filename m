@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch added to -mm tree
-Date: Tue, 22 Jan 2013 15:10:15 -0800
-Message-ID: <20130122231015.90B7531C211@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-rmap-rename-anon_vma_unlock-=-anon_vma_unlock_write.patch added to -mm tree
+Date: Tue, 22 Jan 2013 15:15:35 -0800
+Message-ID: <20130122231535.B7E105A41EB@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:40732 "EHLO
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:35349 "EHLO
 	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752044Ab3AVXKQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 18:10:16 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so874355ghb.5
-        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 15:10:16 -0800 (PST)
+	with ESMTP id S1754656Ab3AVXPh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 18:15:37 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z10so874820ghb.5
+        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 15:15:36 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, akpm@linux-foundation.org
+Cc: khlebnikov@openvz.org, mingo@kernel.org, riel@redhat.com
 
 
 The patch titled
-     Subject: checkpatch: don't emit the CamelCase warning for PageFoo
+     Subject: mm/rmap: rename anon_vma_unlock() => anon_vma_unlock_write()
 has been added to the -mm tree.  Its filename is
-     checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
+     mm-rmap-rename-anon_vma_unlock-=-anon_vma_unlock_write.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,52 +33,154 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: don't emit the CamelCase warning for PageFoo
+From: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Subject: mm/rmap: rename anon_vma_unlock() => anon_vma_unlock_write()
 
-I'm getting a ton of these:
+comment in 4fc3f1d66b1ef0d ("mm/rmap, migration: Make rmap_walk_anon() and
+try_to_unmap_anon() more scalable") says:
 
-WARNING: Avoid CamelCase: <PageTransHuge>
-#140: FILE: mm/migrate.c:1576:
-+       if (PageTransHuge(page) && page_count(page) != 3) {
+| Rename anon_vma_[un]lock() => anon_vma_[un]lock_write(),
+| to make it clearer that it's an exclusive write-lock in
+| that case - suggested by Rik van Riel.
 
-So exclude anything which starts with "Page".
+But that commit renames only anon_vma_lock()
 
-Tested-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Reviewed-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/huge_mm.h |    2 +-
+ include/linux/rmap.h    |    2 +-
+ mm/huge_memory.c        |    6 +++---
+ mm/mmap.c               |    4 ++--
+ mm/mremap.c             |    2 +-
+ mm/rmap.c               |    6 +++---
+ 6 files changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-dont-emit-the-camelcase-warning-for-pagefoo scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-dont-emit-the-camelcase-warning-for-pagefoo
-+++ a/scripts/checkpatch.pl
-@@ -2915,6 +2915,7 @@ sub process {
- 			my $var = $1;
- 			if ($var !~ /$Constant/ &&
- 			    $var =~ /[A-Z]\w*[a-z]|[a-z]\w*[A-Z]/ &&
-+			    $var !~ /^Page[A-Z]/ &&
- 			    !defined $camelcase{$var}) {
- 				$camelcase{$var} = 1;
- 				WARN("CAMELCASE",
+diff -puN include/linux/huge_mm.h~mm-rmap-rename-anon_vma_unlock-=-anon_vma_unlock_write include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~mm-rmap-rename-anon_vma_unlock-=-anon_vma_unlock_write
++++ a/include/linux/huge_mm.h
+@@ -113,7 +113,7 @@ extern void __split_huge_page_pmd(struct
+ 	do {								\
+ 		pmd_t *____pmd = (__pmd);				\
+ 		anon_vma_lock_write(__anon_vma);			\
+-		anon_vma_unlock(__anon_vma);				\
++		anon_vma_unlock_write(__anon_vma);			\
+ 		BUG_ON(pmd_trans_splitting(*____pmd) ||			\
+ 		       pmd_trans_huge(*____pmd));			\
+ 	} while (0)
+diff -puN include/linux/rmap.h~mm-rmap-rename-anon_vma_unlock-=-anon_vma_unlock_write include/linux/rmap.h
+--- a/include/linux/rmap.h~mm-rmap-rename-anon_vma_unlock-=-anon_vma_unlock_write
++++ a/include/linux/rmap.h
+@@ -123,7 +123,7 @@ static inline void anon_vma_lock_write(s
+ 	down_write(&anon_vma->root->rwsem);
+ }
+ 
+-static inline void anon_vma_unlock(struct anon_vma *anon_vma)
++static inline void anon_vma_unlock_write(struct anon_vma *anon_vma)
+ {
+ 	up_write(&anon_vma->root->rwsem);
+ }
+diff -puN mm/huge_memory.c~mm-rmap-rename-anon_vma_unlock-=-anon_vma_unlock_write mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-rmap-rename-anon_vma_unlock-=-anon_vma_unlock_write
++++ a/mm/huge_memory.c
+@@ -1830,7 +1830,7 @@ int split_huge_page(struct page *page)
+ 
+ 	BUG_ON(PageCompound(page));
+ out_unlock:
+-	anon_vma_unlock(anon_vma);
++	anon_vma_unlock_write(anon_vma);
+ 	put_anon_vma(anon_vma);
+ out:
+ 	return ret;
+@@ -2322,7 +2322,7 @@ static void collapse_huge_page(struct mm
+ 		BUG_ON(!pmd_none(*pmd));
+ 		set_pmd_at(mm, address, pmd, _pmd);
+ 		spin_unlock(&mm->page_table_lock);
+-		anon_vma_unlock(vma->anon_vma);
++		anon_vma_unlock_write(vma->anon_vma);
+ 		goto out;
+ 	}
+ 
+@@ -2330,7 +2330,7 @@ static void collapse_huge_page(struct mm
+ 	 * All pages are isolated and locked so anon_vma rmap
+ 	 * can't run anymore.
+ 	 */
+-	anon_vma_unlock(vma->anon_vma);
++	anon_vma_unlock_write(vma->anon_vma);
+ 
+ 	__collapse_huge_page_copy(pte, new_page, vma, address, ptl);
+ 	pte_unmap(pte);
+diff -puN mm/mmap.c~mm-rmap-rename-anon_vma_unlock-=-anon_vma_unlock_write mm/mmap.c
+--- a/mm/mmap.c~mm-rmap-rename-anon_vma_unlock-=-anon_vma_unlock_write
++++ a/mm/mmap.c
+@@ -808,7 +808,7 @@ again:			remove_next = 1 + (end > next->
+ 		anon_vma_interval_tree_post_update_vma(vma);
+ 		if (adjust_next)
+ 			anon_vma_interval_tree_post_update_vma(next);
+-		anon_vma_unlock(anon_vma);
++		anon_vma_unlock_write(anon_vma);
+ 	}
+ 	if (mapping)
+ 		mutex_unlock(&mapping->i_mmap_mutex);
+@@ -3016,7 +3016,7 @@ static void vm_unlock_anon_vma(struct an
+ 		if (!__test_and_clear_bit(0, (unsigned long *)
+ 					  &anon_vma->root->rb_root.rb_node))
+ 			BUG();
+-		anon_vma_unlock(anon_vma);
++		anon_vma_unlock_write(anon_vma);
+ 	}
+ }
+ 
+diff -puN mm/mremap.c~mm-rmap-rename-anon_vma_unlock-=-anon_vma_unlock_write mm/mremap.c
+--- a/mm/mremap.c~mm-rmap-rename-anon_vma_unlock-=-anon_vma_unlock_write
++++ a/mm/mremap.c
+@@ -134,7 +134,7 @@ static void move_ptes(struct vm_area_str
+ 	pte_unmap(new_pte - 1);
+ 	pte_unmap_unlock(old_pte - 1, old_ptl);
+ 	if (anon_vma)
+-		anon_vma_unlock(anon_vma);
++		anon_vma_unlock_write(anon_vma);
+ 	if (mapping)
+ 		mutex_unlock(&mapping->i_mmap_mutex);
+ }
+diff -puN mm/rmap.c~mm-rmap-rename-anon_vma_unlock-=-anon_vma_unlock_write mm/rmap.c
+--- a/mm/rmap.c~mm-rmap-rename-anon_vma_unlock-=-anon_vma_unlock_write
++++ a/mm/rmap.c
+@@ -105,7 +105,7 @@ static inline void anon_vma_free(struct 
+ 	 */
+ 	if (rwsem_is_locked(&anon_vma->root->rwsem)) {
+ 		anon_vma_lock_write(anon_vma);
+-		anon_vma_unlock(anon_vma);
++		anon_vma_unlock_write(anon_vma);
+ 	}
+ 
+ 	kmem_cache_free(anon_vma_cachep, anon_vma);
+@@ -191,7 +191,7 @@ int anon_vma_prepare(struct vm_area_stru
+ 			avc = NULL;
+ 		}
+ 		spin_unlock(&mm->page_table_lock);
+-		anon_vma_unlock(anon_vma);
++		anon_vma_unlock_write(anon_vma);
+ 
+ 		if (unlikely(allocated))
+ 			put_anon_vma(allocated);
+@@ -308,7 +308,7 @@ int anon_vma_fork(struct vm_area_struct 
+ 	vma->anon_vma = anon_vma;
+ 	anon_vma_lock_write(anon_vma);
+ 	anon_vma_chain_link(vma, avc, anon_vma);
+-	anon_vma_unlock(anon_vma);
++	anon_vma_unlock_write(anon_vma);
+ 
+ 	return 0;
+ 
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from khlebnikov@openvz.org are
 
 linux-next.patch
-compiler-gcc4h-reorder-macros-based-upon-gcc-ver.patch
-compiler-gcch-add-gcc-recommended-gcc_version-macro.patch
-compiler-gcc34h-use-gcc_version-macro.patch
-compiler-gcc4h-bugh-remove-duplicate-macros.patch
-bugh-fix-build_bug_on-macro-in-__checker__.patch
-bugh-prevent-double-evaulation-of-in-build_bug_on.patch
-bugh-make-build_bug_on-generate-compile-time-error.patch
-compilerh-bugh-prevent-double-error-messages-with-build_bug_on.patch
-bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg.patch
-get_maintainerpl-find-maintainers-for-removed-files.patch
-checkpatch-prefer-dev_level-to-dev_printkkern_level.patch
-checkpatch-warn-on-unnecessary-__devfoo-section-markings.patch
-checkpatch-add-joe-to-maintainers.patch
-checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
+mmksm-use-new-hashtable-implementation.patch
+mm-rmap-rename-anon_vma_unlock-=-anon_vma_unlock_write.patch
 
