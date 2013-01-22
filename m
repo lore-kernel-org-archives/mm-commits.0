@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + page_alloc-introduce-zone_movable_limit-to-keep-movable-limit-for-nodes-fix.patch added to -mm tree
-Date: Tue, 22 Jan 2013 14:05:31 -0800
-Message-ID: <20130122220531.AB56331C1BF@corp2gmr1-1.hot.corp.google.com>
+Subject: + page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch added to -mm tree
+Date: Tue, 22 Jan 2013 14:03:34 -0800
+Message-ID: <20130122220335.236E05A41E5@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:42559 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752134Ab3AVWFd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 17:05:33 -0500
-Received: by mail-qa0-f74.google.com with SMTP id r4so24445qaq.5
-        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 14:05:32 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:39568 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751490Ab3AVWLp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 17:11:45 -0500
+Received: by mail-vb0-f74.google.com with SMTP id r6so774431vbi.1
+        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 14:11:44 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tangchen@cn.fujitsu.com, jiang.liu@huawei.com, laijs@cn.fujitsu.com, linfeng@cn.fujitsu.com, wency@cn.fujitsu.com, wujianguo@huawei.com
+Cc: akpm@linux-foundation.org, tangchen@cn.fujitsu.com
 
 
 The patch titled
-     Subject: Bug fix: Remove the unused sanitize_zone_movable_limit() definition.
+     Subject: page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix
 has been added to the -mm tree.  Its filename is
-     page_alloc-introduce-zone_movable_limit-to-keep-movable-limit-for-nodes-fix.patch
+     page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,86 +33,124 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Bug fix: Remove the unused sanitize_zone_movable_limit() definition.
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix
 
-When CONFIG_HAVE_MEMBLOCK_NODE_MAP is not defined, sanitize_zone_movable_limit()
-is also not used. So remove it.
+remove unneeded parens
 
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Liu Jiang <jiang.liu@huawei.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Wu Jianguo <wujianguo@huawei.com>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Lin Feng <linfeng@cn.fujitsu.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    5 -----
- 1 file changed, 5 deletions(-)
+ mm/page_alloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~page_alloc-introduce-zone_movable_limit-to-keep-movable-limit-for-nodes-fix mm/page_alloc.c
---- a/mm/page_alloc.c~page_alloc-introduce-zone_movable_limit-to-keep-movable-limit-for-nodes-fix
+diff -puN mm/page_alloc.c~page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix
 +++ a/mm/page_alloc.c
-@@ -4459,11 +4459,6 @@ static inline unsigned long __meminit zo
+@@ -5074,7 +5074,7 @@ early_param("kernelcore", cmdline_parse_
+ early_param("movablecore", cmdline_parse_movablecore);
  
- 	return zholes_size[zone_type];
+ /**
+- * insert_movablecore_map() - Insert a memory range in to movablecore_map.map.
++ * insert_movablecore_map - Insert a memory range in to movablecore_map.map.
+  * @start_pfn:	start pfn of the range
+  * @end_pfn:	end pfn of the range
+  *
+@@ -5137,7 +5137,7 @@ static void __init insert_movablecore_ma
  }
--
--static void __meminit sanitize_zone_movable_limit(void)
--{
--}
--
- #endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
  
- static void __meminit calculate_node_totalpages(struct pglist_data *pgdat,
+ /**
+- * movablecore_map_add_region() - Add a memory range into movablecore_map.
++ * movablecore_map_add_region - Add a memory range into movablecore_map.
+  * @start:	physical start address of range
+  * @end:	physical end address of range
+  *
+@@ -5166,7 +5166,7 @@ static void __init movablecore_map_add_r
+ }
+ 
+ /*
+- * cmdline_parse_movablecore_map() - Parse boot option movablecore_map.
++ * cmdline_parse_movablecore_map - Parse boot option movablecore_map.
+  * @p:	The boot option of the following format:
+  * 	movablecore_map=nn[KMG]@ss[KMG]
+  *
 _
 
-Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memory-hotplug-try-to-offline-the-memory-twice-to-avoid-dependence.patch
-memory-hotplug-check-whether-all-memory-blocks-are-offlined-or-not-when-removing-memory.patch
-memory-hotplug-remove-redundant-codes.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs.patch
+origin.patch
+linux-next.patch
+linux-next-git-rejects.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
+bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
+i-need-old-gcc.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch
+mm.patch
+mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
+mm-hugetlbc-convert-to-pr_foo.patch
+cma-make-putback_lru_pages-call-conditional-fix.patch
+mm-vmscan-clean-up-get_scan_count-fix.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
+mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
+mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
+mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
+mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
+mm-remove-flags-argument-to-mmap_region-fix.patch
 memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix.patch
 memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix-fix-fix.patch
-memory-hotplug-introduce-new-arch_remove_memory-for-removing-page-table.patch
-memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap.patch
-memory-hotplug-move-pgdat_resize_lock-into-sparse_remove_one_section.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove.patch
 memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix.patch
-memory-hotplug-remove-page-table-of-x86_64-architecture.patch
 memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
-memory-hotplug-remove-memmap-of-sparse-vmemmap.patch
-memory-hotplug-integrated-__remove_section-of-config_sparsemem_vmemmap.patch
-memory_hotplug-clear-zone-when-removing-the-memory.patch
-memory-hotplug-remove-sysfs-file-of-node.patch
-memory-hotplug-free-node_data-when-a-node-is-offlined.patch
-memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline.patch
-memory-hotplug-consider-compound-pages-when-free-memmap.patch
-mempolicy-fix-is_valid_nodemask.patch
-cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved.patch
-memory-hotplug-export-the-function-try_offline_node.patch
-cpu-hotplug-memory-hotplug-try-offline-the-node-when-hotremoving-a-cpu.patch
-cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node.patch
-sched-do-not-use-cpu_to_node-to-find-an-offlined-cpus-node.patch
-bug-fix-use-config_have_memblock_node_map-to-protect-movablecore_map-in-memblock_overlaps_region.patch
-x86-get-pg_data_ts-memory-from-other-node.patch
-page_alloc-add-movable_memmap-kernel-parameter.patch
 page_alloc-add-movable_memmap-kernel-parameter-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix-fix.patch
 page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
-page_alloc-introduce-zone_movable_limit-to-keep-movable-limit-for-nodes.patch
-page_alloc-introduce-zone_movable_limit-to-keep-movable-limit-for-nodes-fix.patch
-page_alloc-make-movablecore_map-has-higher-priority.patch
-page_alloc-bootmem-limit-with-movablecore_map.patch
-rename-movablecore_map-to-movablemem_map.patch
+memory-failure-do-code-refactor-of-soft_offline_page.patch
+memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+kernel-smpc-cleanups.patch
+backlight-add-lms501kf03-lcd-driver-fix.patch
+backlight-add-lms501kf03-lcd-driver-fix-fix.patch
+backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix-fix.patch
+rtc-max77686-add-maxim-77686-driver-fix.patch
+rtc-pcf8523-add-low-battery-voltage-support-fix.patch
+rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
+rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+signal-allow-to-send-any-siginfo-to-itself-fix.patch
+signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
+drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+aio-kiocb_cancel-fix.patch
+wait-add-wait_event_hrtimeout-fix.patch
+aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+generic-dynamic-per-cpu-refcounting-fix.patch
+generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
+generic-dynamic-per-cpu-refcounting-doc-fix.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-dont-include-aioh-in-schedh-fix-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3.patch
+aio-kill-ki_retry-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
+aio-smoosh-struct-kiocb-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
