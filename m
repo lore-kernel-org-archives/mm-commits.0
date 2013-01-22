@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch added to -mm tree
-Date: Tue, 22 Jan 2013 15:38:11 -0800
-Message-ID: <20130122233812.5271431C19C@corp2gmr1-1.hot.corp.google.com>
+Subject: + page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch added to -mm tree
+Date: Tue, 22 Jan 2013 15:38:14 -0800
+Message-ID: <20130122233815.27C8731C19C@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:64029 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755841Ab3AVXiN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 18:38:13 -0500
-Received: by mail-qa0-f73.google.com with SMTP id a19so35047qad.4
-        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 15:38:12 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:59742 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755841Ab3AVXiQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 18:38:16 -0500
+Received: by mail-qa0-f74.google.com with SMTP id r4so34991qaq.5
+        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 15:38:15 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akpm@linux-foundation.org, fengguang.wu@intel.com, psz@maths.usyd.edu.au, ri
 
 
 The patch titled
-     Subject: page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix
+     Subject: page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix
 has been added to the -mm tree.  Its filename is
-     page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
+     page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,9 +34,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix
+Subject: page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix
 
-fix up min_free_kbytes extern declarations
+fix min() warning
 
 Cc: Paul Szabo <psz@maths.usyd.edu.au>
 Cc: Rik van Riel <riel@redhat.com>
@@ -44,58 +44,21 @@ Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h  |    3 +++
- kernel/sysctl.c     |    1 -
- mm/huge_memory.c    |    1 -
- mm/page-writeback.c |    1 -
- 4 files changed, 3 insertions(+), 3 deletions(-)
+ mm/page-writeback.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mm.h~page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix include/linux/mm.h
---- a/include/linux/mm.h~page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix
-+++ a/include/linux/mm.h
-@@ -1387,6 +1387,9 @@ extern void setup_per_cpu_pageset(void);
- extern void zone_pcp_update(struct zone *zone);
- extern void zone_pcp_reset(struct zone *zone);
- 
-+/* page_alloc.c */
-+extern int min_free_kbytes;
-+
- /* nommu.c */
- extern atomic_long_t mmap_pages_allocated;
- extern int nommu_shrink_inode_mappings(struct inode *, size_t, size_t);
-diff -puN kernel/sysctl.c~page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix kernel/sysctl.c
---- a/kernel/sysctl.c~page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix
-+++ a/kernel/sysctl.c
-@@ -104,7 +104,6 @@ extern char core_pattern[];
- extern unsigned int core_pipe_limit;
- #endif
- extern int pid_max;
--extern int min_free_kbytes;
- extern int pid_max_min, pid_max_max;
- extern int sysctl_drop_caches;
- extern int percpu_pagelist_fraction;
-diff -puN mm/huge_memory.c~page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix mm/huge_memory.c
---- a/mm/huge_memory.c~page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix
-+++ a/mm/huge_memory.c
-@@ -105,7 +105,6 @@ static int set_recommended_min_free_kbyt
- 	struct zone *zone;
- 	int nr_zones = 0;
- 	unsigned long recommended_min;
--	extern int min_free_kbytes;
- 
- 	if (!khugepaged_enabled())
- 		return 0;
-diff -puN mm/page-writeback.c~page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix mm/page-writeback.c
---- a/mm/page-writeback.c~page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix
+diff -puN mm/page-writeback.c~page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix mm/page-writeback.c
+--- a/mm/page-writeback.c~page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix
 +++ a/mm/page-writeback.c
-@@ -233,7 +233,6 @@ static unsigned long highmem_dirtyable_m
- static unsigned long global_dirtyable_memory(void)
- {
- 	unsigned long x;
--	extern int min_free_kbytes;
+@@ -241,7 +241,7 @@ static unsigned long global_dirtyable_me
+ 		x -= highmem_dirtyable_memory(x);
  
- 	x = global_page_state(NR_FREE_PAGES) + global_reclaimable_pages();
- 	x -= min(x, dirty_balance_reserve);
+ 	/* Subtract min_free_kbytes */
+-	x -= min(x, min_free_kbytes >> (PAGE_SHIFT - 10));
++	x -= min_t(unsigned long, x, min_free_kbytes >> (PAGE_SHIFT - 10));
+ 
+ 	return x + 1;	/* Ensure that we never return 0 */
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
