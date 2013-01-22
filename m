@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch added to -mm tree
-Date: Tue, 22 Jan 2013 14:03:34 -0800
-Message-ID: <20130122220335.236E05A41E5@corp2gmr1-2.hot.corp.google.com>
+Subject: + page_alloc-add-movable_memmap-kernel-parameter-rename-movablecore_map-to-movablemem_map.patch added to -mm tree
+Date: Tue, 22 Jan 2013 14:24:42 -0800
+Message-ID: <20130122222442.A912131C257@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:39568 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751490Ab3AVWLp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 17:11:45 -0500
-Received: by mail-vb0-f74.google.com with SMTP id r6so774431vbi.1
-        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 14:11:44 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:59019 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752464Ab3AVWYo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 17:24:44 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so694880vcd.1
+        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 14:24:43 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, tangchen@cn.fujitsu.com
+Cc: tangchen@cn.fujitsu.com, hpa@zytor.com, laijs@cn.fujitsu.com, linfeng@cn.fujitsu.com, wency@cn.fujitsu.com
 
 
 The patch titled
-     Subject: page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix
+     Subject: Rename movablecore_map to movablemem_map.
 has been added to the -mm tree.  Its filename is
-     page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
+     page_alloc-add-movable_memmap-kernel-parameter-rename-movablecore_map-to-movablemem_map.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,124 +33,294 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: Rename movablecore_map to movablemem_map.
 
-remove unneeded parens
+Since "core" could be confused with cpu cores, but here it is memory,
+so rename the boot option movablecore_map to movablemem_map.
 
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
+Cc: Lin Feng <linfeng@cn.fujitsu.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ Documentation/kernel-parameters.txt |    8 +-
+ include/linux/mm.h                  |    8 +-
+ mm/page_alloc.c                     |   78 +++++++++++++-------------
+ 3 files changed, 47 insertions(+), 47 deletions(-)
 
-diff -puN mm/page_alloc.c~page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix mm/page_alloc.c
---- a/mm/page_alloc.c~page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix
+diff -puN Documentation/kernel-parameters.txt~page_alloc-add-movable_memmap-kernel-parameter-rename-movablecore_map-to-movablemem_map Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~page_alloc-add-movable_memmap-kernel-parameter-rename-movablecore_map-to-movablemem_map
++++ a/Documentation/kernel-parameters.txt
+@@ -1637,7 +1637,7 @@ bytes respectively. Such letter suffixes
+ 			that the amount of memory usable for all allocations
+ 			is not too small.
+ 
+-	movablecore_map=nn[KMG]@ss[KMG]
++	movablemem_map=nn[KMG]@ss[KMG]
+ 			[KNL,X86,IA-64,PPC] This parameter is similar to
+ 			memmap except it specifies the memory map of
+ 			ZONE_MOVABLE.
+@@ -1647,11 +1647,11 @@ bytes respectively. Such letter suffixes
+ 			ss to the end of the 1st node will be ZONE_MOVABLE,
+ 			and all the rest nodes will only have ZONE_MOVABLE.
+ 			If memmap is specified at the same time, the
+-			movablecore_map will be limited within the memmap
++			movablemem_map will be limited within the memmap
+ 			areas. If kernelcore or movablecore is also specified,
+-			movablecore_map will have higher priority to be
++			movablemem_map will have higher priority to be
+ 			satisfied. So the administrator should be careful that
+-			the amount of movablecore_map areas are not too large.
++			the amount of movablemem_map areas are not too large.
+ 			Otherwise kernel won't have enough memory to start.
+ 
+ 	MTD_Partition=	[MTD]
+diff -puN include/linux/memblock.h~page_alloc-add-movable_memmap-kernel-parameter-rename-movablecore_map-to-movablemem_map include/linux/memblock.h
+diff -puN include/linux/mm.h~page_alloc-add-movable_memmap-kernel-parameter-rename-movablecore_map-to-movablemem_map include/linux/mm.h
+--- a/include/linux/mm.h~page_alloc-add-movable_memmap-kernel-parameter-rename-movablecore_map-to-movablemem_map
++++ a/include/linux/mm.h
+@@ -1359,15 +1359,15 @@ extern void free_bootmem_with_active_reg
+ 						unsigned long max_low_pfn);
+ extern void sparse_memory_present_with_active_regions(int nid);
+ 
+-#define MOVABLECORE_MAP_MAX MAX_NUMNODES
+-struct movablecore_entry {
++#define MOVABLEMEM_MAP_MAX MAX_NUMNODES
++struct movablemem_entry {
+ 	unsigned long start_pfn;    /* start pfn of memory segment */
+ 	unsigned long end_pfn;      /* end pfn of memory segment (exclusive) */
+ };
+ 
+-struct movablecore_map {
++struct movablemem_map {
+ 	int nr_map;
+-	struct movablecore_entry map[MOVABLECORE_MAP_MAX];
++	struct movablemem_entry map[MOVABLEMEM_MAP_MAX];
+ };
+ 
+ #endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
+diff -puN mm/memblock.c~page_alloc-add-movable_memmap-kernel-parameter-rename-movablecore_map-to-movablemem_map mm/memblock.c
+diff -puN mm/page_alloc.c~page_alloc-add-movable_memmap-kernel-parameter-rename-movablecore_map-to-movablemem_map mm/page_alloc.c
+--- a/mm/page_alloc.c~page_alloc-add-movable_memmap-kernel-parameter-rename-movablecore_map-to-movablemem_map
 +++ a/mm/page_alloc.c
-@@ -5074,7 +5074,7 @@ early_param("kernelcore", cmdline_parse_
+@@ -202,7 +202,7 @@ static unsigned long __meminitdata dma_r
+ 
+ #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+ /* Movable memory ranges, will also be used by memblock subsystem. */
+-struct movablecore_map movablecore_map;
++struct movablemem_map movablemem_map;
+ 
+ static unsigned long __meminitdata arch_zone_lowest_possible_pfn[MAX_NR_ZONES];
+ static unsigned long __meminitdata arch_zone_highest_possible_pfn[MAX_NR_ZONES];
+@@ -5074,14 +5074,14 @@ early_param("kernelcore", cmdline_parse_
  early_param("movablecore", cmdline_parse_movablecore);
  
  /**
-- * insert_movablecore_map() - Insert a memory range in to movablecore_map.map.
-+ * insert_movablecore_map - Insert a memory range in to movablecore_map.map.
+- * insert_movablecore_map - Insert a memory range in to movablecore_map.map.
++ * insert_movablemem_map - Insert a memory range in to movablemem_map.map.
   * @start_pfn:	start pfn of the range
   * @end_pfn:	end pfn of the range
   *
-@@ -5137,7 +5137,7 @@ static void __init insert_movablecore_ma
+  * This function will also merge the overlapped ranges, and sort the array
+  * by start_pfn in monotonic increasing order.
+  */
+-static void __init insert_movablecore_map(unsigned long start_pfn,
++static void __init insert_movablemem_map(unsigned long start_pfn,
+ 					  unsigned long end_pfn)
+ {
+ 	int pos, overlap;
+@@ -5090,31 +5090,31 @@ static void __init insert_movablecore_ma
+ 	 * pos will be at the 1st overlapped range, or the position
+ 	 * where the element should be inserted.
+ 	 */
+-	for (pos = 0; pos < movablecore_map.nr_map; pos++)
+-		if (start_pfn <= movablecore_map.map[pos].end_pfn)
++	for (pos = 0; pos < movablemem_map.nr_map; pos++)
++		if (start_pfn <= movablemem_map.map[pos].end_pfn)
+ 			break;
+ 
+ 	/* If there is no overlapped range, just insert the element. */
+-	if (pos == movablecore_map.nr_map ||
+-	    end_pfn < movablecore_map.map[pos].start_pfn) {
++	if (pos == movablemem_map.nr_map ||
++	    end_pfn < movablemem_map.map[pos].start_pfn) {
+ 		/*
+ 		 * If pos is not the end of array, we need to move all
+ 		 * the rest elements backward.
+ 		 */
+-		if (pos < movablecore_map.nr_map)
+-			memmove(&movablecore_map.map[pos+1],
+-				&movablecore_map.map[pos],
+-				sizeof(struct movablecore_entry) *
+-				(movablecore_map.nr_map - pos));
+-		movablecore_map.map[pos].start_pfn = start_pfn;
+-		movablecore_map.map[pos].end_pfn = end_pfn;
+-		movablecore_map.nr_map++;
++		if (pos < movablemem_map.nr_map)
++			memmove(&movablemem_map.map[pos+1],
++				&movablemem_map.map[pos],
++				sizeof(struct movablemem_entry) *
++				(movablemem_map.nr_map - pos));
++		movablemem_map.map[pos].start_pfn = start_pfn;
++		movablemem_map.map[pos].end_pfn = end_pfn;
++		movablemem_map.nr_map++;
+ 		return;
+ 	}
+ 
+ 	/* overlap will be at the last overlapped range */
+-	for (overlap = pos + 1; overlap < movablecore_map.nr_map; overlap++)
+-		if (end_pfn < movablecore_map.map[overlap].start_pfn)
++	for (overlap = pos + 1; overlap < movablemem_map.nr_map; overlap++)
++		if (end_pfn < movablemem_map.map[overlap].start_pfn)
+ 			break;
+ 
+ 	/*
+@@ -5122,29 +5122,29 @@ static void __init insert_movablecore_ma
+ 	 * and move the rest elements forward.
+ 	 */
+ 	overlap--;
+-	movablecore_map.map[pos].start_pfn = min(start_pfn,
+-					movablecore_map.map[pos].start_pfn);
+-	movablecore_map.map[pos].end_pfn = max(end_pfn,
+-					movablecore_map.map[overlap].end_pfn);
+-
+-	if (pos != overlap && overlap + 1 != movablecore_map.nr_map)
+-		memmove(&movablecore_map.map[pos+1],
+-			&movablecore_map.map[overlap+1],
+-			sizeof(struct movablecore_entry) *
+-			(movablecore_map.nr_map - overlap - 1));
++	movablemem_map.map[pos].start_pfn = min(start_pfn,
++					movablemem_map.map[pos].start_pfn);
++	movablemem_map.map[pos].end_pfn = max(end_pfn,
++					movablemem_map.map[overlap].end_pfn);
++
++	if (pos != overlap && overlap + 1 != movablemem_map.nr_map)
++		memmove(&movablemem_map.map[pos+1],
++			&movablemem_map.map[overlap+1],
++			sizeof(struct movablemem_entry) *
++			(movablemem_map.nr_map - overlap - 1));
+ 
+-	movablecore_map.nr_map -= overlap - pos;
++	movablemem_map.nr_map -= overlap - pos;
  }
  
  /**
-- * movablecore_map_add_region() - Add a memory range into movablecore_map.
-+ * movablecore_map_add_region - Add a memory range into movablecore_map.
+- * movablecore_map_add_region - Add a memory range into movablecore_map.
++ * movablemem_map_add_region - Add a memory range into movablemem_map.
   * @start:	physical start address of range
   * @end:	physical end address of range
   *
-@@ -5166,7 +5166,7 @@ static void __init movablecore_map_add_r
+  * This function transform the physical address into pfn, and then add the
+- * range into movablecore_map by calling insert_movablecore_map().
++ * range into movablemem_map by calling insert_movablemem_map().
+  */
+-static void __init movablecore_map_add_region(u64 start, u64 size)
++static void __init movablemem_map_add_region(u64 start, u64 size)
+ {
+ 	unsigned long start_pfn, end_pfn;
+ 
+@@ -5152,8 +5152,8 @@ static void __init movablecore_map_add_r
+ 	if (start + size <= start)
+ 		return;
+ 
+-	if (movablecore_map.nr_map >= ARRAY_SIZE(movablecore_map.map)) {
+-		pr_err("movable_memory_map: too many entries;"
++	if (movablemem_map.nr_map >= ARRAY_SIZE(movablemem_map.map)) {
++		pr_err("movablemem_map: too many entries;"
+ 			" ignoring [mem %#010llx-%#010llx]\n",
+ 			(unsigned long long) start,
+ 			(unsigned long long) (start + size - 1));
+@@ -5162,19 +5162,19 @@ static void __init movablecore_map_add_r
+ 
+ 	start_pfn = PFN_DOWN(start);
+ 	end_pfn = PFN_UP(start + size);
+-	insert_movablecore_map(start_pfn, end_pfn);
++	insert_movablemem_map(start_pfn, end_pfn);
  }
  
  /*
-- * cmdline_parse_movablecore_map() - Parse boot option movablecore_map.
-+ * cmdline_parse_movablecore_map - Parse boot option movablecore_map.
+- * cmdline_parse_movablecore_map - Parse boot option movablecore_map.
++ * cmdline_parse_movablemem_map - Parse boot option movablemem_map.
   * @p:	The boot option of the following format:
-  * 	movablecore_map=nn[KMG]@ss[KMG]
+- *	movablecore_map=nn[KMG]@ss[KMG]
++ *	movablemem_map=nn[KMG]@ss[KMG]
   *
+  * This option sets the memory range [ss, ss+nn) to be used as movable memory.
+  *
+  * Return: 0 on success or -EINVAL on failure.
+  */
+-static int __init cmdline_parse_movablecore_map(char *p)
++static int __init cmdline_parse_movablemem_map(char *p)
+ {
+ 	char *oldp;
+ 	u64 start_at, mem_size;
+@@ -5193,13 +5193,13 @@ static int __init cmdline_parse_movablec
+ 		if (p == oldp || *p != '\0')
+ 			goto err;
+ 
+-		movablecore_map_add_region(start_at, mem_size);
++		movablemem_map_add_region(start_at, mem_size);
+ 		return 0;
+ 	}
+ err:
+ 	return -EINVAL;
+ }
+-early_param("movablecore_map", cmdline_parse_movablecore_map);
++early_param("movablemem_map", cmdline_parse_movablemem_map);
+ 
+ #endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
 
-origin.patch
-linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
-bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
-i-need-old-gcc.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch
-mm.patch
-mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
-mm-hugetlbc-convert-to-pr_foo.patch
-cma-make-putback_lru_pages-call-conditional-fix.patch
-mm-vmscan-clean-up-get_scan_count-fix.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
-mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
-mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
-mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
-mm-remove-flags-argument-to-mmap_region-fix.patch
+memory-hotplug-try-to-offline-the-memory-twice-to-avoid-dependence.patch
+memory-hotplug-check-whether-all-memory-blocks-are-offlined-or-not-when-removing-memory.patch
+memory-hotplug-remove-redundant-codes.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs.patch
 memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix.patch
 memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix-fix.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix-fix-fix.patch
+memory-hotplug-introduce-new-arch_remove_memory-for-removing-page-table.patch
+memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap.patch
+memory-hotplug-move-pgdat_resize_lock-into-sparse_remove_one_section.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove.patch
 memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix.patch
+memory-hotplug-remove-page-table-of-x86_64-architecture.patch
 memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
+memory-hotplug-remove-memmap-of-sparse-vmemmap.patch
+memory-hotplug-integrated-__remove_section-of-config_sparsemem_vmemmap.patch
+memory_hotplug-clear-zone-when-removing-the-memory.patch
+memory-hotplug-remove-sysfs-file-of-node.patch
+memory-hotplug-free-node_data-when-a-node-is-offlined.patch
+memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline.patch
+memory-hotplug-consider-compound-pages-when-free-memmap.patch
+mempolicy-fix-is_valid_nodemask.patch
+cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved.patch
+memory-hotplug-export-the-function-try_offline_node.patch
+cpu-hotplug-memory-hotplug-try-offline-the-node-when-hotremoving-a-cpu.patch
+cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node.patch
+sched-do-not-use-cpu_to_node-to-find-an-offlined-cpus-node.patch
+bug-fix-use-config_have_memblock_node_map-to-protect-movablecore_map-in-memblock_overlaps_region.patch
+x86-get-pg_data_ts-memory-from-other-node.patch
+page_alloc-add-movable_memmap-kernel-parameter.patch
 page_alloc-add-movable_memmap-kernel-parameter-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
 page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
-memory-failure-do-code-refactor-of-soft_offline_page.patch
-memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-kernel-smpc-cleanups.patch
-backlight-add-lms501kf03-lcd-driver-fix.patch
-backlight-add-lms501kf03-lcd-driver-fix-fix.patch
-backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix-fix.patch
-rtc-max77686-add-maxim-77686-driver-fix.patch
-rtc-pcf8523-add-low-battery-voltage-support-fix.patch
-rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
-rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
-signal-allow-to-send-any-siginfo-to-itself-fix.patch
-signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
-drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
-aio-smoosh-struct-kiocb-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+page_alloc-add-movable_memmap-kernel-parameter-rename-movablecore_map-to-movablemem_map.patch
+page_alloc-introduce-zone_movable_limit-to-keep-movable-limit-for-nodes.patch
+page_alloc-introduce-zone_movable_limit-to-keep-movable-limit-for-nodes-fix.patch
+page_alloc-make-movablecore_map-has-higher-priority.patch
+page_alloc-bootmem-limit-with-movablecore_map.patch
 
