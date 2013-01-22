@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-export-the-function-try_offline_node.patch added to -mm tree
-Date: Tue, 22 Jan 2013 13:48:21 -0800
-Message-ID: <20130122214821.E617731C1EB@corp2gmr1-1.hot.corp.google.com>
+Subject: + cpu-hotplug-memory-hotplug-try-offline-the-node-when-hotremoving-a-cpu.patch added to -mm tree
+Date: Tue, 22 Jan 2013 13:48:53 -0800
+Message-ID: <20130122214853.E32ED31C200@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:44670 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751885Ab3AVVsX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 16:48:23 -0500
-Received: by mail-yh0-f74.google.com with SMTP id z12so604424yhz.5
-        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 13:48:23 -0800 (PST)
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:39904 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752415Ab3AVVsz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 16:48:55 -0500
+Received: by mail-ye0-f202.google.com with SMTP id r9so864121yen.1
+        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 13:48:55 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: wency@cn.fujitsu.com, akpm@linux-foundation.org, hpa@zytor.com, isimatu.yasu
 
 
 The patch titled
-     Subject: memory-hotplug: export the function try_offline_node()
+     Subject: cpu-hotplug, memory-hotplug: try offlining the node when hotremoving a cpu
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-export-the-function-try_offline_node.patch
+     cpu-hotplug-memory-hotplug-try-offline-the-node-when-hotremoving-a-cpu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,23 +34,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: memory-hotplug: export the function try_offline_node()
+Subject: cpu-hotplug, memory-hotplug: try offlining the node when hotremoving a cpu
 
-try_offline_node() will be needed in the tristate
-drivers/acpi/processor_driver.c.
-
-The node will be offlined when all memory/cpu on the node have been
-hotremoved.  So we need the function try_offline_node() in cpu-hotplug
-path.
-
-If the memory-hotplug is disabled, and cpu-hotplug is enabled
-1. no memory no the node
-   we don't online the node, and cpu's node is the nearest node.
-2. the node contains some memory
-   the node has been onlined, and cpu's node is still needed
-   to migrate the sleep task on the cpu to the same node.
-
-So we do nothing in try_offline_node() in this case.
+The node will be offlined when all memory/cpu on the node is hotremoved. 
+So we should try offline the node when hotremoving a cpu on the node.
 
 Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
@@ -69,49 +56,28 @@ Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory_hotplug.h |    2 ++
- mm/memory_hotplug.c            |    3 ++-
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ drivers/acpi/processor_driver.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/memory_hotplug.h~memory-hotplug-export-the-function-try_offline_node include/linux/memory_hotplug.h
---- a/include/linux/memory_hotplug.h~memory-hotplug-export-the-function-try_offline_node
-+++ a/include/linux/memory_hotplug.h
-@@ -193,6 +193,7 @@ extern void get_page_bootmem(unsigned lo
+diff -puN drivers/acpi/processor_driver.c~cpu-hotplug-memory-hotplug-try-offline-the-node-when-hotremoving-a-cpu drivers/acpi/processor_driver.c
+--- a/drivers/acpi/processor_driver.c~cpu-hotplug-memory-hotplug-try-offline-the-node-when-hotremoving-a-cpu
++++ a/drivers/acpi/processor_driver.c
+@@ -45,6 +45,7 @@
+ #include <linux/cpuidle.h>
+ #include <linux/slab.h>
+ #include <linux/acpi.h>
++#include <linux/memory_hotplug.h>
  
- void lock_memory_hotplug(void);
- void unlock_memory_hotplug(void);
-+extern void try_offline_node(int nid);
+ #include <asm/io.h>
+ #include <asm/cpu.h>
+@@ -641,6 +642,7 @@ static int acpi_processor_remove(struct 
  
- #else /* ! CONFIG_MEMORY_HOTPLUG */
- /*
-@@ -227,6 +228,7 @@ static inline void register_page_bootmem
+ 	per_cpu(processors, pr->id) = NULL;
+ 	per_cpu(processor_device_array, pr->id) = NULL;
++	try_offline_node(cpu_to_node(pr->id));
  
- static inline void lock_memory_hotplug(void) {}
- static inline void unlock_memory_hotplug(void) {}
-+static inline void try_offline_node(int nid) {}
- 
- #endif /* ! CONFIG_MEMORY_HOTPLUG */
- 
-diff -puN mm/memory_hotplug.c~memory-hotplug-export-the-function-try_offline_node mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory-hotplug-export-the-function-try_offline_node
-+++ a/mm/memory_hotplug.c
-@@ -1702,7 +1702,7 @@ static int check_cpu_on_node(void *data)
- }
- 
- /* offline the node if all memory sections of this node are removed */
--static void try_offline_node(int nid)
-+void try_offline_node(int nid)
- {
- 	pg_data_t *pgdat = NODE_DATA(nid);
- 	unsigned long start_pfn = pgdat->node_start_pfn;
-@@ -1758,6 +1758,7 @@ static void try_offline_node(int nid)
- 	 */
- 	memset(pgdat, 0, sizeof(*pgdat));
- }
-+EXPORT_SYMBOL(try_offline_node);
- 
- int __ref remove_memory(int nid, u64 start, u64 size)
- {
+ free:
+ 	free_cpumask_var(pr->throttling.shared_cpu_map);
 _
 
 Patches currently in -mm which might be from wency@cn.fujitsu.com are
