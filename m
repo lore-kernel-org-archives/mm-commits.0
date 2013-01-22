@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-numa-handle-side-effects-in-count_vm_numa_events-for-config_numa_balancing.patch added to -mm tree
-Date: Tue, 22 Jan 2013 14:47:41 -0800
-Message-ID: <20130122224742.480785A4174@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-fold-page-_last_nid-into-page-flags-where-possible.patch added to -mm tree
+Date: Tue, 22 Jan 2013 14:47:47 -0800
+Message-ID: <20130122224748.2A63031C201@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:58690 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753158Ab3AVWro (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 17:47:44 -0500
-Received: by mail-vb0-f74.google.com with SMTP id r6so778484vbi.1
-        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 14:47:43 -0800 (PST)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:42255 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753710Ab3AVWrt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 17:47:49 -0500
+Received: by mail-qe0-f74.google.com with SMTP id 9so66271qea.3
+        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 14:47:49 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mgorman@suse.de, a.p.zijlstra@chello.nl, aarcange@redhat.com, hughd@google.com, liwanp@linux.vnet.ibm.com, mingo@kernel.org, simon.jeons@gmail.com
+Cc: a.p.zijlstra@chello.nl, aarcange@redhat.com, hughd@google.com, liwanp@linux.vnet.ibm.com, mgorman@suse.de, mingo@kernel.org, simon.jeons@gmail.com
 
 
 The patch titled
-     Subject: mm: numa: handle side-effects in count_vm_numa_events() for !CONFIG_NUMA_BALANCING
+     Subject: mm: Fold page->_last_nid into page->flags where possible
 has been added to the -mm tree.  Its filename is
-     mm-numa-handle-side-effects-in-count_vm_numa_events-for-config_numa_balancing.patch
+     mm-fold-page-_last_nid-into-page-flags-where-possible.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,18 +33,16 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: handle side-effects in count_vm_numa_events() for !CONFIG_NUMA_BALANCING
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: mm: Fold page->_last_nid into page->flags where possible
 
-The current definitions for count_vm_numa_events() is wrong for
-!CONFIG_NUMA_BALANCING as the following would miss the side-effect.
+page->_last_nid fits into page->flags on 64-bit.  The unlikely 32-bit NUMA
+configuration with NUMA Balancing will still need an extra page field.  As
+Peter notes "Completely dropping 32bit support for CONFIG_NUMA_BALANCING
+would simplify things, but it would also remove the warning if we grow
+enough 64bit only page-flags to push the last-cpu out."
 
-	count_vm_numa_events(NUMA_FOO, bar++);
-
-There are no such users of count_vm_numa_events() but it is a potential
-pitfall.  This patch fixes it and converts count_vm_numa_event() so that
-the definitions look similar.
-
+[mgorman@suse.de: minor modifications]
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -55,53 +53,180 @@ Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mm.h                |   33 +++++++++++++++++++++++++++-
+ include/linux/mm_types.h          |    2 -
+ include/linux/page-flags-layout.h |   33 +++++++++++++++++++++-------
+ mm/memory.c                       |    4 +++
+ 4 files changed, 62 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/vmstat.h~mm-numa-handle-side-effects-in-count_vm_numa_events-for-config_numa_balancing include/linux/vmstat.h
---- a/include/linux/vmstat.h~mm-numa-handle-side-effects-in-count_vm_numa_events-for-config_numa_balancing
-+++ a/include/linux/vmstat.h
-@@ -85,7 +85,7 @@ static inline void vm_events_fold_cpu(in
- #define count_vm_numa_events(x, y) count_vm_events(x, y)
- #else
- #define count_vm_numa_event(x) do {} while (0)
--#define count_vm_numa_events(x, y) do {} while (0)
-+#define count_vm_numa_events(x, y) do { (void)(y); } while (0)
- #endif /* CONFIG_NUMA_BALANCING */
+diff -puN include/linux/mm.h~mm-fold-page-_last_nid-into-page-flags-where-possible include/linux/mm.h
+--- a/include/linux/mm.h~mm-fold-page-_last_nid-into-page-flags-where-possible
++++ a/include/linux/mm.h
+@@ -581,10 +581,11 @@ static inline pte_t maybe_mkwrite(pte_t 
+  * sets it, so none of the operations on it need to be atomic.
+  */
  
- #define __count_zone_vm_events(item, zone, delta) \
+-/* Page flags: | [SECTION] | [NODE] | ZONE | ... | FLAGS | */
++/* Page flags: | [SECTION] | [NODE] | ZONE | [LAST_NID] | ... | FLAGS | */
+ #define SECTIONS_PGOFF		((sizeof(unsigned long)*8) - SECTIONS_WIDTH)
+ #define NODES_PGOFF		(SECTIONS_PGOFF - NODES_WIDTH)
+ #define ZONES_PGOFF		(NODES_PGOFF - ZONES_WIDTH)
++#define LAST_NID_PGOFF		(ZONES_PGOFF - LAST_NID_WIDTH)
+ 
+ /*
+  * Define the bit shifts to access each section.  For non-existent
+@@ -594,6 +595,7 @@ static inline pte_t maybe_mkwrite(pte_t 
+ #define SECTIONS_PGSHIFT	(SECTIONS_PGOFF * (SECTIONS_WIDTH != 0))
+ #define NODES_PGSHIFT		(NODES_PGOFF * (NODES_WIDTH != 0))
+ #define ZONES_PGSHIFT		(ZONES_PGOFF * (ZONES_WIDTH != 0))
++#define LAST_NID_PGSHIFT	(LAST_NID_PGOFF * (LAST_NID_WIDTH != 0))
+ 
+ /* NODE:ZONE or SECTION:ZONE is used to ID a zone for the buddy allocator */
+ #ifdef NODE_NOT_IN_PAGE_FLAGS
+@@ -615,6 +617,7 @@ static inline pte_t maybe_mkwrite(pte_t 
+ #define ZONES_MASK		((1UL << ZONES_WIDTH) - 1)
+ #define NODES_MASK		((1UL << NODES_WIDTH) - 1)
+ #define SECTIONS_MASK		((1UL << SECTIONS_WIDTH) - 1)
++#define LAST_NID_MASK		((1UL << LAST_NID_WIDTH) - 1)
+ #define ZONEID_MASK		((1UL << ZONEID_SHIFT) - 1)
+ 
+ static inline enum zone_type page_zonenum(const struct page *page)
+@@ -654,6 +657,7 @@ static inline int page_to_nid(const stru
+ #endif
+ 
+ #ifdef CONFIG_NUMA_BALANCING
++#ifdef LAST_NID_NOT_IN_PAGE_FLAGS
+ static inline int page_xchg_last_nid(struct page *page, int nid)
+ {
+ 	return xchg(&page->_last_nid, nid);
+@@ -668,6 +672,33 @@ static inline void reset_page_last_nid(s
+ 	page->_last_nid = -1;
+ }
+ #else
++static inline int page_last_nid(struct page *page)
++{
++	return (page->flags >> LAST_NID_PGSHIFT) & LAST_NID_MASK;
++}
++
++static inline int page_xchg_last_nid(struct page *page, int nid)
++{
++	unsigned long old_flags, flags;
++	int last_nid;
++
++	do {
++		old_flags = flags = page->flags;
++		last_nid = page_last_nid(page);
++
++		flags &= ~(LAST_NID_MASK << LAST_NID_PGSHIFT);
++		flags |= (nid & LAST_NID_MASK) << LAST_NID_PGSHIFT;
++	} while (unlikely(cmpxchg(&page->flags, old_flags, flags) != old_flags));
++
++	return last_nid;
++}
++
++static inline void reset_page_last_nid(struct page *page)
++{
++	page_xchg_last_nid(page, (1 << LAST_NID_SHIFT) - 1);
++}
++#endif /* LAST_NID_NOT_IN_PAGE_FLAGS */
++#else
+ static inline int page_xchg_last_nid(struct page *page, int nid)
+ {
+ 	return page_to_nid(page);
+diff -puN include/linux/mm_types.h~mm-fold-page-_last_nid-into-page-flags-where-possible include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-fold-page-_last_nid-into-page-flags-where-possible
++++ a/include/linux/mm_types.h
+@@ -174,7 +174,7 @@ struct page {
+ 	void *shadow;
+ #endif
+ 
+-#ifdef CONFIG_NUMA_BALANCING
++#ifdef LAST_NID_NOT_IN_PAGE_FLAGS
+ 	int _last_nid;
+ #endif
+ }
+diff -puN include/linux/page-flags-layout.h~mm-fold-page-_last_nid-into-page-flags-where-possible include/linux/page-flags-layout.h
+--- a/include/linux/page-flags-layout.h~mm-fold-page-_last_nid-into-page-flags-where-possible
++++ a/include/linux/page-flags-layout.h
+@@ -32,15 +32,16 @@
+ /*
+  * page->flags layout:
+  *
+- * There are three possibilities for how page->flags get
+- * laid out.  The first is for the normal case, without
+- * sparsemem.  The second is for sparsemem when there is
+- * plenty of space for node and section.  The last is when
+- * we have run out of space and have to fall back to an
+- * alternate (slower) way of determining the node.
++ * There are five possibilities for how page->flags get laid out.  The first
++ * pair is for the normal case without sparsemem. The second pair is for
++ * sparsemem when there is plenty of space for node and section information.
++ * The last is when there is insufficient space in page->flags and a separate
++ * lookup is necessary.
+  *
+- * No sparsemem or sparsemem vmemmap: |       NODE     | ZONE | ... | FLAGS |
+- * classic sparse with space for node:| SECTION | NODE | ZONE | ... | FLAGS |
++ * No sparsemem or sparsemem vmemmap: |       NODE     | ZONE |          ... | FLAGS |
++ *         " plus space for last_nid: |       NODE     | ZONE | LAST_NID ... | FLAGS |
++ * classic sparse with space for node:| SECTION | NODE | ZONE |          ... | FLAGS |
++ *         " plus space for last_nid: | SECTION | NODE | ZONE | LAST_NID ... | FLAGS |
+  * classic sparse no space for node:  | SECTION |     ZONE    | ... | FLAGS |
+  */
+ #if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
+@@ -60,6 +61,18 @@
+ #define NODES_WIDTH		0
+ #endif
+ 
++#ifdef CONFIG_NUMA_BALANCING
++#define LAST_NID_SHIFT NODES_SHIFT
++#else
++#define LAST_NID_SHIFT 0
++#endif
++
++#if SECTIONS_WIDTH+ZONES_WIDTH+NODES_SHIFT+LAST_NID_SHIFT <= BITS_PER_LONG - NR_PAGEFLAGS
++#define LAST_NID_WIDTH LAST_NID_SHIFT
++#else
++#define LAST_NID_WIDTH 0
++#endif
++
+ /*
+  * We are going to use the flags for the page to node mapping if its in
+  * there.  This includes the case where there is no node, so it is implicit.
+@@ -68,4 +81,8 @@
+ #define NODE_NOT_IN_PAGE_FLAGS
+ #endif
+ 
++#if defined(CONFIG_NUMA_BALANCING) && LAST_NID_WIDTH == 0
++#define LAST_NID_NOT_IN_PAGE_FLAGS
++#endif
++
+ #endif /* _LINUX_PAGE_FLAGS_LAYOUT */
+diff -puN mm/memory.c~mm-fold-page-_last_nid-into-page-flags-where-possible mm/memory.c
+--- a/mm/memory.c~mm-fold-page-_last_nid-into-page-flags-where-possible
++++ a/mm/memory.c
+@@ -69,6 +69,10 @@
+ 
+ #include "internal.h"
+ 
++#ifdef LAST_NID_NOT_IN_PAGE_FLAGS
++#warning Unfortunate NUMA and NUMA Balancing config, growing page-frame for last_nid.
++#endif
++
+ #ifndef CONFIG_NEED_MULTIPLE_NODES
+ /* use the per-pgdat data instead for discontigmem - mbligh */
+ unsigned long max_mapnr;
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
 
 linux-next.patch
-revert-x86-mm-make-spurious_fault-check-explicitly-check-the-present-bit.patch
-pageattr-prevent-pse-and-gloabl-leftovers-to-confuse-pmd-pte_present-and-pmd_huge.patch
-mm-memcg-only-evict-file-pages-when-we-have-plenty.patch
-mm-vmscan-save-work-scanning-almost-empty-lru-lists.patch
-mm-vmscan-clarify-how-swappiness-highest-priority-memcg-interact.patch
-mm-vmscan-improve-comment-on-low-page-cache-handling.patch
-mm-vmscan-clean-up-get_scan_count.patch
-mm-vmscan-clean-up-get_scan_count-fix.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
-mm-reduce-rmap-overhead-for-ex-ksm-page-copies-created-on-swap-faults.patch
-mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
-mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-mm-compaction-do-not-accidentally-skip-pageblocks-in-the-migrate-scanner.patch
-mm-huge_memory-use-new-hashtable-implementation.patch
-mmksm-use-new-hashtable-implementation.patch
-mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
-mm-avoid-calling-pgdat_balanced-needlessly.patch
-mm-dont-wait-on-congested-zones-in-balance_pgdat.patch
-mm-use-zone-present_pages-instead-of-zone-managed_pages-where-appropriate.patch
-mm-set-zone-present_pages-to-number-of-existing-pages-in-the-zone.patch
-mm-increase-totalram_pages-when-free-pages-allocated-by-bootmem-allocator.patch
 mm-numa-fix-minor-typo-in-numa_next_scan.patch
 mm-numa-take-thp-into-account-when-migrating-pages-for-numa-balancing.patch
 mm-numa-handle-side-effects-in-count_vm_numa_events-for-config_numa_balancing.patch
 mm-move-page-flags-layout-to-separate-header.patch
 mm-fold-page-_last_nid-into-page-flags-where-possible.patch
 mm-numa-cleanup-flow-of-transhuge-page-migration.patch
-mm-memmap_init_zone-performance-improvement.patch
+smp-make-smp_call_function_many-use-logic-similar-to-smp_call_function_single.patch
+kernel-smpc-cleanups.patch
+ipc-semc-alternatives-to-preempt_disable.patch
 
