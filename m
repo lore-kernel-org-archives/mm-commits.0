@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-numa-fix-minor-typo-in-numa_next_scan.patch added to -mm tree
-Date: Tue, 22 Jan 2013 14:47:35 -0800
-Message-ID: <20130122224736.4C3CD5A4174@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-numa-take-thp-into-account-when-migrating-pages-for-numa-balancing.patch added to -mm tree
+Date: Tue, 22 Jan 2013 14:47:39 -0800
+Message-ID: <20130122224739.67F7B5A4174@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:52106 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752719Ab3AVWrh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 17:47:37 -0500
-Received: by mail-yh0-f74.google.com with SMTP id z12so612443yhz.1
-        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 14:47:37 -0800 (PST)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:60283 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752976Ab3AVWrk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 17:47:40 -0500
+Received: by mail-yh0-f73.google.com with SMTP id 26so230137yhr.0
+        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 14:47:40 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: mgorman@suse.de, a.p.zijlstra@chello.nl, aarcange@redhat.com, hughd@google.c
 
 
 The patch titled
-     Subject: mm: numa: fix minor typo in numa_next_scan
+     Subject: mm: numa: take THP into account when migrating pages for NUMA balancing
 has been added to the -mm tree.  Its filename is
-     mm-numa-fix-minor-typo-in-numa_next_scan.patch
+     mm-numa-take-thp-into-account-when-migrating-pages-for-numa-balancing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,53 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: fix minor typo in numa_next_scan
+Subject: mm: numa: take THP into account when migrating pages for NUMA balancing
 
-s/me/be/ and clarify the comment a bit when we're changing it anyway.
+Wanpeng Li pointed out that numamigrate_isolate_page() assumes that only
+one base page is being migrated when in fact it can also be checking THP. 
+The consequences are that a migration will be attempted when a target node
+is nearly full and fail later.  It's unlikely to be user-visible but it
+should be fixed.  While we are there, migrate_balanced_pgdat() should
+treat nr_migrate_pages as an unsigned long as it is treated as a
+watermark.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
-Suggested-by: Simon Jeons <simon.jeons@gmail.com>
+Suggested-by: Wanpeng Li <liwanp@linux.vnet.ibm.com>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
+Cc: Simon Jeons <simon.jeons@gmail.com>
 Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/migrate.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mm_types.h~mm-numa-fix-minor-typo-in-numa_next_scan include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-numa-fix-minor-typo-in-numa_next_scan
-+++ a/include/linux/mm_types.h
-@@ -414,9 +414,9 @@ struct mm_struct {
- #endif
- #ifdef CONFIG_NUMA_BALANCING
- 	/*
--	 * numa_next_scan is the next time when the PTEs will me marked
--	 * pte_numa to gather statistics and migrate pages to new nodes
--	 * if necessary
-+	 * numa_next_scan is the next time that the PTEs will be marked
-+	 * pte_numa. NUMA hinting faults will gather statistics and migrate
-+	 * pages to new nodes if necessary.
- 	 */
- 	unsigned long numa_next_scan;
+diff -puN mm/migrate.c~mm-numa-take-thp-into-account-when-migrating-pages-for-numa-balancing mm/migrate.c
+--- a/mm/migrate.c~mm-numa-take-thp-into-account-when-migrating-pages-for-numa-balancing
++++ a/mm/migrate.c
+@@ -1459,7 +1459,7 @@ int migrate_vmas(struct mm_struct *mm, c
+  * pages. Currently it only checks the watermarks which crude
+  */
+ static bool migrate_balanced_pgdat(struct pglist_data *pgdat,
+-				   int nr_migrate_pages)
++				   unsigned long nr_migrate_pages)
+ {
+ 	int z;
+ 	for (z = pgdat->nr_zones - 1; z >= 0; z--) {
+@@ -1557,8 +1557,10 @@ int numamigrate_isolate_page(pg_data_t *
+ {
+ 	int ret = 0;
  
++	VM_BUG_ON(compound_order(page) && !PageTransHuge(page));
++
+ 	/* Avoid migrating to a node that is nearly full */
+-	if (migrate_balanced_pgdat(pgdat, 1)) {
++	if (migrate_balanced_pgdat(pgdat, 1UL << compound_order(page))) {
+ 		int page_lru;
+ 
+ 		if (isolate_lru_page(page)) {
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
