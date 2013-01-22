@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + cpu-hotplug-memory-hotplug-try-offline-the-node-when-hotremoving-a-cpu.patch added to -mm tree
-Date: Tue, 22 Jan 2013 13:48:53 -0800
-Message-ID: <20130122214853.E32ED31C200@corp2gmr1-1.hot.corp.google.com>
+Subject: + cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node.patch added to -mm tree
+Date: Tue, 22 Jan 2013 13:49:31 -0800
+Message-ID: <20130122214931.D65BD5A41E5@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:39904 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752415Ab3AVVsz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 16:48:55 -0500
-Received: by mail-ye0-f202.google.com with SMTP id r9so864121yen.1
-        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 13:48:55 -0800 (PST)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:38763 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752415Ab3AVVtd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 16:49:33 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z10so863436ghb.3
+        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 13:49:33 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wency@cn.fujitsu.com, akpm@linux-foundation.org, hpa@zytor.com, isimatu.yasuaki@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, lenb@kernel.org, liuj97@gmail.com, mel@csn.ul.ie, minchan.kim@gmail.com, mingo@redhat.com, peterz@infradead.org, rientjes@google.com, tangchen@cn.fujitsu.com, tglx@linutronix.de
+Cc: wency@cn.fujitsu.com, hpa@zytor.com, isimatu.yasuaki@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, liuj97@gmail.com, mel@csn.ul.ie, minchan.kim@gmail.com, mingo@redhat.com, peterz@infradead.org, rientjes@google.com, tangchen@cn.fujitsu.com, tglx@linutronix.de
 
 
 The patch titled
-     Subject: cpu-hotplug, memory-hotplug: try offlining the node when hotremoving a cpu
+     Subject: cpu-hotplug,memory-hotplug: clear cpu_to_node() when offlining the node
 has been added to the -mm tree.  Its filename is
-     cpu-hotplug-memory-hotplug-try-offline-the-node-when-hotremoving-a-cpu.patch
+     cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Wen Congyang <wency@cn.fujitsu.com>
-Subject: cpu-hotplug, memory-hotplug: try offlining the node when hotremoving a cpu
+Subject: cpu-hotplug,memory-hotplug: clear cpu_to_node() when offlining the node
 
-The node will be offlined when all memory/cpu on the node is hotremoved. 
-So we should try offline the node when hotremoving a cpu on the node.
+When the node is offlined, there is no memory/cpu on the node.  If a sleep
+task runs on a cpu of this node, it will be migrated to the cpu on the
+other node.  So we can clear cpu-to-node mapping.
 
 Signed-off-by: Wen Congyang <wency@cn.fujitsu.com>
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
@@ -46,38 +47,64 @@ Cc: David Rientjes <rientjes@google.com>
 Cc: Jiang Liu <liuj97@gmail.com>
 Cc: Minchan Kim <minchan.kim@gmail.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
 Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_driver.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/memory_hotplug.c |   30 +++++++++++++++++++++++++++++-
+ 1 file changed, 29 insertions(+), 1 deletion(-)
 
-diff -puN drivers/acpi/processor_driver.c~cpu-hotplug-memory-hotplug-try-offline-the-node-when-hotremoving-a-cpu drivers/acpi/processor_driver.c
---- a/drivers/acpi/processor_driver.c~cpu-hotplug-memory-hotplug-try-offline-the-node-when-hotremoving-a-cpu
-+++ a/drivers/acpi/processor_driver.c
-@@ -45,6 +45,7 @@
- #include <linux/cpuidle.h>
- #include <linux/slab.h>
- #include <linux/acpi.h>
-+#include <linux/memory_hotplug.h>
+diff -puN mm/memory_hotplug.c~cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node
++++ a/mm/memory_hotplug.c
+@@ -1701,6 +1701,34 @@ static int check_cpu_on_node(void *data)
+ 	return 0;
+ }
  
- #include <asm/io.h>
- #include <asm/cpu.h>
-@@ -641,6 +642,7 @@ static int acpi_processor_remove(struct 
++static void unmap_cpu_on_node(void *data)
++{
++#ifdef CONFIG_ACPI_NUMA
++	struct pglist_data *pgdat = data;
++	int cpu;
++
++	for_each_possible_cpu(cpu)
++		if (cpu_to_node(cpu) == pgdat->node_id)
++			numa_clear_node(cpu);
++#endif
++}
++
++static int check_and_unmap_cpu_on_node(void *data)
++{
++	int ret = check_cpu_on_node(data);
++
++	if (ret)
++		return ret;
++
++	/*
++	 * the node will be offlined when we come here, so we can clear
++	 * the cpu_to_node() now.
++	 */
++
++	unmap_cpu_on_node(data);
++	return 0;
++}
++
+ /* offline the node if all memory sections of this node are removed */
+ void try_offline_node(int nid)
+ {
+@@ -1727,7 +1755,7 @@ void try_offline_node(int nid)
+ 		return;
+ 	}
  
- 	per_cpu(processors, pr->id) = NULL;
- 	per_cpu(processor_device_array, pr->id) = NULL;
-+	try_offline_node(cpu_to_node(pr->id));
+-	if (stop_machine(check_cpu_on_node, pgdat, NULL))
++	if (stop_machine(check_and_unmap_cpu_on_node, pgdat, NULL))
+ 		return;
  
- free:
- 	free_cpumask_var(pr->throttling.shared_cpu_map);
+ 	/*
 _
 
 Patches currently in -mm which might be from wency@cn.fujitsu.com are
