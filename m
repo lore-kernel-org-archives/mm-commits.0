@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it.patch added to -mm tree
-Date: Wed, 23 Jan 2013 13:40:04 -0800
-Message-ID: <20130123214004.D184D31C071@corp2gmr1-1.hot.corp.google.com>
+Subject: + 9pfs-fix-filesystem-to-wait-for-stable-page-writeback.patch added to -mm tree
+Date: Wed, 23 Jan 2013 13:40:09 -0800
+Message-ID: <20130123214010.61E815A415F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:60691 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750899Ab3AWVkG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Jan 2013 16:40:06 -0500
-Received: by mail-qe0-f73.google.com with SMTP id 7so107487qeb.2
-        for <mm-commits@vger.kernel.org>; Wed, 23 Jan 2013 13:40:05 -0800 (PST)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:33981 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751345Ab3AWVkM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Jan 2013 16:40:12 -0500
+Received: by mail-vc0-f201.google.com with SMTP id n11so427208vch.4
+        for <mm-commits@vger.kernel.org>; Wed, 23 Jan 2013 13:40:11 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: darrick.wong@oracle.com, adrian.hunter@intel.com, axboe@kernel.dk, dedekind1
 
 
 The patch titled
-     Subject: mm: only enforce stable page writes if the backing device requires it
+     Subject: 9pfs: fix filesystem to wait for stable page writeback
 has been added to the -mm tree.  Its filename is
-     mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it.patch
+     9pfs-fix-filesystem-to-wait-for-stable-page-writeback.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Darrick J. Wong" <darrick.wong@oracle.com>
-Subject: mm: only enforce stable page writes if the backing device requires it
+Subject: 9pfs: fix filesystem to wait for stable page writeback
 
-Create a helper function to check if a backing device requires stable page
-writes and, if so, performs the necessary wait.  Then, make it so that all
-points in the memory manager that handle making pages writable use the
-helper function.  This should provide stable page write support to most
-filesystems, while eliminating unnecessary waiting for devices that don't
-require the feature.
-
-Before this patchset, all filesystems would block, regardless of whether
-or not it was necessary.  ext3 would wait, but still generate occasional
-checksum errors.  The network filesystems were left to do their own thing,
-so they'd wait too.
-
-After this patchset, all the disk filesystems except ext3 and btrfs will
-wait only if the hardware requires it.  ext3 (if necessary) snapshots
-pages instead of blocking, and btrfs provides its own bdi so the mm will
-never wait.  Network filesystems haven't been touched, so either they
-provide their own stable page guarantees or they don't block at all.  The
-blocking behavior is back to what it was before 3.0 if you don't have a
-disk requiring stable page writes.
-
-Here's the result of using dbench to test latency on ext2:
-
-3.8.0-rc3:
- Operation      Count    AvgLat    MaxLat
- ----------------------------------------
- WriteX        109347     0.028    59.817
- ReadX         347180     0.004     3.391
- Flush          15514    29.828   287.283
-
-Throughput 57.429 MB/sec  4 clients  4 procs  max_latency=287.290 ms
-
-3.8.0-rc3 + patches:
- WriteX        105556     0.029     4.273
- ReadX         335004     0.005     4.112
- Flush          14982    30.540   298.634
-
-Throughput 55.4496 MB/sec  4 clients  4 procs  max_latency=298.650 ms
-
-As you can see, the maximum write latency drops considerably with this
-patch enabled.  The other filesystems (ext3/ext4/xfs/btrfs) behave
-similarly, but see the cover letter for those results.
+Fix up the ->page_mkwrite handler to provide stable page writes if necessary.
 
 Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
-Acked-by: Steven Whitehouse <swhiteho@redhat.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
 Cc: Adrian Hunter <adrian.hunter@intel.com>
 Cc: Andy Lutomirski <luto@amacapital.net>
 Cc: Artem Bityutskiy <dedekind1@gmail.com>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Eric Van Hensbergen <ericvh@gmail.com>
 Cc: Ron Minnich <rminnich@sandia.gov>
@@ -93,121 +53,20 @@ Cc: Latchesar Ionkov <lucho@ionkov.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c             |    2 +-
- fs/ext4/inode.c         |    2 +-
- fs/gfs2/file.c          |    2 +-
- fs/nilfs2/file.c        |    2 +-
- include/linux/pagemap.h |    1 +
- mm/filemap.c            |    3 ++-
- mm/page-writeback.c     |   20 ++++++++++++++++++++
- 7 files changed, 27 insertions(+), 5 deletions(-)
+ fs/9p/vfs_file.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/buffer.c~mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it fs/buffer.c
---- a/fs/buffer.c~mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it
-+++ a/fs/buffer.c
-@@ -2369,7 +2369,7 @@ int __block_page_mkwrite(struct vm_area_
- 	if (unlikely(ret < 0))
+diff -puN fs/9p/vfs_file.c~9pfs-fix-filesystem-to-wait-for-stable-page-writeback fs/9p/vfs_file.c
+--- a/fs/9p/vfs_file.c~9pfs-fix-filesystem-to-wait-for-stable-page-writeback
++++ a/fs/9p/vfs_file.c
+@@ -620,6 +620,7 @@ v9fs_vm_page_mkwrite(struct vm_area_stru
+ 	lock_page(page);
+ 	if (page->mapping != inode->i_mapping)
  		goto out_unlock;
- 	set_page_dirty(page);
--	wait_on_page_writeback(page);
 +	wait_for_stable_page(page);
- 	return 0;
+ 
+ 	return VM_FAULT_LOCKED;
  out_unlock:
- 	unlock_page(page);
-diff -puN fs/ext4/inode.c~mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it fs/ext4/inode.c
---- a/fs/ext4/inode.c~mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it
-+++ a/fs/ext4/inode.c
-@@ -4961,7 +4961,7 @@ int ext4_page_mkwrite(struct vm_area_str
- 					    0, len, NULL,
- 					    ext4_bh_unmapped)) {
- 			/* Wait so that we don't change page under IO */
--			wait_on_page_writeback(page);
-+			wait_for_stable_page(page);
- 			ret = VM_FAULT_LOCKED;
- 			goto out;
- 		}
-diff -puN fs/gfs2/file.c~mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it fs/gfs2/file.c
---- a/fs/gfs2/file.c~mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it
-+++ a/fs/gfs2/file.c
-@@ -483,7 +483,7 @@ out:
- 	gfs2_holder_uninit(&gh);
- 	if (ret == 0) {
- 		set_page_dirty(page);
--		wait_on_page_writeback(page);
-+		wait_for_stable_page(page);
- 	}
- 	sb_end_pagefault(inode->i_sb);
- 	return block_page_mkwrite_return(ret);
-diff -puN fs/nilfs2/file.c~mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it fs/nilfs2/file.c
---- a/fs/nilfs2/file.c~mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it
-+++ a/fs/nilfs2/file.c
-@@ -126,7 +126,7 @@ static int nilfs_page_mkwrite(struct vm_
- 	nilfs_transaction_commit(inode->i_sb);
- 
-  mapped:
--	wait_on_page_writeback(page);
-+	wait_for_stable_page(page);
-  out:
- 	sb_end_pagefault(inode->i_sb);
- 	return block_page_mkwrite_return(ret);
-diff -puN include/linux/pagemap.h~mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it include/linux/pagemap.h
---- a/include/linux/pagemap.h~mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it
-+++ a/include/linux/pagemap.h
-@@ -414,6 +414,7 @@ static inline void wait_on_page_writebac
- }
- 
- extern void end_page_writeback(struct page *page);
-+void wait_for_stable_page(struct page *page);
- 
- /*
-  * Add an arbitrary waiter to a page's wait queue
-diff -puN mm/filemap.c~mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it mm/filemap.c
---- a/mm/filemap.c~mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it
-+++ a/mm/filemap.c
-@@ -1728,6 +1728,7 @@ int filemap_page_mkwrite(struct vm_area_
- 	 * see the dirty page and writeprotect it again.
- 	 */
- 	set_page_dirty(page);
-+	wait_for_stable_page(page);
- out:
- 	sb_end_pagefault(inode->i_sb);
- 	return ret;
-@@ -2274,7 +2275,7 @@ repeat:
- 		return NULL;
- 	}
- found:
--	wait_on_page_writeback(page);
-+	wait_for_stable_page(page);
- 	return page;
- }
- EXPORT_SYMBOL(grab_cache_page_write_begin);
-diff -puN mm/page-writeback.c~mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it mm/page-writeback.c
---- a/mm/page-writeback.c~mm-only-enforce-stable-page-writes-if-the-backing-device-requires-it
-+++ a/mm/page-writeback.c
-@@ -2294,3 +2294,23 @@ int mapping_tagged(struct address_space 
- 	return radix_tree_tagged(&mapping->page_tree, tag);
- }
- EXPORT_SYMBOL(mapping_tagged);
-+
-+/**
-+ * wait_for_stable_page() - wait for writeback to finish, if necessary.
-+ * @page:	The page to wait on.
-+ *
-+ * This function determines if the given page is related to a backing device
-+ * that requires page contents to be held stable during writeback.  If so, then
-+ * it will wait for any pending writeback to complete.
-+ */
-+void wait_for_stable_page(struct page *page)
-+{
-+	struct address_space *mapping = page_mapping(page);
-+	struct backing_dev_info *bdi = mapping->backing_dev_info;
-+
-+	if (!bdi_cap_stable_pages_required(bdi))
-+		return;
-+
-+	wait_on_page_writeback(page);
-+}
-+EXPORT_SYMBOL_GPL(wait_for_stable_page);
 _
 
 Patches currently in -mm which might be from darrick.wong@oracle.com are
