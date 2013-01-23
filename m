@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 23 Jan 2013 14:09:03 -0800
-Message-ID: <20130123220904.1E9AE31C21F@corp2gmr1-1.hot.corp.google.com>
+Subject: + fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch added to -mm tree
+Date: Wed, 23 Jan 2013 14:08:34 -0800
+Message-ID: <20130123220835.047DD31C20E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:38477 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752283Ab3AWWJF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Jan 2013 17:09:05 -0500
-Received: by mail-qa0-f74.google.com with SMTP id r4so160570qaq.5
-        for <mm-commits@vger.kernel.org>; Wed, 23 Jan 2013 14:09:04 -0800 (PST)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:63579 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751513Ab3AWWIg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Jan 2013 17:08:36 -0500
+Received: by mail-vb0-f73.google.com with SMTP id fs19so269108vbb.0
+        for <mm-commits@vger.kernel.org>; Wed, 23 Jan 2013 14:08:35 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: akpm@linux-foundation.org, gorcunov@openvz.org
 
 
 The patch titled
-     Subject: fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes
+     Subject: fs/seq_file.c:seq_lseek(): fix switch statement indenting
 has been added to the -mm tree.  Its filename is
-     fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes.patch
+     fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,66 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes
-
-ERROR: spaces required around that '=' (ctx:VxV)
-#45: FILE: fs/seq_file.c:318:
-+			while ((retval=traverse(m, offset)) == -EAGAIN)
- 			              ^
-
-total: 1 errors, 0 warnings, 47 lines checked
-
-./patches/fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
+Subject: fs/seq_file.c:seq_lseek(): fix switch statement indenting
 
 Cc: Cyrill Gorcunov <gorcunov@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/seq_file.c |   40 ++++++++++++++++++++--------------------
+ 1 file changed, 20 insertions(+), 20 deletions(-)
 
-diff -puN fs/seq_file.c~fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes fs/seq_file.c
---- a/fs/seq_file.c~fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes
+diff -puN fs/seq_file.c~fs-seq_filec-seq_lseek-fix-switch-statement-indenting fs/seq_file.c
+--- a/fs/seq_file.c~fs-seq_filec-seq_lseek-fix-switch-statement-indenting
 +++ a/fs/seq_file.c
-@@ -315,7 +315,7 @@ loff_t seq_lseek(struct file *file, loff
- 			break;
- 		retval = offset;
- 		if (offset != m->read_pos) {
--			while ((retval=traverse(m, offset)) == -EAGAIN)
-+			while ((retval = traverse(m, offset)) == -EAGAIN)
- 				;
- 			if (retval) {
- 				/* with extreme prejudice... */
+@@ -308,27 +308,27 @@ loff_t seq_lseek(struct file *file, loff
+ 	mutex_lock(&m->lock);
+ 	m->version = file->f_version;
+ 	switch (whence) {
+-		case SEEK_CUR:
+-			offset += file->f_pos;
+-		case SEEK_SET:
+-			if (offset < 0)
+-				break;
+-			retval = offset;
+-			if (offset != m->read_pos) {
+-				while ((retval=traverse(m, offset)) == -EAGAIN)
+-					;
+-				if (retval) {
+-					/* with extreme prejudice... */
+-					file->f_pos = 0;
+-					m->read_pos = 0;
+-					m->version = 0;
+-					m->index = 0;
+-					m->count = 0;
+-				} else {
+-					m->read_pos = offset;
+-					retval = file->f_pos = offset;
+-				}
++	case SEEK_CUR:
++		offset += file->f_pos;
++	case SEEK_SET:
++		if (offset < 0)
++			break;
++		retval = offset;
++		if (offset != m->read_pos) {
++			while ((retval=traverse(m, offset)) == -EAGAIN)
++				;
++			if (retval) {
++				/* with extreme prejudice... */
++				file->f_pos = 0;
++				m->read_pos = 0;
++				m->version = 0;
++				m->index = 0;
++				m->count = 0;
++			} else {
++				m->read_pos = offset;
++				retval = file->f_pos = offset;
+ 			}
++		}
+ 	}
+ 	file->f_version = m->version;
+ 	mutex_unlock(&m->lock);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -133,7 +158,6 @@ hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.pa
 signal-allow-to-send-any-siginfo-to-itself-fix.patch
 signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
 fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch
-fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes.patch
 drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
 dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
 aio-kiocb_cancel-fix.patch
