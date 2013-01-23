@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + swap-add-per-partition-lock-for-swapfile-fix.patch added to -mm tree
-Date: Tue, 22 Jan 2013 16:23:56 -0800
-Message-ID: <20130123002356.775EB5A403C@corp2gmr1-2.hot.corp.google.com>
+Subject: + memcg-do-not-create-memsw-files-if-swap-accounting-is-disabled.patch added to -mm tree
+Date: Tue, 22 Jan 2013 16:30:59 -0800
+Message-ID: <20130123003100.534CD5A4486@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:56928 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753954Ab3AWAX6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 19:23:58 -0500
-Received: by mail-vb0-f74.google.com with SMTP id r6so788960vbi.1
-        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 16:23:57 -0800 (PST)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:46800 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750713Ab3AWAbB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 19:31:01 -0500
+Received: by mail-gh0-f201.google.com with SMTP id z19so379678ghb.0
+        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 16:31:01 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dan.magenheimer@oracle.com, gregkh@linuxfoundation.org, hughd@google.com, konrad.wilk@oracle.com, minchan.kim@gmail.com, riel@redhat.com, shli@fusionio.com, shli@kernel.org, sjenning@linux.vnet.ibm.com, xiaoguangrong@linux.vnet.ibm.com
+Cc: mhocko@suse.cz, caiqian@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, lizefan@huawei.com, rientjes@google.com, tj@kernel.org, zliu@redhat.com
 
 
 The patch titled
-     Subject: swap-add-per-partition-lock-for-swapfile-fix
+     Subject: memcg: do not create memsw files if swap accounting is disabled
 has been added to the -mm tree.  Its filename is
-     swap-add-per-partition-lock-for-swapfile-fix.patch
+     memcg-do-not-create-memsw-files-if-swap-accounting-is-disabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,174 +33,196 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: swap-add-per-partition-lock-for-swapfile-fix
+From: Michal Hocko <mhocko@suse.cz>
+Subject: memcg: do not create memsw files if swap accounting is disabled
 
-drop zcache parts, per Dan - zcache counters needn't be atomic
+Zhouping Liu has reported that memsw files are exported even though swap
+accounting is runtime disabled if CONFIG_MEMCG_SWAP is enabled.  This
+behavior has been introduced by af36f906 (memcg: always create memsw files
+if CONFIG_CGROUP_MEM_RES_CTLR_SWAP) and it causes any attempt to open the
+file to return EOPNOTSUPP.  Although EOPNOTSUPP should say be clear that
+memsw operations are not supported in the given configuration it is fair
+to say that this behavior could be quite confusing.
 
-Cc: Dan Magenheimer <dan.magenheimer@oracle.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Seth Jennings <sjenning@linux.vnet.ibm.com>
-Cc: Shaohua Li <shli@fusionio.com>
-Cc: Shaohua Li <shli@kernel.org>
-Cc: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
+Let's tear memsw files out of default cgroup files and add them only if
+the swap accounting is really enabled (either by CONFIG_MEMCG_SWAP_ENABLED
+or swapaccount=1 boot parameter).  We can hook into mem_cgroup_init which
+is called when the memcg subsystem is initialized and which happens after
+boot command line is processed.
+
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Reported-by: Zhouping Liu <zliu@redhat.com>
+Tested-by: Zhouping Liu <zliu@redhat.com>
+Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Li Zefan <lizefan@huawei.com>
+Cc: CAI Qian <caiqian@redhat.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/zcache/zcache-main.c |    8 ++++----
- drivers/staging/zcache/zcache.c      |   15 ++-------------
- 2 files changed, 6 insertions(+), 17 deletions(-)
+ mm/memcontrol.c |   94 ++++++++++++++++++++++++++--------------------
+ 1 file changed, 54 insertions(+), 40 deletions(-)
 
-diff -puN drivers/staging/zcache/zcache-main.c~swap-add-per-partition-lock-for-swapfile-fix drivers/staging/zcache/zcache-main.c
---- a/drivers/staging/zcache/zcache-main.c~swap-add-per-partition-lock-for-swapfile-fix
-+++ a/drivers/staging/zcache/zcache-main.c
-@@ -158,8 +158,8 @@ static atomic_t zcache_pers_zpages_atomi
- static long zcache_pers_zpages_max;
+diff -puN mm/memcontrol.c~memcg-do-not-create-memsw-files-if-swap-accounting-is-disabled mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-do-not-create-memsw-files-if-swap-accounting-is-disabled
++++ a/mm/memcontrol.c
+@@ -5821,33 +5821,6 @@ static struct cftype mem_cgroup_files[] 
+ 		.read_seq_string = memcg_numa_stat_show,
+ 	},
+ #endif
+-#ifdef CONFIG_MEMCG_SWAP
+-	{
+-		.name = "memsw.usage_in_bytes",
+-		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_USAGE),
+-		.read = mem_cgroup_read,
+-		.register_event = mem_cgroup_usage_register_event,
+-		.unregister_event = mem_cgroup_usage_unregister_event,
+-	},
+-	{
+-		.name = "memsw.max_usage_in_bytes",
+-		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_MAX_USAGE),
+-		.trigger = mem_cgroup_reset,
+-		.read = mem_cgroup_read,
+-	},
+-	{
+-		.name = "memsw.limit_in_bytes",
+-		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_LIMIT),
+-		.write_string = mem_cgroup_write,
+-		.read = mem_cgroup_read,
+-	},
+-	{
+-		.name = "memsw.failcnt",
+-		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_FAILCNT),
+-		.trigger = mem_cgroup_reset,
+-		.read = mem_cgroup_read,
+-	},
+-#endif
+ #ifdef CONFIG_MEMCG_KMEM
+ 	{
+ 		.name = "kmem.limit_in_bytes",
+@@ -5882,6 +5855,36 @@ static struct cftype mem_cgroup_files[] 
+ 	{ },	/* terminate */
+ };
  
- /* but for the rest of these, counting races are ok */
--static atomic_long_t zcache_flush_total;
--static atomic_long_t zcache_flush_found;
-+static unsigned long zcache_flush_total;
-+static unsigned long zcache_flush_found;
- static unsigned long zcache_flobj_total;
- static unsigned long zcache_flobj_found;
- static unsigned long zcache_failed_eph_puts;
-@@ -1217,7 +1217,7 @@ int zcache_flush_page(int cli_id, int po
- 	unsigned long flags;
++#ifdef CONFIG_MEMCG_SWAP
++static struct cftype memsw_cgroup_files[] = {
++	{
++		.name = "memsw.usage_in_bytes",
++		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_USAGE),
++		.read = mem_cgroup_read,
++		.register_event = mem_cgroup_usage_register_event,
++		.unregister_event = mem_cgroup_usage_unregister_event,
++	},
++	{
++		.name = "memsw.max_usage_in_bytes",
++		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_MAX_USAGE),
++		.trigger = mem_cgroup_reset,
++		.read = mem_cgroup_read,
++	},
++	{
++		.name = "memsw.limit_in_bytes",
++		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_LIMIT),
++		.write_string = mem_cgroup_write,
++		.read = mem_cgroup_read,
++	},
++	{
++		.name = "memsw.failcnt",
++		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_FAILCNT),
++		.trigger = mem_cgroup_reset,
++		.read = mem_cgroup_read,
++	},
++	{ },	/* terminate */
++};
++#endif
+ static int alloc_mem_cgroup_per_zone_info(struct mem_cgroup *memcg, int node)
+ {
+ 	struct mem_cgroup_per_node *pn;
+@@ -6781,19 +6784,6 @@ struct cgroup_subsys mem_cgroup_subsys =
+ 	.use_id = 1,
+ };
  
- 	local_irq_save(flags);
--	atomic_long_inc(&zcache_flush_total);
-+	zcache_flush_total++;
- 	pool = zcache_get_pool_by_id(cli_id, pool_id);
- 	if (ramster_enabled)
- 		ramster_do_preload_flnode(pool);
-@@ -1227,7 +1227,7 @@ int zcache_flush_page(int cli_id, int po
- 		zcache_put_pool(pool);
- 	}
- 	if (ret >= 0)
--		atomic_long_inc(&zcache_flush_found);
-+		zcache_flush_found++;
- 	local_irq_restore(flags);
- 	return ret;
- }
-diff -puN drivers/staging/zcache/zcache.c~swap-add-per-partition-lock-for-swapfile-fix drivers/staging/zcache/zcache.c
---- a/drivers/staging/zcache/zcache.c~swap-add-per-partition-lock-for-swapfile-fix
-+++ a/drivers/staging/zcache/zcache.c
-@@ -1089,17 +1089,6 @@ static struct notifier_block zcache_cpu_
- 		.show = zcache_##_name##_show, \
- 	}
- 
--#define ZCACHE_SYSFS_RO_ATOMIC_LONG(_name) \
--	static ssize_t zcache_##_name##_show(struct kobject *kobj, \
--				struct kobj_attribute *attr, char *buf) \
--	{ \
--	    return sprintf(buf, "%lu\n", atomic_long_read(&zcache_##_name)); \
--	} \
--	static struct kobj_attribute zcache_##_name##_attr = { \
--		.attr = { .name = __stringify(_name), .mode = 0444 }, \
--		.show = zcache_##_name##_show, \
--	}
+-/*
+- * The rest of init is performed during ->css_alloc() for root css which
+- * happens before initcalls.  hotcpu_notifier() can't be done together as
+- * it would introduce circular locking by adding cgroup_lock -> cpu hotplug
+- * dependency.  Do it from a subsys_initcall().
+- */
+-static int __init mem_cgroup_init(void)
+-{
+-	hotcpu_notifier(memcg_cpu_hotplug_callback, 0);
+-	return 0;
+-}
+-subsys_initcall(mem_cgroup_init);
 -
- #define ZCACHE_SYSFS_RO_CUSTOM(_name, _func) \
- 	static ssize_t zcache_##_name##_show(struct kobject *kobj, \
- 				struct kobj_attribute *attr, char *buf) \
-@@ -1113,8 +1102,8 @@ static struct notifier_block zcache_cpu_
+ #ifdef CONFIG_MEMCG_SWAP
+ static int __init enable_swap_account(char *s)
+ {
+@@ -6806,4 +6796,28 @@ static int __init enable_swap_account(ch
+ }
+ __setup("swapaccount=", enable_swap_account);
  
- ZCACHE_SYSFS_RO(curr_obj_count_max);
- ZCACHE_SYSFS_RO(curr_objnode_count_max);
--ZCACHE_SYSFS_RO_ATOMIC_LONG(flush_total);
--ZCACHE_SYSFS_RO_ATOMIC_LONG(flush_found);
-+ZCACHE_SYSFS_RO(flush_total);
-+ZCACHE_SYSFS_RO(flush_found);
- ZCACHE_SYSFS_RO(flobj_total);
- ZCACHE_SYSFS_RO(flobj_found);
- ZCACHE_SYSFS_RO(failed_eph_puts);
++static void __init memsw_file_init(void)
++{
++	if (really_do_swap_account)
++		WARN_ON(cgroup_add_cftypes(&mem_cgroup_subsys,
++					memsw_cgroup_files));
++}
++#else
++static void __init memsw_file_init(void)
++{
++}
+ #endif
++
++/*
++ * The rest of init is performed during ->css_alloc() for root css which
++ * happens before initcalls.  hotcpu_notifier() can't be done together as
++ * it would introduce circular locking by adding cgroup_lock -> cpu hotplug
++ * dependency.  Do it from a subsys_initcall().
++ */
++static int __init mem_cgroup_init(void)
++{
++	hotcpu_notifier(memcg_cpu_hotplug_callback, 0);
++	memsw_file_init();
++	return 0;
++}
++subsys_initcall(mem_cgroup_init);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
-origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
-bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
-i-need-old-gcc.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch
-mm.patch
+memcg-oom-provide-more-precise-dump-info-while-memcg-oom-happening.patch
 mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
 mm-hugetlbc-convert-to-pr_foo.patch
-cma-make-putback_lru_pages-call-conditional-fix.patch
+mm-memcg-only-evict-file-pages-when-we-have-plenty.patch
+mm-vmscan-save-work-scanning-almost-empty-lru-lists.patch
+mm-vmscan-clarify-how-swappiness-highest-priority-memcg-interact.patch
+mm-vmscan-improve-comment-on-low-page-cache-handling.patch
+mm-vmscan-clean-up-get_scan_count.patch
 mm-vmscan-clean-up-get_scan_count-fix.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs.patch
 mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
+mm-reduce-rmap-overhead-for-ex-ksm-page-copies-created-on-swap-faults.patch
 mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
 mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
-mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
-mm-remove-flags-argument-to-mmap_region-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
-memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
-memory-failure-do-code-refactor-of-soft_offline_page.patch
-memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
-mm-dont-inline-page_mapping.patch
-swap-add-per-partition-lock-for-swapfile-fix.patch
-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
+mmksm-use-new-hashtable-implementation.patch
+memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pages.patch
+memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix.patch
+memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix.patch
+memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix-fix.patch
+memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix-fix-fix.patch
+memory-hotplug-remove-memmap-of-sparse-vmemmap-fix.patch
+mm-use-zone-present_pages-instead-of-zone-managed_pages-where-appropriate.patch
+mm-set-zone-present_pages-to-number-of-existing-pages-in-the-zone.patch
+mm-increase-totalram_pages-when-free-pages-allocated-by-bootmem-allocator.patch
+mm-teach-mm-by-current-context-info-to-not-do-i-o-during-memory-allocation.patch
+pm-runtime-introduce-pm_runtime_set_memalloc_noio.patch
+block-genhdc-apply-pm_runtime_set_memalloc_noio-on-block-devices.patch
+net-core-apply-pm_runtime_set_memalloc_noio-on-network-devices.patch
+pm-runtime-force-memory-allocation-with-no-i-o-during-runtime-pm-callbcack.patch
+usb-forbid-memory-allocation-with-i-o-during-bus-reset.patch
+memcg-do-not-create-memsw-files-if-swap-accounting-is-disabled.patch
 drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-kernel-smpc-cleanups.patch
-backlight-add-lms501kf03-lcd-driver-fix.patch
-backlight-add-lms501kf03-lcd-driver-fix-fix.patch
-backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
-checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix-fix.patch
-rtc-max77686-add-maxim-77686-driver-fix.patch
-rtc-pcf8523-add-low-battery-voltage-support-fix.patch
-rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
-rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
-signal-allow-to-send-any-siginfo-to-itself-fix.patch
-signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
-drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
-aio-smoosh-struct-kiocb-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+memcg-debugging-facility-to-access-dangling-memcgs.patch
 
