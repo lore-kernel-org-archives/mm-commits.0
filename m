@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-wait-for-page-writeback-to-provide-stable-pages.patch added to -mm tree
-Date: Wed, 23 Jan 2013 13:40:18 -0800
-Message-ID: <20130123214019.5F8AE31C071@corp2gmr1-1.hot.corp.google.com>
+Subject: + ubifs-wait-for-page-writeback-to-provide-stable-pages.patch added to -mm tree
+Date: Wed, 23 Jan 2013 13:40:22 -0800
+Message-ID: <20130123214023.5FC135A419C@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f201.google.com ([209.85.161.201]:56758 "EHLO
-	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751885Ab3AWVkV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Jan 2013 16:40:21 -0500
-Received: by mail-gg0-f201.google.com with SMTP id l2so541944ggn.2
-        for <mm-commits@vger.kernel.org>; Wed, 23 Jan 2013 13:40:20 -0800 (PST)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:37176 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751885Ab3AWVkZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Jan 2013 16:40:25 -0500
+Received: by mail-ve0-f202.google.com with SMTP id ox1so107178veb.1
+        for <mm-commits@vger.kernel.org>; Wed, 23 Jan 2013 13:40:24 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: jack@suse.cz, adrian.hunter@intel.com, axboe@kernel.dk, darrick.wong@oracle.
 
 
 The patch titled
-     Subject: ocfs2: wait for page writeback to provide stable pages
+     Subject: ubifs: wait for page writeback to provide stable pages
 has been added to the -mm tree.  Its filename is
-     ocfs2-wait-for-page-writeback-to-provide-stable-pages.patch
+     ubifs-wait-for-page-writeback-to-provide-stable-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,19 +34,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: ocfs2: wait for page writeback to provide stable pages
+Subject: ubifs: wait for page writeback to provide stable pages
 
 When stable pages are required, we have to wait if the page is just going
 to disk and we want to modify it.  Add proper callback to
-ocfs2_grab_pages_for_write().
+ubifs_vm_page_mkwrite().
 
 Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Darrick J. Wong <darrick.wong@oracle.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Artem Bityutskiy <dedekind1@gmail.com>
 Cc: Adrian Hunter <adrian.hunter@intel.com>
 Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Artem Bityutskiy <dedekind1@gmail.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Cc: Steven Whitehouse <swhiteho@redhat.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Eric Van Hensbergen <ericvh@gmail.com>
@@ -55,20 +55,20 @@ Cc: Latchesar Ionkov <lucho@ionkov.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c |    1 +
+ fs/ubifs/file.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN fs/ocfs2/aops.c~ocfs2-wait-for-page-writeback-to-provide-stable-pages fs/ocfs2/aops.c
---- a/fs/ocfs2/aops.c~ocfs2-wait-for-page-writeback-to-provide-stable-pages
-+++ a/fs/ocfs2/aops.c
-@@ -1194,6 +1194,7 @@ static int ocfs2_grab_pages_for_write(st
- 				goto out;
- 			}
- 		}
-+		wait_for_stable_page(wc->w_pages[i]);
+diff -puN fs/ubifs/file.c~ubifs-wait-for-page-writeback-to-provide-stable-pages fs/ubifs/file.c
+--- a/fs/ubifs/file.c~ubifs-wait-for-page-writeback-to-provide-stable-pages
++++ a/fs/ubifs/file.c
+@@ -1522,6 +1522,7 @@ static int ubifs_vm_page_mkwrite(struct 
+ 			ubifs_release_dirty_inode_budget(c, ui);
+ 	}
  
- 		if (index == target_index)
- 			wc->w_target_page = wc->w_pages[i];
++	wait_for_stable_page(page);
+ 	unlock_page(page);
+ 	return 0;
+ 
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
