@@ -1,133 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Wed, 23 Jan 2013 12:24:22 -0800
-Message-ID: <20130123202423.F213931C1B5@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-hugetlb-set-pte-as-huge-in-hugetlb_change_protection-and-remove_migration_pte.patch added to -mm tree
+Date: Wed, 23 Jan 2013 12:31:32 -0800
+Message-ID: <20130123203132.BF1BB5A4102@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:50634 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751388Ab3AWUY0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Jan 2013 15:24:26 -0500
-Received: by mail-vb0-f74.google.com with SMTP id r6so894790vbi.3
-        for <mm-commits@vger.kernel.org>; Wed, 23 Jan 2013 12:24:25 -0800 (PST)
+Received: from mail-gg0-f201.google.com ([209.85.161.201]:52906 "EHLO
+	mail-gg0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752165Ab3AWUbd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Jan 2013 15:31:33 -0500
+Received: by mail-gg0-f201.google.com with SMTP id l2so532904ggn.4
+        for <mm-commits@vger.kernel.org>; Wed, 23 Jan 2013 12:31:33 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: zlu@tilera.com, cmetcalf@tilera.com, dhillf@gmail.com, mhocko@suse.cz, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: mm/hugetlb: set PTE as huge in hugetlb_change_protection and remove_migration_pte
+has been added to the -mm tree.  Its filename is
+     mm-hugetlb-set-pte-as-huge-in-hugetlb_change_protection-and-remove_migration_pte.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Tony Lu <zlu@tilera.com>
+Subject: mm/hugetlb: set PTE as huge in hugetlb_change_protection and remove_migration_pte
 
+When setting a huge PTE, besides calling pte_mkhuge(), we also need to
+call arch_make_huge_pte(), which we indeed do in make_huge_pte(), but we
+forget to do in hugetlb_change_protection() and remove_migration_pte().
+
+Signed-off-by: Zhigang Lu <zlu@tilera.com>
+Signed-off-by: Chris Metcalf <cmetcalf@tilera.com>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Hillf Danton <dhillf@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/gpio-samsung.c |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/hugetlb.c |    1 +
+ mm/migrate.c |    4 +++-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/gpio/gpio-samsung.c~linux-next-git-rejects drivers/gpio/gpio-samsung.c
---- a/drivers/gpio/gpio-samsung.c~linux-next-git-rejects
-+++ a/drivers/gpio/gpio-samsung.c
-@@ -3024,10 +3024,7 @@ static __init int samsung_gpiolib_init(v
- 	static const struct of_device_id exynos_pinctrl_ids[] = {
- 		{ .compatible = "samsung,pinctrl-exynos4210", },
- 		{ .compatible = "samsung,pinctrl-exynos4x12", },
--<<<<<<< HEAD
--=======
- 		{ .compatible = "samsung,pinctrl-exynos5250", },
-->>>>>>> linux-next/akpm-base
- 		{ .compatible = "samsung,pinctrl-exynos5440", },
- 	};
- 	for_each_matching_node(pctrl_np, exynos_pinctrl_ids)
+diff -puN mm/hugetlb.c~mm-hugetlb-set-pte-as-huge-in-hugetlb_change_protection-and-remove_migration_pte mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-set-pte-as-huge-in-hugetlb_change_protection-and-remove_migration_pte
++++ a/mm/hugetlb.c
+@@ -3033,6 +3033,7 @@ unsigned long hugetlb_change_protection(
+ 		if (!huge_pte_none(huge_ptep_get(ptep))) {
+ 			pte = huge_ptep_get_and_clear(mm, address, ptep);
+ 			pte = pte_mkhuge(pte_modify(pte, newprot));
++			pte = arch_make_huge_pte(pte, vma, NULL, 0);
+ 			set_huge_pte_at(mm, address, ptep, pte);
+ 			pages++;
+ 		}
+diff -puN mm/migrate.c~mm-hugetlb-set-pte-as-huge-in-hugetlb_change_protection-and-remove_migration_pte mm/migrate.c
+--- a/mm/migrate.c~mm-hugetlb-set-pte-as-huge-in-hugetlb_change_protection-and-remove_migration_pte
++++ a/mm/migrate.c
+@@ -160,8 +160,10 @@ static int remove_migration_pte(struct p
+ 	if (is_write_migration_entry(entry))
+ 		pte = pte_mkwrite(pte);
+ #ifdef CONFIG_HUGETLB_PAGE
+-	if (PageHuge(new))
++	if (PageHuge(new)) {
+ 		pte = pte_mkhuge(pte);
++		pte = arch_make_huge_pte(pte, vma, new, 0);
++	}
+ #endif
+ 	flush_cache_page(vma, addr, pte_pfn(pte));
+ 	set_pte_at(mm, addr, ptep, pte);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from zlu@tilera.com are
 
-origin.patch
-linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
-bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
-i-need-old-gcc.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch
-mm.patch
-mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
-mm-hugetlbc-convert-to-pr_foo.patch
-cma-make-putback_lru_pages-call-conditional-fix.patch
-mm-vmscan-clean-up-get_scan_count-fix.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
-mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
-mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
-mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
-mm-remove-flags-argument-to-mmap_region-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
-memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
-memory-failure-do-code-refactor-of-soft_offline_page.patch
-memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
-mm-dont-inline-page_mapping.patch
-swap-add-per-partition-lock-for-swapfile-fix.patch
-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-kernel-smpc-cleanups.patch
-backlight-add-lms501kf03-lcd-driver-fix.patch
-backlight-add-lms501kf03-lcd-driver-fix-fix.patch
-backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
-checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix-fix.patch
-rtc-max77686-add-maxim-77686-driver-fix.patch
-rtc-pcf8523-add-low-battery-voltage-support-fix.patch
-rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
-rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
-signal-allow-to-send-any-siginfo-to-itself-fix.patch
-signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
-drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
-aio-smoosh-struct-kiocb-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+mm-hugetlb-set-pte-as-huge-in-hugetlb_change_protection-and-remove_migration_pte.patch
 
