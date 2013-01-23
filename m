@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch added to -mm tree
-Date: Tue, 22 Jan 2013 15:38:14 -0800
-Message-ID: <20130122233815.27C8731C19C@corp2gmr1-1.hot.corp.google.com>
+Subject: + swap-add-per-partition-lock-for-swapfile-fix.patch added to -mm tree
+Date: Tue, 22 Jan 2013 16:23:56 -0800
+Message-ID: <20130123002356.775EB5A403C@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:59742 "EHLO
-	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755841Ab3AVXiQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 18:38:16 -0500
-Received: by mail-qa0-f74.google.com with SMTP id r4so34991qaq.5
-        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 15:38:15 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:56928 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753954Ab3AWAX6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 19:23:58 -0500
+Received: by mail-vb0-f74.google.com with SMTP id r6so788960vbi.1
+        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 16:23:57 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, fengguang.wu@intel.com, psz@maths.usyd.edu.au, riel@redhat.com
+Cc: akpm@linux-foundation.org, dan.magenheimer@oracle.com, gregkh@linuxfoundation.org, hughd@google.com, konrad.wilk@oracle.com, minchan.kim@gmail.com, riel@redhat.com, shli@fusionio.com, shli@kernel.org, sjenning@linux.vnet.ibm.com, xiaoguangrong@linux.vnet.ibm.com
 
 
 The patch titled
-     Subject: page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix
+     Subject: swap-add-per-partition-lock-for-swapfile-fix
 has been added to the -mm tree.  Its filename is
-     page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
+     swap-add-per-partition-lock-for-swapfile-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,91 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix
+Subject: swap-add-per-partition-lock-for-swapfile-fix
 
-fix min() warning
+drop zcache parts, per Dan - zcache counters needn't be atomic
 
-Cc: Paul Szabo <psz@maths.usyd.edu.au>
+Cc: Dan Magenheimer <dan.magenheimer@oracle.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Seth Jennings <sjenning@linux.vnet.ibm.com>
+Cc: Shaohua Li <shli@fusionio.com>
+Cc: Shaohua Li <shli@kernel.org>
+Cc: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/staging/zcache/zcache-main.c |    8 ++++----
+ drivers/staging/zcache/zcache.c      |   15 ++-------------
+ 2 files changed, 6 insertions(+), 17 deletions(-)
 
-diff -puN mm/page-writeback.c~page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix mm/page-writeback.c
---- a/mm/page-writeback.c~page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix
-+++ a/mm/page-writeback.c
-@@ -241,7 +241,7 @@ static unsigned long global_dirtyable_me
- 		x -= highmem_dirtyable_memory(x);
+diff -puN drivers/staging/zcache/zcache-main.c~swap-add-per-partition-lock-for-swapfile-fix drivers/staging/zcache/zcache-main.c
+--- a/drivers/staging/zcache/zcache-main.c~swap-add-per-partition-lock-for-swapfile-fix
++++ a/drivers/staging/zcache/zcache-main.c
+@@ -158,8 +158,8 @@ static atomic_t zcache_pers_zpages_atomi
+ static long zcache_pers_zpages_max;
  
- 	/* Subtract min_free_kbytes */
--	x -= min(x, min_free_kbytes >> (PAGE_SHIFT - 10));
-+	x -= min_t(unsigned long, x, min_free_kbytes >> (PAGE_SHIFT - 10));
+ /* but for the rest of these, counting races are ok */
+-static atomic_long_t zcache_flush_total;
+-static atomic_long_t zcache_flush_found;
++static unsigned long zcache_flush_total;
++static unsigned long zcache_flush_found;
+ static unsigned long zcache_flobj_total;
+ static unsigned long zcache_flobj_found;
+ static unsigned long zcache_failed_eph_puts;
+@@ -1217,7 +1217,7 @@ int zcache_flush_page(int cli_id, int po
+ 	unsigned long flags;
  
- 	return x + 1;	/* Ensure that we never return 0 */
+ 	local_irq_save(flags);
+-	atomic_long_inc(&zcache_flush_total);
++	zcache_flush_total++;
+ 	pool = zcache_get_pool_by_id(cli_id, pool_id);
+ 	if (ramster_enabled)
+ 		ramster_do_preload_flnode(pool);
+@@ -1227,7 +1227,7 @@ int zcache_flush_page(int cli_id, int po
+ 		zcache_put_pool(pool);
+ 	}
+ 	if (ret >= 0)
+-		atomic_long_inc(&zcache_flush_found);
++		zcache_flush_found++;
+ 	local_irq_restore(flags);
+ 	return ret;
  }
+diff -puN drivers/staging/zcache/zcache.c~swap-add-per-partition-lock-for-swapfile-fix drivers/staging/zcache/zcache.c
+--- a/drivers/staging/zcache/zcache.c~swap-add-per-partition-lock-for-swapfile-fix
++++ a/drivers/staging/zcache/zcache.c
+@@ -1089,17 +1089,6 @@ static struct notifier_block zcache_cpu_
+ 		.show = zcache_##_name##_show, \
+ 	}
+ 
+-#define ZCACHE_SYSFS_RO_ATOMIC_LONG(_name) \
+-	static ssize_t zcache_##_name##_show(struct kobject *kobj, \
+-				struct kobj_attribute *attr, char *buf) \
+-	{ \
+-	    return sprintf(buf, "%lu\n", atomic_long_read(&zcache_##_name)); \
+-	} \
+-	static struct kobj_attribute zcache_##_name##_attr = { \
+-		.attr = { .name = __stringify(_name), .mode = 0444 }, \
+-		.show = zcache_##_name##_show, \
+-	}
+-
+ #define ZCACHE_SYSFS_RO_CUSTOM(_name, _func) \
+ 	static ssize_t zcache_##_name##_show(struct kobject *kobj, \
+ 				struct kobj_attribute *attr, char *buf) \
+@@ -1113,8 +1102,8 @@ static struct notifier_block zcache_cpu_
+ 
+ ZCACHE_SYSFS_RO(curr_obj_count_max);
+ ZCACHE_SYSFS_RO(curr_objnode_count_max);
+-ZCACHE_SYSFS_RO_ATOMIC_LONG(flush_total);
+-ZCACHE_SYSFS_RO_ATOMIC_LONG(flush_found);
++ZCACHE_SYSFS_RO(flush_total);
++ZCACHE_SYSFS_RO(flush_found);
+ ZCACHE_SYSFS_RO(flobj_total);
+ ZCACHE_SYSFS_RO(flobj_found);
+ ZCACHE_SYSFS_RO(failed_eph_puts);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -100,6 +160,7 @@ page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
 memory-failure-do-code-refactor-of-soft_offline_page.patch
 memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
 mm-dont-inline-page_mapping.patch
+swap-add-per-partition-lock-for-swapfile-fix.patch
 page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
 page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
 drop_caches-add-some-documentation-and-info-messsge.patch
