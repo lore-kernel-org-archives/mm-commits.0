@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-clean-up-swap-accounting-initialization-code.patch added to -mm tree
-Date: Tue, 22 Jan 2013 16:31:44 -0800
-Message-ID: <20130123003144.B2E2F5A4485@corp2gmr1-2.hot.corp.google.com>
+Subject: + sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix.patch added to -mm tree
+Date: Tue, 22 Jan 2013 16:53:54 -0800
+Message-ID: <20130123005355.3243D31C307@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:36321 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750713Ab3AWAbq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 19:31:46 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so708246vcd.5
-        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 16:31:45 -0800 (PST)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:57632 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751633Ab3AWAx4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 19:53:56 -0500
+Received: by mail-vc0-f201.google.com with SMTP id n11so314293vch.2
+        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 16:53:55 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhocko@suse.cz, caiqian@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, lizefan@huawei.com, rientjes@google.com, tj@kernel.org, zliu@redhat.com
+Cc: akpm@linux-foundation.org, davej@redhat.com, fengguang.wu@intel.com, mingo@redhat.com, nzimmer@sgi.com, peterz@infradead.org
 
 
 The patch titled
-     Subject: memcg: clean up swap accounting initialization code
+     Subject: sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix
 has been added to the -mm tree.  Its filename is
-     memcg-clean-up-swap-accounting-initialization-code.patch
+     sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,130 +33,126 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg: clean up swap accounting initialization code
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix
 
-Memcg swap accounting is currently enabled by enable_swap_cgroup when the
-root cgroup is created.  mem_cgroup_init acts as a memcg subsystem
-initializer which sounds like a much better place for enable_swap_cgroup
-as well.  We already register memsw files from there so it makes a lot of
-sense to merge those two into a single enable_swap_cgroup function.
+fix warnings
 
-This patch doesn't introduce any semantic changes.
-
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Cc: Zhouping Liu <zliu@redhat.com>
-Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Li Zefan <lizefan@huawei.com>
-Cc: CAI Qian <caiqian@redhat.com>
-Cc: Tejun Heo <tj@kernel.org>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Nathan Zimmer <nzimmer@sgi.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   30 ++++++++++++------------------
- 1 file changed, 12 insertions(+), 18 deletions(-)
+ kernel/sched/stats.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-clean-up-swap-accounting-initialization-code mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-clean-up-swap-accounting-initialization-code
-+++ a/mm/memcontrol.c
-@@ -6044,18 +6044,6 @@ struct mem_cgroup *parent_mem_cgroup(str
- }
- EXPORT_SYMBOL(parent_mem_cgroup);
- 
--#ifdef CONFIG_MEMCG_SWAP
--static void __init enable_swap_cgroup(void)
--{
--	if (!mem_cgroup_disabled() && really_do_swap_account)
--		do_swap_account = 1;
--}
--#else
--static void __init enable_swap_cgroup(void)
--{
--}
--#endif
+diff -puN kernel/sched/stats.c~sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix kernel/sched/stats.c
+--- a/kernel/sched/stats.c~sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix
++++ a/kernel/sched/stats.c
+@@ -25,14 +25,13 @@ static int show_schedstat(struct seq_fil
+ 		seq_printf(seq, "version %d\n", SCHEDSTAT_VERSION);
+ 		seq_printf(seq, "timestamp %lu\n", jiffies);
+ 	} else {
 -
- static int mem_cgroup_soft_limit_tree_init(void)
- {
- 	struct mem_cgroup_tree_per_node *rtpn;
-@@ -6109,7 +6097,6 @@ mem_cgroup_css_alloc(struct cgroup *cont
- 	/* root ? */
- 	if (cont->parent == NULL) {
- 		int cpu;
--		enable_swap_cgroup();
- 		parent = NULL;
- 		if (mem_cgroup_soft_limit_tree_init())
- 			goto free_out;
-@@ -6798,12 +6785,19 @@ __setup("swapaccount=", enable_swap_acco
- 
- static void __init memsw_file_init(void)
- {
--	if (really_do_swap_account)
--		WARN_ON(cgroup_add_cftypes(&mem_cgroup_subsys,
--					memsw_cgroup_files));
-+	WARN_ON(cgroup_add_cftypes(&mem_cgroup_subsys, memsw_cgroup_files));
-+}
-+
-+static void __init enable_swap_cgroup(void)
-+{
-+	if (!mem_cgroup_disabled() && really_do_swap_account) {
-+		do_swap_account = 1;
-+		memsw_file_init();
-+	}
- }
-+
- #else
--static void __init memsw_file_init(void)
-+static void __init enable_swap_cgroup(void)
- {
- }
+-		cpu = (unsigned long)(v - 2);
+-
+-		struct rq *rq = cpu_rq(cpu);
++		struct rq *rq;
+ #ifdef CONFIG_SMP
+ 		struct sched_domain *sd;
+ 		int dcount = 0;
  #endif
-@@ -6817,7 +6811,7 @@ static void __init memsw_file_init(void)
- static int __init mem_cgroup_init(void)
- {
- 	hotcpu_notifier(memcg_cpu_hotplug_callback, 0);
--	memsw_file_init();
-+	enable_swap_cgroup();
- 	return 0;
- }
- subsys_initcall(mem_cgroup_init);
++		cpu = (unsigned long)(v - 2);
++		rq = cpu_rq(cpu);
+ 
+ 		/* runqueue-specific stats */
+ 		seq_printf(seq,
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 linux-next.patch
-memcg-oom-provide-more-precise-dump-info-while-memcg-oom-happening.patch
+linux-next-git-rejects.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
+bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
+i-need-old-gcc.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
+arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch
+mm.patch
 mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
 mm-hugetlbc-convert-to-pr_foo.patch
-mm-memcg-only-evict-file-pages-when-we-have-plenty.patch
-mm-vmscan-save-work-scanning-almost-empty-lru-lists.patch
-mm-vmscan-clarify-how-swappiness-highest-priority-memcg-interact.patch
-mm-vmscan-improve-comment-on-low-page-cache-handling.patch
-mm-vmscan-clean-up-get_scan_count.patch
+cma-make-putback_lru_pages-call-conditional-fix.patch
 mm-vmscan-clean-up-get_scan_count-fix.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs.patch
 mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
-mm-reduce-rmap-overhead-for-ex-ksm-page-copies-created-on-swap-faults.patch
 mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
 mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-mmksm-use-new-hashtable-implementation.patch
-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pages.patch
-memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix.patch
-memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix.patch
-memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix-fix.patch
-memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap-fix-fix-fix-fix.patch
-memory-hotplug-remove-memmap-of-sparse-vmemmap-fix.patch
-mm-use-zone-present_pages-instead-of-zone-managed_pages-where-appropriate.patch
-mm-set-zone-present_pages-to-number-of-existing-pages-in-the-zone.patch
-mm-increase-totalram_pages-when-free-pages-allocated-by-bootmem-allocator.patch
-mm-teach-mm-by-current-context-info-to-not-do-i-o-during-memory-allocation.patch
-pm-runtime-introduce-pm_runtime_set_memalloc_noio.patch
-block-genhdc-apply-pm_runtime_set_memalloc_noio-on-block-devices.patch
-net-core-apply-pm_runtime_set_memalloc_noio-on-network-devices.patch
-pm-runtime-force-memory-allocation-with-no-i-o-during-runtime-pm-callbcack.patch
-usb-forbid-memory-allocation-with-i-o-during-bus-reset.patch
-memcg-do-not-create-memsw-files-if-swap-accounting-is-disabled.patch
-memcg-clean-up-swap-accounting-initialization-code.patch
+mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
+mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
+mm-remove-flags-argument-to-mmap_region-fix.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
+memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
+memory-failure-do-code-refactor-of-soft_offline_page.patch
+memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
+mm-dont-inline-page_mapping.patch
+swap-add-per-partition-lock-for-swapfile-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
 drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+kernel-smpc-cleanups.patch
+backlight-add-lms501kf03-lcd-driver-fix.patch
+backlight-add-lms501kf03-lcd-driver-fix-fix.patch
+backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
+checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix-fix.patch
+rtc-max77686-add-maxim-77686-driver-fix.patch
+rtc-pcf8523-add-low-battery-voltage-support-fix.patch
+rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
+rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+signal-allow-to-send-any-siginfo-to-itself-fix.patch
+signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
+drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+aio-kiocb_cancel-fix.patch
+wait-add-wait_event_hrtimeout-fix.patch
+aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+generic-dynamic-per-cpu-refcounting-fix.patch
+generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
+generic-dynamic-per-cpu-refcounting-doc-fix.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-dont-include-aioh-in-schedh-fix-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3.patch
+aio-kill-ki_retry-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
+aio-smoosh-struct-kiocb-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
