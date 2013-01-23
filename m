@@ -1,82 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: + sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix.patch added to -mm tree
-Date: Tue, 22 Jan 2013 16:53:54 -0800
-Message-ID: <20130123005355.3243D31C307@corp2gmr1-1.hot.corp.google.com>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Wed, 23 Jan 2013 12:24:22 -0800
+Message-ID: <20130123202423.F213931C1B5@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:57632 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751633Ab3AWAx4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 19:53:56 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so314293vch.2
-        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 16:53:55 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:50634 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751388Ab3AWUY0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Jan 2013 15:24:26 -0500
+Received: by mail-vb0-f74.google.com with SMTP id r6so894790vbi.3
+        for <mm-commits@vger.kernel.org>; Wed, 23 Jan 2013 12:24:25 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davej@redhat.com, fengguang.wu@intel.com, mingo@redhat.com, nzimmer@sgi.com, peterz@infradead.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix
-has been added to the -mm tree.  Its filename is
-     sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix
+Subject: linux-next-git-rejects
 
-fix warnings
-
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Dave Jones <davej@redhat.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Nathan Zimmer <nzimmer@sgi.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched/stats.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/gpio/gpio-samsung.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN kernel/sched/stats.c~sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix kernel/sched/stats.c
---- a/kernel/sched/stats.c~sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix
-+++ a/kernel/sched/stats.c
-@@ -25,14 +25,13 @@ static int show_schedstat(struct seq_fil
- 		seq_printf(seq, "version %d\n", SCHEDSTAT_VERSION);
- 		seq_printf(seq, "timestamp %lu\n", jiffies);
- 	} else {
--
--		cpu = (unsigned long)(v - 2);
--
--		struct rq *rq = cpu_rq(cpu);
-+		struct rq *rq;
- #ifdef CONFIG_SMP
- 		struct sched_domain *sd;
- 		int dcount = 0;
- #endif
-+		cpu = (unsigned long)(v - 2);
-+		rq = cpu_rq(cpu);
- 
- 		/* runqueue-specific stats */
- 		seq_printf(seq,
+diff -puN drivers/gpio/gpio-samsung.c~linux-next-git-rejects drivers/gpio/gpio-samsung.c
+--- a/drivers/gpio/gpio-samsung.c~linux-next-git-rejects
++++ a/drivers/gpio/gpio-samsung.c
+@@ -3024,10 +3024,7 @@ static __init int samsung_gpiolib_init(v
+ 	static const struct of_device_id exynos_pinctrl_ids[] = {
+ 		{ .compatible = "samsung,pinctrl-exynos4210", },
+ 		{ .compatible = "samsung,pinctrl-exynos4x12", },
+-<<<<<<< HEAD
+-=======
+ 		{ .compatible = "samsung,pinctrl-exynos5250", },
+->>>>>>> linux-next/akpm-base
+ 		{ .compatible = "samsung,pinctrl-exynos5440", },
+ 	};
+ 	for_each_matching_node(pctrl_np, exynos_pinctrl_ids)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
 bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
