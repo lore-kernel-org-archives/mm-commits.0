@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-do-not-create-memsw-files-if-swap-accounting-is-disabled.patch added to -mm tree
-Date: Tue, 22 Jan 2013 16:30:59 -0800
-Message-ID: <20130123003100.534CD5A4486@corp2gmr1-2.hot.corp.google.com>
+Subject: + memcg-clean-up-swap-accounting-initialization-code.patch added to -mm tree
+Date: Tue, 22 Jan 2013 16:31:44 -0800
+Message-ID: <20130123003144.B2E2F5A4485@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:46800 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750713Ab3AWAbB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 19:31:01 -0500
-Received: by mail-gh0-f201.google.com with SMTP id z19so379678ghb.0
-        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 16:31:01 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:36321 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750713Ab3AWAbq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Jan 2013 19:31:46 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so708246vcd.5
+        for <mm-commits@vger.kernel.org>; Tue, 22 Jan 2013 16:31:45 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: mhocko@suse.cz, caiqian@redhat.com, kamezawa.hiroyu@jp.fujitsu.com, lizefan@
 
 
 The patch titled
-     Subject: memcg: do not create memsw files if swap accounting is disabled
+     Subject: memcg: clean up swap accounting initialization code
 has been added to the -mm tree.  Its filename is
-     memcg-do-not-create-memsw-files-if-swap-accounting-is-disabled.patch
+     memcg-clean-up-swap-accounting-initialization-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,25 +34,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg: do not create memsw files if swap accounting is disabled
+Subject: memcg: clean up swap accounting initialization code
 
-Zhouping Liu has reported that memsw files are exported even though swap
-accounting is runtime disabled if CONFIG_MEMCG_SWAP is enabled.  This
-behavior has been introduced by af36f906 (memcg: always create memsw files
-if CONFIG_CGROUP_MEM_RES_CTLR_SWAP) and it causes any attempt to open the
-file to return EOPNOTSUPP.  Although EOPNOTSUPP should say be clear that
-memsw operations are not supported in the given configuration it is fair
-to say that this behavior could be quite confusing.
+Memcg swap accounting is currently enabled by enable_swap_cgroup when the
+root cgroup is created.  mem_cgroup_init acts as a memcg subsystem
+initializer which sounds like a much better place for enable_swap_cgroup
+as well.  We already register memsw files from there so it makes a lot of
+sense to merge those two into a single enable_swap_cgroup function.
 
-Let's tear memsw files out of default cgroup files and add them only if
-the swap accounting is really enabled (either by CONFIG_MEMCG_SWAP_ENABLED
-or swapaccount=1 boot parameter).  We can hook into mem_cgroup_init which
-is called when the memcg subsystem is initialized and which happens after
-boot command line is processed.
+This patch doesn't introduce any semantic changes.
 
 Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Reported-by: Zhouping Liu <zliu@redhat.com>
-Tested-by: Zhouping Liu <zliu@redhat.com>
+Cc: Zhouping Liu <zliu@redhat.com>
 Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Li Zefan <lizefan@huawei.com>
@@ -61,132 +54,72 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   94 ++++++++++++++++++++++++++--------------------
- 1 file changed, 54 insertions(+), 40 deletions(-)
+ mm/memcontrol.c |   30 ++++++++++++------------------
+ 1 file changed, 12 insertions(+), 18 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-do-not-create-memsw-files-if-swap-accounting-is-disabled mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-do-not-create-memsw-files-if-swap-accounting-is-disabled
+diff -puN mm/memcontrol.c~memcg-clean-up-swap-accounting-initialization-code mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-clean-up-swap-accounting-initialization-code
 +++ a/mm/memcontrol.c
-@@ -5821,33 +5821,6 @@ static struct cftype mem_cgroup_files[] 
- 		.read_seq_string = memcg_numa_stat_show,
- 	},
- #endif
--#ifdef CONFIG_MEMCG_SWAP
--	{
--		.name = "memsw.usage_in_bytes",
--		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_USAGE),
--		.read = mem_cgroup_read,
--		.register_event = mem_cgroup_usage_register_event,
--		.unregister_event = mem_cgroup_usage_unregister_event,
--	},
--	{
--		.name = "memsw.max_usage_in_bytes",
--		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_MAX_USAGE),
--		.trigger = mem_cgroup_reset,
--		.read = mem_cgroup_read,
--	},
--	{
--		.name = "memsw.limit_in_bytes",
--		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_LIMIT),
--		.write_string = mem_cgroup_write,
--		.read = mem_cgroup_read,
--	},
--	{
--		.name = "memsw.failcnt",
--		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_FAILCNT),
--		.trigger = mem_cgroup_reset,
--		.read = mem_cgroup_read,
--	},
--#endif
- #ifdef CONFIG_MEMCG_KMEM
- 	{
- 		.name = "kmem.limit_in_bytes",
-@@ -5882,6 +5855,36 @@ static struct cftype mem_cgroup_files[] 
- 	{ },	/* terminate */
- };
- 
-+#ifdef CONFIG_MEMCG_SWAP
-+static struct cftype memsw_cgroup_files[] = {
-+	{
-+		.name = "memsw.usage_in_bytes",
-+		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_USAGE),
-+		.read = mem_cgroup_read,
-+		.register_event = mem_cgroup_usage_register_event,
-+		.unregister_event = mem_cgroup_usage_unregister_event,
-+	},
-+	{
-+		.name = "memsw.max_usage_in_bytes",
-+		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_MAX_USAGE),
-+		.trigger = mem_cgroup_reset,
-+		.read = mem_cgroup_read,
-+	},
-+	{
-+		.name = "memsw.limit_in_bytes",
-+		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_LIMIT),
-+		.write_string = mem_cgroup_write,
-+		.read = mem_cgroup_read,
-+	},
-+	{
-+		.name = "memsw.failcnt",
-+		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_FAILCNT),
-+		.trigger = mem_cgroup_reset,
-+		.read = mem_cgroup_read,
-+	},
-+	{ },	/* terminate */
-+};
-+#endif
- static int alloc_mem_cgroup_per_zone_info(struct mem_cgroup *memcg, int node)
- {
- 	struct mem_cgroup_per_node *pn;
-@@ -6781,19 +6784,6 @@ struct cgroup_subsys mem_cgroup_subsys =
- 	.use_id = 1,
- };
- 
--/*
-- * The rest of init is performed during ->css_alloc() for root css which
-- * happens before initcalls.  hotcpu_notifier() can't be done together as
-- * it would introduce circular locking by adding cgroup_lock -> cpu hotplug
-- * dependency.  Do it from a subsys_initcall().
-- */
--static int __init mem_cgroup_init(void)
--{
--	hotcpu_notifier(memcg_cpu_hotplug_callback, 0);
--	return 0;
--}
--subsys_initcall(mem_cgroup_init);
--
- #ifdef CONFIG_MEMCG_SWAP
- static int __init enable_swap_account(char *s)
- {
-@@ -6806,4 +6796,28 @@ static int __init enable_swap_account(ch
+@@ -6044,18 +6044,6 @@ struct mem_cgroup *parent_mem_cgroup(str
  }
- __setup("swapaccount=", enable_swap_account);
+ EXPORT_SYMBOL(parent_mem_cgroup);
  
-+static void __init memsw_file_init(void)
-+{
-+	if (really_do_swap_account)
-+		WARN_ON(cgroup_add_cftypes(&mem_cgroup_subsys,
-+					memsw_cgroup_files));
+-#ifdef CONFIG_MEMCG_SWAP
+-static void __init enable_swap_cgroup(void)
+-{
+-	if (!mem_cgroup_disabled() && really_do_swap_account)
+-		do_swap_account = 1;
+-}
+-#else
+-static void __init enable_swap_cgroup(void)
+-{
+-}
+-#endif
+-
+ static int mem_cgroup_soft_limit_tree_init(void)
+ {
+ 	struct mem_cgroup_tree_per_node *rtpn;
+@@ -6109,7 +6097,6 @@ mem_cgroup_css_alloc(struct cgroup *cont
+ 	/* root ? */
+ 	if (cont->parent == NULL) {
+ 		int cpu;
+-		enable_swap_cgroup();
+ 		parent = NULL;
+ 		if (mem_cgroup_soft_limit_tree_init())
+ 			goto free_out;
+@@ -6798,12 +6785,19 @@ __setup("swapaccount=", enable_swap_acco
+ 
+ static void __init memsw_file_init(void)
+ {
+-	if (really_do_swap_account)
+-		WARN_ON(cgroup_add_cftypes(&mem_cgroup_subsys,
+-					memsw_cgroup_files));
++	WARN_ON(cgroup_add_cftypes(&mem_cgroup_subsys, memsw_cgroup_files));
 +}
-+#else
-+static void __init memsw_file_init(void)
-+{
-+}
- #endif
 +
-+/*
-+ * The rest of init is performed during ->css_alloc() for root css which
-+ * happens before initcalls.  hotcpu_notifier() can't be done together as
-+ * it would introduce circular locking by adding cgroup_lock -> cpu hotplug
-+ * dependency.  Do it from a subsys_initcall().
-+ */
-+static int __init mem_cgroup_init(void)
++static void __init enable_swap_cgroup(void)
 +{
-+	hotcpu_notifier(memcg_cpu_hotplug_callback, 0);
-+	memsw_file_init();
-+	return 0;
-+}
-+subsys_initcall(mem_cgroup_init);
++	if (!mem_cgroup_disabled() && really_do_swap_account) {
++		do_swap_account = 1;
++		memsw_file_init();
++	}
+ }
++
+ #else
+-static void __init memsw_file_init(void)
++static void __init enable_swap_cgroup(void)
+ {
+ }
+ #endif
+@@ -6817,7 +6811,7 @@ static void __init memsw_file_init(void)
+ static int __init mem_cgroup_init(void)
+ {
+ 	hotcpu_notifier(memcg_cpu_hotplug_callback, 0);
+-	memsw_file_init();
++	enable_swap_cgroup();
+ 	return 0;
+ }
+ subsys_initcall(mem_cgroup_init);
 _
 
 Patches currently in -mm which might be from mhocko@suse.cz are
@@ -223,6 +156,7 @@ net-core-apply-pm_runtime_set_memalloc_noio-on-network-devices.patch
 pm-runtime-force-memory-allocation-with-no-i-o-during-runtime-pm-callbcack.patch
 usb-forbid-memory-allocation-with-i-o-during-bus-reset.patch
 memcg-do-not-create-memsw-files-if-swap-accounting-is-disabled.patch
+memcg-clean-up-swap-accounting-initialization-code.patch
 drop_caches-add-some-documentation-and-info-messsge.patch
 memcg-debugging-facility-to-access-dangling-memcgs.patch
 
