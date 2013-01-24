@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix-fix.patch added to -mm tree
-Date: Thu, 24 Jan 2013 14:41:49 -0800
-Message-ID: <20130124224149.9BAE35A41B0@corp2gmr1-2.hot.corp.google.com>
+Subject: + aio-kill-ki_retry-fix-fix.patch added to -mm tree
+Date: Thu, 24 Jan 2013 14:43:09 -0800
+Message-ID: <20130124224309.92CE231C1F8@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:62863 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755404Ab3AXWlw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Jan 2013 17:41:52 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so961099vcd.3
-        for <mm-commits@vger.kernel.org>; Thu, 24 Jan 2013 14:41:50 -0800 (PST)
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:41158 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755773Ab3AXWnK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Jan 2013 17:43:10 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z12so876646yhz.5
+        for <mm-commits@vger.kernel.org>; Thu, 24 Jan 2013 14:43:10 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: koverstreet@google.com, Valdis.Kletnieks@vt.edu
+Cc: koverstreet@google.com
 
 
 The patch titled
-     Subject: aio: Fix a null pointer deref in batch_complete_aio
+     Subject: aio-kill-ki_retry-fix-fix
 has been added to the -mm tree.  Its filename is
-     block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix-fix.patch
+     aio-kill-ki_retry-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kent Overstreet <koverstreet@google.com>
-Subject: aio: Fix a null pointer deref in batch_complete_aio
+Subject: aio-kill-ki_retry-fix-fix
 
-The batch completion code was trying to be a bit too clever, and skip
-checking ctx where it couldn't be NULL - but that broke if a kiocb had
-been cancelled. Move the check to kioctx_ring_unlock().
+The "aio: kill ki-retry" patch was assuming that we didn't touch struct
+kiocb after passing it off to something that would call aio_complete() -
+which was wrong.  So, revert the refcounting changes.
 
 Signed-off-by: Kent Overstreet <koverstreet@google.com>
-Reported-by: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  fs/aio.c |    6 ++++--
  1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN fs/aio.c~block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix-fix fs/aio.c
---- a/fs/aio.c~block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix-fix
+diff -puN fs/aio.c~aio-kill-ki_retry-fix-fix fs/aio.c
+--- a/fs/aio.c~aio-kill-ki_retry-fix-fix
 +++ a/fs/aio.c
-@@ -669,6 +669,9 @@ static inline void kioctx_ring_unlock(st
- {
- 	struct aio_ring *ring;
+@@ -576,7 +576,7 @@ static inline struct kiocb *aio_get_req(
+ 	if (unlikely(!req))
+ 		goto out_put;
  
-+	if (!ctx)
-+		return;
-+
- 	smp_wmb();
- 	/* make event visible before updating tail */
+-	atomic_set(&req->ki_users, 1);
++	atomic_set(&req->ki_users, 2);
+ 	req->ki_ctx = ctx;
+ 	return req;
+ out_put:
+@@ -1172,10 +1172,12 @@ static int io_submit_one(struct kioctx *
+ 	if (ret)
+ 		goto out_put_req;
  
-@@ -746,8 +749,7 @@ void batch_complete_aio(struct batch_com
- 		}
++	aio_put_req(req);	/* drop extra ref to req */
+ 	return 0;
+ out_put_req:
+ 	put_reqs_available(ctx, 1);
+-	aio_put_req(req);
++	aio_put_req(req);	/* drop extra ref to req */
++	aio_put_req(req);	/* drop i/o ref to req */
+ 	return ret;
+ }
  
- 		if (unlikely(req->ki_ctx != ctx)) {
--			if (ctx)
--				kioctx_ring_unlock(ctx, tail);
-+			kioctx_ring_unlock(ctx, tail);
- 
- 			ctx = req->ki_ctx;
- 			tail = kioctx_ring_lock(ctx);
 _
 
 Patches currently in -mm which might be from koverstreet@google.com are
@@ -115,6 +117,7 @@ aio-dont-include-aioh-in-schedh-fix-3.patch
 aio-kill-ki_key.patch
 aio-kill-ki_retry.patch
 aio-kill-ki_retry-fix.patch
+aio-kill-ki_retry-fix-fix.patch
 block-aio-batch-completion-for-bios-kiocbs.patch
 block-aio-batch-completion-for-bios-kiocbs-fix.patch
 block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
