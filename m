@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + aio-use-cancellation-list-lazily-fix.patch added to -mm tree
-Date: Thu, 24 Jan 2013 14:44:10 -0800
-Message-ID: <20130124224410.8DF9C5A41B0@corp2gmr1-2.hot.corp.google.com>
+Subject: + lib-vsprintf-add-%pa-format-specifier-for-phys_addr_t-types.patch added to -mm tree
+Date: Thu, 24 Jan 2013 15:07:52 -0800
+Message-ID: <20130124230752.A7FB131C2E3@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f74.google.com ([209.85.216.74]:38421 "EHLO
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:54444 "EHLO
 	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755623Ab3AXWoM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Jan 2013 17:44:12 -0500
-Received: by mail-qa0-f74.google.com with SMTP id r4so116050qaq.3
-        for <mm-commits@vger.kernel.org>; Thu, 24 Jan 2013 14:44:11 -0800 (PST)
+	with ESMTP id S1756547Ab3AXXHy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Jan 2013 18:07:54 -0500
+Received: by mail-qa0-f74.google.com with SMTP id r4so119158qaq.3
+        for <mm-commits@vger.kernel.org>; Thu, 24 Jan 2013 15:07:53 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: koverstreet@google.com
+Cc: stepanm@codeaurora.org, andrei.emeltchenko@intel.com, andriy.shevchenko@linux.intel.com, linux@horizon.com, mingo@elte.hu, rob@landley.net, sboyd@codeaurora.org
 
 
 The patch titled
-     Subject: aio-use-cancellation-list-lazily-fix
+     Subject: lib/vsprintf.c: add %pa format specifier for phys_addr_t types
 has been added to the -mm tree.  Its filename is
-     aio-use-cancellation-list-lazily-fix.patch
+     lib-vsprintf-add-%pa-format-specifier-for-phys_addr_t-types.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,156 +33,86 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kent Overstreet <koverstreet@google.com>
-Subject: aio-use-cancellation-list-lazily-fix
+From: Stepan Moskovchenko <stepanm@codeaurora.org>
+Subject: lib/vsprintf.c: add %pa format specifier for phys_addr_t types
 
-The cancellation changes were fubar - we can't cancel a kiocb if it
-doesn't actually have a cancellation callback.
+Add the %pa format specifier for printing a phys_addr_t type and its
+derivative types (such as resource_size_t), since the physical address
+size on some platforms can vary based on build options, regardless of the
+native integer type.
 
-The use of xchg() in aio_complete() was right - there we're marking the
-kiocb as completed - but we need to use cmpxchg() in kiocb_cancel() - a
-lock isn't sufficient since we're synchronizing with aio_complete() which
-isn't taking any locks.
-
-Signed-off-by: Kent Overstreet <koverstreet@google.com>
+Signed-off-by: Stepan Moskovchenko <stepanm@codeaurora.org>
+Cc: Rob Landley <rob@landley.net>
+Cc: George Spelvin <linux@horizon.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Andrei Emeltchenko <andrei.emeltchenko@intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c            |   32 ++++++++++++++++++++++----------
- include/linux/aio.h |   11 +++++++++++
- 2 files changed, 33 insertions(+), 10 deletions(-)
+ Documentation/printk-formats.txt |   14 +++++++++++---
+ lib/vsprintf.c                   |    7 +++++++
+ 2 files changed, 18 insertions(+), 3 deletions(-)
 
-diff -puN fs/aio.c~aio-use-cancellation-list-lazily-fix fs/aio.c
---- a/fs/aio.c~aio-use-cancellation-list-lazily-fix
-+++ a/fs/aio.c
-@@ -224,28 +224,40 @@ static int aio_setup_ring(struct kioctx 
+diff -puN Documentation/printk-formats.txt~lib-vsprintf-add-%pa-format-specifier-for-phys_addr_t-types Documentation/printk-formats.txt
+--- a/Documentation/printk-formats.txt~lib-vsprintf-add-%pa-format-specifier-for-phys_addr_t-types
++++ a/Documentation/printk-formats.txt
+@@ -53,6 +53,14 @@ Struct Resources:
+ 	For printing struct resources. The 'R' and 'r' specifiers result in a
+ 	printed resource with ('R') or without ('r') a decoded flags member.
  
- void kiocb_set_cancel_fn(struct kiocb *req, kiocb_cancel_fn *cancel)
- {
--	if (!req->ki_list.next) {
--		struct kioctx *ctx = req->ki_ctx;
--		unsigned long flags;
-+	struct kioctx *ctx = req->ki_ctx;
-+	unsigned long flags;
- 
--		spin_lock_irqsave(&ctx->ctx_lock, flags);
-+	spin_lock_irqsave(&ctx->ctx_lock, flags);
++Physical addresses:
 +
-+	if (!req->ki_list.next)
- 		list_add(&req->ki_list, &ctx->active_reqs);
--		spin_unlock_irqrestore(&ctx->ctx_lock, flags);
--	}
- 
- 	req->ki_cancel = cancel;
++	%pa	0x01234567 or 0x0123456789abcdef
 +
-+	spin_unlock_irqrestore(&ctx->ctx_lock, flags);
- }
- EXPORT_SYMBOL(kiocb_set_cancel_fn);
- 
- static int kiocb_cancel(struct kioctx *ctx, struct kiocb *kiocb,
- 			struct io_event *res)
- {
--	kiocb_cancel_fn *cancel;
-+	kiocb_cancel_fn *old, *cancel;
- 	int ret = -EINVAL;
- 
--	cancel = xchg(&kiocb->ki_cancel, KIOCB_CANCELLED);
--	if (!cancel || cancel == KIOCB_CANCELLED)
--		return ret;
-+	/*
-+	 * Don't want to set kiocb->ki_cancel = KIOCB_CANCELLED unless it
-+	 * actually has a cancel function, hence the cmpxchg()
-+	 */
++	For printing a phys_addr_t type (and its derivatives, such as
++	resource_size_t) which can vary based on build options, regardless of
++	the width of the CPU data path. Passed by reference.
 +
-+	cancel = ACCESS_ONCE(kiocb->ki_cancel);
-+	do {
-+		if (!cancel || cancel == KIOCB_CANCELLED)
-+			return ret;
-+
-+		BUG();
-+		old = cancel;
-+		cancel = cmpxchg(&kiocb->ki_cancel, old, KIOCB_CANCELLED);
-+	} while (cancel != old);
+ Raw buffer as a hex string:
+ 	%*ph	00 01 02  ...  3f
+ 	%*phC	00:01:02: ... :3f
+@@ -150,9 +158,9 @@ s64 SHOULD be printed with %lld/%llx, (l
+ 	printk("%lld", (long long)s64_var);
  
- 	atomic_inc(&kiocb->ki_users);
- 	spin_unlock_irq(&ctx->ctx_lock);
-diff -puN include/linux/aio.h~aio-use-cancellation-list-lazily-fix include/linux/aio.h
---- a/include/linux/aio.h~aio-use-cancellation-list-lazily-fix
-+++ a/include/linux/aio.h
-@@ -14,6 +14,17 @@ struct kiocb;
+ If <type> is dependent on a config option for its size (e.g., sector_t,
+-blkcnt_t, phys_addr_t, resource_size_t) or is architecture-dependent
+-for its size (e.g., tcflag_t), use a format specifier of its largest
+-possible type and explicitly cast to it.  Example:
++blkcnt_t) or is architecture-dependent for its size (e.g., tcflag_t), use a
++format specifier of its largest possible type and explicitly cast to it.
++Example:
  
- #define KIOCB_SYNC_KEY		(~0U)
- 
-+/*
-+ * We use ki_cancel == KIOCB_CANCELLED to indicate that a kiocb has been either
-+ * cancelled or completed (this makes a certain amount of sense because
-+ * successful cancellation - io_cancel() - does deliver the completion to
-+ * userspace).
-+ *
-+ * And since most things don't implement kiocb cancellation and we'd really like
-+ * kiocb completion to be lockless when possible, we use ki_cancel to
-+ * synchronize cancellation and completion - we only set it to KIOCB_CANCELLED
-+ * with xchg() or cmpxchg(), see batch_complete_aio() and kiocb_cancel().
-+ */
- #define KIOCB_CANCELLED		((void *) (~0ULL))
- 
- typedef int (kiocb_cancel_fn)(struct kiocb *, struct io_event *);
+ 	printk("test: sector number/total blocks: %llu/%llu\n",
+ 		(unsigned long long)sector, (unsigned long long)blockcount);
+diff -puN lib/vsprintf.c~lib-vsprintf-add-%pa-format-specifier-for-phys_addr_t-types lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-vsprintf-add-%pa-format-specifier-for-phys_addr_t-types
++++ a/lib/vsprintf.c
+@@ -1030,6 +1030,7 @@ int kptr_restrict __read_mostly;
+  *              N no separator
+  *            The maximum supported length is 64 bytes of the input. Consider
+  *            to use print_hex_dump() for the larger input.
++ * - 'a' For a phys_addr_t type and its derivative types (passed by reference)
+  *
+  * Note: The difference between 'S' and 'F' is that on ia64 and ppc64
+  * function pointers are really function descriptors, which contain a
+@@ -1120,6 +1121,12 @@ char *pointer(const char *fmt, char *buf
+ 			return netdev_feature_string(buf, end, ptr, spec);
+ 		}
+ 		break;
++	case 'a':
++		spec.flags |= SPECIAL | SMALL | ZEROPAD;
++		spec.field_width = sizeof(phys_addr_t) * 2 + 2;
++		spec.base = 16;
++		return number(buf, end,
++			      (unsigned long long) *((phys_addr_t *)ptr), spec);
+ 	}
+ 	spec.flags |= SMALL;
+ 	if (spec.field_width == -1) {
 _
 
-Patches currently in -mm which might be from koverstreet@google.com are
+Patches currently in -mm which might be from stepanm@codeaurora.org are
 
-mm-remove-old-aio-use_mm-comment.patch
-aio-remove-dead-code-from-aioh.patch
-gadget-remove-only-user-of-aio-retry.patch
-aio-remove-retry-based-aio.patch
-char-add-aio_readwrite-to-dev-nullzero.patch
-aio-kill-return-value-of-aio_complete.patch
-aio-kiocb_cancel.patch
-aio-kiocb_cancel-fix.patch
-aio-move-private-stuff-out-of-aioh.patch
-aio-dprintk-pr_debug.patch
-aio-do-fget-after-aio_get_req.patch
-aio-make-aio_put_req-lockless.patch
-aio-refcounting-cleanup.patch
-wait-add-wait_event_hrtimeout.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-make-aio_read_evt-more-efficient-convert-to-hrtimers.patch
-aio-use-flush_dcache_page.patch
-aio-use-cancellation-list-lazily.patch
-aio-use-cancellation-list-lazily-fix.patch
-aio-change-reqs_active-to-include-unreaped-completions.patch
-aio-kill-batch-allocation.patch
-aio-kill-struct-aio_ring_info.patch
-aio-give-shared-kioctx-fields-their-own-cachelines.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-aio-reqs_active-reqs_available.patch
-aio-percpu-reqs_available.patch
-generic-dynamic-per-cpu-refcounting.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-percpu-ioctx-refcount.patch
-aio-use-xchg-instead-of-completion_lock.patch
-aio-dont-include-aioh-in-schedh.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-kill-ki_key.patch
-aio-kill-ki_retry.patch
-aio-kill-ki_retry-fix.patch
-aio-kill-ki_retry-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix-fix.patch
-virtio-blk-convert-to-batch-completion.patch
-mtip32xx-convert-to-batch-completion.patch
-aio-fix-aio_read_events_ring-types.patch
-aio-document-clarify-aio_read_events-and-shadow_tail.patch
+lib-vsprintf-add-%pa-format-specifier-for-phys_addr_t-types.patch
 
