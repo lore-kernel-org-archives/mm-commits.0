@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + aio-kill-ki_retry-fix-fix.patch added to -mm tree
-Date: Thu, 24 Jan 2013 14:43:09 -0800
-Message-ID: <20130124224309.92CE231C1F8@corp2gmr1-1.hot.corp.google.com>
+Subject: + aio-use-cancellation-list-lazily-fix.patch added to -mm tree
+Date: Thu, 24 Jan 2013 14:44:10 -0800
+Message-ID: <20130124224410.8DF9C5A41B0@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f74.google.com ([209.85.213.74]:41158 "EHLO
-	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755773Ab3AXWnK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Jan 2013 17:43:10 -0500
-Received: by mail-yh0-f74.google.com with SMTP id z12so876646yhz.5
-        for <mm-commits@vger.kernel.org>; Thu, 24 Jan 2013 14:43:10 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:38421 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755623Ab3AXWoM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Jan 2013 17:44:12 -0500
+Received: by mail-qa0-f74.google.com with SMTP id r4so116050qaq.3
+        for <mm-commits@vger.kernel.org>; Thu, 24 Jan 2013 14:44:11 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: koverstreet@google.com
 
 
 The patch titled
-     Subject: aio-kill-ki_retry-fix-fix
+     Subject: aio-use-cancellation-list-lazily-fix
 has been added to the -mm tree.  Its filename is
-     aio-kill-ki_retry-fix-fix.patch
+     aio-use-cancellation-list-lazily-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,99 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kent Overstreet <koverstreet@google.com>
-Subject: aio-kill-ki_retry-fix-fix
+Subject: aio-use-cancellation-list-lazily-fix
 
-The "aio: kill ki-retry" patch was assuming that we didn't touch struct
-kiocb after passing it off to something that would call aio_complete() -
-which was wrong.  So, revert the refcounting changes.
+The cancellation changes were fubar - we can't cancel a kiocb if it
+doesn't actually have a cancellation callback.
+
+The use of xchg() in aio_complete() was right - there we're marking the
+kiocb as completed - but we need to use cmpxchg() in kiocb_cancel() - a
+lock isn't sufficient since we're synchronizing with aio_complete() which
+isn't taking any locks.
 
 Signed-off-by: Kent Overstreet <koverstreet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/aio.c            |   32 ++++++++++++++++++++++----------
+ include/linux/aio.h |   11 +++++++++++
+ 2 files changed, 33 insertions(+), 10 deletions(-)
 
-diff -puN fs/aio.c~aio-kill-ki_retry-fix-fix fs/aio.c
---- a/fs/aio.c~aio-kill-ki_retry-fix-fix
+diff -puN fs/aio.c~aio-use-cancellation-list-lazily-fix fs/aio.c
+--- a/fs/aio.c~aio-use-cancellation-list-lazily-fix
 +++ a/fs/aio.c
-@@ -576,7 +576,7 @@ static inline struct kiocb *aio_get_req(
- 	if (unlikely(!req))
- 		goto out_put;
+@@ -224,28 +224,40 @@ static int aio_setup_ring(struct kioctx 
  
--	atomic_set(&req->ki_users, 1);
-+	atomic_set(&req->ki_users, 2);
- 	req->ki_ctx = ctx;
- 	return req;
- out_put:
-@@ -1172,10 +1172,12 @@ static int io_submit_one(struct kioctx *
- 	if (ret)
- 		goto out_put_req;
+ void kiocb_set_cancel_fn(struct kiocb *req, kiocb_cancel_fn *cancel)
+ {
+-	if (!req->ki_list.next) {
+-		struct kioctx *ctx = req->ki_ctx;
+-		unsigned long flags;
++	struct kioctx *ctx = req->ki_ctx;
++	unsigned long flags;
  
-+	aio_put_req(req);	/* drop extra ref to req */
- 	return 0;
- out_put_req:
- 	put_reqs_available(ctx, 1);
--	aio_put_req(req);
-+	aio_put_req(req);	/* drop extra ref to req */
-+	aio_put_req(req);	/* drop i/o ref to req */
- 	return ret;
+-		spin_lock_irqsave(&ctx->ctx_lock, flags);
++	spin_lock_irqsave(&ctx->ctx_lock, flags);
++
++	if (!req->ki_list.next)
+ 		list_add(&req->ki_list, &ctx->active_reqs);
+-		spin_unlock_irqrestore(&ctx->ctx_lock, flags);
+-	}
+ 
+ 	req->ki_cancel = cancel;
++
++	spin_unlock_irqrestore(&ctx->ctx_lock, flags);
  }
+ EXPORT_SYMBOL(kiocb_set_cancel_fn);
  
+ static int kiocb_cancel(struct kioctx *ctx, struct kiocb *kiocb,
+ 			struct io_event *res)
+ {
+-	kiocb_cancel_fn *cancel;
++	kiocb_cancel_fn *old, *cancel;
+ 	int ret = -EINVAL;
+ 
+-	cancel = xchg(&kiocb->ki_cancel, KIOCB_CANCELLED);
+-	if (!cancel || cancel == KIOCB_CANCELLED)
+-		return ret;
++	/*
++	 * Don't want to set kiocb->ki_cancel = KIOCB_CANCELLED unless it
++	 * actually has a cancel function, hence the cmpxchg()
++	 */
++
++	cancel = ACCESS_ONCE(kiocb->ki_cancel);
++	do {
++		if (!cancel || cancel == KIOCB_CANCELLED)
++			return ret;
++
++		BUG();
++		old = cancel;
++		cancel = cmpxchg(&kiocb->ki_cancel, old, KIOCB_CANCELLED);
++	} while (cancel != old);
+ 
+ 	atomic_inc(&kiocb->ki_users);
+ 	spin_unlock_irq(&ctx->ctx_lock);
+diff -puN include/linux/aio.h~aio-use-cancellation-list-lazily-fix include/linux/aio.h
+--- a/include/linux/aio.h~aio-use-cancellation-list-lazily-fix
++++ a/include/linux/aio.h
+@@ -14,6 +14,17 @@ struct kiocb;
+ 
+ #define KIOCB_SYNC_KEY		(~0U)
+ 
++/*
++ * We use ki_cancel == KIOCB_CANCELLED to indicate that a kiocb has been either
++ * cancelled or completed (this makes a certain amount of sense because
++ * successful cancellation - io_cancel() - does deliver the completion to
++ * userspace).
++ *
++ * And since most things don't implement kiocb cancellation and we'd really like
++ * kiocb completion to be lockless when possible, we use ki_cancel to
++ * synchronize cancellation and completion - we only set it to KIOCB_CANCELLED
++ * with xchg() or cmpxchg(), see batch_complete_aio() and kiocb_cancel().
++ */
+ #define KIOCB_CANCELLED		((void *) (~0ULL))
+ 
+ typedef int (kiocb_cancel_fn)(struct kiocb *, struct io_event *);
 _
 
 Patches currently in -mm which might be from koverstreet@google.com are
@@ -95,6 +149,7 @@ wait-add-wait_event_hrtimeout-fix.patch
 aio-make-aio_read_evt-more-efficient-convert-to-hrtimers.patch
 aio-use-flush_dcache_page.patch
 aio-use-cancellation-list-lazily.patch
+aio-use-cancellation-list-lazily-fix.patch
 aio-change-reqs_active-to-include-unreaped-completions.patch
 aio-kill-batch-allocation.patch
 aio-kill-struct-aio_ring_info.patch
