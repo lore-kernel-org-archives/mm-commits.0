@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-export-the-function-try_offline_node-fix.patch added to -mm tree
-Date: Thu, 24 Jan 2013 15:09:03 -0800
-Message-ID: <20130124230903.A6CC65A4352@corp2gmr1-2.hot.corp.google.com>
+Subject: + swap-add-per-partition-lock-for-swapfile-fix-fix.patch added to -mm tree
+Date: Thu, 24 Jan 2013 15:26:35 -0800
+Message-ID: <20130124232635.8CF9031C559@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f74.google.com ([209.85.128.74]:49660 "EHLO
-	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756555Ab3AXXJF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Jan 2013 18:09:05 -0500
-Received: by mail-qe0-f74.google.com with SMTP id 9so163528qea.5
-        for <mm-commits@vger.kernel.org>; Thu, 24 Jan 2013 15:09:04 -0800 (PST)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:48602 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751164Ab3AXX0g (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Jan 2013 18:26:36 -0500
+Received: by mail-vb0-f73.google.com with SMTP id fs19so407235vbb.2
+        for <mm-commits@vger.kernel.org>; Thu, 24 Jan 2013 15:26:36 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rientjes@google.com, isimatu.yasuaki@jp.fujitsu.com, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com
+Cc: shli@kernel.org, sfr@canb.auug.org.au
 
 
 The patch titled
-     Subject: memory-hotplug: export the function try_offline_node() fix
+     Subject: swap-add-per-partition-lock-for-swapfile-fix-fix
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-export-the-function-try_offline_node-fix.patch
+     swap-add-per-partition-lock-for-swapfile-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,93 +33,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: memory-hotplug: export the function try_offline_node() fix
+From: Shaohua Li <shli@kernel.org>
+Subject: swap-add-per-partition-lock-for-swapfile-fix-fix
 
-"memory-hotplug: export the function try_offline_node()" declares
-try_offline_node() for CONFIG_MEMORY_HOTPLUG, but this function is only
-defined for CONFIG_MEMORY_HOTREMOVE:
+> arch/sparc/mm/init_32.c: In function 'show_mem':
+> arch/sparc/mm/init_32.c:60:23: error: invalid operands to binary << (have 'atomic_long_t' and 'int')
+>
 
-ERROR: "try_offline_node" [drivers/acpi/processor.ko] undefined!
-
-Fix the build by definining it appropriately.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Wen Congyang <wency@cn.fujitsu.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory_hotplug.h |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/sparc/mm/init_32.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/memory_hotplug.h~memory-hotplug-export-the-function-try_offline_node-fix include/linux/memory_hotplug.h
---- a/include/linux/memory_hotplug.h~memory-hotplug-export-the-function-try_offline_node-fix
-+++ a/include/linux/memory_hotplug.h
-@@ -193,7 +193,6 @@ extern void get_page_bootmem(unsigned lo
- 
- void lock_memory_hotplug(void);
- void unlock_memory_hotplug(void);
--extern void try_offline_node(int nid);
- 
- #else /* ! CONFIG_MEMORY_HOTPLUG */
- /*
-@@ -228,13 +227,13 @@ static inline void register_page_bootmem
- 
- static inline void lock_memory_hotplug(void) {}
- static inline void unlock_memory_hotplug(void) {}
--static inline void try_offline_node(int nid) {}
- 
- #endif /* ! CONFIG_MEMORY_HOTPLUG */
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
- 
- extern int is_mem_section_removable(unsigned long pfn, unsigned long nr_pages);
-+extern void try_offline_node(int nid);
- 
- #else
- static inline int is_mem_section_removable(unsigned long pfn,
-@@ -242,6 +241,8 @@ static inline int is_mem_section_removab
- {
- 	return 0;
+diff -puN arch/sparc/mm/init_32.c~swap-add-per-partition-lock-for-swapfile-fix-fix arch/sparc/mm/init_32.c
+--- a/arch/sparc/mm/init_32.c~swap-add-per-partition-lock-for-swapfile-fix-fix
++++ a/arch/sparc/mm/init_32.c
+@@ -57,7 +57,7 @@ void show_mem(unsigned int filter)
+ 	printk("Mem-info:\n");
+ 	show_free_areas(filter);
+ 	printk("Free swap:       %6ldkB\n",
+-	       nr_swap_pages << (PAGE_SHIFT-10));
++	       get_nr_swap_pages() << (PAGE_SHIFT-10));
+ 	printk("%ld pages of RAM\n", totalram_pages);
+ 	printk("%ld free pages\n", nr_free_pages());
  }
-+
-+static inline void try_offline_node(int nid) {}
- #endif /* CONFIG_MEMORY_HOTREMOVE */
- 
- extern int mem_online_node(int nid);
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from shli@kernel.org are
 
 linux-next.patch
-compiler-gcc4h-reorder-macros-based-upon-gcc-ver.patch
-compiler-gcch-add-gcc-recommended-gcc_version-macro.patch
-compiler-gcc34h-use-gcc_version-macro.patch
-compiler-gcc4h-bugh-remove-duplicate-macros.patch
-bugh-fix-build_bug_on-macro-in-__checker__.patch
-bugh-prevent-double-evaulation-of-in-build_bug_on.patch
-bugh-make-build_bug_on-generate-compile-time-error.patch
-compilerh-bugh-prevent-double-error-messages-with-build_bug_on.patch
-bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg.patch
-x86-convert-update_mmu_cache-and-update_mmu_cache_pmd-to-functions.patch
-x86-fix-the-argument-passed-to-sync_global_pgds.patch
-memcg-oom-provide-more-precise-dump-info-while-memcg-oom-happening.patch
-mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
-mm-huge_memory-use-new-hashtable-implementation.patch
-mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
-cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved.patch
-memory-hotplug-export-the-function-try_offline_node.patch
-memory-hotplug-export-the-function-try_offline_node-fix.patch
-cpu-hotplug-memory-hotplug-try-offline-the-node-when-hotremoving-a-cpu.patch
-cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node.patch
-cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix.patch
-sched-do-not-use-cpu_to_node-to-find-an-offlined-cpus-node.patch
-mm-use-zone-present_pages-instead-of-zone-managed_pages-where-appropriate.patch
-mm-set-zone-present_pages-to-number-of-existing-pages-in-the-zone.patch
-mm-increase-totalram_pages-when-free-pages-allocated-by-bootmem-allocator.patch
-memcg-do-not-create-memsw-files-if-swap-accounting-is-disabled.patch
-memcg-clean-up-swap-accounting-initialization-code.patch
-mm-dmapoolc-fix-null-dev-in-dma_pool_create.patch
+mm-make-madvisemadv_willneed-support-swap-file-prefetch.patch
+mm-dont-inline-page_mapping.patch
+swap-make-each-swap-partition-have-one-address_space.patch
+swap-make-each-swap-partition-have-one-address_space-fix.patch
+swap-add-per-partition-lock-for-swapfile.patch
+swap-add-per-partition-lock-for-swapfile-fix-fix.patch
+smp-make-smp_call_function_many-use-logic-similar-to-smp_call_function_single.patch
+kernel-smpc-cleanups.patch
 
