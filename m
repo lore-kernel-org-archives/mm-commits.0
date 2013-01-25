@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + lockstat-fix-a-typo.patch added to -mm tree
-Date: Thu, 24 Jan 2013 16:05:27 -0800
-Message-ID: <20130125000527.8BF285A42DB@corp2gmr1-2.hot.corp.google.com>
+Subject: + mutex-use-spin_lock-instead-of-arch_spin_lock.patch added to -mm tree
+Date: Thu, 24 Jan 2013 16:14:24 -0800
+Message-ID: <20130125001425.2AFE631C1D4@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:39372 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754597Ab3AYAF2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Jan 2013 19:05:28 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so970061vcd.1
-        for <mm-commits@vger.kernel.org>; Thu, 24 Jan 2013 16:05:28 -0800 (PST)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:58643 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752277Ab3AYAO0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Jan 2013 19:14:26 -0500
+Received: by mail-qe0-f73.google.com with SMTP id 7so166161qeb.0
+        for <mm-commits@vger.kernel.org>; Thu, 24 Jan 2013 16:14:25 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yuanhan.liu@linux.intel.com, mingo@redhat.com
+Cc: yuanhan.liu@linux.intel.com, mingo@kernel.org
 
 
 The patch titled
-     Subject: Documentation/lockstat.txt: fix a typo
+     Subject: mutex: use spin_[un]lock instead of arch_spin_[un]lock
 has been added to the -mm tree.  Its filename is
-     lockstat-fix-a-typo.patch
+     mutex-use-spin_lock-instead-of-arch_spin_lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yuanhan Liu <yuanhan.liu@linux.intel.com>
-Subject: Documentation/lockstat.txt: fix a typo
+Subject: mutex: use spin_[un]lock instead of arch_spin_[un]lock
 
-It should be CONFIG_LOCK_STAT
+Use spin_[un]lock instead of arch_spin_[un]lock in mutex-debug.h so
+that we can collect the lock statistics of spin_lock_mutex from
+/proc/lock_stat.
 
+Cc: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Yuanhan Liu <yuanhan.liu@linux.intel.com>
-Cc: Ingo Molnar <mingo@redhat.com>
+---
+
+index 0799fd3..556c0bc 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/lockstat.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/mutex-debug.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/lockstat.txt~lockstat-fix-a-typo Documentation/lockstat.txt
---- a/Documentation/lockstat.txt~lockstat-fix-a-typo
-+++ a/Documentation/lockstat.txt
-@@ -65,7 +65,7 @@ that had to wait on lock acquisition.
+diff -puN kernel/mutex-debug.h~mutex-use-spin_lock-instead-of-arch_spin_lock kernel/mutex-debug.h
+--- a/kernel/mutex-debug.h~mutex-use-spin_lock-instead-of-arch_spin_lock
++++ a/kernel/mutex-debug.h
+@@ -43,13 +43,13 @@ static inline void mutex_clear_owner(str
+ 							\
+ 		DEBUG_LOCKS_WARN_ON(in_interrupt());	\
+ 		local_irq_save(flags);			\
+-		arch_spin_lock(&(lock)->rlock.raw_lock);\
++		spin_lock(lock);			\
+ 		DEBUG_LOCKS_WARN_ON(l->magic != l);	\
+ 	} while (0)
  
-  - CONFIGURATION
- 
--Lock statistics are enabled via CONFIG_LOCK_STATS.
-+Lock statistics are enabled via CONFIG_LOCK_STAT.
- 
-  - USAGE
- 
+ #define spin_unlock_mutex(lock, flags)				\
+ 	do {							\
+-		arch_spin_unlock(&(lock)->rlock.raw_lock);	\
++		spin_unlock(lock);				\
+ 		local_irq_restore(flags);			\
+ 		preempt_check_resched();			\
+ 	} while (0)
 _
 
 Patches currently in -mm which might be from yuanhan.liu@linux.intel.com are
@@ -65,4 +77,6 @@ Patches currently in -mm which might be from yuanhan.liu@linux.intel.com are
 mm-fix-wrong-comments-about-anon_vma-lock.patch
 lockstat-fix-a-typo.patch
 fs-execc-make-bprm_mm_init-static.patch
+mutex-use-spin_lock-instead-of-arch_spin_lock.patch
+mutex-use-spin_lock-instead-of-arch_spin_lock-fix.patch
 
