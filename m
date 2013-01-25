@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-tagssh-add-ctags-magic-for-declarations-of-popular-kernel-type.patch added to -mm tree
-Date: Fri, 25 Jan 2013 14:48:13 -0800
-Message-ID: <20130125224813.A28C031C082@corp2gmr1-1.hot.corp.google.com>
+Subject: + aio-use-cancellation-list-lazily-fix-fix.patch added to -mm tree
+Date: Fri, 25 Jan 2013 15:13:39 -0800
+Message-ID: <20130125231340.8CA665A415E@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:48922 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753461Ab3AYWsO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 Jan 2013 17:48:14 -0500
-Received: by mail-ye0-f202.google.com with SMTP id r9so87791yen.3
-        for <mm-commits@vger.kernel.org>; Fri, 25 Jan 2013 14:48:14 -0800 (PST)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:62390 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753164Ab3AYXNl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 Jan 2013 18:13:41 -0500
+Received: by mail-vc0-f201.google.com with SMTP id n11so89948vch.4
+        for <mm-commits@vger.kernel.org>; Fri, 25 Jan 2013 15:13:41 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tkhai@yandex.ru, mmarek@suse.cz
+Cc: akpm@linux-foundation.org, koverstreet@google.com
 
 
 The patch titled
-     Subject: scripts/tags.sh: add ctags magic for declarations of popular kernel type
+     Subject: aio-use-cancellation-list-lazily-fix-fix
 has been added to the -mm tree.  Its filename is
-     scripts-tagssh-add-ctags-magic-for-declarations-of-popular-kernel-type.patch
+     aio-use-cancellation-list-lazily-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,74 +33,119 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kirill Tkhai <tkhai@yandex.ru>
-Subject: scripts/tags.sh: add ctags magic for declarations of popular kernel type
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: aio-use-cancellation-list-lazily-fix-fix
 
-- Add magic for declarations of variables of popular kernel type like
-spinlock_t, list_head, wait_queue_head_t and other.
+Kent's on Krack
 
-- Add a set of specially handled declaration extentions like __attribute,
-__aligned and other.
-
-- Simplify pci_bus_* magic
-
-Signed-off-by: Kirill V Tkhai <tkhai@yandex.ru>
-Cc: Michal Marek <mmarek@suse.cz>
+Cc: Kent Overstreet <koverstreet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/tags.sh |   24 ++++++++++++++++++++----
- 1 file changed, 20 insertions(+), 4 deletions(-)
+ fs/aio.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN scripts/tags.sh~scripts-tagssh-add-ctags-magic-for-declarations-of-popular-kernel-type scripts/tags.sh
---- a/scripts/tags.sh~scripts-tagssh-add-ctags-magic-for-declarations-of-popular-kernel-type
-+++ a/scripts/tags.sh
-@@ -149,12 +149,17 @@ dogtags()
- exuberant()
- {
- 	all_target_sources | xargs $1 -a                        \
--	-I __initdata,__exitdata,__acquires,__releases          \
--	-I __read_mostly,____cacheline_aligned                  \
-+	-I __initdata,__exitdata,__initconst,__devinitdata	\
-+	-I __devinitconst,__cpuinitdata,__initdata_memblock	\
-+	-I __refdata,__attribute				\
-+	-I __acquires,__releases,__deprecated			\
-+	-I __read_mostly,__aligned,____cacheline_aligned        \
- 	-I ____cacheline_aligned_in_smp                         \
- 	-I ____cacheline_internodealigned_in_smp                \
-+	-I __used,__packed,__packed2__,__must_check,__must_hold	\
- 	-I EXPORT_SYMBOL,EXPORT_SYMBOL_GPL                      \
- 	-I DEFINE_TRACE,EXPORT_TRACEPOINT_SYMBOL,EXPORT_TRACEPOINT_SYMBOL_GPL \
-+	-I static,const						\
- 	--extra=+f --c-kinds=+px                                \
- 	--regex-asm='/^(ENTRY|_GLOBAL)\(([^)]*)\).*/\2/'        \
- 	--regex-c='/^SYSCALL_DEFINE[[:digit:]]?\(([^,)]*).*/sys_\1/' \
-@@ -182,8 +187,19 @@ exuberant()
- 	--regex-c++='/TESTCLEARFLAG_FALSE\(([^,)]*).*/TestClearPage\1/' \
- 	--regex-c++='/__TESTCLEARFLAG_FALSE\(([^,)]*).*/__TestClearPage\1/' \
- 	--regex-c++='/_PE\(([^,)]*).*/PEVENT_ERRNO__\1/'		\
--	--regex-c='/PCI_OP_READ\(([a-z]*[a-z]).*[1-4]\)/pci_bus_read_config_\1/' \
--	--regex-c='/PCI_OP_WRITE\(([a-z]*[a-z]).*[1-4]\)/pci_bus_write_config_\1/'
-+	--regex-c='/PCI_OP_READ\((\w*).*[1-4]\)/pci_bus_read_config_\1/' \
-+	--regex-c='/PCI_OP_WRITE\((\w*).*[1-4]\)/pci_bus_write_config_\1/' \
-+	--regex-c='/DEFINE_(MUTEX|SEMAPHORE|SPINLOCK)\((\w*)/\2/v/'	\
-+	--regex-c='/DEFINE_(RAW_SPINLOCK|RWLOCK|SEQLOCK)\((\w*)/\2/v/'	\
-+	--regex-c='/DECLARE_(RWSEM|COMPLETION)\((\w*)/\2/v/'		\
-+	--regex-c='/DECLARE_BITMAP\((\w*)/\1/v/'			\
-+	--regex-c='/(^|\s)(|L|H)LIST_HEAD\((\w*)/\3/v/'			\
-+	--regex-c='/(^|\s)RADIX_TREE\((\w*)/\2/v/'			\
-+	--regex-c='/DEFINE_PER_CPU\(([^,]*,\s*)(\w*).*\)/\2/v/'		\
-+	--regex-c='/DEFINE_PER_CPU_SHARED_ALIGNED\(([^,]*,\s*)(\w*).*\)/\2/v/' \
-+	--regex-c='/DECLARE_WAIT_QUEUE_HEAD\((\w*)/\1/v/'		\
-+	--regex-c='/DECLARE_(TASKLET|WORK|DELAYED_WORK)\((\w*)/\2/v/'	\
-+	--regex-c='/DEFINE_PCI_DEVICE_TABLE\((\w*)/\1/v/'
+diff -puN fs/aio.c~aio-use-cancellation-list-lazily-fix-fix fs/aio.c
+--- a/fs/aio.c~aio-use-cancellation-list-lazily-fix-fix
++++ a/fs/aio.c
+@@ -254,7 +254,6 @@ static int kiocb_cancel(struct kioctx *c
+ 		if (!cancel || cancel == KIOCB_CANCELLED)
+ 			return ret;
  
- 	all_kconfigs | xargs $1 -a                              \
- 	--langdef=kconfig --language-force=kconfig              \
+-		BUG();
+ 		old = cancel;
+ 		cancel = cmpxchg(&kiocb->ki_cancel, old, KIOCB_CANCELLED);
+ 	} while (cancel != old);
 _
 
-Patches currently in -mm which might be from tkhai@yandex.ru are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
 linux-next.patch
-scripts-tagssh-add-ctags-magic-for-declarations-of-popular-kernel-type.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
+bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
+i-need-old-gcc.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch
+mm.patch
+mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
+mm-hugetlbc-convert-to-pr_foo.patch
+cma-make-putback_lru_pages-call-conditional-fix.patch
+mm-vmscan-clean-up-get_scan_count-fix.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
+mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
+mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
+mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
+mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
+mm-remove-flags-argument-to-mmap_region-fix.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
+memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
+memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix.patch
+memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch
+cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved-fix.patch
+cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
+memory-failure-do-code-refactor-of-soft_offline_page.patch
+memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
+mm-dont-inline-page_mapping.patch
+swap-make-each-swap-partition-have-one-address_space-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
+mm-rename-page-struct-field-helpers.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+kernel-smpc-cleanups.patch
+backlight-add-lms501kf03-lcd-driver-fix.patch
+backlight-add-lms501kf03-lcd-driver-fix-fix.patch
+backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
+checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix-fix.patch
+rtc-max77686-add-maxim-77686-driver-fix.patch
+rtc-pcf8523-add-low-battery-voltage-support-fix.patch
+rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
+rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+signal-allow-to-send-any-siginfo-to-itself-fix.patch
+signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
+fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch
+fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes.patch
+drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
+userns-improve-uid-gid-map-collision-detection-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+mutex-use-spin_lock-instead-of-arch_spin_lock-fix.patch
+aio-kiocb_cancel-fix.patch
+wait-add-wait_event_hrtimeout-fix.patch
+aio-use-cancellation-list-lazily-fix-fix.patch
+aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+generic-dynamic-per-cpu-refcounting-fix.patch
+generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
+generic-dynamic-per-cpu-refcounting-doc-fix.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-dont-include-aioh-in-schedh-fix-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3.patch
+aio-kill-ki_retry-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
