@@ -1,69 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: + userns-improve-uid-gid-map-collision-detection-fix.patch added to -mm tree
-Date: Thu, 24 Jan 2013 16:46:44 -0800
-Message-ID: <20130125004645.45B6231C00F@corp2gmr1-1.hot.corp.google.com>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Fri, 25 Jan 2013 13:33:43 -0800
+Message-ID: <20130125213345.993C331C107@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:35692 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755551Ab3AYAqq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Jan 2013 19:46:46 -0500
-Received: by mail-ye0-f201.google.com with SMTP id r11so1147770yen.0
-        for <mm-commits@vger.kernel.org>; Thu, 24 Jan 2013 16:46:45 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:40200 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753148Ab3AYVds (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 Jan 2013 16:33:48 -0500
+Received: by mail-gg0-f202.google.com with SMTP id l4so80907ggi.5
+        for <mm-commits@vger.kernel.org>; Fri, 25 Jan 2013 13:33:47 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aris@redhat.com, ebiederm@xmission.com, jmorris@namei.org, serge@hallyn.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userns-improve-uid-gid-map-collision-detection-fix
-has been added to the -mm tree.  Its filename is
-     userns-improve-uid-gid-map-collision-detection-fix.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: userns-improve-uid-gid-map-collision-detection-fix
+Subject: linux-next-git-rejects
 
-make in_range() a C function
-
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "Serge E. Hallyn" <serge@hallyn.com>
-Cc: Aristeu Rozanski <aris@redhat.com>
-Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/user_namespace.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/devfreq/exynos4_bus.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN kernel/user_namespace.c~userns-improve-uid-gid-map-collision-detection-fix kernel/user_namespace.c
---- a/kernel/user_namespace.c~userns-improve-uid-gid-map-collision-detection-fix
-+++ a/kernel/user_namespace.c
-@@ -521,7 +521,11 @@ struct seq_operations proc_projid_seq_op
+diff -puN drivers/devfreq/exynos4_bus.c~linux-next-git-rejects drivers/devfreq/exynos4_bus.c
+--- a/drivers/devfreq/exynos4_bus.c~linux-next-git-rejects
++++ a/drivers/devfreq/exynos4_bus.c
+@@ -658,11 +658,7 @@ static int exynos4_bus_target(struct dev
+ 	if (old_freq == freq)
+ 		return 0;
  
- static DEFINE_MUTEX(id_map_mutex);
+-<<<<<<< HEAD
+-	dev_dbg(dev, "targetting %lukHz %luuV\n", freq, new_oppinfo.volt);
+-=======
+ 	dev_dbg(dev, "targeting %lukHz %luuV\n", freq, new_oppinfo.volt);
+->>>>>>> linux-next/akpm-base
  
--#define in_range(b,first,len) ((b)>=(first)&&(b)<(first)+(len))
-+static bool in_range(u32 b, u32 first, u32 len)
-+{
-+	return b >= first && b < first + len;
-+}
-+
- static inline int extent_collision(struct uid_gid_map *new_map,
- 				   struct uid_gid_extent *extent)
- {
+ 	mutex_lock(&data->lock);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -71,7 +54,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
 linux-next.patch
-linux-next-git-rejects.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
 bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
