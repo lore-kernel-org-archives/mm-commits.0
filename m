@@ -1,55 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-fix-a-compile-error-a-section-type-conflict.patch removed from -mm tree
-Date: Fri, 25 Jan 2013 13:37:58 -0800
-Message-ID: <20130125213758.9E8E031C107@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] lockdep-rename-print_unlock_inbalance_bug-to-print_unlock_imbalance_bug.patch removed from -mm tree
+Date: Fri, 25 Jan 2013 13:38:01 -0800
+Message-ID: <20130125213801.A6F6931C1CF@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:49831 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753097Ab3AYVh7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 Jan 2013 16:37:59 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so80969ghb.5
-        for <mm-commits@vger.kernel.org>; Fri, 25 Jan 2013 13:37:59 -0800 (PST)
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:46406 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753097Ab3AYViD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 Jan 2013 16:38:03 -0500
+Received: by mail-ve0-f201.google.com with SMTP id 14so38709vea.4
+        for <mm-commits@vger.kernel.org>; Fri, 25 Jan 2013 13:38:02 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yangyongqiang01@baidu.com, mm-commits@vger.kernel.org
+To: srivatsa.bhat@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/x86/kernel/cpu/perf_event_p6.c: fix section warning
+     Subject: lockdep: rename print_unlock_inbalance_bug() to print_unlock_imbalance_bug()
 has been removed from the -mm tree.  Its filename was
-     x86-fix-a-compile-error-a-section-type-conflict.patch
+     lockdep-rename-print_unlock_inbalance_bug-to-print_unlock_imbalance_bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: yangyongqiang <yangyongqiang01@baidu.com>
-Subject: arch/x86/kernel/cpu/perf_event_p6.c: fix section warning
+From: "Srivatsa S. Bhat" <srivatsa.bhat@linux.vnet.ibm.com>
+Subject: lockdep: rename print_unlock_inbalance_bug() to print_unlock_imbalance_bug()
 
-Fix a compile error - 'a section type conflict' by removing __initconst.
+Fix the typo in the function name (s/inbalance/imbalance)
 
-Signed-off-by: yangyongqiang <yangyongqiang01@baidu.com>
+Signed-off-by: Srivatsa S. Bhat <srivatsa.bhat@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/perf_event_p6.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/lockdep.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/perf_event_p6.c~x86-fix-a-compile-error-a-section-type-conflict arch/x86/kernel/cpu/perf_event_p6.c
---- a/arch/x86/kernel/cpu/perf_event_p6.c~x86-fix-a-compile-error-a-section-type-conflict
-+++ a/arch/x86/kernel/cpu/perf_event_p6.c
-@@ -19,7 +19,7 @@ static const u64 p6_perfmon_event_map[] 
+diff -puN kernel/lockdep.c~lockdep-rename-print_unlock_inbalance_bug-to-print_unlock_imbalance_bug kernel/lockdep.c
+--- a/kernel/lockdep.c~lockdep-rename-print_unlock_inbalance_bug-to-print_unlock_imbalance_bug
++++ a/kernel/lockdep.c
+@@ -3203,7 +3203,7 @@ static int __lock_acquire(struct lockdep
+ }
  
- };
+ static int
+-print_unlock_inbalance_bug(struct task_struct *curr, struct lockdep_map *lock,
++print_unlock_imbalance_bug(struct task_struct *curr, struct lockdep_map *lock,
+ 			   unsigned long ip)
+ {
+ 	if (!debug_locks_off())
+@@ -3246,7 +3246,7 @@ static int check_unlock(struct task_stru
+ 		return 0;
  
--static __initconst u64 p6_hw_cache_event_ids
-+static u64 p6_hw_cache_event_ids
- 				[PERF_COUNT_HW_CACHE_MAX]
- 				[PERF_COUNT_HW_CACHE_OP_MAX]
- 				[PERF_COUNT_HW_CACHE_RESULT_MAX] =
+ 	if (curr->lockdep_depth <= 0)
+-		return print_unlock_inbalance_bug(curr, lock, ip);
++		return print_unlock_imbalance_bug(curr, lock, ip);
+ 
+ 	return 1;
+ }
+@@ -3317,7 +3317,7 @@ __lock_set_class(struct lockdep_map *loc
+ 			goto found_it;
+ 		prev_hlock = hlock;
+ 	}
+-	return print_unlock_inbalance_bug(curr, lock, ip);
++	return print_unlock_imbalance_bug(curr, lock, ip);
+ 
+ found_it:
+ 	lockdep_init_map(lock, name, key, 0);
+@@ -3384,7 +3384,7 @@ lock_release_non_nested(struct task_stru
+ 			goto found_it;
+ 		prev_hlock = hlock;
+ 	}
+-	return print_unlock_inbalance_bug(curr, lock, ip);
++	return print_unlock_imbalance_bug(curr, lock, ip);
+ 
+ found_it:
+ 	if (hlock->instance == lock)
 _
 
-Patches currently in -mm which might be from yangyongqiang01@baidu.com are
+Patches currently in -mm which might be from srivatsa.bhat@linux.vnet.ibm.com are
 
+origin.patch
 linux-next.patch
 
