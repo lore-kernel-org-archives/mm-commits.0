@@ -1,52 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Fri, 25 Jan 2013 13:33:43 -0800
-Message-ID: <20130125213345.993C331C107@corp2gmr1-1.hot.corp.google.com>
+Subject: [merged] arch-x86-tools-insn_sanityc-identify-source-of-messages.patch removed from -mm tree
+Date: Fri, 25 Jan 2013 13:37:39 -0800
+Message-ID: <20130125213739.75DEF31C1CF@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:40200 "EHLO
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:52333 "EHLO
 	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753148Ab3AYVds (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 Jan 2013 16:33:48 -0500
-Received: by mail-gg0-f202.google.com with SMTP id l4so80907ggi.5
-        for <mm-commits@vger.kernel.org>; Fri, 25 Jan 2013 13:33:47 -0800 (PST)
+	with ESMTP id S1752811Ab3AYVhk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 Jan 2013 16:37:40 -0500
+Received: by mail-gg0-f202.google.com with SMTP id l4so81240ggi.5
+        for <mm-commits@vger.kernel.org>; Fri, 25 Jan 2013 13:37:40 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: arch/x86/tools/insn_sanity.c: identify source of messages
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: arch/x86/tools/insn_sanity.c: identify source of messages
 
+The kernel build prints:
+
+  Building modules, stage 2.
+  TEST    posttest
+  MODPOST 3821 modules
+  TEST    posttest
+Success: decoded and checked 1000000 random instructions with 0 errors (seed:0xaac4bc47)
+  CC      arch/x86/boot/a20.o
+  CC      arch/x86/boot/cmdline.o
+  AS      arch/x86/boot/copy.o
+  HOSTCC  arch/x86/boot/mkcpustr
+  CC      arch/x86/boot/cpucheck.o
+  CC      arch/x86/boot/early_serial_console.o
+
+which is irritating because you don't know what program is proudly
+pronouncing its success.
+
+So, as described in "console mode programming user interface guidelines
+version 101" which doesn't exist, change this program to identify the
+source of its messages.
+
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/devfreq/exynos4_bus.c |    4 ----
- 1 file changed, 4 deletions(-)
+ arch/x86/tools/insn_sanity.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN drivers/devfreq/exynos4_bus.c~linux-next-git-rejects drivers/devfreq/exynos4_bus.c
---- a/drivers/devfreq/exynos4_bus.c~linux-next-git-rejects
-+++ a/drivers/devfreq/exynos4_bus.c
-@@ -658,11 +658,7 @@ static int exynos4_bus_target(struct dev
- 	if (old_freq == freq)
- 		return 0;
+diff -puN arch/x86/tools/insn_sanity.c~arch-x86-tools-insn_sanityc-identify-source-of-messages arch/x86/tools/insn_sanity.c
+--- a/arch/x86/tools/insn_sanity.c~arch-x86-tools-insn_sanityc-identify-source-of-messages
++++ a/arch/x86/tools/insn_sanity.c
+@@ -55,7 +55,7 @@ static FILE		*input_file;	/* Input file 
+ static void usage(const char *err)
+ {
+ 	if (err)
+-		fprintf(stderr, "Error: %s\n\n", err);
++		fprintf(stderr, "%s: Error: %s\n\n", prog, err);
+ 	fprintf(stderr, "Usage: %s [-y|-n|-v] [-s seed[,no]] [-m max] [-i input]\n", prog);
+ 	fprintf(stderr, "\t-y	64bit mode\n");
+ 	fprintf(stderr, "\t-n	32bit mode\n");
+@@ -269,7 +269,13 @@ int main(int argc, char **argv)
+ 		insns++;
+ 	}
  
--<<<<<<< HEAD
--	dev_dbg(dev, "targetting %lukHz %luuV\n", freq, new_oppinfo.volt);
--=======
- 	dev_dbg(dev, "targeting %lukHz %luuV\n", freq, new_oppinfo.volt);
-->>>>>>> linux-next/akpm-base
+-	fprintf(stdout, "%s: decoded and checked %d %s instructions with %d errors (seed:0x%x)\n", (errors) ? "Failure" : "Success", insns, (input_file) ? "given" : "random", errors, seed);
++	fprintf(stdout, "%s: %s: decoded and checked %d %s instructions with %d errors (seed:0x%x)\n",
++		prog,
++		(errors) ? "Failure" : "Success",
++		insns,
++		(input_file) ? "given" : "random",
++		errors,
++		seed);
  
- 	mutex_lock(&data->lock);
- 
+ 	return errors ? 1 : 0;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -58,7 +94,6 @@ arch-alpha-kernel-systblss-remove-debug-check.patch
 bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
 bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
 i-need-old-gcc.patch
-arch-x86-tools-insn_sanityc-identify-source-of-messages.patch
 timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
 timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
 timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
