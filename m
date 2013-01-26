@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-memory-hotplug-support-getting-hotplug-info-from-srat.patch added to -mm tree
-Date: Fri, 25 Jan 2013 16:41:03 -0800
-Message-ID: <20130126004104.5E62931C1F5@corp2gmr1-1.hot.corp.google.com>
+Subject: + acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch added to -mm tree
+Date: Fri, 25 Jan 2013 16:41:00 -0800
+Message-ID: <20130126004101.4352A31C210@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:39522 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755015Ab3AZAlG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 Jan 2013 19:41:06 -0500
-Received: by mail-gh0-f201.google.com with SMTP id z19so96711ghb.2
-        for <mm-commits@vger.kernel.org>; Fri, 25 Jan 2013 16:41:05 -0800 (PST)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:64128 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755006Ab3AZAlD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 Jan 2013 19:41:03 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z10so96683ghb.3
+        for <mm-commits@vger.kernel.org>; Fri, 25 Jan 2013 16:41:02 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tangchen@cn.fujitsu.com, hpa@zytor.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, laijs@cn.fujitsu.com, len.brown@intel.com, lenb@kernel.org, mingo@elte.hu, tglx@linutronix.de, wujianguo@huawei.com
+Cc: akpm@linux-foundation.org, hpa@zytor.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, laijs@cn.fujitsu.com, len.brown@intel.com, lenb@kernel.org, mingo@elte.hu, tangchen@cn.fujitsu.com, tglx@linutronix.de, wujianguo@huawei.com
 
 
 The patch titled
-     Subject: acpi, memory-hotplug: support getting hotplug info from SRAT
+     Subject: acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix
 has been added to the -mm tree.  Its filename is
-     acpi-memory-hotplug-support-getting-hotplug-info-from-srat.patch
+     acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,267 +33,233 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: acpi, memory-hotplug: support getting hotplug info from SRAT
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix
 
-We now provide an option for users who don't want to specify physical
-memory address in kernel commandline.
+clean up code, fix build warning
 
-        /*
-         * For movablemem_map=acpi:
-         *
-         * SRAT:                |_____| |_____| |_________| |_________| ......
-         * node id:                0       1         1           2
-         * hotpluggable:           n       y         y           n
-         * movablemem_map:              |_____| |_________|
-         *
-         * Using movablemem_map, we can prevent memblock from allocating memory
-         * on ZONE_MOVABLE at boot time.
-         */
-
-So user just specify movablemem_map=acpi, and the kernel will use
-hotpluggable info in SRAT to determine which memory ranges should be set
-as ZONE_MOVABLE.
-
-NOTE: Using this way will cause NUMA performance down because the whole node
-      will be set as ZONE_MOVABLE, and kernel cannot use memory on it.
-      If users don't want to lose NUMA performance, just don't use it.
-
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: "Brown, Len" <len.brown@intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Jiang Liu <jiang.liu@huawei.com>
 Cc: Jianguo Wu <wujianguo@huawei.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Wu Jianguo <wujianguo@huawei.com>
 Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Brown, Len" <len.brown@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |   23 +++++++++++++++----
- arch/x86/mm/srat.c                  |   30 ++++++++++++++++++++++----
- include/linux/mm.h                  |    1 
- mm/page_alloc.c                     |   22 ++++++++++++++++++-
- 4 files changed, 66 insertions(+), 10 deletions(-)
+ arch/x86/mm/srat.c |   93 ++++++++++++++++++++++---------------------
+ 1 file changed, 49 insertions(+), 44 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~acpi-memory-hotplug-support-getting-hotplug-info-from-srat Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~acpi-memory-hotplug-support-getting-hotplug-info-from-srat
-+++ a/Documentation/kernel-parameters.txt
-@@ -1637,15 +1637,28 @@ bytes respectively. Such letter suffixes
- 			that the amount of memory usable for all allocations
- 			is not too small.
- 
-+	movablemem_map=acpi
-+			[KNL,X86,IA-64,PPC] This parameter is similar to
-+			memmap except it specifies the memory map of
-+			ZONE_MOVABLE.
-+			This option inform the kernel to use Hot Pluggable bit
-+			in flags from SRAT from ACPI BIOS to determine which
-+			memory devices could be hotplugged. The corresponding
-+			memory ranges will be set as ZONE_MOVABLE.
-+
- 	movablemem_map=nn[KMG]@ss[KMG]
- 			[KNL,X86,IA-64,PPC] This parameter is similar to
- 			memmap except it specifies the memory map of
- 			ZONE_MOVABLE.
--			If more areas are all within one node, then from
--			lowest ss to the end of the node will be ZONE_MOVABLE.
--			If an area covers two or more nodes, the area from
--			ss to the end of the 1st node will be ZONE_MOVABLE,
--			and all the rest nodes will only have ZONE_MOVABLE.
-+			If user specifies memory ranges, the info in SRAT will
-+			be ingored. And it works like the following:
-+			- If more ranges are all within one node, then from
-+			  lowest ss to the end of the node will be ZONE_MOVABLE.
-+			- If a range is within a node, then from ss to the end
-+			  of the node will be ZONE_MOVABLE.
-+			- If a range covers two or more nodes, then from ss to
-+			  the end of the 1st node will be ZONE_MOVABLE, and all
-+			  the rest nodes will only have ZONE_MOVABLE.
- 			If memmap is specified at the same time, the
- 			movablemem_map will be limited within the memmap
- 			areas. If kernelcore or movablecore is also specified,
-diff -puN arch/x86/mm/srat.c~acpi-memory-hotplug-support-getting-hotplug-info-from-srat arch/x86/mm/srat.c
---- a/arch/x86/mm/srat.c~acpi-memory-hotplug-support-getting-hotplug-info-from-srat
+diff -puN arch/x86/mm/srat.c~acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix arch/x86/mm/srat.c
+--- a/arch/x86/mm/srat.c~acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix
 +++ a/arch/x86/mm/srat.c
-@@ -142,7 +142,8 @@ static inline int save_add_info(void) {r
+@@ -142,50 +142,8 @@ static inline int save_add_info(void) {r
  #endif
  
  #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
--static void __init handle_movablemem(int node, u64 start, u64 end)
-+static void __init
-+handle_movablemem(int node, u64 start, u64 end, u32 hotpluggable)
+-extern struct movablemem_map movablemem_map;
+-#endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
+-
+-/* Callback for parsing of the Proximity Domain <-> Memory Area mappings */
+-int __init
+-acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
++static void __init handle_movablemem(int node, u64 start, u64 end)
  {
+-	u64 start, end;
+-	u32 hotpluggable;
+-	int node, pxm;
+-
+-	if (srat_disabled())
+-		goto out_err;
+-	if (ma->header.length != sizeof(struct acpi_srat_mem_affinity))
+-		goto out_err_bad_srat;
+-	if ((ma->flags & ACPI_SRAT_MEM_ENABLED) == 0)
+-		goto out_err;
+-	hotpluggable = ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE;
+-	if (hotpluggable && !save_add_info())
+-		goto out_err;
+-
+-	start = ma->base_address;
+-	end = start + ma->length;
+-	pxm = ma->proximity_domain;
+-	if (acpi_srat_revision <= 1)
+-		pxm &= 0xff;
+-
+-	node = setup_node(pxm);
+-	if (node < 0) {
+-		printk(KERN_ERR "SRAT: Too many proximity domains.\n");
+-		goto out_err_bad_srat;
+-	}
+-
+-	if (numa_add_memblk(node, start, end) < 0)
+-		goto out_err_bad_srat;
+-
+-	node_set(node, numa_nodes_parsed);
+-
+-	printk(KERN_INFO "SRAT: Node %u PXM %u [mem %#010Lx-%#010Lx] %s\n",
+-	       node, pxm,
+-	       (unsigned long long) start, (unsigned long long) end - 1,
+-	       hotpluggable ? "Hot Pluggable": "");
+-
+-#ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
  	int overlap;
  	unsigned long start_pfn, end_pfn;
-@@ -151,7 +152,23 @@ static void __init handle_movablemem(int
- 	end_pfn = PFN_UP(end);
  
- 	/*
--	 * For movablecore_map=nn[KMG]@ss[KMG]:
-+	 * For movablemem_map=acpi:
-+	 *
-+	 * SRAT:		|_____| |_____| |_________| |_________| ......
-+	 * node id:                0       1         1           2
-+	 * hotpluggable:	   n       y         y           n
-+	 * movablemem_map:	        |_____| |_________|
-+	 *
-+	 * Using movablemem_map, we can prevent memblock from allocating memory
-+	 * on ZONE_MOVABLE at boot time.
-+	 */
-+	if (hotpluggable && movablemem_map.acpi) {
-+		insert_movablemem_map(start_pfn, end_pfn);
-+		goto out;
-+	}
-+
-+	/*
-+	 * For movablemem_map=nn[KMG]@ss[KMG]:
- 	 *
- 	 * SRAT:		|_____| |_____| |_________| |_________| ......
- 	 * node id:		   0       1         1           2
-@@ -160,6 +177,8 @@ static void __init handle_movablemem(int
- 	 *
- 	 * Using movablemem_map, we can prevent memblock from allocating memory
- 	 * on ZONE_MOVABLE at boot time.
-+	 *
-+	 * NOTE: In this case, SRAT info will be ingored.
- 	 */
- 	overlap = movablemem_map_overlap(start_pfn, end_pfn);
- 	if (overlap >= 0) {
-@@ -187,9 +206,12 @@ static void __init handle_movablemem(int
+@@ -229,7 +187,54 @@ acpi_numa_memory_affinity_init(struct ac
  			 */
  			insert_movablemem_map(start_pfn, end_pfn);
  	}
-+out:
-+	return;
- }
- #else		/* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
--static inline void handle_movablemem(int node, u64 start, u64 end)
-+static inline void
-+handle_movablemem(int node, u64 start, u64 end, u32 hotpluggable)
- {
- }
- #endif		/* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
-@@ -234,7 +256,7 @@ acpi_numa_memory_affinity_init(struct ac
- 	       (unsigned long long) start, (unsigned long long) end - 1,
- 	       hotpluggable ? "Hot Pluggable": "");
- 
--	handle_movablemem(node, start, end);
-+	handle_movablemem(node, start, end, hotpluggable);
+-#endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
++}
++#else		/* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
++static inline void handle_movablemem(int node, u64 start, u64 end)
++{
++}
++#endif		/* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
++
++/* Callback for parsing of the Proximity Domain <-> Memory Area mappings */
++int __init
++acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
++{
++	u64 start, end;
++	u32 hotpluggable;
++	int node, pxm;
++
++	if (srat_disabled())
++		goto out_err;
++	if (ma->header.length != sizeof(struct acpi_srat_mem_affinity))
++		goto out_err_bad_srat;
++	if ((ma->flags & ACPI_SRAT_MEM_ENABLED) == 0)
++		goto out_err;
++	hotpluggable = ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE;
++	if (hotpluggable && !save_add_info())
++		goto out_err;
++
++	start = ma->base_address;
++	end = start + ma->length;
++	pxm = ma->proximity_domain;
++	if (acpi_srat_revision <= 1)
++		pxm &= 0xff;
++
++	node = setup_node(pxm);
++	if (node < 0) {
++		printk(KERN_ERR "SRAT: Too many proximity domains.\n");
++		goto out_err_bad_srat;
++	}
++
++	if (numa_add_memblk(node, start, end) < 0)
++		goto out_err_bad_srat;
++
++	node_set(node, numa_nodes_parsed);
++
++	printk(KERN_INFO "SRAT: Node %u PXM %u [mem %#010Lx-%#010Lx] %s\n",
++	       node, pxm,
++	       (unsigned long long) start, (unsigned long long) end - 1,
++	       hotpluggable ? "Hot Pluggable": "");
++
++	handle_movablemem(node, start, end);
  
  	return 0;
  out_err_bad_srat:
-diff -puN include/linux/mm.h~acpi-memory-hotplug-support-getting-hotplug-info-from-srat include/linux/mm.h
---- a/include/linux/mm.h~acpi-memory-hotplug-support-getting-hotplug-info-from-srat
-+++ a/include/linux/mm.h
-@@ -1366,6 +1366,7 @@ struct movablemem_entry {
- };
- 
- struct movablemem_map {
-+	bool acpi;	/* true if using SRAT info */
- 	int nr_map;
- 	struct movablemem_entry map[MOVABLEMEM_MAP_MAX];
- 	nodemask_t numa_nodes_hotplug;	/* on which nodes we specify memory */
-diff -puN mm/page_alloc.c~acpi-memory-hotplug-support-getting-hotplug-info-from-srat mm/page_alloc.c
---- a/mm/page_alloc.c~acpi-memory-hotplug-support-getting-hotplug-info-from-srat
-+++ a/mm/page_alloc.c
-@@ -202,7 +202,10 @@ static unsigned long __meminitdata dma_r
- 
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
- /* Movable memory ranges, will also be used by memblock subsystem. */
--struct movablemem_map movablemem_map;
-+struct movablemem_map movablemem_map = {
-+	.acpi = false,
-+	.nr_map = 0,
-+};
- 
- static unsigned long __meminitdata arch_zone_lowest_possible_pfn[MAX_NR_ZONES];
- static unsigned long __meminitdata arch_zone_highest_possible_pfn[MAX_NR_ZONES];
-@@ -5306,6 +5309,23 @@ static int __init cmdline_parse_movablem
- 	if (!p)
- 		goto err;
- 
-+	if (!strncmp(p, "acpi", max(4, strlen(p))))
-+		movablemem_map.acpi = true;
-+
-+	/*
-+	 * If user decide to use info from BIOS, all the other user specified
-+	 * ranges will be ingored.
-+	 */
-+	if (movablemem_map.acpi) {
-+		if (movablemem_map.nr_map) {
-+			memset(movablemem_map.map, 0,
-+				sizeof(struct movablemem_entry)
-+				* movablemem_map.nr_map);
-+			movablemem_map.nr_map = 0;
-+		}
-+		return 0;
-+	}
-+
- 	oldp = p;
- 	mem_size = memparse(p, &p);
- 	if (p == oldp)
 _
 
-Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memory-hotplug-try-to-offline-the-memory-twice-to-avoid-dependence.patch
-memory-hotplug-check-whether-all-memory-blocks-are-offlined-or-not-when-removing-memory.patch
-memory-hotplug-remove-redundant-codes.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
+linux-next.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
+bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
+i-need-old-gcc.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch
+mm.patch
+mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
+mm-hugetlbc-convert-to-pr_foo.patch
+cma-make-putback_lru_pages-call-conditional-fix.patch
+mm-vmscan-clean-up-get_scan_count-fix.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
+mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
+mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
+mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
+mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
+mm-remove-flags-argument-to-mmap_region-fix.patch
 memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix.patch
 memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix-fix-fix.patch
-memory-hotplug-introduce-new-arch_remove_memory-for-removing-page-table.patch
-memory-hotplug-implement-register_page_bootmem_info_section-of-sparse-vmemmap.patch
-memory-hotplug-move-pgdat_resize_lock-into-sparse_remove_one_section.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove.patch
 memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix.patch
-memory-hotplug-remove-page-table-of-x86_64-architecture.patch
 memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
-memory-hotplug-remove-memmap-of-sparse-vmemmap.patch
-memory-hotplug-integrated-__remove_section-of-config_sparsemem_vmemmap.patch
-memory_hotplug-clear-zone-when-removing-the-memory.patch
-memory-hotplug-remove-sysfs-file-of-node.patch
-memory-hotplug-free-node_data-when-a-node-is-offlined.patch
-memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline.patch
 memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix.patch
 memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch
-memory-hotplug-consider-compound-pages-when-free-memmap.patch
-mempolicy-fix-is_valid_nodemask.patch
-cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved.patch
 cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved-fix.patch
-memory-hotplug-export-the-function-try_offline_node.patch
-memory-hotplug-export-the-function-try_offline_node-fix.patch
-cpu-hotplug-memory-hotplug-try-offline-the-node-when-hotremoving-a-cpu.patch
-cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node.patch
 cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix.patch
-sched-do-not-use-cpu_to_node-to-find-an-offlined-cpus-node.patch
-x86-get-pg_data_ts-memory-from-other-node.patch
-page_alloc-add-movable_memmap-kernel-parameter.patch
 page_alloc-add-movable_memmap-kernel-parameter-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix-fix.patch
 page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
 page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-rename-movablecore_map-to-movablemem_map.patch
-page_alloc-introduce-zone_movable_limit-to-keep-movable-limit-for-nodes.patch
-page_alloc-introduce-zone_movable_limit-to-keep-movable-limit-for-nodes-fix.patch
-page_alloc-make-movablecore_map-has-higher-priority.patch
-page_alloc-bootmem-limit-with-movablecore_map.patch
-acpi-memory-hotplug-parse-srat-before-memblock-is-ready.patch
-acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node.patch
 acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
-acpi-memory-hotplug-support-getting-hotplug-info-from-srat.patch
-mm-memblockc-use-config_have_memblock_node_map-to-protect-movablecore_map-in-memblock_overlaps_region.patch
+memory-failure-do-code-refactor-of-soft_offline_page.patch
+memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
+mm-dont-inline-page_mapping.patch
+swap-make-each-swap-partition-have-one-address_space-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
+memcg-fast-hierarchy-aware-child-test-fix.patch
+mm-rename-page-struct-field-helpers.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+kernel-smpc-cleanups.patch
+backlight-add-lms501kf03-lcd-driver-fix.patch
+backlight-add-lms501kf03-lcd-driver-fix-fix.patch
+backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
+checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix-fix.patch
+rtc-max77686-add-maxim-77686-driver-fix.patch
+rtc-pcf8523-add-low-battery-voltage-support-fix.patch
+rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
+rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+signal-allow-to-send-any-siginfo-to-itself-fix.patch
+signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
+fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch
+fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes.patch
+drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
+userns-improve-uid-gid-map-collision-detection-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+mutex-use-spin_lock-instead-of-arch_spin_lock-fix.patch
+aio-kiocb_cancel-fix.patch
+wait-add-wait_event_hrtimeout-fix.patch
+aio-use-cancellation-list-lazily-fix-fix.patch
+aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+generic-dynamic-per-cpu-refcounting-fix.patch
+generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
+generic-dynamic-per-cpu-refcounting-doc-fix.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-dont-include-aioh-in-schedh-fix-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3.patch
+aio-kill-ki_retry-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
