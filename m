@@ -1,153 +1,478 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] mutex-use-spin_lock-instead-of-arch_spin_lock-fix.patch removed from -mm tree
-Date: Fri, 25 Jan 2013 17:04:57 -0800
-Message-ID: <20130126010457.A212931C211@corp2gmr1-1.hot.corp.google.com>
+Subject: + backlight-add-an-as3711-pmic-backlight-driver.patch added to -mm tree
+Date: Fri, 25 Jan 2013 17:10:17 -0800
+Message-ID: <20130126011017.B6E7831C211@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:33248 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753496Ab3AZBE6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 Jan 2013 20:04:58 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so98308ghb.1
-        for <mm-commits@vger.kernel.org>; Fri, 25 Jan 2013 17:04:58 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:65378 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753629Ab3AZBKS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 Jan 2013 20:10:18 -0500
+Received: by mail-gg0-f202.google.com with SMTP id l4so98799ggi.5
+        for <mm-commits@vger.kernel.org>; Fri, 25 Jan 2013 17:10:18 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@kernel.org, rostedt@goodmis.org, tglx@linutronix.de, yuanhan.liu@linux.intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, jg1.han@samsung.com, magnus.damm@gmail.com, rpurdie@rpsys.net
 
 
 The patch titled
-     Subject: mutex-use-spin_lock-instead-of-arch_spin_lock-fix
-has been removed from the -mm tree.  Its filename was
-     mutex-use-spin_lock-instead-of-arch_spin_lock-fix.patch
+     Subject: backlight: add an AS3711 PMIC backlight driver
+has been added to the -mm tree.  Its filename is
+     backlight-add-an-as3711-pmic-backlight-driver.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mutex-use-spin_lock-instead-of-arch_spin_lock-fix
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: backlight: add an AS3711 PMIC backlight driver
 
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Yuanhan Liu <yuanhan.liu@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+This is an initial commit of a backlight driver, using step-up DCDC power
+supplies on AS3711 PMIC. Only one mode has actually been tested, several
+further modes have been implemented "dry," but disabled to avoid accidental
+hardware damage. Anyone wishing to use any of those modes will have to
+modify the driver.
+
+Tested on sh73a0-based kzm9g board.  Only one mode has been tested and is
+enabled.  That mode copies the sample code from the manufacturer. 
+Deviations from that code proved to be fatal for the hardware...
+
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Magnus Damm <magnus.damm@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Acked-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/mutex-debug.h |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/video/backlight/Kconfig     |    7 
+ drivers/video/backlight/Makefile    |    1 
+ drivers/video/backlight/as3711_bl.c |  379 ++++++++++++++++++++++++++
+ 3 files changed, 387 insertions(+)
 
-diff -puN kernel/mutex-debug.h~mutex-use-spin_lock-instead-of-arch_spin_lock-fix kernel/mutex-debug.h
---- a/kernel/mutex-debug.h~mutex-use-spin_lock-instead-of-arch_spin_lock-fix
-+++ a/kernel/mutex-debug.h
-@@ -42,14 +42,12 @@ static inline void mutex_clear_owner(str
- 		struct mutex *l = container_of(lock, struct mutex, wait_lock); \
- 							\
- 		DEBUG_LOCKS_WARN_ON(in_interrupt());	\
--		local_irq_save(flags);			\
--		spin_lock(lock);			\
-+		spin_lock_irqsave(lock, flags);		\
- 		DEBUG_LOCKS_WARN_ON(l->magic != l);	\
- 	} while (0)
+diff -puN drivers/video/backlight/Kconfig~backlight-add-an-as3711-pmic-backlight-driver drivers/video/backlight/Kconfig
+--- a/drivers/video/backlight/Kconfig~backlight-add-an-as3711-pmic-backlight-driver
++++ a/drivers/video/backlight/Kconfig
+@@ -411,6 +411,13 @@ config BACKLIGHT_TPS65217
+ 	  If you have a Texas Instruments TPS65217 say Y to enable the
+ 	  backlight driver.
  
- #define spin_unlock_mutex(lock, flags)				\
- 	do {							\
--		spin_unlock(lock);				\
--		local_irq_restore(flags);			\
-+		spin_unlock_irqrestore(lock, flags);		\
- 		preempt_check_resched();			\
- 	} while (0)
++config BACKLIGHT_AS3711
++	tristate "AS3711 Backlight"
++	depends on BACKLIGHT_CLASS_DEVICE && MFD_AS3711
++	help
++	  If you have an Austrian Microsystems AS3711 say Y to enable the
++	  backlight driver.
++
+ endif # BACKLIGHT_CLASS_DEVICE
+ 
+ endif # BACKLIGHT_LCD_SUPPORT
+diff -puN drivers/video/backlight/Makefile~backlight-add-an-as3711-pmic-backlight-driver drivers/video/backlight/Makefile
+--- a/drivers/video/backlight/Makefile~backlight-add-an-as3711-pmic-backlight-driver
++++ a/drivers/video/backlight/Makefile
+@@ -23,6 +23,7 @@ obj-$(CONFIG_BACKLIGHT_ADP5520)		+= adp5
+ obj-$(CONFIG_BACKLIGHT_ADP8860)		+= adp8860_bl.o
+ obj-$(CONFIG_BACKLIGHT_ADP8870)		+= adp8870_bl.o
+ obj-$(CONFIG_BACKLIGHT_APPLE)		+= apple_bl.o
++obj-$(CONFIG_BACKLIGHT_AS3711)		+= as3711_bl.o
+ obj-$(CONFIG_BACKLIGHT_ATMEL_PWM)	+= atmel-pwm-bl.o
+ obj-$(CONFIG_BACKLIGHT_CARILLO_RANCH)	+= cr_bllcd.o
+ obj-$(CONFIG_BACKLIGHT_CLASS_DEVICE)	+= backlight.o
+diff -puN /dev/null drivers/video/backlight/as3711_bl.c
+--- /dev/null
++++ a/drivers/video/backlight/as3711_bl.c
+@@ -0,0 +1,379 @@
++/*
++ * AS3711 PMIC backlight driver, using DCDC Step Up Converters
++ *
++ * Copyright (C) 2012 Renesas Electronics Corporation
++ * Author: Guennadi Liakhovetski, <g.liakhovetski@gmx.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the version 2 of the GNU General Public License as
++ * published by the Free Software Foundation
++ */
++
++#include <linux/backlight.h>
++#include <linux/delay.h>
++#include <linux/device.h>
++#include <linux/err.h>
++#include <linux/fb.h>
++#include <linux/kernel.h>
++#include <linux/mfd/as3711.h>
++#include <linux/module.h>
++#include <linux/regmap.h>
++#include <linux/slab.h>
++
++enum as3711_bl_type {
++	AS3711_BL_SU1,
++	AS3711_BL_SU2,
++};
++
++struct as3711_bl_data {
++	bool powered;
++	const char *fb_name;
++	struct device *fb_dev;
++	enum as3711_bl_type type;
++	int brightness;
++	struct backlight_device *bl;
++};
++
++struct as3711_bl_supply {
++	struct as3711_bl_data su1;
++	struct as3711_bl_data su2;
++	const struct as3711_bl_pdata *pdata;
++	struct as3711 *as3711;
++};
++
++static struct as3711_bl_supply *to_supply(struct as3711_bl_data *su)
++{
++	switch (su->type) {
++	case AS3711_BL_SU1:
++		return container_of(su, struct as3711_bl_supply, su1);
++	case AS3711_BL_SU2:
++		return container_of(su, struct as3711_bl_supply, su2);
++	}
++	return NULL;
++}
++
++static int as3711_set_brightness_auto_i(struct as3711_bl_data *data,
++					unsigned int brightness)
++{
++	struct as3711_bl_supply *supply = to_supply(data);
++	struct as3711 *as3711 = supply->as3711;
++	const struct as3711_bl_pdata *pdata = supply->pdata;
++	int ret = 0;
++
++	/* Only all equal current values are supported */
++	if (pdata->su2_auto_curr1)
++		ret = regmap_write(as3711->regmap, AS3711_CURR1_VALUE,
++				   brightness);
++	if (!ret && pdata->su2_auto_curr2)
++		ret = regmap_write(as3711->regmap, AS3711_CURR2_VALUE,
++				   brightness);
++	if (!ret && pdata->su2_auto_curr3)
++		ret = regmap_write(as3711->regmap, AS3711_CURR3_VALUE,
++				   brightness);
++
++	return ret;
++}
++
++static int as3711_set_brightness_v(struct as3711 *as3711,
++				   unsigned int brightness,
++				   unsigned int reg)
++{
++	if (brightness > 31)
++		return -EINVAL;
++
++	return regmap_update_bits(as3711->regmap, reg, 0xf0,
++				  brightness << 4);
++}
++
++static int as3711_bl_su2_reset(struct as3711_bl_supply *supply)
++{
++	struct as3711 *as3711 = supply->as3711;
++	int ret = regmap_update_bits(as3711->regmap, AS3711_STEPUP_CONTROL_5,
++				     3, supply->pdata->su2_fbprot);
++	if (!ret)
++		ret = regmap_update_bits(as3711->regmap,
++					 AS3711_STEPUP_CONTROL_2, 1, 0);
++	if (!ret)
++		ret = regmap_update_bits(as3711->regmap,
++					 AS3711_STEPUP_CONTROL_2, 1, 1);
++	return ret;
++}
++
++/*
++ * Someone with less fragile or less expensive hardware could try to simplify
++ * the brightness adjustment procedure.
++ */
++static int as3711_bl_update_status(struct backlight_device *bl)
++{
++	struct as3711_bl_data *data = bl_get_data(bl);
++	struct as3711_bl_supply *supply = to_supply(data);
++	struct as3711 *as3711 = supply->as3711;
++	int brightness = bl->props.brightness;
++	int ret = 0;
++
++	dev_dbg(&bl->dev, "%s(): brightness %u, pwr %x, blank %x, state %x\n",
++		__func__, bl->props.brightness, bl->props.power,
++		bl->props.fb_blank, bl->props.state);
++
++	if (bl->props.power != FB_BLANK_UNBLANK ||
++	    bl->props.fb_blank != FB_BLANK_UNBLANK ||
++	    bl->props.state & (BL_CORE_SUSPENDED | BL_CORE_FBBLANK))
++		brightness = 0;
++
++	if (data->type == AS3711_BL_SU1) {
++		ret = as3711_set_brightness_v(as3711, brightness,
++					      AS3711_STEPUP_CONTROL_1);
++	} else {
++		const struct as3711_bl_pdata *pdata = supply->pdata;
++
++		switch (pdata->su2_feedback) {
++		case AS3711_SU2_VOLTAGE:
++			ret = as3711_set_brightness_v(as3711, brightness,
++						      AS3711_STEPUP_CONTROL_2);
++			break;
++		case AS3711_SU2_CURR_AUTO:
++			ret = as3711_set_brightness_auto_i(data, brightness / 4);
++			if (ret < 0)
++				return ret;
++			if (brightness) {
++				ret = as3711_bl_su2_reset(supply);
++				if (ret < 0)
++					return ret;
++				udelay(500);
++				ret = as3711_set_brightness_auto_i(data, brightness);
++			} else {
++				ret = regmap_update_bits(as3711->regmap,
++						AS3711_STEPUP_CONTROL_2, 1, 0);
++			}
++			break;
++		/* Manual one current feedback pin below */
++		case AS3711_SU2_CURR1:
++			ret = regmap_write(as3711->regmap, AS3711_CURR1_VALUE,
++					   brightness);
++			break;
++		case AS3711_SU2_CURR2:
++			ret = regmap_write(as3711->regmap, AS3711_CURR2_VALUE,
++					   brightness);
++			break;
++		case AS3711_SU2_CURR3:
++			ret = regmap_write(as3711->regmap, AS3711_CURR3_VALUE,
++					   brightness);
++			break;
++		default:
++			ret = -EINVAL;
++		}
++	}
++	if (!ret)
++		data->brightness = brightness;
++
++	return ret;
++}
++
++static int as3711_bl_get_brightness(struct backlight_device *bl)
++{
++	struct as3711_bl_data *data = bl_get_data(bl);
++
++	return data->brightness;
++}
++
++static const struct backlight_ops as3711_bl_ops = {
++	.update_status	= as3711_bl_update_status,
++	.get_brightness	= as3711_bl_get_brightness,
++};
++
++static int as3711_bl_init_su2(struct as3711_bl_supply *supply)
++{
++	struct as3711 *as3711 = supply->as3711;
++	const struct as3711_bl_pdata *pdata = supply->pdata;
++	u8 ctl = 0;
++	int ret;
++
++	dev_dbg(as3711->dev, "%s(): use %u\n", __func__, pdata->su2_feedback);
++
++	/* Turn SU2 off */
++	ret = regmap_write(as3711->regmap, AS3711_STEPUP_CONTROL_2, 0);
++	if (ret < 0)
++		return ret;
++
++	switch (pdata->su2_feedback) {
++	case AS3711_SU2_VOLTAGE:
++		ret = regmap_update_bits(as3711->regmap, AS3711_STEPUP_CONTROL_4, 3, 0);
++		break;
++	case AS3711_SU2_CURR1:
++		ctl = 1;
++		ret = regmap_update_bits(as3711->regmap, AS3711_STEPUP_CONTROL_4, 3, 1);
++		break;
++	case AS3711_SU2_CURR2:
++		ctl = 4;
++		ret = regmap_update_bits(as3711->regmap, AS3711_STEPUP_CONTROL_4, 3, 2);
++		break;
++	case AS3711_SU2_CURR3:
++		ctl = 0x10;
++		ret = regmap_update_bits(as3711->regmap, AS3711_STEPUP_CONTROL_4, 3, 3);
++		break;
++	case AS3711_SU2_CURR_AUTO:
++		if (pdata->su2_auto_curr1)
++			ctl = 2;
++		if (pdata->su2_auto_curr2)
++			ctl |= 8;
++		if (pdata->su2_auto_curr3)
++			ctl |= 0x20;
++		ret = 0;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	if (!ret)
++		ret = regmap_write(as3711->regmap, AS3711_CURR_CONTROL, ctl);
++
++	return ret;
++}
++
++static int as3711_bl_register(struct platform_device *pdev,
++			      unsigned int max_brightness, struct as3711_bl_data *su)
++{
++	struct backlight_properties props = {.type = BACKLIGHT_RAW,};
++	struct backlight_device *bl;
++
++	/* max tuning I = 31uA for voltage- and 38250uA for current-feedback */
++	props.max_brightness = max_brightness;
++
++	bl = backlight_device_register(su->type == AS3711_BL_SU1 ?
++				       "as3711-su1" : "as3711-su2",
++				       &pdev->dev, su,
++				       &as3711_bl_ops, &props);
++	if (IS_ERR(bl)) {
++		dev_err(&pdev->dev, "failed to register backlight\n");
++		return PTR_ERR(bl);
++	}
++
++	bl->props.brightness = props.max_brightness;
++
++	backlight_update_status(bl);
++
++	su->bl = bl;
++
++	return 0;
++}
++
++static int as3711_backlight_probe(struct platform_device *pdev)
++{
++	struct as3711_bl_pdata *pdata = dev_get_platdata(&pdev->dev);
++	struct as3711 *as3711 = dev_get_drvdata(pdev->dev.parent);
++	struct as3711_bl_supply *supply;
++	struct as3711_bl_data *su;
++	unsigned int max_brightness;
++	int ret;
++
++	if (!pdata || (!pdata->su1_fb && !pdata->su2_fb)) {
++		dev_err(&pdev->dev, "No platform data, exiting...\n");
++		return -ENODEV;
++	}
++
++	/*
++	 * Due to possible hardware damage I chose to block all modes,
++	 * unsupported on my hardware. Anyone, wishing to use any of those modes
++	 * will have to first review the code, then activate and test it.
++	 */
++	if (pdata->su1_fb ||
++	    pdata->su2_fbprot != AS3711_SU2_GPIO4 ||
++	    pdata->su2_feedback != AS3711_SU2_CURR_AUTO) {
++		dev_warn(&pdev->dev,
++			 "Attention! An untested mode has been chosen!\n"
++			 "Please, review the code, enable, test, and report success:-)\n");
++		return -EINVAL;
++	}
++
++	supply = devm_kzalloc(&pdev->dev, sizeof(*supply), GFP_KERNEL);
++	if (!supply)
++		return -ENOMEM;
++
++	supply->as3711 = as3711;
++	supply->pdata = pdata;
++
++	if (pdata->su1_fb) {
++		su = &supply->su1;
++		su->fb_name = pdata->su1_fb;
++		su->type = AS3711_BL_SU1;
++
++		max_brightness = min(pdata->su1_max_uA, 31);
++		ret = as3711_bl_register(pdev, max_brightness, su);
++		if (ret < 0)
++			return ret;
++	}
++
++	if (pdata->su2_fb) {
++		su = &supply->su2;
++		su->fb_name = pdata->su2_fb;
++		su->type = AS3711_BL_SU2;
++
++		switch (pdata->su2_fbprot) {
++		case AS3711_SU2_GPIO2:
++		case AS3711_SU2_GPIO3:
++		case AS3711_SU2_GPIO4:
++		case AS3711_SU2_LX_SD4:
++			break;
++		default:
++			ret = -EINVAL;
++			goto esu2;
++		}
++
++		switch (pdata->su2_feedback) {
++		case AS3711_SU2_VOLTAGE:
++			max_brightness = min(pdata->su2_max_uA, 31);
++			break;
++		case AS3711_SU2_CURR1:
++		case AS3711_SU2_CURR2:
++		case AS3711_SU2_CURR3:
++		case AS3711_SU2_CURR_AUTO:
++			max_brightness = min(pdata->su2_max_uA / 150, 255);
++			break;
++		default:
++			ret = -EINVAL;
++			goto esu2;
++		}
++
++		ret = as3711_bl_init_su2(supply);
++		if (ret < 0)
++			return ret;
++
++		ret = as3711_bl_register(pdev, max_brightness, su);
++		if (ret < 0)
++			goto esu2;
++	}
++
++	platform_set_drvdata(pdev, supply);
++
++	return 0;
++
++esu2:
++	backlight_device_unregister(supply->su1.bl);
++	return ret;
++}
++
++static int as3711_backlight_remove(struct platform_device *pdev)
++{
++	struct as3711_bl_supply *supply = platform_get_drvdata(pdev);
++
++	backlight_device_unregister(supply->su1.bl);
++	backlight_device_unregister(supply->su2.bl);
++
++	return 0;
++}
++
++static struct platform_driver as3711_backlight_driver = {
++	.driver		= {
++		.name	= "as3711-backlight",
++		.owner	= THIS_MODULE,
++	},
++	.probe		= as3711_backlight_probe,
++	.remove		= as3711_backlight_remove,
++};
++
++module_platform_driver(as3711_backlight_driver);
++
++MODULE_DESCRIPTION("Backlight Driver for AS3711 PMICs");
++MODULE_AUTHOR("Guennadi Liakhovetski <g.liakhovetski@gmx.de");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:as3711-backlight");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from g.liakhovetski@gmx.de are
 
-fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
 linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
-bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
-i-need-old-gcc.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch
-mm.patch
-mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
-mm-hugetlbc-convert-to-pr_foo.patch
-cma-make-putback_lru_pages-call-conditional-fix.patch
-mm-vmscan-clean-up-get_scan_count-fix.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
-mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
-mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
-mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
-mm-remove-flags-argument-to-mmap_region-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
-memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
-memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix.patch
-memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch
-cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved-fix.patch
-cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
-acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
-memory-failure-do-code-refactor-of-soft_offline_page.patch
-memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
-mm-dont-inline-page_mapping.patch
-swap-make-each-swap-partition-have-one-address_space-fix.patch
-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
-memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
-memcg-fast-hierarchy-aware-child-test-fix.patch
-mm-rename-page-struct-field-helpers.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-kernel-smpc-cleanups.patch
-backlight-add-lms501kf03-lcd-driver-fix.patch
-backlight-add-lms501kf03-lcd-driver-fix-fix.patch
-backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
-drivers-video-backlight-makefile-cleanup.patch
-checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix-fix.patch
-rtc-max77686-add-maxim-77686-driver-fix.patch
-rtc-pcf8523-add-low-battery-voltage-support-fix.patch
-rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
-rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
-signal-allow-to-send-any-siginfo-to-itself-fix.patch
-signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
-fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch
-fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes.patch
-drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
-userns-improve-uid-gid-map-collision-detection-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-use-cancellation-list-lazily-fix-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+backlight-add-an-as3711-pmic-backlight-driver.patch
 
