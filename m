@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch added to -mm tree
-Date: Fri, 25 Jan 2013 16:41:00 -0800
-Message-ID: <20130126004101.4352A31C210@corp2gmr1-1.hot.corp.google.com>
+Subject: + fb-backlight-add-the-himax-hx-8357b-lcd-controller.patch added to -mm tree
+Date: Fri, 25 Jan 2013 16:43:24 -0800
+Message-ID: <20130126004324.BE52831C1F5@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f202.google.com ([209.85.160.202]:64128 "EHLO
-	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755006Ab3AZAlD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 Jan 2013 19:41:03 -0500
-Received: by mail-gh0-f202.google.com with SMTP id z10so96683ghb.3
-        for <mm-commits@vger.kernel.org>; Fri, 25 Jan 2013 16:41:02 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:43338 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753441Ab3AZAn0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 Jan 2013 19:43:26 -0500
+Received: by mail-qa0-f74.google.com with SMTP id r4so12235qaq.1
+        for <mm-commits@vger.kernel.org>; Fri, 25 Jan 2013 16:43:25 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hpa@zytor.com, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, laijs@cn.fujitsu.com, len.brown@intel.com, lenb@kernel.org, mingo@elte.hu, tangchen@cn.fujitsu.com, tglx@linutronix.de, wujianguo@huawei.com
+Cc: maxime.ripard@free-electrons.com, FlorianSchandinat@gmx.de, brian@crystalfontz.com, grant.likely@secretlab.ca, jg1.han@samsung.com, rob.herring@calxeda.com, rpurdie@rpsys.net, shawn.guo@linaro.org
 
 
 The patch titled
-     Subject: acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix
+     Subject: fb: backlight: add the Himax HX-8357B LCD controller
 has been added to the -mm tree.  Its filename is
-     acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
+     fb-backlight-add-the-himax-hx-8357b-lcd-controller.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,233 +33,543 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+Subject: fb: backlight: add the Himax HX-8357B LCD controller
 
-clean up code, fix build warning
-
-Cc: "Brown, Len" <len.brown@intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jiang Liu <jiang.liu@huawei.com>
-Cc: Jianguo Wu <wujianguo@huawei.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Wu Jianguo <wujianguo@huawei.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Jingoo Han <jg1.han@samsung.com>
+Cc: Shawn Guo <shawn.guo@linaro.org>
+Cc: Brian Lilly <brian@crystalfontz.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Rob Herring <rob.herring@calxeda.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/srat.c |   93 ++++++++++++++++++++++---------------------
- 1 file changed, 49 insertions(+), 44 deletions(-)
+ drivers/video/backlight/Kconfig  |    7 
+ drivers/video/backlight/Makefile |    1 
+ drivers/video/backlight/hx8357.c |  482 +++++++++++++++++++++++++++++
+ 3 files changed, 490 insertions(+)
 
-diff -puN arch/x86/mm/srat.c~acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix arch/x86/mm/srat.c
---- a/arch/x86/mm/srat.c~acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix
-+++ a/arch/x86/mm/srat.c
-@@ -142,50 +142,8 @@ static inline int save_add_info(void) {r
- #endif
+diff -puN drivers/video/backlight/Kconfig~fb-backlight-add-the-himax-hx-8357b-lcd-controller drivers/video/backlight/Kconfig
+--- a/drivers/video/backlight/Kconfig~fb-backlight-add-the-himax-hx-8357b-lcd-controller
++++ a/drivers/video/backlight/Kconfig
+@@ -134,6 +134,13 @@ config LCD_LMS501KF03
+ 	  If you have an LMS501KF03 LCD Panel, say Y to enable its
+ 	  LCD control driver.
  
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
--extern struct movablemem_map movablemem_map;
--#endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
--
--/* Callback for parsing of the Proximity Domain <-> Memory Area mappings */
--int __init
--acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
-+static void __init handle_movablemem(int node, u64 start, u64 end)
- {
--	u64 start, end;
--	u32 hotpluggable;
--	int node, pxm;
--
--	if (srat_disabled())
--		goto out_err;
--	if (ma->header.length != sizeof(struct acpi_srat_mem_affinity))
--		goto out_err_bad_srat;
--	if ((ma->flags & ACPI_SRAT_MEM_ENABLED) == 0)
--		goto out_err;
--	hotpluggable = ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE;
--	if (hotpluggable && !save_add_info())
--		goto out_err;
--
--	start = ma->base_address;
--	end = start + ma->length;
--	pxm = ma->proximity_domain;
--	if (acpi_srat_revision <= 1)
--		pxm &= 0xff;
--
--	node = setup_node(pxm);
--	if (node < 0) {
--		printk(KERN_ERR "SRAT: Too many proximity domains.\n");
--		goto out_err_bad_srat;
--	}
--
--	if (numa_add_memblk(node, start, end) < 0)
--		goto out_err_bad_srat;
--
--	node_set(node, numa_nodes_parsed);
--
--	printk(KERN_INFO "SRAT: Node %u PXM %u [mem %#010Lx-%#010Lx] %s\n",
--	       node, pxm,
--	       (unsigned long long) start, (unsigned long long) end - 1,
--	       hotpluggable ? "Hot Pluggable": "");
--
--#ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
- 	int overlap;
- 	unsigned long start_pfn, end_pfn;
++config LCD_HX8357
++	tristate "Himax HX-8357 LCD Driver"
++	depends on SPI
++	help
++	  If you have a HX-8357 LCD panel, say Y to enable its LCD control
++	  driver.
++
+ endif # LCD_CLASS_DEVICE
  
-@@ -229,7 +187,54 @@ acpi_numa_memory_affinity_init(struct ac
- 			 */
- 			insert_movablemem_map(start_pfn, end_pfn);
- 	}
--#endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
-+}
-+#else		/* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
-+static inline void handle_movablemem(int node, u64 start, u64 end)
+ #
+diff -puN drivers/video/backlight/Makefile~fb-backlight-add-the-himax-hx-8357b-lcd-controller drivers/video/backlight/Makefile
+--- a/drivers/video/backlight/Makefile~fb-backlight-add-the-himax-hx-8357b-lcd-controller
++++ a/drivers/video/backlight/Makefile
+@@ -3,6 +3,7 @@
+ obj-$(CONFIG_LCD_CLASS_DEVICE)     += lcd.o
+ obj-$(CONFIG_LCD_CORGI)		   += corgi_lcd.o
+ obj-$(CONFIG_LCD_HP700)		   += jornada720_lcd.o
++obj-$(CONFIG_LCD_HX8357)	   += hx8357.o
+ obj-$(CONFIG_LCD_L4F00242T03)	   += l4f00242t03.o
+ obj-$(CONFIG_LCD_LMS283GF05)	   += lms283gf05.o
+ obj-$(CONFIG_LCD_LTV350QV)	   += ltv350qv.o
+diff -puN /dev/null drivers/video/backlight/hx8357.c
+--- /dev/null
++++ a/drivers/video/backlight/hx8357.c
+@@ -0,0 +1,482 @@
++/*
++ * Driver for the Himax HX-8357 LCD Controller
++ *
++ * Copyright 2012 Free Electrons
++ *
++ * Licensed under the GPLv2 or later.
++ */
++
++#include <linux/delay.h>
++#include <linux/lcd.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/of_device.h>
++#include <linux/of_gpio.h>
++#include <linux/spi/spi.h>
++
++#define HX8357_NUM_IM_PINS	3
++
++#define HX8357_SWRESET			0x01
++#define HX8357_GET_RED_CHANNEL		0x06
++#define HX8357_GET_GREEN_CHANNEL	0x07
++#define HX8357_GET_BLUE_CHANNEL		0x08
++#define HX8357_GET_POWER_MODE		0x0a
++#define HX8357_GET_MADCTL		0x0b
++#define HX8357_GET_PIXEL_FORMAT		0x0c
++#define HX8357_GET_DISPLAY_MODE		0x0d
++#define HX8357_GET_SIGNAL_MODE		0x0e
++#define HX8357_GET_DIAGNOSTIC_RESULT	0x0f
++#define HX8357_ENTER_SLEEP_MODE		0x10
++#define HX8357_EXIT_SLEEP_MODE		0x11
++#define HX8357_ENTER_PARTIAL_MODE	0x12
++#define HX8357_ENTER_NORMAL_MODE	0x13
++#define HX8357_EXIT_INVERSION_MODE	0x20
++#define HX8357_ENTER_INVERSION_MODE	0x21
++#define HX8357_SET_DISPLAY_OFF		0x28
++#define HX8357_SET_DISPLAY_ON		0x29
++#define HX8357_SET_COLUMN_ADDRESS	0x2a
++#define HX8357_SET_PAGE_ADDRESS		0x2b
++#define HX8357_WRITE_MEMORY_START	0x2c
++#define HX8357_READ_MEMORY_START	0x2e
++#define HX8357_SET_PARTIAL_AREA		0x30
++#define HX8357_SET_SCROLL_AREA		0x33
++#define HX8357_SET_TEAR_OFF		0x34
++#define HX8357_SET_TEAR_ON		0x35
++#define HX8357_SET_ADDRESS_MODE		0x36
++#define HX8357_SET_SCROLL_START		0x37
++#define HX8357_EXIT_IDLE_MODE		0x38
++#define HX8357_ENTER_IDLE_MODE		0x39
++#define HX8357_SET_PIXEL_FORMAT		0x3a
++#define HX8357_SET_PIXEL_FORMAT_DBI_3BIT	(0x1)
++#define HX8357_SET_PIXEL_FORMAT_DBI_16BIT	(0x5)
++#define HX8357_SET_PIXEL_FORMAT_DBI_18BIT	(0x6)
++#define HX8357_SET_PIXEL_FORMAT_DPI_3BIT	(0x1 << 4)
++#define HX8357_SET_PIXEL_FORMAT_DPI_16BIT	(0x5 << 4)
++#define HX8357_SET_PIXEL_FORMAT_DPI_18BIT	(0x6 << 4)
++#define HX8357_WRITE_MEMORY_CONTINUE	0x3c
++#define HX8357_READ_MEMORY_CONTINUE	0x3e
++#define HX8357_SET_TEAR_SCAN_LINES	0x44
++#define HX8357_GET_SCAN_LINES		0x45
++#define HX8357_READ_DDB_START		0xa1
++#define HX8357_SET_DISPLAY_MODE		0xb4
++#define HX8357_SET_DISPLAY_MODE_RGB_THROUGH	(0x3)
++#define HX8357_SET_DISPLAY_MODE_RGB_INTERFACE	(1 << 4)
++#define HX8357_SET_PANEL_DRIVING	0xc0
++#define HX8357_SET_DISPLAY_FRAME	0xc5
++#define HX8357_SET_RGB			0xc6
++#define HX8357_SET_RGB_ENABLE_HIGH		(1 << 1)
++#define HX8357_SET_GAMMA		0xc8
++#define HX8357_SET_POWER		0xd0
++#define HX8357_SET_VCOM			0xd1
++#define HX8357_SET_POWER_NORMAL		0xd2
++#define HX8357_SET_PANEL_RELATED	0xe9
++
++struct hx8357_data {
++	unsigned		im_pins[HX8357_NUM_IM_PINS];
++	unsigned		reset;
++	struct spi_device	*spi;
++	int			state;
++};
++
++static int hx8357_spi_write_then_read(struct lcd_device *lcdev,
++				void *txbuf, u16 txlen,
++				void *rxbuf, u16 rxlen)
 +{
-+}
-+#endif		/* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
++	struct hx8357_data *lcd = lcd_get_data(lcdev);
++	struct spi_message msg;
++	struct spi_transfer xfer[2];
++	u16 *local_txbuf = NULL;
++	int ret = 0;
 +
-+/* Callback for parsing of the Proximity Domain <-> Memory Area mappings */
-+int __init
-+acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
-+{
-+	u64 start, end;
-+	u32 hotpluggable;
-+	int node, pxm;
++	memset(xfer, 0, sizeof(xfer));
++	spi_message_init(&msg);
 +
-+	if (srat_disabled())
-+		goto out_err;
-+	if (ma->header.length != sizeof(struct acpi_srat_mem_affinity))
-+		goto out_err_bad_srat;
-+	if ((ma->flags & ACPI_SRAT_MEM_ENABLED) == 0)
-+		goto out_err;
-+	hotpluggable = ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE;
-+	if (hotpluggable && !save_add_info())
-+		goto out_err;
++	if (txlen) {
++		int i;
 +
-+	start = ma->base_address;
-+	end = start + ma->length;
-+	pxm = ma->proximity_domain;
-+	if (acpi_srat_revision <= 1)
-+		pxm &= 0xff;
++		local_txbuf = kcalloc(sizeof(*local_txbuf), txlen, GFP_KERNEL);
 +
-+	node = setup_node(pxm);
-+	if (node < 0) {
-+		printk(KERN_ERR "SRAT: Too many proximity domains.\n");
-+		goto out_err_bad_srat;
++		if (!local_txbuf) {
++			dev_err(&lcdev->dev, "Couldn't allocate data buffer.\n");
++			return -ENOMEM;
++		}
++
++		for (i = 0; i < txlen; i++) {
++			local_txbuf[i] = ((u8 *)txbuf)[i];
++			if (i > 0)
++				local_txbuf[i] |= 1 << 8;
++		}
++
++		xfer[0].len = 2 * txlen;
++		xfer[0].bits_per_word = 9;
++		xfer[0].tx_buf = local_txbuf;
++		spi_message_add_tail(&xfer[0], &msg);
 +	}
 +
-+	if (numa_add_memblk(node, start, end) < 0)
-+		goto out_err_bad_srat;
++	if (rxlen) {
++		xfer[1].len = rxlen;
++		xfer[1].bits_per_word = 8;
++		xfer[1].rx_buf = rxbuf;
++		spi_message_add_tail(&xfer[1], &msg);
++	}
 +
-+	node_set(node, numa_nodes_parsed);
++	ret = spi_sync(lcd->spi, &msg);
++	if (ret < 0)
++		dev_err(&lcdev->dev, "Couldn't send SPI data.\n");
 +
-+	printk(KERN_INFO "SRAT: Node %u PXM %u [mem %#010Lx-%#010Lx] %s\n",
-+	       node, pxm,
-+	       (unsigned long long) start, (unsigned long long) end - 1,
-+	       hotpluggable ? "Hot Pluggable": "");
++	if (txlen)
++		kfree(local_txbuf);
 +
-+	handle_movablemem(node, start, end);
- 
- 	return 0;
- out_err_bad_srat:
++	return ret;
++}
++
++static inline int hx8357_spi_write_array(struct lcd_device *lcdev,
++					u8 *value, u8 len)
++{
++	return hx8357_spi_write_then_read(lcdev, value, len, NULL, 0);
++}
++
++static inline int hx8357_spi_write_byte(struct lcd_device *lcdev,
++					u8 value)
++{
++	return hx8357_spi_write_then_read(lcdev, &value, 1, NULL, 0);
++}
++
++static int hx8357_enter_standby(struct lcd_device *lcdev)
++{
++	int ret;
++
++	ret = hx8357_spi_write_byte(lcdev, HX8357_SET_DISPLAY_OFF);
++	if (ret < 0)
++		return ret;
++
++	usleep_range(10000, 12000);
++
++	ret = hx8357_spi_write_byte(lcdev, HX8357_ENTER_SLEEP_MODE);
++	if (ret < 0)
++		return ret;
++
++	msleep(120);
++
++	return 0;
++}
++
++static int hx8357_exit_standby(struct lcd_device *lcdev)
++{
++	int ret;
++
++	ret = hx8357_spi_write_byte(lcdev, HX8357_EXIT_SLEEP_MODE);
++	if (ret < 0)
++		return ret;
++
++	msleep(120);
++
++	ret = hx8357_spi_write_byte(lcdev, HX8357_SET_DISPLAY_ON);
++	if (ret < 0)
++		return ret;
++
++	return 0;
++}
++
++static int hx8357_lcd_init(struct lcd_device *lcdev)
++{
++	struct hx8357_data *lcd = lcd_get_data(lcdev);
++	u8 buf[16];
++	int ret;
++
++	/*
++	 * Set the interface selection pins to SPI mode, with three
++	 * wires
++	 */
++	gpio_set_value_cansleep(lcd->im_pins[0], 1);
++	gpio_set_value_cansleep(lcd->im_pins[1], 0);
++	gpio_set_value_cansleep(lcd->im_pins[2], 1);
++
++	/* Reset the screen */
++	gpio_set_value(lcd->reset, 1);
++	usleep_range(10000, 12000);
++	gpio_set_value(lcd->reset, 0);
++	usleep_range(10000, 12000);
++	gpio_set_value(lcd->reset, 1);
++	msleep(120);
++
++	buf[0] = HX8357_SET_POWER;
++	buf[1] = 0x44;
++	buf[2] = 0x41;
++	buf[3] = 0x06;
++	ret = hx8357_spi_write_array(lcdev, buf, 4);
++	if (ret < 0)
++		return ret;
++
++	buf[0] = HX8357_SET_VCOM;
++	buf[1] = 0x40;
++	buf[2] = 0x10;
++	ret = hx8357_spi_write_array(lcdev, buf, 3);
++	if (ret < 0)
++		return ret;
++
++	buf[0] = HX8357_SET_POWER_NORMAL;
++	buf[1] = 0x05;
++	buf[2] = 0x12;
++	ret = hx8357_spi_write_array(lcdev, buf, 3);
++	if (ret < 0)
++		return ret;
++
++	buf[0] = HX8357_SET_PANEL_DRIVING;
++	buf[1] = 0x14;
++	buf[2] = 0x3b;
++	buf[3] = 0x00;
++	buf[4] = 0x02;
++	buf[5] = 0x11;
++	ret = hx8357_spi_write_array(lcdev, buf, 6);
++	if (ret < 0)
++		return ret;
++
++	buf[0] = HX8357_SET_DISPLAY_FRAME;
++	buf[1] = 0x0c;
++	ret = hx8357_spi_write_array(lcdev, buf, 2);
++	if (ret < 0)
++		return ret;
++
++	buf[0] = HX8357_SET_PANEL_RELATED;
++	buf[1] = 0x01;
++	ret = hx8357_spi_write_array(lcdev, buf, 2);
++	if (ret < 0)
++		return ret;
++
++	buf[0] = 0xea;
++	buf[1] = 0x03;
++	buf[2] = 0x00;
++	buf[3] = 0x00;
++	ret = hx8357_spi_write_array(lcdev, buf, 4);
++	if (ret < 0)
++		return ret;
++
++	buf[0] = 0xeb;
++	buf[1] = 0x40;
++	buf[2] = 0x54;
++	buf[3] = 0x26;
++	buf[4] = 0xdb;
++	ret = hx8357_spi_write_array(lcdev, buf, 5);
++	if (ret < 0)
++		return ret;
++
++	buf[0] = HX8357_SET_GAMMA;
++	buf[1] = 0x00;
++	buf[2] = 0x15;
++	buf[3] = 0x00;
++	buf[4] = 0x22;
++	buf[5] = 0x00;
++	buf[6] = 0x08;
++	buf[7] = 0x77;
++	buf[8] = 0x26;
++	buf[9] = 0x77;
++	buf[10] = 0x22;
++	buf[11] = 0x04;
++	buf[12] = 0x00;
++	ret = hx8357_spi_write_array(lcdev, buf, 13);
++	if (ret < 0)
++		return ret;
++
++	buf[0] = HX8357_SET_ADDRESS_MODE;
++	buf[1] = 0xc0;
++	ret = hx8357_spi_write_array(lcdev, buf, 2);
++	if (ret < 0)
++		return ret;
++
++	buf[0] = HX8357_SET_PIXEL_FORMAT;
++	buf[1] = HX8357_SET_PIXEL_FORMAT_DPI_18BIT |
++		HX8357_SET_PIXEL_FORMAT_DBI_18BIT;
++	ret = hx8357_spi_write_array(lcdev, buf, 2);
++	if (ret < 0)
++		return ret;
++
++	buf[0] = HX8357_SET_COLUMN_ADDRESS;
++	buf[1] = 0x00;
++	buf[2] = 0x00;
++	buf[3] = 0x01;
++	buf[4] = 0x3f;
++	ret = hx8357_spi_write_array(lcdev, buf, 5);
++	if (ret < 0)
++		return ret;
++
++	buf[0] = HX8357_SET_PAGE_ADDRESS;
++	buf[1] = 0x00;
++	buf[2] = 0x00;
++	buf[3] = 0x01;
++	buf[4] = 0xdf;
++	ret = hx8357_spi_write_array(lcdev, buf, 5);
++	if (ret < 0)
++		return ret;
++
++	buf[0] = HX8357_SET_RGB;
++	buf[1] = 0x02;
++	ret = hx8357_spi_write_array(lcdev, buf, 2);
++	if (ret < 0)
++		return ret;
++
++	buf[0] = HX8357_SET_DISPLAY_MODE;
++	buf[1] = HX8357_SET_DISPLAY_MODE_RGB_THROUGH |
++		HX8357_SET_DISPLAY_MODE_RGB_INTERFACE;
++	ret = hx8357_spi_write_array(lcdev, buf, 2);
++	if (ret < 0)
++		return ret;
++
++	ret = hx8357_spi_write_byte(lcdev, HX8357_EXIT_SLEEP_MODE);
++	if (ret < 0)
++		return ret;
++
++	msleep(120);
++
++	ret = hx8357_spi_write_byte(lcdev, HX8357_SET_DISPLAY_ON);
++	if (ret < 0)
++		return ret;
++
++	usleep_range(5000, 7000);
++
++	ret = hx8357_spi_write_byte(lcdev, HX8357_WRITE_MEMORY_START);
++	if (ret < 0)
++		return ret;
++
++	return 0;
++}
++
++#define POWER_IS_ON(pwr)	((pwr) <= FB_BLANK_NORMAL)
++
++static int hx8357_set_power(struct lcd_device *lcdev, int power)
++{
++	struct hx8357_data *lcd = lcd_get_data(lcdev);
++	int ret = 0;
++
++	if (POWER_IS_ON(power) && !POWER_IS_ON(lcd->state))
++		ret = hx8357_exit_standby(lcdev);
++	else if (!POWER_IS_ON(power) && POWER_IS_ON(lcd->state))
++		ret = hx8357_enter_standby(lcdev);
++
++	if (ret == 0)
++		lcd->state = power;
++	else
++		dev_warn(&lcdev->dev, "failed to set power mode %d\n", power);
++
++	return ret;
++}
++
++static int hx8357_get_power(struct lcd_device *lcdev)
++{
++	struct hx8357_data *lcd = lcd_get_data(lcdev);
++
++	return lcd->state;
++}
++
++static struct lcd_ops hx8357_ops = {
++	.set_power	= hx8357_set_power,
++	.get_power	= hx8357_get_power,
++};
++
++static int hx8357_probe(struct spi_device *spi)
++{
++	struct lcd_device *lcdev;
++	struct hx8357_data *lcd;
++	int i, ret;
++
++	lcd = devm_kzalloc(&spi->dev, sizeof(*lcd), GFP_KERNEL);
++	if (!lcd) {
++		dev_err(&spi->dev, "Couldn't allocate lcd internal structure!\n");
++		return -ENOMEM;
++	}
++
++	ret = spi_setup(spi);
++	if (ret < 0) {
++		dev_err(&spi->dev, "SPI setup failed.\n");
++		return ret;
++	}
++
++	lcd->spi = spi;
++
++	lcd->reset = of_get_named_gpio(spi->dev.of_node, "gpios-reset", 0);
++	if (!gpio_is_valid(lcd->reset)) {
++		dev_err(&spi->dev, "Missing dt property: gpios-reset\n");
++		return -EINVAL;
++	}
++
++	ret = devm_gpio_request_one(&spi->dev, lcd->reset,
++				    GPIOF_OUT_INIT_HIGH,
++				    "hx8357-reset");
++	if (ret) {
++		dev_err(&spi->dev,
++			"failed to request gpio %d: %d\n",
++			lcd->reset, ret);
++		return -EINVAL;
++	}
++
++	for (i = 0; i < HX8357_NUM_IM_PINS; i++) {
++		lcd->im_pins[i] = of_get_named_gpio(spi->dev.of_node,
++						"im-gpios", i);
++		if (lcd->im_pins[i] == -EPROBE_DEFER) {
++			dev_info(&spi->dev, "GPIO requested is not here yet, deferring the probe\n");
++			return -EPROBE_DEFER;
++		}
++		if (!gpio_is_valid(lcd->im_pins[i])) {
++			dev_err(&spi->dev, "Missing dt property: im-gpios\n");
++			return -EINVAL;
++		}
++
++		ret = devm_gpio_request_one(&spi->dev, lcd->im_pins[i],
++					GPIOF_OUT_INIT_LOW, "im_pins");
++		if (ret) {
++			dev_err(&spi->dev, "failed to request gpio %d: %d\n",
++				lcd->im_pins[i], ret);
++			return -EINVAL;
++		}
++	}
++
++	lcdev = lcd_device_register("mxsfb", &spi->dev, lcd, &hx8357_ops);
++	if (IS_ERR(lcdev)) {
++		ret = PTR_ERR(lcdev);
++		return ret;
++	}
++	spi_set_drvdata(spi, lcdev);
++
++	ret = hx8357_lcd_init(lcdev);
++	if (ret) {
++		dev_err(&spi->dev, "Couldn't initialize panel\n");
++		goto init_error;
++	}
++
++	dev_info(&spi->dev, "Panel probed\n");
++
++	return 0;
++
++init_error:
++	lcd_device_unregister(lcdev);
++	return ret;
++}
++
++static int hx8357_remove(struct spi_device *spi)
++{
++	struct lcd_device *lcdev = spi_get_drvdata(spi);
++
++	lcd_device_unregister(lcdev);
++	return 0;
++}
++
++static const struct of_device_id hx8357_dt_ids[] = {
++	{ .compatible = "himax,hx8357" },
++	{},
++};
++MODULE_DEVICE_TABLE(of, hx8357_dt_ids);
++
++static struct spi_driver hx8357_driver = {
++	.probe  = hx8357_probe,
++	.remove = hx8357_remove,
++	.driver = {
++		.name = "hx8357",
++		.of_match_table = of_match_ptr(hx8357_dt_ids),
++	},
++};
++
++module_spi_driver(hx8357_driver);
++
++MODULE_AUTHOR("Maxime Ripard <maxime.ripard@free-electrons.com>");
++MODULE_DESCRIPTION("Himax HX-8357 LCD Driver");
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from maxime.ripard@free-electrons.com are
 
-fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
 linux-next.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
-bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
-i-need-old-gcc.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch
-mm.patch
-mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
-mm-hugetlbc-convert-to-pr_foo.patch
-cma-make-putback_lru_pages-call-conditional-fix.patch
-mm-vmscan-clean-up-get_scan_count-fix.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
-mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
-mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
-mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
-mm-remove-flags-argument-to-mmap_region-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
-memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
-memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix.patch
-memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch
-cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved-fix.patch
-cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
-acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
-memory-failure-do-code-refactor-of-soft_offline_page.patch
-memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
-mm-dont-inline-page_mapping.patch
-swap-make-each-swap-partition-have-one-address_space-fix.patch
-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
-memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
-memcg-fast-hierarchy-aware-child-test-fix.patch
-mm-rename-page-struct-field-helpers.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-kernel-smpc-cleanups.patch
-backlight-add-lms501kf03-lcd-driver-fix.patch
-backlight-add-lms501kf03-lcd-driver-fix-fix.patch
-backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
-checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix-fix.patch
-rtc-max77686-add-maxim-77686-driver-fix.patch
-rtc-pcf8523-add-low-battery-voltage-support-fix.patch
-rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
-rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
-signal-allow-to-send-any-siginfo-to-itself-fix.patch
-signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
-fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch
-fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes.patch
-drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
-userns-improve-uid-gid-map-collision-detection-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-mutex-use-spin_lock-instead-of-arch_spin_lock-fix.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-use-cancellation-list-lazily-fix-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+fb-backlight-add-the-himax-hx-8357b-lcd-controller.patch
 
