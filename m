@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + ksm-trivial-tidyups.patch added to -mm tree
-Date: Mon, 28 Jan 2013 15:50:34 -0800
-Message-ID: <20130128235035.3425631C204@corp2gmr1-1.hot.corp.google.com>
+Subject: + ksm-get_ksm_page-locked.patch added to -mm tree
+Date: Mon, 28 Jan 2013 15:50:42 -0800
+Message-ID: <20130128235043.40A8E31C2BF@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ia0-f201.google.com ([209.85.210.201]:50205 "EHLO
-	mail-ia0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753307Ab3A1Xuh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Jan 2013 18:50:37 -0500
-Received: by mail-ia0-f201.google.com with SMTP id t4so623309iag.0
-        for <mm-commits@vger.kernel.org>; Mon, 28 Jan 2013 15:50:36 -0800 (PST)
+Received: from mail-ia0-f202.google.com ([209.85.210.202]:41848 "EHLO
+	mail-ia0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753307Ab3A1Xup (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Jan 2013 18:50:45 -0500
+Received: by mail-ia0-f202.google.com with SMTP id p22so623296iad.1
+        for <mm-commits@vger.kernel.org>; Mon, 28 Jan 2013 15:50:44 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: hughd@google.com, aarcange@redhat.com, gerald.schaefer@de.ibm.com, izik.eidu
 
 
 The patch titled
-     Subject: ksm: trivial tidyups
+     Subject: ksm: get_ksm_page locked
 has been added to the -mm tree.  Its filename is
-     ksm-trivial-tidyups.patch
+     ksm-get_ksm_page-locked.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,18 +34,27 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: ksm: trivial tidyups
+Subject: ksm: get_ksm_page locked
 
-Add NUMA() and DO_NUMA() macros to minimize blight of #ifdef CONFIG_NUMAs
-(but indeed we don't want to expand struct rmap_item by nid when not
-NUMA).  Add comment, remove "unsigned" from rmap_item->nid, as "int nid"
-elsewhere.  Define ksm_merge_across_nodes 1U when #ifndef NUMA to help
-optimizing out.  Use ?: in get_kpfn_nid().  Adjust a few comments noticed
-in ongoing work.
+In some places where get_ksm_page() is used, we need the page to be locked.
 
-Leave stable_tree_insert()'s rb_linkage until after the node has been set
-up, as unstable_tree_search_insert() does: ksm_thread_mutex and page lock
-make either way safe, but we're going to copy and I prefer this precedent.
+When KSM migration is fully enabled, we shall want that to make sure that
+the page just acquired cannot be migrated beneath us (raised page count is
+only effective when there is serialization to make sure migration
+notices).  Whereas when navigating through the stable tree, we certainly
+do not want to lock each node (raised page count is enough to guarantee
+the memcmps, even if page is migrated to another node).
+
+Since we're about to add another use case, add the locked argument to
+get_ksm_page() now.
+
+Hmm, what's that rcu_read_lock() about?  Complete misunderstanding, I
+really got the wrong end of the stick on that!  There's a configuration in
+which page_cache_get_speculative() can do something cheaper than
+get_page_unless_zero(), relying on its caller's rcu_read_lock() to have
+disabled preemption for it.  There's no need for rcu_read_lock() around
+get_page_unless_zero() (and mapping checks) here.  Cut out that silliness
+before making this any harder to understand.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Rik van Riel <riel@redhat.com>
@@ -57,161 +66,88 @@ Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   48 ++++++++++++++++++++++--------------------------
- 1 file changed, 22 insertions(+), 26 deletions(-)
+ mm/ksm.c |   23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
 
-diff -puN mm/ksm.c~ksm-trivial-tidyups mm/ksm.c
---- a/mm/ksm.c~ksm-trivial-tidyups
+diff -puN mm/ksm.c~ksm-get_ksm_page-locked mm/ksm.c
+--- a/mm/ksm.c~ksm-get_ksm_page-locked
 +++ a/mm/ksm.c
-@@ -41,6 +41,14 @@
- #include <asm/tlbflush.h>
- #include "internal.h"
- 
-+#ifdef CONFIG_NUMA
-+#define NUMA(x)		(x)
-+#define DO_NUMA(x)	(x)
-+#else
-+#define NUMA(x)		(0)
-+#define DO_NUMA(x)	do { } while (0)
-+#endif
-+
- /*
-  * A few notes about the KSM scanning process,
-  * to make it easier to understand the data structures below:
-@@ -130,6 +138,7 @@ struct stable_node {
-  * @mm: the memory structure this rmap_item is pointing into
-  * @address: the virtual address this rmap_item tracks (+ flags in low bits)
-  * @oldchecksum: previous checksum of the page at that virtual address
-+ * @nid: NUMA node id of unstable tree in which linked (may not match page)
-  * @node: rb node of this rmap_item in the unstable tree
-  * @head: pointer to stable_node heading this list in the stable tree
-  * @hlist: link into hlist of rmap_items hanging off that stable_node
-@@ -141,7 +150,7 @@ struct rmap_item {
- 	unsigned long address;		/* + low bits used for flags below */
- 	unsigned int oldchecksum;	/* when unstable */
- #ifdef CONFIG_NUMA
--	unsigned int nid;
-+	int nid;
- #endif
- 	union {
- 		struct rb_node node;	/* when node of unstable tree */
-@@ -192,8 +201,12 @@ static unsigned int ksm_thread_pages_to_
- /* Milliseconds ksmd should sleep between batches */
- static unsigned int ksm_thread_sleep_millisecs = 20;
- 
-+#ifdef CONFIG_NUMA
- /* Zeroed when merging across nodes is not allowed */
- static unsigned int ksm_merge_across_nodes = 1;
-+#else
-+#define ksm_merge_across_nodes	1U
-+#endif
- 
- #define KSM_RUN_STOP	0
- #define KSM_RUN_MERGE	1
-@@ -456,10 +469,7 @@ out:		page = NULL;
-  */
- static inline int get_kpfn_nid(unsigned long kpfn)
- {
--	if (ksm_merge_across_nodes)
--		return 0;
--	else
--		return pfn_to_nid(kpfn);
-+	return ksm_merge_across_nodes ? 0 : pfn_to_nid(kpfn);
- }
- 
- static void remove_node_from_stable_tree(struct stable_node *stable_node)
-@@ -479,7 +489,6 @@ static void remove_node_from_stable_tree
- 	}
- 
- 	nid = get_kpfn_nid(stable_node->kpfn);
--
- 	rb_erase(&stable_node->node, &root_stable_tree[nid]);
- 	free_stable_node(stable_node);
- }
-@@ -578,13 +587,8 @@ static void remove_rmap_item_from_tree(s
- 		age = (unsigned char)(ksm_scan.seqnr - rmap_item->address);
- 		BUG_ON(age > 1);
- 		if (!age)
--#ifdef CONFIG_NUMA
- 			rb_erase(&rmap_item->node,
--					&root_unstable_tree[rmap_item->nid]);
--#else
--			rb_erase(&rmap_item->node, &root_unstable_tree[0]);
--#endif
--
-+				 &root_unstable_tree[NUMA(rmap_item->nid)]);
- 		ksm_pages_unshared--;
- 		rmap_item->address &= PAGE_MASK;
- 	}
-@@ -604,7 +608,7 @@ static void remove_trailing_rmap_items(s
- }
- 
- /*
-- * Though it's very tempting to unmerge in_stable_tree(rmap_item)s rather
-+ * Though it's very tempting to unmerge rmap_items from stable tree rather
-  * than check every pte of a given vma, the locking doesn't quite work for
-  * that - an rmap_item is assigned to the stable tree after inserting ksm
-  * page and upping mmap_sem.  Nor does it fit with the way we skip dup'ing
-@@ -1058,7 +1062,7 @@ static struct page *stable_tree_search(s
- }
- 
- /*
-- * stable_tree_insert - insert rmap_item pointing to new ksm page
-+ * stable_tree_insert - insert stable tree node pointing to new ksm page
-  * into the stable tree.
+@@ -514,15 +514,14 @@ static void remove_node_from_stable_tree
+  * but this is different - made simpler by ksm_thread_mutex being held, but
+  * interesting for assuming that no other use of the struct page could ever
+  * put our expected_mapping into page->mapping (or a field of the union which
+- * coincides with page->mapping).  The RCU calls are not for KSM at all, but
+- * to keep the page_count protocol described with page_cache_get_speculative.
++ * coincides with page->mapping).
   *
-  * This function returns the stable tree node just allocated on success,
-@@ -1108,13 +1112,11 @@ static struct stable_node *stable_tree_i
- 	if (!stable_node)
- 		return NULL;
- 
--	rb_link_node(&stable_node->node, parent, new);
--	rb_insert_color(&stable_node->node, &root_stable_tree[nid]);
--
- 	INIT_HLIST_HEAD(&stable_node->hlist);
--
- 	stable_node->kpfn = kpfn;
- 	set_page_stable_node(kpage, stable_node);
-+	rb_link_node(&stable_node->node, parent, new);
-+	rb_insert_color(&stable_node->node, &root_stable_tree[nid]);
- 
- 	return stable_node;
- }
-@@ -1170,8 +1172,6 @@ struct rmap_item *unstable_tree_search_i
- 		 * If tree_page has been migrated to another NUMA node, it
- 		 * will be flushed out and put into the right unstable tree
- 		 * next time: only merge with it if merge_across_nodes.
--		 * Just notice, we don't have similar problem for PageKsm
--		 * because their migration is disabled now. (62b61f611e)
- 		 */
- 		if (!ksm_merge_across_nodes && page_to_nid(tree_page) != nid) {
- 			put_page(tree_page);
-@@ -1195,9 +1195,7 @@ struct rmap_item *unstable_tree_search_i
- 
- 	rmap_item->address |= UNSTABLE_FLAG;
- 	rmap_item->address |= (ksm_scan.seqnr & SEQNR_MASK);
--#ifdef CONFIG_NUMA
--	rmap_item->nid = nid;
--#endif
-+	DO_NUMA(rmap_item->nid = nid);
- 	rb_link_node(&rmap_item->node, parent, new);
- 	rb_insert_color(&rmap_item->node, root);
- 
-@@ -1213,13 +1211,11 @@ struct rmap_item *unstable_tree_search_i
- static void stable_tree_append(struct rmap_item *rmap_item,
- 			       struct stable_node *stable_node)
+  * Note: it is possible that get_ksm_page() will return NULL one moment,
+  * then page the next, if the page is in between page_freeze_refs() and
+  * page_unfreeze_refs(): this shouldn't be a problem anywhere, the page
+  * is on its way to being freed; but it is an anomaly to bear in mind.
+  */
+-static struct page *get_ksm_page(struct stable_node *stable_node)
++static struct page *get_ksm_page(struct stable_node *stable_node, bool locked)
  {
--#ifdef CONFIG_NUMA
- 	/*
- 	 * Usually rmap_item->nid is already set correctly,
- 	 * but it may be wrong after switching merge_across_nodes.
- 	 */
--	rmap_item->nid = get_kpfn_nid(stable_node->kpfn);
--#endif
-+	DO_NUMA(rmap_item->nid = get_kpfn_nid(stable_node->kpfn));
- 	rmap_item->head = stable_node;
- 	rmap_item->address |= STABLE_FLAG;
- 	hlist_add_head(&rmap_item->hlist, &stable_node->hlist);
+ 	struct page *page;
+ 	void *expected_mapping;
+@@ -530,7 +529,6 @@ static struct page *get_ksm_page(struct 
+ 	page = pfn_to_page(stable_node->kpfn);
+ 	expected_mapping = (void *)stable_node +
+ 				(PAGE_MAPPING_ANON | PAGE_MAPPING_KSM);
+-	rcu_read_lock();
+ 	if (page->mapping != expected_mapping)
+ 		goto stale;
+ 	if (!get_page_unless_zero(page))
+@@ -539,10 +537,16 @@ static struct page *get_ksm_page(struct 
+ 		put_page(page);
+ 		goto stale;
+ 	}
+-	rcu_read_unlock();
++	if (locked) {
++		lock_page(page);
++		if (page->mapping != expected_mapping) {
++			unlock_page(page);
++			put_page(page);
++			goto stale;
++		}
++	}
+ 	return page;
+ stale:
+-	rcu_read_unlock();
+ 	remove_node_from_stable_tree(stable_node);
+ 	return NULL;
+ }
+@@ -558,11 +562,10 @@ static void remove_rmap_item_from_tree(s
+ 		struct page *page;
+ 
+ 		stable_node = rmap_item->head;
+-		page = get_ksm_page(stable_node);
++		page = get_ksm_page(stable_node, true);
+ 		if (!page)
+ 			goto out;
+ 
+-		lock_page(page);
+ 		hlist_del(&rmap_item->hlist);
+ 		unlock_page(page);
+ 		put_page(page);
+@@ -1042,7 +1045,7 @@ static struct page *stable_tree_search(s
+ 
+ 		cond_resched();
+ 		stable_node = rb_entry(node, struct stable_node, node);
+-		tree_page = get_ksm_page(stable_node);
++		tree_page = get_ksm_page(stable_node, false);
+ 		if (!tree_page)
+ 			return NULL;
+ 
+@@ -1086,7 +1089,7 @@ static struct stable_node *stable_tree_i
+ 
+ 		cond_resched();
+ 		stable_node = rb_entry(*new, struct stable_node, node);
+-		tree_page = get_ksm_page(stable_node);
++		tree_page = get_ksm_page(stable_node, false);
+ 		if (!tree_page)
+ 			return NULL;
+ 
 _
 
 Patches currently in -mm which might be from hughd@google.com are
