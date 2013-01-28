@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + ksm-make-merge_across_nodes-migration-safe.patch added to -mm tree
-Date: Mon, 28 Jan 2013 15:50:56 -0800
-Message-ID: <20130128235057.641575A4082@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-remove-offlining-arg-to-migrate_pages.patch added to -mm tree
+Date: Mon, 28 Jan 2013 15:51:05 -0800
+Message-ID: <20130128235106.4C0635A4082@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ia0-f202.google.com ([209.85.210.202]:64501 "EHLO
+Received: from mail-ia0-f202.google.com ([209.85.210.202]:36330 "EHLO
 	mail-ia0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753307Ab3A1Xu7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Jan 2013 18:50:59 -0500
-Received: by mail-ia0-f202.google.com with SMTP id p22so623185iad.5
-        for <mm-commits@vger.kernel.org>; Mon, 28 Jan 2013 15:50:58 -0800 (PST)
+	with ESMTP id S1753307Ab3A1XvI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Jan 2013 18:51:08 -0500
+Received: by mail-ia0-f202.google.com with SMTP id p22so623229iad.5
+        for <mm-commits@vger.kernel.org>; Mon, 28 Jan 2013 15:51:07 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: hughd@google.com, aarcange@redhat.com, gerald.schaefer@de.ibm.com, izik.eidu
 
 
 The patch titled
-     Subject: ksm: make !merge_across_nodes migration safe
+     Subject: mm: remove offlining arg to migrate_pages
 has been added to the -mm tree.  Its filename is
-     ksm-make-merge_across_nodes-migration-safe.patch
+     mm-remove-offlining-arg-to-migrate_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: ksm: make !merge_across_nodes migration safe
+Subject: mm: remove offlining arg to migrate_pages
 
-The new KSM NUMA merge_across_nodes knob introduces a problem, when it's
-set to non-default 0: if a KSM page is migrated to a different NUMA node,
-how do we migrate its stable node to the right tree?  And what if that
-collides with an existing stable node?
-
-ksm_migrate_page() can do no more than it's already doing, updating
-stable_node->kpfn: the stable tree itself cannot be manipulated without
-holding ksm_thread_mutex.  So accept that a stable tree may temporarily
-indicate a page belonging to the wrong NUMA node, leave updating until the
-next pass of ksmd, just be careful not to merge other pages on to a
-misplaced page.  Note nid of holding tree in stable_node, and recognize
-that it will not always match nid of kpfn.
-
-A misplaced KSM page is discovered, either when ksm_do_scan() next comes
-around to one of its rmap_items (we now have to go to cmp_and_merge_page
-even on pages in a stable tree), or when stable_tree_search() arrives at a
-matching node for another page, and this node page is found misplaced.
-
-In each case, move the misplaced stable_node to a list of migrate_nodes
-(and use the address of migrate_nodes as magic by which to identify them):
-we don't need them in a tree.  If stable_tree_search() finds no match for
-a page, but it's currently exiled to this list, then slot its stable_node
-right there into the tree, bringing all of its mappings with it; otherwise
-they get migrated one by one to the original page of the colliding node. 
-stable_tree_search() is now modelled more like stable_tree_insert(), in
-order to handle these insertions of migrated nodes.
-
-remove_node_from_stable_tree(), remove_all_stable_nodes() and
-ksm_check_stable_tree() have to handle the migrate_nodes list as well as
-the stable tree itself.  Less obviously, we do need to prune the list of
-stale entries from time to time (scan_get_next_rmap_item() does it once
-each full scan): whereas stale nodes in the stable tree get naturally
-pruned as searches try to brush past them, these migrate_nodes may get
-forgotten and accumulate.
+No functional change, but the only purpose of the offlining argument to
+migrate_pages() etc, was to ensure that __unmap_and_move() could migrate a
+KSM page for memory hotremove (which took ksm_thread_mutex) but not for
+other callers.  Now all cases are safe, remove the arg.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Rik van Riel <riel@redhat.com>
@@ -81,321 +51,245 @@ Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |  164 +++++++++++++++++++++++++++++++++++++++++++----------
- 1 file changed, 134 insertions(+), 30 deletions(-)
+ include/linux/migrate.h |   14 ++++++--------
+ mm/compaction.c         |    2 +-
+ mm/memory-failure.c     |    7 +++----
+ mm/memory_hotplug.c     |    3 +--
+ mm/mempolicy.c          |    8 +++-----
+ mm/migrate.c            |   35 +++++++++++++----------------------
+ mm/page_alloc.c         |    6 ++----
+ 7 files changed, 29 insertions(+), 46 deletions(-)
 
-diff -puN mm/ksm.c~ksm-make-merge_across_nodes-migration-safe mm/ksm.c
---- a/mm/ksm.c~ksm-make-merge_across_nodes-migration-safe
-+++ a/mm/ksm.c
-@@ -122,13 +122,25 @@ struct ksm_scan {
- /**
-  * struct stable_node - node of the stable rbtree
-  * @node: rb node of this ksm page in the stable tree
-+ * @head: (overlaying parent) &migrate_nodes indicates temporarily on that list
-+ * @list: linked into migrate_nodes, pending placement in the proper node tree
-  * @hlist: hlist head of rmap_items using this ksm page
-- * @kpfn: page frame number of this ksm page
-+ * @kpfn: page frame number of this ksm page (perhaps temporarily on wrong nid)
-+ * @nid: NUMA node id of stable tree in which linked (may not match kpfn)
-  */
- struct stable_node {
--	struct rb_node node;
-+	union {
-+		struct rb_node node;	/* when node of stable tree */
-+		struct {		/* when listed for migration */
-+			struct list_head *head;
-+			struct list_head list;
-+		};
-+	};
- 	struct hlist_head hlist;
- 	unsigned long kpfn;
-+#ifdef CONFIG_NUMA
-+	int nid;
-+#endif
- };
+diff -puN include/linux/migrate.h~mm-remove-offlining-arg-to-migrate_pages include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-remove-offlining-arg-to-migrate_pages
++++ a/include/linux/migrate.h
+@@ -40,11 +40,9 @@ extern void putback_movable_pages(struct
+ extern int migrate_page(struct address_space *,
+ 			struct page *, struct page *, enum migrate_mode);
+ extern int migrate_pages(struct list_head *l, new_page_t x,
+-			unsigned long private, bool offlining,
+-			enum migrate_mode mode, int reason);
++		unsigned long private, enum migrate_mode mode, int reason);
+ extern int migrate_huge_page(struct page *, new_page_t x,
+-			unsigned long private, bool offlining,
+-			enum migrate_mode mode);
++		unsigned long private, enum migrate_mode mode);
  
- /**
-@@ -169,6 +181,9 @@ struct rmap_item {
- static struct rb_root root_unstable_tree[MAX_NUMNODES];
- static struct rb_root root_stable_tree[MAX_NUMNODES];
+ extern int fail_migrate_page(struct address_space *,
+ 			struct page *, struct page *);
+@@ -62,11 +60,11 @@ extern int migrate_huge_page_move_mappin
+ static inline void putback_lru_pages(struct list_head *l) {}
+ static inline void putback_movable_pages(struct list_head *l) {}
+ static inline int migrate_pages(struct list_head *l, new_page_t x,
+-		unsigned long private, bool offlining,
+-		enum migrate_mode mode, int reason) { return -ENOSYS; }
++		unsigned long private, enum migrate_mode mode, int reason)
++	{ return -ENOSYS; }
+ static inline int migrate_huge_page(struct page *page, new_page_t x,
+-		unsigned long private, bool offlining,
+-		enum migrate_mode mode) { return -ENOSYS; }
++		unsigned long private, enum migrate_mode mode)
++	{ return -ENOSYS; }
  
-+/* Recently migrated nodes of stable tree, pending proper placement */
-+static LIST_HEAD(migrate_nodes);
-+
- #define MM_SLOTS_HASH_BITS 10
- static DEFINE_HASHTABLE(mm_slots_hash, MM_SLOTS_HASH_BITS);
+ static inline int migrate_prep(void) { return -ENOSYS; }
+ static inline int migrate_prep_local(void) { return -ENOSYS; }
+diff -puN mm/compaction.c~mm-remove-offlining-arg-to-migrate_pages mm/compaction.c
+--- a/mm/compaction.c~mm-remove-offlining-arg-to-migrate_pages
++++ a/mm/compaction.c
+@@ -980,7 +980,7 @@ static int compact_zone(struct zone *zon
  
-@@ -311,11 +326,6 @@ static void insert_to_mm_slots_hash(stru
- 	hash_add(mm_slots_hash, &mm_slot->link, (unsigned long)mm);
- }
+ 		nr_migrate = cc->nr_migratepages;
+ 		err = migrate_pages(&cc->migratepages, compaction_alloc,
+-				(unsigned long)cc, false,
++				(unsigned long)cc,
+ 				cc->sync ? MIGRATE_SYNC_LIGHT : MIGRATE_ASYNC,
+ 				MR_COMPACTION);
+ 		update_nr_listpages(cc);
+diff -puN mm/memory-failure.c~mm-remove-offlining-arg-to-migrate_pages mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-remove-offlining-arg-to-migrate_pages
++++ a/mm/memory-failure.c
+@@ -1455,7 +1455,7 @@ static int soft_offline_huge_page(struct
+ 	unlock_page(hpage);
  
--static inline int in_stable_tree(struct rmap_item *rmap_item)
--{
--	return rmap_item->address & STABLE_FLAG;
--}
--
- /*
-  * ksmd, and unmerge_and_remove_all_rmap_items(), must not touch an mm's
-  * page tables after it has passed through ksm_exit() - which, if necessary,
-@@ -476,7 +486,6 @@ static void remove_node_from_stable_tree
- {
- 	struct rmap_item *rmap_item;
- 	struct hlist_node *hlist;
--	int nid;
- 
- 	hlist_for_each_entry(rmap_item, hlist, &stable_node->hlist, hlist) {
- 		if (rmap_item->hlist.next)
-@@ -488,8 +497,11 @@ static void remove_node_from_stable_tree
- 		cond_resched();
- 	}
- 
--	nid = get_kpfn_nid(stable_node->kpfn);
--	rb_erase(&stable_node->node, &root_stable_tree[nid]);
-+	if (stable_node->head == &migrate_nodes)
-+		list_del(&stable_node->list);
-+	else
-+		rb_erase(&stable_node->node,
-+			 &root_stable_tree[NUMA(stable_node->nid)]);
- 	free_stable_node(stable_node);
- }
- 
-@@ -712,6 +724,7 @@ static int remove_stable_node(struct sta
- static int remove_all_stable_nodes(void)
- {
- 	struct stable_node *stable_node;
-+	struct list_head *this, *next;
- 	int nid;
- 	int err = 0;
- 
-@@ -726,6 +739,12 @@ static int remove_all_stable_nodes(void)
- 			cond_resched();
- 		}
- 	}
-+	list_for_each_safe(this, next, &migrate_nodes) {
-+		stable_node = list_entry(this, struct stable_node, list);
-+		if (remove_stable_node(stable_node))
-+			err = -EBUSY;
-+		cond_resched();
-+	}
- 	return err;
- }
- 
-@@ -1113,25 +1132,30 @@ static struct page *try_to_merge_two_pag
-  */
- static struct page *stable_tree_search(struct page *page)
- {
--	struct rb_node *node;
--	struct stable_node *stable_node;
- 	int nid;
-+	struct rb_node **new;
-+	struct rb_node *parent;
-+	struct stable_node *stable_node;
-+	struct stable_node *page_node;
- 
--	stable_node = page_stable_node(page);
--	if (stable_node) {			/* ksm page forked */
-+	page_node = page_stable_node(page);
-+	if (page_node && page_node->head != &migrate_nodes) {
-+		/* ksm page forked */
- 		get_page(page);
- 		return page;
- 	}
- 
- 	nid = get_kpfn_nid(page_to_pfn(page));
--	node = root_stable_tree[nid].rb_node;
-+again:
-+	new = &root_stable_tree[nid].rb_node;
-+	parent = NULL;
- 
--	while (node) {
-+	while (*new) {
- 		struct page *tree_page;
- 		int ret;
- 
- 		cond_resched();
--		stable_node = rb_entry(node, struct stable_node, node);
-+		stable_node = rb_entry(*new, struct stable_node, node);
- 		tree_page = get_ksm_page(stable_node, false);
- 		if (!tree_page)
- 			return NULL;
-@@ -1139,10 +1163,11 @@ static struct page *stable_tree_search(s
- 		ret = memcmp_pages(page, tree_page);
- 		put_page(tree_page);
- 
-+		parent = *new;
- 		if (ret < 0)
--			node = node->rb_left;
-+			new = &parent->rb_left;
- 		else if (ret > 0)
--			node = node->rb_right;
-+			new = &parent->rb_right;
- 		else {
- 			/*
- 			 * Lock and unlock the stable_node's page (which
-@@ -1152,13 +1177,49 @@ static struct page *stable_tree_search(s
- 			 * than kpage, but that involves more changes.
- 			 */
- 			tree_page = get_ksm_page(stable_node, true);
--			if (tree_page)
-+			if (tree_page) {
- 				unlock_page(tree_page);
--			return tree_page;
-+				if (get_kpfn_nid(stable_node->kpfn) !=
-+						NUMA(stable_node->nid)) {
-+					put_page(tree_page);
-+					goto replace;
-+				}
-+				return tree_page;
-+			}
-+			/*
-+			 * There is now a place for page_node, but the tree may
-+			 * have been rebalanced, so re-evaluate parent and new.
-+			 */
-+			if (page_node)
-+				goto again;
-+			return NULL;
- 		}
- 	}
- 
--	return NULL;
-+	if (!page_node)
-+		return NULL;
-+
-+	list_del(&page_node->list);
-+	DO_NUMA(page_node->nid = nid);
-+	rb_link_node(&page_node->node, parent, new);
-+	rb_insert_color(&page_node->node, &root_stable_tree[nid]);
-+	get_page(page);
-+	return page;
-+
-+replace:
-+	if (page_node) {
-+		list_del(&page_node->list);
-+		DO_NUMA(page_node->nid = nid);
-+		rb_replace_node(&stable_node->node,
-+				&page_node->node, &root_stable_tree[nid]);
-+		get_page(page);
-+	} else {
-+		rb_erase(&stable_node->node, &root_stable_tree[nid]);
-+		page = NULL;
-+	}
-+	stable_node->head = &migrate_nodes;
-+	list_add(&stable_node->list, stable_node->head);
-+	return page;
- }
- 
- /*
-@@ -1215,6 +1276,7 @@ static struct stable_node *stable_tree_i
- 	INIT_HLIST_HEAD(&stable_node->hlist);
- 	stable_node->kpfn = kpfn;
- 	set_page_stable_node(kpage, stable_node);
-+	DO_NUMA(stable_node->nid = nid);
- 	rb_link_node(&stable_node->node, parent, new);
- 	rb_insert_color(&stable_node->node, &root_stable_tree[nid]);
- 
-@@ -1311,11 +1373,6 @@ struct rmap_item *unstable_tree_search_i
- static void stable_tree_append(struct rmap_item *rmap_item,
- 			       struct stable_node *stable_node)
- {
--	/*
--	 * Usually rmap_item->nid is already set correctly,
--	 * but it may be wrong after switching merge_across_nodes.
--	 */
--	DO_NUMA(rmap_item->nid = get_kpfn_nid(stable_node->kpfn));
- 	rmap_item->head = stable_node;
- 	rmap_item->address |= STABLE_FLAG;
- 	hlist_add_head(&rmap_item->hlist, &stable_node->hlist);
-@@ -1344,10 +1401,29 @@ static void cmp_and_merge_page(struct pa
- 	unsigned int checksum;
- 	int err;
- 
--	remove_rmap_item_from_tree(rmap_item);
-+	stable_node = page_stable_node(page);
-+	if (stable_node) {
-+		if (stable_node->head != &migrate_nodes &&
-+		    get_kpfn_nid(stable_node->kpfn) != NUMA(stable_node->nid)) {
-+			rb_erase(&stable_node->node,
-+				 &root_stable_tree[NUMA(stable_node->nid)]);
-+			stable_node->head = &migrate_nodes;
-+			list_add(&stable_node->list, stable_node->head);
-+		}
-+		if (stable_node->head != &migrate_nodes &&
-+		    rmap_item->head == stable_node)
-+			return;
-+	}
- 
- 	/* We first start with searching the page inside the stable tree */
- 	kpage = stable_tree_search(page);
-+	if (kpage == page && rmap_item->head == stable_node) {
-+		put_page(kpage);
-+		return;
-+	}
-+
-+	remove_rmap_item_from_tree(rmap_item);
-+
- 	if (kpage) {
- 		err = try_to_merge_with_ksm_page(rmap_item, page, kpage);
- 		if (!err) {
-@@ -1464,6 +1540,27 @@ static struct rmap_item *scan_get_next_r
+ 	/* Keep page count to indicate a given hugepage is isolated. */
+-	ret = migrate_huge_page(hpage, new_page, MPOL_MF_MOVE_ALL, false,
++	ret = migrate_huge_page(hpage, new_page, MPOL_MF_MOVE_ALL,
+ 				MIGRATE_SYNC);
+ 	put_page(hpage);
+ 	if (ret) {
+@@ -1587,11 +1587,10 @@ static int __soft_offline_page(struct pa
+ 	if (!ret) {
+ 		LIST_HEAD(pagelist);
+ 		inc_zone_page_state(page, NR_ISOLATED_ANON +
+-					    page_is_file_cache(page));
++					page_is_file_cache(page));
+ 		list_add(&page->lru, &pagelist);
+ 		ret = migrate_pages(&pagelist, new_page, MPOL_MF_MOVE_ALL,
+-							false, MIGRATE_SYNC,
+-							MR_MEMORY_FAILURE);
++					MIGRATE_SYNC, MR_MEMORY_FAILURE);
+ 		if (ret) {
+ 			putback_lru_pages(&pagelist);
+ 			pr_info("soft offline: %#lx: migration failed %d, type %lx\n",
+diff -puN mm/memory_hotplug.c~mm-remove-offlining-arg-to-migrate_pages mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-remove-offlining-arg-to-migrate_pages
++++ a/mm/memory_hotplug.c
+@@ -1286,8 +1286,7 @@ do_migrate_range(unsigned long start_pfn
+ 		 * migrate_pages returns # of failed pages.
  		 */
- 		lru_add_drain_all();
- 
-+		/*
-+		 * Whereas stale stable_nodes on the stable_tree itself
-+		 * get pruned in the regular course of stable_tree_search(),
-+		 * those moved out to the migrate_nodes list can accumulate:
-+		 * so prune them once before each full scan.
-+		 */
-+		if (!ksm_merge_across_nodes) {
-+			struct stable_node *stable_node;
-+			struct list_head *this, *next;
-+			struct page *page;
-+
-+			list_for_each_safe(this, next, &migrate_nodes) {
-+				stable_node = list_entry(this,
-+						struct stable_node, list);
-+				page = get_ksm_page(stable_node, false);
-+				if (page)
-+					put_page(page);
-+				cond_resched();
-+			}
-+		}
-+
- 		for (nid = 0; nid < nr_node_ids; nid++)
- 			root_unstable_tree[nid] = RB_ROOT;
- 
-@@ -1586,8 +1683,7 @@ static void ksm_do_scan(unsigned int sca
- 		rmap_item = scan_get_next_rmap_item(&page);
- 		if (!rmap_item)
- 			return;
--		if (!PageKsm(page) || !in_stable_tree(rmap_item))
--			cmp_and_merge_page(page, rmap_item);
-+		cmp_and_merge_page(page, rmap_item);
- 		put_page(page);
+ 		ret = migrate_pages(&source, alloc_migrate_target, 0,
+-							true, MIGRATE_SYNC,
+-							MR_MEMORY_HOTPLUG);
++					MIGRATE_SYNC, MR_MEMORY_HOTPLUG);
+ 		if (ret)
+ 			putback_lru_pages(&source);
  	}
- }
-@@ -1964,6 +2060,7 @@ static void ksm_check_stable_tree(unsign
- 				  unsigned long end_pfn)
- {
- 	struct stable_node *stable_node;
-+	struct list_head *this, *next;
- 	struct rb_node *node;
- 	int nid;
+diff -puN mm/mempolicy.c~mm-remove-offlining-arg-to-migrate_pages mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-remove-offlining-arg-to-migrate_pages
++++ a/mm/mempolicy.c
+@@ -1014,8 +1014,7 @@ static int migrate_to_node(struct mm_str
  
-@@ -1984,6 +2081,13 @@ static void ksm_check_stable_tree(unsign
- 			cond_resched();
+ 	if (!list_empty(&pagelist)) {
+ 		err = migrate_pages(&pagelist, new_node_page, dest,
+-							false, MIGRATE_SYNC,
+-							MR_SYSCALL);
++					MIGRATE_SYNC, MR_SYSCALL);
+ 		if (err)
+ 			putback_lru_pages(&pagelist);
+ 	}
+@@ -1259,9 +1258,8 @@ static long do_mbind(unsigned long start
+ 		if (!list_empty(&pagelist)) {
+ 			WARN_ON_ONCE(flags & MPOL_MF_LAZY);
+ 			nr_failed = migrate_pages(&pagelist, new_vma_page,
+-						(unsigned long)vma,
+-						false, MIGRATE_SYNC,
+-						MR_MEMPOLICY_MBIND);
++					(unsigned long)vma,
++					MIGRATE_SYNC, MR_MEMPOLICY_MBIND);
+ 			if (nr_failed)
+ 				putback_lru_pages(&pagelist);
  		}
- 	}
-+	list_for_each_safe(this, next, &migrate_nodes) {
-+		stable_node = list_entry(this, struct stable_node, list);
-+		if (stable_node->kpfn >= start_pfn &&
-+		    stable_node->kpfn < end_pfn)
-+			remove_node_from_stable_tree(stable_node);
-+		cond_resched();
-+	}
+diff -puN mm/migrate.c~mm-remove-offlining-arg-to-migrate_pages mm/migrate.c
+--- a/mm/migrate.c~mm-remove-offlining-arg-to-migrate_pages
++++ a/mm/migrate.c
+@@ -701,7 +701,7 @@ static int move_to_new_page(struct page 
  }
  
- static int ksm_memory_callback(struct notifier_block *self,
+ static int __unmap_and_move(struct page *page, struct page *newpage,
+-			int force, bool offlining, enum migrate_mode mode)
++				int force, enum migrate_mode mode)
+ {
+ 	int rc = -EAGAIN;
+ 	int remap_swapcache = 1;
+@@ -847,8 +847,7 @@ out:
+  * to the newly allocated page in newpage.
+  */
+ static int unmap_and_move(new_page_t get_new_page, unsigned long private,
+-			struct page *page, int force, bool offlining,
+-			enum migrate_mode mode)
++			struct page *page, int force, enum migrate_mode mode)
+ {
+ 	int rc = 0;
+ 	int *result = NULL;
+@@ -866,7 +865,7 @@ static int unmap_and_move(new_page_t get
+ 		if (unlikely(split_huge_page(page)))
+ 			goto out;
+ 
+-	rc = __unmap_and_move(page, newpage, force, offlining, mode);
++	rc = __unmap_and_move(page, newpage, force, mode);
+ 
+ 	if (unlikely(rc == MIGRATEPAGE_BALLOON_SUCCESS)) {
+ 		/*
+@@ -926,8 +925,7 @@ out:
+  */
+ static int unmap_and_move_huge_page(new_page_t get_new_page,
+ 				unsigned long private, struct page *hpage,
+-				int force, bool offlining,
+-				enum migrate_mode mode)
++				int force, enum migrate_mode mode)
+ {
+ 	int rc = 0;
+ 	int *result = NULL;
+@@ -989,9 +987,8 @@ out:
+  *
+  * Return: Number of pages not migrated or error code.
+  */
+-int migrate_pages(struct list_head *from,
+-		new_page_t get_new_page, unsigned long private, bool offlining,
+-		enum migrate_mode mode, int reason)
++int migrate_pages(struct list_head *from, new_page_t get_new_page,
++		unsigned long private, enum migrate_mode mode, int reason)
+ {
+ 	int retry = 1;
+ 	int nr_failed = 0;
+@@ -1012,8 +1009,7 @@ int migrate_pages(struct list_head *from
+ 			cond_resched();
+ 
+ 			rc = unmap_and_move(get_new_page, private,
+-						page, pass > 2, offlining,
+-						mode);
++						page, pass > 2, mode);
+ 
+ 			switch(rc) {
+ 			case -ENOMEM:
+@@ -1046,15 +1042,13 @@ out:
+ }
+ 
+ int migrate_huge_page(struct page *hpage, new_page_t get_new_page,
+-		      unsigned long private, bool offlining,
+-		      enum migrate_mode mode)
++		      unsigned long private, enum migrate_mode mode)
+ {
+ 	int pass, rc;
+ 
+ 	for (pass = 0; pass < 10; pass++) {
+-		rc = unmap_and_move_huge_page(get_new_page,
+-					      private, hpage, pass > 2, offlining,
+-					      mode);
++		rc = unmap_and_move_huge_page(get_new_page, private,
++						hpage, pass > 2, mode);
+ 		switch (rc) {
+ 		case -ENOMEM:
+ 			goto out;
+@@ -1177,8 +1171,7 @@ set_status:
+ 	err = 0;
+ 	if (!list_empty(&pagelist)) {
+ 		err = migrate_pages(&pagelist, new_page_node,
+-				(unsigned long)pm, 0, MIGRATE_SYNC,
+-				MR_SYSCALL);
++				(unsigned long)pm, MIGRATE_SYNC, MR_SYSCALL);
+ 		if (err)
+ 			putback_lru_pages(&pagelist);
+ 	}
+@@ -1613,10 +1606,8 @@ int migrate_misplaced_page(struct page *
+ 		goto out;
+ 
+ 	list_add(&page->lru, &migratepages);
+-	nr_remaining = migrate_pages(&migratepages,
+-			alloc_misplaced_dst_page,
+-			node, false, MIGRATE_ASYNC,
+-			MR_NUMA_MISPLACED);
++	nr_remaining = migrate_pages(&migratepages, alloc_misplaced_dst_page,
++				     node, MIGRATE_ASYNC, MR_NUMA_MISPLACED);
+ 	if (nr_remaining) {
+ 		putback_lru_pages(&migratepages);
+ 		isolated = 0;
+diff -puN mm/page_alloc.c~mm-remove-offlining-arg-to-migrate_pages mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-remove-offlining-arg-to-migrate_pages
++++ a/mm/page_alloc.c
+@@ -6079,10 +6079,8 @@ static int __alloc_contig_migrate_range(
+ 							&cc->migratepages);
+ 		cc->nr_migratepages -= nr_reclaimed;
+ 
+-		ret = migrate_pages(&cc->migratepages,
+-				    alloc_migrate_target,
+-				    0, false, MIGRATE_SYNC,
+-				    MR_CMA);
++		ret = migrate_pages(&cc->migratepages, alloc_migrate_target,
++				    0, MIGRATE_SYNC, MR_CMA);
+ 	}
+ 	if (ret < 0) {
+ 		putback_movable_pages(&cc->migratepages);
 _
 
 Patches currently in -mm which might be from hughd@google.com are
