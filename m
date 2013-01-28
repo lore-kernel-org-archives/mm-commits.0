@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + ksm-make-ksm-page-migration-possible.patch added to -mm tree
-Date: Mon, 28 Jan 2013 15:50:51 -0800
-Message-ID: <20130128235052.6714F31C1F2@corp2gmr1-1.hot.corp.google.com>
+Subject: + ksm-remove-old-stable-nodes-more-thoroughly.patch added to -mm tree
+Date: Mon, 28 Jan 2013 15:50:46 -0800
+Message-ID: <20130128235047.564395A41B9@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:42314 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753307Ab3A1Xuy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Jan 2013 18:50:54 -0500
-Received: by mail-ob0-f202.google.com with SMTP id lz20so703658obb.3
-        for <mm-commits@vger.kernel.org>; Mon, 28 Jan 2013 15:50:53 -0800 (PST)
+Received: from mail-ie0-f201.google.com ([209.85.223.201]:56204 "EHLO
+	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753307Ab3A1Xut (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Jan 2013 18:50:49 -0500
+Received: by mail-ie0-f201.google.com with SMTP id c14so129573ieb.0
+        for <mm-commits@vger.kernel.org>; Mon, 28 Jan 2013 15:50:48 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: hughd@google.com, aarcange@redhat.com, gerald.schaefer@de.ibm.com, izik.eidu
 
 
 The patch titled
-     Subject: ksm: make KSM page migration possible
+     Subject: ksm: remove old stable nodes more thoroughly
 has been added to the -mm tree.  Its filename is
-     ksm-make-ksm-page-migration-possible.patch
+     ksm-remove-old-stable-nodes-more-thoroughly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,49 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: ksm: make KSM page migration possible
+Subject: ksm: remove old stable nodes more thoroughly
 
-KSM page migration is already supported in the case of memory hotremove,
-which takes the ksm_thread_mutex across all its migrations to keep life
-simple.
+Switching merge_across_nodes after running KSM is liable to oops on stale
+nodes still left over from the previous stable tree.  It's not something
+that people will often want to do, but it would be lame to demand a reboot
+when they're trying to determine which merge_across_nodes setting is best.
 
-But the new KSM NUMA merge_across_nodes knob introduces a problem, when
-it's set to non-default 0: if a KSM page is migrated to a different NUMA
-node, how do we migrate its stable node to the right tree?  And what if
-that collides with an existing stable node?
+How can this happen?  We only permit switching merge_across_nodes when
+pages_shared is 0, and usually set run 2 to force that beforehand, which
+ought to unmerge everything: yet oopses still occur when you then run 1.
 
-So far there's no provision for that, and this patch does not attempt to
-deal with it either.  But how will I test a solution, when I don't know
-how to hotremove memory?  The best answer is to enable KSM page migration
-in all cases now, and test more common cases.  With THP and compaction
-added since KSM came in, page migration is now mainstream, and it's a
-shame that a KSM page can frustrate freeing a page block.
+Three causes:
 
-Without worrying about merge_across_nodes 0 for now, this patch gets KSM
-page migration working reliably for default merge_across_nodes 1 (but
-leave the patch enabling it until near the end of the series).
+1. The old stable tree (built according to the inverse
+   merge_across_nodes) has not been fully torn down.  A stable node
+   lingers until get_ksm_page() notices that the page it references no
+   longer references it: but the page is not necessarily freed as soon as
+   expected, particularly when swapcache.
 
-It's much simpler than I'd originally imagined, and does not require an
-additional tier of locking: page migration relies on the page lock, KSM
-page reclaim relies on the page lock, the page lock is enough for KSM page
-migration too.
+   Fix this with a pass through the old stable tree, applying
+   get_ksm_page() to each of the remaining nodes (most found stale and
+   removed immediately), with forced removal of any left over.  Unless the
+   page is still mapped: I've not seen that case, it shouldn't occur, but
+   better to WARN_ON_ONCE and EBUSY than BUG.
 
-Almost all the care has to be in get_ksm_page(): that's the function which
-worries about when a stable node is stale and should be freed, now it also
-has to worry about the KSM page being migrated.
+2. __ksm_enter() has a nice little optimization, to insert the new mm
+   just behind ksmd's cursor, so there's a full pass for it to stabilize
+   (or be removed) before ksmd addresses it.  Nice when ksmd is running,
+   but not so nice when we're trying to unmerge all mms: we were missing
+   those mms forked and inserted behind the unmerge cursor.  Easily fixed
+   by inserting at the end when KSM_RUN_UNMERGE.
 
-The only new overhead is an additional put/get/lock/unlock_page when
-stable_tree_search() arrives at a matching node: to make sure migration
-respects the raised page count, and so does not migrate the page while
-we're busy with it here.  That's probably avoidable, either by changing
-internal interfaces from using kpage to stable_node, or by moving the
-ksm_migrate_page() callsite into a page_freeze_refs() section (even if not
-swapcache); but this works well, I've no urge to pull it apart now.
+3.  It is possible for a KSM page to be faulted back from swapcache
+   into an mm, just after unmerge_and_remove_all_rmap_items() scanned past
+   it.  Fix this by copying on fault when KSM_RUN_UNMERGE: but that is
+   private to ksm.c, so dissolve the distinction between
+   ksm_might_need_to_copy() and ksm_does_need_to_copy(), doing it all in
+   the one call into ksm.c.
 
-(Descents of the stable tree may pass through nodes whose KSM pages are
-under migration: being unlocked, the raised page count does not prevent
-that, nor need it: it's safe to memcmp against either old or new page.)
-
-You might worry about mremap, and whether page migration's rmap_walk to
-remove migration entries will find all the KSM locations where it inserted
-earlier: that should already be handled, by the satisfyingly heavy hammer
-of move_vma()'s call to ksm_madvise(,,,MADV_UNMERGEABLE,).
+A long outstanding, unrelated bugfix sneaks in with that third fix:
+ksm_does_need_to_copy() would copy from a !PageUptodate page (implying I/O
+error when read in from swap) to a page which it then marks Uptodate.  Fix
+this case by not copying, letting do_swap_page() discover the error.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Rik van Riel <riel@redhat.com>
@@ -92,176 +88,213 @@ Cc: KOSAKI Motohiro <kosaki.motohiro@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c     |   94 ++++++++++++++++++++++++++++++++++++++-----------
- mm/migrate.c |    5 ++
- 2 files changed, 77 insertions(+), 22 deletions(-)
+ include/linux/ksm.h |   18 ++-------
+ mm/ksm.c            |   83 +++++++++++++++++++++++++++++++++++++++---
+ mm/memory.c         |   19 ++++-----
+ 3 files changed, 92 insertions(+), 28 deletions(-)
 
-diff -puN mm/ksm.c~ksm-make-ksm-page-migration-possible mm/ksm.c
---- a/mm/ksm.c~ksm-make-ksm-page-migration-possible
-+++ a/mm/ksm.c
-@@ -499,6 +499,7 @@ static void remove_node_from_stable_tree
-  * In which case we can trust the content of the page, and it
-  * returns the gotten page; but if the page has now been zapped,
-  * remove the stale node from the stable tree and return NULL.
-+ * But beware, the stable node's page might be being migrated.
-  *
-  * You would expect the stable_node to hold a reference to the ksm page.
-  * But if it increments the page's count, swapping out has to wait for
-@@ -509,44 +510,77 @@ static void remove_node_from_stable_tree
-  * pointing back to this stable node.  This relies on freeing a PageAnon
-  * page to reset its page->mapping to NULL, and relies on no other use of
-  * a page to put something that might look like our key in page->mapping.
-- *
-- * include/linux/pagemap.h page_cache_get_speculative() is a good reference,
-- * but this is different - made simpler by ksm_thread_mutex being held, but
-- * interesting for assuming that no other use of the struct page could ever
-- * put our expected_mapping into page->mapping (or a field of the union which
-- * coincides with page->mapping).
-- *
-- * Note: it is possible that get_ksm_page() will return NULL one moment,
-- * then page the next, if the page is in between page_freeze_refs() and
-- * page_unfreeze_refs(): this shouldn't be a problem anywhere, the page
-  * is on its way to being freed; but it is an anomaly to bear in mind.
-  */
- static struct page *get_ksm_page(struct stable_node *stable_node, bool locked)
- {
- 	struct page *page;
- 	void *expected_mapping;
-+	unsigned long kpfn;
+diff -puN include/linux/ksm.h~ksm-remove-old-stable-nodes-more-thoroughly include/linux/ksm.h
+--- a/include/linux/ksm.h~ksm-remove-old-stable-nodes-more-thoroughly
++++ a/include/linux/ksm.h
+@@ -16,9 +16,6 @@
+ struct stable_node;
+ struct mem_cgroup;
  
--	page = pfn_to_page(stable_node->kpfn);
- 	expected_mapping = (void *)stable_node +
- 				(PAGE_MAPPING_ANON | PAGE_MAPPING_KSM);
--	if (page->mapping != expected_mapping)
--		goto stale;
--	if (!get_page_unless_zero(page))
-+again:
-+	kpfn = ACCESS_ONCE(stable_node->kpfn);
-+	page = pfn_to_page(kpfn);
+-struct page *ksm_does_need_to_copy(struct page *page,
+-			struct vm_area_struct *vma, unsigned long address);
+-
+ #ifdef CONFIG_KSM
+ int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
+ 		unsigned long end, int advice, unsigned long *vm_flags);
+@@ -73,15 +70,8 @@ static inline void set_page_stable_node(
+  * We'd like to make this conditional on vma->vm_flags & VM_MERGEABLE,
+  * but what if the vma was unmerged while the page was swapped out?
+  */
+-static inline int ksm_might_need_to_copy(struct page *page,
+-			struct vm_area_struct *vma, unsigned long address)
+-{
+-	struct anon_vma *anon_vma = page_anon_vma(page);
+-
+-	return anon_vma &&
+-		(anon_vma->root != vma->anon_vma->root ||
+-		 page->index != linear_page_index(vma, address));
+-}
++struct page *ksm_might_need_to_copy(struct page *page,
++			struct vm_area_struct *vma, unsigned long address);
+ 
+ int page_referenced_ksm(struct page *page,
+ 			struct mem_cgroup *memcg, unsigned long *vm_flags);
+@@ -113,10 +103,10 @@ static inline int ksm_madvise(struct vm_
+ 	return 0;
+ }
+ 
+-static inline int ksm_might_need_to_copy(struct page *page,
++static inline struct page *ksm_might_need_to_copy(struct page *page,
+ 			struct vm_area_struct *vma, unsigned long address)
+ {
+-	return 0;
++	return page;
+ }
+ 
+ static inline int page_referenced_ksm(struct page *page,
+diff -puN mm/ksm.c~ksm-remove-old-stable-nodes-more-thoroughly mm/ksm.c
+--- a/mm/ksm.c~ksm-remove-old-stable-nodes-more-thoroughly
++++ a/mm/ksm.c
+@@ -644,6 +644,57 @@ static int unmerge_ksm_pages(struct vm_a
+ /*
+  * Only called through the sysfs control interface:
+  */
++static int remove_stable_node(struct stable_node *stable_node)
++{
++	struct page *page;
++	int err;
 +
-+	/*
-+	 * page is computed from kpfn, so on most architectures reading
-+	 * page->mapping is naturally ordered after reading node->kpfn,
-+	 * but on Alpha we need to be more careful.
-+	 */
-+	smp_read_barrier_depends();
-+	if (ACCESS_ONCE(page->mapping) != expected_mapping)
- 		goto stale;
--	if (page->mapping != expected_mapping) {
-+
-+	/*
-+	 * We cannot do anything with the page while its refcount is 0.
-+	 * Usually 0 means free, or tail of a higher-order page: in which
-+	 * case this node is no longer referenced, and should be freed;
-+	 * however, it might mean that the page is under page_freeze_refs().
-+	 * The __remove_mapping() case is easy, again the node is now stale;
-+	 * but if page is swapcache in migrate_page_move_mapping(), it might
-+	 * still be our page, in which case it's essential to keep the node.
-+	 */
-+	while (!get_page_unless_zero(page)) {
++	page = get_ksm_page(stable_node, true);
++	if (!page) {
 +		/*
-+		 * Another check for page->mapping != expected_mapping would
-+		 * work here too.  We have chosen the !PageSwapCache test to
-+		 * optimize the common case, when the page is or is about to
-+		 * be freed: PageSwapCache is cleared (under spin_lock_irq)
-+		 * in the freeze_refs section of __remove_mapping(); but Anon
-+		 * page->mapping reset to NULL later, in free_pages_prepare().
++		 * get_ksm_page did remove_node_from_stable_tree itself.
 +		 */
-+		if (!PageSwapCache(page))
-+			goto stale;
-+		cpu_relax();
++		return 0;
 +	}
 +
-+	if (ACCESS_ONCE(page->mapping) != expected_mapping) {
- 		put_page(page);
- 		goto stale;
- 	}
++	if (WARN_ON_ONCE(page_mapped(page)))
++		err = -EBUSY;
++	else {
++		/*
++		 * This page might be in a pagevec waiting to be freed,
++		 * or it might be PageSwapCache (perhaps under writeback),
++		 * or it might have been removed from swapcache a moment ago.
++		 */
++		set_page_stable_node(page, NULL);
++		remove_node_from_stable_tree(stable_node);
++		err = 0;
++	}
 +
- 	if (locked) {
- 		lock_page(page);
--		if (page->mapping != expected_mapping) {
-+		if (ACCESS_ONCE(page->mapping) != expected_mapping) {
- 			unlock_page(page);
- 			put_page(page);
- 			goto stale;
++	unlock_page(page);
++	put_page(page);
++	return err;
++}
++
++static int remove_all_stable_nodes(void)
++{
++	struct stable_node *stable_node;
++	int nid;
++	int err = 0;
++
++	for (nid = 0; nid < nr_node_ids; nid++) {
++		while (root_stable_tree[nid].rb_node) {
++			stable_node = rb_entry(root_stable_tree[nid].rb_node,
++						struct stable_node, node);
++			if (remove_stable_node(stable_node)) {
++				err = -EBUSY;
++				break;	/* proceed to next nid */
++			}
++			cond_resched();
++		}
++	}
++	return err;
++}
++
+ static int unmerge_and_remove_all_rmap_items(void)
+ {
+ 	struct mm_slot *mm_slot;
+@@ -691,6 +742,8 @@ static int unmerge_and_remove_all_rmap_i
  		}
  	}
- 	return page;
+ 
++	/* Clean up stable nodes, but don't worry if some are still busy */
++	remove_all_stable_nodes();
+ 	ksm_scan.seqnr = 0;
+ 	return 0;
+ 
+@@ -1586,11 +1639,19 @@ int __ksm_enter(struct mm_struct *mm)
+ 	spin_lock(&ksm_mmlist_lock);
+ 	insert_to_mm_slots_hash(mm, mm_slot);
+ 	/*
+-	 * Insert just behind the scanning cursor, to let the area settle
++	 * When KSM_RUN_MERGE (or KSM_RUN_STOP),
++	 * insert just behind the scanning cursor, to let the area settle
+ 	 * down a little; when fork is followed by immediate exec, we don't
+ 	 * want ksmd to waste time setting up and tearing down an rmap_list.
++	 *
++	 * But when KSM_RUN_UNMERGE, it's important to insert ahead of its
++	 * scanning cursor, otherwise KSM pages in newly forked mms will be
++	 * missed: then we might as well insert at the end of the list.
+ 	 */
+-	list_add_tail(&mm_slot->mm_list, &ksm_scan.mm_slot->mm_list);
++	if (ksm_run & KSM_RUN_UNMERGE)
++		list_add_tail(&mm_slot->mm_list, &ksm_mm_head.mm_list);
++	else
++		list_add_tail(&mm_slot->mm_list, &ksm_scan.mm_slot->mm_list);
+ 	spin_unlock(&ksm_mmlist_lock);
+ 
+ 	set_bit(MMF_VM_MERGEABLE, &mm->flags);
+@@ -1640,11 +1701,25 @@ void __ksm_exit(struct mm_struct *mm)
+ 	}
+ }
+ 
+-struct page *ksm_does_need_to_copy(struct page *page,
++struct page *ksm_might_need_to_copy(struct page *page,
+ 			struct vm_area_struct *vma, unsigned long address)
+ {
++	struct anon_vma *anon_vma = page_anon_vma(page);
+ 	struct page *new_page;
+ 
++	if (PageKsm(page)) {
++		if (page_stable_node(page) &&
++		    !(ksm_run & KSM_RUN_UNMERGE))
++			return page;	/* no need to copy it */
++	} else if (!anon_vma) {
++		return page;		/* no need to copy it */
++	} else if (anon_vma->root == vma->anon_vma->root &&
++		 page->index == linear_page_index(vma, address)) {
++		return page;		/* still no need to copy it */
++	}
++	if (!PageUptodate(page))
++		return page;		/* let do_swap_page report the error */
 +
- stale:
-+	/*
-+	 * We come here from above when page->mapping or !PageSwapCache
-+	 * suggests that the node is stale; but it might be under migration.
-+	 * We need smp_rmb(), matching the smp_wmb() in ksm_migrate_page(),
-+	 * before checking whether node->kpfn has been changed.
-+	 */
-+	smp_rmb();
-+	if (ACCESS_ONCE(stable_node->kpfn) != kpfn)
-+		goto again;
- 	remove_node_from_stable_tree(stable_node);
- 	return NULL;
- }
-@@ -1103,15 +1137,25 @@ static struct page *stable_tree_search(s
- 			return NULL;
+ 	new_page = alloc_page_vma(GFP_HIGHUSER_MOVABLE, vma, address);
+ 	if (new_page) {
+ 		copy_user_highpage(new_page, page, address, vma);
+@@ -2024,7 +2099,7 @@ static ssize_t merge_across_nodes_store(
  
- 		ret = memcmp_pages(page, tree_page);
-+		put_page(tree_page);
+ 	mutex_lock(&ksm_thread_mutex);
+ 	if (ksm_merge_across_nodes != knob) {
+-		if (ksm_pages_shared)
++		if (ksm_pages_shared || remove_all_stable_nodes())
+ 			err = -EBUSY;
+ 		else
+ 			ksm_merge_across_nodes = knob;
+diff -puN mm/memory.c~ksm-remove-old-stable-nodes-more-thoroughly mm/memory.c
+--- a/mm/memory.c~ksm-remove-old-stable-nodes-more-thoroughly
++++ a/mm/memory.c
+@@ -2994,17 +2994,16 @@ static int do_swap_page(struct mm_struct
+ 	if (unlikely(!PageSwapCache(page) || page_private(page) != entry.val))
+ 		goto out_page;
  
--		if (ret < 0) {
--			put_page(tree_page);
-+		if (ret < 0)
- 			node = node->rb_left;
--		} else if (ret > 0) {
--			put_page(tree_page);
-+		else if (ret > 0)
- 			node = node->rb_right;
--		} else
-+		else {
-+			/*
-+			 * Lock and unlock the stable_node's page (which
-+			 * might already have been migrated) so that page
-+			 * migration is sure to notice its raised count.
-+			 * It would be more elegant to return stable_node
-+			 * than kpage, but that involves more changes.
-+			 */
-+			tree_page = get_ksm_page(stable_node, true);
-+			if (tree_page)
-+				unlock_page(tree_page);
- 			return tree_page;
-+		}
- 	}
- 
- 	return NULL;
-@@ -1903,6 +1947,14 @@ void ksm_migrate_page(struct page *newpa
- 	if (stable_node) {
- 		VM_BUG_ON(stable_node->kpfn != page_to_pfn(oldpage));
- 		stable_node->kpfn = page_to_pfn(newpage);
-+		/*
-+		 * newpage->mapping was set in advance; now we need smp_wmb()
-+		 * to make sure that the new stable_node->kpfn is visible
-+		 * to get_ksm_page() before it can see that oldpage->mapping
-+		 * has gone stale (or that PageSwapCache has been cleared).
-+		 */
-+		smp_wmb();
-+		set_page_stable_node(oldpage, NULL);
- 	}
- }
- #endif /* CONFIG_MIGRATION */
-diff -puN mm/migrate.c~ksm-make-ksm-page-migration-possible mm/migrate.c
---- a/mm/migrate.c~ksm-make-ksm-page-migration-possible
-+++ a/mm/migrate.c
-@@ -464,7 +464,10 @@ void migrate_page_copy(struct page *newp
- 
- 	mlock_migrate_page(newpage, page);
- 	ksm_migrate_page(newpage, page);
+-	if (ksm_might_need_to_copy(page, vma, address)) {
+-		swapcache = page;
+-		page = ksm_does_need_to_copy(page, vma, address);
 -
-+	/*
-+	 * Please do not reorder this without considering how mm/ksm.c's
-+	 * get_ksm_page() depends upon ksm_migrate_page() and PageSwapCache().
-+	 */
- 	ClearPageSwapCache(page);
- 	ClearPagePrivate(page);
- 	set_page_private(page, 0);
+-		if (unlikely(!page)) {
+-			ret = VM_FAULT_OOM;
+-			page = swapcache;
+-			swapcache = NULL;
+-			goto out_page;
+-		}
++	swapcache = page;
++	page = ksm_might_need_to_copy(page, vma, address);
++	if (unlikely(!page)) {
++		ret = VM_FAULT_OOM;
++		page = swapcache;
++		swapcache = NULL;
++		goto out_page;
+ 	}
++	if (page == swapcache)
++		swapcache = NULL;
+ 
+ 	if (mem_cgroup_try_charge_swapin(mm, page, GFP_KERNEL, &ptr)) {
+ 		ret = VM_FAULT_OOM;
 _
 
 Patches currently in -mm which might be from hughd@google.com are
