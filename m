@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + firewire-dont-use-idr_remove_all.patch added to -mm tree
-Date: Mon, 28 Jan 2013 16:07:06 -0800
-Message-ID: <20130129000707.204375A42C5@corp2gmr1-2.hot.corp.google.com>
+Subject: + block-loop-dont-use-idr_remove_all.patch added to -mm tree
+Date: Mon, 28 Jan 2013 16:07:03 -0800
+Message-ID: <20130129000704.5175731C00F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f74.google.com ([209.85.219.74]:44979 "EHLO
-	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755805Ab3A2AHI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Jan 2013 19:07:08 -0500
-Received: by mail-oa0-f74.google.com with SMTP id h2so707167oag.1
-        for <mm-commits@vger.kernel.org>; Mon, 28 Jan 2013 16:07:08 -0800 (PST)
+Received: from mail-ob0-f202.google.com ([209.85.214.202]:52873 "EHLO
+	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755805Ab3A2AHG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Jan 2013 19:07:06 -0500
+Received: by mail-ob0-f202.google.com with SMTP id lz20so707083obb.3
+        for <mm-commits@vger.kernel.org>; Mon, 28 Jan 2013 16:07:06 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, stefanr@s5r6.in-berlin.de
+Cc: tj@kernel.org, axboe@kernel.dk
 
 
 The patch titled
-     Subject: firewire: don't use idr_remove_all()
+     Subject: block/loop: don't use idr_remove_all()
 has been added to the -mm tree.  Its filename is
-     firewire-dont-use-idr_remove_all.patch
+     block-loop-dont-use-idr_remove_all.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: firewire: don't use idr_remove_all()
+Subject: block/loop: don't use idr_remove_all()
 
 idr_destroy() can destroy idr by itself and idr_remove_all() is being
 deprecated.  Drop its usage.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Acked-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firewire/core-cdev.c |    1 -
+ drivers/block/loop.c |    1 -
  1 file changed, 1 deletion(-)
 
-diff -puN drivers/firewire/core-cdev.c~firewire-dont-use-idr_remove_all drivers/firewire/core-cdev.c
---- a/drivers/firewire/core-cdev.c~firewire-dont-use-idr_remove_all
-+++ a/drivers/firewire/core-cdev.c
-@@ -1779,7 +1779,6 @@ static int fw_device_op_release(struct i
- 	wait_event(client->tx_flush_wait, !has_outbound_transactions(client));
+diff -puN drivers/block/loop.c~block-loop-dont-use-idr_remove_all drivers/block/loop.c
+--- a/drivers/block/loop.c~block-loop-dont-use-idr_remove_all
++++ a/drivers/block/loop.c
+@@ -1911,7 +1911,6 @@ static void __exit loop_exit(void)
+ 	range = max_loop ? max_loop << part_shift : 1UL << MINORBITS;
  
- 	idr_for_each(&client->resource_idr, shutdown_resource, client);
--	idr_remove_all(&client->resource_idr);
- 	idr_destroy(&client->resource_idr);
+ 	idr_for_each(&loop_index_idr, &loop_exit_cb, NULL);
+-	idr_remove_all(&loop_index_idr);
+ 	idr_destroy(&loop_index_idr);
  
- 	list_for_each_entry_safe(event, next_event, &client->event_list, link)
+ 	blk_unregister_region(MKDEV(LOOP_MAJOR, 0), range);
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
