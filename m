@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + dlm-use-idr_for_each_entry-in-recover_idr_clear-error-path.patch added to -mm tree
-Date: Mon, 28 Jan 2013 16:07:20 -0800
-Message-ID: <20130129000721.362D231C00F@corp2gmr1-1.hot.corp.google.com>
+Subject: + dlm-dont-use-idr_remove_all.patch added to -mm tree
+Date: Mon, 28 Jan 2013 16:07:23 -0800
+Message-ID: <20130129000724.3E3A05A424E@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-oa0-f74.google.com ([209.85.219.74]:61090 "EHLO
-	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755812Ab3A2AHW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Jan 2013 19:07:22 -0500
-Received: by mail-oa0-f74.google.com with SMTP id h2so707140oag.3
-        for <mm-commits@vger.kernel.org>; Mon, 28 Jan 2013 16:07:22 -0800 (PST)
+Received: from mail-ie0-f201.google.com ([209.85.223.201]:36071 "EHLO
+	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755812Ab3A2AHZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Jan 2013 19:07:25 -0500
+Received: by mail-ie0-f201.google.com with SMTP id c14so130679ieb.2
+        for <mm-commits@vger.kernel.org>; Mon, 28 Jan 2013 16:07:25 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: tj@kernel.org, ccaulfie@redhat.com, teigland@redhat.com
 
 
 The patch titled
-     Subject: dlm: use idr_for_each_entry() in recover_idr_clear() error path
+     Subject: dlm: don't use idr_remove_all()
 has been added to the -mm tree.  Its filename is
-     dlm-use-idr_for_each_entry-in-recover_idr_clear-error-path.patch
+     dlm-dont-use-idr_remove_all.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: dlm: use idr_for_each_entry() in recover_idr_clear() error path
+Subject: dlm: don't use idr_remove_all()
 
-Convert recover_idr_clear() to use idr_for_each_entry() instead of
-idr_for_each().  It's somewhat less efficient this way but it
-shouldn't matter in an error path.  This is to help with deprecation
-of idr_remove_all().
+idr_destroy() can destroy idr by itself and idr_remove_all() is being
+deprecated.
+
+The conversion isn't completely trivial for recover_idr_clear() as it's
+the only place in kernel which makes legitimate use of idr_remove_all()
+w/o idr_destroy().  Replace it with idr_remove() call inside
+idr_for_each_entry() loop.  It goes on top so that it matches the
+operation order in recover_idr_del().
 
 Only compile tested.
 
@@ -49,46 +53,39 @@ Cc: David Teigland <teigland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dlm/recover.c |   23 ++++++++++-------------
- 1 file changed, 10 insertions(+), 13 deletions(-)
+ fs/dlm/lockspace.c |    1 -
+ fs/dlm/recover.c   |    2 +-
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/dlm/recover.c~dlm-use-idr_for_each_entry-in-recover_idr_clear-error-path fs/dlm/recover.c
---- a/fs/dlm/recover.c~dlm-use-idr_for_each_entry-in-recover_idr_clear-error-path
+diff -puN fs/dlm/lockspace.c~dlm-dont-use-idr_remove_all fs/dlm/lockspace.c
+--- a/fs/dlm/lockspace.c~dlm-dont-use-idr_remove_all
++++ a/fs/dlm/lockspace.c
+@@ -796,7 +796,6 @@ static int release_lockspace(struct dlm_
+ 	 */
+ 
+ 	idr_for_each(&ls->ls_lkbidr, lkb_idr_free, ls);
+-	idr_remove_all(&ls->ls_lkbidr);
+ 	idr_destroy(&ls->ls_lkbidr);
+ 
+ 	/*
+diff -puN fs/dlm/recover.c~dlm-dont-use-idr_remove_all fs/dlm/recover.c
+--- a/fs/dlm/recover.c~dlm-dont-use-idr_remove_all
 +++ a/fs/dlm/recover.c
-@@ -351,23 +351,20 @@ static struct dlm_rsb *recover_idr_find(
- 	return r;
- }
+@@ -359,13 +359,13 @@ static void recover_idr_clear(struct dlm
+ 	spin_lock(&ls->ls_recover_idr_lock);
  
--static int recover_idr_clear_rsb(int id, void *p, void *data)
-+static void recover_idr_clear(struct dlm_ls *ls)
- {
--	struct dlm_ls *ls = data;
--	struct dlm_rsb *r = p;
-+	struct dlm_rsb *r;
-+	int id;
+ 	idr_for_each_entry(&ls->ls_recover_idr, r, id) {
++		idr_remove(&ls->ls_recover_idr, id);
+ 		r->res_id = 0;
+ 		r->res_recover_locks_count = 0;
+ 		ls->ls_recover_list_count--;
  
--	r->res_id = 0;
--	r->res_recover_locks_count = 0;
--	ls->ls_recover_list_count--;
-+	spin_lock(&ls->ls_recover_idr_lock);
- 
--	dlm_put_rsb(r);
--	return 0;
--}
-+	idr_for_each_entry(&ls->ls_recover_idr, r, id) {
-+		r->res_id = 0;
-+		r->res_recover_locks_count = 0;
-+		ls->ls_recover_list_count--;
- 
--static void recover_idr_clear(struct dlm_ls *ls)
--{
--	spin_lock(&ls->ls_recover_idr_lock);
--	idr_for_each(&ls->ls_recover_idr, recover_idr_clear_rsb, ls);
-+		dlm_put_rsb(r);
-+	}
- 	idr_remove_all(&ls->ls_recover_idr);
+ 		dlm_put_rsb(r);
+ 	}
+-	idr_remove_all(&ls->ls_recover_idr);
  
  	if (ls->ls_recover_list_count != 0) {
+ 		log_error(ls, "warning: recover_list_count %d",
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
