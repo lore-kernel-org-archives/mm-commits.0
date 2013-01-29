@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + idr-deprecate-idr_remove_all.patch added to -mm tree
-Date: Mon, 28 Jan 2013 16:07:35 -0800
-Message-ID: <20130129000736.4779A5A419C@corp2gmr1-2.hot.corp.google.com>
+Subject: + inotify-remove-broken-mask-checks-causing-unmount-to-be-einval.patch added to -mm tree
+Date: Mon, 28 Jan 2013 16:17:12 -0800
+Message-ID: <20130129001712.D59F85A419C@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ia0-f202.google.com ([209.85.210.202]:54262 "EHLO
+Received: from mail-ia0-f202.google.com ([209.85.210.202]:45524 "EHLO
 	mail-ia0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755812Ab3A2AHh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Jan 2013 19:07:37 -0500
-Received: by mail-ia0-f202.google.com with SMTP id p22so626856iad.1
-        for <mm-commits@vger.kernel.org>; Mon, 28 Jan 2013 16:07:37 -0800 (PST)
+	with ESMTP id S1751166Ab3A2ARP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Jan 2013 19:17:15 -0500
+Received: by mail-ia0-f202.google.com with SMTP id p22so628426iad.3
+        for <mm-commits@vger.kernel.org>; Mon, 28 Jan 2013 16:17:15 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, arnd@arndb.de
+Cc: Jim.Somerville@windriver.com, eparis@parisplace.org, jmarchan@redhat.com, john@johnmccutchan.com, paul.gortmaker@windriver.com, rlove@rlove.org, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: idr: deprecate idr_remove_all()
+     Subject: inotify: remove broken mask checks causing unmount to be EINVAL
 has been added to the -mm tree.  Its filename is
-     idr-deprecate-idr_remove_all.patch
+     inotify-remove-broken-mask-checks-causing-unmount-to-be-einval.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,116 +33,83 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tejun Heo <tj@kernel.org>
-Subject: idr: deprecate idr_remove_all()
+From: Jim Somerville <Jim.Somerville@windriver.com>
+Subject: inotify: remove broken mask checks causing unmount to be EINVAL
 
-There was only one legitimate use of idr_remove_all() and a lot more
-of incorrect uses (or lack of it).  Now that idr_destroy() implies
-idr_remove_all() and all the in-kernel users updated not to use it,
-there's no reason to keep it around.  Mark it deprecated so that we
-can later unexport it.
+Running the command:
 
-idr_remove_all() is made an inline function calling __idr_remove_all()
-to avoid triggering deprecated warning on EXPORT_SYMBOL().
+	inotifywait -e unmount /mnt/disk
 
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
+immediately aborts with a -EINVAL return code.  This is however a valid
+parameter.  This abort occurs only if unmount is the sole event parameter.
+ If other event parameters are supplied, then the unmount event wait will
+work.
+
+The problem was introduced by commit 44b350fc23e ("inotify: Fix mask
+checks").  In that commit, it states:
+
+	The mask checks in inotify_update_existing_watch() and
+	inotify_new_watch() are useless because inotify_arg_to_mask()
+	sets FS_IN_IGNORED and FS_EVENT_ON_CHILD bits anyway.
+
+But instead of removing the useless checks, it did this:
+
+	        mask = inotify_arg_to_mask(arg);
+	-       if (unlikely(!mask))
+	+       if (unlikely(!(mask & IN_ALL_EVENTS)))
+	                return -EINVAL;
+
+The problem is that IN_ALL_EVENTS doesn't include IN_UNMOUNT, and other
+parts of the code keep IN_UNMOUNT separate from IN_ALL_EVENTS.  So the
+check should be:
+
+	if (unlikely(!(mask & (IN_ALL_EVENTS | IN_UNMOUNT))))
+
+But inotify_arg_to_mask(arg) always sets the IN_UNMOUNT bit in the mask
+anyway, so the check is always going to pass and thus should simply be
+removed.  Also note that inotify_arg_to_mask completely controls what mask
+bits get set from arg, there's no way for invalid bits to get enabled
+there.
+
+Lets fix it by simply removing the useless broken checks.
+
+Signed-off-by: Jim Somerville <Jim.Somerville@windriver.com>
+Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: John McCutchan <john@johnmccutchan.com>
+Cc: Robert Love <rlove@rlove.org>
+Cc: Eric Paris <eparis@parisplace.org>
+Cc: <stable@vger.kernel.org>		[2.6.37+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/idr.h |   14 +++++++++++++-
- lib/idr.c           |   10 +++-------
- 2 files changed, 16 insertions(+), 8 deletions(-)
+ fs/notify/inotify/inotify_user.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN include/linux/idr.h~idr-deprecate-idr_remove_all include/linux/idr.h
---- a/include/linux/idr.h~idr-deprecate-idr_remove_all
-+++ a/include/linux/idr.h
-@@ -110,10 +110,22 @@ int idr_for_each(struct idr *idp,
- void *idr_get_next(struct idr *idp, int *nextid);
- void *idr_replace(struct idr *idp, void *ptr, int id);
- void idr_remove(struct idr *idp, int id);
--void idr_remove_all(struct idr *idp);
- void idr_destroy(struct idr *idp);
- void idr_init(struct idr *idp);
+diff -puN fs/notify/inotify/inotify_user.c~inotify-remove-broken-mask-checks-causing-unmount-to-be-einval fs/notify/inotify/inotify_user.c
+--- a/fs/notify/inotify/inotify_user.c~inotify-remove-broken-mask-checks-causing-unmount-to-be-einval
++++ a/fs/notify/inotify/inotify_user.c
+@@ -576,8 +576,6 @@ static int inotify_update_existing_watch
  
-+void __idr_remove_all(struct idr *idp);	/* don't use */
-+
-+/**
-+ * idr_remove_all - remove all ids from the given idr tree
-+ * @idp: idr handle
-+ *
-+ * If you're trying to destroy @idp, calling idr_destroy() is enough.
-+ * This is going away.  Don't use.
-+ */
-+static inline void __deprecated idr_remove_all(struct idr *idp)
-+{
-+	__idr_remove_all(idp);
-+}
+ 	/* don't allow invalid bits: we don't want flags set */
+ 	mask = inotify_arg_to_mask(arg);
+-	if (unlikely(!(mask & IN_ALL_EVENTS)))
+-		return -EINVAL;
  
- /*
-  * IDA - IDR based id allocator, use when translation from id to
-diff -puN lib/idr.c~idr-deprecate-idr_remove_all lib/idr.c
---- a/lib/idr.c~idr-deprecate-idr_remove_all
-+++ a/lib/idr.c
-@@ -433,11 +433,7 @@ void idr_remove(struct idr *idp, int id)
- }
- EXPORT_SYMBOL(idr_remove);
+ 	fsn_mark = fsnotify_find_inode_mark(group, inode);
+ 	if (!fsn_mark)
+@@ -629,8 +627,6 @@ static int inotify_new_watch(struct fsno
  
--/**
-- * idr_remove_all - remove all ids from the given idr tree
-- * @idp: idr handle
-- */
--void idr_remove_all(struct idr *idp)
-+void __idr_remove_all(struct idr *idp)
- {
- 	int n, id, max;
- 	int bt_mask;
-@@ -470,7 +466,7 @@ void idr_remove_all(struct idr *idp)
- 	}
- 	idp->layers = 0;
- }
--EXPORT_SYMBOL(idr_remove_all);
-+EXPORT_SYMBOL(__idr_remove_all);
+ 	/* don't allow invalid bits: we don't want flags set */
+ 	mask = inotify_arg_to_mask(arg);
+-	if (unlikely(!(mask & IN_ALL_EVENTS)))
+-		return -EINVAL;
  
- /**
-  * idr_destroy - release all cached layers within an idr tree
-@@ -487,7 +483,7 @@ EXPORT_SYMBOL(idr_remove_all);
-  */
- void idr_destroy(struct idr *idp)
- {
--	idr_remove_all(idp);
-+	__idr_remove_all(idp);
- 
- 	while (idp->id_free_cnt) {
- 		struct idr_layer *p = get_from_free_list(idp);
+ 	tmp_i_mark = kmem_cache_alloc(inotify_inode_mark_cachep, GFP_KERNEL);
+ 	if (unlikely(!tmp_i_mark))
 _
 
-Patches currently in -mm which might be from tj@kernel.org are
+Patches currently in -mm which might be from Jim.Somerville@windriver.com are
 
-linux-next.patch
-cfq-fix-lock-imbalance-with-failed-allocations.patch
-block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-memcg-do-not-create-memsw-files-if-swap-accounting-is-disabled.patch
-memcg-clean-up-swap-accounting-initialization-code.patch
-memcg-prevent-changes-to-move_charge_at_immigrate-during-task-attach.patch
-memcg-split-part-of-memcg-creation-to-css_online.patch
-memcg-fast-hierarchy-aware-child-test.patch
-memcg-fast-hierarchy-aware-child-test-fix.patch
-memcg-replace-cgroup_lock-with-memcg-specific-memcg_lock.patch
-memcg-increment-static-branch-right-after-limit-set.patch
-memcg-avoid-dangling-reference-count-in-creation-failure.patch
-idr-make-idr_destroy-imply-idr_remove_all.patch
-atm-nicstar-dont-use-idr_remove_all.patch
-block-loop-dont-use-idr_remove_all.patch
-firewire-dont-use-idr_remove_all.patch
-drm-dont-use-idr_remove_all.patch
-dm-dont-use-idr_remove_all.patch
-remoteproc-dont-use-idr_remove_all.patch
-rpmsg-dont-use-idr_remove_all.patch
-dlm-use-idr_for_each_entry-in-recover_idr_clear-error-path.patch
-dlm-dont-use-idr_remove_all.patch
-nfs-idr_destroy-no-longer-needs-idr_remove_all.patch
-inotify-dont-use-idr_remove_all.patch
-cgroup-dont-use-idr_remove_all.patch
-idr-deprecate-idr_remove_all.patch
+inotify-remove-broken-mask-checks-causing-unmount-to-be-einval.patch
 
