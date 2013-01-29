@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + swap-add-per-partition-lock-for-swapfile-fix-fix-fix-fix.patch added to -mm tree
-Date: Mon, 28 Jan 2013 16:49:08 -0800
-Message-ID: <20130129004908.BD15531C1F2@corp2gmr1-1.hot.corp.google.com>
+Subject: + block-fix-ext_devt_idr-handling.patch added to -mm tree
+Date: Tue, 29 Jan 2013 15:33:08 -0800
+Message-ID: <20130129233309.3F14031C10E@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ia0-f202.google.com ([209.85.210.202]:44337 "EHLO
-	mail-ia0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752997Ab3A2AtK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Jan 2013 19:49:10 -0500
-Received: by mail-ia0-f202.google.com with SMTP id p22so634504iad.1
-        for <mm-commits@vger.kernel.org>; Mon, 28 Jan 2013 16:49:09 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:53429 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751258Ab3A2XdN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Jan 2013 18:33:13 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so99124vcd.1
+        for <mm-commits@vger.kernel.org>; Tue, 29 Jan 2013 15:33:12 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shli@kernel.org, fengguang.wu@intel.com, sfr@canb.auug.org.au, shli@fusionio.com
+Cc: thenzl@redhat.com, axboe@kernel.dk
 
 
 The patch titled
-     Subject: swap-add-per-partition-lock-for-swapfile-fix-fix-fix-fix
+     Subject: block: fix ext_devt_idr handling
 has been added to the -mm tree.  Its filename is
-     swap-add-per-partition-lock-for-swapfile-fix-fix-fix-fix.patch
+     block-fix-ext_devt_idr-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +33,114 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Shaohua Li <shli@kernel.org>
-Subject: swap-add-per-partition-lock-for-swapfile-fix-fix-fix-fix
+From: Tomas Henzl <thenzl@redhat.com>
+Subject: block: fix ext_devt_idr handling
 
-Fix building errors like:
-> arch/sparc/mm/init_32.c: In function 'show_mem':
-> arch/sparc/mm/init_32.c:60:23: error: invalid operands to binary << (have 'atomic_long_t' and 'int')
+While adding and removing a lot of disks disks and partitions this
+sometimes shows up:
 
-Signed-off-by: Shaohua Li <shli@fusionio.com>
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+WARNING: at fs/sysfs/dir.c:512 sysfs_add_one+0xc9/0x130() (Not tainted)
+Hardware name:
+sysfs: cannot create duplicate filename '/dev/block/259:751'
+Modules linked in: raid1 autofs4 bnx2fc cnic uio fcoe libfcoe libfc 8021q scsi_transport_fc scsi_tgt garp stp llc sunrpc cpufreq_ondemand powernow_k8 freq_table mperf ipv6 dm_mirror dm_region_hash dm_log power_meter microcode dcdbas serio_raw amd64_edac_mod edac_core edac_mce_amd i2c_piix4 i2c_core k10temp bnx2 sg ixgbe dca mdio ext4 mbcache jbd2 dm_round_robin sr_mod cdrom sd_mod crc_t10dif ata_generic pata_acpi pata_atiixp ahci mptsas mptscsih mptbase scsi_transport_sas dm_multipath dm_mod [last unloaded: scsi_wait_scan]
+Pid: 44103, comm: async/16 Not tainted 2.6.32-195.el6.x86_64 #1
+Call Trace:
+ [<ffffffff81069b17>] ? warn_slowpath_common+0x87/0xc0
+ [<ffffffff81069c06>] ? warn_slowpath_fmt+0x46/0x50
+ [<ffffffff811ecf09>] ? sysfs_add_one+0xc9/0x130
+ [<ffffffff811ed3eb>] ? sysfs_do_create_link+0x12b/0x170
+ [<ffffffff811ed463>] ? sysfs_create_link+0x13/0x20
+ [<ffffffff81343177>] ? device_add+0x317/0x650
+ [<ffffffff8126bd03>] ? idr_get_new+0x13/0x50
+ [<ffffffff811e6adc>] ? add_partition+0x21c/0x390
+ [<ffffffff811e759b>] ? rescan_partitions+0x32b/0x470
+ [<ffffffffa008e341>] ? sd_open+0x81/0x1f0 [sd_mod]
+ [<ffffffff811afa56>] ? __blkdev_get+0x1b6/0x3c0
+ [<ffffffff811afc70>] ? blkdev_get+0x10/0x20
+ [<ffffffff811e68a5>] ? register_disk+0x155/0x170
+ [<ffffffff81258706>] ? add_disk+0xa6/0x160
+ [<ffffffffa00919db>] ? sd_probe_async+0x13b/0x210 [sd_mod]
+ [<ffffffff81090ed6>] ? add_wait_queue+0x46/0x60
+ [<ffffffff81098dd2>] ? async_thread+0x102/0x250
+ [<ffffffff8105f740>] ? default_wake_function+0x0/0x20
+ [<ffffffff81098cd0>] ? async_thread+0x0/0x250
+ [<ffffffff81090806>] ? kthread+0x96/0xa0
+ [<ffffffff8100c10a>] ? child_rip+0xa/0x20
+ [<ffffffff81090770>] ? kthread+0x0/0xa0
+ [<ffffffff8100c100>] ? child_rip+0x0/0x20
+
+This most likely happens because dev_t is freed while the number is still
+used and idr_get_new() is not protected on every use.  The fix adds a
+mutex where it wasn't before and moves the dev_t free function so it is
+called after device del.
+
+Signed-off-by: Tomas Henzl <thenzl@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/tile/mm/pgtable.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ block/genhd.c             |    6 +++++-
+ block/partition-generic.c |    2 +-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN arch/tile/mm/pgtable.c~swap-add-per-partition-lock-for-swapfile-fix-fix-fix-fix arch/tile/mm/pgtable.c
---- a/arch/tile/mm/pgtable.c~swap-add-per-partition-lock-for-swapfile-fix-fix-fix-fix
-+++ a/arch/tile/mm/pgtable.c
-@@ -61,7 +61,7 @@ void show_mem(unsigned int filter)
- 	       global_page_state(NR_PAGETABLE),
- 	       global_page_state(NR_BOUNCE),
- 	       global_page_state(NR_FILE_PAGES),
--	       nr_swap_pages);
-+	       get_nr_swap_pages());
+diff -puN block/genhd.c~block-fix-ext_devt_idr-handling block/genhd.c
+--- a/block/genhd.c~block-fix-ext_devt_idr-handling
++++ a/block/genhd.c
+@@ -422,14 +422,18 @@ int blk_alloc_devt(struct hd_struct *par
+ 	do {
+ 		if (!idr_pre_get(&ext_devt_idr, GFP_KERNEL))
+ 			return -ENOMEM;
++		mutex_lock(&ext_devt_mutex);
+ 		rc = idr_get_new(&ext_devt_idr, part, &idx);
++		mutex_unlock(&ext_devt_mutex);
+ 	} while (rc == -EAGAIN);
  
- 	for_each_zone(zone) {
- 		unsigned long flags, order, total = 0, largest_order = -1;
-diff -puN mm/nommu.c~swap-add-per-partition-lock-for-swapfile-fix-fix-fix-fix mm/nommu.c
+ 	if (rc)
+ 		return rc;
+ 
+ 	if (idx > MAX_EXT_DEVT) {
++		mutex_lock(&ext_devt_mutex);
+ 		idr_remove(&ext_devt_idr, idx);
++		mutex_unlock(&ext_devt_mutex);
+ 		return -EBUSY;
+ 	}
+ 
+@@ -646,7 +650,6 @@ void del_gendisk(struct gendisk *disk)
+ 	disk_part_iter_exit(&piter);
+ 
+ 	invalidate_partition(disk, 0);
+-	blk_free_devt(disk_to_dev(disk)->devt);
+ 	set_capacity(disk, 0);
+ 	disk->flags &= ~GENHD_FL_UP;
+ 
+@@ -664,6 +667,7 @@ void del_gendisk(struct gendisk *disk)
+ 	if (!sysfs_deprecated)
+ 		sysfs_remove_link(block_depr, dev_name(disk_to_dev(disk)));
+ 	device_del(disk_to_dev(disk));
++	blk_free_devt(disk_to_dev(disk)->devt);
+ }
+ EXPORT_SYMBOL(del_gendisk);
+ 
+diff -puN block/partition-generic.c~block-fix-ext_devt_idr-handling block/partition-generic.c
+--- a/block/partition-generic.c~block-fix-ext_devt_idr-handling
++++ a/block/partition-generic.c
+@@ -249,11 +249,11 @@ void delete_partition(struct gendisk *di
+ 	if (!part)
+ 		return;
+ 
+-	blk_free_devt(part_devt(part));
+ 	rcu_assign_pointer(ptbl->part[partno], NULL);
+ 	rcu_assign_pointer(ptbl->last_lookup, NULL);
+ 	kobject_put(part->holder_dir);
+ 	device_del(part_to_dev(part));
++	blk_free_devt(part_devt(part));
+ 
+ 	hd_struct_put(part);
+ }
 _
 
-Patches currently in -mm which might be from shli@kernel.org are
+Patches currently in -mm which might be from thenzl@redhat.com are
 
 linux-next.patch
-mm-make-madvisemadv_willneed-support-swap-file-prefetch.patch
-mm-dont-inline-page_mapping.patch
-swap-make-each-swap-partition-have-one-address_space.patch
-swap-make-each-swap-partition-have-one-address_space-fix.patch
-swap-make-each-swap-partition-have-one-address_space-fix-fix.patch
-swap-add-per-partition-lock-for-swapfile.patch
-swap-add-per-partition-lock-for-swapfile-fix-fix.patch
-swap-add-per-partition-lock-for-swapfile-fix-for-nommu.patch
-swap-add-per-partition-lock-for-swapfile-fix-fix-fix.patch
-swap-add-per-partition-lock-for-swapfile-fix-fix-fix-fix.patch
-smp-make-smp_call_function_many-use-logic-similar-to-smp_call_function_single.patch
-kernel-smpc-cleanups.patch
+block-fix-ext_devt_idr-handling.patch
 
