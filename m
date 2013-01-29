@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + block-loop-dont-use-idr_remove_all.patch added to -mm tree
-Date: Mon, 28 Jan 2013 16:07:03 -0800
-Message-ID: <20130129000704.5175731C00F@corp2gmr1-1.hot.corp.google.com>
+Subject: + dm-dont-use-idr_remove_all.patch added to -mm tree
+Date: Mon, 28 Jan 2013 16:07:12 -0800
+Message-ID: <20130129000713.17F8031C00F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ob0-f202.google.com ([209.85.214.202]:52873 "EHLO
-	mail-ob0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755805Ab3A2AHG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Jan 2013 19:07:06 -0500
-Received: by mail-ob0-f202.google.com with SMTP id lz20so707083obb.3
-        for <mm-commits@vger.kernel.org>; Mon, 28 Jan 2013 16:07:06 -0800 (PST)
+Received: from mail-oa0-f73.google.com ([209.85.219.73]:58204 "EHLO
+	mail-oa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755805Ab3A2AHO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Jan 2013 19:07:14 -0500
+Received: by mail-oa0-f73.google.com with SMTP id n12so707193oag.0
+        for <mm-commits@vger.kernel.org>; Mon, 28 Jan 2013 16:07:13 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, axboe@kernel.dk
+Cc: tj@kernel.org, agk@redhat.com
 
 
 The patch titled
-     Subject: block/loop: don't use idr_remove_all()
+     Subject: dm: don't use idr_remove_all()
 has been added to the -mm tree.  Its filename is
-     block-loop-dont-use-idr_remove_all.patch
+     dm-dont-use-idr_remove_all.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: block/loop: don't use idr_remove_all()
+Subject: dm: don't use idr_remove_all()
 
 idr_destroy() can destroy idr by itself and idr_remove_all() is being
 deprecated.  Drop its usage.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Alasdair Kergon <agk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/loop.c |    1 -
+ drivers/md/dm.c |    1 -
  1 file changed, 1 deletion(-)
 
-diff -puN drivers/block/loop.c~block-loop-dont-use-idr_remove_all drivers/block/loop.c
---- a/drivers/block/loop.c~block-loop-dont-use-idr_remove_all
-+++ a/drivers/block/loop.c
-@@ -1911,7 +1911,6 @@ static void __exit loop_exit(void)
- 	range = max_loop ? max_loop << part_shift : 1UL << MINORBITS;
+diff -puN drivers/md/dm.c~dm-dont-use-idr_remove_all drivers/md/dm.c
+--- a/drivers/md/dm.c~dm-dont-use-idr_remove_all
++++ a/drivers/md/dm.c
+@@ -318,7 +318,6 @@ static void __exit dm_exit(void)
+ 	/*
+ 	 * Should be empty by this point.
+ 	 */
+-	idr_remove_all(&_minor_idr);
+ 	idr_destroy(&_minor_idr);
+ }
  
- 	idr_for_each(&loop_index_idr, &loop_exit_cb, NULL);
--	idr_remove_all(&loop_index_idr);
- 	idr_destroy(&loop_index_idr);
- 
- 	blk_unregister_region(MKDEV(LOOP_MAJOR, 0), range);
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
