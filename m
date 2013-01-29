@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + inotify-remove-broken-mask-checks-causing-unmount-to-be-einval.patch added to -mm tree
-Date: Mon, 28 Jan 2013 16:17:12 -0800
-Message-ID: <20130129001712.D59F85A419C@corp2gmr1-2.hot.corp.google.com>
+Subject: + digsig-fix-memory-leakage-in-digsig_verify_rsa.patch added to -mm tree
+Date: Mon, 28 Jan 2013 16:24:15 -0800
+Message-ID: <20130129002415.A73C931C25A@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ia0-f202.google.com ([209.85.210.202]:45524 "EHLO
-	mail-ia0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751166Ab3A2ARP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Jan 2013 19:17:15 -0500
-Received: by mail-ia0-f202.google.com with SMTP id p22so628426iad.3
-        for <mm-commits@vger.kernel.org>; Mon, 28 Jan 2013 16:17:15 -0800 (PST)
+Received: from mail-oa0-f74.google.com ([209.85.219.74]:53231 "EHLO
+	mail-oa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753419Ab3A2AYR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Jan 2013 19:24:17 -0500
+Received: by mail-oa0-f74.google.com with SMTP id h2so710349oag.5
+        for <mm-commits@vger.kernel.org>; Mon, 28 Jan 2013 16:24:16 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Jim.Somerville@windriver.com, eparis@parisplace.org, jmarchan@redhat.com, john@johnmccutchan.com, paul.gortmaker@windriver.com, rlove@rlove.org, stable@vger.kernel.org
+Cc: yoshfuji@linux-ipv6.org, dmitry.kasatkin@intel.com, stable@vger.kernel.org
 
 
 The patch titled
-     Subject: inotify: remove broken mask checks causing unmount to be EINVAL
+     Subject: digsig: fix memory leakage in digsig_verify_rsa()
 has been added to the -mm tree.  Its filename is
-     inotify-remove-broken-mask-checks-causing-unmount-to-be-einval.patch
+     digsig-fix-memory-leakage-in-digsig_verify_rsa.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,83 +33,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jim Somerville <Jim.Somerville@windriver.com>
-Subject: inotify: remove broken mask checks causing unmount to be EINVAL
+From: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+Subject: digsig: fix memory leakage in digsig_verify_rsa()
 
-Running the command:
+digsig_verify_rsa() does not free kmalloc'ed buffer returned by
+mpi_get_buffer().
 
-	inotifywait -e unmount /mnt/disk
-
-immediately aborts with a -EINVAL return code.  This is however a valid
-parameter.  This abort occurs only if unmount is the sole event parameter.
- If other event parameters are supplied, then the unmount event wait will
-work.
-
-The problem was introduced by commit 44b350fc23e ("inotify: Fix mask
-checks").  In that commit, it states:
-
-	The mask checks in inotify_update_existing_watch() and
-	inotify_new_watch() are useless because inotify_arg_to_mask()
-	sets FS_IN_IGNORED and FS_EVENT_ON_CHILD bits anyway.
-
-But instead of removing the useless checks, it did this:
-
-	        mask = inotify_arg_to_mask(arg);
-	-       if (unlikely(!mask))
-	+       if (unlikely(!(mask & IN_ALL_EVENTS)))
-	                return -EINVAL;
-
-The problem is that IN_ALL_EVENTS doesn't include IN_UNMOUNT, and other
-parts of the code keep IN_UNMOUNT separate from IN_ALL_EVENTS.  So the
-check should be:
-
-	if (unlikely(!(mask & (IN_ALL_EVENTS | IN_UNMOUNT))))
-
-But inotify_arg_to_mask(arg) always sets the IN_UNMOUNT bit in the mask
-anyway, so the check is always going to pass and thus should simply be
-removed.  Also note that inotify_arg_to_mask completely controls what mask
-bits get set from arg, there's no way for invalid bits to get enabled
-there.
-
-Lets fix it by simply removing the useless broken checks.
-
-Signed-off-by: Jim Somerville <Jim.Somerville@windriver.com>
-Signed-off-by: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Jerome Marchand <jmarchan@redhat.com>
-Cc: John McCutchan <john@johnmccutchan.com>
-Cc: Robert Love <rlove@rlove.org>
-Cc: Eric Paris <eparis@parisplace.org>
-Cc: <stable@vger.kernel.org>		[2.6.37+]
+Signed-off-by: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+Signed-off-by: Dmitry Kasatkin <dmitry.kasatkin@intel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/inotify/inotify_user.c |    4 ----
- 1 file changed, 4 deletions(-)
+ lib/digsig.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/notify/inotify/inotify_user.c~inotify-remove-broken-mask-checks-causing-unmount-to-be-einval fs/notify/inotify/inotify_user.c
---- a/fs/notify/inotify/inotify_user.c~inotify-remove-broken-mask-checks-causing-unmount-to-be-einval
-+++ a/fs/notify/inotify/inotify_user.c
-@@ -576,8 +576,6 @@ static int inotify_update_existing_watch
+diff -puN lib/digsig.c~digsig-fix-memory-leakage-in-digsig_verify_rsa lib/digsig.c
+--- a/lib/digsig.c~digsig-fix-memory-leakage-in-digsig_verify_rsa
++++ a/lib/digsig.c
+@@ -162,6 +162,8 @@ static int digsig_verify_rsa(struct key 
+ 	memset(out1, 0, head);
+ 	memcpy(out1 + head, p, l);
  
- 	/* don't allow invalid bits: we don't want flags set */
- 	mask = inotify_arg_to_mask(arg);
--	if (unlikely(!(mask & IN_ALL_EVENTS)))
--		return -EINVAL;
- 
- 	fsn_mark = fsnotify_find_inode_mark(group, inode);
- 	if (!fsn_mark)
-@@ -629,8 +627,6 @@ static int inotify_new_watch(struct fsno
- 
- 	/* don't allow invalid bits: we don't want flags set */
- 	mask = inotify_arg_to_mask(arg);
--	if (unlikely(!(mask & IN_ALL_EVENTS)))
--		return -EINVAL;
- 
- 	tmp_i_mark = kmem_cache_alloc(inotify_inode_mark_cachep, GFP_KERNEL);
- 	if (unlikely(!tmp_i_mark))
++	kfree(p);
++
+ 	err = pkcs_1_v1_5_decode_emsa(out1, len, mblen, out2, &len);
+ 	if (err)
+ 		goto err;
 _
 
-Patches currently in -mm which might be from Jim.Somerville@windriver.com are
+Patches currently in -mm which might be from yoshfuji@linux-ipv6.org are
 
-inotify-remove-broken-mask-checks-causing-unmount-to-be-einval.patch
+linux-next.patch
+digsig-fix-memory-leakage-in-digsig_verify_rsa.patch
 
