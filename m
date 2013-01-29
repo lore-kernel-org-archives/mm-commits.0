@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + loopdev-ignore-negative-offset-when-calculate-loop-device-size.patch added to -mm tree
-Date: Mon, 28 Jan 2013 16:40:26 -0800
-Message-ID: <20130129004027.6105F31C25A@corp2gmr1-1.hot.corp.google.com>
+Subject: + swap-add-per-partition-lock-for-swapfile-fix-fix-fix-fix.patch added to -mm tree
+Date: Mon, 28 Jan 2013 16:49:08 -0800
+Message-ID: <20130129004908.BD15531C1F2@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ia0-f202.google.com ([209.85.210.202]:39225 "EHLO
+Received: from mail-ia0-f202.google.com ([209.85.210.202]:44337 "EHLO
 	mail-ia0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751646Ab3A2Ak2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Jan 2013 19:40:28 -0500
-Received: by mail-ia0-f202.google.com with SMTP id p22so632719iad.1
-        for <mm-commits@vger.kernel.org>; Mon, 28 Jan 2013 16:40:28 -0800 (PST)
+	with ESMTP id S1752997Ab3A2AtK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Jan 2013 19:49:10 -0500
+Received: by mail-ia0-f202.google.com with SMTP id p22so634504iad.1
+        for <mm-commits@vger.kernel.org>; Mon, 28 Jan 2013 16:49:09 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yan@linux.vnet.ibm.com, axboe@kernel.dk, hindessm@uk.ibm.com, knikanth@suse.de, viro@zeniv.linux.org.uk
+Cc: shli@kernel.org, fengguang.wu@intel.com, sfr@canb.auug.org.au, shli@fusionio.com
 
 
 The patch titled
-     Subject: loopdev: ignore negative offset when calculate loop device size
+     Subject: swap-add-per-partition-lock-for-swapfile-fix-fix-fix-fix
 has been added to the -mm tree.  Its filename is
-     loopdev-ignore-negative-offset-when-calculate-loop-device-size.patch
+     swap-add-per-partition-lock-for-swapfile-fix-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,68 +33,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Guo Chao <yan@linux.vnet.ibm.com>
-Subject: loopdev: ignore negative offset when calculate loop device size
+From: Shaohua Li <shli@kernel.org>
+Subject: swap-add-per-partition-lock-for-swapfile-fix-fix-fix-fix
 
-Negative offset may cause loop device size larger than backing file
-size.
+Fix building errors like:
+> arch/sparc/mm/init_32.c: In function 'show_mem':
+> arch/sparc/mm/init_32.c:60:23: error: invalid operands to binary << (have 'atomic_long_t' and 'int')
 
- $ fallocate -l 1M a
- $ losetup --offset 0xffffffffffff0000 /dev/loop0 a
- $ blockdev --getsize64 /dev/loop0
- 1114112
- $ ls -l a
- -rw-r--r-- 1 root root 1048576 Jan 23 12:46 a
- $ cat /dev/loop0
- cat: /dev/loop0: Input/output error
-
-It makes no sense to do that. Only apply offset when it's positive.
-
-Fix a typo in the comment by the way.
-
-Signed-off-by: Guo Chao <yan@linux.vnet.ibm.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Guo Chao <yan@linux.vnet.ibm.com>
-Cc: M. Hindess <hindessm@uk.ibm.com>
-Cc: Nikanth Karthikesan <knikanth@suse.de>
-Cc: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Shaohua Li <shli@fusionio.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/loop.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ arch/tile/mm/pgtable.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/loop.c~loopdev-ignore-negative-offset-when-calculate-loop-device-size drivers/block/loop.c
---- a/drivers/block/loop.c~loopdev-ignore-negative-offset-when-calculate-loop-device-size
-+++ a/drivers/block/loop.c
-@@ -162,12 +162,13 @@ static struct loop_func_table *xfer_func
+diff -puN arch/tile/mm/pgtable.c~swap-add-per-partition-lock-for-swapfile-fix-fix-fix-fix arch/tile/mm/pgtable.c
+--- a/arch/tile/mm/pgtable.c~swap-add-per-partition-lock-for-swapfile-fix-fix-fix-fix
++++ a/arch/tile/mm/pgtable.c
+@@ -61,7 +61,7 @@ void show_mem(unsigned int filter)
+ 	       global_page_state(NR_PAGETABLE),
+ 	       global_page_state(NR_BOUNCE),
+ 	       global_page_state(NR_FILE_PAGES),
+-	       nr_swap_pages);
++	       get_nr_swap_pages());
  
- static loff_t get_size(loff_t offset, loff_t sizelimit, struct file *file)
- {
--	loff_t size, loopsize;
-+	loff_t loopsize;
- 
- 	/* Compute loopsize in bytes */
--	size = i_size_read(file->f_mapping->host);
--	loopsize = size - offset;
--	/* offset is beyond i_size, wierd but possible */
-+	loopsize = i_size_read(file->f_mapping->host);
-+	if (offset > 0)
-+		loopsize -= offset;
-+	/* offset is beyond i_size, weird but possible */
- 	if (loopsize < 0)
- 		return 0;
- 
+ 	for_each_zone(zone) {
+ 		unsigned long flags, order, total = 0, largest_order = -1;
+diff -puN mm/nommu.c~swap-add-per-partition-lock-for-swapfile-fix-fix-fix-fix mm/nommu.c
 _
 
-Patches currently in -mm which might be from yan@linux.vnet.ibm.com are
+Patches currently in -mm which might be from shli@kernel.org are
 
 linux-next.patch
-block-use-i_size_write-in-bd_set_size.patch
-block-remove-redundant-check-to-bd_openers.patch
-loopdev-fix-a-deadlock.patch
-loopdev-update-block-device-size-in-loop_set_status.patch
-loopdev-move-common-code-into-loop_figure_size.patch
-loopdev-remove-an-user-triggerable-oops.patch
-loopdev-ignore-negative-offset-when-calculate-loop-device-size.patch
+mm-make-madvisemadv_willneed-support-swap-file-prefetch.patch
+mm-dont-inline-page_mapping.patch
+swap-make-each-swap-partition-have-one-address_space.patch
+swap-make-each-swap-partition-have-one-address_space-fix.patch
+swap-make-each-swap-partition-have-one-address_space-fix-fix.patch
+swap-add-per-partition-lock-for-swapfile.patch
+swap-add-per-partition-lock-for-swapfile-fix-fix.patch
+swap-add-per-partition-lock-for-swapfile-fix-for-nommu.patch
+swap-add-per-partition-lock-for-swapfile-fix-fix-fix.patch
+swap-add-per-partition-lock-for-swapfile-fix-fix-fix-fix.patch
+smp-make-smp_call_function_many-use-logic-similar-to-smp_call_function_single.patch
+kernel-smpc-cleanups.patch
 
