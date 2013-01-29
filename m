@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
-Subject: + remoteproc-dont-use-idr_remove_all.patch added to -mm tree
-Date: Mon, 28 Jan 2013 16:07:14 -0800
-Message-ID: <20130129000715.290B831C00F@corp2gmr1-1.hot.corp.google.com>
+Subject: + rpmsg-dont-use-idr_remove_all.patch added to -mm tree
+Date: Mon, 28 Jan 2013 16:07:17 -0800
+Message-ID: <20130129000718.2BBBB5A422A@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ie0-f201.google.com ([209.85.223.201]:55668 "EHLO
-	mail-ie0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755564Ab3A2AHQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Jan 2013 19:07:16 -0500
-Received: by mail-ie0-f201.google.com with SMTP id c14so130689ieb.4
-        for <mm-commits@vger.kernel.org>; Mon, 28 Jan 2013 16:07:16 -0800 (PST)
+Received: from mail-ie0-f202.google.com ([209.85.223.202]:53731 "EHLO
+	mail-ie0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755812Ab3A2AHT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Jan 2013 19:07:19 -0500
+Received: by mail-ie0-f202.google.com with SMTP id k14so58295iea.3
+        for <mm-commits@vger.kernel.org>; Mon, 28 Jan 2013 16:07:19 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -17,9 +17,9 @@ Cc: tj@kernel.org, ohad@wizery.com
 
 
 The patch titled
-     Subject: remoteproc: don't use idr_remove_all()
+     Subject: rpmsg: don't use idr_remove_all()
 has been added to the -mm tree.  Its filename is
-     remoteproc-dont-use-idr_remove_all.patch
+     rpmsg-dont-use-idr_remove_all.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: remoteproc: don't use idr_remove_all()
+Subject: rpmsg: don't use idr_remove_all()
 
 idr_destroy() can destroy idr by itself and idr_remove_all() is being
 deprecated.  Drop its usage.
@@ -44,20 +44,20 @@ Cc: Ohad Ben-Cohen <ohad@wizery.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/remoteproc/remoteproc_core.c |    1 -
+ drivers/rpmsg/virtio_rpmsg_bus.c |    1 -
  1 file changed, 1 deletion(-)
 
-diff -puN drivers/remoteproc/remoteproc_core.c~remoteproc-dont-use-idr_remove_all drivers/remoteproc/remoteproc_core.c
---- a/drivers/remoteproc/remoteproc_core.c~remoteproc-dont-use-idr_remove_all
-+++ a/drivers/remoteproc/remoteproc_core.c
-@@ -1180,7 +1180,6 @@ static void rproc_type_release(struct de
+diff -puN drivers/rpmsg/virtio_rpmsg_bus.c~rpmsg-dont-use-idr_remove_all drivers/rpmsg/virtio_rpmsg_bus.c
+--- a/drivers/rpmsg/virtio_rpmsg_bus.c~rpmsg-dont-use-idr_remove_all
++++ a/drivers/rpmsg/virtio_rpmsg_bus.c
+@@ -1036,7 +1036,6 @@ static void rpmsg_remove(struct virtio_d
+ 	if (vrp->ns_ept)
+ 		__rpmsg_destroy_ept(vrp, vrp->ns_ept);
  
- 	rproc_delete_debug_dir(rproc);
+-	idr_remove_all(&vrp->endpoints);
+ 	idr_destroy(&vrp->endpoints);
  
--	idr_remove_all(&rproc->notifyids);
- 	idr_destroy(&rproc->notifyids);
- 
- 	if (rproc->index >= 0)
+ 	vdev->config->del_vqs(vrp->vdev);
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
