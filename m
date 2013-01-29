@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + nfs-idr_destroy-no-longer-needs-idr_remove_all.patch added to -mm tree
-Date: Mon, 28 Jan 2013 16:07:26 -0800
-Message-ID: <20130129000727.3893D5A419C@corp2gmr1-2.hot.corp.google.com>
+Subject: + inotify-dont-use-idr_remove_all.patch added to -mm tree
+Date: Mon, 28 Jan 2013 16:07:29 -0800
+Message-ID: <20130129000730.5242831C00F@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ia0-f202.google.com ([209.85.210.202]:51091 "EHLO
-	mail-ia0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755812Ab3A2AH2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Jan 2013 19:07:28 -0500
-Received: by mail-ia0-f202.google.com with SMTP id p22so626835iad.1
-        for <mm-commits@vger.kernel.org>; Mon, 28 Jan 2013 16:07:28 -0800 (PST)
+Received: from mail-ob0-f201.google.com ([209.85.214.201]:65320 "EHLO
+	mail-ob0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755812Ab3A2AHb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Jan 2013 19:07:31 -0500
+Received: by mail-ob0-f201.google.com with SMTP id un3so654025obb.2
+        for <mm-commits@vger.kernel.org>; Mon, 28 Jan 2013 16:07:31 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tj@kernel.org, bfields@fieldses.org
+Cc: tj@kernel.org, eparis@parisplace.org, john@johnmccutchan.com, rlove@rlove.org
 
 
 The patch titled
-     Subject: nfs: idr_destroy() no longer needs idr_remove_all()
+     Subject: inotify: don't use idr_remove_all()
 has been added to the -mm tree.  Its filename is
-     nfs-idr_destroy-no-longer-needs-idr_remove_all.patch
+     inotify-dont-use-idr_remove_all.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: nfs: idr_destroy() no longer needs idr_remove_all()
+Subject: inotify: don't use idr_remove_all()
 
 idr_destroy() can destroy idr by itself and idr_remove_all() is being
-deprecated.  Drop reference to idr_remove_all().  Note that the code
-wasn't completely correct before because idr_remove() on all entries
-doesn't necessarily release all idr_layers which could lead to memory
-leak.
+deprecated.  Drop its usage.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: John McCutchan <john@johnmccutchan.com>
+Cc: Robert Love <rlove@rlove.org>
+Cc: Eric Paris <eparis@parisplace.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/client.c |    1 -
+ fs/notify/inotify/inotify_fsnotify.c |    1 -
  1 file changed, 1 deletion(-)
 
-diff -puN fs/nfs/client.c~nfs-idr_destroy-no-longer-needs-idr_remove_all fs/nfs/client.c
---- a/fs/nfs/client.c~nfs-idr_destroy-no-longer-needs-idr_remove_all
-+++ a/fs/nfs/client.c
-@@ -197,7 +197,6 @@ error_0:
- EXPORT_SYMBOL_GPL(nfs_alloc_client);
- 
- #if IS_ENABLED(CONFIG_NFS_V4)
--/* idr_remove_all is not needed as all id's are removed by nfs_put_client */
- void nfs_cleanup_cb_ident_idr(struct net *net)
+diff -puN fs/notify/inotify/inotify_fsnotify.c~inotify-dont-use-idr_remove_all fs/notify/inotify/inotify_fsnotify.c
+--- a/fs/notify/inotify/inotify_fsnotify.c~inotify-dont-use-idr_remove_all
++++ a/fs/notify/inotify/inotify_fsnotify.c
+@@ -197,7 +197,6 @@ static void inotify_free_group_priv(stru
  {
- 	struct nfs_net *nn = net_generic(net, nfs_net_id);
+ 	/* ideally the idr is empty and we won't hit the BUG in the callback */
+ 	idr_for_each(&group->inotify_data.idr, idr_callback, group);
+-	idr_remove_all(&group->inotify_data.idr);
+ 	idr_destroy(&group->inotify_data.idr);
+ 	atomic_dec(&group->inotify_data.user->inotify_devs);
+ 	free_uid(group->inotify_data.user);
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
