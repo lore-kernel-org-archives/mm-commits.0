@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-kconfig-qconfcc-fix-a-compiliation-error-when-using-make-xconfig.patch added to -mm tree
-Date: Tue, 29 Jan 2013 16:49:53 -0800
-Message-ID: <20130130004953.A35735A410E@corp2gmr1-2.hot.corp.google.com>
+Subject: + backlight-s6e63m0-report-gamma_table_count-correctly.patch added to -mm tree
+Date: Tue, 29 Jan 2013 17:02:22 -0800
+Message-ID: <20130130010222.955B05A410E@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:65387 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752112Ab3A3Aty (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Jan 2013 19:49:54 -0500
-Received: by mail-qc0-f202.google.com with SMTP id s25so105349qcq.3
-        for <mm-commits@vger.kernel.org>; Tue, 29 Jan 2013 16:49:54 -0800 (PST)
+Received: from mail-qa0-f73.google.com ([209.85.216.73]:57111 "EHLO
+	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751586Ab3A3BCY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Jan 2013 20:02:24 -0500
+Received: by mail-qa0-f73.google.com with SMTP id g10so122218qah.0
+        for <mm-commits@vger.kernel.org>; Tue, 29 Jan 2013 17:02:23 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rkmahefa@gmail.com, mmarek@suse.cz
+Cc: dan.carpenter@oracle.com, FlorianSchandinat@gmx.de, jg1.han@samsung.com
 
 
 The patch titled
-     Subject: scripts/kconfig/qconf.cc: fix a compiliation error when using make xconfig
+     Subject: drivers/video/backlight/s6e63m0.c: report ->gamma_table_count correctly
 has been added to the -mm tree.  Its filename is
-     scripts-kconfig-qconfcc-fix-a-compiliation-error-when-using-make-xconfig.patch
+     backlight-s6e63m0-report-gamma_table_count-correctly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,35 +33,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tiana Rakotovao Andriamahefa <rkmahefa@gmail.com>
-Subject: scripts/kconfig/qconf.cc: fix a compiliation error when using make xconfig
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: drivers/video/backlight/s6e63m0.c: report ->gamma_table_count correctly
 
-When using make xconfig, the following compilation error appears :
-   /usr/include/qt3/qvaluelist.h:427:13: error: `ptrdiff_t' does not name a type
-Including stddef.h in scripts/kconfig/qconf.cc permits to avoid this error.
+gamma_table has 3 arrays which each hold MAX_GAMMA_LEVEL pointers to int.
 
-Signed-off-by: Tiana Rakotovao Andriamahefa <rkmahefa@gmail.com>
-Cc: Michal Marek <mmarek@suse.cz>
+The current code sets ->gamma_table_count to 6 on 64bit arches and to 3 on
+32 bit arches.  It should be 3 on everything.
+
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Jingoo Han <jg1.han@samsung.com>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kconfig/qconf.cc |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/video/backlight/s6e63m0.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/kconfig/qconf.cc~scripts-kconfig-qconfcc-fix-a-compiliation-error-when-using-make-xconfig scripts/kconfig/qconf.cc
---- a/scripts/kconfig/qconf.cc~scripts-kconfig-qconfcc-fix-a-compiliation-error-when-using-make-xconfig
-+++ a/scripts/kconfig/qconf.cc
-@@ -6,6 +6,7 @@
- #include <qglobal.h>
+diff -puN drivers/video/backlight/s6e63m0.c~backlight-s6e63m0-report-gamma_table_count-correctly drivers/video/backlight/s6e63m0.c
+--- a/drivers/video/backlight/s6e63m0.c~backlight-s6e63m0-report-gamma_table_count-correctly
++++ a/drivers/video/backlight/s6e63m0.c
+@@ -766,7 +766,7 @@ static int s6e63m0_probe(struct spi_devi
+ 	 * know that.
+ 	 */
+ 	lcd->gamma_table_count =
+-	    sizeof(gamma_table) / (MAX_GAMMA_LEVEL * sizeof(int));
++	    sizeof(gamma_table) / (MAX_GAMMA_LEVEL * sizeof(int *));
  
- #if QT_VERSION < 0x040000
-+#include <stddef.h>
- #include <qmainwindow.h>
- #include <qvbox.h>
- #include <qvaluelist.h>
+ 	ret = device_create_file(&(spi->dev), &dev_attr_gamma_mode);
+ 	if (ret < 0)
 _
 
-Patches currently in -mm which might be from rkmahefa@gmail.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
-scripts-kconfig-qconfcc-fix-a-compiliation-error-when-using-make-xconfig.patch
+origin.patch
+linux-next.patch
+compat-return-efault-on-error-in-waitid.patch
+backlight-s6e63m0-report-gamma_table_count-correctly.patch
+edac-test-correct-variable-in-store-function.patch
+rtc-add-support-for-spi-rtc-rx4581-fix.patch
 
