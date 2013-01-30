@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-isl1208c-call-rtc_update_irq-from-the-alarm-irq-handler.patch added to -mm tree
-Date: Tue, 29 Jan 2013 16:02:27 -0800
-Message-ID: <20130130000227.9110D5A42B9@corp2gmr1-2.hot.corp.google.com>
+Subject: + mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix.patch added to -mm tree
+Date: Tue, 29 Jan 2013 16:03:45 -0800
+Message-ID: <20130130000345.922C831C1F5@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:50279 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751258Ab3A3AC3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Jan 2013 19:02:29 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so101677vch.2
-        for <mm-commits@vger.kernel.org>; Tue, 29 Jan 2013 16:02:28 -0800 (PST)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:34026 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751344Ab3A3ADq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Jan 2013 19:03:46 -0500
+Received: by mail-ve0-f202.google.com with SMTP id m1so16488ves.5
+        for <mm-commits@vger.kernel.org>; Tue, 29 Jan 2013 16:03:46 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jlu@pengutronix.de, a.zummo@towertech.it
+Cc: yinghan@google.com, mhocko@suse.cz
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-isl1208.c: call rtc_update_irq() from the alarm irq handler
+     Subject: mmotm: memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pages.patch fix
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-isl1208c-call-rtc_update_irq-from-the-alarm-irq-handler.patch
+     mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jan Luebbe <jlu@pengutronix.de>
-Subject: drivers/rtc/rtc-isl1208.c: call rtc_update_irq() from the alarm irq handler
+From: Ying Han <yinghan@google.com>
+Subject: mmotm: memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pages.patch fix
 
-Previously the alarm event was not propagated into the RTC subsystem.  By
-adding a call to rtc_update_irq, this fixes a timeout problem with the
-hwclock utility.
+We should break out of the hierarchy loop only if nr_reclaimed exceeded
+nr_to_reclaim and not vice-versa. This patch fixes the condition.
 
-Signed-off-by: Jan Luebbe <jlu@pengutronix.de>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Ying Han <yinghan@google.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-isl1208.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-isl1208.c~drivers-rtc-rtc-isl1208c-call-rtc_update_irq-from-the-alarm-irq-handler drivers/rtc/rtc-isl1208.c
---- a/drivers/rtc/rtc-isl1208.c~drivers-rtc-rtc-isl1208c-call-rtc_update_irq-from-the-alarm-irq-handler
-+++ a/drivers/rtc/rtc-isl1208.c
-@@ -506,6 +506,7 @@ isl1208_rtc_interrupt(int irq, void *dat
- {
- 	unsigned long timeout = jiffies + msecs_to_jiffies(1000);
- 	struct i2c_client *client = data;
-+	struct rtc_device *rtc = i2c_get_clientdata(client);
- 	int handled = 0, sr, err;
- 
- 	/*
-@@ -528,6 +529,8 @@ isl1208_rtc_interrupt(int irq, void *dat
- 	if (sr & ISL1208_REG_SR_ALM) {
- 		dev_dbg(&client->dev, "alarm!\n");
- 
-+		rtc_update_irq(rtc, 1, RTC_IRQF | RTC_AF);
-+
- 		/* Clear the alarm */
- 		sr &= ~ISL1208_REG_SR_ALM;
- 		sr = i2c_smbus_write_byte_data(client, ISL1208_REG_SR, sr);
+diff -puN mm/vmscan.c~mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix mm/vmscan.c
+--- a/mm/vmscan.c~mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix
++++ a/mm/vmscan.c
+@@ -1983,7 +1983,7 @@ static void shrink_zone(struct zone *zon
+ 			 * whole hierarchy is not sufficient.
+ 			 */
+ 			if (!global_reclaim(sc) &&
+-					sc->nr_to_reclaim >= sc->nr_reclaimed) {
++					sc->nr_to_reclaim <= sc->nr_reclaimed) {
+ 				mem_cgroup_iter_break(root, memcg);
+ 				break;
+ 			}
 _
 
-Patches currently in -mm which might be from jlu@pengutronix.de are
+Patches currently in -mm which might be from yinghan@google.com are
 
-drivers-rtc-rtc-isl1208c-call-rtc_update_irq-from-the-alarm-irq-handler.patch
+memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pages.patch
+mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
 
