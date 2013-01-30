@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-mm-fix-a-bad_page-bug-when-crash-kernel-booting.patch added to -mm tree
-Date: Tue, 29 Jan 2013 16:27:49 -0800
-Message-ID: <20130130002750.1250E31C1CB@corp2gmr1-1.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-s3cc-use-dev_dbg-instaed-of-pr_debug.patch added to -mm tree
+Date: Tue, 29 Jan 2013 16:28:57 -0800
+Message-ID: <20130130002857.91DC131C201@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:42904 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751775Ab3A3A1w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Jan 2013 19:27:52 -0500
-Received: by mail-vb0-f74.google.com with SMTP id r6so103408vbi.1
-        for <mm-commits@vger.kernel.org>; Tue, 29 Jan 2013 16:27:50 -0800 (PST)
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:56918 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751652Ab3A3A26 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Jan 2013 19:28:58 -0500
+Received: by mail-gg0-f202.google.com with SMTP id l4so103635ggi.1
+        for <mm-commits@vger.kernel.org>; Tue, 29 Jan 2013 16:28:57 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: qiuxishi@huawei.com, tony.luck@intel.com
+Cc: jg1.han@samsung.com
 
 
 The patch titled
-     Subject: ia64/mm: fix a bad_page bug when crash kernel booting
+     Subject: drivers/rtc/rtc-s3c.c: use dev_dbg() instaed of pr_debug()
 has been added to the -mm tree.  Its filename is
-     ia64-mm-fix-a-bad_page-bug-when-crash-kernel-booting.patch
+     drivers-rtc-rtc-s3cc-use-dev_dbg-instaed-of-pr_debug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,166 +33,149 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xishi Qiu <qiuxishi@huawei.com>
-Subject: ia64/mm: fix a bad_page bug when crash kernel booting
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: drivers/rtc/rtc-s3c.c: use dev_dbg() instaed of pr_debug()
 
-On ia64 platform, I set "crashkernel=1024M-:600M", and dmesg shows
-128M-728M memory is reserved for crash kernel.  Then "echo c >
-/proc/sysrq-trigger" to test kdump.
+Use dev_dbg() instaed of pr_debug() to be consistent.
 
-When crash kernel booting, efi_init() will aligns the memory address in
-IA64_GRANULE_SIZE(16M), so 720M-728M memory will be dropped, It means
-crash kernel only manage 128M-720M memory.
-
-But initrd start and end are fixed in boot loader, it is before
-efi_init(), so initrd size maybe overflow when free_initrd_mem().
-
-Here is the dmesg when crash kernel booting:
-
-...
-Ignoring memory below 128MB
-Ignoring memory above 720MB
-    // aligns the address in IA64_GRANULE_SIZE(16M)
-...
-Initial ramdisk at: 0xe00000002c3f0000 (20176579 bytes)
-    // initrd uses 707M-726M memory
-...
-Kernel command line:  root=/dev/disk/by-id/ata-STEC_MACH16_M16ISD2-100UCT_STM000142A2D-part3
-console=ttyS0,115200n8 console=tty0 initcall_debug elevator=deadline sysrq=1 reset_devices
-irqpoll maxcpus=1 initcall_debug linuxrc=trace elfcorehdr=745216K max_addr=728M min_addr=128M
-    // show crash kernel parameters
-...
-Unpacking initramfs...
-    // called by populate_rootfs()
-Freeing initrd memory: 19648kB freed
-    // called by free_initrd()->free_initrd_mem()
-BUG: Bad page state in process swapper  pfn:02d00
-    // it is a mistake to free over 720M memory to OS (ia64's page size is 64KB)
-page:e0000000102dd800 flags:(null) count:0 mapcount:1 mapping:(null) index:0
-
-Call Trace:
- [<a000000100018dc0>] show_stack+0x80/0xa0
-                                sp=e000000021e8fbd0 bsp=e000000021e81360
- [<a00000010090fcc0>] dump_stack+0x30/0x50
-                                sp=e000000021e8fda0 bsp=e000000021e81348
- [<a0000001001a3180>] bad_page+0x280/0x380
-                                sp=e000000021e8fda0 bsp=e000000021e81308
- [<a0000001001a8740>] free_hot_cold_page+0x3a0/0x5c0
-                                sp=e000000021e8fda0 bsp=e000000021e812a0
- [<a0000001001a8a50>] free_hot_page+0x30/0x60
-                                sp=e000000021e8fda0 bsp=e000000021e81280
- [<a0000001001a8b30>] __free_pages+0xb0/0xe0
-                                sp=e000000021e8fda0 bsp=e000000021e81258
- [<a0000001001a8c00>] free_pages+0xa0/0xc0
-                                sp=e000000021e8fda0 bsp=e000000021e81230
- [<a000000100bb40c0>] free_initrd_mem+0x230/0x290
-                                sp=e000000021e8fda0 bsp=e000000021e811d8
- [<a000000100ba6620>] populate_rootfs+0x1c0/0x280
-                                sp=e000000021e8fdb0 bsp=e000000021e811a0
- [<a00000010000ac30>] do_one_initcall+0x3b0/0x3e0
-                                sp=e000000021e8fdb0 bsp=e000000021e81158
- [<a000000100ba0a90>] kernel_init+0x3f0/0x4b0
-                                sp=e000000021e8fdb0 bsp=e000000021e81108
- [<a000000100016890>] kernel_thread_helper+0xd0/0x100
-                                sp=e000000021e8fe30 bsp=e000000021e810e0
- [<a00000010000a4c0>] start_kernel_thread+0x20/0x40
-                                sp=e000000021e8fe30 bsp=e000000021e810e0
-Disabling lock debugging due to kernel taint
-BUG: Bad page state in process swapper  pfn:02d01
-page:e0000000102dd838 flags:(null) count:0 mapcount:1 mapping:(null) index:0
-
-Call Trace:
- [<a000000100018dc0>] show_stack+0x80/0xa0
-                                sp=e000000021e8fbd0 bsp=e000000021e81360
- [<a00000010090fcc0>] dump_stack+0x30/0x50
-                                sp=e000000021e8fda0 bsp=e000000021e81348
- [<a0000001001a3180>] bad_page+0x280/0x380
-                                sp=e000000021e8fda0 bsp=e000000021e81308
- [<a0000001001a8740>] free_hot_cold_page+0x3a0/0x5c0
-                                sp=e000000021e8fda0 bsp=e000000021e812a0
- [<a0000001001a8a50>] free_hot_page+0x30/0x60
-                                sp=e000000021e8fda0 bsp=e000000021e81280
- [<a0000001001a8b30>] __free_pages+0xb0/0xe0
-                                sp=e000000021e8fda0 bsp=e000000021e81258
- [<a0000001001a8c00>] free_pages+0xa0/0xc0
-                                sp=e000000021e8fda0 bsp=e000000021e81230
- [<a000000100bb40c0>] free_initrd_mem+0x230/0x290
-                                sp=e000000021e8fda0 bsp=e000000021e811d8
- [<a000000100ba6620>] populate_rootfs+0x1c0/0x280
-                                sp=e000000021e8fdb0 bsp=e000000021e811a0
- [<a00000010000ac30>] do_one_initcall+0x3b0/0x3e0
-                                sp=e000000021e8fdb0 bsp=e000000021e81158
- [<a000000100ba0a90>] kernel_init+0x3f0/0x4b0
-                                sp=e000000021e8fdb0 bsp=e000000021e81108
- [<a000000100016890>] kernel_thread_helper+0xd0/0x100
-                                sp=e000000021e8fe30 bsp=e000000021e810e0
- [<a00000010000a4c0>] start_kernel_thread+0x20/0x40
-                                sp=e000000021e8fe30 bsp=e000000021e810e0
-...
-
-Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/include/asm/meminit.h |    2 ++
- arch/ia64/kernel/efi.c          |    2 +-
- arch/ia64/mm/init.c             |   11 +++++++++++
- 3 files changed, 14 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-s3c.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN arch/ia64/include/asm/meminit.h~ia64-mm-fix-a-bad_page-bug-when-crash-kernel-booting arch/ia64/include/asm/meminit.h
---- a/arch/ia64/include/asm/meminit.h~ia64-mm-fix-a-bad_page-bug-when-crash-kernel-booting
-+++ a/arch/ia64/include/asm/meminit.h
-@@ -49,6 +49,8 @@ extern int reserve_elfcorehdr(u64 *start
- #define GRANULEROUNDDOWN(n)	((n) & ~(IA64_GRANULE_SIZE-1))
- #define GRANULEROUNDUP(n)	(((n)+IA64_GRANULE_SIZE-1) & ~(IA64_GRANULE_SIZE-1))
+diff -puN drivers/rtc/rtc-s3c.c~rtc-rtc-s3c-use-dev_dbg-instaed-of-pr_debug drivers/rtc/rtc-s3c.c
+--- a/drivers/rtc/rtc-s3c.c~rtc-rtc-s3c-use-dev_dbg-instaed-of-pr_debug
++++ a/drivers/rtc/rtc-s3c.c
+@@ -115,7 +115,7 @@ static int s3c_rtc_setaie(struct device 
+ {
+ 	unsigned int tmp;
  
-+extern u64 max_addr;
-+
- #ifdef CONFIG_NUMA
-   extern void call_pernode_memory (unsigned long start, unsigned long len, void *func);
- #else
-diff -puN arch/ia64/kernel/efi.c~ia64-mm-fix-a-bad_page-bug-when-crash-kernel-booting arch/ia64/kernel/efi.c
---- a/arch/ia64/kernel/efi.c~ia64-mm-fix-a-bad_page-bug-when-crash-kernel-booting
-+++ a/arch/ia64/kernel/efi.c
-@@ -49,7 +49,7 @@ extern efi_status_t efi_call_phys (void 
- struct efi efi;
- EXPORT_SYMBOL(efi);
- static efi_runtime_services_t *runtime;
--static u64 mem_limit = ~0UL, max_addr = ~0UL, min_addr = 0UL;
-+u64 mem_limit = ~0UL, max_addr = ~0UL, min_addr = 0UL;
+-	pr_debug("%s: aie=%d\n", __func__, enabled);
++	dev_dbg(dev, "%s: aie=%d\n", __func__, enabled);
  
- #define efi_call_virt(f, args...)	(*(f))(args)
+ 	clk_enable(rtc_clk);
+ 	tmp = readb(s3c_rtc_base + S3C2410_RTCALM) & ~S3C2410_RTCALM_ALMEN;
+@@ -203,7 +203,7 @@ static int s3c_rtc_gettime(struct device
  
-diff -puN arch/ia64/mm/init.c~ia64-mm-fix-a-bad_page-bug-when-crash-kernel-booting arch/ia64/mm/init.c
---- a/arch/ia64/mm/init.c~ia64-mm-fix-a-bad_page-bug-when-crash-kernel-booting
-+++ a/arch/ia64/mm/init.c
-@@ -207,6 +207,17 @@ free_initrd_mem (unsigned long start, un
- 	start = PAGE_ALIGN(start);
- 	end = end & PAGE_MASK;
+ 	rtc_tm->tm_year += 100;
  
-+	/*
-+	 * Initrd size is fixed in boot loader, but kernel parameter max_addr
-+	 * which aligns in granules is fixed after boot loader, so initrd size
-+	 * maybe overflow.
-+	 */
-+	if (max_addr != ~0UL) {
-+		end = GRANULEROUNDDOWN(end);
-+		if (start > end)
-+			start = end;
-+	}
-+
- 	if (start < end)
- 		printk(KERN_INFO "Freeing initrd memory: %ldkB freed\n", (end - start) >> 10);
+-	pr_debug("read time %04d.%02d.%02d %02d:%02d:%02d\n",
++	dev_dbg(dev, "read time %04d.%02d.%02d %02d:%02d:%02d\n",
+ 		 1900 + rtc_tm->tm_year, rtc_tm->tm_mon, rtc_tm->tm_mday,
+ 		 rtc_tm->tm_hour, rtc_tm->tm_min, rtc_tm->tm_sec);
  
+@@ -218,7 +218,7 @@ static int s3c_rtc_settime(struct device
+ 	void __iomem *base = s3c_rtc_base;
+ 	int year = tm->tm_year - 100;
+ 
+-	pr_debug("set time %04d.%02d.%02d %02d:%02d:%02d\n",
++	dev_dbg(dev, "set time %04d.%02d.%02d %02d:%02d:%02d\n",
+ 		 1900 + tm->tm_year, tm->tm_mon, tm->tm_mday,
+ 		 tm->tm_hour, tm->tm_min, tm->tm_sec);
+ 
+@@ -259,7 +259,7 @@ static int s3c_rtc_getalarm(struct devic
+ 
+ 	alrm->enabled = (alm_en & S3C2410_RTCALM_ALMEN) ? 1 : 0;
+ 
+-	pr_debug("read alarm %d, %04d.%02d.%02d %02d:%02d:%02d\n",
++	dev_dbg(dev, "read alarm %d, %04d.%02d.%02d %02d:%02d:%02d\n",
+ 		 alm_en,
+ 		 1900 + alm_tm->tm_year, alm_tm->tm_mon, alm_tm->tm_mday,
+ 		 alm_tm->tm_hour, alm_tm->tm_min, alm_tm->tm_sec);
+@@ -310,7 +310,7 @@ static int s3c_rtc_setalarm(struct devic
+ 	unsigned int alrm_en;
+ 
+ 	clk_enable(rtc_clk);
+-	pr_debug("s3c_rtc_setalarm: %d, %04d.%02d.%02d %02d:%02d:%02d\n",
++	dev_dbg(dev, "s3c_rtc_setalarm: %d, %04d.%02d.%02d %02d:%02d:%02d\n",
+ 		 alrm->enabled,
+ 		 1900 + tm->tm_year, tm->tm_mon + 1, tm->tm_mday,
+ 		 tm->tm_hour, tm->tm_min, tm->tm_sec);
+@@ -333,7 +333,7 @@ static int s3c_rtc_setalarm(struct devic
+ 		writeb(bin2bcd(tm->tm_hour), base + S3C2410_ALMHOUR);
+ 	}
+ 
+-	pr_debug("setting S3C2410_RTCALM to %08x\n", alrm_en);
++	dev_dbg(dev, "setting S3C2410_RTCALM to %08x\n", alrm_en);
+ 
+ 	writeb(alrm_en, base + S3C2410_RTCALM);
+ 
+@@ -459,7 +459,7 @@ static int s3c_rtc_probe(struct platform
+ 	int ret;
+ 	int tmp;
+ 
+-	pr_debug("%s: probe=%p\n", __func__, pdev);
++	dev_dbg(&pdev->dev, "%s: probe=%p\n", __func__, pdev);
+ 
+ 	/* find the IRQs */
+ 
+@@ -475,7 +475,7 @@ static int s3c_rtc_probe(struct platform
+ 		return s3c_rtc_alarmno;
+ 	}
+ 
+-	pr_debug("s3c2410_rtc: tick irq %d, alarm irq %d\n",
++	dev_dbg(&pdev->dev, "s3c2410_rtc: tick irq %d, alarm irq %d\n",
+ 		 s3c_rtc_tickno, s3c_rtc_alarmno);
+ 
+ 	/* get the memory region */
+@@ -504,7 +504,7 @@ static int s3c_rtc_probe(struct platform
+ 
+ 	s3c_rtc_enable(pdev, 1);
+ 
+-	pr_debug("s3c2410_rtc: RTCCON=%02x\n",
++	dev_dbg(&pdev->dev, "s3c2410_rtc: RTCCON=%02x\n",
+ 		 readw(s3c_rtc_base + S3C2410_RTCCON));
+ 
+ 	device_init_wakeup(&pdev->dev, 1);
 _
 
-Patches currently in -mm which might be from qiuxishi@huawei.com are
+Patches currently in -mm which might be from jg1.han@samsung.com are
 
-ia64-mm-fix-a-bad_page-bug-when-crash-kernel-booting.patch
-memory-failure-fix-an-error-of-mce_bad_pages-statistics.patch
-memory-failure-do-code-refactor-of-soft_offline_page.patch
-memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages.patch
-memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
-mm-memory-failurec-clean-up-soft_offline_page.patch
+linux-next.patch
+backlight-add-lms501kf03-lcd-driver.patch
+backlight-add-lms501kf03-lcd-driver-fix.patch
+backlight-add-lms501kf03-lcd-driver-fix-fix.patch
+backlight-ld9040-use-sleep-instead-of-delay.patch
+backlight-ld9040-remove-unnecessary-null-deference-check.patch
+backlight-ld9040-replace-efault-with-einval.patch
+backlight-ld9040-remove-redundant-return-variables.patch
+backlight-ld9040-reorder-inclusions-of-linux-xxxh.patch
+backlight-s6e63m0-use-lowercase-names-of-structs.patch
+backlight-s6e63m0-use-sleep-instead-of-delay.patch
+backlight-s6e63m0-remove-unnecessary-null-deference-check.patch
+backlight-s6e63m0-replace-efault-with-einval.patch
+backlight-s6e63m0-remove-redundant-variable-before_power.patch
+backlight-s6e63m0-reorder-inclusions-of-linux-xxxh.patch
+backlight-ams369fg06-use-sleep-instead-of-delay.patch
+backlight-ams369fg06-remove-unnecessary-null-deference-check.patch
+backlight-ams369fg06-replace-efault-with-einval.patch
+backlight-ams369fg06-remove-redundant-variable-before_power.patch
+backlight-ams369fg06-reorder-inclusions-of-linux-xxxh.patch
+backlight-l4f00242t03-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-ld9040-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-s6e63m0-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-ltv350qv-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-tdo24m-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-lms283gf05-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-ams369fg06-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-vgg2432a4-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-tosa-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-corgi_lcd-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-lms501kf03-use-spi_get_drvdata-and-spi_set_drvdata.patch
+backlight-aat2870-use-bl_get_data-instead-of-dev_get_drvdata.patch
+pwm_backlight-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-ams369fg06-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-corgi_lcd-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-tosa-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-omap1-use-bl_get_data-instead-of-dev_get_drvdata.patch
+backlight-corgi_lcd-use-lcd_get_data-instead-of-dev_get_drvdata.patch
+backlight-lm3649_backlight-remove-ret-=-eio-at-error-paths-of-probe.patch
+drivers-video-backlight-l4f00242t03c-convert-to-devm_regulator_get.patch
+fb-backlight-add-the-himax-hx-8357b-lcd-controller.patch
+drivers-video-backlight-makefile-cleanup.patch
+backlight-add-an-as3711-pmic-backlight-driver.patch
+backlight-88pm860x_bl-add-missing-of_node_put.patch
+drivers-rtc-rtc-s3cc-use-dev_dbg-instaed-of-pr_debug.patch
 
