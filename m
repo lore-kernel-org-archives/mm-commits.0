@@ -1,60 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] edac-test-correct-variable-in-store-function.patch removed from -mm tree
-Date: Wed, 30 Jan 2013 12:31:24 -0800
-Message-ID: <20130130203125.2639A5A420A@corp2gmr1-2.hot.corp.google.com>
+Subject: + kexec-get-rid-of-duplicate-check-for-hole_end.patch added to -mm tree
+Date: Wed, 30 Jan 2013 13:18:18 -0800
+Message-ID: <20130130211818.98DCF5A4082@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:49277 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754141Ab3A3Ub0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Jan 2013 15:31:26 -0500
-Received: by mail-ve0-f201.google.com with SMTP id 15so157077vea.4
-        for <mm-commits@vger.kernel.org>; Wed, 30 Jan 2013 12:31:25 -0800 (PST)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:46167 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754217Ab3A3VST (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Jan 2013 16:18:19 -0500
+Received: by mail-ye0-f201.google.com with SMTP id r11so204908yen.0
+        for <mm-commits@vger.kernel.org>; Wed, 30 Jan 2013 13:18:19 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, dougthompson@xmission.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: zhangyanfei@cn.fujitsu.com, ebiederm@xmission.com
 
 
 The patch titled
-     Subject: edac: test correct variable in ->store function
-has been removed from the -mm tree.  Its filename was
-     edac-test-correct-variable-in-store-function.patch
+     Subject: kexec: get rid of duplicate check for hole_end
+has been added to the -mm tree.  Its filename is
+     kexec-get-rid-of-duplicate-check-for-hole_end.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: edac: test correct variable in ->store function
+From: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Subject: kexec: get rid of duplicate check for hole_end
 
-We're testing for ->show but calling ->store().
+hole_end has been checked to make sure it is <= crash_res.end in the while
+condition check, so the if condition check is duplicate.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Doug Thompson <dougthompson@xmission.com>
+Signed-off-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Reviewed-by: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/edac_pci_sysfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/kexec.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/edac/edac_pci_sysfs.c~edac-test-correct-variable-in-store-function drivers/edac/edac_pci_sysfs.c
---- a/drivers/edac/edac_pci_sysfs.c~edac-test-correct-variable-in-store-function
-+++ a/drivers/edac/edac_pci_sysfs.c
-@@ -256,7 +256,7 @@ static ssize_t edac_pci_dev_store(struct
- 	struct edac_pci_dev_attribute *edac_pci_dev;
- 	edac_pci_dev = (struct edac_pci_dev_attribute *)attr;
+diff -puN kernel/kexec.c~kexec-get-rid-of-duplicate-check-for-hole_end kernel/kexec.c
+--- a/kernel/kexec.c~kexec-get-rid-of-duplicate-check-for-hole_end
++++ a/kernel/kexec.c
+@@ -497,8 +497,6 @@ static struct page *kimage_alloc_crash_c
  
--	if (edac_pci_dev->show)
-+	if (edac_pci_dev->store)
- 		return edac_pci_dev->store(edac_pci_dev->value, buffer, count);
- 	return -EIO;
- }
+ 		if (hole_end > KEXEC_CRASH_CONTROL_MEMORY_LIMIT)
+ 			break;
+-		if (hole_end > crashk_res.end)
+-			break;
+ 		/* See if I overlap any of the segments */
+ 		for (i = 0; i < image->nr_segments; i++) {
+ 			unsigned long mstart, mend;
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from zhangyanfei@cn.fujitsu.com are
 
-origin.patch
-linux-next.patch
-compat-return-efault-on-error-in-waitid.patch
-backlight-s6e63m0-report-gamma_table_count-correctly.patch
-rtc-add-support-for-spi-rtc-rx4581-fix.patch
+binfmt_elf-remove-unused-argument-in-fill_elf_header.patch
+kexec-get-rid-of-duplicate-check-for-hole_end.patch
 
