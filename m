@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-vm_unmapped_area-in-hugetlbfs-on-ia64-architecture.patch added to -mm tree
-Date: Thu, 31 Jan 2013 13:55:45 -0800
-Message-ID: <20130131215546.260075A4222@corp2gmr1-2.hot.corp.google.com>
+Subject: + mm-use-vm_unmapped_area-on-frv-architecture.patch added to -mm tree
+Date: Thu, 31 Jan 2013 13:55:39 -0800
+Message-ID: <20130131215540.2AD9831C1B2@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-gh0-f201.google.com ([209.85.160.201]:54879 "EHLO
-	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753266Ab3AaVzr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Jan 2013 16:55:47 -0500
-Received: by mail-gh0-f201.google.com with SMTP id z19so357280ghb.0
-        for <mm-commits@vger.kernel.org>; Thu, 31 Jan 2013 13:55:46 -0800 (PST)
+Received: from mail-yh0-f73.google.com ([209.85.213.73]:62358 "EHLO
+	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754896Ab3AaVzn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Jan 2013 16:55:43 -0500
+Received: by mail-yh0-f73.google.com with SMTP id 28so6624yhr.2
+        for <mm-commits@vger.kernel.org>; Thu, 31 Jan 2013 13:55:40 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: walken@google.com, riel@redhat.com, tony.luck@intel.com
+Cc: walken@google.com, dhowells@redhat.com, riel@redhat.com
 
 
 The patch titled
-     Subject: mm: use vm_unmapped_area() in hugetlbfs on ia64 architecture
+     Subject: mm: use vm_unmapped_area() on frv architecture
 has been added to the -mm tree.  Its filename is
-     mm-use-vm_unmapped_area-in-hugetlbfs-on-ia64-architecture.patch
+     mm-use-vm_unmapped_area-on-frv-architecture.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,88 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michel Lespinasse <walken@google.com>
-Subject: mm: use vm_unmapped_area() in hugetlbfs on ia64 architecture
+Subject: mm: use vm_unmapped_area() on frv architecture
 
-Update the ia64 hugetlb_get_unmapped_area function to make use of
+Update the frv arch_get_unmapped_area function to make use of
 vm_unmapped_area() instead of implementing a brute force search.
 
 Signed-off-by: Michel Lespinasse <walken@google.com>
 Acked-by: Rik van Riel <riel@redhat.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Acked-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/hugetlbpage.c |   20 +++++++++-----------
- 1 file changed, 9 insertions(+), 11 deletions(-)
+ arch/frv/mm/elf-fdpic.c |   49 +++++++++++++-------------------------
+ 1 file changed, 17 insertions(+), 32 deletions(-)
 
-diff -puN arch/ia64/mm/hugetlbpage.c~mm-use-vm_unmapped_area-in-hugetlbfs-on-ia64-architecture arch/ia64/mm/hugetlbpage.c
---- a/arch/ia64/mm/hugetlbpage.c~mm-use-vm_unmapped_area-in-hugetlbfs-on-ia64-architecture
-+++ a/arch/ia64/mm/hugetlbpage.c
-@@ -148,7 +148,7 @@ void hugetlb_free_pgd_range(struct mmu_g
- unsigned long hugetlb_get_unmapped_area(struct file *file, unsigned long addr, unsigned long len,
- 		unsigned long pgoff, unsigned long flags)
+diff -puN arch/frv/mm/elf-fdpic.c~mm-use-vm_unmapped_area-on-frv-architecture arch/frv/mm/elf-fdpic.c
+--- a/arch/frv/mm/elf-fdpic.c~mm-use-vm_unmapped_area-on-frv-architecture
++++ a/arch/frv/mm/elf-fdpic.c
+@@ -60,7 +60,7 @@ unsigned long arch_get_unmapped_area(str
+ 				     unsigned long pgoff, unsigned long flags)
  {
--	struct vm_area_struct *vmm;
+ 	struct vm_area_struct *vma;
+-	unsigned long limit;
 +	struct vm_unmapped_area_info info;
  
- 	if (len > RGN_MAP_LIMIT)
+ 	if (len > TASK_SIZE)
  		return -ENOMEM;
-@@ -165,16 +165,14 @@ unsigned long hugetlb_get_unmapped_area(
- 	/* This code assumes that RGN_HPAGE != 0. */
- 	if ((REGION_NUMBER(addr) != RGN_HPAGE) || (addr & (HPAGE_SIZE - 1)))
- 		addr = HPAGE_REGION_BASE;
--	else
--		addr = ALIGN(addr, HPAGE_SIZE);
--	for (vmm = find_vma(current->mm, addr); ; vmm = vmm->vm_next) {
--		/* At this point:  (!vmm || addr < vmm->vm_end). */
--		if (REGION_OFFSET(addr) + len > RGN_MAP_LIMIT)
--			return -ENOMEM;
--		if (!vmm || (addr + len) <= vmm->vm_start)
--			return addr;
--		addr = ALIGN(vmm->vm_end, HPAGE_SIZE);
+@@ -79,39 +79,24 @@ unsigned long arch_get_unmapped_area(str
+ 	}
+ 
+ 	/* search between the bottom of user VM and the stack grow area */
+-	addr = PAGE_SIZE;
+-	limit = (current->mm->start_stack - 0x00200000);
+-	if (addr + len <= limit) {
+-		limit -= len;
+-
+-		if (addr <= limit) {
+-			vma = find_vma(current->mm, PAGE_SIZE);
+-			for (; vma; vma = vma->vm_next) {
+-				if (addr > limit)
+-					break;
+-				if (addr + len <= vma->vm_start)
+-					goto success;
+-				addr = vma->vm_end;
+-			}
+-		}
 -	}
-+
 +	info.flags = 0;
 +	info.length = len;
-+	info.low_limit = addr;
-+	info.high_limit = HPAGE_REGION_BASE + RGN_MAP_LIMIT;
-+	info.align_mask = PAGE_MASK & (HPAGE_SIZE - 1);
++	info.low_limit = PAGE_SIZE;
++	info.high_limit = (current->mm->start_stack - 0x00200000);
++	info.align_mask = 0;
 +	info.align_offset = 0;
-+	return vm_unmapped_area(&info);
- }
++	addr = vm_unmapped_area(&info);
++	if (!(addr & ~PAGE_MASK))
++		goto success;
++	VM_BUG_ON(addr != -ENOMEM);
  
- static int __init hugetlb_setup_sz(char *str)
+ 	/* search from just above the WorkRAM area to the top of memory */
+-	addr = PAGE_ALIGN(0x80000000);
+-	limit = TASK_SIZE - len;
+-	if (addr <= limit) {
+-		vma = find_vma(current->mm, addr);
+-		for (; vma; vma = vma->vm_next) {
+-			if (addr > limit)
+-				break;
+-			if (addr + len <= vma->vm_start)
+-				goto success;
+-			addr = vma->vm_end;
+-		}
+-
+-		if (!vma && addr <= limit)
+-			goto success;
+-	}
++	info.low_limit = PAGE_ALIGN(0x80000000);
++	info.high_limit = TASK_SIZE;
++	addr = vm_unmapped_area(&info);
++	if (!(addr & ~PAGE_MASK))
++		goto success;
++	VM_BUG_ON(addr != -ENOMEM);
+ 
+ #if 0
+ 	printk("[area] l=%lx (ENOMEM) f='%s'\n",
 _
 
 Patches currently in -mm which might be from walken@google.com are
