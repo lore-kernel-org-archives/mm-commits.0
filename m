@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-free_area_cache.patch added to -mm tree
-Date: Thu, 31 Jan 2013 13:55:54 -0800
-Message-ID: <20130131215554.A584431C1B2@corp2gmr1-1.hot.corp.google.com>
+Subject: + fs-proc-clean-up-printks.patch added to -mm tree
+Date: Thu, 31 Jan 2013 14:20:39 -0800
+Message-ID: <20130131222039.9EBE55A4219@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:51158 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753266Ab3AaVz4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Jan 2013 16:55:56 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so357382vch.2
-        for <mm-commits@vger.kernel.org>; Thu, 31 Jan 2013 13:55:56 -0800 (PST)
+Received: from mail-gh0-f202.google.com ([209.85.160.202]:55095 "EHLO
+	mail-gh0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755457Ab3AaWUk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Jan 2013 17:20:40 -0500
+Received: by mail-gh0-f202.google.com with SMTP id z10so360483ghb.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 Jan 2013 14:20:40 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: walken@google.com, benh@kernel.crashing.org, deller@gmx.de, dhowells@redhat.com, ink@jurassic.park.msu.ru, jejb@parisc-linux.org, mattst88@gmail.com, paulus@samba.org, riel@redhat.com, rth@twiddle.net, tony.luck@intel.com
+Cc: akpm@linux-foundation.org, joe@perches.com
 
 
 The patch titled
-     Subject: mm: remove free_area_cache
+     Subject: fs/proc: clean up printks
 has been added to the -mm tree.  Its filename is
-     mm-remove-free_area_cache.patch
+     fs-proc-clean-up-printks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,378 +33,435 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michel Lespinasse <walken@google.com>
-Subject: mm: remove free_area_cache
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs/proc: clean up printks
 
-Since all architectures have been converted to use vm_unmapped_area(),
-there is no remaining use for the free_area_cache.
+- use pr_foo() throughout
 
-Signed-off-by: Michel Lespinasse <walken@google.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Richard Henderson <rth@twiddle.net>
+- remove a couple of duplicated KERN_WARNINGs, via WARN(KERN_WARNING "...")
+
+- nuke a few warnings which I've never seen happen, ever.
+
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/mmap.c               |    2 --
- arch/arm64/mm/mmap.c             |    2 --
- arch/mips/mm/mmap.c              |    2 --
- arch/powerpc/mm/mmap_64.c        |    2 --
- arch/s390/mm/mmap.c              |    4 ----
- arch/sparc/kernel/sys_sparc_64.c |    2 --
- arch/tile/mm/mmap.c              |    2 --
- arch/x86/ia32/ia32_aout.c        |    2 --
- arch/x86/mm/mmap.c               |    2 --
- fs/binfmt_aout.c                 |    2 --
- fs/binfmt_elf.c                  |    2 --
- include/linux/mm_types.h         |    3 ---
- include/linux/sched.h            |    2 --
- kernel/fork.c                    |    4 ----
- mm/mmap.c                        |   28 ----------------------------
- mm/nommu.c                       |    4 ----
- mm/util.c                        |    1 -
- 17 files changed, 66 deletions(-)
+ fs/proc/base.c         |    3 ++-
+ fs/proc/generic.c      |   23 +++++++----------------
+ fs/proc/inode.c        |    5 +++--
+ fs/proc/kcore.c        |    3 ++-
+ fs/proc/proc_devtree.c |   13 +++++++------
+ fs/proc/proc_sysctl.c  |   19 ++++++++++---------
+ fs/proc/vmcore.c       |   15 ++++++---------
+ 7 files changed, 37 insertions(+), 44 deletions(-)
 
-diff -puN arch/arm/mm/mmap.c~mm-remove-free_area_cache arch/arm/mm/mmap.c
---- a/arch/arm/mm/mmap.c~mm-remove-free_area_cache
-+++ a/arch/arm/mm/mmap.c
-@@ -181,11 +181,9 @@ void arch_pick_mmap_layout(struct mm_str
- 	if (mmap_is_legacy()) {
- 		mm->mmap_base = TASK_UNMAPPED_BASE + random_factor;
- 		mm->get_unmapped_area = arch_get_unmapped_area;
--		mm->unmap_area = arch_unmap_area;
- 	} else {
- 		mm->mmap_base = mmap_base(random_factor);
- 		mm->get_unmapped_area = arch_get_unmapped_area_topdown;
--		mm->unmap_area = arch_unmap_area_topdown;
+diff -puN fs/proc/base.c~fs-proc-clean-up-printks fs/proc/base.c
+--- a/fs/proc/base.c~fs-proc-clean-up-printks
++++ a/fs/proc/base.c
+@@ -73,6 +73,7 @@
+ #include <linux/security.h>
+ #include <linux/ptrace.h>
+ #include <linux/tracehook.h>
++#include <linux/printk.h>
+ #include <linux/cgroup.h>
+ #include <linux/cpuset.h>
+ #include <linux/audit.h>
+@@ -952,7 +953,7 @@ static ssize_t oom_adj_write(struct file
+ 	 * /proc/pid/oom_adj is provided for legacy purposes, ask users to use
+ 	 * /proc/pid/oom_score_adj instead.
+ 	 */
+-	printk_once(KERN_WARNING "%s (%d): /proc/%d/oom_adj is deprecated, please use /proc/%d/oom_score_adj instead.\n",
++	pr_warn_once("%s (%d): /proc/%d/oom_adj is deprecated, please use /proc/%d/oom_score_adj instead.\n",
+ 		  current->comm, task_pid_nr(current), task_pid_nr(task),
+ 		  task_pid_nr(task));
+ 
+diff -puN fs/proc/generic.c~fs-proc-clean-up-printks fs/proc/generic.c
+--- a/fs/proc/generic.c~fs-proc-clean-up-printks
++++ a/fs/proc/generic.c
+@@ -15,6 +15,7 @@
+ #include <linux/mm.h>
+ #include <linux/module.h>
+ #include <linux/slab.h>
++#include <linux/printk.h>
+ #include <linux/mount.h>
+ #include <linux/init.h>
+ #include <linux/idr.h>
+@@ -132,11 +133,8 @@ __proc_file_read(struct file *file, char
+ 		}
+ 
+ 		if (start == NULL) {
+-			if (n > PAGE_SIZE) {
+-				printk(KERN_ERR
+-				       "proc_file_read: Apparent buffer overflow!\n");
++			if (n > PAGE_SIZE)	/* Apparent buffer overflow */
+ 				n = PAGE_SIZE;
+-			}
+ 			n -= *ppos;
+ 			if (n <= 0)
+ 				break;
+@@ -144,26 +142,19 @@ __proc_file_read(struct file *file, char
+ 				n = count;
+ 			start = page + *ppos;
+ 		} else if (start < page) {
+-			if (n > PAGE_SIZE) {
+-				printk(KERN_ERR
+-				       "proc_file_read: Apparent buffer overflow!\n");
++			if (n > PAGE_SIZE)	/* Apparent buffer overflow */
+ 				n = PAGE_SIZE;
+-			}
+ 			if (n > count) {
+ 				/*
+ 				 * Don't reduce n because doing so might
+ 				 * cut off part of a data block.
+ 				 */
+-				printk(KERN_WARNING
+-				       "proc_file_read: Read count exceeded\n");
++				pr_warn("proc_file_read: count exceeded\n");
+ 			}
+ 		} else /* start >= page */ {
+ 			unsigned long startoff = (unsigned long)(start - page);
+-			if (n > (PAGE_SIZE - startoff)) {
+-				printk(KERN_ERR
+-				       "proc_file_read: Apparent buffer overflow!\n");
++			if (n > (PAGE_SIZE - startoff))	/* buffer overflow? */
+ 				n = PAGE_SIZE - startoff;
+-			}
+ 			if (n > count)
+ 				n = count;
+ 		}
+@@ -576,7 +567,7 @@ static int proc_register(struct proc_dir
+ 
+ 	for (tmp = dir->subdir; tmp; tmp = tmp->next)
+ 		if (strcmp(tmp->name, dp->name) == 0) {
+-			WARN(1, KERN_WARNING "proc_dir_entry '%s/%s' already registered\n",
++			WARN(1, "proc_dir_entry '%s/%s' already registered\n",
+ 				dir->name, dp->name);
+ 			break;
+ 		}
+@@ -837,7 +828,7 @@ void remove_proc_entry(const char *name,
+ 	if (S_ISDIR(de->mode))
+ 		parent->nlink--;
+ 	de->nlink = 0;
+-	WARN(de->subdir, KERN_WARNING "%s: removing non-empty directory "
++	WARN(de->subdir, "%s: removing non-empty directory "
+ 			"'%s/%s', leaking at least '%s'\n", __func__,
+ 			de->parent->name, de->name, de->subdir->name);
+ 	pde_put(de);
+diff -puN fs/proc/inode.c~fs-proc-clean-up-printks fs/proc/inode.c
+--- a/fs/proc/inode.c~fs-proc-clean-up-printks
++++ a/fs/proc/inode.c
+@@ -13,6 +13,7 @@
+ #include <linux/stat.h>
+ #include <linux/completion.h>
+ #include <linux/poll.h>
++#include <linux/printk.h>
+ #include <linux/file.h>
+ #include <linux/limits.h>
+ #include <linux/init.h>
+@@ -498,14 +499,14 @@ int proc_fill_super(struct super_block *
+ 	pde_get(&proc_root);
+ 	root_inode = proc_get_inode(s, &proc_root);
+ 	if (!root_inode) {
+-		printk(KERN_ERR "proc_fill_super: get root inode failed\n");
++		pr_warn("proc_fill_super: get root inode failed\n");
+ 		pde_put(&proc_root);
+ 		return -ENOMEM;
  	}
- }
  
-diff -puN arch/arm64/mm/mmap.c~mm-remove-free_area_cache arch/arm64/mm/mmap.c
---- a/arch/arm64/mm/mmap.c~mm-remove-free_area_cache
-+++ a/arch/arm64/mm/mmap.c
-@@ -90,11 +90,9 @@ void arch_pick_mmap_layout(struct mm_str
- 	if (mmap_is_legacy()) {
- 		mm->mmap_base = TASK_UNMAPPED_BASE;
- 		mm->get_unmapped_area = arch_get_unmapped_area;
--		mm->unmap_area = arch_unmap_area;
- 	} else {
- 		mm->mmap_base = mmap_base();
- 		mm->get_unmapped_area = arch_get_unmapped_area_topdown;
--		mm->unmap_area = arch_unmap_area_topdown;
+ 	s->s_root = d_make_root(root_inode);
+ 	if (!s->s_root) {
+-		printk(KERN_ERR "proc_fill_super: allocate dentry failed\n");
++		pr_err("proc_fill_super: allocate dentry failed\n");
+ 		return -ENOMEM;
  	}
- }
- EXPORT_SYMBOL_GPL(arch_pick_mmap_layout);
-diff -puN arch/mips/mm/mmap.c~mm-remove-free_area_cache arch/mips/mm/mmap.c
---- a/arch/mips/mm/mmap.c~mm-remove-free_area_cache
-+++ a/arch/mips/mm/mmap.c
-@@ -158,11 +158,9 @@ void arch_pick_mmap_layout(struct mm_str
- 	if (mmap_is_legacy()) {
- 		mm->mmap_base = TASK_UNMAPPED_BASE + random_factor;
- 		mm->get_unmapped_area = arch_get_unmapped_area;
--		mm->unmap_area = arch_unmap_area;
- 	} else {
- 		mm->mmap_base = mmap_base(random_factor);
- 		mm->get_unmapped_area = arch_get_unmapped_area_topdown;
--		mm->unmap_area = arch_unmap_area_topdown;
+ 
+diff -puN fs/proc/kcore.c~fs-proc-clean-up-printks fs/proc/kcore.c
+--- a/fs/proc/kcore.c~fs-proc-clean-up-printks
++++ a/fs/proc/kcore.c
+@@ -17,6 +17,7 @@
+ #include <linux/elfcore.h>
+ #include <linux/vmalloc.h>
+ #include <linux/highmem.h>
++#include <linux/printk.h>
+ #include <linux/bootmem.h>
+ #include <linux/init.h>
+ #include <linux/slab.h>
+@@ -619,7 +620,7 @@ static int __init proc_kcore_init(void)
+ 	proc_root_kcore = proc_create("kcore", S_IRUSR, NULL,
+ 				      &proc_kcore_operations);
+ 	if (!proc_root_kcore) {
+-		printk(KERN_ERR "couldn't create /proc/kcore\n");
++		pr_err("couldn't create /proc/kcore\n");
+ 		return 0; /* Always returns 0. */
  	}
- }
- 
-diff -puN arch/powerpc/mm/mmap_64.c~mm-remove-free_area_cache arch/powerpc/mm/mmap_64.c
---- a/arch/powerpc/mm/mmap_64.c~mm-remove-free_area_cache
-+++ a/arch/powerpc/mm/mmap_64.c
-@@ -92,10 +92,8 @@ void arch_pick_mmap_layout(struct mm_str
- 	if (mmap_is_legacy()) {
- 		mm->mmap_base = TASK_UNMAPPED_BASE;
- 		mm->get_unmapped_area = arch_get_unmapped_area;
--		mm->unmap_area = arch_unmap_area;
+ 	/* Store text area if it's special */
+diff -puN fs/proc/proc_devtree.c~fs-proc-clean-up-printks fs/proc/proc_devtree.c
+--- a/fs/proc/proc_devtree.c~fs-proc-clean-up-printks
++++ a/fs/proc/proc_devtree.c
+@@ -8,6 +8,7 @@
+ #include <linux/time.h>
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
++#include <linux/printk.h>
+ #include <linux/stat.h>
+ #include <linux/string.h>
+ #include <linux/of.h>
+@@ -110,8 +111,8 @@ void proc_device_tree_update_prop(struct
+ 		if (ent->data == oldprop)
+ 			break;
+ 	if (ent == NULL) {
+-		printk(KERN_WARNING "device-tree: property \"%s\" "
+-		       " does not exist\n", oldprop->name);
++		pr_warn("device-tree: property \"%s\" does not exist\n",
++			oldprop->name);
  	} else {
- 		mm->mmap_base = mmap_base();
- 		mm->get_unmapped_area = arch_get_unmapped_area_topdown;
--		mm->unmap_area = arch_unmap_area_topdown;
+ 		ent->data = newprop;
+ 		ent->size = newprop->length;
+@@ -153,8 +154,8 @@ static const char *fixup_name(struct dev
+ realloc:
+ 	fixed_name = kmalloc(fixup_len, GFP_KERNEL);
+ 	if (fixed_name == NULL) {
+-		printk(KERN_ERR "device-tree: Out of memory trying to fixup "
+-				"name \"%s\"\n", name);
++		pr_err("device-tree: Out of memory trying to fixup "
++		       "name \"%s\"\n", name);
+ 		return name;
  	}
- }
-diff -puN arch/s390/mm/mmap.c~mm-remove-free_area_cache arch/s390/mm/mmap.c
---- a/arch/s390/mm/mmap.c~mm-remove-free_area_cache
-+++ a/arch/s390/mm/mmap.c
-@@ -91,11 +91,9 @@ void arch_pick_mmap_layout(struct mm_str
- 	if (mmap_is_legacy()) {
- 		mm->mmap_base = TASK_UNMAPPED_BASE;
- 		mm->get_unmapped_area = arch_get_unmapped_area;
--		mm->unmap_area = arch_unmap_area;
- 	} else {
- 		mm->mmap_base = mmap_base();
- 		mm->get_unmapped_area = arch_get_unmapped_area_topdown;
--		mm->unmap_area = arch_unmap_area_topdown;
+ 
+@@ -175,8 +176,8 @@ retry:
+ 		goto retry;
  	}
+ 
+-	printk(KERN_WARNING "device-tree: Duplicate name in %s, "
+-			"renamed to \"%s\"\n", np->full_name, fixed_name);
++	pr_warn("device-tree: Duplicate name in %s, renamed to \"%s\"\n",
++		np->full_name, fixed_name);
+ 
+ 	return fixed_name;
  }
- 
-@@ -173,11 +171,9 @@ void arch_pick_mmap_layout(struct mm_str
- 	if (mmap_is_legacy()) {
- 		mm->mmap_base = TASK_UNMAPPED_BASE;
- 		mm->get_unmapped_area = s390_get_unmapped_area;
--		mm->unmap_area = arch_unmap_area;
- 	} else {
- 		mm->mmap_base = mmap_base();
- 		mm->get_unmapped_area = s390_get_unmapped_area_topdown;
--		mm->unmap_area = arch_unmap_area_topdown;
- 	}
- }
- 
-diff -puN arch/sparc/kernel/sys_sparc_64.c~mm-remove-free_area_cache arch/sparc/kernel/sys_sparc_64.c
---- a/arch/sparc/kernel/sys_sparc_64.c~mm-remove-free_area_cache
-+++ a/arch/sparc/kernel/sys_sparc_64.c
-@@ -290,7 +290,6 @@ void arch_pick_mmap_layout(struct mm_str
- 	    sysctl_legacy_va_layout) {
- 		mm->mmap_base = TASK_UNMAPPED_BASE + random_factor;
- 		mm->get_unmapped_area = arch_get_unmapped_area;
--		mm->unmap_area = arch_unmap_area;
- 	} else {
- 		/* We know it's 32-bit */
- 		unsigned long task_size = STACK_TOP32;
-@@ -302,7 +301,6 @@ void arch_pick_mmap_layout(struct mm_str
- 
- 		mm->mmap_base = PAGE_ALIGN(task_size - gap - random_factor);
- 		mm->get_unmapped_area = arch_get_unmapped_area_topdown;
--		mm->unmap_area = arch_unmap_area_topdown;
- 	}
- }
- 
-diff -puN arch/tile/mm/mmap.c~mm-remove-free_area_cache arch/tile/mm/mmap.c
---- a/arch/tile/mm/mmap.c~mm-remove-free_area_cache
-+++ a/arch/tile/mm/mmap.c
-@@ -66,10 +66,8 @@ void arch_pick_mmap_layout(struct mm_str
- 	if (!is_32bit || rlimit(RLIMIT_STACK) == RLIM_INFINITY) {
- 		mm->mmap_base = TASK_UNMAPPED_BASE;
- 		mm->get_unmapped_area = arch_get_unmapped_area;
--		mm->unmap_area = arch_unmap_area;
- 	} else {
- 		mm->mmap_base = mmap_base(mm);
- 		mm->get_unmapped_area = arch_get_unmapped_area_topdown;
--		mm->unmap_area = arch_unmap_area_topdown;
- 	}
- }
-diff -puN arch/x86/ia32/ia32_aout.c~mm-remove-free_area_cache arch/x86/ia32/ia32_aout.c
---- a/arch/x86/ia32/ia32_aout.c~mm-remove-free_area_cache
-+++ a/arch/x86/ia32/ia32_aout.c
-@@ -309,8 +309,6 @@ static int load_aout_binary(struct linux
- 		(current->mm->start_data = N_DATADDR(ex));
- 	current->mm->brk = ex.a_bss +
- 		(current->mm->start_brk = N_BSSADDR(ex));
--	current->mm->free_area_cache = TASK_UNMAPPED_BASE;
--	current->mm->cached_hole_size = 0;
- 
- 	retval = setup_arg_pages(bprm, IA32_STACK_TOP, EXSTACK_DEFAULT);
- 	if (retval < 0) {
-diff -puN arch/x86/mm/mmap.c~mm-remove-free_area_cache arch/x86/mm/mmap.c
---- a/arch/x86/mm/mmap.c~mm-remove-free_area_cache
-+++ a/arch/x86/mm/mmap.c
-@@ -115,10 +115,8 @@ void arch_pick_mmap_layout(struct mm_str
- 	if (mmap_is_legacy()) {
- 		mm->mmap_base = mmap_legacy_base();
- 		mm->get_unmapped_area = arch_get_unmapped_area;
--		mm->unmap_area = arch_unmap_area;
- 	} else {
- 		mm->mmap_base = mmap_base();
- 		mm->get_unmapped_area = arch_get_unmapped_area_topdown;
--		mm->unmap_area = arch_unmap_area_topdown;
- 	}
- }
-diff -puN fs/binfmt_aout.c~mm-remove-free_area_cache fs/binfmt_aout.c
---- a/fs/binfmt_aout.c~mm-remove-free_area_cache
-+++ a/fs/binfmt_aout.c
-@@ -256,8 +256,6 @@ static int load_aout_binary(struct linux
- 		(current->mm->start_data = N_DATADDR(ex));
- 	current->mm->brk = ex.a_bss +
- 		(current->mm->start_brk = N_BSSADDR(ex));
--	current->mm->free_area_cache = current->mm->mmap_base;
--	current->mm->cached_hole_size = 0;
- 
- 	retval = setup_arg_pages(bprm, STACK_TOP, EXSTACK_DEFAULT);
- 	if (retval < 0) {
-diff -puN fs/binfmt_elf.c~mm-remove-free_area_cache fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~mm-remove-free_area_cache
-+++ a/fs/binfmt_elf.c
-@@ -730,8 +730,6 @@ static int load_elf_binary(struct linux_
- 
- 	/* Do this so that we can load the interpreter, if need be.  We will
- 	   change some of these later */
--	current->mm->free_area_cache = current->mm->mmap_base;
--	current->mm->cached_hole_size = 0;
- 	retval = setup_arg_pages(bprm, randomize_stack_top(STACK_TOP),
- 				 executable_stack);
- 	if (retval < 0) {
-diff -puN include/linux/mm_types.h~mm-remove-free_area_cache include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-remove-free_area_cache
-+++ a/include/linux/mm_types.h
-@@ -330,12 +330,9 @@ struct mm_struct {
- 	unsigned long (*get_unmapped_area) (struct file *filp,
- 				unsigned long addr, unsigned long len,
- 				unsigned long pgoff, unsigned long flags);
--	void (*unmap_area) (struct mm_struct *mm, unsigned long addr);
- #endif
- 	unsigned long mmap_base;		/* base of mmap area */
- 	unsigned long task_size;		/* size of task vm space */
--	unsigned long cached_hole_size; 	/* if non-zero, the largest hole below free_area_cache */
--	unsigned long free_area_cache;		/* first hole of size cached_hole_size or larger */
- 	unsigned long highest_vm_end;		/* highest vma end address */
- 	pgd_t * pgd;
- 	atomic_t mm_users;			/* How many users with user space? */
-diff -puN include/linux/sched.h~mm-remove-free_area_cache include/linux/sched.h
---- a/include/linux/sched.h~mm-remove-free_area_cache
-+++ a/include/linux/sched.h
-@@ -367,8 +367,6 @@ extern unsigned long
- arch_get_unmapped_area_topdown(struct file *filp, unsigned long addr,
- 			  unsigned long len, unsigned long pgoff,
- 			  unsigned long flags);
--extern void arch_unmap_area(struct mm_struct *, unsigned long);
--extern void arch_unmap_area_topdown(struct mm_struct *, unsigned long);
- #else
- static inline void arch_pick_mmap_layout(struct mm_struct *mm) {}
- #endif
-diff -puN kernel/fork.c~mm-remove-free_area_cache kernel/fork.c
---- a/kernel/fork.c~mm-remove-free_area_cache
-+++ a/kernel/fork.c
-@@ -364,8 +364,6 @@ static int dup_mmap(struct mm_struct *mm
- 	mm->locked_vm = 0;
- 	mm->mmap = NULL;
- 	mm->mmap_cache = NULL;
--	mm->free_area_cache = oldmm->mmap_base;
--	mm->cached_hole_size = ~0UL;
- 	mm->map_count = 0;
- 	cpumask_clear(mm_cpumask(mm));
- 	mm->mm_rb = RB_ROOT;
-@@ -539,8 +537,6 @@ static struct mm_struct *mm_init(struct 
- 	mm->nr_ptes = 0;
- 	memset(&mm->rss_stat, 0, sizeof(mm->rss_stat));
- 	spin_lock_init(&mm->page_table_lock);
--	mm->free_area_cache = TASK_UNMAPPED_BASE;
--	mm->cached_hole_size = ~0UL;
- 	mm_init_aio(mm);
- 	mm_init_owner(mm, p);
- 
-diff -puN mm/mmap.c~mm-remove-free_area_cache mm/mmap.c
---- a/mm/mmap.c~mm-remove-free_area_cache
-+++ a/mm/mmap.c
-@@ -1815,15 +1815,6 @@ arch_get_unmapped_area(struct file *filp
- }
- #endif	
- 
--void arch_unmap_area(struct mm_struct *mm, unsigned long addr)
--{
--	/*
--	 * Is this a new hole at the lowest possible address?
--	 */
--	if (addr >= TASK_UNMAPPED_BASE && addr < mm->free_area_cache)
--		mm->free_area_cache = addr;
--}
--
- /*
-  * This mmap-allocator allocates new areas top-down from below the
-  * stack's low limit (the base):
-@@ -1880,19 +1871,6 @@ arch_get_unmapped_area_topdown(struct fi
- }
- #endif
- 
--void arch_unmap_area_topdown(struct mm_struct *mm, unsigned long addr)
--{
--	/*
--	 * Is this a new hole at the highest possible address?
--	 */
--	if (addr > mm->free_area_cache)
--		mm->free_area_cache = addr;
--
--	/* dont allow allocations above current base */
--	if (mm->free_area_cache > mm->mmap_base)
--		mm->free_area_cache = mm->mmap_base;
--}
--
- unsigned long
- get_unmapped_area(struct file *file, unsigned long addr, unsigned long len,
- 		unsigned long pgoff, unsigned long flags)
-@@ -2289,7 +2267,6 @@ detach_vmas_to_be_unmapped(struct mm_str
+diff -puN fs/proc/proc_sysctl.c~fs-proc-clean-up-printks fs/proc/proc_sysctl.c
+--- a/fs/proc/proc_sysctl.c~fs-proc-clean-up-printks
++++ a/fs/proc/proc_sysctl.c
+@@ -5,6 +5,7 @@
+ #include <linux/sysctl.h>
+ #include <linux/poll.h>
+ #include <linux/proc_fs.h>
++#include <linux/printk.h>
+ #include <linux/security.h>
+ #include <linux/sched.h>
+ #include <linux/namei.h>
+@@ -57,7 +58,7 @@ static void sysctl_print_dir(struct ctl_
  {
- 	struct vm_area_struct **insertion_point;
- 	struct vm_area_struct *tail_vma = NULL;
--	unsigned long addr;
- 
- 	insertion_point = (prev ? &prev->vm_next : &mm->mmap);
- 	vma->vm_prev = NULL;
-@@ -2306,11 +2283,6 @@ detach_vmas_to_be_unmapped(struct mm_str
- 	} else
- 		mm->highest_vm_end = prev ? prev->vm_end : 0;
- 	tail_vma->vm_next = NULL;
--	if (mm->unmap_area == arch_unmap_area)
--		addr = prev ? prev->vm_end : mm->mmap_base;
--	else
--		addr = vma ?  vma->vm_start : mm->mmap_base;
--	mm->unmap_area(mm, addr);
- 	mm->mmap_cache = NULL;		/* Kill the cache. */
+ 	if (dir->header.parent)
+ 		sysctl_print_dir(dir->header.parent);
+-	printk(KERN_CONT "%s/", dir->header.ctl_table[0].procname);
++	pr_cont("%s/", dir->header.ctl_table[0].procname);
  }
  
-diff -puN mm/nommu.c~mm-remove-free_area_cache mm/nommu.c
---- a/mm/nommu.c~mm-remove-free_area_cache
-+++ a/mm/nommu.c
-@@ -1855,10 +1855,6 @@ unsigned long arch_get_unmapped_area(str
- 	return -ENOMEM;
- }
+ static int namecmp(const char *name1, int len1, const char *name2, int len2)
+@@ -134,9 +135,9 @@ static int insert_entry(struct ctl_table
+ 		else if (cmp > 0)
+ 			p = &(*p)->rb_right;
+ 		else {
+-			printk(KERN_ERR "sysctl duplicate entry: ");
++			pr_err("sysctl duplicate entry: ");
+ 			sysctl_print_dir(head->parent);
+-			printk(KERN_CONT "/%s\n", entry->procname);
++			pr_cont("/%s\n", entry->procname);
+ 			return -EEXIST;
+ 		}
+ 	}
+@@ -927,9 +928,9 @@ found:
+ 	subdir->header.nreg++;
+ failed:
+ 	if (unlikely(IS_ERR(subdir))) {
+-		printk(KERN_ERR "sysctl could not get directory: ");
++		pr_err("sysctl could not get directory: ");
+ 		sysctl_print_dir(dir);
+-		printk(KERN_CONT "/%*.*s %ld\n",
++		pr_cont("/%*.*s %ld\n",
+ 			namelen, namelen, name, PTR_ERR(subdir));
+ 	}
+ 	drop_sysctl_table(&dir->header);
+@@ -995,8 +996,8 @@ static int sysctl_err(const char *path, 
+ 	vaf.fmt = fmt;
+ 	vaf.va = &args;
  
--void arch_unmap_area(struct mm_struct *mm, unsigned long addr)
--{
--}
--
- void unmap_mapping_range(struct address_space *mapping,
- 			 loff_t const holebegin, loff_t const holelen,
- 			 int even_cows)
-diff -puN mm/util.c~mm-remove-free_area_cache mm/util.c
---- a/mm/util.c~mm-remove-free_area_cache
-+++ a/mm/util.c
-@@ -295,7 +295,6 @@ void arch_pick_mmap_layout(struct mm_str
- {
- 	mm->mmap_base = TASK_UNMAPPED_BASE;
- 	mm->get_unmapped_area = arch_get_unmapped_area;
--	mm->unmap_area = arch_unmap_area;
+-	printk(KERN_ERR "sysctl table check failed: %s/%s %pV\n",
+-		path, table->procname, &vaf);
++	pr_err("sysctl table check failed: %s/%s %pV\n",
++			path, table->procname, &vaf);
+ 
+ 	va_end(args);
+ 	return -EINVAL;
+@@ -1510,9 +1511,9 @@ static void put_links(struct ctl_table_h
+ 			drop_sysctl_table(link_head);
+ 		}
+ 		else {
+-			printk(KERN_ERR "sysctl link missing during unregister: ");
++			pr_err("sysctl link missing during unregister: ");
+ 			sysctl_print_dir(parent);
+-			printk(KERN_CONT "/%s\n", name);
++			pr_cont("/%s\n", name);
+ 		}
+ 	}
  }
- #endif
+diff -puN fs/proc/vmcore.c~fs-proc-clean-up-printks fs/proc/vmcore.c
+--- a/fs/proc/vmcore.c~fs-proc-clean-up-printks
++++ a/fs/proc/vmcore.c
+@@ -15,6 +15,7 @@
+ #include <linux/export.h>
+ #include <linux/slab.h>
+ #include <linux/highmem.h>
++#include <linux/printk.h>
+ #include <linux/bootmem.h>
+ #include <linux/init.h>
+ #include <linux/crash_dump.h>
+@@ -553,8 +554,7 @@ static int __init parse_crash_elf64_head
+ 		ehdr.e_ehsize != sizeof(Elf64_Ehdr) ||
+ 		ehdr.e_phentsize != sizeof(Elf64_Phdr) ||
+ 		ehdr.e_phnum == 0) {
+-		printk(KERN_WARNING "Warning: Core image elf header is not"
+-					"sane\n");
++		pr_warning("Warning: Core image elf header is not sane\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -609,8 +609,7 @@ static int __init parse_crash_elf32_head
+ 		ehdr.e_ehsize != sizeof(Elf32_Ehdr) ||
+ 		ehdr.e_phentsize != sizeof(Elf32_Phdr) ||
+ 		ehdr.e_phnum == 0) {
+-		printk(KERN_WARNING "Warning: Core image elf header is not"
+-					"sane\n");
++		pr_warning("Warning: Core image elf header is not sane\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -653,8 +652,7 @@ static int __init parse_crash_elf_header
+ 	if (rc < 0)
+ 		return rc;
+ 	if (memcmp(e_ident, ELFMAG, SELFMAG) != 0) {
+-		printk(KERN_WARNING "Warning: Core image elf header"
+-					" not found\n");
++		pr_warning("Warning: Core image elf header not found\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -673,8 +671,7 @@ static int __init parse_crash_elf_header
+ 		/* Determine vmcore size. */
+ 		vmcore_size = get_vmcore_size_elf32(elfcorebuf);
+ 	} else {
+-		printk(KERN_WARNING "Warning: Core image elf header is not"
+-					" sane\n");
++		pr_warning("Warning: Core image elf header is not sane\n");
+ 		return -EINVAL;
+ 	}
+ 	return 0;
+@@ -690,7 +687,7 @@ static int __init vmcore_init(void)
+ 		return rc;
+ 	rc = parse_crash_elf_headers();
+ 	if (rc) {
+-		printk(KERN_WARNING "Kdump: vmcore not initialized\n");
++		pr_warning("Kdump: vmcore not initialized\n");
+ 		return rc;
+ 	}
  
 _
 
-Patches currently in -mm which might be from walken@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-thp-avoid-dumping-huge-zero-page.patch
+origin.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
 linux-next.patch
-mm-make-mlockall-preserve-flags-other-than-vm_locked-in-def_flags.patch
-mm-remap_file_pages-fixes.patch
-mm-introduce-mm_populate-for-populating-new-vmas.patch
-mm-use-mm_populate-for-blocking-remap_file_pages.patch
-mm-use-mm_populate-when-adjusting-brk-with-mcl_future-in-effect.patch
-mm-use-mm_populate-for-mremap-of-vm_locked-vmas.patch
-mm-remove-flags-argument-to-mmap_region.patch
+linux-next-fit-rejects.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
+bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
+i-need-old-gcc.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch
+mm.patch
+mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
+mm-hugetlbc-convert-to-pr_foo.patch
+cma-make-putback_lru_pages-call-conditional-fix.patch
+mm-vmscan-clean-up-get_scan_count-fix.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
+mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
+mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
+mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix-fix.patch
+mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
+mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
 mm-remove-flags-argument-to-mmap_region-fix.patch
-mm-directly-use-__mlock_vma_pages_range-in-find_extend_vma.patch
-mm-introduce-vm_populate-flag-to-better-deal-with-racy-userspace-programs.patch
-mm-make-do_mmap_pgoff-return-populate-as-a-size-in-bytes-not-as-a-bool.patch
-mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages.patch
-mm-use-vm_unmapped_area-on-parisc-architecture.patch
-mm-use-vm_unmapped_area-on-alpha-architecture.patch
-mm-use-vm_unmapped_area-on-frv-architecture.patch
-mm-use-vm_unmapped_area-on-ia64-architecture.patch
-mm-use-vm_unmapped_area-in-hugetlbfs-on-ia64-architecture.patch
-mm-remove-free_area_cache-use-in-powerpc-architecture.patch
-mm-use-vm_unmapped_area-on-powerpc-architecture.patch
-mm-remove-free_area_cache.patch
-mtd-mtd_nandecctest-use-prandom_bytes-instead-of-get_random_bytes.patch
-mtd-mtd_oobtest-convert-to-use-prandom-library.patch
-mtd-mtd_pagetest-convert-to-use-prandom-library.patch
-mtd-mtd_speedtest-use-prandom_bytes.patch
-mtd-mtd_subpagetest-convert-to-use-prandom-library.patch
-mtd-mtd_stresstest-use-prandom_bytes.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
+memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
+memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix.patch
+memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch
+cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved-fix.patch
+cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
+acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
+memory-failure-do-code-refactor-of-soft_offline_page.patch
+memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
+mm-dont-inline-page_mapping.patch
+swap-make-each-swap-partition-have-one-address_space-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
+memcg-fast-hierarchy-aware-child-test-fix.patch
+mm-rename-page-struct-field-helpers.patch
+mm-rename-page-struct-field-helpers-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+kernel-smpc-cleanups.patch
+backlight-add-lms501kf03-lcd-driver-fix.patch
+backlight-add-lms501kf03-lcd-driver-fix-fix.patch
+backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
+drivers-video-backlight-makefile-cleanup.patch
+checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix-fix.patch
+rtc-max77686-add-maxim-77686-driver-fix.patch
+rtc-pcf8523-add-low-battery-voltage-support-fix.patch
+rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
+rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+signal-allow-to-send-any-siginfo-to-itself-fix.patch
+signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
+fs-proc-clean-up-printks.patch
+fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch
+fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes.patch
+drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+aio-kiocb_cancel-fix.patch
+wait-add-wait_event_hrtimeout-fix.patch
+aio-use-cancellation-list-lazily-fix-fix.patch
+aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+generic-dynamic-per-cpu-refcounting-fix.patch
+generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
+generic-dynamic-per-cpu-refcounting-doc-fix.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-dont-include-aioh-in-schedh-fix-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3.patch
+aio-kill-ki_retry-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
