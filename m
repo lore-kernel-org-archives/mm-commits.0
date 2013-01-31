@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + fs-proc-clean-up-printks-fix.patch added to -mm tree
-Date: Thu, 31 Jan 2013 14:24:16 -0800
-Message-ID: <20130131222417.044205A41EB@corp2gmr1-2.hot.corp.google.com>
+Subject: + drivers-rtc-rtc-pl031c-fix-the-missing-operation-on-enable.patch added to -mm tree
+Date: Thu, 31 Jan 2013 14:45:20 -0800
+Message-ID: <20130131224520.9FBFB31C1BB@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f202.google.com ([209.85.220.202]:54831 "EHLO
-	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753583Ab3AaWYT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Jan 2013 17:24:19 -0500
-Received: by mail-vc0-f202.google.com with SMTP id m8so360961vcd.3
-        for <mm-commits@vger.kernel.org>; Thu, 31 Jan 2013 14:24:17 -0800 (PST)
+Received: from mail-qa0-f74.google.com ([209.85.216.74]:64964 "EHLO
+	mail-qa0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757169Ab3AaWpW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Jan 2013 17:45:22 -0500
+Received: by mail-qa0-f74.google.com with SMTP id o13so378436qaj.5
+        for <mm-commits@vger.kernel.org>; Thu, 31 Jan 2013 14:45:21 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, joe@perches.com
+Cc: haojian.zhuang@linaro.org, a.zummo@towertech.it, linus.walleij@linaro.org, srinidhi.kasagar@stericsson.com
 
 
 The patch titled
-     Subject: fs-proc-clean-up-printks-fix
+     Subject: drivers/rtc/rtc-pl031.c: fix the missing operation on enable
 has been added to the -mm tree.  Its filename is
-     fs-proc-clean-up-printks-fix.patch
+     drivers-rtc-rtc-pl031c-fix-the-missing-operation-on-enable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,163 +33,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs-proc-clean-up-printks-fix
+From: Haojian Zhuang <haojian.zhuang@linaro.org>
+Subject: drivers/rtc/rtc-pl031.c: fix the missing operation on enable
 
-grr
+The RTC control register should be enabled in the process of initializing.
 
-Cc: Joe Perches <joe@perches.com>
+Signed-off-by: Haojian Zhuang <haojian.zhuang@linaro.org>
+Cc: Srinidhi Kasagar <srinidhi.kasagar@stericsson.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/rtc/rtc-pl031.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN fs/proc/vmcore.c~fs-proc-clean-up-printks-fix fs/proc/vmcore.c
---- a/fs/proc/vmcore.c~fs-proc-clean-up-printks-fix
-+++ a/fs/proc/vmcore.c
-@@ -554,7 +554,7 @@ static int __init parse_crash_elf64_head
- 		ehdr.e_ehsize != sizeof(Elf64_Ehdr) ||
- 		ehdr.e_phentsize != sizeof(Elf64_Phdr) ||
- 		ehdr.e_phnum == 0) {
--		pr_warning("Warning: Core image elf header is not sane\n");
-+		pr_warn("Warning: Core image elf header is not sane\n");
- 		return -EINVAL;
- 	}
+diff -puN drivers/rtc/rtc-pl031.c~drivers-rtc-rtc-pl031c-fix-the-missing-operation-on-enable drivers/rtc/rtc-pl031.c
+--- a/drivers/rtc/rtc-pl031.c~drivers-rtc-rtc-pl031c-fix-the-missing-operation-on-enable
++++ a/drivers/rtc/rtc-pl031.c
+@@ -44,6 +44,7 @@
+ #define RTC_YMR		0x34	/* Year match register */
+ #define RTC_YLR		0x38	/* Year data load register */
  
-@@ -609,7 +609,7 @@ static int __init parse_crash_elf32_head
- 		ehdr.e_ehsize != sizeof(Elf32_Ehdr) ||
- 		ehdr.e_phentsize != sizeof(Elf32_Phdr) ||
- 		ehdr.e_phnum == 0) {
--		pr_warning("Warning: Core image elf header is not sane\n");
-+		pr_warn("Warning: Core image elf header is not sane\n");
- 		return -EINVAL;
- 	}
++#define RTC_CR_EN	(1 << 0)	/* counter enable bit */
+ #define RTC_CR_CWEN	(1 << 26)	/* Clockwatch enable bit */
  
-@@ -652,7 +652,7 @@ static int __init parse_crash_elf_header
- 	if (rc < 0)
- 		return rc;
- 	if (memcmp(e_ident, ELFMAG, SELFMAG) != 0) {
--		pr_warning("Warning: Core image elf header not found\n");
-+		pr_warn("Warning: Core image elf header not found\n");
- 		return -EINVAL;
- 	}
+ #define RTC_TCR_EN	(1 << 1) /* Periodic timer enable bit */
+@@ -320,7 +321,7 @@ static int pl031_probe(struct amba_devic
+ 	struct pl031_local *ldata;
+ 	struct pl031_vendor_data *vendor = id->data;
+ 	struct rtc_class_ops *ops = &vendor->ops;
+-	unsigned long time;
++	unsigned long time, data;
  
-@@ -671,7 +671,7 @@ static int __init parse_crash_elf_header
- 		/* Determine vmcore size. */
- 		vmcore_size = get_vmcore_size_elf32(elfcorebuf);
- 	} else {
--		pr_warning("Warning: Core image elf header is not sane\n");
-+		pr_warn("Warning: Core image elf header is not sane\n");
- 		return -EINVAL;
- 	}
- 	return 0;
-@@ -687,7 +687,7 @@ static int __init vmcore_init(void)
- 		return rc;
- 	rc = parse_crash_elf_headers();
- 	if (rc) {
--		pr_warning("Kdump: vmcore not initialized\n");
-+		pr_warn("Kdump: vmcore not initialized\n");
- 		return rc;
- 	}
+ 	ret = amba_request_regions(adev, NULL);
+ 	if (ret)
+@@ -345,10 +346,11 @@ static int pl031_probe(struct amba_devic
+ 	dev_dbg(&adev->dev, "designer ID = 0x%02x\n", amba_manf(adev));
+ 	dev_dbg(&adev->dev, "revision = 0x%01x\n", amba_rev(adev));
  
++	data = readl(ldata->base + RTC_CR);
+ 	/* Enable the clockwatch on ST Variants */
+ 	if (vendor->clockwatch)
+-		writel(readl(ldata->base + RTC_CR) | RTC_CR_CWEN,
+-		       ldata->base + RTC_CR);
++		data |= RTC_CR_CWEN;
++	writel(data | RTC_CR_EN, ldata->base + RTC_CR);
+ 
+ 	/*
+ 	 * On ST PL031 variants, the RTC reset value does not provide correct
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from haojian.zhuang@linaro.org are
 
 origin.patch
-fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
 linux-next.patch
-linux-next-fit-rejects.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
-bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
-i-need-old-gcc.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
-timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
-sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
-sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch
-mm.patch
-mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
-mm-hugetlbc-convert-to-pr_foo.patch
-cma-make-putback_lru_pages-call-conditional-fix.patch
-mm-vmscan-clean-up-get_scan_count-fix.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
-mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
-mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix-fix.patch
-mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
-mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
-mm-remove-flags-argument-to-mmap_region-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
-memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
-memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
-memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
-memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix.patch
-memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch
-cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved-fix.patch
-cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
-page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
-acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
-memory-failure-do-code-refactor-of-soft_offline_page.patch
-memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
-mm-dont-inline-page_mapping.patch
-swap-make-each-swap-partition-have-one-address_space-fix.patch
-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
-page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
-memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
-memcg-fast-hierarchy-aware-child-test-fix.patch
-mm-rename-page-struct-field-helpers.patch
-mm-rename-page-struct-field-helpers-fix.patch
-drop_caches-add-some-documentation-and-info-messsge.patch
-memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
-scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
-kernel-smpc-cleanups.patch
-backlight-add-lms501kf03-lcd-driver-fix.patch
-backlight-add-lms501kf03-lcd-driver-fix-fix.patch
-backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
-drivers-video-backlight-makefile-cleanup.patch
-checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
-binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
-rtc-ds1307-long-block-operations-bugfix-fix.patch
-rtc-max77686-add-maxim-77686-driver-fix.patch
-rtc-pcf8523-add-low-battery-voltage-support-fix.patch
-rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
-rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
-hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
-signal-allow-to-send-any-siginfo-to-itself-fix.patch
-signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
-fs-proc-clean-up-printks.patch
-fs-proc-clean-up-printks-fix.patch
-fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch
-fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes.patch
-drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
-dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
-aio-kiocb_cancel-fix.patch
-wait-add-wait_event_hrtimeout-fix.patch
-aio-use-cancellation-list-lazily-fix-fix.patch
-aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
-generic-dynamic-per-cpu-refcounting-fix.patch
-generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
-generic-dynamic-per-cpu-refcounting-doc-fix.patch
-aio-dont-include-aioh-in-schedh-fix.patch
-aio-dont-include-aioh-in-schedh-fix-fix.patch
-aio-dont-include-aioh-in-schedh-fix-3.patch
-aio-kill-ki_retry-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
-block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
-debugging-keep-track-of-page-owners-fix-2-fix.patch
-journal_add_journal_head-debug.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
+drivers-rtc-rtc-pl031c-fix-the-missing-operation-on-enable.patch
 
