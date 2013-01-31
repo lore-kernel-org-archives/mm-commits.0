@@ -1,67 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] smp-fix-use-un-initialized-cpumask_ipi.patch removed from -mm tree
-Date: Thu, 31 Jan 2013 12:06:36 -0800
-Message-ID: <20130131200637.978D431C107@corp2gmr1-1.hot.corp.google.com>
+Subject: + namespaces-utsname-fix-wrong-comment-about-clone_uts_ns.patch added to -mm tree
+Date: Thu, 31 Jan 2013 12:49:06 -0800
+Message-ID: <20130131204906.947E631C1B2@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qe0-f73.google.com ([209.85.128.73]:58300 "EHLO
-	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753567Ab3AaUGi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Jan 2013 15:06:38 -0500
-Received: by mail-qe0-f73.google.com with SMTP id 7so285386qeb.2
-        for <mm-commits@vger.kernel.org>; Thu, 31 Jan 2013 12:06:38 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:42638 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753814Ab3AaUtJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Jan 2013 15:49:09 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so346607vcd.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 Jan 2013 12:49:07 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: udknight@gmail.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: yuanhan.liu@linux.intel.com, ebiederm@xmission.com, serge.hallyn@canonical.com
 
 
 The patch titled
-     Subject: smp: Fix use un-initialized cpumask_ipi
-has been removed from the -mm tree.  Its filename was
-     smp-fix-use-un-initialized-cpumask_ipi.patch
+     Subject: kernel/utsname.c: fix wrong comment about clone_uts_ns()
+has been added to the -mm tree.  Its filename is
+     namespaces-utsname-fix-wrong-comment-about-clone_uts_ns.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Wang YanQing <udknight@gmail.com>
-Subject: smp: Fix use un-initialized cpumask_ipi
+From: Yuanhan Liu <yuanhan.liu@linux.intel.com>
+Subject: kernel/utsname.c: fix wrong comment about clone_uts_ns()
 
-c7b798525b502 ("smp: Fix SMP function call empty cpu mask race") use the
-un-initialized variable cpumask_ipi when enable CONFIG_CPUMASK_OFFSTACK.
+Fix the wrong comment about the return value of clone_uts_ns()
 
-Signed-off-by: Wang YanQing <udknight@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Yuanhan Liu <yuanhan.liu@linux.intel.com>
+Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/smp.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ kernel/utsname.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/smp.c~smp-fix-use-un-initialized-cpumask_ipi kernel/smp.c
---- a/kernel/smp.c~smp-fix-use-un-initialized-cpumask_ipi
-+++ a/kernel/smp.c
-@@ -57,6 +57,9 @@ hotplug_cfd(struct notifier_block *nfb, 
- 		if (!zalloc_cpumask_var_node(&cfd->cpumask, GFP_KERNEL,
- 				cpu_to_node(cpu)))
- 			return notifier_from_errno(-ENOMEM);
-+		if (!zalloc_cpumask_var_node(&cfd->cpumask_ipi, GFP_KERNEL,
-+				cpu_to_node(cpu)))
-+			return notifier_from_errno(-ENOMEM);
- 		break;
- 
- #ifdef CONFIG_HOTPLUG_CPU
-@@ -66,6 +69,7 @@ hotplug_cfd(struct notifier_block *nfb, 
- 	case CPU_DEAD:
- 	case CPU_DEAD_FROZEN:
- 		free_cpumask_var(cfd->cpumask);
-+		free_cpumask_var(cfd->cpumask_ipi);
- 		break;
- #endif
- 	};
+diff -puN kernel/utsname.c~namespaces-utsname-fix-wrong-comment-about-clone_uts_ns kernel/utsname.c
+--- a/kernel/utsname.c~namespaces-utsname-fix-wrong-comment-about-clone_uts_ns
++++ a/kernel/utsname.c
+@@ -30,7 +30,7 @@ static struct uts_namespace *create_uts_
+ /*
+  * Clone a new ns copying an original utsname, setting refcount to 1
+  * @old_ns: namespace to clone
+- * Return NULL on error (failure to kmalloc), new ns otherwise
++ * Return ERR_PTR(-ENOMEM) on error (failure to kmalloc), new ns otherwise
+  */
+ static struct uts_namespace *clone_uts_ns(struct user_namespace *user_ns,
+ 					  struct uts_namespace *old_ns)
 _
 
-Patches currently in -mm which might be from udknight@gmail.com are
+Patches currently in -mm which might be from yuanhan.liu@linux.intel.com are
 
-origin.patch
+mm-fix-wrong-comments-about-anon_vma-lock.patch
 linux-next.patch
+fs-execc-make-bprm_mm_init-static.patch
+namespaces-utsname-fix-wrong-comment-about-clone_uts_ns.patch
 
