@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-vm_unmapped_area-on-frv-architecture.patch added to -mm tree
-Date: Thu, 31 Jan 2013 13:55:39 -0800
-Message-ID: <20130131215540.2AD9831C1B2@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-use-vm_unmapped_area-on-ia64-architecture.patch added to -mm tree
+Date: Thu, 31 Jan 2013 13:55:42 -0800
+Message-ID: <20130131215543.2CFB131C1B2@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-yh0-f73.google.com ([209.85.213.73]:62358 "EHLO
-	mail-yh0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754896Ab3AaVzn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Jan 2013 16:55:43 -0500
-Received: by mail-yh0-f73.google.com with SMTP id 28so6624yhr.2
-        for <mm-commits@vger.kernel.org>; Thu, 31 Jan 2013 13:55:40 -0800 (PST)
+Received: from mail-ve0-f202.google.com ([209.85.128.202]:54410 "EHLO
+	mail-ve0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755818Ab3AaVzo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Jan 2013 16:55:44 -0500
+Received: by mail-ve0-f202.google.com with SMTP id m1so238136ves.5
+        for <mm-commits@vger.kernel.org>; Thu, 31 Jan 2013 13:55:43 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: walken@google.com, dhowells@redhat.com, riel@redhat.com
+Cc: walken@google.com, riel@redhat.com, tony.luck@intel.com
 
 
 The patch titled
-     Subject: mm: use vm_unmapped_area() on frv architecture
+     Subject: mm: use vm_unmapped_area() on ia64 architecture
 has been added to the -mm tree.  Its filename is
-     mm-use-vm_unmapped_area-on-frv-architecture.patch
+     mm-use-vm_unmapped_area-on-ia64-architecture.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,88 +34,81 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michel Lespinasse <walken@google.com>
-Subject: mm: use vm_unmapped_area() on frv architecture
+Subject: mm: use vm_unmapped_area() on ia64 architecture
 
-Update the frv arch_get_unmapped_area function to make use of
+Update the ia64 arch_get_unmapped_area function to make use of
 vm_unmapped_area() instead of implementing a brute force search.
 
 Signed-off-by: Michel Lespinasse <walken@google.com>
 Acked-by: Rik van Riel <riel@redhat.com>
-Acked-by: David Howells <dhowells@redhat.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/mm/elf-fdpic.c |   49 +++++++++++++-------------------------
- 1 file changed, 17 insertions(+), 32 deletions(-)
+ arch/ia64/kernel/sys_ia64.c |   35 ++++++++++------------------------
+ 1 file changed, 11 insertions(+), 24 deletions(-)
 
-diff -puN arch/frv/mm/elf-fdpic.c~mm-use-vm_unmapped_area-on-frv-architecture arch/frv/mm/elf-fdpic.c
---- a/arch/frv/mm/elf-fdpic.c~mm-use-vm_unmapped_area-on-frv-architecture
-+++ a/arch/frv/mm/elf-fdpic.c
-@@ -60,7 +60,7 @@ unsigned long arch_get_unmapped_area(str
- 				     unsigned long pgoff, unsigned long flags)
+diff -puN arch/ia64/kernel/sys_ia64.c~mm-use-vm_unmapped_area-on-ia64-architecture arch/ia64/kernel/sys_ia64.c
+--- a/arch/ia64/kernel/sys_ia64.c~mm-use-vm_unmapped_area-on-ia64-architecture
++++ a/arch/ia64/kernel/sys_ia64.c
+@@ -25,9 +25,9 @@ arch_get_unmapped_area (struct file *fil
+ 			unsigned long pgoff, unsigned long flags)
  {
- 	struct vm_area_struct *vma;
--	unsigned long limit;
+ 	long map_shared = (flags & MAP_SHARED);
+-	unsigned long start_addr, align_mask = PAGE_SIZE - 1;
++	unsigned long align_mask = 0;
+ 	struct mm_struct *mm = current->mm;
+-	struct vm_area_struct *vma;
 +	struct vm_unmapped_area_info info;
  
- 	if (len > TASK_SIZE)
+ 	if (len > RGN_MAP_LIMIT)
  		return -ENOMEM;
-@@ -79,39 +79,24 @@ unsigned long arch_get_unmapped_area(str
- 	}
+@@ -44,7 +44,7 @@ arch_get_unmapped_area (struct file *fil
+ 		addr = 0;
+ #endif
+ 	if (!addr)
+-		addr = mm->free_area_cache;
++		addr = TASK_UNMAPPED_BASE;
  
- 	/* search between the bottom of user VM and the stack grow area */
--	addr = PAGE_SIZE;
--	limit = (current->mm->start_stack - 0x00200000);
--	if (addr + len <= limit) {
--		limit -= len;
+ 	if (map_shared && (TASK_SIZE > 0xfffffffful))
+ 		/*
+@@ -53,28 +53,15 @@ arch_get_unmapped_area (struct file *fil
+ 		 * tasks, we prefer to avoid exhausting the address space too quickly by
+ 		 * limiting alignment to a single page.
+ 		 */
+-		align_mask = SHMLBA - 1;
++		align_mask = PAGE_MASK & (SHMLBA - 1);
+ 
+-  full_search:
+-	start_addr = addr = (addr + align_mask) & ~align_mask;
 -
--		if (addr <= limit) {
--			vma = find_vma(current->mm, PAGE_SIZE);
--			for (; vma; vma = vma->vm_next) {
--				if (addr > limit)
--					break;
--				if (addr + len <= vma->vm_start)
--					goto success;
--				addr = vma->vm_end;
+-	for (vma = find_vma(mm, addr); ; vma = vma->vm_next) {
+-		/* At this point:  (!vma || addr < vma->vm_end). */
+-		if (TASK_SIZE - len < addr || RGN_MAP_LIMIT - len < REGION_OFFSET(addr)) {
+-			if (start_addr != TASK_UNMAPPED_BASE) {
+-				/* Start a new search --- just in case we missed some holes.  */
+-				addr = TASK_UNMAPPED_BASE;
+-				goto full_search;
 -			}
+-			return -ENOMEM;
 -		}
+-		if (!vma || addr + len <= vma->vm_start) {
+-			/* Remember the address where we stopped this search:  */
+-			mm->free_area_cache = addr + len;
+-			return addr;
+-		}
+-		addr = (vma->vm_end + align_mask) & ~align_mask;
 -	}
 +	info.flags = 0;
 +	info.length = len;
-+	info.low_limit = PAGE_SIZE;
-+	info.high_limit = (current->mm->start_stack - 0x00200000);
-+	info.align_mask = 0;
-+	info.align_offset = 0;
-+	addr = vm_unmapped_area(&info);
-+	if (!(addr & ~PAGE_MASK))
-+		goto success;
-+	VM_BUG_ON(addr != -ENOMEM);
- 
- 	/* search from just above the WorkRAM area to the top of memory */
--	addr = PAGE_ALIGN(0x80000000);
--	limit = TASK_SIZE - len;
--	if (addr <= limit) {
--		vma = find_vma(current->mm, addr);
--		for (; vma; vma = vma->vm_next) {
--			if (addr > limit)
--				break;
--			if (addr + len <= vma->vm_start)
--				goto success;
--			addr = vma->vm_end;
--		}
--
--		if (!vma && addr <= limit)
--			goto success;
--	}
-+	info.low_limit = PAGE_ALIGN(0x80000000);
++	info.low_limit = addr;
 +	info.high_limit = TASK_SIZE;
-+	addr = vm_unmapped_area(&info);
-+	if (!(addr & ~PAGE_MASK))
-+		goto success;
-+	VM_BUG_ON(addr != -ENOMEM);
++	info.align_mask = align_mask;
++	info.align_offset = 0;
++	return vm_unmapped_area(&info);
+ }
  
- #if 0
- 	printk("[area] l=%lx (ENOMEM) f='%s'\n",
+ asmlinkage long
 _
 
 Patches currently in -mm which might be from walken@google.com are
