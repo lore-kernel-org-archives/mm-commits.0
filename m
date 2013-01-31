@@ -1,15 +1,15 @@
 From: akpm@linux-foundation.org
 Subject: + mm-use-long-type-for-page-counts-in-mm_populate-and-get_user_pages.patch added to -mm tree
-Date: Wed, 30 Jan 2013 16:44:31 -0800
-Message-ID: <20130131004432.440105A41FB@corp2gmr1-2.hot.corp.google.com>
+Date: Wed, 30 Jan 2013 16:44:46 -0800
+Message-ID: <20130131004446.B158E31C1D5@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:59338 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751515Ab3AaAod (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Jan 2013 19:44:33 -0500
-Received: by mail-ye0-f201.google.com with SMTP id r11so231262yen.0
-        for <mm-commits@vger.kernel.org>; Wed, 30 Jan 2013 16:44:32 -0800 (PST)
+Received: from mail-vc0-f201.google.com ([209.85.220.201]:44104 "EHLO
+	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751515Ab3AaAos (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Jan 2013 19:44:48 -0500
+Received: by mail-vc0-f201.google.com with SMTP id n11so231095vch.0
+        for <mm-commits@vger.kernel.org>; Wed, 30 Jan 2013 16:44:47 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -52,7 +52,7 @@ Signed-off-by: Michel Lespinasse <walken@google.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Mel Gorman <mgorman@suse.de>
-Cc: Hugh Dickins <hughd@google.com
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
