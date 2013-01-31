@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-vm_unmapped_area-on-parisc-architecture.patch added to -mm tree
-Date: Thu, 31 Jan 2013 13:55:33 -0800
-Message-ID: <20130131215534.412A431C1BB@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-use-vm_unmapped_area-on-alpha-architecture.patch added to -mm tree
+Date: Thu, 31 Jan 2013 13:55:36 -0800
+Message-ID: <20130131215537.21BE45A4222@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:40431 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755720Ab3AaVzf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Jan 2013 16:55:35 -0500
-Received: by mail-ye0-f201.google.com with SMTP id r11so357865yen.0
-        for <mm-commits@vger.kernel.org>; Thu, 31 Jan 2013 13:55:34 -0800 (PST)
+Received: from mail-vb0-f74.google.com ([209.85.212.74]:37377 "EHLO
+	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755799Ab3AaVzi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Jan 2013 16:55:38 -0500
+Received: by mail-vb0-f74.google.com with SMTP id r6so356879vbi.1
+        for <mm-commits@vger.kernel.org>; Thu, 31 Jan 2013 13:55:37 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: walken@google.com, deller@gmx.de, jejb@parisc-linux.org, riel@redhat.com
+Cc: walken@google.com, ink@jurassic.park.msu.ru, mattst88@gmail.com, riel@redhat.com, rth@twiddle.net
 
 
 The patch titled
-     Subject: mm: use vm_unmapped_area() on parisc architecture
+     Subject: mm: use vm_unmapped_area() on alpha architecture
 has been added to the -mm tree.  Its filename is
-     mm-use-vm_unmapped_area-on-parisc-architecture.patch
+     mm-use-vm_unmapped_area-on-alpha-architecture.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,91 +34,51 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michel Lespinasse <walken@google.com>
-Subject: mm: use vm_unmapped_area() on parisc architecture
+Subject: mm: use vm_unmapped_area() on alpha architecture
 
-Update the parisc arch_get_unmapped_area function to make use of
+Update the alpha arch_get_unmapped_area function to make use of
 vm_unmapped_area() instead of implementing a brute force search.
 
 Signed-off-by: Michel Lespinasse <walken@google.com>
 Acked-by: Rik van Riel <riel@redhat.com>
-Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
-Cc: Helge Deller <deller@gmx.de>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/kernel/sys_parisc.c |   46 +++++++++++-------------------
- 1 file changed, 17 insertions(+), 29 deletions(-)
+ arch/alpha/kernel/osf_sys.c |   18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
 
-diff -puN arch/parisc/kernel/sys_parisc.c~mm-use-vm_unmapped_area-on-parisc-architecture arch/parisc/kernel/sys_parisc.c
---- a/arch/parisc/kernel/sys_parisc.c~mm-use-vm_unmapped_area-on-parisc-architecture
-+++ a/arch/parisc/kernel/sys_parisc.c
-@@ -35,18 +35,15 @@
- 
- static unsigned long get_unshared_area(unsigned long addr, unsigned long len)
+diff -puN arch/alpha/kernel/osf_sys.c~mm-use-vm_unmapped_area-on-alpha-architecture arch/alpha/kernel/osf_sys.c
+--- a/arch/alpha/kernel/osf_sys.c~mm-use-vm_unmapped_area-on-alpha-architecture
++++ a/arch/alpha/kernel/osf_sys.c
+@@ -1298,17 +1298,15 @@ static unsigned long
+ arch_get_unmapped_area_1(unsigned long addr, unsigned long len,
+ 		         unsigned long limit)
  {
--	struct vm_area_struct *vma;
+-	struct vm_area_struct *vma = find_vma(current->mm, addr);
 +	struct vm_unmapped_area_info info;
  
--	addr = PAGE_ALIGN(addr);
--
--	for (vma = find_vma(current->mm, addr); ; vma = vma->vm_next) {
+-	while (1) {
 -		/* At this point:  (!vma || addr < vma->vm_end). */
--		if (TASK_SIZE - len < addr)
+-		if (limit - len < addr)
 -			return -ENOMEM;
 -		if (!vma || addr + len <= vma->vm_start)
 -			return addr;
 -		addr = vma->vm_end;
+-		vma = vma->vm_next;
 -	}
 +	info.flags = 0;
 +	info.length = len;
-+	info.low_limit = PAGE_ALIGN(addr);
-+	info.high_limit = TASK_SIZE;
++	info.low_limit = addr;
++	info.high_limit = limit;
 +	info.align_mask = 0;
 +	info.align_offset = 0;
 +	return vm_unmapped_area(&info);
  }
  
- #define DCACHE_ALIGN(addr) (((addr) + (SHMLBA - 1)) &~ (SHMLBA - 1))
-@@ -63,30 +60,21 @@ static unsigned long get_unshared_area(u
-  */
- static int get_offset(struct address_space *mapping)
- {
--	int offset = (unsigned long) mapping << (PAGE_SHIFT - 8);
--	return offset & 0x3FF000;
-+	return (unsigned long) mapping >> 8;
- }
- 
- static unsigned long get_shared_area(struct address_space *mapping,
- 		unsigned long addr, unsigned long len, unsigned long pgoff)
- {
--	struct vm_area_struct *vma;
--	int offset = mapping ? get_offset(mapping) : 0;
--
--	offset = (offset + (pgoff << PAGE_SHIFT)) & 0x3FF000;
-+	struct vm_unmapped_area_info info;
- 
--	addr = DCACHE_ALIGN(addr - offset) + offset;
--
--	for (vma = find_vma(current->mm, addr); ; vma = vma->vm_next) {
--		/* At this point:  (!vma || addr < vma->vm_end). */
--		if (TASK_SIZE - len < addr)
--			return -ENOMEM;
--		if (!vma || addr + len <= vma->vm_start)
--			return addr;
--		addr = DCACHE_ALIGN(vma->vm_end - offset) + offset;
--		if (addr < vma->vm_end) /* handle wraparound */
--			return -ENOMEM;
--	}
-+	info.flags = 0;
-+	info.length = len;
-+	info.low_limit = PAGE_ALIGN(addr);
-+	info.high_limit = TASK_SIZE;
-+	info.align_mask = PAGE_MASK & (SHMLBA - 1);
-+	info.align_offset = (get_offset(mapping) + pgoff) << PAGE_SHIFT;
-+	return vm_unmapped_area(&info);
- }
- 
- unsigned long arch_get_unmapped_area(struct file *filp, unsigned long addr,
+ unsigned long
 _
 
 Patches currently in -mm which might be from walken@google.com are
