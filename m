@@ -1,60 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] video-mmp-display-subsystem.patch removed from -mm tree
-Date: Fri, 01 Feb 2013 15:31:44 -0800
-Message-ID: <20130201233145.52EEF5A41D2@corp2gmr1-2.hot.corp.google.com>
+Subject: [to-be-updated] video-mmp-fb-support.patch removed from -mm tree
+Date: Fri, 01 Feb 2013 15:31:48 -0800
+Message-ID: <20130201233148.A5A7D5A41B5@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:37210 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758052Ab3BAXbr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2013 18:31:47 -0500
-Received: by mail-vb0-f74.google.com with SMTP id r6so498856vbi.1
-        for <mm-commits@vger.kernel.org>; Fri, 01 Feb 2013 15:31:46 -0800 (PST)
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:45893 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758052Ab3BAXbu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2013 18:31:50 -0500
+Received: by mail-ye0-f201.google.com with SMTP id r11so499524yen.2
+        for <mm-commits@vger.kernel.org>; Fri, 01 Feb 2013 15:31:49 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: zzhu3@marvell.com, FlorianSchandinat@gmx.de, cldu@marvell.com, haojian.zhuang@gmail.com, ligq@marvell.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: video: mmp display subsystem
+     Subject: video: mmp fb support
 has been removed from the -mm tree.  Its filename was
-     video-mmp-display-subsystem.patch
+     video-mmp-fb-support.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Zhou Zhu <zzhu3@marvell.com>
-Subject: video: mmp display subsystem
+Subject: video: mmp fb support
 
-Add mmp display subsystem to support Marvell MMP display controllers.
-
-This subsystem contains 4 parts:
---fb folder
---core.c
---hw folder
---panel folder
-
-1. fb folder contains implementation of fb.  fb get path and ovly from
-   common interface and operates on these structures.
-
-2. core.c provides common interface for a hardware abstraction.  Major
-   parts of this interface are:
-
-   a) Path: path is a output device connected to a panel or HDMI TV.
-       Main operations of the path is set/get timing/output color.  fb
-      operates output device through path structure.
-
-   b) Ovly: Ovly is a buffer shown on the path.  Ovly describes
-      frame buffer and its source/destination size, offset, input color,
-      buffer address, z-order, and so on.  Each fb device maps to one
-      ovly.
-
-3. hw folder contains implementation of hardware operations defined by
-   core.c.  It registers paths for fb use.
-
-4. panel folder contains implementation of panels.  It's connected to
-   path.  Panel drivers would also regiester panels and linked to path
-   when probe.
+Add fb support for Marvell mmp display subsystem.  This driver is
+configured using "buffer driver mach info".  With configured name of path,
+this driver get path using using exported interface of mmp display driver.
+ Then this driver get ovly using configured id and operates on this ovly
+to show buffers on display devices.
 
 Signed-off-by: Zhou Zhu <zzhu3@marvell.com>
 Signed-off-by: Lisa Du <cldu@marvell.com>
@@ -64,57 +40,60 @@ Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig      |    1 
- drivers/video/Makefile     |    1 
- drivers/video/mmp/Kconfig  |    5 
- drivers/video/mmp/Makefile |    1 
- drivers/video/mmp/core.c   |  217 +++++++++++++++++++++
- include/video/mmp_disp.h   |  351 +++++++++++++++++++++++++++++++++++
- 6 files changed, 576 insertions(+)
+ drivers/video/mmp/Kconfig     |    4 
+ drivers/video/mmp/Makefile    |    2 
+ drivers/video/mmp/fb/Kconfig  |   13 
+ drivers/video/mmp/fb/Makefile |    1 
+ drivers/video/mmp/fb/mmpfb.c  |  710 ++++++++++++++++++++++++++++++++
+ drivers/video/mmp/fb/mmpfb.h  |   54 ++
+ 6 files changed, 783 insertions(+), 1 deletion(-)
 
-diff -puN drivers/video/Kconfig~video-mmp-display-subsystem drivers/video/Kconfig
---- a/drivers/video/Kconfig~video-mmp-display-subsystem
-+++ a/drivers/video/Kconfig
-@@ -2431,6 +2431,7 @@ config FB_PUV3_UNIGFX
- source "drivers/video/omap/Kconfig"
- source "drivers/video/omap2/Kconfig"
- source "drivers/video/exynos/Kconfig"
-+source "drivers/video/mmp/Kconfig"
- source "drivers/video/backlight/Kconfig"
- 
- if VT
-diff -puN drivers/video/Makefile~video-mmp-display-subsystem drivers/video/Makefile
---- a/drivers/video/Makefile~video-mmp-display-subsystem
-+++ a/drivers/video/Makefile
-@@ -106,6 +106,7 @@ obj-$(CONFIG_FB_ASILIANT)	  += asiliantf
- obj-$(CONFIG_FB_PXA)		  += pxafb.o
- obj-$(CONFIG_FB_PXA168)		  += pxa168fb.o
- obj-$(CONFIG_PXA3XX_GCU)	  += pxa3xx-gcu.o
-+obj-$(CONFIG_MMP_DISP)           += mmp/
- obj-$(CONFIG_FB_W100)		  += w100fb.o
- obj-$(CONFIG_FB_TMIO)		  += tmiofb.o
- obj-$(CONFIG_FB_AU1100)		  += au1100fb.o
-diff -puN /dev/null drivers/video/mmp/Kconfig
---- /dev/null
+diff -puN drivers/video/mmp/Kconfig~video-mmp-fb-support drivers/video/mmp/Kconfig
+--- a/drivers/video/mmp/Kconfig~video-mmp-fb-support
 +++ a/drivers/video/mmp/Kconfig
-@@ -0,0 +1,5 @@
-+menuconfig MMP_DISP
-+        tristate "Marvell MMP Display Subsystem support"
-+        depends on CPU_PXA910 || CPU_MMP2 || CPU_MMP3 || CPU_PXA988
-+        help
-+	  Marvell Display Subsystem support.
-diff -puN /dev/null drivers/video/mmp/Makefile
---- /dev/null
+@@ -3,3 +3,7 @@ menuconfig MMP_DISP
+         depends on CPU_PXA910 || CPU_MMP2 || CPU_MMP3 || CPU_PXA988
+         help
+ 	  Marvell Display Subsystem support.
++
++if MMP_DISP
++source "drivers/video/mmp/fb/Kconfig"
++endif
+diff -puN drivers/video/mmp/Makefile~video-mmp-fb-support drivers/video/mmp/Makefile
+--- a/drivers/video/mmp/Makefile~video-mmp-fb-support
 +++ a/drivers/video/mmp/Makefile
+@@ -1 +1 @@
+-obj-y += core.o
++obj-y += core.o fb/
+diff -puN /dev/null drivers/video/mmp/fb/Kconfig
+--- /dev/null
++++ a/drivers/video/mmp/fb/Kconfig
+@@ -0,0 +1,13 @@
++if MMP_DISP
++
++config MMP_FB
++	bool "fb driver for Marvell MMP Display Subsystem"
++	depends on FB
++	select FB_CFB_FILLRECT
++	select FB_CFB_COPYAREA
++	select FB_CFB_IMAGEBLIT
++	default y
++	help
++		fb driver for Marvell MMP Display Subsystem
++
++endif
+diff -puN /dev/null drivers/video/mmp/fb/Makefile
+--- /dev/null
++++ a/drivers/video/mmp/fb/Makefile
 @@ -0,0 +1 @@
-+obj-y += core.o
-diff -puN /dev/null drivers/video/mmp/core.c
++obj-$(CONFIG_MMP_FB)  += mmpfb.o
+diff -puN /dev/null drivers/video/mmp/fb/mmpfb.c
 --- /dev/null
-+++ a/drivers/video/mmp/core.c
-@@ -0,0 +1,217 @@
++++ a/drivers/video/mmp/fb/mmpfb.c
+@@ -0,0 +1,710 @@
 +/*
-+ * linux/drivers/video/mmp/common.c
-+ * This driver is a common framework for Marvell Display Controller
++ * linux/drivers/video/mmp/fb/mmpfb.c
++ * Framebuffer driver for Marvell Display controller.
 + *
 + * Copyright (C) 2012 Marvell Technology Group Ltd.
 + * Authors: Zhou Zhu <zzhu3@marvell.com>
@@ -133,562 +112,757 @@ diff -puN /dev/null drivers/video/mmp/core.c
 + * this program.  If not, see <http://www.gnu.org/licenses/>.
 + *
 + */
++#include <linux/module.h>
++#include <linux/vmalloc.h>
++#include <asm/cacheflush.h>
++#include "mmpfb.h"
 +
-+#include <linux/slab.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/export.h>
-+#include <video/mmp_disp.h>
-+
-+static struct mmp_ovly *path_get_ovly(struct mmp_path *path,
-+		int ovly_id)
++static int var_to_pixfmt(struct fb_var_screeninfo *var)
 +{
-+	if (path && ovly_id < path->ovly_num)
-+		return &path->ovlys[ovly_id];
-+	return 0;
-+}
++	/*
++	 * Pseudocolor mode?
++	 */
++	if (var->bits_per_pixel == 8)
++		return PIXFMT_PSEUDOCOLOR;
 +
-+static int path_check_status(struct mmp_path *path)
-+{
-+	int i;
-+	for (i = 0; i < path->ovly_num; i++)
-+		if (path->ovlys[i].status)
-+			return 1;
-+
-+	return 0;
-+}
-+
-+/*
-+ * Get modelist write pointer of modelist.
-+ * It also returns modelist number
-+ * this function fetches modelist from phy/panel:
-+ *   for HDMI/parallel or dsi to hdmi cases, get from phy
-+ *   or get from panel
-+ */
-+static int path_get_modelist(struct mmp_path *path,
-+		struct mmp_mode **modelist)
-+{
-+	BUG_ON(!path || !modelist);
-+
-+	if (path->panel && path->panel->get_modelist)
-+		return path->panel->get_modelist(path->panel, modelist);
-+
-+	return 0;
-+}
-+
-+#define list_find(_item, _list, _field, _name)\
-+	do {\
-+		int found = 0;\
-+		list_for_each_entry(_item, &_list, node) {\
-+			dev_dbg(_item->dev, "checking %s, target %s",\
-+					_item->_field, _name);\
-+			if (strcmp(_name, _item->_field) == 0) {\
-+				found = 1;\
-+				break;\
-+			} \
-+		} \
-+		if (!found)\
-+			_item = NULL;\
-+	} while (0)
-+
-+/*
-+ * panel list is used to pair panel/path when path/panel registered
-+ * path list is used for both buffer driver and platdriver
-+ * plat driver do path register/unregister
-+ * panel driver do panel register/unregister
-+ * buffer driver get registered path
-+ */
-+static LIST_HEAD(panel_list);
-+static LIST_HEAD(path_list);
-+static DEFINE_MUTEX(disp_lock);
-+
-+int mmp_register_panel(struct mmp_panel *panel)
-+{
-+	struct mmp_path *path;
-+
-+	mutex_lock(&disp_lock);
-+
-+	/* add */
-+	list_add_tail(&panel->node, &panel_list);
-+
-+	/* try to register to path */
-+	list_find(path, path_list, name, panel->plat_path_name);
-+	if (path) {
-+		dev_info(panel->dev, "register to path %s\n",
-+				panel->plat_path_name);
-+		path->panel = panel;
++	/*
++	 * Check for YUV422PLANAR.
++	 */
++	if (var->bits_per_pixel == 16 && var->red.length == 8 &&
++			var->green.length == 4 && var->blue.length == 4) {
++		if (var->green.offset >= var->blue.offset)
++			return PIXFMT_YUV422P;
++		else
++			return PIXFMT_YVU422P;
 +	}
 +
-+	mutex_unlock(&disp_lock);
-+	return 1;
-+}
-+EXPORT_SYMBOL_GPL(mmp_register_panel);
-+
-+void mmp_unregister_panel(struct mmp_panel *panel)
-+{
-+	mutex_lock(&disp_lock);
-+	list_del(&panel->node);
-+	mutex_unlock(&disp_lock);
-+}
-+EXPORT_SYMBOL_GPL(mmp_unregister_panel);
-+
-+struct mmp_path *mmp_get_path(const char *name)
-+{
-+	struct mmp_path *path;
-+
-+	mutex_lock(&disp_lock);
-+	list_find(path, path_list, name, name);
-+	mutex_unlock(&disp_lock);
-+
-+	return path;
-+}
-+EXPORT_SYMBOL_GPL(mmp_get_path);
-+
-+struct mmp_path *mmp_register_path(struct mmp_path_info *info)
-+{
-+	int i, size;
-+	struct mmp_path *path = NULL;
-+	struct mmp_panel *panel;
-+
-+	size = sizeof(struct mmp_path)
-+		+ sizeof(struct mmp_ovly) * info->ovly_num;
-+	path = kzalloc(size, GFP_KERNEL);
-+	if (!path)
-+		goto failed;
-+
-+	/* path set */
-+	path->ovlys = (void *)path + sizeof(struct mmp_path);
-+	mutex_init(&path->access_ok);
-+	path->dev = info->dev;
-+	path->id = info->id;
-+	path->name = info->name;
-+	path->output_type = info->output_type;
-+	path->ovly_num = info->ovly_num;
-+	path->plat_data = info->plat_data;
-+	path->ops.set_mode = info->set_mode;
-+
-+	mutex_lock(&disp_lock);
-+	/* get panel */
-+	list_find(panel, panel_list, plat_path_name, info->name);
-+	if (panel) {
-+		dev_info(path->dev, "get panel %s\n", panel->name);
-+		path->panel = panel;
++	/*
++	 * Check for YUV420PLANAR.
++	 */
++	if (var->bits_per_pixel == 12 && var->red.length == 8 &&
++			var->green.length == 2 && var->blue.length == 2) {
++		if (var->green.offset >= var->blue.offset)
++			return PIXFMT_YUV420P;
++		else
++			return PIXFMT_YVU420P;
 +	}
 +
-+	dev_info(path->dev, "register %s, ovly_num %d\n",
-+			path->name, path->ovly_num);
-+
-+	/* default op set: if already set by driver, never cover it */
-+	if (!path->ops.check_status)
-+		path->ops.check_status = path_check_status;
-+	if (!path->ops.get_ovly)
-+		path->ops.get_ovly = path_get_ovly;
-+	if (!path->ops.get_modelist)
-+		path->ops.get_modelist = path_get_modelist;
-+
-+	/* step3: init ovlys */
-+	for (i = 0; i < path->ovly_num; i++) {
-+		path->ovlys[i].path = path;
-+		path->ovlys[i].id = i;
-+		mutex_init(&path->ovlys[i].access_ok);
-+		path->ovlys[i].ops = info->ovly_ops;
++	/*
++	 * Check for YUV422PACK.
++	 */
++	if (var->bits_per_pixel == 16 && var->red.length == 16 &&
++			var->green.length == 16 && var->blue.length == 16) {
++		if (var->red.offset == 0)
++			return PIXFMT_YUYV;
++		else if (var->green.offset >= var->blue.offset)
++			return PIXFMT_UYVY;
++		else
++			return PIXFMT_VYUY;
 +	}
 +
-+	/* add to pathlist */
-+	list_add_tail(&path->node, &path_list);
++	/*
++	 * Check for 565/1555.
++	 */
++	if (var->bits_per_pixel == 16 && var->red.length <= 5 &&
++			var->green.length <= 6 && var->blue.length <= 5) {
++		if (var->transp.length == 0) {
++			if (var->red.offset >= var->blue.offset)
++				return PIXFMT_RGB565;
++			else
++				return PIXFMT_BGR565;
++		}
++	}
 +
-+	mutex_unlock(&disp_lock);
-+	return path;
++	/*
++	 * Check for 888/A888.
++	 */
++	if (var->bits_per_pixel <= 32 && var->red.length <= 8 &&
++			var->green.length <= 8 && var->blue.length <= 8) {
++		if (var->bits_per_pixel == 24 && var->transp.length == 0) {
++			if (var->red.offset >= var->blue.offset)
++				return PIXFMT_RGB888PACK;
++			else
++				return PIXFMT_BGR888PACK;
++		}
 +
-+failed:
-+	kfree(path);
-+	mutex_unlock(&disp_lock);
-+	return 0;
++		if (var->bits_per_pixel == 32 && var->transp.offset == 24) {
++			if (var->red.offset >= var->blue.offset)
++				return PIXFMT_RGBA888;
++			else
++				return PIXFMT_BGRA888;
++		} else {
++			if (var->red.offset >= var->blue.offset)
++				return PIXFMT_RGB888UNPACK;
++			else
++				return PIXFMT_BGR888UNPACK;
++		}
++
++		/* fall through */
++	}
++
++	return -EINVAL;
 +}
-+EXPORT_SYMBOL_GPL(mmp_register_path);
 +
-+void mmp_unregister_path(struct mmp_path *path)
-+{
-+	int i;
-+
-+	if (!path)
-+		return;
-+
-+	mutex_lock(&disp_lock);
-+	/* del from pathlist */
-+	list_del(&path->node);
-+
-+	/* deinit ovlys */
-+	for (i = 0; i < path->ovly_num; i++)
-+		mutex_destroy(&path->ovlys[i].access_ok);
-+
-+	mutex_destroy(&path->access_ok);
-+
-+	kfree(path);
-+	mutex_unlock(&disp_lock);
-+
-+	dev_info(path->dev, "de-register %s\n", path->name);
-+}
-+EXPORT_SYMBOL_GPL(mmp_unregister_path);
-diff -puN /dev/null include/video/mmp_disp.h
---- /dev/null
-+++ a/include/video/mmp_disp.h
-@@ -0,0 +1,351 @@
-+/*
-+ * linux/include/video/mmp_disp.h
-+ * Header file for Marvell MMP Display Controller
-+ *
-+ * Copyright (C) 2012 Marvell Technology Group Ltd.
-+ * Authors: Zhou Zhu <zzhu3@marvell.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the License, or (at your
-+ * option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ *
-+ */
-+
-+#ifndef _MMP_DISP_H_
-+#define _MMP_DISP_H_
-+#include <linux/kthread.h>
-+
-+enum {
-+	PIXFMT_UYVY = 0,
-+	PIXFMT_VYUY,
-+	PIXFMT_YUYV,
-+	PIXFMT_YUV422P,
-+	PIXFMT_YVU422P,
-+	PIXFMT_YUV420P,
-+	PIXFMT_YVU420P,
-+	PIXFMT_RGB565 = 0x100,
-+	PIXFMT_BGR565,
-+	PIXFMT_RGB1555,
-+	PIXFMT_BGR1555,
-+	PIXFMT_RGB888PACK,
-+	PIXFMT_BGR888PACK,
-+	PIXFMT_RGB888UNPACK,
-+	PIXFMT_BGR888UNPACK,
-+	PIXFMT_RGBA888,
-+	PIXFMT_BGRA888,
-+	PIXFMT_RGB666, /* for output usage */
-+	PIXFMT_PSEUDOCOLOR = 0x200,
-+};
-+
-+static inline int pixfmt_to_stride(int pix_fmt)
++static void pixfmt_to_var(struct fb_var_screeninfo *var, int pix_fmt)
 +{
 +	switch (pix_fmt) {
 +	case PIXFMT_RGB565:
++		var->bits_per_pixel = 16;
++		var->red.offset = 11;	var->red.length = 5;
++		var->green.offset = 5;   var->green.length = 6;
++		var->blue.offset = 0;	var->blue.length = 5;
++		var->transp.offset = 0;  var->transp.length = 0;
++		break;
 +	case PIXFMT_BGR565:
-+	case PIXFMT_RGB1555:
-+	case PIXFMT_BGR1555:
-+	case PIXFMT_UYVY:
-+	case PIXFMT_VYUY:
-+	case PIXFMT_YUYV:
-+		return 2;
++		var->bits_per_pixel = 16;
++		var->red.offset = 0;	var->red.length = 5;
++		var->green.offset = 5;	 var->green.length = 6;
++		var->blue.offset = 11;	var->blue.length = 5;
++		var->transp.offset = 0;  var->transp.length = 0;
++		break;
 +	case PIXFMT_RGB888UNPACK:
++		var->bits_per_pixel = 32;
++		var->red.offset = 16;	var->red.length = 8;
++		var->green.offset = 8;   var->green.length = 8;
++		var->blue.offset = 0;	var->blue.length = 8;
++		var->transp.offset = 0;  var->transp.length = 0;
++		break;
 +	case PIXFMT_BGR888UNPACK:
++		var->bits_per_pixel = 32;
++		var->red.offset = 0;	var->red.length = 8;
++		var->green.offset = 8;	 var->green.length = 8;
++		var->blue.offset = 16;	var->blue.length = 8;
++		var->transp.offset = 0;  var->transp.length = 0;
++		break;
 +	case PIXFMT_RGBA888:
++		var->bits_per_pixel = 32;
++		var->red.offset = 16;	var->red.length = 8;
++		var->green.offset = 8;   var->green.length = 8;
++		var->blue.offset = 0;	var->blue.length = 8;
++		var->transp.offset = 24; var->transp.length = 8;
++		break;
 +	case PIXFMT_BGRA888:
-+		return 4;
++		var->bits_per_pixel = 32;
++		var->red.offset = 0;	var->red.length = 8;
++		var->green.offset = 8;	 var->green.length = 8;
++		var->blue.offset = 16;	var->blue.length = 8;
++		var->transp.offset = 24; var->transp.length = 8;
++		break;
 +	case PIXFMT_RGB888PACK:
++		var->bits_per_pixel = 24;
++		var->red.offset = 16;	var->red.length = 8;
++		var->green.offset = 8;   var->green.length = 8;
++		var->blue.offset = 0;	var->blue.length = 8;
++		var->transp.offset = 0;  var->transp.length = 0;
++		break;
 +	case PIXFMT_BGR888PACK:
-+		return 3;
-+	case PIXFMT_YUV422P:
-+	case PIXFMT_YVU422P:
++		var->bits_per_pixel = 24;
++		var->red.offset = 0;	var->red.length = 8;
++		var->green.offset = 8;	 var->green.length = 8;
++		var->blue.offset = 16;	var->blue.length = 8;
++		var->transp.offset = 0;  var->transp.length = 0;
++		break;
 +	case PIXFMT_YUV420P:
++		var->bits_per_pixel = 12;
++		var->red.offset = 4;	 var->red.length = 8;
++		var->green.offset = 2;   var->green.length = 2;
++		var->blue.offset = 0;   var->blue.length = 2;
++		var->transp.offset = 0;  var->transp.length = 0;
++		break;
 +	case PIXFMT_YVU420P:
++		var->bits_per_pixel = 12;
++		var->red.offset = 4;	 var->red.length = 8;
++		var->green.offset = 0;	 var->green.length = 2;
++		var->blue.offset = 2;	var->blue.length = 2;
++		var->transp.offset = 0;  var->transp.length = 0;
++		break;
++	case PIXFMT_YUV422P:
++		var->bits_per_pixel = 16;
++		var->red.offset = 8;	 var->red.length = 8;
++		var->green.offset = 4;   var->green.length = 4;
++		var->blue.offset = 0;   var->blue.length = 4;
++		var->transp.offset = 0;  var->transp.length = 0;
++		break;
++	case PIXFMT_YVU422P:
++		var->bits_per_pixel = 16;
++		var->red.offset = 8;	 var->red.length = 8;
++		var->green.offset = 0;	 var->green.length = 4;
++		var->blue.offset = 4;	var->blue.length = 4;
++		var->transp.offset = 0;  var->transp.length = 0;
++		break;
++	case PIXFMT_UYVY:
++		var->bits_per_pixel = 16;
++		var->red.offset = 8;	 var->red.length = 16;
++		var->green.offset = 4;   var->green.length = 16;
++		var->blue.offset = 0;   var->blue.length = 16;
++		var->transp.offset = 0;  var->transp.length = 0;
++		break;
++	case PIXFMT_VYUY:
++		var->bits_per_pixel = 16;
++		var->red.offset = 8;	 var->red.length = 16;
++		var->green.offset = 0;	 var->green.length = 16;
++		var->blue.offset = 4;	var->blue.length = 16;
++		var->transp.offset = 0;  var->transp.length = 0;
++		break;
++	case PIXFMT_YUYV:
++		var->bits_per_pixel = 16;
++		var->red.offset = 0;	 var->red.length = 16;
++		var->green.offset = 4;	 var->green.length = 16;
++		var->blue.offset = 8;	var->blue.length = 16;
++		var->transp.offset = 0;  var->transp.length = 0;
++		break;
 +	case PIXFMT_PSEUDOCOLOR:
-+		return 1;
-+	default:
-+		return 0;
++		var->bits_per_pixel = 8;
++		var->red.offset = 0;	 var->red.length = 8;
++		var->green.offset = 0;   var->green.length = 8;
++		var->blue.offset = 0;	var->blue.length = 8;
++		var->transp.offset = 0;  var->transp.length = 0;
++		break;
 +	}
-+}
-+
-+/* parameters used by path/ovly */
-+/* ovly related para: win/addr */
-+struct mmp_win {
-+	/* position/size of window */
-+	u16	xsrc;
-+	u16	ysrc;
-+	u16	xdst;
-+	u16	ydst;
-+	u16	xpos;
-+	u16	ypos;
-+	u16	left_crop;
-+	u16	right_crop;
-+	u16	up_crop;
-+	u16	bottom_crop;
-+	int	pix_fmt;
-+};
-+
-+struct mmp_addr {
-+	/* phys address */
-+	u32	phys[6];
-+};
-+
-+/* path related para: mode */
-+struct mmp_mode {
-+	const char *name;
-+	u32 refresh;
-+	u32 xres;
-+	u32 yres;
-+	u32 left_margin;
-+	u32 right_margin;
-+	u32 upper_margin;
-+	u32 lower_margin;
-+	u32 hsync_len;
-+	u32 vsync_len;
-+	u32 hsync_invert;
-+	u32 vsync_invert;
-+	u32 invert_pixclock;
-+	u32 pixclock_freq;
-+	int pix_fmt_out;
-+};
-+
-+/* main structures */
-+struct mmp_path;
-+struct mmp_ovly;
-+struct mmp_panel;
-+
-+/* status types */
-+enum {
-+	MMP_OFF = 0,
-+	MMP_ON,
-+};
-+
-+static inline const char *stat_name(int stat)
-+{
-+	switch (stat) {
-+	case MMP_OFF:
-+		return "OFF";
-+	case MMP_ON:
-+		return "ON";
-+	default:
-+		return "UNKNOWNSTAT";
-+	}
-+}
-+
-+struct mmp_ovly_ops {
-+	/* should be provided by driver */
-+	void (*set_fetch)(struct mmp_ovly *ovly, int fetch_id);
-+	void (*set_onoff)(struct mmp_ovly *ovly, int status);
-+	void (*set_win)(struct mmp_ovly *ovly, struct mmp_win *win);
-+	int (*set_addr)(struct mmp_ovly *ovly, struct mmp_addr *addr);
-+};
-+
-+/* ovly describes a z-order indexed slot in each path. */
-+struct mmp_ovly {
-+	int id;
-+	const char *name;
-+	struct mmp_path *path;
-+
-+	/* ovly info: private data */
-+	int dmafetch_id;
-+	struct mmp_addr addr;
-+	struct mmp_win win;
-+
-+	/* state */
-+	int open_count;
-+	int status;
-+	struct mutex access_ok;
-+
-+	struct mmp_ovly_ops *ops;
-+};
-+
-+/* panel type */
-+enum {
-+	PANELTYPE_ACTIVE = 0,
-+	PANELTYPE_SMART,
-+	PANELTYPE_TV,
-+	PANELTYPE_DSI_CMD,
-+	PANELTYPE_DSI_VIDEO,
-+};
-+
-+struct mmp_panel {
-+	/* use node to register to list */
-+	struct list_head node;
-+	const char *name;
-+	/* path name used to connect to proper path configed */
-+	const char *plat_path_name;
-+	struct device *dev;
-+	int panel_type;
-+	void *plat_data;
-+	int (*get_modelist)(struct mmp_panel *panel,
-+			struct mmp_mode **modelist);
-+	void (*set_mode)(struct mmp_panel *panel,
-+			struct mmp_mode *mode);
-+	void (*set_onoff)(struct mmp_panel *panel,
-+			int status);
-+};
-+
-+struct mmp_path_ops {
-+	int (*check_status)(struct mmp_path *path);
-+	struct mmp_ovly *(*get_ovly)(struct mmp_path *path,
-+			int ovly_id);
-+	int (*get_modelist)(struct mmp_path *path,
-+			struct mmp_mode **modelist);
-+
-+	/* follow ops should be provided by driver */
-+	void (*set_mode)(struct mmp_path *path, struct mmp_mode *mode);
-+	void (*set_onoff)(struct mmp_path *path, int status);
-+	/* todo: add query */
-+};
-+
-+/* path output types */
-+enum {
-+	PATH_OUT_PARALLEL,
-+	PATH_OUT_DSI,
-+	PATH_OUT_HDMI,
-+};
-+
-+/* path is main part of mmp-disp */
-+struct mmp_path {
-+	/* use node to register to list */
-+	struct list_head node;
-+
-+	/* init data */
-+	struct device *dev;
-+
-+	int id;
-+	const char *name;
-+	int output_type;
-+	struct mmp_panel *panel;
-+	void *plat_data;
-+
-+	/* dynamic use */
-+	struct mmp_mode mode;
-+
-+	/* state */
-+	int open_count;
-+	int status;
-+	struct mutex access_ok;
-+
-+	struct mmp_path_ops ops;
-+
-+	/* layers */
-+	int ovly_num;
-+	struct mmp_ovly *ovlys;
-+};
-+
-+extern struct mmp_path *mmp_get_path(const char *name);
-+static inline void mmp_path_set_mode(struct mmp_path *path,
-+		struct mmp_mode *mode)
-+{
-+	if (path)
-+		path->ops.set_mode(path, mode);
-+}
-+static inline void mmp_path_set_onoff(struct mmp_path *path, int status)
-+{
-+	if (path)
-+		path->ops.set_onoff(path, status);
-+}
-+static inline int mmp_path_get_modelist(struct mmp_path *path,
-+		struct mmp_mode **modelist)
-+{
-+	if (path)
-+		return path->ops.get_modelist(path, modelist);
-+	return 0;
-+}
-+static inline struct mmp_ovly *mmp_path_get_ovly(
-+		struct mmp_path *path, int ovly_id)
-+{
-+	if (path)
-+		return path->ops.get_ovly(path, ovly_id);
-+	return NULL;
-+}
-+static inline void mmp_ovly_set_fetch(struct mmp_ovly *ovly,
-+		int fetch_id)
-+{
-+	if (ovly)
-+		ovly->ops->set_fetch(ovly, fetch_id);
-+}
-+static inline void mmp_ovly_set_onoff(struct mmp_ovly *ovly, int status)
-+{
-+	if (ovly)
-+		ovly->ops->set_onoff(ovly, status);
-+}
-+static inline void mmp_ovly_set_win(struct mmp_ovly *ovly,
-+		struct mmp_win *win)
-+{
-+	if (ovly)
-+		ovly->ops->set_win(ovly, win);
-+}
-+static inline int mmp_ovly_set_addr(struct mmp_ovly *ovly,
-+		struct mmp_addr *addr)
-+{
-+	if (ovly)
-+		return ovly->ops->set_addr(ovly, addr);
-+	return 0;
 +}
 +
 +/*
-+ * driver data is set from each detailed ctrl driver for path usage
-+ * it defined a common interface that plat driver need to implement
++ * fb framework has its limitation:
++ * 1. input color/output color is not seprated
++ * 2. fb_videomode not include output color
++ * so for fb usage, we keep a output format which is not changed
++ *  then it's added for mmpmode
 + */
-+struct mmp_path_info {
-+	/* driver data, set when registed*/
-+	const char *name;
-+	struct device *dev;
-+	int id;
-+	int output_type;
-+	int ovly_num;
-+	void (*set_mode)(struct mmp_path *path, struct mmp_mode *mode);
-+	void (*set_onoff)(struct mmp_path *path, int status);
-+	struct mmp_ovly_ops *ovly_ops;
-+	void *plat_data;
++static void fbmode_to_mmpmode(struct mmp_mode *mode,
++		struct fb_videomode *videomode, int output_fmt)
++{
++	u64 div_result = 1000000000000ll;
++	mode->name = videomode->name;
++	mode->refresh = videomode->refresh;
++	mode->xres = videomode->xres;
++	mode->yres = videomode->yres;
++
++	do_div(div_result, videomode->pixclock);
++	mode->pixclock_freq = (u32)div_result;
++
++	mode->left_margin = videomode->left_margin;
++	mode->right_margin = videomode->right_margin;
++	mode->upper_margin = videomode->upper_margin;
++	mode->lower_margin = videomode->lower_margin;
++	mode->hsync_len = videomode->hsync_len;
++	mode->vsync_len = videomode->vsync_len;
++	mode->hsync_invert = !!(videomode->sync & FB_SYNC_HOR_HIGH_ACT);
++	mode->vsync_invert = !!(videomode->sync & FB_SYNC_VERT_HIGH_ACT);
++	/* no defined flag in fb, use vmode>>3*/
++	mode->invert_pixclock = !!(videomode->vmode & 8);
++	mode->pix_fmt_out = output_fmt;
++}
++
++static void mmpmode_to_fbmode(struct fb_videomode *videomode,
++		struct mmp_mode *mode)
++{
++	u64 div_result = 1000000000000ll;
++
++	videomode->name = mode->name;
++	videomode->refresh = mode->refresh;
++	videomode->xres = mode->xres;
++	videomode->yres = mode->yres;
++
++	do_div(div_result, mode->pixclock_freq);
++	videomode->pixclock = (u32)div_result;
++
++	videomode->left_margin = mode->left_margin;
++	videomode->right_margin = mode->right_margin;
++	videomode->upper_margin = mode->upper_margin;
++	videomode->lower_margin = mode->lower_margin;
++	videomode->hsync_len = mode->hsync_len;
++	videomode->vsync_len = mode->vsync_len;
++	videomode->sync = (mode->hsync_invert ? FB_SYNC_HOR_HIGH_ACT : 0)
++		| (mode->vsync_invert ? FB_SYNC_VERT_HIGH_ACT : 0);
++	videomode->vmode = mode->invert_pixclock ? 8 : 0;
++}
++
++
++static void *alloc_framebuffer(size_t size, dma_addr_t *dma)
++{
++	int nr, i = 0;
++	struct page **pages;
++	void *start;
++
++	nr = size >> PAGE_SHIFT;
++	start = alloc_pages_exact(size, GFP_KERNEL | __GFP_ZERO);
++	if (start == NULL)
++		return NULL;
++
++	*dma = virt_to_phys(start);
++	pages = vmalloc(sizeof(struct page *) * nr);
++	if (pages == NULL)
++		return NULL;
++
++	while (i < nr) {
++		pages[i] = phys_to_page(*dma + (i << PAGE_SHIFT));
++		i++;
++	}
++	start = vmap(pages, nr, 0, pgprot_writecombine(pgprot_kernel));
++
++	vfree(pages);
++	return start;
++}
++
++static int mmpfb_check_var(struct fb_var_screeninfo *var,
++		struct fb_info *info)
++{
++	struct mmpfb_info *fbi = info->par;
++
++	if (var->bits_per_pixel == 8)
++		return -EINVAL;
++	/*
++	 * Basic geometry sanity checks.
++	 */
++	if (var->xoffset + var->xres > var->xres_virtual)
++		return -EINVAL;
++	if (var->yoffset + var->yres > var->yres_virtual)
++		return -EINVAL;
++
++	/*
++	 * Check size of framebuffer.
++	 */
++	if (var->xres_virtual * var->yres_virtual *
++			(var->bits_per_pixel >> 3) > fbi->fb_size)
++		return -EINVAL;
++
++	return 0;
++}
++
++static unsigned int chan_to_field(unsigned int chan, struct fb_bitfield *bf)
++{
++	return ((chan & 0xffff) >> (16 - bf->length)) << bf->offset;
++}
++
++static u32 to_rgb(u16 red, u16 green, u16 blue)
++{
++	red >>= 8;
++	green >>= 8;
++	blue >>= 8;
++
++	return (red << 16) | (green << 8) | blue;
++}
++
++static int mmpfb_setcolreg(unsigned int regno, unsigned int red,
++		unsigned int green, unsigned int blue,
++		unsigned int trans, struct fb_info *info)
++{
++	struct mmpfb_info *fbi = info->par;
++	u32 val;
++
++	if (info->fix.visual == FB_VISUAL_TRUECOLOR && regno < 16) {
++		val =  chan_to_field(red,   &info->var.red);
++		val |= chan_to_field(green, &info->var.green);
++		val |= chan_to_field(blue , &info->var.blue);
++		fbi->pseudo_palette[regno] = val;
++	}
++
++	if (info->fix.visual == FB_VISUAL_PSEUDOCOLOR && regno < 256) {
++		val = to_rgb(red, green, blue);
++		/* TODO */
++	}
++
++	return 0;
++}
++
++static int mmpfb_pan_display(struct fb_var_screeninfo *var,
++		struct fb_info *info)
++{
++	struct mmpfb_info *fbi = info->par;
++	struct mmp_addr addr;
++
++	memset(&addr, 0, sizeof(addr));
++	addr.phys[0] = (var->yoffset * var->xres_virtual + var->xoffset)
++		* var->bits_per_pixel / 8 + fbi->fb_start_dma;
++	mmp_ovly_set_addr(fbi->ovly, &addr);
++
++	return 0;
++}
++
++static int var_update(struct fb_info *info)
++{
++	struct mmpfb_info *fbi = info->par;
++	struct fb_var_screeninfo *var = &info->var;
++	struct fb_videomode *m;
++	int pix_fmt;
++
++	/* set pix_fmt */
++	pix_fmt = var_to_pixfmt(var);
++	if (pix_fmt < 0)
++		return -EINVAL;
++	pixfmt_to_var(var, pix_fmt);
++	fbi->pix_fmt = pix_fmt;
++
++	/* set var according to best video mode*/
++	m = (struct fb_videomode *)fb_match_mode(var, &info->modelist);
++	if (!m) {
++		dev_err(fbi->dev, "set par: no match mode, use best mode\n");
++		m = (struct fb_videomode *)fb_find_best_mode(var,
++				&info->modelist);
++		fb_videomode_to_var(var, m);
++	}
++	memcpy(&fbi->mode, m, sizeof(struct fb_videomode));
++
++	/* fix to 2* yres */
++	var->yres_virtual = var->yres * 2;
++	info->fix.visual = (pix_fmt == PIXFMT_PSEUDOCOLOR) ?
++		FB_VISUAL_PSEUDOCOLOR : FB_VISUAL_TRUECOLOR;
++	info->fix.line_length = var->xres_virtual * var->bits_per_pixel / 8;
++	info->fix.ypanstep = var->yres;
++	return 0;
++}
++
++static int mmpfb_set_par(struct fb_info *info)
++{
++	struct mmpfb_info *fbi = info->par;
++	struct fb_var_screeninfo *var = &info->var;
++	struct mmp_addr addr;
++	struct mmp_win win;
++	struct mmp_mode mode;
++
++	int ret = var_update(info);
++	if (ret != 0)
++		return ret;
++
++	/* set window/path according to new videomode */
++	fbmode_to_mmpmode(&mode, &fbi->mode, fbi->output_fmt);
++	mmp_path_set_mode(fbi->path, &mode);
++
++	memset(&win, 0, sizeof(win));
++	win.xsrc = win.xdst = fbi->mode.xres;
++	win.ysrc = win.ydst = fbi->mode.yres;
++	win.pix_fmt = fbi->pix_fmt;
++	mmp_ovly_set_win(fbi->ovly, &win);
++
++	/* set address always */
++	memset(&addr, 0, sizeof(addr));
++	addr.phys[0] = (var->yoffset * var->xres_virtual + var->xoffset)
++		* var->bits_per_pixel / 8 + fbi->fb_start_dma;
++	mmp_ovly_set_addr(fbi->ovly, &addr);
++
++	return 0;
++}
++
++static void mmpfb_power(struct mmpfb_info *fbi, int power)
++{
++	struct mmp_addr addr;
++	struct mmp_win win;
++	struct fb_var_screeninfo *var = &fbi->fb_info->var;
++
++	/* for power on, always set address/window again */
++	if (power) {
++		memset(&win, 0, sizeof(win));
++		win.xsrc = win.xdst = fbi->mode.xres;
++		win.ysrc = win.ydst = fbi->mode.yres;
++		win.pix_fmt = fbi->pix_fmt;
++		mmp_ovly_set_win(fbi->ovly, &win);
++
++		/* set address always */
++		memset(&addr, 0, sizeof(addr));
++		addr.phys[0] = fbi->fb_start_dma +
++			(var->yoffset * var->xres_virtual + var->xoffset)
++			* var->bits_per_pixel / 8;
++		mmp_ovly_set_addr(fbi->ovly, &addr);
++	}
++	mmp_ovly_set_onoff(fbi->ovly, power);
++}
++
++static int mmpfb_blank(int blank, struct fb_info *info)
++{
++	struct mmpfb_info *fbi = info->par;
++
++	mmpfb_power(fbi, (blank == FB_BLANK_UNBLANK));
++
++	return 0;
++}
++
++static struct fb_ops mmpfb_ops = {
++	.owner		= THIS_MODULE,
++	.fb_blank	= mmpfb_blank,
++	.fb_check_var	= mmpfb_check_var,
++	.fb_set_par	= mmpfb_set_par,
++	.fb_setcolreg	= mmpfb_setcolreg,
++	.fb_pan_display	= mmpfb_pan_display,
++	.fb_fillrect	= cfb_fillrect,
++	.fb_copyarea	= cfb_copyarea,
++	.fb_imageblit	= cfb_imageblit,
 +};
 +
-+extern struct mmp_path *mmp_register_path(
-+		struct mmp_path_info *info);
-+extern void mmp_unregister_path(struct mmp_path *path);
-+extern int mmp_register_panel(struct mmp_panel *panel);
-+extern void mmp_unregister_panel(struct mmp_panel *panel);
++static int modes_setup(struct mmpfb_info *fbi)
++{
++	struct fb_videomode *videomodes;
++	struct mmp_mode *mmp_modes;
++	struct fb_info *info = fbi->fb_info;
++	int videomode_num, i;
 +
-+/* defintions for platform data */
-+/* interface for buffer driver */
-+struct mmp_buffer_driver_mach_info {
++	/* get videomodes from path */
++	videomode_num = mmp_path_get_modelist(fbi->path, &mmp_modes);
++	if (!videomode_num) {
++		dev_warn(fbi->dev, "can't get videomode num\n");
++		return 0;
++	}
++	/* put videomode list to info structure */
++	videomodes = kzalloc(sizeof(struct fb_videomode) * videomode_num,
++			GFP_KERNEL);
++	if (!videomodes) {
++		dev_err(fbi->dev, "can't malloc video modes\n");
++		return -ENOMEM;
++	}
++	for (i = 0; i < videomode_num; i++)
++		mmpmode_to_fbmode(&videomodes[i], &mmp_modes[i]);
++	fb_videomode_to_modelist(videomodes, videomode_num, &info->modelist);
++
++	/* set videomode[0] as default mode */
++	memcpy(&fbi->mode, &videomodes[0], sizeof(struct fb_videomode));
++	fbi->output_fmt = mmp_modes[0].pix_fmt_out;
++	fb_videomode_to_var(&info->var, &fbi->mode);
++	mmp_path_set_mode(fbi->path, &mmp_modes[0]);
++
++	kfree(videomodes);
++	return videomode_num;
++}
++
++static int fb_info_setup(struct fb_info *info,
++			struct mmpfb_info *fbi)
++{
++	int ret = 0;
++	/* Initialise static fb parameters.*/
++	info->flags = FBINFO_DEFAULT | FBINFO_PARTIAL_PAN_OK |
++		FBINFO_HWACCEL_XPAN | FBINFO_HWACCEL_YPAN;
++	info->node = -1;
++	strcpy(info->fix.id, fbi->name);
++	info->fix.type = FB_TYPE_PACKED_PIXELS;
++	info->fix.type_aux = 0;
++	info->fix.xpanstep = 0;
++	info->fix.ypanstep = info->var.yres;
++	info->fix.ywrapstep = 0;
++	info->fix.accel = FB_ACCEL_NONE;
++	info->fix.smem_start = fbi->fb_start_dma;
++	info->fix.smem_len = fbi->fb_size;
++	info->fix.visual = (fbi->pix_fmt == PIXFMT_PSEUDOCOLOR) ?
++		FB_VISUAL_PSEUDOCOLOR : FB_VISUAL_TRUECOLOR;
++	info->fix.line_length = info->var.xres_virtual *
++		info->var.bits_per_pixel / 8;
++	info->fbops = &mmpfb_ops;
++	info->pseudo_palette = fbi->pseudo_palette;
++	info->screen_base = fbi->fb_start;
++	info->screen_size = fbi->fb_size;
++
++	/* For FB framework: Allocate color map and Register framebuffer*/
++	if (fb_alloc_cmap(&info->cmap, 256, 0) < 0)
++		ret = -ENOMEM;
++
++	return ret;
++}
++
++static void fb_info_clear(struct fb_info *info)
++{
++	fb_dealloc_cmap(&info->cmap);
++}
++
++static int mmpfb_probe(struct platform_device *pdev)
++{
++	struct mmp_buffer_driver_mach_info *mi;
++	struct fb_info *info = 0;
++	struct mmpfb_info *fbi = 0;
++	int ret, modes_num;
++
++	mi = pdev->dev.platform_data;
++	if (mi == NULL) {
++		dev_err(&pdev->dev, "no platform data defined\n");
++		return -EINVAL;
++	}
++
++	/* initialize fb */
++	info = framebuffer_alloc(sizeof(struct mmpfb_info), &pdev->dev);
++	if (info == NULL)
++		return -ENOMEM;
++	fbi = info->par;
++	if (!fbi) {
++		ret = -EINVAL;
++		goto failed;
++	}
++
++	/* init fb */
++	fbi->fb_info = info;
++	platform_set_drvdata(pdev, fbi);
++	fbi->dev = &pdev->dev;
++	fbi->name = mi->name;
++	fbi->pix_fmt = mi->default_pixfmt;
++	pixfmt_to_var(&info->var, fbi->pix_fmt);
++	mutex_init(&fbi->access_ok);
++
++	/* get display path by name */
++	fbi->path = mmp_get_path(mi->path_name);
++	if (!fbi->path) {
++		dev_err(&pdev->dev, "can't get the path %s\n", mi->path_name);
++		ret = -EINVAL;
++		goto failed_destroy_mutex;
++	}
++
++	dev_info(fbi->dev, "path %s get\n", fbi->path->name);
++
++	/* get ovly */
++	fbi->ovly = mmp_path_get_ovly(fbi->path, mi->ovly_id);
++	if (!fbi->ovly) {
++		ret = -EINVAL;
++		goto failed_destroy_mutex;
++	}
++	/* set fetch used */
++	mmp_ovly_set_fetch(fbi->ovly, mi->dmafetch_id);
++
++	modes_num = modes_setup(fbi);
++	if (modes_num < 0) {
++		ret = modes_num;
++		goto failed_destroy_mutex;
++	}
++
++	/*
++	 * if get modes success, means not hotplug panels, use caculated buffer
++	 * or use default size
++	 */
++	if (modes_num > 0) {
++		/* fix to 2* yres */
++		info->var.yres_virtual = info->var.yres * 2;
++
++		/* Allocate framebuffer memory: size = modes xy *4 */
++		fbi->fb_size = PAGE_ALIGN(info->var.xres_virtual *
++			info->var.yres_virtual * info->var.bits_per_pixel / 8);
++	} else {
++		fbi->fb_size = MMPFB_DEFAULT_SIZE;
++	}
++
++	fbi->fb_start = alloc_framebuffer(fbi->fb_size + PAGE_SIZE,
++				&fbi->fb_start_dma);
++	if (fbi->fb_start == NULL) {
++		dev_err(&pdev->dev, "can't alloc framebuffer\n");
++		ret = -ENOMEM;
++		goto failed_destroy_mutex;
++	}
++	memset(fbi->fb_start, 0, fbi->fb_size);
++	dev_info(fbi->dev, "fb %dk allocated\n", fbi->fb_size/1024);
++
++	/* fb power on */
++	if (modes_num > 0)
++		mmpfb_power(fbi, 1);
++
++	ret = fb_info_setup(info, fbi);
++	if (ret < 0)
++		goto failed_free_buff;
++
++	ret = register_framebuffer(info);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "Failed to register fb: %d\n", ret);
++		ret = -ENXIO;
++		goto failed_clear_info;
++	}
++
++	dev_info(fbi->dev, "loaded to /dev/fb%d <%s>.\n",
++		info->node, info->fix.id);
++
++#ifdef CONFIG_LOGO
++	if (fbi->fb_start) {
++		fb_prepare_logo(info, 0);
++		fb_show_logo(info, 0);
++	}
++#endif
++
++	return 0;
++
++failed_clear_info:
++	fb_info_clear(info);
++failed_free_buff:
++	vfree(fbi->fb_start);
++failed_destroy_mutex:
++	mutex_destroy(&fbi->access_ok);
++failed:
++	dev_err(fbi->dev, "mmp-fb: frame buffer device init failed\n");
++	platform_set_drvdata(pdev, NULL);
++
++	framebuffer_release(info);
++
++	return ret;
++}
++
++static struct platform_driver mmpfb_driver = {
++	.driver		= {
++		.name	= "mmp-fb",
++		.owner	= THIS_MODULE,
++	},
++	.probe		= mmpfb_probe,
++};
++
++static int mmpfb_init(void)
++{
++	return platform_driver_register(&mmpfb_driver);
++}
++module_init(mmpfb_init);
++
++MODULE_AUTHOR("Zhou Zhu <zhou.zhu@marvell.com>");
++MODULE_DESCRIPTION("Framebuffer driver for Marvell displays");
++MODULE_LICENSE("GPL");
+diff -puN /dev/null drivers/video/mmp/fb/mmpfb.h
+--- /dev/null
++++ a/drivers/video/mmp/fb/mmpfb.h
+@@ -0,0 +1,54 @@
++/*
++ * linux/drivers/video/mmp/fb/mmpfb.h
++ * Framebuffer driver for Marvell Display controller.
++ *
++ * Copyright (C) 2012 Marvell Technology Group Ltd.
++ * Authors: Zhou Zhu <zzhu3@marvell.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ *
++ */
++
++#ifndef _MMP_FB_H_
++#define _MMP_FB_H_
++
++#include <video/mmp_disp.h>
++#include <linux/fb.h>
++
++/* LCD controller private state. */
++struct mmpfb_info {
++	struct device	*dev;
++	int	id;
 +	const char	*name;
-+	const char	*path_name;
-+	int	ovly_id;
-+	int	dmafetch_id;
-+	int	default_pixfmt;
++
++	struct fb_info	*fb_info;
++	/* basicaly videomode is for output */
++	struct fb_videomode	mode;
++	int	pix_fmt;
++
++	void	*fb_start;
++	int	fb_size;
++	dma_addr_t	fb_start_dma;
++
++	struct mmp_ovly	*ovly;
++	struct mmp_path	*path;
++
++	struct mutex	access_ok;
++
++	unsigned int		pseudo_palette[16];
++	int output_fmt;
 +};
 +
-+/* interface for controllers driver */
-+struct mmp_mach_path_config {
-+	const char *name;
-+	int ovly_num;
-+	int output_type;
-+	u32 path_config;
-+	u32 link_config;
-+};
-+
-+struct mmp_mach_plat_info {
-+	const char *name;
-+	const char *clk_name;
-+	int path_num;
-+	struct mmp_mach_path_config *paths;
-+};
-+
-+/* interface for panel drivers */
-+struct mmp_mach_panel_info {
-+	const char *name;
-+	void (*plat_set_onoff)(int status);
-+	const char *plat_path_name;
-+};
-+#endif	/* _MMP_DISP_H_ */
++#define MMPFB_DEFAULT_SIZE (PAGE_ALIGN(1920 * 1080 * 4 * 2))
++#endif /* _MMP_FB_H_ */
 _
 
 Patches currently in -mm which might be from zzhu3@marvell.com are
 
-video-mmp-fb-support.patch
 video-mmp-display-controller-support.patch
 video-mmp-add-tpo-hvga-panel-supported.patch
 video-mmpdisp-add-spi-port-in-display-controller.patch
