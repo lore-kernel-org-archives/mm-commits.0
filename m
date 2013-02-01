@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-shmem-use-new-radix-tree-iterator.patch added to -mm tree
-Date: Fri, 01 Feb 2013 15:40:43 -0800
-Message-ID: <20130201234043.98FFC31C1BF@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-refactor-inactive_file_is_low-to-use-get_lru_size.patch added to -mm tree
+Date: Fri, 01 Feb 2013 15:44:14 -0800
+Message-ID: <20130201234414.AF4E331C1B0@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:61066 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756800Ab3BAXko (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2013 18:40:44 -0500
-Received: by mail-qc0-f202.google.com with SMTP id s25so501294qcq.1
-        for <mm-commits@vger.kernel.org>; Fri, 01 Feb 2013 15:40:44 -0800 (PST)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:54059 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754156Ab3BAXoQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2013 18:44:16 -0500
+Received: by mail-qe0-f73.google.com with SMTP id 7so438484qeb.0
+        for <mm-commits@vger.kernel.org>; Fri, 01 Feb 2013 15:44:15 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hannes@cmpxchg.org, hughd@google.com, khlebnikov@openvz.org
+Cc: hannes@cmpxchg.org, mhocko@suse.cz
 
 
 The patch titled
-     Subject: mm: shmem: use new radix tree iterator
+     Subject: mm: refactor inactive_file_is_low() to use get_lru_size()
 has been added to the -mm tree.  Its filename is
-     mm-shmem-use-new-radix-tree-iterator.patch
+     mm-refactor-inactive_file_is_low-to-use-get_lru_size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,73 +34,111 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: shmem: use new radix tree iterator
+Subject: mm: refactor inactive_file_is_low() to use get_lru_size()
 
-In shmem_find_get_pages_and_swap(), use the faster radix tree iterator
-construct from 78c1d78 ("radix-tree: introduce bit-optimized iterator").
+An inactive file list is considered low when its active counterpart is
+bigger, regardless of whether it is a global zone LRU list or a memcg zone
+LRU list.  The only difference is in how the LRU size is assessed.
+
+get_lru_size() does the right thing for both global and memcg reclaim
+situations.
+
+Get rid of inactive_file_is_low_global() and
+mem_cgroup_inactive_file_is_low() by using get_lru_size() and compare the
+numbers in common code.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Acked-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   25 ++++++++++++-------------
- 1 file changed, 12 insertions(+), 13 deletions(-)
+ include/linux/memcontrol.h |    7 -------
+ mm/memcontrol.c            |   11 -----------
+ mm/vmscan.c                |   19 ++++++-------------
+ 3 files changed, 6 insertions(+), 31 deletions(-)
 
-diff -puN mm/shmem.c~mm-shmem-use-new-radix-tree-iterator mm/shmem.c
---- a/mm/shmem.c~mm-shmem-use-new-radix-tree-iterator
-+++ a/mm/shmem.c
-@@ -335,19 +335,19 @@ static unsigned shmem_find_get_pages_and
- 					pgoff_t start, unsigned int nr_pages,
- 					struct page **pages, pgoff_t *indices)
- {
--	unsigned int i;
--	unsigned int ret;
--	unsigned int nr_found;
-+	void **slot;
-+	unsigned int ret = 0;
-+	struct radix_tree_iter iter;
-+
-+	if (!nr_pages)
-+		return 0;
- 
- 	rcu_read_lock();
- restart:
--	nr_found = radix_tree_gang_lookup_slot(&mapping->page_tree,
--				(void ***)pages, indices, start, nr_pages);
--	ret = 0;
--	for (i = 0; i < nr_found; i++) {
-+	radix_tree_for_each_slot(slot, &mapping->page_tree, &iter, start) {
- 		struct page *page;
- repeat:
--		page = radix_tree_deref_slot((void **)pages[i]);
-+		page = radix_tree_deref_slot(slot);
- 		if (unlikely(!page))
- 			continue;
- 		if (radix_tree_exception(page)) {
-@@ -364,17 +364,16 @@ repeat:
- 			goto repeat;
- 
- 		/* Has the page moved? */
--		if (unlikely(page != *((void **)pages[i]))) {
-+		if (unlikely(page != *slot)) {
- 			page_cache_release(page);
- 			goto repeat;
- 		}
- export:
--		indices[ret] = indices[i];
-+		indices[ret] = iter.index;
- 		pages[ret] = page;
--		ret++;
-+		if (++ret == nr_pages)
-+			break;
- 	}
--	if (unlikely(!ret && nr_found))
--		goto restart;
- 	rcu_read_unlock();
- 	return ret;
+diff -puN include/linux/memcontrol.h~mm-refactor-inactive_file_is_low-to-use-get_lru_size include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-refactor-inactive_file_is_low-to-use-get_lru_size
++++ a/include/linux/memcontrol.h
+@@ -116,7 +116,6 @@ void mem_cgroup_iter_break(struct mem_cg
+  * For memory reclaim.
+  */
+ int mem_cgroup_inactive_anon_is_low(struct lruvec *lruvec);
+-int mem_cgroup_inactive_file_is_low(struct lruvec *lruvec);
+ int mem_cgroup_select_victim_node(struct mem_cgroup *memcg);
+ unsigned long mem_cgroup_get_lru_size(struct lruvec *lruvec, enum lru_list);
+ void mem_cgroup_update_lru_size(struct lruvec *, enum lru_list, int);
+@@ -321,12 +320,6 @@ mem_cgroup_inactive_anon_is_low(struct l
+ 	return 1;
  }
+ 
+-static inline int
+-mem_cgroup_inactive_file_is_low(struct lruvec *lruvec)
+-{
+-	return 1;
+-}
+-
+ static inline unsigned long
+ mem_cgroup_get_lru_size(struct lruvec *lruvec, enum lru_list lru)
+ {
+diff -puN mm/memcontrol.c~mm-refactor-inactive_file_is_low-to-use-get_lru_size mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-refactor-inactive_file_is_low-to-use-get_lru_size
++++ a/mm/memcontrol.c
+@@ -1396,17 +1396,6 @@ int mem_cgroup_inactive_anon_is_low(stru
+ 	return inactive * inactive_ratio < active;
+ }
+ 
+-int mem_cgroup_inactive_file_is_low(struct lruvec *lruvec)
+-{
+-	unsigned long active;
+-	unsigned long inactive;
+-
+-	inactive = mem_cgroup_get_lru_size(lruvec, LRU_INACTIVE_FILE);
+-	active = mem_cgroup_get_lru_size(lruvec, LRU_ACTIVE_FILE);
+-
+-	return (active > inactive);
+-}
+-
+ #define mem_cgroup_from_res_counter(counter, member)	\
+ 	container_of(counter, struct mem_cgroup, member)
+ 
+diff -puN mm/vmscan.c~mm-refactor-inactive_file_is_low-to-use-get_lru_size mm/vmscan.c
+--- a/mm/vmscan.c~mm-refactor-inactive_file_is_low-to-use-get_lru_size
++++ a/mm/vmscan.c
+@@ -1579,16 +1579,6 @@ static inline int inactive_anon_is_low(s
+ }
+ #endif
+ 
+-static int inactive_file_is_low_global(struct zone *zone)
+-{
+-	unsigned long active, inactive;
+-
+-	active = zone_page_state(zone, NR_ACTIVE_FILE);
+-	inactive = zone_page_state(zone, NR_INACTIVE_FILE);
+-
+-	return (active > inactive);
+-}
+-
+ /**
+  * inactive_file_is_low - check if file pages need to be deactivated
+  * @lruvec: LRU vector to check
+@@ -1605,10 +1595,13 @@ static int inactive_file_is_low_global(s
+  */
+ static int inactive_file_is_low(struct lruvec *lruvec)
+ {
+-	if (!mem_cgroup_disabled())
+-		return mem_cgroup_inactive_file_is_low(lruvec);
++	unsigned long inactive;
++	unsigned long active;
++
++	inactive = get_lru_size(lruvec, LRU_INACTIVE_FILE);
++	active = get_lru_size(lruvec, LRU_ACTIVE_FILE);
+ 
+-	return inactive_file_is_low_global(lruvec_zone(lruvec));
++	return active > inactive;
+ }
+ 
+ static int inactive_list_is_low(struct lruvec *lruvec, enum lru_list lru)
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
@@ -131,6 +169,7 @@ memcg-increment-static-branch-right-after-limit-set.patch
 memcg-avoid-dangling-reference-count-in-creation-failure.patch
 mm-memmap_init_zone-performance-improvement.patch
 mm-shmem-use-new-radix-tree-iterator.patch
+mm-refactor-inactive_file_is_low-to-use-get_lru_size.patch
 memcg-debugging-facility-to-access-dangling-memcgs.patch
 mm-prevent-addition-of-pages-to-swap-if-may_writepage-is-unset.patch
 
