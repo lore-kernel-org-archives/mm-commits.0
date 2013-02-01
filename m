@@ -1,108 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-leds-leds-ot200c-fix-error-caused-by-shifted-mask.patch added to -mm tree
-Date: Fri, 01 Feb 2013 14:12:22 -0800
-Message-ID: <20130201221223.758B45A4303@corp2gmr1-2.hot.corp.google.com>
+Subject: [to-be-updated] mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp.patch removed from -mm tree
+Date: Fri, 01 Feb 2013 14:14:00 -0800
+Message-ID: <20130201221401.6C1A15A4219@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f202.google.com ([209.85.216.202]:40453 "EHLO
-	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757806Ab3BAWM0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2013 17:12:26 -0500
-Received: by mail-qc0-f202.google.com with SMTP id s25so492275qcq.3
-        for <mm-commits@vger.kernel.org>; Fri, 01 Feb 2013 14:12:26 -0800 (PST)
+Received: from mail-qe0-f73.google.com ([209.85.128.73]:52100 "EHLO
+	mail-qe0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757724Ab3BAWOD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2013 17:14:03 -0500
+Received: by mail-qe0-f73.google.com with SMTP id 7so429472qeb.0
+        for <mm-commits@vger.kernel.org>; Fri, 01 Feb 2013 14:14:02 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: christian.gmeiner@gmail.com, bigeasy@linutronix.de, cooloney@gmail.com
+To: n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, fengguang.wu@intel.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/leds/leds-ot200.c: fix error caused by shifted mask
-has been added to the -mm tree.  Its filename is
-     drivers-leds-leds-ot200c-fix-error-caused-by-shifted-mask.patch
+     Subject: mm/memory-failure.c: fix wrong num_poisoned_pages in handling memory error on thp
+has been removed from the -mm tree.  Its filename was
+     mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Christian Gmeiner <christian.gmeiner@gmail.com>
-Subject: drivers/leds/leds-ot200.c: fix error caused by shifted mask
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm/memory-failure.c: fix wrong num_poisoned_pages in handling memory error on thp
 
-During the development of this driver an in-house register documentation
-was used.  The last week some integration tests were done and this problem
-was found.  It turned out that the released register documentation is
-wrong.
+num_poisoned_pages counts up the number of pages isolated by memory
+errors.  But for thp, only one subpage is isolated because memory error
+handler splits it, so it's wrong to add (1 << compound_trans_order).
 
-The fix is very simple: shift all masks by one.
-
-Signed-off-by: Christian Gmeiner <christian.gmeiner@gmail.com>
-Cc: Bryan Wu <cooloney@gmail.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-ot200.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ mm/memory-failure.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN drivers/leds/leds-ot200.c~drivers-leds-leds-ot200c-fix-error-caused-by-shifted-mask drivers/leds/leds-ot200.c
---- a/drivers/leds/leds-ot200.c~drivers-leds-leds-ot200c-fix-error-caused-by-shifted-mask
-+++ a/drivers/leds/leds-ot200.c
-@@ -47,37 +47,37 @@ static struct ot200_led leds[] = {
- 	{
- 		.name = "led_1",
- 		.port = 0x49,
--		.mask = BIT(7),
-+		.mask = BIT(6),
- 	},
- 	{
- 		.name = "led_2",
- 		.port = 0x49,
--		.mask = BIT(6),
-+		.mask = BIT(5),
- 	},
- 	{
- 		.name = "led_3",
- 		.port = 0x49,
--		.mask = BIT(5),
-+		.mask = BIT(4),
- 	},
- 	{
- 		.name = "led_4",
- 		.port = 0x49,
--		.mask = BIT(4),
-+		.mask = BIT(3),
- 	},
- 	{
- 		.name = "led_5",
- 		.port = 0x49,
--		.mask = BIT(3),
-+		.mask = BIT(2),
- 	},
- 	{
- 		.name = "led_6",
- 		.port = 0x49,
--		.mask = BIT(2),
-+		.mask = BIT(1),
- 	},
- 	{
- 		.name = "led_7",
- 		.port = 0x49,
--		.mask = BIT(1),
-+		.mask = BIT(0),
+diff -puN mm/memory-failure.c~mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp
++++ a/mm/memory-failure.c
+@@ -1039,7 +1039,14 @@ int memory_failure(unsigned long pfn, in
+ 		return 0;
  	}
- };
  
+-	nr_pages = 1 << compound_trans_order(hpage);
++	/*
++	 * If a thp is hit by a memory failure, it's supposed to be split.
++	 * So we should add only one to num_poisoned_pages for that case.
++	 */
++	if (PageHuge(p))
++		nr_pages = 1 << compound_trans_order(hpage);
++	else /* normal page or thp */
++		nr_pages = 1;
+ 	atomic_long_add(nr_pages, &num_poisoned_pages);
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from christian.gmeiner@gmail.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-drivers-leds-leds-ot200c-fix-error-caused-by-shifted-mask.patch
+memory-failure-fix-an-error-of-mce_bad_pages-statistics.patch
+mm-memory-failurec-clean-up-soft_offline_page.patch
 
