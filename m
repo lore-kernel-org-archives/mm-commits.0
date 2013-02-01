@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + video-mmp-add-tpo-hvga-panel-supported.patch added to -mm tree
-Date: Fri, 01 Feb 2013 15:36:18 -0800
-Message-ID: <20130201233619.3C03D31C1BF@corp2gmr1-1.hot.corp.google.com>
+Subject: + video-mmpdisp-add-spi-port-in-display-controller.patch added to -mm tree
+Date: Fri, 01 Feb 2013 15:36:21 -0800
+Message-ID: <20130201233622.42AF35A41D2@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:55773 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755858Ab3BAXgV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2013 18:36:21 -0500
-Received: by mail-vb0-f74.google.com with SMTP id r6so499078vbi.5
-        for <mm-commits@vger.kernel.org>; Fri, 01 Feb 2013 15:36:20 -0800 (PST)
+Received: from mail-vc0-f202.google.com ([209.85.220.202]:36631 "EHLO
+	mail-vc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755858Ab3BAXgX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2013 18:36:23 -0500
+Received: by mail-vc0-f202.google.com with SMTP id m8so499776vcd.1
+        for <mm-commits@vger.kernel.org>; Fri, 01 Feb 2013 15:36:22 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cldu@marvell.com, FlorianSchandinat@gmx.de, haojian.zhuang@gmail.com, ligq@marvell.com, zzhu3@marvell.com
+Cc: zzhu3@marvell.com, FlorianSchandinat@gmx.de, cldu@marvell.com, haojian.zhuang@gmail.com, ligq@marvell.com
 
 
 The patch titled
-     Subject: video: mmp: add tpo hvga panel supported
+     Subject: video: mmpdisp: add spi port in display controller
 has been added to the -mm tree.  Its filename is
-     video-mmp-add-tpo-hvga-panel-supported.patch
+     video-mmpdisp-add-spi-port-in-display-controller.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,70 +33,85 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Lisa Du <cldu@marvell.com>
-Subject: video: mmp: add tpo hvga panel supported
+From: Zhou Zhu <zzhu3@marvell.com>
+Subject: video: mmpdisp: add spi port in display controller
 
-Add tpo hvga panel support in marvell display framework.  This panel
-driver implements modes query and power on/off.
+Add spi port support in mmp display controller.  This port is from display
+controller and for panel usage.  This driver implemented and registered as
+a spi master.
 
-This panel driver gets panel config/ plat power on/off/ connected path
-name from machine-info and registered as a spi device.  This panel driver
-uses mmp_disp supplied register_panel function to register panel to path
-as machine-info defined.
-
-Signed-off-by: Lisa Du <cldu@marvell.com>
 Signed-off-by: Zhou Zhu <zzhu3@marvell.com>
 Acked-by: Haojian Zhuang <haojian.zhuang@gmail.com>
+Cc: Lisa Du <cldu@marvell.com>
 Cc: Guoqing Li <ligq@marvell.com>
 Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/mmp/Kconfig                 |    1 
- drivers/video/mmp/Makefile                |    2 
- drivers/video/mmp/panel/Kconfig           |    6 
- drivers/video/mmp/panel/Makefile          |    1 
- drivers/video/mmp/panel/tpo_tj032md01bw.c |  186 ++++++++++++++++++++
- 5 files changed, 195 insertions(+), 1 deletion(-)
+ drivers/video/mmp/hw/Kconfig    |    8 +
+ drivers/video/mmp/hw/Makefile   |    1 
+ drivers/video/mmp/hw/mmp_ctrl.c |    6 +
+ drivers/video/mmp/hw/mmp_ctrl.h |    4 
+ drivers/video/mmp/hw/mmp_spi.c  |  180 ++++++++++++++++++++++++++++++
+ 5 files changed, 199 insertions(+)
 
-diff -puN drivers/video/mmp/Kconfig~video-mmp-add-tpo-hvga-panel-supported drivers/video/mmp/Kconfig
---- a/drivers/video/mmp/Kconfig~video-mmp-add-tpo-hvga-panel-supported
-+++ a/drivers/video/mmp/Kconfig
-@@ -6,5 +6,6 @@ menuconfig MMP_DISP
+diff -puN drivers/video/mmp/hw/Kconfig~video-mmpdisp-add-spi-port-in-display-controller drivers/video/mmp/hw/Kconfig
+--- a/drivers/video/mmp/hw/Kconfig~video-mmpdisp-add-spi-port-in-display-controller
++++ a/drivers/video/mmp/hw/Kconfig
+@@ -9,4 +9,12 @@ config MMP_DISP_CONTROLLER
+ 		this controller is used on Marvell PXA910,
+ 		MMP2, MMP3, PXA988 chips
  
- if MMP_DISP
- source "drivers/video/mmp/hw/Kconfig"
-+source "drivers/video/mmp/panel/Kconfig"
- source "drivers/video/mmp/fb/Kconfig"
- endif
-diff -puN drivers/video/mmp/Makefile~video-mmp-add-tpo-hvga-panel-supported drivers/video/mmp/Makefile
---- a/drivers/video/mmp/Makefile~video-mmp-add-tpo-hvga-panel-supported
-+++ a/drivers/video/mmp/Makefile
-@@ -1 +1 @@
--obj-y += core.o hw/ fb/
-+obj-y += core.o hw/ panel/ fb/
-diff -puN /dev/null drivers/video/mmp/panel/Kconfig
---- /dev/null
-+++ a/drivers/video/mmp/panel/Kconfig
-@@ -0,0 +1,6 @@
-+config MMP_PANEL_TPOHVGA
-+	bool "tpohvga panel TJ032MD01BW support"
-+	depends on SPI_MASTER
-+	default n
++config MMP_DISP_SPI
++	bool "mmp display controller spi port"
++	depends on MMP_DISP_CONTROLLER && SPI_MASTER
++	default y
 +	help
-+		tpohvga panel support
-diff -puN /dev/null drivers/video/mmp/panel/Makefile
++		Marvell MMP display hw controller spi port support
++		will register as a spi master for panel usage
++
+ endif
+diff -puN drivers/video/mmp/hw/Makefile~video-mmpdisp-add-spi-port-in-display-controller drivers/video/mmp/hw/Makefile
+--- a/drivers/video/mmp/hw/Makefile~video-mmpdisp-add-spi-port-in-display-controller
++++ a/drivers/video/mmp/hw/Makefile
+@@ -1 +1,2 @@
+ obj-$(CONFIG_MMP_DISP_CONTROLLER)  += mmp_ctrl.o
++obj-$(CONFIG_MMP_DISP_SPI)	   += mmp_spi.o
+diff -puN drivers/video/mmp/hw/mmp_ctrl.c~video-mmpdisp-add-spi-port-in-display-controller drivers/video/mmp/hw/mmp_ctrl.c
+--- a/drivers/video/mmp/hw/mmp_ctrl.c~video-mmpdisp-add-spi-port-in-display-controller
++++ a/drivers/video/mmp/hw/mmp_ctrl.c
+@@ -535,6 +535,12 @@ static int mmphw_probe(struct platform_d
+ 		}
+ 	}
+ 
++#ifdef CONFIG_MMP_DISP_SPI
++	ret = lcd_spi_register(ctrl);
++	if (ret < 0)
++		goto failed_path_init;
++#endif
++
+ 	dev_info(ctrl->dev, "device init done\n");
+ 
+ 	return 0;
+diff -puN drivers/video/mmp/hw/mmp_ctrl.h~video-mmpdisp-add-spi-port-in-display-controller drivers/video/mmp/hw/mmp_ctrl.h
+--- a/drivers/video/mmp/hw/mmp_ctrl.h~video-mmpdisp-add-spi-port-in-display-controller
++++ a/drivers/video/mmp/hw/mmp_ctrl.h
+@@ -1967,4 +1967,8 @@ static inline struct lcd_regs *path_regs
+ 		return NULL;
+ 	}
+ }
++
++#ifdef CONFIG_MMP_DISP_SPI
++extern int lcd_spi_register(struct mmphw_ctrl *ctrl);
++#endif
+ #endif	/* _MMP_CTRL_H_ */
+diff -puN /dev/null drivers/video/mmp/hw/mmp_spi.c
 --- /dev/null
-+++ a/drivers/video/mmp/panel/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_MMP_PANEL_TPOHVGA)    += tpo_tj032md01bw.o
-diff -puN /dev/null drivers/video/mmp/panel/tpo_tj032md01bw.c
---- /dev/null
-+++ a/drivers/video/mmp/panel/tpo_tj032md01bw.c
-@@ -0,0 +1,186 @@
++++ a/drivers/video/mmp/hw/mmp_spi.c
+@@ -0,0 +1,180 @@
 +/*
-+ * linux/drivers/video/mmp/panel/tpo_tj032md01bw.c
-+ * active panel using spi interface to do init
++ * linux/drivers/video/mmp/hw/mmp_spi.c
++ * using the spi in LCD controler for commands send
 + *
 + * Copyright (C) 2012 Marvell Technology Group Ltd.
 + * Authors:  Guoqing Li <ligq@marvell.com>
@@ -117,172 +132,166 @@ diff -puN /dev/null drivers/video/mmp/panel/tpo_tj032md01bw.c
 + * this program.  If not, see <http://www.gnu.org/licenses/>.
 + *
 + */
-+
-+#include <linux/module.h>
-+#include <linux/moduleparam.h>
-+#include <linux/kernel.h>
 +#include <linux/errno.h>
-+#include <linux/string.h>
 +#include <linux/delay.h>
-+#include <linux/platform_device.h>
 +#include <linux/err.h>
++#include <linux/io.h>
 +#include <linux/spi/spi.h>
-+#include <video/mmp_disp.h>
++#include "mmp_ctrl.h"
 +
-+static u16 init[] = {
-+	0x0801,
-+	0x0800,
-+	0x0200,
-+	0x0304,
-+	0x040e,
-+	0x0903,
-+	0x0b18,
-+	0x0c53,
-+	0x0d01,
-+	0x0ee0,
-+	0x0f01,
-+	0x1058,
-+	0x201e,
-+	0x210a,
-+	0x220a,
-+	0x231e,
-+	0x2400,
-+	0x2532,
-+	0x2600,
-+	0x27ac,
-+	0x2904,
-+	0x2aa2,
-+	0x2b45,
-+	0x2c45,
-+	0x2d15,
-+	0x2e5a,
-+	0x2fff,
-+	0x306b,
-+	0x310d,
-+	0x3248,
-+	0x3382,
-+	0x34bd,
-+	0x35e7,
-+	0x3618,
-+	0x3794,
-+	0x3801,
-+	0x395d,
-+	0x3aae,
-+	0x3bff,
-+	0x07c9,
-+};
-+
-+static u16 poweroff[] = {
-+	0x07d9,
-+};
-+
-+struct tpohvga_plat_data {
-+	void (*plat_onoff)(int status);
-+	struct spi_device *spi;
-+};
-+
-+static void tpohvga_onoff(struct mmp_panel *panel, int status)
++/**
++ * spi_write - write command to the SPI port
++ * @data: can be 8/16/32-bit, MSB justified data to write.
++ * @len:  data length.
++ *
++ * Wait bus transfer complete IRQ.
++ * The caller is expected to perform the necessary locking.
++ *
++ * Returns:
++ *   %-ETIMEDOUT	timeout occurred
++ *   0			success
++ */
++static inline int lcd_spi_write(struct spi_device *spi, u32 data)
 +{
-+	struct tpohvga_plat_data *plat = panel->plat_data;
-+	int ret;
++	int timeout = 100000, isr, ret = 0;
++	u32 tmp;
++	void *reg_base =
++		*(void **)spi_master_get_devdata(spi->master);
 +
-+	if (status) {
-+		plat->plat_onoff(1);
++	/* clear ISR */
++	writel_relaxed(~SPI_IRQ_MASK, reg_base + SPU_IRQ_ISR);
 +
-+		ret = spi_write(plat->spi, init, sizeof(init));
-+		if (ret < 0)
-+			dev_warn(panel->dev, "init cmd failed(%d)\n", ret);
-+	} else {
-+		ret = spi_write(plat->spi, poweroff, sizeof(poweroff));
-+		if (ret < 0)
-+			dev_warn(panel->dev, "poweroff cmd failed(%d)\n", ret);
-+
-+		plat->plat_onoff(0);
++	switch (spi->bits_per_word) {
++	case 8:
++		writel_relaxed((u8)data, reg_base + LCD_SPU_SPI_TXDATA);
++		break;
++	case 16:
++		writel_relaxed((u16)data, reg_base + LCD_SPU_SPI_TXDATA);
++		break;
++	case 32:
++		writel_relaxed((u32)data, reg_base + LCD_SPU_SPI_TXDATA);
++		break;
++	default:
++		dev_err(&spi->dev, "Wrong spi bit length\n");
 +	}
++
++	/* SPI start to send command */
++	tmp = readl_relaxed(reg_base + LCD_SPU_SPI_CTRL);
++	tmp &= ~CFG_SPI_START_MASK;
++	tmp |= CFG_SPI_START(1);
++	writel(tmp, reg_base + LCD_SPU_SPI_CTRL);
++
++	isr = readl_relaxed(reg_base + SPU_IRQ_ISR);
++	while (!(isr & SPI_IRQ_ENA_MASK)) {
++		udelay(100);
++		isr = readl_relaxed(reg_base + SPU_IRQ_ISR);
++		if (!--timeout) {
++			ret = -ETIMEDOUT;
++			dev_err(&spi->dev, "spi cmd send time out\n");
++			break;
++		}
++	}
++
++	tmp = readl_relaxed(reg_base + LCD_SPU_SPI_CTRL);
++	tmp &= ~CFG_SPI_START_MASK;
++	tmp |= CFG_SPI_START(0);
++	writel_relaxed(tmp, reg_base + LCD_SPU_SPI_CTRL);
++
++	writel_relaxed(~SPI_IRQ_MASK, reg_base + SPU_IRQ_ISR);
++
++	return ret;
 +}
 +
-+static struct mmp_mode mmp_modes_tpohvga[] = {
-+	[0] = {
-+		.pixclock_freq = 10394400,
-+		.refresh = 60,
-+		.xres = 320,
-+		.yres = 480,
-+		.hsync_len = 10,
-+		.left_margin = 15,
-+		.right_margin = 10,
-+		.vsync_len = 2,
-+		.upper_margin = 4,
-+		.lower_margin = 2,
-+		.invert_pixclock = 1,
-+		.pix_fmt_out = PIXFMT_RGB565,
-+	},
-+};
-+
-+static int tpohvga_get_modelist(struct mmp_panel *panel,
-+		struct mmp_mode **modelist)
++static int lcd_spi_setup(struct spi_device *spi)
 +{
-+	*modelist = mmp_modes_tpohvga;
-+	return 1;
-+}
++	void *reg_base =
++		*(void **)spi_master_get_devdata(spi->master);
++	u32 tmp;
 +
-+static struct mmp_panel panel_tpohvga = {
-+	.name = "tpohvga",
-+	.panel_type = PANELTYPE_ACTIVE,
-+	.get_modelist = tpohvga_get_modelist,
-+	.set_onoff = tpohvga_onoff,
-+};
++	tmp = CFG_SCLKCNT(16) |
++		CFG_TXBITS(spi->bits_per_word) |
++		CFG_SPI_SEL(1) | CFG_SPI_ENA(1) |
++		CFG_SPI_3W4WB(1);
++	writel(tmp, reg_base + LCD_SPU_SPI_CTRL);
 +
-+static int tpohvga_probe(struct spi_device *spi)
-+{
-+	struct mmp_mach_panel_info *mi;
-+	int ret;
-+	struct tpohvga_plat_data *plat_data;
-+
-+	/* get configs from platform data */
-+	mi = spi->dev.platform_data;
-+	if (mi == NULL) {
-+		dev_err(&spi->dev, "%s: no platform data defined\n", __func__);
-+		return -EINVAL;
-+	}
-+
-+	/* setup spi related info */
-+	spi->bits_per_word = 16;
-+	ret = spi_setup(spi);
-+	if (ret < 0) {
-+		dev_err(&spi->dev, "spi setup failed %d", ret);
-+		return ret;
-+	}
-+
-+	plat_data = kzalloc(sizeof(*plat_data), GFP_KERNEL);
-+	if (plat_data == NULL)
-+		return -ENOMEM;
-+
-+	plat_data->spi = spi;
-+	plat_data->plat_onoff = mi->plat_set_onoff;
-+	panel_tpohvga.plat_data = plat_data;
-+	panel_tpohvga.plat_path_name = mi->plat_path_name;
-+	panel_tpohvga.dev = &spi->dev;
-+
-+	mmp_register_panel(&panel_tpohvga);
-+
++	/*
++	 * After set mode it need a time to pull up the spi singals,
++	 * or it would cause the wrong waveform when send spi command,
++	 * especially on pxa910h
++	 */
++	tmp = readl_relaxed(reg_base + SPU_IOPAD_CONTROL);
++	if ((tmp & CFG_IOPADMODE_MASK) != IOPAD_DUMB18SPI)
++		writel_relaxed(IOPAD_DUMB18SPI |
++			(tmp & ~CFG_IOPADMODE_MASK),
++			reg_base + SPU_IOPAD_CONTROL);
++	udelay(20);
 +	return 0;
 +}
 +
-+static struct spi_driver panel_tpohvga_driver = {
-+	.driver		= {
-+		.name	= "tpo-hvga",
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe		= tpohvga_probe,
-+};
-+module_spi_driver(panel_tpohvga_driver);
++static int lcd_spi_one_transfer(struct spi_device *spi, struct spi_message *m)
++{
++	struct spi_transfer *t;
++	int i;
 +
-+MODULE_AUTHOR("Lisa Du<cldu@marvell.com>");
-+MODULE_DESCRIPTION("Panel driver for tpohvga");
-+MODULE_LICENSE("GPL");
++	list_for_each_entry(t, &m->transfers, transfer_list) {
++		switch (spi->bits_per_word) {
++		case 8:
++			for (i = 0; i < t->len; i++)
++				lcd_spi_write(spi, ((u8 *)t->tx_buf)[i]);
++			break;
++		case 16:
++			for (i = 0; i < t->len/2; i++)
++				lcd_spi_write(spi, ((u16 *)t->tx_buf)[i]);
++			break;
++		case 32:
++			for (i = 0; i < t->len/4; i++)
++				lcd_spi_write(spi, ((u32 *)t->tx_buf)[i]);
++			break;
++		default:
++			dev_err(&spi->dev, "Wrong spi bit length\n");
++		}
++	}
++
++	m->status = 0;
++	if (m->complete)
++		m->complete(m->context);
++	return 0;
++}
++
++int lcd_spi_register(struct mmphw_ctrl *ctrl)
++{
++	struct spi_master *master;
++	void **p_regbase;
++	int err;
++
++	master = spi_alloc_master(ctrl->dev, sizeof(void *));
++	if (!master) {
++		dev_err(ctrl->dev, "unable to allocate SPI master\n");
++		return -ENOMEM;
++	}
++	p_regbase = spi_master_get_devdata(master);
++	*p_regbase = ctrl->reg_base;
++
++	/* set bus num to 5 to avoid conflict with other spi hosts */
++	master->bus_num = 5;
++	master->num_chipselect = 1;
++	master->setup = lcd_spi_setup;
++	master->transfer = lcd_spi_one_transfer;
++
++	err = spi_register_master(master);
++	if (err < 0) {
++		dev_err(ctrl->dev, "unable to register SPI master\n");
++		spi_master_put(master);
++		return err;
++	}
++
++	dev_info(&master->dev, "registered\n");
++
++	return 0;
++}
 _
 
-Patches currently in -mm which might be from cldu@marvell.com are
+Patches currently in -mm which might be from zzhu3@marvell.com are
 
 video-mmp-display-subsystem.patch
 video-mmp-fb-support.patch
