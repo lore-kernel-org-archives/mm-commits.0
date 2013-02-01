@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-fix-usleep_range-test.patch added to -mm tree
-Date: Thu, 31 Jan 2013 15:45:22 -0800
-Message-ID: <20130131234522.A560A5A406B@corp2gmr1-2.hot.corp.google.com>
+Subject: + drivers-leds-leds-ot200c-fix-error-caused-by-shifted-mask.patch added to -mm tree
+Date: Fri, 01 Feb 2013 14:12:22 -0800
+Message-ID: <20130201221223.758B45A4303@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qc0-f201.google.com ([209.85.216.201]:42321 "EHLO
-	mail-qc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753344Ab3AaXpX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Jan 2013 18:45:23 -0500
-Received: by mail-qc0-f201.google.com with SMTP id a22so370824qcs.2
-        for <mm-commits@vger.kernel.org>; Thu, 31 Jan 2013 15:45:23 -0800 (PST)
+Received: from mail-qc0-f202.google.com ([209.85.216.202]:40453 "EHLO
+	mail-qc0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757806Ab3BAWM0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2013 17:12:26 -0500
+Received: by mail-qc0-f202.google.com with SMTP id s25so492275qcq.3
+        for <mm-commits@vger.kernel.org>; Fri, 01 Feb 2013 14:12:26 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bruce.w.allan@intel.com, apw@canonical.com, joe@perches.com
+Cc: christian.gmeiner@gmail.com, bigeasy@linutronix.de, cooloney@gmail.com
 
 
 The patch titled
-     From: Bruce Allan <bruce.w.allan@intel.com>
+     Subject: drivers/leds/leds-ot200.c: fix error caused by shifted mask
 has been added to the -mm tree.  Its filename is
-     checkpatch-fix-usleep_range-test.patch
+     drivers-leds-leds-ot200c-fix-error-caused-by-shifted-mask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +33,76 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Bruce Allan <bruce.w.allan@intel.com>
-Subject: checkpatch: fix USLEEP_RANGE test
+From: Christian Gmeiner <christian.gmeiner@gmail.com>
+Subject: drivers/leds/leds-ot200.c: fix error caused by shifted mask
 
-Do not test udelay() for a value less than 10usec when passed a variable
-instead of a hard-coded number; there is no way for checkpatch to know the
-value of the variable.  As it is today, it will complain about variables
-with alphanumeric characters plus '_', e.g.  foo_bar, but not variables
-with other characters, eg.  foo->bar.
+During the development of this driver an in-house register documentation
+was used.  The last week some integration tests were done and this problem
+was found.  It turned out that the released register documentation is
+wrong.
 
-Signed-off-by: Bruce Allan <bruce.w.allan@intel.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Joe Perches <joe@perches.com>
+The fix is very simple: shift all masks by one.
+
+Signed-off-by: Christian Gmeiner <christian.gmeiner@gmail.com>
+Cc: Bryan Wu <cooloney@gmail.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/leds/leds-ot200.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-fix-usleep_range-test scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-fix-usleep_range-test
-+++ a/scripts/checkpatch.pl
-@@ -3253,9 +3253,9 @@ sub process {
- 		}
+diff -puN drivers/leds/leds-ot200.c~drivers-leds-leds-ot200c-fix-error-caused-by-shifted-mask drivers/leds/leds-ot200.c
+--- a/drivers/leds/leds-ot200.c~drivers-leds-leds-ot200c-fix-error-caused-by-shifted-mask
++++ a/drivers/leds/leds-ot200.c
+@@ -47,37 +47,37 @@ static struct ot200_led leds[] = {
+ 	{
+ 		.name = "led_1",
+ 		.port = 0x49,
+-		.mask = BIT(7),
++		.mask = BIT(6),
+ 	},
+ 	{
+ 		.name = "led_2",
+ 		.port = 0x49,
+-		.mask = BIT(6),
++		.mask = BIT(5),
+ 	},
+ 	{
+ 		.name = "led_3",
+ 		.port = 0x49,
+-		.mask = BIT(5),
++		.mask = BIT(4),
+ 	},
+ 	{
+ 		.name = "led_4",
+ 		.port = 0x49,
+-		.mask = BIT(4),
++		.mask = BIT(3),
+ 	},
+ 	{
+ 		.name = "led_5",
+ 		.port = 0x49,
+-		.mask = BIT(3),
++		.mask = BIT(2),
+ 	},
+ 	{
+ 		.name = "led_6",
+ 		.port = 0x49,
+-		.mask = BIT(2),
++		.mask = BIT(1),
+ 	},
+ 	{
+ 		.name = "led_7",
+ 		.port = 0x49,
+-		.mask = BIT(1),
++		.mask = BIT(0),
+ 	}
+ };
  
- # prefer usleep_range over udelay
--		if ($line =~ /\budelay\s*\(\s*(\w+)\s*\)/) {
-+		if ($line =~ /\budelay\s*\(\s*(\d+)\s*\)/) {
- 			# ignore udelay's < 10, however
--			if (! (($1 =~ /(\d+)/) && ($1 < 10)) ) {
-+			if (! ($1 < 10) ) {
- 				CHK("USLEEP_RANGE",
- 				    "usleep_range is preferred over udelay; see Documentation/timers/timers-howto.txt\n" . $line);
- 			}
 _
 
-Patches currently in -mm which might be from bruce.w.allan@intel.com are
+Patches currently in -mm which might be from christian.gmeiner@gmail.com are
 
-linux-next.patch
-checkpatch-fix-usleep_range-test.patch
+drivers-leds-leds-ot200c-fix-error-caused-by-shifted-mask.patch
 
