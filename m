@@ -1,32 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] arm-mmp-add-device-for-display-controller.patch removed from -mm tree
-Date: Fri, 01 Feb 2013 15:32:00 -0800
-Message-ID: <20130201233200.A7C0231C102@corp2gmr1-1.hot.corp.google.com>
+Subject: [to-be-updated] arm-mmp-add-display-and-fb-support-in-pxa910-defconfig.patch removed from -mm tree
+Date: Fri, 01 Feb 2013 15:32:06 -0800
+Message-ID: <20130201233206.B1CE331C102@corp2gmr1-1.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-ve0-f201.google.com ([209.85.128.201]:63390 "EHLO
-	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754156Ab3BAXcC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2013 18:32:02 -0500
-Received: by mail-ve0-f201.google.com with SMTP id 14so260855vea.4
-        for <mm-commits@vger.kernel.org>; Fri, 01 Feb 2013 15:32:01 -0800 (PST)
+Received: from mail-qe0-f74.google.com ([209.85.128.74]:55585 "EHLO
+	mail-qe0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754566Ab3BAXcI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2013 18:32:08 -0500
+Received: by mail-qe0-f74.google.com with SMTP id a11so345802qen.1
+        for <mm-commits@vger.kernel.org>; Fri, 01 Feb 2013 15:32:07 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: zzhu3@marvell.com, FlorianSchandinat@gmx.de, cldu@marvell.com, haojian.zhuang@gmail.com, ligq@marvell.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ARM: mmp: add device for display controller
+     Subject: ARM: mmp: add display and fb support in pxa910 defconfig
 has been removed from the -mm tree.  Its filename was
-     arm-mmp-add-device-for-display-controller.patch
+     arm-mmp-add-display-and-fb-support-in-pxa910-defconfig.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Zhou Zhu <zzhu3@marvell.com>
-Subject: ARM: mmp: add device for display controller
+Subject: ARM: mmp: add display and fb support in pxa910 defconfig
 
-Add device for display controller and fb support
+Add display and fb support in pxa910 defconfig.
+Add tpohvga panel, spi support.
+Add logo support.
 
 Signed-off-by: Zhou Zhu <zzhu3@marvell.com>
 Cc: Guoqing Li <ligq@marvell.com>
@@ -36,49 +38,29 @@ Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-mmp/include/mach/pxa910.h |    5 ++++-
- arch/arm/mach-mmp/pxa910.c              |    3 +++
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ arch/arm/configs/pxa910_defconfig |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN arch/arm/mach-mmp/include/mach/pxa910.h~arm-mmp-add-device-for-display-controller arch/arm/mach-mmp/include/mach/pxa910.h
---- a/arch/arm/mach-mmp/include/mach/pxa910.h~arm-mmp-add-device-for-display-controller
-+++ a/arch/arm/mach-mmp/include/mach/pxa910.h
-@@ -8,6 +8,7 @@ extern void __init pxa910_init_irq(void)
- #include <linux/i2c/pxa-i2c.h>
- #include <mach/devices.h>
- #include <linux/platform_data/mtd-nand-pxa3xx.h>
-+#include <video/mmp_disp.h>
- 
- extern struct pxa_device_desc pxa910_device_uart1;
- extern struct pxa_device_desc pxa910_device_uart2;
-@@ -21,7 +22,9 @@ extern struct pxa_device_desc pxa910_dev
- extern struct platform_device pxa168_device_u2o;
- extern struct platform_device pxa168_device_u2ootg;
- extern struct platform_device pxa168_device_u2oehci;
--
-+extern struct pxa_device_desc pxa910_device_disp;
-+extern struct pxa_device_desc pxa910_device_fb;
-+extern struct pxa_device_desc pxa910_device_panel;
- extern struct platform_device pxa910_device_gpio;
- extern struct platform_device pxa910_device_rtc;
- 
-diff -puN arch/arm/mach-mmp/pxa910.c~arm-mmp-add-device-for-display-controller arch/arm/mach-mmp/pxa910.c
---- a/arch/arm/mach-mmp/pxa910.c~arm-mmp-add-device-for-display-controller
-+++ a/arch/arm/mach-mmp/pxa910.c
-@@ -134,6 +134,9 @@ PXA910_DEVICE(pwm2, "pxa910-pwm", 1, NON
- PXA910_DEVICE(pwm3, "pxa910-pwm", 2, NONE, 0xd401a800, 0x10);
- PXA910_DEVICE(pwm4, "pxa910-pwm", 3, NONE, 0xd401ac00, 0x10);
- PXA910_DEVICE(nand, "pxa3xx-nand", -1, NAND, 0xd4283000, 0x80, 97, 99);
-+PXA910_DEVICE(disp, "mmp-disp", 0, LCD, 0xd420b000, 0x1ec);
-+PXA910_DEVICE(fb, "mmp-fb", -1, NONE, 0, 0);
-+PXA910_DEVICE(panel, "tpo-hvga", -1, NONE, 0, 0);
- 
- struct resource pxa910_resource_gpio[] = {
- 	{
+diff -puN arch/arm/configs/pxa910_defconfig~arm-mmp-add-display-and-fb-support-in-pxa910-defconfig arch/arm/configs/pxa910_defconfig
+--- a/arch/arm/configs/pxa910_defconfig~arm-mmp-add-display-and-fb-support-in-pxa910-defconfig
++++ a/arch/arm/configs/pxa910_defconfig
+@@ -42,6 +42,14 @@ CONFIG_SMC91X=y
+ # CONFIG_SERIO is not set
+ CONFIG_SERIAL_PXA=y
+ CONFIG_SERIAL_PXA_CONSOLE=y
++CONFIG_SPI=y
++CONFIG_FB=y
++CONFIG_MMP_DISP=y
++CONFIG_MMP_DISP_CONTROLLER=y
++CONFIG_MMP_SPI=y
++CONFIG_MMP_PANEL_TPOHVGA=y
++CONFIG_MMP_FB=y
++CONFIG_LOGO=y
+ # CONFIG_LEGACY_PTYS is not set
+ # CONFIG_HW_RANDOM is not set
+ # CONFIG_HWMON is not set
 _
 
 Patches currently in -mm which might be from zzhu3@marvell.com are
 
-arm-mmp-enable-display-in-ttc_dkb.patch
-arm-mmp-add-display-and-fb-support-in-pxa910-defconfig.patch
 
