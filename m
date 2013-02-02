@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mlockc-document-scary-looking-stack-expansion-mlock-chain.patch added to -mm tree
-Date: Fri, 01 Feb 2013 15:45:19 -0800
-Message-ID: <20130201234519.B567531C1B0@corp2gmr1-1.hot.corp.google.com>
+Subject: + mm-add-section_in_page_flags.patch added to -mm tree
+Date: Fri, 01 Feb 2013 16:39:41 -0800
+Message-ID: <20130202003941.6FD1D5A41B5@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-qa0-f73.google.com ([209.85.216.73]:61293 "EHLO
-	mail-qa0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755190Ab3BAXpV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2013 18:45:21 -0500
-Received: by mail-qa0-f73.google.com with SMTP id g10so137093qah.0
-        for <mm-commits@vger.kernel.org>; Fri, 01 Feb 2013 15:45:20 -0800 (PST)
+Received: from mail-gh0-f201.google.com ([209.85.160.201]:37394 "EHLO
+	mail-gh0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756660Ab3BBAjm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Feb 2013 19:39:42 -0500
+Received: by mail-gh0-f201.google.com with SMTP id z19so504563ghb.0
+        for <mm-commits@vger.kernel.org>; Fri, 01 Feb 2013 16:39:42 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hannes@cmpxchg.org, hughd@google.com, viro@ZenIV.linux.org.uk
+Cc: cody@linux.vnet.ibm.com, catalin.marinas@arm.com, dave@linux.vnet.ibm.com, hannes@cmpxchg.org, mel@csn.ul.ie
 
 
 The patch titled
-     Subject: mm/mlock.c: document scary-looking stack expansion mlock chain
+     Subject: mm: add SECTION_IN_PAGE_FLAGS
 has been added to the -mm tree.  Its filename is
-     mm-mlockc-document-scary-looking-stack-expansion-mlock-chain.patch
+     mm-add-section_in_page_flags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,73 +33,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm/mlock.c: document scary-looking stack expansion mlock chain
+From: Cody P Schafer <cody@linux.vnet.ibm.com>
+Subject: mm: add SECTION_IN_PAGE_FLAGS
 
-The fact that mlock calls get_user_pages, and get_user_pages might
-call mlock when expanding a stack looks like a potential recursion.
+Instead of directly utilizing a combination of config options to determine
+this, add a macro to specifically address it.
 
-However, mlock makes sure the requested range is already contained
-within a vma, so no stack expansion will actually happen from mlock.
-
-Should this ever change: the stack expansion mlocks only the newly
-expanded range and so will not result in recursive expansion.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Hugh Dickins <hughd@google.com>
+Signed-off-by: Cody P Schafer <cody@linux.vnet.ibm.com>
+Cc: David Hansen <dave@linux.vnet.ibm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/mm.h |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN mm/mlock.c~mm-mlockc-document-scary-looking-stack-expansion-mlock-chain mm/mlock.c
---- a/mm/mlock.c~mm-mlockc-document-scary-looking-stack-expansion-mlock-chain
-+++ a/mm/mlock.c
-@@ -185,6 +185,10 @@ long __mlock_vma_pages_range(struct vm_a
- 	if (vma->vm_flags & (VM_READ | VM_WRITE | VM_EXEC))
- 		gup_flags |= FOLL_FORCE;
+diff -puN include/linux/mm.h~mm-add-section_in_page_flags include/linux/mm.h
+--- a/include/linux/mm.h~mm-add-section_in_page_flags
++++ a/include/linux/mm.h
+@@ -625,6 +625,10 @@ static inline enum zone_type page_zonenu
+ 	return (page->flags >> ZONES_PGSHIFT) & ZONES_MASK;
+ }
  
-+	/*
-+	 * We made sure addr is within a VMA, so the following will
-+	 * not result in a stack expansion that recurses back here.
-+	 */
- 	return __get_user_pages(current, mm, addr, nr_pages, gup_flags,
- 				NULL, NULL, nonblocking);
++#if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
++#define SECTION_IN_PAGE_FLAGS
++#endif
++
+ /*
+  * The identification function is only used by the buddy allocator for
+  * determining if two pages could be buddies. We are not really
+@@ -708,7 +712,7 @@ static inline struct zone *page_zone(con
+ 	return &NODE_DATA(page_to_nid(page))->node_zones[page_zonenum(page)];
+ }
+ 
+-#if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
++#ifdef SECTION_IN_PAGE_FLAGS
+ static inline void set_page_section(struct page *page, unsigned long section)
+ {
+ 	page->flags &= ~(SECTIONS_MASK << SECTIONS_PGSHIFT);
+@@ -738,7 +742,7 @@ static inline void set_page_links(struct
+ {
+ 	set_page_zone(page, zone);
+ 	set_page_node(page, node);
+-#if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
++#ifdef SECTION_IN_PAGE_FLAGS
+ 	set_page_section(page, pfn_to_section_nr(pfn));
+ #endif
  }
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from cody@linux.vnet.ibm.com are
 
-memcg-fix-typo-in-kmemcg-cache-walk-macro.patch
 linux-next.patch
-mm-memcg-only-evict-file-pages-when-we-have-plenty.patch
-mm-vmscan-save-work-scanning-almost-empty-lru-lists.patch
-mm-vmscan-clarify-how-swappiness-highest-priority-memcg-interact.patch
-mm-vmscan-improve-comment-on-low-page-cache-handling.patch
-mm-vmscan-clean-up-get_scan_count.patch
-mm-vmscan-clean-up-get_scan_count-fix.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs.patch
-mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
-mm-reduce-rmap-overhead-for-ex-ksm-page-copies-created-on-swap-faults.patch
-mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
-mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pages.patch
-mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix-fix.patch
-memcg-reduce-the-size-of-struct-memcg-244-fold.patch
-memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
-memcg-prevent-changes-to-move_charge_at_immigrate-during-task-attach.patch
-memcg-split-part-of-memcg-creation-to-css_online.patch
-memcg-fast-hierarchy-aware-child-test.patch
-memcg-fast-hierarchy-aware-child-test-fix.patch
-memcg-replace-cgroup_lock-with-memcg-specific-memcg_lock.patch
-memcg-increment-static-branch-right-after-limit-set.patch
-memcg-avoid-dangling-reference-count-in-creation-failure.patch
-mm-memmap_init_zone-performance-improvement.patch
-mm-shmem-use-new-radix-tree-iterator.patch
-mm-refactor-inactive_file_is_low-to-use-get_lru_size.patch
-mm-mlockc-document-scary-looking-stack-expansion-mlock-chain.patch
-memcg-debugging-facility-to-access-dangling-memcgs.patch
-mm-prevent-addition-of-pages-to-swap-if-may_writepage-is-unset.patch
+mm-add-section_in_page_flags.patch
+mm-add-use-zone_end_pfn-and-zone_spans_pfn.patch
+mm-add-zone_is_empty-and-zone_is_initialized.patch
+mm-page_alloc-add-a-vm_bug-in-__free_one_page-if-the-zone-is-uninitialized.patch
+mmzone-add-pgdat_end_pfnis_empty-helpers-consolidate.patch
+mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries.patch
+mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-fix.patch
+mm-add-helper-ensure_zone_is_initialized.patch
+mm-memory_hotplug-use-ensure_zone_is_initialized.patch
+mm-memory_hotplug-use-pgdat_end_pfn-instead-of-open-coding-the-same.patch
+maintainers-mm-add-additional-include-files-to-listing.patch
 
