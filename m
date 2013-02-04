@@ -1,25 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + mmu_notifier_unregister-null-pointer-deref-and-multiple-release-callouts.patch added to -mm tree
-Date: Mon, 04 Feb 2013 14:14:41 -0800
-Message-ID: <20130204221442.0E8005A40F3@corp2gmr1-2.hot.corp.google.com>
+Subject: + memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix.patch added to -mm tree
+Date: Mon, 04 Feb 2013 14:51:05 -0800
+Message-ID: <20130204225105.BCF5F5A422F@corp2gmr1-2.hot.corp.google.com>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail-vc0-f201.google.com ([209.85.220.201]:42802 "EHLO
-	mail-vc0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755368Ab3BDWOn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2013 17:14:43 -0500
-Received: by mail-vc0-f201.google.com with SMTP id n11so758046vch.4
-        for <mm-commits@vger.kernel.org>; Mon, 04 Feb 2013 14:14:43 -0800 (PST)
+Received: from mail-vb0-f73.google.com ([209.85.212.73]:61029 "EHLO
+	mail-vb0-f73.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756528Ab3BDWvH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Feb 2013 17:51:07 -0500
+Received: by mail-vb0-f73.google.com with SMTP id fj18so217302vbb.4
+        for <mm-commits@vger.kernel.org>; Mon, 04 Feb 2013 14:51:06 -0800 (PST)
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: holt@sgi.com, aarcange@redhat.com, avi@redhat.com, haggaie@mellanox.com, hughd@google.com, liwanp@linux.vnet.ibm.com, mtosatti@redhat.com, sagig@mellanox.co.il, stable@vger.kernel.org, xiaoguangrong@linux.vnet.ibm.com
+Cc: akpm@linux-foundation.org, isimatu.yasuaki@jp.fujitsu.com, jiang.liu@huawei.com, kamezawa.hiroyu@jp.fujitsu.com, laijs@cn.fujitsu.com, tangchen@cn.fujitsu.com, wency@cn.fujitsu.com, wujianguo@huawei.com, yinghai@kernel.org
 
 
 The patch titled
-     Subject: mmu_notifier_unregister NULL Pointer deref and multiple ->release() callouts
+     Subject: memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix
 has been added to the -mm tree.  Its filename is
-     mmu_notifier_unregister-null-pointer-deref-and-multiple-release-callouts.patch
+     memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,179 +33,161 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Robin Holt <holt@sgi.com>
-Subject: mmu_notifier_unregister NULL Pointer deref and multiple ->release() callouts
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix
 
-There is a race condition between mmu_notifier_unregister() and
-__mmu_notifier_release().
-
-Assume two tasks, one calling mmu_notifier_unregister() as a result of a
-filp_close() ->flush() callout (task A), and the other calling
-mmu_notifier_release() from an mmput() (task B).
-
-                A                               B
-t1                                              srcu_read_lock()
-t2              if (!hlist_unhashed())
-t3                                              srcu_read_unlock()
-t4              srcu_read_lock()
-t5                                              hlist_del_init_rcu()
-t6                                              synchronize_srcu()
-t7              srcu_read_unlock()
-t8              hlist_del_rcu()  <--- NULL pointer deref.
-
-Additionally, the list traversal in __mmu_notifier_release() is not
-protected by the by the mmu_notifier_mm->hlist_lock which can result in
-callouts to the ->release() notifier from both mmu_notifier_unregister()
-and __mmu_notifier_release().
-
-Signed-off-by: Robin Holt <holt@sgi.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Wanpeng Li <liwanp@linux.vnet.ibm.com>
-Cc: Xiao Guangrong <xiaoguangrong@linux.vnet.ibm.com>
-Cc: Avi Kivity <avi@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Marcelo Tosatti <mtosatti@redhat.com>
-Cc: Sagi Grimberg <sagig@mellanox.co.il>
-Cc: Haggai Eran <haggaie@mellanox.com>
-Cc: stable-kernel <stable@vger.kernel.org> # 3.[0-6].y 21a9273
-Cc: stable-kernel <stable@vger.kernel.org> # 3.[0-6].y 7040030
-Cc: stable-kernel <stable@vger.kernel.org>
+Cc: Jiang Liu <jiang.liu@huawei.com>
+Cc: Jianguo Wu <wujianguo@huawei.com>
+Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Wen Congyang <wency@cn.fujitsu.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmu_notifier.c |   82 ++++++++++++++++++++++----------------------
- 1 file changed, 42 insertions(+), 40 deletions(-)
+ arch/x86/mm/init_64.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff -puN mm/mmu_notifier.c~mmu_notifier_unregister-null-pointer-deref-and-multiple-release-callouts mm/mmu_notifier.c
---- a/mm/mmu_notifier.c~mmu_notifier_unregister-null-pointer-deref-and-multiple-release-callouts
-+++ a/mm/mmu_notifier.c
-@@ -37,49 +37,51 @@ static struct srcu_struct srcu;
- void __mmu_notifier_release(struct mm_struct *mm)
- {
- 	struct mmu_notifier *mn;
--	struct hlist_node *n;
- 	int id;
+diff -puN arch/x86/mm/init_64.c~memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix arch/x86/mm/init_64.c
+--- a/arch/x86/mm/init_64.c~memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix
++++ a/arch/x86/mm/init_64.c
+@@ -918,10 +918,9 @@ remove_pmd_table(pmd_t *pmd_start, unsig
+ 			continue;
+ 		}
  
- 	/*
--	 * SRCU here will block mmu_notifier_unregister until
--	 * ->release returns.
-+	 * srcu_read_lock() here will block synchronize_srcu() in
-+	 * mmu_notifier_unregister() until all registered
-+	 * ->release() callouts this function makes have
-+	 * returned.
- 	 */
- 	id = srcu_read_lock(&srcu);
--	hlist_for_each_entry_rcu(mn, n, &mm->mmu_notifier_mm->list, hlist)
--		/*
--		 * if ->release runs before mmu_notifier_unregister it
--		 * must be handled as it's the only way for the driver
--		 * to flush all existing sptes and stop the driver
--		 * from establishing any more sptes before all the
--		 * pages in the mm are freed.
--		 */
--		if (mn->ops->release)
--			mn->ops->release(mn, mm);
--	srcu_read_unlock(&srcu, id);
--
- 	spin_lock(&mm->mmu_notifier_mm->lock);
- 	while (unlikely(!hlist_empty(&mm->mmu_notifier_mm->list))) {
- 		mn = hlist_entry(mm->mmu_notifier_mm->list.first,
- 				 struct mmu_notifier,
- 				 hlist);
-+
- 		/*
--		 * We arrived before mmu_notifier_unregister so
--		 * mmu_notifier_unregister will do nothing other than
--		 * to wait ->release to finish and
--		 * mmu_notifier_unregister to return.
-+		 * Unlink.  This will prevent mmu_notifier_unregister()
-+		 * from also making the ->release() callout.
- 		 */
- 		hlist_del_init_rcu(&mn->hlist);
-+		spin_unlock(&mm->mmu_notifier_mm->lock);
-+
-+		/*
-+		 * Clear sptes. (see 'release' description in mmu_notifier.h)
-+		 */
-+		if (mn->ops->release)
-+			mn->ops->release(mn, mm);
-+
-+		spin_lock(&mm->mmu_notifier_mm->lock);
+-		pte_base = (pte_t *)map_low_page((pte_t *)pmd_page_vaddr(*pmd));
++		pte_base = (pte_t *)pmd_page_vaddr(*pmd);
+ 		remove_pte_table(pte_base, addr, next, direct);
+ 		free_pte_table(pte_base, pmd);
+-		unmap_low_page(pte_base);
  	}
- 	spin_unlock(&mm->mmu_notifier_mm->lock);
  
- 	/*
--	 * synchronize_srcu here prevents mmu_notifier_release to
--	 * return to exit_mmap (which would proceed freeing all pages
--	 * in the mm) until the ->release method returns, if it was
--	 * invoked by mmu_notifier_unregister.
--	 *
--	 * The mmu_notifier_mm can't go away from under us because one
--	 * mm_count is hold by exit_mmap.
-+	 * All callouts to ->release() which we have done are complete.
-+	 * Allow synchronize_srcu() in mmu_notifier_unregister() to complete
-+	 */
-+	srcu_read_unlock(&srcu, id);
-+
-+	/*
-+	 * mmu_notifier_unregister() may have unlinked a notifier and may
-+	 * still be calling out to it.	Additionally, other notifiers
-+	 * may have been active via vmtruncate() et. al. Block here
-+	 * to ensure that all notifier callouts for this mm have been
-+	 * completed and the sptes are really cleaned up before returning
-+	 * to exit_mmap().
- 	 */
- 	synchronize_srcu(&srcu);
- }
-@@ -294,31 +296,31 @@ void mmu_notifier_unregister(struct mmu_
- {
- 	BUG_ON(atomic_read(&mm->mm_count) <= 0);
+ 	/* Call free_pmd_table() in remove_pud_table(). */
+@@ -975,10 +974,9 @@ remove_pud_table(pud_t *pud_start, unsig
+ 			continue;
+ 		}
  
-+	spin_lock(&mm->mmu_notifier_mm->lock);
- 	if (!hlist_unhashed(&mn->hlist)) {
--		/*
--		 * SRCU here will force exit_mmap to wait ->release to finish
--		 * before freeing the pages.
--		 */
- 		int id;
+-		pmd_base = (pmd_t *)map_low_page((pmd_t *)pud_page_vaddr(*pud));
++		pmd_base = (pmd_t *)pud_page_vaddr(*pud);
+ 		remove_pmd_table(pmd_base, addr, next, direct);
+ 		free_pmd_table(pmd_base, pud);
+-		unmap_low_page(pmd_base);
+ 	}
  
--		id = srcu_read_lock(&srcu);
- 		/*
--		 * exit_mmap will block in mmu_notifier_release to
--		 * guarantee ->release is called before freeing the
--		 * pages.
-+		 * Ensure we synchronize up with __mmu_notifier_release().
- 		 */
-+		id = srcu_read_lock(&srcu);
-+
-+		hlist_del_rcu(&mn->hlist);
-+		spin_unlock(&mm->mmu_notifier_mm->lock);
-+
- 		if (mn->ops->release)
- 			mn->ops->release(mn, mm);
--		srcu_read_unlock(&srcu, id);
+ 	if (direct)
+@@ -1001,11 +999,10 @@ remove_pagetable(unsigned long start, un
  
--		spin_lock(&mm->mmu_notifier_mm->lock);
--		hlist_del_rcu(&mn->hlist);
-+		/*
-+		 * Allow __mmu_notifier_release() to complete.
-+		 */
-+		srcu_read_unlock(&srcu, id);
-+	} else
- 		spin_unlock(&mm->mmu_notifier_mm->lock);
--	}
+ 		next = pgd_addr_end(start, end);
  
- 	/*
--	 * Wait any running method to finish, of course including
--	 * ->release if it was run by mmu_notifier_relase instead of us.
-+	 * Wait for any running method to finish, including ->release() if it
-+	 * was run by __mmu_notifier_release() instead of us.
- 	 */
- 	synchronize_srcu(&srcu);
+-		pud = (pud_t *)map_low_page((pud_t *)pgd_page_vaddr(*pgd));
++		pud = (pud_t *)pgd_page_vaddr(*pgd);
+ 		remove_pud_table(pud, start, next, direct);
+ 		if (free_pud_table(pud, pgd))
+ 			pgd_changed = true;
+-		unmap_low_page(pud);
+ 	}
  
+ 	if (pgd_changed)
 _
 
-Patches currently in -mm which might be from holt@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mmu_notifier_unregister-null-pointer-deref-and-multiple-release-callouts.patch
+fb-rework-locking-to-fix-lock-ordering-on-takeover.patch
+linux-next.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+bugh-prevent-double-evaulation-of-in-build_bug_on-fix.patch
+bugh-compilerh-introduce-compiletime_assert-build_bug_on_msg-checkpatch-fixes.patch
+i-need-old-gcc.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-v2-fix.patch
+timer_list-convert-timer-list-to-be-a-proper-seq_file-fix-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix.patch
+sched-proc-sched_stat-fails-on-very-very-large-machines-v2-fix-fix.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines-fix.patch
+sched-proc-sched_debug-fails-on-very-very-large-machines-v2-fix.patch
+mm.patch
+mm-memcontrolc-convert-printkkern_foo-to-pr_foo.patch
+mm-hugetlbc-convert-to-pr_foo.patch
+cma-make-putback_lru_pages-call-conditional-fix.patch
+mm-vmscan-clean-up-get_scan_count-fix.patch
+mm-vmscan-compaction-works-against-zones-not-lruvecs-fix.patch
+mm-page_allocc-__setup_per_zone_wmarks-make-min_pages-unsigned-long.patch
+mm-vmscanc-__zone_reclaim-replace-max_t-with-max.patch
+mmotm-memcgvmscan-do-not-break-out-targeted-reclaim-without-reclaimed-pagespatch-fix-fix.patch
+mm-make-madvisemadv_willneed-support-swap-file-prefetch-fix.patch
+mm-compaction-make-__compact_pgdat-and-compact_pgdat-return-void.patch
+mm-remove-flags-argument-to-mmap_region-fix.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix.patch
+memory-hotplug-remove-sys-firmware-memmap-x-sysfs-fix-fix-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix.patch
+memory-hotplug-common-apis-to-support-page-tables-hot-remove-fix-fix-fix-fix-fix-fix.patch
+memory-hotplug-remove-page-table-of-x86_64-architecture-fix.patch
+memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix.patch
+memory-hotplug-do-not-allocate-pdgat-if-it-was-not-freed-when-offline-fix-fix.patch
+cpu_hotplug-clear-apicid-to-node-when-the-cpu-is-hotremoved-fix.patch
+cpu-hotplugmemory-hotplug-clear-cpu_to_node-when-offlining-the-node-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix-checkpatch-fixes.patch
+page_alloc-add-movable_memmap-kernel-parameter-fix-fix-fix.patch
+acpi-memory-hotplug-extend-movablemem_map-ranges-to-the-end-of-node-fix.patch
+memory-failure-do-code-refactor-of-soft_offline_page.patch
+memory-failure-use-num_poisoned_pages-instead-of-mce_bad_pages-fix.patch
+mm-memory-failurec-fix-wrong-num_poisoned_pages-in-handling-memory-error-on-thp-fix.patch
+mm-dont-inline-page_mapping.patch
+swap-make-each-swap-partition-have-one-address_space-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix.patch
+page-writebackc-subtract-min_free_kbytes-from-dirtyable-memory-fix-fix.patch
+memcg-reduce-the-size-of-struct-memcg-244-fold-fix.patch
+memcg-fast-hierarchy-aware-child-test-fix.patch
+mm-rename-page-struct-field-helpers.patch
+mm-rename-page-struct-field-helpers-fix.patch
+mm-page_alloc-add-informative-debugging-message-in-page_outside_zone_boundaries-fix.patch
+drop_caches-add-some-documentation-and-info-messsge.patch
+memcg-debugging-facility-to-access-dangling-memcgs-fix.patch
+scripts-pnmtologo-fix-for-plain-pbm-checkpatch-fixes.patch
+kernel-smpc-cleanups.patch
+backlight-add-lms501kf03-lcd-driver-fix.patch
+backlight-add-lms501kf03-lcd-driver-fix-fix.patch
+backlight-add-new-lp8788-backlight-driver-checkpatch-fixes.patch
+drivers-video-backlight-makefile-cleanup.patch
+checkpatch-dont-emit-the-camelcase-warning-for-pagefoo.patch
+binfmt_elfc-use-get_random_int-to-fix-entropy-depleting.patch
+rtc-ds1307-long-block-operations-bugfix-fix.patch
+rtc-max77686-add-maxim-77686-driver-fix.patch
+rtc-pcf8523-add-low-battery-voltage-support-fix.patch
+rtc-add-rtc-driver-for-tps80031-tps80032-v2-fix.patch
+rtc-add-support-for-spi-rtc-rx4581-checkpatch-fixes.patch
+hfsplus-add-osx-prefix-for-handling-namespace-of-mac-os-x-extended-attributes.patch
+signal-allow-to-send-any-siginfo-to-itself-fix.patch
+signalfd-add-ability-to-return-siginfo-in-a-raw-format-v2-fix.patch
+fs-proc-clean-up-printks.patch
+fs-proc-clean-up-printks-fix.patch
+fs-seq_filec-seq_lseek-fix-switch-statement-indenting.patch
+fs-seq_filec-seq_lseek-fix-switch-statement-indenting-checkpatch-fixes.patch
+drivers-char-miscc-misc_register-do-not-loop-on-misc_list-unconditionally-fix.patch
+dma-debug-new-interfaces-to-debug-dma-mapping-errors-fix-fix.patch
+aio-kiocb_cancel-fix.patch
+wait-add-wait_event_hrtimeout-fix.patch
+aio-use-cancellation-list-lazily-fix-fix.patch
+aio-give-shared-kioctx-fields-their-own-cachelines-fix.patch
+generic-dynamic-per-cpu-refcounting-fix.patch
+generic-dynamic-per-cpu-refcounting-sparse-fixes-fix.patch
+generic-dynamic-per-cpu-refcounting-doc-fix.patch
+aio-dont-include-aioh-in-schedh-fix.patch
+aio-dont-include-aioh-in-schedh-fix-fix.patch
+aio-dont-include-aioh-in-schedh-fix-3.patch
+aio-kill-ki_retry-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix.patch
+block-aio-batch-completion-for-bios-kiocbs-fix-fix-fix-fix-fix-fix.patch
+debugging-keep-track-of-page-owners-fix-2-fix.patch
+journal_add_journal_head-debug.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
 
